@@ -4,6 +4,12 @@ satisfies: [R2, R6, R7, R8]
 # fn-30-release-evidence-graph-and-manual.6 Wire protected manual authorization workflow and root UX
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Release evidence policy, retention/signing, human roles, revocation, workflows, and authorization are owned by a named downstream release-policy component under the standalone canary/release boundary or an existing external release platform—not by `tools/umpire`. Umpire receipts are immutable generic inputs only. The release owner consumes retained standalone-canary evidence plus external build/deployment attestations, preserves each trust class, and acquires no semantic reinterpretation or deployment authority. Replace legacy `tools/umpire/release` paths and reusable Umpire release-policy types accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Expose the reviewed release boundary through root commands and one isolated, manually dispatched, multi-environment workflow for R2, R6-R8. Own local retention, signed evidence-index, and role-decision production while consuming externally signed build/deployment attestations by fixed content identity.
 
 **Size:** M

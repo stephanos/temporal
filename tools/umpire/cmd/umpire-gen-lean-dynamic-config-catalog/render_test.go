@@ -32,9 +32,14 @@ func TestRenderCatalogIsCompleteAndIndependentOfInputOrder(t *testing.T) {
 		"Temporal/DynamicConfig/Settings.lean",
 		"Temporal/DynamicConfig/Types.lean",
 	}, sortedArtifactPaths(first))
-	require.Contains(t, string(first["Temporal/DynamicConfig.lean"]), "import Temporal.DynamicConfig.Settings")
-	require.Contains(t, string(first["Temporal/DynamicConfig/Types.lean"]), "inductive CanonicalValue")
+	facade := string(first["Temporal/DynamicConfig.lean"])
+	require.Contains(t, facade, "import Temporal.DynamicConfig.Settings")
+	require.Contains(t, facade, "/-!")
+	types := string(first["Temporal/DynamicConfig/Types.lean"])
+	require.Contains(t, types, "inductive CanonicalValue")
+	require.Contains(t, types, "/-!")
 	settings := string(first["Temporal/DynamicConfig/Settings.lean"])
+	require.Contains(t, settings, "/-!")
 	require.Contains(t, settings, "def a_b : Setting")
 	require.Contains(t, settings, "def z_setting : Setting")
 	require.Contains(t, settings, "def fixtures : List ResolutionFixture")

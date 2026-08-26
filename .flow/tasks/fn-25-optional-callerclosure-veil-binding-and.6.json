@@ -11,6 +11,6 @@
   "spec": "fn-25-optional-callerclosure-veil-binding-and",
   "spec_path": ".flow/tasks/fn-25-optional-callerclosure-veil-binding-and.6.md",
   "status": "todo",
-  "title": "Expose the optional command or record clean deferral",
-  "updated_at": "2026-08-26T13:22:23.198001Z"
+  "title": "Expose the optional TemporalVerify command or record clean deferral",
+  "updated_at": "2026-08-26T20:42:11.924556Z"
 }

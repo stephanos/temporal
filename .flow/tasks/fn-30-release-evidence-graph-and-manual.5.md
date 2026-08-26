@@ -4,6 +4,12 @@ satisfies: [R6, R7]
 # fn-30-release-evidence-graph-and-manual.5 Implement two-role authorization, veto, and revocation
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Release evidence policy, retention/signing, human roles, revocation, workflows, and authorization are owned by a named downstream release-policy component under the standalone canary/release boundary or an existing external release platform—not by `tools/umpire`. Umpire receipts are immutable generic inputs only. The release owner consumes retained standalone-canary evidence plus external build/deployment attestations, preserves each trust class, and acquires no semantic reinterpretation or deployment authority. Replace legacy `tools/umpire/release` paths and reusable Umpire release-policy types accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement the append-only role-decision boundary, protected role-decision signer mode, ReleaseAuthorizationSet publisher, and closed verifier/controller CLI modes for R6 and R7. Authorization consumes an exact still-current qualified set and never gains deployment capabilities.
 
 **Size:** M

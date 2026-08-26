@@ -1,9 +1,15 @@
 ---
 satisfies: [R2, R8]
 ---
-# fn-18-versioned-umpire-artifact-boundary.1 Make the existing Experiment artifact a vertical canonical package
+# fn-18-versioned-umpire-artifact-boundary.1 Complete the executable ExperimentSpec and canonical artifact package
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+The current writer must define the complete executable `ExperimentSpec` version required by Umpire4: setup, participant programs, typed symbolic references, actions, faults, ordering/concurrency/causality, observations, expectation program, termination/convergence, phase bounds, omissions, and cleanup. Preserve legacy `umpire-experiment/v1` bytes as read-only compatibility fixtures; do not freeze that incomplete shape as the current writer.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Prepare R2/R8's Lean-owned schema boundary by moving the existing artifact implementation behind vertical modules and adding shared canonical/binding vocabulary without aliases.
 
 **Size:** M
@@ -29,7 +35,6 @@ Prepare R2/R8's Lean-owned schema boundary by moving the existing artifact imple
 - [ ] Persisted bytes are exactly the canonical document plus one LF.
 - [ ] The facade exposes vertical modules with no duplicate structure or compatibility alias.
 - [ ] Non-empty choice/variant/fault fixtures preserve request-only semantics and existing comments.
-
 ## Acceptance
 - [ ] R2's existing artifact contract remains byte-identical behind the new package layout.
 - [ ] Shared binding/canonical vocabulary is domain-neutral and inert.

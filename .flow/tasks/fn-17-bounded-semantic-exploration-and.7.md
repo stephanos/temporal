@@ -1,9 +1,15 @@
 ---
 satisfies: [R8]
 ---
-# fn-17-bounded-semantic-exploration-and.7 Wire root exploration ergonomics and synchronize documentation
+# fn-17-bounded-semantic-exploration-and.7 Publish Exploration facades and protocol documentation
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Publish only the `Umpire.Exploration` and Temporal semantic facades plus protocol/coverage documentation. Remove the legacy `umpire-explore` and `temporal-model-explore` surfaces; command ergonomics, durable resume, and runtime claims belong to fn-33.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Complete R8 with root-only command wiring, public facades, user documentation, and precise C8 status updates.
 
 **Size:** M
@@ -30,7 +36,6 @@ Complete R8 with root-only command wiring, public facades, user documentation, a
 - [ ] Missing/invalid Make variables fail concisely before Lake execution.
 - [ ] Documentation never calls model coverage execution evidence or Milestone C complete.
 - [ ] No model-local Makefile, extra glossary, persisted reader, CI file, or Umpire3 reference/use is added.
-
 ## Acceptance
 - [ ] Public facades, root command, docs, and roadmap satisfy R8.
 - [ ] All focused suites plus `UmpireTests`, `TemporalModelTests`, and root smoke command pass.

@@ -4,6 +4,12 @@ satisfies: [R2, R3, R4, R5, R6, R8]
 # fn-20-local-execution-semantic-conformance.5 Prove cross-layer fail-closed semantic interpretation
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+The fail-closed matrix must independently mutate and classify raw evidence admission, System observation qualification, refinement correspondence/derivation, Feature trace identity, and Property evaluation. A valid runtime or SDK history replay cannot substitute for checked refinement.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Join the real Lean checker and Go controller with independent corruption/ambiguity oracles before exposing the command (R2-R6/R8).
 
 **Size:** M
@@ -24,7 +30,6 @@ Join the real Lean checker and Go controller with independent corruption/ambigui
 - `.flow/tasks/fn-18-versioned-umpire-artifact-boundary.6.md` — status/identity corruption cases
 - `.flow/tasks/fn-19-bounded-local-temporal-execution-and.7.md` — source closure/capacity mutations
 - `model/Temporal/Feature/Nexus/CallerClosureTests.lean` — current literal scenario expectations
-
 ## Acceptance
 - [ ] Every R2-R6 invalid edge is diagnosed at its owning layer and no mutation oracle calls implementation logic under test.
 - [ ] Valid partial, ambiguous, conflicting, unsupported, violated, and operationally failed/incomplete controls publishable-in-memory non-success Results rather than tooling errors.

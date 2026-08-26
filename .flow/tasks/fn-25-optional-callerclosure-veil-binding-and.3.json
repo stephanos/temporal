@@ -11,6 +11,6 @@
   "spec": "fn-25-optional-callerclosure-veil-binding-and",
   "spec_path": ".flow/tasks/fn-25-optional-callerclosure-veil-binding-and.3.md",
   "status": "todo",
-  "title": "Add exact optional dependency and external result admission",
-  "updated_at": "2026-08-26T13:22:22.449818Z"
+  "title": "Add Umpire Verify Veil opt-in dependency and result admission",
+  "updated_at": "2026-08-26T20:42:10.706058Z"
 }

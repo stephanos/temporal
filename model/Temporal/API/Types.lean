@@ -2,6 +2,13 @@
 -- This is a structural descriptor projection, not behavioral semantics.
 import Temporal.API.Proto
 
+/-!
+Generated Lean representations of source Protobuf messages, enumerations, and oneofs.
+
+The declarations preserve descriptor structure for handwritten consumers. Recursive Protobuf
+references remain explicit through `MessageRef` and carry no behavioral meaning.
+-/
+
 set_option linter.missingDocs false
 set_option maxRecDepth 100000
 

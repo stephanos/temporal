@@ -143,3 +143,6 @@ A disposable overlay lets the exact current primary project and handwritten sour
 | R5 | Measurements and decision precedence | `.4`, `.5` | — |
 | R6 | Canonical receipt/status/root UX | `.5`, `.6` | — |
 | R7 | Integration guards and documentation | `.2`, `.6` | — |
+| R8 | Verify.Veil toolchain and import isolation | `.1`–`.6` | — |
+
+

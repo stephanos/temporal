@@ -4,6 +4,12 @@ satisfies: [R3, R4, R5, R6, R7, R8]
 # fn-29-bounded-production-canary-execution-and.8 Compose the canary qualification controller and closed run mode
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R3-R8 behind one production-fixed canary controller and the qualification binary's closed run mode.
 
 **Size:** M
@@ -35,7 +41,6 @@ Cleanup/postflight and isolation facts must close before conformance and qualifi
 - [ ] Every cancel/failure/non-success/cleanup/reporting/publication row preserves exact facts without redispatch.
 - [ ] Crash/restart stage fakes prove v2 recovery resumes the remaining reserve rather than resetting the 64-call total, while staging v1 remains outside this controller.
 - [ ] Run mode accepts only set, pilot evidence, output root, and run ID and exposes no target/action/fault/claim selector.
-
 ## Acceptance
 - [ ] R3-R8 controller, run mode, sibling handshake, stage order, status, and publication contracts are complete.
 - [ ] Independent stage fakes and command integration tests pass.

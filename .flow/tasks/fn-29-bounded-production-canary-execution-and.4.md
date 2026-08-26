@@ -4,6 +4,12 @@ satisfies: [R4, R5]
 # fn-29-bounded-production-canary-execution-and.4 Implement the fenced canary participant and cleanup lifecycle
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R4/R5's exact lease, idempotent canary mutation, forbidden-capability closure, cleanup, and postflight behavior by reusing the remote lifecycle seams.
 
 **Size:** M
@@ -37,7 +43,6 @@ No customer-facing rollback exists because the canary performs no deployment or 
 - [ ] Every forbidden capability is structurally absent; foreground RPC N+1 enters the cleanup reserve, and reserve/worker-bound N+1 yields exact incomplete containment.
 - [ ] Exact SDK worker options start without panic, process regular/sticky workflow plus Nexus tasks under one-slot bounds, and emit no activity poll or activity-task response.
 - [ ] Partial start, cancel, crash, authority loss, fence/scope violation, cleanup failure/uncertainty, and drift yield exact non-success without unrelated mutation.
-
 ## Acceptance
 - [ ] R4/R5 bounded lifecycle, containment, cleanup, and postflight are complete.
 - [ ] Focused race/public-boundary/idempotency/no-capability matrices pass.

@@ -433,3 +433,7 @@ surfaces.
 | R6 | End-to-end orchestration and status preservation | `.5`, `.6`, `.7`, `.9` | — |
 | R7 | Direct/root command and isolated manual workflow | `.6`, `.7`, `.9` | — |
 | R8 | Independent verification and scoped documentation | `.7`, `.9` | — |
+| R9 | Complete ExperimentSpec through generated CI tests | `.2`, `.3`, `.5`, `.7` | — |
+| R10 | Per-commit native model verification without pilot gate | `.5`, `.6`, `.9` | — |
+
+

@@ -4,6 +4,12 @@ satisfies: [R2, R3, R4, R5, R6]
 # fn-27-hermetic-ci-execution-and-qualification.5 Compose CI provenance, execution, conformance, and qualification
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Compose generated-test execution, canonical conformance, named qualification, and the applicable `umpire-check-model` receipt without making them one outcome. Per-commit model checks and runtime qualification remain distinct evidence.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R2/R3/R4/R5/R6 behind one deep end-to-end controller with no second authority.
 
 **Size:** M
@@ -34,7 +40,6 @@ Implement R2/R3/R4/R5/R6 behind one deep end-to-end controller with no second au
 - [ ] One bounded valid run traverses runtime, canonical conformance, offline policy, v3 admission, and exactly one final publication.
 - [ ] Valid runtime/semantic/qualification non-success is published with all dimensions intact and status 2; tooling failures use the exact phase/boolean contract.
 - [ ] Postflight tree/resource/authority outcomes follow the exact reason table; containment changes, cancellation, cleanup uncertainty, publication conflict, and broken reporting never leak authority or trigger an automatic rerun.
-
 ## Acceptance
 - [ ] R2/R3/R4/R5/R6 end-to-end controller and isolation invariants are complete.
 - [ ] Independent fakes cover every stage, status precedence, cancellation, and publication ambiguity.

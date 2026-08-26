@@ -3,6 +3,13 @@
 import Temporal.API.Proto
 import Temporal.API.Types
 
+/-!
+Generated gRPC method descriptors projected from the source Protobuf API.
+
+Each service namespace contains explicitly typed method descriptor values. These declarations describe
+transport structure only; handwritten model modules assign behavioral meaning.
+-/
+
 set_option linter.missingDocs false
 set_option maxRecDepth 100000
 

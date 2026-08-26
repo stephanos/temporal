@@ -292,3 +292,9 @@ An empty production migration registry is more honest than inventing a predecess
 | R6 | Named migrations | `.2`, `.9` | — |
 | R7 | Artifact sets/atomic publication | `.2`, `.8`, `.10` | — |
 | R8 | Fixtures, commands, docs, boundaries | `.1`–`.11` | — |
+| R9 | Complete current executable ExperimentSpec | `.1`, `.3`, `.8` | — |
+| R10 | Explicit canonical JSON profile | `.1`–`.3` | — |
+| R11 | Replay, verification, and qualification envelopes | `.6`–`.8` | — |
+| R12 | Inert Go artifact transport | `.2`–`.11` | — |
+
+

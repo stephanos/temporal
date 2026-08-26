@@ -7,13 +7,13 @@ satisfies: [R3, R4, R5]
 Prove the conformance-facing System-trace to Feature-Property handoff and layer-specific outcomes for R3–R5.
 
 **Size:** M
-**Files:** `model/Temporal/System/Nexus/**`, `model/Umpire/Refinement/Tests/**`, `model/Temporal/System/Nexus/RefinementTests.lean`
-**Touches:** [model/Temporal/System/Nexus/**, model/Umpire/Refinement/Tests/**]
+**Files:** `model/Temporal/System/Nexus/**`, `model/Umpire/Refinement/Tests/**`, `model/Temporal/RefinementTests/Nexus.lean`
+**Touches:** [model/Temporal/System/Nexus/**, model/Umpire/Refinement/Tests/**, model/Temporal/RefinementTests/Nexus.lean]
 
 ### Approach
-- Consume only an already-qualified System semantic trace.
+- Consume an already-qualified System semantic trace plus explicit source setup, and re-admit its initial state and every step through the checked System kernel before translation.
 - Apply the checked refinement before invoking the unchanged Feature Property evaluator.
-- Build independent Observation, Refinement, and Property mutations.
+- Build independent Observation, source-admission, Refinement, and Property mutations under the exact non-base-System composed-test root `Temporal.RefinementTests.Nexus`.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -22,15 +22,17 @@ Prove the conformance-facing System-trace to Feature-Property handoff and layer-
 - `model/Temporal/Feature/Nexus/CallerClosureTests.lean` — current property fixtures
 
 ### Acceptance
-- [ ] Qualified System traces reach Feature properties only through checked Refinement.
+- [ ] Only source-kernel-admitted qualified System traces reach Feature properties through checked Refinement.
 - [ ] Observation, Refinement, and Property failures retain distinct diagnostics and identities.
 - [ ] No runtime or raw-evidence adapter enters this task.
-
 ## Acceptance
-- [ ] R3–R5 positive and independent mutation matrices pass.
+- [ ] Only source-kernel-admitted qualified System traces reach Feature properties through checked Refinement.
+- [ ] Observation, Refinement, and Property failures retain distinct diagnostics and identities.
+- [ ] No runtime or raw-evidence adapter enters this task.
+### Acceptance
+- [ ] R3–R5 positive, source target/digest/setup/transition, and independent boundary mutation matrices pass.
 - [ ] A refinement failure never becomes unknown evidence or a property violation.
 - [ ] Feature evaluation remains unchanged.
-
 ## Done summary
 TBD
 

@@ -381,3 +381,6 @@ can never establish a claim. The native fn-24 path remains the stable C11 baseli
 | R4 | Honest external result/receipt admission | `.3`, `.4`, `.5` | — |
 | R5 | Typed counterexample lowering and canonical replay | `.4`, `.5` | — |
 | R6 | Focused UX, isolation, verification, and roadmap outcome | `.5`, `.6` | — |
+| R7 | Verify.Veil, Temporal.Verify, and opt-in aggregate | `.2`–`.6` | — |
+
+

@@ -1,9 +1,15 @@
 ---
 satisfies: [R2]
 ---
-# fn-27-hermetic-ci-execution-and-qualification.2 Bind and execute the disposable CI runtime profile
+# fn-27-hermetic-ci-execution-and-qualification.2 Bind generated Go tests to the disposable CI runtime profile
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Execute the same complete current `ExperimentSpec` through generated ordinary Go tests and the shared runner. CI may select the declared disposable adapter/profile but cannot own a private runtime script or infer missing meaning from legacy v1.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R2 by composing a distinct CI RuntimeConfiguration with the existing runtime engine and loopback lifecycle.
 
 **Size:** M
@@ -34,7 +40,6 @@ Implement R2 by composing a distinct CI RuntimeConfiguration with the existing r
 - [ ] Invalid profile/program/budget/capability/authority/input variants fail before server startup.
 - [ ] Every phase outcome preserves fn-19 precedence, evidence bounds, fresh isolation/cleanup contexts, and zero surviving handles.
 - [ ] Local runtime fixtures, APIs, and command behavior remain unchanged.
-
 ## Acceptance
 - [ ] R2 exact configuration, runtime admission, lifecycle, and evidence closure are complete.
 - [ ] Fake-oracle and bounded live loopback tests pass with no filesystem/publication or external authority.

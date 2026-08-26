@@ -4,6 +4,12 @@ satisfies: [R1, R2, R3, R5, R7]
 # fn-14-milestone-a-pilot-baseline-and-lean.2 Measure isolated mutations, coverage, and feedback cost
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+This task is retained only as historical Milestone A research design. The spec is superseded as an Umpire4 roadmap gate: do not implement it, do not use Agentworkflow evidence or `LEAN_FIRST_GO` for runtime/qualification admission, and do not add it as a dependency. Current Target, Refinement, artifact, runner, conformance, verification, and qualification specs proceed independently.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Build the provider-free source-snapshot, mutation-validity, detection, coverage, and timing runner for R1/R2/R3/R5/R7.
 
 **Size:** M
@@ -29,7 +35,6 @@ Build the provider-free source-snapshot, mutation-validity, detection, coverage,
 ### Quick command
 
 `go test -count=1 -tags test_dep ./tools/umpire/pilot -run 'TestMutation|TestCoverage|TestTiming'`
-
 ## Acceptance
 
 - [ ] Both early mutations are valid, detected for the exact expected semantic reason, and meet the focused feedback threshold before the remaining ten run.

@@ -173,3 +173,7 @@ One command matches the user's end-to-end intent and keeps the library decomposi
 | R6 | Exact Nexus negative-control minimization proof | `.6`, `.8` | — |
 | R7 | Expected-trace exact reviewed promotion | `.5`, `.7` | — |
 | R8 | CLI, Make, tests, docs, and boundaries | `.7`, `.8` | — |
+| R9 | Three distinct replay classes | `.1`, `.2`, `.4`, `.6`, `.7` | — |
+| R10 | Persisted replay-bundle closure | `.1`, `.4`, `.8` | — |
+
+

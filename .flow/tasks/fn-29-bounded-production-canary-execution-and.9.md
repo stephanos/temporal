@@ -4,6 +4,12 @@ satisfies: [R3, R5, R8, R9]
 # fn-29-bounded-production-canary-execution-and.9 Reuse remote recovery/progress and add the protected canary workflow
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R5/R8/R9's recovery, reconcile, progress, root UX, and manual protected production-canary workflow without duplicating the staging control protocol.
 
 **Size:** M
@@ -36,7 +42,6 @@ Only the external protected-environment branch rule prevents modified code on a 
 - [ ] Recovery/progress are bounded, secret-free, runner-temp-contained, and excluded from qualification identity; v2 persists the exact remaining reserve and cannot reset it after restart.
 - [ ] The only Make change is repository-root run-mode wiring.
 - [ ] Workflow policy tests prove the credential-free default-ref guard, exact-SHA checkout, manual protected isolation, pinning, least privilege, non-release output, progress, and always-run reconciliation/evidence; the runbook gates provisioning on the external deployment-branch rule.
-
 ## Acceptance
 - [ ] R3/R5/R8/R9 shared control, closed recovery, progress, root UX, and protected workflow are complete.
 - [ ] Focused path/fence/no-capability/workflow policy tests pass.

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T20:50:00Z",
+  "depends_on": [
+    "fn-34-enforce-lean-model-boundaries-with.1"
+  ],
+  "id": "fn-34-enforce-lean-model-boundaries-with.2",
+  "priority": null,
+  "spec": "fn-34-enforce-lean-model-boundaries-with",
+  "spec_path": ".flow/tasks/fn-34-enforce-lean-model-boundaries-with.2.md",
+  "status": "todo",
+  "title": "Align normative and supporting architecture documentation",
+  "updated_at": "2026-08-26T20:56:44.703339Z"
+}

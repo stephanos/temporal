@@ -4,6 +4,12 @@ satisfies: [R3, R4, R5, R7]
 # fn-30-release-evidence-graph-and-manual.4 Qualify and publish the immutable release evidence graph
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Release evidence policy, retention/signing, human roles, revocation, workflows, and authorization are owned by a named downstream release-policy component under the standalone canary/release boundary or an existing external release platform—not by `tools/umpire`. Umpire receipts are immutable generic inputs only. The release owner consumes retained standalone-canary evidence plus external build/deployment attestations, preserves each trust class, and acquires no semantic reinterpretation or deployment authority. Replace legacy `tools/umpire/release` paths and reusable Umpire release-policy types accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement fixed-slot graph construction, bounded policy-process evaluation, qualification receipt creation, and ReleaseEvidenceSet publication for R3-R5 and the qualify portion of R7. This is the single deep boundary from checked inputs to an inspectable immutable decision.
 
 **Size:** M

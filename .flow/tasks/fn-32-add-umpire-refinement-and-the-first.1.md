@@ -6,13 +6,17 @@ satisfies: [R1, R2, R6]
 ## Description
 Create the authored-to-checked Refinement facade and exhaustive domain-neutral validation fixtures for R1 and R2.
 
+### Review reconciliation (normative)
+
+V1 is an exact bounded forward simulation. The inert declaration contains finite setup/state/action/outcome/observation/relation/capability tables, a complete support/omission partition, and a positive semantic-transition bound. A separate proof witness indexed by the exact declaration and checked targets supplies `initialForward`, `stepForward`, and `requiredCoverage`; the trace theorem is derived. There is no reverse/bisimulation obligation, named Behavior occurrence mapping, or serialized proof term.
+
 **Size:** M
 **Files:** `model/Umpire/Refinement.lean`, `model/Umpire/Refinement/**`, `model/Umpire.lean`
 **Touches:** [model/Umpire/Refinement.lean, model/Umpire/Refinement/**, model/Umpire.lean]
 
 ### Approach
 - Mirror the checked-language lifecycle used by Target and Observation.
-- Keep source/destination targets and every meaning-bearing mapping explicit.
+- Keep source/destination targets, mapping tables, support/omission partition, application bound, and every forward proof obligation explicit.
 - Canonicalize before exposing the checked value.
 
 ### Investigation targets
@@ -23,10 +27,9 @@ Create the authored-to-checked Refinement facade and exhaustive domain-neutral v
 - `model/Umpire/Core.lean` — semantic trace vocabulary
 
 ### Acceptance
-- [ ] Complete valid declarations check deterministically.
-- [ ] Stale, partial, ambiguous, wrong-kind, and obligation-broken declarations fail without a partial value.
+- [ ] Complete valid declarations plus exact indexed witnesses check deterministically, with proof terms excluded from identity bytes.
+- [ ] Stale, partial, ambiguous, wrong-kind, incomplete support/omission, invalid-bound, and witness-index mismatches fail without a partial value.
 - [ ] The public facade is Temporal-independent.
-
 ## Acceptance
 - [ ] R1/R2 positive and negative matrices pass.
 - [ ] Reordered equivalent declarations have identical checked identity.

@@ -7,11 +7,11 @@ satisfies: [R2, R4, R6]
 Add the minimum pure System meaning and focused Nexus refinement leaf for R4 without moving implementation details into Feature.
 
 **Size:** M
-**Files:** `model/Temporal/System/Nexus/**`, `model/Temporal/System.lean`, `model/Temporal/Feature/Nexus/CallerClosure.lean`
+**Files:** `model/Temporal/System/Nexus/**`, `model/Temporal/System.lean`
 **Touches:** [model/Temporal/System/Nexus/**, model/Temporal/System.lean]
 
 ### Approach
-- Keep the existing Feature caller-closure declarations unchanged.
+- Import and consume the existing Feature caller-closure declarations unchanged; treat the Feature file as an investigation target, not a mutation target.
 - Define only the pure mechanism vocabulary needed for the first correspondence.
 - Put the cross-import exclusively in the family Refinement leaf.
 
@@ -24,9 +24,8 @@ Add the minimum pure System meaning and focused Nexus refinement leaf for R4 wit
 
 ### Acceptance
 - [ ] Feature and base System tests run independently.
-- [ ] The focused leaf proves the declared correspondence.
+- [ ] The focused leaf supplies the exact forward initial/step/coverage witness and proves the declared correspondence.
 - [ ] Feature has no System/Verify import and System mechanism code has no Feature import.
-
 ## Acceptance
 - [ ] R4 positive correspondence passes.
 - [ ] Import-direction mutations fail.

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T20:54:17.189191Z",
+  "depends_on": [
+    "fn-31-deepen-umpire-target-and-simplify.2"
+  ],
+  "id": "fn-31-deepen-umpire-target-and-simplify.7",
+  "priority": null,
+  "spec": "fn-31-deepen-umpire-target-and-simplify",
+  "spec_path": ".flow/tasks/fn-31-deepen-umpire-target-and-simplify.7.md",
+  "status": "todo",
+  "title": "Derive Query and Planning views from checked targets",
+  "updated_at": "2026-08-26T20:59:06.187251Z"
+}

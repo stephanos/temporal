@@ -414,3 +414,6 @@ participant.
 | R7 | Canary provenance, receipt v4, and ArtifactSet v5 | `.6`, `.7`, `.8`, `.11`, `.12` | — |
 | R8 | Deep controller and closed command/workflow | `.8`, `.9`, `.10`, `.11` | — |
 | R9 | Protected proof surface and operator documentation | `.9`, `.10`, `.11`, `.12`, `.13` | — |
+| R10 | Standalone tools/canary ownership | `.1`–`.13` | — |
+
+

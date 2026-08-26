@@ -1,9 +1,15 @@
 ---
 satisfies: [R7]
 ---
-# fn-19-bounded-local-temporal-execution-and.8 Expose the local-run command and synchronize runtime documentation
+# fn-19-bounded-local-temporal-execution-and.8 Integrate generated Go tests and synchronize runtime documentation
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+There is no public `umpire-local-run`, `umpire-run-local`, or separate run-tests CLI. Generate ordinary Go tests through `umpire-gen-tests` / `umpire-gen-tests-go`; those tests call the reusable `tools/umpire/runner` directly and preserve normal `go test` discovery, filtering, breakpoints, and failures. An internal harness may prove adapters but is not user-facing.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Complete R7 with the exact direct/root command, status contracts, public usage documentation, and honest roadmap status.
 
 **Size:** M
@@ -29,7 +35,6 @@ Complete R7 with the exact direct/root command, status contracts, public usage d
 - [ ] Missing/extra/malformed arguments fail before execution with no stdout or side effect.
 - [ ] Documentation gives one copy-paste local run and does not imply semantic conformance or remote support.
 - [ ] No model-local Makefile, CI, remote adapter, or prohibited legacy reference/use is added.
-
 ## Acceptance
 - [ ] R7 command, root UX, docs, and implementation-time roadmap status are complete.
 - [ ] All focused suites and the one bounded live command pass.

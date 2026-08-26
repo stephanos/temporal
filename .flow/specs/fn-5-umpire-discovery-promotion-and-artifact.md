@@ -141,3 +141,6 @@ Promotion returns inert checked values and lineage rather than editing files. Th
 | R5 | Strict readers and migrations | — | Owned completely by `fn-18-versioned-umpire-artifact-boundary`; retained here only for captured-requirement traceability. |
 | R6 | Catalog-selected stable regression projections | `.2`, `.6`, `.7` | — |
 | R7 | Semantic and package boundaries | `.1`–`.7` | — |
+| R8 | Revised catalog and runtime-promotion boundary | `.1`–`.7` | — |
+
+

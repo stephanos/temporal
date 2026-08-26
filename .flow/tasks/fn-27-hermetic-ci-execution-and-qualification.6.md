@@ -4,6 +4,12 @@ satisfies: [R6, R7]
 # fn-27-hermetic-ci-execution-and-qualification.6 Expose the CI qualification command and isolated workflow
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+The workflow must run the default per-commit `umpire-check-model` profile plus generated ordinary Go tests before qualification. It has no fn-14 pilot gate and must not introduce a public Umpire CI-runner command that duplicates `go test`.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R6/R7's single user-facing command, repository-root Make target, and manual GitHub Actions closure.
 
 **Size:** M
@@ -34,7 +40,6 @@ Implement R6/R7's single user-facing command, repository-root Make target, and m
 - [ ] Workflow policy tests prove manual-only isolation, least privilege, immutable pins, no secret/OIDC/cache/default/release coupling, runner-temp output, and bounded upload.
 - [ ] Status 2 uploads inspectable evidence then fails; status 1 never masquerades as a qualified result.
 - [ ] No Makefile below repository root is added or modified.
-
 ## Acceptance
 - [ ] R6/R7 CLI, root Make UX, and isolated manual workflow are complete.
 - [ ] Direct/root/static-workflow tests cover success, valid non-success, tooling failure, cancellation, and reporting failure.

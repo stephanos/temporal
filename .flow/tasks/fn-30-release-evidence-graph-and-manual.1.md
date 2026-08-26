@@ -4,6 +4,12 @@ satisfies: [R1, R4]
 # fn-30-release-evidence-graph-and-manual.1 Define reusable release semantics and the fixed Temporal policy
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Release evidence policy, retention/signing, human roles, revocation, workflows, and authorization are owned by a named downstream release-policy component under the standalone canary/release boundary or an existing external release platform—not by `tools/umpire`. Umpire receipts are immutable generic inputs only. The release owner consumes retained standalone-canary evidence plus external build/deployment attestations, preserves each trust class, and acquires no semantic reinterpretation or deployment authority. Replace legacy `tools/umpire/release` paths and reusable Umpire release-policy types accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Define the pure release vocabulary, fixed Temporal policy, and the executable policy protocol for R1 and R4. Keep reusable candidate, evidence-slot, graph, decision, trust, expiry, and authorization contracts under Umpire while the exact four-profile policy remains Temporal-owned.
 
 **Size:** M

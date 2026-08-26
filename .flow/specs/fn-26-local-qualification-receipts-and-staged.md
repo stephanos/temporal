@@ -392,3 +392,7 @@ identity chain this component exists to preserve.
 | R5 | Qualification receipt and ArtifactSet v2 | `.3`, `.5`, `.6` | — |
 | R6 | Offline controller and root UX | `.4`, `.5`, `.6` | — |
 | R7 | Scoped docs and staged boundaries | `.6` | — |
+| R8 | Qualification independent of the obsolete pilot | `.1`–`.6` | — |
+| R9 | Typed qualification receipt envelope | `.3`, `.4`, `.6` | — |
+
+

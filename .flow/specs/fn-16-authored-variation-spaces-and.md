@@ -181,3 +181,6 @@ Fixed small limits favor complete deterministic validation over an open generato
 | R6 | Existing artifact v1 intent fields | `.2`, `.4`, `.5` | — |
 | R7 | Synthetic and Temporal examples | `.5`, `.6` | — |
 | R8 | Verification, docs, boundaries | `.1`–`.6` | — |
+| R9 | Checked intent and complete-artifact handoff | `.1`, `.2`, `.4`, `.6` | — |
+
+

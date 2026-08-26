@@ -151,3 +151,6 @@ A second exact program/configuration pair preserves the existing normal fixture 
 | R5 | Checked mapping and qualified uniqueness-only semantic violation | `.7`, `.5`, `.6` | — |
 | R6 | Paired live control, identity, status, and publication proof | `.5`, `.6` | — |
 | R7 | Existing UX, documentation, boundaries, and aggregate verification | `.1`–`.7` | — |
+| R8 | System-owned negative control and checked refinement | `.1`, `.2`, `.5`, `.7` | — |
+
+

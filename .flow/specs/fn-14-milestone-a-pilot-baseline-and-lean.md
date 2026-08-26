@@ -2,6 +2,12 @@
 
 > HTML render lens: local file `.flow/artifacts/fn-14-milestone-a-pilot-baseline-and-lean/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
+## Umpire4 architecture reconciliation
+
+This proposal is superseded as an Umpire4 roadmap gate. Retain it as historical research design only; do not implement its Agentworkflow trials, do not require a `LEAN_FIRST_GO` receipt, and do not use its evidence to admit runtime execution, semantic conformance, verification, qualification, canary, or release work.
+
+The current roadmap instead deepens `Umpire.Target`, introduces checked `Umpire.Refinement`, completes the executable artifact boundary, and separates pure Exploration from the downstream campaign. All downstream dependencies on this pilot are removed. Flow cannot close a spec whose tasks were never completed, so this tombstone remains explicitly unready until the tracker supports superseded/canceled closure.
+
 ## Overview
 
 Freeze and execute the pre-live Milestone A proof protocol before downstream runtime or qualification work. The pilot records eight source-backed historical Nexus defects, twelve semantic mutations across five closed families, current hand-authored coverage and cost baselines, and exactly three independent Agentworkflow authoring trials. A strict, recomputable receipt produces one of four outcomes: `LEAN_FIRST_GO`, `FACADE_FOLLOW_UP`, `NO_GO`, or `INCONCLUSIVE`.
@@ -138,3 +144,5 @@ A narrative-only assessment was rejected because it cannot prove thresholds were
 | R5 | Strict reproducible evidence bundle | `.2`, `.3`, `.4`, `.5`, `.6` | — |
 | R6 | Closed decision and downstream authorization | `.5`, `.6` | — |
 | R7 | Boundary and documentation enforcement | `.1`–`.6` | — |
+
+

@@ -4,6 +4,12 @@ satisfies: [R3]
 # fn-29-bounded-production-canary-execution-and.3 Implement protected canary authority and exact-scope preflight
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Build R3's production-canary authority/scope boundary on the remote transport seam and prove the dedicated target and run-owned identity closure before mutation.
 
 **Size:** M
@@ -33,7 +39,6 @@ The adapter can verify exact dedicated routing and run-owned identities, but it 
 - [ ] Every identity/routing/capability/attestation/collision failure performs no mutation or publication.
 - [ ] Valid preflight returns only opaque handles and checked secret-free digests.
 - [ ] Race, cancellation, TLS, path, disclosure, stale/redirect, and N/N+1 matrices pass.
-
 ## Acceptance
 - [ ] R3 protected authority and exact-scope preflight are complete without duplicating the remote adapter.
 - [ ] Independent tests prove no mutation and no secret disclosure on every failure row.

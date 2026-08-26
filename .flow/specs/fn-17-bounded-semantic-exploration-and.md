@@ -4,9 +4,9 @@
 
 ## Umpire4 architecture reconciliation
 
-The Lean-owned module exposes the serializable campaign protocol `initialize`, `nextBatch`, and `observe`. It owns semantic candidate identity, selection, mutation meaning, coverage, priorities, corpus decisions, and opaque resumable state. A separate Go `campaign` module under `tools/umpire` owns leases, parallel execution through the shared runner/conformance path, checkpoint publication, time budgets, duplicate-result handling, and crash-safe resume without interpreting semantic coverage.
+The Lean-owned module exposes the serializable semantic protocol `initialize`, `nextBatch`, and `observe`. It owns semantic candidate identity, selection, mutation meaning, coverage, priorities, corpus decisions, and opaque resumable state. This spec remains pure: it performs no runtime I/O, leasing, checkpoint publication, or command handling.
 
-The user-facing command is `umpire-fuzz` with coherent `list` and `explain` surfaces plus environment, time, parallelism, state, and seed controls that only tighten model-declared bounds. The existing `temporal-model-explore` command contract is retired. Exhaustive model-only checks stay under `umpire-check-model`; runtime fuzzing never claims completeness.
+The downstream campaign spec owns Go concurrency and the `umpire-fuzz` surface while consuming this protocol, artifacts, the shared runner, and conformance. Exhaustive model-only checks stay under `umpire-check-model`; runtime fuzzing never claims completeness.
 
 ## Overview
 
@@ -40,7 +40,7 @@ CheckedExperimentSpace + exact base kernel
  selected ExperimentSpecs   CoverageReport
 ```
 
-`Umpire.Exploration` is a terminal reusable package above `Umpire.Space`, `Umpire.Planning`, and `Umpire.Artifact`. It does not redefine axes, choices, fault intents, coverage goals, point lowering, target kernels, or artifact compilation. Temporal-owned bindings and the first concrete command stay under `Temporal.Tool` and `Temporal.Feature`.
+`Umpire.Exploration` is a terminal reusable package above `Umpire.Space`, `Umpire.Planning`, and `Umpire.Artifact`. It does not redefine axes, choices, fault intents, coverage goals, point lowering, target kernels, or artifact compilation. Temporal-owned semantic bindings stay under `Temporal.Feature`; the downstream campaign owns the first concrete command.
 
 `ExplorationStrategy` is separate from the existing per-Query `SearchStrategy`. Its closed v1 variants are `exhaustive`, `pairwise`, `tWise strength`, `seededRandom`, and `coverageGuided`. The existing Query policy still controls target-trace planning inside each point. The misleading existing `SearchStrategy.coverageGuided` seed rotation is renamed to `seeded` with canonical name `seeded`, and legacy `coverage-guided` is rejected rather than aliased; only this package may claim coverage guidance.
 
@@ -85,8 +85,7 @@ All algorithms are total over the compiled bounded universe and recompute their 
 - `resumeExplore` is monotonic. It may only retain prior selections/credits and add new ones; the selection ceiling may stay equal or increase but cannot fall below the prior recorded ceiling. Recomputing fresh at the new ceiling must equal resumed state, selected bytes, and report bytes.
 - Canonical output order is pinned specs by identity followed by exploratory specs in selection order; report maps and omission lists are identity-sorted. Strategy decisions record their score/reason.
 - `CoverageReport` has a canonical encoder for inspection. There is no report/state reader, filesystem persistence, migration, or compatibility alias in this spec; fn-18 owns strict versioned persisted decoding.
-- A Temporal-owned `temporal-model-explore` executable exposes the exact fn-16 Nexus fault-matrix binding through `list` and `explore <space> --strategy <exhaustive|pairwise|t-wise|random|coverage> --budget <1..256>`. `--strength <2..4>` is required only for `t-wise` and rejected otherwise. `--seed <positive-nat>` is required only for `random` and rejected otherwise. The other four strategies use canonical seed zero. The strings `breadth-first`, `shortest`, `seeded`, `seeded-random`, `coverage-guided`, mixed-case spellings, and all other aliases are rejected. Success writes one canonical JSON envelope containing selected specs and report; invalid arguments/bindings write one canonical error to stderr, no stdout, and status 1.
-- Root Make wiring is only `make umpire-explore SPACE=<identity> STRATEGY=<...> BUDGET=<n> [STRENGTH=<n>] [SEED=<n>]`. No model-local Makefile is introduced.
+- Versioned pure `initialize`, `nextBatch`, and `observe` functions expose the semantic campaign protocol over canonical values. They perform no leasing, execution, persistence, or command parsing; the downstream campaign spec owns those effects.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -97,7 +96,7 @@ All algorithms are total over the compiled bounded universe and recompute their 
 - Requested fault selection credits only a `fault-intent` coordinate and never target outcome, realization, receipt, or success.
 - A statically feasible but dynamically uncovered goal is `uncovered`; it is `unreachable-in-universe` only after exhaustive universe exhaustion. Budget- or goal-terminated runs cannot claim unreachability.
 - Reordering authored axes/choices/goals, compiled candidate input, pinned input, or symmetry declarations cannot affect checked identities, selected bytes, or report bytes.
-- The package performs no IO. Only the Temporal executable is effectful, and it reads only compiled bindings and arguments.
+- The package and its tests perform no runtime I/O. Command handling and durable campaign state are downstream concerns.
 
 ## Quick commands
 <!-- scope: technical -->
@@ -108,9 +107,8 @@ cd model && mise exec -- lake build Umpire.Exploration.Tests.Selection
 cd model && mise exec -- lake build Umpire.Exploration.Tests.Resume
 cd model && mise exec -- lake build Umpire.Exploration.Tests.Symmetry
 cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.ExplorationTests
-cd model && mise exec -- lake build Temporal.Tool.ExploreTests
-cd model && mise exec -- lake build UmpireTests TemporalModelTests temporal-model-explore
-make umpire-explore SPACE=temporal.nexus.basic-lifecycle.space.fault-matrix STRATEGY=coverage BUDGET=3
+cd model && mise exec -- lake build Umpire.Exploration.Tests.Protocol
+cd model && mise exec -- lake build UmpireTests TemporalModelTests
 make umpire-build-model
 ```
 
@@ -124,10 +122,8 @@ make umpire-build-model
 - **R5:** Optional symmetry reduction requires a checked proof that every orbit preserves goal credits and semantic coverage under an explicit axis/choice renaming and induces a total quotient over pair/t-wise interactions; no symmetry is inferred. Representatives and omissions are deterministic, direct/equivalent interaction credits remain distinct, and coverage cannot inflate. [paraphrase]
 - **R6:** Immutable state/report values support monotonic compatible in-memory resume with a nondecreasing recorded selection ceiling. Fresh and resumed runs at the same larger ceiling are byte-identical; stale/tampered/incompatible state fails. Termination distinguishes goals satisfied, interactions satisfied, universe exhausted, and budget exhausted without overclaiming verification or reachability. [paraphrase]
 - **R7:** Valid pinned regressions are selected and credited before exploration, stay in a separate result partition, consume no exploration budget, and win semantic-identity overlap. Invalid pinned inputs fail the run; no second regression registry or promotion path is created. [user]
-- **R8:** Synthetic fixtures and the exact Temporal Nexus fault-matrix example prove deterministic selection, semantic reports, root command ergonomics, and vertical package purity. No runtime, evidence, conformance, fault realization, persisted reader/migration, replay/minimization/promotion, Go facade, model-local Makefile, or Umpire3 use is introduced. [user]
-- **R9:** Lean Exploration provides versioned `initialize`, `nextBatch`, and `observe` operations whose canonical state binds the ordered candidate universe, strategy/version, bounds, seed, model/checker identities, selected/leased identities, coverage, priorities, corpus, omissions, and exhaustion status. Errors: stale or crossed state, incompatible strategy/model/bounds, lease duplication, unknown result identity, non-monotone update, or incomplete reproduction tuple fails without silently resetting a campaign.
-- **R10:** A separate Go campaign coordinator leases and executes batches through the shared runner/conformance interfaces, persists opaque state and artifacts atomically, and resumes after worker/process failure without reproducing selection, mutation, scoring, or coverage meaning. Errors: duplicate active lease, expired/stale result, partial checkpoint publication, lost cleanup/result, worker cancellation, or time-budget exhaustion retains an honest resumable outcome and never claims semantic completeness.
-- **R11:** `umpire-fuzz` is the sole runtime-exploration command and exposes exact list/explain/run semantics while only selecting or tightening model-declared bounds. This criterion supersedes the `temporal-model-explore` command and the no-runtime portion of R8. Errors: broadened bounds, CLI-authored behavior/mutation/coverage, a runtime completeness claim, ambient adapter/authority selection, or conflating time exhaustion with absence fails completion.
+- **R8:** Synthetic fixtures and the exact Temporal Nexus fault-matrix example prove deterministic selection, semantic reports, protocol behavior, and vertical package purity. No runtime, evidence, conformance, fault realization, persisted reader/migration, replay/minimization/promotion, Go facade, command, model-local Makefile, or Umpire3 use is introduced. [user]
+- **R9:** Lean Exploration provides versioned pure `initialize`, `nextBatch`, and `observe` operations whose canonical state binds the ordered candidate universe, strategy/version, bounds, seed, model/checker identities, issued and observed candidate identities, coverage, priorities, corpus, omissions, and exhaustion status. Errors: stale or crossed state, incompatible strategy/model/bounds, unknown or duplicate result identity, non-monotone update, or incomplete reproduction tuple fails without silently resetting exploration.
 
 ## Early proof point
 <!-- scope: technical -->
@@ -137,7 +133,7 @@ Task `.3` is the algorithm proof gate. On independent three-axis and four-axis f
 ## Boundaries
 <!-- scope: business -->
 
-- No changes to Property, Behavior, Query, target-owned transition semantics, or ExperimentSpec v1.
+- No changes to Property, Behavior, Query, target-owned transition semantics, or the ExperimentSpec schema.
 - No alternate Space checker/compiler or target kernel.
 - No live runtime, SDK participant, server, fault realization, receipt, evidence, Observation qualification, or semantic conformance.
 - No persisted artifact/state/report reader, schema migration, retained campaign store, or compatibility alias.
@@ -182,4 +178,5 @@ Persisted resume is deferred to fn-18's versioned decoding boundary. This spec e
 | R5 | Proof-carrying symmetry | `.4`, `.5` | — |
 | R6 | Resume and exact termination | `.4`, `.5`, `.6` | — |
 | R7 | Pinned precedence | `.5`, `.6` | — |
-| R8 | Fixtures, Temporal example, command, docs | `.1`–`.7` | — |
+| R8 | Fixtures, Temporal example, protocol, docs | `.1`–`.7` | — |
+| R9 | Serializable pure exploration protocol | `.1`, `.4`, `.5`, `.7` | — |

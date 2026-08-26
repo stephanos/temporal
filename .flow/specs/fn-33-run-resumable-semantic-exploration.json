@@ -1,0 +1,146 @@
+{
+  "branch_name": "fn-33-run-resumable-semantic-exploration",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-26T20:35:48.907514Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-17-bounded-semantic-exploration-and",
+    "fn-18-versioned-umpire-artifact-boundary",
+    "fn-19-bounded-local-temporal-execution-and",
+    "fn-20-local-execution-semantic-conformance",
+    "fn-5-umpire-discovery-promotion-and-artifact"
+  ],
+  "id": "fn-33-run-resumable-semantic-exploration",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-08-26T21:16:21.349606Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "eb452f6334d3f91ac4562eca9c7c0e871221094388f5d382383b36a45d773e8c",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8da64f4b14158e11820cbb77eb5ccad2",
+            "classification": "introduced",
+            "findingId": "finding-8da64f4b14158e11820cbb77eb5ccad2",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8c447ffe5bdcf85b0be1fb1c0f77988d",
+            "classification": "introduced",
+            "findingId": "finding-8c447ffe5bdcf85b0be1fb1c0f77988d",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5b21e257b709c034a2ee4fcee40001b3",
+            "classification": "introduced",
+            "findingId": "finding-5b21e257b709c034a2ee4fcee40001b3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5834a52161ea02bc303b6f418940d5a2",
+            "classification": "introduced",
+            "findingId": "finding-5834a52161ea02bc303b6f418940d5a2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-37ea2a6b4dd61690b6ab986601aafb03",
+            "classification": "introduced",
+            "findingId": "finding-37ea2a6b4dd61690b6ab986601aafb03",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-59cfbe52602ebf2198379254bbb6f7cd",
+            "classification": "introduced",
+            "findingId": "finding-59cfbe52602ebf2198379254bbb6f7cd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-cd9c67e92214a9807fee0bc7c9e18fb4",
+            "classification": "introduced",
+            "findingId": "finding-cd9c67e92214a9807fee0bc7c9e18fb4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8271fbd92c22b66a8ae9fb4caa55d138",
+            "classification": "introduced",
+            "findingId": "finding-8271fbd92c22b66a8ae9fb4caa55d138",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "55aebf1642b209a11923b75ce1c1c3cfb4a70705",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 882626,
+      "output_sha256": "0e43a61149f8ce19565c9db7fcdef91107b65356024d67eee29e5433a4d91ac2",
+      "reservation_id": "0d59b17fc4a84b9d88384aeec5b826cf",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T21:16:21.333509Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-33-run-resumable-semantic-exploration.md",
+  "status": "open",
+  "title": "Run resumable semantic exploration campaigns with umpire-fuzz",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-26T21:18:41.852673Z"
+}

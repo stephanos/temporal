@@ -4,6 +4,12 @@ satisfies: [R2, R6]
 # fn-29-bounded-production-canary-execution-and.5 Admit canary evidence through canonical semantic conformance
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Implement R2/R6 by admitting the exact canary runtime/evidence pair through the unchanged Lean semantic authority.
 
 **Size:** M
@@ -32,7 +38,6 @@ Canary safety may downgrade qualification but cannot rewrite Result. The checker
 - [ ] Equivalent qualified observations may share outcome identity while all operational/environment identities stay distinct.
 - [ ] Authority/isolation/release fields cannot supply or override semantic coordinates.
 - [ ] Every insufficiency/corruption/crossing mutation yields the exact non-satisfied or fail-closed outcome and prior protocols remain unchanged.
-
 ## Acceptance
 - [ ] R2/R6 canary conformance admission and independent status preservation are complete.
 - [ ] Focused Lean/Go protocol, paired-profile, corruption, and race suites pass.

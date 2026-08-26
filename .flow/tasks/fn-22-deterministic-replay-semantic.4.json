@@ -12,6 +12,6 @@
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.4.md",
   "status": "todo",
-  "title": "Run deterministic semantic and evidence minimization",
-  "updated_at": "2026-08-26T11:52:41Z"
+  "title": "Run deterministic canonical replay and semantic minimization",
+  "updated_at": "2026-08-26T20:42:05.919213Z"
 }

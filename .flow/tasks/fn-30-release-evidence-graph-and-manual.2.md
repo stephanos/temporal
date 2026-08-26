@@ -4,6 +4,12 @@ satisfies: [R2]
 # fn-30-release-evidence-graph-and-manual.2 Implement the signed release trust and attestation channel
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+Release evidence policy, retention/signing, human roles, revocation, workflows, and authorization are owned by a named downstream release-policy component under the standalone canary/release boundary or an existing external release platform—not by `tools/umpire`. Umpire receipts are immutable generic inputs only. The release owner consumes retained standalone-canary evidence plus external build/deployment attestations, preserves each trust class, and acquires no semantic reinterpretation or deployment authority. Replace legacy `tools/umpire/release` paths and reusable Umpire release-policy types accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Build the strict operational trust boundary for R2: canonical retention, the signed seven-slot release evidence index, externally issued build/deployment attestations, trust snapshots, evaluation contexts, and the fixed protected-signer core. Keep cryptographic verification, key acquisition, and bounded byte admission outside Lean.
 
 **Size:** M

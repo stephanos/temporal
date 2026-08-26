@@ -4,6 +4,12 @@ satisfies: [R1, R2, R6, R7, R9]
 # fn-29-bounded-production-canary-execution-and.12 Prove schema compatibility and aggregate regression closure
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Complete R1/R2/R6/R7/R9 with the cross-language schema/version matrix and repository aggregate gates after operational adversaries pass.
 
 **Size:** M
@@ -34,7 +40,6 @@ This task owns compatibility and aggregate closure, not live protected productio
 - [ ] Semantic purity and public evidence status matrices pass without authority/isolation leakage.
 - [ ] Aggregate regression, secret-scan, and unchanged-generated-output gates pass.
 - [ ] No fixture or codec claim is presented as authenticated production origin.
-
 ## Acceptance
 - [ ] R1/R2/R6/R7/R9 schema compatibility and aggregate regression closure are complete.
 - [ ] Focused and aggregate Lean/Go/model checks pass.

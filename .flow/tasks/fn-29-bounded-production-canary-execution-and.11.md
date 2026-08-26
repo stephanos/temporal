@@ -4,6 +4,12 @@ satisfies: [R3, R4, R5, R7, R8, R9]
 # fn-29-bounded-production-canary-execution-and.11 Run adversarial authority, containment, and security matrices
 
 ## Description
+### Umpire4 reconciliation (normative)
+
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+
+The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
+
 Expand R3-R5/R7-R9's harness into bounded adversarial matrices for the production authority, target, lease, lifecycle, recovery, secrets, and forbidden capabilities.
 
 **Size:** M
@@ -34,7 +40,6 @@ This task owns operational and security adversaries, not exhaustive artifact-ver
 - [ ] Worker startup does not panic, regular/sticky workflow plus Nexus tasks run with exact pinned SDK options, and the harness observes no activity poll or activity-task response.
 - [ ] Race/fuzz/secret/capability scans prove sensitive values and forbidden mutation surfaces cannot cross the closed interfaces.
 - [ ] Workflow tests prove repository guards honestly and docs retain the unverifiable external-environment prerequisite.
-
 ## Acceptance
 - [ ] R3-R5/R7-R9 adversarial authority, containment, and security verification is complete.
 - [ ] Focused race, bounded-fuzz, secret, permission, capability, and workflow-policy suites pass.
