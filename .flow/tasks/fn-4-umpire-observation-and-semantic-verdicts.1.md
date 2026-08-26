@@ -42,6 +42,8 @@ Implemented the Temporal-independent typed Observation mapping DSL, canonical ch
 baseline: red (new and later-task Observation targets absent pre-edit); `make umpire-check-regression` green pre-edit
 
 stage: impl-review - ran [2026-08-26T17:14:37Z..2026-08-26T17:24:10Z]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 50a5f3c7183ea40495b34c2af4d4990731fbef5e, dbbcd249c8e86e5ac4b690429bf3d98c5a0a3bfd
 - Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests, cd model && mise exec -- lake build Umpire.Property.Tests.Validation, cd model && mise exec -- lake build Umpire, cd model && mise exec -- lake build UmpireTests, make umpire-check-regression, baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation failed pre-edit: task target absent), baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests failed pre-edit: task aggregate absent), baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: later-task target absent), baseline: green (make umpire-check-regression)
