@@ -6,19 +6,25 @@ idiomatic to its Lean ecosystem and approachable to readers who are still learni
 Readability is a layer over idiomatic Lean, not a replacement for it. Keep standard Lean notation,
 proof techniques, and abstractions; explain unfamiliar concepts at module and API boundaries.
 
+For a read-only review, use the authoring rules as evaluation criteria and run only applicable
+non-mutating checks. Do not edit or regenerate files merely to complete the authoring workflow;
+report the changes and checks the implementation still needs.
+
 ## 1. Orient to the project
 
-Before editing:
+Before editing or evaluating a change:
 
-1. Locate the affected Lake workspace and read its `lean-toolchain`, Lake configuration, relevant
-   imports, and nearby source files. A repository may contain multiple workspaces with different
-   toolchains and dependencies.
+1. Locate every Lake workspace that directly compiles or imports the changed source. Read each
+   workspace's `lean-toolchain` and Lake configuration, plus the relevant imports and nearby source
+   files. A repository may contain multiple consumer workspaces with different toolchains and
+   dependencies.
 2. Classify each target as authored or generated. Honor ownership markers, generated-file headers,
-   and project documentation. For generated Lean, change the owning generator or input, regenerate
-   the complete owned surface, and run its staleness and downstream checks.
+   and project documentation. When implementing a generated Lean change, change the owning
+   generator or input, regenerate the complete owned surface, and run its staleness and downstream
+   checks.
 3. Determine whether the code follows Lean Std, mathlib, or a project-specific style, and identify
    the intended public API from its documented facades and module boundaries.
-4. Identify the affected workspace's build, test, formatting, and lint commands, plus any
+4. Identify each consumer workspace's build, test, formatting, and lint commands, plus any
    repository-level generation or regression gate that covers the changed surface.
 5. Search the project and its dependencies for existing definitions, theorems, instances, and
    notation that cover the requested behavior.
@@ -27,7 +33,7 @@ The local project is the source of truth. Mirror its naming, namespaces, imports
 proof style when they differ from these general guidelines. Do not change the Lean version or add a
 broad import merely to make one proof easier.
 
-This step is complete when file ownership, the affected workspace, its available libraries and
+This step is complete when file ownership, every consumer workspace, their available libraries and
 tactics, the reusable API, and the applicable verification gates are known.
 
 ## 2. Design declarations as interfaces
@@ -122,7 +128,8 @@ code.
 
 ### Module documentation
 
-Give a substantial module a `/-! ... -/` docstring that explains:
+Give a new substantial module, or one whose purpose or API boundary materially changes, a
+`/-! ... -/` docstring that explains:
 
 - the problem the module addresses;
 - its central types and definitions;
@@ -138,7 +145,12 @@ Give a substantial module a `/-! ... -/` docstring that explains:
   behavior.
 - Make each public docstring understandable in an editor hover, without requiring the declaration's
   implementation or surrounding source to be visible.
-- Add small, checked examples for important user-facing APIs.
+- Add small, checked examples when they are the clearest documentation or regression for an
+  important user-facing API being created or materially changed.
+
+Keep existing module and declaration documentation accurate when the behavior it describes
+changes. In learner-facing onboarding or tutorial documentation, include a locally tailored key for
+non-obvious Lean syntax rather than repeating a generic key in source files.
 
 ### Comments
 
@@ -160,9 +172,10 @@ proof. Do not expand a focused change into documentation work on unrelated decla
   locally when possible, and document a surprising nonconstructive dependency.
 - Use type classes for coherent, reusable structure rather than as shortcuts for passing arbitrary
   local data.
-- Resolve warnings and linter findings introduced by the change or emitted by its required checks,
-  or document the specific reason an exception is necessary. Report unrelated pre-existing
-  findings without expanding the task to fix them.
+- Resolve warnings and linter findings introduced by the change. For unrelated pre-existing output
+  from a required check, verify it against a known baseline and report it without expanding the
+  task. If no reliable baseline exists, or project policy requires that gate to be green, treat the
+  failure as a blocker unless the responsible owner explicitly accepts a waiver.
 - Check that elaboration did not add stronger hypotheses, unwanted type-class requirements, or an
   unnecessary nonconstructive dependency.
 
@@ -170,66 +183,71 @@ proof. Do not expand a focused change into documentation work on unrelated decla
 
 Choose proof techniques according to the declaration's assurance boundary:
 
-- Kernel-checked proof terms are the default for reusable and load-bearing theorems unless the
-  local project documents another trust policy.
+- Proof terms whose dependencies stay within the declaration's approved axiom baseline are the
+  default for reusable and load-bearing theorems.
 - `native_decide` relies on compiler evaluation and adds an axiom dependency: some toolchains use
   `Lean.ofReduceBool`, while newer ones create an auditable axiom for each invocation. Use it only
-  where the local trust policy permits it, commonly in tests or private computation witnesses.
+  where the local trust policy accepts the entire native path, commonly in tests or private
+  computation witnesses. Native evaluation also trusts the compiler, runtime, and the semantic
+  correctness of native implementations selected through `@[implemented_by]` or `@[extern]`;
+  `#print axioms` records acceptance of compiler trust but cannot validate those substitutions.
   Trace whether a private witness feeds a public or load-bearing value; the witness's visibility
-  does not contain its trust dependency. A successful build does not give such a proof the same
-  assurance as a kernel-checked proof term.
-- Finished code contains no `sorry` or `admit`. Add an `axiom` only when an explicit specification
-  calls for that assumption and requires it to be disclosed.
+  does not contain its trust dependency. For a load-bearing declaration whose policy does not
+  explicitly accept that path, use a non-native proof.
+- Finished authored proofs contain no placeholder terms or tactics, such as uses of Lean's `sorry`
+  or `admit` syntax. Add an `axiom` only when an explicit specification calls for that assumption
+  and requires it to be disclosed.
 
-Audit changed trust-bearing declarations with the project's checker or
-`#print axioms Fully.Qualified.name`. Establish the approved baseline from local documentation and
-tests. Treat `sorryAx`, native-decision axioms such as generated `native_decide` axioms or
-`Lean.ofReduceBool`, and custom axioms outside that baseline as failures unless the specification
-explicitly requires and documents them. Standard axioms are not automatically failures; their
-acceptability depends on the declared project boundary.
+Audit changed trust-bearing declarations with `#print axioms Fully.Qualified.name`,
+`Lean.Util.CollectAxioms`, or a project checker documented to compute an equivalent transitive
+inventory. Take the approved baseline from an explicit local trust policy or checker, not merely
+from existing use or passing tests. If no baseline exists, compare an existing declaration's
+inventory before and after the change and reject new dependencies unless the specification
+explicitly approves and documents them. For a new trust-bearing declaration, introduce no axiom
+dependency until its assurance boundary is explicitly stated. `sorryAx` is always a failure in
+finished authored code. Compiler-trust dependencies—including bespoke `native_decide` axioms,
+`Lean.trustCompiler`, `Lean.ofReduceBool`, and `Lean.ofReduceNat`—and custom axioms are acceptable
+only when the local trust policy or explicit specification permits them. `Classical.choice`,
+`propext`, and `Quot.sound` are not automatically failures once a project boundary exists; their
+acceptability depends on that declared boundary.
 
 This step is complete when the declaration's assumptions and trust dependencies are deliberate,
 audited, visible at the relevant boundary, and no wider in scope than necessary.
 
 ## 6. Verify with Lean
 
-1. Compile the smallest affected target after each logical change.
-2. Run the focused tests or checked examples for the changed behavior.
-3. Run the affected Lake workspace's normal build, test, formatting, and lint commands. Run a
-   repository-level generation, regression, or integration gate when project documentation
-   identifies it as covering the changed surface.
-4. Inspect warnings, unused imports, axiom-audit results, and unexpectedly slow elaboration.
-5. Re-read the theorem statements and public APIs independently of their proofs to catch accidental
+1. Compile the smallest affected target in the owning workspace after each logical change.
+2. For new or materially changed observable computational behavior, add or update an executable
+   Lean regression with positive and relevant failure cases. Put it in a Lean test declaration or
+   project doctest that an applicable verification command actually checks; an unchecked Markdown
+   fence is not a regression. A proof-only refactor that preserves the theorem statement and
+   behavior need not add a test.
+3. Run the focused tests or checked examples for the changed behavior.
+4. Run the applicable normal build, test, formatting, and lint commands for every consumer
+   workspace. Run a repository-level generation, regression, or integration gate when project
+   documentation identifies it as covering the changed surface.
+5. Inspect warnings, unused imports, axiom-audit results, and unexpectedly slow elaboration.
+6. Re-read the theorem statements and public APIs independently of their proofs to catch accidental
    changes in meaning or generality.
 
-Never infer validity from visual inspection alone. Work is complete only after Lean checks every
-changed declaration and every applicable required verification gate passes.
-
-## Reader's key to common Lean syntax
-
-Keep a key like this in project onboarding documentation rather than repeating it in every source
-file:
-
-- `(x : α)` means the caller supplies `x`.
-- `{x : α}` means Lean normally infers `x`.
-- `[C α]` asks type-class synthesis for the structure or capability `C α`.
-- `P → Q` transforms evidence of `P` into evidence of `Q`.
-- `∀ x, P x` states that `P x` holds for every `x`.
-- `∃ x, P x` states that some `x` satisfies `P x`.
-- `P ∧ Q`, `P ∨ Q`, and `¬ P` mean and, or, and not.
-- `def` introduces data or a computation.
-- `theorem` and `lemma` introduce checked proofs.
-- `by` begins a tactic proof.
-- `:=` separates a declaration's interface from its implementation or proof.
+Never infer validity from visual inspection alone. An implementation is complete only after Lean
+checks every changed declaration and every applicable required verification gate passes, except
+for a verified pre-existing failure handled by project policy or an explicitly accepted waiver. A
+read-only review is complete after the appropriate non-mutating checks run and any unexecuted
+authoring checks are reported.
 
 ## Upstream mathlib contributions
 
-When contributing to mathlib, follow its current contribution policy in addition to these
-guidelines. AI use must be disclosed as required by that policy, and the human contributor must
-understand and be able to justify all submitted content. Compose GitHub and Zulip comments in the
-human contributor's own words.
+When contributing to mathlib, follow its current contribution and AI policy. The human contributor
+must disclose AI use as required and understand and justify all submitted content. An agent must
+not generate, rewrite, or post GitHub or Zulip comments; hand that communication to the human
+contributor.
 
 ## References
+
+For technical references, select the source tag or manual version matching each affected
+`lean-toolchain`; the unversioned links below are discovery pointers. Treat contribution-policy
+links as intentionally current.
 
 - [Lean standard-library style](https://github.com/leanprover/lean4/blob/master/doc/std/style.md)
 - [Lean standard-library naming](https://github.com/leanprover/lean4/blob/master/doc/std/naming.md)
@@ -237,6 +255,7 @@ human contributor's own words.
 - [Lean tactic proofs](https://lean-lang.org/theorem_proving_in_lean4/Tactics/)
 - [Lean simplifier and simp sets](https://lean-lang.org/doc/reference/latest/The-Simplifier/Simp-sets/)
 - [Lean axioms and `native_decide`](https://lean-lang.org/doc/reference/latest/Axioms/)
+- [Lean proof validation](https://lean-lang.org/doc/reference/latest/ValidatingProofs/)
 - [Mathlib style guide](https://leanprover-community.github.io/contribute/style.html)
 - [Mathlib naming conventions](https://leanprover-community.github.io/contribute/naming.html)
 - [Mathlib contribution and AI policy](https://leanprover-community.github.io/contribute/index.html#use-of-ai)
