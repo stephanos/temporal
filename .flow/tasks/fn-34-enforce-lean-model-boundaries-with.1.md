@@ -79,9 +79,18 @@ isolated from metadata and process I/O so the rule engine is exhaustively testab
 - [ ] Focused and full verification commands pass without new dependencies or default targets.
 
 ## Done summary
-TBD
+Implemented the pure, deterministic `ModelLint.ImportGraph` boundary checker, a canonical fail-closed source inventory, authoritative metadata adapter, executable regressions, and the existing `make lint-model` integration for R1-R4. The focused Lake build and `make lint-model` pass; the latest configured Codex review is SHIP with zero surviving findings.
 
+baseline: red (`cd model && mise exec -- lake build modelLintTests modelLint` lacked the task-defined targets; `make lint` was blocked by the inherited `/home/agent/.cache/go-build` symlink)
+
+verify: green (`cd model && mise exec -- lake build modelLintTests modelLint`; `make lint-model`); inherited/tooling red (`make lint` reached green golangci with zero task-diff issues, Go vet, model graph/tests, Lean builtins, actions, and API lint, then failed at `lint-protos` with `make: protoc: No such file or directory`; log: `.flow/tmp/fn34-verify-make-lint-terminal.log`)
+
+review fixes: directory aliases, symlink cycles, containment escapes, and distinct case-sensitive sources are covered by executable regressions; the live and builtin Lake lint phases are separated to avoid nested build artifact races.
+
+memory capture: skipped because flowctl reported `Memory not initialized`.
+
+stage: impl-review - ran [2026-08-26T22:33:21.920681Z..2026-08-26T22:53:14.716689Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 2c0694a47a4ce02190549e2bec3bcb5859cf3f25, 0e58ee367c965ebbd0a78b05d0ccacf3da51c357, 81127d3dae54d6e1c001d5f679c364e773b814a4, f37b365b64b25f0dcd2a4cf9f17dc55c63b3ecaa
+- Tests: cd model && mise exec -- lake build modelLintTests modelLint (pass), make lint-model (pass), make lint (inherited/tooling red after preceding stages passed: protoc missing from PATH at lint-protos)
 - PRs:
