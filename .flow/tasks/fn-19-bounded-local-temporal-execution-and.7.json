@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T10:25:02.461700Z",
+  "depends_on": [
+    "fn-19-bounded-local-temporal-execution-and.6"
+  ],
+  "id": "fn-19-bounded-local-temporal-execution-and.7",
+  "priority": null,
+  "spec": "fn-19-bounded-local-temporal-execution-and",
+  "spec_path": ".flow/tasks/fn-19-bounded-local-temporal-execution-and.7.md",
+  "status": "todo",
+  "title": "Capture closed causal evidence and build one live output set",
+  "updated_at": "2026-08-26T10:34:49.101363Z"
+}
