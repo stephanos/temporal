@@ -53,6 +53,7 @@ verification: make umpire-check-regression (green; 64 Lean jobs)
 review fix: expanded product-prefix guards to cover qualified names, comments, and JSON source paths while allowing ordinary temporal terminology
 memory capture: skipped(error: Flow memory is not initialized)
 stage: impl-review - ran [2026-08-25T23:52:15Z..2026-08-25T23:59:35Z] | SHIP
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 517166a8709bd7a5a13dc1b77b259b30c32cb163, 03553666beb1dab648994d387ac55da998fc0e51
 - Tests: GATE_SKIPPED:smoke:green-receipt 5708253f - baseline reused from prior post-gate pass, cd model && mise exec -- lake build Temporal UmpireTests TemporalModelTests temporal-model-inspect, make umpire-check-regression
