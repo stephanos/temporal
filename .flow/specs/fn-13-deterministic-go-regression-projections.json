@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-13-deterministic-go-regression-projections",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-08-26T05:37:56.766948Z",
   "created_at": "2026-08-26T00:57:15.555026Z",
   "default_impl": null,
   "default_review": null,
@@ -18,7 +18,7 @@
     "fn-13-deterministic-go-regression-projections.4": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T01:08:21.892493Z",
   "review_attempts": [
@@ -429,6 +429,51 @@
       "timestamp": "2026-08-26T05:31:45.180944Z",
       "tool_calls": 22,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4464201c3e5444019dfbc7fade7ce31b9686c9354868a223a2c6ade3d521c75d",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-00bb8192b37c81ec4793c5e83e9cf1b3",
+            "classification": "introduced",
+            "findingId": "finding-00bb8192b37c81ec4793c5e83e9cf1b3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9b3d8c965174f8455b6869b6494d2da5a669210d",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 363686,
+      "output_sha256": "ef1f73679a47c2d61189ca9197fa2e55c999147b2a76565398ffb39620a130ab",
+      "reservation_id": "4e7f29b37e8c4bf8947927f3da930aee",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T05:37:56.759608Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -442,6 +487,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-13-deterministic-go-regression-projections.1": 0,
     "impl:fn-13-deterministic-go-regression-projections.2": 0,
     "impl:fn-13-deterministic-go-regression-projections.3": 0,
@@ -462,5 +508,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T05:31:45.191671Z"
+  "updated_at": "2026-08-26T05:37:56.769268Z"
 }
