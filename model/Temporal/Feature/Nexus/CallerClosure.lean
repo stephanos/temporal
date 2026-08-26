@@ -661,59 +661,19 @@ def exactActionQuery := materializeQuery
 def exactTraceQuery := materializeQuery
   (exactTraceQueryResult.toOption.get exactTraceQueryResult_isSome)
 
-def incrementalKernel : IncrementalPlannerKernel target := {
-  actionLimit := 1
-  actionAt := fun index => if index = 0 then some forceCloseAction else none
-  initialLimit := fun setup => if setup = clashSetup then 1 else 0
-  initialAt := fun setup index =>
-    if setup = clashSetup ∧ index = 0 then some clashState else none
-  stepLimit := fun state action =>
-    if state = clashState ∧ action = forceCloseAction then 1 else 0
-  stepAt := fun state action index =>
-    if state = clashState ∧ action = forceCloseAction ∧ index = 0 then
-      some forceCloseResult
-    else
-      none
-  actionSound := by
-    intro index action inBounds emitted
-    simp only [Nat.lt_one_iff] at inBounds
-    subst index
-    simp at emitted
-    subst action
-    exact ⟨clashState, forceCloseResult, target_force_close_is_authoritative⟩
-  actionComplete := by
-    intro state action result admitted
-    have selected := (target_step state action result admitted).2.1
-    exact ⟨0, by simp, by simp [selected]⟩
-  initialSound := by
-    intro setup index state _ emitted
-    by_cases selected : setup = clashSetup ∧ index = 0
-    · simp [selected] at emitted
-      subst state
-      change authoritativeInitial setup clashState
-      exact ⟨selected.1, rfl, wClash_reachable .upgrade⟩
-    · simp [selected] at emitted
-  initialComplete := by
-    intro setup state admitted
-    have selected := target_initial setup state admitted
-    exact ⟨0, by simp [selected.1], by simp [selected.1, selected.2]⟩
-  stepSound := by
-    intro state action index result _ emitted
-    by_cases selected : state = clashState ∧ action = forceCloseAction ∧ index = 0
-    · simp [selected] at emitted
-      subst result
-      rw [selected.1, selected.2.1]
-      exact target_force_close_is_authoritative
-    · simp [selected] at emitted
-  stepComplete := by
-    intro state action result admitted
-    have selected := target_step state action result admitted
-    exact ⟨0, by simp [selected.1, selected.2.1],
-      by simp [selected.1, selected.2.1, selected.2.2]⟩
-  actionOrdered := by intros; simp_all [semanticValueOrderKey]
-  initialOrdered := by intros; simp_all [semanticValueOrderKey]
-  stepOrdered := by intros; simp_all [transitionResultOrderKey]
-}
+def incrementalKernel : IncrementalPlannerKernel target :=
+  .ofFinite completeness {
+    action := by
+      simp [completeness]
+    initial := by
+      intro setup
+      simp only [target, transitionKernel]
+      split <;> simp
+    step := by
+      intro state action
+      simp only [target, transitionKernel]
+      split <;> simp
+  }
 
 private def kernelFor
     (query : CheckedQuery LawStatement)

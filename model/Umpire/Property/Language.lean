@@ -1,4 +1,4 @@
-import Umpire.Core
+import Umpire.Target
 
 /-! Implementation behind the `Umpire.Property` public facade. -/
 

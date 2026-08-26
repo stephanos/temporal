@@ -531,13 +531,6 @@ private def checkExactTrace
 private def countAction (action : DeclarationId) (actions : List DeclarationId) : Nat :=
   (actions.filter fun candidate => candidate == action).length
 
-private def occurrenceListKey (occurrences : List NamedOccurrence) : String :=
-  idListKey (occurrences.map NamedOccurrence.id)
-
-private def occurrenceListLe
-    (left right : List NamedOccurrence) : Bool :=
-  decide (occurrenceListKey left ≤ occurrenceListKey right)
-
 private def occurrenceIsReady
     (ordering : List OccurrenceOrder)
     (remaining : List NamedOccurrence)
@@ -546,35 +539,60 @@ private def occurrenceIsReady
     edge.after != occurrence.id ||
       !(remaining.any fun candidate => candidate.id == edge.before)
 
+private structure OccurrenceAssignmentState where
+  remaining : List NamedOccurrence
+  assignedRev : List (Option NamedOccurrence)
+
+private def insertOccurrenceState
+    (states : List OccurrenceAssignmentState)
+    (candidate : OccurrenceAssignmentState) : List OccurrenceAssignmentState :=
+  if states.any fun state => state.remaining == candidate.remaining then
+    states
+  else
+    states ++ [candidate]
+
 private def advanceOccurrenceStates
     (ordering : List OccurrenceOrder)
     (action : DeclarationId)
-    (states : List (List NamedOccurrence)) : List (List NamedOccurrence) :=
-  states.flatMap (fun remaining =>
-    let assignable := remaining.filter fun occurrence =>
-      occurrence.action == action && occurrenceIsReady ordering remaining occurrence
-    remaining :: assignable.map (fun occurrence => remaining.erase occurrence))
-  |>.mergeSort occurrenceListLe
-  |>.eraseDups
+    (states : List OccurrenceAssignmentState) : List OccurrenceAssignmentState :=
+  states.foldl (init := []) fun next state =>
+    let assignable := state.remaining.filter (fun occurrence =>
+      occurrence.action == action && occurrenceIsReady ordering state.remaining occurrence)
+      |>.mergeSort occurrenceLe
+    let assigned := assignable.map fun occurrence => {
+      remaining := state.remaining.erase occurrence
+      assignedRev := some occurrence :: state.assignedRev
+    }
+    let skipped := { state with assignedRev := none :: state.assignedRev }
+    (assigned ++ [skipped]).foldl insertOccurrenceState next
 
 /--
 Track canonical remaining-occurrence sets across the schedule. Deduplication makes equivalent
 assignment permutations one state, avoiding factorial backtracking for repeated action labels.
 -/
-private def hasOccurrenceAssignment
+private def assignOccurrenceSlots
     (schedule : List DeclarationId)
     (ordering : List OccurrenceOrder)
-    (occurrences : List NamedOccurrence) : Bool :=
+    (occurrences : List NamedOccurrence) : Option (List (Option NamedOccurrence)) :=
   let countsSufficient := occurrences.all fun occurrence =>
     countAction occurrence.action schedule ≥
       (occurrences.filter fun candidate => candidate.action == occurrence.action).length
   if !countsSufficient then
-    false
+    none
   else
-    let initial := occurrences.mergeSort occurrenceLe
+    let initial : OccurrenceAssignmentState := {
+      remaining := occurrences.mergeSort occurrenceLe
+      assignedRev := []
+    }
     let states := schedule.foldl (init := [initial]) fun states action =>
       advanceOccurrenceStates ordering action states
-    states.any List.isEmpty
+    (states.find? fun state => state.remaining.isEmpty).map fun state => state.assignedRev.reverse
+
+private def hasOccurrenceAssignment
+    (schedule : List DeclarationId)
+    (ordering : List OccurrenceOrder)
+    (occurrences : List NamedOccurrence) : Bool :=
+  (assignOccurrenceSlots schedule ordering occurrences).isSome
 
 private def isSubsequence : List DeclarationId → List DeclarationId → Bool
   | [], _ => true
@@ -926,6 +944,12 @@ private def traceActions (trace : BehaviorTrace) : List DeclarationId :=
 
 private def normalizedTrace (trace : BehaviorTrace) : BehaviorTrace :=
   { trace with setup := trace.setup.mergeSort bindingLe }
+
+/-- Canonically attribute selected action positions to authored required occurrences. -/
+def CheckedBehavior.assignOccurrences
+    (behavior : CheckedBehavior)
+    (schedule : List DeclarationId) : Option (List (Option NamedOccurrence)) :=
+  assignOccurrenceSlots schedule behavior.ordering behavior.requiredOccurrences
 
 /-- Membership is a pure predicate over already semantic, target-owned trace data. -/
 def CheckedBehavior.admits (behavior : CheckedBehavior) (candidate : BehaviorTrace) : Bool :=

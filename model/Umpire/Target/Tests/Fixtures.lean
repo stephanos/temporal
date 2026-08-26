@@ -1,8 +1,8 @@
-import Umpire.Core
+import Umpire.Target
 
-/-! Shared semantic-composition vocabulary used by the Core concern tests. -/
+/-! Shared semantic-composition vocabulary used by the Target concern tests. -/
 
-namespace Umpire.CoreTests
+namespace Umpire.TargetTests
 
 open Umpire
 
@@ -21,7 +21,7 @@ def metadata
     (digest : String := "contract-v1") : DeclarationMetadata := {
   id := id value
   kind
-  source := source "Umpire/CoreTests.lean"
+  source := source "Umpire/TargetTests.lean"
   contractDigest := digest
 }
 
@@ -55,7 +55,7 @@ def testKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   metadata := {
     id := id "test.kernel.transition"
     contractDigest := "test-kernel/v1"
-    source := source "Umpire/CoreTests.lean"
+    source := source "Umpire/TargetTests.lean"
   }
   initialStates := fun _ => [false]
   authoritativeInitial := fun _ state => state = false
@@ -152,4 +152,4 @@ def conflictingTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool B
   testTarget with connectors := []
 }
 
-end Umpire.CoreTests
+end Umpire.TargetTests

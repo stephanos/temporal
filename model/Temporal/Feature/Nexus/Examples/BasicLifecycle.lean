@@ -348,99 +348,18 @@ def materializeQuery (checked : CheckedQuery LawStatement) : CheckedQuery LawSta
   semanticDigest := checked.semanticDigest
 }
 
-def incrementalActionAt (index : Nat) : Option SemanticValue :=
-  actionDomain[index]?
-
-def incrementalInitialAt
-    (setup : List RoleBinding)
-    (index : Nat) : Option SemanticValue :=
-  (initialStates setup)[index]?
-
-def incrementalStepAt
-    (state action : SemanticValue)
-    (index : Nat) : Option (TransitionResult SemanticValue SemanticValue SemanticValue) :=
-  (stepResults state action)[index]?
-
-def incrementalKernel : IncrementalPlannerKernel target := {
-  actionLimit := actionDomain.length
-  actionAt := incrementalActionAt
-  initialLimit := fun setup => (initialStates setup).length
-  initialAt := incrementalInitialAt
-  stepLimit := fun state action => (stepResults state action).length
-  stepAt := incrementalStepAt
-  actionSound := by
-    intro index action inBounds emitted
-    rcases List.getElem?_eq_some_iff.mp emitted with ⟨_, selected⟩
-    have member : action ∈ actionDomain := by
-      rw [List.mem_iff_getElem]
-      exact ⟨index, inBounds, selected⟩
-    simp [actionDomain] at member
-    rcases member with rfl | rfl
-    · exact ⟨scheduledState, startedResult, target_scheduled_start_authoritative⟩
-    · exact ⟨startedState, succeededResult, target_started_reportSuccess_authoritative⟩
-  actionComplete := by
-    intro state action result admitted
-    change authoritativeStep state action result at admitted
-    have member : action ∈ actionDomain := by
-      simpa [actionDomain] using step_action_exposed state action result admitted
-    rw [List.mem_iff_getElem] at member
-    rcases member with ⟨index, inBounds, selected⟩
-    exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
-  initialSound := by
-    intro setup index state _ emitted
-    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
-    change authoritativeInitial setup state
-    apply initialStates_sound
-    rw [List.mem_iff_getElem]
-    exact ⟨index, inBounds, selected⟩
-  initialComplete := by
-    intro setup state admitted
-    change authoritativeInitial setup state at admitted
-    have member := initialStates_complete setup state admitted
-    rw [List.mem_iff_getElem] at member
-    rcases member with ⟨index, inBounds, selected⟩
-    exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
-  stepSound := by
-    intro state action index result _ emitted
-    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
-    change authoritativeStep state action result
-    apply stepResults_sound
-    rw [List.mem_iff_getElem]
-    exact ⟨index, inBounds, selected⟩
-  stepComplete := by
-    intro state action result admitted
-    change authoritativeStep state action result at admitted
-    have member := stepResults_complete state action result admitted
-    rw [List.mem_iff_getElem] at member
-    rcases member with ⟨index, inBounds, selected⟩
-    exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
-  actionOrdered := by
-    intro first second left right earlier emittedLeft emittedRight
-    rcases List.getElem?_eq_some_iff.mp emittedLeft with ⟨firstBound, selectedLeft⟩
-    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
-    have firstZero : first = 0 := by
-      simp [actionDomain] at firstBound secondBound
-      omega
-    have secondOne : second = 1 := by
-      simp [actionDomain] at firstBound secondBound
-      omega
-    subst first
-    subst second
-    simp [actionDomain] at selectedLeft selectedRight
-    subst left
-    subst right
-    native_decide
-  initialOrdered := by
-    intro setup first second left right earlier _ emittedRight
-    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, _⟩
-    have lengthBound := initialStates_length_le_one setup
-    omega
-  stepOrdered := by
-    intro state action first second left right earlier _ emittedRight
-    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, _⟩
-    have lengthBound := stepResults_length_le_one state action
-    omega
-}
+def incrementalKernel : IncrementalPlannerKernel target :=
+  .ofFinite completeness {
+    action := by
+      simp [completeness, actionDomain]
+      native_decide
+    initial := by
+      intro setup
+      simp [target, transitionKernel, initialStates]
+    step := by
+      intro state action
+      simp [target, transitionKernel, stepResults]
+  }
 
 def kernelFor
     (query : CheckedQuery LawStatement)
