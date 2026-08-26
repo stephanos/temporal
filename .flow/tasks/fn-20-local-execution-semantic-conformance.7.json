@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T10:50:29.254150Z",
+  "depends_on": [
+    "fn-20-local-execution-semantic-conformance.6"
+  ],
+  "id": "fn-20-local-execution-semantic-conformance.7",
+  "priority": null,
+  "spec": "fn-20-local-execution-semantic-conformance",
+  "spec_path": ".flow/tasks/fn-20-local-execution-semantic-conformance.7.md",
+  "status": "todo",
+  "title": "Run the bounded live proof and synchronize current-model documentation",
+  "updated_at": "2026-08-26T10:50:29.254150Z"
+}
