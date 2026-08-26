@@ -4,6 +4,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 # Core Mandates
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Lean:** Before any task involving Lean code, read and follow [Lean Authoring Guidelines](.plans/LEAN_GUIDELINES.md).
+- **Umpire:** Before any task involving Umpire code, read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md).
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
 - **Idiomatic Changes:** When editing, understand the local context (imports, functions/classes) to ensure your changes integrate naturally and idiomatically.
