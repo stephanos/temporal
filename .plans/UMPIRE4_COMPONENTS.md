@@ -24,7 +24,7 @@ implementation was found.
 | C2 config importer | Partial | The initialized production registry, typed generated settings, identities, and Go-produced resolution fixtures are built. Product classifications currently cover selected Callback and Matching uses; no standalone explain/check surface exists. |
 | C3 Lean authoring DSL | Partial | Checked targets, properties, behaviors, queries, exact traces, ordering, bounds, and model-only examples are built. Variation axes, authored faults, coverage goals, a persisted registry, and list/explain UX are missing. |
 | C4 ExperimentSpec compiler | Partial | Pure planning emits one canonical `umpire-experiment/v1` for a selected trace, and the inspector exposes two scenarios. Batch compilation, persisted JSON decoding/validation, migrations, explicit runtime config, and runtime consumption are missing. |
-| C5 Go/docs generator | Missing | No thin `_test.go` wrapper or scenario-documentation generator exists for current Lean regressions. |
+| C5 Go/docs generator | Partial | One stable caller-closure regression has deterministic checked-in Go and Markdown projections; broader catalog and promotion surfaces remain. |
 | C6 execution runtime | Separate | Go runtimes drive Temporal and retain cleanup/run data, but none decodes or executes `umpire-experiment/v1`. |
 | C7 evidence/conformance | Partial + separate | Current Lean checks properties over model traces and exports observation requirements. Go/Umpire3 evidence systems exist separately; no current-model observation program or live qualified result exists. |
 | C8 exploration | Partial | Deterministic finite exhaustive/shortest-style planning is built. The named coverage-guided policy only seed-rotates enumeration; it does not consume coverage state. Broader campaign exploration exists separately. |
@@ -254,24 +254,35 @@ not implemented.
 
 **Responsibility:** expose stable Lean regressions through familiar, deterministic projections.
 
-**Status: not implemented.** The current regression gate compares canonical JSON fixtures and
-checks Lean modules, but no generator emits `_test.go` wrappers or rendered scenario documentation.
+**Status: implemented for one stable regression.** The production inspector and canonical fixture
+for `workflow-nexus.query.exact-action-caller-closure` generate one ordinary Go test and one readable
+Markdown projection. The checked-in outputs are
+`tools/umpire/regression/catalog_generated_test.go` and
+`model/Temporal/Tool/Generated/Regressions.md`.
 
 ```text
-regression catalog -> thin _test.go wrappers + readable documentation
+one stable inspected regression -> thin _test.go wrapper + readable documentation
 ```
 
-Proposed CLI:
+Repository interface:
 
 ```text
-umpire gen go-tests
-umpire gen docs
+make umpire-gen-regression-projections
+make umpire-check-regression-projections
+make umpire-check-regression
 ```
 
-Generated tests should call a stable regression identity, cite the Lean source and semantic hash,
-and optionally render a Given/When/Then summary. They must not reproduce procedural semantics.
-Stable regressions may be checked in and verified by a clean regeneration diff; ephemeral
-exploration candidates are generated at runtime and are checked in only after promotion.
+The generation target publishes both outputs transactionally. The focused check regenerates them
+into an isolated root, byte-compares the complete pair, and runs the generator and fixture-backed
+verifier tests; the stable regression gate includes that check. The generated test calls only
+`RequireProjection`, and both outputs carry the Lean-owned identity, provenance, fixture, property
+and observation-requirement identities, and semantic fingerprint without copying behavioral
+procedure.
+
+This remains a projection-only pilot: it neither executes Temporal nor supplies execution evidence
+or conformance. The manifest is closed to one stable regression. A broader persisted catalog,
+list/explain interface, discovery and ephemeral selection, and promotion into additional reviewed
+regressions remain future work.
 
 ### C6. Execution runtime
 
