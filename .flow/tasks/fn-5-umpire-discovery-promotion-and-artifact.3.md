@@ -12,10 +12,10 @@ Project the checked production catalog into reviewable Markdown and canonical JS
 
 ### Approach
 
-- Invoke the explicit catalog executable from the known model root and strictly validate its stdout/stderr/exit contract.
+- Invoke exactly `temporal-model-catalog export` from the known model root and strictly validate the `umpire-semantic-catalog-export/v1` stdout/stderr/exit contract. Reject unsupported versions, missing/extra fields or rows/bindings, duplicates, noncanonical order/bytes, success stderr, nonzero status, and empty/extra stdout.
 - Render both outputs from one validated projection in canonical identity order.
 - Publish the exact two-file set transactionally through `artifactio.Set`; validate candidates before replacement.
-- Add a reusable exact candidate-set comparison seam in `artifactio` that shares `Set.Publish` path/containment validation and holds the same artifact-set lock across the complete multi-file read. It rejects symlinked roots or managed components, non-regular managed files, escapes, and permission errors rather than following or weakening them.
+- Add a reusable exact candidate-set comparison seam in `artifactio` that shares `Set.Publish` path/containment validation and holds the same artifact-set lock across the complete multi-file read. It rejects symlinked roots or managed components, non-regular managed files, escapes, and permission errors rather than following or weakening them. If interrupted publication state requires recovery, comparison returns a distinct recovery-required error without mutation; publication remains the only recovery owner.
 - Add an explicit non-mutating `--check` mode that renders expected bytes in memory and compares the current two files through that locked seam, without temporary regeneration or filesystem mutation.
 - Treat Lean output as input authority and never read generated prose back into semantics.
 
@@ -34,8 +34,9 @@ Project the checked production catalog into reviewable Markdown and canonical JS
 
 ## Acceptance
 - [ ] Repeated generation yields byte-identical `model/GLOSSARY.md` and catalog JSON.
+- [ ] Generation consumes exactly one complete `umpire-semantic-catalog-export/v1` response and rejects unsupported version, incomplete/extra/duplicate/noncanonical content, nonzero exit, success stderr, or partial stdout before rendering.
 - [ ] `--check` detects stale or missing outputs by in-memory comparison and performs no writes.
-- [ ] Checks reject symlinked roots/components, non-regular files, containment escapes, and permission failures, and cannot observe a mixed set during a concurrent lock-cooperating publication.
+- [ ] Checks reject symlinked roots/components, non-regular files, containment escapes, permission failures, and recovery-required interrupted state without mutation, and cannot observe a mixed set during a concurrent lock-cooperating publication.
 - [ ] Every checked catalog entry appears exactly once in both projections with matching identity/kind/digest/reference data.
 - [ ] Stable-entry projection bindings appear exactly once in catalog JSON with safe fixture paths, unique projection keys, and binding identities, without changing catalog semantic identity.
 - [ ] Malformed output, stderr, nonzero exit, duplicate/stale entries, unsafe paths, and partial publication fail closed.
