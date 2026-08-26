@@ -119,8 +119,8 @@ UMPIRE3_EXPORT_COMMAND := $(UMPIRE3_DEV_COMMAND) export
 UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
 UMPIRE_GEN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-api
 UMPIRE_GEN_REGRESSION_PROJECTIONS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regressions
-UMPIRE_GEN_DYNAMIC_CONFIG_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleandynamicconfig
-GEN_LEAN_MODEL_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./cmd/tools/genleanmodeldescriptors
+UMPIRE_GEN_DYNAMIC_CONFIG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-dynamic-config
+UMPIRE_GEN_MODEL_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-model-descriptors
 UMPIRE_REGRESSION_INSPECTOR := temporal-model-inspect
 UMPIRE_REGRESSION_FIXTURES := \
 	workflow-nexus.query.exact-action-caller-closure:Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json \
@@ -497,7 +497,7 @@ $(API_BINPB): go.mod go.sum $(PROTO_FILES)
 
 $(UMPIRE_PUBLIC_BINPB): go.mod go.sum
 	@printf $(COLOR) "Generating registered public protobuf descriptors..."
-	@$(GEN_LEAN_MODEL_DESCRIPTORS_COMMAND) \
+	@$(UMPIRE_GEN_MODEL_DESCRIPTORS_COMMAND) \
 		--package-pattern go.temporal.io/api/... \
 		--file-prefix temporal/api/ \
 		--output $@
