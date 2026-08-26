@@ -471,6 +471,10 @@ private def requirePositionUnit
     (access : PropertyCapabilityView)
     (unit : BoundUnit)
     (patterns : List PropertyPattern) : Except PropertyError Unit := do
+  if unit == .evidenceRecords then
+    throw (propertyError .unitMismatch owner.id owner.source
+      (unit.name ++ " is not a semantic position unit")
+      (patterns.map PropertyPattern.reference))
   if unit == .observationPositions &&
       !(patterns.all fun pattern => pattern.field == .observation || pattern.field == .relation) then
     throw (propertyError .unitMismatch owner.id owner.source
@@ -830,6 +834,7 @@ private def positionOf
   | .selectedActions => some occurrence.selectedActionPosition
   | .observationPositions => some occurrence.observationPosition
   | .logicalTime => occurrence.logicalTime
+  | .evidenceRecords => none
 
 private def collectPositions : List (Option Nat) → Option (List Nat)
   | [] => some []
