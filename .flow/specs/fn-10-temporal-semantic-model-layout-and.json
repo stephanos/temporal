@@ -577,7 +577,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-10-temporal-semantic-model-layout-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Temporal semantic model layout and Umpire purity",
   "tracker": {
     "baseHashFlow": null,
@@ -590,5 +590,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T00:08:45.616444Z"
+  "updated_at": "2026-08-26T01:06:45.549439Z"
 }
