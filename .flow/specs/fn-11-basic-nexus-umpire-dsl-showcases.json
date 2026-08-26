@@ -11,7 +11,8 @@
   ],
   "id": "fn-11-basic-nexus-umpire-dsl-showcases",
   "impl_review_rounds": {
-    "fn-11-basic-nexus-umpire-dsl-showcases.1": 0
+    "fn-11-basic-nexus-umpire-dsl-showcases.1": 0,
+    "fn-11-basic-nexus-umpire-dsl-showcases.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -136,10 +137,100 @@
       "timestamp": "2026-08-26T01:30:19.843880Z",
       "tool_calls": 22,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "33f5abc02ce7d05268362bc70c4ce27ffb67e59c78b1d7321036eb5eec965098",
+      "backend": "codex",
+      "base_sha": "2cd9385465b2686f4c85018c3eb3f368eb8b4cb9",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a57049e8598ed661d552b87be8c6c864",
+            "classification": "introduced",
+            "findingId": "finding-a57049e8598ed661d552b87be8c6c864",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5e9f94a27e7ec5273ea5d20cfe3a760440ee3492",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 224886,
+      "output_sha256": "e8a944bfbbd35106924a182e6bcb023d696cd7dc71bdd8714a30ddc1f3708f50",
+      "reservation_id": "7187f54be0a6419db1ebf26db9eed957",
+      "round_consumed": true,
+      "scope": "impl:fn-11-basic-nexus-umpire-dsl-showcases.2",
+      "superseded_by": null,
+      "task": "fn-11-basic-nexus-umpire-dsl-showcases.2",
+      "timestamp": "2026-08-26T01:45:29.256016Z",
+      "tool_calls": 15,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "914db14a2265e9b5ccb84c9feb233f9087a8011768000a309a8a7d80ee470879",
+      "backend": "codex",
+      "base_sha": "347f344f309b78a3d9826cc819948e7d5c20fad5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a57049e8598ed661d552b87be8c6c864",
+            "classification": "introduced",
+            "findingId": "finding-a57049e8598ed661d552b87be8c6c864",
+            "firstSeenThisRound": false,
+            "severity": "P3",
+            "status": "withdrawn"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5e9f94a27e7ec5273ea5d20cfe3a760440ee3492",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 795,
+      "output_sha256": "8c527466fb57fb319a840040b73d5a69b2e9323bf4fde8ce7391bfc3dce25261",
+      "reservation_id": "9fa7743bceb648df8450794dd3edb61a",
+      "round_consumed": true,
+      "scope": "impl:fn-11-basic-nexus-umpire-dsl-showcases.2",
+      "superseded_by": null,
+      "task": "fn-11-basic-nexus-umpire-dsl-showcases.2",
+      "timestamp": "2026-08-26T01:46:49.485372Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-11-basic-nexus-umpire-dsl-showcases.1": 1,
+    "impl:fn-11-basic-nexus-umpire-dsl-showcases.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -147,6 +238,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-11-basic-nexus-umpire-dsl-showcases.1": 0,
+    "impl:fn-11-basic-nexus-umpire-dsl-showcases.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-11-basic-nexus-umpire-dsl-showcases.md",
@@ -163,5 +255,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T01:30:19.856069Z"
+  "updated_at": "2026-08-26T01:46:49.492204Z"
 }
