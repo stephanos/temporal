@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T16:17:07.132238Z",
+  "depends_on": [
+    "fn-30-release-evidence-graph-and-manual.1"
+  ],
+  "id": "fn-30-release-evidence-graph-and-manual.2",
+  "priority": null,
+  "spec": "fn-30-release-evidence-graph-and-manual",
+  "spec_path": ".flow/tasks/fn-30-release-evidence-graph-and-manual.2.md",
+  "status": "todo",
+  "title": "Implement the signed release trust and attestation channel",
+  "updated_at": "2026-08-26T16:34:08.369303Z"
+}
