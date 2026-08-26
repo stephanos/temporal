@@ -26,7 +26,7 @@ internal, or CHASM APIs, regenerate the descriptor-backed modules and verify the
 ```sh
 make umpire-gen-api
 go test -count=1 -tags test_dep ./tools/umpire/internal/generate/api
-cd model && mise exec -- lake build
+make umpire-build-model
 ```
 
 Generation is deterministic and silent on success. Each run validates all three artifacts and
@@ -59,7 +59,7 @@ From the repository root, regenerate and verify the catalog with:
 ```sh
 make umpire-gen-dynamic-config
 go test -count=1 -tags test_dep ./cmd/tools/genleandynamicconfig
-cd model && mise exec -- lake build
+make umpire-build-model
 ```
 
 For an unchanged initialized registry, repeated generation produces byte-identical modules. Each
@@ -96,9 +96,8 @@ Temporal server.
 Inspect either checked scenario directly with:
 
 ```sh
-cd model
-mise exec -- lake exe temporal-model-inspect workflow-nexus.query.exact-action-caller-closure
-mise exec -- lake exe temporal-model-inspect switch.query.exact-action
+make umpire-inspect SCENARIO=workflow-nexus.query.exact-action-caller-closure
+make umpire-inspect SCENARIO=switch.query.exact-action
 ```
 
 On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. The

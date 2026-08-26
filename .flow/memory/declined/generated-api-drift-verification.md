@@ -8,3 +8,4 @@ The generator is intentionally generation-only for now. Its focused and golden t
 
 - 2026-08-24 — While simplifying the Lean API generator, explicitly excluded drift verification and all CI workflow work.
 - 2026-08-24 — Requested planning the Umpire Temporal dynamic-config design, then confirmed `make umpire-check-dynamic-config` and all CI workflow changes remain excluded.
+- 2026-08-26 — Planned the Lean test-suite decomposition follow-up and kept generated API drift verification, CI coverage, and generated-file changes out of scope.
