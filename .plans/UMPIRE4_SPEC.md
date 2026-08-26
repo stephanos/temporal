@@ -48,8 +48,8 @@ namespaces, and types are always referenced by fully qualified names in backtick
 - **Capability.** A named semantic contract, including its required laws, that a declaration
   requires or a target composition provides.
 - **Complete search.** A search with checked completeness evidence that every candidate admitted by
-  the exact behavior bounds was considered. Finding no candidate establishes only absence within
-  those bounds.
+  the exact `Umpire.Behavior` bounds was considered. Finding no candidate establishes only absence
+  within those bounds.
 - **Conformance.** Interpretation of raw evidence into a semantic trace followed by evaluation of
   the applicable `Umpire.Property` declarations. Conformance determines what a run establishes; it
   does not perform execution.
@@ -60,7 +60,7 @@ namespaces, and types are always referenced by fully qualified names in backtick
   including the mapping, evidence identities, bindings, ordering facts, and closure evidence used.
 - **Execution.** A bounded attempt to realize a `Umpire.ExperimentSpec` in an environment. Execution
   reports attempts, realized outcomes, raw evidence, divergence, infrastructure failures, and
-  cleanup; it does not decide property satisfaction.
+  cleanup; it does not decide `Umpire.Property` satisfaction.
 - **Exploration.** Model-owned bounded selection from a declared semantic space to find useful
   experiments or counterexamples. Exploration is exhaustive only when it completes a declared
   finite space with checked completeness evidence.
@@ -74,8 +74,8 @@ namespaces, and types are always referenced by fully qualified names in backtick
 - **Omission.** An explicit declaration that a capability, input, interpretation, or claim is absent
   or unsupported. An omission narrows what an artifact or result can establish.
 - **Phase outcome.** The status reported by one lifecycle phase, such as planning, execution,
-  observation, property evaluation, or verification. A phase outcome implies no other phase's
-  outcome unless an explicit rule says otherwise.
+  `Umpire.Observation` interpretation, `Umpire.Property` evaluation, or verification. A phase
+  outcome implies no other phase's outcome unless an explicit rule says otherwise.
 - **Projection.** A deterministic, digest-bound developer view derived from a semantic artifact. A
   projection is not an independently editable source of meaning.
 - **Qualification.** Evaluation of admitted results under a named environment and evidence profile,
@@ -88,8 +88,9 @@ namespaces, and types are always referenced by fully qualified names in backtick
   either to redefine the other.
 - **Regression.** A permanent named `Umpire.Query` retained to detect recurrence of known behavior
   independently of exploratory budgets.
-- **Result.** The qualified interpretation of a run, retaining its distinct execution, observation,
-  property, omission, and cleanup outcomes. A result is not synonymous with any one phase outcome.
+- **Result.** The qualified interpretation of a run, retaining distinct execution,
+  `Umpire.Observation` interpretation, `Umpire.Property` evaluation, omission, and cleanup outcomes.
+  A result is not synonymous with any one phase outcome.
 - **Run.** One environment-specific execution of one `Umpire.ExperimentSpec`, retaining all action
   and fault attempts, receipts, evidence, failures, and cleanup outcomes.
 - **Scenario.** A named space of possible semantic traces. Its `Umpire.Behavior` constrains
@@ -107,11 +108,17 @@ namespaces, and types are always referenced by fully qualified names in backtick
 - **Structural input.** Generated mechanical information, such as `Temporal.API` or
   `Temporal.DynamicConfig` declarations, that has no behavioral meaning until a canonical
   declaration interprets it.
+- **`Temporal.API`.** The generated Temporal namespace for mechanical Protobuf and gRPC structure.
+  It owns no product or implementation meaning.
+- **`Temporal.DynamicConfig`.** The generated Temporal namespace for mechanical configuration
+  structure. It owns no configuration interpretation or behavioral effect.
 - **`Temporal.Feature`.** The Temporal namespace that owns product-visible states, actions,
   outcomes, relations, and `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` declarations
   whose meaning survives an implementation rewrite.
 - **`Temporal.System`.** The Temporal namespace that owns implementation mechanisms, configuration
   interpretation, `Umpire.Observation` declarations, execution semantics, and refinements.
+- **`Temporal.Verify`.** The opt-in Temporal namespace for checker views, bindings, correspondence,
+  and verification entry points. It does not own independent behavioral meaning.
 - **Test.** One concrete deterministic semantic trace selected by a `Umpire.Query` from a scenario
   and compiled with its `Umpire.Property` declarations and bounds into a
   `Umpire.ExperimentSpec`.
@@ -127,8 +134,8 @@ namespaces, and types are always referenced by fully qualified names in backtick
 - **`Umpire.DrivePlan`.** Generated deterministic execution intent for one selected semantic trace.
   It is neither an authoring language nor evidence of execution.
 - **`Umpire.ExperimentSpec`.** The portable, environment-independent envelope containing complete
-  bounded execution intent, properties, observation requirements, provenance, and semantic
-  bindings. It records what a runtime should attempt, not what occurred.
+  bounded execution intent, `Umpire.Property` identities, `Umpire.Observation` requirements,
+  provenance, and semantic bindings. It records what a runtime should attempt, not what occurred.
 - **`Umpire.Observation`.** The typed language that maps raw evidence into qualified semantic
   observations while retaining identity, ordering, closure, conflict, and derivation information.
 - **`Umpire.Property`.** The typed language for pure, portable, capability-scoped claims over
@@ -136,6 +143,8 @@ namespaces, and types are always referenced by fully qualified names in backtick
 - **`Umpire.Query`.** The typed language that combines checked `Umpire.Behavior` and
   `Umpire.Property` declarations, a compatible `Umpire.CheckedTarget`, a claim, bounds, and planning
   policy into a bounded question.
+- **`Umpire.Verify.Veil`.** The opt-in, domain-neutral checker-integration namespace. It is excluded
+  from the ordinary `Umpire` facade, ordinary Temporal imports, and runtime paths.
 - **Unsatisfiable.** A checked `Umpire.Behavior` whose constraints admit no semantic trace. It is an
   explicit failure outcome, not success by vacuity.
 
@@ -246,8 +255,9 @@ namespaces, and types are always referenced by fully qualified names in backtick
   `Umpire.Property` declarations consume it.
 - **EVD-04 — Fail closed.** Missing, ambiguous, conflicting, stale, causally unrelated, or unsupported
   evidence MUST NOT establish success or absence.
-- **EVD-05 — Independent outcomes.** Authoring, planning, execution, observation, property, and
-  verification outcomes MUST remain distinct and MUST NOT imply one another.
+- **EVD-05 — Independent outcomes.** Authoring, planning, execution, `Umpire.Observation`
+  interpretation, `Umpire.Property` evaluation, and verification outcomes MUST remain distinct and
+  MUST NOT imply one another.
 - **EVD-06 — Realization receipts.** A requested action or fault MUST NOT count as realized without a
   receipt linked to the intended semantic occurrence.
 - **EVD-07 — Distributed ordering.** Semantic conclusions MUST rely on declared semantic, causal, or
