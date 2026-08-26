@@ -132,8 +132,35 @@ private def metadata
   contractDigest
 }
 
+private def opStateRepr : OpState → String
+  | .unspecified => "NexusAutoClose.OpState.unspecified"
+  | .scheduled => "NexusAutoClose.OpState.scheduled"
+  | .backingOff => "NexusAutoClose.OpState.backingOff"
+  | .started => "NexusAutoClose.OpState.started"
+  | .succeeded => "NexusAutoClose.OpState.succeeded"
+  | .failed => "NexusAutoClose.OpState.failed"
+  | .canceled => "NexusAutoClose.OpState.canceled"
+  | .timedOut => "NexusAutoClose.OpState.timedOut"
+  | .terminated => "NexusAutoClose.OpState.terminated"
+  | .rejected => "NexusAutoClose.OpState.rejected"
+
+private def policyRepr : Policy → String
+  | .abandon => "NexusAutoClose.Policy.abandon"
+  | .requestCancel => "NexusAutoClose.Policy.requestCancel"
+
+private def initiatorRepr : Initiator → String
+  | .user => "NexusAutoClose.Initiator.user"
+  | .system => "NexusAutoClose.Initiator.system"
+
+private def initiatorsRepr (initiators : List Initiator) : String :=
+  "[" ++ String.intercalate ", " (initiators.map initiatorRepr) ++ "]"
+
 private def configRepr (config : Config) : String :=
-  (reprStr config).replace "Temporal.Feature.Nexus.AutoClose" "NexusAutoClose"
+  "{ op := " ++ opStateRepr config.op ++ ",\n" ++
+  "  policy := " ++ policyRepr config.policy ++ ",\n" ++
+  "  cancels := " ++ initiatorsRepr config.cancels ++ ",\n" ++
+  "  callerOpen := " ++ toString config.callerOpen ++ ",\n" ++
+  "  slack := " ++ toString config.slack ++ " }"
 
 def clashState : SemanticValue := {
   identity := configStateId
