@@ -45,9 +45,15 @@ Perform the final atomic integration cutover: expose only the approved Temporal 
 - [ ] Live model documentation is current and the full regression command passes.
 
 ## Done summary
-TBD
+Completed the clean Temporal model cutover with Feature/System production facades, the TemporalModelTests and temporal-model-inspect targets, a byte-identical Feature-owned golden fixture, and no compatibility roots or old live paths. The stable root regression now guards all tracked reusable Umpire text plus Feature/System/Configuration import directions and verifies deterministic inspector artifacts and canonical error diagnostics (R1-R6).
 
+baseline: green via receipt
+GATE_SKIPPED:smoke:green-receipt 5708253f - baseline reused from prior post-gate pass
+verification: make umpire-check-regression (green; 64 Lean jobs)
+review fix: expanded product-prefix guards to cover qualified names, comments, and JSON source paths while allowing ordinary temporal terminology
+memory capture: skipped(error: Flow memory is not initialized)
+stage: impl-review - ran [2026-08-25T23:52:15Z..2026-08-25T23:59:35Z] | SHIP
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 517166a8709bd7a5a13dc1b77b259b30c32cb163, 03553666beb1dab648994d387ac55da998fc0e51
+- Tests: GATE_SKIPPED:smoke:green-receipt 5708253f - baseline reused from prior post-gate pass, cd model && mise exec -- lake build Temporal UmpireTests TemporalModelTests temporal-model-inspect, make umpire-check-regression
 - PRs:
