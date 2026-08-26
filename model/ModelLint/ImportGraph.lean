@@ -275,6 +275,17 @@ private def duplicateMetadataIssues (modules : Array ModuleRecord) : Array Inven
       issues := issues.push (.duplicateMetadata module)
   return issues
 
+/-- Validate source containment, classification, and qualified identity before invoking Lake. -/
+def validateSources (policy : Policy) (sources : Array SourceRecord) : Array InventoryIssue := Id.run do
+  let mut issues := duplicateSourceIssues sources
+  for source in sources do
+    unless source.contained do
+      issues := issues.push (.escapingSource source.path)
+    if (policy.classify? source.module).isNone then
+      issues := issues.push (.unclassifiedModule source.module)
+  return (issues.qsort issueLess).foldl (init := #[]) fun unique issue =>
+    if unique.contains issue then unique else unique.push issue
+
 /--
 Reconcile a canonical owned-source inventory with loaded direct-import metadata.
 
@@ -285,14 +296,10 @@ def reconcile
     (policy : Policy)
     (sources : Array SourceRecord)
     (modules : Array ModuleRecord) : Array InventoryIssue := Id.run do
-  let mut issues := duplicateSourceIssues sources ++ duplicateMetadataIssues modules
+  let mut issues := validateSources policy sources ++ duplicateMetadataIssues modules
   for source in sources do
-    unless source.contained do
-      issues := issues.push (.escapingSource source.path)
     if (moduleRecord? modules source.module).isNone then
       issues := issues.push (.uncoveredSource source.module source.path)
-    if (policy.classify? source.module).isNone then
-      issues := issues.push (.unclassifiedModule source.module)
   for record in modules do
     if (policy.classify? record.name).isNone then
       issues := issues.push (.unclassifiedModule record.name)

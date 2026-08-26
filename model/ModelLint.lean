@@ -1,6 +1,7 @@
 import Batteries.Tactic.Lint
 import Lake.CLI.Main
 import ModelLint.ImportGraph
+import ModelLint.Inventory
 
 /-! Whole-environment model linting beyond Lean's built-in declaration linters. -/
 
@@ -10,98 +11,6 @@ open System
 namespace ModelLint
 
 open ImportGraph
-
-private def excludedInventoryDirectories : Array String :=
-  #[".git", ".lake", ".flow", "build", "dist", "runtime", "target", "tmp"]
-
-private def containedBy (root path : FilePath) : Bool :=
-  let rootText := root.normalize.toString
-  let pathText := path.normalize.toString
-  let rootPrefix :=
-    if rootText.endsWith FilePath.pathSeparator.toString then rootText
-    else rootText ++ FilePath.pathSeparator.toString
-  pathText == rootText || rootPrefix.isPrefixOf pathText
-
-private def moduleNameForSource (root source : FilePath) : IO Name := do
-  let rootText := root.normalize.toString
-  let sourceText := source.normalize.toString
-  let rootPrefix :=
-    if rootText.endsWith FilePath.pathSeparator.toString then rootText
-    else rootText ++ FilePath.pathSeparator.toString
-  unless rootPrefix.isPrefixOf sourceText do
-    throw <| IO.userError s!"source path is not beneath canonical root: {source}"
-  let relative := FilePath.mk (sourceText.drop rootPrefix.length).copy |>.withExtension ""
-  let module := relative.components.foldl Name.mkStr Name.anonymous
-  if module.isAnonymous then
-    throw <| IO.userError s!"source path has no qualified module identity: {source}"
-  pure module
-
-private partial def scanSourceDirectory
-    (root directory : FilePath)
-    (visited : Array String) : IO (Array SourceRecord × Array String) := do
-  let canonicalDirectory ← realPathNormalized directory
-  unless containedBy root canonicalDirectory do
-    throw <| IO.userError s!"directory symlink escapes canonical root: {directory} -> \
-      {canonicalDirectory}"
-  if visited.contains canonicalDirectory.toString then
-    return (#[], visited)
-  let mut visited := visited.push canonicalDirectory.toString
-  let mut sources := #[]
-  let entries := (← directory.readDir).qsort fun left right => left.fileName < right.fileName
-  for entry in entries do
-    unless excludedInventoryDirectories.contains entry.fileName do
-      let metadata ← entry.path.symlinkMetadata
-      let canonicalEntry ← realPathNormalized entry.path
-      unless containedBy root canonicalEntry do
-        throw <| IO.userError s!"source symlink escapes canonical root: {entry.path} -> \
-          {canonicalEntry}"
-      let targetMetadata ← canonicalEntry.metadata
-      if metadata.type == .dir || targetMetadata.type == .dir then
-        let (nested, nestedVisited) ← scanSourceDirectory root entry.path visited
-        sources := sources ++ nested
-        visited := nestedVisited
-      else if targetMetadata.type == .file && entry.path.extension == some "lean" then
-        sources := sources.push {
-          path := entry.path.toString
-          module := ← moduleNameForSource root entry.path
-          contained := true
-        }
-  pure (sources, visited)
-
-private def sameCaseFoldedSource (left right : SourceRecord) : IO Bool := do
-  let leftPath := FilePath.mk left.path
-  let rightPath := FilePath.mk right.path
-  let leftMetadata ← leftPath.symlinkMetadata
-  let rightMetadata ← rightPath.symlinkMetadata
-  if leftMetadata.type != .file || rightMetadata.type != .file ||
-      leftMetadata.byteSize != rightMetadata.byteSize ||
-      leftMetadata.modified != rightMetadata.modified ||
-      leftMetadata.numLinks != rightMetadata.numLinks then
-    return false
-  return (← IO.FS.readBinFile leftPath) == (← IO.FS.readBinFile rightPath)
-
-private def collapseFilesystemCaseAliases (sources : Array SourceRecord) : IO (Array SourceRecord) := do
-  let mut canonical := #[]
-  for source in sources do
-    let alias? := sources.find? fun candidate =>
-      candidate.path != source.path && candidate.path.toLower == source.path.toLower &&
-        (defaultPolicy.classify? candidate.module).isSome &&
-        (defaultPolicy.classify? source.module).isNone
-    if let some alias := alias? then
-      -- Case-insensitive mounts can enumerate one physical source under both requested spellings.
-      unless ← sameCaseFoldedSource source alias do
-        canonical := canonical.push source
-    else
-      canonical := canonical.push source
-  pure canonical
-
-private def inventorySources : IO (Array SourceRecord) := do
-  let root ← realPathNormalized (← IO.currentDir)
-  unless (← (root / "lakefile.toml").pathExists) do
-    throw <| IO.userError s!"canonical model root has no lakefile.toml: {root}"
-  let (sources, _) ← scanSourceDirectory root root #[]
-  let sources ← collapseFilesystemCaseAliases sources
-  pure <| sources.qsort fun left right => left.module.toString < right.module.toString
 
 private def buildOwnedSources (sources : Array SourceRecord) : IO Unit := do
   -- The running executable already proves `ModelLint` current; Lake refreshes every other root.
@@ -140,27 +49,33 @@ private def captureStep (category : String) (action : IO α) : IO (Except String
     pure <| .error s!"[model-import-graph/{category}] {error}"
 
 private unsafe def lintImportGraph : IO Bool := do
-  match ← captureStep "inventory" inventorySources with
+  match ← captureStep "inventory" Inventory.canonicalModelSources with
   | .error error => IO.eprintln error; pure false
   | .ok sources =>
-    match ← captureStep "build" (buildOwnedSources sources) with
-    | .error error => IO.eprintln error; pure false
-    | .ok _ =>
-      match ← captureStep "metadata" (loadModuleRecords sources) with
+    let sourceIssues := validateSources defaultPolicy sources
+    if !sourceIssues.isEmpty then
+      for issue in sourceIssues do
+        IO.eprintln issue.render
+      pure false
+    else
+      match ← captureStep "build" (buildOwnedSources sources) with
       | .error error => IO.eprintln error; pure false
-      | .ok (modules, regions) =>
-        let inventoryIssues := reconcile defaultPolicy sources modules
-        for issue in inventoryIssues do
-          IO.eprintln issue.render
-        let violations := check defaultPolicy modules
-        for violation in violations do
-          IO.eprintln violation.render
-        let _loadedRegionCount := regions.size
-        if inventoryIssues.isEmpty && violations.isEmpty then
-          IO.println "-- Model import-graph linting passed."
-          pure true
-        else
-          pure false
+      | .ok _ =>
+        match ← captureStep "metadata" (loadModuleRecords sources) with
+        | .error error => IO.eprintln error; pure false
+        | .ok (modules, regions) =>
+          let inventoryIssues := reconcile defaultPolicy sources modules
+          for issue in inventoryIssues do
+            IO.eprintln issue.render
+          let violations := check defaultPolicy modules
+          for violation in violations do
+            IO.eprintln violation.render
+          let _loadedRegionCount := regions.size
+          if inventoryIssues.isEmpty && violations.isEmpty then
+            IO.println "-- Model import-graph linting passed."
+            pure true
+          else
+            pure false
 
 end ModelLint
 

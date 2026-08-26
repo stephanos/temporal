@@ -1,8 +1,10 @@
 import ModelLint.ImportGraph
+import ModelLint.Inventory
 
 /-! Executable synthetic regressions for model import-graph policy and inventory checking. -/
 
 open ModelLint.ImportGraph
+open System
 
 private def moduleRecord (name : Lean.Name) (imports : Array Lean.Name := #[]) : ModuleRecord :=
   { name, imports }
@@ -14,6 +16,22 @@ private def sourceRecord
 private def requireEqual [BEq α] [Repr α] (label : String) (actual expected : α) : IO Unit :=
   unless actual == expected do
     throw <| IO.userError s!"{label}: expected {repr expected}, got {repr actual}"
+
+private def requireFailureContaining (label needle : String) (action : IO α) : IO Unit := do
+  let failure? ← try
+    action *> pure none
+  catch error =>
+    pure <| some (toString error)
+  let some failure := failure?
+    | throw <| IO.userError s!"{label}: expected failure containing {needle}"
+  unless failure.contains needle do
+    throw <| IO.userError s!"{label}: expected failure containing {needle}, got {failure}"
+
+private def runProcess (command : String) (args : Array String) : IO Unit := do
+  let child ← IO.Process.spawn { cmd := command, args, stdin := .null }
+  let exitCode ← child.wait
+  if exitCode != 0 then
+    throw <| IO.userError s!"{command} failed with status {exitCode}"
 
 private def requireViolation
     (label : String)
@@ -166,6 +184,34 @@ private def testExternalLeaves : IO Unit := do
   requireEqual "external inventory leaves" (reconcile defaultPolicy sources modules) #[]
   requireEqual "external graph leaves" (check defaultPolicy modules) #[]
 
+private def testFilesystemInventoryAliases : IO Unit := do
+  IO.FS.withTempDir fun root => do
+    let canonical := root / "Canonical"
+    IO.FS.createDir canonical
+    IO.FS.writeFile (canonical / "Root.lean") "def canonical := true\n"
+    runProcess "ln" #["-s", canonical.toString, (root / "Alias").toString]
+    requireFailureContaining "directory alias" "directory alias or cycle"
+      (ModelLint.Inventory.scanSources root)
+  IO.FS.withTempDir fun root => do
+    let directory := root / "Cycle"
+    IO.FS.createDir directory
+    runProcess "ln" #["-s", root.toString, (directory / "Loop").toString]
+    requireFailureContaining "directory cycle" "directory alias or cycle"
+      (ModelLint.Inventory.scanSources root)
+  IO.FS.withTempDir fun root =>
+    IO.FS.withTempDir fun outside => do
+      IO.FS.writeFile (outside / "Escape.lean") "def escape := true\n"
+      runProcess "ln" #["-s", outside.toString, (root / "Outside").toString]
+      requireFailureContaining "escaping directory" "escapes canonical root"
+        (ModelLint.Inventory.scanSources root)
+  IO.FS.withTempDir fun root => do
+    let canonical := root / "Case.lean"
+    let caseVariant := root / "case.lean"
+    IO.FS.writeFile canonical "def sameBytes := true\n"
+    runProcess "cp" #["-p", canonical.toString, caseVariant.toString]
+    let sources ← ModelLint.Inventory.scanSources root
+    requireEqual "distinct case variants retained" (sources.map (·.module)) #[`Case, `case]
+
 private def testStableShortestPath : IO Unit := do
   let modules := #[
     moduleRecord `Temporal.Feature.Root #[`ModelLint.BridgeB, `ModelLint.BridgeA],
@@ -211,6 +257,7 @@ private def runSyntheticSuite : IO UInt32 := do
   testExactVerifyExceptions
   testInventoryFailures
   testExternalLeaves
+  testFilesystemInventoryAliases
   testStableShortestPath
   testMultipleFindings
   testCyclesTerminate
