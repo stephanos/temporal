@@ -46,6 +46,7 @@ Declaration-level evidence map:
 - The original shared source contained zero explanatory comments. Sorted quoted-string and named-declaration inventories match the pre-task source exactly; each new file adds only its required module comment.
 
 stage: impl-review - ran [2026-08-26T03:45:47Z..2026-08-26T03:49:08Z] (model: gpt-5.6-sol)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: bc7a52ac9c54279757fac8c53d508a4cf6e0255a
 - Tests: GATE_SKIPPED:build:green-receipt 2a7de6d1 - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt 2a7de6d1 - baseline reused from prior post-gate pass, git diff --check, cd model && mise exec -- lake env lean Temporal/System/Configuration/Tests/Fixtures.lean, cd model && mise exec -- lake build Temporal.System.Configuration.Tests.Fixtures, cd model && mise exec -- lake env lean Temporal/System/Configuration/Tests/Validation.lean, cd model && mise exec -- lake env lean Temporal/System/Configuration/Tests/Resolution.lean, cd model && mise exec -- lake env lean Temporal/System/Configuration/Tests/Catalog.lean, cd model && mise exec -- lake build TemporalModelTests, Configuration assertion/comment/declaration/semantic-string and import-boundary inventory checks, Callback/ConfigurationTests.lean SHA-256 and 11-assertion byte-identity checks, (cd model && mise exec -- lake build UmpireTests TemporalModelTests), make umpire-check-regression, git diff --check 905fe8d18a69292393c090f9759c3b688aeba4c0..HEAD
