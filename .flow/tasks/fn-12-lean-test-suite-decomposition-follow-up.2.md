@@ -40,9 +40,10 @@ Preserve the established closed-computation proof style and use `rfl` only where
 - [ ] No production behavior, public API, dependency, build target, documentation, generated file, commit, or worktree changes.
 
 ## Done summary
-TBD
+Split the reusable Behavior regression suite behind its stable import-only facade into shared fixtures plus Admission, Validation, Canonicalization, and Narrowing concerns. The declaration map at `.flow/tmp/fn12-2-behavior-declaration-map.md` accounts for all 24 original assertions (12/7/3/1 retained by concern and the approved reflexive comparison removed), all five explanatory comments, the existing schedule module comment, unchanged semantic strings, and concern-local fixture ownership.
 
+stage: impl-review - ran [2026-08-26T02:46:59Z..2026-08-26T02:52:04Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 31cd4043e985b93dfd0cb4bc741ed3a61de7fb20
+- Tests: GATE_SKIPPED:build:green-receipt a92a9d40 - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt a92a9d40 - baseline reused from prior post-gate pass, git diff --check, cd model && mise exec -- lake env lean Umpire/Behavior/Tests/Fixtures.lean, cd model && mise exec -- lake env lean Umpire/Behavior/Tests/Admission.lean, cd model && mise exec -- lake env lean Umpire/Behavior/Tests/Validation.lean, cd model && mise exec -- lake env lean Umpire/Behavior/Tests/Canonicalization.lean, cd model && mise exec -- lake env lean Umpire/Behavior/Tests/Narrowing.lean, cd model && mise exec -- lake build UmpireTests, Behavior assertion/comment/definition/semantic-string and import-boundary inventory checks, (cd model && mise exec -- lake build UmpireTests TemporalModelTests), make umpire-check-regression, git diff --check a2e8f6b52bf66a46094beedac1fa8003bb81ee9d..HEAD
 - PRs:
