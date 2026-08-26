@@ -3,6 +3,7 @@
 import Fixture.API.Proto
 import Fixture.API.Types
 
+set_option linter.missingDocs false
 set_option maxRecDepth 100000
 
 namespace Fixture.Messaging.Internal.V1.MessagingService

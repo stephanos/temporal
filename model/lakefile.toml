@@ -1,5 +1,12 @@
 name = "temporal-model"
 defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "temporal-model-inspect"]
+builtinLint = true
+lintDriver = "batteries/runLinter"
+
+[[require]]
+name = "batteries"
+scope = "leanprover-community"
+rev = "v4.33.0"
 
 [[lean_lib]]
 name = "Shared"

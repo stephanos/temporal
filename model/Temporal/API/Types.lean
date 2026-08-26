@@ -2,7 +2,10 @@
 -- This is a structural descriptor projection, not behavioral semantics.
 import Temporal.API.Proto
 
+set_option linter.missingDocs false
 set_option maxRecDepth 100000
+
+set_option linter.extra.dupNamespace false
 
 namespace Google.Protobuf
 

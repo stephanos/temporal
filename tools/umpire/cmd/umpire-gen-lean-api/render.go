@@ -24,6 +24,7 @@ func generateArtifacts(configuration generationConfig, projection projection) (m
 func renderProto(layout outputLayout) []byte {
 	var generated strings.Builder
 	writeGeneratedHeader(&generated)
+	generated.WriteString("\nset_option linter.missingDocs false\n")
 	fmt.Fprintf(&generated, "\nnamespace %s.API.Proto\n\n", layout.RootModule)
 	generated.WriteString(`structure Bytes where
   digest : String
@@ -50,6 +51,7 @@ structure Method (Request Response : Type) where
 func renderTypes(plan leanPlan) []byte {
 	var generated strings.Builder
 	writeModuleHeader(&generated, plan.TypesModule)
+	generated.WriteString("set_option linter.extra.dupNamespace false\n\n")
 	for _, namespace := range plan.Namespaces {
 		fmt.Fprintf(&generated, "namespace %s\n\n", namespace.Name.String())
 		for _, enum := range namespace.Enums {
@@ -111,5 +113,6 @@ func writeModuleHeader(generated *strings.Builder, module leanModulePlan) {
 	for _, imported := range module.Imports {
 		fmt.Fprintf(generated, "import %s\n", imported)
 	}
-	generated.WriteString("\nset_option maxRecDepth 100000\n\n")
+	generated.WriteString("\nset_option linter.missingDocs false\n")
+	generated.WriteString("set_option maxRecDepth 100000\n\n")
 }

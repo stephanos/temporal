@@ -288,7 +288,7 @@ private def fieldValue?
 def syntheticDigestToken
     (policy : DigestPolicyDeclaration)
     (normalizedValue : String) : String :=
-  policy.name ++ "/v" ++ toString policy.version ++ ":" ++ normalizedValue
+  policy.name ++ "/v" ++ toString policy.version ++ ":" ++ toString normalizedValue.hash
 
 private def findPolicy
     (plan : CheckedObservationPlan)

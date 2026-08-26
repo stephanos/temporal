@@ -7,7 +7,7 @@ namespace Umpire.ObservationTests
 open Umpire
 
 def dispositionFailureKinds : List (QualificationStatus × Option QualificationFailureKind) := [
-  let derivation := completeQualifiedTrace.derivations.head!
+  let derivation := completeFirstDerivation
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := [{
       derivation with appliedDispositions := [{
@@ -17,7 +17,7 @@ def dispositionFailureKinds : List (QualificationStatus × Option QualificationF
     }] ++ completeQualifiedTrace.derivations.tail
   }
   (.unsupported, diagnosticKindOf result),
-  let derivation := completeQualifiedTrace.derivations.head!
+  let derivation := completeFirstDerivation
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := [{
       derivation with appliedDispositions := [{
@@ -27,7 +27,7 @@ def dispositionFailureKinds : List (QualificationStatus × Option QualificationF
     }] ++ completeQualifiedTrace.derivations.tail
   }
   (.unsupported, diagnosticKindOf result),
-  let derivation := completeQualifiedTrace.derivations.head!
+  let derivation := completeFirstDerivation
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := [{
       derivation with appliedDispositions := [{
@@ -62,7 +62,8 @@ def digestMismatchEvidence : EvidenceBundle := {
 }
 
 def digestCollisionEvidence : EvidenceBundle := {
-  completeEvidence with records := [initialEvidence, {
+  completeEvidence with
+  records := [initialEvidence, {
     stepEvidence with fields := stepEvidence.fields.map fun fieldValue =>
       if fieldValue.field == hashedField then
         { fieldValue with reportedDigestToken := some "synthetic.digest/v1:collision" }

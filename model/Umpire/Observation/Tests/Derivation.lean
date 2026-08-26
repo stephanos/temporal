@@ -6,8 +6,15 @@ namespace Umpire.ObservationTests
 
 open Umpire
 
-def completeQualifiedTrace : QualifiedTrace := (qualifiedOf completeQualification).get!
+/-- The qualified trace produced by the complete synthetic evidence fixture. -/
+def completeQualifiedTrace : QualifiedTrace :=
+  (qualifiedOf completeQualification).get (by native_decide)
 
+/-- The first derivation in the complete qualified trace. -/
+def completeFirstDerivation : SemanticDerivation :=
+  completeQualifiedTrace.derivations.head?.get (by native_decide)
+
+/-- Exact statuses and diagnostics for invalid semantic derivation fixtures. -/
 def derivationFailureKinds : List (QualificationStatus × Option QualificationFailureKind) := [
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := completeQualifiedTrace.derivations.tail
@@ -15,18 +22,18 @@ def derivationFailureKinds : List (QualificationStatus × Option QualificationFa
   (.unknown, diagnosticKindOf result),
   let result := validateQualifiedTrace {
     completeQualifiedTrace with
-    derivations := completeQualifiedTrace.derivations.head! :: completeQualifiedTrace.derivations
+    derivations := completeFirstDerivation :: completeQualifiedTrace.derivations
   }
   (.conflict, diagnosticKindOf result),
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := completeQualifiedTrace.derivations ++ [{
-      completeQualifiedTrace.derivations.head! with coordinate := .observation 1 99
+      completeFirstDerivation with coordinate := .observation 1 99
     }]
   }
   (.conflict, diagnosticKindOf result),
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := [{
-      completeQualifiedTrace.derivations.head! with mappingVersion := 99
+      completeFirstDerivation with mappingVersion := 99
     }] ++ completeQualifiedTrace.derivations.tail
   }
   (.conflict, diagnosticKindOf result),
@@ -37,13 +44,13 @@ def derivationFailureKinds : List (QualificationStatus × Option QualificationFa
   (.unknown, diagnosticKindOf result),
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := [{
-      completeQualifiedTrace.derivations.head! with closureSupport := []
+      completeFirstDerivation with closureSupport := []
     }] ++ completeQualifiedTrace.derivations.tail
   }
   (.unknown, diagnosticKindOf result),
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := [{
-      completeQualifiedTrace.derivations.head! with orderingSupport := []
+      completeFirstDerivation with orderingSupport := []
     }] ++ completeQualifiedTrace.derivations.tail
   }
   (.unknown, diagnosticKindOf result)
@@ -61,6 +68,7 @@ example : derivationFailureKinds = [
 ] := by
   native_decide
 
+/-- Closed evidence with a second step that repeats the first step's values. -/
 def repeatedValueEvidence : EvidenceBundle := {
   completeEvidence with
   records := completeEvidence.records ++ [{
