@@ -313,7 +313,14 @@ func TestRegistryHelperCleansSourceOnEveryPath(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			helperDirectory := t.TempDir()
-			runner := func(context.Context, string, ...string) ([]byte, []byte, error) {
+			runner := func(_ context.Context, moduleRoot string, arguments ...string) ([]byte, []byte, error) {
+				require.Equal(t, helperDirectory, moduleRoot)
+				require.Equal(t, []string{
+					"run",
+					"-tags=test_dep",
+					"./tools/umpire/cmd/umpire-gen-dynamic-config",
+					registryHelperArgument,
+				}, arguments)
 				return test.stdout, test.stderr, test.runErr
 			}
 			catalog, err := runRegistryHelper(
@@ -330,7 +337,7 @@ func TestRegistryHelperCleansSourceOnEveryPath(t *testing.T) {
 				require.ErrorContains(t, err, test.contains)
 				require.Equal(t, Catalog{}, catalog)
 			}
-			matches, globErr := filepath.Glob(filepath.Join(helperDirectory, "zz_genleandynamicconfig_helper_*.go"))
+			matches, globErr := filepath.Glob(filepath.Join(helperDirectory, "zz_umpire_gen_dynamic_config_helper_*.go"))
 			require.NoError(t, globErr)
 			require.Empty(t, matches)
 		})
@@ -428,7 +435,7 @@ func TestProductionFixturesCoverEveryPolicyAndResolutionBoundary(t *testing.T) {
 }
 
 func TestRunProjectsInitializedProductionRegistry(t *testing.T) {
-	moduleRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	moduleRoot, err := findModuleRoot()
 	require.NoError(t, err)
 	catalog, err := run(context.Background(), moduleRoot)
 	require.NoError(t, err)

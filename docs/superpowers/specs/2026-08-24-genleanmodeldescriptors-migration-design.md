@@ -1,5 +1,8 @@
 # `genleanmodeldescriptors` Migration Design
 
+> This document records a superseded command-location migration. Current ownership and runnable
+> paths are defined by `2026-08-26-umpire-generator-command-migration-design.md`.
+
 ## Goal
 
 Move the Umpire-owned Go descriptor-set generator to `cmd/tools/genleanmodeldescriptors` with a

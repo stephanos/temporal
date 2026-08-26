@@ -31,7 +31,7 @@ model/Temporal/DynamicConfig/Types.lean
 model/Temporal/DynamicConfig/Settings.lean
 ```
 
-`cmd/tools/genleandynamicconfig` exclusively owns all three files. Each generation run rebuilds
+`tools/umpire/cmd/umpire-gen-dynamic-config` exclusively owns all three files. Each generation run rebuilds
 the complete facade and directory. The generator does not incrementally update individual
 settings or preserve handwritten content inside its output.
 
@@ -143,7 +143,7 @@ model meaning by itself.
 
 ## Registry-driven generator
 
-`genleandynamicconfig` reads initialized Go values rather than reconstructing Go evaluation from
+`umpire-gen-dynamic-config` reads initialized Go values rather than reconstructing Go evaluation from
 syntax.
 
 ### Registry metadata
@@ -344,7 +344,7 @@ make umpire-check-dynamic-config
 Generation runs:
 
 ```sh
-mise exec -- go run -tags test_dep ./cmd/tools/genleandynamicconfig --output-root model
+mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-dynamic-config --output-root model
 ```
 
 The check target performs the same complete generation under a temporary output root, requires an
