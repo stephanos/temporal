@@ -11,14 +11,15 @@
     "fn-9-umpire-reusable-dsl-package-split",
     "fn-10-temporal-semantic-model-layout-and",
     "fn-13-deterministic-go-regression-projections",
-    "fn-15-standalone-api-and-config-input-catalogs"
+    "fn-15-standalone-api-and-config-input-catalogs",
+    "fn-16-authored-variation-spaces-and"
   ],
   "id": "fn-5-umpire-discovery-promotion-and-artifact",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-08-26T07:14:02.849038Z",
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-08-26T09:09:14.126899Z",
   "review_attempts": [
     {
       "artifact_sha256": "2c15ecef69b566b5976abeb2e31a8cd2d17ce9d6e70d6557a5c56ada958a65dc",
@@ -302,6 +303,50 @@
       "task": null,
       "timestamp": "2026-08-26T07:14:02.846866Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e25bb0eeff6afd9c73793644dada253e510bf488799860873368bd7abf255132",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-2caecdfa4c71d0a344ef9d8674e909ef",
+            "classification": "introduced",
+            "findingId": "finding-2caecdfa4c71d0a344ef9d8674e909ef",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "71e3c0af52ada6f33d2c35c53799c21b9e3df3e4",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1179,
+      "output_sha256": "ff5a0a9322c78ea97f052ce9115c938a4cdc66335a19600177453500178842ae",
+      "reservation_id": "1d116e78c84e4885a8532697a1078707",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-26T09:09:14.124427Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -327,5 +372,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T08:21:12.512663Z"
+  "updated_at": "2026-08-26T09:09:14.127281Z"
 }
