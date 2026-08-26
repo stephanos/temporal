@@ -114,13 +114,19 @@ From the Temporal repository root, run the focused regression check:
 make umpire-check-regression
 ```
 
+Run `make lint-model` for Lean declaration linting and the complete first-party import graph. Its
+executed graph regressions, controlled failure fixture, and live metadata pass own the transitive
+`Shared.*`/`Umpire.*`, `Umpire.*`/`Temporal.*`, `Temporal.Feature.*`/`Temporal.System.*`, and
+opt-in `Temporal.Verify.*`/`Umpire.Verify.Veil` boundaries.
+
 The focused check builds `Temporal`, `UmpireTests`, `TemporalModelTests`, and
 `temporal-model-inspect`. It rejects obsolete interfaces, reusable Umpire domain leaks, and invalid
-Feature/System import directions; compares repeated inspection with both checked-in target-state
-fixtures byte-for-byte; and verifies that unknown or invalid inspector requests emit one structured
-diagnostic with no artifact JSON on standard output. It also clean-regenerates the checked-in
-caller-closure Go and Markdown projections and runs their focused Go tests. It does not require or
-contact a running Temporal server.
+`Temporal.System.Configuration` imports of its `Temporal.System.Callback.Configuration` or
+`Temporal.System.Matching.Configuration` consumers; compares repeated inspection with both
+checked-in target-state fixtures byte-for-byte; and verifies that unknown or invalid inspector
+requests emit one structured diagnostic with no artifact JSON on standard output. It also
+clean-regenerates the checked-in caller-closure Go and Markdown projections and runs their focused
+Go tests. It does not require or contact a running Temporal server.
 
 Generate or check the stable regression projections from the repository root:
 
