@@ -26,14 +26,14 @@ Split the final shared Temporal configuration suite into validation, resolution,
 - `docs/superpowers/specs/2026-08-25-lean-test-suite-structure-design.md:153-180` — approved Configuration boundary.
 
 ## Key context
-The 30-assertion legacy inventory is now 19 shared plus 11 Callback-owned assertions; this task moves only the shared 19. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, do not commit, and do not use a worktree.
+The 30-assertion legacy inventory is now 19 shared plus 11 Callback-owned assertions; this task moves only the shared 19. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, make only task-scoped flow-next commits, and do not use a worktree.
 
 ## Acceptance
 - [ ] The final shared suite is recorded as 375 lines; `Configuration/Tests.lean` is import-only and directly imports `Validation`, `Resolution`, and `Catalog`, with no fixtures or concern module importing the facade.
 - [ ] The evidence map accounts for all 19 shared Configuration assertions, attached comments, and semantic fixture strings exactly once; every new file has a short module comment.
 - [ ] `Callback/ConfigurationTests.lean` remains byte-for-byte unchanged with its 11 assertions, preserving the full 30-assertion legacy inventory.
 - [ ] `Fixtures` and every concern module pass direct Lean elaboration, then `cd model && mise exec -- lake build TemporalModelTests` passes.
-- [ ] Generated API/dynamic-config modules, production configuration behavior, public APIs, dependencies, build targets, documentation, commits, and worktrees remain unchanged.
+- [ ] Generated API/dynamic-config modules, production configuration behavior, public APIs, dependencies, build targets, and documentation remain unchanged; only task-scoped worker and lifecycle commits are allowed, and no worktree is introduced.
 
 ## Done summary
 Split the 375-line shared Temporal configuration suite behind an import-only facade into Validation, Resolution, and Catalog concerns, with only shared checked-use/result helpers in Fixtures. The 19 shared assertions and every original declaration/string are preserved exactly once; the 249-line, 11-assertion Callback suite remains byte-for-byte unchanged at SHA-256 `f960a90afad07c34c3d549dfd76ad631f3e35d8b474db5be33d9797295801f68`.

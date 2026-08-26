@@ -102,7 +102,8 @@ The integration task may repair missing aggregate imports or another demonstrabl
 defect, but it may not repartition a suite or rewrite its assertions without reopening that suite's
 task. Any concurrent fn-11 aggregate change is preserved and reconciled rather than overwritten.
 
-No implementation agent commits or uses a git worktree.
+Implementation agents make only the task-scoped commits required by the flow-next worker protocol,
+never include unrelated or user-owned changes, and do not use a git worktree.
 
 ## Approach
 
@@ -143,7 +144,7 @@ git diff --check
 - **R3:** Each split suite has cohesive concern modules, a cycle-free sibling-fixtures boundary, short module comments on every new file, and an import-only root that directly covers every concern. Public visibility checks directly import only their production facade. Errors: child-to-facade imports, missing direct facade coverage, visibility access to fixtures, or unrelated fixtures accumulating in the shared module do not satisfy this criterion.
 - **R4:** Every original declaration and explanatory comment has a declaration-level destination record and occurs exactly once, semantic fixture strings remain byte-for-byte stable, the two approved vacuous comparisons are removed, and the Property uniqueness failure evaluates the focused uniqueness property. Errors: missing, duplicated, detached, rewritten, or weakened assertions/comments, textual-count-only evidence, or unrelated semantic-string changes do not satisfy this criterion.
 - **R5:** Lean test idioms remain consistent across the split suites: anonymous examples, computation-oriented decisions for closed checks, direct theorem proofs, and definitional equality only when it is the tested contract. Errors: introducing a custom assertion framework or replacing theorem-level checks with weaker computations does not satisfy this criterion.
-- **R6:** Every suite task is performed by a fresh sub-agent scoped to that suite, agents run serially on the shared current branch, and the coordinator performs integration; no agent commits or uses a worktree. Errors: reusing a worker across suites, overlapping workers in the shared workspace, cross-suite edits without coordination, commits, or worktrees do not satisfy this criterion.
+- **R6:** Every suite task is performed by a fresh sub-agent scoped to that suite, agents run serially on the shared current branch, and the coordinator performs integration. Agents make only the task-scoped implementation and lifecycle commits required by the flow-next worker protocol, preserve unrelated and user-owned changes, and do not use worktrees. Errors: reusing a worker across suites, overlapping workers in the shared workspace, cross-suite or unrelated commits, absorbing user-owned changes, or worktrees do not satisfy this criterion.
 - **R7:** Every new fixtures and concern module passes direct Lean elaboration, each narrow owner aggregate passes, and the integrated model build, working-tree-aware whitespace/domain scans, structural import checks, assertion/comment inventories, and root Umpire regression pass. Errors: tracked-file-only scans, a focused pass without the full integration gate, build-only evidence without structural/inventory checks, or a green aggregate with a failed direct module does not satisfy this criterion.
 
 ## Early proof point
@@ -162,7 +163,7 @@ re-evaluate the fixtures boundary and inventory method before continuing with ta
 - No custom test framework, assertion DSL, new dependency, runtime I/O suite, or property-testing framework.
 - No unrelated Lake, Make, CI, documentation, aggregate, or architecture changes.
 - No generated API or dynamic-config changes, regeneration, drift verification, or CI coverage.
-- No agent-created commits, concurrent shared-workspace workers, or git worktrees.
+- No cross-suite or unrelated agent commits, concurrent shared-workspace workers, or git worktrees; task-scoped flow-next worker and lifecycle commits are allowed.
 
 ## Decision Context
 <!-- scope: both — conditionally substructured -->
@@ -194,5 +195,5 @@ re-evaluate the fixtures boundary and inventory method before continuing with ta
 | R3 | Cohesive concern modules, fixtures boundaries, module comments, and direct import-only facades | fn-12-lean-test-suite-decomposition-follow-up.1, fn-12-lean-test-suite-decomposition-follow-up.2, fn-12-lean-test-suite-decomposition-follow-up.3, fn-12-lean-test-suite-decomposition-follow-up.4, fn-12-lean-test-suite-decomposition-follow-up.5, fn-12-lean-test-suite-decomposition-follow-up.6, fn-12-lean-test-suite-decomposition-follow-up.7 | — |
 | R4 | Preserve mapped declarations/comments and make only the approved assertion corrections | fn-12-lean-test-suite-decomposition-follow-up.1, fn-12-lean-test-suite-decomposition-follow-up.2, fn-12-lean-test-suite-decomposition-follow-up.3, fn-12-lean-test-suite-decomposition-follow-up.4, fn-12-lean-test-suite-decomposition-follow-up.5, fn-12-lean-test-suite-decomposition-follow-up.6, fn-12-lean-test-suite-decomposition-follow-up.7 | — |
 | R5 | Preserve established Lean test idioms | fn-12-lean-test-suite-decomposition-follow-up.1, fn-12-lean-test-suite-decomposition-follow-up.2, fn-12-lean-test-suite-decomposition-follow-up.3, fn-12-lean-test-suite-decomposition-follow-up.4, fn-12-lean-test-suite-decomposition-follow-up.5, fn-12-lean-test-suite-decomposition-follow-up.6, fn-12-lean-test-suite-decomposition-follow-up.7 | — |
-| R6 | Use fresh serial suite agents with no commits or worktrees | fn-12-lean-test-suite-decomposition-follow-up.1, fn-12-lean-test-suite-decomposition-follow-up.2, fn-12-lean-test-suite-decomposition-follow-up.3, fn-12-lean-test-suite-decomposition-follow-up.4, fn-12-lean-test-suite-decomposition-follow-up.5, fn-12-lean-test-suite-decomposition-follow-up.6, fn-12-lean-test-suite-decomposition-follow-up.7 | — |
+| R6 | Use fresh serial suite agents with only task-scoped flow-next commits and no worktrees | fn-12-lean-test-suite-decomposition-follow-up.1, fn-12-lean-test-suite-decomposition-follow-up.2, fn-12-lean-test-suite-decomposition-follow-up.3, fn-12-lean-test-suite-decomposition-follow-up.4, fn-12-lean-test-suite-decomposition-follow-up.5, fn-12-lean-test-suite-decomposition-follow-up.6, fn-12-lean-test-suite-decomposition-follow-up.7 | — |
 | R7 | Run direct module, aggregate, working-tree, structural, inventory, and full regression checks | fn-12-lean-test-suite-decomposition-follow-up.1, fn-12-lean-test-suite-decomposition-follow-up.2, fn-12-lean-test-suite-decomposition-follow-up.3, fn-12-lean-test-suite-decomposition-follow-up.4, fn-12-lean-test-suite-decomposition-follow-up.5, fn-12-lean-test-suite-decomposition-follow-up.6, fn-12-lean-test-suite-decomposition-follow-up.7 | — |

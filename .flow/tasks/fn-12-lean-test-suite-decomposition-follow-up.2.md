@@ -30,14 +30,14 @@ Split the Behavior suite into the approved admission, validation, canonicalizati
 - `model/Umpire/Behavior/Tests.lean:496-510` — attached narrowing comments.
 
 ## Key context
-Preserve the established closed-computation proof style and use `rfl` only where definitional equality is the tested contract. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, do not commit, and do not use a worktree.
+Preserve the established closed-computation proof style and use `rfl` only where definitional equality is the tested contract. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, make only task-scoped flow-next commits, and do not use a worktree.
 
 ## Acceptance
 - [ ] `Behavior/Tests.lean` is import-only and directly imports `Admission`, `Validation`, `Canonicalization`, and `Narrowing`; no fixtures or concern module imports the facade.
 - [ ] The evidence map identifies exactly the approved reflexive self-comparison as removed and accounts for the other 23 assertions and all five explanatory comments exactly once; semantic strings are unchanged.
 - [ ] Admission, validation, canonicalization, and narrowing fixtures remain owned by their concern unless shared by multiple concerns; every new file has a short module comment.
 - [ ] `Fixtures` and every concern module pass direct Lean elaboration, then `cd model && mise exec -- lake build UmpireTests` passes.
-- [ ] No production behavior, public API, dependency, build target, documentation, generated file, commit, or worktree changes.
+- [ ] No production behavior, public API, dependency, build target, documentation, generated file, unrelated commit, or worktree changes; only task-scoped worker and lifecycle commits are allowed.
 
 ## Done summary
 Split the reusable Behavior regression suite behind its stable import-only facade into shared fixtures plus Admission, Validation, Canonicalization, and Narrowing concerns. The declaration map at `.flow/tmp/fn12-2-behavior-declaration-map.md` accounts for all 24 original assertions (12/7/3/1 retained by concern and the approved reflexive comparison removed), all five explanatory comments, the existing schedule module comment, unchanged semantic strings, and concern-local fixture ownership.

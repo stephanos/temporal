@@ -29,14 +29,14 @@ Split the largest reusable suite into the approved fixtures and concern modules 
 - `model/Umpire/CoreTests.lean:366` — attached explanatory comment to preserve with its assertion.
 
 ## Key context
-Lean modules are compilation and visibility boundaries. Validate every new fixtures and concern module directly before building the unchanged aggregate. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, do not commit, and do not use a worktree.
+Lean modules are compilation and visibility boundaries. Validate every new fixtures and concern module directly before building the unchanged aggregate. This is a fresh-agent, serial current-branch task: stop for human direction on baseline drift, make only task-scoped flow-next commits, and do not use a worktree.
 
 ## Acceptance
 - [ ] `CoreTests.lean` is import-only and directly imports `Composition`, `Validation`, `KernelSoundness`, `Canonicalization`, and `Trace`; no fixtures or concern module imports the facade.
 - [ ] A declaration-level evidence map accounts for all 31 Core assertions and existing explanatory comments exactly once, including both serializer-availability checks; semantic fixture strings are unchanged.
 - [ ] Shared fixtures contain only vocabulary used by multiple concern modules, while consumer-specific variants remain local; every new file has a short module comment.
 - [ ] `Fixtures` and every concern module pass direct Lean elaboration, then `cd model && mise exec -- lake build UmpireTests` passes.
-- [ ] No production Umpire module, public API, dependency, build target, documentation, generated file, commit, or worktree is introduced.
+- [ ] No production Umpire module, public API, dependency, build target, documentation, generated file, unrelated commit, or worktree is introduced; only task-scoped worker and lifecycle commits are allowed.
 
 ## Done summary
 Split the reusable Core regression suite behind its stable import-only facade into shared fixtures plus Composition, Validation, KernelSoundness, Canonicalization, and Trace concerns. The pre-move evidence map at `.flow/tmp/fn12-1-core-declaration-map.md` assigns all 31 assertions and both explanatory comments exactly once (2/12/3/13/1 assertions by concern), while definition, comment, and semantic-string comparisons remain identical to the fn-10 closure baseline.
