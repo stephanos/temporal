@@ -83,6 +83,63 @@ def digestCollisionEvidence : EvidenceBundle := {
   closures := [{ kind := eventKind, lastSequence := 3 }]
 }
 
+def normalizedDigestRule : ObservationRule := {
+  digestRule with
+  value := .portable (.digestToken digestPolicyId
+    (.normalize { name := "text.lowercase", version := 1 }
+      (.normalize { name := "text.trim", version := 1 } (field hashedField))))
+}
+
+def normalizedDigestDeclaration : ObservationMappingDeclaration := {
+  qualificationDeclaration with
+  rules := qualificationDeclaration.rules.map fun rule =>
+    if rule.id == digestRule.id then { rule with value := normalizedDigestRule.value } else rule
+}
+
+def normalizedDigestEvidence : EvidenceBundle := {
+  completeEvidence with
+  records := [initialEvidence, {
+    stepEvidence with fields := stepEvidence.fields.map fun fieldValue =>
+      if fieldValue.field == hashedField then
+        { fieldValue with
+          value := .text "  FORBIDDEN-HASH-MATERIAL  "
+          reportedDigestToken := some (syntheticDigestToken digestPolicy "forbidden-hash-material") }
+      else fieldValue
+  }]
+}
+
+/-- Reported digest validation follows the checked normalized operand, not the raw field value. -/
+example :
+    let result := match checkObservation qualificationContext normalizedDigestDeclaration with
+      | .ok plan => qualifyEvidence plan normalizedDigestEvidence
+      | .error _ => .unknown {
+          kind := .zeroUsableInterpretations
+          planId := normalizedDigestDeclaration.id
+        }
+    result.status = .qualified := by
+  native_decide
+
+def irrelevantReportedTokenEvidence : EvidenceBundle :=
+  let expectedToken := syntheticDigestToken digestPolicy "forbidden-hash-material"
+  {
+    completeEvidence with
+    records := [{
+      initialEvidence with fields := initialEvidence.fields.map fun fieldValue =>
+        if fieldValue.field == nameField then
+          { fieldValue with reportedDigestToken := some expectedToken }
+        else fieldValue
+    }, {
+      stepEvidence with fields := stepEvidence.fields.map fun fieldValue =>
+        if fieldValue.field == hashedField then
+          { fieldValue with reportedDigestToken := some expectedToken }
+        else fieldValue
+    }]
+  }
+
+/-- Digest claims on non-hashed material cannot create a false same-bundle collision. -/
+example : (qualifyFixture irrelevantReportedTokenEvidence).status = .qualified := by
+  native_decide
+
 /-- Runtime disposition failures are unsupported except true same-bundle digest collisions. -/
 example :
     let rejected := qualifyFixture rejectedEvidence
