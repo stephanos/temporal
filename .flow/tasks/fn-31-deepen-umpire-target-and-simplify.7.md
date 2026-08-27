@@ -39,9 +39,15 @@ compatibility fixtures; this task does not edit those example sources ahead of t
 - [ ] Target imports no Query, Planning, Artifact, Temporal, runtime, or verification module; facade and import tests enforce the direction.
 - [ ] Focused Query/Planning suites plus `UmpireTests` pass with existing comments preserved.
 ## Done summary
-TBD
+Added the Target-to-Query derivation that projects resolved role assignments, target-owned finite actions, proofs, and stable compatibility tokens without introducing a second evidence authority. Added the checked-Query-to-Planning derivation that accepts only canonical ordering obligations and delegates to the existing `IncrementalPlannerKernel.ofFinite` enumerator; Query/Planning fixtures now exercise the public seams without assembling downstream proof records.
 
+Planning-unavailable targets remain valid for non-exhaustive Query consumers and fail exhaustive Query checking with the existing deterministic `missingFiniteCompleteness`. Focused traversal, facade visibility, import direction, aggregate model builds, regression projections, and model lint all pass. Concrete Switch and Temporal adoption remains intentionally owned by dependent Tasks `.3` and `.4`, as clarified in this task after Codex withdrew its sequencing finding.
+
+The implementation stayed within the declared Umpire Query/Planning surface. External commit `7105d4d29f9b0f9f3430869fb6202da3d245d243` absorbed the first six task files together with unrelated `.plans/UMPIRE4_ORDER.md`; worker-authored commits are `51604b51fe7bd44f85e6d24a0777660df16917da` and `4f8ef3a3ea3047aceb3dbc1c55b14f0202bea969`. Unrelated dirty `.plans/UMPIRE4_SPEC.md` and `.flow/memory/declined/generated-api-drift-verification.md` were preserved and excluded from task commits.
+
+baseline: green
+stage: impl-review - ran [2026-08-27T03:57:45Z..2026-08-27T04:04:04Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7105d4d29f9b0f9f3430869fb6202da3d245d243, 51604b51fe7bd44f85e6d24a0777660df16917da, 4f8ef3a3ea3047aceb3dbc1c55b14f0202bea969
+- Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model, rg -n ^import (Umpire.(Query|Planning|Artifact)|Temporal) model/Umpire/Target model/Umpire/Target.lean -g *.lean (no matches), git diff --check
 - PRs:
