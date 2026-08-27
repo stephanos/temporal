@@ -198,7 +198,8 @@ example : [
   ] = [some (10, 40), some (10, 40)] := by
   native_decide
 
-def finitePlanning : FinitePlanningCapability testKernel.authoritativeStep := {
+def finitePlanning : FinitePlanningCapability Bool Bool Bool Bool := {
+  authoritativeStep := testKernel.authoritativeStep
   actions := [false, true]
   roleDomainDigest := "test-role-domain/v1"
   actionDomainDigest := "test-action-domain/v1"
@@ -212,7 +213,7 @@ def finitePlanning : FinitePlanningCapability testKernel.authoritativeStep := {
 
 def finitePlanningAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
   declaration := testTarget
-  planning := .available testKernel rfl finitePlanning
+  planning := .available testKernel rfl finitePlanning rfl
 }
 
 def planningSummary
