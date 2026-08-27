@@ -66,4 +66,17 @@ example (result : TransitionResult Bool Bool Bool)
     testKernel.authoritativeStep false true result :=
   testKernel.stepSound false true result member
 
+/-- Exhaustive domains cannot omit an admitted setup or an action merely because it has no steps. -/
+example
+    (domain : TargetBehaviorDomain
+      (fun _ : Unit => True)
+      (fun _ : Bool => True)
+      (fun _ : Bool => True)
+      (fun _ : Bool => True)
+      (fun _ : Bool => True)
+      testKernel.initialStates
+      (fun _ _ => ([] : List (TransitionResult Bool Bool Bool)))) :
+    () ∈ domain.setups ∧ true ∈ domain.actions :=
+  ⟨domain.setupComplete () trivial, domain.actionComplete true trivial⟩
+
 end Umpire.TargetTests

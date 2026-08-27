@@ -391,7 +391,7 @@ func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
 	sources := make([]artifactv2.SourceLocation, 0, len(options.sources))
 	for _, source := range options.sources {
 		sources = append(sources, artifactv2.SourceLocation{
-			Path: source, Line: 1, Column: 1, Provenance: "lean-model",
+			Path: source, Line: artifactv2.Natural("1"), Column: artifactv2.Natural("1"), Provenance: "lean-model",
 		})
 	}
 	provenance := artifactv2.Provenance{SourceDefinitionIDs: []string{"synthetic.source"}, SourceLocations: sources}
@@ -412,12 +412,16 @@ func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
 			RequestedFaults: []artifactv2.ModelValue{}, CapabilityRequirementDefinitionIDs: []string{},
 			ExpandedLimits: artifactv2.Limits{
 				Behavior: artifactv2.BehaviorLimits{
-					Transitions:     artifactv2.Limit{Value: 1, Unit: "semantic-transitions"},
-					SelectedActions: artifactv2.Limit{Value: 1, Unit: "selected-actions"},
+					Transitions:     artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "semantic-transitions"},
+					SelectedActions: artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "selected-actions"},
 				},
-				Search: artifactv2.Limit{Value: 1, Unit: "candidate-evaluations"},
+				Search: artifactv2.Limit{Value: artifactv2.Natural("1"), Unit: "candidate-evaluations"},
 			},
 			Checkpoints: []artifactv2.Checkpoint{}, SelectionReason: "satisfying-witness",
+			Explored: artifactv2.ExploredCounts{
+				Setups: artifactv2.Natural("0"), Traces: artifactv2.Natural("0"),
+				Transitions: artifactv2.Natural("0"), PropertyEvaluations: artifactv2.Natural("0"),
+			},
 			KnownGaps: []artifactv2.KnownGap{}, Provenance: provenance,
 		},
 		Properties: properties, ObservationRequirementDefinitionIDs: options.requirements,

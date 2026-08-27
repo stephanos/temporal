@@ -56,6 +56,11 @@ def testKernel : TransitionKernel Unit Bool Bool Bool Bool := {
     id := id "test.kernel.transition"
     source := source "Umpire/TargetTests.lean"
   }
+  setupDomain := fun _ => True
+  stateDomain := fun _ => True
+  actionDomain := fun _ => True
+  outcomeDomain := fun _ => True
+  observationDomain := fun _ => True
   initialStates := fun _ => [false]
   authoritativeInitial := fun _ state => state = false
   initialSound := by simp
@@ -75,6 +80,16 @@ def testKernel : TransitionKernel Unit Bool Bool Bool Bool := {
     encodeAction := toString
     encodeOutcome := toString
     encodeObservation := toString
+    setupSound := by simp
+    setupComplete := by intro setup _; cases setup; simp
+    stateSound := by simp
+    stateComplete := by intro state _; cases state <;> simp
+    actionSound := by simp
+    actionComplete := by intro action _; cases action <;> simp
+    outcomeSound := by simp
+    outcomeComplete := by intro outcome _; cases outcome <;> simp
+    observationSound := by simp
+    observationComplete := by intro observation _; cases observation <;> simp
     setupCoverage := by intro setup state member; cases setup; simp
     initialStateCoverage := by intro setup state member; cases state <;> simp
     transitionSourceCoverage := by intro state action result member; cases state <;> simp

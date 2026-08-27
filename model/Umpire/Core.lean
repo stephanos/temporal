@@ -113,9 +113,14 @@ structure TransitionResult (State Outcome Observation : Type) where
   observations : List Observation
   deriving BEq, DecidableEq, Repr
 
-/-- Complete finite domains and canonical encoders for one Target's executable behavior. -/
+/-- Authoritative finite-domain predicates, exhaustive enumerators, and canonical encoders for one Target. -/
 structure TargetBehaviorDomain
     {Setup State Action Outcome Observation : Type}
+    (setupDomain : Setup → Prop)
+    (stateDomain : State → Prop)
+    (actionDomain : Action → Prop)
+    (outcomeDomain : Outcome → Prop)
+    (observationDomain : Observation → Prop)
     (initialStates : Setup → List State)
     (steps : State → Action → List (TransitionResult State Outcome Observation)) where
   setups : List Setup
@@ -128,6 +133,16 @@ structure TargetBehaviorDomain
   encodeAction : Action → String
   encodeOutcome : Outcome → String
   encodeObservation : Observation → String
+  setupSound : ∀ setup, setup ∈ setups → setupDomain setup
+  setupComplete : ∀ setup, setupDomain setup → setup ∈ setups
+  stateSound : ∀ state, state ∈ states → stateDomain state
+  stateComplete : ∀ state, stateDomain state → state ∈ states
+  actionSound : ∀ action, action ∈ actions → actionDomain action
+  actionComplete : ∀ action, actionDomain action → action ∈ actions
+  outcomeSound : ∀ outcome, outcome ∈ outcomes → outcomeDomain outcome
+  outcomeComplete : ∀ outcome, outcomeDomain outcome → outcome ∈ outcomes
+  observationSound : ∀ observation, observation ∈ observations → observationDomain observation
+  observationComplete : ∀ observation, observationDomain observation → observation ∈ observations
   setupCoverage : ∀ setup state, state ∈ initialStates setup → setup ∈ setups
   initialStateCoverage : ∀ setup state, state ∈ initialStates setup → state ∈ states
   transitionSourceCoverage : ∀ state action result,
@@ -143,11 +158,17 @@ structure TargetBehaviorDomain
 /-- Missing or incomplete finite coverage remains representable until Target checking. -/
 inductive TargetBehaviorDomainAvailability
     {Setup State Action Outcome Observation : Type}
+    (setupDomain : Setup → Prop)
+    (stateDomain : State → Prop)
+    (actionDomain : Action → Prop)
+    (outcomeDomain : Outcome → Prop)
+    (observationDomain : Observation → Prop)
     (initialStates : Setup → List State)
     (steps : State → Action → List (TransitionResult State Outcome Observation)) where
   | missing
   | incomplete (missingCoverage : List DefinitionId)
-  | complete (domain : TargetBehaviorDomain initialStates steps)
+  | complete (domain : TargetBehaviorDomain setupDomain stateDomain actionDomain outcomeDomain
+      observationDomain initialStates steps)
 
 structure KernelMetadata where
   id : DefinitionId
@@ -156,11 +177,16 @@ structure KernelMetadata where
   deriving BEq, DecidableEq, Repr
 
 /--
-The target-owned finite transition kernel. The proof fields make every emitted initial state and
-step sound, and make each authoritative relation complete with respect to the finite enumerators.
+The target-owned finite transition kernel. The proof fields make every admitted domain value and
+emitted initial state or step sound, and make the authoritative relations exhaustively enumerable.
 -/
 structure TransitionKernel (Setup State Action Outcome Observation : Type) where
   metadata : KernelMetadata
+  setupDomain : Setup → Prop
+  stateDomain : State → Prop
+  actionDomain : Action → Prop
+  outcomeDomain : Outcome → Prop
+  observationDomain : Observation → Prop
   initialStates : Setup → List State
   authoritativeInitial : Setup → State → Prop
   initialSound : ∀ setup state, state ∈ initialStates setup → authoritativeInitial setup state
@@ -172,13 +198,15 @@ structure TransitionKernel (Setup State Action Outcome Observation : Type) where
     result ∈ steps state action → authoritativeStep state action result
   stepComplete : ∀ state action result,
     authoritativeStep state action result → result ∈ steps state action
-  behaviorDomain : TargetBehaviorDomainAvailability initialStates steps := .missing
+  behaviorDomain : TargetBehaviorDomainAvailability setupDomain stateDomain actionDomain
+    outcomeDomain observationDomain initialStates steps := .missing
 
 /-- Complete behavior domains prove that every enumerated kernel result remains in-domain. -/
 structure TargetBehaviorClosure
     {Setup State Action Outcome Observation : Type}
     (kernel : TransitionKernel Setup State Action Outcome Observation)
-    (domain : TargetBehaviorDomain kernel.initialStates kernel.steps) : Prop where
+    (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
+      kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) : Prop where
   initialState : ∀ setup state,
     state ∈ kernel.initialStates setup → state ∈ domain.states
   resultingState : ∀ state action result,
@@ -190,7 +218,8 @@ structure TargetBehaviorClosure
 
 theorem TargetBehaviorDomain.closure
     (kernel : TransitionKernel Setup State Action Outcome Observation)
-    (domain : TargetBehaviorDomain kernel.initialStates kernel.steps) :
+    (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
+      kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) :
     TargetBehaviorClosure kernel domain := {
   initialState := domain.initialStateCoverage
   resultingState := domain.resultingStateCoverage

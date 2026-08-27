@@ -224,6 +224,12 @@ def transitionKernel : TransitionKernel
     id := kernelId
     source
   }
+  setupDomain := fun candidate => candidate = clashSetup
+  stateDomain := fun candidate => candidate = clashState ∨ candidate = closedState
+  actionDomain := fun candidate => candidate = forceCloseAction
+  outcomeDomain := fun candidate => candidate = upgradedOutcome
+  observationDomain := fun candidate => candidate = deliveredObservation ∨
+    candidate = cancellationCountObservation ∨ candidate = ownershipObservation
   initialStates := fun setup => if setup = clashSetup then [clashState] else []
   authoritativeInitial
   initialSound := by
@@ -266,6 +272,16 @@ def transitionKernel : TransitionKernel
     encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
     encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
     encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    setupSound := by intro candidate member; simpa using member
+    setupComplete := by intro candidate admitted; simpa using admitted
+    stateSound := by intro candidate member; simpa using member
+    stateComplete := by intro candidate admitted; simpa using admitted
+    actionSound := by intro candidate member; simpa using member
+    actionComplete := by intro candidate admitted; simpa using admitted
+    outcomeSound := by intro candidate member; simpa using member
+    outcomeComplete := by intro candidate admitted; simpa using admitted
+    observationSound := by intro candidate member; simpa using member
+    observationComplete := by intro candidate admitted; simpa using admitted
     setupCoverage := by
       intro setup state member
       by_cases selected : setup = clashSetup

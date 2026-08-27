@@ -78,10 +78,10 @@ type Provenance struct {
 }
 
 type SourceLocation struct {
-	Path       string `json:"path"`
-	Line       uint64 `json:"line"`
-	Column     uint64 `json:"column"`
-	Provenance string `json:"provenance"`
+	Path       string  `json:"path"`
+	Line       Natural `json:"line"`
+	Column     Natural `json:"column"`
+	Provenance string  `json:"provenance"`
 }
 
 type ModelValue struct {
@@ -115,7 +115,7 @@ type Operand struct {
 type Occurrence struct {
 	DefinitionID         string  `json:"definitionId"`
 	ActionDefinitionID   string  `json:"actionDefinitionId"`
-	Position             uint64  `json:"position"`
+	Position             Natural `json:"position"`
 	AuthoredDefinitionID *string `json:"authoredDefinitionId"`
 }
 
@@ -130,20 +130,20 @@ type BehaviorLimits struct {
 }
 
 type Limit struct {
-	Value uint64 `json:"value"`
-	Unit  string `json:"unit"`
+	Value Natural `json:"value"`
+	Unit  string  `json:"unit"`
 }
 
 type Checkpoint struct {
-	Transition   uint64       `json:"transition"`
+	Transition   Natural      `json:"transition"`
 	Observations []ModelValue `json:"observations"`
 }
 
 type ExploredCounts struct {
-	Setups              uint64 `json:"setups"`
-	Traces              uint64 `json:"traces"`
-	Transitions         uint64 `json:"transitions"`
-	PropertyEvaluations uint64 `json:"propertyEvaluations"`
+	Setups              Natural `json:"setups"`
+	Traces              Natural `json:"traces"`
+	Transitions         Natural `json:"transitions"`
+	PropertyEvaluations Natural `json:"propertyEvaluations"`
 }
 
 type KnownGap struct {
@@ -753,7 +753,7 @@ func validateProvenance(provenance Provenance) error {
 		return errors.New("source locations are not in canonical order")
 	}
 	for index, source := range provenance.SourceLocations {
-		if strings.TrimSpace(source.Path) == "" || strings.TrimSpace(source.Provenance) == "" || source.Line == 0 || source.Column == 0 {
+		if strings.TrimSpace(source.Path) == "" || strings.TrimSpace(source.Provenance) == "" || source.Line.IsZero() || source.Column.IsZero() {
 			return errors.New("source location is malformed")
 		}
 		if index > 0 && source == provenance.SourceLocations[index-1] {
@@ -850,17 +850,11 @@ func compareSourceLocation(left, right SourceLocation) int {
 	if comparison := strings.Compare(left.Path, right.Path); comparison != 0 {
 		return comparison
 	}
-	if left.Line != right.Line {
-		if left.Line < right.Line {
-			return -1
-		}
-		return 1
+	if comparison := compareNatural(left.Line, right.Line); comparison != 0 {
+		return comparison
 	}
-	if left.Column != right.Column {
-		if left.Column < right.Column {
-			return -1
-		}
-		return 1
+	if comparison := compareNatural(left.Column, right.Column); comparison != 0 {
+		return comparison
 	}
 	return strings.Compare(left.Provenance, right.Provenance)
 }

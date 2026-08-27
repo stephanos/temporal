@@ -187,17 +187,17 @@ func TestLoadGeneratedViewRejectsUnsafeLeanSourcePaths(t *testing.T) {
 			link := filepath.Join(root, "model", "escaped.lean")
 			require.NoError(t, os.Symlink(external, link))
 			reference.Sources = []string{"escaped.lean"}
-			fixture.Provenance.SourceLocations = []fixtureSource{{Path: "escaped.lean"}}
+			fixture.Provenance.SourceLocations[0].Path = "escaped.lean"
 		},
 		"wrong kind": func(t *testing.T, root string, reference *Reference, fixture *fixtureEnvelope) {
 			directory := filepath.Join(root, "model", "directory.lean")
 			require.NoError(t, os.MkdirAll(directory, 0o755))
 			reference.Sources = []string{"directory.lean"}
-			fixture.Provenance.SourceLocations = []fixtureSource{{Path: "directory.lean"}}
+			fixture.Provenance.SourceLocations[0].Path = "directory.lean"
 		},
 		"nonexistent": func(_ *testing.T, _ string, reference *Reference, fixture *fixtureEnvelope) {
 			reference.Sources = []string{"missing.lean"}
-			fixture.Provenance.SourceLocations = []fixtureSource{{Path: "missing.lean"}}
+			fixture.Provenance.SourceLocations[0].Path = "missing.lean"
 		},
 	}
 

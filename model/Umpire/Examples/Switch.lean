@@ -190,6 +190,12 @@ def transitionKernel : TransitionKernel
     id := kernelId
     source
   }
+  setupDomain := fun candidate => candidate = switchSetup
+  stateDomain := fun candidate => candidate = offState ∨ candidate = onState
+  actionDomain := fun candidate => candidate = flipAction
+  outcomeDomain := fun candidate => candidate = appliedOutcome ∨ candidate = deferredOutcome
+  observationDomain := fun candidate =>
+    candidate = powerOffObservation ∨ candidate = powerOnObservation
   initialStates
   authoritativeInitial
   initialSound := initialStates_sound
@@ -210,6 +216,16 @@ def transitionKernel : TransitionKernel
     encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
     encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
     encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    setupSound := by intro candidate member; simpa using member
+    setupComplete := by intro candidate admitted; simpa using admitted
+    stateSound := by intro candidate member; simpa using member
+    stateComplete := by intro candidate admitted; simpa using admitted
+    actionSound := by intro candidate member; simpa using member
+    actionComplete := by intro candidate admitted; simpa using admitted
+    outcomeSound := by intro candidate member; simpa using member
+    outcomeComplete := by intro candidate admitted; simpa using admitted
+    observationSound := by intro candidate member; simpa using member
+    observationComplete := by intro candidate admitted; simpa using admitted
     setupCoverage := by
       intro setup state member
       by_cases selected : setup = switchSetup
