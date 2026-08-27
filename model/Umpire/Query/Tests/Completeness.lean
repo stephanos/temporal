@@ -24,9 +24,13 @@ example : [
         some .missingFiniteCompleteness) := by
   native_decide
 
-def noFiniteDomains : QueryCheckContext (fun _ => True) := {
-  target := .checked { target, completeness := none }
-}
+def noFiniteDomains : QueryCheckContext (fun _ => True) :=
+  .ofTarget { target with planning := .unavailable }
+
+/-! Planning availability is additive: non-exhaustive semantic queries still consume the target. -/
+example : (checkQuery noFiniteDomains
+    (declaration (.witness checkedProperty) searchPolicy)).isOk := by
+  native_decide
 
 example : errorKindOf (checkQuery noFiniteDomains
     (declaration (.verify checkedProperty) exhaustivePolicy)) =
@@ -38,6 +42,15 @@ example : ((checkQuery exhaustiveContext
     (declaration (.verify checkedProperty) exhaustivePolicy)).toOption.bind fun query =>
       query.completeness.map fun evidence =>
         (evidence.roleAssignments.length, evidence.actions.length)) = some (1, 1) := by
+  native_decide
+
+/-! Query copies Target's stable compatibility tokens and finite domains verbatim. -/
+example : ((checkQuery exhaustiveContext
+    (declaration (.verify checkedProperty) exhaustivePolicy)).toOption.bind fun query =>
+      query.completeness.map fun evidence =>
+        (evidence.roleAssignments, evidence.actions,
+          evidence.roleDomainDigest, evidence.actionDomainDigest)) =
+      some ([setup], [requestValue], "role-domain/v1", "action-domain/v1") := by
   native_decide
 
 /-! Completeness follows the exhaustive strategy, not a particular query form. -/

@@ -145,6 +145,30 @@ structure CheckedQueryTarget (LawStatement : DeclarationId → Prop) where
   target : QueryTarget LawStatement
   completeness : Option (FiniteCompletenessEvidence LawStatement target) := none
 
+/-- Derive Query's finite-completeness view from the checked Target without introducing another
+finite-domain authority. Planning-unavailable targets remain valid Query targets. -/
+def CheckedQueryTarget.ofTarget
+    (target : QueryTarget LawStatement) : CheckedQueryTarget LawStatement :=
+  match target.planning with
+  | .unavailable => { target }
+  | .available capability => {
+      target
+      completeness := some {
+        roleAssignments := target.resolvedSetups
+        actions := capability.actions
+        roleDomainDigest := capability.roleDomainDigest
+        actionDomainDigest := capability.actionDomainDigest
+        roleSound := by
+          intro setup member
+          exact member
+        roleComplete := by
+          intro setup member
+          exact member
+        actionSound := capability.actionSound
+        actionComplete := capability.actionComplete
+      }
+    }
+
 inductive QueryTargetAvailability (LawStatement : DeclarationId → Prop) where
   | checked (target : CheckedQueryTarget LawStatement)
   | incomplete
@@ -154,6 +178,12 @@ inductive QueryTargetAvailability (LawStatement : DeclarationId → Prop) where
 
 structure QueryCheckContext (LawStatement : DeclarationId → Prop) where
   target : QueryTargetAvailability LawStatement
+
+/-- The ordinary Query boundary consumes one checked Target and derives any available finite view. -/
+def QueryCheckContext.ofTarget
+    (target : QueryTarget LawStatement) : QueryCheckContext LawStatement := {
+  target := .checked (.ofTarget target)
+}
 
 structure QueryDeclaration where
   id : DeclarationId
