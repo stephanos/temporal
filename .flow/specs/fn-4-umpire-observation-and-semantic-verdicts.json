@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-4-umpire-observation-and-semantic-verdicts",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-08-27T09:00:41.247798Z",
   "created_at": "2026-08-24T22:43:58.330813Z",
   "default_impl": null,
   "default_review": null,
@@ -20,7 +20,7 @@
     "fn-4-umpire-observation-and-semantic-verdicts.5": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T06:26:05.871888Z",
   "ready": true,
@@ -746,6 +746,36 @@
       "task": "fn-4-umpire-observation-and-semantic-verdicts.5",
       "timestamp": "2026-08-27T08:40:49.072045Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "77c185e389a789f2165c3927d709ddb6de57f904973c580451dcd4441c0dab58",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d58219606703012faa7f0de6db2b7965285667c1",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 413205,
+      "output_sha256": "34e8560999ca8558fe20adbe5cd7c5190b4b730ea3896af46fcb6c36cebdc854",
+      "reservation_id": "83cf1db85ba247aca5f9aa6e9ac20481",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T09:00:41.234628Z",
+      "tool_calls": 21,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -760,6 +790,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-4-umpire-observation-and-semantic-verdicts.1": 0,
     "impl:fn-4-umpire-observation-and-semantic-verdicts.2": 0,
     "impl:fn-4-umpire-observation-and-semantic-verdicts.3": 0,
@@ -781,5 +812,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T08:40:49.077187Z"
+  "updated_at": "2026-08-27T09:00:41.251270Z"
 }

@@ -85,7 +85,7 @@ private structure DerivationShape where
   orderingSupport : List EvidenceOrderingFact
   closureSupport : List EvidenceClosureFact
   appliedDispositions : List AppliedFieldDisposition
-  appliedBound : TypedBound
+  appliedBound : EvidenceBound
   meaningDigest : String
   deriving BEq, DecidableEq, Repr
 
