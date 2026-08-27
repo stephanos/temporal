@@ -66,8 +66,8 @@ model/
 │       └── Veil/                 # generic optional Veil machinery
 │
 ├── Temporal/
-│   ├── API/                      # generated structural input
-│   ├── DynamicConfig/            # generated structural input
+│   ├── API/                      # generated structure
+│   ├── DynamicConfig/            # generated structure
 │   ├── Feature/                  # canonical product meaning
 │   ├── System/                   # canonical implementation meaning
 │   ├── Tool/                     # ordinary developer tools
