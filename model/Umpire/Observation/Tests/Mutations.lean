@@ -96,19 +96,129 @@ example :
 
 /-! Wrapper mutations fail at coordinate, ordering, and disposition validation. -/
 
-def missingCoordinateMutation : QualifiedTrace := {
+def literalInitialOrdering : List EvidenceOrderingFact := [{
+  recordId := id "test.evidence.record.initial"
+  kind := id "test.evidence.kind.event"
+  sequence := 1
+  causalParents := []
+}]
+
+def literalStepOrdering : List EvidenceOrderingFact := [{
+  recordId := id "test.evidence.record.step-1"
+  kind := id "test.evidence.kind.event"
+  sequence := 2
+  causalParents := [id "test.evidence.record.initial"]
+}]
+
+def literalClosure : List EvidenceClosureFact := [{
+  kind := id "test.evidence.kind.event"
+  lastSequence := 2
+}]
+
+def literalDerivation
+    (mappingDigest : String)
+    (coordinate : SemanticCoordinate)
+    (evidenceIdentity ruleId : DeclarationId)
+    (bindingIds : List DeclarationId)
+    (orderingSupport : List EvidenceOrderingFact)
+    (appliedDispositions : List AppliedFieldDisposition)
+    (meaningDigest : String) : SemanticDerivation := {
+  coordinate
+  mappingId := id "test.mapping.qualification"
+  mappingVersion := 1
+  mappingDigest
+  profileId := id "test.evidence.profile"
+  profileVersion := 1
+  evidenceIdentities := [evidenceIdentity]
+  ruleId
+  bindingIds
+  orderingSupport
+  closureSupport := literalClosure
+  appliedDispositions
+  appliedBound := { value := 3, unit := .evidenceRecords }
+  meaningDigest
+}
+
+/-- Independently authored derivations for every semantic slot in `expectedTrace`. -/
+def literalDerivations (mappingDigest : String) : List SemanticDerivation := [
+  literalDerivation mappingDigest .initialState
+    (id "test.evidence.record.initial") (id "test.rule.initial-state")
+    [id "test.binding.normalized-name"] literalInitialOrdering [
+      {
+        field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.name" }
+        evidence := .retained "ready"
+      },
+      {
+        field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
+        evidence := .retained "initial"
+      }
+    ] "test.state.operation/meaning-v1",
+  literalDerivation mappingDigest (.selectedAction 1)
+    (id "test.evidence.record.step-1") (id "test.rule.step-action") [] literalStepOrdering [{
+      field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
+      evidence := .retained "step"
+    }] "test.action.start/meaning-v1",
+  literalDerivation mappingDigest (.modelOutcome 1)
+    (id "test.evidence.record.step-1") (id "test.rule.step-outcome") [] literalStepOrdering [{
+      field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
+      evidence := .retained "step"
+    }] "test.outcome.success/meaning-v1",
+  literalDerivation mappingDigest (.resultingState 1)
+    (id "test.evidence.record.step-1") (id "test.rule.step-state") [] literalStepOrdering [{
+      field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
+      evidence := .retained "step"
+    }] "test.state.completed/meaning-v1",
+  literalDerivation mappingDigest (.observation 1 1)
+    (id "test.evidence.record.step-1") (id "test.rule.contribution") [] literalStepOrdering [
+      {
+        field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
+        evidence := .retained "step"
+      },
+      {
+        field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.secret" }
+        evidence := .redactedContribution
+      }
+    ] "test.observation.contribution/meaning-v1",
+  literalDerivation mappingDigest (.observation 1 2)
+    (id "test.evidence.record.step-1") (id "test.rule.digest") [] literalStepOrdering [
+      {
+        field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.hashed" }
+        evidence := .digestToken (id "test.digest.synthetic")
+          "synthetic.digest/v1:3006720707513255331"
+      },
+      {
+        field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
+        evidence := .retained "step"
+      }
+    ] "test.observation.digest/meaning-v1"
+]
+
+/-- Qualification must match every independently authored derivation field and slot. -/
+example : completeQualifiedTrace.derivations =
+    literalDerivations completeQualifiedTrace.mappingDigest := by
+  native_decide
+
+def literalQualifiedTrace : QualifiedTrace := {
   completeQualifiedTrace with
-  derivations := completeQualifiedTrace.derivations.tail
+  derivations := literalDerivations completeQualifiedTrace.mappingDigest
+}
+
+def literalFirstDerivation : SemanticDerivation :=
+  literalQualifiedTrace.derivations.head?.get (by native_decide)
+
+def missingCoordinateMutation : QualifiedTrace := {
+  literalQualifiedTrace with
+  derivations := literalQualifiedTrace.derivations.tail
 }
 
 def duplicateCoordinateMutation : QualifiedTrace := {
-  completeQualifiedTrace with
-  derivations := completeFirstDerivation :: completeQualifiedTrace.derivations
+  literalQualifiedTrace with
+  derivations := literalFirstDerivation :: literalQualifiedTrace.derivations
 }
 
 def shiftedCoordinateMutation : QualifiedTrace := {
-  completeQualifiedTrace with
-  derivations := completeQualifiedTrace.derivations.map fun derivation =>
+  literalQualifiedTrace with
+  derivations := literalQualifiedTrace.derivations.map fun derivation =>
     if derivation.coordinate == .observation 1 2 then
       { derivation with coordinate := .observation 1 3 }
     else
@@ -116,8 +226,8 @@ def shiftedCoordinateMutation : QualifiedTrace := {
 }
 
 def missingOrderingMutation : QualifiedTrace := {
-  completeQualifiedTrace with
-  derivations := completeQualifiedTrace.derivations.map fun derivation => {
+  literalQualifiedTrace with
+  derivations := literalQualifiedTrace.derivations.map fun derivation => {
     derivation with
     orderingSupport := derivation.orderingSupport.map fun fact =>
       if fact.recordId == stepEvidenceId then
@@ -128,14 +238,14 @@ def missingOrderingMutation : QualifiedTrace := {
 }
 
 def redactedCleartextMutation : QualifiedTrace := {
-  completeQualifiedTrace with
+  literalQualifiedTrace with
   derivations := [{
-    completeFirstDerivation with
+    literalFirstDerivation with
     appliedDispositions := [{
       field := { kind := eventKind, field := secretField }
       evidence := .retained "forbidden-secret"
     }]
-  }] ++ completeQualifiedTrace.derivations.tail
+  }] ++ literalQualifiedTrace.derivations.tail
 }
 
 /-- Missing, duplicate, shifted, unordered, and cleartext-tainted wrappers fail at named boundaries. -/
@@ -175,7 +285,7 @@ example :
     let mutant := evaluateQualifiedProperty (verdictQuery [propertyMutation])
       propertyMutation completeQualification
     (completeQualification.status,
-      diagnosticKindOf (validateQualifiedTrace completeQualifiedTrace),
+      diagnosticKindOf (validateQualifiedTrace literalQualifiedTrace),
       baseline.status,
       mutant.status) =
       (.qualified, none, .satisfied, .violated) := by
