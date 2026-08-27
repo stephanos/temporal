@@ -378,8 +378,11 @@ private def validateSequenceAndCausality
   for record in records do
     match record.faultTarget with
     | some target =>
-        if !ids.contains target then
-          throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
+        match records.find? fun candidate => candidate.id == target with
+        | some targetRecord =>
+            if targetRecord.sequence >= record.sequence then
+              throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
+        | none => throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
     | none => pure ()
   let ordered := records.mergeSort recordLe
   let mut expected := 1
@@ -527,6 +530,14 @@ mutual
     pure value
 end
 
+private def validateBindingFacts
+    (plan : CheckedObservationPlan)
+    (record : SyntheticEvidenceRecord) : Except QualificationDiagnostic Unit := do
+  for fact in record.bindingFacts do
+    let value ← evaluateBinding plan record fact.binding []
+    if value != fact.value then
+      throw (diagnostic plan .contradictoryBinding [record.id, fact.binding])
+
 private def conditionHolds
     (plan : CheckedObservationPlan)
     (record : SyntheticEvidenceRecord)
@@ -672,20 +683,30 @@ private def qualifyChecked
     throw (diagnostic plan .profileMismatch [bundle.profile])
   if bundle.profileVersion != plan.profile.version then
     throw (diagnostic plan .profileVersionMismatch [bundle.profile])
+  let records := bundle.records.mergeSort recordLe
+  detectDigestCollision plan records
+  for record in records do
+    validateRecord plan record
+  validateClosures plan bundle
+  validateSequenceAndCausality plan records
+  for record in records do
+    validateBindingFacts plan record
   if !bundle.compatibleAlternatives.isEmpty then
-    let alternatives := bundle.compatibleAlternatives.mergeSort interpretationLe
+    let interpretations := bundle.compatibleAlternatives.map fun interpretation => {
+      interpretation with evidenceIdentities := canonicalIds interpretation.evidenceIdentities
+    }
+    for interpretation in interpretations do
+      let sameIdentity := interpretations.filter fun candidate => candidate.id == interpretation.id
+      if sameIdentity.any fun candidate =>
+          candidate.evidenceIdentities != interpretation.evidenceIdentities then
+        throw (diagnostic plan .contradictoryFact [interpretation.id])
+    let alternatives := interpretations.mergeSort interpretationLe
       |>.map CompatibleInterpretation.id |>.eraseDups
     throw {
       (diagnostic plan .compatibleAlternatives alternatives) with
       alternatives
       missingDiscriminator := bundle.missingDiscriminator
     }
-  detectDigestCollision plan bundle.records
-  for record in bundle.records do
-    validateRecord plan record
-  validateClosures plan bundle
-  validateSequenceAndCausality plan bundle.records
-  let records := bundle.records.mergeSort recordLe
   let first :: remainingRecords := records
     | throw (diagnostic plan .emptyEvidence)
   let firstEmissions ← emissionsFor plan first
@@ -814,6 +835,8 @@ private def validateAppliedDisposition
 
 /-- Revalidate a wrapper before any downstream property evaluation. -/
 def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagnostic Unit := do
+  if trace.traceId != semanticDigestOf (trace.mappingDigest ++ ":" ++ reprStr trace.trace) then
+    throw { kind := .inconsistentDerivation, planId := trace.mappingId }
   let expected := expectedCoordinates trace.trace
   let actual := trace.derivations.map SemanticDerivation.coordinate
   for coordinate in expected do
@@ -824,6 +847,9 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
       throw { kind := .duplicateCoordinate, planId := trace.mappingId }
   if actual.any fun coordinate => !expected.contains coordinate then
     throw { kind := .extraCoordinate, planId := trace.mappingId }
+  let closureSupport := trace.derivations.head?.map fun derivation =>
+    derivation.closureSupport.mergeSort closureLe
+  let closureSupport := closureSupport.getD []
   for derivation in trace.derivations do
     if derivation.mappingId != trace.mappingId ||
         derivation.mappingVersion != trace.mappingVersion ||
@@ -842,13 +868,19 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
   if derivationEvidenceIds trace.derivations != canonicalIds trace.evidenceIdentities then
     throw { kind := .unconsumedReference, planId := trace.mappingId }
   for derivation in trace.derivations do
-    if derivation.closureSupport.isEmpty || !trace.sourceClosed then
+    if derivation.closureSupport.mergeSort closureLe != closureSupport ||
+        closureSupport.isEmpty || !trace.sourceClosed then
       throw {
         kind := .missingClosureSupport
         planId := trace.mappingId
         relatedIdentities := [derivation.ruleId]
       }
-    if derivation.orderingSupport.isEmpty then
+    let orderingIdentities := canonicalIds <|
+      derivation.orderingSupport.map EvidenceOrderingFact.recordId
+    if orderingIdentities != canonicalIds derivation.evidenceIdentities ||
+        derivation.orderingSupport.any (fun fact =>
+          fact.sequence == 0 ||
+            fact.causalParents.any fun parent => !trace.evidenceIdentities.contains parent) then
       throw {
         kind := .missingOrderSupport
         planId := trace.mappingId
