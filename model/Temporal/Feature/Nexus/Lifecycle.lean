@@ -262,6 +262,15 @@ def transitionKernel : TransitionKernel
     id := kernelId
     source
   }
+  setupDomain := fun candidate => candidate = scheduledSetup ∨ candidate = startedSetup
+  stateDomain := fun candidate => candidate = scheduledState ∨ candidate = startedState ∨
+    candidate = canceledState ∨ candidate = succeededState
+  actionDomain := fun candidate => candidate = cancelAction ∨ candidate = startAction ∨
+    candidate = reportSuccessAction
+  outcomeDomain := fun candidate => candidate = startedOutcome ∨ candidate = canceledOutcome ∨
+    candidate = succeededOutcome
+  observationDomain := fun candidate => candidate = startedObservation ∨
+    candidate = canceledObservation ∨ candidate = succeededObservation
   initialStates
   authoritativeInitial
   initialSound := initialStates_sound
@@ -282,6 +291,16 @@ def transitionKernel : TransitionKernel
     encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
     encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
     encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    setupSound := by intro candidate member; simpa [roleAssignments] using member
+    setupComplete := by intro candidate admitted; simpa [roleAssignments] using admitted
+    stateSound := by intro candidate member; simpa using member
+    stateComplete := by intro candidate admitted; simpa using admitted
+    actionSound := by intro candidate member; simpa [actionDomain] using member
+    actionComplete := by intro candidate admitted; simpa [actionDomain] using admitted
+    outcomeSound := by intro candidate member; simpa using member
+    outcomeComplete := by intro candidate admitted; simpa using admitted
+    observationSound := by intro candidate member; simpa using member
+    observationComplete := by intro candidate admitted; simpa using admitted
     setupCoverage := by
       intro setup state member
       by_cases scheduled : setup = scheduledSetup

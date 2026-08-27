@@ -68,6 +68,11 @@ def kernel : TransitionKernel
     id := kernelId
     source
   }
+  setupDomain := fun candidate => candidate = setup
+  stateDomain := fun candidate => candidate = initial ∨ candidate = completed
+  actionDomain := fun candidate => candidate = requestValue
+  outcomeDomain := fun candidate => candidate = acceptedValue
+  observationDomain := fun candidate => candidate = observedValue
   initialStates := fun candidate => if candidate = setup then [initial] else []
   authoritativeInitial := fun candidate state => candidate = setup ∧ state = initial
   initialSound := by
@@ -107,6 +112,16 @@ def kernel : TransitionKernel
     encodeAction := encodeValue
     encodeOutcome := encodeValue
     encodeObservation := encodeValue
+    setupSound := by intro candidate member; simpa using member
+    setupComplete := by intro candidate admitted; simpa using admitted
+    stateSound := by intro candidate member; simpa using member
+    stateComplete := by intro candidate admitted; simpa using admitted
+    actionSound := by intro candidate member; simpa using member
+    actionComplete := by intro candidate admitted; simpa using admitted
+    outcomeSound := by intro candidate member; simpa using member
+    outcomeComplete := by intro candidate admitted; simpa using admitted
+    observationSound := by intro candidate member; simpa using member
+    observationComplete := by intro candidate admitted; simpa using admitted
     setupCoverage := by
       intro candidate state member
       by_cases selected : candidate = setup
