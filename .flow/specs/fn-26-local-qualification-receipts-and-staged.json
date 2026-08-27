@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
-    "fn-20-local-execution-semantic-conformance"
+    "fn-20-local-execution-semantic-conformance",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-26-local-qualification-receipts-and-staged",
   "impl_review_rounds": {},
@@ -312,5 +313,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:33.604154Z"
+  "updated_at": "2026-08-27T05:43:42.235376Z"
 }

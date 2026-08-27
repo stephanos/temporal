@@ -11,7 +11,8 @@
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
-    "fn-5-umpire-discovery-promotion-and-artifact"
+    "fn-5-umpire-discovery-promotion-and-artifact",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-33-run-resumable-semantic-exploration",
   "impl_review_rounds": {},
@@ -517,5 +518,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:35.244460Z"
+  "updated_at": "2026-08-27T05:43:42.699422Z"
 }

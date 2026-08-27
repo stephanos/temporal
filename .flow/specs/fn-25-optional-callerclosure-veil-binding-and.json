@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-23-veil-toolchain-compatibility-and",
     "fn-24-lean-native-verification-receipts-and",
-    "fn-34-enforce-lean-model-boundaries-with"
+    "fn-34-enforce-lean-model-boundaries-with",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-25-optional-callerclosure-veil-binding-and",
   "impl_review_rounds": {},
@@ -312,5 +313,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:33.358076Z"
+  "updated_at": "2026-08-27T05:43:42.012399Z"
 }

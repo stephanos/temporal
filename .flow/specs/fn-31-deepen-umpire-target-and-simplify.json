@@ -20,7 +20,7 @@
     "fn-31-deepen-umpire-target-and-simplify.7": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-27T00:22:06.696420Z",
   "review_attempts": [
@@ -1117,8 +1117,18 @@
     "plan": 2,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "6e276d4060f54084b744aba0465f4702": {
+      "artifact_sha256": "291cbf874401770924e3f76b96130c9d0571920dd2b419020d7cddcc8ecde7f3",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "completion"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-31-deepen-umpire-target-and-simplify.1": 0,
     "impl:fn-31-deepen-umpire-target-and-simplify.2": 0,
@@ -1143,5 +1153,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T05:36:31.008648Z"
+  "updated_at": "2026-08-27T05:48:48.962203Z"
 }

@@ -11,7 +11,8 @@
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
-    "fn-32-add-umpire-refinement-and-the-first"
+    "fn-32-add-umpire-refinement-and-the-first",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-21-nexus-duplicate-observation-control",
   "impl_review_rounds": {},
@@ -198,5 +199,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:32.412820Z"
+  "updated_at": "2026-08-27T05:43:41.338121Z"
 }

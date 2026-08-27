@@ -12,7 +12,8 @@
     "fn-9-umpire-reusable-dsl-package-split",
     "fn-16-authored-variation-spaces-and",
     "fn-31-deepen-umpire-target-and-simplify",
-    "fn-32-add-umpire-refinement-and-the-first"
+    "fn-32-add-umpire-refinement-and-the-first",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-18-versioned-umpire-artifact-boundary",
   "impl_review_rounds": {},
@@ -286,5 +287,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:31.711419Z"
+  "updated_at": "2026-08-27T05:43:40.658008Z"
 }

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-27T05:47:57.846729Z",
+  "depends_on": [
+    "fn-37-hard-cut-umpire-vocabulary-and-current.4",
+    "fn-37-hard-cut-umpire-vocabulary-and-current.6"
+  ],
+  "id": "fn-37-hard-cut-umpire-vocabulary-and-current.7",
+  "priority": null,
+  "spec": "fn-37-hard-cut-umpire-vocabulary-and-current",
+  "spec_path": ".flow/tasks/fn-37-hard-cut-umpire-vocabulary-and-current.7.md",
+  "status": "todo",
+  "title": "Synchronize documentation, downstream plans, and the legacy-name gate",
+  "updated_at": "2026-08-27T05:47:57.846729Z"
+}
