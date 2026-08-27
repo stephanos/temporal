@@ -6,6 +6,15 @@ open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 open Temporal.Feature.Nexus.Operations
 
+private def expectedAsyncStartQueryJson : String :=
+  include_str "Fixtures/OperationsAsyncStartQuery.json"
+
+private def expectedCancellationQueryJson : String :=
+  include_str "Fixtures/OperationsCancellationQuery.json"
+
+private def expectedSuccessfulCompletionQueryJson : String :=
+  include_str "Fixtures/OperationsSuccessfulCompletionQuery.json"
+
 namespace AsyncStart
 
 open Temporal.Feature.Nexus.Operations.AsyncStart
@@ -24,7 +33,7 @@ example : query.completeness.map (fun evidence =>
         "temporal-nexus-basic-lifecycle-action-domain/v2") := by
   native_decide
 
-example : queryResult.toOption.map canonicalQueryJson = some (canonicalQueryJson query) := by
+example : canonicalQueryJson query ++ "\n" = expectedAsyncStartQueryJson := by
   native_decide
 
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧
@@ -72,7 +81,7 @@ example : propertyResult.isOk = true ∧ behaviorResult.isOk = true ∧ queryRes
 example : query.target = target := by
   rfl
 
-example : queryResult.toOption.map canonicalQueryJson = some (canonicalQueryJson query) := by
+example : canonicalQueryJson query ++ "\n" = expectedCancellationQueryJson := by
   native_decide
 
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧
@@ -107,7 +116,7 @@ example : propertyResult.isOk = true ∧ behaviorResult.isOk = true ∧ queryRes
 example : query.target = target := by
   rfl
 
-example : queryResult.toOption.map canonicalQueryJson = some (canonicalQueryJson query) := by
+example : canonicalQueryJson query ++ "\n" = expectedSuccessfulCompletionQueryJson := by
   native_decide
 
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧
