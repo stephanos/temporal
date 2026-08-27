@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-32-add-umpire-refinement-and-the-first",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-27T23:36:12.525673Z",
   "created_at": "2026-08-26T20:24:04.751513Z",
   "default_impl": null,
   "default_review": null,
@@ -664,6 +664,36 @@
       "timestamp": "2026-08-27T23:23:08.083568Z",
       "tool_calls": 43,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ea9328382b1a8e2507f63675c702d0ee54191602a3a9914e07d5dd26883f5c58",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4850ce92dd0d2d2e9619f48e5072afc44b651a49",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 589827,
+      "output_sha256": "14d384cc276f316b3e642f23a7b39405a6d2f9fc7b3eb18c1a0490f7de5a4540",
+      "reservation_id": "4275627795de4991989d650898fbd693",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T23:36:12.512449Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -673,11 +703,12 @@
     "impl:fn-32-add-umpire-refinement-and-the-first.4": 1,
     "impl:fn-32-add-umpire-refinement-and-the-first.5": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-32-add-umpire-refinement-and-the-first.1": 0,
     "impl:fn-32-add-umpire-refinement-and-the-first.2": 0,
     "impl:fn-32-add-umpire-refinement-and-the-first.3": 0,
@@ -699,5 +730,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T23:23:08.092578Z"
+  "updated_at": "2026-08-27T23:36:12.528687Z"
 }
