@@ -175,30 +175,22 @@ namespaces, and types are always referenced by fully qualified names in backtick
 
 ## Enforced module boundaries
 
-- **MOD-01 — `Umpire` independence.** Every first-party `Umpire.*` module MUST NOT import, directly
-  or transitively, any `Temporal.*` module.
-- **MOD-03 — `Temporal.Feature` isolation.** Every `Temporal.Feature.*` module MUST NOT import,
-  directly or transitively, any `Temporal.System.*`, `Temporal.Verify.*`, or
-  `Umpire.Verify.Veil` module. Only an identity explicitly listed by MOD-05 MAY cross the
-  verification boundary; that exception does not permit a `Temporal.System.*` import.
-- **MOD-05 — Verification isolation.** Unless its qualified identity is in the closed opt-in
-  consumer set below, the `Umpire` and `Temporal` facades, every first-party `Umpire.*` module
-  other than a `Umpire.Verify.Veil` implementation module, every first-party `Temporal.*` module
-  other than a `Temporal.Verify.*` implementation module, and the `UmpireTests` and
-  `TemporalModelTests` roots and descendants MUST NOT import, directly or transitively,
-  `Temporal.Verify.*` or `Umpire.Verify.Veil` modules. The opt-in consumer set is exactly
-  `TemporalVerify`, `TemporalVeilTests`,
-  `Temporal.Tool.VerifyVeil`, and `Temporal.Feature.Nexus.CallerClosure.VeilTests`; no prefix,
-  suffix, tool, aggregate, or test wildcard creates another exception.
-- **MOD-09 — `Shared` independence.** Every first-party `Shared.*` module MUST NOT import, directly
-  or transitively, any `Umpire.*` or `Temporal.*` module.
-- **MOD-10 — `Temporal.System` isolation.** Every `Temporal.System.*` module MUST NOT import,
-  directly or transitively, any `Temporal.Feature.*` module except the exact reviewed refinement
-  consumer `Temporal.System.Nexus.Refinement`; no refinement name pattern creates an exception.
-- **MOD-11 — Complete import-boundary lint.** `make lint-model` MUST check MOD-01, MOD-03, MOD-05,
-  MOD-09, and MOD-10 by transitive reachability over the complete first-party Lean module inventory.
-  Missing, duplicate, uncovered, or unclassified first-party modules and unavailable authoritative
-  import metadata MUST fail the lint rather than weaken the boundary policy.
+- **MOD-01 — `Umpire` independence.** `Umpire.*` MUST NOT reach `Temporal.*` through first-party
+  imports.
+- **MOD-03 — `Temporal.Feature` isolation.** `Temporal.Feature.*` MUST NOT reach
+  `Temporal.System.*`, `Temporal.Verify.*`, or `Umpire.Verify.Veil` through first-party imports,
+  except for an exact MOD-05 verification consumer.
+- **MOD-05 — Verification isolation.** Ordinary first-party modules MUST NOT reach
+  `Temporal.Verify.*` or `Umpire.Verify.Veil`. The only opt-in consumers are `TemporalVerify`,
+  `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, and
+  `Temporal.Feature.Nexus.CallerClosure.VeilTests`.
+- **MOD-09 — `Shared` independence.** `Shared.*` MUST NOT reach `Umpire.*` or `Temporal.*` through
+  first-party imports.
+- **MOD-10 — `Temporal.System` isolation.** `Temporal.System.*` MUST NOT reach
+  `Temporal.Feature.*` through first-party imports except from
+  `Temporal.System.Nexus.Refinement`.
+- **MOD-11 — Executable enforcement.** `make lint-model` MUST enforce MOD-01, MOD-03, MOD-05,
+  MOD-09, and MOD-10 over the complete first-party Lean import graph.
 
 ## Module design
 

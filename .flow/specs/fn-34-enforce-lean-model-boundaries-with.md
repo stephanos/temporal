@@ -23,10 +23,11 @@ configuration, or operational surface.
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-`ModelLint.ImportGraph` is a pure deep module. Its inputs are first-party module records containing
-qualified names and authoritative direct imports plus an explicit policy containing module classes,
-ordinary and opt-in roots, and exact exception sets. Its output is a deterministic collection of
-violations; it performs no builds, filesystem access, printing, or process exit.
+`Tools.LeanImportGraph` is the reusable pure graph module: qualified module records and a caller-owned
+rule set in, deterministic transitive violations out. `Tools.LeanSourceInventory` owns canonical,
+symlink-safe source discovery and generic source/metadata reconciliation. `ModelLint.ImportGraph`
+supplies the model-specific module classes, exact exceptions, rule identities, and diagnostics while
+preserving its pure `check` interface.
 
 The existing model lint driver remains the thin adapter. It asks Lake to make every owned source
 module current, inventories canonical source paths beneath the Lake package root while excluding
@@ -62,8 +63,9 @@ The policy enforces these reachability rules:
 
 ## Approach
 
-- Extract graph traversal, classification, rule evaluation, path selection, and diagnostic data
-  into the pure `ModelLint.ImportGraph` interface.
+- Extract reusable traversal and path selection into `Tools.LeanImportGraph`, reusable source
+  discovery and reconciliation into `Tools.LeanSourceInventory`, and keep classification, rule
+  evaluation, and diagnostics behind the pure `ModelLint.ImportGraph` interface.
 - Build a complete current graph from Lean's module metadata rather than parsing import statements
   as text, reconciling it with a contained, symlink-safe source inventory.
 - Cover the ordinary aggregates, tests, tools, lint infrastructure, and future opt-in roots through

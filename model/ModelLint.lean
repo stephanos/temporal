@@ -1,7 +1,7 @@
 import Batteries.Tactic.Lint
 import Lake.CLI.Main
 import ModelLint.ImportGraph
-import ModelLint.Inventory
+import Tools.LeanSourceInventory
 
 /-! Whole-environment model linting beyond Lean's built-in declaration linters. -/
 
@@ -48,8 +48,12 @@ private def captureStep (category : String) (action : IO α) : IO (Except String
   catch error =>
     pure <| .error s!"[model-import-graph/{category}] {error}"
 
+private def excludedSourceDirectories : Array String :=
+  #[".git", ".lake", ".flow", "build", "dist", "runtime", "target", "tmp"]
+
 private unsafe def lintImportGraph : IO Bool := do
-  match ← captureStep "inventory" Inventory.canonicalModelSources with
+  match ← captureStep "inventory"
+      (Tools.LeanSourceInventory.canonicalPackageSources excludedSourceDirectories) with
   | .error error => IO.eprintln error; pure false
   | .ok sources =>
     let sourceIssues := validateSources defaultPolicy sources
