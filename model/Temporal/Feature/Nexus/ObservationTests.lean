@@ -299,19 +299,44 @@ def rejectedFieldEvidence : EvidenceBundle := {
   ] }]
 }
 
+def emptyStateEvidence : EvidenceBundle := {
+  completeEvidence with
+  records := [{ initialEvidence with fields := [
+    textField Profile.stateField "",
+    textField Profile.actionField "",
+    textField Profile.outcomeField "",
+    textField Profile.observationField ""
+  ] }]
+  closures := [{ kind := Profile.lifecycleKind, lastSequence := 1 }]
+}
+
+def unknownOutcomeEvidence : EvidenceBundle := {
+  completeEvidence with
+  records := [initialEvidence, { startEvidence with fields := [
+    textField Profile.stateField "started",
+    textField Profile.actionField "start",
+    textField Profile.outcomeField "not-a-basic-lifecycle-outcome",
+    textField Profile.observationField "started"
+  ] }]
+}
+
 /-- Every representative non-success fixture retains its exact qualification and verdict status. -/
 example : [
     outcomeShape (evaluateSyntheticEvidence incompleteEvidence),
     outcomeShape (evaluateSyntheticEvidence ambiguousEvidence),
     outcomeShape (evaluateSyntheticEvidence conflictingEvidence),
     outcomeShape (evaluateSyntheticEvidence unsupportedEvidence),
-    outcomeShape (evaluateSyntheticEvidence rejectedFieldEvidence)
+    outcomeShape (evaluateSyntheticEvidence rejectedFieldEvidence),
+    outcomeShape (evaluateSyntheticEvidence emptyStateEvidence),
+    outcomeShape (evaluateSyntheticEvidence unknownOutcomeEvidence)
   ] = [
     (.unknown, some .missingClosure, [.unknown], .incomplete),
     (.unknown, some .compatibleAlternatives, [.unknown], .incomplete),
     (.conflict, some .duplicateEvidenceIdentity, [.conflict], .incomplete),
     (.unsupported, some .profileMismatch, [.unsupported], .incomplete),
-    (.unsupported, some .rejectedFieldPresent, [.unsupported], .incomplete)
+    (.unsupported, some .rejectedFieldPresent, [.unsupported], .incomplete),
+    (.unknown, some .missingInitialState, [.unknown], .incomplete),
+    (.unknown, some .sequenceGap, [.unknown], .incomplete)
   ] := by
   native_decide
 
