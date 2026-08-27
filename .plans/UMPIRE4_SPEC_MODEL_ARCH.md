@@ -144,8 +144,12 @@ Ordinary Temporal authoring should not require direct manipulation of:
 - planner, artifact, or checker backend implementation types.
 
 The lower-level typed interfaces remain valuable for Umpire implementation and expert extension.
-The ordinary authoring interface should validate declarations during elaboration and translate
-typed failures into precise source-located diagnostics.
+The implemented Target facade packages a maintainer's explicit declaration and optional finite
+planning capability as `Umpire.AuthoredTarget`. `Umpire.checkTarget` returns either one complete
+`Umpire.CheckedTarget` or one source-located `Umpire.AuthoringDiagnostic`; `Umpire.checkedTarget`
+keeps extraction and proof-relation re-ascription inside the Target boundary for declarations that
+compile as valid. The lower-level `Umpire.composeTarget` remains the typed expert seam and is not a
+second ordinary authoring path.
 
 The interface MUST NOT hide meaning-bearing choices. Authors still state:
 
@@ -167,32 +171,27 @@ interfaces.
 
 In Feature they define product-visible behavior, properties, scenarios, and regressions. In System
 they define concrete mechanisms, configuration meaning, evidence mappings, mechanism invariants,
-and refinements. Neither path requires Veil or routine proof plumbing.
-
-Illustrative authoring syntax may eventually resemble:
+and refinements. Neither path requires Veil, raw provider or connector collections, finite-domain
+completeness records, planner ordering records, or planner-kernel construction. They consume a
+family maintainer's checked Target through the compiled Property, Behavior, and Query interfaces:
 
 ```lean
-property cancellationIsUnique on Nexus.Experimental.CallerClosure where
-  ...
-
-behavior closeCallerWithPendingOperation on Nexus.Experimental.CallerClosure where
-  ...
-
-regression callerClosureCancellation where
-  behavior closeCallerWithPendingOperation
-  checks cancellationIsUnique
-  bounds perCommit
+checkProperty (PropertyCheckContext.ofTarget target) property
+checkBehavior behaviorContext behavior
+checkQuery (.ofTarget target) query
 ```
 
-This document does not fix macro syntax. It fixes the semantic interface: concise declarations in,
-checked declarations and source-located errors out.
+This is the implemented typed Lean facade, not a promise of general macro syntax. It preserves the
+semantic interface: explicit declarations in, checked declarations and source-located errors out.
 
 ### 6.2 Semantic-model maintainer
 
 A semantic-model maintainer extends a reusable Feature or System target with typed state, actions,
 transitions, observations, finite domains, and laws. This work may require stronger Lean knowledge.
-Umpire should derive routine enumeration, metadata, canonicalization, and decidable checking where
-possible, while keeping required semantic assumptions and proof obligations explicit.
+A maintainer states provider and connector choices, transition behavior, and proof obligations in
+one `AuthoredTarget`, including stable finite-domain contract tokens once when exhaustive planning
+is available. Umpire owns checking, canonicalization, checked-value extraction, the Query
+completeness view, and the Planning kernel derivation while keeping those semantic choices explicit.
 
 One maintainer pays this cost for a family; many Temporal engineers reuse the checked target.
 

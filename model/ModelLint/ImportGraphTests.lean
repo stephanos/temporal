@@ -115,6 +115,35 @@ private def testAllowedOrdinaryImports : IO Unit := do
   ]
   requireEqual "allowed ordinary imports" (check defaultPolicy modules) #[]
 
+private def testTargetIsolation : IO Unit := do
+  let allowed := #[
+    moduleRecord `Umpire.Target.Tests.Validation #[`Umpire.Target],
+    moduleRecord `Umpire.Target #[`Umpire.Target.Language],
+    moduleRecord `Umpire.Target.Language #[`Umpire.Core],
+    moduleRecord `Umpire.Core
+  ]
+  requireEqual "Target-owned imports" (check defaultPolicy allowed) #[]
+  let destinations := #[
+    `Umpire.Query.Language,
+    `Umpire.Planning.Engine,
+    `Umpire.Artifact,
+    `Umpire.Runtime.Driver,
+    `Umpire.Verify.Core,
+    `Temporal.Feature.Nexus.Lifecycle
+  ]
+  for source in #[`Umpire.Target, `Umpire.Target.Tests.Validation] do
+    for destination in destinations do
+      requireViolation s!"{source} to {destination} direct"
+        #[moduleRecord source #[destination], moduleRecord destination]
+        .targetIsolation #[source, destination]
+      requireViolation s!"{source} to {destination} transitive"
+        #[
+          moduleRecord source #[`ModelLint.Bridge],
+          moduleRecord `ModelLint.Bridge #[destination],
+          moduleRecord destination
+        ]
+        .targetIsolation #[source, `ModelLint.Bridge, destination]
+
 private def testExactRefinementException : IO Unit := do
   let allowed := #[
     moduleRecord `Temporal.System.Nexus.Refinement #[`Temporal.Feature.Nexus.Root],
@@ -218,6 +247,7 @@ private def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
   testAllowedOrdinaryImports
+  testTargetIsolation
   testDirectAndTransitiveRejections
   testExactRefinementException
   testExactVerifyExceptions
