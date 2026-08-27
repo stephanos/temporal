@@ -828,7 +828,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-4-umpire-observation-and-semantic-verdicts.md",
-  "status": "open",
+  "status": "done",
   "title": "Umpire observation and semantic verdicts",
   "tracker": {
     "baseHashFlow": null,
@@ -841,5 +841,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T09:19:19.862739Z"
+  "updated_at": "2026-08-27T14:20:02.776694Z"
 }
