@@ -38,14 +38,16 @@ Meaning-bearing choices remain explicit: states, actions, outcomes, observations
 - Preserve a lower-level `Except DeclarationError` extension path for Umpire maintainers without re-exporting it as the ordinary example path.
 - Keep the dependency direction `Target -> Property/Behavior -> Query -> Artifact/Planning`; adapt Query and Planning constructors to consume checked Target values without moving Query bounds, finite query evidence, or planner execution into Target.
 - Separate stable `SemanticSource` provenance from an elaboration-only authored-occurrence table used for exact diagnostics; only stable provenance participates in checked values, semantic identities, and artifact bytes. Each syntax occurrence receives a nonsemantic `AuthoringOccurrenceId` derived from its source span and local ordinal plus a closed occurrence role/path (for example declaration, provider definition/reference, connector definition/reference, law, meaning, reconciliation, or kernel). Validation failures retain that role/path until diagnostic lookup, so repeated use of one identity cannot select an unrelated span. Matching occurrences are canonically source-sorted so duplicates remain unambiguous and input-list reordering cannot change the diagnostic.
-- Migrate the domain-neutral Switch target, the BasicLifecycle and CallerClosure target authors, and the BasicOperations query consumers only after semantic and byte compatibility fixtures exist.
+- Migrate the domain-neutral Switch target, the Nexus Lifecycle and Experimental CallerClosure
+  target authors, and all Nexus Operations query consumers only after semantic and byte
+  compatibility fixtures exist.
 - Keep physical Temporal family decomposition proportional; do not split files merely for symmetry.
 
 ## Quick commands
 
 ```bash
 cd model && mise exec -- lake build Umpire.TargetTests Umpire.QueryTests Umpire.Planning.Tests
-cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.BasicLifecycleTests Temporal.Feature.Nexus.Examples.BasicOperationsTests Temporal.Feature.Nexus.CallerClosureTests
+cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests
 cd model && mise exec -- lake build UmpireTests TemporalModelTests
 make umpire-check-regression
 make lint-model
@@ -66,7 +68,7 @@ make lint-model
 
 - Existing comments, public Property/Behavior/Query semantics, planner outcomes, and canonical regression fixtures are preserved.
 - Authoring sugar may not infer target outcomes, omit required laws, silently select a provider, or manufacture completeness evidence.
-- BasicOperations remains a downstream consumer of the shared BasicLifecycle target; the migration must not create a duplicate BasicOperations target or move query meaning into Target.
+- Nexus Operations remains a downstream consumer of the shared Lifecycle target; the migration must not create a duplicate Operations target or move query meaning into Target.
 - Domain-neutral fixtures prove the full public interface without importing `Temporal`; import checks prevent `Umpire.*` from acquiring Temporal vocabulary or dependencies.
 - Existing low-level APIs may move or become internal only when all current callers are migrated in the same task and no compatibility facade is needed by another active consumer.
 - Diagnostics must not require authors to use `Except.toOption`, prove `isSome`, or invoke `native_decide` merely to extract a valid declaration. Diagnostic lookup uses the validation-stage occurrence role/path before source sorting, and duplicate diagnostics source-sort matching occurrence spans to select the canonical original/offending pair. Diagnostic fixtures reuse identities in definitions, metadata, and references to prove the right occurrence is selected, and vary authored layout independently from stable `SemanticSource`, semantic digests, canonical target metadata, and persisted artifacts; occurrence spans never enter those semantic products.
@@ -79,7 +81,14 @@ make lint-model
 - **R2:** Domain-neutral and Temporal semantic-model maintainers use one approachable checked Target path without assembling provider/connector collections, canonical metadata/digests, checked-result extraction proofs, or planner backend structures; ordinary scenario authors consume its result through Property, Behavior, and Query. A maintainer may supply the existing stable role/action-domain compatibility tokens once when declaring an exhaustive finite-planning capability, but ordinary authors do not invent or thread them downstream. Property/Behavior/Query remain the only scenario/question languages, while Target is their semantic substrate. Errors: any migrated example still requiring routine plumbing, a second regression interface, or a second public path with different semantics fails completion.
 - **R3:** The interface keeps every meaning-bearing state, finite action domain, action-domain soundness/completeness obligation, stable finite-domain contract token, outcome, observation, capability, law, transition, Query bound, planning omission, provider choice, and connector explicit. Family maintainers opt into and prove the finite action domain once at Target; Target remains fully checked when planning data is explicitly unavailable, and an exhaustive Query then fails with `missingFiniteCompleteness`. Query derives its available completeness view without weakening or manufacturing evidence and copies compatibility tokens verbatim. Errors: declaration order, implicit type-class search, undocumented defaults, synthesized digest tokens, or author-supplied outcomes outside the authoritative transition kernel cannot affect checked semantics.
 - **R4:** Invalid ordinary declarations produce deterministic `AuthoringDiagnostic` values with exact file/line/column from an elaboration-only authored-occurrence table, while the expert seam retains typed `DeclarationError`. Validation-stage occurrence roles distinguish definitions, metadata, references, laws, meanings, reconciliation, and kernel occurrences that reuse one identity. Duplicate identities resolve against source-sorted matching occurrence spans and report the canonical original/offending pair independently of authored-list order. Stable `SemanticSource` remains the serialized provenance contract; authored occurrence IDs, roles, and spans never enter checked values, semantic identities/digests, canonical metadata, or artifacts. Errors: opaque extraction failures, panics, partial checked values, wrong-role or source-order-dependent diagnostics, occurrence data entering semantic products, or an expert seam bypassing checking fails completion.
-- **R5:** The Switch target, BasicLifecycle and CallerClosure target authors, and BasicOperations AsyncStart/SuccessfulCompletion query consumers migrate with unchanged checked meaning, Query/Planning behavior, stable provenance, and byte-identical canonical artifacts for equivalent stable semantic inputs. The compatibility inventory also covers every live ordinary Nexus consumer present when the matrix lands, including Observation coverage if available, without making fn-4 a hard dependency. Errors: a duplicate BasicOperations target, changed semantic identity/digest, canonical bytes, planner outcome, regression projection, or existing valid/invalid fixture result blocks migration.
+- **R5:** The Switch target, Nexus Lifecycle and Experimental CallerClosure target authors, and
+  Operations AsyncStart/Cancellation/SuccessfulCompletion query consumers migrate with unchanged
+  checked meaning, Query/Planning behavior, stable provenance, and byte-identical canonical
+  artifacts for equivalent stable semantic inputs. The compatibility inventory also covers every
+  live ordinary Nexus consumer present when the matrix lands, including Observation coverage if
+  available, without making fn-4 a hard dependency. Errors: a duplicate Operations target,
+  changed semantic identity/digest, canonical bytes, planner outcome, regression projection, or
+  existing valid/invalid fixture result blocks migration.
 - **R6:** Facade, import-graph, mutation, aggregate, and documentation checks mechanically enforce Umpire domain purity, ordinary import isolation, deterministic checking, public-interface-only examples, and the distinction between Target substrate and Property/Behavior/Query scenario languages. The final docs teach the compiled typed facade and preserve the no-second-regression-interface rule without promising a general macro DSL. Errors: `Umpire.*` importing `Temporal.*`, tests reaching through private internals, stale low-level walkthroughs, contradictory authoring rules, lost comments, or generated/runtime/Veil/Umpire3 coupling fails verification.
 
 ## Early proof point
@@ -117,7 +126,9 @@ Target is not a fourth scenario language: it is the checked semantic-model subst
 - `fn-5-umpire-discovery-promotion-and-artifact` and `fn-32-add-umpire-refinement-and-the-first` — downstream consumers that must target the deep checked facade rather than the current assembly path.
 - Current checked Target language and tests — exact typed failures, validation order, canonicalization, and the low-level expert seam.
 - Current Query and Planning languages and tests — bounds, completeness evidence, finite ordering, indexed derivation, and their owned errors.
-- The domain-neutral Switch target plus the BasicLifecycle, BasicOperations AsyncStart/SuccessfulCompletion, and CallerClosure Temporal examples — migration inventory.
+- The domain-neutral Switch target plus the Nexus Lifecycle, Operations
+  AsyncStart/Cancellation/SuccessfulCompletion, and Experimental CallerClosure Temporal models —
+  migration inventory.
 
 ## Requirement coverage
 

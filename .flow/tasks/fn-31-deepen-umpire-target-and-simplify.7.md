@@ -31,7 +31,7 @@ Add the downstream derivation seam that keeps Target below Query and Planning wh
 - [ ] Planning remains the sole owner of the indexed kernel and ordering proofs, and its public derivation produces byte-/result-identical traversal from the same checked inputs.
 - [ ] The public derivation reuses the established finite-kernel implementation; no parallel planner enumerator or duplicate ordering authority exists.
 - [ ] Switch and Temporal examples can consume the checked adapters without constructing `FiniteCompletenessEvidence`, `FiniteKernelOrder`, or `IncrementalPlannerKernel` records directly.
-- [ ] Existing Switch, BasicLifecycle, and CallerClosure role/action-domain token fixtures and canonical Query JSON remain byte-identical after derivation.
+- [ ] Existing Switch, Nexus Lifecycle, and Experimental CallerClosure role/action-domain token fixtures and canonical Query JSON remain byte-identical after derivation.
 - [ ] Target imports no Query, Planning, Artifact, Temporal, runtime, or verification module; facade and import tests enforce the direction.
 - [ ] Focused Query/Planning suites plus `UmpireTests` pass with existing comments preserved.
 ## Done summary
