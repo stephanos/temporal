@@ -201,6 +201,12 @@ example :
       forward) := by
   native_decide
 
+/-- Compatible alternatives without their missing discriminator fail as unresolved input. -/
+example :
+    let result := qualifyFixture { ambiguousEvidence with missingDiscriminator := none }
+    (result.status, resultKindOf result) = (.unknown, some .unresolvedBinding) := by
+  native_decide
+
 def contradictoryAlternativeEvidence : EvidenceBundle := {
   ambiguousEvidence with
   compatibleAlternatives := [

@@ -14,6 +14,49 @@ def completeQualifiedTrace : QualifiedTrace :=
 def completeFirstDerivation : SemanticDerivation :=
   completeQualifiedTrace.derivations.head?.get (by native_decide)
 
+private def rehashQualifiedTrace (trace : QualifiedTrace) : QualifiedTrace := {
+  trace with
+  traceId := semanticDigestOf <|
+    trace.mappingDigest ++ ":" ++ reprStr trace.evidenceIdentities ++ ":" ++ reprStr trace.trace ++
+      ":" ++ reprStr trace.derivations
+}
+
+/-- Rehashed wrappers still fail when a rule's required disposition evidence is incomplete. -/
+example :
+    let derivations := completeQualifiedTrace.derivations.mapIdx fun index derivation =>
+      if index == 0 then { derivation with appliedDispositions := derivation.appliedDispositions.tail }
+      else derivation
+    let mutated := rehashQualifiedTrace { completeQualifiedTrace with derivations }
+    diagnosticKindOf (validateQualifiedTrace mutated) != none := by
+  native_decide
+
+def transitiveName : ObservationBinding := {
+  id := id "test.binding.transitive-name"
+  valueType := .text
+  expression := .portable (.binding normalizedName.id)
+}
+
+def transitiveDeclaration : ObservationMappingDeclaration := {
+  qualificationDeclaration with
+  bindings := qualificationDeclaration.bindings ++ [transitiveName]
+  rules := qualificationDeclaration.rules.map fun rule =>
+    if rule.id == initialRule.id then
+      { rule with value := .portable (.binding transitiveName.id) }
+    else rule
+}
+
+/-- Derivations name both direct and transitive checked-binding dependencies. -/
+example :
+    let result := match checkObservation qualificationContext transitiveDeclaration with
+      | .ok plan => qualifyEvidence plan completeEvidence
+      | .error _ => .unknown {
+          kind := .zeroUsableInterpretations
+          planId := transitiveDeclaration.id
+        }
+    (qualifiedOf result).map (fun trace => trace.derivations.head?.map SemanticDerivation.bindingIds) =
+      some (some [normalizedName.id, transitiveName.id]) := by
+  native_decide
+
 /-- Exact statuses and diagnostics for invalid semantic derivation fixtures. -/
 def derivationFailureKinds : List (QualificationStatus × Option QualificationFailureKind) := [
   let result := validateQualifiedTrace {

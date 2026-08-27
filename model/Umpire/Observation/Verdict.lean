@@ -37,7 +37,7 @@ structure SemanticClauseVerdict where
   coordinates : List SemanticCoordinate
   queryBounds : QueryBounds
   propertyBound : Option TypedBound
-  evidenceBound : TypedBound
+  evidenceBound : EvidenceBound
   provenance : List DeclarationId
   derivations : List SemanticDerivation
   deriving BEq, DecidableEq, Repr
@@ -49,7 +49,7 @@ structure SemanticPropertyVerdict where
   traceId : Option String
   status : SemanticVerdictStatus
   queryBounds : QueryBounds
-  evidenceBound : Option TypedBound
+  evidenceBound : Option EvidenceBound
   provenance : List DeclarationId
   clauses : List SemanticClauseVerdict
   diagnostic : Option SemanticVerdictDiagnostic := none
@@ -98,7 +98,7 @@ private def failureVerdict
     (status : SemanticVerdictStatus)
     (diagnostic : SemanticVerdictDiagnostic)
     (traceId : Option String := none)
-    (evidenceBound : Option TypedBound := none) : SemanticPropertyVerdict := {
+    (evidenceBound : Option EvidenceBound := none) : SemanticPropertyVerdict := {
   queryId := query.id
   propertyId := property.id
   propertyDigest := property.semanticDigest
@@ -116,7 +116,7 @@ private def qualificationFailureVerdict
     (property : CheckedProperty)
     (diagnostic : QualificationDiagnostic)
     (traceId : Option String := none)
-    (evidenceBound : Option TypedBound := none) : SemanticPropertyVerdict :=
+    (evidenceBound : Option EvidenceBound := none) : SemanticPropertyVerdict :=
   failureVerdict query property (statusOfQualification diagnostic.status) {
     kind := .qualificationFailure diagnostic.kind
     relatedIdentities := diagnostic.relatedIdentities
@@ -306,7 +306,7 @@ def evaluateQualifiedProperty
                 qualificationFailureVerdict query property diagnostic
                   (some trace.traceId) (some trace.appliedBound)
             | .ok _ =>
-                if trace.appliedBound.unit != .evidenceRecords || trace.appliedBound.value == 0 ||
+                if trace.appliedBound.value == 0 ||
                     trace.evidenceIdentities.length > trace.appliedBound.value then
                   failureVerdict query property .unknown {
                     kind := .invalidEvidenceBound

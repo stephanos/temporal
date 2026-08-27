@@ -226,9 +226,6 @@ def structuralFailures : List (Option ObservationErrorKind) := [
     baseDeclaration with closures := [{ kind := eventKind }, { kind := eventKind }]
   }),
   errorKindOf (checkObservation context {
-    baseDeclaration with evidenceBound := { value := 10, unit := .semanticTransitions }
-  }),
-  errorKindOf (checkObservation context {
     baseDeclaration with evidenceBound := { value := 0, unit := .evidenceRecords }
   }),
   errorKindOf (checkObservation context {
@@ -269,7 +266,6 @@ example : structuralFailures = [
   some .cyclicOrdering,
   some .missingClosure,
   some .duplicateClosure,
-  some .invalidBoundUnit,
   some .invalidBoundValue,
   some .missingDigestPolicy
 ] := by

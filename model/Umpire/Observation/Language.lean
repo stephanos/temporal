@@ -42,6 +42,19 @@ structure EvidenceProfileDeclaration where
   kinds : List EvidenceKindDeclaration
   deriving BEq, DecidableEq, Repr
 
+inductive EvidenceBoundUnit where
+  | evidenceRecords
+  deriving BEq, DecidableEq, Ord, Repr
+
+def EvidenceBoundUnit.name : EvidenceBoundUnit → String
+  | .evidenceRecords => "evidence-records"
+
+/-- Evidence volume is an Observation boundary, never a semantic Property position. -/
+structure EvidenceBound where
+  value : Nat
+  unit : EvidenceBoundUnit
+  deriving BEq, DecidableEq, Ord, Repr
+
 structure EvidenceFieldReference where
   kind : DeclarationId
   field : DeclarationId
@@ -138,7 +151,7 @@ structure ObservationMappingDeclaration where
   ordering : List ObservationOrdering := []
   closures : List EvidenceClosureDeclaration
   dispositions : List FieldDispositionDeclaration
-  evidenceBound : TypedBound
+  evidenceBound : EvidenceBound
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
@@ -234,7 +247,6 @@ inductive ObservationErrorKind where
   | cyclicOrdering
   | missingClosure
   | duplicateClosure
-  | invalidBoundUnit
   | invalidBoundValue
   | missingDigestPolicy
   deriving BEq, DecidableEq, Ord, Repr
@@ -264,7 +276,6 @@ def ObservationErrorKind.name : ObservationErrorKind → String
   | .cyclicOrdering => "cyclic-ordering"
   | .missingClosure => "missing-closure"
   | .duplicateClosure => "duplicate-closure"
-  | .invalidBoundUnit => "invalid-bound-unit"
   | .invalidBoundValue => "invalid-bound-value"
   | .missingDigestPolicy => "missing-digest-policy"
 
@@ -395,7 +406,7 @@ structure CheckedObservationPlan where
   ordering : List ObservationOrdering
   closures : List EvidenceClosureDeclaration
   dispositions : List FieldDispositionDeclaration
-  evidenceBound : TypedBound
+  evidenceBound : EvidenceBound
   meanings : List MeaningProvision
   documentation : String
   canonicalMetadata : String
@@ -628,7 +639,7 @@ private def planSemanticJson
     (ordering : List ObservationOrdering)
     (closures : List EvidenceClosureDeclaration)
     (dispositions : List FieldDispositionDeclaration)
-    (bound : TypedBound)
+    (bound : EvidenceBound)
     (meanings : List MeaningProvision) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
@@ -640,7 +651,8 @@ private def planSemanticJson
     ",\"closures\":" ++ array (closures.mergeSort closureLe |>.map closureJson) ++
     ",\"dispositions\":" ++
       array (dispositions.mergeSort dispositionLe |>.map dispositionJson) ++
-    ",\"evidenceBound\":" ++ canonicalTypedBoundJson bound ++
+    ",\"evidenceBound\":{\"value\":" ++ toString bound.value ++
+      ",\"unit\":" ++ quote bound.unit.name ++ "}" ++
     ",\"meanings\":" ++ array (meanings.mergeSort meaningLe |>.map meaningJson) ++ "}"
 
 def canonicalObservationPlanJson (plan : CheckedObservationPlan) : String :=
@@ -649,6 +661,13 @@ def canonicalObservationPlanJson (plan : CheckedObservationPlan) : String :=
       plan.evidenceBound plan.meanings ++
     ",\"source\":" ++ sourceJson plan.source ++
     ",\"documentation\":" ++ quote plan.documentation ++ "}"
+
+/-- Whether a checked plan still carries the canonical identity established by compilation. -/
+def CheckedObservationPlan.hasCanonicalIdentity (plan : CheckedObservationPlan) : Bool :=
+  plan.semanticDigest == semanticDigestOf (planSemanticJson plan.id plan.version plan.profile
+    plan.digestPolicies plan.bindings plan.rules plan.ordering plan.closures plan.dispositions
+    plan.evidenceBound plan.meanings) &&
+  plan.canonicalMetadata == canonicalObservationPlanJson plan
 
 def canonicalObservationErrorJson (observationError : ObservationError) : String :=
   "{\"kind\":" ++ quote observationError.kind.name ++
@@ -1025,8 +1044,6 @@ def checkObservation
   for rule in declaration.rules.mergeSort ruleLe do
     requireIdentity declaration rule.id
   validatePolicies declaration
-  if declaration.evidenceBound.unit != .evidenceRecords then
-    throw (error .invalidBoundUnit declaration declaration.evidenceBound.unit.name)
   if declaration.evidenceBound.value == 0 then
     throw (error .invalidBoundValue declaration "0")
   validateDispositions declaration profile

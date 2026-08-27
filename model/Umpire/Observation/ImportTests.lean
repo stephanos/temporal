@@ -4,6 +4,7 @@ import Umpire.Observation
 
 #check Umpire.ObservationMappingDeclaration
 #check Umpire.CheckedObservationPlan
+#check Umpire.EvidenceBound
 #check Umpire.qualifyEvidence
 #check Umpire.SemanticPropertyVerdict
 #check Umpire.evaluateQualifiedProperty
