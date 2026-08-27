@@ -37,6 +37,7 @@ Implemented qualification-preflighted semantic Property verdicts with coordinate
 
 baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task fn-4.4 target absent)
 stage: impl-review - ran [2026-08-27T07:46:12Z..2026-08-27T07:56:53Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 47ecd2d5f75bb6eba8601530eb3d9296c6920565, 0b55cdaf049e66d496a519895628bbebb352fefa
 - Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests, baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task fn-4.4 target absent), make umpire-check-regression, make lint-model
