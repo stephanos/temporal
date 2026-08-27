@@ -47,9 +47,12 @@ A Behavior Fingerprint is generated from behavior, not an author-facing version 
 - [ ] Target compatibility fixtures, `SwitchExactActionQuery.json`, and all three `Operations*Query.json` fixtures are regenerated from authoritative Lean producers.
 - [ ] No public `semanticDigest`, `semanticIdentity` tie-break, `TypedBound`, `BoundUnit`, omission string, or arbitrary fingerprint label remains in the migrated scope.
 ## Done summary
-TBD
+Rewired checked Target, Property, Behavior, Query, and Planning around owner-generated typed Behavior Fingerprints, executable Target behavior domains, Limits, and exact closed Known Gaps. Target encoders and finite Planning domains now fail closed on collisions or duplicates; Query-only candidate-evaluation limits cannot enter Property, structural ordering is delimiter-safe, and all authoritative Target/Query/artifact/regression fixtures were regenerated from their producers.
 
+Baseline: green via existing gate receipts at 667e66c4. Verification: combined Lean Quick green (131 jobs), pinned Go green, and current regression target green (137 jobs). Artifact-v1 semantic identity and omission wire adapters remain intentionally owned by task .5. Review memory capture was skipped because repository memory is configured but not initialized.
+
+stage: impl-review - ran [2026-08-27T16:21:53Z..2026-08-27T16:43:42Z] (NEEDS_WORK → SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 95d3a5f8db84820ca6e416ed66d696d2d0d231df, d4dc228e1dd3245d0078d2221f1b75416c68c29c
+- Tests: cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, mise exec -- go test ./tools/umpire/..., mise exec -- make umpire-check-regression
 - PRs:
