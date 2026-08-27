@@ -46,6 +46,8 @@ GATE_SKIPPED:smoke:green-receipt 87205aa9 - baseline reused from prior post-gate
 GATE_SKIPPED:generated-view-smoke:inherited-sequencing-gap - fn37.6 creates the final umpire-check-regression-views target; current projection equivalent passed through umpire-check-regression
 
 stage: impl-review - ran [2026-08-27T15:14:34Z..2026-08-27T15:18:00Z] | verdict: SHIP | session: 01a043c9-86d1-7950-89fb-acb7e30cec1a
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 667e66c4f51366705024ff6d29fe48e7cb1f27bf
 - Tests: GATE_SKIPPED:build:green-receipt 87205aa9 - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt 87205aa9 - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt 87205aa9 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, mise exec -- go test ./tools/umpire/..., mise exec -- make umpire-check-regression, GATE_SKIPPED:generated-view-smoke:inherited-sequencing-gap - fn37.6 creates the final umpire-check-regression-views target; current projection equivalent passed through umpire-check-regression
