@@ -20,7 +20,7 @@ Prove the Run Evaluation-facing System-trace to Feature-Property handoff and lay
 **Required** (read before coding):
 - `model/Umpire/Observation/Evaluation.lean` — Evidence-backed Model Trace boundary
 - `model/Umpire/Property/Language.lean:1162-1228` — pure evaluator
-- `model/Temporal/Feature/Nexus/CallerClosureTests.lean` — current property fixtures
+- `model/Temporal/Feature/Nexus/OperationsTests.lean` — current start, cancel, and successful-completion property fixtures
 
 ### Acceptance
 - [ ] Only source-kernel-admitted accepted System Model Traces reach Feature properties through checked Implementation Link.
