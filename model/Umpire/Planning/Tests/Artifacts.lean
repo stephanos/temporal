@@ -210,4 +210,10 @@ example :
       !(canonicalExperimentSpecBytes checksumSpec).endsWith "\n\n" := by
   native_decide
 
+/-! Lean and Go share unrestricted canonical base-10 naturals beyond machine-word range. -/
+example :
+    toString (18446744073709551616 : Nat) ++ "\n" =
+      include_str "Fixtures/NaturalAboveUint64.json" := by
+  native_decide
+
 end Umpire.PlanningTests

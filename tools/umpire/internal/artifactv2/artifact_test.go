@@ -2,6 +2,7 @@ package artifactv2
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -22,6 +23,30 @@ func TestDecodeExperimentAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
 			require.Equal(t, DrivePlanFormat, document.Plan.FormatVersion)
 		})
 	}
+}
+
+func TestDecodeExperimentAcceptsLeanNaturalAboveUint64(t *testing.T) {
+	encodedNatural := readRepositoryFile(t, "model/Umpire/Planning/Tests/Fixtures/NaturalAboveUint64.json")
+	var natural Natural
+	require.NoError(t, json.Unmarshal(bytes.TrimSuffix(encodedNatural, []byte{'\n'}), &natural))
+	require.Equal(t, Natural("18446744073709551616"), natural)
+
+	encoded, err := json.Marshal(natural)
+	require.NoError(t, err)
+	require.Equal(t, bytes.TrimSuffix(encodedNatural, []byte{'\n'}), encoded)
+
+	document, err := DecodeExperiment(readRepositoryFile(t,
+		"model/Umpire/Examples/testdata/switch-experiment-spec.json"))
+	require.NoError(t, err)
+	document.Plan.ExpandedLimits.Behavior.Transitions.Value = natural
+	document, err = SealExperiment(document)
+	require.NoError(t, err)
+	canonical, err := CanonicalExperimentBytes(document)
+	require.NoError(t, err)
+
+	decoded, err := DecodeExperiment(canonical)
+	require.NoError(t, err)
+	require.Equal(t, natural, decoded.Plan.ExpandedLimits.Behavior.Transitions.Value)
 }
 
 func TestDecodeExperimentClassifiesV1BeforeV2Fields(t *testing.T) {
@@ -215,12 +240,12 @@ func TestDecodeExperimentRejectsResealedMalformedV2Values(t *testing.T) {
 func TestDecodeExperimentAcceptsResealedLeanRecordValues(t *testing.T) {
 	cases := map[string]func(*Experiment){
 		"zero limits and independent trace lists": func(document *Experiment) {
-			document.Plan.ExpandedLimits.Behavior.Transitions.Value = 0
-			document.Plan.ExpandedLimits.Behavior.SelectedActions.Value = 0
-			document.Plan.ExpandedLimits.Search.Value = 0
+			document.Plan.ExpandedLimits.Behavior.Transitions.Value = Natural("0")
+			document.Plan.ExpandedLimits.Behavior.SelectedActions.Value = Natural("0")
+			document.Plan.ExpandedLimits.Search.Value = Natural("0")
 			document.Plan.ModelOutcomes = []ModelValue{}
-			document.Plan.LinearExtension[0].Position = 0
-			document.Plan.Checkpoints[0].Transition = 0
+			document.Plan.LinearExtension[0].Position = Natural("0")
+			document.Plan.Checkpoints[0].Transition = Natural("0")
 		},
 		"record ordered roles and preconditions": func(document *Experiment) {
 			document.Plan.SymbolicRoles = []Role{
