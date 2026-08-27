@@ -10,7 +10,9 @@
     "fn-34-enforce-lean-model-boundaries-with"
   ],
   "id": "fn-31-deepen-umpire-target-and-simplify",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-31-deepen-umpire-target-and-simplify.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -386,15 +388,47 @@
       "task": null,
       "timestamp": "2026-08-27T00:22:06.686043Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a2da4816cf8c944ad020963d19a993d524e121672403a08a125ebd6b32fe9ec8",
+      "backend": "codex",
+      "base_sha": "307c683b3cda6edaef35b4bf6a20ed4fa1803772",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ad468d40a7aa712af4b83b7fb1c477a7d92945b6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 497815,
+      "output_sha256": "e33df4db88949127bffd66357835cfb3cc510aa4afc305e37338a69c8e879dec",
+      "reservation_id": "0a723825df394aeb8bf5c930831379fd",
+      "round_consumed": true,
+      "scope": "impl:fn-31-deepen-umpire-target-and-simplify.1",
+      "superseded_by": null,
+      "task": "fn-31-deepen-umpire-target-and-simplify.1",
+      "timestamp": "2026-08-27T02:50:54.183188Z",
+      "tool_calls": 12,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-31-deepen-umpire-target-and-simplify.1": 1,
     "plan": 2,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-31-deepen-umpire-target-and-simplify.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-31-deepen-umpire-target-and-simplify.md",
@@ -411,5 +445,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T00:22:06.696856Z"
+  "updated_at": "2026-08-27T02:50:54.200994Z"
 }
