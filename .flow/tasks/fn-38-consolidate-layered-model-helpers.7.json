@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-27T21:58:20.925568Z",
+  "depends_on": [
+    "fn-38-consolidate-layered-model-helpers.1",
+    "fn-38-consolidate-layered-model-helpers.2",
+    "fn-38-consolidate-layered-model-helpers.3",
+    "fn-38-consolidate-layered-model-helpers.4"
+  ],
+  "id": "fn-38-consolidate-layered-model-helpers.7",
+  "priority": null,
+  "spec": "fn-38-consolidate-layered-model-helpers",
+  "spec_path": ".flow/tasks/fn-38-consolidate-layered-model-helpers.7.md",
+  "status": "todo",
+  "title": "Pin facade and complete fixture-value compatibility",
+  "updated_at": "2026-08-27T21:58:20.925568Z"
+}
