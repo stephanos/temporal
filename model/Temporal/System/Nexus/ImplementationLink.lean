@@ -1,6 +1,7 @@
 import Temporal.Feature.Nexus.Lifecycle
 import Temporal.System.Nexus.Core
 import Umpire.ImplementationLink
+import Umpire.Property
 
 /-!
 # Nexus lifecycle Implementation Link
@@ -368,5 +369,64 @@ private theorem checkedResult_isSome : checkedResult.toOption.isSome = true := b
 
 /-- The checked first Temporal System-to-Feature correspondence. -/
 def checked := checkedResult.toOption.get checkedResult_isSome
+
+/-- The semantic layer responsible for one System-to-Feature Property result. -/
+inductive FeaturePropertyLayer where
+  | observation
+  | implementationLink
+  | property
+  deriving BEq, DecidableEq, Repr
+
+/-- Successful composition retains both the complete Implementation Link Evidence Links and the
+unchanged Feature Property evaluation. -/
+structure EvaluatedFeatureProperty where
+  application : AppliedImplementationLink checked
+  evaluation : PropertyEvaluation
+
+/-- Observation, Implementation Link, and Feature Property outcomes remain disjoint. -/
+inductive FeaturePropertyResult where
+  | observationFailure (diagnostic : ObservationDiagnostic)
+  | implementationLinkFailure (diagnostic : ImplementationLinkDiagnostic)
+  | evaluated (result : EvaluatedFeatureProperty)
+
+def FeaturePropertyResult.layer : FeaturePropertyResult → FeaturePropertyLayer
+  | .observationFailure _ => .observation
+  | .implementationLinkFailure _ => .implementationLink
+  | .evaluated _ => .property
+
+def FeaturePropertyResult.observationDiagnostic? :
+    FeaturePropertyResult → Option ObservationDiagnostic
+  | .observationFailure diagnostic => some diagnostic
+  | _ => none
+
+def FeaturePropertyResult.implementationLinkDiagnostic? :
+    FeaturePropertyResult → Option ImplementationLinkDiagnostic
+  | .implementationLinkFailure diagnostic => some diagnostic
+  | _ => none
+
+def FeaturePropertyResult.evaluated? :
+    FeaturePropertyResult → Option EvaluatedFeatureProperty
+  | .evaluated result => some result
+  | _ => none
+
+/-- Compose an upstream Observation result through the checked Nexus Implementation Link. Property
+evaluation runs only after the source trace is re-admitted and translated successfully. -/
+def evaluateFeatureProperty
+    (sourceSetup : Temporal.System.Nexus.ExecutionSetup)
+    (property : CheckedProperty)
+    (observation : ObservationResult) : FeaturePropertyResult :=
+  match observation with
+  | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
+      .observationFailure diagnostic
+  | .accepted trace =>
+      match applyImplementationLink checked sourceSetup trace with
+      | .applied application => .evaluated {
+          application
+          evaluation := evaluateProperty property application.trace
+        }
+      | .invalid diagnostic
+      | .unknown diagnostic
+      | .conflict diagnostic
+      | .unsupported diagnostic => .implementationLinkFailure diagnostic
 
 end Temporal.System.Nexus.ImplementationLink
