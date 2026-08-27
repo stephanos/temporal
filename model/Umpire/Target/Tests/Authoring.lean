@@ -58,6 +58,108 @@ example : diagnosticSummary (checkTarget reusedIdentityAuthoring) =
     some (.wrongKind, .capabilityRequirement, "Test/TargetAuthoring.lean", 50) := by
   native_decide
 
+def declarationsWithKind
+    (identity : DeclarationId)
+    (kind : DeclarationKind) : List DeclarationMetadata :=
+  testDeclarations.map fun declaration =>
+    if declaration.id == identity then { declaration with kind } else declaration
+
+def wrongProviderDefinitionTarget :
+    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with declarations := declarationsWithKind primaryProvider.id .connector
+}
+
+def wrongConnectorDefinitionTarget :
+    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with declarations := declarationsWithKind ownershipConnector.id .provider
+}
+
+def wrongProviderDefinitionAuthoring :
+    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
+  declaration := wrongProviderDefinitionTarget
+  occurrences := [occurrence primaryProvider.id .providerDefinition testTarget.id 60]
+}
+
+def wrongConnectorDefinitionAuthoring :
+    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
+  declaration := wrongConnectorDefinitionTarget
+  occurrences := [occurrence ownershipConnector.id .connectorDefinition testTarget.id 70]
+}
+
+example : [
+    diagnosticSummary (checkTarget wrongProviderDefinitionAuthoring),
+    diagnosticSummary (checkTarget wrongConnectorDefinitionAuthoring)
+  ] = [
+    some (.wrongKind, .providerDefinition, "Test/TargetAuthoring.lean", 60),
+    some (.wrongKind, .connectorDefinition, "Test/TargetAuthoring.lean", 70)
+  ] := by
+  native_decide
+
+def inactiveProviderId : DeclarationId := id "test.provider.inactive"
+def alphaRelationId : DeclarationId := id "test.relation.alpha"
+def omegaRelationId : DeclarationId := id "test.relation.omega"
+
+def repeatedProviderReferenceConnector : CapabilityConnector TestLawStatement := {
+  ownershipConnector with
+  reconciliations := [
+    {
+      declaration := omegaRelationId
+      kind := .relation
+      providers := [inactiveProviderId]
+      semanticDigest := "test-omega-reconciliation/v1"
+    },
+    {
+      declaration := alphaRelationId
+      kind := .relation
+      providers := [inactiveProviderId]
+      semanticDigest := "test-alpha-reconciliation/v1"
+    }
+  ]
+}
+
+def repeatedProviderReferenceTarget :
+    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with
+  declarations := [
+    metadata inactiveProviderId.value .provider,
+    metadata alphaRelationId.value .relation,
+    metadata omegaRelationId.value .relation
+  ] ++ testDeclarations
+  connectors := [repeatedProviderReferenceConnector]
+}
+
+def reconciliationProviderOccurrence
+    (reconciliation : DeclarationId)
+    (line : Nat) : AuthoringOccurrence := {
+  id := occurrenceId line 2 line 20 0
+  declarationId := inactiveProviderId
+  path := {
+    role := .providerReference
+    owner := ownershipConnector.id
+    context := .reconciliation reconciliation
+  }
+}
+
+def repeatedProviderReferenceAuthoring :
+    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
+  declaration := repeatedProviderReferenceTarget
+  occurrences := [
+    reconciliationProviderOccurrence omegaRelationId 10,
+    reconciliationProviderOccurrence alphaRelationId 90
+  ]
+}
+
+def nestedDiagnosticSummary
+    (result : Except AuthoringDiagnostic Target) :
+    Option (AuthoringOccurrenceContext × Nat) :=
+  match result with
+  | .ok _ => none
+  | .error diagnostic => some (diagnostic.path.context, diagnostic.offending.line)
+
+example : nestedDiagnosticSummary (checkTarget repeatedProviderReferenceAuthoring) =
+    some (.reconciliation alphaRelationId, 90) := by
+  native_decide
+
 def duplicateMetadataTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
   declarations := metadata testTarget.id.value .target :: testDeclarations
@@ -165,9 +267,25 @@ elab "rejectedTarget%" : term => do
   Lean.Elab.Term.elabTerm (← `(true)) none
 
 /--
-error: target authoring failed: {"kind":"wrong-kind"
+error: target authoring failed: {"error":{"kind":"wrong-kind"
 -/
 #guard_msgs (error, substring := true) in
 #check rejectedTarget%
+
+elab "rejectedDuplicateTarget%" original:ident offending:ident : term => do
+  let path : AuthoringOccurrencePath := {
+    role := .declarationMetadata
+    owner := testTarget.id
+  }
+  let original ← captureAuthoringOccurrence original testTarget.id path 0
+  let offending ← captureAuthoringOccurrence offending testTarget.id path 1
+  let _ ← elaborateTarget duplicateAuthoring [offending, original]
+  Lean.Elab.Term.elabTerm (← `(true)) none
+
+/--
+error: target authoring failed: {"error":{"kind":"duplicate-identity","declarationId":"test.target.composed","sourcePath":"Umpire/TargetTests.lean","offendingValue":"test.target.composed","relatedIdentities":["test.target.composed"]},"original":{"sourcePath":
+-/
+#guard_msgs (error, substring := true) in
+#check rejectedDuplicateTarget% originalOccurrence offendingOccurrence
 
 end Umpire.TargetTests
