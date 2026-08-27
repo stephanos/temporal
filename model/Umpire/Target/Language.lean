@@ -76,10 +76,30 @@ inductive AuthoringOccurrenceRole where
   | kernel
   deriving BEq, DecidableEq, Ord, Repr
 
+def AuthoringOccurrenceRole.name : AuthoringOccurrenceRole → String
+  | .declarationMetadata => "declaration-metadata"
+  | .targetDeclaration => "target-declaration"
+  | .providerDefinition => "provider-definition"
+  | .providerReference => "provider-reference"
+  | .connectorDefinition => "connector-definition"
+  | .connectorReference => "connector-reference"
+  | .capabilityRequirement => "capability-requirement"
+  | .lawRequirement => "law-requirement"
+  | .lawWitness => "law-witness"
+  | .meaning => "meaning"
+  | .reconciliation => "reconciliation"
+  | .kernel => "kernel"
+
 /-- The owner makes a nested occurrence path unambiguous when identities are reused. -/
+inductive AuthoringOccurrenceContext where
+  | direct
+  | reconciliation (declaration : DeclarationId)
+  deriving BEq, DecidableEq, Repr
+
 structure AuthoringOccurrencePath where
   role : AuthoringOccurrenceRole
   owner : DeclarationId
+  context : AuthoringOccurrenceContext := .direct
   deriving BEq, DecidableEq, Repr
 
 /-- Nonsemantic occurrence identity derived from a source span and its local ordinal. -/
@@ -243,6 +263,31 @@ def canonicalDeclarationErrorJson (error : DeclarationError) : String :=
     ",\"relatedIdentities\":" ++
       array (canonicalIds error.relatedIdentities |>.map (quote ∘ DeclarationId.value)) ++ "}"
 
+private def authoringOccurrenceIdJson (id : AuthoringOccurrenceId) : String :=
+  "{\"sourcePath\":" ++ quote id.sourcePath ++
+    ",\"line\":" ++ toString id.line ++
+    ",\"column\":" ++ toString id.column ++
+    ",\"endLine\":" ++ toString id.endLine ++
+    ",\"endColumn\":" ++ toString id.endColumn ++
+    ",\"localOrdinal\":" ++ toString id.localOrdinal ++ "}"
+
+private def authoringOccurrenceContextJson : AuthoringOccurrenceContext → String
+  | .direct => quote "direct"
+  | .reconciliation declaration =>
+      "{\"reconciliation\":" ++ quote declaration.value ++ "}"
+
+private def authoringOccurrencePathJson (path : AuthoringOccurrencePath) : String :=
+  "{\"role\":" ++ quote path.role.name ++
+    ",\"owner\":" ++ quote path.owner.value ++
+    ",\"context\":" ++ authoringOccurrenceContextJson path.context ++ "}"
+
+def canonicalAuthoringDiagnosticJson (diagnostic : AuthoringDiagnostic) : String :=
+  "{\"error\":" ++ canonicalDeclarationErrorJson diagnostic.error ++
+    ",\"original\":" ++
+      (diagnostic.original.map authoringOccurrenceIdJson |>.getD "null") ++
+    ",\"offending\":" ++ authoringOccurrenceIdJson diagnostic.offending ++
+    ",\"path\":" ++ authoringOccurrencePathJson diagnostic.path ++ "}"
+
 private def targetSemanticJson
     (id : DeclarationId)
     (declarations : List DeclarationMetadata)
@@ -355,6 +400,11 @@ private def occurrencePath
     (owner : DeclarationId) : AuthoringOccurrencePath :=
   { role, owner }
 
+private def reconciliationOccurrencePath
+    (role : AuthoringOccurrenceRole)
+    (connector reconciliation : DeclarationId) : AuthoringOccurrencePath :=
+  { role, owner := connector, context := .reconciliation reconciliation }
+
 private def validateDeclarations
     (target : TargetDeclaration LawStatement Setup State Action Outcome Observation) :
     Except TargetValidationError (List DeclarationMetadata) := do
@@ -408,9 +458,10 @@ private def validateLawWitnesses
 
 private def validateProvider
     (declarations : List DeclarationMetadata)
+    (targetId : DeclarationId)
     (provider : CapabilityProvider LawStatement) : Except TargetValidationError Unit := do
   requireDeclaration declarations provider.id provider.source provider.id .provider
-    (occurrencePath .providerReference provider.id)
+    (occurrencePath .providerDefinition targetId)
   requireDeclaration declarations provider.id provider.source provider.contract.id .capability
     (occurrencePath .capabilityRequirement provider.id)
   validateLawWitnesses declarations provider.id provider.source
@@ -424,9 +475,10 @@ private def validateProvider
 private def validateConnector
     (declarations : List DeclarationMetadata)
     (activeProviders : List DeclarationId)
+    (targetId : DeclarationId)
     (connector : CapabilityConnector LawStatement) : Except TargetValidationError Unit := do
   requireDeclaration declarations connector.id connector.source connector.id .connector
-    (occurrencePath .connectorReference connector.id)
+    (occurrencePath .connectorDefinition targetId)
   validateLawWitnesses declarations connector.id connector.source
     connector.requiredLaws connector.lawWitnesses
   requireUniqueIds connector.id connector.source (occurrencePath .reconciliation connector.id)
@@ -434,14 +486,14 @@ private def validateConnector
   for reconciliation in connector.reconciliations.mergeSort reconciliationLe do
     requireDeclaration declarations connector.id connector.source
       reconciliation.declaration reconciliation.kind (occurrencePath .reconciliation connector.id)
-    requireUniqueIds connector.id connector.source (occurrencePath .providerReference connector.id)
-      reconciliation.providers
+    let providerPath := reconciliationOccurrencePath .providerReference connector.id
+      reconciliation.declaration
+    requireUniqueIds connector.id connector.source providerPath reconciliation.providers
     for provider in reconciliation.providers.mergeSort idLe do
-      requireDeclaration declarations connector.id connector.source provider .provider
-        (occurrencePath .providerReference connector.id)
+      requireDeclaration declarations connector.id connector.source provider .provider providerPath
       if !activeProviders.contains provider then
         throw (validationError .missingProvider connector.id connector.source
-          (occurrencePath .providerReference connector.id) provider provider.value [provider])
+          providerPath provider provider.value [provider])
 
 private structure MeaningOwner where
   provider : DeclarationId
@@ -495,9 +547,9 @@ private def validateCapabilities
   requireUniqueIds target.id target.source (occurrencePath .connectorDefinition target.id)
     (connectors.map CapabilityConnector.id)
   for provider in providers do
-    validateProvider declarations provider
+    validateProvider declarations target.id provider
   for connector in connectors do
-    validateConnector declarations (providers.map CapabilityProvider.id) connector
+    validateConnector declarations (providers.map CapabilityProvider.id) target.id connector
   requireUniqueIds target.id target.source (occurrencePath .capabilityRequirement target.id)
     target.requiredCapabilities
   for capability in canonicalIds target.requiredCapabilities do
@@ -669,7 +721,7 @@ def elaborateTarget
   match checkTarget authored with
   | .ok checked => pure checked
   | .error diagnostic =>
-      let message := s!"target authoring failed: {canonicalDeclarationErrorJson diagnostic.error}"
+      let message := s!"target authoring failed: {canonicalAuthoringDiagnosticJson diagnostic}"
       match captured.find? (fun item => item.occurrence.id == diagnostic.offending) with
       | some item => Lean.throwErrorAt item.reference message
       | none => Lean.throwError message
