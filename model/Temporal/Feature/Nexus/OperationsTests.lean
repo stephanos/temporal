@@ -185,10 +185,10 @@ example :
 
 /-! Golden artifacts preserve canonical bytes for every ordinary lifecycle consumer. -/
 example : [
-    AsyncStart.run.artifact.map (fun artifact => canonicalExperimentSpecJson artifact ++ "\n"),
-    Cancellation.run.artifact.map (fun artifact => canonicalExperimentSpecJson artifact ++ "\n"),
+    AsyncStart.run.artifact.map canonicalExperimentSpecBytes,
+    Cancellation.run.artifact.map canonicalExperimentSpecBytes,
     SuccessfulCompletion.run.artifact.map
-      (fun artifact => canonicalExperimentSpecJson artifact ++ "\n")
+      canonicalExperimentSpecBytes
   ] = [
     some expectedAsyncStartArtifactJson,
     some expectedCancellationArtifactJson,

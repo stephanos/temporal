@@ -7,7 +7,7 @@ open _root_.Umpire
 open Temporal.Feature.Nexus.Experimental.CallerClosure
 open Temporal.Tool.Inspect
 
-def expectedStdout : String := canonicalExperimentSpecJson compiledArtifact ++ "\n"
+def expectedStdout : String := canonicalExperimentSpecBytes compiledArtifact
 
 example : runCli [exactActionQueryId.value] = {
     status := 0
@@ -23,7 +23,7 @@ example : repeatedOutput = List.replicate 2 expectedStdout := by
   native_decide
 
 def expectedSwitchStdout : String :=
-  canonicalExperimentSpecJson _root_.Umpire.Examples.Switch.compiledArtifact ++ "\n"
+  canonicalExperimentSpecBytes _root_.Umpire.Examples.Switch.compiledArtifact
 
 def repeatedSwitchOutput : List String :=
   (List.range 2).map fun _ => (runCli [_root_.Umpire.Examples.Switch.exactActionQueryId.value]).stdout
@@ -36,6 +36,23 @@ example : runCli [_root_.Umpire.Examples.Switch.exactActionQueryId.value] = {
   native_decide
 
 example : repeatedSwitchOutput = List.replicate 2 expectedSwitchStdout := by
+  native_decide
+
+def operationScenarios : List (String × Option ExperimentSpec) := [
+  (Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value,
+    Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact),
+  (Temporal.Feature.Nexus.Operations.Cancellation.query.id.value,
+    Temporal.Feature.Nexus.Operations.Cancellation.run.artifact),
+  (Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value,
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact)
+]
+
+/-! Every ordinary Nexus Artifact producer is available through the authoritative inspector. -/
+example :
+    operationScenarios.map (fun (id, artifact) =>
+      (runCli [id]).status == 0 &&
+        (runCli [id]).stdout == (artifact.map canonicalExperimentSpecBytes |>.getD "")) =
+      [true, true, true] := by
   native_decide
 
 example : runCli ["missing-scenario"] = {

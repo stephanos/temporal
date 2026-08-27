@@ -1,5 +1,6 @@
 import Lean.Data.Json
 import Temporal.Feature.Nexus.Experimental.CallerClosure
+import Temporal.Feature.Nexus.Operations
 import Umpire.Examples.Switch
 
 namespace Temporal.Tool.Inspect
@@ -57,7 +58,7 @@ def runInspector (registry : ScenarioRegistry) (args : List String) : InspectorR
           | .error failure => failed failure
           | .ok spec => {
               status := 0
-              stdout := canonicalExperimentSpecJson spec ++ "\n"
+              stdout := canonicalExperimentSpecBytes spec
               stderr := ""
             }
   | _ => {
@@ -66,13 +67,27 @@ def runInspector (registry : ScenarioRegistry) (args : List String) : InspectorR
       stderr := diagnostic "invalid-arguments" "inspect" "expected exactly one scenario identity"
     }
 
+private def plannedScenario
+    (id : String)
+    (artifact : Option ExperimentSpec) : Scenario := {
+  id
+  result := match artifact with
+    | some spec => .ok spec
+    | none => .error (.planning id)
+}
+
 def productionRegistry : ScenarioRegistry := [{
   id := Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQueryId.value
   result := .ok Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
 }, {
   id := _root_.Umpire.Examples.Switch.exactActionQueryId.value
   result := .ok _root_.Umpire.Examples.Switch.compiledArtifact
-}]
+}, plannedScenario Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value
+    Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact,
+  plannedScenario Temporal.Feature.Nexus.Operations.Cancellation.query.id.value
+    Temporal.Feature.Nexus.Operations.Cancellation.run.artifact,
+  plannedScenario Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact]
 
 def runCli (args : List String) : InspectorResult := runInspector productionRegistry args
 
