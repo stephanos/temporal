@@ -506,7 +506,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-34-enforce-lean-model-boundaries-with.md",
-  "status": "open",
+  "status": "done",
   "title": "Enforce Lean model boundaries with import graph lint",
   "tracker": {
     "baseHashFlow": null,
@@ -519,5 +519,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T00:20:04.238341Z"
+  "updated_at": "2026-08-27T02:30:07.610336Z"
 }
