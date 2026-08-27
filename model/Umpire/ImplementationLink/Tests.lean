@@ -1,0 +1,2 @@
+import Umpire.ImplementationLink.ImportTests
+import Umpire.ImplementationLink.Tests.Compilation
