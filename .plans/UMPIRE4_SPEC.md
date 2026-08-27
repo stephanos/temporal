@@ -11,48 +11,53 @@ normative.
 - **GOV-02 — Human deviation.** A human MUST approve any change that violates a rule or deliberately
   plans to violate one.
 
-The ubiquitous language is grouped with the rules that govern each part of the domain. These
-definitions determine how terms are used in this normative index. Supporting Umpire 4 documents use
-them consistently and may add detail without changing their meaning. Lean modules, namespaces, and
-types are always referenced by fully qualified names in backticks. Defined Ubiquitous Language terms
-are capitalized when used as nouns outside their defining entry; ordinary descriptive and adjectival
-uses remain lowercase. For example, “a Capability” uses the defined noun, while “capability-scoped”
-remains lowercase.
+Each section defines the key concepts used by its rules. Supporting Umpire 4 documents use these
+terms consistently and may add detail without changing their meaning. Lean modules, namespaces, and
+types are always referenced by fully qualified names in backticks. Defined key terms are capitalized
+when used as nouns outside their defining entry; ordinary descriptive and adjectival uses remain
+lowercase. For example, “a Capability” uses the defined noun, while “capability-scoped” remains
+lowercase.
 
-## Model ownership and architecture
+## How the model is organized
 
-### Ubiquitous Language
+### Core concepts
 
-- **Lean Model.** The semantic code under `model/`, comprising the domain-neutral `Umpire` library
-  and Temporal-owned declarations. It is the sole authority for behavioral meaning.
-- **Semantic Definition.** A checked handwritten declaration under `Temporal.Feature` or
-  `Temporal.System` that owns Temporal behavioral meaning for its Semantic Identity. Generated
-  Structures, Projections, adapters, and checker views are not Semantic Definitions.
-- **Generated Structure.** Mechanically generated information, such as `Temporal.API` or
-  `Temporal.DynamicConfig` declarations, that has no behavioral meaning until a Semantic Definition
-  interprets it.
-- **`Umpire`.** The domain-neutral Lean library and namespace that owns reusable semantic authoring,
-  checking, planning, artifact, observation, refinement, and verification machinery.
-- **`Temporal.API`.** The generated Temporal namespace for mechanical Protobuf and gRPC structure.
-  It owns no product or implementation meaning.
-- **`Temporal.DynamicConfig`.** The generated Temporal namespace for mechanical configuration
-  structure. It owns no configuration interpretation or behavioral effect.
-- **`Temporal.Feature`.** The Temporal namespace that owns product-visible states, Actions,
-  outcomes, relations, and `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` declarations
-  whose meaning survives an implementation rewrite.
-- **`Temporal.System`.** The Temporal namespace that owns implementation mechanisms, configuration
-  interpretation, `Umpire.Observation` declarations, execution semantics, and Refinements.
-############ TODO review ############
-- **Semantic Identity.** A stable, namespaced, kind-checked name for a declaration or selected
-  semantic product. It is independent of declaration order and documentation.
-- **Semantic Digest.** A deterministic digest of meaning-bearing canonical content, used to detect
-  semantic change or stale composition. It is distinct from source location, documentation, and an
-  artifact format version.
-- **Capability.** A named semantic contract, including its required laws, that a declaration
-  requires or a target composition provides.
-- **Refinement.** An explicit checked correspondence from `Temporal.System` implementation meaning
-  to `Temporal.Feature` product meaning. Refinement relates the two declarations without allowing
-  either to redefine the other.
+- **Behavior Model.** The checked description of what the software can do. It lives under `model/`
+  and is the source of truth used to create Tests, plans, and checks.
+- **Model Definition.** A handwritten, checked part of the Behavior Model describing a state,
+  Action, rule, expected product behavior, or implementation behavior. Generated Data, Projections,
+  adapters, and checker views are not Model Definitions.
+- **Generated Data.** Machine-produced descriptions of API and configuration fields and types.
+  Generated Data says what information exists; a Model Definition says what that information means.
+- **Model Name.** The stable, namespaced, kind-checked name used to refer to a Model Definition,
+  such as `workflow-nexus.property.caller-closure`. It does not change when declarations are
+  reordered or documentation is edited.
+- **Meaning Fingerprint.** A reproducible fingerprint of everything that affects a Model
+  Definition's behavior. It changes when that behavior changes, allowing outdated compositions and
+  Artifacts to be detected. Source location, documentation, and Artifact format version do not
+  affect it.
+- **Capability.** A named promise that one part of the Behavior Model requires and another part
+  provides, including the rules the provider must obey.
+- **Implementation Mapping.** A checked link showing how implementation behavior described under
+  `Temporal.System` corresponds to product behavior described under `Temporal.Feature`. It relates
+  the two Model Definitions without allowing either to redefine the other.
+
+### Where things live
+
+- **`Umpire`.** The domain-neutral Lean library and namespace providing reusable tools and types for
+  writing and checking Model Definitions, selecting traces, creating Artifacts, interpreting
+  observations, and verification.
+- **`Temporal.Feature`.** The namespace for product behavior that should remain true even if
+  Temporal's implementation is rewritten. It owns product-visible states, Actions, outcomes,
+  relations, and `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` declarations.
+- **`Temporal.System`.** The namespace for the behavior of Temporal's current implementation. It
+  owns implementation mechanisms, configuration interpretation, `Umpire.Observation` declarations,
+  Execution behavior, and Implementation Mappings.
+- **`Temporal.API`.** The namespace containing Generated Data from Temporal's Protobuf and gRPC
+  definitions. It does not decide product or implementation behavior.
+- **`Temporal.DynamicConfig`.** The namespace containing Generated Data about available
+  configuration. Model Definitions under `Temporal.System` decide how configuration affects
+  behavior.
 
 ### Purpose and scope
 
@@ -60,24 +65,24 @@ remains lowercase.
   Conformance, and verification problems demonstrated by Temporal rather than hypothetical users.
 - **SCP-02 — Domain-neutral core.** The reusable `Umpire` library MUST remain free of Temporal
   vocabulary, dependencies, and fixtures.
-- **SCP-03 — One model language.** All semantic model code MUST be written in Lean and live under
+- **SCP-03 — One model language.** All Behavior Model code MUST be written in Lean and live under
   `model/`.
 - **SCP-04 — Focused complement.** Umpire SHOULD complement, rather than replace, specialized unit,
   race, persistence, schema, authorization, performance, and handler tests.
 
-### Semantic authority
+### Source of truth
 
-- **SEM-01 — Lean authority.** The Lean Model MUST be the sole authority for behavioral meaning;
-  generated Artifacts, Go code, runtimes, evidence mappings, and checker adapters MUST NOT redefine
-  it.
-- **SEM-02 — Semantic Definitions.** Checked handwritten `Temporal.Feature` and `Temporal.System`
-  declarations MUST be the only sources of Temporal behavioral meaning within the Lean Model.
-- **SEM-03 — Generated Structure.** Generated `Temporal.API` and `Temporal.DynamicConfig`
-  declarations MUST remain Generated Structures until Semantic Definitions assign behavioral
-  meaning.
-- **SEM-08 — Explicit Refinement.** `Temporal.Feature` product meaning and `Temporal.System`
-  implementation meaning MUST meet through an explicit Refinement, never through declaration order
-  or implicit selection.
+- **SEM-01 — Model authority.** The Behavior Model MUST be the sole authority for behavior described
+  by Umpire; generated Artifacts, Go code, runtimes, evidence mappings, and checker adapters MUST NOT
+  redefine it.
+- **SEM-02 — Model Definitions.** Checked handwritten `Temporal.Feature` and `Temporal.System`
+  declarations MUST be the only sources of product and implementation behavior within the Behavior
+  Model.
+- **SEM-03 — Generated Data.** Generated `Temporal.API` and `Temporal.DynamicConfig` declarations
+  MUST remain Generated Data until Model Definitions explain how to interpret them.
+- **SEM-08 — Explicit Implementation Mapping.** `Temporal.Feature` product behavior and
+  `Temporal.System` implementation behavior MUST meet through an explicit Implementation Mapping,
+  never through declaration order or implicit selection.
 
 ### Enforced module boundaries
 
@@ -100,12 +105,12 @@ remains lowercase.
 
 ### Module design
 
-- **MOD-02 — Semantic altitude.** `Temporal.Feature` MUST own product-visible meaning, while
-  `Temporal.System` MUST own implementation mechanisms, configuration interpretation, evidence
-  mappings, and execution semantics.
-- **MOD-04 — Refinement leaves.** `Temporal.Feature.*` and `Temporal.System.*` modules MUST remain
-  independently understandable and testable; only focused refinement leaves MAY relate their
-  meanings, with import composition governed by MOD-10.
+- **MOD-02 — Product and system ownership.** `Temporal.Feature` MUST own product-visible behavior,
+  while `Temporal.System` MUST own implementation mechanisms, configuration interpretation,
+  evidence mappings, and Execution behavior.
+- **MOD-04 — Focused mappings.** `Temporal.Feature.*` and `Temporal.System.*` modules MUST remain
+  independently understandable and testable; only focused Implementation Mapping modules MAY
+  relate their behavior, with import composition governed by MOD-10.
 - **MOD-06 — Deep modules.** `Umpire.*` modules SHOULD hide substantial checking, planning, artifact,
   observation, and verification machinery behind small, cohesive interfaces.
 - **MOD-07 — Component seams.** Components MUST have narrow responsibilities and communicate through
@@ -113,9 +118,9 @@ remains lowercase.
 - **MOD-08 — Isolated testability.** Each component MUST be testable with fixtures or domain-neutral
   examples without requiring the complete `Umpire` pipeline or a running Temporal cluster.
 
-## Semantic authoring and traces
+## Model authoring and traces
 
-### Ubiquitous Language
+### Key concepts
 
 - **Action.** A semantic request recognized by a selected `Umpire.CheckedTarget`. An authored or
   planned action requests a transition; it neither chooses the Model Outcome nor proves that a
@@ -144,7 +149,7 @@ remains lowercase.
 - **Unsatisfiable.** A checked `Umpire.Behavior` whose constraints admit no Semantic Trace. It is an
   explicit failure outcome, not success by vacuity.
 
-### Semantic languages
+### Model languages
 
 - **SEM-04 — Separate languages.** `Umpire.Property`, `Umpire.Behavior`, `Umpire.Query`,
   `Umpire.Observation`, and other Lean DSLs MUST remain distinct typed languages with distinct
@@ -168,8 +173,8 @@ remains lowercase.
   outcomes, relations, Bounds, faults, Capabilities, Omissions, and unsupported cases explicit.
 - **AUT-03 — Checked declarations.** Public declarations MUST be checked before planning or Execution,
   and failures SHOULD produce precise source-located diagnostics.
-- **AUT-04 — Stable identities.** Every public semantic declaration MUST have a stable, namespaced,
-  kind-checked Semantic Identity that is independent of source ordering and documentation.
+- **AUT-04 — Stable names.** Every public Model Definition MUST have a stable, namespaced,
+  kind-checked Model Name that is independent of source ordering and documentation.
 - **AUT-05 — Portable data.** Anything used for portable planning, Artifacts, promotion, or
   cross-language Execution MUST be inspectable data with a Lean denotation, not an opaque callback.
 - **AUT-06 — Explicit composition.** Competing providers and cross-domain relationships MUST be
@@ -180,7 +185,7 @@ remains lowercase.
 
 ## Planning, Bounds, and Artifacts
 
-### Ubiquitous Language
+### Key concepts
 
 - **Bound.** An explicit, typed, phase-local limit with a value and semantic unit. A bound on one
   phase does not implicitly bound another phase.
@@ -194,8 +199,11 @@ remains lowercase.
   `Umpire.ExperimentSpec`.
 - **Artifact.** Immutable, versioned, inspectable data exchanged across a component, language, or
   process seam. Portability does not give an artifact semantic authority.
-- **Projection.** A deterministic, digest-bound developer view derived from a semantic Artifact. A
-  projection is not an independently editable source of meaning.
+- **Artifact Fingerprint.** A reproducible fingerprint of an Artifact's meaning-bearing content. It
+  identifies one exact generated plan or Artifact and changes when that content changes; it is not
+  a Model Name.
+- **Projection.** A deterministic developer view bound to an Artifact Fingerprint and derived from
+  an Artifact. A projection is not an independently editable source of meaning.
 - **`Umpire.DrivePlan`.** Generated deterministic execution intent for one selected Semantic Trace.
   It is neither an authoring language nor Evidence of Execution.
 - **`Umpire.ExperimentSpec`.** The portable, environment-independent envelope containing complete
@@ -206,8 +214,8 @@ remains lowercase.
 
 - **PLN-01 — Explicit Bounds.** `Umpire.Behavior` admission, search, Execution, observation, and
   minimization MUST each have explicit typed Bounds.
-- **PLN-02 — Deterministic selection.** Identical declarations, semantic inputs, Bounds, strategy,
-  and seed MUST produce identical selected plans and Semantic Identities.
+- **PLN-02 — Deterministic selection.** Identical Model Definitions, model inputs, Bounds, strategy,
+  and seed MUST produce identical selected plans and Artifact Fingerprints.
 - **PLN-03 — Honest completeness.** A Complete Search MUST fail rather than silently truncate.
 - **PLN-04 — Honest exhaustion.** Budget Exhaustion MUST remain distinct from proof that no trace or
   counterexample exists.
@@ -220,8 +228,9 @@ remains lowercase.
 
 - **ART-01 — Versioned seams.** Persisted Artifacts MUST be explicit, versioned, deterministic, and
   inspectable component boundaries.
-- **ART-02 — Semantic binding.** Semantic Artifacts MUST carry Semantic Identities, Semantic Digests,
-  provenance, explicit Omissions, and enough compatibility data to reject stale consumers.
+- **ART-02 — Model binding.** Artifacts MUST carry Model Names, Meaning Fingerprints, their own
+  Artifact Fingerprints, provenance, explicit Omissions, and enough compatibility data to reject
+  stale consumers.
 - **ART-03 — Portable `Umpire.ExperimentSpec`.** `Umpire.ExperimentSpec` MUST describe complete,
   environment-independent, bounded execution intent without claiming that any requested Action,
   fault, outcome, or observation occurred.
@@ -232,12 +241,13 @@ remains lowercase.
 - **ART-06 — Complete traces.** An executable trace MUST include its semantic setup, participant
   programs, runtime-resolved symbolic references, Actions, faults, ordering, observations,
   termination, and cleanup obligations.
-- **ART-07 — Derived Projections.** Generated Go tests and documentation MUST be deterministic,
-  digest-bound Projections of Lean-owned Artifacts, never independently editable semantic sources.
+- **ART-07 — Derived Projections.** Generated Go tests and documentation MUST be deterministic
+  Projections bound to their source Artifact Fingerprints, never independently editable sources of
+  model behavior.
 
 ## Execution, Evidence, and Conformance
 
-### Ubiquitous Language
+### Key concepts
 
 - **Execution.** A bounded attempt to realize a `Umpire.ExperimentSpec` in an environment. Execution
   reports attempts, realized outcomes, raw Evidence, divergence, infrastructure failures, and
@@ -292,7 +302,7 @@ remains lowercase.
 
 ## Exploration, replay, and promotion
 
-### Ubiquitous Language
+### Key concepts
 
 - **Exploration.** Model-owned bounded selection from a declared semantic space to find useful
   experiments or counterexamples. Exploration is exhaustive only when it completes a declared
@@ -301,7 +311,7 @@ remains lowercase.
   independently of exploratory budgets.
 - **Canonical Replay.** Re-evaluation of a trace or counterexample through the referenced
   `Umpire.CheckedTarget`, `Umpire.Behavior`, and `Umpire.Property` declarations with matching
-  Semantic Identities, Semantic Digests, and Bounds.
+  Model Names, Meaning Fingerprints, and Bounds.
 
 ### Rules
 
@@ -319,7 +329,7 @@ remains lowercase.
 
 ## Verification, interfaces, and Qualification
 
-### Ubiquitous Language
+### Key concepts
 
 - **`Temporal.Verify`.** The opt-in Temporal namespace for checker views, bindings, correspondence,
   and verification entry points. It does not own independent behavioral meaning.
@@ -338,8 +348,8 @@ remains lowercase.
   family and `Umpire.Property` declaration.
 - **VER-03 — Checked correspondence.** Every checker view MUST have an explicit checked
   correspondence to an existing `Umpire.CheckedTarget` and `Umpire.Property` declaration.
-- **VER-04 — Honest receipts.** Verification receipts MUST expose source and Semantic Identities,
-  assumptions, Bounds, Omissions, provenance, and Trust Class.
+- **VER-04 — Honest receipts.** Verification receipts MUST expose source information, Model Names,
+  Meaning Fingerprints, assumptions, Bounds, Omissions, provenance, and Trust Class.
 - **VER-05 — Canonical Replay.** A checker counterexample MUST replay through canonical `Umpire`
   semantics before it can support a semantic violation or promoted Regression.
 - **VER-06 — Distinct trust.** Kernel proofs, reconstructed proofs, trusted solvers, bounded search,
@@ -359,4 +369,4 @@ remains lowercase.
 - **QLF-02 — Environment controls.** Each non-local environment MUST explicitly own authorization,
   rate and concurrency limits, cleanup, isolation, rollout policy, and blast-radius controls.
 - **QLF-03 — Qualified claims.** Every qualified claim MUST expose its environment, evidence profile,
-  Bounds, trust, Omissions, cleanup outcome, and Semantic Digests.
+  Bounds, trust, Omissions, cleanup outcome, and Meaning Fingerprints.
