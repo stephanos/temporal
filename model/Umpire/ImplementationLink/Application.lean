@@ -434,28 +434,26 @@ private def mappedSetup
   | _, _ => throw (implementationLinkDiagnostic checked .multipleMappings
       (sourceSetupBehaviorFingerprint := some sourceSetupBehaviorFingerprint))
 
-private structure AdmittedSourceSteps
+private abbrev AdmittedSourceSteps
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (state : ModelValue)
-    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue)) where
-  proof : AuthoritativeTraceSteps checked.sourceTarget.kernel state steps
-  marker : Unit := ()
+    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue)) :=
+  PLift (AuthoritativeTraceSteps checked.sourceTarget.kernel state steps)
 
-private structure ExactListMember (value : Value) (values : List Value) where
-  proof : value ∈ values
-  marker : Unit := ()
+private abbrev ExactListMember (value : Value) (values : List Value) :=
+  PLift (value ∈ values)
 
 private def exactListMember? [DecidableEq Value]
     (value : Value) : (values : List Value) → Option (ExactListMember value values)
   | [] => none
   | first :: rest =>
       if equal : value = first then
-          some ⟨by simp [equal], ()⟩
+          some ⟨by simp [equal]⟩
       else
         match exactListMember? value rest with
-        | some member => some ⟨List.Mem.tail first member.proof, ()⟩
+        | some member => some ⟨List.Mem.tail first member.down⟩
         | none => none
 
 private def admittedSourceSteps
@@ -467,7 +465,7 @@ private def admittedSourceSteps
     (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue)) :
     Except ImplementationLinkDiagnostic (AdmittedSourceSteps checked state steps) :=
   match steps with
-  | [] => .ok ⟨True.intro, ()⟩
+  | [] => .ok ⟨True.intro⟩
   | step :: rest =>
       let result : TransitionResult ModelValue ModelValue ModelValue := {
         modelOutcome := step.modelOutcome
@@ -479,7 +477,7 @@ private def admittedSourceSteps
       | some admitted =>
         match admittedSourceSteps checked step.resultingState (position + 1) rest with
         | .ok admittedRest => .ok ⟨⟨checked.sourceTarget.kernel.stepSound
-            state step.selectedAction result admitted.proof, admittedRest.proof⟩, ()⟩
+            state step.selectedAction result admitted.down, admittedRest.down⟩⟩
         | .error failure => .error failure
       | none =>
         .error <| implementationLinkDiagnostic checked .nonAuthoritativeSourceStep
@@ -488,14 +486,13 @@ private def admittedSourceSteps
             step.resultingState.definitionId ::
             step.observations.map ModelValue.definitionId)
 
-private structure AdmittedSourceTrace
+private abbrev AdmittedSourceTrace
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (sourceSetup : SourceSetup)
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) where
-  proof : AuthoritativeModelTrace checked.sourceTarget.kernel sourceSetup trace
-  marker : Unit := ()
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :=
+  PLift (AuthoritativeModelTrace checked.sourceTarget.kernel sourceSetup trace)
 
 private def admittedSourceTrace
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -509,9 +506,9 @@ private def admittedSourceTrace
   | some admitted =>
     let admittedSteps ← admittedSourceSteps checked trace.initialState 1 trace.steps
     pure ⟨{
-      initial := checked.sourceTarget.kernel.initialSound sourceSetup trace.initialState admitted.proof
-      steps := admittedSteps.proof
-    }, ()⟩
+      initial := checked.sourceTarget.kernel.initialSound sourceSetup trace.initialState admitted.down
+      steps := admittedSteps.down
+    }⟩
   | none =>
     throw <| implementationLinkDiagnostic checked .nonAuthoritativeSourceInitial
       (some .initialState) [trace.initialState.definitionId]
@@ -751,7 +748,7 @@ private def applyCheckedImplementationLink
     destinationSetup := checked.mapSetup sourceSetup
     trace := destinationTrace
     evidenceLinks
-    authoritative := checked.traceForward sourceSetup evidenceBackedTrace.trace sourceAuthority.proof
+    authoritative := checked.traceForward sourceSetup evidenceBackedTrace.trace sourceAuthority.down
   }
 
 /-- Replay, validate, and translate one complete Evidence-backed source Model Trace. -/

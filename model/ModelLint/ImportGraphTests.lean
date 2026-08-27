@@ -144,19 +144,48 @@ private def testTargetIsolation : IO Unit := do
         ]
         .targetIsolation #[source, `ModelLint.Bridge, destination]
 
-private def testExactRefinementException : IO Unit := do
+private def testExactImplementationLinkExceptions : IO Unit := do
   let allowed := #[
-    moduleRecord `Temporal.System.Nexus.Refinement #[`Temporal.Feature.Nexus.Root],
+    moduleRecord `Temporal.System.Nexus.ImplementationLink #[
+      `Temporal.Feature.Nexus.Root,
+      `Temporal.System.Nexus.Core
+    ],
+    moduleRecord `Temporal.ImplementationLinkTests.Nexus #[
+      `Temporal.Feature.Nexus.Root,
+      `Temporal.System.Nexus.ImplementationLink
+    ],
+    moduleRecord `Temporal.System.Nexus.Core,
     moduleRecord `Temporal.Feature.Nexus.Root
   ]
-  requireEqual "exact refinement" (check defaultPolicy allowed) #[]
-  requireViolation "refinement near miss"
-    #[
-      moduleRecord `Temporal.System.Nexus.Refinement.Extra #[`Temporal.Feature.Nexus.Root],
-      moduleRecord `Temporal.Feature.Nexus.Root
-    ]
-    .systemIsolation
-    #[`Temporal.System.Nexus.Refinement.Extra, `Temporal.Feature.Nexus.Root]
+  requireEqual "exact Implementation Link composition" (check defaultPolicy allowed) #[]
+  requireEqual "composed test has a distinct exact class"
+    (defaultPolicy.classify? `Temporal.ImplementationLinkTests.Nexus)
+    (some .temporalImplementationLinkTest)
+  requireEqual "composed test is not base System"
+    (defaultPolicy.classify? `Temporal.ImplementationLinkTests.Nexus ==
+      some .temporalSystem)
+    false
+  for nearMiss in #[
+    `Temporal.System.Nexus.ImplementationLink.Extra,
+    `Temporal.System.Nexus.ImplementationLinkSibling,
+    `Temporal.System.Nexus.ImplementationLinkTests,
+    `Temporal.System.Nexus.Other
+  ] do
+    requireViolation s!"Implementation Link System near miss {nearMiss}"
+      #[
+        moduleRecord nearMiss #[`Temporal.Feature.Nexus.Root],
+        moduleRecord `Temporal.Feature.Nexus.Root
+      ]
+      .systemIsolation
+      #[nearMiss, `Temporal.Feature.Nexus.Root]
+  for nearMiss in #[
+    `Temporal.ImplementationLinkTests.Nexus.Extra,
+    `Temporal.ImplementationLinkTests.NexusExtra,
+    `Temporal.ImplementationLinkTests.Other
+  ] do
+    requireEqual s!"composed-test near miss {nearMiss}"
+      (reconcile defaultPolicy #[sourceRecord nearMiss] #[moduleRecord nearMiss])
+      #[.unclassifiedModule nearMiss]
 
 private def testExactVerifyExceptions : IO Unit := do
   let verifyDestinations := #[`Temporal.Verify.Nexus.Root, `Umpire.Verify.Veil.Core]
@@ -249,7 +278,7 @@ private def runSyntheticSuite : IO UInt32 := do
   testAllowedOrdinaryImports
   testTargetIsolation
   testDirectAndTransitiveRejections
-  testExactRefinementException
+  testExactImplementationLinkExceptions
   testExactVerifyExceptions
   testModelInventoryPolicy
   testExternalLeaves

@@ -38,6 +38,7 @@ Use focused imports when a consumer needs a smaller surface. The package-level d
 the reusable facades. Temporal code is organized by semantic ownership:
 
 ```lean
+import Umpire.ImplementationLink
 import Temporal.Feature
 import Temporal.Feature.Nexus.Lifecycle
 import Temporal.Feature.Nexus.Operations
@@ -46,6 +47,8 @@ import Temporal.System
 import Temporal.System.Configuration
 import Temporal.System.Callback.Configuration
 import Temporal.System.Matching.Configuration
+import Temporal.System.Nexus.Core
+import Temporal.System.Nexus.ImplementationLink
 ```
 
 Detailed AutoClose and caller-closure material requires explicit experimental imports:
@@ -74,7 +77,8 @@ Shared
 └── Shared.TraceReplay
 
 Umpire.Core ── Umpire.Target ─┬── Umpire.Property ─┐
-                              └── Umpire.Observation│
+                              ├── Umpire.Observation│
+                              └── Umpire.ImplementationLink
 Umpire.Core ───── Umpire.Behavior ─────────────────┼── Umpire.Query
                                                     │        │
                                                     │        ▼
@@ -96,6 +100,14 @@ Temporal.DynamicConfig ── Temporal.System.Configuration
 Temporal.Feature.Nexus.Lifecycle ── Temporal.Feature.Nexus.Operations
                                    └── Temporal.Feature.Nexus.Observation
 
+Temporal.System.Nexus.Core ────────┐
+                                    ├── Temporal.System.Nexus.ImplementationLink
+Temporal.Feature.Nexus.Lifecycle ──┘
+
+Temporal.System.Nexus.ImplementationLink ──┐
+                                             ├── Temporal.ImplementationLinkTests.Nexus
+Temporal.Feature.Nexus.Operations ─────────┘
+
 Temporal.Feature.Nexus.Experimental.AutoClose
                     │
                     ▼
@@ -111,8 +123,10 @@ Umpire.Examples.Switch ───────────────────
 `Tools.LeanSourceInventory` discovery modules. It keeps `Shared.*` independent of `Umpire.*` and
 `Temporal.*`, keeps `Umpire.*` independent of `Temporal.*`, isolates
 `Temporal.Feature.*` from `Temporal.System.*`, and protects the opt-in `Temporal.Verify.*` and
-`Umpire.Verify.Veil` seams. The only cross-layer Implementation Link consumer is the exact
-`Temporal.System.Nexus.ImplementationLink` module; verification consumers use the exact allowlist owned by
+`Umpire.Verify.Veil` seams. The only production cross-layer Implementation Link consumer is the exact
+`Temporal.System.Nexus.ImplementationLink` module. The exact non-System composed-test class is
+`Temporal.ImplementationLinkTests.Nexus`; its namespace is closed so sibling and prefix/suffix
+near misses fail inventory classification. Verification consumers use the exact allowlist owned by
 MOD-05. The normative import rules are MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11.
 Every `Umpire.Target.*` module, including Target tests, is additionally kept below Query, Planning,
 Artifact, Temporal, runtime, and verification modules. Semantic ownership, deep interfaces, and
@@ -136,6 +150,13 @@ Public Umpire APIs follow an authored → checked → planned → artifact lifec
 4. Call `checkQuery` to bind that Target to Properties, Behavior, Limits, and policy.
 5. Derive the planner kernel with `IncrementalPlannerKernel.ofCheckedQuery?`, then call `plan`.
 6. Inspect the resulting `PlannerRun` and optional `ExperimentSpec`.
+
+When one independently checked Target implements another, author an inert
+`ImplementationLinkDeclaration` and exact forward witness, call `checkImplementationLink`, and
+apply only the resulting `CheckedImplementationLink` to an Evidence-backed source Model Trace.
+Application first re-admits the source trace through its checked kernel and then returns either one
+complete authoritative destination trace plus coordinate-complete Evidence Links or one typed
+Implementation Link diagnostic.
 
 Property, Behavior, and Query are the scenario and question languages; Target is their common
 checked substrate. Ordinary authors consume it without constructing raw providers or connectors,
@@ -169,6 +190,10 @@ Temporal-specific modules are split by semantic altitude:
 - `Temporal.Feature.Nexus.Observation` owns the sole synthetic BasicLifecycle evidence profile,
   its checked mapping, and the offline `EvidenceBundle` → Observation Evaluation → Property-verdict → strict-
   summary composition over the ordinary asynchronous-start Query.
+- `Temporal.System.Nexus.Core` owns the independently authored pure mechanism states and transitions
+  for dispatch, cancellation recording, and completion recording.
+- `Temporal.System.Nexus.ImplementationLink` is the sole production leaf that imports both Nexus
+  sides and proves the checked bounded forward correspondence into the unchanged Feature lifecycle.
 - `Temporal.Feature.Nexus.Experimental.AutoClose` owns the detailed AutoClose configuration,
   lifecycle, reachability, history, and proofs as explicit opt-in material.
 - `Temporal.Feature.Nexus.Experimental.CallerClosure` is the opt-in Workflow–Nexus integration
@@ -215,21 +240,38 @@ discriminator. Umpire remains responsible for every check after that handoff. No
 implemented here, and this model does not execute Temporal, collect or persist live evidence,
 perform Run Evaluation, promote a result, or define a second profile.
 
+The checked cross-altitude path adds a separate stage after accepted Observation Evaluation:
+
+```text
+accepted System Evidence-backed Model Trace + CheckedImplementationLink
+  ── applyImplementationLink ──▶ authoritative Feature Model Trace + Evidence Links
+                              └──▶ invalid | unknown | conflict | unsupported
+authoritative Feature Model Trace + CheckedProperty
+  ── evaluateProperty ──▶ satisfied | violated
+```
+
+Observation, Implementation Link, and Property outcomes keep distinct identities and diagnostics.
+An Observation non-success never invokes the Implementation Link; an Implementation Link
+non-success never invokes Feature Property evaluation. A later Run Evaluation may orchestrate the
+three stages but cannot collapse one layer's failure into another's status.
+
 ## Package boundaries
 
 - `Shared` owns domain-neutral transition systems, finite runs, observations, and trace replay.
 - `Umpire` owns reusable semantic declarations, authoring languages, checking, planning, portable
-  Artifacts, and offline Observation Evaluation and verdicts.
+  Artifacts, offline Observation Evaluation and verdicts, and checked Implementation Links.
 - `Temporal.Feature` owns product meaning, target compositions, and the sole synthetic Nexus
   Observation profile.
 - `Temporal.System` owns configuration and execution-oriented mechanisms without defining feature
-  behavior.
+  behavior; only its focused Nexus Implementation Link leaf imports both independently authored
+  sides.
 - `Temporal.Tool` owns inspection and other developer tools without becoming part of the
   production aggregate.
 - `Temporal.API` and `Temporal.DynamicConfig` remain generated structures outside the
   Feature/System semantic layers.
 - `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
-  `Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`, and
+  `Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`,
+  `Umpire.ImplementationLink.Language`, `Umpire.ImplementationLink.Application`, and
   `Umpire.Planning.Engine` implement public facades and should not normally be imported directly.
 
 Artifacts are pure model products. They do not claim that Temporal was started, actions were
@@ -237,8 +279,9 @@ executed, or runtime evidence was collected.
 
 ## Tests and inspection
 
-`TemporalModelTests.lean` contains imports only. It assembles the ordinary Feature and System tests
-without importing experimental modules or reusable Umpire test internals.
+`TemporalModelTests.lean` contains imports only. It assembles the ordinary Feature and System tests,
+including the exact `Temporal.ImplementationLinkTests.Nexus` composed-test root, without importing
+experimental modules or reusable Umpire test internals.
 `TemporalExperimentalTests.lean` separately assembles the caller-closure and Tool inspector tests.
 Compile the final public and test roots with:
 
@@ -273,6 +316,12 @@ invokes the final executable without exposing its Lake target name to callers.
 - [`Temporal.Feature.Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) next demonstrates
   start, cancellation, and successful completion. Each case exposes its Property, exact one-action
   Behavior, Query, and deterministic result separately.
+- [`Temporal.System.Nexus.Core`](Temporal/System/Nexus/Core.lean) independently describes the pure
+  dispatch, cancellation-recording, and completion-recording mechanisms.
+- [`Temporal.System.Nexus.ImplementationLink`](Temporal/System/Nexus/ImplementationLink.lean) then
+  checks the forward correspondence from that System meaning to the unchanged Feature lifecycle;
+  [`Temporal.ImplementationLinkTests.Nexus`](Temporal/ImplementationLinkTests/Nexus.lean) shows the
+  separate Observation, Implementation Link, and Property outcomes.
 - [`Temporal.Feature.Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean)
   and [`Temporal.Feature.Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
   are explicit opt-in references for detailed AutoClose proofs and the inspectable Workflow–Nexus

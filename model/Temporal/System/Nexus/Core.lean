@@ -260,17 +260,67 @@ theorem authoritativeStep_cases
         result = cancellationRecordedResult) ∨
       (state = runningState ∧ action = recordCompletionAction ∧
         result = completionRecordedResult) := by
+  have running_ne_queued : runningState ≠ queuedState := by native_decide
+  have canceled_ne_queued : cancellationRecordedState ≠ queuedState := by native_decide
+  have canceled_ne_running : cancellationRecordedState ≠ runningState := by native_decide
+  have completed_ne_queued : completionRecordedState ≠ queuedState := by native_decide
+  have completed_ne_running : completionRecordedState ≠ runningState := by native_decide
+  have completed_ne_canceled : completionRecordedState ≠ cancellationRecordedState := by
+    native_decide
+  have cancel_ne_dispatch : recordCancellationAction ≠ dispatchAction := by native_decide
+  have complete_ne_dispatch : recordCompletionAction ≠ dispatchAction := by native_decide
+  have complete_ne_cancel : recordCompletionAction ≠ recordCancellationAction := by
+    native_decide
   by_cases queued : state = queuedState
-  all_goals by_cases running : state = runningState
-  all_goals by_cases canceled : state = cancellationRecordedState
-  all_goals by_cases completed : state = completionRecordedState
-  all_goals by_cases dispatch : action = dispatchAction
-  all_goals by_cases cancel : action = recordCancellationAction
-  all_goals by_cases complete : action = recordCompletionAction
-  all_goals simp_all [authoritativeStep, stepResults, stepResult?, executionState?,
-    executionEvent?, transitionResult?, step, queuedState, runningState,
-    cancellationRecordedState, completionRecordedState, dispatchAction,
-    recordCancellationAction, recordCompletionAction]
+  · subst state
+    by_cases dispatch : action = dispatchAction
+    · subst action
+      left
+      refine ⟨rfl, rfl, ?_⟩
+      simpa [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+        transitionResult?, step] using admitted
+    · by_cases cancel : action = recordCancellationAction
+      · subst action
+        simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+          transitionResult?, step, cancel_ne_dispatch] at admitted
+      · by_cases complete : action = recordCompletionAction
+        · subst action
+          simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+            transitionResult?, step, complete_ne_dispatch, complete_ne_cancel] at admitted
+        · simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+            transitionResult?, step, dispatch, cancel, complete] at admitted
+  · by_cases running : state = runningState
+    · subst state
+      by_cases cancel : action = recordCancellationAction
+      · subst action
+        right; left
+        refine ⟨rfl, rfl, ?_⟩
+        simpa [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+          transitionResult?, step, running_ne_queued, cancel_ne_dispatch] using admitted
+      · by_cases complete : action = recordCompletionAction
+        · subst action
+          right; right
+          refine ⟨rfl, rfl, ?_⟩
+          simpa [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+            transitionResult?, step, running_ne_queued, complete_ne_dispatch,
+            complete_ne_cancel] using admitted
+        · by_cases dispatch : action = dispatchAction
+          · subst action
+            simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+              transitionResult?, step, running_ne_queued] at admitted
+          · simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+              transitionResult?, step, running_ne_queued, dispatch, cancel, complete] at admitted
+    · by_cases canceled : state = cancellationRecordedState
+      · subst state
+        simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+          transitionResult?, step, canceled_ne_queued, canceled_ne_running] at admitted
+      · by_cases completed : state = completionRecordedState
+        · subst state
+          simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+            transitionResult?, step, completed_ne_queued, completed_ne_running,
+            completed_ne_canceled] at admitted
+        · simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
+            transitionResult?, step, queued, running, canceled, completed] at admitted
 
 def setups : List ExecutionSetup := [queuedSetup, runningSetup]
 def states : List ModelValue :=

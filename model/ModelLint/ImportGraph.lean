@@ -25,6 +25,7 @@ inductive ModuleClass where
   | umpireVeil
   | temporalFeature
   | temporalSystem
+  | temporalImplementationLinkTest
   | temporalVerify
   | temporalTool
   | temporal
@@ -40,11 +41,12 @@ structure Classifier where
   exact : Bool := false
   deriving Repr, BEq
 
-/-- Explicit module classes and exact reviewed exceptions for import-boundary checking. -/
+/-- Explicit module classes, closed namespaces, and exact reviewed import exceptions. -/
 structure Policy where
   firstPartyRoots : Array Lean.Name
   classifiers : Array Classifier
-  refinementConsumers : Array Lean.Name
+  closedClassifierNamespaces : Array Lean.Name
+  implementationLinkConsumers : Array Lean.Name
   verifyConsumers : Array Lean.Name
   deriving Repr, BEq
 
@@ -67,11 +69,17 @@ abbrev InventoryIssue := Tools.LeanSourceInventory.InventoryIssue
 private def matchesPrefix (modulePrefix name : Lean.Name) : Bool :=
   modulePrefix == name || modulePrefix.isPrefixOf name
 
-/-- Classify a qualified module name, or return `none` when the policy does not own it. -/
+/-- Classify a qualified module name, or return `none` when no explicit class is authorized. -/
 def Policy.classify? (policy : Policy) (name : Lean.Name) : Option ModuleClass :=
-  (policy.classifiers.find? fun classifier =>
-    if classifier.exact then classifier.modulePrefix == name
-    else matchesPrefix classifier.modulePrefix name).map (·.moduleClass)
+  match policy.classifiers.find? fun classifier =>
+      classifier.exact && classifier.modulePrefix == name with
+  | some classifier => some classifier.moduleClass
+  | none =>
+      if policy.closedClassifierNamespaces.any (matchesPrefix · name) then
+        none
+      else
+        (policy.classifiers.find? fun classifier =>
+          !classifier.exact && matchesPrefix classifier.modulePrefix name).map (·.moduleClass)
 
 /-- Whether a qualified module name belongs to the first-party policy. -/
 def Policy.isFirstParty (policy : Policy) (name : Lean.Name) : Bool :=
@@ -96,6 +104,8 @@ def defaultPolicy : Policy := {
     { modulePrefix := `Shared, moduleClass := .shared },
     { modulePrefix := `Temporal.Feature, moduleClass := .temporalFeature },
     { modulePrefix := `Temporal.System, moduleClass := .temporalSystem },
+    { modulePrefix := `Temporal.ImplementationLinkTests.Nexus,
+      moduleClass := .temporalImplementationLinkTest, exact := true },
     { modulePrefix := `Temporal.Tool, moduleClass := .temporalTool },
     { modulePrefix := `Temporal.Verify, moduleClass := .temporalVerify },
     { modulePrefix := `Temporal, moduleClass := .temporal },
@@ -108,7 +118,8 @@ def defaultPolicy : Policy := {
     { modulePrefix := `Umpire, moduleClass := .umpire },
     { modulePrefix := `UmpireTests, moduleClass := .modelTests }
   ],
-  refinementConsumers := #[`Temporal.System.Nexus.Refinement],
+  closedClassifierNamespaces := #[`Temporal.ImplementationLinkTests],
+  implementationLinkConsumers := #[`Temporal.System.Nexus.ImplementationLink],
   verifyConsumers := #[
     `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests,
     `Temporal.Tool.VerifyVeil,
@@ -148,7 +159,8 @@ def InventoryIssue.render : InventoryIssue → String
       s!"[model-import-graph/metadata] {source} imports unknown first-party module {imported}"
 
 private def isTemporalClass : ModuleClass → Bool
-  | .temporalFeature | .temporalSystem | .temporalVerify | .temporalTool | .temporal => true
+  | .temporalFeature | .temporalSystem | .temporalImplementationLinkTest
+  | .temporalVerify | .temporalTool | .temporal => true
   | _ => false
 
 private def isVerifyClass : ModuleClass → Bool
@@ -189,10 +201,11 @@ private def forbiddenRule?
       !policy.verifyConsumers.contains source then
     some .featureIsolation
   else if sourceClass == .temporalSystem && destinationClass == .temporalFeature &&
-      !policy.refinementConsumers.contains source then
+      !policy.implementationLinkConsumers.contains source then
     some .systemIsolation
   else if (sourceClass == .temporalSystem || sourceClass == .temporalTool ||
-      sourceClass == .temporal || sourceClass == .modelTests || sourceClass == .umpire) &&
+      sourceClass == .temporalImplementationLinkTest || sourceClass == .temporal ||
+      sourceClass == .modelTests || sourceClass == .umpire) &&
       isVerifyClass destinationClass && !policy.verifyConsumers.contains source then
     some .verificationIsolation
   else
