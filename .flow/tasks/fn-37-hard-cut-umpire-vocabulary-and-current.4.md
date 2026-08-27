@@ -37,9 +37,17 @@ No current `model/Temporal/**` source consumes the Qualification API, so this ta
 - [ ] No Observation API or diagnostic implies Run Evaluation or Claim Assessment.
 
 ## Done summary
-TBD
+Hard-cut the Umpire Observation Qualification vocabulary to Evaluation, Evidence Link, Model Coordinate, and accepted Observation Result terminology across the facade, tests, verdicts, and Nexus aggregate consumer. The implementation preserves fail-closed behavior exactly: accepted observations carry a complete `EvidenceBackedTrace` with `EvidenceLink`s, while unknown, conflict, and unsupported outcomes remain rejected.
 
+Baseline was green via build, unittest, and smoke receipts at `d4dc228e`. Focused evaluator, aggregate, import, and Nexus tests passed; the full Lean build, pinned Go tests, and `mise exec -- make umpire-check-regression` passed. The final generated-view target remains the declared fn37.6 sequencing gap; its current projection equivalent passed through the regression target.
+
+GATE_SKIPPED:build:green-receipt e142a860 - verify reused from pre-review post-gate pass
+GATE_SKIPPED:unittest:green-receipt e142a860 - verify reused from pre-review post-gate pass
+GATE_SKIPPED:smoke:green-receipt e142a860 - verify reused from pre-review post-gate pass
+GATE_SKIPPED:generated-view-smoke:inherited-sequencing-gap - fn37.6 creates the final umpire-check-regression-views target; the current projection check passed through umpire-check-regression
+
+stage: impl-review - ran (first-pass SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e142a86031b0ce2238af8ba334fb3738e6685d81
+- Tests: GATE_SKIPPED:build:green-receipt d4dc228e - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt d4dc228e - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt d4dc228e - baseline reused from prior post-gate pass, RED: cd model && mise exec -- lake build Umpire.Observation.Evaluation - renamed module absent before edit, cd model && mise exec -- lake build Umpire.Observation.Evaluation, cd model && mise exec -- lake build Umpire.Observation.Tests, cd model && mise exec -- lake build Umpire.Observation.ImportTests, cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, mise exec -- go test ./tools/umpire/..., mise exec -- make umpire-check-regression, GATE_SKIPPED:build:green-receipt e142a860 - verify reused from pre-review post-gate pass, GATE_SKIPPED:unittest:green-receipt e142a860 - verify reused from pre-review post-gate pass, GATE_SKIPPED:smoke:green-receipt e142a860 - verify reused from pre-review post-gate pass, GATE_SKIPPED:generated-view-smoke:inherited-sequencing-gap - fn37.6 creates the final umpire-check-regression-views target; the current projection check passed through umpire-check-regression
 - PRs:
