@@ -255,7 +255,8 @@ private def transitionRowLe (left right : TargetTransitionRow) : Bool :=
   compare left right != .gt
 
 private def invalidBehaviorDomainEncoding?
-    (domain : TargetBehaviorDomain initialStates steps) : Option String :=
+    (domain : TargetBehaviorDomain setupDomain stateDomain actionDomain outcomeDomain
+      observationDomain initialStates steps) : Option String :=
   if domain.setups.length != (canonicalStrings (domain.setups.map domain.encodeSetup)).length then
     some "setup-encoding"
   else if domain.states.length != (canonicalStrings (domain.states.map domain.encodeState)).length then
@@ -272,7 +273,8 @@ private def invalidBehaviorDomainEncoding?
 
 private def describeTargetBehavior
     (kernel : TransitionKernel Setup State Action Outcome Observation)
-    (domain : TargetBehaviorDomain kernel.initialStates kernel.steps) :
+    (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
+      kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) :
     TargetBehaviorDescription :=
   let initialStates := domain.setups.flatMap fun setup =>
     (kernel.initialStates setup).map fun state => {
@@ -894,6 +896,11 @@ def CheckedTarget.withEquivalentKernel
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
     (kernel : TransitionKernel Setup State Action Outcome Observation)
     (_metadata : kernel.metadata = target.kernel.metadata)
+    (_domains : kernel.setupDomain = target.kernel.setupDomain ∧
+      kernel.stateDomain = target.kernel.stateDomain ∧
+      kernel.actionDomain = target.kernel.actionDomain ∧
+      kernel.outcomeDomain = target.kernel.outcomeDomain ∧
+      kernel.observationDomain = target.kernel.observationDomain)
     (_initial : kernel.authoritativeInitial = target.kernel.authoritativeInitial)
     (_step : kernel.authoritativeStep = target.kernel.authoritativeStep)
     (planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable) :

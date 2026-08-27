@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-37-hard-cut-umpire-vocabulary-and-current",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-08-27T19:54:16.396108Z",
   "created_at": "2026-08-27T05:43:24.918514Z",
   "default_impl": null,
   "default_review": null,
@@ -21,7 +21,7 @@
     "fn-37-hard-cut-umpire-vocabulary-and-current.7": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-27T06:08:11.735128Z",
   "review_attempts": [
@@ -607,6 +607,59 @@
       "task": "fn-37-hard-cut-umpire-vocabulary-and-current.7",
       "timestamp": "2026-08-27T19:43:53.246010Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b1de3ebf4065fd41490daba6330c2d4977b32f1f52528087ada966019e62b987",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-22e7b049dfd8c5521742fe065ead56b1",
+            "classification": "introduced",
+            "findingId": "finding-22e7b049dfd8c5521742fe065ead56b1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b3d23bcfc256283ad3e78d196ac987a2",
+            "classification": "introduced",
+            "findingId": "finding-b3d23bcfc256283ad3e78d196ac987a2",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "f09d2046be03285f5381e45d554199ec4991f7a1",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 557260,
+      "output_sha256": "e2c2c56d95cc24ee165b2b594b4099f60dc138b9c1b4d356fcf025fddb0b42fe",
+      "reservation_id": "1e79e2ba78e54d1aa970f879209b6963",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T19:54:16.373938Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -623,6 +676,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-37-hard-cut-umpire-vocabulary-and-current.1": 0,
     "impl:fn-37-hard-cut-umpire-vocabulary-and-current.2": 0,
     "impl:fn-37-hard-cut-umpire-vocabulary-and-current.3": 0,
@@ -646,5 +700,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T19:43:53.249035Z"
+  "updated_at": "2026-08-27T19:54:16.399765Z"
 }
