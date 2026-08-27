@@ -1,5 +1,5 @@
 import Umpire.Observation.Verdict
-import Umpire.Observation.Tests.Derivation
+import Umpire.Observation.Tests.EvidenceLink
 
 /-! Property verdict preflight, semantic preservation, and coordinate provenance. -/
 
@@ -8,24 +8,24 @@ namespace Umpire.ObservationTests
 open Umpire
 
 def satisfiedVerdict : SemanticPropertyVerdict :=
-  evaluateQualifiedProperty (verdictQuery [satisfiedProperty]) satisfiedProperty completeQualification
+  evaluateObservationProperty (verdictQuery [satisfiedProperty]) satisfiedProperty completeEvaluation
 
 def violatedVerdict : SemanticPropertyVerdict :=
-  evaluateQualifiedProperty (verdictQuery [violatedProperty]) violatedProperty completeQualification
+  evaluateObservationProperty (verdictQuery [violatedProperty]) violatedProperty completeEvaluation
 
-/-- Supported qualification preserves the existing Property evaluator's Boolean result. -/
+/-- Supported evaluation preserves the existing Property evaluator's Boolean result. -/
 example : (satisfiedVerdict.status, violatedVerdict.status) =
     (.satisfied, .violated) := by
   native_decide
 
-/-- Qualification failures remain unresolved and expose no clause evaluations. -/
+/-- Evaluation failures remain unresolved and expose no clause evaluations. -/
 example : [
-    evaluateQualifiedProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
-      (.unknown (qualificationDiagnostic .compatibleAlternatives)),
-    evaluateQualifiedProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
-      (.conflict (qualificationDiagnostic .duplicateEvidenceIdentity)),
-    evaluateQualifiedProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
-      (.unsupported (qualificationDiagnostic .profileMismatch))
+    evaluateObservationProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
+      (.unknown (evaluationDiagnostic .compatibleAlternatives)),
+    evaluateObservationProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
+      (.conflict (evaluationDiagnostic .duplicateEvidenceIdentity)),
+    evaluateObservationProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
+      (.unsupported (evaluationDiagnostic .profileMismatch))
   ].map (fun verdict => (verdict.status, verdict.clauses.isEmpty)) = [
     (.unknown, true),
     (.conflict, true),
@@ -35,16 +35,16 @@ example : [
 
 /-- Exhausted limits and non-bijective wrappers fail before Property evaluation. -/
 example : [
-    evaluateQualifiedProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
+    evaluateObservationProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
       (.unknown {
         kind := .evidenceBoundExhausted
-        planId := qualificationDeclaration.id
+        planId := evaluationDeclaration.id
         limit := some { value := 1, unit := .evidenceRecords }
         observedCount := some 2
       }),
-    evaluateQualifiedProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
-      (.qualified {
-        completeQualifiedTrace with derivations := completeQualifiedTrace.derivations.tail
+    evaluateObservationProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
+      (.accepted {
+        completeEvidenceBackedTrace with evidenceLinks := completeEvidenceBackedTrace.evidenceLinks.tail
       })
   ].map (fun verdict => (verdict.status, verdict.clauses.isEmpty)) = [
     (.unknown, true),
@@ -54,23 +54,23 @@ example : [
 
 /-- A property that requires unavailable logical time is unknown rather than violated. -/
 example :
-    let verdict := evaluateQualifiedProperty (verdictQuery [logicalTimeProperty])
-      logicalTimeProperty completeQualification
+    let verdict := evaluateObservationProperty (verdictQuery [logicalTimeProperty])
+      logicalTimeProperty completeEvaluation
     (verdict.status, verdict.clauses.isEmpty) = (.unknown, true) := by
   native_decide
 
 /-- A zero-transition trace still lacks the logical-time coordinate required by the Property. -/
 example :
-    let qualification := qualifyFixture {
+    let evaluation := evaluateFixture {
       completeEvidence with
       records := [initialEvidence]
       closures := [{ kind := eventKind, lastSequence := 1 }]
     }
-    let verdict := evaluateQualifiedProperty (verdictQuery [logicalTimeProperty])
-      logicalTimeProperty qualification
-    (qualification.status, verdict.status,
+    let verdict := evaluateObservationProperty (verdictQuery [logicalTimeProperty])
+      logicalTimeProperty evaluation
+    (evaluation.status, verdict.status,
       verdict.diagnostic.map SemanticVerdictDiagnostic.kind) =
-      (.qualified, .unknown, some .missingLogicalTime) := by
+      (.accepted, .unknown, some .missingLogicalTime) := by
   native_decide
 
 /-- Evaluation accepts only the exact checked Property embedded in the checked Query. -/
@@ -78,8 +78,8 @@ example :
     let substituted := {
       satisfiedProperty with clauses := violatedProperty.clauses
     }
-    let verdict := evaluateQualifiedProperty (verdictQuery [satisfiedProperty])
-      substituted completeQualification
+    let verdict := evaluateObservationProperty (verdictQuery [satisfiedProperty])
+      substituted completeEvaluation
     (verdict.status, verdict.clauses.isEmpty,
       verdict.diagnostic.map SemanticVerdictDiagnostic.kind) =
       (.unsupported, true, some .queryPropertyMismatch) := by
@@ -114,8 +114,8 @@ example :
       }
     }
     ([missingCapability, missingVocabulary, mismatchedDigest].map fun property =>
-      let verdict := evaluateQualifiedProperty (verdictQuery [property])
-        property completeQualification
+      let verdict := evaluateObservationProperty (verdictQuery [property])
+        property completeEvaluation
       (verdict.status, verdict.clauses.isEmpty)) = [
       (.unsupported, true),
       (.unsupported, true),
@@ -123,7 +123,7 @@ example :
     ] := by
   native_decide
 
-/-- Clause evidence carries the exact query/evidence limits and coordinate-keyed derivation. -/
+/-- Clause evidence carries the exact query/evidence limits and coordinate-keyed Evidence Link. -/
 example :
     (satisfiedVerdict.clauses.map fun clause =>
       (clause.clauseId, clause.status, clause.coordinates)) = [(
@@ -136,9 +136,9 @@ example :
 example :
     satisfiedVerdict.clauses.map (fun clause =>
       (clause.queryLimits, clause.evidenceBound,
-        clause.derivations.map SemanticDerivation.coordinate)) = [(
+        clause.evidenceLinks.map EvidenceLink.coordinate)) = [(
       (verdictQuery [satisfiedProperty]).limits,
-      completeQualifiedTrace.appliedBound,
+      completeEvidenceBackedTrace.appliedBound,
       [.initialState]
     )] := by
   native_decide
@@ -146,11 +146,11 @@ example :
 example : satisfiedVerdict.clauses.all fun clause => !clause.provenance.isEmpty := by
   native_decide
 
-/-- Violated constraints retain the coordinate and derivation that explain the failure. -/
+/-- Violated constraints retain the Model Coordinate and Evidence Link that explain the failure. -/
 example :
     violatedVerdict.clauses.map (fun clause =>
       (clause.status, clause.coordinates,
-        clause.derivations.map SemanticDerivation.coordinate)) = [(
+        clause.evidenceLinks.map EvidenceLink.coordinate)) = [(
       .violated,
       [.initialState],
       [.initialState]
@@ -159,16 +159,16 @@ example :
 
 /-- Conflicting duplicate vocabulary is unsupported independent of source order. -/
 example :
-    let original := completeQualifiedTrace.vocabulary.head?.get (by native_decide)
+    let original := completeEvidenceBackedTrace.vocabulary.head?.get (by native_decide)
     let conflicting := { original with canonicalBehavior := original.canonicalBehavior ++ "/other" }
     [
-      { completeQualifiedTrace with
-        vocabulary := conflicting :: completeQualifiedTrace.vocabulary },
-      { completeQualifiedTrace with
-        vocabulary := completeQualifiedTrace.vocabulary ++ [conflicting] }
+      { completeEvidenceBackedTrace with
+        vocabulary := conflicting :: completeEvidenceBackedTrace.vocabulary },
+      { completeEvidenceBackedTrace with
+        vocabulary := completeEvidenceBackedTrace.vocabulary ++ [conflicting] }
     ].map (fun trace =>
-      let verdict := evaluateQualifiedProperty (verdictQuery [satisfiedProperty])
-        satisfiedProperty (.qualified trace)
+      let verdict := evaluateObservationProperty (verdictQuery [satisfiedProperty])
+        satisfiedProperty (.accepted trace)
       (verdict.status, verdict.diagnostic.map SemanticVerdictDiagnostic.kind)) = [
       (.unsupported, some .ambiguousVocabulary),
       (.unsupported, some .ambiguousVocabulary)
@@ -177,9 +177,9 @@ example :
 
 /-- Repeated equal values retain distinct coordinate-linked clause provenance. -/
 example :
-    let qualification := qualifyFixture repeatedValueEvidence
-    let verdict := evaluateQualifiedProperty (verdictQuery [repeatedProperty])
-      repeatedProperty qualification
+    let evaluation := evaluateFixture repeatedValueEvidence
+    let verdict := evaluateObservationProperty (verdictQuery [repeatedProperty])
+      repeatedProperty evaluation
     verdict.clauses.map (fun clause => clause.coordinates) = [[
       .selectedAction 1,
       .modelOutcome 1,

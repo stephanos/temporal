@@ -1,4 +1,4 @@
-import Umpire.Observation.Tests.Derivation
+import Umpire.Observation.Tests.EvidenceLink
 
 /-! Runtime disposition enforcement and forbidden raw-value non-retention. -/
 
@@ -6,35 +6,35 @@ namespace Umpire.ObservationTests
 
 open Umpire
 
-def dispositionFailureKinds : List (QualificationStatus × Option QualificationFailureKind) := [
-  let derivation := completeFirstDerivation
-  let result := validateQualifiedTrace {
-    completeQualifiedTrace with derivations := [{
-      derivation with appliedDispositions := [{
+def dispositionFailureKinds : List (ObservationStatus × Option ObservationFailureKind) := [
+  let evidenceLink := completeFirstEvidenceLink
+  let result := validateEvidenceBackedTrace {
+    completeEvidenceBackedTrace with evidenceLinks := [{
+      evidenceLink with appliedDispositions := [{
         field := { kind := eventKind, field := secretField }
         evidence := .raw "forbidden-secret"
       }]
-    }] ++ completeQualifiedTrace.derivations.tail
+    }] ++ completeEvidenceBackedTrace.evidenceLinks.tail
   }
   (.unsupported, diagnosticKindOf result),
-  let derivation := completeFirstDerivation
-  let result := validateQualifiedTrace {
-    completeQualifiedTrace with derivations := [{
-      derivation with appliedDispositions := [{
+  let evidenceLink := completeFirstEvidenceLink
+  let result := validateEvidenceBackedTrace {
+    completeEvidenceBackedTrace with evidenceLinks := [{
+      evidenceLink with appliedDispositions := [{
         field := { kind := eventKind, field := secretField }
         evidence := .retained "forbidden-secret"
       }]
-    }] ++ completeQualifiedTrace.derivations.tail
+    }] ++ completeEvidenceBackedTrace.evidenceLinks.tail
   }
   (.unsupported, diagnosticKindOf result),
-  let derivation := completeFirstDerivation
-  let result := validateQualifiedTrace {
-    completeQualifiedTrace with derivations := [{
-      derivation with appliedDispositions := [{
+  let evidenceLink := completeFirstEvidenceLink
+  let result := validateEvidenceBackedTrace {
+    completeEvidenceBackedTrace with evidenceLinks := [{
+      evidenceLink with appliedDispositions := [{
         field := { kind := eventKind, field := rejectedField }
         evidence := .rejectedMaterial "forbidden-rejected"
       }]
-    }] ++ completeQualifiedTrace.derivations.tail
+    }] ++ completeEvidenceBackedTrace.evidenceLinks.tail
   }
   (.unsupported, diagnosticKindOf result)
 ]
@@ -91,8 +91,8 @@ def normalizedDigestRule : ObservationRule := {
 }
 
 def normalizedDigestDeclaration : ObservationMappingDeclaration := {
-  qualificationDeclaration with
-  rules := qualificationDeclaration.rules.map fun rule =>
+  evaluationDeclaration with
+  rules := evaluationDeclaration.rules.map fun rule =>
     if rule.id == digestRule.id then { rule with value := normalizedDigestRule.value } else rule
 }
 
@@ -110,13 +110,13 @@ def normalizedDigestEvidence : EvidenceBundle := {
 
 /-- Reported digest validation follows the checked normalized operand, not the raw field value. -/
 example :
-    let result := match checkObservation qualificationContext normalizedDigestDeclaration with
-      | .ok plan => qualifyEvidence plan normalizedDigestEvidence
+    let result := match checkObservation evaluationContext normalizedDigestDeclaration with
+      | .ok plan => evaluateEvidence plan normalizedDigestEvidence
       | .error _ => .unknown {
           kind := .zeroUsableInterpretations
           planId := normalizedDigestDeclaration.id
         }
-    result.status = .qualified := by
+    result.status = .accepted := by
   native_decide
 
 def irrelevantReportedTokenEvidence : EvidenceBundle :=
@@ -137,14 +137,14 @@ def irrelevantReportedTokenEvidence : EvidenceBundle :=
   }
 
 /-- Digest claims on non-hashed material cannot create a false same-bundle collision. -/
-example : (qualifyFixture irrelevantReportedTokenEvidence).status = .qualified := by
+example : (evaluateFixture irrelevantReportedTokenEvidence).status = .accepted := by
   native_decide
 
 /-- Runtime disposition failures are unsupported except true same-bundle digest collisions. -/
 example :
-    let rejected := qualifyFixture rejectedEvidence
-    let mismatch := qualifyFixture digestMismatchEvidence
-    let collision := qualifyFixture digestCollisionEvidence
+    let rejected := evaluateFixture rejectedEvidence
+    let mismatch := evaluateFixture digestMismatchEvidence
+    let collision := evaluateFixture digestCollisionEvidence
     ((rejected.status, resultKindOf rejected),
       (mismatch.status, resultKindOf mismatch),
       (collision.status, resultKindOf collision)) =
@@ -153,9 +153,9 @@ example :
         (.conflict, some .digestCollision)) := by
   native_decide
 
-/-- Qualification output never retains redacted, hashed, or rejected raw material. -/
+/-- Evaluation output never retains redacted, hashed, or rejected raw material. -/
 example :
-    let rendered := reprStr completeQualification
+    let rendered := reprStr completeEvaluation
     (rendered.contains "forbidden-secret",
       rendered.contains "forbidden-hash-material",
       rendered.contains "forbidden-rejected") = (false, false, false) := by

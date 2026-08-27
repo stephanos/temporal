@@ -1,20 +1,20 @@
 import Umpire.Observation.Tests.Fixtures
 
-/-! Pure qualification behavior and exact R2/R4 status boundaries. -/
+/-! Pure evaluation behavior and exact R2/R4 status boundaries. -/
 
 namespace Umpire.ObservationTests
 
 open Umpire
 
-def completeQualification : QualificationResult :=
-  qualifyFixture completeEvidence
+def completeEvaluation : ObservationResult :=
+  evaluateFixture completeEvidence
 
 /-- Complete closed evidence produces the independently authored Model Trace. -/
-example : (qualifiedOf completeQualification).map QualifiedTrace.trace = some expectedTrace := by
+example : (acceptedOf completeEvaluation).map EvidenceBackedTrace.trace = some expectedTrace := by
   native_decide
 
-/-- The exact evidence-record limit follows ordinary qualification. -/
-example : (qualifiedOf (qualifyFixture {
+/-- The exact evidence-record limit follows ordinary evaluation. -/
+example : (acceptedOf (evaluateFixture {
     completeEvidence with
     records := completeEvidence.records ++ [{
       stepEvidence with
@@ -28,13 +28,13 @@ example : (qualifiedOf (qualifyFixture {
 
 /-- Limit plus one is canonical unknown and exposes no partial trace. -/
 example :
-    let overLimit := qualifyFixture {
+    let overLimit := evaluateFixture {
       completeEvidence with records := completeEvidence.records ++ [
         { stepEvidence with id := secondStepEvidenceId, sequence := 3 },
         { stepEvidence with id := id "test.evidence.record.step-3", sequence := 4 }
       ]
     }
-    (resultStatusOf overLimit, resultKindOf overLimit, qualifiedOf overLimit) =
+    (resultStatusOf overLimit, resultKindOf overLimit, acceptedOf overLimit) =
       (.unknown, some .evidenceBoundExhausted, none) := by
   native_decide
 
@@ -48,17 +48,17 @@ def conflictingFactRecord : SyntheticEvidenceRecord := {
   fields := initialEvidence.fields ++ [textField roleField "step"]
 }
 
-def qualificationFailureCases : List (QualificationStatus × Option QualificationFailureKind) := [
-  let result := qualifyFixture { completeEvidence with records := [] }
+def observationEvaluationFailureCases : List (ObservationStatus × Option ObservationFailureKind) := [
+  let result := evaluateFixture { completeEvidence with records := [] }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := completeEvidence.records ++ [
       { stepEvidence with id := secondStepEvidenceId, sequence := 3 },
       { stepEvidence with id := id "test.evidence.record.step-3", sequence := 4 }
     ]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with
     records := [{
       initialEvidence with fields := [
@@ -69,21 +69,21 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
     closures := [{ kind := eventKind, lastSequence := 1 }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture { completeEvidence with closures := [] }
+  let result := evaluateFixture { completeEvidence with closures := [] }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with
     records := [initialEvidence, { stepEvidence with sequence := 3 }]
     closures := [{ kind := eventKind, lastSequence := 3 }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [initialEvidence, {
       stepEvidence with causalParents := [id "test.evidence.record.missing"]
     }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [{
       initialEvidence with fields := [
         textField roleField "initial",
@@ -92,7 +92,7 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
     }, stepEvidence]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [initialEvidence, {
       stepEvidence with bindingFacts := [{
         binding := id "test.binding.unknown"
@@ -101,35 +101,35 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
     }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with
     records := [initialEvidence, { stepEvidence with sequence := 1 }]
     closures := [{ kind := eventKind, lastSequence := 1 }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with profile := id "test.evidence.profile.other"
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture { completeEvidence with profileVersion := 2 }
+  let result := evaluateFixture { completeEvidence with profileVersion := 2 }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [{ initialEvidence with kind := id "test.evidence.kind.other" }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [fieldMismatchRecord, stepEvidence]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [initialEvidence, { stepEvidence with id := initialEvidenceId }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [conflictingFactRecord, stepEvidence]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [initialEvidence, {
       stepEvidence with bindingFacts := [
         { binding := normalizedName.id, value := .text "one" },
@@ -138,13 +138,13 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
     }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [initialEvidence, {
       stepEvidence with causalParents := [stepEvidenceId]
     }]
   }
   (result.status, resultKindOf result),
-  let result := qualifyFixture {
+  let result := evaluateFixture {
     completeEvidence with records := [initialEvidence, {
       stepEvidence with faultTarget := some stepEvidenceId
     }]
@@ -153,7 +153,7 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
 ]
 
 /-- Every enumerated R2 failure has an exact semantic status and diagnostic. -/
-example : qualificationFailureCases = [
+example : observationEvaluationFailureCases = [
   (.unknown, some .emptyEvidence),
   (.unknown, some .evidenceBoundExhausted),
   (.unknown, some .missingInitialState),
@@ -186,14 +186,14 @@ def ambiguousEvidence : EvidenceBundle := {
 
 /-- Compatible interpretations remain canonical alternatives; input order never selects one. -/
 example :
-    let forward := qualifyFixture ambiguousEvidence
-    let reverse := qualifyFixture {
+    let forward := evaluateFixture ambiguousEvidence
+    let reverse := evaluateFixture {
       ambiguousEvidence with compatibleAlternatives := ambiguousEvidence.compatibleAlternatives.reverse
     }
     (forward, reverse) = (
       .unknown {
         kind := .compatibleAlternatives
-        planId := qualificationDeclaration.id
+        planId := evaluationDeclaration.id
         relatedDefinitionIds := [id "test.interpretation.a", id "test.interpretation.b"]
         alternatives := [id "test.interpretation.a", id "test.interpretation.b"]
         missingDiscriminator := some (id "test.evidence.field.discriminator")
@@ -203,7 +203,7 @@ example :
 
 /-- Compatible alternatives without their missing discriminator fail as unresolved input. -/
 example :
-    let result := qualifyFixture { ambiguousEvidence with missingDiscriminator := none }
+    let result := evaluateFixture { ambiguousEvidence with missingDiscriminator := none }
     (result.status, resultKindOf result) = (.unknown, some .unresolvedBinding) := by
   native_decide
 
@@ -217,8 +217,8 @@ def contradictoryAlternativeEvidence : EvidenceBundle := {
 
 /-- One interpretation identity cannot silently collapse contradictory evidence sets. -/
 example :
-    let result := qualifyFixture contradictoryAlternativeEvidence
-    (result.status, resultKindOf result, qualifiedOf result) =
+    let result := evaluateFixture contradictoryAlternativeEvidence
+    (result.status, resultKindOf result, acceptedOf result) =
       (.conflict, some .contradictoryFact, none) := by
   native_decide
 
