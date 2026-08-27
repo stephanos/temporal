@@ -2,7 +2,7 @@ import Umpire.Target
 
 /-!
 The Observation language describes, validates, and canonicalizes inert mappings from typed evidence
-profiles to target-owned semantic declarations. `ObservationExpression` is a closed data grammar;
+profiles to target-owned semantic definitions. `ObservationExpression` is a closed data grammar;
 forbidden callback and recursive authoring are represented only by `ObservationExpressionAuthoring`
 sentinels so no executable code enters a declaration or checked plan. `checkObservation` is the one
 authored-to-checked boundary: it resolves the selected profile and target meanings, checks field
@@ -12,7 +12,7 @@ plan whose identity includes its typed expressions and positive evidence-record 
 
 namespace Umpire
 
-/-! Inert declarations and checked plans for mapping typed evidence into semantic values. -/
+/-! Inert definitions and checked plans for mapping typed evidence into Model Values. -/
 
 inductive ObservationValueType where
   | text
@@ -26,18 +26,18 @@ def ObservationValueType.name : ObservationValueType → String
   | .boolean => "boolean"
 
 structure EvidenceFieldDeclaration where
-  id : DeclarationId
+  id : DefinitionId
   valueType : ObservationValueType
   deriving BEq, DecidableEq, Repr
 
 structure EvidenceKindDeclaration where
-  id : DeclarationId
+  id : DefinitionId
   fields : List EvidenceFieldDeclaration
   deriving BEq, DecidableEq, Repr
 
 structure EvidenceProfileDeclaration where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat := 1
   kinds : List EvidenceKindDeclaration
   deriving BEq, DecidableEq, Repr
@@ -56,8 +56,8 @@ structure EvidenceBound where
   deriving BEq, DecidableEq, Ord, Repr
 
 structure EvidenceFieldReference where
-  kind : DeclarationId
-  field : DeclarationId
+  kind : DefinitionId
+  field : DefinitionId
   deriving BEq, DecidableEq, Ord, Repr
 
 structure ObservationOperator where
@@ -66,7 +66,7 @@ structure ObservationOperator where
   deriving BEq, DecidableEq, Ord, Repr
 
 structure DigestPolicyDeclaration where
-  id : DeclarationId
+  id : DefinitionId
   name : String
   version : Nat
   deriving BEq, DecidableEq, Repr
@@ -77,7 +77,7 @@ inductive ObservationExpression where
   | natural (value : Nat)
   | boolean (value : Bool)
   | field (reference : EvidenceFieldReference)
-  | binding (id : DeclarationId)
+  | binding (id : DefinitionId)
   | normalize (operator : ObservationOperator) (operand : ObservationExpression)
   | present (operand : ObservationExpression)
   | equals (left right : ObservationExpression)
@@ -85,14 +85,14 @@ inductive ObservationExpression where
   | or (left right : ObservationExpression)
   | not (operand : ObservationExpression)
   | contributionMarker (operand : ObservationExpression)
-  | digestToken (policy : DeclarationId) (operand : ObservationExpression)
+  | digestToken (policy : DefinitionId) (operand : ObservationExpression)
   deriving BEq, DecidableEq, Repr
 
 /-- Inert authoring envelope that makes forbidden expression forms available for typed rejection. -/
 inductive ObservationExpressionAuthoring where
   | portable (expression : ObservationExpression)
   | callback (name : String)
-  | recursive (id : DeclarationId)
+  | recursive (id : DefinitionId)
   deriving BEq, DecidableEq, Repr
 
 instance : Coe ObservationExpression ObservationExpressionAuthoring :=
@@ -101,7 +101,7 @@ instance : Coe ObservationExpression ObservationExpressionAuthoring :=
 inductive FieldDisposition where
   | retain
   | redact
-  | hash (policy : Option DeclarationId)
+  | hash (policy : Option DefinitionId)
   | reject
   deriving BEq, DecidableEq, Repr
 
@@ -117,34 +117,34 @@ structure FieldDispositionDeclaration where
   deriving BEq, DecidableEq, Repr
 
 structure ObservationBinding where
-  id : DeclarationId
+  id : DefinitionId
   valueType : ObservationValueType
   expression : ObservationExpressionAuthoring
   deriving BEq, DecidableEq, Repr
 
 structure ObservationRule where
-  id : DeclarationId
-  output : DeclarationId
-  outputKind : DeclarationKind
+  id : DefinitionId
+  output : DefinitionId
+  outputKind : DefinitionKind
   value : ObservationExpressionAuthoring
   condition : Option ObservationExpressionAuthoring := none
   deriving BEq, DecidableEq, Repr
 
 structure ObservationOrdering where
-  before : DeclarationId
-  after : DeclarationId
+  before : DefinitionId
+  after : DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure EvidenceClosureDeclaration where
-  kind : DeclarationId
+  kind : DefinitionId
   deriving BEq, DecidableEq, Repr
 
 /-- One authored profile mapping, including every compile-time structural and retention policy. -/
 structure ObservationMappingDeclaration where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat := 1
-  profile : DeclarationId
+  profile : DefinitionId
   digestPolicies : List DigestPolicyDeclaration := []
   bindings : List ObservationBinding := []
   rules : List ObservationRule
@@ -157,30 +157,30 @@ structure ObservationMappingDeclaration where
 
 /-- Checked target vocabulary plus the evidence profiles against which mappings may compile. -/
 structure ObservationCheckContext where
-  declarations : List DeclarationMetadata
+  definitions : List DefinitionMetadata
   meanings : List MeaningProvision
   profiles : List EvidenceProfileDeclaration
   deriving BEq, DecidableEq, Repr
 
 /-- One provider-qualified meaning used while resolving a checked target's connector semantics. -/
 private structure ProvidedObservationMeaning where
-  provider : DeclarationId
+  provider : DefinitionId
   meaning : MeaningProvision
 
 private def providedMeaningLe
     (left right : ProvidedObservationMeaning) : Bool :=
-  decide (left.meaning.declaration.value < right.meaning.declaration.value) ||
-    (left.meaning.declaration == right.meaning.declaration &&
+  decide (left.meaning.definitionId.value < right.meaning.definitionId.value) ||
+    (left.meaning.definitionId == right.meaning.definitionId &&
       decide (left.meaning.kind.name < right.meaning.kind.name)) ||
-    (left.meaning.declaration == right.meaning.declaration &&
+    (left.meaning.definitionId == right.meaning.definitionId &&
       left.meaning.kind == right.meaning.kind && decide (left.provider.value ≤ right.provider.value))
 
 private def meaningKeyLe
-    (left right : DeclarationId × DeclarationKind) : Bool :=
+    (left right : DefinitionId × DefinitionKind) : Bool :=
   decide (left.1.value < right.1.value) ||
     (left.1 == right.1 && decide (left.2.name ≤ right.2.name))
 
-private def canonicalProviderIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalProviderIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
 
 private def resolvedTargetMeanings
@@ -189,12 +189,12 @@ private def resolvedTargetMeanings
   let provided := target.providers.flatMap fun provider =>
     provider.meanings.map fun meaning => { provider := provider.id, meaning }
   let canonicalProvided := provided.mergeSort providedMeaningLe
-  let keys := canonicalProvided.map (fun item => (item.meaning.declaration, item.meaning.kind))
+  let keys := canonicalProvided.map (fun item => (item.meaning.definitionId, item.meaning.kind))
     |>.mergeSort meaningKeyLe |>.eraseDups
   let reconciliations := target.connectors.flatMap CapabilityConnector.reconciliations
   keys.flatMap fun key =>
     let candidates := canonicalProvided.filter fun item =>
-      item.meaning.declaration == key.1 && item.meaning.kind == key.2
+      item.meaning.definitionId == key.1 && item.meaning.kind == key.2
     match candidates with
     | [] => []
     | first :: _ =>
@@ -204,28 +204,28 @@ private def resolvedTargetMeanings
         else
           let providers := canonicalProviderIds (candidates.map ProvidedObservationMeaning.provider)
           match reconciliations.find? fun reconciliation =>
-              reconciliation.declaration == key.1 && reconciliation.kind == key.2 &&
+              reconciliation.definitionId == key.1 && reconciliation.kind == key.2 &&
                 canonicalProviderIds reconciliation.providers == providers with
           | some reconciliation => [{
-              declaration := reconciliation.declaration
+              definitionId := reconciliation.definitionId
               kind := reconciliation.kind
               semanticDigest := reconciliation.semanticDigest
             }]
           | none => []
 
-/-- Build an Observation context from the declarations and resolved meanings of a checked target. -/
+/-- Build an Observation context from the definitions and resolved meanings of a checked target. -/
 def ObservationCheckContext.ofTarget
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
     (profiles : List EvidenceProfileDeclaration) : ObservationCheckContext := {
-  declarations := target.declarations
+  definitions := target.definitions
   meanings := resolvedTargetMeanings target
   profiles
 }
 
 inductive ObservationErrorKind where
-  | emptyIdentity
-  | invalidIdentity
-  | duplicateIdentity
+  | emptyDefinitionId
+  | invalidDefinitionId
+  | duplicateDefinitionId
   | unknownEvidenceProfile
   | unknownEvidenceKind
   | unknownEvidenceField
@@ -252,9 +252,9 @@ inductive ObservationErrorKind where
   deriving BEq, DecidableEq, Ord, Repr
 
 def ObservationErrorKind.name : ObservationErrorKind → String
-  | .emptyIdentity => "empty-identity"
-  | .invalidIdentity => "invalid-identity"
-  | .duplicateIdentity => "duplicate-identity"
+  | .emptyDefinitionId => "empty-definition-id"
+  | .invalidDefinitionId => "invalid-definition-id"
+  | .duplicateDefinitionId => "duplicate-definition-id"
   | .unknownEvidenceProfile => "unknown-evidence-profile"
   | .unknownEvidenceKind => "unknown-evidence-kind"
   | .unknownEvidenceField => "unknown-evidence-field"
@@ -281,17 +281,17 @@ def ObservationErrorKind.name : ObservationErrorKind → String
 
 structure ObservationError where
   kind : ObservationErrorKind
-  declarationId : DeclarationId
+  definitionId : DefinitionId
   sourcePath : String
   offendingValue : String
-  relatedIdentities : List DeclarationId
+  relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
 inductive InformationFlowLabel where
   | literal
   | retained
   | redacted
-  | hashed (policy : Option DeclarationId)
+  | hashed (policy : Option DefinitionId)
   | contributionMarker
   | digestToken
   deriving BEq, DecidableEq, Repr
@@ -345,7 +345,7 @@ inductive CheckedObservationExpression where
   | boolean (value : Bool)
   | field (reference : EvidenceFieldReference) (valueType : ObservationValueType)
       (disposition : FieldDisposition)
-  | binding (id : DeclarationId) (valueType : ObservationValueType)
+  | binding (id : DefinitionId) (valueType : ObservationValueType)
       (informationFlow : InformationFlowLabel)
   | normalize (operator : CheckedObservationNormalizer)
       (operand : CheckedObservationExpression)
@@ -380,15 +380,15 @@ def CheckedObservationExpression.informationFlow :
   | .digestToken _ _ => .digestToken
 
 structure CheckedObservationBinding where
-  id : DeclarationId
+  id : DefinitionId
   valueType : ObservationValueType
   expression : CheckedObservationExpression
   deriving BEq, DecidableEq, Repr
 
 structure CheckedObservationRule where
-  id : DeclarationId
-  output : DeclarationId
-  outputKind : DeclarationKind
+  id : DefinitionId
+  output : DefinitionId
+  outputKind : DefinitionKind
   meaning : MeaningProvision
   value : CheckedObservationExpression
   condition : Option CheckedObservationExpression
@@ -396,8 +396,8 @@ structure CheckedObservationRule where
 
 /-- Canonical, inert mapping plan admitted for later pure evidence qualification. -/
 structure CheckedObservationPlan where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat
   profile : EvidenceProfileDeclaration
   digestPolicies : List DigestPolicyDeclaration
@@ -418,7 +418,7 @@ private def quote (value : String) : String := Lean.Json.compress (.str value)
 private def array (items : List String) : String :=
   "[" ++ String.intercalate "," items ++ "]"
 
-private def idLe (left right : DeclarationId) : Bool :=
+private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
 private def fieldRefLe (left right : EvidenceFieldReference) : Bool :=
@@ -443,20 +443,20 @@ private def dispositionLe
     (left right : FieldDispositionDeclaration) : Bool := fieldRefLe left.field right.field
 
 private def meaningLe (left right : MeaningProvision) : Bool :=
-  decide (left.declaration.value < right.declaration.value) ||
-    (left.declaration == right.declaration && decide (left.kind.name ≤ right.kind.name))
+  decide (left.definitionId.value < right.definitionId.value) ||
+    (left.definitionId == right.definitionId && decide (left.kind.name ≤ right.kind.name))
 
-private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
 
 private def canonicalFieldRefs
     (references : List EvidenceFieldReference) : List EvidenceFieldReference :=
   references.mergeSort fieldRefLe |>.eraseDups
 
-private def sourcePath (source : SemanticSource) : String :=
+private def sourcePath (source : SourceLocation) : String :=
   if source.path == "" then "<unknown>" else source.path
 
-private def sourceJson (source : SemanticSource) : String :=
+private def sourceJson (source : SourceLocation) : String :=
   "{\"path\":" ++ quote source.path ++
     ",\"line\":" ++ toString source.line ++
     ",\"column\":" ++ toString source.column ++
@@ -466,18 +466,18 @@ private def error
     (kind : ObservationErrorKind)
     (declaration : ObservationMappingDeclaration)
     (offendingValue : String)
-    (relatedIdentities : List DeclarationId := []) : ObservationError := {
+    (relatedDefinitionIds : List DefinitionId := []) : ObservationError := {
   kind
-  declarationId := if declaration.id.value == "" then
-    DeclarationId.of "umpire.observation.anonymous"
+  definitionId := if declaration.id.value == "" then
+    DefinitionId.of "umpire.observation.anonymous"
   else
     declaration.id
   sourcePath := sourcePath declaration.source
   offendingValue
-  relatedIdentities := canonicalIds relatedIdentities
+  relatedDefinitionIds := canonicalIds relatedDefinitionIds
 }
 
-private def firstDuplicateId : List DeclarationId → Option DeclarationId
+private def firstDuplicateId : List DefinitionId → Option DefinitionId
   | first :: second :: rest =>
       if first == second then some first else firstDuplicateId (second :: rest)
   | _ => none
@@ -492,21 +492,21 @@ private def firstDuplicateOrder : List ObservationOrdering → Option Observatio
       if first == second then some first else firstDuplicateOrder (second :: rest)
   | _ => none
 
-private def requireIdentity
+private def requireDefinitionId
     (declaration : ObservationMappingDeclaration)
-    (identity : DeclarationId) : Except ObservationError Unit :=
-  if identity.value == "" then
-    throw (error .emptyIdentity declaration "<empty>" [identity])
-  else if !identity.isNamespaced then
-    throw (error .invalidIdentity declaration identity.value [identity])
+    (definitionId : DefinitionId) : Except ObservationError Unit :=
+  if definitionId.value == "" then
+    throw (error .emptyDefinitionId declaration "<empty>" [definitionId])
+  else if !definitionId.isNamespaced then
+    throw (error .invalidDefinitionId declaration definitionId.value [definitionId])
   else
     pure ()
 
 private def requireUniqueIds
     (declaration : ObservationMappingDeclaration)
-    (ids : List DeclarationId) : Except ObservationError Unit :=
+    (ids : List DefinitionId) : Except ObservationError Unit :=
   match firstDuplicateId (ids.mergeSort idLe) with
-  | some duplicate => throw (error .duplicateIdentity declaration duplicate.value [duplicate])
+  | some duplicate => throw (error .duplicateDefinitionId declaration duplicate.value [duplicate])
   | none => pure ()
 
 private def fieldReferenceJson (reference : EvidenceFieldReference) : String :=
@@ -538,7 +538,7 @@ def CheckedObservationExpression.canonicalIdentity :
   | .boolean value => "{\"literal\":\"boolean\",\"value\":" ++ toString value ++ "}"
   | .field reference _ disposition =>
       let policy := match disposition with
-        | .hash policy => policy.map (quote ∘ DeclarationId.value) |>.getD "null"
+        | .hash policy => policy.map (quote ∘ DefinitionId.value) |>.getD "null"
         | _ => "null"
       "{\"field\":" ++ fieldReferenceJson reference ++
         ",\"disposition\":" ++ quote disposition.name ++
@@ -587,7 +587,7 @@ private def flowJson (flow : InformationFlowLabel) : String :=
   match flow with
   | .hashed policy =>
       "{\"label\":\"hashed\",\"policy\":" ++
-        (policy.map (quote ∘ DeclarationId.value)).getD "null" ++ "}"
+        (policy.map (quote ∘ DefinitionId.value)).getD "null" ++ "}"
   | _ => quote flow.name
 
 private def checkedExpressionJson (expression : CheckedObservationExpression) : String :=
@@ -601,7 +601,7 @@ private def checkedBindingJson (binding : CheckedObservationBinding) : String :=
     ",\"expression\":" ++ checkedExpressionJson binding.expression ++ "}"
 
 private def meaningJson (meaning : MeaningProvision) : String :=
-  "{\"id\":" ++ quote meaning.declaration.value ++
+  "{\"id\":" ++ quote meaning.definitionId.value ++
     ",\"kind\":" ++ quote meaning.kind.name ++
     ",\"semanticDigest\":" ++ quote meaning.semanticDigest ++ "}"
 
@@ -623,14 +623,14 @@ private def closureJson (closure : EvidenceClosureDeclaration) : String :=
 
 private def dispositionJson (declaration : FieldDispositionDeclaration) : String :=
   let policy := match declaration.disposition with
-    | .hash policy => policy.map (quote ∘ DeclarationId.value) |>.getD "null"
+    | .hash policy => policy.map (quote ∘ DefinitionId.value) |>.getD "null"
     | _ => "null"
   "{\"field\":" ++ fieldReferenceJson declaration.field ++
     ",\"disposition\":" ++ quote declaration.disposition.name ++
     ",\"policy\":" ++ policy ++ "}"
 
 private def planSemanticJson
-    (id : DeclarationId)
+    (id : DefinitionId)
     (version : Nat)
     (profile : EvidenceProfileDeclaration)
     (policies : List DigestPolicyDeclaration)
@@ -671,11 +671,11 @@ def CheckedObservationPlan.hasCanonicalIdentity (plan : CheckedObservationPlan) 
 
 def canonicalObservationErrorJson (observationError : ObservationError) : String :=
   "{\"kind\":" ++ quote observationError.kind.name ++
-    ",\"declarationId\":" ++ quote observationError.declarationId.value ++
+    ",\"definitionId\":" ++ quote observationError.definitionId.value ++
     ",\"sourcePath\":" ++ quote observationError.sourcePath ++
     ",\"offendingValue\":" ++ quote observationError.offendingValue ++
-    ",\"relatedIdentities\":" ++
-      array (canonicalIds observationError.relatedIdentities |>.map (quote ∘ DeclarationId.value)) ++
+    ",\"relatedDefinitionIds\":" ++
+      array (canonicalIds observationError.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++
     "}"
 
 private def validateProfiles
@@ -683,13 +683,13 @@ private def validateProfiles
     (declaration : ObservationMappingDeclaration) : Except ObservationError Unit := do
   requireUniqueIds declaration (context.profiles.map EvidenceProfileDeclaration.id)
   for profile in context.profiles.mergeSort profileLe do
-    requireIdentity declaration profile.id
+    requireDefinitionId declaration profile.id
     requireUniqueIds declaration (profile.kinds.map EvidenceKindDeclaration.id)
     for kind in profile.kinds.mergeSort kindLe do
-      requireIdentity declaration kind.id
+      requireDefinitionId declaration kind.id
       requireUniqueIds declaration (kind.fields.map EvidenceFieldDeclaration.id)
       for field in kind.fields.mergeSort fieldLe do
-        requireIdentity declaration field.id
+        requireDefinitionId declaration field.id
 
 private def selectedProfile
     (context : ObservationCheckContext)
@@ -703,7 +703,7 @@ private def selectedProfile
 private def evidenceKind
     (declaration : ObservationMappingDeclaration)
     (profile : EvidenceProfileDeclaration)
-    (kindId : DeclarationId) : Except ObservationError EvidenceKindDeclaration :=
+    (kindId : DefinitionId) : Except ObservationError EvidenceKindDeclaration :=
   match profile.kinds.find? fun kind => kind.id == kindId with
   | some kind => pure kind
   | none => throw (error .unknownEvidenceKind declaration kindId.value [kindId])
@@ -731,7 +731,7 @@ private def authoredExpressionFieldReferences :
   | .portable expression => expressionFieldReferences expression
   | .callback _ | .recursive _ => []
 
-private def expressionBindingReferences : ObservationExpression → List DeclarationId
+private def expressionBindingReferences : ObservationExpression → List DefinitionId
   | .binding id => [id]
   | .normalize _ operand | .present operand | .not operand |
       .contributionMarker operand | .digestToken _ operand => expressionBindingReferences operand
@@ -740,7 +740,7 @@ private def expressionBindingReferences : ObservationExpression → List Declara
   | _ => []
 
 private def authoredExpressionBindingReferences :
-    ObservationExpressionAuthoring → List DeclarationId
+    ObservationExpressionAuthoring → List DefinitionId
   | .portable expression => expressionBindingReferences expression
   | .callback _ | .recursive _ => []
 
@@ -757,14 +757,14 @@ private def dispositionFor
 
 private def policyExists
     (policies : List DigestPolicyDeclaration)
-    (id : DeclarationId) : Bool :=
+    (id : DefinitionId) : Bool :=
   policies.any fun policy => policy.id == id
 
 private def validatePolicies
     (declaration : ObservationMappingDeclaration) : Except ObservationError Unit := do
   requireUniqueIds declaration (declaration.digestPolicies.map DigestPolicyDeclaration.id)
   for policy in declaration.digestPolicies.mergeSort policyLe do
-    requireIdentity declaration policy.id
+    requireDefinitionId declaration policy.id
     if policy.name != "synthetic.digest" then
       throw (error .unknownOperator declaration policy.name [policy.id])
     if policy.version != 1 then
@@ -932,7 +932,7 @@ private def validateSemanticOutput
     (context : ObservationCheckContext)
     (declaration : ObservationMappingDeclaration)
     (rule : ObservationRule) : Except ObservationError MeaningProvision := do
-  match context.declarations.find? fun item => item.id == rule.output with
+  match context.definitions.find? fun item => item.id == rule.output with
   | none => throw (error .unknownSemanticDeclaration declaration rule.output.value [rule.output])
   | some target =>
       if target.kind != rule.outputKind then
@@ -940,7 +940,7 @@ private def validateSemanticOutput
           (rule.output.value ++ ": expected " ++ target.kind.name ++
             ", found " ++ rule.outputKind.name) [rule.output])
   match context.meanings.find? fun meaning =>
-      meaning.declaration == rule.output && meaning.kind == rule.outputKind with
+      meaning.definitionId == rule.output && meaning.kind == rule.outputKind with
   | some meaning => pure meaning
   | none => throw (error .unauthorizedSemanticDeclaration declaration rule.output.value [rule.output])
 
@@ -983,8 +983,8 @@ private def compileRules
 
 private partial def pathExists
     (ordering : List ObservationOrdering)
-    (current target : DeclarationId)
-    (visited : List DeclarationId := []) : Bool :=
+    (current target : DefinitionId)
+    (visited : List DefinitionId := []) : Bool :=
   if current == target then true
   else if visited.contains current then false
   else
@@ -1035,14 +1035,14 @@ private def validateClosures
 def checkObservation
     (context : ObservationCheckContext)
     (declaration : ObservationMappingDeclaration) : Except ObservationError CheckedObservationPlan := do
-  requireIdentity declaration declaration.id
+  requireDefinitionId declaration declaration.id
   let profile ← selectedProfile context declaration
   requireUniqueIds declaration (declaration.bindings.map ObservationBinding.id)
   requireUniqueIds declaration (declaration.rules.map ObservationRule.id)
   for binding in declaration.bindings.mergeSort bindingLe do
-    requireIdentity declaration binding.id
+    requireDefinitionId declaration binding.id
   for rule in declaration.rules.mergeSort ruleLe do
-    requireIdentity declaration rule.id
+    requireDefinitionId declaration rule.id
   validatePolicies declaration
   if declaration.evidenceBound.value == 0 then
     throw (error .invalidBoundValue declaration "0")

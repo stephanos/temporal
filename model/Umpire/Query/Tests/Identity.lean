@@ -17,8 +17,8 @@ def digestOf
   (checkQuery queryContext queryDeclaration).toOption.map CheckedQuery.semanticDigest
 
 def reorderedTargetDefinition : TargetDefinition
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDefinition with declarations := targetDefinition.declarations.reverse
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
+  targetDefinition with definitions := targetDefinition.definitions.reverse
 }
 
 def reorderedTarget : QueryTarget (fun _ => True) :=
@@ -47,23 +47,23 @@ example : canonicalOf context (declaration (.select [checkedProperty, orderedPro
     canonicalOf context (declaration (.select [orderedProperty, checkedProperty])) := by
   native_decide
 
-def declarationsWithDigest
-    (identity : DeclarationId)
-    (digest : String) : List DeclarationMetadata :=
-  targetDeclarations.map fun declaration =>
-    if declaration.id == identity then { declaration with contractDigest := digest }
-    else declaration
+def definitionsWithDigest
+    (definitionId : DefinitionId)
+    (digest : String) : List DefinitionMetadata :=
+  targetDefinitions.map fun definition =>
+    if definition.id == definitionId then { definition with contractDigest := digest }
+    else definition
 
 def changedSemanticTargetDefinition : TargetDefinition
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDefinition with declarations := declarationsWithDigest targetId "query-target/v2"
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
+  targetDefinition with definitions := definitionsWithDigest targetId "query-target/v2"
 }
 
 def changedSemanticTarget : QueryTarget (fun _ => True) :=
   checkedTarget (AuthoredTarget.make changedSemanticTargetDefinition targetComposition)
 
 def changedCompositionTargetDefinition : TargetDefinition
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   targetDefinition with requiredCapabilities := [extraCapabilityId]
 }
 
@@ -71,14 +71,14 @@ def changedCompositionTarget : QueryTarget (fun _ => True) :=
   checkedTarget (AuthoredTarget.make changedCompositionTargetDefinition targetComposition)
 
 def changedKernel : TransitionKernel
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   kernel with metadata := { kernel.metadata with contractDigest := "query-kernel/v2" }
 }
 
 def changedKernelTargetDefinition : TargetDefinition
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   targetDefinition with
-  declarations := declarationsWithDigest kernelId "query-kernel/v2"
+  definitions := definitionsWithDigest kernelId "query-kernel/v2"
   kernel := .checked changedKernel
 }
 

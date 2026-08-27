@@ -7,12 +7,12 @@ import Umpire.Core
 namespace Umpire
 
 structure TargetDeclaration
-    (LawStatement : DeclarationId → Prop)
+    (LawStatement : DefinitionId → Prop)
     (Setup State Action Outcome Observation : Type) where
-  id : DeclarationId
-  source : SemanticSource
-  declarations : List DeclarationMetadata
-  requiredCapabilities : List DeclarationId
+  id : DefinitionId
+  source : SourceLocation
+  definitions : List DefinitionMetadata
+  requiredCapabilities : List DefinitionId
   providers : List (CapabilityProvider LawStatement)
   connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
@@ -46,13 +46,13 @@ inductive AuthoredPlanningCapability
       (capability : FinitePlanningCapability kernel.authoritativeStep)
 
 structure CheckedTarget
-    (LawStatement : DeclarationId → Prop)
+    (LawStatement : DefinitionId → Prop)
     (Setup State Action Outcome Observation : Type) where
   private mk ::
-  id : DeclarationId
-  source : SemanticSource
-  declarations : List DeclarationMetadata
-  requiredCapabilities : List DeclarationId
+  id : DefinitionId
+  source : SourceLocation
+  definitions : List DefinitionMetadata
+  requiredCapabilities : List DefinitionId
   providers : List (CapabilityProvider LawStatement)
   connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
@@ -61,10 +61,10 @@ structure CheckedTarget
   canonicalMetadata : String
   semanticDigest : String
 
-/-- Closed authoring roles keep compiler locations separate from semantic declaration identity. -/
+/-- Closed authoring roles keep compiler locations separate from Model Definition IDs. -/
 inductive AuthoringOccurrenceRole where
-  | declarationMetadata
-  | targetDeclaration
+  | definitionMetadata
+  | targetDefinition
   | providerDefinition
   | providerReference
   | connectorDefinition
@@ -78,8 +78,8 @@ inductive AuthoringOccurrenceRole where
   deriving BEq, DecidableEq, Ord, Repr
 
 def AuthoringOccurrenceRole.name : AuthoringOccurrenceRole → String
-  | .declarationMetadata => "declaration-metadata"
-  | .targetDeclaration => "target-declaration"
+  | .definitionMetadata => "definition-metadata"
+  | .targetDefinition => "target-definition"
   | .providerDefinition => "provider-definition"
   | .providerReference => "provider-reference"
   | .connectorDefinition => "connector-definition"
@@ -94,12 +94,12 @@ def AuthoringOccurrenceRole.name : AuthoringOccurrenceRole → String
 /-- The owner makes a nested occurrence path unambiguous when identities are reused. -/
 inductive AuthoringOccurrenceContext where
   | direct
-  | reconciliation (declaration : DeclarationId)
+  | reconciliation (definitionId : DefinitionId)
   deriving BEq, DecidableEq, Repr
 
 structure AuthoringOccurrencePath where
   role : AuthoringOccurrenceRole
-  owner : DeclarationId
+  owner : DefinitionId
   context : AuthoringOccurrenceContext := .direct
   deriving BEq, DecidableEq, Repr
 
@@ -115,7 +115,7 @@ structure AuthoringOccurrenceId where
 
 structure AuthoringOccurrence where
   id : AuthoringOccurrenceId
-  declarationId : DeclarationId
+  definitionId : DefinitionId
   path : AuthoringOccurrencePath
   deriving BEq, DecidableEq, Repr
 
@@ -125,28 +125,28 @@ structure CapturedAuthoringOccurrence where
   reference : Lean.Syntax
 
 structure AuthoringDiagnostic where
-  error : DeclarationError
+  error : DefinitionError
   path : AuthoringOccurrencePath
   original : Option AuthoringOccurrenceId
   offending : AuthoringOccurrenceId
   deriving BEq, DecidableEq, Repr
 
-/-- Ordinary target input keeps semantic declarations explicit without exposing checked fields. -/
+/-- Ordinary target input keeps semantic definitions explicit without exposing checked fields. -/
 structure TargetDefinition
     (Setup State Action Outcome Observation : Type) where
-  id : DeclarationId
-  source : SemanticSource
-  declarations : List DeclarationMetadata
-  requiredCapabilities : List DeclarationId
+  id : DefinitionId
+  source : SourceLocation
+  definitions : List DefinitionMetadata
+  requiredCapabilities : List DefinitionId
   resolvedSetups : List Setup
   kernel : KernelAvailability Setup State Action Outcome Observation
 
-private structure TargetCompositionPayload (LawStatement : DeclarationId → Prop) where
+private structure TargetCompositionPayload (LawStatement : DefinitionId → Prop) where
   providers : List (CapabilityProvider LawStatement)
   connectors : List (CapabilityConnector LawStatement)
 
 /-- Explicit provider and connector choices whose collection is owned by Target. -/
-structure TargetComposition (LawStatement : DeclarationId → Prop) where
+structure TargetComposition (LawStatement : DefinitionId → Prop) where
   private mk ::
   private payload : TargetCompositionPayload LawStatement
 
@@ -167,7 +167,7 @@ def connect
 end TargetComposition
 
 structure AuthoredTarget
-    (LawStatement : DeclarationId → Prop)
+    (LawStatement : DefinitionId → Prop)
     (Setup State Action Outcome Observation : Type) where
   private mk ::
   private declaration : TargetDeclaration LawStatement Setup State Action Outcome Observation
@@ -186,7 +186,7 @@ def make
   let declaration : TargetDeclaration LawStatement Setup State Action Outcome Observation := {
     id := definition.id
     source := definition.source
-    declarations := definition.declarations
+    definitions := definition.definitions
     requiredCapabilities := definition.requiredCapabilities
     providers := composition.payload.providers
     connectors := composition.payload.connectors
@@ -211,10 +211,10 @@ def withoutPlanning
 end AuthoredTarget
 
 private structure TargetValidationError where
-  error : DeclarationError
+  error : DefinitionError
   path : AuthoringOccurrencePath
-  occurrenceIdentity : DeclarationId
-  source : SemanticSource
+  occurrenceDefinitionId : DefinitionId
+  source : SourceLocation
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
@@ -224,15 +224,15 @@ private def array (items : List String) : String :=
 private def withoutClosingBrace (value : String) : String :=
   (value.dropEnd 1).toString
 
-private def idLe (left right : DeclarationId) : Bool :=
+private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
-private def sourceLe (left right : SemanticSource) : Bool :=
+private def sourceLe (left right : SourceLocation) : Bool :=
   decide (left.path < right.path) ||
     (left.path == right.path && decide (left.line < right.line)) ||
     (left.path == right.path && left.line == right.line && decide (left.column ≤ right.column))
 
-private def declarationLe (left right : DeclarationMetadata) : Bool :=
+private def definitionLe (left right : DefinitionMetadata) : Bool :=
   decide (left.id.value < right.id.value) ||
     (left.id == right.id && decide (left.kind.name < right.kind.name)) ||
     (left.id == right.id && left.kind == right.kind && sourceLe left.source right.source)
@@ -244,24 +244,24 @@ private def connectorLe (left right : CapabilityConnector LawStatement) : Bool :
   decide (left.id.value ≤ right.id.value)
 
 private def meaningLe (left right : MeaningProvision) : Bool :=
-  decide (left.declaration.value < right.declaration.value) ||
-    (left.declaration == right.declaration && decide (left.semanticDigest ≤ right.semanticDigest))
+  decide (left.definitionId.value < right.definitionId.value) ||
+    (left.definitionId == right.definitionId && decide (left.semanticDigest ≤ right.semanticDigest))
 
 private def reconciliationLe (left right : Reconciliation) : Bool :=
-  decide (left.declaration.value < right.declaration.value) ||
-    (left.declaration == right.declaration && decide (left.semanticDigest ≤ right.semanticDigest))
+  decide (left.definitionId.value < right.definitionId.value) ||
+    (left.definitionId == right.definitionId && decide (left.semanticDigest ≤ right.semanticDigest))
 
 private def lawLe (left right : LawRequirement) : Bool :=
   decide (left.id.value < right.id.value) ||
     (left.id == right.id && decide (left.semanticDigest ≤ right.semanticDigest))
 
-private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
 
-private def sourcePath (source : SemanticSource) : String :=
+private def sourcePath (source : SourceLocation) : String :=
   if source.path == "" then "<unknown>" else source.path
 
-private def sourceJson (source : SemanticSource) : String :=
+private def sourceJson (source : SourceLocation) : String :=
   "{\"path\":" ++ quote source.path ++
     ",\"line\":" ++ toString source.line ++
     ",\"column\":" ++ toString source.column ++
@@ -272,18 +272,18 @@ private def lawJson (law : LawRequirement) : String :=
     ",\"semanticDigest\":" ++ quote law.semanticDigest ++ "}"
 
 private def meaningJson (meaning : MeaningProvision) : String :=
-  "{\"id\":" ++ quote meaning.declaration.value ++
+  "{\"id\":" ++ quote meaning.definitionId.value ++
     ",\"kind\":" ++ quote meaning.kind.name ++
     ",\"semanticDigest\":" ++ quote meaning.semanticDigest ++ "}"
 
-private def declarationSemanticJson (declaration : DeclarationMetadata) : String :=
+private def definitionSemanticJson (declaration : DefinitionMetadata) : String :=
   "{\"id\":" ++ quote declaration.id.value ++
     ",\"kind\":" ++ quote declaration.kind.name ++
     ",\"version\":" ++ toString declaration.version ++
     ",\"contractDigest\":" ++ quote declaration.contractDigest ++ "}"
 
-def canonicalDeclarationMetadataJson (declaration : DeclarationMetadata) : String :=
-  withoutClosingBrace (declarationSemanticJson declaration) ++
+def canonicalDefinitionMetadataJson (declaration : DefinitionMetadata) : String :=
+  withoutClosingBrace (definitionSemanticJson declaration) ++
     ",\"source\":" ++ sourceJson declaration.source ++
     ",\"documentation\":" ++ quote declaration.documentation ++ "}"
 
@@ -301,9 +301,9 @@ def canonicalCapabilityProviderJson (provider : CapabilityProvider LawStatement)
     ",\"source\":" ++ sourceJson provider.source ++ "}"
 
 private def reconciliationJson (reconciliation : Reconciliation) : String :=
-  "{\"id\":" ++ quote reconciliation.declaration.value ++
+  "{\"id\":" ++ quote reconciliation.definitionId.value ++
     ",\"kind\":" ++ quote reconciliation.kind.name ++
-    ",\"providers\":" ++ array (canonicalIds reconciliation.providers |>.map (quote ∘ DeclarationId.value)) ++
+    ",\"providers\":" ++ array (canonicalIds reconciliation.providers |>.map (quote ∘ DefinitionId.value)) ++
     ",\"semanticDigest\":" ++ quote reconciliation.semanticDigest ++ "}"
 
 private def connectorSemanticJson (connector : CapabilityConnector LawStatement) : String :=
@@ -328,13 +328,13 @@ def canonicalKernelMetadataJson (metadata : KernelMetadata) : String :=
   withoutClosingBrace (kernelSemanticJson metadata) ++
     ",\"source\":" ++ sourceJson metadata.source ++ "}"
 
-def canonicalDeclarationErrorJson (error : DeclarationError) : String :=
+def canonicalDefinitionErrorJson (error : DefinitionError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
-    ",\"declarationId\":" ++ quote error.declarationId.value ++
+    ",\"definitionId\":" ++ quote error.definitionId.value ++
     ",\"sourcePath\":" ++ quote error.sourcePath ++
     ",\"offendingValue\":" ++ quote error.offendingValue ++
-    ",\"relatedIdentities\":" ++
-      array (canonicalIds error.relatedIdentities |>.map (quote ∘ DeclarationId.value)) ++ "}"
+    ",\"relatedDefinitionIds\":" ++
+      array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
 private def authoringOccurrenceIdJson (id : AuthoringOccurrenceId) : String :=
   "{\"sourcePath\":" ++ quote id.sourcePath ++
@@ -346,8 +346,8 @@ private def authoringOccurrenceIdJson (id : AuthoringOccurrenceId) : String :=
 
 private def authoringOccurrenceContextJson : AuthoringOccurrenceContext → String
   | .direct => quote "direct"
-  | .reconciliation declaration =>
-      "{\"reconciliation\":" ++ quote declaration.value ++ "}"
+  | .reconciliation definitionId =>
+      "{\"reconciliation\":" ++ quote definitionId.value ++ "}"
 
 private def authoringOccurrencePathJson (path : AuthoringOccurrencePath) : String :=
   "{\"role\":" ++ quote path.role.name ++
@@ -355,24 +355,24 @@ private def authoringOccurrencePathJson (path : AuthoringOccurrencePath) : Strin
     ",\"context\":" ++ authoringOccurrenceContextJson path.context ++ "}"
 
 def canonicalAuthoringDiagnosticJson (diagnostic : AuthoringDiagnostic) : String :=
-  "{\"error\":" ++ canonicalDeclarationErrorJson diagnostic.error ++
+  "{\"error\":" ++ canonicalDefinitionErrorJson diagnostic.error ++
     ",\"original\":" ++
       (diagnostic.original.map authoringOccurrenceIdJson |>.getD "null") ++
     ",\"offending\":" ++ authoringOccurrenceIdJson diagnostic.offending ++
     ",\"path\":" ++ authoringOccurrencePathJson diagnostic.path ++ "}"
 
 private def targetSemanticJson
-    (id : DeclarationId)
-    (declarations : List DeclarationMetadata)
-    (requiredCapabilities : List DeclarationId)
+    (id : DefinitionId)
+    (definitions : List DefinitionMetadata)
+    (requiredCapabilities : List DefinitionId)
     (providers : List (CapabilityProvider LawStatement))
     (connectors : List (CapabilityConnector LawStatement))
     (kernel : KernelMetadata) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"declarations\":" ++
-      array (declarations.mergeSort declarationLe |>.map declarationSemanticJson) ++
+      array (definitions.mergeSort definitionLe |>.map definitionSemanticJson) ++
     ",\"requiredCapabilities\":" ++
-      array (canonicalIds requiredCapabilities |>.map (quote ∘ DeclarationId.value)) ++
+      array (canonicalIds requiredCapabilities |>.map (quote ∘ DefinitionId.value)) ++
     ",\"providers\":" ++ array (providers.mergeSort providerLe |>.map providerSemanticJson) ++
     ",\"connectors\":" ++ array (connectors.mergeSort connectorLe |>.map connectorSemanticJson) ++
     ",\"kernel\":" ++ kernelSemanticJson kernel ++ "}"
@@ -380,86 +380,86 @@ private def targetSemanticJson
 private def targetMetadataJson
     (target : TargetDeclaration LawStatement Setup State Action Outcome Observation)
     (kernel : KernelMetadata) : String :=
-  "{\"semantic\":" ++ targetSemanticJson target.id target.declarations
+  "{\"semantic\":" ++ targetSemanticJson target.id target.definitions
       target.requiredCapabilities target.providers target.connectors kernel ++
     ",\"source\":" ++ sourceJson target.source ++
     ",\"declarationMetadata\":" ++
-      array (target.declarations.mergeSort declarationLe |>.map canonicalDeclarationMetadataJson) ++
+      array (target.definitions.mergeSort definitionLe |>.map canonicalDefinitionMetadataJson) ++
     ",\"kernelMetadata\":" ++ canonicalKernelMetadataJson kernel ++ "}"
 
-private def declarationError
-    (kind : DeclarationErrorKind)
-    (declarationId : DeclarationId)
-    (source : SemanticSource)
+private def definitionError
+    (kind : DefinitionErrorKind)
+    (definitionId : DefinitionId)
+    (source : SourceLocation)
     (offendingValue : String)
-    (relatedIdentities : List DeclarationId := []) : DeclarationError := {
+    (relatedDefinitionIds : List DefinitionId := []) : DefinitionError := {
   kind
-  declarationId := if declarationId.value == "" then
-    DeclarationId.of "umpire.declaration.anonymous"
+  definitionId := if definitionId.value == "" then
+    DefinitionId.of "umpire.definition.anonymous"
   else
-    declarationId
+    definitionId
   sourcePath := sourcePath source
   offendingValue
-  relatedIdentities := canonicalIds relatedIdentities
+  relatedDefinitionIds := canonicalIds relatedDefinitionIds
 }
 
 private def validationError
-    (kind : DeclarationErrorKind)
-    (declarationId : DeclarationId)
-    (source : SemanticSource)
+    (kind : DefinitionErrorKind)
+    (definitionId : DefinitionId)
+    (source : SourceLocation)
     (path : AuthoringOccurrencePath)
-    (occurrenceIdentity : DeclarationId)
+    (occurrenceDefinitionId : DefinitionId)
     (offendingValue : String)
-    (relatedIdentities : List DeclarationId := []) : TargetValidationError := {
-  error := declarationError kind declarationId source offendingValue relatedIdentities
+    (relatedDefinitionIds : List DefinitionId := []) : TargetValidationError := {
+  error := definitionError kind definitionId source offendingValue relatedDefinitionIds
   path
-  occurrenceIdentity
+  occurrenceDefinitionId
   source
 }
 
-private def firstDuplicateId : List DeclarationId → Option DeclarationId
+private def firstDuplicateId : List DefinitionId → Option DefinitionId
   | first :: second :: rest =>
       if first == second then some first else firstDuplicateId (second :: rest)
   | _ => none
 
-private def firstDuplicateDeclaration : List DeclarationMetadata → Option DeclarationMetadata
+private def firstDuplicateDefinition : List DefinitionMetadata → Option DefinitionMetadata
   | first :: second :: rest =>
-      if first.id == second.id then some first else firstDuplicateDeclaration (second :: rest)
+      if first.id == second.id then some first else firstDuplicateDefinition (second :: rest)
   | _ => none
 
-private def requireIdentity
-    (owner : DeclarationId)
-    (source : SemanticSource)
-    (id : DeclarationId)
+private def requireDefinitionId
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (id : DefinitionId)
     (path : AuthoringOccurrencePath) : Except TargetValidationError Unit :=
   if id.value == "" then
-    .error (validationError .emptyIdentity owner source path id "<empty>" [id])
+    .error (validationError .emptyDefinitionId owner source path id "<empty>" [id])
   else if !id.isNamespaced then
-    .error (validationError .invalidIdentity owner source path id id.value [id])
+    .error (validationError .invalidDefinitionId owner source path id id.value [id])
   else
     .ok ()
 
 private def requireUniqueIds
-    (owner : DeclarationId)
-    (source : SemanticSource)
+    (owner : DefinitionId)
+    (source : SourceLocation)
     (path : AuthoringOccurrencePath)
-    (ids : List DeclarationId) : Except TargetValidationError Unit :=
+    (ids : List DefinitionId) : Except TargetValidationError Unit :=
   match firstDuplicateId (ids.mergeSort idLe) with
   | some duplicate =>
-      .error (validationError .duplicateIdentity owner source path duplicate
+      .error (validationError .duplicateDefinitionId owner source path duplicate
         duplicate.value [duplicate])
   | none => .ok ()
 
-private def requireDeclaration
-    (declarations : List DeclarationMetadata)
-    (owner : DeclarationId)
-    (source : SemanticSource)
-    (id : DeclarationId)
-    (expectedKind : DeclarationKind)
+private def requireDefinition
+    (definitions : List DefinitionMetadata)
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (id : DefinitionId)
+    (expectedKind : DefinitionKind)
     (path : AuthoringOccurrencePath) : Except TargetValidationError Unit := do
-  requireIdentity owner source id path
-  match declarations.find? (fun declaration => declaration.id == id) with
-  | none => throw (validationError .unknownIdentity owner source path id id.value [id])
+  requireDefinitionId owner source id path
+  match definitions.find? (fun declaration => declaration.id == id) with
+  | none => throw (validationError .unknownDefinitionId owner source path id id.value [id])
   | some declaration =>
       if declaration.kind == expectedKind then
         pure ()
@@ -470,32 +470,32 @@ private def requireDeclaration
 
 private def occurrencePath
     (role : AuthoringOccurrenceRole)
-    (owner : DeclarationId) : AuthoringOccurrencePath :=
+    (owner : DefinitionId) : AuthoringOccurrencePath :=
   { role, owner }
 
 private def reconciliationOccurrencePath
     (role : AuthoringOccurrenceRole)
-    (connector reconciliation : DeclarationId) : AuthoringOccurrencePath :=
+    (connector reconciliation : DefinitionId) : AuthoringOccurrencePath :=
   { role, owner := connector, context := .reconciliation reconciliation }
 
-private def validateDeclarations
+private def validateDefinitions
     (target : TargetDeclaration LawStatement Setup State Action Outcome Observation) :
-    Except TargetValidationError (List DeclarationMetadata) := do
-  let declarations := target.declarations.mergeSort declarationLe
-  for declaration in declarations do
-    requireIdentity declaration.id declaration.source declaration.id
-      (occurrencePath .declarationMetadata declaration.id)
-  match firstDuplicateDeclaration declarations with
+    Except TargetValidationError (List DefinitionMetadata) := do
+  let definitions := target.definitions.mergeSort definitionLe
+  for declaration in definitions do
+    requireDefinitionId declaration.id declaration.source declaration.id
+      (occurrencePath .definitionMetadata declaration.id)
+  match firstDuplicateDefinition definitions with
   | some duplicate =>
-      throw (validationError .duplicateIdentity duplicate.id duplicate.source
-        (occurrencePath .declarationMetadata duplicate.id) duplicate.id duplicate.id.value
+      throw (validationError .duplicateDefinitionId duplicate.id duplicate.source
+        (occurrencePath .definitionMetadata duplicate.id) duplicate.id duplicate.id.value
         [duplicate.id])
-  | none => pure declarations
+  | none => pure definitions
 
 private def validateLawWitnesses
-    (declarations : List DeclarationMetadata)
-    (owner : DeclarationId)
-    (source : SemanticSource)
+    (definitions : List DefinitionMetadata)
+    (owner : DefinitionId)
+    (source : SourceLocation)
     (requirements : List LawRequirement)
     (witnesses : List (LawWitness LawStatement)) : Except TargetValidationError Unit := do
   requireUniqueIds owner source (occurrencePath .lawRequirement owner)
@@ -503,9 +503,9 @@ private def validateLawWitnesses
   requireUniqueIds owner source (occurrencePath .lawWitness owner)
     (witnesses.map (fun witness => witness.requirement.id))
   for requirement in requirements.mergeSort lawLe do
-    requireDeclaration declarations owner source requirement.id .law
+    requireDefinition definitions owner source requirement.id .law
       (occurrencePath .lawRequirement owner)
-    match declarations.find? (fun declaration => declaration.id == requirement.id) with
+    match definitions.find? (fun declaration => declaration.id == requirement.id) with
     | some declaration =>
         if declaration.contractDigest != requirement.semanticDigest then
           throw (validationError .lawContractMismatch owner source
@@ -520,7 +520,7 @@ private def validateLawWitnesses
           requirement.id requirement.id.value [requirement.id])
     | some _ => pure ()
   for witness in witnesses do
-    requireDeclaration declarations owner source witness.requirement.id .law
+    requireDefinition definitions owner source witness.requirement.id .law
       (occurrencePath .lawWitness owner)
     match requirements.find? (fun requirement => requirement == witness.requirement) with
     | none =>
@@ -530,58 +530,58 @@ private def validateLawWitnesses
     | some _ => pure ()
 
 private def validateProvider
-    (declarations : List DeclarationMetadata)
-    (targetId : DeclarationId)
+    (definitions : List DefinitionMetadata)
+    (targetId : DefinitionId)
     (provider : CapabilityProvider LawStatement) : Except TargetValidationError Unit := do
-  requireDeclaration declarations provider.id provider.source provider.id .provider
+  requireDefinition definitions provider.id provider.source provider.id .provider
     (occurrencePath .providerDefinition targetId)
-  requireDeclaration declarations provider.id provider.source provider.contract.id .capability
+  requireDefinition definitions provider.id provider.source provider.contract.id .capability
     (occurrencePath .capabilityRequirement provider.id)
-  validateLawWitnesses declarations provider.id provider.source
+  validateLawWitnesses definitions provider.id provider.source
     provider.contract.requiredLaws provider.lawWitnesses
   requireUniqueIds provider.id provider.source (occurrencePath .meaning provider.id)
-    (provider.meanings.map MeaningProvision.declaration)
+    (provider.meanings.map MeaningProvision.definitionId)
   for meaning in provider.meanings.mergeSort meaningLe do
-    requireDeclaration declarations provider.id provider.source meaning.declaration meaning.kind
+    requireDefinition definitions provider.id provider.source meaning.definitionId meaning.kind
       (occurrencePath .meaning provider.id)
 
 private def validateConnector
-    (declarations : List DeclarationMetadata)
-    (activeProviders : List DeclarationId)
-    (targetId : DeclarationId)
+    (definitions : List DefinitionMetadata)
+    (activeProviders : List DefinitionId)
+    (targetId : DefinitionId)
     (connector : CapabilityConnector LawStatement) : Except TargetValidationError Unit := do
-  requireDeclaration declarations connector.id connector.source connector.id .connector
+  requireDefinition definitions connector.id connector.source connector.id .connector
     (occurrencePath .connectorDefinition targetId)
-  validateLawWitnesses declarations connector.id connector.source
+  validateLawWitnesses definitions connector.id connector.source
     connector.requiredLaws connector.lawWitnesses
   requireUniqueIds connector.id connector.source (occurrencePath .reconciliation connector.id)
-    (connector.reconciliations.map Reconciliation.declaration)
+    (connector.reconciliations.map Reconciliation.definitionId)
   for reconciliation in connector.reconciliations.mergeSort reconciliationLe do
-    requireDeclaration declarations connector.id connector.source
-      reconciliation.declaration reconciliation.kind (occurrencePath .reconciliation connector.id)
+    requireDefinition definitions connector.id connector.source
+      reconciliation.definitionId reconciliation.kind (occurrencePath .reconciliation connector.id)
     let providerPath := reconciliationOccurrencePath .providerReference connector.id
-      reconciliation.declaration
+      reconciliation.definitionId
     requireUniqueIds connector.id connector.source providerPath reconciliation.providers
     for provider in reconciliation.providers.mergeSort idLe do
-      requireDeclaration declarations connector.id connector.source provider .provider providerPath
+      requireDefinition definitions connector.id connector.source provider .provider providerPath
       if !activeProviders.contains provider then
         throw (validationError .missingProvider connector.id connector.source
           providerPath provider provider.value [provider])
 
 private structure MeaningOwner where
-  provider : DeclarationId
+  provider : DefinitionId
   meaning : MeaningProvision
-  source : SemanticSource
+  source : SourceLocation
 
 private def distinctStrings (items : List String) : List String :=
   items.mergeSort |>.eraseDups
 
 private def connectorMatches
     (connector : CapabilityConnector LawStatement)
-    (declaration : DeclarationId)
-    (providers : List DeclarationId) : Bool :=
+    (definitionId : DefinitionId)
+    (providers : List DefinitionId) : Bool :=
   connector.reconciliations.any fun reconciliation =>
-    reconciliation.declaration == declaration &&
+    reconciliation.definitionId == definitionId &&
       canonicalIds reconciliation.providers == canonicalIds providers
 
 private def validateConflicts
@@ -589,9 +589,9 @@ private def validateConflicts
     (connectors : List (CapabilityConnector LawStatement)) : Except TargetValidationError Unit := do
   let owners := providers.flatMap fun provider =>
     provider.meanings.map fun meaning => { provider := provider.id, meaning, source := provider.source }
-  let declarations := canonicalIds (owners.map fun owner => owner.meaning.declaration)
-  for declaration in declarations do
-    let matching := owners.filter (fun owner => owner.meaning.declaration == declaration)
+  let definitions := canonicalIds (owners.map fun owner => owner.meaning.definitionId)
+  for declaration in definitions do
+    let matching := owners.filter (fun owner => owner.meaning.definitionId == declaration)
     let digests := distinctStrings (matching.map fun owner => owner.meaning.semanticDigest)
     if digests.length > 1 then
       let providerIds := canonicalIds (matching.map MeaningOwner.provider)
@@ -612,7 +612,7 @@ private def validateConflicts
 
 private def validateCapabilities
     (target : TargetDeclaration LawStatement Setup State Action Outcome Observation)
-    (declarations : List DeclarationMetadata)
+    (definitions : List DefinitionMetadata)
     (providers : List (CapabilityProvider LawStatement))
     (connectors : List (CapabilityConnector LawStatement)) : Except TargetValidationError Unit := do
   requireUniqueIds target.id target.source (occurrencePath .providerDefinition target.id)
@@ -620,13 +620,13 @@ private def validateCapabilities
   requireUniqueIds target.id target.source (occurrencePath .connectorDefinition target.id)
     (connectors.map CapabilityConnector.id)
   for provider in providers do
-    validateProvider declarations target.id provider
+    validateProvider definitions target.id provider
   for connector in connectors do
-    validateConnector declarations (providers.map CapabilityProvider.id) target.id connector
+    validateConnector definitions (providers.map CapabilityProvider.id) target.id connector
   requireUniqueIds target.id target.source (occurrencePath .capabilityRequirement target.id)
     target.requiredCapabilities
   for capability in canonicalIds target.requiredCapabilities do
-    requireDeclaration declarations target.id target.source capability .capability
+    requireDefinition definitions target.id target.source capability .capability
       (occurrencePath .capabilityRequirement target.id)
     if !(providers.any fun provider => provider.contract.id == capability) then
       throw (validationError .missingProvider target.id target.source
@@ -637,27 +637,27 @@ private def composeTargetDetailed
     (target : TargetDeclaration LawStatement Setup State Action Outcome Observation) :
     Except TargetValidationError
       (CheckedTarget LawStatement Setup State Action Outcome Observation) := do
-  let declarations ← validateDeclarations target
-  requireDeclaration declarations target.id target.source target.id .target
-    (occurrencePath .targetDeclaration target.id)
+  let definitions ← validateDefinitions target
+  requireDefinition definitions target.id target.source target.id .target
+    (occurrencePath .targetDefinition target.id)
   let providers := target.providers.mergeSort providerLe
   let connectors := target.connectors.mergeSort connectorLe
-  validateCapabilities target declarations providers connectors
+  validateCapabilities target definitions providers connectors
   let kernel ← match target.kernel with
     | .checked kernel => pure kernel
     | .incomplete metadata missingProofs =>
-        requireDeclaration declarations target.id target.source metadata.id .kernel
+        requireDefinition definitions target.id target.source metadata.id .kernel
           (occurrencePath .kernel target.id)
         throw (validationError .incompleteKernel target.id metadata.source
           (occurrencePath .kernel target.id) metadata.id metadata.id.value missingProofs)
-  requireDeclaration declarations target.id target.source kernel.metadata.id .kernel
+  requireDefinition definitions target.id target.source kernel.metadata.id .kernel
     (occurrencePath .kernel target.id)
-  let semantic := targetSemanticJson target.id declarations target.requiredCapabilities
+  let semantic := targetSemanticJson target.id definitions target.requiredCapabilities
     providers connectors kernel.metadata
   pure {
     id := target.id
     source := target.source
-    declarations
+    definitions
     requiredCapabilities := canonicalIds target.requiredCapabilities
     providers
     connectors
@@ -670,7 +670,7 @@ private def composeTargetDetailed
 /-- Check and canonicalize one target composition without relying on declaration or instance order. -/
 def composeTarget
     (target : TargetDeclaration LawStatement Setup State Action Outcome Observation) :
-    Except DeclarationError (CheckedTarget LawStatement Setup State Action Outcome Observation) :=
+    Except DefinitionError (CheckedTarget LawStatement Setup State Action Outcome Observation) :=
   match composeTargetDetailed target with
   | .ok checked => .ok checked
   | .error detailed => .error detailed.error
@@ -692,7 +692,7 @@ private def occurrenceIdLe (left right : AuthoringOccurrenceId) : Bool :=
 private def occurrenceLe (left right : AuthoringOccurrence) : Bool :=
   occurrenceIdLe left.id right.id
 
-private def fallbackOccurrenceId (source : SemanticSource) : AuthoringOccurrenceId := {
+private def fallbackOccurrenceId (source : SourceLocation) : AuthoringOccurrenceId := {
   sourcePath := sourcePath source
   line := source.line
   column := source.column
@@ -705,10 +705,10 @@ private def authoringDiagnostic
     (occurrences : List AuthoringOccurrence)
     (detailed : TargetValidationError) : AuthoringDiagnostic :=
   let matching := occurrences.filter (fun occurrence =>
-    occurrence.declarationId == detailed.occurrenceIdentity && occurrence.path == detailed.path)
+    occurrence.definitionId == detailed.occurrenceDefinitionId && occurrence.path == detailed.path)
     |>.mergeSort occurrenceLe
   let fallback := fallbackOccurrenceId detailed.source
-  if detailed.error.kind == .duplicateIdentity then
+  if detailed.error.kind == .duplicateDefinitionId then
     match matching with
     | original :: offending :: _ => {
         error := detailed.error
@@ -743,7 +743,7 @@ private def authoringDiagnostic
         offending := fallback
       }
 
-/-- Ordinary Target authoring returns one checked semantic value or one located typed diagnostic. -/
+/-- Ordinary Target authoring returns one checked Target or one located typed diagnostic. -/
 def checkTarget
     (authored : AuthoredTarget LawStatement Setup State Action Outcome Observation) :
     Except AuthoringDiagnostic
@@ -757,7 +757,7 @@ def checkTarget
   | .error detailed => .error (authoringDiagnostic authored.occurrences detailed)
 
 /-- Produce a checked authored target directly while keeping extraction and proof-relation
-re-ascription inside the Target boundary. Invalid declarations should use `checkTarget` or
+re-ascription inside the Target boundary. Invalid definitions should use `checkTarget` or
 `elaborateTarget` when their typed diagnostic is needed. -/
 def checkedTarget
     (authored : AuthoredTarget LawStatement Setup State Action Outcome Observation)
@@ -789,7 +789,7 @@ def CheckedTarget.withEquivalentKernel
 /-- Capture one syntax occurrence as a nonsemantic source-span/ordinal token. -/
 def captureAuthoringOccurrence
     (reference : Lean.Syntax)
-    (declarationId : DeclarationId)
+    (definitionId : DefinitionId)
     (path : AuthoringOccurrencePath)
     (localOrdinal : Nat) : Lean.Elab.Term.TermElabM CapturedAuthoringOccurrence := do
   let fileMap ← Lean.getFileMap
@@ -808,7 +808,7 @@ def captureAuthoringOccurrence
         endColumn := endPosition.column
         localOrdinal
       }
-      declarationId
+      definitionId
       path
     }
     reference

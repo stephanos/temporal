@@ -8,15 +8,15 @@ open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 open Temporal.Feature.Nexus.Observation
 
-private def id (value : String) : DeclarationId := DeclarationId.of value
+private def id (value : String) : DefinitionId := DefinitionId.of value
 
-private def textField (fieldId : DeclarationId) (value : String) : EvidenceFieldValue := {
+private def textField (fieldId : DefinitionId) (value : String) : EvidenceFieldValue := {
   field := fieldId
   value := .text value
 }
 
-def initialEvidenceId : DeclarationId := id "temporal.nexus.synthetic.record.initial"
-def startEvidenceId : DeclarationId := id "temporal.nexus.synthetic.record.start"
+def initialEvidenceId : DefinitionId := id "temporal.nexus.synthetic.record.initial"
+def startEvidenceId : DefinitionId := id "temporal.nexus.synthetic.record.start"
 
 def initialEvidence : SyntheticEvidenceRecord := {
   id := initialEvidenceId
@@ -54,7 +54,7 @@ def completeEvidence : EvidenceBundle := {
   closures := [{ kind := Profile.lifecycleKind, lastSequence := 2 }]
 }
 
-def expectedTrace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+def expectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   initialState := scheduledState
   steps := [{
     selectedAction := startAction
@@ -74,14 +74,14 @@ def completeObservation : OfflineObservation :=
 
 private structure DerivationShape where
   coordinate : SemanticCoordinate
-  mappingId : DeclarationId
+  mappingId : DefinitionId
   mappingVersion : Nat
   mappingDigest : String
-  profileId : DeclarationId
+  profileId : DefinitionId
   profileVersion : Nat
-  ruleId : DeclarationId
-  evidenceIdentities : List DeclarationId
-  bindingIds : List DeclarationId
+  ruleId : DefinitionId
+  evidenceIdentities : List DefinitionId
+  bindingIds : List DefinitionId
   orderingSupport : List EvidenceOrderingFact
   closureSupport : List EvidenceClosureFact
   appliedDispositions : List AppliedFieldDisposition
@@ -108,17 +108,17 @@ private def derivationShape (derivation : SemanticDerivation) : DerivationShape 
 
 /-- The checked mapping admits exactly the target-owned BasicLifecycle vocabulary. -/
 example : checkedPlanResult.isOk = true ∧ checkedPlan.meanings = [
-    { declaration := cancelActionId, kind := .action,
+    { definitionId := cancelActionId, kind := .action,
       semanticDigest := "temporal-nexus-basic-lifecycle-cancel/v1" },
-    { declaration := startActionId, kind := .action,
+    { definitionId := startActionId, kind := .action,
       semanticDigest := "temporal-nexus-basic-lifecycle-start/v1" },
-    { declaration := reportSuccessActionId, kind := .action,
+    { definitionId := reportSuccessActionId, kind := .action,
       semanticDigest := "temporal-nexus-basic-lifecycle-report-success/v1" },
-    { declaration := lifecycleObservationId, kind := .observation,
+    { definitionId := lifecycleObservationId, kind := .observation,
       semanticDigest := "temporal-nexus-basic-lifecycle-observation/v2" },
-    { declaration := transitionOutcomeId, kind := .outcome,
+    { definitionId := transitionOutcomeId, kind := .outcome,
       semanticDigest := "temporal-nexus-basic-lifecycle-outcome/v2" },
-    { declaration := operationStateId, kind := .state,
+    { definitionId := operationStateId, kind := .state,
       semanticDigest := "temporal-nexus-basic-lifecycle-state/v2" }
   ] := by
   native_decide

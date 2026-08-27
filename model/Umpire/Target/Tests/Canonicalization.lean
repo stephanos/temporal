@@ -8,7 +8,7 @@ open Umpire
 
 def reorderedTestTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := testTarget.declarations.reverse
+  definitions := testTarget.definitions.reverse
   requiredCapabilities := testTarget.requiredCapabilities.reverse
   providers := testTarget.providers.reverse
   connectors := testTarget.connectors.reverse
@@ -24,19 +24,19 @@ example : (composeTarget reorderedTestTarget).toOption.map CheckedTarget.semanti
 
 def reorderedConflictTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   conflictingTarget with
-  declarations := conflictingTarget.declarations.reverse
+  definitions := conflictingTarget.definitions.reverse
   providers := conflictingTarget.providers.reverse
 }
 
-example : (errorOf (composeTarget reorderedConflictTarget)).map canonicalDeclarationErrorJson =
-    (errorOf (composeTarget conflictingTarget)).map canonicalDeclarationErrorJson := by
+example : (errorOf (composeTarget reorderedConflictTarget)).map canonicalDefinitionErrorJson =
+    (errorOf (composeTarget conflictingTarget)).map canonicalDefinitionErrorJson := by
   native_decide
 
 def changedIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
   id := id "test.target.composed-v2"
-  declarations := metadata "test.target.composed-v2" .target ::
-    testDeclarations.filter (fun declaration => declaration.id != testTarget.id)
+  definitions := metadata "test.target.composed-v2" .target ::
+    testDefinitions.filter (fun declaration => declaration.id != testTarget.id)
 }
 
 example : (composeTarget changedIdentityTarget).toOption.map CheckedTarget.semanticDigest ≠
@@ -99,7 +99,7 @@ def changedLawSecondaryProvider : CapabilityProvider TestLawStatement := {
 
 def changedLawTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := testDeclarations.map fun declaration =>
+  definitions := testDefinitions.map fun declaration =>
     if declaration.id == providerLaw.id then
       { declaration with contractDigest := changedLaw.semanticDigest }
     else
@@ -133,7 +133,7 @@ example : (composeTarget lawlessTarget).toOption.map CheckedTarget.semanticDiges
 
 def documentedTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := testDeclarations.map fun declaration =>
+  definitions := testDefinitions.map fun declaration =>
     if declaration.id == testTarget.id then
       { declaration with documentation := "Non-semantic explanatory text." }
     else

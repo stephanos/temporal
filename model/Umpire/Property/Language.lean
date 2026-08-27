@@ -4,7 +4,7 @@ import Umpire.Target
 
 namespace Umpire
 
-/-! Portable, pure properties over capability-limited semantic traces. -/
+/-! Portable, pure properties over capability-limited Model Traces. -/
 
 inductive PropertyTraceField where
   | state
@@ -25,7 +25,7 @@ def PropertyTraceField.name : PropertyTraceField → String
   | .observation => "observation"
   | .relation => "relation"
 
-def PropertyTraceField.declarationKind : PropertyTraceField → DeclarationKind
+def PropertyTraceField.definitionKind : PropertyTraceField → DefinitionKind
   | .state | .priorState | .resultingState => .state
   | .selectedAction => .action
   | .modelOutcome => .outcome
@@ -79,19 +79,19 @@ theorem ValueConstraint.evaluate_agrees
 
 structure PropertyPattern where
   field : PropertyTraceField
-  reference : DeclarationId
+  reference : DefinitionId
   constraint : ValueConstraint := .present
   deriving BEq, DecidableEq, Ord, Repr
 
-def PropertyPattern.denote (pattern : PropertyPattern) (value : SemanticValue) : Prop :=
-  value.identity = pattern.reference ∧ pattern.constraint.denote value.value
+def PropertyPattern.denote (pattern : PropertyPattern) (value : ModelValue) : Prop :=
+  value.definitionId = pattern.reference ∧ pattern.constraint.denote value.value
 
-def PropertyPattern.evaluate (pattern : PropertyPattern) (value : SemanticValue) : Bool :=
-  decide (value.identity = pattern.reference) && pattern.constraint.evaluate value.value
+def PropertyPattern.evaluate (pattern : PropertyPattern) (value : ModelValue) : Bool :=
+  decide (value.definitionId = pattern.reference) && pattern.constraint.evaluate value.value
 
 theorem PropertyPattern.evaluate_agrees
     (pattern : PropertyPattern)
-    (value : SemanticValue) :
+    (value : ModelValue) :
     pattern.evaluate value = true ↔ pattern.denote value := by
   simp [PropertyPattern.evaluate, PropertyPattern.denote, ValueConstraint.evaluate_agrees]
 
@@ -141,36 +141,36 @@ private theorem booleanNot_agrees
   cases value <;> simp_all
 
 structure PropertyBoundProfile where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   bound : TypedBound
   deriving BEq, DecidableEq, Repr
 
 inductive PropertyBound where
   | exact (bound : TypedBound)
-  | named (profile : DeclarationId) (expectedUnit : BoundUnit)
+  | named (profile : DefinitionId) (expectedUnit : BoundUnit)
   deriving BEq, DecidableEq, Repr
 
 inductive PropertyClause where
-  | stateInvariant (id : DeclarationId) (state : PropertyPattern)
-  | transitionContract (id : DeclarationId) (precondition postcondition : PropertyPattern)
-  | identityRelation (id : DeclarationId) (relation : PropertyPattern)
-  | inputOutput (id : DeclarationId) (input output : PropertyPattern)
+  | stateInvariant (id : DefinitionId) (state : PropertyPattern)
+  | transitionContract (id : DefinitionId) (precondition postcondition : PropertyPattern)
+  | identityRelation (id : DefinitionId) (relation : PropertyPattern)
+  | inputOutput (id : DefinitionId) (input output : PropertyPattern)
   | ordered
-      (id : DeclarationId)
+      (id : DefinitionId)
       (before after : PropertyPattern)
       (unit : BoundUnit := .semanticTransitions)
   | eventuallyWithin
-      (id : DeclarationId)
+      (id : DefinitionId)
       (trigger response : PropertyPattern)
       (bound : PropertyBound)
   | quiescentWithin
-      (id : DeclarationId)
+      (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
       (bound : PropertyBound)
   deriving BEq, DecidableEq, Repr
 
-def PropertyClause.id : PropertyClause → DeclarationId
+def PropertyClause.id : PropertyClause → DefinitionId
   | .stateInvariant id _
   | .transitionContract id _ _
   | .identityRelation id _
@@ -180,12 +180,12 @@ def PropertyClause.id : PropertyClause → DeclarationId
   | .quiescentWithin id _ _ _ => id
 
 structure PropertyDeclaration where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat := 1
-  requires : List DeclarationId
+  requires : List DefinitionId
   clauses : List PropertyClause
-  logicalTimeSource : Option DeclarationId := none
+  logicalTimeSource : Option DefinitionId := none
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
@@ -193,14 +193,14 @@ structure PropertyDeclaration where
 portable declaration, checked property, planner input, or artifact types. -/
 inductive PropertyAuthoring where
   | portable (declaration : PropertyDeclaration)
-  | opaque (id : DeclarationId) (source : SemanticSource)
+  | opaque (id : DefinitionId) (source : SourceLocation)
   deriving BEq, DecidableEq, Repr
 
 inductive PropertyErrorKind where
   | opaqueDeclaration
-  | emptyIdentity
-  | invalidIdentity
-  | duplicateIdentity
+  | emptyDefinitionId
+  | invalidDefinitionId
+  | duplicateDefinitionId
   | unknownCapability
   | wrongReferenceKind
   | missingCapability
@@ -214,9 +214,9 @@ inductive PropertyErrorKind where
 
 def PropertyErrorKind.name : PropertyErrorKind → String
   | .opaqueDeclaration => "opaque-declaration"
-  | .emptyIdentity => "empty-identity"
-  | .invalidIdentity => "invalid-identity"
-  | .duplicateIdentity => "duplicate-identity"
+  | .emptyDefinitionId => "empty-definition-id"
+  | .invalidDefinitionId => "invalid-definition-id"
+  | .duplicateDefinitionId => "duplicate-definition-id"
   | .unknownCapability => "unknown-capability"
   | .wrongReferenceKind => "wrong-reference-kind"
   | .missingCapability => "missing-capability"
@@ -229,14 +229,14 @@ def PropertyErrorKind.name : PropertyErrorKind → String
 
 structure PropertyError where
   kind : PropertyErrorKind
-  declarationId : DeclarationId
+  definitionId : DefinitionId
   sourcePath : String
   offendingValue : String
-  relatedIdentities : List DeclarationId
+  relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure PropertyCapability where
-  id : DeclarationId
+  id : DefinitionId
   version : Nat
   semanticDigest : String
   deriving BEq, DecidableEq, Ord, Repr
@@ -245,20 +245,20 @@ structure PropertyCapability where
 structure PropertyCapabilityView where
   capabilities : List PropertyCapability
   meanings : List MeaningProvision
-  logicalTimeSource : Option DeclarationId
+  logicalTimeSource : Option DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure PropertyCheckContext where
-  declarations : List DeclarationMetadata
+  definitions : List DefinitionMetadata
   providers : List PropertyCapability
-  meanings : List (DeclarationId × MeaningProvision)
+  meanings : List (DefinitionId × MeaningProvision)
   boundProfiles : List PropertyBoundProfile := []
   deriving BEq, DecidableEq, Repr
 
 def PropertyCheckContext.ofTarget
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
     (boundProfiles : List PropertyBoundProfile := []) : PropertyCheckContext := {
-  declarations := target.declarations
+  definitions := target.definitions
   providers := target.providers.map fun provider => {
     id := provider.contract.id
     version := provider.contract.version
@@ -270,22 +270,22 @@ def PropertyCheckContext.ofTarget
 }
 
 inductive ResolvedPropertyClause where
-  | stateInvariant (id : DeclarationId) (state : PropertyPattern)
-  | transitionContract (id : DeclarationId) (precondition postcondition : PropertyPattern)
-  | identityRelation (id : DeclarationId) (relation : PropertyPattern)
-  | inputOutput (id : DeclarationId) (input output : PropertyPattern)
-  | ordered (id : DeclarationId) (before after : PropertyPattern) (unit : BoundUnit)
+  | stateInvariant (id : DefinitionId) (state : PropertyPattern)
+  | transitionContract (id : DefinitionId) (precondition postcondition : PropertyPattern)
+  | identityRelation (id : DefinitionId) (relation : PropertyPattern)
+  | inputOutput (id : DefinitionId) (input output : PropertyPattern)
+  | ordered (id : DefinitionId) (before after : PropertyPattern) (unit : BoundUnit)
   | eventuallyWithin
-      (id : DeclarationId)
+      (id : DefinitionId)
       (trigger response : PropertyPattern)
       (bound : TypedBound)
   | quiescentWithin
-      (id : DeclarationId)
+      (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
       (bound : TypedBound)
   deriving BEq, DecidableEq, Repr
 
-def ResolvedPropertyClause.id : ResolvedPropertyClause → DeclarationId
+def ResolvedPropertyClause.id : ResolvedPropertyClause → DefinitionId
   | .stateInvariant id _
   | .transitionContract id _ _
   | .identityRelation id _
@@ -295,10 +295,10 @@ def ResolvedPropertyClause.id : ResolvedPropertyClause → DeclarationId
   | .quiescentWithin id _ _ _ => id
 
 structure CheckedProperty where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat
-  requires : List DeclarationId
+  requires : List DefinitionId
   clauses : List ResolvedPropertyClause
   access : PropertyCapabilityView
   documentation : String
@@ -306,7 +306,7 @@ structure CheckedProperty where
   semanticDigest : String
   deriving BEq, DecidableEq, Repr
 
-private def idLe (left right : DeclarationId) : Bool :=
+private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
 private def capabilityLe (left right : PropertyCapability) : Bool :=
@@ -314,9 +314,9 @@ private def capabilityLe (left right : PropertyCapability) : Bool :=
     (left.id == right.id && decide (left.semanticDigest ≤ right.semanticDigest))
 
 private def meaningLe (left right : MeaningProvision) : Bool :=
-  decide (left.declaration.value < right.declaration.value) ||
-    (left.declaration == right.declaration && decide (left.kind.name < right.kind.name)) ||
-    (left.declaration == right.declaration && left.kind == right.kind &&
+  decide (left.definitionId.value < right.definitionId.value) ||
+    (left.definitionId == right.definitionId && decide (left.kind.name < right.kind.name)) ||
+    (left.definitionId == right.definitionId && left.kind == right.kind &&
       decide (left.semanticDigest ≤ right.semanticDigest))
 
 private def clauseLe (left right : ResolvedPropertyClause) : Bool :=
@@ -328,7 +328,7 @@ private def authoredClauseLe (left right : PropertyClause) : Bool :=
 private def profileLe (left right : PropertyBoundProfile) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
-private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
 
 private def canonicalCapabilities
@@ -338,54 +338,54 @@ private def canonicalCapabilities
 private def canonicalMeanings (meanings : List MeaningProvision) : List MeaningProvision :=
   meanings.mergeSort meaningLe |>.eraseDups
 
-private def sourcePath (source : SemanticSource) : String :=
+private def sourcePath (source : SourceLocation) : String :=
   if source.path == "" then "<unknown>" else source.path
 
 private def propertyError
     (kind : PropertyErrorKind)
-    (owner : DeclarationId)
-    (source : SemanticSource)
+    (owner : DefinitionId)
+    (source : SourceLocation)
     (offendingValue : String)
-    (relatedIdentities : List DeclarationId := []) : PropertyError := {
+    (relatedDefinitionIds : List DefinitionId := []) : PropertyError := {
   kind
-  declarationId := if owner.value == "" then
-    DeclarationId.of "umpire.property.anonymous"
+  definitionId := if owner.value == "" then
+    DefinitionId.of "umpire.property.anonymous"
   else
     owner
   sourcePath := sourcePath source
   offendingValue
-  relatedIdentities := canonicalIds relatedIdentities
+  relatedDefinitionIds := canonicalIds relatedDefinitionIds
 }
 
-private def firstDuplicateId : List DeclarationId → Option DeclarationId
+private def firstDuplicateId : List DefinitionId → Option DefinitionId
   | first :: second :: rest =>
       if first == second then some first else firstDuplicateId (second :: rest)
   | _ => none
 
-private def requireIdentity
-    (owner : DeclarationId)
-    (source : SemanticSource)
-    (id : DeclarationId) : Except PropertyError Unit :=
+private def requireDefinitionId
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (id : DefinitionId) : Except PropertyError Unit :=
   if id.value == "" then
-    .error (propertyError .emptyIdentity owner source "<empty>" [id])
+    .error (propertyError .emptyDefinitionId owner source "<empty>" [id])
   else if !id.isNamespaced then
-    .error (propertyError .invalidIdentity owner source id.value [id])
+    .error (propertyError .invalidDefinitionId owner source id.value [id])
   else
     .ok ()
 
 private def requireUniqueIds
-    (owner : DeclarationId)
-    (source : SemanticSource)
-    (ids : List DeclarationId) : Except PropertyError Unit :=
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (ids : List DefinitionId) : Except PropertyError Unit :=
   match firstDuplicateId (ids.mergeSort idLe) with
   | some duplicate =>
-      .error (propertyError .duplicateIdentity owner source duplicate.value [duplicate])
+      .error (propertyError .duplicateDefinitionId owner source duplicate.value [duplicate])
   | none => .ok ()
 
-private def findDeclaration
+private def findDefinition
     (context : PropertyCheckContext)
-    (id : DeclarationId) : Option DeclarationMetadata :=
-  context.declarations.find? fun declaration => declaration.id == id
+    (id : DefinitionId) : Option DefinitionMetadata :=
+  context.definitions.find? fun declaration => declaration.id == id
 
 private def buildCapabilityView
     (context : PropertyCheckContext)
@@ -393,8 +393,8 @@ private def buildCapabilityView
   requireUniqueIds declaration.id declaration.source declaration.requires
   let required := canonicalIds declaration.requires
   for capabilityId in required do
-    requireIdentity declaration.id declaration.source capabilityId
-    match findDeclaration context capabilityId with
+    requireDefinitionId declaration.id declaration.source capabilityId
+    match findDefinition context capabilityId with
     | none =>
         throw (propertyError .unknownCapability declaration.id declaration.source
           capabilityId.value [capabilityId])
@@ -417,9 +417,9 @@ private def validatePattern
     (owner : PropertyDeclaration)
     (access : PropertyCapabilityView)
     (pattern : PropertyPattern) : Except PropertyError Unit := do
-  requireIdentity owner.id owner.source pattern.reference
-  let expectedKind := pattern.field.declarationKind
-  match findDeclaration context pattern.reference with
+  requireDefinitionId owner.id owner.source pattern.reference
+  let expectedKind := pattern.field.definitionKind
+  match findDefinition context pattern.reference with
   | none =>
       throw (propertyError .unknownReference owner.id owner.source
         pattern.reference.value [pattern.reference])
@@ -430,7 +430,7 @@ private def validatePattern
             ", found " ++ metadata.kind.name)
           [pattern.reference])
   if !(access.meanings.any fun meaning =>
-      meaning.declaration == pattern.reference && meaning.kind == expectedKind) then
+      meaning.definitionId == pattern.reference && meaning.kind == expectedKind) then
     throw (propertyError .undeclaredReference owner.id owner.source
       pattern.reference.value [pattern.reference])
 
@@ -453,7 +453,7 @@ private def resolveBound
   match bound with
   | .exact bound => pure bound
   | .named profileId expectedUnit => do
-      requireIdentity owner.id owner.source profileId
+      requireDefinitionId owner.id owner.source profileId
       match (context.boundProfiles.mergeSort profileLe).find? fun profile => profile.id == profileId with
       | none =>
           throw (propertyError .unknownBoundProfile owner.id owner.source
@@ -481,7 +481,7 @@ private def requirePositionUnit
 
 private def requireField
     (owner : PropertyDeclaration)
-    (clauseId : DeclarationId)
+    (clauseId : DefinitionId)
     (actual : PropertyTraceField)
     (allowed : List PropertyTraceField) : Except PropertyError Unit :=
   if allowed.contains actual then
@@ -495,7 +495,7 @@ private def checkClause
     (owner : PropertyDeclaration)
     (access : PropertyCapabilityView)
     (clause : PropertyClause) : Except PropertyError ResolvedPropertyClause := do
-  requireIdentity owner.id owner.source clause.id
+  requireDefinitionId owner.id owner.source clause.id
   match clause with
   | .stateInvariant id state =>
       validatePattern context owner access state
@@ -544,7 +544,7 @@ private def array (items : List String) : String :=
 private def withoutClosingBrace (value : String) : String :=
   (value.dropEnd 1).toString
 
-private def sourceJson (source : SemanticSource) : String :=
+private def sourceJson (source : SourceLocation) : String :=
   "{\"path\":" ++ quote source.path ++
     ",\"line\":" ++ toString source.line ++
     ",\"column\":" ++ toString source.column ++
@@ -602,24 +602,24 @@ private def capabilityJson (capability : PropertyCapability) : String :=
     ",\"semanticDigest\":" ++ quote capability.semanticDigest ++ "}"
 
 private def meaningJson (meaning : MeaningProvision) : String :=
-  "{\"id\":" ++ quote meaning.declaration.value ++
+  "{\"id\":" ++ quote meaning.definitionId.value ++
     ",\"kind\":" ++ quote meaning.kind.name ++
     ",\"semanticDigest\":" ++ quote meaning.semanticDigest ++ "}"
 
 private def propertySemanticJson
-    (id : DeclarationId)
+    (id : DefinitionId)
     (version : Nat)
-    (requires : List DeclarationId)
+    (requires : List DefinitionId)
     (clauses : List ResolvedPropertyClause)
     (access : PropertyCapabilityView) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
-    ",\"requires\":" ++ array (canonicalIds requires |>.map (quote ∘ DeclarationId.value)) ++
+    ",\"requires\":" ++ array (canonicalIds requires |>.map (quote ∘ DefinitionId.value)) ++
     ",\"capabilities\":" ++
       array (canonicalCapabilities access.capabilities |>.map capabilityJson) ++
     ",\"meanings\":" ++ array (canonicalMeanings access.meanings |>.map meaningJson) ++
     ",\"logicalTimeSource\":" ++
-      (access.logicalTimeSource.map (quote ∘ DeclarationId.value) |>.getD "null") ++
+      (access.logicalTimeSource.map (quote ∘ DefinitionId.value) |>.getD "null") ++
     ",\"clauses\":" ++ array (clauses.mergeSort clauseLe |>.map clauseJson) ++ "}"
 
 def canonicalPropertyJson (property : CheckedProperty) : String :=
@@ -630,11 +630,11 @@ def canonicalPropertyJson (property : CheckedProperty) : String :=
 
 def canonicalPropertyErrorJson (error : PropertyError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
-    ",\"declarationId\":" ++ quote error.declarationId.value ++
+    ",\"definitionId\":" ++ quote error.definitionId.value ++
     ",\"sourcePath\":" ++ quote error.sourcePath ++
     ",\"offendingValue\":" ++ quote error.offendingValue ++
-    ",\"relatedIdentities\":" ++
-      array (canonicalIds error.relatedIdentities |>.map (quote ∘ DeclarationId.value)) ++ "}"
+    ",\"relatedDefinitionIds\":" ++
+      array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
 /-- Check an authored property, expand named bounds, and freeze its capability view before planning. -/
 def checkProperty
@@ -644,7 +644,7 @@ def checkProperty
     | .portable declaration => pure declaration
     | .opaque id source =>
         throw (propertyError .opaqueDeclaration id source id.value [id])
-  requireIdentity declaration.id declaration.source declaration.id
+  requireDefinitionId declaration.id declaration.source declaration.id
   requireUniqueIds declaration.id declaration.source
     (declaration.clauses.map PropertyClause.id)
   requireUniqueIds declaration.id declaration.source
@@ -670,38 +670,38 @@ def checkProperty
   pure { checked with canonicalMetadata := canonicalPropertyJson checked }
 
 structure PropertyTraceStep where
-  priorState : Option SemanticValue
-  selectedAction : Option SemanticValue
-  modelOutcome : Option SemanticValue
-  resultingState : Option SemanticValue
-  observations : List SemanticValue
+  priorState : Option ModelValue
+  selectedAction : Option ModelValue
+  modelOutcome : Option ModelValue
+  resultingState : Option ModelValue
+  observations : List ModelValue
   logicalTime : Option Nat
   deriving BEq, DecidableEq, Repr
 
 /-- The evaluator's input contains only values admitted by the checked capability requirements. -/
 structure PropertyTraceView where
-  initialState : Option SemanticValue
+  initialState : Option ModelValue
   steps : List PropertyTraceStep
   deriving BEq, DecidableEq, Repr
 
 private def PropertyCapabilityView.allows
     (access : PropertyCapabilityView)
-    (value : SemanticValue) : Bool :=
-  access.meanings.any fun meaning => meaning.declaration == value.identity
+    (value : ModelValue) : Bool :=
+  access.meanings.any fun meaning => meaning.definitionId == value.definitionId
 
 private def PropertyCapabilityView.admit
     (access : PropertyCapabilityView)
-    (value : SemanticValue) : Option SemanticValue :=
+    (value : ModelValue) : Option ModelValue :=
   if access.allows value then some value else none
 
 private def logicalTimeOf
-    (source : Option DeclarationId)
-    (observations : List SemanticValue)
+    (source : Option DefinitionId)
+    (observations : List ModelValue)
     (previous : Option Nat) : Option Nat :=
   match source with
   | none => none
   | some id =>
-      match observations.find? fun observation => observation.identity == id with
+      match observations.find? fun observation => observation.definitionId == id with
       | some observation =>
           match observation.value.toNat? with
           | some current =>
@@ -711,9 +711,9 @@ private def logicalTimeOf
 
 private def buildTraceSteps
     (access : PropertyCapabilityView)
-    (priorState : Option SemanticValue)
+    (priorState : Option ModelValue)
     (previousTime : Option Nat) :
-    List (SemanticTraceStep SemanticValue SemanticValue SemanticValue SemanticValue) →
+    List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue) →
       List PropertyTraceStep
   | [] => []
   | step :: rest =>
@@ -731,7 +731,7 @@ private def buildTraceSteps
 
 def CheckedProperty.traceView
     (property : CheckedProperty)
-    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue) :
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
     PropertyTraceView :=
   let initialState := property.access.admit trace.initialState
   {
@@ -740,7 +740,7 @@ def CheckedProperty.traceView
   }
 
 structure PropertyOccurrence where
-  value : SemanticValue
+  value : ModelValue
   transitionPosition : Nat
   selectedActionPosition : Nat
   observationPosition : Nat
@@ -750,7 +750,7 @@ structure PropertyOccurrence where
 private def observationOccurrences
     (pattern : PropertyPattern)
     (transitionPosition selectedActionPosition observationOffset : Nat)
-    (logicalTime : Option Nat) : List SemanticValue → List PropertyOccurrence
+    (logicalTime : Option Nat) : List ModelValue → List PropertyOccurrence
   | [] => []
   | value :: rest =>
       let tail := observationOccurrences pattern transitionPosition selectedActionPosition
@@ -770,7 +770,7 @@ private def optionalOccurrence
     (pattern : PropertyPattern)
     (transitionPosition selectedActionPosition observationPosition : Nat)
     (logicalTime : Option Nat)
-    (value : Option SemanticValue) : List PropertyOccurrence :=
+    (value : Option ModelValue) : List PropertyOccurrence :=
   match value with
   | some value =>
       if pattern.evaluate value then [{
@@ -847,7 +847,7 @@ private def checkedPositions
 
 private def valuesAtField
     (field : PropertyTraceField)
-    (view : PropertyTraceView) : List SemanticValue :=
+    (view : PropertyTraceView) : List ModelValue :=
   let initial := match field with
     | .state => view.initialState.toList
     | _ => []
@@ -862,7 +862,7 @@ private def valuesAtField
 
 private def valuesInStep
     (field : PropertyTraceField)
-    (step : PropertyTraceStep) : List SemanticValue :=
+    (step : PropertyTraceStep) : List ModelValue :=
   match field with
   | .state | .resultingState => step.resultingState.toList
   | .priorState => step.priorState.toList
@@ -889,13 +889,13 @@ private theorem patternHoldsInStep_agrees
 private def evaluateStateInvariant
     (pattern : PropertyPattern)
     (view : PropertyTraceView) : Bool :=
-  let matching := (valuesAtField .state view).filter fun value => value.identity == pattern.reference
+  let matching := (valuesAtField .state view).filter fun value => value.definitionId == pattern.reference
   !matching.isEmpty && matching.all fun value => pattern.constraint.evaluate value.value
 
 private def stateInvariantDenotes
     (pattern : PropertyPattern)
     (view : PropertyTraceView) : Prop :=
-  let matching := (valuesAtField .state view).filter fun value => value.identity == pattern.reference
+  let matching := (valuesAtField .state view).filter fun value => value.definitionId == pattern.reference
   matching ≠ [] ∧ allHolds matching fun value => pattern.constraint.denote value.value
 
 private theorem evaluateStateInvariant_agrees
@@ -903,7 +903,7 @@ private theorem evaluateStateInvariant_agrees
     (view : PropertyTraceView) :
     evaluateStateInvariant pattern view = true ↔ stateInvariantDenotes pattern view := by
   let matching := (valuesAtField .state view).filter fun value =>
-    value.identity == pattern.reference
+    value.definitionId == pattern.reference
   have constraintsAgree :
       matching.all (fun value => pattern.constraint.evaluate value.value) = true ↔
         allHolds matching (fun value => pattern.constraint.denote value.value) :=
@@ -1157,16 +1157,16 @@ structure PropertyTraceSpan where
   deriving BEq, DecidableEq, Ord, Repr
 
 structure PropertyClauseResult where
-  propertyId : DeclarationId
-  clauseId : DeclarationId
+  propertyId : DefinitionId
+  clauseId : DefinitionId
   satisfied : Bool
   traceSpan : Option PropertyTraceSpan
   evaluatedBound : Option TypedBound
-  semanticProvenance : List DeclarationId
+  semanticProvenance : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure PropertyEvaluation where
-  propertyId : DeclarationId
+  propertyId : DefinitionId
   satisfied : Bool
   clauses : List PropertyClauseResult
   deriving BEq, DecidableEq, Repr
@@ -1213,7 +1213,7 @@ private def resultOf
 before any clause interpreter runs. -/
 def evaluateProperty
     (property : CheckedProperty)
-    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue) :
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
     PropertyEvaluation :=
   let view := property.traceView trace
   let clauses := property.clauses.map (resultOf property view)

@@ -21,7 +21,7 @@ example : [
   ] = [some .invalidBound, some .incompatibleStrategy] := by
   native_decide
 
-def exactTrace (outcome : SemanticValue := acceptedValue) : BehaviorTrace := {
+def exactTrace (outcome : ModelValue := acceptedValue) : BehaviorTrace := {
   setup
   trace := {
     initialState := initial

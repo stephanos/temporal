@@ -8,16 +8,16 @@ open Umpire
 open Umpire.TargetTests
 
 private structure ProviderValue where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   contract : CapabilityContract
   meanings : List MeaningProvision
   witnessedLaws : List LawRequirement
   deriving BEq, DecidableEq
 
 private structure ConnectorValue where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat
   semanticDigest : String
   reconciliations : List Reconciliation
@@ -26,10 +26,10 @@ private structure ConnectorValue where
   deriving BEq, DecidableEq
 
 private structure CheckedTargetValue where
-  id : DeclarationId
-  source : SemanticSource
-  declarations : List DeclarationMetadata
-  requiredCapabilities : List DeclarationId
+  id : DefinitionId
+  source : SourceLocation
+  definitions : List DefinitionMetadata
+  requiredCapabilities : List DefinitionId
   providers : List ProviderValue
   connectors : List ConnectorValue
   resolvedSetups : List Unit
@@ -60,7 +60,7 @@ private def checkedTargetValue
     (target : CheckedTarget TestLawStatement Unit Bool Bool Bool Bool) : CheckedTargetValue := {
   id := target.id
   source := target.source
-  declarations := target.declarations
+  definitions := target.definitions
   requiredCapabilities := target.requiredCapabilities
   providers := target.providers.map providerValue
   connectors := target.connectors.map connectorValue
@@ -75,7 +75,7 @@ private def checkedTargetValue
   ]
 }
 
-private def stableSource (path : String) : SemanticSource := {
+private def stableSource (path : String) : SourceLocation := {
   path
   line := 1
   column := 1
@@ -84,28 +84,28 @@ private def stableSource (path : String) : SemanticSource := {
 
 private def stableMetadata
     (value : String)
-    (kind : DeclarationKind)
-    (digest : String := "contract-v1") : DeclarationMetadata := {
-  id := DeclarationId.of value
+    (kind : DefinitionKind)
+    (digest : String := "contract-v1") : DefinitionMetadata := {
+  id := DefinitionId.of value
   kind
   source := stableSource "Umpire/TargetTests.lean"
   contractDigest := digest
 }
 
 private def stableProviderLaw : LawRequirement := {
-  id := DeclarationId.of "umpire.law.provider-sound"
+  id := DefinitionId.of "umpire.law.provider-sound"
   semanticDigest := "provider-sound/v1"
 }
 
 private def stableConnectorLaw : LawRequirement := {
-  id := DeclarationId.of "umpire.law.connector-sound"
+  id := DefinitionId.of "umpire.law.connector-sound"
   semanticDigest := "connector-sound/v1"
 }
 
 private def expectedCheckedTargetValue : CheckedTargetValue := {
-  id := DeclarationId.of "test.target.composed"
+  id := DefinitionId.of "test.target.composed"
   source := stableSource "Test/CompositeSemantic.lean"
-  declarations := [
+  definitions := [
     stableMetadata "test.action.request" .action,
     stableMetadata "test.capability.primary" .capability,
     stableMetadata "test.capability.secondary" .capability,
@@ -120,49 +120,49 @@ private def expectedCheckedTargetValue : CheckedTargetValue := {
     stableMetadata "umpire.law.provider-sound" .law stableProviderLaw.semanticDigest
   ]
   requiredCapabilities := [
-    DeclarationId.of "test.capability.primary",
-    DeclarationId.of "test.capability.secondary"
+    DefinitionId.of "test.capability.primary",
+    DefinitionId.of "test.capability.secondary"
   ]
   providers := [{
-    id := DeclarationId.of "test.provider.primary"
+    id := DefinitionId.of "test.provider.primary"
     source := stableSource "Test/PrimarySemantic.lean"
     contract := {
-      id := DeclarationId.of "test.capability.primary"
+      id := DefinitionId.of "test.capability.primary"
       semanticDigest := "test-primary-capability/v1"
       requiredLaws := [stableProviderLaw]
     }
     meanings := [{
-      declaration := DeclarationId.of "test.relation.shared"
+      definitionId := DefinitionId.of "test.relation.shared"
       kind := .relation
       semanticDigest := "test-primary-shared/v1"
     }]
     witnessedLaws := [stableProviderLaw]
   }, {
-    id := DeclarationId.of "test.provider.secondary"
+    id := DefinitionId.of "test.provider.secondary"
     source := stableSource "Test/SecondarySemantic.lean"
     contract := {
-      id := DeclarationId.of "test.capability.secondary"
+      id := DefinitionId.of "test.capability.secondary"
       semanticDigest := "test-secondary-capability/v1"
       requiredLaws := [stableProviderLaw]
     }
     meanings := [{
-      declaration := DeclarationId.of "test.relation.shared"
+      definitionId := DefinitionId.of "test.relation.shared"
       kind := .relation
       semanticDigest := "test-secondary-shared/v1"
     }]
     witnessedLaws := [stableProviderLaw]
   }]
   connectors := [{
-    id := DeclarationId.of "test.connector.shared"
+    id := DefinitionId.of "test.connector.shared"
     source := stableSource "Test/CompositeSemantic.lean"
     version := 1
     semanticDigest := "test-shared-connector/v1"
     reconciliations := [{
-      declaration := DeclarationId.of "test.relation.shared"
+      definitionId := DefinitionId.of "test.relation.shared"
       kind := .relation
       providers := [
-        DeclarationId.of "test.provider.primary",
-        DeclarationId.of "test.provider.secondary"
+        DefinitionId.of "test.provider.primary",
+        DefinitionId.of "test.provider.secondary"
       ]
       semanticDigest := "test-shared-connector/reconciled-v1"
     }]
@@ -171,7 +171,7 @@ private def expectedCheckedTargetValue : CheckedTargetValue := {
   }]
   resolvedSetups := [()]
   kernelMetadata := {
-    id := DeclarationId.of "test.kernel.transition"
+    id := DefinitionId.of "test.kernel.transition"
     contractDigest := "test-kernel/v1"
     source := stableSource "Umpire/TargetTests.lean"
   }
