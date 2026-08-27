@@ -24,7 +24,7 @@ structure PlannedOccurrence where
 
 structure PortableProperty where
   definitionId : DefinitionId
-  semanticDigest : String
+  behaviorFingerprint : BehaviorFingerprint
   requirements : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
@@ -41,13 +41,13 @@ structure DrivePlan where
   formatVersion : String
   semanticIdentity : String
   queryDefinitionId : DefinitionId
-  querySemanticDigest : String
+  queryBehaviorFingerprint : BehaviorFingerprint
   behaviorDefinitionId : DefinitionId
-  behaviorSemanticDigest : String
+  behaviorFingerprint : BehaviorFingerprint
   targetDefinitionId : DefinitionId
-  targetSemanticDigest : String
+  targetBehaviorFingerprint : BehaviorFingerprint
   kernelDefinitionId : DefinitionId
-  kernelSemanticDigest : String
+  kernelBehaviorFingerprint : BehaviorFingerprint
   bindings : List RoleBinding
   symbolicRoles : List ResourceRole
   semanticPreconditions : List SetupConstraint
@@ -60,11 +60,11 @@ structure DrivePlan where
   selectedVariants : List ModelValue
   requestedFaults : List ModelValue
   capabilityRequirements : List DefinitionId
-  expandedBounds : QueryBounds
+  expandedLimits : QueryLimits
   checkpoints : List ObservationCheckpoint
   selectionReason : SelectionReason
   explored : ExploredCounts
-  omissions : List String
+  knownGaps : List KnownGap
   provenance : ArtifactProvenance
   deriving BEq, DecidableEq, Repr
 
@@ -72,22 +72,22 @@ structure DrivePlan where
 structure ExperimentSpec where
   formatVersion : String
   semanticIdentity : String
-  querySemanticDigest : String
+  queryBehaviorFingerprint : BehaviorFingerprint
   plan : DrivePlan
   properties : List PortableProperty
   observationRequirements : List DefinitionId
   provenance : ArtifactProvenance
   deriving BEq, DecidableEq, Repr
 
-def canonicalPlannerOmissions : List String := [
-  "artifact-migrations",
-  "artifact-reading",
-  "evidence-qualification",
-  "execution-evidence",
-  "promotion",
-  "runtime-scheduler-order",
-  "runtime-storage-order",
-  "runtime-transport-order"
+def canonicalPlannerKnownGaps : List KnownGap := [
+  { kind := .input, code := DefinitionId.of "umpire.known-gap.execution-evidence" },
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.artifact-migrations" },
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.artifact-reading" },
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.evidence-evaluation" },
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-scheduler-order" },
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-storage-order" },
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-transport-order" },
+  { kind := .claim, code := DefinitionId.of "umpire.known-gap.promotion" }
 ]
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
@@ -146,15 +146,15 @@ private def preconditionJson (constraint : SetupConstraint) : String :=
     ",\"left\":" ++ operandJson constraint.left ++
     ",\"right\":" ++ operandJson constraint.right ++ "}"
 
-private def typedBoundJson (bound : TypedBound) : String :=
+private def limitJson (bound : Limit) : String :=
   "{\"value\":" ++ toString bound.value ++
     ",\"unit\":" ++ quote bound.unit.name ++ "}"
 
-private def boundsJson (bounds : QueryBounds) : String :=
-  "{\"behavior\":{\"transitions\":" ++ typedBoundJson bounds.behavior.transitions ++
-    ",\"selectedActions\":" ++ typedBoundJson bounds.behavior.selectedActions ++ "}" ++
-    ",\"search\":{\"value\":" ++ toString bounds.search.value ++
-    ",\"unit\":" ++ quote bounds.search.unit.name ++ "}}"
+private def limitsJson (limits : QueryLimits) : String :=
+  "{\"behavior\":{\"transitions\":" ++ limitJson limits.behavior.transitions ++
+    ",\"selectedActions\":" ++ limitJson limits.behavior.selectedActions ++ "}" ++
+    ",\"search\":{\"value\":" ++ toString limits.search.value ++
+    ",\"unit\":" ++ quote limits.search.unit.name ++ "}}"
 
 private def exploredJson (explored : ExploredCounts) : String :=
   "{\"setups\":" ++ toString explored.setups ++
@@ -186,20 +186,20 @@ private def provenanceJson (provenance : ArtifactProvenance) : String :=
 
 private def propertyJson (property : PortableProperty) : String :=
   "{\"identity\":" ++ quote property.definitionId.value ++
-    ",\"semanticDigest\":" ++ quote property.semanticDigest ++
+    ",\"behaviorFingerprint\":" ++ quote property.behaviorFingerprint.render ++
     ",\"requirements\":" ++
       array (canonicalIds property.requirements |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
 private def drivePlanSemanticJson (plan : DrivePlan) : String :=
   "{\"formatVersion\":" ++ quote plan.formatVersion ++
     ",\"queryIdentity\":" ++ quote plan.queryDefinitionId.value ++
-    ",\"querySemanticDigest\":" ++ quote plan.querySemanticDigest ++
+    ",\"querySemanticDigest\":" ++ quote plan.queryBehaviorFingerprint.render ++
     ",\"behaviorIdentity\":" ++ quote plan.behaviorDefinitionId.value ++
-    ",\"behaviorSemanticDigest\":" ++ quote plan.behaviorSemanticDigest ++
+    ",\"behaviorSemanticDigest\":" ++ quote plan.behaviorFingerprint.render ++
     ",\"targetIdentity\":" ++ quote plan.targetDefinitionId.value ++
-    ",\"targetSemanticDigest\":" ++ quote plan.targetSemanticDigest ++
+    ",\"targetSemanticDigest\":" ++ quote plan.targetBehaviorFingerprint.render ++
     ",\"kernelIdentity\":" ++ quote plan.kernelDefinitionId.value ++
-    ",\"kernelSemanticDigest\":" ++ quote plan.kernelSemanticDigest ++
+    ",\"kernelSemanticDigest\":" ++ quote plan.kernelBehaviorFingerprint.render ++
     ",\"bindings\":" ++ array (plan.bindings.mergeSort bindingLe |>.map bindingJson) ++
     ",\"symbolicRoles\":" ++ array (plan.symbolicRoles.map roleJson) ++
     ",\"semanticPreconditions\":" ++ array (plan.semanticPreconditions.map preconditionJson) ++
@@ -213,11 +213,11 @@ private def drivePlanSemanticJson (plan : DrivePlan) : String :=
     ",\"requestedFaults\":" ++ array (plan.requestedFaults.map valueJson) ++
     ",\"capabilityRequirements\":" ++
       array (canonicalIds plan.capabilityRequirements |>.map (quote ∘ DefinitionId.value)) ++
-    ",\"expandedBounds\":" ++ boundsJson plan.expandedBounds ++
+    ",\"expandedBounds\":" ++ limitsJson plan.expandedLimits ++
     ",\"checkpoints\":" ++ array (plan.checkpoints.map checkpointJson) ++
     ",\"selectionReason\":" ++ quote plan.selectionReason.name ++
     ",\"explored\":" ++ exploredJson plan.explored ++
-    ",\"omissions\":" ++ array (plan.omissions.mergeSort |>.eraseDups |>.map quote) ++ "}"
+    ",\"omissions\":" ++ array (plan.knownGaps.map fun gap => quote gap.code.value) ++ "}"
 
 def canonicalDrivePlanJson (plan : DrivePlan) : String :=
   let semantic := drivePlanSemanticJson plan
@@ -227,7 +227,7 @@ def canonicalDrivePlanJson (plan : DrivePlan) : String :=
 
 private def experimentSpecSemanticJson (spec : ExperimentSpec) : String :=
   "{\"formatVersion\":" ++ quote spec.formatVersion ++
-    ",\"querySemanticDigest\":" ++ quote spec.querySemanticDigest ++
+    ",\"querySemanticDigest\":" ++ quote spec.queryBehaviorFingerprint.render ++
     ",\"planSemanticIdentity\":" ++ quote spec.plan.semanticIdentity ++
     ",\"plan\":" ++ drivePlanSemanticJson spec.plan ++
     ",\"properties\":" ++ array (spec.properties.mergeSort propertyLe |>.map propertyJson) ++
@@ -256,7 +256,7 @@ private def plannedOccurrence
 
 private def propertyReference (property : CheckedProperty) : PortableProperty := {
   definitionId := property.id
-  semanticDigest := property.semanticDigest
+  behaviorFingerprint := property.behaviorFingerprint
   requirements := canonicalIds property.requires
 }
 
@@ -301,13 +301,13 @@ def artifactOfSelection
     formatVersion := "umpire-drive-plan/v1"
     semanticIdentity := ""
     queryDefinitionId := query.id
-    querySemanticDigest := query.semanticDigest
+    queryBehaviorFingerprint := query.behaviorFingerprint
     behaviorDefinitionId := query.behavior.id
-    behaviorSemanticDigest := query.behavior.semanticDigest
+    behaviorFingerprint := query.behavior.behaviorFingerprint
     targetDefinitionId := query.target.id
-    targetSemanticDigest := query.target.semanticDigest
+    targetBehaviorFingerprint := query.target.behaviorFingerprint
     kernelDefinitionId := query.target.kernel.metadata.id
-    kernelSemanticDigest := query.target.kernel.metadata.contractDigest
+    kernelBehaviorFingerprint := query.target.behaviorFingerprint
     bindings := trace.setup.mergeSort bindingLe
     symbolicRoles := query.behavior.roles.filter fun role =>
       !(trace.setup.any fun binding => binding.role == role.id)
@@ -323,16 +323,16 @@ def artifactOfSelection
     capabilityRequirements := canonicalIds (query.target.requiredCapabilities ++
       query.behavior.requires ++
       query.form.properties.flatMap CheckedProperty.requires)
-    expandedBounds := query.bounds
+    expandedLimits := query.limits
     checkpoints
     selectionReason := reason
     explored
-    omissions := canonicalPlannerOmissions
+    knownGaps := canonicalPlannerKnownGaps
     provenance
   }
   let plan := {
     planWithoutIdentity with
-    semanticIdentity := semanticDigestOf (drivePlanSemanticJson planWithoutIdentity)
+    semanticIdentity := (behaviorFingerprintOf (drivePlanSemanticJson planWithoutIdentity)).render
   }
   let properties := query.form.properties.map propertyReference |>.mergeSort propertyLe
   let observationRequirements := canonicalIds
@@ -340,7 +340,7 @@ def artifactOfSelection
   let specWithoutIdentity : ExperimentSpec := {
     formatVersion := "umpire-experiment/v1"
     semanticIdentity := ""
-    querySemanticDigest := query.semanticDigest
+    queryBehaviorFingerprint := query.behaviorFingerprint
     plan
     properties
     observationRequirements
@@ -348,7 +348,7 @@ def artifactOfSelection
   }
   {
     specWithoutIdentity with
-    semanticIdentity := semanticDigestOf (experimentSpecSemanticJson specWithoutIdentity)
+    semanticIdentity := (behaviorFingerprintOf (experimentSpecSemanticJson specWithoutIdentity)).render
   }
 
 end Umpire

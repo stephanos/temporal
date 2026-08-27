@@ -51,28 +51,29 @@ def step : OperationState → OperationEvent → Option OperationState
   | _, _ => none
 
 /-- The provider law ties the teaching surface to the authoritative Nexus lifecycle. -/
-def LawStatement (lawId : DefinitionId) : Prop :=
-  lawId = lifecycleLawId ∧
+def LawStatement (law : LawDefinition) : Prop :=
+  law.id = lifecycleLawId ∧
+    law.body = "temporal-nexus-basic-lifecycle-authoritative-step/v2" ∧
     step .scheduled .start = some .started ∧
     step .started .cancel = some .canceled ∧
     step .started .succeed = some .succeeded
 
-def lifecycleLaw : LawRequirement := {
+def lifecycleLaw : LawDefinition := {
   id := lifecycleLawId
-  semanticDigest := "temporal-nexus-basic-lifecycle-authoritative-step/v2"
+  body := "temporal-nexus-basic-lifecycle-authoritative-step/v2"
 }
 
-theorem lifecycleLawProof : LawStatement lifecycleLaw.id := by
-  exact ⟨rfl, rfl, rfl, rfl⟩
+theorem lifecycleLawProof : LawStatement lifecycleLaw := by
+  exact ⟨rfl, rfl, rfl, rfl, rfl⟩
 
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (contractDigest : String) : DefinitionMetadata := {
+    (canonicalBehavior : String) : DefinitionMetadata := {
   id := definitionId
   kind
   source
-  contractDigest
+  canonicalBehavior
 }
 
 def scheduledState : ModelValue := { definitionId := operationStateId, value := "scheduled" }
@@ -236,11 +237,29 @@ theorem step_action_exposed
       · exact .inr (.inr isSuccess)
       · simp [stepResults, stepResult?, lifecycleEvent?, isStart, isCancel, isSuccess] at member
 
+theorem step_result_exposed
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (member : result ∈ stepResults state action) :
+    result = startedResult ∨ result = canceledResult ∨ result = succeededResult := by
+  by_cases scheduled : state = scheduledState
+  all_goals by_cases started : state = startedState
+  all_goals by_cases canceled : state = canceledState
+  all_goals by_cases succeeded : state = succeededState
+  all_goals by_cases start : action = startAction
+  all_goals by_cases cancel : action = cancelAction
+  all_goals by_cases reportSuccess : action = reportSuccessAction
+  all_goals simp_all [stepResults, stepResult?, lifecycleState?, lifecycleEvent?,
+    transitionResult?, step, scheduledState, startedState, canceledState, succeededState,
+    startAction, cancelAction, reportSuccessAction]
+
+def roleAssignments : List (List RoleBinding) := [scheduledSetup, startedSetup]
+def actionDomain : List ModelValue := [cancelAction, startAction, reportSuccessAction]
+
 def transitionKernel : TransitionKernel
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
-    contractDigest := "temporal-nexus-basic-lifecycle-kernel/v2"
     source
   }
   initialStates
@@ -251,6 +270,72 @@ def transitionKernel : TransitionKernel
   authoritativeStep
   stepSound := stepResults_sound
   stepComplete := stepResults_complete
+  behaviorDomain := .complete {
+    setups := roleAssignments
+    states := [scheduledState, startedState, canceledState, succeededState]
+    actions := actionDomain
+    outcomes := [startedOutcome, canceledOutcome, succeededOutcome]
+    observations := [startedObservation, canceledObservation, succeededObservation]
+    encodeSetup := fun bindings => String.intercalate "|" (bindings.map fun binding =>
+      binding.role.value ++ "=" ++ binding.value.definitionId.value ++ ":" ++ binding.value.value)
+    encodeState := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    setupCoverage := by
+      intro setup state member
+      by_cases scheduled : setup = scheduledSetup
+      · simp [roleAssignments, scheduled]
+      · by_cases started : setup = startedSetup
+        · simp [roleAssignments, started]
+        · simp [initialStates, initialState?, scheduled, started] at member
+    initialStateCoverage := by
+      intro setup state member
+      by_cases scheduled : setup = scheduledSetup
+      · simp [initialStates, initialState?, scheduled] at member
+        simp [member]
+      · by_cases started : setup = startedSetup
+        · subst setup
+          simp [initialStates, initialState?, scheduledSetup, startedSetup,
+            scheduledState, startedState] at member
+          simp [member, scheduledState, startedState, canceledState, succeededState]
+        · simp [initialStates, initialState?, scheduled, started] at member
+    transitionSourceCoverage := by
+      intro state action result member
+      by_cases scheduled : state = scheduledState
+      · simp [scheduled]
+      · by_cases started : state = startedState
+        · simp [started]
+        · by_cases canceled : state = canceledState
+          · subst state
+            simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+              step, scheduledState, startedState, canceledState] at member
+          · by_cases succeeded : state = succeededState
+            · subst state
+              simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+                step, scheduledState, startedState, canceledState, succeededState] at member
+            · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+                step, scheduled, started, canceled, succeeded] at member
+    actionCoverage := by
+      intro state action result member
+      simpa [actionDomain] using step_action_exposed state action result member
+    resultingStateCoverage := by
+      intro state action result member
+      rcases step_result_exposed state action result member with rfl | rfl | rfl <;>
+        simp [startedResult, canceledResult, succeededResult]
+    outcomeCoverage := by
+      intro state action result member
+      rcases step_result_exposed state action result member with rfl | rfl | rfl <;>
+        simp [startedResult, canceledResult, succeededResult]
+    observationCoverage := by
+      intro state action result observation member observationMember
+      rcases step_result_exposed state action result member with rfl | rfl | rfl
+      · exact List.mem_cons.mpr (.inl <| by simpa [startedResult] using observationMember)
+      · exact List.mem_cons.mpr (.inr <| List.mem_cons.mpr (.inl <|
+          by simpa [canceledResult] using observationMember))
+      · exact List.mem_cons.mpr (.inr <| List.mem_cons.mpr (.inr <|
+          List.mem_singleton.mpr <| by simpa [succeededResult] using observationMember))
+  }
 }
 
 def lifecycleProvider : CapabilityProvider LawStatement := {
@@ -258,24 +343,24 @@ def lifecycleProvider : CapabilityProvider LawStatement := {
   source
   contract := {
     id := lifecycleCapabilityId
-    semanticDigest := "temporal-nexus-basic-lifecycle/v2"
+    canonicalBehavior := "temporal-nexus-basic-lifecycle/v2"
     requiredLaws := [lifecycleLaw]
   }
   meanings := [
     { definitionId := operationStateId, kind := .state,
-      semanticDigest := "temporal-nexus-basic-lifecycle-state/v2" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-state/v2" },
     { definitionId := startActionId, kind := .action,
-      semanticDigest := "temporal-nexus-basic-lifecycle-start/v1" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-start/v1" },
     { definitionId := cancelActionId, kind := .action,
-      semanticDigest := "temporal-nexus-basic-lifecycle-cancel/v1" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-cancel/v1" },
     { definitionId := reportSuccessActionId, kind := .action,
-      semanticDigest := "temporal-nexus-basic-lifecycle-report-success/v1" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-report-success/v1" },
     { definitionId := transitionOutcomeId, kind := .outcome,
-      semanticDigest := "temporal-nexus-basic-lifecycle-outcome/v2" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-outcome/v2" },
     { definitionId := lifecycleObservationId, kind := .observation,
-      semanticDigest := "temporal-nexus-basic-lifecycle-observation/v2" }
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-observation/v2" }
   ]
-  lawWitnesses := [{ requirement := lifecycleLaw, proof := lifecycleLawProof }]
+  lawWitnesses := [{ definition := lifecycleLaw, proof := lifecycleLawProof }]
 }
 
 def definitions : List DefinitionMetadata := [
@@ -283,7 +368,7 @@ def definitions : List DefinitionMetadata := [
   metadata kernelId .kernel "temporal-nexus-basic-lifecycle-kernel/v2",
   metadata lifecycleCapabilityId .capability "temporal-nexus-basic-lifecycle/v2",
   metadata lifecycleProviderId .provider "temporal-nexus-basic-lifecycle-provider/v2",
-  metadata lifecycleLawId .law lifecycleLaw.semanticDigest,
+  metadata lifecycleLawId .law lifecycleLaw.body,
   metadata operationStateId .state "temporal-nexus-basic-lifecycle-state/v2",
   metadata startActionId .action "temporal-nexus-basic-lifecycle-start/v1",
   metadata cancelActionId .action "temporal-nexus-basic-lifecycle-cancel/v1",
@@ -292,13 +377,8 @@ def definitions : List DefinitionMetadata := [
   metadata lifecycleObservationId .observation "temporal-nexus-basic-lifecycle-observation/v2"
 ]
 
-def roleAssignments : List (List RoleBinding) := [scheduledSetup, startedSetup]
-def actionDomain : List ModelValue := [cancelAction, startAction, reportSuccessAction]
-
 def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
   actions := actionDomain
-  roleDomainDigest := "temporal-nexus-basic-lifecycle-role-domain/v1"
-  actionDomainDigest := "temporal-nexus-basic-lifecycle-action-domain/v2"
   actionSound := by
     intro action member
     simp [actionDomain] at member
@@ -365,7 +445,7 @@ theorem target_started_reportSuccess_authoritative :
     step, scheduledState, startedState, startAction, cancelAction,
     reportSuccessAction]
 
-def bounds : QueryBounds := {
+def limits : QueryLimits := {
   behavior := {
     transitions := { value := 1, unit := .semanticTransitions }
     selectedActions := { value := 1, unit := .selectedActions }
@@ -376,7 +456,7 @@ def bounds : QueryBounds := {
 def policy : PlannerPolicy := {
   strategy := .shortest
   seed := 29
-  tieBreak := .semanticIdentity
+  tieBreak := .definitionId
 }
 
 def queryContext : QueryCheckContext LawStatement := .ofTarget target

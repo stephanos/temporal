@@ -1,6 +1,6 @@
 import Umpire.Target.Tests.Compatibility.CheckedValue
 import Umpire.Target.Tests.Compatibility.CanonicalMetadata
-import Umpire.Target.Tests.Compatibility.SemanticIdentity
+import Umpire.Target.Tests.Compatibility.BehaviorFingerprint
 import Umpire.Target.Tests.Compatibility.TypedError
 
 /-!

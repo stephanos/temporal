@@ -1,6 +1,6 @@
 import Umpire.Behavior.Tests.Fixtures
 
-/-! Canonical ordering, symmetric setup, and semantic-digest sensitivity checks. -/
+/-! Canonical ordering, symmetric setup, and Behavior Fingerprint sensitivity checks. -/
 
 namespace Umpire.BehaviorTests
 
@@ -62,8 +62,8 @@ def reorderedCanonicalDeclaration : BehaviorDeclaration := {
 def canonicalOf (declaration : BehaviorDeclaration) : Option String :=
   (checkBehavior context declaration).toOption.map canonicalBehaviorJson
 
-def digestOf (declaration : BehaviorDeclaration) : Option String :=
-  (checkBehavior context declaration).toOption.map CheckedBehavior.semanticDigest
+def fingerprintOf (declaration : BehaviorDeclaration) : Option BehaviorFingerprint :=
+  (checkBehavior context declaration).toOption.map CheckedBehavior.behaviorFingerprint
 
 example : canonicalOf canonicalDeclaration = canonicalOf reorderedCanonicalDeclaration := by
   native_decide
@@ -108,13 +108,14 @@ def traceMutation : BehaviorDeclaration := {
 }
 
 example : [
-    digestOf setupMutation,
-    digestOf actionMutation,
-    digestOf occurrenceMutation,
-    digestOf orderMutation,
-    digestOf boundMutation,
-    digestOf traceMutation
-  ].all (fun digest => digest.isSome && digest != digestOf constrainedDeclaration) := by
+    fingerprintOf setupMutation,
+    fingerprintOf actionMutation,
+    fingerprintOf occurrenceMutation,
+    fingerprintOf orderMutation,
+    fingerprintOf boundMutation,
+    fingerprintOf traceMutation
+  ].all (fun fingerprint =>
+    fingerprint.isSome && fingerprint != fingerprintOf constrainedDeclaration) := by
   native_decide
 
 end Umpire.BehaviorTests

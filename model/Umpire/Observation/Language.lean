@@ -199,7 +199,7 @@ private def resolvedTargetMeanings
     | [] => []
     | first :: _ =>
         if candidates.all fun item =>
-            item.meaning.semanticDigest == first.meaning.semanticDigest then
+            item.meaning.canonicalBehavior == first.meaning.canonicalBehavior then
           [first.meaning]
         else
           let providers := canonicalProviderIds (candidates.map ProvidedObservationMeaning.provider)
@@ -209,7 +209,7 @@ private def resolvedTargetMeanings
           | some reconciliation => [{
               definitionId := reconciliation.definitionId
               kind := reconciliation.kind
-              semanticDigest := reconciliation.semanticDigest
+              canonicalBehavior := reconciliation.canonicalBehavior
             }]
           | none => []
 
@@ -410,7 +410,7 @@ structure CheckedObservationPlan where
   meanings : List MeaningProvision
   documentation : String
   canonicalMetadata : String
-  semanticDigest : String
+  behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
@@ -603,7 +603,7 @@ private def checkedBindingJson (binding : CheckedObservationBinding) : String :=
 private def meaningJson (meaning : MeaningProvision) : String :=
   "{\"id\":" ++ quote meaning.definitionId.value ++
     ",\"kind\":" ++ quote meaning.kind.name ++
-    ",\"semanticDigest\":" ++ quote meaning.semanticDigest ++ "}"
+    ",\"canonicalBehavior\":" ++ quote meaning.canonicalBehavior ++ "}"
 
 private def checkedRuleJson (rule : CheckedObservationRule) : String :=
   "{\"id\":" ++ quote rule.id.value ++
@@ -664,7 +664,7 @@ def canonicalObservationPlanJson (plan : CheckedObservationPlan) : String :=
 
 /-- Whether a checked plan still carries the canonical identity established by compilation. -/
 def CheckedObservationPlan.hasCanonicalIdentity (plan : CheckedObservationPlan) : Bool :=
-  plan.semanticDigest == semanticDigestOf (planSemanticJson plan.id plan.version plan.profile
+  plan.behaviorFingerprint == behaviorFingerprintOf (planSemanticJson plan.id plan.version plan.profile
     plan.digestPolicies plan.bindings plan.rules plan.ordering plan.closures plan.dispositions
     plan.evidenceBound plan.meanings) &&
   plan.canonicalMetadata == canonicalObservationPlanJson plan
@@ -1072,7 +1072,7 @@ def checkObservation
     meanings
     documentation := declaration.documentation
     canonicalMetadata := ""
-    semanticDigest := semanticDigestOf semantic
+    behaviorFingerprint := behaviorFingerprintOf semantic
   }
   pure { checked with canonicalMetadata := canonicalObservationPlanJson checked }
 

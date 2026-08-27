@@ -87,8 +87,8 @@ def focusedClauseResult : Option PropertyClauseResult := do
   let evaluation ← evaluationOf portableProperty positiveTrace
   evaluation.clauses.find? fun result => result.clauseId == honoredDelivery.id
 
-example : focusedClauseResult.map PropertyClauseResult.evaluatedBound =
-    some (some cancelBudget.bound) := by
+example : focusedClauseResult.map PropertyClauseResult.evaluatedLimit =
+    some (some cancelBudget.limit) := by
   native_decide
 
 example : focusedClauseResult.map (fun result =>

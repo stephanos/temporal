@@ -134,7 +134,7 @@ structure ConfigInterpretation (α : Type) where
   expectedSchema : ValueSchema
   expectedDefault : SettingDefault
   opaqueReplacement : Option OpaqueDefaultReplacement := none
-  semanticDigest : String
+  behaviorFingerprint : BehaviorFingerprint
   decode : CanonicalValue → Except String α
 
 /-- The unchecked declaration of one typed setting use at an exact lookup context. -/
@@ -194,8 +194,7 @@ private def ConfigUse.matchesSetting (use : ConfigUse α) (setting : Setting) : 
     use.interpretation.key == setting.key &&
     use.interpretation.expectedSettingIdentity == setting.identity &&
     use.interpretation.expectedSchema == setting.schema &&
-    use.interpretation.expectedDefault == setting.defaultValue &&
-    use.interpretation.semanticDigest != ""
+    use.interpretation.expectedDefault == setting.defaultValue
 
 /-- Return the exact lookup context validated for a checked use. -/
 def ConfigUse.context (use : ConfigUse α) : ExactConstraints :=
@@ -227,7 +226,7 @@ structure ConfigUseDefinitionMetadata where
   contextPolicy : PrecedencePolicy
   samplingPoint : SamplingPoint
   changeEffect : ChangeEffect
-  interpretationDigest : String
+  interpretationFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 /-- Return the stable metadata sealed into a checked owner definition. -/
@@ -240,7 +239,7 @@ def CheckedConfigUseDefinition.metadata
   contextPolicy := definition.payload.contextPolicy
   samplingPoint := definition.payload.template.samplingPoint
   changeEffect := definition.payload.template.changeEffect
-  interpretationDigest := definition.payload.template.interpretation.semanticDigest
+  interpretationFingerprint := definition.payload.template.interpretation.behaviorFingerprint
 }
 
 /--
@@ -327,7 +326,7 @@ structure ResolvedEntry where
   context : ExactConstraints
   catalogDigest : String
   settingDigest : String
-  interpretationDigest : String
+  interpretationFingerprint : BehaviorFingerprint
   samplingPoint : SamplingPoint
   changeEffect : ChangeEffect
   deriving BEq, DecidableEq, Repr
@@ -335,7 +334,7 @@ structure ResolvedEntry where
 private def ResolvedEntry.matchesUse (entry : ResolvedEntry) (use : ConfigUse α) : Bool :=
   entry.key == use.setting.key &&
     entry.settingDigest == use.setting.identity &&
-    entry.interpretationDigest == use.interpretation.semanticDigest &&
+    entry.interpretationFingerprint == use.interpretation.behaviorFingerprint &&
     entry.context == use.context &&
     entry.samplingPoint == use.samplingPoint &&
     entry.changeEffect == use.changeEffect &&
@@ -584,7 +583,7 @@ private def checkConfigUseInCatalog
   let interpretation ← match request.interpretation with
     | none => throw (configError .missingInterpretation request.id request.key request.key)
     | some interpretation => pure interpretation
-  if interpretation.key != request.key || interpretation.semanticDigest == "" then
+  if interpretation.key != request.key then
     throw (configError .incompatibleInterpretation request.id request.key interpretation.key)
   if interpretation.expectedSchema != setting.schema then
     throw (configError .schemaMismatch request.id request.key (reprStr setting.schema))
@@ -916,7 +915,7 @@ private def resolveUse
       context := use.context
       catalogDigest := Temporal.DynamicConfig.Settings.catalogIdentity
       settingDigest := use.setting.identity
-      interpretationDigest := use.interpretation.semanticDigest
+      interpretationFingerprint := use.interpretation.behaviorFingerprint
       samplingPoint := use.samplingPoint
       changeEffect := use.changeEffect
     }

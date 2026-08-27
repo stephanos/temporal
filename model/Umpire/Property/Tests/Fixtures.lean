@@ -19,7 +19,7 @@ def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
   id := id value
   kind
   source
-  contractDigest := value ++ "/v1"
+  canonicalBehavior := value ++ "/v1"
 }
 
 def cancellationCapability : DefinitionId := id "test.capability.cancellation"
@@ -56,7 +56,7 @@ def meaning
     (kind : DefinitionKind) : MeaningProvision := {
   definitionId
   kind
-  semanticDigest := definitionId.value ++ "/meaning-v1"
+  canonicalBehavior := definitionId.value ++ "/meaning-v1"
 }
 
 def cancellationMeanings : List MeaningProvision := [
@@ -71,22 +71,22 @@ def cancellationMeanings : List MeaningProvision := [
   meaning ownsOperation .relation
 ]
 
-def cancelBudget : PropertyBoundProfile := {
-  id := id "test.bound.cancel-budget"
+def cancelBudget : PropertyLimitProfile := {
+  id := id "test.limit.cancel-budget"
   source
-  bound := { value := 2, unit := .observationPositions }
+  limit := { value := 2, unit := .observationPositions }
 }
 
 def context : PropertyCheckContext := {
   definitions
   providers := [
-    { id := cancellationCapability, version := 1, semanticDigest := "test-cancellation/v1" },
-    { id := hiddenCapability, version := 1, semanticDigest := "test-hidden/v1" }
+    { id := cancellationCapability, version := 1, canonicalBehavior := "test-cancellation/v1" },
+    { id := hiddenCapability, version := 1, canonicalBehavior := "test-hidden/v1" }
   ]
   meanings :=
     cancellationMeanings.map (fun item => (cancellationCapability, item)) ++
       [(hiddenCapability, meaning hiddenObservation .observation)]
-  boundProfiles := [cancelBudget]
+  limitProfiles := [cancelBudget]
 }
 
 def pattern

@@ -702,7 +702,7 @@ private def derivationFor
   coordinate
   mappingId := plan.id
   mappingVersion := plan.version
-  mappingDigest := plan.semanticDigest
+  mappingDigest := plan.behaviorFingerprint.render
   profileId := plan.profile.id
   profileVersion := plan.profile.version
   evidenceIdentities := [emission.record.id]
@@ -712,7 +712,7 @@ private def derivationFor
   closureSupport := bundle.closures.mergeSort closureLe
   appliedDispositions := emission.dispositions
   appliedBound := plan.evidenceBound
-  meaningDigest := emission.rule.meaning.semanticDigest
+  meaningDigest := emission.rule.meaning.canonicalBehavior
 }
 
 private def singleEmission
@@ -742,9 +742,9 @@ private def qualifiedTraceId
     (evidenceIdentities : List DefinitionId)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
     (derivations : List SemanticDerivation) : String :=
-  semanticDigestOf <|
+  (behaviorFingerprintOf <|
     mappingDigest ++ ":" ++ reprStr evidenceIdentities ++ ":" ++ reprStr trace ++
-      ":" ++ reprStr derivations
+      ":" ++ reprStr derivations).render
 
 private def qualifyChecked
     (plan : CheckedObservationPlan)
@@ -831,11 +831,11 @@ private def qualifyChecked
   }
   let evidenceIdentities := records.map SyntheticEvidenceRecord.id
   let qualified : QualifiedTrace := {
-    traceId := qualifiedTraceId plan.semanticDigest evidenceIdentities trace derivations
+    traceId := qualifiedTraceId plan.behaviorFingerprint.render evidenceIdentities trace derivations
     checkedPlan := plan
     mappingId := plan.id
     mappingVersion := plan.version
-    mappingDigest := plan.semanticDigest
+    mappingDigest := plan.behaviorFingerprint.render
     source := plan.source
     profileId := plan.profile.id
     profileVersion := plan.profile.version
@@ -1176,7 +1176,7 @@ private def validateCheckedProvenance
   if rule.output != value.definitionId ||
       rule.outputKind != coordinateKind derivation.coordinate ||
       computedValue != .text value.value || !conditionHolds ||
-      rule.meaning.semanticDigest != derivation.meaningDigest ||
+      rule.meaning.canonicalBehavior != derivation.meaningDigest ||
       derivation.bindingIds != expectedBindings ||
       actualReferences != expectedReferences then
     throw {
@@ -1190,7 +1190,7 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
   let plan := trace.checkedPlan
   if !plan.hasCanonicalIdentity ||
       trace.mappingId != plan.id || trace.mappingVersion != plan.version ||
-      trace.mappingDigest != plan.semanticDigest || trace.source != plan.source ||
+      trace.mappingDigest != plan.behaviorFingerprint.render || trace.source != plan.source ||
       trace.profileId != plan.profile.id || trace.profileVersion != plan.profile.version ||
       trace.vocabulary != plan.meanings || trace.dispositions != plan.dispositions ||
       trace.appliedBound != plan.evidenceBound then
@@ -1214,7 +1214,7 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
         derivation.appliedBound != trace.appliedBound ||
         derivation.evidenceIdentities.isEmpty ||
         derivation.evidenceIdentities.any (fun id => !trace.evidenceIdentities.contains id) ||
-        !(trace.vocabulary.any fun meaning => meaning.semanticDigest == derivation.meaningDigest) then
+        !(trace.vocabulary.any fun meaning => meaning.canonicalBehavior == derivation.meaningDigest) then
       throw {
         kind := .inconsistentDerivation
         planId := trace.mappingId

@@ -22,8 +22,8 @@ example : source = {
     flipPropertyId.value = "switch.property.flip-turns-on" ∧
     exactActionBehaviorId.value = "switch.behavior.exact-action" ∧
     exactActionQueryId.value = "switch.query.exact-action" ∧
-    flipLaw.semanticDigest = "switch-flip-preserves-domain-law/v1" ∧
-    transitionKernel.metadata.contractDigest = "switch-two-state-kernel/v1" := by
+    flipLaw.body = "switch-flip-preserves-domain-law/v1" ∧
+    transitionKernel.metadata.id = kernelId := by
   native_decide
 
 example : (checkTarget targetAuthoring).isOk = true := by
@@ -40,16 +40,18 @@ example : target.requiredCapabilities = [switchCapabilityId] ∧
   native_decide
 
 example : exactActionQuery.completeness.map (fun evidence =>
-    (evidence.roleDomainDigest, evidence.actionDomainDigest)) =
-    some ("switch-role-domain/v1", "switch-action-domain/v1") := by
+    (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
+    some (
+      behaviorFingerprintOf <| "query-role-domain/v1\n" ++
+        String.intercalate "\u001f" target.behaviorDescription.setups,
+      behaviorFingerprintOf <| "query-action-domain/v1\n" ++
+        String.intercalate "\u001f" target.behaviorDescription.actions) := by
   native_decide
 
 example : (match target.planning with
     | .unavailable => none
-    | .available capability =>
-        some (capability.roleDomainDigest, capability.actionDomainDigest)) =
-    exactActionQuery.completeness.map (fun evidence =>
-      (evidence.roleDomainDigest, evidence.actionDomainDigest)) := by
+    | .available capability => some capability.actions) =
+    exactActionQuery.completeness.map (fun evidence => evidence.actions) := by
   native_decide
 
 example : canonicalQueryJson exactActionQuery ++ "\n" = expectedExactActionQueryJson := by
@@ -73,18 +75,18 @@ example : [
 example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
     compiledArtifact.plan.formatVersion = "umpire-drive-plan/v1" ∧
     compiledArtifact.plan.queryDefinitionId = exactActionQueryId ∧
-    compiledArtifact.plan.querySemanticDigest = exactActionQuery.semanticDigest ∧
+    compiledArtifact.plan.queryBehaviorFingerprint = exactActionQuery.behaviorFingerprint ∧
     compiledArtifact.plan.behaviorDefinitionId = exactActionBehaviorId ∧
-    compiledArtifact.plan.behaviorSemanticDigest = exactActionBehavior.semanticDigest ∧
+    compiledArtifact.plan.behaviorFingerprint = exactActionBehavior.behaviorFingerprint ∧
     compiledArtifact.plan.targetDefinitionId = targetId ∧
-    compiledArtifact.plan.targetSemanticDigest = target.semanticDigest ∧
+    compiledArtifact.plan.targetBehaviorFingerprint = target.behaviorFingerprint ∧
     compiledArtifact.plan.kernelDefinitionId = kernelId ∧
-    compiledArtifact.plan.kernelSemanticDigest = "switch-two-state-kernel/v1" ∧
+    compiledArtifact.plan.kernelBehaviorFingerprint = target.behaviorFingerprint ∧
     compiledArtifact.plan.requestedActions = [flipAction] ∧
     compiledArtifact.plan.modelOutcomes = [appliedOutcome] ∧
     compiledArtifact.plan.resultingStates = [onState] ∧
     compiledArtifact.properties.map PortableProperty.definitionId = [flipPropertyId] ∧
-    compiledArtifact.properties.map PortableProperty.semanticDigest = [flipProperty.semanticDigest] ∧
+    compiledArtifact.properties.map PortableProperty.behaviorFingerprint = [flipProperty.behaviorFingerprint] ∧
     compiledArtifact.provenance.sources = [source] ∧
     compiledArtifact.plan.provenance = compiledArtifact.provenance := by
   native_decide

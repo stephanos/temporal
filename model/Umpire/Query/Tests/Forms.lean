@@ -19,10 +19,10 @@ example : [
     summaryOf (checkQuery context (declaration (.counterexample checkedProperty))),
     summaryOf (checkQuery context (declaration (.select [checkedProperty])))
   ] = [
-    some (.universal, .verifiedWithinBounds),
+    some (.universal, .verifiedWithinLimits),
     some (.existential, .satisfyingWitness),
     some (.existential, .violatingCounterexample),
-    some (.exploratory, .boundedSelection)
+    some (.exploratory, .limitedSelection)
   ] := by
   native_decide
 

@@ -1,5 +1,6 @@
 import Lean.Data.Json
 import Std
+import Umpire.Fingerprint
 
 namespace Umpire
 
@@ -64,26 +65,28 @@ structure DefinitionMetadata where
   kind : DefinitionKind
   source : SourceLocation
   version : Nat := 1
-  contractDigest : String
+  canonicalBehavior : String
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
-inductive BoundUnit where
+inductive LimitUnit where
   | semanticTransitions
   | selectedActions
   | observationPositions
   | logicalTime
+  | candidateEvaluations
   deriving BEq, DecidableEq, Ord, Repr
 
-def BoundUnit.name : BoundUnit → String
+def LimitUnit.name : LimitUnit → String
   | .semanticTransitions => "semantic-transitions"
   | .selectedActions => "selected-actions"
   | .observationPositions => "observation-positions"
   | .logicalTime => "logical-time"
+  | .candidateEvaluations => "candidate-evaluations"
 
-structure TypedBound where
+structure Limit where
   value : Nat
-  unit : BoundUnit
+  unit : LimitUnit
   deriving BEq, DecidableEq, Ord, Repr
 
 structure ModelValue where
@@ -110,10 +113,45 @@ structure TransitionResult (State Outcome Observation : Type) where
   observations : List Observation
   deriving BEq, DecidableEq, Repr
 
+/-- Complete finite domains and canonical encoders for one Target's executable behavior. -/
+structure TargetBehaviorDomain
+    {Setup State Action Outcome Observation : Type}
+    (initialStates : Setup → List State)
+    (steps : State → Action → List (TransitionResult State Outcome Observation)) where
+  setups : List Setup
+  states : List State
+  actions : List Action
+  outcomes : List Outcome
+  observations : List Observation
+  encodeSetup : Setup → String
+  encodeState : State → String
+  encodeAction : Action → String
+  encodeOutcome : Outcome → String
+  encodeObservation : Observation → String
+  setupCoverage : ∀ setup state, state ∈ initialStates setup → setup ∈ setups
+  initialStateCoverage : ∀ setup state, state ∈ initialStates setup → state ∈ states
+  transitionSourceCoverage : ∀ state action result,
+    result ∈ steps state action → state ∈ states
+  actionCoverage : ∀ state action result, result ∈ steps state action → action ∈ actions
+  resultingStateCoverage : ∀ state action result,
+    result ∈ steps state action → result.resultingState ∈ states
+  outcomeCoverage : ∀ state action result,
+    result ∈ steps state action → result.modelOutcome ∈ outcomes
+  observationCoverage : ∀ state action result value,
+    result ∈ steps state action → value ∈ result.observations → value ∈ observations
+
+/-- Missing or incomplete finite coverage remains representable until Target checking. -/
+inductive TargetBehaviorDomainAvailability
+    {Setup State Action Outcome Observation : Type}
+    (initialStates : Setup → List State)
+    (steps : State → Action → List (TransitionResult State Outcome Observation)) where
+  | missing
+  | incomplete (missingCoverage : List DefinitionId)
+  | complete (domain : TargetBehaviorDomain initialStates steps)
+
 structure KernelMetadata where
   id : DefinitionId
   version : Nat := 1
-  contractDigest : String
   source : SourceLocation
   deriving BEq, DecidableEq, Repr
 
@@ -134,36 +172,61 @@ structure TransitionKernel (Setup State Action Outcome Observation : Type) where
     result ∈ steps state action → authoritativeStep state action result
   stepComplete : ∀ state action result,
     authoritativeStep state action result → result ∈ steps state action
+  behaviorDomain : TargetBehaviorDomainAvailability initialStates steps := .missing
+
+/-- Complete behavior domains prove that every enumerated kernel result remains in-domain. -/
+structure TargetBehaviorClosure
+    {Setup State Action Outcome Observation : Type}
+    (kernel : TransitionKernel Setup State Action Outcome Observation)
+    (domain : TargetBehaviorDomain kernel.initialStates kernel.steps) : Prop where
+  initialState : ∀ setup state,
+    state ∈ kernel.initialStates setup → state ∈ domain.states
+  resultingState : ∀ state action result,
+    result ∈ kernel.steps state action → result.resultingState ∈ domain.states
+  outcome : ∀ state action result,
+    result ∈ kernel.steps state action → result.modelOutcome ∈ domain.outcomes
+  observation : ∀ state action result value,
+    result ∈ kernel.steps state action → value ∈ result.observations → value ∈ domain.observations
+
+theorem TargetBehaviorDomain.closure
+    (kernel : TransitionKernel Setup State Action Outcome Observation)
+    (domain : TargetBehaviorDomain kernel.initialStates kernel.steps) :
+    TargetBehaviorClosure kernel domain := {
+  initialState := domain.initialStateCoverage
+  resultingState := domain.resultingStateCoverage
+  outcome := domain.outcomeCoverage
+  observation := domain.observationCoverage
+}
 
 /-- Missing proof obligations are representable only before target composition. -/
 inductive KernelAvailability (Setup State Action Outcome Observation : Type) where
   | checked (kernel : TransitionKernel Setup State Action Outcome Observation)
   | incomplete (metadata : KernelMetadata) (missingProofs : List DefinitionId)
 
-structure LawRequirement where
+structure LawDefinition where
   id : DefinitionId
-  semanticDigest : String
+  body : String
   deriving BEq, DecidableEq, Ord, Repr
 
-/-- A law witness retains its portable Definition ID while proving the target's authoritative proposition. -/
-structure LawWitness (LawStatement : DefinitionId → Prop) where
-  requirement : LawRequirement
-  proof : LawStatement requirement.id
+/-- A law witness retains its portable definition while proving the proposition interpreted from its body. -/
+structure LawWitness (LawStatement : LawDefinition → Prop) where
+  definition : LawDefinition
+  proof : LawStatement definition
 
 structure CapabilityContract where
   id : DefinitionId
   version : Nat := 1
-  semanticDigest : String
-  requiredLaws : List LawRequirement
+  canonicalBehavior : String
+  requiredLaws : List LawDefinition
   deriving BEq, DecidableEq, Repr
 
 structure MeaningProvision where
   definitionId : DefinitionId
   kind : DefinitionKind
-  semanticDigest : String
+  canonicalBehavior : String
   deriving BEq, DecidableEq, Repr
 
-structure CapabilityProvider (LawStatement : DefinitionId → Prop) where
+structure CapabilityProvider (LawStatement : LawDefinition → Prop) where
   id : DefinitionId
   source : SourceLocation
   contract : CapabilityContract
@@ -174,16 +237,16 @@ structure Reconciliation where
   definitionId : DefinitionId
   kind : DefinitionKind
   providers : List DefinitionId
-  semanticDigest : String
+  canonicalBehavior : String
   deriving BEq, DecidableEq, Repr
 
-structure CapabilityConnector (LawStatement : DefinitionId → Prop) where
+structure CapabilityConnector (LawStatement : LawDefinition → Prop) where
   id : DefinitionId
   source : SourceLocation
   version : Nat := 1
-  semanticDigest : String
+  canonicalBehavior : String
   reconciliations : List Reconciliation
-  requiredLaws : List LawRequirement
+  requiredLaws : List LawDefinition
   lawWitnesses : List (LawWitness LawStatement)
 
 inductive DefinitionErrorKind where
@@ -199,6 +262,8 @@ inductive DefinitionErrorKind where
   | conflictingProviders
   | ambiguousConnector
   | incompleteKernel
+  | missingBehaviorDomain
+  | incompleteBehaviorDomain
   deriving BEq, DecidableEq, Ord, Repr
 
 def DefinitionErrorKind.name : DefinitionErrorKind → String
@@ -214,6 +279,8 @@ def DefinitionErrorKind.name : DefinitionErrorKind → String
   | .conflictingProviders => "conflicting-providers"
   | .ambiguousConnector => "ambiguous-connector"
   | .incompleteKernel => "incomplete-kernel"
+  | .missingBehaviorDomain => "missing-behavior-domain"
+  | .incompleteBehaviorDomain => "incomplete-behavior-domain"
 
 structure DefinitionError where
   kind : DefinitionErrorKind
@@ -224,12 +291,9 @@ structure DefinitionError where
   deriving BEq, DecidableEq, Repr
 
 
-def semanticDigestOf (canonicalSemanticValue : String) : String :=
-  "umpire-semantic/v1:" ++ canonicalSemanticValue
-
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
-def canonicalTypedBoundJson (bound : TypedBound) : String :=
-  "{\"value\":" ++ toString bound.value ++ ",\"unit\":" ++ quote bound.unit.name ++ "}"
+def canonicalLimitJson (limit : Limit) : String :=
+  "{\"value\":" ++ toString limit.value ++ ",\"unit\":" ++ quote limit.unit.name ++ "}"
 
 end Umpire

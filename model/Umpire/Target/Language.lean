@@ -7,7 +7,7 @@ import Umpire.Core
 namespace Umpire
 
 structure TargetDeclaration
-    (LawStatement : DefinitionId → Prop)
+    (LawStatement : LawDefinition → Prop)
     (Setup State Action Outcome Observation : Type) where
   id : DefinitionId
   source : SourceLocation
@@ -23,8 +23,6 @@ structure FinitePlanningCapability
     {State Action Outcome Observation : Type}
     (authoritativeStep : State → Action → TransitionResult State Outcome Observation → Prop) where
   actions : List Action
-  roleDomainDigest : String
-  actionDomainDigest : String
   actionSound : ∀ action, action ∈ actions →
     ∃ state result, authoritativeStep state action result
   actionComplete : ∀ state action result,
@@ -45,8 +43,32 @@ inductive AuthoredPlanningCapability
       (kernelEq : availability = .checked kernel)
       (capability : FinitePlanningCapability kernel.authoritativeStep)
 
+structure TargetInitialStateRow where
+  setup : String
+  state : String
+  deriving BEq, DecidableEq, Ord, Repr
+
+structure TargetTransitionRow where
+  state : String
+  action : String
+  modelOutcome : String
+  resultingState : String
+  observations : List String
+  deriving BEq, DecidableEq, Ord, Repr
+
+/-- Canonical executable behavior evaluated over the complete finite Target Behavior Domain. -/
+structure TargetBehaviorDescription where
+  setups : List String
+  states : List String
+  actions : List String
+  outcomes : List String
+  observations : List String
+  initialStates : List TargetInitialStateRow
+  transitions : List TargetTransitionRow
+  deriving BEq, DecidableEq, Repr
+
 structure CheckedTarget
-    (LawStatement : DefinitionId → Prop)
+    (LawStatement : LawDefinition → Prop)
     (Setup State Action Outcome Observation : Type) where
   private mk ::
   id : DefinitionId
@@ -57,9 +79,10 @@ structure CheckedTarget
   connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
   kernel : TransitionKernel Setup State Action Outcome Observation
+  behaviorDescription : TargetBehaviorDescription
   planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable
   canonicalMetadata : String
-  semanticDigest : String
+  behaviorFingerprint : BehaviorFingerprint
 
 /-- Closed authoring roles keep compiler locations separate from Model Definition IDs. -/
 inductive AuthoringOccurrenceRole where
@@ -141,12 +164,12 @@ structure TargetDefinition
   resolvedSetups : List Setup
   kernel : KernelAvailability Setup State Action Outcome Observation
 
-private structure TargetCompositionPayload (LawStatement : DefinitionId → Prop) where
+private structure TargetCompositionPayload (LawStatement : LawDefinition → Prop) where
   providers : List (CapabilityProvider LawStatement)
   connectors : List (CapabilityConnector LawStatement)
 
 /-- Explicit provider and connector choices whose collection is owned by Target. -/
-structure TargetComposition (LawStatement : DefinitionId → Prop) where
+structure TargetComposition (LawStatement : LawDefinition → Prop) where
   private mk ::
   private payload : TargetCompositionPayload LawStatement
 
@@ -167,7 +190,7 @@ def connect
 end TargetComposition
 
 structure AuthoredTarget
-    (LawStatement : DefinitionId → Prop)
+    (LawStatement : LawDefinition → Prop)
     (Setup State Action Outcome Observation : Type) where
   private mk ::
   private declaration : TargetDeclaration LawStatement Setup State Action Outcome Observation
@@ -221,6 +244,48 @@ private def quote (value : String) : String := Lean.Json.compress (.str value)
 private def array (items : List String) : String :=
   "[" ++ String.intercalate "," items ++ "]"
 
+private def canonicalStrings (values : List String) : List String :=
+  values.mergeSort |>.eraseDups
+
+private def initialRowLe (left right : TargetInitialStateRow) : Bool :=
+  decide (left.setup < right.setup) ||
+    (left.setup == right.setup && decide (left.state ≤ right.state))
+
+private def transitionRowKey (row : TargetTransitionRow) : String :=
+  String.intercalate "\u001f"
+    ([row.state, row.action, row.modelOutcome, row.resultingState] ++ row.observations)
+
+private def transitionRowLe (left right : TargetTransitionRow) : Bool :=
+  decide (transitionRowKey left ≤ transitionRowKey right)
+
+private def describeTargetBehavior
+    (kernel : TransitionKernel Setup State Action Outcome Observation)
+    (domain : TargetBehaviorDomain kernel.initialStates kernel.steps) :
+    TargetBehaviorDescription :=
+  let initialStates := domain.setups.flatMap fun setup =>
+    (kernel.initialStates setup).map fun state => {
+      setup := domain.encodeSetup setup
+      state := domain.encodeState state
+    }
+  let transitions := domain.states.flatMap fun state =>
+    domain.actions.flatMap fun action =>
+      (kernel.steps state action).map fun result => {
+        state := domain.encodeState state
+        action := domain.encodeAction action
+        modelOutcome := domain.encodeOutcome result.modelOutcome
+        resultingState := domain.encodeState result.resultingState
+        observations := result.observations.map domain.encodeObservation
+      }
+  {
+    setups := canonicalStrings (domain.setups.map domain.encodeSetup)
+    states := canonicalStrings (domain.states.map domain.encodeState)
+    actions := canonicalStrings (domain.actions.map domain.encodeAction)
+    outcomes := canonicalStrings (domain.outcomes.map domain.encodeOutcome)
+    observations := canonicalStrings (domain.observations.map domain.encodeObservation)
+    initialStates := initialStates.mergeSort initialRowLe |>.eraseDups
+    transitions := transitions.mergeSort transitionRowLe |>.eraseDups
+  }
+
 private def withoutClosingBrace (value : String) : String :=
   (value.dropEnd 1).toString
 
@@ -245,15 +310,17 @@ private def connectorLe (left right : CapabilityConnector LawStatement) : Bool :
 
 private def meaningLe (left right : MeaningProvision) : Bool :=
   decide (left.definitionId.value < right.definitionId.value) ||
-    (left.definitionId == right.definitionId && decide (left.semanticDigest ≤ right.semanticDigest))
+    (left.definitionId == right.definitionId &&
+      decide (left.canonicalBehavior ≤ right.canonicalBehavior))
 
 private def reconciliationLe (left right : Reconciliation) : Bool :=
   decide (left.definitionId.value < right.definitionId.value) ||
-    (left.definitionId == right.definitionId && decide (left.semanticDigest ≤ right.semanticDigest))
+    (left.definitionId == right.definitionId &&
+      decide (left.canonicalBehavior ≤ right.canonicalBehavior))
 
-private def lawLe (left right : LawRequirement) : Bool :=
+private def lawLe (left right : LawDefinition) : Bool :=
   decide (left.id.value < right.id.value) ||
-    (left.id == right.id && decide (left.semanticDigest ≤ right.semanticDigest))
+    (left.id == right.id && decide (left.body ≤ right.body))
 
 private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
@@ -267,20 +334,20 @@ private def sourceJson (source : SourceLocation) : String :=
     ",\"column\":" ++ toString source.column ++
     ",\"provenance\":" ++ quote source.provenance ++ "}"
 
-private def lawJson (law : LawRequirement) : String :=
+private def lawJson (law : LawDefinition) : String :=
   "{\"id\":" ++ quote law.id.value ++
-    ",\"semanticDigest\":" ++ quote law.semanticDigest ++ "}"
+    ",\"body\":" ++ quote law.body ++ "}"
 
 private def meaningJson (meaning : MeaningProvision) : String :=
   "{\"id\":" ++ quote meaning.definitionId.value ++
     ",\"kind\":" ++ quote meaning.kind.name ++
-    ",\"semanticDigest\":" ++ quote meaning.semanticDigest ++ "}"
+    ",\"canonicalBehavior\":" ++ quote meaning.canonicalBehavior ++ "}"
 
 private def definitionSemanticJson (declaration : DefinitionMetadata) : String :=
   "{\"id\":" ++ quote declaration.id.value ++
     ",\"kind\":" ++ quote declaration.kind.name ++
     ",\"version\":" ++ toString declaration.version ++
-    ",\"contractDigest\":" ++ quote declaration.contractDigest ++ "}"
+    ",\"canonicalBehavior\":" ++ quote declaration.canonicalBehavior ++ "}"
 
 def canonicalDefinitionMetadataJson (declaration : DefinitionMetadata) : String :=
   withoutClosingBrace (definitionSemanticJson declaration) ++
@@ -292,7 +359,7 @@ private def providerSemanticJson (provider : CapabilityProvider LawStatement) : 
   "{\"id\":" ++ quote provider.id.value ++
     ",\"capabilityId\":" ++ quote provider.contract.id.value ++
     ",\"capabilityVersion\":" ++ toString provider.contract.version ++
-    ",\"capabilityDigest\":" ++ quote provider.contract.semanticDigest ++
+    ",\"canonicalBehavior\":" ++ quote provider.contract.canonicalBehavior ++
     ",\"meanings\":" ++ array (provider.meanings.mergeSort meaningLe |>.map meaningJson) ++
     ",\"laws\":" ++ array (laws.map lawJson) ++ "}"
 
@@ -304,13 +371,13 @@ private def reconciliationJson (reconciliation : Reconciliation) : String :=
   "{\"id\":" ++ quote reconciliation.definitionId.value ++
     ",\"kind\":" ++ quote reconciliation.kind.name ++
     ",\"providers\":" ++ array (canonicalIds reconciliation.providers |>.map (quote ∘ DefinitionId.value)) ++
-    ",\"semanticDigest\":" ++ quote reconciliation.semanticDigest ++ "}"
+    ",\"canonicalBehavior\":" ++ quote reconciliation.canonicalBehavior ++ "}"
 
 private def connectorSemanticJson (connector : CapabilityConnector LawStatement) : String :=
   let laws := connector.requiredLaws.mergeSort lawLe
   "{\"id\":" ++ quote connector.id.value ++
     ",\"version\":" ++ toString connector.version ++
-    ",\"semanticDigest\":" ++ quote connector.semanticDigest ++
+    ",\"canonicalBehavior\":" ++ quote connector.canonicalBehavior ++
     ",\"reconciliations\":" ++
       array (connector.reconciliations.mergeSort reconciliationLe |>.map reconciliationJson) ++
     ",\"laws\":" ++ array (laws.map lawJson) ++ "}"
@@ -321,12 +388,30 @@ def canonicalCapabilityConnectorJson (connector : CapabilityConnector LawStateme
 
 private def kernelSemanticJson (metadata : KernelMetadata) : String :=
   "{\"id\":" ++ quote metadata.id.value ++
-    ",\"version\":" ++ toString metadata.version ++
-    ",\"contractDigest\":" ++ quote metadata.contractDigest ++ "}"
+    ",\"version\":" ++ toString metadata.version ++ "}"
 
 def canonicalKernelMetadataJson (metadata : KernelMetadata) : String :=
   withoutClosingBrace (kernelSemanticJson metadata) ++
     ",\"source\":" ++ sourceJson metadata.source ++ "}"
+
+private def initialStateRowJson (row : TargetInitialStateRow) : String :=
+  "{\"setup\":" ++ quote row.setup ++ ",\"state\":" ++ quote row.state ++ "}"
+
+private def transitionRowJson (row : TargetTransitionRow) : String :=
+  "{\"state\":" ++ quote row.state ++
+    ",\"action\":" ++ quote row.action ++
+    ",\"modelOutcome\":" ++ quote row.modelOutcome ++
+    ",\"resultingState\":" ++ quote row.resultingState ++
+    ",\"observations\":" ++ array (row.observations.map quote) ++ "}"
+
+private def targetBehaviorDescriptionJson (description : TargetBehaviorDescription) : String :=
+  "{\"domains\":{\"setups\":" ++ array (description.setups.map quote) ++
+    ",\"states\":" ++ array (description.states.map quote) ++
+    ",\"actions\":" ++ array (description.actions.map quote) ++
+    ",\"outcomes\":" ++ array (description.outcomes.map quote) ++
+    ",\"observations\":" ++ array (description.observations.map quote) ++ "}" ++
+    ",\"initialStates\":" ++ array (description.initialStates.map initialStateRowJson) ++
+    ",\"transitions\":" ++ array (description.transitions.map transitionRowJson) ++ "}"
 
 def canonicalDefinitionErrorJson (error : DefinitionError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
@@ -367,7 +452,8 @@ private def targetSemanticJson
     (requiredCapabilities : List DefinitionId)
     (providers : List (CapabilityProvider LawStatement))
     (connectors : List (CapabilityConnector LawStatement))
-    (kernel : KernelMetadata) : String :=
+    (kernel : KernelMetadata)
+    (behavior : TargetBehaviorDescription) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"declarations\":" ++
       array (definitions.mergeSort definitionLe |>.map definitionSemanticJson) ++
@@ -375,13 +461,15 @@ private def targetSemanticJson
       array (canonicalIds requiredCapabilities |>.map (quote ∘ DefinitionId.value)) ++
     ",\"providers\":" ++ array (providers.mergeSort providerLe |>.map providerSemanticJson) ++
     ",\"connectors\":" ++ array (connectors.mergeSort connectorLe |>.map connectorSemanticJson) ++
-    ",\"kernel\":" ++ kernelSemanticJson kernel ++ "}"
+    ",\"kernel\":" ++ kernelSemanticJson kernel ++
+    ",\"behavior\":" ++ targetBehaviorDescriptionJson behavior ++ "}"
 
 private def targetMetadataJson
     (target : TargetDeclaration LawStatement Setup State Action Outcome Observation)
-    (kernel : KernelMetadata) : String :=
+    (kernel : KernelMetadata)
+    (behavior : TargetBehaviorDescription) : String :=
   "{\"semantic\":" ++ targetSemanticJson target.id target.definitions
-      target.requiredCapabilities target.providers target.connectors kernel ++
+      target.requiredCapabilities target.providers target.connectors kernel behavior ++
     ",\"source\":" ++ sourceJson target.source ++
     ",\"declarationMetadata\":" ++
       array (target.definitions.mergeSort definitionLe |>.map canonicalDefinitionMetadataJson) ++
@@ -496,37 +584,37 @@ private def validateLawWitnesses
     (definitions : List DefinitionMetadata)
     (owner : DefinitionId)
     (source : SourceLocation)
-    (requirements : List LawRequirement)
+    (requirements : List LawDefinition)
     (witnesses : List (LawWitness LawStatement)) : Except TargetValidationError Unit := do
   requireUniqueIds owner source (occurrencePath .lawRequirement owner)
-    (requirements.map LawRequirement.id)
+    (requirements.map LawDefinition.id)
   requireUniqueIds owner source (occurrencePath .lawWitness owner)
-    (witnesses.map (fun witness => witness.requirement.id))
+    (witnesses.map (fun witness => witness.definition.id))
   for requirement in requirements.mergeSort lawLe do
     requireDefinition definitions owner source requirement.id .law
       (occurrencePath .lawRequirement owner)
     match definitions.find? (fun declaration => declaration.id == requirement.id) with
     | some declaration =>
-        if declaration.contractDigest != requirement.semanticDigest then
+        if declaration.canonicalBehavior != requirement.body then
           throw (validationError .lawContractMismatch owner source
             (occurrencePath .lawRequirement owner) requirement.id
-            (requirement.id.value ++ ": expected " ++ declaration.contractDigest ++
-              ", found " ++ requirement.semanticDigest)
+            (requirement.id.value ++ ": expected " ++ declaration.canonicalBehavior ++
+              ", found " ++ requirement.body)
             [requirement.id])
     | none => pure ()
-    match witnesses.find? (fun witness => witness.requirement == requirement) with
+    match witnesses.find? (fun witness => witness.definition == requirement) with
     | none =>
         throw (validationError .missingLaw owner source (occurrencePath .lawRequirement owner)
           requirement.id requirement.id.value [requirement.id])
     | some _ => pure ()
   for witness in witnesses do
-    requireDefinition definitions owner source witness.requirement.id .law
+    requireDefinition definitions owner source witness.definition.id .law
       (occurrencePath .lawWitness owner)
-    match requirements.find? (fun requirement => requirement == witness.requirement) with
+    match requirements.find? (fun requirement => requirement == witness.definition) with
     | none =>
         throw (validationError .unexpectedLaw owner source (occurrencePath .lawWitness owner)
-          witness.requirement.id witness.requirement.id.value
-          [witness.requirement.id])
+          witness.definition.id witness.definition.id.value
+          [witness.definition.id])
     | some _ => pure ()
 
 private def validateProvider
@@ -592,8 +680,8 @@ private def validateConflicts
   let definitions := canonicalIds (owners.map fun owner => owner.meaning.definitionId)
   for declaration in definitions do
     let matching := owners.filter (fun owner => owner.meaning.definitionId == declaration)
-    let digests := distinctStrings (matching.map fun owner => owner.meaning.semanticDigest)
-    if digests.length > 1 then
+    let behaviors := distinctStrings (matching.map fun owner => owner.meaning.canonicalBehavior)
+    if behaviors.length > 1 then
       let providerIds := canonicalIds (matching.map MeaningOwner.provider)
       let reconcilers := connectors.filter fun connector =>
         connectorMatches connector declaration providerIds
@@ -652,8 +740,19 @@ private def composeTargetDetailed
           (occurrencePath .kernel target.id) metadata.id metadata.id.value missingProofs)
   requireDefinition definitions target.id target.source kernel.metadata.id .kernel
     (occurrencePath .kernel target.id)
+  let behaviorDomain ← match kernel.behaviorDomain with
+    | .missing =>
+        throw (validationError .missingBehaviorDomain target.id kernel.metadata.source
+          (occurrencePath .kernel target.id) kernel.metadata.id kernel.metadata.id.value
+          [kernel.metadata.id])
+    | .incomplete missingCoverage =>
+        throw (validationError .incompleteBehaviorDomain target.id kernel.metadata.source
+          (occurrencePath .kernel target.id) kernel.metadata.id kernel.metadata.id.value
+          missingCoverage)
+    | .complete domain => pure domain
+  let behavior := describeTargetBehavior kernel behaviorDomain
   let semantic := targetSemanticJson target.id definitions target.requiredCapabilities
-    providers connectors kernel.metadata
+    providers connectors kernel.metadata behavior
   pure {
     id := target.id
     source := target.source
@@ -663,8 +762,9 @@ private def composeTargetDetailed
     connectors
     resolvedSetups := target.resolvedSetups
     kernel
-    canonicalMetadata := targetMetadataJson target kernel.metadata
-    semanticDigest := semanticDigestOf semantic
+    behaviorDescription := behavior
+    canonicalMetadata := targetMetadataJson target kernel.metadata behavior
+    behaviorFingerprint := behaviorFingerprintOf semantic
   }
 
 /-- Check and canonicalize one target composition without relying on declaration or instance order. -/

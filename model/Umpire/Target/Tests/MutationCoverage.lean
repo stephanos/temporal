@@ -17,7 +17,7 @@ def mismatchedLawProvider : CapabilityProvider TestLawStatement := {
   primaryProvider with
   contract := {
     primaryProvider.contract with
-    requiredLaws := [{ providerLaw with semanticDigest := "provider-sound/stale" }]
+    requiredLaws := [{ providerLaw with body := "provider-sound/stale" }]
   }
 }
 

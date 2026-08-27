@@ -186,7 +186,7 @@ structure CheckedBehavior where
   spaceStatus : BehaviorSpaceStatus
   documentation : String
   canonicalMetadata : String
-  semanticDigest : String
+  behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
@@ -919,7 +919,7 @@ def checkBehavior
     spaceStatus := status
     documentation := declaration.documentation
     canonicalMetadata := ""
-    semanticDigest := semanticDigestOf semantic
+    behaviorFingerprint := behaviorFingerprintOf semantic
   }
   pure { checked with canonicalMetadata := canonicalBehaviorJson checked }
 

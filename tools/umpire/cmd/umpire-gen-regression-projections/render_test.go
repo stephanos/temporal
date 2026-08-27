@@ -55,7 +55,7 @@ func TestProductionFixtureProjectsCanonicalMetadata(t *testing.T) {
 			"nexus.observation.pending-cancellation-count",
 			"workflow-nexus.relation.owns-operation",
 		},
-		SemanticFingerprint: "sha256:315266c53b2c9d94fc1ab3c2772a8424b2aafd9857801c8e24fac111253c53f1",
+		SemanticFingerprint: "sha256:8c2ba27730181616819a2bb4e0f083bc2ebfd6e3fc6df7717025539e95a3a46f",
 	}, projection)
 }
 

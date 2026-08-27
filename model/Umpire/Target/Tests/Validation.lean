@@ -110,7 +110,7 @@ def inactiveProviderConnector : CapabilityConnector TestLawStatement := {
     definitionId := id "test.relation.shared"
     kind := .relation
     providers := [primaryProvider.id, id "test.provider.inactive"]
-    semanticDigest := "inactive-provider/reconciled-v1"
+    canonicalBehavior := "inactive-provider/reconciled-v1"
   }]
 }
 
@@ -136,7 +136,7 @@ def compatibleSecondaryProvider : CapabilityProvider TestLawStatement := {
   meanings := [{
     definitionId := id "test.relation.shared"
     kind := .relation
-    semanticDigest := "test-primary-shared/v1"
+    canonicalBehavior := "test-primary-shared/v1"
   }]
 }
 

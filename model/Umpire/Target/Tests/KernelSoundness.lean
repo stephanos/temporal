@@ -26,6 +26,31 @@ example : (errorOf (composeTarget incompleteKernelTarget)) = some {
   } := by
   native_decide
 
+def missingBehaviorDomainTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with kernel := .checked { testKernel with behaviorDomain := .missing }
+}
+
+def incompleteBehaviorDomainTarget :
+    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with kernel := .checked {
+    testKernel with
+    behaviorDomain := .incomplete [id "umpire.target-domain.action-coverage"]
+  }
+}
+
+example : (errorOf (composeTarget missingBehaviorDomainTarget)).map DefinitionError.kind =
+    some .missingBehaviorDomain := by
+  native_decide
+
+example : (errorOf (composeTarget incompleteBehaviorDomainTarget)) = some {
+    kind := .incompleteBehaviorDomain
+    definitionId := testTarget.id
+    sourcePath := "Umpire/TargetTests.lean"
+    offendingValue := testKernel.metadata.id.value
+    relatedDefinitionIds := [id "umpire.target-domain.action-coverage"]
+  } := by
+  native_decide
+
 -- An emitted step outside the authoritative relation cannot inhabit a checked kernel proof.
 def outsideRelation : TransitionResult Bool Bool Bool := {
   modelOutcome := false

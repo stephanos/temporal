@@ -49,19 +49,19 @@ def exploratoryQueryId : DefinitionId := id "workflow-nexus.query.explore-caller
 def exactActionQueryId : DefinitionId := id "workflow-nexus.query.exact-action-caller-closure"
 def exactTraceQueryId : DefinitionId := id "workflow-nexus.query.model-only-caller-closure"
 
-def lifecycleLaw : LawRequirement := {
+def lifecycleLaw : LawDefinition := {
   id := lifecycleLawId
-  semanticDigest := "workflow-caller-closure-law/v1"
+  body := "workflow-caller-closure-law/v1"
 }
 
-def cancellationLaw : LawRequirement := {
+def cancellationLaw : LawDefinition := {
   id := cancellationLawId
-  semanticDigest := "nexus-cancellation-honored-law/v1"
+  body := "nexus-cancellation-honored-law/v1"
 }
 
-def ownershipLaw : LawRequirement := {
+def ownershipLaw : LawDefinition := {
   id := ownershipLawId
-  semanticDigest := "workflow-nexus-ownership-law/v1"
+  body := "workflow-nexus-ownership-law/v1"
 }
 
 def CallerOwnsOperation (caller operation : Config) : Prop :=
@@ -92,12 +92,12 @@ def OwnershipReconciled : Prop :=
   Reachable .upgrade wClash ∧
     CallerOwnsOperation wClash (autoClose .upgrade wClash)
 
-def LawStatement (lawId : DefinitionId) : Prop :=
-  if lawId = lifecycleLaw.id then
+def LawStatement (law : LawDefinition) : Prop :=
+  if law = lifecycleLaw then
     Reachable .upgrade wClash
-  else if lawId = cancellationLaw.id then
+  else if law = cancellationLaw then
     Honored (autoClose .upgrade wClash)
-  else if lawId = ownershipLaw.id then
+  else if law = ownershipLaw then
     OwnershipReconciled
   else
     False
@@ -105,33 +105,33 @@ def LawStatement (lawId : DefinitionId) : Prop :=
 theorem ownershipReconciledProof : OwnershipReconciled := by
   exact ⟨wClash_reachable .upgrade, clashOwnershipProof⟩
 
-theorem lifecycleLawProof : LawStatement lifecycleLaw.id := by
+theorem lifecycleLawProof : LawStatement lifecycleLaw := by
   simpa [LawStatement, lifecycleLaw, lifecycleLawId, id, DefinitionId.of] using
     wClash_reachable .upgrade
 
-theorem cancellationLawProof : LawStatement cancellationLaw.id := by
+theorem cancellationLawProof : LawStatement cancellationLaw := by
   simpa [LawStatement, lifecycleLaw, cancellationLaw, lifecycleLawId, cancellationLawId, id,
     DefinitionId.of] using upgrade_honors_delivery wClash
 
-theorem ownershipLawProof : LawStatement ownershipLaw.id := by
+theorem ownershipLawProof : LawStatement ownershipLaw := by
   simpa [LawStatement, lifecycleLaw, cancellationLaw, ownershipLaw, lifecycleLawId,
     cancellationLawId, ownershipLawId, id, DefinitionId.of] using ownershipReconciledProof
 
 private def witness
-    (requirement : LawRequirement)
-    (proof : LawStatement requirement.id) : LawWitness LawStatement := {
-  requirement
+    (definition : LawDefinition)
+    (proof : LawStatement definition) : LawWitness LawStatement := {
+  definition
   proof
 }
 
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (contractDigest : String) : DefinitionMetadata := {
+    (canonicalBehavior : String) : DefinitionMetadata := {
   id := definitionId
   kind
   source
-  contractDigest
+  canonicalBehavior
 }
 
 private def opStateRepr : OpState → String
@@ -222,7 +222,6 @@ def transitionKernel : TransitionKernel
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
-    contractDigest := "workflow-nexus-caller-closure-kernel/v1"
     source
   }
   initialStates := fun setup => if setup = clashSetup then [clashState] else []
@@ -255,6 +254,62 @@ def transitionKernel : TransitionKernel
     intro state action result admitted
     rcases admitted with ⟨rfl, rfl, rfl, _, _, _⟩
     simp
+  behaviorDomain := .complete {
+    setups := [clashSetup]
+    states := [clashState, closedState]
+    actions := [forceCloseAction]
+    outcomes := [upgradedOutcome]
+    observations := [deliveredObservation, cancellationCountObservation, ownershipObservation]
+    encodeSetup := fun bindings => String.intercalate "|" (bindings.map fun binding =>
+      binding.role.value ++ "=" ++ binding.value.definitionId.value ++ ":" ++ binding.value.value)
+    encodeState := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    setupCoverage := by
+      intro setup state member
+      by_cases selected : setup = clashSetup
+      · simp [selected]
+      · simp [selected] at member
+    initialStateCoverage := by
+      intro setup state member
+      by_cases selected : setup = clashSetup
+      · rw [if_pos selected] at member
+        simp [List.mem_singleton.mp member]
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+    transitionSourceCoverage := by
+      intro state action result member
+      by_cases selected : state = clashState ∧ action = forceCloseAction
+      · simp [selected.1]
+      · simp [selected] at member
+    actionCoverage := by
+      intro state action result member
+      by_cases selected : state = clashState ∧ action = forceCloseAction
+      · simp [selected.2]
+      · simp [selected] at member
+    resultingStateCoverage := by
+      intro state action result member
+      by_cases selected : state = clashState ∧ action = forceCloseAction
+      · rw [if_pos selected] at member
+        simp [List.mem_singleton.mp member, forceCloseResult]
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+    outcomeCoverage := by
+      intro state action result member
+      by_cases selected : state = clashState ∧ action = forceCloseAction
+      · rw [if_pos selected] at member
+        simp [List.mem_singleton.mp member, forceCloseResult]
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+    observationCoverage := by
+      intro state action result observation member observationMember
+      by_cases selected : state = clashState ∧ action = forceCloseAction
+      · rw [if_pos selected] at member
+        simpa [List.mem_singleton.mp member, forceCloseResult] using observationMember
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+  }
 }
 
 def workflowProvider : CapabilityProvider LawStatement := {
@@ -262,12 +317,12 @@ def workflowProvider : CapabilityProvider LawStatement := {
   source
   contract := {
     id := workflowCapabilityId
-    semanticDigest := "workflow-lifecycle/v1"
+    canonicalBehavior := "workflow-lifecycle/v1"
     requiredLaws := [lifecycleLaw]
   }
   meanings := [
     { definitionId := configStateId, kind := .state,
-      semanticDigest := "workflow-config-state/v1" }
+      canonicalBehavior := "workflow-config-state/v1" }
   ]
   lawWitnesses := [witness lifecycleLaw lifecycleLawProof]
 }
@@ -277,18 +332,18 @@ def cancellationProvider : CapabilityProvider LawStatement := {
   source
   contract := {
     id := cancellationCapabilityId
-    semanticDigest := "nexus-cancellation/v1"
+    canonicalBehavior := "nexus-cancellation/v1"
     requiredLaws := [cancellationLaw]
   }
   meanings := [
     { definitionId := forceCloseActionId, kind := .action,
-      semanticDigest := "workflow-force-close-action/v1" },
+      canonicalBehavior := "workflow-force-close-action/v1" },
     { definitionId := upgradedOutcomeId, kind := .outcome,
-      semanticDigest := "nexus-upgraded-cancellation-outcome/v1" },
+      canonicalBehavior := "nexus-upgraded-cancellation-outcome/v1" },
     { definitionId := deliveredObservationId, kind := .observation,
-      semanticDigest := "nexus-cancellation-delivery-observation/v1" },
+      canonicalBehavior := "nexus-cancellation-delivery-observation/v1" },
     { definitionId := cancellationCountObservationId, kind := .observation,
-      semanticDigest := "nexus-cancellation-count-observation/v1" }
+      canonicalBehavior := "nexus-cancellation-count-observation/v1" }
   ]
   lawWitnesses := [witness cancellationLaw cancellationLawProof]
 }
@@ -298,13 +353,13 @@ def workflowOwnershipClaimProvider : CapabilityProvider LawStatement := {
   source
   contract := {
     id := ownershipClaimCapabilityId
-    semanticDigest := "workflow-nexus-ownership-claim-internal/v1"
+    canonicalBehavior := "workflow-nexus-ownership-claim-internal/v1"
     requiredLaws := [lifecycleLaw]
   }
   meanings := [{
     definitionId := ownershipClaimId
     kind := .observation
-    semanticDigest := "workflow-operation-ownership-claim/v1"
+    canonicalBehavior := "workflow-operation-ownership-claim/v1"
   }]
   lawWitnesses := [witness lifecycleLaw lifecycleLawProof]
 }
@@ -314,13 +369,13 @@ def cancellationOwnershipClaimProvider : CapabilityProvider LawStatement := {
   source
   contract := {
     id := ownershipClaimCapabilityId
-    semanticDigest := "workflow-nexus-ownership-claim-internal/v1"
+    canonicalBehavior := "workflow-nexus-ownership-claim-internal/v1"
     requiredLaws := [cancellationLaw]
   }
   meanings := [{
     definitionId := ownershipClaimId
     kind := .observation
-    semanticDigest := "nexus-operation-ownership-claim/v1"
+    canonicalBehavior := "nexus-operation-ownership-claim/v1"
   }]
   lawWitnesses := [witness cancellationLaw cancellationLawProof]
 }
@@ -330,13 +385,13 @@ def ownershipProvider : CapabilityProvider LawStatement := {
   source
   contract := {
     id := ownershipCapabilityId
-    semanticDigest := "workflow-nexus-ownership/v1"
+    canonicalBehavior := "workflow-nexus-ownership/v1"
     requiredLaws := [ownershipLaw]
   }
   meanings := [{
     definitionId := ownershipRelationId
     kind := .observation
-    semanticDigest := "workflow-nexus-operation-ownership/v1"
+    canonicalBehavior := "workflow-nexus-operation-ownership/v1"
   }]
   lawWitnesses := [witness ownershipLaw ownershipLawProof]
 }
@@ -344,12 +399,12 @@ def ownershipProvider : CapabilityProvider LawStatement := {
 def ownershipConnector : CapabilityConnector LawStatement := {
   id := ownershipConnectorId
   source
-  semanticDigest := "workflow-nexus-ownership-connector/v1"
+  canonicalBehavior := "workflow-nexus-ownership-connector/v1"
   reconciliations := [{
     definitionId := ownershipClaimId
     kind := .observation
     providers := [workflowOwnershipClaimProviderId, cancellationOwnershipClaimProviderId]
-    semanticDigest := "workflow-nexus-operation-ownership-claim/v1"
+    canonicalBehavior := "workflow-nexus-operation-ownership-claim/v1"
   }]
   requiredLaws := [ownershipLaw]
   lawWitnesses := [witness ownershipLaw ownershipLawProof]
@@ -369,9 +424,9 @@ def definitions : List DefinitionMetadata := [
   metadata cancellationOwnershipClaimProviderId .provider "nexus-ownership-claim-provider/v1",
   metadata ownershipProviderId .provider "workflow-nexus-ownership-provider/v1",
   metadata ownershipConnectorId .connector "workflow-nexus-ownership-connector/v1",
-  metadata lifecycleLawId .law lifecycleLaw.semanticDigest,
-  metadata cancellationLawId .law cancellationLaw.semanticDigest,
-  metadata ownershipLawId .law ownershipLaw.semanticDigest,
+  metadata lifecycleLawId .law lifecycleLaw.body,
+  metadata cancellationLawId .law cancellationLaw.body,
+  metadata ownershipLawId .law ownershipLaw.body,
   metadata configStateId .state "workflow-config-state/v1",
   metadata forceCloseActionId .action "workflow-force-close-action/v1",
   metadata upgradedOutcomeId .outcome "nexus-upgraded-cancellation-outcome/v1",
@@ -406,8 +461,6 @@ def targetComposition : TargetComposition LawStatement :=
 
 def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
   actions := [forceCloseAction]
-  roleDomainDigest := "workflow-nexus-role-domain/v1"
-  actionDomainDigest := "workflow-nexus-action-domain/v1"
   actionSound := by
     intro action member
     simp only [List.mem_cons, List.not_mem_nil, or_false] at member
@@ -572,7 +625,7 @@ def exactActionBehavior : CheckedBehavior :=
 def exactTraceBehavior : CheckedBehavior :=
   exactTraceBehaviorResult.toOption.get exactTraceBehaviorResult_isSome
 
-def bounds : QueryBounds := {
+def limits : QueryLimits := {
   behavior := {
     transitions := { value := 1, unit := .semanticTransitions }
     selectedActions := { value := 1, unit := .selectedActions }
@@ -583,13 +636,13 @@ def bounds : QueryBounds := {
 def exhaustivePolicy : PlannerPolicy := {
   strategy := .exhaustive
   seed := 17
-  tieBreak := .semanticIdentity
+  tieBreak := .definitionId
 }
 
 def shortestPolicy : PlannerPolicy := {
   strategy := .shortest
   seed := 17
-  tieBreak := .semanticIdentity
+  tieBreak := .definitionId
 }
 
 def queryContext : QueryCheckContext LawStatement := .ofTarget target
@@ -604,7 +657,7 @@ private def queryDeclaration
   target := target.id
   form
   behavior
-  bounds
+  limits
   policy
 }
 

@@ -16,9 +16,9 @@ def completeFirstDerivation : SemanticDerivation :=
 
 private def rehashQualifiedTrace (trace : QualifiedTrace) : QualifiedTrace := {
   trace with
-  traceId := semanticDigestOf <|
+  traceId := (behaviorFingerprintOf <|
     trace.mappingDigest ++ ":" ++ reprStr trace.evidenceIdentities ++ ":" ++ reprStr trace.trace ++
-      ":" ++ reprStr trace.derivations
+      ":" ++ reprStr trace.derivations).render
 }
 
 /-- Rehashed wrappers still fail when a rule's required disposition evidence is incomplete. -/
@@ -45,7 +45,7 @@ example :
 /-- Wrapper vocabulary remains exactly the canonical checked-plan vocabulary. -/
 example :
     let original := completeQualifiedTrace.vocabulary.head?.get (by native_decide)
-    let forged := { original with semanticDigest := original.semanticDigest ++ "/forged" }
+    let forged := { original with canonicalBehavior := original.canonicalBehavior ++ "/forged" }
     diagnosticKindOf (validateQualifiedTrace {
       completeQualifiedTrace with vocabulary := completeQualifiedTrace.vocabulary ++ [forged]
     }) != none := by

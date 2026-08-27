@@ -69,7 +69,7 @@ def reconciledMeaningDigest : Option String := do
   let checkContext ← connectedContext
   let plan ← (checkObservation checkContext reconciledMapping).toOption
   let rule ← plan.rules.find? fun rule => rule.id == id "test.rule.reconciled"
-  pure rule.meaning.semanticDigest
+  pure rule.meaning.canonicalBehavior
 
 /-- Connected target meanings compile under the connector's reconciled semantic identity. -/
 example : reconciledMeaningDigest = some "test-shared-connector/reconciled-v1" := by

@@ -31,10 +31,10 @@ def selectedArtifactIsInspectable : Bool :=
       spec.plan.linearExtension.length == spec.plan.requestedActions.length &&
       spec.plan.bindings == setup &&
       spec.plan.symbolicRoles == [] &&
-      spec.plan.expandedBounds == bounds &&
+      spec.plan.expandedLimits == limits &&
       spec.plan.selectionReason == .satisfyingWitness &&
       spec.plan.checkpoints.length == 1 &&
-      spec.plan.omissions == canonicalPlannerOmissions &&
+      spec.plan.knownGaps == canonicalPlannerKnownGaps &&
       spec.properties.map PortableProperty.definitionId == [property.id]
 
 /-! A selected trace is compiled into an inspectable plan that separates requests from outcomes. -/
@@ -44,7 +44,7 @@ example : selectedArtifactIsInspectable := by
 def optionalBehavior : CheckedBehavior := {
   behavior with
   requiredOccurrences := []
-  semanticDigest := "behavior/optional-v1"
+  behaviorFingerprint := behaviorFingerprintOf "behavior/optional-v1"
 }
 
 /-! The linear extension contains every selected action, including optional occurrences. -/

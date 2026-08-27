@@ -33,7 +33,7 @@ example : [
   ] := by
   native_decide
 
-/-- Exhausted bounds and non-bijective wrappers fail before Property evaluation. -/
+/-- Exhausted limits and non-bijective wrappers fail before Property evaluation. -/
 example : [
     evaluateQualifiedProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
       (.unknown {
@@ -98,7 +98,7 @@ example :
         meanings := satisfiedProperty.access.meanings ++ [{
           definitionId := id "test.observation.missing"
           kind := .observation
-          semanticDigest := "test-observation-missing/v1"
+          canonicalBehavior := "test-observation-missing/v1"
         }]
       }
     }
@@ -108,7 +108,7 @@ example :
         satisfiedProperty.access with
         meanings := satisfiedProperty.access.meanings.map fun meaning =>
           if meaning.definitionId == operationState then
-            { meaning with semanticDigest := "test-operation-state/mismatched" }
+            { meaning with canonicalBehavior := "test-operation-state/mismatched" }
           else
             meaning
       }
@@ -123,7 +123,7 @@ example :
     ] := by
   native_decide
 
-/-- Clause evidence carries the exact query/evidence bounds and coordinate-keyed derivation. -/
+/-- Clause evidence carries the exact query/evidence limits and coordinate-keyed derivation. -/
 example :
     (satisfiedVerdict.clauses.map fun clause =>
       (clause.clauseId, clause.status, clause.coordinates)) = [(
@@ -135,9 +135,9 @@ example :
 
 example :
     satisfiedVerdict.clauses.map (fun clause =>
-      (clause.queryBounds, clause.evidenceBound,
+      (clause.queryLimits, clause.evidenceBound,
         clause.derivations.map SemanticDerivation.coordinate)) = [(
-      (verdictQuery [satisfiedProperty]).bounds,
+      (verdictQuery [satisfiedProperty]).limits,
       completeQualifiedTrace.appliedBound,
       [.initialState]
     )] := by
@@ -160,7 +160,7 @@ example :
 /-- Conflicting duplicate vocabulary is unsupported independent of source order. -/
 example :
     let original := completeQualifiedTrace.vocabulary.head?.get (by native_decide)
-    let conflicting := { original with semanticDigest := original.semanticDigest ++ "/other" }
+    let conflicting := { original with canonicalBehavior := original.canonicalBehavior ++ "/other" }
     [
       { completeQualifiedTrace with
         vocabulary := conflicting :: completeQualifiedTrace.vocabulary },

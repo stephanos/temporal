@@ -1,6 +1,6 @@
 import Umpire.Property.Tests.Fixtures
 
-/-! Canonical ordering and semantic-digest sensitivity checks. -/
+/-! Canonical ordering and Behavior Fingerprint sensitivity checks. -/
 
 namespace Umpire.PropertyTests
 
@@ -22,9 +22,9 @@ def canonicalOf
     (check : Except PropertyError CheckedProperty) : Option String :=
   check.toOption.map canonicalPropertyJson
 
-def digestOf
-    (check : Except PropertyError CheckedProperty) : Option String :=
-  check.toOption.map CheckedProperty.semanticDigest
+def fingerprintOf
+    (check : Except PropertyError CheckedProperty) : Option BehaviorFingerprint :=
+  check.toOption.map CheckedProperty.behaviorFingerprint
 
 example : canonicalOf (checkProperty context authoredProperty) =
     canonicalOf (checkProperty reorderedContext (.portable reorderedProperty)) := by
@@ -37,7 +37,7 @@ def changedConstructor : PropertyDeclaration := {
       .quiescentWithin honoredDelivery.id
         (pattern .observation cancelRequested)
         (pattern .observation cancelDelivered)
-        (.exact cancelBudget.bound)
+        (.exact cancelBudget.limit)
     else
       clause
 }
@@ -64,16 +64,16 @@ def changedBound : PropertyDeclaration := {
       clause
 }
 
-example : digestOf (checkProperty context authoredProperty) ≠
-    digestOf (checkProperty context (.portable changedConstructor)) := by
+example : fingerprintOf (checkProperty context authoredProperty) ≠
+    fingerprintOf (checkProperty context (.portable changedConstructor)) := by
   native_decide
 
-example : digestOf (checkProperty context authoredProperty) ≠
-    digestOf (checkProperty context (.portable changedReference)) := by
+example : fingerprintOf (checkProperty context authoredProperty) ≠
+    fingerprintOf (checkProperty context (.portable changedReference)) := by
   native_decide
 
-example : digestOf (checkProperty context authoredProperty) ≠
-    digestOf (checkProperty context (.portable changedBound)) := by
+example : fingerprintOf (checkProperty context authoredProperty) ≠
+    fingerprintOf (checkProperty context (.portable changedBound)) := by
   native_decide
 
 end Umpire.PropertyTests

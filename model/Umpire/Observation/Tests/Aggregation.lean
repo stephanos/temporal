@@ -17,7 +17,8 @@ def verdictAs
   queryId := aggregationQuery.id
   propertyId
   propertyDigest := (aggregationQuery.form.properties.find? fun property =>
-    property.id == propertyId).map CheckedProperty.semanticDigest |>.getD "unexpected"
+    property.id == propertyId).map (fun property => property.behaviorFingerprint.render)
+      |>.getD "unexpected"
   traceId
   status
 }

@@ -7,7 +7,7 @@ import "testing"
 
 // TestWorkflowNexusQueryExactActionCallerClosure verifies the checked-in projection for workflow-nexus.query.exact-action-caller-closure.
 // Lean source: model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean
-// Semantic fingerprint: sha256:315266c53b2c9d94fc1ab3c2772a8424b2aafd9857801c8e24fac111253c53f1
+// Semantic fingerprint: sha256:8c2ba27730181616819a2bb4e0f083bc2ebfd6e3fc6df7717025539e95a3a46f
 func TestWorkflowNexusQueryExactActionCallerClosure(t *testing.T) {
 	RequireProjection(t, Reference{
 		FormatVersion: "umpire-experiment/v1",
@@ -24,6 +24,6 @@ func TestWorkflowNexusQueryExactActionCallerClosure(t *testing.T) {
 			"nexus.observation.pending-cancellation-count",
 			"workflow-nexus.relation.owns-operation",
 		},
-		SemanticFingerprint: "sha256:315266c53b2c9d94fc1ab3c2772a8424b2aafd9857801c8e24fac111253c53f1",
+		SemanticFingerprint: "sha256:8c2ba27730181616819a2bb4e0f083bc2ebfd6e3fc6df7717025539e95a3a46f",
 	})
 }

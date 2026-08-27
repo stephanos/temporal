@@ -35,8 +35,8 @@ structure SemanticClauseVerdict where
   clauseId : DefinitionId
   status : SemanticVerdictStatus
   coordinates : List SemanticCoordinate
-  queryBounds : QueryBounds
-  propertyBound : Option TypedBound
+  queryLimits : QueryLimits
+  propertyLimit : Option Limit
   evidenceBound : EvidenceBound
   provenance : List DefinitionId
   derivations : List SemanticDerivation
@@ -48,7 +48,7 @@ structure SemanticPropertyVerdict where
   propertyDigest : String
   traceId : Option String
   status : SemanticVerdictStatus
-  queryBounds : QueryBounds
+  queryLimits : QueryLimits
   evidenceBound : Option EvidenceBound
   provenance : List DefinitionId
   clauses : List SemanticClauseVerdict
@@ -64,7 +64,7 @@ inductive StrictQueryStatus where
 structure StrictQuerySummary where
   queryId : DefinitionId
   status : StrictQueryStatus
-  queryBounds : QueryBounds
+  queryLimits : QueryLimits
   requiredProperties : List DefinitionId
   verdicts : List SemanticPropertyVerdict
   missingProperties : List DefinitionId
@@ -101,10 +101,10 @@ private def failureVerdict
     (evidenceBound : Option EvidenceBound := none) : SemanticPropertyVerdict := {
   queryId := query.id
   propertyId := property.id
-  propertyDigest := property.semanticDigest
+  propertyDigest := property.behaviorFingerprint.render
   traceId
   status
-  queryBounds := query.bounds
+  queryLimits := query.limits
   evidenceBound
   provenance := canonicalIds (query.id :: property.id :: property.requires)
   clauses := []
@@ -127,8 +127,8 @@ private def propertyUsesLogicalTime (property : CheckedProperty) : Bool :=
   property.clauses.any fun clause =>
     match clause with
     | .ordered _ _ _ unit => unit == .logicalTime
-    | .eventuallyWithin _ _ _ bound | .quiescentWithin _ _ _ bound =>
-        bound.unit == .logicalTime
+    | .eventuallyWithin _ _ _ limit | .quiescentWithin _ _ _ limit =>
+        limit.unit == .logicalTime
     | _ => false
 
 private def validLogicalTimeSteps
@@ -177,7 +177,7 @@ private def vocabularyFailure
             relatedDefinitionIds := [required.definitionId]
           }
         | [available] =>
-            if available.semanticDigest != required.semanticDigest then
+            if available.canonicalBehavior != required.canonicalBehavior then
               some {
                 kind := .digestMismatch
                 relatedDefinitionIds := [required.definitionId]
@@ -249,8 +249,8 @@ private def clauseVerdict
     clauseId := result.clauseId
     status := if result.satisfied then .satisfied else .violated
     coordinates := derivations.map SemanticDerivation.coordinate
-    queryBounds := query.bounds
-    propertyBound := result.evaluatedBound
+    queryLimits := query.limits
+    propertyLimit := result.evaluatedLimit
     evidenceBound := trace.appliedBound
     provenance := result.semanticProvenance
     derivations
@@ -267,10 +267,10 @@ private def resolvedVerdict
   {
     queryId := query.id
     propertyId := property.id
-    propertyDigest := property.semanticDigest
+    propertyDigest := property.behaviorFingerprint.render
     traceId := some trace.traceId
     status := if evaluation.satisfied then .satisfied else .violated
-    queryBounds := query.bounds
+    queryLimits := query.limits
     evidenceBound := some trace.appliedBound
     provenance := canonicalIds
       (query.id :: property.id :: trace.mappingId :: property.requires ++
@@ -351,16 +351,16 @@ def summarizeQueryVerdicts
   let divergent := canonicalIds ((ordered.filter fun verdict =>
     match query.form.properties.find? fun property => property.id == verdict.propertyId with
     | none => false
-    | some property => property.semanticDigest != verdict.propertyDigest)
+    | some property => property.behaviorFingerprint.render != verdict.propertyDigest)
     |>.map SemanticPropertyVerdict.propertyId)
   let wrongQuery := canonicalIds ((ordered.filter fun verdict =>
-    verdict.queryId != query.id || verdict.queryBounds != query.bounds)
+    verdict.queryId != query.id || verdict.queryLimits != query.limits)
     |>.map SemanticPropertyVerdict.propertyId)
   let traceIds := canonicalStrings (ordered.filterMap SemanticPropertyVerdict.traceId)
   let evidenceBounds := ordered.filterMap SemanticPropertyVerdict.evidenceBound
   let sameEvidenceBound := match evidenceBounds with
     | [] => false
-    | first :: rest => rest.all fun bound => bound == first
+    | first :: rest => rest.all fun limit => limit == first
   let structurallyComplete := !required.isEmpty && missing.isEmpty && duplicates.isEmpty &&
     unexpected.isEmpty && divergent.isEmpty && wrongQuery.isEmpty && traceIds.length == 1 &&
     ordered.all (fun verdict => verdict.traceId.isSome && verdict.evidenceBound.isSome) &&
@@ -377,7 +377,7 @@ def summarizeQueryVerdicts
   {
     queryId := query.id
     status
-    queryBounds := query.bounds
+    queryLimits := query.limits
     requiredProperties := required
     verdicts := ordered
     missingProperties := missing

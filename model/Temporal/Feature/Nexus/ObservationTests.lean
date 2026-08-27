@@ -109,17 +109,17 @@ private def derivationShape (derivation : SemanticDerivation) : DerivationShape 
 /-- The checked mapping admits exactly the target-owned BasicLifecycle vocabulary. -/
 example : checkedPlanResult.isOk = true ∧ checkedPlan.meanings = [
     { definitionId := cancelActionId, kind := .action,
-      semanticDigest := "temporal-nexus-basic-lifecycle-cancel/v1" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-cancel/v1" },
     { definitionId := startActionId, kind := .action,
-      semanticDigest := "temporal-nexus-basic-lifecycle-start/v1" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-start/v1" },
     { definitionId := reportSuccessActionId, kind := .action,
-      semanticDigest := "temporal-nexus-basic-lifecycle-report-success/v1" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-report-success/v1" },
     { definitionId := lifecycleObservationId, kind := .observation,
-      semanticDigest := "temporal-nexus-basic-lifecycle-observation/v2" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-observation/v2" },
     { definitionId := transitionOutcomeId, kind := .outcome,
-      semanticDigest := "temporal-nexus-basic-lifecycle-outcome/v2" },
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-outcome/v2" },
     { definitionId := operationStateId, kind := .state,
-      semanticDigest := "temporal-nexus-basic-lifecycle-state/v2" }
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-state/v2" }
   ] := by
   native_decide
 
@@ -134,7 +134,7 @@ example : (qualifiedOf completeObservation.qualification).map (fun trace =>
     coordinate := .initialState
     mappingId := Mapping.id
     mappingVersion := 1
-    mappingDigest := checkedPlan.semanticDigest
+    mappingDigest := checkedPlan.behaviorFingerprint.render
     profileId := Profile.id
     profileVersion := 1
     ruleId := Mapping.stateRuleId
@@ -157,7 +157,7 @@ example : (qualifiedOf completeObservation.qualification).map (fun trace =>
     coordinate := .selectedAction 1
     mappingId := Mapping.id
     mappingVersion := 1
-    mappingDigest := checkedPlan.semanticDigest
+    mappingDigest := checkedPlan.behaviorFingerprint.render
     profileId := Profile.id
     profileVersion := 1
     ruleId := Mapping.startRuleId
@@ -180,7 +180,7 @@ example : (qualifiedOf completeObservation.qualification).map (fun trace =>
     coordinate := .modelOutcome 1
     mappingId := Mapping.id
     mappingVersion := 1
-    mappingDigest := checkedPlan.semanticDigest
+    mappingDigest := checkedPlan.behaviorFingerprint.render
     profileId := Profile.id
     profileVersion := 1
     ruleId := Mapping.outcomeRuleId
@@ -203,7 +203,7 @@ example : (qualifiedOf completeObservation.qualification).map (fun trace =>
     coordinate := .resultingState 1
     mappingId := Mapping.id
     mappingVersion := 1
-    mappingDigest := checkedPlan.semanticDigest
+    mappingDigest := checkedPlan.behaviorFingerprint.render
     profileId := Profile.id
     profileVersion := 1
     ruleId := Mapping.stateRuleId
@@ -226,7 +226,7 @@ example : (qualifiedOf completeObservation.qualification).map (fun trace =>
     coordinate := .observation 1 1
     mappingId := Mapping.id
     mappingVersion := 1
-    mappingDigest := checkedPlan.semanticDigest
+    mappingDigest := checkedPlan.behaviorFingerprint.render
     profileId := Profile.id
     profileVersion := 1
     ruleId := Mapping.observationRuleId
