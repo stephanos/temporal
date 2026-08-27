@@ -234,6 +234,20 @@ def declarations : List DeclarationMetadata := [
   metadata powerObservationId .observation "switch-power-observation/v1"
 ]
 
+def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
+  actions := [flipAction]
+  roleDomainDigest := "switch-role-domain/v1"
+  actionDomainDigest := "switch-action-domain/v1"
+  actionSound := by
+    intro action member
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+    subst action
+    exact ⟨offState, appliedResult, ⟨rfl, .inl ⟨rfl, .inl rfl⟩⟩⟩
+  actionComplete := by
+    intro state action result admitted
+    simp [admitted.1]
+}
+
 def targetDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   id := targetId
@@ -246,8 +260,14 @@ def targetDeclaration : TargetDeclaration LawStatement
   kernel := .checked transitionKernel
 }
 
-def targetResult : Except DeclarationError (QueryTarget LawStatement) :=
-  composeTarget targetDeclaration
+def targetAuthoring : AuthoredTarget LawStatement
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  declaration := targetDeclaration
+  planning := .available transitionKernel rfl finitePlanning
+}
+
+def targetResult : Except AuthoringDiagnostic (QueryTarget LawStatement) :=
+  checkTarget targetAuthoring
 
 private theorem targetResult_isSome : targetResult.toOption.isSome = true := by
   native_decide
@@ -259,7 +279,7 @@ private def composedTarget : QueryTarget LawStatement :=
 def target : QueryTarget LawStatement := {
   composedTarget with
   kernel := transitionKernel
-  planning := .unavailable
+  planning := .available finitePlanning
 }
 
 theorem target_resolvedSetups : target.resolvedSetups = [switchSetup] := by
@@ -408,24 +428,6 @@ def deferredTrace : BehaviorTrace := {
   }
 }
 
-def completeness : FiniteCompletenessEvidence LawStatement target := {
-  roleAssignments := [switchSetup]
-  actions := [flipAction]
-  roleDomainDigest := "switch-role-domain/v1"
-  actionDomainDigest := "switch-action-domain/v1"
-  roleSound := by simp [target_resolvedSetups]
-  roleComplete := by simp [target_resolvedSetups]
-  actionSound := by
-    intro action member
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
-    subst action
-    exact ⟨offState, appliedResult, target_off_flip_applied_authoritative⟩
-  actionComplete := by
-    intro state action result admitted
-    have selected := (target_step state action result admitted).1
-    simp [selected]
-}
-
 def bounds : QueryBounds := {
   behavior := {
     transitions := { value := 1, unit := .semanticTransitions }
@@ -440,9 +442,7 @@ def shortestPolicy : PlannerPolicy := {
   tieBreak := .semanticIdentity
 }
 
-def queryContext : QueryCheckContext LawStatement := {
-  target := .checked { target, completeness := some completeness }
-}
+def queryContext : QueryCheckContext LawStatement := .ofTarget target
 
 private def queryDeclaration
     (queryId : DeclarationId)
@@ -479,21 +479,9 @@ private theorem exactTraceQueryResult_isSome :
     exactTraceQueryResult.toOption.isSome = true := by native_decide
 
 private def materializeQuery (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
-  id := checked.id
-  source := checked.source
-  version := checked.version
-  form := checked.form
-  quantifier := checked.quantifier
-  claim := checked.claim
-  behavior := checked.behavior
+  checked with
   target
-  bounds := checked.bounds
-  policy := checked.policy
-  targetComposition := checked.targetComposition
-  completeness := some completeness
-  documentation := checked.documentation
-  canonicalMetadata := checked.canonicalMetadata
-  semanticDigest := checked.semanticDigest
+  completeness := (CheckedQueryTarget.ofTarget target).completeness
 }
 
 def exploratoryQuery : CheckedQuery LawStatement := materializeQuery
@@ -518,47 +506,53 @@ theorem stepResults_length_le_two (state action : SemanticValue) :
       · simp [stepResults, selectedOff, selectedOn]
   · simp [stepResults, selectedAction]
 
-def incrementalKernel : IncrementalPlannerKernel target :=
-  .ofFinite completeness {
-    action := by
-      simp [completeness]
-    initial := by
-      intro setup
-      simp only [target, transitionKernel, initialStates]
-      split <;> simp
-    step := by
-      intro state action
+private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQuery.target) :=
+  IncrementalPlannerKernel.ofCheckedQuery? exactActionQuery
+    (by
+      intro evidence evidenceEq
+      simp [exactActionQuery, materializeQuery, CheckedQueryTarget.ofTarget, target,
+        finitePlanning] at evidenceEq
+      cases Option.some.inj evidenceEq
+      simp)
+    (by
+      intro _ _ setup
+      simp only [exactActionQuery, materializeQuery, target, transitionKernel, initialStates]
+      split <;> simp)
+    (by
+      intro _ _ state action
       by_cases selectedAction : action = flipAction
       · subst action
         by_cases selectedOff : state = offState
         · subst state
-          simpa [target, transitionKernel, stepResults] using appliedResult_ordered
+          simpa [exactActionQuery, materializeQuery, target, transitionKernel, stepResults] using
+            appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
-            simpa [target, transitionKernel, stepResults, onState_ne_offState] using
-              appliedFromOnResult_ordered
-          · simp [target, transitionKernel, stepResults, selectedOff, selectedOn]
-      · simp [target, transitionKernel, stepResults, selectedAction]
-  }
+            simpa [exactActionQuery, materializeQuery, target, transitionKernel, stepResults,
+              onState_ne_offState] using appliedFromOnResult_ordered
+          · simp [exactActionQuery, materializeQuery, target, transitionKernel, stepResults,
+              selectedOff, selectedOn]
+      · simp [exactActionQuery, materializeQuery, target, transitionKernel, stepResults,
+          selectedAction])
+
+private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by
+  rfl
+
+def incrementalKernel : IncrementalPlannerKernel target :=
+  incrementalKernel?.get incrementalKernel?_isSome
 
 theorem exploratoryQuery_target : exploratoryQuery.target = target := by rfl
 theorem exactActionQuery_target : exactActionQuery.target = target := by rfl
 theorem exactTraceQuery_target : exactTraceQuery.target = target := by rfl
 
-private def kernelFor
-    (query : CheckedQuery LawStatement)
-    (agreement : query.target = target) : IncrementalPlannerKernel query.target := by
-  rw [agreement]
-  exact incrementalKernel
-
 def exploratoryRun : PlannerRun :=
-  plan exploratoryQuery (kernelFor exploratoryQuery exploratoryQuery_target)
+  plan exploratoryQuery incrementalKernel
 
 def exactActionRun : PlannerRun :=
-  plan exactActionQuery (kernelFor exactActionQuery exactActionQuery_target)
+  plan exactActionQuery incrementalKernel
 
 def exactTraceRun : PlannerRun :=
-  plan exactTraceQuery (kernelFor exactTraceQuery exactTraceQuery_target)
+  plan exactTraceQuery incrementalKernel
 
 def artifact : Option ExperimentSpec := exactActionRun.artifact
 

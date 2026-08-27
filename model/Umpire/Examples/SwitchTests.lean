@@ -26,7 +26,7 @@ example : source = {
     transitionKernel.metadata.contractDigest = "switch-two-state-kernel/v1" := by
   native_decide
 
-example : (composeTarget targetDeclaration).isOk = true := by
+example : (checkTarget targetAuthoring).isOk = true := by
   native_decide
 
 example : target.kernel.initialStates switchSetup = [offState] ∧
@@ -42,6 +42,14 @@ example : target.requiredCapabilities = [switchCapabilityId] ∧
 example : exactActionQuery.completeness.map (fun evidence =>
     (evidence.roleDomainDigest, evidence.actionDomainDigest)) =
     some ("switch-role-domain/v1", "switch-action-domain/v1") := by
+  native_decide
+
+example : (match target.planning with
+    | .unavailable => none
+    | .available capability =>
+        some (capability.roleDomainDigest, capability.actionDomainDigest)) =
+    exactActionQuery.completeness.map (fun evidence =>
+      (evidence.roleDomainDigest, evidence.actionDomainDigest)) := by
   native_decide
 
 example : canonicalQueryJson exactActionQuery ++ "\n" = expectedExactActionQueryJson := by
