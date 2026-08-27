@@ -8,14 +8,14 @@ Implement the pure import-graph checker and thin Lake/Lean adapter for R1-R4. Ke
 isolated from metadata and process I/O so the rule engine is exhaustively testable.
 
 **Size:** M
-**Files:** `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`, `model/ModelLint.lean`, `model/lakefile.toml`, `Makefile`
-**Touches:** [model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean, model/ModelLint.lean, model/lakefile.toml, Makefile]
+**Files:** `model/Tools/LeanImportGraph.lean`, `model/Tools/LeanImportGraphTests.lean`, `model/Tools/LeanSourceInventory.lean`, `model/Tools/LeanSourceInventoryTests.lean`, `model/ModelLint/ImportGraph.lean`, `model/ModelLint/ImportGraphTests.lean`, `model/ModelLint.lean`, `model/lakefile.toml`, `Makefile`
+**Touches:** [model/Tools/LeanImportGraph.lean, model/Tools/LeanImportGraphTests.lean, model/Tools/LeanSourceInventory.lean, model/Tools/LeanSourceInventoryTests.lean, model/ModelLint/ImportGraph.lean, model/ModelLint/ImportGraphTests.lean, model/ModelLint.lean, model/lakefile.toml, Makefile]
 
 ## Approach
 
-- Add `ModelLint.ImportGraph.check` as the pure boundary: module records plus an explicit
-  qualified-name policy in, deterministically ordered violations out. Keep traversal cycle-safe and
-  select a lexically stable shortest path.
+- Put cycle-safe traversal and stable shortest-path selection behind `Tools.LeanImportGraph`; put
+  canonical source discovery and generic reconciliation behind `Tools.LeanSourceInventory`; keep
+  the qualified model policy and its pure `ModelLint.ImportGraph.check` interface separate.
 - Encode all current first-party module classes and exact exception sets in one policy table.
   Enforce `Shared.*` independence. Authorize `Temporal.System.Nexus.Refinement` exactly for
   refinement and authorize only `TemporalVerify`, `TemporalVeilTests`,
@@ -79,7 +79,7 @@ isolated from metadata and process I/O so the rule engine is exhaustively testab
 - [ ] Focused and full verification commands pass without new dependencies or default targets.
 
 ## Done summary
-Implemented the pure, deterministic `ModelLint.ImportGraph` boundary checker, a canonical fail-closed source inventory, authoritative metadata adapter, executable regressions, and the existing `make lint-model` integration for R1-R4. The focused Lake build and `make lint-model` pass; the latest configured Codex review is SHIP with zero surviving findings.
+Implemented reusable pure `Tools.LeanImportGraph` and `Tools.LeanSourceInventory` modules, the deterministic `ModelLint.ImportGraph` boundary policy, an authoritative metadata adapter, executable regressions, and the existing `make lint-model` integration for R1-R4. The focused Lake build and `make lint-model` pass; the configured task review was SHIP with zero surviving findings.
 
 baseline: red (`cd model && mise exec -- lake build modelLintTests modelLint` lacked the task-defined targets; `make lint` was blocked by the inherited `/home/agent/.cache/go-build` symlink)
 

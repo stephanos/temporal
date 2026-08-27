@@ -1,28 +1,22 @@
-import Lean.Data.Name
+import Tools.LeanSourceInventory
 
 /-!
 Pure import-graph policy checking for the Temporal Lean model.
 
-The checker works only with qualified Lean module names and authoritative direct imports supplied
-by its caller. It classifies every first-party module through an explicit policy, reconciles source
-inventory with loaded metadata, and reports all forbidden transitive paths. Breadth-first traversal
-is cycle-safe; lexical neighbor ordering chooses one stable shortest path when several exist.
+The checker owns model-specific classification, exact exceptions, inventory reconciliation, and
+diagnostic language. It delegates reusable cycle-safe traversal and deterministic shortest-path
+selection to `Tools.LeanImportGraph`.
 -/
 
 namespace ModelLint.ImportGraph
 
+open Tools.LeanSourceInventory
+
 /-- One first-party module and the qualified names it imports directly. -/
-structure ModuleRecord where
-  name : Lean.Name
-  imports : Array Lean.Name
-  deriving Repr, BEq
+abbrev ModuleRecord := Tools.LeanImportGraph.ModuleRecord
 
 /-- A source discovered beneath the canonical model package root. -/
-structure SourceRecord where
-  path : String
-  module : Lean.Name
-  contained : Bool := true
-  deriving Repr, BEq
+abbrev SourceRecord := Tools.LeanSourceInventory.SourceRecord
 
 /-- The policy class assigned to a first-party module. -/
 inductive ModuleClass where
@@ -64,28 +58,10 @@ inductive Rule where
   deriving Repr, BEq
 
 /-- One forbidden reachability result and its selected shortest qualified path. -/
-structure Violation where
-  rule : Rule
-  source : Lean.Name
-  destination : Lean.Name
-  path : Array Lean.Name
-  deriving Repr, BEq
+abbrev Violation := Tools.LeanImportGraph.Violation Rule
 
 /-- A fail-closed discrepancy between owned sources and loaded module metadata. -/
-inductive InventoryIssue where
-  | escapingSource (path : String)
-  | duplicateSource (module : Lean.Name) (paths : Array String)
-  | duplicateMetadata (module : Lean.Name)
-  | uncoveredSource (module : Lean.Name) (path : String)
-  | unclassifiedModule (module : Lean.Name)
-  | unknownFirstPartyImport (source imported : Lean.Name)
-  deriving Repr, BEq
-
-private def nameLess (left right : Lean.Name) : Bool :=
-  left.toString < right.toString
-
-private def classifierLess (left right : Classifier) : Bool :=
-  left.modulePrefix.toString < right.modulePrefix.toString
+abbrev InventoryIssue := Tools.LeanSourceInventory.InventoryIssue
 
 private def matchesPrefix (modulePrefix name : Lean.Name) : Bool :=
   modulePrefix == name || modulePrefix.isPrefixOf name
@@ -109,6 +85,7 @@ def defaultPolicy : Policy := {
     `TemporalModelTests,
     `TemporalVeilTests,
     `TemporalVerify,
+    `Tools,
     `Umpire,
     `UmpireTests
   ],
@@ -123,6 +100,7 @@ def defaultPolicy : Policy := {
     { modulePrefix := `TemporalModelTests, moduleClass := .modelTests },
     { modulePrefix := `TemporalVeilTests, moduleClass := .optInVerify, exact := true },
     { modulePrefix := `TemporalVerify, moduleClass := .optInVerify, exact := true },
+    { modulePrefix := `Tools, moduleClass := .lintInfrastructure },
     { modulePrefix := `Umpire.Verify.Veil, moduleClass := .umpireVeil },
     { modulePrefix := `Umpire, moduleClass := .umpire },
     { modulePrefix := `UmpireTests, moduleClass := .modelTests }
@@ -167,35 +145,6 @@ def InventoryIssue.render : InventoryIssue → String
   | .unknownFirstPartyImport source imported =>
       s!"[model-import-graph/metadata] {source} imports unknown first-party module {imported}"
 
-private def moduleRecord? (modules : Array ModuleRecord) (name : Lean.Name) : Option ModuleRecord :=
-  modules.find? (·.name == name)
-
-private def uniqueSortedNames (names : Array Lean.Name) : Array Lean.Name :=
-  (names.qsort nameLess).foldl (init := #[]) fun result name =>
-    if result.contains name then result else result.push name
-
-private def ownedImports (modules : Array ModuleRecord) (record : ModuleRecord) : Array Lean.Name :=
-  uniqueSortedNames <| record.imports.filter fun imported => (moduleRecord? modules imported).isSome
-
-private def shortestPathsFrom
-    (modules : Array ModuleRecord) (source : Lean.Name) : Array (Lean.Name × Array Lean.Name) := Id.run do
-  let mut queue : Array (Array Lean.Name) := #[#[source]]
-  let mut visited : Array Lean.Name := #[source]
-  let mut paths : Array (Lean.Name × Array Lean.Name) := #[]
-  let mut cursor := 0
-  while cursor < queue.size do
-    let path := queue[cursor]!
-    cursor := cursor + 1
-    let current := path.back!
-    if current != source then
-      paths := paths.push (current, path)
-    if let some record := moduleRecord? modules current then
-      for imported in ownedImports modules record do
-        unless visited.contains imported do
-          visited := visited.push imported
-          queue := queue.push (path.push imported)
-  return paths
-
 private def isTemporalClass : ModuleClass → Bool
   | .temporalFeature | .temporalSystem | .temporalVerify | .temporalTool | .temporal => true
   | _ => false
@@ -231,60 +180,30 @@ private def forbiddenRule?
   else
     none
 
-private def violationLess (left right : Violation) : Bool :=
-  let leftKey :=
-    s!"{left.rule.label}\u0000{left.source}\u0000{left.destination}\u0000{pathText left.path}"
-  let rightKey :=
-    s!"{right.rule.label}\u0000{right.source}\u0000{right.destination}\u0000{pathText right.path}"
-  leftKey < rightKey
-
 /--
 Return every forbidden transitive reachability result in deterministic order.
 
 The caller must first reconcile inventory and metadata. Imports outside the first-party policy are
 external leaves and are intentionally not traversed.
 -/
-def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation := Id.run do
-  let mut violations := #[]
-  let modules := modules.qsort fun left right => nameLess left.name right.name
-  for sourceRecord in modules do
-    if let some sourceClass := policy.classify? sourceRecord.name then
-      for (destination, path) in shortestPathsFrom modules sourceRecord.name do
-        if let some destinationClass := policy.classify? destination then
-          if let some rule := forbiddenRule? policy sourceRecord.name sourceClass destinationClass then
-            violations := violations.push { rule, source := sourceRecord.name, destination, path }
-  return violations.qsort violationLess
+def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
+  Tools.LeanImportGraph.check {
+    forbidden? := fun source destination =>
+      match policy.classify? source, policy.classify? destination with
+      | some sourceClass, some destinationClass =>
+          forbiddenRule? policy source sourceClass destinationClass
+      | _, _ => none
+    ruleKey := Rule.label
+  } modules
 
-private def issueLess (left right : InventoryIssue) : Bool :=
-  left.render < right.render
-
-private def duplicateSourceIssues (sources : Array SourceRecord) : Array InventoryIssue := Id.run do
-  let mut issues := #[]
-  let moduleNames := uniqueSortedNames <| sources.map (·.module)
-  for module in moduleNames do
-    let paths := (sources.filter (·.module == module)).map (·.path) |>.qsort (· < ·)
-    if paths.size > 1 then
-      issues := issues.push (.duplicateSource module paths)
-  return issues
-
-private def duplicateMetadataIssues (modules : Array ModuleRecord) : Array InventoryIssue := Id.run do
-  let mut issues := #[]
-  let moduleNames := uniqueSortedNames <| modules.map (·.name)
-  for module in moduleNames do
-    if (modules.filter (·.name == module)).size > 1 then
-      issues := issues.push (.duplicateMetadata module)
-  return issues
+private def Policy.inventoryPolicy (policy : Policy) : InventoryPolicy := {
+  isFirstParty := policy.isFirstParty
+  isClassified := fun module => (policy.classify? module).isSome
+}
 
 /-- Validate source containment, classification, and qualified identity before invoking Lake. -/
-def validateSources (policy : Policy) (sources : Array SourceRecord) : Array InventoryIssue := Id.run do
-  let mut issues := duplicateSourceIssues sources
-  for source in sources do
-    unless source.contained do
-      issues := issues.push (.escapingSource source.path)
-    if (policy.classify? source.module).isNone then
-      issues := issues.push (.unclassifiedModule source.module)
-  return (issues.qsort issueLess).foldl (init := #[]) fun unique issue =>
-    if unique.contains issue then unique else unique.push issue
+def validateSources (policy : Policy) (sources : Array SourceRecord) : Array InventoryIssue :=
+  Tools.LeanSourceInventory.validateSources policy.inventoryPolicy sources
 
 /--
 Reconcile a canonical owned-source inventory with loaded direct-import metadata.
@@ -295,19 +214,8 @@ inventory failures instead of stopping at the first one.
 def reconcile
     (policy : Policy)
     (sources : Array SourceRecord)
-    (modules : Array ModuleRecord) : Array InventoryIssue := Id.run do
-  let mut issues := validateSources policy sources ++ duplicateMetadataIssues modules
-  for source in sources do
-    if (moduleRecord? modules source.module).isNone then
-      issues := issues.push (.uncoveredSource source.module source.path)
-  for record in modules do
-    if (policy.classify? record.name).isNone then
-      issues := issues.push (.unclassifiedModule record.name)
-    for imported in uniqueSortedNames record.imports do
-      if policy.isFirstParty imported && (moduleRecord? modules imported).isNone then
-        issues := issues.push (.unknownFirstPartyImport record.name imported)
-  return (issues.qsort issueLess).foldl (init := #[]) fun unique issue =>
-    if unique.contains issue then unique else unique.push issue
+    (modules : Array ModuleRecord) : Array InventoryIssue :=
+  Tools.LeanSourceInventory.reconcile policy.inventoryPolicy sources modules
 
 /-- Compose graph and declaration-linter success without allowing either result to mask the other. -/
 def exitCode (graphPassed declarationLintersPassed : Bool) : UInt32 :=

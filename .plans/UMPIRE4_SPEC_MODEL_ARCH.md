@@ -55,6 +55,10 @@ The intended source organization is:
 
 ```text
 model/
+├── Tools/
+│   ├── LeanImportGraph.lean      # reusable pure qualified-import traversal
+│   └── LeanSourceInventory.lean  # reusable canonical source/metadata reconciliation
+│
 ├── Umpire/
 │   ├── Core, Property, Behavior, Query, Planning, ...
 │   ├── Observation and Refinement
