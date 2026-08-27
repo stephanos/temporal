@@ -1,10 +1,10 @@
 import ModelLint.ImportGraph
-import ModelLint.Inventory
+import Tools.LeanImportGraphTests
+import Tools.LeanSourceInventoryTests
 
 /-! Executable synthetic regressions for model import-graph policy and inventory checking. -/
 
 open ModelLint.ImportGraph
-open System
 
 private def moduleRecord (name : Lean.Name) (imports : Array Lean.Name := #[]) : ModuleRecord :=
   { name, imports }
@@ -16,22 +16,6 @@ private def sourceRecord
 private def requireEqual [BEq α] [Repr α] (label : String) (actual expected : α) : IO Unit :=
   unless actual == expected do
     throw <| IO.userError s!"{label}: expected {repr expected}, got {repr actual}"
-
-private def requireFailureContaining (label needle : String) (action : IO α) : IO Unit := do
-  let failure? ← try
-    action *> pure none
-  catch error =>
-    pure <| some (toString error)
-  let some failure := failure?
-    | throw <| IO.userError s!"{label}: expected failure containing {needle}"
-  unless failure.contains needle do
-    throw <| IO.userError s!"{label}: expected failure containing {needle}, got {failure}"
-
-private def runProcess (command : String) (args : Array String) : IO Unit := do
-  let child ← IO.Process.spawn { cmd := command, args, stdin := .null }
-  let exitCode ← child.wait
-  if exitCode != 0 then
-    throw <| IO.userError s!"{command} failed with status {exitCode}"
 
 private def requireViolation
     (label : String)
@@ -56,7 +40,16 @@ private def forbiddenCases : Array ForbiddenCase := #[
     rule := .sharedIndependence },
   { label := "Shared to Temporal", source := `Shared.Root, destination := `Temporal.Feature.Root,
     rule := .sharedIndependence },
+  { label := "Shared to Veil", source := `Shared.Root,
+    destination := `Umpire.Verify.Veil.Core,
+    rule := .sharedIndependence },
   { label := "Umpire to Temporal", source := `Umpire.Root, destination := `Temporal.Feature.Root,
+    rule := .umpireIndependence },
+  { label := "Umpire to Verify", source := `Umpire.Root,
+    destination := `Temporal.Verify.Root,
+    rule := .umpireIndependence },
+  { label := "Veil implementation to Temporal", source := `Umpire.Verify.Veil.Core,
+    destination := `Temporal.Feature.Root,
     rule := .umpireIndependence },
   { label := "Feature to System", source := `Temporal.Feature.Root,
     destination := `Temporal.System.Root,
@@ -76,14 +69,26 @@ private def forbiddenCases : Array ForbiddenCase := #[
   { label := "System to Verify", source := `Temporal.System.Root,
     destination := `Temporal.Verify.Root,
     rule := .verificationIsolation },
+  { label := "System to Veil", source := `Temporal.System.Root,
+    destination := `Umpire.Verify.Veil.Core,
+    rule := .verificationIsolation },
   { label := "Temporal to Verify", source := `Temporal.Root,
     destination := `Temporal.Verify.Root,
+    rule := .verificationIsolation },
+  { label := "Temporal to Veil", source := `Temporal.Root,
+    destination := `Umpire.Verify.Veil.Core,
     rule := .verificationIsolation },
   { label := "model tests to Verify", source := `TemporalModelTests,
     destination := `Temporal.Verify.Root,
     rule := .verificationIsolation },
+  { label := "model tests to Veil", source := `TemporalModelTests,
+    destination := `Umpire.Verify.Veil.Core,
+    rule := .verificationIsolation },
   { label := "tool to Verify", source := `Temporal.Tool.Inspect,
     destination := `Temporal.Verify.Root,
+    rule := .verificationIsolation },
+  { label := "tool to Veil", source := `Temporal.Tool.Inspect,
+    destination := `Umpire.Verify.Veil.Core,
     rule := .verificationIsolation }
 ]
 
@@ -148,24 +153,7 @@ private def testExactVerifyExceptions : IO Unit := do
       (reconcile defaultPolicy sources modules)
       #[.unclassifiedModule unclassifiedNearMiss]
 
-private def testInventoryFailures : IO Unit := do
-  requireEqual "escaping source"
-    (reconcile defaultPolicy
-      #[sourceRecord `Shared.Root "/outside/Shared/Root.lean" (contained := false)]
-      #[moduleRecord `Shared.Root])
-    #[.escapingSource "/outside/Shared/Root.lean"]
-  requireEqual "duplicate source identity"
-    (reconcile defaultPolicy
-      #[sourceRecord `Shared.Root "Shared/Root.lean", sourceRecord `Shared.Root "Alias/Root.lean"]
-      #[moduleRecord `Shared.Root])
-    #[.duplicateSource `Shared.Root #["Alias/Root.lean", "Shared/Root.lean"]]
-  requireEqual "duplicate metadata"
-    (reconcile defaultPolicy #[sourceRecord `Shared.Root]
-      #[moduleRecord `Shared.Root, moduleRecord `Shared.Root])
-    #[.duplicateMetadata `Shared.Root]
-  requireEqual "uncovered source"
-    (reconcile defaultPolicy #[sourceRecord `Shared.Root] #[])
-    #[.uncoveredSource `Shared.Root "Shared.Root.lean"]
+private def testModelInventoryPolicy : IO Unit := do
   requireEqual "unclassified source"
     (reconcile defaultPolicy #[sourceRecord `Unknown.Root] #[moduleRecord `Unknown.Root])
     #[.unclassifiedModule `Unknown.Root]
@@ -183,34 +171,6 @@ private def testExternalLeaves : IO Unit := do
   let modules := #[moduleRecord `Shared.Root #[`Lean.Data.Name, `Std.Data.HashMap]]
   requireEqual "external inventory leaves" (reconcile defaultPolicy sources modules) #[]
   requireEqual "external graph leaves" (check defaultPolicy modules) #[]
-
-private def testFilesystemInventoryAliases : IO Unit := do
-  IO.FS.withTempDir fun root => do
-    let canonical := root / "Canonical"
-    IO.FS.createDir canonical
-    IO.FS.writeFile (canonical / "Root.lean") "def canonical := true\n"
-    runProcess "ln" #["-s", canonical.toString, (root / "Alias").toString]
-    requireFailureContaining "directory alias" "directory alias or cycle"
-      (ModelLint.Inventory.scanSources root)
-  IO.FS.withTempDir fun root => do
-    let directory := root / "Cycle"
-    IO.FS.createDir directory
-    runProcess "ln" #["-s", root.toString, (directory / "Loop").toString]
-    requireFailureContaining "directory cycle" "directory alias or cycle"
-      (ModelLint.Inventory.scanSources root)
-  IO.FS.withTempDir fun root =>
-    IO.FS.withTempDir fun outside => do
-      IO.FS.writeFile (outside / "Escape.lean") "def escape := true\n"
-      runProcess "ln" #["-s", outside.toString, (root / "Outside").toString]
-      requireFailureContaining "escaping directory" "escapes canonical root"
-        (ModelLint.Inventory.scanSources root)
-  IO.FS.withTempDir fun root => do
-    let canonical := root / "Case.lean"
-    let caseVariant := root / "case.lean"
-    IO.FS.writeFile canonical "def sameBytes := true\n"
-    runProcess "cp" #["-p", canonical.toString, caseVariant.toString]
-    let sources ← ModelLint.Inventory.scanSources root
-    requireEqual "distinct case variants retained" (sources.map (·.module)) #[`Case, `case]
 
 private def testStableShortestPath : IO Unit := do
   let modules := #[
@@ -251,13 +211,14 @@ private def controlledViolations : Array Violation :=
   ]
 
 private def runSyntheticSuite : IO UInt32 := do
+  Tools.LeanImportGraphTests.run
+  Tools.LeanSourceInventoryTests.run
   testAllowedOrdinaryImports
   testDirectAndTransitiveRejections
   testExactRefinementException
   testExactVerifyExceptions
-  testInventoryFailures
+  testModelInventoryPolicy
   testExternalLeaves
-  testFilesystemInventoryAliases
   testStableShortestPath
   testMultipleFindings
   testCyclesTerminate

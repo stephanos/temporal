@@ -92,8 +92,10 @@ Umpire.Examples.Switch ────────────────┴──
                                   temporal-model-inspect
 ```
 
-`make lint-model` checks the complete first-party module graph transitively. It keeps `Shared.*`
-independent of `Umpire.*` and `Temporal.*`, keeps `Umpire.*` independent of `Temporal.*`, isolates
+`make lint-model` checks the complete first-party module graph transitively. Its model-specific
+`ModelLint.ImportGraph` policy uses the reusable pure `Tools.LeanImportGraph` traversal and
+`Tools.LeanSourceInventory` discovery modules. It keeps `Shared.*` independent of `Umpire.*` and
+`Temporal.*`, keeps `Umpire.*` independent of `Temporal.*`, isolates
 `Temporal.Feature.*` from `Temporal.System.*`, and protects the opt-in `Temporal.Verify.*` and
 `Umpire.Verify.Veil` seams. The only cross-layer refinement consumer is the exact
 `Temporal.System.Nexus.Refinement` module; verification consumers use the exact allowlist owned by

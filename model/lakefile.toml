@@ -27,7 +27,7 @@ roots = ["TemporalModelTests"]
 
 [[lean_lib]]
 name = "ModelLintSupport"
-roots = ["ModelLint.ImportGraph", "ModelLint.Inventory"]
+roots = ["Tools.LeanImportGraph", "Tools.LeanImportGraphTests", "Tools.LeanSourceInventory", "Tools.LeanSourceInventoryTests", "ModelLint.ImportGraph"]
 
 [[lean_exe]]
 name = "temporal-model-inspect"
