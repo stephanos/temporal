@@ -4,11 +4,11 @@ satisfies: [R4]
 # fn-37-hard-cut-umpire-vocabulary-and-current.4 Rename Qualification to Observation Evaluation
 
 ## Description
-Apply R4 after fn-4 has settled the behavior. Rename the module and result family around what the code actually does: evaluating Evidence into a complete Evidence-backed Model Trace with auditable Evidence Links.
+Apply R4 after fn-4 has settled the behavior. Rename the Observation module and result family around what the code actually does: evaluating Evidence into a complete Evidence-backed Model Trace with auditable Evidence Links.
 
 **Size:** M
-**Files:** `model/Umpire/Observation/Qualification.lean`, `model/Umpire/Observation/Tests/Qualification.lean`, Observation facade/import/tests, current consumers
-**Touches:** [model/Umpire/Observation/**, model/Umpire/ObservationTests.lean, model/UmpireTests.lean, model/Temporal/**/*.lean]
+**Files:** `model/Umpire/Observation/Qualification.lean`, `model/Umpire/Observation/Tests/Qualification.lean`, Observation facade/import/tests, Umpire aggregate roots
+**Touches:** [model/Umpire/Observation/**, model/Umpire/ObservationTests.lean, model/UmpireTests.lean]
 
 ### Approach
 - Rename the module/file path from `Qualification` to `Evaluation` and update aggregate imports and import-boundary tests without a forwarding module.
@@ -28,8 +28,7 @@ Apply R4 after fn-4 has settled the behavior. Rename the module and result famil
 - `.flow/specs/fn-4-umpire-observation-and-semantic-verdicts.md` — settled behavior contract; rename without semantic drift.
 
 ### Key context
-Do not rename this layer to Claim Assessment. It does not issue an environment claim or evaluate Properties; it only establishes Model Facts and a Model Trace from Evidence.
-
+No current `model/Temporal/**` source consumes the Qualification API, so this task is intentionally confined to Observation and its Umpire aggregate roots. Do not rename this layer to Claim Assessment: it establishes Model Facts from Evidence but does not issue an environment Claim or evaluate Properties over a Run.
 ## Acceptance
 - [ ] The Evaluation module and Observation result family compile with no Qualification forwarding path.
 - [ ] Accepted results carry a complete EvidenceBackedTrace and coordinate-complete Evidence Links.
