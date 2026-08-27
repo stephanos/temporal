@@ -22,7 +22,7 @@ complete production platform. In particular:
 - Evidence conclusions use causal or source-local ordering rather than synchronized clocks, proven
   with deliberately skewed timestamps.
 - A small authored variation space and first-class fault demonstrate guided exploration.
-- Exploration prioritizes an uncovered semantic coordinate and retains an exact replay and reviewed
+- Exploration prioritizes an uncovered Model Coordinate and retains an Exact Replay and reviewed
   regression proposal.
 
 All retained specs must be reduced to the scope stated below before implementation. Following their
@@ -34,7 +34,7 @@ Make only these epic-level dependency edits:
   model, Observation, Artifact, Generated View, Implementation Link, Run Evaluation, replay, or
   Claim Assessment vocabulary depend on fn-37;
 - remove fn-15 from fn-5;
-- remove fn-17 and fn-33 from fn-22 while retaining its existing semantic, artifact, conformance,
+- remove fn-17 and fn-33 from fn-22 while retaining its existing model, Artifact, Run Evaluation,
   fn-21 control, and fn-5 promotion prerequisites;
 - remove fn-24 and fn-26 from fn-27;
 - remove fn-26 from fn-28.
@@ -72,20 +72,20 @@ This work is already in progress and can proceed alongside fn-4.
 ### 3. fn-4 — Umpire observation and semantic verdicts
 
 Finish the evidence-to-verdict seam required by the live prototype. Retain the reusable Observation
-boundary, qualified derivations, strict outcomes, and only the synthetic/Nexus evidence needed by
+boundary, Evidence Links, strict outcomes, and only the synthetic/Nexus Evidence needed by
 the two examples. Retain concise documentation for that reduced Observation API and live handoff;
 defer the broader cross-layer mutation matrix and documentation surface.
 
 ### 4. fn-32 — Add the first Umpire Implementation Link and Temporal Feature/System correspondence
 
-Relate one Nexus System trace to its independently authored Feature meaning. Keep observation,
-refinement, and property failures distinct. This is the semantic seam that lets local and black-box
-execution share the same Feature property without leaking implementation evidence into it.
+Relate one Nexus System Model Trace to its independently authored Feature meaning. Keep Observation,
+Implementation Link, and Property failures distinct. This is the model seam that lets local and
+black-box Execution share the same Feature Property without leaking implementation Evidence into it.
 
 ### 5. fn-16 — Authored variation spaces and deterministic batch compilation
 
 Reduce the general space design to one small Nexus matrix, such as two binary axes, plus the single
-duplicate-delivery fault intent. Compile the selected points deterministically through the existing
+duplicate-delivery Fault Request. Compile the selected points deterministically through the existing
 target-owned planner. Defer generalized coverage vocabularies, arbitrary spaces, and broad catalog
 integration.
 
@@ -125,10 +125,10 @@ without recompiling it.
 
 Interpret the local Run through the checked Nexus Observation and Implementation Link declarations
 and then evaluate the unchanged Feature Property. The Result must distinguish operational success,
-Observation Evaluation, Implementation Link, and Property satisfaction. Include a fixture with intentionally skewed
-wall-clock timestamps whose sorted order contradicts the causal or source-local order. Use a trace
-whose qualification or property result would change under timestamp sorting, then assert the
-expected causal derivation and verdict.
+Observation Evaluation, Implementation Link, and Property satisfaction. Include a fixture with
+intentionally skewed wall-clock timestamps whose sorted order contradicts the causal or source-local
+order. Use a Model Trace whose Observation Evaluation or Property Result would change under
+timestamp sorting, then assert the expected Evidence Link and Result.
 
 ### 9. fn-21 — Nexus duplicate-observation control
 
@@ -138,19 +138,19 @@ records a matching receipt, and conformance reports a uniqueness-only violation 
 Temporal product defect.
 
 Consume the faulted fn-18-published executable `ExperimentSpec` built from fn-16's checked intent;
-do not author an alternative space, Feature property, or Refinement inside fn-21.
+do not author an alternative space, Feature Property, or Implementation Link inside fn-21.
 
 Completion of fn-21 establishes the core prototype: one satisfied live example and one precise
-fault-induced violation using the same semantic model.
+fault-induced violation using the same model.
 
 ## P2 — Portability proof
 
 ### 10. fn-27 — Hermetic CI execution
 
 Run the byte-identical normal `ExperimentSpec` consumed by fn-19 through the ordinary CI test command
-and the same runner/conformance interfaces used locally. Its canonical byte hash, format identity,
-and semantic identity must match the local subject. Reject recompilation or identity drift without
-introducing a new provenance schema. Do not build CI qualification profiles, provenance schemas,
+and the same runner/Run Evaluation interfaces used locally. Its Artifact Checksum, format version,
+and Behavior Fingerprints must match the local subject. Reject recompilation or checksum drift without
+introducing a new provenance schema. Do not build CI Claim Assessment profiles, provenance schemas,
 new artifact-set versions, or release evidence.
 
 ### 11. fn-28 — Black-box staging execution
