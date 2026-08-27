@@ -20,8 +20,8 @@ structure TargetDeclaration
 
 /-- Optional finite planning is tied propositionally to the exact authoritative target kernel. -/
 structure FinitePlanningCapability
-    (State Action Outcome Observation : Type) where
-  authoritativeStep : State → Action → TransitionResult State Outcome Observation → Prop
+    {State Action Outcome Observation : Type}
+    (authoritativeStep : State → Action → TransitionResult State Outcome Observation → Prop) where
   actions : List Action
   roleDomainDigest : String
   actionDomainDigest : String
@@ -31,9 +31,10 @@ structure FinitePlanningCapability
     authoritativeStep state action result → action ∈ actions
 
 inductive FinitePlanningAvailability
-    (State Action Outcome Observation : Type) where
+    {State Action Outcome Observation : Type}
+    (authoritativeStep : State → Action → TransitionResult State Outcome Observation → Prop) where
   | unavailable
-  | available (capability : FinitePlanningCapability State Action Outcome Observation)
+  | available (capability : FinitePlanningCapability authoritativeStep)
 
 inductive AuthoredPlanningCapability
     {Setup State Action Outcome Observation : Type}
@@ -42,8 +43,7 @@ inductive AuthoredPlanningCapability
   | available
       (kernel : TransitionKernel Setup State Action Outcome Observation)
       (kernelEq : availability = .checked kernel)
-      (capability : FinitePlanningCapability State Action Outcome Observation)
-      (relationEq : capability.authoritativeStep = kernel.authoritativeStep)
+      (capability : FinitePlanningCapability kernel.authoritativeStep)
 
 structure CheckedTarget
     (LawStatement : DeclarationId → Prop)
@@ -56,7 +56,7 @@ structure CheckedTarget
   connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
   kernel : TransitionKernel Setup State Action Outcome Observation
-  planning : FinitePlanningAvailability State Action Outcome Observation := .unavailable
+  planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable
   canonicalMetadata : String
   semanticDigest : String
 
@@ -679,7 +679,7 @@ def checkTarget
   | .ok checked =>
       match authored.planning with
       | .unavailable => .ok checked
-      | .available kernel _ capability _ =>
+      | .available kernel _ capability =>
           .ok { checked with kernel, planning := .available capability }
   | .error detailed => .error (authoringDiagnostic authored.occurrences detailed)
 
