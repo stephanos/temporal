@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-27T05:47:57.846401Z",
+  "depends_on": [
+    "fn-37-hard-cut-umpire-vocabulary-and-current.1"
+  ],
+  "id": "fn-37-hard-cut-umpire-vocabulary-and-current.2",
+  "priority": null,
+  "spec": "fn-37-hard-cut-umpire-vocabulary-and-current",
+  "spec_path": ".flow/tasks/fn-37-hard-cut-umpire-vocabulary-and-current.2.md",
+  "status": "todo",
+  "title": "Hard-cut core Definition and Model Trace vocabulary",
+  "updated_at": "2026-08-27T05:47:57.846401Z"
+}

@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-37-hard-cut-umpire-vocabulary-and-current",
+  "created_at": "2026-08-27T05:43:24.918514Z",
+  "depends_on_epics": [
+    "fn-31-deepen-umpire-target-and-simplify",
+    "fn-4-umpire-observation-and-semantic-verdicts"
+  ],
+  "id": "fn-37-hard-cut-umpire-vocabulary-and-current",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-37-hard-cut-umpire-vocabulary-and-current.md",
+  "status": "open",
+  "title": "Hard-cut Umpire vocabulary and current artifacts",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-27T05:43:40.202504Z"
+}
