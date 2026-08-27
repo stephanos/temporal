@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-36-nexus-lifecycle-cleanup",
+  "created_at": "2026-08-27T00:24:09.636010Z",
+  "depends_on_epics": [],
+  "id": "fn-36-nexus-lifecycle-cleanup",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-36-nexus-lifecycle-cleanup.md",
+  "status": "open",
+  "title": "Nexus lifecycle cleanup",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-27T00:24:09.642415Z"
+}

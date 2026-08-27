@@ -385,18 +385,19 @@ independent consumers need a narrower import.
 
 ### 7.3 Nexus decomposition
 
-`Temporal.Feature.Nexus.AutoClose` contains several deep logical modules:
+`Temporal.Feature.Nexus.Experimental.AutoClose` contains several deep logical modules:
 
 ```text
-Nexus.AutoClose
+Nexus.Experimental.AutoClose
 ├── Lifecycle       operation state, events, and authoritative step
 ├── Model           configuration, resolution, reachability, and auto-close behavior
 ├── Properties      honored delivery and cancellation uniqueness
 └── History         emitted events, rebuild, and faithfulness
 ```
 
-`Temporal.Feature.Nexus.CallerClosure` currently combines the ownership model, target composition,
-properties, behaviors, queries, planner kernel, runs, and artifact selection. Its target shape is:
+`Temporal.Feature.Nexus.Experimental.CallerClosure` currently combines the ownership model, target
+composition, properties, behaviors, queries, planner kernel, runs, and artifact selection. Its
+target shape is:
 
 ```text
 CallerClosure
@@ -409,9 +410,10 @@ CallerClosure
 Deepen `Umpire.Target` before physically splitting CallerClosure. The goal is to remove repeated
 plumbing rather than distribute it across more files.
 
-The basic lifecycle and basic operation modules remain examples. They should demonstrate the
-ordinary authoring interface rather than expose completeness proofs, query materialization, checked
-result extraction, or incremental planner assembly.
+The root `Temporal.Feature.Nexus.Lifecycle` and `Temporal.Feature.Nexus.Operations` modules are the
+ordinary Feature surface. They should demonstrate the start, cancellation, and successful-
+completion authoring path without exposing the experimental AutoClose configuration or
+caller-closure composition.
 
 ### 7.4 System family template
 
@@ -820,7 +822,7 @@ their direct and transitive reachability constraints over the complete first-par
   `Temporal.System.Nexus.Refinement` consumer (MOD-10).
 - `Temporal.Verify.*` and `Umpire.Verify.Veil` remain opt-in. Their exact aggregate, tool, and test
   consumers are `TemporalVerify`, `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, and
-  `Temporal.Feature.Nexus.CallerClosure.VeilTests` (MOD-05).
+  `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests` (MOD-05).
 - `Temporal.Tool.*` composes modules but owns no semantic authority.
 - Umpire Go packages never import `tools/canary`; Canary may import stable Umpire Go packages.
 - Commands remain thin adapters.

@@ -11,18 +11,20 @@ Move the minimum Umpire teaching example to the ordinary Target interface and pr
 **Touches:** [model/Umpire/Examples/Switch.lean, model/Umpire/Examples/SwitchTests.lean]
 
 ### Approach
-- Replace routine provider/connector/extraction/planner assembly with the public Target path.
+- Replace routine provider/connector/extraction/planner assembly with the public Target path and opt the target into Target-owned finite planning once.
 - Preserve the existing target-owned transition kernel and all fixtures.
+- Preserve the existing `switch-role-domain/v1` and `switch-action-domain/v1` compatibility tokens verbatim at the Target finite-planning declaration.
 
 ### Investigation targets
 **Required** (read before coding):
-- `model/Umpire/Examples/Switch.lean:180-280` — current provider/target assembly
-- `model/Umpire/Examples/Switch.lean:350-570` — checked extraction and planning plumbing
+- `model/Umpire/Examples/Switch.lean:237-259` — current declaration, `composeTarget`, and checked extraction
+- `model/Umpire/Examples/Switch.lean:409-548` — finite completeness, ordering, and planning plumbing
 - `model/Umpire/Examples/SwitchTests.lean` — reference behavior
 
 ### Acceptance
 - [ ] The example demonstrates ordinary authoring rather than framework plumbing.
 - [ ] Existing semantic identities, plans, artifacts, and invalid cases are unchanged.
+- [ ] Query derivation copies the existing role/action-domain tokens verbatim; ordinary query/planner code no longer threads them.
 
 ## Acceptance
 - [ ] R2/R3 are demonstrated by the domain-neutral example.
