@@ -77,10 +77,12 @@ Model scenarios use three separate but composable forms:
   planning policy: what bounded search should find or verify.
 
 Their shared substrate is a checked Target. A family maintainer records explicit states, actions,
-outcomes, transitions, capabilities, laws, and optional finite planning once in an `AuthoredTarget`;
-`checkTarget` returns a checked value or a source-located diagnostic. Ordinary Property, Behavior,
-and Query authors consume that value without assembling provider or connector collections,
-completeness records, finite ordering, or planner kernels.
+outcomes, transitions, capabilities, laws, and optional finite planning in a `TargetDefinition`,
+adds each provider or connector through the sealed `TargetComposition` builder, and calls
+`AuthoredTarget.make` once. `checkTarget` returns a checked value or a source-located diagnostic.
+Ordinary Property, Behavior, and Query authors consume that value through their `ofTarget`
+adapters without assembling provider or connector collections, completeness records, finite
+ordering, or planner kernels.
 
 Learn these forms in increasing order of domain and composition complexity:
 

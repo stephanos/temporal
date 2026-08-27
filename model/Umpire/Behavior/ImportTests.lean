@@ -5,6 +5,7 @@ import Umpire.Behavior
 namespace Umpire.BehaviorImportTests
 
 #check Umpire.BehaviorDeclaration
+#check Umpire.BehaviorCheckContext.ofTarget
 
 #guard_msgs (error, substring := true) in
 #check Umpire.PropertyDeclaration

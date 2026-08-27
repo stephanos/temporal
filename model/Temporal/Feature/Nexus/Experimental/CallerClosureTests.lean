@@ -102,9 +102,27 @@ example :
         PropertyEvaluation.satisfied = some false := by
   native_decide
 
+def expertTargetDeclaration : TargetDeclaration LawStatement
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  id := targetDefinition.id
+  source := targetDefinition.source
+  declarations := targetDefinition.declarations
+  requiredCapabilities := targetDefinition.requiredCapabilities
+  providers := [
+    workflowProvider,
+    cancellationProvider,
+    workflowOwnershipClaimProvider,
+    cancellationOwnershipClaimProvider,
+    ownershipProvider
+  ]
+  connectors := [ownershipConnector]
+  resolvedSetups := targetDefinition.resolvedSetups
+  kernel := targetDefinition.kernel
+}
+
 def targetWithoutConnector : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with connectors := []
+  expertTargetDeclaration with connectors := []
 }
 
 def missingConnectorErrorResult : Option DeclarationError :=
@@ -122,7 +140,7 @@ def ownershipConnectorWithoutLaw : CapabilityConnector LawStatement := {
 
 def targetWithoutOwnershipLaw : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with connectors := [ownershipConnectorWithoutLaw]
+  expertTargetDeclaration with connectors := [ownershipConnectorWithoutLaw]
 }
 
 def missingLawErrorResult : Option DeclarationError :=
@@ -136,10 +154,10 @@ def missingLawError : DeclarationError :=
 
 def reorderedTargetDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with
-  declarations := targetDeclaration.declarations.reverse
-  providers := targetDeclaration.providers.reverse
-  connectors := targetDeclaration.connectors.reverse
+  expertTargetDeclaration with
+  declarations := expertTargetDeclaration.declarations.reverse
+  providers := expertTargetDeclaration.providers.reverse
+  connectors := expertTargetDeclaration.connectors.reverse
 }
 
 example : (checkTarget targetAuthoring).isOk = true := by
@@ -151,7 +169,7 @@ example : (checkTarget targetAuthoring).toOption.map (fun checked =>
   native_decide
 
 example : (composeTarget reorderedTargetDeclaration).toOption.map CheckedTarget.semanticDigest =
-    (composeTarget targetDeclaration).toOption.map CheckedTarget.semanticDigest := by
+    (composeTarget expertTargetDeclaration).toOption.map CheckedTarget.semanticDigest := by
   native_decide
 
 example : callerClosureProperty.requires =
@@ -227,8 +245,8 @@ def alternateOwnershipConnector : CapabilityConnector LawStatement := {
 
 def ambiguousConnectorDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with
-  declarations := alternateOwnershipConnectorMetadata :: targetDeclaration.declarations
+  expertTargetDeclaration with
+  declarations := alternateOwnershipConnectorMetadata :: expertTargetDeclaration.declarations
   connectors := [ownershipConnector, alternateOwnershipConnector]
 }
 
