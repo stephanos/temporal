@@ -56,7 +56,7 @@ structure ResourceRole where
 structure RoleBinding where
   role : DefinitionId
   value : ModelValue
-  deriving BEq, DecidableEq, Repr
+  deriving BEq, DecidableEq, Ord, Repr
 
 inductive SetupOperand where
   | role (id : DefinitionId)

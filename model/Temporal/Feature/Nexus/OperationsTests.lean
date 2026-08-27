@@ -44,11 +44,12 @@ example : query.target = target := by
 example : query.completeness.map (fun evidence =>
       (evidence.roleAssignments, evidence.actions,
         evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
-      some ([scheduledSetup, startedSetup], [cancelAction, startAction, reportSuccessAction],
-        behaviorFingerprintOf ("query-role-domain/v1\n" ++
-          String.intercalate "\u001f" target.behaviorDescription.setups),
-        behaviorFingerprintOf ("query-action-domain/v1\n" ++
-          String.intercalate "\u001f" target.behaviorDescription.actions)) := by
+      (CheckedQueryTarget.ofTarget target).completeness.map (fun evidence =>
+        (evidence.roleAssignments, evidence.actions,
+          evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) ∧
+    query.completeness.map (fun evidence =>
+      (evidence.roleAssignments, evidence.actions)) =
+      some ([scheduledSetup, startedSetup], [cancelAction, startAction, reportSuccessAction]) := by
   native_decide
 
 example : canonicalQueryJson query ++ "\n" = expectedAsyncStartQueryJson := by
@@ -159,7 +160,10 @@ example : run.artifact.map (fun artifact =>
 
 end SuccessfulCompletion
 
-example : [
+example :
+  let domainFingerprints := (CheckedQueryTarget.ofTarget target).completeness.map fun evidence =>
+    (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)
+  [
     AsyncStart.query,
     Cancellation.query,
     SuccessfulCompletion.query
@@ -169,22 +173,13 @@ example : [
         (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint))) = [
     ("temporal.nexus.basic-lifecycle.query.async-start",
       "temporal.nexus.basic-lifecycle.target", target.behaviorFingerprint,
-      some (behaviorFingerprintOf ("query-role-domain/v1\n" ++
-          String.intercalate "\u001f" target.behaviorDescription.setups),
-        behaviorFingerprintOf ("query-action-domain/v1\n" ++
-          String.intercalate "\u001f" target.behaviorDescription.actions))),
+      domainFingerprints),
     ("temporal.nexus.basic-lifecycle.query.cancellation",
       "temporal.nexus.basic-lifecycle.target", target.behaviorFingerprint,
-      some (behaviorFingerprintOf ("query-role-domain/v1\n" ++
-          String.intercalate "\u001f" target.behaviorDescription.setups),
-        behaviorFingerprintOf ("query-action-domain/v1\n" ++
-          String.intercalate "\u001f" target.behaviorDescription.actions))),
+      domainFingerprints),
     ("temporal.nexus.basic-lifecycle.query.successful-completion",
       "temporal.nexus.basic-lifecycle.target", target.behaviorFingerprint,
-      some (behaviorFingerprintOf ("query-role-domain/v1\n" ++
-          String.intercalate "\u001f" target.behaviorDescription.setups),
-        behaviorFingerprintOf ("query-action-domain/v1\n" ++
-          String.intercalate "\u001f" target.behaviorDescription.actions)))
+      domainFingerprints)
   ] := by
   native_decide
 

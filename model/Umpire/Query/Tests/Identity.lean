@@ -36,6 +36,24 @@ example : canonicalOf context (declaration (.witness checkedProperty)) =
     canonicalOf incidentalContext incidentalDeclaration := by
   native_decide
 
+def noSetupTargetDefinition : TargetDefinition
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
+  targetDefinition with resolvedSetups := []
+}
+
+def noSetupTargetAuthoring : AuthoredTarget (fun _ => True)
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
+  AuthoredTarget.make noSetupTargetDefinition targetComposition
+    (.available kernel rfl finitePlanning)
+
+def noSetupContext : QueryCheckContext (fun _ => True) :=
+  .ofTarget (checkedTarget noSetupTargetAuthoring)
+
+/-- Query fingerprints bind the exact finite role assignments Planning will enumerate. -/
+example : fingerprintOf context (declaration (.witness checkedProperty)) !=
+    fingerprintOf noSetupContext (declaration (.witness checkedProperty)) := by
+  native_decide
+
 def orderedProperty : CheckedProperty := {
   checkedProperty with
   id := id "query.property.ordered"

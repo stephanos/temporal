@@ -471,6 +471,10 @@ private def requirePositionUnit
     (access : PropertyCapabilityView)
     (unit : LimitUnit)
     (patterns : List PropertyPattern) : Except PropertyError Unit := do
+  if unit == .candidateEvaluations then
+    throw (propertyError .unitMismatch owner.id owner.source
+      (unit.name ++ " is reserved for Query planning")
+      (patterns.map PropertyPattern.reference))
   if unit == .observationPositions &&
       !(patterns.all fun pattern => pattern.field == .observation || pattern.field == .relation) then
     throw (propertyError .unitMismatch owner.id owner.source

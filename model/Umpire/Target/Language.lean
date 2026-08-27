@@ -251,12 +251,24 @@ private def initialRowLe (left right : TargetInitialStateRow) : Bool :=
   decide (left.setup < right.setup) ||
     (left.setup == right.setup && decide (left.state ≤ right.state))
 
-private def transitionRowKey (row : TargetTransitionRow) : String :=
-  String.intercalate "\u001f"
-    ([row.state, row.action, row.modelOutcome, row.resultingState] ++ row.observations)
-
 private def transitionRowLe (left right : TargetTransitionRow) : Bool :=
-  decide (transitionRowKey left ≤ transitionRowKey right)
+  compare left right != .gt
+
+private def invalidBehaviorDomainEncoding?
+    (domain : TargetBehaviorDomain initialStates steps) : Option String :=
+  if domain.setups.length != (canonicalStrings (domain.setups.map domain.encodeSetup)).length then
+    some "setup-encoding"
+  else if domain.states.length != (canonicalStrings (domain.states.map domain.encodeState)).length then
+    some "state-encoding"
+  else if domain.actions.length != (canonicalStrings (domain.actions.map domain.encodeAction)).length then
+    some "action-encoding"
+  else if domain.outcomes.length != (canonicalStrings (domain.outcomes.map domain.encodeOutcome)).length then
+    some "outcome-encoding"
+  else if domain.observations.length !=
+      (canonicalStrings (domain.observations.map domain.encodeObservation)).length then
+    some "observation-encoding"
+  else
+    none
 
 private def describeTargetBehavior
     (kernel : TransitionKernel Setup State Action Outcome Observation)
@@ -750,6 +762,11 @@ private def composeTargetDetailed
           (occurrencePath .kernel target.id) kernel.metadata.id kernel.metadata.id.value
           missingCoverage)
     | .complete domain => pure domain
+  match invalidBehaviorDomainEncoding? behaviorDomain with
+  | some encoding =>
+      throw (validationError .incompleteBehaviorDomain target.id kernel.metadata.source
+        (occurrencePath .kernel target.id) kernel.metadata.id encoding [kernel.metadata.id])
+  | none => pure ()
   let behavior := describeTargetBehavior kernel behaviorDomain
   let semantic := targetSemanticJson target.id definitions target.requiredCapabilities
     providers connectors kernel.metadata behavior
