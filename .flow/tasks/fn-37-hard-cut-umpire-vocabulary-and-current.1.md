@@ -35,9 +35,17 @@ The two values intentionally share a wire encoding but not a Lean type or deriva
 - [ ] The module remains pure and independently buildable.
 
 ## Done summary
-TBD
+Implemented a pure, independently buildable SHA-256 foundation with sealed `BehaviorFingerprint` and `ArtifactChecksum` types, validated lowercase `sha256:` rendering, and fixed derivation domains for behavior, DrivePlan, and ExperimentSpec content. Focused tests cover published empty/single-block/multi-block vectors, UTF-8, malformed input, repeatability, type/domain separation, and cross-language golden values.
 
+baseline: green for all currently available gates; `umpire-check-regression-views` is an inherited sequencing gap because fn37.6 owns creation of that renamed target, while its current projection equivalent passed through `umpire-check-regression`.
+
+stage: impl-review - ran | verdict: SHIP | session: 01a043af-24eb-72f2-a3dd-4ad6c522a3ec
+
+GATE_SKIPPED:build:green-receipt 87205aa9 - current task diff already passed the full Lean build
+GATE_SKIPPED:unittest:green-receipt 87205aa9 - current task diff already passed pinned Go tests
+GATE_SKIPPED:smoke:green-receipt 87205aa9 - current task diff already passed the regression check
+GATE_SKIPPED:generated-view-smoke:inherited-sequencing-gap - fn37.6 creates the final `umpire-check-regression-views` target; the current projection check passed through `umpire-check-regression`
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 87205aa9206a122369f34e9a34c364677b0f2589
+- Tests: cd model && mise exec -- lake build Umpire.FingerprintTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, mise exec -- go test ./tools/umpire/..., mise exec -- make umpire-check-regression, GATE_SKIPPED:build:green-receipt 87205aa9 - current task diff already passed the full Lean build, GATE_SKIPPED:unittest:green-receipt 87205aa9 - current task diff already passed pinned Go tests, GATE_SKIPPED:smoke:green-receipt 87205aa9 - current task diff already passed the regression check, GATE_SKIPPED:generated-view-smoke:inherited-sequencing-gap - fn37.6 creates the final umpire-check-regression-views target; the current projection check passed through umpire-check-regression
 - PRs:

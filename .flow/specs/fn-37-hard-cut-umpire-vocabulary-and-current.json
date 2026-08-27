@@ -11,7 +11,9 @@
     "fn-4-umpire-observation-and-semantic-verdicts"
   ],
   "id": "fn-37-hard-cut-umpire-vocabulary-and-current",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-37-hard-cut-umpire-vocabulary-and-current.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -110,15 +112,47 @@
       "task": null,
       "timestamp": "2026-08-27T06:08:11.728236Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b8aad871e3ed7dce2eed71ea3cc33cdaee939aee75ec0d2d2f60accc40799d04",
+      "backend": "codex",
+      "base_sha": "adc894dccf300f1c593be1111db1b94d99a5e7a0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "87205aa9206a122369f34e9a34c364677b0f2589",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 117688,
+      "output_sha256": "ff457e584ef39cb1f980f53f9939f2c300fd663767757d70c51469f451f08054",
+      "reservation_id": "293f416ea3234f73aacd65e917739d58",
+      "round_consumed": true,
+      "scope": "impl:fn-37-hard-cut-umpire-vocabulary-and-current.1",
+      "superseded_by": null,
+      "task": "fn-37-hard-cut-umpire-vocabulary-and-current.1",
+      "timestamp": "2026-08-27T14:48:38.424232Z",
+      "tool_calls": 20,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-37-hard-cut-umpire-vocabulary-and-current.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-37-hard-cut-umpire-vocabulary-and-current.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-37-hard-cut-umpire-vocabulary-and-current.md",
@@ -135,5 +169,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T06:08:11.736138Z"
+  "updated_at": "2026-08-27T14:48:38.430901Z"
 }
