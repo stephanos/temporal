@@ -143,6 +143,29 @@ def IncrementalPlannerKernel.ofFinite
     simpa [selectedLeft, selectedRight] using ordered
 }
 
+/-- Derive the indexed Planning view from admitted Query completeness. Callers state only the
+canonical ordering obligations; the established finite-kernel implementation remains authoritative. -/
+def IncrementalPlannerKernel.ofCheckedQuery?
+    (query : CheckedQuery LawStatement)
+    (actionOrdered : ∀ evidence, query.completeness = some evidence →
+      evidence.actions.Pairwise fun left right =>
+        semanticValueOrderKey left ≤ semanticValueOrderKey right)
+    (initialOrdered : ∀ evidence, query.completeness = some evidence → ∀ setup,
+      (query.target.kernel.initialStates setup).Pairwise fun left right =>
+        semanticValueOrderKey left ≤ semanticValueOrderKey right)
+    (stepOrdered : ∀ evidence, query.completeness = some evidence → ∀ state action,
+      (query.target.kernel.steps state action).Pairwise fun left right =>
+        transitionResultOrderKey left ≤ transitionResultOrderKey right) :
+    Option (IncrementalPlannerKernel query.target) :=
+  match evidenceEq : query.completeness with
+  | none => none
+  | some evidence =>
+      some (.ofFinite evidence {
+        action := actionOrdered evidence evidenceEq
+        initial := initialOrdered evidence evidenceEq
+        step := stepOrdered evidence evidenceEq
+      })
+
 private structure PlannerCursor where
   trace : BehaviorTrace
   nextAction : Nat := 0
