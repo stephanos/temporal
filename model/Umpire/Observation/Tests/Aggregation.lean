@@ -16,6 +16,8 @@ def verdictAs
   satisfiedVerdict with
   queryId := aggregationQuery.id
   propertyId
+  propertyDigest := (aggregationQuery.form.properties.find? fun property =>
+    property.id == propertyId).map CheckedProperty.semanticDigest |>.getD "unexpected"
   traceId
   status
 }
@@ -99,6 +101,27 @@ example :
     ]
     summarizeQueryVerdicts aggregationQuery verdicts =
       summarizeQueryVerdicts aggregationQuery verdicts.reverse := by
+  native_decide
+
+/-- Canonical ordering breaks ties across every retained verdict field. -/
+example :
+    let first := verdictAs satisfiedProperty.id .satisfied
+    let second := { first with queryId := id "test.query.other" }
+    summarizeQueryVerdicts aggregationQuery [first, second] =
+      summarizeQueryVerdicts aggregationQuery [second, first] := by
+  native_decide
+
+/-- A result with divergent Property semantics cannot satisfy the checked Query. -/
+example :
+    let forged := {
+      verdictAs violatedProperty.id .satisfied with propertyDigest := "property/other"
+    }
+    let summary := summarizeQueryVerdicts aggregationQuery [
+      verdictAs satisfiedProperty.id .satisfied,
+      forged
+    ]
+    (summary.status, summary.divergentProperties) =
+      (.incomplete, [violatedProperty.id]) := by
   native_decide
 
 end Umpire.ObservationTests
