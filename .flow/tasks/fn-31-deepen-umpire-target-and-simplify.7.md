@@ -47,6 +47,7 @@ The implementation stayed within the declared Umpire Query/Planning surface. Ext
 
 baseline: green
 stage: impl-review - ran [2026-08-27T03:57:45Z..2026-08-27T04:04:04Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 7105d4d29f9b0f9f3430869fb6202da3d245d243, 51604b51fe7bd44f85e6d24a0777660df16917da, 4f8ef3a3ea3047aceb3dbc1c55b14f0202bea969
 - Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model, rg -n ^import (Umpire.(Query|Planning|Artifact)|Temporal) model/Umpire/Target model/Umpire/Target.lean -g *.lean (no matches), git diff --check
