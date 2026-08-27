@@ -111,8 +111,9 @@ Umpire.Examples.Switch ───────────────────
 `Umpire.Verify.Veil` seams. The only cross-layer refinement consumer is the exact
 `Temporal.System.Nexus.Refinement` module; verification consumers use the exact allowlist owned by
 MOD-05. The normative import rules are MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11.
-Semantic ownership, deep interfaces, and independent testability remain design rules rather than
-graph-linter claims.
+Every `Umpire.Target.*` module, including Target tests, is additionally kept below Query, Planning,
+Artifact, Temporal, runtime, and verification modules. Semantic ownership, deep interfaces, and
+independent testability otherwise remain design rules rather than graph-linter claims.
 
 The shared `Temporal.System.Configuration` facade also does not import its
 `Temporal.System.Callback.Configuration` or `Temporal.System.Matching.Configuration` consumers.
@@ -122,16 +123,19 @@ The shared `Temporal.System.Configuration` facade also does not import its
 
 Public Umpire APIs follow an authored → checked → planned → artifact lifecycle:
 
-1. Define declarations, capabilities, laws, and a finite transition kernel.
-2. Call `composeTarget` to obtain a canonical `CheckedTarget`.
+1. A semantic-model maintainer defines declarations, capabilities, laws, a transition kernel, and
+   optional finite planning once in an `AuthoredTarget`.
+2. Call `checkTarget` for a source-located diagnostic or `checkedTarget` for a declaration that
+   compiles as valid, obtaining one canonical `CheckedTarget`.
 3. Call `checkProperty` and `checkBehavior` to validate authored constraints.
-4. Call `checkQuery` to bind a target, properties, behavior, bounds, and policy.
-5. Call `plan` with an `IncrementalPlannerKernel`.
+4. Call `checkQuery` to bind that target to properties, behavior, bounds, and policy.
+5. Derive the planner kernel with `IncrementalPlannerKernel.ofCheckedQuery?`, then call `plan`.
 6. Inspect the resulting `PlannerRun` and optional `ExperimentSpec`.
 
-Checked types freeze canonical metadata and semantic digests. Planning accepts checked values
-rather than raw author input. See the [Umpire public API](Umpire/ARCHITECTURE.md) for the types and
-function signatures at each stage.
+Property, Behavior, and Query are the scenario and question languages; Target is their common
+checked substrate. Ordinary authors consume it without constructing raw providers or connectors,
+finite completeness or ordering records, or planner kernels. `composeTarget` remains the lower-level
+typed expert seam. See the [Umpire public API](Umpire/ARCHITECTURE.md) for exact signatures.
 
 ## Generated structural APIs
 
@@ -225,13 +229,13 @@ invokes the final executable without exposing its Lake target name to callers.
 
 ## Learning path and reference models
 
-- [`Temporal.Feature.Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the first stop for
+- [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
+  for the typed Target → Query → Planning flow.
+- [`Temporal.Feature.Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the next stop for
   the ordinary scheduled → started → canceled/succeeded Nexus lifecycle and its checked target.
 - [`Temporal.Feature.Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) next demonstrates
   start, cancellation, and successful completion. Each case exposes its Property, exact one-action
   Behavior, Query, and deterministic result separately.
-- [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
-  for the reusable Property, Behavior, Query, and planning APIs.
 - [`Temporal.Feature.Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean)
   and [`Temporal.Feature.Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
   are explicit opt-in references for detailed AutoClose proofs and the inspectable Workflow–Nexus

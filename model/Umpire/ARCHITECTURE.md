@@ -35,15 +35,16 @@ directly.
 The public API deliberately separates authoring from checked values:
 
 ```text
-TargetDeclaration ── composeTarget ──▶ CheckedTarget
+AuthoredTarget ── checkTarget / elaborateTarget ──▶ CheckedTarget
 PropertyDeclaration ─ checkProperty ─▶ CheckedProperty
 BehaviorDeclaration ─ checkBehavior ─▶ CheckedBehavior
-QueryDeclaration ───── checkQuery ────▶ CheckedQuery
-CheckedQuery + IncrementalPlannerKernel ─ plan ─▶ PlannerRun ─▶ ExperimentSpec?
+CheckedTarget + QueryDeclaration ─ checkQuery ─▶ CheckedQuery
+CheckedQuery ─ derive planner kernel ─▶ plan ─▶ PlannerRun ─▶ ExperimentSpec?
 ```
 
-The checked types freeze canonical metadata and semantic digests. Planning accepts checked values
-rather than raw author input.
+Target is the checked semantic substrate consumed by the distinct Property, Behavior, and Query
+languages; it is not another scenario language. Checked types freeze canonical metadata and
+semantic digests, and Planning accepts checked values rather than raw author input.
 
 ## Core and Target APIs
 
@@ -67,19 +68,24 @@ Target composition uses:
   completeness proofs.
 - `CapabilityProvider` — meanings and law witnesses supplied by one capability.
 - `CapabilityConnector` — explicit reconciliation of meanings supplied by multiple providers.
-- `TargetDeclaration` — authored target composition.
+- `AuthoredTarget` — a target declaration plus optional Target-owned finite planning evidence.
+- `TargetDeclaration` — the lower-level typed composition used by Target maintainers.
 - `CheckedTarget` — validated and canonicalized target.
 
-The primary entry point is:
+The ordinary checked entry point is:
 
 ```lean
-composeTarget :
-  TargetDeclaration LawStatement Setup State Action Outcome Observation →
-  Except DeclarationError
+checkTarget :
+  AuthoredTarget LawStatement Setup State Action Outcome Observation →
+  Except AuthoringDiagnostic
     (CheckedTarget LawStatement Setup State Action Outcome Observation)
 ```
 
-`canonicalCheckedTargetJson` returns the checked target's canonical projection.
+`elaborateTarget` emits the same typed failure at the captured Lean source occurrence.
+`checkedTarget` produces the value for a declaration that compiles as valid while hiding extraction
+and proof-relation re-ascription. `composeTarget` remains the lower-level
+`Except DeclarationError` expert seam. `canonicalCheckedTargetJson` returns the checked target's
+canonical projection; compiler-only occurrence spans never enter it.
 
 ## Property API
 
@@ -188,9 +194,10 @@ checkQuery :
   Except QueryError (CheckedQuery LawStatement)
 ```
 
-Exhaustive queries require `FiniteCompletenessEvidence`; the query checker rejects them before
-planning when that evidence is absent. `QueryBounds` keeps behavior-space bounds separate from the
-planner's candidate-evaluation budget.
+`QueryCheckContext.ofTarget` derives the Query view from the checked Target, including any available
+finite completeness contract. An exhaustive Query rejects a Target that explicitly lacks that
+capability. `QueryBounds` keeps behavior-space bounds separate from the planner's
+candidate-evaluation budget.
 
 ## Planning API
 
@@ -214,9 +221,9 @@ plan :
   PlannerRun
 ```
 
-`IncrementalPlannerKernel.ofFinite` derives indexed enumeration, bounds, soundness, and
-completeness from a target's existing finite lists plus its finite action evidence. Model adapters
-provide only canonical-order proofs.
+`IncrementalPlannerKernel.ofCheckedQuery?` derives indexed enumeration, bounds, soundness, and
+completeness from the checked Query and Target-owned finite domain. A model maintainer supplies only
+the canonical-order proofs; ordinary Query authors do not construct a planner kernel.
 
 `IncrementalPlannerKernel` exposes indexed action, initial-state, and transition enumeration. Its
 proof fields establish soundness, completeness, and canonical ordering relative to the selected
@@ -259,7 +266,7 @@ Artifacts do not claim that a runtime action occurred or that execution evidence
 declarations in lifecycle order:
 
 1. `transitionKernel`
-2. `targetDeclaration`, `targetResult`, and `target`
+2. `targetDeclaration`, `targetAuthoring`, and checked `target`
 3. `propertyDeclaration` and `flipProperty`
 4. the behavior declarations and checked behaviors
 5. the query declarations and checked queries
