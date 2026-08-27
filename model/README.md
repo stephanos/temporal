@@ -169,6 +169,6 @@ On success the inspector writes one canonical JSON `ExperimentSpec` to standard 
 compiler and inspector do not write an artifact file, start a live server, execute a workflow, or
 collect evidence. Runtime driving, evidence qualification, and promotion are separate work.
 
-Generated API declarations remain structural inputs only. Behavioral meaning, including whether
+Generated API declarations remain generated structures only. Behavioral meaning, including whether
 a selected action is applicable and which transition outcomes are possible, remains owned by the
 authored Lean model.

@@ -185,7 +185,7 @@ observations.
   behavior.
 - `Temporal.Tool` owns inspection and other developer tools without becoming part of the
   production aggregate.
-- `Temporal.API` and `Temporal.DynamicConfig` remain generated structural inputs outside the
+- `Temporal.API` and `Temporal.DynamicConfig` remain generated structures outside the
   Feature/System semantic layers.
 - `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
   `Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Qualification`, and

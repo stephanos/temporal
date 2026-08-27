@@ -711,7 +711,7 @@ scheduling remain downstream of a credible local slice.
 
 ## 6. Pilot sequence
 
-The Nexus caller-closure behavior, reusable model DSL, generated structural inputs, and v1
+The Nexus caller-closure behavior, reusable model DSL, generated structures, and v1
 `ExperimentSpec` are now implemented. The remaining bounded proof-of-value sequence is:
 
 1. Finish the simple Nexus authoring examples and assess whether Lean-first authoring is usable
