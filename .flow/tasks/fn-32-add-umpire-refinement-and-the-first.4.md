@@ -35,9 +35,10 @@ Prove the Run Evaluation-facing System-trace to Feature-Property handoff and lay
 - [ ] An Implementation Link failure never becomes unknown evidence or a property violation.
 - [ ] Feature evaluation remains unchanged.
 ## Done summary
-TBD
+Added the Nexus System-to-Feature composition operation so upstream Observation failures, checked Implementation Link failures, and unchanged Feature Property evaluations remain disjoint. Added table-driven composed coverage for start, cancellation, successful completion, source admission, coordinate, Behavior Fingerprint, Observation, and Property mutations; all post-review model and regression gates pass with the inherited malformed Go toolchain isolated under `/tmp`.
 
+stage: impl-review - ran [Codex SHIP; receipt /tmp/impl-review-receipt-fn-32-add-umpire-refinement-and-the-first.4.json]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6ce12ede67bdaaa4b658df540fe97908011a42ba
+- Tests: baseline: green (cd model && mise exec -- lake build Umpire.ImplementationLink.Tests), baseline: green (cd model && mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests), baseline: green (cd model && mise exec -- lake build UmpireTests TemporalModelTests), baseline: red inherited tooling failure (make umpire-check-regression: generated Lean views passed, extracted Go 1.27 module-cache runtime sources were incomplete), baseline workaround: PATH=/tmp/fn32-task4-go-toolchain.tlojNU/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/bin:$PATH GOTOOLCHAIN=local make umpire-check-regression, cd model && mise exec -- lake build Temporal.ImplementationLinkTests.Nexus, cd model && mise exec -- lake build Umpire.ImplementationLink.Tests, cd model && mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, PATH=/tmp/fn32-task4-go-toolchain.tlojNU/golang.org/toolchain@v0.0.1-go1.27.0.linux-arm64/bin:$PATH GOTOOLCHAIN=local make umpire-check-regression, GATE_RECEIPT_NOT_WRITTEN:unittest:cd model && mise exec -- lake build Umpire.ImplementationLink.Tests - known false config/development.yaml symlink status made worktree appear dirty, GATE_RECEIPT_NOT_WRITTEN:unittest:cd model && mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests - known false config/development.yaml symlink status made worktree appear dirty, GATE_RECEIPT_NOT_WRITTEN:unittest:cd model && mise exec -- lake build UmpireTests TemporalModelTests - known false config/development.yaml symlink status made worktree appear dirty, GATE_RECEIPT_NOT_WRITTEN:smoke:make umpire-check-regression - known false config/development.yaml symlink status made worktree appear dirty
 - PRs:
