@@ -18,7 +18,7 @@ type manifestEntry struct {
 func productionManifest() []manifestEntry {
 	return []manifestEntry{{
 		Identity:           callerClosureIdentity,
-		FixturePath:        "model/Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json",
+		FixturePath:        "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
 		GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
 		MarkdownOutputPath: "model/Temporal/Tool/Generated/Regressions.md",
 	}}

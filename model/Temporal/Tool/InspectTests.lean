@@ -1,10 +1,10 @@
-import Temporal.Feature.Nexus.CallerClosureTests
+import Temporal.Feature.Nexus.Experimental.CallerClosureTests
 import Temporal.Tool.Inspect
 
 namespace Temporal.Tool.InspectTests
 
 open _root_.Umpire
-open Temporal.Feature.Nexus.CallerClosure
+open Temporal.Feature.Nexus.Experimental.CallerClosure
 open Temporal.Tool.Inspect
 
 def expectedStdout : String := canonicalExperimentSpecJson compiledArtifact ++ "\n"
@@ -59,14 +59,14 @@ example : runCli [] = {
 def invalidCompositionScenario : Scenario := {
   id := "workflow-nexus.query.invalid-composition"
   result := .error (.declaration
-    Temporal.Feature.Nexus.CallerClosureTests.missingConnectorError)
+    Temporal.Feature.Nexus.Experimental.CallerClosureTests.missingConnectorError)
 }
 
 example : runInspector [invalidCompositionScenario] [invalidCompositionScenario.id] = {
     status := 1
     stdout := ""
     stderr := canonicalDeclarationErrorJson
-      Temporal.Feature.Nexus.CallerClosureTests.missingConnectorError ++ "\n"
+      Temporal.Feature.Nexus.Experimental.CallerClosureTests.missingConnectorError ++ "\n"
   } := by
   native_decide
 

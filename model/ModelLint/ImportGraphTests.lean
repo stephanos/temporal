@@ -10,8 +10,8 @@ private def moduleRecord (name : Lean.Name) (imports : Array Lean.Name := #[]) :
   { name, imports }
 
 private def sourceRecord
-    (module : Lean.Name) (path := s!"{module}.lean") (contained := true) : SourceRecord :=
-  { path, module, contained }
+    (module : Lean.Name) (path := s!"{module}.lean") : SourceRecord :=
+  { path, module }
 
 private def requireEqual [BEq α] [Repr α] (label : String) (actual expected : α) : IO Unit :=
   unless actual == expected do
@@ -139,7 +139,7 @@ private def testExactVerifyExceptions : IO Unit := do
     ]
     requireEqual s!"exact verification consumer {consumer}" (check defaultPolicy modules) #[]
   for nearMiss in #[
-    `Temporal.Feature.Nexus.CallerClosure.VeilTests.Extra,
+    `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests.Extra,
     `Temporal.Tool.VerifyVeil.Extra
   ] do
     let modules := #[moduleRecord nearMiss #[`Umpire.Verify.Veil.Core],
@@ -154,6 +154,10 @@ private def testExactVerifyExceptions : IO Unit := do
       #[.unclassifiedModule unclassifiedNearMiss]
 
 private def testModelInventoryPolicy : IO Unit := do
+  requireEqual "experimental test aggregate classified"
+    (reconcile defaultPolicy #[sourceRecord `TemporalExperimentalTests]
+      #[moduleRecord `TemporalExperimentalTests])
+    #[]
   requireEqual "unclassified source"
     (reconcile defaultPolicy #[sourceRecord `Unknown.Root] #[moduleRecord `Unknown.Root])
     #[.unclassifiedModule `Unknown.Root]

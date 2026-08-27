@@ -178,7 +178,7 @@ Honesty about scope is part of the artifact:
   (deferred removal).
 -/
 
-namespace Temporal.Feature.Nexus.AutoClose
+namespace Temporal.Feature.Nexus.Experimental.AutoClose
 
 /-! # Layer 1 — the operation lifecycle
 
@@ -1098,4 +1098,4 @@ judgement call — defensible, since the caller opted into `REQUEST_CANCEL` — 
   the only thing standing between this file and comfortable fiction.
 -/
 
-end Temporal.Feature.Nexus.AutoClose
+end Temporal.Feature.Nexus.Experimental.AutoClose

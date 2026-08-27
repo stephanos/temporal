@@ -19,7 +19,7 @@ import (
 func TestProductionManifestIsClosedAndMechanical(t *testing.T) {
 	expected := []manifestEntry{{
 		Identity:           callerClosureIdentity,
-		FixturePath:        "model/Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json",
+		FixturePath:        "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
 		GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
 		MarkdownOutputPath: "model/Temporal/Tool/Generated/Regressions.md",
 	}}
@@ -44,8 +44,8 @@ func TestProductionFixtureProjectsCanonicalMetadata(t *testing.T) {
 		MarkdownOutputPath: entry.MarkdownOutputPath,
 		TestName:           "TestWorkflowNexusQueryExactActionCallerClosure",
 		Sources: []sourceProjection{{
-			CanonicalPath:  "Temporal/Feature/Nexus/CallerClosure.lean",
-			RepositoryPath: "model/Temporal/Feature/Nexus/CallerClosure.lean",
+			CanonicalPath:  "Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
+			RepositoryPath: "model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
 		}},
 		Properties: []string{
 			"workflow-nexus.property.caller-closure",
@@ -387,8 +387,8 @@ func syntheticProjection() projectionRecord {
 		MarkdownOutputPath: "model/Generated.md",
 		TestName:           "TestWorkflowNexusQueryExactActionCallerClosure",
 		Sources: []sourceProjection{{
-			CanonicalPath:  "Temporal/Feature/Nexus/CallerClosure.lean",
-			RepositoryPath: "model/Temporal/Feature/Nexus/CallerClosure.lean",
+			CanonicalPath:  "Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
+			RepositoryPath: "model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
 		}},
 		Properties:              []string{"property.one"},
 		ObservationRequirements: []string{"observation.one"},

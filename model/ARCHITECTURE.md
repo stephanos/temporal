@@ -39,20 +39,30 @@ the reusable facades. Temporal code is organized by semantic ownership:
 
 ```lean
 import Temporal.Feature
-import Temporal.Feature.Nexus.Examples.BasicOperations
+import Temporal.Feature.Nexus.Lifecycle
+import Temporal.Feature.Nexus.Operations
 import Temporal.System
 import Temporal.System.Configuration
 import Temporal.System.Callback.Configuration
 import Temporal.System.Matching.Configuration
 ```
 
+Detailed AutoClose and caller-closure material requires explicit experimental imports:
+
+```lean
+import Temporal.Feature.Nexus.Experimental.AutoClose
+import Temporal.Feature.Nexus.Experimental.CallerClosure
+```
+
 `Temporal.Feature.*` owns product-visible behavior, `Temporal.System.*` owns implementation
 mechanisms and interpretations, and `Temporal.Tool.*` owns developer tooling. The production
-`Temporal` aggregate imports generated APIs, the Feature and System facades, and the basic Nexus
-examples. It deliberately does not import executable Tool code.
+`Temporal` aggregate imports generated APIs plus the Feature and System facades. The Feature facade
+exports the ordinary Nexus Lifecycle and Operations modules but no Experimental module. The
+production aggregate deliberately does not import experimental or executable Tool code.
 
-The import-only `TemporalModelTests` library is the Temporal test root. The
-`temporal-model-inspect` executable is rooted at `Temporal.Tool.Inspect`.
+The import-only `TemporalModelTests` library is the ordinary Temporal test root. The separate
+`TemporalExperimentalTests` library compiles the experimental caller-closure tests and inspector
+tests, while the `temporal-model-inspect` executable is rooted at `Temporal.Tool.Inspect`.
 
 ## Dependency map
 
@@ -75,21 +85,22 @@ Temporal.API ──────────────────────�
 Temporal.DynamicConfig ───────────────┤
 Temporal.Feature ─────────────────────┼── Temporal
 Temporal.System ──────────────────────┤
-BasicOperations ──────────────────────┘
+Nexus.Lifecycle ── Nexus.Operations ──┘
 
 Temporal.DynamicConfig ── Temporal.System.Configuration
                               ├── Temporal.System.Callback.Configuration
                               └── Temporal.System.Matching.Configuration
 
-Temporal.Feature.Nexus.AutoClose ─┬── Temporal.Feature.Nexus.CallerClosure
-Umpire ────────────────────────────┤
-                                  └── BasicLifecycle ── BasicOperations
+Temporal.Feature.Nexus.Lifecycle ── Temporal.Feature.Nexus.Operations
 
-Temporal.Feature.Nexus.CallerClosure ─┐
-Umpire.Examples.Switch ────────────────┴── Temporal.Tool.Inspect
-                                              │
-                                              ▼
-                                  temporal-model-inspect
+Temporal.Feature.Nexus.Experimental.AutoClose
+                    │
+                    ▼
+Temporal.Feature.Nexus.Experimental.CallerClosure ── Temporal.Tool.Inspect
+                                                             │
+Umpire.Examples.Switch ───────────────────────────────────────┤
+                                                             ▼
+                                                 temporal-model-inspect
 ```
 
 `make lint-model` checks the complete first-party module graph transitively. Its model-specific
@@ -142,15 +153,15 @@ Handwritten interpretations live under the Feature or System package that owns t
 
 Temporal-specific modules are split by semantic altitude:
 
-- `Temporal.Feature.Nexus.AutoClose` owns the authoritative Nexus operation lifecycle and its
-  proofs.
-- `Temporal.Feature.Nexus.Examples.BasicLifecycle` adapts the scheduled, started, and succeeded
-  lifecycle states to one small Umpire target. It encapsulates target composition, finite
-  completeness, deterministic bounds and policy, and the incremental planner kernel.
-- `Temporal.Feature.Nexus.Examples.BasicOperations` owns the asynchronous-start and
-  successful-completion walkthroughs over that shared target.
-- `Temporal.Feature.Nexus.CallerClosure` is the advanced Workflow–Nexus integration reference. It
-  owns caller closure, connector composition, cancellation behavior, and its checked query modes.
+- `Temporal.Feature.Nexus.Lifecycle` owns the ordinary scheduled, started, canceled, and succeeded
+  lifecycle states; the start, cancel, and succeed transitions; and their small checked target.
+- `Temporal.Feature.Nexus.Operations` owns the start, cancellation, and successful-completion
+  walkthroughs over that shared target.
+- `Temporal.Feature.Nexus.Experimental.AutoClose` owns the detailed AutoClose configuration,
+  lifecycle, reachability, history, and proofs as explicit opt-in material.
+- `Temporal.Feature.Nexus.Experimental.CallerClosure` is the opt-in Workflow–Nexus integration
+  reference. It owns caller closure, connector composition, cancellation behavior, and its checked
+  query modes.
 - `Temporal.System.Configuration` exposes shared generated-catalog classification, validation,
   resolution, provenance, and immutable views. `Temporal.System.Callback.Configuration` and
   `Temporal.System.Matching.Configuration` add consumer-specific meanings in one direction from
@@ -185,23 +196,26 @@ executed, or runtime evidence was collected.
 
 ## Tests and inspection
 
-`TemporalModelTests.lean` contains imports only. It assembles the focused Feature examples and
-caller-closure tests, the System configuration tests, and the Tool inspector tests without
-importing reusable Umpire test internals. Compile the final public and test roots with:
+`TemporalModelTests.lean` contains imports only. It assembles the ordinary Feature and System tests
+without importing experimental modules or reusable Umpire test internals.
+`TemporalExperimentalTests.lean` separately assembles the caller-closure and Tool inspector tests.
+Compile the final public and test roots with:
 
 ```sh
 cd model
 mise exec -- lake build Shared
 mise exec -- lake build Temporal
 mise exec -- lake build TemporalModelTests
+mise exec -- lake build TemporalExperimentalTests
 mise exec -- lake build temporal-model-inspect
 ```
 
 The inspector registry remains intentionally small. It exposes the canonical scenario identities
-`switch.query.exact-action` and `workflow-nexus.query.exact-action-caller-closure`; the basic Nexus
-walkthroughs are compile-checked examples rather than registered scenarios. Successful inspection
-emits one canonical JSON `ExperimentSpec`. Unknown scenarios and invalid argument counts retain
-their structured non-zero diagnostics and emit no artifact JSON on standard output.
+`switch.query.exact-action` and `workflow-nexus.query.exact-action-caller-closure`; the ordinary
+Nexus walkthroughs are compile-checked rather than registered scenarios, while the inspector
+explicitly opts into the experimental caller-closure model. Successful inspection emits one
+canonical JSON `ExperimentSpec`. Unknown scenarios and invalid argument counts retain their
+structured non-zero diagnostics and emit no artifact JSON on standard output.
 
 From the repository root, `make lint-model` owns the transitive Lean import boundaries described
 above. `make umpire-check-regression` builds all final targets, enforces reusable domain purity and
@@ -211,16 +225,17 @@ invokes the final executable without exposing its Lake target name to callers.
 
 ## Learning path and reference models
 
-- [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest complete example of the
-  reusable API and the first stop for learning Property, Behavior, Query, and planning.
-- [`Temporal.Feature.Nexus.Examples.BasicLifecycle`](Temporal/Feature/Nexus/Examples/BasicLifecycle.lean)
-  introduces the shared one-capability, one-provider Temporal Nexus target.
-- [`Temporal.Feature.Nexus.Examples.BasicOperations`](Temporal/Feature/Nexus/Examples/BasicOperations.lean)
-  next demonstrates asynchronous start and successful completion. Each case exposes its Property,
-  exact one-action Behavior, Query, and deterministic result separately.
-- [`Temporal.Feature.Nexus.CallerClosure`](Temporal/Feature/Nexus/CallerClosure.lean) is the advanced
-  integration reference for Workflow–Nexus ownership, connectors, cancellation, and multiple
-  planning modes.
+- [`Temporal.Feature.Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the first stop for
+  the ordinary scheduled → started → canceled/succeeded Nexus lifecycle and its checked target.
+- [`Temporal.Feature.Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) next demonstrates
+  start, cancellation, and successful completion. Each case exposes its Property, exact one-action
+  Behavior, Query, and deterministic result separately.
+- [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
+  for the reusable Property, Behavior, Query, and planning APIs.
+- [`Temporal.Feature.Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean)
+  and [`Temporal.Feature.Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
+  are explicit opt-in references for detailed AutoClose proofs and the inspectable Workflow–Nexus
+  caller-closure regression.
 
-All examples produce pure model values. They do not start Temporal, execute Nexus operations,
+All modules produce pure model values. They do not start Temporal, execute Nexus operations,
 collect runtime evidence, or claim that a planned action occurred.

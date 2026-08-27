@@ -12,6 +12,6 @@
   "spec": "fn-31-deepen-umpire-target-and-simplify",
   "spec_path": ".flow/tasks/fn-31-deepen-umpire-target-and-simplify.4.md",
   "status": "todo",
-  "title": "Migrate the current Temporal Nexus target families",
-  "updated_at": "2026-08-26T20:22:42.258787Z"
+  "title": "Migrate Temporal Nexus target authors and query consumers",
+  "updated_at": "2026-08-27T00:18:01.450400Z"
 }

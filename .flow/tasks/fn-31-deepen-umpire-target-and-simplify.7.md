@@ -14,9 +14,9 @@ Add the downstream derivation seam that keeps Target below Query and Planning wh
 
 - Preserve the dependency direction `Target -> Property/Behavior -> Query -> Artifact/Planning`; Target imports neither downstream module.
 - Keep `QueryBounds`, `FiniteCompletenessEvidence`, and the `invalidBound`, `unitMismatch`, `missingFiniteCompleteness`, and `targetKernelMismatch` failures owned by Query.
-- Extend the checked Target kernel with an explicit finite action list and focused `actionSound`/`actionComplete` proofs. Derive Query role assignments from `CheckedTarget.resolvedSetups` and the Query action domain from that checked kernel evidence; return a complete `CheckedQueryTarget` or the existing deterministic Query error. Family maintainers supply the proof obligations once, while ordinary query authors never assemble `FiniteCompletenessEvidence`.
-- Keep `IncrementalPlannerKernel` and `FiniteKernelOrder` owned by Planning, but derive them through one public constructor from admitted Query completeness and target-owned finite action/initial/step lists.
-- Preserve Query identities, completeness claims, planner ordering, bounds, outcomes, and existing comments byte-for-byte.
+- Consume Target's additive finite-planning capability. When it is unavailable, an exhaustive Query returns the existing deterministic `missingFiniteCompleteness`; this does not invalidate or partially check the Target. When available, derive Query role assignments from `CheckedTarget.resolvedSetups` and the Query action domain from the target-owned action list and focused `actionSound`/`actionComplete` proofs. Copy the target's stable role/action-domain compatibility tokens verbatim into the canonical Query completeness view so existing strings such as the Switch and Nexus domain tokens remain byte-identical. Return a complete `CheckedQueryTarget` or the existing deterministic Query error. Family maintainers supply the finite-domain proof obligations and tokens once, while ordinary query authors never assemble `FiniteCompletenessEvidence`.
+- Keep `IncrementalPlannerKernel` and `FiniteKernelOrder` owned by Planning, and adapt `IncrementalPlannerKernel.ofFinite` behind one public checked-query derivation rather than introducing another enumerator or proof system.
+- Preserve Query identities, exact role/action-domain token strings, completeness claims, planner ordering, bounds, outcomes, canonical JSON, and existing comments byte-for-byte.
 
 ### Investigation targets
 
@@ -26,9 +26,12 @@ Add the downstream derivation seam that keeps Target below Query and Planning wh
 - `model/Umpire/Planning/Engine.lean:7-105`
 - `model/Umpire/Planning/Tests/Fixtures.lean:126-205`
 ## Acceptance
-- [ ] The checked Target kernel provides explicit finite actions plus soundness/completeness proofs; Query derives its role/action completeness view without manufacturing or weakening evidence and remains the sole owner of bounds and query-level completeness errors.
+- [ ] An explicitly planning-unavailable checked Target remains usable by non-exhaustive semantic consumers, while an exhaustive Query fails with `missingFiniteCompleteness`; an opted-in Target provides explicit finite actions plus soundness/completeness proofs.
+- [ ] Query derives its role/action completeness view without manufacturing or weakening evidence, copies target-owned stable role/action-domain compatibility tokens verbatim, and remains the sole owner of bounds and query-level completeness errors.
 - [ ] Planning remains the sole owner of the indexed kernel and ordering proofs, and its public derivation produces byte-/result-identical traversal from the same checked inputs.
+- [ ] The public derivation reuses the established finite-kernel implementation; no parallel planner enumerator or duplicate ordering authority exists.
 - [ ] Switch and Temporal examples can consume the checked adapters without constructing `FiniteCompletenessEvidence`, `FiniteKernelOrder`, or `IncrementalPlannerKernel` records directly.
+- [ ] Existing Switch, BasicLifecycle, and CallerClosure role/action-domain token fixtures and canonical Query JSON remain byte-identical after derivation.
 - [ ] Target imports no Query, Planning, Artifact, Temporal, runtime, or verification module; facade and import tests enforce the direction.
 - [ ] Focused Query/Planning suites plus `UmpireTests` pass with existing comments preserved.
 ## Done summary

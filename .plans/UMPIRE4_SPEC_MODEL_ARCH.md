@@ -87,14 +87,14 @@ module inventory rather than scanning import text.
 The current qualified policy keeps `Shared.*` independent of `Umpire.*` and `Temporal.*`, and
 `Umpire.*` independent of `Temporal.*`. It isolates `Temporal.Feature.*` from
 `Temporal.System.*`, `Temporal.Verify.*`, and `Umpire.Verify.Veil`, with the exact verification-test
-exception `Temporal.Feature.Nexus.CallerClosure.VeilTests`. In the reverse direction, only the exact
-reviewed refinement consumer `Temporal.System.Nexus.Refinement` composes `Temporal.System.*` with
-`Temporal.Feature.*`; refinement-shaped names receive no exception.
+exception `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests`. In the reverse direction,
+only the exact reviewed refinement consumer `Temporal.System.Nexus.Refinement` composes
+`Temporal.System.*` with `Temporal.Feature.*`; refinement-shaped names receive no exception.
 
 Ordinary aggregates, tools, and tests remain isolated from `Temporal.Verify.*` and
 `Umpire.Verify.Veil`. The complete opt-in consumer set is `TemporalVerify`, `TemporalVeilTests`,
-`Temporal.Tool.VerifyVeil`, and `Temporal.Feature.Nexus.CallerClosure.VeilTests`; it is an exact
-set, not a wildcard convention (MOD-05).
+`Temporal.Tool.VerifyVeil`, and `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests`; it
+is an exact set, not a wildcard convention (MOD-05).
 
 Physical placement under `Temporal/Verify/` keeps expert bindings discoverable beside their owning
 Temporal families. Import isolation, not physical distance, protects the ordinary authoring path.
@@ -172,10 +172,10 @@ and refinements. Neither path requires Veil or routine proof plumbing.
 Illustrative authoring syntax may eventually resemble:
 
 ```lean
-property cancellationIsUnique on Nexus.CallerClosure where
+property cancellationIsUnique on Nexus.Experimental.CallerClosure where
   ...
 
-behavior closeCallerWithPendingOperation on Nexus.CallerClosure where
+behavior closeCallerWithPendingOperation on Nexus.Experimental.CallerClosure where
   ...
 
 regression callerClosureCancellation where

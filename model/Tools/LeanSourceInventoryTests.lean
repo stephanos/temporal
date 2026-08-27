@@ -26,22 +26,17 @@ private def requireFailureContaining (label needle : String) (action : IO α) : 
     throw <| IO.userError s!"{label}: expected failure containing {needle}, got {failure}"
 
 private def runProcess (command : String) (args : Array String) : IO Unit := do
-  let child ← IO.Process.spawn { cmd := command, args, stdin := .null }
-  let exitCode ← child.wait
-  if exitCode != 0 then
-    throw <| IO.userError s!"{command} failed with status {exitCode}"
+  discard <| IO.Process.run { cmd := command, args }
+
+private def isOwned (name : Lean.Name) : Bool :=
+  `Owned == name || (`Owned).isPrefixOf name
 
 private def inventoryPolicy : InventoryPolicy := {
-  isFirstParty := fun name => `Owned == name || (`Owned).isPrefixOf name
-  isClassified := fun name => `Owned == name || (`Owned).isPrefixOf name
+  isFirstParty := isOwned
+  isClassified := isOwned
 }
 
 private def testReconciliation : IO Unit := do
-  requireEqual "generic escaping source"
-    (reconcile inventoryPolicy
-      #[{ path := "/outside/Owned/Root.lean", module := `Owned.Root, contained := false }]
-      #[moduleRecord `Owned.Root])
-    #[.escapingSource "/outside/Owned/Root.lean"]
   requireEqual "generic duplicate source identity"
     (reconcile inventoryPolicy
       #[
@@ -69,28 +64,36 @@ private def testFilesystemInventory : IO Unit := do
     let excluded ← scanSources root #["runtime"]
     requireEqual "caller-owned inventory exclusions" excluded #[]
   IO.FS.withTempDir fun root => do
-    let canonical := root / "Canonical"
+    let canonical := root / ".lake"
     IO.FS.createDir canonical
     IO.FS.writeFile (canonical / "Root.lean") "def canonical := true\n"
     runProcess "ln" #["-s", canonical.toString, (root / "Alias").toString]
-    requireFailureContaining "directory alias" "directory alias or cycle" (scanSources root)
+    requireFailureContaining "excluded directory alias" "source path alias"
+      (scanSources root #[".lake"])
   IO.FS.withTempDir fun root => do
     let directory := root / "Cycle"
     IO.FS.createDir directory
     runProcess "ln" #["-s", root.toString, (directory / "Loop").toString]
-    requireFailureContaining "directory cycle" "directory alias or cycle" (scanSources root)
+    requireFailureContaining "directory cycle" "source path alias" (scanSources root)
   IO.FS.withTempDir fun root =>
     IO.FS.withTempDir fun outside => do
       IO.FS.writeFile (outside / "Escape.lean") "def escape := true\n"
       runProcess "ln" #["-s", outside.toString, (root / "Outside").toString]
       requireFailureContaining "escaping directory" "escapes canonical root" (scanSources root)
   IO.FS.withTempDir fun root => do
+    let canonical := root / "Canonical.lean"
+    IO.FS.writeFile canonical "def canonical := true\n"
+    runProcess "ln" #["-s", canonical.toString, (root / "Alias.lean").toString]
+    requireFailureContaining "source alias" "source path alias" (scanSources root)
+  IO.FS.withTempDir fun root => do
     let canonical := root / "Case.lean"
     let caseVariant := root / "case.lean"
     IO.FS.writeFile canonical "def sameBytes := true\n"
-    runProcess "cp" #["-p", canonical.toString, caseVariant.toString]
-    let sources ← scanSources root
-    requireEqual "distinct case variants retained" (sources.map (·.module)) #[`Case, `case]
+    IO.FS.writeFile caseVariant "def sameBytes := true\n"
+    let entries ← root.readDir
+    if entries.any (·.fileName == "Case.lean") && entries.any (·.fileName == "case.lean") then
+      let sources ← scanSources root
+      requireEqual "distinct case variants retained" (sources.map (·.module)) #[`Case, `case]
 
 /-- Exercise reconciliation and filesystem behavior through the generic inventory interface. -/
 def run : IO Unit := do

@@ -1,15 +1,15 @@
-import Temporal.Feature.Nexus.AutoClose
+import Temporal.Feature.Nexus.Experimental.AutoClose
 import Umpire.Planning
 
-namespace Temporal.Feature.Nexus.CallerClosure
+namespace Temporal.Feature.Nexus.Experimental.CallerClosure
 
 open _root_.Umpire
-open Temporal.Feature.Nexus.AutoClose
+open Temporal.Feature.Nexus.Experimental.AutoClose
 
 private def id (value : String) : DeclarationId := DeclarationId.of value
 
 def source : SemanticSource := {
-  path := "Temporal/Feature/Nexus/CallerClosure.lean"
+  path := "Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
   line := 1
   column := 1
   provenance := "lean-model"
@@ -709,4 +709,4 @@ private theorem artifact_isSome : artifact.isSome = true := by native_decide
 
 def compiledArtifact : ExperimentSpec := artifact.get artifact_isSome
 
-end Temporal.Feature.Nexus.CallerClosure
+end Temporal.Feature.Nexus.Experimental.CallerClosure

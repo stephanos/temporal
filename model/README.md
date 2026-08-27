@@ -78,34 +78,38 @@ Model scenarios use three separate but composable forms:
 
 Learn these forms in increasing order of domain and composition complexity:
 
-1. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral example
-   of the complete authored → checked → planned → artifact lifecycle.
-2. [`BasicLifecycle`](Temporal/Feature/Nexus/Examples/BasicLifecycle.lean) adapts the authoritative
-   Nexus lifecycle into one small Temporal-owned target with one capability and one provider.
-3. [`BasicOperations`](Temporal/Feature/Nexus/Examples/BasicOperations.lean) adds two one-action
-   walkthroughs over that shared target: asynchronously starting a scheduled operation, then
-   reporting successful completion for a started operation. Each walkthrough exposes its authored
-   and checked Property, exact-action Behavior, checked Query, and deterministic planner result.
-4. [`CallerClosure`](Temporal/Feature/Nexus/CallerClosure.lean) is the advanced integration
-   reference for Workflow–Nexus ownership, connector composition, cancellation, and multiple query
-   modes. It is not the starting point for learning the DSLs.
+1. [`Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the ordinary Temporal starting
+   point. It owns the scheduled, started, canceled, and succeeded states; the start, cancel, and
+   succeed events; and the three corresponding valid transitions in one small checked target.
+2. [`Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) adds one-action walkthroughs for
+   starting, canceling, and successfully completing an operation. Each walkthrough exposes its
+   authored and checked Property, exact-action Behavior, checked Query, and deterministic planner
+   result over the shared lifecycle target.
+3. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
+   for the same authored → checked → planned → artifact lifecycle.
+4. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
+   [`Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
+   are explicit opt-in material for the detailed AutoClose proofs and inspectable Workflow–Nexus
+   caller-closure regression. They are not part of the ordinary Feature learning surface.
 
 `Temporal/Feature/` owns product-visible behavior, `Temporal/System/` owns configuration and other
-mechanisms, and `Temporal/Tool/Inspect.lean` owns the inspector registry. The basic Nexus examples
-compile directly and deliberately are not registered with the inspector. The resulting `DrivePlan`
-and `ExperimentSpec` values are pure model artifacts: they describe selected requests,
-model-owned outcomes, and semantic observations. The examples do not start a Temporal server or
+mechanisms, and `Temporal/Tool/Inspect.lean` owns the inspector registry. The ordinary
+`Temporal.Feature` facade exports `Nexus.Lifecycle` and `Nexus.Operations` but no Experimental
+module. Those core walkthroughs compile directly and deliberately are not registered with the
+inspector; the inspector explicitly opts into the experimental caller-closure regression. The
+resulting `DrivePlan` and `ExperimentSpec` values are pure model artifacts: they describe selected
+requests, model-owned outcomes, and semantic observations. They do not start a Temporal server or
 execute Nexus operations.
 
 Build each stage through the final module and target names:
 
 ```sh
 cd model
+mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests
+mise exec -- lake build Temporal.Feature.Nexus.OperationsTests
 mise exec -- lake build Umpire.Examples.Switch
-mise exec -- lake build Temporal.Feature.Nexus.Examples.BasicLifecycleTests
-mise exec -- lake build Temporal.Feature.Nexus.Examples.BasicOperationsTests
-mise exec -- lake build Temporal.Feature.Nexus.CallerClosureTests
-mise exec -- lake build Temporal TemporalModelTests temporal-model-inspect
+mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosureTests
+mise exec -- lake build Temporal TemporalModelTests TemporalExperimentalTests temporal-model-inspect
 ```
 
 From the Temporal repository root, run the focused regression check:
@@ -119,14 +123,16 @@ executed graph regressions, controlled failure fixture, and live metadata pass o
 `Shared.*`/`Umpire.*`, `Umpire.*`/`Temporal.*`, `Temporal.Feature.*`/`Temporal.System.*`, and
 opt-in `Temporal.Verify.*`/`Umpire.Verify.Veil` boundaries.
 
-The focused check builds `Temporal`, `UmpireTests`, `TemporalModelTests`, and
-`temporal-model-inspect`. It rejects obsolete interfaces, reusable Umpire domain leaks, and invalid
-`Temporal.System.Configuration` imports of its `Temporal.System.Callback.Configuration` or
-`Temporal.System.Matching.Configuration` consumers; compares repeated inspection with both
-checked-in target-state fixtures byte-for-byte; and verifies that unknown or invalid inspector
-requests emit one structured diagnostic with no artifact JSON on standard output. It also
-clean-regenerates the checked-in caller-closure Go and Markdown projections and runs their focused
-Go tests. It does not require or contact a running Temporal server.
+The focused check builds `Temporal`, `UmpireTests`, `TemporalModelTests`,
+`TemporalExperimentalTests`, and `temporal-model-inspect`. The ordinary and experimental test
+aggregates stay separate while both remain covered by full regression. The check rejects obsolete
+interfaces, reusable Umpire domain leaks, and invalid `Temporal.System.Configuration` imports of
+its `Temporal.System.Callback.Configuration` or `Temporal.System.Matching.Configuration`
+consumers; compares repeated inspection with both checked-in target-state fixtures byte-for-byte;
+and verifies that unknown or invalid inspector requests emit one structured diagnostic with no
+artifact JSON on standard output. It also clean-regenerates the checked-in caller-closure Go and
+Markdown projections and runs their focused Go tests. It does not require or contact a running
+Temporal server.
 
 Generate or check the stable regression projections from the repository root:
 
