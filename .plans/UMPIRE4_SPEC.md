@@ -14,20 +14,22 @@ normative.
 The ubiquitous language is grouped with the rules that govern each part of the domain. These
 definitions determine how terms are used in this normative index. Supporting Umpire 4 documents use
 them consistently and may add detail without changing their meaning. Lean modules, namespaces, and
-types are always referenced by fully qualified names in backticks.
+types are always referenced by fully qualified names in backticks. Defined Ubiquitous Language terms
+are capitalized when used as nouns outside their defining entry; ordinary descriptive and adjectival
+uses remain lowercase.
 
 ## Model ownership and architecture
 
 ### Ubiquitous language
 
-- **Lean model.** The semantic code under `model/`, comprising the domain-neutral `Umpire` library
+- **Lean Model.** The semantic code under `model/`, comprising the domain-neutral `Umpire` library
   and Temporal-owned declarations. It is the sole authority for behavioral meaning.
-- **Canonical declaration.** A checked handwritten declaration under `Temporal.Feature` or
-  `Temporal.System` that owns Temporal behavioral meaning for its semantic identity. Structural
-  inputs, projections, adapters, and checker views are not canonical declarations.
-- **Structural input.** Generated mechanical information, such as `Temporal.API` or
-  `Temporal.DynamicConfig` declarations, that has no behavioral meaning until a canonical
-  declaration interprets it.
+- **Semantic Definition.** A checked handwritten declaration under `Temporal.Feature` or
+  `Temporal.System` that owns Temporal behavioral meaning for its Semantic Identity. Generated
+  Structures, Projections, adapters, and checker views are not Semantic Definitions.
+- **Generated Structure.** Mechanically generated information, such as `Temporal.API` or
+  `Temporal.DynamicConfig` declarations, that has no behavioral meaning until a Semantic Definition
+  interprets it.
 - **`Umpire`.** The domain-neutral Lean library and namespace that owns reusable semantic authoring,
   checking, planning, artifact, observation, refinement, and verification machinery.
 - **`Temporal.API`.** The generated Temporal namespace for mechanical Protobuf and gRPC structure.
@@ -40,11 +42,11 @@ types are always referenced by fully qualified names in backticks.
 - **`Temporal.System`.** The Temporal namespace that owns implementation mechanisms, configuration
   interpretation, `Umpire.Observation` declarations, execution semantics, and refinements.
 ############ TODO review ############
-- **Semantic identity.** A stable, namespaced, kind-checked name for a declaration or selected
+- **Semantic Identity.** A stable, namespaced, kind-checked name for a declaration or selected
   semantic product. It is independent of declaration order and documentation.
-- **Semantic digest.** A deterministic digest of meaning-bearing canonical content, used to detect
+- **Semantic Digest.** A deterministic digest of meaning-bearing canonical content, used to detect
   semantic change or stale composition. It is distinct from source location, documentation, and an
-  artifact format version.
+  Artifact format version.
 - **Capability.** A named semantic contract, including its required laws, that a declaration
   requires or a target composition provides.
 - **Refinement.** An explicit checked correspondence from `Temporal.System` implementation meaning
@@ -53,8 +55,8 @@ types are always referenced by fully qualified names in backticks.
 
 ### Purpose and scope
 
-- **SCP-01 — Temporal-driven scope.** Umpire MUST solve modeling, regression, exploration,
-  conformance, and verification problems demonstrated by Temporal rather than hypothetical users.
+- **SCP-01 — Temporal-driven scope.** Umpire MUST solve modeling, Regression, Exploration,
+  Conformance, and verification problems demonstrated by Temporal rather than hypothetical users.
 - **SCP-02 — Domain-neutral core.** The reusable `Umpire` library MUST remain free of Temporal
   vocabulary, dependencies, and fixtures.
 - **SCP-03 — One model language.** All semantic model code MUST be written in Lean and live under
@@ -64,15 +66,16 @@ types are always referenced by fully qualified names in backticks.
 
 ### Semantic authority
 
-- **SEM-01 — Lean authority.** The Lean model MUST be the sole authority for behavioral meaning;
-  generated artifacts, Go code, runtimes, evidence mappings, and checker adapters MUST NOT redefine
+- **SEM-01 — Lean authority.** The Lean Model MUST be the sole authority for behavioral meaning;
+  generated Artifacts, Go code, runtimes, evidence mappings, and checker adapters MUST NOT redefine
   it.
-- **SEM-02 — Canonical declarations.** Canonical `Temporal.Feature` and `Temporal.System`
-  declarations MUST be the only sources of Temporal behavioral meaning within the Lean model.
-- **SEM-03 — Structural inputs.** Generated `Temporal.API` and `Temporal.DynamicConfig` declarations
-  MUST remain structural inputs until handwritten Lean declarations assign semantic meaning.
-- **SEM-08 — Explicit refinement.** `Temporal.Feature` product meaning and `Temporal.System`
-  implementation meaning MUST meet through an explicit refinement, never through declaration order
+- **SEM-02 — Semantic Definitions.** Checked handwritten `Temporal.Feature` and `Temporal.System`
+  declarations MUST be the only sources of Temporal behavioral meaning within the Lean Model.
+- **SEM-03 — Generated Structure.** Generated `Temporal.API` and `Temporal.DynamicConfig`
+  declarations MUST remain Generated Structures until Semantic Definitions assign behavioral
+  meaning.
+- **SEM-08 — Explicit Refinement.** `Temporal.Feature` product meaning and `Temporal.System`
+  implementation meaning MUST meet through an explicit Refinement, never through declaration order
   or implicit selection.
 
 ### Enforced module boundaries
@@ -100,7 +103,7 @@ types are always referenced by fully qualified names in backticks.
   `Temporal.System` MUST own implementation mechanisms, configuration interpretation, evidence
   mappings, and execution semantics.
 - **MOD-04 — Refinement leaves.** `Temporal.Feature.*` and `Temporal.System.*` modules MUST remain
-  independently understandable and testable; only focused refinement leaves MAY relate their
+  independently understandable and testable; only focused Refinement leaves MAY relate their
   meanings, with import composition governed by MOD-10.
 - **MOD-06 — Deep modules.** `Umpire.*` modules SHOULD hide substantial checking, planning, artifact,
   observation, and verification machinery behind small, cohesive interfaces.
@@ -116,26 +119,26 @@ types are always referenced by fully qualified names in backticks.
 - **Action.** A semantic request recognized by a selected `Umpire.CheckedTarget`. An authored or
   planned action requests a transition; it neither chooses the model outcome nor proves that a
   runtime realized the request.
-- **Model outcome.** The `Umpire.CheckedTarget`-owned response to a semantic action. The same target
-  transition determines the resulting state and semantic observations. A model outcome is distinct
-  from a phase outcome or runtime realization.
-- **Semantic observation.** A target-owned fact present in a pure semantic trace or established from
-  raw evidence by `Umpire.Observation`. It is not a raw log, span, RPC, record, or receipt.
-- **Semantic trace.** A pure initial state and ordered sequence of selected actions, model outcomes,
-  resulting states, and semantic observations. Runtime evidence and qualification are absent.
-- **Scenario.** A named space of possible semantic traces. Its `Umpire.Behavior` constrains
+- **Model Outcome.** The `Umpire.CheckedTarget`-owned response to an Action. The same target
+  transition determines the resulting state and Semantic Observations. A model outcome is distinct
+  from a Phase Outcome or runtime Realization.
+- **Semantic Observation.** A target-owned fact present in a pure Semantic Trace or established from
+  raw Evidence by `Umpire.Observation`. It is not a raw log, span, RPC, record, or receipt.
+- **Semantic Trace.** A pure initial state and ordered sequence of selected Actions, Model Outcomes,
+  resulting states, and Semantic Observations. Runtime Evidence and Qualification are absent.
+- **Scenario.** A named space of possible Semantic Traces. Its `Umpire.Behavior` constrains
   admissible traces, while model-owned variation and fault declarations may parameterize the space.
   A scenario does not select a concrete trace.
-- **Omission.** An explicit declaration that a capability, input, interpretation, or claim is absent
-  or unsupported. An omission narrows what an artifact or result can establish.
+- **Omission.** An explicit declaration that a Capability, input, interpretation, or claim is absent
+  or unsupported. An omission narrows what an Artifact or Result can establish.
 - **`Umpire.Behavior`.** The typed language that constrains admissible semantic trace spaces without
   deciding whether a trace is correct or whether runtime execution occurred.
-- **`Umpire.CheckedTarget`.** A validated composition of semantic vocabulary, capabilities, laws,
+- **`Umpire.CheckedTarget`.** A validated composition of semantic vocabulary, Capabilities, laws,
   providers, connectors, and the authoritative transition kernel used by planning and evaluation.
 - **`Umpire.Property`.** The typed language for pure, portable, capability-scoped claims over
-  semantic traces. It contains no implementation evidence sources or runtime controls.
+  Semantic Traces. It contains no implementation evidence sources or runtime controls.
 - **`Umpire.Query`.** The typed language that combines checked `Umpire.Behavior` and
-  `Umpire.Property` declarations, a compatible `Umpire.CheckedTarget`, a claim, bounds, and planning
+  `Umpire.Property` declarations, a compatible `Umpire.CheckedTarget`, a claim, Bounds, and planning
   policy into a bounded question.
 - **Unsatisfiable.** A checked `Umpire.Behavior` whose constraints admit no semantic trace. It is an
   explicit failure outcome, not success by vacuity.
@@ -146,14 +149,14 @@ types are always referenced by fully qualified names in backticks.
   `Umpire.Observation`, and other Lean DSLs MUST remain distinct typed languages with distinct
   responsibilities.
 - **SEM-05 — Pure `Umpire.Property`.** `Umpire.Property` declarations MUST be pure, portable,
-  capability-scoped claims over semantic traces and MUST NOT depend on implementation evidence
+  capability-scoped claims over Semantic Traces and MUST NOT depend on implementation evidence
   sources.
 - **SEM-06 — Declarative `Umpire.Behavior`.** `Umpire.Behavior` declarations MUST constrain
-  admissible semantic trace spaces; they MUST NOT become procedural RPC or runtime scripts.
-- **SEM-07 — Target-owned outcomes.** Authors MUST request actions, while `Umpire.CheckedTarget`
-  semantics determine their outcomes and resulting states.
-- **SEM-09 — Bounded progress.** Progress claims in `Umpire.Property` MUST use an explicit bound and
-  declared semantic unit; finite execution MUST NOT claim unbounded liveness.
+  admissible Semantic Trace spaces; they MUST NOT become procedural RPC or runtime scripts.
+- **SEM-07 — Target-owned outcomes.** Authors MUST request Actions, while `Umpire.CheckedTarget`
+  semantics determine their Model Outcomes and resulting states.
+- **SEM-09 — Bounded progress.** Progress claims in `Umpire.Property` MUST use an explicit Bound and
+  declared semantic unit; finite Execution MUST NOT claim unbounded liveness.
 
 ### Authoring
 
@@ -161,13 +164,13 @@ types are always referenced by fully qualified names in backticks.
   ordinary `Temporal.Feature` and `Temporal.System` declarations without assembling proof, provider,
   connector, canonicalization, digest, or planner plumbing.
 - **AUT-02 — Explicit meaning.** Authoring interfaces MUST keep meaning-bearing states, actions,
-  outcomes, relations, bounds, faults, capabilities, omissions, and unsupported cases explicit.
+  outcomes, relations, Bounds, faults, Capabilities, Omissions, and unsupported cases explicit.
 - **AUT-03 — Checked declarations.** Public declarations MUST be checked before planning or execution,
   and failures SHOULD produce precise source-located diagnostics.
 - **AUT-04 — Stable identities.** Every public semantic declaration MUST have a stable, namespaced,
-  kind-checked identity that is independent of source ordering and documentation.
-- **AUT-05 — Portable data.** Anything used for portable planning, artifacts, promotion, or
-  cross-language execution MUST be inspectable data with a Lean denotation, not an opaque callback.
+  kind-checked Semantic Identity that is independent of source ordering and documentation.
+- **AUT-05 — Portable data.** Anything used for portable planning, Artifacts, promotion, or
+  cross-language Execution MUST be inspectable data with a Lean denotation, not an opaque callback.
 - **AUT-06 — Explicit composition.** Competing providers and cross-domain relationships MUST be
   connected explicitly; declaration order and type-class search MUST NOT select semantics.
 - **AUT-07 — Single authoring path.** `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` MUST
