@@ -40,9 +40,13 @@ changing Feature meaning (R2, R3, R5).
 - [ ] No unnecessary physical decomposition or lost comments.
 
 ## Done summary
-TBD
+Migrated Nexus Lifecycle and Experimental CallerClosure onto Target-owned finite planning through `AuthoredTarget`/`checkedTarget`, with Query completeness and Planning kernels derived through the public seams. Operations remains a consumer of the single shared `Lifecycle.target` for AsyncStart, Cancellation, and SuccessfulCompletion; existing semantic behavior, exact compatibility tokens, invalid cases, and CallerClosure artifacts are preserved.
 
+Codex review found that the first Operations canonical-JSON assertions were tautological. The fix adds three checked-in golden Query fixtures—the only review-proven expansion beyond the six declared files—and now pins each simple lifecycle query byte-for-byte. The unrelated dirty `.plans/UMPIRE4_SPEC.md` and `.flow/memory/declined/generated-api-drift-verification.md` remain untouched; green gate receipts were not warrantable while the plan file stayed dirty. Project memory capture was attempted after NEEDS_WORK→SHIP but skipped because memory is not initialized.
+
+baseline: green
+stage: impl-review - ran [2026-08-27T04:40:42Z..2026-08-27T04:46:23Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 984554d5b7276e07be53da2f56707da8c1b3605e, bf44cef0094d3af5cff77b2b9aae72937074da2f
+- Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model
 - PRs:
