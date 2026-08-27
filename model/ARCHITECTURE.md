@@ -111,8 +111,8 @@ Umpire.Examples.Switch ───────────────────
 `Tools.LeanSourceInventory` discovery modules. It keeps `Shared.*` independent of `Umpire.*` and
 `Temporal.*`, keeps `Umpire.*` independent of `Temporal.*`, isolates
 `Temporal.Feature.*` from `Temporal.System.*`, and protects the opt-in `Temporal.Verify.*` and
-`Umpire.Verify.Veil` seams. The only cross-layer refinement consumer is the exact
-`Temporal.System.Nexus.Refinement` module; verification consumers use the exact allowlist owned by
+`Umpire.Verify.Veil` seams. The only cross-layer Implementation Link consumer is the exact
+`Temporal.System.Nexus.ImplementationLink` module; verification consumers use the exact allowlist owned by
 MOD-05. The normative import rules are MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11.
 Every `Umpire.Target.*` module, including Target tests, is additionally kept below Query, Planning,
 Artifact, Temporal, runtime, and verification modules. Semantic ownership, deep interfaces, and
@@ -133,7 +133,7 @@ Public Umpire APIs follow an authored → checked → planned → artifact lifec
    compiles as valid, obtaining one canonical `CheckedTarget`.
 3. Call `checkProperty` and `checkBehavior` with contexts derived from the checked target to
    validate authored constraints.
-4. Call `checkQuery` to bind that target to properties, behavior, bounds, and policy.
+4. Call `checkQuery` to bind that Target to Properties, Behavior, Limits, and policy.
 5. Derive the planner kernel with `IncrementalPlannerKernel.ofCheckedQuery?`, then call `plan`.
 6. Inspect the resulting `PlannerRun` and optional `ExperimentSpec`.
 
@@ -167,7 +167,7 @@ Temporal-specific modules are split by semantic altitude:
 - `Temporal.Feature.Nexus.Operations` owns the start, cancellation, and successful-completion
   walkthroughs over that shared target.
 - `Temporal.Feature.Nexus.Observation` owns the sole synthetic BasicLifecycle evidence profile,
-  its checked mapping, and the offline `EvidenceBundle` → qualification → Property-verdict → strict-
+  its checked mapping, and the offline `EvidenceBundle` → Observation Evaluation → Property-verdict → strict-
   summary composition over the ordinary asynchronous-start Query.
 - `Temporal.Feature.Nexus.Experimental.AutoClose` owns the detailed AutoClose configuration,
   lifecycle, reachability, history, and proofs as explicit opt-in material.
@@ -182,8 +182,8 @@ Temporal-specific modules are split by semantic altitude:
   the executable entry point. It does not own feature semantics.
 
 Property, Behavior, and Query remain distinct throughout the Temporal examples. A Property states
-what a semantic trace must mean. A Behavior selects allowed controllable actions and setup without
-inventing model outcomes. A Query binds checked instances of both to a target, bounds, and policy
+what a Model Trace must mean. A Behavior selects allowed controllable actions and setup without
+inventing model outcomes. A Query binds checked instances of both to a Target, Limits, and policy
 for deterministic planning. Consequently, the target—not Behavior—produces lifecycle outcomes and
 observations.
 
@@ -193,18 +193,18 @@ Observation is a separate offline interpretation path over that same checked sem
 checked Target + one EvidenceProfileDeclaration + ObservationMappingDeclaration
   ── checkObservation ──▶ CheckedObservationPlan
 checked plan + complete synthetic EvidenceBundle
-  ── qualifyEvidence ──▶ qualified trace | unknown | conflict | unsupported
-checked Query + checked Property + qualification
-  ── evaluateQualifiedProperty / summarizeQueryVerdicts ──▶ verdicts + strict summary
+  ── evaluateEvidence ──▶ Evidence-backed Model Trace | unknown | conflict | unsupported
+checked Query + checked Property + Observation Evaluation
+  ── evaluateObservationProperty / summarizeQueryVerdicts ──▶ verdicts + strict summary
 ```
 
 The reusable `Umpire.Observation` package owns the mapping language, deterministic compilation,
-bounded qualification, coordinate-indexed derivations, field dispositions, semantic verdicts, and
+bounded Observation Evaluation, coordinate-complete Evidence Links, field dispositions, semantic verdicts, and
 strict aggregation. Temporal owns only the product vocabulary and its one current synthetic
 profile. `Temporal.Feature.Nexus.Observation` declares that BasicLifecycle profile, retains the
 state/action/outcome/observation fields, rejects its raw-detail field, applies a two-record
-`evidence-records` bound, and demonstrates a closed scheduled-to-started bundle. The resulting
-offline result contains a qualified trace, the independently evaluated asynchronous-start Property
+`evidence-records` Limit, and demonstrates a closed scheduled-to-started bundle. The resulting
+offline result contains an Evidence-backed Model Trace, the independently evaluated asynchronous-start Property
 verdict, and its strict Query summary.
 
 The future runtime seam stops at `EvidenceBundle`. A future adapter would have to translate an
@@ -213,13 +213,13 @@ typed fields and optional digest metadata; sequence and causal-parent facts; opt
 fault-target facts; source-closure facts; and any compatible alternatives plus their missing
 discriminator. Umpire remains responsible for every check after that handoff. No live adapter is
 implemented here, and this model does not execute Temporal, collect or persist live evidence,
-establish runtime conformance, promote a result, or define a second profile.
+perform Run Evaluation, promote a result, or define a second profile.
 
 ## Package boundaries
 
 - `Shared` owns domain-neutral transition systems, finite runs, observations, and trace replay.
 - `Umpire` owns reusable semantic declarations, authoring languages, checking, planning, portable
-  artifacts, and offline Observation qualification and verdicts.
+  Artifacts, and offline Observation Evaluation and verdicts.
 - `Temporal.Feature` owns product meaning, target compositions, and the sole synthetic Nexus
   Observation profile.
 - `Temporal.System` owns configuration and execution-oriented mechanisms without defining feature
@@ -229,7 +229,7 @@ establish runtime conformance, promote a result, or define a second profile.
 - `Temporal.API` and `Temporal.DynamicConfig` remain generated structures outside the
   Feature/System semantic layers.
 - `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
-  `Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Qualification`, and
+  `Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`, and
   `Umpire.Planning.Engine` implement public facades and should not normally be imported directly.
 
 Artifacts are pure model products. They do not claim that Temporal was started, actions were

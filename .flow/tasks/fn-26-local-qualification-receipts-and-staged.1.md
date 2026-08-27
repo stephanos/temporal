@@ -1,17 +1,15 @@
 ---
-satisfies: [R1, R3, R4]
+satisfies: [R1, R3, R7]
 ---
-# fn-26-local-qualification-receipts-and-staged.1 Define reusable qualification profiles and the exact local policy
+# fn-26-local-qualification-receipts-and-staged.1 Define reusable Evaluation Profiles and the exact local policy
 
 ## Description
-**Size:** M
-**Files:** model/Umpire/Qualification/**, model/Temporal/System/Qualification/Local.lean
-**Touches:** qualification vocabulary and local policy identity
-
-Define the Temporal-free Umpire.Qualification vertical package and the single Temporal local-ephemeral profile. Freeze v1 only to the environment, claim, cleanup, and not-provided formal values exercised locally; later profiles must version the schema to add vocabulary. Freeze exact profile fields, validation, canonical digest, pilot binding shape, complete accumulating reason table/precedence, and local profile identity. Prove every requirement mutation changes or invalidates the digest and that no endpoint, credential, path, Temporal, or Nexus value enters reusable Umpire.
+Define the Temporal-free `Umpire.Evaluation` vertical package and the single Temporal-owned `local-ephemeral` Evaluation Profile v2. Freeze exact closed fields, validation, Behavior Fingerprint, Limits, Known Gaps, claim vocabulary, and deterministic accumulating reason precedence. The profile binds current local runner and Run Evaluation identities and admits optional verification Evidence explicitly; no pilot evidence or pre-v2 compatibility exists.
 
 ## Acceptance
-The generic package validates the local-only closed canonical v1 independently, the local profile binds exactly fn-19/fn-20 declarations and declares formal evidence not-provided, and focused tests reject future/contradictory/empty/duplicate/unknown requirements. The exact accumulating reason/status matrix and all identity formulas are executable and reusable Umpire remains domain-neutral.
+- [ ] The checked v2 Evaluation Profile is canonical, immutable, domain-neutral, and fingerprinted.
+- [ ] Empty, duplicate, contradictory, unknown, stale, and Limit N+1 inputs fail deterministically.
+- [ ] No Temporal, endpoint, credential, path, execution authority, pilot, or pre-v2 value enters reusable Umpire.
 
 ## Done summary
 TBD

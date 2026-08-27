@@ -11,6 +11,6 @@
   "spec": "fn-18-versioned-umpire-artifact-boundary",
   "spec_path": ".flow/tasks/fn-18-versioned-umpire-artifact-boundary.5.md",
   "status": "todo",
-  "title": "Define the bounded raw-evidence transport",
-  "updated_at": "2026-08-26T09:47:24.751622Z"
+  "title": "Define the bounded RawEvidence transport",
+  "updated_at": "2026-08-27T19:07:05.874674Z"
 }

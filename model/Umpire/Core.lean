@@ -101,7 +101,7 @@ structure ModelTraceStep (State Action Outcome Observation : Type) where
   observations : List Observation
   deriving BEq, DecidableEq, Repr
 
-/-- Pure model data only. Execution evidence and qualification are deliberately absent. -/
+/-- Pure model data only. Execution Evidence and Claim Assessment are deliberately absent. -/
 structure ModelTrace (State Action Outcome Observation : Type) where
   initialState : State
   steps : List (ModelTraceStep State Action Outcome Observation)

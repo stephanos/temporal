@@ -4,7 +4,7 @@ satisfies: [R1, R3, R6, R7]
 # fn-5-umpire-discovery-promotion-and-artifact.2 Assemble the Temporal production catalog and catalog executable
 
 ## Description
-Compose current reusable, Switch, and Nexus metadata into one checked production registry, bind stable projection metadata, and expose the pure catalog query and full-export executable required by downstream generation for R1/R3/R6/R7.
+Compose current reusable, Switch, and Nexus metadata into one checked production registry, bind stable Generated View metadata, and expose the pure catalog query and full-export executable required by downstream generation for R1/R3/R6/R7.
 
 **Size:** M
 **Files:** `model/Temporal/Tool/Catalog.lean`, `model/Temporal/Tool/CatalogFixtures.lean`, `model/Temporal/Tool/CatalogCli.lean`, `model/Temporal/Tool/CatalogTests.lean`, `model/Temporal/Tool/CatalogCliTests.lean`, `model/Temporal/Tool/Inspect.lean`, `model/TemporalModelTests.lean`, `model/lakefile.toml`
@@ -17,9 +17,9 @@ Compose current reusable, Switch, and Nexus metadata into one checked production
 - Compute the least typed metadata closure: Query to checked Behavior/form properties/target; Space to its axes/choices/faults/goals and checked base Query; target to its target/kernel declarations plus declarations, providers, connectors, and their capability/law/meaning references. Merge equal IDs only when kind/digest/source agree. Check the result against a golden canonical identity/kind set: the Nexus partition is exactly 61 entries (BasicLifecycle 10, BasicOperations 6, VariationSpace 15, CallerClosure 30), while the Switch partition is exhaustively named by the same golden fixture.
 - Include internal semantic rows in the checked graph with `internal` disposition. Exclude nested roles, setup constraints, occurrences, Property clause IDs, authored/`Except` intermediates, PlannerRun/artifact outputs, proof-only definitions, test fixtures, and wrong-trace examples because they are not first-class checked declaration metadata.
 - Mark the current Switch exact-action and Nexus caller-closure scenarios as the initial `stableRegression` set.
-- Define a separately checked Temporal `CatalogProjectionBinding` registry keyed by stable entry identity. Each binding owns the canonical inspector selector, repository-relative fixture path, and per-entry projection key; its binding identity is projected to JSON but does not affect reusable catalog semantic identity. Aggregate output paths remain one set-level generator concern.
+- Define a separately checked Temporal `CatalogGeneratedViewBinding` registry keyed by stable entry identity. Each binding owns the canonical inspector selector, repository-relative fixture path, and per-entry Generated View key; its binding identity is projected to JSON but does not affect reusable catalog Behavior Fingerprint. Aggregate output paths remain one set-level generator concern.
 - Implement pure deterministic `listCatalog`, `explainCatalog`, and `exportCatalog` results plus the effect-thin `temporal-model-catalog list|explain|check|export` executable while preserving the existing inspector's exact single-scenario behavior.
-- Make `export` the only complete generator transport: emit exactly one `umpire-semantic-catalog-export/v1` envelope containing catalog identity, every checked row including `internal`, and every stable projection binding in canonical order. Accept no selector, filtering, pagination, or presentation flags; use status 0 with one compact JSON document plus LF and empty stderr, or status 1 with empty stdout and one structured error plus LF.
+- Make `export` the only complete generator transport: emit exactly one `umpire-semantic-catalog-export/v2` envelope containing catalog identity, every checked row including `internal`, and every stable Generated View binding in canonical order. Accept no selector, filtering, pagination, or presentation flags; use status 0 with one compact JSON document plus LF and empty stderr, or status 1 with empty stdout and one structured error plus LF.
 - Keep Temporal vocabulary in this owner layer, not under `model/Umpire`.
 
 ### Key context
@@ -49,7 +49,7 @@ Compose current reusable, Switch, and Nexus metadata into one checked production
 - [ ] Nexus contributes exactly 61 unique entries partitioned 10 BasicLifecycle, 6 BasicOperations, 15 VariationSpace, and 30 CallerClosure; missing/extra seeds or closure rows fail.
 - [ ] Internal semantic rows remain in the graph but are hidden by presentation disposition; explicitly excluded nested/proof/test/runtime values never become catalog entries.
 - [ ] The initial stable set contains exactly Switch exact-action and Nexus caller-closure entries in canonical order.
-- [ ] Every stable entry has exactly one validated projection binding with a safe fixture path and unique projection key, and binding identity changes do not alter catalog semantic identity.
+- [ ] Every stable entry has exactly one validated Generated View binding with a safe fixture path and unique Generated View key, and binding identity changes do not alter catalog Behavior Fingerprint.
 - [ ] List/explain results are byte-stable under registry ordering changes.
 - [ ] Semantic list/explain/check/export consume the fn-15 generic core and remain a distinct adapter/executable from API/config input catalogs.
 - [ ] Export emits exactly one complete versioned snapshot with catalog identity, all canonical rows including `internal`, and every stable binding; it accepts no selector/filter/page/presentation options.

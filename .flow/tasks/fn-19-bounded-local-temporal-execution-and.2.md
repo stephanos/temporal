@@ -32,7 +32,7 @@ Implement R1/R2's deep reusable Go boundary for checked requests, participant pr
 ## Acceptance
 - [ ] R1/R2 checked runtime/participant boundary is deep, inert, and domain-neutral.
 - [ ] Focused Go request/contract tests pass.
-- [ ] Every public value enforces its documented bounds.
+- [ ] Every public value enforces its documented Limits.
 
 ## Done summary
 TBD

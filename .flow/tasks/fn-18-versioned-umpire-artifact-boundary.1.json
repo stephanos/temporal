@@ -9,6 +9,6 @@
   "spec": "fn-18-versioned-umpire-artifact-boundary",
   "spec_path": ".flow/tasks/fn-18-versioned-umpire-artifact-boundary.1.md",
   "status": "todo",
-  "title": "Complete the executable ExperimentSpec and canonical artifact package",
-  "updated_at": "2026-08-26T20:41:56.232268Z"
+  "title": "Adopt the v2 Artifact baseline and vertical package",
+  "updated_at": "2026-08-27T19:07:04.375704Z"
 }

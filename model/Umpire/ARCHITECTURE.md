@@ -20,13 +20,13 @@ Focused imports are available when a consumer needs a smaller surface:
 | `Umpire.Target` | Target authoring, checked composition, and canonical target projections. |
 | `Umpire.Property` | Portable property authoring, checking, and evaluation. |
 | `Umpire.Behavior` | Setup and trace-shape constraints. |
-| `Umpire.Query` | Checked combinations of targets, properties, behaviors, bounds, and policies. |
+| `Umpire.Query` | Checked combinations of Targets, Properties, Behaviors, Limits, and policies. |
 | `Umpire.Artifact` | Portable drive plans and experiment specifications. |
 | `Umpire.Planning` | Deterministic incremental planning over checked queries. |
-| `Umpire.Observation` | Checked evidence mappings, qualification, derivations, dispositions, semantic verdicts, and strict aggregation. |
+| `Umpire.Observation` | Checked Evidence mappings, Observation Evaluation, Evidence Links, dispositions, Property verdicts, and strict aggregation. |
 
 `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
-`Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Qualification`, and
+`Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`, and
 `Umpire.Planning.Engine` implement their public facades and should not normally be imported
 directly.
 
@@ -44,7 +44,7 @@ CheckedQuery ─ derive planner kernel ─▶ plan ─▶ PlannerRun ─▶ Expe
 
 Target is the checked semantic substrate consumed by the distinct Property, Behavior, and Query
 languages; it is not another scenario language. Checked types freeze canonical metadata and
-semantic digests, and Planning accepts checked values rather than raw author input.
+Behavior Fingerprints, and Planning accepts checked values rather than raw author input.
 
 ## Core and Target APIs
 
@@ -53,14 +53,14 @@ authoring, validation, canonicalization, and checked composition.
 
 Important value types:
 
-- `DeclarationId` identifies semantic declarations. Public identities are expected to be
-  namespaced; construct them with `DeclarationId.of`.
-- `DeclarationMetadata` describes a state, action, outcome, observation, relation, capability,
+- `DefinitionId` identifies semantic declarations. Public identities are expected to be
+  namespaced; construct them with `DefinitionId.of`.
+- `DefinitionMetadata` describes a state, action, outcome, observation, relation, capability,
   provider, law, connector, target, or kernel.
-- `SemanticValue` pairs a declaration identity with a canonical string value.
-- `SemanticTrace` and `SemanticTraceStep` represent pure model traces.
+- `ModelValue` pairs a declaration identity with a canonical string value.
+- `ModelTrace` and `ModelTraceStep` represent pure Model Traces.
 - `TransitionResult` represents one model-owned transition result.
-- `TypedBound` associates a bound with an explicit `BoundUnit`.
+- `Limit` associates one value with an explicit `LimitUnit`.
 
 Target composition uses:
 
@@ -89,7 +89,7 @@ checkTarget :
 and proof-relation re-ascription. Both `AuthoredTarget` and `CheckedTarget` have sealed constructors;
 ordinary maintainers use `TargetComposition.provide`, `TargetComposition.connect`, and
 `AuthoredTarget.make`. `composeTarget` remains the lower-level
-`Except DeclarationError` expert seam. `canonicalCheckedTargetJson` returns the checked target's
+`Except DefinitionError` expert seam. `canonicalCheckedTargetJson` returns the checked target's
 canonical projection; compiler-only occurrence spans never enter it.
 
 ## Property API
@@ -100,7 +100,7 @@ The main authoring types are:
 
 - `PropertyPattern`
 - `ValueConstraint`
-- `PropertyBound`
+- `PropertyLimit`
 - `PropertyClause`
 - `PropertyDeclaration`
 - `PropertyCheckContext`
@@ -163,8 +163,8 @@ required occurrences. Behavior admission and Artifact linear extensions cross th
 
 ## Observation API
 
-`Umpire.Observation` describes, checks, and applies bounded mappings from typed synthetic evidence
-to qualified semantic traces. Import the complete public surface with:
+`Umpire.Observation` describes, checks, and applies bounded mappings from typed synthetic Evidence
+to Evidence-backed Model Traces. Import the complete public surface with:
 
 ```lean
 import Umpire.Observation
@@ -176,19 +176,19 @@ The offline lifecycle is:
 EvidenceProfileDeclaration + ObservationMappingDeclaration + CheckedTarget
   ── ObservationCheckContext.ofTarget / checkObservation ──▶ CheckedObservationPlan
 CheckedObservationPlan + synthetic EvidenceBundle
-  ── qualifyEvidence ──▶ QualificationResult
-CheckedQuery + CheckedProperty + QualificationResult
-  ── evaluateQualifiedProperty ──▶ SemanticPropertyVerdict
+  ── evaluateEvidence ──▶ ObservationResult
+CheckedQuery + CheckedProperty + ObservationResult
+  ── evaluateObservationProperty ──▶ SemanticPropertyVerdict
 CheckedQuery + property verdicts
   ── summarizeQueryVerdicts ──▶ StrictQuerySummary
 ```
 
-`checkObservation` compiles the closed expression grammar, declared ordering and closures, semantic
-outputs, field dispositions, and positive `evidence-records` bound into one canonical
-`CheckedObservationPlan`. `qualifyEvidence` then either returns one complete `QualifiedTrace` with
-a derivation for every semantic coordinate, or one closed diagnostic without exposing a partial
-trace. The raw `EvidenceBundle` is consumed only during qualification and is not retained in the
-qualified trace or verdicts.
+`checkObservation` compiles the closed expression grammar, declared ordering and closures, Model
+Facts, field dispositions, and positive `evidence-records` Limit into one canonical
+`CheckedObservationPlan`. `evaluateEvidence` then either returns one complete `EvidenceBackedTrace` with
+an Evidence Link for every Model Coordinate, or one closed diagnostic without exposing a partial
+trace. The raw `EvidenceBundle` is consumed only during Observation Evaluation and is not retained in the
+Evidence-backed Model Trace or verdicts.
 
 Every consumed field has exactly one disposition:
 
@@ -196,14 +196,14 @@ Every consumed field has exactly one disposition:
 - `redact` may preserve only a contribution marker;
 - `hash` may preserve only a deterministic token under the mapping's named, versioned synthetic
   digest policy;
-- `reject` prevents qualification when that field is present and cannot be read by a mapping.
+- `reject` prevents Observation Evaluation when that field is present and cannot be read by a mapping.
 
-Qualification statuses are `qualified`, `unknown`, `conflict`, and `unsupported`. Property verdicts
-are independently `satisfied`, `violated`, `unknown`, `conflict`, or `unsupported`; qualification
+Observation Evaluation statuses are `accepted`, `unknown`, `conflict`, and `unsupported`. Property verdicts
+are independently `satisfied`, `violated`, `unknown`, `conflict`, or `unsupported`; Observation Evaluation
 failure never becomes a Property violation. Strict aggregation is `satisfied` only for exactly one
-resolved satisfied verdict per required property over the same query, trace, and evidence bound. It
+resolved satisfied verdict per required Property over the same Query, Model Trace, and Evidence Limit. It
 is `violated` only when that result set is structurally complete and resolved but contains a
-violation. Missing, duplicate, unexpected, divergent, wrong-query, cross-trace, cross-bound, or
+violation. Missing, duplicate, unexpected, divergent, wrong-query, cross-trace, cross-Limit, or
 unresolved results make the summary `incomplete`.
 
 ### Future adapter handoff
@@ -223,14 +223,14 @@ The exact typed input a future runtime adapter would have to provide is one comp
 
 Such an adapter would own translation into these fields while preserving source identity,
 ordering, causality, closure, ambiguity, and declared field types. It would hand the complete bundle
-to `qualifyEvidence`; it would not construct a `QualifiedTrace`, choose an offline status, or
+to `evaluateEvidence`; it would not construct an `EvidenceBackedTrace`, choose an offline status, or
 reinterpret a Property result. This release provides no such adapter: it does not start Temporal,
-execute operations, collect live evidence, persist raw records, prove runtime conformance, promote
+execute operations, collect live Evidence, persist raw records, perform Run Evaluation, promote
 results, or admit another evidence profile. Observation also does not redefine Property meaning.
 
 ## Query and search API
 
-`Umpire.Query` combines a checked target, checked properties, checked behavior, finite bounds, and
+`Umpire.Query` combines a checked Target, checked Properties, checked Behavior, finite Limits, and
 deterministic planning policy.
 
 Important types:
@@ -241,7 +241,7 @@ Important types:
 - `CheckedQuery`
 - `FiniteCompletenessEvidence`
 - `QueryCheckContext`
-- `QueryBounds`
+- `QueryLimits`
 - `PlannerPolicy`
 - `SearchStrategy`
 
@@ -263,7 +263,7 @@ checkQuery :
 
 `QueryCheckContext.ofTarget` derives the Query view from the checked Target, including any available
 finite completeness contract. An exhaustive Query rejects a Target that explicitly lacks that
-capability. `QueryBounds` keeps behavior-space bounds separate from the planner's
+Capability. `QueryLimits` keeps Behavior-space Limits separate from the planner's
 candidate-evaluation budget.
 
 ## Planning API
@@ -288,7 +288,7 @@ plan :
   PlannerRun
 ```
 
-`IncrementalPlannerKernel.ofCheckedQuery?` derives indexed enumeration, bounds, soundness, and
+`IncrementalPlannerKernel.ofCheckedQuery?` derives indexed enumeration, Limits, soundness, and
 completeness from the checked Query and Target-owned finite domain. A model maintainer supplies only
 the canonical-order proofs; ordinary Query authors do not construct a planner kernel.
 
@@ -305,7 +305,7 @@ contains the outcome, optional artifact, and instrumentation.
 `Umpire.Artifact` defines portable, environment-independent products of pure model planning.
 
 - `DrivePlan` records bindings, requested actions, model-owned outcomes, resulting states,
-  checkpoints, bounds, selection reason, and provenance.
+  checkpoints, Limits, selection reason, and provenance.
 - `ExperimentSpec` is the portable envelope consumed by later execution, checking, replay, and
   generation work.
 - `artifactOfSelection` constructs an `ExperimentSpec` from a checked query and a selected,
@@ -322,7 +322,7 @@ canonicalDrivePlanJson
 canonicalExperimentSpecJson
 ```
 
-Canonical error projections are available as `canonicalDeclarationErrorJson`,
+Canonical error projections are available as `canonicalDefinitionErrorJson`,
 `canonicalPropertyErrorJson`, `canonicalBehaviorErrorJson`, and `canonicalQueryErrorJson`.
 
 Artifacts do not claim that a runtime action occurred or that execution evidence was collected.
@@ -347,7 +347,7 @@ Temporal-specific modules.
 
 - Authored declarations remain distinguishable from checked values.
 - Invalid inputs cross public boundaries as typed `Except` errors.
-- Semantic identities derive from canonical projections, not source declaration order.
+- Behavior Fingerprints derive from canonical projections, not source declaration order.
 - Transition outcomes belong to the target model, not to behavior declarations.
 - Planning is pure and performs no runtime execution, evidence collection, or promotion.
 - Reusable Umpire modules must not depend on Temporal-specific modules.

@@ -6,7 +6,7 @@ satisfies: [R5]
 ## Description
 ### Umpire4 reconciliation (normative)
 
-The public command is `umpire-check-model`: default per-commit profile, `--profile nightly`, `--check <name>`, `list`, and `explain <name>`. The CLI selects or tightens model-declared checks only; it never authors targets, properties, bounds, or trust claims.
+The public command is `umpire-check-model`: default per-commit profile, `--profile nightly`, `--check <name>`, `list`, and `explain <name>`. The CLI selects or tightens model-declared checks only; it never authors targets, properties, Limits, or trust claims.
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 
