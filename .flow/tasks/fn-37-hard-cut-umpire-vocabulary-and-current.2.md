@@ -36,9 +36,17 @@ Do not globally replace the word identity. Artifact identity and ordering fields
 - [ ] Old public names and imports do not resolve.
 
 ## Done summary
-TBD
+Hard-cut the foundational Umpire source vocabulary to Definition, Source Location, Model Value, and Model Trace names across all compiling Umpire and Temporal Lean call sites, without compatibility aliases. Preserved and updated existing comments, kept current v1 wire keys stable for their later owning task, and added focused Definition ID validation, Model Trace, and umbrella import coverage.
 
+Verification passed: the 129-job Lean aggregate build, pinned Umpire Go tests, and the 135-job current regression projection. No retired exact public Lean identifiers remain.
+
+GATE_SKIPPED:build:green-receipt 87205aa9 - baseline reused from prior post-gate pass
+GATE_SKIPPED:unittest:green-receipt 87205aa9 - baseline reused from prior post-gate pass
+GATE_SKIPPED:smoke:green-receipt 87205aa9 - baseline reused from prior post-gate pass
+GATE_SKIPPED:generated-view-smoke:inherited-sequencing-gap - fn37.6 creates the final umpire-check-regression-views target; current projection equivalent passed through umpire-check-regression
+
+stage: impl-review - ran [2026-08-27T15:14:34Z..2026-08-27T15:18:00Z] | verdict: SHIP | session: 01a043c9-86d1-7950-89fb-acb7e30cec1a
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 667e66c4f51366705024ff6d29fe48e7cb1f27bf
+- Tests: GATE_SKIPPED:build:green-receipt 87205aa9 - baseline reused from prior post-gate pass, GATE_SKIPPED:unittest:green-receipt 87205aa9 - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt 87205aa9 - baseline reused from prior post-gate pass, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, mise exec -- go test ./tools/umpire/..., mise exec -- make umpire-check-regression, GATE_SKIPPED:generated-view-smoke:inherited-sequencing-gap - fn37.6 creates the final umpire-check-regression-views target; current projection equivalent passed through umpire-check-regression
 - PRs:
