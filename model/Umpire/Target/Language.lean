@@ -20,21 +20,21 @@ structure TargetDeclaration
 
 /-- Optional finite planning is tied propositionally to the exact authoritative target kernel. -/
 structure FinitePlanningCapability
-    {Setup State Action Outcome Observation : Type}
-    (kernel : TransitionKernel Setup State Action Outcome Observation) where
+    {State Action Outcome Observation : Type}
+    (authoritativeStep : State → Action → TransitionResult State Outcome Observation → Prop) where
   actions : List Action
   roleDomainDigest : String
   actionDomainDigest : String
   actionSound : ∀ action, action ∈ actions →
-    ∃ state result, kernel.authoritativeStep state action result
+    ∃ state result, authoritativeStep state action result
   actionComplete : ∀ state action result,
-    kernel.authoritativeStep state action result → action ∈ actions
+    authoritativeStep state action result → action ∈ actions
 
 inductive FinitePlanningAvailability
-    {Setup State Action Outcome Observation : Type}
-    (kernel : TransitionKernel Setup State Action Outcome Observation) where
+    {State Action Outcome Observation : Type}
+    (authoritativeStep : State → Action → TransitionResult State Outcome Observation → Prop) where
   | unavailable
-  | available (capability : FinitePlanningCapability kernel)
+  | available (capability : FinitePlanningCapability authoritativeStep)
 
 inductive AuthoredPlanningCapability
     {Setup State Action Outcome Observation : Type}
@@ -43,7 +43,7 @@ inductive AuthoredPlanningCapability
   | available
       (kernel : TransitionKernel Setup State Action Outcome Observation)
       (kernelEq : availability = .checked kernel)
-      (capability : FinitePlanningCapability kernel)
+      (capability : FinitePlanningCapability kernel.authoritativeStep)
 
 structure CheckedTarget
     (LawStatement : DeclarationId → Prop)
@@ -56,7 +56,7 @@ structure CheckedTarget
   connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
   kernel : TransitionKernel Setup State Action Outcome Observation
-  planning : FinitePlanningAvailability kernel := .unavailable
+  planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable
   canonicalMetadata : String
   semanticDigest : String
 

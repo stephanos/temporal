@@ -198,7 +198,7 @@ example : [
   ] = [some (10, 40), some (10, 40)] := by
   native_decide
 
-def finitePlanning : FinitePlanningCapability testKernel := {
+def finitePlanning : FinitePlanningCapability testKernel.authoritativeStep := {
   actions := [false, true]
   roleDomainDigest := "test-role-domain/v1"
   actionDomainDigest := "test-action-domain/v1"
