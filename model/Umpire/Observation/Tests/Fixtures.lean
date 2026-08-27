@@ -1,4 +1,5 @@
 import Umpire.Observation
+import Umpire.Examples.Switch
 
 /-! Shared profile, mapping, and target vocabulary for Observation compilation tests. -/
 
@@ -299,5 +300,100 @@ def diagnosticKindOf
   match result with
   | .ok _ => none
   | .error diagnostic => some diagnostic.kind
+
+/-! Checked Property and Query inputs for semantic-verdict tests. -/
+
+def verdictCapability : DeclarationId := id "test.capability.observation-verdict"
+
+def verdictPropertyContext : PropertyCheckContext := {
+  declarations := qualificationContext.declarations ++ [
+    metadata verdictCapability.value .capability
+  ]
+  providers := [{
+    id := verdictCapability
+    version := 1
+    semanticDigest := "test-observation-verdict/v1"
+  }]
+  meanings := qualificationContext.meanings.map fun meaning => (verdictCapability, meaning)
+}
+
+def verdictPattern
+    (field : PropertyTraceField)
+    (reference : DeclarationId)
+    (constraint : ValueConstraint := .present) : PropertyPattern := {
+  field
+  reference
+  constraint
+}
+
+def satisfiedPropertyDeclaration : PropertyDeclaration := {
+  id := id "test.property.observation.satisfied"
+  source
+  requires := [verdictCapability]
+  clauses := [
+    .stateInvariant (id "test.property.observation.satisfied.initial")
+      (verdictPattern .state operationState (.equals "ready"))
+  ]
+}
+
+def violatedPropertyDeclaration : PropertyDeclaration := {
+  satisfiedPropertyDeclaration with
+  id := id "test.property.observation.violated"
+  clauses := [
+    .stateInvariant (id "test.property.observation.violated.initial")
+      (verdictPattern .state operationState (.equals "not-ready"))
+  ]
+}
+
+def repeatedPropertyDeclaration : PropertyDeclaration := {
+  satisfiedPropertyDeclaration with
+  id := id "test.property.observation.repeated"
+  clauses := [
+    .inputOutput (id "test.property.observation.repeated.step")
+      (verdictPattern .selectedAction startAction)
+      (verdictPattern .modelOutcome successOutcome)
+  ]
+}
+
+def logicalTimePropertyDeclaration : PropertyDeclaration := {
+  satisfiedPropertyDeclaration with
+  id := id "test.property.observation.logical-time"
+  logicalTimeSource := some contributionObservation
+  clauses := [
+    .ordered (id "test.property.observation.logical-time.order")
+      (verdictPattern .observation contributionObservation)
+      (verdictPattern .observation digestObservation)
+      .logicalTime
+  ]
+}
+
+def satisfiedProperty : CheckedProperty :=
+  (checkProperty verdictPropertyContext (.portable satisfiedPropertyDeclaration))
+    |>.toOption.get (by native_decide)
+
+def violatedProperty : CheckedProperty :=
+  (checkProperty verdictPropertyContext (.portable violatedPropertyDeclaration))
+    |>.toOption.get (by native_decide)
+
+def repeatedProperty : CheckedProperty :=
+  (checkProperty verdictPropertyContext (.portable repeatedPropertyDeclaration))
+    |>.toOption.get (by native_decide)
+
+def logicalTimeProperty : CheckedProperty :=
+  (checkProperty verdictPropertyContext (.portable logicalTimePropertyDeclaration))
+    |>.toOption.get (by native_decide)
+
+def checkedQueryTemplate : CheckedQuery Umpire.Examples.Switch.LawStatement :=
+  Umpire.Examples.Switch.exploratoryQuery
+
+def verdictQuery
+    (properties : List CheckedProperty) : CheckedQuery Umpire.Examples.Switch.LawStatement := {
+  checkedQueryTemplate with form := .select properties
+}
+
+def qualificationDiagnostic (kind : QualificationFailureKind) : QualificationDiagnostic := {
+  kind
+  planId := qualificationDeclaration.id
+}
 
 end Umpire.ObservationTests

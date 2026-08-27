@@ -5,3 +5,7 @@ import Umpire.Observation
 #check Umpire.ObservationMappingDeclaration
 #check Umpire.CheckedObservationPlan
 #check Umpire.qualifyEvidence
+#check Umpire.SemanticPropertyVerdict
+#check Umpire.evaluateQualifiedProperty
+#check Umpire.StrictQuerySummary
+#check Umpire.summarizeQueryVerdicts
