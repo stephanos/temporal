@@ -15,9 +15,11 @@ inductive SemanticVerdictStatus where
 
 inductive SemanticVerdictFailureKind where
   | qualificationFailure (kind : QualificationFailureKind)
+  | queryPropertyMismatch
   | invalidEvidenceBound
   | missingCapability
   | missingVocabulary
+  | ambiguousVocabulary
   | digestMismatch
   | missingLogicalTime
   deriving BEq, DecidableEq, Ord, Repr
@@ -43,6 +45,7 @@ structure SemanticClauseVerdict where
 structure SemanticPropertyVerdict where
   queryId : DeclarationId
   propertyId : DeclarationId
+  propertyDigest : String
   traceId : Option String
   status : SemanticVerdictStatus
   queryBounds : QueryBounds
@@ -67,6 +70,7 @@ structure StrictQuerySummary where
   missingProperties : List DeclarationId
   duplicateProperties : List DeclarationId
   unexpectedProperties : List DeclarationId
+  divergentProperties : List DeclarationId
   wrongQueryResults : List DeclarationId
   traceIds : List String
   deriving BEq, DecidableEq, Repr
@@ -97,6 +101,7 @@ private def failureVerdict
     (evidenceBound : Option TypedBound := none) : SemanticPropertyVerdict := {
   queryId := query.id
   propertyId := property.id
+  propertyDigest := property.semanticDigest
   traceId
   status
   queryBounds := query.bounds
@@ -149,7 +154,8 @@ private def hasRequiredLogicalTime
   else
     match property.access.logicalTimeSource with
     | none => false
-    | some source => validLogicalTimeSteps source none trace.trace.steps
+    | some source =>
+        !trace.trace.steps.isEmpty && validLogicalTimeSteps source none trace.trace.steps
 
 private def capabilityMismatch (property : CheckedProperty) : List DeclarationId :=
   let admitted := property.access.capabilities.map PropertyCapability.id
@@ -162,13 +168,15 @@ private def vocabularyFailure
   let rec check : List MeaningProvision → Option SemanticVerdictDiagnostic
     | [] => none
     | required :: rest =>
-        match trace.vocabulary.find? fun available =>
-            available.declaration == required.declaration && available.kind == required.kind with
-        | none => some {
+        let candidates := (trace.vocabulary.filter fun available =>
+          available.declaration == required.declaration && available.kind == required.kind)
+          |>.eraseDups
+        match candidates with
+        | [] => some {
             kind := .missingVocabulary
             relatedIdentities := [required.declaration]
           }
-        | some available =>
+        | [available] =>
             if available.semanticDigest != required.semanticDigest then
               some {
                 kind := .digestMismatch
@@ -176,6 +184,10 @@ private def vocabularyFailure
               }
             else
               check rest
+        | _ => some {
+            kind := .ambiguousVocabulary
+            relatedIdentities := [required.declaration]
+          }
   check property.access.meanings
 
 private def valueAtCoordinate
@@ -224,7 +236,7 @@ private def relevantDerivations
     | none => false
     | some value => patterns.any fun pattern =>
         coordinateSupportsField trace.trace derivation.coordinate pattern.field &&
-          pattern.evaluate value
+          value.identity == pattern.reference
 
 private def clauseVerdict
     (query : CheckedQuery LawStatement)
@@ -255,6 +267,7 @@ private def resolvedVerdict
   {
     queryId := query.id
     propertyId := property.id
+    propertyDigest := property.semanticDigest
     traceId := some trace.traceId
     status := if evaluation.satisfied then .satisfied else .violated
     queryBounds := query.bounds
@@ -271,55 +284,57 @@ def evaluateQualifiedProperty
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
     (qualification : QualificationResult) : SemanticPropertyVerdict :=
-  match qualification with
-  | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
-      qualificationFailureVerdict query property diagnostic
-  | .qualified trace =>
-      match validateQualifiedTrace trace with
-      | .error diagnostic =>
-          qualificationFailureVerdict query property diagnostic
-            (some trace.traceId) (some trace.appliedBound)
-      | .ok _ =>
-          if trace.appliedBound.unit != .evidenceRecords || trace.appliedBound.value == 0 ||
-              trace.evidenceIdentities.length > trace.appliedBound.value then
-            failureVerdict query property .unknown {
-              kind := .invalidEvidenceBound
-              relatedIdentities := [trace.mappingId]
-            } (some trace.traceId) (some trace.appliedBound)
-          else
-            let missingCapabilities := capabilityMismatch property
-            if !missingCapabilities.isEmpty then
-              failureVerdict query property .unsupported {
-                kind := .missingCapability
-                relatedIdentities := missingCapabilities
-              } (some trace.traceId) (some trace.appliedBound)
-            else
-              match vocabularyFailure property trace with
-              | some diagnostic =>
-                  failureVerdict query property .unsupported diagnostic
-                    (some trace.traceId) (some trace.appliedBound)
-              | none =>
-                  if !hasRequiredLogicalTime property trace then
-                    failureVerdict query property .unknown {
-                      kind := .missingLogicalTime
-                      relatedIdentities := property.access.logicalTimeSource.toList
+  match query.form.properties.find? fun expected => expected.id == property.id with
+  | none =>
+      failureVerdict query property .unsupported {
+        kind := .queryPropertyMismatch
+        relatedIdentities := [query.id, property.id]
+      }
+  | some expected =>
+      if expected != property then
+        failureVerdict query property .unsupported {
+          kind := .queryPropertyMismatch
+          relatedIdentities := [query.id, property.id]
+        }
+      else
+        match qualification with
+        | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
+            qualificationFailureVerdict query property diagnostic
+        | .qualified trace =>
+            match validateQualifiedTrace trace with
+            | .error diagnostic =>
+                qualificationFailureVerdict query property diagnostic
+                  (some trace.traceId) (some trace.appliedBound)
+            | .ok _ =>
+                if trace.appliedBound.unit != .evidenceRecords || trace.appliedBound.value == 0 ||
+                    trace.evidenceIdentities.length > trace.appliedBound.value then
+                  failureVerdict query property .unknown {
+                    kind := .invalidEvidenceBound
+                    relatedIdentities := [trace.mappingId]
+                  } (some trace.traceId) (some trace.appliedBound)
+                else
+                  let missingCapabilities := capabilityMismatch property
+                  if !missingCapabilities.isEmpty then
+                    failureVerdict query property .unsupported {
+                      kind := .missingCapability
+                      relatedIdentities := missingCapabilities
                     } (some trace.traceId) (some trace.appliedBound)
                   else
-                    resolvedVerdict query property trace
-
-private def verdictStatusRank : SemanticVerdictStatus → Nat
-  | .satisfied => 0
-  | .violated => 1
-  | .unknown => 2
-  | .conflict => 3
-  | .unsupported => 4
+                    match vocabularyFailure property trace with
+                    | some diagnostic =>
+                        failureVerdict query property .unsupported diagnostic
+                          (some trace.traceId) (some trace.appliedBound)
+                    | none =>
+                        if !hasRequiredLogicalTime property trace then
+                          failureVerdict query property .unknown {
+                            kind := .missingLogicalTime
+                            relatedIdentities := property.access.logicalTimeSource.toList
+                          } (some trace.traceId) (some trace.appliedBound)
+                        else
+                          resolvedVerdict query property trace
 
 private def verdictLe (left right : SemanticPropertyVerdict) : Bool :=
-  decide (left.propertyId.value < right.propertyId.value) ||
-    (left.propertyId == right.propertyId &&
-      decide (verdictStatusRank left.status < verdictStatusRank right.status)) ||
-    (left.propertyId == right.propertyId && left.status == right.status &&
-      decide (left.traceId.getD "" ≤ right.traceId.getD ""))
+  decide (reprStr left ≤ reprStr right)
 
 /-- Aggregate independently produced Property verdicts without dropping unresolved or malformed
 entries. Success requires one resolved result per required property for one trace. -/
@@ -334,6 +349,11 @@ def summarizeQueryVerdicts
     (ordered.filter fun verdict => verdict.propertyId == propertyId).length > 1
   let unexpected := canonicalIds ((ordered.filter fun verdict =>
     !required.contains verdict.propertyId).map SemanticPropertyVerdict.propertyId)
+  let divergent := canonicalIds ((ordered.filter fun verdict =>
+    match query.form.properties.find? fun property => property.id == verdict.propertyId with
+    | none => false
+    | some property => property.semanticDigest != verdict.propertyDigest)
+    |>.map SemanticPropertyVerdict.propertyId)
   let wrongQuery := canonicalIds ((ordered.filter fun verdict =>
     verdict.queryId != query.id || verdict.queryBounds != query.bounds)
     |>.map SemanticPropertyVerdict.propertyId)
@@ -343,7 +363,7 @@ def summarizeQueryVerdicts
     | [] => false
     | first :: rest => rest.all fun bound => bound == first
   let structurallyComplete := !required.isEmpty && missing.isEmpty && duplicates.isEmpty &&
-    unexpected.isEmpty && wrongQuery.isEmpty && traceIds.length == 1 &&
+    unexpected.isEmpty && divergent.isEmpty && wrongQuery.isEmpty && traceIds.length == 1 &&
     ordered.all (fun verdict => verdict.traceId.isSome && verdict.evidenceBound.isSome) &&
     sameEvidenceBound
   let resolved := ordered.all fun verdict =>
@@ -364,6 +384,7 @@ def summarizeQueryVerdicts
     missingProperties := missing
     duplicateProperties := duplicates
     unexpectedProperties := unexpected
+    divergentProperties := divergent
     wrongQueryResults := wrongQuery
     traceIds
   }

@@ -59,6 +59,32 @@ example :
     (verdict.status, verdict.clauses.isEmpty) = (.unknown, true) := by
   native_decide
 
+/-- A zero-transition trace still lacks the logical-time coordinate required by the Property. -/
+example :
+    let qualification := qualifyFixture {
+      completeEvidence with
+      records := [initialEvidence]
+      closures := [{ kind := eventKind, lastSequence := 1 }]
+    }
+    let verdict := evaluateQualifiedProperty (verdictQuery [logicalTimeProperty])
+      logicalTimeProperty qualification
+    (qualification.status, verdict.status,
+      verdict.diagnostic.map SemanticVerdictDiagnostic.kind) =
+      (.qualified, .unknown, some .missingLogicalTime) := by
+  native_decide
+
+/-- Evaluation accepts only the exact checked Property embedded in the checked Query. -/
+example :
+    let substituted := {
+      satisfiedProperty with clauses := violatedProperty.clauses
+    }
+    let verdict := evaluateQualifiedProperty (verdictQuery [satisfiedProperty])
+      substituted completeQualification
+    (verdict.status, verdict.clauses.isEmpty,
+      verdict.diagnostic.map SemanticVerdictDiagnostic.kind) =
+      (.unsupported, true, some .queryPropertyMismatch) := by
+  native_decide
+
 /-- Capability, vocabulary, and meaning-digest mismatches are unsupported before evaluation. -/
 example :
     let missingCapability := {
@@ -118,6 +144,35 @@ example :
   native_decide
 
 example : satisfiedVerdict.clauses.all fun clause => !clause.provenance.isEmpty := by
+  native_decide
+
+/-- Violated constraints retain the coordinate and derivation that explain the failure. -/
+example :
+    violatedVerdict.clauses.map (fun clause =>
+      (clause.status, clause.coordinates,
+        clause.derivations.map SemanticDerivation.coordinate)) = [(
+      .violated,
+      [.initialState],
+      [.initialState]
+    )] := by
+  native_decide
+
+/-- Conflicting duplicate vocabulary is unsupported independent of source order. -/
+example :
+    let original := completeQualifiedTrace.vocabulary.head?.get (by native_decide)
+    let conflicting := { original with semanticDigest := original.semanticDigest ++ "/other" }
+    [
+      { completeQualifiedTrace with
+        vocabulary := conflicting :: completeQualifiedTrace.vocabulary },
+      { completeQualifiedTrace with
+        vocabulary := completeQualifiedTrace.vocabulary ++ [conflicting] }
+    ].map (fun trace =>
+      let verdict := evaluateQualifiedProperty (verdictQuery [satisfiedProperty])
+        satisfiedProperty (.qualified trace)
+      (verdict.status, verdict.diagnostic.map SemanticVerdictDiagnostic.kind)) = [
+      (.unsupported, some .ambiguousVocabulary),
+      (.unsupported, some .ambiguousVocabulary)
+    ] := by
   native_decide
 
 /-- Repeated equal values retain distinct coordinate-linked clause provenance. -/
