@@ -992,4 +992,19 @@ def canonicalImplementationLinkErrorJson (linkError : ImplementationLinkError) :
     ",\"relatedDefinitionIds\":" ++
       array (canonicalIds linkError.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
+/-- Recompute the canonical checked identity before a retained link is applied to a trace. -/
+def CheckedImplementationLink.hasCanonicalIdentity
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation) : Bool :=
+  match checked.sourceTarget.kernel.behaviorDomain,
+      checked.destinationTarget.kernel.behaviorDomain with
+  | .complete sourceDomain, .complete destinationDomain =>
+      let declaration := canonicalizeDeclaration checked.declaration sourceDomain destinationDomain
+      let semantic := implementationLinkSemanticJson declaration sourceDomain destinationDomain
+      checked.behaviorFingerprint == behaviorFingerprintOf semantic &&
+        checked.canonicalMetadata == canonicalImplementationLinkJson declaration semantic
+  | _, _ => false
+
 end Umpire

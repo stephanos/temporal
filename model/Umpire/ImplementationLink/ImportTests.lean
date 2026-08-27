@@ -9,3 +9,9 @@ import Umpire.ImplementationLink
 #check Umpire.ImplementationLinkError
 #check Umpire.checkImplementationLink
 #check Umpire.ImplementationLinkWitness.traceForward
+#check Umpire.ImplementationLinkStatus
+#check Umpire.ImplementationLinkFailureKind
+#check Umpire.ImplementationLinkDiagnostic
+#check Umpire.ImplementationLinkEvidenceLink
+#check Umpire.ImplementationLinkResult
+#check Umpire.applyImplementationLink
