@@ -13,6 +13,20 @@ open Temporal.Feature.Nexus.Operations.AsyncStart
 example : propertyResult.isOk = true ∧ behaviorResult.isOk = true ∧ queryResult.isOk = true := by
   native_decide
 
+example : query.target = target := by
+  rfl
+
+example : query.completeness.map (fun evidence =>
+      (evidence.roleAssignments, evidence.actions,
+        evidence.roleDomainDigest, evidence.actionDomainDigest)) =
+      some ([scheduledSetup, startedSetup], [cancelAction, startAction, reportSuccessAction],
+        "temporal-nexus-basic-lifecycle-role-domain/v1",
+        "temporal-nexus-basic-lifecycle-action-domain/v2") := by
+  native_decide
+
+example : queryResult.toOption.map canonicalQueryJson = some (canonicalQueryJson query) := by
+  native_decide
+
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧
     (evaluateProperty property wrongOutcomeTrace.trace).satisfied = false := by
   native_decide
@@ -23,6 +37,19 @@ example : behavior.admits intendedTrace = true ∧
   native_decide
 
 example : run.result.outcome.name = "found" ∧ run = repeatedRun := by
+  native_decide
+
+example : incrementalKernel.actionLimit = 3 ∧
+    incrementalKernel.actionAt 0 = some cancelAction ∧
+    incrementalKernel.actionAt 1 = some startAction ∧
+    incrementalKernel.actionAt 2 = some reportSuccessAction ∧
+    incrementalKernel.actionAt 3 = none ∧
+    incrementalKernel.initialAt scheduledSetup 0 = some scheduledState ∧
+    incrementalKernel.initialAt startedSetup 0 = some startedState ∧
+    incrementalKernel.stepAt scheduledState startAction 0 = some startedResult ∧
+    incrementalKernel.stepAt startedState cancelAction 0 = some canceledResult ∧
+    incrementalKernel.stepAt startedState reportSuccessAction 0 = some succeededResult ∧
+    incrementalKernel.stepAt startedState startAction 0 = none := by
   native_decide
 
 example : run.artifact.map (fun artifact =>
@@ -40,6 +67,12 @@ namespace Cancellation
 open Temporal.Feature.Nexus.Operations.Cancellation
 
 example : propertyResult.isOk = true ∧ behaviorResult.isOk = true ∧ queryResult.isOk = true := by
+  native_decide
+
+example : query.target = target := by
+  rfl
+
+example : queryResult.toOption.map canonicalQueryJson = some (canonicalQueryJson query) := by
   native_decide
 
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧
@@ -69,6 +102,12 @@ namespace SuccessfulCompletion
 open Temporal.Feature.Nexus.Operations.SuccessfulCompletion
 
 example : propertyResult.isOk = true ∧ behaviorResult.isOk = true ∧ queryResult.isOk = true := by
+  native_decide
+
+example : query.target = target := by
+  rfl
+
+example : queryResult.toOption.map canonicalQueryJson = some (canonicalQueryJson query) := by
   native_decide
 
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧

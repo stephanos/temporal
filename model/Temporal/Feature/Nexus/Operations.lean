@@ -159,11 +159,39 @@ def query : CheckedQuery LawStatement :=
 theorem query_target : query.target = target := by
   rfl
 
+end AsyncStart
+
+private def incrementalKernel? : Option (IncrementalPlannerKernel AsyncStart.query.target) :=
+  IncrementalPlannerKernel.ofCheckedQuery? AsyncStart.query
+    (by
+      intro evidence evidenceEq
+      simp [AsyncStart.query, materializeQuery, CheckedQueryTarget.ofTarget, target,
+        checkedTarget, targetAuthoring] at evidenceEq
+      cases Option.some.inj evidenceEq
+      simp [finitePlanning, actionDomain]
+      decide)
+    (by
+      intro _ _ setup
+      simp [AsyncStart.query, materializeQuery, target, checkedTarget, targetAuthoring,
+        transitionKernel, initialStates])
+    (by
+      intro _ _ state action
+      simp [AsyncStart.query, materializeQuery, target, checkedTarget, targetAuthoring,
+        transitionKernel, stepResults])
+
+private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by
+  rfl
+
+def incrementalKernel : IncrementalPlannerKernel target :=
+  incrementalKernel?.get incrementalKernel?_isSome
+
+namespace AsyncStart
+
 def run : PlannerRun :=
-  plan query (kernelFor query query_target)
+  plan query incrementalKernel
 
 def repeatedRun : PlannerRun :=
-  plan query (kernelFor query query_target)
+  plan query incrementalKernel
 
 end AsyncStart
 
@@ -283,10 +311,10 @@ theorem query_target : query.target = target := by
   rfl
 
 def run : PlannerRun :=
-  plan query (kernelFor query query_target)
+  plan query incrementalKernel
 
 def repeatedRun : PlannerRun :=
-  plan query (kernelFor query query_target)
+  plan query incrementalKernel
 
 end Cancellation
 
@@ -409,10 +437,10 @@ theorem query_target : query.target = target := by
   rfl
 
 def run : PlannerRun :=
-  plan query (kernelFor query query_target)
+  plan query incrementalKernel
 
 def repeatedRun : PlannerRun :=
-  plan query (kernelFor query query_target)
+  plan query incrementalKernel
 
 end SuccessfulCompletion
 

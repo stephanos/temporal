@@ -295,6 +295,33 @@ def declarations : List DeclarationMetadata := [
 def roleAssignments : List (List RoleBinding) := [scheduledSetup, startedSetup]
 def actionDomain : List SemanticValue := [cancelAction, startAction, reportSuccessAction]
 
+def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
+  actions := actionDomain
+  roleDomainDigest := "temporal-nexus-basic-lifecycle-role-domain/v1"
+  actionDomainDigest := "temporal-nexus-basic-lifecycle-action-domain/v2"
+  actionSound := by
+    intro action member
+    simp [actionDomain] at member
+    rcases member with rfl | rfl | rfl
+    · exact ⟨startedState, canceledResult, by
+        change canceledResult ∈ stepResults startedState cancelAction
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          step, scheduledState, startedState, startAction, cancelAction]⟩
+    · exact ⟨scheduledState, startedResult, by
+        change startedResult ∈ stepResults scheduledState startAction
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          step, scheduledState, startAction]⟩
+    · exact ⟨startedState, succeededResult, by
+        change succeededResult ∈ stepResults startedState reportSuccessAction
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          step, scheduledState, startedState, startAction, cancelAction,
+          reportSuccessAction]⟩
+  actionComplete := by
+    intro state action result admitted
+    change authoritativeStep state action result at admitted
+    simpa [actionDomain] using step_action_exposed state action result admitted
+}
+
 def targetDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   id := targetId
@@ -307,22 +334,14 @@ def targetDeclaration : TargetDeclaration LawStatement
   kernel := .checked transitionKernel
 }
 
-/-- Checked composition remains public so callers can inspect its typed declaration error. -/
-def targetResult : Except DeclarationError (QueryTarget LawStatement) :=
-  composeTarget targetDeclaration
-
-private theorem targetResult_isSome : targetResult.toOption.isSome = true := by
-  native_decide
-
-private def composedTarget : QueryTarget LawStatement :=
-  targetResult.toOption.get targetResult_isSome
+def targetAuthoring : AuthoredTarget LawStatement
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  declaration := targetDeclaration
+  planning := .available transitionKernel rfl finitePlanning
+}
 
 /-- Re-ascribe the source kernel after composition so its proof relation remains reducible. -/
-def target : QueryTarget LawStatement := {
-  composedTarget with
-  kernel := transitionKernel
-  planning := .unavailable
-}
+def target : QueryTarget LawStatement := checkedTarget targetAuthoring
 
 theorem target_resolvedSetups : target.resolvedSetups = roleAssignments := by
   native_decide
@@ -346,30 +365,6 @@ theorem target_started_reportSuccess_authoritative :
     step, scheduledState, startedState, startAction, cancelAction,
     reportSuccessAction]
 
-def completeness : FiniteCompletenessEvidence LawStatement target := {
-  roleAssignments
-  actions := actionDomain
-  roleDomainDigest := "temporal-nexus-basic-lifecycle-role-domain/v1"
-  actionDomainDigest := "temporal-nexus-basic-lifecycle-action-domain/v2"
-  roleSound := by
-    intro setup member
-    simpa [target_resolvedSetups] using member
-  roleComplete := by
-    intro setup member
-    simpa [target_resolvedSetups] using member
-  actionSound := by
-    intro action member
-    simp [actionDomain] at member
-    rcases member with rfl | rfl | rfl
-    · exact ⟨startedState, canceledResult, target_started_cancel_authoritative⟩
-    · exact ⟨scheduledState, startedResult, target_scheduled_start_authoritative⟩
-    · exact ⟨startedState, succeededResult, target_started_reportSuccess_authoritative⟩
-  actionComplete := by
-    intro state action result admitted
-    change authoritativeStep state action result at admitted
-    simpa [actionDomain] using step_action_exposed state action result admitted
-}
-
 def bounds : QueryBounds := {
   behavior := {
     transitions := { value := 1, unit := .semanticTransitions }
@@ -384,46 +379,13 @@ def policy : PlannerPolicy := {
   tieBreak := .semanticIdentity
 }
 
-def queryContext : QueryCheckContext LawStatement := {
-  target := .checked { target, completeness := some completeness }
-}
+def queryContext : QueryCheckContext LawStatement := .ofTarget target
 
 /-- Put checked queries back on the shared target so downstream planner proofs stay small. -/
 def materializeQuery (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
-  id := checked.id
-  source := checked.source
-  version := checked.version
-  form := checked.form
-  quantifier := checked.quantifier
-  claim := checked.claim
-  behavior := checked.behavior
+  checked with
   target
-  bounds := checked.bounds
-  policy := checked.policy
-  targetComposition := checked.targetComposition
-  completeness := some completeness
-  documentation := checked.documentation
-  canonicalMetadata := checked.canonicalMetadata
-  semanticDigest := checked.semanticDigest
+  completeness := (CheckedQueryTarget.ofTarget target).completeness
 }
-
-def incrementalKernel : IncrementalPlannerKernel target :=
-  .ofFinite completeness {
-    action := by
-      simp [completeness, actionDomain]
-      decide
-    initial := by
-      intro setup
-      simp [target, transitionKernel, initialStates]
-    step := by
-      intro state action
-      simp [target, transitionKernel, stepResults]
-  }
-
-def kernelFor
-    (query : CheckedQuery LawStatement)
-    (agreement : query.target = target) : IncrementalPlannerKernel query.target := by
-  rw [agreement]
-  exact incrementalKernel
 
 end Temporal.Feature.Nexus.Lifecycle

@@ -23,7 +23,7 @@ example : step .canceled .start = none ∧
     step .succeeded .succeed = none := by
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl⟩
 
-example : targetResult.isOk = true ∧
+example : (checkTarget targetAuthoring).isOk = true ∧
     target.requiredCapabilities = [lifecycleCapabilityId] ∧
     target.providers.map CapabilityProvider.id = [lifecycleProviderId] ∧
     target.connectors = [] := by
@@ -48,28 +48,20 @@ example : target.kernel.initialStates [] = [] ∧
     target.kernel.steps succeededState reportSuccessAction = [] := by
   native_decide
 
-example : completeness.roleAssignments = [scheduledSetup, startedSetup] ∧
-    completeness.actions = [cancelAction, startAction, reportSuccessAction] ∧
-    incrementalKernel.actionLimit = 3 ∧
-    incrementalKernel.actionAt 0 = some cancelAction ∧
-    incrementalKernel.actionAt 1 = some startAction ∧
-    incrementalKernel.actionAt 2 = some reportSuccessAction ∧
-    incrementalKernel.actionAt 3 = none := by
-  native_decide
-
-example : incrementalKernel.initialAt scheduledSetup 0 = some scheduledState ∧
-    incrementalKernel.initialAt startedSetup 0 = some startedState ∧
-    incrementalKernel.stepAt scheduledState startAction 0 = some startedResult ∧
-    incrementalKernel.stepAt startedState cancelAction 0 = some canceledResult ∧
-    incrementalKernel.stepAt startedState reportSuccessAction 0 = some succeededResult ∧
-    incrementalKernel.stepAt startedState startAction 0 = none := by
-  native_decide
+example : match target.planning with
+    | .unavailable => False
+    | .available capability =>
+        capability.actions = [cancelAction, startAction, reportSuccessAction] ∧
+        capability.roleDomainDigest = "temporal-nexus-basic-lifecycle-role-domain/v1" ∧
+        capability.actionDomainDigest = "temporal-nexus-basic-lifecycle-action-domain/v2" := by
+  simp [target, checkedTarget, targetAuthoring, finitePlanning, actionDomain]
 
 def missingProviderDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   targetDeclaration with providers := []
 }
 
+/-- Checked composition remains public so callers can inspect its typed declaration error. -/
 private def compositionErrorKind (result : Except DeclarationError α) :
     Option DeclarationErrorKind :=
   match result with
