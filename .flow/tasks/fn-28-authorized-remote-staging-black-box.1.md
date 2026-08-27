@@ -1,42 +1,36 @@
 ---
-satisfies: [R1]
+satisfies: [R1, R2]
 ---
-# fn-28-authorized-remote-staging-black-box.1 Define EvaluationProfile v4 and the exact remote staging policy
+# fn-28-authorized-remote-staging-black-box.1 Freeze the fixed staging binding and byte-identical v2 subject
 
 ## Description
-Implement R1's domain-neutral v4 Claim Assessment vocabulary and the single Temporal-owned remote-staging policy without broadening v2/v2.
+
+Define the smallest compiled binding between the exact v2 caller-closure Artifact and the existing owner-supplied staging harness.
 
 **Size:** M
-**Files:** `model/Umpire/Evaluation/**`, `model/Umpire/Evaluation.lean`, `model/Temporal/System/Evaluation/RemoteStaging.lean`, `model/Temporal/System/Evaluation/RemoteStagingTests.lean`, `model/Temporal/Tool/EvaluationProfile.lean`, `model/TemporalModelTests.lean`
-**Touches:** [model/Umpire/Evaluation/**, model/Umpire/Evaluation.lean, model/Temporal/System/Evaluation/RemoteStaging.lean, model/Temporal/System/Evaluation/RemoteStagingTests.lean, model/Temporal/Tool/EvaluationProfile.lean, model/TemporalModelTests.lean]
+**Files:** `model/Temporal/System/Execution/StagingBinding.lean`, `model/Temporal/System/Execution/StagingBindingTests.lean`
+**Touches:** [`model/Temporal/System/Execution/StagingBinding.lean`, `model/Temporal/System/Execution/StagingBindingTests.lean`]
 
 ### Approach
-- Extend the reusable checked profile vocabulary only with generic remote environment, authority, target/lease, public-evidence, cleanup, trust, Known Gap, and claim values; keep every concrete Temporal meaning in the Temporal instance.
-- Preserve exact local v2 and CI v3 constructors, bytes, digests, exports, and rejection boundaries; add one explicit v4 export branch for `remote-staging-public-grpc`.
-- Compile the exact limits, required/forbidden authority capabilities, evidence closures, cleanup requirements, formal absence, Known Gaps, and environment-accepted-remote claim.
-- Prove reusable imports and string fixtures contain no Temporal, Nexus, staging coordinate, credential, workflow-provider, repository, or checker vocabulary.
+- Pin one fixed nonproduction binding and prove its format version, Artifact Checksum, Behavior Fingerprints, and required harness capabilities without adding an Evaluation Profile or Receipt.
+- Reuse the exact v2 Artifact, shared runner, and Run Evaluation boundaries named by the parent plan; do not add a parallel semantic or persistence authority.
+- Add focused positive, N/N+1, stale/crossed-binding, cancellation, and mutation fixtures at the responsible boundary.
 
 ### Investigation targets
+
 **Required** (read before coding):
-- `.flow/specs/fn-26-local-qualification-receipts-and-staged.md` — v2 reusable/local ownership and policy invariants
-- `.flow/tasks/fn-27-hermetic-ci-execution-and-qualification.1.md` — v2 byte-identical CI parity pattern
-- `.plans/UMPIRE4_DSL.md` — profile-evaluated Result and semantic ownership rules
-- `common/testing/umpire/environment_profile.go:10-157` — existing portable environment vocabulary to supersede or adapt, not duplicate
-- `model/Umpire/ARCHITECTURE.md` — reusable package purity boundary
+- `.plans/UMPIRE4_ORDER.md` — retained prototype scope and deferred infrastructure.
+- Parent Flow spec — exact contracts, Limits, failure ownership, and task boundary.
+- Existing fn-18/fn-19/fn-20 implementation — Artifact, runner, cleanup, and Run Evaluation authority to reuse.
 
 ### Key context
-The compiled profile may identify one Temporal environment; the reusable constructors and wire values may not. Do not add compatibility aliases or a permissive shared reader.
 
-### Acceptance
-- [ ] V4 admits only the exact generic remote policy shape and compiled Temporal instance.
-- [ ] Every unknown, duplicate, contradictory, broadened, secret-bearing, or N+1 mutation rejects.
-- [ ] V2/v3 fixtures and sibling exports remain byte-identical and reject v3.
-- [ ] Focused Lean purity, canonicalization, digest, and mutation tests pass with comments preserved.
+This task implements only its retained serial/black-box slice. Deferred control-plane, concurrency, recovery, checkpoint, resume, receipt, and Claim Assessment machinery must not appear as placeholders.
 
 ## Acceptance
-- [ ] R1 profile vocabulary, concrete policy, export, limits, and purity boundary are complete.
-- [ ] Focused reusable and Temporal Lean suites pass.
-- [ ] Existing comments are preserved.
+- [ ] Pin one fixed nonproduction binding and prove its format version, Artifact Checksum, Behavior Fingerprints, and required harness capabilities without adding an Evaluation Profile or Receipt.
+- [ ] Exact bindings and Limits fail closed under representative one-field and N/N+1 mutations.
+- [ ] Focused tests pass, existing comments are preserved, and no deferred API or persisted format is introduced.
 
 ## Done summary
 TBD

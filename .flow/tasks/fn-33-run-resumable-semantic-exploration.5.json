@@ -12,6 +12,6 @@
   "spec": "fn-33-run-resumable-semantic-exploration",
   "spec_path": ".flow/tasks/fn-33-run-resumable-semantic-exploration.5.md",
   "status": "todo",
-  "title": "Prove one bounded campaign and document the ownership split",
-  "updated_at": "2026-08-27T19:07:39.396991Z"
+  "title": "Prove deterministic serial exploration and pinned-regression independence",
+  "updated_at": "2026-08-27T19:33:20.249146Z"
 }

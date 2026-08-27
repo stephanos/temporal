@@ -11,6 +11,6 @@
   "spec": "fn-28-authorized-remote-staging-black-box",
   "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.2.md",
   "status": "todo",
-  "title": "Bind the remote RuntimeConfiguration and public evidence mapping",
-  "updated_at": "2026-08-27T19:07:25.347651Z"
+  "title": "Admit owner-supplied authority and target preflight",
+  "updated_at": "2026-08-27T19:33:15.504506Z"
 }

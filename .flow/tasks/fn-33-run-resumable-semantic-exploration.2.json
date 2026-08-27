@@ -11,6 +11,6 @@
   "spec": "fn-33-run-resumable-semantic-exploration",
   "spec_path": ".flow/tasks/fn-33-run-resumable-semantic-exploration.2.md",
   "status": "todo",
-  "title": "Implement deterministic leases and crash-safe campaign state",
-  "updated_at": "2026-08-27T19:07:37.984358Z"
+  "title": "Drive Lean-owned one-at-a-time candidate selection",
+  "updated_at": "2026-08-27T19:33:19.185434Z"
 }

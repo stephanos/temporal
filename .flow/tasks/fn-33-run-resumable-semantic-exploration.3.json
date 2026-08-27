@@ -13,6 +13,6 @@
   "spec": "fn-33-run-resumable-semantic-exploration",
   "spec_path": ".flow/tasks/fn-33-run-resumable-semantic-exploration.3.md",
   "status": "todo",
-  "title": "Bind campaign workers to the runner and Run Evaluation",
-  "updated_at": "2026-08-27T19:07:38.580373Z"
+  "title": "Execute each candidate through the shared runner and Run Evaluation",
+  "updated_at": "2026-08-27T19:33:19.523294Z"
 }

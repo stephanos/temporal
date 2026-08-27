@@ -246,7 +246,7 @@ The fixed Lean policy reads only the admitted graph Generated View and emits
 Malformed/crossed/noncanonical graphs, invalid signatures, untrusted keys, and limit breaches are
 tooling/input errors and produce no graph artifact. Evaluation time, trust snapshot, policy, and
 every source expiry are identity inputs. A policy/trust/time/evidence change creates a new immutable
-graph and decision; historical artifacts are never rewritten. A accepted graph expires at the
+graph and decision; historical artifacts are never rewritten. An accepted graph expires at the
 earliest source/key/attestation expiry and no later than two hours after evaluation.
 
 Admission is deliberately two-stage. Strict decoding, canonical identity, signature/domain/role,

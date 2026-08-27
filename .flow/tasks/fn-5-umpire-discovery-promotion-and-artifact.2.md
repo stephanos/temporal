@@ -14,12 +14,12 @@ Compose current reusable, Switch, and Nexus metadata into one checked production
 
 - Import and reuse `Temporal.Tool.Catalog.Core` from fn-15 for exact selector parsing, canonical list/explain/check envelopes, ordering, and command-result behavior. Keep semantic closure and entry validation in the fn-5 catalog; do not redeclare the generic query engine or merge semantic entries with the API/config input catalogs.
 - Define the production seed registry as exactly two public Switch checked Queries (`switch.query.exact-action`, `switch.query.exact-trace`), six public Nexus checked Queries (`temporal.nexus.basic-lifecycle.query.async-start`, `temporal.nexus.basic-lifecycle.query.successful-completion`, `workflow-nexus.query.verify-caller-closure`, `workflow-nexus.query.explore-caller-closure`, `workflow-nexus.query.exact-action-caller-closure`, and `workflow-nexus.query.model-only-caller-closure`), and fn-16's `temporal.nexus.basic-lifecycle.space.fault-matrix` checked-space metadata.
-- Compute the least typed metadata closure: Query to checked Behavior/form properties/target; Space to its axes/choices/faults/goals and checked base Query; target to its target/kernel declarations plus declarations, providers, connectors, and their capability/law/meaning references. Merge equal IDs only when kind/digest/source agree. Check the result against a golden canonical identity/kind set: the Nexus partition is exactly 61 entries (BasicLifecycle 10, BasicOperations 6, VariationSpace 15, CallerClosure 30), while the Switch partition is exhaustively named by the same golden fixture.
+- Compute the least typed metadata closure: Query to checked Behavior/form properties/target; Space to its axes/choices/faults/goals and checked base Query; target to its target/kernel declarations plus declarations, providers, connectors, and their capability/law/meaning references. Merge equal IDs only when kind/Behavior Fingerprint/Source Location agree. Check the result against a golden canonical Definition ID/kind set: the Nexus partition is exactly 61 entries (BasicLifecycle 10, BasicOperations 6, VariationSpace 15, CallerClosure 30), while the Switch partition is exhaustively named by the same golden fixture.
 - Include internal semantic rows in the checked graph with `internal` disposition. Exclude nested roles, setup constraints, occurrences, Property clause IDs, authored/`Except` intermediates, PlannerRun/artifact outputs, proof-only definitions, test fixtures, and wrong-trace examples because they are not first-class checked declaration metadata.
 - Mark the current Switch exact-action and Nexus caller-closure scenarios as the initial `stableRegression` set.
-- Define a separately checked Temporal `CatalogGeneratedViewBinding` registry keyed by stable entry identity. Each binding owns the canonical inspector selector, repository-relative fixture path, and per-entry Generated View key; its binding identity is projected to JSON but does not affect reusable catalog Behavior Fingerprint. Aggregate output paths remain one set-level generator concern.
+- Define a separately checked Temporal `CatalogGeneratedViewBinding` registry keyed by stable entry identity. Each binding owns the canonical inspector selector, repository-relative fixture path, and per-entry Generated View key; its binding Behavior Fingerprint is projected to JSON but does not affect reusable catalog Behavior Fingerprint. Aggregate output paths remain one set-level generator concern.
 - Implement pure deterministic `listCatalog`, `explainCatalog`, and `exportCatalog` results plus the effect-thin `temporal-model-catalog list|explain|check|export` executable while preserving the existing inspector's exact single-scenario behavior.
-- Make `export` the only complete generator transport: emit exactly one `umpire-semantic-catalog-export/v2` envelope containing catalog identity, every checked row including `internal`, and every stable Generated View binding in canonical order. Accept no selector, filtering, pagination, or presentation flags; use status 0 with one compact JSON document plus LF and empty stderr, or status 1 with empty stdout and one structured error plus LF.
+- Make `export` the only complete generator transport: emit exactly one `umpire-semantic-catalog-export/v2` envelope containing catalog Behavior Fingerprint, every checked row including `internal`, and every stable Generated View binding in canonical order. Accept no selector, filtering, pagination, or presentation flags; use status 0 with one compact JSON document plus LF and empty stderr, or status 1 with empty stdout and one structured error plus LF.
 - Keep Temporal vocabulary in this owner layer, not under `model/Umpire`.
 
 ### Key context
@@ -45,17 +45,17 @@ Compose current reusable, Switch, and Nexus metadata into one checked production
 `cd model && mise exec -- lake build Temporal.Tool.CatalogTests Temporal.Tool.CatalogCliTests temporal-model-catalog TemporalModelTests`
 
 ## Acceptance
-- [ ] The checked production catalog is exactly the least typed closure of the eight named Query seeds plus the one named Space seed and matches the golden canonical identity/kind set.
+- [ ] The checked production catalog is exactly the least typed closure of the eight named Query seeds plus the one named Space seed and matches the golden canonical Definition ID/kind set.
 - [ ] Nexus contributes exactly 61 unique entries partitioned 10 BasicLifecycle, 6 BasicOperations, 15 VariationSpace, and 30 CallerClosure; missing/extra seeds or closure rows fail.
 - [ ] Internal semantic rows remain in the graph but are hidden by presentation disposition; explicitly excluded nested/proof/test/runtime values never become catalog entries.
 - [ ] The initial stable set contains exactly Switch exact-action and Nexus caller-closure entries in canonical order.
-- [ ] Every stable entry has exactly one validated Generated View binding with a safe fixture path and unique Generated View key, and binding identity changes do not alter catalog Behavior Fingerprint.
+- [ ] Every stable entry has exactly one validated Generated View binding with a safe fixture path and unique Generated View key, and binding Behavior Fingerprint changes do not alter catalog Behavior Fingerprint.
 - [ ] List/explain results are byte-stable under registry ordering changes.
 - [ ] Semantic list/explain/check/export consume the fn-15 generic core and remain a distinct adapter/executable from API/config input catalogs.
-- [ ] Export emits exactly one complete versioned snapshot with catalog identity, all canonical rows including `internal`, and every stable binding; it accepts no selector/filter/page/presentation options.
+- [ ] Export emits exactly one complete versioned snapshot with catalog Behavior Fingerprint, all canonical rows including `internal`, and every stable binding; it accepts no selector/filter/page/presentation options.
 - [ ] List/explain/check/export have canonical stdout/stderr/exit behavior; invalid catalog, unsupported command/arguments, serialization failure, internal, unknown, ambiguous, and deprecated selectors return exact structured results without semantic redirection or partial stdout.
 - [ ] The existing inspector scenarios and canonical outputs remain unchanged.
-- [ ] No Temporal identity or import enters `model/Umpire`.
+- [ ] No Temporal Definition ID or import enters `model/Umpire`.
 
 ## Done summary
 TBD

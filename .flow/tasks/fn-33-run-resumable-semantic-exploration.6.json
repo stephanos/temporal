@@ -11,6 +11,6 @@
   "spec": "fn-33-run-resumable-semantic-exploration",
   "spec_path": ".flow/tasks/fn-33-run-resumable-semantic-exploration.6.md",
   "status": "todo",
-  "title": "Bind one runnable caller-closure exploration through the catalog",
-  "updated_at": "2026-08-27T19:07:39.757935Z"
+  "title": "Enforce deferred concurrency and resume boundaries",
+  "updated_at": "2026-08-27T19:33:20.581502Z"
 }

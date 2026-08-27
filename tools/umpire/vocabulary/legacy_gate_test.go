@@ -43,6 +43,30 @@ func TestLegacyVocabularyCommandRejectsRetiredPublicTokens(t *testing.T) {
 			content: "package regression\nfunc check() { " + "Require" + "Projection() }\n",
 			token:   "Require" + "Projection",
 		},
+		{
+			name:    "versioned Qualification API",
+			path:    "tools/umpire/evaluation/fixture.go",
+			content: "package evaluation\ntype retired " + "Qualification" + "ReceiptV4\n",
+			token:   "Qualification" + "Receipt",
+		},
+		{
+			name:    "lower camel Qualification wire key",
+			path:    "tools/umpire/evaluation/fixture.json",
+			content: "{\"" + "qualifi" + "cation" + "Receipt\":{}}\n",
+			token:   "Qualification" + "Receipt",
+		},
+		{
+			name:    "versioned Conformance API",
+			path:    "tools/umpire/runevaluation/fixture.go",
+			content: "package runevaluation\ntype retired " + "Conformance" + "ResultV2\n",
+			token:   "Conformance" + "Result",
+		},
+		{
+			name:    "versioned Refinement API",
+			path:    "model/Temporal/System/Nexus/Fixture.lean",
+			content: "structure " + "Refinement" + "ResultV3 where\n  accepted : Bool\n",
+			token:   "Refinement" + "Result",
+		},
 	}
 
 	for _, test := range tests {
