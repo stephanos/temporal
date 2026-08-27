@@ -37,9 +37,14 @@ There is no Lean v1 reader today and this task must not add one. The checksum co
 - [ ] Mutation tests prove every content category—including complete Known Gap rows, provenance, nested plan content, and format version—changes the owning checksum.
 - [ ] No v1 constant, serializer branch, reader, or migration exists in Lean.
 ## Done summary
-TBD
+Replaced the Lean Artifact boundary with v2-only DrivePlan and ExperimentSpec records, context-qualified Definition ID fields, exact Known Gap rows, typed domain-separated Artifact Checksums, and canonical byte encoders that append exactly one LF. All six Switch/Nexus goldens were regenerated from the pinned Lean inspector producers while retaining the selected Model Traces and Properties.
 
+Baseline: Lean, pinned Go, and the current regression target were green before editing; the future `umpire-check-regression-views` target was absent as the declared fn37.6 sequencing boundary. Verification: the checksum/category matrix and five-producer inspector surface passed (27 jobs), and the full Lean Quick passed (133 jobs). Pinned Go failed only in `TestProductionFixtureProjectsCanonicalMetadata`, `TestWorkflowNexusQueryExactActionCallerClosure`, and `TestRequireProjectionIsIndependentOfWorkingDirectory` because the task-.6-owned v1 Projection consumer rejects `umpire-experiment/v2`; `umpire-check-regression` reached the same stable unsupported-format classification. No Go or Generated View consumer change belongs to this Lean-half task.
+
+Codex review: first-pass SHIP with no findings, session `01a04440-15c2-75a1-a23c-bd7131150c0d`.
+
+stage: impl-review - ran [2026-08-27T17:24:05Z..2026-08-27T17:27:17Z] (SHIP) (model: gpt-5.6-sol)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 99f894d7555acee77b5ef8230849755712329e64
+- Tests: baseline GREEN: cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect (131 jobs), baseline GREEN: mise exec -- go test ./tools/umpire/..., baseline RED inherited sequencing gap: mise exec -- make umpire-check-regression-views (target is introduced by fn37.6), baseline GREEN: mise exec -- make umpire-check-regression, RED: cd model && mise exec -- lake build Umpire.Examples.SwitchTests Temporal.Feature.Nexus.Experimental.CallerClosureTests (v2 format assertions rejected v1 producers), mise exec -- lake build Umpire.Planning.Tests.Artifacts Umpire.Examples.SwitchTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests Temporal.Tool.InspectTests (27 jobs), authoritative regeneration: mise exec -- lake exe temporal-model-inspect <scenario> for Switch x2, Operations x3, CallerClosure x1; all six end in exactly one LF, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect (133 jobs), sequencing RED owned by fn37.6: mise exec -- go test ./tools/umpire/... (three v1 Projection consumer tests reject umpire-experiment/v2), sequencing RED owned by fn37.6: mise exec -- make umpire-check-regression (v1 Projection extractor rejects umpire-experiment/v2), Codex impl-review SHIP: session 01a04440-15c2-75a1-a23c-bd7131150c0d
 - PRs:
