@@ -1252,7 +1252,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-31-deepen-umpire-target-and-simplify.md",
-  "status": "open",
+  "status": "done",
   "title": "Deepen Umpire Target and simplify Temporal target authoring",
   "tracker": {
     "baseHashFlow": null,
@@ -1265,5 +1265,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T06:24:08.496637Z"
+  "updated_at": "2026-08-27T14:20:02.481763Z"
 }
