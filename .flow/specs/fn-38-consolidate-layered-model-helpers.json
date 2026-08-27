@@ -1,0 +1,147 @@
+{
+  "branch_name": "fn-38-consolidate-layered-model-helpers",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-27T21:46:37.868256Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-38-consolidate-layered-model-helpers",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-27T21:59:23.651826Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "ff45b2ce5e650809dd3dec0a4e57019440dfb14890d1d0d42981dbfc77b9548d",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8be61cfea470a2c8ee6089f83155bb3f",
+            "classification": "introduced",
+            "findingId": "finding-8be61cfea470a2c8ee6089f83155bb3f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-abf408552941bbdf2e974d135cdfb322",
+            "classification": "introduced",
+            "findingId": "finding-abf408552941bbdf2e974d135cdfb322",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eda601a2a6bbb8b3d2fe8fc75f9a0c76297cf081",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 348749,
+      "output_sha256": "bd70fc6e8965f87ba5000416894b5f672c97e36525e975a32a6e08dc95c8d662",
+      "reservation_id": "d5de31ab0e43406aaffdac9cc0c0fa71",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T21:56:30.068260Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "fc7fd07234728a9f2f63d53fb59d680b1d75081c3715a64ab53d813a802ca309",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8be61cfea470a2c8ee6089f83155bb3f",
+            "classification": "introduced",
+            "findingId": "finding-8be61cfea470a2c8ee6089f83155bb3f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-abf408552941bbdf2e974d135cdfb322",
+            "classification": "introduced",
+            "findingId": "finding-abf408552941bbdf2e974d135cdfb322",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "eda601a2a6bbb8b3d2fe8fc75f9a0c76297cf081",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 263,
+      "output_sha256": "ef5cdfd983e083365f74bfc4458db8242787a0df410261ea29231f9bab6e21ee",
+      "reservation_id": "32c597213d694b5b9ad9341522c6bbb0",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T21:59:23.645092Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-38-consolidate-layered-model-helpers.md",
+  "status": "open",
+  "title": "Consolidate layered model helpers without API churn",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-27T21:59:23.652404Z"
+}
