@@ -33,9 +33,11 @@ Add the qualification preflight, structured per-property verdicts, and strict qu
 - [ ] Verdicts link clauses, coordinate spans, query/evidence bounds, provenance, and relevant derivations even when equal values repeat.
 
 ## Done summary
-TBD
+Implemented qualification-preflighted semantic Property verdicts with coordinate-linked clause evidence and strict deterministic checked-Query aggregation. Focused Observation, full regression, and model-lint gates pass; the future task fn-4.4 Nexus Observation target remains absent as it was at baseline.
 
+baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task fn-4.4 target absent)
+stage: impl-review - ran [2026-08-27T07:46:12Z..2026-08-27T07:56:53Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 47ecd2d5f75bb6eba8601530eb3d9296c6920565, 0b55cdaf049e66d496a519895628bbebb352fefa
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests, baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task fn-4.4 target absent), make umpire-check-regression, make lint-model
 - PRs:
