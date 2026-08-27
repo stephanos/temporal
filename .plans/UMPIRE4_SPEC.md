@@ -46,7 +46,7 @@ lowercase.
 
 - **`Umpire`.** The domain-neutral Lean library and namespace providing reusable tools and types for
   writing and checking Model Definitions, selecting traces, creating Artifacts, interpreting
-  observations, and verification.
+  observations, and performing verification.
 - **`Temporal.Feature`.** The namespace for product behavior that should remain true even if
   Temporal's implementation is rewritten. It owns product-visible states, Actions, outcomes,
   relations, and `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` declarations.
@@ -122,7 +122,7 @@ lowercase.
 
 ### Key concepts
 
-- **Action.** A semantic request recognized by a selected `Umpire.CheckedTarget`. An authored or
+- **Action.** A model-level request recognized by a selected `Umpire.CheckedTarget`. An authored or
   planned action requests a transition; it neither chooses the Model Outcome nor proves that a
   runtime realized the request.
 - **Model Outcome.** The `Umpire.CheckedTarget`-owned response to an Action. The same target
@@ -137,9 +137,9 @@ lowercase.
   A scenario does not select a concrete trace.
 - **Omission.** An explicit declaration that a Capability, input, interpretation, or claim is absent
   or unsupported. An omission narrows what an Artifact or Result can establish.
-- **`Umpire.Behavior`.** The typed language that constrains admissible semantic trace spaces without
+- **`Umpire.Behavior`.** The typed language that constrains admissible Semantic Trace spaces without
   deciding whether a trace is correct or whether runtime Execution occurred.
-- **`Umpire.CheckedTarget`.** A validated composition of semantic vocabulary, Capabilities, laws,
+- **`Umpire.CheckedTarget`.** A validated composition of model vocabulary, Capabilities, laws,
   providers, connectors, and the authoritative transition kernel used by planning and evaluation.
 - **`Umpire.Property`.** The typed language for pure, portable, capability-scoped claims over
   Semantic Traces. It contains no implementation evidence sources or runtime controls.
@@ -158,9 +158,9 @@ lowercase.
   capability-scoped claims over Semantic Traces and MUST NOT depend on implementation evidence
   sources.
 - **SEM-06 — Declarative `Umpire.Behavior`.** `Umpire.Behavior` declarations MUST constrain
-  admissible semantic trace spaces; they MUST NOT become procedural RPC or runtime scripts.
+  admissible Semantic Trace spaces; they MUST NOT become procedural RPC or runtime scripts.
 - **SEM-07 — Target-owned outcomes.** Authors MUST request Actions, while `Umpire.CheckedTarget`
-  semantics determine their Model Outcomes and resulting states.
+  determines their Model Outcomes and resulting states.
 - **SEM-09 — Bounded progress.** Progress claims in `Umpire.Property` MUST use an explicit Bound and
   declared semantic unit; finite Execution MUST NOT claim unbounded liveness.
 
@@ -178,9 +178,9 @@ lowercase.
 - **AUT-05 — Portable data.** Anything used for portable planning, Artifacts, promotion, or
   cross-language Execution MUST be inspectable data with a Lean denotation, not an opaque callback.
 - **AUT-06 — Explicit composition.** Competing providers and cross-domain relationships MUST be
-  connected explicitly; declaration order and type-class search MUST NOT select semantics.
+  connected explicitly; declaration order and type-class search MUST NOT select behavior.
 - **AUT-07 — Single authoring path.** `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` MUST
-  remain the only public semantic authoring path; compatibility facades MUST NOT create a second
+  remain the only public model authoring path; compatibility facades MUST NOT create a second
   interface.
 
 ## Planning, Bounds, and Artifacts
@@ -198,17 +198,18 @@ lowercase.
   and compiled with its `Umpire.Property` declarations and Bounds into a
   `Umpire.ExperimentSpec`.
 - **Artifact.** Immutable, versioned, inspectable data exchanged across a component, language, or
-  process seam. Portability does not give an artifact semantic authority.
-- **Artifact Fingerprint.** A reproducible fingerprint of an Artifact's meaning-bearing content. It
-  identifies one exact generated plan or Artifact and changes when that content changes; it is not
-  a Model Name.
+  process seam. Being portable does not make an Artifact a source of model behavior.
+- **Artifact Fingerprint.** A reproducible fingerprint of an Artifact's complete canonical content.
+  It identifies one exact generated plan or Artifact and changes when that content changes; it is
+  not a Model Name or Meaning Fingerprint.
 - **Projection.** A deterministic developer view bound to an Artifact Fingerprint and derived from
   an Artifact. A projection is not an independently editable source of meaning.
 - **`Umpire.DrivePlan`.** Generated deterministic execution intent for one selected Semantic Trace.
   It is neither an authoring language nor Evidence of Execution.
 - **`Umpire.ExperimentSpec`.** The portable, environment-independent envelope containing complete
-  bounded execution intent, `Umpire.Property` identities, `Umpire.Observation` requirements,
-  provenance, and semantic bindings. It records what a runtime should attempt, not what occurred.
+  bounded execution intent, Model Names and Meaning Fingerprints for the referenced Model
+  Definitions, `Umpire.Observation` requirements, provenance, and model bindings. It records what a
+  runtime should attempt, not what occurred.
 
 ### Planning and Bounds
 
@@ -234,11 +235,12 @@ lowercase.
 - **ART-03 — Portable `Umpire.ExperimentSpec`.** `Umpire.ExperimentSpec` MUST describe complete,
   environment-independent, bounded execution intent without claiming that any requested Action,
   fault, outcome, or observation occurred.
-- **ART-04 — Strict evolution.** Readers MUST reject unknown major versions and meaning-bearing
-  unknown fields; semantic changes to old data require named deterministic migrations.
+- **ART-04 — Strict evolution.** Readers MUST reject unknown major versions and unknown fields that
+  could affect behavior; changes to the meaning of old data require named deterministic migrations.
 - **ART-05 — Same experiment.** Local, CI, staging, black-box, and canary Execution MUST consume the
-  same semantic `Umpire.ExperimentSpec` rather than environment-specific copies of its meaning.
-- **ART-06 — Complete traces.** An executable trace MUST include its semantic setup, participant
+  same `Umpire.ExperimentSpec` rather than environment-specific copies that change its model
+  behavior.
+- **ART-06 — Complete traces.** An executable trace MUST include its model setup, participant
   programs, runtime-resolved symbolic references, Actions, faults, ordering, observations,
   termination, and cleanup obligations.
 - **ART-07 — Derived Projections.** Generated Go tests and documentation MUST be deterministic
@@ -254,9 +256,9 @@ lowercase.
   cleanup; it does not decide `Umpire.Property` satisfaction.
 - **Run.** One environment-specific Execution of one `Umpire.ExperimentSpec`, retaining all Action
   and fault attempts, receipts, Evidence, failures, and cleanup outcomes.
-- **Fault Intent.** An authored request to apply a fault at a semantic occurrence. A fault intent is
+- **Fault Intent.** An authored request to apply a fault at a model occurrence. A fault intent is
   not a realized fault without a matching Realization receipt.
-- **Realization.** Runtime Evidence, bound to the intended semantic occurrence, that a requested
+- **Realization.** Runtime Evidence, bound to the intended model occurrence, that a requested
   Action or fault actually occurred. Selection, planning, or request dispatch alone is not
   realization.
 - **Evidence.** Recorded information about Execution. Raw evidence consists of implementation facts
@@ -279,7 +281,7 @@ lowercase.
 ### Execution and Evidence
 
 - **EVD-01 — Thin runtime.** Runtime and CLI code MUST bind and execute model-produced Artifacts
-  without independently interpreting Temporal product semantics.
+  without independently interpreting Temporal product behavior.
 - **EVD-02 — Separate Conformance.** Execution MUST report what happened; evidence interpretation and
   `Umpire.Property` evaluation MUST separately decide what that establishes.
 - **EVD-03 — Qualified Evidence.** Raw Evidence MUST be normalized, identity-bound, causally ordered,
@@ -291,9 +293,9 @@ lowercase.
   interpretation, `Umpire.Property` evaluation, and verification outcomes MUST remain distinct and
   MUST NOT imply one another.
 - **EVD-06 — Realization receipts.** A requested Action or fault MUST NOT count as realized
-  without a receipt linked to the intended semantic occurrence.
-- **EVD-07 — Distributed ordering.** Semantic conclusions MUST rely on declared semantic, causal, or
-  source-local ordering rather than synchronized wall clocks.
+  without a receipt linked to the intended model occurrence.
+- **EVD-07 — Distributed ordering.** Conclusions about model behavior MUST rely on declared model,
+  causal, or source-local ordering rather than synchronized wall clocks.
 - **EVD-08 — Complete lifecycle.** Every Run MUST retain attempts, realized outcomes, Evidence,
   Omissions, divergence, infrastructure failures, and cleanup results.
 - **EVD-09 — Evidence Derivations.** Every established Semantic Observation MUST retain an Evidence
@@ -304,7 +306,7 @@ lowercase.
 
 ### Key concepts
 
-- **Exploration.** Model-owned bounded selection from a declared semantic space to find useful
+- **Exploration.** Model-owned bounded selection from a declared model space to find useful
   experiments or counterexamples. Exploration is exhaustive only when it completes a declared
   finite space with checked completeness Evidence.
 - **Regression.** A permanent named `Umpire.Query` retained to detect recurrence of known behavior
@@ -315,17 +317,18 @@ lowercase.
 
 ### Rules
 
-- **EXP-01 — Shared semantics.** Regression Execution, model checking, Exploration, fuzzing,
-  Canonical Replay, and canary selection MUST reuse the same model declarations and
+- **EXP-01 — Shared model.** Regression Execution, model checking, Exploration, fuzzing, Canonical
+  Replay, and canary selection MUST reuse the same Model Definitions and
   `Umpire.Property` declarations.
 - **EXP-02 — Model-owned Exploration.** The model MUST own exploration spaces, mutation operators,
-  semantic coverage, candidate scoring, and selection policy; orchestration MAY execute and persist
+  model coverage, candidate scoring, and selection policy; orchestration MAY execute and persist
   the resulting batches.
 - **EXP-03 — Honest fuzzing.** Time- or budget-bounded runtime fuzzing MUST NOT claim exhaustive
   coverage or completeness.
 - **EXP-04 — Pinned Regressions.** Known Regressions MUST run independently of exploratory budgets.
-- **EXP-05 — Reviewed promotion.** A discovered failure MUST be reproducible, semantically minimized,
-  and canonically replayed before a human reviews its promotion into a permanent Lean Regression.
+- **EXP-05 — Reviewed promotion.** A discovered failure MUST be reproducible, minimized in model
+  terms, and canonically replayed before a human reviews its promotion into a permanent Lean
+  Regression.
 
 ## Verification, interfaces, and Qualification
 
@@ -351,7 +354,7 @@ lowercase.
 - **VER-04 — Honest receipts.** Verification receipts MUST expose source information, Model Names,
   Meaning Fingerprints, assumptions, Bounds, Omissions, provenance, and Trust Class.
 - **VER-05 — Canonical Replay.** A checker counterexample MUST replay through canonical `Umpire`
-  semantics before it can support a semantic violation or promoted Regression.
+  model behavior before it can support a model violation or promoted Regression.
 - **VER-06 — Distinct trust.** Kernel proofs, reconstructed proofs, trusted solvers, bounded search,
   testing, and concrete replay MUST remain distinct claim classes.
 
@@ -364,8 +367,8 @@ lowercase.
 - **CLI-03 — Inspectability.** Named `Umpire.Property` declarations, Scenarios, Tests, Explorations,
   checks, Artifacts, and Results SHOULD have coherent list and explain surfaces.
 - **QLF-01 — Operational bindings.** Environment profiles MAY bind endpoints, credentials,
-  namespaces, authority, resources, and adapters only when those bindings do not change semantic
-  meaning.
+  namespaces, authority, resources, and adapters only when those bindings do not change modeled
+  behavior.
 - **QLF-02 — Environment controls.** Each non-local environment MUST explicitly own authorization,
   rate and concurrency limits, cleanup, isolation, rollout policy, and blast-radius controls.
 - **QLF-03 — Qualified claims.** Every qualified claim MUST expose its environment, evidence profile,
