@@ -46,6 +46,7 @@ Codex review found that the first Operations canonical-JSON assertions were taut
 
 baseline: green
 stage: impl-review - ran [2026-08-27T04:40:42Z..2026-08-27T04:46:23Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 984554d5b7276e07be53da2f56707da8c1b3605e, bf44cef0094d3af5cff77b2b9aae72937074da2f
 - Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model
