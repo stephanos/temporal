@@ -165,6 +165,48 @@ example : missingObligationFailures = [
 ] := by
   native_decide
 
+def contractVersionDriftDeclaration := {
+  baseDeclaration with
+  id := id "test.implementation-link.capability-version-drift"
+  sourceTarget := .ofTarget checkedVersionedCapabilityTarget
+}
+
+def requiredLawDriftDeclaration := {
+  baseDeclaration with
+  id := id "test.implementation-link.capability-law-drift"
+  sourceTarget := .ofTarget checkedLawDriftCapabilityTarget
+}
+
+def conflictingCapabilityDeclaration := {
+  baseDeclaration with
+  id := id "test.implementation-link.capability-conflict"
+  sourceTarget := .ofTarget checkedConflictingCapabilityTarget
+  capabilityMappings := [primaryCapabilityMapping]
+}
+
+def capabilityContractFailures : List (Option ImplementationLinkErrorKind) := [
+  errorKindOf (checkImplementationLink contractVersionDriftDeclaration
+    checkedVersionedCapabilityTarget checkedDestinationTarget (.incomplete
+      (implementationLinkWitnessIndex contractVersionDriftDeclaration
+        checkedVersionedCapabilityTarget checkedDestinationTarget) [])),
+  errorKindOf (checkImplementationLink requiredLawDriftDeclaration
+    checkedLawDriftCapabilityTarget checkedDestinationTarget (.incomplete
+      (implementationLinkWitnessIndex requiredLawDriftDeclaration
+        checkedLawDriftCapabilityTarget checkedDestinationTarget) [])),
+  errorKindOf (checkImplementationLink conflictingCapabilityDeclaration
+    checkedConflictingCapabilityTarget checkedDestinationTarget (.incomplete
+      (implementationLinkWitnessIndex conflictingCapabilityDeclaration
+        checkedConflictingCapabilityTarget checkedDestinationTarget) []))
+]
+
+/-- Capability identity binds contract version/laws and rejects conflicting same-ID providers. -/
+example : capabilityContractFailures = [
+  some .behaviorFingerprintDrift,
+  some .behaviorFingerprintDrift,
+  some .incompatibleCapability
+] := by
+  native_decide
+
 def outcomeInventionDeclaration :
     ImplementationLinkDeclaration Unit Bool Bool Bool Bool Unit Bool Bool SparseOutcome Bool := {
   id := id "test.implementation-link.outcome-invention"

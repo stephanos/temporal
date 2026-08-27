@@ -14,6 +14,51 @@ def checkedSourceTarget : CheckedTarget TestLawStatement Unit Bool Bool Bool Boo
 def checkedDestinationTarget : CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
   checkedSourceTarget
 
+def versionedPrimaryProvider : CapabilityProvider TestLawStatement := {
+  primaryProvider with contract := { primaryProvider.contract with version := 2 }
+}
+
+def versionedCapabilityTargetDeclaration :
+    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with providers := [versionedPrimaryProvider, secondaryProvider]
+}
+
+def checkedVersionedCapabilityTarget :
+    CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  checkedTarget (authoringOf versionedCapabilityTargetDeclaration)
+
+def lawDriftPrimaryProvider : CapabilityProvider TestLawStatement := {
+  primaryProvider with
+  contract := { primaryProvider.contract with requiredLaws := [] }
+  lawWitnesses := []
+}
+
+def lawDriftCapabilityTargetDeclaration :
+    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with providers := [lawDriftPrimaryProvider, secondaryProvider]
+}
+
+def checkedLawDriftCapabilityTarget :
+    CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  checkedTarget (authoringOf lawDriftCapabilityTargetDeclaration)
+
+def conflictingCapabilityProvider : CapabilityProvider TestLawStatement := {
+  secondaryProvider with contract := {
+    secondaryProvider.contract with id := primaryProvider.contract.id
+  }
+}
+
+def conflictingCapabilityTargetDeclaration :
+    TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with
+  requiredCapabilities := [primaryProvider.contract.id]
+  providers := [primaryProvider, conflictingCapabilityProvider]
+}
+
+def checkedConflictingCapabilityTarget :
+    CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  checkedTarget (authoringOf conflictingCapabilityTargetDeclaration)
+
 inductive SparseOutcome where
   | off
   | on

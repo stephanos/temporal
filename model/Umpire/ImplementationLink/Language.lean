@@ -60,6 +60,27 @@ private def implementationSemanticFingerprint
     ",\"version\":" ++ toString definition.version ++
     ",\"canonicalBehavior\":" ++ Lean.Json.compress (.str canonicalBehavior) ++ "}"
 
+private def implementationLawLe (left right : LawDefinition) : Bool :=
+  decide (left.id.value < right.id.value) ||
+    (left.id == right.id && decide (left.body ≤ right.body))
+
+private def implementationLawJson (law : LawDefinition) : String :=
+  "{\"id\":" ++ Lean.Json.compress (.str law.id.value) ++
+    ",\"body\":" ++ Lean.Json.compress (.str law.body) ++ "}"
+
+private def implementationCapabilityFingerprint
+    (definition : DefinitionMetadata)
+    (contract : CapabilityContract) : BehaviorFingerprint :=
+  let laws := contract.requiredLaws.mergeSort implementationLawLe
+  behaviorFingerprintOf <|
+    "{\"id\":" ++ Lean.Json.compress (.str definition.id.value) ++
+    ",\"kind\":" ++ Lean.Json.compress (.str definition.kind.name) ++
+    ",\"definitionVersion\":" ++ toString definition.version ++
+    ",\"contractVersion\":" ++ toString contract.version ++
+    ",\"canonicalBehavior\":" ++ Lean.Json.compress (.str contract.canonicalBehavior) ++
+    ",\"requiredLaws\":[" ++
+      String.intercalate "," (laws.map implementationLawJson) ++ "]}"
+
 private structure ImplementationProvidedMeaning where
   provider : DefinitionId
   meaning : MeaningProvision
@@ -123,15 +144,23 @@ private def implementationSemanticReferences
       kind := definition.kind
       behaviorFingerprint := implementationSemanticFingerprint definition meaning.canonicalBehavior
     }
-  let capabilityReferences := target.providers.filterMap fun provider => do
+  let capabilityIds := target.providers.map (fun provider => provider.contract.id)
+    |>.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
+  let capabilityReferences := capabilityIds.filterMap fun id => do
     let definition ← target.definitions.find? fun item =>
-      item.id == provider.contract.id && item.kind == .capability
-    pure {
-      id := definition.id
-      kind := definition.kind
-      behaviorFingerprint := implementationSemanticFingerprint definition
-        provider.contract.canonicalBehavior
-    }
+      item.id == id && item.kind == .capability
+    let providers := target.providers.filter fun provider => provider.contract.id == id
+    let first ← providers.head?
+    let fingerprint := implementationCapabilityFingerprint definition first.contract
+    if providers.all fun provider =>
+        implementationCapabilityFingerprint definition provider.contract == fingerprint then
+      pure {
+        id := definition.id
+        kind := definition.kind
+        behaviorFingerprint := fingerprint
+      }
+    else
+      none
   (relationReferences ++ capabilityReferences).mergeSort fun left right =>
     decide (left.id.value < right.id.value) ||
       (left.id == right.id && decide (left.kind.name ≤ right.kind.name))
@@ -143,6 +172,20 @@ def implementationSemanticReference?
     (kind : DefinitionKind) : Option ImplementationSemanticReference :=
   (implementationSemanticReferences target).find? fun reference =>
     reference.id == id && reference.kind == kind
+
+private def conflictingCapabilityId?
+    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) : Option DefinitionId :=
+  let ids := target.providers.map (fun provider => provider.contract.id)
+    |>.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
+  ids.find? fun id =>
+    let providers := target.providers.filter fun provider => provider.contract.id == id
+    match target.definitions.find? (fun definition =>
+        definition.id == id && definition.kind == .capability), providers with
+    | some definition, first :: rest =>
+        let fingerprint := implementationCapabilityFingerprint definition first.contract
+        !(rest.all fun provider =>
+          implementationCapabilityFingerprint definition provider.contract == fingerprint)
+    | _, _ => false
 
 /-- The complete serializable, domain-neutral authored correspondence. -/
 structure ImplementationLinkDeclaration
@@ -381,6 +424,7 @@ inductive ImplementationLinkErrorKind where
   | staleDestinationTarget
   | wrongKind
   | behaviorFingerprintDrift
+  | incompatibleCapability
   | duplicateMapping
   | ambiguousMapping
   | unknownSourceValue
@@ -407,6 +451,7 @@ def ImplementationLinkErrorKind.name : ImplementationLinkErrorKind → String
   | .staleDestinationTarget => "stale-destination-target"
   | .wrongKind => "wrong-kind"
   | .behaviorFingerprintDrift => "behavior-fingerprint-drift"
+  | .incompatibleCapability => "incompatible-capability"
   | .duplicateMapping => "duplicate-mapping"
   | .ambiguousMapping => "ambiguous-mapping"
   | .unknownSourceValue => "unknown-source-value"
@@ -852,6 +897,16 @@ private def checkImplementationLinkWithDomains
   if declaration.applicationLimit.unit != .semanticTransitions then
     throw (implementationLinkError .invalidLimitUnit declaration.id declaration.source
       declaration.applicationLimit.unit.name)
+  match conflictingCapabilityId? source with
+  | some id =>
+      throw (implementationLinkError .incompatibleCapability declaration.id declaration.source
+        ("source:" ++ id.value) [id])
+  | none => pure ()
+  match conflictingCapabilityId? destination with
+  | some id =>
+      throw (implementationLinkError .incompatibleCapability declaration.id declaration.source
+        ("destination:" ++ id.value) [id])
+  | none => pure ()
   let canonical := canonicalizeDeclaration declaration sourceDomain destinationDomain
   validateValueTable declaration.id declaration.source "setup" sourceDomain.encodeSetup
     sourceDomain.setups destinationDomain.setups canonical.setupMappings canonical.setupKnownGaps
