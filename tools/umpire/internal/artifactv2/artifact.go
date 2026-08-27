@@ -11,6 +11,7 @@ import (
 	"io"
 	"slices"
 	"strings"
+	"unicode"
 )
 
 const (
@@ -440,32 +441,51 @@ func validateExperiment(document Experiment) error {
 	if document.Plan.FormatVersion != DrivePlanFormat {
 		return fmt.Errorf("unsupported nested plan format %q", document.Plan.FormatVersion)
 	}
-	for label, value := range map[string]string{
-		"query behavior fingerprint":       document.QueryBehaviorFingerprint,
-		"plan query definition ID":         document.Plan.QueryDefinitionID,
-		"plan query behavior fingerprint":  document.Plan.QueryBehaviorFingerprint,
-		"plan behavior definition ID":      document.Plan.BehaviorDefinitionID,
-		"plan behavior fingerprint":        document.Plan.BehaviorFingerprint,
-		"plan target definition ID":        document.Plan.TargetDefinitionID,
-		"plan target behavior fingerprint": document.Plan.TargetBehaviorFingerprint,
-		"plan kernel definition ID":        document.Plan.KernelDefinitionID,
-		"plan kernel behavior fingerprint": document.Plan.KernelBehaviorFingerprint,
-		"plan selection reason":            document.Plan.SelectionReason,
-		"plan initial-state definition ID": document.Plan.InitialState.DefinitionID,
+	for _, field := range []struct {
+		label string
+		value string
+	}{
+		{label: "query behavior fingerprint", value: document.QueryBehaviorFingerprint},
+		{label: "plan query definition ID", value: document.Plan.QueryDefinitionID},
+		{label: "plan query behavior fingerprint", value: document.Plan.QueryBehaviorFingerprint},
+		{label: "plan behavior definition ID", value: document.Plan.BehaviorDefinitionID},
+		{label: "plan behavior fingerprint", value: document.Plan.BehaviorFingerprint},
+		{label: "plan target definition ID", value: document.Plan.TargetDefinitionID},
+		{label: "plan target behavior fingerprint", value: document.Plan.TargetBehaviorFingerprint},
+		{label: "plan kernel definition ID", value: document.Plan.KernelDefinitionID},
+		{label: "plan kernel behavior fingerprint", value: document.Plan.KernelBehaviorFingerprint},
+		{label: "plan selection reason", value: document.Plan.SelectionReason},
+		{label: "plan initial-state definition ID", value: document.Plan.InitialState.DefinitionID},
 	} {
-		if strings.TrimSpace(value) == "" {
-			return fmt.Errorf("%s is required", label)
+		if strings.TrimSpace(field.value) == "" {
+			return fmt.Errorf("%s is required", field.label)
 		}
 	}
-	for label, value := range map[string]string{
-		"query behavior fingerprint":       document.QueryBehaviorFingerprint,
-		"plan query behavior fingerprint":  document.Plan.QueryBehaviorFingerprint,
-		"plan behavior fingerprint":        document.Plan.BehaviorFingerprint,
-		"plan target behavior fingerprint": document.Plan.TargetBehaviorFingerprint,
-		"plan kernel behavior fingerprint": document.Plan.KernelBehaviorFingerprint,
+	for _, field := range []struct {
+		label string
+		value string
+	}{
+		{label: "plan query definition ID", value: document.Plan.QueryDefinitionID},
+		{label: "plan behavior definition ID", value: document.Plan.BehaviorDefinitionID},
+		{label: "plan target definition ID", value: document.Plan.TargetDefinitionID},
+		{label: "plan kernel definition ID", value: document.Plan.KernelDefinitionID},
 	} {
-		if !ValidDigest(value) {
-			return fmt.Errorf("%s %q is invalid", label, value)
+		if !validDefinitionID(field.value) {
+			return fmt.Errorf("%s %q is invalid", field.label, field.value)
+		}
+	}
+	for _, field := range []struct {
+		label string
+		value string
+	}{
+		{label: "query behavior fingerprint", value: document.QueryBehaviorFingerprint},
+		{label: "plan query behavior fingerprint", value: document.Plan.QueryBehaviorFingerprint},
+		{label: "plan behavior fingerprint", value: document.Plan.BehaviorFingerprint},
+		{label: "plan target behavior fingerprint", value: document.Plan.TargetBehaviorFingerprint},
+		{label: "plan kernel behavior fingerprint", value: document.Plan.KernelBehaviorFingerprint},
+	} {
+		if !ValidDigest(field.value) {
+			return fmt.Errorf("%s %q is invalid", field.label, field.value)
 		}
 	}
 	if !ValidDigest(document.Plan.ArtifactChecksum) {
@@ -481,6 +501,9 @@ func validateExperiment(document Experiment) error {
 		document.Provenance.SourceDefinitionIDs == nil || document.Provenance.SourceLocations == nil {
 		return errors.New("ExperimentSpec arrays must not be null")
 	}
+	if len(document.Properties) == 0 {
+		return errors.New("at least one property identity is required")
+	}
 	if err := validateStringSet("observation requirement definition ID", document.ObservationRequirementDefinitionIDs); err != nil {
 		return err
 	}
@@ -488,8 +511,11 @@ func validateExperiment(document Experiment) error {
 		return err
 	}
 	for _, property := range document.Properties {
-		if strings.TrimSpace(property.DefinitionID) == "" || !ValidDigest(property.BehaviorFingerprint) {
+		if !validDefinitionID(property.DefinitionID) || !ValidDigest(property.BehaviorFingerprint) {
 			return errors.New("property has malformed definition ID or behavior fingerprint")
+		}
+		if property.RequirementDefinitionIDs == nil {
+			return fmt.Errorf("property %q requirement definition IDs must not be null", property.DefinitionID)
 		}
 		if err := validateStringSet("property requirement definition ID", property.RequirementDefinitionIDs); err != nil {
 			return err
@@ -518,6 +544,44 @@ func validateDrivePlan(plan DrivePlan) error {
 	if err := validateStringSet("capability requirement definition ID", plan.CapabilityRequirementDefinitionIDs); err != nil {
 		return err
 	}
+	if err := validateBindings(plan.Bindings); err != nil {
+		return err
+	}
+	if err := validateRoles(plan.SymbolicRoles); err != nil {
+		return err
+	}
+	if err := validatePreconditions(plan.ModelPreconditions); err != nil {
+		return err
+	}
+	if err := validateModelValue("initial state", plan.InitialState); err != nil {
+		return err
+	}
+	for _, values := range []struct {
+		label  string
+		values []ModelValue
+	}{
+		{label: "requested action", values: plan.RequestedActions},
+		{label: "model outcome", values: plan.ModelOutcomes},
+		{label: "resulting state", values: plan.ResultingStates},
+		{label: "selected choice", values: plan.SelectedChoices},
+		{label: "selected variant", values: plan.SelectedVariants},
+		{label: "requested fault", values: plan.RequestedFaults},
+	} {
+		if err := validateModelValues(values.label, values.values); err != nil {
+			return err
+		}
+	}
+	if err := validateOccurrencesAndCheckpoints(plan); err != nil {
+		return err
+	}
+	if err := validateLimits(plan.ExpandedLimits); err != nil {
+		return err
+	}
+	switch plan.SelectionReason {
+	case "satisfying-witness", "violating-counterexample", "behavior-selection":
+	default:
+		return fmt.Errorf("selection reason %q is invalid", plan.SelectionReason)
+	}
 	if err := validateProvenance(plan.Provenance); err != nil {
 		return err
 	}
@@ -527,8 +591,11 @@ func validateDrivePlan(plan DrivePlan) error {
 		default:
 			return fmt.Errorf("known gap kind %q is invalid", gap.Kind)
 		}
-		if strings.TrimSpace(gap.Code) == "" {
-			return errors.New("known gap code is required")
+		if !validDefinitionID(gap.Code) {
+			return fmt.Errorf("known gap code %q is invalid", gap.Code)
+		}
+		if gap.Subject != nil && !validDefinitionID(*gap.Subject) {
+			return fmt.Errorf("known gap subject %q is invalid", *gap.Subject)
 		}
 	}
 	if !slices.IsSortedFunc(plan.KnownGaps, compareKnownGap) {
@@ -543,9 +610,141 @@ func validateDrivePlan(plan DrivePlan) error {
 	return nil
 }
 
+func validateBindings(bindings []Binding) error {
+	if !slices.IsSortedFunc(bindings, compareBinding) {
+		return errors.New("bindings are not in canonical order")
+	}
+	for _, binding := range bindings {
+		if !validDefinitionID(binding.RoleDefinitionID) {
+			return fmt.Errorf("binding role definition ID %q is invalid", binding.RoleDefinitionID)
+		}
+		if err := validateModelValue("binding value", binding.Value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateRoles(roles []Role) error {
+	for _, role := range roles {
+		if !validDefinitionID(role.DefinitionID) {
+			return fmt.Errorf("symbolic role definition ID %q is invalid", role.DefinitionID)
+		}
+		switch role.ValueKind {
+		case "state", "action", "outcome", "observation", "relation", "capability", "provider", "law", "connector", "target", "kernel":
+		default:
+			return fmt.Errorf("symbolic role value kind %q is invalid", role.ValueKind)
+		}
+	}
+	return nil
+}
+
+func validatePreconditions(preconditions []Precondition) error {
+	for _, precondition := range preconditions {
+		if !validDefinitionID(precondition.DefinitionID) {
+			return fmt.Errorf("model precondition definition ID %q is invalid", precondition.DefinitionID)
+		}
+		switch precondition.Relation {
+		case "equal", "different":
+		default:
+			return fmt.Errorf("model precondition relation %q is invalid", precondition.Relation)
+		}
+		if err := validateOperand("left", precondition.Left); err != nil {
+			return fmt.Errorf("model precondition %q: %w", precondition.DefinitionID, err)
+		}
+		if err := validateOperand("right", precondition.Right); err != nil {
+			return fmt.Errorf("model precondition %q: %w", precondition.DefinitionID, err)
+		}
+	}
+	return nil
+}
+
+func validateOperand(label string, operand Operand) error {
+	switch operand.Kind {
+	case "role":
+		if !validDefinitionID(operand.DefinitionID) || operand.Value != nil {
+			return fmt.Errorf("%s role operand is malformed", label)
+		}
+	case "value":
+		if operand.DefinitionID != "" || operand.Value == nil {
+			return fmt.Errorf("%s value operand is malformed", label)
+		}
+		if err := validateModelValue(label+" value operand", *operand.Value); err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("%s operand kind %q is invalid", label, operand.Kind)
+	}
+	return nil
+}
+
+func validateOccurrencesAndCheckpoints(plan DrivePlan) error {
+	for index, occurrence := range plan.LinearExtension {
+		if !validDefinitionID(occurrence.DefinitionID) || !validDefinitionID(occurrence.ActionDefinitionID) ||
+			(occurrence.AuthoredDefinitionID != nil && !validDefinitionID(*occurrence.AuthoredDefinitionID)) {
+			return fmt.Errorf("linear extension occurrence %d has an invalid definition ID", index+1)
+		}
+	}
+	for index, checkpoint := range plan.Checkpoints {
+		if checkpoint.Observations == nil {
+			return fmt.Errorf("checkpoint %d observations must not be null", index+1)
+		}
+		if err := validateModelValues("checkpoint observation", checkpoint.Observations); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateLimits(limits Limits) error {
+	for _, limit := range []struct {
+		label string
+		limit Limit
+	}{
+		{label: "behavior transitions", limit: limits.Behavior.Transitions},
+		{label: "behavior selected actions", limit: limits.Behavior.SelectedActions},
+		{label: "search", limit: limits.Search},
+	} {
+		if !validLimitUnit(limit.limit.Unit) {
+			return fmt.Errorf("%s limit unit %q is invalid", limit.label, limit.limit.Unit)
+		}
+	}
+	return nil
+}
+
+func validLimitUnit(unit string) bool {
+	switch unit {
+	case "semantic-transitions", "selected-actions", "observation-positions", "logical-time", "candidate-evaluations":
+		return true
+	default:
+		return false
+	}
+}
+
+func validateModelValues(label string, values []ModelValue) error {
+	for _, value := range values {
+		if err := validateModelValue(label, value); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateModelValue(label string, value ModelValue) error {
+	if !validDefinitionID(value.DefinitionID) {
+		return fmt.Errorf("%s definition ID %q is invalid", label, value.DefinitionID)
+	}
+	return nil
+}
+
 func validateProvenance(provenance Provenance) error {
 	if err := validateStringSet("source definition ID", provenance.SourceDefinitionIDs); err != nil {
 		return err
+	}
+	for _, identity := range provenance.SourceDefinitionIDs {
+		if !validDefinitionID(identity) {
+			return fmt.Errorf("source definition ID %q is invalid", identity)
+		}
 	}
 	if len(provenance.SourceLocations) == 0 {
 		return errors.New("at least one source location is required")
@@ -562,6 +761,34 @@ func validateProvenance(provenance Provenance) error {
 		}
 	}
 	return nil
+}
+
+func compareBinding(left, right Binding) int {
+	if comparison := strings.Compare(left.RoleDefinitionID, right.RoleDefinitionID); comparison != 0 {
+		return comparison
+	}
+	if comparison := strings.Compare(left.Value.DefinitionID, right.Value.DefinitionID); comparison != 0 {
+		return comparison
+	}
+	return strings.Compare(left.Value.Value, right.Value.Value)
+}
+
+func validDefinitionID(value string) bool {
+	segments := strings.Split(value, ".")
+	if len(segments) < 2 {
+		return false
+	}
+	for _, segment := range segments {
+		if segment == "" {
+			return false
+		}
+		for _, character := range segment {
+			if !unicode.IsLetter(character) && !unicode.IsNumber(character) && character != '-' && character != '_' {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func validateStringSet(label string, values []string) error {

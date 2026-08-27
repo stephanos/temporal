@@ -107,6 +107,155 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 	}
 }
 
+func TestDecodeExperimentRejectsResealedMalformedV2Values(t *testing.T) {
+	value := ModelValue{DefinitionID: "switch.state.power", Value: "off"}
+	cases := map[string]struct {
+		mutate func(*Experiment)
+		want   string
+	}{
+		"selection reason enum": {
+			mutate: func(document *Experiment) { document.Plan.SelectionReason = "arbitrary" },
+			want:   "selection reason",
+		},
+		"transitions limit unit": {
+			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Behavior.Transitions.Unit = "arbitrary" },
+			want:   "behavior transitions limit unit",
+		},
+		"selected actions limit unit": {
+			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Behavior.SelectedActions.Unit = "arbitrary" },
+			want:   "behavior selected actions limit unit",
+		},
+		"search limit unit": {
+			mutate: func(document *Experiment) { document.Plan.ExpandedLimits.Search.Unit = "arbitrary" },
+			want:   "search limit unit",
+		},
+		"operand kind enum": {
+			mutate: func(document *Experiment) { document.Plan.ModelPreconditions[0].Left.Kind = "arbitrary" },
+			want:   "operand kind",
+		},
+		"role operand carries value": {
+			mutate: func(document *Experiment) { document.Plan.ModelPreconditions[0].Left.Value = &value },
+			want:   "role operand is malformed",
+		},
+		"value operand carries role": {
+			mutate: func(document *Experiment) {
+				document.Plan.ModelPreconditions[0].Right.DefinitionID = "switch.role.subject"
+			},
+			want: "value operand is malformed",
+		},
+		"value operand missing payload": {
+			mutate: func(document *Experiment) { document.Plan.ModelPreconditions[0].Right.Value = nil },
+			want:   "value operand is malformed",
+		},
+		"property requirements null": {
+			mutate: func(document *Experiment) { document.Properties[0].RequirementDefinitionIDs = nil },
+			want:   "requirement definition IDs must not be null",
+		},
+		"checkpoint observations null": {
+			mutate: func(document *Experiment) { document.Plan.Checkpoints[0].Observations = nil },
+			want:   "observations must not be null",
+		},
+		"symbolic role value kind enum": {
+			mutate: func(document *Experiment) {
+				document.Plan.SymbolicRoles = []Role{{DefinitionID: "switch.role.pending", ValueKind: "arbitrary"}}
+			},
+			want: "symbolic role value kind",
+		},
+		"precondition relation enum": {
+			mutate: func(document *Experiment) { document.Plan.ModelPreconditions[0].Relation = "arbitrary" },
+			want:   "model precondition relation",
+		},
+		"required definition ID": {
+			mutate: func(document *Experiment) { document.Plan.InitialState.DefinitionID = "unnamespaced" },
+			want:   "initial state definition ID",
+		},
+		"noncanonical bindings": {
+			mutate: func(document *Experiment) {
+				document.Plan.Bindings = append(document.Plan.Bindings, Binding{RoleDefinitionID: "aaa.role", Value: value})
+			},
+			want: "bindings are not in canonical order",
+		},
+		"noncanonical property requirements": {
+			mutate: func(document *Experiment) {
+				document.Properties[0].RequirementDefinitionIDs = []string{"z.requirement", "a.requirement"}
+			},
+			want: "property requirement definition IDs are not in canonical order",
+		},
+		"noncanonical observation requirements": {
+			mutate: func(document *Experiment) {
+				document.ObservationRequirementDefinitionIDs = []string{"z.observation", "a.observation"}
+			},
+			want: "observation requirement definition IDs are not in canonical order",
+		},
+		"duplicate capability requirements": {
+			mutate: func(document *Experiment) {
+				document.Plan.CapabilityRequirementDefinitionIDs = []string{"a.capability", "a.capability"}
+			},
+			want: "duplicate capability requirement definition ID",
+		},
+	}
+
+	for name, test := range cases {
+		t.Run(name, func(t *testing.T) {
+			canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+			document, err := DecodeExperiment(canonical)
+			require.NoError(t, err)
+			test.mutate(&document)
+			sealed, err := SealExperiment(document)
+			require.NoError(t, err)
+			encoded, err := CanonicalExperimentBytes(sealed)
+			require.NoError(t, err)
+
+			_, err = DecodeExperiment(encoded)
+			require.ErrorContains(t, err, test.want)
+		})
+	}
+}
+
+func TestDecodeExperimentAcceptsResealedLeanRecordValues(t *testing.T) {
+	cases := map[string]func(*Experiment){
+		"zero limits and independent trace lists": func(document *Experiment) {
+			document.Plan.ExpandedLimits.Behavior.Transitions.Value = 0
+			document.Plan.ExpandedLimits.Behavior.SelectedActions.Value = 0
+			document.Plan.ExpandedLimits.Search.Value = 0
+			document.Plan.ModelOutcomes = []ModelValue{}
+			document.Plan.LinearExtension[0].Position = 0
+			document.Plan.Checkpoints[0].Transition = 0
+		},
+		"record ordered roles and preconditions": func(document *Experiment) {
+			document.Plan.SymbolicRoles = []Role{
+				{DefinitionID: "z.role", ValueKind: "state"},
+				{DefinitionID: "a.role", ValueKind: "action"},
+			}
+			first := document.Plan.ModelPreconditions[0]
+			first.DefinitionID = "z.precondition"
+			second := first
+			second.DefinitionID = "a.precondition"
+			document.Plan.ModelPreconditions = []Precondition{first, second}
+		},
+		"sorted bindings and properties retain duplicates": func(document *Experiment) {
+			document.Plan.Bindings = append(document.Plan.Bindings, document.Plan.Bindings[0])
+			document.Properties = append(document.Properties, document.Properties[0])
+		},
+	}
+
+	for name, mutate := range cases {
+		t.Run(name, func(t *testing.T) {
+			canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+			document, err := DecodeExperiment(canonical)
+			require.NoError(t, err)
+			mutate(&document)
+			sealed, err := SealExperiment(document)
+			require.NoError(t, err)
+			encoded, err := CanonicalExperimentBytes(sealed)
+			require.NoError(t, err)
+
+			_, err = DecodeExperiment(encoded)
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestGoSHA256MatchesLeanGoldens(t *testing.T) {
 	require.Equal(t,
 		"sha256:8c09aa7f7eec82e39e6f28406acc4f640dac30a2b3bf861acfaad8d701275870",
