@@ -338,7 +338,7 @@ def CheckedObservationNormalizer.outputType :
     CheckedObservationNormalizer → ObservationValueType
   | .textTrimV1 | .textLowercaseV1 | .naturalRenderV1 => .text
 
-/-- Resolved typed AST retained by a checked plan for later pure qualification. -/
+/-- Resolved typed AST retained by a checked plan for later pure Observation Evaluation. -/
 inductive CheckedObservationExpression where
   | text (value : String)
   | natural (value : Nat)
@@ -394,7 +394,7 @@ structure CheckedObservationRule where
   condition : Option CheckedObservationExpression
   deriving BEq, DecidableEq, Repr
 
-/-- Canonical, inert mapping plan admitted for later pure evidence qualification. -/
+/-- Canonical, inert mapping plan admitted for later pure Observation Evaluation. -/
 structure CheckedObservationPlan where
   id : DefinitionId
   source : SourceLocation

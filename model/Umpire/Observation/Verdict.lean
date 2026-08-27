@@ -1,7 +1,10 @@
-import Umpire.Observation.Qualification
+import Umpire.Observation.Evaluation
 import Umpire.Query
 
-/-! Semantic Property verdicts over qualified evidence and strict checked-Query aggregation. -/
+/-!
+Semantic Property verdicts over accepted Evidence and strict checked-Query aggregation. These
+offline verdicts do not perform Run Evaluation or Claim Assessment.
+-/
 
 namespace Umpire
 
@@ -14,7 +17,7 @@ inductive SemanticVerdictStatus where
   deriving BEq, DecidableEq, Ord, Repr
 
 inductive SemanticVerdictFailureKind where
-  | qualificationFailure (kind : QualificationFailureKind)
+  | observationEvaluationFailure (kind : ObservationFailureKind)
   | queryPropertyMismatch
   | invalidEvidenceBound
   | missingCapability
@@ -27,19 +30,19 @@ inductive SemanticVerdictFailureKind where
 structure SemanticVerdictDiagnostic where
   kind : SemanticVerdictFailureKind
   relatedDefinitionIds : List DefinitionId := []
-  qualification : Option QualificationDiagnostic := none
+  observationEvaluation : Option ObservationDiagnostic := none
   deriving BEq, DecidableEq, Repr
 
 structure SemanticClauseVerdict where
   propertyId : DefinitionId
   clauseId : DefinitionId
   status : SemanticVerdictStatus
-  coordinates : List SemanticCoordinate
+  coordinates : List ModelCoordinate
   queryLimits : QueryLimits
   propertyLimit : Option Limit
   evidenceBound : EvidenceBound
   provenance : List DefinitionId
-  derivations : List SemanticDerivation
+  evidenceLinks : List EvidenceLink
   deriving BEq, DecidableEq, Repr
 
 structure SemanticPropertyVerdict where
@@ -86,8 +89,8 @@ private def stringLe (left right : String) : Bool := decide (left ≤ right)
 private def canonicalStrings (values : List String) : List String :=
   values.mergeSort stringLe |>.eraseDups
 
-private def statusOfQualification : QualificationStatus → SemanticVerdictStatus
-  | .qualified => .unknown
+private def statusOfObservationEvaluation : ObservationStatus → SemanticVerdictStatus
+  | .accepted => .unknown
   | .unknown => .unknown
   | .conflict => .conflict
   | .unsupported => .unsupported
@@ -111,16 +114,16 @@ private def failureVerdict
   diagnostic := some diagnostic
 }
 
-private def qualificationFailureVerdict
+private def observationEvaluationFailureVerdict
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
-    (diagnostic : QualificationDiagnostic)
+    (diagnostic : ObservationDiagnostic)
     (traceId : Option String := none)
     (evidenceBound : Option EvidenceBound := none) : SemanticPropertyVerdict :=
-  failureVerdict query property (statusOfQualification diagnostic.status) {
-    kind := .qualificationFailure diagnostic.kind
+  failureVerdict query property (statusOfObservationEvaluation diagnostic.status) {
+    kind := .observationEvaluationFailure diagnostic.kind
     relatedDefinitionIds := diagnostic.relatedDefinitionIds
-    qualification := some diagnostic
+    observationEvaluation := some diagnostic
   } traceId evidenceBound
 
 private def propertyUsesLogicalTime (property : CheckedProperty) : Bool :=
@@ -148,7 +151,7 @@ private def validLogicalTimeSteps
 
 private def hasRequiredLogicalTime
     (property : CheckedProperty)
-    (trace : QualifiedTrace) : Bool :=
+    (trace : EvidenceBackedTrace) : Bool :=
   if !propertyUsesLogicalTime property then
     true
   else
@@ -164,7 +167,7 @@ private def capabilityMismatch (property : CheckedProperty) : List DefinitionId 
 
 private def vocabularyFailure
     (property : CheckedProperty)
-    (trace : QualifiedTrace) : Option SemanticVerdictDiagnostic :=
+    (trace : EvidenceBackedTrace) : Option SemanticVerdictDiagnostic :=
   let rec check : List MeaningProvision → Option SemanticVerdictDiagnostic
     | [] => none
     | required :: rest =>
@@ -192,7 +195,7 @@ private def vocabularyFailure
 
 private def valueAtCoordinate
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
-    SemanticCoordinate → Option ModelValue
+    ModelCoordinate → Option ModelValue
   | .initialState => some trace.initialState
   | .selectedAction step =>
       (trace.steps[step - 1]?).map ModelTraceStep.selectedAction
@@ -206,7 +209,7 @@ private def valueAtCoordinate
 
 private def coordinateSupportsField
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (coordinate : SemanticCoordinate)
+    (coordinate : ModelCoordinate)
     (field : PropertyTraceField) : Bool :=
   match coordinate with
   | .initialState =>
@@ -227,39 +230,39 @@ private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
   | .eventuallyWithin _ trigger response _ => [trigger, response]
   | .quiescentWithin _ trigger forbidden _ => [trigger, forbidden]
 
-private def relevantDerivations
-    (trace : QualifiedTrace)
-    (clause : ResolvedPropertyClause) : List SemanticDerivation :=
+private def relevantEvidenceLinks
+    (trace : EvidenceBackedTrace)
+    (clause : ResolvedPropertyClause) : List EvidenceLink :=
   let patterns := clausePatterns clause
-  trace.derivations.filter fun derivation =>
-    match valueAtCoordinate trace.trace derivation.coordinate with
+  trace.evidenceLinks.filter fun evidenceLink =>
+    match valueAtCoordinate trace.trace evidenceLink.coordinate with
     | none => false
     | some value => patterns.any fun pattern =>
-        coordinateSupportsField trace.trace derivation.coordinate pattern.field &&
+        coordinateSupportsField trace.trace evidenceLink.coordinate pattern.field &&
           value.definitionId == pattern.reference
 
 private def clauseVerdict
     (query : CheckedQuery LawStatement)
-    (trace : QualifiedTrace)
+    (trace : EvidenceBackedTrace)
     (clause : ResolvedPropertyClause)
     (result : PropertyClauseResult) : SemanticClauseVerdict :=
-  let derivations := relevantDerivations trace clause
+  let evidenceLinks := relevantEvidenceLinks trace clause
   {
     propertyId := result.propertyId
     clauseId := result.clauseId
     status := if result.satisfied then .satisfied else .violated
-    coordinates := derivations.map SemanticDerivation.coordinate
+    coordinates := evidenceLinks.map EvidenceLink.coordinate
     queryLimits := query.limits
     propertyLimit := result.evaluatedLimit
     evidenceBound := trace.appliedBound
     provenance := result.semanticProvenance
-    derivations
+    evidenceLinks
   }
 
 private def resolvedVerdict
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
-    (trace : QualifiedTrace) : SemanticPropertyVerdict :=
+    (trace : EvidenceBackedTrace) : SemanticPropertyVerdict :=
   let evaluation := evaluateProperty property trace.trace
   let clauses := property.clauses.filterMap fun clause =>
     (evaluation.clauses.find? fun result => result.clauseId == clause.id).map fun result =>
@@ -278,12 +281,12 @@ private def resolvedVerdict
     clauses
   }
 
-/-- Revalidate qualified evidence and every Property prerequisite before invoking the unchanged
+/-- Revalidate accepted evidence and every Property prerequisite before invoking the unchanged
 Property evaluator. -/
-def evaluateQualifiedProperty
+def evaluateObservationProperty
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
-    (qualification : QualificationResult) : SemanticPropertyVerdict :=
+    (observationResult : ObservationResult) : SemanticPropertyVerdict :=
   match query.form.properties.find? fun expected => expected.id == property.id with
   | none =>
       failureVerdict query property .unsupported {
@@ -297,18 +300,18 @@ def evaluateQualifiedProperty
           relatedDefinitionIds := [query.id, property.id]
         }
       else
-        match qualification with
+        match observationResult with
         | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
-            qualificationFailureVerdict query property diagnostic
-        | .qualified trace =>
+            observationEvaluationFailureVerdict query property diagnostic
+        | .accepted trace =>
             match vocabularyFailure property trace with
             | some diagnostic =>
                 failureVerdict query property .unsupported diagnostic
                   (some trace.traceId) (some trace.appliedBound)
             | none =>
-                match validateQualifiedTrace trace with
+                match validateEvidenceBackedTrace trace with
                 | .error diagnostic =>
-                    qualificationFailureVerdict query property diagnostic
+                    observationEvaluationFailureVerdict query property diagnostic
                       (some trace.traceId) (some trace.appliedBound)
                 | .ok _ =>
                     if trace.appliedBound.value == 0 ||

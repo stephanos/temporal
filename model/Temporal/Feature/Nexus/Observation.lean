@@ -2,9 +2,10 @@ import Temporal.Feature.Nexus.Operations
 import Umpire.Observation
 
 /-!
-One synthetic evidence profile for the ordinary Nexus lifecycle. This module performs only the
-offline handoff from a finite typed `EvidenceBundle` to qualification and semantic verdicts; it does
-not start Temporal, collect live evidence, persist raw records, or promote a result.
+One synthetic Evidence profile for the ordinary Nexus lifecycle. This module performs only the
+offline handoff from a finite typed `EvidenceBundle` to Observation Evaluation and semantic
+verdicts; it does not start Temporal, collect live evidence, persist raw records, or promote a
+result.
 -/
 
 namespace Temporal.Feature.Nexus.Observation
@@ -157,20 +158,20 @@ def checkedPlan : CheckedObservationPlan :=
 
 /-- Typed offline output; no raw evidence is retained in any field. -/
 structure OfflineObservation where
-  qualification : QualificationResult
+  evaluation : ObservationResult
   verdicts : List SemanticPropertyVerdict
   summary : StrictQuerySummary
   deriving BEq, DecidableEq, Repr
 
 /-- The complete typed handoff available to a future adapter that can produce an `EvidenceBundle`. -/
 def evaluateSyntheticEvidence (bundle : EvidenceBundle) : OfflineObservation :=
-  let qualification := qualifyEvidence checkedPlan bundle
-  let verdict := evaluateQualifiedProperty
+  let evaluation := evaluateEvidence checkedPlan bundle
+  let verdict := evaluateObservationProperty
     Temporal.Feature.Nexus.Operations.AsyncStart.query
     Temporal.Feature.Nexus.Operations.AsyncStart.property
-    qualification
+    evaluation
   {
-    qualification
+    evaluation
     verdicts := [verdict]
     summary := summarizeQueryVerdicts
       Temporal.Feature.Nexus.Operations.AsyncStart.query [verdict]

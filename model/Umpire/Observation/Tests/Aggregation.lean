@@ -12,7 +12,7 @@ def aggregationQuery : CheckedQuery Umpire.Examples.Switch.LawStatement :=
 def verdictAs
     (propertyId : DefinitionId)
     (status : SemanticVerdictStatus)
-    (traceId : Option String := some completeQualifiedTrace.traceId) : SemanticPropertyVerdict := {
+    (traceId : Option String := some completeEvidenceBackedTrace.traceId) : SemanticPropertyVerdict := {
   satisfiedVerdict with
   queryId := aggregationQuery.id
   propertyId
