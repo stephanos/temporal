@@ -17,7 +17,7 @@ structure ObservationCheckpoint where
 
 structure PlannedOccurrence where
   definitionId : DefinitionId
-  action : DefinitionId
+  actionDefinitionId : DefinitionId
   position : Nat
   authoredDefinitionId : Option DefinitionId
   deriving BEq, DecidableEq, Repr
@@ -25,12 +25,12 @@ structure PlannedOccurrence where
 structure PortableProperty where
   definitionId : DefinitionId
   behaviorFingerprint : BehaviorFingerprint
-  requirements : List DefinitionId
+  requirementDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure ArtifactProvenance where
   sourceDefinitionIds : List DefinitionId
-  sources : List SourceLocation
+  sourceLocations : List SourceLocation
   deriving BEq, DecidableEq, Repr
 
 /--
@@ -39,7 +39,7 @@ are deliberately separate, and no field claims that runtime execution or evidenc
 -/
 structure DrivePlan where
   formatVersion : String
-  semanticIdentity : String
+  artifactChecksum : ArtifactChecksum
   queryDefinitionId : DefinitionId
   queryBehaviorFingerprint : BehaviorFingerprint
   behaviorDefinitionId : DefinitionId
@@ -50,7 +50,7 @@ structure DrivePlan where
   kernelBehaviorFingerprint : BehaviorFingerprint
   bindings : List RoleBinding
   symbolicRoles : List ResourceRole
-  semanticPreconditions : List SetupConstraint
+  modelPreconditions : List SetupConstraint
   initialState : ModelValue
   requestedActions : List ModelValue
   modelOutcomes : List ModelValue
@@ -59,7 +59,7 @@ structure DrivePlan where
   selectedChoices : List ModelValue
   selectedVariants : List ModelValue
   requestedFaults : List ModelValue
-  capabilityRequirements : List DefinitionId
+  capabilityRequirementDefinitionIds : List DefinitionId
   expandedLimits : QueryLimits
   checkpoints : List ObservationCheckpoint
   selectionReason : SelectionReason
@@ -71,11 +71,11 @@ structure DrivePlan where
 /-- The portable envelope consumed by later execution, checking, replay, and generation work. -/
 structure ExperimentSpec where
   formatVersion : String
-  semanticIdentity : String
+  artifactChecksum : ArtifactChecksum
   queryBehaviorFingerprint : BehaviorFingerprint
   plan : DrivePlan
   properties : List PortableProperty
-  observationRequirements : List DefinitionId
+  observationRequirementDefinitionIds : List DefinitionId
   provenance : ArtifactProvenance
   deriving BEq, DecidableEq, Repr
 
@@ -123,25 +123,25 @@ private def canonicalValues (values : List ModelValue) : List ModelValue :=
   values.mergeSort valueLe |>.eraseDups
 
 private def valueJson (value : ModelValue) : String :=
-  "{\"identity\":" ++ quote value.definitionId.value ++
+  "{\"definitionId\":" ++ quote value.definitionId.value ++
     ",\"value\":" ++ quote value.value ++ "}"
 
 private def roleJson (role : ResourceRole) : String :=
-  "{\"identity\":" ++ quote role.id.value ++
+  "{\"definitionId\":" ++ quote role.id.value ++
     ",\"valueKind\":" ++ quote role.valueKind.name ++ "}"
 
 private def bindingJson (binding : RoleBinding) : String :=
-  "{\"role\":" ++ quote binding.role.value ++
+  "{\"roleDefinitionId\":" ++ quote binding.role.value ++
     ",\"value\":" ++ valueJson binding.value ++ "}"
 
 private def operandJson : SetupOperand → String
   | .role identity =>
-      "{\"kind\":\"role\",\"identity\":" ++ quote identity.value ++ "}"
+      "{\"kind\":\"role\",\"definitionId\":" ++ quote identity.value ++ "}"
   | .value value =>
       "{\"kind\":\"value\",\"value\":" ++ valueJson value ++ "}"
 
 private def preconditionJson (constraint : SetupConstraint) : String :=
-  "{\"identity\":" ++ quote constraint.id.value ++
+  "{\"definitionId\":" ++ quote constraint.id.value ++
     ",\"relation\":" ++ quote constraint.relation.name ++
     ",\"left\":" ++ operandJson constraint.left ++
     ",\"right\":" ++ operandJson constraint.right ++ "}"
@@ -167,10 +167,10 @@ private def checkpointJson (checkpoint : ObservationCheckpoint) : String :=
     ",\"observations\":" ++ array (checkpoint.observations.map valueJson) ++ "}"
 
 private def plannedOccurrenceJson (occurrence : PlannedOccurrence) : String :=
-  "{\"identity\":" ++ quote occurrence.definitionId.value ++
-    ",\"action\":" ++ quote occurrence.action.value ++
+  "{\"definitionId\":" ++ quote occurrence.definitionId.value ++
+    ",\"actionDefinitionId\":" ++ quote occurrence.actionDefinitionId.value ++
     ",\"position\":" ++ toString occurrence.position ++
-    ",\"authoredIdentity\":" ++
+    ",\"authoredDefinitionId\":" ++
       (occurrence.authoredDefinitionId.map (quote ∘ DefinitionId.value) |>.getD "null") ++ "}"
 
 private def sourceJson (source : SourceLocation) : String :=
@@ -180,29 +180,30 @@ private def sourceJson (source : SourceLocation) : String :=
     ",\"provenance\":" ++ quote source.provenance ++ "}"
 
 private def provenanceJson (provenance : ArtifactProvenance) : String :=
-  "{\"sourceIdentities\":" ++
+  "{\"sourceDefinitionIds\":" ++
       array (canonicalIds provenance.sourceDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++
-    ",\"sources\":" ++ array (provenance.sources.mergeSort sourceLe |>.eraseDups |>.map sourceJson) ++ "}"
+    ",\"sourceLocations\":" ++
+      array (provenance.sourceLocations.mergeSort sourceLe |>.eraseDups |>.map sourceJson) ++ "}"
 
 private def propertyJson (property : PortableProperty) : String :=
-  "{\"identity\":" ++ quote property.definitionId.value ++
+  "{\"definitionId\":" ++ quote property.definitionId.value ++
     ",\"behaviorFingerprint\":" ++ quote property.behaviorFingerprint.render ++
-    ",\"requirements\":" ++
-      array (canonicalIds property.requirements |>.map (quote ∘ DefinitionId.value)) ++ "}"
+    ",\"requirementDefinitionIds\":" ++
+      array (canonicalIds property.requirementDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
-private def drivePlanSemanticJson (plan : DrivePlan) : String :=
+private def drivePlanContentJson (plan : DrivePlan) : String :=
   "{\"formatVersion\":" ++ quote plan.formatVersion ++
-    ",\"queryIdentity\":" ++ quote plan.queryDefinitionId.value ++
-    ",\"querySemanticDigest\":" ++ quote plan.queryBehaviorFingerprint.render ++
-    ",\"behaviorIdentity\":" ++ quote plan.behaviorDefinitionId.value ++
-    ",\"behaviorSemanticDigest\":" ++ quote plan.behaviorFingerprint.render ++
-    ",\"targetIdentity\":" ++ quote plan.targetDefinitionId.value ++
-    ",\"targetSemanticDigest\":" ++ quote plan.targetBehaviorFingerprint.render ++
-    ",\"kernelIdentity\":" ++ quote plan.kernelDefinitionId.value ++
-    ",\"kernelSemanticDigest\":" ++ quote plan.kernelBehaviorFingerprint.render ++
+    ",\"queryDefinitionId\":" ++ quote plan.queryDefinitionId.value ++
+    ",\"queryBehaviorFingerprint\":" ++ quote plan.queryBehaviorFingerprint.render ++
+    ",\"behaviorDefinitionId\":" ++ quote plan.behaviorDefinitionId.value ++
+    ",\"behaviorFingerprint\":" ++ quote plan.behaviorFingerprint.render ++
+    ",\"targetDefinitionId\":" ++ quote plan.targetDefinitionId.value ++
+    ",\"targetBehaviorFingerprint\":" ++ quote plan.targetBehaviorFingerprint.render ++
+    ",\"kernelDefinitionId\":" ++ quote plan.kernelDefinitionId.value ++
+    ",\"kernelBehaviorFingerprint\":" ++ quote plan.kernelBehaviorFingerprint.render ++
     ",\"bindings\":" ++ array (plan.bindings.mergeSort bindingLe |>.map bindingJson) ++
     ",\"symbolicRoles\":" ++ array (plan.symbolicRoles.map roleJson) ++
-    ",\"semanticPreconditions\":" ++ array (plan.semanticPreconditions.map preconditionJson) ++
+    ",\"modelPreconditions\":" ++ array (plan.modelPreconditions.map preconditionJson) ++
     ",\"initialState\":" ++ valueJson plan.initialState ++
     ",\"requestedActions\":" ++ array (plan.requestedActions.map valueJson) ++
     ",\"modelOutcomes\":" ++ array (plan.modelOutcomes.map valueJson) ++
@@ -211,34 +212,53 @@ private def drivePlanSemanticJson (plan : DrivePlan) : String :=
     ",\"selectedChoices\":" ++ array (plan.selectedChoices.map valueJson) ++
     ",\"selectedVariants\":" ++ array (plan.selectedVariants.map valueJson) ++
     ",\"requestedFaults\":" ++ array (plan.requestedFaults.map valueJson) ++
-    ",\"capabilityRequirements\":" ++
-      array (canonicalIds plan.capabilityRequirements |>.map (quote ∘ DefinitionId.value)) ++
-    ",\"expandedBounds\":" ++ limitsJson plan.expandedLimits ++
+    ",\"capabilityRequirementDefinitionIds\":" ++
+      array (canonicalIds plan.capabilityRequirementDefinitionIds |>.map
+        (quote ∘ DefinitionId.value)) ++
+    ",\"expandedLimits\":" ++ limitsJson plan.expandedLimits ++
     ",\"checkpoints\":" ++ array (plan.checkpoints.map checkpointJson) ++
     ",\"selectionReason\":" ++ quote plan.selectionReason.name ++
     ",\"explored\":" ++ exploredJson plan.explored ++
-    ",\"omissions\":" ++ array (plan.knownGaps.map fun gap => quote gap.code.value) ++ "}"
-
-def canonicalDrivePlanJson (plan : DrivePlan) : String :=
-  let semantic := drivePlanSemanticJson plan
-  (semantic.dropEnd 1).toString ++
-    ",\"semanticIdentity\":" ++ quote plan.semanticIdentity ++
+    ",\"knownGaps\":" ++ array (plan.knownGaps.map canonicalKnownGapJson) ++
     ",\"provenance\":" ++ provenanceJson plan.provenance ++ "}"
 
-private def experimentSpecSemanticJson (spec : ExperimentSpec) : String :=
+def DrivePlan.expectedArtifactChecksum (plan : DrivePlan) : ArtifactChecksum :=
+  drivePlanChecksumOf (drivePlanContentJson plan)
+
+def DrivePlan.hasValidArtifactChecksum (plan : DrivePlan) : Bool :=
+  plan.artifactChecksum == plan.expectedArtifactChecksum
+
+def canonicalDrivePlanJson (plan : DrivePlan) : String :=
+  let content := drivePlanContentJson plan
+  (content.dropEnd 1).toString ++
+    ",\"artifactChecksum\":" ++ quote plan.artifactChecksum.render ++ "}"
+
+def canonicalDrivePlanBytes (plan : DrivePlan) : String :=
+  canonicalDrivePlanJson plan ++ "\n"
+
+private def experimentSpecContentJson (spec : ExperimentSpec) : String :=
   "{\"formatVersion\":" ++ quote spec.formatVersion ++
-    ",\"querySemanticDigest\":" ++ quote spec.queryBehaviorFingerprint.render ++
-    ",\"planSemanticIdentity\":" ++ quote spec.plan.semanticIdentity ++
-    ",\"plan\":" ++ drivePlanSemanticJson spec.plan ++
+    ",\"queryBehaviorFingerprint\":" ++ quote spec.queryBehaviorFingerprint.render ++
+    ",\"plan\":" ++ canonicalDrivePlanJson spec.plan ++
     ",\"properties\":" ++ array (spec.properties.mergeSort propertyLe |>.map propertyJson) ++
-    ",\"observationRequirements\":" ++
-      array (canonicalIds spec.observationRequirements |>.map (quote ∘ DefinitionId.value)) ++ "}"
+    ",\"observationRequirementDefinitionIds\":" ++
+      array (canonicalIds spec.observationRequirementDefinitionIds |>.map
+        (quote ∘ DefinitionId.value)) ++
+    ",\"provenance\":" ++ provenanceJson spec.provenance ++ "}"
+
+def ExperimentSpec.expectedArtifactChecksum (spec : ExperimentSpec) : ArtifactChecksum :=
+  experimentSpecChecksumOf (experimentSpecContentJson spec)
+
+def ExperimentSpec.hasValidArtifactChecksum (spec : ExperimentSpec) : Bool :=
+  spec.artifactChecksum == spec.expectedArtifactChecksum
 
 def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
-  let semantic := experimentSpecSemanticJson spec
-  (semantic.dropEnd 1).toString ++
-    ",\"semanticIdentity\":" ++ quote spec.semanticIdentity ++
-    ",\"provenance\":" ++ provenanceJson spec.provenance ++ "}"
+  let content := experimentSpecContentJson spec
+  (content.dropEnd 1).toString ++
+    ",\"artifactChecksum\":" ++ quote spec.artifactChecksum.render ++ "}"
+
+def canonicalExperimentSpecBytes (spec : ExperimentSpec) : String :=
+  canonicalExperimentSpecJson spec ++ "\n"
 
 private def plannedOccurrence
     (behavior : CheckedBehavior)
@@ -249,7 +269,7 @@ private def plannedOccurrence
     (DefinitionId.of (behavior.id.value ++ ".selected-occurrence-" ++ toString (index + 1)))
   {
     definitionId
-    action := action.definitionId
+    actionDefinitionId := action.definitionId
     position := index + 1
     authoredDefinitionId := authored.map NamedOccurrence.id
   }
@@ -257,7 +277,7 @@ private def plannedOccurrence
 private def propertyReference (property : CheckedProperty) : PortableProperty := {
   definitionId := property.id
   behaviorFingerprint := property.behaviorFingerprint
-  requirements := canonicalIds property.requires
+  requirementDefinitionIds := canonicalIds property.requires
 }
 
 private def propertyObservationRequirements (property : CheckedProperty) : List DefinitionId :=
@@ -274,7 +294,7 @@ private def artifactProvenance (query : CheckedQuery LawStatement) : ArtifactPro
     query.target.id,
     query.target.kernel.metadata.id
   ] ++ query.form.properties.map CheckedProperty.id)
-  sources := (query.source :: query.behavior.source :: query.target.source ::
+  sourceLocations := (query.source :: query.behavior.source :: query.target.source ::
     query.target.kernel.metadata.source :: query.form.properties.map CheckedProperty.source)
       |>.mergeSort sourceLe |>.eraseDups
 }
@@ -297,9 +317,9 @@ def artifactOfSelection
     observations := step.observations
   }
   let provenance := artifactProvenance query
-  let planWithoutIdentity : DrivePlan := {
-    formatVersion := "umpire-drive-plan/v1"
-    semanticIdentity := ""
+  let planWithoutChecksum : DrivePlan := {
+    formatVersion := "umpire-drive-plan/v2"
+    artifactChecksum := drivePlanChecksumOf ""
     queryDefinitionId := query.id
     queryBehaviorFingerprint := query.behaviorFingerprint
     behaviorDefinitionId := query.behavior.id
@@ -311,7 +331,7 @@ def artifactOfSelection
     bindings := trace.setup.mergeSort bindingLe
     symbolicRoles := query.behavior.roles.filter fun role =>
       !(trace.setup.any fun binding => binding.role == role.id)
-    semanticPreconditions := query.behavior.setup
+    modelPreconditions := query.behavior.setup
     initialState := trace.trace.initialState
     requestedActions := actions
     modelOutcomes := outcomes
@@ -320,7 +340,7 @@ def artifactOfSelection
     selectedChoices := []
     selectedVariants := []
     requestedFaults := []
-    capabilityRequirements := canonicalIds (query.target.requiredCapabilities ++
+    capabilityRequirementDefinitionIds := canonicalIds (query.target.requiredCapabilities ++
       query.behavior.requires ++
       query.form.properties.flatMap CheckedProperty.requires)
     expandedLimits := query.limits
@@ -331,24 +351,24 @@ def artifactOfSelection
     provenance
   }
   let plan := {
-    planWithoutIdentity with
-    semanticIdentity := (behaviorFingerprintOf (drivePlanSemanticJson planWithoutIdentity)).render
+    planWithoutChecksum with
+    artifactChecksum := planWithoutChecksum.expectedArtifactChecksum
   }
   let properties := query.form.properties.map propertyReference |>.mergeSort propertyLe
-  let observationRequirements := canonicalIds
+  let observationRequirementDefinitionIds := canonicalIds
     (query.form.properties.flatMap propertyObservationRequirements)
-  let specWithoutIdentity : ExperimentSpec := {
-    formatVersion := "umpire-experiment/v1"
-    semanticIdentity := ""
+  let specWithoutChecksum : ExperimentSpec := {
+    formatVersion := "umpire-experiment/v2"
+    artifactChecksum := experimentSpecChecksumOf ""
     queryBehaviorFingerprint := query.behaviorFingerprint
     plan
     properties
-    observationRequirements
+    observationRequirementDefinitionIds
     provenance
   }
   {
-    specWithoutIdentity with
-    semanticIdentity := (behaviorFingerprintOf (experimentSpecSemanticJson specWithoutIdentity)).render
+    specWithoutChecksum with
+    artifactChecksum := specWithoutChecksum.expectedArtifactChecksum
   }
 
 end Umpire
