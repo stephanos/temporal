@@ -41,6 +41,8 @@ baseline: green for all currently available gates; `umpire-check-regression-view
 
 stage: impl-review - ran | verdict: SHIP | session: 01a043af-24eb-72f2-a3dd-4ad6c522a3ec
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
 GATE_SKIPPED:build:green-receipt 87205aa9 - current task diff already passed the full Lean build
 GATE_SKIPPED:unittest:green-receipt 87205aa9 - current task diff already passed pinned Go tests
 GATE_SKIPPED:smoke:green-receipt 87205aa9 - current task diff already passed the regression check
