@@ -38,6 +38,7 @@ Codex review found that the first version still exposed checked-result extractio
 
 baseline: red (`cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests` hit a transient `Umpire.TargetTests.olean` ENOENT; its exact retry passed, and the other four Quick commands passed pre-edit)
 stage: impl-review - ran [2026-08-27T04:19:59Z..2026-08-27T04:23:35Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 5e5f59c2085fe9dbd209df22728a047e722ead21, 7189a5aa77e91c6bf705d04d518dcb1c75684fc2
 - Tests: baseline: red (cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests hit transient Umpire.TargetTests.olean ENOENT; exact retry passed; remaining Quick commands passed), cd model && mise exec -- lake build Umpire.Examples.SwitchTests, cd model && mise exec -- lake build Umpire.TargetTests Umpire.Examples.SwitchTests, cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression (first verification hit transient TemporalExperimentalTests.olean ENOENT; exact retry passed), make lint-model, rg -n '^import Temporal' model/Umpire/Examples/Switch.lean model/Umpire/Examples/SwitchTests.lean (no matches), git diff --check
