@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-27T00:25:04.095196Z",
+  "depends_on": [
+    "fn-36-nexus-lifecycle-cleanup.1"
+  ],
+  "id": "fn-36-nexus-lifecycle-cleanup.2",
+  "priority": null,
+  "spec": "fn-36-nexus-lifecycle-cleanup",
+  "spec_path": ".flow/tasks/fn-36-nexus-lifecycle-cleanup.2.md",
+  "status": "todo",
+  "title": "Relocate AutoClose and caller closure behind Experimental opt-in",
+  "updated_at": "2026-08-27T00:25:04.095196Z"
+}

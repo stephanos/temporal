@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-27T00:25:04.095294Z",
+  "depends_on": [
+    "fn-36-nexus-lifecycle-cleanup.3"
+  ],
+  "id": "fn-36-nexus-lifecycle-cleanup.4",
+  "priority": null,
+  "spec": "fn-36-nexus-lifecycle-cleanup",
+  "spec_path": ".flow/tasks/fn-36-nexus-lifecycle-cleanup.4.md",
+  "status": "todo",
+  "title": "Publish and enforce the core versus experimental Nexus layout",
+  "updated_at": "2026-08-27T00:25:04.095294Z"
+}

@@ -1,11 +1,11 @@
-import Temporal.Feature.Nexus.CallerClosure
+import Temporal.Feature.Nexus.Experimental.CallerClosure
 import Umpire.Property
 
-namespace Temporal.Feature.Nexus.CallerClosureTests
+namespace Temporal.Feature.Nexus.Experimental.CallerClosureTests
 
 open _root_.Umpire
-open Temporal.Feature.Nexus.CallerClosure
-open Temporal.Feature.Nexus.AutoClose
+open Temporal.Feature.Nexus.Experimental.CallerClosure
+open Temporal.Feature.Nexus.Experimental.AutoClose
 
 def declarationErrorOf
     (result : Except DeclarationError α) : Option DeclarationError :=
@@ -14,7 +14,7 @@ def declarationErrorOf
   | .ok _ => none
 
 def uniquenessSource : SemanticSource := {
-  path := "Temporal/Feature/Nexus/CallerClosureTests.lean"
+  path := "Temporal/Feature/Nexus/Experimental/CallerClosureTests.lean"
   line := 1
   column := 1
   provenance := "lean-test"
@@ -253,4 +253,4 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
       [callerClosurePropertyId] := by
   native_decide
 
-end Temporal.Feature.Nexus.CallerClosureTests
+end Temporal.Feature.Nexus.Experimental.CallerClosureTests

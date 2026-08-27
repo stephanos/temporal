@@ -17,9 +17,9 @@ func TestRequireProjectionIsIndependentOfWorkingDirectory(t *testing.T) {
 	RequireProjection(t, Reference{
 		FormatVersion: "umpire-experiment/v1",
 		Identity:      "workflow-nexus.query.exact-action-caller-closure",
-		FixturePath:   "model/Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json",
+		FixturePath:   "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
 		Sources: []string{
-			"Temporal/Feature/Nexus/CallerClosure.lean",
+			"Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
 		},
 		Properties: []string{
 			"workflow-nexus.property.caller-closure",
@@ -218,7 +218,7 @@ func TestLoadProjectionRejectsUnsafeLeanSourcePaths(t *testing.T) {
 func newProjectionRepository(t *testing.T) (string, Reference, fixtureEnvelope) {
 	t.Helper()
 	repositoryRoot := t.TempDir()
-	source := "Temporal/Feature/Nexus/CallerClosure.lean"
+	source := "Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
 	writeFile(t, filepath.Join(repositoryRoot, "model", filepath.FromSlash(source)), []byte("-- canonical source\n"))
 	fixture := fixtureEnvelope{
 		FormatVersion: supportedFormatVersion,

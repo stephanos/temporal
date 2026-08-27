@@ -123,7 +123,7 @@ UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test
 UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-proto-descriptors
 UMPIRE_REGRESSION_INSPECTOR := temporal-model-inspect
 UMPIRE_REGRESSION_FIXTURES := \
-	workflow-nexus.query.exact-action-caller-closure:Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json \
+	workflow-nexus.query.exact-action-caller-closure:Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json \
 	switch.query.exact-action:Umpire/Examples/testdata/switch-experiment-spec.json
 UMPIRE_GEN_LEAN_API_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
@@ -1094,7 +1094,7 @@ umpire-check-regression: umpire-check-regression-projections
 			echo "Umpire Planning facade does not expose its package" >&2; \
 			exit 1; \
 		}
-	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests $(UMPIRE_REGRESSION_INSPECTOR)
+	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests $(UMPIRE_REGRESSION_INSPECTOR)
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \

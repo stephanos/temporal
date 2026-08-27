@@ -1,5 +1,5 @@
 name = "temporal-model"
-defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "temporal-model-inspect"]
+defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "TemporalExperimentalTests", "temporal-model-inspect"]
 builtinLint = true
 lintDriver = "modelLint"
 
@@ -24,6 +24,10 @@ roots = ["UmpireTests"]
 [[lean_lib]]
 name = "TemporalModelTests"
 roots = ["TemporalModelTests"]
+
+[[lean_lib]]
+name = "TemporalExperimentalTests"
+roots = ["TemporalExperimentalTests"]
 
 [[lean_lib]]
 name = "ModelLintSupport"
