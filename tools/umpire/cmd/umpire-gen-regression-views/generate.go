@@ -31,7 +31,7 @@ type inspectorOutput struct {
 type generationDependencies struct {
 	Inspect  func(modelRoot, identity string) (inspectorOutput, error)
 	ReadFile func(string) ([]byte, error)
-	Render   func([]projectionRecord) (map[string][]byte, error)
+	Render   func([]generatedViewRecord) (map[string][]byte, error)
 	Publish  func(artifactio.Set, string, map[string][]byte, func(string) error) error
 }
 
@@ -48,7 +48,7 @@ func parseGenerationConfig(arguments []string) (generationConfig, error) {
 		RepositoryRoot: ".",
 		OutputRoot:     ".",
 	}
-	flags := flag.NewFlagSet("umpire-gen-regression-projections", flag.ContinueOnError)
+	flags := flag.NewFlagSet("umpire-gen-regression-views", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.StringVar(
 		&configuration.RepositoryRoot,
@@ -60,13 +60,13 @@ func parseGenerationConfig(arguments []string) (generationConfig, error) {
 		&configuration.OutputRoot,
 		"output-root",
 		configuration.OutputRoot,
-		"repository-shaped root receiving generated projections",
+		"repository-shaped root receiving generated views",
 	)
 	if err := flags.Parse(arguments); err != nil {
-		return generationConfig{}, fmt.Errorf("parse regression projection generation arguments: %w", err)
+		return generationConfig{}, fmt.Errorf("parse regression generated view generation arguments: %w", err)
 	}
 	if flags.NArg() != 0 {
-		return generationConfig{}, errors.New("regression projection generation accepts no positional arguments")
+		return generationConfig{}, errors.New("regression generated view generation accepts no positional arguments")
 	}
 	if strings.TrimSpace(configuration.RepositoryRoot) == "" {
 		return generationConfig{}, errors.New("repository root is required")
@@ -81,7 +81,7 @@ func defaultGenerationDependencies() generationDependencies {
 	return generationDependencies{
 		Inspect:  inspectExperiment,
 		ReadFile: os.ReadFile,
-		Render:   renderProjections,
+		Render:   renderGeneratedViews,
 		Publish: func(
 			set artifactio.Set,
 			root string,
@@ -102,62 +102,62 @@ func runGeneration(
 		return err
 	}
 	if err := validateManifest(entries); err != nil {
-		return fmt.Errorf("validate regression projection manifest: %w", err)
+		return fmt.Errorf("validate regression generated view manifest: %w", err)
 	}
 	repositoryRoot, err := resolveRepositoryRoot(configuration.RepositoryRoot)
 	if err != nil {
-		return fmt.Errorf("resolve regression projection repository root: %w", err)
+		return fmt.Errorf("resolve regression generated view repository root: %w", err)
 	}
 	modelRoot := filepath.Join(repositoryRoot, "model")
 	if _, _, err := resolveModelRoot(modelRoot); err != nil {
-		return fmt.Errorf("resolve regression projection model root: %w", err)
+		return fmt.Errorf("resolve regression generated view model root: %w", err)
 	}
 
-	records := make([]projectionRecord, 0, len(entries))
+	records := make([]generatedViewRecord, 0, len(entries))
 	for _, entry := range entries {
 		inspected, inspectErr := dependencies.Inspect(modelRoot, entry.Identity)
 		encoded, err := requireInspectorArtifact(entry.Identity, inspected, inspectErr)
 		if err != nil {
 			return err
 		}
-		live, err := extractProjection(entry, encoded, modelRoot)
+		live, err := extractGeneratedView(entry, encoded, modelRoot)
 		if err != nil {
-			return fmt.Errorf("inspect regression projection %q: %w", entry.Identity, err)
+			return fmt.Errorf("inspect regression generated view %q: %w", entry.Identity, err)
 		}
 
 		fixturePath, err := resolveFixturePath(repositoryRoot, entry.FixturePath)
 		if err != nil {
-			return fmt.Errorf("read regression projection fixture for %q: %w", entry.Identity, err)
+			return fmt.Errorf("read regression generated view fixture for %q: %w", entry.Identity, err)
 		}
 		fixtureBytes, err := dependencies.ReadFile(fixturePath)
 		if err != nil {
 			return fmt.Errorf(
-				"read regression projection fixture %q for %q: %w",
+				"read regression generated view fixture %q for %q: %w",
 				entry.FixturePath,
 				entry.Identity,
 				err,
 			)
 		}
-		fixture, err := extractProjection(entry, fixtureBytes, modelRoot)
+		fixture, err := extractGeneratedView(entry, fixtureBytes, modelRoot)
 		if err != nil {
-			return fmt.Errorf("validate regression projection fixture for %q: %w", entry.Identity, err)
+			return fmt.Errorf("validate regression generated view fixture for %q: %w", entry.Identity, err)
 		}
-		if err := compareProjectionRecords(live, fixture); err != nil {
-			return fmt.Errorf("cross-check regression projection fixture for %q: %w", entry.Identity, err)
+		if err := compareGeneratedViewRecords(live, fixture); err != nil {
+			return fmt.Errorf("cross-check regression generated view fixture for %q: %w", entry.Identity, err)
 		}
 		records = append(records, live)
 	}
 
 	artifacts, err := dependencies.Render(records)
 	if err != nil {
-		return fmt.Errorf("render regression projections: %w", err)
+		return fmt.Errorf("render regression generated views: %w", err)
 	}
 	if err := validateGeneratedArtifacts(entries, records, artifacts); err != nil {
-		return fmt.Errorf("validate rendered regression projections: %w", err)
+		return fmt.Errorf("validate rendered regression generated views: %w", err)
 	}
 	outputRoot, err := filepath.Abs(configuration.OutputRoot)
 	if err != nil {
-		return fmt.Errorf("resolve regression projection output root: %w", err)
+		return fmt.Errorf("resolve regression generated view output root: %w", err)
 	}
 	paths := managedArtifactPaths(entries)
 	set := artifactio.Set{Roots: slices.Clone(paths), Paths: slices.Clone(paths)}
@@ -173,7 +173,7 @@ func runGeneration(
 		return validateGeneratedArtifacts(entries, records, candidate)
 	}
 	if err := dependencies.Publish(set, outputRoot, artifacts, validateCandidate); err != nil {
-		return fmt.Errorf("publish regression projections: %w", err)
+		return fmt.Errorf("publish regression generated views: %w", err)
 	}
 	return nil
 }
@@ -181,13 +181,13 @@ func runGeneration(
 func validateGenerationDependencies(dependencies generationDependencies) error {
 	switch {
 	case dependencies.Inspect == nil:
-		return errors.New("regression projection inspector is required")
+		return errors.New("regression generated view inspector is required")
 	case dependencies.ReadFile == nil:
-		return errors.New("regression projection fixture reader is required")
+		return errors.New("regression generated view fixture reader is required")
 	case dependencies.Render == nil:
-		return errors.New("regression projection renderer is required")
+		return errors.New("regression generated view renderer is required")
 	case dependencies.Publish == nil:
-		return errors.New("regression projection publisher is required")
+		return errors.New("regression generated view publisher is required")
 	default:
 		return nil
 	}
@@ -210,7 +210,7 @@ func requireInspectorArtifact(identity string, output inspectorOutput, inspectEr
 	if inspectErr != nil {
 		if stdoutPresent {
 			return nil, fmt.Errorf(
-				"inspect regression projection %q: inspector failed while also producing stdout; diagnostic: %s: %w",
+				"inspect regression generated view %q: inspector failed while also producing stdout; diagnostic: %s: %w",
 				identity,
 				diagnosticSummary(stderr),
 				inspectErr,
@@ -218,27 +218,27 @@ func requireInspectorArtifact(identity string, output inspectorOutput, inspectEr
 		}
 		if len(stderr) != 0 {
 			return nil, fmt.Errorf(
-				"inspect regression projection %q: inspector diagnostic: %s: %w",
+				"inspect regression generated view %q: inspector diagnostic: %s: %w",
 				identity,
 				diagnosticSummary(stderr),
 				inspectErr,
 			)
 		}
-		return nil, fmt.Errorf("inspect regression projection %q: inspector failed: %w", identity, inspectErr)
+		return nil, fmt.Errorf("inspect regression generated view %q: inspector failed: %w", identity, inspectErr)
 	}
 	if !stdoutPresent {
 		if len(stderr) != 0 {
 			return nil, fmt.Errorf(
-				"inspect regression projection %q: inspector succeeded without an artifact and wrote diagnostic: %s",
+				"inspect regression generated view %q: inspector succeeded without an artifact and wrote diagnostic: %s",
 				identity,
 				diagnosticSummary(stderr),
 			)
 		}
-		return nil, fmt.Errorf("inspect regression projection %q: inspector produced an empty artifact", identity)
+		return nil, fmt.Errorf("inspect regression generated view %q: inspector produced an empty artifact", identity)
 	}
 	if len(stderr) != 0 {
 		return nil, fmt.Errorf(
-			"inspect regression projection %q: inspector succeeded with contradictory stderr: %s",
+			"inspect regression generated view %q: inspector succeeded with contradictory stderr: %s",
 			identity,
 			diagnosticSummary(stderr),
 		)
@@ -306,7 +306,7 @@ func pathIsWithin(root, target string) (bool, error) {
 	return relative != ".." && !strings.HasPrefix(relative, ".."+string(filepath.Separator)), nil
 }
 
-func compareProjectionRecords(inspected, fixture projectionRecord) error {
+func compareGeneratedViewRecords(inspected, fixture generatedViewRecord) error {
 	switch {
 	case inspected.Format != fixture.Format:
 		return errors.New("fixture format differs from inspector output")
@@ -318,8 +318,8 @@ func compareProjectionRecords(inspected, fixture projectionRecord) error {
 		return errors.New("fixture property identities differ from inspector output")
 	case !slices.Equal(inspected.ObservationRequirements, fixture.ObservationRequirements):
 		return errors.New("fixture observation-requirement identities differ from inspector output")
-	case inspected.SemanticFingerprint != fixture.SemanticFingerprint:
-		return errors.New("fixture semantic fingerprint differs from inspector output")
+	case inspected.ArtifactChecksum != fixture.ArtifactChecksum:
+		return errors.New("fixture artifact checksum differs from inspector output")
 	default:
 		return nil
 	}
@@ -336,17 +336,17 @@ func managedArtifactPaths(entries []manifestEntry) []string {
 
 func validateGeneratedArtifacts(
 	entries []manifestEntry,
-	records []projectionRecord,
+	records []generatedViewRecord,
 	artifacts map[string][]byte,
 ) error {
 	paths := managedArtifactPaths(entries)
 	if len(artifacts) != len(paths) {
-		return errors.New("generated artifact map must contain exactly the managed projection paths")
+		return errors.New("generated artifact map must contain exactly the managed generated-view paths")
 	}
 	for _, relative := range paths {
 		if _, exists := artifacts[relative]; !exists {
 			return fmt.Errorf(
-				"generated artifact map must contain exactly the managed projection paths: missing %q",
+				"generated artifact map must contain exactly the managed generated-view paths: missing %q",
 				relative,
 			)
 		}
@@ -355,10 +355,10 @@ func validateGeneratedArtifacts(
 		goSource := artifacts[record.GoOutputPath]
 		formatted, err := format.Source(goSource)
 		if err != nil {
-			return fmt.Errorf("format generated Go projection %q: %w", record.Identity, err)
+			return fmt.Errorf("format generated Go generated view %q: %w", record.Identity, err)
 		}
 		if !bytes.Equal(goSource, formatted) {
-			return fmt.Errorf("generated Go projection %q is not gofmt-normalized", record.Identity)
+			return fmt.Errorf("generated Go generated view %q is not gofmt-normalized", record.Identity)
 		}
 		if err := validateRenderedPair(
 			record,

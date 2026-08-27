@@ -1,122 +1,86 @@
 package main
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
-const supportedExperimentFormat = "umpire-experiment/v1"
+const supportedExperimentFormat = artifactv2.ExperimentFormat
 
-var canonicalProjectedJSONKeys = map[string]string{
-	"formatversion":           "formatVersion",
-	"plan":                    "plan",
-	"queryidentity":           "queryIdentity",
-	"properties":              "properties",
-	"identity":                "identity",
-	"observationrequirements": "observationRequirements",
-	"semanticidentity":        "semanticIdentity",
-	"provenance":              "provenance",
-	"sources":                 "sources",
-	"path":                    "path",
-}
-
-type sourceProjection struct {
+type sourceView struct {
 	CanonicalPath  string
 	RepositoryPath string
 }
 
-type projectionRecord struct {
+type generatedViewRecord struct {
 	Identity                string
 	Format                  string
 	FixturePath             string
 	GoOutputPath            string
 	MarkdownOutputPath      string
 	TestName                string
-	Sources                 []sourceProjection
+	Sources                 []sourceView
 	Properties              []string
 	ObservationRequirements []string
-	SemanticFingerprint     string
+	ArtifactChecksum        string
 }
 
-type experimentEnvelope struct {
-	FormatVersion           string               `json:"formatVersion"`
-	Plan                    experimentPlan       `json:"plan"`
-	Properties              []experimentProperty `json:"properties"`
-	ObservationRequirements []string             `json:"observationRequirements"`
-	SemanticIdentity        string               `json:"semanticIdentity"`
-	Provenance              experimentProvenance `json:"provenance"`
-}
+type experimentEnvelope = artifactv2.Experiment
+type experimentPlan = artifactv2.DrivePlan
+type experimentProperty = artifactv2.Property
+type experimentProvenance = artifactv2.Provenance
+type experimentSource = artifactv2.SourceLocation
 
-type experimentPlan struct {
-	QueryIdentity string `json:"queryIdentity"`
-}
-
-type experimentProperty struct {
-	Identity string `json:"identity"`
-}
-
-type experimentProvenance struct {
-	Sources []experimentSource `json:"sources"`
-}
-
-type experimentSource struct {
-	Path string `json:"path"`
-}
-
-func extractProjection(entry manifestEntry, encoded []byte, modelRoot string) (projectionRecord, error) {
+func extractGeneratedView(entry manifestEntry, encoded []byte, modelRoot string) (generatedViewRecord, error) {
 	if err := validateManifest([]manifestEntry{entry}); err != nil {
-		return projectionRecord{}, err
+		return generatedViewRecord{}, err
 	}
 	document, err := decodeExperiment(encoded)
 	if err != nil {
-		return projectionRecord{}, fmt.Errorf("extract projection %q: %w", entry.Identity, err)
+		return generatedViewRecord{}, fmt.Errorf("extract generated view %q: %w", entry.Identity, err)
 	}
 	if document.FormatVersion != supportedExperimentFormat {
-		return projectionRecord{}, fmt.Errorf(
-			"extract projection %q: unsupported format %q",
+		return generatedViewRecord{}, fmt.Errorf(
+			"extract generated view %q: unsupported format %q",
 			entry.Identity,
 			document.FormatVersion,
 		)
 	}
-	if document.Plan.QueryIdentity != entry.Identity {
-		return projectionRecord{}, fmt.Errorf(
-			"extract projection %q: query identity mismatch: got %q",
+	if document.Plan.QueryDefinitionID != entry.Identity {
+		return generatedViewRecord{}, fmt.Errorf(
+			"extract generated view %q: query definition ID mismatch: got %q",
 			entry.Identity,
-			document.Plan.QueryIdentity,
+			document.Plan.QueryDefinitionID,
 		)
 	}
-	if strings.TrimSpace(document.SemanticIdentity) == "" {
-		return projectionRecord{}, fmt.Errorf("extract projection %q: semantic identity is empty", entry.Identity)
+	if strings.TrimSpace(document.ArtifactChecksum) == "" {
+		return generatedViewRecord{}, fmt.Errorf("extract generated view %q: artifact checksum is empty", entry.Identity)
 	}
 
-	sources, err := projectSources(modelRoot, document.Provenance.Sources)
+	sources, err := projectSources(modelRoot, document.Provenance.SourceLocations)
 	if err != nil {
-		return projectionRecord{}, fmt.Errorf("extract projection %q: %w", entry.Identity, err)
+		return generatedViewRecord{}, fmt.Errorf("extract generated view %q: %w", entry.Identity, err)
 	}
 	properties, err := canonicalIdentities("property", propertyIdentities(document.Properties))
 	if err != nil {
-		return projectionRecord{}, fmt.Errorf("extract projection %q: %w", entry.Identity, err)
+		return generatedViewRecord{}, fmt.Errorf("extract generated view %q: %w", entry.Identity, err)
 	}
-	requirements, err := canonicalIdentities("observation requirement", document.ObservationRequirements)
+	requirements, err := canonicalIdentities("observation requirement", document.ObservationRequirementDefinitionIDs)
 	if err != nil {
-		return projectionRecord{}, fmt.Errorf("extract projection %q: %w", entry.Identity, err)
+		return generatedViewRecord{}, fmt.Errorf("extract generated view %q: %w", entry.Identity, err)
 	}
 	testName, err := deriveTestName(entry.Identity)
 	if err != nil {
-		return projectionRecord{}, fmt.Errorf("extract projection %q: %w", entry.Identity, err)
+		return generatedViewRecord{}, fmt.Errorf("extract generated view %q: %w", entry.Identity, err)
 	}
-	digest := sha256.Sum256([]byte(document.SemanticIdentity))
-	return projectionRecord{
+	return generatedViewRecord{
 		Identity:                entry.Identity,
 		Format:                  document.FormatVersion,
 		FixturePath:             entry.FixturePath,
@@ -126,108 +90,22 @@ func extractProjection(entry manifestEntry, encoded []byte, modelRoot string) (p
 		Sources:                 sources,
 		Properties:              properties,
 		ObservationRequirements: requirements,
-		SemanticFingerprint:     "sha256:" + hex.EncodeToString(digest[:]),
+		ArtifactChecksum:        document.ArtifactChecksum,
 	}, nil
 }
 
 func decodeExperiment(encoded []byte) (experimentEnvelope, error) {
-	if len(bytes.TrimSpace(encoded)) == 0 {
-		return experimentEnvelope{}, errors.New("canonical ExperimentSpec JSON is empty")
-	}
-	if err := validateCanonicalJSON(encoded); err != nil {
-		return experimentEnvelope{}, fmt.Errorf("decode canonical ExperimentSpec JSON: %w", err)
-	}
-	var document experimentEnvelope
-	if err := json.Unmarshal(encoded, &document); err != nil {
+	document, err := artifactv2.DecodeExperiment(encoded)
+	if err != nil {
 		return experimentEnvelope{}, fmt.Errorf("decode canonical ExperimentSpec JSON: %w", err)
 	}
 	return document, nil
 }
 
-func validateCanonicalJSON(encoded []byte) error {
-	decoder := json.NewDecoder(bytes.NewReader(encoded))
-	decoder.UseNumber()
-	first, err := decoder.Token()
-	if err != nil {
-		return err
-	}
-	if err := validateJSONValue(decoder, first); err != nil {
-		return err
-	}
-	if _, err := decoder.Token(); err == nil {
-		return errors.New("trailing JSON value")
-	} else if !errors.Is(err, io.EOF) {
-		return err
-	}
-	return nil
-}
-
-func validateJSONValue(decoder *json.Decoder, token json.Token) error {
-	delimiter, structured := token.(json.Delim)
-	if !structured {
-		return nil
-	}
-	switch delimiter {
-	case '{':
-		seen := make(map[string]struct{})
-		for decoder.More() {
-			keyToken, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			key, ok := keyToken.(string)
-			if !ok {
-				return fmt.Errorf("JSON object key has type %T", keyToken)
-			}
-			if _, duplicate := seen[key]; duplicate {
-				return fmt.Errorf("duplicate JSON object key %q", key)
-			}
-			seen[key] = struct{}{}
-			if canonical, projected := canonicalProjectedJSONKeys[strings.ToLower(key)]; projected && key != canonical {
-				return fmt.Errorf("JSON object key %q must be spelled %q", key, canonical)
-			}
-			value, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			if err := validateJSONValue(decoder, value); err != nil {
-				return err
-			}
-		}
-		closing, err := decoder.Token()
-		if err != nil {
-			return err
-		}
-		if closing != json.Delim('}') {
-			return fmt.Errorf("unexpected JSON object delimiter %q", closing)
-		}
-	case '[':
-		for decoder.More() {
-			value, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			if err := validateJSONValue(decoder, value); err != nil {
-				return err
-			}
-		}
-		closing, err := decoder.Token()
-		if err != nil {
-			return err
-		}
-		if closing != json.Delim(']') {
-			return fmt.Errorf("unexpected JSON array delimiter %q", closing)
-		}
-	default:
-		return fmt.Errorf("unexpected JSON delimiter %q", delimiter)
-	}
-	return nil
-}
-
 func propertyIdentities(properties []experimentProperty) []string {
 	result := make([]string, 0, len(properties))
 	for _, property := range properties {
-		result = append(result, property.Identity)
+		result = append(result, property.DefinitionID)
 	}
 	return result
 }
@@ -249,7 +127,7 @@ func canonicalIdentities(kind string, identities []string) ([]string, error) {
 	return result, nil
 }
 
-func projectSources(modelRoot string, sources []experimentSource) ([]sourceProjection, error) {
+func projectSources(modelRoot string, sources []experimentSource) ([]sourceView, error) {
 	if len(sources) == 0 {
 		return nil, errors.New("at least one provenance source is required")
 	}
@@ -268,12 +146,12 @@ func projectSources(modelRoot string, sources []experimentSource) ([]sourceProje
 		canonical = append(canonical, source.Path)
 	}
 	slices.Sort(canonical)
-	result := make([]sourceProjection, 0, len(canonical))
+	result := make([]sourceView, 0, len(canonical))
 	for index, source := range canonical {
 		if index > 0 && source == canonical[index-1] {
 			return nil, fmt.Errorf("duplicate provenance source %q", source)
 		}
-		result = append(result, sourceProjection{
+		result = append(result, sourceView{
 			CanonicalPath:  source,
 			RepositoryPath: path.Join("model", source),
 		})
@@ -363,7 +241,7 @@ func deriveTestName(identity string) (string, error) {
 	return name.String(), nil
 }
 
-func validateTestNames(records []projectionRecord) error {
+func validateGeneratedViewTestNames(records []generatedViewRecord) error {
 	owners := make(map[string]string, len(records))
 	for _, record := range records {
 		derived, err := deriveTestName(record.Identity)
@@ -371,11 +249,11 @@ func validateTestNames(records []projectionRecord) error {
 			return err
 		}
 		if record.TestName != derived {
-			return fmt.Errorf("projection %q has invalid Go test name %q", record.Identity, record.TestName)
+			return fmt.Errorf("generated view %q has invalid Go test name %q", record.Identity, record.TestName)
 		}
 		if previous, exists := owners[record.TestName]; exists {
 			return fmt.Errorf(
-				"projection identities %q and %q collide as Go test name %q",
+				"generated view identities %q and %q collide as Go test name %q",
 				previous,
 				record.Identity,
 				record.TestName,
