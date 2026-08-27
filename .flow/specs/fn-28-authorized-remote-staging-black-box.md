@@ -1,364 +1,165 @@
-# Authorized remote staging black-box execution and Claim Assessment
+# Black-box staging execution
 
 > HTML render lens (local): open `.flow/artifacts/fn-28-authorized-remote-staging-black-box/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
-Remote staging is authorized only when a named Temporal operational owner supplies the closed profile, protected workflow/environment, credentials, leases, cleanup/recovery policy, and retained-artifact channel. It consumes the same complete ExperimentSpec and shared runner and Run Evaluation contracts; later Claim Assessment remains a separate offline step; no staging-specific semantic copy or fn-14 pilot gate exists.
+Fn-28 is a portability proof, not a Claim Assessment platform. It consumes the byte-identical v2
+`ExperimentSpec`, the existing runner, and the canonical Run Evaluation authority. The named
+operational owner must already provide the fixed staging profile and harness, fail-closed authority,
+target preflight, concurrency one, fixed Limits, isolation, cleanup verification, and postflight
+target identity. If any control is unavailable, the run is blocked before remote mutation; Umpire
+does not build a replacement control plane.
 
 ## Overview
 
-Add the first authorized non-loopback C12 profile for the current semantic model. The profile runs
-the same byte-identical ExperimentSpec used by the local and CI slices against one preallocated
-Temporal staging namespace and Nexus endpoint, observes only the public gRPC boundary plus
-runner-owned participant receipts, reuses the canonical Lean Run Evaluation authority, and publishes a
-profile-scoped Claim Assessment receipt.
-
-The production path is intentionally closed: one manual protected workflow, one compiled runtime
-and Claim Assessment profile, one out-of-band mTLS authority bundle, one server-enforced lease, one
-bounded caller-closure action, and one immutable output. No command argument can select an endpoint,
-namespace, credential, semantic checker, action, retry policy, or claim strength.
+Run the same normal caller-closure `ExperimentSpec` used locally and in CI against one controlled
+nonproduction Temporal endpoint. Observe only public gRPC Evidence and participant-owned Execution
+Receipts, perform cleanup before Run Evaluation, and retain an ordinary fn-18 run/evidence/result set.
+Also provide a canary dry-run fixture that proves the same Artifact bytes and model bindings can be
+bound to an owner-supplied canary profile without granting production Execution authority.
 
 ## Goal & Context
 <!-- scope: business -->
 
-Local and hermetic CI Claim Assessment prove that the semantic artifact and checker composition work in
-disposable environments. They do not prove that the same Behavior Fingerprint survives an authorized
-remote boundary with weaker evidence, external target identity, shared infrastructure, and cleanup
-obligations. This slice gives developers and operators one inspectable staging answer without
-generalizing it into production readiness.
-
-Developers receive a comparable ExperimentRun, Result, and Claim Assessment receipt for the same
-ExperimentSpec. Operators receive a manual, least-privilege workflow whose authority, target,
-limits, cleanup, Known Gaps, and escalation behavior are explicit. Release automation receives no
-new eligibility signal.
+Developers need one inspectable answer to whether the portable Test Plan and Run Evaluation contract
+survive a public remote boundary. Operators remain responsible for the staging environment and its
+existing controls. This slice supplies no release signal, environment Claim Assessment, or generalized
+remote management machinery.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-```mermaid
-flowchart LR
-  S[Same ExperimentSpec] --> A[Strict input admission]
-  P[Protected authority] --> T[Target preflight + lease]
-  A --> T
-  T --> X[Bounded public-gRPC execution]
-  X --> K[Cleanup + postflight]
-  K --> E[Closed Run + public evidence]
-  E --> C[Canonical Lean Run Evaluation]
-  C --> Q[Remote profile Claim Assessment]
-  Q --> R[Receipt v4 + ArtifactSet v5]
-  R --> O[Immutable publication]
+```text
+byte-identical v2 ExperimentSpec
+  -> owner-supplied fixed staging binding + preflight
+  -> one bounded public-gRPC Execution
+  -> participant/public Evidence + verified cleanup/postflight
+  -> existing Observation Evaluation / Implementation Link / Property path
+  -> ordinary Run Evaluation Result
+
+same Artifact + canary binding -> dry-run validation only -> no production authority
 ```
 
-### Ownership and purity
+The staging adapter owns only the narrow binding to the existing harness. It does not add an
+Evaluation Profile or Evaluation Receipt, does not evolve `ArtifactSet`, and does not introduce a
+new persisted authority, lease, recovery, progress, provenance, or Claim Assessment schema. Target
+coordinates and credentials remain owner-supplied runtime inputs and never enter portable Artifacts,
+Behavior Fingerprints, Generated Views, logs, or retained Evidence.
 
-The reusable Claim Assessment package adds only domain-neutral v4 vocabulary for a remote environment,
-authority capabilities, target/lease attestations, public-boundary evidence requirements, cleanup,
-trust, and profile-scoped claim strength. It contains no Temporal, Nexus, staging target, endpoint,
-namespace, task queue, credential, workflow-provider, repository, or checker name.
-
-Temporal-owned modules define the concrete `remote-staging-public-grpc` runtime and Claim Assessment
-profiles, the fixed caller-closure program binding, and the public-evidence Observation mapping. The
-existing pure Query, Property, Behavior, transition kernel, and Result semantics remain unchanged.
-The Go remote adapter owns secret-bearing authority acquisition and public Temporal transport. The Go
-staging controller composes admission, execution, Run Evaluation, Claim Assessment, receipt construction,
-and publication without interpreting semantic facts.
-
-### Exact profile
-
-`EvaluationProfile/v4` adds one generic remote environment class and the reusable requirements
-needed by this slice. Its only compiled Temporal instance is
-`temporal.evaluation-profile.remote-staging-public-grpc`, version 4. It requires the exact remote
-RuntimeConfiguration, public-history and participant/control/cleanup evidence closures, operational
-success, accepted evidence, satisfied semantics, complete cleanup, protected-environment mTLS
-authority, target identity stability, an exclusive lease, formal evidence not provided, and claim
-strength `environment-accepted-remote`.
-
-The profile always records Known Gaps for server-internal telemetry, in-process server state,
-authenticated builder provenance, formal evidence, production traffic, canary coverage, and release
-eligibility. Those Known Gaps are compatible with an accepted staging receipt because the profile
-never requires the missing capabilities.
-
-### Protected authority and target identity
-
-The production command reads one closed `ProtectedRemoteAuthority/v2` bundle from the fixed process
-environment established by the protected workflow. The in-memory bundle contains the fixed
-environment identity, TLS endpoint and server name, namespace, Nexus endpoint, root CA, client
-certificate and key, and credential expiry. It is capped at 1 MiB, rejects unknown/duplicate/missing
-fields and trailing data, requires a hostname TLS endpoint, and must remain valid through the total
-run and cleanup budget. It is never accepted from a flag, stdin, repository file, artifact, or
-unprotected workflow input.
-
-Before mutation, the adapter proves the expected environment identity, certificate chain and server
-name, client-certificate validity, registered namespace, exact Nexus endpoint target, and required
-public API capabilities. The resulting target fingerprint is made only from checked identities and
-SHA-256 digests; raw endpoints, namespace/task-queue names, certificate/key bytes, payloads, and
-headers never enter an artifact, summary, error, log, or Behavior Fingerprint. The fingerprint is read
-again after cleanup. A preflight mismatch performs no remote mutation; post-dispatch drift yields an
-incomplete receipt.
-
-### Lease, blast radius, and cleanup
-
-One fixed lease workflow ID serializes the protected environment. Acquisition uses conflict-fail
-semantics and a unique invocation binding; only the winner starts a worker. The server-issued lease
-run identity is the fence for all later mutations. An ambiguous start is resolved by one read-only
-Describe against the expected invocation binding; no second start is sent. A conflicting or
-unverifiable lease fails before experiment dispatch.
-
-The lease and caller workflows have server-enforced execution timeouts longer than their phase
-budgets. The client sends each start command at most once and never redispatches an operation.
-Target-owned Nexus delivery retry cannot be disabled through the public SDK, so every handler
-delivery is correlated and retained while an idempotency guard permits exactly one semantic
-force-close mutation. Duplicate delivery changes operational evidence, never semantic authority.
-One worker, two run-owned workflows, one Nexus operation command, one semantic mutation, 64 public
-API calls, one read-only ambiguity lookup per start, one 16-MiB RawEvidence v2 artifact, and eight
-minutes wall time are hard maxima. Namespace, endpoint, task-queue, search-attribute, dynamic-
-configuration, deployment, and server configuration mutation are forbidden.
-
-Cleanup runs under a fresh bounded context on every exit after lease acquisition. It stops the Nexus
-participant, closes or terminates only the fenced caller, releases or terminates only the exact lease
-run, stops the worker/client, verifies both run-owned workflow identities are terminal, and then
-rechecks the target fingerprint. Only after this step are RawEvidence, remote provenance,
-Run Evaluation, Claim Assessment, and the receipt finalized.
-
-Immediately after lease acquisition, the run mode atomically creates a mode-0600
-`RemoteRecoveryRecord/v2` at the fixed runner-temp path supplied by the protected workflow and
-updates it after dispatch and cleanup transitions. It contains the invocation binding, exact lease
-workflow/run fence, deterministic caller identity, dispatch state, preflight fingerprint digest,
-and expiry; it contains no endpoint, namespace, task queue, credential, payload, or artifact claim.
-The record is not an Umpire artifact and is never uploaded. The same binary's closed reconcile mode
-reads that record, re-acquires the protected authority, revalidates its invocation/target/fence, and
-may only terminate or verify the exact recorded resources; it cannot dispatch, conform, qualify, or
-publish. The always-run workflow step invokes reconciliation after a nonzero run and removes the
-record only after terminal verification. Server execution timeouts remain the backstop when the
-runner disappears before reconciliation can execute. Cleanup never deletes or alters the
-preallocated namespace or endpoint.
-
-### Black-box semantic evidence
-
-The remote run retains the ordinary Run and RawEvidence v2 families. Its four allowed sources are
-runner participant output, public workflow history, the public control receipt, and the cleanup/
-reconciliation receipt. The Temporal-owned mapping accepts only the exact source schemas and derives
-the existing caller-closure Observation coordinates; it does not inspect server logs, metrics,
-database state, internal RPCs, or payload bodies.
-
-Missing or ambiguous required public facts produce `unknown`; a profile incapable of exposing a
-required coordinate produces `unsupported`; contradictory identity or ordering facts produce
-`conflict`. None can become a satisfied semantic claim. Equivalent accepted facts continue through
-the same pure Property evaluator and yield the same evaluation-outcome identity as local and CI while
-runtime, run, provenance, receipt, and artifact-set identities remain distinct.
-
-### Persisted Claim Assessment boundary
-
-`RemoteClaimAssessmentProvenance/v2` is a reusable, secret-free value containing authority mode and
-expiry class, target pre/post fingerprint digests, lease/fence identity digests, invocation binding,
-enforced limits, public capability/evidence closures, cleanup/reconciliation status, trust class,
-and declared Known Gaps. The concrete meanings and fixed values are Temporal-owned.
-
-`EvaluationReceipt/v4` retains the v3 receipt contract and adds the exact remote provenance plus
-the remote environment/profile binding and remote-specific reason set. `ArtifactSet/v5` contains the
-six byte-identical ordinary source members and one v4 receipt with the existing single
-evaluation-receipt-result relationship. V2, v3, and v4 set readers and v2/v3 receipt readers remain
-byte-for-byte unchanged and reject descendant versions; this is a derived set, not a migration.
-
-Remote-specific reasons accumulate with the existing pilot, operational, evidence, semantic, phase,
-source, and cleanup reasons. `remote-authority-lost`, `remote-target-drift`,
-`remote-dispatch-ambiguous`, and `remote-lease-unknown` are incomplete-class.
-`remote-scope-escape`, `remote-fence-violation`, and a definitive run-owned cleanup failure are
-rejected-class. Rejected dominates incomplete. Authority/profile/target/lease failure before the
-experiment is dispatched is a tooling error with no receipt; after dispatch, every constructible
-non-success result is published honestly with independent statuses intact.
+Public Evidence is admitted through the existing fn-18/fn-20 boundaries. Environment-specific facts
+may establish operational preflight, cleanup, and postflight outcomes, but cannot establish Feature
+meaning or alter Observation Evaluation. The final Result keeps operational, Observation Evaluation,
+Implementation Link, Property, cleanup, and tooling outcomes independent.
 
 ## API Contracts
 <!-- scope: technical -->
 
-The only production binary has two closed modes:
-
-```text
-umpire-assess-remote-staging run --set <directory> --pilot-evidence <directory> --output-root <directory> --run-id <id>
-umpire-assess-remote-staging reconcile --run-id <id>
-```
-
-Neither mode accepts a target, environment, endpoint, namespace, task queue, credential, profile,
-property, action, timeout, retry, checker, executable, publication, or output-format override.
-`run-id` is a bounded non-secret invocation identity used only to derive deterministic run-owned
-resource IDs and provenance. The fixed protected workflow supplies it from its immutable run
-identity. Reconcile reads only the fixed protected authority and recovery-record paths from the
-workflow environment, performs no experiment or publication action, and treats a missing record as
-a canonical no-op rather than starting a run.
-
-Status 0 means an accepted remote-staging receipt was published. Status 2 means a valid rejected or
-incomplete receipt was published. Status 1 means a tooling failure; it publishes no success summary
-and reports whether remote dispatch, cleanup, and publication occurred so callers never infer that a
-rerun is safe. Summaries and errors are canonical, secret-free, single-line records. A reporting
-failure after immutable publication names the destination and forbids automatic rerun.
-
-Long-running observability uses a separate bounded, secret-free `RemoteProgress/v2` JSONL channel at
-the fixed runner-temp path supplied by the protected workflow; canonical stdout/stderr terminal
-records remain unchanged. Events have only sequence, phase, state, elapsed/remaining-budget buckets,
-dispatch/cleanup-required booleans, and a closed message code. Phases are authority, target, lease,
-execution, cleanup, postflight, Run Evaluation, Claim Assessment, publication, and reconciliation; states
-are started, heartbeat, completed, and failed. Phase transitions and at most one heartbeat per 30
-seconds are capped at 256 events and 64 KiB. The workflow streams this channel to its job log and may
-retain it as a diagnostic, but it never enters Claim Assessment artifacts or identities.
-
-The repository-root Makefile exposes only the run mode through the corresponding fixed target with required set,
-pilot-evidence, output-root, and run-id inputs. The separate manual workflow has no user-selected
-target or semantic inputs, uses the fixed protected environment, pinned actions, read-only repository
-permission, one concurrency group, a hard job timeout, runner-temp secret/output roots, and an
-always-run evidence upload/cleanup path. It is not referenced by default CI, deployment, promotion,
-canary, or release workflows.
+- The production entry point accepts the admitted v2 input set and one compiled fixed staging binding;
+  it exposes no endpoint, namespace, credential, participant, retry, checker, Property, or target
+  selector.
+- Before any mutation, the adapter asks the existing harness to validate authority, target identity,
+  isolation, concurrency one, and sufficient remaining wall/API Limits. A missing or failed control
+  blocks the run and performs no remote mutation.
+- The adapter dispatches one bounded caller-closure operation, records public history plus
+  participant-owned Execution Receipts, and never reads server-internal state.
+- Cleanup and postflight identity verification complete before the evidence set reaches Run
+  Evaluation. Uncertain cleanup remains an honest non-success.
+- The canary dry-run validates only Artifact bytes, format version, Artifact Checksum, Behavior
+  Fingerprints, required public Evidence capabilities, and the absence of production Execution
+  authority. It sends no production RPC.
+- Publication reuses the ordinary fn-18 complete-set path. No new member family or set version is
+  created by this spec.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- Malformed input, authority, profile, target identity, or pilot evidence fails before remote
-  mutation and publishes no receipt.
-- Lease conflict or an ambiguous lease that cannot be proven to belong to this invocation starts no
-  worker or experiment and performs no retry.
-- Every ambiguous experiment dispatch is resolved by one exact read-only lookup; unresolved state is
-  incomplete and cleanup proceeds without a second dispatch. Target-owned handler redelivery is
-  recorded and deduplicated to one semantic mutation rather than claimed absent.
-- Loss of authority, cancellation, target drift, participant crash, evidence truncation, missing or
-  invalid recovery state, or public
-  API unavailability after dispatch preserves all constructible evidence and cannot yield accepted.
-- Scope escape or a definitive fenced cleanup failure is rejected even when the semantic Result is
-  satisfied. Cleanup uncertainty is incomplete. Semantic violation remains rejected independently.
-- Concurrent or repeated publication is idempotent only for byte-identical content; a conflicting
-  writer, symlink/alias change, crossed source set, or changed output identity fails closed.
-- Raw target coordinates, credentials, headers, payloads, arbitrary remote errors, and tenant data
-  are never retained. Only closed error classes and checked digests cross the artifact boundary.
-- A green synthetic public-gRPC integration harness proves protocol behavior, not that the protected
-  staging environment was exercised. Only the manual protected workflow may issue the staging claim.
+- Authority, target, isolation, cleanup, or postflight uncertainty blocks success and cannot be
+  converted to a Property result or Claim Assessment.
+- Concurrency is exactly one because the owner-supplied harness enforces it; Umpire adds no lease or
+  scheduler.
+- Retry and ambiguity behavior comes from the existing harness. The adapter never implements a
+  recovery controller, redispatch loop, or crash-resume protocol.
+- Public Evidence at the exact Limit is admitted; Limit plus one fails at the responsible boundary.
+- The same semantic facts may yield the same Run Evaluation outcome while environment/run identities
+  remain distinct.
+- Existing comments are preserved in reused source and documentation.
 
 ## Quick commands
 
 ```bash
-cd model && mise exec -- lake build Umpire.Evaluation.Tests Temporal.System.Execution.RemoteStagingTests Temporal.System.Evaluation.RemoteStagingTests
-go test -count=1 ./tools/umpire/temporal/remote/... ./tools/umpire/runevaluation/... ./tools/umpire/artifact/... ./tools/umpire/staging/...
-make umpire-assess-remote-staging SET=<input-set> PILOT_EVIDENCE=<pilot-evidence> OUTPUT_ROOT=<runner-temp-output> RUN_ID=<workflow-run-id>
-make umpire-check-regression
+cd model && mise exec -- lake build TemporalModelTests
+mise exec -- go test ./tools/umpire/staging/...
+mise exec -- go test ./tools/umpire/cmd/umpire-run-fixed-staging/...
+mise exec -- make umpire-check-regression
 ```
-
-## Boundaries
-<!-- scope: business -->
-
-- No arbitrary remote target, cloud, namespace, endpoint, scenario, action, property, or evidence
-  profile selection.
-- No namespace/endpoint provisioning or deletion, deployment mutation, fault injection, production
-  traffic, canary control, or automatic remediation.
-- No server-internal evidence, telemetry, payload retention, formal proof, authenticated builder
-  provenance, cross-environment aggregation, release graph, or release eligibility.
-- No new semantic Property, Behavior, Query, transition, planner, ExperimentSpec, or alternate
-  semantic evaluator.
-- No migration, compatibility alias, permissive reader, automatic rerun, scheduled/default workflow,
-  or retained accepted staging fixture produced by tests.
-
-## Decision Context
-<!-- scope: both -->
-
-Use a preallocated target and a fixed protected environment because target provisioning and generic
-remote selection would enlarge both authority and blast radius without helping the first black-box
-claim. Keep authority material out of semantic/runtime artifacts; possession and target checks are
-operational provenance, while the ExperimentSpec remains portable.
-
-Use a server-enforced workflow lease plus hard workflow timeouts instead of a new external lock or
-cleanup service. This serializes the fixed task queue, gives every mutation a fence, and structurally
-Limits residue if the runner disappears. A runner-temp recovery record and closed reconcile mode
-cover ordinary process failure without becoming a second target-selection or execution surface.
-Treat target-owned Nexus redelivery as observed operational evidence and enforce idempotent semantic
-mutation because the public SDK cannot truthfully disable the server policy. Reuse ordinary
-Run/RawEvidence/Result artifacts and the canonical Lean checker rather than inventing a remote
-semantic IR. Defer production canary and release aggregation because their authority and claim
-classes are different.
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** A domain-neutral EvaluationProfile v4 and one Temporal-owned
-  `remote-staging-public-grpc` instance express the exact remote environment, authority, public
-  evidence, cleanup, trust, Known Gap, and claim policy without introducing Temporal or scenario
-  vocabulary into reusable Umpire. Errors: unknown/duplicate/contradictory/broadened requirements,
-  wrong profile/version/digest, secret-bearing field, or any v2/v3 mutation rejects.
-- **R2:** The byte-identical ExperimentSpec is paired with one distinct remote RuntimeConfiguration
-  and exact Temporal-owned public-evidence mapping while the existing Query, Property, Behavior,
-  transition, and Result authorities remain unchanged. Errors: changed ExperimentSpec, arbitrary
-  target/semantic selector, wrong program/source schema, missing coordinate, ambiguity, conflict, or
-  unsupported public capability cannot produce an accepted satisfied result.
-- **R3:** Production authority is acquired only from the fixed protected environment, held only in
-  memory, and preflights the exact TLS identity, registered namespace, Nexus endpoint, credential
-  validity, public capabilities, and target fingerprint before mutation. Errors: missing/malformed/
-  oversized/stale authority, unknown field, IP/insecure endpoint, certificate/hostname mismatch,
-  target mismatch, secret disclosure, or unprotected invocation performs no remote mutation and
-  yields no receipt.
-- **R4:** One exclusive server-enforced lease/fence and exact hard limits bound the public-gRPC
-  participant to one worker, two run-owned workflows, one Nexus operation command, one idempotent
-  semantic mutation, zero client redispatch, 64 API calls, one 16-MiB RawEvidence v2 artifact, and
-  eight minutes; target-owned handler delivery attempts are correlated evidence and namespace/
-  endpoint/configuration mutation is impossible. Errors: conflict, unverifiable ambiguous
-  acquisition, stale fence, duplicate command or delivery, limit N+1, scope escape, cancellation,
-  timeout, participant crash, or target drift follows the specified deduplicated non-success
-  behavior.
-- **R5:** Cleanup and reconciliation run on every post-lease exit under fresh Limits, affect only the
-  exact fenced caller/lease resources, verify terminal state and postflight target identity, and are
-  backed by an atomic runner-temp recovery record plus server execution timeouts. Errors: runner
-  loss, missing/malformed/stale/tampered recovery record, authority loss, ambiguous dispatch, partial
-  startup, cleanup timeout/failure/uncertainty, unrelated-resource encounter, or fingerprint drift
-  can never be accepted, redispatch, publish, or delete/alter the preallocated target.
-- **R6:** Remote evidence enters the unchanged canonical Lean Run Evaluation authority through one fixed
-  profile mapping and preserves operational, Observation Evaluation, semantic, cleanup, authority,
-  target, lease, and trust statuses independently. Errors: missing/extra/crossed/stale source,
-  internal-only evidence, payload-derived meaning, unknown/unsupported/conflict fact, checker drift,
-  or semantic violation maps to the exact non-success class without a second evaluator.
-- **R7:** Secret-free RemoteClaimAssessmentProvenance v2, EvaluationReceipt v4, and ArtifactSet v5
-  have exact canonical identities, limits, reason precedence, source closure, and immutable
-  publication while prior receipt/set versions and source-member bytes remain unchanged. Errors:
-  raw target/credential/payload data, version crossing, stale/crossed provenance, missing/extra/
-  duplicate member or relation, reason/status mismatch, cardinality/token/byte N+1, output alias
-  race, or conflicting writer rejects or yields only the specified truthful non-success artifact.
-- **R8:** One deep staging controller and one binary with closed run/reconcile modes perform ordered
-  admission, authority preflight, lease, execution, cleanup/postflight, evidence/provenance closure,
-  Run Evaluation, Claim Assessment, construction, and one final publication with canonical status 0/1/2
-  records plus a separate bounded progress channel. Errors: malformed arguments/recovery state,
-  stage failure, valid non-success, cancellation, reporting-after-publication, cleanup uncertainty,
-  progress failure, or publication conflict preserves exact dispatch/cleanup/publication facts and
-  never redispatches, reruns Run Evaluation, qualifies, or republishes from reconcile mode.
-- **R9:** A manual protected least-privilege workflow, workflow-only recovery protocol, independent
-  public-boundary integration harness, mutation matrices, aggregate checks, and operator
-  documentation prove the closed profile and its limitations. Errors: selectable target/semantics,
-  unpinned action, broader trigger/permission, missing protected environment/concurrency/timeout/
-  progress/always-run reconciliation, uploaded recovery record, secret-bearing artifact/log,
-  default/deploy/release coupling, synthetic staging claim, changed generated regression,
-  model-local Make change, or missing abort/escalation/retention guidance fails completion.
-- **R10:** A named operational owner and protected authority boundary own staging endpoints, credentials, namespaces, leases, recovery, cleanup, rate/concurrency limits, and retained artifacts, while Umpire supplies only stable artifacts, runner, Run Evaluation, and Claim Assessment interfaces. The exact complete ExperimentSpec remains byte-identical across environments and fn-14 is not a gate. Errors: ambient/unnamed authority, staging semantic copies, Umpire-owned credentials/policy, changed Behavior Fingerprint, or missing owner/cleanup/recovery closure prevents execution and Claim Assessment.
+- **R1:** One compiled fixed staging binding names the owner-supplied harness and required authority,
+  target, isolation, concurrency-one, Limit, cleanup, and postflight controls without adding portable
+  environment or Claim Assessment vocabulary.
+- **R2:** The adapter consumes the byte-identical local v2 `ExperimentSpec` and preserves its format,
+  Artifact Checksum, Behavior Fingerprints, and all admitted source bytes.
+- **R3:** One bounded public-gRPC Execution records only public Evidence and participant-owned
+  Execution Receipts, with no server-internal Evidence or semantic interpretation in Go.
+- **R4:** Cleanup and postflight complete before the existing Run Evaluation path; operational,
+  Observation Evaluation, Implementation Link, Property, cleanup, and tooling outcomes remain
+  independent.
+- **R5:** A canary dry-run fixture proves the same Artifact/model bindings and required Evidence
+  capabilities without credentials, production RPC, or production Execution authority.
+- **R6:** Negative fixtures prove missing owner controls, authority/target drift, concurrency or Limit
+  breach, cleanup uncertainty, secret leakage, and attempted target selection fail closed. No
+  protected workflow, lease system, recovery controller, Evaluation Receipt/Profile, new ArtifactSet,
+  or Claim Assessment platform is introduced.
 
 ## Early proof point
 
-Task fn-28-authorized-remote-staging-black-box.3 proves that the production boundary can acquire a
-closed protected authority, establish a stable target fingerprint, and fail before mutation on every
-mismatch. If that cannot be done without leaking target selection or secrets into artifacts,
-reconsider the protected-environment adapter before implementing lease or execution work.
+The first integration test must bind the existing harness to the exact v2 Artifact and complete
+preflight without broadening the command surface. If the owner-supplied controls are unavailable, the
+spec is blocked rather than implementing substitutes in Umpire.
+
+## Boundaries
+<!-- scope: business -->
+
+- No general remote target selector, protected workflow, lease system, recovery controller, or
+  progress/checkpoint service.
+- No Evaluation Profile, Evaluation Receipt, Claim Assessment, release eligibility, canary Execution,
+  deployment, routing, or production mutation.
+- No server-internal Evidence, staging-specific semantic mapper, second Run Evaluation authority, or
+  new Artifact family/set version.
+
+## Decision Context
+<!-- scope: both -->
+
+### Motivation
+<!-- scope: business -->
+
+A narrow black-box run answers the portability question without turning a prototype test tool into an
+environment control plane.
+
+### Implementation Tradeoffs
+<!-- scope: technical -->
+
+Requiring an existing owner-supplied harness can block delivery, but it keeps authority, isolation,
+and cleanup with the operational owner and makes Umpire's interface substantially smaller.
 
 ## References
 
-- Flow spec fn-14 — retained pilot decision and Lean-first authorization.
-- Flow spec fn-18 — strict versioned artifacts, set admission, and immutable publication.
-- Flow specs fn-19 and fn-20 — bounded participant runtime and canonical semantic Run Evaluation.
-- Flow specs fn-26 and fn-27 — Claim Assessment profile/receipt evolution and environment-specific
-  status preservation.
-- Umpire component and DSL plans — reusable semantic ownership and profile-evaluated Result doctrine.
+- `.plans/UMPIRE4_ORDER.md` — retained fn-28 portability scope and deferred control-plane work.
+- `.flow/specs/fn-18-versioned-umpire-artifact-boundary.md` — v2 Artifact admission/publication.
+- `.flow/specs/fn-19-bounded-local-temporal-execution-and.md` — shared runner lifecycle.
+- `.flow/specs/fn-20-local-execution-semantic-conformance.md` — canonical Run Evaluation authority.
+- `.flow/specs/fn-27-hermetic-ci-execution-and-qualification.md` — byte-identical CI portability proof.
 
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Generic v4 vocabulary and exact Temporal remote profile | `.1` | — |
-| R2 | Remote RuntimeConfiguration and public evidence mapping | `.2`, `.5` | — |
-| R3 | Protected authority and target preflight | `.3`, `.8`, `.9`, `.10` | — |
-| R4 | Fenced bounded participant lifecycle | `.4`, `.8`, `.9`, `.10` | — |
-| R5 | Cleanup, reconciliation, and postflight identity | `.4`, `.8`, `.9`, `.10` | — |
-| R6 | Canonical remote semantic Run Evaluation | `.2`, `.5`, `.8`, `.10` | — |
-| R7 | Remote provenance, receipt v4, and ArtifactSet v5 | `.6`, `.7`, `.8`, `.10` | — |
-| R8 | End-to-end controller and closed run/reconcile command | `.8`, `.9`, `.10` | — |
-| R9 | Protected workflow, verification, and operator docs | `.9`, `.10`, `.11` | — |
-| R10 | Named operational owner and complete shared ExperimentSpec | `.1`–`.11` | — |
+| R1 | Fixed owner-supplied binding and controls | `.1`, `.2` | — |
+| R2 | Byte-identical v2 Artifact admission | `.1`, `.3` | — |
+| R3 | Public-gRPC Execution and Evidence | `.3`, `.4` | — |
+| R4 | Cleanup then shared Run Evaluation | `.5`, `.6` | — |
+| R5 | Canary dry-run binding proof | `.7` | — |
+| R6 | Fail-closed integration and boundaries | `.8`–`.11` | — |

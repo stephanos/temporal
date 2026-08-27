@@ -12,7 +12,7 @@ Bind reusable in-memory promotion proposals to deterministic compiling Temporal 
 
 ### Approach
 
-- Define a checked Temporal `PromotionCandidateBinding` with explicit fresh promoted IDs, required module imports, the typed original Query/run/target/kernel values, and accepted Query, run, target, and planner-kernel constant names; include binding identity in the proposal/source envelope without changing the reusable catalog identity.
+- Define a checked Temporal `PromotionCandidateBinding` with explicit fresh promoted IDs, required module imports, the typed original Query/run/target/kernel values, and accepted Query, run, target, and planner-kernel constant names; include binding Behavior Fingerprint in the proposal/source envelope without changing the reusable catalog Behavior Fingerprint.
 - Seal `CompiledPromotionSource` construction behind candidate-module elaboration of the exact emitted declaration against those imports and typed constants. The production registry and CLI accept only this token, so failed elaboration prevents candidate registration/build and cannot produce status-0 source output.
 - Expose `temporal-model-promote <candidate-identity>` only for complete in-memory candidates registered by Temporal, returning canonical `umpire-promotion-proposal/v2` JSON with lineage-linked promoted identities and deterministic Lean source.
 - Keep pure binding/render/compile functions separate from IO; enforce one-LF stdout and structured stderr.
@@ -33,10 +33,10 @@ Bind reusable in-memory promotion proposals to deterministic compiling Temporal 
 `cd model && mise exec -- lake build Temporal.Tool.PromoteTests temporal-model-promote && cd .. && go test -count=1 -tags test_dep ./tools/umpire/integration -run TestPromotionSourceCompiles`
 
 ## Acceptance
-- [ ] Candidate bindings validate fresh promoted IDs, required typed values, imports, and accepted constants, have stable identities, and remain outside reusable `Umpire` catalog semantics.
+- [ ] Candidate bindings validate fresh promoted IDs, required typed values, imports, and accepted constants, have stable Definition IDs, and remain outside reusable `Umpire` catalog semantics.
 - [ ] Only successfully elaborated exact source bytes can produce a `CompiledPromotionSource` or enter the closed production registry; invalid source makes model build/registration fail before CLI emission.
 - [ ] Promote output is deterministic with exact stream and exit behavior; unknown/incomplete candidates and invalid bindings return structured errors.
-- [ ] Promotion output binds original lineage identities, new checked proposal identities, source query, Behavior Fingerprints, binding identity, and deterministic Lean source.
+- [ ] Promotion output binds original lineage identities, new checked proposal identities, source query, Behavior Fingerprints, binding Behavior Fingerprint, and deterministic Lean source.
 - [ ] The production-rendered bytes compile through `lake env lean` from a test-owned temporary file; missing imports and stale/unqualified constants fail.
 - [ ] CLI code remains effect-thin and calls the reusable promotion API.
 - [ ] No command reads raw artifacts, runtime evidence, or user-authored Lean.

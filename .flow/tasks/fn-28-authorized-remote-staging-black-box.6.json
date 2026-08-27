@@ -12,6 +12,6 @@
   "spec": "fn-28-authorized-remote-staging-black-box",
   "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.6.md",
   "status": "todo",
-  "title": "Add remote provenance and EvaluationReceipt v4 codecs",
-  "updated_at": "2026-08-27T19:07:26.856568Z"
+  "title": "Enforce cleanup-before-evaluation and postflight identity",
+  "updated_at": "2026-08-27T19:33:16.851349Z"
 }

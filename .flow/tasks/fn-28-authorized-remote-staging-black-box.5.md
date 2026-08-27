@@ -1,42 +1,36 @@
 ---
-satisfies: [R2, R6]
+satisfies: [R4]
 ---
-# fn-28-authorized-remote-staging-black-box.5 Admit remote Evidence through canonical Run Evaluation
+# fn-28-authorized-remote-staging-black-box.5 Reuse canonical Run Evaluation without staging semantics
 
 ## Description
-Implement R2/R6 by adding one fixed remote input branch around the unchanged Lean semantic authority.
+
+Feed the complete staging run/evidence set through the existing fn-20 Run Evaluation authority.
 
 **Size:** M
-**Files:** `model/Temporal/Tool/RunEvaluation/**`, `model/Temporal/Tool/RunEvaluationTests.lean`, `tools/umpire/runevaluation/**`, `tools/umpire/runevaluation/testdata/**`
-**Touches:** [model/Temporal/Tool/RunEvaluation/**, model/Temporal/Tool/RunEvaluationTests.lean, tools/umpire/runevaluation/**, tools/umpire/runevaluation/testdata/**]
+**Files:** `tools/umpire/staging/evaluate.go`, `tools/umpire/staging/evaluate_test.go`
+**Touches:** [`tools/umpire/staging/evaluate.go`, `tools/umpire/staging/evaluate_test.go`]
 
 ### Approach
-- Extend closed runtime/evidence profile admission with the exact remote pair while retaining the private request/response protocol, checker identity, child limits, and local/CI bytes.
-- Project only admitted public participant/history/control/cleanup facts through Task `.2`'s fixed mapping; keep authority/target/lease/cleanup Claim Assessment provenance outside semantic evaluation.
-- Produce the ordinary six-member v2 Run Evaluation set with byte-identical inputs and complete ExperimentSpec/configuration/run/program/mapping/query/Property/evaluation-outcome bindings.
-- Add paired local/CI/remote literal fixtures and an independent mutation oracle for missing, ambiguous, conflicting, unsupported, reordered, crossed, stale, internal-only, payload-derived, and response-drift cases.
+- Keep operational, Observation Evaluation, Implementation Link, Property, cleanup, and tooling outcomes distinct; add no staging mapper or Claim Assessment step.
+- Reuse the exact v2 Artifact, shared runner, and Run Evaluation boundaries named by the parent plan; do not add a parallel semantic or persistence authority.
+- Add focused positive, N/N+1, stale/crossed-binding, cancellation, and mutation fixtures at the responsible boundary.
 
 ### Investigation targets
+
 **Required** (read before coding):
-- `.flow/specs/fn-20-local-execution-semantic-conformance.md` — canonical checker protocol and status authority
-- `.flow/tasks/fn-20-local-execution-semantic-conformance.3.md` — fixed process bridge and strict response binding
-- `.flow/tasks/fn-27-hermetic-ci-execution-and-qualification.3.md` — shared Run Evaluation parity boundary
-- `.flow/tasks/fn-28-authorized-remote-staging-black-box.2.md` — exact remote mapping and configuration
-- `tools/umpire/regression/generated_view.go:201-225` — existing strict JSON/trailing-data precedent
+- `.plans/UMPIRE4_ORDER.md` — retained prototype scope and deferred infrastructure.
+- Parent Flow spec — exact contracts, Limits, failure ownership, and task boundary.
+- Existing fn-18/fn-19/fn-20 implementation — Artifact, runner, cleanup, and Run Evaluation authority to reuse.
 
 ### Key context
-Target stability and cleanup can downgrade Claim Assessment but cannot rewrite a semantic Result. The semantic checker sees only admitted evidence facts and identity bindings.
 
-### Acceptance
-- [ ] Only the three compiled profile branches reach the same checker and semantic evaluator.
-- [ ] Accepted equivalent facts share semantic outcome identity while all environment/run identities remain distinct.
-- [ ] Every insufficient, ambiguous, conflicting, unsupported, crossed, internal, or payload-derived evidence mutation fails closed or yields the exact non-satisfied status.
-- [ ] Local/CI protocols, fixtures, commands, and semantic outputs remain unchanged.
+This task implements only its retained serial/black-box slice. Deferred control-plane, concurrency, recovery, checkpoint, resume, receipt, and Claim Assessment machinery must not appear as placeholders.
 
 ## Acceptance
-- [ ] R2/R6 remote Run Evaluation admission and status preservation are complete.
-- [ ] Focused Lean/Go protocol, paired-profile, corruption, and race suites pass.
-- [ ] Existing checker comments are preserved.
+- [ ] Keep operational, Observation Evaluation, Implementation Link, Property, cleanup, and tooling outcomes distinct; add no staging mapper or Claim Assessment step.
+- [ ] Exact bindings and Limits fail closed under representative one-field and N/N+1 mutations.
+- [ ] Focused tests pass, existing comments are preserved, and no deferred API or persisted format is introduced.
 
 ## Done summary
 TBD

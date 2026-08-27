@@ -303,9 +303,14 @@ func buildRetiredRules() []tokenRule {
 
 	rules := make([]tokenRule, 0, len(exactTokens)+5)
 	for _, token := range exactTokens {
+		variants := []string{regexp.QuoteMeta(token)}
+		if token[0] >= 'A' && token[0] <= 'Z' && !strings.ContainsAny(token, "./") {
+			lowerCamel := strings.ToLower(token[:1]) + token[1:]
+			variants = append(variants, regexp.QuoteMeta(lowerCamel))
+		}
 		rules = append(rules, tokenRule{
 			name:    token,
-			pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])` + regexp.QuoteMeta(token) + `([^A-Za-z0-9_]|$)`),
+			pattern: regexp.MustCompile(`(^|[^A-Za-z0-9_])(?:` + strings.Join(variants, "|") + `)(?:V[0-9]+)?([^A-Za-z0-9_]|$)`),
 		})
 	}
 	for _, token := range []string{"bounds", "omissions", "qualification", "qualified"} {

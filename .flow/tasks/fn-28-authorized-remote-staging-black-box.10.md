@@ -1,45 +1,36 @@
 ---
-satisfies: [R3, R4, R5, R6, R7, R8, R9]
+satisfies: [R6]
 ---
-# fn-28-authorized-remote-staging-black-box.10 Build the public-boundary harness and adversarial Evaluation matrix
+# fn-28-authorized-remote-staging-black-box.10 Prove fail-closed Limits, drift, and secret handling
 
 ## Description
-Complete R3-R9's independent protocol proof and adversarial cross-layer verification after the production workflow boundary exists.
+
+Build the negative matrix for every black-box staging boundary.
 
 **Size:** M
-**Files:** `model/Temporal/System/Execution/RemoteStagingTests.lean`, `model/Temporal/System/Evaluation/RemoteStagingTests.lean`, `model/Temporal/Tool/RunEvaluationTests.lean`, `tools/umpire/temporal/remote/**`, `tools/umpire/runevaluation/**`, `tools/umpire/artifact/**`, `tools/umpire/staging/**`, `tools/umpire/cmd/umpire-assess-remote-staging/**`
-**Touches:** [model/Temporal/System/Execution/RemoteStagingTests.lean, model/Temporal/System/Evaluation/RemoteStagingTests.lean, model/Temporal/Tool/RunEvaluationTests.lean, tools/umpire/temporal/remote/**, tools/umpire/runevaluation/**, tools/umpire/artifact/**, tools/umpire/staging/**, tools/umpire/cmd/umpire-assess-remote-staging/**]
+**Files:** `tools/umpire/staging/mutation_test.go`, `tools/umpire/staging/secret_test.go`
+**Touches:** [`tools/umpire/staging/mutation_test.go`, `tools/umpire/staging/secret_test.go`]
 
 ### Approach
-- Build a controlled mTLS/public-gRPC integration harness that exercises the production authority, target, lease, participant, cleanup/postflight, Run Evaluation, Claim Assessment, and publication protocols without server-internal telemetry or a retained staging claim.
-- Use independent literal/oracle fixtures for profile/configuration, TLS/authority/target, lease/fence, ambiguous start, target redelivery/idempotency, evidence closure, cleanup/recovery, progress, Run Evaluation, receipt/set, command, and publication behavior.
-- Mutate every cross-layer identity/version/status/order/nullability/limit edge, including RawEvidence v2's 16-MiB ceiling, recovery-record tampering, stale fences, target drift, duplicate delivery, reporting-after-publication, and concurrent writers.
-- Run race/fuzz/secret scans over logs, progress, recovery handling, summaries, artifacts, and diagnostics; prove the recovery record is never uploaded or admitted.
-- Run focused and aggregate Lean/Go/model/regression gates and prove local/CI fixtures, prior readers, source-member bytes, and generated projections remain unchanged.
+- Reject Limit plus one, authority/target drift, cleanup uncertainty, crossed bindings, secret leakage, and attempted selector/control-plane inputs without partial publication.
+- Reuse the exact v2 Artifact, shared runner, and Run Evaluation boundaries named by the parent plan; do not add a parallel semantic or persistence authority.
+- Add focused positive, N/N+1, stale/crossed-binding, cancellation, and mutation fixtures at the responsible boundary.
 
 ### Investigation targets
+
 **Required** (read before coding):
-- `.flow/specs/fn-28-authorized-remote-staging-black-box.md` — exact negative-case and version contract
-- `.flow/tasks/fn-28-authorized-remote-staging-black-box.4.md` — delivery/idempotency/cleanup matrix
-- `.flow/tasks/fn-28-authorized-remote-staging-black-box.9.md` — recovery/progress/workflow boundary
-- `tools/common/artifactio/set_test.go:13-215` — publication failure/recovery matrix pattern
-- `temporaltest/server.go:42-171` — controlled public client/worker harness lifecycle
-- `tests/nexus_workflow_update_test.go:182-220` — public history and operation observation pattern
+- `.plans/UMPIRE4_ORDER.md` — retained prototype scope and deferred infrastructure.
+- Parent Flow spec — exact contracts, Limits, failure ownership, and task boundary.
+- Existing fn-18/fn-19/fn-20 implementation — Artifact, runner, cleanup, and Run Evaluation authority to reuse.
 
 ### Key context
-The harness proves production protocol behavior against a controlled public boundary; it must label every retained result synthetic and cannot mint the protected staging environment identity or an accepted staging receipt.
 
-### Acceptance
-- [ ] The harness exercises every production seam through public TLS/gRPC interfaces with independent expected values.
-- [ ] Every authority/lease/delivery/evidence/cleanup/recovery/progress/receipt/set/command/version/limit mutation has one deterministic rejection or non-success outcome.
-- [ ] Secret scans and race/fuzz suites prove no raw authority/target/payload/recovery data crosses forbidden boundaries.
-- [ ] Aggregate checks pass while all earlier artifacts/readers and generated regressions remain unchanged.
-- [ ] No synthetic test output can be mistaken for or retained as an accepted protected-staging claim.
+This task implements only its retained serial/black-box slice. Deferred control-plane, concurrency, recovery, checkpoint, resume, receipt, and Claim Assessment machinery must not appear as placeholders.
 
 ## Acceptance
-- [ ] R3-R9 independent public-boundary and mutation verification is complete.
-- [ ] Focused, race/fuzz, secret-scan, aggregate, and unchanged-regression gates pass.
-- [ ] Existing test comments are preserved.
+- [ ] Reject Limit plus one, authority/target drift, cleanup uncertainty, crossed bindings, secret leakage, and attempted selector/control-plane inputs without partial publication.
+- [ ] Exact bindings and Limits fail closed under representative one-field and N/N+1 mutations.
+- [ ] Focused tests pass, existing comments are preserved, and no deferred API or persisted format is introduced.
 
 ## Done summary
 TBD
