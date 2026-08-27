@@ -6,6 +6,10 @@ satisfies: [R1, R2, R5, R6]
 ## Description
 Add the downstream derivation seam that keeps Target below Query and Planning while removing proof-record assembly from ordinary examples.
 
+This task establishes and directly verifies that seam in Query/Planning. The dependent Tasks `.3`
+and `.4` own adopting it in Switch and Temporal respectively, including their end-to-end
+compatibility fixtures; this task does not edit those example sources ahead of that migration wave.
+
 **Size:** M
 **Files:** `model/Umpire/Query/Language.lean`, `model/Umpire/Query/Tests/Completeness.lean`, `model/Umpire/Query/Tests/Validation.lean`, `model/Umpire/Planning/Engine.lean`, `model/Umpire/Planning/Tests/Fixtures.lean`, `model/Umpire/Planning/Tests/Enumeration.lean`, `model/Umpire/Query.lean`, `model/Umpire/Planning.lean`
 **Touches:** [model/Umpire/Query/Language.lean, model/Umpire/Query/Tests/**, model/Umpire/Planning/Engine.lean, model/Umpire/Planning/Tests/**, model/Umpire/Query.lean, model/Umpire/Planning.lean]
@@ -30,8 +34,8 @@ Add the downstream derivation seam that keeps Target below Query and Planning wh
 - [ ] Query derives its role/action completeness view without manufacturing or weakening evidence, copies target-owned stable role/action-domain compatibility tokens verbatim, and remains the sole owner of bounds and query-level completeness errors.
 - [ ] Planning remains the sole owner of the indexed kernel and ordering proofs, and its public derivation produces byte-/result-identical traversal from the same checked inputs.
 - [ ] The public derivation reuses the established finite-kernel implementation; no parallel planner enumerator or duplicate ordering authority exists.
-- [ ] Switch and Temporal examples can consume the checked adapters without constructing `FiniteCompletenessEvidence`, `FiniteKernelOrder`, or `IncrementalPlannerKernel` records directly.
-- [ ] Existing Switch, Nexus Lifecycle, and Experimental CallerClosure role/action-domain token fixtures and canonical Query JSON remain byte-identical after derivation.
+- [ ] The checked adapters are sufficient for Switch and Temporal examples to consume without constructing `FiniteCompletenessEvidence`, `FiniteKernelOrder`, or `IncrementalPlannerKernel` records directly; Tasks `.3` and `.4` perform those concrete source migrations.
+- [ ] Query/Planning tests preserve stable role/action-domain tokens and traversal through the derivation seam; Tasks `.3` and `.4` verify the existing Switch, Nexus Lifecycle, and Experimental CallerClosure tokens and canonical Query JSON byte-for-byte when adopting it.
 - [ ] Target imports no Query, Planning, Artifact, Temporal, runtime, or verification module; facade and import tests enforce the direction.
 - [ ] Focused Query/Planning suites plus `UmpireTests` pass with existing comments preserved.
 ## Done summary
