@@ -37,6 +37,7 @@ Added one Temporal-owned synthetic BasicLifecycle Observation profile with a typ
 
 baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task target absent)
 stage: impl-review - ran [2026-08-27T08:17:06Z..2026-08-27T08:19:24Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 0e75e27f4dd0f1875df9ff6e7968bc78154b3ba9, 4a2287034ab190fcb79dba3440e105ae3b39e42b
 - Tests: baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task target absent), cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests, make umpire-check-regression
