@@ -381,7 +381,7 @@ def declarations : List DeclarationMetadata := [
   metadata ownershipRelationId .observation "workflow-nexus-operation-ownership/v1"
 ]
 
-def targetDeclaration : TargetDeclaration LawStatement
+def targetDefinition : TargetDefinition
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   id := targetId
   source
@@ -391,17 +391,18 @@ def targetDeclaration : TargetDeclaration LawStatement
     cancellationCapabilityId,
     ownershipCapabilityId
   ]
-  providers := [
-    workflowProvider,
-    cancellationProvider,
-    workflowOwnershipClaimProvider,
-    cancellationOwnershipClaimProvider,
-    ownershipProvider
-  ]
-  connectors := [ownershipConnector]
   resolvedSetups := [clashSetup]
   kernel := .checked transitionKernel
 }
+
+def targetComposition : TargetComposition LawStatement :=
+  TargetComposition.empty
+    |>.provide workflowProvider
+    |>.provide cancellationProvider
+    |>.provide workflowOwnershipClaimProvider
+    |>.provide cancellationOwnershipClaimProvider
+    |>.provide ownershipProvider
+    |>.connect ownershipConnector
 
 def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
   actions := [forceCloseAction]
@@ -424,10 +425,9 @@ def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep
 }
 
 def targetAuthoring : AuthoredTarget LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  declaration := targetDeclaration
-  planning := .available transitionKernel rfl finitePlanning
-}
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+  AuthoredTarget.make targetDefinition targetComposition
+    (.available transitionKernel rfl finitePlanning)
 
 /-- Re-ascribe the source kernel after checked composition so its proof relation remains reducible. -/
 def target : QueryTarget LawStatement := checkedTarget targetAuthoring
@@ -545,7 +545,7 @@ def exactTraceBehaviorDeclaration : BehaviorDeclaration := {
 
 def checkBehaviorDeclaration
     (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior :=
-  checkBehavior { declarations := target.declarations } declaration
+  checkBehavior (.ofTarget target) declaration
 
 def exploratoryBehaviorResult : Except BehaviorError CheckedBehavior :=
   checkBehaviorDeclaration exploratoryBehaviorDeclaration
@@ -655,17 +655,19 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
     (by
       intro evidence evidenceEq
       simp [exactActionQuery, materializeQuery, CheckedQueryTarget.ofTarget, target,
-        checkedTarget, targetAuthoring] at evidenceEq
+        checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
       simp only [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+        AuthoredTarget.make, targetDefinition,
         transitionKernel]
       split <;> simp)
     (by
       intro _ _ state action
       simp only [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+        AuthoredTarget.make, targetDefinition,
         transitionKernel]
       split <;> simp)
 

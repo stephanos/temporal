@@ -21,6 +21,20 @@ def accepted : DeclarationId := id "planner.outcome.accepted"
 def observed : DeclarationId := id "planner.observation.accepted"
 def role : DeclarationId := id "planner.role.operation"
 def occurrence : DeclarationId := id "planner.occurrence.request"
+def targetId : DeclarationId := id "planner.target.fixture"
+def kernelId : DeclarationId := id "planner.kernel.fixture"
+
+def metadata
+    (identity : DeclarationId)
+    (kind : DeclarationKind)
+    (contractDigest : String) : DeclarationMetadata := {
+  id := identity
+  kind
+  version := 1
+  contractDigest
+  source
+  documentation := "planning fixture"
+}
 
 def value (identity : DeclarationId) (payload : String) : SemanticValue := {
   identity
@@ -46,7 +60,7 @@ def transitions (width : Nat) : List (TransitionResult SemanticValue SemanticVal
 def kernel (width : Nat) : TransitionKernel
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   metadata := {
-    id := id "planner.kernel.fixture"
+    id := kernelId
     contractDigest := "planner-kernel/v1"
     source
   }
@@ -98,19 +112,35 @@ def finitePlanning (width : Nat) : FinitePlanningCapability (kernel width).autho
     simp [admitted.2.1]
 }
 
-def target (width : Nat) : QueryTarget (fun _ => True) := {
-  id := id "planner.target.fixture"
+def targetDefinition (width : Nat) : TargetDefinition
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  id := targetId
   source
-  declarations := []
+  declarations := [
+    metadata targetId .target "planner-target/v1",
+    metadata kernelId .kernel "planner-kernel/v1"
+  ]
   requiredCapabilities := []
-  providers := []
-  connectors := []
   resolvedSetups := [setup]
-  kernel := kernel width
-  planning := .available (finitePlanning width)
-  canonicalMetadata := "target-metadata"
-  semanticDigest := "target/v1"
+  kernel := .checked (kernel width)
 }
+
+def targetAuthoring : AuthoredTarget (fun _ => True)
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+  AuthoredTarget.make (targetDefinition 0) TargetComposition.empty
+    (.available (kernel 0) rfl (finitePlanning 0))
+
+def baseTarget : QueryTarget (fun _ => True) := checkedTarget targetAuthoring
+
+def target (width : Nat) : QueryTarget (fun _ => True) :=
+  baseTarget.withEquivalentKernel (kernel width)
+    (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
+      kernel])
+    (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
+      kernel])
+    (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
+      kernel])
+    (.available (finitePlanning width))
 
 def property : CheckedProperty := {
   id := id "planner.property.fixture"
@@ -196,16 +226,20 @@ def incrementalKernel? (width : Nat) : Option (IncrementalPlannerKernel (target 
   IncrementalPlannerKernel.ofCheckedQuery? (orderedQuery width)
     (by
       intro evidence evidenceEq
-      simp [orderedQuery, checkedQuery, CheckedQueryTarget.ofTarget, target, finitePlanning] at evidenceEq
+      simp [orderedQuery, checkedQuery, CheckedQueryTarget.ofTarget, target,
+        CheckedTarget.withEquivalentKernel, baseTarget, checkedTarget, targetAuthoring,
+        AuthoredTarget.make, targetDefinition, finitePlanning] at evidenceEq
       cases Option.some.inj evidenceEq
       simp)
     (by
       intro _ _ candidate
-      simp only [orderedQuery, checkedQuery, target, kernel]
+      simp only [orderedQuery, checkedQuery, target, CheckedTarget.withEquivalentKernel,
+        baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition, kernel]
       split <;> simp)
     (by
       intro _ _ state action
-      simp only [orderedQuery, checkedQuery, target, kernel]
+      simp only [orderedQuery, checkedQuery, target, CheckedTarget.withEquivalentKernel,
+        baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition, kernel]
       split
       · rw [List.pairwise_iff_getElem]
         intro first second firstBound secondBound earlier
