@@ -6,37 +6,37 @@ namespace Umpire.PropertyTests
 
 open Umpire
 
-def id (value : String) : DeclarationId := DeclarationId.of value
+def id (value : String) : DefinitionId := DefinitionId.of value
 
-def source : SemanticSource := {
+def source : SourceLocation := {
   path := "Umpire/Property/Tests.lean"
   line := 1
   column := 1
   provenance := "lean-test"
 }
 
-def metadata (value : String) (kind : DeclarationKind) : DeclarationMetadata := {
+def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
   id := id value
   kind
   source
   contractDigest := value ++ "/v1"
 }
 
-def cancellationCapability : DeclarationId := id "test.capability.cancellation"
-def hiddenCapability : DeclarationId := id "test.capability.hidden"
+def cancellationCapability : DefinitionId := id "test.capability.cancellation"
+def hiddenCapability : DefinitionId := id "test.capability.hidden"
 
-def pendingCount : DeclarationId := id "test.state.pending-count"
-def cancellationPhase : DeclarationId := id "test.state.cancellation-phase"
-def requestCancel : DeclarationId := id "test.action.request-cancel"
-def tick : DeclarationId := id "test.action.tick"
-def deliveredOutcome : DeclarationId := id "test.outcome.cancel-delivered"
-def cancelRequested : DeclarationId := id "test.observation.cancel-requested"
-def cancelDelivered : DeclarationId := id "test.observation.cancel-delivered"
-def logicalTime : DeclarationId := id "test.observation.logical-time"
-def ownsOperation : DeclarationId := id "test.relation.owns-resource"
-def hiddenObservation : DeclarationId := id "test.observation.hidden-record"
+def pendingCount : DefinitionId := id "test.state.pending-count"
+def cancellationPhase : DefinitionId := id "test.state.cancellation-phase"
+def requestCancel : DefinitionId := id "test.action.request-cancel"
+def tick : DefinitionId := id "test.action.tick"
+def deliveredOutcome : DefinitionId := id "test.outcome.cancel-delivered"
+def cancelRequested : DefinitionId := id "test.observation.cancel-requested"
+def cancelDelivered : DefinitionId := id "test.observation.cancel-delivered"
+def logicalTime : DefinitionId := id "test.observation.logical-time"
+def ownsOperation : DefinitionId := id "test.relation.owns-resource"
+def hiddenObservation : DefinitionId := id "test.observation.hidden-record"
 
-def declarations : List DeclarationMetadata := [
+def definitions : List DefinitionMetadata := [
   metadata cancellationCapability.value .capability,
   metadata hiddenCapability.value .capability,
   metadata pendingCount.value .state,
@@ -52,11 +52,11 @@ def declarations : List DeclarationMetadata := [
 ]
 
 def meaning
-    (declaration : DeclarationId)
-    (kind : DeclarationKind) : MeaningProvision := {
-  declaration
+    (definitionId : DefinitionId)
+    (kind : DefinitionKind) : MeaningProvision := {
+  definitionId
   kind
-  semanticDigest := declaration.value ++ "/meaning-v1"
+  semanticDigest := definitionId.value ++ "/meaning-v1"
 }
 
 def cancellationMeanings : List MeaningProvision := [
@@ -78,7 +78,7 @@ def cancelBudget : PropertyBoundProfile := {
 }
 
 def context : PropertyCheckContext := {
-  declarations
+  definitions
   providers := [
     { id := cancellationCapability, version := 1, semanticDigest := "test-cancellation/v1" },
     { id := hiddenCapability, version := 1, semanticDigest := "test-hidden/v1" }
@@ -91,7 +91,7 @@ def context : PropertyCheckContext := {
 
 def pattern
     (field : PropertyTraceField)
-    (reference : DeclarationId)
+    (reference : DefinitionId)
     (constraint : ValueConstraint := .present) : PropertyPattern := {
   field
   reference
@@ -152,12 +152,12 @@ def portableProperty : PropertyDeclaration := {
 
 def authoredProperty : PropertyAuthoring := .portable portableProperty
 
-def value (identity : DeclarationId) (payload : String) : SemanticValue := {
-  identity
+def value (definitionId : DefinitionId) (payload : String) : ModelValue := {
+  definitionId
   value := payload
 }
 
-def positiveTrace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+def positiveTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   initialState := value pendingCount "0"
   steps := [
     {
@@ -181,7 +181,7 @@ def positiveTrace : SemanticTrace SemanticValue SemanticValue SemanticValue Sema
 
 def evaluationOf
     (declaration : PropertyDeclaration)
-    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue) :
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
     Option PropertyEvaluation :=
   (checkProperty context (.portable declaration)).toOption.map fun property =>
     evaluateProperty property trace

@@ -11,7 +11,7 @@ open Umpire
 
 /-! Model mutations are rejected by the independent qualified-trace comparison, not another layer. -/
 
-def mutatedExpectedTrace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+def mutatedExpectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   expectedTrace with
   initialState := { expectedTrace.initialState with value := "unexpected" }
 }
@@ -130,8 +130,8 @@ def literalMappingDigest : String :=
 def literalDerivation
     (mappingDigest : String)
     (coordinate : SemanticCoordinate)
-    (evidenceIdentity ruleId : DeclarationId)
-    (bindingIds : List DeclarationId)
+    (evidenceIdentity ruleId : DefinitionId)
+    (bindingIds : List DefinitionId)
     (orderingSupport : List EvidenceOrderingFact)
     (appliedDispositions : List AppliedFieldDisposition)
     (meaningDigest : String) : SemanticDerivation := {

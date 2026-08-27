@@ -12,9 +12,9 @@ namespace Temporal.Feature.Nexus.Observation
 open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 
-private def declarationId (value : String) : DeclarationId := DeclarationId.of value
+private def definitionId (value : String) : DefinitionId := DefinitionId.of value
 
-def source : SemanticSource := {
+def source : SourceLocation := {
   path := "Temporal/Feature/Nexus/Observation.lean"
   line := 1
   column := 1
@@ -23,19 +23,19 @@ def source : SemanticSource := {
 
 namespace Profile
 
-def id : DeclarationId := declarationId "temporal.nexus.synthetic.basic-lifecycle.profile"
-def lifecycleKind : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.kind.lifecycle"
-def stateField : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.field.state"
-def actionField : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.field.action"
-def outcomeField : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.field.outcome"
-def observationField : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.field.observation"
-def rejectedField : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.field.raw-detail"
+def id : DefinitionId := definitionId "temporal.nexus.synthetic.basic-lifecycle.profile"
+def lifecycleKind : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.kind.lifecycle"
+def stateField : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.state"
+def actionField : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.action"
+def outcomeField : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.outcome"
+def observationField : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.observation"
+def rejectedField : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.raw-detail"
 
 /-- The sole synthetic Temporal profile admitted by this Observation mapping. -/
 def declaration : EvidenceProfileDeclaration := {
@@ -57,39 +57,39 @@ end Profile
 
 namespace Mapping
 
-def id : DeclarationId := declarationId "temporal.nexus.synthetic.basic-lifecycle.mapping"
-def stateRuleId : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.rule.state"
-def startRuleId : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.rule.action.start"
-def cancelRuleId : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.rule.action.cancel"
-def succeedRuleId : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.rule.action.succeed"
-def outcomeRuleId : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.rule.outcome"
-def observationRuleId : DeclarationId :=
-  declarationId "temporal.nexus.synthetic.basic-lifecycle.rule.observation"
+def id : DefinitionId := definitionId "temporal.nexus.synthetic.basic-lifecycle.mapping"
+def stateRuleId : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.rule.state"
+def startRuleId : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.rule.action.start"
+def cancelRuleId : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.rule.action.cancel"
+def succeedRuleId : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.rule.action.succeed"
+def outcomeRuleId : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.rule.outcome"
+def observationRuleId : DefinitionId :=
+  definitionId "temporal.nexus.synthetic.basic-lifecycle.rule.observation"
 
 end Mapping
 
-private def field (fieldId : DeclarationId) : ObservationExpression :=
+private def field (fieldId : DefinitionId) : ObservationExpression :=
   .field { kind := Profile.lifecycleKind, field := fieldId }
 
-private def equalsText (fieldId : DeclarationId) (value : String) : ObservationExpression :=
+private def equalsText (fieldId : DefinitionId) (value : String) : ObservationExpression :=
   .equals (field fieldId) (.text value)
 
 private def equalsAny
-    (fieldId : DeclarationId) : List String → ObservationExpression
+    (fieldId : DefinitionId) : List String → ObservationExpression
   | [] => .boolean false
   | value :: values =>
       values.foldl (fun condition candidate =>
         .or condition (equalsText fieldId candidate)) (equalsText fieldId value)
 
 private def rule
-    (ruleId output : DeclarationId)
-    (outputKind : DeclarationKind)
-    (fieldId : DeclarationId)
+    (ruleId output : DefinitionId)
+    (outputKind : DefinitionKind)
+    (fieldId : DefinitionId)
     (condition : ObservationExpression) : ObservationRule := {
   id := ruleId
   output

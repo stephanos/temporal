@@ -28,10 +28,10 @@ example : [
 
 def invalidError : QueryError := {
   kind := .invalidBound
-  declarationId := id "planner.query.invalid"
+  definitionId := id "planner.query.invalid"
   sourcePath := source.path
   offendingValue := "search.candidateEvaluations=0"
-  relatedIdentities := []
+  relatedDefinitionIds := []
 }
 
 /-! An invalid checked-input outcome remains distinct from every search termination outcome. -/

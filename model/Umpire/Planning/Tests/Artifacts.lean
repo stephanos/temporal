@@ -26,7 +26,7 @@ def selectedArtifactIsInspectable : Bool :=
       spec.plan.initialState == initial &&
       spec.plan.requestedActions == [requestValue] &&
       spec.plan.modelOutcomes == [acceptedValue] &&
-      spec.plan.linearExtension.map PlannedOccurrence.identity == [occurrence] &&
+      spec.plan.linearExtension.map PlannedOccurrence.definitionId == [occurrence] &&
       spec.plan.linearExtension.map PlannedOccurrence.action == [request] &&
       spec.plan.linearExtension.length == spec.plan.requestedActions.length &&
       spec.plan.bindings == setup &&
@@ -35,7 +35,7 @@ def selectedArtifactIsInspectable : Bool :=
       spec.plan.selectionReason == .satisfyingWitness &&
       spec.plan.checkpoints.length == 1 &&
       spec.plan.omissions == canonicalPlannerOmissions &&
-      spec.properties.map PortableProperty.identity == [property.id]
+      spec.properties.map PortableProperty.definitionId == [property.id]
 
 /-! A selected trace is compiled into an inspectable plan that separates requests from outcomes. -/
 example : selectedArtifactIsInspectable := by

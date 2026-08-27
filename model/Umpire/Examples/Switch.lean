@@ -2,33 +2,33 @@ import Umpire.Planning
 
 namespace Umpire.Examples.Switch
 
-private def id (value : String) : DeclarationId := DeclarationId.of value
+private def id (value : String) : DefinitionId := DefinitionId.of value
 
-def source : SemanticSource := {
+def source : SourceLocation := {
   path := "Umpire/Examples/Switch.lean"
   line := 1
   column := 1
   provenance := "lean-model"
 }
 
-def targetId : DeclarationId := id "switch.target.two-state"
-def kernelId : DeclarationId := id "switch.kernel.two-state"
-def switchCapabilityId : DeclarationId := id "switch.capability.state"
-def switchProviderId : DeclarationId := id "switch.provider.state"
-def flipLawId : DeclarationId := id "switch.law.flip-preserves-domain"
-def powerStateId : DeclarationId := id "switch.state.power"
-def flipActionId : DeclarationId := id "switch.action.flip"
-def appliedOutcomeId : DeclarationId := id "switch.outcome.applied"
-def deferredOutcomeId : DeclarationId := id "switch.outcome.deferred"
-def powerObservationId : DeclarationId := id "switch.observation.power"
-def switchRoleId : DeclarationId := id "switch.role.subject"
-def flipPropertyId : DeclarationId := id "switch.property.flip-turns-on"
-def exploratoryBehaviorId : DeclarationId := id "switch.behavior.exploratory"
-def exactActionBehaviorId : DeclarationId := id "switch.behavior.exact-action"
-def exactTraceBehaviorId : DeclarationId := id "switch.behavior.exact-trace"
-def exploratoryQueryId : DeclarationId := id "switch.query.explore"
-def exactActionQueryId : DeclarationId := id "switch.query.exact-action"
-def exactTraceQueryId : DeclarationId := id "switch.query.exact-trace"
+def targetId : DefinitionId := id "switch.target.two-state"
+def kernelId : DefinitionId := id "switch.kernel.two-state"
+def switchCapabilityId : DefinitionId := id "switch.capability.state"
+def switchProviderId : DefinitionId := id "switch.provider.state"
+def flipLawId : DefinitionId := id "switch.law.flip-preserves-domain"
+def powerStateId : DefinitionId := id "switch.state.power"
+def flipActionId : DefinitionId := id "switch.action.flip"
+def appliedOutcomeId : DefinitionId := id "switch.outcome.applied"
+def deferredOutcomeId : DefinitionId := id "switch.outcome.deferred"
+def powerObservationId : DefinitionId := id "switch.observation.power"
+def switchRoleId : DefinitionId := id "switch.role.subject"
+def flipPropertyId : DefinitionId := id "switch.property.flip-turns-on"
+def exploratoryBehaviorId : DefinitionId := id "switch.behavior.exploratory"
+def exactActionBehaviorId : DefinitionId := id "switch.behavior.exact-action"
+def exactTraceBehaviorId : DefinitionId := id "switch.behavior.exact-trace"
+def exploratoryQueryId : DefinitionId := id "switch.query.explore"
+def exactActionQueryId : DefinitionId := id "switch.query.exact-action"
+def exactTraceQueryId : DefinitionId := id "switch.query.exact-trace"
 
 inductive Position where
   | off
@@ -39,7 +39,7 @@ def Position.flip : Position → Position
   | .off => .on
   | .on => .off
 
-def LawStatement (lawId : DeclarationId) : Prop :=
+def LawStatement (lawId : DefinitionId) : Prop :=
   lawId = flipLawId ∧ Position.flip (Position.flip .off) = .off
 
 def flipLaw : LawRequirement := {
@@ -51,22 +51,22 @@ theorem flipLawProof : LawStatement flipLaw.id := by
   exact ⟨rfl, rfl⟩
 
 private def metadata
-    (declarationId : DeclarationId)
-    (kind : DeclarationKind)
-    (contractDigest : String) : DeclarationMetadata := {
-  id := declarationId
+    (definitionId : DefinitionId)
+    (kind : DefinitionKind)
+    (contractDigest : String) : DefinitionMetadata := {
+  id := definitionId
   kind
   source
   contractDigest
 }
 
-def offState : SemanticValue := { identity := powerStateId, value := "off" }
-def onState : SemanticValue := { identity := powerStateId, value := "on" }
-def flipAction : SemanticValue := { identity := flipActionId, value := "flip" }
-def appliedOutcome : SemanticValue := { identity := appliedOutcomeId, value := "applied" }
-def deferredOutcome : SemanticValue := { identity := deferredOutcomeId, value := "deferred" }
-def powerOffObservation : SemanticValue := { identity := powerObservationId, value := "off" }
-def powerOnObservation : SemanticValue := { identity := powerObservationId, value := "on" }
+def offState : ModelValue := { definitionId := powerStateId, value := "off" }
+def onState : ModelValue := { definitionId := powerStateId, value := "on" }
+def flipAction : ModelValue := { definitionId := flipActionId, value := "flip" }
+def appliedOutcome : ModelValue := { definitionId := appliedOutcomeId, value := "applied" }
+def deferredOutcome : ModelValue := { definitionId := deferredOutcomeId, value := "deferred" }
+def powerOffObservation : ModelValue := { definitionId := powerObservationId, value := "off" }
+def powerOnObservation : ModelValue := { definitionId := powerObservationId, value := "on" }
 
 theorem offState_ne_onState : offState ≠ onState := by
   decide
@@ -76,25 +76,25 @@ theorem onState_ne_offState : onState ≠ offState := by
 
 def switchSetup : List RoleBinding := [{ role := switchRoleId, value := offState }]
 
-def appliedResult : TransitionResult SemanticValue SemanticValue SemanticValue := {
+def appliedResult : TransitionResult ModelValue ModelValue ModelValue := {
   modelOutcome := appliedOutcome
   resultingState := onState
   observations := [powerOnObservation]
 }
 
-def deferredResult : TransitionResult SemanticValue SemanticValue SemanticValue := {
+def deferredResult : TransitionResult ModelValue ModelValue ModelValue := {
   modelOutcome := deferredOutcome
   resultingState := offState
   observations := [powerOffObservation]
 }
 
-def appliedFromOnResult : TransitionResult SemanticValue SemanticValue SemanticValue := {
+def appliedFromOnResult : TransitionResult ModelValue ModelValue ModelValue := {
   modelOutcome := appliedOutcome
   resultingState := offState
   observations := [powerOffObservation]
 }
 
-def deferredFromOnResult : TransitionResult SemanticValue SemanticValue SemanticValue := {
+def deferredFromOnResult : TransitionResult ModelValue ModelValue ModelValue := {
   modelOutcome := deferredOutcome
   resultingState := onState
   observations := [powerOnObservation]
@@ -109,15 +109,15 @@ theorem appliedFromOnResult_ordered :
       transitionResultOrderKey deferredFromOnResult := by
   decide
 
-def initialStates (setup : List RoleBinding) : List SemanticValue :=
+def initialStates (setup : List RoleBinding) : List ModelValue :=
   if setup = switchSetup then [offState] else []
 
-def authoritativeInitial (setup : List RoleBinding) (state : SemanticValue) : Prop :=
+def authoritativeInitial (setup : List RoleBinding) (state : ModelValue) : Prop :=
   setup = switchSetup ∧ state = offState
 
 def stepResults
-    (state action : SemanticValue) :
-    List (TransitionResult SemanticValue SemanticValue SemanticValue) :=
+    (state action : ModelValue) :
+    List (TransitionResult ModelValue ModelValue ModelValue) :=
   if action = flipAction then
     if state = offState then
       [appliedResult, deferredResult]
@@ -129,8 +129,8 @@ def stepResults
     []
 
 def authoritativeStep
-    (state action : SemanticValue)
-    (result : TransitionResult SemanticValue SemanticValue SemanticValue) : Prop :=
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
   action = flipAction ∧
     ((state = offState ∧ (result = appliedResult ∨ result = deferredResult)) ∨
       (state = onState ∧
@@ -138,7 +138,7 @@ def authoritativeStep
 
 theorem initialStates_sound
     (setup : List RoleBinding)
-    (state : SemanticValue)
+    (state : ModelValue)
     (member : state ∈ initialStates setup) :
     authoritativeInitial setup state := by
   by_cases selected : setup = switchSetup
@@ -149,15 +149,15 @@ theorem initialStates_sound
 
 theorem initialStates_complete
     (setup : List RoleBinding)
-    (state : SemanticValue)
+    (state : ModelValue)
     (admitted : authoritativeInitial setup state) :
     state ∈ initialStates setup := by
   rcases admitted with ⟨rfl, rfl⟩
   simp [initialStates]
 
 theorem stepResults_sound
-    (state action : SemanticValue)
-    (result : TransitionResult SemanticValue SemanticValue SemanticValue)
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
     (member : result ∈ stepResults state action) :
     authoritativeStep state action result := by
   by_cases selectedAction : action = flipAction
@@ -174,8 +174,8 @@ theorem stepResults_sound
   · simp [stepResults, selectedAction] at member
 
 theorem stepResults_complete
-    (state action : SemanticValue)
-    (result : TransitionResult SemanticValue SemanticValue SemanticValue)
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
     (admitted : authoritativeStep state action result) :
     result ∈ stepResults state action := by
   rcases admitted with ⟨rfl, admitted⟩
@@ -184,7 +184,7 @@ theorem stepResults_complete
   · rcases admitted with rfl | rfl <;> simp [stepResults, offState, onState]
 
 def transitionKernel : TransitionKernel
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
     contractDigest := "switch-two-state-kernel/v1"
@@ -209,19 +209,19 @@ def switchProvider : CapabilityProvider LawStatement := {
     requiredLaws := [flipLaw]
   }
   meanings := [
-    { declaration := powerStateId, kind := .state, semanticDigest := "switch-power-state/v1" },
-    { declaration := flipActionId, kind := .action, semanticDigest := "switch-flip-action/v1" },
-    { declaration := appliedOutcomeId, kind := .outcome,
+    { definitionId := powerStateId, kind := .state, semanticDigest := "switch-power-state/v1" },
+    { definitionId := flipActionId, kind := .action, semanticDigest := "switch-flip-action/v1" },
+    { definitionId := appliedOutcomeId, kind := .outcome,
       semanticDigest := "switch-applied-outcome/v1" },
-    { declaration := deferredOutcomeId, kind := .outcome,
+    { definitionId := deferredOutcomeId, kind := .outcome,
       semanticDigest := "switch-deferred-outcome/v1" },
-    { declaration := powerObservationId, kind := .observation,
+    { definitionId := powerObservationId, kind := .observation,
       semanticDigest := "switch-power-observation/v1" }
   ]
   lawWitnesses := [{ requirement := flipLaw, proof := flipLawProof }]
 }
 
-def declarations : List DeclarationMetadata := [
+def definitions : List DefinitionMetadata := [
   metadata targetId .target "switch-two-state-target/v1",
   metadata kernelId .kernel "switch-two-state-kernel/v1",
   metadata switchCapabilityId .capability "switch-state/v1",
@@ -249,10 +249,10 @@ def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep
 }
 
 def targetDefinition : TargetDefinition
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetId
   source
-  declarations
+  definitions
   requiredCapabilities := [switchCapabilityId]
   resolvedSetups := [switchSetup]
   kernel := .checked transitionKernel
@@ -262,7 +262,7 @@ def targetComposition : TargetComposition LawStatement :=
   TargetComposition.empty |>.provide switchProvider
 
 def targetAuthoring : AuthoredTarget LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
   AuthoredTarget.make targetDefinition targetComposition
     (.available transitionKernel rfl finitePlanning)
 
@@ -274,14 +274,14 @@ theorem target_resolvedSetups : target.resolvedSetups = [switchSetup] := by
 
 theorem target_initial
     (setup : List RoleBinding)
-    (state : SemanticValue)
+    (state : ModelValue)
     (admitted : target.kernel.authoritativeInitial setup state) :
     setup = switchSetup ∧ state = offState := by
   exact admitted
 
 theorem target_step
-    (state action : SemanticValue)
-    (result : TransitionResult SemanticValue SemanticValue SemanticValue)
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
     (admitted : target.kernel.authoritativeStep state action result) :
     authoritativeStep state action result := by
   exact admitted
@@ -432,7 +432,7 @@ def shortestPolicy : PlannerPolicy := {
 def queryContext : QueryCheckContext LawStatement := .ofTarget target
 
 private def queryDeclaration
-    (queryId : DeclarationId)
+    (queryId : DefinitionId)
     (form : QueryForm)
     (behavior : CheckedBehavior) : QueryDeclaration := {
   id := queryId
@@ -480,7 +480,7 @@ def exactActionQuery : CheckedQuery LawStatement := materializeQuery
 def exactTraceQuery : CheckedQuery LawStatement := materializeQuery
   (exactTraceQueryResult.toOption.get exactTraceQueryResult_isSome)
 
-theorem stepResults_length_le_two (state action : SemanticValue) :
+theorem stepResults_length_le_two (state action : ModelValue) :
     (stepResults state action).length ≤ 2 := by
   by_cases selectedAction : action = flipAction
   · subst action

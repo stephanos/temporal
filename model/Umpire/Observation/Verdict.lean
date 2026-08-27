@@ -26,31 +26,31 @@ inductive SemanticVerdictFailureKind where
 
 structure SemanticVerdictDiagnostic where
   kind : SemanticVerdictFailureKind
-  relatedIdentities : List DeclarationId := []
+  relatedDefinitionIds : List DefinitionId := []
   qualification : Option QualificationDiagnostic := none
   deriving BEq, DecidableEq, Repr
 
 structure SemanticClauseVerdict where
-  propertyId : DeclarationId
-  clauseId : DeclarationId
+  propertyId : DefinitionId
+  clauseId : DefinitionId
   status : SemanticVerdictStatus
   coordinates : List SemanticCoordinate
   queryBounds : QueryBounds
   propertyBound : Option TypedBound
   evidenceBound : EvidenceBound
-  provenance : List DeclarationId
+  provenance : List DefinitionId
   derivations : List SemanticDerivation
   deriving BEq, DecidableEq, Repr
 
 structure SemanticPropertyVerdict where
-  queryId : DeclarationId
-  propertyId : DeclarationId
+  queryId : DefinitionId
+  propertyId : DefinitionId
   propertyDigest : String
   traceId : Option String
   status : SemanticVerdictStatus
   queryBounds : QueryBounds
   evidenceBound : Option EvidenceBound
-  provenance : List DeclarationId
+  provenance : List DefinitionId
   clauses : List SemanticClauseVerdict
   diagnostic : Option SemanticVerdictDiagnostic := none
   deriving BEq, DecidableEq, Repr
@@ -62,23 +62,23 @@ inductive StrictQueryStatus where
   deriving BEq, DecidableEq, Ord, Repr
 
 structure StrictQuerySummary where
-  queryId : DeclarationId
+  queryId : DefinitionId
   status : StrictQueryStatus
   queryBounds : QueryBounds
-  requiredProperties : List DeclarationId
+  requiredProperties : List DefinitionId
   verdicts : List SemanticPropertyVerdict
-  missingProperties : List DeclarationId
-  duplicateProperties : List DeclarationId
-  unexpectedProperties : List DeclarationId
-  divergentProperties : List DeclarationId
-  wrongQueryResults : List DeclarationId
+  missingProperties : List DefinitionId
+  duplicateProperties : List DefinitionId
+  unexpectedProperties : List DefinitionId
+  divergentProperties : List DefinitionId
+  wrongQueryResults : List DefinitionId
   traceIds : List String
   deriving BEq, DecidableEq, Repr
 
-private def idLe (left right : DeclarationId) : Bool :=
+private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
-private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
 
 private def stringLe (left right : String) : Bool := decide (left ≤ right)
@@ -119,7 +119,7 @@ private def qualificationFailureVerdict
     (evidenceBound : Option EvidenceBound := none) : SemanticPropertyVerdict :=
   failureVerdict query property (statusOfQualification diagnostic.status) {
     kind := .qualificationFailure diagnostic.kind
-    relatedIdentities := diagnostic.relatedIdentities
+    relatedDefinitionIds := diagnostic.relatedDefinitionIds
     qualification := some diagnostic
   } traceId evidenceBound
 
@@ -132,12 +132,12 @@ private def propertyUsesLogicalTime (property : CheckedProperty) : Bool :=
     | _ => false
 
 private def validLogicalTimeSteps
-    (source : DeclarationId)
+    (source : DefinitionId)
     (previous : Option Nat) :
-    List (SemanticTraceStep SemanticValue SemanticValue SemanticValue SemanticValue) → Bool
+    List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue) → Bool
   | [] => true
   | step :: rest =>
-      match step.observations.filter fun observation => observation.identity == source with
+      match step.observations.filter fun observation => observation.definitionId == source with
       | [observation] =>
           match observation.value.toNat? with
           | some current =>
@@ -157,7 +157,7 @@ private def hasRequiredLogicalTime
     | some source =>
         !trace.trace.steps.isEmpty && validLogicalTimeSteps source none trace.trace.steps
 
-private def capabilityMismatch (property : CheckedProperty) : List DeclarationId :=
+private def capabilityMismatch (property : CheckedProperty) : List DefinitionId :=
   let admitted := property.access.capabilities.map PropertyCapability.id
   canonicalIds ((property.requires.filter fun required => !admitted.contains required) ++
     (admitted.filter fun capability => !property.requires.contains capability))
@@ -169,43 +169,43 @@ private def vocabularyFailure
     | [] => none
     | required :: rest =>
         let candidates := (trace.vocabulary.filter fun available =>
-          available.declaration == required.declaration && available.kind == required.kind)
+          available.definitionId == required.definitionId && available.kind == required.kind)
           |>.eraseDups
         match candidates with
         | [] => some {
             kind := .missingVocabulary
-            relatedIdentities := [required.declaration]
+            relatedDefinitionIds := [required.definitionId]
           }
         | [available] =>
             if available.semanticDigest != required.semanticDigest then
               some {
                 kind := .digestMismatch
-                relatedIdentities := [required.declaration]
+                relatedDefinitionIds := [required.definitionId]
               }
             else
               check rest
         | _ => some {
             kind := .ambiguousVocabulary
-            relatedIdentities := [required.declaration]
+            relatedDefinitionIds := [required.definitionId]
           }
   check property.access.meanings
 
 private def valueAtCoordinate
-    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue) :
-    SemanticCoordinate → Option SemanticValue
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
+    SemanticCoordinate → Option ModelValue
   | .initialState => some trace.initialState
   | .selectedAction step =>
-      (trace.steps[step - 1]?).map SemanticTraceStep.selectedAction
+      (trace.steps[step - 1]?).map ModelTraceStep.selectedAction
   | .modelOutcome step =>
-      (trace.steps[step - 1]?).map SemanticTraceStep.modelOutcome
+      (trace.steps[step - 1]?).map ModelTraceStep.modelOutcome
   | .resultingState step =>
-      (trace.steps[step - 1]?).map SemanticTraceStep.resultingState
+      (trace.steps[step - 1]?).map ModelTraceStep.resultingState
   | .observation step position => do
       let traceStep ← trace.steps[step - 1]?
       traceStep.observations[position - 1]?
 
 private def coordinateSupportsField
-    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
     (coordinate : SemanticCoordinate)
     (field : PropertyTraceField) : Bool :=
   match coordinate with
@@ -236,7 +236,7 @@ private def relevantDerivations
     | none => false
     | some value => patterns.any fun pattern =>
         coordinateSupportsField trace.trace derivation.coordinate pattern.field &&
-          value.identity == pattern.reference
+          value.definitionId == pattern.reference
 
 private def clauseVerdict
     (query : CheckedQuery LawStatement)
@@ -288,13 +288,13 @@ def evaluateQualifiedProperty
   | none =>
       failureVerdict query property .unsupported {
         kind := .queryPropertyMismatch
-        relatedIdentities := [query.id, property.id]
+        relatedDefinitionIds := [query.id, property.id]
       }
   | some expected =>
       if expected != property then
         failureVerdict query property .unsupported {
           kind := .queryPropertyMismatch
-          relatedIdentities := [query.id, property.id]
+          relatedDefinitionIds := [query.id, property.id]
         }
       else
         match qualification with
@@ -315,19 +315,19 @@ def evaluateQualifiedProperty
                         trace.evidenceIdentities.length > trace.appliedBound.value then
                       failureVerdict query property .unknown {
                         kind := .invalidEvidenceBound
-                        relatedIdentities := [trace.mappingId]
+                        relatedDefinitionIds := [trace.mappingId]
                       } (some trace.traceId) (some trace.appliedBound)
                     else
                       let missingCapabilities := capabilityMismatch property
                       if !missingCapabilities.isEmpty then
                         failureVerdict query property .unsupported {
                           kind := .missingCapability
-                          relatedIdentities := missingCapabilities
+                          relatedDefinitionIds := missingCapabilities
                         } (some trace.traceId) (some trace.appliedBound)
                       else if !hasRequiredLogicalTime property trace then
                         failureVerdict query property .unknown {
                           kind := .missingLogicalTime
-                          relatedIdentities := property.access.logicalTimeSource.toList
+                          relatedDefinitionIds := property.access.logicalTimeSource.toList
                         } (some trace.traceId) (some trace.appliedBound)
                       else
                         resolvedVerdict query property trace

@@ -16,10 +16,10 @@ def incompleteKernelTarget : TargetDeclaration TestLawStatement Unit Bool Bool B
 
 example : (errorOf (composeTarget incompleteKernelTarget)) = some {
     kind := .incompleteKernel
-    declarationId := testTarget.id
+    definitionId := testTarget.id
     sourcePath := "Umpire/TargetTests.lean"
     offendingValue := testKernel.metadata.id.value
-    relatedIdentities := [
+    relatedDefinitionIds := [
       id "umpire.kernel-proof.initial-complete",
       id "umpire.kernel-proof.step-sound"
     ]

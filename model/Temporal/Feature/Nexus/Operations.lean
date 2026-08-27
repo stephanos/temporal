@@ -7,9 +7,9 @@ namespace Temporal.Feature.Nexus.Operations
 open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 
-private def id (value : String) : DeclarationId := DeclarationId.of value
+private def id (value : String) : DefinitionId := DefinitionId.of value
 
-def source : SemanticSource := {
+def source : SourceLocation := {
   path := "Temporal/Feature/Nexus/Operations.lean"
   line := 1
   column := 1
@@ -19,8 +19,8 @@ def source : SemanticSource := {
 def operationRole : ResourceRole := { id := operationRoleId, valueKind := .state }
 
 private def operationIs
-    (constraintId : DeclarationId)
-    (state : SemanticValue) : SetupConstraint := {
+    (constraintId : DefinitionId)
+    (state : ModelValue) : SetupConstraint := {
   id := constraintId
   relation := .equal
   left := .role operationRoleId
@@ -32,7 +32,7 @@ private def checkBehaviorDeclaration
   checkBehavior (.ofTarget target) declaration
 
 private def queryDeclaration
-    (queryId : DeclarationId)
+    (queryId : DefinitionId)
     (property : CheckedProperty)
     (behavior : CheckedBehavior) : QueryDeclaration := {
   id := queryId
@@ -46,11 +46,11 @@ private def queryDeclaration
 
 namespace AsyncStart
 
-def propertyId : DeclarationId := id "temporal.nexus.basic-lifecycle.property.async-start"
-def behaviorId : DeclarationId := id "temporal.nexus.basic-lifecycle.behavior.async-start"
-def queryId : DeclarationId := id "temporal.nexus.basic-lifecycle.query.async-start"
-def setupConstraintId : DeclarationId := id "temporal.nexus.basic-lifecycle.setup.scheduled"
-def occurrenceId : DeclarationId := id "temporal.nexus.basic-lifecycle.occurrence.start"
+def propertyId : DefinitionId := id "temporal.nexus.basic-lifecycle.property.async-start"
+def behaviorId : DefinitionId := id "temporal.nexus.basic-lifecycle.behavior.async-start"
+def queryId : DefinitionId := id "temporal.nexus.basic-lifecycle.query.async-start"
+def setupConstraintId : DefinitionId := id "temporal.nexus.basic-lifecycle.setup.scheduled"
+def occurrenceId : DefinitionId := id "temporal.nexus.basic-lifecycle.occurrence.start"
 
 def propertyDeclaration : PropertyDeclaration := {
   id := propertyId
@@ -199,11 +199,11 @@ end AsyncStart
 
 namespace Cancellation
 
-def propertyId : DeclarationId := id "temporal.nexus.basic-lifecycle.property.cancellation"
-def behaviorId : DeclarationId := id "temporal.nexus.basic-lifecycle.behavior.cancellation"
-def queryId : DeclarationId := id "temporal.nexus.basic-lifecycle.query.cancellation"
-def setupConstraintId : DeclarationId := id "temporal.nexus.basic-lifecycle.setup.cancellation-started"
-def occurrenceId : DeclarationId := id "temporal.nexus.basic-lifecycle.occurrence.cancel"
+def propertyId : DefinitionId := id "temporal.nexus.basic-lifecycle.property.cancellation"
+def behaviorId : DefinitionId := id "temporal.nexus.basic-lifecycle.behavior.cancellation"
+def queryId : DefinitionId := id "temporal.nexus.basic-lifecycle.query.cancellation"
+def setupConstraintId : DefinitionId := id "temporal.nexus.basic-lifecycle.setup.cancellation-started"
+def occurrenceId : DefinitionId := id "temporal.nexus.basic-lifecycle.occurrence.cancel"
 
 def propertyDeclaration : PropertyDeclaration := {
   id := propertyId
@@ -322,11 +322,11 @@ end Cancellation
 
 namespace SuccessfulCompletion
 
-def propertyId : DeclarationId := id "temporal.nexus.basic-lifecycle.property.successful-completion"
-def behaviorId : DeclarationId := id "temporal.nexus.basic-lifecycle.behavior.successful-completion"
-def queryId : DeclarationId := id "temporal.nexus.basic-lifecycle.query.successful-completion"
-def setupConstraintId : DeclarationId := id "temporal.nexus.basic-lifecycle.setup.started"
-def occurrenceId : DeclarationId := id "temporal.nexus.basic-lifecycle.occurrence.succeed"
+def propertyId : DefinitionId := id "temporal.nexus.basic-lifecycle.property.successful-completion"
+def behaviorId : DefinitionId := id "temporal.nexus.basic-lifecycle.behavior.successful-completion"
+def queryId : DefinitionId := id "temporal.nexus.basic-lifecycle.query.successful-completion"
+def setupConstraintId : DefinitionId := id "temporal.nexus.basic-lifecycle.setup.started"
+def occurrenceId : DefinitionId := id "temporal.nexus.basic-lifecycle.occurrence.succeed"
 
 def propertyDeclaration : PropertyDeclaration := {
   id := propertyId

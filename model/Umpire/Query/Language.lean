@@ -57,9 +57,9 @@ structure PlannerPolicy where
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- Query planning consumes the target-owned semantic kernel directly. -/
-abbrev QueryTarget (LawStatement : DeclarationId → Prop) : Type :=
+abbrev QueryTarget (LawStatement : DefinitionId → Prop) : Type :=
   CheckedTarget LawStatement (List RoleBinding)
-    SemanticValue SemanticValue SemanticValue SemanticValue
+    ModelValue ModelValue ModelValue ModelValue
 
 inductive QueryQuantifier where
   | universal
@@ -111,10 +111,10 @@ def QueryForm.properties : QueryForm → List CheckedProperty
 /-- Exhaustive evidence is propositionally tied to the selected target's setup enumeration and
 authoritative step relation; it cannot certify an unrelated author-supplied predicate. -/
 structure FiniteCompletenessEvidence
-    (LawStatement : DeclarationId → Prop)
+    (LawStatement : DefinitionId → Prop)
     (target : QueryTarget LawStatement) where
   roleAssignments : List (List RoleBinding)
-  actions : List SemanticValue
+  actions : List ModelValue
   roleDomainDigest : String
   actionDomainDigest : String
   roleSound : ∀ setup, setup ∈ roleAssignments → setup ∈ target.resolvedSetups
@@ -141,7 +141,7 @@ def CompletenessRequirement.name : CompletenessRequirement → String
 
 /-- An incomplete target remains representable at the Query boundary only so checking can reject
 it before any backend is initialized. -/
-structure CheckedQueryTarget (LawStatement : DeclarationId → Prop) where
+structure CheckedQueryTarget (LawStatement : DefinitionId → Prop) where
   target : QueryTarget LawStatement
   completeness : Option (FiniteCompletenessEvidence LawStatement target) := none
 
@@ -169,14 +169,14 @@ def CheckedQueryTarget.ofTarget
       }
     }
 
-inductive QueryTargetAvailability (LawStatement : DeclarationId → Prop) where
+inductive QueryTargetAvailability (LawStatement : DefinitionId → Prop) where
   | checked (target : CheckedQueryTarget LawStatement)
   | incomplete
-      (targetId : DeclarationId)
-      (source : SemanticSource)
+      (targetId : DefinitionId)
+      (source : SourceLocation)
       (missing : List CompletenessRequirement)
 
-structure QueryCheckContext (LawStatement : DeclarationId → Prop) where
+structure QueryCheckContext (LawStatement : DefinitionId → Prop) where
   target : QueryTargetAvailability LawStatement
 
 /-- The ordinary Query boundary consumes one checked Target and derives any available finite view. -/
@@ -186,10 +186,10 @@ def QueryCheckContext.ofTarget
 }
 
 structure QueryDeclaration where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat := 1
-  target : DeclarationId
+  target : DefinitionId
   form : QueryForm
   behavior : CheckedBehavior
   bounds : QueryBounds
@@ -198,8 +198,8 @@ structure QueryDeclaration where
   deriving BEq, DecidableEq, Repr
 
 inductive QueryErrorKind where
-  | emptyIdentity
-  | invalidIdentity
+  | emptyDefinitionId
+  | invalidDefinitionId
   | duplicateProperty
   | missingProperty
   | targetMismatch
@@ -212,8 +212,8 @@ inductive QueryErrorKind where
   deriving BEq, DecidableEq, Ord, Repr
 
 def QueryErrorKind.name : QueryErrorKind → String
-  | .emptyIdentity => "empty-identity"
-  | .invalidIdentity => "invalid-identity"
+  | .emptyDefinitionId => "empty-definition-id"
+  | .invalidDefinitionId => "invalid-definition-id"
   | .duplicateProperty => "duplicate-property"
   | .missingProperty => "missing-property"
   | .targetMismatch => "target-mismatch"
@@ -226,15 +226,15 @@ def QueryErrorKind.name : QueryErrorKind → String
 
 structure QueryError where
   kind : QueryErrorKind
-  declarationId : DeclarationId
+  definitionId : DefinitionId
   sourcePath : String
   offendingValue : String
-  relatedIdentities : List DeclarationId
+  relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
-structure CheckedQuery (LawStatement : DeclarationId → Prop) where
-  id : DeclarationId
-  source : SemanticSource
+structure CheckedQuery (LawStatement : DefinitionId → Prop) where
+  id : DefinitionId
+  source : SourceLocation
   version : Nat
   form : QueryForm
   quantifier : QueryQuantifier
@@ -243,7 +243,7 @@ structure CheckedQuery (LawStatement : DeclarationId → Prop) where
   target : QueryTarget LawStatement
   bounds : QueryBounds
   policy : PlannerPolicy
-  targetComposition : List DeclarationId
+  targetComposition : List DefinitionId
   completeness : Option (FiniteCompletenessEvidence LawStatement target)
   documentation : String
   canonicalMetadata : String
@@ -254,46 +254,46 @@ private def quote (value : String) : String := Lean.Json.compress (.str value)
 private def array (items : List String) : String :=
   "[" ++ String.intercalate "," items ++ "]"
 
-private def idLe (left right : DeclarationId) : Bool :=
+private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
 private def propertyLe (left right : CheckedProperty) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
-private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
 
-private def sourcePath (source : SemanticSource) : String :=
+private def sourcePath (source : SourceLocation) : String :=
   if source.path == "" then "<unknown>" else source.path
 
 private def queryError
     (kind : QueryErrorKind)
     (owner : QueryDeclaration)
     (offendingValue : String)
-    (relatedIdentities : List DeclarationId := []) : QueryError := {
+    (relatedDefinitionIds : List DefinitionId := []) : QueryError := {
   kind
-  declarationId := if owner.id.value == "" then
-    DeclarationId.of "umpire.query.anonymous"
+  definitionId := if owner.id.value == "" then
+    DefinitionId.of "umpire.query.anonymous"
   else
     owner.id
   sourcePath := sourcePath owner.source
   offendingValue
-  relatedIdentities := canonicalIds relatedIdentities
+  relatedDefinitionIds := canonicalIds relatedDefinitionIds
 }
 
-private def requirementIds (missing : List CompletenessRequirement) : List DeclarationId :=
-  missing.map fun requirement => DeclarationId.of ("umpire.query." ++ requirement.name)
+private def requirementIds (missing : List CompletenessRequirement) : List DefinitionId :=
+  missing.map fun requirement => DefinitionId.of ("umpire.query." ++ requirement.name)
 
 private def firstDuplicateProperty : List CheckedProperty → Option CheckedProperty
   | first :: second :: rest =>
       if first.id == second.id then some first else firstDuplicateProperty (second :: rest)
   | _ => none
 
-private def validateIdentity (declaration : QueryDeclaration) : Except QueryError Unit :=
+private def validateDefinitionId (declaration : QueryDeclaration) : Except QueryError Unit :=
   if declaration.id.value == "" then
-    .error (queryError .emptyIdentity declaration "<empty>")
+    .error (queryError .emptyDefinitionId declaration "<empty>")
   else if !declaration.id.isNamespaced then
-    .error (queryError .invalidIdentity declaration declaration.id.value [declaration.id])
+    .error (queryError .invalidDefinitionId declaration declaration.id.value [declaration.id])
   else
     .ok ()
 
@@ -333,7 +333,7 @@ private def validateStrategy (declaration : QueryDeclaration) : Except QueryErro
       .error (queryError .incompatibleStrategy declaration strategy.name)
   | _, _ => .ok ()
 
-private def targetComposition (target : QueryTarget LawStatement) : List DeclarationId :=
+private def targetComposition (target : QueryTarget LawStatement) : List DefinitionId :=
   canonicalIds (target.requiredCapabilities ++
     target.providers.map CapabilityProvider.id ++
     target.connectors.map CapabilityConnector.id)
@@ -351,7 +351,7 @@ private def validateExactTrace
           [target.id, target.kernel.metadata.id])
       let mut current := exact.trace.initialState
       for (step, index) in exact.trace.steps.zipIdx do
-        let expected : TransitionResult SemanticValue SemanticValue SemanticValue := {
+        let expected : TransitionResult ModelValue ModelValue ModelValue := {
           modelOutcome := step.modelOutcome
           resultingState := step.resultingState
           observations := step.observations
@@ -359,7 +359,7 @@ private def validateExactTrace
         if !((target.kernel.steps current step.selectedAction).contains expected) then
           throw (queryError .targetKernelMismatch declaration
             ("step-" ++ toString index)
-            [target.id, target.kernel.metadata.id, step.selectedAction.identity])
+            [target.id, target.kernel.metadata.id, step.selectedAction.definitionId])
         current := step.resultingState
 
 private def stringListJson (items : List String) : String :=
@@ -396,12 +396,12 @@ private def completenessJson
         ",\"actionDomainDigest\":" ++ quote evidence.actionDomainDigest ++ "}"
 
 private def querySemanticJson
-    (id : DeclarationId)
+    (id : DefinitionId)
     (version : Nat)
     (form : QueryForm)
     (behavior : CheckedBehavior)
     (target : QueryTarget LawStatement)
-    (composition : List DeclarationId)
+    (composition : List DefinitionId)
     (bounds : QueryBounds)
     (policy : PlannerPolicy)
     (completeness : Option (FiniteCompletenessEvidence LawStatement target)) : String :=
@@ -419,7 +419,7 @@ private def querySemanticJson
     ",\"target\":{\"id\":" ++ quote target.id.value ++
       ",\"semanticDigest\":" ++ quote target.semanticDigest ++
       ",\"composition\":" ++
-        stringListJson (composition.map DeclarationId.value) ++
+        stringListJson (composition.map DefinitionId.value) ++
       ",\"kernel\":{\"id\":" ++ quote target.kernel.metadata.id.value ++
         ",\"semanticDigest\":" ++ quote target.kernel.metadata.contractDigest ++ "}}" ++
     ",\"finiteCompleteness\":" ++ completenessJson completeness ++ "}"
@@ -431,18 +431,18 @@ def canonicalQueryJson (query : CheckedQuery LawStatement) : String :=
 
 def canonicalQueryErrorJson (error : QueryError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
-    ",\"declarationId\":" ++ quote error.declarationId.value ++
+    ",\"definitionId\":" ++ quote error.definitionId.value ++
     ",\"sourcePath\":" ++ quote error.sourcePath ++
     ",\"offendingValue\":" ++ quote error.offendingValue ++
-    ",\"relatedIdentities\":" ++
-      stringListJson (canonicalIds error.relatedIdentities |>.map DeclarationId.value) ++ "}"
+    ",\"relatedDefinitionIds\":" ++
+      stringListJson (canonicalIds error.relatedDefinitionIds |>.map DefinitionId.value) ++ "}"
 
 /-- Freeze every meaning-bearing input and reject invalid exhaustive or exact-trace queries before
 the planner backend can be initialized. -/
 def checkQuery
     (context : QueryCheckContext LawStatement)
     (declaration : QueryDeclaration) : Except QueryError (CheckedQuery LawStatement) := do
-  validateIdentity declaration
+  validateDefinitionId declaration
   let checkedTarget ← match context.target with
     | .checked target => pure target
     | .incomplete targetId _ missing =>

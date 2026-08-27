@@ -13,26 +13,26 @@ def compatibilityTargetAuthors : List String := ["nexus-experimental-caller-clos
 private def expectedCompiledArtifactJson : String :=
   include_str "testdata/nexus-caller-closure-experiment-spec.json"
 
-def declarationErrorOf
-    (result : Except DeclarationError α) : Option DeclarationError :=
+def definitionErrorOf
+    (result : Except DefinitionError α) : Option DefinitionError :=
   match result with
   | .error error => some error
   | .ok _ => none
 
-def uniquenessSource : SemanticSource := {
+def uniquenessSource : SourceLocation := {
   path := "Temporal/Feature/Nexus/Experimental/CallerClosureTests.lean"
   line := 1
   column := 1
   provenance := "lean-test"
 }
 
-def uniquenessCapability : DeclarationId :=
-  DeclarationId.of "regression.capability.uniqueness"
+def uniquenessCapability : DefinitionId :=
+  DefinitionId.of "regression.capability.uniqueness"
 
-def pendingCancelCount : DeclarationId :=
-  DeclarationId.of "regression.state.pending-cancel-count"
+def pendingCancelCount : DefinitionId :=
+  DefinitionId.of "regression.state.pending-cancel-count"
 
-def uniquenessMetadata (id : DeclarationId) (kind : DeclarationKind) : DeclarationMetadata := {
+def uniquenessMetadata (id : DefinitionId) (kind : DefinitionKind) : DefinitionMetadata := {
   id
   kind
   source := uniquenessSource
@@ -40,7 +40,7 @@ def uniquenessMetadata (id : DeclarationId) (kind : DeclarationKind) : Declarati
 }
 
 def uniquenessContext : PropertyCheckContext := {
-  declarations := [
+  definitions := [
     uniquenessMetadata uniquenessCapability .capability,
     uniquenessMetadata pendingCancelCount .state
   ]
@@ -50,18 +50,18 @@ def uniquenessContext : PropertyCheckContext := {
     semanticDigest := "regression-uniqueness/v1"
   }]
   meanings := [(uniquenessCapability, {
-    declaration := pendingCancelCount
+    definitionId := pendingCancelCount
     kind := .state
     semanticDigest := "regression-pending-cancel-count/v1"
   })]
 }
 
 def uniquenessProperty : PropertyDeclaration := {
-  id := DeclarationId.of "regression.property.cancel-is-unique"
+  id := DefinitionId.of "regression.property.cancel-is-unique"
   source := uniquenessSource
   requires := [uniquenessCapability]
   clauses := [.stateInvariant
-    (DeclarationId.of "regression.property.cancel-is-unique.clause")
+    (DefinitionId.of "regression.property.cancel-is-unique.clause")
     {
       field := .state
       reference := pendingCancelCount
@@ -69,20 +69,20 @@ def uniquenessProperty : PropertyDeclaration := {
     }]
 }
 
-def semanticValue (identity : DeclarationId) (value : String) : SemanticValue := {
-  identity
+def modelValue (definitionId : DefinitionId) (value : String) : ModelValue := {
+  definitionId
   value
 }
 
 def evaluateUniqueness
-    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue) :
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
     Option PropertyEvaluation :=
   (checkProperty uniquenessContext (.portable uniquenessProperty)).toOption.map fun property =>
     evaluateProperty property trace
 
 def nexusUniquenessTrace
-    (config : Config) : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
-  initialState := semanticValue pendingCancelCount (toString config.cancels.length)
+    (config : Config) : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
+  initialState := modelValue pendingCancelCount (toString config.cancels.length)
   steps := []
 }
 
@@ -103,10 +103,10 @@ example :
   native_decide
 
 def expertTargetDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetDefinition.id
   source := targetDefinition.source
-  declarations := targetDefinition.declarations
+  definitions := targetDefinition.definitions
   requiredCapabilities := targetDefinition.requiredCapabilities
   providers := [
     workflowProvider,
@@ -121,17 +121,17 @@ def expertTargetDeclaration : TargetDeclaration LawStatement
 }
 
 def targetWithoutConnector : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with connectors := []
 }
 
-def missingConnectorErrorResult : Option DeclarationError :=
-  declarationErrorOf (composeTarget targetWithoutConnector)
+def missingConnectorErrorResult : Option DefinitionError :=
+  definitionErrorOf (composeTarget targetWithoutConnector)
 
 private theorem missingConnectorErrorResult_isSome :
     missingConnectorErrorResult.isSome = true := by native_decide
 
-def missingConnectorError : DeclarationError :=
+def missingConnectorError : DefinitionError :=
   missingConnectorErrorResult.get missingConnectorErrorResult_isSome
 
 def ownershipConnectorWithoutLaw : CapabilityConnector LawStatement := {
@@ -139,23 +139,23 @@ def ownershipConnectorWithoutLaw : CapabilityConnector LawStatement := {
 }
 
 def targetWithoutOwnershipLaw : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with connectors := [ownershipConnectorWithoutLaw]
 }
 
-def missingLawErrorResult : Option DeclarationError :=
-  declarationErrorOf (composeTarget targetWithoutOwnershipLaw)
+def missingLawErrorResult : Option DefinitionError :=
+  definitionErrorOf (composeTarget targetWithoutOwnershipLaw)
 
 private theorem missingLawErrorResult_isSome :
     missingLawErrorResult.isSome = true := by native_decide
 
-def missingLawError : DeclarationError :=
+def missingLawError : DefinitionError :=
   missingLawErrorResult.get missingLawErrorResult_isSome
 
 def reorderedTargetDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with
-  declarations := expertTargetDeclaration.declarations.reverse
+  definitions := expertTargetDeclaration.definitions.reverse
   providers := expertTargetDeclaration.providers.reverse
   connectors := expertTargetDeclaration.connectors.reverse
 }
@@ -181,7 +181,7 @@ example : target.requiredCapabilities =
   native_decide
 
 example : (callerClosureProperty.access.meanings.filter fun meaning =>
-    meaning.declaration == ownershipRelationId).map MeaningProvision.semanticDigest =
+    meaning.definitionId == ownershipRelationId).map MeaningProvision.semanticDigest =
       ["workflow-nexus-operation-ownership/v1"] := by
   native_decide
 
@@ -215,22 +215,22 @@ example : target.kernel.authoritativeStep clashState forceCloseAction forceClose
   exact target_force_close_is_authoritative
 
 example : missingConnectorError.kind = .conflictingProviders ∧
-    missingConnectorError.declarationId = ownershipClaimId ∧
+    missingConnectorError.definitionId = ownershipClaimId ∧
     missingConnectorError.sourcePath = source.path ∧
-    missingConnectorError.relatedIdentities =
+    missingConnectorError.relatedDefinitionIds =
       [cancellationOwnershipClaimProviderId, workflowOwnershipClaimProviderId] := by
   native_decide
 
 example : missingLawError.kind = .missingLaw ∧
-    missingLawError.declarationId = ownershipConnectorId ∧
+    missingLawError.definitionId = ownershipConnectorId ∧
     missingLawError.sourcePath = source.path ∧
-    missingLawError.relatedIdentities = [ownershipLawId] := by
+    missingLawError.relatedDefinitionIds = [ownershipLawId] := by
   native_decide
 
-def alternateOwnershipConnectorId : DeclarationId :=
-  DeclarationId.of "workflow-nexus.connector.ownership.alternate"
+def alternateOwnershipConnectorId : DefinitionId :=
+  DefinitionId.of "workflow-nexus.connector.ownership.alternate"
 
-def alternateOwnershipConnectorMetadata : DeclarationMetadata := {
+def alternateOwnershipConnectorMetadata : DefinitionMetadata := {
   id := alternateOwnershipConnectorId
   kind := .connector
   source
@@ -244,14 +244,14 @@ def alternateOwnershipConnector : CapabilityConnector LawStatement := {
 }
 
 def ambiguousConnectorDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with
-  declarations := alternateOwnershipConnectorMetadata :: expertTargetDeclaration.declarations
+  definitions := alternateOwnershipConnectorMetadata :: expertTargetDeclaration.definitions
   connectors := [ownershipConnector, alternateOwnershipConnector]
 }
 
-example : (declarationErrorOf (composeTarget ambiguousConnectorDeclaration)).map
-    DeclarationError.kind = some .ambiguousConnector := by
+example : (definitionErrorOf (composeTarget ambiguousConnectorDeclaration)).map
+    DefinitionError.kind = some .ambiguousConnector := by
   native_decide
 
 example : exploratoryQuery.form = .select [callerClosureProperty] ∧
@@ -311,11 +311,11 @@ example : lifecycleLaw.semanticDigest = "workflow-caller-closure-law/v1" ∧
 
 example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
     compiledArtifact.plan.formatVersion = "umpire-drive-plan/v1" ∧
-    compiledArtifact.plan.queryIdentity = exactActionQueryId ∧
-    compiledArtifact.plan.behaviorIdentity = exactActionBehaviorId ∧
-    compiledArtifact.plan.targetIdentity = targetId ∧
-    compiledArtifact.plan.kernelIdentity = kernelId ∧
-    compiledArtifact.properties.map PortableProperty.identity =
+    compiledArtifact.plan.queryDefinitionId = exactActionQueryId ∧
+    compiledArtifact.plan.behaviorDefinitionId = exactActionBehaviorId ∧
+    compiledArtifact.plan.targetDefinitionId = targetId ∧
+    compiledArtifact.plan.kernelDefinitionId = kernelId ∧
+    compiledArtifact.properties.map PortableProperty.definitionId =
       [callerClosurePropertyId] := by
   native_decide
 

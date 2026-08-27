@@ -39,7 +39,7 @@ def maxRequest
     (useId namespaceName : String)
     (interpretation : Option (ConfigInterpretation Int) :=
       some maxInterpretation) : ConfigUseRequest Int := {
-  id := DeclarationId.of useId
+  id := DefinitionId.of useId
   key := "callback.maxperexecution"
   context := maxNamespaceContext namespaceName
   samplingPoint := .request

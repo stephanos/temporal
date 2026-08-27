@@ -1,6 +1,6 @@
 import Umpire.Property.Tests.Fixtures
 
-/-! Malformed Property declarations and authoring-mode validation checks. -/
+/-! Malformed Property definitions and authoring-mode validation checks. -/
 
 namespace Umpire.PropertyTests
 

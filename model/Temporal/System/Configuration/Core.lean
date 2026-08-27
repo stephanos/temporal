@@ -98,7 +98,7 @@ def ConfigErrorKind.name : ConfigErrorKind → String
 /-- A deterministic configuration diagnostic with canonicalized related identities. -/
 structure ConfigError where
   kind : ConfigErrorKind
-  useId : DeclarationId
+  useId : DefinitionId
   key : String
   offendingValue : String
   relatedIdentities : List String
@@ -111,11 +111,11 @@ private def canonicalStrings (values : List String) : List String :=
 
 private def configError
     (kind : ConfigErrorKind)
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (key offendingValue : String)
     (relatedIdentities : List String := []) : ConfigError := {
   kind
-  useId := if useId.value == "" then DeclarationId.of "umpire.config.anonymous" else useId
+  useId := if useId.value == "" then DefinitionId.of "umpire.config.anonymous" else useId
   key
   offendingValue
   relatedIdentities := canonicalStrings relatedIdentities
@@ -139,7 +139,7 @@ structure ConfigInterpretation (α : Type) where
 
 /-- The unchecked declaration of one typed setting use at an exact lookup context. -/
 structure ConfigUseRequest (α : Type) where
-  id : DeclarationId
+  id : DefinitionId
   key : String
   context : ExactConstraints
   samplingPoint : SamplingPoint
@@ -148,7 +148,7 @@ structure ConfigUseRequest (α : Type) where
 
 /-- Owner-authored meaning for one generated setting, independent of a concrete lookup context. -/
 structure ConfigUseDefinition (α : Type) where
-  id : DeclarationId
+  id : DefinitionId
   classification : SettingClassification
   contextPolicy : PrecedencePolicy
   samplingPoint : SamplingPoint
@@ -156,7 +156,7 @@ structure ConfigUseDefinition (α : Type) where
   interpretation : ConfigInterpretation α
 
 private structure ConfigUsePayload (α : Type) where
-  id : DeclarationId
+  id : DefinitionId
   setting : Setting
   classification : SettingClassification
   interpretation : ConfigInterpretation α
@@ -170,7 +170,7 @@ structure ConfigUse (α : Type) where
   private payload : ConfigUsePayload α
 
 /-- Return the stable owner declaration identifying a checked use. -/
-def ConfigUse.id (use : ConfigUse α) : DeclarationId :=
+def ConfigUse.id (use : ConfigUse α) : DefinitionId :=
   use.payload.id
 
 /-- Return the generated setting key bound to a checked use. -/
@@ -220,7 +220,7 @@ structure CheckedConfigUseDefinition (α : Type) where
 
 /-- Stable, decoded-type-independent metadata for a checked owner definition. -/
 structure ConfigUseDefinitionMetadata where
-  id : DeclarationId
+  id : DefinitionId
   key : String
   settingIdentity : String
   impacts : List ImpactClass
@@ -257,7 +257,7 @@ def metadata : AnyCheckedConfigUseDefinition → ConfigUseDefinitionMetadata
   | .of definition => definition.metadata
 
 /-- Return the stable owner declaration identifying a wrapped checked definition. -/
-def id (definition : AnyCheckedConfigUseDefinition) : DeclarationId :=
+def id (definition : AnyCheckedConfigUseDefinition) : DefinitionId :=
   definition.metadata.id
 
 /-- Return the generated setting key bound to a wrapped checked definition. -/
@@ -273,7 +273,7 @@ inductive AnyConfigUse where
 namespace AnyConfigUse
 
 /-- Return the stable owner declaration identifying a wrapped use. -/
-def id : AnyConfigUse → DeclarationId
+def id : AnyConfigUse → DefinitionId
   | .of use => use.id
 
 /-- Return the generated setting key bound to a wrapped use. -/
@@ -320,7 +320,7 @@ inductive ResolutionSource where
 /-- Auditable provenance for one value in a resolved configuration view. -/
 structure ResolvedEntry where
   private mk ::
-  useId : DeclarationId
+  useId : DefinitionId
   key : String
   source : ResolutionSource
   matchedConstraints : ExactConstraints
@@ -478,7 +478,7 @@ private def hasRequiredContext (policy : PrecedencePolicy) (context : ExactConst
   | .chasmTaskType => context.chasmTaskType.isSome
 
 private def requireContext
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (setting : Setting)
     (context : ExactConstraints) : Except ConfigError Unit := do
   if !hasRequiredContext setting.policy context then
@@ -522,7 +522,7 @@ private def findSetting? (catalog : List Setting) (key : String) : Option Settin
 
 private def requireSetting
     (catalog : List Setting)
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (key : String) : Except ConfigError Setting :=
   match findSetting? catalog key with
   | none => throw (configError .unknownKey useId key key)
@@ -540,19 +540,19 @@ def validateConfigUseDefinitions
   let ids := metadata.map (fun definition => definition.id.value) |>.mergeSort stringLe
   match firstDuplicateString ids with
   | some duplicate =>
-      throw (configError .duplicateUse (DeclarationId.of duplicate) "" duplicate)
+      throw (configError .duplicateUse (DefinitionId.of duplicate) "" duplicate)
   | none => pure ()
   let keys := metadata.map ConfigUseDefinitionMetadata.key |>.mergeSort stringLe
   match firstDuplicateString keys with
   | some duplicate =>
-      throw (configError .duplicateUse (DeclarationId.of "umpire.config.definitions")
+      throw (configError .duplicateUse (DefinitionId.of "umpire.config.definitions")
         duplicate duplicate)
   | none => pure ()
 
 private def validateClassifications
     (catalog : List Setting)
     (classifications : List SettingClassification) : Except ConfigError Unit := do
-  let owner := DeclarationId.of "umpire.config.classifications"
+  let owner := DefinitionId.of "umpire.config.classifications"
   let sorted := classifications.mergeSort fun left right => stringLe left.key right.key
   match firstDuplicateString (sorted.map SettingClassification.key) with
   | some key =>
@@ -632,7 +632,7 @@ private def canonicalMatchesSchema (value : CanonicalValue) (schema : ValueSchem
   | _, _ => false
 
 private def decodeConfigValue
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (key : String)
     (interpretation : ConfigInterpretation α)
     (value : CanonicalValue) : Except ConfigError α :=
@@ -649,7 +649,7 @@ private def opaqueDefaultMetadata : SettingDefault → List OpaqueDefault
   | .concrete _ => []
 
 private def validateOpaqueReplacement
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (setting : Setting)
     (interpretation : ConfigInterpretation α) : Except ConfigError Unit := do
   match interpretation.opaqueReplacement with
@@ -756,7 +756,7 @@ private def firstDuplicateDefault : List ConstrainedDefault → Option Constrain
 
 /-- Validate the schema, constraints, and default structure of one generated setting. -/
 def validateSettingStructure (setting : Setting) : Except ConfigError Unit := do
-  let owner := DeclarationId.of "umpire.config.catalog"
+  let owner := DefinitionId.of "umpire.config.catalog"
   match setting.defaultValue with
   | .concrete value =>
       if !canonicalMatchesSchema value setting.schema then
@@ -788,7 +788,7 @@ private def overrideLe (left right : ConfigOverride) : Bool :=
 private def validateOverrides
     (catalog : List Setting)
     (overrides : List ConfigOverride) : Except ConfigError Unit := do
-  let owner := DeclarationId.of "umpire.config.overrides"
+  let owner := DefinitionId.of "umpire.config.overrides"
   match firstDuplicateOverride overrides with
   | some duplicate =>
       throw (configError .duplicateConstraints owner duplicate.key
@@ -809,7 +809,7 @@ private structure CanonicalResolution where
   deriving Repr
 
 private def replacementFor
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (key : String)
     (interpretation : Option (ConfigInterpretation α))
     (metadata : OpaqueDefault) : Except ConfigError CanonicalValue := do
@@ -822,7 +822,7 @@ private def replacementFor
   | none => throw (configError .opaqueDefaultSelected useId key (reprStr metadata))
 
 private def resolutionFromLeaf
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (key : String)
     (interpretation : Option (ConfigInterpretation α))
     (constraints : ExactConstraints)
@@ -838,7 +838,7 @@ private def resolutionFromLeaf
       pure { value, source := .opaqueReplacement, matchedConstraints := constraints }
 
 private def resolveLevels
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (setting : Setting)
     (interpretation : Option (ConfigInterpretation α))
     (overrides : List ConfigOverride)
@@ -861,7 +861,7 @@ private def resolveLevels
           | none => resolveLevels useId setting interpretation overrides defaults rest
 
 private def resolveCanonical
-    (useId : DeclarationId)
+    (useId : DefinitionId)
     (setting : Setting)
     (interpretation : Option (ConfigInterpretation α))
     (context : ExactConstraints)
@@ -996,7 +996,7 @@ def expectedFixtureCatalogIdentity : String :=
 /-- Check that a fixture catalog identity matches the imported generated catalog. -/
 def checkFixtureCatalogIdentity (expected : String) : Except ConfigError Unit := do
   if expected != Temporal.DynamicConfig.Settings.catalogIdentity then
-    throw (configError .fixtureMismatch (DeclarationId.of "umpire.config.fixture.catalog")
+    throw (configError .fixtureMismatch (DefinitionId.of "umpire.config.fixture.catalog")
       "<catalog>" (expected ++ " != " ++ Temporal.DynamicConfig.Settings.catalogIdentity))
 
 private def fixtureSource : FixtureSource → ResolutionSource
@@ -1009,7 +1009,7 @@ Verify one retained Go-computed resolver fixture without creating a model-facing
 -/
 def checkResolutionFixture (fixture : ResolutionFixture) : Except ConfigError Unit := do
   checkFixtureCatalogIdentity expectedFixtureCatalogIdentity
-  let useId := DeclarationId.of ("umpire.config.fixture." ++ fixture.name)
+  let useId := DefinitionId.of ("umpire.config.fixture." ++ fixture.name)
   let setting ← requireSetting Temporal.DynamicConfig.Settings.all useId fixture.settingKey
   if setting.policy != fixture.policy then
     throw (configError .fixtureMismatch useId fixture.settingKey (reprStr fixture.policy))

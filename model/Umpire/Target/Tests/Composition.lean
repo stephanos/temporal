@@ -27,7 +27,7 @@ def switchProvider : CapabilityProvider TestLawStatement := {
     requiredLaws := [providerLaw]
   }
   meanings := [{
-    declaration := id "switch.action.toggle"
+    definitionId := id "switch.action.toggle"
     kind := .action
     semanticDigest := "switch-action/v1"
   }]
@@ -37,7 +37,7 @@ def switchProvider : CapabilityProvider TestLawStatement := {
 def switchTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   id := id "switch.target.two-state"
   source := source "SwitchSemantic.lean"
-  declarations := [
+  definitions := [
     metadata "switch.target.two-state" .target,
     metadata "switch.kernel.transition" .kernel,
     metadata "switch.capability.toggle" .capability,

@@ -4,12 +4,12 @@ import Umpire.Target
 
 namespace Umpire
 
-/-! Checked, portable constraints over pure semantic traces. -/
+/-! Checked, portable constraints over pure Model Traces. -/
 
 inductive BehaviorErrorKind where
-  | emptyIdentity
-  | invalidIdentity
-  | duplicateIdentity
+  | emptyDefinitionId
+  | invalidDefinitionId
+  | duplicateDefinitionId
   | unknownReference
   | wrongReferenceKind
   | invalidBinding
@@ -24,9 +24,9 @@ inductive BehaviorErrorKind where
   deriving BEq, DecidableEq, Ord, Repr
 
 def BehaviorErrorKind.name : BehaviorErrorKind → String
-  | .emptyIdentity => "empty-identity"
-  | .invalidIdentity => "invalid-identity"
-  | .duplicateIdentity => "duplicate-identity"
+  | .emptyDefinitionId => "empty-definition-id"
+  | .invalidDefinitionId => "invalid-definition-id"
+  | .duplicateDefinitionId => "duplicate-definition-id"
   | .unknownReference => "unknown-reference"
   | .wrongReferenceKind => "wrong-reference-kind"
   | .invalidBinding => "invalid-binding"
@@ -41,26 +41,26 @@ def BehaviorErrorKind.name : BehaviorErrorKind → String
 
 structure BehaviorError where
   kind : BehaviorErrorKind
-  declarationId : DeclarationId
+  definitionId : DefinitionId
   sourcePath : String
   offendingValue : String
-  relatedIdentities : List DeclarationId
+  relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
-/-- A symbolic setup role retains the kind of semantic value that may bind it. -/
+/-- A symbolic setup role retains the kind of Model Value that may bind it. -/
 structure ResourceRole where
-  id : DeclarationId
-  valueKind : DeclarationKind
+  id : DefinitionId
+  valueKind : DefinitionKind
   deriving BEq, DecidableEq, Repr
 
 structure RoleBinding where
-  role : DeclarationId
-  value : SemanticValue
+  role : DefinitionId
+  value : ModelValue
   deriving BEq, DecidableEq, Repr
 
 inductive SetupOperand where
-  | role (id : DeclarationId)
-  | value (value : SemanticValue)
+  | role (id : DefinitionId)
+  | value (value : ModelValue)
   deriving BEq, DecidableEq, Repr
 
 inductive SetupRelation where
@@ -73,89 +73,89 @@ def SetupRelation.name : SetupRelation → String
   | .different => "different"
 
 structure SetupConstraint where
-  id : DeclarationId
+  id : DefinitionId
   relation : SetupRelation
   left : SetupOperand
   right : SetupOperand
   deriving BEq, DecidableEq, Repr
 
-/-- A required action occurrence has a stable identity independent of its action identity. -/
+/-- A required action occurrence has a stable Definition ID independent of its action Definition ID. -/
 structure NamedOccurrence where
-  id : DeclarationId
-  action : DeclarationId
+  id : DefinitionId
+  action : DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure OccurrenceBound where
-  action : DeclarationId
+  action : DefinitionId
   minimum : Nat := 0
   maximum : Option Nat := none
   deriving BEq, DecidableEq, Repr
 
 namespace OccurrenceBound
 
-def exactly (action : DeclarationId) (count : Nat) : OccurrenceBound :=
+def exactly (action : DefinitionId) (count : Nat) : OccurrenceBound :=
   { action, minimum := count, maximum := some count }
 
-def atLeast (action : DeclarationId) (count : Nat) : OccurrenceBound :=
+def atLeast (action : DefinitionId) (count : Nat) : OccurrenceBound :=
   { action, minimum := count }
 
-def atMost (action : DeclarationId) (count : Nat) : OccurrenceBound :=
+def atMost (action : DefinitionId) (count : Nat) : OccurrenceBound :=
   { action, maximum := some count }
 
 end OccurrenceBound
 
 structure OccurrenceOrder where
-  before : DeclarationId
-  after : DeclarationId
+  before : DefinitionId
+  after : DefinitionId
   deriving BEq, DecidableEq, Repr
 
 /-- Optional fields keep malformed promoted witnesses representable until checking. -/
 structure AuthoredExactTraceStep where
-  selectedAction : Option SemanticValue
-  modelOutcome : Option SemanticValue
-  resultingState : Option SemanticValue
-  observations : Option (List SemanticValue)
+  selectedAction : Option ModelValue
+  modelOutcome : Option ModelValue
+  resultingState : Option ModelValue
+  observations : Option (List ModelValue)
   deriving BEq, DecidableEq, Repr
 
 structure AuthoredExactTrace where
   setup : List RoleBinding
-  initialState : Option SemanticValue
+  initialState : Option ModelValue
   steps : List AuthoredExactTraceStep
   deriving BEq, DecidableEq, Repr
 
 /-- A complete pure trace together with the symbolic setup bindings that selected it. -/
 structure BehaviorTrace where
   setup : List RoleBinding
-  trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue
+  trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
   deriving BEq, DecidableEq, Repr
 
 structure BehaviorDeclaration where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat := 1
-  requires : List DeclarationId := []
+  requires : List DefinitionId := []
   roles : List ResourceRole := []
   setup : List SetupConstraint := []
-  allowedActions : List DeclarationId := []
+  allowedActions : List DefinitionId := []
   requiredOccurrences : List NamedOccurrence := []
-  forbiddenActions : List DeclarationId := []
+  forbiddenActions : List DefinitionId := []
   occurrenceBounds : List OccurrenceBound := []
   ordering : List OccurrenceOrder := []
-  sequences : List (List DeclarationId) := []
-  adjacencies : List (List DeclarationId) := []
-  actionsExactly : Option (List DeclarationId) := none
+  sequences : List (List DefinitionId) := []
+  adjacencies : List (List DefinitionId) := []
+  actionsExactly : Option (List DefinitionId) := none
   traceExactly : Option AuthoredExactTrace := none
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
 structure BehaviorCheckContext where
-  declarations : List DeclarationMetadata
+  definitions : List DefinitionMetadata
   deriving BEq, DecidableEq, Repr
 
 def BehaviorCheckContext.ofTarget
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
     BehaviorCheckContext := {
-  declarations := target.declarations
+  definitions := target.definitions
 }
 
 inductive BehaviorSpaceStatus where
@@ -168,20 +168,20 @@ def BehaviorSpaceStatus.name : BehaviorSpaceStatus → String
   | .unsatisfiable => "unsatisfiable"
 
 structure CheckedBehavior where
-  id : DeclarationId
-  source : SemanticSource
+  id : DefinitionId
+  source : SourceLocation
   version : Nat
-  requires : List DeclarationId
+  requires : List DefinitionId
   roles : List ResourceRole
   setup : List SetupConstraint
-  allowedActions : List DeclarationId
+  allowedActions : List DefinitionId
   requiredOccurrences : List NamedOccurrence
-  forbiddenActions : List DeclarationId
+  forbiddenActions : List DefinitionId
   occurrenceBounds : List OccurrenceBound
   ordering : List OccurrenceOrder
-  sequences : List (List DeclarationId)
-  adjacencies : List (List DeclarationId)
-  actionsExactly : Option (List DeclarationId)
+  sequences : List (List DefinitionId)
+  adjacencies : List (List DefinitionId)
+  actionsExactly : Option (List DefinitionId)
   traceExactly : Option BehaviorTrace
   spaceStatus : BehaviorSpaceStatus
   documentation : String
@@ -194,7 +194,7 @@ private def quote (value : String) : String := Lean.Json.compress (.str value)
 private def array (items : List String) : String :=
   "[" ++ String.intercalate "," items ++ "]"
 
-private def idLe (left right : DeclarationId) : Bool :=
+private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
 private def roleLe (left right : ResourceRole) : Bool :=
@@ -216,16 +216,16 @@ private def orderLe (left right : OccurrenceOrder) : Bool :=
 private def bindingLe (left right : RoleBinding) : Bool :=
   decide (left.role.value ≤ right.role.value)
 
-private def idListKey (ids : List DeclarationId) : String :=
-  String.intercalate "\u001f" (ids.map DeclarationId.value)
+private def idListKey (ids : List DefinitionId) : String :=
+  String.intercalate "\u001f" (ids.map DefinitionId.value)
 
-private def idListLe (left right : List DeclarationId) : Bool :=
+private def idListLe (left right : List DefinitionId) : Bool :=
   decide (idListKey left ≤ idListKey right)
 
-private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
 
-private def canonicalIdLists (lists : List (List DeclarationId)) : List (List DeclarationId) :=
+private def canonicalIdLists (lists : List (List DefinitionId)) : List (List DefinitionId) :=
   lists.mergeSort idListLe |>.eraseDups
 
 private def maxRequiredOccurrences : Nat := 12
@@ -233,7 +233,7 @@ private def maxRequiredOccurrences : Nat := 12
 private def operandSortKey : SetupOperand → String
   | .role id => "role:" ++ quote id.value
   | .value value =>
-      "value:" ++ quote value.identity.value ++ ":" ++ quote value.value
+      "value:" ++ quote value.definitionId.value ++ ":" ++ quote value.value
 
 private def canonicalSetupConstraint (constraint : SetupConstraint) : SetupConstraint :=
   if operandSortKey constraint.left ≤ operandSortKey constraint.right then
@@ -241,10 +241,10 @@ private def canonicalSetupConstraint (constraint : SetupConstraint) : SetupConst
   else
     { constraint with left := constraint.right, right := constraint.left }
 
-private def sourcePath (source : SemanticSource) : String :=
+private def sourcePath (source : SourceLocation) : String :=
   if source.path == "" then "<unknown>" else source.path
 
-private def sourceJson (source : SemanticSource) : String :=
+private def sourceJson (source : SourceLocation) : String :=
   "{\"path\":" ++ quote source.path ++
     ",\"line\":" ++ toString source.line ++
     ",\"column\":" ++ toString source.column ++
@@ -252,21 +252,21 @@ private def sourceJson (source : SemanticSource) : String :=
 
 private def behaviorError
     (kind : BehaviorErrorKind)
-    (owner : DeclarationId)
-    (source : SemanticSource)
+    (owner : DefinitionId)
+    (source : SourceLocation)
     (offendingValue : String)
-    (relatedIdentities : List DeclarationId := []) : BehaviorError := {
+    (relatedDefinitionIds : List DefinitionId := []) : BehaviorError := {
   kind
-  declarationId := if owner.value == "" then
-    DeclarationId.of "umpire.behavior.anonymous"
+  definitionId := if owner.value == "" then
+    DefinitionId.of "umpire.behavior.anonymous"
   else
     owner
   sourcePath := sourcePath source
   offendingValue
-  relatedIdentities := canonicalIds relatedIdentities
+  relatedDefinitionIds := canonicalIds relatedDefinitionIds
 }
 
-private def firstDuplicateId : List DeclarationId → Option DeclarationId
+private def firstDuplicateId : List DefinitionId → Option DefinitionId
   | first :: second :: rest =>
       if first == second then some first else firstDuplicateId (second :: rest)
   | _ => none
@@ -276,38 +276,38 @@ private def firstDuplicateOrder : List OccurrenceOrder → Option OccurrenceOrde
       if first == second then some first else firstDuplicateOrder (second :: rest)
   | _ => none
 
-private def requireIdentity
-    (owner : DeclarationId)
-    (source : SemanticSource)
-    (id : DeclarationId) : Except BehaviorError Unit :=
+private def requireDefinitionId
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (id : DefinitionId) : Except BehaviorError Unit :=
   if id.value == "" then
-    .error (behaviorError .emptyIdentity owner source "<empty>" [id])
+    .error (behaviorError .emptyDefinitionId owner source "<empty>" [id])
   else if !id.isNamespaced then
-    .error (behaviorError .invalidIdentity owner source id.value [id])
+    .error (behaviorError .invalidDefinitionId owner source id.value [id])
   else
     .ok ()
 
 private def requireUniqueIds
-    (owner : DeclarationId)
-    (source : SemanticSource)
-    (ids : List DeclarationId) : Except BehaviorError Unit :=
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (ids : List DefinitionId) : Except BehaviorError Unit :=
   match firstDuplicateId (ids.mergeSort idLe) with
   | some duplicate =>
-      .error (behaviorError .duplicateIdentity owner source duplicate.value [duplicate])
+      .error (behaviorError .duplicateDefinitionId owner source duplicate.value [duplicate])
   | none => .ok ()
 
-private def findDeclaration
+private def findDefinition
     (context : BehaviorCheckContext)
-    (id : DeclarationId) : Option DeclarationMetadata :=
-  context.declarations.find? fun declaration => declaration.id == id
+    (id : DefinitionId) : Option DefinitionMetadata :=
+  context.definitions.find? fun declaration => declaration.id == id
 
 private def validateReferenceKind
     (context : BehaviorCheckContext)
     (owner : BehaviorDeclaration)
-    (id : DeclarationId)
-    (expected : DeclarationKind) : Except BehaviorError Unit := do
-  requireIdentity owner.id owner.source id
-  match findDeclaration context id with
+    (id : DefinitionId)
+    (expected : DefinitionKind) : Except BehaviorError Unit := do
+  requireDefinitionId owner.id owner.source id
+  match findDefinition context id with
   | none =>
       throw (behaviorError .unknownReference owner.id owner.source id.value [id])
   | some metadata =>
@@ -318,31 +318,31 @@ private def validateReferenceKind
 
 private def findRole
     (roles : List ResourceRole)
-    (id : DeclarationId) : Option ResourceRole :=
+    (id : DefinitionId) : Option ResourceRole :=
   roles.find? fun role => role.id == id
 
 private def operandKind
     (context : BehaviorCheckContext)
     (owner : BehaviorDeclaration)
-    (roles : List ResourceRole) : SetupOperand → Except BehaviorError DeclarationKind
+    (roles : List ResourceRole) : SetupOperand → Except BehaviorError DefinitionKind
   | .role id =>
       match findRole roles id with
       | some role => pure role.valueKind
       | none => throw (behaviorError .invalidBinding owner.id owner.source id.value [id])
   | .value value => do
-      requireIdentity owner.id owner.source value.identity
-      match findDeclaration context value.identity with
+      requireDefinitionId owner.id owner.source value.definitionId
+      match findDefinition context value.definitionId with
       | some metadata => pure metadata.kind
       | none =>
           throw (behaviorError .invalidBinding owner.id owner.source
-            value.identity.value [value.identity])
+            value.definitionId.value [value.definitionId])
 
 private def validateSetupConstraint
     (context : BehaviorCheckContext)
     (owner : BehaviorDeclaration)
     (roles : List ResourceRole)
     (constraint : SetupConstraint) : Except BehaviorError Unit := do
-  requireIdentity owner.id owner.source constraint.id
+  requireDefinitionId owner.id owner.source constraint.id
   let leftKind ← operandKind context owner roles constraint.left
   let rightKind ← operandKind context owner roles constraint.right
   if leftKind != rightKind then
@@ -350,12 +350,12 @@ private def validateSetupConstraint
       (leftKind.name ++ " != " ++ rightKind.name) [constraint.id])
 
 private structure OrderingGraph where
-  indegree : Std.HashMap DeclarationId Nat
-  outgoing : Std.HashMap DeclarationId (List DeclarationId)
-  incoming : Std.HashMap DeclarationId (List DeclarationId)
+  indegree : Std.HashMap DefinitionId Nat
+  outgoing : Std.HashMap DefinitionId (List DefinitionId)
+  incoming : Std.HashMap DefinitionId (List DefinitionId)
 
 private def buildOrderingGraph
-    (occurrences : List DeclarationId)
+    (occurrences : List DefinitionId)
     (ordering : List OccurrenceOrder) : OrderingGraph :=
   ordering.foldl (init := {
     indegree := occurrences.foldl (init := {}) fun degrees occurrence =>
@@ -369,10 +369,10 @@ private def buildOrderingGraph
   }
 
 private def countTopologically
-    (outgoing : Std.HashMap DeclarationId (List DeclarationId))
-    (indegree : Std.HashMap DeclarationId Nat)
-    (pending : List DeclarationId)
-    (count : Nat) : Nat → Nat × Std.HashMap DeclarationId Nat
+    (outgoing : Std.HashMap DefinitionId (List DefinitionId))
+    (indegree : Std.HashMap DefinitionId Nat)
+    (pending : List DefinitionId)
+    (count : Nat) : Nat → Nat × Std.HashMap DefinitionId Nat
   | 0 => (count, indegree)
   | fuel + 1 =>
       match pending with
@@ -387,10 +387,10 @@ private def countTopologically
           countTopologically outgoing indegree pending (count + 1) fuel
 
 private def followResidualPredecessors
-    (incoming : Std.HashMap DeclarationId (List DeclarationId))
-    (indegree : Std.HashMap DeclarationId Nat)
-    (current : DeclarationId)
-    (visited : List DeclarationId) : Nat → Option DeclarationId
+    (incoming : Std.HashMap DefinitionId (List DefinitionId))
+    (indegree : Std.HashMap DefinitionId Nat)
+    (current : DefinitionId)
+    (visited : List DefinitionId) : Nat → Option DefinitionId
   | 0 => none
   | fuel + 1 =>
       if visited.contains current then
@@ -404,8 +404,8 @@ private def followResidualPredecessors
         | [] => none
 
 private def orderingCycleWitness?
-    (occurrences : List DeclarationId)
-    (ordering : List OccurrenceOrder) : Option DeclarationId :=
+    (occurrences : List DefinitionId)
+    (ordering : List OccurrenceOrder) : Option DefinitionId :=
   let graph := buildOrderingGraph occurrences ordering
   let pending := occurrences.filter (fun occurrence => graph.indegree.getD occurrence 0 == 0)
   let (count, indegree) :=
@@ -456,24 +456,24 @@ private def validateBinding
     | none =>
         throw (behaviorError .invalidBinding owner.id owner.source
           binding.role.value [binding.role])
-  requireIdentity owner.id owner.source binding.value.identity
-  match findDeclaration context binding.value.identity with
+  requireDefinitionId owner.id owner.source binding.value.definitionId
+  match findDefinition context binding.value.definitionId with
   | none =>
       throw (behaviorError .invalidBinding owner.id owner.source
-        binding.value.identity.value [binding.role, binding.value.identity])
+        binding.value.definitionId.value [binding.role, binding.value.definitionId])
   | some metadata =>
       if metadata.kind != role.valueKind then
         throw (behaviorError .invalidBinding owner.id owner.source
           (binding.role.value ++ ": expected " ++ role.valueKind.name ++
             ", found " ++ metadata.kind.name)
-          [binding.role, binding.value.identity])
+          [binding.role, binding.value.definitionId])
 
-private def requireSemanticValueKind
+private def requireModelValueKind
     (context : BehaviorCheckContext)
     (owner : BehaviorDeclaration)
-    (expected : DeclarationKind)
-    (value : SemanticValue) : Except BehaviorError Unit :=
-  validateReferenceKind context owner value.identity expected
+    (expected : DefinitionKind)
+    (value : ModelValue) : Except BehaviorError Unit :=
+  validateReferenceKind context owner value.definitionId expected
 
 private def checkExactTrace
     (context : BehaviorCheckContext)
@@ -495,7 +495,7 @@ private def checkExactTrace
     | none =>
         throw (behaviorError .incompleteExactTrace owner.id owner.source
           "initial-state" [])
-  requireSemanticValueKind context owner .state initialState
+  requireModelValueKind context owner .state initialState
   let mut steps := []
   for (authoredStep, index) in authored.steps.zipIdx do
     let action ← match authoredStep.selectedAction with
@@ -518,11 +518,11 @@ private def checkExactTrace
       | none =>
           throw (behaviorError .incompleteExactTrace owner.id owner.source
             ("step-" ++ toString index ++ ":observations") [])
-    requireSemanticValueKind context owner .action action
-    requireSemanticValueKind context owner .outcome outcome
-    requireSemanticValueKind context owner .state state
+    requireModelValueKind context owner .action action
+    requireModelValueKind context owner .outcome outcome
+    requireModelValueKind context owner .state state
     for observation in observations do
-      requireSemanticValueKind context owner .observation observation
+      requireModelValueKind context owner .observation observation
     steps := steps ++ [{
       selectedAction := action
       modelOutcome := outcome
@@ -534,7 +534,7 @@ private def checkExactTrace
     trace := { initialState, steps }
   }
 
-private def countAction (action : DeclarationId) (actions : List DeclarationId) : Nat :=
+private def countAction (action : DefinitionId) (actions : List DefinitionId) : Nat :=
   (actions.filter fun candidate => candidate == action).length
 
 private def occurrenceIsReady
@@ -559,7 +559,7 @@ private def insertOccurrenceState
 
 private def advanceOccurrenceStates
     (ordering : List OccurrenceOrder)
-    (action : DeclarationId)
+    (action : DefinitionId)
     (states : List OccurrenceAssignmentState) : List OccurrenceAssignmentState :=
   states.foldl (init := []) fun next state =>
     let assignable := state.remaining.filter (fun occurrence =>
@@ -577,7 +577,7 @@ Track canonical remaining-occurrence sets across the schedule. Deduplication mak
 assignment permutations one state, avoiding factorial backtracking for repeated action labels.
 -/
 private def assignOccurrenceSlots
-    (schedule : List DeclarationId)
+    (schedule : List DefinitionId)
     (ordering : List OccurrenceOrder)
     (occurrences : List NamedOccurrence) : Option (List (Option NamedOccurrence)) :=
   let countsSufficient := occurrences.all fun occurrence =>
@@ -595,12 +595,12 @@ private def assignOccurrenceSlots
     (states.find? fun state => state.remaining.isEmpty).map fun state => state.assignedRev.reverse
 
 private def hasOccurrenceAssignment
-    (schedule : List DeclarationId)
+    (schedule : List DefinitionId)
     (ordering : List OccurrenceOrder)
     (occurrences : List NamedOccurrence) : Bool :=
   (assignOccurrenceSlots schedule ordering occurrences).isSome
 
-private def isSubsequence : List DeclarationId → List DeclarationId → Bool
+private def isSubsequence : List DefinitionId → List DefinitionId → Bool
   | [], _ => true
   | _, [] => false
   | expected :: rest, actual :: remaining =>
@@ -609,24 +609,24 @@ private def isSubsequence : List DeclarationId → List DeclarationId → Bool
       else
         isSubsequence (expected :: rest) remaining
 
-private def isPrefix : List DeclarationId → List DeclarationId → Bool
+private def isPrefix : List DefinitionId → List DefinitionId → Bool
   | [], _ => true
   | _, [] => false
   | expected :: rest, actual :: remaining =>
       expected == actual && isPrefix rest remaining
 
-private def containsAdjacent (expected : List DeclarationId) : List DeclarationId → Bool
+private def containsAdjacent (expected : List DefinitionId) : List DefinitionId → Bool
   | [] => expected == []
   | actual@(_ :: remaining) => isPrefix expected actual || containsAdjacent expected remaining
 
 private def validateActionConstraints
     (owner : BehaviorDeclaration)
-    (allowed forbidden : List DeclarationId)
+    (allowed forbidden : List DefinitionId)
     (required : List NamedOccurrence)
     (bounds : List OccurrenceBound)
     (ordering : List OccurrenceOrder)
-    (sequences adjacencies : List (List DeclarationId))
-    (exactSchedule : Option (List DeclarationId)) : Except BehaviorError Unit := do
+    (sequences adjacencies : List (List DefinitionId))
+    (exactSchedule : Option (List DefinitionId)) : Except BehaviorError Unit := do
   for occurrence in required do
     if forbidden.contains occurrence.action then
       throw (behaviorError .forbiddenRequired owner.id owner.source
@@ -691,7 +691,7 @@ private def validateActionConstraints
 private def operandJson : SetupOperand → String
   | .role id => "{\"role\":" ++ quote id.value ++ "}"
   | .value value =>
-      "{\"value\":{\"identity\":" ++ quote value.identity.value ++
+      "{\"value\":{\"identity\":" ++ quote value.definitionId.value ++
         ",\"value\":" ++ quote value.value ++ "}}"
 
 private def roleJson (role : ResourceRole) : String :=
@@ -717,8 +717,8 @@ private def orderJson (edge : OccurrenceOrder) : String :=
   "{\"before\":" ++ quote edge.before.value ++
     ",\"after\":" ++ quote edge.after.value ++ "}"
 
-private def valueJson (value : SemanticValue) : String :=
-  "{\"identity\":" ++ quote value.identity.value ++
+private def valueJson (value : ModelValue) : String :=
+  "{\"identity\":" ++ quote value.definitionId.value ++
     ",\"value\":" ++ quote value.value ++ "}"
 
 private def bindingJson (binding : RoleBinding) : String :=
@@ -726,7 +726,7 @@ private def bindingJson (binding : RoleBinding) : String :=
     ",\"value\":" ++ valueJson binding.value ++ "}"
 
 private def traceStepJson
-    (step : SemanticTraceStep SemanticValue SemanticValue SemanticValue SemanticValue) : String :=
+    (step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue) : String :=
   "{\"selectedAction\":" ++ valueJson step.selectedAction ++
     ",\"modelOutcome\":" ++ valueJson step.modelOutcome ++
     ",\"resultingState\":" ++ valueJson step.resultingState ++
@@ -737,8 +737,8 @@ private def behaviorTraceJson (trace : BehaviorTrace) : String :=
     ",\"initialState\":" ++ valueJson trace.trace.initialState ++
     ",\"steps\":" ++ array (trace.trace.steps.map traceStepJson) ++ "}"
 
-private def actionListJson (actions : List DeclarationId) : String :=
-  array (actions.map (quote ∘ DeclarationId.value))
+private def actionListJson (actions : List DefinitionId) : String :=
+  array (actions.map (quote ∘ DefinitionId.value))
 
 private def equalNeighbors
     (constraints : List SetupConstraint)
@@ -788,18 +788,18 @@ private def setupUnsatisfiable (constraints : List SetupConstraint) : Bool :=
   unequalConflict || literalConflict
 
 private def behaviorSemanticJson
-    (id : DeclarationId)
+    (id : DefinitionId)
     (version : Nat)
-    (requires : List DeclarationId)
+    (requires : List DefinitionId)
     (roles : List ResourceRole)
     (setup : List SetupConstraint)
-    (allowedActions : List DeclarationId)
+    (allowedActions : List DefinitionId)
     (requiredOccurrences : List NamedOccurrence)
-    (forbiddenActions : List DeclarationId)
+    (forbiddenActions : List DefinitionId)
     (occurrenceBounds : List OccurrenceBound)
     (ordering : List OccurrenceOrder)
-    (sequences adjacencies : List (List DeclarationId))
-    (actionsExactly : Option (List DeclarationId))
+    (sequences adjacencies : List (List DefinitionId))
+    (actionsExactly : Option (List DefinitionId))
     (traceExactly : Option BehaviorTrace)
     (spaceStatus : BehaviorSpaceStatus) : String :=
   "{\"id\":" ++ quote id.value ++
@@ -830,17 +830,17 @@ def canonicalBehaviorJson (behavior : CheckedBehavior) : String :=
 
 def canonicalBehaviorErrorJson (error : BehaviorError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
-    ",\"declarationId\":" ++ quote error.declarationId.value ++
+    ",\"definitionId\":" ++ quote error.definitionId.value ++
     ",\"sourcePath\":" ++ quote error.sourcePath ++
     ",\"offendingValue\":" ++ quote error.offendingValue ++
-    ",\"relatedIdentities\":" ++
-      array (canonicalIds error.relatedIdentities |>.map (quote ∘ DeclarationId.value)) ++ "}"
+    ",\"relatedDefinitionIds\":" ++
+      array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
 /-- Check and canonicalize a behavior without selecting a target or enumerating any trace. -/
 def checkBehavior
     (context : BehaviorCheckContext)
     (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior := do
-  requireIdentity declaration.id declaration.source declaration.id
+  requireDefinitionId declaration.id declaration.source declaration.id
   requireUniqueIds declaration.id declaration.source declaration.requires
   requireUniqueIds declaration.id declaration.source (declaration.roles.map ResourceRole.id)
   requireUniqueIds declaration.id declaration.source (declaration.setup.map SetupConstraint.id)
@@ -854,7 +854,7 @@ def checkBehavior
     validateReferenceKind context declaration capability .capability
   let roles := declaration.roles.mergeSort roleLe
   for role in roles do
-    requireIdentity declaration.id declaration.source role.id
+    requireDefinitionId declaration.id declaration.source role.id
   let setup := declaration.setup.map canonicalSetupConstraint |>.mergeSort constraintLe
   for constraint in setup do
     validateSetupConstraint context declaration roles constraint
@@ -881,14 +881,14 @@ def checkBehavior
   let exactTrace ← declaration.traceExactly.mapM (checkExactTrace context declaration roles)
   let exactSchedule := declaration.actionsExactly <|>
     exactTrace.map fun trace => trace.trace.steps.map
-      (fun step => step.selectedAction.identity)
+      (fun step => step.selectedAction.definitionId)
   let sequences := canonicalIdLists declaration.sequences
   let adjacencies := canonicalIdLists declaration.adjacencies
   validateActionConstraints declaration allowed forbidden required bounds ordering sequences
     adjacencies exactSchedule
   match declaration.actionsExactly, exactTrace with
   | some actions, some trace =>
-      let traceActions := trace.trace.steps.map fun step => step.selectedAction.identity
+      let traceActions := trace.trace.steps.map fun step => step.selectedAction.definitionId
       if actions != traceActions then
         throw (behaviorError .contradictoryConstraint declaration.id declaration.source
           "actionsExactly != traceExactly actions" actions)
@@ -923,10 +923,10 @@ def checkBehavior
   }
   pure { checked with canonicalMetadata := canonicalBehaviorJson checked }
 
-private def bindingFor (bindings : List RoleBinding) (role : DeclarationId) : Option SemanticValue :=
+private def bindingFor (bindings : List RoleBinding) (role : DefinitionId) : Option ModelValue :=
   (bindings.find? fun binding => binding.role == role).map RoleBinding.value
 
-private def resolveOperand (bindings : List RoleBinding) : SetupOperand → Option SemanticValue
+private def resolveOperand (bindings : List RoleBinding) : SetupOperand → Option ModelValue
   | .role id => bindingFor bindings id
   | .value value => some value
 
@@ -945,8 +945,8 @@ private def setupIsComplete (roles : List ResourceRole) (bindings : List RoleBin
     roles.all (fun role => countAction role.id (bindings.map RoleBinding.role) == 1) &&
     bindings.all (fun binding => roles.any fun role => role.id == binding.role)
 
-private def traceActions (trace : BehaviorTrace) : List DeclarationId :=
-  trace.trace.steps.map fun step => step.selectedAction.identity
+private def traceActions (trace : BehaviorTrace) : List DefinitionId :=
+  trace.trace.steps.map fun step => step.selectedAction.definitionId
 
 private def normalizedTrace (trace : BehaviorTrace) : BehaviorTrace :=
   { trace with setup := trace.setup.mergeSort bindingLe }
@@ -954,7 +954,7 @@ private def normalizedTrace (trace : BehaviorTrace) : BehaviorTrace :=
 /-- Canonically attribute selected action positions to authored required occurrences. -/
 def CheckedBehavior.assignOccurrences
     (behavior : CheckedBehavior)
-    (schedule : List DeclarationId) : Option (List (Option NamedOccurrence)) :=
+    (schedule : List DefinitionId) : Option (List (Option NamedOccurrence)) :=
   assignOccurrenceSlots schedule behavior.ordering behavior.requiredOccurrences
 
 /-- Membership is a pure predicate over already semantic, target-owned trace data. -/

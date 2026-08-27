@@ -62,7 +62,7 @@ def taskQueueContext
 def matchingUpdateAckIntervalDefinitionResult :
     Except ConfigError (CheckedConfigUseDefinition Int) :=
   checkConfigUseDefinition {
-    id := DeclarationId.of "temporal.matching.update-ack-interval"
+    id := DefinitionId.of "temporal.matching.update-ack-interval"
     classification := matchingUpdateAckIntervalClassification
     contextPolicy := .taskQueue
     samplingPoint := .task
@@ -73,7 +73,7 @@ def matchingUpdateAckIntervalDefinitionResult :
 def matchingWorkerRegistryNumBucketsDefinitionResult :
     Except ConfigError (CheckedConfigUseDefinition Int) :=
   checkConfigUseDefinition {
-    id := DeclarationId.of "temporal.matching.worker-registry-num-buckets"
+    id := DefinitionId.of "temporal.matching.worker-registry-num-buckets"
     classification := matchingWorkerRegistryNumBucketsClassification
     contextPolicy := .global
     samplingPoint := .processStartup

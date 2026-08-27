@@ -3,15 +3,15 @@ import Std
 
 namespace Umpire
 
-/-! The common, pure semantic substrate shared by the Umpire authoring languages. -/
+/-! The common, pure model substrate shared by the Umpire authoring languages. -/
 
-structure DeclarationId where
+structure DefinitionId where
   value : String
   deriving BEq, DecidableEq, Hashable, Ord, Repr
 
-namespace DeclarationId
+namespace DefinitionId
 
-def of (value : String) : DeclarationId := ⟨value⟩
+def of (value : String) : DefinitionId := ⟨value⟩
 
 private def isIdentifierCharacter (character : Char) : Bool :=
   character.isAlphanum || character == '-' || character == '_'
@@ -19,13 +19,13 @@ private def isIdentifierCharacter (character : Char) : Bool :=
 private def isNamespaceSegment (segment : String) : Bool :=
   segment != "" && segment.toList.all isIdentifierCharacter
 
-def isNamespaced (id : DeclarationId) : Bool :=
+def isNamespaced (id : DefinitionId) : Bool :=
   let segments := id.value.splitOn "."
   segments.length > 1 && segments.all isNamespaceSegment
 
-end DeclarationId
+end DefinitionId
 
-inductive DeclarationKind where
+inductive DefinitionKind where
   | state
   | action
   | outcome
@@ -39,7 +39,7 @@ inductive DeclarationKind where
   | kernel
   deriving BEq, DecidableEq, Ord, Repr
 
-def DeclarationKind.name : DeclarationKind → String
+def DefinitionKind.name : DefinitionKind → String
   | .state => "state"
   | .action => "action"
   | .outcome => "outcome"
@@ -52,17 +52,17 @@ def DeclarationKind.name : DeclarationKind → String
   | .target => "target"
   | .kernel => "kernel"
 
-structure SemanticSource where
+structure SourceLocation where
   path : String
   line : Nat := 0
   column : Nat := 0
   provenance : String := "authored"
   deriving BEq, DecidableEq, Repr
 
-structure DeclarationMetadata where
-  id : DeclarationId
-  kind : DeclarationKind
-  source : SemanticSource
+structure DefinitionMetadata where
+  id : DefinitionId
+  kind : DefinitionKind
+  source : SourceLocation
   version : Nat := 1
   contractDigest : String
   documentation : String := ""
@@ -86,12 +86,12 @@ structure TypedBound where
   unit : BoundUnit
   deriving BEq, DecidableEq, Ord, Repr
 
-structure SemanticValue where
-  identity : DeclarationId
+structure ModelValue where
+  definitionId : DefinitionId
   value : String
   deriving BEq, DecidableEq, Ord, Repr
 
-structure SemanticTraceStep (State Action Outcome Observation : Type) where
+structure ModelTraceStep (State Action Outcome Observation : Type) where
   selectedAction : Action
   modelOutcome : Outcome
   resultingState : State
@@ -99,9 +99,9 @@ structure SemanticTraceStep (State Action Outcome Observation : Type) where
   deriving BEq, DecidableEq, Repr
 
 /-- Pure model data only. Execution evidence and qualification are deliberately absent. -/
-structure SemanticTrace (State Action Outcome Observation : Type) where
+structure ModelTrace (State Action Outcome Observation : Type) where
   initialState : State
-  steps : List (SemanticTraceStep State Action Outcome Observation)
+  steps : List (ModelTraceStep State Action Outcome Observation)
   deriving BEq, DecidableEq, Repr
 
 structure TransitionResult (State Outcome Observation : Type) where
@@ -111,10 +111,10 @@ structure TransitionResult (State Outcome Observation : Type) where
   deriving BEq, DecidableEq, Repr
 
 structure KernelMetadata where
-  id : DeclarationId
+  id : DefinitionId
   version : Nat := 1
   contractDigest : String
-  source : SemanticSource
+  source : SourceLocation
   deriving BEq, DecidableEq, Repr
 
 /--
@@ -138,59 +138,59 @@ structure TransitionKernel (Setup State Action Outcome Observation : Type) where
 /-- Missing proof obligations are representable only before target composition. -/
 inductive KernelAvailability (Setup State Action Outcome Observation : Type) where
   | checked (kernel : TransitionKernel Setup State Action Outcome Observation)
-  | incomplete (metadata : KernelMetadata) (missingProofs : List DeclarationId)
+  | incomplete (metadata : KernelMetadata) (missingProofs : List DefinitionId)
 
 structure LawRequirement where
-  id : DeclarationId
+  id : DefinitionId
   semanticDigest : String
   deriving BEq, DecidableEq, Ord, Repr
 
-/-- A law witness retains portable identity while proving the target's authoritative proposition. -/
-structure LawWitness (LawStatement : DeclarationId → Prop) where
+/-- A law witness retains its portable Definition ID while proving the target's authoritative proposition. -/
+structure LawWitness (LawStatement : DefinitionId → Prop) where
   requirement : LawRequirement
   proof : LawStatement requirement.id
 
 structure CapabilityContract where
-  id : DeclarationId
+  id : DefinitionId
   version : Nat := 1
   semanticDigest : String
   requiredLaws : List LawRequirement
   deriving BEq, DecidableEq, Repr
 
 structure MeaningProvision where
-  declaration : DeclarationId
-  kind : DeclarationKind
+  definitionId : DefinitionId
+  kind : DefinitionKind
   semanticDigest : String
   deriving BEq, DecidableEq, Repr
 
-structure CapabilityProvider (LawStatement : DeclarationId → Prop) where
-  id : DeclarationId
-  source : SemanticSource
+structure CapabilityProvider (LawStatement : DefinitionId → Prop) where
+  id : DefinitionId
+  source : SourceLocation
   contract : CapabilityContract
   meanings : List MeaningProvision
   lawWitnesses : List (LawWitness LawStatement)
 
 structure Reconciliation where
-  declaration : DeclarationId
-  kind : DeclarationKind
-  providers : List DeclarationId
+  definitionId : DefinitionId
+  kind : DefinitionKind
+  providers : List DefinitionId
   semanticDigest : String
   deriving BEq, DecidableEq, Repr
 
-structure CapabilityConnector (LawStatement : DeclarationId → Prop) where
-  id : DeclarationId
-  source : SemanticSource
+structure CapabilityConnector (LawStatement : DefinitionId → Prop) where
+  id : DefinitionId
+  source : SourceLocation
   version : Nat := 1
   semanticDigest : String
   reconciliations : List Reconciliation
   requiredLaws : List LawRequirement
   lawWitnesses : List (LawWitness LawStatement)
 
-inductive DeclarationErrorKind where
-  | emptyIdentity
-  | invalidIdentity
-  | duplicateIdentity
-  | unknownIdentity
+inductive DefinitionErrorKind where
+  | emptyDefinitionId
+  | invalidDefinitionId
+  | duplicateDefinitionId
+  | unknownDefinitionId
   | wrongKind
   | missingLaw
   | unexpectedLaw
@@ -201,11 +201,11 @@ inductive DeclarationErrorKind where
   | incompleteKernel
   deriving BEq, DecidableEq, Ord, Repr
 
-def DeclarationErrorKind.name : DeclarationErrorKind → String
-  | .emptyIdentity => "empty-identity"
-  | .invalidIdentity => "invalid-identity"
-  | .duplicateIdentity => "duplicate-identity"
-  | .unknownIdentity => "unknown-identity"
+def DefinitionErrorKind.name : DefinitionErrorKind → String
+  | .emptyDefinitionId => "empty-definition-id"
+  | .invalidDefinitionId => "invalid-definition-id"
+  | .duplicateDefinitionId => "duplicate-definition-id"
+  | .unknownDefinitionId => "unknown-definition-id"
   | .wrongKind => "wrong-kind"
   | .missingLaw => "missing-law"
   | .unexpectedLaw => "unexpected-law"
@@ -215,12 +215,12 @@ def DeclarationErrorKind.name : DeclarationErrorKind → String
   | .ambiguousConnector => "ambiguous-connector"
   | .incompleteKernel => "incomplete-kernel"
 
-structure DeclarationError where
-  kind : DeclarationErrorKind
-  declarationId : DeclarationId
+structure DefinitionError where
+  kind : DefinitionErrorKind
+  definitionId : DefinitionId
   sourcePath : String
   offendingValue : String
-  relatedIdentities : List DeclarationId
+  relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
 

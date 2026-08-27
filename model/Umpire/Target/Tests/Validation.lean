@@ -1,45 +1,45 @@
 import Umpire.Target.Tests.Fixtures
 
-/-! Declaration, capability, provider, connector, and law validation checks. -/
+/-! Definition, capability, provider, connector, and law validation checks. -/
 
 namespace Umpire.TargetTests
 
 open Umpire
 
-def emptyIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+def emptyDefinitionIdTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := metadata "" .action :: testDeclarations
+  definitions := metadata "" .action :: testDefinitions
 }
 
-example : (errorOf (composeTarget emptyIdentityTarget)) = some {
-    kind := .emptyIdentity
-    declarationId := id "umpire.declaration.anonymous"
+example : (errorOf (composeTarget emptyDefinitionIdTarget)) = some {
+    kind := .emptyDefinitionId
+    definitionId := id "umpire.definition.anonymous"
     sourcePath := "Umpire/TargetTests.lean"
     offendingValue := "<empty>"
-    relatedIdentities := [id ""]
+    relatedDefinitionIds := [id ""]
   } := by
   native_decide
 
-def duplicateIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+def duplicateDefinitionIdTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := metadata "test.target.composed" .target :: testDeclarations
+  definitions := metadata "test.target.composed" .target :: testDefinitions
 }
 
-example : (errorOf (composeTarget duplicateIdentityTarget)).map DeclarationError.kind =
-    some .duplicateIdentity := by
+example : (errorOf (composeTarget duplicateDefinitionIdTarget)).map DefinitionError.kind =
+    some .duplicateDefinitionId := by
   native_decide
 
-def unknownIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+def unknownDefinitionIdTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
   requiredCapabilities := [id "test.capability.missing"]
 }
 
-example : (errorOf (composeTarget unknownIdentityTarget)) = some {
-    kind := .unknownIdentity
-    declarationId := testTarget.id
+example : (errorOf (composeTarget unknownDefinitionIdTarget)) = some {
+    kind := .unknownDefinitionId
+    definitionId := testTarget.id
     sourcePath := "Test/CompositeSemantic.lean"
     offendingValue := "test.capability.missing"
-    relatedIdentities := [id "test.capability.missing"]
+    relatedDefinitionIds := [id "test.capability.missing"]
   } := by
   native_decide
 
@@ -48,7 +48,7 @@ def wrongKindTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Boo
   requiredCapabilities := [id "test.action.request"]
 }
 
-example : (errorOf (composeTarget wrongKindTarget)).map DeclarationError.kind = some .wrongKind := by
+example : (errorOf (composeTarget wrongKindTarget)).map DefinitionError.kind = some .wrongKind := by
   native_decide
 
 def missingLawProvider : CapabilityProvider TestLawStatement := {
@@ -59,7 +59,7 @@ def missingLawTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bo
   testTarget with providers := [missingLawProvider, secondaryProvider]
 }
 
-example : (errorOf (composeTarget missingLawTarget)).map DeclarationError.kind = some .missingLaw := by
+example : (errorOf (composeTarget missingLawTarget)).map DefinitionError.kind = some .missingLaw := by
   native_decide
 
 def staleWitnessProvider : CapabilityProvider TestLawStatement := {
@@ -71,7 +71,7 @@ def staleWitnessTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool 
   testTarget with providers := [staleWitnessProvider, secondaryProvider]
 }
 
-example : (errorOf (composeTarget staleWitnessTarget)).map DeclarationError.kind =
+example : (errorOf (composeTarget staleWitnessTarget)).map DefinitionError.kind =
     some .unexpectedLaw := by
   native_decide
 
@@ -79,11 +79,11 @@ def missingProviderTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bo
   testTarget with providers := [primaryProvider]
 }
 
-example : (errorOf (composeTarget missingProviderTarget)).map DeclarationError.kind =
+example : (errorOf (composeTarget missingProviderTarget)).map DefinitionError.kind =
     some .missingProvider := by
   native_decide
 
-example : (errorOf (composeTarget conflictingTarget)).map DeclarationError.kind =
+example : (errorOf (composeTarget conflictingTarget)).map DefinitionError.kind =
     some .conflictingProviders := by
   native_decide
 
@@ -95,11 +95,11 @@ def secondOwnershipConnector : CapabilityConnector TestLawStatement := {
 
 def ambiguousConnectorTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := metadata "test.connector.alternate-shared" .connector :: testDeclarations
+  definitions := metadata "test.connector.alternate-shared" .connector :: testDefinitions
   connectors := [secondOwnershipConnector, ownershipConnector]
 }
 
-example : (errorOf (composeTarget ambiguousConnectorTarget)).map DeclarationError.kind =
+example : (errorOf (composeTarget ambiguousConnectorTarget)).map DefinitionError.kind =
     some .ambiguousConnector := by
   native_decide
 
@@ -107,7 +107,7 @@ def inactiveProviderConnector : CapabilityConnector TestLawStatement := {
   ownershipConnector with
   id := id "test.connector.inactive-provider"
   reconciliations := [{
-    declaration := id "test.relation.shared"
+    definitionId := id "test.relation.shared"
     kind := .relation
     providers := [primaryProvider.id, id "test.provider.inactive"]
     semanticDigest := "inactive-provider/reconciled-v1"
@@ -116,25 +116,25 @@ def inactiveProviderConnector : CapabilityConnector TestLawStatement := {
 
 def inactiveProviderTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := [
+  definitions := [
     metadata "test.connector.inactive-provider" .connector,
     metadata "test.provider.inactive" .provider
-  ] ++ testDeclarations
+  ] ++ testDefinitions
   connectors := [inactiveProviderConnector]
 }
 
-example : (errorOf (composeTarget inactiveProviderTarget)).map DeclarationError.kind =
+example : (errorOf (composeTarget inactiveProviderTarget)).map DefinitionError.kind =
     some .missingProvider := by
   native_decide
 
 example : [id ".", id ".action", id "action.", id "test..action"].all
-    (fun identity => !identity.isNamespaced) = true := by
+    (fun definitionId => !definitionId.isNamespaced) = true := by
   native_decide
 
 def compatibleSecondaryProvider : CapabilityProvider TestLawStatement := {
   secondaryProvider with
   meanings := [{
-    declaration := id "test.relation.shared"
+    definitionId := id "test.relation.shared"
     kind := .relation
     semanticDigest := "test-primary-shared/v1"
   }]

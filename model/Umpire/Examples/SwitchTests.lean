@@ -72,18 +72,18 @@ example : [
 
 example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
     compiledArtifact.plan.formatVersion = "umpire-drive-plan/v1" ∧
-    compiledArtifact.plan.queryIdentity = exactActionQueryId ∧
+    compiledArtifact.plan.queryDefinitionId = exactActionQueryId ∧
     compiledArtifact.plan.querySemanticDigest = exactActionQuery.semanticDigest ∧
-    compiledArtifact.plan.behaviorIdentity = exactActionBehaviorId ∧
+    compiledArtifact.plan.behaviorDefinitionId = exactActionBehaviorId ∧
     compiledArtifact.plan.behaviorSemanticDigest = exactActionBehavior.semanticDigest ∧
-    compiledArtifact.plan.targetIdentity = targetId ∧
+    compiledArtifact.plan.targetDefinitionId = targetId ∧
     compiledArtifact.plan.targetSemanticDigest = target.semanticDigest ∧
-    compiledArtifact.plan.kernelIdentity = kernelId ∧
+    compiledArtifact.plan.kernelDefinitionId = kernelId ∧
     compiledArtifact.plan.kernelSemanticDigest = "switch-two-state-kernel/v1" ∧
     compiledArtifact.plan.requestedActions = [flipAction] ∧
     compiledArtifact.plan.modelOutcomes = [appliedOutcome] ∧
     compiledArtifact.plan.resultingStates = [onState] ∧
-    compiledArtifact.properties.map PortableProperty.identity = [flipPropertyId] ∧
+    compiledArtifact.properties.map PortableProperty.definitionId = [flipPropertyId] ∧
     compiledArtifact.properties.map PortableProperty.semanticDigest = [flipProperty.semanticDigest] ∧
     compiledArtifact.provenance.sources = [source] ∧
     compiledArtifact.plan.provenance = compiledArtifact.provenance := by

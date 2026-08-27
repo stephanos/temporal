@@ -1,35 +1,35 @@
 import Umpire.Query
 
-/-! Shared semantic model, checked declarations, completeness evidence, and Query helpers. -/
+/-! Shared semantic model, checked definitions, completeness evidence, and Query helpers. -/
 
 namespace Umpire.QueryTests
 
 open Umpire
 
-def id (value : String) : DeclarationId := DeclarationId.of value
+def id (value : String) : DefinitionId := DefinitionId.of value
 
-def source : SemanticSource := {
+def source : SourceLocation := {
   path := "Umpire/Query/Tests.lean"
   line := 1
   column := 1
   provenance := "lean-test"
 }
 
-def phase : DeclarationId := id "query.state.phase"
-def request : DeclarationId := id "query.action.request"
-def accepted : DeclarationId := id "query.outcome.accepted"
-def observed : DeclarationId := id "query.observation.accepted"
-def role : DeclarationId := id "query.role.operation"
-def targetId : DeclarationId := id "query.target.fixture"
-def kernelId : DeclarationId := id "query.kernel.fixture"
-def extraCapabilityId : DeclarationId := id "query.capability.extra"
-def extraProviderId : DeclarationId := id "query.provider.extra"
+def phase : DefinitionId := id "query.state.phase"
+def request : DefinitionId := id "query.action.request"
+def accepted : DefinitionId := id "query.outcome.accepted"
+def observed : DefinitionId := id "query.observation.accepted"
+def role : DefinitionId := id "query.role.operation"
+def targetId : DefinitionId := id "query.target.fixture"
+def kernelId : DefinitionId := id "query.kernel.fixture"
+def extraCapabilityId : DefinitionId := id "query.capability.extra"
+def extraProviderId : DefinitionId := id "query.provider.extra"
 
 def metadata
-    (identity : DeclarationId)
-    (kind : DeclarationKind)
-    (contractDigest : String) : DeclarationMetadata := {
-  id := identity
+    (definitionId : DefinitionId)
+    (kind : DefinitionKind)
+    (contractDigest : String) : DefinitionMetadata := {
+  id := definitionId
   kind
   version := 1
   contractDigest
@@ -37,26 +37,26 @@ def metadata
   documentation := "query fixture"
 }
 
-def value (identity : DeclarationId) (payload : String) : SemanticValue := {
-  identity
+def value (definitionId : DefinitionId) (payload : String) : ModelValue := {
+  definitionId
   value := payload
 }
 
-def initial : SemanticValue := value phase "initial"
-def completed : SemanticValue := value phase "completed"
-def requestValue : SemanticValue := value request "request"
-def acceptedValue : SemanticValue := value accepted "accepted"
-def observedValue : SemanticValue := value observed "accepted"
+def initial : ModelValue := value phase "initial"
+def completed : ModelValue := value phase "completed"
+def requestValue : ModelValue := value request "request"
+def acceptedValue : ModelValue := value accepted "accepted"
+def observedValue : ModelValue := value observed "accepted"
 def setup : List RoleBinding := [{ role, value := value phase "operation-a" }]
 
-def transition : TransitionResult SemanticValue SemanticValue SemanticValue := {
+def transition : TransitionResult ModelValue ModelValue ModelValue := {
   modelOutcome := acceptedValue
   resultingState := completed
   observations := [observedValue]
 }
 
 def kernel : TransitionKernel
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
     contractDigest := "query-kernel/v1"
@@ -118,7 +118,7 @@ def extraProvider : CapabilityProvider (fun _ => True) := {
   lawWitnesses := []
 }
 
-def targetDeclarations : List DeclarationMetadata := [
+def targetDefinitions : List DefinitionMetadata := [
   metadata targetId .target "query-target/v1",
   metadata kernelId .kernel "query-kernel/v1",
   metadata extraCapabilityId .capability "query-extra-capability/v1",
@@ -126,10 +126,10 @@ def targetDeclarations : List DeclarationMetadata := [
 ]
 
 def targetDefinition : TargetDefinition
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetId
   source
-  declarations := targetDeclarations
+  definitions := targetDefinitions
   requiredCapabilities := []
   resolvedSetups := [setup]
   kernel := .checked kernel
@@ -139,7 +139,7 @@ def targetComposition : TargetComposition (fun _ => True) :=
   TargetComposition.empty |>.provide extraProvider
 
 def targetAuthoring : AuthoredTarget (fun _ => True)
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
   AuthoredTarget.make targetDefinition targetComposition
     (.available kernel rfl finitePlanning)
 

@@ -6,9 +6,9 @@ namespace Umpire.TargetTests
 
 open Umpire
 
-def id (value : String) : DeclarationId := DeclarationId.of value
+def id (value : String) : DefinitionId := DefinitionId.of value
 
-def source (path : String) : SemanticSource := {
+def source (path : String) : SourceLocation := {
   path
   line := 1
   column := 1
@@ -17,8 +17,8 @@ def source (path : String) : SemanticSource := {
 
 def metadata
     (value : String)
-    (kind : DeclarationKind)
-    (digest : String := "contract-v1") : DeclarationMetadata := {
+    (kind : DefinitionKind)
+    (digest : String := "contract-v1") : DefinitionMetadata := {
   id := id value
   kind
   source := source "Umpire/TargetTests.lean"
@@ -35,7 +35,7 @@ def connectorLaw : LawRequirement := {
   semanticDigest := "connector-sound/v1"
 }
 
-def TestLawStatement (lawId : DeclarationId) : Prop :=
+def TestLawStatement (lawId : DefinitionId) : Prop :=
   lawId = providerLaw.id ∨ lawId = connectorLaw.id
 
 def witness
@@ -76,7 +76,7 @@ def primaryProvider : CapabilityProvider TestLawStatement := {
     requiredLaws := [providerLaw]
   }
   meanings := [{
-    declaration := id "test.relation.shared"
+    definitionId := id "test.relation.shared"
     kind := .relation
     semanticDigest := "test-primary-shared/v1"
   }]
@@ -92,7 +92,7 @@ def secondaryProvider : CapabilityProvider TestLawStatement := {
     requiredLaws := [providerLaw]
   }
   meanings := [{
-    declaration := id "test.relation.shared"
+    definitionId := id "test.relation.shared"
     kind := .relation
     semanticDigest := "test-secondary-shared/v1"
   }]
@@ -104,7 +104,7 @@ def ownershipConnector : CapabilityConnector TestLawStatement := {
   source := source "Test/CompositeSemantic.lean"
   semanticDigest := "test-shared-connector/v1"
   reconciliations := [{
-    declaration := id "test.relation.shared"
+    definitionId := id "test.relation.shared"
     kind := .relation
     providers := [primaryProvider.id, secondaryProvider.id]
     semanticDigest := "test-shared-connector/reconciled-v1"
@@ -113,7 +113,7 @@ def ownershipConnector : CapabilityConnector TestLawStatement := {
   lawWitnesses := [witness connectorLaw (by exact .inr rfl)]
 }
 
-def testDeclarations : List DeclarationMetadata := [
+def testDefinitions : List DefinitionMetadata := [
   metadata "test.target.composed" .target,
   metadata "test.kernel.transition" .kernel,
   metadata "test.capability.primary" .capability,
@@ -131,7 +131,7 @@ def testDeclarations : List DeclarationMetadata := [
 def testTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   id := id "test.target.composed"
   source := source "Test/CompositeSemantic.lean"
-  declarations := testDeclarations
+  definitions := testDefinitions
   requiredCapabilities := [
     id "test.capability.primary",
     id "test.capability.secondary"
@@ -147,7 +147,7 @@ def targetDefinitionOf
     TargetDefinition Unit Bool Bool Bool Bool := {
   id := target.id
   source := target.source
-  declarations := target.declarations
+  definitions := target.definitions
   requiredCapabilities := target.requiredCapabilities
   resolvedSetups := target.resolvedSetups
   kernel := target.kernel
@@ -168,7 +168,7 @@ def authoringOf
   AuthoredTarget.make (targetDefinitionOf target) (targetCompositionOf target) planning occurrences
 
 def errorOf {Target : Type}
-    (result : Except DeclarationError Target) : Option DeclarationError :=
+    (result : Except DefinitionError Target) : Option DefinitionError :=
   match result with
   | .error error => some error
   | .ok _ => none

@@ -30,7 +30,7 @@ example :
     diagnosticKindOf (validateQualifiedTrace mutated) != none := by
   native_decide
 
-/-- Rehashing cannot make a semantic value inconsistent with its disposition evidence valid. -/
+/-- Rehashing cannot make a Model Value inconsistent with its disposition evidence valid. -/
 example :
     let mutated := rehashQualifiedTrace {
       completeQualifiedTrace with trace := {
@@ -157,7 +157,7 @@ def repeatedValueEvidence : EvidenceBundle := {
   closures := [{ kind := eventKind, lastSequence := 3 }]
 }
 
-/-- Equal semantic values at different slots retain distinct one-based coordinates. -/
+/-- Equal Model Values at different slots retain distinct one-based coordinates. -/
 example :
     let qualified := qualifiedOf (qualifyFixture repeatedValueEvidence)
     qualified.map (fun trace => trace.derivations.map SemanticDerivation.coordinate) = some [

@@ -8,7 +8,7 @@ open Umpire
 
 def reorderedContext : PropertyCheckContext := {
   context with
-  declarations := context.declarations.reverse
+  definitions := context.definitions.reverse
   providers := context.providers.reverse
   meanings := context.meanings.reverse
 }

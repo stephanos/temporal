@@ -17,59 +17,59 @@ def occurrenceId
 }
 
 def occurrence
-    (identity : DeclarationId)
+    (definitionId : DefinitionId)
     (role : AuthoringOccurrenceRole)
-    (owner : DeclarationId)
+    (owner : DefinitionId)
     (line : Nat)
     (localOrdinal : Nat := 0) : AuthoringOccurrence := {
   id := occurrenceId line 2 line 20 localOrdinal
-  declarationId := identity
+  definitionId
   path := { role, owner }
 }
 
-def reusedIdentityProvider : CapabilityProvider TestLawStatement := {
+def reusedDefinitionIdProvider : CapabilityProvider TestLawStatement := {
   primaryProvider with
   contract := { primaryProvider.contract with id := primaryProvider.id }
 }
 
-def reusedIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
-  testTarget with providers := [reusedIdentityProvider, secondaryProvider]
+def reusedDefinitionIdTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with providers := [reusedDefinitionIdProvider, secondaryProvider]
 }
 
-def reusedIdentityAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
-  authoringOf reusedIdentityTarget (occurrences := [
+def reusedDefinitionIdAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf reusedDefinitionIdTarget (occurrences := [
     occurrence primaryProvider.id .providerDefinition testTarget.id 30,
     occurrence primaryProvider.id .capabilityRequirement primaryProvider.id 50,
-    occurrence primaryProvider.id .declarationMetadata primaryProvider.id 10
+    occurrence primaryProvider.id .definitionMetadata primaryProvider.id 10
   ])
 
 def diagnosticSummary
     (result : Except AuthoringDiagnostic Target) :
-    Option (DeclarationErrorKind × AuthoringOccurrenceRole × String × Nat) :=
+    Option (DefinitionErrorKind × AuthoringOccurrenceRole × String × Nat) :=
   match result with
   | .ok _ => none
   | .error diagnostic => some
       (diagnostic.error.kind, diagnostic.path.role, diagnostic.offending.sourcePath,
         diagnostic.offending.line)
 
-example : diagnosticSummary (checkTarget reusedIdentityAuthoring) =
+example : diagnosticSummary (checkTarget reusedDefinitionIdAuthoring) =
     some (.wrongKind, .capabilityRequirement, "Test/TargetAuthoring.lean", 50) := by
   native_decide
 
-def declarationsWithKind
-    (identity : DeclarationId)
-    (kind : DeclarationKind) : List DeclarationMetadata :=
-  testDeclarations.map fun declaration =>
-    if declaration.id == identity then { declaration with kind } else declaration
+def definitionsWithKind
+    (definitionId : DefinitionId)
+    (kind : DefinitionKind) : List DefinitionMetadata :=
+  testDefinitions.map fun definition =>
+    if definition.id == definitionId then { definition with kind } else definition
 
 def wrongProviderDefinitionTarget :
     TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
-  testTarget with declarations := declarationsWithKind primaryProvider.id .connector
+  testTarget with definitions := definitionsWithKind primaryProvider.id .connector
 }
 
 def wrongConnectorDefinitionTarget :
     TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
-  testTarget with declarations := declarationsWithKind ownershipConnector.id .provider
+  testTarget with definitions := definitionsWithKind ownershipConnector.id .provider
 }
 
 def wrongProviderDefinitionAuthoring :
@@ -93,21 +93,21 @@ example : [
   ] := by
   native_decide
 
-def inactiveProviderId : DeclarationId := id "test.provider.inactive"
-def alphaRelationId : DeclarationId := id "test.relation.alpha"
-def omegaRelationId : DeclarationId := id "test.relation.omega"
+def inactiveProviderId : DefinitionId := id "test.provider.inactive"
+def alphaRelationId : DefinitionId := id "test.relation.alpha"
+def omegaRelationId : DefinitionId := id "test.relation.omega"
 
 def repeatedProviderReferenceConnector : CapabilityConnector TestLawStatement := {
   ownershipConnector with
   reconciliations := [
     {
-      declaration := omegaRelationId
+      definitionId := omegaRelationId
       kind := .relation
       providers := [inactiveProviderId]
       semanticDigest := "test-omega-reconciliation/v1"
     },
     {
-      declaration := alphaRelationId
+      definitionId := alphaRelationId
       kind := .relation
       providers := [inactiveProviderId]
       semanticDigest := "test-alpha-reconciliation/v1"
@@ -118,19 +118,19 @@ def repeatedProviderReferenceConnector : CapabilityConnector TestLawStatement :=
 def repeatedProviderReferenceTarget :
     TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := [
+  definitions := [
     metadata inactiveProviderId.value .provider,
     metadata alphaRelationId.value .relation,
     metadata omegaRelationId.value .relation
-  ] ++ testDeclarations
+  ] ++ testDefinitions
   connectors := [repeatedProviderReferenceConnector]
 }
 
 def reconciliationProviderOccurrence
-    (reconciliation : DeclarationId)
+    (reconciliation : DefinitionId)
     (line : Nat) : AuthoringOccurrence := {
   id := occurrenceId line 2 line 20 0
-  declarationId := inactiveProviderId
+  definitionId := inactiveProviderId
   path := {
     role := .providerReference
     owner := ownershipConnector.id
@@ -158,17 +158,17 @@ example : nestedDiagnosticSummary (checkTarget repeatedProviderReferenceAuthorin
 
 def duplicateMetadataTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := metadata testTarget.id.value .target :: testDeclarations
+  definitions := metadata testTarget.id.value .target :: testDefinitions
 }
 
 def reorderedDuplicateMetadataTarget :
     TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
-  duplicateMetadataTarget with declarations := duplicateMetadataTarget.declarations.reverse
+  duplicateMetadataTarget with definitions := duplicateMetadataTarget.definitions.reverse
 }
 
 def duplicateOccurrences : List AuthoringOccurrence := [
-  occurrence testTarget.id .declarationMetadata testTarget.id 40,
-  occurrence testTarget.id .declarationMetadata testTarget.id 10
+  occurrence testTarget.id .definitionMetadata testTarget.id 40,
+  occurrence testTarget.id .definitionMetadata testTarget.id 10
 ]
 
 def duplicateAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
@@ -233,7 +233,7 @@ def checkedSemanticSummary
 
 def movedLayoutAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
   authoringOf testTarget (occurrences := [
-    occurrence testTarget.id .targetDeclaration testTarget.id 400
+    occurrence testTarget.id .targetDefinition testTarget.id 400
   ])
 
 example : [
@@ -252,7 +252,7 @@ elab "rejectedTarget%" : term => do
     role := .capabilityRequirement
     owner := primaryProvider.id
   } 0
-  let _ ← elaborateTarget reusedIdentityAuthoring [captured]
+  let _ ← elaborateTarget reusedDefinitionIdAuthoring [captured]
   Lean.Elab.Term.elabTerm (← `(true)) none
 
 /--
@@ -263,7 +263,7 @@ error: target authoring failed: {"error":{"kind":"wrong-kind"
 
 elab "rejectedDuplicateTarget%" original:ident offending:ident : term => do
   let path : AuthoringOccurrencePath := {
-    role := .declarationMetadata
+    role := .definitionMetadata
     owner := testTarget.id
   }
   let original ← captureAuthoringOccurrence original testTarget.id path 0
@@ -272,7 +272,7 @@ elab "rejectedDuplicateTarget%" original:ident offending:ident : term => do
   Lean.Elab.Term.elabTerm (← `(true)) none
 
 /--
-error: target authoring failed: {"error":{"kind":"duplicate-identity","declarationId":"test.target.composed","sourcePath":"Umpire/TargetTests.lean","offendingValue":"test.target.composed","relatedIdentities":["test.target.composed"]},"original":{"sourcePath":
+error: target authoring failed: {"error":{"kind":"duplicate-definition-id","definitionId":"test.target.composed","sourcePath":"Umpire/TargetTests.lean","offendingValue":"test.target.composed","relatedDefinitionIds":["test.target.composed"]},"original":{"sourcePath":
 -/
 #guard_msgs (error, substring := true) in
 #check rejectedDuplicateTarget% originalOccurrence offendingOccurrence

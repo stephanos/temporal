@@ -10,7 +10,7 @@ open Temporal.System.Configuration
 
 def unknownUseResult : Except ConfigError (ConfigUse Unit) :=
   checkConfigUse [maxClassification] {
-    id := DeclarationId.of "test.config.unknown"
+    id := DefinitionId.of "test.config.unknown"
     key := "does.not.exist"
     context := emptyConstraints
     samplingPoint := .request
@@ -20,7 +20,7 @@ def unknownUseResult : Except ConfigError (ConfigUse Unit) :=
 
 def unclassifiedUseResult : Except ConfigError (ConfigUse Unit) :=
   checkConfigUse [maxClassification] {
-    id := DeclarationId.of "test.config.unclassified"
+    id := DefinitionId.of "test.config.unclassified"
     key := "admin.enablelisthistorytasks"
     context := emptyConstraints
     samplingPoint := .request
