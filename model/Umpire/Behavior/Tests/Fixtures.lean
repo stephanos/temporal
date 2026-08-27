@@ -19,7 +19,7 @@ def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
   id := id value
   kind
   source
-  contractDigest := value ++ "/v1"
+  canonicalBehavior := value ++ "/v1"
 }
 
 def cancellationCapability : DefinitionId := id "test.capability.cancellation"

@@ -36,7 +36,7 @@ def uniquenessMetadata (id : DefinitionId) (kind : DefinitionKind) : DefinitionM
   id
   kind
   source := uniquenessSource
-  contractDigest := id.value ++ "/v1"
+  canonicalBehavior := id.value ++ "/v1"
 }
 
 def uniquenessContext : PropertyCheckContext := {
@@ -47,12 +47,12 @@ def uniquenessContext : PropertyCheckContext := {
   providers := [{
     id := uniquenessCapability
     version := 1
-    semanticDigest := "regression-uniqueness/v1"
+    canonicalBehavior := "regression-uniqueness/v1"
   }]
   meanings := [(uniquenessCapability, {
     definitionId := pendingCancelCount
     kind := .state
-    semanticDigest := "regression-pending-cancel-count/v1"
+    canonicalBehavior := "regression-pending-cancel-count/v1"
   })]
 }
 
@@ -164,12 +164,12 @@ example : (checkTarget targetAuthoring).isOk = true := by
   native_decide
 
 example : (checkTarget targetAuthoring).toOption.map (fun checked =>
-    (checked.id, checked.source, canonicalCheckedTargetJson checked, checked.semanticDigest)) =
-    some (targetId, source, canonicalCheckedTargetJson target, target.semanticDigest) := by
+    (checked.id, checked.source, canonicalCheckedTargetJson checked, checked.behaviorFingerprint)) =
+    some (targetId, source, canonicalCheckedTargetJson target, target.behaviorFingerprint) := by
   native_decide
 
-example : (composeTarget reorderedTargetDeclaration).toOption.map CheckedTarget.semanticDigest =
-    (composeTarget expertTargetDeclaration).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget reorderedTargetDeclaration).toOption.map CheckedTarget.behaviorFingerprint =
+    (composeTarget expertTargetDeclaration).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
 example : callerClosureProperty.requires =
@@ -181,7 +181,7 @@ example : target.requiredCapabilities =
   native_decide
 
 example : (callerClosureProperty.access.meanings.filter fun meaning =>
-    meaning.definitionId == ownershipRelationId).map MeaningProvision.semanticDigest =
+    meaning.definitionId == ownershipRelationId).map MeaningProvision.canonicalBehavior =
       ["workflow-nexus-operation-ownership/v1"] := by
   native_decide
 
@@ -199,9 +199,12 @@ example : ownershipObservation.value = "true" := by
 
 example : exactActionQuery.completeness.map (fun evidence =>
     (evidence.roleAssignments, evidence.actions,
-      evidence.roleDomainDigest, evidence.actionDomainDigest)) =
+      evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
     some ([clashSetup], [forceCloseAction],
-      "workflow-nexus-role-domain/v1", "workflow-nexus-action-domain/v1") := by
+      behaviorFingerprintOf ("query-role-domain/v1\n" ++
+        String.intercalate "\u001f" target.behaviorDescription.setups),
+      behaviorFingerprintOf ("query-action-domain/v1\n" ++
+        String.intercalate "\u001f" target.behaviorDescription.actions)) := by
   native_decide
 
 example : exactActionQueryResult.toOption.map canonicalQueryJson =
@@ -234,13 +237,13 @@ def alternateOwnershipConnectorMetadata : DefinitionMetadata := {
   id := alternateOwnershipConnectorId
   kind := .connector
   source
-  contractDigest := "workflow-nexus-ownership-connector-alternate/v1"
+  canonicalBehavior := "workflow-nexus-ownership-connector-alternate/v1"
 }
 
 def alternateOwnershipConnector : CapabilityConnector LawStatement := {
   ownershipConnector with
   id := alternateOwnershipConnectorId
-  semanticDigest := "workflow-nexus-ownership-connector-alternate/v1"
+  canonicalBehavior := "workflow-nexus-ownership-connector-alternate/v1"
 }
 
 def ambiguousConnectorDeclaration : TargetDeclaration LawStatement
@@ -256,7 +259,7 @@ example : (definitionErrorOf (composeTarget ambiguousConnectorDeclaration)).map
 
 example : exploratoryQuery.form = .select [callerClosureProperty] ∧
     exploratoryQuery.quantifier = .exploratory ∧
-    exploratoryQuery.claim = .boundedSelection := by
+    exploratoryQuery.claim = .limitedSelection := by
   native_decide
 
 example : exactActionBehavior.actionsExactly = some [forceCloseActionId] ∧
@@ -277,7 +280,7 @@ example : [
     exactActionRun.result.outcome.name,
     exactTraceRun.result.outcome.name
   ] = [
-    "verified-within-bounds",
+    "verified-within-limits",
     "found",
     "found",
     "found"
@@ -302,11 +305,10 @@ example : exactActionQueryId.value = "workflow-nexus.query.exact-action-caller-c
     callerClosurePropertyId.value = "workflow-nexus.property.caller-closure" := by
   native_decide
 
-example : lifecycleLaw.semanticDigest = "workflow-caller-closure-law/v1" ∧
-    cancellationLaw.semanticDigest = "nexus-cancellation-honored-law/v1" ∧
-    ownershipLaw.semanticDigest = "workflow-nexus-ownership-law/v1" ∧
-    compiledArtifact.plan.kernelSemanticDigest =
-      "workflow-nexus-caller-closure-kernel/v1" := by
+example : lifecycleLaw.body = "workflow-caller-closure-law/v1" ∧
+    cancellationLaw.body = "nexus-cancellation-honored-law/v1" ∧
+    ownershipLaw.body = "workflow-nexus-ownership-law/v1" ∧
+    compiledArtifact.plan.kernelBehaviorFingerprint = target.behaviorFingerprint := by
   native_decide
 
 example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧

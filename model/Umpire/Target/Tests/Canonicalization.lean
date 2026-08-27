@@ -18,8 +18,8 @@ example : (composeTarget reorderedTestTarget).toOption.map CheckedTarget.canonic
     (composeTarget testTarget).toOption.map CheckedTarget.canonicalMetadata := by
   native_decide
 
-example : (composeTarget reorderedTestTarget).toOption.map CheckedTarget.semanticDigest =
-    (composeTarget testTarget).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget reorderedTestTarget).toOption.map CheckedTarget.behaviorFingerprint =
+    (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
 def reorderedConflictTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
@@ -39,50 +39,84 @@ def changedIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bo
     testDefinitions.filter (fun declaration => declaration.id != testTarget.id)
 }
 
-example : (composeTarget changedIdentityTarget).toOption.map CheckedTarget.semanticDigest ≠
-    (composeTarget testTarget).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget changedIdentityTarget).toOption.map CheckedTarget.behaviorFingerprint ≠
+    (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
 def changedContractProvider : CapabilityProvider TestLawStatement := {
   primaryProvider with
-  contract := { primaryProvider.contract with semanticDigest := "test-primary-capability/v2" }
+  contract := { primaryProvider.contract with canonicalBehavior := "test-primary-capability/v2" }
 }
 
 def changedContractTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with providers := [changedContractProvider, secondaryProvider]
 }
 
-example : (composeTarget changedContractTarget).toOption.map CheckedTarget.semanticDigest ≠
-    (composeTarget testTarget).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget changedContractTarget).toOption.map CheckedTarget.behaviorFingerprint ≠
+    (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
 def changedConnector : CapabilityConnector TestLawStatement := {
-  ownershipConnector with semanticDigest := "test-shared-connector/v2"
+  ownershipConnector with canonicalBehavior := "test-shared-connector/v2"
 }
 
 def changedConnectorTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with connectors := [changedConnector]
 }
 
-example : (composeTarget changedConnectorTarget).toOption.map CheckedTarget.semanticDigest ≠
-    (composeTarget testTarget).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget changedConnectorTarget).toOption.map CheckedTarget.behaviorFingerprint ≠
+    (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
 def changedKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   testKernel with
-  metadata := { testKernel.metadata with contractDigest := "test-kernel/v2" }
+  steps := fun state action => [{
+    modelOutcome := action
+    resultingState := action
+    observations := [!state]
+  }]
+  authoritativeStep := fun state action result => result = {
+    modelOutcome := action
+    resultingState := action
+    observations := [!state]
+  }
+  stepSound := by simp
+  stepComplete := by simp
+  behaviorDomain := .complete {
+    setups := [()]
+    states := [false, true]
+    actions := [false, true]
+    outcomes := [false, true]
+    observations := [false, true]
+    encodeSetup := fun _ => "unit"
+    encodeState := toString
+    encodeAction := toString
+    encodeOutcome := toString
+    encodeObservation := toString
+    setupCoverage := by intro setup state member; cases setup; simp
+    initialStateCoverage := by intro setup state member; cases state <;> simp
+    transitionSourceCoverage := by intro state action result member; cases state <;> simp
+    actionCoverage := by intro state action result member; cases action <;> simp
+    resultingStateCoverage := by
+      intro state action result member
+      cases result.resultingState <;> simp
+    outcomeCoverage := by intro state action result member; cases result.modelOutcome <;> simp
+    observationCoverage := by
+      intro state action result value member observationMember
+      cases value <;> simp
+  }
 }
 
 def changedKernelTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with kernel := .checked changedKernel
 }
 
-example : (composeTarget changedKernelTarget).toOption.map CheckedTarget.semanticDigest ≠
-    (composeTarget testTarget).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget changedKernelTarget).toOption.map CheckedTarget.behaviorFingerprint ≠
+    (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
-def changedLaw : LawRequirement := {
-  providerLaw with semanticDigest := "provider-sound/v2"
+def changedLaw : LawDefinition := {
+  providerLaw with body := "provider-sound/v2"
 }
 
 def changedLawProvider : CapabilityProvider TestLawStatement := {
@@ -101,14 +135,14 @@ def changedLawTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bo
   testTarget with
   definitions := testDefinitions.map fun declaration =>
     if declaration.id == providerLaw.id then
-      { declaration with contractDigest := changedLaw.semanticDigest }
+      { declaration with canonicalBehavior := changedLaw.body }
     else
       declaration
   providers := [changedLawProvider, changedLawSecondaryProvider]
 }
 
-example : (composeTarget changedLawTarget).toOption.map CheckedTarget.semanticDigest ≠
-    (composeTarget testTarget).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget changedLawTarget).toOption.map CheckedTarget.behaviorFingerprint ≠
+    (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
 def lawlessPrimaryProvider : CapabilityProvider TestLawStatement := {
@@ -127,8 +161,8 @@ def lawlessTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool 
   testTarget with providers := [lawlessPrimaryProvider, lawlessSecondaryProvider]
 }
 
-example : (composeTarget lawlessTarget).toOption.map CheckedTarget.semanticDigest ≠
-    (composeTarget testTarget).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget lawlessTarget).toOption.map CheckedTarget.behaviorFingerprint ≠
+    (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
 def documentedTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
@@ -140,12 +174,17 @@ def documentedTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bo
       declaration
 }
 
-example : (composeTarget documentedTarget).toOption.map CheckedTarget.semanticDigest =
-    (composeTarget testTarget).toOption.map CheckedTarget.semanticDigest := by
+example : (composeTarget documentedTarget).toOption.map CheckedTarget.behaviorFingerprint =
+    (composeTarget testTarget).toOption.map CheckedTarget.behaviorFingerprint := by
   native_decide
 
 example : (composeTarget documentedTarget).toOption.map CheckedTarget.canonicalMetadata ≠
     (composeTarget testTarget).toOption.map CheckedTarget.canonicalMetadata := by
+  native_decide
+
+example : (checkTarget (authoringOf testTarget)).toOption.map CheckedTarget.behaviorFingerprint =
+    (checkTarget (authoringOf testTarget |>.withoutPlanning)).toOption.map
+      CheckedTarget.behaviorFingerprint := by
   native_decide
 
 example : canonicalCapabilityProviderJson primaryProvider =

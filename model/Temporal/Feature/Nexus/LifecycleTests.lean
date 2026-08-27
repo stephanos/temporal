@@ -33,8 +33,8 @@ example : (checkTarget targetAuthoring).isOk = true ∧
   native_decide
 
 example : (checkTarget targetAuthoring).toOption.map (fun checked =>
-    (checked.id, checked.source, canonicalCheckedTargetJson checked, checked.semanticDigest)) =
-    some (targetId, source, canonicalCheckedTargetJson target, target.semanticDigest) := by
+    (checked.id, checked.source, canonicalCheckedTargetJson checked, checked.behaviorFingerprint)) =
+    some (targetId, source, canonicalCheckedTargetJson target, target.behaviorFingerprint) := by
   native_decide
 
 example : targetId.value = "temporal.nexus.basic-lifecycle.target" ∧
@@ -67,9 +67,7 @@ example : target.kernel.initialStates [] = [] ∧
 example : match target.planning with
     | .unavailable => False
     | .available capability =>
-        capability.actions = [cancelAction, startAction, reportSuccessAction] ∧
-        capability.roleDomainDigest = "temporal-nexus-basic-lifecycle-role-domain/v1" ∧
-        capability.actionDomainDigest = "temporal-nexus-basic-lifecycle-action-domain/v2" := by
+        capability.actions = [cancelAction, startAction, reportSuccessAction] := by
   simp [target, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
     finitePlanning, actionDomain]
 
@@ -111,7 +109,7 @@ def conflictingProvider : CapabilityProvider LawStatement := {
   meanings := [{
     definitionId := operationStateId
     kind := .state
-    semanticDigest := "temporal-nexus-basic-lifecycle-state/conflicting"
+    canonicalBehavior := "temporal-nexus-basic-lifecycle-state/conflicting"
   }]
   lawWitnesses := lifecycleProvider.lawWitnesses
 }
@@ -120,7 +118,7 @@ def conflictingProviderMetadata : DefinitionMetadata := {
   id := conflictingProviderId
   kind := .provider
   source
-  contractDigest := "temporal-nexus-basic-lifecycle-provider/conflicting"
+  canonicalBehavior := "temporal-nexus-basic-lifecycle-provider/conflicting"
 }
 
 def conflictingProviderDeclaration : TargetDeclaration LawStatement

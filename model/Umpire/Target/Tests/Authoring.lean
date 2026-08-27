@@ -104,13 +104,13 @@ def repeatedProviderReferenceConnector : CapabilityConnector TestLawStatement :=
       definitionId := omegaRelationId
       kind := .relation
       providers := [inactiveProviderId]
-      semanticDigest := "test-omega-reconciliation/v1"
+      canonicalBehavior := "test-omega-reconciliation/v1"
     },
     {
       definitionId := alphaRelationId
       kind := .relation
       providers := [inactiveProviderId]
-      semanticDigest := "test-alpha-reconciliation/v1"
+      canonicalBehavior := "test-alpha-reconciliation/v1"
     }
   ]
 }
@@ -192,8 +192,6 @@ example : [
 
 def finitePlanning : FinitePlanningCapability testKernel.authoritativeStep := {
   actions := [false, true]
-  roleDomainDigest := "test-role-domain/v1"
-  actionDomainDigest := "test-action-domain/v1"
   actionSound := by
     intro action _
     exact ⟨false, transition false action, rfl⟩
@@ -208,20 +206,19 @@ def finitePlanningAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Boo
 def planningSummary
     (result : Except AuthoringDiagnostic
       (CheckedTarget TestLawStatement Unit Bool Bool Bool Bool)) :
-    Option (Option (List Bool × String × String)) :=
+    Option (Option (List Bool)) :=
   match result with
   | .error _ => none
   | .ok checked =>
       some <| match checked.planning with
         | .unavailable => none
-        | .available capability => some
-            (capability.actions, capability.roleDomainDigest, capability.actionDomainDigest)
+        | .available capability => some capability.actions
 
 example : planningSummary (checkTarget (authoringOf testTarget)) = some none := by
   native_decide
 
 example : planningSummary (checkTarget finitePlanningAuthoring) =
-    some (some ([false, true], "test-role-domain/v1", "test-action-domain/v1")) := by
+    some (some [false, true]) := by
   native_decide
 
 def checkedSemanticSummary
@@ -229,7 +226,7 @@ def checkedSemanticSummary
     Option (String × String) :=
   match result with
   | .error _ => none
-  | .ok checked => some (checked.canonicalMetadata, checked.semanticDigest)
+  | .ok checked => some (checked.canonicalMetadata, checked.behaviorFingerprint.render)
 
 def movedLayoutAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
   authoringOf testTarget (occurrences := [

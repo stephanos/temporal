@@ -40,7 +40,7 @@ def opaqueInterpretation
   expectedSchema := Temporal.DynamicConfig.Settings.frontend_httpallowedhosts.schema
   expectedDefault := .opaque opaqueMetadata
   opaqueReplacement := replacement
-  semanticDigest := semanticDigestOf "temporal.config/frontend-http-allowed-hosts/v1"
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/frontend-http-allowed-hosts/v1"
   decode := pure
 }
 

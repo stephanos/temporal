@@ -21,33 +21,21 @@ def SearchStrategy.name : SearchStrategy → String
   | .coverageGuided => "coverage-guided"
 
 inductive TieBreakPolicy where
-  | semanticIdentity
+  | definitionId
   deriving BEq, DecidableEq, Ord, Repr
 
 def TieBreakPolicy.name : TieBreakPolicy → String
-  | .semanticIdentity => "semantic-identity"
+  | .definitionId => "definition-id"
 
-inductive SearchBudgetUnit where
-  | candidateEvaluations
+/-- Behavior-space Limits stay separate from the planner's effort Limit. -/
+structure BehaviorPhaseLimits where
+  transitions : Limit
+  selectedActions : Limit
   deriving BEq, DecidableEq, Ord, Repr
 
-def SearchBudgetUnit.name : SearchBudgetUnit → String
-  | .candidateEvaluations => "candidate-evaluations"
-
-structure SearchBudget where
-  value : Nat
-  unit : SearchBudgetUnit
-  deriving BEq, DecidableEq, Ord, Repr
-
-/-- Behavior-space bounds stay separate from the planner's effort budget. -/
-structure BehaviorPhaseBounds where
-  transitions : TypedBound
-  selectedActions : TypedBound
-  deriving BEq, DecidableEq, Ord, Repr
-
-structure QueryBounds where
-  behavior : BehaviorPhaseBounds
-  search : SearchBudget
+structure QueryLimits where
+  behavior : BehaviorPhaseLimits
+  search : Limit
   deriving BEq, DecidableEq, Ord, Repr
 
 structure PlannerPolicy where
@@ -57,7 +45,7 @@ structure PlannerPolicy where
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- Query planning consumes the target-owned semantic kernel directly. -/
-abbrev QueryTarget (LawStatement : DefinitionId → Prop) : Type :=
+abbrev QueryTarget (LawStatement : LawDefinition → Prop) : Type :=
   CheckedTarget LawStatement (List RoleBinding)
     ModelValue ModelValue ModelValue ModelValue
 
@@ -73,17 +61,17 @@ def QueryQuantifier.name : QueryQuantifier → String
   | .exploratory => "exploratory"
 
 inductive QueryClaim where
-  | verifiedWithinBounds
+  | verifiedWithinLimits
   | satisfyingWitness
   | violatingCounterexample
-  | boundedSelection
+  | limitedSelection
   deriving BEq, DecidableEq, Ord, Repr
 
 def QueryClaim.name : QueryClaim → String
-  | .verifiedWithinBounds => "verified-within-bounds"
+  | .verifiedWithinLimits => "verified-within-limits"
   | .satisfyingWitness => "satisfying-witness"
   | .violatingCounterexample => "violating-counterexample"
-  | .boundedSelection => "bounded-selection"
+  | .limitedSelection => "limited-selection"
 
 /-- The constructor, rather than an ingredient heuristic, determines the query's claim. -/
 inductive QueryForm where
@@ -99,10 +87,10 @@ def QueryForm.quantifier : QueryForm → QueryQuantifier
   | .select _ => .exploratory
 
 def QueryForm.claim : QueryForm → QueryClaim
-  | .verify _ => .verifiedWithinBounds
+  | .verify _ => .verifiedWithinLimits
   | .witness _ => .satisfyingWitness
   | .counterexample _ => .violatingCounterexample
-  | .select _ => .boundedSelection
+  | .select _ => .limitedSelection
 
 def QueryForm.properties : QueryForm → List CheckedProperty
   | .verify property | .witness property | .counterexample property => [property]
@@ -111,12 +99,12 @@ def QueryForm.properties : QueryForm → List CheckedProperty
 /-- Exhaustive evidence is propositionally tied to the selected target's setup enumeration and
 authoritative step relation; it cannot certify an unrelated author-supplied predicate. -/
 structure FiniteCompletenessEvidence
-    (LawStatement : DefinitionId → Prop)
+    (LawStatement : LawDefinition → Prop)
     (target : QueryTarget LawStatement) where
   roleAssignments : List (List RoleBinding)
   actions : List ModelValue
-  roleDomainDigest : String
-  actionDomainDigest : String
+  roleDomainFingerprint : BehaviorFingerprint
+  actionDomainFingerprint : BehaviorFingerprint
   roleSound : ∀ setup, setup ∈ roleAssignments → setup ∈ target.resolvedSetups
   roleComplete : ∀ setup, setup ∈ target.resolvedSetups → setup ∈ roleAssignments
   actionSound : ∀ action, action ∈ actions →
@@ -141,7 +129,7 @@ def CompletenessRequirement.name : CompletenessRequirement → String
 
 /-- An incomplete target remains representable at the Query boundary only so checking can reject
 it before any backend is initialized. -/
-structure CheckedQueryTarget (LawStatement : DefinitionId → Prop) where
+structure CheckedQueryTarget (LawStatement : LawDefinition → Prop) where
   target : QueryTarget LawStatement
   completeness : Option (FiniteCompletenessEvidence LawStatement target) := none
 
@@ -156,8 +144,12 @@ def CheckedQueryTarget.ofTarget
       completeness := some {
         roleAssignments := target.resolvedSetups
         actions := capability.actions
-        roleDomainDigest := capability.roleDomainDigest
-        actionDomainDigest := capability.actionDomainDigest
+        roleDomainFingerprint := behaviorFingerprintOf <|
+          "query-role-domain/v1\n" ++ String.intercalate "\u001f"
+            target.behaviorDescription.setups
+        actionDomainFingerprint := behaviorFingerprintOf <|
+          "query-action-domain/v1\n" ++ String.intercalate "\u001f"
+            target.behaviorDescription.actions
         roleSound := by
           intro setup member
           exact member
@@ -169,14 +161,14 @@ def CheckedQueryTarget.ofTarget
       }
     }
 
-inductive QueryTargetAvailability (LawStatement : DefinitionId → Prop) where
+inductive QueryTargetAvailability (LawStatement : LawDefinition → Prop) where
   | checked (target : CheckedQueryTarget LawStatement)
   | incomplete
       (targetId : DefinitionId)
       (source : SourceLocation)
       (missing : List CompletenessRequirement)
 
-structure QueryCheckContext (LawStatement : DefinitionId → Prop) where
+structure QueryCheckContext (LawStatement : LawDefinition → Prop) where
   target : QueryTargetAvailability LawStatement
 
 /-- The ordinary Query boundary consumes one checked Target and derives any available finite view. -/
@@ -192,7 +184,7 @@ structure QueryDeclaration where
   target : DefinitionId
   form : QueryForm
   behavior : CheckedBehavior
-  bounds : QueryBounds
+  limits : QueryLimits
   policy : PlannerPolicy
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
@@ -204,7 +196,7 @@ inductive QueryErrorKind where
   | missingProperty
   | targetMismatch
   | missingCapability
-  | invalidBound
+  | invalidLimit
   | unitMismatch
   | incompatibleStrategy
   | missingFiniteCompleteness
@@ -218,7 +210,7 @@ def QueryErrorKind.name : QueryErrorKind → String
   | .missingProperty => "missing-property"
   | .targetMismatch => "target-mismatch"
   | .missingCapability => "missing-capability"
-  | .invalidBound => "invalid-bound"
+  | .invalidLimit => "invalid-limit"
   | .unitMismatch => "unit-mismatch"
   | .incompatibleStrategy => "incompatible-strategy"
   | .missingFiniteCompleteness => "missing-finite-completeness"
@@ -232,7 +224,7 @@ structure QueryError where
   relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
-structure CheckedQuery (LawStatement : DefinitionId → Prop) where
+structure CheckedQuery (LawStatement : LawDefinition → Prop) where
   id : DefinitionId
   source : SourceLocation
   version : Nat
@@ -241,13 +233,13 @@ structure CheckedQuery (LawStatement : DefinitionId → Prop) where
   claim : QueryClaim
   behavior : CheckedBehavior
   target : QueryTarget LawStatement
-  bounds : QueryBounds
+  limits : QueryLimits
   policy : PlannerPolicy
   targetComposition : List DefinitionId
   completeness : Option (FiniteCompletenessEvidence LawStatement target)
   documentation : String
   canonicalMetadata : String
-  semanticDigest : String
+  behaviorFingerprint : BehaviorFingerprint
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
@@ -311,20 +303,23 @@ private def validateProperties
     if !target.requiredCapabilities.contains capability then
       throw (queryError .missingCapability declaration capability.value [capability, target.id])
 
-private def validateBounds (declaration : QueryDeclaration) : Except QueryError Unit := do
-  let bounds := declaration.bounds
-  if bounds.behavior.transitions.value == 0 then
-    throw (queryError .invalidBound declaration "behavior.transitions=0")
-  if bounds.behavior.selectedActions.value == 0 then
-    throw (queryError .invalidBound declaration "behavior.selectedActions=0")
-  if bounds.search.value == 0 then
-    throw (queryError .invalidBound declaration "search.candidateEvaluations=0")
-  if bounds.behavior.transitions.unit != .semanticTransitions then
+private def validateLimits (declaration : QueryDeclaration) : Except QueryError Unit := do
+  let limits := declaration.limits
+  if limits.behavior.transitions.value == 0 then
+    throw (queryError .invalidLimit declaration "behavior.transitions=0")
+  if limits.behavior.selectedActions.value == 0 then
+    throw (queryError .invalidLimit declaration "behavior.selectedActions=0")
+  if limits.search.value == 0 then
+    throw (queryError .invalidLimit declaration "search.candidateEvaluations=0")
+  if limits.behavior.transitions.unit != .semanticTransitions then
     throw (queryError .unitMismatch declaration
-      ("behavior.transitions:" ++ bounds.behavior.transitions.unit.name))
-  if bounds.behavior.selectedActions.unit != .selectedActions then
+      ("behavior.transitions:" ++ limits.behavior.transitions.unit.name))
+  if limits.behavior.selectedActions.unit != .selectedActions then
     throw (queryError .unitMismatch declaration
-      ("behavior.selectedActions:" ++ bounds.behavior.selectedActions.unit.name))
+      ("behavior.selectedActions:" ++ limits.behavior.selectedActions.unit.name))
+  if limits.search.unit != .candidateEvaluations then
+    throw (queryError .unitMismatch declaration
+      ("search:" ++ limits.search.unit.name))
 
 private def validateStrategy (declaration : QueryDeclaration) : Except QueryError Unit :=
   match declaration.form, declaration.policy.strategy with
@@ -367,7 +362,7 @@ private def stringListJson (items : List String) : String :=
 
 private def propertyJson (property : CheckedProperty) : String :=
   "{\"id\":" ++ quote property.id.value ++
-    ",\"semanticDigest\":" ++ quote property.semanticDigest ++ "}"
+    ",\"behaviorFingerprint\":" ++ quote property.behaviorFingerprint.render ++ "}"
 
 private def formKind : QueryForm → String
   | .verify _ => "verify"
@@ -375,12 +370,11 @@ private def formKind : QueryForm → String
   | .counterexample _ => "find-counterexample"
   | .select _ => "select-behavior"
 
-private def boundsJson (bounds : QueryBounds) : String :=
+private def limitsJson (limits : QueryLimits) : String :=
   "{\"behavior\":{\"transitions\":" ++
-      canonicalTypedBoundJson bounds.behavior.transitions ++
-    ",\"selectedActions\":" ++ canonicalTypedBoundJson bounds.behavior.selectedActions ++ "}" ++
-    ",\"search\":{\"value\":" ++ toString bounds.search.value ++
-      ",\"unit\":" ++ quote bounds.search.unit.name ++ "}}"
+      canonicalLimitJson limits.behavior.transitions ++
+    ",\"selectedActions\":" ++ canonicalLimitJson limits.behavior.selectedActions ++ "}" ++
+    ",\"search\":" ++ canonicalLimitJson limits.search ++ "}"
 
 private def policyJson (policy : PlannerPolicy) : String :=
   "{\"strategy\":" ++ quote policy.strategy.name ++
@@ -392,8 +386,8 @@ private def completenessJson
   match evidence with
   | none => "null"
   | some evidence =>
-      "{\"roleDomainDigest\":" ++ quote evidence.roleDomainDigest ++
-        ",\"actionDomainDigest\":" ++ quote evidence.actionDomainDigest ++ "}"
+      "{\"roleDomainFingerprint\":" ++ quote evidence.roleDomainFingerprint.render ++
+        ",\"actionDomainFingerprint\":" ++ quote evidence.actionDomainFingerprint.render ++ "}"
 
 private def querySemanticJson
     (id : DefinitionId)
@@ -402,7 +396,7 @@ private def querySemanticJson
     (behavior : CheckedBehavior)
     (target : QueryTarget LawStatement)
     (composition : List DefinitionId)
-    (bounds : QueryBounds)
+    (limits : QueryLimits)
     (policy : PlannerPolicy)
     (completeness : Option (FiniteCompletenessEvidence LawStatement target)) : String :=
   let properties := form.properties.mergeSort propertyLe
@@ -413,15 +407,14 @@ private def querySemanticJson
     ",\"claim\":" ++ quote form.claim.name ++
     ",\"properties\":" ++ array (properties.map propertyJson) ++
     ",\"behavior\":{\"id\":" ++ quote behavior.id.value ++
-      ",\"semanticDigest\":" ++ quote behavior.semanticDigest ++ "}" ++
-    ",\"bounds\":" ++ boundsJson bounds ++
+      ",\"behaviorFingerprint\":" ++ quote behavior.behaviorFingerprint.render ++ "}" ++
+    ",\"limits\":" ++ limitsJson limits ++
     ",\"policy\":" ++ policyJson policy ++
     ",\"target\":{\"id\":" ++ quote target.id.value ++
-      ",\"semanticDigest\":" ++ quote target.semanticDigest ++
+      ",\"behaviorFingerprint\":" ++ quote target.behaviorFingerprint.render ++
       ",\"composition\":" ++
         stringListJson (composition.map DefinitionId.value) ++
-      ",\"kernel\":{\"id\":" ++ quote target.kernel.metadata.id.value ++
-        ",\"semanticDigest\":" ++ quote target.kernel.metadata.contractDigest ++ "}}" ++
+      ",\"kernel\":{\"id\":" ++ quote target.kernel.metadata.id.value ++ "}}" ++
     ",\"finiteCompleteness\":" ++ completenessJson completeness ++ "}"
 
 /-- Query JSON is the canonical semantic projection; source order and documentation stay outside
@@ -454,7 +447,7 @@ def checkQuery
     throw (queryError .targetMismatch declaration
       (declaration.target.value ++ " != " ++ target.id.value)
       [declaration.target, target.id])
-  validateBounds declaration
+  validateLimits declaration
   validateStrategy declaration
   validateProperties declaration target
   validateExactTrace declaration target
@@ -464,7 +457,7 @@ def checkQuery
   let completeness := checkedTarget.completeness
   let composition := targetComposition target
   let semantic := querySemanticJson declaration.id declaration.version declaration.form
-    declaration.behavior target composition declaration.bounds declaration.policy completeness
+    declaration.behavior target composition declaration.limits declaration.policy completeness
   pure {
     id := declaration.id
     source := declaration.source
@@ -474,13 +467,13 @@ def checkQuery
     claim := declaration.form.claim
     behavior := declaration.behavior
     target
-    bounds := declaration.bounds
+    limits := declaration.limits
     policy := declaration.policy
     targetComposition := composition
     completeness
     documentation := declaration.documentation
     canonicalMetadata := semantic
-    semanticDigest := semanticDigestOf semantic
+    behaviorFingerprint := behaviorFingerprintOf semantic
   }
 
 end Umpire

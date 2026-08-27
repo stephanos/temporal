@@ -19,15 +19,15 @@ example : [
     outcomeName (.counterexample property) .exhaustive,
     outcomeName (.select [property]) .breadthFirst false
   ] = [
-    "verified-within-bounds",
+    "verified-within-limits",
     "found",
-    "no-such-trace-within-complete-bounds",
+    "no-such-trace-within-complete-limits",
     "found"
   ] := by
   native_decide
 
 def invalidError : QueryError := {
-  kind := .invalidBound
+  kind := .invalidLimit
   definitionId := id "planner.query.invalid"
   sourcePath := source.path
   offendingValue := "search.candidateEvaluations=0"
@@ -38,21 +38,21 @@ def invalidError : QueryError := {
 example : (PlanningOutcome.invalid invalidError).name = "invalid" := by
   native_decide
 
-/-! Complete absence and exhausted effort remain distinct while retaining counts and bounds. -/
+/-! Complete absence and exhausted effort remain distinct while retaining counts and limits. -/
 example :
     let complete := run 0 (.counterexample property) .exhaustive
     let exhausted := run 64 (.counterexample property) .shortest 1 17 false
     (complete.result.outcome.name, complete.result.metadata.completeness.established,
-      complete.result.metadata.completeness.bounds,
+      complete.result.metadata.completeness.limits,
       exhausted.result.outcome.name, exhausted.result.metadata.completeness.established) =
-      ("no-such-trace-within-complete-bounds", true, bounds,
-        "budget-exhausted", false) := by
+      ("no-such-trace-within-complete-limits", true, limits,
+        "limit-reached", false) := by
   native_decide
 
 def targetRelativeEmptyBehavior : CheckedBehavior := {
   behavior with
   actionsExactly := some [request, request]
-  semanticDigest := "behavior/target-relative-empty-v1"
+  behaviorFingerprint := behaviorFingerprintOf "behavior/target-relative-empty-v1"
 }
 
 /-! Exhaustive completion with no Behavior-admitted target trace is unsatisfiable, not proof. -/
@@ -66,7 +66,7 @@ example :
 def staticallyUnsatisfiableBehavior : CheckedBehavior := {
   behavior with
   spaceStatus := .unsatisfiable
-  semanticDigest := "behavior/statically-unsatisfiable-v1"
+  behaviorFingerprint := behaviorFingerprintOf "behavior/statically-unsatisfiable-v1"
 }
 
 /-! Empty behavior is unsatisfiable, while an incomplete search is budget exhaustion; neither
@@ -76,7 +76,7 @@ example :
     let exhausted := run 64 (.counterexample property) .shortest 1 17 false
     (empty.result.outcome.name, empty.result.isVerified,
       exhausted.result.outcome.name, exhausted.result.isVerified) =
-      ("unsatisfiable", false, "budget-exhausted", false) := by
+      ("unsatisfiable", false, "limit-reached", false) := by
   native_decide
 
 end Umpire.PlanningTests

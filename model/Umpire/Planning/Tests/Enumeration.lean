@@ -29,7 +29,7 @@ example :
       planned.instrumentation.peakActiveFrontierDepth,
       planned.instrumentation.stepKernelPulls,
       planned.result.metadata.explored.transitions) =
-    ("budget-exhausted", false, 2, 0, 2, 1, 1) := by
+    ("limit-reached", false, 2, 0, 2, 1, 1) := by
   native_decide
 
 end Umpire.PlanningTests

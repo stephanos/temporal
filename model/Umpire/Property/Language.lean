@@ -140,15 +140,15 @@ private theorem booleanNot_agrees
     (!value) = true ↔ ¬proposition := by
   cases value <;> simp_all
 
-structure PropertyBoundProfile where
+structure PropertyLimitProfile where
   id : DefinitionId
   source : SourceLocation
-  bound : TypedBound
+  limit : Limit
   deriving BEq, DecidableEq, Repr
 
-inductive PropertyBound where
-  | exact (bound : TypedBound)
-  | named (profile : DefinitionId) (expectedUnit : BoundUnit)
+inductive PropertyLimit where
+  | exact (limit : Limit)
+  | named (profile : DefinitionId) (expectedUnit : LimitUnit)
   deriving BEq, DecidableEq, Repr
 
 inductive PropertyClause where
@@ -159,15 +159,15 @@ inductive PropertyClause where
   | ordered
       (id : DefinitionId)
       (before after : PropertyPattern)
-      (unit : BoundUnit := .semanticTransitions)
+      (unit : LimitUnit := .semanticTransitions)
   | eventuallyWithin
       (id : DefinitionId)
       (trigger response : PropertyPattern)
-      (bound : PropertyBound)
+      (limit : PropertyLimit)
   | quiescentWithin
       (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
-      (bound : PropertyBound)
+      (limit : PropertyLimit)
   deriving BEq, DecidableEq, Repr
 
 def PropertyClause.id : PropertyClause → DefinitionId
@@ -206,7 +206,7 @@ inductive PropertyErrorKind where
   | missingCapability
   | unknownReference
   | undeclaredReference
-  | unknownBoundProfile
+  | unknownLimitProfile
   | unitMismatch
   | invalidClause
   | missingLogicalTimeSource
@@ -222,7 +222,7 @@ def PropertyErrorKind.name : PropertyErrorKind → String
   | .missingCapability => "missing-capability"
   | .unknownReference => "unknown-reference"
   | .undeclaredReference => "undeclared-reference"
-  | .unknownBoundProfile => "unknown-bound-profile"
+  | .unknownLimitProfile => "unknown-limit-profile"
   | .unitMismatch => "unit-mismatch"
   | .invalidClause => "invalid-clause"
   | .missingLogicalTimeSource => "missing-logical-time-source"
@@ -238,7 +238,7 @@ structure PropertyError where
 structure PropertyCapability where
   id : DefinitionId
   version : Nat
-  semanticDigest : String
+  canonicalBehavior : String
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- The inspectable vocabulary boundary admitted by a property's checked requirements. -/
@@ -252,21 +252,21 @@ structure PropertyCheckContext where
   definitions : List DefinitionMetadata
   providers : List PropertyCapability
   meanings : List (DefinitionId × MeaningProvision)
-  boundProfiles : List PropertyBoundProfile := []
+  limitProfiles : List PropertyLimitProfile := []
   deriving BEq, DecidableEq, Repr
 
 def PropertyCheckContext.ofTarget
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
-    (boundProfiles : List PropertyBoundProfile := []) : PropertyCheckContext := {
+    (limitProfiles : List PropertyLimitProfile := []) : PropertyCheckContext := {
   definitions := target.definitions
   providers := target.providers.map fun provider => {
     id := provider.contract.id
     version := provider.contract.version
-    semanticDigest := provider.contract.semanticDigest
+    canonicalBehavior := provider.contract.canonicalBehavior
   }
   meanings := target.providers.flatMap fun provider =>
     provider.meanings.map fun meaning => (provider.contract.id, meaning)
-  boundProfiles
+  limitProfiles
 }
 
 inductive ResolvedPropertyClause where
@@ -274,15 +274,15 @@ inductive ResolvedPropertyClause where
   | transitionContract (id : DefinitionId) (precondition postcondition : PropertyPattern)
   | identityRelation (id : DefinitionId) (relation : PropertyPattern)
   | inputOutput (id : DefinitionId) (input output : PropertyPattern)
-  | ordered (id : DefinitionId) (before after : PropertyPattern) (unit : BoundUnit)
+  | ordered (id : DefinitionId) (before after : PropertyPattern) (unit : LimitUnit)
   | eventuallyWithin
       (id : DefinitionId)
       (trigger response : PropertyPattern)
-      (bound : TypedBound)
+      (limit : Limit)
   | quiescentWithin
       (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
-      (bound : TypedBound)
+      (limit : Limit)
   deriving BEq, DecidableEq, Repr
 
 def ResolvedPropertyClause.id : ResolvedPropertyClause → DefinitionId
@@ -303,7 +303,7 @@ structure CheckedProperty where
   access : PropertyCapabilityView
   documentation : String
   canonicalMetadata : String
-  semanticDigest : String
+  behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 private def idLe (left right : DefinitionId) : Bool :=
@@ -311,13 +311,13 @@ private def idLe (left right : DefinitionId) : Bool :=
 
 private def capabilityLe (left right : PropertyCapability) : Bool :=
   decide (left.id.value < right.id.value) ||
-    (left.id == right.id && decide (left.semanticDigest ≤ right.semanticDigest))
+    (left.id == right.id && decide (left.canonicalBehavior ≤ right.canonicalBehavior))
 
 private def meaningLe (left right : MeaningProvision) : Bool :=
   decide (left.definitionId.value < right.definitionId.value) ||
     (left.definitionId == right.definitionId && decide (left.kind.name < right.kind.name)) ||
     (left.definitionId == right.definitionId && left.kind == right.kind &&
-      decide (left.semanticDigest ≤ right.semanticDigest))
+      decide (left.canonicalBehavior ≤ right.canonicalBehavior))
 
 private def clauseLe (left right : ResolvedPropertyClause) : Bool :=
   decide (left.id.value ≤ right.id.value)
@@ -325,7 +325,7 @@ private def clauseLe (left right : ResolvedPropertyClause) : Bool :=
 private def authoredClauseLe (left right : PropertyClause) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
-private def profileLe (left right : PropertyBoundProfile) : Bool :=
+private def profileLe (left right : PropertyLimitProfile) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
 private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
@@ -446,30 +446,30 @@ private def validateLogicalTime
         reference := id
       }
 
-private def resolveBound
+private def resolveLimit
     (context : PropertyCheckContext)
     (owner : PropertyDeclaration)
-    (bound : PropertyBound) : Except PropertyError TypedBound :=
-  match bound with
-  | .exact bound => pure bound
+    (limit : PropertyLimit) : Except PropertyError Limit :=
+  match limit with
+  | .exact limit => pure limit
   | .named profileId expectedUnit => do
       requireDefinitionId owner.id owner.source profileId
-      match (context.boundProfiles.mergeSort profileLe).find? fun profile => profile.id == profileId with
+      match (context.limitProfiles.mergeSort profileLe).find? fun profile => profile.id == profileId with
       | none =>
-          throw (propertyError .unknownBoundProfile owner.id owner.source
+          throw (propertyError .unknownLimitProfile owner.id owner.source
             profileId.value [profileId])
       | some profile =>
-          if profile.bound.unit != expectedUnit then
+          if profile.limit.unit != expectedUnit then
             throw (propertyError .unitMismatch owner.id owner.source
               (profileId.value ++ ": expected " ++ expectedUnit.name ++
-                ", found " ++ profile.bound.unit.name)
+                ", found " ++ profile.limit.unit.name)
               [profileId])
-          pure profile.bound
+          pure profile.limit
 
 private def requirePositionUnit
     (owner : PropertyDeclaration)
     (access : PropertyCapabilityView)
-    (unit : BoundUnit)
+    (unit : LimitUnit)
     (patterns : List PropertyPattern) : Except PropertyError Unit := do
   if unit == .observationPositions &&
       !(patterns.all fun pattern => pattern.field == .observation || pattern.field == .relation) then
@@ -526,15 +526,15 @@ private def checkClause
   | .eventuallyWithin id trigger response authoredBound =>
       validatePattern context owner access trigger
       validatePattern context owner access response
-      let bound ← resolveBound context owner authoredBound
-      requirePositionUnit owner access bound.unit [trigger, response]
-      pure (.eventuallyWithin id trigger response bound)
+      let limit ← resolveLimit context owner authoredBound
+      requirePositionUnit owner access limit.unit [trigger, response]
+      pure (.eventuallyWithin id trigger response limit)
   | .quiescentWithin id trigger forbidden authoredBound =>
       validatePattern context owner access trigger
       validatePattern context owner access forbidden
-      let bound ← resolveBound context owner authoredBound
-      requirePositionUnit owner access bound.unit [trigger, forbidden]
-      pure (.quiescentWithin id trigger forbidden bound)
+      let limit ← resolveLimit context owner authoredBound
+      requirePositionUnit owner access limit.unit [trigger, forbidden]
+      pure (.quiescentWithin id trigger forbidden limit)
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
@@ -585,26 +585,26 @@ private def clauseJson : ResolvedPropertyClause → String
         ",\"kind\":\"ordered\",\"before\":" ++ patternJson before ++
         ",\"after\":" ++ patternJson after ++
         ",\"unit\":" ++ quote unit.name ++ "}"
-  | .eventuallyWithin id trigger response bound =>
+  | .eventuallyWithin id trigger response limit =>
       "{\"id\":" ++ quote id.value ++
         ",\"kind\":\"eventually-within\",\"trigger\":" ++ patternJson trigger ++
         ",\"response\":" ++ patternJson response ++
-        ",\"bound\":" ++ canonicalTypedBoundJson bound ++ "}"
-  | .quiescentWithin id trigger forbidden bound =>
+        ",\"limit\":" ++ canonicalLimitJson limit ++ "}"
+  | .quiescentWithin id trigger forbidden limit =>
       "{\"id\":" ++ quote id.value ++
         ",\"kind\":\"quiescent-within\",\"trigger\":" ++ patternJson trigger ++
         ",\"forbidden\":" ++ patternJson forbidden ++
-        ",\"bound\":" ++ canonicalTypedBoundJson bound ++ "}"
+        ",\"limit\":" ++ canonicalLimitJson limit ++ "}"
 
 private def capabilityJson (capability : PropertyCapability) : String :=
   "{\"id\":" ++ quote capability.id.value ++
     ",\"version\":" ++ toString capability.version ++
-    ",\"semanticDigest\":" ++ quote capability.semanticDigest ++ "}"
+    ",\"canonicalBehavior\":" ++ quote capability.canonicalBehavior ++ "}"
 
 private def meaningJson (meaning : MeaningProvision) : String :=
   "{\"id\":" ++ quote meaning.definitionId.value ++
     ",\"kind\":" ++ quote meaning.kind.name ++
-    ",\"semanticDigest\":" ++ quote meaning.semanticDigest ++ "}"
+    ",\"canonicalBehavior\":" ++ quote meaning.canonicalBehavior ++ "}"
 
 private def propertySemanticJson
     (id : DefinitionId)
@@ -636,7 +636,7 @@ def canonicalPropertyErrorJson (error : PropertyError) : String :=
     ",\"relatedDefinitionIds\":" ++
       array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
-/-- Check an authored property, expand named bounds, and freeze its capability view before planning. -/
+/-- Check an authored property, expand named limits, and freeze its capability view before planning. -/
 def checkProperty
     (context : PropertyCheckContext)
     (authoring : PropertyAuthoring) : Except PropertyError CheckedProperty := do
@@ -648,7 +648,7 @@ def checkProperty
   requireUniqueIds declaration.id declaration.source
     (declaration.clauses.map PropertyClause.id)
   requireUniqueIds declaration.id declaration.source
-    (context.boundProfiles.map PropertyBoundProfile.id)
+    (context.limitProfiles.map PropertyLimitProfile.id)
   let access ← buildCapabilityView context declaration
   validateLogicalTime context declaration access
   let mut clauses := []
@@ -665,7 +665,7 @@ def checkProperty
     access
     documentation := declaration.documentation
     canonicalMetadata := ""
-    semanticDigest := semanticDigestOf semantic
+    behaviorFingerprint := behaviorFingerprintOf semantic
   }
   pure { checked with canonicalMetadata := canonicalPropertyJson checked }
 
@@ -823,13 +823,14 @@ private def occurrences
   initial ++ traceStepOccurrences pattern 1 0 view.steps
 
 private def positionOf
-    (unit : BoundUnit)
+    (unit : LimitUnit)
     (occurrence : PropertyOccurrence) : Option Nat :=
   match unit with
   | .semanticTransitions => some occurrence.transitionPosition
   | .selectedActions => some occurrence.selectedActionPosition
   | .observationPositions => some occurrence.observationPosition
   | .logicalTime => occurrence.logicalTime
+  | .candidateEvaluations => none
 
 private def collectPositions : List (Option Nat) → Option (List Nat)
   | [] => some []
@@ -841,7 +842,7 @@ private def collectPositions : List (Option Nat) → Option (List Nat)
 requested coordinate is missing. In particular, logical-time evaluation must fail closed. -/
 private def checkedPositions
     (pattern : PropertyPattern)
-    (unit : BoundUnit)
+    (unit : LimitUnit)
     (view : PropertyTraceView) : Option (List Nat) :=
   collectPositions ((occurrences pattern view).map (positionOf unit))
 
@@ -953,7 +954,7 @@ private theorem evaluateIdentityRelation_agrees
 
 private def evaluateOrdered
     (before after : PropertyPattern)
-    (unit : BoundUnit)
+    (unit : LimitUnit)
     (view : PropertyTraceView) : Bool :=
   match checkedPositions before unit view, checkedPositions after unit view with
   | some beforePositions, some afterPositions =>
@@ -962,7 +963,7 @@ private def evaluateOrdered
 
 private def orderedDenotes
     (before after : PropertyPattern)
-    (unit : BoundUnit)
+    (unit : LimitUnit)
     (view : PropertyTraceView) : Prop :=
   match checkedPositions before unit view, checkedPositions after unit view with
   | some beforePositions, some afterPositions =>
@@ -971,7 +972,7 @@ private def orderedDenotes
 
 private theorem evaluateOrdered_agrees
     (before after : PropertyPattern)
-    (unit : BoundUnit)
+    (unit : LimitUnit)
     (view : PropertyTraceView) :
     evaluateOrdered before after unit view = true ↔ orderedDenotes before after unit view := by
   cases beforeResult : checkedPositions before unit view with
@@ -994,108 +995,108 @@ private theorem evaluateOrdered_agrees
 
 private def evaluateEventuallyWithin
     (trigger response : PropertyPattern)
-    (bound : TypedBound)
+    (limit : Limit)
     (view : PropertyTraceView) : Bool :=
-  match checkedPositions trigger bound.unit view, checkedPositions response bound.unit view with
+  match checkedPositions trigger limit.unit view, checkedPositions response limit.unit view with
   | some triggerPositions, some responsePositions =>
       triggerPositions.all fun first =>
-        responsePositions.any fun second => first ≤ second && second - first ≤ bound.value
+        responsePositions.any fun second => first ≤ second && second - first ≤ limit.value
   | _, _ => false
 
 private def eventuallyWithinDenotes
     (trigger response : PropertyPattern)
-    (bound : TypedBound)
+    (limit : Limit)
     (view : PropertyTraceView) : Prop :=
-  match checkedPositions trigger bound.unit view, checkedPositions response bound.unit view with
+  match checkedPositions trigger limit.unit view, checkedPositions response limit.unit view with
   | some triggerPositions, some responsePositions =>
       allHolds triggerPositions fun first =>
         anyHolds responsePositions fun second =>
-          first ≤ second ∧ second - first ≤ bound.value
+          first ≤ second ∧ second - first ≤ limit.value
   | _, _ => False
 
 private theorem evaluateEventuallyWithin_agrees
     (trigger response : PropertyPattern)
-    (bound : TypedBound)
+    (limit : Limit)
     (view : PropertyTraceView) :
-    evaluateEventuallyWithin trigger response bound view = true ↔
-      eventuallyWithinDenotes trigger response bound view := by
-  cases triggerResult : checkedPositions trigger bound.unit view with
+    evaluateEventuallyWithin trigger response limit view = true ↔
+      eventuallyWithinDenotes trigger response limit view := by
+  cases triggerResult : checkedPositions trigger limit.unit view with
   | none => simp [evaluateEventuallyWithin, eventuallyWithinDenotes, triggerResult]
   | some triggerPositions =>
-      cases responseResult : checkedPositions response bound.unit view with
+      cases responseResult : checkedPositions response limit.unit view with
       | none =>
           simp [evaluateEventuallyWithin, eventuallyWithinDenotes, triggerResult, responseResult]
       | some responsePositions =>
           have responseAgreement (first : Nat) :
               responsePositions.any (fun second =>
-                first ≤ second && second - first ≤ bound.value) = true ↔
+                first ≤ second && second - first ≤ limit.value) = true ↔
                 anyHolds responsePositions (fun second =>
-                  first ≤ second ∧ second - first ≤ bound.value) :=
+                  first ≤ second ∧ second - first ≤ limit.value) :=
             anyHolds_agrees _ _ _ fun second => by simp
           have triggerAgreement :
               triggerPositions.all (fun first =>
                 responsePositions.any fun second =>
-                  first ≤ second && second - first ≤ bound.value) = true ↔
+                  first ≤ second && second - first ≤ limit.value) = true ↔
                 allHolds triggerPositions (fun first =>
                   anyHolds responsePositions fun second =>
-                    first ≤ second ∧ second - first ≤ bound.value) :=
+                    first ≤ second ∧ second - first ≤ limit.value) :=
             allHolds_agrees _ _ _ responseAgreement
           simpa [evaluateEventuallyWithin, eventuallyWithinDenotes,
             triggerResult, responseResult] using triggerAgreement
 
 private def evaluateQuiescentWithin
     (trigger forbidden : PropertyPattern)
-    (bound : TypedBound)
+    (limit : Limit)
     (view : PropertyTraceView) : Bool :=
-  match checkedPositions trigger bound.unit view, checkedPositions forbidden bound.unit view with
+  match checkedPositions trigger limit.unit view, checkedPositions forbidden limit.unit view with
   | some triggerPositions, some forbiddenPositions =>
       triggerPositions.all fun first =>
-        !(forbiddenPositions.any fun second => first ≤ second && second - first ≤ bound.value)
+        !(forbiddenPositions.any fun second => first ≤ second && second - first ≤ limit.value)
   | _, _ => false
 
 private def quiescentWithinDenotes
     (trigger forbidden : PropertyPattern)
-    (bound : TypedBound)
+    (limit : Limit)
     (view : PropertyTraceView) : Prop :=
-  match checkedPositions trigger bound.unit view, checkedPositions forbidden bound.unit view with
+  match checkedPositions trigger limit.unit view, checkedPositions forbidden limit.unit view with
   | some triggerPositions, some forbiddenPositions =>
       allHolds triggerPositions fun first =>
         ¬anyHolds forbiddenPositions fun second =>
-          first ≤ second ∧ second - first ≤ bound.value
+          first ≤ second ∧ second - first ≤ limit.value
   | _, _ => False
 
 private theorem evaluateQuiescentWithin_agrees
     (trigger forbidden : PropertyPattern)
-    (bound : TypedBound)
+    (limit : Limit)
     (view : PropertyTraceView) :
-    evaluateQuiescentWithin trigger forbidden bound view = true ↔
-      quiescentWithinDenotes trigger forbidden bound view := by
-  cases triggerResult : checkedPositions trigger bound.unit view with
+    evaluateQuiescentWithin trigger forbidden limit view = true ↔
+      quiescentWithinDenotes trigger forbidden limit view := by
+  cases triggerResult : checkedPositions trigger limit.unit view with
   | none => simp [evaluateQuiescentWithin, quiescentWithinDenotes, triggerResult]
   | some triggerPositions =>
-      cases forbiddenResult : checkedPositions forbidden bound.unit view with
+      cases forbiddenResult : checkedPositions forbidden limit.unit view with
       | none =>
           simp [evaluateQuiescentWithin, quiescentWithinDenotes, triggerResult, forbiddenResult]
       | some forbiddenPositions =>
           have forbiddenAgreement (first : Nat) :
               forbiddenPositions.any (fun second =>
-                first ≤ second && second - first ≤ bound.value) = true ↔
+                first ≤ second && second - first ≤ limit.value) = true ↔
                 anyHolds forbiddenPositions (fun second =>
-                  first ≤ second ∧ second - first ≤ bound.value) :=
+                  first ≤ second ∧ second - first ≤ limit.value) :=
             anyHolds_agrees _ _ _ fun second => by simp
           have absenceAgreement (first : Nat) :
               Bool.not (forbiddenPositions.any fun second =>
-                first ≤ second && second - first ≤ bound.value) = true ↔
+                first ≤ second && second - first ≤ limit.value) = true ↔
                 ¬anyHolds forbiddenPositions (fun second =>
-                  first ≤ second ∧ second - first ≤ bound.value) :=
+                  first ≤ second ∧ second - first ≤ limit.value) :=
             booleanNot_agrees _ _ (forbiddenAgreement first)
           have triggerAgreement :
               triggerPositions.all (fun first =>
                 !(forbiddenPositions.any fun second =>
-                  first ≤ second && second - first ≤ bound.value)) = true ↔
+                  first ≤ second && second - first ≤ limit.value)) = true ↔
                 allHolds triggerPositions (fun first =>
                   ¬anyHolds forbiddenPositions fun second =>
-                    first ≤ second ∧ second - first ≤ bound.value) :=
+                    first ≤ second ∧ second - first ≤ limit.value) :=
             allHolds_agrees _ _ _ absenceAgreement
           simpa [evaluateQuiescentWithin, quiescentWithinDenotes,
             triggerResult, forbiddenResult] using triggerAgreement
@@ -1110,10 +1111,10 @@ def ResolvedPropertyClause.denote
   | .identityRelation _ relation => identityRelationDenotes relation view
   | .inputOutput _ input output => transitionContractDenotes input output view
   | .ordered _ before after unit => orderedDenotes before after unit view
-  | .eventuallyWithin _ trigger response bound =>
-      eventuallyWithinDenotes trigger response bound view
-  | .quiescentWithin _ trigger forbidden bound =>
-      quiescentWithinDenotes trigger forbidden bound view
+  | .eventuallyWithin _ trigger response limit =>
+      eventuallyWithinDenotes trigger response limit view
+  | .quiescentWithin _ trigger forbidden limit =>
+      quiescentWithinDenotes trigger forbidden limit view
 
 def evaluatePropertyClause
     (clause : ResolvedPropertyClause)
@@ -1125,10 +1126,10 @@ def evaluatePropertyClause
   | .identityRelation _ relation => evaluateIdentityRelation relation view
   | .inputOutput _ input output => evaluateTransitionContract input output view
   | .ordered _ before after unit => evaluateOrdered before after unit view
-  | .eventuallyWithin _ trigger response bound =>
-      evaluateEventuallyWithin trigger response bound view
-  | .quiescentWithin _ trigger forbidden bound =>
-      evaluateQuiescentWithin trigger forbidden bound view
+  | .eventuallyWithin _ trigger response limit =>
+      evaluateEventuallyWithin trigger response limit view
+  | .quiescentWithin _ trigger forbidden limit =>
+      evaluateQuiescentWithin trigger forbidden limit view
 
 /-- Structural agreement for every constructor in the portable property core. -/
 theorem evaluatePropertyClause_agrees
@@ -1146,10 +1147,10 @@ theorem evaluatePropertyClause_agrees
       exact evaluateTransitionContract_agrees input output view
   | ordered _ before after unit =>
       exact evaluateOrdered_agrees before after unit view
-  | eventuallyWithin _ trigger response bound =>
-      exact evaluateEventuallyWithin_agrees trigger response bound view
-  | quiescentWithin _ trigger forbidden bound =>
-      exact evaluateQuiescentWithin_agrees trigger forbidden bound view
+  | eventuallyWithin _ trigger response limit =>
+      exact evaluateEventuallyWithin_agrees trigger response limit view
+  | quiescentWithin _ trigger forbidden limit =>
+      exact evaluateQuiescentWithin_agrees trigger forbidden limit view
 
 structure PropertyTraceSpan where
   firstTransition : Nat
@@ -1161,7 +1162,7 @@ structure PropertyClauseResult where
   clauseId : DefinitionId
   satisfied : Bool
   traceSpan : Option PropertyTraceSpan
-  evaluatedBound : Option TypedBound
+  evaluatedLimit : Option Limit
   semanticProvenance : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
@@ -1180,8 +1181,8 @@ private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
   | .eventuallyWithin _ trigger response _ => [trigger, response]
   | .quiescentWithin _ trigger forbidden _ => [trigger, forbidden]
 
-private def clauseBound : ResolvedPropertyClause → Option TypedBound
-  | .eventuallyWithin _ _ _ bound | .quiescentWithin _ _ _ bound => some bound
+private def clauseLimit : ResolvedPropertyClause → Option Limit
+  | .eventuallyWithin _ _ _ limit | .quiescentWithin _ _ _ limit => some limit
   | _ => none
 
 private def spanOf
@@ -1204,7 +1205,7 @@ private def resultOf
   clauseId := clause.id
   satisfied := evaluatePropertyClause clause view
   traceSpan := spanOf clause view
-  evaluatedBound := clauseBound clause
+  evaluatedLimit := clauseLimit clause
   semanticProvenance := canonicalIds
     (property.requires ++ (clausePatterns clause).map PropertyPattern.reference)
 }

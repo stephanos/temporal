@@ -49,8 +49,12 @@ example : ((checkQuery exhaustiveContext
     (declaration (.verify checkedProperty) exhaustivePolicy)).toOption.bind fun query =>
       query.completeness.map fun evidence =>
         (evidence.roleAssignments, evidence.actions,
-          evidence.roleDomainDigest, evidence.actionDomainDigest)) =
-      some ([setup], [requestValue], "role-domain/v1", "action-domain/v1") := by
+          evidence.roleDomainFingerprint.render, evidence.actionDomainFingerprint.render)) =
+      some ([setup], [requestValue],
+        (behaviorFingerprintOf <|
+          "query-role-domain/v1\n" ++ String.intercalate "\u001f" target.behaviorDescription.setups).render,
+        (behaviorFingerprintOf <|
+          "query-action-domain/v1\n" ++ String.intercalate "\u001f" target.behaviorDescription.actions).render) := by
   native_decide
 
 /-! Completeness follows the exhaustive strategy, not a particular query form. -/

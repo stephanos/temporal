@@ -38,7 +38,7 @@ def matchingUpdateAckIntervalInterpretation : ConfigInterpretation Int := {
   expectedSettingIdentity := "sha256:58c6db0d991c651b92e007384724788f74236057d53c6814293a5439e216501f"
   expectedSchema := .duration "time.Duration" false
   expectedDefault := Temporal.DynamicConfig.Settings.matching_updateackinterval.defaultValue
-  semanticDigest := semanticDigestOf "temporal.config/matching-update-ack-interval/v1"
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/matching-update-ack-interval/v1"
   decode := decodeDuration
 }
 
@@ -47,7 +47,7 @@ def matchingWorkerRegistryNumBucketsInterpretation : ConfigInterpretation Int :=
   expectedSettingIdentity := "sha256:6369ab31f72b574120e020fe8695290050ce1d2d66b4579e01243bbb4aea5f29"
   expectedSchema := .int "int" false
   expectedDefault := .concrete (.int 10)
-  semanticDigest := semanticDigestOf "temporal.config/matching-worker-registry-num-buckets/v1"
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/matching-worker-registry-num-buckets/v1"
   decode := decodeInt
 }
 
