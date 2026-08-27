@@ -11,8 +11,6 @@ normative.
 - **GOV-02 — Human deviation.** A human MUST approve any change that violates a rule or deliberately
   plans to violate one.
 
-############ TODO review ############
-
 The ubiquitous language is grouped with the rules that govern each part of the domain. These
 definitions determine how terms are used in this normative index. Supporting Umpire 4 documents use
 them consistently and may add detail without changing their meaning. Lean modules, namespaces, and
@@ -41,6 +39,7 @@ types are always referenced by fully qualified names in backticks.
   whose meaning survives an implementation rewrite.
 - **`Temporal.System`.** The Temporal namespace that owns implementation mechanisms, configuration
   interpretation, `Umpire.Observation` declarations, execution semantics, and refinements.
+############ TODO review ############
 - **Semantic identity.** A stable, namespaced, kind-checked name for a declaration or selected
   semantic product. It is independent of declaration order and documentation.
 - **Semantic digest.** A deterministic digest of meaning-bearing canonical content, used to detect
