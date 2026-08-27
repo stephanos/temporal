@@ -387,6 +387,11 @@ def completeApplication := applyImplementationLink checkedLink
 
 def setupMismatchApplication := applyImplementationLink checkedLink [] repeatedEvidenceTrace
 
+def otherSetupMismatchApplication := applyImplementationLink checkedLink [{
+  role := Umpire.Examples.Switch.switchRoleId
+  value := Umpire.Examples.Switch.onState
+}] repeatedEvidenceTrace
+
 def impossibleInitialApplication := applyImplementationLink checkedLink
   Umpire.Examples.Switch.switchSetup impossibleInitialTrace
 
@@ -562,14 +567,45 @@ example : [
 
 /-- Diagnostic identity is the fingerprint of every canonical provenance field. -/
 example : limitApplication.diagnostic?.map (fun diagnostic =>
-    (diagnostic.identity,
+    (diagnostic.hasCanonicalIdentity,
+      diagnostic.identity,
       behaviorFingerprintOf (canonicalImplementationLinkDiagnosticJson diagnostic),
       diagnostic.appliedLimit,
       diagnostic.observedCount)) = some (
+    true,
     (limitApplication.diagnostic?.get (by native_decide)).identity,
     (limitApplication.diagnostic?.get (by native_decide)).identity,
     some { value := 1, unit := .semanticTransitions },
     some 2) := by
+  native_decide
+
+/-- Distinct invalid source setups retain distinct canonical diagnostic identities. -/
+example : setupMismatchApplication.diagnostic?.bind (fun first =>
+    otherSetupMismatchApplication.diagnostic?.map fun second =>
+      first.hasCanonicalIdentity && second.hasCanonicalIdentity &&
+        first.sourceSetupBehaviorFingerprint.isSome &&
+        second.sourceSetupBehaviorFingerprint.isSome && first.identity != second.identity) =
+    some true := by
+  native_decide
+
+private def unsupportedKindDiagnostic (kind : DefinitionKind) : ImplementationLinkDiagnostic :=
+  let base := setupMismatchApplication.diagnostic?.get (by native_decide)
+  let canonicalFields : ImplementationLinkDiagnostic := {
+    base with
+    kind := .unsupportedVocabulary
+    relatedDefinitionIds := [id "test.implementation-link.unsupported-vocabulary"]
+    sourceSetupBehaviorFingerprint := none
+    unsupportedVocabularyKind := some kind
+    identity := behaviorFingerprintOf ""
+  }
+  { canonicalFields with
+    identity := behaviorFingerprintOf (canonicalImplementationLinkDiagnosticJson canonicalFields) }
+
+/-- Unsupported vocabulary kinds participate in canonical diagnostic identity. -/
+example : let lawDiagnostic := unsupportedKindDiagnostic .law
+    let providerDiagnostic := unsupportedKindDiagnostic .provider
+    lawDiagnostic.hasCanonicalIdentity && providerDiagnostic.hasCanonicalIdentity &&
+      lawDiagnostic.identity != providerDiagnostic.identity = true := by
   native_decide
 
 end Umpire.ImplementationLinkApplicationTests
