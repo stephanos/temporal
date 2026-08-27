@@ -48,6 +48,7 @@ The pre-existing broad `.plans/UMPIRE4_SPEC.md` rewrite was preserved: only the 
 
 baseline: red (`cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests` hit the inherited transient Lake `.ilean` ENOENT in Query Forms/Validation; its exact retry passed, and the other four Quick commands passed pre-edit)
 stage: impl-review - ran [2026-08-27T05:01:07Z..2026-08-27T05:05:13Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 8d014366201b7231a0497c358230a3702f6315cc
 - Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model
