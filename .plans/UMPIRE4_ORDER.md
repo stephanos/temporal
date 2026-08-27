@@ -132,10 +132,10 @@ timestamp sorting, then assert the expected Evidence Link and Result.
 
 ### 9. fn-21 — Nexus duplicate-observation control
 
-Run the second example. The same model and normal target-owned plan carry one explicit requested
-fault. The participant realizes one labeled duplicate-delivery observation, the evidence layer
-records a matching receipt, and conformance reports a uniqueness-only violation without claiming a
-Temporal product defect.
+Run the second example. The same model and normal target-owned plan carry one explicit Fault Request.
+The participant realizes one labeled duplicate-delivery observation, the Evidence layer records a
+matching Execution Receipt, and Run Evaluation reports a uniqueness-only violation without claiming
+a Temporal product defect.
 
 Consume the faulted fn-18-published executable `ExperimentSpec` built from fn-16's checked intent;
 do not author an alternative space, Feature Property, or Implementation Link inside fn-21.
@@ -149,23 +149,23 @@ fault-induced violation using the same model.
 
 Run the byte-identical normal `ExperimentSpec` consumed by fn-19 through the ordinary CI test command
 and the same runner/Run Evaluation interfaces used locally. Its Artifact Checksum, format version,
-and Behavior Fingerprints must match the local subject. Reject recompilation or checksum drift without
-introducing a new provenance schema. Do not build CI Claim Assessment profiles, provenance schemas,
+and Behavior Fingerprints must match the local subject. Reject recompilation or checksum drift
+without introducing a new provenance schema. Do not build CI Claim Assessment profiles, provenance schemas,
 new artifact-set versions, or release evidence.
 
 ### 11. fn-28 — Black-box staging execution
 
 Run the same normal `ExperimentSpec` against one controlled nonproduction endpoint using only public
-gRPC evidence plus participant-owned receipts. Before implementation, name the owner-supplied fixed
+gRPC Evidence plus participant-owned Execution Receipts. Before implementation, name the owner-supplied fixed
 staging profile and harness that provide fail-closed authority and target preflight, concurrency one,
-fixed execution/evidence bounds, isolated namespace or run-owned resources, cleanup verification,
+fixed Execution/Evidence Limits, isolated namespace or Run-owned resources, cleanup verification,
 and postflight target identity. If those existing controls are unavailable, fn-28 is blocked; do not
 build replacements in Umpire. Do not build a general target selector, protected workflow, lease
-system, recovery controller, or qualification platform.
+system, recovery controller, or Claim Assessment platform.
 
 The environment binding must also support a canary dry-run fixture that consumes the same normal
-artifact bytes, format identity, and semantic identity, proving the semantic artifact and evidence
-contract can be bound without granting production execution authority.
+Artifact bytes, format version, Artifact Checksum, and Behavior Fingerprints, proving the Artifact
+and Evidence contract can be bound without granting production Execution authority.
 
 ## P3 — Exploration and regression lifecycle
 
