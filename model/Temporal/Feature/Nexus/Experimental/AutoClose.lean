@@ -6,7 +6,7 @@ This file is two things at once, and it is written so you can read it knowing ne
 1. **A tutorial.** It teaches enough Lean 4 to read a real proof, introducing each language
    feature at the moment the model first needs it. No prior Lean is assumed.
 2. **A load-bearing artifact.** It settles an open question in the Nexus **AutoClose** design
-   (`../../spec.md`): when a user-initiated cancellation and a system-initiated one collide,
+   (`../../../spec.md`): when a user-initiated cancellation and a system-initiated one collide,
    which one wins? Three answers were on the table. This file proves two of them wrong.
 
 Read it top to bottom. Every section builds on the previous one.
@@ -104,7 +104,7 @@ A cancel is an RPC, and an RPC needs a timeout. Temporal clamps that timeout to 
 deadline, so remaining time is ≈ 0 — clamping would starve the request below `MinRequestTimeout`
 and it would never be sent at all.
 
-So the design splits the two cases (`../../spec.md`):
+So the design splits the two cases (`../../../spec.md`):
 
 * **system-initiated** cancels (from AutoClose) carry a flag and **skip the clamp**;
 * **user-initiated** cancels **keep the clamp** — a user cancel with no time left is
@@ -170,11 +170,11 @@ Honesty about scope is part of the artifact:
 
 ## Canonical sources
 
-* Layer 1 mirrors `../../../../tools/umpire2/internal/model/nexus_operation.go`
+* Layer 1 mirrors `../../../../../tools/umpire2/internal/model/nexus_operation.go`
   (`NewNexusOperation`).
-* Layers 2–4 model `../../spec.md`, whose runtime counterparts in this repo are
-  `../../../../chasm/lib/nexusoperation/cancellation.go` (the `auto_close` flag and the clamp),
-  `../../../../chasm/lib/workflow/nexus_methods.go` (the hook) and `../../../../chasm/lib/workflow/nexus_events.go`
+* Layers 2–4 model `../../../spec.md`, whose runtime counterparts in this repo are
+  `../../../../../chasm/lib/nexusoperation/cancellation.go` (the `auto_close` flag and the clamp),
+  `../../../../../chasm/lib/workflow/nexus_methods.go` (the hook) and `../../../../../chasm/lib/workflow/nexus_events.go`
   (deferred removal).
 -/
 
@@ -451,7 +451,7 @@ operation, its caller, and the clock, so we need a richer object.
 
 ## The rule this layer encodes
 
-From `../../spec.md`, and it is worth reading twice:
+From `../../../spec.md`, and it is worth reading twice:
 
 > A forced-close cancel fires at (or after) the op's schedule-to-close deadline, so remaining time
 > is ~0. Clamping the cancel RPC to it would starve it below `MinRequestTimeout` and it would
@@ -628,7 +628,7 @@ inductive Reachable (r : Resolution) : Config → Prop where
 
 /-! ## The root lemma: the initiator is not derivable
 
-`../../spec.md` asserts that distinguishing user- from system-initiated cancels is "required and
+`../../../spec.md` asserts that distinguishing user- from system-initiated cancels is "required and
 not derivable from lifecycle state". That is exactly the kind of claim that is easy to assert,
 easy to believe, and easy to be wrong about — and if it *were* derivable, the whole `auto_close`
 flag (and its reset gap, and this file) would be unnecessary.
@@ -941,7 +941,7 @@ cancellation component *after* the `NexusOperationCancelRequested` event and is 
 attributes — so a reset that rebuilds a still-pending auto-close cancellation recreates it as
 **user**-initiated. The clamp reapplies. The cancel is never sent.
 
-That is `../../spec.md`'s "`auto_close` flag is not event-sourced (reset gap)", and by the root
+That is `../../../spec.md`'s "`auto_close` flag is not event-sourced (reset gap)", and by the root
 lemma it cannot be patched over by inspecting the rebuilt state: the initiator is not recoverable
 from anything else. It has to be *written down*.
 
@@ -1091,8 +1091,8 @@ judgement call — defensible, since the caller opted into `REQUEST_CANCEL` — 
 
 ## Where to go next
 
-* `../../spec.md` — the design, including the locked decision this file produced.
-* `../../lean-model-plan.md` — how the model was scoped, and the negative checks that keep it
+* `../../../spec.md` — the design, including the locked decision this file produced.
+* `../../../lean-model-plan.md` — how the model was scoped, and the negative checks that keep it
   honest. Those are worth understanding: *deliberately break `deliverable` and confirm the proofs
   fail.* A model whose theorems survive a broken definition is proving nothing, and that check is
   the only thing standing between this file and comfortable fiction.
