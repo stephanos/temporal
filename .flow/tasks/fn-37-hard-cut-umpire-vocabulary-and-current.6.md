@@ -42,9 +42,14 @@ Canonical validity is a byte contract, not merely “decodes to the same Go valu
 - [ ] Generation deterministically and atomically publishes exactly four outputs—the Nexus Go/Markdown pair and Switch Go/Markdown pair—and completeness tests reject missing, extra, stale, or partial output.
 - [ ] The old Projection command path, exported API, diagnostics, and Make target aliases are absent.
 ## Done summary
-TBD
+Hard-cut the Go Umpire regression surface from Projection to Generated View, adding one strict shared v2 decoder that enforces canonical bytes, independent nested/outer checksums, Lean-compatible closed values, and duplicate-aware v1 rejection. Closed generation over Nexus and Switch now deterministically and atomically owns exactly four checksum-bound Go/Markdown outputs, with exhaustive encoding, manifest-completeness, publication, and cross-language SHA-256 tests.
 
+Baseline: red by the deliberate task `.5` seam (the old v1 Projection consumer rejected canonical v2 fixtures, the new Generated View Make target did not yet exist, and the old aggregate regression target failed on v2); all post-change gates are green.
+
+Codex review found one checksum-valid malformed-value admission gap; `cc466d2a1` fixed it with resealed negative tests plus positive Lean-record edge tests. Memory capture was attempted after NEEDS_WORK → SHIP but memory is not initialized in this repository.
+
+stage: impl-review - ran [2026-08-27T18:00:48Z..2026-08-27T18:16:33Z] (SHIP; codex:gpt-5.6-sol:high; session 01a04462-7da1-7203-881f-bb989c6a7645)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1fe44e71430389911eb7329e54532220e07f632f, cc466d2a15ac02ed3c05d358de0e8934f65f8455
+- Tests: baseline: red (mise exec -- go test ./tools/umpire/... failed pre-edit because the v1 Projection consumer rejected canonical v2 fixtures), baseline: red (mise exec -- make umpire-check-regression-views had no target pre-edit), baseline: red (mise exec -- make umpire-check-regression failed pre-edit because the old consumer rejected v2), mise exec -- go test ./tools/umpire/internal/artifactv2, mise exec -- go test ./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/internal/artifactv2 ./tools/umpire/regression, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, mise exec -- go test ./tools/umpire/..., mise exec -- make umpire-check-regression-views, mise exec -- make umpire-check-regression, GATE_SKIPPED:lean:green-receipt cc466d2a - post-fix Lean Quick pass reused, GATE_SKIPPED:go:green-receipt cc466d2a - post-fix pinned Go pass reused, GATE_SKIPPED:regression-views:green-receipt cc466d2a - post-fix generated-view gate pass reused, GATE_SKIPPED:regression:green-receipt cc466d2a - post-fix aggregate regression pass reused
 - PRs:
