@@ -38,6 +38,7 @@ baseline: green
 verification: all four Quick commands passed; `make lint-model` completed the 114-target graph without lint errors
 gate receipt: not warrantable because concurrent `.plans/UMPIRE4_ORDER.md` changes remain dirty outside this task
 stage: impl-review - ran [2026-08-27T08:50:27Z..2026-08-27T08:50:27Z] (triage-skip: docs-only)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 3fa5bc7a5de7d890e152b0cded868c5799a8f080
 - Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests, make umpire-check-regression, make lint-model
