@@ -90,10 +90,12 @@ structure ImplementationLinkDiagnostic where
   kind : ImplementationLinkFailureKind
   coordinate : Option ModelCoordinate := none
   relatedDefinitionIds : List DefinitionId := []
+  sourceSetupBehaviorFingerprint : Option BehaviorFingerprint := none
   appliedLimit : Option Limit := none
   observedCount : Option Nat := none
   knownGapCode : Option DefinitionId := none
   knownGapReason : Option String := none
+  unsupportedVocabularyKind : Option DefinitionKind := none
   evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint := none
   identity : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
@@ -135,10 +137,12 @@ private def implementationLinkDiagnosticSemanticJson
     (kind : ImplementationLinkFailureKind)
     (coordinate : Option ModelCoordinate)
     (relatedDefinitionIds : List DefinitionId)
+    (sourceSetupBehaviorFingerprint : Option BehaviorFingerprint)
     (appliedLimit : Option Limit)
     (observedCount : Option Nat)
     (knownGapCode : Option DefinitionId)
     (knownGapReason : Option String)
+    (unsupportedVocabularyKind : Option DefinitionKind)
     (evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint) : String :=
   "{\"implementationLinkId\":" ++ quote implementationLinkId.value ++
     ",\"implementationLinkBehaviorFingerprint\":" ++
@@ -150,10 +154,14 @@ private def implementationLinkDiagnosticSemanticJson
     ",\"coordinate\":" ++ optionalJson (coordinate.map coordinateName) ++
     ",\"relatedDefinitionIds\":" ++
       array (canonicalIds relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++
+    ",\"sourceSetupBehaviorFingerprint\":" ++
+      optionalJson (sourceSetupBehaviorFingerprint.map BehaviorFingerprint.render) ++
     ",\"appliedLimit\":" ++ (appliedLimit.map limitIdentityJson |>.getD "null") ++
     ",\"observedCount\":" ++ (observedCount.map toString |>.getD "null") ++
     ",\"knownGapCode\":" ++ optionalJson (knownGapCode.map DefinitionId.value) ++
     ",\"knownGapReason\":" ++ optionalJson knownGapReason ++
+    ",\"unsupportedVocabularyKind\":" ++
+      optionalJson (unsupportedVocabularyKind.map DefinitionKind.name) ++
     ",\"evidenceLinkBehaviorFingerprint\":" ++
       optionalJson (evidenceLinkBehaviorFingerprint.map BehaviorFingerprint.render) ++ "}"
 
@@ -162,9 +170,15 @@ def canonicalImplementationLinkDiagnosticJson
   implementationLinkDiagnosticSemanticJson diagnostic.implementationLinkId
     diagnostic.implementationLinkBehaviorFingerprint diagnostic.sourceTarget
     diagnostic.destinationTarget diagnostic.kind diagnostic.coordinate
-    diagnostic.relatedDefinitionIds diagnostic.appliedLimit diagnostic.observedCount
-    diagnostic.knownGapCode diagnostic.knownGapReason
+    diagnostic.relatedDefinitionIds diagnostic.sourceSetupBehaviorFingerprint
+    diagnostic.appliedLimit diagnostic.observedCount diagnostic.knownGapCode
+    diagnostic.knownGapReason diagnostic.unsupportedVocabularyKind
     diagnostic.evidenceLinkBehaviorFingerprint
+
+/-- Whether a diagnostic still carries the identity of all its canonical provenance fields. -/
+def ImplementationLinkDiagnostic.hasCanonicalIdentity
+    (diagnostic : ImplementationLinkDiagnostic) : Bool :=
+  diagnostic.identity == behaviorFingerprintOf (canonicalImplementationLinkDiagnosticJson diagnostic)
 
 private def implementationLinkDiagnostic
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -173,10 +187,12 @@ private def implementationLinkDiagnostic
     (kind : ImplementationLinkFailureKind)
     (coordinate : Option ModelCoordinate := none)
     (relatedDefinitionIds : List DefinitionId := [])
+    (sourceSetupBehaviorFingerprint : Option BehaviorFingerprint := none)
     (appliedLimit : Option Limit := none)
     (observedCount : Option Nat := none)
     (knownGapCode : Option DefinitionId := none)
     (knownGapReason : Option String := none)
+    (unsupportedVocabularyKind : Option DefinitionKind := none)
     (evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint := none) :
     ImplementationLinkDiagnostic :=
   let relatedDefinitionIds := canonicalIds relatedDefinitionIds
@@ -184,7 +200,8 @@ private def implementationLinkDiagnostic
   let destinationTarget := ImplementationTargetReference.ofTarget checked.destinationTarget
   let semantic := implementationLinkDiagnosticSemanticJson checked.declaration.id
     checked.behaviorFingerprint sourceTarget destinationTarget kind coordinate relatedDefinitionIds
-    appliedLimit observedCount knownGapCode knownGapReason evidenceLinkBehaviorFingerprint
+    sourceSetupBehaviorFingerprint appliedLimit observedCount knownGapCode knownGapReason
+    unsupportedVocabularyKind evidenceLinkBehaviorFingerprint
   {
     implementationLinkId := checked.declaration.id
     implementationLinkBehaviorFingerprint := checked.behaviorFingerprint
@@ -193,10 +210,12 @@ private def implementationLinkDiagnostic
     kind
     coordinate
     relatedDefinitionIds
+    sourceSetupBehaviorFingerprint
     appliedLimit
     observedCount
     knownGapCode
     knownGapReason
+    unsupportedVocabularyKind
     evidenceLinkBehaviorFingerprint
     identity := behaviorFingerprintOf semantic
   }
@@ -349,7 +368,8 @@ private def validateSemanticMapping
       (relatedDefinitionIds := [meaning.definitionId, gap.code])
       (knownGapCode := some gap.code) (knownGapReason := some gap.reason))
   | [], [] => throw (implementationLinkDiagnostic checked .unsupportedVocabulary
-      (relatedDefinitionIds := [meaning.definitionId]))
+      (relatedDefinitionIds := [meaning.definitionId])
+      (unsupportedVocabularyKind := some meaning.kind))
   | _, _ => throw (implementationLinkDiagnostic checked .multipleMappings
       (relatedDefinitionIds := meaning.definitionId ::
         matchingMappings.map (fun mapping => mapping.destination.id) ++
@@ -364,7 +384,8 @@ private def validateVocabulary
   for meaning in trace.vocabulary do
     if !supportedVocabularyKind meaning.kind then
       throw (implementationLinkDiagnostic checked .unsupportedVocabulary
-        (relatedDefinitionIds := [meaning.definitionId]))
+        (relatedDefinitionIds := [meaning.definitionId])
+        (unsupportedVocabularyKind := some meaning.kind))
     if !(sourceMeanings.any fun sourceMeaning => sourceMeaning == meaning) then
       throw (implementationLinkDiagnostic checked .behaviorFingerprintDrift
         (relatedDefinitionIds := [meaning.definitionId]))
@@ -389,8 +410,11 @@ private def mappedSetup
   let sourceDomain ← match checked.sourceTarget.kernel.behaviorDomain with
     | .complete domain => pure domain
     | _ => throw <| implementationLinkDiagnostic checked .behaviorFingerprintDrift
+  let sourceSetupBehaviorFingerprint :=
+    behaviorFingerprintOf (sourceDomain.encodeSetup sourceSetup)
   if !sourceDomain.setups.contains sourceSetup then
-    throw <| implementationLinkDiagnostic checked .sourceSetupMismatch
+    throw (implementationLinkDiagnostic checked .sourceSetupMismatch
+      (sourceSetupBehaviorFingerprint := some sourceSetupBehaviorFingerprint))
   let mappings := checked.declaration.setupMappings.filter fun mapping =>
     mapping.source == sourceSetup
   let gaps := checked.declaration.setupKnownGaps.filter fun gap => gap.source == sourceSetup
@@ -398,13 +422,17 @@ private def mappedSetup
   | [mapping], [] =>
       let destination := checked.mapSetup sourceSetup
       if mapping.destination != destination then
-        throw <| implementationLinkDiagnostic checked .sourceSetupMismatch
+        throw (implementationLinkDiagnostic checked .sourceSetupMismatch
+          (sourceSetupBehaviorFingerprint := some sourceSetupBehaviorFingerprint))
       pure destination
   | [], [gap] => throw (implementationLinkDiagnostic checked .knownGap
       (relatedDefinitionIds := [gap.code])
+      (sourceSetupBehaviorFingerprint := some sourceSetupBehaviorFingerprint)
       (knownGapCode := some gap.code) (knownGapReason := some gap.reason))
-  | [], [] => throw <| implementationLinkDiagnostic checked .sourceSetupMismatch
-  | _, _ => throw <| implementationLinkDiagnostic checked .multipleMappings
+  | [], [] => throw (implementationLinkDiagnostic checked .sourceSetupMismatch
+      (sourceSetupBehaviorFingerprint := some sourceSetupBehaviorFingerprint))
+  | _, _ => throw (implementationLinkDiagnostic checked .multipleMappings
+      (sourceSetupBehaviorFingerprint := some sourceSetupBehaviorFingerprint))
 
 private structure AdmittedSourceSteps
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement

@@ -12,6 +12,7 @@ import Umpire.ImplementationLink
 #check Umpire.ImplementationLinkStatus
 #check Umpire.ImplementationLinkFailureKind
 #check Umpire.ImplementationLinkDiagnostic
+#check Umpire.ImplementationLinkDiagnostic.hasCanonicalIdentity
 #check Umpire.ImplementationLinkEvidenceLink
 #check Umpire.ImplementationLinkResult
 #check Umpire.applyImplementationLink
