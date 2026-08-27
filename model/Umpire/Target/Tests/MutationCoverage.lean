@@ -39,22 +39,18 @@ def authoredMutation
     (owner : DeclarationId)
     (line : Nat)
     (context : AuthoringOccurrenceContext := .direct) :
-    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration
-  occurrences := [{
+    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf declaration (occurrences := [{
     id := occurrenceId line 2 line 20 0
     declarationId := identity
     path := { role, owner, context }
-  }]
-}
+  }])
 
-def duplicateMutation : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := duplicateIdentityTarget
-  occurrences := [
+def duplicateMutation : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf duplicateIdentityTarget (occurrences := [
     occurrence testTarget.id .declarationMetadata testTarget.id 32,
     occurrence testTarget.id .declarationMetadata testTarget.id 31
-  ]
-}
+  ])
 
 def locatedMutationSummary
     (result : Except AuthoringDiagnostic

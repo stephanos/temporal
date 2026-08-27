@@ -32,10 +32,8 @@ private def occurrenceAt
 }
 
 private def authoringAt (line column : Nat) : AuthoredTarget LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetAuthoring with
-  occurrences := [occurrenceAt targetId targetId .targetDeclaration line column]
-}
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+  targetAuthoring.withOccurrences [occurrenceAt targetId targetId .targetDeclaration line column]
 
 private def checkedSummary
     (result : Except AuthoringDiagnostic (QueryTarget LawStatement)) :
@@ -109,13 +107,15 @@ private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :
     (by
       intro evidence evidenceEq
       simp [earlyQuery, materializeEarlyQuery, CheckedQueryTarget.ofTarget, earlyTarget,
-        checkedTarget, authoringAt, targetAuthoring] at evidenceEq
+        checkedTarget, authoringAt, AuthoredTarget.withOccurrences, targetAuthoring,
+        AuthoredTarget.make, targetDefinition] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
       simp only [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-        targetAuthoring, transitionKernel, initialStates]
+        AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make, targetDefinition,
+        transitionKernel, initialStates]
       split <;> simp)
     (by
       intro _ _ state action
@@ -124,16 +124,20 @@ private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :
         by_cases selectedOff : state = offState
         · subst state
           simpa [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-            targetAuthoring, transitionKernel, stepResults] using appliedResult_ordered
+            AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
+            targetDefinition, transitionKernel, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
             simpa [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-              targetAuthoring, transitionKernel, stepResults, onState_ne_offState] using
+              AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
+              targetDefinition, transitionKernel, stepResults, onState_ne_offState] using
                 appliedFromOnResult_ordered
           · simp [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-              targetAuthoring, transitionKernel, stepResults, selectedOff, selectedOn]
+              AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
+              targetDefinition, transitionKernel, stepResults, selectedOff, selectedOn]
       · simp [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
-          targetAuthoring, transitionKernel, stepResults, selectedAction])
+          AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
+          targetDefinition, transitionKernel, stepResults, selectedAction])
 
 private theorem earlyKernel?_isSome : earlyKernel?.isSome = true := by
   rfl
@@ -166,13 +170,15 @@ private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.t
     (by
       intro evidence evidenceEq
       simp [relocatedQuery, materializeRelocatedQuery, CheckedQueryTarget.ofTarget,
-        relocatedTarget, checkedTarget, authoringAt, targetAuthoring] at evidenceEq
+        relocatedTarget, checkedTarget, authoringAt, AuthoredTarget.withOccurrences,
+        targetAuthoring, AuthoredTarget.make, targetDefinition] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
       simp only [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-        authoringAt, targetAuthoring, transitionKernel, initialStates]
+        authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
+        targetDefinition, transitionKernel, initialStates]
       split <;> simp)
     (by
       intro _ _ state action
@@ -181,18 +187,22 @@ private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.t
         by_cases selectedOff : state = offState
         · subst state
           simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-            authoringAt, targetAuthoring, transitionKernel, stepResults] using
+            authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
+            targetDefinition, transitionKernel, stepResults] using
               appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
             simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-              authoringAt, targetAuthoring, transitionKernel, stepResults,
+              authoringAt, AuthoredTarget.withOccurrences, targetAuthoring,
+              AuthoredTarget.make, targetDefinition, transitionKernel, stepResults,
               onState_ne_offState] using appliedFromOnResult_ordered
           · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-              authoringAt, targetAuthoring, transitionKernel, stepResults,
+              authoringAt, AuthoredTarget.withOccurrences, targetAuthoring,
+              AuthoredTarget.make, targetDefinition, transitionKernel, stepResults,
               selectedOff, selectedOn]
       · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
-          authoringAt, targetAuthoring, transitionKernel, stepResults, selectedAction])
+          authoringAt, AuthoredTarget.withOccurrences, targetAuthoring, AuthoredTarget.make,
+          targetDefinition, transitionKernel, stepResults, selectedAction])
 
 private theorem relocatedKernel?_isSome : relocatedKernel?.isSome = true := by
   rfl
@@ -212,16 +222,16 @@ example : [
   ] = [some expectedSwitchArtifactJson, some expectedSwitchArtifactJson] := by
   native_decide
 
-private def wrongKindDeclaration : TargetDeclaration LawStatement
+private def wrongKindDefinition : TargetDefinition
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with requiredCapabilities := [flipActionId]
+  targetDefinition with requiredCapabilities := [flipActionId]
 }
 
 private def wrongKindAuthoringAt (line column : Nat) : AuthoredTarget LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  declaration := wrongKindDeclaration
-  occurrences := [occurrenceAt flipActionId targetId .capabilityRequirement line column]
-}
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+  AuthoredTarget.make wrongKindDefinition targetComposition (occurrences := [
+    occurrenceAt flipActionId targetId .capabilityRequirement line column
+  ])
 
 private def diagnosticSummary
     (result : Except AuthoringDiagnostic (QueryTarget LawStatement)) :
@@ -244,8 +254,20 @@ example : [
   ] := by
   native_decide
 
-example : wrongKindDeclaration.source = source := by
+example : wrongKindDefinition.source = source := by
   rfl
+
+private def expertTargetDeclaration : TargetDeclaration LawStatement
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  id := targetDefinition.id
+  source := targetDefinition.source
+  declarations := targetDefinition.declarations
+  requiredCapabilities := targetDefinition.requiredCapabilities
+  providers := [switchProvider]
+  connectors := []
+  resolvedSetups := targetDefinition.resolvedSetups
+  kernel := targetDefinition.kernel
+}
 
 private def invalidIdentityMetadata : DeclarationMetadata := {
   id := DeclarationId.of "action"
@@ -256,13 +278,13 @@ private def invalidIdentityMetadata : DeclarationMetadata := {
 
 private def invalidIdentityDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with
-  declarations := invalidIdentityMetadata :: targetDeclaration.declarations
+  expertTargetDeclaration with
+  declarations := invalidIdentityMetadata :: expertTargetDeclaration.declarations
 }
 
 private def missingProviderDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with providers := []
+  expertTargetDeclaration with providers := []
 }
 
 private def providerWithoutLaw : CapabilityProvider LawStatement := {
@@ -271,12 +293,12 @@ private def providerWithoutLaw : CapabilityProvider LawStatement := {
 
 private def missingLawDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with providers := [providerWithoutLaw]
+  expertTargetDeclaration with providers := [providerWithoutLaw]
 }
 
 private def incompleteKernelDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with
+  expertTargetDeclaration with
   kernel := .incomplete transitionKernel.metadata
     [DeclarationId.of "umpire.kernel-proof.step-complete"]
 }
@@ -317,9 +339,8 @@ private def exhaustiveDeclaration : QueryDeclaration := {
   exactActionDeclaration with policy := { shortestPolicy with strategy := .exhaustive }
 }
 
-private def noFinitePlanningTarget : QueryTarget LawStatement := {
-  target with planning := .unavailable
-}
+private def noFinitePlanningTarget : QueryTarget LawStatement :=
+  checkedTarget targetAuthoring.withoutPlanning
 
 private def mismatchedTrace : BehaviorTrace := {
   setup := switchSetup

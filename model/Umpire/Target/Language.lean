@@ -48,6 +48,7 @@ inductive AuthoredPlanningCapability
 structure CheckedTarget
     (LawStatement : DeclarationId → Prop)
     (Setup State Action Outcome Observation : Type) where
+  private mk ::
   id : DeclarationId
   source : SemanticSource
   declarations : List DeclarationMetadata
@@ -130,12 +131,84 @@ structure AuthoringDiagnostic where
   offending : AuthoringOccurrenceId
   deriving BEq, DecidableEq, Repr
 
+/-- Ordinary target input keeps semantic declarations explicit without exposing checked fields. -/
+structure TargetDefinition
+    (Setup State Action Outcome Observation : Type) where
+  id : DeclarationId
+  source : SemanticSource
+  declarations : List DeclarationMetadata
+  requiredCapabilities : List DeclarationId
+  resolvedSetups : List Setup
+  kernel : KernelAvailability Setup State Action Outcome Observation
+
+private structure TargetCompositionPayload (LawStatement : DeclarationId → Prop) where
+  providers : List (CapabilityProvider LawStatement)
+  connectors : List (CapabilityConnector LawStatement)
+
+/-- Explicit provider and connector choices whose collection is owned by Target. -/
+structure TargetComposition (LawStatement : DeclarationId → Prop) where
+  private mk ::
+  private payload : TargetCompositionPayload LawStatement
+
+namespace TargetComposition
+
+def empty : TargetComposition LawStatement := ⟨{ providers := [], connectors := [] }⟩
+
+def provide
+    (composition : TargetComposition LawStatement)
+    (provider : CapabilityProvider LawStatement) : TargetComposition LawStatement :=
+  ⟨{ composition.payload with providers := composition.payload.providers ++ [provider] }⟩
+
+def connect
+    (composition : TargetComposition LawStatement)
+    (connector : CapabilityConnector LawStatement) : TargetComposition LawStatement :=
+  ⟨{ composition.payload with connectors := composition.payload.connectors ++ [connector] }⟩
+
+end TargetComposition
+
 structure AuthoredTarget
     (LawStatement : DeclarationId → Prop)
     (Setup State Action Outcome Observation : Type) where
-  declaration : TargetDeclaration LawStatement Setup State Action Outcome Observation
-  occurrences : List AuthoringOccurrence := []
-  planning : AuthoredPlanningCapability declaration.kernel := .unavailable
+  private mk ::
+  private declaration : TargetDeclaration LawStatement Setup State Action Outcome Observation
+  private occurrences : List AuthoringOccurrence
+  private planning : AuthoredPlanningCapability declaration.kernel
+
+namespace AuthoredTarget
+
+/-- Assemble the ordinary authored value while Target owns provider and connector collection. -/
+def make
+    (definition : TargetDefinition Setup State Action Outcome Observation)
+    (composition : TargetComposition LawStatement := .empty)
+    (planning : AuthoredPlanningCapability definition.kernel := .unavailable)
+    (occurrences : List AuthoringOccurrence := []) :
+    AuthoredTarget LawStatement Setup State Action Outcome Observation :=
+  let declaration : TargetDeclaration LawStatement Setup State Action Outcome Observation := {
+    id := definition.id
+    source := definition.source
+    declarations := definition.declarations
+    requiredCapabilities := definition.requiredCapabilities
+    providers := composition.payload.providers
+    connectors := composition.payload.connectors
+    resolvedSetups := definition.resolvedSetups
+    kernel := definition.kernel
+  }
+  ⟨declaration, occurrences, planning⟩
+
+/-- Replace only elaboration locations; checked semantic inputs remain unchanged. -/
+def withOccurrences
+    (authored : AuthoredTarget LawStatement Setup State Action Outcome Observation)
+    (occurrences : List AuthoringOccurrence) :
+    AuthoredTarget LawStatement Setup State Action Outcome Observation :=
+  ⟨authored.declaration, occurrences, authored.planning⟩
+
+/-- Preserve a checked semantic target while making exhaustive planning explicitly unavailable. -/
+def withoutPlanning
+    (authored : AuthoredTarget LawStatement Setup State Action Outcome Observation) :
+    AuthoredTarget LawStatement Setup State Action Outcome Observation :=
+  ⟨authored.declaration, authored.occurrences, .unavailable⟩
+
+end AuthoredTarget
 
 private structure TargetValidationError where
   error : DeclarationError
@@ -699,6 +772,20 @@ def checkedTarget
       planning := .available capability
     }
 
+/-- Rebind implementation enumerators while proving the checked semantic kernel is unchanged. -/
+def CheckedTarget.withEquivalentKernel
+    (target : CheckedTarget LawStatement Setup State Action Outcome Observation)
+    (kernel : TransitionKernel Setup State Action Outcome Observation)
+    (_metadata : kernel.metadata = target.kernel.metadata)
+    (_initial : kernel.authoritativeInitial = target.kernel.authoritativeInitial)
+    (_step : kernel.authoritativeStep = target.kernel.authoritativeStep)
+    (planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable) :
+    CheckedTarget LawStatement Setup State Action Outcome Observation := {
+  target with
+  kernel
+  planning
+}
+
 /-- Capture one syntax occurrence as a nonsemantic source-span/ordinal token. -/
 def captureAuthoringOccurrence
     (reference : Lean.Syntax)
@@ -733,7 +820,7 @@ def elaborateTarget
     (captured : List CapturedAuthoringOccurrence) :
     Lean.Elab.Term.TermElabM
       (CheckedTarget LawStatement Setup State Action Outcome Observation) := do
-  let authored := { authored with occurrences := captured.map CapturedAuthoringOccurrence.occurrence }
+  let authored := authored.withOccurrences (captured.map CapturedAuthoringOccurrence.occurrence)
   match checkTarget authored with
   | .ok checked => pure checked
   | .error diagnostic =>

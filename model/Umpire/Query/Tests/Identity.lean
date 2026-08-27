@@ -16,13 +16,15 @@ def digestOf
     (queryDeclaration : QueryDeclaration) : Option String :=
   (checkQuery queryContext queryDeclaration).toOption.map CheckedQuery.semanticDigest
 
-def reorderedTarget : QueryTarget (fun _ => True) := {
-  target with declarations := target.declarations.reverse
+def reorderedTargetDefinition : TargetDefinition
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  targetDefinition with declarations := targetDefinition.declarations.reverse
 }
 
-def incidentalContext : QueryCheckContext (fun _ => True) := {
-  target := .checked { target := reorderedTarget, completeness := none }
-}
+def reorderedTarget : QueryTarget (fun _ => True) :=
+  checkedTarget (AuthoredTarget.make reorderedTargetDefinition targetComposition)
+
+def incidentalContext : QueryCheckContext (fun _ => True) := .ofTarget reorderedTarget
 
 def incidentalDeclaration : QueryDeclaration := {
   declaration (.witness { checkedProperty with documentation := "changed docs" }) with
@@ -45,16 +47,43 @@ example : canonicalOf context (declaration (.select [checkedProperty, orderedPro
     canonicalOf context (declaration (.select [orderedProperty, checkedProperty])) := by
   native_decide
 
-def changedTarget
-    (digest : String := target.semanticDigest)
-    (kernelDigest : String := kernel.metadata.contractDigest)
-    (composition : List DeclarationId := []) : QueryTarget (fun _ => True) := {
-  target with
-  semanticDigest := digest
-  requiredCapabilities := composition
-  kernel := { kernel with metadata := { kernel.metadata with contractDigest := kernelDigest } }
-  planning := .unavailable
+def declarationsWithDigest
+    (identity : DeclarationId)
+    (digest : String) : List DeclarationMetadata :=
+  targetDeclarations.map fun declaration =>
+    if declaration.id == identity then { declaration with contractDigest := digest }
+    else declaration
+
+def changedSemanticTargetDefinition : TargetDefinition
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  targetDefinition with declarations := declarationsWithDigest targetId "query-target/v2"
 }
+
+def changedSemanticTarget : QueryTarget (fun _ => True) :=
+  checkedTarget (AuthoredTarget.make changedSemanticTargetDefinition targetComposition)
+
+def changedCompositionTargetDefinition : TargetDefinition
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  targetDefinition with requiredCapabilities := [extraCapabilityId]
+}
+
+def changedCompositionTarget : QueryTarget (fun _ => True) :=
+  checkedTarget (AuthoredTarget.make changedCompositionTargetDefinition targetComposition)
+
+def changedKernel : TransitionKernel
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  kernel with metadata := { kernel.metadata with contractDigest := "query-kernel/v2" }
+}
+
+def changedKernelTargetDefinition : TargetDefinition
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  targetDefinition with
+  declarations := declarationsWithDigest kernelId "query-kernel/v2"
+  kernel := .checked changedKernel
+}
+
+def changedKernelTarget : QueryTarget (fun _ => True) :=
+  checkedTarget (AuthoredTarget.make changedKernelTargetDefinition targetComposition)
 
 def contextFor (candidate : QueryTarget (fun _ => True)) : QueryCheckContext (fun _ => True) := {
   target := .checked { target := candidate, completeness := none }
@@ -95,11 +124,11 @@ example :
       digestOf context changedBoundsDeclaration,
       digestOf context changedStrategyDeclaration,
       digestOf context changedSeedDeclaration,
-      digestOf (contextFor (changedTarget "target/v2"))
+      digestOf (contextFor changedSemanticTarget)
         (declaration (.witness checkedProperty)),
-      digestOf (contextFor (changedTarget (composition := [id "query.capability.extra"])))
+      digestOf (contextFor changedCompositionTarget)
         (declaration (.witness checkedProperty)),
-      digestOf (contextFor (changedTarget (kernelDigest := "query-kernel/v2")))
+      digestOf (contextFor changedKernelTarget)
         (declaration (.witness checkedProperty))
     ].all (fun changed => changed.isSome && changed != baseline) := by
   native_decide

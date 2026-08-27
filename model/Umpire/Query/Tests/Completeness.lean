@@ -25,7 +25,7 @@ example : [
   native_decide
 
 def noFiniteDomains : QueryCheckContext (fun _ => True) :=
-  .ofTarget { target with planning := .unavailable }
+  .ofTarget targetWithoutPlanning
 
 /-! Planning availability is additive: non-exhaustive semantic queries still consume the target. -/
 example : (checkQuery noFiniteDomains

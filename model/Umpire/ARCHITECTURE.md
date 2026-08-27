@@ -68,7 +68,10 @@ Target composition uses:
   completeness proofs.
 - `CapabilityProvider` — meanings and law witnesses supplied by one capability.
 - `CapabilityConnector` — explicit reconciliation of meanings supplied by multiple providers.
-- `AuthoredTarget` — a target declaration plus optional Target-owned finite planning evidence.
+- `TargetDefinition` — the ordinary semantic vocabulary and transition-kernel input.
+- `TargetComposition` — a sealed builder that collects explicit provider and connector choices.
+- `AuthoredTarget` — the sealed result of `AuthoredTarget.make`, plus optional Target-owned finite
+  planning evidence and compiler-only occurrences.
 - `TargetDeclaration` — the lower-level typed composition used by Target maintainers.
 - `CheckedTarget` — validated and canonicalized target.
 
@@ -83,7 +86,9 @@ checkTarget :
 
 `elaborateTarget` emits the same typed failure at the captured Lean source occurrence.
 `checkedTarget` produces the value for a declaration that compiles as valid while hiding extraction
-and proof-relation re-ascription. `composeTarget` remains the lower-level
+and proof-relation re-ascription. Both `AuthoredTarget` and `CheckedTarget` have sealed constructors;
+ordinary maintainers use `TargetComposition.provide`, `TargetComposition.connect`, and
+`AuthoredTarget.make`. `composeTarget` remains the lower-level
 `Except DeclarationError` expert seam. `canonicalCheckedTargetJson` returns the checked target's
 canonical projection; compiler-only occurrence spans never enter it.
 
@@ -145,6 +150,9 @@ checkBehavior :
   BehaviorDeclaration →
   Except BehaviorError CheckedBehavior
 ```
+
+Ordinary callers derive the context with `BehaviorCheckContext.ofTarget target`; direct declaration
+contexts remain confined to Behavior's focused lower-level fixtures.
 
 Checking validates identities and references, canonicalizes constraints, rejects contradictions,
 and records whether the described behavior space is statically unsatisfiable. It does not select a

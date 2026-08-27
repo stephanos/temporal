@@ -36,14 +36,12 @@ def reusedIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Boo
   testTarget with providers := [reusedIdentityProvider, secondaryProvider]
 }
 
-def reusedIdentityAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := reusedIdentityTarget
-  occurrences := [
+def reusedIdentityAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf reusedIdentityTarget (occurrences := [
     occurrence primaryProvider.id .providerDefinition testTarget.id 30,
     occurrence primaryProvider.id .capabilityRequirement primaryProvider.id 50,
     occurrence primaryProvider.id .declarationMetadata primaryProvider.id 10
-  ]
-}
+  ])
 
 def diagnosticSummary
     (result : Except AuthoringDiagnostic Target) :
@@ -75,16 +73,16 @@ def wrongConnectorDefinitionTarget :
 }
 
 def wrongProviderDefinitionAuthoring :
-    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := wrongProviderDefinitionTarget
-  occurrences := [occurrence primaryProvider.id .providerDefinition testTarget.id 60]
-}
+    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf wrongProviderDefinitionTarget (occurrences := [
+    occurrence primaryProvider.id .providerDefinition testTarget.id 60
+  ])
 
 def wrongConnectorDefinitionAuthoring :
-    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := wrongConnectorDefinitionTarget
-  occurrences := [occurrence ownershipConnector.id .connectorDefinition testTarget.id 70]
-}
+    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf wrongConnectorDefinitionTarget (occurrences := [
+    occurrence ownershipConnector.id .connectorDefinition testTarget.id 70
+  ])
 
 example : [
     diagnosticSummary (checkTarget wrongProviderDefinitionAuthoring),
@@ -141,13 +139,11 @@ def reconciliationProviderOccurrence
 }
 
 def repeatedProviderReferenceAuthoring :
-    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := repeatedProviderReferenceTarget
-  occurrences := [
+    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf repeatedProviderReferenceTarget (occurrences := [
     reconciliationProviderOccurrence omegaRelationId 10,
     reconciliationProviderOccurrence alphaRelationId 90
-  ]
-}
+  ])
 
 def nestedDiagnosticSummary
     (result : Except AuthoringDiagnostic Target) :
@@ -175,15 +171,11 @@ def duplicateOccurrences : List AuthoringOccurrence := [
   occurrence testTarget.id .declarationMetadata testTarget.id 10
 ]
 
-def duplicateAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := duplicateMetadataTarget
-  occurrences := duplicateOccurrences
-}
+def duplicateAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf duplicateMetadataTarget (occurrences := duplicateOccurrences)
 
-def reorderedDuplicateAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := reorderedDuplicateMetadataTarget
-  occurrences := duplicateOccurrences.reverse
-}
+def reorderedDuplicateAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf reorderedDuplicateMetadataTarget (occurrences := duplicateOccurrences.reverse)
 
 def duplicateSummary
     (result : Except AuthoringDiagnostic Target) : Option (Nat × Nat) :=
@@ -210,10 +202,8 @@ def finitePlanning : FinitePlanningCapability testKernel.authoritativeStep := {
     cases action <;> simp
 }
 
-def finitePlanningAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := testTarget
-  planning := .available testKernel rfl finitePlanning
-}
+def finitePlanningAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf testTarget (.available testKernel rfl finitePlanning)
 
 def planningSummary
     (result : Except AuthoringDiagnostic
@@ -227,8 +217,7 @@ def planningSummary
         | .available capability => some
             (capability.actions, capability.roleDomainDigest, capability.actionDomainDigest)
 
-example : planningSummary (checkTarget ({ declaration := testTarget } :
-    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool)) = some none := by
+example : planningSummary (checkTarget (authoringOf testTarget)) = some none := by
   native_decide
 
 example : planningSummary (checkTarget finitePlanningAuthoring) =
@@ -242,10 +231,10 @@ def checkedSemanticSummary
   | .error _ => none
   | .ok checked => some (checked.canonicalMetadata, checked.semanticDigest)
 
-def movedLayoutAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool := {
-  declaration := testTarget
-  occurrences := [occurrence testTarget.id .targetDeclaration testTarget.id 400]
-}
+def movedLayoutAuthoring : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  authoringOf testTarget (occurrences := [
+    occurrence testTarget.id .targetDeclaration testTarget.id 400
+  ])
 
 example : [
     checkedSemanticSummary (composeTarget testTarget),

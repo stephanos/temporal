@@ -20,6 +20,22 @@ def request : DeclarationId := id "query.action.request"
 def accepted : DeclarationId := id "query.outcome.accepted"
 def observed : DeclarationId := id "query.observation.accepted"
 def role : DeclarationId := id "query.role.operation"
+def targetId : DeclarationId := id "query.target.fixture"
+def kernelId : DeclarationId := id "query.kernel.fixture"
+def extraCapabilityId : DeclarationId := id "query.capability.extra"
+def extraProviderId : DeclarationId := id "query.provider.extra"
+
+def metadata
+    (identity : DeclarationId)
+    (kind : DeclarationKind)
+    (contractDigest : String) : DeclarationMetadata := {
+  id := identity
+  kind
+  version := 1
+  contractDigest
+  source
+  documentation := "query fixture"
+}
 
 def value (identity : DeclarationId) (payload : String) : SemanticValue := {
   identity
@@ -42,7 +58,7 @@ def transition : TransitionResult SemanticValue SemanticValue SemanticValue := {
 def kernel : TransitionKernel
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   metadata := {
-    id := id "query.kernel.fixture"
+    id := kernelId
     contractDigest := "query-kernel/v1"
     source
   }
@@ -90,19 +106,47 @@ def finitePlanning : FinitePlanningCapability kernel.authoritativeStep := {
     simp [admitted.2.1]
 }
 
-def target : QueryTarget (fun _ => True) := {
-  id := id "query.target.fixture"
+def extraProvider : CapabilityProvider (fun _ => True) := {
+  id := extraProviderId
   source
-  declarations := []
-  requiredCapabilities := []
-  providers := []
-  connectors := []
-  resolvedSetups := [setup]
-  kernel
-  planning := .available finitePlanning
-  canonicalMetadata := "target-metadata"
-  semanticDigest := "target/v1"
+  contract := {
+    id := extraCapabilityId
+    semanticDigest := "query-extra-capability/v1"
+    requiredLaws := []
+  }
+  meanings := []
+  lawWitnesses := []
 }
+
+def targetDeclarations : List DeclarationMetadata := [
+  metadata targetId .target "query-target/v1",
+  metadata kernelId .kernel "query-kernel/v1",
+  metadata extraCapabilityId .capability "query-extra-capability/v1",
+  metadata extraProviderId .provider "query-extra-provider/v1"
+]
+
+def targetDefinition : TargetDefinition
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  id := targetId
+  source
+  declarations := targetDeclarations
+  requiredCapabilities := []
+  resolvedSetups := [setup]
+  kernel := .checked kernel
+}
+
+def targetComposition : TargetComposition (fun _ => True) :=
+  TargetComposition.empty |>.provide extraProvider
+
+def targetAuthoring : AuthoredTarget (fun _ => True)
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+  AuthoredTarget.make targetDefinition targetComposition
+    (.available kernel rfl finitePlanning)
+
+def target : QueryTarget (fun _ => True) := checkedTarget targetAuthoring
+
+def targetWithoutPlanning : QueryTarget (fun _ => True) :=
+  checkedTarget targetAuthoring.withoutPlanning
 
 def checkedProperty : CheckedProperty := {
   id := id "query.property.fixture"
@@ -159,7 +203,7 @@ def searchPolicy : PlannerPolicy := {
 }
 
 def context : QueryCheckContext (fun _ => True) :=
-  .ofTarget { target with planning := .unavailable }
+  .ofTarget targetWithoutPlanning
 
 def exhaustiveContext : QueryCheckContext (fun _ => True) := .ofTarget target
 

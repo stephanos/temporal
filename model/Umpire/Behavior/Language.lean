@@ -1,4 +1,4 @@
-import Umpire.Core
+import Umpire.Target
 
 /-! Implementation behind the `Umpire.Behavior` public facade. -/
 
@@ -151,6 +151,12 @@ structure BehaviorDeclaration where
 structure BehaviorCheckContext where
   declarations : List DeclarationMetadata
   deriving BEq, DecidableEq, Repr
+
+def BehaviorCheckContext.ofTarget
+    (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
+    BehaviorCheckContext := {
+  declarations := target.declarations
+}
 
 inductive BehaviorSpaceStatus where
   | unclassified

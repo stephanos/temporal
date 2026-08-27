@@ -144,12 +144,13 @@ Ordinary Temporal authoring should not require direct manipulation of:
 - planner, artifact, or checker backend implementation types.
 
 The lower-level typed interfaces remain valuable for Umpire implementation and expert extension.
-The implemented Target facade packages a maintainer's explicit declaration and optional finite
-planning capability as `Umpire.AuthoredTarget`. `Umpire.checkTarget` returns either one complete
-`Umpire.CheckedTarget` or one source-located `Umpire.AuthoringDiagnostic`; `Umpire.checkedTarget`
-keeps extraction and proof-relation re-ascription inside the Target boundary for declarations that
-compile as valid. The lower-level `Umpire.composeTarget` remains the typed expert seam and is not a
-second ordinary authoring path.
+The implemented Target facade packages a maintainer's `Umpire.TargetDefinition`, explicit provider
+and connector additions through the sealed `Umpire.TargetComposition` builder, and optional finite
+planning capability as one sealed `Umpire.AuthoredTarget`. `Umpire.checkTarget` returns either one
+complete sealed `Umpire.CheckedTarget` or one source-located `Umpire.AuthoringDiagnostic`;
+`Umpire.checkedTarget` keeps extraction and proof-relation re-ascription inside the Target boundary
+for declarations that compile as valid. The lower-level `Umpire.composeTarget` remains the typed
+expert seam and is not a second ordinary authoring path.
 
 The interface MUST NOT hide meaning-bearing choices. Authors still state:
 
@@ -177,7 +178,7 @@ family maintainer's checked Target through the compiled Property, Behavior, and 
 
 ```lean
 checkProperty (PropertyCheckContext.ofTarget target) property
-checkBehavior behaviorContext behavior
+checkBehavior (BehaviorCheckContext.ofTarget target) behavior
 checkQuery (.ofTarget target) query
 ```
 
@@ -188,9 +189,10 @@ semantic interface: explicit declarations in, checked declarations and source-lo
 
 A semantic-model maintainer extends a reusable Feature or System target with typed state, actions,
 transitions, observations, finite domains, and laws. This work may require stronger Lean knowledge.
-A maintainer states provider and connector choices, transition behavior, and proof obligations in
-one `AuthoredTarget`, including stable finite-domain contract tokens once when exhaustive planning
-is available. Umpire owns checking, canonicalization, checked-value extraction, the Query
+A maintainer states provider and connector choices through `TargetComposition`, then combines them
+with one `TargetDefinition` and its proof obligations through `AuthoredTarget.make`, including
+stable finite-domain contract tokens once when exhaustive planning is available. Umpire owns
+collection, checking, canonicalization, checked-value extraction, the Query
 completeness view, and the Planning kernel derivation while keeping those semantic choices explicit.
 
 One maintainer pays this cost for a family; many Temporal engineers reuse the checked target.
@@ -408,15 +410,11 @@ dependency, toolchain compatibility, execution cost, retained evidence, and trus
 
 ## 12. Current-state implications
 
-The current model already has the correct high-level dependency direction: `Umpire` is independent
-of Temporal, while Temporal examples use Umpire's checked authoring and planning types. It does not
-yet fully achieve the intended module depth or author experience.
-
-Current Temporal examples still expose substantial implementation detail, including manual semantic
-identities and sources, capability providers, transition kernels, completeness proofs, checked
-result extraction, `native_decide`, query contexts, and planner assembly. Those are evidence that
-Umpire's ordinary authoring interface needs to deepen; they are not the desired long-term authoring
-style.
+The current model has the intended high-level dependency direction: `Umpire` is independent of
+Temporal, while Temporal examples use Umpire's checked authoring and planning types. Switch and the
+Nexus Lifecycle/Operations examples now demonstrate the ordinary compiled facade: Target owns
+provider/connector collection and checked extraction, while Property, Behavior, Query, and Planning
+derive their contexts and proof-carrying views from the checked target.
 
 Observation, refinement, and current-model Veil integration also remain incomplete or separate as
 tracked in `UMPIRE4_COMPONENTS.md`. This document does not authorize a wholesale refactor or claim

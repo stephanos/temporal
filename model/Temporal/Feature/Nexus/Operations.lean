@@ -29,7 +29,7 @@ private def operationIs
 
 private def checkBehaviorDeclaration
     (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior :=
-  checkBehavior { declarations := target.declarations } declaration
+  checkBehavior (.ofTarget target) declaration
 
 private def queryDeclaration
     (queryId : DeclarationId)
@@ -166,17 +166,19 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel AsyncStart.que
     (by
       intro evidence evidenceEq
       simp [AsyncStart.query, materializeQuery, CheckedQueryTarget.ofTarget, target,
-        checkedTarget, targetAuthoring] at evidenceEq
+        checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning, actionDomain]
       decide)
     (by
       intro _ _ setup
       simp [AsyncStart.query, materializeQuery, target, checkedTarget, targetAuthoring,
+        AuthoredTarget.make, targetDefinition,
         transitionKernel, initialStates])
     (by
       intro _ _ state action
       simp [AsyncStart.query, materializeQuery, target, checkedTarget, targetAuthoring,
+        AuthoredTarget.make, targetDefinition,
         transitionKernel, stepResults])
 
 private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by

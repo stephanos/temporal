@@ -322,23 +322,23 @@ def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep
     simpa [actionDomain] using step_action_exposed state action result admitted
 }
 
-def targetDeclaration : TargetDeclaration LawStatement
+def targetDefinition : TargetDefinition
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   id := targetId
   source
   declarations
   requiredCapabilities := [lifecycleCapabilityId]
-  providers := [lifecycleProvider]
-  connectors := []
   resolvedSetups := roleAssignments
   kernel := .checked transitionKernel
 }
 
+def targetComposition : TargetComposition LawStatement :=
+  TargetComposition.empty |>.provide lifecycleProvider
+
 def targetAuthoring : AuthoredTarget LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  declaration := targetDeclaration
-  planning := .available transitionKernel rfl finitePlanning
-}
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+  AuthoredTarget.make targetDefinition targetComposition
+    (.available transitionKernel rfl finitePlanning)
 
 /-- Re-ascribe the source kernel after composition so its proof relation remains reducible. -/
 def target : QueryTarget LawStatement := checkedTarget targetAuthoring
