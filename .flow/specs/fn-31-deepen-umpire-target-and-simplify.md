@@ -46,7 +46,7 @@ Meaning-bearing choices remain explicit: states, actions, outcomes, observations
 ## Quick commands
 
 ```bash
-cd model && mise exec -- lake build Umpire.TargetTests Umpire.QueryTests Umpire.Planning.Tests
+cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests
 cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests
 cd model && mise exec -- lake build UmpireTests TemporalModelTests
 make umpire-check-regression
