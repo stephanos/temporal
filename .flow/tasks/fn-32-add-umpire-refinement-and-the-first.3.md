@@ -12,13 +12,13 @@ Add the minimum pure System meaning and focused Nexus Implementation Link leaf f
 **Touches:** [model/Temporal/System/Nexus/**, model/Temporal/System.lean]
 
 ### Approach
-- Import and consume the existing Feature caller-closure declarations unchanged; treat the Feature file as an investigation target, not a mutation target.
+- Import and consume the ordinary Feature Nexus lifecycle declarations unchanged; treat the Feature file as an investigation target, not a mutation target. AutoClose and CallerClosure remain experimental and outside this production seam.
 - Define only the pure mechanism vocabulary needed for the first correspondence.
 - Put the cross-import exclusively in the family Implementation Link leaf.
 
 ### Investigation targets
 **Required** (read before coding):
-- `model/Temporal/Feature/Nexus/CallerClosure.lean:18-258` — canonical product meaning
+- `model/Temporal/Feature/Nexus/Lifecycle.lean` — canonical start, cancel, and successful-completion product meaning
 - `model/Temporal/System/Configuration/Core.lean` — System-owned deep-module pattern
 - `model/Temporal/System.lean` — System aggregate
 - `model/Temporal.lean` — ordinary aggregate boundary
