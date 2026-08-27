@@ -1,33 +1,36 @@
 ---
-satisfies: [R3, R5, R6]
+satisfies: [R5]
 ---
-# fn-33-run-resumable-semantic-exploration.5 Prove one bounded campaign and document the ownership split
+# fn-33-run-resumable-semantic-exploration.5 Prove deterministic serial exploration and pinned-regression independence
 
 ## Description
-Run one bounded local campaign, close adversarial matrices, and document R3/R5/R6.
 
-### Review reconciliation (normative)
-
-The live proof selects the existing fn-5 catalog subject `workflow-nexus.query.exact-action-caller-closure`, joined to Task `.6`'s runnable binding. Its internal fn-17 exact source is `temporal.nexus.caller-closure.runtime-smoke`: one byte-/identity-preserved caller-closure ExperimentSpec, ephemeral-local RuntimeConfiguration, exhaustive budget one, seed zero, no faults/pins, parallelism one, and a campaign deadline within the checked 1-second-to-5-minute range. Fake campaigns own the parallelism and pinned-regression proof.
+Run a bounded live/fake proof of the complete serial loop and the retained fn-17 policy.
 
 **Size:** M
-**Files:** `tools/umpire/campaign/**`, `tools/umpire/cmd/umpire-fuzz/**`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `docs/development/**`
-**Touches:** [tools/umpire/campaign/**, tools/umpire/cmd/umpire-fuzz/**, model/README.md, model/Umpire/ARCHITECTURE.md, docs/development/**]
+**Files:** `tools/umpire/campaign/integration_test.go`, `model/Temporal/Tool/ExplorationBridgeTests.lean`
+**Touches:** [`tools/umpire/campaign/integration_test.go`, `model/Temporal/Tool/ExplorationBridgeTests.lean`]
 
 ### Approach
-- Prove pinned regressions, parallel leases, time exhaustion, resume, lineage forks, state locks, progress, and semantic coverage lineage with fakes; prove the one-point runner/Run Evaluation vertical path live.
-- Document Lean versus Go ownership and honest non-completeness.
-- Preserve existing comments and generated projections.
+- Prove identical checked inputs choose the same serial sequence/report and that pinned regressions execute outside the exploration Limit.
+- Reuse the exact v2 Artifact, shared runner, and Run Evaluation boundaries named by the parent plan; do not add a parallel semantic or persistence authority.
+- Add focused positive, N/N+1, stale/crossed-binding, cancellation, and mutation fixtures at the responsible boundary.
 
 ### Investigation targets
+
 **Required** (read before coding):
-- `model/README.md` — model workflow documentation
-- `model/Umpire/ARCHITECTURE.md` — semantic module contracts
-- `docs/development/testing.md` — developer testing entry point
+- `.plans/UMPIRE4_ORDER.md` — retained prototype scope and deferred infrastructure.
+- Parent Flow spec — exact contracts, Limits, failure ownership, and task boundary.
+- Existing fn-18/fn-19/fn-20 implementation — Artifact, runner, cleanup, and Run Evaluation authority to reuse.
+
+### Key context
+
+This task implements only its retained serial/black-box slice. Deferred control-plane, concurrency, recovery, checkpoint, resume, receipt, and Claim Assessment machinery must not appear as placeholders.
+
 ## Acceptance
-- [ ] R3/R5/R6 end-to-end and mutation checks pass.
-- [ ] Focused Go/Lean tests and aggregate regression gates pass.
-- [ ] Documentation distinguishes exhaustion from completeness and execution from Run Evaluation.
+- [ ] Prove identical checked inputs choose the same serial sequence/report and that pinned regressions execute outside the exploration Limit.
+- [ ] Exact bindings and Limits fail closed under representative one-field and N/N+1 mutations.
+- [ ] Focused tests pass, existing comments are preserved, and no deferred API or persisted format is introduced.
 
 ## Done summary
 TBD

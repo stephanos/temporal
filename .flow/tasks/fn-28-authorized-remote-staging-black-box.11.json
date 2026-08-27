@@ -11,6 +11,6 @@
   "spec": "fn-28-authorized-remote-staging-black-box",
   "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.11.md",
   "status": "todo",
-  "title": "Publish the operator runbook and synchronize the component roadmap",
-  "updated_at": "2026-08-27T19:07:25.009772Z"
+  "title": "Document black-box staging and deferred control-plane boundaries",
+  "updated_at": "2026-08-27T19:33:18.461719Z"
 }

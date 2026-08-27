@@ -1,44 +1,36 @@
 ---
-satisfies: [R3, R4, R5, R6, R7, R8]
+satisfies: [R6]
 ---
-# fn-28-authorized-remote-staging-black-box.8 Compose the remote Evaluation controller and closed Run mode
+# fn-28-authorized-remote-staging-black-box.8 Expose the closed staging command through the existing harness
 
 ## Description
-Implement R3-R8 behind one production-fixed staging controller and the Claim Assessment binary's closed run mode.
+
+Add one exact command that invokes the fixed staging binding and existing operational harness.
 
 **Size:** M
-**Files:** `tools/umpire/staging/**`, `tools/umpire/evaluation/**`, `tools/umpire/cmd/umpire-assess-remote-staging/**`, `model/lakefile.toml`
-**Touches:** [tools/umpire/staging/**, tools/umpire/evaluation/**, tools/umpire/cmd/umpire-assess-remote-staging/**, model/lakefile.toml]
+**Files:** `tools/umpire/cmd/umpire-run-fixed-staging/**`, `Makefile`
+**Touches:** [`tools/umpire/cmd/umpire-run-fixed-staging/**`, `Makefile`]
 
 ### Approach
-- Compose ordered input/pilot/profile/workflow-context admission, protected authority and target preflight, lease, runtime execution, cleanup/reconciliation, postflight target verification, final Run/RawEvidence/provenance closure, Run Evaluation, offline Claim Assessment, v5 construction, and exactly one publication behind a narrow production API.
-- Keep package-private injection at each operational seam; production fixes authority source, profile/checker siblings, program, limits, action, statuses, and publisher.
-- Implement the exact `run` arguments and canonical secret-free summary/error/status 0/1/2 contract, including dispatch/cleanup/publication booleans and reporting-after-publication recovery.
-- Expose narrow recovery-record and progress-sink interfaces for Task `.9`; run mode records state after lease acquisition but cannot select or weaken either production path.
-- Preserve every constructible failed/incomplete run and all independent status dimensions; pre-dispatch tooling failures publish nothing, post-dispatch non-success publishes when structurally possible, and no path redispatches or republishes automatically.
-- Register only required sibling executables in the primary Lake package; do not add a model-local Make target.
+- Expose only admitted-set and output-root inputs; block before work when required owner controls are unavailable and add no protected workflow or control plane.
+- Reuse the exact v2 Artifact, shared runner, and Run Evaluation boundaries named by the parent plan; do not add a parallel semantic or persistence authority.
+- Add focused positive, N/N+1, stale/crossed-binding, cancellation, and mutation fixtures at the responsible boundary.
 
 ### Investigation targets
+
 **Required** (read before coding):
-- `.flow/tasks/fn-27-hermetic-ci-execution-and-qualification.5.md` — deep orchestration and stage/status preservation
-- `.flow/specs/fn-19-bounded-local-temporal-execution-and.md` — runtime API and cleanup dominance
-- `.flow/specs/fn-20-local-execution-semantic-conformance.md` — Run Evaluation API and tooling errors
-- `.flow/specs/fn-26-local-qualification-receipts-and-staged.md` — Evaluation Profile, Evaluation Receipt, and Claim Assessment command contract
-- `.flow/tasks/fn-18-versioned-umpire-artifact-boundary.10.md` — sole publisher behavior
+- `.plans/UMPIRE4_ORDER.md` — retained prototype scope and deferred infrastructure.
+- Parent Flow spec — exact contracts, Limits, failure ownership, and task boundary.
+- Existing fn-18/fn-19/fn-20 implementation — Artifact, runner, cleanup, and Run Evaluation authority to reuse.
 
 ### Key context
-Cleanup/postflight facts are inputs to final evidence, Run Evaluation, provenance, and Claim Assessment; none may be finalized before those facts close. The remote adapter owns authority/public Temporal handles, while the controller owns stage order and filesystem publication.
 
-### Acceptance
-- [ ] Every malformed/preflight input performs no remote or publication IO.
-- [ ] One valid injected run closes cleanup/postflight before Run Evaluation and publishes exactly one admitted v5 set.
-- [ ] Every failure/cancel/non-success/cleanup/reporting/publication row preserves exact facts and status without redispatch.
-- [ ] Run mode accepts only set, pilot-evidence, output-root, and run-id and emits no secret or arbitrary remote error.
+This task implements only its retained serial/black-box slice. Deferred control-plane, concurrency, recovery, checkpoint, resume, receipt, and Claim Assessment machinery must not appear as placeholders.
 
 ## Acceptance
-- [ ] R3-R8 controller, run mode, sibling handshake, stage ordering, status, and publication contracts are complete.
-- [ ] Independent stage fakes and command integration tests pass.
-- [ ] Existing orchestration comments are preserved.
+- [ ] Expose only admitted-set and output-root inputs; block before work when required owner controls are unavailable and add no protected workflow or control plane.
+- [ ] Exact bindings and Limits fail closed under representative one-field and N/N+1 mutations.
+- [ ] Focused tests pass, existing comments are preserved, and no deferred API or persisted format is introduced.
 
 ## Done summary
 TBD

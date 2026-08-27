@@ -23,9 +23,9 @@ Create the domain-neutral catalog language and checker for R1/R3/R7.
 ### Investigation targets
 
 **Required:**
-- `model/Umpire/Core.lean:8-105` — current declaration identity, kind, source, and semantic values.
+- `model/Umpire/Core.lean:8-105` — current Definition ID, kind, Source Location, and Model Values.
 - `model/Umpire/Core.lean:189-224` — structured error conventions.
-- `model/Umpire/Core.lean:430-464` — identity and kind validation.
+- `model/Umpire/Core.lean:430-464` — Definition ID and kind validation.
 - `model/Umpire/Property/Language.lean:192-270` — authored-to-checked lifecycle.
 - `.flow/tasks/fn-16-authored-variation-spaces-and.3.md` — dependency-owned checked metadata handoff this task consumes after fn-16 completes.
 - `model/Umpire/ARCHITECTURE.md:31-44` — package lifecycle boundary.
@@ -36,9 +36,9 @@ Create the domain-neutral catalog language and checker for R1/R3/R7.
 
 ## Acceptance
 - [ ] Heterogeneous checked metadata forms one canonical catalog independent of authoring order.
-- [ ] Duplicate/case-colliding identities, wrong kinds, missing digests/sources, dangling references, alias cycles, invalid replacements, and conflicting dispositions have exact error fixtures.
+- [ ] Duplicate/case-colliding Definition IDs, wrong kinds, missing Behavior Fingerprints/Source Locations, dangling references, alias cycles, invalid replacements, and conflicting dispositions have exact error fixtures.
 - [ ] Exact list/lookup primitives never normalize or silently redirect selectors.
-- [ ] Catalog identity changes only for meaning-bearing metadata and graph changes.
+- [ ] Catalog Behavior Fingerprint changes only for meaning-bearing metadata and graph changes.
 - [ ] The package imports no Temporal module and contains no copied semantic bodies.
 - [ ] Existing comments in touched files are preserved.
 

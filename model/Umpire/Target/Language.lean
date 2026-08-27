@@ -483,7 +483,7 @@ private def targetMetadataJson
   "{\"semantic\":" ++ targetSemanticJson target.id target.definitions
       target.requiredCapabilities target.providers target.connectors kernel behavior ++
     ",\"source\":" ++ sourceJson target.source ++
-    ",\"declarationMetadata\":" ++
+    ",\"definitionMetadata\":" ++
       array (target.definitions.mergeSort definitionLe |>.map canonicalDefinitionMetadataJson) ++
     ",\"kernelMetadata\":" ++ canonicalKernelMetadataJson kernel ++ "}"
 

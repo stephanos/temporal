@@ -13,7 +13,7 @@ Project the checked production catalog into reviewable Markdown and canonical JS
 ### Approach
 
 - Invoke exactly `temporal-model-catalog export` from the known model root and strictly validate the `umpire-semantic-catalog-export/v2` stdout/stderr/exit contract. Reject unsupported versions, missing/extra fields or rows/bindings, duplicates, noncanonical order/bytes, success stderr, nonzero status, and empty/extra stdout.
-- Render both outputs from one validated Generated View in canonical identity order.
+- Render both outputs from one validated Generated View in canonical Definition ID order.
 - Publish the exact two-file set transactionally through `artifactio.Set`; validate candidates before replacement.
 - Add a reusable exact candidate-set comparison seam in `artifactio` that shares `Set.Publish` path/containment validation and holds the same artifact-set lock across the complete multi-file read. It rejects symlinked roots or managed components, non-regular managed files, escapes, and permission errors rather than following or weakening them. If interrupted publication state requires recovery, comparison returns a distinct recovery-required error without mutation; publication remains the only recovery owner.
 - Add an explicit non-mutating `--check` mode that renders expected bytes in memory and compares the current two files through that locked seam, without temporary regeneration or filesystem mutation.
@@ -37,8 +37,8 @@ Project the checked production catalog into reviewable Markdown and canonical JS
 - [ ] Generation consumes exactly one complete `umpire-semantic-catalog-export/v2` response and rejects unsupported version, incomplete/extra/duplicate/noncanonical content, nonzero exit, success stderr, or partial stdout before rendering.
 - [ ] `--check` detects stale or missing outputs by in-memory comparison and performs no writes.
 - [ ] Checks reject symlinked roots/components, non-regular files, containment escapes, permission failures, and recovery-required interrupted state without mutation, and cannot observe a mixed set during a concurrent lock-cooperating publication.
-- [ ] Every checked catalog entry appears exactly once in both projections with matching identity/kind/digest/reference data.
-- [ ] Stable-entry Generated View bindings appear exactly once in catalog JSON with safe fixture paths, unique Generated View keys, and binding identities, without changing catalog Behavior Fingerprint.
+- [ ] Every checked catalog entry appears exactly once in both projections with matching Definition ID/kind/Behavior Fingerprint/reference data.
+- [ ] Stable-entry Generated View bindings appear exactly once in catalog JSON with safe fixture paths, unique Generated View keys, and binding Behavior Fingerprints, without changing catalog Behavior Fingerprint.
 - [ ] Malformed output, stderr, nonzero exit, duplicate/stale entries, unsafe paths, and partial publication fail closed.
 - [ ] Concurrent/interrupted publication preserves the prior complete pair; concurrent-reader/writer tests prove checks hold the shared set lock for the full read.
 - [ ] Go tests use `require` and whole-value comparisons.
