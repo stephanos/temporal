@@ -5,6 +5,9 @@ namespace Temporal.Feature.Nexus.LifecycleTests
 open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 
+/-- The ordinary Nexus target-author inventory at the migration boundary. -/
+def compatibilityTargetAuthors : List String := ["nexus-lifecycle"]
+
 example : step .scheduled .start = some .started ∧
     step .started .cancel = some .canceled ∧
     step .started .succeed = some .succeeded := by
@@ -27,6 +30,19 @@ example : (checkTarget targetAuthoring).isOk = true ∧
     target.requiredCapabilities = [lifecycleCapabilityId] ∧
     target.providers.map CapabilityProvider.id = [lifecycleProviderId] ∧
     target.connectors = [] := by
+  native_decide
+
+example : (checkTarget targetAuthoring).toOption.map (fun checked =>
+    (checked.id, checked.source, canonicalCheckedTargetJson checked, checked.semanticDigest)) =
+    some (targetId, source, canonicalCheckedTargetJson target, target.semanticDigest) := by
+  native_decide
+
+example : targetId.value = "temporal.nexus.basic-lifecycle.target" ∧
+    kernelId.value = "temporal.nexus.basic-lifecycle.kernel" ∧
+    operationRoleId.value = "temporal.nexus.basic-lifecycle.role.operation" ∧
+    startActionId.value = "temporal.nexus.basic-lifecycle.action.start" ∧
+    cancelActionId.value = "temporal.nexus.basic-lifecycle.action.cancel" ∧
+    reportSuccessActionId.value = "temporal.nexus.basic-lifecycle.action.succeed" := by
   native_decide
 
 example : target.kernel.initialStates scheduledSetup = [scheduledState] ∧
@@ -104,5 +120,8 @@ def conflictingProviderDeclaration : TargetDeclaration LawStatement
 example : compositionErrorKind (composeTarget conflictingProviderDeclaration) =
     some .conflictingProviders := by
   native_decide
+
+example : compatibilityTargetAuthors = ["nexus-lifecycle"] := by
+  rfl
 
 end Temporal.Feature.Nexus.LifecycleTests

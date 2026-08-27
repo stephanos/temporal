@@ -6,6 +6,13 @@ open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 open Temporal.Feature.Nexus.Operations
 
+/-- Every live ordinary Nexus consumer of the shared Lifecycle target. -/
+def compatibilityConsumers : List String := [
+  "nexus-operations-async-start",
+  "nexus-operations-cancellation",
+  "nexus-operations-successful-completion"
+]
+
 private def expectedAsyncStartQueryJson : String :=
   include_str "Fixtures/OperationsAsyncStartQuery.json"
 
@@ -140,5 +147,47 @@ example : run.artifact.map (fun artifact =>
   native_decide
 
 end SuccessfulCompletion
+
+example : [
+    AsyncStart.query,
+    Cancellation.query,
+    SuccessfulCompletion.query
+  ].map (fun checked =>
+    (checked.id.value, checked.target.id.value, checked.target.semanticDigest,
+      checked.completeness.map fun evidence =>
+        (evidence.roleDomainDigest, evidence.actionDomainDigest))) = [
+    ("temporal.nexus.basic-lifecycle.query.async-start",
+      "temporal.nexus.basic-lifecycle.target", target.semanticDigest,
+      some ("temporal-nexus-basic-lifecycle-role-domain/v1",
+        "temporal-nexus-basic-lifecycle-action-domain/v2")),
+    ("temporal.nexus.basic-lifecycle.query.cancellation",
+      "temporal.nexus.basic-lifecycle.target", target.semanticDigest,
+      some ("temporal-nexus-basic-lifecycle-role-domain/v1",
+        "temporal-nexus-basic-lifecycle-action-domain/v2")),
+    ("temporal.nexus.basic-lifecycle.query.successful-completion",
+      "temporal.nexus.basic-lifecycle.target", target.semanticDigest,
+      some ("temporal-nexus-basic-lifecycle-role-domain/v1",
+        "temporal-nexus-basic-lifecycle-action-domain/v2"))
+  ] := by
+  native_decide
+
+/-! Independent runs preserve canonical artifact bytes for every ordinary lifecycle consumer. -/
+example : [
+    AsyncStart.run.artifact.map canonicalExperimentSpecJson,
+    Cancellation.run.artifact.map canonicalExperimentSpecJson,
+    SuccessfulCompletion.run.artifact.map canonicalExperimentSpecJson
+  ] = [
+    AsyncStart.repeatedRun.artifact.map canonicalExperimentSpecJson,
+    Cancellation.repeatedRun.artifact.map canonicalExperimentSpecJson,
+    SuccessfulCompletion.repeatedRun.artifact.map canonicalExperimentSpecJson
+  ] := by
+  native_decide
+
+example : compatibilityConsumers = [
+    "nexus-operations-async-start",
+    "nexus-operations-cancellation",
+    "nexus-operations-successful-completion"
+  ] := by
+  rfl
 
 end Temporal.Feature.Nexus.OperationsTests

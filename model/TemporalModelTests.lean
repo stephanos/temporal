@@ -4,3 +4,19 @@ import Temporal.System.Callback.ConfigurationTests
 import Temporal.System.Configuration.Tests
 import Temporal.System.ConfigurationIntegrationTests
 import Temporal.System.Matching.ConfigurationTests
+
+namespace TemporalModelTests
+
+def compatibilityFamilies : List String :=
+  Temporal.Feature.Nexus.LifecycleTests.compatibilityTargetAuthors ++
+    Temporal.Feature.Nexus.OperationsTests.compatibilityConsumers
+
+example : compatibilityFamilies = [
+    "nexus-lifecycle",
+    "nexus-operations-async-start",
+    "nexus-operations-cancellation",
+    "nexus-operations-successful-completion"
+  ] := by
+  rfl
+
+end TemporalModelTests

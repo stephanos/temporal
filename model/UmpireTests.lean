@@ -9,6 +9,13 @@ import Umpire.Behavior.ImportTests
 import Umpire.Query.Tests
 import Umpire.Planning.Tests
 import Umpire.Planning.VisibilityTests
-import Umpire.Examples.SwitchTests
+import Umpire.Tests.MigrationCompatibility
 import Umpire.Observation.Tests
 import Umpire.Observation.ImportTests
+
+namespace UmpireTests
+
+example : Umpire.Tests.MigrationCompatibility.compatibilityFamilies = ["switch"] := by
+  rfl
+
+end UmpireTests

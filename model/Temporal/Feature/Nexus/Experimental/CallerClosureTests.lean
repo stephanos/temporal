@@ -7,6 +7,12 @@ open _root_.Umpire
 open Temporal.Feature.Nexus.Experimental.CallerClosure
 open Temporal.Feature.Nexus.Experimental.AutoClose
 
+/-- The experimental Nexus target-author inventory at the migration boundary. -/
+def compatibilityTargetAuthors : List String := ["nexus-experimental-caller-closure"]
+
+private def expectedCompiledArtifactJson : String :=
+  include_str "testdata/nexus-caller-closure-experiment-spec.json"
+
 def declarationErrorOf
     (result : Except DeclarationError α) : Option DeclarationError :=
   match result with
@@ -139,6 +145,11 @@ def reorderedTargetDeclaration : TargetDeclaration LawStatement
 example : (checkTarget targetAuthoring).isOk = true := by
   native_decide
 
+example : (checkTarget targetAuthoring).toOption.map (fun checked =>
+    (checked.id, checked.source, canonicalCheckedTargetJson checked, checked.semanticDigest)) =
+    some (targetId, source, canonicalCheckedTargetJson target, target.semanticDigest) := by
+  native_decide
+
 example : (composeTarget reorderedTargetDeclaration).toOption.map CheckedTarget.semanticDigest =
     (composeTarget targetDeclaration).toOption.map CheckedTarget.semanticDigest := by
   native_decide
@@ -198,6 +209,33 @@ example : missingLawError.kind = .missingLaw ∧
     missingLawError.relatedIdentities = [ownershipLawId] := by
   native_decide
 
+def alternateOwnershipConnectorId : DeclarationId :=
+  DeclarationId.of "workflow-nexus.connector.ownership.alternate"
+
+def alternateOwnershipConnectorMetadata : DeclarationMetadata := {
+  id := alternateOwnershipConnectorId
+  kind := .connector
+  source
+  contractDigest := "workflow-nexus-ownership-connector-alternate/v1"
+}
+
+def alternateOwnershipConnector : CapabilityConnector LawStatement := {
+  ownershipConnector with
+  id := alternateOwnershipConnectorId
+  semanticDigest := "workflow-nexus-ownership-connector-alternate/v1"
+}
+
+def ambiguousConnectorDeclaration : TargetDeclaration LawStatement
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  targetDeclaration with
+  declarations := alternateOwnershipConnectorMetadata :: targetDeclaration.declarations
+  connectors := [ownershipConnector, alternateOwnershipConnector]
+}
+
+example : (declarationErrorOf (composeTarget ambiguousConnectorDeclaration)).map
+    DeclarationError.kind = some .ambiguousConnector := by
+  native_decide
+
 example : exploratoryQuery.form = .select [callerClosureProperty] ∧
     exploratoryQuery.quantifier = .exploratory ∧
     exploratoryQuery.claim = .boundedSelection := by
@@ -231,6 +269,9 @@ example : [
 example : exactActionRun.artifact = some compiledArtifact := by
   native_decide
 
+example : canonicalExperimentSpecJson compiledArtifact ++ "\n" = expectedCompiledArtifactJson := by
+  native_decide
+
 example : compiledArtifact.plan.requestedActions = [forceCloseAction] ∧
     compiledArtifact.plan.modelOutcomes = [upgradedOutcome] ∧
     compiledArtifact.plan.resultingStates = [closedState] := by
@@ -259,5 +300,8 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
     compiledArtifact.properties.map PortableProperty.identity =
       [callerClosurePropertyId] := by
   native_decide
+
+example : compatibilityTargetAuthors = ["nexus-experimental-caller-closure"] := by
+  rfl
 
 end Temporal.Feature.Nexus.Experimental.CallerClosureTests
