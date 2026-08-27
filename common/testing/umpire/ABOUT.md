@@ -123,6 +123,41 @@ required to understand an ordinary Umpire test.
   - **INCONCLUSIVE** — the environment could support the property, but evidence was lost, missing,
     ambiguous, conflicting, or incomparable during this evaluation.
 
+#### Offline Observation results are not runtime claims
+
+The Lean `Umpire.Observation` package has a narrower, synthetic-only vocabulary. It compiles one
+typed mapping, qualifies one finite `EvidenceBundle`, evaluates unchanged checked Properties, and
+strictly aggregates their results without running a Monitor:
+
+- `QualificationResult` is `qualified`, `unknown`, `conflict`, or `unsupported`. `qualified` means
+  that one complete `QualifiedTrace` and all coordinate derivations passed the offline checks.
+  `unknown` preserves missing, incomplete, incomparable, or compatible-alternative evidence;
+  `conflict` reports contradictory evidence or derivations; `unsupported` reports that the bundle
+  or requested evaluation cannot be admitted by the checked profile, dispositions, vocabulary, or
+  capability contract.
+- `SemanticPropertyVerdict` is `satisfied`, `violated`, `unknown`, `conflict`, or `unsupported` for
+  one checked Property over that qualified synthetic trace. Qualification failure is propagated; it
+  is never turned into a Property violation.
+- `StrictQuerySummary` is `satisfied` only when every required Property has exactly one satisfied
+  result for the same Query, trace, and evidence bound; it is `violated` only for a complete,
+  resolved set containing a violation. Every unresolved or structurally mismatched result set is
+  `incomplete`.
+
+These values are not aliases for Monitor or **QUALIFIED CLAIM** statuses. In particular, offline
+`satisfied` is not **ESTABLISHED** runtime conformance; offline `unknown` and `conflict` are not a
+runtime **INCONCLUSIVE** claim; offline `unsupported` is not automatically the environment-level
+**UNSUPPORTED** claim and is also distinct from an action gap or **UNSUPPORTED BACKEND SEMANTICS**.
+Any future conversion would additionally need an environment profile and independently retained
+observed evidence, and no such conversion or promotion exists here.
+
+The sole current Temporal example is the synthetic Nexus BasicLifecycle profile. A future runtime
+adapter would meet the offline boundary only by producing its complete typed `EvidenceBundle`:
+profile identity/version, stable record identities, evidence kinds, sequences and causal parents,
+typed fields and optional digest metadata, optional binding and fault-target facts, source closure,
+and any compatible alternatives plus a missing discriminator. The current package neither starts
+Temporal nor implements live collection, raw-evidence persistence, runtime conformance, promotion,
+or another profile.
+
 ### Advanced assurance
 
 - **SPARSE REGRESSION PLAN** — author-written behavioral source containing selected instructions.

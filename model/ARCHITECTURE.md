@@ -41,6 +41,7 @@ the reusable facades. Temporal code is organized by semantic ownership:
 import Temporal.Feature
 import Temporal.Feature.Nexus.Lifecycle
 import Temporal.Feature.Nexus.Operations
+import Temporal.Feature.Nexus.Observation
 import Temporal.System
 import Temporal.System.Configuration
 import Temporal.System.Callback.Configuration
@@ -57,8 +58,9 @@ import Temporal.Feature.Nexus.Experimental.CallerClosure
 `Temporal.Feature.*` owns product-visible behavior, `Temporal.System.*` owns implementation
 mechanisms and interpretations, and `Temporal.Tool.*` owns developer tooling. The production
 `Temporal` aggregate imports generated APIs plus the Feature and System facades. The Feature facade
-exports the ordinary Nexus Lifecycle and Operations modules but no Experimental module. The
-production aggregate deliberately does not import experimental or executable Tool code.
+exports the ordinary Nexus Lifecycle, Operations, and Observation modules but no Experimental
+module. The production aggregate deliberately does not import experimental or executable Tool
+code.
 
 The import-only `TemporalModelTests` library is the ordinary Temporal test root. The separate
 `TemporalExperimentalTests` library compiles the experimental caller-closure tests and inspector
@@ -92,6 +94,7 @@ Temporal.DynamicConfig ── Temporal.System.Configuration
                               └── Temporal.System.Matching.Configuration
 
 Temporal.Feature.Nexus.Lifecycle ── Temporal.Feature.Nexus.Operations
+                                   └── Temporal.Feature.Nexus.Observation
 
 Temporal.Feature.Nexus.Experimental.AutoClose
                     │
@@ -163,6 +166,9 @@ Temporal-specific modules are split by semantic altitude:
   lifecycle states; the start, cancel, and succeed transitions; and their small checked target.
 - `Temporal.Feature.Nexus.Operations` owns the start, cancellation, and successful-completion
   walkthroughs over that shared target.
+- `Temporal.Feature.Nexus.Observation` owns the sole synthetic BasicLifecycle evidence profile,
+  its checked mapping, and the offline `EvidenceBundle` → qualification → Property-verdict → strict-
+  summary composition over the ordinary asynchronous-start Query.
 - `Temporal.Feature.Nexus.Experimental.AutoClose` owns the detailed AutoClose configuration,
   lifecycle, reachability, history, and proofs as explicit opt-in material.
 - `Temporal.Feature.Nexus.Experimental.CallerClosure` is the opt-in Workflow–Nexus integration
@@ -181,12 +187,41 @@ inventing model outcomes. A Query binds checked instances of both to a target, b
 for deterministic planning. Consequently, the target—not Behavior—produces lifecycle outcomes and
 observations.
 
+Observation is a separate offline interpretation path over that same checked semantic substrate:
+
+```text
+checked Target + one EvidenceProfileDeclaration + ObservationMappingDeclaration
+  ── checkObservation ──▶ CheckedObservationPlan
+checked plan + complete synthetic EvidenceBundle
+  ── qualifyEvidence ──▶ qualified trace | unknown | conflict | unsupported
+checked Query + checked Property + qualification
+  ── evaluateQualifiedProperty / summarizeQueryVerdicts ──▶ verdicts + strict summary
+```
+
+The reusable `Umpire.Observation` package owns the mapping language, deterministic compilation,
+bounded qualification, coordinate-indexed derivations, field dispositions, semantic verdicts, and
+strict aggregation. Temporal owns only the product vocabulary and its one current synthetic
+profile. `Temporal.Feature.Nexus.Observation` declares that BasicLifecycle profile, retains the
+state/action/outcome/observation fields, rejects its raw-detail field, applies a two-record
+`evidence-records` bound, and demonstrates a closed scheduled-to-started bundle. The resulting
+offline result contains a qualified trace, the independently evaluated asynchronous-start Property
+verdict, and its strict Query summary.
+
+The future runtime seam stops at `EvidenceBundle`. A future adapter would have to translate an
+external source into the declared profile and version; stable record identities; evidence kinds;
+typed fields and optional digest metadata; sequence and causal-parent facts; optional binding and
+fault-target facts; source-closure facts; and any compatible alternatives plus their missing
+discriminator. Umpire remains responsible for every check after that handoff. No live adapter is
+implemented here, and this model does not execute Temporal, collect or persist live evidence,
+establish runtime conformance, promote a result, or define a second profile.
+
 ## Package boundaries
 
 - `Shared` owns domain-neutral transition systems, finite runs, observations, and trace replay.
-- `Umpire` owns reusable semantic declarations, authoring languages, checking, planning, and
-  portable artifacts.
-- `Temporal.Feature` owns product meaning and target compositions.
+- `Umpire` owns reusable semantic declarations, authoring languages, checking, planning, portable
+  artifacts, and offline Observation qualification and verdicts.
+- `Temporal.Feature` owns product meaning, target compositions, and the sole synthetic Nexus
+  Observation profile.
 - `Temporal.System` owns configuration and execution-oriented mechanisms without defining feature
   behavior.
 - `Temporal.Tool` owns inspection and other developer tools without becoming part of the
