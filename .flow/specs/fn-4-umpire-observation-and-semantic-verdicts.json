@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-4-umpire-observation-and-semantic-verdicts",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-08-27T09:00:41.247798Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-27T09:19:19.861886Z",
   "created_at": "2026-08-24T22:43:58.330813Z",
   "default_impl": null,
   "default_review": null,
@@ -20,7 +20,7 @@
     "fn-4-umpire-observation-and-semantic-verdicts.5": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T06:26:05.871888Z",
   "ready": true,
@@ -776,6 +776,35 @@
       "timestamp": "2026-08-27T09:00:41.234628Z",
       "tool_calls": 21,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "cb5f9ceb1481903673ca378188283a6bf42c5156e91d5b1d764e6d48218d44a5",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7bd1b91efc7c867d3d74c02b47db63b184c76141",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 6397,
+      "output_sha256": "9bc0cf8fde4eb1223d57ec95bab441886cc2c6bb16e176e23367ffed3e5928d7",
+      "reservation_id": "e2ede576341c4707bccac51400e4c208",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T09:19:19.853360Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -785,7 +814,7 @@
     "impl:fn-4-umpire-observation-and-semantic-verdicts.4": 1,
     "impl:fn-4-umpire-observation-and-semantic-verdicts.5": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -812,5 +841,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T09:00:41.251270Z"
+  "updated_at": "2026-08-27T09:19:19.862739Z"
 }

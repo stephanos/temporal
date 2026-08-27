@@ -1036,6 +1036,105 @@ private def semanticValueAt
       let traceStep ← trace.trace.steps[step - 1]?
       traceStep.observations[position - 1]?
 
+private def renderedEvidenceValue
+    (valueType : ObservationValueType)
+    (rendered : String) : Option EvidenceValue :=
+  match valueType with
+  | .text => some (.text rendered)
+  | .natural => rendered.toNat?.map EvidenceValue.natural
+  | .boolean =>
+      if rendered == "true" then some (.boolean true)
+      else if rendered == "false" then some (.boolean false)
+      else none
+
+private partial def evaluateProvenanceExpression
+    (trace : QualifiedTrace)
+    (derivation : SemanticDerivation)
+    (expression : CheckedObservationExpression)
+    (visited : List DeclarationId := []) : Except QualificationDiagnostic EvidenceValue := do
+  let failure : QualificationDiagnostic := {
+    kind := .inconsistentDerivation
+    planId := trace.mappingId
+    relatedIdentities := [derivation.ruleId]
+  }
+  match expression with
+  | .text value => pure (.text value)
+  | .natural value => pure (.natural value)
+  | .boolean value => pure (.boolean value)
+  | .field reference valueType _ =>
+      let applied ← match derivation.appliedDispositions.find? fun item => item.field == reference with
+        | some applied => pure applied
+        | none => throw failure
+      match applied.evidence with
+      | .retained rendered =>
+          match renderedEvidenceValue valueType rendered with
+          | some value => pure value
+          | none => throw failure
+      | _ => throw failure
+  | .binding id _ _ =>
+      if visited.contains id then throw failure
+      else match trace.checkedPlan.bindings.find? fun binding => binding.id == id with
+        | some binding =>
+            evaluateProvenanceExpression trace derivation binding.expression (id :: visited)
+        | none => throw failure
+  | .normalize operator operand =>
+      let value ← evaluateProvenanceExpression trace derivation operand visited
+      match operator, value with
+      | .textTrimV1, .text text => pure (.text text.trimAscii.copy)
+      | .textLowercaseV1, .text text => pure (.text text.toLower)
+      | .naturalRenderV1, .natural value => pure (.text (toString value))
+      | _, _ => throw failure
+  | .present operand =>
+      let references := canonicalReferences <|
+        expressionReferences trace.checkedPlan operand visited
+      if references.isEmpty then
+        match evaluateProvenanceExpression trace derivation operand visited with
+        | .ok _ => pure (.boolean true)
+        | .error _ => pure (.boolean false)
+      else
+        pure (.boolean (references.all fun reference =>
+          derivation.appliedDispositions.any fun applied => applied.field == reference))
+  | .equals left right =>
+      pure (.boolean ((← evaluateProvenanceExpression trace derivation left visited) ==
+        (← evaluateProvenanceExpression trace derivation right visited)))
+  | .and left right =>
+      match ← evaluateProvenanceExpression trace derivation left visited,
+          ← evaluateProvenanceExpression trace derivation right visited with
+      | .boolean leftValue, .boolean rightValue => pure (.boolean (leftValue && rightValue))
+      | _, _ => throw failure
+  | .or left right =>
+      match ← evaluateProvenanceExpression trace derivation left visited,
+          ← evaluateProvenanceExpression trace derivation right visited with
+      | .boolean leftValue, .boolean rightValue => pure (.boolean (leftValue || rightValue))
+      | _, _ => throw failure
+  | .not operand =>
+      match ← evaluateProvenanceExpression trace derivation operand visited with
+      | .boolean value => pure (.boolean (!value))
+      | _ => throw failure
+  | .contributionMarker operand =>
+      let references := canonicalReferences <|
+        expressionReferences trace.checkedPlan operand visited
+      if references.isEmpty || !(references.all fun reference =>
+          derivation.appliedDispositions.any fun applied =>
+            applied.field == reference && applied.evidence == .redactedContribution) then
+        throw failure
+      pure (.text "contributed")
+  | .digestToken policy operand =>
+      let references := canonicalReferences <|
+        expressionReferences trace.checkedPlan operand visited
+      let tokens := references.filterMap fun reference =>
+        (derivation.appliedDispositions.find? fun applied => applied.field == reference).bind fun applied =>
+          match applied.evidence with
+          | .digestToken appliedPolicy token =>
+              if appliedPolicy == policy.id then some token else none
+          | _ => none
+      match tokens with
+      | [] => throw failure
+      | first :: rest =>
+          if tokens.length != references.length || !(rest.all fun token => token == first) then
+            throw failure
+          pure (.text first)
+
 private def coordinateKind : SemanticCoordinate → DeclarationKind
   | .initialState | .resultingState _ => .state
   | .selectedAction _ => .action
@@ -1067,8 +1166,16 @@ private def validateCheckedProvenance
     expressionReferences plan rule.value ++
       rule.condition.toList.flatMap (expressionReferences plan)
   let actualReferences := derivation.appliedDispositions.map AppliedFieldDisposition.field
+  let computedValue ← evaluateProvenanceExpression trace derivation rule.value
+  let conditionHolds ← match rule.condition with
+    | none => pure true
+    | some condition =>
+        match ← evaluateProvenanceExpression trace derivation condition with
+        | .boolean value => pure value
+        | _ => pure false
   if rule.output != value.identity ||
       rule.outputKind != coordinateKind derivation.coordinate ||
+      computedValue != .text value.value || !conditionHolds ||
       rule.meaning.semanticDigest != derivation.meaningDigest ||
       derivation.bindingIds != expectedBindings ||
       actualReferences != expectedReferences then
@@ -1085,7 +1192,8 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
       trace.mappingId != plan.id || trace.mappingVersion != plan.version ||
       trace.mappingDigest != plan.semanticDigest || trace.source != plan.source ||
       trace.profileId != plan.profile.id || trace.profileVersion != plan.profile.version ||
-      trace.dispositions != plan.dispositions || trace.appliedBound != plan.evidenceBound then
+      trace.vocabulary != plan.meanings || trace.dispositions != plan.dispositions ||
+      trace.appliedBound != plan.evidenceBound then
     throw { kind := .inconsistentDerivation, planId := trace.mappingId }
   let expected := expectedCoordinates trace.trace
   let actual := trace.derivations.map SemanticDerivation.coordinate

@@ -301,37 +301,36 @@ def evaluateQualifiedProperty
         | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
             qualificationFailureVerdict query property diagnostic
         | .qualified trace =>
-            match validateQualifiedTrace trace with
-            | .error diagnostic =>
-                qualificationFailureVerdict query property diagnostic
+            match vocabularyFailure property trace with
+            | some diagnostic =>
+                failureVerdict query property .unsupported diagnostic
                   (some trace.traceId) (some trace.appliedBound)
-            | .ok _ =>
-                if trace.appliedBound.value == 0 ||
-                    trace.evidenceIdentities.length > trace.appliedBound.value then
-                  failureVerdict query property .unknown {
-                    kind := .invalidEvidenceBound
-                    relatedIdentities := [trace.mappingId]
-                  } (some trace.traceId) (some trace.appliedBound)
-                else
-                  let missingCapabilities := capabilityMismatch property
-                  if !missingCapabilities.isEmpty then
-                    failureVerdict query property .unsupported {
-                      kind := .missingCapability
-                      relatedIdentities := missingCapabilities
-                    } (some trace.traceId) (some trace.appliedBound)
-                  else
-                    match vocabularyFailure property trace with
-                    | some diagnostic =>
-                        failureVerdict query property .unsupported diagnostic
-                          (some trace.traceId) (some trace.appliedBound)
-                    | none =>
-                        if !hasRequiredLogicalTime property trace then
-                          failureVerdict query property .unknown {
-                            kind := .missingLogicalTime
-                            relatedIdentities := property.access.logicalTimeSource.toList
-                          } (some trace.traceId) (some trace.appliedBound)
-                        else
-                          resolvedVerdict query property trace
+            | none =>
+                match validateQualifiedTrace trace with
+                | .error diagnostic =>
+                    qualificationFailureVerdict query property diagnostic
+                      (some trace.traceId) (some trace.appliedBound)
+                | .ok _ =>
+                    if trace.appliedBound.value == 0 ||
+                        trace.evidenceIdentities.length > trace.appliedBound.value then
+                      failureVerdict query property .unknown {
+                        kind := .invalidEvidenceBound
+                        relatedIdentities := [trace.mappingId]
+                      } (some trace.traceId) (some trace.appliedBound)
+                    else
+                      let missingCapabilities := capabilityMismatch property
+                      if !missingCapabilities.isEmpty then
+                        failureVerdict query property .unsupported {
+                          kind := .missingCapability
+                          relatedIdentities := missingCapabilities
+                        } (some trace.traceId) (some trace.appliedBound)
+                      else if !hasRequiredLogicalTime property trace then
+                        failureVerdict query property .unknown {
+                          kind := .missingLogicalTime
+                          relatedIdentities := property.access.logicalTimeSource.toList
+                        } (some trace.traceId) (some trace.appliedBound)
+                      else
+                        resolvedVerdict query property trace
 
 private def verdictLe (left right : SemanticPropertyVerdict) : Bool :=
   decide (reprStr left ≤ reprStr right)

@@ -30,6 +30,27 @@ example :
     diagnosticKindOf (validateQualifiedTrace mutated) != none := by
   native_decide
 
+/-- Rehashing cannot make a semantic value inconsistent with its disposition evidence valid. -/
+example :
+    let mutated := rehashQualifiedTrace {
+      completeQualifiedTrace with trace := {
+        completeQualifiedTrace.trace with initialState := {
+          completeQualifiedTrace.trace.initialState with value := "tampered"
+        }
+      }
+    }
+    diagnosticKindOf (validateQualifiedTrace mutated) != none := by
+  native_decide
+
+/-- Wrapper vocabulary remains exactly the canonical checked-plan vocabulary. -/
+example :
+    let original := completeQualifiedTrace.vocabulary.head?.get (by native_decide)
+    let forged := { original with semanticDigest := original.semanticDigest ++ "/forged" }
+    diagnosticKindOf (validateQualifiedTrace {
+      completeQualifiedTrace with vocabulary := completeQualifiedTrace.vocabulary ++ [forged]
+    }) != none := by
+  native_decide
+
 def transitiveName : ObservationBinding := {
   id := id "test.binding.transitive-name"
   valueType := .text
