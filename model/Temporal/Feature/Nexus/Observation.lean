@@ -79,8 +79,12 @@ private def field (fieldId : DeclarationId) : ObservationExpression :=
 private def equalsText (fieldId : DeclarationId) (value : String) : ObservationExpression :=
   .equals (field fieldId) (.text value)
 
-private def nonempty (fieldId : DeclarationId) : ObservationExpression :=
-  .not (equalsText fieldId "")
+private def equalsAny
+    (fieldId : DeclarationId) : List String → ObservationExpression
+  | [] => .boolean false
+  | value :: values =>
+      values.foldl (fun condition candidate =>
+        .or condition (equalsText fieldId candidate)) (equalsText fieldId value)
 
 private def rule
     (ruleId output : DeclarationId)
@@ -100,7 +104,9 @@ private def mappingDeclaration : ObservationMappingDeclaration := {
   profile := Profile.id
   rules := [
     rule Mapping.stateRuleId operationStateId .state Profile.stateField
-      (.present (field Profile.stateField)),
+      (equalsAny Profile.stateField [
+        scheduledState.value, startedState.value, canceledState.value, succeededState.value
+      ]),
     rule Mapping.startRuleId startActionId .action Profile.actionField
       (equalsText Profile.actionField startAction.value),
     rule Mapping.cancelRuleId cancelActionId .action Profile.actionField
@@ -108,9 +114,13 @@ private def mappingDeclaration : ObservationMappingDeclaration := {
     rule Mapping.succeedRuleId reportSuccessActionId .action Profile.actionField
       (equalsText Profile.actionField reportSuccessAction.value),
     rule Mapping.outcomeRuleId transitionOutcomeId .outcome Profile.outcomeField
-      (nonempty Profile.outcomeField),
+      (equalsAny Profile.outcomeField [
+        startedOutcome.value, canceledOutcome.value, succeededOutcome.value
+      ]),
     rule Mapping.observationRuleId lifecycleObservationId .observation Profile.observationField
-      (nonempty Profile.observationField)
+      (equalsAny Profile.observationField [
+        startedObservation.value, canceledObservation.value, succeededObservation.value
+      ])
   ]
   ordering := [
     { before := Mapping.startRuleId, after := Mapping.cancelRuleId },
