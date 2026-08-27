@@ -146,14 +146,14 @@ def planIdentityOf
     (declaration : ObservationMappingDeclaration) : Option BehaviorFingerprint :=
   (checkObservation checkContext declaration).toOption.map CheckedObservationPlan.behaviorFingerprint
 
-/-! Independently authored qualification fixture; it does not derive its expected trace from rules. -/
+/-! Independently authored evaluation fixture; it does not derive its expected trace from rules. -/
 
 def stepCondition : ObservationExpressionAuthoring :=
   .portable (.equals (field roleField) (.text "step"))
 
-def qualificationDeclaration : ObservationMappingDeclaration := {
+def evaluationDeclaration : ObservationMappingDeclaration := {
   baseDeclaration with
-  id := id "test.mapping.qualification"
+  id := id "test.mapping.observation-evaluation"
   rules := [
     { initialRule with condition := some (.portable
         (.equals (field roleField) (.text "initial"))) },
@@ -194,7 +194,7 @@ def qualificationDeclaration : ObservationMappingDeclaration := {
   evidenceBound := { value := 3, unit := .evidenceRecords }
 }
 
-def qualificationContext : ObservationCheckContext := {
+def evaluationContext : ObservationCheckContext := {
   context with
   definitions := context.definitions ++ [
     metadata completedState.value .state,
@@ -217,12 +217,12 @@ def qualificationContext : ObservationCheckContext := {
   }] }]
 }
 
-def qualifyFixture (bundle : EvidenceBundle) : QualificationResult :=
-  match checkObservation qualificationContext qualificationDeclaration with
-  | .ok plan => qualifyEvidence plan bundle
+def evaluateFixture (bundle : EvidenceBundle) : ObservationResult :=
+  match checkObservation evaluationContext evaluationDeclaration with
+  | .ok plan => evaluateEvidence plan bundle
   | .error _ => .unknown {
       kind := .zeroUsableInterpretations
-      planId := qualificationDeclaration.id
+      planId := evaluationDeclaration.id
     }
 
 def initialEvidenceId : DefinitionId := id "test.evidence.record.initial"
@@ -285,18 +285,18 @@ def expectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   }]
 }
 
-def resultKindOf (result : QualificationResult) : Option QualificationFailureKind :=
-  result.diagnostic?.map QualificationDiagnostic.kind
+def resultKindOf (result : ObservationResult) : Option ObservationFailureKind :=
+  result.diagnostic?.map ObservationDiagnostic.kind
 
-def resultStatusOf (result : QualificationResult) : QualificationStatus := result.status
+def resultStatusOf (result : ObservationResult) : ObservationStatus := result.status
 
-def qualifiedOf (result : QualificationResult) : Option QualifiedTrace :=
+def acceptedOf (result : ObservationResult) : Option EvidenceBackedTrace :=
   match result with
-  | .qualified trace => some trace
+  | .accepted trace => some trace
   | _ => none
 
 def diagnosticKindOf
-    (result : Except QualificationDiagnostic Unit) : Option QualificationFailureKind :=
+    (result : Except ObservationDiagnostic Unit) : Option ObservationFailureKind :=
   match result with
   | .ok _ => none
   | .error diagnostic => some diagnostic.kind
@@ -306,7 +306,7 @@ def diagnosticKindOf
 def verdictCapability : DefinitionId := id "test.capability.observation-verdict"
 
 def verdictPropertyContext : PropertyCheckContext := {
-  definitions := qualificationContext.definitions ++ [
+  definitions := evaluationContext.definitions ++ [
     metadata verdictCapability.value .capability
   ]
   providers := [{
@@ -314,7 +314,7 @@ def verdictPropertyContext : PropertyCheckContext := {
     version := 1
     canonicalBehavior := "test-observation-verdict/v1"
   }]
-  meanings := qualificationContext.meanings.map fun meaning => (verdictCapability, meaning)
+  meanings := evaluationContext.meanings.map fun meaning => (verdictCapability, meaning)
 }
 
 def verdictPattern
@@ -391,9 +391,9 @@ def verdictQuery
   checkedQueryTemplate with form := .select properties
 }
 
-def qualificationDiagnostic (kind : QualificationFailureKind) : QualificationDiagnostic := {
+def evaluationDiagnostic (kind : ObservationFailureKind) : ObservationDiagnostic := {
   kind
-  planId := qualificationDeclaration.id
+  planId := evaluationDeclaration.id
 }
 
 end Umpire.ObservationTests

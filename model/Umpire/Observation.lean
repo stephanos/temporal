@@ -1,5 +1,5 @@
 import Umpire.Observation.Language
-import Umpire.Observation.Qualification
+import Umpire.Observation.Evaluation
 import Umpire.Observation.Verdict
 
-/-! Public facade for Temporal-independent Observation mapping, qualification, and verdicts. -/
+/-! Public facade for Temporal-independent Observation authoring, Evaluation, and Property verdicts. -/

@@ -42,7 +42,7 @@ def checkedNormalizedNameIsTyped : Option Bool := do
       pure (reference == { kind := eventKind, field := nameField })
   | _ => pure false
 
-/-- Qualification can consume the checked expression tree without parsing its canonical identity. -/
+/-- Evaluation can consume the checked expression tree without parsing its canonical identity. -/
 example : checkedNormalizedNameIsTyped = some true := by
   native_decide
 

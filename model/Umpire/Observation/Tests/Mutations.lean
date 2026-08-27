@@ -9,18 +9,18 @@ namespace Umpire.ObservationTests
 
 open Umpire
 
-/-! Model mutations are rejected by the independent qualified-trace comparison, not another layer. -/
+/-! Model mutations are rejected by the independent accepted-trace comparison, not another layer. -/
 
 def mutatedExpectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   expectedTrace with
   initialState := { expectedTrace.initialState with value := "unexpected" }
 }
 
-/-- A model-only mutation leaves qualification valid while failing the independently authored oracle. -/
+/-- A model-only mutation leaves evaluation valid while failing the independently authored oracle. -/
 example :
-    let actual := (qualifiedOf completeQualification).map QualifiedTrace.trace
-    (completeQualification.status, actual, actual == some mutatedExpectedTrace) =
-      (.qualified, some expectedTrace, false) := by
+    let actual := (acceptedOf completeEvaluation).map EvidenceBackedTrace.trace
+    (completeEvaluation.status, actual, actual == some mutatedExpectedTrace) =
+      (.accepted, some expectedTrace, false) := by
   native_decide
 
 /-! Mapping mutations fail at compilation before any evidence can be interpreted. -/
@@ -58,15 +58,15 @@ example : [
   ] := by
   native_decide
 
-/-! Evidence-volume mutations fail at qualification, after the mapping has compiled. -/
+/-! Evidence-volume mutations fail at evaluation, after the mapping has compiled. -/
 
 def boundedDeclaration : ObservationMappingDeclaration := {
-  qualificationDeclaration with
+  evaluationDeclaration with
   evidenceBound := { value := 2, unit := .evidenceRecords }
 }
 
 def boundedPlan : CheckedObservationPlan :=
-  (checkObservation qualificationContext boundedDeclaration).toOption.get (by native_decide)
+  (checkObservation evaluationContext boundedDeclaration).toOption.get (by native_decide)
 
 def limitPlusOneEvidence : EvidenceBundle := {
   completeEvidence with
@@ -79,12 +79,12 @@ def limitPlusOneEvidence : EvidenceBundle := {
   closures := [{ kind := eventKind, lastSequence := 3 }]
 }
 
-/-- N records qualify, while N+1 is unknown with the literal bound diagnostic and no trace. -/
+/-- N records are accepted, while N+1 is unknown with the literal bound diagnostic and no trace. -/
 example :
-    let atLimit := qualifyEvidence boundedPlan completeEvidence
-    let overLimit := qualifyEvidence boundedPlan limitPlusOneEvidence
-    (atLimit.status, overLimit, qualifiedOf overLimit) = (
-      .qualified,
+    let atLimit := evaluateEvidence boundedPlan completeEvidence
+    let overLimit := evaluateEvidence boundedPlan limitPlusOneEvidence
+    (atLimit.status, overLimit, acceptedOf overLimit) = (
+      .accepted,
       .unknown {
         kind := .evidenceBoundExhausted
         planId := boundedDeclaration.id
@@ -115,20 +115,20 @@ def literalClosure : List EvidenceClosureFact := [{
   lastSequence := 2
 }]
 
-/-- Literal canonical mapping identity; no expected derivation field is implementation-derived. -/
+/-- Literal canonical mapping identity; no expected Evidence Link field is implementation-derived. -/
 def literalMappingDigest : String :=
-  "sha256:00d27254ff4c78578198d6d96930fc9ed2c80df6dbacd9c39e4520eb77b19bcf"
+  "sha256:9b8e76bdd7b9490b3bd28c70820bf78e4648a65378eba1dbcff74bbe5306d40a"
 
-def literalDerivation
+def literalEvidenceLink
     (mappingDigest : String)
-    (coordinate : SemanticCoordinate)
+    (coordinate : ModelCoordinate)
     (evidenceIdentity ruleId : DefinitionId)
     (bindingIds : List DefinitionId)
     (orderingSupport : List EvidenceOrderingFact)
     (appliedDispositions : List AppliedFieldDisposition)
-    (meaningDigest : String) : SemanticDerivation := {
+    (meaningDigest : String) : EvidenceLink := {
   coordinate
-  mappingId := id "test.mapping.qualification"
+  mappingId := id "test.mapping.observation-evaluation"
   mappingVersion := 1
   mappingDigest
   profileId := id "test.evidence.profile"
@@ -143,9 +143,9 @@ def literalDerivation
   meaningDigest
 }
 
-/-- Independently authored derivations for every semantic slot in `expectedTrace`. -/
-def literalDerivations (mappingDigest : String) : List SemanticDerivation := [
-  literalDerivation mappingDigest .initialState
+/-- Independently authored Evidence Links for every Model Trace slot in `expectedTrace`. -/
+def literalEvidenceLinks (mappingDigest : String) : List EvidenceLink := [
+  literalEvidenceLink mappingDigest .initialState
     (id "test.evidence.record.initial") (id "test.rule.initial-state")
     [id "test.binding.normalized-name"] literalInitialOrdering [
       {
@@ -157,22 +157,22 @@ def literalDerivations (mappingDigest : String) : List SemanticDerivation := [
         evidence := .retained "initial"
       }
     ] "test.state.operation/meaning-v1",
-  literalDerivation mappingDigest (.selectedAction 1)
+  literalEvidenceLink mappingDigest (.selectedAction 1)
     (id "test.evidence.record.step-1") (id "test.rule.step-action") [] literalStepOrdering [{
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.action.start/meaning-v1",
-  literalDerivation mappingDigest (.modelOutcome 1)
+  literalEvidenceLink mappingDigest (.modelOutcome 1)
     (id "test.evidence.record.step-1") (id "test.rule.step-outcome") [] literalStepOrdering [{
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.outcome.success/meaning-v1",
-  literalDerivation mappingDigest (.resultingState 1)
+  literalEvidenceLink mappingDigest (.resultingState 1)
     (id "test.evidence.record.step-1") (id "test.rule.step-state") [] literalStepOrdering [{
       field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
       evidence := .retained "step"
     }] "test.state.completed/meaning-v1",
-  literalDerivation mappingDigest (.observation 1 1)
+  literalEvidenceLink mappingDigest (.observation 1 1)
     (id "test.evidence.record.step-1") (id "test.rule.contribution") [] literalStepOrdering [
       {
         field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.role" }
@@ -183,7 +183,7 @@ def literalDerivations (mappingDigest : String) : List SemanticDerivation := [
         evidence := .redactedContribution
       }
     ] "test.observation.contribution/meaning-v1",
-  literalDerivation mappingDigest (.observation 1 2)
+  literalEvidenceLink mappingDigest (.observation 1 2)
     (id "test.evidence.record.step-1") (id "test.rule.digest") [] literalStepOrdering [
       {
         field := { kind := id "test.evidence.kind.event", field := id "test.evidence.field.hashed" }
@@ -197,44 +197,44 @@ def literalDerivations (mappingDigest : String) : List SemanticDerivation := [
     ] "test.observation.digest/meaning-v1"
 ]
 
-/-- Qualification must match the literal mapping identity and every authored derivation field. -/
-example : (completeQualifiedTrace.mappingDigest, completeQualifiedTrace.derivations) =
-    (literalMappingDigest, literalDerivations literalMappingDigest) := by
+/-- Observation Evaluation must match the literal mapping identity and every authored Evidence Link field. -/
+example : (completeEvidenceBackedTrace.mappingDigest, completeEvidenceBackedTrace.evidenceLinks) =
+    (literalMappingDigest, literalEvidenceLinks literalMappingDigest) := by
   native_decide
 
-def literalQualifiedTrace : QualifiedTrace := {
-  completeQualifiedTrace with
+def literalEvidenceBackedTrace : EvidenceBackedTrace := {
+  completeEvidenceBackedTrace with
   mappingDigest := literalMappingDigest
-  derivations := literalDerivations literalMappingDigest
+  evidenceLinks := literalEvidenceLinks literalMappingDigest
 }
 
-def literalFirstDerivation : SemanticDerivation :=
-  literalQualifiedTrace.derivations.head?.get (by native_decide)
+def literalFirstEvidenceLink : EvidenceLink :=
+  literalEvidenceBackedTrace.evidenceLinks.head?.get (by native_decide)
 
-def missingCoordinateMutation : QualifiedTrace := {
-  literalQualifiedTrace with
-  derivations := literalQualifiedTrace.derivations.tail
+def missingCoordinateMutation : EvidenceBackedTrace := {
+  literalEvidenceBackedTrace with
+  evidenceLinks := literalEvidenceBackedTrace.evidenceLinks.tail
 }
 
-def duplicateCoordinateMutation : QualifiedTrace := {
-  literalQualifiedTrace with
-  derivations := literalFirstDerivation :: literalQualifiedTrace.derivations
+def duplicateModelCoordinateMutation : EvidenceBackedTrace := {
+  literalEvidenceBackedTrace with
+  evidenceLinks := literalFirstEvidenceLink :: literalEvidenceBackedTrace.evidenceLinks
 }
 
-def shiftedCoordinateMutation : QualifiedTrace := {
-  literalQualifiedTrace with
-  derivations := literalQualifiedTrace.derivations.map fun derivation =>
-    if derivation.coordinate == .observation 1 2 then
-      { derivation with coordinate := .observation 1 3 }
+def shiftedCoordinateMutation : EvidenceBackedTrace := {
+  literalEvidenceBackedTrace with
+  evidenceLinks := literalEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
+    if evidenceLink.coordinate == .observation 1 2 then
+      { evidenceLink with coordinate := .observation 1 3 }
     else
-      derivation
+      evidenceLink
 }
 
-def missingOrderingMutation : QualifiedTrace := {
-  literalQualifiedTrace with
-  derivations := literalQualifiedTrace.derivations.map fun derivation => {
-    derivation with
-    orderingSupport := derivation.orderingSupport.map fun fact =>
+def missingOrderingMutation : EvidenceBackedTrace := {
+  literalEvidenceBackedTrace with
+  evidenceLinks := literalEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
+    evidenceLink with
+    orderingSupport := evidenceLink.orderingSupport.map fun fact =>
       if fact.recordId == stepEvidenceId then
         { fact with causalParents := [stepEvidenceId] }
       else
@@ -242,34 +242,34 @@ def missingOrderingMutation : QualifiedTrace := {
   }
 }
 
-def redactedCleartextMutation : QualifiedTrace := {
-  literalQualifiedTrace with
-  derivations := [{
-    literalFirstDerivation with
+def redactedCleartextMutation : EvidenceBackedTrace := {
+  literalEvidenceBackedTrace with
+  evidenceLinks := [{
+    literalFirstEvidenceLink with
     appliedDispositions := [{
       field := { kind := eventKind, field := secretField }
       evidence := .retained "forbidden-secret"
     }]
-  }] ++ literalQualifiedTrace.derivations.tail
+  }] ++ literalEvidenceBackedTrace.evidenceLinks.tail
 }
 
 /-- Missing, duplicate, shifted, unordered, and cleartext-tainted wrappers fail at named boundaries. -/
 example : [
-    diagnosticKindOf (validateQualifiedTrace missingCoordinateMutation),
-    diagnosticKindOf (validateQualifiedTrace duplicateCoordinateMutation),
-    diagnosticKindOf (validateQualifiedTrace shiftedCoordinateMutation),
-    diagnosticKindOf (validateQualifiedTrace missingOrderingMutation),
-    diagnosticKindOf (validateQualifiedTrace redactedCleartextMutation)
+    diagnosticKindOf (validateEvidenceBackedTrace missingCoordinateMutation),
+    diagnosticKindOf (validateEvidenceBackedTrace duplicateModelCoordinateMutation),
+    diagnosticKindOf (validateEvidenceBackedTrace shiftedCoordinateMutation),
+    diagnosticKindOf (validateEvidenceBackedTrace missingOrderingMutation),
+    diagnosticKindOf (validateEvidenceBackedTrace redactedCleartextMutation)
   ] = [
-    some .absentCoordinate,
-    some .duplicateCoordinate,
-    some .absentCoordinate,
+    some .absentModelCoordinate,
+    some .duplicateModelCoordinate,
+    some .absentModelCoordinate,
     some .missingOrderSupport,
     some .redactedValueLeakage
   ] := by
   native_decide
 
-/-! Property mutations change only the semantic verdict over the same qualified evidence. -/
+/-! Property mutations change only the semantic verdict over the same accepted evidence. -/
 
 def propertyMutationDeclaration : PropertyDeclaration := {
   satisfiedPropertyDeclaration with
@@ -283,17 +283,17 @@ def propertyMutation : CheckedProperty :=
   (checkProperty verdictPropertyContext (.portable propertyMutationDeclaration))
     |>.toOption.get (by native_decide)
 
-/-- The unchanged qualification stays valid; only the independently checked Property verdict moves. -/
+/-- The unchanged evaluation stays valid; only the independently checked Property verdict moves. -/
 example :
-    let baseline := evaluateQualifiedProperty (verdictQuery [satisfiedProperty])
-      satisfiedProperty completeQualification
-    let mutant := evaluateQualifiedProperty (verdictQuery [propertyMutation])
-      propertyMutation completeQualification
-    (completeQualification.status,
-      diagnosticKindOf (validateQualifiedTrace literalQualifiedTrace),
+    let baseline := evaluateObservationProperty (verdictQuery [satisfiedProperty])
+      satisfiedProperty completeEvaluation
+    let mutant := evaluateObservationProperty (verdictQuery [propertyMutation])
+      propertyMutation completeEvaluation
+    (completeEvaluation.status,
+      diagnosticKindOf (validateEvidenceBackedTrace literalEvidenceBackedTrace),
       baseline.status,
       mutant.status) =
-      (.qualified, none, .satisfied, .violated) := by
+      (.accepted, none, .satisfied, .violated) := by
   native_decide
 
 end Umpire.ObservationTests

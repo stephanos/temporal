@@ -64,16 +64,16 @@ def expectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   }]
 }
 
-private def qualifiedOf (result : QualificationResult) : Option QualifiedTrace :=
+private def acceptedOf (result : ObservationResult) : Option EvidenceBackedTrace :=
   match result with
-  | .qualified trace => some trace
+  | .accepted trace => some trace
   | _ => none
 
 def completeObservation : OfflineObservation :=
   evaluateSyntheticEvidence completeEvidence
 
-private structure DerivationShape where
-  coordinate : SemanticCoordinate
+private structure EvidenceLinkShape where
+  coordinate : ModelCoordinate
   mappingId : DefinitionId
   mappingVersion : Nat
   mappingDigest : String
@@ -89,21 +89,21 @@ private structure DerivationShape where
   meaningDigest : String
   deriving BEq, DecidableEq, Repr
 
-private def derivationShape (derivation : SemanticDerivation) : DerivationShape := {
-  coordinate := derivation.coordinate
-  mappingId := derivation.mappingId
-  mappingVersion := derivation.mappingVersion
-  mappingDigest := derivation.mappingDigest
-  profileId := derivation.profileId
-  profileVersion := derivation.profileVersion
-  ruleId := derivation.ruleId
-  evidenceIdentities := derivation.evidenceIdentities
-  bindingIds := derivation.bindingIds
-  orderingSupport := derivation.orderingSupport
-  closureSupport := derivation.closureSupport
-  appliedDispositions := derivation.appliedDispositions
-  appliedBound := derivation.appliedBound
-  meaningDigest := derivation.meaningDigest
+private def evidenceLinkShape (evidenceLink : EvidenceLink) : EvidenceLinkShape := {
+  coordinate := evidenceLink.coordinate
+  mappingId := evidenceLink.mappingId
+  mappingVersion := evidenceLink.mappingVersion
+  mappingDigest := evidenceLink.mappingDigest
+  profileId := evidenceLink.profileId
+  profileVersion := evidenceLink.profileVersion
+  ruleId := evidenceLink.ruleId
+  evidenceIdentities := evidenceLink.evidenceIdentities
+  bindingIds := evidenceLink.bindingIds
+  orderingSupport := evidenceLink.orderingSupport
+  closureSupport := evidenceLink.closureSupport
+  appliedDispositions := evidenceLink.appliedDispositions
+  appliedBound := evidenceLink.appliedBound
+  meaningDigest := evidenceLink.meaningDigest
 }
 
 /-- The checked mapping admits exactly the target-owned BasicLifecycle vocabulary. -/
@@ -123,14 +123,14 @@ example : checkedPlanResult.isOk = true ∧ checkedPlan.meanings = [
   ] := by
   native_decide
 
-/-- Closed synthetic evidence qualifies to the independently authored lifecycle trace. -/
-example : (qualifiedOf completeObservation.qualification).map QualifiedTrace.trace =
+/-- Closed synthetic Evidence is accepted as the independently authored lifecycle trace. -/
+example : (acceptedOf completeObservation.evaluation).map EvidenceBackedTrace.trace =
     some expectedTrace := by
   native_decide
 
-/-- Every semantic slot has one independently expected evidence and rule derivation. -/
-example : (qualifiedOf completeObservation.qualification).map (fun trace =>
-    trace.derivations.map derivationShape) = some [{
+/-- Every Model Trace slot has one independently expected Evidence record and rule Evidence Link. -/
+example : (acceptedOf completeObservation.evaluation).map (fun trace =>
+    trace.evidenceLinks.map evidenceLinkShape) = some [{
     coordinate := .initialState
     mappingId := Mapping.id
     mappingVersion := 1
@@ -263,10 +263,10 @@ example :
   native_decide
 
 private def outcomeShape (observation : OfflineObservation) :
-    QualificationStatus × Option QualificationFailureKind ×
+    ObservationStatus × Option ObservationFailureKind ×
       List SemanticVerdictStatus × StrictQueryStatus :=
-  (observation.qualification.status,
-    observation.qualification.diagnostic?.map QualificationDiagnostic.kind,
+  (observation.evaluation.status,
+    observation.evaluation.diagnostic?.map ObservationDiagnostic.kind,
     observation.verdicts.map SemanticPropertyVerdict.status,
     observation.summary.status)
 
@@ -320,7 +320,7 @@ def unknownOutcomeEvidence : EvidenceBundle := {
   ] }]
 }
 
-/-- Every representative non-success fixture retains its exact qualification and verdict status. -/
+/-- Every representative non-success fixture retains its exact Observation Evaluation and verdict status. -/
 example : [
     outcomeShape (evaluateSyntheticEvidence incompleteEvidence),
     outcomeShape (evaluateSyntheticEvidence ambiguousEvidence),
