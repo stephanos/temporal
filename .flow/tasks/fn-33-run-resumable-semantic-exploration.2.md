@@ -1,38 +1,36 @@
 ---
-satisfies: [R2, R4, R6]
+satisfies: [R1]
 ---
-# fn-33-run-resumable-semantic-exploration.2 Implement deterministic leases and crash-safe campaign state
+# fn-33-run-resumable-semantic-exploration.2 Drive Lean-owned one-at-a-time candidate selection
 
 ## Description
-Build fake-worker lease, parallelism, cancellation, checkpoint, and resume behavior for R2/R4/R6.
 
-### Review reconciliation (normative)
-
-The coordinator holds a nonblocking exclusive `STATE/lock` from preflight/admission through final publication. It resolves or safely creates a non-symlink state root, uses 0700 directories/0600 files, performs relative no-follow opens, and excludes locks/temps from artifact sets. Resume validates the campaign-checkpoint parent/generation graph: one genesis, contiguous parent+1 generations, one child per parent, one maximal leaf. Missing parents, cycles, forks, multiple heads, invalid complete directories, symlink/root escape, or a competing process rejects before a lease.
+Connect the bridge to fn-17 so Lean chooses the next candidate and owns semantic coverage/exhaustion.
 
 **Size:** M
-**Files:** `tools/umpire/campaign/**`
-**Touches:** [tools/umpire/campaign/**]
+**Files:** `model/Umpire/Exploration/Runtime.lean`, `model/Umpire/Exploration/RuntimeTests.lean`
+**Touches:** [`model/Umpire/Exploration/Runtime.lean`, `model/Umpire/Exploration/RuntimeTests.lean`]
 
 ### Approach
-- Reserve by semantic trace identity under one deterministic lease table.
-- Retain attempts and late/stale results without credit.
-- Stop leasing on time exhaustion and publish a new child checkpoint; retain immutable ancestors and derive the unique head without a mutable pointer.
+- Return at most one checked v2 ExperimentSpec per next call and keep coverage coordinates, ordering, and exhaustion opaque to Go.
+- Reuse the exact v2 Artifact, shared runner, and Run Evaluation boundaries named by the parent plan; do not add a parallel semantic or persistence authority.
+- Add focused positive, N/N+1, stale/crossed-binding, cancellation, and mutation fixtures at the responsible boundary.
 
 ### Investigation targets
-**Required** (read before coding):
-- `tools/common/artifactio/set.go:475-645` — lock/recovery behavior
-- `tools/umpire/artifact` — admitted checkpoint/publication API after fn-18
-- `model/Umpire/Exploration` — opaque state identity after fn-17
 
-### Acceptance
-- [ ] At most one active lease exists per semantic trace identity.
-- [ ] Crash, cancellation, expiry, duplicate delivery, time exhaustion, competing-process, symlink/permission, fork, generation-gap, and multiple-head cases are deterministic.
-- [ ] Resume selects the unique valid leaf and preserves all accepted/rejected/stale attempt lineage; ambiguous lineage performs no work.
+**Required** (read before coding):
+- `.plans/UMPIRE4_ORDER.md` — retained prototype scope and deferred infrastructure.
+- Parent Flow spec — exact contracts, Limits, failure ownership, and task boundary.
+- Existing fn-18/fn-19/fn-20 implementation — Artifact, runner, cleanup, and Run Evaluation authority to reuse.
+
+### Key context
+
+This task implements only its retained serial/black-box slice. Deferred control-plane, concurrency, recovery, checkpoint, resume, receipt, and Claim Assessment machinery must not appear as placeholders.
+
 ## Acceptance
-- [ ] R2/R4/R6 fake-worker matrices pass.
-- [ ] N/N+1 parallelism and state Limits are tested.
-- [ ] No semantic selection/coverage code exists in Go.
+- [ ] Return at most one checked v2 ExperimentSpec per next call and keep coverage coordinates, ordering, and exhaustion opaque to Go.
+- [ ] Exact bindings and Limits fail closed under representative one-field and N/N+1 mutations.
+- [ ] Focused tests pass, existing comments are preserved, and no deferred API or persisted format is introduced.
 
 ## Done summary
 TBD

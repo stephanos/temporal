@@ -12,6 +12,6 @@
   "spec": "fn-28-authorized-remote-staging-black-box",
   "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.4.md",
   "status": "todo",
-  "title": "Implement the fenced public-gRPC participant and cleanup lifecycle",
-  "updated_at": "2026-08-27T19:07:26.162814Z"
+  "title": "Capture public Evidence and participant Execution Receipts",
+  "updated_at": "2026-08-27T19:33:16.162763Z"
 }

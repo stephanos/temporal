@@ -14,7 +14,7 @@ Replace the one-entry Go manifest with checked catalog selection and publish agg
 
 - Load only the validated generated catalog Generated View and select the exact `stableRegression` set; resolve every entry through its validated Temporal Generated View binding, canonical inspector selector, checked-in fixture path, and unique Generated View key.
 - Reuse the existing Switch exact-action fixture without renaming or changing its current semantic artifact.
-- Replace per-entry output ownership with one set-level aggregate output configuration, then render one aggregate Go file and one aggregate Markdown file in canonical identity order while retaining the ordinary `RequireGeneratedView` wrapper.
+- Replace per-entry output ownership with one set-level aggregate output configuration, then render one aggregate Go file and one aggregate Markdown file in canonical Definition ID order while retaining the ordinary `RequireGeneratedView` wrapper.
 - Validate all candidates before one transactional complete-set publication.
 - Provide a non-mutating check path that reuses task `.3`'s shared exact candidate-set comparison seam to compare current aggregate outputs directly.
 
@@ -33,7 +33,7 @@ Replace the one-entry Go manifest with checked catalog selection and publish agg
 `go test -count=1 -tags test_dep ./tools/umpire/internal/generate/regression ./tools/umpire/regression`
 
 ## Acceptance
-- [ ] The selected manifest is derived from the checked catalog and contains exactly the two initial stable identities.
+- [ ] The selected manifest is derived from the checked catalog and contains exactly the two initial stable Definition IDs.
 - [ ] Each selected entry resolves through exactly one Generated View binding; missing, duplicate, stale, or unsafe fixture bindings fail before inspection.
 - [ ] Aggregate Go/Markdown paths are owned once at set level; multiple stable entries cannot collide or overwrite the output map.
 - [ ] Switch and caller-closure fixtures match canonical inspector bytes and semantic fingerprints.

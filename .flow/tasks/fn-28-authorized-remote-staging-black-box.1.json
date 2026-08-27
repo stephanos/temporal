@@ -9,6 +9,6 @@
   "spec": "fn-28-authorized-remote-staging-black-box",
   "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.1.md",
   "status": "todo",
-  "title": "Define EvaluationProfile v4 and the exact remote staging policy",
-  "updated_at": "2026-08-27T19:07:24.313990Z"
+  "title": "Freeze the fixed staging binding and byte-identical v2 subject",
+  "updated_at": "2026-08-27T19:33:15.195266Z"
 }

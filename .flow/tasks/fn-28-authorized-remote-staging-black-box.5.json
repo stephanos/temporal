@@ -12,6 +12,6 @@
   "spec": "fn-28-authorized-remote-staging-black-box",
   "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.5.md",
   "status": "todo",
-  "title": "Admit remote Evidence through canonical Run Evaluation",
-  "updated_at": "2026-08-27T19:07:26.531023Z"
+  "title": "Reuse canonical Run Evaluation without staging semantics",
+  "updated_at": "2026-08-27T19:33:16.495135Z"
 }
