@@ -6,6 +6,16 @@ namespace Umpire.PlanningTests
 
 open Umpire
 
+/-! The checked-query adapter preserves the established action, initial, and step traversal. -/
+example : ((incrementalKernel? 2).map fun kernel =>
+    (kernel.actionLimit,
+      kernel.actionAt 0,
+      kernel.actionAt 1,
+      kernel.initialAt setup 0,
+      kernel.stepAt initial requestValue 0)) =
+    some (1, some requestValue, none, some initial, some (transition 0)) := by
+  rfl
+
 /-!
 The cursor instrumentation catches eager full-space production: a two-candidate budget over a
 high-branching step pulls the root and one child, retains no pending candidates, and cannot

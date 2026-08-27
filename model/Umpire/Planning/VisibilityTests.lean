@@ -4,6 +4,8 @@ import Umpire.Planning
 
 namespace Umpire.PlanningVisibilityTests
 
+#check IncrementalPlannerKernel.ofCheckedQuery?
+
 /-! Importing Planning does not expose its private completion finalizer. -/
 /--
 error: Unknown identifier `Umpire.finalizePlanning`
