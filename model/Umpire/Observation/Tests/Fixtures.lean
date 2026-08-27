@@ -7,38 +7,38 @@ namespace Umpire.ObservationTests
 
 open Umpire
 
-def id (value : String) : DeclarationId := DeclarationId.of value
+def id (value : String) : DefinitionId := DefinitionId.of value
 
-def source : SemanticSource := {
+def source : SourceLocation := {
   path := "Umpire/Observation/Tests/Fixtures.lean"
   line := 1
   column := 1
   provenance := "lean-test"
 }
 
-def metadata (value : String) (kind : DeclarationKind) : DeclarationMetadata := {
+def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
   id := id value
   kind
   source
   contractDigest := value ++ "/v1"
 }
 
-def profileId : DeclarationId := id "test.evidence.profile"
-def eventKind : DeclarationId := id "test.evidence.kind.event"
-def nameField : DeclarationId := id "test.evidence.field.name"
-def secretField : DeclarationId := id "test.evidence.field.secret"
-def hashedField : DeclarationId := id "test.evidence.field.hashed"
-def rejectedField : DeclarationId := id "test.evidence.field.rejected"
+def profileId : DefinitionId := id "test.evidence.profile"
+def eventKind : DefinitionId := id "test.evidence.kind.event"
+def nameField : DefinitionId := id "test.evidence.field.name"
+def secretField : DefinitionId := id "test.evidence.field.secret"
+def hashedField : DefinitionId := id "test.evidence.field.hashed"
+def rejectedField : DefinitionId := id "test.evidence.field.rejected"
 
-def operationState : DeclarationId := id "test.state.operation"
-def contributionObservation : DeclarationId := id "test.observation.contribution"
-def digestObservation : DeclarationId := id "test.observation.digest"
-def unauthorizedObservation : DeclarationId := id "test.observation.unauthorized"
+def operationState : DefinitionId := id "test.state.operation"
+def contributionObservation : DefinitionId := id "test.observation.contribution"
+def digestObservation : DefinitionId := id "test.observation.digest"
+def unauthorizedObservation : DefinitionId := id "test.observation.unauthorized"
 
-def completedState : DeclarationId := id "test.state.completed"
-def startAction : DeclarationId := id "test.action.start"
-def successOutcome : DeclarationId := id "test.outcome.success"
-def roleField : DeclarationId := id "test.evidence.field.role"
+def completedState : DefinitionId := id "test.state.completed"
+def startAction : DefinitionId := id "test.action.start"
+def successOutcome : DefinitionId := id "test.outcome.success"
+def roleField : DefinitionId := id "test.evidence.field.role"
 
 def evidenceProfile : EvidenceProfileDeclaration := {
   id := profileId
@@ -54,7 +54,7 @@ def evidenceProfile : EvidenceProfileDeclaration := {
   }]
 }
 
-def digestPolicyId : DeclarationId := id "test.digest.synthetic"
+def digestPolicyId : DefinitionId := id "test.digest.synthetic"
 
 def digestPolicy : DigestPolicyDeclaration := {
   id := digestPolicyId
@@ -62,7 +62,7 @@ def digestPolicy : DigestPolicyDeclaration := {
   version := 1
 }
 
-def field (fieldId : DeclarationId) : ObservationExpression :=
+def field (fieldId : DefinitionId) : ObservationExpression :=
   .field { kind := eventKind, field := fieldId }
 
 def normalizedName : ObservationBinding := {
@@ -118,18 +118,18 @@ def baseDeclaration : ObservationMappingDeclaration := {
 }
 
 def context : ObservationCheckContext := {
-  declarations := [
+  definitions := [
     metadata operationState.value .state,
     metadata contributionObservation.value .observation,
     metadata digestObservation.value .observation,
     metadata unauthorizedObservation.value .observation
   ]
   meanings := [
-    { declaration := operationState, kind := .state,
+    { definitionId := operationState, kind := .state,
       semanticDigest := operationState.value ++ "/meaning-v1" },
-    { declaration := contributionObservation, kind := .observation,
+    { definitionId := contributionObservation, kind := .observation,
       semanticDigest := contributionObservation.value ++ "/meaning-v1" },
-    { declaration := digestObservation, kind := .observation,
+    { definitionId := digestObservation, kind := .observation,
       semanticDigest := digestObservation.value ++ "/meaning-v1" }
   ]
   profiles := [evidenceProfile]
@@ -196,17 +196,17 @@ def qualificationDeclaration : ObservationMappingDeclaration := {
 
 def qualificationContext : ObservationCheckContext := {
   context with
-  declarations := context.declarations ++ [
+  definitions := context.definitions ++ [
     metadata completedState.value .state,
     metadata startAction.value .action,
     metadata successOutcome.value .outcome
   ]
   meanings := context.meanings ++ [
-    { declaration := completedState, kind := .state,
+    { definitionId := completedState, kind := .state,
       semanticDigest := completedState.value ++ "/meaning-v1" },
-    { declaration := startAction, kind := .action,
+    { definitionId := startAction, kind := .action,
       semanticDigest := startAction.value ++ "/meaning-v1" },
-    { declaration := successOutcome, kind := .outcome,
+    { definitionId := successOutcome, kind := .outcome,
       semanticDigest := successOutcome.value ++ "/meaning-v1" }
   ]
   profiles := [{ evidenceProfile with kinds := [{
@@ -225,14 +225,14 @@ def qualifyFixture (bundle : EvidenceBundle) : QualificationResult :=
       planId := qualificationDeclaration.id
     }
 
-def initialEvidenceId : DeclarationId := id "test.evidence.record.initial"
-def stepEvidenceId : DeclarationId := id "test.evidence.record.step-1"
-def secondStepEvidenceId : DeclarationId := id "test.evidence.record.step-2"
+def initialEvidenceId : DefinitionId := id "test.evidence.record.initial"
+def stepEvidenceId : DefinitionId := id "test.evidence.record.step-1"
+def secondStepEvidenceId : DefinitionId := id "test.evidence.record.step-2"
 
 def textField
-    (fieldId : DeclarationId)
+    (fieldId : DefinitionId)
     (value : String)
-    (digestPolicy : Option DeclarationId := none) : EvidenceFieldValue := {
+    (digestPolicy : Option DefinitionId := none) : EvidenceFieldValue := {
   field := fieldId
   value := .text value
   digestPolicy
@@ -271,15 +271,15 @@ def completeEvidence : EvidenceBundle := {
   closures := [{ kind := eventKind, lastSequence := 2 }]
 }
 
-def expectedTrace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
-  initialState := { identity := operationState, value := "ready" }
+def expectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
+  initialState := { definitionId := operationState, value := "ready" }
   steps := [{
-    selectedAction := { identity := startAction, value := "start" }
-    modelOutcome := { identity := successOutcome, value := "ok" }
-    resultingState := { identity := completedState, value := "done" }
+    selectedAction := { definitionId := startAction, value := "start" }
+    modelOutcome := { definitionId := successOutcome, value := "ok" }
+    resultingState := { definitionId := completedState, value := "done" }
     observations := [
-      { identity := contributionObservation, value := "contributed" },
-      { identity := digestObservation,
+      { definitionId := contributionObservation, value := "contributed" },
+      { definitionId := digestObservation,
         value := "synthetic.digest/v1:3006720707513255331" }
     ]
   }]
@@ -303,10 +303,10 @@ def diagnosticKindOf
 
 /-! Checked Property and Query inputs for semantic-verdict tests. -/
 
-def verdictCapability : DeclarationId := id "test.capability.observation-verdict"
+def verdictCapability : DefinitionId := id "test.capability.observation-verdict"
 
 def verdictPropertyContext : PropertyCheckContext := {
-  declarations := qualificationContext.declarations ++ [
+  definitions := qualificationContext.definitions ++ [
     metadata verdictCapability.value .capability
   ]
   providers := [{
@@ -319,7 +319,7 @@ def verdictPropertyContext : PropertyCheckContext := {
 
 def verdictPattern
     (field : PropertyTraceField)
-    (reference : DeclarationId)
+    (reference : DefinitionId)
     (constraint : ValueConstraint := .present) : PropertyPattern := {
   field
   reference

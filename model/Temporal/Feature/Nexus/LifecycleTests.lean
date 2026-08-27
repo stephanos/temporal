@@ -74,10 +74,10 @@ example : match target.planning with
     finitePlanning, actionDomain]
 
 def expertTargetDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetDefinition.id
   source := targetDefinition.source
-  declarations := targetDefinition.declarations
+  definitions := targetDefinition.definitions
   requiredCapabilities := targetDefinition.requiredCapabilities
   providers := [lifecycleProvider]
   connectors := []
@@ -86,13 +86,13 @@ def expertTargetDeclaration : TargetDeclaration LawStatement
 }
 
 def missingProviderDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with providers := []
 }
 
-/-- Checked composition remains public so callers can inspect its typed declaration error. -/
-private def compositionErrorKind (result : Except DeclarationError α) :
-    Option DeclarationErrorKind :=
+/-- Checked composition remains public so callers can inspect its typed Definition Error. -/
+private def compositionErrorKind (result : Except DefinitionError α) :
+    Option DefinitionErrorKind :=
   match result with
   | .error failure => some failure.kind
   | .ok _ => none
@@ -101,7 +101,7 @@ example : compositionErrorKind (composeTarget missingProviderDeclaration) =
     some .missingProvider := by
   native_decide
 
-def conflictingProviderId : DeclarationId := DeclarationId.of
+def conflictingProviderId : DefinitionId := DefinitionId.of
   "temporal.nexus.basic-lifecycle.provider.conflicting"
 
 def conflictingProvider : CapabilityProvider LawStatement := {
@@ -109,14 +109,14 @@ def conflictingProvider : CapabilityProvider LawStatement := {
   source
   contract := lifecycleProvider.contract
   meanings := [{
-    declaration := operationStateId
+    definitionId := operationStateId
     kind := .state
     semanticDigest := "temporal-nexus-basic-lifecycle-state/conflicting"
   }]
   lawWitnesses := lifecycleProvider.lawWitnesses
 }
 
-def conflictingProviderMetadata : DeclarationMetadata := {
+def conflictingProviderMetadata : DefinitionMetadata := {
   id := conflictingProviderId
   kind := .provider
   source
@@ -124,9 +124,9 @@ def conflictingProviderMetadata : DeclarationMetadata := {
 }
 
 def conflictingProviderDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with
-  declarations := conflictingProviderMetadata :: expertTargetDeclaration.declarations
+  definitions := conflictingProviderMetadata :: expertTargetDeclaration.definitions
   providers := [lifecycleProvider, conflictingProvider]
 }
 

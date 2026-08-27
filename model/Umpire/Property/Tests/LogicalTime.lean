@@ -32,7 +32,7 @@ def logicalQuiescentProperty : PropertyDeclaration := {
 
 def traceWithLogicalTime
     (first second : String) :
-    SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+    ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   positiveTrace with
   steps := positiveTrace.steps.mapIdx fun index step => {
     step with

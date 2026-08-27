@@ -2,7 +2,7 @@ import Umpire.Observation.Language
 
 /-!
 Pure qualification of bounded synthetic evidence. The boundary consumes a complete checked plan and
-a finite typed bundle, then either returns one fully derived semantic trace or one typed diagnostic.
+a finite typed bundle, then either returns one fully derived Model Trace or one typed diagnostic.
 Raw evidence is used only while evaluating the bundle and is absent from every successful result.
 -/
 
@@ -26,48 +26,48 @@ def EvidenceValue.render : EvidenceValue → String
   | .boolean false => "false"
 
 structure EvidenceFieldValue where
-  field : DeclarationId
+  field : DefinitionId
   value : EvidenceValue
-  digestPolicy : Option DeclarationId := none
+  digestPolicy : Option DefinitionId := none
   reportedDigestToken : Option String := none
   deriving BEq, DecidableEq, Repr
 
 structure EvidenceBindingFact where
-  binding : DeclarationId
+  binding : DefinitionId
   value : EvidenceValue
   deriving BEq, DecidableEq, Repr
 
 /-- One finite typed synthetic record. Its raw values never cross the qualification boundary. -/
 structure SyntheticEvidenceRecord where
-  id : DeclarationId
-  profile : DeclarationId
+  id : DefinitionId
+  profile : DefinitionId
   profileVersion : Nat
-  kind : DeclarationId
+  kind : DefinitionId
   sequence : Nat
-  causalParents : List DeclarationId := []
+  causalParents : List DefinitionId := []
   fields : List EvidenceFieldValue
   bindingFacts : List EvidenceBindingFact := []
-  faultTarget : Option DeclarationId := none
+  faultTarget : Option DefinitionId := none
   deriving BEq, DecidableEq, Repr
 
 structure EvidenceClosureFact where
-  kind : DeclarationId
+  kind : DefinitionId
   lastSequence : Nat
   deriving BEq, DecidableEq, Repr
 
 structure CompatibleInterpretation where
-  id : DeclarationId
-  evidenceIdentities : List DeclarationId
+  id : DefinitionId
+  evidenceIdentities : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
 /-- Complete synthetic input envelope. Alternatives are preserved as data instead of selected. -/
 structure EvidenceBundle where
-  profile : DeclarationId
+  profile : DefinitionId
   profileVersion : Nat
   records : List SyntheticEvidenceRecord
   closures : List EvidenceClosureFact
   compatibleAlternatives : List CompatibleInterpretation := []
-  missingDiscriminator : Option DeclarationId := none
+  missingDiscriminator : Option DefinitionId := none
   deriving BEq, DecidableEq, Repr
 
 inductive QualificationStatus where
@@ -125,12 +125,12 @@ def QualificationFailureKind.status : QualificationFailureKind → Qualification
 
 structure QualificationDiagnostic where
   kind : QualificationFailureKind
-  planId : DeclarationId
-  relatedIdentities : List DeclarationId := []
+  planId : DefinitionId
+  relatedDefinitionIds : List DefinitionId := []
   limit : Option EvidenceBound := none
   observedCount : Option Nat := none
-  alternatives : List DeclarationId := []
-  missingDiscriminator : Option DeclarationId := none
+  alternatives : List DefinitionId := []
+  missingDiscriminator : Option DefinitionId := none
   deriving BEq, DecidableEq, Repr
 
 def QualificationDiagnostic.status (diagnostic : QualificationDiagnostic) : QualificationStatus :=
@@ -145,16 +145,16 @@ inductive SemanticCoordinate where
   deriving BEq, DecidableEq, Ord, Repr
 
 structure EvidenceOrderingFact where
-  recordId : DeclarationId
-  kind : DeclarationId
+  recordId : DefinitionId
+  kind : DefinitionId
   sequence : Nat
-  causalParents : List DeclarationId
+  causalParents : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
 inductive AppliedDispositionEvidence where
   | retained (normalizedValue : String)
   | redactedContribution
-  | digestToken (policy : DeclarationId) (token : String)
+  | digestToken (policy : DefinitionId) (token : String)
   /-- Invalid constructor retained so independently supplied wrappers fail closed at validation. -/
   | raw (value : String)
   /-- Invalid constructor retained so rejected material cannot be smuggled into a wrapper. -/
@@ -168,14 +168,14 @@ structure AppliedFieldDisposition where
 
 structure SemanticDerivation where
   coordinate : SemanticCoordinate
-  mappingId : DeclarationId
+  mappingId : DefinitionId
   mappingVersion : Nat
   mappingDigest : String
-  profileId : DeclarationId
+  profileId : DefinitionId
   profileVersion : Nat
-  evidenceIdentities : List DeclarationId
-  ruleId : DeclarationId
-  bindingIds : List DeclarationId
+  evidenceIdentities : List DefinitionId
+  ruleId : DefinitionId
+  bindingIds : List DefinitionId
   orderingSupport : List EvidenceOrderingFact
   closureSupport : List EvidenceClosureFact
   appliedDispositions : List AppliedFieldDisposition
@@ -183,22 +183,22 @@ structure SemanticDerivation where
   meaningDigest : String
   deriving BEq, DecidableEq, Repr
 
-/-- Auditable wrapper around the unchanged immutable semantic trace. -/
+/-- Auditable wrapper around the unchanged immutable Model Trace. -/
 structure QualifiedTrace where
   traceId : String
   checkedPlan : CheckedObservationPlan
-  mappingId : DeclarationId
+  mappingId : DefinitionId
   mappingVersion : Nat
   mappingDigest : String
-  source : SemanticSource
-  profileId : DeclarationId
+  source : SourceLocation
+  profileId : DefinitionId
   profileVersion : Nat
   sourceClosed : Bool
   vocabulary : List MeaningProvision
   dispositions : List FieldDispositionDeclaration
   appliedBound : EvidenceBound
-  evidenceIdentities : List DeclarationId
-  trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue
+  evidenceIdentities : List DefinitionId
+  trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
   derivations : List SemanticDerivation
   deriving BEq, DecidableEq, Repr
 
@@ -219,19 +219,19 @@ def QualificationResult.diagnostic? : QualificationResult → Option Qualificati
   | .qualified _ => none
   | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic => some diagnostic
 
-private def idLe (left right : DeclarationId) : Bool :=
+private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
-private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
 
 private def diagnostic
     (plan : CheckedObservationPlan)
     (kind : QualificationFailureKind)
-    (related : List DeclarationId := []) : QualificationDiagnostic := {
+    (related : List DefinitionId := []) : QualificationDiagnostic := {
   kind
   planId := plan.id
-  relatedIdentities := canonicalIds related
+  relatedDefinitionIds := canonicalIds related
 }
 
 private def resultOfDiagnostic (failure : QualificationDiagnostic) : QualificationResult :=
@@ -241,7 +241,7 @@ private def resultOfDiagnostic (failure : QualificationDiagnostic) : Qualificati
   | .unsupported => .unsupported failure
   | .qualified => .unknown failure
 
-private def firstDuplicateId : List DeclarationId → Option DeclarationId
+private def firstDuplicateId : List DefinitionId → Option DefinitionId
   | first :: second :: rest =>
       if first == second then some first else firstDuplicateId (second :: rest)
   | _ => none
@@ -259,7 +259,7 @@ private def recordLe (left right : SyntheticEvidenceRecord) : Bool :=
 private def interpretationLe (left right : CompatibleInterpretation) : Bool := idLe left.id right.id
 
 private def firstContradictoryInterpretation :
-    List CompatibleInterpretation → Option DeclarationId
+    List CompatibleInterpretation → Option DefinitionId
   | first :: second :: rest =>
       if first.id == second.id && first.evidenceIdentities != second.evidenceIdentities then
         some first.id
@@ -285,7 +285,7 @@ private def canonicalReferences
 private def fieldDeclaration?
     (plan : CheckedObservationPlan)
     (record : SyntheticEvidenceRecord)
-    (fieldId : DeclarationId) : Option EvidenceFieldDeclaration := do
+    (fieldId : DefinitionId) : Option EvidenceFieldDeclaration := do
   let kind ← plan.profile.kinds.find? fun declaration => declaration.id == record.kind
   kind.fields.find? fun declaration => declaration.id == fieldId
 
@@ -308,14 +308,14 @@ def syntheticDigestToken
 
 private def findPolicy
     (plan : CheckedObservationPlan)
-    (id : DeclarationId) : Option DigestPolicyDeclaration :=
+    (id : DefinitionId) : Option DigestPolicyDeclaration :=
   plan.digestPolicies.find? fun policy => policy.id == id
 
 private def validateDigestMetadata
     (plan : CheckedObservationPlan)
     (record : SyntheticEvidenceRecord)
     (field : EvidenceFieldValue)
-    (policyId : DeclarationId) : Except QualificationDiagnostic Unit := do
+    (policyId : DefinitionId) : Except QualificationDiagnostic Unit := do
   if field.digestPolicy != some policyId then
     throw (diagnostic plan .digestPolicyMismatch [record.id, field.field, policyId])
   match findPolicy plan policyId with
@@ -405,8 +405,8 @@ private def validateClosures
 
 private partial def rulePathExists
     (ordering : List ObservationOrdering)
-    (current target : DeclarationId)
-    (visited : List DeclarationId := []) : Bool :=
+    (current target : DefinitionId)
+    (visited : List DefinitionId := []) : Bool :=
   if current == target then true
   else if visited.contains current then false
   else
@@ -423,7 +423,7 @@ private def ruleLe
 private partial def expressionBindingIds
     (plan : CheckedObservationPlan)
     (expression : CheckedObservationExpression)
-    (visited : List DeclarationId := []) : List DeclarationId :=
+    (visited : List DefinitionId := []) : List DefinitionId :=
   match expression with
   | .binding id _ _ =>
       if visited.contains id then []
@@ -440,7 +440,7 @@ private partial def expressionBindingIds
 private partial def expressionReferences
     (plan : CheckedObservationPlan)
     (expression : CheckedObservationExpression)
-    (visited : List DeclarationId := []) : List EvidenceFieldReference :=
+    (visited : List DefinitionId := []) : List EvidenceFieldReference :=
   match expression with
   | .field reference _ _ => [reference]
   | .binding id _ _ =>
@@ -460,7 +460,7 @@ mutual
       (plan : CheckedObservationPlan)
       (record : SyntheticEvidenceRecord)
       (expression : CheckedObservationExpression)
-      (visited : List DeclarationId := []) : Except QualificationDiagnostic EvidenceValue := do
+      (visited : List DefinitionId := []) : Except QualificationDiagnostic EvidenceValue := do
     match expression with
     | .text value => pure (.text value)
     | .natural value => pure (.natural value)
@@ -509,8 +509,8 @@ mutual
   private partial def evaluateBinding
       (plan : CheckedObservationPlan)
       (record : SyntheticEvidenceRecord)
-      (id : DeclarationId)
-      (visited : List DeclarationId) : Except QualificationDiagnostic EvidenceValue := do
+      (id : DefinitionId)
+      (visited : List DefinitionId) : Except QualificationDiagnostic EvidenceValue := do
     if visited.contains id then
       throw (diagnostic plan .unresolvedBinding [record.id, id])
     let binding ← match plan.bindings.find? fun candidate => candidate.id == id with
@@ -543,9 +543,9 @@ private def conditionHolds
       | _ => throw (diagnostic plan .normalizationFailure [record.id])
 
 private structure DigestClaim where
-  recordId : DeclarationId
-  fieldId : DeclarationId
-  policyId : DeclarationId
+  recordId : DefinitionId
+  fieldId : DefinitionId
+  policyId : DefinitionId
   normalizedValue : EvidenceValue
   computedToken : String
   effectiveToken : String
@@ -554,7 +554,7 @@ private partial def digestClaimsInExpression
     (plan : CheckedObservationPlan)
     (record : SyntheticEvidenceRecord)
     (expression : CheckedObservationExpression)
-    (visited : List DeclarationId := []) : Except QualificationDiagnostic (List DigestClaim) := do
+    (visited : List DefinitionId := []) : Except QualificationDiagnostic (List DigestClaim) := do
   match expression with
   | .binding id _ _ =>
       if visited.contains id then pure []
@@ -655,8 +655,8 @@ private def appliedDisposition
 private structure Emission where
   record : SyntheticEvidenceRecord
   rule : CheckedObservationRule
-  value : SemanticValue
-  bindingIds : List DeclarationId
+  value : ModelValue
+  bindingIds : List DefinitionId
   dispositions : List AppliedFieldDisposition
   deriving BEq, Repr
 
@@ -679,7 +679,7 @@ private def emissionsFor
       emissions := {
         record
         rule
-        value := { identity := rule.output, value := rendered }
+        value := { definitionId := rule.output, value := rendered }
         bindingIds := canonicalIds <|
           expressionBindingIds plan rule.value ++
             rule.condition.toList.flatMap (expressionBindingIds plan)
@@ -718,7 +718,7 @@ private def derivationFor
 private def singleEmission
     (plan : CheckedObservationPlan)
     (record : SyntheticEvidenceRecord)
-    (kind : DeclarationKind)
+    (kind : DefinitionKind)
     (emissions : List Emission) : Except QualificationDiagnostic Emission :=
   match emissions.filter fun emission => emission.rule.outputKind == kind with
   | [emission] => pure emission
@@ -739,8 +739,8 @@ private def ensureComparableEmissions
 
 private def qualifiedTraceId
     (mappingDigest : String)
-    (evidenceIdentities : List DeclarationId)
-    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue)
+    (evidenceIdentities : List DefinitionId)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
     (derivations : List SemanticDerivation) : String :=
   semanticDigestOf <|
     mappingDigest ++ ":" ++ reprStr evidenceIdentities ++ ":" ++ reprStr trace ++
@@ -825,7 +825,7 @@ private def qualifyChecked
     ] ++ observations.mapIdx fun observationIndex observation =>
       derivationFor plan bundle (.observation stepPosition (observationIndex + 1)) observation
     stepPosition := stepPosition + 1
-  let trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+  let trace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     initialState := initial.value
     steps
   }
@@ -850,7 +850,7 @@ private def qualifyChecked
   pure qualified
 
 private def expectedCoordinates
-    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue) :
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
     List SemanticCoordinate :=
   .initialState :: (trace.steps.mapIdx fun index step =>
     let stepPosition := index + 1
@@ -858,7 +858,7 @@ private def expectedCoordinates
       step.observations.mapIdx fun observationIndex _ =>
         .observation stepPosition (observationIndex + 1)).flatten
 
-private def derivationEvidenceIds (derivations : List SemanticDerivation) : List DeclarationId :=
+private def derivationEvidenceIds (derivations : List SemanticDerivation) : List DefinitionId :=
   canonicalIds (derivations.flatMap SemanticDerivation.evidenceIdentities)
 
 private def orderingFactByRecordLe (left right : EvidenceOrderingFact) : Bool :=
@@ -869,7 +869,7 @@ private def orderingFactBySequenceLe (left right : EvidenceOrderingFact) : Bool 
     (left.sequence == right.sequence && idLe left.recordId right.recordId)
 
 private def canonicalOrderingFacts
-    (mappingId : DeclarationId) :
+    (mappingId : DefinitionId) :
     List EvidenceOrderingFact → Except QualificationDiagnostic (List EvidenceOrderingFact)
   | [] => pure []
   | [fact] => pure [fact]
@@ -879,7 +879,7 @@ private def canonicalOrderingFacts
           throw {
             kind := .missingOrderSupport
             planId := mappingId
-            relatedIdentities := [first.recordId]
+            relatedDefinitionIds := [first.recordId]
           }
         else
           canonicalOrderingFacts mappingId (second :: rest)
@@ -900,7 +900,7 @@ private def validateOrderingProvenance
       throw {
         kind := .missingOrderSupport
         planId := trace.mappingId
-        relatedIdentities := [fact.recordId]
+        relatedDefinitionIds := [fact.recordId]
       }
     for parent in fact.causalParents do
       let parentFact ← match facts.find? fun candidate => candidate.recordId == parent with
@@ -908,13 +908,13 @@ private def validateOrderingProvenance
         | none => throw {
             kind := .missingOrderSupport
             planId := trace.mappingId
-            relatedIdentities := [fact.recordId, parent]
+            relatedDefinitionIds := [fact.recordId, parent]
           }
       if parentFact.sequence >= fact.sequence then
         throw {
           kind := .missingOrderSupport
           planId := trace.mappingId
-          relatedIdentities := [fact.recordId, parent]
+          relatedDefinitionIds := [fact.recordId, parent]
         }
     expectedSequence := expectedSequence + 1
   for derivation in trace.derivations do
@@ -925,7 +925,7 @@ private def validateOrderingProvenance
       throw {
         kind := .missingOrderSupport
         planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId]
+        relatedDefinitionIds := [derivation.ruleId]
       }
   pure facts
 
@@ -941,7 +941,7 @@ private def validateClosureProvenance
   | some duplicate => throw {
       kind := .missingClosureSupport
       planId := trace.mappingId
-      relatedIdentities := [duplicate.kind]
+      relatedDefinitionIds := [duplicate.kind]
     }
   | none => pure ()
   for derivation in trace.derivations do
@@ -949,14 +949,14 @@ private def validateClosureProvenance
       throw {
         kind := .missingClosureSupport
         planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId]
+        relatedDefinitionIds := [derivation.ruleId]
       }
   for fact in ordering do
     if !(closures.any fun closure => closure.kind == fact.kind) then
       throw {
         kind := .missingClosureSupport
         planId := trace.mappingId
-        relatedIdentities := [fact.recordId, fact.kind]
+        relatedDefinitionIds := [fact.recordId, fact.kind]
       }
   for closure in closures do
     let lastSequence := (ordering.filter fun fact => fact.kind == closure.kind)
@@ -965,7 +965,7 @@ private def validateClosureProvenance
       throw {
         kind := .missingClosureSupport
         planId := trace.mappingId
-        relatedIdentities := [closure.kind]
+        relatedDefinitionIds := [closure.kind]
       }
 
 private def validateAppliedDisposition
@@ -977,18 +977,18 @@ private def validateAppliedDisposition
     | none => throw {
         kind := .inconsistentDerivation
         planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId, applied.field.field]
+        relatedDefinitionIds := [derivation.ruleId, applied.field.field]
       }
   match applied.evidence with
   | .raw _ => throw {
       kind := .rawValueLeakage
       planId := trace.mappingId
-      relatedIdentities := [derivation.ruleId, applied.field.field]
+      relatedDefinitionIds := [derivation.ruleId, applied.field.field]
     }
   | .rejectedMaterial _ => throw {
       kind := .rejectedValueLeakage
       planId := trace.mappingId
-      relatedIdentities := [derivation.ruleId, applied.field.field]
+      relatedDefinitionIds := [derivation.ruleId, applied.field.field]
     }
   | .retained _ =>
       match expected with
@@ -996,42 +996,42 @@ private def validateAppliedDisposition
       | .redact => throw {
           kind := .redactedValueLeakage
           planId := trace.mappingId
-          relatedIdentities := [derivation.ruleId, applied.field.field]
+          relatedDefinitionIds := [derivation.ruleId, applied.field.field]
         }
       | .reject => throw {
           kind := .rejectedValueLeakage
           planId := trace.mappingId
-          relatedIdentities := [derivation.ruleId, applied.field.field]
+          relatedDefinitionIds := [derivation.ruleId, applied.field.field]
         }
       | .hash _ => throw {
           kind := .digestPolicyMismatch
           planId := trace.mappingId
-          relatedIdentities := [derivation.ruleId, applied.field.field]
+          relatedDefinitionIds := [derivation.ruleId, applied.field.field]
         }
   | .redactedContribution =>
       if expected == .redact then pure () else throw {
         kind := .inconsistentDerivation
         planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId, applied.field.field]
+        relatedDefinitionIds := [derivation.ruleId, applied.field.field]
       }
   | .digestToken policy _ =>
       if expected == .hash (some policy) then pure () else throw {
         kind := .digestPolicyMismatch
         planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId, applied.field.field, policy]
+        relatedDefinitionIds := [derivation.ruleId, applied.field.field, policy]
       }
 
-private def semanticValueAt
+private def modelValueAt
     (trace : QualifiedTrace)
-    (coordinate : SemanticCoordinate) : Option SemanticValue :=
+    (coordinate : SemanticCoordinate) : Option ModelValue :=
   match coordinate with
   | .initialState => some trace.trace.initialState
   | .selectedAction step =>
-      trace.trace.steps[step - 1]?.map SemanticTraceStep.selectedAction
+      trace.trace.steps[step - 1]?.map ModelTraceStep.selectedAction
   | .modelOutcome step =>
-      trace.trace.steps[step - 1]?.map SemanticTraceStep.modelOutcome
+      trace.trace.steps[step - 1]?.map ModelTraceStep.modelOutcome
   | .resultingState step =>
-      trace.trace.steps[step - 1]?.map SemanticTraceStep.resultingState
+      trace.trace.steps[step - 1]?.map ModelTraceStep.resultingState
   | .observation step position => do
       let traceStep ← trace.trace.steps[step - 1]?
       traceStep.observations[position - 1]?
@@ -1051,11 +1051,11 @@ private partial def evaluateProvenanceExpression
     (trace : QualifiedTrace)
     (derivation : SemanticDerivation)
     (expression : CheckedObservationExpression)
-    (visited : List DeclarationId := []) : Except QualificationDiagnostic EvidenceValue := do
+    (visited : List DefinitionId := []) : Except QualificationDiagnostic EvidenceValue := do
   let failure : QualificationDiagnostic := {
     kind := .inconsistentDerivation
     planId := trace.mappingId
-    relatedIdentities := [derivation.ruleId]
+    relatedDefinitionIds := [derivation.ruleId]
   }
   match expression with
   | .text value => pure (.text value)
@@ -1135,7 +1135,7 @@ private partial def evaluateProvenanceExpression
             throw failure
           pure (.text first)
 
-private def coordinateKind : SemanticCoordinate → DeclarationKind
+private def coordinateKind : SemanticCoordinate → DefinitionKind
   | .initialState | .resultingState _ => .state
   | .selectedAction _ => .action
   | .modelOutcome _ => .outcome
@@ -1150,14 +1150,14 @@ private def validateCheckedProvenance
     | none => throw {
         kind := .inconsistentDerivation
         planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId]
+        relatedDefinitionIds := [derivation.ruleId]
       }
-  let value ← match semanticValueAt trace derivation.coordinate with
+  let value ← match modelValueAt trace derivation.coordinate with
     | some value => pure value
     | none => throw {
         kind := .inconsistentDerivation
         planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId]
+        relatedDefinitionIds := [derivation.ruleId]
       }
   let expectedBindings := canonicalIds <|
     expressionBindingIds plan rule.value ++
@@ -1173,7 +1173,7 @@ private def validateCheckedProvenance
         match ← evaluateProvenanceExpression trace derivation condition with
         | .boolean value => pure value
         | _ => pure false
-  if rule.output != value.identity ||
+  if rule.output != value.definitionId ||
       rule.outputKind != coordinateKind derivation.coordinate ||
       computedValue != .text value.value || !conditionHolds ||
       rule.meaning.semanticDigest != derivation.meaningDigest ||
@@ -1182,7 +1182,7 @@ private def validateCheckedProvenance
     throw {
       kind := .inconsistentDerivation
       planId := trace.mappingId
-      relatedIdentities := [derivation.ruleId]
+      relatedDefinitionIds := [derivation.ruleId]
     }
 
 /-- Revalidate a wrapper before any downstream property evaluation. -/
@@ -1218,7 +1218,7 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
       throw {
         kind := .inconsistentDerivation
         planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId]
+        relatedDefinitionIds := [derivation.ruleId]
       }
   if derivationEvidenceIds trace.derivations != canonicalIds trace.evidenceIdentities then
     throw { kind := .unconsumedReference, planId := trace.mappingId }
@@ -1232,7 +1232,7 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
       trace.derivations then
     throw { kind := .inconsistentDerivation, planId := trace.mappingId }
 
-/-- Qualify without exposing an intermediate or partially constructed semantic trace. -/
+/-- Qualify without exposing an intermediate or partially constructed Model Trace. -/
 def qualifyEvidence
     (plan : CheckedObservationPlan)
     (bundle : EvidenceBundle) : QualificationResult :=

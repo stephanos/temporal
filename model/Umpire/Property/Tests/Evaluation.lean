@@ -6,7 +6,7 @@ namespace Umpire.PropertyTests
 
 open Umpire
 
-def negativeTrace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+def negativeTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   positiveTrace with
   steps := positiveTrace.steps.mapIdx fun index step =>
     if index == 0 then { step with resultingState := value pendingCount "2" } else step
@@ -63,20 +63,20 @@ example :
     errorKindOf (checkProperty context (.portable hiddenReference)) = some .undeclaredReference := by
   native_decide
 
-def admittedObservationIds : Option (List DeclarationId) :=
+def admittedObservationIds : Option (List DefinitionId) :=
   (checkProperty context authoredProperty).toOption.map fun property =>
     (property.traceView positiveTrace).steps.flatMap fun step =>
-      step.observations.map SemanticValue.identity
+      step.observations.map ModelValue.definitionId
 
 example : admittedObservationIds.map (fun ids => ids.contains hiddenObservation) = some false := by
   native_decide
 
-def traceWithoutHidden : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue := {
+def traceWithoutHidden : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   positiveTrace with
   steps := positiveTrace.steps.map fun step => {
     step with
     observations := step.observations.filter fun observation =>
-      observation.identity != hiddenObservation
+      observation.definitionId != hiddenObservation
   }
 }
 

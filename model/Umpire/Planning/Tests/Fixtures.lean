@@ -6,29 +6,29 @@ namespace Umpire.PlanningTests
 
 open Umpire
 
-def id (value : String) : DeclarationId := DeclarationId.of value
+def id (value : String) : DefinitionId := DefinitionId.of value
 
-def source : SemanticSource := {
+def source : SourceLocation := {
   path := "Umpire/Planning/Tests.lean"
   line := 1
   column := 1
   provenance := "lean-test"
 }
 
-def phase : DeclarationId := id "planner.state.phase"
-def request : DeclarationId := id "planner.action.request"
-def accepted : DeclarationId := id "planner.outcome.accepted"
-def observed : DeclarationId := id "planner.observation.accepted"
-def role : DeclarationId := id "planner.role.operation"
-def occurrence : DeclarationId := id "planner.occurrence.request"
-def targetId : DeclarationId := id "planner.target.fixture"
-def kernelId : DeclarationId := id "planner.kernel.fixture"
+def phase : DefinitionId := id "planner.state.phase"
+def request : DefinitionId := id "planner.action.request"
+def accepted : DefinitionId := id "planner.outcome.accepted"
+def observed : DefinitionId := id "planner.observation.accepted"
+def role : DefinitionId := id "planner.role.operation"
+def occurrence : DefinitionId := id "planner.occurrence.request"
+def targetId : DefinitionId := id "planner.target.fixture"
+def kernelId : DefinitionId := id "planner.kernel.fixture"
 
 def metadata
-    (identity : DeclarationId)
-    (kind : DeclarationKind)
-    (contractDigest : String) : DeclarationMetadata := {
-  id := identity
+    (definitionId : DefinitionId)
+    (kind : DefinitionKind)
+    (contractDigest : String) : DefinitionMetadata := {
+  id := definitionId
   kind
   version := 1
   contractDigest
@@ -36,29 +36,29 @@ def metadata
   documentation := "planning fixture"
 }
 
-def value (identity : DeclarationId) (payload : String) : SemanticValue := {
-  identity
+def value (definitionId : DefinitionId) (payload : String) : ModelValue := {
+  definitionId
   value := payload
 }
 
-def initial : SemanticValue := value phase "initial"
-def completed : SemanticValue := value phase "completed"
-def requestValue : SemanticValue := value request "request"
-def acceptedValue : SemanticValue := value accepted "accepted"
-def observedValue : SemanticValue := value observed "accepted"
+def initial : ModelValue := value phase "initial"
+def completed : ModelValue := value phase "completed"
+def requestValue : ModelValue := value request "request"
+def acceptedValue : ModelValue := value accepted "accepted"
+def observedValue : ModelValue := value observed "accepted"
 def setup : List RoleBinding := [{ role, value := value phase "operation-a" }]
 
-def transition (_index : Nat) : TransitionResult SemanticValue SemanticValue SemanticValue := {
+def transition (_index : Nat) : TransitionResult ModelValue ModelValue ModelValue := {
   modelOutcome := acceptedValue
   resultingState := completed
   observations := [observedValue]
 }
 
-def transitions (width : Nat) : List (TransitionResult SemanticValue SemanticValue SemanticValue) :=
+def transitions (width : Nat) : List (TransitionResult ModelValue ModelValue ModelValue) :=
   (List.range (width + 1)).map transition
 
 def kernel (width : Nat) : TransitionKernel
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
     contractDigest := "planner-kernel/v1"
@@ -113,10 +113,10 @@ def finitePlanning (width : Nat) : FinitePlanningCapability (kernel width).autho
 }
 
 def targetDefinition (width : Nat) : TargetDefinition
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetId
   source
-  declarations := [
+  definitions := [
     metadata targetId .target "planner-target/v1",
     metadata kernelId .kernel "planner-kernel/v1"
   ]
@@ -126,7 +126,7 @@ def targetDefinition (width : Nat) : TargetDefinition
 }
 
 def targetAuthoring : AuthoredTarget (fun _ => True)
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
   AuthoredTarget.make (targetDefinition 0) TargetComposition.empty
     (.available (kernel 0) rfl (finitePlanning 0))
 

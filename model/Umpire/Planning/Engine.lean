@@ -6,14 +6,14 @@ namespace Umpire
 
 /-! Incremental, deterministic enumeration through a checked target's semantic relation. -/
 
-def semanticValueOrderKey (value : SemanticValue) : String :=
-  value.identity.value ++ "\u001f" ++ value.value
+def modelValueOrderKey (value : ModelValue) : String :=
+  value.definitionId.value ++ "\u001f" ++ value.value
 
 def transitionResultOrderKey
-    (result : TransitionResult SemanticValue SemanticValue SemanticValue) : String :=
-  semanticValueOrderKey result.modelOutcome ++ "\u001e" ++
-    semanticValueOrderKey result.resultingState ++ "\u001e" ++
-    String.intercalate "\u001d" (result.observations.map semanticValueOrderKey)
+    (result : TransitionResult ModelValue ModelValue ModelValue) : String :=
+  modelValueOrderKey result.modelOutcome ++ "\u001e" ++
+    modelValueOrderKey result.resultingState ++ "\u001e" ++
+    String.intercalate "\u001d" (result.observations.map modelValueOrderKey)
 
 /-- A backend exposes a single candidate and continuation per pull; Query owns policy and result
 semantics, while implementations own only incremental enumeration state. -/
@@ -33,12 +33,12 @@ claim-bearing evidence, and require canonical identity order for unseeded traver
 -/
 structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
   actionLimit : Nat
-  actionAt : Nat → Option SemanticValue
+  actionAt : Nat → Option ModelValue
   initialLimit : List RoleBinding → Nat
-  initialAt : List RoleBinding → Nat → Option SemanticValue
-  stepLimit : SemanticValue → SemanticValue → Nat
-  stepAt : SemanticValue → SemanticValue → Nat →
-    Option (TransitionResult SemanticValue SemanticValue SemanticValue)
+  initialAt : List RoleBinding → Nat → Option ModelValue
+  stepLimit : ModelValue → ModelValue → Nat
+  stepAt : ModelValue → ModelValue → Nat →
+    Option (TransitionResult ModelValue ModelValue ModelValue)
   actionSound : ∀ index action, index < actionLimit → actionAt index = some action →
     ∃ state result, target.kernel.authoritativeStep state action result
   actionComplete : ∀ state action result,
@@ -55,10 +55,10 @@ structure IncrementalPlannerKernel (target : QueryTarget LawStatement) where
     ∃ index, index < stepLimit state action ∧ stepAt state action index = some result
   actionOrdered : ∀ first second left right, first < second →
     actionAt first = some left → actionAt second = some right →
-      semanticValueOrderKey left ≤ semanticValueOrderKey right
+      modelValueOrderKey left ≤ modelValueOrderKey right
   initialOrdered : ∀ setup first second left right, first < second →
     initialAt setup first = some left → initialAt setup second = some right →
-      semanticValueOrderKey left ≤ semanticValueOrderKey right
+      modelValueOrderKey left ≤ modelValueOrderKey right
   stepOrdered : ∀ state action first second left right, first < second →
     stepAt state action first = some left → stepAt state action second = some right →
       transitionResultOrderKey left ≤ transitionResultOrderKey right
@@ -68,9 +68,9 @@ structure FiniteKernelOrder
     (target : QueryTarget LawStatement)
     (evidence : FiniteCompletenessEvidence LawStatement target) where
   action : evidence.actions.Pairwise fun left right =>
-    semanticValueOrderKey left ≤ semanticValueOrderKey right
+    modelValueOrderKey left ≤ modelValueOrderKey right
   initial : ∀ setup, (target.kernel.initialStates setup).Pairwise fun left right =>
-    semanticValueOrderKey left ≤ semanticValueOrderKey right
+    modelValueOrderKey left ≤ modelValueOrderKey right
   step : ∀ state action, (target.kernel.steps state action).Pairwise fun left right =>
     transitionResultOrderKey left ≤ transitionResultOrderKey right
 
@@ -149,10 +149,10 @@ def IncrementalPlannerKernel.ofCheckedQuery?
     (query : CheckedQuery LawStatement)
     (actionOrdered : ∀ evidence, query.completeness = some evidence →
       evidence.actions.Pairwise fun left right =>
-        semanticValueOrderKey left ≤ semanticValueOrderKey right)
+        modelValueOrderKey left ≤ modelValueOrderKey right)
     (initialOrdered : ∀ evidence, query.completeness = some evidence → ∀ setup,
       (query.target.kernel.initialStates setup).Pairwise fun left right =>
-        semanticValueOrderKey left ≤ semanticValueOrderKey right)
+        modelValueOrderKey left ≤ modelValueOrderKey right)
     (stepOrdered : ∀ evidence, query.completeness = some evidence → ∀ state action,
       (query.target.kernel.steps state action).Pairwise fun left right =>
         transitionResultOrderKey left ≤ transitionResultOrderKey right) :
@@ -169,7 +169,7 @@ def IncrementalPlannerKernel.ofCheckedQuery?
 private structure PlannerCursor where
   trace : BehaviorTrace
   nextAction : Nat := 0
-  currentAction : Option SemanticValue := none
+  currentAction : Option ModelValue := none
   nextOutcome : Nat := 0
   deriving BEq, DecidableEq, Repr
 
@@ -286,8 +286,8 @@ private def finalizePlanning
                 (.noSuchTraceWithinCompleteBounds, true)
   PlanningResult.mk outcome (planningMetadata query explored established)
 
-private def valueLe (left right : SemanticValue) : Bool :=
-  decide (semanticValueOrderKey left ≤ semanticValueOrderKey right)
+private def valueLe (left right : ModelValue) : Bool :=
+  decide (modelValueOrderKey left ≤ modelValueOrderKey right)
 
 private def bindingLe (left right : RoleBinding) : Bool :=
   decide (left.role.value < right.role.value) ||
@@ -298,7 +298,7 @@ private def canonicalSetup (setup : List RoleBinding) : List RoleBinding :=
 
 private def setupKey (setup : List RoleBinding) : String :=
   String.intercalate "\u001f" ((canonicalSetup setup).map fun binding =>
-    binding.role.value ++ "\u001e" ++ semanticValueOrderKey binding.value)
+    binding.role.value ++ "\u001e" ++ modelValueOrderKey binding.value)
 
 private def setupLe (left right : List RoleBinding) : Bool :=
   decide (setupKey left ≤ setupKey right)
@@ -335,15 +335,15 @@ private def seededIndex
 private def maximumDepth (query : CheckedQuery LawStatement) : Nat :=
   Nat.min query.bounds.behavior.transitions.value query.bounds.behavior.selectedActions.value
 
-private def rootTrace (setup : List RoleBinding) (initialState : SemanticValue) : BehaviorTrace := {
+private def rootTrace (setup : List RoleBinding) (initialState : ModelValue) : BehaviorTrace := {
   setup
   trace := { initialState, steps := [] }
 }
 
 private def appendStep
     (candidate : BehaviorTrace)
-    (action : SemanticValue)
-    (result : TransitionResult SemanticValue SemanticValue SemanticValue) : BehaviorTrace := {
+    (action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue) : BehaviorTrace := {
   candidate with trace := {
     candidate.trace with
     steps := candidate.trace.steps ++ [{
@@ -355,7 +355,7 @@ private def appendStep
   }
 }
 
-private def currentState (candidate : BehaviorTrace) : SemanticValue :=
+private def currentState (candidate : BehaviorTrace) : ModelValue :=
   match candidate.trace.steps.getLast? with
   | some step => step.resultingState
   | none => candidate.trace.initialState

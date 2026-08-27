@@ -2,6 +2,14 @@ import Umpire
 
 /-! Umbrella import contract for the reusable Umpire module family. -/
 
+#check Umpire.DefinitionId
+#check Umpire.DefinitionKind
+#check Umpire.DefinitionMetadata
+#check Umpire.DefinitionError
+#check Umpire.SourceLocation
+#check Umpire.ModelValue
+#check Umpire.ModelTraceStep
+#check Umpire.ModelTrace
 #check Umpire.TargetDeclaration
 #check Umpire.TargetDefinition
 #check Umpire.TargetComposition

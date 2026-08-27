@@ -9,12 +9,12 @@ open Umpire.TargetTests
 
 example : errorOf (composeTarget conflictingTarget) = some {
     kind := .conflictingProviders
-    declarationId := DeclarationId.of "test.relation.shared"
+    definitionId := DefinitionId.of "test.relation.shared"
     sourcePath := "Test/PrimarySemantic.lean"
     offendingValue := "test.relation.shared"
-    relatedIdentities := [
-      DeclarationId.of "test.provider.primary",
-      DeclarationId.of "test.provider.secondary"
+    relatedDefinitionIds := [
+      DefinitionId.of "test.provider.primary",
+      DefinitionId.of "test.provider.secondary"
     ]
   } := by
   native_decide

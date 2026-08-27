@@ -7,7 +7,7 @@ namespace Temporal.Tool.Inspect
 open _root_.Umpire
 
 inductive InspectionFailure where
-  | declaration (error : DeclarationError)
+  | declaration (error : DefinitionError)
   | property (error : PropertyError)
   | behavior (error : BehaviorError)
   | query (error : QueryError)
@@ -34,7 +34,7 @@ private def diagnostic (kind subject context : String) : String :=
     ",\"context\":" ++ quote context ++ "}\n"
 
 private def failureJson : InspectionFailure → String
-  | .declaration error => canonicalDeclarationErrorJson error ++ "\n"
+  | .declaration error => canonicalDefinitionErrorJson error ++ "\n"
   | .property error => canonicalPropertyErrorJson error ++ "\n"
   | .behavior error => canonicalBehaviorErrorJson error ++ "\n"
   | .query error => canonicalQueryErrorJson error ++ "\n"

@@ -9,7 +9,7 @@ open Umpire
 def completeQualification : QualificationResult :=
   qualifyFixture completeEvidence
 
-/-- Complete closed evidence produces the independently authored semantic trace. -/
+/-- Complete closed evidence produces the independently authored Model Trace. -/
 example : (qualifiedOf completeQualification).map QualifiedTrace.trace = some expectedTrace := by
   native_decide
 
@@ -194,7 +194,7 @@ example :
       .unknown {
         kind := .compatibleAlternatives
         planId := qualificationDeclaration.id
-        relatedIdentities := [id "test.interpretation.a", id "test.interpretation.b"]
+        relatedDefinitionIds := [id "test.interpretation.a", id "test.interpretation.b"]
         alternatives := [id "test.interpretation.a", id "test.interpretation.b"]
         missingDiscriminator := some (id "test.evidence.field.discriminator")
       },

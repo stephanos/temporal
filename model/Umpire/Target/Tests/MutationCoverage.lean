@@ -8,9 +8,9 @@ namespace Umpire.TargetTests
 
 open Umpire
 
-def invalidIdentityTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+def invalidDefinitionIdTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
   testTarget with
-  declarations := metadata "action" .action :: testDeclarations
+  definitions := metadata "action" .action :: testDefinitions
 }
 
 def mismatchedLawProvider : CapabilityProvider TestLawStatement := {
@@ -34,28 +34,28 @@ def uncoveredCapabilityTarget : TargetDeclaration TestLawStatement Unit Bool Boo
 
 def authoredMutation
     (declaration : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool)
-    (identity : DeclarationId)
+    (definitionId : DefinitionId)
     (role : AuthoringOccurrenceRole)
-    (owner : DeclarationId)
+    (owner : DefinitionId)
     (line : Nat)
     (context : AuthoringOccurrenceContext := .direct) :
     AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
   authoringOf declaration (occurrences := [{
     id := occurrenceId line 2 line 20 0
-    declarationId := identity
+    definitionId
     path := { role, owner, context }
   }])
 
 def duplicateMutation : AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
-  authoringOf duplicateIdentityTarget (occurrences := [
-    occurrence testTarget.id .declarationMetadata testTarget.id 32,
-    occurrence testTarget.id .declarationMetadata testTarget.id 31
+  authoringOf duplicateDefinitionIdTarget (occurrences := [
+    occurrence testTarget.id .definitionMetadata testTarget.id 32,
+    occurrence testTarget.id .definitionMetadata testTarget.id 31
   ])
 
 def locatedMutationSummary
     (result : Except AuthoringDiagnostic
       (CheckedTarget TestLawStatement Unit Bool Bool Bool Bool)) :
-    Option (DeclarationErrorKind × AuthoringOccurrenceRole × String × Nat × Nat) :=
+    Option (DefinitionErrorKind × AuthoringOccurrenceRole × String × Nat × Nat) :=
   match result with
   | .ok _ => none
   | .error diagnostic => some
@@ -63,14 +63,14 @@ def locatedMutationSummary
         diagnostic.offending.line, diagnostic.offending.column)
 
 def targetMutationResults :
-    List (Option (DeclarationErrorKind × AuthoringOccurrenceRole × String × Nat × Nat)) := [
+    List (Option (DefinitionErrorKind × AuthoringOccurrenceRole × String × Nat × Nat)) := [
   locatedMutationSummary <| checkTarget <|
-    authoredMutation emptyIdentityTarget (id "") .declarationMetadata (id "") 10,
+    authoredMutation emptyDefinitionIdTarget (id "") .definitionMetadata (id "") 10,
   locatedMutationSummary <| checkTarget <|
-    authoredMutation invalidIdentityTarget (id "action") .declarationMetadata (id "action") 20,
+    authoredMutation invalidDefinitionIdTarget (id "action") .definitionMetadata (id "action") 20,
   locatedMutationSummary (checkTarget duplicateMutation),
   locatedMutationSummary <| checkTarget <|
-    authoredMutation unknownIdentityTarget (id "test.capability.missing")
+    authoredMutation unknownDefinitionIdTarget (id "test.capability.missing")
       .capabilityRequirement testTarget.id 40,
   locatedMutationSummary <| checkTarget <|
     authoredMutation wrongKindTarget (id "test.action.request")
@@ -94,10 +94,10 @@ def targetMutationResults :
 ]
 
 example : targetMutationResults = [
-    some (.emptyIdentity, .declarationMetadata, "Test/TargetAuthoring.lean", 10, 2),
-    some (.invalidIdentity, .declarationMetadata, "Test/TargetAuthoring.lean", 20, 2),
-    some (.duplicateIdentity, .declarationMetadata, "Test/TargetAuthoring.lean", 32, 2),
-    some (.unknownIdentity, .capabilityRequirement, "Test/TargetAuthoring.lean", 40, 2),
+    some (.emptyDefinitionId, .definitionMetadata, "Test/TargetAuthoring.lean", 10, 2),
+    some (.invalidDefinitionId, .definitionMetadata, "Test/TargetAuthoring.lean", 20, 2),
+    some (.duplicateDefinitionId, .definitionMetadata, "Test/TargetAuthoring.lean", 32, 2),
+    some (.unknownDefinitionId, .capabilityRequirement, "Test/TargetAuthoring.lean", 40, 2),
     some (.wrongKind, .capabilityRequirement, "Test/TargetAuthoring.lean", 50, 2),
     some (.missingLaw, .lawRequirement, "Test/TargetAuthoring.lean", 60, 2),
     some (.unexpectedLaw, .lawWitness, "Test/TargetAuthoring.lean", 70, 2),
