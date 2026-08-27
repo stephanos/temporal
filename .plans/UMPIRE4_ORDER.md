@@ -25,74 +25,43 @@ complete production platform. In particular:
 - Exploration prioritizes an uncovered Model Coordinate and retains an Exact Replay and reviewed
   regression proposal.
 
-All retained specs must be reduced to the scope stated below before implementation. Following their
-current dependency graph unchanged would pull deferred platform work back into the prototype.
-
-Make only these epic-level dependency edits:
-
-- add fn-31 and fn-4 as prerequisites of fn-37, then make every open spec that consumes the renamed
-  model, Observation, Artifact, Generated View, Implementation Link, Run Evaluation, replay, or
-  Claim Assessment vocabulary depend on fn-37;
-- remove fn-15 from fn-5;
-- remove fn-17 and fn-33 from fn-22 while retaining its existing model, Artifact, Run Evaluation,
-  fn-21 control, and fn-5 promotion prerequisites;
-- remove fn-24 and fn-26 from fn-27;
-- remove fn-26 from fn-28.
-
-All other epic-level dependencies remain unchanged. Apply the same retained/deferred boundary inside
-each reduced spec: a retained task must not depend on a deferred task solely to inherit broader
-machinery. Split mixed tasks at that boundary and connect the retained path to its nearest retained
-prerequisite. The numbered sections below express delivery priority, not additional hard dependencies.
+Open specs must retain the reduced scope stated below. A retained task must not depend on a deferred
+task solely to inherit broader machinery. Split mixed tasks at that boundary and connect the retained
+path to its nearest retained prerequisite. The numbered sections below express delivery priority,
+not additional hard dependencies.
 
 ## P0 — Foundations
 
-### 1. fn-37 — Hard-cut Umpire vocabulary and current Artifacts
+### 1. fn-38 — Consolidate layered model helpers without API churn
 
-Replace the legacy source and wire vocabulary in one deliberate break after the active fn-31 and
-fn-4 work settles. Rename public Lean APIs, Observation Evaluation, persisted DrivePlan and
-ExperimentSpec fields, Go consumers, Generated Views, fixtures, and documentation together. Emit
-only `umpire-drive-plan/v2` and `umpire-experiment/v2`; old prototype Artifacts become invalid.
+Move repeated Definition ID, Source Location, and Definition Metadata construction into the
+narrowest valid helper layer. Use `Umpire.Shared` for reusable Umpire production construction,
+`Umpire.Shared.Test` for proven Umpire fixture reuse, and `Temporal.Shared` for Temporal-specific
+production construction. Keep `Shared.Test` and `Temporal.Shared.Test` absent until a concrete,
+multi-consumer helper qualifies for those ownership boundaries.
 
-Definition IDs, Behavior Fingerprints, and Artifact Checksums must become separate types with
-separate meanings. Remove compatibility aliases, forwarding modules, v1 readers, and v1 migrations.
-Keep the cutover limited to the current Switch/Nexus planning and Artifact vertical slice; fn-18
-still owns the future persisted Artifact families.
+Preserve every existing public declaration, import path, observable value, and comment. Existing
+Switch and Nexus modules remain the consumer-facing facades and delegate internally. Extend the
+executable import policy so production code cannot reach test-support modules and
+`Temporal.Shared` cannot reach Feature or System modules. Fn-38 is next in the remaining queue.
 
-Fn-37 is first in the remaining queue, but its Flow dependencies intentionally allow the already
-active fn-31 and fn-4 implementations to finish before the hard cut begins.
-
-### 2. fn-31 — Deepen Umpire Target and simplify Temporal target authoring
-
-Make the Nexus model concise and approachable while preserving its existing semantics. Stop after
-the domain-neutral Switch and Temporal Nexus targets prove the smaller public boundary. Do not add a
-general model AST, second authoring language, or speculative compatibility facade.
-
-This work is already in progress and can proceed alongside fn-4.
-
-### 3. fn-4 — Umpire observation and semantic verdicts
-
-Finish the evidence-to-verdict seam required by the live prototype. Retain the reusable Observation
-boundary, Evidence Links, strict outcomes, and only the synthetic/Nexus Evidence needed by
-the two examples. Retain concise documentation for that reduced Observation API and live handoff;
-defer the broader cross-layer mutation matrix and documentation surface.
-
-### 4. fn-32 — Add the first Umpire Implementation Link and Temporal Feature/System correspondence
+### 2. fn-32 — Add the first Umpire Implementation Link and Temporal Feature/System correspondence
 
 Relate one Nexus System Model Trace to its independently authored Feature meaning. Keep Observation,
 Implementation Link, and Property failures distinct. This is the model seam that lets local and
 black-box Execution share the same Feature Property without leaking implementation Evidence into it.
 
-### 5. fn-16 — Authored variation spaces and deterministic batch compilation
+### 3. fn-16 — Authored variation spaces and deterministic batch compilation
 
 Reduce the general space design to one small Nexus matrix, such as two binary axes, plus the single
 duplicate-delivery Fault Request. Compile the selected points deterministically through the existing
 target-owned planner. Defer generalized coverage vocabularies, arbitrary spaces, and broad catalog
 integration.
 
-### 6. fn-18 — Versioned Umpire Artifact boundary
+### 4. fn-18 — Versioned Umpire Artifact boundary
 
-Start from fn-37's v2-only DrivePlan and ExperimentSpec contract and implement only the additional
-strict formats needed by the prototype:
+Start from the current v2-only DrivePlan and ExperimentSpec contract and implement only the
+additional strict formats needed by the prototype:
 
 - `RuntimeConfiguration`;
 - `ExperimentRun`;
@@ -101,7 +70,7 @@ strict formats needed by the prototype:
 
 Retain fail-closed admission for one complete prototype artifact set, including strict
 cross-document identity closure and one immutable atomic publication/loading path that never exposes
-a partial or mixed set. Fn-37 owns the current v2 Definition ID, Behavior Fingerprint, canonical
+a partial or mixed set. Preserve the current v2 Definition ID, Behavior Fingerprint, canonical
 content, and Artifact Checksum formulas. Compile the retained model intent once through fn-16,
 complete its executable contract through fn-18, and require every Execution boundary to consume the
 same published bytes and identifiers without recompilation. Reject v1, malformed, stale, oversized,
@@ -111,7 +80,7 @@ recovery, and artifact-management CLI surfaces.
 
 ## P1 — First complete vertical slice
 
-### 7. fn-19 — Bounded local Temporal execution and SDK participant
+### 5. fn-19 — Bounded local Temporal execution and SDK participant
 
 Execute the normal Nexus caller-closure example in one ephemeral Temporal environment. Use one
 closed preprogrammed SDK participant, resolve the operation/run identifiers at runtime, capture
@@ -121,7 +90,7 @@ profiles, or the local test environment into platforms.
 Consume the normal fn-18-published executable `ExperimentSpec` built from fn-16's checked intent
 without recompiling it.
 
-### 8. fn-20 — Local Run Evaluation
+### 6. fn-20 — Local Run Evaluation
 
 Interpret the local Run through the checked Nexus Observation and Implementation Link declarations
 and then evaluate the unchanged Feature Property. The Result must distinguish operational success,
@@ -130,7 +99,7 @@ intentionally skewed wall-clock timestamps whose sorted order contradicts the ca
 order. Use a Model Trace whose Observation Evaluation or Property Result would change under
 timestamp sorting, then assert the expected Evidence Link and Result.
 
-### 9. fn-21 — Nexus duplicate-observation control
+### 7. fn-21 — Nexus duplicate-observation control
 
 Run the second example. The same model and normal target-owned plan carry one explicit Fault Request.
 The participant realizes one labeled duplicate-delivery observation, the Evidence layer records a
@@ -145,7 +114,7 @@ fault-induced violation using the same model.
 
 ## P2 — Portability proof
 
-### 10. fn-27 — Hermetic CI execution
+### 8. fn-27 — Hermetic CI execution
 
 Run the byte-identical normal `ExperimentSpec` consumed by fn-19 through the ordinary CI test command
 and the same runner/Run Evaluation interfaces used locally. Its Artifact Checksum, format version,
@@ -153,7 +122,7 @@ and Behavior Fingerprints must match the local subject. Reject recompilation or 
 without introducing a new provenance schema. Do not build CI Claim Assessment profiles, provenance schemas,
 new artifact-set versions, or release evidence.
 
-### 11. fn-28 — Black-box staging execution
+### 9. fn-28 — Black-box staging execution
 
 Run the same normal `ExperimentSpec` against one controlled nonproduction endpoint using only public
 gRPC Evidence plus participant-owned Execution Receipts. Before implementation, name the owner-supplied fixed
@@ -169,7 +138,7 @@ and Evidence contract can be bound without granting production Execution authori
 
 ## P3 — Exploration and regression lifecycle
 
-### 12. fn-5 — Umpire discovery, promotion, and Artifact evolution
+### 10. fn-5 — Umpire discovery, promotion, and Artifact evolution
 
 Reduce this spec to two capabilities:
 
@@ -179,7 +148,7 @@ Reduce this spec to two capabilities:
 Defer the generic semantic graph, generated glossary, machine index, broad stable regression set,
 and general artifact evolution.
 
-### 13. fn-17 — Bounded model exploration and coverage
+### 11. fn-17 — Bounded model exploration and coverage
 
 Select experiments deterministically from the small fn-16 Nexus space. Support bounded exhaustive
 enumeration and one semantic-coverage-guided policy that prioritizes an uncovered coordinate. Keep
@@ -189,14 +158,14 @@ proofs, multiple source kinds, generalized resume state, and adaptive corpora.
 Keep the uncovered-coordinate policy independent of the deferred symmetry, generalized reporting,
 and resume machinery when reducing the existing mixed tasks.
 
-### 14. fn-33 — Run model exploration campaigns with umpire-fuzz
+### 12. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 Reduce the campaign to a serial bounded `umpire-fuzz run` command that asks the Lean-owned
 exploration layer for candidates, executes them through the existing runner/Run Evaluation path, and
 reports semantic coverage and exhaustion honestly. Defer concurrency, leases, crash-safe campaign
 state, and resume.
 
-### 15. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### 13. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
 Consume the fn-21 violation, reproduce it exactly, and try every applicable authored reduction in a
 fixed order while preserving the same violation. The exact control may complete as irreducible; its
@@ -253,9 +222,8 @@ Complete this gate after P2 and before starting P3:
 The existing Flow IDs may be retained for history, but the minimal roadmap has five conceptual
 delivery specs:
 
-1. **Hard-cut the vocabulary and current Artifact baseline:** fn-37 after its active fn-31/fn-4
-   prerequisites.
-2. **Author and interpret the Nexus model:** fn-31, fn-4, and fn-32.
+1. **Consolidate layered model helpers:** fn-38, preserving the current public API.
+2. **Complete Nexus Feature/System interpretation:** fn-32.
 3. **Compile portable experiments:** fn-16 and the minimal fn-18 boundary.
 4. **Execute and judge two Nexus examples portably:** fn-19, fn-20, fn-21, and the minimal fn-27/fn-28
    portability checks.
