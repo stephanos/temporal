@@ -43,6 +43,6 @@ Verification is green for the scoped scanner fixtures and legacy gate, focused T
 
 stage: impl-review - ran [Codex NEEDS_WORK -> SHIP; 2026-08-27T19:29:08Z..2026-08-27T19:43:53Z; session 01a044aa-eeac-7b62-9416-d0e5ce9869d3]
 ## Evidence
-- Commits: e10de777f57ff185093565f7727abf76f91550f7, 3487371bd3be99e64328dce65ed80f230c0dd618
+- Commits: e10de777f696c84695302b901a6329bbad070ebe, 3487371bd3be99e64328dce65ed80f230c0dd618
 - Tests: mise exec -- go test ./tools/umpire/vocabulary -run 'TestLegacyVocabularyGate|TestCheckPathsRejectsLegacyTokens|TestCheckPathsAllowsOrdinaryEnglishAndExcludedHistory', mise exec -- make umpire-check-legacy-vocabulary, cd model && mise exec -- lake build Umpire.Target.Tests.Compatibility, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, mise exec -- go test ./tools/umpire/..., mise exec -- make umpire-check-regression-views, mise exec -- make umpire-check-regression, mise exec -- make umpire-gen-lean-api-fixture, /home/agent/.codex/scripts/flowctl validate --spec <each of fn-5,fn-18,fn-19,fn-20,fn-21,fn-22,fn-24,fn-25,fn-26,fn-27,fn-28,fn-29,fn-30,fn-32,fn-33>, /home/agent/.codex/scripts/flowctl ready --spec <each of fn-5,fn-18,fn-19,fn-20,fn-21,fn-22,fn-24,fn-25,fn-26,fn-27,fn-28,fn-29,fn-30,fn-32,fn-33>
 - PRs:
