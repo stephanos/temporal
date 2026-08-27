@@ -37,9 +37,11 @@ Implement the pure checked-plan plus typed-bundle qualification boundary for R2-
 - [ ] No failure exposes a partial `SemanticTrace`.
 
 ## Done summary
-TBD
+Implemented pure bounded Observation qualification with canonical conflict handling, complete binding validation, identity-bound traces, and globally checked ordering and closure provenance. Focused Observation, full regression, and model-lint gates pass; the future task fn-4.4 Nexus Observation target remains absent as it was at baseline.
 
+baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task fn-4.4 target absent)
+stage: impl-review - ran [2026-08-27T07:06:55Z..2026-08-27T07:17:55Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 452b16ef4026fffd980dd3787188ce06b2fa4b12, f15bf8df3e42e068f4da2216ff020e375a618ecb
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests, baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task fn-4.4 target absent), cd model && mise exec -- lake build Umpire.Observation.Tests.Qualification Umpire.Observation.Tests.Derivation Umpire.Observation.Tests.Disposition Umpire.Observation.Tests, make umpire-check-regression, make lint-model
 - PRs:
