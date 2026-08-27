@@ -250,14 +250,16 @@ Complete this gate after P2 and before starting P3:
 
 ## Preferred consolidation
 
-The existing Flow IDs may be retained for history, but the minimal roadmap has four conceptual
+The existing Flow IDs may be retained for history, but the minimal roadmap has five conceptual
 delivery specs:
 
-1. **Author and interpret the Nexus model:** fn-31, fn-4, and fn-32.
-2. **Compile portable experiments:** fn-16 and the minimal fn-18 boundary.
-3. **Execute and judge two Nexus examples portably:** fn-19, fn-20, fn-21, and the minimal fn-27/fn-28
+1. **Hard-cut the vocabulary and current Artifact baseline:** fn-37 after its active fn-31/fn-4
+   prerequisites.
+2. **Author and interpret the Nexus model:** fn-31, fn-4, and fn-32.
+3. **Compile portable experiments:** fn-16 and the minimal fn-18 boundary.
+4. **Execute and judge two Nexus examples portably:** fn-19, fn-20, fn-21, and the minimal fn-27/fn-28
    portability checks.
-4. **Explore, replay, and promote:** fn-5, fn-17, fn-33, and fn-22.
+5. **Explore, replay, and promote:** fn-5, fn-17, fn-33, and fn-22.
 
 The first decision point is the completion of the normal fn-19/fn-20 path. The second is completion
 of the fn-21 negative control. Complete the reduced portability proof after that second gate and
