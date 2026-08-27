@@ -127,6 +127,43 @@ def CompletenessRequirement.name : CompletenessRequirement → String
   | .stepEnumeration => "sound-complete-step-enumerator"
   | .kernelRelation => "target-kernel-relation"
 
+private def finiteDomainQuote (value : String) : String := Lean.Json.compress (.str value)
+
+private def finiteDomainArray (items : List String) : String :=
+  "[" ++ String.intercalate "," items ++ "]"
+
+private def modelValueLe (left right : ModelValue) : Bool :=
+  compare left right != .gt
+
+private def roleAssignmentLe (left right : List RoleBinding) : Bool :=
+  compare left right != .gt
+
+private def canonicalRoleAssignments
+    (assignments : List (List RoleBinding)) : List (List RoleBinding) :=
+  assignments.mergeSort roleAssignmentLe
+
+private def canonicalActions (actions : List ModelValue) : List ModelValue :=
+  actions.mergeSort modelValueLe
+
+private def finiteDomainValueJson (value : ModelValue) : String :=
+  "{\"definitionId\":" ++ finiteDomainQuote value.definitionId.value ++
+    ",\"value\":" ++ finiteDomainQuote value.value ++ "}"
+
+private def finiteDomainBindingJson (binding : RoleBinding) : String :=
+  "{\"role\":" ++ finiteDomainQuote binding.role.value ++
+    ",\"value\":" ++ finiteDomainValueJson binding.value ++ "}"
+
+private def roleAssignmentJson (assignment : List RoleBinding) : String :=
+  finiteDomainArray (assignment.map finiteDomainBindingJson)
+
+private def roleDomainFingerprintOf (assignments : List (List RoleBinding)) : BehaviorFingerprint :=
+  behaviorFingerprintOf <| "query-role-domain/v1\n" ++
+    finiteDomainArray (assignments.map roleAssignmentJson)
+
+private def actionDomainFingerprintOf (actions : List ModelValue) : BehaviorFingerprint :=
+  behaviorFingerprintOf <| "query-action-domain/v1\n" ++
+    finiteDomainArray (actions.map finiteDomainValueJson)
+
 /-- An incomplete target remains representable at the Query boundary only so checking can reject
 it before any backend is initialized. -/
 structure CheckedQueryTarget (LawStatement : LawDefinition → Prop) where
@@ -139,17 +176,17 @@ def CheckedQueryTarget.ofTarget
     (target : QueryTarget LawStatement) : CheckedQueryTarget LawStatement :=
   match target.planning with
   | .unavailable => { target }
-  | .available capability => {
+  | .available capability =>
+    let roleAssignments := target.resolvedSetups
+    let actions := capability.actions
+    {
       target
       completeness := some {
-        roleAssignments := target.resolvedSetups
-        actions := capability.actions
-        roleDomainFingerprint := behaviorFingerprintOf <|
-          "query-role-domain/v1\n" ++ String.intercalate "\u001f"
-            target.behaviorDescription.setups
-        actionDomainFingerprint := behaviorFingerprintOf <|
-          "query-action-domain/v1\n" ++ String.intercalate "\u001f"
-            target.behaviorDescription.actions
+        roleAssignments
+        actions
+        roleDomainFingerprint := roleDomainFingerprintOf
+          (canonicalRoleAssignments roleAssignments)
+        actionDomainFingerprint := actionDomainFingerprintOf actions
         roleSound := by
           intro setup member
           exact member
@@ -201,6 +238,7 @@ inductive QueryErrorKind where
   | incompatibleStrategy
   | missingFiniteCompleteness
   | targetKernelMismatch
+  | duplicateFiniteDomain
   deriving BEq, DecidableEq, Ord, Repr
 
 def QueryErrorKind.name : QueryErrorKind → String
@@ -215,6 +253,7 @@ def QueryErrorKind.name : QueryErrorKind → String
   | .incompatibleStrategy => "incompatible-strategy"
   | .missingFiniteCompleteness => "missing-finite-completeness"
   | .targetKernelMismatch => "target-kernel-mismatch"
+  | .duplicateFiniteDomain => "duplicate-finite-domain"
 
 structure QueryError where
   kind : QueryErrorKind
@@ -280,6 +319,30 @@ private def firstDuplicateProperty : List CheckedProperty → Option CheckedProp
   | first :: second :: rest =>
       if first.id == second.id then some first else firstDuplicateProperty (second :: rest)
   | _ => none
+
+private def firstDuplicate [BEq α] : List α → Option α
+  | first :: second :: rest =>
+      if first == second then some first else firstDuplicate (second :: rest)
+  | _ => none
+
+private def validateFiniteDomains
+    (declaration : QueryDeclaration)
+    (evidence : Option (FiniteCompletenessEvidence LawStatement target)) :
+    Except QueryError Unit := do
+  match evidence with
+  | none => pure ()
+  | some evidence =>
+      match firstDuplicate (canonicalRoleAssignments evidence.roleAssignments) with
+      | some duplicate =>
+          throw (queryError .duplicateFiniteDomain declaration
+            ("role-assignment:" ++ roleAssignmentJson duplicate)
+            (duplicate.map RoleBinding.role))
+      | none => pure ()
+      match firstDuplicate (canonicalActions evidence.actions) with
+      | some duplicate =>
+          throw (queryError .duplicateFiniteDomain declaration
+            ("action:" ++ finiteDomainValueJson duplicate) [duplicate.definitionId])
+      | none => pure ()
 
 private def validateDefinitionId (declaration : QueryDeclaration) : Except QueryError Unit :=
   if declaration.id.value == "" then
@@ -451,6 +514,7 @@ def checkQuery
   validateStrategy declaration
   validateProperties declaration target
   validateExactTrace declaration target
+  validateFiniteDomains declaration checkedTarget.completeness
   if declaration.policy.strategy == .exhaustive && checkedTarget.completeness.isNone then
     throw (queryError .missingFiniteCompleteness declaration "finite role/action domains"
       [target.id, target.kernel.metadata.id])

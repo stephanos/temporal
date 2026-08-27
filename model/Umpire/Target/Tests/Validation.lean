@@ -149,4 +149,26 @@ def compatibleTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bo
 example : (composeTarget compatibleTarget).isOk = true := by
   native_decide
 
+def collidingStateEncodingKernel : TransitionKernel Unit Bool Bool Bool Bool := {
+  testKernel with
+  behaviorDomain := match testKernel.behaviorDomain with
+    | .complete domain => .complete { domain with encodeState := fun _ => "state" }
+    | .missing => .missing
+    | .incomplete missing => .incomplete missing
+}
+
+def collidingStateEncodingTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := {
+  testTarget with kernel := .checked collidingStateEncodingKernel
+}
+
+/-- A complete finite domain still fails closed when its canonical encoder collapses values. -/
+example : (errorOf (composeTarget collidingStateEncodingTarget)) = some {
+    kind := .incompleteBehaviorDomain
+    definitionId := testTarget.id
+    sourcePath := "Umpire/TargetTests.lean"
+    offendingValue := "state-encoding"
+    relatedDefinitionIds := [testKernel.metadata.id]
+  } := by
+  native_decide
+
 end Umpire.TargetTests

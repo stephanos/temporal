@@ -52,9 +52,37 @@ example : ((checkQuery exhaustiveContext
           evidence.roleDomainFingerprint.render, evidence.actionDomainFingerprint.render)) =
       some ([setup], [requestValue],
         (behaviorFingerprintOf <|
-          "query-role-domain/v1\n" ++ String.intercalate "\u001f" target.behaviorDescription.setups).render,
+          "query-role-domain/v1\n[[{\"role\":\"query.role.operation\",\"value\":" ++
+            "{\"definitionId\":\"query.state.phase\",\"value\":\"operation-a\"}}]]").render,
         (behaviorFingerprintOf <|
-          "query-action-domain/v1\n" ++ String.intercalate "\u001f" target.behaviorDescription.actions).render) := by
+          "query-action-domain/v1\n[{\"definitionId\":\"query.action.request\"," ++
+            "\"value\":\"request\"}]").render) := by
+  native_decide
+
+def duplicateActionPlanning : FinitePlanningCapability kernel.authoritativeStep := {
+  actions := [requestValue, requestValue]
+  actionSound := by
+    intro action member
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+    rcases member with member | member <;> subst action
+    · exact ⟨initial, transition, rfl, rfl, rfl⟩
+    · exact ⟨initial, transition, rfl, rfl, rfl⟩
+  actionComplete := by
+    intro state action result admitted
+    simp [admitted.2.1]
+}
+
+def duplicateActionAuthoring : AuthoredTarget (fun _ => True)
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
+  AuthoredTarget.make targetDefinition targetComposition
+    (.available kernel rfl duplicateActionPlanning)
+
+def duplicateActionContext : QueryCheckContext (fun _ => True) :=
+  .ofTarget (checkedTarget duplicateActionAuthoring)
+
+/-- Duplicate finite actions reject before Planning can enumerate a different candidate domain. -/
+example : errorKindOf (checkQuery duplicateActionContext
+    (declaration (.verify checkedProperty) exhaustivePolicy)) = some .duplicateFiniteDomain := by
   native_decide
 
 /-! Completeness follows the exhaustive strategy, not a particular query form. -/

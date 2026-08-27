@@ -29,7 +29,7 @@ func TestRequireProjectionIsIndependentOfWorkingDirectory(t *testing.T) {
 			"nexus.observation.pending-cancellation-count",
 			"workflow-nexus.relation.owns-operation",
 		},
-		SemanticFingerprint: "sha256:8c2ba27730181616819a2bb4e0f083bc2ebfd6e3fc6df7717025539e95a3a46f",
+		SemanticFingerprint: "sha256:4e04aacc52a317a0c9341652f32f6416e9158168af8a2e94c7bae5e0a8f32563",
 	})
 }
 

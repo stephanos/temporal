@@ -200,11 +200,11 @@ example : ownershipObservation.value = "true" := by
 example : exactActionQuery.completeness.map (fun evidence =>
     (evidence.roleAssignments, evidence.actions,
       evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
-    some ([clashSetup], [forceCloseAction],
-      behaviorFingerprintOf ("query-role-domain/v1\n" ++
-        String.intercalate "\u001f" target.behaviorDescription.setups),
-      behaviorFingerprintOf ("query-action-domain/v1\n" ++
-        String.intercalate "\u001f" target.behaviorDescription.actions)) := by
+    (CheckedQueryTarget.ofTarget target).completeness.map (fun evidence =>
+      (evidence.roleAssignments, evidence.actions,
+        evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) ∧
+    exactActionQuery.completeness.map (fun evidence =>
+      (evidence.roleAssignments, evidence.actions)) = some ([clashSetup], [forceCloseAction]) := by
   native_decide
 
 example : exactActionQueryResult.toOption.map canonicalQueryJson =
