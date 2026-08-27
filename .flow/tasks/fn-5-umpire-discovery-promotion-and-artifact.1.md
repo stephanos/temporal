@@ -12,7 +12,7 @@ Create the domain-neutral catalog language and checker for R1/R3/R7.
 
 ### Approach
 
-- Define catalog entries, aliases, deprecations, references, dispositions, checked graph identity, exact lookup, and structured errors over existing checked declaration metadata plus fn-16's `CheckedSpaceMetadata` projection.
+- Define catalog entries, aliases, deprecations, references, dispositions, checked graph identity, exact lookup, and structured errors over existing checked declaration metadata plus fn-16's `CheckedSpaceMetadata` Generated View.
 - Validate the complete graph before constructing `CheckedCatalog`; do not copy clauses, traces, kernels, or planner logic.
 - Make authoring-order permutations canonical and keep constructors for checked values private.
 

@@ -19,7 +19,7 @@ Build the strict operational trust boundary for R2: canonical retention, the sig
 ### Approach
 - Use Go's standard Ed25519 implementation behind small verifier/signer interfaces; sign canonical payload bytes under an explicit record/version domain and exclude only the signature field.
 - Apply strict, size-bounded, one-value decoding; duplicate/unknown fields, trailing bytes, noncanonical encodings, unsupported algorithms/roles/versions, bad signatures, invalid validity order, crossed identity, and key-role ambiguity are invalid.
-- Define strict `ReleaseEvidenceIndex/v1` bytes: candidate, fixed retention collection, invocation, issued/15-minute expiry, exactly seven ordered present/gap slots, closed present bindings, three closed gap reasons, signature domain, `release-evidence-index` role, and size limits.
+- Define strict `ReleaseEvidenceIndex/v2` bytes: candidate, fixed retention collection, invocation, issued/15-minute expiry, exactly seven ordered present/gap slots, closed present bindings, three closed gap reasons, signature domain, `release-evidence-index` role, and size limits.
 - Distinguish checked authentic-but-stale records (held) and current-snapshot revocation facts (rejected/non-authorizing) from malformed/untrusted bytes or indexes (invalid, no graph).
 - Resolve public keys and append-only revocations from one current signed trust snapshot. The retention/evidence-index/role-decision signer modes read one fixed `UMPIRE_RELEASE_SIGNING_KEY_B64` secret, derives its unique active key/role, accepts no key/role/algorithm selector, enforces lifetime caps, publishes mode-0600 output, redacts errors, and clears decoded key buffers.
 - Model exact candidate, source set/receipt, target fingerprint, occupancy/run interval, workflow ref/SHA, retention identity, issuance, and expiry bindings without changing source artifacts or minting build/deployment authority claims.
@@ -35,16 +35,16 @@ Build the strict operational trust boundary for R2: canonical retention, the sig
 - `tools/common/artifactio/set_test.go` — interruption, symlink, and concurrent-publication test style
 
 ### Acceptance
-- [ ] Canonical round trips and domain-separated verification succeed for every v1 record and reject all malformed, malleable, crossed, wrong-role/version/domain, and limit+1 fixtures.
+- [ ] Canonical round trips and domain-separated verification succeed for every v2 record and reject all malformed, malleable, crossed, wrong-role/version/domain, and limit+1 fixtures.
 - [ ] Known authentic expiry becomes a checked stale value, current-snapshot revocation becomes a checked rejection/non-authorizing fact, and trust-snapshot expiry or untrusted bytes yield invalid/no graph.
 - [ ] Trust resolution proves role/key uniqueness and fixed root authority without accepting arbitrary algorithms, clocks, repositories, URLs, key IDs, or role selectors.
-- [ ] Evidence-index codec/signer tests cover seven-slot order/cardinality, present bindings, closed gaps, candidate/invocation/retention binding, 15-minute expiry, fixed role, and tamper/omission/limit+1 rejection.
+- [ ] Evidence-index codec/signer tests cover seven-slot order/cardinality, present bindings, closed gaps, candidate/invocation/retention binding, 15-minute expiry, fixed role, and tamper/Known Gap/limit+1 rejection.
 - [ ] Protected signer tests cover absent/malformed/wrong-role secrets, lifetime caps, mode-0600 publication, redaction, injected test signers, and production-trust rejection of test artifacts.
 - [ ] Focused Go tests pass with race coverage for verifier/signer reuse.
 ## Acceptance
 - [ ] Every signed-channel record has strict canonical admission and exact role/binding checks.
 - [ ] Invalid, stale, and revoked states have one unambiguous graph/status partition.
-- [ ] ReleaseEvidenceIndex v1 is the canonical authenticated completeness boundary.
+- [ ] ReleaseEvidenceIndex v2 is the canonical authenticated completeness boundary.
 - [ ] The fixed protected signer cannot select or disclose signing authority.
 - [ ] Focused negative, race, permission, and secret tests pass.
 ## Done summary

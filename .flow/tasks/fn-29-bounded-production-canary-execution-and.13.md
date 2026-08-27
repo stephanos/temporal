@@ -6,15 +6,15 @@ satisfies: [R9]
 ## Description
 ### Umpire4 reconciliation (normative)
 
-All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, Run Evaluation, and Claim Assessment interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 
 Finish R9 by documenting the implemented protected production-canary boundary and updating C12 only to the truth proved by Task `.12`.
 
 **Size:** S
-**Files:** `docs/admin/umpire-production-canary-qualification.md`, `docs/README.md`, `.plans/UMPIRE4_COMPONENTS.md`
-**Touches:** [docs/admin/umpire-production-canary-qualification.md, docs/README.md, .plans/UMPIRE4_COMPONENTS.md]
+**Files:** `docs/admin/umpire-production-canary-claim-assessment.md`, `docs/README.md`, `.plans/UMPIRE4_COMPONENTS.md`
+**Touches:** [docs/admin/umpire-production-canary-claim-assessment.md, docs/README.md, .plans/UMPIRE4_COMPONENTS.md]
 
 ### Approach
 - Add one operator runbook covering protected-environment provisioning, required reviewers, the external deployment-branch rule restricted to the protected default branch, non-secret required variable names, invocation, fixed scope/limits, monitoring, abort, cleanup/reconciliation, runner-loss backstop, result/status interpretation, retention/redaction, immutable-output recovery, and incident escalation.
@@ -32,11 +32,11 @@ Finish R9 by documenting the implemented protected production-canary boundary an
 - `.flow/tasks/fn-29-bounded-production-canary-execution-and.12.md` — final proof scope
 
 ### Key context
-Do not edit `.plans/UMPIRE4_VISION.md`. Do not change generated regression documentation because this slice changes environment qualification, not semantic catalog input.
+Do not edit `.plans/UMPIRE4_VISION.md`. Do not change generated regression documentation because this slice changes environment Claim Assessment, not semantic catalog input.
 
 ### Acceptance
 - [ ] An authorized operator can verify trusted-ref policy, provision, invoke, monitor, abort, reconcile, interpret, retain, and escalate without secret values in docs.
-- [ ] Docs distinguish accepted/rejected/incomplete/tooling outcomes, trust/authenticity limitations, and every observability/release omission.
+- [ ] Docs distinguish accepted/rejected/incomplete/tooling outcomes, trust/authenticity limitations, and every observability/release Known Gap.
 - [ ] Roadmap/docs claim no more than implemented/tested scope and keep trusted-channel release aggregation separate.
 - [ ] Links resolve, VISION remains untouched, and unrelated docs/comments are preserved.
 ## Acceptance

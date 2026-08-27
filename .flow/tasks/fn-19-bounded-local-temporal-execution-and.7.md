@@ -33,7 +33,7 @@ Complete R3/R5/R6's live operational proof by projecting allowlisted SDK/history
 ## Acceptance
 - [ ] R3/R5/R6 one-live-run evidence and admitted output set are complete.
 - [ ] Negative mutations pass before the live test.
-- [ ] No semantic evidence, Result, or conformance claim exists.
+- [ ] No semantic evidence, Result, or Run Evaluation claim exists.
 
 ## Done summary
 TBD

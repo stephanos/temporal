@@ -11,6 +11,6 @@
   "spec": "fn-27-hermetic-ci-execution-and-qualification",
   "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.7.md",
   "status": "todo",
-  "title": "Run the bounded CI qualification proof",
-  "updated_at": "2026-08-26T14:32:52.368390Z"
+  "title": "Run the bounded CI portability proof",
+  "updated_at": "2026-08-27T19:07:23.111096Z"
 }

@@ -4,22 +4,22 @@
 
 ## Umpire4 architecture reconciliation
 
-Release evidence evaluation and manual authorization are downstream deployment-owner concerns, not reusable Umpire modules or commands. This spec is re-scoped to a release-policy component under the standalone canary/release ownership boundary (or an existing external release platform) that consumes signed retained qualification/canary evidence. `tools/umpire` contributes only generic admitted receipts and has no release candidate, signer, role approval, revocation, deployment attestation, workflow, or authorization type.
+Release evidence evaluation and manual authorization are downstream deployment-owner concerns, not reusable Umpire modules or commands. This spec is re-scoped to a release-policy component under the standalone canary/release ownership boundary (or an existing external release platform) that consumes signed retained Claim Assessment/canary evidence. `tools/umpire` contributes only generic admitted receipts and has no release candidate, signer, role approval, revocation, deployment attestation, workflow, or authorization type.
 
 The standalone canary producer supplies retained evidence through its trusted channel; the release owner supplies build/deployment attestations and human-role authority. No import or control edge points back from Umpire into canary/release systems, and no release decision can reinterpret semantic evidence.
 
 ## Overview
 
 Add the first current-model release-evidence graph and manual authorization boundary. The graph
-admits exactly one retained local, hermetic-CI, remote-staging, and production-canary qualification
-receipt for the same byte-identical ExperimentSpec and qualified semantic outcome, authenticates
+admits exactly one retained local, hermetic-CI, remote-staging, and production-canary Claim Assessment
+receipt for the same byte-identical ExperimentSpec and accepted semantic outcome, authenticates
 each receipt through a separate signed retention channel, and binds the staging/canary runs to one
 immutable Temporal server release candidate through independently signed build and deployment
 attestations supplied by the existing protected build and deployment authorities.
 
-Graph qualification and human authorization remain distinct. A pure, versioned policy can conclude
-only `qualified-for-human-review`, `held`, or `rejected`. Two separate protected role authorities
-must then approve the exact candidate, graph, policy, omissions, and expiry to create a manual
+Graph Claim Assessment and human authorization remain distinct. A pure, versioned policy can conclude
+only `accepted-for-human-review`, `held`, or `rejected`. Two separate protected role authorities
+must then approve the exact candidate, graph, policy, Known Gaps, and expiry to create a manual
 authorization. No receipt, environment, graph, role decision, command, workflow, or artifact in this
 slice can deploy, promote an image tag, change traffic, modify configuration, roll back, or invoke an
 existing release workflow.
@@ -29,11 +29,11 @@ existing release workflow.
 
 Fn-26 through fn-29 deliberately produce environment-scoped claims. Their bytes are inspectable but
 not self-authenticating, and each source remains non-release-authorizing. This slice composes those
-claims without erasing their different trust, evidence, cleanup, authority, formal, and omission
+claims without erasing their different trust, evidence, cleanup, authority, formal, and Known Gap
 profiles.
 
 Release reviewers receive one immutable graph explaining exactly which candidate and evidence were
-admitted, what was missing or accepted as an omission, why the graph is qualified/held/rejected, and
+admitted, what was missing or accepted as a Known Gap, why the graph is accepted/held/rejected, and
 when it expires. Release and production owners record distinct role decisions against that exact
 graph. Deployment tooling receives, at most, a content-addressed authorization reference for a
 future separately reviewed handoff; fn-30 itself has no deployment authority.
@@ -43,52 +43,52 @@ future separately reviewed handoff; fn-30 itself has no deployment authority.
 
 ```mermaid
 flowchart LR
-  C[ReleaseCandidate v1] --> B[Signed build attestation]
-  L[Local set v2] --> M[Signed retention manifests]
-  I[CI set v3] --> M
-  S[Staging set v4] --> M
-  N[Canary set v5] --> M
-  B --> G[ReleaseEvidenceGraph v1]
+  C[ReleaseCandidate v2] --> B[Signed build attestation]
+  L[Local set v3] --> M[Signed retention manifests]
+  I[CI set v4] --> M
+  S[Staging set v5] --> M
+  N[Canary set v6] --> M
+  B --> G[ReleaseEvidenceGraph v2]
   M --> G
   D[Signed staging/canary deployment attestations] --> G
   T[Trust + revocation snapshot] --> G
-  G --> Q[Pure release qualification]
-  Q --> E[ReleaseEvidenceSet v1]
+  G --> Q[Pure release Claim Assessment]
+  Q --> E[ReleaseEvidenceSet v2]
   E --> A1[Release-owner decision]
   E --> A2[Production-owner decision]
-  A1 --> A[ManualReleaseAuthorization v1]
+  A1 --> A[ManualReleaseAuthorization v2]
   A2 --> A
-  A --> O[ReleaseAuthorizationSet v1]
+  A --> O[ReleaseAuthorizationSet v2]
 ```
 
 ### Ownership and deep seams
 
-`Umpire.Qualification.Release` owns domain-neutral, pure, versioned candidate, graph, trust,
+`Umpire.Evaluation.Release` owns domain-neutral, pure, versioned candidate, graph, trust,
 policy, decision, authorization, expiry, revocation, and canonical identity types. It contains no
 Temporal, Nexus, repository, workflow provider, environment name, image registry, task queue,
 checker, deployment client, or credential vocabulary.
 
-`Temporal.System.Qualification.Release` compiles the sole exact first policy: Temporal
+`Temporal.System.Evaluation.Release` compiles the sole exact first policy: Temporal
 server candidate shape, four required environment profiles and receipt/set versions, semantic and
-candidate bindings, freshness windows, trust roles, accepted omissions, graph limits, two-role
+candidate bindings, freshness windows, trust roles, accepted Known Gaps, graph limits, two-role
 approval rule, and non-deployment claim. It does not evaluate Property semantics or verify
 cryptography.
 
 The `tools/umpire/release` Go package is the deep operational verifier. It strictly decodes source sets and signed
 channel records, verifies signatures and role/key validity, recomputes identities and graph closure,
 invokes the fixed Lean release-policy export, constructs release artifacts, and delegates immutable
-publication. It does not execute an ExperimentSpec, interpret evidence, rerun conformance, mint an
+publication. It does not execute an ExperimentSpec, interpret evidence, rerun Run Evaluation, mint an
 environment receipt, alter source artifacts, promote, deploy, or call a release workflow.
 
-Existing qualification receipts and ArtifactSet v1-v5 readers remain closed and byte-for-byte
-unchanged. The release aggregate uses new `ReleaseEvidenceSet/v1` and
-`ReleaseAuthorizationSet/v1` families because their members are signed cross-set references and
+Existing Claim Assessment receipts and ArtifactSet v2-v6 readers remain closed and byte-for-byte
+unchanged. The release aggregate uses new `ReleaseEvidenceSet/v2` and
+`ReleaseAuthorizationSet/v2` families because their members are signed cross-set references and
 role decisions, not another version of ArtifactSet's same-set member closure. They reuse the strict
 codec and atomic publisher infrastructure without weakening prior set semantics.
 
 ### Exact release candidate
 
-`ReleaseCandidate/v1` identifies one deployable Temporal server build as:
+`ReleaseCandidate/v2` identifies one deployable Temporal server build as:
 
 ```text
 repositoryIdentity
@@ -106,7 +106,7 @@ candidateIdentity
 
 The OCI image-index and per-platform manifest digests, source commit/tree, model source digest, and
 build manifest are security bindings. The intended tag is display metadata and can never substitute
-for an immutable digest. SBOM absence is an explicit first-policy omission and never inferred as
+for an immutable digest. SBOM absence is an explicit first-policy Known Gap and never inferred as
 present. Unknown repositories, digest algorithms, platforms, fields, or tag-only candidates reject.
 
 The ExperimentSpec is not the deployable candidate. It is the identical semantic evidence subject
@@ -115,10 +115,10 @@ the signed execution/deployment channel described below.
 
 ### Trusted retention and candidate-execution channel
 
-Receipt bytes enter release evaluation only through `TrustedRetentionManifest/v1`. Each manifest
+Receipt bytes enter release evaluation only through `TrustedRetentionManifest/v2`. Each manifest
 binds the exact profile, receipt/set identities and content SHA-256 digests, immutable producer
 workflow run/ref/SHA, retention repository/object identity, candidate source commit/tree when
-available, signer role/key ID, issued/expiry times, trust class, and declared omissions. The
+available, signer role/key ID, issued/expiry times, trust class, and declared Known Gaps. The
 domain-separated Ed25519 signature covers the canonical manifest bytes excluding only the signature.
 Downloading an Actions artifact is transport, never authentication.
 
@@ -130,11 +130,11 @@ source-set bytes:
 - hermetic CI evidence is signed by the fixed CI-evidence role and binds the candidate source
   commit/tree, not an image-execution claim;
 - staging and canary evidence are signed by their existing protected environment roles and retain
-  every original trust/omission field.
+  every original trust/Known Gap field.
 
-`CandidateBuildAttestation/v1`, signed by the build authority, binds the candidate's source,
+`CandidateBuildAttestation/v2`, signed by the build authority, binds the candidate's source,
 image-index/platform, build-manifest, model, and optional SBOM digests. Exactly two
-`CandidateDeploymentAttestation/v1` records, signed by the deployment authority, bind that immutable
+`CandidateDeploymentAttestation/v2` records, signed by the deployment authority, bind that immutable
 candidate to the remote-staging and production-canary environment/profile identities, pre/post
 target fingerprints, and an interval that encloses the corresponding run and cleanup/postflight.
 The graph is held if a public receipt is otherwise green but no valid deployment attestation proves
@@ -154,11 +154,11 @@ corresponding run and cleanup/postflight yield held evidence; malformed, unauthe
 records are invalid. Implementing the build or deployment authority and its inventory is outside
 this slice.
 
-`ReleaseTrustSnapshot/v1` is signed by the pinned offline release-root key and supplies the exact
+`ReleaseTrustSnapshot/v2` is signed by the pinned offline release-root key and supplies the exact
 active public keys, unique roles, validity windows, and append-only revocations for evidence,
-release-evidence-index, build, deployment, release-owner, and production-owner authorities. `ReleaseEvaluationContext/v1`
+release-evidence-index, build, deployment, release-owner, and production-owner authorities. `ReleaseEvaluationContext/v2`
 binds a protected-runner-asserted evaluation time, trust-snapshot digest, policy digest, and
-invocation identity. The first policy explicitly records the omission that its wall clock and
+invocation identity. The first policy explicitly records the Known Gap that its wall clock and
 individual human reviewer identities are not independently attested. Unknown algorithms/roles,
 bad signatures, signature/domain malleability, unauthenticated/expired trust snapshots, or crossed
 candidate/environment bindings are invalid input and publish no graph; authenticated evidence/key
@@ -179,7 +179,7 @@ ambiguous/wrong role, invalid trust, or publication failure produces no signed r
 are injected in process and can never create an artifact accepted by the protected production trust
 snapshot.
 
-`ReleaseEvidenceIndex/v1` is the sole authenticated completeness boundary for graph input. It binds
+`ReleaseEvidenceIndex/v2` is the sole authenticated completeness boundary for graph input. It binds
 the candidate identity, fixed retention collection, evaluation invocation, issued time, expiry no
 later than 15 minutes, and exactly seven ordered slots: local, CI, staging, canary, build attestation,
 staging deployment attestation, and canary deployment attestation. A present slot carries the closed
@@ -188,55 +188,55 @@ signer role. A gap slot carries only the closed expected kind/profile/authority 
 `not-found`, `not-yet-retained`, or `occupancy-not-closed`; it cannot carry attacker bytes or an
 arbitrary locator. The protected release-evidence job constructs the index after fixed-location
 lookups, signs it with the unique `release-evidence-index` role, and publishes it immutably. The
-qualifier never derives a gap from caller omission: absent/tampered/expired indexes, wrong slot count
+qualifier never derives a gap from caller Known Gap: absent/tampered/expired indexes, wrong slot count
 or order, duplicated identities, unknown reasons, present-object digest mismatch, or an unlisted
 object is invalid and publishes nothing.
 
 ### Exact evidence quorum and graph
 
-The first Temporal policy defines exactly one qualification slot for each profile:
+The first Temporal policy defines exactly one Claim Assessment slot for each profile:
 
 | Profile | Receipt | Source set | Maximum age | Candidate binding |
 | --- | --- | --- | --- | --- |
-| local ephemeral | v1 | ArtifactSet v2 | 24 hours | signed retention + source commit/tree |
-| hermetic CI | v2 | ArtifactSet v3 | 12 hours | signed CI retention + source commit/tree |
-| remote staging | v3 | ArtifactSet v4 | 8 hours | signed retention + deployment attestation |
-| production canary | v4 | ArtifactSet v5 | 2 hours | signed retention + deployment attestation |
+| local ephemeral | v2 | ArtifactSet v3 | 24 hours | signed retention + source commit/tree |
+| hermetic CI | v3 | ArtifactSet v4 | 12 hours | signed CI retention + source commit/tree |
+| remote staging | v4 | ArtifactSet v5 | 8 hours | signed retention + deployment attestation |
+| production canary | v5 | ArtifactSet v6 | 2 hours | signed retention + deployment attestation |
 
 All four must bind the same pilot decision, ExperimentSpec identity and bytes, target/query/property
-identities, bounds, and qualified-outcome identity. Each must retain its own RuntimeConfiguration,
-Run, environment provenance, target, trust, evidence, cleanup, authority, omission, receipt, and set
+identities, Limits, and evaluation-outcome identity. Each must retain its own RuntimeConfiguration,
+Run, environment provenance, target, trust, evidence, cleanup, authority, Known Gap, receipt, and set
 identity. Underlying run/source-set/receipt identities must be pairwise distinct; duplicate or
 aliased evidence cannot satisfy diversity. Every source field, including canary
 `releaseEligibility:false`, remains immutable. The graph never turns a source receipt into an
 authorizing claim.
 
-The reusable `ReleaseEvidenceGraph/v1` is a canonical DAG with at most 32 nodes, 64 edges, depth 8,
+The reusable `ReleaseEvidenceGraph/v2` is a canonical DAG with at most 32 nodes, 64 edges, depth 8,
 and 2 MiB. It always contains four profile slots, one build-attestation slot, and two
 deployment-attestation slots. Each slot is exactly one of `present(checked identity)` or
 `gap(reason, expected identity/profile)`; a gap is a canonical policy input, never a fabricated
 artifact. Closed node classes are candidate, evidence slot, evidence gap, build attestation, source
-set, qualification receipt, retention manifest, deployment attestation, trust snapshot, evaluation
+set, Claim Assessment receipt, retention manifest, deployment attestation, trust snapshot, evaluation
 context, signed evidence index, and policy. Closed
 edges bind candidate build/source, receipt source-set/result/profile, retention receipt/set,
-deployment candidate/environment/target interval, common semantic identities, trust signer/key,
+deployment candidate/environment/target interval, common Behavior Fingerprints, trust signer/key,
 evidence-index slot membership, and policy input. Canonical topological order, exact required cardinalities, complete edge closure,
 and identity recomputation reject cycles, dangling edges, duplicates, cross-candidate references,
 mixed versions, or graph/byte N+1.
 
 The graph records optional formal evidence only as the exact source receipts' existing
-`not-provided` state in v1. It does not consume optional external checker or replay artifacts and
+`not-provided` state in the v2 baseline. It does not consume optional external checker or replay artifacts and
 cannot let their absence or presence replace a required environment.
 
-### Pure graph qualification
+### Pure graph Claim Assessment
 
-The fixed Lean policy reads only the admitted graph projection and emits
-`ReleaseQualificationDecision/v1`:
+The fixed Lean policy reads only the admitted graph Generated View and emits
+`ReleaseClaimAssessmentDecision/v2`:
 
-- `qualified-for-human-review` requires all four authentic, accepted, fresh, non-revoked,
+- `accepted-for-human-review` requires all four authentic, accepted, fresh, non-revoked,
   sufficiently distinct, candidate-bound sources; identical semantic scope/outcome; successful
   operational/evidence/semantic/cleanup statuses; exact target/build/deployment bindings; accepted
-  first-policy omissions; and no contradictory reason;
+  first-policy Known Gaps; and no contradictory reason;
 - `held` means a required slot is missing or authentic evidence is expired, not candidate-bound,
   partial, pending cleanup/reconciliation, non-diverse, or outside a freshness window;
 - `rejected` means valid evidence establishes a semantic violation, definitive safety/cleanup/fence
@@ -246,7 +246,7 @@ The fixed Lean policy reads only the admitted graph projection and emits
 Malformed/crossed/noncanonical graphs, invalid signatures, untrusted keys, and limit breaches are
 tooling/input errors and produce no graph artifact. Evaluation time, trust snapshot, policy, and
 every source expiry are identity inputs. A policy/trust/time/evidence change creates a new immutable
-graph and decision; historical artifacts are never rewritten. A qualified graph expires at the
+graph and decision; historical artifacts are never rewritten. A accepted graph expires at the
 earliest source/key/attestation expiry and no later than two hours after evaluation.
 
 Admission is deliberately two-stage. Strict decoding, canonical identity, signature/domain/role,
@@ -260,48 +260,48 @@ retained object becomes an explicit gap node and yields held. Unsupported schema
 bad signatures, wrong roles, or crossed identities never become gaps because treating attacker bytes
 as absence would hide invalid input.
 
-`ReleaseQualificationReceipt/v1` persists candidate, graph, policy, trust snapshot, evaluation,
-terminal decision/reasons, source summaries, accepted omissions, and expiry without recomputing or
+`ReleaseEvaluationReceipt/v2` persists candidate, graph, policy, trust snapshot, evaluation,
+terminal decision/reasons, source summaries, accepted Known Gaps, and expiry without recomputing or
 rewriting any semantic Result.
 
 ### Manual role decisions and authorization
 
-Qualification never self-authorizes. `ReleaseRoleDecision/v1` is a signed `approve|deny|revoke`
-statement that binds one candidate, graph, ReleaseQualificationReceipt, release policy, trust
-snapshot, accepted omissions, role, invocation, issued time, and expiry. Approval requires exactly
+Claim Assessment never self-authorizes. `ReleaseRoleDecision/v2` is a signed `approve|deny|revoke`
+statement that binds one candidate, graph, ReleaseEvaluationReceipt, release policy, trust
+snapshot, accepted Known Gaps, role, invocation, issued time, and expiry. Approval requires exactly
 one valid `release-owner` and one valid `production-owner` decision from distinct active keys and
 separate protected environment jobs. The approval key sets are disjoint from evidence/build/
 deployment signers. An individual reviewer name may be recorded only as an opaque protected-
 environment assertion and is omitted from identity/trust claims.
 
-`ManualReleaseAuthorization/v1` can be constructed only when the graph is still
-qualified-for-human-review, both role approvals are current and byte-exact, no denial/revocation
-exists, and every candidate/graph/policy/trust/omission binding matches. Its `notAfter` is the
+`ManualReleaseAuthorization/v2` can be constructed only when the graph is still
+accepted-for-human-review, both role approvals are current and byte-exact, no denial/revocation
+exists, and every candidate/graph/policy/trust/Known Gap binding matches. Its `notAfter` is the
 earliest graph or role expiry and at most two hours after the later approval. It contains no target,
 deployment command, registry credential, rollout, traffic, configuration, or rollback authority.
 
 A valid deny by either role yields an immutable denied decision and no authorization. A later valid
-revoke by either role produces `ReleaseAuthorizationRevocation/v1` referencing the exact
+revoke by either role produces `ReleaseAuthorizationRevocation/v2` referencing the exact
 authorization. Approval requires two roles; deny or revoke requires one, so safety veto is
-asymmetric. `ReleaseAuthorizationSet/v1` retains the graph qualification reference, exact role
+asymmetric. `ReleaseAuthorizationSet/v2` retains the graph Claim Assessment reference, exact role
 decisions, authorization when present, and revocation head. Events form an append-only predecessor
 chain per candidate/graph. Concurrent identical writes are idempotent; crossed sequences,
 conflicting decisions, stale predecessors, or approval after denial/revocation/expiry fail closed.
 
 ### Persisted release sets
 
-`ReleaseEvidenceSet/v1` contains exact copies of the candidate, trust snapshot, evaluation context,
+`ReleaseEvidenceSet/v2` contains exact copies of the candidate, trust snapshot, evaluation context,
 signed evidence index,
-all present build/deployment attestations, retention manifests, qualification receipts and source
+all present build/deployment attestations, retention manifests, Claim Assessment receipts and source
 ArtifactSet manifests, the seven fixed evidence slots (including canonical gaps), graph, and
-ReleaseQualificationReceipt, with closed relationships and content digests. It references retained
+ReleaseEvaluationReceipt, with closed relationships and content digests. It references retained
 source member bytes by the signed set manifests rather than copying or rewriting them. A held set is
-therefore complete and inspectable without inventing missing source bytes; a qualified/rejected set
+therefore complete and inspectable without inventing missing source bytes; an accepted/rejected set
 has all four profile slots and all three attestation slots present. Readers can inspect the complete
 release reasoning and independently retrieve/revalidate the original source sets from the signed
 retention locations.
 
-`ReleaseAuthorizationSet/v1` contains one qualified ReleaseEvidenceSet identity, the role decision
+`ReleaseAuthorizationSet/v2` contains one accepted ReleaseEvidenceSet identity, the role decision
 records, optional authorization, optional revocation, exact predecessor head, and closed
 relationships. Both families use strict limits, safe relative paths, one-at-a-time decoding,
 immutable atomic publication, and output-root revalidation. Prior artifact families/readers remain
@@ -314,8 +314,8 @@ The verifier/controller binary exposes closed modes:
 
 ```text
 umpire-release qualify --candidate <file> --evidence-index <file> --trust-snapshot <file> --output-root <directory> --invocation-id <id>
-umpire-release authorize --qualified-set <directory> --release-owner-decision <file> --production-owner-decision <file> --trust-snapshot <file> --output-root <directory> --invocation-id <id>
-umpire-release deny --qualified-set <directory> --role-decision <file> --output-root <directory> --invocation-id <id>
+umpire-release authorize --accepted-set <directory> --release-owner-decision <file> --production-owner-decision <file> --trust-snapshot <file> --output-root <directory> --invocation-id <id>
+umpire-release deny --accepted-set <directory> --role-decision <file> --output-root <directory> --invocation-id <id>
 umpire-release revoke --authorization-set <directory> --role-decision <file> --output-root <directory> --invocation-id <id>
 ```
 
@@ -324,7 +324,7 @@ The protected signer binary exposes only:
 ```text
 umpire-release-sign retention --unsigned-record <file> --trust-snapshot <file> --output <file>
 umpire-release-sign evidence-index --candidate <file> --fixed-retention-manifest <file> --trust-snapshot <file> --output <file>
-umpire-release-sign role-decision --qualified-set <directory> --decision <approve|deny|revoke> --trust-snapshot <file> --output <file>
+umpire-release-sign role-decision --accepted-set <directory> --decision <approve|deny|revoke> --trust-snapshot <file> --output <file>
 ```
 
 The evidence-index signer performs the seven fixed-location lookups named by the repository-owned
@@ -333,8 +333,8 @@ object locator, digest, reason, issued/expiry time, or signer-role override. Net
 when required for those lookups, is confined to the protected release-evidence job and fixed
 repository adapter; the emitted index contains no endpoint or credential.
 
-The role-decision signer derives candidate, graph, policy, trust, omissions, predecessor head,
-invocation, and maximum expiry from the qualified/current authorization set; the protected runner
+The role-decision signer derives candidate, graph, policy, trust, Known Gaps, predecessor head,
+invocation, and maximum expiry from the accepted/current authorization set; the protected runner
 supplies issued time. It never accepts those bindings as caller overrides. Environment-gate refusal
 or timeout creates no role decision and cannot be relabeled as a signed deny. Deny/revoke exists only
 when a role's protected job explicitly invokes that decision mode.
@@ -348,20 +348,20 @@ never receive signing material.
 
 The Lean policy bridge is one fixed sibling executable, `umpire-release-policy`, built from the same
 exact source checkout as the controller and named in a generated policy manifest whose executable
-SHA-256 and `ReleasePolicy/v1` identity the controller embeds. It accepts one canonical
-`ReleasePolicyInput/v1` value on stdin (graph projection, evaluation time, trust/omission facts, and
-policy identity) and emits one canonical `ReleasePolicyOutput/v1` value on stdout (policy identity,
+SHA-256 and `ReleasePolicy/v2` identity the controller embeds. It accepts one canonical
+`ReleasePolicyInput/v2` value on stdin (graph Generated View, evaluation time, trust/Known Gap facts, and
+policy identity) and emits one canonical `ReleasePolicyOutput/v2` value on stdout (policy identity,
 input digest, terminal decision, sorted complete reason codes, and `notAfter`). The controller allows
 2 MiB stdin, 128 KiB stdout, 64 KiB stderr, and five seconds; it supplies no path/argument override.
 Missing/digest-mismatched executables, timeout, nonzero exit, extra output, limit breach,
 noncanonical response, or policy/input-digest mismatch is tooling-invalid, publishes no set, and
 maps to status 1. The policy executable never reads files, environment, network, clock, or secrets.
 
-For `qualify`, status 0 means a qualified-for-human-review set was published; status 2 means a valid
+For `qualify`, status 0 means an accepted-for-human-review set was published; status 2 means a valid
 held/rejected set was published; status 1 means invalid/tooling input and no graph set. For manual
 modes, status 0 means an approved authorization or valid deny/revocation set was published, status 2
 means a well-formed but expired/held/conflicting role decision produced no authorization, and status
-1 means invalid/tooling input. Canonical stdout/stderr records distinguish qualification,
+1 means invalid/tooling input. Canonical stdout/stderr records distinguish Claim Assessment,
 authorization, denial, revocation, publication, and whether any authorization exists. No status is
 a deployment result.
 
@@ -371,9 +371,9 @@ output root, and invocation ID only. No model-local Make change is allowed.
 One dedicated workflow-dispatch-only release-authorization workflow accepts only a closed operation
 (`qualify`, `authorize`, role-specific `deny`, or role-specific `revoke`) and bounded
 candidate/evidence-index/current-set content identities. A credential-free job restricts execution to the
-protected default ref and records its immutable SHA. Qualification runs under the protected
+protected default ref and records its immutable SHA. Claim Assessment runs under the protected
 release-evidence environment, signs local retention, performs the seven fixed retention lookups,
-signs/publishes `ReleaseEvidenceIndex/v1`, and then qualifies only that index. Externally signed build
+signs/publishes `ReleaseEvidenceIndex/v2`, and then qualifies only that index. Externally signed build
 and deployment attestations can appear only as present slots in that index. Release-owner and production-owner approvals run as separate jobs
 under distinct protected environments, required reviewers, deployment-branch restrictions, and
 signing keys; each explicitly invokes the protected role-decision signer after its gate succeeds. A
@@ -386,7 +386,7 @@ deployment trigger and never calls or edits existing release/promotion workflows
 <!-- scope: technical -->
 
 - A valid receipt without a valid signed retention manifest is not release evidence.
-- Caller omission never creates a gap. Only a current, canonical, correctly signed
+- Caller Known Gap never creates a gap. Only a current, canonical, correctly signed
   ReleaseEvidenceIndex can assert one of the three closed gap reasons for one of its seven fixed
   slots.
 - A missing retained source or attestation becomes an authenticated gap only after the fixed evidence
@@ -406,7 +406,7 @@ deployment trigger and never calls or edits existing release/promotion workflows
   order, duplicate JSON keys, trailing bytes, unsafe paths, symlinks, concurrent conflicts, or
   graph/byte/cardinality N+1 is invalid and publishes nothing; authentic evidence/key expiry holds,
   while a valid current-snapshot revocation rejects or prevents authorization.
-- Approval copied across candidate/graph/policy/trust/omission identities rejects. One role cannot
+- Approval copied across candidate/graph/policy/trust/Known Gap identities rejects. One role cannot
   impersonate both approvals. A deny/revoke veto prevents authorization.
 - Expiry/revocation creates a new immutable decision/head; it never mutates historical evidence or
   authorization bytes.
@@ -416,9 +416,9 @@ deployment trigger and never calls or edits existing release/promotion workflows
 ## Quick commands
 
 ```bash
-cd model && mise exec -- lake build Umpire.Qualification.Release.Tests Temporal.System.Qualification.ReleaseTests
+cd model && mise exec -- lake build Umpire.Evaluation.Release.Tests Temporal.System.Evaluation.ReleaseTests
 go test -count=1 ./tools/umpire/release/... ./tools/umpire/artifact/... ./tools/umpire/cmd/umpire-release/...
-make umpire-qualify-release-evidence CANDIDATE=<candidate> EVIDENCE_INDEX=<index> TRUST_SNAPSHOT=<trust> OUTPUT_ROOT=<output> INVOCATION_ID=<id>
+make umpire-assess-release-evidence CANDIDATE=<candidate> EVIDENCE_INDEX=<index> TRUST_SNAPSHOT=<trust> OUTPUT_ROOT=<output> INVOCATION_ID=<id>
 make umpire-authorize-release QUALIFIED_SET=<set> RELEASE_OWNER_DECISION=<decision> PRODUCTION_OWNER_DECISION=<decision> TRUST_SNAPSHOT=<trust> OUTPUT_ROOT=<output> INVOCATION_ID=<id>
 make umpire-check-regression
 ```
@@ -453,7 +453,7 @@ adding deployment or registry capabilities to Umpire. Own only the retention and
 signers needed by this slice. Represent authenticated absence/staleness as canonical evidence slots
 so held remains inspectable, while keeping malformed or untrusted bytes outside the graph entirely.
 
-Use a pure graph policy before human authorization so missing evidence and accepted omissions remain
+Use a pure graph policy before human authorization so missing evidence and accepted Known Gaps remain
 inspectable, deterministic inputs rather than workflow conditionals. Require two disjoint protected
 role authorities to approve but let either role veto/revoke. Make the authorization a bounded
 handoff reference rather than a deployment capability. Defer any executor, rollout, monitoring, or
@@ -467,31 +467,31 @@ rollback integration to a separately reviewed successor.
   ExperimentSpec evidence subject and contain no Temporal/deployment/provider vocabulary in reusable
   Umpire. Unknown/duplicate/broadened fields, tag-only identity, wrong digest/platform, or prior-type
   mutation rejects.
-- **R2:** TrustedRetentionManifest v1, ReleaseEvidenceIndex v1, externally provisioned CandidateBuildAttestation v1, two
-  CandidateDeploymentAttestation v1 records, ReleaseTrustSnapshot v1, and ReleaseEvaluationContext
-  v1 have strict canonical bytes, domain-separated Ed25519 verification, exact roles/validity/
+- **R2:** TrustedRetentionManifest v2, ReleaseEvidenceIndex v2, externally provisioned CandidateBuildAttestation v2, two
+  CandidateDeploymentAttestation v2 records, ReleaseTrustSnapshot v2, and ReleaseEvaluationContext
+  v2 have strict canonical bytes, domain-separated Ed25519 verification, exact roles/validity/
   revocation/candidate/target/run-interval bindings, limits, and secret exclusions; protected
   retention/index/role signers have fixed key acquisition and no selector surface. Malformed,
   unauthenticated, unsupported, wrong-role, or crossed input publishes no graph; authentic stale
   records become held slots and valid revocation facts become rejected/non-authorizing inputs.
-- **R3:** Exactly one local v1/set-v2, CI v2/set-v3, staging v3/set-v4, and canary v4/set-v5 receipt
+- **R3:** Exactly one local v2/set-v3, CI v3/set-v4, staging v4/set-v5, and canary v5/set-v6 receipt
   is strictly admitted through signed retention, shares the same pilot/ExperimentSpec/query/property/
-  bounds/outcome identity, retains distinct environment/run/trust/omission facts, and binds source
+  Limits/outcome identity, retains distinct environment/run/trust/Known Gap facts, and binds source
   plus remote target intervals to the same candidate. Missing or authentic-stale inputs occupy
   explicit gap/stale slots and yield held; duplicate, aliased, mixed, or contradictory candidate
   evidence cannot qualify and invalid bytes publish nothing.
-- **R4:** ReleaseEvidenceGraph v1 has exact canonical present/gap slots,
+- **R4:** ReleaseEvidenceGraph v2 has exact canonical present/gap slots,
   nodes/edges/order/limits/identity, and the fixed
-  Lean policy produces only qualified-for-human-review, held, or rejected with complete accumulating
-  reasons, freshness, trust, omission, and expiry handling through the bounded fixed-executable
+  Lean policy produces only accepted-for-human-review, held, or rejected with complete accumulating
+  reasons, freshness, trust, Known Gap, and expiry handling through the bounded fixed-executable
   protocol. It never reinterprets evidence, changes source releaseEligibility, or authorizes/deploys.
-- **R5:** ReleaseQualificationReceipt v1 and ReleaseEvidenceSet v1 preserve exact candidate, source,
-  trust, attestation, graph, decision, omission, expiry, and external-retention relationships under
+- **R5:** ReleaseEvaluationReceipt v2 and ReleaseEvidenceSet v2 preserve exact candidate, source,
+  trust, attestation, graph, decision, Known Gap, expiry, and external-retention relationships under
   strict immutable publication while all prior artifact bytes/readers remain unchanged.
-- **R6:** ReleaseRoleDecision v1, ManualReleaseAuthorization v1,
-  ReleaseAuthorizationRevocation v1, and ReleaseAuthorizationSet v1 require two distinct protected
-  roles to approve the exact current qualified graph, allow either role to deny/revoke, bind
-  predecessor/expiry/trust/omissions, use the fixed protected signer after an environment gate, and
+- **R6:** ReleaseRoleDecision v2, ManualReleaseAuthorization v2,
+  ReleaseAuthorizationRevocation v2, and ReleaseAuthorizationSet v2 require two distinct protected
+  roles to approve the exact current accepted graph, allow either role to deny/revoke, bind
+  predecessor/expiry/trust/Known Gaps, use the fixed protected signer after an environment gate, and
   reject copying, races, stale heads, gate refusal masquerading as denial, or post-expiry approval.
 - **R7:** One deep release controller and closed qualify/authorize/deny/revoke command preserve
   invalid versus held/rejected versus approved/denied/revoked statuses, perform exactly one final
@@ -513,14 +513,14 @@ Task fn-30-release-evidence-graph-and-manual.2 must prove that a signed build/de
 channel can bind one immutable candidate to existing environment receipt/set and target-fingerprint
 identities without rewriting their bytes or treating provider artifact transport as authentication.
 If this cannot be verified independently and fail closed, stop before implementing graph
-qualification or manual authorization.
+Claim Assessment or manual authorization.
 
 ## References
 
 - Flow spec fn-14 — retained Lean-first pilot decision.
 - Flow spec fn-18 — strict artifact admission and immutable publication.
-- Flow specs fn-26 through fn-29 — local, CI, staging, and canary qualification source contracts.
-- Umpire component and DSL plans — environment-qualified Result and release-graph responsibility.
+- Flow specs fn-26 through fn-29 — local, CI, staging, and canary Claim Assessment source contracts.
+- Umpire component and DSL plans — environment-evaluated Result and release-graph responsibility.
 
 ## Requirement coverage
 
@@ -529,8 +529,8 @@ qualification or manual authorization.
 | R1 | Candidate, graph, release policy, and authorization vocabulary | `.1`, `.4`, `.5`, `.7` | — |
 | R2 | Signed retention/build/deployment/trust channel | `.2`, `.3`, `.6`, `.7` | — |
 | R3 | Exact four-profile quorum and candidate binding | `.2`, `.3`, `.4`, `.7` | — |
-| R4 | Canonical graph and pure qualification | `.1`, `.4`, `.7` | — |
-| R5 | Release qualification artifacts and publication | `.4`, `.7` | — |
+| R4 | Canonical graph and pure Claim Assessment | `.1`, `.4`, `.7` | — |
+| R5 | Release Claim Assessment artifacts and publication | `.4`, `.7` | — |
 | R6 | Two-role manual authorization/deny/revoke history | `.5`, `.6`, `.7` | — |
 | R7 | Deep controller and closed commands | `.4`, `.5`, `.6`, `.7` | — |
 | R8 | Producer hooks and protected workflow | `.3`, `.6`, `.7` | — |

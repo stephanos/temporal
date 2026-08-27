@@ -1,7 +1,7 @@
 ---
 satisfies: [R3, R4, R5, R7]
 ---
-# fn-30-release-evidence-graph-and-manual.4 Qualify and publish the immutable release evidence graph
+# fn-30-release-evidence-graph-and-manual.4 Assess and publish the immutable release Evidence graph
 
 ## Description
 ### Umpire4 reconciliation (normative)
@@ -10,7 +10,7 @@ Release evidence policy, retention/signing, human roles, revocation, workflows, 
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 
-Implement fixed-slot graph construction, bounded policy-process evaluation, qualification receipt creation, and ReleaseEvidenceSet publication for R3-R5 and the qualify portion of R7. This is the single deep boundary from checked inputs to an inspectable immutable decision.
+Implement fixed-slot graph construction, bounded policy-process evaluation, Claim Assessment receipt creation, and ReleaseEvidenceSet publication for R3-R5 and the qualify portion of R7. This is the single deep boundary from checked inputs to an inspectable immutable decision.
 
 **Size:** M
 **Files:** graph, policy-process bridge, qualifier, evidence-set, publisher, and focused tests under `tools/umpire/release/`
@@ -20,7 +20,7 @@ Implement fixed-slot graph construction, bounded policy-process evaluation, qual
 - Build the closed DAG only from one checked signed evidence index and its checked present/gap/stale/revoked slot values; bind the index node/identity, recompute every member/edge, enforce canonical topology/cardinality/depth/byte caps, and reject malformed closure before policy evaluation.
 - Invoke the fixed sibling `umpire-release-policy` with one canonical stdin request and stdout response. Verify the manifest/executable/policy/input digests; enforce 2 MiB input, 128 KiB stdout, 64 KiB stderr, and five seconds; map any process/protocol failure to status 1 with no set.
 - Preserve complete sorted reasons and rejected-over-held precedence without reinterpreting semantic Result data in Go.
-- Compute graph/decision identity and earliest expiry from candidate, all seven slots, trust, policy, evaluation context, keys, attestations, and accepted omissions.
+- Compute graph/decision identity and earliest expiry from candidate, all seven slots, trust, policy, evaluation context, keys, attestations, and accepted Known Gaps.
 - Publish one ReleaseEvidenceSet transaction containing the signed index, present artifacts, and canonical gaps through the existing validated atomic-set seam; reference retained source members without copying or rewriting them.
 
 ### Investigation targets
@@ -31,7 +31,7 @@ Implement fixed-slot graph construction, bounded policy-process evaluation, qual
 - `model/Umpire/ARCHITECTURE.md:210-235` — portable artifact/result boundary
 
 **Optional** (reference as needed):
-- `tools/umpire/regression/projection.go` — generated Lean-to-Go projection convention
+- `tools/umpire/regression/generated_view.go` — generated Lean-to-Go Generated View convention
 
 ### Acceptance
 - [ ] Canonical graph construction admits only signed-index complete or explicit-gap closures and rejects cycles, dangling/crossed edges, duplicate slots, mixed versions, noncanonical order, and every limit+1 case.
@@ -42,7 +42,7 @@ Implement fixed-slot graph construction, bounded policy-process evaluation, qual
 ## Acceptance
 - [ ] Checked present/gap slots produce a canonical bounded graph and deterministic pure decision.
 - [ ] The fixed Lean bridge has one bounded protocol and fail-closed status mapping.
-- [ ] ReleaseEvidenceSet publication is closed, immutable, and inspectable for held/rejected/qualified outcomes.
+- [ ] ReleaseEvidenceSet publication is closed, immutable, and inspectable for held/rejected/accepted outcomes.
 - [ ] Graph, bridge, compatibility, and atomic-publication tests pass.
 ## Done summary
 TBD

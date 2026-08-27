@@ -1,17 +1,15 @@
 ---
-satisfies: [R2, R5, R6]
+satisfies: [R5, R6, R7]
 ---
-# fn-26-local-qualification-receipts-and-staged.5 Expose the exact local qualification CLI and root Make target
+# fn-26-local-qualification-receipts-and-staged.5 Expose the exact local Claim Assessment CLI and root Make target
 
 ## Description
-**Size:** M
-**Files:** tools/umpire/cmd/umpire-qualify-local/**, model/lakefile.toml, repository-root Makefile
-**Touches:** fixed CLI/profile handshake and root Make UX
-
-Add umpire-qualify-local and the fixed profile sibling executable registration plus only the repository-root make umpire-qualify-local target. Implement exact required arguments, fixed sibling resolution, canonical summary/error/status 0/1/2 contract, publication/reporting booleans, immutable destination recovery, and no hidden/default IO.
+Expose one exact offline `umpire-assess-local` command and root Make target accepting only the admitted source set and output root. Use the fixed sibling Evaluation Profile authority, validate the complete successor Artifact set before one immutable publish, and report accepted/rejected/incomplete separately from tooling failure and post-publication reporting ambiguity.
 
 ## Acceptance
-Direct and root commands accept only SET, PILOT_EVIDENCE, and OUTPUT_ROOT, produce exact deterministic summaries/errors, publish through fn-18 only, handle reporting-after-publication without rerun ambiguity, and leave stdout empty on tooling failure. No model-local Makefile, optional authority/checker/profile flag, default target, CI workflow, or repository write outside publication is added.
+- [ ] Arguments, summary/error schemas, exit statuses, cancellation, and reporting booleans are closed and deterministic.
+- [ ] No execution, endpoint, credential, arbitrary checker, profile selector, retry, or network flag exists.
+- [ ] Publication is contained, atomic, immutable, lock-guarded, and retry-safe.
 
 ## Done summary
 TBD

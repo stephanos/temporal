@@ -11,6 +11,6 @@
   "spec": "fn-28-authorized-remote-staging-black-box",
   "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.10.md",
   "status": "todo",
-  "title": "Build the public-boundary harness and adversarial qualification matrix",
-  "updated_at": "2026-08-26T15:14:13.875500Z"
+  "title": "Build the public-boundary harness and adversarial Evaluation matrix",
+  "updated_at": "2026-08-27T19:07:24.665030Z"
 }

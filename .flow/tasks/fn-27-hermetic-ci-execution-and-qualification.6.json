@@ -11,6 +11,6 @@
   "spec": "fn-27-hermetic-ci-execution-and-qualification",
   "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.6.md",
   "status": "todo",
-  "title": "Expose the CI qualification command and isolated workflow",
-  "updated_at": "2026-08-26T20:42:16.988223Z"
+  "title": "Expose the ordinary pinned CI test command",
+  "updated_at": "2026-08-27T19:07:22.741212Z"
 }

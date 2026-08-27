@@ -9,6 +9,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.1.md",
   "status": "todo",
-  "title": "Define QualificationProfile v4 and the exact production-canary policy",
-  "updated_at": "2026-08-26T20:42:51.053900Z"
+  "title": "Define EvaluationProfile v5 and the exact production-canary policy",
+  "updated_at": "2026-08-27T19:07:28.478509Z"
 }

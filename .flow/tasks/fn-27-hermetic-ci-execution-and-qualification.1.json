@@ -9,6 +9,6 @@
   "spec": "fn-27-hermetic-ci-execution-and-qualification",
   "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.1.md",
   "status": "todo",
-  "title": "Define QualificationProfile v2 and the exact CI policy",
-  "updated_at": "2026-08-26T14:12:52.326012Z"
+  "title": "Pin the byte-identical v2 Artifact for ordinary CI tests",
+  "updated_at": "2026-08-27T19:07:20.907330Z"
 }

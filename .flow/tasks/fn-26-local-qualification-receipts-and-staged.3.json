@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-08-26T13:47:02.000000Z",
-  "depends_on": ["fn-26-local-qualification-receipts-and-staged.2"],
+  "depends_on": [
+    "fn-26-local-qualification-receipts-and-staged.2"
+  ],
   "id": "fn-26-local-qualification-receipts-and-staged.3",
   "priority": null,
   "spec": "fn-26-local-qualification-receipts-and-staged",
   "spec_path": ".flow/tasks/fn-26-local-qualification-receipts-and-staged.3.md",
   "status": "todo",
-  "title": "Add QualificationReceipt v1 and ArtifactSet v2",
-  "updated_at": "2026-08-26T13:47:02.000000Z"
+  "title": "Add EvaluationReceipt v2 and the post-v2 ArtifactSet successor",
+  "updated_at": "2026-08-27T19:07:19.565725Z"
 }

@@ -12,7 +12,7 @@ Implement R2/R4's sole local environment using the repository's real loopback `t
 
 ### Approach
 - Consume Task `.9`'s error-returning context-aware lifecycle API for runtime-owned explicit startup/stop; own workers, clients, namespace, and server in workers→clients→server teardown order.
-- Match the exact Task `.1` profile identity/digest/capabilities and expose no address, namespace, credential, executable, or arbitrary option input.
+- Match the exact Task `.1` profile Definition ID/Behavior Fingerprint/capabilities and expose no address, namespace, credential, executable, or arbitrary option input.
 - Derive run-owned workflow/task-queue/worker correlation IDs, hash environment-only identities for evidence, and serialize no live handles.
 - Apply explicit contexts to every SDK/server call and force single-attempt/no-default-retry options.
 - Test concurrent-process-style isolated instances, partial startup, repeated cleanup requests, cancellation, and injected lifecycle failures.

@@ -13,7 +13,7 @@ Implement R2/R3/R6's deterministic phase machine, cleanup dominance, bounded fac
 ### Approach
 - Implement exact preparation→realization→observation→isolation→cleanup transitions, phase/global deadlines, the parent operational-precedence table including compound cases, observation after started realization, and fresh isolation/cleanup contexts.
 - Track acquired resources immediately and cleanup exactly once; produce canonical phase/control/source diagnostics without hiding cleanup failure.
-- Build four-source RawEvidence through an append-only accumulator enforcing source/fact/field/payload/byte/count/order/reference/DAG limits before append and explicit N+1 gaps/omissions.
+- Build four-source RawEvidence through an append-only accumulator enforcing source/fact/field/payload/byte/count/order/reference/DAG limits before append and explicit N+1 gaps/Known Gaps.
 - Construct Run/RawEvidence/output-set values in memory and admit them through fn-18; perform no publication.
 - Implement the independent exhaustive transition-table oracle required by the early proof.
 
