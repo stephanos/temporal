@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-36-nexus-lifecycle-cleanup.md",
-  "status": "open",
+  "status": "done",
   "title": "Nexus lifecycle cleanup",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T00:24:09.642415Z"
+  "updated_at": "2026-08-27T01:24:46.535937Z"
 }

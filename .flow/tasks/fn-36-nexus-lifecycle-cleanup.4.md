@@ -41,9 +41,8 @@ Update live architecture/learning documentation and exact import-policy referenc
 - [ ] Concurrent dirty Flow planning artifacts remain untouched.
 
 ## Done summary
-TBD
-
+Published the core-versus-experimental Nexus layout in README, architecture, and normative model documents; classified the separate experimental test aggregate; updated the exact CallerClosure Veil consumer namespace; and verified ordinary facade isolation and a clean live obsolete-path scan. Preserved the concurrent import-linter refactor while applying narrow policy changes. stage: plan-sync - skipped(config: planSync.enabled != true). A concurrent external wip commit captured the shared-worktree changes; this agent did not create it.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7f407525e
+- Tests: cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests TemporalModelTests TemporalExperimentalTests, GOCACHE=<task-cache> make umpire-gen-regression-projections, GOCACHE=<task-cache> make umpire-check-regression, make lint-model
 - PRs:

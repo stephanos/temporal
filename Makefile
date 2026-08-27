@@ -1037,12 +1037,16 @@ umpire-check-regression: umpire-check-regression-projections
 		old_experiment_tree=model/Temporal/''Experiment; \
 		old_umpire_tree=model/Temporal/''Umpire; \
 		old_temporal_tests=model/Temporal''UmpireTests.lean; \
-		old_auto_close_root=model/Nexus''AutoClose.lean; \
+		old_auto_close_root=model/Temporal/Feature/Nexus/AutoClose.lean; \
+		old_caller_closure_root=model/Temporal/Feature/Nexus/CallerClosure.lean; \
+		old_examples_tree=model/Temporal/Feature/Nexus/Examples; \
 		test ! -e "$$old_experiment_tree"; \
 		test ! -e "$${old_experiment_tree}Tests.lean"; \
 		test ! -e "$$old_umpire_tree"; \
 		test ! -e "$$old_temporal_tests"; \
 		test ! -e "$$old_auto_close_root"; \
+		test ! -e "$$old_caller_closure_root"; \
+		test ! -e "$$old_examples_tree"; \
 		live_sources=$$(find model/Umpire model/Temporal -type f -name '*.lean' -print); \
 		test -n "$$live_sources"; \
 		if grep -nE "$$old_namespace|$$old_path" $$live_sources \
