@@ -1,0 +1,20 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-27T21:51:32.805186Z",
+  "depends_on": [
+    "fn-38-consolidate-layered-model-helpers.2",
+    "fn-38-consolidate-layered-model-helpers.3",
+    "fn-38-consolidate-layered-model-helpers.4",
+    "fn-38-consolidate-layered-model-helpers.5",
+    "fn-38-consolidate-layered-model-helpers.7"
+  ],
+  "id": "fn-38-consolidate-layered-model-helpers.6",
+  "priority": null,
+  "spec": "fn-38-consolidate-layered-model-helpers",
+  "spec_path": ".flow/tasks/fn-38-consolidate-layered-model-helpers.6.md",
+  "status": "todo",
+  "title": "Document helper ownership and run final model gates",
+  "updated_at": "2026-08-27T21:58:21.147705Z"
+}

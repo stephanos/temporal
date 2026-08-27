@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-27T21:51:32.804953Z",
+  "depends_on": [
+    "fn-38-consolidate-layered-model-helpers.1"
+  ],
+  "id": "fn-38-consolidate-layered-model-helpers.2",
+  "priority": null,
+  "spec": "fn-38-consolidate-layered-model-helpers",
+  "spec_path": ".flow/tasks/fn-38-consolidate-layered-model-helpers.2.md",
+  "status": "todo",
+  "title": "Centralize core Umpire test fixtures",
+  "updated_at": "2026-08-27T21:51:32.804953Z"
+}
