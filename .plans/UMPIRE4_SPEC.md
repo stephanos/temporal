@@ -183,7 +183,7 @@ namespaces, and types are always referenced by fully qualified names in backtick
 - **MOD-05 — Verification isolation.** Ordinary first-party modules MUST NOT reach
   `Temporal.Verify.*` or `Umpire.Verify.Veil`. The only opt-in consumers are `TemporalVerify`,
   `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, and
-  `Temporal.Feature.Nexus.CallerClosure.VeilTests`.
+  `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests`.
 - **MOD-09 — `Shared` independence.** `Shared.*` MUST NOT reach `Umpire.*` or `Temporal.*` through
   first-party imports.
 - **MOD-10 — `Temporal.System` isolation.** `Temporal.System.*` MUST NOT reach

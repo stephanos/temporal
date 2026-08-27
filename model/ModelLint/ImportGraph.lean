@@ -82,6 +82,7 @@ def defaultPolicy : Policy := {
     `ModelLint,
     `Shared,
     `Temporal,
+    `TemporalExperimentalTests,
     `TemporalModelTests,
     `TemporalVeilTests,
     `TemporalVerify,
@@ -97,6 +98,7 @@ def defaultPolicy : Policy := {
     { modulePrefix := `Temporal.Tool, moduleClass := .temporalTool },
     { modulePrefix := `Temporal.Verify, moduleClass := .temporalVerify },
     { modulePrefix := `Temporal, moduleClass := .temporal },
+    { modulePrefix := `TemporalExperimentalTests, moduleClass := .modelTests, exact := true },
     { modulePrefix := `TemporalModelTests, moduleClass := .modelTests },
     { modulePrefix := `TemporalVeilTests, moduleClass := .optInVerify, exact := true },
     { modulePrefix := `TemporalVerify, moduleClass := .optInVerify, exact := true },
@@ -107,7 +109,7 @@ def defaultPolicy : Policy := {
   ],
   refinementConsumers := #[`Temporal.System.Nexus.Refinement],
   verifyConsumers := #[
-    `Temporal.Feature.Nexus.CallerClosure.VeilTests,
+    `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests,
     `Temporal.Tool.VerifyVeil,
     `TemporalVeilTests,
     `TemporalVerify
@@ -131,8 +133,6 @@ def Violation.render (violation : Violation) : String :=
 
 /-- Render one deterministic inventory or metadata diagnostic. -/
 def InventoryIssue.render : InventoryIssue → String
-  | .escapingSource path =>
-      s!"[model-import-graph/inventory] source escapes canonical model root: {path}"
   | .duplicateSource module paths =>
       s!"[model-import-graph/inventory] duplicate module identity {module}: \
         {", ".intercalate paths.toList}"
@@ -187,21 +187,18 @@ The caller must first reconcile inventory and metadata. Imports outside the firs
 external leaves and are intentionally not traversed.
 -/
 def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
-  Tools.LeanImportGraph.check {
-    forbidden? := fun source destination =>
-      match policy.classify? source, policy.classify? destination with
-      | some sourceClass, some destinationClass =>
-          forbiddenRule? policy source sourceClass destinationClass
-      | _, _ => none
-    ruleKey := Rule.label
-  } modules
+  Tools.LeanImportGraph.check (fun source destination =>
+    match policy.classify? source, policy.classify? destination with
+    | some sourceClass, some destinationClass =>
+        forbiddenRule? policy source sourceClass destinationClass
+    | _, _ => none) modules
 
 private def Policy.inventoryPolicy (policy : Policy) : InventoryPolicy := {
   isFirstParty := policy.isFirstParty
   isClassified := fun module => (policy.classify? module).isSome
 }
 
-/-- Validate source containment, classification, and qualified identity before invoking Lake. -/
+/-- Validate source classification and qualified identity before invoking Lake. -/
 def validateSources (policy : Policy) (sources : Array SourceRecord) : Array InventoryIssue :=
   Tools.LeanSourceInventory.validateSources policy.inventoryPolicy sources
 

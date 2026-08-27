@@ -12,8 +12,8 @@ tests/.gomad-run/
 .coverage
 .testoutput
 testdata/
-!/model/Temporal/Feature/Nexus/testdata/
-!/model/Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json
+!/model/Temporal/Feature/Nexus/Experimental/testdata/
+!/model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json
 !/tools/umpire2/testdata/
 !/tools/umpire2/testdata/genmodels/
 !/tools/umpire2/testdata/genmodels/**

@@ -6,12 +6,12 @@
 ## `workflow-nexus.query.exact-action-caller-closure`
 
 - Format: `umpire-experiment/v1`
-- Canonical fixture: `model/Temporal/Feature/Nexus/testdata/nexus-caller-closure-experiment-spec.json`
+- Canonical fixture: `model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json`
 - Semantic fingerprint: `sha256:315266c53b2c9d94fc1ab3c2772a8424b2aafd9857801c8e24fac111253c53f1`
 
 ### Lean sources
 
-- Canonical: `Temporal/Feature/Nexus/CallerClosure.lean`; repository: `model/Temporal/Feature/Nexus/CallerClosure.lean`
+- Canonical: `Temporal/Feature/Nexus/Experimental/CallerClosure.lean`; repository: `model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean`
 
 ### Properties
 

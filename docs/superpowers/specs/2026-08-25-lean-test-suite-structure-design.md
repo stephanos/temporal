@@ -185,18 +185,19 @@ The mixed `TemporalUmpireTests.lean` root disappears through the already-approve
 cutover rather than becoming another facade.
 
 ```text
-model/Temporal/Feature/Nexus/CallerClosureTests.lean
+model/Temporal/Feature/Nexus/Experimental/CallerClosureTests.lean
 model/Temporal/System/Configuration/Tests.lean
 model/Temporal/System/Callback/ConfigurationTests.lean
 model/Temporal/Tool/InspectTests.lean
 model/Umpire/Examples/SwitchTests.lean
 model/TemporalModelTests.lean
+model/TemporalExperimentalTests.lean
 ```
 
-Feature assertions move to `CallerClosureTests`. Reusable Switch assertions move to their existing
-owner. CLI success, repeatability, unknown-scenario, and failed-scenario assertions move to
-`InspectTests`. `TemporalModelTests.lean` is import-only and does not import `UmpireTests` or reusable
-test fixtures.
+Experimental Feature assertions live in `CallerClosureTests`. Reusable Switch assertions move to
+their existing owner. CLI success, repeatability, unknown-scenario, and failed-scenario assertions
+move to `InspectTests`. `TemporalModelTests.lean` and `TemporalExperimentalTests.lean` are
+import-only and do not import `UmpireTests` or reusable test fixtures.
 
 All 41 current assertions remain. The invalid-arity assertion required by the semantic-layout spec
 is added by its owning Tool task, not by this mechanical preservation count.

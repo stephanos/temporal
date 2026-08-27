@@ -1,14 +1,16 @@
-import Temporal.Feature.Nexus.Examples.BasicLifecycle
+import Temporal.Feature.Nexus.Lifecycle
 
-namespace Temporal.Feature.Nexus.Examples.BasicOperations
+/-! Checked Nexus operation walkthroughs for starting, canceling, and successfully completing. -/
+
+namespace Temporal.Feature.Nexus.Operations
 
 open Umpire
-open Temporal.Feature.Nexus.Examples.BasicLifecycle
+open Temporal.Feature.Nexus.Lifecycle
 
 private def id (value : String) : DeclarationId := DeclarationId.of value
 
 def source : SemanticSource := {
-  path := "Temporal/Feature/Nexus/Examples/BasicOperations.lean"
+  path := "Temporal/Feature/Nexus/Operations.lean"
   line := 1
   column := 1
   provenance := "lean-model"
@@ -165,6 +167,129 @@ def repeatedRun : PlannerRun :=
 
 end AsyncStart
 
+namespace Cancellation
+
+def propertyId : DeclarationId := id "temporal.nexus.basic-lifecycle.property.cancellation"
+def behaviorId : DeclarationId := id "temporal.nexus.basic-lifecycle.behavior.cancellation"
+def queryId : DeclarationId := id "temporal.nexus.basic-lifecycle.query.cancellation"
+def setupConstraintId : DeclarationId := id "temporal.nexus.basic-lifecycle.setup.cancellation-started"
+def occurrenceId : DeclarationId := id "temporal.nexus.basic-lifecycle.occurrence.cancel"
+
+def propertyDeclaration : PropertyDeclaration := {
+  id := propertyId
+  source
+  requires := [lifecycleCapabilityId]
+  clauses := [
+    .transitionContract (id "temporal.nexus.basic-lifecycle.property.cancellation.state")
+      { field := .selectedAction, reference := cancelActionId,
+        constraint := .equals cancelAction.value }
+      { field := .resultingState, reference := operationStateId,
+        constraint := .equals canceledState.value },
+    .transitionContract (id "temporal.nexus.basic-lifecycle.property.cancellation.outcome")
+      { field := .selectedAction, reference := cancelActionId,
+        constraint := .equals cancelAction.value }
+      { field := .modelOutcome, reference := transitionOutcomeId,
+        constraint := .equals canceledOutcome.value },
+    .inputOutput (id "temporal.nexus.basic-lifecycle.property.cancellation.observation")
+      { field := .selectedAction, reference := cancelActionId,
+        constraint := .equals cancelAction.value }
+      { field := .observation, reference := lifecycleObservationId,
+        constraint := .equals canceledObservation.value }
+  ]
+  documentation := "Canceling a started Nexus operation produces the target-owned canceled result."
+}
+
+def propertyResult : Except PropertyError CheckedProperty :=
+  checkProperty (PropertyCheckContext.ofTarget target) (.portable propertyDeclaration)
+
+private theorem propertyResult_isSome : propertyResult.toOption.isSome = true := by
+  native_decide
+
+def property : CheckedProperty :=
+  propertyResult.toOption.get propertyResult_isSome
+
+def behaviorDeclaration : BehaviorDeclaration := {
+  id := behaviorId
+  source
+  requires := [lifecycleCapabilityId]
+  roles := [operationRole]
+  setup := [operationIs setupConstraintId startedState]
+  allowedActions := [cancelActionId]
+  requiredOccurrences := [{ id := occurrenceId, action := cancelActionId }]
+  occurrenceBounds := [OccurrenceBound.exactly cancelActionId 1]
+  actionsExactly := some [cancelActionId]
+  documentation := "Select exactly one cancel action and leave its result to the Nexus model."
+}
+
+def behaviorResult : Except BehaviorError CheckedBehavior :=
+  checkBehaviorDeclaration behaviorDeclaration
+
+private theorem behaviorResult_isSome : behaviorResult.toOption.isSome = true := by
+  native_decide
+
+def behavior : CheckedBehavior :=
+  behaviorResult.toOption.get behaviorResult_isSome
+
+def intendedTrace : BehaviorTrace := {
+  setup := startedSetup
+  trace := {
+    initialState := startedState
+    steps := [{
+      selectedAction := cancelAction
+      modelOutcome := canceledOutcome
+      resultingState := canceledState
+      observations := [canceledObservation]
+    }]
+  }
+}
+
+/-- This target-inconsistent trace shows that Property, not Behavior, checks the model result. -/
+def wrongOutcomeTrace : BehaviorTrace := {
+  setup := startedSetup
+  trace := {
+    initialState := startedState
+    steps := [{
+      selectedAction := cancelAction
+      modelOutcome := succeededOutcome
+      resultingState := succeededState
+      observations := [succeededObservation]
+    }]
+  }
+}
+
+def wrongActionTrace : BehaviorTrace := {
+  setup := startedSetup
+  trace := {
+    initialState := startedState
+    steps := [{
+      selectedAction := reportSuccessAction
+      modelOutcome := succeededOutcome
+      resultingState := succeededState
+      observations := [succeededObservation]
+    }]
+  }
+}
+
+def queryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery queryContext (queryDeclaration queryId property behavior)
+
+private theorem queryResult_isSome : queryResult.toOption.isSome = true := by
+  native_decide
+
+def query : CheckedQuery LawStatement :=
+  materializeQuery (queryResult.toOption.get queryResult_isSome)
+
+theorem query_target : query.target = target := by
+  rfl
+
+def run : PlannerRun :=
+  plan query (kernelFor query query_target)
+
+def repeatedRun : PlannerRun :=
+  plan query (kernelFor query query_target)
+
+end Cancellation
+
 namespace SuccessfulCompletion
 
 def propertyId : DeclarationId := id "temporal.nexus.basic-lifecycle.property.successful-completion"
@@ -291,4 +416,4 @@ def repeatedRun : PlannerRun :=
 
 end SuccessfulCompletion
 
-end Temporal.Feature.Nexus.Examples.BasicOperations
+end Temporal.Feature.Nexus.Operations

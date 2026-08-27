@@ -1,8 +1,6 @@
-import Temporal.Feature.Nexus.CallerClosureTests
-import Temporal.Feature.Nexus.Examples.BasicLifecycleTests
-import Temporal.Feature.Nexus.Examples.BasicOperationsTests
+import Temporal.Feature.Nexus.LifecycleTests
+import Temporal.Feature.Nexus.OperationsTests
 import Temporal.System.Callback.ConfigurationTests
 import Temporal.System.Configuration.Tests
 import Temporal.System.ConfigurationIntegrationTests
 import Temporal.System.Matching.ConfigurationTests
-import Temporal.Tool.InspectTests

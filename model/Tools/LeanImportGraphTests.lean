@@ -15,25 +15,22 @@ private def requireEqual [BEq α] [Repr α] (label : String) (actual expected : 
 
 /-- Exercise deterministic transitive checking through the generic module interface. -/
 def run : IO Unit := do
-  let ruleSet : RuleSet String := {
-    forbidden? := fun source destination =>
-      if source == `Consumer.Root && destination == `Forbidden.Target then
-        some "generic-dependency"
-      else
-        none
-    ruleKey := id
-  }
-  let violations := check ruleSet #[
-    moduleRecord `Consumer.Root #[`Bridge.Zed, `Bridge.Alpha],
-    moduleRecord `Bridge.Alpha #[`Forbidden.Target],
+  let forbidden? := fun source destination =>
+    if source == `Consumer.Root && destination == `Forbidden.Target then
+      some "generic-dependency"
+    else
+      none
+  let violations := check forbidden? #[
+    moduleRecord `Consumer.Root #[`Bridge.Zed, `Bridge.Alpha, `External.Library],
+    moduleRecord `Bridge.Alpha #[`Consumer.Root, `Forbidden.Target],
     moduleRecord `Bridge.Zed #[`Forbidden.Target],
     moduleRecord `Forbidden.Target
   ]
-  requireEqual "generic violation count" violations.size 1
-  let some violation := violations[0]?
-    | throw <| IO.userError "generic dependency linter returned no violation"
-  requireEqual "generic rule" violation.rule "generic-dependency"
-  requireEqual "generic stable shortest path" violation.path
-    #[`Consumer.Root, `Bridge.Alpha, `Forbidden.Target]
+  requireEqual "generic stable transitive violation" violations #[{
+    rule := "generic-dependency"
+    source := `Consumer.Root
+    destination := `Forbidden.Target
+    path := #[`Consumer.Root, `Bridge.Alpha, `Forbidden.Target]
+  }]
 
 end Tools.LeanImportGraphTests
