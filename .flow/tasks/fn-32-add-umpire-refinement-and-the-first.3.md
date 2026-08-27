@@ -1,10 +1,11 @@
 ---
 satisfies: [R2, R4, R6]
 ---
-# fn-32-add-umpire-refinement-and-the-first.3 Author the first isolated Nexus System and Feature refinement
+
+# fn-32-add-umpire-refinement-and-the-first.3 Author the first isolated Nexus System and Feature Implementation Link
 
 ## Description
-Add the minimum pure System meaning and focused Nexus refinement leaf for R4 without moving implementation details into Feature.
+Add the minimum pure System meaning and focused Nexus Implementation Link leaf for R4 without moving implementation details into Feature.
 
 **Size:** M
 **Files:** `model/Temporal/System/Nexus/**`, `model/Temporal/System.lean`
@@ -13,7 +14,7 @@ Add the minimum pure System meaning and focused Nexus refinement leaf for R4 wit
 ### Approach
 - Import and consume the existing Feature caller-closure declarations unchanged; treat the Feature file as an investigation target, not a mutation target.
 - Define only the pure mechanism vocabulary needed for the first correspondence.
-- Put the cross-import exclusively in the family Refinement leaf.
+- Put the cross-import exclusively in the family Implementation Link leaf.
 
 ### Investigation targets
 **Required** (read before coding):

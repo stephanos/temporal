@@ -17,7 +17,7 @@ Prepare R1/R4/R7's Lean-owned portable profile values without putting authority 
 **Touches:** [model/Temporal/System/Execution.lean, model/Temporal/System/Execution/LocalProfile.lean, model/Temporal/System/Execution/LocalProfileTests.lean, model/Temporal/System.lean, model/TemporalModelTests.lean]
 
 ### Approach
-- Define the exact ephemeral-local profile SemanticReference, non-self-referential profile digest projection, generic required capabilities, five canonical phase budgets, seed/attempt policy, and closed participant/program requirements as inert Lean values.
+- Define the exact ephemeral-local profile SemanticReference, non-self-referential profile digest Generated View, generic required capabilities, five canonical phase budgets, seed/attempt policy, and closed participant/program requirements as inert Lean values.
 - Validate the fixed 120-second/4096-record/16-MiB aggregate and fn-18 RuntimeConfiguration invariants without adding endpoints, namespaces, credentials, executable names, or callbacks.
 - Expose the narrow execution facade through the existing `Temporal.System` import and canonical fixture helpers consumed by the later Nexus composition.
 - Pin reordering/drift/limit/authority-field negative cases and preserve existing comments.
@@ -29,7 +29,7 @@ Prepare R1/R4/R7's Lean-owned portable profile values without putting authority 
 - parent spec exact input/authority and phase-budget contracts
 
 ### Acceptance
-- [ ] Profile identity/digest/capabilities and all five budgets have exact canonical bytes and pass fn-18 validation.
+- [ ] Profile Definition ID/Behavior Fingerprint/capabilities and all five budgets have exact canonical bytes and pass fn-18 validation.
 - [ ] Altered profile fields, capability union, time/attempt/record/byte totals, or authority-like data reject before a checked value exists.
 - [ ] The module imports no Nexus feature and defines no runtime IO.
 - [ ] `Temporal.System` and aggregate test imports expose/check the profile without importing a feature adapter.

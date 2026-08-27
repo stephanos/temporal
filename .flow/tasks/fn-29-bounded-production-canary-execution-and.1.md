@@ -1,42 +1,42 @@
 ---
 satisfies: [R1]
 ---
-# fn-29-bounded-production-canary-execution-and.1 Define QualificationProfile v4 and the exact production-canary policy
+# fn-29-bounded-production-canary-execution-and.1 Define EvaluationProfile v5 and the exact production-canary policy
 
 ## Description
 ### Umpire4 reconciliation (normative)
 
-All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, conformance, and qualification interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
+All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, Run Evaluation, and Claim Assessment interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 
-Implement R1's domain-neutral v4 qualification vocabulary and the single Temporal-owned production-canary policy without broadening v1-v3.
+Implement R1's domain-neutral v5 Claim Assessment vocabulary and the single Temporal-owned production-canary policy without broadening v2-v3.
 
 **Size:** M
-**Files:** `model/Umpire/Qualification/**`, `model/Umpire/Qualification.lean`, `model/Temporal/System/Qualification/ProductionCanary.lean`, `model/Temporal/System/Qualification/ProductionCanaryTests.lean`, `model/Temporal/Tool/QualificationProfile.lean`, `model/TemporalModelTests.lean`
-**Touches:** [model/Umpire/Qualification/**, model/Umpire/Qualification.lean, model/Temporal/System/Qualification/ProductionCanary.lean, model/Temporal/System/Qualification/ProductionCanaryTests.lean, model/Temporal/Tool/QualificationProfile.lean, model/TemporalModelTests.lean]
+**Files:** `model/Umpire/Evaluation/**`, `model/Umpire/Evaluation.lean`, `model/Temporal/System/Evaluation/ProductionCanary.lean`, `model/Temporal/System/Evaluation/ProductionCanaryTests.lean`, `model/Temporal/Tool/EvaluationProfile.lean`, `model/TemporalModelTests.lean`
+**Touches:** [model/Umpire/Evaluation/**, model/Umpire/Evaluation.lean, model/Temporal/System/Evaluation/ProductionCanary.lean, model/Temporal/System/Evaluation/ProductionCanaryTests.lean, model/Temporal/Tool/EvaluationProfile.lean, model/TemporalModelTests.lean]
 
 ### Approach
-- Extend reusable checked vocabulary only with generic canary environment, protected authority, isolation/scope, public-evidence, cleanup, trust, omission, claim-strength, and non-release-eligibility values; keep concrete Temporal meanings in the Temporal instance.
-- Preserve exact local v1, CI v2, and remote-staging v3 constructors, bytes, digests, exports, and rejection boundaries; add one explicit v4 branch.
-- Compile the exact zero-fault/zero-traffic/zero-deployment-mutation policy, hard limits, required and forbidden capabilities, evidence closures, isolation trust, formal absence, omissions, and `releaseEligibility:false`.
+- Extend reusable checked vocabulary only with generic canary environment, protected authority, isolation/scope, public-evidence, cleanup, trust, Known Gap, claim-strength, and non-release-eligibility values; keep concrete Temporal meanings in the Temporal instance.
+- Preserve exact local v2, CI v3, and remote-staging v4 constructors, bytes, digests, exports, and rejection boundaries; add one explicit v5 branch.
+- Compile the exact zero-fault/zero-traffic/zero-deployment-mutation policy, hard limits, required and forbidden capabilities, evidence closures, isolation trust, formal absence, Known Gaps, and `releaseEligibility:false`.
 - Prove reusable imports and fixtures contain no Temporal, Nexus, target, production coordinate, credential, provider, repository, workflow actor, or checker vocabulary.
 
 ### Investigation targets
 **Required** (read before coding):
-- `.flow/specs/fn-26-local-qualification-receipts-and-staged.md` — v1 qualification ownership and policy invariants
-- `.flow/tasks/fn-27-hermetic-ci-execution-and-qualification.1.md` — v2 evolution/purity pattern
-- `.flow/tasks/fn-28-authorized-remote-staging-black-box.1.md` — v3 remote vocabulary and prior-version closure
-- `.plans/UMPIRE4_DSL.md` — profile-qualified Result and semantic ownership
+- `.flow/specs/fn-26-local-qualification-receipts-and-staged.md` — v2 Claim Assessment ownership and policy invariants
+- `.flow/tasks/fn-27-hermetic-ci-execution-and-qualification.1.md` — v2 byte-identical CI parity pattern
+- `.flow/tasks/fn-28-authorized-remote-staging-black-box.1.md` — v4 remote vocabulary and prior-version closure
+- `.plans/UMPIRE4_DSL.md` — profile-evaluated Result and semantic ownership
 - `model/Umpire/ARCHITECTURE.md` — reusable package purity boundary
 
 ### Key context
 A canary environment class is reusable vocabulary; the named Temporal profile and its production target meanings are not. Non-release eligibility must be checked data, not documentation.
 
 ### Acceptance
-- [ ] V4 admits only the exact generic canary policy shape and compiled Temporal instance.
+- [ ] V5 admits only the exact generic canary policy shape and compiled Temporal instance.
 - [ ] Every unknown, duplicate, contradictory, broadened, secret-bearing, or N+1 mutation rejects.
-- [ ] V1-v3 fixtures and exports remain byte-identical and reject v4.
+- [ ] V2-v4 fixtures and exports remain byte-identical and reject v4.
 - [ ] Focused Lean purity, canonicalization, identity, and mutation tests pass with comments preserved.
 ## Acceptance
 - [ ] R1 profile vocabulary, exact policy, versioning, limits, and purity boundary are complete.

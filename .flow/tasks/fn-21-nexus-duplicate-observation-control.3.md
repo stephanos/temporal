@@ -22,7 +22,7 @@ Implement the exact Nexus participant negative-control realization for R3/R7 beh
 - `.flow/tasks/fn-19-bounded-local-temporal-execution-and.6.md:13-31` — current Nexus participant/binding contract
 - `.flow/specs/fn-19-bounded-local-temporal-execution-and.md:55-59` — four commands and one force-close lifecycle
 - `.flow/specs/fn-19-bounded-local-temporal-execution-and.md:65-86` — operational precedence, history, and source closure
-- pinned Go SDK v1.44.0 workflow Nexus cancellation-mode and history-event APIs
+- pinned Go SDK prototype.44.0 workflow Nexus cancellation-mode and history-event APIs
 - pinned Nexus Go SDK v0.6.0 idempotent asynchronous `Operation.Cancel` contract
 
 ### Key context

@@ -11,6 +11,6 @@
   "spec": "fn-18-versioned-umpire-artifact-boundary",
   "spec_path": ".flow/tasks/fn-18-versioned-umpire-artifact-boundary.7.md",
   "status": "todo",
-  "title": "Add strict coverage-report reading and exact checkpoint persistence",
-  "updated_at": "2026-08-26T09:47:24.751800Z"
+  "title": "Prove cross-language Artifact identities and closure",
+  "updated_at": "2026-08-27T19:07:06.358816Z"
 }

@@ -14,14 +14,14 @@ Author the Temporal-owned one-axis/two-choice space and compile its selected fau
 - Compose the spec's exact space/axis/choice/fault/goal identities over the existing checked exact-action caller-closure Query and required force-close occurrence.
 - Reuse fn-16 `CheckedExperimentSpace`, `lowerSpacePoint`, checked `ArtifactIntent`, and target-indexed kernel; do not construct requested-fault artifact fields directly.
 - Pin the two assignments, checked metadata/digest, selected intent arrays/capability union, derived identities, and faulted ExperimentSpec bytes.
-- Prove the fault choice still receives the ordinary count-one model trace and that the pre-existing no-fault ExperimentSpec bytes and pure Property are unchanged.
+- Prove the fault choice still receives the ordinary count-one Model Trace and that the pre-existing no-fault ExperimentSpec bytes and pure Property are unchanged.
 - Add reorder plus stale occurrence/action/capability, duplicate effect, invalid goal, and outcome-authoring negative fixtures; preserve existing comments and vertical imports.
 
 ### Investigation targets
 **Required** (read before coding):
 - `.flow/specs/fn-16-authored-variation-spaces-and.md:42-100` — checked space/fault/lowering contract
 - `.flow/tasks/fn-16-authored-variation-spaces-and.5.md:13-34` — Temporal variation-space proof pattern
-- `model/Temporal/Feature/Nexus/CallerClosure.lean:34-48` — canonical semantic identities
+- `model/Temporal/Feature/Nexus/CallerClosure.lean:34-48` — canonical Behavior Fingerprints
 - `model/Temporal/Feature/Nexus/CallerClosure.lean:441-507` — Property, Query, and occurrence
 - `model/Temporal/Feature/Nexus/CallerClosureTests.lean:232-243` — exact-identity assertion style
 

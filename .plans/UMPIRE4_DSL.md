@@ -19,7 +19,7 @@ bounded questions, executable experiment artifacts, and evidence interpretation.
 authoring jobs:
 
 1. **Property** defines what must hold.
-2. **Behavior** defines which semantic traces are admissible.
+2. **Behavior** defines which Model Traces are admissible.
 3. **Query** states what the planner or runner must establish.
 4. **Observation** defines how raw evidence establishes semantic observations.
 
@@ -43,28 +43,28 @@ property + behavior + query + checked target
                                     |
                          observation interpretation
                                     |
-                         qualified semantic trace
+                         Evidence-backed Model Trace
                                     |
                             property verdicts
 ```
 
 The implemented current-model path ends at deterministic `ExperimentSpec` inspection. Runtime
-execution, live evidence qualification, replay, promotion, and deployment qualification are
-separate integration work and must preserve the same semantic identities.
+execution, live Observation Evaluation, replay, promotion, and deployment Claim Assessment are
+separate integration work and must preserve the same Behavior Fingerprints.
 
 ## Core decisions
 
 - Lean is the sole authority for behavioral meaning in this model pipeline.
 - Properties, behaviors, queries, and observations have separate responsibilities and types.
 - Properties are pure, portable, and capability-scoped; they never mention evidence sources.
-- Behavior denotes a constrained semantic trace space, not a procedural RPC script.
+- Behavior denotes a constrained Model Trace space, not a procedural RPC script.
 - Scenario authoring records requested actions; target semantics owns outcomes.
 - A `DrivePlan` is generated execution intent, not an author-facing language or proof of execution.
 - Raw evidence is interpreted separately before properties evaluate it.
 - Missing, ambiguous, conflicting, stale, or unsupported evidence never becomes success.
-- Every search, execution, observation, and minimization phase has explicit typed bounds.
+- Every search, execution, observation, and minimization phase has explicit typed Limits.
 - Public vocabulary and persisted artifacts use stable identities, versions, provenance, semantic
-  digests, deterministic ordering, and explicit omissions.
+  digests, deterministic ordering, and explicit Known Gaps.
 - Capability records are the artifact contract. Lean type classes may provide concise authoring but
   cannot hide consumed requirements.
 - Portable declarations are inspectable data with a Lean denotation. Opaque callbacks cannot
@@ -77,8 +77,8 @@ separate integration work and must preserve the same semantic identities.
 - Umpire remains Temporal-agnostic while its interfaces are selected and deepened around problems
   demonstrated by Temporal.
 - `Temporal.Feature` owns product meaning and `Temporal.System` owns implementation meaning. Both
-  are ordinary authoring surfaces; mixed claims meet through an explicit refinement.
-- Ordinary Temporal authors state domain meaning, bounds, and evidence requirements without
+  are ordinary authoring surfaces; mixed claims meet through an explicit Implementation Link.
+- Ordinary Temporal authors state domain meaning, Limits, and evidence requirements without
   assembling Umpire proof, checking, canonicalization, or planner plumbing.
 - Veil is available only through focused generic support and expert adapters under
   `Temporal.Verify`; ordinary Umpire and Temporal facades never expose it.
@@ -92,7 +92,7 @@ The catalog contains typed declarations for:
 - resources, entities, states, finite attributes, and relations;
 - inputs, outputs, actions, faults, and semantic observations;
 - properties, behaviors, queries, and observation mappings; and
-- stable identities, documentation metadata, provenance, and semantic digests.
+- stable identities, documentation metadata, provenance, and Behavior Fingerprints.
 
 Mechanical Protobuf declarations and dynamic-configuration catalogs provide structure. They do not
 acquire product meaning until handwritten Lean declarations interpret them.
@@ -108,7 +108,7 @@ nexus.property.cancelIsUnique
 ```
 
 Wrong-kind references fail checking even when their text matches. Documentation and source ordering
-do not change semantic identity; a change to a consumed contract does.
+do not change Behavior Fingerprint; a change to a consumed contract does.
 
 Properties and behaviors declare the capabilities they require. A checked target provides those
 capabilities and their laws. Evaluation exposes only the capability-limited trace view admitted by
@@ -146,22 +146,22 @@ property honoredDelivery where
 
 `eventuallyWithin` uses a declared semantic unit such as transitions, actions, observation
 positions, or model-defined logical time. It is not an unbounded liveness claim or an implicit
-wall-clock delay. Persisted queries expand named bounds to exact values and units.
+wall-clock delay. Persisted queries expand named Limits to exact values and units.
 
 A property cannot reference logs, spans, RPC names, storage records, environment profiles, action
 realizers, requested fault controls, planner state, or coverage state. Human statements, generated
-tests, and support views are projections of the checked declaration rather than independent rules.
+tests, and support views are derived from the checked declaration rather than independent rules.
 
-Evaluation returns a structured verdict naming the responsible clause, relevant trace span,
-expanded bound, semantic provenance, and consumed observation derivations. A portable evaluator
+Evaluation returns a structured verdict naming the responsible clause, relevant Model Trace span,
+expanded Limit, semantic provenance, and consumed observation Evidence Links. A portable evaluator
 must agree with its Lean denotation. Expert-only opaque predicates remain below the portable
 language and cannot be planned, serialized, promoted, or presented as portable declarations.
 
 ## Behavior language
 
-A behavior defines admissible semantic traces. It owns symbolic resources, semantic setup,
+A behavior defines admissible Model Traces. It owns symbolic resources, semantic setup,
 allowed/required/forbidden actions, named occurrences, finite variation, partial ordering,
-occurrence bounds, fault intents, and explicit omissions. It does not decide whether a trace is
+occurrence Limits, fault intents, and explicit Known Gaps. It does not decide whether a trace is
 correct.
 
 ```lean
@@ -185,7 +185,7 @@ Constraint meanings are precise:
 
 | Form | Meaning |
 | --- | --- |
-| `allow a` | `a` may occur within its occurrence bound |
+| `allow a` | `a` may occur within its occurrence Limit |
 | `require a` | Introduce a named required occurrence of `a` |
 | `forbid a` | No occurrence of `a` is admissible |
 | `occurs a exactly/atLeast/atMost n` | Constrain occurrence count |
@@ -206,9 +206,9 @@ missing or misdirected realization is execution divergence.
 ## Query and planning
 
 A query combines a checked behavior, properties, compatible target, quantifier, strategy, and
-bounds. It supports:
+Limits. It supports:
 
-- universal verification within complete finite bounds;
+- universal verification within complete finite Limits;
 - existential witness search;
 - counterexample search; and
 - selection of experiments for an execution profile.
@@ -216,11 +216,11 @@ bounds. It supports:
 Complete search fails instead of truncating. An empty behavior is `unsatisfiable`, not universal
 success by vacuity. A budgeted search that finds nothing is `budgetExhausted`, not verified.
 
-Phase-specific bounds remain distinct:
+Phase-specific Limits remain distinct:
 
-| Phase | Bound controls |
+| Phase | Limit controls |
 | --- | --- |
-| Behavior | Admissible semantic traces |
+| Behavior | Admissible Model Traces |
 | Search | Planning effort and completeness |
 | Execution | Actions, concurrency, and deadlines |
 | Observation | Source closure and evidence volume |
@@ -228,7 +228,7 @@ Phase-specific bounds remain distinct:
 
 The first planner is a deterministic, lazy, bounded Lean enumerator behind a replaceable interface.
 Strategies and seeds are query policy, not property or behavior semantics. Query identity covers
-resolved declarations, consumed semantic digests, expanded bounds, target composition, strategy,
+resolved declarations, consumed Behavior Fingerprints, expanded Limits, target composition, strategy,
 and seed.
 
 ### Planning results
@@ -237,18 +237,18 @@ and seed.
 - `noSuchTraceWithinCompleteBounds`: complete search found none;
 - `budgetExhausted`: incomplete search stopped without a result;
 - `unsatisfiable`: behavior constraints admit no trace; and
-- `invalid`: vocabulary, capabilities, types, or bounds are malformed.
+- `invalid`: vocabulary, capabilities, types, or Limits are malformed.
 
 ## DrivePlan and ExperimentSpec
 
 The runtime consumes generated artifacts rather than evaluating behavior constraints directly.
 
 A `DrivePlan` records selected semantic occurrences, their deterministic order, resources and
-bindings, choices, variants, requested faults, required drive capabilities, preconditions, bounds,
-observation checkpoints, source identities, selection reason, and omissions.
+bindings, choices, variants, requested faults, required drive capabilities, preconditions, Limits,
+observation checkpoints, source identities, selection reason, and Known Gaps.
 
 An `ExperimentSpec` is the portable environment-independent envelope. It embeds or references the
-plan and adds property identities, observation requirements, format version, semantic identity,
+plan and adds property identities, observation requirements, format version, Behavior Fingerprint,
 provenance, and digests. It records what a runtime should attempt; it never claims the attempt,
 fault, outcome, or observation occurred.
 
@@ -259,7 +259,7 @@ meaning for an old field.
 ## Observation and verdicts
 
 The Observation language maps raw implementation evidence to shared semantic observations.
-Properties consume only the resulting qualified semantic trace.
+Properties consume only the resulting Evidence-backed Model Trace.
 
 Each mapping declares:
 
@@ -282,12 +282,12 @@ raw evidence
   -> bind identities and relations
   -> establish source-local and causal order
   -> verify closure and detect gaps
-  -> construct a qualified semantic trace
+  -> construct a Evidence-backed Model Trace
   -> evaluate pure properties
 ```
 
 Each established observation retains a compact derivation linking its mapping, evidence identities,
-bindings, ordering facts, and closure evidence. Multiple compatible semantic traces initially yield
+bindings, ordering facts, and closure evidence. Multiple compatible Model Traces initially yield
 `unknown` with their missing discriminator; incompatible facts yield `conflict`.
 
 Execution, observation, and property outcomes stay separate:
@@ -311,14 +311,14 @@ internal representations.
 | --- | --- |
 | API catalog | Mechanical Protobuf structure and field disposition |
 | Config catalog | Keys, types, defaults, precedence, scope, and classification |
-| Semantic catalog | Lean-owned vocabulary, targets, properties, observations, and digests |
+| Semantic catalog | Lean-owned vocabulary, Targets, Properties, observations, and Behavior Fingerprints |
 | Regression/space | Named behavior and exploration declarations |
 | ExperimentSpec | Environment-independent bounded execution intent |
 | ExperimentRun | One environment-specific realization with controls and cleanup |
-| Raw evidence | Typed facts, receipts, source positions, causality, and omissions |
+| Raw evidence | Typed facts, receipts, source positions, causality, and Known Gaps |
 | Semantic evidence | Lean-owned interpretation of raw facts |
-| Result | Qualified property and phase outcomes |
-| Replay bundle | Spec, run, evidence, result, bounds, and provenance |
+| Result | Independent Run Evaluation and phase outcomes |
+| Replay bundle | Spec, run, evidence, result, Limits, and provenance |
 | Verification receipt | Checker target, trust mode, proof or counterexample, and provenance |
 
 The stable component responsibilities are:
@@ -328,20 +328,20 @@ The stable component responsibilities are:
 | API importer | Descriptor sets to structural Lean declarations and catalog |
 | Config importer | Dynamic-config declarations to typed catalog and fixtures |
 | Authoring languages | Lean declarations to checked semantic catalog |
-| Experiment compiler | Checked query and bounds to `ExperimentSpec` |
-| Go/docs projection | Stable regression catalog to non-semantic developer views |
+| Experiment compiler | Checked query and Limits to `ExperimentSpec` |
+| Go/docs Generated View | Stable regression catalog to non-semantic developer Generated Views |
 | Execution runtime | `ExperimentSpec` and environment to run plus raw evidence |
-| Conformance | Spec, run, and raw evidence to semantic evidence and result |
-| Exploration | Scenario space, strategy, bounds, and coverage to selected specs |
+| Run Evaluation | Spec, run, and raw evidence to semantic evidence and result |
+| Exploration | Scenario space, strategy, Limits, and coverage to selected specs |
 | SDK participant | Participant program to SDK behavior and observations |
 | Replay/promotion | Failing bundle to minimized replay and reviewed regression |
-| Formal checking | Model target and bounds to receipt or counterexample |
-| Qualification | Spec and authorized profile to environment-qualified result |
+| Formal checking | Model target and Limits to receipt or counterexample |
+| Claim Assessment | Spec and authorized profile to environment-evaluated Result |
 
 The current implementation integrates structural import, authoring, finite planning, and
-deterministic `umpire-experiment/v1` inspection. Go runtimes and richer Umpire3 assurance machinery
+deterministic `umpire-experiment/v2` inspection. Go runtimes and richer Umpire3 assurance machinery
 are useful independent baselines, but they are not integrated until they consume this artifact and
-preserve its semantic identities. Implementation status and task sequencing belong in Flow-Next.
+preserve its Behavior Fingerprints. Implementation status and task sequencing belong in Flow-Next.
 
 ## Package architecture
 
@@ -368,7 +368,7 @@ Temporal modules are classified by semantic altitude:
 - `Temporal.API` and `Temporal.DynamicConfig` own generated mechanical catalogs;
 - `Temporal.Feature` owns product-visible behavior and checked feature targets;
 - `Temporal.System` owns concrete mechanisms, configuration interpretation, evidence mappings,
-  execution adapters, and refinement adapters;
+  execution adapters, and Implementation Link adapters;
 - `Temporal.Tool` owns ordinary inspection and developer tooling without behavioral authority; and
 - `Temporal.Verify` owns expert-only checker views, Veil declarations, checked bindings,
   correspondence proofs, and verification entry points.
@@ -376,19 +376,19 @@ Temporal modules are classified by semantic altitude:
 Feature and System describe semantic altitude, not author expertise. Regular Temporal engineers may
 author both through the same approachable Umpire interfaces. Feature models do not import concrete
 System mechanisms, and base System mechanisms do not redefine Feature properties. A
-`Temporal.System.<Family>.Refinement` leaf imports the relevant Feature and System interfaces and
+`Temporal.System.<Family>.ImplementationLink` leaf imports the relevant Feature and System interfaces and
 owns their mapping. Ordinary tooling may import both sides but never imports `Temporal.Verify`.
 
 The classification test is whether a claim survives a complete rewrite of Temporal internals while
 externally observable behavior remains the same. Such claims belong in Feature. Concrete handlers,
 tasks, persistence, configuration resolution, evidence sources, and other implementation choices
 belong in System. Mixed concerns split into a Feature property, System mechanism, explicit
-refinement, and observation mapping.
+Implementation Link, and observation mapping.
 
 Configuration follows the same seam: generic typed resolution and provenance live under
 `Temporal.System.Configuration`; Callback and Matching own their domain-specific interpretations.
 Feature may expose an abstract semantic configuration choice only when it changes product-visible
-meaning; a refinement maps the resolved System value to that choice.
+meaning; an Implementation Link maps the resolved System value to that choice.
 
 `Temporal.lean`, ordinary Temporal model tests, and ordinary developer tools exclude
 `Temporal.Verify`. Optional family verification enters through a dedicated aggregate such as
@@ -403,7 +403,7 @@ It does not replace Property, Behavior, Query, Planning, Observation, Artifact, 
 
 A Veil-owning family logically owns:
 
-1. its canonical target, properties, and semantic identities under the ordinary Feature or System
+1. its canonical target, properties, and Behavior Fingerprints under the ordinary Feature or System
    model;
 2. a handwritten Veil declaration under `Temporal.Verify.<Family>` in the primary Lake project; and
 3. a checked binding under the same expert adapter between Veil states, actions, transitions,
@@ -419,8 +419,8 @@ source-bound. Ordinary Umpire and Temporal imports must remain usable without im
 compiling Veil modules.
 
 The binding records canonical and Veil source identities and digests, state/action mappings, the
-claimed relation, assumptions, bounds, exclusions, unsupported vocabulary, and trust mode. Partial
-bindings expose omissions and cannot claim equivalence from matching fixtures alone.
+claimed relation, assumptions, Limits, exclusions, unsupported vocabulary, and trust mode. Partial
+bindings expose Known Gaps and cannot claim equivalence from matching fixtures alone.
 
 Results distinguish established, violated, unknown, unsupported, and invalid. They also preserve
 kernel proof, reconstructed solver proof, trusted solver, bounded symbolic search, testing, and
@@ -439,11 +439,11 @@ trust evidence.
 Focused checks must cover:
 
 - capability composition, connector conflicts, and undeclared access;
-- property denotation/evaluator agreement and typed bounds;
+- property denotation/evaluator agreement and typed Limits;
 - behavior contradictions, exactness, monotonic narrowing, and deterministic planning;
 - complete-search, unsatisfiable, exhausted, invalid, and anti-forgery outcomes;
-- canonical artifacts, stable identities, semantic digests, and deterministic ordering;
-- evidence closure, gaps, ambiguity, conflict, causality, field disposition, and derivations;
+- canonical artifacts, stable identities, Behavior Fingerprints, and deterministic ordering;
+- evidence closure, gaps, ambiguity, conflict, causality, field disposition, and Evidence Links;
 - independent model, mapping, property, and implementation mutations;
 - package import direction and absence of Temporal vocabulary under `model/Umpire`;
 - absence of Veil imports from the ordinary `Umpire` and `Temporal` aggregates, Feature, base
@@ -465,7 +465,7 @@ source and generated fixtures, not status prose in this document, determine impl
 - Unbounded liveness claims from finite execution.
 - Arbitrary callbacks in portable declarations.
 - Inferring correctness from requested actions, control receipts, coverage, or metadata.
-- Hiding bounds, truncation, unsupported vocabulary, evidence gaps, or cleanup failure.
+- Hiding Limits, truncation, unsupported vocabulary, evidence gaps, or cleanup failure.
 - Replacing specialized unit, race, persistence, schema, authorization, performance, or handler
   tests.
 - Putting Temporal-specific checker views or Veil bindings under `Umpire`.

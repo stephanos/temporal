@@ -13,9 +13,7 @@
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
     "fn-21-nexus-duplicate-observation-control",
-    "fn-17-bounded-semantic-exploration-and",
     "fn-32-add-umpire-refinement-and-the-first",
-    "fn-33-run-resumable-semantic-exploration",
     "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-22-deterministic-replay-semantic",
@@ -272,5 +270,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T05:43:41.568779Z"
+  "updated_at": "2026-08-27T19:07:01.750634Z"
 }

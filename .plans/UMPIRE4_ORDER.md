@@ -7,7 +7,7 @@ Build a minimal but capable vertical slice that demonstrates the possibilities i
 
 1. **Normal caller closure:** a known deterministic regression executes through a preprogrammed SDK
    participant and satisfies its property.
-2. **Duplicate-delivery control:** the same model plus one authored fault produces a qualified
+2. **Duplicate-delivery control:** the same model plus one authored fault produces a accepted
    uniqueness violation, which is replayed, reduced, and proposed as a permanent regression.
 
 The prototype should prove the architecture can support the full vision without first building the
@@ -192,7 +192,7 @@ and resume machinery when reducing the existing mixed tasks.
 ### 14. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 Reduce the campaign to a serial bounded `umpire-fuzz run` command that asks the Lean-owned
-exploration layer for candidates, executes them through the existing runner/conformance path, and
+exploration layer for candidates, executes them through the existing runner/Run Evaluation path, and
 reports semantic coverage and exhaustion honestly. Defer concurrency, leases, crash-safe campaign
 state, and resume.
 
@@ -224,7 +224,7 @@ Complete this gate after P2 and before starting P3:
 - the documented fn-19/fn-20 normal commands and fn-21 duplicate-delivery commands complete with the
   expected satisfied and uniqueness-only results; and
 - local, ordinary CI, fixed-profile staging, and canary dry-run records name the same normal artifact
-  byte hash, format identity, and semantic identity, while staging also records bounded execution,
+  byte hash, format identity, and Behavior Fingerprint, while staging also records bounded execution,
   isolation, and complete cleanup.
 
 ## Removed from the prototype queue
@@ -241,12 +241,12 @@ Complete this gate after P2 and before starting P3:
 - **fn-24 — Lean-native verification receipts and canonical replay.** Receipt/profile platform;
   existing bounded checking is sufficient for the prototype.
 - **fn-25 — Optional CallerClosure Veil binding and canonical replay.** Second verification backend.
-- **fn-26 — Local qualification receipts and staged profile contract.** Policy infrastructure after
+- **fn-26 — Local Evaluation Receipts and staged profile contract.** Policy infrastructure after
   a useful local `Result` exists.
-- **fn-29 — Bounded production canary execution and qualification.** Production control-plane work;
+- **fn-29 — Bounded production canary execution and Claim Assessment.** Production control-plane work;
   the prototype retains only a dry-run binding proof.
 - **fn-30 — Release evidence graph and manual authorization.** Release governance after real
-  qualification evidence exists.
+  Claim Assessment evidence exists.
 
 ## Preferred consolidation
 

@@ -11,6 +11,6 @@
   "spec": "fn-27-hermetic-ci-execution-and-qualification",
   "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.8.md",
   "status": "todo",
-  "title": "Add ArtifactSet v3 and the CI publication closure",
-  "updated_at": "2026-08-26T14:30:25.841597Z"
+  "title": "Reject drift without new artifact or policy formats",
+  "updated_at": "2026-08-27T19:07:23.453163Z"
 }

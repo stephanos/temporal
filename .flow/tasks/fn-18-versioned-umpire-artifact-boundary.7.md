@@ -1,38 +1,32 @@
 ---
 satisfies: [R1, R5, R8]
 ---
-# fn-18-versioned-umpire-artifact-boundary.7 Add strict coverage-report reading and exact checkpoint persistence
+# fn-18-versioned-umpire-artifact-boundary.7 Prove cross-language Artifact identities and closure
 
 ## Description
-Implement R5's persistence handoff for fn-17 without redefining coverage state, scoring, or resume behavior.
+Prove exact Lean/Go agreement for every retained family before complete-set admission depends on it.
+
 
 **Size:** M
-**Files:** `model/Umpire/Artifact/Coverage.lean`, `model/Umpire/Exploration/Persistence.lean`, `model/Umpire/Exploration/PersistenceTests.lean`, `tools/umpire/artifact/coverage.go`, `tools/umpire/artifact/coverage_test.go`
-**Touches:** [model/Umpire/Artifact/Coverage.lean, model/Umpire/Exploration/Persistence.lean, model/Umpire/Exploration/PersistenceTests.lean, tools/umpire/artifact/coverage.go, tools/umpire/artifact/coverage_test.go]
+**Files:** `model/Umpire/Artifact/Tests/Goldens.lean`, `tools/umpire/artifact/golden_test.go`, and retained fixtures
+**Touches:** [model/Umpire/Artifact/Tests/Goldens.lean, tools/umpire/artifact/golden_test.go, tools/umpire/artifact/testdata/**]
 
 ### Approach
-- Reuse fn-17's canonical report projection byte-for-byte and implement strict Go admission/structural/digest validation.
-- Define the exact checkpoint wrapper over immutable CoverageState plus report and selected/pinned ExperimentSpec bindings.
-- Recompute report/checkpoint/state identities and enforce disjoint partitions, count/set equality, coordinate/goal credit references, budget ceiling, cursor, direct/equivalent interaction, and report/state/spec agreement.
-- Keep resume compatibility and coverage meaning delegated to fn-17 after admission.
-- Mutate every digest, partition, credit, selected binding, ceiling, cursor, termination, and interaction relationship.
+- Emit authoritative canonical fixtures from Lean and recompute every Artifact Checksum independently in Go.
+- Mutate each Definition ID, Behavior Fingerprint, Artifact Checksum, Limit, Known Gap, binding, and terminal-LF relation one at a time.
+- Keep coverage checkpoints, replay bundles, and generic receipt envelopes outside the fixture set.
 
 ### Investigation targets
-**Required** (read before coding):
-- `model/Umpire/Exploration/State.lean`, `Report.lean`, `Engine.lean`
-- fn-17 R3/R5/R6/R7 and exact report/checkpoint handoff
-- parent spec `Normative v1 wire contract` coverage schemas
-
-### Acceptance
-- [ ] Fn-17 report persisted bytes remain authoritative; Go never sorts, scores, or repairs them.
-- [ ] Checkpoint wraps, rather than duplicates, the exact state and all selected/pinned bindings.
-- [ ] Structural/digest/reference tampering fails deterministically.
-- [ ] Admitted checkpoint values are handed back to fn-17 for semantic resume compatibility.
+**Required:** tasks `.3`–`.6` and fn-37's golden/mutation pattern.
 
 ## Acceptance
-- [ ] R5 report/checkpoint persistence is exact and bounded.
-- [ ] No second coverage or resume model exists.
-- [ ] Cross-language persistence tests pass.
+- [ ] Every retained family has one exact canonical positive fixture and focused mutation coverage.
+- [ ] Cross-domain fingerprint/checksum substitution and stale relationship mutations reject.
+- [ ] No deferred Artifact family appears in the production manifest.
+
+### Quick command
+
+`mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestCrossLanguageGoldens`
 
 ## Done summary
 TBD

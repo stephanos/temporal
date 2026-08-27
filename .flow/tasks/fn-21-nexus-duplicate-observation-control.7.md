@@ -1,12 +1,12 @@
 ---
 satisfies: [R2, R5, R7]
 ---
-# fn-21-nexus-duplicate-observation-control.7 Compile the fault-specific System observation and Feature refinement
+# fn-21-nexus-duplicate-observation-control.7 Compile the fault-specific System observation and Feature Implementation Link
 
 ## Description
 ### Umpire4 reconciliation (normative)
 
-Compile a `Temporal.System.Nexus` observation mapping and its explicit checked correspondence to the Feature target through `Temporal.System.Nexus.Refinement`. Do not place fault-specific execution or evidence mapping under Feature.
+Compile a `Temporal.System.Nexus` observation mapping and its explicit checked correspondence to the Feature target through `Temporal.System.Nexus.ImplementationLink`. Do not place fault-specific execution or evidence mapping under Feature.
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 
@@ -19,7 +19,7 @@ Compile the exact fault-specific Temporal evidence profile/program/mapping befor
 ### Approach
 - Compose a second checked Temporal mapping/profile identity from fn-20's baseline caller-closure declarations and Task `.1`'s exact fault identity; do not copy the generic mapper or Property evaluator.
 - Freeze the fault-specific source schema before runtime binding: one requested/completed cancellation lifecycle, mechanical callback count one, synthetic-contribution count one, one injected marker, exact receipt/correlation/order/closure fields, and their dispositions.
-- Derive semantic cancellation count two only from the exact callback-one plus contribution-one relation; retain delivery/ownership rules unchanged and preserve complete coordinate derivations.
+- Derive semantic cancellation count two only from the exact callback-one plus contribution-one relation; retain delivery/ownership rules unchanged and preserve complete coordinate Evidence Links.
 - Expose the checked program/mapping semantic references and digests consumed by Task `.2`; every reorder-equivalent declaration remains identical while each meaning-bearing mutation changes identity or fails checking.
 - Prove missing/duplicate/wrong-kind fields, stale fault/capability identities, impossible count relation, cleartext-from-redacted copying, and unauthorized semantic declarations fail mapping compilation.
 
@@ -27,7 +27,7 @@ Compile the exact fault-specific Temporal evidence profile/program/mapping befor
 **Required** (read before coding):
 - `.flow/tasks/fn-20-local-execution-semantic-conformance.2.md:13-35` — baseline checked Nexus mapping/checker seam
 - `.flow/tasks/fn-4-umpire-observation-and-semantic-verdicts.4.md` — Temporal-owned profile/program ownership
-- `.flow/specs/fn-18-versioned-umpire-artifact-boundary.md:99-103` — derivation/disposition wire contract
+- `.flow/specs/fn-18-versioned-umpire-artifact-boundary.md:99-103` — Evidence Link/disposition wire contract
 - `model/Temporal/Feature/Nexus/CallerClosure.lean:441-462` — unchanged semantic outputs and Property clauses
 - `.flow/specs/fn-21-nexus-duplicate-observation-control.md` — exact fault evidence and mutation table
 
@@ -39,7 +39,7 @@ Compile the exact fault-specific Temporal evidence profile/program/mapping befor
 - [ ] Focused and aggregate Lean tests pass with no Temporal vocabulary entering reusable Umpire modules.
 ## Acceptance
 - [ ] R2 receives final checked mapping/profile references before RuntimeConfiguration binding.
-- [ ] R5 exact semantic derivation contract is compiled independently of live execution.
+- [ ] R5 exact semantic Evidence Link contract is compiled independently of live execution.
 - [ ] R7 single-authority, package-purity, and no-second-mapper boundaries hold.
 
 

@@ -23,11 +23,11 @@ Create the R4/R7 prerequisite that makes the existing loopback server usable by 
 - `temporaltest/options.go`
 - `temporaltest/internal/lite_server.go` startup/stop APIs
 - Go SDK v1.44.0 worker `Start`/`Stop` and `WorkerStopTimeout` contracts
-- parent local-authority and cleanup bounds
+- parent local-authority and cleanup Limits
 
 ### Acceptance
 - [ ] Every startup/client/worker failure returns an error and unwinds all earlier acquisitions without panic.
-- [ ] Context expiry bounds shutdown and reports exactly which owned resources remain; a later cleanup call remains safe.
+- [ ] Context expiry Limits shutdown and reports exactly which owned resources remain; a later cleanup call remains safe.
 - [ ] Nil testing integration is safe, while existing `NewServer(WithT(t))` behavior and callers continue to pass.
 - [ ] Failure injection covers every acquisition/release boundary and preserves existing comments.
 

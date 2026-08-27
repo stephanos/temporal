@@ -20,8 +20,8 @@ Complete R7 with the exact direct/root command, status contracts, public usage d
 - Implement exact three-flag grammar, preflight-before-run behavior, the parent ordered summary/error schemas, boolean publication semantics, and statuses 0/1/2.
 - Take Task `.7`'s admitted in-memory set and make the sole production `PublishSet` call; preflight output-root safety where fn-18 permits, publish before stdout, report both booleans on every tooling failure, and never auto-rerun.
 - Add only the root `umpire-run-local` Make target with exact required-variable checks.
-- Document the two-member input, fixed profile/budgets, four-member output, failed-run artifact behavior, evidence dispositions, local-only authority, and downstream conformance boundary.
-- Update C6/C9 and pilot-step implementation status only after the live test is implemented; keep Milestone B unintegrated until live semantic conformance.
+- Document the two-member input, fixed profile/budgets, four-member output, failed-run artifact behavior, evidence dispositions, local-only authority, and downstream Run Evaluation boundary.
+- Update C6/C9 and pilot-step implementation status only after the live test is implemented; keep Milestone B unintegrated until live semantic Run Evaluation.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -33,7 +33,7 @@ Complete R7 with the exact direct/root command, status contracts, public usage d
 ### Acceptance
 - [ ] Direct and root command exact ordered bytes/statuses agree for success, operational failed/incomplete, preflight error, publication error, and post-publication broken summary output.
 - [ ] Missing/extra/malformed arguments fail before execution with no stdout or side effect.
-- [ ] Documentation gives one copy-paste local run and does not imply semantic conformance or remote support.
+- [ ] Documentation gives one copy-paste local run and does not imply semantic Run Evaluation or remote support.
 - [ ] No model-local Makefile, CI, remote adapter, or prohibited legacy reference/use is added.
 ## Acceptance
 - [ ] R7 command, root UX, docs, and implementation-time roadmap status are complete.

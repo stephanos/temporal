@@ -1,40 +1,32 @@
 ---
 satisfies: [R1, R3, R8]
 ---
-# fn-18-versioned-umpire-artifact-boundary.4 Define runtime configuration and experiment-run transports
+# fn-18-versioned-umpire-artifact-boundary.4 Define RuntimeConfiguration and ExperimentRun transports
 
 ## Description
-Implement R3's exact RuntimeConfiguration and ExperimentRun schemas/canonical projections and strict Go codecs without adding execution behavior.
+Define exact inert transports for one runtime configuration and one bounded Execution Run.
+
 
 **Size:** M
-**Files:** `model/Umpire/Artifact/Runtime.lean`, `model/Umpire/Artifact/Tests/Runtime.lean`, `tools/umpire/artifact/runtime.go`, `tools/umpire/artifact/runtime_test.go`
+**Files:** `model/Umpire/Artifact/Runtime.lean`, tests, and `tools/umpire/artifact/runtime.go`
 **Touches:** [model/Umpire/Artifact/Runtime.lean, model/Umpire/Artifact/Tests/Runtime.lean, tools/umpire/artifact/runtime.go, tools/umpire/artifact/runtime_test.go]
 
 ### Approach
-- Define every exact RuntimeConfiguration and ExperimentRun field, nested record, enum, order, bound, identity view, and semantic reference from the parent normative schema.
-- Prohibit authority material in RuntimeConfiguration and Property/semantic verdicts in ExperimentRun by construction.
-- Implement canonical Lean encoders and strict Go decode/validate/re-encode for both formats.
-- Validate the locally persisted profile-required capability projection and exact capability union, phase timestamp/status consistency, control attempts against planned occurrences/requested faults, source-closure gaps, semantic-reference resolution, and experiment/configuration binding relations.
-- Add cross-language positive fixtures plus unknown field/enum, authority-field, phase/control/gap, bound, identity, and cross-binding mutations.
+- Bind both families to the exact v2 Test Plan through Artifact Checksum and Behavior Fingerprint references.
+- Keep RuntimeConfiguration free of endpoints, credentials, namespaces, and authority material.
+- Record Run attempts, phase outcomes, Execution Receipts, source closure, cleanup, Limits, and Known Gaps without evaluating the Run.
 
 ### Investigation targets
-**Required** (read before coding):
-- `.plans/UMPIRE4_COMPONENTS.md:302-328` — runtime responsibility and artifact seam
-- `.plans/UMPIRE4_DSL.md:245-324` — artifact/component separation
-- `model/Umpire/Artifact/Experiment.lean` — binding and provenance conventions
-- parent spec `Normative v1 wire contract` — exact fields, order, identities, references, and exclusions
-
-### Acceptance
-- [ ] Runtime config cannot encode endpoints, credentials, namespaces, executables, or arbitrary options.
-- [ ] Run cannot encode a Property verdict; runtime configuration cannot encode authority material.
-- [ ] Profile-required capabilities are locally recomputable from the persisted projection; no profile lookup is needed for admission.
-- [ ] Phase/control/source-closure and cross-binding mutations fail exactly.
-- [ ] Canonical Lean and Go bytes agree for both valid formats.
+**Required:** the parent retained-family schemas and fn-19's execution handoff.
 
 ## Acceptance
-- [ ] R3 runtime/run formats and bindings are minimal, exact, bounded, and transport-only.
-- [ ] Both strict codecs round-trip cross-language bytes.
-- [ ] Focused Lean/Go tests pass.
+- [ ] Canonical Lean/Go values agree and reject unknown, stale, malformed, or cross-boundary-inconsistent data.
+- [ ] Each Limit is scoped to one stage and Known Gaps use the exact closed fn-37 record.
+- [ ] RuntimeConfiguration performs no authorization and ExperimentRun carries no Property or Claim Assessment.
+
+### Quick command
+
+`mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestRuntime`
 
 ## Done summary
 TBD

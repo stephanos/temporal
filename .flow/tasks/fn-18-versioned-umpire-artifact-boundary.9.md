@@ -1,38 +1,32 @@
 ---
 satisfies: [R1, R6, R8]
 ---
-# fn-18-versioned-umpire-artifact-boundary.9 Implement deterministic named complete-set migrations
+# fn-18-versioned-umpire-artifact-boundary.9 Reject unsupported formats and mixed Artifact sets
 
 ## Description
-Implement R6's closed migration engine independently of publication.
+Close the hard-cut error surface without implementing a migration engine.
 
-**Size:** M
-**Files:** `tools/umpire/artifact/migration.go`, `tools/umpire/artifact/migration_test.go`
-**Touches:** [tools/umpire/artifact/migration.go, tools/umpire/artifact/migration_test.go]
+
+**Size:** S
+**Files:** `tools/umpire/artifact/version_test.go`, `tools/umpire/artifact/set_test.go`, and negative fixtures
+**Touches:** [tools/umpire/artifact/version_test.go, tools/umpire/artifact/set_test.go, tools/umpire/artifact/testdata/unsupported/**]
 
 ### Approach
-- Implement a closed registry keyed by exact source format, target format, and unique migration name.
-- Strictly admit the complete source set, deterministically transform every affected member/reference/manifest in memory, and strictly admit the complete target set after every edge.
-- Reject downgrades, skipped or unknown versions, aliases, guesses, ambiguous routes, semantic reinterpretation, partial-set output, and source mutation.
-- Keep the production registry empty because no superseded production format exists.
-- Prove one-way multi-step determinism, ambiguity rejection, before/after validation, atomic failure, and source immutability with private fixture-only formats.
+- Verify each earlier or unknown major fails with one stable unsupported-format result before field validation.
+- Verify a set mixing v2 with any other version fails before relationship closure or publication.
+- Reserve named migrations for a real reviewed post-v2 successor; add no production or fixture migration registry.
 
 ### Investigation targets
-**Required** (read before coding):
-- Task `.8` admitted-set API and parent migration contract
-- existing repository migration registry patterns, if any
-- parent spec API and `Artifact Sets, Migrations, and Publication` sections
-
-### Acceptance
-- [ ] Every production v1 set returns stable `no-migration-route`; no fake product predecessor exists.
-- [ ] Private fixture routes prove deterministic named multi-step migration and exact ambiguity/downgrade/invalid-intermediate rejection.
-- [ ] Failed migration returns no target and never mutates source bytes.
-- [ ] Every edge performs strict complete-set admission before and after transformation.
+**Required:** task `.3`, task `.8`, and fn-37's unsupported-format classification tests.
 
 ## Acceptance
-- [ ] R6 deterministic complete-set migration semantics are implemented.
-- [ ] The production registry remains honestly empty.
-- [ ] Focused Go migration tests pass.
+- [ ] Earlier, unknown, and mixed versions fail deterministically without returned values or writes.
+- [ ] Error precedence is format classification before legacy-field or checksum validation.
+- [ ] No migration, alias, downgrade, fallback, or repair path exists.
+
+### Quick command
+
+`mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestUnsupportedFormat`
 
 ## Done summary
 TBD

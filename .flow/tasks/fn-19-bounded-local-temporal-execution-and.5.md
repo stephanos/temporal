@@ -6,7 +6,7 @@ satisfies: [R1, R5, R7]
 ## Description
 ### Umpire4 reconciliation (normative)
 
-Move all Nexus execution/program/configuration ownership and public facades from `Temporal.Feature` to `Temporal.System`. Feature retains product-visible semantics only. Compose the complete current `ExperimentSpec`; do not reconstruct participant programs or other omitted meaning from legacy v1.
+Move all Nexus execution/program/configuration ownership and public facades from `Temporal.Feature` to `Temporal.System`. Feature retains product-visible semantics only. Compose the complete current `ExperimentSpec`; do not reconstruct participant programs or other omitted meaning from an incomplete alternate representation.
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 

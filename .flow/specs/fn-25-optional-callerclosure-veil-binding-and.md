@@ -29,7 +29,7 @@ meaningful Property to the optional checker without generated source, a generic 
 second definition of Temporal semantics.
 
 The first binding is intentionally narrow: one transition of the existing caller-closure target,
-the exact checked Property already owned by that feature, and the same typed bounds and semantic
+the exact checked Property already owned by that feature, and the same typed Limits and semantic
 digests used by its checked Query. Adoption is permitted only from an exact completed fn-23
 `adopt-optional` receipt whose selected revision, toolchain, closure, solver mode, and trust remain
 current at implementation time.
@@ -50,7 +50,7 @@ task `.1` records the mode, later tasks may not rerun the gate and switch branch
 after defer requires a new reviewed spec and a new compatibility receipt.
 
 The branch record retained in Flow task evidence is exactly
-`{formatVersion:"umpire-veil-gate-binding/v1",decisionReceiptIdentity,decisionStableDigest,decision,selectedCandidate,
+`{formatVersion:"umpire-veil-gate-binding/v2",decisionReceiptIdentity,decisionStableDigest,decision,selectedCandidate,
 selectedCommit,closureIdentity,currentLeanToolchain,solverCapabilities,commandSolverMode,commandTrust,
 mode}`. `decisionStableDigest` is the lowercase 64-hex SHA-256 recomputed from fn-23's exact normalized
 receipt-identity preimage; it must equal fn-23's `receiptIdentity`. Host and all raw measurements
@@ -88,7 +88,7 @@ only the semantic coordinates needed by the existing caller-closure Query:
 - action: the existing force-close action;
 - setup: the existing typed Workflow/Nexus roles used by the checked target;
 - observation: the existing pending-cancellation count observed after the transition;
-- bounds: exactly the checked Query's one-transition typed bound and complete role/action domains.
+- Limits: exactly the checked Query's one-transition typed Limit and complete role/action domains.
 
 The binding supplies total functions from each admitted canonical setup, initial state, action,
 transition result, and Property evaluation into the view, plus proofs in both directions over the
@@ -100,7 +100,7 @@ closed finite domain:
 4. every view counterexample decodes to one unique typed canonical candidate.
 
 The binding records sorted `assumptions`, `exclusions`, and `unsupportedVocabulary`. For this first
-slice, `unsupportedVocabulary` must be empty and the domain/bounds must equal the checked Query,
+slice, `unsupportedVocabulary` must be empty and the domain/Limits must equal the checked Query,
 rather than silently projecting or widening it. Any many-to-one action/state mapping, extra checker
 step, unproved reverse direction, or non-empty unsupported vocabulary prevents an established or
 violated semantic result.
@@ -111,21 +111,21 @@ mapping/relation coordinate is a `BindingCoordinateEvidence` record
 `setup-mapping|state-mapping|action-mapping|observation-mapping|initial-relation|step-relation|
 property-relation|counterexample-decoding`; `rows` is the complete finite truth/function table ordered
 by the canonical finite-domain enumerations and contains explicit canonical input/output values.
-`declarations` is sorted by fully qualified name and each record is exactly
+`declarations` is sorted by fully accepted name and each record is exactly
 `{name,typeExprDigest,valueExprDigest,axioms}`. The expression digests use a closed structural encoding
-of elaborated `Lean.Expr`: constructor tag, de-Bruijn index, fully qualified constant name and universe
+of elaborated `Lean.Expr`: constructor tag, de-Bruijn index, fully accepted constant name and universe
 arguments, literal value, binder info, and recursively encoded children; pretty printing, source
 spans, object files, and declaration metadata are excluded. `axioms` is the sorted unique transitive
 axiom-name inventory. The pinned Lean toolchain is part of the gate binding. A semantic-table change,
 theorem statement/value change, axiom change, declaration rename, or finite enumeration change must
 therefore change a coordinate digest. A proof refactor whose normalized theorem type/value, axiom
-inventory, and complete finite table are identical intentionally preserves semantic identity.
+inventory, and complete finite table are identical intentionally preserves Behavior Fingerprint.
 
-`viewDigest` is SHA-256 over canonical `{formatVersion:"umpire-caller-closure-first-order-view/v1",
-setupDomain,stateDomain,actionDomain,observationDomain,initialRows,stepRows,propertyRows,bounds}`.
-`bindingIdentity` is `umpire-caller-closure-first-order-binding/v1:` plus SHA-256 over canonical
-`{targetIdentity,targetSemanticDigest,kernelIdentity,kernelContractDigest,queryIdentity,
-querySemanticDigest,propertyIdentity,propertySemanticDigest,viewIdentity,viewDigest,coordinates,bounds,
+`viewDigest` is SHA-256 over canonical `{formatVersion:"umpire-caller-closure-first-order-view/v2",
+setupDomain,stateDomain,actionDomain,observationDomain,initialRows,stepRows,propertyRows,Limits}`.
+`bindingIdentity` is `umpire-caller-closure-first-order-binding/v2:` plus SHA-256 over canonical
+`{targetIdentity,targetBehaviorFingerprint,kernelIdentity,kernelContractDigest,queryIdentity,
+queryBehaviorFingerprint,propertyIdentity,propertyBehaviorFingerprint,viewIdentity,viewDigest,coordinates,Limits,
 assumptions,exclusions,unsupportedVocabulary,gateBinding}`. Source positions are repository-relative;
 all JSON field and array orders above are fixed.
 
@@ -158,13 +158,13 @@ transition IR, backend parser, solver runner, source generator, or trust-upgrade
 An established external result is admissible only when:
 
 - the binding has complete bidirectional correspondence and empty unsupported vocabulary;
-- checker bounds exactly equal the checked Query bounds;
+- checker Limits exactly equal the checked Query Limits;
 - the checker reports a complete result for the exact gate-selected solver mode;
 - its trust is no stronger than fn-23 advertised; and
 - the reported evidence identities match the compiled gate and binding identities.
 
 Trust is preserved, never upgraded. A gate capability of `reconstructed-solver` may issue an
-established-within-bounds receipt with that trust. `trusted-solver` may issue the same bounded claim
+established-within-Limits receipt with that trust. `trusted-solver` may issue the same bounded claim
 with `trusted-solver` trust. `testing` or a concrete-only mode can exercise the adapter but returns
 `unknown` and cannot establish the Property. Kernel trust is never inferred from Lean compilation.
 
@@ -174,34 +174,34 @@ Query/Property identities, the same setup and initial state, exactly one ordered
 its exact canonical outcome/resulting state/observations, and reason `violatingCounterexample`.
 The external verdict itself cannot emit `violated`: only `replayCounterexample` followed by
 `receiptOfNativeReplay` (or its generalized canonical-replay equivalent) can do so. Stale identity,
-decode ambiguity, bounds disagreement, kernel disagreement, Behavior rejection, or a now-satisfied
+decode ambiguity, Limits disagreement, kernel disagreement, Behavior rejection, or a now-satisfied
 Property is invalid/unknown evidence and never a violation.
 
-Fn-24's exact native `umpire-verification-receipt/v1` bytes and evidence order remain unchanged.
-External-view results use the reusable superset `umpire-verification-receipt/v2`, whose envelope is
-the same ordered `{formatVersion,request,checker,result,evidence,counterexample,diagnostics,omissions,
+Fn-24's exact native `umpire-verification-receipt/v2` bytes and evidence order remain unchanged.
+External-view results use the reusable superset `umpire-verification-receipt/v3`, whose envelope is
+the same ordered `{formatVersion,request,checker,result,evidence,counterexample,diagnostics,Known Gaps,
 receiptIdentity}` and whose checker is `{kind:"external-lean",checkerIdentity:
 "temporal.nexus.caller-closure.veil",implementationIdentity:<bindingIdentity>,toolchain:<exact current
-toolchain>}`. V2 changes only the closed evidence vocabulary/order needed for an explicit view:
+toolchain>}`. V3 changes only the closed evidence vocabulary/order needed for an explicit view:
 target, kernel, Query, Property, role-domain, action-domain, checker-view, checker-binding,
 compatibility-gate, candidate, replay; inapplicable trailing candidate/replay entries are absent.
 
 The three new evidence records are exact `{kind,identity,digest,source}` values. `checker-view` uses
-the view identity/digest and the `FirstOrder` declaration source. `checker-binding` uses the binding
+the view Definition ID/Behavior Fingerprint and the `FirstOrder` declaration source. `checker-binding` uses the binding
 identity, SHA-256 of the canonical binding-identity preimage, and the `FirstOrder` binding source.
-`compatibility-gate` uses identity `umpire-veil-compatibility/v1:` plus the admitted fn-23 receipt
+`compatibility-gate` uses identity `umpire-veil-compatibility/v2:` plus the admitted fn-23 receipt
 identity, digest `decisionStableDigest` from the frozen branch record, and source
 `{path:".flow/specs/fn-23-veil-toolchain-compatibility-
 and.md",line:1,column:1,provenance:"flow-reviewed-gate-contract"}`; raw captured receipt bytes and host
-paths are not embedded. V2 `receiptIdentity` uses fn-24's formula with `formatVersion` set to v2 and
+paths are not embedded. V3 `receiptIdentity` uses fn-24's formula with `formatVersion` set to v3 and
 this exact expanded evidence array. This is a reusable receipt-version evolution, not a Veil-specific
-semantic receipt; v1 readers reject v2 rather than partially decoding it.
+semantic receipt; v2 readers reject v3 rather than partially decoding it.
 
 The production declaration is the sole public binding. Tests additionally define one test-only
 negative binding and handwritten invariant inside `VeilTests.lean` for fn-24's existing test-only
 at-most-zero Property and checked Query. It has distinct Query/Property/view/binding/checker identities,
-the same unchanged target/kernel and exact bounds, and its own bidirectional Property relation. It is
-not imported by the production adapter, aggregate facade, catalog, projection, inspector, or CLI.
+the same unchanged target/kernel and exact Limits, and its own bidirectional Property relation. It is
+not imported by the production adapter, aggregate facade, catalog, Generated View, inspector, or CLI.
 Its candidate may replay only against that negative Query; attempting to pair it with production
 lineage is a required stale/crossed rejection.
 
@@ -215,7 +215,7 @@ make umpire-verify-veil TARGET=workflow-nexus.target.caller-closure
 ```
 
 The executable accepts exactly one statically registered target and no query/property/revision/
-solver/path/environment overrides. It emits the v2 receipt with fn-24's semantic status meanings:
+solver/path/environment overrides. It emits the v3 receipt with fn-24's semantic status meanings:
 
 - status 0: `established`;
 - status 2: `violated`, `unknown`, or `unsupported`;
@@ -230,13 +230,13 @@ or production binaries. Defer mode exposes neither command and documents no unsu
 Adopt-mode checker execution inherits fn-23's frozen dependency/toolchain identity and uses a ten
 minute wall limit, 4 GiB descendant RSS limit, 512-process limit, and 16 MiB stdout/1 MiB stderr
 limits. Limit equality passes; N+1 returns status 1 with no semantic claim. The status-1 error envelope
-is exactly `{formatVersion:"umpire-verification-error/v2",code,phase,target,messageDigest}` with code
+is exactly `{formatVersion:"umpire-verification-error/v3",code,phase,target,messageDigest}` with code
 `arguments|unknown-target|registry|dependency|checker-process|resource-limit|invariant|serialization|
 write`, phase `admit|dependency|check|decode|replay|receipt|write`, target nullable, and lowercase
 64-hex digest over bounded sanitized diagnostic text.
 
 Progress is canonical NDJSON on stderr, at most 64 events and 512 bytes per event, each exactly
-`{formatVersion:"umpire-verification-progress/v1",sequence,phase,status}`. Sequence starts at zero and
+`{formatVersion:"umpire-verification-progress/v2",sequence,phase,status}`. Sequence starts at zero and
 increments by one; phase uses the error phase set; status is `started|completed|failed`; phases occur
 in the listed order, skipped phases emit no event, and a started phase has exactly one later completed
 or failed event. Statuses 0/2 and semantic-invalid status 1 have only progress lines on stderr and one
@@ -292,19 +292,19 @@ make umpire-check-regression
   completion. Adopt mode retains every solver capability and applies the exact deterministic
   command-mode selection rule; it never invents a gate-selected mode.
 - **R2:** In adopt mode, one family-owned explicit first-order view has total mappings, exact closed
-  bounds, bidirectional initial/step/Property correspondence, injective counterexample decoding,
+  Limits, bidirectional initial/step/Property correspondence, injective counterexample decoding,
   empty unsupported vocabulary, and a canonical identity bound to fn-23/fn-24 lineage. Errors:
-  projection, widening, ambiguous decoding, unproved reverse direction, or reusable/backend-neutral IR
+  Generated View, widening, ambiguous decoding, unproved reverse direction, or reusable/backend-neutral IR
   blocks a semantic claim. In defer mode, no view/binding source exists.
 - **R3:** In adopt mode, exactly the selected immutable Veil revision and manifest closure enter the
   primary Lake project behind focused non-default imports, with one handwritten declaration and no
   generated source. Errors: moving/forked/patched revision, second project/toolchain, default import,
   semantic copy, or dependency drift fails. In defer mode, all dependency/source/target surfaces are
   absent.
-- **R4:** External result admission preserves fn-23 trust, exact checker/view/request/bounds evidence,
-  fn-24's semantic vocabulary, and the exact non-breaking v1-to-v2 receipt rule; only complete proved
+- **R4:** External result admission preserves fn-23 trust, exact checker/view/request/Limits evidence,
+  fn-24's semantic vocabulary, and the exact non-breaking v2-to-v3 receipt rule; only complete proved
   correspondence may establish. Errors: trust
-  upgrade, caller-supplied claim, partial binding, crossed identity, stronger bounds, new semantic
+  upgrade, caller-supplied claim, partial binding, crossed identity, stronger Limits, new semantic
   receipt, or backend knowledge in reusable Umpire fails.
 - **R5:** Every adopted external counterexample injectively lowers into the canonical typed candidate
   and passes fn-24 kernel/Behavior/Property replay before `violated`; the distinct test-only negative
@@ -329,7 +329,7 @@ decode, stop and revise the family boundary before task `.3`.
 ## Boundaries
 
 - No changes to `ExperimentSpec`, DrivePlan, runtime/evidence/result artifacts, exploration,
-  promotion, local execution, remote execution, qualification, CI defaults, or production binaries.
+  promotion, local execution, remote execution, Claim Assessment, CI defaults, or production binaries.
 - No generated checker source, generic first-order/transition IR, second semantic evaluator, remote
   checker service, general plugin registry, additional family/property, or blanket Veil adoption.
 - No backend, Temporal, Workflow, or Nexus vocabulary in reusable `model/Umpire`; no Nexus types in

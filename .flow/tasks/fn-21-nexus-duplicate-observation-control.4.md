@@ -14,7 +14,7 @@ Project the requested fault, completed real receipt, injected marker, separate c
 - Reuse fn-19's four-source accumulator and fn-18 Run/RawEvidence constructors; add only the fixed allowlisted synthetic-contribution count and injected-marker fields required by Task `.7`'s checked profile.
 - Bind the one control attempt to the planned occurrence, exact non-null fault identity, accepted status, and one receipt fact. Project mechanical callback count one, synthetic-contribution count one, and the marker as unique ordered transport facts sharing the real run/operation/cancellation correlation.
 - Retain one normal history chain with one requested and one completed cancellation event, explicit phase/source closure, and zero open handles; never label the injected observation as a second SDK/server callback or history request.
-- Charge every extra fact/field before append under existing limits and emit the mutation table's operational `incomplete`/status-2 omission and gap on N+1.
+- Charge every extra fact/field before append under existing limits and emit the mutation table's operational `incomplete`/status-2 Known Gap and gap on N+1.
 - Build and fn-18-admit the four-member output in memory; independently mutate callback count, contribution count, marker, fault, receipt, correlation, causality, order, disposition, closure, and capacity and pin every case to the exact table row before one bounded live control.
 
 ### Investigation targets

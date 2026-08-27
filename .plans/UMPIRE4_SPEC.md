@@ -89,7 +89,7 @@ what to run, and Run Evaluation checks the collected Evidence.
 - **MOD-09 — `Shared` independence.** `Shared.*` MUST NOT directly or transitively import `Umpire.*`
   or `Temporal.*`.
 - **MOD-10 — `Temporal.System` isolation.** `Temporal.System.*` MUST NOT directly or transitively
-  import `Temporal.Feature.*`. The only exception is `Temporal.System.Nexus.Refinement`.
+  import `Temporal.Feature.*`. The only exception is `Temporal.System.Nexus.ImplementationLink`.
 - **MOD-11 — Executable enforcement.** `make lint-model` MUST enforce MOD-01, MOD-03, MOD-05,
   MOD-09, and MOD-10 across the complete first-party Lean import graph.
 
@@ -188,7 +188,7 @@ what to run, and Run Evaluation checks the collected Evidence.
 - **Artifact Checksum.** A reproducible checksum of all Artifact content after it has been put in a
   stable order, excluding the checksum field itself. It identifies one exact Artifact; it is not a
   Definition ID or Behavior Fingerprint.
-- **Generated View.** A generated view of an Artifact, such as a Go test or documentation. It is
+- **Generated View.** A Generated View of an Artifact, such as a Go test or documentation. It is
   bound to the source Artifact Checksum and cannot define behavior.
 - **Execution Plan (`Umpire.DrivePlan`).** Generated instructions for attempting one selected Model
   Trace. It is not Evidence that Execution occurred.

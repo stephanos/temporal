@@ -11,7 +11,7 @@ authoring surface.
 
 ## 1. Purpose
 
-The Lean model exists to solve Temporal's modeling, regression, exploration, conformance, and
+The Lean model exists to solve Temporal's modeling, regression, exploration, Run Evaluation, and
 verification problems. It is not intended to become a general-purpose framework shaped by every
 possible downstream user.
 
@@ -20,7 +20,7 @@ The reusable `Umpire` library nevertheless remains Temporal-agnostic:
 - its public vocabulary contains no Temporal products, entities, actions, configuration keys, or
   evidence sources;
 - its interfaces are selected and deepened according to problems demonstrated by Temporal;
-- it concentrates sophisticated Lean, checking, planning, artifact, observation, refinement, and
+- it concentrates sophisticated Lean, checking, planning, artifact, observation, Implementation Link, and
   optional formal-verification machinery behind small authoring interfaces; and
 - it can be tested with domain-neutral examples without importing `Temporal`.
 
@@ -36,13 +36,13 @@ proof plumbing, or Veil.
    through small interfaces. Removing Umpire should force its complexity to reappear across many
    Temporal models; otherwise it is only a pass-through.
 3. **Approachable Temporal modules.** Feature and System authors state domain meaning, choices,
-   bounds, and evidence requirements. They do not assemble Umpire internals.
+   Limits, and evidence requirements. They do not assemble Umpire internals.
 4. **One semantic authority.** Canonical Feature and System declarations own Temporal meaning.
-   Artifacts, Go projections, runtime adapters, observation mappings, and checker adapters do not
+   Artifacts, Go Generated Views, runtime adapters, observation mappings, and checker adapters do not
    independently redefine it.
 5. **Semantic altitude, not expertise.** Feature and System distinguish product meaning from
    implementation meaning. Both are normal authoring surfaces for regular Temporal engineers.
-6. **Explicit composition.** Product meaning and implementation meaning meet in refinement modules.
+6. **Explicit composition.** Product meaning and implementation meaning meet in Implementation Link modules.
    Neither declaration order nor implicit type-class selection creates that relationship.
 7. **Optional expert verification.** Veil is isolated behind generic Umpire machinery and
    family-specific adapters under `Temporal.Verify`. Ordinary Temporal imports never expose Veil.
@@ -61,7 +61,7 @@ model/
 │
 ├── Umpire/
 │   ├── Core, Property, Behavior, Query, Planning, ...
-│   ├── Observation and Refinement
+│   ├── Observation and Implementation Link
 │   └── Verify/
 │       └── Veil/                 # generic optional Veil machinery
 │
@@ -84,12 +84,12 @@ MOD-01, MOD-03, MOD-05, MOD-09, MOD-10, and MOD-11. The import-graph phase of `m
 their single enforcement mechanism: it checks transitive reachability over the complete first-party
 module inventory rather than scanning import text.
 
-The current qualified policy keeps `Shared.*` independent of `Umpire.*` and `Temporal.*`, and
+The current accepted policy keeps `Shared.*` independent of `Umpire.*` and `Temporal.*`, and
 `Umpire.*` independent of `Temporal.*`. It isolates `Temporal.Feature.*` from
 `Temporal.System.*`, `Temporal.Verify.*`, and `Umpire.Verify.Veil`, with the exact verification-test
 exception `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests`. In the reverse direction,
-only the exact reviewed refinement consumer `Temporal.System.Nexus.Refinement` composes
-`Temporal.System.*` with `Temporal.Feature.*`; refinement-shaped names receive no exception.
+only the exact reviewed Implementation Link consumer `Temporal.System.Nexus.ImplementationLink` composes
+`Temporal.System.*` with `Temporal.Feature.*`; Implementation Link-shaped names receive no exception.
 
 Ordinary aggregates, tools, and tests remain isolated from `Temporal.Verify.*` and
 `Umpire.Verify.Veil`. The complete opt-in consumer set is `TemporalVerify`, `TemporalVeilTests`,
@@ -103,17 +103,17 @@ Temporal families. Import isolation, not physical distance, protects the ordinar
 
 | Module | Responsibility | Normal author |
 | --- | --- | --- |
-| `Umpire` | Domain-neutral semantic authoring, checking, planning, observation, refinement, artifacts, and verification interfaces | Umpire maintainer |
+| `Umpire` | Domain-neutral semantic authoring, checking, planning, observation, Implementation Link, artifacts, and verification interfaces | Umpire maintainer |
 | `Temporal.API` | Generated Protobuf and gRPC structure without product meaning | Generator |
 | `Temporal.DynamicConfig` | Generated configuration structure without product meaning | Generator |
 | `Temporal.Feature` | Product-visible states, actions, outcomes, relations, properties, and scenarios | Temporal engineer |
-| `Temporal.System` | Concrete mechanisms, configuration interpretations, evidence mappings, execution semantics, and refinements | Temporal engineer |
+| `Temporal.System` | Concrete mechanisms, configuration interpretations, evidence mappings, execution semantics, and Implementation Links | Temporal engineer |
 | `Temporal.Tool` | Inspection and developer workflow without semantic authority | Temporal engineer |
 | `Temporal.Verify` | Optional checker views, Veil declarations, bindings, correspondence proofs, and verification entry points | Verification expert |
 
 `Temporal.Verify` is an adapter at the optional verification seam. Its implementation may be large;
 its interface to the rest of the model should remain small: select a checked target and property,
-verify them under declared assumptions and bounds, replay any counterexample, and return a receipt.
+verify them under declared assumptions and Limits, replay any counterexample, and return a receipt.
 
 ## 5. Umpire as a deep authoring module
 
@@ -121,14 +121,14 @@ Umpire owns the complexity shared across Temporal models:
 
 - stable identity and source capture;
 - capability, provider, connector, and target checking;
-- canonicalization and semantic digests;
+- canonicalization and Behavior Fingerprints;
 - authored-to-checked transitions;
 - finite-domain enumeration and completeness plumbing;
 - behavior admission and contradiction detection;
 - property evaluation and agreement theorems;
 - query validation, planning, and exploration;
 - artifact construction and versioning;
-- observation qualification and refinement interfaces;
+- Observation Evaluation and Implementation Link interfaces;
 - source-located diagnostics; and
 - optional checker integration, replay, trust classification, and receipts.
 
@@ -136,8 +136,8 @@ Ordinary Temporal authoring should not require direct manipulation of:
 
 - `CapabilityProvider` or `CapabilityConnector` records;
 - raw proof-carrying planner kernels;
-- canonical metadata or semantic digest strings;
-- manual `SemanticSource` records when source location can be captured;
+- canonical metadata or Behavior Fingerprint strings;
+- manual `ModelSource` records when source location can be captured;
 - repetitive string identities when a stable declaration identity can be derived or declared once;
 - `Except.toOption`, proofs that a checked result is `some`, or `native_decide` merely to extract a
   valid checked declaration; or
@@ -158,8 +158,8 @@ The interface MUST NOT hide meaning-bearing choices. Authors still state:
 - product properties and mechanism invariants;
 - allowed, required, and forbidden behavior;
 - variations, requested faults, and coverage goals;
-- explicit bounds or named profiles whose exact bounds are inspectable; and
-- omissions and unsupported capabilities.
+- explicit Limits or named profiles whose exact Limits are inspectable; and
+- Known Gaps and unsupported capabilities.
 
 ## 6. Authoring roles
 
@@ -172,7 +172,7 @@ interfaces.
 
 In Feature they define product-visible behavior, properties, scenarios, and regressions. In System
 they define concrete mechanisms, configuration meaning, evidence mappings, mechanism invariants,
-and refinements. Neither path requires Veil, raw provider or connector collections, finite-domain
+and Implementation Links. Neither path requires Veil, raw provider or connector collections, finite-domain
 completeness records, planner ordering records, or planner-kernel construction. They consume a
 family maintainer's checked Target through the compiled Property, Behavior, and Query interfaces:
 
@@ -224,14 +224,14 @@ If it may change with the implementation, it belongs in System.
 | Configuration | Abstract semantic choice when product behavior changes | Key, resolution, precedence, sampling, and refresh |
 | Ordering | User-visible causal or lifecycle guarantee | Storage, history, task, network, or scheduler ordering |
 | Observation | Semantic fact a property may consume | Evidence sources and rules that establish the fact |
-| Verification | Product property or mechanism invariant | Mechanism conformance and evidence obligations |
+| Verification | Product property or mechanism invariant | Mechanism Run Evaluation and evidence obligations |
 
 Mixed concerns MUST be split rather than placed wholesale in one layer:
 
 ```text
 Feature property
       ▲
-      │ established by refinement
+      │ established by Implementation Link
       │
 System mechanism ── observation mapping ──▶ runtime evidence
 ```
@@ -241,12 +241,12 @@ For example:
 - Feature states that closing a caller eventually cancels its owned Nexus operation.
 - System states which history event, task, handler, SDK participant action, and resolved
   configuration realize cancellation.
-- A refinement relates the System transition to the Feature cancellation transition.
+- An Implementation Link relates the System transition to the Feature cancellation transition.
 - An observation mapping explains which runtime evidence establishes that the System events
   occurred.
 
 Feature and base System models should remain independently understandable and testable. Their
-relationship becomes explicit in a `Temporal.System.<Family>.Refinement` leaf. Refinement is normal
+relationship becomes explicit in a `Temporal.System.<Family>.ImplementationLink` leaf. Implementation Link is normal
 Temporal modeling work, not a Veil-specific concern.
 
 ### 7.1 Structural API and configuration inputs
@@ -259,14 +259,14 @@ Generated inputs remain below semantic ownership:
   sampling, and concrete key interpretation.
 - Feature may expose an abstract semantic choice such as a retry or cancellation policy only when
   that choice changes product-visible meaning.
-- A refinement maps the resolved System configuration to the abstract Feature choice.
+- An Implementation Link maps the resolved System configuration to the abstract Feature choice.
 
 Neither descriptor presence nor a generated configuration default creates product semantics by
 itself.
 
 ## 8. Ordinary semantic flow
 
-The ordinary model, execution, and conformance path is independent of Veil:
+The ordinary model, execution, and Run Evaluation path is independent of Veil:
 
 ```text
 Temporal.Feature declarations
@@ -278,7 +278,7 @@ Temporal.System model│
   observations       │
           │          │
           ▼          ▼
-       refinement proof
+       Implementation Link proof
           │
           ▼
       checked Umpire query ──▶ planning or exploration
@@ -293,18 +293,18 @@ Temporal.System model│
                        raw evidence → observation
                                       │
                                       ▼
-                               qualified Result
+                               evaluated Result
 ```
 
 The existing separation of Property, Behavior, Query, Observation, execution, and Result remains:
 
 - Property states what must hold.
-- Behavior constrains admissible semantic traces.
+- Behavior constrains admissible Model Traces.
 - Query states what bounded planning or execution must establish.
 - Observation interprets raw implementation evidence.
-- Refinement relates System meaning to Feature meaning.
+- Implementation Link relates System meaning to Feature meaning.
 - `ExperimentSpec` records environment-independent execution intent.
-- Result reports qualified execution, evidence, and property outcomes.
+- Result reports accepted execution, evidence, and property outcomes.
 
 No stage acquires semantic authority merely because it is downstream.
 
@@ -366,9 +366,9 @@ Authoring diagnostics include at least:
 - missing capabilities or incompatible providers;
 - ambiguous composition or missing connectors;
 - contradictory or unsatisfiable behavior;
-- missing, invalid, or unit-incompatible bounds;
+- missing, invalid, or unit-incompatible Limits;
 - incomplete target enumeration for a complete query;
-- invalid or incomplete refinement;
+- invalid or incomplete Implementation Link;
 - ambiguous, conflicting, or incomplete observation mapping; and
 - use of Verify or Veil from a forbidden import path.
 
@@ -377,7 +377,7 @@ Phase outcomes remain separate:
 | Phase | Representative outcomes |
 | --- | --- |
 | Authoring/checking | valid, invalid, unsatisfiable |
-| Planning | selected, verified within complete bounds, absent, exhausted |
+| Planning | selected, verified within complete Limits, absent, exhausted |
 | Execution | realized, diverged, unsupported, infrastructure failed |
 | Observation | established, missing, ambiguous, conflicting, unsupported |
 | Property | satisfied, violated, unknown, conflict, unsupported |
@@ -393,15 +393,15 @@ Tests follow the same module seams used by callers:
 
 | Scope | Required evidence |
 | --- | --- |
-| `Umpire` | Domain-neutral authoring, checking, planning, refinement, observation, artifacts, and diagnostics |
+| `Umpire` | Domain-neutral authoring, checking, planning, Implementation Link, observation, artifacts, and diagnostics |
 | `Temporal.Feature` | Pure product semantics, properties, admitted/rejected traces, and semantic mutations |
-| `Temporal.System` | Mechanisms, configuration, evidence mappings, omissions, corruption, ambiguity, and conflicts |
-| `Temporal.System.*.Refinement` | Positive correspondence plus independent mutations that fail refinement |
+| `Temporal.System` | Mechanisms, configuration, evidence mappings, Known Gaps, corruption, ambiguity, and conflicts |
+| `Temporal.System.*.ImplementationLink` | Positive correspondence plus independent mutations that fail Implementation Link |
 | `Temporal.Verify` | Opt-in binding, stale digest, correspondence, trust-class, counterexample, and replay tests |
 | Architecture | Import direction, domain purity, forbidden Veil exposure, and aggregate isolation |
 
 The domain-neutral Switch example remains the minimum Umpire reference. Temporal should retain a
-small teaching progression from one Feature target through a System refinement and observation
+small teaching progression from one Feature target through a System Implementation Link and observation
 mapping before presenting an advanced composed family.
 
 The normal model build and regression gate MUST validate Umpire and ordinary Temporal declarations
@@ -416,7 +416,7 @@ Nexus Lifecycle/Operations examples now demonstrate the ordinary compiled facade
 provider/connector collection and checked extraction, while Property, Behavior, Query, and Planning
 derive their contexts and proof-carrying views from the checked target.
 
-Observation, refinement, and current-model Veil integration also remain incomplete or separate as
+Observation, Implementation Link, and current-model Veil integration also remain incomplete or separate as
 tracked in `UMPIRE4_COMPONENTS.md`. This document does not authorize a wholesale refactor or claim
 that those modules are built. Each implementation slice still requires bounded Flow-Next planning,
 acceptance criteria, and approval.
@@ -426,12 +426,12 @@ acceptance criteria, and approval.
 The target architecture is realized when:
 
 1. A Temporal engineer with Lean basics can author a normal Feature regression without constructing
-   providers, connectors, kernels, checked-result extraction proofs, semantic digests, or planner
+   providers, connectors, kernels, checked-result extraction proofs, Behavior Fingerprints, or planner
    machinery.
 2. The same engineer can author a System mechanism, configuration interpretation, observation
-   mapping, and Feature refinement through cohesive Umpire interfaces without learning Veil.
+   mapping, and Feature Implementation Link through cohesive Umpire interfaces without learning Veil.
 3. Feature and base System models are independently understandable and testable, and mixed claims
-   meet only through explicit refinement.
+   meet only through explicit Implementation Link.
 4. Umpire remains free of Temporal vocabulary and is fully testable through domain-neutral
    fixtures.
 5. Ordinary `import Temporal`, its model tests, and its developer tools expose no Veil declarations
@@ -439,7 +439,7 @@ The target architecture is realized when:
 6. `Temporal.Verify` can opt one family into Veil without changing that family's ordinary authoring
    interface or making Veil a second semantic authority.
 7. Every accepted checker counterexample replays through canonical semantics, and every receipt
-   exposes bounds, trust, provenance, and omissions.
+   exposes Limits, trust, provenance, and Known Gaps.
 8. `make lint-model` enforces the import seams owned by MOD-01, MOD-03, MOD-05, MOD-09, and MOD-10
    over the complete first-party module graph; semantic altitude, module depth, and isolated
    testability remain design-review judgments.
@@ -452,14 +452,14 @@ The target architecture is realized when:
 - Putting Temporal vocabulary or family-specific Veil bindings under `Umpire`.
 - Treating Feature as the easy layer and System as an expert-only layer.
 - Letting Feature import concrete System mechanisms.
-- Collapsing product properties, mechanism models, refinements, and evidence mappings into one
+- Collapsing product properties, mechanism models, Implementation Links, and evidence mappings into one
   declaration language.
-- Hiding meaning-bearing bounds, assumptions, omissions, requested faults, or trust classes for the
+- Hiding meaning-bearing Limits, assumptions, Known Gaps, requested faults, or trust classes for the
   sake of concise syntax.
 - Requiring ordinary Temporal engineers to learn Veil.
 - Importing `Temporal.Verify` from the ordinary Temporal facade or normal developer tools.
 - Generating Veil source, shipping Veil in production paths, or treating `ExperimentSpec` as a
   checker-neutral intermediate representation.
 - Accepting a Veil proof or counterexample without a checked binding to canonical semantics.
-- Duplicating Temporal semantic authority in Go, generated projections, runtime adapters, evidence
+- Duplicating Temporal semantic authority in Go, Generated Views, runtime adapters, evidence
   mappings, or formal-checker declarations.

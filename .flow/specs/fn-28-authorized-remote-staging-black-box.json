@@ -10,7 +10,6 @@
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
-    "fn-26-local-qualification-receipts-and-staged",
     "fn-27-hermetic-ci-execution-and-qualification"
   ],
   "id": "fn-28-authorized-remote-staging-black-box",
@@ -214,5 +213,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:34.079963Z"
+  "updated_at": "2026-08-27T19:07:03.012302Z"
 }

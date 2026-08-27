@@ -11,6 +11,6 @@
   "spec": "fn-27-hermetic-ci-execution-and-qualification",
   "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.9.md",
   "status": "todo",
-  "title": "Complete the CI regression matrix and synchronize documentation",
-  "updated_at": "2026-08-26T14:32:52.612632Z"
+  "title": "Complete the CI regression matrix and documentation",
+  "updated_at": "2026-08-27T19:07:23.917554Z"
 }

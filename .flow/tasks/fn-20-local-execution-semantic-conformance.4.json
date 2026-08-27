@@ -12,6 +12,6 @@
   "spec": "fn-20-local-execution-semantic-conformance",
   "spec_path": ".flow/tasks/fn-20-local-execution-semantic-conformance.4.md",
   "status": "todo",
-  "title": "Construct admitted SemanticEvidence and Result sets",
-  "updated_at": "2026-08-26T11:02:07.534232Z"
+  "title": "Construct admitted Evidence and Result sets",
+  "updated_at": "2026-08-27T19:17:11.695659Z"
 }

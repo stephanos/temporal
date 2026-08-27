@@ -1,20 +1,21 @@
 ---
 satisfies: [R3, R4, R7, R8]
 ---
+
 # fn-20-local-execution-semantic-conformance.7 Run the bounded live proof and synchronize current-model documentation
 
 ## Description
 Complete R3/R4/R7/R8 with one fn-19-to-fn-20 caller-closure proof, public usage docs, architecture handoff, and honest roadmap status.
 
 **Size:** M
-**Files:** `tools/umpire/conformance/live_test.go`, `tools/umpire/conformance/README.md`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`
-**Touches:** [tools/umpire/conformance/live_test.go, tools/umpire/conformance/README.md, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md]
+**Files:** `tools/umpire/runevaluation/live_test.go`, `tools/umpire/runevaluation/README.md`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`
+**Touches:** [tools/umpire/runevaluation/live_test.go, tools/umpire/runevaluation/README.md, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md]
 
 ### Approach
 - Produce one real closed four-member caller-closure set through fn-19, check it through the actual sibling pair, publish/reopen the six-member set, and independently assert cleanup/source closure plus the API/history-backed Property result and diagnostic obligations.
 - Run the full corruption/ambiguity suite before the green live control and require exact deterministic rerun destination.
-- Document the two offline command inputs, six-member output, checker-pair build, statuses, bounds, three independent result dimensions, evidence dispositions, fail-closed cases, and copy-paste root command.
-- Update C7, Milestone B, and pilot step 5 only after the live and mutation evidence genuinely passes; retain remote/qualification and replay/promotion gaps.
+- Document the two offline command inputs, six-member output, checker-pair build, statuses, Limits, three independent result dimensions, evidence dispositions, fail-closed cases, and copy-paste root command.
+- Update C7, Milestone B, and pilot step 5 only after the live and mutation evidence genuinely passes; retain remote/Observation Evaluation and replay/promotion gaps.
 - Run all focused suites plus the stable regression gate; add no CI workflow or model-local Make target.
 
 ### Investigation targets
@@ -29,7 +30,7 @@ Complete R3/R4/R7/R8 with one fn-19-to-fn-20 caller-closure proof, public usage 
 - [ ] One bounded real local run yields a reopened six-member set whose Result proves the intended API/history Property and explicitly binds cleanup/source closure.
 - [ ] Corruption/ambiguity controls run first and every repeated valid run/check produces the expected stable semantic and publication identities.
 - [ ] Documentation gives copy-paste usage and explains why operational success is not semantic satisfaction.
-- [ ] Roadmap claims only the one local scenario and keeps replay/promotion, formal checking, and non-local/release qualification open.
+- [ ] Roadmap claims only the one local scenario and keeps replay/promotion, formal checking, and non-local/release Observation Evaluation open.
 - [ ] Focused Lean/Go, direct/root command, and `make umpire-check-regression` checks pass without prohibited dependencies or new CI.
 
 ## Done summary

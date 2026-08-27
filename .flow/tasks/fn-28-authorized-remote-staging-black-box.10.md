@@ -1,19 +1,19 @@
 ---
 satisfies: [R3, R4, R5, R6, R7, R8, R9]
 ---
-# fn-28-authorized-remote-staging-black-box.10 Build the public-boundary harness and adversarial qualification matrix
+# fn-28-authorized-remote-staging-black-box.10 Build the public-boundary harness and adversarial Evaluation matrix
 
 ## Description
 Complete R3-R9's independent protocol proof and adversarial cross-layer verification after the production workflow boundary exists.
 
 **Size:** M
-**Files:** `model/Temporal/System/Execution/RemoteStagingTests.lean`, `model/Temporal/System/Qualification/RemoteStagingTests.lean`, `model/Temporal/Tool/ConformanceTests.lean`, `tools/umpire/temporal/remote/**`, `tools/umpire/conformance/**`, `tools/umpire/artifact/**`, `tools/umpire/staging/**`, `tools/umpire/cmd/umpire-qualify-remote-staging/**`
-**Touches:** [model/Temporal/System/Execution/RemoteStagingTests.lean, model/Temporal/System/Qualification/RemoteStagingTests.lean, model/Temporal/Tool/ConformanceTests.lean, tools/umpire/temporal/remote/**, tools/umpire/conformance/**, tools/umpire/artifact/**, tools/umpire/staging/**, tools/umpire/cmd/umpire-qualify-remote-staging/**]
+**Files:** `model/Temporal/System/Execution/RemoteStagingTests.lean`, `model/Temporal/System/Evaluation/RemoteStagingTests.lean`, `model/Temporal/Tool/RunEvaluationTests.lean`, `tools/umpire/temporal/remote/**`, `tools/umpire/runevaluation/**`, `tools/umpire/artifact/**`, `tools/umpire/staging/**`, `tools/umpire/cmd/umpire-assess-remote-staging/**`
+**Touches:** [model/Temporal/System/Execution/RemoteStagingTests.lean, model/Temporal/System/Evaluation/RemoteStagingTests.lean, model/Temporal/Tool/RunEvaluationTests.lean, tools/umpire/temporal/remote/**, tools/umpire/runevaluation/**, tools/umpire/artifact/**, tools/umpire/staging/**, tools/umpire/cmd/umpire-assess-remote-staging/**]
 
 ### Approach
-- Build a controlled mTLS/public-gRPC integration harness that exercises the production authority, target, lease, participant, cleanup/postflight, conformance, qualification, and publication protocols without server-internal telemetry or a retained staging claim.
-- Use independent literal/oracle fixtures for profile/configuration, TLS/authority/target, lease/fence, ambiguous start, target redelivery/idempotency, evidence closure, cleanup/recovery, progress, conformance, receipt/set, command, and publication behavior.
-- Mutate every cross-layer identity/version/status/order/nullability/limit edge, including RawEvidence v1's 16-MiB ceiling, recovery-record tampering, stale fences, target drift, duplicate delivery, reporting-after-publication, and concurrent writers.
+- Build a controlled mTLS/public-gRPC integration harness that exercises the production authority, target, lease, participant, cleanup/postflight, Run Evaluation, Claim Assessment, and publication protocols without server-internal telemetry or a retained staging claim.
+- Use independent literal/oracle fixtures for profile/configuration, TLS/authority/target, lease/fence, ambiguous start, target redelivery/idempotency, evidence closure, cleanup/recovery, progress, Run Evaluation, receipt/set, command, and publication behavior.
+- Mutate every cross-layer identity/version/status/order/nullability/limit edge, including RawEvidence v2's 16-MiB ceiling, recovery-record tampering, stale fences, target drift, duplicate delivery, reporting-after-publication, and concurrent writers.
 - Run race/fuzz/secret scans over logs, progress, recovery handling, summaries, artifacts, and diagnostics; prove the recovery record is never uploaded or admitted.
 - Run focused and aggregate Lean/Go/model/regression gates and prove local/CI fixtures, prior readers, source-member bytes, and generated projections remain unchanged.
 

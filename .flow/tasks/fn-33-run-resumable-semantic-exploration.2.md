@@ -31,7 +31,7 @@ The coordinator holds a nonblocking exclusive `STATE/lock` from preflight/admiss
 - [ ] Resume selects the unique valid leaf and preserves all accepted/rejected/stale attempt lineage; ambiguous lineage performs no work.
 ## Acceptance
 - [ ] R2/R4/R6 fake-worker matrices pass.
-- [ ] N/N+1 parallelism and state bounds are tested.
+- [ ] N/N+1 parallelism and state Limits are tested.
 - [ ] No semantic selection/coverage code exists in Go.
 
 ## Done summary

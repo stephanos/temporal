@@ -29,7 +29,7 @@ Umpire4 should provide one Lean-owned model of software behavior that can:
 - treat faults and participant behavior as explicit authored intent;
 - explore bounded semantic spaces to find unknown interactions;
 - qualify evidence without overstating what an environment established; and
-- replay, minimize, and propose stable regressions from qualified violations.
+- replay, minimize, and propose stable regressions from evaluated violations.
 
 The architecture must remain approachable to Temporal engineers. Sophisticated checking,
 canonicalization, planning, artifact, evidence, and verification behavior belongs behind small
@@ -43,7 +43,7 @@ This document uses the following terms consistently.
 a Go package, an executable package, or a tier-spanning slice connected by an artifact seam.
 
 **Interface** — everything a caller must know to use a module correctly: accepted inputs, returned
-outputs, invariants, ordering, bounds, errors, performance, and configuration.
+outputs, invariants, ordering, Limits, errors, performance, and configuration.
 
 **Depth** — the leverage a module provides through its interface. A deep module hides substantial
 behavior behind a small interface. Removing it would force complexity to reappear across multiple
@@ -68,15 +68,15 @@ Commands are adapters. A command package may contain a deep module, but argument
 2. **Deep capability modules connect through explicit seams.** Callers use checked values in Lean
    and versioned artifacts across language or process boundaries.
 3. **Authored and checked values remain distinct.** Invalid declarations cannot masquerade as
-   canonical semantic values.
+   canonical Model Values.
 4. **Product and implementation meanings remain distinct.** `Temporal.Feature` owns what Temporal
-   means; `Temporal.System` owns how an implementation realizes or reveals it; refinement relates
+   means; `Temporal.System` owns how an implementation realizes or reveals it; Implementation Link relates
    them explicitly.
 5. **Execution and judgment remain distinct.** A realized action is not evidence that a property
-   holds. Raw evidence must be qualified before pure properties evaluate it.
+   holds. Raw evidence must be accepted before pure properties evaluate it.
 6. **Operational authority belongs at adapters.** Endpoints, credentials, leases, rate limits,
    isolation, cleanup, and blast-radius controls are not semantic model concerns.
-7. **Bounds, omissions, trust, and provenance are explicit.** Exhaustion, missing evidence,
+7. **Limits, Known Gaps, trust, and provenance are explicit.** Exhaustion, missing evidence,
    unsupported vocabulary, checker timeout, or cleanup failure never becomes success.
 8. **Determinism is part of the interface.** Equivalent semantic inputs produce byte-identical
    canonical products regardless of incidental declaration or map order.
@@ -96,7 +96,7 @@ Generated structure
 Semantic authority
   Core / Target Composition
   Property / Behavior / Space / Query
-  Temporal Feature / System / Refinement / Observation
+  Temporal Feature / System / Implementation Link / Observation
                               │
              ┌────────────────┼────────────────┐
              ▼                ▼                ▼
@@ -106,18 +106,18 @@ Semantic authority
                               │
                 ┌─────────────┴─────────────┐
                 ▼                           ▼
-         Go/docs Projection          Execution + Participants
+         Go/docs Generated View          Execution + Participants
                                             │
                                    Run + Raw Evidence
                                             │
                                             ▼
-                                       Conformance
+                                       Run Evaluation
                                             │
                                           Result
                                             │
                               ┌─────────────┴─────────────┐
                               ▼                           ▼
-                      Replay / Promotion             Qualification
+                      Replay / Promotion             Claim Assessment
                                                           │
                                                           ▼
                                                 standalone tools/canary
@@ -160,14 +160,14 @@ Umpire
 ├── Behavior
 ├── Space
 ├── Observation
-├── Refinement
+├── ImplementationLink
 ├── Query
 ├── Planning
 ├── Exploration
 ├── Artifact
 ├── Catalog
 ├── Promotion
-├── Qualification
+├── Claim Assessment
 └── Verify
     ├── Native
     └── Veil
@@ -195,7 +195,7 @@ catalog.
 
 | Module | Interface | Status and direction |
 | --- | --- | --- |
-| `Umpire.Core` | Stable identities, kinds, metadata, sources, typed bounds, semantic values, and trace vocabulary. | Present but over-broad. Reduce it to stable shared vocabulary. |
+| `Umpire.Core` | Stable identities, kinds, metadata, sources, typed Limits, Model Values, and trace vocabulary. | Present but over-broad. Reduce it to stable shared vocabulary. |
 | `Umpire.Target` | Finite kernels, capabilities, laws, providers, connectors, target checking, and canonical target identity. | Extract from `Core` and deepen before adding more authoring languages. |
 
 The target interface is:
@@ -218,11 +218,11 @@ lower-level typed interface when they define a new authoritative kernel or law.
 
 | Module | Responsibility | Status and direction |
 | --- | --- | --- |
-| `Umpire.Property` | Portable claims and pure evaluation over capability-limited semantic traces. | Present and deep. Retain its independent facade. |
+| `Umpire.Property` | Portable claims and pure evaluation over capability-limited Model Traces. | Present and deep. Retain its independent facade. |
 | `Umpire.Behavior` | Setup, action, occurrence, ordering, and exact-trace constraints without assigning outcomes. | Present and deep. Retain its independent facade. |
 | `Umpire.Space` | Finite variation axes, named choices, requested fault intents, and semantic coverage goals. | Planned. Lower points through Behavior, Query, and the target-owned kernel. |
-| `Umpire.Observation` | Checked mappings from raw evidence to qualified observations, semantic traces, and derivations. | Planned and required for live conformance. |
-| `Umpire.Refinement` | Checked correspondence between independently authored Feature and System meanings. | Planned and required for honest implementation conformance. |
+| `Umpire.Observation` | Checked mappings from raw evidence to accepted Model Facts, Model Traces, and Evidence Links. | Planned and required for live Run Evaluation. |
+| `Umpire.ImplementationLink` | Checked correspondence between independently authored Feature and System meanings. | Planned and required for honest implementation Run Evaluation. |
 
 Each module follows the same authored-to-checked lifecycle:
 
@@ -240,18 +240,18 @@ Declaration + checking context
 Property consumes semantic observations, never logs, RPC names, spans, storage rows, execution
 receipts, or environment profiles. Behavior requests actions and faults but cannot claim target
 outcomes or runtime realization. Observation establishes semantic facts but cannot redefine a
-property. Refinement relates meanings but cannot silently select a provider or rewrite either side.
+property. Implementation Link relates meanings but cannot silently select a provider or rewrite either side.
 
 ### 6.4 Composition, planning, and exploration
 
 | Module | Responsibility | Status and direction |
 | --- | --- | --- |
-| `Umpire.Query` | Combine a checked target, properties, behavior, quantifier, bounds, completeness evidence, and policy. | Present and deep. Remains the first semantic composition point. |
+| `Umpire.Query` | Combine a checked target, properties, behavior, quantifier, Limits, completeness evidence, and policy. | Present and deep. Remains the first semantic composition point. |
 | `Umpire.Planning` | Deterministic bounded selection or verification over a checked query and finite kernel. | Present and deep. Keep planning outcomes explicit. |
 | `Umpire.Exploration` | Batch selection, semantic coverage, symmetry, resume state, and coverage-guided prioritization. | Planned. Own campaign selection rather than expanding Planning indefinitely. |
 | `Umpire.Artifact` | Construct canonical `DrivePlan` and `ExperimentSpec` values from checked selections. | Present but partial. Deepen by controlling construction, anti-forgery, versioning, and canonical serialization. |
 
-`Umpire.Search` is not a peer deep module in its current form. It mostly contains policy, bounds,
+`Umpire.Search` is not a peer deep module in its current form. It mostly contains policy, Limits,
 and metadata structures. Query-specific vocabulary should sit behind Query or Planning. Substantial
 campaign search belongs in Exploration. Retire the standalone facade while implementing those
 owners rather than through an isolated compatibility layer.
@@ -264,14 +264,14 @@ even when one public operation composes them.
 
 | Module | Responsibility | Status and direction |
 | --- | --- | --- |
-| `Umpire.Catalog` | Checked inventory of targets, properties, behaviors, spaces, queries, observations, and digests with deterministic list/explain projections. | Planned. It discovers meaning but does not create it. |
-| `Umpire.Promotion` | Convert an exact checked witness or minimized qualified failure into a reviewable regression proposal. | Planned. It never installs source automatically. |
-| `Umpire.Qualification` | Generic profile and receipt vocabulary plus bounded claim evaluation over admitted results. | Planned. Temporal owns concrete environment profiles and authority. |
+| `Umpire.Catalog` | Checked inventory of Targets, Properties, Behaviors, Spaces, Queries, observations, and Behavior Fingerprints with deterministic list/explain Generated Views. | Planned. It discovers meaning but does not create it. |
+| `Umpire.Promotion` | Convert an exact checked witness or minimized accepted failure into a reviewable regression proposal. | Planned. It never installs source automatically. |
+| `Umpire.Evaluation` | Generic profile and receipt vocabulary plus bounded claim evaluation over admitted results. | Planned. Temporal owns concrete environment profiles and authority. |
 | `Umpire.Verify.Native` | Lean-native bounded receipts and canonical counterexample replay. | Planned and unconditional. |
 | `Umpire.Verify.Veil` | Generic optional Veil invocation, binding support, trust classes, and receipt vocabulary. | Conditional and excluded from `import Umpire`. |
 
 Catalog and Promotion remain separate: Catalog explains existing checked declarations; Promotion
-proposes a new exact regression from existing checked semantic evidence. Qualification does not
+proposes a new exact regression from existing checked semantic evidence. Claim Assessment does not
 execute an environment and cannot acquire authority.
 
 ### 6.6 Lean dependency direction
@@ -282,7 +282,7 @@ Core ──▶ Target
   ├────▶ Behavior
   ├────▶ Space
   ├────▶ Observation
-  └────▶ Refinement
+  └────▶ Implementation Link
 
 Target + Property + Behavior ──▶ Query
 Space + Query ─────────────────▶ Planning / Exploration
@@ -291,7 +291,7 @@ Observation + Property ────────▶ semantic verdict
 Target + Property ─────────────▶ Verify
 checked witness/result ────────▶ Promotion
 all checked declarations ─────▶ Catalog
-admitted results + profile ────▶ Qualification
+admitted results + profile ────▶ Claim Assessment
 ```
 
 Checked values are the in-process interfaces. Canonical JSON is introduced only when leaving Lean
@@ -311,14 +311,14 @@ model/Umpire/
 ├── Behavior.lean
 ├── Space.lean
 ├── Observation.lean
-├── Refinement.lean
+├── Implementation Link.lean
 ├── Query.lean
 ├── Planning.lean
 ├── Exploration.lean
 ├── Artifact.lean
 ├── Catalog.lean
 ├── Promotion.lean
-├── Qualification.lean
+├── Claim Assessment.lean
 └── Verify/
     ├── Native.lean
     └── Veil.lean
@@ -376,7 +376,7 @@ Temporal.Feature.<Family>
 | `Model` | Canonical product states, actions, outcomes, observations, relations, and transitions. |
 | `Target` | Adapt the family model into a checked `Umpire.Target`. |
 | `Properties` | Portable product-visible claims. |
-| `Scenarios` | Behaviors, spaces, queries, regressions, named bounds, and policies. |
+| `Scenarios` | Behaviors, spaces, queries, regressions, named Limits, and policies. |
 | `Examples` | Teaching paths and small executable model examples. |
 
 This is a logical template, not a requirement to create shallow files. A small family may colocate
@@ -404,7 +404,7 @@ CallerClosure
 ├── Model            ownership and caller-closure semantics
 ├── Target           capabilities, providers, connector, and kernel
 ├── Properties       honored delivery and uniqueness
-└── Scenarios        behaviors, spaces, queries, bounds, and selected artifacts
+└── Scenarios        behaviors, spaces, queries, Limits, and selected artifacts
 ```
 
 Deepen `Umpire.Target` before physically splitting CallerClosure. The goal is to remove repeated
@@ -423,7 +423,7 @@ Temporal.System.<Family>
 ├── Configuration
 ├── Observation
 ├── Program
-└── Refinement
+└── ImplementationLink
 ```
 
 | Module | Responsibility |
@@ -432,15 +432,15 @@ Temporal.System.<Family>
 | `Configuration` | Typed uses and interpretations of generated configuration settings. |
 | `Observation` | Evidence mappings that establish System semantic facts. |
 | `Program` | Model-owned participant or runtime intent required to realize selected actions. |
-| `Refinement` | Explicit correspondence between System and Feature meaning. |
+| `ImplementationLink` | Explicit correspondence between System and Feature meaning. |
 
-Feature never imports System. Base System modules do not import Feature. Only the family refinement
+Feature never imports System. Base System modules do not import Feature. Only the family Implementation Link
 leaf may import both.
 
 ```text
 Feature.Model ───────────────┐
                              ▼
-                      System.Refinement
+                      System.ImplementationLink
                              ▲
 System.Model/Configuration ──┘
 ```
@@ -464,7 +464,7 @@ Callback.Model
 `Temporal.System.Matching.Configuration` remains a small owned adapter over the shared
 configuration module and does not yet justify additional decomposition.
 
-### 7.5 Observation and refinement flow
+### 7.5 Observation and Implementation Link flow
 
 ```text
 Runtime RawEvidence
@@ -473,22 +473,22 @@ Runtime RawEvidence
 Temporal.System.<Family>.Observation
         │
         ▼
-Checked System semantic trace
+Checked System Model Trace
         │
         ├──▶ System properties
         │
         ▼
-Temporal.System.<Family>.Refinement
+Temporal.System.<Family>.ImplementationLink
         │
         ▼
-Feature semantic trace
+Feature Model Trace
         │
         ▼
 Feature properties
 ```
 
 Evidence rules do not leak into properties. Runtime adapters do not claim Feature meaning directly.
-A refinement failure and an observation failure remain distinct.
+An Implementation Link failure and an observation failure remain distinct.
 
 ### 7.6 Tool modules
 
@@ -525,17 +525,17 @@ canonical family model. Neither path enters `Temporal.lean`, ordinary tools, or 
 | Semantic catalog | Lean Catalog | Discovery, tools, exploration, and promotion. |
 | Regression/space | Lean authoring | Planning and exploration. |
 | `DrivePlan` | Lean Planning | Deterministic selected semantic occurrences and checkpoints. |
-| `ExperimentSpec` | Lean Artifact | Projection, execution, replay, and verification reference. |
+| `ExperimentSpec` | Lean Artifact | Generated View, execution, replay, and verification reference. |
 | `RuntimeConfiguration` | Temporal-owned profile compiler | Execution runtime operational binding. |
 | `ParticipantProgram` | Temporal System model | SDK participant adapters. |
-| `ExperimentRun` | Execution runtime | Conformance, replay, and qualification. |
-| `RawEvidence` | Runtime and adapters | Observation/conformance. |
+| `ExperimentRun` | Execution runtime | Run Evaluation, replay, and Claim Assessment. |
+| `RawEvidence` | Runtime and adapters | Observation/Run Evaluation. |
 | `SemanticEvidence` | Lean checker | Result assembly and explanation. |
-| `Result` | Conformance | Replay, promotion, and qualification. |
-| Replay bundle | Replay | Exact spec, run, evidence, Result, bounds, provenance, and reduction state needed to reproduce a qualified failure. |
+| `Result` | Run Evaluation | Replay, promotion, and Claim Assessment. |
+| Replay bundle | Replay | Exact spec, run, evidence, Result, Limits, provenance, and reduction state needed to reproduce a accepted failure. |
 | Coverage report/checkpoint | Lean Exploration | Campaign resume, reporting, and reproducibility. |
-| Verification receipt | Lean Verify | CI and qualification. |
-| Qualification receipt | Qualification | Environment and downstream policy tools. |
+| Verification receipt | Lean Verify | CI and Claim Assessment. |
+| Evaluation Receipt | Claim Assessment | Environment and downstream policy tools. |
 | Artifact-set manifest | Artifact transport | Exact closure for every persisted workflow. |
 
 ### 8.1 Complete executable intent
@@ -550,7 +550,7 @@ An executable test artifact must describe its semantically relevant behavior in 
 - ordering, concurrency, and causal constraints;
 - observation instructions and property-derived requirements;
 - convergence and termination conditions;
-- phase-specific bounds; and
+- phase-specific Limits; and
 - cleanup obligations.
 
 Operational endpoints, credentials, namespaces, granted authority, and resource limits remain
@@ -559,12 +559,12 @@ runtime bindings when they do not change semantic meaning.
 ### 8.2 Artifact requirements
 
 Every persisted artifact carries an exact format version. Semantic artifacts additionally carry
-semantic identities and digests, provenance, bounds, and omissions. Operational artifacts carry
+Behavior Fingerprints and digests, provenance, Limits, and Known Gaps. Operational artifacts carry
 environment, authority, source closure, cleanup, and failure status.
 
 Readers reject unknown major versions, meaning-bearing unknown fields, duplicate normalized keys,
 stale digests, incompatible references, incomplete sets, unsafe paths, and values exceeding
-declared admission bounds. Named migrations transform complete sets deterministically and never
+declared admission Limits. Named migrations transform complete sets deterministically and never
 invent new semantic meaning for an old field.
 
 ## 9. Go modules
@@ -572,14 +572,14 @@ invent new semantic meaning for an old field.
 The older Umpire implementations are evidence and test material. Their packages do not become the
 target structure automatically. Capabilities move only behind Umpire4 interfaces and artifacts.
 
-### 9.1 Present generator and projection modules
+### 9.1 Present generator and Generated View modules
 
 | Module | Responsibility | Status and direction |
 | --- | --- | --- |
 | `umpire-export-proto-descriptors` | Discover Go descriptor packages, select prefixes, close transitive imports, encode deterministically, and publish atomically. | Present and deep. Keep its `Run` interface; `main` remains thin. |
 | `umpire-gen-lean-api` | Merge descriptor sets, validate the declaration plan, render the generated API surface, and publish safely. | Present. Deepen toward the complete API catalog without adding product meaning. |
 | `umpire-gen-lean-dynamic-config-catalog` | Discover registration, snapshot production metadata, project fixtures, render Lean, validate candidates, and publish safely. | Present. Keep generated structure separate from handwritten interpretation. |
-| regression projection | Verify a canonical regression fixture and render deterministic Go/Markdown views. | Present for a bounded catalog. Grow through semantic Catalog, not a second registry. |
+| regression Generated View | Verify a canonical regression fixture and render deterministic Go/Markdown views. | Present for a bounded catalog. Grow through semantic Catalog, not a second registry. |
 
 Do not extract command internals into public packages merely for symmetry. One implementation and
 one caller do not justify a new seam.
@@ -605,14 +605,14 @@ publication.
 
 | Module | Small interface and deep responsibility |
 | --- | --- |
-| `runner` | Execute one admitted test through preparation, realization, observation, cleanup, and finalization while enforcing phase bounds. |
+| `runner` | Execute one admitted test through preparation, realization, observation, cleanup, and finalization while enforcing phase Limits. |
 | `participant` | Interpret a closed `ParticipantProgram` through an SDK adapter and emit bounded structured observations. |
-| `conformance` | Pass admitted run/evidence data through the bounded Lean checker and assemble validated SemanticEvidence and Result artifacts. |
+| `runevaluation` | Pass admitted run/evidence data through the bounded Lean checker and assemble validated SemanticEvidence and Result artifacts. |
 | `campaign` | Coordinate Lean-selected batches, leases, parallel execution, opaque exploration state, corpus persistence, and operational time budgets. |
-| `replay` | Reproduce a qualified violation, minimize it through checked candidates, identify its evidence core, and request a reviewed promotion proposal. |
+| `replay` | Reproduce a evaluated violation, minimize it through checked candidates, identify its evidence core, and request a reviewed promotion proposal. |
 | `verification` | Invoke model-declared native or optional checker profiles and admit provenance-rich receipts. |
-| `qualification` | Apply named environment qualification policy to admitted evidence and produce a qualification receipt. |
-| `projection` | Convert admitted semantic artifacts into deterministic developer views without execution or semantic interpretation. |
+| `evaluation` | Apply named environment Claim Assessment policy to admitted evidence and produce an Evaluation Receipt. |
+| `generatedview` | Convert admitted Artifacts into deterministic developer Generated Views without Execution or semantic interpretation. |
 
 These target runtime and learning modules are planned. Existing implementations in older Umpire
 trees are baselines to evaluate, not integrated implementations of these interfaces.
@@ -632,13 +632,13 @@ ExperimentSpec
 ExperimentRun + RawEvidence
 ```
 
-The conformance interface is:
+The Run Evaluation interface is:
 
 ```text
 ExperimentSpec + ExperimentRun + RawEvidence
                          │
                          ▼
-                 conformance.Check
+                 runevaluation.Check
                          │
                  Lean checker adapter
                          │
@@ -647,7 +647,7 @@ ExperimentSpec + ExperimentRun + RawEvidence
 ```
 
 Go validates transport, process behavior, and artifact closure. Lean performs observation
-interpretation, refinement, and property evaluation.
+interpretation, Implementation Link, and property evaluation.
 
 Lean `Umpire.Exploration` and Go `campaign` remain distinct. Lean decides which semantic experiment
 is useful and updates semantic coverage. Go leases and executes batches concurrently and persists
@@ -693,11 +693,11 @@ Commands remain thin compositions over modules. The intended user operations inc
 - checking model-declared verification profiles;
 - listing and explaining declarations;
 - generating canonical test manifests and specifications;
-- generating deterministic Go projections;
+- generating deterministic Go Generated Views;
 - running bounded campaigns against selected environments;
-- checking conformance;
-- replaying and minimizing qualified failures; and
-- qualifying admitted results.
+- checking Run Evaluation;
+- replaying and minimizing accepted failures; and
+- assessing admitted results.
 
 Test generation remains Lean-owned. Generated Go tests call the reusable runner directly; there is
 no separate public run-tests command. Commands may eventually become subcommands of one `umpire`
@@ -708,14 +708,14 @@ executable without changing module ownership.
 ```text
 tools/umpire/
 ├── artifact/
-├── projection/
+├── generatedview/
 ├── runner/
 ├── participant/
-├── conformance/
+├── runevaluation/
 ├── campaign/
 ├── replay/
 ├── verification/
-├── qualification/
+├── evaluation/
 ├── adapter/
 │   ├── leanchecker/
 │   ├── temporaltest/
@@ -735,11 +735,11 @@ tools/umpire/
 | --- | --- | --- |
 | `umpire-check-model` | Go verification adapter plus Lean `Temporal.Tool.CheckModel` | Run model-declared per-commit, nightly, or named checks and assemble an honest verification receipt. |
 | `umpire-gen-tests` | Lean `Temporal.Tool.GenerateTests` executable | List, explain, and compile named regressions, test sets, or selected batches into canonical JSON manifests and complete traces. |
-| `umpire-gen-tests-go` | Go projection module | Convert admitted manifests into readable deterministic Go tests. |
+| `umpire-gen-tests-go` | Go Generated View module | Convert admitted manifests into readable deterministic Go tests. |
 | `umpire-fuzz` | Go campaign coordinator plus Lean Exploration | Run time-bounded parallel exploration with opaque resumable semantic state. |
 
 There is no public `umpire-run-tests` command. Generated Go tests call `runner` directly. Catalog,
-conformance, replay, and qualification operations may be focused commands or subcommands of a
+Run Evaluation, replay, and Claim Assessment operations may be focused commands or subcommands of a
 single `umpire` executable; that packaging choice does not change module ownership. Production
 canary commands belong under `tools/canary`, not under an Umpire command tree.
 
@@ -755,8 +755,8 @@ tools/umpire
 ├── artifact
 ├── runner
 ├── participant
-├── conformance
-└── qualification
+├── runevaluation
+└── evaluation
           ▲
           │ consumes stable interfaces
           │
@@ -801,7 +801,7 @@ Umpire ArtifactSet
           │
           ▼
 Canary audit/recovery record
-+ Umpire qualification receipt
++ Umpire Evaluation Receipt
 ```
 
 Canary is independently owned and executable while consuming stable Umpire artifacts and
@@ -819,7 +819,7 @@ their direct and transitive reachability constraints over the complete first-par
 - `Temporal.Feature.*` remains isolated from `Temporal.System.*`, `Temporal.Verify.*`, and
   `Umpire.Verify.Veil` (MOD-03).
 - `Temporal.System.*` remains isolated from `Temporal.Feature.*` except for the exact
-  `Temporal.System.Nexus.Refinement` consumer (MOD-10).
+  `Temporal.System.Nexus.ImplementationLink` consumer (MOD-10).
 - `Temporal.Verify.*` and `Umpire.Verify.Veil` remain opt-in. Their exact aggregate, tool, and test
   consumers are `TemporalVerify`, `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, and
   `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests` (MOD-05).
@@ -843,12 +843,12 @@ Failures and outcomes remain phase-specific:
 | Phase | Outcomes |
 | --- | --- |
 | Authoring | valid, invalid, unsatisfiable |
-| Planning | selected, verified within complete bounds, absent, exhausted |
+| Planning | selected, verified within complete Limits, absent, exhausted |
 | Execution | realized, diverged, unsupported, infrastructure failed |
 | Observation | established, missing, ambiguous, conflicting, unsupported |
 | Property | satisfied, violated, unknown, conflict, unsupported |
 | Verification | established, violated, unknown, unsupported, invalid |
-| Qualification | qualified, unqualified, inconclusive, unauthorized |
+| Claim Assessment | accepted, rejected, incomplete, unauthorized |
 
 A successful execution never implies property satisfaction. Missing evidence never proves absence.
 Budget exhaustion never proves verification. A requested action or fault never proves realization.
@@ -867,10 +867,10 @@ Tests use the same interfaces as callers.
 - Keep internal seams private and use them only for focused implementation tests.
 - Use canonical positive and negative fixtures at every artifact seam.
 - Require byte-identical deterministic generation.
-- Use independent semantic, property, observation, refinement, and runtime mutations.
+- Use independent semantic, property, observation, Implementation Link, and runtime mutations.
 - Test missing, duplicate, stale, ambiguous, conflicting, unsupported, truncated, and oversized
   inputs.
-- Test execution cancellation, source closure, evidence bounds, cleanup, and crash recovery.
+- Test execution cancellation, source closure, evidence Limits, cleanup, and crash recovery.
 - Test adapters against shared interface conformance suites.
 - Run `make lint-model` for the MOD-01, MOD-03, MOD-05, MOD-09, and MOD-10 import boundaries; keep
   domain-purity and generated-ownership checks in their existing focused gates.
@@ -894,13 +894,13 @@ Priorities follow module dependencies and proof-of-value rather than task-tracke
 - Hide routine identity, source, provider, connector, digest, checked-result, and planner plumbing.
 - Preserve semantic behavior and canonical artifacts.
 
-Do this before adding more authoring languages. Otherwise Space, Observation, Refinement, and new
+Do this before adding more authoring languages. Otherwise Space, Observation, Implementation Link, and new
 families will copy the current low-level interface.
 
 ### Priority 2: complete semantic foundations
 
 - Add `Umpire.Observation` and one Temporal-owned mapping.
-- Add `Umpire.Refinement` and one Feature/System correspondence.
+- Add `Umpire.ImplementationLink` and one Feature/System correspondence.
 - Add `Umpire.Space` with finite choices, fault intent, and coverage goals.
 - Complete structural and semantic catalogs with list/explain interfaces.
 - Deepen `Umpire.Artifact` construction and versioning.
@@ -913,19 +913,19 @@ seam. Split CallerClosure after the target interface removes its boilerplate.
 
 - Implement strict bounded artifact admission.
 - Freeze the minimal RuntimeConfiguration, ExperimentRun, evidence, Result, coverage, verification,
-  and qualification schemas.
+  and Claim Assessment schemas.
 - Add complete-set validation, deterministic migrations, atomic publication, and crash recovery.
 
 Runtime must not grow around ad hoc structs or an unversioned JSON contract.
 
-### Priority 4: prove the local execution and conformance loop
+### Priority 4: prove the local execution and Run Evaluation loop
 
 - Build the domain-neutral runner.
 - Bind an isolated ephemeral Temporal adapter.
 - Bind one Go SDK participant program.
 - Capture bounded raw evidence and explicit cleanup.
-- Interpret evidence through the Lean Observation and Refinement modules.
-- Produce SemanticEvidence and a qualified Result.
+- Interpret evidence through the Lean Observation and Implementation Link modules.
+- Produce SemanticEvidence and a evaluated Result.
 - Prove a deterministic negative control so the path demonstrates violation as well as success.
 
 This is the highest-value vertical proof: the model checks real Temporal behavior.
@@ -936,25 +936,25 @@ This is the highest-value vertical proof: the model checks real Temporal behavio
 - Add semantic coverage, resume state, symmetry, and guided prioritization.
 - Add deterministic replay and semantic minimization.
 - Identify a non-destructive diagnostic evidence core.
-- Produce reviewed promotion proposals and broader deterministic projections.
+- Produce reviewed promotion proposals and broader deterministic Generated Views.
 
 Exploration success is measured by meaningful semantic coverage and retained regressions, not raw
 case count.
 
-### Priority 6: add qualification primitives
+### Priority 6: add Claim Assessment primitives
 
-- Define generic qualification profiles and receipts.
+- Define generic Evaluation Profiles and receipts.
 - Add local and CI-owned profiles.
 - Preserve execution, evidence, property, verification, cleanup, environment, and authority status
   independently.
 - Add authorized remote staging only when its operational owner and authority model are explicit.
 
-Qualification consumes admitted artifacts and acquires no authority by itself.
+Claim Assessment consumes admitted artifacts and acquires no authority by itself.
 
 ### Priority 7: build standalone production canary
 
 - Create `tools/canary` as an independent module and executable.
-- Consume stable Umpire artifacts, runner, conformance, and qualification interfaces.
+- Consume stable Umpire artifacts, runner, Run Evaluation, and Claim Assessment interfaces.
 - Own signed approval, production policy, trusted artifact acquisition, isolation, leases, fencing,
   recovery, cleanup, audit, rate limits, concurrency, and blast radius.
 - Keep canary-specific types and claims out of Umpire.
@@ -966,7 +966,7 @@ Qualification consumes admitted artifacts and acquires no authority by itself.
 - Add a family-specific Veil binding only when correspondence, trust, cost, and replay requirements
   are met.
 
-Formal assurance can proceed in parallel but must not delay the local execution and conformance
+Formal assurance can proceed in parallel but must not delay the local execution and Run Evaluation
 proof or enter production runtime paths.
 
 ## 15. Non-goals
@@ -979,7 +979,7 @@ proof or enter production runtime paths.
 - Unbounded liveness claims derived from finite execution.
 - Arbitrary opaque callbacks in portable declarations.
 - Treating execution success, fault receipts, coverage, or metadata as correctness evidence.
-- Hiding bounds, omissions, truncation, evidence gaps, trust, or cleanup failure.
+- Hiding Limits, Known Gaps, truncation, evidence gaps, trust, or cleanup failure.
 - Wholesale migration of Umpire2 or Umpire3 package trees.
 - Compatibility facades without multiple active consumers.
 - Importing optional Veil machinery into ordinary Umpire, Temporal, tools, or runtime paths.
@@ -993,20 +993,20 @@ The architecture is realized when:
 1. A Temporal engineer with Lean basics can author a Feature regression without assembling target,
    proof, metadata, digest, checked-result, or planner plumbing.
 2. The same engineer can author a System mechanism, configuration interpretation, observation
-   mapping, and Feature refinement through cohesive interfaces.
-3. Property, Behavior, Space, Query, Observation, Refinement, Planning, Exploration, Artifact,
-   Verification, and Qualification remain independently testable modules.
+   mapping, and Feature Implementation Link through cohesive interfaces.
+3. Property, Behavior, Space, Query, Observation, Implementation Link, Planning, Exploration, Artifact,
+   Verification, and Claim Assessment remain independently testable modules.
 4. Feature and base System are independently understandable and meet only through explicit
-   refinement.
+   Implementation Link.
 5. One canonical ExperimentSpec drives model inspection, generated tests, local execution,
-   campaigns, replay, qualification, and standalone canary.
-6. Live evidence is qualified through Lean-owned observation and property meaning without semantic
+   campaigns, replay, Claim Assessment, and standalone canary.
+6. Live evidence is accepted through Lean-owned observation and property meaning without semantic
    duplication in Go.
-7. A known negative control produces a qualified violation, deterministic replay, minimization, and
+7. A known negative control produces a evaluated violation, deterministic replay, minimization, and
    a reviewable regression proposal.
 8. Local, CI, staging, and canary results retain distinct environment authority, evidence,
-   omissions, and cleanup status.
+   Known Gaps, and cleanup status.
 9. `tools/canary` is independently owned, safety-bounded, recoverable, and downstream of stable
    Umpire interfaces.
 10. Import-direction, domain-purity, artifact-closure, deterministic-output, mutation, and adapter
-    conformance checks enforce the architecture mechanically.
+    Run Evaluation checks enforce the architecture mechanically.

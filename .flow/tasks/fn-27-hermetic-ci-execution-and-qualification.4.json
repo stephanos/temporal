@@ -11,6 +11,6 @@
   "spec": "fn-27-hermetic-ci-execution-and-qualification",
   "spec_path": ".flow/tasks/fn-27-hermetic-ci-execution-and-qualification.4.md",
   "status": "todo",
-  "title": "Add CI provenance and QualificationReceipt v2 codecs",
-  "updated_at": "2026-08-26T14:30:24.954237Z"
+  "title": "Prove Artifact Checksum and Behavior Fingerprint parity",
+  "updated_at": "2026-08-27T19:07:21.964939Z"
 }

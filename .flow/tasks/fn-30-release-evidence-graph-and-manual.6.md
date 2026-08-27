@@ -19,7 +19,7 @@ Expose the reviewed release boundary through root commands and one isolated, man
 ### Approach
 - Add root-only targets for qualify, authorize, deny, and revoke that pass only fixed artifact paths, output root, and invocation identity to the verifier/controller.
 - Accept one closed operation plus candidate/evidence-index/current-set content identities; gate to the protected default ref and verify its exact SHA in a credential-free job before protected execution.
-- In the release-evidence environment, sign local retention, perform all seven lookups through the repository-owned fixed retention manifest, construct present/gap slots, and invoke the evidence-index signer. It derives identities/digests/reasons/times itself, uses the unique release-evidence-index role, publishes immutably, and accepts no caller-authored slots or arbitrary URLs/repositories.
+- In the release-evidence environment, sign local retention, perform all seven lookups through the repository-owned fixed retention manifest, construct present/gap slots, and invoke the evidence-index signer. It derives Definition IDs/Behavior Fingerprints/reasons/times itself, uses the unique release-evidence-index role, publishes immutably, and accepts no caller-authored slots or arbitrary URLs/repositories.
 - For authorize, run release-owner and production-owner jobs under distinct gates/keys and invoke the role-decision signer after each succeeds; for role-specific deny/revoke run only the named protected role job. Gate refusal/timeout yields no decision.
 - Finish in a keyless verification/publication job with pinned actions, read-only repository permissions, fixed artifacts, hard timeouts, and candidate-scoped concurrency.
 - Add structural tests proving absent push/PR/schedule/release triggers, absent reusable release/deploy calls, absent registry/deployment credentials, and disjoint protected environments/keys.
@@ -41,7 +41,7 @@ Expose the reviewed release boundary through root commands and one isolated, man
 - [ ] Actions, permissions, artifacts, secrets, timeouts, and concurrency are pinned/least-privilege/bounded; untrusted and final keyless jobs never receive signing material.
 - [ ] Static graph/capability tests prove no trigger or call edge to release, promotion, deployment, registry-write, traffic, configuration, or rollback machinery.
 ## Acceptance
-- [ ] Root commands and the manual workflow expose qualification/authorization without deployment authority.
+- [ ] Root commands and the manual workflow expose Claim Assessment/authorization without deployment authority.
 - [ ] Local retention, the signed evidence index, and role decisions have explicit protected signer ownership; build/deployment attestations are fixed external inputs.
 - [ ] Ref/SHA binding, gate semantics, permissions, timeouts, concurrency, and capability scans pass.
 ## Done summary

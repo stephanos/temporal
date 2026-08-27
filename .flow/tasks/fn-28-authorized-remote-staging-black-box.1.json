@@ -9,6 +9,6 @@
   "spec": "fn-28-authorized-remote-staging-black-box",
   "spec_path": ".flow/tasks/fn-28-authorized-remote-staging-black-box.1.md",
   "status": "todo",
-  "title": "Define QualificationProfile v3 and the exact remote staging policy",
-  "updated_at": "2026-08-26T14:55:23.883475Z"
+  "title": "Define EvaluationProfile v4 and the exact remote staging policy",
+  "updated_at": "2026-08-27T19:07:24.313990Z"
 }

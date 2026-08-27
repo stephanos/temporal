@@ -9,6 +9,6 @@
   "spec": "fn-20-local-execution-semantic-conformance",
   "spec_path": ".flow/tasks/fn-20-local-execution-semantic-conformance.1.md",
   "status": "todo",
-  "title": "Compose Observation refinement and verdicts behind one Lean check API",
-  "updated_at": "2026-08-26T20:42:00.709505Z"
+  "title": "Compose Observation Evaluation, Implementation Link, and Property results behind one Run Evaluation API",
+  "updated_at": "2026-08-27T19:17:10.848842Z"
 }
