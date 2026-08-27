@@ -5,6 +5,12 @@ namespace Umpire.Examples.SwitchTests
 open Umpire
 open Umpire.Examples.Switch
 
+private def expectedExactActionQueryJson : String :=
+  include_str "Fixtures/SwitchExactActionQuery.json"
+
+private def expectedCompiledArtifactJson : String :=
+  include_str "Fixtures/SwitchCompiledArtifact.json"
+
 example : source = {
     path := "Umpire/Examples/Switch.lean"
     line := 1
@@ -31,6 +37,14 @@ example : target.requiredCapabilities = [switchCapabilityId] ∧
     flipProperty.requires = [switchCapabilityId] ∧
     exploratoryBehavior.requires = [switchCapabilityId] ∧
     exactActionQuery.targetComposition = [switchCapabilityId, switchProviderId] := by
+  native_decide
+
+example : exactActionQuery.completeness.map (fun evidence =>
+    (evidence.roleDomainDigest, evidence.actionDomainDigest)) =
+    some ("switch-role-domain/v1", "switch-action-domain/v1") := by
+  native_decide
+
+example : canonicalQueryJson exactActionQuery ++ "\n" = expectedExactActionQueryJson := by
   native_decide
 
 example : exactActionBehavior.admits appliedTrace &&
@@ -65,6 +79,9 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
     compiledArtifact.properties.map PortableProperty.semanticDigest = [flipProperty.semanticDigest] ∧
     compiledArtifact.provenance.sources = [source] ∧
     compiledArtifact.plan.provenance = compiledArtifact.provenance := by
+  native_decide
+
+example : canonicalExperimentSpecJson compiledArtifact ++ "\n" = expectedCompiledArtifactJson := by
   native_decide
 
 end Umpire.Examples.SwitchTests
