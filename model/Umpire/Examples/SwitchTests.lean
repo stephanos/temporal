@@ -41,11 +41,8 @@ example : target.requiredCapabilities = [switchCapabilityId] ∧
 
 example : exactActionQuery.completeness.map (fun evidence =>
     (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
-    some (
-      behaviorFingerprintOf <| "query-role-domain/v1\n" ++
-        String.intercalate "\u001f" target.behaviorDescription.setups,
-      behaviorFingerprintOf <| "query-action-domain/v1\n" ++
-        String.intercalate "\u001f" target.behaviorDescription.actions) := by
+    (CheckedQueryTarget.ofTarget target).completeness.map (fun evidence =>
+      (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) := by
   native_decide
 
 example : (match target.planning with
