@@ -1,14 +1,126 @@
 {
   "branch_name": "fn-37-hard-cut-umpire-vocabulary-and-current",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-08-27T05:43:24.918514Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-31-deepen-umpire-target-and-simplify",
     "fn-4-umpire-observation-and-semantic-verdicts"
   ],
   "id": "fn-37-hard-cut-umpire-vocabulary-and-current",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-27T06:08:11.735128Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "b122ad359f0e1ecf6addf9da2e710e1cd4d755ecd1b8ab392ddc4254203c269a",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "48fcb9d742b3c9e932a411a9055679cab96d1628",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1469638,
+      "output_sha256": "b68c01686f8ff91fd69b7196301c8f3cf061e15a35e37209fc71bf2956082442",
+      "reservation_id": "5beb22221a9f43f8a23946aae429d3b9",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T05:57:38.084573Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "53ec454cbfab67733496caa782251b6111de74abf2e3c5a54d78fbc898af342f",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "48fcb9d742b3c9e932a411a9055679cab96d1628",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1158,
+      "output_sha256": "b27e03715cabb2b18dbd92ff5166c9315890e1f71099ec1b98ea17e8597a5924",
+      "reservation_id": "cd7a2b0744c04813bd396d88830830de",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T06:06:46.324241Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "dab4ac3b28837d372c6f163bac3e12ca786e9300b04b43bd9f727e93924962f0",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "48fcb9d742b3c9e932a411a9055679cab96d1628",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 270,
+      "output_sha256": "95632dbcd6704765329322257324d6df396aead5d15d285cff11e287e5ed7260",
+      "reservation_id": "e6f2aba7000c442aacbc7375de8c5b2b",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-27T06:08:11.728236Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-37-hard-cut-umpire-vocabulary-and-current.md",
   "status": "open",
   "title": "Hard-cut Umpire vocabulary and current artifacts",
@@ -23,5 +135,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T05:43:40.202504Z"
+  "updated_at": "2026-08-27T06:08:11.736138Z"
 }
