@@ -111,7 +111,7 @@ recovery, and artifact-management CLI surfaces.
 
 ## P1 — First complete vertical slice
 
-### 6. fn-19 — Bounded local Temporal execution and SDK participant
+### 7. fn-19 — Bounded local Temporal execution and SDK participant
 
 Execute the normal Nexus caller-closure example in one ephemeral Temporal environment. Use one
 closed preprogrammed SDK participant, resolve the operation/run identifiers at runtime, capture
@@ -121,16 +121,16 @@ profiles, or the local test environment into platforms.
 Consume the normal fn-18-published executable `ExperimentSpec` built from fn-16's checked intent
 without recompiling it.
 
-### 7. fn-20 — Local execution semantic conformance
+### 8. fn-20 — Local Run Evaluation
 
-Interpret the local run through the checked Nexus Observation and Refinement declarations and then
-evaluate the unchanged Feature property. The result must distinguish operational success, evidence
-qualification, refinement, and property satisfaction. Include a fixture with intentionally skewed
+Interpret the local Run through the checked Nexus Observation and Implementation Link declarations
+and then evaluate the unchanged Feature Property. The Result must distinguish operational success,
+Observation Evaluation, Implementation Link, and Property satisfaction. Include a fixture with intentionally skewed
 wall-clock timestamps whose sorted order contradicts the causal or source-local order. Use a trace
 whose qualification or property result would change under timestamp sorting, then assert the
 expected causal derivation and verdict.
 
-### 8. fn-21 — Nexus duplicate-observation control
+### 9. fn-21 — Nexus duplicate-observation control
 
 Run the second example. The same model and normal target-owned plan carry one explicit requested
 fault. The participant realizes one labeled duplicate-delivery observation, the evidence layer
@@ -145,7 +145,7 @@ fault-induced violation using the same semantic model.
 
 ## P2 — Portability proof
 
-### 9. fn-27 — Hermetic CI execution
+### 10. fn-27 — Hermetic CI execution
 
 Run the byte-identical normal `ExperimentSpec` consumed by fn-19 through the ordinary CI test command
 and the same runner/conformance interfaces used locally. Its canonical byte hash, format identity,
@@ -153,7 +153,7 @@ and semantic identity must match the local subject. Reject recompilation or iden
 introducing a new provenance schema. Do not build CI qualification profiles, provenance schemas,
 new artifact-set versions, or release evidence.
 
-### 10. fn-28 — Black-box staging execution
+### 11. fn-28 — Black-box staging execution
 
 Run the same normal `ExperimentSpec` against one controlled nonproduction endpoint using only public
 gRPC evidence plus participant-owned receipts. Before implementation, name the owner-supplied fixed
@@ -169,7 +169,7 @@ contract can be bound without granting production execution authority.
 
 ## P3 — Exploration and regression lifecycle
 
-### 11. fn-5 — Umpire discovery, promotion, and artifact evolution
+### 12. fn-5 — Umpire discovery, promotion, and Artifact evolution
 
 Reduce this spec to two capabilities:
 
@@ -179,7 +179,7 @@ Reduce this spec to two capabilities:
 Defer the generic semantic graph, generated glossary, machine index, broad stable regression set,
 and general artifact evolution.
 
-### 12. fn-17 — Bounded semantic exploration and coverage
+### 13. fn-17 — Bounded model exploration and coverage
 
 Select experiments deterministically from the small fn-16 Nexus space. Support bounded exhaustive
 enumeration and one semantic-coverage-guided policy that prioritizes an uncovered coordinate. Keep
@@ -189,14 +189,14 @@ proofs, multiple source kinds, generalized resume state, and adaptive corpora.
 Keep the uncovered-coordinate policy independent of the deferred symmetry, generalized reporting,
 and resume machinery when reducing the existing mixed tasks.
 
-### 13. fn-33 — Run semantic exploration campaigns with umpire-fuzz
+### 14. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 Reduce the campaign to a serial bounded `umpire-fuzz run` command that asks the Lean-owned
 exploration layer for candidates, executes them through the existing runner/conformance path, and
 reports semantic coverage and exhaustion honestly. Defer concurrency, leases, crash-safe campaign
 state, and resume.
 
-### 14. fn-22 — Deterministic replay, semantic minimization, and reviewed promotion
+### 15. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
 Consume the fn-21 violation, reproduce it exactly, and try every applicable authored reduction in a
 fixed order while preserving the same violation. The exact control may complete as irreducible; its
