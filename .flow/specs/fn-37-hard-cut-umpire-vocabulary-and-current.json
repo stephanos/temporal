@@ -739,7 +739,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-37-hard-cut-umpire-vocabulary-and-current.md",
-  "status": "open",
+  "status": "done",
   "title": "Hard-cut Umpire vocabulary and current artifacts",
   "tracker": {
     "baseHashFlow": null,
@@ -752,5 +752,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T20:10:10.284779Z"
+  "updated_at": "2026-08-27T20:46:59.281717Z"
 }
