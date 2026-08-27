@@ -136,7 +136,7 @@ def reorderedTargetDeclaration : TargetDeclaration LawStatement
   connectors := targetDeclaration.connectors.reverse
 }
 
-example : (composeTarget targetDeclaration).isOk = true := by
+example : (checkTarget targetAuthoring).isOk = true := by
   native_decide
 
 example : (composeTarget reorderedTargetDeclaration).toOption.map CheckedTarget.semanticDigest =
@@ -168,8 +168,15 @@ example : CallerOwnsOperation wClash closedConfig := by
 example : ownershipObservation.value = "true" := by
   native_decide
 
-example : completeness.roleAssignments = [clashSetup] ∧
-    completeness.actions = [forceCloseAction] := by
+example : exactActionQuery.completeness.map (fun evidence =>
+    (evidence.roleAssignments, evidence.actions,
+      evidence.roleDomainDigest, evidence.actionDomainDigest)) =
+    some ([clashSetup], [forceCloseAction],
+      "workflow-nexus-role-domain/v1", "workflow-nexus-action-domain/v1") := by
+  native_decide
+
+example : exactActionQueryResult.toOption.map canonicalQueryJson =
+    some (canonicalQueryJson exactActionQuery) := by
   native_decide
 
 example : target.kernel.authoritativeInitial clashSetup clashState := by
