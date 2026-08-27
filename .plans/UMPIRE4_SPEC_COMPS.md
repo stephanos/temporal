@@ -88,7 +88,7 @@ Commands are adapters. A command package may contain a deep module, but argument
 ## 4. End-to-end module map
 
 ```text
-Structural inputs
+Generated structure
   Descriptor Export ──▶ API Catalog
   Dynamic Config ─────▶ Config Catalog
                               │
@@ -347,7 +347,7 @@ Temporal
     └── optional expert adapters
 ```
 
-### 7.1 Generated structural inputs
+### 7.1 Generated structures
 
 | Module | Responsibility | Forbidden responsibility |
 | --- | --- | --- |
