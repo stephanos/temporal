@@ -1,15 +1,10 @@
-// Package regression verifies checked-in projections of Lean-owned Umpire regressions.
-// It validates projection metadata only; it does not execute Temporal or interpret evidence.
+// Package regression verifies checked-in generated views of Lean-owned Umpire regressions.
+// It validates generated view metadata only; it does not execute Temporal or interpret evidence.
 package regression
 
 import (
-	"bytes"
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,24 +14,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
-const supportedFormatVersion = "umpire-experiment/v1"
+const supportedFormatVersion = artifactv2.ExperimentFormat
 
-var canonicalProjectionKeys = map[string]string{
-	"formatversion":           "formatVersion",
-	"identity":                "identity",
-	"observationrequirements": "observationRequirements",
-	"path":                    "path",
-	"plan":                    "plan",
-	"properties":              "properties",
-	"provenance":              "provenance",
-	"queryidentity":           "queryIdentity",
-	"semanticidentity":        "semanticIdentity",
-	"sources":                 "sources",
-}
-
-// Reference is the complete metadata carried by a generated Go projection.
+// Reference is the complete metadata carried by a generated Go view.
 // Source paths are canonical and relative to the repository's model directory;
 // FixturePath is relative to the repository root.
 type Reference struct {
@@ -46,56 +29,37 @@ type Reference struct {
 	Sources                 []string
 	Properties              []string
 	ObservationRequirements []string
-	SemanticFingerprint     string
+	ArtifactChecksum        string
 }
 
-// RequireProjection verifies that reference still describes its checked-in
+// RequireGeneratedView verifies that reference still describes its checked-in
 // canonical fixture. It deliberately performs no runtime execution or semantic
 // interpretation.
-func RequireProjection(t testing.TB, reference Reference) {
+func RequireGeneratedView(t testing.TB, reference Reference) {
 	t.Helper()
 
 	repositoryRoot, err := sourceRepositoryRoot()
-	require.NoError(t, err, "resolve repository root for projection %q", reference.Identity)
-	actual, err := loadProjection(repositoryRoot, reference)
-	require.NoError(t, err, "verify projection %q", reference.Identity)
-	require.Equal(t, reference, actual, "projection %q differs from its canonical fixture", reference.Identity)
+	require.NoError(t, err, "resolve repository root for generated view %q", reference.Identity)
+	actual, err := loadGeneratedView(repositoryRoot, reference)
+	require.NoError(t, err, "verify generated view %q", reference.Identity)
+	require.Equal(t, reference, actual, "generated view %q differs from its canonical fixture", reference.Identity)
 }
 
-type fixtureEnvelope struct {
-	FormatVersion           string            `json:"formatVersion"`
-	Plan                    fixturePlan       `json:"plan"`
-	Properties              []fixtureProperty `json:"properties"`
-	ObservationRequirements []string          `json:"observationRequirements"`
-	SemanticIdentity        string            `json:"semanticIdentity"`
-	Provenance              fixtureProvenance `json:"provenance"`
-}
-
-type fixturePlan struct {
-	QueryIdentity string `json:"queryIdentity"`
-}
-
-type fixtureProperty struct {
-	Identity string `json:"identity"`
-}
-
-type fixtureProvenance struct {
-	Sources []fixtureSource `json:"sources"`
-}
-
-type fixtureSource struct {
-	Path string `json:"path"`
-}
+type fixtureEnvelope = artifactv2.Experiment
+type fixturePlan = artifactv2.DrivePlan
+type fixtureProperty = artifactv2.Property
+type fixtureProvenance = artifactv2.Provenance
+type fixtureSource = artifactv2.SourceLocation
 
 func sourceRepositoryRoot() (string, error) {
 	_, sourceFile, _, ok := runtime.Caller(0)
 	if !ok || sourceFile == "" {
-		return "", errors.New("locate projection verifier source")
+		return "", errors.New("locate generated view verifier source")
 	}
 	return filepath.Clean(filepath.Join(filepath.Dir(sourceFile), "..", "..", "..")), nil
 }
 
-func loadProjection(repositoryRoot string, reference Reference) (Reference, error) {
+func loadGeneratedView(repositoryRoot string, reference Reference) (Reference, error) {
 	resolvedRepositoryRoot, err := resolveDirectory(repositoryRoot, "repository root")
 	if err != nil {
 		return Reference{}, err
@@ -127,15 +91,15 @@ func loadProjection(repositoryRoot string, reference Reference) (Reference, erro
 			document.FormatVersion,
 		)
 	}
-	if strings.TrimSpace(document.Plan.QueryIdentity) == "" {
+	if strings.TrimSpace(document.Plan.QueryDefinitionID) == "" {
 		return Reference{}, fmt.Errorf("fixture %q has empty query identity", reference.FixturePath)
 	}
-	if strings.TrimSpace(document.SemanticIdentity) == "" {
-		return Reference{}, fmt.Errorf("fixture %q has empty semantic identity", reference.FixturePath)
+	if strings.TrimSpace(document.ArtifactChecksum) == "" {
+		return Reference{}, fmt.Errorf("fixture %q has empty artifact checksum", reference.FixturePath)
 	}
 
-	sources := make([]string, 0, len(document.Provenance.Sources))
-	for _, source := range document.Provenance.Sources {
+	sources := make([]string, 0, len(document.Provenance.SourceLocations))
+	for _, source := range document.Provenance.SourceLocations {
 		sources = append(sources, source.Path)
 	}
 	modelRoot, err := resolveDirectory(filepath.Join(resolvedRepositoryRoot, "model"), "model root")
@@ -148,24 +112,23 @@ func loadProjection(repositoryRoot string, reference Reference) (Reference, erro
 
 	properties := make([]string, 0, len(document.Properties))
 	for _, property := range document.Properties {
-		properties = append(properties, property.Identity)
+		properties = append(properties, property.DefinitionID)
 	}
 	if err := validateIdentities("property", properties); err != nil {
 		return Reference{}, fmt.Errorf("fixture %q: %w", reference.FixturePath, err)
 	}
-	if err := validateIdentities("observation requirement", document.ObservationRequirements); err != nil {
+	if err := validateIdentities("observation requirement", document.ObservationRequirementDefinitionIDs); err != nil {
 		return Reference{}, fmt.Errorf("fixture %q: %w", reference.FixturePath, err)
 	}
 
-	digest := sha256.Sum256([]byte(document.SemanticIdentity))
 	return Reference{
 		FormatVersion:           document.FormatVersion,
-		Identity:                document.Plan.QueryIdentity,
+		Identity:                document.Plan.QueryDefinitionID,
 		FixturePath:             reference.FixturePath,
 		Sources:                 sources,
 		Properties:              properties,
-		ObservationRequirements: document.ObservationRequirements,
-		SemanticFingerprint:     "sha256:" + hex.EncodeToString(digest[:]),
+		ObservationRequirements: document.ObservationRequirementDefinitionIDs,
+		ArtifactChecksum:        document.ArtifactChecksum,
 	}, nil
 }
 
@@ -192,104 +155,14 @@ func validateReference(repositoryRoot string, reference Reference) error {
 	if err := validateIdentities("observation requirement", reference.ObservationRequirements); err != nil {
 		return fmt.Errorf("reference: %w", err)
 	}
-	if !validFingerprint(reference.SemanticFingerprint) {
-		return fmt.Errorf("reference semantic fingerprint %q is invalid", reference.SemanticFingerprint)
+	if !artifactv2.ValidDigest(reference.ArtifactChecksum) {
+		return fmt.Errorf("reference artifact checksum %q is invalid", reference.ArtifactChecksum)
 	}
 	return nil
 }
 
 func decodeFixture(encoded []byte) (fixtureEnvelope, error) {
-	if len(bytes.TrimSpace(encoded)) == 0 {
-		return fixtureEnvelope{}, errors.New("fixture is empty")
-	}
-	if err := validateFixtureJSON(encoded); err != nil {
-		return fixtureEnvelope{}, err
-	}
-	var document fixtureEnvelope
-	if err := json.Unmarshal(encoded, &document); err != nil {
-		return fixtureEnvelope{}, err
-	}
-	return document, nil
-}
-
-func validateFixtureJSON(encoded []byte) error {
-	decoder := json.NewDecoder(bytes.NewReader(encoded))
-	decoder.UseNumber()
-	first, err := decoder.Token()
-	if err != nil {
-		return err
-	}
-	if err := validateJSONValue(decoder, first); err != nil {
-		return err
-	}
-	if _, err := decoder.Token(); err == nil {
-		return errors.New("trailing JSON value")
-	} else if !errors.Is(err, io.EOF) {
-		return err
-	}
-	return nil
-}
-
-func validateJSONValue(decoder *json.Decoder, token json.Token) error {
-	delimiter, structured := token.(json.Delim)
-	if !structured {
-		return nil
-	}
-	switch delimiter {
-	case '{':
-		seen := make(map[string]struct{})
-		for decoder.More() {
-			keyToken, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			key, ok := keyToken.(string)
-			if !ok {
-				return fmt.Errorf("JSON object key has type %T", keyToken)
-			}
-			if _, duplicate := seen[key]; duplicate {
-				return fmt.Errorf("duplicate JSON object key %q", key)
-			}
-			seen[key] = struct{}{}
-			if canonical, projected := canonicalProjectionKeys[strings.ToLower(key)]; projected && key != canonical {
-				return fmt.Errorf("JSON object key %q must be spelled %q", key, canonical)
-			}
-			value, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			if err := validateJSONValue(decoder, value); err != nil {
-				return err
-			}
-		}
-		closing, err := decoder.Token()
-		if err != nil {
-			return err
-		}
-		if closing != json.Delim('}') {
-			return fmt.Errorf("unexpected JSON object delimiter %q", closing)
-		}
-	case '[':
-		for decoder.More() {
-			value, err := decoder.Token()
-			if err != nil {
-				return err
-			}
-			if err := validateJSONValue(decoder, value); err != nil {
-				return err
-			}
-		}
-		closing, err := decoder.Token()
-		if err != nil {
-			return err
-		}
-		if closing != json.Delim(']') {
-			return fmt.Errorf("unexpected JSON array delimiter %q", closing)
-		}
-	default:
-		return fmt.Errorf("unexpected JSON delimiter %q", delimiter)
-	}
-	return nil
+	return artifactv2.DecodeExperiment(encoded)
 }
 
 func validateSources(modelRoot string, sources []string) error {
@@ -329,19 +202,6 @@ func validateIdentities(kind string, identities []string) error {
 		}
 	}
 	return nil
-}
-
-func validFingerprint(value string) bool {
-	const prefix = "sha256:"
-	if len(value) != len(prefix)+sha256.Size*2 || !strings.HasPrefix(value, prefix) {
-		return false
-	}
-	for _, character := range value[len(prefix):] {
-		if !('0' <= character && character <= '9') && !('a' <= character && character <= 'f') {
-			return false
-		}
-	}
-	return true
 }
 
 func resolveDirectory(value, label string) (string, error) {

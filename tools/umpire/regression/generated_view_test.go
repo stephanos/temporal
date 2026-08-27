@@ -1,21 +1,19 @@
 package regression
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
-func TestRequireProjectionIsIndependentOfWorkingDirectory(t *testing.T) {
+func TestRequireGeneratedViewIsIndependentOfWorkingDirectory(t *testing.T) {
 	t.Chdir(t.TempDir())
 
-	RequireProjection(t, Reference{
-		FormatVersion: "umpire-experiment/v1",
+	RequireGeneratedView(t, Reference{
+		FormatVersion: "umpire-experiment/v2",
 		Identity:      "workflow-nexus.query.exact-action-caller-closure",
 		FixturePath:   "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
 		Sources: []string{
@@ -29,48 +27,48 @@ func TestRequireProjectionIsIndependentOfWorkingDirectory(t *testing.T) {
 			"nexus.observation.pending-cancellation-count",
 			"workflow-nexus.relation.owns-operation",
 		},
-		SemanticFingerprint: "sha256:4e04aacc52a317a0c9341652f32f6416e9158168af8a2e94c7bae5e0a8f32563",
+		ArtifactChecksum: "sha256:93384029860b27c57db00b4e0e2beec7cc76dee543c99e143bbed23ddab5ede8",
 	})
 }
 
-func TestLoadProjectionMatchesCompleteReference(t *testing.T) {
-	repositoryRoot, reference, _ := newProjectionRepository(t)
+func TestLoadGeneratedViewMatchesCompleteReference(t *testing.T) {
+	repositoryRoot, reference, _ := newGeneratedViewRepository(t)
 
-	actual, err := loadProjection(repositoryRoot, reference)
+	actual, err := loadGeneratedView(repositoryRoot, reference)
 	require.NoError(t, err)
 	require.Equal(t, reference, actual)
 }
 
-func TestLoadProjectionDetectsEveryDisplayedFixtureField(t *testing.T) {
+func TestLoadGeneratedViewDetectsEveryDisplayedFixtureField(t *testing.T) {
 	tests := map[string]func(*testing.T, string, *fixtureEnvelope){
 		"format": func(_ *testing.T, _ string, fixture *fixtureEnvelope) {
 			fixture.FormatVersion = "umpire-experiment/unsupported"
 		},
 		"identity": func(_ *testing.T, _ string, fixture *fixtureEnvelope) {
-			fixture.Plan.QueryIdentity = "query.changed"
+			fixture.Plan.QueryDefinitionID = "query.changed"
 		},
 		"sources": func(t *testing.T, root string, fixture *fixtureEnvelope) {
 			writeFile(t, filepath.Join(root, "model", "Temporal", "Changed.lean"), []byte("-- changed source\n"))
-			fixture.Provenance.Sources[0].Path = "Temporal/Changed.lean"
+			fixture.Provenance.SourceLocations[0].Path = "Temporal/Changed.lean"
 		},
 		"properties": func(_ *testing.T, _ string, fixture *fixtureEnvelope) {
-			fixture.Properties[0].Identity = "property.changed"
+			fixture.Properties[0].DefinitionID = "property.changed"
 		},
 		"observation requirements": func(_ *testing.T, _ string, fixture *fixtureEnvelope) {
-			fixture.ObservationRequirements[0] = "observation.changed"
+			fixture.ObservationRequirementDefinitionIDs[0] = "observation.changed"
 		},
-		"semantic fingerprint": func(_ *testing.T, _ string, fixture *fixtureEnvelope) {
-			fixture.SemanticIdentity = "semantic-identity-changed"
+		"artifact checksum": func(_ *testing.T, _ string, fixture *fixtureEnvelope) {
+			fixture.ArtifactChecksum = "semantic-identity-changed"
 		},
 	}
 
 	for name, mutate := range tests {
 		t.Run(name, func(t *testing.T) {
-			repositoryRoot, reference, fixture := newProjectionRepository(t)
+			repositoryRoot, reference, fixture := newGeneratedViewRepository(t)
 			mutate(t, repositoryRoot, &fixture)
 			writeFixture(t, repositoryRoot, reference.FixturePath, fixture)
 
-			actual, err := loadProjection(repositoryRoot, reference)
+			actual, err := loadGeneratedView(repositoryRoot, reference)
 			if err == nil {
 				require.NotEqual(t, reference, actual)
 				return
@@ -80,35 +78,35 @@ func TestLoadProjectionDetectsEveryDisplayedFixtureField(t *testing.T) {
 	}
 }
 
-func TestLoadProjectionRejectsInvalidFixtures(t *testing.T) {
+func TestLoadGeneratedViewRejectsInvalidFixtures(t *testing.T) {
 	tests := map[string]func(*fixtureEnvelope){
 		"missing format": func(fixture *fixtureEnvelope) {
 			fixture.FormatVersion = ""
 		},
 		"missing identity": func(fixture *fixtureEnvelope) {
-			fixture.Plan.QueryIdentity = ""
+			fixture.Plan.QueryDefinitionID = ""
 		},
 		"missing sources": func(fixture *fixtureEnvelope) {
-			fixture.Provenance.Sources = nil
+			fixture.Provenance.SourceLocations = nil
 		},
 		"missing properties": func(fixture *fixtureEnvelope) {
 			fixture.Properties = nil
 		},
 		"missing observation requirements": func(fixture *fixtureEnvelope) {
-			fixture.ObservationRequirements = nil
+			fixture.ObservationRequirementDefinitionIDs = nil
 		},
-		"missing semantic identity": func(fixture *fixtureEnvelope) {
-			fixture.SemanticIdentity = ""
+		"missing artifact checksum": func(fixture *fixtureEnvelope) {
+			fixture.ArtifactChecksum = ""
 		},
 	}
 
 	for name, mutate := range tests {
 		t.Run(name, func(t *testing.T) {
-			repositoryRoot, reference, fixture := newProjectionRepository(t)
+			repositoryRoot, reference, fixture := newGeneratedViewRepository(t)
 			mutate(&fixture)
 			writeFixture(t, repositoryRoot, reference.FixturePath, fixture)
 
-			_, err := loadProjection(repositoryRoot, reference)
+			_, err := loadGeneratedView(repositoryRoot, reference)
 			require.Error(t, err)
 		})
 	}
@@ -116,24 +114,24 @@ func TestLoadProjectionRejectsInvalidFixtures(t *testing.T) {
 	malformed := map[string]string{
 		"invalid JSON":            "{",
 		"duplicate field":         `{"formatVersion":"first","formatVersion":"second"}`,
-		"noncanonical field name": `{"FormatVersion":"umpire-experiment/v1"}`,
+		"noncanonical field name": `{"FormatVersion":"umpire-experiment/v2"}`,
 	}
 	for name, encoded := range malformed {
 		t.Run(name, func(t *testing.T) {
-			repositoryRoot, reference, _ := newProjectionRepository(t)
+			repositoryRoot, reference, _ := newGeneratedViewRepository(t)
 			writeFile(
 				t,
 				filepath.Join(repositoryRoot, filepath.FromSlash(reference.FixturePath)),
 				[]byte(encoded),
 			)
 
-			_, err := loadProjection(repositoryRoot, reference)
+			_, err := loadGeneratedView(repositoryRoot, reference)
 			require.ErrorContains(t, err, "decode fixture")
 		})
 	}
 }
 
-func TestLoadProjectionRejectsUnsafeFixturePaths(t *testing.T) {
+func TestLoadGeneratedViewRejectsUnsafeFixturePaths(t *testing.T) {
 	tests := map[string]func(*testing.T, string, *Reference){
 		"empty": func(_ *testing.T, _ string, reference *Reference) {
 			reference.FixturePath = ""
@@ -163,16 +161,16 @@ func TestLoadProjectionRejectsUnsafeFixturePaths(t *testing.T) {
 
 	for name, mutate := range tests {
 		t.Run(name, func(t *testing.T) {
-			repositoryRoot, reference, _ := newProjectionRepository(t)
+			repositoryRoot, reference, _ := newGeneratedViewRepository(t)
 			mutate(t, repositoryRoot, &reference)
 
-			_, err := loadProjection(repositoryRoot, reference)
+			_, err := loadGeneratedView(repositoryRoot, reference)
 			require.Error(t, err)
 		})
 	}
 }
 
-func TestLoadProjectionRejectsUnsafeLeanSourcePaths(t *testing.T) {
+func TestLoadGeneratedViewRejectsUnsafeLeanSourcePaths(t *testing.T) {
 	tests := map[string]func(*testing.T, string, *Reference, *fixtureEnvelope){
 		"empty": func(_ *testing.T, _ string, reference *Reference, _ *fixtureEnvelope) {
 			reference.Sources = []string{""}
@@ -189,62 +187,50 @@ func TestLoadProjectionRejectsUnsafeLeanSourcePaths(t *testing.T) {
 			link := filepath.Join(root, "model", "escaped.lean")
 			require.NoError(t, os.Symlink(external, link))
 			reference.Sources = []string{"escaped.lean"}
-			fixture.Provenance.Sources = []fixtureSource{{Path: "escaped.lean"}}
+			fixture.Provenance.SourceLocations = []fixtureSource{{Path: "escaped.lean"}}
 		},
 		"wrong kind": func(t *testing.T, root string, reference *Reference, fixture *fixtureEnvelope) {
 			directory := filepath.Join(root, "model", "directory.lean")
 			require.NoError(t, os.MkdirAll(directory, 0o755))
 			reference.Sources = []string{"directory.lean"}
-			fixture.Provenance.Sources = []fixtureSource{{Path: "directory.lean"}}
+			fixture.Provenance.SourceLocations = []fixtureSource{{Path: "directory.lean"}}
 		},
 		"nonexistent": func(_ *testing.T, _ string, reference *Reference, fixture *fixtureEnvelope) {
 			reference.Sources = []string{"missing.lean"}
-			fixture.Provenance.Sources = []fixtureSource{{Path: "missing.lean"}}
+			fixture.Provenance.SourceLocations = []fixtureSource{{Path: "missing.lean"}}
 		},
 	}
 
 	for name, mutate := range tests {
 		t.Run(name, func(t *testing.T) {
-			repositoryRoot, reference, fixture := newProjectionRepository(t)
+			repositoryRoot, reference, fixture := newGeneratedViewRepository(t)
 			mutate(t, repositoryRoot, &reference, &fixture)
 			writeFixture(t, repositoryRoot, reference.FixturePath, fixture)
 
-			_, err := loadProjection(repositoryRoot, reference)
+			_, err := loadGeneratedView(repositoryRoot, reference)
 			require.Error(t, err)
 		})
 	}
 }
 
-func newProjectionRepository(t *testing.T) (string, Reference, fixtureEnvelope) {
+func newGeneratedViewRepository(t *testing.T) (string, Reference, fixtureEnvelope) {
 	t.Helper()
 	repositoryRoot := t.TempDir()
-	source := "Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
+	source := "Umpire/Examples/Switch.lean"
 	writeFile(t, filepath.Join(repositoryRoot, "model", filepath.FromSlash(source)), []byte("-- canonical source\n"))
-	fixture := fixtureEnvelope{
-		FormatVersion: supportedFormatVersion,
-		Plan: fixturePlan{
-			QueryIdentity: "query.identity",
-		},
-		Properties: []fixtureProperty{
-			{Identity: "property.identity"},
-		},
-		ObservationRequirements: []string{
-			"observation.first",
-			"observation.second",
-		},
-		SemanticIdentity: "semantic-identity",
-		Provenance: fixtureProvenance{
-			Sources: []fixtureSource{{Path: source}},
-		},
-	}
+	realRoot := filepath.Clean(filepath.Join("..", "..", ".."))
+	encoded, err := os.ReadFile(filepath.Join(realRoot, "model/Umpire/Examples/testdata/switch-experiment-spec.json"))
+	require.NoError(t, err)
+	fixture, err := artifactv2.DecodeExperiment(encoded)
+	require.NoError(t, err)
 	reference := Reference{
 		FormatVersion:           supportedFormatVersion,
-		Identity:                fixture.Plan.QueryIdentity,
+		Identity:                fixture.Plan.QueryDefinitionID,
 		FixturePath:             "fixtures/experiment-spec.json",
 		Sources:                 []string{source},
-		Properties:              []string{fixture.Properties[0].Identity},
-		ObservationRequirements: append([]string(nil), fixture.ObservationRequirements...),
-		SemanticFingerprint:     fingerprint(fixture.SemanticIdentity),
+		Properties:              []string{fixture.Properties[0].DefinitionID},
+		ObservationRequirements: append([]string(nil), fixture.ObservationRequirementDefinitionIDs...),
+		ArtifactChecksum:        fixture.ArtifactChecksum,
 	}
 	writeFixture(t, repositoryRoot, reference.FixturePath, fixture)
 	return repositoryRoot, reference, fixture
@@ -252,7 +238,7 @@ func newProjectionRepository(t *testing.T) (string, Reference, fixtureEnvelope) 
 
 func writeFixture(t *testing.T, repositoryRoot, relative string, fixture fixtureEnvelope) {
 	t.Helper()
-	encoded, err := json.Marshal(fixture)
+	encoded, err := artifactv2.CanonicalExperimentBytes(fixture)
 	require.NoError(t, err)
 	writeFile(t, filepath.Join(repositoryRoot, filepath.FromSlash(relative)), encoded)
 }
@@ -261,9 +247,4 @@ func writeFile(t *testing.T, target string, contents []byte) {
 	t.Helper()
 	require.NoError(t, os.MkdirAll(filepath.Dir(target), 0o755))
 	require.NoError(t, os.WriteFile(target, contents, 0o644))
-}
-
-func fingerprint(identity string) string {
-	digest := sha256.Sum256([]byte(identity))
-	return "sha256:" + hex.EncodeToString(digest[:])
 }

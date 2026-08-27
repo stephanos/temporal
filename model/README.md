@@ -187,32 +187,34 @@ interfaces, reusable Umpire domain leaks, and invalid `Temporal.System.Configura
 its `Temporal.System.Callback.Configuration` or `Temporal.System.Matching.Configuration`
 consumers; compares repeated inspection with both checked-in target-state fixtures byte-for-byte;
 and verifies that unknown or invalid inspector requests emit one structured diagnostic with no
-artifact JSON on standard output. It also clean-regenerates the checked-in caller-closure Go and
-Markdown projections and runs their focused Go tests. It does not require or contact a running
+artifact JSON on standard output. It also clean-regenerates the checked-in Switch and caller-closure
+Go and Markdown Generated Views and runs their focused Go tests. It does not require or contact a running
 Temporal server.
 
-Generate or check the stable regression projections from the repository root:
+Generate or check the stable regression generated views from the repository root:
 
 ```sh
-make umpire-gen-regression-projections
-make umpire-check-regression-projections
+make umpire-gen-regression-views
+make umpire-check-regression-views
 ```
 
-Generation transactionally replaces the complete managed pair:
+Generation transactionally replaces the complete managed four-output set:
 
 - `tools/umpire/regression/catalog_generated_test.go`, an ordinary Go test that calls only the
-  fixture-backed `RequireProjection` helper;
-- `model/Temporal/Tool/Generated/Regressions.md`, the readable projection index.
+  fixture-backed `RequireGeneratedView` helper;
+- `model/Temporal/Tool/Generated/Regressions.md`, the readable Nexus Generated View;
+- `tools/umpire/regression/switch_generated_view_test.go`, the corresponding Switch Go test; and
+- `model/Umpire/Examples/Generated/Switch.md`, the readable Switch Generated View.
 
-The current catalog is deliberately closed to the stable caller-closure regression. Lean and its
-canonical `ExperimentSpec` fixture remain the semantic source of truth. Inspector provenance is
+The current catalog is deliberately closed to the Switch and caller-closure regressions. Lean and
+their canonical `ExperimentSpec` fixtures remain the model source of truth. Inspector provenance is
 canonical relative to `model/`; generated navigation adds the repository-facing `model/` prefix.
-The semantic fingerprint is lowercase SHA-256 over the exact UTF-8 bytes of the decoded
-`ExperimentSpec.semanticIdentity`, rendered as `sha256:<64 lowercase hexadecimal characters>`.
-Run the generation target after an intentional semantic change, review both outputs together, and
-use either projection check or the encompassing `make umpire-check-regression` gate to prove the
-checked-in pair is clean. The generated Go test can verify its fixture without Lean or a running
-Temporal service, but projection success is not runtime execution, execution evidence, or a
+Each Artifact Checksum is independently verified from the exact canonical v2 Artifact content and
+rendered as `sha256:<64 lowercase hexadecimal characters>`. Run the generation target after an
+intentional model change, review all four outputs together, and use either Generated View check or
+the encompassing `make umpire-check-regression` gate to prove the checked-in set is clean. The
+generated Go tests can verify their fixtures without Lean or a running Temporal service, but
+Generated View success is not runtime execution, execution evidence, or a
 conformance result.
 
 Inspect either checked scenario directly with:

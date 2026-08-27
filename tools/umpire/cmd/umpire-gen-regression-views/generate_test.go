@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"errors"
 	"io/fs"
 	"os"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/common/artifactio"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
 func TestRunGenerationInspectsOnceAndPublishesTheCompleteSetDeterministically(t *testing.T) {
@@ -56,20 +56,20 @@ func TestRunGenerationRejectsEveryStaleDisplayedFixtureFieldBeforePublication(t 
 			fixture.FormatVersion = "umpire-experiment/unsupported"
 		},
 		"identity": func(_ *testing.T, _ string, fixture *experimentEnvelope) {
-			fixture.Plan.QueryIdentity = "query.changed"
+			fixture.Plan.QueryDefinitionID = "query.changed"
 		},
 		"canonical sources": func(t *testing.T, repositoryRoot string, fixture *experimentEnvelope) {
 			writeLeanSource(t, filepath.Join(repositoryRoot, "model"), "Changed.lean")
-			fixture.Provenance.Sources[0].Path = "Changed.lean"
+			fixture.Provenance.SourceLocations[0].Path = "Changed.lean"
 		},
 		"property identities": func(_ *testing.T, _ string, fixture *experimentEnvelope) {
-			fixture.Properties[0].Identity = "property.changed"
+			fixture.Properties[0].DefinitionID = "property.changed"
 		},
 		"observation-requirement identities": func(_ *testing.T, _ string, fixture *experimentEnvelope) {
-			fixture.ObservationRequirements[0] = "observation.changed"
+			fixture.ObservationRequirementDefinitionIDs[0] = "observation.changed"
 		},
-		"semantic fingerprint": func(_ *testing.T, _ string, fixture *experimentEnvelope) {
-			fixture.SemanticIdentity = "semantic-identity-changed"
+		"artifact checksum": func(_ *testing.T, _ string, fixture *experimentEnvelope) {
+			fixture.ArtifactChecksum = "semantic-identity-changed"
 		},
 	}
 
@@ -163,24 +163,24 @@ func TestRunGenerationRejectsInspectorFailuresAndOutputContradictions(t *testing
 }
 
 func TestRequireInspectorArtifactDoesNotExposeStderr(t *testing.T) {
-	semanticArtifact := []byte(`{"format":"umpire-experiment/v1","semanticIdentity":"do-not-expose-semantic-identity"}`)
+	sensitiveArtifact := []byte(`{"formatVersion":"umpire-experiment/v2","artifactChecksum":"do-not-expose-artifact-checksum"}`)
 	tests := map[string]struct {
 		output     inspectorOutput
 		inspectErr error
 	}{
 		"failed with stdout": {
-			output:     inspectorOutput{Stdout: []byte(`{"artifact":true}`), Stderr: semanticArtifact},
+			output:     inspectorOutput{Stdout: []byte(`{"artifact":true}`), Stderr: sensitiveArtifact},
 			inspectErr: errors.New("exit status 1"),
 		},
 		"failed without stdout": {
-			output:     inspectorOutput{Stderr: semanticArtifact},
+			output:     inspectorOutput{Stderr: sensitiveArtifact},
 			inspectErr: errors.New("exit status 1"),
 		},
 		"succeeded without stdout": {
-			output: inspectorOutput{Stderr: semanticArtifact},
+			output: inspectorOutput{Stderr: sensitiveArtifact},
 		},
 		"succeeded with stdout": {
-			output: inspectorOutput{Stdout: []byte(`{"artifact":true}`), Stderr: semanticArtifact},
+			output: inspectorOutput{Stdout: []byte(`{"artifact":true}`), Stderr: sensitiveArtifact},
 		},
 	}
 
@@ -190,8 +190,8 @@ func TestRequireInspectorArtifactDoesNotExposeStderr(t *testing.T) {
 
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "stable-identity")
-			require.NotContains(t, err.Error(), string(semanticArtifact))
-			require.NotContains(t, err.Error(), "do-not-expose-semantic-identity")
+			require.NotContains(t, err.Error(), string(sensitiveArtifact))
+			require.NotContains(t, err.Error(), "do-not-expose-artifact-checksum")
 		})
 	}
 }
@@ -255,26 +255,26 @@ func TestRunGenerationRejectsInvalidInspectorAndFixtureArtifactsBeforePublicatio
 }
 
 func TestRunGenerationValidatesRenderedCompleteSetBeforePublication(t *testing.T) {
-	tests := map[string]func([]projectionRecord) (map[string][]byte, error){
-		"renderer error": func([]projectionRecord) (map[string][]byte, error) {
+	tests := map[string]func([]generatedViewRecord) (map[string][]byte, error){
+		"renderer error": func([]generatedViewRecord) (map[string][]byte, error) {
 			return nil, errors.New("injected render failure")
 		},
-		"incomplete map": func(records []projectionRecord) (map[string][]byte, error) {
-			artifacts, err := renderProjections(records)
+		"incomplete map": func(records []generatedViewRecord) (map[string][]byte, error) {
+			artifacts, err := renderGeneratedViews(records)
 			if err == nil {
 				delete(artifacts, records[0].MarkdownOutputPath)
 			}
 			return artifacts, err
 		},
-		"unformatted Go": func(records []projectionRecord) (map[string][]byte, error) {
-			artifacts, err := renderProjections(records)
+		"unformatted Go": func(records []generatedViewRecord) (map[string][]byte, error) {
+			artifacts, err := renderGeneratedViews(records)
 			if err == nil {
 				artifacts[records[0].GoOutputPath] = []byte("package regression\nfunc broken( {\n")
 			}
 			return artifacts, err
 		},
-		"inconsistent Markdown": func(records []projectionRecord) (map[string][]byte, error) {
-			artifacts, err := renderProjections(records)
+		"inconsistent Markdown": func(records []generatedViewRecord) (map[string][]byte, error) {
+			artifacts, err := renderGeneratedViews(records)
 			if err == nil {
 				artifacts[records[0].MarkdownOutputPath] = []byte("stale\n")
 			}
@@ -301,8 +301,8 @@ func TestRunGenerationPreservesPriorCompleteSetOnInjectedPublicationFailure(t *t
 	configuration, entry, inspected, dependencies := newGenerationFixture(t)
 	dependencies.Inspect = staticInspector(inspected)
 	old := map[string][]byte{
-		entry.GoOutputPath:       []byte("old Go projection\n"),
-		entry.MarkdownOutputPath: []byte("old Markdown projection\n"),
+		entry.GoOutputPath:       []byte("old Go generated view\n"),
+		entry.MarkdownOutputPath: []byte("old Markdown generated view\n"),
 	}
 	writeGeneratedSet(t, configuration.OutputRoot, old)
 	dependencies.Publish = func(
@@ -351,7 +351,7 @@ func TestRunGenerationRejectsUnsafeRootsAndPaths(t *testing.T) {
 		}
 		err := runGeneration(configuration, []manifestEntry{entry}, dependencies)
 		require.ErrorIs(t, err, fs.ErrPermission)
-		require.ErrorContains(t, err, "publish regression projections")
+		require.ErrorContains(t, err, "publish regression generated views")
 	})
 
 	t.Run("fixture traversal", func(t *testing.T) {
@@ -491,7 +491,7 @@ func writeGenerationFixture(
 	fixture experimentEnvelope,
 ) {
 	t.Helper()
-	encoded, err := json.Marshal(fixture)
+	encoded, err := artifactv2.CanonicalExperimentBytes(fixture)
 	require.NoError(t, err)
 	target := filepath.Join(repositoryRoot, filepath.FromSlash(relative))
 	require.NoError(t, os.MkdirAll(filepath.Dir(target), 0o700))

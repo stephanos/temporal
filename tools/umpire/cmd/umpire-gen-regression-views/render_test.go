@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"go/ast"
 	"go/format"
 	"go/parser"
@@ -10,40 +9,50 @@ import (
 	"path/filepath"
 	"reflect"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
 func TestProductionManifestIsClosedAndMechanical(t *testing.T) {
-	expected := []manifestEntry{{
-		Identity:           callerClosureIdentity,
-		FixturePath:        "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
-		GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
-		MarkdownOutputPath: "model/Temporal/Tool/Generated/Regressions.md",
-	}}
+	expected := []manifestEntry{
+		{
+			Identity:           switchIdentity,
+			FixturePath:        "model/Umpire/Examples/testdata/switch-experiment-spec.json",
+			GoOutputPath:       "tools/umpire/regression/switch_generated_view_test.go",
+			MarkdownOutputPath: "model/Umpire/Examples/Generated/Switch.md",
+		},
+		{
+			Identity:           callerClosureIdentity,
+			FixturePath:        "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
+			GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
+			MarkdownOutputPath: "model/Temporal/Tool/Generated/Regressions.md",
+		},
+	}
 	require.Equal(t, expected, productionManifest())
 	require.Equal(t, []string{"Identity", "FixturePath", "GoOutputPath", "MarkdownOutputPath"}, structFieldNames(manifestEntry{}))
 	require.NoError(t, validateManifest(productionManifest()))
 }
 
-func TestProductionFixtureProjectsCanonicalMetadata(t *testing.T) {
+func TestProductionFixtureCarriesCanonicalMetadata(t *testing.T) {
 	repositoryRoot := testRepositoryRoot(t)
-	entry := productionManifest()[0]
+	entry := productionManifest()[1]
 	encoded, err := os.ReadFile(filepath.Join(repositoryRoot, filepath.FromSlash(entry.FixturePath)))
 	require.NoError(t, err)
 
-	projection, err := extractProjection(entry, encoded, filepath.Join(repositoryRoot, "model"))
+	view, err := extractGeneratedView(entry, encoded, filepath.Join(repositoryRoot, "model"))
 	require.NoError(t, err)
-	require.Equal(t, projectionRecord{
+	require.Equal(t, generatedViewRecord{
 		Identity:           callerClosureIdentity,
 		Format:             supportedExperimentFormat,
 		FixturePath:        entry.FixturePath,
 		GoOutputPath:       entry.GoOutputPath,
 		MarkdownOutputPath: entry.MarkdownOutputPath,
 		TestName:           "TestWorkflowNexusQueryExactActionCallerClosure",
-		Sources: []sourceProjection{{
+		Sources: []sourceView{{
 			CanonicalPath:  "Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
 			RepositoryPath: "model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
 		}},
@@ -55,11 +64,49 @@ func TestProductionFixtureProjectsCanonicalMetadata(t *testing.T) {
 			"nexus.observation.pending-cancellation-count",
 			"workflow-nexus.relation.owns-operation",
 		},
-		SemanticFingerprint: "sha256:4e04aacc52a317a0c9341652f32f6416e9158168af8a2e94c7bae5e0a8f32563",
-	}, projection)
+		ArtifactChecksum: "sha256:93384029860b27c57db00b4e0e2beec7cc76dee543c99e143bbed23ddab5ede8",
+	}, view)
 }
 
-func TestProjectionRejectsInvalidExperimentMetadata(t *testing.T) {
+func TestProductionGeneratedViewSetOwnsExactlyFourCompleteOutputs(t *testing.T) {
+	repositoryRoot := testRepositoryRoot(t)
+	records := make([]generatedViewRecord, 0, len(productionManifest()))
+	for _, entry := range productionManifest() {
+		encoded, err := os.ReadFile(filepath.Join(repositoryRoot, filepath.FromSlash(entry.FixturePath)))
+		require.NoError(t, err)
+		record, err := extractGeneratedView(entry, encoded, filepath.Join(repositoryRoot, "model"))
+		require.NoError(t, err)
+		records = append(records, record)
+	}
+
+	artifacts, err := renderGeneratedViews(records)
+	require.NoError(t, err)
+	require.Equal(t, []string{
+		"model/Temporal/Tool/Generated/Regressions.md",
+		"model/Umpire/Examples/Generated/Switch.md",
+		"tools/umpire/regression/catalog_generated_test.go",
+		"tools/umpire/regression/switch_generated_view_test.go",
+	}, managedArtifactPaths(productionManifest()))
+	require.Len(t, artifacts, 4)
+	require.NoError(t, validateGeneratedArtifacts(productionManifest(), records, artifacts))
+
+	missing := cloneArtifacts(artifacts)
+	delete(missing, records[0].MarkdownOutputPath)
+	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, missing))
+	extra := cloneArtifacts(artifacts)
+	extra["model/Unexpected.md"] = []byte("unexpected\n")
+	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, extra))
+	stale := cloneArtifacts(artifacts)
+	stale[records[0].MarkdownOutputPath] = []byte("stale\n")
+	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, stale))
+	partial := map[string][]byte{
+		records[0].GoOutputPath:       artifacts[records[0].GoOutputPath],
+		records[0].MarkdownOutputPath: artifacts[records[0].MarkdownOutputPath],
+	}
+	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, partial))
+}
+
+func TestGeneratedViewRejectsInvalidExperimentMetadata(t *testing.T) {
 	modelRoot := t.TempDir()
 	writeLeanSource(t, modelRoot, "One.lean")
 	valid := syntheticExperiment(t, syntheticOptions{})
@@ -70,33 +117,33 @@ func TestProjectionRejectsInvalidExperimentMetadata(t *testing.T) {
 		"empty JSON":              {encoded: nil, want: "JSON is empty"},
 		"malformed JSON":          {encoded: []byte("{"), want: "decode canonical ExperimentSpec JSON"},
 		"trailing JSON":           {encoded: append(append([]byte(nil), valid...), []byte("{}")...), want: "trailing JSON value"},
-		"unsupported version":     {encoded: syntheticExperiment(t, syntheticOptions{format: "umpire-experiment/v2"}), want: "unsupported format"},
-		"identity mismatch":       {encoded: syntheticExperiment(t, syntheticOptions{identity: "another.query"}), want: "query identity mismatch"},
-		"empty semantic identity": {encoded: syntheticExperiment(t, syntheticOptions{emptySemanticIdentity: true}), want: "semantic identity is empty"},
-		"missing provenance":      {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{}}), want: "at least one provenance source"},
-		"empty provenance":        {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{""}}), want: "unsafe"},
-		"duplicate provenance":    {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"One.lean", "One.lean"}}), want: "duplicate provenance source"},
+		"unsupported version":     {encoded: syntheticExperiment(t, syntheticOptions{format: "umpire-experiment/v1"}), want: "unsupported format"},
+		"identity mismatch":       {encoded: syntheticExperiment(t, syntheticOptions{identity: "another.query"}), want: "query definition ID mismatch"},
+		"empty artifact checksum": {encoded: syntheticExperiment(t, syntheticOptions{emptyArtifactChecksum: true}), want: "artifact checksum"},
+		"missing provenance":      {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{}}), want: "at least one source location"},
+		"empty provenance":        {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{""}}), want: "source location is malformed"},
+		"duplicate provenance":    {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"One.lean", "One.lean"}}), want: "duplicate source location"},
 		"absolute provenance":     {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"/One.lean"}}), want: "unsafe"},
 		"traversing provenance":   {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"../One.lean"}}), want: "unsafe"},
 		"noncanonical provenance": {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"Dir/../One.lean"}}), want: "unsafe"},
 		"non-Lean provenance":     {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"One.txt"}}), want: "not a Lean source"},
 		"nonexistent provenance":  {encoded: syntheticExperiment(t, syntheticOptions{sources: []string{"Missing.lean"}}), want: "resolve provenance source"},
 		"missing properties":      {encoded: syntheticExperiment(t, syntheticOptions{properties: []string{}}), want: "at least one property identity"},
-		"empty property":          {encoded: syntheticExperiment(t, syntheticOptions{properties: []string{""}}), want: "property identity is empty"},
+		"empty property":          {encoded: syntheticExperiment(t, syntheticOptions{properties: []string{""}}), want: "malformed definition ID"},
 		"duplicate property":      {encoded: syntheticExperiment(t, syntheticOptions{properties: []string{"property.one", "property.one"}}), want: "duplicate property identity"},
 		"missing observations":    {encoded: syntheticExperiment(t, syntheticOptions{requirements: []string{}}), want: "at least one observation requirement identity"},
-		"empty observation":       {encoded: syntheticExperiment(t, syntheticOptions{requirements: []string{""}}), want: "observation requirement identity is empty"},
-		"duplicate observation":   {encoded: syntheticExperiment(t, syntheticOptions{requirements: []string{"observation.one", "observation.one"}}), want: "duplicate observation requirement identity"},
+		"empty observation":       {encoded: syntheticExperiment(t, syntheticOptions{requirements: []string{""}}), want: "observation requirement definition ID is empty"},
+		"duplicate observation":   {encoded: syntheticExperiment(t, syntheticOptions{requirements: []string{"observation.one", "observation.one"}}), want: "duplicate observation requirement definition ID"},
 	}
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {
-			_, err := extractProjection(syntheticEntry(callerClosureIdentity), test.encoded, modelRoot)
+			_, err := extractGeneratedView(syntheticEntry(callerClosureIdentity), test.encoded, modelRoot)
 			require.ErrorContains(t, err, test.want)
 		})
 	}
 }
 
-func TestProjectionRejectsContradictoryJSONObjectKeys(t *testing.T) {
+func TestGeneratedViewRejectsContradictoryJSONObjectKeys(t *testing.T) {
 	modelRoot := t.TempDir()
 	writeLeanSource(t, modelRoot, "One.lean")
 	valid := string(syntheticExperiment(t, syntheticOptions{}))
@@ -108,7 +155,7 @@ func TestProjectionRejectsContradictoryJSONObjectKeys(t *testing.T) {
 		{
 			name:    "duplicate top-level field",
 			encoded: strings.Replace(valid, `"formatVersion":`, `"formatVersion":"ignored","formatVersion":`, 1),
-			want:    `duplicate JSON object key "formatVersion"`,
+			want:    `duplicate or case-colliding top-level key`,
 		},
 		{
 			name:    "case-variant top-level field",
@@ -117,18 +164,18 @@ func TestProjectionRejectsContradictoryJSONObjectKeys(t *testing.T) {
 		},
 		{
 			name:    "duplicate nested field",
-			encoded: strings.Replace(valid, `"queryIdentity":`, `"queryIdentity":"ignored","queryIdentity":`, 1),
-			want:    `duplicate JSON object key "queryIdentity"`,
+			encoded: strings.Replace(valid, `"queryDefinitionId":`, `"queryDefinitionId":"ignored","queryDefinitionId":`, 1),
+			want:    `duplicate or case-colliding JSON object key`,
 		},
 		{
 			name:    "case-variant nested field",
-			encoded: strings.Replace(valid, `"queryIdentity"`, `"QueryIdentity"`, 1),
-			want:    `JSON object key "QueryIdentity" must be spelled "queryIdentity"`,
+			encoded: strings.Replace(valid, `"queryDefinitionId"`, `"QueryDefinitionId"`, 1),
+			want:    `JSON object key "QueryDefinitionId" must be spelled "queryDefinitionId"`,
 		},
 	}
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
-			_, err := extractProjection(
+			_, err := extractGeneratedView(
 				syntheticEntry(callerClosureIdentity),
 				[]byte(test.encoded),
 				modelRoot,
@@ -138,7 +185,7 @@ func TestProjectionRejectsContradictoryJSONObjectKeys(t *testing.T) {
 	}
 }
 
-func TestProjectionRejectsProvenanceSymlinkEscapeAndWrongKind(t *testing.T) {
+func TestGeneratedViewRejectsProvenanceSymlinkEscapeAndWrongKind(t *testing.T) {
 	modelRoot := t.TempDir()
 	outsideRoot := t.TempDir()
 	writeLeanSource(t, outsideRoot, "Outside.lean")
@@ -153,7 +200,7 @@ func TestProjectionRejectsProvenanceSymlinkEscapeAndWrongKind(t *testing.T) {
 		"directory":      {source: "Directory.lean", want: "not a regular file"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			_, err := extractProjection(
+			_, err := extractGeneratedView(
 				syntheticEntry(callerClosureIdentity),
 				syntheticExperiment(t, syntheticOptions{sources: []string{test.source}}),
 				modelRoot,
@@ -218,19 +265,19 @@ func TestGoTestNamesRejectInvalidNamesAndCollisions(t *testing.T) {
 	_, err := deriveTestName("---")
 	require.ErrorContains(t, err, "does not produce a valid Go test name")
 
-	records := []projectionRecord{
+	records := []generatedViewRecord{
 		{Identity: "query.one-value", TestName: "TestQueryOneValue"},
 		{Identity: "query.one.value", TestName: "TestQueryOneValue"},
 	}
-	require.ErrorContains(t, validateTestNames(records), "collide as Go test name")
+	require.ErrorContains(t, validateGeneratedViewTestNames(records), "collide as Go test name")
 
 	records[1].Identity = "query.two"
-	require.ErrorContains(t, validateTestNames(records), "invalid Go test name")
+	require.ErrorContains(t, validateGeneratedViewTestNames(records), "invalid Go test name")
 }
 
-func TestGeneratedProjectionCarriesMatchingMetadata(t *testing.T) {
-	record := syntheticProjection()
-	artifacts, err := renderProjections([]projectionRecord{record})
+func TestGeneratedViewCarriesMatchingMetadata(t *testing.T) {
+	record := syntheticGeneratedView()
+	artifacts, err := renderGeneratedViews([]generatedViewRecord{record})
 	require.NoError(t, err)
 	goSource := artifacts[record.GoOutputPath]
 	markdown := artifacts[record.MarkdownOutputPath]
@@ -244,15 +291,15 @@ func TestGeneratedProjectionCarriesMatchingMetadata(t *testing.T) {
 	require.Equal(t, "regression", parsed.Name.Name)
 	require.Equal(t, 1, countGeneratedTests(parsed))
 	require.Equal(t, 1, generatedTestStatementCount(t, parsed, record.TestName))
-	require.Contains(t, string(goSource), "RequireProjection(t, Reference{")
+	require.Contains(t, string(goSource), "RequireGeneratedView(t, Reference{")
 	require.Contains(t, string(goSource), record.Sources[0].CanonicalPath)
 	require.Contains(t, string(goSource), record.Sources[0].RepositoryPath)
 	require.Contains(t, string(goSource), record.Properties[0])
 	require.Contains(t, string(goSource), record.ObservationRequirements[0])
-	require.Contains(t, string(goSource), record.SemanticFingerprint)
+	require.Contains(t, string(goSource), record.ArtifactChecksum)
 	require.NotContains(t, string(goSource), "full-semantic-identity")
 
-	require.Contains(t, string(markdown), "model projection only")
+	require.Contains(t, string(markdown), "model generated view only")
 	require.Contains(t, string(markdown), "does not represent Temporal runtime execution, execution evidence, or conformance")
 	for _, metadata := range []string{
 		record.Identity,
@@ -261,14 +308,14 @@ func TestGeneratedProjectionCarriesMatchingMetadata(t *testing.T) {
 		record.Sources[0].RepositoryPath,
 		record.Properties[0],
 		record.ObservationRequirements[0],
-		record.SemanticFingerprint,
+		record.ArtifactChecksum,
 	} {
 		require.Contains(t, string(markdown), metadata)
 	}
 	require.NotContains(t, string(markdown), "full-semantic-identity")
 }
 
-func TestRenderingIsIndependentOfInputAndJSONObjectOrder(t *testing.T) {
+func TestRenderingIsDeterministic(t *testing.T) {
 	modelRoot := t.TempDir()
 	writeLeanSource(t, modelRoot, "One.lean")
 	writeLeanSource(t, modelRoot, "Two.lean")
@@ -277,27 +324,13 @@ func TestRenderingIsIndependentOfInputAndJSONObjectOrder(t *testing.T) {
 		properties:   []string{"property.two", "property.one"},
 		requirements: []string{"observation.two", "observation.one"},
 	})
-	secondJSON := []byte(`{
-		"semanticIdentity":"synthetic-semantic-identity",
-		"observationRequirements":["observation.one","observation.two"],
-		"properties":[{"identity":"property.one"},{"identity":"property.two"}],
-		"provenance":{"sources":[{"path":"One.lean"},{"path":"Two.lean"}]},
-		"plan":{"queryIdentity":"workflow-nexus.query.exact-action-caller-closure"},
-		"formatVersion":"umpire-experiment/v1"
-	}`)
 	entry := syntheticEntry(callerClosureIdentity)
-	first, err := extractProjection(entry, firstJSON, modelRoot)
+	first, err := extractGeneratedView(entry, firstJSON, modelRoot)
 	require.NoError(t, err)
-	second, err := extractProjection(entry, secondJSON, modelRoot)
-	require.NoError(t, err)
-	require.Equal(t, first, second)
 
-	firstArtifacts, err := renderProjections([]projectionRecord{first})
+	firstArtifacts, err := renderGeneratedViews([]generatedViewRecord{first})
 	require.NoError(t, err)
-	secondArtifacts, err := renderProjections([]projectionRecord{second})
-	require.NoError(t, err)
-	require.Equal(t, firstArtifacts, secondArtifacts)
-	repeated, err := renderProjections([]projectionRecord{first})
+	repeated, err := renderGeneratedViews([]generatedViewRecord{first})
 	require.NoError(t, err)
 	require.Equal(t, firstArtifacts, repeated)
 	for _, encoded := range firstArtifacts {
@@ -308,7 +341,7 @@ func TestRenderingIsIndependentOfInputAndJSONObjectOrder(t *testing.T) {
 }
 
 func TestRenderedPairRejectsGoOrMarkdownMetadataDivergence(t *testing.T) {
-	record := syntheticProjection()
+	record := syntheticGeneratedView()
 	goSource, err := renderGo(record)
 	require.NoError(t, err)
 	markdown := renderMarkdown(record)
@@ -322,7 +355,7 @@ func TestRenderedPairRejectsGoOrMarkdownMetadataDivergence(t *testing.T) {
 type syntheticOptions struct {
 	format                string
 	identity              string
-	emptySemanticIdentity bool
+	emptyArtifactChecksum bool
 	sources               []string
 	properties            []string
 	requirements          []string
@@ -345,26 +378,56 @@ func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
 	if options.requirements == nil {
 		options.requirements = []string{"observation.one"}
 	}
-	semanticIdentity := "synthetic-semantic-identity"
-	if options.emptySemanticIdentity {
-		semanticIdentity = ""
-	}
-	properties := make([]map[string]string, 0, len(options.properties))
+	slices.Sort(options.sources)
+	slices.Sort(options.properties)
+	slices.Sort(options.requirements)
+	const fingerprint = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	properties := make([]artifactv2.Property, 0, len(options.properties))
 	for _, identity := range options.properties {
-		properties = append(properties, map[string]string{"identity": identity})
+		properties = append(properties, artifactv2.Property{
+			DefinitionID: identity, BehaviorFingerprint: fingerprint, RequirementDefinitionIDs: []string{},
+		})
 	}
-	sources := make([]map[string]string, 0, len(options.sources))
+	sources := make([]artifactv2.SourceLocation, 0, len(options.sources))
 	for _, source := range options.sources {
-		sources = append(sources, map[string]string{"path": source})
+		sources = append(sources, artifactv2.SourceLocation{
+			Path: source, Line: 1, Column: 1, Provenance: "lean-model",
+		})
 	}
-	encoded, err := json.Marshal(map[string]any{
-		"formatVersion":           options.format,
-		"plan":                    map[string]string{"queryIdentity": options.identity},
-		"properties":              properties,
-		"observationRequirements": options.requirements,
-		"semanticIdentity":        semanticIdentity,
-		"provenance":              map[string]any{"sources": sources},
+	provenance := artifactv2.Provenance{SourceDefinitionIDs: []string{"synthetic.source"}, SourceLocations: sources}
+	document, err := artifactv2.SealExperiment(artifactv2.Experiment{
+		FormatVersion:            options.format,
+		QueryBehaviorFingerprint: fingerprint,
+		Plan: artifactv2.DrivePlan{
+			FormatVersion: artifactv2.DrivePlanFormat, QueryDefinitionID: options.identity,
+			QueryBehaviorFingerprint: fingerprint, BehaviorDefinitionID: "synthetic.behavior",
+			BehaviorFingerprint: fingerprint, TargetDefinitionID: "synthetic.target",
+			TargetBehaviorFingerprint: fingerprint, KernelDefinitionID: "synthetic.kernel",
+			KernelBehaviorFingerprint: fingerprint, Bindings: []artifactv2.Binding{},
+			SymbolicRoles: []artifactv2.Role{}, ModelPreconditions: []artifactv2.Precondition{},
+			InitialState:     artifactv2.ModelValue{DefinitionID: "synthetic.state", Value: "initial"},
+			RequestedActions: []artifactv2.ModelValue{}, ModelOutcomes: []artifactv2.ModelValue{},
+			ResultingStates: []artifactv2.ModelValue{}, LinearExtension: []artifactv2.Occurrence{},
+			SelectedChoices: []artifactv2.ModelValue{}, SelectedVariants: []artifactv2.ModelValue{},
+			RequestedFaults: []artifactv2.ModelValue{}, CapabilityRequirementDefinitionIDs: []string{},
+			ExpandedLimits: artifactv2.Limits{
+				Behavior: artifactv2.BehaviorLimits{
+					Transitions:     artifactv2.Limit{Value: 1, Unit: "semantic-transitions"},
+					SelectedActions: artifactv2.Limit{Value: 1, Unit: "selected-actions"},
+				},
+				Search: artifactv2.Limit{Value: 1, Unit: "candidate-evaluations"},
+			},
+			Checkpoints: []artifactv2.Checkpoint{}, SelectionReason: "satisfying-witness",
+			KnownGaps: []artifactv2.KnownGap{}, Provenance: provenance,
+		},
+		Properties: properties, ObservationRequirementDefinitionIDs: options.requirements,
+		Provenance: provenance,
 	})
+	require.NoError(t, err)
+	if options.emptyArtifactChecksum {
+		document.ArtifactChecksum = ""
+	}
+	encoded, err := artifactv2.CanonicalExperimentBytes(document)
 	require.NoError(t, err)
 	return encoded
 }
@@ -378,21 +441,21 @@ func syntheticEntry(identity string) manifestEntry {
 	}
 }
 
-func syntheticProjection() projectionRecord {
-	return projectionRecord{
+func syntheticGeneratedView() generatedViewRecord {
+	return generatedViewRecord{
 		Identity:           callerClosureIdentity,
 		Format:             supportedExperimentFormat,
 		FixturePath:        "model/fixture.json",
 		GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
 		MarkdownOutputPath: "model/Generated.md",
 		TestName:           "TestWorkflowNexusQueryExactActionCallerClosure",
-		Sources: []sourceProjection{{
+		Sources: []sourceView{{
 			CanonicalPath:  "Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
 			RepositoryPath: "model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
 		}},
 		Properties:              []string{"property.one"},
 		ObservationRequirements: []string{"observation.one"},
-		SemanticFingerprint:     "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		ArtifactChecksum:        "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 	}
 }
 
@@ -451,4 +514,12 @@ func bytesReplaceOnce(t *testing.T, source []byte, old, replacement string) []by
 	t.Helper()
 	require.Equal(t, 1, strings.Count(string(source), old))
 	return []byte(strings.Replace(string(source), old, replacement, 1))
+}
+
+func cloneArtifacts(source map[string][]byte) map[string][]byte {
+	result := make(map[string][]byte, len(source))
+	for path, encoded := range source {
+		result[path] = append([]byte(nil), encoded...)
+	}
+	return result
 }
