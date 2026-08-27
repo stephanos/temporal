@@ -88,6 +88,130 @@ example : [
   ] = [some (canonicalQueryJson exactActionQuery), some (canonicalQueryJson exactActionQuery)] := by
   native_decide
 
+private def earlyQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery (.ofTarget earlyTarget) exactActionDeclaration
+
+private theorem earlyQueryResult_isSome : earlyQueryResult.toOption.isSome = true := by
+  native_decide
+
+private def materializeEarlyQuery
+    (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
+  checked with
+  target := earlyTarget
+  completeness := (CheckedQueryTarget.ofTarget earlyTarget).completeness
+}
+
+private def earlyQuery : CheckedQuery LawStatement :=
+  materializeEarlyQuery (earlyQueryResult.toOption.get earlyQueryResult_isSome)
+
+private def earlyKernel? : Option (IncrementalPlannerKernel earlyQuery.target) :=
+  IncrementalPlannerKernel.ofCheckedQuery? earlyQuery
+    (by
+      intro evidence evidenceEq
+      simp [earlyQuery, materializeEarlyQuery, CheckedQueryTarget.ofTarget, earlyTarget,
+        checkedTarget, authoringAt, targetAuthoring] at evidenceEq
+      cases Option.some.inj evidenceEq
+      simp [finitePlanning])
+    (by
+      intro _ _ setup
+      simp only [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
+        targetAuthoring, transitionKernel, initialStates]
+      split <;> simp)
+    (by
+      intro _ _ state action
+      by_cases selectedAction : action = flipAction
+      · subst action
+        by_cases selectedOff : state = offState
+        · subst state
+          simpa [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
+            targetAuthoring, transitionKernel, stepResults] using appliedResult_ordered
+        · by_cases selectedOn : state = onState
+          · subst state
+            simpa [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
+              targetAuthoring, transitionKernel, stepResults, onState_ne_offState] using
+                appliedFromOnResult_ordered
+          · simp [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
+              targetAuthoring, transitionKernel, stepResults, selectedOff, selectedOn]
+      · simp [earlyQuery, materializeEarlyQuery, earlyTarget, checkedTarget, authoringAt,
+          targetAuthoring, transitionKernel, stepResults, selectedAction])
+
+private theorem earlyKernel?_isSome : earlyKernel?.isSome = true := by
+  rfl
+
+private def earlyKernel : IncrementalPlannerKernel earlyQuery.target :=
+  earlyKernel?.get earlyKernel?_isSome
+
+private def earlyRun : PlannerRun := plan earlyQuery earlyKernel
+
+private def relocatedQueryResult : Except QueryError (CheckedQuery LawStatement) :=
+  checkQuery (.ofTarget relocatedTarget) exactActionDeclaration
+
+private theorem relocatedQueryResult_isSome :
+    relocatedQueryResult.toOption.isSome = true := by
+  native_decide
+
+private def materializeRelocatedQuery
+    (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
+  checked with
+  target := relocatedTarget
+  completeness := (CheckedQueryTarget.ofTarget relocatedTarget).completeness
+}
+
+private def relocatedQuery : CheckedQuery LawStatement :=
+  materializeRelocatedQuery
+    (relocatedQueryResult.toOption.get relocatedQueryResult_isSome)
+
+private def relocatedKernel? : Option (IncrementalPlannerKernel relocatedQuery.target) :=
+  IncrementalPlannerKernel.ofCheckedQuery? relocatedQuery
+    (by
+      intro evidence evidenceEq
+      simp [relocatedQuery, materializeRelocatedQuery, CheckedQueryTarget.ofTarget,
+        relocatedTarget, checkedTarget, authoringAt, targetAuthoring] at evidenceEq
+      cases Option.some.inj evidenceEq
+      simp [finitePlanning])
+    (by
+      intro _ _ setup
+      simp only [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
+        authoringAt, targetAuthoring, transitionKernel, initialStates]
+      split <;> simp)
+    (by
+      intro _ _ state action
+      by_cases selectedAction : action = flipAction
+      · subst action
+        by_cases selectedOff : state = offState
+        · subst state
+          simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
+            authoringAt, targetAuthoring, transitionKernel, stepResults] using
+              appliedResult_ordered
+        · by_cases selectedOn : state = onState
+          · subst state
+            simpa [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
+              authoringAt, targetAuthoring, transitionKernel, stepResults,
+              onState_ne_offState] using appliedFromOnResult_ordered
+          · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
+              authoringAt, targetAuthoring, transitionKernel, stepResults,
+              selectedOff, selectedOn]
+      · simp [relocatedQuery, materializeRelocatedQuery, relocatedTarget, checkedTarget,
+          authoringAt, targetAuthoring, transitionKernel, stepResults, selectedAction])
+
+private theorem relocatedKernel?_isSome : relocatedKernel?.isSome = true := by
+  rfl
+
+private def relocatedKernel : IncrementalPlannerKernel relocatedQuery.target :=
+  relocatedKernel?.get relocatedKernel?_isSome
+
+private def relocatedRun : PlannerRun := plan relocatedQuery relocatedKernel
+
+private def expectedSwitchArtifactJson : String :=
+  include_str "../Examples/Fixtures/SwitchCompiledArtifact.json"
+
+/-! Planning both layouts preserves the committed canonical artifact bytes. -/
+example : [
+    earlyRun.artifact.map (fun artifact => canonicalExperimentSpecJson artifact ++ "\n"),
+    relocatedRun.artifact.map (fun artifact => canonicalExperimentSpecJson artifact ++ "\n")
+  ] = [some expectedSwitchArtifactJson, some expectedSwitchArtifactJson] := by
+  native_decide
+
 private def wrongKindDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   targetDeclaration with requiredCapabilities := [flipActionId]

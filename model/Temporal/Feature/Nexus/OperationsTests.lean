@@ -22,6 +22,15 @@ private def expectedCancellationQueryJson : String :=
 private def expectedSuccessfulCompletionQueryJson : String :=
   include_str "Fixtures/OperationsSuccessfulCompletionQuery.json"
 
+private def expectedAsyncStartArtifactJson : String :=
+  include_str "Fixtures/OperationsAsyncStartArtifact.json"
+
+private def expectedCancellationArtifactJson : String :=
+  include_str "Fixtures/OperationsCancellationArtifact.json"
+
+private def expectedSuccessfulCompletionArtifactJson : String :=
+  include_str "Fixtures/OperationsSuccessfulCompletionArtifact.json"
+
 namespace AsyncStart
 
 open Temporal.Feature.Nexus.Operations.AsyncStart
@@ -171,15 +180,16 @@ example : [
   ] := by
   native_decide
 
-/-! Independent runs preserve canonical artifact bytes for every ordinary lifecycle consumer. -/
+/-! Golden artifacts preserve canonical bytes for every ordinary lifecycle consumer. -/
 example : [
-    AsyncStart.run.artifact.map canonicalExperimentSpecJson,
-    Cancellation.run.artifact.map canonicalExperimentSpecJson,
-    SuccessfulCompletion.run.artifact.map canonicalExperimentSpecJson
+    AsyncStart.run.artifact.map (fun artifact => canonicalExperimentSpecJson artifact ++ "\n"),
+    Cancellation.run.artifact.map (fun artifact => canonicalExperimentSpecJson artifact ++ "\n"),
+    SuccessfulCompletion.run.artifact.map
+      (fun artifact => canonicalExperimentSpecJson artifact ++ "\n")
   ] = [
-    AsyncStart.repeatedRun.artifact.map canonicalExperimentSpecJson,
-    Cancellation.repeatedRun.artifact.map canonicalExperimentSpecJson,
-    SuccessfulCompletion.repeatedRun.artifact.map canonicalExperimentSpecJson
+    some expectedAsyncStartArtifactJson,
+    some expectedCancellationArtifactJson,
+    some expectedSuccessfulCompletionArtifactJson
   ] := by
   native_decide
 
