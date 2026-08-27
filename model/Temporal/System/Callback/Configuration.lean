@@ -291,7 +291,7 @@ def historyEnableChasmCallbacksInterpretation : ConfigInterpretation Bool := {
   expectedSettingIdentity := "sha256:415f169bb77c82582f2d8f5049648b5b079f4f1047a2f109d4ed9b14037d9c8c"
   expectedSchema := .bool "bool" false
   expectedDefault := .concrete (.bool true)
-  semanticDigest := semanticDigestOf "temporal.config/history-enable-chasm-callbacks/v1"
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/history-enable-chasm-callbacks/v1"
   decode := decodeBool
 }
 
@@ -300,7 +300,7 @@ def callbackMaxPerExecutionInterpretation : ConfigInterpretation Int := {
   expectedSettingIdentity := "sha256:6c7f3b78bbbf74a83401b46faedf61250a1c4c2c92d02eab91ec9ebc36b30d71"
   expectedSchema := .int "int" false
   expectedDefault := .concrete (.int 2000)
-  semanticDigest := semanticDigestOf "temporal.config/callback-max-per-execution/v1"
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/callback-max-per-execution/v1"
   decode := decodeInt
 }
 
@@ -309,7 +309,7 @@ def callbackRequestTimeoutInterpretation : ConfigInterpretation Int := {
   expectedSettingIdentity := "sha256:cd2c7d65a4f41e7edcfa548d7433aeb7cd5a414c6a3258d361676cd3ada8fda9"
   expectedSchema := .duration "time.Duration" false
   expectedDefault := .concrete (.duration 10000000000)
-  semanticDigest := semanticDigestOf "temporal.config/callback-request-timeout/v1"
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/callback-request-timeout/v1"
   decode := decodeDuration
 }
 
@@ -318,7 +318,7 @@ def callbackAllowedAddressesInterpretation : ConfigInterpretation CallbackAddres
   expectedSettingIdentity := "sha256:452cd642fac8adb5d5e1e2c0a4ef1d149cfb621ed663842c1bde7dd123faca9b"
   expectedSchema := Temporal.DynamicConfig.Settings.callback_allowedaddresses.schema
   expectedDefault := .concrete (.object (.cons "Rules" .null .nil))
-  semanticDigest := semanticDigestOf "temporal.config/callback-allowed-addresses/v1"
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/callback-allowed-addresses/v1"
   decode := decodeCallbackAddressRules
 }
 

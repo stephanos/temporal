@@ -13,7 +13,6 @@ def switchKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   testKernel with
   metadata := {
     id := id "switch.kernel.transition"
-    contractDigest := "switch-kernel/v1"
     source := source "SwitchSemantic.lean"
   }
 }
@@ -23,13 +22,13 @@ def switchProvider : CapabilityProvider TestLawStatement := {
   source := source "SwitchSemantic.lean"
   contract := {
     id := id "switch.capability.toggle"
-    semanticDigest := "switch-toggle/v1"
+    canonicalBehavior := "switch-toggle/v1"
     requiredLaws := [providerLaw]
   }
   meanings := [{
     definitionId := id "switch.action.toggle"
     kind := .action
-    semanticDigest := "switch-action/v1"
+    canonicalBehavior := "switch-action/v1"
   }]
   lawWitnesses := [witness providerLaw (by exact .inl rfl)]
 }
@@ -43,7 +42,7 @@ def switchTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool :
     metadata "switch.capability.toggle" .capability,
     metadata "switch.provider.toggle" .provider,
     metadata "switch.action.toggle" .action,
-    metadata "umpire.law.provider-sound" .law providerLaw.semanticDigest
+    metadata "umpire.law.provider-sound" .law providerLaw.body
   ]
   requiredCapabilities := [id "switch.capability.toggle"]
   providers := [switchProvider]

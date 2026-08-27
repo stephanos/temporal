@@ -20,7 +20,7 @@ def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
   id := id value
   kind
   source
-  contractDigest := value ++ "/v1"
+  canonicalBehavior := value ++ "/v1"
 }
 
 def profileId : DefinitionId := id "test.evidence.profile"
@@ -126,11 +126,11 @@ def context : ObservationCheckContext := {
   ]
   meanings := [
     { definitionId := operationState, kind := .state,
-      semanticDigest := operationState.value ++ "/meaning-v1" },
+      canonicalBehavior := operationState.value ++ "/meaning-v1" },
     { definitionId := contributionObservation, kind := .observation,
-      semanticDigest := contributionObservation.value ++ "/meaning-v1" },
+      canonicalBehavior := contributionObservation.value ++ "/meaning-v1" },
     { definitionId := digestObservation, kind := .observation,
-      semanticDigest := digestObservation.value ++ "/meaning-v1" }
+      canonicalBehavior := digestObservation.value ++ "/meaning-v1" }
   ]
   profiles := [evidenceProfile]
 }
@@ -143,8 +143,8 @@ def errorKindOf
 
 def planIdentityOf
     (checkContext : ObservationCheckContext)
-    (declaration : ObservationMappingDeclaration) : Option String :=
-  (checkObservation checkContext declaration).toOption.map CheckedObservationPlan.semanticDigest
+    (declaration : ObservationMappingDeclaration) : Option BehaviorFingerprint :=
+  (checkObservation checkContext declaration).toOption.map CheckedObservationPlan.behaviorFingerprint
 
 /-! Independently authored qualification fixture; it does not derive its expected trace from rules. -/
 
@@ -203,11 +203,11 @@ def qualificationContext : ObservationCheckContext := {
   ]
   meanings := context.meanings ++ [
     { definitionId := completedState, kind := .state,
-      semanticDigest := completedState.value ++ "/meaning-v1" },
+      canonicalBehavior := completedState.value ++ "/meaning-v1" },
     { definitionId := startAction, kind := .action,
-      semanticDigest := startAction.value ++ "/meaning-v1" },
+      canonicalBehavior := startAction.value ++ "/meaning-v1" },
     { definitionId := successOutcome, kind := .outcome,
-      semanticDigest := successOutcome.value ++ "/meaning-v1" }
+      canonicalBehavior := successOutcome.value ++ "/meaning-v1" }
   ]
   profiles := [{ evidenceProfile with kinds := [{
     id := eventKind
@@ -312,7 +312,7 @@ def verdictPropertyContext : PropertyCheckContext := {
   providers := [{
     id := verdictCapability
     version := 1
-    semanticDigest := "test-observation-verdict/v1"
+    canonicalBehavior := "test-observation-verdict/v1"
   }]
   meanings := qualificationContext.meanings.map fun meaning => (verdictCapability, meaning)
 }

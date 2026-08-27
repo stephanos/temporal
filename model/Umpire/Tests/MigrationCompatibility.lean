@@ -37,23 +37,22 @@ private def authoringAt (line column : Nat) : AuthoredTarget LawStatement
 
 private def checkedSummary
     (result : Except AuthoringDiagnostic (QueryTarget LawStatement)) :
-    Option (String × String × Option (List ModelValue × String × String)) :=
+    Option (String × BehaviorFingerprint × Option (List ModelValue)) :=
   result.toOption.map fun checked =>
-    (checked.canonicalMetadata, checked.semanticDigest,
+    (checked.canonicalMetadata, checked.behaviorFingerprint,
       match checked.planning with
       | .unavailable => none
-      | .available capability => some
-          (capability.actions, capability.roleDomainDigest, capability.actionDomainDigest))
+      | .available capability => some capability.actions)
 
 /-! Moving a compiler-only occurrence cannot change any checked semantic product. -/
 example : [
     checkedSummary (checkTarget (authoringAt 12 3)),
     checkedSummary (checkTarget (authoringAt 420 19))
   ] == [
-    some (canonicalCheckedTargetJson target, target.semanticDigest,
-      some ([flipAction], "switch-role-domain/v1", "switch-action-domain/v1")),
-    some (canonicalCheckedTargetJson target, target.semanticDigest,
-      some ([flipAction], "switch-role-domain/v1", "switch-action-domain/v1"))
+    some (canonicalCheckedTargetJson target, target.behaviorFingerprint,
+      some [flipAction]),
+    some (canonicalCheckedTargetJson target, target.behaviorFingerprint,
+      some [flipAction])
   ] := by
   native_decide
 
@@ -73,7 +72,7 @@ private def exactActionDeclaration : QueryDeclaration := {
   target := targetId
   form := .witness flipProperty
   behavior := exactActionBehavior
-  bounds
+  limits
   policy := shortestPolicy
 }
 
@@ -273,7 +272,7 @@ private def invalidDefinitionIdMetadata : DefinitionMetadata := {
   id := DefinitionId.of "action"
   kind := .action
   source
-  contractDigest := "invalid-definition-id/v1"
+  canonicalBehavior := "invalid-definition-id/v1"
 }
 
 private def invalidDefinitionIdTarget : TargetDeclaration LawStatement
@@ -324,15 +323,15 @@ private def queryErrorKind
   | .ok _ => none
   | .error failure => some failure.kind
 
-private def invalidBounds : QueryBounds := {
-  bounds with
+private def invalidBounds : QueryLimits := {
+  limits with
   behavior := {
-    bounds.behavior with transitions := { value := 0, unit := .semanticTransitions }
+    limits.behavior with transitions := { value := 0, unit := .semanticTransitions }
   }
 }
 
 private def invalidBoundDeclaration : QueryDeclaration := {
-  exactActionDeclaration with bounds := invalidBounds
+  exactActionDeclaration with limits := invalidBounds
 }
 
 private def exhaustiveDeclaration : QueryDeclaration := {
@@ -358,19 +357,19 @@ private def mismatchedTrace : BehaviorTrace := {
 private def mismatchedBehavior : CheckedBehavior := {
   exactTraceBehavior with
   traceExactly := some mismatchedTrace
-  semanticDigest := "switch-behavior-target-kernel-mismatch/v1"
+  behaviorFingerprint := behaviorFingerprintOf "switch-behavior-target-kernel-mismatch/v1"
 }
 
 private def mismatchedDeclaration : QueryDeclaration := {
   exactActionDeclaration with behavior := mismatchedBehavior
 }
 
-/-! Query owns bounds, finite-completeness, and exact-trace/kernel mismatch failures. -/
+/-! Query owns limits, finite-completeness, and exact-trace/kernel mismatch failures. -/
 example : [
     queryErrorKind (checkQuery (.ofTarget target) invalidBoundDeclaration),
     queryErrorKind (checkQuery (.ofTarget noFinitePlanningTarget) exhaustiveDeclaration),
     queryErrorKind (checkQuery (.ofTarget target) mismatchedDeclaration)
-  ] = [some .invalidBound, some .missingFiniteCompleteness, some .targetKernelMismatch] := by
+  ] = [some .invalidLimit, some .missingFiniteCompleteness, some .targetKernelMismatch] := by
   native_decide
 
 /-!

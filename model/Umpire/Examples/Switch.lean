@@ -39,25 +39,26 @@ def Position.flip : Position → Position
   | .off => .on
   | .on => .off
 
-def LawStatement (lawId : DefinitionId) : Prop :=
-  lawId = flipLawId ∧ Position.flip (Position.flip .off) = .off
+def LawStatement (law : LawDefinition) : Prop :=
+  law.id = flipLawId ∧ law.body = "switch-flip-preserves-domain-law/v1" ∧
+    Position.flip (Position.flip .off) = .off
 
-def flipLaw : LawRequirement := {
+def flipLaw : LawDefinition := {
   id := flipLawId
-  semanticDigest := "switch-flip-preserves-domain-law/v1"
+  body := "switch-flip-preserves-domain-law/v1"
 }
 
-theorem flipLawProof : LawStatement flipLaw.id := by
-  exact ⟨rfl, rfl⟩
+theorem flipLawProof : LawStatement flipLaw := by
+  exact ⟨rfl, rfl, rfl⟩
 
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (contractDigest : String) : DefinitionMetadata := {
+    (canonicalBehavior : String) : DefinitionMetadata := {
   id := definitionId
   kind
   source
-  contractDigest
+  canonicalBehavior
 }
 
 def offState : ModelValue := { definitionId := powerStateId, value := "off" }
@@ -187,7 +188,6 @@ def transitionKernel : TransitionKernel
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
-    contractDigest := "switch-two-state-kernel/v1"
     source
   }
   initialStates
@@ -198,6 +198,120 @@ def transitionKernel : TransitionKernel
   authoritativeStep
   stepSound := stepResults_sound
   stepComplete := stepResults_complete
+  behaviorDomain := .complete {
+    setups := [switchSetup]
+    states := [offState, onState]
+    actions := [flipAction]
+    outcomes := [appliedOutcome, deferredOutcome]
+    observations := [powerOffObservation, powerOnObservation]
+    encodeSetup := fun bindings => String.intercalate "|" (bindings.map fun binding =>
+      binding.role.value ++ "=" ++ binding.value.definitionId.value ++ ":" ++ binding.value.value)
+    encodeState := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    setupCoverage := by
+      intro setup state member
+      by_cases selected : setup = switchSetup
+      · simp [selected]
+      · simp [initialStates, selected] at member
+    initialStateCoverage := by
+      intro setup state member
+      by_cases selected : setup = switchSetup
+      · rw [initialStates, if_pos selected] at member
+        simp [List.mem_singleton.mp member]
+      · simp [initialStates, selected] at member
+    transitionSourceCoverage := by
+      intro state action result member
+      by_cases selectedAction : action = flipAction
+      · subst action
+        by_cases selectedOff : state = offState
+        · simp [selectedOff]
+        · by_cases selectedOn : state = onState
+          · simp [selectedOn]
+          · simp [stepResults, selectedOff, selectedOn] at member
+      · simp [stepResults, selectedAction] at member
+    actionCoverage := by
+      intro state action result member
+      by_cases selectedAction : action = flipAction
+      · simp [selectedAction]
+      · simp [stepResults, selectedAction] at member
+    resultingStateCoverage := by
+      intro state action result member
+      by_cases selectedAction : action = flipAction
+      · subst action
+        by_cases selectedOff : state = offState
+        · subst state
+          change result ∈ [appliedResult, deferredResult] at member
+          rcases List.mem_cons.mp member with resultEq | tail
+          · subst result
+            simp [appliedResult]
+          · have resultEq := List.mem_singleton.mp tail
+            subst result
+            simp [deferredResult]
+        · by_cases selectedOn : state = onState
+          · subst state
+            change result ∈ [appliedFromOnResult, deferredFromOnResult] at member
+            rcases List.mem_cons.mp member with resultEq | tail
+            · subst result
+              simp [appliedFromOnResult]
+            · have resultEq := List.mem_singleton.mp tail
+              subst result
+              simp [deferredFromOnResult]
+          · simp [stepResults, selectedOff, selectedOn] at member
+      · simp [stepResults, selectedAction] at member
+    outcomeCoverage := by
+      intro state action result member
+      by_cases selectedAction : action = flipAction
+      · subst action
+        by_cases selectedOff : state = offState
+        · subst state
+          change result ∈ [appliedResult, deferredResult] at member
+          rcases List.mem_cons.mp member with resultEq | tail
+          · subst result
+            simp [appliedResult]
+          · have resultEq := List.mem_singleton.mp tail
+            subst result
+            simp [deferredResult]
+        · by_cases selectedOn : state = onState
+          · subst state
+            change result ∈ [appliedFromOnResult, deferredFromOnResult] at member
+            rcases List.mem_cons.mp member with resultEq | tail
+            · subst result
+              simp [appliedFromOnResult]
+            · have resultEq := List.mem_singleton.mp tail
+              subst result
+              simp [deferredFromOnResult]
+          · simp [stepResults, selectedOff, selectedOn] at member
+      · simp [stepResults, selectedAction] at member
+    observationCoverage := by
+      intro state action result observation member observationMember
+      by_cases selectedAction : action = flipAction
+      · subst action
+        by_cases selectedOff : state = offState
+        · subst state
+          change result ∈ [appliedResult, deferredResult] at member
+          rcases List.mem_cons.mp member with resultEq | tail
+          · subst result
+            exact List.mem_cons.mpr (.inr <| List.mem_singleton.mpr <|
+              by simpa [appliedResult] using observationMember)
+          · have resultEq := List.mem_singleton.mp tail
+            subst result
+            exact List.mem_cons.mpr (.inl <| by simpa [deferredResult] using observationMember)
+        · by_cases selectedOn : state = onState
+          · subst state
+            change result ∈ [appliedFromOnResult, deferredFromOnResult] at member
+            rcases List.mem_cons.mp member with resultEq | tail
+            · subst result
+              exact List.mem_cons.mpr (.inl <|
+                by simpa [appliedFromOnResult] using observationMember)
+            · have resultEq := List.mem_singleton.mp tail
+              subst result
+              exact List.mem_cons.mpr (.inr <| List.mem_singleton.mpr <|
+                by simpa [deferredFromOnResult] using observationMember)
+          · simp [stepResults, selectedOff, selectedOn] at member
+      · simp [stepResults, selectedAction] at member
+  }
 }
 
 def switchProvider : CapabilityProvider LawStatement := {
@@ -205,20 +319,20 @@ def switchProvider : CapabilityProvider LawStatement := {
   source
   contract := {
     id := switchCapabilityId
-    semanticDigest := "switch-state/v1"
+    canonicalBehavior := "switch-state/v1"
     requiredLaws := [flipLaw]
   }
   meanings := [
-    { definitionId := powerStateId, kind := .state, semanticDigest := "switch-power-state/v1" },
-    { definitionId := flipActionId, kind := .action, semanticDigest := "switch-flip-action/v1" },
+    { definitionId := powerStateId, kind := .state, canonicalBehavior := "switch-power-state/v1" },
+    { definitionId := flipActionId, kind := .action, canonicalBehavior := "switch-flip-action/v1" },
     { definitionId := appliedOutcomeId, kind := .outcome,
-      semanticDigest := "switch-applied-outcome/v1" },
+      canonicalBehavior := "switch-applied-outcome/v1" },
     { definitionId := deferredOutcomeId, kind := .outcome,
-      semanticDigest := "switch-deferred-outcome/v1" },
+      canonicalBehavior := "switch-deferred-outcome/v1" },
     { definitionId := powerObservationId, kind := .observation,
-      semanticDigest := "switch-power-observation/v1" }
+      canonicalBehavior := "switch-power-observation/v1" }
   ]
-  lawWitnesses := [{ requirement := flipLaw, proof := flipLawProof }]
+  lawWitnesses := [{ definition := flipLaw, proof := flipLawProof }]
 }
 
 def definitions : List DefinitionMetadata := [
@@ -226,7 +340,7 @@ def definitions : List DefinitionMetadata := [
   metadata kernelId .kernel "switch-two-state-kernel/v1",
   metadata switchCapabilityId .capability "switch-state/v1",
   metadata switchProviderId .provider "switch-state-provider/v1",
-  metadata flipLawId .law flipLaw.semanticDigest,
+  metadata flipLawId .law flipLaw.body,
   metadata powerStateId .state "switch-power-state/v1",
   metadata flipActionId .action "switch-flip-action/v1",
   metadata appliedOutcomeId .outcome "switch-applied-outcome/v1",
@@ -236,8 +350,6 @@ def definitions : List DefinitionMetadata := [
 
 def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
   actions := [flipAction]
-  roleDomainDigest := "switch-role-domain/v1"
-  actionDomainDigest := "switch-action-domain/v1"
   actionSound := by
     intro action member
     simp only [List.mem_cons, List.not_mem_nil, or_false] at member
@@ -415,7 +527,7 @@ def deferredTrace : BehaviorTrace := {
   }
 }
 
-def bounds : QueryBounds := {
+def limits : QueryLimits := {
   behavior := {
     transitions := { value := 1, unit := .semanticTransitions }
     selectedActions := { value := 1, unit := .selectedActions }
@@ -426,7 +538,7 @@ def bounds : QueryBounds := {
 def shortestPolicy : PlannerPolicy := {
   strategy := .shortest
   seed := 23
-  tieBreak := .semanticIdentity
+  tieBreak := .definitionId
 }
 
 def queryContext : QueryCheckContext LawStatement := .ofTarget target
@@ -440,7 +552,7 @@ private def queryDeclaration
   target := target.id
   form
   behavior
-  bounds
+  limits
   policy := shortestPolicy
 }
 
