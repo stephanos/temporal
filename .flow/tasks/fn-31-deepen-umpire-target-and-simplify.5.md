@@ -42,9 +42,13 @@ Target mutations in this task are exactly the existing `DeclarationErrorKind` ca
 - [ ] Documentation reflects the implemented interface without duplicating long-form architecture, promising a general macro DSL, or changing independent Umpire3 documentation.
 
 ## Done summary
-TBD
+Extended the existing import-graph checker with transitive Target isolation for production and test modules, and added source-located mutation coverage for all 12 Target-owned declaration failures. Public facade checks and synchronized architecture guidance now put the compiled AuthoredTarget → CheckedTarget → Query → Planning path and Switch-to-Nexus learning order front and center.
 
+The pre-existing broad `.plans/UMPIRE4_SPEC.md` rewrite was preserved: only the AUT-07 substrate sentence was isolated into the task commit, and the unrelated `.flow/memory/declined/generated-api-drift-verification.md` edit remains untouched. Green gate receipts were not warrantable while those unrelated working-tree changes remained dirty.
+
+baseline: red (`cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests` hit the inherited transient Lake `.ilean` ENOENT in Query Forms/Validation; its exact retry passed, and the other four Quick commands passed pre-edit)
+stage: impl-review - ran [2026-08-27T05:01:07Z..2026-08-27T05:05:13Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8d014366201b7231a0497c358230a3702f6315cc
+- Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model
 - PRs:
