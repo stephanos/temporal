@@ -14,7 +14,8 @@
     "fn-15-standalone-api-and-config-input-catalogs",
     "fn-16-authored-variation-spaces-and",
     "fn-31-deepen-umpire-target-and-simplify",
-    "fn-32-add-umpire-refinement-and-the-first"
+    "fn-32-add-umpire-refinement-and-the-first",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-5-umpire-discovery-promotion-and-artifact",
   "impl_review_rounds": {},
@@ -419,5 +420,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:30.747483Z"
+  "updated_at": "2026-08-27T05:43:40.436288Z"
 }

@@ -10,7 +10,8 @@
     "fn-4-umpire-observation-and-semantic-verdicts",
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
-    "fn-32-add-umpire-refinement-and-the-first"
+    "fn-32-add-umpire-refinement-and-the-first",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-20-local-execution-semantic-conformance",
   "impl_review_rounds": {},
@@ -196,5 +197,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:32.177326Z"
+  "updated_at": "2026-08-27T05:43:41.109273Z"
 }

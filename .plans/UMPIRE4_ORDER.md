@@ -30,6 +30,9 @@ current dependency graph unchanged would pull deferred platform work back into t
 
 Make only these epic-level dependency edits:
 
+- add fn-31 and fn-4 as prerequisites of fn-37, then make every open spec that consumes the renamed
+  model, Observation, Artifact, Generated View, Implementation Link, Run Evaluation, replay, or
+  Claim Assessment vocabulary depend on fn-37;
 - remove fn-15 from fn-5;
 - remove fn-17 and fn-33 from fn-22 while retaining its existing semantic, artifact, conformance,
   fn-21 control, and fn-5 promotion prerequisites;
@@ -43,7 +46,22 @@ prerequisite. The numbered sections below express delivery priority, not additio
 
 ## P0 — Foundations
 
-### 1. fn-31 — Deepen Umpire Target and simplify Temporal target authoring
+### 1. fn-37 — Hard-cut Umpire vocabulary and current Artifacts
+
+Replace the legacy source and wire vocabulary in one deliberate break after the active fn-31 and
+fn-4 work settles. Rename public Lean APIs, Observation Evaluation, persisted DrivePlan and
+ExperimentSpec fields, Go consumers, Generated Views, fixtures, and documentation together. Emit
+only `umpire-drive-plan/v2` and `umpire-experiment/v2`; old prototype Artifacts become invalid.
+
+Definition IDs, Behavior Fingerprints, and Artifact Checksums must become separate types with
+separate meanings. Remove compatibility aliases, forwarding modules, v1 readers, and v1 migrations.
+Keep the cutover limited to the current Switch/Nexus planning and Artifact vertical slice; fn-18
+still owns the future persisted Artifact families.
+
+Fn-37 is first in the remaining queue, but its Flow dependencies intentionally allow the already
+active fn-31 and fn-4 implementations to finish before the hard cut begins.
+
+### 2. fn-31 — Deepen Umpire Target and simplify Temporal target authoring
 
 Make the Nexus model concise and approachable while preserving its existing semantics. Stop after
 the domain-neutral Switch and Temporal Nexus targets prove the smaller public boundary. Do not add a
@@ -51,44 +69,43 @@ general model AST, second authoring language, or speculative compatibility facad
 
 This work is already in progress and can proceed alongside fn-4.
 
-### 2. fn-4 — Umpire observation and semantic verdicts
+### 3. fn-4 — Umpire observation and semantic verdicts
 
 Finish the evidence-to-verdict seam required by the live prototype. Retain the reusable Observation
 boundary, qualified derivations, strict outcomes, and only the synthetic/Nexus evidence needed by
 the two examples. Retain concise documentation for that reduced Observation API and live handoff;
 defer the broader cross-layer mutation matrix and documentation surface.
 
-### 3. fn-32 — Add Umpire Refinement and the first Temporal Feature/System correspondence
+### 4. fn-32 — Add the first Umpire Implementation Link and Temporal Feature/System correspondence
 
 Relate one Nexus System trace to its independently authored Feature meaning. Keep observation,
 refinement, and property failures distinct. This is the semantic seam that lets local and black-box
 execution share the same Feature property without leaking implementation evidence into it.
 
-### 4. fn-16 — Authored variation spaces and deterministic batch compilation
+### 5. fn-16 — Authored variation spaces and deterministic batch compilation
 
 Reduce the general space design to one small Nexus matrix, such as two binary axes, plus the single
 duplicate-delivery fault intent. Compile the selected points deterministically through the existing
 target-owned planner. Defer generalized coverage vocabularies, arbitrary spaces, and broad catalog
 integration.
 
-### 5. fn-18 — Versioned Umpire artifact boundary
+### 6. fn-18 — Versioned Umpire Artifact boundary
 
-Implement only the strict formats needed by the prototype:
+Start from fn-37's v2-only DrivePlan and ExperimentSpec contract and implement only the additional
+strict formats needed by the prototype:
 
-- read-only compatibility for existing `umpire-experiment/v1` inputs and one current, complete
-  executable `umpire-experiment/v2` successor;
 - `RuntimeConfiguration`;
 - `ExperimentRun`;
 - bounded `RawEvidence`;
-- semantic evidence and `Result`.
+- interpreted Evidence and `Result`.
 
 Retain fail-closed admission for one complete prototype artifact set, including strict
 cross-document identity closure and one immutable atomic publication/loading path that never exposes
-a partial or mixed set. Fn-18 owns the canonical content, semantic-identity, and artifact-identity
-formulas for `umpire-experiment/v2`. Compile the retained semantic intent once through fn-16,
-construct its complete executable successor through fn-18, and require every execution boundary to
-consume the same published bytes and identities without recompilation. Do not add a migration from
-the compatibility input. Reject malformed, stale, oversized, or identity-inconsistent inputs.
+a partial or mixed set. Fn-37 owns the current v2 Definition ID, Behavior Fingerprint, canonical
+content, and Artifact Checksum formulas. Compile the retained model intent once through fn-16,
+complete its executable contract through fn-18, and require every Execution boundary to consume the
+same published bytes and identifiers without recompilation. Reject v1, malformed, stale, oversized,
+or checksum-inconsistent inputs without a compatibility reader or migration.
 Defer generic receipt envelopes, coverage checkpoints, other migrations, interrupted-publication
 recovery, and artifact-management CLI surfaces.
 

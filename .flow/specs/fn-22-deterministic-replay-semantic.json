@@ -15,7 +15,8 @@
     "fn-21-nexus-duplicate-observation-control",
     "fn-17-bounded-semantic-exploration-and",
     "fn-32-add-umpire-refinement-and-the-first",
-    "fn-33-run-resumable-semantic-exploration"
+    "fn-33-run-resumable-semantic-exploration",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {},
@@ -271,5 +272,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:32.653551Z"
+  "updated_at": "2026-08-27T05:43:41.568779Z"
 }

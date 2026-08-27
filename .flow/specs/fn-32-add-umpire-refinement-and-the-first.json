@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-31-deepen-umpire-target-and-simplify",
     "fn-4-umpire-observation-and-semantic-verdicts",
-    "fn-34-enforce-lean-model-boundaries-with"
+    "fn-34-enforce-lean-model-boundaries-with",
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-32-add-umpire-refinement-and-the-first",
   "impl_review_rounds": {},
@@ -311,5 +312,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:35.011237Z"
+  "updated_at": "2026-08-27T05:43:42.466537Z"
 }
