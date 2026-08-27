@@ -12,25 +12,25 @@ def SelectionReason.name : SelectionReason → String
 
 structure ObservationCheckpoint where
   transition : Nat
-  observations : List SemanticValue
+  observations : List ModelValue
   deriving BEq, DecidableEq, Repr
 
 structure PlannedOccurrence where
-  identity : DeclarationId
-  action : DeclarationId
+  definitionId : DefinitionId
+  action : DefinitionId
   position : Nat
-  authoredIdentity : Option DeclarationId
+  authoredDefinitionId : Option DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure PortableProperty where
-  identity : DeclarationId
+  definitionId : DefinitionId
   semanticDigest : String
-  requirements : List DeclarationId
+  requirements : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
 structure ArtifactProvenance where
-  sourceIdentities : List DeclarationId
-  sources : List SemanticSource
+  sourceDefinitionIds : List DefinitionId
+  sources : List SourceLocation
   deriving BEq, DecidableEq, Repr
 
 /--
@@ -40,26 +40,26 @@ are deliberately separate, and no field claims that runtime execution or evidenc
 structure DrivePlan where
   formatVersion : String
   semanticIdentity : String
-  queryIdentity : DeclarationId
+  queryDefinitionId : DefinitionId
   querySemanticDigest : String
-  behaviorIdentity : DeclarationId
+  behaviorDefinitionId : DefinitionId
   behaviorSemanticDigest : String
-  targetIdentity : DeclarationId
+  targetDefinitionId : DefinitionId
   targetSemanticDigest : String
-  kernelIdentity : DeclarationId
+  kernelDefinitionId : DefinitionId
   kernelSemanticDigest : String
   bindings : List RoleBinding
   symbolicRoles : List ResourceRole
   semanticPreconditions : List SetupConstraint
-  initialState : SemanticValue
-  requestedActions : List SemanticValue
-  modelOutcomes : List SemanticValue
-  resultingStates : List SemanticValue
+  initialState : ModelValue
+  requestedActions : List ModelValue
+  modelOutcomes : List ModelValue
+  resultingStates : List ModelValue
   linearExtension : List PlannedOccurrence
-  selectedChoices : List SemanticValue
-  selectedVariants : List SemanticValue
-  requestedFaults : List SemanticValue
-  capabilityRequirements : List DeclarationId
+  selectedChoices : List ModelValue
+  selectedVariants : List ModelValue
+  requestedFaults : List ModelValue
+  capabilityRequirements : List DefinitionId
   expandedBounds : QueryBounds
   checkpoints : List ObservationCheckpoint
   selectionReason : SelectionReason
@@ -75,7 +75,7 @@ structure ExperimentSpec where
   querySemanticDigest : String
   plan : DrivePlan
   properties : List PortableProperty
-  observationRequirements : List DeclarationId
+  observationRequirements : List DefinitionId
   provenance : ArtifactProvenance
   deriving BEq, DecidableEq, Repr
 
@@ -95,18 +95,18 @@ private def quote (value : String) : String := Lean.Json.compress (.str value)
 private def array (items : List String) : String :=
   "[" ++ String.intercalate "," items ++ "]"
 
-private def idLe (left right : DeclarationId) : Bool :=
+private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
-private def valueLe (left right : SemanticValue) : Bool :=
-  decide (left.identity.value < right.identity.value) ||
-    (left.identity == right.identity && decide (left.value ≤ right.value))
+private def valueLe (left right : ModelValue) : Bool :=
+  decide (left.definitionId.value < right.definitionId.value) ||
+    (left.definitionId == right.definitionId && decide (left.value ≤ right.value))
 
 private def bindingLe (left right : RoleBinding) : Bool :=
   decide (left.role.value < right.role.value) ||
     (left.role == right.role && valueLe left.value right.value)
 
-private def sourceLe (left right : SemanticSource) : Bool :=
+private def sourceLe (left right : SourceLocation) : Bool :=
   decide (left.path < right.path) ||
     (left.path == right.path && decide (left.line < right.line)) ||
     (left.path == right.path && left.line == right.line && decide (left.column < right.column)) ||
@@ -114,16 +114,16 @@ private def sourceLe (left right : SemanticSource) : Bool :=
       decide (left.provenance ≤ right.provenance))
 
 private def propertyLe (left right : PortableProperty) : Bool :=
-  decide (left.identity.value ≤ right.identity.value)
+  decide (left.definitionId.value ≤ right.definitionId.value)
 
-private def canonicalIds (ids : List DeclarationId) : List DeclarationId :=
+private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort idLe |>.eraseDups
 
-private def canonicalValues (values : List SemanticValue) : List SemanticValue :=
+private def canonicalValues (values : List ModelValue) : List ModelValue :=
   values.mergeSort valueLe |>.eraseDups
 
-private def valueJson (value : SemanticValue) : String :=
-  "{\"identity\":" ++ quote value.identity.value ++
+private def valueJson (value : ModelValue) : String :=
+  "{\"identity\":" ++ quote value.definitionId.value ++
     ",\"value\":" ++ quote value.value ++ "}"
 
 private def roleJson (role : ResourceRole) : String :=
@@ -167,13 +167,13 @@ private def checkpointJson (checkpoint : ObservationCheckpoint) : String :=
     ",\"observations\":" ++ array (checkpoint.observations.map valueJson) ++ "}"
 
 private def plannedOccurrenceJson (occurrence : PlannedOccurrence) : String :=
-  "{\"identity\":" ++ quote occurrence.identity.value ++
+  "{\"identity\":" ++ quote occurrence.definitionId.value ++
     ",\"action\":" ++ quote occurrence.action.value ++
     ",\"position\":" ++ toString occurrence.position ++
     ",\"authoredIdentity\":" ++
-      (occurrence.authoredIdentity.map (quote ∘ DeclarationId.value) |>.getD "null") ++ "}"
+      (occurrence.authoredDefinitionId.map (quote ∘ DefinitionId.value) |>.getD "null") ++ "}"
 
-private def sourceJson (source : SemanticSource) : String :=
+private def sourceJson (source : SourceLocation) : String :=
   "{\"path\":" ++ quote source.path ++
     ",\"line\":" ++ toString source.line ++
     ",\"column\":" ++ toString source.column ++
@@ -181,24 +181,24 @@ private def sourceJson (source : SemanticSource) : String :=
 
 private def provenanceJson (provenance : ArtifactProvenance) : String :=
   "{\"sourceIdentities\":" ++
-      array (canonicalIds provenance.sourceIdentities |>.map (quote ∘ DeclarationId.value)) ++
+      array (canonicalIds provenance.sourceDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++
     ",\"sources\":" ++ array (provenance.sources.mergeSort sourceLe |>.eraseDups |>.map sourceJson) ++ "}"
 
 private def propertyJson (property : PortableProperty) : String :=
-  "{\"identity\":" ++ quote property.identity.value ++
+  "{\"identity\":" ++ quote property.definitionId.value ++
     ",\"semanticDigest\":" ++ quote property.semanticDigest ++
     ",\"requirements\":" ++
-      array (canonicalIds property.requirements |>.map (quote ∘ DeclarationId.value)) ++ "}"
+      array (canonicalIds property.requirements |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
 private def drivePlanSemanticJson (plan : DrivePlan) : String :=
   "{\"formatVersion\":" ++ quote plan.formatVersion ++
-    ",\"queryIdentity\":" ++ quote plan.queryIdentity.value ++
+    ",\"queryIdentity\":" ++ quote plan.queryDefinitionId.value ++
     ",\"querySemanticDigest\":" ++ quote plan.querySemanticDigest ++
-    ",\"behaviorIdentity\":" ++ quote plan.behaviorIdentity.value ++
+    ",\"behaviorIdentity\":" ++ quote plan.behaviorDefinitionId.value ++
     ",\"behaviorSemanticDigest\":" ++ quote plan.behaviorSemanticDigest ++
-    ",\"targetIdentity\":" ++ quote plan.targetIdentity.value ++
+    ",\"targetIdentity\":" ++ quote plan.targetDefinitionId.value ++
     ",\"targetSemanticDigest\":" ++ quote plan.targetSemanticDigest ++
-    ",\"kernelIdentity\":" ++ quote plan.kernelIdentity.value ++
+    ",\"kernelIdentity\":" ++ quote plan.kernelDefinitionId.value ++
     ",\"kernelSemanticDigest\":" ++ quote plan.kernelSemanticDigest ++
     ",\"bindings\":" ++ array (plan.bindings.mergeSort bindingLe |>.map bindingJson) ++
     ",\"symbolicRoles\":" ++ array (plan.symbolicRoles.map roleJson) ++
@@ -212,7 +212,7 @@ private def drivePlanSemanticJson (plan : DrivePlan) : String :=
     ",\"selectedVariants\":" ++ array (plan.selectedVariants.map valueJson) ++
     ",\"requestedFaults\":" ++ array (plan.requestedFaults.map valueJson) ++
     ",\"capabilityRequirements\":" ++
-      array (canonicalIds plan.capabilityRequirements |>.map (quote ∘ DeclarationId.value)) ++
+      array (canonicalIds plan.capabilityRequirements |>.map (quote ∘ DefinitionId.value)) ++
     ",\"expandedBounds\":" ++ boundsJson plan.expandedBounds ++
     ",\"checkpoints\":" ++ array (plan.checkpoints.map checkpointJson) ++
     ",\"selectionReason\":" ++ quote plan.selectionReason.name ++
@@ -232,7 +232,7 @@ private def experimentSpecSemanticJson (spec : ExperimentSpec) : String :=
     ",\"plan\":" ++ drivePlanSemanticJson spec.plan ++
     ",\"properties\":" ++ array (spec.properties.mergeSort propertyLe |>.map propertyJson) ++
     ",\"observationRequirements\":" ++
-      array (canonicalIds spec.observationRequirements |>.map (quote ∘ DeclarationId.value)) ++ "}"
+      array (canonicalIds spec.observationRequirements |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
 def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
   let semantic := experimentSpecSemanticJson spec
@@ -243,32 +243,32 @@ def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
 private def plannedOccurrence
     (behavior : CheckedBehavior)
     (index : Nat)
-    (action : SemanticValue)
+    (action : ModelValue)
     (authored : Option NamedOccurrence) : PlannedOccurrence :=
-  let identity := authored.map NamedOccurrence.id |>.getD
-    (DeclarationId.of (behavior.id.value ++ ".selected-occurrence-" ++ toString (index + 1)))
+  let definitionId := authored.map NamedOccurrence.id |>.getD
+    (DefinitionId.of (behavior.id.value ++ ".selected-occurrence-" ++ toString (index + 1)))
   {
-    identity
-    action := action.identity
+    definitionId
+    action := action.definitionId
     position := index + 1
-    authoredIdentity := authored.map NamedOccurrence.id
+    authoredDefinitionId := authored.map NamedOccurrence.id
   }
 
 private def propertyReference (property : CheckedProperty) : PortableProperty := {
-  identity := property.id
+  definitionId := property.id
   semanticDigest := property.semanticDigest
   requirements := canonicalIds property.requires
 }
 
-private def propertyObservationRequirements (property : CheckedProperty) : List DeclarationId :=
+private def propertyObservationRequirements (property : CheckedProperty) : List DefinitionId :=
   property.access.meanings.filterMap fun meaning =>
     if meaning.kind == .observation || meaning.kind == .relation then
-      some meaning.declaration
+      some meaning.definitionId
     else
       none
 
 private def artifactProvenance (query : CheckedQuery LawStatement) : ArtifactProvenance := {
-  sourceIdentities := canonicalIds ([
+  sourceDefinitionIds := canonicalIds ([
     query.id,
     query.behavior.id,
     query.target.id,
@@ -288,7 +288,7 @@ def artifactOfSelection
   let actions := trace.trace.steps.map fun step => step.selectedAction
   let outcomes := trace.trace.steps.map fun step => step.modelOutcome
   let states := trace.trace.steps.map fun step => step.resultingState
-  let slots := query.behavior.assignOccurrences (actions.map SemanticValue.identity) |>.getD
+  let slots := query.behavior.assignOccurrences (actions.map ModelValue.definitionId) |>.getD
       (actions.map fun _ => none)
   let extension := actions.zip slots |>.zipIdx |>.map fun ((action, authored), index) =>
     plannedOccurrence query.behavior index action authored
@@ -300,13 +300,13 @@ def artifactOfSelection
   let planWithoutIdentity : DrivePlan := {
     formatVersion := "umpire-drive-plan/v1"
     semanticIdentity := ""
-    queryIdentity := query.id
+    queryDefinitionId := query.id
     querySemanticDigest := query.semanticDigest
-    behaviorIdentity := query.behavior.id
+    behaviorDefinitionId := query.behavior.id
     behaviorSemanticDigest := query.behavior.semanticDigest
-    targetIdentity := query.target.id
+    targetDefinitionId := query.target.id
     targetSemanticDigest := query.target.semanticDigest
-    kernelIdentity := query.target.kernel.metadata.id
+    kernelDefinitionId := query.target.kernel.metadata.id
     kernelSemanticDigest := query.target.kernel.metadata.contractDigest
     bindings := trace.setup.mergeSort bindingLe
     symbolicRoles := query.behavior.roles.filter fun role =>

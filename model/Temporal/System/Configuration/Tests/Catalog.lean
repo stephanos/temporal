@@ -47,7 +47,7 @@ def opaqueInterpretation
 def checkedOpaqueUse
     (replacement : Option OpaqueDefaultReplacement) : Except ConfigError (ConfigUse CanonicalValue) :=
   checkConfigUse [opaqueClassification] {
-    id := DeclarationId.of "test.config.opaque-default"
+    id := DefinitionId.of "test.config.opaque-default"
     key := opaqueClassification.key
     context := emptyConstraints
     samplingPoint := .processStartup

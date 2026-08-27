@@ -1,6 +1,6 @@
 import Umpire.Target.Tests.Fixtures
 
-/-! Exact canonical metadata keeps stable `SemanticSource` provenance separate from elaboration. -/
+/-! Exact canonical metadata keeps stable `SourceLocation` provenance separate from elaboration. -/
 
 namespace Umpire.TargetTests.Compatibility
 

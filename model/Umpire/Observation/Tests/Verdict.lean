@@ -96,7 +96,7 @@ example :
       access := {
         satisfiedProperty.access with
         meanings := satisfiedProperty.access.meanings ++ [{
-          declaration := id "test.observation.missing"
+          definitionId := id "test.observation.missing"
           kind := .observation
           semanticDigest := "test-observation-missing/v1"
         }]
@@ -107,7 +107,7 @@ example :
       access := {
         satisfiedProperty.access with
         meanings := satisfiedProperty.access.meanings.map fun meaning =>
-          if meaning.declaration == operationState then
+          if meaning.definitionId == operationState then
             { meaning with semanticDigest := "test-operation-state/mismatched" }
           else
             meaning

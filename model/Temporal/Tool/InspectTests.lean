@@ -65,7 +65,7 @@ def invalidCompositionScenario : Scenario := {
 example : runInspector [invalidCompositionScenario] [invalidCompositionScenario.id] = {
     status := 1
     stdout := ""
-    stderr := canonicalDeclarationErrorJson
+    stderr := canonicalDefinitionErrorJson
       Temporal.Feature.Nexus.Experimental.CallerClosureTests.missingConnectorError ++ "\n"
   } := by
   native_decide

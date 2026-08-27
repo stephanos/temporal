@@ -1,32 +1,32 @@
 import Umpire.Core
 
-/-! Exact semantic-trace representation checks. -/
+/-! Exact Model Trace representation checks. -/
 
 namespace Umpire.CoreTests
 
 open Umpire
 
-def id (value : String) : DeclarationId := DeclarationId.of value
+def id (value : String) : DefinitionId := DefinitionId.of value
 
-def exactTrace : SemanticTrace Bool Bool Bool SemanticValue := {
+def exactTrace : ModelTrace Bool Bool Bool ModelValue := {
   initialState := false
   steps := [{
     selectedAction := true
     modelOutcome := true
     resultingState := true
     observations := [{
-      identity := id "switch.observation.enabled"
+      definitionId := id "switch.observation.enabled"
       value := "enabled"
     }]
   }]
 }
 
 example : exactTrace.initialState = false ∧
-    exactTrace.steps.map SemanticTraceStep.selectedAction = [true] ∧
-    exactTrace.steps.map SemanticTraceStep.modelOutcome = [true] ∧
-    exactTrace.steps.map SemanticTraceStep.resultingState = [true] ∧
-    exactTrace.steps.flatMap SemanticTraceStep.observations = [{
-      identity := id "switch.observation.enabled"
+    exactTrace.steps.map ModelTraceStep.selectedAction = [true] ∧
+    exactTrace.steps.map ModelTraceStep.modelOutcome = [true] ∧
+    exactTrace.steps.map ModelTraceStep.resultingState = [true] ∧
+    exactTrace.steps.flatMap ModelTraceStep.observations = [{
+      definitionId := id "switch.observation.enabled"
       value := "enabled"
     }] := by
   native_decide

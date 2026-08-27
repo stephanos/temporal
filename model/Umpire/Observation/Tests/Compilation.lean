@@ -24,7 +24,7 @@ def reorderedDeclaration : ObservationMappingDeclaration := {
   dispositions := baseDeclaration.dispositions.reverse
 }
 
-/-- Reordering declarations and equivalent commutative expressions preserves checked identity. -/
+/-- Reordering definitions and equivalent commutative expressions preserves checked identity. -/
 example : planIdentityOf context baseDeclaration = planIdentityOf context reorderedDeclaration := by
   native_decide
 
@@ -235,15 +235,15 @@ def structuralFailures : List (Option ObservationErrorKind) := [
 
 /-- Each R1 structural conflict reports its precise typed compile-error category. -/
 example : structuralFailures = [
-  some .emptyIdentity,
-  some .invalidIdentity,
-  some .duplicateIdentity,
-  some .emptyIdentity,
-  some .invalidIdentity,
-  some .duplicateIdentity,
-  some .emptyIdentity,
-  some .invalidIdentity,
-  some .duplicateIdentity,
+  some .emptyDefinitionId,
+  some .invalidDefinitionId,
+  some .duplicateDefinitionId,
+  some .emptyDefinitionId,
+  some .invalidDefinitionId,
+  some .duplicateDefinitionId,
+  some .emptyDefinitionId,
+  some .invalidDefinitionId,
+  some .duplicateDefinitionId,
   some .unknownEvidenceProfile,
   some .unknownEvidenceKind,
   some .unknownEvidenceField,

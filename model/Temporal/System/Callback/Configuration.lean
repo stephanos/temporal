@@ -331,7 +331,7 @@ def destinationContext (namespaceName destination : String) : ExactConstraints :
 def historyEnableChasmCallbacksDefinitionResult :
     Except ConfigError (CheckedConfigUseDefinition Bool) :=
   checkConfigUseDefinition {
-    id := DeclarationId.of "temporal.callback.enable-chasm"
+    id := DefinitionId.of "temporal.callback.enable-chasm"
     classification := historyEnableChasmCallbacksClassification
     contextPolicy := .namespace
     samplingPoint := .entityCreation
@@ -342,7 +342,7 @@ def historyEnableChasmCallbacksDefinitionResult :
 def callbackMaxPerExecutionDefinitionResult :
     Except ConfigError (CheckedConfigUseDefinition Int) :=
   checkConfigUseDefinition {
-    id := DeclarationId.of "temporal.callback.max-per-execution"
+    id := DefinitionId.of "temporal.callback.max-per-execution"
     classification := callbackMaxPerExecutionClassification
     contextPolicy := .namespace
     samplingPoint := .request
@@ -353,7 +353,7 @@ def callbackMaxPerExecutionDefinitionResult :
 def callbackAllowedAddressesDefinitionResult :
     Except ConfigError (CheckedConfigUseDefinition CallbackAddressRules) :=
   checkConfigUseDefinition {
-    id := DeclarationId.of "temporal.callback.allowed-addresses"
+    id := DefinitionId.of "temporal.callback.allowed-addresses"
     classification := callbackAllowedAddressesClassification
     contextPolicy := .namespace
     samplingPoint := .request
@@ -364,7 +364,7 @@ def callbackAllowedAddressesDefinitionResult :
 def callbackRequestTimeoutDefinitionResult :
     Except ConfigError (CheckedConfigUseDefinition Int) :=
   checkConfigUseDefinition {
-    id := DeclarationId.of "temporal.callback.request-timeout"
+    id := DefinitionId.of "temporal.callback.request-timeout"
     classification := callbackRequestTimeoutClassification
     contextPolicy := .destination
     samplingPoint := .task
@@ -493,7 +493,7 @@ def CallbackConfigPlan.project
   if plan.destination == "" then
     throw {
       kind := .missingContext
-      useId := DeclarationId.of "temporal.callback.snapshot"
+      useId := DefinitionId.of "temporal.callback.snapshot"
       key := callbackRequestTimeoutInterpretation.key
       offendingValue := "destination"
       relatedIdentities := []

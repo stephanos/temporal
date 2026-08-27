@@ -6,38 +6,38 @@ namespace Umpire.BehaviorTests
 
 open Umpire
 
-def id (value : String) : DeclarationId := DeclarationId.of value
+def id (value : String) : DefinitionId := DefinitionId.of value
 
-def source : SemanticSource := {
+def source : SourceLocation := {
   path := "Umpire/Behavior/Tests.lean"
   line := 1
   column := 1
   provenance := "lean-test"
 }
 
-def metadata (value : String) (kind : DeclarationKind) : DeclarationMetadata := {
+def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
   id := id value
   kind
   source
   contractDigest := value ++ "/v1"
 }
 
-def cancellationCapability : DeclarationId := id "test.capability.cancellation"
-def operationState : DeclarationId := id "test.state.resource-id"
-def phaseState : DeclarationId := id "test.state.phase"
-def requestCancel : DeclarationId := id "test.action.request-cancel"
-def callerClose : DeclarationId := id "test.action.close"
-def tick : DeclarationId := id "test.action.tick"
-def retry : DeclarationId := id "test.action.retry"
-def abort : DeclarationId := id "test.action.abort"
-def noop : DeclarationId := id "test.action.noop"
-def accepted : DeclarationId := id "test.outcome.accepted"
-def rejected : DeclarationId := id "test.outcome.rejected"
-def cancelRequested : DeclarationId := id "test.observation.cancel-requested"
-def callerClosed : DeclarationId := id "test.observation.closed"
+def cancellationCapability : DefinitionId := id "test.capability.cancellation"
+def operationState : DefinitionId := id "test.state.resource-id"
+def phaseState : DefinitionId := id "test.state.phase"
+def requestCancel : DefinitionId := id "test.action.request-cancel"
+def callerClose : DefinitionId := id "test.action.close"
+def tick : DefinitionId := id "test.action.tick"
+def retry : DefinitionId := id "test.action.retry"
+def abort : DefinitionId := id "test.action.abort"
+def noop : DefinitionId := id "test.action.noop"
+def accepted : DefinitionId := id "test.outcome.accepted"
+def rejected : DefinitionId := id "test.outcome.rejected"
+def cancelRequested : DefinitionId := id "test.observation.cancel-requested"
+def callerClosed : DefinitionId := id "test.observation.closed"
 
 def context : BehaviorCheckContext := {
-  declarations := [
+  definitions := [
     metadata cancellationCapability.value .capability,
     metadata operationState.value .state,
     metadata phaseState.value .state,
@@ -59,35 +59,35 @@ def operationRole : ResourceRole := {
   valueKind := .state
 }
 
-def operationA : SemanticValue := { identity := operationState, value := "operation-a" }
-def operationB : SemanticValue := { identity := operationState, value := "operation-b" }
-def initial : SemanticValue := { identity := phaseState, value := "started" }
-def cancelling : SemanticValue := { identity := phaseState, value := "cancelling" }
-def closed : SemanticValue := { identity := phaseState, value := "closed" }
+def operationA : ModelValue := { definitionId := operationState, value := "operation-a" }
+def operationB : ModelValue := { definitionId := operationState, value := "operation-b" }
+def initial : ModelValue := { definitionId := phaseState, value := "started" }
+def cancelling : ModelValue := { definitionId := phaseState, value := "cancelling" }
+def closed : ModelValue := { definitionId := phaseState, value := "closed" }
 
-def actionValue (action : DeclarationId) : SemanticValue := { identity := action, value := action.value }
-def outcomeValue (outcome : DeclarationId) : SemanticValue := { identity := outcome, value := outcome.value }
-def observationValue (observation : DeclarationId) : SemanticValue := {
-  identity := observation
+def actionValue (action : DefinitionId) : ModelValue := { definitionId := action, value := action.value }
+def outcomeValue (outcome : DefinitionId) : ModelValue := { definitionId := outcome, value := outcome.value }
+def observationValue (observation : DefinitionId) : ModelValue := {
+  definitionId := observation
   value := observation.value
 }
 
-def cancelStep (outcome : DeclarationId) :
-    SemanticTraceStep SemanticValue SemanticValue SemanticValue SemanticValue := {
+def cancelStep (outcome : DefinitionId) :
+    ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
   selectedAction := actionValue requestCancel
   modelOutcome := outcomeValue outcome
   resultingState := cancelling
   observations := [observationValue cancelRequested]
 }
 
-def closeStep : SemanticTraceStep SemanticValue SemanticValue SemanticValue SemanticValue := {
+def closeStep : ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
   selectedAction := actionValue callerClose
   modelOutcome := outcomeValue accepted
   resultingState := closed
   observations := [observationValue callerClosed]
 }
 
-def tickStep : SemanticTraceStep SemanticValue SemanticValue SemanticValue SemanticValue := {
+def tickStep : ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
   selectedAction := actionValue tick
   modelOutcome := outcomeValue accepted
   resultingState := cancelling
@@ -95,8 +95,8 @@ def tickStep : SemanticTraceStep SemanticValue SemanticValue SemanticValue Seman
 }
 
 def traceWith
-    (setupValue : SemanticValue)
-    (steps : List (SemanticTraceStep SemanticValue SemanticValue SemanticValue SemanticValue)) :
+    (setupValue : ModelValue)
+    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue)) :
     BehaviorTrace := {
   setup := [{ role := operationRole.id, value := setupValue }]
   trace := { initialState := initial, steps }

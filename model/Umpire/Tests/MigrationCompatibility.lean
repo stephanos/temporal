@@ -16,7 +16,7 @@ open Umpire.Examples.Switch
 def compatibilityFamilies : List String := ["switch"]
 
 private def occurrenceAt
-    (declarationId owner : DeclarationId)
+    (definitionId owner : DefinitionId)
     (role : AuthoringOccurrenceRole)
     (line column : Nat) : AuthoringOccurrence := {
   id := {
@@ -27,17 +27,17 @@ private def occurrenceAt
     endColumn := column + 8
     localOrdinal := 0
   }
-  declarationId
+  definitionId
   path := { role, owner }
 }
 
 private def authoringAt (line column : Nat) : AuthoredTarget LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
-  targetAuthoring.withOccurrences [occurrenceAt targetId targetId .targetDeclaration line column]
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
+  targetAuthoring.withOccurrences [occurrenceAt targetId targetId .targetDefinition line column]
 
 private def checkedSummary
     (result : Except AuthoringDiagnostic (QueryTarget LawStatement)) :
-    Option (String × String × Option (List SemanticValue × String × String)) :=
+    Option (String × String × Option (List ModelValue × String × String)) :=
   result.toOption.map fun checked =>
     (checked.canonicalMetadata, checked.semanticDigest,
       match checked.planning with
@@ -223,19 +223,19 @@ example : [
   native_decide
 
 private def wrongKindDefinition : TargetDefinition
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   targetDefinition with requiredCapabilities := [flipActionId]
 }
 
 private def wrongKindAuthoringAt (line column : Nat) : AuthoredTarget LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
   AuthoredTarget.make wrongKindDefinition targetComposition (occurrences := [
     occurrenceAt flipActionId targetId .capabilityRequirement line column
   ])
 
 private def diagnosticSummary
     (result : Except AuthoringDiagnostic (QueryTarget LawStatement)) :
-    Option (DeclarationErrorKind × AuthoringOccurrenceRole × String × Nat × Nat) :=
+    Option (DefinitionErrorKind × AuthoringOccurrenceRole × String × Nat × Nat) :=
   match result with
   | .ok _ => none
   | .error diagnostic => some
@@ -258,10 +258,10 @@ example : wrongKindDefinition.source = source := by
   rfl
 
 private def expertTargetDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   id := targetDefinition.id
   source := targetDefinition.source
-  declarations := targetDefinition.declarations
+  definitions := targetDefinition.definitions
   requiredCapabilities := targetDefinition.requiredCapabilities
   providers := [switchProvider]
   connectors := []
@@ -269,21 +269,21 @@ private def expertTargetDeclaration : TargetDeclaration LawStatement
   kernel := targetDefinition.kernel
 }
 
-private def invalidIdentityMetadata : DeclarationMetadata := {
-  id := DeclarationId.of "action"
+private def invalidDefinitionIdMetadata : DefinitionMetadata := {
+  id := DefinitionId.of "action"
   kind := .action
   source
-  contractDigest := "invalid-identity/v1"
+  contractDigest := "invalid-definition-id/v1"
 }
 
-private def invalidIdentityDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+private def invalidDefinitionIdTarget : TargetDeclaration LawStatement
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with
-  declarations := invalidIdentityMetadata :: expertTargetDeclaration.declarations
+  definitions := invalidDefinitionIdMetadata :: expertTargetDeclaration.definitions
 }
 
 private def missingProviderDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with providers := []
 }
 
@@ -292,30 +292,30 @@ private def providerWithoutLaw : CapabilityProvider LawStatement := {
 }
 
 private def missingLawDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with providers := [providerWithoutLaw]
 }
 
 private def incompleteKernelDeclaration : TargetDeclaration LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   expertTargetDeclaration with
   kernel := .incomplete transitionKernel.metadata
-    [DeclarationId.of "umpire.kernel-proof.step-complete"]
+    [DefinitionId.of "umpire.kernel-proof.step-complete"]
 }
 
 private def targetErrorKind
-    (result : Except DeclarationError (QueryTarget LawStatement)) : Option DeclarationErrorKind :=
+    (result : Except DefinitionError (QueryTarget LawStatement)) : Option DefinitionErrorKind :=
   match result with
   | .ok _ => none
   | .error failure => some failure.kind
 
-/-! Target-owned invalid identity, provider, law, and kernel availability stay typed at Target. -/
+/-! Target-owned invalid Definition IDs, providers, laws, and kernel availability stay typed at Target. -/
 example : [
-    targetErrorKind (composeTarget invalidIdentityDeclaration),
+    targetErrorKind (composeTarget invalidDefinitionIdTarget),
     targetErrorKind (composeTarget missingProviderDeclaration),
     targetErrorKind (composeTarget missingLawDeclaration),
     targetErrorKind (composeTarget incompleteKernelDeclaration)
-  ] = [some .invalidIdentity, some .missingProvider, some .missingLaw, some .incompleteKernel] := by
+  ] = [some .invalidDefinitionId, some .missingProvider, some .missingLaw, some .incompleteKernel] := by
   native_decide
 
 private def queryErrorKind
