@@ -84,6 +84,20 @@ def kernel (width : Nat) : TransitionKernel
     exact ⟨0, by simp, rfl⟩
 }
 
+def finitePlanning (width : Nat) : FinitePlanningCapability (kernel width).authoritativeStep := {
+  actions := [requestValue]
+  roleDomainDigest := "role-domain/v1"
+  actionDomainDigest := "action-domain/v1"
+  actionSound := by
+    intro action member
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+    subst action
+    exact ⟨initial, transition 0, rfl, rfl, rfl⟩
+  actionComplete := by
+    intro state action result admitted
+    simp [admitted.2.1]
+}
+
 def target (width : Nat) : QueryTarget (fun _ => True) := {
   id := id "planner.target.fixture"
   source
@@ -93,6 +107,7 @@ def target (width : Nat) : QueryTarget (fun _ => True) := {
   connectors := []
   resolvedSetups := [setup]
   kernel := kernel width
+  planning := .available (finitePlanning width)
   canonicalMetadata := "target-metadata"
   semanticDigest := "target/v1"
 }
@@ -131,23 +146,6 @@ def behavior : CheckedBehavior := {
   semanticDigest := "behavior/v1"
 }
 
-def completeness (width : Nat) : FiniteCompletenessEvidence (fun _ => True) (target width) := {
-  roleAssignments := [setup]
-  actions := [requestValue]
-  roleDomainDigest := "role-domain/v1"
-  actionDomainDigest := "action-domain/v1"
-  roleSound := by simp [target]
-  roleComplete := by simp [target]
-  actionSound := by
-    intro action member
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
-    subst action
-    exact ⟨initial, transition 0, rfl, rfl, rfl⟩
-  actionComplete := by
-    intro state action result admitted
-    simp [admitted.2.1]
-}
-
 def bounds (budget : Nat := 10) : QueryBounds := {
   behavior := {
     transitions := { value := 1, unit := .semanticTransitions }
@@ -181,30 +179,45 @@ def checkedQuery
   bounds := bounds budget
   policy := policy strategy seed
   targetComposition := []
-  completeness := if withCompleteness then some (completeness width) else none
+  completeness := if withCompleteness then
+    (CheckedQueryTarget.ofTarget (target width)).completeness
+  else
+    none
   documentation := "query documentation"
   canonicalMetadata := "query-metadata"
   semanticDigest := "query/v1:" ++ strategy.name ++ ":" ++ toString seed ++ ":" ++
     selectedBehavior.semanticDigest
 }
 
-def incrementalKernel (width : Nat) : IncrementalPlannerKernel (target width) :=
-  .ofFinite (completeness width) {
-    action := by
-      simp [completeness]
-    initial := by
-      intro candidate
-      simp only [target, kernel]
-      split <;> simp
-    step := by
-      intro state action
-      simp only [target, kernel]
+def orderedQuery (width : Nat) : CheckedQuery (fun _ => True) :=
+  checkedQuery width (.witness property) .shortest
+
+def incrementalKernel? (width : Nat) : Option (IncrementalPlannerKernel (target width)) :=
+  IncrementalPlannerKernel.ofCheckedQuery? (orderedQuery width)
+    (by
+      intro evidence evidenceEq
+      simp [orderedQuery, checkedQuery, CheckedQueryTarget.ofTarget, target, finitePlanning] at evidenceEq
+      cases Option.some.inj evidenceEq
+      simp)
+    (by
+      intro _ _ candidate
+      simp only [orderedQuery, checkedQuery, target, kernel]
+      split <;> simp)
+    (by
+      intro _ _ state action
+      simp only [orderedQuery, checkedQuery, target, kernel]
       split
       · rw [List.pairwise_iff_getElem]
         intro first second firstBound secondBound earlier
         simp [transitions, transition]
-      · simp
-  }
+      · simp)
+
+private theorem incrementalKernel?_isSome (width : Nat) :
+    (incrementalKernel? width).isSome = true := by
+  rfl
+
+def incrementalKernel (width : Nat) : IncrementalPlannerKernel (target width) :=
+  (incrementalKernel? width).get (incrementalKernel?_isSome width)
 
 def run
     (width : Nat)

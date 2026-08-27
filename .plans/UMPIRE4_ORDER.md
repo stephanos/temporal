@@ -28,6 +28,19 @@ complete production platform. In particular:
 All retained specs must be reduced to the scope stated below before implementation. Following their
 current dependency graph unchanged would pull deferred platform work back into the prototype.
 
+Make only these epic-level dependency edits:
+
+- remove fn-15 from fn-5;
+- remove fn-17 and fn-33 from fn-22 while retaining its existing semantic, artifact, conformance,
+  fn-21 control, and fn-5 promotion prerequisites;
+- remove fn-24 and fn-26 from fn-27;
+- remove fn-26 from fn-28.
+
+All other epic-level dependencies remain unchanged. Apply the same retained/deferred boundary inside
+each reduced spec: a retained task must not depend on a deferred task solely to inherit broader
+machinery. Split mixed tasks at that boundary and connect the retained path to its nearest retained
+prerequisite. The numbered sections below express delivery priority, not additional hard dependencies.
+
 ## P0 — Foundations
 
 ### 1. fn-31 — Deepen Umpire Target and simplify Temporal target authoring
@@ -42,8 +55,8 @@ This work is already in progress and can proceed alongside fn-4.
 
 Finish the evidence-to-verdict seam required by the live prototype. Retain the reusable Observation
 boundary, qualified derivations, strict outcomes, and only the synthetic/Nexus evidence needed by
-the two examples. Broader mutation assurance and documentation are secondary to completing the
-working semantic loop.
+the two examples. Retain concise documentation for that reduced Observation API and live handoff;
+defer the broader cross-layer mutation matrix and documentation surface.
 
 ### 3. fn-32 — Add Umpire Refinement and the first Temporal Feature/System correspondence
 
@@ -60,16 +73,24 @@ integration.
 
 ### 5. fn-18 — Versioned Umpire artifact boundary
 
-Implement only the strict v1 transport needed by the prototype:
+Implement only the strict formats needed by the prototype:
 
-- complete executable `ExperimentSpec`;
+- read-only compatibility for existing `umpire-experiment/v1` inputs and one current, complete
+  executable `umpire-experiment/v2` successor;
+- `RuntimeConfiguration`;
 - `ExperimentRun`;
 - bounded `RawEvidence`;
 - semantic evidence and `Result`.
 
-Reject malformed, stale, oversized, or identity-inconsistent inputs. Defer generic receipt
-envelopes, coverage checkpoints, migrations, complete-set recovery, and artifact-management CLI
-surfaces.
+Retain fail-closed admission for one complete prototype artifact set, including strict
+cross-document identity closure and one immutable atomic publication/loading path that never exposes
+a partial or mixed set. Fn-18 owns the canonical content, semantic-identity, and artifact-identity
+formulas for `umpire-experiment/v2`. Compile the retained semantic intent once through fn-16,
+construct its complete executable successor through fn-18, and require every execution boundary to
+consume the same published bytes and identities without recompilation. Do not add a migration from
+the compatibility input. Reject malformed, stale, oversized, or identity-inconsistent inputs.
+Defer generic receipt envelopes, coverage checkpoints, other migrations, interrupted-publication
+recovery, and artifact-management CLI surfaces.
 
 ## P1 — First complete vertical slice
 
@@ -80,12 +101,17 @@ closed preprogrammed SDK participant, resolve the operation/run identifiers at r
 bounded causal evidence, and report cleanup honestly. Do not generalize participants, execution
 profiles, or the local test environment into platforms.
 
+Consume the normal fn-18-published executable `ExperimentSpec` built from fn-16's checked intent
+without recompiling it.
+
 ### 7. fn-20 — Local execution semantic conformance
 
 Interpret the local run through the checked Nexus Observation and Refinement declarations and then
 evaluate the unchanged Feature property. The result must distinguish operational success, evidence
 qualification, refinement, and property satisfaction. Include a fixture with intentionally skewed
-wall-clock timestamps that produces the same verdict from causal/source-local ordering.
+wall-clock timestamps whose sorted order contradicts the causal or source-local order. Use a trace
+whose qualification or property result would change under timestamp sorting, then assert the
+expected causal derivation and verdict.
 
 ### 8. fn-21 — Nexus duplicate-observation control
 
@@ -94,12 +120,39 @@ fault. The participant realizes one labeled duplicate-delivery observation, the 
 records a matching receipt, and conformance reports a uniqueness-only violation without claiming a
 Temporal product defect.
 
+Consume the faulted fn-18-published executable `ExperimentSpec` built from fn-16's checked intent;
+do not author an alternative space, Feature property, or Refinement inside fn-21.
+
 Completion of fn-21 establishes the core prototype: one satisfied live example and one precise
 fault-induced violation using the same semantic model.
 
-## P2 — Exploration and regression lifecycle
+## P2 — Portability proof
 
-### 9. fn-5 — Umpire discovery, promotion, and artifact evolution
+### 9. fn-27 — Hermetic CI execution
+
+Run the byte-identical normal `ExperimentSpec` consumed by fn-19 through the ordinary CI test command
+and the same runner/conformance interfaces used locally. Its canonical byte hash, format identity,
+and semantic identity must match the local subject. Reject recompilation or identity drift without
+introducing a new provenance schema. Do not build CI qualification profiles, provenance schemas,
+new artifact-set versions, or release evidence.
+
+### 10. fn-28 — Black-box staging execution
+
+Run the same normal `ExperimentSpec` against one controlled nonproduction endpoint using only public
+gRPC evidence plus participant-owned receipts. Before implementation, name the owner-supplied fixed
+staging profile and harness that provide fail-closed authority and target preflight, concurrency one,
+fixed execution/evidence bounds, isolated namespace or run-owned resources, cleanup verification,
+and postflight target identity. If those existing controls are unavailable, fn-28 is blocked; do not
+build replacements in Umpire. Do not build a general target selector, protected workflow, lease
+system, recovery controller, or qualification platform.
+
+The environment binding must also support a canary dry-run fixture that consumes the same normal
+artifact bytes, format identity, and semantic identity, proving the semantic artifact and evidence
+contract can be bound without granting production execution authority.
+
+## P3 — Exploration and regression lifecycle
+
+### 11. fn-5 — Umpire discovery, promotion, and artifact evolution
 
 Reduce this spec to two capabilities:
 
@@ -109,44 +162,53 @@ Reduce this spec to two capabilities:
 Defer the generic semantic graph, generated glossary, machine index, broad stable regression set,
 and general artifact evolution.
 
-### 10. fn-17 — Bounded semantic exploration and coverage
+### 12. fn-17 — Bounded semantic exploration and coverage
 
 Select experiments deterministically from the small fn-16 Nexus space. Support bounded exhaustive
 enumeration and one semantic-coverage-guided policy that prioritizes an uncovered coordinate. Keep
 pinned known regressions outside the exploration budget. Defer pairwise/t-wise families, symmetry
 proofs, multiple source kinds, generalized resume state, and adaptive corpora.
 
-### 11. fn-33 — Run semantic exploration campaigns with umpire-fuzz
+Keep the uncovered-coordinate policy independent of the deferred symmetry, generalized reporting,
+and resume machinery when reducing the existing mixed tasks.
+
+### 13. fn-33 — Run semantic exploration campaigns with umpire-fuzz
 
 Reduce the campaign to a serial bounded `umpire-fuzz run` command that asks the Lean-owned
 exploration layer for candidates, executes them through the existing runner/conformance path, and
 reports semantic coverage and exhaustion honestly. Defer concurrency, leases, crash-safe campaign
 state, and resume.
 
-### 12. fn-22 — Deterministic replay, semantic minimization, and reviewed promotion
+### 14. fn-22 — Deterministic replay, semantic minimization, and reviewed promotion
 
-Consume the fn-21 violation, reproduce it exactly, remove one unnecessary authored coordinate while
-preserving the same violation, and emit one checked review-only Lean regression proposal. Retain the
+Consume the fn-21 violation, reproduce it exactly, and try every applicable authored reduction in a
+fixed order while preserving the same violation. The exact control may complete as irreducible; its
+diagnostic EvidenceCore must still omit one labeled non-responsible evidence fact without rewriting
+the admitted evidence artifacts. Emit one checked review-only Lean regression proposal. Retain the
 distinction between semantic replay and concrete rerun. Defer SDK history replay, generic reducers,
 campaign orchestration, and automatic regression installation.
 
-## P3 — Portability proof
+Continue the fixed-order bounded reduction until every remaining applicable authored edit
+conclusively fails to preserve the same violation. Only a complete `minimized` or `irreducible`
+result may feed the review-only proposal.
 
-### 13. fn-27 — Hermetic CI execution
+## Prototype verification gate
 
-Run the byte-identical checked-in `ExperimentSpec` through the ordinary CI test command and the same
-runner/conformance interfaces used locally. Do not build CI qualification profiles, provenance
-schemas, new artifact-set versions, or release evidence.
+Complete this gate after P2 and before starting P3:
 
-### 14. fn-28 — Black-box staging execution
-
-Run the same `ExperimentSpec` against one controlled nonproduction endpoint using only public gRPC
-evidence plus participant-owned receipts. Reuse existing operational authority instead of building
-a general target selector, protected workflow, lease system, recovery controller, or qualification
-platform.
-
-The environment binding must also support a canary dry-run fixture that proves the same semantic
-artifact and evidence contract can be bound without granting production execution authority.
+- `flowctl validate --all --json` passes after the epic and retained-task dependency edits, with no
+  retained task depending on a deferred task;
+- `go test -count=1 ./tools/umpire/artifact/... ./tools/common/artifactio/...` proves strict successor
+  admission, partial/mixed-set rejection, atomic visibility, and exact byte/identity preservation;
+- `cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs` emits the canonical successor
+  golden that the Go admission tests consume with exact bytes and independently recomputed identities;
+- the fn-20 skew fixture proves timestamp sorting would change the outcome while causal/source-local
+  ordering produces the expected derivation and verdict;
+- the documented fn-19/fn-20 normal commands and fn-21 duplicate-delivery commands complete with the
+  expected satisfied and uniqueness-only results; and
+- local, ordinary CI, fixed-profile staging, and canary dry-run records name the same normal artifact
+  byte hash, format identity, and semantic identity, while staging also records bounded execution,
+  isolation, and complete cleanup.
 
 ## Removed from the prototype queue
 
@@ -174,12 +236,13 @@ artifact and evidence contract can be bound without granting production executio
 The existing Flow IDs may be retained for history, but the minimal roadmap has four conceptual
 delivery specs:
 
-1. **Author the Nexus model:** fn-31 and fn-32.
+1. **Author and interpret the Nexus model:** fn-31, fn-4, and fn-32.
 2. **Compile portable experiments:** fn-16 and the minimal fn-18 boundary.
-3. **Execute and judge two Nexus examples:** fn-4, fn-19, fn-20, fn-21, and the minimal portability
-   checks from fn-27/fn-28.
+3. **Execute and judge two Nexus examples portably:** fn-19, fn-20, fn-21, and the minimal fn-27/fn-28
+   portability checks.
 4. **Explore, replay, and promote:** fn-5, fn-17, fn-33, and fn-22.
 
 The first decision point is the completion of the normal fn-19/fn-20 path. The second is completion
-of the fn-21 negative control. Work beyond those gates should remain deferred if either example
+of the fn-21 negative control. Complete the reduced portability proof after that second gate and
+before the exploration lifecycle. Work beyond those gates should remain deferred if either example
 cannot demonstrate a concise, deterministic, inspectable end-to-end experience.

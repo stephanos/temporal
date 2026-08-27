@@ -76,6 +76,20 @@ def kernel : TransitionKernel
     simp
 }
 
+def finitePlanning : FinitePlanningCapability kernel.authoritativeStep := {
+  actions := [requestValue]
+  roleDomainDigest := "role-domain/v1"
+  actionDomainDigest := "action-domain/v1"
+  actionSound := by
+    intro action member
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+    subst action
+    exact ⟨initial, transition, rfl, rfl, rfl⟩
+  actionComplete := by
+    intro state action result admitted
+    simp [admitted.2.1]
+}
+
 def target : QueryTarget (fun _ => True) := {
   id := id "query.target.fixture"
   source
@@ -85,6 +99,7 @@ def target : QueryTarget (fun _ => True) := {
   connectors := []
   resolvedSetups := [setup]
   kernel
+  planning := .available finitePlanning
   canonicalMetadata := "target-metadata"
   semanticDigest := "target/v1"
 }
@@ -123,23 +138,6 @@ def checkedBehavior : CheckedBehavior := {
   semanticDigest := "behavior/v1"
 }
 
-def completeness : FiniteCompletenessEvidence (fun _ => True) target := {
-  roleAssignments := [setup]
-  actions := [requestValue]
-  roleDomainDigest := "role-domain/v1"
-  actionDomainDigest := "action-domain/v1"
-  roleSound := by simp [target]
-  roleComplete := by simp [target]
-  actionSound := by
-    intro action member
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
-    subst action
-    exact ⟨initial, transition, rfl, rfl, rfl⟩
-  actionComplete := by
-    intro state action result admitted
-    simp [admitted.2.1]
-}
-
 def bounds : QueryBounds := {
   behavior := {
     transitions := { value := 1, unit := .semanticTransitions }
@@ -160,13 +158,10 @@ def searchPolicy : PlannerPolicy := {
   tieBreak := .semanticIdentity
 }
 
-def context : QueryCheckContext (fun _ => True) := {
-  target := .checked { target, completeness := none }
-}
+def context : QueryCheckContext (fun _ => True) :=
+  .ofTarget { target with planning := .unavailable }
 
-def exhaustiveContext : QueryCheckContext (fun _ => True) := {
-  target := .checked { target, completeness := some completeness }
-}
+def exhaustiveContext : QueryCheckContext (fun _ => True) := .ofTarget target
 
 def declaration
     (form : QueryForm)
