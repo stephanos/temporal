@@ -180,7 +180,8 @@ lowercase.
 - **AUT-06 — Explicit composition.** Competing providers and cross-domain relationships MUST be
   connected explicitly; declaration order and type-class search MUST NOT select behavior.
 - **AUT-07 — Single authoring path.** `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` MUST
-  remain the only public model authoring path; compatibility facades MUST NOT create a second
+  remain the only public scenario and question languages. `Umpire.CheckedTarget` is their shared
+  semantic-model substrate, not another language; compatibility facades MUST NOT create a second
   interface.
 
 ## Planning, Bounds, and Artifacts

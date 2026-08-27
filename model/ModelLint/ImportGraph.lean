@@ -52,6 +52,7 @@ structure Policy where
 inductive Rule where
   | sharedIndependence
   | umpireIndependence
+  | targetIsolation
   | featureIsolation
   | systemIsolation
   | verificationIsolation
@@ -119,6 +120,7 @@ def defaultPolicy : Policy := {
 private def Rule.label : Rule → String
   | .sharedIndependence => "shared-independence"
   | .umpireIndependence => "umpire-independence"
+  | .targetIsolation => "target-isolation"
   | .featureIsolation => "feature-isolation"
   | .systemIsolation => "system-isolation"
   | .verificationIsolation => "verification-isolation"
@@ -153,12 +155,28 @@ private def isVerifyClass : ModuleClass → Bool
   | .temporalVerify | .umpireVeil => true
   | _ => false
 
+private def isTargetModule (name : Lean.Name) : Bool :=
+  matchesPrefix `Umpire.Target name
+
+private def isTargetForbiddenDestination (name : Lean.Name) : Bool :=
+  #[
+    `Umpire.Query,
+    `Umpire.Planning,
+    `Umpire.Artifact,
+    `Umpire.Runtime,
+    `Umpire.Verify,
+    `Temporal
+  ].any (matchesPrefix · name)
+
 private def forbiddenRule?
     (policy : Policy)
     (source : Lean.Name)
     (sourceClass : ModuleClass)
+    (destination : Lean.Name)
     (destinationClass : ModuleClass) : Option Rule :=
-  if sourceClass == .shared &&
+  if isTargetModule source && isTargetForbiddenDestination destination then
+    some .targetIsolation
+  else if sourceClass == .shared &&
       (destinationClass == .umpire || destinationClass == .umpireVeil ||
         isTemporalClass destinationClass) then
     some .sharedIndependence
@@ -190,7 +208,7 @@ def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
   Tools.LeanImportGraph.check (fun source destination =>
     match policy.classify? source, policy.classify? destination with
     | some sourceClass, some destinationClass =>
-        forbiddenRule? policy source sourceClass destinationClass
+        forbiddenRule? policy source sourceClass destination destinationClass
     | _, _ => none) modules
 
 private def Policy.inventoryPolicy (policy : Policy) : InventoryPolicy := {
