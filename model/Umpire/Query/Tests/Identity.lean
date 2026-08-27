@@ -53,6 +53,7 @@ def changedTarget
   semanticDigest := digest
   requiredCapabilities := composition
   kernel := { kernel with metadata := { kernel.metadata with contractDigest := kernelDigest } }
+  planning := .unavailable
 }
 
 def contextFor (candidate : QueryTarget (fun _ => True)) : QueryCheckContext (fun _ => True) := {

@@ -257,7 +257,9 @@ private def composedTarget : QueryTarget LawStatement :=
 
 /-- Re-ascribe the source kernel after checked composition so its proof relation remains reducible. -/
 def target : QueryTarget LawStatement := {
-  composedTarget with kernel := transitionKernel
+  composedTarget with
+  kernel := transitionKernel
+  planning := .unavailable
 }
 
 theorem target_resolvedSetups : target.resolvedSetups = [switchSetup] := by
