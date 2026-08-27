@@ -242,16 +242,60 @@ theorem step_result_exposed
     (result : TransitionResult ModelValue ModelValue ModelValue)
     (member : result ∈ stepResults state action) :
     result = startedResult ∨ result = canceledResult ∨ result = succeededResult := by
+  have started_ne_scheduled : startedState ≠ scheduledState := by native_decide
+  have canceled_ne_scheduled : canceledState ≠ scheduledState := by native_decide
+  have canceled_ne_started : canceledState ≠ startedState := by native_decide
+  have succeeded_ne_scheduled : succeededState ≠ scheduledState := by native_decide
+  have succeeded_ne_started : succeededState ≠ startedState := by native_decide
+  have succeeded_ne_canceled : succeededState ≠ canceledState := by native_decide
+  have cancel_ne_start : cancelAction ≠ startAction := by native_decide
+  have success_ne_start : reportSuccessAction ≠ startAction := by native_decide
+  have success_ne_cancel : reportSuccessAction ≠ cancelAction := by native_decide
   by_cases scheduled : state = scheduledState
-  all_goals by_cases started : state = startedState
-  all_goals by_cases canceled : state = canceledState
-  all_goals by_cases succeeded : state = succeededState
-  all_goals by_cases start : action = startAction
-  all_goals by_cases cancel : action = cancelAction
-  all_goals by_cases reportSuccess : action = reportSuccessAction
-  all_goals simp_all [stepResults, stepResult?, lifecycleState?, lifecycleEvent?,
-    transitionResult?, step, scheduledState, startedState, canceledState, succeededState,
-    startAction, cancelAction, reportSuccessAction]
+  · subst state
+    by_cases start : action = startAction
+    · subst action
+      left
+      simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step]
+        using member
+    · by_cases cancel : action = cancelAction
+      · subst action
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+          cancel_ne_start] at member
+      · by_cases reportSuccess : action = reportSuccessAction
+        · subst action
+          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+            success_ne_start, success_ne_cancel] at member
+        · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+            step, start, cancel, reportSuccess] at member
+  · by_cases started : state = startedState
+    · subst state
+      by_cases cancel : action = cancelAction
+      · subst action
+        right; left
+        simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+          started_ne_scheduled, cancel_ne_start] using member
+      · by_cases reportSuccess : action = reportSuccessAction
+        · subst action
+          right; right
+          simpa [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+            step, started_ne_scheduled, success_ne_start, success_ne_cancel] using member
+        · by_cases start : action = startAction
+          · subst action
+            simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+              step, started_ne_scheduled] at member
+          · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+              step, started_ne_scheduled, start, cancel, reportSuccess] at member
+    · by_cases canceled : state = canceledState
+      · subst state
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+          canceled_ne_scheduled, canceled_ne_started] at member
+      · by_cases succeeded : state = succeededState
+        · subst state
+          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?, step,
+            succeeded_ne_scheduled, succeeded_ne_started, succeeded_ne_canceled] at member
+        · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+            step, scheduled, started, canceled, succeeded] at member
 
 def roleAssignments : List (List RoleBinding) := [scheduledSetup, startedSetup]
 def actionDomain : List ModelValue := [cancelAction, startAction, reportSuccessAction]

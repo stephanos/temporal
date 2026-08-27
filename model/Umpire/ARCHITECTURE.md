@@ -24,11 +24,12 @@ Focused imports are available when a consumer needs a smaller surface:
 | `Umpire.Artifact` | Portable drive plans and experiment specifications. |
 | `Umpire.Planning` | Deterministic incremental planning over checked queries. |
 | `Umpire.Observation` | Checked Evidence mappings, Observation Evaluation, Evidence Links, dispositions, Property verdicts, and strict aggregation. |
+| `Umpire.ImplementationLink` | Checked forward correspondence between independently authored semantic Targets. |
 
 `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
-`Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`, and
-`Umpire.Planning.Engine` implement their public facades and should not normally be imported
-directly.
+`Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`,
+`Umpire.ImplementationLink.Language`, `Umpire.ImplementationLink.Application`, and
+`Umpire.Planning.Engine` implement their public facades and should not normally be imported directly.
 
 ## API lifecycle
 
@@ -40,6 +41,10 @@ PropertyDeclaration ─ checkProperty ─▶ CheckedProperty
 BehaviorDeclaration ─ checkBehavior ─▶ CheckedBehavior
 CheckedTarget + QueryDeclaration ─ checkQuery ─▶ CheckedQuery
 CheckedQuery ─ derive planner kernel ─▶ plan ─▶ PlannerRun ─▶ ExperimentSpec?
+ImplementationLinkDeclaration + checked source/destination Targets + forward witness
+  ─ checkImplementationLink ─▶ CheckedImplementationLink
+CheckedImplementationLink + source setup + EvidenceBackedTrace
+  ─ applyImplementationLink ─▶ ImplementationLinkResult
 ```
 
 Target is the checked semantic substrate consumed by the distinct Property, Behavior, and Query
@@ -227,6 +232,30 @@ to `evaluateEvidence`; it would not construct an `EvidenceBackedTrace`, choose a
 reinterpret a Property result. This release provides no such adapter: it does not start Temporal,
 execute operations, collect live Evidence, persist raw records, perform Run Evaluation, promote
 results, or admit another evidence profile. Observation also does not redefine Property meaning.
+
+## Implementation Link API
+
+`Umpire.ImplementationLink` relates two independently checked Targets without making either Target
+import or redefine the other. An author supplies one inert `ImplementationLinkDeclaration` with
+finite setup, state, action, target-outcome, observation, relation, and capability mappings; an
+explicit support/Known Gap partition; one positive application Limit; and an
+`ImplementationLinkWitness` indexed by that exact declaration and those exact checked Targets.
+`checkImplementationLink` validates the complete declaration and witness before returning one
+canonical `CheckedImplementationLink`.
+
+The prototype proves a bounded forward simulation. It does not require a reverse mapping,
+bisimulation, surjectivity, or named Behavior-occurrence correspondence. `applyImplementationLink`
+accepts only an `EvidenceBackedTrace`, re-admits its source setup, initial state, and every step
+through the checked source kernel, and then returns one complete authoritative destination Model
+Trace with a coordinate-complete `ImplementationLinkEvidenceLink` set. It never exposes a partial
+destination trace.
+
+Implementation Link application has its own `invalid`, `unknown`, `conflict`, and `unsupported`
+outcomes and canonical diagnostics. Those outcomes are distinct from Observation Evaluation
+(`accepted`, `unknown`, `conflict`, or `unsupported`) and from Feature Property evaluation
+(`satisfied` or `violated` for the direct evaluator). Implementation Link does not interpret raw
+Evidence and does not invoke a Property; a later Run Evaluation composes the three checked stages
+without collapsing their identities or diagnostics.
 
 ## Query and search API
 

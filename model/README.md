@@ -99,7 +99,16 @@ Learn these forms in increasing order of domain and composition complexity:
    for the ordinary lifecycle. It owns the sole synthetic BasicLifecycle profile, its checked
    mapping, and the composition from a complete typed evidence bundle through Observation Evaluation,
    independent Property evaluation, and strict Query aggregation.
-5. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
+5. [`Temporal.System.Nexus.Core`](Temporal/System/Nexus/Core.lean) independently describes the
+   minimum pure mechanism states and transitions for dispatch, cancellation recording, and
+   completion recording.
+6. [`Temporal.System.Nexus.ImplementationLink`](Temporal/System/Nexus/ImplementationLink.lean)
+   is the sole production leaf that imports both independently checked Nexus Targets and proves the
+   bounded forward correspondence from System mechanism meaning to the unchanged Feature lifecycle.
+7. [`Temporal.ImplementationLinkTests.Nexus`](Temporal/ImplementationLinkTests/Nexus.lean) composes
+   accepted synthetic System traces through that checked link and keeps Observation, Implementation
+   Link, and Property mutations at their responsible boundaries.
+8. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
    [`Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
    are explicit opt-in material for the detailed AutoClose proofs and inspectable Workflow–Nexus
    caller-closure regression. They are not part of the ordinary Feature learning surface.
@@ -153,6 +162,32 @@ dispositions, qualifies evidence, evaluates Properties, and aggregates verdicts.
 implemented in this release, and these modules do not execute Temporal, collect or persist live
 Evidence, perform Run Evaluation, promote a result, or support another profile.
 
+## Checked Implementation Links
+
+Import `Umpire.ImplementationLink` for the reusable API. Authors declare finite correspondences
+between independently checked source and destination Targets, provide a forward-simulation witness
+indexed by those exact inputs, and call `checkImplementationLink` once. The checked value canonically
+binds the two Target identities and Behavior Fingerprints, mapping version, support/Known Gap
+partition, obligations, and positive application Limit. Proof terms remain nonserialized.
+
+Application starts only after Observation Evaluation has accepted one complete System
+`EvidenceBackedTrace`. `applyImplementationLink` replays that trace through the checked System
+kernel before translating it positionally. Success contains one complete authoritative Feature
+Model Trace and coordinate-complete Implementation Link Evidence Links; failure contains no partial
+Feature trace. The three semantic results remain separate:
+
+```text
+EvidenceBundle ─ Observation Evaluation ─▶ accepted System trace | Observation diagnostic
+accepted System trace ─ checked Implementation Link ─▶ Feature trace | Implementation Link diagnostic
+Feature trace ─ checked Feature Property ─▶ satisfied | violated
+```
+
+The first Nexus correspondence covers ordinary start, cancellation, and successful completion.
+AutoClose and CallerClosure remain Experimental and outside this seam. A future Run Evaluation may
+orchestrate these checked stages, but it must retain the responsible layer, canonical identity, and
+Evidence Links for every non-success rather than turning an Observation or Implementation Link
+failure into a Property violation.
+
 Build each stage through the final module and target names:
 
 ```sh
@@ -162,6 +197,9 @@ mise exec -- lake build Temporal.Feature.Nexus.OperationsTests
 mise exec -- lake build Umpire.Observation.Tests.Compilation
 mise exec -- lake build Umpire.Observation.Tests
 mise exec -- lake build Temporal.Feature.Nexus.ObservationTests
+mise exec -- lake build Umpire.ImplementationLink.Tests
+mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests
+mise exec -- lake build Temporal.ImplementationLinkTests.Nexus
 mise exec -- lake build Umpire.Examples.Switch
 mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosureTests
 mise exec -- lake build Temporal TemporalModelTests TemporalExperimentalTests temporal-model-inspect
@@ -178,7 +216,10 @@ executed graph regressions, controlled failure fixture, and live metadata pass o
 `Shared.*`/`Umpire.*`, `Umpire.*`/`Temporal.*`, `Temporal.Feature.*`/`Temporal.System.*`, and
 opt-in `Temporal.Verify.*`/`Umpire.Verify.Veil` boundaries. They also keep every
 `Umpire.Target.*` module, including its tests, below Query, Planning, Artifact, Temporal, runtime,
-and verification modules.
+and verification modules. The only production System-to-Feature exception is the exact
+`Temporal.System.Nexus.ImplementationLink` leaf. The only composed-test class is the exact
+`Temporal.ImplementationLinkTests.Nexus` root; sibling System modules and test-root near misses
+remain rejected.
 
 The focused check builds `Temporal`, `UmpireTests`, `TemporalModelTests`,
 `TemporalExperimentalTests`, and `temporal-model-inspect`. The ordinary and experimental test
