@@ -76,17 +76,23 @@ Model scenarios use three separate but composable forms:
 - A `Query` combines checked properties and behavior with explicit bounds and a deterministic
   planning policy: what bounded search should find or verify.
 
+Their shared substrate is a checked Target. A family maintainer records explicit states, actions,
+outcomes, transitions, capabilities, laws, and optional finite planning once in an `AuthoredTarget`;
+`checkTarget` returns a checked value or a source-located diagnostic. Ordinary Property, Behavior,
+and Query authors consume that value without assembling provider or connector collections,
+completeness records, finite ordering, or planner kernels.
+
 Learn these forms in increasing order of domain and composition complexity:
 
-1. [`Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the ordinary Temporal starting
+1. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
+   for the authored Target → checked Target → Query → Planning → Artifact path.
+2. [`Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the ordinary Temporal starting
    point. It owns the scheduled, started, canceled, and succeeded states; the start, cancel, and
    succeed events; and the three corresponding valid transitions in one small checked target.
-2. [`Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) adds one-action walkthroughs for
+3. [`Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) adds one-action walkthroughs for
    starting, canceling, and successfully completing an operation. Each walkthrough exposes its
    authored and checked Property, exact-action Behavior, checked Query, and deterministic planner
    result over the shared lifecycle target.
-3. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
-   for the same authored → checked → planned → artifact lifecycle.
 4. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
    [`Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
    are explicit opt-in material for the detailed AutoClose proofs and inspectable Workflow–Nexus
@@ -121,7 +127,9 @@ make umpire-check-regression
 Run `make lint-model` for Lean declaration linting and the complete first-party import graph. Its
 executed graph regressions, controlled failure fixture, and live metadata pass own the transitive
 `Shared.*`/`Umpire.*`, `Umpire.*`/`Temporal.*`, `Temporal.Feature.*`/`Temporal.System.*`, and
-opt-in `Temporal.Verify.*`/`Umpire.Verify.Veil` boundaries.
+opt-in `Temporal.Verify.*`/`Umpire.Verify.Veil` boundaries. They also keep every
+`Umpire.Target.*` module, including its tests, below Query, Planning, Artifact, Temporal, runtime,
+and verification modules.
 
 The focused check builds `Temporal`, `UmpireTests`, `TemporalModelTests`,
 `TemporalExperimentalTests`, and `temporal-model-inspect`. The ordinary and experimental test

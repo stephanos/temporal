@@ -71,7 +71,8 @@ separate integration work and must preserve the same semantic identities.
   participate in portable planning, artifacts, promotion, or cross-language reuse.
 - Cross-domain composition is checked in the semantic model before authoring; runtime code cannot
   invent an unproved `Combine` operation.
-- Property, Behavior, and Query are the only public semantic authoring path. Obsolete combined
+- Property, Behavior, and Query are the only public scenario and question languages. A checked
+  Target is their shared semantic-model substrate, not a fourth language; obsolete combined
   regression structures and compatibility facades must not remain as a second interface.
 - Umpire remains Temporal-agnostic while its interfaces are selected and deepened around problems
   demonstrated by Temporal.
