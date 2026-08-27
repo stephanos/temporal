@@ -41,6 +41,7 @@ Implemented pure bounded Observation qualification with canonical conflict handl
 
 baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task fn-4.4 target absent)
 stage: impl-review - ran [2026-08-27T07:06:55Z..2026-08-27T07:17:55Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 452b16ef4026fffd980dd3787188ce06b2fa4b12, f15bf8df3e42e068f4da2216ff020e375a618ecb
 - Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests, baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ObservationTests failed pre-edit: task fn-4.4 target absent), cd model && mise exec -- lake build Umpire.Observation.Tests.Qualification Umpire.Observation.Tests.Derivation Umpire.Observation.Tests.Disposition Umpire.Observation.Tests, make umpire-check-regression, make lint-model
