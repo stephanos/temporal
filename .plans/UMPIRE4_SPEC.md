@@ -1,376 +1,351 @@
 # Umpire 4 development rules
 
-This document is the normative index of Umpire 4 development rules. Supporting design documents
-cite these rule IDs when refining or applying them. The terms MUST, MUST NOT, SHOULD, and MAY are
-normative.
+This file is the authoritative list of Umpire 4 development rules. Supporting designs cite these
+rule IDs. MUST, MUST NOT, SHOULD, and MAY state how strictly each rule applies.
 
 ## Governance
 
-- **GOV-01 — Stable index.** New rules MUST receive new IDs; existing IDs MUST NOT be renumbered or
-  reused, including after a rule is retired.
-- **GOV-02 — Human deviation.** A human MUST approve any change that violates a rule or deliberately
-  plans to violate one.
+- **GOV-01 — Stable rule IDs.** New rules MUST receive new IDs. Existing IDs MUST NOT be renumbered
+  or reused, even after a rule is retired.
+- **GOV-02 — Human approval.** A human MUST approve any deliberate exception to these rules.
 
-Each section defines the key concepts used by its rules. Supporting Umpire 4 documents use these
-terms consistently and may add detail without changing their meaning. Lean modules, namespaces, and
-types are always referenced by fully qualified names in backticks. Defined key terms are capitalized
-when used as nouns outside their defining entry; ordinary descriptive and adjectival uses remain
-lowercase. For example, “a Capability” uses the defined noun, while “capability-scoped” remains
-lowercase.
+Supporting documents MUST use the terms below with the same meaning. Key terms are capitalized when
+used in their Umpire-specific sense. Exact Lean names appear in backticks.
+
+## How Umpire works
+
+Umpire describes expected behavior, chooses a concrete Test, runs it against Temporal, and compares
+what happened with what the model expected. For Nexus, a Property can say that closing a Workflow
+cancels its running Nexus operation at most once. A Query chooses a Model Trace, a Test Plan records
+what to run, and Run Evaluation checks the collected Evidence.
 
 ## How the model is organized
 
 ### Core concepts
 
-- **Behavior Model.** The checked description of what the software can do. It lives under `model/`
-  and is the source of truth used to create Tests, plans, and checks.
-- **Model Definition.** A handwritten, checked part of the Behavior Model describing a state,
-  Action, rule, expected product behavior, or implementation behavior. Generated Data, Projections,
-  adapters, and checker views are not Model Definitions.
-- **Generated Data.** Machine-produced descriptions of API and configuration fields and types.
-  Generated Data says what information exists; a Model Definition says what that information means.
-- **Model Name.** The stable, namespaced, kind-checked name used to refer to a Model Definition,
-  such as `workflow-nexus.property.caller-closure`. It does not change when declarations are
-  reordered or documentation is edited.
-- **Meaning Fingerprint.** A reproducible fingerprint of everything that affects a Model
-  Definition's behavior. It changes when that behavior changes, allowing outdated compositions and
-  Artifacts to be detected. Source location, documentation, and Artifact format version do not
-  affect it.
-- **Capability.** A named promise that one part of the Behavior Model requires and another part
-  provides, including the rules the provider must obey.
-- **Implementation Mapping.** A checked link showing how implementation behavior described under
-  `Temporal.System` corresponds to product behavior described under `Temporal.Feature`. It relates
-  the two Model Definitions without allowing either to redefine the other.
+- **Behavior Model.** Lean code under `model/` that describes expected product behavior and the
+  behavior of Temporal's current implementation.
+- **Model Definition.** One named, handwritten piece of the Behavior Model, such as a state, Action,
+  transition, or Property. Generated Data and Generated Views are not Model Definitions.
+- **Generated Data.** Machine-produced descriptions of API and configuration fields and types. It
+  says what information exists, not how that information affects behavior.
+- **Definition ID.** A stable dot-separated ID for a Model Definition, such as
+  `workflow-nexus.property.caller-closure`. Umpire checks that an ID refers to the expected kind of
+  definition. Reordering declarations or editing documentation does not change it.
+- **Behavior Fingerprint.** A value generated from the parts of a Model Definition that affect
+  behavior. It changes when behavior changes, but not when documentation, source location, or source
+  order changes.
+- **Capability Contract.** A named behavior that one model component needs and another provides,
+  together with the rules the provider must follow.
+- **Implementation Link.** Lean code that connects product behavior under `Temporal.Feature` to the
+  corresponding implementation behavior under `Temporal.System` without merging the two
+  descriptions.
 
 ### Where things live
 
-- **`Umpire`.** The domain-neutral Lean library and namespace providing reusable tools and types for
-  writing and checking Model Definitions, selecting traces, creating Artifacts, interpreting
-  observations, and performing verification.
-- **`Temporal.Feature`.** The namespace for product behavior that should remain true even if
-  Temporal's implementation is rewritten. It owns product-visible states, Actions, outcomes,
-  relations, and `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` declarations.
-- **`Temporal.System`.** The namespace for the behavior of Temporal's current implementation. It
-  owns implementation mechanisms, configuration interpretation, `Umpire.Observation` declarations,
-  Execution behavior, and Implementation Mappings.
-- **`Temporal.API`.** The namespace containing Generated Data from Temporal's Protobuf and gRPC
-  definitions. It does not decide product or implementation behavior.
-- **`Temporal.DynamicConfig`.** The namespace containing Generated Data about available
-  configuration. Model Definitions under `Temporal.System` decide how configuration affects
-  behavior.
+- **`Umpire`.** Reusable Lean tools for writing and checking models and producing plans. It contains
+  no Temporal-specific behavior.
+- **`Temporal.Feature`.** Product behavior visible to users and SDKs. It should remain true if the
+  implementation changes.
+- **`Temporal.System`.** How the current Temporal implementation, configuration, and runtime behave.
+- **`Temporal.API`.** Generated API field and type information from Protobuf and gRPC definitions.
+- **`Temporal.DynamicConfig`.** Generated configuration field and type information.
 
 ### Purpose and scope
 
-- **SCP-01 — Temporal-driven scope.** Umpire MUST solve modeling, Regression, Exploration,
-  Conformance, and verification problems demonstrated by Temporal rather than hypothetical users.
-- **SCP-02 — Domain-neutral core.** The reusable `Umpire` library MUST remain free of Temporal
-  vocabulary, dependencies, and fixtures.
+- **SCP-01 — Temporal-driven scope.** Umpire MUST add only capabilities required by a concrete
+  Temporal modeling, Regression, Exploration, Run Evaluation, or verification use case.
+- **SCP-02 — Reusable core.** Reusable `Umpire` code MUST NOT contain Temporal-specific names,
+  dependencies, or fixtures.
 - **SCP-03 — One model language.** All Behavior Model code MUST be written in Lean and live under
   `model/`.
-- **SCP-04 — Focused complement.** Umpire SHOULD complement, rather than replace, specialized unit,
-  race, persistence, schema, authorization, performance, and handler tests.
+- **SCP-04 — Focused complement.** Umpire SHOULD complement specialized unit, race, persistence,
+  schema, authorization, performance, and handler tests rather than replace them.
 
 ### Source of truth
 
-- **SEM-01 — Model authority.** The Behavior Model MUST be the sole authority for behavior described
-  by Umpire; generated Artifacts, Go code, runtimes, evidence mappings, and checker adapters MUST NOT
-  redefine it.
-- **SEM-02 — Model Definitions.** Checked handwritten `Temporal.Feature` and `Temporal.System`
-  declarations MUST be the only sources of product and implementation behavior within the Behavior
-  Model.
+- **SEM-01 — Model authority.** For behavior covered by Umpire, the Behavior Model MUST be the only
+  source of truth. Generated code, Artifacts, runtimes, Evidence mappings, and checker adapters MUST
+  NOT add or override behavior.
+- **SEM-02 — Model Definitions.** Handwritten `Temporal.Feature` and `Temporal.System` Model
+  Definitions MUST be the only sources of product and implementation behavior.
 - **SEM-03 — Generated Data.** Generated `Temporal.API` and `Temporal.DynamicConfig` declarations
-  MUST remain Generated Data until Model Definitions explain how to interpret them.
-- **SEM-08 — Explicit Implementation Mapping.** `Temporal.Feature` product behavior and
-  `Temporal.System` implementation behavior MUST meet through an explicit Implementation Mapping,
-  never through declaration order or implicit selection.
+  MUST NOT define behavior until a Model Definition interprets them.
+- **SEM-08 — Explicit Implementation Link.** A dedicated Implementation Link MUST connect
+  `Temporal.Feature` product behavior to `Temporal.System` implementation behavior. Declaration
+  order and implicit selection MUST NOT create that connection.
 
 ### Enforced module boundaries
 
-- **MOD-01 — `Umpire` independence.** `Umpire.*` MUST NOT reach `Temporal.*` through first-party
-  imports.
-- **MOD-03 — `Temporal.Feature` isolation.** `Temporal.Feature.*` MUST NOT reach
-  `Temporal.System.*`, `Temporal.Verify.*`, or `Umpire.Verify.Veil` through first-party imports,
-  except for an exact MOD-05 verification consumer.
-- **MOD-05 — Verification isolation.** Ordinary first-party modules MUST NOT reach
-  `Temporal.Verify.*` or `Umpire.Verify.Veil`. The only opt-in consumers are `TemporalVerify`,
-  `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, and
+- **MOD-01 — `Umpire` independence.** `Umpire.*` MUST NOT directly or transitively import
+  `Temporal.*`.
+- **MOD-03 — `Temporal.Feature` isolation.** `Temporal.Feature.*` MUST NOT directly or transitively
+  import `Temporal.System.*`, `Temporal.Verify.*`, or `Umpire.Verify.Veil`. The only exceptions are
+  the verification consumers listed in MOD-05.
+- **MOD-05 — Verification isolation.** Ordinary first-party modules MUST NOT directly or
+  transitively import `Temporal.Verify.*` or `Umpire.Verify.Veil`. The only opt-in consumers are
+  `TemporalVerify`, `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, and
   `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests`.
-- **MOD-09 — `Shared` independence.** `Shared.*` MUST NOT reach `Umpire.*` or `Temporal.*` through
-  first-party imports.
-- **MOD-10 — `Temporal.System` isolation.** `Temporal.System.*` MUST NOT reach
-  `Temporal.Feature.*` through first-party imports except from
-  `Temporal.System.Nexus.Refinement`.
+- **MOD-09 — `Shared` independence.** `Shared.*` MUST NOT directly or transitively import `Umpire.*`
+  or `Temporal.*`.
+- **MOD-10 — `Temporal.System` isolation.** `Temporal.System.*` MUST NOT directly or transitively
+  import `Temporal.Feature.*`. The only exception is `Temporal.System.Nexus.Refinement`.
 - **MOD-11 — Executable enforcement.** `make lint-model` MUST enforce MOD-01, MOD-03, MOD-05,
-  MOD-09, and MOD-10 over the complete first-party Lean import graph.
+  MOD-09, and MOD-10 across the complete first-party Lean import graph.
 
 ### Module design
 
-- **MOD-02 — Product and system ownership.** `Temporal.Feature` MUST own product-visible behavior,
-  while `Temporal.System` MUST own implementation mechanisms, configuration interpretation,
-  evidence mappings, and Execution behavior.
+- **MOD-02 — Product and system ownership.** `Temporal.Feature` MUST own product-visible behavior.
+  `Temporal.System` MUST own implementation mechanisms, configuration interpretation, Evidence
+  mappings, and Execution behavior.
 - **MOD-04 — Focused mappings.** `Temporal.Feature.*` and `Temporal.System.*` modules MUST remain
-  independently understandable and testable; only focused Implementation Mapping modules MAY
-  relate their behavior, with import composition governed by MOD-10.
-- **MOD-06 — Deep modules.** `Umpire.*` modules SHOULD hide substantial checking, planning, artifact,
+  understandable and testable on their own. Only focused Implementation Link modules MAY connect
+  them, subject to MOD-10.
+- **MOD-06 — Small public interfaces.** `Umpire.*` modules SHOULD hide checking, planning, Artifact,
   observation, and verification machinery behind small, cohesive interfaces.
-- **MOD-07 — Component seams.** Components MUST have narrow responsibilities and communicate through
-  explicit contracts rather than each other's internal representations.
-- **MOD-08 — Isolated testability.** Each component MUST be testable with fixtures or domain-neutral
-  examples without requiring the complete `Umpire` pipeline or a running Temporal cluster.
+- **MOD-07 — Clear component boundaries.** Components MUST have narrow responsibilities and
+  communicate through explicit contracts rather than each other's internal representations.
+- **MOD-08 — Isolated testability.** Each component MUST be testable with fixtures or generic
+  examples without the complete `Umpire` pipeline or a running Temporal cluster.
 
 ## Model authoring and traces
 
 ### Key concepts
 
-- **Action.** A model-level request recognized by a selected `Umpire.CheckedTarget`. An authored or
-  planned action requests a transition; it neither chooses the Model Outcome nor proves that a
-  runtime realized the request.
-- **Model Outcome.** The `Umpire.CheckedTarget`-owned response to an Action. The same target
-  transition determines the resulting state and Semantic Observations. A model outcome is distinct
-  from a Phase Outcome or runtime Realization.
-- **Semantic Observation.** A target-owned fact present in a pure Semantic Trace or established from
-  raw Evidence by `Umpire.Observation`. It is not a raw log, span, RPC, record, or receipt.
-- **Semantic Trace.** A pure initial state and ordered sequence of selected Actions, Model Outcomes,
-  resulting states, and Semantic Observations. Runtime Evidence and Qualification are absent.
-- **Scenario.** A named space of possible Semantic Traces. Its `Umpire.Behavior` constrains
-  admissible traces, while model-owned variation and fault declarations may parameterize the space.
-  A scenario does not select a concrete trace.
-- **Omission.** An explicit declaration that a Capability, input, interpretation, or claim is absent
-  or unsupported. An omission narrows what an Artifact or Result can establish.
-- **`Umpire.Behavior`.** The typed language that constrains admissible Semantic Trace spaces without
-  deciding whether a trace is correct or whether runtime Execution occurred.
-- **`Umpire.CheckedTarget`.** A validated composition of model vocabulary, Capabilities, laws,
-  providers, connectors, and the authoritative transition kernel used by planning and evaluation.
-- **`Umpire.Property`.** The typed language for pure, portable, capability-scoped claims over
-  Semantic Traces. It contains no implementation evidence sources or runtime controls.
-- **`Umpire.Query`.** The typed language that combines checked `Umpire.Behavior` and
-  `Umpire.Property` declarations, a compatible `Umpire.CheckedTarget`, a claim, Bounds, and planning
-  policy into a bounded question.
-- **Unsatisfiable.** A checked `Umpire.Behavior` whose constraints admit no Semantic Trace. It is an
-  explicit failure outcome, not success by vacuity.
+- **Action.** Something a Test asks the model to do, such as closing a Workflow. Requesting an
+  Action does not choose its Model Outcome or prove that it happened at runtime.
+- **Model Outcome.** The result the Checked Model produces for an Action, including the next state
+  and any Model Facts. It is an expected model result, not a runtime result or Stage Status.
+- **Model Fact.** A fact expressed in the model, such as “the Nexus operation received a
+  cancellation.” Logs, spans, RPCs, and records are Evidence used to decide whether the fact
+  occurred during a Run.
+- **Model Trace.** A starting state followed by Actions, Model Outcomes, state changes, and Model
+  Facts. It contains no runtime Evidence.
+- **Scenario.** A named set of possible Model Traces. It describes the available variation and
+  faults but does not choose one trace.
+- **Known Gap.** A Capability Contract, input, interpretation, or claim that is missing or
+  unsupported. A Known Gap limits what an Artifact or Result can prove.
+- **Behavior (`Umpire.Behavior`).** Lean data describing which Model Traces a Scenario allows. It
+  does not decide whether a trace is correct or occurred at runtime.
+- **Checked Model (`Umpire.CheckedTarget`).** A model that has passed validation and is ready for
+  planning and evaluation.
+- **Property (`Umpire.Property`).** A reusable pass/fail rule over Model Traces. For example, closing
+  a Workflow cancels its running Nexus operation at most once.
+- **Query (`Umpire.Query`).** A request to find a Model Trace that demonstrates or violates a
+  Property within explicit Limits.
+- **Unsatisfiable.** A Behavior that allows no Model Traces. This is an error, not a passing Test.
 
 ### Model languages
 
 - **SEM-04 — Separate languages.** `Umpire.Property`, `Umpire.Behavior`, `Umpire.Query`,
-  `Umpire.Observation`, and other Lean DSLs MUST remain distinct typed languages with distinct
-  responsibilities.
-- **SEM-05 — Pure `Umpire.Property`.** `Umpire.Property` declarations MUST be pure, portable,
-  capability-scoped claims over Semantic Traces and MUST NOT depend on implementation evidence
-  sources.
+  `Umpire.Observation`, and the other Lean authoring languages MUST remain separate and have separate
+  jobs.
+- **SEM-05 — Pure `Umpire.Property`.** `Umpire.Property` declarations MUST use only Model Traces and
+  Capability Contracts. They MUST NOT depend on implementation Evidence.
 - **SEM-06 — Declarative `Umpire.Behavior`.** `Umpire.Behavior` declarations MUST constrain
-  admissible Semantic Trace spaces; they MUST NOT become procedural RPC or runtime scripts.
-- **SEM-07 — Target-owned outcomes.** Authors MUST request Actions, while `Umpire.CheckedTarget`
+  allowed Model Traces. They MUST NOT become step-by-step RPC or runtime scripts.
+- **SEM-07 — Model-owned outcomes.** Authors MUST request Actions, while `Umpire.CheckedTarget`
   determines their Model Outcomes and resulting states.
-- **SEM-09 — Bounded progress.** Progress claims in `Umpire.Property` MUST use an explicit Bound and
-  declared semantic unit; finite Execution MUST NOT claim unbounded liveness.
+- **SEM-09 — Bounded progress.** A Property claiming that something eventually happens MUST state a
+  Limit and unit. A finite Execution MUST NOT prove an unlimited “eventually” claim.
 
 ### Authoring
 
-- **AUT-01 — Approachable authoring.** A Temporal engineer with Lean basics SHOULD be able to author
-  ordinary `Temporal.Feature` and `Temporal.System` declarations without assembling proof, provider,
-  connector, canonicalization, digest, or planner plumbing.
-- **AUT-02 — Explicit meaning.** Authoring interfaces MUST keep meaning-bearing states, Actions,
-  outcomes, relations, Bounds, faults, Capabilities, Omissions, and unsupported cases explicit.
-- **AUT-03 — Checked declarations.** Public declarations MUST be checked before planning or Execution,
-  and failures SHOULD produce precise source-located diagnostics.
-- **AUT-04 — Stable names.** Every public Model Definition MUST have a stable, namespaced,
-  kind-checked Model Name that is independent of source ordering and documentation.
+- **AUT-01 — Approachable authoring.** A Temporal engineer with basic Lean knowledge SHOULD be able
+  to write ordinary Model Definitions without understanding Umpire's internal plumbing.
+- **AUT-02 — Explicit meaning.** Authoring interfaces MUST make states, Actions, outcomes, relations,
+  Limits, faults, Capability Contracts, Known Gaps, and unsupported cases explicit.
+- **AUT-03 — Checked declarations.** Public declarations MUST be checked before planning or
+  Execution. Failures SHOULD report errors at the relevant source location.
+- **AUT-04 — Stable IDs.** Every public Model Definition MUST have a stable, dot-separated Definition
+  ID that is checked against the expected definition kind. Source order and documentation MUST NOT
+  affect it.
 - **AUT-05 — Portable data.** Anything used for portable planning, Artifacts, promotion, or
-  cross-language Execution MUST be inspectable data with a Lean denotation, not an opaque callback.
+  cross-language Execution MUST be serializable data that Lean can interpret. It MUST NOT depend on
+  in-process callbacks.
 - **AUT-06 — Explicit composition.** Competing providers and cross-domain relationships MUST be
-  connected explicitly; declaration order and type-class search MUST NOT select behavior.
+  connected explicitly. Declaration order and Lean's automatic instance search MUST NOT choose
+  behavior.
 - **AUT-07 — Single authoring path.** `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` MUST
   remain the only public scenario and question languages. `Umpire.CheckedTarget` is their shared
-  semantic-model substrate, not another language; compatibility facades MUST NOT create a second
-  interface.
+  semantic-model substrate, not another language; wrappers MUST NOT introduce another way to define
+  behavior.
 
-## Planning, Bounds, and Artifacts
+## Planning, Limits, and Artifacts
 
 ### Key concepts
 
-- **Bound.** An explicit, typed, phase-local limit with a value and semantic unit. A bound on one
-  phase does not implicitly bound another phase.
-- **Budget Exhaustion.** A Phase Outcome indicating that an effort Bound was reached before the
-  phase established its claim. It proves neither absence nor completeness.
-- **Complete Search.** A search with checked completeness Evidence that every candidate admitted by
-  the exact `Umpire.Behavior` Bounds was considered. Finding no candidate establishes only absence
-  within those Bounds.
-- **Test.** One concrete deterministic Semantic Trace selected by a `Umpire.Query` from a Scenario
-  and compiled with its `Umpire.Property` declarations and Bounds into a
-  `Umpire.ExperimentSpec`.
-- **Artifact.** Immutable, versioned, inspectable data exchanged across a component, language, or
-  process seam. Being portable does not make an Artifact a source of model behavior.
-- **Artifact Fingerprint.** A reproducible fingerprint of an Artifact's complete canonical content.
-  It identifies one exact generated plan or Artifact and changes when that content changes; it is
-  not a Model Name or Meaning Fingerprint.
-- **Projection.** A deterministic developer view bound to an Artifact Fingerprint and derived from
-  an Artifact. A projection is not an independently editable source of meaning.
-- **`Umpire.DrivePlan`.** Generated deterministic execution intent for one selected Semantic Trace.
-  It is neither an authoring language nor Evidence of Execution.
-- **`Umpire.ExperimentSpec`.** The portable, environment-independent envelope containing complete
-  bounded execution intent, Model Names and Meaning Fingerprints for the referenced Model
-  Definitions, `Umpire.Observation` requirements, provenance, and model bindings. It records what a
-  runtime should attempt, not what occurred.
+- **Limit.** A typed limit for one stage, such as 100 search candidates or 30 execution steps. A
+  Limit for one stage does not limit another.
+- **Limit Reached.** A Stage Status reported when a Limit is reached before the stage answers its
+  question. It proves neither that the answer is no nor that the search was exhaustive.
+- **Exhaustive Search.** A search that checks every candidate allowed by the exact Behavior and
+  Limits. Finding no candidate proves absence only within those Limits.
+- **Test.** One deterministic Model Trace selected from a Scenario and packaged as a Test Plan with
+  its Properties and Limits.
+- **Artifact.** Versioned data that does not change and can be inspected. Components, languages, and
+  processes exchange Artifacts, but Artifacts cannot define model behavior.
+- **Artifact Checksum.** A reproducible checksum of all Artifact content after it has been put in a
+  stable order, excluding the checksum field itself. It identifies one exact Artifact; it is not a
+  Definition ID or Behavior Fingerprint.
+- **Generated View.** A generated view of an Artifact, such as a Go test or documentation. It is
+  bound to the source Artifact Checksum and cannot define behavior.
+- **Execution Plan (`Umpire.DrivePlan`).** Generated instructions for attempting one selected Model
+  Trace. It is not Evidence that Execution occurred.
+- **Test Plan (`Umpire.ExperimentSpec`).** A portable file containing everything needed to attempt
+  one bounded Test. It describes the intended Test, not what happened.
 
-### Planning and Bounds
+### Planning and Limits
 
-- **PLN-01 — Explicit Bounds.** `Umpire.Behavior` admission, search, Execution, observation, and
-  minimization MUST each have explicit typed Bounds.
-- **PLN-02 — Deterministic selection.** Identical Model Definitions, model inputs, Bounds, strategy,
-  and seed MUST produce identical selected plans and Artifact Fingerprints.
-- **PLN-03 — Honest completeness.** A Complete Search MUST fail rather than silently truncate.
-- **PLN-04 — Honest exhaustion.** Budget Exhaustion MUST remain distinct from proof that no trace or
+- **PLN-01 — Explicit Limits.** Deciding whether a Behavior allows a trace, search, Execution,
+  observation, and failure reduction MUST each have explicit typed Limits.
+- **PLN-02 — Deterministic selection.** Identical Model Definitions, model inputs, Limits, strategy,
+  and seed MUST produce identical Execution Plans and Artifact Checksums.
+- **PLN-03 — Honest completeness.** An Exhaustive Search MUST fail rather than silently stop early.
+- **PLN-04 — Honest limits.** Limit Reached MUST remain distinct from proof that no trace or
   counterexample exists.
 - **PLN-05 — Honest `Umpire.Behavior` satisfiability.** A checked `Umpire.Behavior` that admits no
-  Semantic Trace MUST report `unsatisfiable`, never success by vacuity.
-- **PLN-06 — Generated `Umpire.DrivePlan` intent.** A `Umpire.DrivePlan` MUST be generated execution
-  intent, not an authoring language or Evidence that Execution occurred.
+  Model Trace MUST report `unsatisfiable`, never a passing Test.
+- **PLN-06 — Generated Execution Plan.** A `Umpire.DrivePlan` MUST be generated instructions, not an
+  authoring language or Evidence that Execution occurred.
 
 ### Artifacts
 
-- **ART-01 — Versioned seams.** Persisted Artifacts MUST be explicit, versioned, deterministic, and
-  inspectable component boundaries.
-- **ART-02 — Model binding.** Artifacts MUST carry Model Names, Meaning Fingerprints, their own
-  Artifact Fingerprints, provenance, explicit Omissions, and enough compatibility data to reject
-  stale consumers.
-- **ART-03 — Portable `Umpire.ExperimentSpec`.** `Umpire.ExperimentSpec` MUST describe complete,
-  environment-independent, bounded execution intent without claiming that any requested Action,
-  fault, outcome, or observation occurred.
-- **ART-04 — Strict evolution.** Readers MUST reject unknown major versions and unknown fields that
-  could affect behavior; changes to the meaning of old data require named deterministic migrations.
+- **ART-01 — Versioned formats.** Persisted Artifacts MUST use explicit, versioned formats that can be
+  inspected and always serialize the same content in the same way.
+- **ART-02 — Model binding.** Artifacts MUST carry Definition IDs, Behavior Fingerprints, their own
+  Artifact Checksums, source information, Known Gaps, and enough compatibility data to reject stale
+  readers.
+- **ART-03 — Portable Test Plan.** `Umpire.ExperimentSpec` MUST contain complete,
+  environment-independent instructions for one bounded Test. It MUST NOT claim that any requested
+  Action, fault, outcome, or observation occurred.
+- **ART-04 — Safe format changes.** Readers MUST reject unknown major versions and unknown fields
+  that could affect behavior. Changing the meaning of old data requires a named migration that
+  always produces the same result.
 - **ART-05 — Same experiment.** Local, CI, staging, black-box, and canary Execution MUST consume the
-  same `Umpire.ExperimentSpec` rather than environment-specific copies that change its model
-  behavior.
+  same Test Plan rather than environment-specific copies that change its model behavior.
 - **ART-06 — Complete traces.** An executable trace MUST include its model setup, participant
-  programs, runtime-resolved symbolic references, Actions, faults, ordering, observations,
-  termination, and cleanup obligations.
-- **ART-07 — Derived Projections.** Generated Go tests and documentation MUST be deterministic
-  Projections bound to their source Artifact Fingerprints, never independently editable sources of
-  model behavior.
+  programs, references whose concrete IDs are learned at runtime, Actions, faults, ordering,
+  observations, termination, and cleanup obligations.
+- **ART-07 — Generated Views.** The same source Artifact MUST always produce the same Generated View.
+  Generated Go tests and documentation MUST be bound to their source Artifact Checksums and MUST NOT
+  be editable sources of model behavior.
 
-## Execution, Evidence, and Conformance
+## Execution, Evidence, and Run Evaluation
 
 ### Key concepts
 
-- **Execution.** A bounded attempt to realize a `Umpire.ExperimentSpec` in an environment. Execution
-  reports attempts, realized outcomes, raw Evidence, divergence, infrastructure failures, and
-  cleanup; it does not decide `Umpire.Property` satisfaction.
-- **Run.** One environment-specific Execution of one `Umpire.ExperimentSpec`, retaining all Action
-  and fault attempts, receipts, Evidence, failures, and cleanup outcomes.
-- **Fault Intent.** An authored request to apply a fault at a model occurrence. A fault intent is
-  not a realized fault without a matching Realization receipt.
-- **Realization.** Runtime Evidence, bound to the intended model occurrence, that a requested
-  Action or fault actually occurred. Selection, planning, or request dispatch alone is not
-  realization.
-- **Evidence.** Recorded information about Execution. Raw evidence consists of implementation facts
-  and receipts; semantic evidence is their identity-bound, ordered, closure-checked interpretation
-  under `Umpire.Observation`.
-- **Evidence Derivation.** The inspectable justification for one established Semantic Observation,
-  including the mapping, evidence identities, bindings, ordering facts, and closure Evidence used.
-- **`Umpire.Observation`.** The typed language that maps raw Evidence into qualified Semantic
-  Observations while retaining identity, ordering, closure, conflict, and derivation information.
-- **Conformance.** Interpretation of raw Evidence into a Semantic Trace followed by evaluation of
-  the applicable `Umpire.Property` declarations. Conformance determines what a Run establishes; it
-  does not perform Execution.
-- **Phase Outcome.** The status reported by one lifecycle phase, such as planning, Execution,
-  `Umpire.Observation` interpretation, `Umpire.Property` evaluation, or verification. A phase
-  outcome implies no other phase's outcome unless an explicit rule says otherwise.
-- **Result.** The qualified interpretation of a Run, retaining distinct Execution,
-  `Umpire.Observation` interpretation, `Umpire.Property` evaluation, Omission, and cleanup outcomes.
-  A result is not synonymous with any one Phase Outcome.
+- **Execution.** The bounded process of attempting a Test Plan in an environment. It records what
+  happened but does not decide whether a Property passed.
+- **Run.** The record of one Execution in one environment, including Action and fault attempts,
+  receipts, Evidence, failures, and cleanup.
+- **Fault Request.** A request to apply a fault at a specific point in a Model Trace. It does not
+  prove that the fault occurred.
+- **Execution Receipt.** Runtime Evidence tied to a requested Action or fault that confirms it
+  actually occurred. Planning or sending a request is not an Execution Receipt.
+- **Evidence.** Logs, traces, responses, records, and receipts collected during a Run. Umpire checks
+  their source, identity, order, and completeness before using them to establish Model Facts.
+- **Evidence Link.** An auditable explanation of why Umpire accepted one Model Fact, including the
+  Evidence, bindings, and ordering facts it used.
+- **Observation Rules (`Umpire.Observation`).** Lean rules that translate raw Evidence into Model
+  Facts while retaining source, order, completeness, conflict, and Evidence Link information.
+- **Run Evaluation.** Translation of raw Evidence into a Model Trace followed by checking its
+  Properties. It decides what a Run proves but does not perform Execution.
+- **Stage Status.** The status of one stage, such as planning, Execution, observation, Property
+  checking, or verification. One Stage Status says nothing about another unless a rule explicitly
+  connects them.
+- **Result.** The complete interpreted report for a Run. It keeps Execution, observation, Property,
+  Known Gap, and cleanup statuses separate.
 
 ### Execution and Evidence
 
-- **EVD-01 — Thin runtime.** Runtime and CLI code MUST bind and execute model-produced Artifacts
-  without independently interpreting Temporal product behavior.
-- **EVD-02 — Separate Conformance.** Execution MUST report what happened; evidence interpretation and
-  `Umpire.Property` evaluation MUST separately decide what that establishes.
-- **EVD-03 — Qualified Evidence.** Raw Evidence MUST be normalized, identity-bound, causally ordered,
-  checked for source closure and gaps, and translated into Semantic Observations before
-  `Umpire.Property` declarations consume it.
-- **EVD-04 — Fail closed.** Missing, ambiguous, conflicting, stale, causally unrelated, or unsupported
-  Evidence MUST NOT establish success or absence.
-- **EVD-05 — Independent outcomes.** Authoring, planning, Execution, `Umpire.Observation`
-  interpretation, `Umpire.Property` evaluation, and verification outcomes MUST remain distinct and
-  MUST NOT imply one another.
-- **EVD-06 — Realization receipts.** A requested Action or fault MUST NOT count as realized
-  without a receipt linked to the intended model occurrence.
-- **EVD-07 — Distributed ordering.** Conclusions about model behavior MUST rely on declared model,
-  causal, or source-local ordering rather than synchronized wall clocks.
-- **EVD-08 — Complete lifecycle.** Every Run MUST retain attempts, realized outcomes, Evidence,
-  Omissions, divergence, infrastructure failures, and cleanup results.
-- **EVD-09 — Evidence Derivations.** Every established Semantic Observation MUST retain an Evidence
-  Derivation linking it to its mapping, evidence identities, bindings, ordering facts, and closure
-  Evidence.
+- **EVD-01 — Thin runtime.** Runtime and CLI code MUST only fill in environment-specific values and
+  execute model-produced Artifacts. They MUST NOT independently decide Temporal product behavior.
+- **EVD-02 — Separate Run Evaluation.** Execution MUST report what happened. Evidence interpretation
+  and Property evaluation MUST separately decide what that proves.
+- **EVD-03 — Checked Evidence.** Before a Property uses raw Evidence, Umpire MUST normalize it,
+  verify its source and identity, order it causally, check it for missing records, and translate it
+  into Model Facts.
+- **EVD-04 — Fail closed.** Missing, ambiguous, conflicting, outdated, unsupported, or causally
+  unrelated Evidence MUST NOT establish success or absence.
+- **EVD-05 — Independent statuses.** Authoring, planning, Execution, Observation Rules, Property
+  evaluation, and verification MUST report separate Stage Status values. One MUST NOT imply another.
+- **EVD-06 — Execution Receipts.** A requested Action or fault MUST NOT count as having occurred
+  without an Execution Receipt linked to the intended point in the Model Trace.
+- **EVD-07 — Distributed ordering.** Conclusions about model behavior MUST rely on order declared by
+  the model, cause and effect, or records from one source. They MUST NOT rely on synchronized wall
+  clocks.
+- **EVD-08 — Complete lifecycle.** Every Run MUST retain attempts, actual outcomes, Evidence, Known
+  Gaps, divergence, infrastructure failures, and cleanup results.
+- **EVD-09 — Evidence Links.** Every accepted Model Fact MUST retain an Evidence Link to its mapping,
+  Evidence records, bindings, ordering facts, and completeness checks.
 
 ## Exploration, replay, and promotion
 
 ### Key concepts
 
-- **Exploration.** Model-owned bounded selection from a declared model space to find useful
-  experiments or counterexamples. Exploration is exhaustive only when it completes a declared
-  finite space with checked completeness Evidence.
+- **Exploration.** Model-owned selection from a declared space to find useful Tests or
+  counterexamples. It is exhaustive only when it completes a declared finite space within its
+  Limits.
 - **Regression.** A permanent named `Umpire.Query` retained to detect recurrence of known behavior
-  independently of exploratory budgets.
-- **Canonical Replay.** Re-evaluation of a trace or counterexample through the referenced
-  `Umpire.CheckedTarget`, `Umpire.Behavior`, and `Umpire.Property` declarations with matching
-  Model Names, Meaning Fingerprints, and Bounds.
+  independently of Exploration Limits.
+- **Exact Replay.** Re-evaluation of a Model Trace or counterexample using the exact referenced
+  Definition IDs, Behavior Fingerprints, Properties, Behavior, and Limits.
 
 ### Rules
 
-- **EXP-01 — Shared model.** Regression Execution, model checking, Exploration, fuzzing, Canonical
+- **EXP-01 — Shared model.** Regression Execution, model checking, Exploration, fuzzing, Exact
   Replay, and canary selection MUST reuse the same Model Definitions and
   `Umpire.Property` declarations.
-- **EXP-02 — Model-owned Exploration.** The model MUST own exploration spaces, mutation operators,
-  model coverage, candidate scoring, and selection policy; orchestration MAY execute and persist
-  the resulting batches.
-- **EXP-03 — Honest fuzzing.** Time- or budget-bounded runtime fuzzing MUST NOT claim exhaustive
-  coverage or completeness.
-- **EXP-04 — Pinned Regressions.** Known Regressions MUST run independently of exploratory budgets.
+- **EXP-02 — Model-owned Exploration.** The model MUST define what can be explored, how inputs may be
+  varied, what counts as coverage, how candidates are scored, and how they are selected.
+  Orchestration MAY execute and store the resulting batches.
+- **EXP-03 — Honest fuzzing.** Runtime fuzzing stopped by a time or work Limit MUST NOT claim
+  exhaustive coverage.
+- **EXP-04 — Pinned Regressions.** Known Regressions MUST run independently of Exploration Limits.
 - **EXP-05 — Reviewed promotion.** A discovered failure MUST be reproducible, minimized in model
-  terms, and canonically replayed before a human reviews its promotion into a permanent Lean
+  terms, and reproduced by Exact Replay before a human reviews its promotion into a permanent Lean
   Regression.
 
-## Verification, interfaces, and Qualification
+## Verification, interfaces, and Claim Assessment
 
 ### Key concepts
 
-- **`Temporal.Verify`.** The opt-in Temporal namespace for checker views, bindings, correspondence,
-  and verification entry points. It does not own independent behavioral meaning.
-- **`Umpire.Verify.Veil`.** The opt-in, domain-neutral checker-integration namespace. It is excluded
-  from the ordinary `Umpire` facade, ordinary Temporal imports, and runtime paths.
-- **Trust Class.** The kind of assurance supporting a claim, such as kernel proof, reconstructed
-  proof, trusted solver, bounded search, testing, or concrete replay. Different trust classes are
-  not interchangeable.
-- **Qualification.** Evaluation of admitted Results under a named environment and evidence profile,
-  preserving Bounds, trust, Omissions, authority, and cleanup status in the resulting claim.
+- **`Temporal.Verify`.** Optional Temporal-specific checker integration. It does not define behavior.
+- **`Umpire.Verify.Veil`.** Optional reusable Veil checker integration. Ordinary models and runtimes
+  do not import it.
+- **Assurance Method.** How a claim was supported, such as a kernel proof, reconstructed proof,
+  trusted solver, search within Limits, Test, or concrete replay. These methods are not
+  interchangeable.
+- **Claim Assessment.** A statement of what a Result proves in a named environment under a specific
+  Evidence policy. It includes the Limits, Assurance Method, Known Gaps, trusted sources, and cleanup
+  status.
 
 ### Optional formal verification
 
 - **VER-01 — Lean-native default.** Lean-native checking MUST remain the default verification path.
-- **VER-02 — Family opt-in.** Optional checker integration MUST be adopted explicitly per model
-  family and `Umpire.Property` declaration.
-- **VER-03 — Checked correspondence.** Every checker view MUST have an explicit checked
-  correspondence to an existing `Umpire.CheckedTarget` and `Umpire.Property` declaration.
-- **VER-04 — Honest receipts.** Verification receipts MUST expose source information, Model Names,
-  Meaning Fingerprints, assumptions, Bounds, Omissions, provenance, and Trust Class.
-- **VER-05 — Canonical Replay.** A checker counterexample MUST replay through canonical `Umpire`
-  model behavior before it can support a model violation or promoted Regression.
-- **VER-06 — Distinct trust.** Kernel proofs, reconstructed proofs, trusted solvers, bounded search,
-  testing, and concrete replay MUST remain distinct claim classes.
+- **VER-02 — Explicit opt-in.** Each model family and `Umpire.Property` declaration MUST explicitly
+  opt in to optional checker integration.
+- **VER-03 — Checked link.** Every checker view MUST have an explicit checked link to an existing
+  `Umpire.CheckedTarget` and `Umpire.Property` declaration.
+- **VER-04 — Honest receipts.** Verification receipts MUST expose source information, Definition
+  IDs, Behavior Fingerprints, assumptions, Limits, Known Gaps, and Assurance Method.
+- **VER-05 — Exact Replay.** A checker counterexample MUST pass Exact Replay through the Behavior
+  Model before it can support a model violation or promoted Regression.
+- **VER-06 — Distinct trust.** Kernel proofs, reconstructed proofs, trusted solvers, search within
+  Limits, Tests, and concrete replay MUST remain distinct Assurance Methods.
 
-### CLI and Qualification
+### CLI and Claim Assessment
 
 - **CLI-01 — Code location.** Umpire CLI code MUST live under `tools/umpire` or be imported from
   `temporal/tools/common`.
-- **CLI-02 — Thin interface.** User-facing tools MAY select declarations and tighten declared Bounds,
-  but MUST NOT invent `Umpire.Behavior` declarations or broaden model-declared Bounds.
-- **CLI-03 — Inspectability.** Named `Umpire.Property` declarations, Scenarios, Tests, Explorations,
-  checks, Artifacts, and Results SHOULD have coherent list and explain surfaces.
-- **QLF-01 — Operational bindings.** Environment profiles MAY bind endpoints, credentials,
-  namespaces, authority, resources, and adapters only when those bindings do not change modeled
-  behavior.
+- **CLI-02 — Thin interface.** User-facing tools MAY select declarations and tighten declared Limits,
+  but MUST NOT invent `Umpire.Behavior` declarations or broaden model-declared Limits.
+- **CLI-03 — Inspectability.** User-facing tools SHOULD provide consistent commands to list and
+  explain named Properties, Scenarios, Tests, Explorations, checks, Artifacts, and Results.
+- **QLF-01 — Environment settings.** Environment profiles MAY provide endpoints, credentials,
+  namespaces, permissions, resources, and adapters only when they do not change modeled behavior.
 - **QLF-02 — Environment controls.** Each non-local environment MUST explicitly own authorization,
-  rate and concurrency limits, cleanup, isolation, rollout policy, and blast-radius controls.
-- **QLF-03 — Qualified claims.** Every qualified claim MUST expose its environment, evidence profile,
-  Bounds, trust, Omissions, cleanup outcome, and Meaning Fingerprints.
+  rate and concurrency limits, cleanup, isolation, rollout policy, and limits on possible impact.
+- **QLF-03 — Complete claims.** Every Claim Assessment MUST expose its environment, Evidence policy,
+  Limits, Assurance Method, Known Gaps, cleanup outcome, and Behavior Fingerprints.
