@@ -1,17 +1,15 @@
 ---
-satisfies: [R5]
+satisfies: [R5, R7]
 ---
-# fn-26-local-qualification-receipts-and-staged.3 Add QualificationReceipt v1 and ArtifactSet v2
+# fn-26-local-qualification-receipts-and-staged.3 Add EvaluationReceipt v2 and the post-v2 ArtifactSet successor
 
 ## Description
-**Size:** L
-**Files:** model/Umpire/Artifact/**, tools/umpire/artifact/**
-**Touches:** receipt family, set v2, strict publication
-
-Extend the Lean canonical artifact vocabulary and tools/umpire/artifact with the exact 64-MiB/1,048,576-token bounded umpire-qualification-receipt/v1 schema, pathless ArtifactReference, nested limits, identities, strict reader/encoder, and a non-breaking umpire-artifact-set/v2 containing the six byte-identical v1 members plus one receipt and qualification-result relation. Keep fn-18 v1 decoders at 131,072 tokens. Bind only the source set identity reconstructible from those members, never the absent original-manifest byte digest. Reuse fn-18 path, recovery, and atomic publication logic; add no migration route.
+Add the exact bounded canonical `umpire-evaluation-receipt/v2` schema and strict Lean/Go codecs. Bind the named Evaluation Profile Behavior Fingerprint, source Result and Artifact Checksums, model Behavior Fingerprints, independent statuses, decision, claim strength, Limits, Known Gaps, Evidence Links, and cleanup. Define a post-v2 ArtifactSet successor containing the byte-identical v2 source members plus exactly one receipt and one typed receipt-to-Result relation; add no pre-v2 reader or migration route.
 
 ## Acceptance
-Canonical receipt and v2 fixtures round-trip byte-for-byte through every byte/token/cardinality equality/N+1 limit including the maximum omission union, every identity-bearing mutation fails or changes identity, ArtifactReference matches the path-bearing Result member exactly while excluding path from claim identity, v1 fixtures/readers and token ceilings remain byte-identical, v1 rejects v2, v2 enforces the exact seven-member closure/source-set/Result relation, and publication is atomic/idempotent with no rewritten input member.
+- [ ] Cross-language v2 receipt goldens and Artifact Checksums agree byte-for-byte.
+- [ ] The successor set preserves source bytes and validates exact receipt/Result closure.
+- [ ] Unknown, duplicate, oversized, noncanonical, crossed, pre-v2, or checksum-invalid input rejects.
 
 ## Done summary
 TBD

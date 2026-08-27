@@ -11,7 +11,7 @@ Build R3's closed secret-bearing adapter boundary and prove exact target identit
 **Touches:** [tools/umpire/temporal/remote/authority.go, tools/umpire/temporal/remote/authority_test.go, tools/umpire/temporal/remote/target.go, tools/umpire/temporal/remote/target_test.go, tools/umpire/temporal/remote/testdata/**]
 
 ### Approach
-- Parse the single fixed protected-environment `ProtectedRemoteAuthority/v1` bundle under the 1-MiB/closed-field contract; keep raw coordinates and key material in memory and scrub or drop references on close.
+- Parse the single fixed protected-environment `ProtectedRemoteAuthority/v2` bundle under the 1-MiB/closed-field contract; keep raw coordinates and key material in memory and scrub or drop references on close.
 - Dial a bounded public SDK/gRPC client with explicit mTLS, hostname/certificate validation, no server-internal client factory, no ambient retry, and deterministic sanitized error classes.
 - Read only public system, namespace, and Nexus endpoint APIs to construct the preflight fingerprint and confirm the exact registered/isolated target and capability closure.
 - Expose a narrow package API returning opaque authority/client/target handles plus secret-free digests; package-private injection supports independent TLS/public-API tests.
@@ -21,7 +21,7 @@ Build R3's closed secret-bearing adapter boundary and prove exact target identit
 **Required** (read before coding):
 - `common/sdk/factory.go:24-145` — server-owned/fatal/retry behavior this adapter must not reuse
 - `common/testing/umpire/canary/canary.go:19-175` — bounded authority, redaction, and cleanup concepts
-- `.flow/tasks/fn-27-hermetic-ci-execution-and-qualification.5.md` — fixed production provenance/controller injection boundary
+- `.flow/tasks/fn-27-hermetic-ci-execution-and-qualification.5.md` — hermetic runner and Run Evaluation composition boundary
 - `.flow/specs/fn-18-versioned-umpire-artifact-boundary.md` — secret-free provenance and strict limit conventions
 - `go.mod` — pinned public SDK/API versions
 

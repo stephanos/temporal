@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-08-26T13:47:05.000000Z",
-  "depends_on": ["fn-26-local-qualification-receipts-and-staged.5"],
+  "depends_on": [
+    "fn-26-local-qualification-receipts-and-staged.5"
+  ],
   "id": "fn-26-local-qualification-receipts-and-staged.6",
   "priority": null,
   "spec": "fn-26-local-qualification-receipts-and-staged",
   "spec_path": ".flow/tasks/fn-26-local-qualification-receipts-and-staged.6.md",
   "status": "todo",
-  "title": "Prove qualification isolation and document the staged contract",
-  "updated_at": "2026-08-26T13:47:05.000000Z"
+  "title": "Prove Claim Assessment isolation and document the staged contract",
+  "updated_at": "2026-08-27T19:07:20.564160Z"
 }

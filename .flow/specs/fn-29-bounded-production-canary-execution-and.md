@@ -1,12 +1,12 @@
-# Bounded production canary execution and qualification
+# Bounded production canary execution and Claim Assessment
 
 > HTML render lens (local): open `.flow/artifacts/fn-29-bounded-production-canary-execution-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
-This is a standalone `tools/canary` deep module and executable, not an Umpire environment adapter or command. Canary consumes stable Umpire ArtifactSet, runner, participant, conformance, and qualification interfaces; Umpire never imports canary and contains no canary-specific profile, approval, credential, lease, fencing, recovery, rollout, or release-policy types.
+This is a standalone `tools/canary` deep module and executable, not an Umpire environment adapter or command. Canary consumes stable Umpire ArtifactSet, runner, participant, Run Evaluation, and Claim Assessment interfaces; Umpire never imports canary and contains no canary-specific profile, approval, credential, lease, fencing, recovery, rollout, or release-policy types.
 
-`tools/canary` owns signed approval, production authorization, trusted artifact acquisition, isolation, controller and killable workers, leases/fencing/recovery, cleanup, rate/concurrency/blast-radius controls, audit, and the canary workflow/command. The same complete ExperimentSpec remains semantic authority. Fn-14 and CI qualification are not prerequisites; remote-staging patterns may be reused only through reviewed stable interfaces.
+`tools/canary` owns signed approval, production authorization, trusted artifact acquisition, isolation, controller and killable workers, leases/fencing/recovery, cleanup, rate/concurrency/blast-radius controls, audit, and the canary workflow/command. The same complete ExperimentSpec remains semantic authority. Fn-14 and CI Claim Assessment are not prerequisites; remote-staging patterns may be reused only through reviewed stable interfaces.
 
 ## Overview
 
@@ -14,7 +14,7 @@ Add one production-control-plane C12 profile for the current semantic model. The
 same byte-identical caller-closure ExperimentSpec used by local, CI, and staging against one fixed,
 preallocated production-canary namespace and Nexus endpoint that carry no customer traffic. It
 observes only the public Temporal boundary plus runner-owned receipts, reuses the canonical Lean
-conformance authority, and publishes a production-canary-scoped qualification receipt that is
+Run Evaluation authority, and publishes a production-canary-scoped Claim Assessment receipt that is
 structurally ineligible to authorize a release.
 
 This is a deliberately closed canary, not a deployment system: one manual protected workflow, one
@@ -27,18 +27,18 @@ strength.
 ## Goal & Context
 <!-- scope: business -->
 
-The staging slice proves that the artifact and semantic identity survive an authorized remote
+The staging slice proves that the artifact and Behavior Fingerprint survive an authorized remote
 public boundary. It does not prove that the same bounded behavior can execute safely against the
 production control and data plane under production-only authority and containment rules. This slice
 adds exactly that environment-scoped evidence while keeping release aggregation and authorization
 in the later release-evidence-graph slice.
 
-Developers receive comparable Run, Result, and qualification artifacts for the same semantic
+Developers receive comparable Run, Result, and Claim Assessment artifacts for the same semantic
 scenario. Operators receive a manual canary with explicit authority, target, isolation assertion,
-blast radius, cleanup, recovery, omissions, and escalation behavior. A successful receipt means
+blast radius, cleanup, recovery, Known Gaps, and escalation behavior. A successful receipt means
 only that this isolated production-canary profile satisfied the admitted properties; it says
 nothing about customer traffic, deployment health, release readiness, or general production
-conformance.
+Run Evaluation.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -52,25 +52,25 @@ flowchart LR
   L --> X[One bounded public execution]
   X --> K[Cleanup + postflight]
   K --> E[Closed Run + public evidence]
-  E --> C[Canonical Lean conformance]
-  C --> Q[Canary profile qualification]
-  Q --> R[Receipt v4 + ArtifactSet v5]
+  E --> C[Canonical Lean Run Evaluation]
+  C --> Q[Canary profile Claim Assessment]
+  Q --> R[Receipt v5 + ArtifactSet v6]
   R --> O[Immutable publication]
 ```
 
 ### Ownership and purity
 
-Reusable Umpire qualification modules add only domain-neutral v4 vocabulary for a canary
+Reusable Umpire Claim Assessment modules add only domain-neutral v5 vocabulary for a canary
 environment class, protected authority, scope/isolation attestations, public-evidence requirements,
-cleanup, trust, omissions, profile-scoped claim strength, and a mandatory non-release-eligible
+cleanup, trust, Known Gaps, profile-scoped claim strength, and a mandatory non-release-eligible
 decision. They contain no Temporal, Nexus, production target, namespace, endpoint, task queue,
 workflow provider, repository, credential, checker, or scenario name.
 
-Temporal-owned modules define the exact `production-canary-public-grpc` runtime and qualification
+Temporal-owned modules define the exact `production-canary-public-grpc` runtime and Claim Assessment
 profiles, caller-closure binding, no-fault/no-traffic safety policy, and public-evidence Observation
 mapping. The pure Query, Property, Behavior, transition kernel, and Result semantics remain
 unchanged. Go owns secret-bearing authority and public transport; one canary controller composes
-admission, execution, conformance, qualification, artifact construction, and publication without
+admission, execution, Run Evaluation, Claim Assessment, artifact construction, and publication without
 interpreting semantic facts.
 
 The future staging implementation's public-remote transport, lease, lifecycle, recovery, progress,
@@ -82,16 +82,16 @@ cannot interpret evidence.
 
 ### Exact canary profile
 
-`QualificationProfile/v4` adds the generic canary requirements needed by this slice. Its only new
-compiled Temporal instance is `temporal.qualification-profile.production-canary-public-grpc`,
-version 4. It requires the exact canary RuntimeConfiguration; public history and participant,
-control, cleanup, and isolation evidence closures; operational success; qualified evidence;
+`EvaluationProfile/v5` adds the generic canary requirements needed by this slice. Its only new
+compiled Temporal instance is `temporal.evaluation-profile.production-canary-public-grpc`,
+version 5. It requires the exact canary RuntimeConfiguration; public history and participant,
+control, cleanup, and isolation evidence closures; operational success; accepted evidence;
 satisfied semantics; complete cleanup; protected-environment mTLS authority; stable target and
 Nexus routing identities; an exclusive lease/fence; a dedicated-scope attestation; formal evidence
-not provided; claim strength `environment-qualified-production-canary`; and
+not provided; claim strength `environment-accepted-production-canary`; and
 `releaseEligibility:false`.
 
-The profile always records omissions for server-internal telemetry, database state, payload
+The profile always records Known Gaps for server-internal telemetry, database state, payload
 inspection, customer-traffic evidence, deployment-health evidence, independently authenticated
 builder/approver provenance, independently audited isolation, formal evidence, release aggregation,
 and release authorization. The protected environment's isolation/ownership statement is an
@@ -101,7 +101,7 @@ bind any future aggregation to a separately trusted retained-artifact channel.
 
 ### Protected authority and fixed production scope
 
-The run command reads one closed `ProtectedCanaryAuthority/v1` bundle from the fixed protected
+The run command reads one closed `ProtectedCanaryAuthority/v2` bundle from the fixed protected
 workflow environment. The in-memory bundle contains the fixed environment identity, TLS endpoint
 and server name, dedicated namespace, dedicated Nexus endpoint and target task queue, root CA,
 client certificate/key, credential expiry, and a closed isolation/ownership attestation. It is
@@ -154,7 +154,7 @@ may change operational evidence but cannot change semantic authority.
 
 Hard maxima are one worker, two run-owned workflows, one fixed Nexus operation command, one semantic
 mutation, zero requested faults, zero traffic/deployment/configuration actions, one 16-MiB
-RawEvidence v1 artifact, and eight minutes wall time. The controller/reconciler may issue at most 64
+RawEvidence v2 artifact, and eight minutes wall time. The controller/reconciler may issue at most 64
 explicit public RPC attempts: 10 target preflight, 6 lease, 10 dispatch/control, 14 evidence reads,
 and an unborrowable 24-call cleanup/terminal-verification/postflight/reconciliation reserve whose
 remaining count is persisted in recovery state. N+1 in a foreground partition stops that phase and
@@ -179,11 +179,11 @@ exact lease run, stops local handles, verifies both run-owned identities termina
 public target/routing fingerprint. It never deletes or alters the preallocated namespace, endpoint,
 task queue, deployment, or unrelated workflow.
 
-After lease acquisition, run mode atomically creates a mode-0600 `RemoteRecoveryRecord/v2` at the
-fixed runner-temp path and updates it after dispatch/cleanup transitions. V2 retains only the
+After lease acquisition, run mode atomically creates a mode-0600 `RemoteRecoveryRecord/v3` at the
+fixed runner-temp path and updates it after dispatch/cleanup transitions. V3 retains only the
 invocation binding, exact lease/caller fences, dispatch state, target digest, expiry, and remaining
-cleanup/reconcile RPC reserve. The staging `RemoteRecoveryRecord/v1` protocol and reader remain
-unchanged and reject v2; the shared control package dispatches each closed version only to its exact
+cleanup/reconcile RPC reserve. The staging `RemoteRecoveryRecord/v2` protocol and reader remain
+unchanged and reject v3; the shared control package dispatches each closed version only to its exact
 profile. The record is not an Umpire artifact and is never uploaded. The same binary's closed
 reconcile mode re-acquires protected authority and may only spend the persisted reserve to terminate
 or verify exact recorded resources; it cannot dispatch, conform, qualify, construct, or publish. The
@@ -192,32 +192,32 @@ backstop for total runner loss.
 
 ### Public evidence and semantic authority
 
-The canary retains ordinary Run and RawEvidence v1 families. Its allowed sources are runner
+The canary retains ordinary Run and RawEvidence v2 families. Its allowed sources are runner
 participant output, public workflow history, public control receipt, cleanup/reconciliation receipt,
 and a bounded secret-free canary isolation receipt. The isolation receipt affects operational
-qualification only; it cannot create an Observation or rewrite semantic Result status. The
+Claim Assessment only; it cannot create an Observation or rewrite semantic Result status. The
 Temporal-owned mapping derives the existing caller-closure Observation coordinates only from the
 same admitted public execution sources and never inspects internal logs, metrics, databases,
 payload bodies, or authority claims for semantic meaning.
 
 Missing or ambiguous required public facts produce `unknown`; an unavailable required coordinate
 produces `unsupported`; contradictory identity/order facts produce `conflict`. None can become a
-satisfied semantic claim. Equivalent qualified facts continue through the same pure Property
-evaluator and may share qualified-outcome identity with local, CI, and staging, while runtime, run,
+satisfied semantic claim. Equivalent accepted facts continue through the same pure Property
+evaluator and may share evaluation-outcome identity with local, CI, and staging, while runtime, run,
 canary provenance, receipt, and artifact-set identities remain distinct.
 
-### Persisted qualification boundary
+### Persisted Claim Assessment boundary
 
-`ProductionCanaryQualificationProvenance/v1` is a reusable, secret-free value containing protected
+`ProductionCanaryClaimAssessmentProvenance/v2` is a reusable, secret-free value containing protected
 authority mode/expiry class, workflow-context digest, target/routing pre/post digests, lease/fence
 digests, invocation binding, enforced action/fault/resource limits, public capability/evidence
 closures, isolation-attestation class, cleanup/reconciliation status, trust class, and declared
-omissions. Its concrete fixed meanings remain Temporal-owned.
+Known Gaps. Its concrete fixed meanings remain Temporal-owned.
 
-`QualificationReceipt/v4` preserves the v3 contract and adds the exact canary provenance,
+`EvaluationReceipt/v5` preserves the v4 contract and adds the exact canary provenance,
 environment/profile binding, canary-specific reason set, claim strength, and immutable
-`releaseEligibility:false`. `ArtifactSet/v5` contains the same six byte-identical ordinary source
-members plus one v4 receipt and the existing qualification-result relation. All prior receipt/set
+`releaseEligibility:false`. `ArtifactSet/v6` contains the same six byte-identical ordinary source
+members plus one v5 receipt and the existing evaluation-receipt-result relation. All prior receipt/set
 readers and fixtures remain unchanged and reject descendant versions; no migration, relabeling, or
 compatibility alias is introduced.
 
@@ -236,8 +236,8 @@ release eligibility always false.
 The production binary has two closed modes:
 
 ```text
-umpire-qualify-production-canary run --set <directory> --pilot-evidence <directory> --output-root <directory> --run-id <id>
-umpire-qualify-production-canary reconcile --run-id <id>
+umpire-assess-production-canary run --set <directory> --pilot-evidence <directory> --output-root <directory> --run-id <id>
+umpire-assess-production-canary reconcile --run-id <id>
 ```
 
 Neither mode accepts target, environment, endpoint, namespace, task queue, credential, profile,
@@ -252,10 +252,10 @@ success summary; the canonical record says whether dispatch, cleanup, and public
 Errors and summaries are bounded, secret-free single-line records. Reporting failure after immutable
 publication identifies only the destination digest and forbids automatic rerun.
 
-Long-running observation reuses the bounded `RemoteProgress/v1` JSONL channel: closed phases/states,
+Long-running observation reuses the bounded `RemoteProgress/v2` JSONL channel: closed phases/states,
 at most one heartbeat per 30 seconds, 256 events, and 64 KiB at the workflow-owned runner-temp path.
-It is streamable and optionally retained as a diagnostic, but never enters artifact identity or
-qualification.
+It is streamable and optionally retained as a diagnostic, but never enters Artifact Checksum or
+Claim Assessment.
 
 The repository-root Makefile exposes only run mode through a fixed target with required set,
 pilot-evidence, output-root, and run-id inputs. One workflow-dispatch-only job binds the protected
@@ -294,9 +294,9 @@ deployment, promotion, scheduled, canary rollout, or release workflows.
 ## Quick commands
 
 ```bash
-cd model && mise exec -- lake build Umpire.Qualification.Tests Temporal.System.Execution.ProductionCanaryTests Temporal.System.Qualification.ProductionCanaryTests
-go test -count=1 ./tools/umpire/temporal/canary/... ./tools/umpire/conformance/... ./tools/umpire/artifact/... ./tools/umpire/canaryqualification/...
-make umpire-qualify-production-canary SET=<input-set> PILOT_EVIDENCE=<pilot-evidence> OUTPUT_ROOT=<runner-temp-output> RUN_ID=<workflow-run-id>
+cd model && mise exec -- lake build Umpire.Evaluation.Tests Temporal.System.Execution.ProductionCanaryTests Temporal.System.Evaluation.ProductionCanaryTests
+go test -count=1 ./tools/umpire/temporal/canary/... ./tools/umpire/runevaluation/... ./tools/umpire/artifact/... ./tools/umpire/canaryassessment/...
+make umpire-assess-production-canary SET=<input-set> PILOT_EVIDENCE=<pilot-evidence> OUTPUT_ROOT=<runner-temp-output> RUN_ID=<workflow-run-id>
 make umpire-check-regression
 ```
 
@@ -327,7 +327,7 @@ do not smuggle it into semantic observations.
 
 Build on the staging remote adapter and control protocol rather than creating an unrelated Drive or
 canary execution language. The authored Behavior already fixes the semantic program, while the
-RuntimeConfiguration and qualification profile close the production operational choices. Preserve
+RuntimeConfiguration and Claim Assessment profile close the production operational choices. Preserve
 target-owned redelivery as evidence and use idempotent mutation. Keep the existing generic testing
 canary helper non-authoritative. Defer release evidence aggregation because a single environment
 receipt, even a green production canary, cannot authorize a release by itself.
@@ -335,9 +335,9 @@ receipt, even a green production canary, cannot authorize a release by itself.
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** Domain-neutral QualificationProfile v4 and one Temporal-owned
+- **R1:** Domain-neutral EvaluationProfile v5 and one Temporal-owned
   `production-canary-public-grpc` instance express the exact production-canary environment,
-  protected authority, isolation, public evidence, cleanup, trust, omissions, claim strength, and
+  protected authority, isolation, public evidence, cleanup, trust, Known Gaps, claim strength, and
   mandatory `releaseEligibility:false` without Temporal/scenario vocabulary in reusable Umpire.
   Unknown, duplicate, contradictory, broadened, secret-bearing, or prior-version mutations reject.
 - **R2:** The byte-identical ExperimentSpec is paired with one distinct no-fault canary
@@ -359,17 +359,17 @@ receipt, even a green production canary, cannot authorize a release by itself.
   ALLOW_DUPLICATE with running-conflict FAIL; caller reuse is REJECT_DUPLICATE. Sequential terminal
   reuse, simultaneous conflict, stale execution, ambiguity, collision, redelivery, stale fence, N+1,
   scope escape, cancel, timeout, crash, or drift follows the exact bounded non-success behavior.
-- **R5:** Cleanup/reconciliation run on every post-lease exit under fresh bounds, affect only exact
+- **R5:** Cleanup/reconciliation run on every post-lease exit under fresh Limits, affect only exact
   fenced resources, verify terminal state and postflight routing, and use the mode-0600 recovery
-  v2 record with persisted remaining RPC reserve plus server timeouts, while staging v1 remains
+  v3 record with persisted remaining RPC reserve plus server timeouts, while staging v2 remains
   unchanged. Runner loss, tampered/stale recovery, authority loss, partial startup, cleanup
   uncertainty, or unrelated resource encounter cannot be accepted or redispatched.
-- **R6:** Public execution evidence enters unchanged canonical Lean conformance through one fixed
-  mapping; isolation/authority provenance affects qualification only. Operational, evidence,
+- **R6:** Public execution evidence enters unchanged canonical Lean Run Evaluation through one fixed
+  mapping; isolation/authority provenance affects Claim Assessment only. Operational, evidence,
   semantic, cleanup, authority, target, fence, isolation, trust, and release-eligibility statuses
   remain independent, and no second evaluator is introduced.
-- **R7:** Secret-free ProductionCanaryQualificationProvenance v1, QualificationReceipt v4, and
-  ArtifactSet v5 have exact canonical identities, limits, reason precedence, source closure,
+- **R7:** Secret-free ProductionCanaryClaimAssessmentProvenance v2, EvaluationReceipt v5, and
+  ArtifactSet v6 have exact canonical identities, limits, reason precedence, source closure,
   `releaseEligibility:false`, and immutable publication while prior versions and six source-member
   bytes remain unchanged. Every secret, version, identity, closure, status, relation, N+1, and
   publication mutation fails closed.
@@ -382,7 +382,7 @@ receipt, even a green production canary, cannot authorize a release by itself.
   cannot publish or retain an accepted production-canary claim; receipts are explicitly not
   self-authenticating, and authorized production requires both the external trusted-ref rule and the
   trusted retained-artifact channel.
-- **R10:** All canary-specific code, types, commands, workflows, approval/authorization, credentials, leases/fencing/recovery, rollout, audit, and safety policy live under the independently owned `tools/canary` boundary, which only consumes stable Umpire interfaces. This supersedes any `tools/umpire` or Umpire-profile ownership implied by R1–R8. Errors: Umpire importing canary, canary policy/credentials in Umpire artifacts or qualification types, a canary-specific Umpire command, fn-14/CI gating, or a non-killable/unrecoverable worker fails completion.
+- **R10:** All canary-specific code, types, commands, workflows, approval/authorization, credentials, leases/fencing/recovery, rollout, audit, and safety policy live under the independently owned `tools/canary` boundary, which only consumes stable Umpire interfaces. This supersedes any `tools/umpire` or Umpire-profile ownership implied by R1–R8. Errors: Umpire importing canary, canary policy/credentials in Umpire artifacts or Claim Assessment types, a canary-specific Umpire command, fn-14/CI gating, or a non-killable/unrecoverable worker fails completion.
 
 ## Early proof point
 
@@ -396,22 +396,22 @@ participant.
 
 - Flow spec fn-14 — retained Lean-first authorization.
 - Flow spec fn-18 — strict versioned artifacts and immutable publication.
-- Flow specs fn-19 and fn-20 — bounded participant lifecycle and canonical semantic conformance.
-- Flow specs fn-26 and fn-27 — qualification and environment-profile versioning.
-- Flow spec fn-28 — protected remote public transport, lease, recovery, and staging qualification.
-- Umpire component and DSL plans — environment-qualified Result and semantic ownership doctrine.
+- Flow specs fn-19 and fn-20 — bounded participant lifecycle and canonical semantic Run Evaluation.
+- Flow specs fn-26 and fn-27 — Claim Assessment and environment-profile versioning.
+- Flow spec fn-28 — protected remote public transport, lease, recovery, and staging Claim Assessment.
+- Umpire component and DSL plans — environment-evaluated Result and semantic ownership doctrine.
 
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Generic v4 vocabulary and exact Temporal canary policy | `.1` | — |
+| R1 | Generic v5 vocabulary and exact Temporal canary policy | `.1` | — |
 | R2 | No-fault canary configuration and fixed public mapping | `.2`, `.5` | — |
 | R3 | Protected authority and exact production-canary scope | `.3`, `.8`, `.9`, `.10`, `.11` | — |
 | R4 | Fenced bounded participant and forbidden-capability closure | `.4`, `.8`, `.10`, `.11` | — |
 | R5 | Cleanup, recovery, reconciliation, and postflight | `.4`, `.8`, `.9`, `.10`, `.11` | — |
-| R6 | Canonical conformance and independent statuses | `.2`, `.5`, `.8`, `.10`, `.12` | — |
-| R7 | Canary provenance, receipt v4, and ArtifactSet v5 | `.6`, `.7`, `.8`, `.11`, `.12` | — |
+| R6 | Canonical Run Evaluation and independent statuses | `.2`, `.5`, `.8`, `.10`, `.12` | — |
+| R7 | Canary provenance, receipt v5, and ArtifactSet v6 | `.6`, `.7`, `.8`, `.11`, `.12` | — |
 | R8 | Deep controller and closed command/workflow | `.8`, `.9`, `.10`, `.11` | — |
 | R9 | Protected proof surface and operator documentation | `.9`, `.10`, `.11`, `.12`, `.13` | — |
 | R10 | Standalone tools/canary ownership | `.1`–`.13` | — |

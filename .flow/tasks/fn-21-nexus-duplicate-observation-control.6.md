@@ -7,15 +7,15 @@ satisfies: [R4, R5, R6, R7]
 Complete R4-R7 with one paired live normal/faulted proof, immutable-set publication/status assertions, copy-paste usage, and honest roadmap reconciliation. This task adds no command or Make target.
 
 **Size:** M
-**Files:** `tools/umpire/conformance/live_negative_control_test.go`, `tools/umpire/conformance/README.md`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`
-**Touches:** [tools/umpire/conformance/live_negative_control_test.go, tools/umpire/conformance/README.md, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md]
+**Files:** `tools/umpire/runevaluation/live_negative_control_test.go`, `tools/umpire/runevaluation/README.md`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`
+**Touches:** [tools/umpire/runevaluation/live_negative_control_test.go, tools/umpire/runevaluation/README.md, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md]
 
 ### Approach
 - Run the complete independent mutation/status suite before two bounded live controls: existing normal and exact faulted input, each through fn-19 execution, fn-20 checking, fn-18 publication, reopen, and strict set validation.
-- Assert normal execution/conformance statuses 0/0 and satisfied; assert faulted statuses 0/2 and uniqueness-only violated; verify distinct normal/faulted input/run/result/set identities, byte-identical baseline artifacts, complete cleanup/source closure, and no cross-binding.
-- Prove fn-18 republishing the exact already-constructed set and fn-20 rechecking the same immutable four-member input are idempotent. Separate live executions use fresh run IDs and may differ in timestamps/member bytes/manifests/destinations while preserving declared stable semantic and qualified-outcome identities.
-- Document both existing direct/root command sequences, the requested/completed history chain, callback-one plus synthetic-one derivation, three independent status dimensions, exact mutation outcomes, and why the result is a negative control rather than a Temporal defect claim.
-- Update C4/C6/C7/C9, Milestone B, and pilot status only to implemented evidence; retain C10 replay/minimization/promotion and all non-local/formal/qualification gaps. Run focused/aggregate tests without a Make or CI change.
+- Assert normal execution/Run Evaluation statuses 0/0 and satisfied; assert faulted statuses 0/2 and uniqueness-only violated; verify distinct normal/faulted input/run/result/set identities, byte-identical baseline artifacts, complete cleanup/source closure, and no cross-binding.
+- Prove fn-18 republishing the exact already-constructed set and fn-20 rechecking the same immutable four-member input are idempotent. Separate live executions use fresh run IDs and may differ in timestamps/member bytes/manifests/destinations while preserving declared stable semantic and accepted-outcome identities.
+- Document both existing direct/root command sequences, the requested/completed history chain, callback-one plus synthetic-one Evidence Link, three independent status dimensions, exact mutation outcomes, and why the result is a negative control rather than a Temporal defect claim.
+- Update C4/C6/C7/C9, Milestone B, and pilot status only to implemented evidence; retain C10 replay/minimization/promotion and all non-local/formal/Observation Evaluation gaps. Run focused/aggregate tests without a Make or CI change.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -28,8 +28,8 @@ Complete R4-R7 with one paired live normal/faulted proof, immutable-set publicat
 ### Acceptance
 - [ ] The paired live proof produces the exact normal satisfied and faulted uniqueness-violated status/identity/publication matrix.
 - [ ] Every fail-closed mutation runs first and matches the parent table; no partial/crossed set passes admission.
-- [ ] Exact-set republish/recheck is idempotent, while separate executions assert only stable semantic identities and never same transport bytes/destination.
-- [ ] Documentation is copyable, labels the injection synthetic, and separates the two-event real lifecycle, real callback, synthetic contribution, request, receipt, operation, qualification, and verdict.
+- [ ] Exact-set republish/recheck is idempotent, while separate executions assert only stable Behavior Fingerprints and never same transport bytes/destination.
+- [ ] Documentation is copyable, labels the injection synthetic, and separates the two-event real lifecycle, real callback, synthetic contribution, request, receipt, operation, Observation Evaluation, and verdict.
 - [ ] Roadmap/focused/aggregate gates pass with no new command, Make target, CI, or prohibited dependency.
 ## Acceptance
 - [ ] R4-R6 paired live, causal evidence, status, identity, and publication proof passes.

@@ -15,7 +15,7 @@ The live proof selects the existing fn-5 catalog subject `workflow-nexus.query.e
 **Touches:** [tools/umpire/campaign/**, tools/umpire/cmd/umpire-fuzz/**, model/README.md, model/Umpire/ARCHITECTURE.md, docs/development/**]
 
 ### Approach
-- Prove pinned regressions, parallel leases, time exhaustion, resume, lineage forks, state locks, progress, and semantic coverage lineage with fakes; prove the one-point runner/conformance vertical path live.
+- Prove pinned regressions, parallel leases, time exhaustion, resume, lineage forks, state locks, progress, and semantic coverage lineage with fakes; prove the one-point runner/Run Evaluation vertical path live.
 - Document Lean versus Go ownership and honest non-completeness.
 - Preserve existing comments and generated projections.
 
@@ -27,7 +27,7 @@ The live proof selects the existing fn-5 catalog subject `workflow-nexus.query.e
 ## Acceptance
 - [ ] R3/R5/R6 end-to-end and mutation checks pass.
 - [ ] Focused Go/Lean tests and aggregate regression gates pass.
-- [ ] Documentation distinguishes exhaustion from completeness and execution from conformance.
+- [ ] Documentation distinguishes exhaustion from completeness and execution from Run Evaluation.
 
 ## Done summary
 TBD

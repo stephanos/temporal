@@ -10,7 +10,7 @@ Prove `Umpire.Verify.Native` remains Temporal-independent and that ordinary mode
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 
-Wire formal tests into the reusable and Temporal aggregates, complete cross-module mutation/anti-forgery/import-direction and unchanged ExperimentSpec fixture checks, and document the command, receipt semantics, trust limits, counterexample replay gate, and package flow. Update the C11 component roadmap with reviewed implementation status while leaving optional Veil and qualification separate. Do not hand-edit fn-5's future generated glossary/catalog projections. Preserve existing comments.
+Wire formal tests into the reusable and Temporal aggregates, complete cross-module mutation/anti-forgery/import-direction and unchanged ExperimentSpec fixture checks, and document the command, receipt semantics, trust limits, counterexample replay gate, and package flow. Update the C11 component roadmap with reviewed implementation status while leaving optional Veil and Claim Assessment separate. Do not hand-edit fn-5's future generated glossary/catalog projections. Preserve existing comments.
 
 **Size:** M
 **Files:** `model/UmpireTests.lean`, `model/TemporalModelTests.lean`, `model/README.md`, `model/ARCHITECTURE.md`, `model/Umpire/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`

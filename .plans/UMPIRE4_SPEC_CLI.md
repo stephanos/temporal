@@ -7,8 +7,8 @@ model-defined behavior in environment-specific tools. Model authoring is a separ
 The model is the smart part of the system. It defines behavior, regressions, exploration spaces,
 properties, coverage, and the meaning of observations. The CLIs are semantically thin: they select
 named model declarations, translate versioned artifacts, bind actions to runtime adapters, and move
-evidence between the model and a real system. CLI flags may select or tighten model-declared bounds,
-but must not invent behavior or broaden those bounds.
+evidence between the model and a real system. CLI flags may select or tighten model-declared Limits,
+but must not invent behavior or broaden those Limits.
 
 ## User-facing concepts
 
@@ -19,10 +19,10 @@ but must not invent behavior or broaden those bounds.
 - A **test** is one concrete deterministic trace selected from a scenario and checking one or more
   properties.
 - A **run** is one execution of a test against a particular environment.
-- A **result** is the qualified interpretation of a run: established, violated, unknown, conflict,
+- A **result** is the accepted interpretation of a run: established, violated, unknown, conflict,
   or unsupported.
 
-`ExperimentSpec`, semantic hashes, evidence artifacts, and Lean declaration forms remain inspectable
+`ExperimentSpec`, Behavior Fingerprints, evidence artifacts, and Lean declaration forms remain inspectable
 implementation details rather than the primary user vocabulary.
 
 ## Complete executable traces
@@ -61,7 +61,7 @@ umpire-check-model explain <name>
 The model declares at least a bounded per-commit profile and a more expensive nightly profile. The
 per-commit profile is the default, so CI does not need to know or assemble its individual checks.
 Named checks are available for focused diagnosis. A receipt states exactly which proofs or bounded
-checks ran, their bounds and trust modes, and whether they established, refuted, or could not
+checks ran, their Limits and trust modes, and whether they established, refuted, or could not
 establish their claims; the command must not claim that the model is universally correct.
 
 ## Generate portable tests
@@ -76,11 +76,11 @@ umpire-gen-tests <test-set> --output <directory>
 ```
 
 The output is a manifest plus complete test traces. Identical model sources, declaration, parameters,
-bounds, and seed produce byte-identical output. JSON is the portable source artifact for persistence,
+Limits, and seed produce byte-identical output. JSON is the portable source artifact for persistence,
 inspection, replay, code generation, test environments, and downstream canary tooling.
 
-The JSON carries the actions and compiled expectation program, property and semantic identities,
-required capabilities, bounds, omissions, and provenance. A runtime interpreter may evaluate this
+The JSON carries the actions and compiled expectation program, property and Behavior Fingerprints,
+required capabilities, Limits, Known Gaps, and provenance. A runtime interpreter may evaluate this
 closed expectation language without shipping Lean. It must reject unknown instructions and must not
 reimplement Temporal product semantics independently of the generated program.
 
@@ -96,12 +96,12 @@ go test ./<package>/... -run <test>
 The generated source exposes setup, participant programs, actions, late-bound references, faults,
 ordering, observations, expectations, and cleanup as typed trace literals. This lets Go developers
 inspect the complete test, use normal test discovery and filtering, set breakpoints, and step through
-the runner in their IDE. The source is a deterministic, digest-bound projection of the JSON and does
+the runner in their IDE. The source is a deterministic Artifact-bound Generated View of the JSON and does
 not become a second editable source of behavioral meaning.
 
 There is no separate public `umpire-run-tests` command. Generated tests call a reusable Go runner
 library that interprets traces, realizes actions through registered adapters, collects observations,
-evaluates the compiled expectation program, enforces cleanup, and returns qualified results.
+evaluates the compiled expectation program, enforces cleanup, and returns accepted results.
 
 ## Fuzz a real environment
 
@@ -127,7 +127,7 @@ Lean exposes three exploration operations with serializable state:
 
 ```text
 initialize exploration seed -> initial batch + exploration state
-nextBatch exploration state -> next batch + reserved semantic identities
+nextBatch exploration state -> next batch + reserved Behavior Fingerprints
 observe exploration state results -> updated corpus, coverage, priorities, and state
 ```
 

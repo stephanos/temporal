@@ -3,12 +3,14 @@
   "claim_note": "",
   "claimed_at": null,
   "created_at": "2026-08-26T13:47:01.000000Z",
-  "depends_on": ["fn-26-local-qualification-receipts-and-staged.1"],
+  "depends_on": [
+    "fn-26-local-qualification-receipts-and-staged.1"
+  ],
   "id": "fn-26-local-qualification-receipts-and-staged.2",
   "priority": null,
   "spec": "fn-26-local-qualification-receipts-and-staged",
   "spec_path": ".flow/tasks/fn-26-local-qualification-receipts-and-staged.2.md",
   "status": "todo",
-  "title": "Admit the exact local conformance set and derive structural decisions",
-  "updated_at": "2026-08-26T13:47:01.000000Z"
+  "title": "Admit the exact local v2 Run Evaluation set",
+  "updated_at": "2026-08-27T19:07:19.249227Z"
 }

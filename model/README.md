@@ -73,7 +73,7 @@ Model scenarios use three separate but composable forms:
   independently of how a trace is found.
 - A `Behavior` constrains setup and controllable actions, including ordering and exactness: what the
   planner may drive. Outcomes and observations remain owned by the target model.
-- A `Query` combines checked properties and behavior with explicit bounds and a deterministic
+- A `Query` combines checked Properties and Behavior with explicit Limits and a deterministic
   planning policy: what bounded search should find or verify.
 
 Their shared substrate is a checked Target. A family maintainer records explicit states, actions,
@@ -97,7 +97,7 @@ Learn these forms in increasing order of domain and composition complexity:
    result over the shared lifecycle target.
 4. [`Nexus.Observation`](Temporal/Feature/Nexus/Observation.lean) is the offline evidence boundary
    for the ordinary lifecycle. It owns the sole synthetic BasicLifecycle profile, its checked
-   mapping, and the composition from a complete typed evidence bundle through qualification,
+   mapping, and the composition from a complete typed evidence bundle through Observation Evaluation,
    independent Property evaluation, and strict Query aggregation.
 5. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
    [`Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
@@ -120,24 +120,24 @@ current Temporal-owned synthetic profile. The public offline sequence is:
 
 1. Declare an `EvidenceProfileDeclaration` and `ObservationMappingDeclaration` against a checked
    Target, then call `checkObservation` to obtain one canonical `CheckedObservationPlan`.
-2. Supply one complete synthetic `EvidenceBundle` and call `qualifyEvidence`. Only the `qualified`
-   result carries a `QualifiedTrace`; `unknown`, `conflict`, and `unsupported` carry typed
+2. Supply one complete synthetic `EvidenceBundle` and call `evaluateEvidence`. Only the `accepted`
+   result carries an `EvidenceBackedTrace`; `unknown`, `conflict`, and `unsupported` carry typed
    diagnostics and no partial trace.
-3. Call `evaluateQualifiedProperty` independently for each required checked Property. Its status is
+3. Call `evaluateObservationProperty` independently for each required checked Property. Its status is
    `satisfied`, `violated`, `unknown`, `conflict`, or `unsupported` and retains the applied evidence
-   bound plus coordinate-based clause derivations when available.
+   Evidence Limit plus coordinate-based clause Evidence Links when available.
 4. Call `summarizeQueryVerdicts`. It succeeds only when every required Property has exactly one
-   resolved result for the same Query, trace, and evidence bound; otherwise its status is
+   resolved result for the same Query, Model Trace, and Evidence Limit; otherwise its status is
    `incomplete`.
 
 Field dispositions make retention explicit: `retain` keeps an approved normalized value, `redact`
 keeps only a contribution marker, `hash` keeps only a token under the named/versioned synthetic
-digest policy, and `reject` refuses present input. Raw evidence is not a field of `QualifiedTrace`,
+digest policy, and `reject` refuses present input. Raw evidence is not a field of `EvidenceBackedTrace`,
 `SemanticPropertyVerdict`, or `StrictQuerySummary`.
 
 The Nexus profile maps the ordinary BasicLifecycle state, start/cancel/succeed action,
 transition-outcome, and lifecycle-observation vocabulary. Its state, action, outcome, and
-observation fields are retained, its raw-detail field is rejected, and its bound is two evidence
+observation fields are retained, its raw-detail field is rejected, and its Limit is two Evidence
 records. The synthetic example supplies a scheduled record followed causally by a started record
 and a closure at sequence two. `evaluateSyntheticEvidence` qualifies that bundle, evaluates the
 existing asynchronous-start Property, and produces one satisfied strict summary. The nearby tests
@@ -148,10 +148,10 @@ A future adapter has one typed handoff: construct a complete `EvidenceBundle` co
 profile identity/version, records, closure facts, and—when applicable—compatible alternatives and
 their missing discriminator. Each record preserves identity, profile identity/version, kind,
 sequence, causal parents, typed fields with optional digest metadata, optional binding facts, and
-an optional fault target. Umpire, not the adapter, compiles mappings, enforces the bound and
+an optional fault target. Umpire, not the adapter, compiles mappings, enforces the Limit and
 dispositions, qualifies evidence, evaluates Properties, and aggregates verdicts. No adapter is
 implemented in this release, and these modules do not execute Temporal, collect or persist live
-evidence, prove runtime conformance, promote a result, or support another profile.
+Evidence, perform Run Evaluation, promote a result, or support another profile.
 
 Build each stage through the final module and target names:
 
@@ -191,7 +191,7 @@ artifact JSON on standard output. It also clean-regenerates the checked-in Switc
 Go and Markdown Generated Views and runs their focused Go tests. It does not require or contact a running
 Temporal server.
 
-Generate or check the stable regression generated views from the repository root:
+Generate or check the stable regression Generated Views from the repository root:
 
 ```sh
 make umpire-gen-regression-views
@@ -215,7 +215,7 @@ intentional model change, review all four outputs together, and use either Gener
 the encompassing `make umpire-check-regression` gate to prove the checked-in set is clean. The
 generated Go tests can verify their fixtures without Lean or a running Temporal service, but
 Generated View success is not runtime execution, execution evidence, or a
-conformance result.
+Run Evaluation result.
 
 Inspect either checked scenario directly with:
 
@@ -227,7 +227,7 @@ make umpire-inspect SCENARIO=switch.query.exact-action
 On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. The
 compiler and inspector do not write an artifact file, start a live server, execute a workflow, or
 collect evidence. Runtime driving, construction of a future adapter's `EvidenceBundle`, and
-promotion remain separate work; offline qualification is the current `Umpire.Observation` API.
+promotion remain separate work; offline Observation Evaluation is the current `Umpire.Observation` API.
 
 Generated API declarations remain generated structures only. Behavioral meaning, including whether
 a selected action is applicable and which transition outcomes are possible, remains owned by the
