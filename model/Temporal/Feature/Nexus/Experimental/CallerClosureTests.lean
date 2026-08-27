@@ -290,7 +290,7 @@ example : [
 example : exactActionRun.artifact = some compiledArtifact := by
   native_decide
 
-example : canonicalExperimentSpecJson compiledArtifact ++ "\n" = expectedCompiledArtifactJson := by
+example : canonicalExperimentSpecBytes compiledArtifact = expectedCompiledArtifactJson := by
   native_decide
 
 example : compiledArtifact.plan.requestedActions = [forceCloseAction] ∧
@@ -311,8 +311,8 @@ example : lifecycleLaw.body = "workflow-caller-closure-law/v1" ∧
     compiledArtifact.plan.kernelBehaviorFingerprint = target.behaviorFingerprint := by
   native_decide
 
-example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
-    compiledArtifact.plan.formatVersion = "umpire-drive-plan/v1" ∧
+example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
+    compiledArtifact.plan.formatVersion = "umpire-drive-plan/v2" ∧
     compiledArtifact.plan.queryDefinitionId = exactActionQueryId ∧
     compiledArtifact.plan.behaviorDefinitionId = exactActionBehaviorId ∧
     compiledArtifact.plan.targetDefinitionId = targetId ∧

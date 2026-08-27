@@ -69,8 +69,8 @@ example : [
   ] = ["found", "found", "found"] := by
   native_decide
 
-example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
-    compiledArtifact.plan.formatVersion = "umpire-drive-plan/v1" ∧
+example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
+    compiledArtifact.plan.formatVersion = "umpire-drive-plan/v2" ∧
     compiledArtifact.plan.queryDefinitionId = exactActionQueryId ∧
     compiledArtifact.plan.queryBehaviorFingerprint = exactActionQuery.behaviorFingerprint ∧
     compiledArtifact.plan.behaviorDefinitionId = exactActionBehaviorId ∧
@@ -84,11 +84,11 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v1" ∧
     compiledArtifact.plan.resultingStates = [onState] ∧
     compiledArtifact.properties.map PortableProperty.definitionId = [flipPropertyId] ∧
     compiledArtifact.properties.map PortableProperty.behaviorFingerprint = [flipProperty.behaviorFingerprint] ∧
-    compiledArtifact.provenance.sources = [source] ∧
+    compiledArtifact.provenance.sourceLocations = [source] ∧
     compiledArtifact.plan.provenance = compiledArtifact.provenance := by
   native_decide
 
-example : canonicalExperimentSpecJson compiledArtifact ++ "\n" = expectedCompiledArtifactJson := by
+example : canonicalExperimentSpecBytes compiledArtifact = expectedCompiledArtifactJson := by
   native_decide
 
 end Umpire.Examples.SwitchTests
