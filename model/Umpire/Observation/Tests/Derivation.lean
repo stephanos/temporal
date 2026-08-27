@@ -32,9 +32,11 @@ def derivationFailureKinds : List (QualificationStatus × Option QualificationFa
   }
   (.conflict, diagnosticKindOf result),
   let result := validateQualifiedTrace {
-    completeQualifiedTrace with derivations := [{
-      completeFirstDerivation with mappingVersion := 99
-    }] ++ completeQualifiedTrace.derivations.tail
+    completeQualifiedTrace with trace := {
+      completeQualifiedTrace.trace with initialState := {
+        completeQualifiedTrace.trace.initialState with value := "tampered"
+      }
+    }
   }
   (.conflict, diagnosticKindOf result),
   let result := validateQualifiedTrace {
@@ -44,13 +46,20 @@ def derivationFailureKinds : List (QualificationStatus × Option QualificationFa
   (.unknown, diagnosticKindOf result),
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := [{
-      completeFirstDerivation with closureSupport := []
+      completeFirstDerivation with closureSupport := [{
+        kind := eventKind
+        lastSequence := 99
+      }]
     }] ++ completeQualifiedTrace.derivations.tail
   }
   (.unknown, diagnosticKindOf result),
   let result := validateQualifiedTrace {
     completeQualifiedTrace with derivations := [{
-      completeFirstDerivation with orderingSupport := []
+      completeFirstDerivation with orderingSupport := [{
+        recordId := id "test.evidence.record.unrelated"
+        sequence := 1
+        causalParents := []
+      }]
     }] ++ completeQualifiedTrace.derivations.tail
   }
   (.unknown, diagnosticKindOf result)

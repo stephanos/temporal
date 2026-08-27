@@ -93,9 +93,12 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
   }
   (result.status, resultKindOf result),
   let result := qualifyFixture {
-    completeEvidence with records := [{
-      initialEvidence with fields := [textField roleField "initial"]
-    }, stepEvidence]
+    completeEvidence with records := [initialEvidence, {
+      stepEvidence with bindingFacts := [{
+        binding := id "test.binding.unknown"
+        value := .text "unresolved"
+      }]
+    }]
   }
   (result.status, resultKindOf result),
   let result := qualifyFixture {
@@ -143,7 +146,7 @@ def qualificationFailureCases : List (QualificationStatus × Option Qualificatio
   (result.status, resultKindOf result),
   let result := qualifyFixture {
     completeEvidence with records := [initialEvidence, {
-      stepEvidence with faultTarget := some (id "test.evidence.record.wrong-target")
+      stepEvidence with faultTarget := some stepEvidenceId
     }]
   }
   (result.status, resultKindOf result)
@@ -196,6 +199,21 @@ example :
         missingDiscriminator := some (id "test.evidence.field.discriminator")
       },
       forward) := by
+  native_decide
+
+def contradictoryAlternativeEvidence : EvidenceBundle := {
+  ambiguousEvidence with
+  compatibleAlternatives := [
+    { id := id "test.interpretation.same", evidenceIdentities := [initialEvidenceId] },
+    { id := id "test.interpretation.same", evidenceIdentities := [stepEvidenceId] }
+  ]
+}
+
+/-- One interpretation identity cannot silently collapse contradictory evidence sets. -/
+example :
+    let result := qualifyFixture contradictoryAlternativeEvidence
+    (result.status, resultKindOf result, qualifiedOf result) =
+      (.conflict, some .contradictoryFact, none) := by
   native_decide
 
 end Umpire.ObservationTests
