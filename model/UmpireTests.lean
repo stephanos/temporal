@@ -1,4 +1,5 @@
 import Umpire.ImportTests
+import Umpire.FingerprintTests
 import Umpire.Target.ImportTests
 import Umpire.CoreTests
 import Umpire.TargetTests
