@@ -248,23 +248,23 @@ def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep
     simp [admitted.1]
 }
 
-def targetDeclaration : TargetDeclaration LawStatement
+def targetDefinition : TargetDefinition
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
   id := targetId
   source
   declarations
   requiredCapabilities := [switchCapabilityId]
-  providers := [switchProvider]
-  connectors := []
   resolvedSetups := [switchSetup]
   kernel := .checked transitionKernel
 }
 
+def targetComposition : TargetComposition LawStatement :=
+  TargetComposition.empty |>.provide switchProvider
+
 def targetAuthoring : AuthoredTarget LawStatement
-    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  declaration := targetDeclaration
-  planning := .available transitionKernel rfl finitePlanning
-}
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue :=
+  AuthoredTarget.make targetDefinition targetComposition
+    (.available transitionKernel rfl finitePlanning)
 
 /-- Re-ascribe the source kernel after checked composition so its proof relation remains reducible. -/
 def target : QueryTarget LawStatement := checkedTarget targetAuthoring
@@ -362,7 +362,7 @@ def exactTraceBehaviorDeclaration : BehaviorDeclaration := {
 
 private def checkBehaviorDeclaration
     (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior :=
-  checkBehavior { declarations := target.declarations } declaration
+  checkBehavior (.ofTarget target) declaration
 
 def exploratoryBehaviorResult : Except BehaviorError CheckedBehavior :=
   checkBehaviorDeclaration exploratoryBehaviorDeclaration
@@ -498,12 +498,13 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
     (by
       intro evidence evidenceEq
       simp [exactActionQuery, materializeQuery, CheckedQueryTarget.ofTarget, target,
-        checkedTarget, targetAuthoring] at evidenceEq
+        checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
       simp only [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+        AuthoredTarget.make, targetDefinition,
         transitionKernel, initialStates]
       split <;> simp)
     (by
@@ -513,15 +514,19 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
         by_cases selectedOff : state = offState
         · subst state
           simpa [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+            AuthoredTarget.make, targetDefinition,
             transitionKernel, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
             simpa [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+              AuthoredTarget.make, targetDefinition,
               transitionKernel, stepResults, onState_ne_offState] using
               appliedFromOnResult_ordered
           · simp [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+              AuthoredTarget.make, targetDefinition,
               transitionKernel, stepResults, selectedOff, selectedOn]
       · simp [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+          AuthoredTarget.make, targetDefinition,
           transitionKernel, stepResults, selectedAction])
 
 private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by

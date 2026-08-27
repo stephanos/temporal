@@ -142,6 +142,31 @@ def testTarget : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool := 
   kernel := .checked testKernel
 }
 
+def targetDefinitionOf
+    (target : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool) :
+    TargetDefinition Unit Bool Bool Bool Bool := {
+  id := target.id
+  source := target.source
+  declarations := target.declarations
+  requiredCapabilities := target.requiredCapabilities
+  resolvedSetups := target.resolvedSetups
+  kernel := target.kernel
+}
+
+def targetCompositionOf
+    (target : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool) :
+    TargetComposition TestLawStatement :=
+  let providers := target.providers.foldl (fun result provider => result.provide provider)
+    TargetComposition.empty
+  target.connectors.foldl (fun result connector => result.connect connector) providers
+
+def authoringOf
+    (target : TargetDeclaration TestLawStatement Unit Bool Bool Bool Bool)
+    (planning : AuthoredPlanningCapability target.kernel := .unavailable)
+    (occurrences : List AuthoringOccurrence := []) :
+    AuthoredTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  AuthoredTarget.make (targetDefinitionOf target) (targetCompositionOf target) planning occurrences
+
 def errorOf {Target : Type}
     (result : Except DeclarationError Target) : Option DeclarationError :=
   match result with

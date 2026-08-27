@@ -70,11 +70,24 @@ example : match target.planning with
         capability.actions = [cancelAction, startAction, reportSuccessAction] ∧
         capability.roleDomainDigest = "temporal-nexus-basic-lifecycle-role-domain/v1" ∧
         capability.actionDomainDigest = "temporal-nexus-basic-lifecycle-action-domain/v2" := by
-  simp [target, checkedTarget, targetAuthoring, finitePlanning, actionDomain]
+  simp [target, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
+    finitePlanning, actionDomain]
+
+def expertTargetDeclaration : TargetDeclaration LawStatement
+    (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
+  id := targetDefinition.id
+  source := targetDefinition.source
+  declarations := targetDefinition.declarations
+  requiredCapabilities := targetDefinition.requiredCapabilities
+  providers := [lifecycleProvider]
+  connectors := []
+  resolvedSetups := targetDefinition.resolvedSetups
+  kernel := targetDefinition.kernel
+}
 
 def missingProviderDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with providers := []
+  expertTargetDeclaration with providers := []
 }
 
 /-- Checked composition remains public so callers can inspect its typed declaration error. -/
@@ -112,8 +125,8 @@ def conflictingProviderMetadata : DeclarationMetadata := {
 
 def conflictingProviderDeclaration : TargetDeclaration LawStatement
     (List RoleBinding) SemanticValue SemanticValue SemanticValue SemanticValue := {
-  targetDeclaration with
-  declarations := conflictingProviderMetadata :: targetDeclaration.declarations
+  expertTargetDeclaration with
+  declarations := conflictingProviderMetadata :: expertTargetDeclaration.declarations
   providers := [lifecycleProvider, conflictingProvider]
 }
 

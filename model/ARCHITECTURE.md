@@ -124,10 +124,12 @@ The shared `Temporal.System.Configuration` facade also does not import its
 Public Umpire APIs follow an authored → checked → planned → artifact lifecycle:
 
 1. A semantic-model maintainer defines declarations, capabilities, laws, a transition kernel, and
-   optional finite planning once in an `AuthoredTarget`.
+   optional finite planning in a `TargetDefinition`, adds explicit providers/connectors through a
+   sealed `TargetComposition`, and creates one `AuthoredTarget` with `AuthoredTarget.make`.
 2. Call `checkTarget` for a source-located diagnostic or `checkedTarget` for a declaration that
    compiles as valid, obtaining one canonical `CheckedTarget`.
-3. Call `checkProperty` and `checkBehavior` to validate authored constraints.
+3. Call `checkProperty` and `checkBehavior` with contexts derived from the checked target to
+   validate authored constraints.
 4. Call `checkQuery` to bind that target to properties, behavior, bounds, and policy.
 5. Derive the planner kernel with `IncrementalPlannerKernel.ofCheckedQuery?`, then call `plan`.
 6. Inspect the resulting `PlannerRun` and optional `ExperimentSpec`.
