@@ -6,6 +6,8 @@ namespace Umpire.QueryTests
 
 open Umpire
 
+#check QueryCheckContext.ofTarget
+
 /-! A backend completion signal cannot manufacture proof through the public Query surface. -/
 /--
 error: Unknown identifier `Umpire.finalizePlanning`
