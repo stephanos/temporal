@@ -6,19 +6,19 @@ namespace Umpire.QueryTests
 
 open Umpire
 
-def invalidBounds : QueryBounds := {
-  bounds with behavior := {
-    bounds.behavior with transitions := { value := 0, unit := .semanticTransitions }
+def invalidLimits : QueryLimits := {
+  limits with behavior := {
+    limits.behavior with transitions := { value := 0, unit := .semanticTransitions }
   }
 }
 
-/-! Invalid bounds and unsupported verify strategies retain distinct deterministic failures. -/
+/-! Invalid limits and unsupported verify strategies retain distinct deterministic failures. -/
 example : [
     errorKindOf (checkQuery context {
-      declaration (.witness checkedProperty) with bounds := invalidBounds
+      declaration (.witness checkedProperty) with limits := invalidLimits
     }),
     errorKindOf (checkQuery context (declaration (.verify checkedProperty)))
-  ] = [some .invalidBound, some .incompatibleStrategy] := by
+  ] = [some .invalidLimit, some .incompatibleStrategy] := by
   native_decide
 
 def exactTrace (outcome : ModelValue := acceptedValue) : BehaviorTrace := {
@@ -37,7 +37,7 @@ def exactTrace (outcome : ModelValue := acceptedValue) : BehaviorTrace := {
 def invalidExactBehavior : CheckedBehavior := {
   checkedBehavior with
   traceExactly := some (exactTrace (value accepted "not-admitted"))
-  semanticDigest := "behavior/invalid-exact-v1"
+  behaviorFingerprint := behaviorFingerprintOf "behavior/invalid-exact-v1"
 }
 
 /-! Structural exactness is insufficient: the selected kernel must admit the complete step. -/

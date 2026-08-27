@@ -22,26 +22,26 @@ def metadata
   id := id value
   kind
   source := source "Umpire/TargetTests.lean"
-  contractDigest := digest
+  canonicalBehavior := digest
 }
 
-def providerLaw : LawRequirement := {
+def providerLaw : LawDefinition := {
   id := id "umpire.law.provider-sound"
-  semanticDigest := "provider-sound/v1"
+  body := "provider-sound/v1"
 }
 
-def connectorLaw : LawRequirement := {
+def connectorLaw : LawDefinition := {
   id := id "umpire.law.connector-sound"
-  semanticDigest := "connector-sound/v1"
+  body := "connector-sound/v1"
 }
 
-def TestLawStatement (lawId : DefinitionId) : Prop :=
-  lawId = providerLaw.id ∨ lawId = connectorLaw.id
+def TestLawStatement (law : LawDefinition) : Prop :=
+  law.id = providerLaw.id ∨ law.id = connectorLaw.id
 
 def witness
-    (requirement : LawRequirement)
-    (proof : TestLawStatement requirement.id) : LawWitness TestLawStatement := {
-  requirement
+    (definition : LawDefinition)
+    (proof : TestLawStatement definition) : LawWitness TestLawStatement := {
+  definition
   proof
 }
 
@@ -54,7 +54,6 @@ def transition (state action : Bool) : TransitionResult Bool Bool Bool := {
 def testKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   metadata := {
     id := id "test.kernel.transition"
-    contractDigest := "test-kernel/v1"
     source := source "Umpire/TargetTests.lean"
   }
   initialStates := fun _ => [false]
@@ -65,6 +64,29 @@ def testKernel : TransitionKernel Unit Bool Bool Bool Bool := {
   authoritativeStep := fun state action result => result = transition state action
   stepSound := by simp
   stepComplete := by simp
+  behaviorDomain := .complete {
+    setups := [()]
+    states := [false, true]
+    actions := [false, true]
+    outcomes := [false, true]
+    observations := [false, true]
+    encodeSetup := fun _ => "unit"
+    encodeState := toString
+    encodeAction := toString
+    encodeOutcome := toString
+    encodeObservation := toString
+    setupCoverage := by intro setup state member; cases setup; simp
+    initialStateCoverage := by intro setup state member; cases state <;> simp
+    transitionSourceCoverage := by intro state action result member; cases state <;> simp
+    actionCoverage := by intro state action result member; cases action <;> simp
+    resultingStateCoverage := by
+      intro state action result member
+      cases result.resultingState <;> simp
+    outcomeCoverage := by intro state action result member; cases result.modelOutcome <;> simp
+    observationCoverage := by
+      intro state action result value member observationMember
+      cases value <;> simp
+  }
 }
 
 def primaryProvider : CapabilityProvider TestLawStatement := {
@@ -72,13 +94,13 @@ def primaryProvider : CapabilityProvider TestLawStatement := {
   source := source "Test/PrimarySemantic.lean"
   contract := {
     id := id "test.capability.primary"
-    semanticDigest := "test-primary-capability/v1"
+    canonicalBehavior := "test-primary-capability/v1"
     requiredLaws := [providerLaw]
   }
   meanings := [{
     definitionId := id "test.relation.shared"
     kind := .relation
-    semanticDigest := "test-primary-shared/v1"
+    canonicalBehavior := "test-primary-shared/v1"
   }]
   lawWitnesses := [witness providerLaw (by exact .inl rfl)]
 }
@@ -88,13 +110,13 @@ def secondaryProvider : CapabilityProvider TestLawStatement := {
   source := source "Test/SecondarySemantic.lean"
   contract := {
     id := id "test.capability.secondary"
-    semanticDigest := "test-secondary-capability/v1"
+    canonicalBehavior := "test-secondary-capability/v1"
     requiredLaws := [providerLaw]
   }
   meanings := [{
     definitionId := id "test.relation.shared"
     kind := .relation
-    semanticDigest := "test-secondary-shared/v1"
+    canonicalBehavior := "test-secondary-shared/v1"
   }]
   lawWitnesses := [witness providerLaw (by exact .inl rfl)]
 }
@@ -102,12 +124,12 @@ def secondaryProvider : CapabilityProvider TestLawStatement := {
 def ownershipConnector : CapabilityConnector TestLawStatement := {
   id := id "test.connector.shared"
   source := source "Test/CompositeSemantic.lean"
-  semanticDigest := "test-shared-connector/v1"
+  canonicalBehavior := "test-shared-connector/v1"
   reconciliations := [{
     definitionId := id "test.relation.shared"
     kind := .relation
     providers := [primaryProvider.id, secondaryProvider.id]
-    semanticDigest := "test-shared-connector/reconciled-v1"
+    canonicalBehavior := "test-shared-connector/reconciled-v1"
   }]
   requiredLaws := [connectorLaw]
   lawWitnesses := [witness connectorLaw (by exact .inr rfl)]
@@ -120,8 +142,8 @@ def testDefinitions : List DefinitionMetadata := [
   metadata "test.capability.secondary" .capability,
   metadata "test.provider.primary" .provider,
   metadata "test.provider.secondary" .provider,
-  metadata "umpire.law.provider-sound" .law providerLaw.semanticDigest,
-  metadata "umpire.law.connector-sound" .law connectorLaw.semanticDigest,
+  metadata "umpire.law.provider-sound" .law providerLaw.body,
+  metadata "umpire.law.connector-sound" .law connectorLaw.body,
   metadata "test.connector.shared" .connector,
   metadata "test.relation.shared" .relation,
   metadata "test.action.request" .action,

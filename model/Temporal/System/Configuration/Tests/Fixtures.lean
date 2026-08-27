@@ -23,7 +23,7 @@ def maxInterpretation : ConfigInterpretation Int := {
   expectedSettingIdentity := maxClassification.settingIdentity
   expectedSchema := Temporal.DynamicConfig.Settings.callback_maxperexecution.schema
   expectedDefault := Temporal.DynamicConfig.Settings.callback_maxperexecution.defaultValue
-  semanticDigest := semanticDigestOf "test.config/callback-max-per-execution/v1"
+  behaviorFingerprint := behaviorFingerprintOf "test.config/callback-max-per-execution/v1"
   decode := decodeInt
 }
 

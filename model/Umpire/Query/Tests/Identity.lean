@@ -11,10 +11,10 @@ def canonicalOf
     (queryDeclaration : QueryDeclaration) : Option String :=
   (checkQuery queryContext queryDeclaration).toOption.map canonicalQueryJson
 
-def digestOf
+def fingerprintOf
     (queryContext : QueryCheckContext (fun _ => True))
-    (queryDeclaration : QueryDeclaration) : Option String :=
-  (checkQuery queryContext queryDeclaration).toOption.map CheckedQuery.semanticDigest
+    (queryDeclaration : QueryDeclaration) : Option BehaviorFingerprint :=
+  (checkQuery queryContext queryDeclaration).toOption.map CheckedQuery.behaviorFingerprint
 
 def reorderedTargetDefinition : TargetDefinition
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
@@ -39,7 +39,7 @@ example : canonicalOf context (declaration (.witness checkedProperty)) =
 def orderedProperty : CheckedProperty := {
   checkedProperty with
   id := id "query.property.ordered"
-  semanticDigest := "property/ordered-v1"
+  behaviorFingerprint := behaviorFingerprintOf "property/ordered-v1"
 }
 
 /-! Property source order does not change the canonical query projection. -/
@@ -47,16 +47,16 @@ example : canonicalOf context (declaration (.select [checkedProperty, orderedPro
     canonicalOf context (declaration (.select [orderedProperty, checkedProperty])) := by
   native_decide
 
-def definitionsWithDigest
+def definitionsWithCanonicalBehavior
     (definitionId : DefinitionId)
     (digest : String) : List DefinitionMetadata :=
   targetDefinitions.map fun definition =>
-    if definition.id == definitionId then { definition with contractDigest := digest }
+    if definition.id == definitionId then { definition with canonicalBehavior := digest }
     else definition
 
 def changedSemanticTargetDefinition : TargetDefinition
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  targetDefinition with definitions := definitionsWithDigest targetId "query-target/v2"
+  targetDefinition with definitions := definitionsWithCanonicalBehavior targetId "query-target/v2"
 }
 
 def changedSemanticTarget : QueryTarget (fun _ => True) :=
@@ -71,14 +71,12 @@ def changedCompositionTarget : QueryTarget (fun _ => True) :=
   checkedTarget (AuthoredTarget.make changedCompositionTargetDefinition targetComposition)
 
 def changedKernel : TransitionKernel
-    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  kernel with metadata := { kernel.metadata with contractDigest := "query-kernel/v2" }
-}
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := kernel
 
 def changedKernelTargetDefinition : TargetDefinition
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   targetDefinition with
-  definitions := definitionsWithDigest kernelId "query-kernel/v2"
+  definitions := definitionsWithCanonicalBehavior kernelId "query-kernel/v2"
   kernel := .checked changedKernel
 }
 
@@ -90,21 +88,21 @@ def contextFor (candidate : QueryTarget (fun _ => True)) : QueryCheckContext (fu
 }
 
 def changedProperty : CheckedProperty := {
-  checkedProperty with semanticDigest := "property/v2"
+  checkedProperty with behaviorFingerprint := behaviorFingerprintOf "property/v2"
 }
 
 def changedBehavior : CheckedBehavior := {
-  checkedBehavior with semanticDigest := "behavior/v2"
+  checkedBehavior with behaviorFingerprint := behaviorFingerprintOf "behavior/v2"
 }
 
-def changedBounds : QueryBounds := {
-  bounds with behavior := {
-    bounds.behavior with transitions := { value := 2, unit := .semanticTransitions }
+def changedLimits : QueryLimits := {
+  limits with behavior := {
+    limits.behavior with transitions := { value := 2, unit := .semanticTransitions }
   }
 }
 
-def changedBoundsDeclaration : QueryDeclaration := {
-  declaration (.witness checkedProperty) with bounds := changedBounds
+def changedLimitsDeclaration : QueryDeclaration := {
+  declaration (.witness checkedProperty) with limits := changedLimits
 }
 
 def changedStrategyDeclaration : QueryDeclaration := {
@@ -117,18 +115,18 @@ def changedSeedDeclaration : QueryDeclaration := {
 
 /-! Every consumed semantic input changes Query identity. -/
 example :
-    let baseline := digestOf context (declaration (.witness checkedProperty))
+    let baseline := fingerprintOf context (declaration (.witness checkedProperty))
     [
-      digestOf context (declaration (.witness changedProperty)),
-      digestOf context (declaration (.witness checkedProperty) searchPolicy changedBehavior),
-      digestOf context changedBoundsDeclaration,
-      digestOf context changedStrategyDeclaration,
-      digestOf context changedSeedDeclaration,
-      digestOf (contextFor changedSemanticTarget)
+      fingerprintOf context (declaration (.witness changedProperty)),
+      fingerprintOf context (declaration (.witness checkedProperty) searchPolicy changedBehavior),
+      fingerprintOf context changedLimitsDeclaration,
+      fingerprintOf context changedStrategyDeclaration,
+      fingerprintOf context changedSeedDeclaration,
+      fingerprintOf (contextFor changedSemanticTarget)
         (declaration (.witness checkedProperty)),
-      digestOf (contextFor changedCompositionTarget)
+      fingerprintOf (contextFor changedCompositionTarget)
         (declaration (.witness checkedProperty)),
-      digestOf (contextFor changedKernelTarget)
+      fingerprintOf (contextFor changedKernelTarget)
         (declaration (.witness checkedProperty))
     ].all (fun changed => changed.isSome && changed != baseline) := by
   native_decide

@@ -196,17 +196,17 @@ structure PlannerInstrumentation where
 inductive PlanningOutcome where
   | found (trace : BehaviorTrace) (reason : SelectionReason)
   | verified
-  | noSuchTraceWithinCompleteBounds
-  | budgetExhausted
+  | noSuchTraceWithinCompleteLimits
+  | limitReached
   | unsatisfiable
   | invalid (error : QueryError)
   deriving BEq, DecidableEq, Repr
 
 def PlanningOutcome.name : PlanningOutcome → String
   | .found _ _ => "found"
-  | .verified => "verified-within-bounds"
-  | .noSuchTraceWithinCompleteBounds => "no-such-trace-within-complete-bounds"
-  | .budgetExhausted => "budget-exhausted"
+  | .verified => "verified-within-limits"
+  | .noSuchTraceWithinCompleteLimits => "no-such-trace-within-complete-limits"
+  | .limitReached => "limit-reached"
   | .unsatisfiable => "unsatisfiable"
   | .invalid _ => "invalid"
 
@@ -233,12 +233,13 @@ structure PlannerRun where
 
 private instance : Inhabited (PlannerPull State Candidate) := ⟨.complete⟩
 
-private def evidenceDigests (query : CheckedQuery LawStatement) : List String :=
+private def evidenceFingerprints
+    (query : CheckedQuery LawStatement) : List BehaviorFingerprint :=
   match query.completeness with
   | none => []
   | some evidence => [
-      evidence.roleDomainDigest,
-      evidence.actionDomainDigest
+      evidence.roleDomainFingerprint,
+      evidence.actionDomainFingerprint
     ]
 
 private def planningMetadata
@@ -248,15 +249,15 @@ private def planningMetadata
   explored
   completeness := {
     established
-    bounds := query.bounds
-    finiteEvidenceDigests := evidenceDigests query
+    limits := query.limits
+    finiteEvidenceFingerprints := evidenceFingerprints query
   }
 }
 
 private inductive PlanningTermination where
   | found (trace : BehaviorTrace) (reason : SelectionReason)
   | complete (behaviorAdmitted : Bool)
-  | budgetExhausted
+  | limitReached
   | invalid (error : QueryError)
   deriving BEq, DecidableEq, Repr
 
@@ -273,17 +274,17 @@ private def finalizePlanning
     else
       match termination with
       | .found trace reason => (.found trace reason, false)
-      | .budgetExhausted => (.budgetExhausted, false)
+      | .limitReached => (.limitReached, false)
       | .invalid error => (.invalid error, false)
       | .complete false => (.unsatisfiable, false)
       | .complete true =>
           if query.policy.strategy != .exhaustive || query.completeness.isNone then
-            (.budgetExhausted, false)
+            (.limitReached, false)
           else
             match query.claim with
-            | .verifiedWithinBounds => (.verified, true)
-            | .satisfyingWitness | .violatingCounterexample | .boundedSelection =>
-                (.noSuchTraceWithinCompleteBounds, true)
+            | .verifiedWithinLimits => (.verified, true)
+            | .satisfyingWitness | .violatingCounterexample | .limitedSelection =>
+                (.noSuchTraceWithinCompleteLimits, true)
   PlanningResult.mk outcome (planningMetadata query explored established)
 
 private def valueLe (left right : ModelValue) : Bool :=
@@ -333,7 +334,7 @@ private def seededIndex
     logicalIndex
 
 private def maximumDepth (query : CheckedQuery LawStatement) : Nat :=
-  Nat.min query.bounds.behavior.transitions.value query.bounds.behavior.selectedActions.value
+  Nat.min query.limits.behavior.transitions.value query.limits.behavior.selectedActions.value
 
 private def rootTrace (setup : List RoleBinding) (initialState : ModelValue) : BehaviorTrace := {
   setup
@@ -541,7 +542,7 @@ private def planLoop
     (explored : ExploredCounts)
     (instrumentation : PlannerInstrumentation) : PlannerRun :=
   match remaining with
-  | 0 => finish query explored instrumentation .budgetExhausted
+  | 0 => finish query explored instrumentation .limitReached
   | remaining + 1 =>
       match backend.pull () state with
       | .complete =>
@@ -570,6 +571,6 @@ def plan
     finish query {} {} (.complete false)
   else
     let backend := purePlannerBackend query kernel
-    planLoop query backend (backend.start ()) query.bounds.search.value false {} {}
+    planLoop query backend (backend.start ()) query.limits.search.value false {} {}
 
 end Umpire

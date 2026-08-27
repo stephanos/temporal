@@ -40,7 +40,7 @@ private def queryDeclaration
   target := target.id
   form := .witness property
   behavior
-  bounds
+  limits
   policy
 }
 

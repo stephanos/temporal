@@ -43,10 +43,12 @@ example : query.target = target := by
 
 example : query.completeness.map (fun evidence =>
       (evidence.roleAssignments, evidence.actions,
-        evidence.roleDomainDigest, evidence.actionDomainDigest)) =
+        evidence.roleDomainFingerprint, evidence.actionDomainFingerprint)) =
       some ([scheduledSetup, startedSetup], [cancelAction, startAction, reportSuccessAction],
-        "temporal-nexus-basic-lifecycle-role-domain/v1",
-        "temporal-nexus-basic-lifecycle-action-domain/v2") := by
+        behaviorFingerprintOf ("query-role-domain/v1\n" ++
+          String.intercalate "\u001f" target.behaviorDescription.setups),
+        behaviorFingerprintOf ("query-action-domain/v1\n" ++
+          String.intercalate "\u001f" target.behaviorDescription.actions)) := by
   native_decide
 
 example : canonicalQueryJson query ++ "\n" = expectedAsyncStartQueryJson := by
@@ -162,21 +164,27 @@ example : [
     Cancellation.query,
     SuccessfulCompletion.query
   ].map (fun checked =>
-    (checked.id.value, checked.target.id.value, checked.target.semanticDigest,
+    (checked.id.value, checked.target.id.value, checked.target.behaviorFingerprint,
       checked.completeness.map fun evidence =>
-        (evidence.roleDomainDigest, evidence.actionDomainDigest))) = [
+        (evidence.roleDomainFingerprint, evidence.actionDomainFingerprint))) = [
     ("temporal.nexus.basic-lifecycle.query.async-start",
-      "temporal.nexus.basic-lifecycle.target", target.semanticDigest,
-      some ("temporal-nexus-basic-lifecycle-role-domain/v1",
-        "temporal-nexus-basic-lifecycle-action-domain/v2")),
+      "temporal.nexus.basic-lifecycle.target", target.behaviorFingerprint,
+      some (behaviorFingerprintOf ("query-role-domain/v1\n" ++
+          String.intercalate "\u001f" target.behaviorDescription.setups),
+        behaviorFingerprintOf ("query-action-domain/v1\n" ++
+          String.intercalate "\u001f" target.behaviorDescription.actions))),
     ("temporal.nexus.basic-lifecycle.query.cancellation",
-      "temporal.nexus.basic-lifecycle.target", target.semanticDigest,
-      some ("temporal-nexus-basic-lifecycle-role-domain/v1",
-        "temporal-nexus-basic-lifecycle-action-domain/v2")),
+      "temporal.nexus.basic-lifecycle.target", target.behaviorFingerprint,
+      some (behaviorFingerprintOf ("query-role-domain/v1\n" ++
+          String.intercalate "\u001f" target.behaviorDescription.setups),
+        behaviorFingerprintOf ("query-action-domain/v1\n" ++
+          String.intercalate "\u001f" target.behaviorDescription.actions))),
     ("temporal.nexus.basic-lifecycle.query.successful-completion",
-      "temporal.nexus.basic-lifecycle.target", target.semanticDigest,
-      some ("temporal-nexus-basic-lifecycle-role-domain/v1",
-        "temporal-nexus-basic-lifecycle-action-domain/v2"))
+      "temporal.nexus.basic-lifecycle.target", target.behaviorFingerprint,
+      some (behaviorFingerprintOf ("query-role-domain/v1\n" ++
+          String.intercalate "\u001f" target.behaviorDescription.setups),
+        behaviorFingerprintOf ("query-action-domain/v1\n" ++
+          String.intercalate "\u001f" target.behaviorDescription.actions)))
   ] := by
   native_decide
 

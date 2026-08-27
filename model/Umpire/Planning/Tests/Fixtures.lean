@@ -27,11 +27,11 @@ def kernelId : DefinitionId := id "planner.kernel.fixture"
 def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (contractDigest : String) : DefinitionMetadata := {
+    (canonicalBehavior : String) : DefinitionMetadata := {
   id := definitionId
   kind
   version := 1
-  contractDigest
+  canonicalBehavior
   source
   documentation := "planning fixture"
 }
@@ -61,7 +61,6 @@ def kernel (width : Nat) : TransitionKernel
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
-    contractDigest := "planner-kernel/v1"
     source
   }
   initialStates := fun candidate => if candidate = setup then [initial] else []
@@ -96,12 +95,71 @@ def kernel (width : Nat) : TransitionKernel
     rw [if_pos ⟨rfl, rfl⟩]
     apply List.mem_map.mpr
     exact ⟨0, by simp, rfl⟩
+  behaviorDomain := .complete {
+    setups := [setup]
+    states := [initial, completed]
+    actions := [requestValue]
+    outcomes := [acceptedValue]
+    observations := [observedValue]
+    encodeSetup := fun bindings => String.intercalate "|" (bindings.map fun binding =>
+      binding.role.value ++ "=" ++ binding.value.definitionId.value ++ ":" ++ binding.value.value)
+    encodeState := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+    setupCoverage := by
+      intro candidate state member
+      by_cases selected : candidate = setup
+      · simp [selected]
+      · simp [selected] at member
+    initialStateCoverage := by
+      intro candidate state member
+      by_cases selected : candidate = setup
+      · rw [if_pos selected] at member
+        simp [List.mem_singleton.mp member]
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+    transitionSourceCoverage := by
+      intro state action result member
+      by_cases selected : state = initial ∧ action = requestValue
+      · simp [selected.1]
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+    actionCoverage := by
+      intro state action result member
+      by_cases selected : state = initial ∧ action = requestValue
+      · simp [selected.2]
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+    resultingStateCoverage := by
+      intro state action result member
+      by_cases selected : state = initial ∧ action = requestValue
+      · rw [if_pos selected] at member
+        obtain ⟨index, _, rfl⟩ := List.mem_map.mp member
+        simp [transition]
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+    outcomeCoverage := by
+      intro state action result member
+      by_cases selected : state = initial ∧ action = requestValue
+      · rw [if_pos selected] at member
+        obtain ⟨index, _, rfl⟩ := List.mem_map.mp member
+        simp [transition]
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+    observationCoverage := by
+      intro state action result observation member observationMember
+      by_cases selected : state = initial ∧ action = requestValue
+      · rw [if_pos selected] at member
+        obtain ⟨index, _, rfl⟩ := List.mem_map.mp member
+        simpa [transition] using observationMember
+      · rw [if_neg selected] at member
+        exact (List.not_mem_nil member).elim
+  }
 }
 
 def finitePlanning (width : Nat) : FinitePlanningCapability (kernel width).authoritativeStep := {
   actions := [requestValue]
-  roleDomainDigest := "role-domain/v1"
-  actionDomainDigest := "action-domain/v1"
   actionSound := by
     intro action member
     simp only [List.mem_cons, List.not_mem_nil, or_false] at member
@@ -151,7 +209,7 @@ def property : CheckedProperty := {
   access := { capabilities := [], meanings := [], logicalTimeSource := none }
   documentation := "property documentation"
   canonicalMetadata := "property-metadata"
-  semanticDigest := "property/v1"
+  behaviorFingerprint := behaviorFingerprintOf "property/v1"
 }
 
 def behavior : CheckedBehavior := {
@@ -173,10 +231,10 @@ def behavior : CheckedBehavior := {
   spaceStatus := .unclassified
   documentation := "behavior documentation"
   canonicalMetadata := "behavior-metadata"
-  semanticDigest := "behavior/v1"
+  behaviorFingerprint := behaviorFingerprintOf "behavior/v1"
 }
 
-def bounds (budget : Nat := 10) : QueryBounds := {
+def limits (budget : Nat := 10) : QueryLimits := {
   behavior := {
     transitions := { value := 1, unit := .semanticTransitions }
     selectedActions := { value := 1, unit := .selectedActions }
@@ -187,7 +245,7 @@ def bounds (budget : Nat := 10) : QueryBounds := {
 def policy (strategy : SearchStrategy) (seed : Nat := 17) : PlannerPolicy := {
   strategy
   seed
-  tieBreak := .semanticIdentity
+  tieBreak := .definitionId
 }
 
 def checkedQuery
@@ -206,7 +264,7 @@ def checkedQuery
   claim := form.claim
   behavior := selectedBehavior
   target := target width
-  bounds := bounds budget
+  limits := limits budget
   policy := policy strategy seed
   targetComposition := []
   completeness := if withCompleteness then
@@ -215,8 +273,9 @@ def checkedQuery
     none
   documentation := "query documentation"
   canonicalMetadata := "query-metadata"
-  semanticDigest := "query/v1:" ++ strategy.name ++ ":" ++ toString seed ++ ":" ++
-    selectedBehavior.semanticDigest
+  behaviorFingerprint := behaviorFingerprintOf <|
+    "query/v1:" ++ strategy.name ++ ":" ++ toString seed ++ ":" ++
+      selectedBehavior.behaviorFingerprint.render
 }
 
 def orderedQuery (width : Nat) : CheckedQuery (fun _ => True) :=

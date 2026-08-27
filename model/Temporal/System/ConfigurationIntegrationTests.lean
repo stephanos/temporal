@@ -65,7 +65,8 @@ def representativeMetadataComplete : Bool :=
   | .ok view =>
       view.entryCount == 6 && view.provenance.all fun entry =>
         entry.catalogDigest == Temporal.DynamicConfig.Settings.catalogIdentity &&
-          entry.settingDigest != "" && entry.interpretationDigest != "" && entry.key != "" &&
+          entry.settingDigest != "" && entry.interpretationFingerprint.render != "" &&
+          entry.key != "" &&
           entry.useId.value != ""
 
 example : representativeMetadataComplete = true := by native_decide
