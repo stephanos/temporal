@@ -146,6 +146,7 @@ inductive SemanticCoordinate where
 
 structure EvidenceOrderingFact where
   recordId : DeclarationId
+  kind : DeclarationId
   sequence : Nat
   causalParents : List DeclarationId
   deriving BEq, DecidableEq, Repr
@@ -256,7 +257,21 @@ private def recordLe (left right : SyntheticEvidenceRecord) : Bool :=
 
 private def interpretationLe (left right : CompatibleInterpretation) : Bool := idLe left.id right.id
 
+private def firstContradictoryInterpretation :
+    List CompatibleInterpretation → Option DeclarationId
+  | first :: second :: rest =>
+      if first.id == second.id && first.evidenceIdentities != second.evidenceIdentities then
+        some first.id
+      else
+        firstContradictoryInterpretation (second :: rest)
+  | _ => none
+
 private def closureLe (left right : EvidenceClosureFact) : Bool := idLe left.kind right.kind
+
+private def firstDuplicateClosure : List EvidenceClosureFact → Option EvidenceClosureFact
+  | first :: second :: rest =>
+      if first.kind == second.kind then some first else firstDuplicateClosure (second :: rest)
+  | _ => none
 
 private def referenceLe (left right : EvidenceFieldReference) : Bool :=
   decide (left.kind.value < right.kind.value) ||
@@ -621,6 +636,7 @@ private def emissionsFor
 
 private def orderingFact (record : SyntheticEvidenceRecord) : EvidenceOrderingFact := {
   recordId := record.id
+  kind := record.kind
   sequence := record.sequence
   causalParents := canonicalIds record.causalParents
 }
@@ -668,6 +684,15 @@ private def ensureComparableEmissions
           !rulePathExists plan.ordering right.rule.id left.rule.id then
         throw (diagnostic plan .incomparableOrdering [record.id, left.rule.id, right.rule.id])
 
+private def qualifiedTraceId
+    (mappingDigest : String)
+    (evidenceIdentities : List DeclarationId)
+    (trace : SemanticTrace SemanticValue SemanticValue SemanticValue SemanticValue)
+    (derivations : List SemanticDerivation) : String :=
+  semanticDigestOf <|
+    mappingDigest ++ ":" ++ reprStr evidenceIdentities ++ ":" ++ reprStr trace ++
+      ":" ++ reprStr derivations
+
 private def qualifyChecked
     (plan : CheckedObservationPlan)
     (bundle : EvidenceBundle) : Except QualificationDiagnostic QualifiedTrace := do
@@ -695,13 +720,11 @@ private def qualifyChecked
     let interpretations := bundle.compatibleAlternatives.map fun interpretation => {
       interpretation with evidenceIdentities := canonicalIds interpretation.evidenceIdentities
     }
-    for interpretation in interpretations do
-      let sameIdentity := interpretations.filter fun candidate => candidate.id == interpretation.id
-      if sameIdentity.any fun candidate =>
-          candidate.evidenceIdentities != interpretation.evidenceIdentities then
-        throw (diagnostic plan .contradictoryFact [interpretation.id])
-    let alternatives := interpretations.mergeSort interpretationLe
-      |>.map CompatibleInterpretation.id |>.eraseDups
+    let interpretations := interpretations.mergeSort interpretationLe
+    match firstContradictoryInterpretation interpretations with
+    | some interpretation => throw (diagnostic plan .contradictoryFact [interpretation])
+    | none => pure ()
+    let alternatives := interpretations.map CompatibleInterpretation.id |>.eraseDups
     throw {
       (diagnostic plan .compatibleAlternatives alternatives) with
       alternatives
@@ -750,8 +773,9 @@ private def qualifyChecked
     initialState := initial.value
     steps
   }
+  let evidenceIdentities := records.map SyntheticEvidenceRecord.id
   let qualified : QualifiedTrace := {
-    traceId := semanticDigestOf (plan.semanticDigest ++ ":" ++ reprStr trace)
+    traceId := qualifiedTraceId plan.semanticDigest evidenceIdentities trace derivations
     mappingId := plan.id
     mappingVersion := plan.version
     mappingDigest := plan.semanticDigest
@@ -762,7 +786,7 @@ private def qualifyChecked
     vocabulary := plan.meanings
     dispositions := plan.dispositions
     appliedBound := plan.evidenceBound
-    evidenceIdentities := records.map SyntheticEvidenceRecord.id
+    evidenceIdentities
     trace
     derivations
   }
@@ -779,6 +803,113 @@ private def expectedCoordinates
 
 private def derivationEvidenceIds (derivations : List SemanticDerivation) : List DeclarationId :=
   canonicalIds (derivations.flatMap SemanticDerivation.evidenceIdentities)
+
+private def orderingFactByRecordLe (left right : EvidenceOrderingFact) : Bool :=
+  idLe left.recordId right.recordId
+
+private def orderingFactBySequenceLe (left right : EvidenceOrderingFact) : Bool :=
+  left.sequence < right.sequence ||
+    (left.sequence == right.sequence && idLe left.recordId right.recordId)
+
+private def canonicalOrderingFacts
+    (mappingId : DeclarationId) :
+    List EvidenceOrderingFact → Except QualificationDiagnostic (List EvidenceOrderingFact)
+  | [] => pure []
+  | [fact] => pure [fact]
+  | first :: second :: rest =>
+      if first.recordId == second.recordId then
+        if first != second then
+          throw {
+            kind := .missingOrderSupport
+            planId := mappingId
+            relatedIdentities := [first.recordId]
+          }
+        else
+          canonicalOrderingFacts mappingId (second :: rest)
+      else
+        return first :: (← canonicalOrderingFacts mappingId (second :: rest))
+
+private def validateOrderingProvenance
+    (trace : QualifiedTrace) : Except QualificationDiagnostic (List EvidenceOrderingFact) := do
+  let ordered := (trace.derivations.flatMap SemanticDerivation.orderingSupport).mergeSort
+    orderingFactByRecordLe
+  let facts := (← canonicalOrderingFacts trace.mappingId ordered).mergeSort orderingFactBySequenceLe
+  if facts.map EvidenceOrderingFact.recordId != trace.evidenceIdentities then
+    throw { kind := .missingOrderSupport, planId := trace.mappingId }
+  let mut expectedSequence := 1
+  for fact in facts do
+    if fact.sequence != expectedSequence ||
+        (expectedSequence > 1 && fact.causalParents.isEmpty) then
+      throw {
+        kind := .missingOrderSupport
+        planId := trace.mappingId
+        relatedIdentities := [fact.recordId]
+      }
+    for parent in fact.causalParents do
+      let parentFact ← match facts.find? fun candidate => candidate.recordId == parent with
+        | some parentFact => pure parentFact
+        | none => throw {
+            kind := .missingOrderSupport
+            planId := trace.mappingId
+            relatedIdentities := [fact.recordId, parent]
+          }
+      if parentFact.sequence >= fact.sequence then
+        throw {
+          kind := .missingOrderSupport
+          planId := trace.mappingId
+          relatedIdentities := [fact.recordId, parent]
+        }
+    expectedSequence := expectedSequence + 1
+  for derivation in trace.derivations do
+    let support := derivation.orderingSupport.mergeSort orderingFactByRecordLe
+    if canonicalIds (support.map EvidenceOrderingFact.recordId) !=
+        canonicalIds derivation.evidenceIdentities ||
+        support.any fun fact => !facts.contains fact then
+      throw {
+        kind := .missingOrderSupport
+        planId := trace.mappingId
+        relatedIdentities := [derivation.ruleId]
+      }
+  pure facts
+
+private def validateClosureProvenance
+    (trace : QualifiedTrace)
+    (ordering : List EvidenceOrderingFact) : Except QualificationDiagnostic Unit := do
+  let closures := trace.derivations.head?.map fun derivation =>
+    derivation.closureSupport.mergeSort closureLe
+  let closures := closures.getD []
+  if closures.isEmpty || !trace.sourceClosed then
+    throw { kind := .missingClosureSupport, planId := trace.mappingId }
+  match firstDuplicateClosure closures with
+  | some duplicate => throw {
+      kind := .missingClosureSupport
+      planId := trace.mappingId
+      relatedIdentities := [duplicate.kind]
+    }
+  | none => pure ()
+  for derivation in trace.derivations do
+    if derivation.closureSupport.mergeSort closureLe != closures then
+      throw {
+        kind := .missingClosureSupport
+        planId := trace.mappingId
+        relatedIdentities := [derivation.ruleId]
+      }
+  for fact in ordering do
+    if !(closures.any fun closure => closure.kind == fact.kind) then
+      throw {
+        kind := .missingClosureSupport
+        planId := trace.mappingId
+        relatedIdentities := [fact.recordId, fact.kind]
+      }
+  for closure in closures do
+    let lastSequence := (ordering.filter fun fact => fact.kind == closure.kind)
+      |>.foldl (fun current fact => Nat.max current fact.sequence) 0
+    if closure.lastSequence != lastSequence then
+      throw {
+        kind := .missingClosureSupport
+        planId := trace.mappingId
+        relatedIdentities := [closure.kind]
+      }
 
 private def validateAppliedDisposition
     (trace : QualifiedTrace)
@@ -835,8 +966,6 @@ private def validateAppliedDisposition
 
 /-- Revalidate a wrapper before any downstream property evaluation. -/
 def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagnostic Unit := do
-  if trace.traceId != semanticDigestOf (trace.mappingDigest ++ ":" ++ reprStr trace.trace) then
-    throw { kind := .inconsistentDerivation, planId := trace.mappingId }
   let expected := expectedCoordinates trace.trace
   let actual := trace.derivations.map SemanticDerivation.coordinate
   for coordinate in expected do
@@ -847,9 +976,6 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
       throw { kind := .duplicateCoordinate, planId := trace.mappingId }
   if actual.any fun coordinate => !expected.contains coordinate then
     throw { kind := .extraCoordinate, planId := trace.mappingId }
-  let closureSupport := trace.derivations.head?.map fun derivation =>
-    derivation.closureSupport.mergeSort closureLe
-  let closureSupport := closureSupport.getD []
   for derivation in trace.derivations do
     if derivation.mappingId != trace.mappingId ||
         derivation.mappingVersion != trace.mappingVersion ||
@@ -867,27 +993,14 @@ def validateQualifiedTrace (trace : QualifiedTrace) : Except QualificationDiagno
       }
   if derivationEvidenceIds trace.derivations != canonicalIds trace.evidenceIdentities then
     throw { kind := .unconsumedReference, planId := trace.mappingId }
+  let ordering ← validateOrderingProvenance trace
+  validateClosureProvenance trace ordering
   for derivation in trace.derivations do
-    if derivation.closureSupport.mergeSort closureLe != closureSupport ||
-        closureSupport.isEmpty || !trace.sourceClosed then
-      throw {
-        kind := .missingClosureSupport
-        planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId]
-      }
-    let orderingIdentities := canonicalIds <|
-      derivation.orderingSupport.map EvidenceOrderingFact.recordId
-    if orderingIdentities != canonicalIds derivation.evidenceIdentities ||
-        derivation.orderingSupport.any (fun fact =>
-          fact.sequence == 0 ||
-            fact.causalParents.any fun parent => !trace.evidenceIdentities.contains parent) then
-      throw {
-        kind := .missingOrderSupport
-        planId := trace.mappingId
-        relatedIdentities := [derivation.ruleId]
-      }
     for applied in derivation.appliedDispositions do
       validateAppliedDisposition trace derivation applied
+  if trace.traceId != qualifiedTraceId trace.mappingDigest trace.evidenceIdentities trace.trace
+      trace.derivations then
+    throw { kind := .inconsistentDerivation, planId := trace.mappingId }
 
 /-- Qualify without exposing an intermediate or partially constructed semantic trace. -/
 def qualifyEvidence

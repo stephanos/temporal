@@ -44,23 +44,27 @@ def derivationFailureKinds : List (QualificationStatus × Option QualificationFa
       completeQualifiedTrace.evidenceIdentities ++ [id "test.evidence.record.unconsumed"]
   }
   (.unknown, diagnosticKindOf result),
-  let result := validateQualifiedTrace {
-    completeQualifiedTrace with derivations := [{
-      completeFirstDerivation with closureSupport := [{
+  let derivations := completeQualifiedTrace.derivations.map fun derivation => {
+    derivation with closureSupport := [{
         kind := eventKind
         lastSequence := 99
       }]
-    }] ++ completeQualifiedTrace.derivations.tail
+  }
+  let result := validateQualifiedTrace {
+    completeQualifiedTrace with derivations
   }
   (.unknown, diagnosticKindOf result),
-  let result := validateQualifiedTrace {
-    completeQualifiedTrace with derivations := [{
-      completeFirstDerivation with orderingSupport := [{
-        recordId := id "test.evidence.record.unrelated"
+  let derivations := completeQualifiedTrace.derivations.map fun derivation =>
+    let recordId := derivation.evidenceIdentities.head?.getD (id "test.evidence.record.missing")
+    { derivation with orderingSupport := [{
+        recordId
+        kind := eventKind
         sequence := 1
-        causalParents := []
+        causalParents := [recordId]
       }]
-    }] ++ completeQualifiedTrace.derivations.tail
+    }
+  let result := validateQualifiedTrace {
+    completeQualifiedTrace with derivations
   }
   (.unknown, diagnosticKindOf result)
 ]
