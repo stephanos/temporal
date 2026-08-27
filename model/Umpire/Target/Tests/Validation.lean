@@ -171,4 +171,33 @@ example : (errorOf (composeTarget collidingStateEncodingTarget)) = some {
   } := by
   native_decide
 
+def changedStateEncodingKernel : TransitionKernel Unit Bool Bool Bool Bool := {
+  testKernel with
+  behaviorDomain := match testKernel.behaviorDomain with
+    | .complete domain => .complete {
+        domain with encodeState := fun state => "state:" ++ toString state
+      }
+    | .missing => .missing
+    | .incomplete missing => .incomplete missing
+}
+
+def checkedTestTarget : CheckedTarget TestLawStatement Unit Bool Bool Bool Bool :=
+  checkedTarget (authoringOf testTarget)
+
+/-- Equivalent relations cannot rebind a checked Target when its domain projection changes. -/
+example :
+    changedStateEncodingKernel.metadata = testKernel.metadata ∧
+    changedStateEncodingKernel.setupDomain = testKernel.setupDomain ∧
+    changedStateEncodingKernel.stateDomain = testKernel.stateDomain ∧
+    changedStateEncodingKernel.actionDomain = testKernel.actionDomain ∧
+    changedStateEncodingKernel.outcomeDomain = testKernel.outcomeDomain ∧
+    changedStateEncodingKernel.observationDomain = testKernel.observationDomain ∧
+    changedStateEncodingKernel.authoritativeInitial = testKernel.authoritativeInitial ∧
+    changedStateEncodingKernel.authoritativeStep = testKernel.authoritativeStep := by
+  simp [changedStateEncodingKernel]
+
+example : changedStateEncodingKernel.behaviorDescription? !=
+    some checkedTestTarget.behaviorDescription := by
+  native_decide
+
 end Umpire.TargetTests

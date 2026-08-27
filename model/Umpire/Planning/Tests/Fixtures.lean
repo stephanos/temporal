@@ -205,6 +205,25 @@ def targetAuthoring : AuthoredTarget (fun _ => True)
 
 def baseTarget : QueryTarget (fun _ => True) := checkedTarget targetAuthoring
 
+private theorem completed_ne_initial : completed ≠ initial := by
+  native_decide
+
+private theorem eraseDups_replicate_append_two
+    [BEq α] (width : Nat) (value : α) (self : (value == value) = true) :
+    (List.replicate width value ++ [value, value]).eraseDups = [value] := by
+  cases width <;> simp [List.replicate_succ, List.eraseDups_cons, self]
+
+private theorem kernelBehaviorDescription_eq (width : Nat) :
+    (kernel width).behaviorDescription? = (kernel 0).behaviorDescription? := by
+  induction width with
+  | zero => rfl
+  | succ width ih =>
+      simp [TransitionKernel.behaviorDescription?, TransitionKernel.describeBehavior, kernel,
+        transitions, transition, completed_ne_initial, Function.comp_def, List.map_const',
+        List.range_succ]
+      rw [eraseDups_replicate_append_two _ _ (by native_decide)]
+      native_decide
+
 def target (width : Nat) : QueryTarget (fun _ => True) :=
   baseTarget.withEquivalentKernel (kernel width)
     (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
@@ -215,6 +234,7 @@ def target (width : Nat) : QueryTarget (fun _ => True) :=
       kernel])
     (by simp [baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
       kernel])
+    (kernelBehaviorDescription_eq width |>.trans (by native_decide))
     (.available (finitePlanning width))
 
 def property : CheckedProperty := {

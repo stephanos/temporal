@@ -271,7 +271,7 @@ private def invalidBehaviorDomainEncoding?
   else
     none
 
-private def describeTargetBehavior
+def TransitionKernel.describeBehavior
     (kernel : TransitionKernel Setup State Action Outcome Observation)
     (domain : TargetBehaviorDomain kernel.setupDomain kernel.stateDomain kernel.actionDomain
       kernel.outcomeDomain kernel.observationDomain kernel.initialStates kernel.steps) :
@@ -296,9 +296,18 @@ private def describeTargetBehavior
     actions := canonicalStrings (domain.actions.map domain.encodeAction)
     outcomes := canonicalStrings (domain.outcomes.map domain.encodeOutcome)
     observations := canonicalStrings (domain.observations.map domain.encodeObservation)
-    initialStates := initialStates.mergeSort initialRowLe |>.eraseDups
-    transitions := transitions.mergeSort transitionRowLe |>.eraseDups
+    initialStates := initialStates.eraseDups |>.mergeSort initialRowLe
+    transitions := transitions.eraseDups |>.mergeSort transitionRowLe
   }
+
+/-- Project the canonical behavior sealed by a complete finite kernel domain. -/
+def TransitionKernel.behaviorDescription?
+    (kernel : TransitionKernel Setup State Action Outcome Observation) :
+    Option TargetBehaviorDescription :=
+  match kernel.behaviorDomain with
+  | .complete domain => some (kernel.describeBehavior domain)
+  | .missing => none
+  | .incomplete _ => none
 
 private def withoutClosingBrace (value : String) : String :=
   (value.dropEnd 1).toString
@@ -769,7 +778,7 @@ private def composeTargetDetailed
       throw (validationError .incompleteBehaviorDomain target.id kernel.metadata.source
         (occurrencePath .kernel target.id) kernel.metadata.id encoding [kernel.metadata.id])
   | none => pure ()
-  let behavior := describeTargetBehavior kernel behaviorDomain
+  let behavior := kernel.describeBehavior behaviorDomain
   let semantic := targetSemanticJson target.id definitions target.requiredCapabilities
     providers connectors kernel.metadata behavior
   pure {
@@ -903,6 +912,7 @@ def CheckedTarget.withEquivalentKernel
       kernel.observationDomain = target.kernel.observationDomain)
     (_initial : kernel.authoritativeInitial = target.kernel.authoritativeInitial)
     (_step : kernel.authoritativeStep = target.kernel.authoritativeStep)
+    (_behavior : kernel.behaviorDescription? = some target.behaviorDescription)
     (planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable) :
     CheckedTarget LawStatement Setup State Action Outcome Observation := {
   target with
