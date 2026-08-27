@@ -287,22 +287,8 @@ private def finalizePlanning
                 (.noSuchTraceWithinCompleteLimits, true)
   PlanningResult.mk outcome (planningMetadata query explored established)
 
-private def valueLe (left right : ModelValue) : Bool :=
-  decide (modelValueOrderKey left ≤ modelValueOrderKey right)
-
-private def bindingLe (left right : RoleBinding) : Bool :=
-  decide (left.role.value < right.role.value) ||
-    (left.role == right.role && valueLe left.value right.value)
-
-private def canonicalSetup (setup : List RoleBinding) : List RoleBinding :=
-  setup.mergeSort bindingLe
-
-private def setupKey (setup : List RoleBinding) : String :=
-  String.intercalate "\u001f" ((canonicalSetup setup).map fun binding =>
-    binding.role.value ++ "\u001e" ++ modelValueOrderKey binding.value)
-
 private def setupLe (left right : List RoleBinding) : Bool :=
-  decide (setupKey left ≤ setupKey right)
+  compare left right != .gt
 
 private def rotate (offset : Nat) (items : List α) : List α :=
   if items.isEmpty then
@@ -323,7 +309,7 @@ private def candidateSetups (query : CheckedQuery LawStatement) : List (List Rol
   let setups := match query.completeness with
     | some evidence => evidence.roleAssignments
     | none => query.target.resolvedSetups
-  applySeed query (setups.mergeSort setupLe |>.eraseDups)
+  applySeed query (setups.mergeSort setupLe)
 
 private def seededIndex
     (query : CheckedQuery LawStatement)

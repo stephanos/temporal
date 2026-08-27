@@ -7,7 +7,7 @@
 
 - Format: `umpire-experiment/v1`
 - Canonical fixture: `model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json`
-- Semantic fingerprint: `sha256:8c2ba27730181616819a2bb4e0f083bc2ebfd6e3fc6df7717025539e95a3a46f`
+- Semantic fingerprint: `sha256:4e04aacc52a317a0c9341652f32f6416e9158168af8a2e94c7bae5e0a8f32563`
 
 ### Lean sources
 
