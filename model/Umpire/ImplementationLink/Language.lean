@@ -227,7 +227,7 @@ def ImplementationLinkObligation.name : ImplementationLinkObligation → String
 
 /-- Runtime-checkable witness labels supplement the witness's exact dependent indices. -/
 structure ImplementationLinkWitnessIndex where
-  declarationId : DefinitionId
+  definitionId : DefinitionId
   declarationVersion : Nat
   sourceTarget : ImplementationTargetReference
   destinationTarget : ImplementationTargetReference
@@ -242,7 +242,7 @@ def implementationLinkWitnessIndex
     (destination : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
       DestinationAction DestinationOutcome DestinationObservation) :
     ImplementationLinkWitnessIndex := {
-  declarationId := declaration.id
+  definitionId := declaration.id
   declarationVersion := declaration.version
   sourceTarget := .ofTarget source
   destinationTarget := .ofTarget destination
@@ -688,33 +688,33 @@ private def canonicalImplementationLinkJson
     ",\"documentation\":" ++ quote declaration.documentation ++ "}"
 
 private def validateTargetReference
-    (declarationId : DefinitionId)
+    (definitionId : DefinitionId)
     (source : SourceLocation)
     (role : String)
     (reference expected : ImplementationTargetReference) : Except ImplementationLinkError Unit := do
   if reference.kind != .target then
-    throw (implementationLinkError .wrongKind declarationId source
+    throw (implementationLinkError .wrongKind definitionId source
       (role ++ ":" ++ reference.kind.name) [reference.id])
   if reference.id != expected.id then
     throw (implementationLinkError
       (if role == "source" then .staleSourceTarget else .staleDestinationTarget)
-      declarationId source reference.id.value [reference.id, expected.id])
+      definitionId source reference.id.value [reference.id, expected.id])
   if reference.behaviorFingerprint != expected.behaviorFingerprint then
-    throw (implementationLinkError .behaviorFingerprintDrift declarationId source
+    throw (implementationLinkError .behaviorFingerprintDrift definitionId source
       role [reference.id])
 
 private def validateKnownGap
-    (declarationId : DefinitionId)
+    (definitionId : DefinitionId)
     (source : SourceLocation)
     (label : String)
     (gap : ImplementationLinkKnownGap Value) : Except ImplementationLinkError Unit := do
   if !gap.code.isNamespaced || gap.reason == "" then
-    throw (implementationLinkError .invalidKnownGap declarationId source
+    throw (implementationLinkError .invalidKnownGap definitionId source
       (label ++ ":" ++ gap.code.value) [gap.code])
 
 private def validateValueTable
     [BEq Source] [BEq Destination]
-    (declarationId : DefinitionId)
+    (definitionId : DefinitionId)
     (source : SourceLocation)
     (label : String)
     (encodeSource : Source → String)
@@ -724,33 +724,33 @@ private def validateValueTable
     (knownGaps : List (ImplementationLinkKnownGap Source)) : Except ImplementationLinkError Unit := do
   for mapping in mappings do
     if (mappings.filter fun other => other == mapping).length > 1 then
-      throw (implementationLinkError .duplicateMapping declarationId source
+      throw (implementationLinkError .duplicateMapping definitionId source
         (label ++ ":" ++ encodeSource mapping.source))
     if (mappings.filter fun other => other.source == mapping.source).length > 1 then
-      throw (implementationLinkError .ambiguousMapping declarationId source
+      throw (implementationLinkError .ambiguousMapping definitionId source
         (label ++ ":" ++ encodeSource mapping.source))
     if !sourceValues.contains mapping.source then
-      throw (implementationLinkError .unknownSourceValue declarationId source
+      throw (implementationLinkError .unknownSourceValue definitionId source
         (label ++ ":" ++ encodeSource mapping.source))
     if !destinationValues.contains mapping.destination then
-      throw (implementationLinkError .unknownDestinationValue declarationId source
+      throw (implementationLinkError .unknownDestinationValue definitionId source
         (label ++ ":" ++ encodeSource mapping.source))
   for gap in knownGaps do
-    validateKnownGap declarationId source label gap
+    validateKnownGap definitionId source label gap
     if !sourceValues.contains gap.source then
-      throw (implementationLinkError .unknownSourceValue declarationId source
+      throw (implementationLinkError .unknownSourceValue definitionId source
         (label ++ ":" ++ encodeSource gap.source) [gap.code])
     if (knownGaps.filter fun other => other.source == gap.source).length > 1 then
-      throw (implementationLinkError .duplicateKnownGap declarationId source
+      throw (implementationLinkError .duplicateKnownGap definitionId source
         (label ++ ":" ++ encodeSource gap.source) [gap.code])
   for value in sourceValues do
     let mappedCount := (mappings.filter fun mapping => mapping.source == value).length
     let gapCount := (knownGaps.filter fun gap => gap.source == value).length
     if mappedCount + gapCount == 0 then
-      throw (implementationLinkError .incompleteSupportPartition declarationId source
+      throw (implementationLinkError .incompleteSupportPartition definitionId source
         (label ++ ":" ++ encodeSource value))
     if mappedCount + gapCount > 1 then
-      throw (implementationLinkError .contradictorySupportPartition declarationId source
+      throw (implementationLinkError .contradictorySupportPartition definitionId source
         (label ++ ":" ++ encodeSource value))
 
 private def definitionById
@@ -759,7 +759,7 @@ private def definitionById
   definitions.find? fun definition => definition.id == id
 
 private def validateSemanticReference
-    (declarationId : DefinitionId)
+    (definitionId : DefinitionId)
     (source : SourceLocation)
     (role : String)
     (expectedKind : DefinitionKind)
@@ -767,30 +767,30 @@ private def validateSemanticReference
     (references : List ImplementationSemanticReference)
     (reference : ImplementationSemanticReference) : Except ImplementationLinkError Unit := do
   if reference.kind != expectedKind then
-    throw (implementationLinkError .wrongKind declarationId source
+    throw (implementationLinkError .wrongKind definitionId source
       (role ++ ":" ++ reference.kind.name) [reference.id])
   match definitionById definitions reference.id with
   | none =>
       throw (implementationLinkError
         (if role == "source" then .unknownSourceValue else .unknownDestinationValue)
-        declarationId source reference.id.value [reference.id])
+        definitionId source reference.id.value [reference.id])
   | some definition =>
       if definition.kind != expectedKind then
-        throw (implementationLinkError .wrongKind declarationId source
+        throw (implementationLinkError .wrongKind definitionId source
           (role ++ ":" ++ definition.kind.name) [reference.id])
       match references.find? fun expected =>
           expected.id == reference.id && expected.kind == reference.kind with
       | none =>
           throw (implementationLinkError
             (if role == "source" then .unknownSourceValue else .unknownDestinationValue)
-            declarationId source reference.id.value [reference.id])
+            definitionId source reference.id.value [reference.id])
       | some expected =>
           if expected.behaviorFingerprint != reference.behaviorFingerprint then
-            throw (implementationLinkError .behaviorFingerprintDrift declarationId source
+            throw (implementationLinkError .behaviorFingerprintDrift definitionId source
               role [reference.id])
 
 private def validateSemanticTable
-    (declarationId : DefinitionId)
+    (definitionId : DefinitionId)
     (source : SourceLocation)
     (label : String)
     (expectedKind : DefinitionKind)
@@ -803,52 +803,52 @@ private def validateSemanticTable
     Except ImplementationLinkError Unit := do
   for mapping in mappings do
     if (mappings.filter fun other => other == mapping).length > 1 then
-      throw (implementationLinkError .duplicateMapping declarationId source
+      throw (implementationLinkError .duplicateMapping definitionId source
         (label ++ ":" ++ mapping.source.id.value) [mapping.source.id])
     if (mappings.filter fun other => other.source.id == mapping.source.id).length > 1 then
-      throw (implementationLinkError .ambiguousMapping declarationId source
+      throw (implementationLinkError .ambiguousMapping definitionId source
         (label ++ ":" ++ mapping.source.id.value) [mapping.source.id])
-    validateSemanticReference declarationId source "source" expectedKind sourceDefinitions
+    validateSemanticReference definitionId source "source" expectedKind sourceDefinitions
       sourceReferences mapping.source
-    validateSemanticReference declarationId source "destination" expectedKind
+    validateSemanticReference definitionId source "destination" expectedKind
       destinationDefinitions destinationReferences mapping.destination
     if !requiredSourceIds.contains mapping.source.id then
-      throw (implementationLinkError .unknownSourceValue declarationId source
+      throw (implementationLinkError .unknownSourceValue definitionId source
         (label ++ ":" ++ mapping.source.id.value) [mapping.source.id])
     if !allowedDestinationIds.contains mapping.destination.id then
-      throw (implementationLinkError .unknownDestinationValue declarationId source
+      throw (implementationLinkError .unknownDestinationValue definitionId source
         (label ++ ":" ++ mapping.destination.id.value) [mapping.destination.id])
   for gap in knownGaps do
-    validateKnownGap declarationId source label gap
+    validateKnownGap definitionId source label gap
     if !requiredSourceIds.contains gap.source then
-      throw (implementationLinkError .unknownSourceValue declarationId source
+      throw (implementationLinkError .unknownSourceValue definitionId source
         (label ++ ":" ++ gap.source.value) [gap.source, gap.code])
     if (knownGaps.filter fun other => other.source == gap.source).length > 1 then
-      throw (implementationLinkError .duplicateKnownGap declarationId source
+      throw (implementationLinkError .duplicateKnownGap definitionId source
         (label ++ ":" ++ gap.source.value) [gap.source, gap.code])
   for id in requiredSourceIds do
     let mappedCount := (mappings.filter fun mapping => mapping.source.id == id).length
     let gapCount := (knownGaps.filter fun gap => gap.source == id).length
     if mappedCount + gapCount == 0 then
-      throw (implementationLinkError .incompleteSupportPartition declarationId source
+      throw (implementationLinkError .incompleteSupportPartition definitionId source
         (label ++ ":" ++ id.value) [id])
     if mappedCount + gapCount > 1 then
-      throw (implementationLinkError .contradictorySupportPartition declarationId source
+      throw (implementationLinkError .contradictorySupportPartition definitionId source
         (label ++ ":" ++ id.value) [id])
 
 private def validateWitnessIndex
-    (declarationId : DefinitionId)
+    (definitionId : DefinitionId)
     (sourceLocation : SourceLocation)
     (expected actual : ImplementationLinkWitnessIndex) : Except ImplementationLinkError Unit := do
-  if actual.declarationId != expected.declarationId ||
+  if actual.definitionId != expected.definitionId ||
       actual.declarationVersion != expected.declarationVersion then
-    throw (implementationLinkError .witnessDeclarationMismatch declarationId sourceLocation
-      actual.declarationId.value [actual.declarationId, expected.declarationId])
+    throw (implementationLinkError .witnessDeclarationMismatch definitionId sourceLocation
+      actual.definitionId.value [actual.definitionId, expected.definitionId])
   if actual.sourceTarget != expected.sourceTarget then
-    throw (implementationLinkError .witnessSourceMismatch declarationId sourceLocation
+    throw (implementationLinkError .witnessSourceMismatch definitionId sourceLocation
       actual.sourceTarget.id.value [actual.sourceTarget.id, expected.sourceTarget.id])
   if actual.destinationTarget != expected.destinationTarget then
-    throw (implementationLinkError .witnessDestinationMismatch declarationId sourceLocation
+    throw (implementationLinkError .witnessDestinationMismatch definitionId sourceLocation
       actual.destinationTarget.id.value [actual.destinationTarget.id, expected.destinationTarget.id])
 
 private def missingObligationError : ImplementationLinkObligation → ImplementationLinkErrorKind
