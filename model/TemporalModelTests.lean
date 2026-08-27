@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.LifecycleTests
+import Temporal.Feature.Nexus.ObservationTests
 import Temporal.Feature.Nexus.OperationsTests
 import Temporal.System.Callback.ConfigurationTests
 import Temporal.System.Configuration.Tests
