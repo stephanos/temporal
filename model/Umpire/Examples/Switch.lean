@@ -266,21 +266,8 @@ def targetAuthoring : AuthoredTarget LawStatement
   planning := .available transitionKernel rfl finitePlanning
 }
 
-def targetResult : Except AuthoringDiagnostic (QueryTarget LawStatement) :=
-  checkTarget targetAuthoring
-
-private theorem targetResult_isSome : targetResult.toOption.isSome = true := by
-  native_decide
-
-private def composedTarget : QueryTarget LawStatement :=
-  targetResult.toOption.get targetResult_isSome
-
 /-- Re-ascribe the source kernel after checked composition so its proof relation remains reducible. -/
-def target : QueryTarget LawStatement := {
-  composedTarget with
-  kernel := transitionKernel
-  planning := .available finitePlanning
-}
+def target : QueryTarget LawStatement := checkedTarget targetAuthoring
 
 theorem target_resolvedSetups : target.resolvedSetups = [switchSetup] := by
   native_decide
@@ -511,12 +498,13 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
     (by
       intro evidence evidenceEq
       simp [exactActionQuery, materializeQuery, CheckedQueryTarget.ofTarget, target,
-        finitePlanning] at evidenceEq
+        checkedTarget, targetAuthoring] at evidenceEq
       cases Option.some.inj evidenceEq
-      simp)
+      simp [finitePlanning])
     (by
       intro _ _ setup
-      simp only [exactActionQuery, materializeQuery, target, transitionKernel, initialStates]
+      simp only [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+        transitionKernel, initialStates]
       split <;> simp)
     (by
       intro _ _ state action
@@ -524,16 +512,17 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
       · subst action
         by_cases selectedOff : state = offState
         · subst state
-          simpa [exactActionQuery, materializeQuery, target, transitionKernel, stepResults] using
-            appliedResult_ordered
+          simpa [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+            transitionKernel, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
-            simpa [exactActionQuery, materializeQuery, target, transitionKernel, stepResults,
-              onState_ne_offState] using appliedFromOnResult_ordered
-          · simp [exactActionQuery, materializeQuery, target, transitionKernel, stepResults,
-              selectedOff, selectedOn]
-      · simp [exactActionQuery, materializeQuery, target, transitionKernel, stepResults,
-          selectedAction])
+            simpa [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+              transitionKernel, stepResults, onState_ne_offState] using
+              appliedFromOnResult_ordered
+          · simp [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+              transitionKernel, stepResults, selectedOff, selectedOn]
+      · simp [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+          transitionKernel, stepResults, selectedAction])
 
 private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by
   rfl

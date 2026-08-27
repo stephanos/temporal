@@ -683,6 +683,22 @@ def checkTarget
           .ok { checked with kernel, planning := .available capability }
   | .error detailed => .error (authoringDiagnostic authored.occurrences detailed)
 
+/-- Produce a checked authored target directly while keeping extraction and proof-relation
+re-ascription inside the Target boundary. Invalid declarations should use `checkTarget` or
+`elaborateTarget` when their typed diagnostic is needed. -/
+def checkedTarget
+    (authored : AuthoredTarget LawStatement Setup State Action Outcome Observation)
+    (valid : (checkTarget authored).toOption.isSome = true := by native_decide) :
+    CheckedTarget LawStatement Setup State Action Outcome Observation :=
+  let checked := (checkTarget authored).toOption.get valid
+  match authored.planning with
+  | .unavailable => checked
+  | .available kernel _ capability => {
+      checked with
+      kernel
+      planning := .available capability
+    }
+
 /-- Capture one syntax occurrence as a nonsemantic source-span/ordinal token. -/
 def captureAuthoringOccurrence
     (reference : Lean.Syntax)
