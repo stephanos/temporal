@@ -95,19 +95,63 @@ Learn these forms in increasing order of domain and composition complexity:
    starting, canceling, and successfully completing an operation. Each walkthrough exposes its
    authored and checked Property, exact-action Behavior, checked Query, and deterministic planner
    result over the shared lifecycle target.
-4. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
+4. [`Nexus.Observation`](Temporal/Feature/Nexus/Observation.lean) is the offline evidence boundary
+   for the ordinary lifecycle. It owns the sole synthetic BasicLifecycle profile, its checked
+   mapping, and the composition from a complete typed evidence bundle through qualification,
+   independent Property evaluation, and strict Query aggregation.
+5. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
    [`Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
    are explicit opt-in material for the detailed AutoClose proofs and inspectable Workflow–Nexus
    caller-closure regression. They are not part of the ordinary Feature learning surface.
 
 `Temporal/Feature/` owns product-visible behavior, `Temporal/System/` owns configuration and other
 mechanisms, and `Temporal/Tool/Inspect.lean` owns the inspector registry. The ordinary
-`Temporal.Feature` facade exports `Nexus.Lifecycle` and `Nexus.Operations` but no Experimental
-module. Those core walkthroughs compile directly and deliberately are not registered with the
-inspector; the inspector explicitly opts into the experimental caller-closure regression. The
-resulting `DrivePlan` and `ExperimentSpec` values are pure model artifacts: they describe selected
-requests, model-owned outcomes, and semantic observations. They do not start a Temporal server or
-execute Nexus operations.
+`Temporal.Feature` facade exports `Nexus.Lifecycle`, `Nexus.Operations`, and `Nexus.Observation` but
+no Experimental module. Those core walkthroughs compile directly and deliberately are not
+registered with the inspector; the inspector explicitly opts into the experimental caller-closure
+regression. The resulting `DrivePlan` and `ExperimentSpec` values are pure model artifacts: they
+describe selected requests, model-owned outcomes, and semantic observations. They do not start a
+Temporal server or execute Nexus operations.
+
+## Offline Observation
+
+Import `Umpire.Observation` for the reusable API or `Temporal.Feature.Nexus.Observation` for its one
+current Temporal-owned synthetic profile. The public offline sequence is:
+
+1. Declare an `EvidenceProfileDeclaration` and `ObservationMappingDeclaration` against a checked
+   Target, then call `checkObservation` to obtain one canonical `CheckedObservationPlan`.
+2. Supply one complete synthetic `EvidenceBundle` and call `qualifyEvidence`. Only the `qualified`
+   result carries a `QualifiedTrace`; `unknown`, `conflict`, and `unsupported` carry typed
+   diagnostics and no partial trace.
+3. Call `evaluateQualifiedProperty` independently for each required checked Property. Its status is
+   `satisfied`, `violated`, `unknown`, `conflict`, or `unsupported` and retains the applied evidence
+   bound plus coordinate-based clause derivations when available.
+4. Call `summarizeQueryVerdicts`. It succeeds only when every required Property has exactly one
+   resolved result for the same Query, trace, and evidence bound; otherwise its status is
+   `incomplete`.
+
+Field dispositions make retention explicit: `retain` keeps an approved normalized value, `redact`
+keeps only a contribution marker, `hash` keeps only a token under the named/versioned synthetic
+digest policy, and `reject` refuses present input. Raw evidence is not a field of `QualifiedTrace`,
+`SemanticPropertyVerdict`, or `StrictQuerySummary`.
+
+The Nexus profile maps the ordinary BasicLifecycle state, start/cancel/succeed action,
+transition-outcome, and lifecycle-observation vocabulary. Its state, action, outcome, and
+observation fields are retained, its raw-detail field is rejected, and its bound is two evidence
+records. The synthetic example supplies a scheduled record followed causally by a started record
+and a closure at sequence two. `evaluateSyntheticEvidence` qualifies that bundle, evaluates the
+existing asynchronous-start Property, and produces one satisfied strict summary. The nearby tests
+also preserve the exact offline `unknown`, `conflict`, and `unsupported` outcomes for incomplete,
+ambiguous, contradictory, mismatched, rejected, or otherwise unusable synthetic bundles.
+
+A future adapter has one typed handoff: construct a complete `EvidenceBundle` containing the
+profile identity/version, records, closure facts, and—when applicable—compatible alternatives and
+their missing discriminator. Each record preserves identity, profile identity/version, kind,
+sequence, causal parents, typed fields with optional digest metadata, optional binding facts, and
+an optional fault target. Umpire, not the adapter, compiles mappings, enforces the bound and
+dispositions, qualifies evidence, evaluates Properties, and aggregates verdicts. No adapter is
+implemented in this release, and these modules do not execute Temporal, collect or persist live
+evidence, prove runtime conformance, promote a result, or support another profile.
 
 Build each stage through the final module and target names:
 
@@ -115,6 +159,9 @@ Build each stage through the final module and target names:
 cd model
 mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests
 mise exec -- lake build Temporal.Feature.Nexus.OperationsTests
+mise exec -- lake build Umpire.Observation.Tests.Compilation
+mise exec -- lake build Umpire.Observation.Tests
+mise exec -- lake build Temporal.Feature.Nexus.ObservationTests
 mise exec -- lake build Umpire.Examples.Switch
 mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosureTests
 mise exec -- lake build Temporal TemporalModelTests TemporalExperimentalTests temporal-model-inspect
@@ -177,7 +224,8 @@ make umpire-inspect SCENARIO=switch.query.exact-action
 
 On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. The
 compiler and inspector do not write an artifact file, start a live server, execute a workflow, or
-collect evidence. Runtime driving, evidence qualification, and promotion are separate work.
+collect evidence. Runtime driving, construction of a future adapter's `EvidenceBundle`, and
+promotion remain separate work; offline qualification is the current `Umpire.Observation` API.
 
 Generated API declarations remain generated structures only. Behavioral meaning, including whether
 a selected action is applicable and which transition outcomes are possible, remains owned by the
