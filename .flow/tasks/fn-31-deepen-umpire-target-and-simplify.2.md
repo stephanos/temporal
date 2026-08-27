@@ -51,6 +51,7 @@ The task declared only `model/Umpire/Target.lean`, `model/Umpire/Target/**`, and
 
 baseline: green
 stage: impl-review - ran [2026-08-27T03:21:12Z..2026-08-27T03:40:09Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 94b24e6670640ca59f40a68b6c78c001d3be0fe5, b0fa604b7d89a12c920781682f042a00cb0c6022, 8a41f5a16587402a79ac45fc04d5bec94baa58ea, c59c6965b86296a6d583282a1140d047cfbe9b1e, 9d9b594bd770859345ae195da7addd6fc3b3392f, 0b03084e310bff479fbb99787891404a6ba581f9, 42fbca68ab200aa2960685037918be26b79e95e8, 23d7b1e639df50fcbffd5ca8f78dbb1de4823df2, 411dd55f7365009227078a6f10b3b58ed30856a3, 0fe40b2d1cf25ef0b4c5f5dd176b50c7f9705e62
 - Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests.Identity Umpire.Examples.SwitchTests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model
