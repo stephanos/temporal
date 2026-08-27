@@ -11,6 +11,7 @@ import Umpire.Planning.Tests
 import Umpire.Planning.VisibilityTests
 import Umpire.Tests.MigrationCompatibility
 import Umpire.Observation.Tests
+import Umpire.Observation.Tests.Mutations
 import Umpire.Observation.ImportTests
 
 namespace UmpireTests
