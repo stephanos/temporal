@@ -47,6 +47,7 @@ Committed operation artifact goldens and an independent relocated Planning/Artif
 
 baseline: green (the first targeted Lake build hit an inherited missing-output transient; its exact retry and every other Quick command passed)
 stage: impl-review - ran [2026-08-27T05:23:39Z..2026-08-27T05:36:31Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 1053d7cd47b75194815c77f34a46c420d18cdeec, bf4ffaa6593c726ca313eec02be4476bb992f2b0, e2911be441f42915ef0c1db56f06c9b713f4dff0, 65648879bc813ca1e69f16cbc34402e5900690b0
 - Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Query.Tests Umpire.Planning.Tests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model, cd model && mise exec -- lake build TemporalExperimentalTests
