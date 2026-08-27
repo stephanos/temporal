@@ -39,9 +39,10 @@ Implement total checked trace correspondence and Evidence Links for R2 and R3.
 - [ ] Repeated-value coordinates remain auditable.
 - [ ] No partial destination trace is observable.
 ## Done summary
-TBD
+Added total checked Implementation Link application over Evidence-backed source traces, with exact source-kernel replay, authoritative complete destination traces, coordinate-complete evidence links, exhaustive failure statuses, and canonical diagnostic provenance. Focused, aggregate, and regression gates pass; `Temporal.System.Nexus.ImplementationLinkTests` remains the inherited Task `.3` sequencing target absent before and after this task, and review-fix memory capture was attempted but memory is not initialized.
 
+stage: impl-review - ran [Codex NEEDS_WORK -> SHIP; 2026-08-27T21:53:16Z..2026-08-27T22:02:43Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: eda601a2a6bbb8b3d2fe8fc75f9a0c76297cf081, 4307f4f3103805d653c59b663332d2f17c928f52
+- Tests: baseline: green (cd model && mise exec -- lake build Umpire.ImplementationLink.Tests), baseline: red inherited sequencing gap (cd model && mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests failed pre-edit because Task .3 owns the absent target), baseline: green (cd model && mise exec -- lake build UmpireTests TemporalModelTests), baseline: green after cache-only false-symlink repair and mise toolchain activation (make umpire-check-regression), cd model && mise exec -- lake build Umpire.ImplementationLink.Tests, INHERITED_RED: cd model && mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests - Task .3 owns the target; file absent before and after Task .2, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, GATE_RECEIPT_NOT_WRITTEN:unittest - known false config/development.yaml symlink status made worktree appear dirty, GATE_RECEIPT_NOT_WRITTEN:smoke - known false config/development.yaml symlink status made worktree appear dirty
 - PRs:
