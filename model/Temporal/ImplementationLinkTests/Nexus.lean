@@ -59,13 +59,7 @@ theorem migrated_targets_keep_their_named_authority_seams :
       Temporal.Feature.Nexus.Lifecycle.succeededResult := by
   exact ⟨Temporal.System.Nexus.target_queued_initial_authoritative,
     Temporal.System.Nexus.target_queued_dispatch_authoritative,
-    (by
-      change Temporal.Feature.Nexus.Lifecycle.authoritativeInitial
-        Temporal.Feature.Nexus.Lifecycle.scheduledSetup
-        Temporal.Feature.Nexus.Lifecycle.scheduledState
-      apply Temporal.Feature.Nexus.Lifecycle.initialStates_sound
-      simp [Temporal.Feature.Nexus.Lifecycle.initialStates,
-        Temporal.Feature.Nexus.Lifecycle.initialState?]),
+    Temporal.Feature.Nexus.Lifecycle.target_scheduled_initial_authoritative,
     Temporal.Feature.Nexus.Lifecycle.target_scheduled_start_authoritative,
     Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative,
     Temporal.Feature.Nexus.Lifecycle.target_started_reportSuccess_authoritative⟩
