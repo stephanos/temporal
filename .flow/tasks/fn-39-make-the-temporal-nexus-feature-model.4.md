@@ -40,9 +40,10 @@ Reorganize Operations tests by walkthrough/planning concern and give every curre
 - [ ] No fixture, assertion, or comment is lost.
 
 ## Done summary
-TBD
+Mirrored the Nexus Operations production split with named Async Start, Cancellation, Successful Completion, and shared Planning test modules while preserving the stable aggregate, compatibility inventory, all 30 assertion propositions/proofs, both comments, and all six canonical fixture bytes. Exact acceptance, regression, and model-lint gates pass; green receipts were not warrantable only because the two inherited false-symlink stat entries remain dirty and untouched.
 
+stage: impl-review - ran [2026-08-28T22:38:36Z..2026-08-28T22:40:33Z] (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6929510ff40be21c5de3b20915782436dab5dd0d
+- Tests: baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.OperationsTests Temporal.Tool.InspectTests TemporalModelTests failed pre-edit on transient Umpire.Query.olean missing-output race); cd model && mise exec -- lake build Umpire.Query and exact acceptance retry passed, make umpire-check-regression (pre-edit), make lint-model (pre-edit), cd model && mise exec -- lake build Temporal.Feature.Nexus.Operations.AsyncStartTests Temporal.Feature.Nexus.Operations.CancellationTests Temporal.Feature.Nexus.Operations.SuccessfulCompletionTests Temporal.Feature.Nexus.Operations.PlanningTests Temporal.Feature.Nexus.OperationsTests, cd model && mise exec -- lake build Temporal.Feature.Nexus.OperationsTests Temporal.Tool.InspectTests TemporalModelTests, make umpire-check-regression, make lint-model, 30 theorem / 10 #check / 6 include_str / 26 native_decide / 4 rfl / 2 comment inventory; Operations fixture SHA-256 values unchanged, gate receipts not warrantable: inherited config/development.yaml false-symlink stat remained dirty
 - PRs:
