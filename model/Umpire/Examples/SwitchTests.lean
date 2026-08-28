@@ -94,7 +94,8 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
     compiledArtifact.plan.provenance = compiledArtifact.provenance := by
   native_decide
 
-example : canonicalExperimentSpecBytes compiledArtifact = expectedCompiledArtifactJson := by
+example : Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes compiledArtifact)
+    expectedCompiledArtifactJson = true := by
   native_decide
 
 end Umpire.Examples.SwitchTests

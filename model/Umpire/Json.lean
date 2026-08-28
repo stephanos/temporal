@@ -1,3 +1,5 @@
+import Lean.Data.Json
+
 namespace Umpire.Json
 
 private def indentation (depth : Nat) : String :=
@@ -55,5 +57,11 @@ def pretty (canonical : String) : String :=
 /-- Format canonical JSON as persisted bytes with exactly one terminal LF. -/
 def prettyBytes (canonical : String) : String :=
   pretty canonical ++ "\n"
+
+/-- Compare JSON values independently of presentation whitespace and object field order. -/
+def semanticallyEqual (left right : String) : Bool :=
+  match Lean.Json.parse left, Lean.Json.parse right with
+  | .ok left, .ok right => left == right
+  | _, _ => false
 
 end Umpire.Json

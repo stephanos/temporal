@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Experimental.CallerClosure
+import Umpire.Json
 import Umpire.Property
 
 namespace Temporal.Feature.Nexus.Experimental.CallerClosureTests
@@ -290,7 +291,8 @@ example : [
 example : exactActionRun.artifact = some compiledArtifact := by
   native_decide
 
-example : canonicalExperimentSpecBytes compiledArtifact = expectedCompiledArtifactJson := by
+example : Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes compiledArtifact)
+    expectedCompiledArtifactJson = true := by
   native_decide
 
 example : compiledArtifact.plan.requestedActions = [forceCloseAction] ∧

@@ -1,5 +1,6 @@
 import Umpire.ExecutionHandoff
 import Umpire.Examples.Switch
+import Umpire.Json
 
 /-! Executable handoff checking and v2 compatibility tests. -/
 
@@ -40,8 +41,8 @@ def checked : ExecutionHandoff :=
   checkedResult.toOption.get checkedResult_isSome
 
 example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
-    canonicalExperimentSpecBytes compiledArtifact =
-      include_str "Artifact/Tests/Fixtures/SwitchExperimentSpecV2.json" := by
+    Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes compiledArtifact)
+      (include_str "Artifact/Tests/Fixtures/SwitchExperimentSpecV2.json") = true := by
   native_decide
 
 example : checked.participantProgramDefinitionIds = [id "switch.participant.program"] ∧
