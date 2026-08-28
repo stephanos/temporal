@@ -15,6 +15,8 @@ Prove exact Lean/Go agreement for every retained family before complete-set admi
 - Emit authoritative canonical fixtures from Lean and recompute every Artifact Checksum independently in Go.
 - Pin deterministic pretty bytes, provenance checksums, exact domain tags/preimages, and every
   family format/field sequence from the parent normative tables.
+- Independently compare every Evidence/Result nested projection and the ExperimentRun
+  receipt-fact link, not only top-level checksums.
 - Mutate each Definition ID, Behavior Fingerprint, Artifact Checksum, Limit, Known Gap, binding, and terminal-LF relation one at a time.
 - Keep coverage checkpoints, replay bundles, and generic receipt envelopes outside the fixture set.
 

@@ -20,6 +20,8 @@ Define exact inert transports for one runtime configuration and one bounded Exec
 - Record Run attempts, phase outcomes, Execution Receipts, source closure, cleanup, Limits, and Known Gaps without evaluating the Run.
 - Enforce the five fixed phases, terminal timestamps/codes, control/source/cleanup status matrices,
   positive attempt, canonical ordering, and cross-binding rules from the parent contract.
+- Give every attempted control row exactly one `receiptFactDefinitionId`; task `.5` must resolve it
+  to the sole matching RawEvidence control-receipt fact with identical occurrence/action/attempt/status.
 
 ### Investigation targets
 **Required:** the parent retained-family schemas and fn-19's execution handoff.
@@ -30,6 +32,8 @@ Define exact inert transports for one runtime configuration and one bounded Exec
 - [ ] RuntimeConfiguration performs no authorization and ExperimentRun carries no Property or Claim Assessment.
 - [ ] Exact format/order/null/status/checksum mutations reject one at a time, including every
   invalid phase/control/source/cleanup combination.
+- [ ] Not-attempted control rows have no receipt/code, every attempted row has one receipt ID, and
+  set closure rejects missing, duplicate, crossed, or mismatched receipt facts.
 
 ### Quick command
 
