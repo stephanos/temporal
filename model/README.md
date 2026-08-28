@@ -67,7 +67,7 @@ run elaborates all three candidate modules before replacing the retained generat
 
 ## Semantic authoring and planning
 
-Model scenarios use three separate but composable forms:
+Model scenarios use four separate but composable forms:
 
 - A `Property` describes portable meaning over a capability-limited semantic trace: what must hold,
   independently of how a trace is found.
