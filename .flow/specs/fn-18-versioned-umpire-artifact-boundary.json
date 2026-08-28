@@ -634,8 +634,8 @@
       "task": "fn-18-versioned-umpire-artifact-boundary.1",
       "timestamp": "2026-08-28T16:15:40.088795Z",
       "verdict": "SHIP"
-  ],
     }
+  ],
   "review_hash_epoch": {
     "impl:fn-18-versioned-umpire-artifact-boundary.1": 3,
     "plan": 3,
