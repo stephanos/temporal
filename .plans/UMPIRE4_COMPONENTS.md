@@ -1,6 +1,6 @@
 # Umpire components and delivery status
 
-Status: reconciled 2026-08-26 against the current `model/` tree, its generators, and the existing Go
+Status: reconciled 2026-08-28 against the current `model/` tree, its generators, and the existing Go
 Umpire implementations. The component boundaries were originally extracted from the
 [Inspect Umpire Branch](https://chatgpt.com/share/6a8b71cb-74e4-83e8-947a-c2f6d595fefc)
 design conversation. This remains an architectural inventory, not an approved implementation plan.
@@ -22,8 +22,8 @@ implementation was found.
 | --- | --- | --- |
 | C1 API importer | Partial | Deterministic full-descriptor Lean projection is built. A standalone catalog, complete field dispositions, drift report, explain surface, and shared bounded-selection policy are missing. |
 | C2 config importer | Partial | The initialized production registry, typed generated settings, identities, and Go-produced resolution fixtures are built. Product classifications currently cover selected Callback and Matching uses; no standalone explain/check surface exists. |
-| C3 Lean authoring DSL | Partial | Checked targets, properties, behaviors, queries, exact traces, ordering, Limits, and model-only examples are built. Variation axes, authored faults, coverage goals, a persisted registry, and list/explain UX are missing. |
-| C4 ExperimentSpec compiler | Partial | Pure planning emits one canonical `umpire-experiment/v2` for a selected trace, and the inspector exposes two scenarios. Batch compilation, persisted JSON decoding/validation, migrations, explicit runtime config, and runtime consumption are missing. |
+| C3 Lean authoring DSL | Partial | Checked targets, Properties, Behaviors, Queries, and finite authored Spaces are built, including canonical axes/choices, request-only faults, seek-only coverage goals, and checked metadata. Fn-5 catalog/list/explain aggregation and usability evidence remain. |
+| C4 ExperimentSpec compiler | Partial | Pure planning emits canonical `umpire-experiment/v2` artifacts for one selected trace or an atomic bounded Space batch. Persisted JSON decoding/validation, migrations, explicit runtime configuration, and runtime consumption remain missing. |
 | C5 Go/docs generator | Partial | One stable caller-closure regression has deterministic checked-in Go and Markdown Generated Views; broader catalog and promotion surfaces remain. |
 | C6 execution runtime | Separate | Go runtimes drive Temporal and retain cleanup/run data, but none decodes or executes `umpire-experiment/v2`. |
 | C7 Evidence/Run Evaluation | Partial + separate | Current Lean checks Properties over Model Traces and exports observation requirements. Go/Umpire3 Evidence systems exist separately; no current-model observation program or live evaluated Result exists. |
@@ -35,7 +35,7 @@ implementation was found.
 
 | Milestone | Status | Summary |
 | --- | --- | --- |
-| A: describe real tests | In progress | The model-only C1-C4 slice, shared basic Nexus teaching target, and one-regression C5 Generated View pilot work; the two walkthroughs, combinatorial authoring, broader Generated View catalog and promotion, and usability evidence remain. |
+| A: describe real tests | In progress | The model-only C1-C4 slice now includes ordinary Nexus Lifecycle/Operations walkthroughs and an experimental two-by-two authored Space proof; broader Generated View catalog/promotion and usability evidence remain. |
 | B: check real Temporal | Not integrated | No current-artifact decoder, local driver binding, live evidence interpreter, or evaluated Result path exists. |
 | C: find things | Foundations only | Finite planning and separate campaign tooling exist, but discovery, minimization, replay, and promotion are not composed end to end. |
 | D: reuse the investment | Separately advanced | Formal, optional Veil, and Claim Assessment machinery are substantial in Umpire3, but current-model checker-view binding and the active R6/R7 Claim Assessment work remain open. |
@@ -51,7 +51,7 @@ make its component built.
 | C3/C5 catalog and exact promotion | `fn-5-umpire-discovery-promotion-and-artifact` | Reviewed: Ship; seven tasks ready; dependency synchronized | Checked eight-query plus one authored-space semantic catalog closure, generated glossary/index and list/explain UX, lineage-linked exact in-memory promotion with compiled Temporal source bindings, and a two-regression thin Generated View set. Persisted readers/migrations remain wholly owned by fn-18; live replay/minimization remain separate. |
 | Milestone A pilot gate | `fn-14-milestone-a-pilot-baseline-and-lean` | Reviewed: Ship; six tasks ready | Frozen eight-defect/twelve-mutation baseline, provider-free cost and coverage measurement, exactly three fresh Agentworkflow authoring trial slots, and a strict `LEAN_FIRST_GO` / `FACADE_FOLLOW_UP` / `NO_GO` / `INCONCLUSIVE` receipt. No facade or live-runtime implementation. |
 | C1/C2 standalone input catalogs | `fn-15-standalone-api-and-config-input-catalogs` | Reviewed: Ship; seven tasks ready | Complete mechanical API facts, exact bounded current-model selection, all generated settings plus six owned semantic uses, and one shared exact list/explain/check engine. Drift verification, live lookup, runtime, and Run Evaluation remain separate. |
-| C3/C4 authored variation spaces | `fn-16-authored-variation-spaces-and` | Reviewed: Ship; six tasks ready | Checked finite axes/choices, request-only faults, seek-only coverage goals, canonical metadata for fn-5, dependent-kernel point lowering, and atomic bounded batch compilation. Coverage scoring, artifact reading, runtime, and Run Evaluation remain separate. |
+| C3/C4 authored variation spaces | `fn-16-authored-variation-spaces-and` | Implemented and verified | Checked finite axes/choices, request-only faults, seek-only coverage goals, canonical metadata for fn-5, dependent-kernel point lowering, and atomic bounded batch compilation. Coverage scoring, artifact reading, runtime, and Run Evaluation remain separate. |
 | C8 bounded semantic exploration | `fn-17-bounded-semantic-exploration-and` | Reviewed: Ship; seven tasks ready | Pure selection over fn-16's atomic bounded universe with exhaustive, pair/t-wise, seeded-random, proof-reduced symmetry, real coverage-guided state/report/resume, and pinned precedence. Runtime, evidence, persisted readers, replay, minimization, and promotion remain separate. |
 | C4/C7/C8 versioned artifact boundary | `fn-18-versioned-umpire-artifact-boundary` | Reviewed: Ship; eleven tasks ready | The current v2 Artifact is the sole baseline. Strict bounded Go admission preserves Definition IDs, Behavior Fingerprints, Artifact Checksums, Limits, Known Gaps, exact reference closure, and immutable atomic publication. Only future post-v2 successors may add migrations. Execution, Evidence collection/interpretation, replay, promotion, and Claim Assessment remain separate. |
 | C6/C9 bounded local execution | `fn-19-bounded-local-temporal-execution-and` | Reviewed: Ship; nine tasks ready | One fn-18-admitted caller-closure input set, domain-neutral five-phase runtime/participant boundary, production-safe `temporaltest` lifecycle, closed ephemeral authority, exact Nexus SDK force-close participant, four-source raw evidence, and an admitted/published run set. Semantic interpretation, Result/Run Evaluation, replay, promotion, remote/CI/canary, and Claim Assessment remain separate. |
@@ -68,7 +68,8 @@ make its component built.
 | C12 release evidence graph and manual authorization | `fn-30-release-evidence-graph-and-manual` | Reviewed: Ship; seven tasks ready; depends on fn-14, fn-18, and fn-26 through fn-29 | One signed seven-slot evidence index authenticates complete or explicitly held inputs, externally signed build/deployment attestations bind one immutable server candidate, and one fixed Lean policy produces an inspectable accepted/held/rejected graph. Separate protected owner roles create append-only approve/deny/revoke decisions; neither Claim Assessment nor authorization can deploy, promote, route, configure, or roll back. |
 
 Bottom line: the component decomposition still holds, but the current implementation is not an
-end-to-end Umpire pipeline. It is a model-only slice ending at deterministic artifact inspection.
+end-to-end Umpire pipeline. It is a model-only slice ending at deterministic artifact compilation
+and inspection.
 The next runtime seam is a strict decoder/validator and local execution adapter for
 `umpire-experiment/v2`. Veil belongs at a different seam inside C11: an optional, family-owned
 Lean checker target bound by proof to an explicit canonical view, never a generated backend or a
@@ -136,9 +137,9 @@ These artifacts are the seams between components:
 | --- | --- | --- |
 | API catalog | Mechanical Protobuf schema knowledge and field dispositions | Generated Lean structure exists in `model/Temporal/API.lean` and `model/Temporal/API/`; a separate catalog, field-disposition artifact, and drift report do not. |
 | Config catalog | Keys, types, defaults, precedence, scope, and declared classification | The complete initialized registry snapshot and resolution fixtures exist in `model/Temporal/DynamicConfig/`; handwritten classifications and typed uses exist for selected Callback and Matching settings. |
-| Semantic catalog | Lean-owned resources, actions, properties, observations, targets, and hashes | Checked declarations and canonical projections exist in `model/Umpire/`; there is no consolidated persisted catalog or list/explain interface. |
-| Regression/space | Named regressions and exploration spaces over Lean semantics | Checked `Property`, `Behavior`, and `Query` values exist, with reusable Switch and Temporal caller-closure examples; there is no persisted regression catalog. |
-| ExperimentSpec | Environment-independent executable specification with a drive plan, properties, requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints | `umpire-experiment/v2` and `umpire-drive-plan/v2` are implemented and deterministically inspected. Choices, variants, and faults are represented but not yet authored or populated. Runtime reading and migrations are explicit Known Gaps. |
+| Semantic catalog | Lean-owned resources, actions, properties, observations, targets, and hashes | Checked declarations and canonical projections exist in `model/Umpire/`, including `CheckedSpaceMetadata`; fn-5 still owns consolidated catalog aggregation and list/explain. |
+| Regression/space | Named regressions and exploration spaces over Lean semantics | Checked `Property`, `Behavior`, `Query`, and Space values exist, with reusable Switch and Temporal examples; there is no persisted regression catalog. |
+| ExperimentSpec | Environment-independent executable specification with a drive plan, properties, requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints | `umpire-experiment/v2` and `umpire-drive-plan/v2` are implemented and deterministically inspected. Checked Space intent populates choices, variants, and requested faults across an atomic batch; runtime reading and migrations remain explicit Known Gaps. |
 | ExperimentRun | One realized execution binding an `ExperimentSpec` to an environment, seed, controls, receipts, and cleanup outcome | Run/artifact concepts exist in the Go Umpire implementations, but not for the current `model/` `ExperimentSpec`. |
 | Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | Implemented in the Go Umpire baselines; not connected to the current `model/` artifact. |
 | Semantic evidence | Lean-defined interpretation of raw facts | Implemented in Umpire3's model/runtime path and partially mirrored by generic Go interpretation; not generated from the current `model/` declarations. |
@@ -222,12 +223,13 @@ sync/check/explain command surface are not.
 **Responsibility:** provide approachable declarations for regressions and exploration over
 Lean-owned models.
 
-**Status: implemented prototype core, with authoring gaps.** Reusable, Temporal-independent modules under
-`model/Umpire/` now provide checked `Property`, `Behavior`, and `Query` declarations over composed
-targets and finite kernels. They cover setup, capabilities, actions, exact traces, occurrence
-Limits, partial ordering, sequences, adjacency, properties, query Limits, and deterministic search
-policy. The synthetic Switch and Temporal Workflow-Nexus caller-closure scenarios exercise the
-full authored-to-checked lifecycle without a running server.
+**Status: implemented prototype core, with catalog and usability gaps.** Reusable,
+Temporal-independent modules under `model/Umpire/` provide checked `Property`, `Behavior`, `Query`,
+and finite Space declarations over composed targets and finite kernels. They cover setup,
+capabilities, actions, exact traces, occurrence Limits, partial ordering, sequences, adjacency,
+properties, query Limits, deterministic search policy, canonical axes and choices, request-only
+faults, seek-only coverage goals, and canonical checked Space metadata. The synthetic Switch and
+Temporal Nexus examples exercise the authored-to-checked lifecycle without a running server.
 
 ```text
 .lean specifications -> checked regression/space catalog
@@ -240,10 +242,11 @@ make umpire-build-model
 make umpire-check-regression
 ```
 
-The remaining language scope is authored variation axes, faults, explicit coverage goals, and a
-catalog/list/explain surface. Outcomes deliberately remain target-owned rather than author-owned.
-Regression, witness, counterexample, verification, and exploratory selection already share the
-same checked query path.
+Fn-5 still owns catalog aggregation and list/explain generation from `CheckedSpaceMetadata`; no
+persisted registry exists here. Later C8 work consumes `lowerSpacePoint` and checked coverage goals
+for exploration policy and coverage state. Outcomes deliberately remain target-owned rather than
+author-owned. Regression, witness, counterexample, verification, and exploratory selection share
+the same checked Query path.
 
 Lean-first behavioral authoring is now the implemented choice. A generated Go facade remains
 conditional on usability evidence; in either case, Lean owns the resulting semantic object.
@@ -253,11 +256,13 @@ conditional on usability evidence; in either case, Lean owns the resulting seman
 **Responsibility:** turn a checked regression or selected point in a scenario space into one or more
 bounded `ExperimentSpec`s without requiring Temporal.
 
-**Status: implemented for one selected Model Trace.** `Umpire.Planning.plan` consumes a checked
-query and proof-carrying incremental kernel, distinguishes verified, selected, absent,
-budget-exhausted, unsatisfiable, and invalid outcomes, and may produce a canonical
-`umpire-experiment/v2`. `Temporal.Tool.Inspect` exposes checked-in Switch and caller-closure
-scenarios and emits deterministic JSON with structured diagnostics.
+**Status: implemented for one selected Model Trace and one atomic bounded Space batch.**
+`Umpire.Planning.plan` consumes a checked Query and proof-carrying incremental kernel, distinguishes
+verified, selected, absent, budget-exhausted, unsatisfiable, and invalid outcomes, and may produce a
+canonical `umpire-experiment/v2`. `Umpire.Space.compileBatch` canonically lowers every point through
+that same target-indexed kernel and returns the complete batch or one typed error with no partial
+list. `Temporal.Tool.Inspect` still exposes only the checked-in Switch and caller-closure scenarios
+and emits deterministic JSON with structured diagnostics.
 
 ```text
 checked spec + model target + Limits -> ExperimentSpec[]
@@ -273,10 +278,10 @@ make umpire-inspect SCENARIO=switch.query.exact-action
 The current `ExperimentSpec` records bindings and symbolic roles, preconditions, requested actions,
 model-owned outcomes and resulting states, a linear extension, checkpoints, properties, observation
 requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints. Compilation distinguishes a
-requested action from its model-owned outcome. Choices, variants, and faults are reserved fields
-currently emitted empty; configuration is present only through semantic setup/state rather than a
-separate runtime configuration contract. Artifact reading, migrations, and runtime consumption are
-not implemented.
+requested action from its model-owned outcome. Ordinary planning leaves choices, variants, and
+faults empty; checked Space intent populates those same fields without changing the artifact format.
+Configuration is present only through semantic setup/state rather than a separate runtime
+configuration contract. Artifact reading, migrations, and runtime consumption are not implemented.
 
 ### C5. Go test and documentation generator
 
@@ -570,7 +575,7 @@ The current implementation cut is:
 
 ```text
 C1/C2 generated structure
-        -> C3 checked target/property/behavior/query
+        -> C3 checked target/property/behavior/query/space
         -> C8 finite planning
         -> C4 umpire-experiment/v2 inspection
         -> [missing current-model runtime adapter]
@@ -588,9 +593,10 @@ run/evidence/result artifacts bound to the same Behavior Fingerprints.
 
 Components: C1-C5, limited to the API/config/model material needed by the pilot.
 
-**Status: in progress.** C1-C4 have a usable model-only vertical slice, and C5 has a checked-in
-one-regression Generated View pilot. The implemented DSL does not yet cover combinatorial axes or
-authored faults, and broader Generated View catalog and promotion work remains.
+**Status: in progress.** C1-C4 have a usable model-only vertical slice, including ordinary Nexus
+Lifecycle/Operations walkthroughs and an experimental two-by-two Space whose four points compile
+atomically. C5 has a checked-in one-regression Generated View pilot. Broader Generated View catalog
+and promotion work remains.
 
 Deliverable:
 
@@ -606,7 +612,10 @@ Current evidence:
 - a generated full Temporal Protobuf structural projection;
 - a generated full initialized dynamic-config catalog with cross-language resolution fixtures;
 - a reusable Temporal-independent DSL tested with a synthetic Switch target;
-- a shared basic Nexus lifecycle teaching target with checked composition and finite planning;
+- a shared basic Nexus Lifecycle teaching target and focused Operations walkthroughs with checked
+  composition and finite planning;
+- a reusable finite Space package plus one experimental Nexus two-by-two declaration whose four
+  canonical specs retain target-owned outcomes;
 - a Workflow-Nexus caller-closure model with target-owned cancellation, output, and ownership
   observations; and
 - deterministic `umpire-experiment/v2` inspection, golden fixtures, structured diagnostics, and a
@@ -614,8 +623,6 @@ Current evidence:
 
 Remaining exit evidence:
 
-- one simple Nexus regression;
-- one combinatorial exploration declaration;
 - deterministic Go wrapper generation; and
 - ordinary Go engineers can modify the examples after a short orientation, or the evidence selects
   a generated Go authoring facade.
