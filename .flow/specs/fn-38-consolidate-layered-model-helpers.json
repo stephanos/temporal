@@ -360,7 +360,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-38-consolidate-layered-model-helpers.md",
-  "status": "open",
+  "status": "done",
   "title": "Consolidate layered model helpers without API churn",
   "tracker": {
     "baseHashFlow": null,
@@ -373,5 +373,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T19:12:59.193181Z"
+  "updated_at": "2026-08-28T19:21:00.701224Z"
 }
