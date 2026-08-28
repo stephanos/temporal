@@ -9,7 +9,7 @@ structure SpaceSemanticReference where
   id : DefinitionId
   source : SourceLocation
   version : Nat
-  semanticDigest : BehaviorFingerprint
+  behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 /-- A typed Model Definition reference without its canonical behavior body. -/
@@ -27,7 +27,7 @@ structure SpaceMetadataRow where
   properties : List SpaceSemanticReference
   limits : SpaceLimits
   pointCount : Nat
-  baseSemanticDigest : BehaviorFingerprint
+  baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 structure SpaceAxisMetadataRow where
@@ -36,7 +36,7 @@ structure SpaceAxisMetadataRow where
   version : Nat
   role : Option ResourceRole
   choices : List DefinitionId
-  baseSemanticDigest : BehaviorFingerprint
+  baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 structure SpaceChoiceMetadataRow where
@@ -47,7 +47,7 @@ structure SpaceChoiceMetadataRow where
   baseline : Bool
   binding : Option RoleBinding
   faults : List DefinitionId
-  baseSemanticDigest : BehaviorFingerprint
+  baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 structure SpaceFaultMetadataRow where
@@ -57,7 +57,7 @@ structure SpaceFaultMetadataRow where
   occurrence : NamedOccurrence
   capability : SpaceDefinitionReference
   incompatibleWith : List DefinitionId
-  baseSemanticDigest : BehaviorFingerprint
+  baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 inductive SpaceCoverageMetadataSubject where
@@ -73,7 +73,7 @@ structure SpaceCoverageGoalMetadataRow where
   version : Nat
   subject : SpaceCoverageMetadataSubject
   minimum : Nat
-  baseSemanticDigest : BehaviorFingerprint
+  baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 inductive SpaceMetadataErrorKind where
@@ -81,7 +81,7 @@ inductive SpaceMetadataErrorKind where
   | missingRow
   | extraRow
   | staleRow
-  | semanticDigestMismatch
+  | behaviorFingerprintMismatch
   deriving BEq, DecidableEq, Ord, Repr
 
 def SpaceMetadataErrorKind.name : SpaceMetadataErrorKind → String
@@ -89,7 +89,7 @@ def SpaceMetadataErrorKind.name : SpaceMetadataErrorKind → String
   | .missingRow => "missing-row"
   | .extraRow => "extra-row"
   | .staleRow => "stale-row"
-  | .semanticDigestMismatch => "semantic-digest-mismatch"
+  | .behaviorFingerprintMismatch => "behavior-fingerprint-mismatch"
 
 structure SpaceMetadataError where
   kind : SpaceMetadataErrorKind
@@ -106,7 +106,7 @@ structure SpaceMetadataProjection where
   choices : List SpaceChoiceMetadataRow
   faults : List SpaceFaultMetadataRow
   coverageGoals : List SpaceCoverageGoalMetadataRow
-  semanticDigest : BehaviorFingerprint
+  behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 /-- Canonical metadata for one checked Space. Its constructor is intentionally not public. -/
@@ -117,7 +117,7 @@ structure CheckedSpaceMetadata where
   choices : List SpaceChoiceMetadataRow
   faults : List SpaceFaultMetadataRow
   coverageGoals : List SpaceCoverageGoalMetadataRow
-  semanticDigest : BehaviorFingerprint
+  behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
 private def idLe (left right : DefinitionId) : Bool :=
@@ -151,11 +151,11 @@ private def semanticReference
     (id : DefinitionId)
     (source : SourceLocation)
     (version : Nat)
-    (semanticDigest : BehaviorFingerprint) : SpaceSemanticReference := {
+    (behaviorFingerprint : BehaviorFingerprint) : SpaceSemanticReference := {
   id
   source
   version
-  semanticDigest
+  behaviorFingerprint
 }
 
 private def definitionReference (metadata : DefinitionMetadata) : SpaceDefinitionReference := {
@@ -190,7 +190,7 @@ private def spaceRow (space : CheckedExperimentSpace LawStatement) : SpaceMetada
     semanticReference property.id property.source property.version property.behaviorFingerprint
   limits := space.limits
   pointCount := space.pointCount
-  baseSemanticDigest := space.behaviorFingerprint
+  baseBehaviorFingerprint := space.behaviorFingerprint
 }
 
 private def axisRows (space : CheckedExperimentSpace LawStatement) : List SpaceAxisMetadataRow :=
@@ -200,7 +200,7 @@ private def axisRows (space : CheckedExperimentSpace LawStatement) : List SpaceA
     version := axis.version
     role := axis.role
     choices := axis.choices.map CheckedChoice.id |>.mergeSort idLe
-    baseSemanticDigest := axis.behaviorFingerprint
+    baseBehaviorFingerprint := axis.behaviorFingerprint
   }) |>.mergeSort axisRowLe
 
 private def choiceRows (space : CheckedExperimentSpace LawStatement) : List SpaceChoiceMetadataRow :=
@@ -212,7 +212,7 @@ private def choiceRows (space : CheckedExperimentSpace LawStatement) : List Spac
     baseline := choice.baseline
     binding := choice.binding
     faults := choice.faults.mergeSort idLe
-    baseSemanticDigest := choice.behaviorFingerprint
+    baseBehaviorFingerprint := choice.behaviorFingerprint
   }) |>.mergeSort choiceRowLe
 
 private def faultRows (space : CheckedExperimentSpace LawStatement) : List SpaceFaultMetadataRow :=
@@ -223,7 +223,7 @@ private def faultRows (space : CheckedExperimentSpace LawStatement) : List Space
     occurrence := fault.occurrence
     capability := definitionReference fault.capability
     incompatibleWith := fault.incompatibleWith.mergeSort idLe
-    baseSemanticDigest := fault.behaviorFingerprint
+    baseBehaviorFingerprint := fault.behaviorFingerprint
   }) |>.mergeSort faultRowLe
 
 private def coverageGoalRows
@@ -234,7 +234,7 @@ private def coverageGoalRows
     version := goal.version
     subject := coverageSubject goal.subject
     minimum := goal.minimum
-    baseSemanticDigest := goal.behaviorFingerprint
+    baseBehaviorFingerprint := goal.behaviorFingerprint
   }) |>.mergeSort goalRowLe
 
 /-- Build the canonical unchecked rows used as input to the fail-closed metadata checker. -/
@@ -245,7 +245,7 @@ def canonicalSpaceMetadataProjection
   choices := choiceRows space
   faults := faultRows space
   coverageGoals := coverageGoalRows space
-  semanticDigest := space.behaviorFingerprint
+  behaviorFingerprint := space.behaviorFingerprint
 }
 
 private def firstDuplicate : List DefinitionId → Option DefinitionId
@@ -273,15 +273,15 @@ private def validateBijection
 
 private def staleBaseDigest
     (expected actual : SpaceMetadataRow) : Option DefinitionId :=
-  if expected.baseQuery.semanticDigest != actual.baseQuery.semanticDigest then
+  if expected.baseQuery.behaviorFingerprint != actual.baseQuery.behaviorFingerprint then
     some expected.baseQuery.id
-  else if expected.baseBehavior.semanticDigest != actual.baseBehavior.semanticDigest then
+  else if expected.baseBehavior.behaviorFingerprint != actual.baseBehavior.behaviorFingerprint then
     some expected.baseBehavior.id
-  else if expected.target.semanticDigest != actual.target.semanticDigest then
+  else if expected.target.behaviorFingerprint != actual.target.behaviorFingerprint then
     some expected.target.id
   else
     (expected.properties.zip actual.properties).findSome? fun pair =>
-      if pair.1.semanticDigest != pair.2.semanticDigest then some pair.1.id else none
+      if pair.1.behaviorFingerprint != pair.2.behaviorFingerprint then some pair.1.id else none
 
 private def firstStaleAxis
     (expected actual : List SpaceAxisMetadataRow) : Option DefinitionId :=
@@ -350,16 +350,16 @@ def checkSpaceMetadataProjection
   | some stale =>
       throw (metadataError .staleRow expected.space ("coverage-goal:" ++ stale.value) [stale])
   | none => pure ()
-  if candidate.semanticDigest != expected.semanticDigest then
-    throw (metadataError .semanticDigestMismatch expected.space
-      candidate.semanticDigest.render [expected.space.id])
+  if candidate.behaviorFingerprint != expected.behaviorFingerprint then
+    throw (metadataError .behaviorFingerprintMismatch expected.space
+      candidate.behaviorFingerprint.render [expected.space.id])
   pure {
     space := expected.space
     axes
     choices
     faults
     coverageGoals := goals
-    semanticDigest := expected.semanticDigest
+    behaviorFingerprint := expected.behaviorFingerprint
   }
 
 /-- Project one checked Space to its deterministic source-backed metadata rows. -/
