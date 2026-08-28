@@ -38,9 +38,12 @@ Define the closed reusable Space declarations, checked values, fixed bounds, and
 - [ ] Reordering is deterministic and existing semantic APIs remain unchanged.
 
 ## Done summary
-TBD
+Defined and checked the authored experiment-space language, including exact v1 limits, canonical typed failures, role/value/fault/coverage validation, deterministic checked values, and reusable Switch fixtures with focused validation coverage. Verification passed the implemented `.1` target, Switch example, aggregate suites, and regression; the cumulative Compilation, Metadata, and Temporal variation-space targets remain expected pre-feature baseline failures assigned to tasks `.4`, `.3`, and `.5`, respectively.
 
+The review's canonical-error ordering finding was fixed by validating declaration identities before Cartesian bounds, with a reordered-duplicate regression test. Review then returned SHIP; non-blocking memory capture was skipped because flow memory is not initialized.
+
+stage: impl-review - ran [2026-08-28T00:20:38.988563Z..2026-08-28T00:22:40.193742Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 14362b9dc15a9b4e786e4a91aa007a4aa9399735, 514502d565d74dcac04fa4683ce3c5c9625eb587
+- Tests: cd model && mise exec -- lake build Umpire.Space.Tests.Validation, cd model && mise exec -- lake build Umpire.Examples.SwitchTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, BASELINE_EXPECTED_FAILURE:cd model && mise exec -- lake build Umpire.Space.Tests.Compilation - cumulative target assigned to fn-16-authored-variation-spaces-and.4, BASELINE_EXPECTED_FAILURE:cd model && mise exec -- lake build Umpire.Space.Tests.Metadata - cumulative target assigned to fn-16-authored-variation-spaces-and.3, BASELINE_EXPECTED_FAILURE:cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.VariationSpaceTests - cumulative target assigned to fn-16-authored-variation-spaces-and.5
 - PRs:
