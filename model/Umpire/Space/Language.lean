@@ -842,8 +842,7 @@ private def checkGoal
   }
   pure { checked with canonicalMetadata := canonicalGoalJson checked }
 
-/-- Check one complete finite Space without enumerating its Cartesian assignments. -/
-def checkExperimentSpace
+private def checkExperimentSpaceRaw
     (context : SpaceCheckContext LawStatement)
     (declaration : ExperimentSpaceDeclaration) :
     Except SpaceError (CheckedExperimentSpace LawStatement) := do
@@ -905,5 +904,28 @@ def checkExperimentSpace
     canonicalMetadata := canonical
     behaviorFingerprint := behaviorFingerprintOf semantic
   }
+
+/-- Check one complete finite Space without enumerating its Cartesian assignments. -/
+def checkExperimentSpace
+    (context : SpaceCheckContext LawStatement)
+    (declaration : ExperimentSpaceDeclaration) :
+    Except SpaceError (CheckedExperimentSpace LawStatement) := do
+  let checked ← checkExperimentSpaceRaw context declaration
+  pure { checked with baseQuery := context.baseQuery }
+
+theorem checkExperimentSpace_baseQuery
+    (resultEq : checkExperimentSpace context declaration = .ok checked) :
+    checked.baseQuery = context.baseQuery := by
+  unfold checkExperimentSpace at resultEq
+  cases rawEq : checkExperimentSpaceRaw context declaration with
+  | error error =>
+      rw [rawEq] at resultEq
+      change Except.error error = Except.ok checked at resultEq
+      cases resultEq
+  | ok raw =>
+      rw [rawEq] at resultEq
+      change Except.ok _ = Except.ok checked at resultEq
+      injection resultEq with resultEq
+      rw [← resultEq]
 
 end Umpire
