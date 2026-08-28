@@ -67,6 +67,24 @@ func TestCanonicalExperimentBytesUsesStablePrettyJSON(t *testing.T) {
 	require.False(t, bytes.HasSuffix(canonical, []byte("\n\n")))
 }
 
+func TestCanonicalJSONEscapingMatchesLean(t *testing.T) {
+	type escapingProbe struct {
+		Value string `json:"value"`
+	}
+
+	canonical, err := encodeJSONLine(escapingProbe{Value: string([]rune{
+		0, 1, 8, 9, 10, 11, 12, 13, 31, 34, 92, 0x03bb, 0x2028, 0x2029,
+	})})
+	require.NoError(t, err)
+	const expected = "{\n  \"value\": \"\\u0000\\u0001\\b\\t\\n\\u000b\\f\\r\\u001f\\\"\\\\λ\\u2028\\u2029\"\n}\n"
+	// This is a byte-spelling golden; semantic JSON equality would hide escaping drift.
+	//nolint:testifylint
+	require.Equal(t,
+		expected,
+		string(canonical),
+	)
+}
+
 func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	var document Experiment
 	require.NoError(t, json.Unmarshal(readRepositoryFile(t,

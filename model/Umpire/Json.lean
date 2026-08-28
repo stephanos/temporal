@@ -1,3 +1,5 @@
+import Lean.Data.Json
+
 namespace Umpire.Json
 
 private def indentation (depth : Nat) : String :=
@@ -14,9 +16,19 @@ private partial def prettyAux
       if insideString then
         if character == '\\' then
           match rest with
+          | 'u' :: '0' :: '0' :: '0' :: '8' :: remaining =>
+              prettyAux remaining depth true (output ++ "\\b")
+          | 'u' :: '0' :: '0' :: '0' :: '9' :: remaining =>
+              prettyAux remaining depth true (output ++ "\\t")
+          | 'u' :: '0' :: '0' :: '0' :: 'c' :: remaining =>
+              prettyAux remaining depth true (output ++ "\\f")
           | [] => output.push character
           | escaped :: remaining =>
               prettyAux remaining depth true ((output.push character).push escaped)
+        else if character == Char.ofNat 0x2028 then
+          prettyAux rest depth true (output ++ "\\u2028")
+        else if character == Char.ofNat 0x2029 then
+          prettyAux rest depth true (output ++ "\\u2029")
         else
           prettyAux rest depth (character != '"') (output.push character)
       else
@@ -55,5 +67,11 @@ def pretty (canonical : String) : String :=
 /-- Format canonical JSON as persisted bytes with exactly one terminal LF. -/
 def prettyBytes (canonical : String) : String :=
   pretty canonical ++ "\n"
+
+/-- Compare JSON values independently of presentation whitespace and object field order. -/
+def semanticallyEqual (left right : String) : Bool :=
+  match Lean.Json.parse left, Lean.Json.parse right with
+  | .ok left, .ok right => left == right
+  | _, _ => false
 
 end Umpire.Json
