@@ -73,6 +73,17 @@ example : loweredResult.toOption.map (fun point =>
       point.intent.selectedChoices == canonicalValidAssignment) = some true := by
   native_decide
 
+/-! Derived Behavior and Query identities reject every collision with visible definitions. -/
+example : [lowered.query.id, lowered.query.behavior.id].map (fun collision =>
+    let result := SpaceCompiler.Internal.rejectDerivedIdentityCollisions checked lowered.id
+      [collision]
+    (result.toOption,
+      (compileErrorOf result).map fun error => (error.kind, error.pointId))) = [
+    (none, some (.derivedIdentityCollision, lowered.id)),
+    (none, some (.derivedIdentityCollision, lowered.id))
+  ] := by
+  native_decide
+
 /-! The target-equality proof transports the one caller-owned kernel into ordinary planning. -/
 example : (transportedRun.toOption.bind PlannerRun.artifact).isSome = true := by
   native_decide
