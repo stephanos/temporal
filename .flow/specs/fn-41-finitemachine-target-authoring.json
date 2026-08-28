@@ -12,7 +12,8 @@
   "id": "fn-41-finitemachine-target-authoring",
   "impl_review_rounds": {
     "fn-41-finitemachine-target-authoring.1": 0,
-    "fn-41-finitemachine-target-authoring.2": 0
+    "fn-41-finitemachine-target-authoring.2": 0,
+    "fn-41-finitemachine-target-authoring.3": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -149,11 +150,42 @@
       "timestamp": "2026-08-28T19:53:03.522412Z",
       "tool_calls": 13,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ab83d37850394f861481bccea77dca6cd69fbd4f4206babfebdcfe73c6d8ad37",
+      "backend": "codex",
+      "base_sha": "7ad1b19a4a41f7d55c09b6370d6609db48455f60",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d2951d4494172bf7dd52ac7ce96ce782c03464e2",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 295537,
+      "output_sha256": "ef358e80377f9f4e5621c0a030e2a0581cc7e1f96768e02ec1cd6fd9a33dd16f",
+      "reservation_id": "9d03a810d8d949329019746645412482",
+      "round_consumed": true,
+      "scope": "impl:fn-41-finitemachine-target-authoring.3",
+      "superseded_by": null,
+      "task": "fn-41-finitemachine-target-authoring.3",
+      "timestamp": "2026-08-28T20:13:58.389140Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-41-finitemachine-target-authoring.1": 2,
     "impl:fn-41-finitemachine-target-authoring.2": 1,
+    "impl:fn-41-finitemachine-target-authoring.3": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -162,6 +194,7 @@
   "review_transport_failures": {
     "impl:fn-41-finitemachine-target-authoring.1": 0,
     "impl:fn-41-finitemachine-target-authoring.2": 0,
+    "impl:fn-41-finitemachine-target-authoring.3": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-41-finitemachine-target-authoring.md",
@@ -178,5 +211,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T19:53:03.530099Z"
+  "updated_at": "2026-08-28T20:13:58.398865Z"
 }
