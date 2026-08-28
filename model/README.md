@@ -142,18 +142,19 @@ open Umpire
 open Temporal.Feature.Nexus.Experimental.VariationSpace
 
 #check declaration     -- ExperimentSpaceDeclaration
-#check checkedResult   -- Except SpaceError (CheckedExperimentSpace LawStatement)
-#check metadataResult  -- Except SpaceMetadataError CheckedSpaceMetadata
-#check batchResult     -- Except SpaceCompilationError (List ExperimentSpec)
+#check queryResult     -- Except VariationSpacePreparationError (CheckedQuery LawStatement)
+#check preparedResult  -- Except VariationSpacePreparationError PreparedVariationSpace
+#check metadataResult  -- Except VariationSpacePreparationError CheckedSpaceMetadata
+#check batchResult     -- Except VariationSpacePreparationError (List ExperimentSpec)
 ```
 
 `declaration` adds two independent two-choice fault axes to the checked two-action Lifecycle Query.
-`checkExperimentSpace context declaration` produces the complete `checked` Space or one typed
-error. `projectCheckedSpaceMetadata checked` produces `metadataResult`, the canonical in-memory
-input fn-5 will later aggregate. `compileBatch checked checkedKernel` produces `batchResult`: exactly
-four canonically ordered `ExperimentSpec`s or no batch on the first canonical point error. The
-proof-carrying `checkedKernel` is derived from the existing Lifecycle kernel; Space does not create
-a second planner or target.
+`preparedResult` checks the Behavior, Query, and Space before it projects metadata and compiles the
+batch. It returns the complete `PreparedVariationSpace` or one typed stage error, without assuming
+that any check succeeded. `metadataResult` is the canonical in-memory input fn-5 will later
+aggregate. `batchResult` contains exactly four canonically ordered `ExperimentSpec`s or no batch on
+the first preparation or canonical point error. The proof-carrying compiler kernel is transported
+from the existing Lifecycle kernel; Space does not create a second planner or target.
 
 The base Properties remain pure. The start-delay and completion-handler-failure declarations ask a
 future runtime to attempt faults at named required occurrences; they do not author an outcome or

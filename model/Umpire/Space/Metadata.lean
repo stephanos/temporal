@@ -17,6 +17,7 @@ structure SpaceDefinitionReference extends SpaceSemanticReference where
   kind : DefinitionKind
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical metadata for one checked Space and the Query/Behavior/Target it closes over. -/
 structure SpaceMetadataRow where
   id : DefinitionId
   source : SourceLocation
@@ -30,6 +31,7 @@ structure SpaceMetadataRow where
   baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical metadata for one checked variation axis. -/
 structure SpaceAxisMetadataRow where
   id : DefinitionId
   source : SourceLocation
@@ -39,6 +41,7 @@ structure SpaceAxisMetadataRow where
   baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical metadata for one checked choice and its requested effects. -/
 structure SpaceChoiceMetadataRow where
   id : DefinitionId
   source : SourceLocation
@@ -50,6 +53,7 @@ structure SpaceChoiceMetadataRow where
   baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical metadata for one checked request-only fault. -/
 structure SpaceFaultMetadataRow where
   id : DefinitionId
   source : SourceLocation
@@ -60,6 +64,7 @@ structure SpaceFaultMetadataRow where
   baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Reference-closed subject of one canonical coverage-goal row. -/
 inductive SpaceCoverageMetadataSubject where
   | axisChoice (axis choice : DefinitionId)
   | fault (id : DefinitionId)
@@ -67,6 +72,7 @@ inductive SpaceCoverageMetadataSubject where
   | property (reference : SpaceSemanticReference)
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical metadata for one checked seek-only coverage goal. -/
 structure SpaceCoverageGoalMetadataRow where
   id : DefinitionId
   source : SourceLocation
@@ -76,6 +82,7 @@ structure SpaceCoverageGoalMetadataRow where
   baseBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Stable categories for stale, missing, extra, or mismatched Space metadata. -/
 inductive SpaceMetadataErrorKind where
   | baseDigestMismatch
   | missingRow
@@ -84,6 +91,7 @@ inductive SpaceMetadataErrorKind where
   | behaviorFingerprintMismatch
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- Stable serialized name of a Space metadata failure category. -/
 def SpaceMetadataErrorKind.name : SpaceMetadataErrorKind → String
   | .baseDigestMismatch => "base-digest-mismatch"
   | .missingRow => "missing-row"
@@ -91,6 +99,7 @@ def SpaceMetadataErrorKind.name : SpaceMetadataErrorKind → String
   | .staleRow => "stale-row"
   | .behaviorFingerprintMismatch => "behavior-fingerprint-mismatch"
 
+/-- Canonical typed failure returned when a metadata projection is not self-consistent. -/
 structure SpaceMetadataError where
   kind : SpaceMetadataErrorKind
   definitionId : DefinitionId

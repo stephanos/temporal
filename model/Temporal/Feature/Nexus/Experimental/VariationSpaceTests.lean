@@ -6,8 +6,17 @@ open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 open Temporal.Feature.Nexus.Experimental.VariationSpace
 
+private def prepared : PreparedVariationSpace :=
+  preparedResult.toOption.get (by native_decide)
+
+private def checked : CheckedExperimentSpace LawStatement := prepared.checked
+private def metadata : CheckedSpaceMetadata := prepared.metadata
+private def specs : List ExperimentSpec := prepared.specs
+private def behavior : CheckedBehavior := checked.baseQuery.behavior
+private def context : SpaceCheckContext LawStatement := .ofQuery checked.baseQuery
+
 example : behaviorResult.isOk = true ∧ queryResult.isOk = true ∧
-    checkedResult.isOk = true ∧ metadataResult.isOk = true ∧ batchResult.isOk = true := by
+    preparedResult.isOk = true ∧ metadataResult.isOk = true ∧ batchResult.isOk = true := by
   native_decide
 
 example : metadata.space.id = spaceId ∧
