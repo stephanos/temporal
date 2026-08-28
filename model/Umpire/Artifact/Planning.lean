@@ -161,8 +161,8 @@ def validateFor
 end ArtifactIntent
 
 /-!
-Complete a valid model-selected v2 Artifact with checked, environment-independent Execution
-references. Runtime configuration closes the participant and cleanup references downstream.
+Artifact intent enriches a valid model-selected v2 planning Artifact without Execution references.
+Runtime configuration closes the participant and cleanup references downstream.
 The v2 planning Artifact remains unchanged and carries none of those runtime bindings.
 -/
 

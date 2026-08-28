@@ -40,11 +40,11 @@ example : lifecycleTestSetGeneration.batch.map (fun batch =>
 
 example : callerClosureGeneration.batch.map (fun batch =>
       batch.files.all fun file => file.path == "manifest.json" ||
-        (file.contents.contains "\"formatVersion\": \"umpire-experiment/v2\"" &&
+        (file.contents.contains "\"formatVersion\":\"umpire-experiment/v2\"" &&
           !file.contents.contains "\"executionHandoff\":")) = some true ∧
     lifecycleMatrixGeneration.batch.map (fun batch =>
       batch.files.drop 1 |>.all fun file =>
-        file.contents.contains "\"formatVersion\": \"umpire-experiment/v2\"" &&
+        file.contents.contains "\"formatVersion\":\"umpire-experiment/v2\"" &&
           !file.contents.contains "\"executionHandoff\":" &&
           !file.contents.contains "\"participantProgramDefinitionIds\":") = some true := by
   native_decide
@@ -71,6 +71,40 @@ example :
       [missingArtifactSelection.id.value, "--output", "generated-tests"]
     result.status = 1 ∧ result.batch = none ∧
       result.stderr.contains "\"kind\":\"missing-planning-artifact\"" := by
+  native_decide
+
+private def artifactSelectionId : DefinitionId :=
+  DefinitionId.of "temporal.nexus.artifact-validation.regression"
+
+private def generationForArtifact (spec : ExperimentSpec) : GeneratorResult :=
+  runGenerator [{
+    id := artifactSelectionId
+    kind := .regression
+    description := "A negative-control selection for planning Artifact admission."
+    plannedTests := [{ spec := some spec }]
+  }] [artifactSelectionId.value, "--output", "generated-tests"]
+
+private def invalidPlanningArtifacts : List (ExperimentSpec × String) := [
+  ({ Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact with
+      formatVersion := "umpire-experiment/unsupported" }, "experiment-format"),
+  ({ Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact with
+      plan := {
+        Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact.plan with
+        formatVersion := "umpire-drive-plan/unsupported"
+      } }, "drive-plan-format"),
+  ({ Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact with
+      plan := {
+        Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact.plan with
+        artifactChecksum := drivePlanChecksumOf "drifted"
+      } }, "drive-plan-checksum"),
+  ({ Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact with
+      artifactChecksum := experimentSpecChecksumOf "drifted" }, "experiment-checksum")
+]
+
+example : invalidPlanningArtifacts.map (fun (spec, category) =>
+    let result := generationForArtifact spec
+    (result.status, result.batch, result.stderr.contains category)) =
+    List.replicate 4 (1, none, true) := by
   native_decide
 
 private def createSymlink (target link : System.FilePath) : IO Unit := do
