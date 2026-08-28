@@ -60,6 +60,7 @@ inductive Rule where
   | targetIsolation
   | temporalSharedIsolation
   | featureIsolation
+  | nexusExperimentalIsolation
   | systemIsolation
   | testSupportIsolation
   | verificationIsolation
@@ -150,6 +151,7 @@ private def Rule.label : Rule → String
   | .targetIsolation => "target-isolation"
   | .temporalSharedIsolation => "temporal-shared-isolation"
   | .featureIsolation => "feature-isolation"
+  | .nexusExperimentalIsolation => "nexus-experimental-isolation"
   | .systemIsolation => "system-isolation"
   | .testSupportIsolation => "test-support-isolation"
   | .verificationIsolation => "verification-isolation"
@@ -231,7 +233,10 @@ private def forbiddenRule?
     (sourceClass : ModuleClass)
     (destination : Lean.Name)
     (destinationClass : ModuleClass) : Option Rule :=
-  if isTargetModule source && isTargetForbiddenDestination destination then
+  if source == `Temporal.Feature.Nexus &&
+      matchesPrefix `Temporal.Feature.Nexus.Experimental destination then
+    some .nexusExperimentalIsolation
+  else if isTargetModule source && isTargetForbiddenDestination destination then
     some .targetIsolation
   else if sourceClass == .shared &&
       (destinationClass == .umpire || destinationClass == .umpireVeil ||

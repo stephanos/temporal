@@ -40,9 +40,7 @@ the reusable facades. Temporal code is organized by semantic ownership:
 ```lean
 import Umpire.ImplementationLink
 import Temporal.Feature
-import Temporal.Feature.Nexus.Lifecycle
-import Temporal.Feature.Nexus.Operations
-import Temporal.Feature.Nexus.Observation
+import Temporal.Feature.Nexus
 import Temporal.System
 import Temporal.System.Configuration
 import Temporal.System.Callback.Configuration
@@ -61,9 +59,10 @@ import Temporal.Feature.Nexus.Experimental.CallerClosure
 `Temporal.Feature.*` owns product-visible behavior, `Temporal.System.*` owns implementation
 mechanisms and interpretations, and `Temporal.Tool.*` owns developer tooling. The production
 `Temporal` aggregate imports generated APIs plus the Feature and System facades. The Feature facade
-exports the ordinary Nexus Lifecycle, Operations, and Observation modules but no Experimental
-module. The production aggregate deliberately does not import experimental or executable Tool
-code.
+consumes the ordinary `Temporal.Feature.Nexus` facade, which exports Lifecycle, Operations, and
+Observation but no Experimental module. Consumers that need a narrower surface may import those
+three stable child facades directly. The production aggregate deliberately does not import
+experimental or executable Tool code.
 
 The import-only `UmpireTests` library assembles reusable Umpire tests; only test modules may reach
 the internal `Umpire.Shared.Test` fixture seam. Neither production umbrella exports that module.
@@ -95,11 +94,16 @@ Temporal.API ──────────────────────�
 Temporal.DynamicConfig ───────────────┤
 Temporal.Feature ─────────────────────┼── Temporal
 Temporal.System ──────────────────────┤
-Nexus.Lifecycle ── Nexus.Operations ──┘
+Temporal.Feature.Nexus ───────────────┘
 
 Temporal.DynamicConfig ── Temporal.System.Configuration
                               ├── Temporal.System.Callback.Configuration
                               └── Temporal.System.Matching.Configuration
+
+Temporal.Feature ── Temporal.Feature.Nexus
+                       ├── Temporal.Feature.Nexus.Lifecycle
+                       ├── Temporal.Feature.Nexus.Operations
+                       └── Temporal.Feature.Nexus.Observation
 
 Temporal.Feature.Nexus.Lifecycle ── Temporal.Feature.Nexus.Operations
                                    └── Temporal.Feature.Nexus.Observation
@@ -296,7 +300,8 @@ three stages but cannot collapse one layer's failure into another's status.
 - `Temporal.Shared` owns internal Temporal-specific construction over lower Shared/Umpire layers;
   the existing `Temporal.Feature` modules remain the authoritative consumer-facing facades.
 - `Temporal.Feature` owns product meaning, target compositions, and the sole synthetic Nexus
-  Observation profile.
+  Observation profile. `Temporal.Feature.Nexus` is its stable ordinary Nexus entry facade; focused
+  Lifecycle and Operations children remain implementation modules behind stable family facades.
 - `Temporal.System` owns configuration and execution-oriented mechanisms without defining feature
   behavior; only its focused Nexus Implementation Link leaf imports both independently authored
   sides.
@@ -314,9 +319,11 @@ executed, or runtime evidence was collected.
 
 ## Tests and inspection
 
-`TemporalModelTests.lean` contains imports only. It assembles the ordinary Feature and System tests,
-including the exact `Temporal.ImplementationLinkTests.Nexus` composed-test root, without importing
-experimental modules or reusable Umpire test internals.
+`Temporal.Feature.NexusTests` imports only the ordinary Nexus facade and smoke-checks representative
+Lifecycle, Operations, and Observation declarations. `TemporalModelTests.lean` assembles that
+facade check with the focused ordinary Feature and System tests, including the exact
+`Temporal.ImplementationLinkTests.Nexus` composed-test root, without importing experimental modules
+or reusable Umpire test internals.
 `TemporalExperimentalTests.lean` separately assembles the caller-closure and Tool inspector tests.
 Compile the final public and test roots with:
 
