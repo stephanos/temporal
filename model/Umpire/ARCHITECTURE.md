@@ -389,13 +389,13 @@ contains the outcome, optional artifact, and instrumentation.
 - `DrivePlan` records bindings, selected choices and variants, requested faults, requested actions,
   model-owned outcomes, resulting states, checkpoints, Limits, selection reason, and provenance.
 - `ExperimentSpec` is the portable envelope consumed by later execution, checking, replay, and
-  generation work. Ordinary planning retains byte-identical `umpire-experiment/v2`; the Artifact
-  boundary checks participant-program, setup, ordering, termination, and cleanup references before
-  sealing an executable `umpire-experiment/v3`.
+  generation work. Planning and `umpire-gen-tests` emit only byte-identical
+  `umpire-experiment/v2`; runtime-specific participant, setup, ordering, termination, and cleanup
+  bindings belong to the later `RuntimeConfiguration` boundary.
 - `artifactOfSelection` constructs an `ExperimentSpec` from a checked query and a selected,
   kernel-produced `BehaviorTrace`.
-- `ExperimentSpec.withExecutionHandoff` validates the model-owned lifecycle references and adds the
-  downstream participant/cleanup references without giving Space or the runtime another schema.
+- `checkExecutionHandoff` retains reusable validation for model-owned lifecycle references without
+  changing ExperimentSpec bytes or giving Space another persisted schema.
 
 Canonical serialization entry points include:
 

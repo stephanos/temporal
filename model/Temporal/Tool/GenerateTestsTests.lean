@@ -40,16 +40,13 @@ example : lifecycleTestSetGeneration.batch.map (fun batch =>
 
 example : callerClosureGeneration.batch.map (fun batch =>
       batch.files.all fun file => file.path == "manifest.json" ||
-        (file.contents.contains "\"formatVersion\":\"umpire-experiment/v3\"" &&
-          file.contents.contains "\"executionHandoff\":")) = some true ∧
+        (file.contents.contains "\"formatVersion\":\"umpire-experiment/v2\"" &&
+          !file.contents.contains "\"executionHandoff\":")) = some true ∧
     lifecycleMatrixGeneration.batch.map (fun batch =>
       batch.files.drop 1 |>.all fun file =>
-        file.contents.contains "\"formatVersion\":\"umpire-experiment/v3\"" &&
-          file.contents.contains "\"participantProgramDefinitionIds\":" &&
-          file.contents.contains "\"setupDefinitionIds\":" &&
-          file.contents.contains "\"orderingDefinitionIds\":" &&
-          file.contents.contains "\"terminationDefinitionIds\":" &&
-          file.contents.contains "\"cleanupDefinitionIds\":") = some true := by
+        file.contents.contains "\"formatVersion\":\"umpire-experiment/v2\"" &&
+          !file.contents.contains "\"executionHandoff\":" &&
+          !file.contents.contains "\"participantProgramDefinitionIds\":") = some true := by
   native_decide
 
 example : (List.range 2).map (fun _ => lifecycleMatrixGeneration.batch) =
@@ -66,13 +63,6 @@ private def missingArtifactSelection : NamedTestSelection := {
   description := "A negative-control selection whose planner produced no Artifact."
   plannedTests := [{
     spec := none
-    executionHandoff := {
-      participantProgramDefinitionIds := []
-      setupDefinitionIds := []
-      orderingDefinitionIds := []
-      terminationDefinitionIds := []
-      cleanupDefinitionIds := []
-    }
   }]
 }
 

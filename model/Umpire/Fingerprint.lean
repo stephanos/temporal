@@ -192,8 +192,4 @@ def drivePlanChecksumOf (canonicalContent : String) : ArtifactChecksum :=
 def experimentSpecChecksumOf (canonicalContent : String) : ArtifactChecksum :=
   ⟨derive "umpire.experiment-spec/v2" canonicalContent⟩
 
-/-- Checksum complete executable ExperimentSpec v3 content without its checksum field. -/
-def executableExperimentSpecChecksumOf (canonicalContent : String) : ArtifactChecksum :=
-  ⟨derive "umpire.experiment-spec/v3" canonicalContent⟩
-
 end Umpire

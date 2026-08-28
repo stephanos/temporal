@@ -25,7 +25,6 @@ import Umpire
 #check Umpire.ExperimentSpec
 #check Umpire.ExecutionHandoffDeclaration
 #check Umpire.ExecutionHandoff
-#check Umpire.ExperimentSpec.withExecutionHandoff
 #check Umpire.ExperimentSpaceDeclaration
 #check Umpire.CheckedExperimentSpace
 #check Umpire.checkExperimentSpace
