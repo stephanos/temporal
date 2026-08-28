@@ -38,9 +38,12 @@ Add one checked intent projection seam that can populate the existing DrivePlan 
 - [ ] Invalid intent fails closed without changing target-owned semantics.
 
 ## Done summary
-TBD
+Added a checked, identity-bound ArtifactIntent seam that canonicalizes axis choices, role variants, fault occurrence references, and capability requirements; applies intent only after ordinary target-owned planning; validates source Artifact checksums; and recomputes both Artifact checksums. Added focused regressions for exact arrays, ordinary byte identity, repeated semantic values across distinct roles, malformed intent, duplicate bindings, identity drift, and stale checksums.
 
+Baseline and verification passed for the implemented intent/artifact/validation/Switch targets, aggregate model suites, and regression smoke. The cumulative Compilation, Metadata, and Temporal variation-space targets remain inherited expected pre-feature missing targets assigned to tasks .4, .3, and .5; no scope-violating stubs were added. Review found and fixed repeated-value erasure and stale-checksum admission, then returned SHIP; memory capture was non-blockingly skipped because flow memory is not initialized.
+
+stage: impl-review - ran [2026-08-28T00:44:11Z..2026-08-28T00:52:57.670368Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4f086627594b052c124e295f308acb398db6b7b2, aa8f40ddfe14c2c6696b917e2df35a155ceedeb6
+- Tests: cd model && mise exec -- lake build Umpire.Space.Tests.Intent Umpire.Planning.Tests.Artifacts Umpire.Space.Tests.Validation Umpire.Examples.SwitchTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression
 - PRs:
