@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Operations
+import Temporal.Shared
 import Umpire.Observation
 
 /-!
@@ -13,14 +14,11 @@ namespace Temporal.Feature.Nexus.Observation
 open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 
-private def definitionId (value : String) : DefinitionId := DefinitionId.of value
+private def definitionId (value : String) : DefinitionId :=
+  Temporal.Shared.definitionId value
 
-def source : SourceLocation := {
-  path := "Temporal/Feature/Nexus/Observation.lean"
-  line := 1
-  column := 1
-  provenance := "lean-model"
-}
+def source : SourceLocation :=
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Observation.lean"
 
 namespace Profile
 
