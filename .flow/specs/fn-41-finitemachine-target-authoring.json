@@ -1,0 +1,46 @@
+{
+  "branch_name": "fn-41-finitemachine-target-authoring",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-28T15:17:46.771845Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-38-consolidate-layered-model-helpers"
+  ],
+  "id": "fn-41-finitemachine-target-authoring",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "b88169a636a84dc283b44f7ea9e08aaa": {
+      "artifact_sha256": "34c2d1fe2cf66340dc09046c52d2d950040cd419d5d94ba81e9e1b0f603ac05f",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
+  "spec_path": ".flow/specs/fn-41-finitemachine-target-authoring.md",
+  "status": "open",
+  "title": "FiniteMachine target authoring",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-28T15:24:08.122511Z"
+}

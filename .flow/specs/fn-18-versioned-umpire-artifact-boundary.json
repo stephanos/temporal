@@ -1,7 +1,7 @@
 {
   "branch_name": "umpire",
   "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_reviewed_at": "2026-08-28T15:14:34.965501Z",
   "created_at": "2026-08-26T09:44:32.129333Z",
   "default_impl": null,
   "default_review": null,
@@ -16,13 +16,11 @@
     "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-18-versioned-umpire-artifact-boundary",
-  "impl_review_rounds": {
-    "fn-18-versioned-umpire-artifact-boundary.1": 0
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 0,
-  "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-08-26T10:10:21.658717Z",
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-08-28T15:21:56.415631Z",
   "review_attempts": [
     {
       "artifact_sha256": "377309804af823d092b692b44556efff5cc2f3532523e3db3365c82b9c339b74",
@@ -406,12 +404,42 @@
       "task": "fn-18-versioned-umpire-artifact-boundary.1",
       "timestamp": "2026-08-28T14:54:32.517942Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6c62e532c763c4446011d7bf0e266a514b352101741681100ee219e76dbe5320",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "775aeba3816d726572f91f0388499b5fc0f0e0b0",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 664435,
+      "output_sha256": "0ca57d21b1d0fbfc5849a80556585192206f50c241d28c95b2a1c8e35fd14351",
+      "reservation_id": "5c0b8a2debe3414b8800712acecb2edb",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T15:21:56.404507Z",
+      "tool_calls": 54,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-18-versioned-umpire-artifact-boundary.1": 1,
-    "plan": 1,
-    "plan#completion": 0
+    "impl:fn-18-versioned-umpire-artifact-boundary.1": 2,
+    "plan": 2,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -433,5 +461,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T14:54:32.520840Z"
+  "updated_at": "2026-08-28T15:28:04.522711Z"
 }

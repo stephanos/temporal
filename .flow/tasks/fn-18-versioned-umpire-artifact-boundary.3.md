@@ -12,16 +12,20 @@ Make fn-37's v2 DrivePlan and ExperimentSpec the sole persisted baseline and pro
 **Touches:** [tools/umpire/artifact/experiment.go, tools/umpire/artifact/experiment_test.go, tools/umpire/artifact/testdata/**, model/Umpire/Artifact/Tests/Codecs.lean]
 
 ### Approach
-- Strictly decode every exact v2 field, re-encode canonical bytes, and independently recompute nested and outer Artifact Checksums.
+- Strictly decode every exact v2 field, re-encode the deterministic two-space pretty bytes, and
+  independently recompute nested and outer Artifact Checksums from the exact pretty preimages with
+  one terminal LF.
 - Validate Definition IDs, Behavior Fingerprints, Limits, Known Gaps, occurrences, checkpoints, Properties, requirements, and provenance.
-- Reject earlier formats before field validation, then reject legacy keys, unknown keys, malformed values, checksum drift, noncanonical bytes, and missing or extra LF.
+- Reject earlier formats before field validation, then reject legacy keys, unknown keys, malformed
+  values, checksum drift, compact JSON, alternate whitespace/indentation, and missing or extra LF.
 - Keep migrations reserved for a future reviewed post-v2 successor; implement no current migration registry.
 
 ### Investigation targets
 **Required:** fn-37 v2 codecs, fixtures, and the parent early proof point.
 
 ## Acceptance
-- [ ] The caller-closure and Switch v2 fixtures round-trip byte-for-byte with independently verified checksums.
+- [ ] The canonical pretty caller-closure and Switch v2 fixtures round-trip byte-for-byte with
+  independently verified pretty-preimage checksums; compact spellings reject.
 - [ ] One-at-a-time mutations cover every required hard-rejection class.
 - [ ] Any earlier current-Artifact format reports unsupported format before field-level validation.
 - [ ] No migration, best-effort normalization, alias, or fallback is present.

@@ -13,6 +13,8 @@ Prove exact Lean/Go agreement for every retained family before complete-set admi
 
 ### Approach
 - Emit authoritative canonical fixtures from Lean and recompute every Artifact Checksum independently in Go.
+- Pin deterministic pretty bytes, provenance checksums, exact domain tags/preimages, and every
+  family format/field sequence from the parent normative tables.
 - Mutate each Definition ID, Behavior Fingerprint, Artifact Checksum, Limit, Known Gap, binding, and terminal-LF relation one at a time.
 - Keep coverage checkpoints, replay bundles, and generic receipt envelopes outside the fixture set.
 
@@ -21,6 +23,8 @@ Prove exact Lean/Go agreement for every retained family before complete-set admi
 
 ## Acceptance
 - [ ] Every retained family has one exact canonical positive fixture and focused mutation coverage.
+- [ ] Every compact/alternate-whitespace form rejects and no fixture test substitutes semantic JSON
+  equality for exact bytes.
 - [ ] Cross-domain fingerprint/checksum substitution and stale relationship mutations reject.
 - [ ] No deferred Artifact family appears in the production manifest.
 

@@ -1,42 +1,65 @@
 ---
 satisfies: [R2, R8]
 ---
-# fn-18-versioned-umpire-artifact-boundary.1 Adopt the v2 Artifact baseline and vertical package
+# fn-18-versioned-umpire-artifact-boundary.1 Adopt the deterministic pretty v2 Artifact baseline
 
 ## Description
-Place fn-37's canonical v2 DrivePlan and ExperimentSpec behind the vertical Artifact facade without changing bytes or introducing a second format.
+Place DrivePlan and ExperimentSpec v2 behind the vertical Artifact facade with deterministic pretty
+JSON as their one exact Lean/Go byte representation and no second format.
 
 
-**Size:** M
-**Files:** `model/Umpire/Artifact.lean`, `model/Umpire/Artifact/**`, `model/UmpireTests.lean`
-**Touches:** [model/Umpire/Artifact.lean, model/Umpire/Artifact/**, model/UmpireTests.lean]
+**Size:** L
+**Files:** `model/Umpire/Artifact.lean`, `model/Umpire/Artifact/**`, retained v2 fixtures and their Lean consumers, `tools/umpire/internal/artifactv2/**`, regression Generated View readers/tests, and active Artifact docs
+**Touches:** [model/Umpire/Artifact.lean, model/Umpire/Artifact/**, model/UmpireTests.lean, model/Umpire/Examples/Fixtures/*.json, model/Umpire/Examples/testdata/*.json, model/Umpire/Examples/*Tests.lean, model/Temporal/Feature/Nexus/Fixtures/*.json, model/Temporal/Feature/Nexus/OperationsTests.lean, model/Temporal/Feature/Nexus/Experimental/testdata/*.json, model/Temporal/Feature/Nexus/Experimental/*Tests.lean, model/Temporal/Tool/GenerateTests*.lean, tools/umpire/internal/artifactv2/**, tools/umpire/cmd/umpire-gen-regression-views/**, tools/umpire/regression/**, model/README.md, model/Umpire/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md]
 
 ### Approach
 - Preserve the existing declarations and comments while moving implementation behind focused modules.
-- Reuse Definition IDs, Behavior Fingerprints, Artifact Checksums, Limits, and Known Gaps exactly as fn-37 defines them.
+- Retain fn-37's v2 schemas, Definition IDs, Behavior Fingerprints, Limits, and Known Gaps while
+  replacing its compact byte spelling with one deterministic pretty representation.
+- Treat this as the explicit pre-release baseline correction authorized by the parent spec: it
+  supersedes fn-37's compact canonical-form/checksum-preimage sentences and regenerates every v2
+  checksum/fixture/view atomically; it does not introduce v3 or a compact compatibility reader.
+- Share exact field order, escaping, number spelling, two-space indentation, no trailing spaces, and
+  one terminal LF across Lean and Go.
+- Derive each domain-separated Artifact Checksum from that document's exact pretty checksum preimage:
+  omit only its own `artifactChecksum`, retain one terminal LF, and seal the nested DrivePlan before
+  deriving the outer ExperimentSpec checksum.
+- Treat the checked-in pretty fixtures as exact byte goldens; Generated View and fixture consumers
+  use the same strict decoder rather than a semantic-equality or whitespace-normalizing adapter.
 - Keep `umpire-drive-plan/v2` and `umpire-experiment/v2` as the sole supported current formats.
-- Add no reader, migration, alias, or fallback for an earlier prototype format.
+- Reject compact JSON, alternate whitespace/indentation, reordered keys, alternate escaping or
+  number spelling, and missing/extra terminal LF as noncanonical.
+- Remove the obsolete compact golden and add no compact reader, migration, alias, or fallback.
 
 ### Investigation targets
-**Required:** fn-37 Artifact modules and the parent v2-baseline contract.
+**Required:** the parent deterministic-pretty v2 contract, the committed pretty formatter baseline
+`fd84945b8`, current Lean/Go codecs and checksum formulas, all retained v2 fixtures, and Generated
+View ingestion.
 
 ## Acceptance
-- [ ] Existing v2 canonical bytes and Artifact Checksums remain byte-identical.
+- [ ] Lean and Go emit and admit exactly the same deterministic pretty v2 bytes for DrivePlan and
+  ExperimentSpec, including fixed order/escaping/number spelling, two-space indentation, no trailing
+  spaces, and one terminal LF.
+- [ ] Nested and outer Artifact Checksums are independently recomputed from exact pretty checksum
+  preimages and every canonical pretty fixture is an exact byte golden.
+- [ ] Compact JSON and every alternate whitespace/order/escaping/number/LF form reject through the
+  strict production decoder; no fixture or Generated View path normalizes them.
 - [ ] Public imports expose one vertical Artifact package with comments preserved.
 - [ ] No earlier-format reader, alternate writer, compatibility alias, or inferred missing intent exists.
+- [ ] Active Artifact documentation records that the pretty-v2 correction supersedes fn-37's
+  compact spelling and that no external or immutable published v2 compatibility set exists.
 
 ### Quick command
 
-`cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs`
+```bash
+cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs
+go test -count=1 ./tools/umpire/internal/artifactv2/... ./tools/umpire/cmd/umpire-gen-regression-views/... ./tools/umpire/regression/...
+make umpire-check-regression
+```
 
 ## Done summary
-Established the vertical v2 Artifact package, removed the alternate v3 writer/domain, and restored strict v2 generator admission. Compact fn-37 wire bytes remain exact while separately pretty fixtures are preserved and checked by JSON semantics; final focused, direct, and aggregate builds are green.
-
-Phase5 gate receipt minting was non-blockingly unavailable because protected external config/development.yaml status keeps the shared worktree dirty; the exact Quick command itself exited zero.
-
-stage: impl-review - ran [2026-08-28T14:36:38Z..2026-08-28T14:54:32Z] (NEEDS_WORK -> NEEDS_WORK -> SHIP)
-stage: plan-sync - skipped(config: planSync.enabled != true)
+TBD
 ## Evidence
-- Commits: adb54774e08e769325bd1f99b0a61188cc16242f, fd84945b84e5ede63c22a1b18f27d689a39ab129, 665c9bd4f0151b02094661313156e4cdc5b83be3, b19fe6c2e9272cb15f769a563193b865ef40ff71
-- Tests: baseline: red (cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs failed pre-edit because the task-owned target did not yet exist), cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs, cd model && mise exec -- lake build Umpire.ExecutionHandoffTests Umpire.ImportTests Temporal.Tool.GenerateTestsTests Umpire.Planning.Tests.Artifacts, cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs Temporal.Tool.GenerateTestsTests Umpire.ExecutionHandoffTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests Umpire.Examples.SwitchTests Umpire.Tests.MigrationCompatibility, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests umpire-gen-tests-tests, cmp <(git show f9df288a3adf253b6432f2fdf8e1a4479866c468:model/Umpire/Examples/testdata/switch-experiment-spec.json) model/Umpire/Artifact/Tests/Fixtures/SwitchExperimentSpecV2CanonicalBytes.json
+- Commits:
+- Tests:
 - PRs:
