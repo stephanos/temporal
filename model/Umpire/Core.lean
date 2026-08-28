@@ -38,6 +38,11 @@ inductive DefinitionKind where
   | connector
   | target
   | kernel
+  | experimentSpace
+  | variationAxis
+  | choice
+  | fault
+  | coverageGoal
   deriving BEq, DecidableEq, Ord, Repr
 
 def DefinitionKind.name : DefinitionKind → String
@@ -52,6 +57,11 @@ def DefinitionKind.name : DefinitionKind → String
   | .connector => "connector"
   | .target => "target"
   | .kernel => "kernel"
+  | .experimentSpace => "experiment-space"
+  | .variationAxis => "variation-axis"
+  | .choice => "choice"
+  | .fault => "fault"
+  | .coverageGoal => "coverage-goal"
 
 structure SourceLocation where
   path : String
