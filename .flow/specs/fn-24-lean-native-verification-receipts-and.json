@@ -10,7 +10,8 @@
     "fn-31-deepen-umpire-target-and-simplify",
     "fn-32-add-umpire-refinement-and-the-first",
     "fn-34-enforce-lean-model-boundaries-with",
-    "fn-37-hard-cut-umpire-vocabulary-and-current"
+    "fn-37-hard-cut-umpire-vocabulary-and-current",
+    "fn-43-deepen-ordinary-property-behavior-and"
   ],
   "id": "fn-24-lean-native-verification-receipts-and",
   "impl_review_rounds": {},
@@ -197,5 +198,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T19:07:01.991684Z"
+  "updated_at": "2026-08-28T16:13:03.057569Z"
 }
