@@ -10,6 +10,12 @@ open Temporal.Feature.Nexus.Lifecycle
 #check (Temporal.Feature.Nexus.Lifecycle.step : OperationState → OperationEvent → Option OperationState)
 #check (Temporal.Feature.Nexus.Lifecycle.source : SourceLocation)
 #check (Temporal.Feature.Nexus.Lifecycle.definitions : List DefinitionMetadata)
+#check (Temporal.Feature.Nexus.Lifecycle.finiteMachine : FiniteMachine
+  (List RoleBinding) ModelValue ModelValue ModelValue ModelValue)
+#check (Temporal.Feature.Nexus.Lifecycle.authoritativeInitial :
+  List RoleBinding → ModelValue → Prop)
+#check (Temporal.Feature.Nexus.Lifecycle.authoritativeStep : ModelValue → ModelValue →
+  TransitionResult ModelValue ModelValue ModelValue → Prop)
 #check (Temporal.Feature.Nexus.Lifecycle.target : QueryTarget LawStatement)
 
 example : source = {
@@ -77,6 +83,15 @@ example : (checkTarget targetAuthoring).isOk = true ∧
 example : (checkTarget targetAuthoring).toOption.map (fun checked =>
     (checked.id, checked.source, canonicalCheckedTargetJson checked, checked.behaviorFingerprint)) =
     some (targetId, source, canonicalCheckedTargetJson target, target.behaviorFingerprint) := by
+  native_decide
+
+example : transitionKernel = finiteMachine.kernel ∧
+    finitePlanning = finiteMachine.planning ∧
+    targetDefinition.kernel = finiteMachine.kernelAvailability := by
+  exact ⟨rfl, rfl, rfl⟩
+
+example : target.behaviorFingerprint.render =
+    "sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93" := by
   native_decide
 
 example : targetId.value = "temporal.nexus.basic-lifecycle.target" ∧

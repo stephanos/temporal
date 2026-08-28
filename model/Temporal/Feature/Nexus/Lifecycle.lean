@@ -168,46 +168,10 @@ def initialState? (setup : List RoleBinding) : Option ModelValue :=
 def initialStates (setup : List RoleBinding) : List ModelValue :=
   (initialState? setup).toList
 
-def authoritativeInitial (setup : List RoleBinding) (state : ModelValue) : Prop :=
-  state ∈ initialStates setup
-
 def stepResults
     (state action : ModelValue) :
     List (TransitionResult ModelValue ModelValue ModelValue) :=
   (stepResult? state action).toList
-
-def authoritativeStep
-    (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
-  result ∈ stepResults state action
-
-theorem initialStates_sound
-    (setup : List RoleBinding)
-    (state : ModelValue)
-    (member : state ∈ initialStates setup) :
-    authoritativeInitial setup state :=
-  member
-
-theorem initialStates_complete
-    (setup : List RoleBinding)
-    (state : ModelValue)
-    (admitted : authoritativeInitial setup state) :
-    state ∈ initialStates setup :=
-  admitted
-
-theorem stepResults_sound
-    (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
-    (member : result ∈ stepResults state action) :
-    authoritativeStep state action result :=
-  member
-
-theorem stepResults_complete
-    (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
-    (admitted : authoritativeStep state action result) :
-    result ∈ stepResults state action :=
-  admitted
 
 theorem initialStates_length_le_one (setup : List RoleBinding) :
     (initialStates setup).length ≤ 1 := by
@@ -293,106 +257,144 @@ theorem step_result_exposed
 def roleAssignments : List (List RoleBinding) := [scheduledSetup, startedSetup]
 def actionDomain : List ModelValue := [cancelAction, startAction, reportSuccessAction]
 
-def transitionKernel : TransitionKernel
+def finiteMachine : FiniteMachine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := {
     id := kernelId
     source
   }
-  setupDomain := fun candidate => candidate = scheduledSetup ∨ candidate = startedSetup
-  stateDomain := fun candidate => candidate = scheduledState ∨ candidate = startedState ∨
-    candidate = canceledState ∨ candidate = succeededState
-  actionDomain := fun candidate => candidate = cancelAction ∨ candidate = startAction ∨
-    candidate = reportSuccessAction
-  outcomeDomain := fun candidate => candidate = startedOutcome ∨ candidate = canceledOutcome ∨
-    candidate = succeededOutcome
-  observationDomain := fun candidate => candidate = startedObservation ∨
-    candidate = canceledObservation ∨ candidate = succeededObservation
-  initialStates
-  authoritativeInitial
-  initialSound := initialStates_sound
-  initialComplete := initialStates_complete
+  setups := roleAssignments
+  states := [scheduledState, startedState, canceledState, succeededState]
+  actions := actionDomain
+  outcomes := [startedOutcome, canceledOutcome, succeededOutcome]
+  observations := [startedObservation, canceledObservation, succeededObservation]
+  encodeSetup := fun bindings => String.intercalate "|" (bindings.map fun binding =>
+    binding.role.value ++ "=" ++ binding.value.definitionId.value ++ ":" ++ binding.value.value)
+  encodeState := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+  encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+  encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+  encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
+  initialStates := initialStates
   steps := stepResults
-  authoritativeStep
-  stepSound := stepResults_sound
-  stepComplete := stepResults_complete
-  behaviorDomain := .complete {
-    setups := roleAssignments
-    states := [scheduledState, startedState, canceledState, succeededState]
-    actions := actionDomain
-    outcomes := [startedOutcome, canceledOutcome, succeededOutcome]
-    observations := [startedObservation, canceledObservation, succeededObservation]
-    encodeSetup := fun bindings => String.intercalate "|" (bindings.map fun binding =>
-      binding.role.value ++ "=" ++ binding.value.definitionId.value ++ ":" ++ binding.value.value)
-    encodeState := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
-    encodeAction := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
-    encodeOutcome := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
-    encodeObservation := fun modelValue => modelValue.definitionId.value ++ ":" ++ modelValue.value
-    setupSound := by intro candidate member; simpa [roleAssignments] using member
-    setupComplete := by intro candidate admitted; simpa [roleAssignments] using admitted
-    stateSound := by intro candidate member; simpa using member
-    stateComplete := by intro candidate admitted; simpa using admitted
-    actionSound := by intro candidate member; simpa [actionDomain] using member
-    actionComplete := by intro candidate admitted; simpa [actionDomain] using admitted
-    outcomeSound := by intro candidate member; simpa using member
-    outcomeComplete := by intro candidate admitted; simpa using admitted
-    observationSound := by intro candidate member; simpa using member
-    observationComplete := by intro candidate admitted; simpa using admitted
-    setupCoverage := by
-      intro setup state member
-      by_cases scheduled : setup = scheduledSetup
-      · simp [roleAssignments, scheduled]
-      · by_cases started : setup = startedSetup
-        · simp [roleAssignments, started]
-        · simp [initialStates, initialState?, scheduled, started] at member
-    initialStateCoverage := by
-      intro setup state member
-      by_cases scheduled : setup = scheduledSetup
-      · simp [initialStates, initialState?, scheduled] at member
-        simp [member]
-      · by_cases started : setup = startedSetup
-        · subst setup
-          simp [initialStates, initialState?, scheduledSetup, startedSetup,
-            scheduledState, startedState] at member
-          simp [member, scheduledState, startedState, canceledState, succeededState]
-        · simp [initialStates, initialState?, scheduled, started] at member
-    transitionSourceCoverage := by
-      intro state action result member
-      by_cases scheduled : state = scheduledState
-      · simp [scheduled]
-      · by_cases started : state = startedState
-        · simp [started]
-        · by_cases canceled : state = canceledState
+  setupCoverage := by
+    intro setup state member
+    by_cases scheduled : setup = scheduledSetup
+    · simp [roleAssignments, scheduled]
+    · by_cases started : setup = startedSetup
+      · simp [roleAssignments, started]
+      · simp [initialStates, initialState?, scheduled, started] at member
+  initialStateCoverage := by
+    intro setup state member
+    by_cases scheduled : setup = scheduledSetup
+    · simp [initialStates, initialState?, scheduled] at member
+      simp [member]
+    · by_cases started : setup = startedSetup
+      · subst setup
+        simp [initialStates, initialState?, scheduledSetup, startedSetup,
+          scheduledState, startedState] at member
+        simp [member, scheduledState, startedState, canceledState, succeededState]
+      · simp [initialStates, initialState?, scheduled, started] at member
+  transitionSourceCoverage := by
+    intro state action result member
+    by_cases scheduled : state = scheduledState
+    · simp [scheduled]
+    · by_cases started : state = startedState
+      · simp [started]
+      · by_cases canceled : state = canceledState
+        · subst state
+          simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+            step, scheduledState, startedState, canceledState] at member
+        · by_cases succeeded : state = succeededState
           · subst state
             simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-              step, scheduledState, startedState, canceledState] at member
-          · by_cases succeeded : state = succeededState
-            · subst state
-              simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-                step, scheduledState, startedState, canceledState, succeededState] at member
-            · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-                step, scheduled, started, canceled, succeeded] at member
-    actionCoverage := by
-      intro state action result member
-      simpa [actionDomain] using step_action_exposed state action result member
-    resultingStateCoverage := by
-      intro state action result member
-      rcases step_result_exposed state action result member with rfl | rfl | rfl <;>
-        simp [startedResult, canceledResult, succeededResult]
-    outcomeCoverage := by
-      intro state action result member
-      rcases step_result_exposed state action result member with rfl | rfl | rfl <;>
-        simp [startedResult, canceledResult, succeededResult]
-    observationCoverage := by
-      intro state action result observation member observationMember
-      rcases step_result_exposed state action result member with rfl | rfl | rfl
-      · exact List.mem_cons.mpr (.inl <| by simpa [startedResult] using observationMember)
-      · exact List.mem_cons.mpr (.inr <| List.mem_cons.mpr (.inl <|
-          by simpa [canceledResult] using observationMember))
-      · exact List.mem_cons.mpr (.inr <| List.mem_cons.mpr (.inr <|
-          List.mem_singleton.mpr <| by simpa [succeededResult] using observationMember))
-  }
+              step, scheduledState, startedState, canceledState, succeededState] at member
+          · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+              step, scheduled, started, canceled, succeeded] at member
+  actionCoverage := by
+    intro state action result member
+    simpa [actionDomain] using step_action_exposed state action result member
+  resultingStateCoverage := by
+    intro state action result member
+    rcases step_result_exposed state action result member with rfl | rfl | rfl <;>
+      simp [startedResult, canceledResult, succeededResult]
+  outcomeCoverage := by
+    intro state action result member
+    rcases step_result_exposed state action result member with rfl | rfl | rfl <;>
+      simp [startedResult, canceledResult, succeededResult]
+  observationCoverage := by
+    intro state action result observation member observationMember
+    rcases step_result_exposed state action result member with rfl | rfl | rfl
+    · exact List.mem_cons.mpr (.inl <| by simpa [startedResult] using observationMember)
+    · exact List.mem_cons.mpr (.inr <| List.mem_cons.mpr (.inl <|
+        by simpa [canceledResult] using observationMember))
+    · exact List.mem_cons.mpr (.inr <| List.mem_cons.mpr (.inr <|
+        List.mem_singleton.mpr <| by simpa [succeededResult] using observationMember))
+  actionExecutable := by
+    intro action member
+    simp [actionDomain] at member
+    rcases member with rfl | rfl | rfl
+    · exact ⟨startedState, canceledResult, by
+        change canceledResult ∈ stepResults startedState cancelAction
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          step, scheduledState, startedState, startAction, cancelAction]⟩
+    · exact ⟨scheduledState, startedResult, by
+        change startedResult ∈ stepResults scheduledState startAction
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          step, scheduledState, startAction]⟩
+    · exact ⟨startedState, succeededResult, by
+        change succeededResult ∈ stepResults startedState reportSuccessAction
+        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
+          step, scheduledState, startedState, startAction, cancelAction,
+          reportSuccessAction]⟩
 }
+
+def authoritativeInitial (setup : List RoleBinding) (state : ModelValue) : Prop :=
+  finiteMachine.kernel.authoritativeInitial setup state
+
+def authoritativeStep
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
+  finiteMachine.kernel.authoritativeStep state action result
+
+theorem initialStates_sound
+    (setup : List RoleBinding)
+    (state : ModelValue)
+    (member : state ∈ initialStates setup) :
+    authoritativeInitial setup state := by
+  exact finiteMachine.kernel.initialSound setup state member
+
+theorem initialStates_complete
+    (setup : List RoleBinding)
+    (state : ModelValue)
+    (admitted : authoritativeInitial setup state) :
+    state ∈ initialStates setup := by
+  exact finiteMachine.kernel.initialComplete setup state admitted
+
+theorem stepResults_sound
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (member : result ∈ stepResults state action) :
+    authoritativeStep state action result := by
+  exact finiteMachine.kernel.stepSound state action result member
+
+theorem stepResults_complete
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (admitted : authoritativeStep state action result) :
+    result ∈ stepResults state action := by
+  exact finiteMachine.kernel.stepComplete state action result admitted
+
+def transitionKernel : TransitionKernel
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
+  finiteMachine.kernel
+
+@[simp] private theorem finiteMachine_kernel_initialStates (setup : List RoleBinding) :
+    finiteMachine.kernel.initialStates setup = initialStates setup :=
+  rfl
+
+@[simp] private theorem finiteMachine_kernel_steps (state action : ModelValue) :
+    finiteMachine.kernel.steps state action = stepResults state action :=
+  rfl
 
 def lifecycleProvider : CapabilityProvider LawStatement := {
   id := lifecycleProviderId
@@ -433,30 +435,12 @@ def definitions : List DefinitionMetadata := [
   metadata lifecycleObservationId .observation "temporal-nexus-basic-lifecycle-observation/v2"
 ]
 
-def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
-  actions := actionDomain
-  actionSound := by
-    intro action member
-    simp [actionDomain] at member
-    rcases member with rfl | rfl | rfl
-    · exact ⟨startedState, canceledResult, by
-        change canceledResult ∈ stepResults startedState cancelAction
-        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-          step, scheduledState, startedState, startAction, cancelAction]⟩
-    · exact ⟨scheduledState, startedResult, by
-        change startedResult ∈ stepResults scheduledState startAction
-        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-          step, scheduledState, startAction]⟩
-    · exact ⟨startedState, succeededResult, by
-        change succeededResult ∈ stepResults startedState reportSuccessAction
-        simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-          step, scheduledState, startedState, startAction, cancelAction,
-          reportSuccessAction]⟩
-  actionComplete := by
-    intro state action result admitted
-    change authoritativeStep state action result at admitted
-    simpa [actionDomain] using step_action_exposed state action result admitted
-}
+def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep :=
+  finiteMachine.planning
+
+@[simp] private theorem finiteMachine_planning_actions :
+    finiteMachine.planning.actions = actionDomain :=
+  rfl
 
 def targetDefinition : TargetDefinition
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
@@ -465,7 +449,7 @@ def targetDefinition : TargetDefinition
   definitions
   requiredCapabilities := [lifecycleCapabilityId]
   resolvedSetups := roleAssignments
-  kernel := .checked transitionKernel
+  kernel := finiteMachine.kernelAvailability
 }
 
 def targetComposition : TargetComposition LawStatement :=
