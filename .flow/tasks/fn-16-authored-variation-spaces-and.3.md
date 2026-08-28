@@ -43,6 +43,7 @@ Added canonical source-backed Space metadata rows with exact references, bounds,
 Baseline was red only for absent cumulative pre-feature targets: Compilation (.4), Metadata (.3), and Temporal Variation Space (.5). Verification now passes Validation, Metadata, Switch, aggregate model suites, and regression; Compilation and Temporal remain expected future-task absences with no scope-violating stubs. Review fixed forgeable checked Space construction and returned SHIP; memory capture and gate receipts were non-blockingly unavailable because memory is uninitialized and the preserved plan diff keeps the worktree dirty.
 
 stage: impl-review - ran [2026-08-28T01:18:46.244425Z..2026-08-28T01:24:53.596179Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 41faee380c58936472b7eac9bcd6b24bdca5073a, abb9355fd51f43e1b3e9e313a9d56d2bc05dfe52, 39f0e659df834ea66d0b2bdb3934b61062af4680
 - Tests: cd model && mise exec -- lake build Umpire.Space.Tests.Validation, cd model && mise exec -- lake build Umpire.Space.Tests.Metadata, cd model && mise exec -- lake build Umpire.Examples.SwitchTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, EXPECTED_FUTURE_TARGET: cd model && mise exec -- lake build Umpire.Space.Tests.Compilation - absent for task .4, EXPECTED_FUTURE_TARGET: cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.VariationSpaceTests - absent for task .5
