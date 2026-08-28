@@ -10,6 +10,7 @@ inductive SpaceCompilationErrorKind where
   | extraChoice
   | duplicateChoice
   | unknownChoice
+  | derivedIdentityCollision
   | incompatibleFaultSelection
   | behaviorCheckFailed
   | queryCheckFailed
@@ -28,6 +29,7 @@ def SpaceCompilationErrorKind.name : SpaceCompilationErrorKind → String
   | .extraChoice => "extra-choice"
   | .duplicateChoice => "duplicate-choice"
   | .unknownChoice => "unknown-choice"
+  | .derivedIdentityCollision => "derived-identity-collision"
   | .incompatibleFaultSelection => "incompatible-fault-selection"
   | .behaviorCheckFailed => "behavior-check-failed"
   | .queryCheckFailed => "query-check-failed"
@@ -163,6 +165,49 @@ private def derivedBehaviorId (pointId : DefinitionId) : DefinitionId :=
 private def derivedQueryId (pointId : DefinitionId) : DefinitionId :=
   DefinitionId.of (pointId.value ++ ".query")
 
+private def visibleDefinitionIds
+    (space : CheckedExperimentSpace LawStatement) : List DefinitionId :=
+  [
+    space.id,
+    space.baseQuery.id,
+    space.baseQuery.behavior.id,
+    space.baseQuery.target.id
+  ] ++ space.baseQuery.target.definitions.map DefinitionMetadata.id ++
+    space.baseQuery.form.properties.map CheckedProperty.id ++
+    space.axes.flatMap (fun axis => axis.id :: axis.choices.map CheckedChoice.id) ++
+    space.faults.map CheckedFaultIntent.id ++
+    space.coverageGoals.map CheckedCoverageGoal.id
+
+namespace SpaceCompiler.Internal
+
+/-- Find the first derived Behavior or Query identity already visible to the Space. -/
+def firstDerivedIdentityCollision
+    (pointId : DefinitionId)
+    (visible : List DefinitionId) : Option (DefinitionId × DefinitionId) :=
+  let behaviorId := derivedBehaviorId pointId
+  let queryId := derivedQueryId pointId
+  match visible.find? fun existing =>
+      existing.value.toLower == behaviorId.value.toLower with
+  | some existing => some (behaviorId, existing)
+  | none =>
+      match visible.find? fun existing =>
+          existing.value.toLower == queryId.value.toLower with
+      | some existing => some (queryId, existing)
+      | none => none
+
+/-- Reject a point when either derived identity aliases an already visible definition. -/
+def rejectDerivedIdentityCollisions
+    (space : CheckedExperimentSpace LawStatement)
+    (pointId : DefinitionId)
+    (visible : List DefinitionId) : Except SpaceCompilationError Unit := do
+  match firstDerivedIdentityCollision pointId visible with
+  | some (derived, existing) =>
+      throw (compilationError space .derivedIdentityCollision pointId derived.value
+        [derived, existing])
+  | none => pure ()
+
+end SpaceCompiler.Internal
+
 private def bindingConstraint
     (pointId : DefinitionId)
     (binding : RoleBinding) : SetupConstraint := {
@@ -270,6 +315,8 @@ def lowerSpacePoint
     (assignment : List ModelValue) :
     Except SpaceCompilationError (LoweredSpacePoint space) := do
   let (pointId, assignment, choices) ← selectedChoices space assignment
+  SpaceCompiler.Internal.rejectDerivedIdentityCollisions space pointId
+    (visibleDefinitionIds space)
   let bindings := choices.filterMap fun selected => selected.2.binding
   let behavior ← match checkBehavior (.ofTarget space.baseQuery.target)
       (behaviorDeclaration space pointId bindings) with
