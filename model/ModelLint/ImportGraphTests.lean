@@ -29,6 +29,17 @@ private def requireViolation
   requireEqual s!"{label} rule" violation.rule rule
   requireEqual s!"{label} path" violation.path path
 
+private def requireIncludedViolation
+    (label : String)
+    (modules : Array ModuleRecord)
+    (rule : Rule)
+    (path : Array Lean.Name) : IO Unit := do
+  let some violation := (check defaultPolicy modules).find? fun violation =>
+      violation.rule == rule && violation.path == path
+    | throw <| IO.userError s!"{label}: missing {repr rule} violation with path {path}"
+  requireEqual s!"{label} source" violation.source path[0]!
+  requireEqual s!"{label} destination" violation.destination path.back!
+
 private structure ForbiddenCase where
   label : String
   source : Lean.Name
@@ -114,6 +125,88 @@ private def testAllowedOrdinaryImports : IO Unit := do
     moduleRecord `Temporal.Root #[`Temporal.Feature.Root, `Temporal.System.Root]
   ]
   requireEqual "allowed ordinary imports" (check defaultPolicy modules) #[]
+
+private def testTemporalSharedIsolation : IO Unit := do
+  requireEqual "Temporal.Shared has a distinct class"
+    (defaultPolicy.classify? `Temporal.Shared.Construction)
+    (some .temporalShared)
+  let allowed := #[
+    moduleRecord `Temporal.Shared.Construction #[
+      `Shared.Root,
+      `Temporal.Shared.Foundation,
+      `Umpire.Shared
+    ],
+    moduleRecord `Temporal.Shared.Foundation,
+    moduleRecord `Umpire.Shared #[`Umpire.Core],
+    moduleRecord `Umpire.Core,
+    moduleRecord `Shared.Root
+  ]
+  requireEqual "Temporal.Shared lower-layer imports" (check defaultPolicy allowed) #[]
+  for destination in #[
+    `Temporal.API.Proto,
+    `Temporal.Feature.Root,
+    `Temporal.System.Root,
+    `Temporal.Tool.Inspect,
+    `Temporal.Verify.Root,
+    `Umpire.Verify.Veil.Core,
+    `TemporalModelTests
+  ] do
+    requireViolation s!"Temporal.Shared to {destination} direct"
+      #[moduleRecord `Temporal.Shared.Construction #[destination], moduleRecord destination]
+      .temporalSharedIsolation #[`Temporal.Shared.Construction, destination]
+    requireIncludedViolation s!"Temporal.Shared to {destination} transitive"
+      #[
+        moduleRecord `Temporal.Shared.Construction #[`ModelLint.Bridge],
+        moduleRecord `ModelLint.Bridge #[destination],
+        moduleRecord destination
+      ]
+      .temporalSharedIsolation #[`Temporal.Shared.Construction, `ModelLint.Bridge, destination]
+  for destination in defaultPolicy.testSupportNamespaces do
+    requireViolation s!"Temporal.Shared to {destination} direct"
+      #[moduleRecord `Temporal.Shared.Construction #[destination], moduleRecord destination]
+      .temporalSharedIsolation #[`Temporal.Shared.Construction, destination]
+    requireIncludedViolation s!"Temporal.Shared to {destination} transitive"
+      #[
+        moduleRecord `Temporal.Shared.Construction #[`Umpire.PolicyTests],
+        moduleRecord `Umpire.PolicyTests #[destination],
+        moduleRecord destination
+      ]
+      .temporalSharedIsolation #[`Temporal.Shared.Construction, `Umpire.PolicyTests, destination]
+
+private def testTestSupportIsolation : IO Unit := do
+  for destination in defaultPolicy.testSupportNamespaces do
+    requireViolation s!"production to {destination} direct"
+      #[moduleRecord `Temporal.Feature.Root #[destination], moduleRecord destination]
+      .testSupportIsolation #[`Temporal.Feature.Root, destination]
+    requireViolation s!"production to {destination} transitive"
+      #[
+        moduleRecord `Temporal.Feature.Root #[`Temporal.Feature.PolicyTests],
+        moduleRecord `Temporal.Feature.PolicyTests #[destination],
+        moduleRecord destination
+      ]
+      .testSupportIsolation
+      #[`Temporal.Feature.Root, `Temporal.Feature.PolicyTests, destination]
+  requireViolation "Shared production to Shared test support"
+    #[moduleRecord `Shared.Root #[`Shared.Test], moduleRecord `Shared.Test]
+    .testSupportIsolation #[`Shared.Root, `Shared.Test]
+  for source in #[`Umpire.Shared, `Temporal.Tool.GenerateTests] do
+    requireViolation s!"{source} to Umpire test support"
+      #[moduleRecord source #[`Umpire.Shared.Test], moduleRecord `Umpire.Shared.Test]
+      .testSupportIsolation #[source, `Umpire.Shared.Test]
+  let allowed := #[
+    moduleRecord `Umpire.Target.Tests.Fixtures #[`Umpire.Shared.Test],
+    moduleRecord `Umpire.Target.Tests.Validation #[`Umpire.Target.Tests.Fixtures],
+    moduleRecord `Umpire.TargetTests #[`Umpire.Target.Tests.Validation],
+    moduleRecord `UmpireTests #[`Umpire.TargetTests],
+    moduleRecord `Umpire.Lint #[`UmpireTests],
+    moduleRecord `Temporal.Feature.Nexus.LifecycleTests #[`Umpire.Shared.Test],
+    moduleRecord `Temporal.Tool.GenerateTestsTests #[`Umpire.Shared.Test],
+    moduleRecord `Temporal.Tool.GenerateTestsIOTestsMain #[
+      `Temporal.Tool.GenerateTestsTests
+    ],
+    moduleRecord `Umpire.Shared.Test
+  ]
+  requireEqual "test consumers may reach test support" (check defaultPolicy allowed) #[]
 
 private def testTargetIsolation : IO Unit := do
   let allowed := #[
@@ -276,6 +369,8 @@ private def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
   testAllowedOrdinaryImports
+  testTemporalSharedIsolation
+  testTestSupportIsolation
   testTargetIsolation
   testDirectAndTransitiveRejections
   testExactImplementationLinkExceptions
