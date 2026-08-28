@@ -8,6 +8,107 @@ open _root_.Umpire
 open Temporal.DynamicConfig
 open Temporal.System.Configuration
 
+example : maxSpec.classification = maxClassification := by native_decide
+
+example : maxSpec.interpretation = maxInterpretation := by rfl
+
+example : maxSpec.definition = maxDefinition := by rfl
+
+example : checkedMaxSpec.metadata = {
+    id := DefinitionId.of "test.config.max-definition"
+    key := "callback.maxperexecution"
+    settingIdentity :=
+      "sha256:6c7f3b78bbbf74a83401b46faedf61250a1c4c2c92d02eab91ec9ebc36b30d71"
+    impacts := [.validation]
+    contextPolicy := .namespace
+    samplingPoint := .request
+    changeEffect := .nextRead
+    interpretationFingerprint :=
+      behaviorFingerprintOf "test.config/callback-max-per-execution/v1"
+  } := by native_decide
+
+def unknownSpecResult : Except ConfigError (CheckedConfigUseDefinition Int) :=
+  ({ maxSpec with key := "does.not.exist" } : ConfigUseSpec Int).check
+
+def emptyKeySpecResult : Except ConfigError (CheckedConfigUseDefinition Int) :=
+  ({ maxSpec with key := "" } : ConfigUseSpec Int).check
+
+def identityDriftSpecResult : Except ConfigError (CheckedConfigUseDefinition Int) :=
+  ({ maxSpec with settingIdentity := "sha256:stale" } : ConfigUseSpec Int).check
+
+def emptyImpactsSpecResult : Except ConfigError (CheckedConfigUseDefinition Int) :=
+  ({ maxSpec with impacts := [] } : ConfigUseSpec Int).check
+
+def schemaDriftSpecResult : Except ConfigError (CheckedConfigUseDefinition Int) :=
+  ({ maxSpec with expectedSchema := .bool "bool" false } : ConfigUseSpec Int).check
+
+def defaultDriftSpecResult : Except ConfigError (CheckedConfigUseDefinition Int) :=
+  ({ maxSpec with expectedDefault := .concrete (.int 1999) } : ConfigUseSpec Int).check
+
+def policyDriftSpecResult : Except ConfigError (CheckedConfigUseDefinition Int) :=
+  ({ maxSpec with contextPolicy := .global } : ConfigUseSpec Int).check
+
+example :
+    [configErrorOf unknownSpecResult,
+     configErrorOf emptyKeySpecResult,
+     configErrorOf identityDriftSpecResult,
+     configErrorOf emptyImpactsSpecResult,
+     configErrorOf schemaDriftSpecResult,
+     configErrorOf defaultDriftSpecResult,
+     configErrorOf policyDriftSpecResult] =
+    [some {
+       kind := .unknownKey
+       useId := maxSpec.id
+       key := "does.not.exist"
+       offendingValue := "does.not.exist"
+       relatedIdentities := []
+     },
+     some {
+       kind := .unknownKey
+       useId := maxSpec.id
+       key := ""
+       offendingValue := ""
+       relatedIdentities := []
+     },
+     some {
+       kind := .incompatibleInterpretation
+       useId := DefinitionId.of "umpire.config.classifications"
+       key := maxSpec.key
+       offendingValue := "sha256:stale != " ++
+         Temporal.DynamicConfig.Settings.callback_maxperexecution.identity
+       relatedIdentities := []
+     },
+     some {
+       kind := .emptyClassification
+       useId := DefinitionId.of "umpire.config.classifications"
+       key := maxSpec.key
+       offendingValue := "[]"
+       relatedIdentities := []
+     },
+     some {
+       kind := .schemaMismatch
+       useId := maxSpec.id
+       key := maxSpec.key
+       offendingValue := reprStr Temporal.DynamicConfig.Settings.callback_maxperexecution.schema
+       relatedIdentities := []
+     },
+     some {
+       kind := .defaultDrift
+       useId := maxSpec.id
+       key := maxSpec.key
+       offendingValue :=
+         reprStr Temporal.DynamicConfig.Settings.callback_maxperexecution.defaultValue
+       relatedIdentities := []
+     },
+     some {
+       kind := .incompatibleInterpretation
+       useId := maxSpec.id
+       key := maxSpec.key
+       offendingValue := reprStr PrecedencePolicy.global ++ " != " ++
+         reprStr Temporal.DynamicConfig.Settings.callback_maxperexecution.policy
+       relatedIdentities := []
+     }] := by native_decide
+
 def unknownUseResult : Except ConfigError (ConfigUse Unit) :=
   checkConfigUse [maxClassification] {
     id := DefinitionId.of "test.config.unknown"

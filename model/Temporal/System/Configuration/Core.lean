@@ -155,6 +155,66 @@ structure ConfigUseDefinition (α : Type) where
   changeEffect : ChangeEffect
   interpretation : ConfigInterpretation α
 
+/--
+The complete owner-authored meaning for one generated setting, stated once before validation.
+
+The semantic projections keep the existing low-level declaration records available while ensuring
+that one key and one setting identity govern every projected form.
+-/
+structure ConfigUseSpec (α : Type) where
+  /-- Stable identifier for this owner-authored use. -/
+  id : DefinitionId
+  /-- Generated setting key expected by the owner. -/
+  key : String
+  /-- Generated setting identity expected by the owner. -/
+  settingIdentity : String
+  /-- Product behavior influenced by this setting. -/
+  impacts : List ImpactClass
+  /-- Generated value schema expected by the decoder. -/
+  expectedSchema : ValueSchema
+  /-- Generated default expected by the owner. -/
+  expectedDefault : SettingDefault
+  /-- Optional canonical replacement for an expected opaque generated default. -/
+  opaqueReplacement : Option OpaqueDefaultReplacement := none
+  /-- Stable identity of the authored interpretation behavior. -/
+  behaviorFingerprint : BehaviorFingerprint
+  /-- Decoder from the canonical generated representation to the owner type. -/
+  decode : CanonicalValue → Except String α
+  /-- Exact lookup-context policy expected from the generated setting. -/
+  contextPolicy : PrecedencePolicy
+  /-- Lifecycle boundary at which the owner samples this setting. -/
+  samplingPoint : SamplingPoint
+  /-- Point at which a changed value can affect modeled behavior. -/
+  changeEffect : ChangeEffect
+
+/-- Project a typed authoring spec to its setting classification. -/
+def ConfigUseSpec.classification (spec : ConfigUseSpec α) : SettingClassification := {
+  key := spec.key
+  settingIdentity := spec.settingIdentity
+  impacts := spec.impacts
+}
+
+/-- Project a typed authoring spec to its value interpretation. -/
+def ConfigUseSpec.interpretation (spec : ConfigUseSpec α) : ConfigInterpretation α := {
+  key := spec.key
+  expectedSettingIdentity := spec.settingIdentity
+  expectedSchema := spec.expectedSchema
+  expectedDefault := spec.expectedDefault
+  opaqueReplacement := spec.opaqueReplacement
+  behaviorFingerprint := spec.behaviorFingerprint
+  decode := spec.decode
+}
+
+/-- Project a typed authoring spec to the existing unchecked use-definition form. -/
+def ConfigUseSpec.definition (spec : ConfigUseSpec α) : ConfigUseDefinition α := {
+  id := spec.id
+  classification := spec.classification
+  contextPolicy := spec.contextPolicy
+  samplingPoint := spec.samplingPoint
+  changeEffect := spec.changeEffect
+  interpretation := spec.interpretation
+}
+
 private structure ConfigUsePayload (α : Type) where
   id : DefinitionId
   setting : Setting
@@ -707,6 +767,17 @@ def checkConfigUseDefinition
     interpretation := some definition.interpretation
   }
   pure (.mk { template, contextPolicy := definition.contextPolicy })
+
+/-- Validate a typed authoring spec through the shared use-definition checker. -/
+def ConfigUseSpec.check
+    (spec : ConfigUseSpec α) : Except ConfigError (CheckedConfigUseDefinition α) :=
+  checkConfigUseDefinition spec.definition
+
+/-- Extract a checked definition from a spec using an explicit proof that validation succeeded. -/
+def ConfigUseSpec.checked
+    (spec : ConfigUseSpec α)
+    (success : spec.check.toOption.isSome = true) : CheckedConfigUseDefinition α :=
+  spec.check.toOption.get success
 
 /-- Instantiate a checked owner definition at one concrete lookup context. -/
 def CheckedConfigUseDefinition.instantiate

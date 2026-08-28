@@ -27,12 +27,46 @@ def maxInterpretation : ConfigInterpretation Int := {
   decode := decodeInt
 }
 
+def maxDefinition : ConfigUseDefinition Int := {
+  id := DefinitionId.of "test.config.max-definition"
+  classification := maxClassification
+  contextPolicy := .namespace
+  samplingPoint := .request
+  changeEffect := .nextRead
+  interpretation := maxInterpretation
+}
+
+def maxSpec : ConfigUseSpec Int := {
+  id := DefinitionId.of "test.config.max-definition"
+  key := "callback.maxperexecution"
+  settingIdentity :=
+    "sha256:6c7f3b78bbbf74a83401b46faedf61250a1c4c2c92d02eab91ec9ebc36b30d71"
+  impacts := [.validation]
+  expectedSchema := .int "int" false
+  expectedDefault := .concrete (.int 2000)
+  behaviorFingerprint := behaviorFingerprintOf "test.config/callback-max-per-execution/v1"
+  decode := decodeInt
+  contextPolicy := .namespace
+  samplingPoint := .request
+  changeEffect := .nextRead
+}
+
+private theorem maxSpecCheck_isSome : maxSpec.check.toOption.isSome = true := by native_decide
+
+def checkedMaxSpec : CheckedConfigUseDefinition Int :=
+  maxSpec.checked maxSpecCheck_isSome
+
 def maxNamespaceContext (namespaceName : String) : ExactConstraints :=
   { emptyConstraints with namespaceName := some namespaceName }
 
 def errorKindOf (result : Except ConfigError α) : Option ConfigErrorKind :=
   match result with
   | .error error => some error.kind
+  | .ok _ => none
+
+def configErrorOf (result : Except ConfigError α) : Option ConfigError :=
+  match result with
+  | .error error => some error
   | .ok _ => none
 
 def maxRequest

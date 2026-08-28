@@ -44,6 +44,22 @@ def opaqueInterpretation
   decode := pure
 }
 
+def opaqueSpec
+    (replacement : Option OpaqueDefaultReplacement) : ConfigUseSpec CanonicalValue := {
+  id := DefinitionId.of "test.config.opaque-default"
+  key := opaqueClassification.key
+  settingIdentity := opaqueClassification.settingIdentity
+  impacts := opaqueClassification.impacts
+  expectedSchema := Temporal.DynamicConfig.Settings.frontend_httpallowedhosts.schema
+  expectedDefault := .opaque opaqueMetadata
+  opaqueReplacement := replacement
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/frontend-http-allowed-hosts/v1"
+  decode := pure
+  contextPolicy := .global
+  samplingPoint := .processStartup
+  changeEffect := .restartRequired
+}
+
 def checkedOpaqueUse
     (replacement : Option OpaqueDefaultReplacement) : Except ConfigError (ConfigUse CanonicalValue) :=
   checkConfigUse [opaqueClassification] {
@@ -84,6 +100,40 @@ def malformedOpaqueReplacementResult : Except ConfigError ConfigView := do
   let use ← checkedOpaqueUse (some replacement)
   resolveConfigView [] [.of use]
 
+def replacedOpaqueSpecResult : Except ConfigError CanonicalValue := do
+  let replacement : OpaqueDefaultReplacement := {
+    expected := opaqueMetadata
+    value := .object .nil
+  }
+  let definition ← (opaqueSpec (some replacement)).check
+  let use ← definition.instantiate emptyConstraints
+  let view ← resolveConfigView [] [.of use]
+  view.read use
+
+def staleOpaqueSpecResult : Except ConfigError (CheckedConfigUseDefinition CanonicalValue) :=
+  let replacement : OpaqueDefaultReplacement := {
+    expected := { opaqueMetadata with reason := "stale" }
+    value := .object .nil
+  }
+  (opaqueSpec (some replacement)).check
+
+def malformedOpaqueSpecResult : Except ConfigError (CheckedConfigUseDefinition CanonicalValue) :=
+  let replacement : OpaqueDefaultReplacement := {
+    expected := opaqueMetadata
+    value := .int 1
+  }
+  (opaqueSpec (some replacement)).check
+
+def opaqueDecoderFailureSpecResult :
+    Except ConfigError (CheckedConfigUseDefinition CanonicalValue) :=
+  let replacement : OpaqueDefaultReplacement := {
+    expected := opaqueMetadata
+    value := .object .nil
+  }
+  ({ opaqueSpec (some replacement) with
+      decode := fun _ => throw "intentional opaque decoder failure" } :
+    ConfigUseSpec CanonicalValue).check
+
 example : errorKindOf selectedOpaqueDefaultResult = some .opaqueDefaultSelected := by native_decide
 
 def replacedOpaqueDefaultMatches : Bool :=
@@ -93,8 +143,41 @@ def replacedOpaqueDefaultMatches : Bool :=
 
 example : replacedOpaqueDefaultMatches = true := by native_decide
 
+def replacedOpaqueSpecMatches : Bool :=
+  match replacedOpaqueSpecResult with
+  | .ok (.object .nil) => true
+  | _ => false
+
+example : replacedOpaqueSpecMatches = replacedOpaqueDefaultMatches := by native_decide
+
 example : errorKindOf staleOpaqueReplacementResult = some .defaultDrift := by native_decide
 
 example : errorKindOf malformedOpaqueReplacementResult = some .schemaMismatch := by native_decide
+
+example :
+    [configErrorOf staleOpaqueSpecResult,
+     configErrorOf malformedOpaqueSpecResult,
+     configErrorOf opaqueDecoderFailureSpecResult] =
+    [some {
+       kind := .defaultDrift
+       useId := DefinitionId.of "test.config.opaque-default"
+       key := opaqueClassification.key
+       offendingValue := reprStr [opaqueMetadata]
+       relatedIdentities := []
+     },
+     some {
+       kind := .schemaMismatch
+       useId := DefinitionId.of "test.config.opaque-default"
+       key := opaqueClassification.key
+       offendingValue := reprStr (CanonicalValue.int 1)
+       relatedIdentities := []
+     },
+     some {
+       kind := .interpretationFailure
+       useId := DefinitionId.of "test.config.opaque-default"
+       key := opaqueClassification.key
+       offendingValue := "intentional opaque decoder failure"
+       relatedIdentities := []
+     }] := by native_decide
 
 end Temporal.System.ConfigurationTests
