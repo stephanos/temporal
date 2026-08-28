@@ -351,12 +351,18 @@ invokes the final executable without exposing its Lake target name to callers.
 
 ## Learning path and reference models
 
-- [`Temporal.Feature.Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the ordinary
-  `FiniteMachine` starting point for the scheduled → started → canceled/succeeded Nexus lifecycle
-  and its checked target.
-- [`Temporal.Feature.Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) next demonstrates
-  start, cancellation, and successful completion. Each case exposes its Property, exact one-action
-  Behavior, Query, and deterministic result separately.
+- Start at [`Temporal.Feature.Nexus`](Temporal/Feature/Nexus.lean), the ordinary facade and complete
+  reading map. It intentionally excludes Experimental modules.
+- Read [`Lifecycle.Semantics`](Temporal/Feature/Nexus/Lifecycle/Semantics.lean) first for the
+  scheduled → started → canceled/succeeded states and transitions, then
+  [`Lifecycle.Target`](Temporal/Feature/Nexus/Lifecycle/Target.lean) for their checked target.
+- Continue through the three complete operation walkthroughs in order:
+  [`AsyncStart`](Temporal/Feature/Nexus/Operations/AsyncStart.lean),
+  [`Cancellation`](Temporal/Feature/Nexus/Operations/Cancellation.lean), and
+  [`SuccessfulCompletion`](Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean). Each file
+  keeps its Property, exact one-action Behavior, Query, and deterministic result together.
+- Read [`Temporal.Feature.Nexus.Observation`](Temporal/Feature/Nexus/Observation.lean) after the
+  walkthroughs for the ordinary evidence-to-verdict path.
 - [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
   for the direct expert `TransitionKernel` → Query → Planning flow. Its authority remains
   intentionally independent of its two-result enumerator.
