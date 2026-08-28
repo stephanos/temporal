@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-28T01:36:56.163210Z",
+  "depends_on": [
+    "fn-39-make-the-temporal-nexus-feature-model.3",
+    "fn-39-make-the-temporal-nexus-feature-model.4"
+  ],
+  "id": "fn-39-make-the-temporal-nexus-feature-model.5",
+  "priority": null,
+  "spec": "fn-39-make-the-temporal-nexus-feature-model",
+  "spec_path": ".flow/tasks/fn-39-make-the-temporal-nexus-feature-model.5.md",
+  "status": "todo",
+  "title": "Add the Nexus reading facade and align documentation",
+  "updated_at": "2026-08-28T01:44:19.024499Z"
+}

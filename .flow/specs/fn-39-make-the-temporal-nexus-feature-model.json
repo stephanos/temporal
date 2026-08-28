@@ -1,0 +1,166 @@
+{
+  "branch_name": "fn-39-make-the-temporal-nexus-feature-model",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-28T01:30:34.099386Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-38-consolidate-layered-model-helpers",
+    "fn-41-finitemachine-target-authoring"
+  ],
+  "id": "fn-39-make-the-temporal-nexus-feature-model",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-28T01:45:32.402070Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "e73c83067a69880c4ad94cbb63ffa5ccf6d829597a7dcb00cd180c32e85ff5bf",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ee689b94abde29e902dccb1152353bed",
+            "classification": "introduced",
+            "findingId": "finding-ee689b94abde29e902dccb1152353bed",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e94a8e375018309271898f996eb36066",
+            "classification": "introduced",
+            "findingId": "finding-e94a8e375018309271898f996eb36066",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-92cdb3c8938b4e48f7851544979ffae1",
+            "classification": "introduced",
+            "findingId": "finding-92cdb3c8938b4e48f7851544979ffae1",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e2c0a8c13ca5b6a739325724d98f2e8a158d070d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 188309,
+      "output_sha256": "33768b9fa2d6e0d745bb59b0dd74e18e00333c0b24616f4b67920c2f07e1611a",
+      "reservation_id": "3ea63c09cfce43d09bde3d99d03a6b14",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T01:41:26.007240Z",
+      "tool_calls": 6,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0059da6b69956eb7bf9d614bab208e721f23379fb5917caf2889261ba0306280",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ee689b94abde29e902dccb1152353bed",
+            "classification": "introduced",
+            "findingId": "finding-ee689b94abde29e902dccb1152353bed",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e94a8e375018309271898f996eb36066",
+            "classification": "introduced",
+            "findingId": "finding-e94a8e375018309271898f996eb36066",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-92cdb3c8938b4e48f7851544979ffae1",
+            "classification": "introduced",
+            "findingId": "finding-92cdb3c8938b4e48f7851544979ffae1",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e2c0a8c13ca5b6a739325724d98f2e8a158d070d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 368,
+      "output_sha256": "aedf235ec34e122a2a997e442aa3384650368b397b453ed334cdcd535e631751",
+      "reservation_id": "8287a815904f43579337fb1eff74f5b2",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T01:45:32.399767Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-39-make-the-temporal-nexus-feature-model.md",
+  "status": "open",
+  "title": "Make the Temporal Nexus Feature model easier to browse",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-28T15:18:27.045712Z"
+}

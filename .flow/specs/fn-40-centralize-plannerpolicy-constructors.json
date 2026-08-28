@@ -1,0 +1,149 @@
+{
+  "branch_name": "fn-40-centralize-plannerpolicy-constructors",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-28T15:10:49.040883Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-17-bounded-semantic-exploration-and"
+  ],
+  "id": "fn-40-centralize-plannerpolicy-constructors",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-28T15:21:57.480662Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "cd0522cdac31ca4428ea21eb27ea593a55d49e28f63acaa254fa42e8dbf4375c",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ee907c231abdd5b48cfc95973b332270",
+            "classification": "introduced",
+            "findingId": "finding-ee907c231abdd5b48cfc95973b332270",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-aec10fe3f7d9d29f5f51ed4e6ab94a04",
+            "classification": "introduced",
+            "findingId": "finding-aec10fe3f7d9d29f5f51ed4e6ab94a04",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "775aeba3816d726572f91f0388499b5fc0f0e0b0",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 237131,
+      "output_sha256": "f38bd33b5d0ec4f2c90306b13165f955aada85504d9cf71c443a32a365aef872",
+      "reservation_id": "0cd3faddd69f4023af7077edb5cc5aa0",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T15:20:46.233383Z",
+      "tool_calls": 20,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "054d0ded0ba6a133c965b201989e3e5d80868132480d61692bb891c7d5ef2e46",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ee907c231abdd5b48cfc95973b332270",
+            "classification": "introduced",
+            "findingId": "finding-ee907c231abdd5b48cfc95973b332270",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-aec10fe3f7d9d29f5f51ed4e6ab94a04",
+            "classification": "introduced",
+            "findingId": "finding-aec10fe3f7d9d29f5f51ed4e6ab94a04",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "775aeba3816d726572f91f0388499b5fc0f0e0b0",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 237,
+      "output_sha256": "ab82ea8b1826ef6fd4b2ac2739feb84849394f00fc6b81913233bb93f2c08d3d",
+      "reservation_id": "b188bde309ee44d0baadc4b354a19b5c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T15:21:57.477860Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-40-centralize-plannerpolicy-constructors.md",
+  "status": "open",
+  "title": "Centralize PlannerPolicy constructors and default seed",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-28T15:21:57.481020Z"
+}
