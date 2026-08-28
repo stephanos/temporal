@@ -23,6 +23,7 @@ inductive ModuleClass where
   | shared
   | umpire
   | umpireVeil
+  | temporalShared
   | temporalFeature
   | temporalSystem
   | temporalImplementationLinkTest
@@ -48,6 +49,8 @@ structure Policy where
   closedClassifierNamespaces : Array Lean.Name
   implementationLinkConsumers : Array Lean.Name
   verifyConsumers : Array Lean.Name
+  testSupportNamespaces : Array Lean.Name
+  testConsumerModules : Array Lean.Name
   deriving Repr, BEq
 
 /-- The import-boundary rules enforced by the checker. -/
@@ -55,8 +58,10 @@ inductive Rule where
   | sharedIndependence
   | umpireIndependence
   | targetIsolation
+  | temporalSharedIsolation
   | featureIsolation
   | systemIsolation
+  | testSupportIsolation
   | verificationIsolation
   deriving Repr, BEq
 
@@ -102,6 +107,7 @@ def defaultPolicy : Policy := {
   classifiers := #[
     { modulePrefix := `ModelLint, moduleClass := .lintInfrastructure },
     { modulePrefix := `Shared, moduleClass := .shared },
+    { modulePrefix := `Temporal.Shared, moduleClass := .temporalShared },
     { modulePrefix := `Temporal.Feature, moduleClass := .temporalFeature },
     { modulePrefix := `Temporal.System, moduleClass := .temporalSystem },
     { modulePrefix := `Temporal.ImplementationLinkTests.Nexus,
@@ -125,6 +131,16 @@ def defaultPolicy : Policy := {
     `Temporal.Tool.VerifyVeil,
     `TemporalVeilTests,
     `TemporalVerify
+  ],
+  testSupportNamespaces := #[
+    `Shared.Test,
+    `Temporal.Shared.Test,
+    `Umpire.Shared.Test
+  ],
+  testConsumerModules := #[
+    `Temporal.Lint,
+    `Temporal.Tool.GenerateTestsIOTestsMain,
+    `Umpire.Lint
   ]
 }
 
@@ -132,8 +148,10 @@ private def Rule.label : Rule → String
   | .sharedIndependence => "shared-independence"
   | .umpireIndependence => "umpire-independence"
   | .targetIsolation => "target-isolation"
+  | .temporalSharedIsolation => "temporal-shared-isolation"
   | .featureIsolation => "feature-isolation"
   | .systemIsolation => "system-isolation"
+  | .testSupportIsolation => "test-support-isolation"
   | .verificationIsolation => "verification-isolation"
 
 private def pathText (path : Array Lean.Name) : String :=
@@ -159,12 +177,39 @@ def InventoryIssue.render : InventoryIssue → String
       s!"[model-import-graph/metadata] {source} imports unknown first-party module {imported}"
 
 private def isTemporalClass : ModuleClass → Bool
-  | .temporalFeature | .temporalSystem | .temporalImplementationLinkTest
+  | .temporalShared | .temporalFeature | .temporalSystem | .temporalImplementationLinkTest
   | .temporalVerify | .temporalTool | .temporal => true
   | _ => false
 
 private def isVerifyClass : ModuleClass → Bool
   | .temporalVerify | .umpireVeil => true
+  | _ => false
+
+private def nameHasComponent (name : Lean.Name) (component : String) : Bool :=
+  match name with
+  | .anonymous => false
+  | .str parent value => value == component || nameHasComponent parent component
+  | .num parent _ => nameHasComponent parent component
+
+private def nameEndsWithTests : Lean.Name → Bool
+  | .str _ component => component.endsWith "Tests"
+  | _ => false
+
+private def Policy.isTestSupportModule (policy : Policy) (name : Lean.Name) : Bool :=
+  policy.testSupportNamespaces.any (matchesPrefix · name)
+
+private def Policy.isTestConsumer
+    (policy : Policy) (name : Lean.Name) (moduleClass : ModuleClass) : Bool :=
+  moduleClass == .modelTests || moduleClass == .temporalImplementationLinkTest ||
+    policy.testConsumerModules.contains name || nameHasComponent name "Tests" ||
+    (name != `Temporal.Tool.GenerateTests && nameEndsWithTests name)
+
+private def Policy.isProductionModule
+    (policy : Policy) (name : Lean.Name) (moduleClass : ModuleClass) : Bool :=
+  !policy.isTestSupportModule name && !policy.isTestConsumer name moduleClass
+
+private def isAllowedTemporalSharedDestination : ModuleClass → Bool
+  | .shared | .umpire | .temporalShared => true
   | _ => false
 
 private def isTargetModule (name : Lean.Name) : Bool :=
@@ -195,6 +240,10 @@ private def forbiddenRule?
   else if (sourceClass == .umpire || sourceClass == .umpireVeil) &&
       isTemporalClass destinationClass then
     some .umpireIndependence
+  else if sourceClass == .temporalShared &&
+      (policy.isTestSupportModule destination ||
+        !isAllowedTemporalSharedDestination destinationClass) then
+    some .temporalSharedIsolation
   else if sourceClass == .temporalFeature && destinationClass == .temporalSystem then
     some .featureIsolation
   else if sourceClass == .temporalFeature && isVerifyClass destinationClass &&
@@ -203,6 +252,9 @@ private def forbiddenRule?
   else if sourceClass == .temporalSystem && destinationClass == .temporalFeature &&
       !policy.implementationLinkConsumers.contains source then
     some .systemIsolation
+  else if policy.isProductionModule source sourceClass &&
+      policy.isTestSupportModule destination then
+    some .testSupportIsolation
   else if (sourceClass == .temporalSystem || sourceClass == .temporalTool ||
       sourceClass == .temporalImplementationLinkTest || sourceClass == .temporal ||
       sourceClass == .modelTests || sourceClass == .umpire) &&
