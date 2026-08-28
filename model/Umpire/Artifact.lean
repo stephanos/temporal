@@ -1,4 +1,5 @@
 import Lean.Data.Json
+import Umpire.ExecutionHandoff
 import Umpire.Planning.Types
 
 namespace Umpire
@@ -74,6 +75,7 @@ structure ExperimentSpec where
   artifactChecksum : ArtifactChecksum
   queryBehaviorFingerprint : BehaviorFingerprint
   plan : DrivePlan
+  executionHandoff : Option ExecutionHandoff := none
   properties : List PortableProperty
   observationRequirementDefinitionIds : List DefinitionId
   provenance : ArtifactProvenance
@@ -371,6 +373,18 @@ private def propertyJson (property : PortableProperty) : String :=
     ",\"requirementDefinitionIds\":" ++
       array (canonicalIds property.requirementDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
 
+private def executionHandoffJson (handoff : ExecutionHandoff) : String :=
+  "{\"participantProgramDefinitionIds\":" ++
+      array (handoff.participantProgramDefinitionIds.map (quote ∘ DefinitionId.value)) ++
+    ",\"setupDefinitionIds\":" ++
+      array (handoff.setupDefinitionIds.map (quote ∘ DefinitionId.value)) ++
+    ",\"orderingDefinitionIds\":" ++
+      array (handoff.orderingDefinitionIds.map (quote ∘ DefinitionId.value)) ++
+    ",\"terminationDefinitionIds\":" ++
+      array (handoff.terminationDefinitionIds.map (quote ∘ DefinitionId.value)) ++
+    ",\"cleanupDefinitionIds\":" ++
+      array (handoff.cleanupDefinitionIds.map (quote ∘ DefinitionId.value)) ++ "}"
+
 private def drivePlanContentJson (plan : DrivePlan) : String :=
   "{\"formatVersion\":" ++ quote plan.formatVersion ++
     ",\"queryDefinitionId\":" ++ quote plan.queryDefinitionId.value ++
@@ -420,6 +434,8 @@ private def experimentSpecContentJson (spec : ExperimentSpec) : String :=
   "{\"formatVersion\":" ++ quote spec.formatVersion ++
     ",\"queryBehaviorFingerprint\":" ++ quote spec.queryBehaviorFingerprint.render ++
     ",\"plan\":" ++ canonicalDrivePlanJson spec.plan ++
+    (spec.executionHandoff.map (fun handoff =>
+      ",\"executionHandoff\":" ++ executionHandoffJson handoff) |>.getD "") ++
     ",\"properties\":" ++ array (spec.properties.mergeSort propertyLe |>.map propertyJson) ++
     ",\"observationRequirementDefinitionIds\":" ++
       array (canonicalIds spec.observationRequirementDefinitionIds |>.map
@@ -427,7 +443,10 @@ private def experimentSpecContentJson (spec : ExperimentSpec) : String :=
     ",\"provenance\":" ++ provenanceJson spec.provenance ++ "}"
 
 def ExperimentSpec.expectedArtifactChecksum (spec : ExperimentSpec) : ArtifactChecksum :=
-  experimentSpecChecksumOf (experimentSpecContentJson spec)
+  if spec.formatVersion == "umpire-experiment/v3" then
+    executableExperimentSpecChecksumOf (experimentSpecContentJson spec)
+  else
+    experimentSpecChecksumOf (experimentSpecContentJson spec)
 
 def ExperimentSpec.hasValidArtifactChecksum (spec : ExperimentSpec) : Bool :=
   spec.artifactChecksum == spec.expectedArtifactChecksum
@@ -439,6 +458,54 @@ def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
 
 def canonicalExperimentSpecBytes (spec : ExperimentSpec) : String :=
   canonicalExperimentSpecJson spec ++ "\n"
+
+private def availableOrderingDefinitionIds (spec : ExperimentSpec) : List DefinitionId :=
+  canonicalIds (spec.plan.linearExtension.flatMap fun occurrence =>
+    occurrence.definitionId :: occurrence.authoredDefinitionId.toList)
+
+private def availableTerminationDefinitionIds (spec : ExperimentSpec) : List DefinitionId :=
+  canonicalIds (spec.properties.map PortableProperty.definitionId ++
+    spec.observationRequirementDefinitionIds ++
+    spec.plan.checkpoints.flatMap fun checkpoint =>
+      checkpoint.observations.map ModelValue.definitionId)
+
+/--
+Complete a valid model-selected v2 Artifact with checked, environment-independent Execution
+references. Runtime configuration closes the participant and cleanup references downstream.
+-/
+def ExperimentSpec.withExecutionHandoff
+    (spec : ExperimentSpec)
+    (declaration : ExecutionHandoffDeclaration) :
+    Except ExecutionHandoffError ExperimentSpec := do
+  if spec.formatVersion != "umpire-experiment/v2" ||
+      !spec.plan.hasValidArtifactChecksum || !spec.hasValidArtifactChecksum then
+    throw {
+      kind := .artifactIdentityDrift
+      category := "artifact"
+      definitionId := spec.plan.queryDefinitionId
+      relatedDefinitionIds := [spec.plan.queryDefinitionId]
+    }
+  let handoff ← checkExecutionHandoff
+    (spec.plan.modelPreconditions.map SetupConstraint.id)
+    (availableOrderingDefinitionIds spec)
+    (availableTerminationDefinitionIds spec)
+    declaration
+  let provenance := {
+    spec.provenance with
+    sourceDefinitionIds := canonicalIds
+      (spec.provenance.sourceDefinitionIds ++ handoff.allDefinitionIds)
+  }
+  let executable : ExperimentSpec := {
+    spec with
+    formatVersion := "umpire-experiment/v3"
+    artifactChecksum := executableExperimentSpecChecksumOf ""
+    executionHandoff := some handoff
+    provenance
+  }
+  pure {
+    executable with
+    artifactChecksum := executable.expectedArtifactChecksum
+  }
 
 private def artifactMatchesQuery
     (query : CheckedQuery LawStatement)
@@ -609,6 +676,7 @@ def artifactOfSelection
     artifactChecksum := experimentSpecChecksumOf ""
     queryBehaviorFingerprint := query.behaviorFingerprint
     plan
+    executionHandoff := none
     properties
     observationRequirementDefinitionIds
     provenance
