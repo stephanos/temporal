@@ -1,5 +1,6 @@
 import Umpire.Observation
 import Umpire.Examples.Switch
+import Umpire.Shared.Test
 
 /-! Shared profile, mapping, and target vocabulary for Observation compilation tests. -/
 
@@ -7,21 +8,12 @@ namespace Umpire.ObservationTests
 
 open Umpire
 
-def id (value : String) : DefinitionId := DefinitionId.of value
+def id (value : String) : DefinitionId := Shared.Test.definitionId value
 
-def source : SourceLocation := {
-  path := "Umpire/Observation/Tests/Fixtures.lean"
-  line := 1
-  column := 1
-  provenance := "lean-test"
-}
+def source : SourceLocation := Shared.Test.sourceLocation "Umpire/Observation/Tests/Fixtures.lean"
 
-def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
-  id := id value
-  kind
-  source
-  canonicalBehavior := value ++ "/v1"
-}
+def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata :=
+  Shared.Test.definitionMetadata value kind source (value ++ "/v1")
 
 def profileId : DefinitionId := id "test.evidence.profile"
 def eventKind : DefinitionId := id "test.evidence.kind.event"

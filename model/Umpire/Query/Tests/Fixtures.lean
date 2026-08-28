@@ -1,4 +1,5 @@
 import Umpire.Query
+import Umpire.Shared.Test
 
 /-! Shared semantic model, checked definitions, completeness evidence, and Query helpers. -/
 
@@ -6,14 +7,9 @@ namespace Umpire.QueryTests
 
 open Umpire
 
-def id (value : String) : DefinitionId := DefinitionId.of value
+def id (value : String) : DefinitionId := Shared.Test.definitionId value
 
-def source : SourceLocation := {
-  path := "Umpire/Query/Tests.lean"
-  line := 1
-  column := 1
-  provenance := "lean-test"
-}
+def source : SourceLocation := Shared.Test.sourceLocation "Umpire/Query/Tests.lean"
 
 def phase : DefinitionId := id "query.state.phase"
 def request : DefinitionId := id "query.action.request"
@@ -28,14 +24,11 @@ def extraProviderId : DefinitionId := id "query.provider.extra"
 def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata := {
-  id := definitionId
-  kind
-  version := 1
-  canonicalBehavior
-  source
-  documentation := "query fixture"
-}
+    (canonicalBehavior : String) : DefinitionMetadata :=
+  { Shared.Test.definitionMetadata definitionId.value kind source canonicalBehavior with
+    id := definitionId
+    documentation := "query fixture"
+  }
 
 def value (definitionId : DefinitionId) (payload : String) : ModelValue := {
   definitionId
