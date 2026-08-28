@@ -15,6 +15,10 @@ import Umpire.Observation.Tests
 import Umpire.Observation.Tests.Mutations
 import Umpire.Observation.ImportTests
 import Umpire.ImplementationLink.Tests
+import Umpire.Space.Tests.Compilation
+import Umpire.Space.Tests.Determinism
+import Umpire.Space.Tests.Metadata
+import Umpire.Space.Tests.Validation
 
 namespace UmpireTests
 
