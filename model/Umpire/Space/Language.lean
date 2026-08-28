@@ -860,11 +860,11 @@ def checkExperimentSpace
   if goals.length < limits.minimumCoverageGoals || goals.length > limits.maximumCoverageGoals then
     throw (spaceError .coverageGoalCountOutOfRange declaration.id declaration.source
       (toString goals.length) (goals.map CoverageGoalDeclaration.id))
-  let pointCount ← checkPointCount declaration axes limits
   let ids := allDeclarationIds declaration
   for candidate in ids.mergeSort identityLe do
     requireDefinitionId declaration.id declaration.source candidate
   requireUniqueIds declaration.id declaration.source ids
+  let pointCount ← checkPointCount declaration axes limits
   if declaration.baseQuery != context.baseQuery.id then
     throw (spaceError .baseQueryMismatch declaration.id declaration.source
       (declaration.baseQuery.value ++ " != " ++ context.baseQuery.id.value)
