@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-38-consolidate-layered-model-helpers",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-28T19:12:59.189222Z",
   "created_at": "2026-08-27T21:46:37.868256Z",
   "default_impl": null,
   "default_review": null,
@@ -305,6 +305,36 @@
       "timestamp": "2026-08-28T18:42:27.009826Z",
       "tool_calls": 14,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "45e7b930e632bc9fb535c93df95e82275850d48f5bf8f9d5e745e329e1b83dfe",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "baa535430b76ef0de0bed24d7fff72bfe572e925",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 343369,
+      "output_sha256": "1d9821b8379e83424cee444596fd379eaa997fdd3d118518cce92341789aae09",
+      "reservation_id": "831ace251889453081dbafb8274e5651",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T19:12:59.127182Z",
+      "tool_calls": 13,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -315,11 +345,12 @@
     "impl:fn-38-consolidate-layered-model-helpers.5": 1,
     "impl:fn-38-consolidate-layered-model-helpers.7": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-38-consolidate-layered-model-helpers.1": 0,
     "impl:fn-38-consolidate-layered-model-helpers.2": 0,
     "impl:fn-38-consolidate-layered-model-helpers.3": 0,
@@ -342,5 +373,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T18:42:27.175890Z"
+  "updated_at": "2026-08-28T19:12:59.193181Z"
 }
