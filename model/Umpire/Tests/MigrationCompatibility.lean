@@ -1,4 +1,11 @@
+import Umpire.Behavior.Tests.Fixtures
+import Umpire.Examples.Switch
 import Umpire.Examples.SwitchTests
+import Umpire.Observation.Tests.Fixtures
+import Umpire.Planning.Tests.Fixtures
+import Umpire.Property.Tests.Fixtures
+import Umpire.Query.Tests.Fixtures
+import Umpire.Target.Tests.Fixtures
 
 /-!
 Executable compatibility matrix for the domain-neutral Switch migration.
@@ -11,6 +18,104 @@ namespace Umpire.Tests.MigrationCompatibility
 
 open Umpire
 open Umpire.Examples.Switch
+
+#check (Umpire.Examples.Switch.source : SourceLocation)
+#check (Umpire.Examples.Switch.definitions : List DefinitionMetadata)
+#check (Umpire.Examples.Switch.target : QueryTarget Umpire.Examples.Switch.LawStatement)
+
+example : [
+    Umpire.TargetTests.source "Parameterized/TargetFixture.lean",
+    Umpire.BehaviorTests.source,
+    Umpire.PropertyTests.source,
+    Umpire.QueryTests.source,
+    Umpire.PlanningTests.source,
+    Umpire.ObservationTests.source
+  ] = [
+    { path := "Parameterized/TargetFixture.lean", line := 1, column := 1,
+      provenance := "lean-test" },
+    { path := "Umpire/Behavior/Tests.lean", line := 1, column := 1,
+      provenance := "lean-test" },
+    { path := "Umpire/Property/Tests.lean", line := 1, column := 1,
+      provenance := "lean-test" },
+    { path := "Umpire/Query/Tests.lean", line := 1, column := 1,
+      provenance := "lean-test" },
+    { path := "Umpire/Planning/Tests.lean", line := 1, column := 1,
+      provenance := "lean-test" },
+    { path := "Umpire/Observation/Tests/Fixtures.lean", line := 1, column := 1,
+      provenance := "lean-test" }
+  ] := by
+  native_decide
+
+example : [
+    Umpire.TargetTests.metadata "fixture.action.default" .action,
+    Umpire.TargetTests.metadata "fixture.law.explicit" .law "explicit-contract/v2",
+    Umpire.BehaviorTests.metadata "fixture.behavior.state" .state,
+    Umpire.PropertyTests.metadata "fixture.property.observation" .observation,
+    Umpire.QueryTests.metadata (DefinitionId.of "fixture.query.target") .target
+      "query-target/v1",
+    Umpire.PlanningTests.metadata (DefinitionId.of "fixture.planning.kernel") .kernel
+      "planning-kernel/v1",
+    Umpire.ObservationTests.metadata "fixture.observation.mapping" .observation
+  ] = [
+    { id := DefinitionId.of "fixture.action.default", kind := .action,
+      source := {
+        path := "Umpire/TargetTests.lean"
+        line := 1
+        column := 1
+        provenance := "lean-test"
+      },
+      version := 1, canonicalBehavior := "contract-v1", documentation := "" },
+    { id := DefinitionId.of "fixture.law.explicit", kind := .law,
+      source := {
+        path := "Umpire/TargetTests.lean"
+        line := 1
+        column := 1
+        provenance := "lean-test"
+      },
+      version := 1, canonicalBehavior := "explicit-contract/v2", documentation := "" },
+    { id := DefinitionId.of "fixture.behavior.state", kind := .state,
+      source := {
+        path := "Umpire/Behavior/Tests.lean"
+        line := 1
+        column := 1
+        provenance := "lean-test"
+      },
+      version := 1, canonicalBehavior := "fixture.behavior.state/v1", documentation := "" },
+    { id := DefinitionId.of "fixture.property.observation", kind := .observation,
+      source := {
+        path := "Umpire/Property/Tests.lean"
+        line := 1
+        column := 1
+        provenance := "lean-test"
+      },
+      version := 1, canonicalBehavior := "fixture.property.observation/v1", documentation := "" },
+    { id := DefinitionId.of "fixture.query.target", kind := .target,
+      source := {
+        path := "Umpire/Query/Tests.lean"
+        line := 1
+        column := 1
+        provenance := "lean-test"
+      },
+      version := 1, canonicalBehavior := "query-target/v1", documentation := "query fixture" },
+    { id := DefinitionId.of "fixture.planning.kernel", kind := .kernel,
+      source := {
+        path := "Umpire/Planning/Tests.lean"
+        line := 1
+        column := 1
+        provenance := "lean-test"
+      },
+      version := 1, canonicalBehavior := "planning-kernel/v1",
+      documentation := "planning fixture" },
+    { id := DefinitionId.of "fixture.observation.mapping", kind := .observation,
+      source := {
+        path := "Umpire/Observation/Tests/Fixtures.lean"
+        line := 1
+        column := 1
+        provenance := "lean-test"
+      },
+      version := 1, canonicalBehavior := "fixture.observation.mapping/v1", documentation := "" }
+  ] := by
+  native_decide
 
 /-- The domain-neutral part of the closed migration inventory. -/
 def compatibilityFamilies : List String := ["switch"]
