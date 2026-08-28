@@ -93,6 +93,24 @@ def pointOverflowDeclaration : ExperimentSpaceDeclaration := {
   axes := (List.range 5).map fun index => generatedAxis index 4
 }
 
+def duplicateInvalidAxisId : DefinitionId := id "space.test.axis.duplicate-invalid"
+
+def duplicateInvalidShortAxis : VariationAxisDeclaration := {
+  generatedAxis 90 1 with id := duplicateInvalidAxisId
+}
+
+def duplicateInvalidLongAxis : VariationAxisDeclaration := {
+  generatedAxis 91 17 with id := duplicateInvalidAxisId
+}
+
+def duplicateInvalidAxes : ExperimentSpaceDeclaration := {
+  declaration with axes := [duplicateInvalidShortAxis, duplicateInvalidLongAxis]
+}
+
+def reversedDuplicateInvalidAxes : ExperimentSpaceDeclaration := {
+  duplicateInvalidAxes with axes := duplicateInvalidAxes.axes.reverse
+}
+
 def singletonAxis : VariationAxisDeclaration := {
   stateAxis with choices := [stateBaseline]
 }
@@ -101,8 +119,7 @@ example : [
     checkedError { declaration with axes := [] },
     checkedError { declaration with axes := List.replicate 9 stateAxis },
     checkedError { declaration with axes := [singletonAxis] },
-    checkedError { declaration with
-      axes := [{ stateAxis with choices := List.replicate 17 stateBaseline }] },
+    checkedError { declaration with axes := [generatedAxis 100 17] },
     checkedError pointOverflowDeclaration,
     checkedError { declaration with faults := List.replicate 13 delayFault },
     checkedError { declaration with coverageGoals := [] },
@@ -117,6 +134,11 @@ example : [
     some .coverageGoalCountOutOfRange,
     some .coverageGoalCountOutOfRange
   ] := by
+  native_decide
+
+example : checkedError duplicateInvalidAxes = some .duplicateDefinitionId ∧
+    canonicalErrorOf (checkExperimentSpace context duplicateInvalidAxes) =
+      canonicalErrorOf (checkExperimentSpace context reversedDuplicateInvalidAxes) := by
   native_decide
 
 def caseCollidingAxis : VariationAxisDeclaration := {
