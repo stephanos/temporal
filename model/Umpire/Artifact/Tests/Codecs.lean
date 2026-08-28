@@ -18,9 +18,9 @@ example : canonicalExperimentSpecBytes compiledArtifact =
     include_str "Fixtures/SwitchExperimentSpecV2.json" := by
   native_decide
 
-/-! Persisted canonical bytes remain compact JSON with one terminal LF. -/
+/-! Persisted canonical bytes use stable two-space JSON indentation and one terminal LF. -/
 example : (canonicalExperimentSpecBytes compiledArtifact).startsWith
-    "{\"formatVersion\":\"umpire-experiment/v2\"," := by
+    "{\n  \"formatVersion\": \"umpire-experiment/v2\",\n" := by
   native_decide
 
 /-! Both stored Artifact Checksums remain independently reproducible and byte-identical. -/

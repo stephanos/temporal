@@ -4,6 +4,7 @@ import Umpire.Space.Tests.Determinism
 import Umpire.Space.Tests.Intent
 import Umpire.Space.Tests.Metadata
 import Umpire.Space.Tests.Validation
+import Umpire.Json
 
 namespace Umpire.Examples.SwitchTests
 
@@ -56,7 +57,7 @@ example : (match target.planning with
     exactActionQuery.completeness.map (fun evidence => evidence.actions) := by
   native_decide
 
-example : canonicalQueryJson exactActionQuery ++ "\n" = expectedExactActionQueryJson := by
+example : Json.prettyBytes (canonicalQueryJson exactActionQuery) = expectedExactActionQueryJson := by
   native_decide
 
 example : exactActionBehavior.admits appliedTrace &&
