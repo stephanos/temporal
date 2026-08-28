@@ -5,5 +5,6 @@ import Umpire.Behavior
 import Umpire.Query
 import Umpire.Artifact
 import Umpire.Planning
+import Umpire.Space
 import Umpire.Observation
 import Umpire.ImplementationLink

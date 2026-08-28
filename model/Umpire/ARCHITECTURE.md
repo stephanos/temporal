@@ -1,8 +1,9 @@
 # Umpire public API
 
 Umpire is the reusable, Temporal-independent library for composing finite semantic targets,
-checking portable properties and behaviors, planning bounded queries, and producing portable model
-artifacts. For the cross-library map, see the [model architecture](../ARCHITECTURE.md).
+checking portable properties and behaviors, authoring bounded variation Spaces, planning bounded
+queries, and producing portable model artifacts. For the cross-library map, see the
+[model architecture](../ARCHITECTURE.md).
 
 ## Imports and modules
 
@@ -23,13 +24,16 @@ Focused imports are available when a consumer needs a smaller surface:
 | `Umpire.Query` | Checked combinations of Targets, Properties, Behaviors, Limits, and policies. |
 | `Umpire.Artifact` | Portable drive plans and experiment specifications. |
 | `Umpire.Planning` | Deterministic incremental planning over checked queries. |
+| `Umpire.Space` | Checked finite axes, request-only faults, seek-only coverage goals, metadata, point lowering, and atomic batch compilation. |
 | `Umpire.Observation` | Checked Evidence mappings, Observation Evaluation, Evidence Links, dispositions, Property verdicts, and strict aggregation. |
 | `Umpire.ImplementationLink` | Checked forward correspondence between independently authored semantic Targets. |
 
 `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
-`Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`,
-`Umpire.ImplementationLink.Language`, `Umpire.ImplementationLink.Application`, and
-`Umpire.Planning.Engine` implement their public facades and should not normally be imported directly.
+`Umpire.Query.Language`, `Umpire.Space.Language`, `Umpire.Space.Intent`,
+`Umpire.Space.Metadata`, `Umpire.Space.Compiler`, `Umpire.Observation.Language`,
+`Umpire.Observation.Evaluation`, `Umpire.ImplementationLink.Language`,
+`Umpire.ImplementationLink.Application`, and `Umpire.Planning.Engine` implement their public
+facades and should not normally be imported directly.
 
 ## API lifecycle
 
@@ -41,6 +45,10 @@ PropertyDeclaration ─ checkProperty ─▶ CheckedProperty
 BehaviorDeclaration ─ checkBehavior ─▶ CheckedBehavior
 CheckedTarget + QueryDeclaration ─ checkQuery ─▶ CheckedQuery
 CheckedQuery ─ derive planner kernel ─▶ plan ─▶ PlannerRun ─▶ ExperimentSpec?
+CheckedQuery + ExperimentSpaceDeclaration ─ checkExperimentSpace ─▶ CheckedExperimentSpace
+CheckedExperimentSpace ─ projectCheckedSpaceMetadata ─▶ CheckedSpaceMetadata
+CheckedExperimentSpace + exact assignment ─ lowerSpacePoint ─▶ LoweredSpacePoint
+CheckedExperimentSpace + base Query kernel ─ compileBatch ─▶ List ExperimentSpec
 ImplementationLinkDeclaration + checked source/destination Targets + forward witness
   ─ checkImplementationLink ─▶ CheckedImplementationLink
 CheckedImplementationLink + source setup + EvidenceBackedTrace
@@ -48,8 +56,10 @@ CheckedImplementationLink + source setup + EvidenceBackedTrace
 ```
 
 Target is the checked semantic substrate consumed by the distinct Property, Behavior, and Query
-languages; it is not another scenario language. Checked types freeze canonical metadata and
-Behavior Fingerprints, and Planning accepts checked values rather than raw author input.
+languages; it is not another scenario language. Space composes one checked Query rather than
+introducing another Behavior, Query, Property, planner, or outcome language. Checked types freeze
+canonical metadata and Behavior Fingerprints, and Planning accepts checked values rather than raw
+author input.
 
 ## Core and Target APIs
 
@@ -295,6 +305,49 @@ finite completeness contract. An exhaustive Query rejects a Target that explicit
 Capability. `QueryLimits` keeps Behavior-space Limits separate from the planner's
 candidate-evaluation budget.
 
+## Space API
+
+`Umpire.Space` composes one checked Query into a finite authored variation Space. Its axes choose a
+baseline, bind at most one existing Behavior role to an existing checked value, or select declared
+fault intents. Faults name one required Behavior occurrence and one target Capability; they are
+requested attempts, not outcomes, observations, receipts, or success claims. Coverage goals are
+seek-only metadata and do not change Property meaning or claim runtime achievement.
+
+The principal entry points are:
+
+```lean
+checkExperimentSpace :
+  SpaceCheckContext LawStatement →
+  ExperimentSpaceDeclaration →
+  Except SpaceError (CheckedExperimentSpace LawStatement)
+
+projectCheckedSpaceMetadata :
+  CheckedExperimentSpace LawStatement →
+  Except SpaceMetadataError CheckedSpaceMetadata
+
+lowerSpacePoint :
+  (space : CheckedExperimentSpace LawStatement) →
+  List ModelValue →
+  Except SpaceCompilationError (LoweredSpacePoint space)
+
+compileBatch :
+  (space : CheckedExperimentSpace LawStatement) →
+  IncrementalPlannerKernel space.baseQuery.target →
+  Except SpaceCompilationError (List ExperimentSpec)
+```
+
+Checking validates the fixed finite bounds and canonical identities before any point can lower.
+`lowerSpacePoint` rechecks a derived Behavior and Query, retains a proof that the Query target is
+unchanged, and produces checked Artifact intent without planning. `compileBatch` transports the
+caller-owned base kernel through that proof, compiles every canonical point, and returns either the
+complete ordered batch or one typed error with no partial batch. Target-owned planning supplies all
+outcomes.
+
+`CheckedSpaceMetadata` is the canonical in-memory, source-backed projection that fn-5 later consumes
+for catalog aggregation and list/explain generation. Space does not persist a registry. Later C8
+exploration may consume checked goals and `lowerSpacePoint`; Space itself does not select a subset,
+score coverage, maintain coverage state, execute a runtime, or evaluate conformance.
+
 ## Planning API
 
 `Umpire.Planning` performs deterministic, incremental enumeration of a checked target.
@@ -333,8 +386,8 @@ contains the outcome, optional artifact, and instrumentation.
 
 `Umpire.Artifact` defines portable, environment-independent products of pure model planning.
 
-- `DrivePlan` records bindings, requested actions, model-owned outcomes, resulting states,
-  checkpoints, Limits, selection reason, and provenance.
+- `DrivePlan` records bindings, selected choices and variants, requested faults, requested actions,
+  model-owned outcomes, resulting states, checkpoints, Limits, selection reason, and provenance.
 - `ExperimentSpec` is the portable envelope consumed by later execution, checking, replay, and
   generation work.
 - `artifactOfSelection` constructs an `ExperimentSpec` from a checked query and a selected,
@@ -347,6 +400,7 @@ canonicalCheckedTargetJson
 canonicalPropertyJson
 canonicalBehaviorJson
 canonicalQueryJson
+canonicalExperimentSpaceJson
 canonicalDrivePlanJson
 canonicalExperimentSpecJson
 ```
@@ -378,5 +432,6 @@ Temporal-specific modules.
 - Invalid inputs cross public boundaries as typed `Except` errors.
 - Behavior Fingerprints derive from canonical projections, not source declaration order.
 - Transition outcomes belong to the target model, not to behavior declarations.
+- Space fault intent remains request-only, and coverage goals remain seek-only metadata.
 - Planning is pure and performs no runtime execution, evidence collection, or promotion.
 - Reusable Umpire modules must not depend on Temporal-specific modules.
