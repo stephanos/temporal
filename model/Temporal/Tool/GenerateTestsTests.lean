@@ -11,18 +11,8 @@ private def callerClosureId : String :=
 private def lifecycleMatrixId : String :=
   Temporal.Feature.Nexus.Experimental.VariationSpace.spaceId.value
 
-example : runCli ["list"] = {
-    status := 0
-    stdout := callerClosureId ++ "\n" ++ lifecycleMatrixId ++ "\n"
-    stderr := ""
-  } := by
-  native_decide
-
-example : (runCli ["explain", callerClosureId]).status = 0 ∧
-    (runCli ["explain", callerClosureId]).stdout.contains "\"kind\":\"regression\"" ∧
-    (runCli ["explain", lifecycleMatrixId]).stdout.contains
-      "\"kind\":\"model-selected-batch\"" := by
-  native_decide
+private def lifecycleTestSetId : String :=
+  "temporal.nexus.basic-lifecycle.test-set.core"
 
 def callerClosureGeneration : GeneratorResult :=
   runCli [callerClosureId, "--output", "generated-tests"]
@@ -30,10 +20,22 @@ def callerClosureGeneration : GeneratorResult :=
 def lifecycleMatrixGeneration : GeneratorResult :=
   runCli [lifecycleMatrixId, "--output", "generated-tests"]
 
+def lifecycleTestSetGeneration : GeneratorResult :=
+  runCli [lifecycleTestSetId, "--output", "generated-tests"]
+
 example : callerClosureGeneration.status = 0 ∧
     callerClosureGeneration.batch.map (fun batch => batch.files.length) = some 2 ∧
+    lifecycleTestSetGeneration.status = 0 ∧
+    lifecycleTestSetGeneration.batch.map (fun batch => batch.files.length) = some 4 ∧
     lifecycleMatrixGeneration.status = 0 ∧
     lifecycleMatrixGeneration.batch.map (fun batch => batch.files.length) = some 5 := by
+  native_decide
+
+example : lifecycleTestSetGeneration.batch.map (fun batch =>
+    batch.manifest.contains "\"selectionKind\":\"test-set\"" &&
+      batch.manifest.contains
+        "\"testSelectionDefinitionId\":\"temporal.nexus.basic-lifecycle.test-set.core\"") =
+    some true := by
   native_decide
 
 example : callerClosureGeneration.batch.map (fun batch =>

@@ -413,8 +413,8 @@ Canonical error projections are available as `canonicalDefinitionErrorJson`,
 `canonicalPropertyErrorJson`, `canonicalBehaviorErrorJson`, and `canonicalQueryErrorJson`.
 
 Artifacts do not claim that a runtime action occurred or that execution evidence was collected.
-The model-owned `umpire-gen-tests` tool exposes the one registry for named regressions and
-model-selected batches; Space exposes no competing command.
+The model-owned `umpire-gen-tests` tool accepts named regressions, test sets, and model-selected
+batches without exposing discovery or explanation; Space exposes no competing command.
 
 ## Reference example
 

@@ -1,6 +1,7 @@
 import Lean.Data.Json
 import Temporal.Feature.Nexus.Experimental.CallerClosure
 import Temporal.Feature.Nexus.Experimental.VariationSpace
+import Temporal.Feature.Nexus.Operations
 
 /-! Public generation of complete executable tests from named model-owned selections. -/
 
@@ -12,19 +13,24 @@ private def id (value : String) : DefinitionId := DefinitionId.of value
 
 inductive TestSelectionKind where
   | regression
+  | testSet
   | modelSelectedBatch
   deriving BEq, DecidableEq, Repr
 
 def TestSelectionKind.name : TestSelectionKind → String
   | .regression => "regression"
+  | .testSet => "test-set"
   | .modelSelectedBatch => "model-selected-batch"
+
+structure PlannedTest where
+  spec : ExperimentSpec
+  executionHandoff : ExecutionHandoffDeclaration
 
 structure NamedTestSelection where
   id : DefinitionId
   kind : TestSelectionKind
   description : String
-  plannedSpecs : List ExperimentSpec
-  executionHandoff : ExecutionHandoffDeclaration
+  plannedTests : List PlannedTest
 
 structure GeneratedFile where
   path : String
@@ -71,18 +77,73 @@ private def lifecycleMatrixHandoff : ExecutionHandoffDeclaration := {
   cleanupDefinitionIds := [id "temporal.system.nexus.basic-lifecycle.cleanup"]
 }
 
-def productionRegistry : List NamedTestSelection := [{
+private def lifecycleHandoff
+    (setupDefinitionId orderingDefinitionId terminationDefinitionId : DefinitionId) :
+    ExecutionHandoffDeclaration := {
+  participantProgramDefinitionIds :=
+    [id "temporal.system.nexus.basic-lifecycle.participant-program"]
+  setupDefinitionIds := [setupDefinitionId]
+  orderingDefinitionIds := [orderingDefinitionId]
+  terminationDefinitionIds := [terminationDefinitionId]
+  cleanupDefinitionIds := [id "temporal.system.nexus.basic-lifecycle.cleanup"]
+}
+
+private theorem asyncStartArtifact_isSome :
+    Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact.isSome = true := by
+  native_decide
+
+private theorem cancellationArtifact_isSome :
+    Temporal.Feature.Nexus.Operations.Cancellation.run.artifact.isSome = true := by
+  native_decide
+
+private theorem successfulCompletionArtifact_isSome :
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact.isSome = true := by
+  native_decide
+
+private def lifecycleTestSet : List PlannedTest := [{
+  spec := Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact.get
+    asyncStartArtifact_isSome
+  executionHandoff := lifecycleHandoff
+    Temporal.Feature.Nexus.Operations.AsyncStart.setupConstraintId
+    Temporal.Feature.Nexus.Operations.AsyncStart.occurrenceId
+    Temporal.Feature.Nexus.Operations.AsyncStart.propertyId
+}, {
+  spec := Temporal.Feature.Nexus.Operations.Cancellation.run.artifact.get
+    cancellationArtifact_isSome
+  executionHandoff := lifecycleHandoff
+    Temporal.Feature.Nexus.Operations.Cancellation.setupConstraintId
+    Temporal.Feature.Nexus.Operations.Cancellation.occurrenceId
+    Temporal.Feature.Nexus.Operations.Cancellation.propertyId
+}, {
+  spec := Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact.get
+    successfulCompletionArtifact_isSome
+  executionHandoff := lifecycleHandoff
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.setupConstraintId
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.occurrenceId
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.propertyId
+}]
+
+def productionSelections : List NamedTestSelection := [{
   id := Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQueryId
   kind := .regression
   description := "The deterministic Nexus caller-closure regression."
-  plannedSpecs := [Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact]
-  executionHandoff := callerClosureHandoff
+  plannedTests := [{
+    spec := Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
+    executionHandoff := callerClosureHandoff
+  }]
+}, {
+  id := id "temporal.nexus.basic-lifecycle.test-set.core"
+  kind := .testSet
+  description := "The core Nexus start, cancellation, and successful-completion test set."
+  plannedTests := lifecycleTestSet
 }, {
   id := Temporal.Feature.Nexus.Experimental.VariationSpace.spaceId
   kind := .modelSelectedBatch
   description := "The complete bounded two-by-two Nexus lifecycle fault matrix."
-  plannedSpecs := Temporal.Feature.Nexus.Experimental.VariationSpace.specs
-  executionHandoff := lifecycleMatrixHandoff
+  plannedTests := Temporal.Feature.Nexus.Experimental.VariationSpace.specs.map fun spec => {
+    spec
+    executionHandoff := lifecycleMatrixHandoff
+  }
 }]
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
@@ -97,7 +158,8 @@ private def diagnostic (kind subject context : String) : String :=
 
 private def executableSpecs
     (selection : NamedTestSelection) : Except ExecutionHandoffError (List ExperimentSpec) :=
-  selection.plannedSpecs.mapM fun spec => spec.withExecutionHandoff selection.executionHandoff
+  selection.plannedTests.mapM fun planned =>
+    planned.spec.withExecutionHandoff planned.executionHandoff
 
 private def testPath (index : Nat) : String :=
   "tests/test-" ++ toString (index + 1) ++ ".json"
@@ -141,35 +203,15 @@ private def generationFailure
 }
 
 def runGenerator
-    (registry : List NamedTestSelection)
+    (selections : List NamedTestSelection)
     (args : List String) : GeneratorResult :=
   match args with
-  | ["list"] => {
-      status := 0
-      stdout := String.intercalate "\n" (registry.map fun selection => selection.id.value) ++ "\n"
-      stderr := ""
-    }
-  | ["explain", requested] =>
-      match registry.find? (fun selection => selection.id.value == requested) with
-      | none => {
-          status := 1
-          stdout := ""
-          stderr := diagnostic "unknown-test-selection" requested "test selection registry"
-        }
-      | some selection => {
-          status := 0
-          stdout := "{\"definitionId\":" ++ quote selection.id.value ++
-            ",\"kind\":" ++ quote selection.kind.name ++
-            ",\"description\":" ++ quote selection.description ++
-            ",\"testCount\":" ++ toString selection.plannedSpecs.length ++ "}\n"
-          stderr := ""
-        }
   | [requested, "--output", outputRoot] =>
-      match registry.find? (fun selection => selection.id.value == requested) with
+      match selections.find? (fun selection => selection.id.value == requested) with
       | none => {
           status := 1
           stdout := ""
-          stderr := diagnostic "unknown-test-selection" requested "test selection registry"
+          stderr := diagnostic "unknown-test-selection" requested "named test selection"
         }
       | some selection =>
           match generatedBatch selection outputRoot with
@@ -184,10 +226,10 @@ def runGenerator
       status := 1
       stdout := ""
       stderr := diagnostic "invalid-arguments" "umpire-gen-tests"
-        "expected list, explain <selection>, or <selection> --output <directory>"
+        "expected <selection> --output <directory>"
     }
 
-def runCli (args : List String) : GeneratorResult := runGenerator productionRegistry args
+def runCli (args : List String) : GeneratorResult := runGenerator productionSelections args
 
 def writeBatch (batch : GeneratedBatch) : IO Unit := do
   let root := System.FilePath.mk batch.outputRoot

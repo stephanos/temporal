@@ -301,7 +301,6 @@ one stable inspected regression -> thin _test.go wrapper + readable documentatio
 Repository interfaces:
 
 ```text
-make umpire-gen-tests ARGS='list'
 make umpire-gen-tests ARGS='<selection> --output <directory>'
 make umpire-gen-regression-views
 make umpire-check-regression-views
