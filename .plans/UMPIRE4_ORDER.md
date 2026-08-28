@@ -43,20 +43,27 @@ multi-consumer helper qualifies for those ownership boundaries.
 Preserve every existing public declaration, import path, observable value, and comment. Existing
 Switch and Nexus modules remain the consumer-facing facades and delegate internally. Extend the
 executable import policy so production code cannot reach test-support modules and
-`Temporal.Shared` cannot reach Feature or System modules. Fn-38 is next in the remaining queue.
+`Temporal.Shared` cannot reach Feature or System modules. Fn-38 is next in the unstarted queue.
 
-### 2. fn-32 — Add the first Umpire Implementation Link and Temporal Feature/System correspondence
+### 2. fn-39 — Make the Temporal Nexus Feature model easier to browse
 
-Relate one Nexus System Model Trace to its independently authored Feature meaning. Keep Observation,
-Implementation Link, and Property failures distinct. This is the model seam that lets local and
-black-box Execution share the same Feature Property without leaking implementation Evidence into it.
+Preserve the existing public Nexus namespaces, import paths, source provenance, semantic identities,
+canonical artifacts, and comments while making the ordinary Feature model easier for new
+contributors to navigate. Add one documented Nexus facade; split Lifecycle internally into
+Semantics and Target; split Operations internally into AsyncStart, Cancellation,
+SuccessfulCompletion, and Planning; and mirror that structure in descriptive named tests.
+
+Keep Observation ownership and paths unchanged, leave AutoClose and CallerClosure physically
+intact, and add only a navigation map to CallerClosure. Fn-39 follows fn-38's source-compatible
+helper consolidation and is consumed by fn-19's Nexus facade work.
 
 ### 3. fn-16 — Authored variation spaces and deterministic batch compilation
 
-Reduce the general space design to one small Nexus matrix, such as two binary axes, plus the single
-duplicate-delivery Fault Request. Compile the selected points deterministically through the existing
-target-owned planner. Defer generalized coverage vocabularies, arbitrary spaces, and broad catalog
-integration.
+The checked Space language and checked Artifact intent seam are complete; canonical checked-space
+metadata is in progress. Finish point lowering and deterministic batch compilation for one small
+Nexus matrix, such as two binary axes, plus the single duplicate-delivery Fault Request, through the
+existing target-owned planner. Defer generalized coverage vocabularies, arbitrary spaces, and broad
+catalog integration.
 
 ### 4. fn-18 — Versioned Umpire Artifact boundary
 
@@ -219,11 +226,12 @@ Complete this gate after P2 and before starting P3:
 
 ## Preferred consolidation
 
-The existing Flow IDs may be retained for history, but the minimal roadmap has five conceptual
+The existing Flow IDs may be retained for history, but the remaining roadmap has five conceptual
 delivery specs:
 
 1. **Consolidate layered model helpers:** fn-38, preserving the current public API.
-2. **Complete Nexus Feature/System interpretation:** fn-32.
+2. **Make the ordinary Nexus Feature model browsable:** fn-39, preserving that public API while
+   separating its internal semantic, target, walkthrough, planning, and test concerns.
 3. **Compile portable experiments:** fn-16 and the minimal fn-18 boundary.
 4. **Execute and judge two Nexus examples portably:** fn-19, fn-20, fn-21, and the minimal fn-27/fn-28
    portability checks.

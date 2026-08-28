@@ -898,7 +898,7 @@ func ValidDigest(value string) bool {
 }
 
 func encodeJSONObject(value any) ([]byte, error) {
-	line, err := encodeJSONLine(value)
+	line, err := encodeJSONLineWithIndent(value, "")
 	if err != nil {
 		return nil, err
 	}
@@ -906,9 +906,16 @@ func encodeJSONObject(value any) ([]byte, error) {
 }
 
 func encodeJSONLine(value any) ([]byte, error) {
+	return encodeJSONLineWithIndent(value, "  ")
+}
+
+func encodeJSONLineWithIndent(value any, indent string) ([]byte, error) {
 	var encoded bytes.Buffer
 	encoder := json.NewEncoder(&encoded)
 	encoder.SetEscapeHTML(false)
+	if indent != "" {
+		encoder.SetIndent("", indent)
+	}
 	if err := encoder.Encode(value); err != nil {
 		return nil, err
 	}
