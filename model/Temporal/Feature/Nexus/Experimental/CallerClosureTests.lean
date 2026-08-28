@@ -7,6 +7,108 @@ open _root_.Umpire
 open Temporal.Feature.Nexus.Experimental.CallerClosure
 open Temporal.Feature.Nexus.Experimental.AutoClose
 
+#check (Temporal.Feature.Nexus.Experimental.CallerClosure.source : SourceLocation)
+#check (Temporal.Feature.Nexus.Experimental.CallerClosure.definitions : List DefinitionMetadata)
+#check (Temporal.Feature.Nexus.Experimental.CallerClosure.target : QueryTarget LawStatement)
+#check (Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosureProperty : CheckedProperty)
+#check (Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionBehavior : CheckedBehavior)
+#check (Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQuery : CheckedQuery LawStatement)
+#check (Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact : ExperimentSpec)
+
+example : source = {
+    path := "Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
+    line := 1
+    column := 1
+    provenance := "lean-model"
+  } := by
+  native_decide
+
+example : definitions = [
+    { id := targetId, kind := .target, source, version := 1,
+      canonicalBehavior := "workflow-nexus-caller-closure-target/v1", documentation := "" },
+    { id := kernelId, kind := .kernel, source, version := 1,
+      canonicalBehavior := "workflow-nexus-caller-closure-kernel/v1", documentation := "" },
+    { id := workflowCapabilityId, kind := .capability, source, version := 1,
+      canonicalBehavior := "workflow-lifecycle/v1", documentation := "" },
+    { id := cancellationCapabilityId, kind := .capability, source, version := 1,
+      canonicalBehavior := "nexus-cancellation/v1", documentation := "" },
+    { id := ownershipCapabilityId, kind := .capability, source, version := 1,
+      canonicalBehavior := "workflow-nexus-ownership/v1", documentation := "" },
+    { id := ownershipClaimCapabilityId, kind := .capability, source, version := 1,
+      canonicalBehavior := "workflow-nexus-ownership-claim-internal/v1", documentation := "" },
+    { id := workflowProviderId, kind := .provider, source, version := 1,
+      canonicalBehavior := "workflow-lifecycle-provider/v1", documentation := "" },
+    { id := cancellationProviderId, kind := .provider, source, version := 1,
+      canonicalBehavior := "nexus-cancellation-provider/v1", documentation := "" },
+    { id := workflowOwnershipClaimProviderId, kind := .provider, source, version := 1,
+      canonicalBehavior := "workflow-ownership-claim-provider/v1", documentation := "" },
+    { id := cancellationOwnershipClaimProviderId, kind := .provider, source, version := 1,
+      canonicalBehavior := "nexus-ownership-claim-provider/v1", documentation := "" },
+    { id := ownershipProviderId, kind := .provider, source, version := 1,
+      canonicalBehavior := "workflow-nexus-ownership-provider/v1", documentation := "" },
+    { id := ownershipConnectorId, kind := .connector, source, version := 1,
+      canonicalBehavior := "workflow-nexus-ownership-connector/v1", documentation := "" },
+    { id := lifecycleLawId, kind := .law, source, version := 1,
+      canonicalBehavior := "workflow-caller-closure-law/v1", documentation := "" },
+    { id := cancellationLawId, kind := .law, source, version := 1,
+      canonicalBehavior := "nexus-cancellation-honored-law/v1", documentation := "" },
+    { id := ownershipLawId, kind := .law, source, version := 1,
+      canonicalBehavior := "workflow-nexus-ownership-law/v1", documentation := "" },
+    { id := configStateId, kind := .state, source, version := 1,
+      canonicalBehavior := "workflow-config-state/v1", documentation := "" },
+    { id := forceCloseActionId, kind := .action, source, version := 1,
+      canonicalBehavior := "workflow-force-close-action/v1", documentation := "" },
+    { id := upgradedOutcomeId, kind := .outcome, source, version := 1,
+      canonicalBehavior := "nexus-upgraded-cancellation-outcome/v1", documentation := "" },
+    { id := deliveredObservationId, kind := .observation, source, version := 1,
+      canonicalBehavior := "nexus-cancellation-delivery-observation/v1", documentation := "" },
+    { id := cancellationCountObservationId, kind := .observation, source, version := 1,
+      canonicalBehavior := "nexus-cancellation-count-observation/v1", documentation := "" },
+    { id := ownershipClaimId, kind := .observation, source, version := 1,
+      canonicalBehavior := "workflow-nexus-operation-ownership-claim/v1", documentation := "" },
+    { id := ownershipRelationId, kind := .observation, source, version := 1,
+      canonicalBehavior := "workflow-nexus-operation-ownership/v1", documentation := "" }
+  ] := by
+  native_decide
+
+example :
+    (callerClosureProperty.id, callerClosureProperty.source, callerClosureProperty.version,
+      callerClosureProperty.documentation) =
+    (callerClosurePropertyId, source, 1,
+      "A force-closed caller retains one owned, deliverable Nexus cancellation.") := by
+  native_decide
+
+example : [
+    (exploratoryBehavior.id, exploratoryBehavior.source, exploratoryBehavior.version,
+      exploratoryBehavior.documentation),
+    (exactActionBehavior.id, exactActionBehavior.source, exactActionBehavior.version,
+      exactActionBehavior.documentation),
+    (exactTraceBehavior.id, exactTraceBehavior.source, exactTraceBehavior.version,
+      exactTraceBehavior.documentation)
+  ] = [
+    (exploratoryBehaviorId, source, 1, "Explore the bounded caller-closure model space."),
+    (exactActionBehaviorId, source, 1,
+      "Select exactly the caller force-close action while leaving outcomes to the model."),
+    (exactTraceBehaviorId, source, 1, "Replay the complete model-owned caller-closure trace.")
+  ] := by
+  native_decide
+
+example : [
+    (verifyQuery.id, verifyQuery.source, verifyQuery.version, verifyQuery.documentation),
+    (exploratoryQuery.id, exploratoryQuery.source, exploratoryQuery.version,
+      exploratoryQuery.documentation),
+    (exactActionQuery.id, exactActionQuery.source, exactActionQuery.version,
+      exactActionQuery.documentation),
+    (exactTraceQuery.id, exactTraceQuery.source, exactTraceQuery.version,
+      exactTraceQuery.documentation)
+  ] = [
+    (verifyQueryId, source, 1, ""),
+    (exploratoryQueryId, source, 1, ""),
+    (exactActionQueryId, source, 1, ""),
+    (exactTraceQueryId, source, 1, "")
+  ] := by
+  native_decide
+
 /-- The experimental Nexus target-author inventory at the migration boundary. -/
 def compatibilityTargetAuthors : List String := ["nexus-experimental-caller-closure"]
 
