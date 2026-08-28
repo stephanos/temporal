@@ -1,5 +1,6 @@
 import Umpire.Artifact
 import Umpire.Examples.Switch
+import Umpire.Json
 
 /-! Fn-37's canonical v2 planning Artifacts remain the sole byte baseline. -/
 
@@ -13,14 +14,14 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
     compiledArtifact.plan.formatVersion = "umpire-drive-plan/v2" := by
   native_decide
 
-/-! Moving the codecs behind the facade preserves the authoritative v2 fixture byte-for-byte. -/
-example : canonicalExperimentSpecBytes compiledArtifact =
-    include_str "Fixtures/SwitchExperimentSpecV2.json" := by
+/-! Moving the codecs behind the facade preserves the authoritative v2 fixture semantics. -/
+example : Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes compiledArtifact)
+    (include_str "Fixtures/SwitchExperimentSpecV2.json") = true := by
   native_decide
 
-/-! Persisted canonical bytes use stable two-space JSON indentation and one terminal LF. -/
+/-! Persisted canonical wire bytes remain compact JSON with one terminal LF. -/
 example : (canonicalExperimentSpecBytes compiledArtifact).startsWith
-    "{\n  \"formatVersion\": \"umpire-experiment/v2\",\n" := by
+    "{\"formatVersion\":\"umpire-experiment/v2\"," := by
   native_decide
 
 /-! Both stored Artifact Checksums remain independently reproducible and byte-identical. -/

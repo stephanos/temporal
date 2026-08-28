@@ -1,6 +1,5 @@
 import Lean.Data.Json
 import Umpire.Artifact.Types
-import Umpire.Json
 
 namespace Umpire
 
@@ -147,7 +146,7 @@ private def sealedDrivePlanJson (plan : DrivePlan) : String :=
     ",\"artifactChecksum\":" ++ quote plan.artifactChecksum.render ++ "}"
 
 def canonicalDrivePlanJson (plan : DrivePlan) : String :=
-  Json.pretty (sealedDrivePlanJson plan)
+  sealedDrivePlanJson plan
 
 def canonicalDrivePlanBytes (plan : DrivePlan) : String :=
   canonicalDrivePlanJson plan ++ "\n"
@@ -174,7 +173,7 @@ private def sealedExperimentSpecJson (spec : ExperimentSpec) : String :=
     ",\"artifactChecksum\":" ++ quote spec.artifactChecksum.render ++ "}"
 
 def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
-  Json.pretty (sealedExperimentSpecJson spec)
+  sealedExperimentSpecJson spec
 
 def canonicalExperimentSpecBytes (spec : ExperimentSpec) : String :=
   canonicalExperimentSpecJson spec ++ "\n"

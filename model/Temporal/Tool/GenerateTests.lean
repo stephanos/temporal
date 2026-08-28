@@ -107,12 +107,21 @@ private def diagnostic (kind subject context : String) : String :=
 
 private inductive GenerationError where
   | missingPlanningArtifact (index : Nat)
+  | invalidPlanningArtifact (index : Nat) (category : String)
 
 private def executableSpecs
     (selection : NamedTestSelection) : Except GenerationError (List ExperimentSpec) :=
   selection.plannedTests.zipIdx.mapM fun (planned, index) => do
     let some spec := planned.spec
       | throw (.missingPlanningArtifact index)
+    if spec.formatVersion != "umpire-experiment/v2" then
+      throw (.invalidPlanningArtifact index "experiment-format")
+    if spec.plan.formatVersion != "umpire-drive-plan/v2" then
+      throw (.invalidPlanningArtifact index "drive-plan-format")
+    if !spec.plan.hasValidArtifactChecksum then
+      throw (.invalidPlanningArtifact index "drive-plan-checksum")
+    if !spec.hasValidArtifactChecksum then
+      throw (.invalidPlanningArtifact index "experiment-checksum")
     pure spec
 
 private def testPath (index : Nat) : String :=
@@ -157,10 +166,17 @@ private def generationFailure
       stderr := diagnostic "missing-planning-artifact" selection.id.value
         ("planned test " ++ toString (index + 1))
     }
+  | .invalidPlanningArtifact index category => {
+      status := 1
+      stdout := ""
+      stderr := diagnostic "invalid-planning-artifact" selection.id.value
+        ("planned test " ++ toString (index + 1) ++ ":" ++ category)
+    }
 
 /--
 Resolve exactly one named selection and produce its canonical manifest and artifacts without I/O.
-Unknown selections, invalid arguments, or missing planning artifacts return status one and no batch.
+Unknown selections, invalid arguments, missing planning artifacts, or invalid v2 planning artifacts
+return status one and no batch.
 -/
 def runGenerator
     (selections : List NamedTestSelection)

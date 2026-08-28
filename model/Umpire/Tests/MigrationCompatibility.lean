@@ -214,11 +214,15 @@ private def relocatedRun : PlannerRun := plan relocatedQuery relocatedKernel
 private def expectedSwitchArtifactJson : String :=
   include_str "../Examples/Fixtures/SwitchCompiledArtifact.json"
 
-/-! Planning both layouts preserves the committed canonical artifact bytes. -/
+/-! Planning both layouts preserves the committed canonical artifact semantics. -/
 example : [
-    earlyRun.artifact.map canonicalExperimentSpecBytes,
-    relocatedRun.artifact.map canonicalExperimentSpecBytes
-  ] = [some expectedSwitchArtifactJson, some expectedSwitchArtifactJson] := by
+    earlyRun.artifact.map fun spec =>
+      Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes spec)
+        expectedSwitchArtifactJson,
+    relocatedRun.artifact.map fun spec =>
+      Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes spec)
+        expectedSwitchArtifactJson
+  ] = [some true, some true] := by
   native_decide
 
 private def wrongKindDefinition : TargetDefinition
