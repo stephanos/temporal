@@ -42,7 +42,7 @@ def faultReferenceIsExact : Bool :=
 example : metadata.space.baseQuery.id = Umpire.Examples.Switch.exactActionQuery.id ∧
     metadata.space.baseBehavior.id = Umpire.Examples.Switch.exactActionQuery.behavior.id ∧
     metadata.space.target.id = Umpire.Examples.Switch.target.id ∧
-    metadata.space.baseSemanticDigest = checked.behaviorFingerprint ∧
+    metadata.space.baseBehaviorFingerprint = checked.behaviorFingerprint ∧
     choiceReferenceIsExact = true ∧ faultReferenceIsExact = true := by
   native_decide
 
@@ -88,7 +88,8 @@ def movedSourceMetadataResult : Except SpaceMetadataError CheckedSpaceMetadata :
   }) |>.bind projectCheckedSpaceMetadata
 
 example : movedSourceMetadataResult.toOption.any fun moved =>
-    moved.space.source != metadata.space.source && moved.semanticDigest == metadata.semanticDigest := by
+    moved.space.source != metadata.space.source &&
+      moved.behaviorFingerprint == metadata.behaviorFingerprint := by
   native_decide
 
 def projection : SpaceMetadataProjection := canonicalSpaceMetadataProjection checked
@@ -117,13 +118,13 @@ def staleAxisProjection : SpaceMetadataProjection := {
 def staleBaseProjection : SpaceMetadataProjection := {
   projection with space := {
     projection.space with baseQuery := {
-      projection.space.baseQuery with semanticDigest := behaviorFingerprintOf "stale-base-query"
+      projection.space.baseQuery with behaviorFingerprint := behaviorFingerprintOf "stale-base-query"
     }
   }
 }
 
 def staleDigestProjection : SpaceMetadataProjection := {
-  projection with semanticDigest := behaviorFingerprintOf "stale-metadata"
+  projection with behaviorFingerprint := behaviorFingerprintOf "stale-metadata"
 }
 
 example : [
@@ -137,7 +138,7 @@ example : [
     some .extraRow,
     some .staleRow,
     some .baseDigestMismatch,
-    some .semanticDigestMismatch
+    some .behaviorFingerprintMismatch
   ] := by
   native_decide
 
