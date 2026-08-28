@@ -38,9 +38,11 @@ Move the ordinary Feature Lifecycle target onto the proven adapter (R2, R4, R7).
 - [ ] `cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests` passes.
 
 ## Done summary
-TBD
+Migrated the ordinary Feature Nexus Lifecycle to a single family-owned `FiniteMachine` descriptor while preserving the existing authority, kernel, planning, target, transition, metadata, provenance, and comment surface. Added adapter/fingerprint compatibility pins; focused Operations golden fixtures, Implementation Link consumers, and all parent gates remain green without fixture regeneration.
 
+baseline: green (`cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine Umpire.TargetTests Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests`, `make umpire-check-regression`, and `make lint-model` passed pre-edit)
+stage: impl-review - ran [2026-08-28T19:50Z..2026-08-28T19:53Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a66f279bbe78e94c7d08b85792eb7b12ab2cc03b
+- Tests: cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests, cd model && mise exec -- lake build Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus, cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine Umpire.TargetTests Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests, make umpire-check-regression, make lint-model, rg -n '\b(sorry|admit)\b' model/Temporal/Feature/Nexus/Lifecycle.lean model/Temporal/Feature/Nexus/LifecycleTests.lean, comment and generated-fixture diffs unchanged against a144708b684fd8049cd5ea5556710b0a8b4523b2
 - PRs:
