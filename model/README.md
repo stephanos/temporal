@@ -93,44 +93,50 @@ adapters without assembling provider or connector collections, completeness reco
 ordering, or planner kernels. Space authors start from the resulting checked Query rather than
 redeclaring any target, Property, Behavior, or planner semantics.
 
-Learn these forms in increasing order of domain and composition complexity:
+Import [`Temporal.Feature.Nexus`](Temporal/Feature/Nexus.lean) as the single ordinary Nexus entry
+point, then follow this simple-first reading order:
 
-1. [`Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the ordinary Temporal starting
-   point. It owns the scheduled, started, canceled, and succeeded states; the start, cancel, and
-   succeed events; and the three corresponding valid transitions in one small `FiniteMachine`
-   before following the normal checked Target path.
-2. [`Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) adds one-action walkthroughs for
-   starting, canceling, and successfully completing an operation. Each walkthrough exposes its
-   authored and checked Property, exact-action Behavior, checked Query, and deterministic planner
-   result over the shared lifecycle target.
-3. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) demonstrates direct expert
-   `TransitionKernel` authoring for authority specified independently of its two-result enumerator,
-   then follows the same checked Target → Query → Planning → Artifact path.
-4. [`Nexus.Observation`](Temporal/Feature/Nexus/Observation.lean) is the offline evidence boundary
+1. [`Nexus.Lifecycle.Semantics`](Temporal/Feature/Nexus/Lifecycle/Semantics.lean) owns the scheduled,
+   started, canceled, and succeeded states; the start, cancel, and succeed events; and the three
+   corresponding valid transitions.
+2. [`Nexus.Operations.AsyncStart`](Temporal/Feature/Nexus/Operations/AsyncStart.lean) follows one
+   complete Property → Behavior → Query → deterministic Planning walkthrough for starting an
+   operation.
+3. [`Nexus.Operations.Cancellation`](Temporal/Feature/Nexus/Operations/Cancellation.lean) follows
+   the same complete walkthrough for canceling a started operation.
+4. [`Nexus.Operations.SuccessfulCompletion`](Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean)
+   follows the same complete walkthrough for successfully completing a started operation.
+5. [`Nexus.Observation`](Temporal/Feature/Nexus/Observation.lean) is the offline evidence boundary
    for the ordinary lifecycle. It owns the sole synthetic BasicLifecycle profile, its checked
    mapping, and the composition from a complete typed evidence bundle through Observation Evaluation,
    independent Property evaluation, and strict Query aggregation.
-5. [`Temporal.System.Nexus.Core`](Temporal/System/Nexus/Core.lean) independently describes the
+6. [`Temporal.System.Nexus.Core`](Temporal/System/Nexus/Core.lean) independently describes the
    minimum pure mechanism states and transitions for dispatch, cancellation recording, and
    completion recording.
-6. [`Temporal.System.Nexus.ImplementationLink`](Temporal/System/Nexus/ImplementationLink.lean)
+7. [`Temporal.System.Nexus.ImplementationLink`](Temporal/System/Nexus/ImplementationLink.lean)
    is the sole production leaf that imports both independently checked Nexus Targets and proves the
    bounded forward correspondence from System mechanism meaning to the unchanged Feature lifecycle.
-7. [`Temporal.ImplementationLinkTests.Nexus`](Temporal/ImplementationLinkTests/Nexus.lean) composes
+8. [`Temporal.ImplementationLinkTests.Nexus`](Temporal/ImplementationLinkTests/Nexus.lean) composes
    accepted synthetic System traces through that checked link and keeps Observation, Implementation
    Link, and Property mutations at their responsible boundaries.
-8. [`Nexus.Experimental.VariationSpace`](Temporal/Feature/Nexus/Experimental/VariationSpace.lean)
+9. [`Nexus.Experimental.VariationSpace`](Temporal/Feature/Nexus/Experimental/VariationSpace.lean)
    is the opt-in two-by-two proof for finite Space authoring and atomic batch compilation over the
    ordinary Lifecycle and Operations model.
-9. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
+10. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
    [`Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
    are explicit opt-in material for the detailed AutoClose proofs and inspectable Workflow–Nexus
    caller-closure regression. They are not part of the ordinary Feature learning surface.
 
+The stable [`Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) and
+[`Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) facades expose those ordinary modules.
+Their Target and Planning children are implementation reading for contributors who need the checked
+Umpire machinery, not extra steps in the newcomer path. For a separate example of direct expert
+`TransitionKernel` authoring, see [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean).
+
 `Temporal/Feature/` owns product-visible behavior, `Temporal/System/` owns configuration and other
 mechanisms, and `Temporal/Tool/Inspect.lean` owns the inspector registry. The ordinary
-`Temporal.Feature` facade exports `Nexus.Lifecycle`, `Nexus.Operations`, and `Nexus.Observation` but
-no Experimental module. Those core walkthroughs compile directly and deliberately are not
+`Temporal.Feature` facade consumes `Temporal.Feature.Nexus`, which exports Lifecycle, Operations,
+and Observation but no Experimental module. Those core walkthroughs compile directly and deliberately are not
 registered with the inspector; the inspector explicitly opts into the experimental caller-closure
 regression. VariationSpace is likewise explicit opt-in proof material and is not exported from the
 ordinary Feature facade. The resulting `DrivePlan` and `ExperimentSpec` values are pure model
@@ -138,9 +144,9 @@ artifacts: they describe selected requests, model-owned outcomes, and semantic o
 do not start a Temporal server or execute Nexus operations.
 
 `FiniteMachine` is the reusable Umpire Target authoring API; it does not prescribe how a Temporal
-family is split across files. Lifecycle deliberately remains one concise module here. A later
-browsing-oriented Nexus facade split can move implementation declarations behind the same public
-namespace and imports without changing this authoring boundary or downstream checked values.
+family is split across files. The Lifecycle and Operations facades keep the stable namespaces and
+source provenance while focused children separate semantics, Target construction, planning, and
+the three complete operation walkthroughs.
 
 ## Authored variation Spaces
 

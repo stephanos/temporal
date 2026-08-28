@@ -2,6 +2,15 @@ import Temporal.Feature.Nexus.Experimental.AutoClose
 import Temporal.Shared
 import Umpire.Planning
 
+/-!
+# Experimental caller closure
+
+This advanced module remains one file. Its sections proceed from ownership laws and model values,
+through the checked Target and Properties, to Behaviors, Queries, deterministic planner runs, and
+the selected Artifact. Start with `Temporal.Feature.Nexus` for the ordinary lifecycle and operation
+walkthroughs; use this module only when following the caller-closure composition.
+-/
+
 namespace Temporal.Feature.Nexus.Experimental.CallerClosure
 
 open _root_.Umpire

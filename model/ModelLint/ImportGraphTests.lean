@@ -126,6 +126,39 @@ private def testAllowedOrdinaryImports : IO Unit := do
   ]
   requireEqual "allowed ordinary imports" (check defaultPolicy modules) #[]
 
+private def testOrdinaryNexusFacadeIsolation : IO Unit := do
+  requireViolation "ordinary Nexus facade to Experimental direct"
+    #[
+      moduleRecord `Temporal.Feature.Nexus #[
+        `Temporal.Feature.Nexus.Experimental.AutoClose
+      ],
+      moduleRecord `Temporal.Feature.Nexus.Experimental.AutoClose
+    ]
+    .nexusExperimentalIsolation
+    #[`Temporal.Feature.Nexus, `Temporal.Feature.Nexus.Experimental.AutoClose]
+  requireIncludedViolation "ordinary Nexus facade to Experimental transitive"
+    #[
+      moduleRecord `Temporal.Feature.Nexus #[`Temporal.Feature.Nexus.Operations],
+      moduleRecord `Temporal.Feature.Nexus.Operations #[
+        `Temporal.Feature.Nexus.Experimental.CallerClosure
+      ],
+      moduleRecord `Temporal.Feature.Nexus.Experimental.CallerClosure
+    ]
+    .nexusExperimentalIsolation
+    #[
+      `Temporal.Feature.Nexus,
+      `Temporal.Feature.Nexus.Operations,
+      `Temporal.Feature.Nexus.Experimental.CallerClosure
+    ]
+  let explicitExperimentalImports := #[
+    moduleRecord `Temporal.Feature.Nexus.Experimental.CallerClosure #[
+      `Temporal.Feature.Nexus.Experimental.AutoClose
+    ],
+    moduleRecord `Temporal.Feature.Nexus.Experimental.AutoClose
+  ]
+  requireEqual "explicit Experimental entry points remain usable"
+    (check defaultPolicy explicitExperimentalImports) #[]
+
 private def testTemporalSharedIsolation : IO Unit := do
   requireEqual "Temporal.Shared has a distinct class"
     (defaultPolicy.classify? `Temporal.Shared.Construction)
@@ -369,6 +402,7 @@ private def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
   testAllowedOrdinaryImports
+  testOrdinaryNexusFacadeIsolation
   testTemporalSharedIsolation
   testTestSupportIsolation
   testTargetIsolation
