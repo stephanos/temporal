@@ -37,6 +37,7 @@ Adopt the established `Umpire.Shared.Test` seam in the Query, Planning, and Obse
 Routed the Query, Planning, and Observation fixture constructors through `Umpire.Shared.Test` while preserving every existing declaration name, source path, canonical behavior, concern-specific documentation/default, comment, and observable fixture value. Focused and aggregate builds, model lint, and the regression gate pass.
 
 stage: impl-review - ran (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 1bd59b4b3406712e5fb9ea78ade6571d36fe36ab
 - Tests: cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Planning.Tests Umpire.Observation.Tests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, make lint-model, make umpire-check-regression
