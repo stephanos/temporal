@@ -23,6 +23,9 @@ import Umpire
 #check Umpire.QueryDeclaration
 #check Umpire.IncrementalPlannerKernel
 #check Umpire.ExperimentSpec
+#check Umpire.ExecutionHandoffDeclaration
+#check Umpire.ExecutionHandoff
+#check Umpire.ExperimentSpec.withExecutionHandoff
 #check Umpire.ExperimentSpaceDeclaration
 #check Umpire.CheckedExperimentSpace
 #check Umpire.checkExperimentSpace
