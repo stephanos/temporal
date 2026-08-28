@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-39-make-the-temporal-nexus-feature-model",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-28T23:17:36.307667Z",
   "created_at": "2026-08-28T01:30:34.099386Z",
   "default_impl": null,
   "default_review": null,
@@ -299,6 +299,36 @@
       "timestamp": "2026-08-28T23:05:37.208785Z",
       "tool_calls": 16,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "bb3de502e39c76d0e0e479a4810d6208f3b3a3faf1d419937a58a6750fd1002f",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "914fffcc08ed2437d0c9623173be986836b264e2",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 374601,
+      "output_sha256": "c5cba51628e3c632060bd93525e062ec08f44ba0b8e4d6725fb2e34814e83cb0",
+      "reservation_id": "14975e906b0b4dafa945e598e998ed05",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T23:17:36.300359Z",
+      "tool_calls": 22,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -308,11 +338,12 @@
     "impl:fn-39-make-the-temporal-nexus-feature-model.4": 1,
     "impl:fn-39-make-the-temporal-nexus-feature-model.5": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-39-make-the-temporal-nexus-feature-model.1": 0,
     "impl:fn-39-make-the-temporal-nexus-feature-model.2": 0,
     "impl:fn-39-make-the-temporal-nexus-feature-model.3": 0,
@@ -334,5 +365,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T23:05:37.223129Z"
+  "updated_at": "2026-08-28T23:17:36.309618Z"
 }
