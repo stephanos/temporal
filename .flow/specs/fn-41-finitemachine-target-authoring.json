@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-41-finitemachine-target-authoring",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-28T21:12:08.520437Z",
   "created_at": "2026-08-28T15:17:46.771845Z",
   "default_impl": null,
   "default_review": null,
@@ -248,6 +248,36 @@
       "timestamp": "2026-08-28T21:05:41.682743Z",
       "tool_calls": 19,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e7fe39f430ce8493bd7ad8fb8bc05475da6e2d0d76b37f79907c869b612f86b8",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a5aca60714b0d563e09377b98d8cd052bee05102",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 339259,
+      "output_sha256": "3df10af6ece58fbb6e4282ee2c15dc3f451d5605eef495af526038a08ffbafad",
+      "reservation_id": "a322b5ec770c4707bb068e9d3c9f5343",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T21:12:08.510601Z",
+      "tool_calls": 18,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -257,11 +287,12 @@
     "impl:fn-41-finitemachine-target-authoring.4": 1,
     "impl:fn-41-finitemachine-target-authoring.6": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-41-finitemachine-target-authoring.1": 0,
     "impl:fn-41-finitemachine-target-authoring.2": 0,
     "impl:fn-41-finitemachine-target-authoring.3": 0,
@@ -283,5 +314,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T21:05:41.691146Z"
+  "updated_at": "2026-08-28T21:12:08.522359Z"
 }
