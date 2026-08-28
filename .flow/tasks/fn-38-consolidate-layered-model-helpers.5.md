@@ -37,6 +37,7 @@ Extend the executable import policy so the new production and test-support seams
 Classified `Temporal.Shared*` explicitly and added fail-closed direct/transitive policies that keep it on lower Shared/Umpire layers while preventing production reachability to `Shared.Test`, `Umpire.Shared.Test`, and `Temporal.Shared.Test`. Synthetic legal-consumer coverage, the live source inventory/import graph, aggregate builds, and regression gates all pass without changing existing traversal, ordering, comments, or wire fixtures.
 
 stage: impl-review - ran (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 4c8abf02b27f8620d549ef4b5b959711d17f3621
 - Tests: baseline: green via handoff (green verified at 254da06df by fn-38-consolidate-layered-model-helpers.4); aggregate build, make lint-model, and regression independently revalidated before edits, git diff --check, cd model && mise exec -- lake build ModelLint.ImportGraphTests, cd model && mise exec -- lake exe modelLintTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, make lint-model, make umpire-check-regression
