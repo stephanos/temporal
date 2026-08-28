@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Experimental.AutoClose
+import Temporal.Shared
 import Umpire.Planning
 
 namespace Temporal.Feature.Nexus.Experimental.CallerClosure
@@ -6,14 +7,10 @@ namespace Temporal.Feature.Nexus.Experimental.CallerClosure
 open _root_.Umpire
 open Temporal.Feature.Nexus.Experimental.AutoClose
 
-private def id (value : String) : DefinitionId := DefinitionId.of value
+private def id (value : String) : DefinitionId := Temporal.Shared.definitionId value
 
-def source : SourceLocation := {
-  path := "Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
-  line := 1
-  column := 1
-  provenance := "lean-model"
-}
+def source : SourceLocation :=
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
 
 def targetId : DefinitionId := id "workflow-nexus.target.caller-closure"
 def kernelId : DefinitionId := id "workflow-nexus.kernel.caller-closure"
@@ -127,12 +124,8 @@ private def witness
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata := {
-  id := definitionId
-  kind
-  source
-  canonicalBehavior
-}
+    (canonicalBehavior : String) : DefinitionMetadata :=
+  Temporal.Shared.definitionMetadata definitionId kind source canonicalBehavior
 
 private def opStateRepr : OpState → String
   | .unspecified => "NexusAutoClose.OpState.unspecified"

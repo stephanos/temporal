@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Lifecycle
+import Temporal.Shared
 
 /-! Checked Nexus operation walkthroughs for starting, canceling, and successfully completing. -/
 
@@ -7,14 +8,10 @@ namespace Temporal.Feature.Nexus.Operations
 open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 
-private def id (value : String) : DefinitionId := DefinitionId.of value
+private def id (value : String) : DefinitionId := Temporal.Shared.definitionId value
 
-def source : SourceLocation := {
-  path := "Temporal/Feature/Nexus/Operations.lean"
-  line := 1
-  column := 1
-  provenance := "lean-model"
-}
+def source : SourceLocation :=
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Operations.lean"
 
 def operationRole : ResourceRole := { id := operationRoleId, valueKind := .state }
 

@@ -1,3 +1,4 @@
+import Temporal.Shared
 import Umpire.Planning
 
 /-! The focused Nexus operation lifecycle and its checked Umpire planning target. -/
@@ -6,14 +7,10 @@ namespace Temporal.Feature.Nexus.Lifecycle
 
 open Umpire
 
-private def id (value : String) : DefinitionId := DefinitionId.of value
+private def id (value : String) : DefinitionId := Temporal.Shared.definitionId value
 
-def source : SourceLocation := {
-  path := "Temporal/Feature/Nexus/Lifecycle.lean"
-  line := 1
-  column := 1
-  provenance := "lean-model"
-}
+def source : SourceLocation :=
+  Temporal.Shared.sourceLocation "Temporal/Feature/Nexus/Lifecycle.lean"
 
 def targetId : DefinitionId := id "temporal.nexus.basic-lifecycle.target"
 def kernelId : DefinitionId := id "temporal.nexus.basic-lifecycle.kernel"
@@ -69,12 +66,8 @@ theorem lifecycleLawProof : LawStatement lifecycleLaw := by
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata := {
-  id := definitionId
-  kind
-  source
-  canonicalBehavior
-}
+    (canonicalBehavior : String) : DefinitionMetadata :=
+  Temporal.Shared.definitionMetadata definitionId kind source canonicalBehavior
 
 def scheduledState : ModelValue := { definitionId := operationStateId, value := "scheduled" }
 def startedState : ModelValue := { definitionId := operationStateId, value := "started" }
