@@ -1,5 +1,6 @@
 import Lean.Data.Json
 import Umpire.Artifact.Types
+import Umpire.Json
 
 namespace Umpire
 
@@ -135,7 +136,7 @@ private def drivePlanContentJson (plan : DrivePlan) : String :=
     ",\"provenance\":" ++ provenanceJson plan.provenance ++ "}"
 
 def DrivePlan.expectedArtifactChecksum (plan : DrivePlan) : ArtifactChecksum :=
-  drivePlanChecksumOf (drivePlanContentJson plan)
+  drivePlanChecksumOf (Json.prettyBytes (drivePlanContentJson plan))
 
 def DrivePlan.hasValidArtifactChecksum (plan : DrivePlan) : Bool :=
   plan.artifactChecksum == plan.expectedArtifactChecksum
@@ -146,7 +147,7 @@ private def sealedDrivePlanJson (plan : DrivePlan) : String :=
     ",\"artifactChecksum\":" ++ quote plan.artifactChecksum.render ++ "}"
 
 def canonicalDrivePlanJson (plan : DrivePlan) : String :=
-  sealedDrivePlanJson plan
+  Json.pretty (sealedDrivePlanJson plan)
 
 def canonicalDrivePlanBytes (plan : DrivePlan) : String :=
   canonicalDrivePlanJson plan ++ "\n"
@@ -162,7 +163,7 @@ private def experimentSpecContentJson (spec : ExperimentSpec) : String :=
     ",\"provenance\":" ++ provenanceJson spec.provenance ++ "}"
 
 def ExperimentSpec.expectedArtifactChecksum (spec : ExperimentSpec) : ArtifactChecksum :=
-  experimentSpecChecksumOf (experimentSpecContentJson spec)
+  experimentSpecChecksumOf (Json.prettyBytes (experimentSpecContentJson spec))
 
 def ExperimentSpec.hasValidArtifactChecksum (spec : ExperimentSpec) : Bool :=
   spec.artifactChecksum == spec.expectedArtifactChecksum
@@ -173,7 +174,7 @@ private def sealedExperimentSpecJson (spec : ExperimentSpec) : String :=
     ",\"artifactChecksum\":" ++ quote spec.artifactChecksum.render ++ "}"
 
 def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
-  sealedExperimentSpecJson spec
+  Json.pretty (sealedExperimentSpecJson spec)
 
 def canonicalExperimentSpecBytes (spec : ExperimentSpec) : String :=
   canonicalExperimentSpecJson spec ++ "\n"

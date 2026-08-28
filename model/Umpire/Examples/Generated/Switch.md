@@ -7,7 +7,7 @@
 
 - Format: `umpire-experiment/v2`
 - Canonical fixture: `model/Umpire/Examples/testdata/switch-experiment-spec.json`
-- Artifact checksum: `sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984`
+- Artifact checksum: `sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179`
 
 ### Lean sources
 

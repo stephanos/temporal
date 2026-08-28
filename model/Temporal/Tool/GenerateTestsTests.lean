@@ -40,11 +40,11 @@ example : lifecycleTestSetGeneration.batch.map (fun batch =>
 
 example : callerClosureGeneration.batch.map (fun batch =>
       batch.files.all fun file => file.path == "manifest.json" ||
-        (file.contents.contains "\"formatVersion\":\"umpire-experiment/v2\"" &&
+        (file.contents.contains "\"formatVersion\": \"umpire-experiment/v2\"" &&
           !file.contents.contains "\"executionHandoff\":")) = some true ∧
     lifecycleMatrixGeneration.batch.map (fun batch =>
       batch.files.drop 1 |>.all fun file =>
-        file.contents.contains "\"formatVersion\":\"umpire-experiment/v2\"" &&
+        file.contents.contains "\"formatVersion\": \"umpire-experiment/v2\"" &&
           !file.contents.contains "\"executionHandoff\":" &&
           !file.contents.contains "\"participantProgramDefinitionIds\":") = some true := by
   native_decide

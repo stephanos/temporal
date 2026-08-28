@@ -7,7 +7,7 @@
 
 - Format: `umpire-experiment/v2`
 - Canonical fixture: `model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json`
-- Artifact checksum: `sha256:93384029860b27c57db00b4e0e2beec7cc76dee543c99e143bbed23ddab5ede8`
+- Artifact checksum: `sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8`
 
 ### Lean sources
 
