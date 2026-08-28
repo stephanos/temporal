@@ -78,10 +78,16 @@ Model scenarios use four separate but composable forms:
 - A `Space` composes one checked Query with finite choices, request-only faults, and seek-only
   coverage goals: which canonical points may be lowered or compiled as one atomic batch.
 
-Their shared substrate is a checked Target. A family maintainer records explicit states, actions,
-outcomes, transitions, capabilities, laws, and optional finite planning in a `TargetDefinition`,
-adds each provider or connector through the sealed `TargetComposition` builder, and calls
+Their shared substrate is a checked Target. For the ordinary complete finite case, a family
+maintainer records ordered setups, states, actions, outcomes, observations, encoders, initial
+states, transitions, and the residual coverage/executability evidence once in a `FiniteMachine`.
+The adapter derives membership authority, the complete behavior domain, and the exact dependent
+finite-planning input. The maintainer places those values in a `TargetDefinition`, adds each
+provider or connector through the sealed `TargetComposition` builder, and calls
 `AuthoredTarget.make` once. `checkTarget` returns a checked value or a source-located diagnostic.
+Targets whose authoritative propositions are intentionally independent of their enumerators use
+direct `TransitionKernel` construction as the expert route. Both routes converge before checking;
+neither changes the checked Target consumed downstream.
 Ordinary Property, Behavior, and Query authors consume that value through their `ofTarget`
 adapters without assembling provider or connector collections, completeness records, finite
 ordering, or planner kernels. Space authors start from the resulting checked Query rather than
@@ -89,15 +95,17 @@ redeclaring any target, Property, Behavior, or planner semantics.
 
 Learn these forms in increasing order of domain and composition complexity:
 
-1. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
-   for the authored Target → checked Target → Query → Planning → Artifact path.
-2. [`Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the ordinary Temporal starting
+1. [`Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the ordinary Temporal starting
    point. It owns the scheduled, started, canceled, and succeeded states; the start, cancel, and
-   succeed events; and the three corresponding valid transitions in one small checked target.
-3. [`Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) adds one-action walkthroughs for
+   succeed events; and the three corresponding valid transitions in one small `FiniteMachine`
+   before following the normal checked Target path.
+2. [`Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) adds one-action walkthroughs for
    starting, canceling, and successfully completing an operation. Each walkthrough exposes its
    authored and checked Property, exact-action Behavior, checked Query, and deterministic planner
    result over the shared lifecycle target.
+3. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) demonstrates direct expert
+   `TransitionKernel` authoring for authority specified independently of its two-result enumerator,
+   then follows the same checked Target → Query → Planning → Artifact path.
 4. [`Nexus.Observation`](Temporal/Feature/Nexus/Observation.lean) is the offline evidence boundary
    for the ordinary lifecycle. It owns the sole synthetic BasicLifecycle profile, its checked
    mapping, and the composition from a complete typed evidence bundle through Observation Evaluation,
@@ -128,6 +136,11 @@ regression. VariationSpace is likewise explicit opt-in proof material and is not
 ordinary Feature facade. The resulting `DrivePlan` and `ExperimentSpec` values are pure model
 artifacts: they describe selected requests, model-owned outcomes, and semantic observations. They
 do not start a Temporal server or execute Nexus operations.
+
+`FiniteMachine` is the reusable Umpire Target authoring API; it does not prescribe how a Temporal
+family is split across files. Lifecycle deliberately remains one concise module here. A later
+browsing-oriented Nexus facade split can move implementation declarations behind the same public
+namespace and imports without changing this authoring boundary or downstream checked values.
 
 ## Authored variation Spaces
 
