@@ -354,8 +354,7 @@ invokes the final executable without exposing its Lake target name to callers.
 - Start at [`Temporal.Feature.Nexus`](Temporal/Feature/Nexus.lean), the ordinary facade and complete
   reading map. It intentionally excludes Experimental modules.
 - Read [`Lifecycle.Semantics`](Temporal/Feature/Nexus/Lifecycle/Semantics.lean) first for the
-  scheduled → started → canceled/succeeded states and transitions, then
-  [`Lifecycle.Target`](Temporal/Feature/Nexus/Lifecycle/Target.lean) for their checked target.
+  scheduled → started → canceled/succeeded states and transitions.
 - Continue through the three complete operation walkthroughs in order:
   [`AsyncStart`](Temporal/Feature/Nexus/Operations/AsyncStart.lean),
   [`Cancellation`](Temporal/Feature/Nexus/Operations/Cancellation.lean), and
@@ -363,15 +362,17 @@ invokes the final executable without exposing its Lake target name to callers.
   keeps its Property, exact one-action Behavior, Query, and deterministic result together.
 - Read [`Temporal.Feature.Nexus.Observation`](Temporal/Feature/Nexus/Observation.lean) after the
   walkthroughs for the ordinary evidence-to-verdict path.
-- [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
-  for the direct expert `TransitionKernel` → Query → Planning flow. Its authority remains
-  intentionally independent of its two-result enumerator.
 - [`Temporal.System.Nexus.Core`](Temporal/System/Nexus/Core.lean) independently describes the pure
   dispatch, cancellation-recording, and completion-recording mechanisms.
 - [`Temporal.System.Nexus.ImplementationLink`](Temporal/System/Nexus/ImplementationLink.lean) then
   checks the forward correspondence from that System meaning to the unchanged Feature lifecycle;
   [`Temporal.ImplementationLinkTests.Nexus`](Temporal/ImplementationLinkTests/Nexus.lean) shows the
   separate Observation, Implementation Link, and Property outcomes.
+- Contributors who need the checked Umpire machinery can then read
+  [`Lifecycle.Target`](Temporal/Feature/Nexus/Lifecycle/Target.lean) and
+  [`Operations.Planning`](Temporal/Feature/Nexus/Operations/Planning.lean); they are not extra steps
+  in the newcomer path. [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the separate
+  domain-neutral reference for direct expert `TransitionKernel` → Query → Planning authoring.
 - [`Temporal.Feature.Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean)
   and [`Temporal.Feature.Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
   are explicit opt-in references for detailed AutoClose proofs and the inspectable Workflow–Nexus
