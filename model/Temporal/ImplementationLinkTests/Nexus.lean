@@ -21,6 +21,55 @@ example : checked.sourceTarget.id = Temporal.System.Nexus.targetId ∧
     checked.declaration.relationMappings = [] := by
   native_decide
 
+theorem checked_link_retains_migrated_target_identity_and_fingerprints :
+    checked.sourceTarget.id = Temporal.System.Nexus.target.id ∧
+    checked.sourceTarget.source = Temporal.System.Nexus.target.source ∧
+    checked.sourceTarget.behaviorFingerprint =
+      Temporal.System.Nexus.target.behaviorFingerprint ∧
+    checked.sourceTarget.behaviorFingerprint.render =
+      "sha256:54d0b7ed28698c0db28e7c9de00f3c0c0998db889a50de917d100173b37cf374" ∧
+    checked.destinationTarget.id = Temporal.Feature.Nexus.Lifecycle.target.id ∧
+    checked.destinationTarget.source = Temporal.Feature.Nexus.Lifecycle.target.source ∧
+    checked.destinationTarget.behaviorFingerprint =
+      Temporal.Feature.Nexus.Lifecycle.target.behaviorFingerprint ∧
+    checked.destinationTarget.behaviorFingerprint.render =
+      "sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93" := by
+  native_decide
+
+theorem migrated_targets_keep_their_named_authority_seams :
+    Temporal.System.Nexus.target.kernel.authoritativeInitial
+      Temporal.System.Nexus.queuedSetup Temporal.System.Nexus.queuedState ∧
+    Temporal.System.Nexus.target.kernel.authoritativeStep
+      Temporal.System.Nexus.queuedState Temporal.System.Nexus.dispatchAction
+      Temporal.System.Nexus.dispatchedResult ∧
+    Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeInitial
+      Temporal.Feature.Nexus.Lifecycle.scheduledSetup
+      Temporal.Feature.Nexus.Lifecycle.scheduledState ∧
+    Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeStep
+      Temporal.Feature.Nexus.Lifecycle.scheduledState
+      Temporal.Feature.Nexus.Lifecycle.startAction
+      Temporal.Feature.Nexus.Lifecycle.startedResult ∧
+    Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeStep
+      Temporal.Feature.Nexus.Lifecycle.startedState
+      Temporal.Feature.Nexus.Lifecycle.cancelAction
+      Temporal.Feature.Nexus.Lifecycle.canceledResult ∧
+    Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeStep
+      Temporal.Feature.Nexus.Lifecycle.startedState
+      Temporal.Feature.Nexus.Lifecycle.reportSuccessAction
+      Temporal.Feature.Nexus.Lifecycle.succeededResult := by
+  exact ⟨Temporal.System.Nexus.target_queued_initial_authoritative,
+    Temporal.System.Nexus.target_queued_dispatch_authoritative,
+    (by
+      change Temporal.Feature.Nexus.Lifecycle.authoritativeInitial
+        Temporal.Feature.Nexus.Lifecycle.scheduledSetup
+        Temporal.Feature.Nexus.Lifecycle.scheduledState
+      apply Temporal.Feature.Nexus.Lifecycle.initialStates_sound
+      simp [Temporal.Feature.Nexus.Lifecycle.initialStates,
+        Temporal.Feature.Nexus.Lifecycle.initialState?]),
+    Temporal.Feature.Nexus.Lifecycle.target_scheduled_start_authoritative,
+    Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative,
+    Temporal.Feature.Nexus.Lifecycle.target_started_reportSuccess_authoritative⟩
+
 example : Temporal.Feature.Nexus.Lifecycle.target.kernel.authoritativeInitial
     Temporal.Feature.Nexus.Lifecycle.scheduledSetup
     Temporal.Feature.Nexus.Lifecycle.scheduledState := by
