@@ -40,9 +40,11 @@ Create the focused public Target-layer adapter and its contract tests (R1, R2, R
 - [ ] `cd model && mise exec -- lake build Umpire.Target.ImportTests Umpire.Target.Tests.FiniteMachine Umpire.TargetTests` passes.
 
 ## Done summary
-TBD
+Added the public Umpire Target `FiniteMachine` adapter, deriving complete membership-based kernels and exact dependent planning inputs from one proof-carrying finite descriptor. Added import and contract coverage for successful and empty machines, ordered nondeterminism, compile-time closure/executability obligations, collision diagnostics, and unchanged expert Target APIs.
 
+baseline: red (`cd model && mise exec -- lake build ...` failed pre-edit because the task-owned `Umpire.Target.Tests.FiniteMachine` module did not yet exist); pre-edit `make umpire-check-regression` and `make lint-model` were green.
+stage: impl-review - ran [2026-08-28T19:30Z..2026-08-28T19:37Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: da7c593e9e29b82d8051ca5f4d496c25af476e55, a329435dfe75498a533a62b31174b4537bc94dcd
+- Tests: cd model && mise exec -- lake build Umpire.Target.ImportTests Umpire.Target.Tests.FiniteMachine Umpire.TargetTests, cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine Umpire.TargetTests Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests, make umpire-check-regression, make lint-model, rg -n '(sorry|admit)' model/Umpire/Target/FiniteMachine.lean model/Umpire/Target/Tests/FiniteMachine.lean
 - PRs:
