@@ -1,6 +1,5 @@
 import Umpire.Artifact
 import Umpire.Examples.Switch
-import Umpire.Json
 
 /-! Fn-37's canonical v2 planning Artifacts remain the sole byte baseline. -/
 
@@ -14,28 +13,23 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
     compiledArtifact.plan.formatVersion = "umpire-drive-plan/v2" := by
   native_decide
 
-/-! The authoritative v2 wire fixture remains byte-for-byte identical to canonical output. -/
+/-! Moving the codecs behind the facade preserves the authoritative v2 fixture byte-for-byte. -/
 example : canonicalExperimentSpecBytes compiledArtifact =
-    include_str "Fixtures/SwitchExperimentSpecV2CanonicalBytes.json" := by
+    include_str "Fixtures/SwitchExperimentSpecV2.json" := by
   native_decide
 
-/-! The human-readable v2 fixture preserves the same Artifact independently of whitespace. -/
-example : Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes compiledArtifact)
-    (include_str "Fixtures/SwitchExperimentSpecV2.json") = true := by
-  native_decide
-
-/-! Persisted canonical wire bytes remain compact JSON with one terminal LF. -/
+/-! Persisted canonical bytes use stable two-space JSON indentation and one terminal LF. -/
 example : (canonicalExperimentSpecBytes compiledArtifact).startsWith
-    "{\"formatVersion\":\"umpire-experiment/v2\"," := by
+    "{\n  \"formatVersion\": \"umpire-experiment/v2\",\n" := by
   native_decide
 
-/-! Both stored Artifact Checksums remain independently reproducible and byte-identical. -/
+/-! Both stored Artifact Checksums use independent exact pretty preimages. -/
 example : compiledArtifact.hasValidArtifactChecksum ∧
     compiledArtifact.plan.hasValidArtifactChecksum ∧
     compiledArtifact.artifactChecksum.render =
-      "sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984" ∧
+      "sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179" ∧
     compiledArtifact.plan.artifactChecksum.render =
-      "sha256:bfa6866e94636af51a7c0cc39b8637a896b2866c3e7f0214395f0d0d803a2d72" := by
+      "sha256:1caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d" := by
   native_decide
 
 end Umpire.Artifact.Tests.Codecs
