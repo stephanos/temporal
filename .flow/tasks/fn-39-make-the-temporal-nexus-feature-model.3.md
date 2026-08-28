@@ -37,9 +37,10 @@ Reorganize Lifecycle tests along the semantic/target seam and give every current
 - [ ] No existing assertion or comment is lost.
 
 ## Done summary
-TBD
+Mirrored Lifecycle coverage into focused SemanticsTests and TargetTests modules: all 16 anonymous assertions now have descriptive names while the stable aggregate, public fixtures, command checks, propositions, proofs, and comments remain compatible. The exact task build, regression, and model lint pass; the spec-level Temporal.Feature.NexusTests target remains intentionally deferred to fn39.5, and the protected inherited config symlink stat prevented only optional gate-receipt creation.
 
+stage: impl-review - ran [2026-08-28T22:17:19Z..2026-08-28T22:19:49Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b4ceb7eff791e26c1203241b5159a22d55421ffa
+- Tests: baseline: green (cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests TemporalModelTests), baseline: green (make umpire-check-regression), baseline: green (make lint-model), cd model && mise exec -- lake build Temporal.Feature.Nexus.Lifecycle.SemanticsTests Temporal.Feature.Nexus.Lifecycle.TargetTests Temporal.Feature.Nexus.LifecycleTests TemporalModelTests, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests TemporalModelTests, make umpire-check-regression, make lint-model, git diff --check, NOT_RUN: spec-level Temporal.Feature.NexusTests target is intentionally introduced by fn39.5; fn39.3 used its exact task acceptance build, NO_RECEIPT: unittest gate receipt was not warrantable because protected inherited config/development.yaml symlink stat kept the worktree dirty
 - PRs:
