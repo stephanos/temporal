@@ -170,6 +170,13 @@ what to run, and Run Evaluation checks the collected Evidence.
   remain the only public scenario and question languages. `Umpire.CheckedTarget` is their shared
   semantic-model substrate, not another language; wrappers MUST NOT introduce another way to define
   behavior.
+- **AUT-08 — Finite Target convenience.** Complete finite Targets whose enumerators define authority
+  SHOULD use the proof-carrying `Umpire.FiniteMachine` adapter to derive membership relations,
+  completeness plumbing, and exact finite planning. Authors MUST still state the ordered semantic
+  domains, encoders, enumerators, closure evidence, and executable-action evidence. Independently
+  specified authority MAY use direct `Umpire.TransitionKernel` construction as an expert route.
+  Both routes MUST converge at the existing `AuthoredTarget` and `checkTarget` boundary;
+  `FiniteMachine` MUST NOT become another Behavior, Property, Query, Scenario, or macro language.
 
 ## Planning, Limits, and Artifacts
 

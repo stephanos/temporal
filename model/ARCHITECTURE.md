@@ -122,6 +122,10 @@ Umpire.Examples.Switch ───────────────────
                                                  temporal-model-inspect
 ```
 
+`Umpire.Target.FiniteMachine` is an implementation module inside the existing Target node, not a
+new layer in this graph. It depends only on the Target surface below Query, Planning, Artifact,
+Temporal, runtime, and optional verification modules. It is not a `Shared` helper.
+
 The internal helper edges are one-way from the owning dependency to its consumers:
 
 ```text
@@ -159,9 +163,13 @@ The shared `Temporal.System.Configuration` facade also does not import its
 
 Public Umpire APIs follow an authored → checked → planned → artifact lifecycle:
 
-1. A semantic-model maintainer defines declarations, capabilities, laws, a transition kernel, and
-   optional finite planning in a `TargetDefinition`, adds explicit providers/connectors through a
-   sealed `TargetComposition`, and creates one `AuthoredTarget` with `AuthoredTarget.make`.
+1. A semantic-model maintainer defines declarations, capabilities, and laws. For the ordinary
+   complete finite case, one proof-carrying `FiniteMachine` supplies the ordered domains,
+   enumerators, encoders, coverage evidence, derived transition kernel, and exact finite planning.
+   A maintainer whose authoritative propositions are intentionally independent of enumeration
+   instead constructs a `TransitionKernel` directly. Either route feeds one `TargetDefinition`,
+   explicit providers/connectors through a sealed `TargetComposition`, and one `AuthoredTarget`
+   created with `AuthoredTarget.make`.
 2. Call `checkTarget` for a source-located diagnostic or `checkedTarget` for a declaration that
    compiles as valid, obtaining one canonical `CheckedTarget`.
 3. Call `checkProperty` and `checkBehavior` with contexts derived from the checked target to
@@ -179,8 +187,10 @@ Implementation Link diagnostic.
 
 Property, Behavior, and Query are the scenario and question languages; Target is their common
 checked substrate. Ordinary authors consume it without constructing raw providers or connectors,
-finite completeness or ordering records, or planner kernels. `composeTarget` remains the lower-level
-typed expert seam. See the [Umpire public API](Umpire/ARCHITECTURE.md) for exact signatures.
+finite completeness or ordering records, or planner kernels. `FiniteMachine` is typed convenience
+for a family maintainer authoring that substrate, not another language; direct `TransitionKernel`
+and `composeTarget` construction remain lower-level expert seams. See the
+[Umpire public API](Umpire/ARCHITECTURE.md) for exact signatures.
 
 ## Generated structural APIs
 
@@ -281,6 +291,8 @@ three stages but cannot collapse one layer's failure into another's status.
   owns the corresponding internal test-fixture construction and remains reachable only from tests.
 - `Umpire` owns reusable semantic declarations, authoring languages, checking, planning, portable
   Artifacts, offline Observation Evaluation and verdicts, and checked Implementation Links.
+- `Umpire.Target.FiniteMachine` owns ordinary complete finite-Target assembly within the Target
+  boundary; it is outside `Shared`, Temporal families, runtime, and optional verification.
 - `Temporal.Shared` owns internal Temporal-specific construction over lower Shared/Umpire layers;
   the existing `Temporal.Feature` modules remain the authoritative consumer-facing facades.
 - `Temporal.Feature` owns product meaning, target compositions, and the sole synthetic Nexus
@@ -332,13 +344,15 @@ invokes the final executable without exposing its Lake target name to callers.
 
 ## Learning path and reference models
 
-- [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
-  for the typed Target → Query → Planning flow.
-- [`Temporal.Feature.Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the next stop for
-  the ordinary scheduled → started → canceled/succeeded Nexus lifecycle and its checked target.
+- [`Temporal.Feature.Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) is the ordinary
+  `FiniteMachine` starting point for the scheduled → started → canceled/succeeded Nexus lifecycle
+  and its checked target.
 - [`Temporal.Feature.Nexus.Operations`](Temporal/Feature/Nexus/Operations.lean) next demonstrates
   start, cancellation, and successful completion. Each case exposes its Property, exact one-action
   Behavior, Query, and deterministic result separately.
+- [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean) is the smallest domain-neutral reference
+  for the direct expert `TransitionKernel` → Query → Planning flow. Its authority remains
+  intentionally independent of its two-result enumerator.
 - [`Temporal.System.Nexus.Core`](Temporal/System/Nexus/Core.lean) independently describes the pure
   dispatch, cancellation-recording, and completion-recording mechanisms.
 - [`Temporal.System.Nexus.ImplementationLink`](Temporal/System/Nexus/ImplementationLink.lean) then

@@ -196,23 +196,30 @@ catalog.
 | Module | Interface | Status and direction |
 | --- | --- | --- |
 | `Umpire.Core` | Stable identities, kinds, metadata, sources, typed Limits, Model Values, and trace vocabulary. | Present but over-broad. Reduce it to stable shared vocabulary. |
-| `Umpire.Target` | Finite kernels, capabilities, laws, providers, connectors, target checking, and canonical target identity. | Extract from `Core` and deepen before adding more authoring languages. |
+| `Umpire.Target` | Ordinary finite-machine and expert kernel authoring, capabilities, laws, providers, connectors, target checking, and canonical target identity. | Deepen here before adding more authoring languages. |
 
-The target interface is:
+The ordinary and expert Target authoring routes are:
 
 ```text
-TargetDeclaration
-      │
-      ▼
-composeTarget
-      │
-      ├──▶ CheckedTarget
-      └──▶ TargetError
+FiniteMachine ──▶ kernelAvailability + authoredPlanning ────────────┐
+direct TransitionKernel + explicit planning availability ──────────┤
+TargetDefinition + TargetComposition ───────────────────────────────┴──▶ AuthoredTarget
+                                                                           │
+                                                                           ▼
+                                                                     checkTarget
+                                                                           │
+                                                    ┌──────────────────────┴─────────────┐
+                                                    ▼                                    ▼
+                                              CheckedTarget                  AuthoringDiagnostic
 ```
 
 Ordinary Temporal authors should not assemble metadata digests, provider lists, connector plumbing,
 checked-result extraction proofs, or planner backend structures. Model maintainers may still use a
-lower-level typed interface when they define a new authoritative kernel or law.
+lower-level typed interface when they define a new authoritative kernel or law. `FiniteMachine` is
+typed convenience for the complete enumerator-authoritative case, not another scenario language or
+semantic IR: ordered domains, encoders, enumerators, closure, executability, providers, laws, and
+checked authority remain explicit. The adapter stays inside Target and has no `Shared`, Temporal,
+runtime, or optional-checker dependency.
 
 ### 6.3 Semantic authoring modules
 
@@ -304,7 +311,8 @@ model/Umpire/
 ├── Core.lean
 ├── Target.lean
 ├── Target/
-│   └── Language.lean
+│   ├── Language.lean
+│   └── FiniteMachine.lean
 ├── Property.lean
 ├── Property/
 │   └── Language.lean
@@ -414,6 +422,11 @@ The root `Temporal.Feature.Nexus.Lifecycle` and `Temporal.Feature.Nexus.Operatio
 ordinary Feature surface. They should demonstrate the start, cancellation, and successful-
 completion authoring path without exposing the experimental AutoClose configuration or
 caller-closure composition.
+
+Lifecycle uses the reusable Target-owned `FiniteMachine` adapter for this ordinary complete finite
+case. That authoring choice is independent of the later physical Nexus browsing/facade split: a
+layout refactor must preserve the public namespaces, imports, checked authority, and generated
+outputs rather than create a family-specific authoring layer.
 
 ### 7.4 System family template
 
