@@ -559,4 +559,18 @@ def plan
     let backend := purePlannerBackend query kernel
     planLoop query backend (backend.start ()) query.limits.search.value false {} {}
 
+/--
+Plan through the unchanged target kernel, then project checked Artifact intent if one is selected.
+-/
+def planWithArtifactIntent
+    (query : CheckedQuery LawStatement)
+    (kernel : IncrementalPlannerKernel query.target)
+    (intent : ArtifactIntent) : Except ArtifactIntentError PlannerRun := do
+  intent.validateFor query
+  let run := plan query kernel
+  let artifact ← match run.artifact with
+    | none => pure none
+    | some spec => some <$> spec.withArtifactIntent query intent
+  pure { run with artifact }
+
 end Umpire
