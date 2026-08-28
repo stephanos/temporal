@@ -60,4 +60,50 @@ example : (runCli ["missing.selection", "--output", "generated-tests"]).status =
     (runCli []).status = 1 := by
   native_decide
 
+private def missingArtifactSelection : NamedTestSelection := {
+  id := DefinitionId.of "temporal.nexus.missing-artifact.regression"
+  kind := .regression
+  description := "A negative-control selection whose planner produced no Artifact."
+  plannedTests := [{
+    spec := none
+    executionHandoff := {
+      participantProgramDefinitionIds := []
+      setupDefinitionIds := []
+      orderingDefinitionIds := []
+      terminationDefinitionIds := []
+      cleanupDefinitionIds := []
+    }
+  }]
+}
+
+example :
+    let result := runGenerator [missingArtifactSelection]
+      [missingArtifactSelection.id.value, "--output", "generated-tests"]
+    result.status = 1 ∧ result.batch = none ∧
+      result.stderr.contains "\"kind\":\"missing-planning-artifact\"" := by
+  native_decide
+
+/-- Exercise exact replacement when a smaller batch reuses an existing output directory. -/
+def runIO : IO Unit :=
+  IO.FS.withTempDir fun root => do
+    let matrixResult := runCli [lifecycleMatrixId, "--output", root.toString]
+    let some matrixBatch := matrixResult.batch
+      | throw <| IO.userError "matrix generation did not produce a batch"
+    writeBatch matrixBatch
+    IO.FS.writeFile (root / "unowned.txt") "preserve\n"
+    let regressionResult := runCli [callerClosureId, "--output", root.toString]
+    let some regressionBatch := regressionResult.batch
+      | throw <| IO.userError "regression generation did not produce a batch"
+    writeBatch regressionBatch
+    let testEntries ← (root / "tests").readDir
+    let testNames := testEntries.toList.map IO.FS.DirEntry.fileName |>.mergeSort (fun left right =>
+      decide (left ≤ right))
+    unless testNames == ["test-1.json"] do
+      throw <| IO.userError s!"reused output retained stale tests: {repr testNames}"
+    let manifest ← IO.FS.readFile (root / "manifest.json")
+    unless manifest == regressionBatch.manifest do
+      throw <| IO.userError "reused output did not publish the new manifest"
+    unless ← (root / "unowned.txt").pathExists do
+      throw <| IO.userError "generation removed an unowned output-root file"
+
 end Temporal.Tool.GenerateTestsTests

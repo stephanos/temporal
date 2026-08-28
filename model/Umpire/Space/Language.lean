@@ -4,6 +4,7 @@ import Umpire.Query
 
 namespace Umpire
 
+/-- One named value of an authored variation axis and its checked semantic effects. -/
 structure ChoiceDeclaration where
   id : DefinitionId
   source : SourceLocation
@@ -14,6 +15,7 @@ structure ChoiceDeclaration where
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
+/-- A finite authored dimension whose choices may bind one role and request declared faults. -/
 structure VariationAxisDeclaration where
   id : DefinitionId
   source : SourceLocation
@@ -23,6 +25,7 @@ structure VariationAxisDeclaration where
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
+/-- A request-only fault attached to one required Behavior occurrence and target capability. -/
 structure FaultIntentDeclaration where
   id : DefinitionId
   source : SourceLocation
@@ -34,6 +37,7 @@ structure FaultIntentDeclaration where
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
+/-- The closed semantic subject language for seek-only coverage goals. -/
 inductive CoverageSubject where
   | axisChoice (axis choice : DefinitionId)
   | fault (id : DefinitionId)
@@ -45,6 +49,7 @@ inductive CoverageSubject where
   | property (id : DefinitionId)
   deriving BEq, DecidableEq, Repr
 
+/-- An authored seek-only coverage objective with a positive bounded minimum. -/
 structure CoverageGoalDeclaration where
   id : DefinitionId
   source : SourceLocation
@@ -54,6 +59,7 @@ structure CoverageGoalDeclaration where
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
+/-- One bounded authored Space over an existing checked Query. -/
 structure ExperimentSpaceDeclaration where
   id : DefinitionId
   source : SourceLocation
@@ -65,6 +71,7 @@ structure ExperimentSpaceDeclaration where
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
+/-- Closed bounds enforced by a Space language version. -/
 structure SpaceLimits where
   minimumAxes : Nat
   maximumAxes : Nat
@@ -76,6 +83,7 @@ structure SpaceLimits where
   maximumCoverageGoals : Nat
   deriving BEq, DecidableEq, Repr
 
+/-- The fixed bounds for the first Space language version. -/
 def SpaceLimits.v1 : SpaceLimits := {
   minimumAxes := 1
   maximumAxes := 8
@@ -87,6 +95,7 @@ def SpaceLimits.v1 : SpaceLimits := {
   maximumCoverageGoals := 64
 }
 
+/-- Stable categories for authoring, reference, bound, and feasibility failures. -/
 inductive SpaceErrorKind where
   | emptyDefinitionId
   | invalidDefinitionId
@@ -124,6 +133,7 @@ inductive SpaceErrorKind where
   | impossibleCoverageGoal
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- Stable serialized name of a Space failure category. -/
 def SpaceErrorKind.name : SpaceErrorKind → String
   | .emptyDefinitionId => "empty-definition-id"
   | .invalidDefinitionId => "invalid-definition-id"
@@ -160,6 +170,7 @@ def SpaceErrorKind.name : SpaceErrorKind → String
   | .wrongCoverageSubjectKind => "wrong-coverage-subject-kind"
   | .impossibleCoverageGoal => "impossible-coverage-goal"
 
+/-- Canonical typed failure returned before any checked Space is constructed. -/
 structure SpaceError where
   kind : SpaceErrorKind
   definitionId : DefinitionId
@@ -168,6 +179,7 @@ structure SpaceError where
   relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical checked form of one choice and its semantic identity. -/
 structure CheckedChoice where
   id : DefinitionId
   source : SourceLocation
@@ -180,6 +192,7 @@ structure CheckedChoice where
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical checked form of one finite variation axis. -/
 structure CheckedVariationAxis where
   id : DefinitionId
   source : SourceLocation
@@ -191,6 +204,7 @@ structure CheckedVariationAxis where
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical checked request-only fault intent. -/
 structure CheckedFaultIntent where
   id : DefinitionId
   source : SourceLocation
@@ -203,6 +217,7 @@ structure CheckedFaultIntent where
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Identity and fingerprint of a checked Property referenced by a coverage goal. -/
 structure CheckedPropertyReference where
   id : DefinitionId
   source : SourceLocation
@@ -210,6 +225,7 @@ structure CheckedPropertyReference where
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- Reference-closed subject of a checked coverage goal. -/
 inductive CheckedCoverageSubject where
   | axisChoice (axis choice : DefinitionId)
   | fault (id : DefinitionId)
@@ -217,6 +233,7 @@ inductive CheckedCoverageSubject where
   | property (reference : CheckedPropertyReference)
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical checked seek-only coverage goal. -/
 structure CheckedCoverageGoal where
   id : DefinitionId
   source : SourceLocation
@@ -228,14 +245,20 @@ structure CheckedCoverageGoal where
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- The checked Query closure against which a Space declaration is validated. -/
 structure SpaceCheckContext (LawStatement : LawDefinition → Prop) where
   baseQuery : CheckedQuery LawStatement
 
+/-- Build the validation context for one checked Query. -/
 def SpaceCheckContext.ofQuery
     (query : CheckedQuery LawStatement) : SpaceCheckContext LawStatement := {
   baseQuery := query
 }
 
+/--
+Canonical checked Space. Its private constructor guarantees that axes, choices, faults, goals,
+references, bounds, point count, metadata, and Behavior Fingerprint were validated together.
+-/
 structure CheckedExperimentSpace (LawStatement : LawDefinition → Prop) where
   private mk ::
   id : DefinitionId
@@ -297,6 +320,7 @@ private def spaceError
   relatedDefinitionIds := canonicalIds relatedDefinitionIds
 }
 
+/-- Canonical machine-readable projection of one typed Space failure. -/
 def canonicalSpaceErrorJson (error : SpaceError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
     ",\"definitionId\":" ++ quote error.definitionId.value ++
@@ -493,6 +517,7 @@ private def spaceSemanticJson
     ",\"limits\":" ++ limitsJson limits ++
     ",\"pointCount\":" ++ toString pointCount ++ "}"
 
+/-- Canonical source-backed metadata of a checked Space. -/
 def canonicalExperimentSpaceJson (space : CheckedExperimentSpace LawStatement) : String :=
   space.canonicalMetadata
 
@@ -913,6 +938,7 @@ def checkExperimentSpace
   let checked ← checkExperimentSpaceRaw context declaration
   pure { checked with baseQuery := context.baseQuery }
 
+/-- A successfully checked Space retains the exact Query supplied by its check context. -/
 theorem checkExperimentSpace_baseQuery
     (resultEq : checkExperimentSpace context declaration = .ok checked) :
     checked.baseQuery = context.baseQuery := by
