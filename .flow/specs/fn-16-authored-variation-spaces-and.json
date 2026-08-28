@@ -875,7 +875,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-16-authored-variation-spaces-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Authored variation spaces and deterministic batch compilation",
   "tracker": {
     "baseHashFlow": null,
@@ -888,5 +888,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T03:36:02.381046Z"
+  "updated_at": "2026-08-28T04:56:26.740746Z"
 }
