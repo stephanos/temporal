@@ -46,6 +46,7 @@ baseline: green (`cd model && mise exec -- lake build Umpire.Target.Tests.Finite
 verification: green (focused 78-job acceptance build, exact parent aggregate after isolated Lake cache warmup, 186-job canonical regression, and 158-job model lint all passed; gate receipts were non-warrantable only because of the inherited false symlink stat at `config/development.yaml`)
 
 stage: impl-review - ran [2026-08-28T20:28:29Z..2026-08-28T20:30:12Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 2eee759b77274bb9e7ac191b249e7979186c1f4d
 - Tests: cd model && mise exec -- lake build Umpire.Examples.SwitchTests Umpire.Tests.MigrationCompatibility Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests, cd model && mise exec -- lake build Umpire.Target.Tests.Compatibility, cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine Umpire.TargetTests Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests, make umpire-check-regression, make lint-model
