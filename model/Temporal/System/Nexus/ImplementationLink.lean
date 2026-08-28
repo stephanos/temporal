@@ -323,22 +323,10 @@ def witness : ImplementationLinkWitness declaration Temporal.System.Nexus.target
     change Temporal.System.Nexus.authoritativeInitial setup state at admitted
     rcases Temporal.System.Nexus.authoritativeInitial_cases setup state admitted with
       ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · rw [mapSetup_queued, mapState_queued]
-      apply Temporal.Feature.Nexus.Lifecycle.target.kernel.initialSound
-      change Temporal.Feature.Nexus.Lifecycle.scheduledState ∈
-        Temporal.Feature.Nexus.Lifecycle.initialStates
-          Temporal.Feature.Nexus.Lifecycle.scheduledSetup
-      simp [Temporal.Feature.Nexus.Lifecycle.initialStates,
-        Temporal.Feature.Nexus.Lifecycle.initialState?]
-    · rw [mapSetup_running, mapState_running]
-      apply Temporal.Feature.Nexus.Lifecycle.target.kernel.initialSound
-      change Temporal.Feature.Nexus.Lifecycle.startedState ∈
-        Temporal.Feature.Nexus.Lifecycle.initialStates
-          Temporal.Feature.Nexus.Lifecycle.startedSetup
-      have different : Temporal.Feature.Nexus.Lifecycle.startedSetup ≠
-          Temporal.Feature.Nexus.Lifecycle.scheduledSetup := by native_decide
-      simp [Temporal.Feature.Nexus.Lifecycle.initialStates,
-        Temporal.Feature.Nexus.Lifecycle.initialState?, different]
+    · simpa only [mapSetup_queued, mapState_queued] using
+        Temporal.Feature.Nexus.Lifecycle.target_scheduled_initial_authoritative
+    · simpa only [mapSetup_running, mapState_running] using
+        Temporal.Feature.Nexus.Lifecycle.target_started_initial_authoritative
   stepForward := by
     intro state action result admitted
     change Temporal.System.Nexus.authoritativeStep state action result at admitted
