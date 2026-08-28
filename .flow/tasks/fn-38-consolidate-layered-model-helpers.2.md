@@ -34,9 +34,10 @@ Create the Umpire test-support seam and migrate the Target, Behavior, and Proper
 - [ ] `cd model && mise exec -- lake build Umpire.TargetTests Umpire.Behavior.Tests Umpire.Property.Tests` passes.
 
 ## Done summary
-TBD
+Added `Umpire.Shared.Test` and routed the Target, Behavior, and Property fixture constructors through it while preserving every existing fixture name, source path, semantic default, comment, and consumer import. Focused and aggregate builds, model lint, and regression gates pass; the lint retry required only sequential cache warming after a virtiofs/Lake output race and no source change.
 
+stage: impl-review - ran (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bf40691fcd41a024450314261f4f81ea3275fc1f
+- Tests: cd model && mise exec -- lake build Umpire.TargetTests Umpire.Behavior.Tests Umpire.Property.Tests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, make lint-model, make umpire-check-regression
 - PRs:
