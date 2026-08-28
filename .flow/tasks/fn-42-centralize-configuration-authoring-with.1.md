@@ -45,9 +45,12 @@ Add the shared typed authoring seam and prove its projection, checking, and proo
 - [ ] Focused configuration tests pass with comments preserved.
 
 ## Done summary
-TBD
+Added the documented `ConfigUseSpec` authoring seam with single-source projections, delegated validation, and proof-only checked extraction. Focused coverage proves projection and checked-metadata parity plus exact full diagnostics for key, identity, impacts, schema, default, policy, opaque replacement, and decoder drift.
 
+baseline: green (`cd model && mise exec -- lake build Temporal.System.Configuration.Tests`; `cd model && mise exec -- lake build TemporalModelTests`; `make umpire-build-model`; `make lint-model`)
+
+stage: impl-review - ran (codex; SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e579e0c95baa2aed35f5ddb02f9d6af8c8e6427f
+- Tests: baseline: green (cd model && mise exec -- lake build Temporal.System.Configuration.Tests; cd model && mise exec -- lake build TemporalModelTests; make umpire-build-model; make lint-model), cd model && mise exec -- lake build Temporal.System.Configuration.Tests, cd model && mise exec -- lake build TemporalModelTests, make umpire-build-model, make lint-model
 - PRs:
