@@ -34,9 +34,10 @@ Create the Umpire-owned production helper seam and use the Switch example as the
 - [ ] `cd model && mise exec -- lake build Umpire.Examples.SwitchTests` passes.
 
 ## Done summary
-TBD
+Added the narrow `Umpire.Shared` construction seam and routed Switch's existing private/public facades through it without changing source, metadata, serialized fixtures, behavior, comments, or consumer imports. Added complete value-level Switch metadata compatibility coverage; focused and aggregate Lean builds, model lint, and regression gates pass.
 
+stage: impl-review - ran (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5a20ffe1e7e6d74ba0a4fc0f1ce2dda46762e936
+- Tests: cd model && mise exec -- lake build Umpire.Examples.SwitchTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, make lint-model, make umpire-check-regression
 - PRs:
