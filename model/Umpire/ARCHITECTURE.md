@@ -440,12 +440,7 @@ Artifacts do not claim that a runtime action occurred or that execution evidence
 The model-owned `umpire-gen-tests` tool accepts named regressions, test sets, and model-selected
 batches without exposing discovery or explanation; Space exposes no competing command.
 
-## Reference examples
-
-[`Temporal.Feature.Nexus.Lifecycle`](../Temporal/Feature/Nexus/Lifecycle.lean) is the concise
-ordinary `FiniteMachine` example: it declares the scheduled, started, canceled, and succeeded
-states, the three lifecycle actions, their results, and the residual coverage/executability
-evidence once before using the normal checked Target path.
+## Expert reference example
 
 [`Umpire.Examples.Switch`](Examples/Switch.lean) is the smallest complete direct-kernel example.
 Its authoritative relation is specified independently of its enumerators, so it deliberately uses
