@@ -23,5 +23,13 @@ import Umpire
 #check Umpire.QueryDeclaration
 #check Umpire.IncrementalPlannerKernel
 #check Umpire.ExperimentSpec
+#check Umpire.ExperimentSpaceDeclaration
+#check Umpire.CheckedExperimentSpace
+#check Umpire.checkExperimentSpace
+#check Umpire.CheckedSpaceMetadata
+#check Umpire.projectCheckedSpaceMetadata
+#check Umpire.LoweredSpacePoint
+#check Umpire.lowerSpacePoint
+#check Umpire.compileBatch
 #check Umpire.ObservationMappingDeclaration
 #check Umpire.CheckedObservationPlan
