@@ -8,8 +8,7 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-38-consolidate-layered-model-helpers",
-    "fn-41-finitemachine-target-authoring",
-    "fn-43-deepen-ordinary-property-behavior-and"
+    "fn-41-finitemachine-target-authoring"
   ],
   "id": "fn-39-make-the-temporal-nexus-feature-model",
   "impl_review_rounds": {},
@@ -163,5 +162,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T16:13:02.525373Z"
+  "updated_at": "2026-08-28T21:21:02.559065Z"
 }
