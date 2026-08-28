@@ -35,6 +35,7 @@ Document the final helper ownership and complete the repository-level verificati
 Documented the final one-way `Umpire.Shared`, `Umpire.Shared.Test`, and `Temporal.Shared` ownership rules as internal implementation/test-support seams while leaving README commands and public consumer facades unchanged. The aggregate build, model lint, and regression gate pass; the pre-edit lint needed one sequential cache warm after the known Lake/virtiofs missing-`.ilean` race.
 
 stage: impl-review - ran [2026-08-28T19:00:17Z..2026-08-28T19:00:17Z] (SHIP via deterministic docs-only triage)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 5a46d3de3812703f35be3be0b6899ed9238ceb54
 - Tests: baseline: green via handoff (verified at f79eefa8c by fn-38-consolidate-layered-model-helpers.7); pre-edit make lint-model passed after sequential recovery from an inherited Lake/virtiofs missing-.ilean race, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, make lint-model, make umpire-check-regression
