@@ -117,6 +117,17 @@ private def lifecycleTestSet : List PlannedTest := [{
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.propertyId
 }]
 
+private def lifecycleMatrixPlannedTests : List PlannedTest :=
+  match Temporal.Feature.Nexus.Experimental.VariationSpace.batchResult with
+  | .ok specs => specs.map fun spec => {
+      spec := some spec
+      executionHandoff := lifecycleMatrixHandoff
+    }
+  | .error _ => [{
+      spec := none
+      executionHandoff := lifecycleMatrixHandoff
+    }]
+
 /-- Closed named inputs accepted by the public generator; discovery remains owned by fn-5. -/
 def productionSelections : List NamedTestSelection := [{
   id := Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQueryId
@@ -135,10 +146,7 @@ def productionSelections : List NamedTestSelection := [{
   id := Temporal.Feature.Nexus.Experimental.VariationSpace.spaceId
   kind := .modelSelectedBatch
   description := "The complete bounded two-by-two Nexus lifecycle fault matrix."
-  plannedTests := Temporal.Feature.Nexus.Experimental.VariationSpace.specs.map fun spec => {
-    spec := some spec
-    executionHandoff := lifecycleMatrixHandoff
-  }
+  plannedTests := lifecycleMatrixPlannedTests
 }]
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
@@ -248,24 +256,51 @@ def runGenerator
 /-- Run pure generation against the closed production selection set. -/
 def runCli (args : List String) : GeneratorResult := runGenerator productionSelections args
 
+private def clearTestsOutput (path : System.FilePath) : IO Unit := do
+  try
+    let metadata ← path.symlinkMetadata
+    if metadata.type != .dir then
+      throw <| IO.userError s!"refusing non-directory tests output: {path}"
+    IO.FS.removeDirAll path
+  catch
+    | .noFileOrDirectory _ _ _ => pure ()
+    | .noSuchThing _ _ _ => pure ()
+    | failure => throw failure
+
+private def validateManifestOutput (root : System.FilePath) : IO Unit := do
+  let manifestPath := root / "manifest.json"
+  let metadata? ← try
+      some <$> manifestPath.symlinkMetadata
+    catch
+      | .noFileOrDirectory _ _ _ => pure none
+      | .noSuchThing _ _ _ => pure none
+      | failure => throw failure
+  match metadata? with
+  | some metadata =>
+      if metadata.type != .file then
+        throw <| IO.userError s!"refusing non-file manifest output: {manifestPath}"
+  | none => pure ()
+
+private def writeManifest (root : System.FilePath) (manifest : String) : IO Unit := do
+  validateManifestOutput root
+  IO.FS.writeFile (root / "manifest.json") manifest
+
 /--
 Publish one generated batch. The output root owns `manifest.json` and the entire `tests/` subtree;
-the subtree is replaced before files are written, and the new manifest is published last.
+an existing ordinary subtree is replaced before files are written, and the new manifest is
+published last. Symlinks and other unexpected output entry kinds are rejected without following
+them.
 -/
 def writeBatch (batch : GeneratedBatch) : IO Unit := do
   let root := System.FilePath.mk batch.outputRoot
   let testsRoot := root / "tests"
   IO.FS.createDirAll root
-  if ← testsRoot.pathExists then
-    let metadata ← testsRoot.symlinkMetadata
-    if metadata.type == .dir then
-      IO.FS.removeDirAll testsRoot
-    else
-      IO.FS.removeFile testsRoot
+  validateManifestOutput root
+  clearTestsOutput testsRoot
   IO.FS.createDirAll testsRoot
   for file in batch.files do
     if file.path != "manifest.json" then
       IO.FS.writeFile (root / file.path) file.contents
-  IO.FS.writeFile (root / "manifest.json") batch.manifest
+  writeManifest root batch.manifest
 
 end Temporal.Tool.GenerateTests
