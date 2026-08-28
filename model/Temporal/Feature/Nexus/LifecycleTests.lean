@@ -5,6 +5,48 @@ namespace Temporal.Feature.Nexus.LifecycleTests
 open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 
+#check (Temporal.Feature.Nexus.Lifecycle.OperationState : Type)
+#check (Temporal.Feature.Nexus.Lifecycle.OperationEvent : Type)
+#check (Temporal.Feature.Nexus.Lifecycle.step : OperationState → OperationEvent → Option OperationState)
+#check (Temporal.Feature.Nexus.Lifecycle.source : SourceLocation)
+#check (Temporal.Feature.Nexus.Lifecycle.definitions : List DefinitionMetadata)
+#check (Temporal.Feature.Nexus.Lifecycle.target : QueryTarget LawStatement)
+
+example : source = {
+    path := "Temporal/Feature/Nexus/Lifecycle.lean"
+    line := 1
+    column := 1
+    provenance := "lean-model"
+  } := by
+  native_decide
+
+example : definitions = [
+    { id := targetId, kind := .target, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-target/v2", documentation := "" },
+    { id := kernelId, kind := .kernel, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-kernel/v2", documentation := "" },
+    { id := lifecycleCapabilityId, kind := .capability, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle/v2", documentation := "" },
+    { id := lifecycleProviderId, kind := .provider, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-provider/v2", documentation := "" },
+    { id := lifecycleLawId, kind := .law, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-authoritative-step/v2",
+      documentation := "" },
+    { id := operationStateId, kind := .state, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-state/v2", documentation := "" },
+    { id := startActionId, kind := .action, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-start/v1", documentation := "" },
+    { id := cancelActionId, kind := .action, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-cancel/v1", documentation := "" },
+    { id := reportSuccessActionId, kind := .action, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-report-success/v1", documentation := "" },
+    { id := transitionOutcomeId, kind := .outcome, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-outcome/v2", documentation := "" },
+    { id := lifecycleObservationId, kind := .observation, source, version := 1,
+      canonicalBehavior := "temporal-nexus-basic-lifecycle-observation/v2", documentation := "" }
+  ] := by
+  native_decide
+
 /-- The ordinary Nexus target-author inventory at the migration boundary. -/
 def compatibilityTargetAuthors : List String := ["nexus-lifecycle"]
 

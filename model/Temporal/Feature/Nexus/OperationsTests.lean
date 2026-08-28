@@ -7,6 +7,73 @@ open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 open Temporal.Feature.Nexus.Operations
 
+#check (Temporal.Feature.Nexus.Operations.source : SourceLocation)
+#check (Temporal.Feature.Nexus.Operations.AsyncStart.property : CheckedProperty)
+#check (Temporal.Feature.Nexus.Operations.AsyncStart.behavior : CheckedBehavior)
+#check (Temporal.Feature.Nexus.Operations.AsyncStart.query : CheckedQuery LawStatement)
+#check (Temporal.Feature.Nexus.Operations.Cancellation.property : CheckedProperty)
+#check (Temporal.Feature.Nexus.Operations.Cancellation.behavior : CheckedBehavior)
+#check (Temporal.Feature.Nexus.Operations.Cancellation.query : CheckedQuery LawStatement)
+#check (Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property : CheckedProperty)
+#check (Temporal.Feature.Nexus.Operations.SuccessfulCompletion.behavior : CheckedBehavior)
+#check (Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query : CheckedQuery LawStatement)
+
+example : Temporal.Feature.Nexus.Operations.source = {
+    path := "Temporal/Feature/Nexus/Operations.lean"
+    line := 1
+    column := 1
+    provenance := "lean-model"
+  } := by
+  native_decide
+
+example : [
+    (AsyncStart.property.id, AsyncStart.property.source, AsyncStart.property.version,
+      AsyncStart.property.documentation),
+    (Cancellation.property.id, Cancellation.property.source, Cancellation.property.version,
+      Cancellation.property.documentation),
+    (SuccessfulCompletion.property.id, SuccessfulCompletion.property.source,
+      SuccessfulCompletion.property.version, SuccessfulCompletion.property.documentation)
+  ] = [
+    (AsyncStart.propertyId, Temporal.Feature.Nexus.Operations.source, 1,
+      "Starting a scheduled Nexus operation produces the target-owned started result."),
+    (Cancellation.propertyId, Temporal.Feature.Nexus.Operations.source, 1,
+      "Canceling a started Nexus operation produces the target-owned canceled result."),
+    (SuccessfulCompletion.propertyId, Temporal.Feature.Nexus.Operations.source, 1,
+      "Reporting success for a started Nexus operation produces the target-owned succeeded result.")
+  ] := by
+  native_decide
+
+example : [
+    (AsyncStart.behavior.id, AsyncStart.behavior.source, AsyncStart.behavior.version,
+      AsyncStart.behavior.documentation),
+    (Cancellation.behavior.id, Cancellation.behavior.source, Cancellation.behavior.version,
+      Cancellation.behavior.documentation),
+    (SuccessfulCompletion.behavior.id, SuccessfulCompletion.behavior.source,
+      SuccessfulCompletion.behavior.version, SuccessfulCompletion.behavior.documentation)
+  ] = [
+    (AsyncStart.behaviorId, Temporal.Feature.Nexus.Operations.source, 1,
+      "Select exactly one start action and leave its result to the Nexus model."),
+    (Cancellation.behaviorId, Temporal.Feature.Nexus.Operations.source, 1,
+      "Select exactly one cancel action and leave its result to the Nexus model."),
+    (SuccessfulCompletion.behaviorId, Temporal.Feature.Nexus.Operations.source, 1,
+      "Select exactly one success report and leave its result to the Nexus model.")
+  ] := by
+  native_decide
+
+example : [
+    (AsyncStart.query.id, AsyncStart.query.source, AsyncStart.query.version,
+      AsyncStart.query.documentation),
+    (Cancellation.query.id, Cancellation.query.source, Cancellation.query.version,
+      Cancellation.query.documentation),
+    (SuccessfulCompletion.query.id, SuccessfulCompletion.query.source,
+      SuccessfulCompletion.query.version, SuccessfulCompletion.query.documentation)
+  ] = [
+    (AsyncStart.queryId, Temporal.Feature.Nexus.Operations.source, 1, ""),
+    (Cancellation.queryId, Temporal.Feature.Nexus.Operations.source, 1, ""),
+    (SuccessfulCompletion.queryId, Temporal.Feature.Nexus.Operations.source, 1, "")
+  ] := by
+  native_decide
+
 /-- Every live ordinary Nexus consumer of the shared Lifecycle target. -/
 def compatibilityConsumers : List String := [
   "nexus-operations-async-start",
