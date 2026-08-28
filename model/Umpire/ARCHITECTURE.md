@@ -18,7 +18,7 @@ Focused imports are available when a consumer needs a smaller surface:
 | Import | Public responsibility |
 | --- | --- |
 | `Umpire.Core` | Semantic vocabulary, capabilities, laws, and finite kernels. |
-| `Umpire.Target` | Target authoring, checked composition, and canonical target projections. |
+| `Umpire.Target` | Finite-machine and expert Target authoring, checked composition, and canonical target projections. |
 | `Umpire.Property` | Portable property authoring, checking, and evaluation. |
 | `Umpire.Behavior` | Setup and trace-shape constraints. |
 | `Umpire.Query` | Checked combinations of Targets, Properties, Behaviors, Limits, and policies. |
@@ -79,8 +79,11 @@ Important value types:
 
 Target composition uses:
 
-- `TransitionKernel` — finite initial-state and transition enumerators accompanied by soundness and
-  completeness proofs.
+- `FiniteMachine` — the ordinary proof-carrying adapter for complete finite Targets whose ordered
+  enumerators are authoritative. It derives membership authority, a complete behavior domain, and
+  finite planning from one descriptor.
+- `TransitionKernel` — the direct expert route for finite initial-state and transition enumerators
+  whose authoritative propositions are specified independently.
 - `CapabilityProvider` — meanings and law witnesses supplied by one capability.
 - `CapabilityConnector` — explicit reconciliation of meanings supplied by multiple providers.
 - `TargetDefinition` — the ordinary semantic vocabulary and transition-kernel input.
@@ -89,6 +92,18 @@ Target composition uses:
   planning evidence and compiler-only occurrences.
 - `TargetDeclaration` — the lower-level typed composition used by Target maintainers.
 - `CheckedTarget` — validated and canonicalized target.
+
+`FiniteMachine` authors still choose every setup, state, action, outcome, observation, encoder,
+initial state, and transition result. They prove that emitted values stay in the declared domains
+and that every advertised planning action is executable. The adapter removes only the routine
+membership, completeness, and dependent planning assembly: its `kernelAvailability` and
+`authoredPlanning` values enter the same `TargetDefinition` / `AuthoredTarget.make` path and the
+same `checkTarget` boundary as directly authored kernels. It is typed Target convenience, not a
+Behavior, Property, Query, Scenario, or macro language.
+
+Direct `TransitionKernel` construction remains the expert route when authority is intentionally
+independent of enumeration. Both routes are owned entirely by `Umpire.Target`; neither introduces
+a dependency on `Shared`, Temporal families, runtime code, or optional verification modules.
 
 The ordinary checked entry point is:
 
@@ -425,10 +440,16 @@ Artifacts do not claim that a runtime action occurred or that execution evidence
 The model-owned `umpire-gen-tests` tool accepts named regressions, test sets, and model-selected
 batches without exposing discovery or explanation; Space exposes no competing command.
 
-## Reference example
+## Reference examples
 
-[`Umpire.Examples.Switch`](Examples/Switch.lean) is the smallest complete example. Read its public
-declarations in lifecycle order:
+[`Temporal.Feature.Nexus.Lifecycle`](../Temporal/Feature/Nexus/Lifecycle.lean) is the concise
+ordinary `FiniteMachine` example: it declares the scheduled, started, canceled, and succeeded
+states, the three lifecycle actions, their results, and the residual coverage/executability
+evidence once before using the normal checked Target path.
+
+[`Umpire.Examples.Switch`](Examples/Switch.lean) is the smallest complete direct-kernel example.
+Its authoritative relation is specified independently of its enumerators, so it deliberately uses
+the expert `TransitionKernel` route. Read its public declarations in lifecycle order:
 
 1. `transitionKernel`
 2. `targetDeclaration`, `targetAuthoring`, and checked `target`
