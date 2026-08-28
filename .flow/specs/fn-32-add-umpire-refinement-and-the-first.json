@@ -717,7 +717,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-32-add-umpire-refinement-and-the-first.md",
-  "status": "open",
+  "status": "done",
   "title": "Add Umpire Refinement and the first Temporal Feature System correspondence",
   "tracker": {
     "baseHashFlow": null,
@@ -730,5 +730,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T23:36:12.528687Z"
+  "updated_at": "2026-08-28T04:56:27.002005Z"
 }
