@@ -164,8 +164,9 @@ scores coverage nor selects a campaign. `lowerSpacePoint` and those checked goal
 inputs; execution, persisted decoding, evidence, and conformance remain separate work.
 
 `umpire-gen-tests` is the single public generation handoff. It accepts a named regression, test set,
-or model-selected batch, then completes its v2 planning artifacts with checked participant, setup,
-ordering, termination, and cleanup references in executable v3 artifacts:
+or model-selected batch, then emits the same canonical v2 planning Artifacts without adding
+participant, setup, ordering, termination, cleanup, or other runtime bindings. Fn-18's separate
+RuntimeConfiguration boundary owns those bindings:
 
 ```bash
 make umpire-gen-tests ARGS='temporal.nexus.basic-lifecycle.test-set.core --output /tmp/umpire-tests'

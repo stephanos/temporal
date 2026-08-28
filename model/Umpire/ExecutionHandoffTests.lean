@@ -1,3 +1,4 @@
+import Umpire.ExecutionHandoff
 import Umpire.Examples.Switch
 
 /-! Executable handoff checking and v2 compatibility tests. -/
@@ -17,34 +18,37 @@ def declaration : ExecutionHandoffDeclaration := {
   cleanupDefinitionIds := [id "switch.cleanup.subject"]
 }
 
-def executableResult : Except ExecutionHandoffError ExperimentSpec :=
-  compiledArtifact.withExecutionHandoff declaration
+private def check (candidate : ExecutionHandoffDeclaration) :
+    Except ExecutionHandoffError ExecutionHandoff :=
+  checkExecutionHandoff
+    (compiledArtifact.plan.modelPreconditions.map SetupConstraint.id)
+    (compiledArtifact.plan.linearExtension.flatMap fun occurrence =>
+      occurrence.definitionId :: occurrence.authoredDefinitionId.toList)
+    (compiledArtifact.properties.map PortableProperty.definitionId ++
+      compiledArtifact.observationRequirementDefinitionIds ++
+      compiledArtifact.plan.checkpoints.flatMap fun checkpoint =>
+        checkpoint.observations.map ModelValue.definitionId)
+    candidate
 
-private theorem executableResult_isSome : executableResult.toOption.isSome = true := by
+def checkedResult : Except ExecutionHandoffError ExecutionHandoff :=
+  check declaration
+
+private theorem checkedResult_isSome : checkedResult.toOption.isSome = true := by
   native_decide
 
-def executable : ExperimentSpec :=
-  executableResult.toOption.get executableResult_isSome
+def checked : ExecutionHandoff :=
+  checkedResult.toOption.get checkedResult_isSome
 
 example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
-    compiledArtifact.executionHandoff = none ∧
     canonicalExperimentSpecBytes compiledArtifact =
-      include_str "Examples/Fixtures/SwitchCompiledArtifact.json" := by
+      include_str "Artifact/Tests/Fixtures/SwitchExperimentSpecV2.json" := by
   native_decide
 
-example : executable.formatVersion = "umpire-experiment/v3" ∧
-    executable.plan = compiledArtifact.plan ∧
-    executable.executionHandoff.map ExecutionHandoff.participantProgramDefinitionIds =
-      some [id "switch.participant.program"] ∧
-    executable.executionHandoff.map ExecutionHandoff.setupDefinitionIds =
-      some [id "switch.setup.subject-is-off"] ∧
-    executable.executionHandoff.map ExecutionHandoff.orderingDefinitionIds =
-      some [id "switch.occurrence.flip"] ∧
-    executable.executionHandoff.map ExecutionHandoff.terminationDefinitionIds =
-      some [id "switch.observation.power"] ∧
-    executable.executionHandoff.map ExecutionHandoff.cleanupDefinitionIds =
-      some [id "switch.cleanup.subject"] ∧
-    executable.hasValidArtifactChecksum := by
+example : checked.participantProgramDefinitionIds = [id "switch.participant.program"] ∧
+    checked.setupDefinitionIds = [id "switch.setup.subject-is-off"] ∧
+    checked.orderingDefinitionIds = [id "switch.occurrence.flip"] ∧
+    checked.terminationDefinitionIds = [id "switch.observation.power"] ∧
+    checked.cleanupDefinitionIds = [id "switch.cleanup.subject"] := by
   native_decide
 
 def reorderedDeclaration : ExecutionHandoffDeclaration := {
@@ -56,8 +60,8 @@ def reorderedDeclaration : ExecutionHandoffDeclaration := {
 }
 
 example :
-    (compiledArtifact.withExecutionHandoff reorderedDeclaration).toOption =
-      (compiledArtifact.withExecutionHandoff {
+    (check reorderedDeclaration).toOption =
+      (check {
         reorderedDeclaration with
         participantProgramDefinitionIds := reorderedDeclaration.participantProgramDefinitionIds.reverse
         cleanupDefinitionIds := reorderedDeclaration.cleanupDefinitionIds.reverse
@@ -65,7 +69,7 @@ example :
   native_decide
 
 private def errorKindOf
-    (result : Except ExecutionHandoffError ExperimentSpec) : Option ExecutionHandoffErrorKind :=
+    (result : Except ExecutionHandoffError ExecutionHandoff) : Option ExecutionHandoffErrorKind :=
   match result with
   | .ok _ => none
   | .error failure => some failure.kind
@@ -74,11 +78,11 @@ example : [
     { declaration with participantProgramDefinitionIds := [] },
     { declaration with setupDefinitionIds := [id "switch.setup.stale"] },
     { declaration with orderingDefinitionIds := [id "switch.occurrence.stale"] },
-    { declaration with terminationDefinitionIds := [id "switch.observation.stale"] },
+    { declaration with terminationDefinitionIds := [id "switch.occurrence.stale"] },
     { declaration with cleanupDefinitionIds := [id "unnamespaced"] },
     { declaration with cleanupDefinitionIds := [id "switch.cleanup.subject",
         id "switch.cleanup.subject"] }
-  ].map (fun candidate => errorKindOf (compiledArtifact.withExecutionHandoff candidate)) = [
+  ].map (fun candidate => errorKindOf (check candidate)) = [
     some .missingReference,
     some .unknownSetupReference,
     some .unknownOrderingReference,
@@ -86,16 +90,6 @@ example : [
     some .invalidDefinitionId,
     some .duplicateReference
   ] := by
-  native_decide
-
-example : errorKindOf ({ compiledArtifact with
-    artifactChecksum := experimentSpecChecksumOf "drifted" }.withExecutionHandoff declaration) =
-    some .artifactIdentityDrift := by
-  native_decide
-
-example : executable.expectedArtifactChecksum = executable.artifactChecksum ∧
-    executable.artifactChecksum != compiledArtifact.artifactChecksum ∧
-    canonicalExperimentSpecJson executable != canonicalExperimentSpecJson compiledArtifact := by
   native_decide
 
 end Umpire.ExecutionHandoffTests
