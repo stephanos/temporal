@@ -1,15 +1,12 @@
 import Umpire.Planning
+import Umpire.Shared
 
 namespace Umpire.Examples.Switch
 
-private def id (value : String) : DefinitionId := DefinitionId.of value
+private def id (value : String) : DefinitionId := Shared.definitionId value
 
-def source : SourceLocation := {
-  path := "Umpire/Examples/Switch.lean"
-  line := 1
-  column := 1
-  provenance := "lean-model"
-}
+def source : SourceLocation :=
+  Shared.sourceLocation "Umpire/Examples/Switch.lean" 1 1 "lean-model"
 
 def targetId : DefinitionId := id "switch.target.two-state"
 def kernelId : DefinitionId := id "switch.kernel.two-state"
@@ -54,12 +51,8 @@ theorem flipLawProof : LawStatement flipLaw := by
 private def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata := {
-  id := definitionId
-  kind
-  source
-  canonicalBehavior
-}
+    (canonicalBehavior : String) : DefinitionMetadata :=
+  Shared.definitionMetadata definitionId kind source 1 canonicalBehavior ""
 
 def offState : ModelValue := { definitionId := powerStateId, value := "off" }
 def onState : ModelValue := { definitionId := powerStateId, value := "on" }

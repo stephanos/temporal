@@ -32,6 +32,30 @@ example : source = {
     transitionKernel.metadata.id = kernelId := by
   native_decide
 
+example : definitions = [
+    { id := targetId, kind := .target, source, version := 1,
+      canonicalBehavior := "switch-two-state-target/v1", documentation := "" },
+    { id := kernelId, kind := .kernel, source, version := 1,
+      canonicalBehavior := "switch-two-state-kernel/v1", documentation := "" },
+    { id := switchCapabilityId, kind := .capability, source, version := 1,
+      canonicalBehavior := "switch-state/v1", documentation := "" },
+    { id := switchProviderId, kind := .provider, source, version := 1,
+      canonicalBehavior := "switch-state-provider/v1", documentation := "" },
+    { id := flipLawId, kind := .law, source, version := 1,
+      canonicalBehavior := "switch-flip-preserves-domain-law/v1", documentation := "" },
+    { id := powerStateId, kind := .state, source, version := 1,
+      canonicalBehavior := "switch-power-state/v1", documentation := "" },
+    { id := flipActionId, kind := .action, source, version := 1,
+      canonicalBehavior := "switch-flip-action/v1", documentation := "" },
+    { id := appliedOutcomeId, kind := .outcome, source, version := 1,
+      canonicalBehavior := "switch-applied-outcome/v1", documentation := "" },
+    { id := deferredOutcomeId, kind := .outcome, source, version := 1,
+      canonicalBehavior := "switch-deferred-outcome/v1", documentation := "" },
+    { id := powerObservationId, kind := .observation, source, version := 1,
+      canonicalBehavior := "switch-power-observation/v1", documentation := "" }
+  ] := by
+  native_decide
+
 example : (checkTarget targetAuthoring).isOk = true := by
   native_decide
 
