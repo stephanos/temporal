@@ -301,7 +301,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-41-finitemachine-target-authoring.md",
-  "status": "open",
+  "status": "done",
   "title": "FiniteMachine target authoring",
   "tracker": {
     "baseHashFlow": null,
@@ -314,5 +314,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T21:12:08.522359Z"
+  "updated_at": "2026-08-28T21:19:46.200513Z"
 }
