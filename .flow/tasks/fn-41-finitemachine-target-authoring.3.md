@@ -42,6 +42,7 @@ Migrated the System Nexus lifecycle to a family-owned `FiniteMachine`, deriving 
 
 baseline: green (`cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine Umpire.TargetTests Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests`, `make umpire-check-regression`, and `make lint-model` passed pre-edit)
 stage: impl-review - ran [2026-08-28T20:11Z..2026-08-28T20:13Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: d2951d4494172bf7dd52ac7ce96ce782c03464e2
 - Tests: cd model && mise exec -- lake build Temporal.System.Nexus.Tests, cd model && mise exec -- lake build Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus, cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine Umpire.TargetTests Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests, make umpire-check-regression, make lint-model, rg -n '\b(sorry|admit)\b' model/Temporal/System/Nexus/Core.lean model/Temporal/System/Nexus/Tests.lean, comment and generated-fixture diffs unchanged against 7ad1b19a4a41f7d55c09b6370d6609db48455f60, gate receipt storage skipped: inherited config/development.yaml false symlink stat kept worktree dirty; all commands ran and exited 0
