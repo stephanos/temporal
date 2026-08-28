@@ -109,7 +109,7 @@ private def mutationRole : ResourceRole := {
 }
 
 private def drivePlanContentMutations (plan : DrivePlan) : List DrivePlan := [
-  { plan with formatVersion := "umpire-drive-plan/v3" },
+  { plan with formatVersion := "umpire-drive-plan/unsupported" },
   { plan with queryDefinitionId := mutationId },
   { plan with queryBehaviorFingerprint := mutationFingerprint },
   { plan with behaviorDefinitionId := mutationId },
@@ -162,7 +162,7 @@ private def knownGapRowMutations (plan : DrivePlan) : List DrivePlan := [
 ]
 
 private def experimentSpecContentMutations (spec : ExperimentSpec) : List ExperimentSpec := [
-  { spec with formatVersion := "umpire-experiment/v3" },
+  { spec with formatVersion := "umpire-experiment/unsupported" },
   { spec with queryBehaviorFingerprint := mutationFingerprint },
   { spec with plan := { spec.plan with requestedActions := [mutationValue] } },
   { spec with properties := [] },

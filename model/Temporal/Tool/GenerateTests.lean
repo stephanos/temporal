@@ -3,7 +3,7 @@ import Temporal.Feature.Nexus.Experimental.CallerClosure
 import Temporal.Feature.Nexus.Experimental.VariationSpace
 import Temporal.Feature.Nexus.Operations
 
-/-! Public generation of complete executable tests from named model-owned selections. -/
+/-! Public generation of canonical v2 planning tests from named model-owned selections. -/
 
 namespace Temporal.Tool.GenerateTests
 
@@ -24,10 +24,9 @@ def TestSelectionKind.name : TestSelectionKind → String
   | .testSet => "test-set"
   | .modelSelectedBatch => "model-selected-batch"
 
-/-- One expected v2 planning Artifact paired with the references that make its v3 handoff complete. -/
+/-- One expected canonical v2 planning Artifact. Runtime bindings remain a later configuration. -/
 structure PlannedTest where
   spec : Option ExperimentSpec
-  executionHandoff : ExecutionHandoffDeclaration
 
 /-- A named regression, test set, or model-selected batch accepted by generation. -/
 structure NamedTestSelection where
@@ -59,73 +58,21 @@ structure GeneratorResult where
   batch : Option GeneratedBatch := none
   deriving BEq, DecidableEq, Repr
 
-private def callerClosureHandoff : ExecutionHandoffDeclaration := {
-  participantProgramDefinitionIds :=
-    [id "temporal.system.nexus.caller-closure.participant-program"]
-  setupDefinitionIds :=
-    [Temporal.Feature.Nexus.Experimental.CallerClosure.setupConstraint.id]
-  orderingDefinitionIds := [id "workflow-nexus.occurrence.force-close"]
-  terminationDefinitionIds :=
-    [Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosurePropertyId]
-  cleanupDefinitionIds := [id "temporal.system.nexus.caller-closure.cleanup"]
-}
-
-private def lifecycleMatrixHandoff : ExecutionHandoffDeclaration := {
-  participantProgramDefinitionIds :=
-    [id "temporal.system.nexus.basic-lifecycle.participant-program"]
-  setupDefinitionIds :=
-    [Temporal.Feature.Nexus.Experimental.VariationSpace.setupConstraintId]
-  orderingDefinitionIds := [
-    Temporal.Feature.Nexus.Experimental.VariationSpace.startOccurrenceId,
-    Temporal.Feature.Nexus.Experimental.VariationSpace.successOccurrenceId
-  ]
-  terminationDefinitionIds := [
-    Temporal.Feature.Nexus.Operations.AsyncStart.propertyId,
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.propertyId
-  ]
-  cleanupDefinitionIds := [id "temporal.system.nexus.basic-lifecycle.cleanup"]
-}
-
-private def lifecycleHandoff
-    (setupDefinitionId orderingDefinitionId terminationDefinitionId : DefinitionId) :
-    ExecutionHandoffDeclaration := {
-  participantProgramDefinitionIds :=
-    [id "temporal.system.nexus.basic-lifecycle.participant-program"]
-  setupDefinitionIds := [setupDefinitionId]
-  orderingDefinitionIds := [orderingDefinitionId]
-  terminationDefinitionIds := [terminationDefinitionId]
-  cleanupDefinitionIds := [id "temporal.system.nexus.basic-lifecycle.cleanup"]
-}
-
 private def lifecycleTestSet : List PlannedTest := [{
   spec := Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact
-  executionHandoff := lifecycleHandoff
-    Temporal.Feature.Nexus.Operations.AsyncStart.setupConstraintId
-    Temporal.Feature.Nexus.Operations.AsyncStart.occurrenceId
-    Temporal.Feature.Nexus.Operations.AsyncStart.propertyId
 }, {
   spec := Temporal.Feature.Nexus.Operations.Cancellation.run.artifact
-  executionHandoff := lifecycleHandoff
-    Temporal.Feature.Nexus.Operations.Cancellation.setupConstraintId
-    Temporal.Feature.Nexus.Operations.Cancellation.occurrenceId
-    Temporal.Feature.Nexus.Operations.Cancellation.propertyId
 }, {
   spec := Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact
-  executionHandoff := lifecycleHandoff
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.setupConstraintId
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.occurrenceId
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.propertyId
 }]
 
 private def lifecycleMatrixPlannedTests : List PlannedTest :=
   match Temporal.Feature.Nexus.Experimental.VariationSpace.batchResult with
   | .ok specs => specs.map fun spec => {
       spec := some spec
-      executionHandoff := lifecycleMatrixHandoff
     }
   | .error _ => [{
       spec := none
-      executionHandoff := lifecycleMatrixHandoff
     }]
 
 /-- Closed named inputs accepted by the public generator; discovery remains owned by fn-5. -/
@@ -135,7 +82,6 @@ def productionSelections : List NamedTestSelection := [{
   description := "The deterministic Nexus caller-closure regression."
   plannedTests := [{
     spec := some Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
-    executionHandoff := callerClosureHandoff
   }]
 }, {
   id := id "temporal.nexus.basic-lifecycle.test-set.core"
@@ -161,16 +107,13 @@ private def diagnostic (kind subject context : String) : String :=
 
 private inductive GenerationError where
   | missingPlanningArtifact (index : Nat)
-  | invalidExecutionHandoff (failure : ExecutionHandoffError)
 
 private def executableSpecs
     (selection : NamedTestSelection) : Except GenerationError (List ExperimentSpec) :=
   selection.plannedTests.zipIdx.mapM fun (planned, index) => do
     let some spec := planned.spec
       | throw (.missingPlanningArtifact index)
-    match spec.withExecutionHandoff planned.executionHandoff with
-    | .ok executable => pure executable
-    | .error failure => throw (.invalidExecutionHandoff failure)
+    pure spec
 
 private def testPath (index : Nat) : String :=
   "tests/test-" ++ toString (index + 1) ++ ".json"
@@ -214,17 +157,10 @@ private def generationFailure
       stderr := diagnostic "missing-planning-artifact" selection.id.value
         ("planned test " ++ toString (index + 1))
     }
-  | .invalidExecutionHandoff failure => {
-      status := 1
-      stdout := ""
-      stderr := diagnostic "invalid-execution-handoff" selection.id.value
-        (failure.kind.name ++ ":" ++ failure.category)
-    }
 
 /--
 Resolve exactly one named selection and produce its canonical manifest and artifacts without I/O.
-Unknown selections, invalid arguments, missing planning artifacts, or invalid execution handoffs
-return status one and no batch.
+Unknown selections, invalid arguments, or missing planning artifacts return status one and no batch.
 -/
 def runGenerator
     (selections : List NamedTestSelection)
