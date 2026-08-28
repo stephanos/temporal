@@ -1,4 +1,5 @@
 import Umpire.Planning
+import Umpire.Shared.Test
 
 /-! Shared deterministic model, checked query, incremental kernel, and runner fixtures. -/
 
@@ -6,14 +7,9 @@ namespace Umpire.PlanningTests
 
 open Umpire
 
-def id (value : String) : DefinitionId := DefinitionId.of value
+def id (value : String) : DefinitionId := Shared.Test.definitionId value
 
-def source : SourceLocation := {
-  path := "Umpire/Planning/Tests.lean"
-  line := 1
-  column := 1
-  provenance := "lean-test"
-}
+def source : SourceLocation := Shared.Test.sourceLocation "Umpire/Planning/Tests.lean"
 
 def phase : DefinitionId := id "planner.state.phase"
 def request : DefinitionId := id "planner.action.request"
@@ -27,14 +23,11 @@ def kernelId : DefinitionId := id "planner.kernel.fixture"
 def metadata
     (definitionId : DefinitionId)
     (kind : DefinitionKind)
-    (canonicalBehavior : String) : DefinitionMetadata := {
-  id := definitionId
-  kind
-  version := 1
-  canonicalBehavior
-  source
-  documentation := "planning fixture"
-}
+    (canonicalBehavior : String) : DefinitionMetadata :=
+  { Shared.Test.definitionMetadata definitionId.value kind source canonicalBehavior with
+    id := definitionId
+    documentation := "planning fixture"
+  }
 
 def value (definitionId : DefinitionId) (payload : String) : ModelValue := {
   definitionId
