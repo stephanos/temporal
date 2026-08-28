@@ -65,9 +65,13 @@ exports the ordinary Nexus Lifecycle, Operations, and Observation modules but no
 module. The production aggregate deliberately does not import experimental or executable Tool
 code.
 
-The import-only `TemporalModelTests` library is the ordinary Temporal test root. The separate
-`TemporalExperimentalTests` library compiles the experimental caller-closure tests and inspector
-tests, while the `temporal-model-inspect` executable is rooted at `Temporal.Tool.Inspect`.
+The import-only `UmpireTests` library assembles reusable Umpire tests; only test modules may reach
+the internal `Umpire.Shared.Test` fixture seam. Neither production umbrella exports that module.
+No helper currently qualifies for `Shared.Test` or `Temporal.Shared.Test`, so those test-support
+names remain reserved rather than becoming empty modules. `TemporalModelTests` is the ordinary
+Temporal test root. The separate `TemporalExperimentalTests` library compiles the experimental
+caller-closure tests and inspector tests, while the `temporal-model-inspect` executable is rooted at
+`Temporal.Tool.Inspect`.
 
 ## Dependency map
 
@@ -117,6 +121,21 @@ Umpire.Examples.Switch ───────────────────
                                                              ▼
                                                  temporal-model-inspect
 ```
+
+The internal helper edges are one-way from the owning dependency to its consumers:
+
+```text
+Umpire.Core ── Umpire.Shared ─┬── Umpire.Examples.Switch
+                              ├── Umpire.Shared.Test ── Umpire concern test fixtures
+                              └── Temporal.Shared ── Temporal Feature facades
+```
+
+`Umpire.Shared` owns reusable construction over Umpire core types, `Umpire.Shared.Test` owns only
+construction shared by Umpire concern fixtures, and `Temporal.Shared` owns Temporal-specific
+construction over lower `Shared.*` and `Umpire.*` layers. `Temporal.Shared` cannot reach Feature,
+System, API, Tool, verification, or test-support modules, and no production module may reach a
+test-support namespace directly or transitively. These are internal implementation and test-support
+seams, not replacements for the existing Umpire and Temporal consumer facades.
 
 `make lint-model` checks the complete first-party module graph transitively. Its model-specific
 `ModelLint.ImportGraph` policy uses the reusable pure `Tools.LeanImportGraph` traversal and
@@ -258,8 +277,12 @@ three stages but cannot collapse one layer's failure into another's status.
 ## Package boundaries
 
 - `Shared` owns domain-neutral transition systems, finite runs, observations, and trace replay.
+- `Umpire.Shared` owns internal construction over Umpire core types, while `Umpire.Shared.Test`
+  owns the corresponding internal test-fixture construction and remains reachable only from tests.
 - `Umpire` owns reusable semantic declarations, authoring languages, checking, planning, portable
   Artifacts, offline Observation Evaluation and verdicts, and checked Implementation Links.
+- `Temporal.Shared` owns internal Temporal-specific construction over lower Shared/Umpire layers;
+  the existing `Temporal.Feature` modules remain the authoritative consumer-facing facades.
 - `Temporal.Feature` owns product meaning, target compositions, and the sole synthetic Nexus
   Observation profile.
 - `Temporal.System` owns configuration and execution-oriented mechanisms without defining feature
