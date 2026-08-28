@@ -389,9 +389,32 @@ Temporal.Feature.<Family>
 
 This is a logical template, not a requirement to create shallow files. A small family may colocate
 the responsibilities. A family should split when one interface hides substantial behavior or when
-independent consumers need a narrower import.
+independent consumers need a narrower import. `Examples` names a teaching responsibility, not a
+required `Examples/` directory; the ordinary Nexus teaching path lives with the operation modules
+it explains.
 
 ### 7.3 Nexus decomposition
+
+`Temporal.Feature.Nexus` is the stable ordinary entry facade. Its physical files separate the
+simple lifecycle and three complete operation walkthroughs from their supporting Target and
+Planning machinery:
+
+```text
+Nexus
+├── Lifecycle                 stable facade
+│   ├── Semantics             states, events, and authoritative transitions
+│   └── Target                checked Umpire Target machinery
+├── Operations                stable facade
+│   ├── Planning              shared deterministic planning machinery
+│   ├── AsyncStart            complete start walkthrough
+│   ├── Cancellation          complete cancellation walkthrough
+│   └── SuccessfulCompletion  complete completion walkthrough
+└── Observation               unchanged offline evidence boundary
+```
+
+The primary reading path is Semantics → AsyncStart → Cancellation → SuccessfulCompletion →
+Observation. System correspondence follows through `Temporal.System.Nexus.Core` and
+`Temporal.System.Nexus.ImplementationLink`; it is not imported by the Feature facade.
 
 `Temporal.Feature.Nexus.Experimental.AutoClose` contains several deep logical modules:
 
@@ -418,15 +441,15 @@ CallerClosure
 Deepen `Umpire.Target` before physically splitting CallerClosure. The goal is to remove repeated
 plumbing rather than distribute it across more files.
 
-The root `Temporal.Feature.Nexus.Lifecycle` and `Temporal.Feature.Nexus.Operations` modules are the
-ordinary Feature surface. They should demonstrate the start, cancellation, and successful-
-completion authoring path without exposing the experimental AutoClose configuration or
-caller-closure composition.
+The root `Temporal.Feature.Nexus.Lifecycle` and `Temporal.Feature.Nexus.Operations` modules remain
+stable ordinary Feature facades. They expose the start, cancellation, and successful-completion
+authoring path without exposing the experimental AutoClose configuration or caller-closure
+composition.
 
 Lifecycle uses the reusable Target-owned `FiniteMachine` adapter for this ordinary complete finite
-case. That authoring choice is independent of the later physical Nexus browsing/facade split: a
-layout refactor must preserve the public namespaces, imports, checked authority, and generated
-outputs rather than create a family-specific authoring layer.
+case. That authoring choice is independent of the physical Nexus browsing split, which preserves
+the public namespaces, imports, checked authority, and generated outputs rather than creating a
+family-specific authoring layer.
 
 ### 7.4 System family template
 
