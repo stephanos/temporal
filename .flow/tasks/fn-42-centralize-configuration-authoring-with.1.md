@@ -50,6 +50,8 @@ Added the documented `ConfigUseSpec` authoring seam with single-source projectio
 baseline: green (`cd model && mise exec -- lake build Temporal.System.Configuration.Tests`; `cd model && mise exec -- lake build TemporalModelTests`; `make umpire-build-model`; `make lint-model`)
 
 stage: impl-review - ran (codex; SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: e579e0c95baa2aed35f5ddb02f9d6af8c8e6427f
 - Tests: baseline: green (cd model && mise exec -- lake build Temporal.System.Configuration.Tests; cd model && mise exec -- lake build TemporalModelTests; make umpire-build-model; make lint-model), cd model && mise exec -- lake build Temporal.System.Configuration.Tests, cd model && mise exec -- lake build TemporalModelTests, make umpire-build-model, make lint-model
