@@ -16,7 +16,9 @@
     "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-18-versioned-umpire-artifact-boundary",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-18-versioned-umpire-artifact-boundary.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -528,9 +530,114 @@
       "timestamp": "2026-08-28T15:34:50.160362Z",
       "verdict": "SHIP"
     }
+    },
+    {
+      "artifact_sha256": "6ef5fc066d3038b24294baefc9ded4ae0c507d2ce03258a302deae371745fa87",
+      "backend": "codex",
+      "base_sha": "45dc9c494d0e7008f97adb27ab321b389a4c2740",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c8a5168af656af9575c7a25f29b77c92",
+            "classification": "introduced",
+            "findingId": "finding-c8a5168af656af9575c7a25f29b77c92",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8c5cff195e62e57146642c0eee7ecc61",
+            "classification": "introduced",
+            "findingId": "finding-8c5cff195e62e57146642c0eee7ecc61",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "9dda3a6b21792feed10ba453be92780a687adca6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 366197,
+      "output_sha256": "8571909b6f878e2b49f2364b457583765060c9089ea732f4389f1e6898d0a71d",
+      "reservation_id": "fac8988daa424c76821fb8e35b946be7",
+      "round_consumed": true,
+      "scope": "impl:fn-18-versioned-umpire-artifact-boundary.1",
+      "superseded_by": null,
+      "task": "fn-18-versioned-umpire-artifact-boundary.1",
+      "timestamp": "2026-08-28T16:08:02.563850Z",
+      "tool_calls": 24,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "52460ae268d497e61f53499b41a110fd1b803bf5ca6bebed3c5c642870af1a2a",
+      "backend": "codex",
+      "base_sha": "45dc9c494d0e7008f97adb27ab321b389a4c2740",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c8a5168af656af9575c7a25f29b77c92",
+            "classification": "introduced",
+            "findingId": "finding-c8a5168af656af9575c7a25f29b77c92",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8c5cff195e62e57146642c0eee7ecc61",
+            "classification": "introduced",
+            "findingId": "finding-8c5cff195e62e57146642c0eee7ecc61",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "5d16f3c52873156249a60443ab6779661870559a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1020,
+      "output_sha256": "9b835efaeb85da060dd7e06c5aae5978dd96252dd2c1085b6beec93b78aa1106",
+      "reservation_id": "6467c40320a24c2dafc8581428abf7ea",
+      "round_consumed": true,
+      "scope": "impl:fn-18-versioned-umpire-artifact-boundary.1",
+      "superseded_by": null,
+      "task": "fn-18-versioned-umpire-artifact-boundary.1",
+      "timestamp": "2026-08-28T16:15:40.088795Z",
+      "verdict": "SHIP"
   ],
   "review_hash_epoch": {
-    "impl:fn-18-versioned-umpire-artifact-boundary.1": 2,
+    "impl:fn-18-versioned-umpire-artifact-boundary.1": 3,
     "plan": 3,
     "plan#completion": 1
   },
@@ -554,5 +661,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T15:34:50.165274Z"
+  "updated_at": "2026-08-28T16:15:40.094305Z"
 }
