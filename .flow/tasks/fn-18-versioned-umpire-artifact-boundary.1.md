@@ -58,8 +58,16 @@ make umpire-check-regression
 ```
 
 ## Done summary
-TBD
+Implemented the deterministic two-space pretty JSON v2 boundary across Lean and Go: exact pretty checksum preimages, strict byte admission, refreshed fixtures/generated views, exact-byte consumers, and active documentation. Review-driven follow-up aligned control/Unicode escaping across languages and preserved the existing public semantic comparison declaration while keeping it out of strict Artifact paths.
+
+- Baseline: Lean Codecs and task-.1 Go suites were green; exact `make umpire-check-regression` was red pre-edit because Go rejected the compact Lean inspector output, then green after the correction. The parent-spec `go test ./tools/umpire/artifact/...` remains an inherited future-task gate because task `.2` creates that package.
+- Final gates: focused Lean Codecs, task-.1 Go packages, exact `make umpire-check-regression`, affected Lean aggregates, `make lint-model`, scoped golangci-lint, and scoped Go vet all passed at reviewed head `5d16f3c52`.
+- Inherited lint: full `make lint-code` remains red only for the existing case-insensitive import collision between `Tools/gomad1/api/ext-lib/nettrace` and `tools/gomad1/api/ext-lib/nettrace`; task-owned Go packages are lint/vet clean.
+- Owned file set: `.plans/UMPIRE4_COMPONENTS.md`; active Artifact docs; Lean JSON/Artifact codecs and exact-byte tests/consumers; all seven retained v2 fixtures; regenerated Umpire/Temporal views; and Go `artifactv2` plus Generated View/regression tests. The obsolete compact golden was deleted.
+- Review: SHIP on round 2; receipt `/tmp/fn18_task1_pretty_impl_review_receipt_20260828.json`. Review memory capture was attempted and skipped because flow-next memory is not initialized.
+
+stage: impl-review - ran [2026-08-28T16:01:51Z..2026-08-28T16:15:45Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9dda3a6b21792feed10ba453be92780a687adca6, 5d16f3c52873156249a60443ab6779661870559a
+- Tests: baseline: green (cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs), baseline: green (go test -count=1 ./tools/umpire/internal/artifactv2/... ./tools/umpire/cmd/umpire-gen-regression-views/... ./tools/umpire/regression/...), baseline: red (make umpire-check-regression failed pre-edit because strict Go admission rejected compact Lean inspector bytes), INHERITED_FUTURE_GATE: go test -count=1 ./tools/umpire/artifact/... (package is created by task .2), cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs, go test -count=1 ./tools/umpire/internal/artifactv2/... ./tools/umpire/cmd/umpire-gen-regression-views/... ./tools/umpire/regression/..., make umpire-check-regression, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect umpire-gen-tests, make lint-model, .bin/golangci-lint-v2.13.1 run --build-tags test_dep --timeout 10m --new-from-rev 45dc9c494d0e7008f97adb27ab321b389a4c2740 --config=.github/.golangci.yml ./tools/umpire/internal/artifactv2/... ./tools/umpire/cmd/umpire-gen-regression-views/... ./tools/umpire/regression/..., go vet -tags test_dep ./tools/umpire/internal/artifactv2/... ./tools/umpire/cmd/umpire-gen-regression-views/... ./tools/umpire/regression/..., INHERITED_RED: make lint-code (case-insensitive import collision: Tools/gomad1/api/ext-lib/nettrace vs tools/gomad1/api/ext-lib/nettrace)
 - PRs:
