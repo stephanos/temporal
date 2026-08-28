@@ -83,10 +83,45 @@
       "timestamp": "2026-08-28T19:32:20.486042Z",
       "tool_calls": 17,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "00eac4f1c46567e7144eab88b083f5fc85b6e71bc102748d89fbb08f2672aaa7",
+      "backend": "codex",
+      "base_sha": "b9634dcdc49dca812ad14476243a4118f305bf28",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "a329435dfe75498a533a62b31174b4537bc94dcd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 770,
+      "output_sha256": "91dcc97351e5bd0e31fde5721803d7848f835565b4604db1b44d3ffa93f10fdc",
+      "reservation_id": "0ccf9fbdb31049499428a6e13bc3a767",
+      "round_consumed": true,
+      "scope": "impl:fn-41-finitemachine-target-authoring.1",
+      "superseded_by": null,
+      "task": "fn-41-finitemachine-target-authoring.1",
+      "timestamp": "2026-08-28T19:37:06.554572Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-41-finitemachine-target-authoring.1": 1,
+    "impl:fn-41-finitemachine-target-authoring.1": 2,
     "plan": 1,
     "plan#completion": 0
   },
@@ -110,5 +145,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T19:32:20.490582Z"
+  "updated_at": "2026-08-28T19:37:06.564305Z"
 }
