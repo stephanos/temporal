@@ -14,7 +14,12 @@ example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
     compiledArtifact.plan.formatVersion = "umpire-drive-plan/v2" := by
   native_decide
 
-/-! Moving the codecs behind the facade preserves the authoritative v2 fixture semantics. -/
+/-! The authoritative v2 wire fixture remains byte-for-byte identical to canonical output. -/
+example : canonicalExperimentSpecBytes compiledArtifact =
+    include_str "Fixtures/SwitchExperimentSpecV2CanonicalBytes.json" := by
+  native_decide
+
+/-! The human-readable v2 fixture preserves the same Artifact independently of whitespace. -/
 example : Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes compiledArtifact)
     (include_str "Fixtures/SwitchExperimentSpecV2.json") = true := by
   native_decide
