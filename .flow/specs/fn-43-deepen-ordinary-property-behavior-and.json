@@ -1,25 +1,25 @@
 {
-  "branch_name": "fn-39-make-the-temporal-nexus-feature-model",
+  "branch_name": "fn-43-deepen-ordinary-property-behavior-and",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
-  "created_at": "2026-08-28T01:30:34.099386Z",
+  "created_at": "2026-08-28T16:12:50.325301Z",
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
     "fn-38-consolidate-layered-model-helpers",
-    "fn-41-finitemachine-target-authoring",
-    "fn-43-deepen-ordinary-property-behavior-and"
+    "fn-40-centralize-plannerpolicy-constructors",
+    "fn-41-finitemachine-target-authoring"
   ],
-  "id": "fn-39-make-the-temporal-nexus-feature-model",
+  "id": "fn-43-deepen-ordinary-property-behavior-and",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-08-28T01:45:32.402070Z",
+  "plan_reviewed_at": "2026-08-28T16:32:34.379777Z",
   "review_attempts": [
     {
-      "artifact_sha256": "e73c83067a69880c4ad94cbb63ffa5ccf6d829597a7dcb00cd180c32e85ff5bf",
+      "artifact_sha256": "0fe896326c31aeafffe9f71de12f10e9c5cb242719080f1930ba6ac95eb348e0",
       "backend": "codex",
       "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
       "counter_kind": "plan",
@@ -35,25 +35,33 @@
         "digest_truncated": false,
         "items": [
           {
-            "chainRoot": "finding-ee689b94abde29e902dccb1152353bed",
+            "chainRoot": "finding-b894d9e402bd1556d79abd98aa8a1b56",
             "classification": "introduced",
-            "findingId": "finding-ee689b94abde29e902dccb1152353bed",
+            "findingId": "finding-b894d9e402bd1556d79abd98aa8a1b56",
             "firstSeenThisRound": true,
             "severity": "P1",
             "status": "open"
           },
           {
-            "chainRoot": "finding-e94a8e375018309271898f996eb36066",
+            "chainRoot": "finding-b27a75286b95cb35b362adeb71746f81",
             "classification": "introduced",
-            "findingId": "finding-e94a8e375018309271898f996eb36066",
+            "findingId": "finding-b27a75286b95cb35b362adeb71746f81",
             "firstSeenThisRound": true,
             "severity": "P1",
             "status": "open"
           },
           {
-            "chainRoot": "finding-92cdb3c8938b4e48f7851544979ffae1",
+            "chainRoot": "finding-e9eaf0c9ffbfee765b7e0a7bdfac4ef9",
             "classification": "introduced",
-            "findingId": "finding-92cdb3c8938b4e48f7851544979ffae1",
+            "findingId": "finding-e9eaf0c9ffbfee765b7e0a7bdfac4ef9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8259ddf1c425b0a5571f42d4930c8642",
+            "classification": "introduced",
+            "findingId": "finding-8259ddf1c425b0a5571f42d4930c8642",
             "firstSeenThisRound": true,
             "severity": "P1",
             "status": "open"
@@ -63,24 +71,24 @@
       },
       "forced": false,
       "hash_epoch": 0,
-      "head_sha": "e2c0a8c13ca5b6a739325724d98f2e8a158d070d",
+      "head_sha": "5d16f3c52873156249a60443ab6779661870559a",
       "head_sha_observed": true,
       "kind": "plan",
       "model": "gpt-5.6-sol",
       "outcome": "verdict",
-      "output_bytes": 188309,
-      "output_sha256": "33768b9fa2d6e0d745bb59b0dd74e18e00333c0b24616f4b67920c2f07e1611a",
-      "reservation_id": "3ea63c09cfce43d09bde3d99d03a6b14",
+      "output_bytes": 617970,
+      "output_sha256": "1287ee73824e736ba76832a5bb837852233e16ce6995be13bb797d560e170d8c",
+      "reservation_id": "e1cea3624bf44c59acb96a53cd7e7e0c",
       "round_consumed": true,
       "scope": "plan",
       "superseded_by": null,
       "task": null,
-      "timestamp": "2026-08-28T01:41:26.007240Z",
-      "tool_calls": 6,
+      "timestamp": "2026-08-28T16:28:23.106099Z",
+      "tool_calls": 57,
       "verdict": "NEEDS_WORK"
     },
     {
-      "artifact_sha256": "0059da6b69956eb7bf9d614bab208e721f23379fb5917caf2889261ba0306280",
+      "artifact_sha256": "3901c0a504bbe2e2ae8d5e33a997f41e0b336896d4a2bcd050c137844b7c6e81",
       "backend": "codex",
       "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
       "counter_kind": "plan",
@@ -96,25 +104,33 @@
         "digest_truncated": false,
         "items": [
           {
-            "chainRoot": "finding-ee689b94abde29e902dccb1152353bed",
+            "chainRoot": "finding-b894d9e402bd1556d79abd98aa8a1b56",
             "classification": "introduced",
-            "findingId": "finding-ee689b94abde29e902dccb1152353bed",
+            "findingId": "finding-b894d9e402bd1556d79abd98aa8a1b56",
             "firstSeenThisRound": false,
             "severity": "P1",
             "status": "fixed"
           },
           {
-            "chainRoot": "finding-e94a8e375018309271898f996eb36066",
+            "chainRoot": "finding-b27a75286b95cb35b362adeb71746f81",
             "classification": "introduced",
-            "findingId": "finding-e94a8e375018309271898f996eb36066",
+            "findingId": "finding-b27a75286b95cb35b362adeb71746f81",
             "firstSeenThisRound": false,
             "severity": "P1",
             "status": "fixed"
           },
           {
-            "chainRoot": "finding-92cdb3c8938b4e48f7851544979ffae1",
+            "chainRoot": "finding-e9eaf0c9ffbfee765b7e0a7bdfac4ef9",
             "classification": "introduced",
-            "findingId": "finding-92cdb3c8938b4e48f7851544979ffae1",
+            "findingId": "finding-e9eaf0c9ffbfee765b7e0a7bdfac4ef9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8259ddf1c425b0a5571f42d4930c8642",
+            "classification": "introduced",
+            "findingId": "finding-8259ddf1c425b0a5571f42d4930c8642",
             "firstSeenThisRound": false,
             "severity": "P1",
             "status": "fixed"
@@ -124,19 +140,19 @@
       },
       "forced": false,
       "hash_epoch": 0,
-      "head_sha": "e2c0a8c13ca5b6a739325724d98f2e8a158d070d",
+      "head_sha": "1b927c3ed6493188b22bab1beca5804468a44583",
       "head_sha_observed": true,
       "kind": "plan",
       "model": "gpt-5.6-sol",
       "outcome": "verdict",
-      "output_bytes": 368,
-      "output_sha256": "aedf235ec34e122a2a997e442aa3384650368b397b453ed334cdcd535e631751",
-      "reservation_id": "8287a815904f43579337fb1eff74f5b2",
+      "output_bytes": 273,
+      "output_sha256": "4abe47087cf4c03dccd9c4e2a6f3326a9d7c19dd481751378f5dc4731c5d53c3",
+      "reservation_id": "91aa12ad4ea44b92b03de96723ad2c25",
       "round_consumed": true,
       "scope": "plan",
       "superseded_by": null,
       "task": null,
-      "timestamp": "2026-08-28T01:45:32.399767Z",
+      "timestamp": "2026-08-28T16:32:34.375450Z",
       "verdict": "SHIP"
     }
   ],
@@ -149,9 +165,9 @@
   "review_transport_failures": {
     "plan": 0
   },
-  "spec_path": ".flow/specs/fn-39-make-the-temporal-nexus-feature-model.md",
+  "spec_path": ".flow/specs/fn-43-deepen-ordinary-property-behavior-and.md",
   "status": "open",
-  "title": "Make the Temporal Nexus Feature model easier to browse",
+  "title": "Deepen ordinary Property, Behavior, and Query authoring",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -163,5 +179,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T16:13:02.525373Z"
+  "updated_at": "2026-08-28T16:32:34.380277Z"
 }
