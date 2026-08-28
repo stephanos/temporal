@@ -265,7 +265,7 @@ func CanonicalExperimentBytes(document Experiment) ([]byte, error) {
 
 func ExpectedDrivePlanChecksum(plan DrivePlan) (string, error) {
 	plan.ArtifactChecksum = ""
-	encoded, err := encodeJSONObject(plan)
+	encoded, err := encodeJSONLine(plan)
 	if err != nil {
 		return "", err
 	}
@@ -274,7 +274,7 @@ func ExpectedDrivePlanChecksum(plan DrivePlan) (string, error) {
 
 func ExpectedExperimentChecksum(document Experiment) (string, error) {
 	document.ArtifactChecksum = ""
-	encoded, err := encodeJSONObject(document)
+	encoded, err := encodeJSONLine(document)
 	if err != nil {
 		return "", err
 	}
@@ -895,14 +895,6 @@ func ValidDigest(value string) bool {
 		}
 	}
 	return true
-}
-
-func encodeJSONObject(value any) ([]byte, error) {
-	line, err := encodeJSONLineWithIndent(value, "")
-	if err != nil {
-		return nil, err
-	}
-	return bytes.TrimSuffix(line, []byte{'\n'}), nil
 }
 
 func encodeJSONLine(value any) ([]byte, error) {
