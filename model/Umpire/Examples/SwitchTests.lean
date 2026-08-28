@@ -63,6 +63,22 @@ example : target.kernel.initialStates switchSetup = [offState] ∧
     target.kernel.steps offState flipAction = [appliedResult, deferredResult] := by
   native_decide
 
+theorem direct_kernel_keeps_independent_authority_and_two_results :
+    transitionKernel.authoritativeInitial = authoritativeInitial ∧
+    transitionKernel.authoritativeStep = authoritativeStep ∧
+    targetDefinition.kernel = .checked transitionKernel ∧
+    stepResults offState flipAction = [appliedResult, deferredResult] ∧
+    authoritativeStep offState flipAction appliedResult ∧
+    authoritativeStep offState flipAction deferredResult := by
+  exact ⟨rfl, rfl, rfl, by native_decide,
+    ⟨rfl, .inl ⟨rfl, .inl rfl⟩⟩,
+    ⟨rfl, .inl ⟨rfl, .inr rfl⟩⟩⟩
+
+theorem direct_kernel_golden_behavior_fingerprint :
+    target.behaviorFingerprint.render =
+      "sha256:0443154d4f2860a69590a3d3867f4992ad17024ebf62b424545382c41b871666" := by
+  native_decide
+
 example : target.requiredCapabilities = [switchCapabilityId] ∧
     flipProperty.requires = [switchCapabilityId] ∧
     exploratoryBehavior.requires = [switchCapabilityId] ∧
