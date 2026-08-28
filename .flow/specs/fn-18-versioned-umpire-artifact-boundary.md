@@ -120,16 +120,99 @@ present as JSON `null`, and no unlisted field is legal.
 | Family | Format and exact top-level field order | Closed nested rules |
 | --- | --- | --- |
 | RuntimeConfiguration | `umpire-runtime-configuration/v2`: `{formatVersion, configurationDefinitionId, behaviorFingerprint, experiment, authorityProfile, phaseLimits, observation, participantBindings, knownGaps, provenance, provenanceChecksum, artifactChecksum}` | `experiment` is an ArtifactBinding. `authorityProfile` is `{definitionId, version, behaviorFingerprint, requiredCapabilityDefinitionIds}`. `phaseLimits` is ordered `preparation, realization, observation, isolation, cleanup`, each `{phase, durationMilliseconds, maxAttempts, maxRecords, maxBytes}`. `observation` is `{profileDefinitionId, profileBehaviorFingerprint, programDefinitionId, programBehaviorFingerprint, mappingDefinitionId, mappingBehaviorFingerprint}`. Participant bindings sort by Definition ID and are `{participantDefinitionId, protocolDefinitionId, protocolVersion, programDefinitionId, programBehaviorFingerprint, capabilityDefinitionIds}`. |
-| ExperimentRun | `umpire-experiment-run/v2`: `{formatVersion, runIdentity, behaviorFingerprint, experiment, runtimeConfiguration, attempt, operationalStatus, phaseOutcomes, controlAttempts, sourceClosures, cleanup, limits, knownGaps, provenance, provenanceChecksum, artifactChecksum}` | `attempt` is positive. `operationalStatus` is `succeeded|failed|incomplete`. Phase outcomes occur once in the fixed five-phase order and are `{phase, status, startedAtUnixMillis, finishedAtUnixMillis, code}`, with status `not-started|succeeded|failed|timed-out|canceled`; non-started timestamps/code are null, started terminal rows have both timestamps and a closed nullable code. Control attempts sort by occurrence/attempt and are `{occurrenceDefinitionId, actionDefinitionId, attempt, status, code}`, status `accepted|rejected|unsupported|failed|canceled|not-attempted`. Source closures sort by source identity and are `{sourceDefinitionId, status, recordCount, byteCount}`, status `closed|partial|failed`. Cleanup is `{status, openHandleCount, code}`, status `complete|incomplete|failed`. |
+| ExperimentRun | `umpire-experiment-run/v2`: `{formatVersion, runIdentity, behaviorFingerprint, experiment, runtimeConfiguration, attempt, operationalStatus, phaseOutcomes, controlAttempts, sourceClosures, cleanup, limits, knownGaps, provenance, provenanceChecksum, artifactChecksum}` | `attempt` is positive. `operationalStatus` is `succeeded|failed|incomplete`. Phase outcomes occur once in the fixed five-phase order and are `{phase, status, startedAtUnixMillis, finishedAtUnixMillis, code}`, with status `not-started|succeeded|failed|timed-out|canceled`; non-started timestamps/code are null, started terminal rows have both timestamps and a closed nullable code. Control attempts sort by occurrence/attempt and are `{occurrenceDefinitionId, actionDefinitionId, attempt, receiptFactDefinitionId, status, code}`, status `accepted|rejected|unsupported|failed|canceled|not-attempted`. `not-attempted` requires null receipt/code; every attempted status requires one non-null receipt fact ID, which must resolve exactly once in RawEvidence to source `umpire.evidence.source.control-receipt` and kind `umpire.evidence.kind.control-receipt`, with the same occurrence/action/attempt/status. Source closures sort by source identity and are `{sourceDefinitionId, status, recordCount, byteCount}`, status `closed|partial|failed`. Cleanup is `{status, openHandleCount, code}`, status `complete|incomplete|failed`. |
 | RawEvidence | `umpire-raw-evidence/v2`: `{formatVersion, runIdentity, behaviorFingerprint, experiment, runtimeConfiguration, run, captureStatus, sources, facts, knownGaps, provenance, provenanceChecksum, artifactChecksum}` | The three inputs are ArtifactBindings. `captureStatus` is `closed|partial|failed`. Sources sort by Definition ID and are `{sourceDefinitionId, status, factCount, byteCount}` with the same three statuses. Facts sort by `(sourceDefinitionId, ordinal, factDefinitionId)` and are `{factDefinitionId, sourceDefinitionId, ordinal, kindDefinitionId, causalFactDefinitionIds, fields}`. Causal IDs precede the fact and form a DAG. Fields sort by Definition ID and are `{fieldDefinitionId, disposition, value}`, where disposition is `plain|redacted|sha256|rejected`; rejected values are null, sha256 values have checksum spelling, and plain values are only JSON null/bool/canonical integer/string. |
 | Evidence | `umpire-evidence/v2`: `{formatVersion, runIdentity, behaviorFingerprint, experiment, runtimeConfiguration, run, rawEvidence, observationProgram, mapping, observationEvaluationStatus, evidenceBackedModelTrace, evidenceLinks, dispositions, diagnostics, knownGaps, provenance, provenanceChecksum, artifactChecksum}` | The first four references are ArtifactBindings. Observation program and mapping are `{definitionId, behaviorFingerprint}`. Status is `accepted|unknown|conflict|unsupported`. Only `accepted` has a non-null complete Evidence-backed Model Trace and a coordinate-sorted Evidence Link for every established Model Fact; it has no diagnostics. Every non-accepted row has null trace, empty links, and at least one canonical closed diagnostic. Dispositions retain one entry for every consumed or rejected raw field and never copy a prohibited raw value. |
-| Result | `umpire-result/v2`: `{formatVersion, runIdentity, behaviorFingerprint, experiment, runtimeConfiguration, run, rawEvidence, evidence, operationalStatus, observationEvaluationStatus, implementationLink, implementationLinkStatus, propertyVerdicts, querySummary, semanticStatus, limits, knownGaps, cleanupStatus, evaluationOutcomeChecksum, provenance, provenanceChecksum, artifactChecksum}` | The five inputs are ArtifactBindings. Implementation Link is `{definitionId, behaviorFingerprint}` and status is `applied|invalid|unknown|conflict|unsupported|not-evaluated`. Property verdicts sort by Property Definition ID and use `satisfied|violated|unknown|conflict|unsupported`. `semanticStatus` is `satisfied` only for a complete all-satisfied required set, `violated` only for a complete resolved set with at least one violation, and otherwise `incomplete`. Verdicts exist only after accepted Observation Evaluation and an applied link. `evaluationOutcomeChecksum` is non-null only for a complete resolved `satisfied|violated` outcome; otherwise it is null. Operational, observation, link, semantic, Known Gap, Limit, and cleanup fields remain independent. |
+| Result | `umpire-result/v2`: `{formatVersion, runIdentity, behaviorFingerprint, experiment, runtimeConfiguration, run, rawEvidence, evidence, operationalStatus, observationEvaluationStatus, implementationLink, implementationLinkStatus, propertyVerdicts, querySummary, semanticStatus, limits, knownGaps, cleanupStatus, evaluationOutcomeChecksum, provenance, provenanceChecksum, artifactChecksum}` | The five inputs are ArtifactBindings. `implementationLink` is the full `ImplementationLinkRecord` defined below, and status is `applied|invalid|unknown|conflict|unsupported|not-evaluated`; its embedded diagnostic must agree with that status. Property verdicts sort by Property Definition ID and use `satisfied|violated|unknown|conflict|unsupported`. `semanticStatus` is `satisfied` only for a complete all-satisfied required set, `violated` only for a complete resolved set with at least one violation, and otherwise `incomplete`. Verdicts exist only after accepted Observation Evaluation and an applied link. `evaluationOutcomeChecksum` is non-null only for a complete resolved `satisfied|violated` outcome; otherwise it is null. Operational, observation, link, semantic, Known Gap, Limit, and cleanup fields remain independent. |
 
 `evaluationOutcomeChecksum` uses domain `umpire.evaluation-outcome/v2` and the deterministic pretty
 Generated View of the stable trace, observation mapping/program, Implementation Link, query,
 Properties, verdict clauses/spans/Limits, and allowed Evidence Links. It excludes run-local
 timestamps, operational diagnostics, paths, and raw transport facts. The Result admission layer
 recomputes it but never performs the evaluation.
+
+### Exact Evidence and Result nested projections
+
+These are transport projections of the named Lean values, not encodings of Lean constructor names.
+Fields occur exactly in the shown order; an `Option` is always an explicit value or `null`.
+
+- `ModelValue` is `{definitionId, value}`. `ModelCoordinate` is `{kind, step, position}` where kind is
+  `initial-state|selected-action|model-outcome|resulting-state|observation`; `initial-state` requires
+  both numbers null, the three step kinds require a positive step and null position, and observation
+  requires positive step and position. Coordinates order by that kind order, then step, then position.
+- `ModelTrace` is `{traceId, initialState, steps}`. Each contiguous one-based step is
+  `{position, selectedAction, modelOutcome, resultingState, observations}`; observations retain
+  their list position and every value is a `ModelValue`.
+- `SourceLocation` is `{path, line, column, provenance}`. `Provenance` is
+  `{sourceDefinitionIds, sourceLocations}` with definition IDs sorted and locations sorted by
+  `(path,line,column,provenance)`. `Limit` is `{value, unit}`. `EvidenceLimit` has unit
+  `evidence-records`. `QueryLimits` is `{behavior, search}`, where behavior is
+  `{transitions, selectedActions}` and each child is a Limit.
+- `ObservationPlanReference` is `{definitionId, behaviorFingerprint}`. `MeaningProvision` is
+  `{definitionId, kind, canonicalBehavior}`. `FieldReference` is
+  `{kindDefinitionId, fieldDefinitionId}`. `FieldDispositionRecord` is
+  `{field, disposition, digestPolicyDefinitionId}` with disposition `retain|redact|hash|reject`;
+  only hash may have a non-null policy.
+- `EvidenceOrderingFact` is
+  `{factDefinitionId, kindDefinitionId, ordinal, causalFactDefinitionIds}` and
+  `EvidenceClosureFact` is `{kindDefinitionId, lastOrdinal}`. `AppliedFieldDisposition` is
+  `{field, kind, normalizedValue, digestPolicyDefinitionId, digestToken}` with kind
+  `retained|redacted|digest-token`: retained has only normalizedValue, redacted has no variant
+  values, and digest-token has policy and token. Raw/rejected-material Lean sentinels have no wire
+  form and reject.
+- `EvidenceLink` is
+  `{coordinate, mappingDefinitionId, mappingVersion, mappingBehaviorFingerprint,
+  profileDefinitionId, profileVersion, evidenceDefinitionIds, ruleDefinitionId,
+  bindingDefinitionIds, orderingSupport, closureSupport, appliedDispositions, appliedLimit,
+  meaningBehaviorFingerprint}`. Identity lists are sorted; ordering support sorts by fact ID;
+  closure support sorts by kind ID; dispositions sort by field reference. Links sort by coordinate
+  and are a bijection with established Model coordinates.
+- `EvidenceBackedModelTrace` is the explicit projection
+  `{traceId, observationPlan, mappingDefinitionId, mappingVersion, mappingBehaviorFingerprint,
+  source, profileDefinitionId, profileVersion, sourceClosed, vocabulary, appliedLimit,
+  evidenceDefinitionIds, trace}` from Lean `EvidenceBackedTrace`. Vocabulary sorts by Definition ID;
+  evidence IDs sort; `trace.traceId` equals the outer trace ID. Evidence Links and disposition
+  declarations live in their sibling Evidence fields and are not duplicated in this projection.
+- `ObservationDiagnostic` is
+  `{kind, observationPlanDefinitionId, relatedDefinitionIds, appliedLimit, observedCount,
+  alternatives, missingDiscriminatorDefinitionId}`. Kind is the exact kebab-case projection of
+  `ObservationFailureKind`; identity arrays sort. Accepted Evidence has null diagnostics represented
+  by an empty array; each non-accepted Evidence has exactly one diagnostic whose derived status
+  equals `observationEvaluationStatus`.
+- `ImplementationTargetReference` is `{definitionId, kind, behaviorFingerprint}`.
+  `ImplementationLinkRecord` is
+  `{definitionId, behaviorFingerprint, sourceTarget, destinationTarget, diagnostic}`. Diagnostic is
+  null for `applied|not-evaluated`; otherwise it is
+  `{kind, coordinate, relatedDefinitionIds, sourceSetupBehaviorFingerprint, appliedLimit,
+  observedCount, knownGapCode, knownGapReason, unsupportedVocabularyKind,
+  evidenceLinkBehaviorFingerprint, identity}` and its kind is the kebab-case projection of
+  `ImplementationLinkFailureKind` whose class exactly equals `implementationLinkStatus`.
+- `SemanticVerdictDiagnostic` is
+  `{kind, relatedDefinitionIds, observationDiagnostic}`. `SemanticClauseVerdict` is
+  `{propertyDefinitionId, clauseDefinitionId, status, coordinates, queryLimits, propertyLimit,
+  evidenceLimit, provenanceDefinitionIds, evidenceLinks}`. `PropertyVerdict` is
+  `{queryDefinitionId, propertyDefinitionId, propertyBehaviorFingerprint, traceId, status,
+  queryLimits, evidenceLimit, provenanceDefinitionIds, clauses, diagnostic}`. Clauses sort by clause
+  ID, coordinates by ModelCoordinate order, and links by coordinate; resolved satisfied/violated
+  verdicts have a trace ID, evidence limit, nonempty clauses, and null diagnostic, while every
+  non-resolved verdict has an exact diagnostic and no invented resolved clause.
+- `QuerySummary` is
+  `{queryDefinitionId, status, queryLimits, requiredPropertyDefinitionIds, propertyVerdicts,
+  missingPropertyDefinitionIds, duplicatePropertyDefinitionIds,
+  unexpectedPropertyDefinitionIds, divergentPropertyDefinitionIds,
+  wrongQueryResultDefinitionIds, traceIds}` with status `satisfied|violated|incomplete` and every ID
+  list sorted. Its embedded verdicts are byte-identical to Result `propertyVerdicts`; satisfied and
+  violated require empty structural-error lists and one shared non-null trace ID, otherwise status
+  is incomplete.
+- Result `limits` is an array of `{stage, limit}` sorted by the closed stage order
+  `observation-evaluation, implementation-link, query, property`; absent stage limits are omitted.
+  `knownGaps` uses fn-37's exact record/order. `cleanupStatus` is
+  `complete|incomplete|failed` and must equal the bound ExperimentRun cleanup status.
+
+All Definition-ID arrays use ascending ASCII spelling (the admitted identifier alphabet is ASCII),
+all enum names are the existing public kebab-case names, and all digests use the checksum/fingerprint
+wire spelling. The Go admission layer validates these projections and relationships but never
+constructs them from raw Evidence or reevaluates their meaning.
 
 ### Bounded admission constants and precedence
 
