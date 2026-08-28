@@ -230,6 +230,10 @@ private def canonicalIdLists (lists : List (List DefinitionId)) : List (List Def
 
 private def maxRequiredOccurrences : Nat := 12
 
+private def isSpaceMetadataKind : DefinitionKind → Bool
+  | .experimentSpace | .variationAxis | .choice | .fault | .coverageGoal => true
+  | _ => false
+
 private def operandSortKey : SetupOperand → String
   | .role id => "role:" ++ quote id.value
   | .value value =>
@@ -855,6 +859,9 @@ def checkBehavior
   let roles := declaration.roles.mergeSort roleLe
   for role in roles do
     requireDefinitionId declaration.id declaration.source role.id
+    if isSpaceMetadataKind role.valueKind then
+      throw (behaviorError .invalidBinding declaration.id declaration.source
+        (role.id.value ++ ": " ++ role.valueKind.name) [role.id])
   let setup := declaration.setup.map canonicalSetupConstraint |>.mergeSort constraintLe
   for constraint in setup do
     validateSetupConstraint context declaration roles constraint
