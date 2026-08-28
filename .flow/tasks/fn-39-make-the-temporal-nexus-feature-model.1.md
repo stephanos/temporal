@@ -41,9 +41,10 @@ Separate the Lifecycle semantic and target implementations while preserving the 
 - [ ] No unrelated worktree file is modified.
 
 ## Done summary
-TBD
+Split the ordinary Nexus Lifecycle behind stable Semantics and Target children while preserving its facade, public identities, provenance, behavior, canonical outputs, and existing comments. Added public scheduled/started initial-authority theorems so the System correspondence witness no longer unfolds Feature initial-state representation.
 
+stage: impl-review - ran (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7160d89ad33eb479809378742a74f9b98180c585
+- Tests: baseline qualification: parent aggregate target Temporal.Feature.NexusTests is expected fn39.5 work; conductor authorized fn39.1 task-focused baseline, cd model && mise exec -- lake build Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus, make umpire-check-regression, make lint-model, git diff --check bee5442ff6c67c3980e8f807d33330dc458180fa..HEAD, Lifecycle import-direction, protected-scope, comment-preservation, and downstream representation-unfolding audits
 - PRs:
