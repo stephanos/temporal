@@ -529,7 +529,6 @@
       "task": null,
       "timestamp": "2026-08-28T15:34:50.160362Z",
       "verdict": "SHIP"
-    }
     },
     {
       "artifact_sha256": "6ef5fc066d3038b24294baefc9ded4ae0c507d2ce03258a302deae371745fa87",
@@ -636,6 +635,7 @@
       "timestamp": "2026-08-28T16:15:40.088795Z",
       "verdict": "SHIP"
   ],
+    }
   "review_hash_epoch": {
     "impl:fn-18-versioned-umpire-artifact-boundary.1": 3,
     "plan": 3,
