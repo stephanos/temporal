@@ -37,9 +37,10 @@ Add value-level compatibility assertions after every production and fixture migr
 - [ ] `cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests` passes.
 
 ## Done summary
-TBD
+Added literal value-level compatibility pins for all six migrated Umpire fixture constructor families and fully qualified public facade checks for Switch, Lifecycle, Operations, and experimental Caller Closure. Complete source, Definition metadata, identity, documentation, canonical query, and pretty-printed Artifact fixtures remain unchanged through the original consumer modules.
 
+stage: impl-review - ran (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f79eefa8cafc7c0d8ffb24be3546dc3ed6cc4573
+- Tests: baseline: green via handoff (green verified at 4c8abf02b by fn-38-consolidate-layered-model-helpers.5) for aggregate build, baseline: red (make lint-model failed pre-edit: transient Lake missing-output race); cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Target.ImportTests Umpire.Planning and exact make lint-model retry passed, make umpire-check-regression (pre-edit), cd model && mise exec -- lake build Umpire.Tests.MigrationCompatibility Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, cd model && mise exec -- lake build Umpire.Tests.MigrationCompatibility, git diff --check, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, make lint-model, make umpire-check-regression
 - PRs:
