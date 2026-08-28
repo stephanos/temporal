@@ -39,9 +39,14 @@ Document the settled authoring boundary (R6). This task follows compatibility co
 - [ ] Existing comments and unrelated worktree changes are preserved.
 
 ## Done summary
-TBD
+Documented `FiniteMachine` as the ordinary proof-carrying Target adapter, kept direct `TransitionKernel` construction as the independent-authority expert route, and separated reusable authoring from the later Nexus browsing layout. All six architecture/authoring guides now converge on the existing `AuthoredTarget` / `checkTarget` authority; code, comments, generated views, and compatibility fixtures are unchanged.
 
+baseline: red (`make lint-model` failed pre-edit on a transient Lake/virtiofs ENOENT while writing `Temporal/DynamicConfig.olean`; isolated `Temporal.DynamicConfig` warmup and the exact lint retry passed). The exact focused acceptance build and `make umpire-check-regression` baseline commands passed.
+
+verification: green (73-job focused acceptance build, 186-job canonical regression, and 158-job model lint passed). The regression gate caught and removed a reusable-Umpire-to-Temporal documentation reference before final verification; gate receipts were not warrantable only because the inherited false symlink stat at `config/development.yaml` keeps the worktree dirty.
+
+stage: impl-review - ran [2026-08-28T20:46:13Z..2026-08-28T20:51:29Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5a503a02798c80badf1aedd06513d4b21153ae1e, 610faf244e8519ccca56ebf203a2f0274c866f34
+- Tests: cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine Umpire.TargetTests Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests, make umpire-check-regression, make lint-model, cd model && mise exec -- lake build Temporal.DynamicConfig (pre-edit tooling warmup after transient ENOENT), git diff --check 30da5a8bbb0cfa1283e914cf1d46cde2fb7abb93..HEAD, generated regression views and compatibility fixtures unchanged; only the six task-owned documentation files differ from base, gate receipt storage skipped: inherited config/development.yaml false symlink stat kept worktree dirty; all final gate commands exited 0
 - PRs:
