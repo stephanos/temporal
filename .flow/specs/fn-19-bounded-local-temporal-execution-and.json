@@ -10,7 +10,8 @@
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-31-deepen-umpire-target-and-simplify",
     "fn-32-add-umpire-refinement-and-the-first",
-    "fn-37-hard-cut-umpire-vocabulary-and-current"
+    "fn-37-hard-cut-umpire-vocabulary-and-current",
+    "fn-39-make-the-temporal-nexus-feature-model"
   ],
   "id": "fn-19-bounded-local-temporal-execution-and",
   "impl_review_rounds": {},
@@ -196,5 +197,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T19:07:00.948489Z"
+  "updated_at": "2026-08-28T01:30:41.189781Z"
 }
