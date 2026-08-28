@@ -1,7 +1,7 @@
 {
   "branch_name": "umpire",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-08-28T03:01:47.961441Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-28T03:36:02.380344Z",
   "created_at": "2026-08-26T08:55:24.888817Z",
   "default_impl": null,
   "default_review": null,
@@ -22,7 +22,7 @@
     "fn-16-authored-variation-spaces-and.6": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 2,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T09:06:16.488957Z",
   "review_attempts": [
@@ -771,8 +771,8 @@
       "failure_class": null,
       "finalized": {
         "digest": "complete",
-        "receipt": "pending",
-        "status": "pending"
+        "receipt": "complete",
+        "status": "complete"
       },
       "findings_digest": {
         "backend": "codex",
@@ -821,6 +821,35 @@
       "task": null,
       "timestamp": "2026-08-28T03:26:39.914057Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "08902f8c4905bbd4b9365d7cc2e486f43774b23d3e2f9e45ba3df084a2653111",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "717727e4ca1f00f02691f1dabca2a42cdeedaa41",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 4838,
+      "output_sha256": "10f693b5afa529fdce64275a881a1c79bc66213f756909aa5f877b00853804f7",
+      "reservation_id": "f3d3b73475f547c2894d2e63b1d618e1",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T03:36:02.372308Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -831,7 +860,7 @@
     "impl:fn-16-authored-variation-spaces-and.5": 1,
     "impl:fn-16-authored-variation-spaces-and.6": 2,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -859,5 +888,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T03:26:39.915051Z"
+  "updated_at": "2026-08-28T03:36:02.381046Z"
 }
