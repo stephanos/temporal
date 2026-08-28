@@ -4,6 +4,13 @@ import Umpire.Target
 
 #check Umpire.TargetDeclaration
 #check Umpire.TargetDefinition
+#check Umpire.FiniteMachine
+#check Umpire.FiniteMachine.initialStateCoverage
+#check Umpire.FiniteMachine.actionExecutable
+#check Umpire.FiniteMachine.kernel
+#check Umpire.FiniteMachine.kernelAvailability
+#check Umpire.FiniteMachine.planning
+#check Umpire.FiniteMachine.authoredPlanning
 #check Umpire.TargetComposition
 #check Umpire.TargetComposition.empty
 #check Umpire.TargetComposition.provide
