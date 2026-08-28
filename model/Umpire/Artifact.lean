@@ -79,6 +79,55 @@ structure ExperimentSpec where
   provenance : ArtifactProvenance
   deriving BEq, DecidableEq, Repr
 
+/-- One requested fault bound to the authored occurrence and action it intends to affect. -/
+structure ArtifactFaultIntent where
+  definitionId : DefinitionId
+  occurrenceDefinitionId : DefinitionId
+  actionDefinitionId : DefinitionId
+  capabilityDefinitionId : DefinitionId
+  deriving BEq, DecidableEq, Repr
+
+/-- Checked semantic intent that may be projected onto one planner-selected Artifact. -/
+structure ArtifactIntent where
+  queryDefinitionId : DefinitionId
+  queryBehaviorFingerprint : BehaviorFingerprint
+  behaviorDefinitionId : DefinitionId
+  behaviorFingerprint : BehaviorFingerprint
+  targetDefinitionId : DefinitionId
+  targetBehaviorFingerprint : BehaviorFingerprint
+  kernelDefinitionId : DefinitionId
+  kernelBehaviorFingerprint : BehaviorFingerprint
+  selectedChoices : List ModelValue
+  selectedVariants : List RoleBinding
+  requestedFaults : List ArtifactFaultIntent
+  additionalCapabilityRequirementDefinitionIds : List DefinitionId
+  deriving BEq, DecidableEq, Repr
+
+inductive ArtifactIntentErrorKind where
+  | invalidDefinitionId
+  | duplicateEntry
+  | identityDrift
+  | missingOccurrence
+  | occurrenceMismatch
+  | invalidCapability
+  | variantMismatch
+  deriving BEq, DecidableEq, Ord, Repr
+
+def ArtifactIntentErrorKind.name : ArtifactIntentErrorKind → String
+  | .invalidDefinitionId => "invalid-definition-id"
+  | .duplicateEntry => "duplicate-entry"
+  | .identityDrift => "identity-drift"
+  | .missingOccurrence => "missing-occurrence"
+  | .occurrenceMismatch => "occurrence-mismatch"
+  | .invalidCapability => "invalid-capability"
+  | .variantMismatch => "variant-mismatch"
+
+structure ArtifactIntentError where
+  kind : ArtifactIntentErrorKind
+  definitionId : DefinitionId
+  relatedDefinitionIds : List DefinitionId
+  deriving BEq, DecidableEq, Repr
+
 def canonicalPlannerKnownGaps : List KnownGap := [
   { kind := .input, code := DefinitionId.of "umpire.known-gap.execution-evidence" },
   { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.artifact-migrations" },
@@ -121,6 +170,133 @@ private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
 
 private def canonicalValues (values : List ModelValue) : List ModelValue :=
   values.mergeSort valueLe |>.eraseDups
+
+private def faultIntentLe (left right : ArtifactFaultIntent) : Bool :=
+  decide (left.definitionId.value ≤ right.definitionId.value)
+
+private def canonicalFaultIntents
+    (faults : List ArtifactFaultIntent) : List ArtifactFaultIntent :=
+  faults.mergeSort faultIntentLe
+
+private def artifactIntentError
+    (kind : ArtifactIntentErrorKind)
+    (definitionId : DefinitionId)
+    (relatedDefinitionIds : List DefinitionId := []) : ArtifactIntentError := {
+  kind
+  definitionId
+  relatedDefinitionIds := canonicalIds relatedDefinitionIds
+}
+
+private def firstDuplicateId : List DefinitionId → Option DefinitionId
+  | first :: rest => if rest.contains first then some first else firstDuplicateId rest
+  | [] => none
+
+private def targetHasCapability
+    (query : CheckedQuery LawStatement)
+    (capability : DefinitionId) : Bool :=
+  query.target.requiredCapabilities.contains capability ||
+    query.target.providers.any fun provider => provider.contract.id == capability
+
+private def targetDefinesCapability
+    (query : CheckedQuery LawStatement)
+    (capability : DefinitionId) : Bool :=
+  query.target.definitions.any fun metadata =>
+    metadata.id == capability && metadata.kind == .capability
+
+private def intentIdentityMatches
+    (query : CheckedQuery LawStatement)
+    (intent : ArtifactIntent) : Bool :=
+  intent.queryDefinitionId == query.id &&
+    intent.queryBehaviorFingerprint == query.behaviorFingerprint &&
+    intent.behaviorDefinitionId == query.behavior.id &&
+    intent.behaviorFingerprint == query.behavior.behaviorFingerprint &&
+    intent.targetDefinitionId == query.target.id &&
+    intent.targetBehaviorFingerprint == query.target.behaviorFingerprint &&
+    intent.kernelDefinitionId == query.target.kernel.metadata.id &&
+    intent.kernelBehaviorFingerprint == query.target.behaviorFingerprint
+
+namespace ArtifactIntent
+
+/-- The checked empty intent used by ordinary planning. -/
+def empty (query : CheckedQuery LawStatement) : ArtifactIntent := {
+  queryDefinitionId := query.id
+  queryBehaviorFingerprint := query.behaviorFingerprint
+  behaviorDefinitionId := query.behavior.id
+  behaviorFingerprint := query.behavior.behaviorFingerprint
+  targetDefinitionId := query.target.id
+  targetBehaviorFingerprint := query.target.behaviorFingerprint
+  kernelDefinitionId := query.target.kernel.metadata.id
+  kernelBehaviorFingerprint := query.target.behaviorFingerprint
+  selectedChoices := []
+  selectedVariants := []
+  requestedFaults := []
+  additionalCapabilityRequirementDefinitionIds := []
+}
+
+/-- Recheck that intent still belongs to the exact Query closure that will be planned. -/
+def validateFor
+    (intent : ArtifactIntent)
+    (query : CheckedQuery LawStatement) : Except ArtifactIntentError Unit := do
+  if !intentIdentityMatches query intent then
+    throw (artifactIntentError .identityDrift intent.queryDefinitionId [query.id])
+  for choice in intent.selectedChoices do
+    if !choice.definitionId.isNamespaced || !(DefinitionId.of choice.value).isNamespaced then
+      throw (artifactIntentError .invalidDefinitionId choice.definitionId
+        [choice.definitionId, DefinitionId.of choice.value])
+  for variant in intent.selectedVariants do
+    if !variant.role.isNamespaced || !variant.value.definitionId.isNamespaced then
+      throw (artifactIntentError .invalidDefinitionId variant.role
+        [variant.role, variant.value.definitionId])
+  for fault in intent.requestedFaults do
+    if !fault.definitionId.isNamespaced || !fault.occurrenceDefinitionId.isNamespaced ||
+        !fault.actionDefinitionId.isNamespaced || !fault.capabilityDefinitionId.isNamespaced then
+      throw (artifactIntentError .invalidDefinitionId fault.definitionId [
+        fault.definitionId, fault.occurrenceDefinitionId, fault.actionDefinitionId,
+        fault.capabilityDefinitionId
+      ])
+  for capability in intent.additionalCapabilityRequirementDefinitionIds do
+    if !capability.isNamespaced then
+      throw (artifactIntentError .invalidDefinitionId capability [capability])
+  match firstDuplicateId (intent.selectedChoices.map ModelValue.definitionId) with
+  | some duplicate =>
+      throw (artifactIntentError .duplicateEntry duplicate [duplicate])
+  | none => pure ()
+  match firstDuplicateId (intent.selectedVariants.map RoleBinding.role) with
+  | some duplicate =>
+      throw (artifactIntentError .duplicateEntry duplicate [duplicate])
+  | none => pure ()
+  match firstDuplicateId (intent.requestedFaults.map ArtifactFaultIntent.definitionId) with
+  | some duplicate =>
+      throw (artifactIntentError .duplicateEntry duplicate [duplicate])
+  | none => pure ()
+  for variant in intent.selectedVariants do
+    let knownRole := query.behavior.roles.any fun role =>
+      role.id == variant.role &&
+        query.target.definitions.any fun metadata =>
+          metadata.id == variant.value.definitionId && metadata.kind == role.valueKind
+    let available := query.target.resolvedSetups.any fun setup => setup.contains variant
+    if !knownRole || !available then
+      throw (artifactIntentError .variantMismatch variant.role
+        [variant.role, variant.value.definitionId])
+  for fault in intent.requestedFaults do
+    match query.behavior.requiredOccurrences.find? fun occurrence =>
+        occurrence.id == fault.occurrenceDefinitionId with
+    | none =>
+        throw (artifactIntentError .missingOccurrence fault.occurrenceDefinitionId
+          [fault.definitionId, fault.occurrenceDefinitionId])
+    | some occurrence =>
+        if occurrence.action != fault.actionDefinitionId then
+          throw (artifactIntentError .occurrenceMismatch fault.occurrenceDefinitionId
+            [fault.definitionId, occurrence.action, fault.actionDefinitionId])
+    if !intent.additionalCapabilityRequirementDefinitionIds.contains
+        fault.capabilityDefinitionId then
+      throw (artifactIntentError .invalidCapability fault.capabilityDefinitionId
+        [fault.definitionId, fault.capabilityDefinitionId])
+  for capability in intent.additionalCapabilityRequirementDefinitionIds do
+    if !targetDefinesCapability query capability || !targetHasCapability query capability then
+      throw (artifactIntentError .invalidCapability capability [capability, query.target.id])
+
+end ArtifactIntent
 
 private def valueJson (value : ModelValue) : String :=
   "{\"definitionId\":" ++ quote value.definitionId.value ++
@@ -259,6 +435,70 @@ def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
 
 def canonicalExperimentSpecBytes (spec : ExperimentSpec) : String :=
   canonicalExperimentSpecJson spec ++ "\n"
+
+private def artifactMatchesQuery
+    (query : CheckedQuery LawStatement)
+    (spec : ExperimentSpec) : Bool :=
+  spec.queryBehaviorFingerprint == query.behaviorFingerprint &&
+    spec.plan.queryDefinitionId == query.id &&
+    spec.plan.queryBehaviorFingerprint == query.behaviorFingerprint &&
+    spec.plan.behaviorDefinitionId == query.behavior.id &&
+    spec.plan.behaviorFingerprint == query.behavior.behaviorFingerprint &&
+    spec.plan.targetDefinitionId == query.target.id &&
+    spec.plan.targetBehaviorFingerprint == query.target.behaviorFingerprint &&
+    spec.plan.kernelDefinitionId == query.target.kernel.metadata.id &&
+    spec.plan.kernelBehaviorFingerprint == query.target.behaviorFingerprint
+
+/-- Canonically project checked intent onto an ordinary target-owned planner Artifact. -/
+def ExperimentSpec.withArtifactIntent
+    (spec : ExperimentSpec)
+    (query : CheckedQuery LawStatement)
+    (intent : ArtifactIntent) : Except ArtifactIntentError ExperimentSpec := do
+  intent.validateFor query
+  if !artifactMatchesQuery query spec then
+    throw (artifactIntentError .identityDrift spec.plan.queryDefinitionId
+      [spec.plan.queryDefinitionId, query.id])
+  for variant in intent.selectedVariants do
+    if !spec.plan.bindings.contains variant then
+      throw (artifactIntentError .variantMismatch variant.role
+        [variant.role, variant.value.definitionId])
+  let mut requestedFaults := []
+  for fault in canonicalFaultIntents intent.requestedFaults do
+    let occurrence ← match spec.plan.linearExtension.find? fun planned =>
+        planned.authoredDefinitionId == some fault.occurrenceDefinitionId with
+      | some occurrence => pure occurrence
+      | none => throw (artifactIntentError .missingOccurrence fault.occurrenceDefinitionId
+          [fault.definitionId, fault.occurrenceDefinitionId])
+    if occurrence.actionDefinitionId != fault.actionDefinitionId then
+      throw (artifactIntentError .occurrenceMismatch fault.occurrenceDefinitionId
+        [fault.definitionId, occurrence.actionDefinitionId, fault.actionDefinitionId])
+    requestedFaults := requestedFaults ++ [{
+      definitionId := fault.definitionId
+      value := occurrence.definitionId.value
+    }]
+  let planWithoutChecksum : DrivePlan := {
+    spec.plan with
+    artifactChecksum := drivePlanChecksumOf ""
+    selectedChoices := canonicalValues intent.selectedChoices
+    selectedVariants := canonicalValues (intent.selectedVariants.map RoleBinding.value)
+    requestedFaults := canonicalValues requestedFaults
+    capabilityRequirementDefinitionIds := canonicalIds
+      (spec.plan.capabilityRequirementDefinitionIds ++
+        intent.additionalCapabilityRequirementDefinitionIds)
+  }
+  let plan := {
+    planWithoutChecksum with
+    artifactChecksum := planWithoutChecksum.expectedArtifactChecksum
+  }
+  let specWithoutChecksum : ExperimentSpec := {
+    spec with
+    artifactChecksum := experimentSpecChecksumOf ""
+    plan
+  }
+  pure {
+    specWithoutChecksum with
+    artifactChecksum := specWithoutChecksum.expectedArtifactChecksum
+  }
 
 private def plannedOccurrence
     (behavior : CheckedBehavior)

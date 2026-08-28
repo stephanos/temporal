@@ -61,6 +61,20 @@ example :
       incidentalWitnessSpec.map canonicalExperimentSpecJson := by
   native_decide
 
+/-! The empty checked-intent facade preserves ordinary planning bytes exactly. -/
+example :
+    let query := checkedQuery 2 (.witness property) .shortest 10 17 false
+    let withIntent := planWithArtifactIntent query (incrementalKernel 2) (.empty query)
+    withIntent.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes) =
+      witnessSpec.map canonicalExperimentSpecBytes := by
+  native_decide
+
+/-! Ordinary planning continues to leave every reserved intent array empty. -/
+example : witnessSpec.map (fun spec =>
+    (spec.plan.selectedChoices, spec.plan.selectedVariants, spec.plan.requestedFaults)) =
+    some ([], [], []) := by
+  native_decide
+
 /-! A meaning-bearing Query input is part of the exact Artifact Checksum. -/
 example :
     witnessSpec.map ExperimentSpec.artifactChecksum !=
