@@ -8,6 +8,26 @@ namespace Umpire.Artifact.Tests.Codecs
 open Umpire
 open Umpire.Examples.Switch
 
+private def escapingProbeValue : String :=
+  String.ofList [
+    Char.ofNat 0,
+    Char.ofNat 1,
+    Char.ofNat 8,
+    Char.ofNat 9,
+    Char.ofNat 10,
+    Char.ofNat 11,
+    Char.ofNat 12,
+    Char.ofNat 13,
+    Char.ofNat 31,
+    Char.ofNat 34,
+    Char.ofNat 92,
+    Char.ofNat 0x03bb,
+    Char.ofNat 0x2028,
+    Char.ofNat 0x2029]
+
+private def escapingProbeJson : String :=
+  Lean.Json.compress (Lean.Json.mkObj [("value", .str escapingProbeValue)])
+
 /-! The vertical Artifact facade retains exactly the two current v2 format families. -/
 example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
     compiledArtifact.plan.formatVersion = "umpire-drive-plan/v2" := by
@@ -21,6 +41,11 @@ example : canonicalExperimentSpecBytes compiledArtifact =
 /-! Persisted canonical bytes use stable two-space JSON indentation and one terminal LF. -/
 example : (canonicalExperimentSpecBytes compiledArtifact).startsWith
     "{\n  \"formatVersion\": \"umpire-experiment/v2\",\n" := by
+  native_decide
+
+/-! Canonical strings share Go's exact control, Unicode, quote, and backslash escaping. -/
+example : Umpire.Json.prettyBytes escapingProbeJson =
+    "{\n  \"value\": \"\\u0000\\u0001\\b\\t\\n\\u000b\\f\\r\\u001f\\\"\\\\λ\\u2028\\u2029\"\n}\n" := by
   native_decide
 
 /-! Both stored Artifact Checksums use independent exact pretty preimages. -/
