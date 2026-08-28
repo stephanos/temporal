@@ -11,38 +11,47 @@ open _root_.Umpire
 
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
+/-- Supported origins of one named generator selection. -/
 inductive TestSelectionKind where
   | regression
   | testSet
   | modelSelectedBatch
   deriving BEq, DecidableEq, Repr
 
+/-- Stable manifest name of a generator selection kind. -/
 def TestSelectionKind.name : TestSelectionKind → String
   | .regression => "regression"
   | .testSet => "test-set"
   | .modelSelectedBatch => "model-selected-batch"
 
+/-- One expected v2 planning Artifact paired with the references that make its v3 handoff complete. -/
 structure PlannedTest where
-  spec : ExperimentSpec
+  spec : Option ExperimentSpec
   executionHandoff : ExecutionHandoffDeclaration
 
+/-- A named regression, test set, or model-selected batch accepted by generation. -/
 structure NamedTestSelection where
   id : DefinitionId
   kind : TestSelectionKind
   description : String
   plannedTests : List PlannedTest
 
+/-- One canonical relative output path and its complete file contents. -/
 structure GeneratedFile where
+  private mk ::
   path : String
   contents : String
   deriving BEq, DecidableEq, Repr
 
+/-- Complete canonical output owned by one generator invocation. -/
 structure GeneratedBatch where
+  private mk ::
   outputRoot : String
   files : List GeneratedFile
   manifest : String
   deriving BEq, DecidableEq, Repr
 
+/-- Pure command result; successful generation carries the batch to publish. -/
 structure GeneratorResult where
   status : Nat
   stdout : String
@@ -88,47 +97,33 @@ private def lifecycleHandoff
   cleanupDefinitionIds := [id "temporal.system.nexus.basic-lifecycle.cleanup"]
 }
 
-private theorem asyncStartArtifact_isSome :
-    Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact.isSome = true := by
-  native_decide
-
-private theorem cancellationArtifact_isSome :
-    Temporal.Feature.Nexus.Operations.Cancellation.run.artifact.isSome = true := by
-  native_decide
-
-private theorem successfulCompletionArtifact_isSome :
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact.isSome = true := by
-  native_decide
-
 private def lifecycleTestSet : List PlannedTest := [{
-  spec := Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact.get
-    asyncStartArtifact_isSome
+  spec := Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact
   executionHandoff := lifecycleHandoff
     Temporal.Feature.Nexus.Operations.AsyncStart.setupConstraintId
     Temporal.Feature.Nexus.Operations.AsyncStart.occurrenceId
     Temporal.Feature.Nexus.Operations.AsyncStart.propertyId
 }, {
-  spec := Temporal.Feature.Nexus.Operations.Cancellation.run.artifact.get
-    cancellationArtifact_isSome
+  spec := Temporal.Feature.Nexus.Operations.Cancellation.run.artifact
   executionHandoff := lifecycleHandoff
     Temporal.Feature.Nexus.Operations.Cancellation.setupConstraintId
     Temporal.Feature.Nexus.Operations.Cancellation.occurrenceId
     Temporal.Feature.Nexus.Operations.Cancellation.propertyId
 }, {
-  spec := Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact.get
-    successfulCompletionArtifact_isSome
+  spec := Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact
   executionHandoff := lifecycleHandoff
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.setupConstraintId
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.occurrenceId
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.propertyId
 }]
 
+/-- Closed named inputs accepted by the public generator; discovery remains owned by fn-5. -/
 def productionSelections : List NamedTestSelection := [{
   id := Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQueryId
   kind := .regression
   description := "The deterministic Nexus caller-closure regression."
   plannedTests := [{
-    spec := Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
+    spec := some Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
     executionHandoff := callerClosureHandoff
   }]
 }, {
@@ -141,7 +136,7 @@ def productionSelections : List NamedTestSelection := [{
   kind := .modelSelectedBatch
   description := "The complete bounded two-by-two Nexus lifecycle fault matrix."
   plannedTests := Temporal.Feature.Nexus.Experimental.VariationSpace.specs.map fun spec => {
-    spec
+    spec := some spec
     executionHandoff := lifecycleMatrixHandoff
   }
 }]
@@ -156,10 +151,18 @@ private def diagnostic (kind subject context : String) : String :=
     ",\"subject\":" ++ quote subject ++
     ",\"context\":" ++ quote context ++ "}\n"
 
+private inductive GenerationError where
+  | missingPlanningArtifact (index : Nat)
+  | invalidExecutionHandoff (failure : ExecutionHandoffError)
+
 private def executableSpecs
-    (selection : NamedTestSelection) : Except ExecutionHandoffError (List ExperimentSpec) :=
-  selection.plannedTests.mapM fun planned =>
-    planned.spec.withExecutionHandoff planned.executionHandoff
+    (selection : NamedTestSelection) : Except GenerationError (List ExperimentSpec) :=
+  selection.plannedTests.zipIdx.mapM fun (planned, index) => do
+    let some spec := planned.spec
+      | throw (.missingPlanningArtifact index)
+    match spec.withExecutionHandoff planned.executionHandoff with
+    | .ok executable => pure executable
+    | .error failure => throw (.invalidExecutionHandoff failure)
 
 private def testPath (index : Nat) : String :=
   "tests/test-" ++ toString (index + 1) ++ ".json"
@@ -180,7 +183,7 @@ private def manifestJson
 
 private def generatedBatch
     (selection : NamedTestSelection)
-    (outputRoot : String) : Except ExecutionHandoffError GeneratedBatch := do
+    (outputRoot : String) : Except GenerationError GeneratedBatch := do
   let specs ← executableSpecs selection
   let manifest := manifestJson selection specs
   pure {
@@ -195,13 +198,26 @@ private def generatedBatch
 
 private def generationFailure
     (selection : NamedTestSelection)
-    (failure : ExecutionHandoffError) : GeneratorResult := {
-  status := 1
-  stdout := ""
-  stderr := diagnostic "invalid-execution-handoff" selection.id.value
-    (failure.kind.name ++ ":" ++ failure.category)
-}
+    (failure : GenerationError) : GeneratorResult :=
+  match failure with
+  | .missingPlanningArtifact index => {
+      status := 1
+      stdout := ""
+      stderr := diagnostic "missing-planning-artifact" selection.id.value
+        ("planned test " ++ toString (index + 1))
+    }
+  | .invalidExecutionHandoff failure => {
+      status := 1
+      stdout := ""
+      stderr := diagnostic "invalid-execution-handoff" selection.id.value
+        (failure.kind.name ++ ":" ++ failure.category)
+    }
 
+/--
+Resolve exactly one named selection and produce its canonical manifest and artifacts without I/O.
+Unknown selections, invalid arguments, missing planning artifacts, or invalid execution handoffs
+return status one and no batch.
+-/
 def runGenerator
     (selections : List NamedTestSelection)
     (args : List String) : GeneratorResult :=
@@ -229,13 +245,27 @@ def runGenerator
         "expected <selection> --output <directory>"
     }
 
+/-- Run pure generation against the closed production selection set. -/
 def runCli (args : List String) : GeneratorResult := runGenerator productionSelections args
 
+/--
+Publish one generated batch. The output root owns `manifest.json` and the entire `tests/` subtree;
+the subtree is replaced before files are written, and the new manifest is published last.
+-/
 def writeBatch (batch : GeneratedBatch) : IO Unit := do
   let root := System.FilePath.mk batch.outputRoot
+  let testsRoot := root / "tests"
   IO.FS.createDirAll root
-  IO.FS.createDirAll (root / "tests")
+  if ← testsRoot.pathExists then
+    let metadata ← testsRoot.symlinkMetadata
+    if metadata.type == .dir then
+      IO.FS.removeDirAll testsRoot
+    else
+      IO.FS.removeFile testsRoot
+  IO.FS.createDirAll testsRoot
   for file in batch.files do
-    IO.FS.writeFile (root / file.path) file.contents
+    if file.path != "manifest.json" then
+      IO.FS.writeFile (root / file.path) file.contents
+  IO.FS.writeFile (root / "manifest.json") batch.manifest
 
 end Temporal.Tool.GenerateTests
