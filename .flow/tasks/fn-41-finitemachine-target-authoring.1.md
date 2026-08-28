@@ -44,6 +44,7 @@ Added the public Umpire Target `FiniteMachine` adapter, deriving complete member
 
 baseline: red (`cd model && mise exec -- lake build ...` failed pre-edit because the task-owned `Umpire.Target.Tests.FiniteMachine` module did not yet exist); pre-edit `make umpire-check-regression` and `make lint-model` were green.
 stage: impl-review - ran [2026-08-28T19:30Z..2026-08-28T19:37Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: da7c593e9e29b82d8051ca5f4d496c25af476e55, a329435dfe75498a533a62b31174b4537bc94dcd
 - Tests: cd model && mise exec -- lake build Umpire.Target.ImportTests Umpire.Target.Tests.FiniteMachine Umpire.TargetTests, cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine Umpire.TargetTests Temporal.Feature.Nexus.LifecycleTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests, make umpire-check-regression, make lint-model, rg -n '(sorry|admit)' model/Umpire/Target/FiniteMachine.lean model/Umpire/Target/Tests/FiniteMachine.lean
