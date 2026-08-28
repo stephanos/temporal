@@ -15,6 +15,10 @@ Persist the output of Observation Evaluation and the separate Run Evaluation Res
 - Implement exactly the parent Evidence/Result formats, top-level/nested field order,
   ArtifactBinding/provenance/checksum formulas, nullable fields, closed diagnostics, and independent
   status matrix.
+- Encode only the parent's explicit projections of Model values/coordinates/traces, Observation
+  plan/vocabulary/dispositions/diagnostics, Evidence Links, Implementation Link records/diagnostics,
+  clause/property verdicts, Query summary, staged Limits, Known Gaps, and cleanup; do not serialize
+  Lean constructors or add an open diagnostic payload.
 - An accepted Observation Result carries one complete Evidence-backed Model Trace and an Evidence Link for every established Model Fact.
 - Unknown, conflict, and unsupported results carry diagnostics and no partial Model Trace.
 - Result binds exact Artifacts and keeps operational, Observation Evaluation, Implementation Link, Property, Known Gap, Limit, and cleanup outcomes independent.
@@ -32,6 +36,9 @@ Persist the output of Observation Evaluation and the separate Run Evaluation Res
 - [ ] Transport never maps raw Evidence, applies an Implementation Link, evaluates a Property, or assesses a claim.
 - [ ] Every invalid observation/link/property/semantic/evaluation-checksum/nullability combination
   rejects while valid operational-failure and semantic-non-success combinations remain admissible.
+- [ ] Field-order and canonical-order mutations cover every nested projection; Go admits the exact
+  Lean bytes without knowing how Observation Evaluation, Implementation Link, or Property results
+  were computed.
 
 ### Quick command
 

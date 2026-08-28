@@ -18,9 +18,9 @@
   "id": "fn-18-versioned-umpire-artifact-boundary",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
-  "plan_review_status": "needs_work",
-  "plan_reviewed_at": "2026-08-28T15:21:56.415631Z",
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-28T15:34:50.164840Z",
   "review_attempts": [
     {
       "artifact_sha256": "377309804af823d092b692b44556efff5cc2f3532523e3db3365c82b9c339b74",
@@ -434,11 +434,104 @@
       "timestamp": "2026-08-28T15:21:56.404507Z",
       "tool_calls": 54,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c3cfc3a215d7357af3b28f82082b9fa01c7221ded2e9af35a0df8ddb3c0c0727",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "259cac6843fca2855b88a0e5fdb2e033a99e11d8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1335,
+      "output_sha256": "ca0f01acbf90d07fa24aa7c7ba544caaa9d58ca0bc4001f74775879556f6d27d",
+      "reservation_id": "a06403eefd6d4d4685457bad8cade922",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T15:30:57.452263Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "f8dc46f066d09318be3d98d7c8263612b4d9b17d7817588c69168f1ded623f88",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "259cac6843fca2855b88a0e5fdb2e033a99e11d8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 881,
+      "output_sha256": "3a153d6ce3f25389503b3c89d8156bbf5ea3f2ea435730a1418bcbdb824cddfc",
+      "reservation_id": "a5deaf6d72e943d99f9e453fa7c38f5e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T15:34:00.603286Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "13f0eb43e4688c273246f0a3d63e7d7d9db899e9be6c8aadae434ed7d0fbe437",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "259cac6843fca2855b88a0e5fdb2e033a99e11d8",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 83,
+      "output_sha256": "40d2d19134681e086a006dfc0c8bb45ef809e3140d67088c1eab2d9a33648691",
+      "reservation_id": "92e809d553fc483c9fb3dbbca2c1cc2c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-28T15:34:50.160362Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-18-versioned-umpire-artifact-boundary.1": 2,
-    "plan": 2,
+    "plan": 3,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
@@ -461,5 +554,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T15:28:04.522711Z"
+  "updated_at": "2026-08-28T15:34:50.165274Z"
 }
