@@ -237,6 +237,7 @@ def SpaceCheckContext.ofQuery
 }
 
 structure CheckedExperimentSpace (LawStatement : LawDefinition → Prop) where
+  private mk ::
   id : DefinitionId
   source : SourceLocation
   version : Nat

@@ -7,6 +7,13 @@ namespace Umpire.SpaceTests
 
 open Umpire
 
+/-! A caller cannot forge stale checked Space fields while retaining an old semantic digest. -/
+/--
+error: Unknown constant `Umpire.CheckedExperimentSpace.mk`
+-/
+#guard_msgs (error, substring := true) in
+#check Umpire.CheckedExperimentSpace.mk
+
 def metadataResult : Except SpaceMetadataError CheckedSpaceMetadata :=
   projectCheckedSpaceMetadata checked
 
