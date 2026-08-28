@@ -40,9 +40,12 @@ Implement the reusable exact-assignment lowering seam and complete Cartesian bat
 - [ ] Every error carries the first canonical point identity with no partial output.
 
 ## Done summary
-TBD
+Implemented exact canonical Space point lowering and atomic complete-batch compilation through the existing Behavior, Query, Artifact-intent, and proof-carrying planning seams. The compiler transports one caller-owned kernel, preserves target-owned artifact fields, emits deterministic canonical errors/bytes, rejects every non-artifact point without partial output, and prevents derived identity collisions.
 
+Baseline was green for existing Validation, Metadata, Switch, aggregate, and regression targets; Compilation was the expected pre-feature target owned by this task and now passes. Final verification passes Validation, Compilation, Metadata, Switch, the combined focused suites (including Intent and Determinism), the 118-job aggregate, and the 152-job regression gate. `Temporal.Feature.Nexus.Examples.VariationSpaceTests` remains the explicitly expected task .5 absence; no scope-violating stub was added. Gate receipts were non-blockingly unavailable because the preserved unrelated `.plans/UMPIRE4_ORDER.md` diff keeps the worktree dirty. Review fixed universal derived-identity freshness and returned SHIP; optional memory capture was non-blockingly unavailable because memory is not initialized.
+
+stage: impl-review - ran [2026-08-28T01:56:09Z..2026-08-28T02:07:04Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5f1f4730ebe793975db6c925112da5f2261f0c10, 7a13ebd9a3359d782b93d1889fed4b46afb21e48
+- Tests: cd model && mise exec -- lake build Umpire.Space.Tests.Validation, cd model && mise exec -- lake build Umpire.Space.Tests.Compilation, cd model && mise exec -- lake build Umpire.Space.Tests.Metadata, cd model && mise exec -- lake build Umpire.Examples.SwitchTests, cd model && mise exec -- lake build Umpire.Space.Tests.Validation Umpire.Space.Tests.Intent Umpire.Space.Tests.Metadata Umpire.Space.Tests.Compilation Umpire.Space.Tests.Determinism Umpire.Examples.SwitchTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, EXPECTED_FUTURE_TARGET: cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.VariationSpaceTests - absent for task .5
 - PRs:
