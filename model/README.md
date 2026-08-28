@@ -75,6 +75,8 @@ Model scenarios use three separate but composable forms:
   planner may drive. Outcomes and observations remain owned by the target model.
 - A `Query` combines checked Properties and Behavior with explicit Limits and a deterministic
   planning policy: what bounded search should find or verify.
+- A `Space` composes one checked Query with finite choices, request-only faults, and seek-only
+  coverage goals: which canonical points may be lowered or compiled as one atomic batch.
 
 Their shared substrate is a checked Target. A family maintainer records explicit states, actions,
 outcomes, transitions, capabilities, laws, and optional finite planning in a `TargetDefinition`,
@@ -82,7 +84,8 @@ adds each provider or connector through the sealed `TargetComposition` builder, 
 `AuthoredTarget.make` once. `checkTarget` returns a checked value or a source-located diagnostic.
 Ordinary Property, Behavior, and Query authors consume that value through their `ofTarget`
 adapters without assembling provider or connector collections, completeness records, finite
-ordering, or planner kernels.
+ordering, or planner kernels. Space authors start from the resulting checked Query rather than
+redeclaring any target, Property, Behavior, or planner semantics.
 
 Learn these forms in increasing order of domain and composition complexity:
 
@@ -108,7 +111,10 @@ Learn these forms in increasing order of domain and composition complexity:
 7. [`Temporal.ImplementationLinkTests.Nexus`](Temporal/ImplementationLinkTests/Nexus.lean) composes
    accepted synthetic System traces through that checked link and keeps Observation, Implementation
    Link, and Property mutations at their responsible boundaries.
-8. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
+8. [`Nexus.Experimental.VariationSpace`](Temporal/Feature/Nexus/Experimental/VariationSpace.lean)
+   is the opt-in two-by-two proof for finite Space authoring and atomic batch compilation over the
+   ordinary Lifecycle and Operations model.
+9. [`Nexus.Experimental.AutoClose`](Temporal/Feature/Nexus/Experimental/AutoClose.lean) and
    [`Nexus.Experimental.CallerClosure`](Temporal/Feature/Nexus/Experimental/CallerClosure.lean)
    are explicit opt-in material for the detailed AutoClose proofs and inspectable Workflow–Nexus
    caller-closure regression. They are not part of the ordinary Feature learning surface.
@@ -118,9 +124,43 @@ mechanisms, and `Temporal/Tool/Inspect.lean` owns the inspector registry. The or
 `Temporal.Feature` facade exports `Nexus.Lifecycle`, `Nexus.Operations`, and `Nexus.Observation` but
 no Experimental module. Those core walkthroughs compile directly and deliberately are not
 registered with the inspector; the inspector explicitly opts into the experimental caller-closure
-regression. The resulting `DrivePlan` and `ExperimentSpec` values are pure model artifacts: they
-describe selected requests, model-owned outcomes, and semantic observations. They do not start a
-Temporal server or execute Nexus operations.
+regression. VariationSpace is likewise explicit opt-in proof material and is not exported from the
+ordinary Feature facade. The resulting `DrivePlan` and `ExperimentSpec` values are pure model
+artifacts: they describe selected requests, model-owned outcomes, and semantic observations. They
+do not start a Temporal server or execute Nexus operations.
+
+## Authored variation Spaces
+
+Import `Umpire.Space` for the reusable package. This copyable check follows the checked-in Temporal
+proof without moving it onto the ordinary Lifecycle/Operations learning surface:
+
+```lean
+import Umpire.Space
+import Temporal.Feature.Nexus.Experimental.VariationSpace
+
+open Umpire
+open Temporal.Feature.Nexus.Experimental.VariationSpace
+
+#check declaration     -- ExperimentSpaceDeclaration
+#check checkedResult   -- Except SpaceError (CheckedExperimentSpace LawStatement)
+#check metadataResult  -- Except SpaceMetadataError CheckedSpaceMetadata
+#check batchResult     -- Except SpaceCompilationError (List ExperimentSpec)
+```
+
+`declaration` adds two independent two-choice fault axes to the checked two-action Lifecycle Query.
+`checkExperimentSpace context declaration` produces the complete `checked` Space or one typed
+error. `projectCheckedSpaceMetadata checked` produces `metadataResult`, the canonical in-memory
+input fn-5 will later aggregate. `compileBatch checked checkedKernel` produces `batchResult`: exactly
+four canonically ordered `ExperimentSpec`s or no batch on the first canonical point error. The
+proof-carrying `checkedKernel` is derived from the existing Lifecycle kernel; Space does not create
+a second planner or target.
+
+The base Properties remain pure. The start-delay and completion-handler-failure declarations ask a
+future runtime to attempt faults at named required occurrences; they do not author an outcome or
+prove realization. The unchanged target kernel supplies the started and succeeded outcomes in all
+four specs. Coverage goals state what later exploration should seek, but this batch compiler neither
+scores coverage nor selects a campaign. `lowerSpacePoint` and those checked goals are later C8
+inputs; execution, persisted decoding, evidence, and conformance remain separate work.
 
 ## Offline Observation
 

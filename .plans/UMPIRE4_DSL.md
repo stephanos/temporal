@@ -16,12 +16,13 @@ remain in [`UMPIRE_VISION.md`](UMPIRE_VISION.md).
 
 The model provides one Lean-owned semantic authority for reusable properties, constrained behavior,
 bounded questions, executable experiment artifacts, and evidence interpretation. It separates four
-authoring jobs:
+semantic authoring jobs and one bounded composition job:
 
 1. **Property** defines what must hold.
 2. **Behavior** defines which Model Traces are admissible.
 3. **Query** states what the planner or runner must establish.
 4. **Observation** defines how raw evidence establishes semantic observations.
+5. **Space** composes one checked Query into finite choices, requested faults, and coverage goals.
 
 These languages share typed vocabulary but lower to separate internal forms. They do not form one
 universal instruction tree.
@@ -30,9 +31,13 @@ universal instruction tree.
 property + behavior + query + checked target
                     |
                     v
-             bounded planner
-                    |
-             ExperimentSpec
+               checked query
+                 |      |
+                 |      +-> authored space -> checked points
+                 |                         |
+                 +------ bounded planner <-+
+                              |
+                       ExperimentSpec(s)
                     |
         +-----------+-----------+
         |                       |
@@ -48,14 +53,15 @@ property + behavior + query + checked target
                             property verdicts
 ```
 
-The implemented current-model path ends at deterministic `ExperimentSpec` inspection. Runtime
+The implemented current-model path ends at deterministic `ExperimentSpec` compilation and
+inspection. Runtime
 execution, live Observation Evaluation, replay, promotion, and deployment Claim Assessment are
 separate integration work and must preserve the same Behavior Fingerprints.
 
 ## Core decisions
 
 - Lean is the sole authority for behavioral meaning in this model pipeline.
-- Properties, behaviors, queries, and observations have separate responsibilities and types.
+- Properties, behaviors, queries, Spaces, and observations have separate responsibilities and types.
 - Properties are pure, portable, and capability-scoped; they never mention evidence sources.
 - Behavior denotes a constrained Model Trace space, not a procedural RPC script.
 - Scenario authoring records requested actions; target semantics owns outcomes.
@@ -71,9 +77,11 @@ separate integration work and must preserve the same Behavior Fingerprints.
   participate in portable planning, artifacts, promotion, or cross-language reuse.
 - Cross-domain composition is checked in the semantic model before authoring; runtime code cannot
   invent an unproved `Combine` operation.
-- Property, Behavior, and Query are the only public scenario and question languages. A checked
-  Target is their shared semantic-model substrate, not a fourth language; obsolete combined
-  regression structures and compatibility facades must not remain as a second interface.
+- Property, Behavior, and Query remain the only public scenario and question languages. A checked
+  Target is their shared semantic-model substrate, not a fourth language. Space is a narrow finite
+  composition package over one checked Query, not a second Behavior, Query, Property, planner, or
+  outcome language; obsolete combined regression structures and compatibility facades must not
+  remain as another interface.
 - Umpire remains Temporal-agnostic while its interfaces are selected and deepened around problems
   demonstrated by Temporal.
 - `Temporal.Feature` owns product meaning and `Temporal.System` owns implementation meaning. Both
@@ -91,7 +99,8 @@ The catalog contains typed declarations for:
 - model modules, interfaces, compositions, and targets;
 - resources, entities, states, finite attributes, and relations;
 - inputs, outputs, actions, faults, and semantic observations;
-- properties, behaviors, queries, and observation mappings; and
+- properties, behaviors, queries, Spaces, axes, choices, fault intents, coverage goals, and
+  observation mappings; and
 - stable identities, documentation metadata, provenance, and Behavior Fingerprints.
 
 Mechanical Protobuf declarations and dynamic-configuration catalogs provide structure. They do not
@@ -160,9 +169,8 @@ language and cannot be planned, serialized, promoted, or presented as portable d
 ## Behavior language
 
 A behavior defines admissible Model Traces. It owns symbolic resources, semantic setup,
-allowed/required/forbidden actions, named occurrences, finite variation, partial ordering,
-occurrence Limits, fault intents, and explicit Known Gaps. It does not decide whether a trace is
-correct.
+allowed/required/forbidden actions, named occurrences, partial ordering, occurrence Limits, and
+explicit Known Gaps. It does not decide whether a trace is correct.
 
 ```lean
 behavior callerClosure where
@@ -199,9 +207,10 @@ Ordering is over semantic actions, not network, scheduler, storage, or goroutine
 selects and records a deterministic linear extension of each valid partial order. Adding constraints
 can only narrow the denoted trace space.
 
-A semantic fault request declares a required control capability. Execution must return a realization
-receipt linked to the intercepted occurrence. A request is never evidence that the fault happened;
-missing or misdirected realization is execution divergence.
+A semantic fault request is attached by a checked Space to one named required Behavior occurrence
+and declares a required target capability. Execution must return a realization receipt linked to
+the intercepted occurrence. A request is never evidence that the fault happened; missing or
+misdirected realization is execution divergence.
 
 ## Query and planning
 
@@ -230,6 +239,29 @@ The first planner is a deterministic, lazy, bounded Lean enumerator behind a rep
 Strategies and seeds are query policy, not property or behavior semantics. Query identity covers
 resolved declarations, consumed Behavior Fingerprints, expanded Limits, target composition, strategy,
 and seed.
+
+## Authored variation Space
+
+Space is a finite composition package above an existing checked Query. An
+`ExperimentSpaceDeclaration` has one to eight canonically ordered axes, two to sixteen choices per
+axis, at most twelve fault intents, and one to sixty-four seek-only coverage goals; the Cartesian
+product is bounded at 256 points. Each axis may bind one existing Behavior role to checked semantic
+values, select declared faults, or include one baseline choice with no effect. It does not copy or
+replace the base Property, Behavior, Query, target, or planner.
+
+`checkExperimentSpace` returns one complete `CheckedExperimentSpace` or one typed canonical error.
+`projectCheckedSpaceMetadata` returns the canonical source-backed `CheckedSpaceMetadata` that fn-5
+later consumes for catalog aggregation; it neither persists a registry nor implements list/explain.
+`lowerSpacePoint` rechecks the derived Behavior and Query for one exact assignment, produces checked
+Artifact intent, and retains proof that the target is unchanged. `compileBatch` transports the same
+caller-owned target-indexed kernel across every point and returns either every canonical
+`ExperimentSpec` or no partial batch.
+
+Faults remain requested attempts, never authored outcomes, receipts, realization, or success.
+Target-owned planning supplies outcomes and resulting states. Coverage goals state what later C8
+exploration should seek; Space does not score traces, select a campaign, accumulate coverage state,
+execute a runtime, decode persisted artifacts, or evaluate conformance. Property remains pure and
+cannot consume requested-fault or coverage metadata.
 
 ### Planning results
 
@@ -311,8 +343,8 @@ internal representations.
 | --- | --- |
 | API catalog | Mechanical Protobuf structure and field disposition |
 | Config catalog | Keys, types, defaults, precedence, scope, and classification |
-| Semantic catalog | Lean-owned vocabulary, Targets, Properties, observations, and Behavior Fingerprints |
-| Regression/space | Named behavior and exploration declarations |
+| Semantic catalog | Lean-owned vocabulary, Targets, Properties, checked Space metadata, observations, and Behavior Fingerprints |
+| Regression/space | Named Behavior, Query, and finite Space declarations |
 | ExperimentSpec | Environment-independent bounded execution intent |
 | ExperimentRun | One environment-specific realization with controls and cleanup |
 | Raw evidence | Typed facts, receipts, source positions, causality, and Known Gaps |
@@ -338,10 +370,11 @@ The stable component responsibilities are:
 | Formal checking | Model target and Limits to receipt or counterexample |
 | Claim Assessment | Spec and authorized profile to environment-evaluated Result |
 
-The current implementation integrates structural import, authoring, finite planning, and
-deterministic `umpire-experiment/v2` inspection. Go runtimes and richer Umpire3 assurance machinery
-are useful independent baselines, but they are not integrated until they consume this artifact and
-preserve its Behavior Fingerprints. Implementation status and task sequencing belong in Flow-Next.
+The current implementation integrates structural import, authoring, finite Space batch compilation,
+finite planning, and deterministic `umpire-experiment/v2` inspection. Go runtimes and richer Umpire3
+assurance machinery are useful independent baselines, but they are not integrated until they consume
+this artifact and preserve its Behavior Fingerprints. Implementation status and task sequencing
+belong in Flow-Next.
 
 ## Package architecture
 
@@ -352,11 +385,13 @@ modules:
                  +-> Umpire.Property -+
 Umpire.Core -----+-> Umpire.Behavior -+-> Umpire.Query -> Umpire.Artifact -> Umpire.Planning
                  +-> Umpire.Search ---+
+                                                 +-------------> Umpire.Space
 ```
 
 `Property`, `Behavior`, and `Search` depend only on Core. Query is the first layer that combines
 properties and behavior. Artifact owns portable plans/specs; Planning owns enumeration and private
-completion authority. Callers cannot manufacture a verified result.
+completion authority. Space composes Language, checked Artifact intent, metadata, point lowering,
+and Planning behind one facade. Callers cannot manufacture a verified result.
 
 Public facade modules such as `Umpire.Property` hide cohesive implementation directories. The
 generic switch example lives under `Umpire.Examples`. No production or test file under
@@ -441,6 +476,8 @@ Focused checks must cover:
 - capability composition, connector conflicts, and undeclared access;
 - property denotation/evaluator agreement and typed Limits;
 - behavior contradictions, exactness, monotonic narrowing, and deterministic planning;
+- Space bounds, canonical assignments, request-only faults, seek-only goals, checked metadata,
+  point lowering, and atomic batch failure;
 - complete-search, unsatisfiable, exhausted, invalid, and anti-forgery outcomes;
 - canonical artifacts, stable identities, Behavior Fingerprints, and deterministic ordering;
 - evidence closure, gaps, ambiguity, conflict, causality, field disposition, and Evidence Links;
