@@ -233,6 +233,10 @@ def empty (query : CheckedQuery LawStatement) : ArtifactIntent := {
   additionalCapabilityRequirementDefinitionIds := []
 }
 
+/-- Canonical semantic values for the selected role bindings, retaining one value per role. -/
+def selectedVariantValues (intent : ArtifactIntent) : List ModelValue :=
+  intent.selectedVariants.map RoleBinding.value |>.mergeSort valueLe
+
 /-- Recheck that intent still belongs to the exact Query closure that will be planned. -/
 def validateFor
     (intent : ArtifactIntent)
@@ -455,6 +459,9 @@ def ExperimentSpec.withArtifactIntent
     (query : CheckedQuery LawStatement)
     (intent : ArtifactIntent) : Except ArtifactIntentError ExperimentSpec := do
   intent.validateFor query
+  if !spec.plan.hasValidArtifactChecksum || !spec.hasValidArtifactChecksum then
+    throw (artifactIntentError .identityDrift spec.plan.queryDefinitionId
+      [spec.plan.queryDefinitionId, query.id])
   if !artifactMatchesQuery query spec then
     throw (artifactIntentError .identityDrift spec.plan.queryDefinitionId
       [spec.plan.queryDefinitionId, query.id])
@@ -480,7 +487,7 @@ def ExperimentSpec.withArtifactIntent
     spec.plan with
     artifactChecksum := drivePlanChecksumOf ""
     selectedChoices := canonicalValues intent.selectedChoices
-    selectedVariants := canonicalValues (intent.selectedVariants.map RoleBinding.value)
+    selectedVariants := intent.selectedVariantValues
     requestedFaults := canonicalValues requestedFaults
     capabilityRequirementDefinitionIds := canonicalIds
       (spec.plan.capabilityRequirementDefinitionIds ++
