@@ -35,6 +35,7 @@ Create the Temporal production helper seam and migrate the repeated Nexus constr
 Added the internal `Temporal.Shared` construction seam over `Umpire.Shared` and routed the Lifecycle, Operations, Observation, and experimental Caller Closure facades through it without moving their public declarations or feature meaning. Source identity, metadata defaults, canonical behavior, comments, pretty-printed fixtures, and generated/serialized values remain unchanged; focused and aggregate builds, model lint, and regression pass.
 
 stage: impl-review - ran (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 254da06dfd4c01795c59aeb69b29d8e9207346c0
 - Tests: baseline: green via handoff (green verified at 1bd59b4b3 by fn-38-consolidate-layered-model-helpers.3), git diff --check, cd model && mise exec -- lake build Temporal.Shared Temporal.Feature.Nexus.Lifecycle Temporal.Feature.Nexus.Operations Temporal.Feature.Nexus.Observation Temporal.Feature.Nexus.Experimental.CallerClosure, cd model && mise exec -- lake build TemporalModelTests TemporalExperimentalTests, Temporal.Shared boundary scan: imports only Umpire.Shared; no Temporal.Shared.Test exists, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests temporal-model-inspect, make lint-model, make umpire-check-regression
