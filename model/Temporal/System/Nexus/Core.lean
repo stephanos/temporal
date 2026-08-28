@@ -206,55 +206,19 @@ def stepResults
     List (TransitionResult ModelValue ModelValue ModelValue) :=
   (stepResult? state action).toList
 
-def authoritativeInitial (setup : ExecutionSetup) (state : ModelValue) : Prop :=
-  state ∈ initialStates setup
-
-def authoritativeStep
-    (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
-  result ∈ stepResults state action
-
-theorem initialStates_sound
+private theorem initialStates_cases
     (setup : ExecutionSetup)
     (state : ModelValue)
     (member : state ∈ initialStates setup) :
-    authoritativeInitial setup state :=
-  member
-
-theorem initialStates_complete
-    (setup : ExecutionSetup)
-    (state : ModelValue)
-    (admitted : authoritativeInitial setup state) :
-    state ∈ initialStates setup :=
-  admitted
-
-theorem stepResults_sound
-    (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
-    (member : result ∈ stepResults state action) :
-    authoritativeStep state action result :=
-  member
-
-theorem stepResults_complete
-    (state action : ModelValue)
-    (result : TransitionResult ModelValue ModelValue ModelValue)
-    (admitted : authoritativeStep state action result) :
-    result ∈ stepResults state action :=
-  admitted
-
-theorem authoritativeInitial_cases
-    (setup : ExecutionSetup)
-    (state : ModelValue)
-    (admitted : authoritativeInitial setup state) :
     (setup = queuedSetup ∧ state = queuedState) ∨
       (setup = runningSetup ∧ state = runningState) := by
   cases setup <;>
-    simp_all [authoritativeInitial, initialStates, initialState?, queuedSetup, runningSetup]
+    simp_all [initialStates, initialState?, queuedSetup, runningSetup]
 
-theorem authoritativeStep_cases
+private theorem stepResults_cases
     (state action : ModelValue)
     (result : TransitionResult ModelValue ModelValue ModelValue)
-    (admitted : authoritativeStep state action result) :
+    (member : result ∈ stepResults state action) :
     (state = queuedState ∧ action = dispatchAction ∧ result = dispatchedResult) ∨
       (state = runningState ∧ action = recordCancellationAction ∧
         result = cancellationRecordedResult) ∨
@@ -277,50 +241,48 @@ theorem authoritativeStep_cases
     · subst action
       left
       refine ⟨rfl, rfl, ?_⟩
-      simpa [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-        transitionResult?, step] using admitted
+      simpa [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step]
+        using member
     · by_cases cancel : action = recordCancellationAction
       · subst action
-        simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-          transitionResult?, step, cancel_ne_dispatch] at admitted
+        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          cancel_ne_dispatch] at member
       · by_cases complete : action = recordCompletionAction
         · subst action
-          simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-            transitionResult?, step, complete_ne_dispatch, complete_ne_cancel] at admitted
-        · simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-            transitionResult?, step, dispatch, cancel, complete] at admitted
+          simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+            complete_ne_dispatch, complete_ne_cancel] at member
+        · simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+            dispatch, cancel, complete] at member
   · by_cases running : state = runningState
     · subst state
       by_cases cancel : action = recordCancellationAction
       · subst action
         right; left
         refine ⟨rfl, rfl, ?_⟩
-        simpa [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-          transitionResult?, step, running_ne_queued, cancel_ne_dispatch] using admitted
+        simpa [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          running_ne_queued, cancel_ne_dispatch] using member
       · by_cases complete : action = recordCompletionAction
         · subst action
           right; right
           refine ⟨rfl, rfl, ?_⟩
-          simpa [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-            transitionResult?, step, running_ne_queued, complete_ne_dispatch,
-            complete_ne_cancel] using admitted
+          simpa [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+            running_ne_queued, complete_ne_dispatch, complete_ne_cancel] using member
         · by_cases dispatch : action = dispatchAction
           · subst action
-            simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-              transitionResult?, step, running_ne_queued] at admitted
-          · simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-              transitionResult?, step, running_ne_queued, dispatch, cancel, complete] at admitted
+            simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?,
+              step, running_ne_queued] at member
+          · simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?,
+              step, running_ne_queued, dispatch, cancel, complete] at member
     · by_cases canceled : state = cancellationRecordedState
       · subst state
-        simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-          transitionResult?, step, canceled_ne_queued, canceled_ne_running] at admitted
+        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          canceled_ne_queued, canceled_ne_running] at member
       · by_cases completed : state = completionRecordedState
         · subst state
-          simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-            transitionResult?, step, completed_ne_queued, completed_ne_running,
-            completed_ne_canceled] at admitted
-        · simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-            transitionResult?, step, queued, running, canceled, completed] at admitted
+          simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+            completed_ne_queued, completed_ne_running, completed_ne_canceled] at member
+        · simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+            queued, running, canceled, completed] at member
 
 def setups : List ExecutionSetup := [queuedSetup, runningSetup]
 def states : List ModelValue :=
@@ -332,9 +294,172 @@ def outcomes : List ModelValue :=
 def observations : List ModelValue :=
   [runningObservation, cancellationRecordedObservation, completionRecordedObservation]
 
-def transitionKernel : TransitionKernel
+def finiteMachine : FiniteMachine
     ExecutionSetup ModelValue ModelValue ModelValue ModelValue := {
   metadata := { id := kernelId, source }
+  setups
+  states
+  actions
+  outcomes
+  observations
+  encodeSetup := fun setup => match setup with
+    | .queued => "queued"
+    | .running => "running"
+  encodeState := fun value => value.definitionId.value ++ ":" ++ value.value
+  encodeAction := fun value => value.definitionId.value ++ ":" ++ value.value
+  encodeOutcome := fun value => value.definitionId.value ++ ":" ++ value.value
+  encodeObservation := fun value => value.definitionId.value ++ ":" ++ value.value
+  initialStates := initialStates
+  steps := stepResults
+  setupCoverage := by
+    intro setup state member
+    rcases initialStates_cases setup state member with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;>
+      simp [setups]
+  initialStateCoverage := by
+    intro setup state member
+    rcases initialStates_cases setup state member with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;>
+      simp [states]
+  transitionSourceCoverage := by
+    intro state action result member
+    rcases stepResults_cases state action result member with
+      ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;> simp [states]
+  actionCoverage := by
+    intro state action result member
+    rcases stepResults_cases state action result member with
+      ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;> simp [actions]
+  resultingStateCoverage := by
+    intro state action result member
+    rcases stepResults_cases state action result member with
+      ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
+      simp [states, dispatchedResult, cancellationRecordedResult, completionRecordedResult]
+  outcomeCoverage := by
+    intro state action result member
+    rcases stepResults_cases state action result member with
+      ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
+      simp [outcomes, dispatchedResult, cancellationRecordedResult, completionRecordedResult]
+  observationCoverage := by
+    intro state action result observation member observationMember
+    rcases stepResults_cases state action result member with
+      ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
+      simp_all [observations, dispatchedResult, cancellationRecordedResult,
+        completionRecordedResult]
+  actionExecutable := by
+    intro action member
+    simp [actions] at member
+    rcases member with rfl | rfl | rfl
+    · exact ⟨queuedState, dispatchedResult, by
+        change dispatchedResult ∈ stepResults queuedState dispatchAction
+        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          queuedState, dispatchAction]⟩
+    · exact ⟨runningState, cancellationRecordedResult, by
+        change cancellationRecordedResult ∈
+          stepResults runningState recordCancellationAction
+        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          queuedState, runningState, dispatchAction, recordCancellationAction]⟩
+    · exact ⟨runningState, completionRecordedResult, by
+        change completionRecordedResult ∈ stepResults runningState recordCompletionAction
+        simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
+          queuedState, runningState, dispatchAction, recordCancellationAction,
+          recordCompletionAction]⟩
+}
+
+def authoritativeInitial (setup : ExecutionSetup) (state : ModelValue) : Prop :=
+  finiteMachine.kernel.authoritativeInitial setup state
+
+def authoritativeStep
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
+  finiteMachine.kernel.authoritativeStep state action result
+
+theorem initialStates_sound
+    (setup : ExecutionSetup)
+    (state : ModelValue)
+    (member : state ∈ initialStates setup) :
+    authoritativeInitial setup state := by
+  exact finiteMachine.kernel.initialSound setup state member
+
+theorem initialStates_complete
+    (setup : ExecutionSetup)
+    (state : ModelValue)
+    (admitted : authoritativeInitial setup state) :
+    state ∈ initialStates setup := by
+  exact finiteMachine.kernel.initialComplete setup state admitted
+
+theorem stepResults_sound
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (member : result ∈ stepResults state action) :
+    authoritativeStep state action result := by
+  exact finiteMachine.kernel.stepSound state action result member
+
+theorem stepResults_complete
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (admitted : authoritativeStep state action result) :
+    result ∈ stepResults state action := by
+  exact finiteMachine.kernel.stepComplete state action result admitted
+
+theorem authoritativeInitial_cases
+    (setup : ExecutionSetup)
+    (state : ModelValue)
+    (admitted : authoritativeInitial setup state) :
+    (setup = queuedSetup ∧ state = queuedState) ∨
+      (setup = runningSetup ∧ state = runningState) := by
+  exact initialStates_cases setup state (initialStates_complete setup state admitted)
+
+theorem authoritativeStep_cases
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue)
+    (admitted : authoritativeStep state action result) :
+    (state = queuedState ∧ action = dispatchAction ∧ result = dispatchedResult) ∨
+      (state = runningState ∧ action = recordCancellationAction ∧
+        result = cancellationRecordedResult) ∨
+      (state = runningState ∧ action = recordCompletionAction ∧
+        result = completionRecordedResult) := by
+  exact stepResults_cases state action result (stepResults_complete state action result admitted)
+
+private theorem setupDomain_eq :
+    (fun candidate => candidate = queuedSetup ∨ candidate = runningSetup) =
+      finiteMachine.kernel.setupDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine, setups]
+
+private theorem stateDomain_eq :
+    (fun candidate => candidate = queuedState ∨ candidate = runningState ∨
+      candidate = cancellationRecordedState ∨ candidate = completionRecordedState) =
+      finiteMachine.kernel.stateDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine, states]
+
+private theorem actionDomain_eq :
+    (fun candidate => candidate = dispatchAction ∨
+      candidate = recordCancellationAction ∨ candidate = recordCompletionAction) =
+      finiteMachine.kernel.actionDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine, actions]
+
+private theorem outcomeDomain_eq :
+    (fun candidate => candidate = dispatchedOutcome ∨
+      candidate = cancellationRecordedOutcome ∨ candidate = completionRecordedOutcome) =
+      finiteMachine.kernel.outcomeDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine, outcomes]
+
+private theorem observationDomain_eq :
+    (fun candidate => candidate = runningObservation ∨
+      candidate = cancellationRecordedObservation ∨ candidate = completionRecordedObservation) =
+      finiteMachine.kernel.observationDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine, observations]
+
+def transitionKernel : TransitionKernel
+    ExecutionSetup ModelValue ModelValue ModelValue ModelValue := {
+  metadata := finiteMachine.kernel.metadata
   setupDomain := fun candidate => candidate = queuedSetup ∨ candidate = runningSetup
   stateDomain := fun candidate => candidate = queuedState ∨ candidate = runningState ∨
     candidate = cancellationRecordedState ∨ candidate = completionRecordedState
@@ -344,71 +469,27 @@ def transitionKernel : TransitionKernel
     candidate = cancellationRecordedOutcome ∨ candidate = completionRecordedOutcome
   observationDomain := fun candidate => candidate = runningObservation ∨
     candidate = cancellationRecordedObservation ∨ candidate = completionRecordedObservation
-  initialStates
-  authoritativeInitial
-  initialSound := initialStates_sound
-  initialComplete := initialStates_complete
-  steps := stepResults
-  authoritativeStep
-  stepSound := stepResults_sound
-  stepComplete := stepResults_complete
-  behaviorDomain := .complete {
-    setups
-    states
-    actions
-    outcomes
-    observations
-    encodeSetup := fun setup => match setup with
-      | .queued => "queued"
-      | .running => "running"
-    encodeState := fun value => value.definitionId.value ++ ":" ++ value.value
-    encodeAction := fun value => value.definitionId.value ++ ":" ++ value.value
-    encodeOutcome := fun value => value.definitionId.value ++ ":" ++ value.value
-    encodeObservation := fun value => value.definitionId.value ++ ":" ++ value.value
-    setupSound := by intro candidate member; simpa [setups] using member
-    setupComplete := by intro candidate admitted; simpa [setups] using admitted
-    stateSound := by intro candidate member; simpa [states] using member
-    stateComplete := by intro candidate admitted; simpa [states] using admitted
-    actionSound := by intro candidate member; simpa [actions] using member
-    actionComplete := by intro candidate admitted; simpa [actions] using admitted
-    outcomeSound := by intro candidate member; simpa [outcomes] using member
-    outcomeComplete := by intro candidate admitted; simpa [outcomes] using admitted
-    observationSound := by intro candidate member; simpa [observations] using member
-    observationComplete := by intro candidate admitted; simpa [observations] using admitted
-    setupCoverage := by
-      intro setup state member
-      rcases authoritativeInitial_cases setup state member with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;>
-        simp [setups]
-    initialStateCoverage := by
-      intro setup state member
-      rcases authoritativeInitial_cases setup state member with ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩ <;>
-        simp [states]
-    transitionSourceCoverage := by
-      intro state action result member
-      rcases authoritativeStep_cases state action result member with
-        ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;> simp [states]
-    actionCoverage := by
-      intro state action result member
-      rcases authoritativeStep_cases state action result member with
-        ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;> simp [actions]
-    resultingStateCoverage := by
-      intro state action result member
-      rcases authoritativeStep_cases state action result member with
-        ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
-        simp [states, dispatchedResult, cancellationRecordedResult, completionRecordedResult]
-    outcomeCoverage := by
-      intro state action result member
-      rcases authoritativeStep_cases state action result member with
-        ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
-        simp [outcomes, dispatchedResult, cancellationRecordedResult, completionRecordedResult]
-    observationCoverage := by
-      intro state action result observation member observationMember
-      rcases authoritativeStep_cases state action result member with
-        ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ <;>
-        simp_all [observations, dispatchedResult, cancellationRecordedResult,
-          completionRecordedResult]
-  }
+  initialStates := finiteMachine.kernel.initialStates
+  authoritativeInitial := finiteMachine.kernel.authoritativeInitial
+  initialSound := finiteMachine.kernel.initialSound
+  initialComplete := finiteMachine.kernel.initialComplete
+  steps := finiteMachine.kernel.steps
+  authoritativeStep := finiteMachine.kernel.authoritativeStep
+  stepSound := finiteMachine.kernel.stepSound
+  stepComplete := finiteMachine.kernel.stepComplete
+  behaviorDomain := by
+    rw [setupDomain_eq, stateDomain_eq, actionDomain_eq, outcomeDomain_eq,
+      observationDomain_eq]
+    exact finiteMachine.kernel.behaviorDomain
 }
+
+@[simp] private theorem finiteMachine_kernel_initialStates (setup : ExecutionSetup) :
+    finiteMachine.kernel.initialStates setup = initialStates setup :=
+  rfl
+
+@[simp] private theorem finiteMachine_kernel_steps (state action : ModelValue) :
+    finiteMachine.kernel.steps state action = stepResults state action :=
+  rfl
 
 def lifecycleProvider : CapabilityProvider LawStatement := {
   id := lifecycleProviderId
@@ -452,32 +533,12 @@ def definitions : List DefinitionMetadata := [
     "temporal-system-nexus-lifecycle-observation/v1"
 ]
 
-def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
-  actions
-  actionSound := by
-    intro action member
-    simp [actions] at member
-    rcases member with rfl | rfl | rfl
-    · exact ⟨queuedState, dispatchedResult, by
-        change authoritativeStep queuedState dispatchAction dispatchedResult
-        simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-          transitionResult?, step, queuedState, dispatchAction]⟩
-    · exact ⟨runningState, cancellationRecordedResult, by
-        change authoritativeStep runningState recordCancellationAction cancellationRecordedResult
-        simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-          transitionResult?, step, queuedState, runningState, dispatchAction,
-          recordCancellationAction]⟩
-    · exact ⟨runningState, completionRecordedResult, by
-        change authoritativeStep runningState recordCompletionAction completionRecordedResult
-        simp [authoritativeStep, stepResults, stepResult?, executionState?, executionEvent?,
-          transitionResult?, step, queuedState, runningState, dispatchAction,
-          recordCancellationAction, recordCompletionAction]⟩
-  actionComplete := by
-    intro state action result admitted
-    change authoritativeStep state action result at admitted
-    rcases authoritativeStep_cases state action result admitted with
-      ⟨_, rfl, _⟩ | ⟨_, rfl, _⟩ | ⟨_, rfl, _⟩ <;> simp [actions]
-}
+def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep :=
+  finiteMachine.planning
+
+@[simp] private theorem finiteMachine_planning_actions :
+    finiteMachine.planning.actions = actions :=
+  rfl
 
 def targetDefinition : TargetDefinition
     ExecutionSetup ModelValue ModelValue ModelValue ModelValue := {
