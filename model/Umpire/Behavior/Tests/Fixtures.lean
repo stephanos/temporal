@@ -1,4 +1,5 @@
 import Umpire.Behavior
+import Umpire.Shared.Test
 
 /-! Shared semantic vocabulary, traces, and helpers for the Behavior concern tests. -/
 
@@ -6,21 +7,12 @@ namespace Umpire.BehaviorTests
 
 open Umpire
 
-def id (value : String) : DefinitionId := DefinitionId.of value
+def id (value : String) : DefinitionId := Shared.Test.definitionId value
 
-def source : SourceLocation := {
-  path := "Umpire/Behavior/Tests.lean"
-  line := 1
-  column := 1
-  provenance := "lean-test"
-}
+def source : SourceLocation := Shared.Test.sourceLocation "Umpire/Behavior/Tests.lean"
 
-def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
-  id := id value
-  kind
-  source
-  canonicalBehavior := value ++ "/v1"
-}
+def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata :=
+  Shared.Test.definitionMetadata value kind source (value ++ "/v1")
 
 def cancellationCapability : DefinitionId := id "test.capability.cancellation"
 def operationState : DefinitionId := id "test.state.resource-id"
