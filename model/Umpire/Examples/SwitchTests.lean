@@ -1,6 +1,7 @@
 import Umpire.Examples.Switch
 import Umpire.Space.Tests.Compilation
 import Umpire.Space.Tests.Determinism
+import Umpire.Space.Tests.Intent
 import Umpire.Space.Tests.Metadata
 import Umpire.Space.Tests.Validation
 
