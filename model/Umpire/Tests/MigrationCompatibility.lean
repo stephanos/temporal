@@ -326,6 +326,11 @@ example : [
   ] = [some expectedSwitchArtifactJson, some expectedSwitchArtifactJson] := by
   native_decide
 
+/-! The expert route preserves the exact planner result as well as the golden Artifact bytes. -/
+example : earlyRun.result = exactActionRun.result ∧
+    relocatedRun.result = exactActionRun.result := by
+  native_decide
+
 private def wrongKindDefinition : TargetDefinition
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   targetDefinition with requiredCapabilities := [flipActionId]
