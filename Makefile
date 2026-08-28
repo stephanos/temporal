@@ -1112,6 +1112,7 @@ umpire-check-regression: umpire-check-regression-views umpire-check-legacy-vocab
 			exit 1; \
 		}
 	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests $(UMPIRE_REGRESSION_INSPECTOR)
+	@cd model && $(LEAN_LAKE) exe umpire-gen-tests-tests
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \

@@ -42,6 +42,10 @@ name = "umpire-gen-tests"
 root = "Temporal.Tool.GenerateTestsMain"
 
 [[lean_exe]]
+name = "umpire-gen-tests-tests"
+root = "Temporal.Tool.GenerateTestsIOTestsMain"
+
+[[lean_exe]]
 name = "modelLint"
 root = "ModelLint"
 supportInterpreter = true
