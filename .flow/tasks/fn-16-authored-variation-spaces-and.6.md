@@ -45,6 +45,7 @@ Published the narrow reusable `Umpire.Space` facade and umbrella import contract
 Baseline and final Validation, Compilation, Metadata, Switch, Experimental Temporal, umbrella import, aggregate model, model-build, and regression gates passed. Gate receipts were non-blockingly unavailable because the preserved unrelated `.plans/UMPIRE4_ORDER.md` diff keeps the worktree dirty; the final Codex review returned SHIP with no findings.
 
 stage: impl-review - ran [2026-08-28T02:47:51Z..2026-08-28T02:53:49Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 6542970f213a534ce10f619cf95d9611bc1812c4, 60d5b4cf190ffb7b3bbe4ab919ab87e01c2359f3
 - Tests: baseline: green (current Temporal.Feature.Nexus.Experimental.VariationSpaceTests target), cd model && mise exec -- lake build Umpire.ImportTests, cd model && mise exec -- lake build Umpire.Space.Tests.Validation, cd model && mise exec -- lake build Umpire.Space.Tests.Compilation, cd model && mise exec -- lake build Umpire.Space.Tests.Metadata, cd model && mise exec -- lake build Umpire.Examples.SwitchTests, cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.VariationSpaceTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-build-model, make umpire-check-regression
