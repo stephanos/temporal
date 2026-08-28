@@ -49,9 +49,12 @@ Establish the ordinary Nexus newcomer entry point, enforce its non-Experimental 
 - [ ] No out-of-scope Observation, Experimental structure, generated output, runtime, or authoring-language change is present.
 
 ## Done summary
-TBD
+Added the single ordinary `Temporal.Feature.Nexus` entry facade, a facade-only smoke test, exact direct/transitive Experimental import isolation, and a simple-first documentation path through Lifecycle, the three operations, Observation, System correspondence, and advanced Experimental navigation. AutoClose, Observation, generated views, canonical fixtures, public identities, artifacts, and runtime behavior remain unchanged; all final acceptance, regression, and model-lint gates pass.
 
+baseline: red (`cd model && mise exec -- lake build Temporal.Feature.NexusTests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests` failed pre-edit because the task-created `Temporal.Feature.NexusTests` target did not yet exist); pre-edit regression and model lint were green
+
+stage: impl-review - ran [2026-08-28T23:02:39Z..2026-08-28T23:05:54Z] (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 03aa539f6d6ecc23bbb759b19b7f1be6a6d649ea
+- Tests: baseline: red (cd model && mise exec -- lake build Temporal.Feature.NexusTests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests failed pre-edit because Temporal.Feature.NexusTests did not yet exist); make umpire-check-regression and make lint-model were green pre-edit, cd model && mise exec -- lake build Temporal.Feature.NexusTests modelLintTests, cd model && mise exec -- lake exe modelLintTests, cd model && mise exec -- lake build Temporal.Feature.NexusTests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests TemporalExperimentalTests modelLintTests, cd model && mise exec -- lake build Temporal.Feature.NexusTests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.ImplementationLinkTests.Nexus TemporalModelTests, make umpire-check-regression, make lint-model, exact scope/protected-file audit: 10 declared paths only; AutoClose, Observation, generated regressions, six ordinary canonical fixtures, and caller-closure fixture SHA-256 values unchanged; no Nexus Examples directory; inherited symlink targets equal indexed blobs, GREEN_RECEIPT:unittest:03aa539f, GREEN_RECEIPT:smoke:03aa539f
 - PRs:
