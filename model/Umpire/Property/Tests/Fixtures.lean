@@ -1,4 +1,5 @@
 import Umpire.Property
+import Umpire.Shared.Test
 
 /-! Shared semantic vocabulary, context, clauses, traces, and helpers for the Property concern tests. -/
 
@@ -6,21 +7,12 @@ namespace Umpire.PropertyTests
 
 open Umpire
 
-def id (value : String) : DefinitionId := DefinitionId.of value
+def id (value : String) : DefinitionId := Shared.Test.definitionId value
 
-def source : SourceLocation := {
-  path := "Umpire/Property/Tests.lean"
-  line := 1
-  column := 1
-  provenance := "lean-test"
-}
+def source : SourceLocation := Shared.Test.sourceLocation "Umpire/Property/Tests.lean"
 
-def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata := {
-  id := id value
-  kind
-  source
-  canonicalBehavior := value ++ "/v1"
-}
+def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata :=
+  Shared.Test.definitionMetadata value kind source (value ++ "/v1")
 
 def cancellationCapability : DefinitionId := id "test.capability.cancellation"
 def hiddenCapability : DefinitionId := id "test.capability.hidden"

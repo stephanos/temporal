@@ -1,4 +1,5 @@
 import Umpire.Target
+import Umpire.Shared.Test
 
 /-! Shared semantic-composition vocabulary used by the Target concern tests. -/
 
@@ -6,24 +7,15 @@ namespace Umpire.TargetTests
 
 open Umpire
 
-def id (value : String) : DefinitionId := DefinitionId.of value
+def id (value : String) : DefinitionId := Shared.Test.definitionId value
 
-def source (path : String) : SourceLocation := {
-  path
-  line := 1
-  column := 1
-  provenance := "lean-test"
-}
+def source (path : String) : SourceLocation := Shared.Test.sourceLocation path
 
 def metadata
     (value : String)
     (kind : DefinitionKind)
-    (digest : String := "contract-v1") : DefinitionMetadata := {
-  id := id value
-  kind
-  source := source "Umpire/TargetTests.lean"
-  canonicalBehavior := digest
-}
+    (digest : String := "contract-v1") : DefinitionMetadata :=
+  Shared.Test.definitionMetadata value kind (source "Umpire/TargetTests.lean") digest
 
 def providerLaw : LawDefinition := {
   id := id "umpire.law.provider-sound"
