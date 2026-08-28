@@ -51,6 +51,26 @@ private def projectedRunResult : Except ArtifactIntentError PlannerRun :=
 private def projectedSpec : Option ExperimentSpec :=
   projectedRunResult.toOption.bind PlannerRun.artifact
 
+private def intentErrorKindOf
+    (result : Except ArtifactIntentError α) : Option ArtifactIntentErrorKind :=
+  match result with
+  | .ok _ => none
+  | .error error => some error.kind
+
+/-! Distinct role selections preserve repeated semantic values in the projected variant array. -/
+example :
+    let repeatedValueIntent := {
+      checkedIntent with selectedVariants := [
+        selectedVariant,
+        { role := id "switch.role.peer", value := Umpire.Examples.Switch.offState }
+      ]
+    }
+    repeatedValueIntent.selectedVariantValues = [
+      Umpire.Examples.Switch.offState,
+      Umpire.Examples.Switch.offState
+    ] := by
+  native_decide
+
 /-! Checked intent populates the reserved arrays and unions selected fault capabilities. -/
 example : projectedSpec.map (fun spec =>
     (spec.plan.selectedChoices,
@@ -80,11 +100,28 @@ example : projectedSpec.map (fun projected =>
       projected.artifactChecksum != ordinary.artifactChecksum) = some true := by
   native_decide
 
-private def intentErrorKindOf
-    (result : Except ArtifactIntentError α) : Option ArtifactIntentErrorKind :=
-  match result with
-  | .ok _ => none
-  | .error error => some error.kind
+private def changedOccurrencePositions (spec : ExperimentSpec) : List PlannedOccurrence :=
+  spec.plan.linearExtension.map fun occurrence => { occurrence with position := 99 }
+
+private def targetSemanticMutations (spec : ExperimentSpec) : List ExperimentSpec := [
+  { spec with plan := { spec.plan with initialState := Umpire.Examples.Switch.onState } },
+  { spec with plan := { spec.plan with requestedActions := [] } },
+  { spec with plan := { spec.plan with modelOutcomes := [] } },
+  { spec with plan := { spec.plan with resultingStates := [] } },
+  { spec with plan := { spec.plan with linearExtension := changedOccurrencePositions spec } },
+  { spec with plan := { spec.plan with checkpoints := [] } }
+]
+
+/-! Projection never legitimizes stale-checksum mutations of target-owned trace semantics. -/
+example : (targetSemanticMutations Umpire.Examples.Switch.compiledArtifact).all fun mutated =>
+    intentErrorKindOf (mutated.withArtifactIntent Umpire.Examples.Switch.exactActionQuery
+      checkedIntent) == some .identityDrift := by
+  native_decide
+
+private def withValidChecksums (spec : ExperimentSpec) : ExperimentSpec :=
+  let plan := { spec.plan with artifactChecksum := spec.plan.expectedArtifactChecksum }
+  let spec := { spec with plan }
+  { spec with artifactChecksum := spec.expectedArtifactChecksum }
 
 private def duplicateDeclarations : List ArtifactIntentDeclaration := [
   { intentDeclaration with selectedChoices := selectedChoices ++ [{
@@ -136,13 +173,13 @@ Projection resolves faults against the selected linear extension, never only the
 -/
 example :
     let ordinary := Umpire.Examples.Switch.compiledArtifact
-    let missing := {
+    let missing := withValidChecksums {
       ordinary with plan := { ordinary.plan with linearExtension := [] }
     }
     let mismatchedOccurrence := ordinary.plan.linearExtension.map fun occurrence => {
       occurrence with actionDefinitionId := id "switch.action.stale"
     }
-    let mismatched := {
+    let mismatched := withValidChecksums {
       ordinary with plan := { ordinary.plan with linearExtension := mismatchedOccurrence }
     }
     [missing, mismatched].map (fun spec =>
