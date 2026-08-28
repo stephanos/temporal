@@ -1,1 +1,210 @@
-{"formatVersion":"umpire-experiment/v2","queryBehaviorFingerprint":"sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0","plan":{"formatVersion":"umpire-drive-plan/v2","queryDefinitionId":"switch.query.exact-action","queryBehaviorFingerprint":"sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0","behaviorDefinitionId":"switch.behavior.exact-action","behaviorFingerprint":"sha256:6d8401f9c207c29194594a9338797214ae11d223509c88c33be19f380f3174e6","targetDefinitionId":"switch.target.two-state","targetBehaviorFingerprint":"sha256:0443154d4f2860a69590a3d3867f4992ad17024ebf62b424545382c41b871666","kernelDefinitionId":"switch.kernel.two-state","kernelBehaviorFingerprint":"sha256:0443154d4f2860a69590a3d3867f4992ad17024ebf62b424545382c41b871666","bindings":[{"roleDefinitionId":"switch.role.subject","value":{"definitionId":"switch.state.power","value":"off"}}],"symbolicRoles":[],"modelPreconditions":[{"definitionId":"switch.setup.subject-is-off","relation":"equal","left":{"kind":"role","definitionId":"switch.role.subject"},"right":{"kind":"value","value":{"definitionId":"switch.state.power","value":"off"}}}],"initialState":{"definitionId":"switch.state.power","value":"off"},"requestedActions":[{"definitionId":"switch.action.flip","value":"flip"}],"modelOutcomes":[{"definitionId":"switch.outcome.applied","value":"applied"}],"resultingStates":[{"definitionId":"switch.state.power","value":"on"}],"linearExtension":[{"definitionId":"switch.occurrence.flip","actionDefinitionId":"switch.action.flip","position":1,"authoredDefinitionId":"switch.occurrence.flip"}],"selectedChoices":[],"selectedVariants":[],"requestedFaults":[],"capabilityRequirementDefinitionIds":["switch.capability.state"],"expandedLimits":{"behavior":{"transitions":{"value":1,"unit":"semantic-transitions"},"selectedActions":{"value":1,"unit":"selected-actions"}},"search":{"value":8,"unit":"candidate-evaluations"}},"checkpoints":[{"transition":1,"observations":[{"definitionId":"switch.observation.power","value":"on"}]}],"selectionReason":"satisfying-witness","explored":{"setups":1,"traces":2,"transitions":1,"propertyEvaluations":1},"knownGaps":[{"kind":"input","code":"umpire.known-gap.execution-evidence","subject":null,"detail":null},{"kind":"interpretation","code":"umpire.known-gap.artifact-migrations","subject":null,"detail":null},{"kind":"interpretation","code":"umpire.known-gap.artifact-reading","subject":null,"detail":null},{"kind":"interpretation","code":"umpire.known-gap.evidence-evaluation","subject":null,"detail":null},{"kind":"interpretation","code":"umpire.known-gap.runtime-scheduler-order","subject":null,"detail":null},{"kind":"interpretation","code":"umpire.known-gap.runtime-storage-order","subject":null,"detail":null},{"kind":"interpretation","code":"umpire.known-gap.runtime-transport-order","subject":null,"detail":null},{"kind":"claim","code":"umpire.known-gap.promotion","subject":null,"detail":null}],"provenance":{"sourceDefinitionIds":["switch.behavior.exact-action","switch.kernel.two-state","switch.property.flip-turns-on","switch.query.exact-action","switch.target.two-state"],"sourceLocations":[{"path":"Umpire/Examples/Switch.lean","line":1,"column":1,"provenance":"lean-model"}]},"artifactChecksum":"sha256:bfa6866e94636af51a7c0cc39b8637a896b2866c3e7f0214395f0d0d803a2d72"},"properties":[{"definitionId":"switch.property.flip-turns-on","behaviorFingerprint":"sha256:d468cc8254badb7773914f14e152fbaeb4d90d743fc399926de7fcb3741f8522","requirementDefinitionIds":["switch.capability.state"]}],"observationRequirementDefinitionIds":["switch.observation.power"],"provenance":{"sourceDefinitionIds":["switch.behavior.exact-action","switch.kernel.two-state","switch.property.flip-turns-on","switch.query.exact-action","switch.target.two-state"],"sourceLocations":[{"path":"Umpire/Examples/Switch.lean","line":1,"column":1,"provenance":"lean-model"}]},"artifactChecksum":"sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984"}
+{
+  "formatVersion": "umpire-experiment/v2",
+  "queryBehaviorFingerprint": "sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0",
+  "plan": {
+    "formatVersion": "umpire-drive-plan/v2",
+    "queryDefinitionId": "switch.query.exact-action",
+    "queryBehaviorFingerprint": "sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0",
+    "behaviorDefinitionId": "switch.behavior.exact-action",
+    "behaviorFingerprint": "sha256:6d8401f9c207c29194594a9338797214ae11d223509c88c33be19f380f3174e6",
+    "targetDefinitionId": "switch.target.two-state",
+    "targetBehaviorFingerprint": "sha256:0443154d4f2860a69590a3d3867f4992ad17024ebf62b424545382c41b871666",
+    "kernelDefinitionId": "switch.kernel.two-state",
+    "kernelBehaviorFingerprint": "sha256:0443154d4f2860a69590a3d3867f4992ad17024ebf62b424545382c41b871666",
+    "bindings": [
+      {
+        "roleDefinitionId": "switch.role.subject",
+        "value": {
+          "definitionId": "switch.state.power",
+          "value": "off"
+        }
+      }
+    ],
+    "symbolicRoles": [],
+    "modelPreconditions": [
+      {
+        "definitionId": "switch.setup.subject-is-off",
+        "relation": "equal",
+        "left": {
+          "kind": "role",
+          "definitionId": "switch.role.subject"
+        },
+        "right": {
+          "kind": "value",
+          "value": {
+            "definitionId": "switch.state.power",
+            "value": "off"
+          }
+        }
+      }
+    ],
+    "initialState": {
+      "definitionId": "switch.state.power",
+      "value": "off"
+    },
+    "requestedActions": [
+      {
+        "definitionId": "switch.action.flip",
+        "value": "flip"
+      }
+    ],
+    "modelOutcomes": [
+      {
+        "definitionId": "switch.outcome.applied",
+        "value": "applied"
+      }
+    ],
+    "resultingStates": [
+      {
+        "definitionId": "switch.state.power",
+        "value": "on"
+      }
+    ],
+    "linearExtension": [
+      {
+        "definitionId": "switch.occurrence.flip",
+        "actionDefinitionId": "switch.action.flip",
+        "position": 1,
+        "authoredDefinitionId": "switch.occurrence.flip"
+      }
+    ],
+    "selectedChoices": [],
+    "selectedVariants": [],
+    "requestedFaults": [],
+    "capabilityRequirementDefinitionIds": [
+      "switch.capability.state"
+    ],
+    "expandedLimits": {
+      "behavior": {
+        "transitions": {
+          "value": 1,
+          "unit": "semantic-transitions"
+        },
+        "selectedActions": {
+          "value": 1,
+          "unit": "selected-actions"
+        }
+      },
+      "search": {
+        "value": 8,
+        "unit": "candidate-evaluations"
+      }
+    },
+    "checkpoints": [
+      {
+        "transition": 1,
+        "observations": [
+          {
+            "definitionId": "switch.observation.power",
+            "value": "on"
+          }
+        ]
+      }
+    ],
+    "selectionReason": "satisfying-witness",
+    "explored": {
+      "setups": 1,
+      "traces": 2,
+      "transitions": 1,
+      "propertyEvaluations": 1
+    },
+    "knownGaps": [
+      {
+        "kind": "input",
+        "code": "umpire.known-gap.execution-evidence",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.artifact-migrations",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.artifact-reading",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.evidence-evaluation",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-scheduler-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-storage-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-transport-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "claim",
+        "code": "umpire.known-gap.promotion",
+        "subject": null,
+        "detail": null
+      }
+    ],
+    "provenance": {
+      "sourceDefinitionIds": [
+        "switch.behavior.exact-action",
+        "switch.kernel.two-state",
+        "switch.property.flip-turns-on",
+        "switch.query.exact-action",
+        "switch.target.two-state"
+      ],
+      "sourceLocations": [
+        {
+          "path": "Umpire/Examples/Switch.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
+        }
+      ]
+    },
+    "artifactChecksum": "sha256:bfa6866e94636af51a7c0cc39b8637a896b2866c3e7f0214395f0d0d803a2d72"
+  },
+  "properties": [
+    {
+      "definitionId": "switch.property.flip-turns-on",
+      "behaviorFingerprint": "sha256:d468cc8254badb7773914f14e152fbaeb4d90d743fc399926de7fcb3741f8522",
+      "requirementDefinitionIds": [
+        "switch.capability.state"
+      ]
+    }
+  ],
+  "observationRequirementDefinitionIds": [
+    "switch.observation.power"
+  ],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "switch.behavior.exact-action",
+      "switch.kernel.two-state",
+      "switch.property.flip-turns-on",
+      "switch.query.exact-action",
+      "switch.target.two-state"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Umpire/Examples/Switch.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "artifactChecksum": "sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984"
+}

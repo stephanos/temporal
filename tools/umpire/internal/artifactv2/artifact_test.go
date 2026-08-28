@@ -49,6 +49,19 @@ func TestDecodeExperimentAcceptsLeanNaturalAboveUint64(t *testing.T) {
 	require.Equal(t, natural, decoded.Plan.ExpandedLimits.Behavior.Transitions.Value)
 }
 
+func TestCanonicalExperimentBytesUsesStablePrettyJSON(t *testing.T) {
+	var document Experiment
+	require.NoError(t, json.Unmarshal(readRepositoryFile(t,
+		"model/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
+
+	canonical, err := CanonicalExperimentBytes(document)
+	require.NoError(t, err)
+	require.True(t, bytes.HasPrefix(canonical,
+		[]byte("{\n  \"formatVersion\": \"umpire-experiment/v2\",\n")))
+	require.True(t, bytes.HasSuffix(canonical, []byte("\n")))
+	require.False(t, bytes.HasSuffix(canonical, []byte("\n\n")))
+}
+
 func TestDecodeExperimentClassifiesV1BeforeV2Fields(t *testing.T) {
 	encoded := []byte(`{"formatVersion":"umpire-experiment/v1","semanticIdentity":"legacy","plan":null}` + "\n")
 	_, err := DecodeExperiment(encoded)
@@ -57,40 +70,38 @@ func TestDecodeExperimentClassifiesV1BeforeV2Fields(t *testing.T) {
 
 func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
-	oneLine := bytes.TrimSuffix(canonical, []byte{'\n'})
-	reordered := bytes.Replace(
-		oneLine,
-		[]byte(`{"formatVersion":"umpire-experiment/v2","queryBehaviorFingerprint":`),
-		[]byte(`{"queryBehaviorFingerprint":`),
-		1,
-	)
-	reordered = bytes.Replace(
-		reordered,
-		[]byte(`,"plan":`),
-		[]byte(`,"formatVersion":"umpire-experiment/v2","plan":`),
-		1,
-	)
-	pretty := bytes.Replace(oneLine, []byte(`,"queryBehaviorFingerprint"`), []byte(",\n  \"queryBehaviorFingerprint\""), 1)
-	alternateEscape := bytes.Replace(oneLine, []byte("switch.query.exact-action"), []byte(`switch.query.exact\u002daction`), 1)
-	exponent := bytes.Replace(oneLine, []byte(`"position":1`), []byte(`"position":1e0`), 1)
-	legacyKey := bytes.Replace(oneLine, []byte(`"queryDefinitionId"`), []byte(`"queryIdentity"`), 1)
-	unknownKey := bytes.Replace(oneLine, []byte(`{"formatVersion":`), []byte(`{"unknown":true,"formatVersion":`), 1)
-	caseCollision := bytes.Replace(oneLine, []byte(`"queryDefinitionId"`), []byte(`"QueryDefinitionId"`), 1)
+	withoutTerminalLF := bytes.TrimSuffix(canonical, []byte{'\n'})
+	lines := bytes.Split(withoutTerminalLF, []byte{'\n'})
+	require.Greater(t, len(lines), 3)
+	lines[1], lines[2] = lines[2], lines[1]
+	reordered := bytes.Join(lines, []byte{'\n'})
+	var compact bytes.Buffer
+	require.NoError(t, json.Compact(&compact, canonical))
+	compact.WriteByte('\n')
+	differentIndentation := bytes.Replace(withoutTerminalLF,
+		[]byte("  \"formatVersion\""), []byte("    \"formatVersion\""), 1)
+	alternateEscape := bytes.Replace(withoutTerminalLF, []byte("switch.query.exact-action"), []byte(`switch.query.exact\u002daction`), 1)
+	exponent := bytes.Replace(withoutTerminalLF, []byte(`"position": 1`), []byte(`"position": 1e0`), 1)
+	legacyKey := bytes.Replace(withoutTerminalLF, []byte(`"queryDefinitionId"`), []byte(`"queryIdentity"`), 1)
+	unknownKey := bytes.Replace(withoutTerminalLF, []byte("{\n  \"formatVersion\":"),
+		[]byte("{\n  \"unknown\": true,\n  \"formatVersion\":"), 1)
+	caseCollision := bytes.Replace(withoutTerminalLF, []byte(`"queryDefinitionId"`), []byte(`"QueryDefinitionId"`), 1)
 	duplicateKey := bytes.Replace(
-		oneLine,
-		[]byte(`"queryBehaviorFingerprint":`),
-		[]byte(`"queryBehaviorFingerprint":"sha256:0000000000000000000000000000000000000000000000000000000000000000","queryBehaviorFingerprint":`),
+		withoutTerminalLF,
+		[]byte(`  "queryBehaviorFingerprint": `),
+		[]byte("  \"queryBehaviorFingerprint\": \"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\n  \"queryBehaviorFingerprint\": "),
 		1,
 	)
-	malformedFingerprint := bytes.Replace(oneLine, []byte("sha256:d915"), []byte("sha256:D915"), 1)
-	malformedChecksum := bytes.Replace(oneLine, []byte("sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984"), []byte("sha256:1234"), 1)
+	malformedFingerprint := bytes.Replace(withoutTerminalLF, []byte("sha256:d915"), []byte("sha256:D915"), 1)
+	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984"), []byte("sha256:1234"), 1)
 
 	cases := map[string][]byte{
 		"reordered object fields":        append(reordered, '\n'),
 		"leading whitespace":             append([]byte{' '}, canonical...),
-		"trailing whitespace":            append(append([]byte(nil), oneLine...), ' ', '\n'),
-		"pretty whitespace":              append(pretty, '\n'),
-		"missing terminal LF":            oneLine,
+		"trailing whitespace":            append(append([]byte(nil), withoutTerminalLF...), ' ', '\n'),
+		"compact whitespace":             compact.Bytes(),
+		"different indentation":          append(differentIndentation, '\n'),
+		"missing terminal LF":            withoutTerminalLF,
 		"extra terminal LF":              append(append([]byte(nil), canonical...), '\n'),
 		"alternate string escaping":      append(alternateEscape, '\n'),
 		"alternate numeric encoding":     append(exponent, '\n'),

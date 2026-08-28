@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Operations
+import Umpire.Json
 
 namespace Temporal.Feature.Nexus.OperationsTests
 
@@ -52,7 +53,7 @@ example : query.completeness.map (fun evidence =>
       some ([scheduledSetup, startedSetup], [cancelAction, startAction, reportSuccessAction]) := by
   native_decide
 
-example : canonicalQueryJson query ++ "\n" = expectedAsyncStartQueryJson := by
+example : Json.prettyBytes (canonicalQueryJson query) = expectedAsyncStartQueryJson := by
   native_decide
 
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧
@@ -100,7 +101,7 @@ example : propertyResult.isOk = true ∧ behaviorResult.isOk = true ∧ queryRes
 example : query.target = target := by
   rfl
 
-example : canonicalQueryJson query ++ "\n" = expectedCancellationQueryJson := by
+example : Json.prettyBytes (canonicalQueryJson query) = expectedCancellationQueryJson := by
   native_decide
 
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧
@@ -135,7 +136,7 @@ example : propertyResult.isOk = true ∧ behaviorResult.isOk = true ∧ queryRes
 example : query.target = target := by
   rfl
 
-example : canonicalQueryJson query ++ "\n" = expectedSuccessfulCompletionQueryJson := by
+example : Json.prettyBytes (canonicalQueryJson query) = expectedSuccessfulCompletionQueryJson := by
   native_decide
 
 example : (evaluateProperty property intendedTrace.trace).satisfied = true ∧
