@@ -16,39 +16,32 @@ private def decodeDuration : CanonicalValue → Except String Int
   | .duration nanoseconds => pure nanoseconds
   | value => throw ("expected duration, found " ++ reprStr value)
 
-def matchingUpdateAckIntervalClassification : SettingClassification := {
+private def matchingUpdateAckIntervalSpec : ConfigUseSpec Int := {
+  id := DefinitionId.of "temporal.matching.update-ack-interval"
   key := "matching.updateackinterval"
   settingIdentity := "sha256:58c6db0d991c651b92e007384724788f74236057d53c6814293a5439e216501f"
   impacts := [.timing, .performance]
-}
-
-def matchingWorkerRegistryNumBucketsClassification : SettingClassification := {
-  key := "matching.workerregistrynumbuckets"
-  settingIdentity := "sha256:6369ab31f72b574120e020fe8695290050ce1d2d66b4579e01243bbb4aea5f29"
-  impacts := [.topology, .performance]
-}
-
-def matchingClassifications : List SettingClassification := [
-  matchingUpdateAckIntervalClassification,
-  matchingWorkerRegistryNumBucketsClassification
-]
-
-def matchingUpdateAckIntervalInterpretation : ConfigInterpretation Int := {
-  key := "matching.updateackinterval"
-  expectedSettingIdentity := "sha256:58c6db0d991c651b92e007384724788f74236057d53c6814293a5439e216501f"
   expectedSchema := .duration "time.Duration" false
   expectedDefault := Temporal.DynamicConfig.Settings.matching_updateackinterval.defaultValue
   behaviorFingerprint := behaviorFingerprintOf "temporal.config/matching-update-ack-interval/v1"
   decode := decodeDuration
+  contextPolicy := .taskQueue
+  samplingPoint := .task
+  changeEffect := .nextRead
 }
 
-def matchingWorkerRegistryNumBucketsInterpretation : ConfigInterpretation Int := {
+private def matchingWorkerRegistryNumBucketsSpec : ConfigUseSpec Int := {
+  id := DefinitionId.of "temporal.matching.worker-registry-num-buckets"
   key := "matching.workerregistrynumbuckets"
-  expectedSettingIdentity := "sha256:6369ab31f72b574120e020fe8695290050ce1d2d66b4579e01243bbb4aea5f29"
+  settingIdentity := "sha256:6369ab31f72b574120e020fe8695290050ce1d2d66b4579e01243bbb4aea5f29"
+  impacts := [.topology, .performance]
   expectedSchema := .int "int" false
   expectedDefault := .concrete (.int 10)
   behaviorFingerprint := behaviorFingerprintOf "temporal.config/matching-worker-registry-num-buckets/v1"
   decode := decodeInt
+  contextPolicy := .global
+  samplingPoint := .processStartup
+  changeEffect := .restartRequired
 }
 
 def taskQueueContext
@@ -59,40 +52,11 @@ def taskQueueContext
       taskQueueName := some taskQueueName
       taskQueueType := some taskQueueType }
 
-def matchingUpdateAckIntervalDefinitionResult :
-    Except ConfigError (CheckedConfigUseDefinition Int) :=
-  checkConfigUseDefinition {
-    id := DefinitionId.of "temporal.matching.update-ack-interval"
-    classification := matchingUpdateAckIntervalClassification
-    contextPolicy := .taskQueue
-    samplingPoint := .task
-    changeEffect := .nextRead
-    interpretation := matchingUpdateAckIntervalInterpretation
-  }
+private def matchingUpdateAckIntervalDefinition : CheckedConfigUseDefinition Int :=
+  matchingUpdateAckIntervalSpec.checked (by native_decide)
 
-def matchingWorkerRegistryNumBucketsDefinitionResult :
-    Except ConfigError (CheckedConfigUseDefinition Int) :=
-  checkConfigUseDefinition {
-    id := DefinitionId.of "temporal.matching.worker-registry-num-buckets"
-    classification := matchingWorkerRegistryNumBucketsClassification
-    contextPolicy := .global
-    samplingPoint := .processStartup
-    changeEffect := .restartRequired
-    interpretation := matchingWorkerRegistryNumBucketsInterpretation
-  }
-
-private theorem matchingUpdateAckIntervalDefinitionResult_isSome :
-    matchingUpdateAckIntervalDefinitionResult.toOption.isSome = true := by native_decide
-private theorem matchingWorkerRegistryNumBucketsDefinitionResult_isSome :
-    matchingWorkerRegistryNumBucketsDefinitionResult.toOption.isSome = true := by native_decide
-
-def matchingUpdateAckIntervalDefinition : CheckedConfigUseDefinition Int :=
-  matchingUpdateAckIntervalDefinitionResult.toOption.get
-    matchingUpdateAckIntervalDefinitionResult_isSome
-
-def matchingWorkerRegistryNumBucketsDefinition : CheckedConfigUseDefinition Int :=
-  matchingWorkerRegistryNumBucketsDefinitionResult.toOption.get
-    matchingWorkerRegistryNumBucketsDefinitionResult_isSome
+private def matchingWorkerRegistryNumBucketsDefinition : CheckedConfigUseDefinition Int :=
+  matchingWorkerRegistryNumBucketsSpec.checked (by native_decide)
 
 def matchingUseDefinitions : List AnyCheckedConfigUseDefinition := [
   .of matchingUpdateAckIntervalDefinition,

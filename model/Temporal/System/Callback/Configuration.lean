@@ -255,71 +255,60 @@ def CallbackAddressRules.validate
             validateRules rest
     validateRules rules.rules
 
-def historyEnableChasmCallbacksClassification : SettingClassification := {
+private def historyEnableChasmCallbacksSpec : ConfigUseSpec Bool := {
+  id := DefinitionId.of "temporal.callback.enable-chasm"
   key := "history.enablechasmcallbacks"
   settingIdentity := "sha256:415f169bb77c82582f2d8f5049648b5b079f4f1047a2f109d4ed9b14037d9c8c"
   impacts := [.feature, .externallyVisibleSemantics]
-}
-
-def callbackMaxPerExecutionClassification : SettingClassification := {
-  key := "callback.maxperexecution"
-  settingIdentity := "sha256:6c7f3b78bbbf74a83401b46faedf61250a1c4c2c92d02eab91ec9ebc36b30d71"
-  impacts := [.validation]
-}
-
-def callbackRequestTimeoutClassification : SettingClassification := {
-  key := "callback.request.timeout"
-  settingIdentity := "sha256:cd2c7d65a4f41e7edcfa548d7433aeb7cd5a414c6a3258d361676cd3ada8fda9"
-  impacts := [.timing]
-}
-
-def callbackAllowedAddressesClassification : SettingClassification := {
-  key := "callback.allowedaddresses"
-  settingIdentity := "sha256:452cd642fac8adb5d5e1e2c0a4ef1d149cfb621ed663842c1bde7dd123faca9b"
-  impacts := [.validation, .externallyVisibleSemantics]
-}
-
-def authoredClassifications : List SettingClassification := [
-  historyEnableChasmCallbacksClassification,
-  callbackMaxPerExecutionClassification,
-  callbackRequestTimeoutClassification,
-  callbackAllowedAddressesClassification
-]
-
-def historyEnableChasmCallbacksInterpretation : ConfigInterpretation Bool := {
-  key := "history.enablechasmcallbacks"
-  expectedSettingIdentity := "sha256:415f169bb77c82582f2d8f5049648b5b079f4f1047a2f109d4ed9b14037d9c8c"
   expectedSchema := .bool "bool" false
   expectedDefault := .concrete (.bool true)
   behaviorFingerprint := behaviorFingerprintOf "temporal.config/history-enable-chasm-callbacks/v1"
   decode := decodeBool
+  contextPolicy := .namespace
+  samplingPoint := .entityCreation
+  changeEffect := .newEntitiesOnly
 }
 
-def callbackMaxPerExecutionInterpretation : ConfigInterpretation Int := {
+private def callbackMaxPerExecutionSpec : ConfigUseSpec Int := {
+  id := DefinitionId.of "temporal.callback.max-per-execution"
   key := "callback.maxperexecution"
-  expectedSettingIdentity := "sha256:6c7f3b78bbbf74a83401b46faedf61250a1c4c2c92d02eab91ec9ebc36b30d71"
+  settingIdentity := "sha256:6c7f3b78bbbf74a83401b46faedf61250a1c4c2c92d02eab91ec9ebc36b30d71"
+  impacts := [.validation]
   expectedSchema := .int "int" false
   expectedDefault := .concrete (.int 2000)
   behaviorFingerprint := behaviorFingerprintOf "temporal.config/callback-max-per-execution/v1"
   decode := decodeInt
+  contextPolicy := .namespace
+  samplingPoint := .request
+  changeEffect := .nextRead
 }
 
-def callbackRequestTimeoutInterpretation : ConfigInterpretation Int := {
-  key := "callback.request.timeout"
-  expectedSettingIdentity := "sha256:cd2c7d65a4f41e7edcfa548d7433aeb7cd5a414c6a3258d361676cd3ada8fda9"
-  expectedSchema := .duration "time.Duration" false
-  expectedDefault := .concrete (.duration 10000000000)
-  behaviorFingerprint := behaviorFingerprintOf "temporal.config/callback-request-timeout/v1"
-  decode := decodeDuration
-}
-
-def callbackAllowedAddressesInterpretation : ConfigInterpretation CallbackAddressRules := {
+private def callbackAllowedAddressesSpec : ConfigUseSpec CallbackAddressRules := {
+  id := DefinitionId.of "temporal.callback.allowed-addresses"
   key := "callback.allowedaddresses"
-  expectedSettingIdentity := "sha256:452cd642fac8adb5d5e1e2c0a4ef1d149cfb621ed663842c1bde7dd123faca9b"
+  settingIdentity := "sha256:452cd642fac8adb5d5e1e2c0a4ef1d149cfb621ed663842c1bde7dd123faca9b"
+  impacts := [.validation, .externallyVisibleSemantics]
   expectedSchema := Temporal.DynamicConfig.Settings.callback_allowedaddresses.schema
   expectedDefault := .concrete (.object (.cons "Rules" .null .nil))
   behaviorFingerprint := behaviorFingerprintOf "temporal.config/callback-allowed-addresses/v1"
   decode := decodeCallbackAddressRules
+  contextPolicy := .namespace
+  samplingPoint := .request
+  changeEffect := .nextRead
+}
+
+private def callbackRequestTimeoutSpec : ConfigUseSpec Int := {
+  id := DefinitionId.of "temporal.callback.request-timeout"
+  key := "callback.request.timeout"
+  settingIdentity := "sha256:cd2c7d65a4f41e7edcfa548d7433aeb7cd5a414c6a3258d361676cd3ada8fda9"
+  impacts := [.timing]
+  expectedSchema := .duration "time.Duration" false
+  expectedDefault := .concrete (.duration 10000000000)
+  behaviorFingerprint := behaviorFingerprintOf "temporal.config/callback-request-timeout/v1"
+  decode := decodeDuration
+  contextPolicy := .destination
+  samplingPoint := .task
+  changeEffect := .nextRead
 }
 
 def namespaceContext (namespaceName : String) : ExactConstraints :=
@@ -328,74 +317,17 @@ def namespaceContext (namespaceName : String) : ExactConstraints :=
 def destinationContext (namespaceName destination : String) : ExactConstraints :=
   { emptyConstraints with namespaceName := some namespaceName, destination := some destination }
 
-def historyEnableChasmCallbacksDefinitionResult :
-    Except ConfigError (CheckedConfigUseDefinition Bool) :=
-  checkConfigUseDefinition {
-    id := DefinitionId.of "temporal.callback.enable-chasm"
-    classification := historyEnableChasmCallbacksClassification
-    contextPolicy := .namespace
-    samplingPoint := .entityCreation
-    changeEffect := .newEntitiesOnly
-    interpretation := historyEnableChasmCallbacksInterpretation
-  }
+private def historyEnableChasmCallbacksDefinition : CheckedConfigUseDefinition Bool :=
+  historyEnableChasmCallbacksSpec.checked (by native_decide)
 
-def callbackMaxPerExecutionDefinitionResult :
-    Except ConfigError (CheckedConfigUseDefinition Int) :=
-  checkConfigUseDefinition {
-    id := DefinitionId.of "temporal.callback.max-per-execution"
-    classification := callbackMaxPerExecutionClassification
-    contextPolicy := .namespace
-    samplingPoint := .request
-    changeEffect := .nextRead
-    interpretation := callbackMaxPerExecutionInterpretation
-  }
+private def callbackMaxPerExecutionDefinition : CheckedConfigUseDefinition Int :=
+  callbackMaxPerExecutionSpec.checked (by native_decide)
 
-def callbackAllowedAddressesDefinitionResult :
-    Except ConfigError (CheckedConfigUseDefinition CallbackAddressRules) :=
-  checkConfigUseDefinition {
-    id := DefinitionId.of "temporal.callback.allowed-addresses"
-    classification := callbackAllowedAddressesClassification
-    contextPolicy := .namespace
-    samplingPoint := .request
-    changeEffect := .nextRead
-    interpretation := callbackAllowedAddressesInterpretation
-  }
+private def callbackAllowedAddressesDefinition : CheckedConfigUseDefinition CallbackAddressRules :=
+  callbackAllowedAddressesSpec.checked (by native_decide)
 
-def callbackRequestTimeoutDefinitionResult :
-    Except ConfigError (CheckedConfigUseDefinition Int) :=
-  checkConfigUseDefinition {
-    id := DefinitionId.of "temporal.callback.request-timeout"
-    classification := callbackRequestTimeoutClassification
-    contextPolicy := .destination
-    samplingPoint := .task
-    changeEffect := .nextRead
-    interpretation := callbackRequestTimeoutInterpretation
-  }
-
-private theorem historyEnableChasmCallbacksDefinitionResult_isSome :
-    historyEnableChasmCallbacksDefinitionResult.toOption.isSome = true := by native_decide
-private theorem callbackMaxPerExecutionDefinitionResult_isSome :
-    callbackMaxPerExecutionDefinitionResult.toOption.isSome = true := by native_decide
-private theorem callbackAllowedAddressesDefinitionResult_isSome :
-    callbackAllowedAddressesDefinitionResult.toOption.isSome = true := by native_decide
-private theorem callbackRequestTimeoutDefinitionResult_isSome :
-    callbackRequestTimeoutDefinitionResult.toOption.isSome = true := by native_decide
-
-def historyEnableChasmCallbacksDefinition : CheckedConfigUseDefinition Bool :=
-  historyEnableChasmCallbacksDefinitionResult.toOption.get
-    historyEnableChasmCallbacksDefinitionResult_isSome
-
-def callbackMaxPerExecutionDefinition : CheckedConfigUseDefinition Int :=
-  callbackMaxPerExecutionDefinitionResult.toOption.get
-    callbackMaxPerExecutionDefinitionResult_isSome
-
-def callbackAllowedAddressesDefinition : CheckedConfigUseDefinition CallbackAddressRules :=
-  callbackAllowedAddressesDefinitionResult.toOption.get
-    callbackAllowedAddressesDefinitionResult_isSome
-
-def callbackRequestTimeoutDefinition : CheckedConfigUseDefinition Int :=
-  callbackRequestTimeoutDefinitionResult.toOption.get
-    callbackRequestTimeoutDefinitionResult_isSome
+private def callbackRequestTimeoutDefinition : CheckedConfigUseDefinition Int :=
+  callbackRequestTimeoutSpec.checked (by native_decide)
 
 def callbackUseDefinitions : List AnyCheckedConfigUseDefinition := [
   .of historyEnableChasmCallbacksDefinition,
@@ -494,7 +426,7 @@ def CallbackConfigPlan.project
     throw {
       kind := .missingContext
       useId := DefinitionId.of "temporal.callback.snapshot"
-      key := callbackRequestTimeoutInterpretation.key
+      key := callbackRequestTimeoutSpec.key
       offendingValue := "destination"
       relatedIdentities := []
     }
