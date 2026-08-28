@@ -1,5 +1,5 @@
 name = "temporal-model"
-defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "TemporalExperimentalTests", "temporal-model-inspect"]
+defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "TemporalExperimentalTests", "temporal-model-inspect", "umpire-gen-tests"]
 builtinLint = true
 lintDriver = "modelLint"
 
@@ -36,6 +36,10 @@ roots = ["Tools.LeanImportGraph", "Tools.LeanImportGraphTests", "Tools.LeanSourc
 [[lean_exe]]
 name = "temporal-model-inspect"
 root = "Temporal.Tool.Inspect"
+
+[[lean_exe]]
+name = "umpire-gen-tests"
+root = "Temporal.Tool.GenerateTestsMain"
 
 [[lean_exe]]
 name = "modelLint"
