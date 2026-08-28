@@ -162,18 +162,18 @@ four specs. Coverage goals state what later exploration should seek, but this ba
 scores coverage nor selects a campaign. `lowerSpacePoint` and those checked goals are later C8
 inputs; execution, persisted decoding, evidence, and conformance remain separate work.
 
-`umpire-gen-tests` is the single public generation handoff. It lists and explains named regressions
-or model-selected batches, then completes their v2 planning artifacts with checked participant,
-setup, ordering, termination, and cleanup references in executable v3 artifacts:
+`umpire-gen-tests` is the single public generation handoff. It accepts a named regression, test set,
+or model-selected batch, then completes its v2 planning artifacts with checked participant, setup,
+ordering, termination, and cleanup references in executable v3 artifacts:
 
 ```bash
-make umpire-gen-tests ARGS='list'
-make umpire-gen-tests ARGS='explain temporal.nexus.basic-lifecycle.space.fault-matrix'
+make umpire-gen-tests ARGS='temporal.nexus.basic-lifecycle.test-set.core --output /tmp/umpire-tests'
 make umpire-gen-tests ARGS='temporal.nexus.basic-lifecycle.space.fault-matrix --output /tmp/umpire-tests'
 ```
 
 The output directory contains one canonical manifest and one canonical artifact per selected point.
-Operational endpoints, credentials, namespaces, and runtime authority remain downstream bindings.
+Fn-5 owns discovery and explanation. Operational endpoints, credentials, namespaces, and runtime
+authority remain downstream bindings.
 
 ## Offline Observation
 
