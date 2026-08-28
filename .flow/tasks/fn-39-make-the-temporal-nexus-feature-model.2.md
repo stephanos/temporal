@@ -41,9 +41,12 @@ Move each complete operation walkthrough and the shared planner machinery into f
 - [ ] No unrelated worktree file is modified.
 
 ## Done summary
-TBD
+Split the stable Nexus Operations facade into focused Async Start, Cancellation, Successful Completion, Internal, and Planning modules while retaining every existing qualified declaration, comment, source identity, plan, Query, and pretty-canonical Artifact byte. Each walkthrough now keeps its complete Property → Behavior → Query → deterministic run slice together, and the lower Planning seam imports no walkthrough or aggregate module.
 
+The focused acceptance build, complete Umpire regression, and model lint are green. Gate receipt writes were non-blockingly unwarrantable because the protected inherited false-symlink stat entry kept the worktree dirty.
+
+stage: impl-review - ran (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 43118f9175637c50d475134b8d4912199c3340c4
+- Tests: baseline: green, git diff --check, cd model && mise exec -- lake build Temporal.Feature.Nexus.OperationsTests Temporal.Tool.InspectTests TemporalModelTests, make umpire-check-regression, make lint-model, import boundary scan: child modules import only Planning; Planning imports only Internal; no child imports the Operations facade; Planning imports no walkthrough, gate receipt: NO_RECEIPT (protected inherited false-symlink stat entry kept worktree dirty; receipt failure is non-blocking)
 - PRs:
