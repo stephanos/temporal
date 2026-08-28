@@ -27,7 +27,7 @@ func TestRequireGeneratedViewIsIndependentOfWorkingDirectory(t *testing.T) {
 			"nexus.observation.pending-cancellation-count",
 			"workflow-nexus.relation.owns-operation",
 		},
-		ArtifactChecksum: "sha256:93384029860b27c57db00b4e0e2beec7cc76dee543c99e143bbed23ddab5ede8",
+		ArtifactChecksum: "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
 	})
 }
 

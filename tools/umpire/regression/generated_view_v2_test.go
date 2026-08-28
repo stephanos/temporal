@@ -18,7 +18,7 @@ func TestGeneratedViewLoaderAcceptsCanonicalV2Artifact(t *testing.T) {
 		ObservationRequirements: []string{
 			"switch.observation.power",
 		},
-		ArtifactChecksum: "sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984",
+		ArtifactChecksum: "sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
 	}
 
 	view, err := loadGeneratedView(repositoryRoot, reference)

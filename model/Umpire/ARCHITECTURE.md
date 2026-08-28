@@ -392,6 +392,10 @@ contains the outcome, optional artifact, and instrumentation.
   generation work. Planning and `umpire-gen-tests` emit only byte-identical
   `umpire-experiment/v2`; runtime-specific participant, setup, ordering, termination, and cleanup
   bindings belong to the later `RuntimeConfiguration` boundary.
+- `DrivePlan` and `ExperimentSpec` use one fixed-order, two-space-indented JSON spelling with stable
+  escaping and base-10 naturals, no trailing spaces, and exactly one terminal LF. Each Artifact
+  Checksum hashes that exact pretty preimage with only its own checksum omitted; the outer preimage
+  retains the already-sealed DrivePlan.
 - `artifactOfSelection` constructs an `ExperimentSpec` from a checked query and a selected,
   kernel-produced `BehaviorTrace`.
 - `checkExecutionHandoff` retains reusable validation for model-owned lifecycle references without
@@ -408,6 +412,11 @@ canonicalExperimentSpaceJson
 canonicalDrivePlanJson
 canonicalExperimentSpecJson
 ```
+
+This deterministic pretty v2 spelling is an in-place pre-release correction that supersedes
+fn-37's compact bytes and compact checksum preimages. No external or immutable published v2 set
+predates the correction, and there is no compact reader, alternate writer, migration, alias, or
+fallback.
 
 Canonical error projections are available as `canonicalDefinitionErrorJson`,
 `canonicalPropertyErrorJson`, `canonicalBehaviorErrorJson`, and `canonicalQueryErrorJson`.

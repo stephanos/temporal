@@ -13,8 +13,13 @@ import (
 
 func TestDecodeExperimentAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
 	for _, relative := range []string{
+		"model/Umpire/Artifact/Tests/Fixtures/SwitchExperimentSpecV2.json",
+		"model/Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json",
 		"model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
+		"model/Temporal/Feature/Nexus/Fixtures/OperationsAsyncStartArtifact.json",
+		"model/Temporal/Feature/Nexus/Fixtures/OperationsCancellationArtifact.json",
+		"model/Temporal/Feature/Nexus/Fixtures/OperationsSuccessfulCompletionArtifact.json",
 	} {
 		t.Run(filepath.Base(relative), func(t *testing.T) {
 			document, err := DecodeExperiment(readRepositoryFile(t, relative))
@@ -62,6 +67,26 @@ func TestCanonicalExperimentBytesUsesStablePrettyJSON(t *testing.T) {
 	require.False(t, bytes.HasSuffix(canonical, []byte("\n\n")))
 }
 
+func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
+	var document Experiment
+	require.NoError(t, json.Unmarshal(readRepositoryFile(t,
+		"model/Umpire/Examples/testdata/switch-experiment-spec.json"), &document))
+
+	planChecksum, err := ExpectedDrivePlanChecksum(document.Plan)
+	require.NoError(t, err)
+	require.Equal(t,
+		"sha256:1caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d",
+		planChecksum,
+	)
+	document.Plan.ArtifactChecksum = planChecksum
+	experimentChecksum, err := ExpectedExperimentChecksum(document)
+	require.NoError(t, err)
+	require.Equal(t,
+		"sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+		experimentChecksum,
+	)
+}
+
 func TestDecodeExperimentClassifiesV1BeforeV2Fields(t *testing.T) {
 	encoded := []byte(`{"formatVersion":"umpire-experiment/v1","semanticIdentity":"legacy","plan":null}` + "\n")
 	_, err := DecodeExperiment(encoded)
@@ -80,6 +105,7 @@ func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 	compact.WriteByte('\n')
 	differentIndentation := bytes.Replace(withoutTerminalLF,
 		[]byte("  \"formatVersion\""), []byte("    \"formatVersion\""), 1)
+	lineTrailingSpace := bytes.Replace(withoutTerminalLF, []byte("{\n"), []byte("{ \n"), 1)
 	alternateEscape := bytes.Replace(withoutTerminalLF, []byte("switch.query.exact-action"), []byte(`switch.query.exact\u002daction`), 1)
 	exponent := bytes.Replace(withoutTerminalLF, []byte(`"position": 1`), []byte(`"position": 1e0`), 1)
 	legacyKey := bytes.Replace(withoutTerminalLF, []byte(`"queryDefinitionId"`), []byte(`"queryIdentity"`), 1)
@@ -93,7 +119,7 @@ func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 		1,
 	)
 	malformedFingerprint := bytes.Replace(withoutTerminalLF, []byte("sha256:d915"), []byte("sha256:D915"), 1)
-	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984"), []byte("sha256:1234"), 1)
+	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), []byte("sha256:1234"), 1)
 
 	cases := map[string][]byte{
 		"reordered object fields":        append(reordered, '\n'),
@@ -101,6 +127,7 @@ func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 		"trailing whitespace":            append(append([]byte(nil), withoutTerminalLF...), ' ', '\n'),
 		"compact whitespace":             compact.Bytes(),
 		"different indentation":          append(differentIndentation, '\n'),
+		"line trailing space":            append(lineTrailingSpace, '\n'),
 		"missing terminal LF":            withoutTerminalLF,
 		"extra terminal LF":              append(append([]byte(nil), canonical...), '\n'),
 		"alternate string escaping":      append(alternateEscape, '\n'),
@@ -129,11 +156,11 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 		want    string
 	}{
 		"nested": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:bfa6866e94636af51a7c0cc39b8637a896b2866c3e7f0214395f0d0d803a2d72"),
-			[]byte("sha256:afa6866e94636af51a7c0cc39b8637a896b2866c3e7f0214395f0d0d803a2d72"), 1), want: "nested"},
+			[]byte("sha256:1caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"),
+			[]byte("sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"), 1), want: "nested"},
 		"outer": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:9533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984"),
-			[]byte("sha256:8533fdb58edf1ef3702c9f909ea62a3546d65d0bf864e1a224706bb18925d984"), 1), want: "ExperimentSpec"},
+			[]byte("sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"),
+			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "ExperimentSpec"},
 	}
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {

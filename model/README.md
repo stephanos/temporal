@@ -177,6 +177,14 @@ The output directory contains one canonical manifest and one canonical artifact 
 Fn-5 owns discovery and explanation. Operational endpoints, credentials, namespaces, and runtime
 authority remain downstream bindings.
 
+The current `umpire-drive-plan/v2` and `umpire-experiment/v2` Artifacts have one exact persisted
+representation: fixed-order JSON with two-space indentation, stable escaping and base-10 natural
+numbers, no trailing spaces, and exactly one terminal LF. Their Artifact Checksums use the same
+deterministic pretty bytes with only that document's own checksum omitted; the ExperimentSpec
+preimage retains its already-sealed DrivePlan. This pre-release correction supersedes fn-37's
+compact spelling in place. No external or immutable published v2 compatibility set predates it, so
+compact and alternate-whitespace input reject rather than entering a compatibility path.
+
 ## Offline Observation
 
 Import `Umpire.Observation` for the reusable API or `Temporal.Feature.Nexus.Observation` for its one

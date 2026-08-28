@@ -139,7 +139,7 @@ These artifacts are the seams between components:
 | Config catalog | Keys, types, defaults, precedence, scope, and declared classification | The complete initialized registry snapshot and resolution fixtures exist in `model/Temporal/DynamicConfig/`; handwritten classifications and typed uses exist for selected Callback and Matching settings. |
 | Semantic catalog | Lean-owned resources, actions, properties, observations, targets, and hashes | Checked declarations and canonical projections exist in `model/Umpire/`, including `CheckedSpaceMetadata`; fn-5 still owns consolidated catalog aggregation and list/explain. |
 | Regression/space | Named regressions and exploration spaces over Lean semantics | Checked `Property`, `Behavior`, `Query`, and Space values exist, with reusable Switch and Temporal examples; there is no persisted regression catalog. |
-| ExperimentSpec | Environment-independent executable specification with a drive plan, properties, requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints | `umpire-experiment/v2` is the sole byte-identical planning artifact emitted by planning and `umpire-gen-tests`. Runtime bindings belong to a separate RuntimeConfiguration; runtime reading remains an explicit Known Gap. |
+| ExperimentSpec | Environment-independent executable specification with a drive plan, properties, requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints | `umpire-experiment/v2` is the sole byte-identical planning artifact emitted by planning and `umpire-gen-tests`. It and its nested `umpire-drive-plan/v2` use fixed-order, two-space-indented JSON with stable escaping and numbers, no trailing spaces, and one terminal LF. Runtime bindings belong to a separate RuntimeConfiguration; runtime reading remains an explicit Known Gap. |
 | ExperimentRun | One realized execution binding an `ExperimentSpec` to an environment, seed, controls, receipts, and cleanup outcome | Run/artifact concepts exist in the Go Umpire implementations, but not for the current `model/` `ExperimentSpec`. |
 | Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | Implemented in the Go Umpire baselines; not connected to the current `model/` artifact. |
 | Semantic evidence | Lean-defined interpretation of raw facts | Implemented in Umpire3's model/runtime path and partially mirrored by generic Go interpretation; not generated from the current `model/` declarations. |
@@ -152,6 +152,11 @@ Every persisted artifact should carry a format version. Semantic artifacts shoul
 source and Behavior Fingerprints, declared Known Gaps, and enough provenance to reject incompatible or
 stale consumers. The current `ExperimentSpec` and `DrivePlan` meet this baseline; the missing
 reader/migration/runtime boundary must preserve it.
+
+Their deterministic pretty v2 bytes and checksum preimages are the one pre-release baseline and
+supersede fn-37's compact spelling in place. No external or immutable published v2 compatibility
+set predates this correction, so compact or alternate-whitespace input has no reader, migration,
+alias, or fallback.
 
 ## 3. Components
 

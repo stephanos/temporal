@@ -184,21 +184,16 @@ example :
   ] := by
   native_decide
 
-/-! Golden artifacts preserve canonical JSON semantics for every ordinary lifecycle consumer. -/
+/-! Golden artifacts preserve canonical bytes for every ordinary lifecycle consumer. -/
 example : [
-    AsyncStart.run.artifact.map fun spec =>
-      Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes spec)
-        expectedAsyncStartArtifactJson,
-    Cancellation.run.artifact.map fun spec =>
-      Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes spec)
-        expectedCancellationArtifactJson,
-    SuccessfulCompletion.run.artifact.map fun spec =>
-      Umpire.Json.semanticallyEqual (canonicalExperimentSpecBytes spec)
-        expectedSuccessfulCompletionArtifactJson
+    AsyncStart.run.artifact.map canonicalExperimentSpecBytes,
+    Cancellation.run.artifact.map canonicalExperimentSpecBytes,
+    SuccessfulCompletion.run.artifact.map
+      canonicalExperimentSpecBytes
   ] = [
-    some true,
-    some true,
-    some true
+    some expectedAsyncStartArtifactJson,
+    some expectedCancellationArtifactJson,
+    some expectedSuccessfulCompletionArtifactJson
   ] := by
   native_decide
 
