@@ -1,7 +1,7 @@
 {
   "branch_name": "umpire",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": "2026-08-28T15:14:34.965501Z",
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-08-29T11:08:04.977189Z",
   "created_at": "2026-08-26T09:44:32.129333Z",
   "default_impl": null,
   "default_review": null,
@@ -30,7 +30,7 @@
     "fn-18-versioned-umpire-artifact-boundary.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-28T15:34:50.164840Z",
   "review_attempts": [
@@ -2136,6 +2136,51 @@
       "task": "fn-18-versioned-umpire-artifact-boundary.11",
       "timestamp": "2026-08-29T10:50:33.262846Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "089b9cb1c8d7c8758598691ba9cd85872fa71aa734d8485bd2d45f55f73b1860",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-82ca6c6508a35fb6556858d2aa43c8bb",
+            "classification": "introduced",
+            "findingId": "finding-82ca6c6508a35fb6556858d2aa43c8bb",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "7774c3986907b0a698dbceb4eba235dece9c5ac5",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 571863,
+      "output_sha256": "c6f5446c77c4c1c3dbdbe30071fafc7920b0ace00d04064ad5f880a581814eff",
+      "reservation_id": "ccb3e8fca8b24c0fbacddf01dd334db0",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-29T11:08:04.966120Z",
+      "tool_calls": 30,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -2156,6 +2201,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-18-versioned-umpire-artifact-boundary.1": 0,
     "impl:fn-18-versioned-umpire-artifact-boundary.10": 0,
     "impl:fn-18-versioned-umpire-artifact-boundary.11": 0,
@@ -2183,5 +2229,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-29T10:50:33.265644Z"
+  "updated_at": "2026-08-29T11:08:04.980025Z"
 }

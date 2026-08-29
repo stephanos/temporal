@@ -398,6 +398,94 @@ func TestResultV2ExhaustiveClosedDiagnosticClassifications(t *testing.T) {
 	}
 }
 
+func TestResultV2SpecializedDiagnosticStringBounds(t *testing.T) {
+	experiment, runtimeConfiguration, run := rawEvidenceV2ClosureInputs(t)
+	rawEvidence := rawEvidenceV2Document(t)
+	evidence := acceptedEvidenceV2Document(t, experiment, runtimeConfiguration, run, rawEvidence)
+	identityAtLimit := "a." + strings.Repeat("x", artifact.MaximumIdentityBytes-2)
+	identityOverLimit := identityAtLimit + "x"
+	diagnosticAtLimit := strings.Repeat("x", artifact.MaximumDiagnosticBytes)
+	diagnosticOverLimit := diagnosticAtLimit + "x"
+
+	t.Run("Evidence diagnostic alternatives", func(t *testing.T) {
+		encode := func(alternative string) error {
+			document := acceptedEvidenceV2Document(t, experiment, runtimeConfiguration, run, rawEvidence)
+			document.ObservationEvaluationStatus = "unknown"
+			document.EvidenceBackedModelTrace = nil
+			document.EvidenceLinks = []artifactv2.EvidenceLink{}
+			diagnostic := observationDiagnosticV2(&document, "compatible-alternatives")
+			diagnostic.Alternatives = []string{alternative}
+			discriminator := "switch.observation.discriminator.power"
+			diagnostic.MissingDiscriminatorDefinitionID = &discriminator
+			document.Diagnostics = []artifactv2.ObservationDiagnostic{diagnostic}
+			document = sealedEvidenceV2Document(t, document)
+			_, err := artifact.EncodeEvidenceV2(document)
+			return err
+		}
+
+		require.NoError(t, encode(identityAtLimit))
+		requireResultV2ErrorCode(t, encode(identityOverLimit), artifact.ErrorStringLimit)
+	})
+
+	t.Run("Property observation diagnostic alternatives", func(t *testing.T) {
+		encode := func(alternative string) error {
+			document := propertyNonSuccessResultV2Document(
+				t, experiment, runtimeConfiguration, run, rawEvidence, evidence,
+				"unknown", "observation-evaluation-failure",
+			)
+			diagnostic := observationDiagnosticV2(&evidence, "compatible-alternatives")
+			diagnostic.Alternatives = []string{alternative}
+			discriminator := "switch.observation.discriminator.power"
+			diagnostic.MissingDiscriminatorDefinitionID = &discriminator
+			document.PropertyVerdicts[0].Diagnostic.ObservationDiagnostic = &diagnostic
+			document.QuerySummary.PropertyVerdicts = document.PropertyVerdicts
+			document = sealedResultV2Document(t, document)
+			_, err := artifact.EncodeResultV2(document)
+			return err
+		}
+
+		require.NoError(t, encode(identityAtLimit))
+		requireResultV2ErrorCode(t, encode(identityOverLimit), artifact.ErrorStringLimit)
+	})
+
+	t.Run("Implementation Link Known Gap reason", func(t *testing.T) {
+		encode := func(reason string) error {
+			document := unresolvedResultV2Document(
+				t, experiment, runtimeConfiguration, run, rawEvidence, evidence,
+			)
+			document.ImplementationLinkStatus = "unsupported"
+			diagnostic := implementationLinkDiagnosticV2("known-gap")
+			diagnostic.KnownGapReason = &reason
+			document.ImplementationLink.Diagnostic = diagnostic
+			sealImplementationLinkDiagnosticV2(t, &document.ImplementationLink)
+			document = sealedResultV2Document(t, document)
+			_, err := artifact.EncodeResultV2(document)
+			return err
+		}
+
+		require.NoError(t, encode(diagnosticAtLimit))
+		requireResultV2ErrorCode(t, encode(diagnosticOverLimit), artifact.ErrorStringLimit)
+	})
+
+	t.Run("Implementation Link diagnostic identity", func(t *testing.T) {
+		encode := func(identity string) error {
+			document := unresolvedResultV2Document(
+				t, experiment, runtimeConfiguration, run, rawEvidence, evidence,
+			)
+			document.ImplementationLinkStatus = "invalid"
+			diagnostic := implementationLinkDiagnosticV2("stale-source-target")
+			diagnostic.Identity = identity
+			document.ImplementationLink.Diagnostic = diagnostic
+			document = sealedResultV2Document(t, document)
+			_, err := artifact.EncodeResultV2(document)
+			return err
+		}
+
+		requireResultV2ErrorCode(t, encode(identityAtLimit), artifact.ErrorMalformedValue)
+		requireResultV2ErrorCode(t, encode(identityOverLimit), artifact.ErrorStringLimit)
+	})
+}
+
 func TestResultV2EvidenceRejectsIncompleteLinksStaleReferencesAndRawLeakage(t *testing.T) {
 	experiment, runtimeConfiguration, run := rawEvidenceV2ClosureInputs(t)
 	rawEvidence := rawEvidenceV2Document(t)
