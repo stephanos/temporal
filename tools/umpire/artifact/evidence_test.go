@@ -515,6 +515,55 @@ func TestRawEvidenceV2EvidenceCeilings(t *testing.T) {
 	}
 }
 
+func TestRawEvidenceV2WrongContainersAreMalformedValues(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		encoded func() []byte
+	}{
+		{
+			name: "facts null",
+			encoded: func() []byte {
+				document := rawEvidenceV2Document(t)
+				document.Facts = nil
+				return sealedRawEvidenceV2Bytes(t, document)
+			},
+		},
+		{
+			name: "fact array",
+			encoded: func() []byte {
+				return rawEvidenceV2WrongContainerBytes(t, func(root map[string]any) {
+					facts := root["facts"].([]any)
+					facts[0] = []any{}
+				})
+			},
+		},
+		{
+			name: "fields null",
+			encoded: func() []byte {
+				document := rawEvidenceV2Document(t)
+				document.Facts[0].Fields = nil
+				return sealedRawEvidenceV2Bytes(t, document)
+			},
+		},
+		{
+			name: "field array",
+			encoded: func() []byte {
+				return rawEvidenceV2WrongContainerBytes(t, func(root map[string]any) {
+					facts := root["facts"].([]any)
+					fact := facts[0].(map[string]any)
+					fields := fact["fields"].([]any)
+					fields[0] = []any{}
+				})
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := artifact.DecodeRawEvidenceV2(test.encoded())
+			requireRawEvidenceV2ErrorCode(t, err, artifact.ErrorMalformedValue)
+		})
+	}
+}
+
 func rawEvidenceV2Document(t *testing.T) artifactv2.RawEvidence {
 	t.Helper()
 	experiment, runtimeConfiguration, run := rawEvidenceV2ClosureInputs(t)
@@ -747,6 +796,16 @@ func sealedRawEvidenceV2Bytes(t *testing.T, document artifactv2.RawEvidence) []b
 	document, err := artifactv2.SealRawEvidence(document)
 	require.NoError(t, err)
 	encoded, err := artifactv2.CanonicalRawEvidenceBytes(document)
+	require.NoError(t, err)
+	return encoded
+}
+
+func rawEvidenceV2WrongContainerBytes(t *testing.T, mutate func(map[string]any)) []byte {
+	t.Helper()
+	var root map[string]any
+	require.NoError(t, json.Unmarshal(sealedRawEvidenceV2Bytes(t, rawEvidenceV2Document(t)), &root))
+	mutate(root)
+	encoded, err := artifact.CanonicalPretty(root)
 	require.NoError(t, err)
 	return encoded
 }
