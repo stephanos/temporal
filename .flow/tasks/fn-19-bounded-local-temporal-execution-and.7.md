@@ -43,6 +43,7 @@ Verification is green for runtime, local, Nexus, temporaltest, and Lean LocalPro
 baseline: green for implemented dependency surfaces; inherited red for the three later-task Quick entries listed above
 
 stage: impl-review - ran [2026-08-29T18:42:35Z..2026-08-29T19:05:06Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 040a250cc30e2a6cdb56f61949badeed8605779d, 17f4bea7fb6ce24cd298d38f73f2e498f6a9cebe
 - Tests: go test -count=1 ./tools/umpire/runtime/..., go test -count=1 ./tools/umpire/temporal/local/..., go test -count=1 ./tools/umpire/temporal/nexus/..., go test -count=1 ./temporaltest/..., cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests, git diff --check -- tools/umpire/runtime tools/umpire/temporal/nexus, INHERITED_RED:go test -count=1 ./tools/umpire/cmd/umpire-local-run/... - package absent before edit and after verification, INHERITED_RED:cd model && mise exec -- lake build Temporal.Feature.Nexus.ExecutionTests - target absent before edit and after verification, INHERITED_RED:make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-input-set OUTPUT_ROOT=/tmp/umpire-local-runs RUN_ID=umpire.local.caller-closure.run-1 - target absent before edit and after verification
