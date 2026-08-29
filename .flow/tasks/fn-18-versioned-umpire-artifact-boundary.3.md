@@ -35,9 +35,12 @@ Make fn-37's v2 DrivePlan and ExperimentSpec the sole persisted baseline and pro
 `mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestExperimentV2`
 
 ## Done summary
-TBD
+Added the canonical v2 ExperimentSpec admission boundary over the task-.2 kernel: Switch and Nexus fixtures round-trip byte-for-byte, exact pretty-preimage checksums agree, and every required mutation class rejects with stable precedence. The public encoder now rejects invalid or stale values, retained Definition IDs use bounded ASCII namespaced validation, and nested DrivePlan versions are classified before field errors.
 
+Baseline: green (`mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestExperimentV2`). Final focused/full Go, internal artifactv2, Lean codec, exact regression, vet, changed-lines lint, race, and fuzz gates passed. The unittest receipt was not writable because the protected inherited `config/development.yaml` false symlink stat keeps the worktree dirty; the task gate itself passed. Review-fix memory capture was attempted but repository memory is not initialized.
+
+stage: impl-review - ran [2026-08-29T01:58:29Z..2026-08-29T02:18:01Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5bbd9ff1349c6cecb93ab0a3d911baaa0832c8c5, 15dba9d00f1b4f5d5341bec5aa54fde7ee976398
+- Tests: baseline: green (mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestExperimentV2), mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestExperimentV2, mise exec -- go test -count=1 ./tools/umpire/artifact/..., mise exec -- go test -count=1 ./tools/umpire/internal/artifactv2/..., cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs, make umpire-check-regression, mise exec -- go vet ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/..., .bin/golangci-lint-v2.13.1 run --config .github/.golangci.yml --new-from-rev 43a272e411be671aac2dbb2518a8e7195198695f ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/..., mise exec -- go test -race -count=1 ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/..., mise exec -- go test -count=1 ./tools/umpire/artifact/... -run '^$' -fuzz '^FuzzStrictJSONNoPanicOrPermissiveSuccess$' -fuzztime=5s, GATE_RECEIPT_NOT_WRITTEN:unittest - protected inherited config/development.yaml false symlink stat kept worktree dirty
 - PRs:
