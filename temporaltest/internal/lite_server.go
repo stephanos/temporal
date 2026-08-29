@@ -45,6 +45,8 @@ type LiteServerConfig struct {
 	FrontendIP string
 	// Port on which frontend service should listen.
 	FrontendPort int
+	// FrontendHTTPPort is the loopback HTTP API port. Zero disables the HTTP API.
+	FrontendHTTPPort int
 	// WithMetricsPort sets the listening port for the default Prometheus metrics handler.
 	//
 	// When unspecified, the port will be system-chosen.
@@ -141,6 +143,9 @@ func (cfg *LiteServerConfig) apply(serverConfig *config.Config) {
 		"matching": cfg.mustGetService(2),
 		"worker":   cfg.mustGetService(3),
 	}
+	frontendService := serverConfig.Services["frontend"]
+	frontendService.RPC.HTTPPort = cfg.FrontendHTTPPort
+	serverConfig.Services["frontend"] = frontendService
 	serverConfig.Archival = config.Archival{
 		History: config.HistoryArchival{
 			State:      "disabled",

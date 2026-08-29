@@ -5,6 +5,7 @@ import (
 
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/server/common/testing/freeport"
 	"go.temporal.io/server/temporal"
 )
 
@@ -41,6 +42,14 @@ func WithBaseWorkerOptions(o worker.Options) TestServerOption {
 	o.WorkflowPanicPolicy = worker.FailWorkflow
 	return applyFunc(func(server *TestServer) {
 		server.defaultWorkerOptions = o
+	})
+}
+
+// WithFrontendHTTP enables the loopback frontend HTTP API on a system-chosen
+// port. Callers cannot select an address or port.
+func WithFrontendHTTP() TestServerOption {
+	return applyFunc(func(server *TestServer) {
+		server.frontendHTTPPort = freeport.MustGetFreePort()
 	})
 }
 
