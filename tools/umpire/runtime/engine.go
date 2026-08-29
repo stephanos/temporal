@@ -119,7 +119,7 @@ func runWithPhaseContexts(
 		return Output{}, &InvariantError{code: "umpire.runtime.invariant.request", executionOccurred: false}
 	}
 	state := &engineState{
-		request: request, evidence: newEvidenceAccumulator(limits),
+		request: request, evidence: newEvidenceAccumulator(request),
 		phaseOutcomes:     notStartedPhaseOutcomes(),
 		controlAttempts:   []artifactv2.ControlAttempt{},
 		liveResources:     make(map[string]Resource),
@@ -139,13 +139,15 @@ func runWithPhaseContexts(
 	preparationStart := time.Now()
 	environment, factoryReceipt := factory.Prepare(preparationContext, request, preparationCommand)
 	preparationStatuses := []string{}
+	factoryStatus := "failed"
 	if err := state.consumeReceipt(PhasePreparation, preparationCommand, factoryReceipt, ""); err != nil {
 		state.recordInvariant(PhasePreparation, "umpire.runtime.invariant.factory-receipt")
 	} else {
-		preparationStatuses = append(preparationStatuses, terminalPhaseStatus(preparationContext, factoryReceipt.status))
+		factoryStatus = terminalPhaseStatus(preparationContext, factoryReceipt.status)
+		preparationStatuses = append(preparationStatuses, factoryStatus)
 	}
 	participantPrepared := false
-	if state.invariant == nil && factoryReceipt.status == ReceiptAccepted {
+	if state.invariant == nil && factoryStatus == "succeeded" {
 		if environment == nil {
 			state.recordInvariant(PhasePreparation, "umpire.runtime.invariant.environment")
 		} else {
