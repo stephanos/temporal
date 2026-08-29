@@ -504,6 +504,7 @@ func TestStrictJSONBoundOverridesCanOnlyTighten(t *testing.T) {
 	analysis, err := inspectJSON(
 		[]byte(canonicalStrictProbe),
 		schemaFor[strictProbe](),
+		nil,
 		decoder.Bounds,
 		collectionLimits,
 	)
@@ -515,6 +516,7 @@ func TestStrictJSONBoundOverridesCanOnlyTighten(t *testing.T) {
 	analysis, err = inspectJSON(
 		[]byte(canonicalStrictProbe),
 		schemaFor[strictProbe](),
+		nil,
 		decoder.Bounds,
 		stringLimits,
 	)

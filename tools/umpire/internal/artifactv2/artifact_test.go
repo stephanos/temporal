@@ -291,6 +291,24 @@ func TestDecodeExperimentRejectsResealedMalformedV2Values(t *testing.T) {
 			},
 			want: "duplicate capability requirement definition ID",
 		},
+		"unnamespaced capability requirement": {
+			mutate: func(document *Experiment) {
+				document.Plan.CapabilityRequirementDefinitionIDs = []string{"unnamespaced"}
+			},
+			want: "capability requirement definition ID",
+		},
+		"non-ASCII property requirement": {
+			mutate: func(document *Experiment) {
+				document.Properties[0].RequirementDefinitionIDs = []string{"switch.réquirement"}
+			},
+			want: "property requirement definition ID",
+		},
+		"unnamespaced observation requirement": {
+			mutate: func(document *Experiment) {
+				document.ObservationRequirementDefinitionIDs = []string{"unnamespaced"}
+			},
+			want: "observation requirement definition ID",
+		},
 	}
 
 	for name, test := range cases {

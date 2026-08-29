@@ -262,25 +262,64 @@ type jsonAnalysis struct {
 	formatSeen        bool
 	formatString      bool
 	formatValue       string
+	nestedFormats     []formatObservation
+}
+
+type formatObservation struct {
+	path   JSONPath
+	seen   bool
+	string bool
+	value  string
 }
 
 func (a jsonAnalysis) format() (string, bool) {
 	return a.formatValue, a.formatSeen && a.formatString
 }
 
+func (a jsonAnalysis) nestedFormat(path JSONPath) (string, bool) {
+	for _, nested := range a.nestedFormats {
+		if nested.path == path {
+			return nested.value, nested.seen && nested.string
+		}
+	}
+	return "", false
+}
+
+func (a *jsonAnalysis) noteFormat(path JSONPath, stringValue bool, value string) {
+	if path == "$.formatVersion" {
+		a.formatSeen = true
+		a.formatString = stringValue
+		a.formatValue = value
+		return
+	}
+	for index := range a.nestedFormats {
+		if a.nestedFormats[index].path == path {
+			a.nestedFormats[index].seen = true
+			a.nestedFormats[index].string = stringValue
+			a.nestedFormats[index].value = value
+			return
+		}
+	}
+}
+
 func inspectJSON(
 	encoded []byte,
 	schema *jsonSchema,
+	nestedFormats []NestedFormat,
 	bounds Bounds,
 	limits structuralLimits,
 ) (jsonAnalysis, error) {
 	cursor := jsonCursor{
-		encoded:    encoded,
-		exactKeys:  make([]uint32, jsonKeyTableSlots),
-		foldedKeys: make([]uint32, jsonKeyTableSlots),
-		keySeed:    maphash.MakeSeed(),
+		encoded:     encoded,
+		exactKeys:   make([]uint32, jsonKeyTableSlots),
+		foldedKeys:  make([]uint32, jsonKeyTableSlots),
+		keySeed:     maphash.MakeSeed(),
+		formatPaths: nestedFormats,
 	}
-	var analysis jsonAnalysis
+	analysis := jsonAnalysis{nestedFormats: make([]formatObservation, len(nestedFormats))}
+	for index, nested := range nestedFormats {
+		analysis.nestedFormats[index].path = nested.Path
+	}
 	if err := cursor.inspectValue(schema, "$", false, bounds, limits, &analysis); err != nil {
 		if errors.Is(err, errDuplicateKeyFound) {
 			return analysis, nil
@@ -301,6 +340,7 @@ type jsonCursor struct {
 	foldedKeys   []uint32
 	keySeed      maphash.Seed
 	nextObjectID uint64
+	formatPaths  []NestedFormat
 }
 
 var errDuplicateKeyFound = errors.New("duplicate JSON key found")
@@ -350,19 +390,19 @@ func (c *jsonCursor) inspectValue(
 	switch c.encoded[c.position] {
 	case '{':
 		if formatField {
-			analysis.formatSeen = true
+			analysis.noteFormat(path, false, "")
 		}
 		return c.inspectObject(schema, path, bounds, limits, analysis)
 	case '[':
 		if formatField {
-			analysis.formatSeen = true
+			analysis.noteFormat(path, false, "")
 		}
 		return c.inspectArray(schema, path, bounds, limits, analysis)
 	case '"':
 		return c.inspectString(path, formatField, bounds, limits, analysis)
 	default:
 		if formatField {
-			analysis.formatSeen = true
+			analysis.noteFormat(path, false, "")
 		}
 		start := c.position
 		for c.position < len(c.encoded) && !isJSONSeparator(c.encoded[c.position]) {
@@ -397,13 +437,16 @@ func (c *jsonCursor) inspectString(
 	if !formatField {
 		return nil
 	}
-	analysis.formatSeen = true
-	analysis.formatString = true
+	analysis.noteFormat(path, true, "")
 	if exceeds(value.decodedBytes, limits.stringBytes) {
 		return nil
 	}
-	analysis.formatValue, err = decodeJSONString(c.encoded, value)
-	return err
+	decoded, err := decodeJSONString(c.encoded, value)
+	if err != nil {
+		return err
+	}
+	analysis.noteFormat(path, true, decoded)
+	return nil
 }
 
 func isCanonicalIntegerBytes(value []byte) bool {
@@ -493,11 +536,11 @@ func (c *jsonCursor) inspectObjectMember(
 		return err
 	}
 	childSchema := resolveChildSchema(c.encoded, schema, key, analysis)
-	formatField := path == "$" && jsonStringEqualsPlain(c.encoded, key, "formatVersion")
 	childPath, err := boundedChildPath(c.encoded, key, path, members, limit, limits.stringBytes)
 	if err != nil {
 		return err
 	}
+	formatField := childPath == "$.formatVersion" || c.isNestedFormatPath(childPath)
 	c.position = next
 	c.skipSpace()
 	if c.position >= len(c.encoded) || c.encoded[c.position] != ':' {
@@ -505,6 +548,15 @@ func (c *jsonCursor) inspectObjectMember(
 	}
 	c.position++
 	return c.inspectValue(childSchema, childPath, formatField, bounds, limits, analysis)
+}
+
+func (c *jsonCursor) isNestedFormatPath(path JSONPath) bool {
+	for _, nested := range c.formatPaths {
+		if nested.Path == path {
+			return true
+		}
+	}
+	return false
 }
 
 func (c *jsonCursor) noteObjectKey(

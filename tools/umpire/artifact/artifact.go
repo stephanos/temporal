@@ -28,12 +28,18 @@ type Bounds struct {
 
 type Decoder[T any] struct {
 	Format             string
+	NestedFormats      []NestedFormat
 	Bounds             Bounds
 	Validate           func(T) error
 	Canonical          func(T) ([]byte, error)
 	ProvenanceChecksum func(T) error
 	ArtifactChecksum   func(T) error
 	Closure            func(T) error
+}
+
+type NestedFormat struct {
+	Path   JSONPath
+	Format string
 }
 
 func (d Decoder[T]) Decode(encoded []byte) (T, error) {
@@ -73,7 +79,7 @@ func inspectAdmission[T any](d Decoder[T], encoded []byte, limits structuralLimi
 	if err := checkStructuralMetrics(metrics, limits); err != nil {
 		return jsonAnalysis{}, err
 	}
-	analysis, err := inspectJSON(encoded, schemaFor[T](), d.Bounds, limits)
+	analysis, err := inspectJSON(encoded, schemaFor[T](), d.NestedFormats, d.Bounds, limits)
 	if err != nil {
 		return jsonAnalysis{}, wrapAdmission(ErrorSyntax, err)
 	}
@@ -89,6 +95,17 @@ func inspectAdmission[T any](d Decoder[T], encoded []byte, limits structuralLimi
 	}
 	if code := compareFormat(d.Format, actualFormat); code != "" {
 		return jsonAnalysis{}, wrapAdmission(code, fmt.Errorf("got %q; expected %q", actualFormat, d.Format))
+	}
+	for _, expected := range d.NestedFormats {
+		actual, ok := analysis.nestedFormat(expected.Path)
+		if !ok {
+			return jsonAnalysis{}, wrapAdmission(ErrorUnsupportedFormat,
+				fmt.Errorf("%s is missing or is not a string", expected.Path))
+		}
+		if code := compareFormat(expected.Format, actual); code != "" {
+			return jsonAnalysis{}, wrapAdmission(code,
+				fmt.Errorf("got %q at %s; expected %q", actual, expected.Path, expected.Format))
+		}
 	}
 	if analysis.unknownField {
 		return jsonAnalysis{}, wrapAdmission(ErrorUnknownField, errors.New("JSON object contains an unknown field"))
