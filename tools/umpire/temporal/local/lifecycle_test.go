@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/client"
@@ -94,6 +95,92 @@ func TestCanceledCleanupRetainsOwnershipAndCanBeRetried(t *testing.T) {
 	require.Equal(t, "0", receiptField(retriedReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
 }
 
+func TestLifecycleFactsHaveDistinctOperationIdentities(t *testing.T) {
+	request := testRequest(t, "umpire.local.environment.fact-identities")
+	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	backend := &recordingAuthority{resources: []ownedResource{{kind: ownedServer}}}
+	runtimeEnvironment, preparationReceipt := newFactory(
+		&recordingStarter{authority: backend},
+	).Prepare(context.Background(), request, prepareCommand)
+	require.Equal(t, umpireruntime.ReceiptAccepted, preparationReceipt.Status())
+	environment, ok := AsEnvironment(runtimeEnvironment)
+	require.True(t, ok)
+	workerReceipt := environment.StartWorker(
+		context.Background(), prepareCommand, noopRegistration{},
+	)
+	require.Equal(t, umpireruntime.ReceiptAccepted, workerReceipt.Status())
+	isolationReceipt := environment.Isolate(context.Background(), request.IsolationCommand())
+	require.Equal(t, umpireruntime.ReceiptAccepted, isolationReceipt.Status())
+	cleanupCommand, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	cleanupReceipt := environment.Cleanup(context.Background(), cleanupCommand)
+	require.Equal(t, umpireruntime.ReceiptAccepted, cleanupReceipt.Status())
+
+	identities := map[string]struct{}{}
+	for _, receipt := range []umpireruntime.Receipt{
+		preparationReceipt, workerReceipt, isolationReceipt, cleanupReceipt,
+	} {
+		facts := receipt.Facts()
+		require.Len(t, facts, 1)
+		identities[facts[0].DefinitionID()] = struct{}{}
+	}
+	require.Len(t, identities, 4)
+}
+
+func TestCleanupDeadlineReturnsTimeoutCompatibleReceipt(t *testing.T) {
+	request := testRequest(t, "umpire.local.environment.cleanup-deadline")
+	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	backend := &recordingAuthority{resources: []ownedResource{{kind: ownedServer}}}
+	runtimeEnvironment, receipt := newFactory(
+		&recordingStarter{authority: backend},
+	).Prepare(context.Background(), request, prepareCommand)
+	require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
+	environment, ok := AsEnvironment(runtimeEnvironment)
+	require.True(t, ok)
+	cleanupCommand, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	deadline, cancel := context.WithDeadline(context.Background(), time.Now().Add(-time.Second))
+	defer cancel()
+
+	cleanupReceipt := environment.Cleanup(deadline, cleanupCommand)
+	require.Equal(t, umpireruntime.ReceiptCanceled, cleanupReceipt.Status())
+	require.Equal(t, "umpire.runtime.code.timed-out", errorCode(cleanupReceipt))
+	require.Equal(t, umpireruntime.EvidenceSourceCleanup, receiptSource(cleanupReceipt))
+	require.Equal(t, "2", receiptField(cleanupReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
+	require.Empty(t, backend.releaseOrder)
+}
+
+func TestConcreteCleanupFailureDominatesExpiredDeadline(t *testing.T) {
+	request := testRequest(t, "umpire.local.environment.cleanup-deadline-failure")
+	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	backend := &recordingAuthority{
+		resources: []ownedResource{{kind: ownedServer}},
+		stopFunc: func(ctx context.Context) error {
+			<-ctx.Done()
+			return errors.Join(ctx.Err(), errors.New("private concrete cleanup failure"))
+		},
+	}
+	runtimeEnvironment, receipt := newFactory(
+		&recordingStarter{authority: backend},
+	).Prepare(context.Background(), request, prepareCommand)
+	require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
+	environment, ok := AsEnvironment(runtimeEnvironment)
+	require.True(t, ok)
+	cleanupCommand, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	deadline, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	cleanupReceipt := environment.Cleanup(deadline, cleanupCommand)
+	require.Equal(t, umpireruntime.ReceiptFailed, cleanupReceipt.Status())
+	require.Equal(t, "umpire.runtime.code.cleanup-failed", errorCode(cleanupReceipt))
+	require.NotContains(t, receiptText(cleanupReceipt), "private")
+	require.Empty(t, cleanupReceipt.ReleasedResources())
+}
+
 type noopRegistration struct{}
 
 func (noopRegistration) Register(worker.Registry) {}
@@ -134,6 +221,7 @@ type recordingAuthority struct {
 	clientErr    error
 	workerErr    error
 	stopErr      error
+	stopFunc     func(context.Context) error
 	releaseOrder []string
 }
 
@@ -168,7 +256,10 @@ func (a *recordingAuthority) OwnedResources() []ownedResource {
 	return append([]ownedResource{}, a.resources...)
 }
 
-func (a *recordingAuthority) Stop(context.Context) error {
+func (a *recordingAuthority) Stop(ctx context.Context) error {
+	if a.stopFunc != nil {
+		return a.stopFunc(ctx)
+	}
 	if a.stopErr != nil {
 		return a.stopErr
 	}
