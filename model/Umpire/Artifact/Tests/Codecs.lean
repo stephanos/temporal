@@ -43,6 +43,12 @@ example : (canonicalExperimentSpecBytes compiledArtifact).startsWith
     "{\n  \"formatVersion\": \"umpire-experiment/v2\",\n" := by
   native_decide
 
+/-! The nested DrivePlan uses the same deterministic pretty representation and terminal LF. -/
+example : (canonicalDrivePlanBytes compiledArtifact.plan).startsWith
+    "{\n  \"formatVersion\": \"umpire-drive-plan/v2\",\n" ∧
+    (canonicalDrivePlanBytes compiledArtifact.plan).endsWith "\n" := by
+  native_decide
+
 /-! Canonical strings share Go's exact control, Unicode, quote, and backslash escaping. -/
 example : Umpire.Json.prettyBytes escapingProbeJson =
     "{\n  \"value\": \"\\u0000\\u0001\\b\\t\\n\\u000b\\f\\r\\u001f\\\"\\\\λ\\u2028\\u2029\"\n}\n" := by

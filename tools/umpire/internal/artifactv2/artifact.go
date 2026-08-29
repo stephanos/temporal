@@ -243,10 +243,13 @@ func DecodeExperiment(encoded []byte) (Experiment, error) {
 	if err := requireEOF(decoder); err != nil {
 		return Experiment{}, err
 	}
-	if err := validateExperiment(document); err != nil {
+	if err := ValidateExperiment(document); err != nil {
 		return Experiment{}, err
 	}
-	if err := verifyChecksums(document); err != nil {
+	if err := ValidateExperimentClosure(document); err != nil {
+		return Experiment{}, err
+	}
+	if err := VerifyExperimentChecksums(document); err != nil {
 		return Experiment{}, err
 	}
 	canonical, err := CanonicalExperimentBytes(document)
@@ -434,7 +437,8 @@ func requireEOF(decoder *json.Decoder) error {
 	return nil
 }
 
-func validateExperiment(document Experiment) error {
+// ValidateExperiment checks the retained v2 field values independently of checksums and closure.
+func ValidateExperiment(document Experiment) error {
 	if document.FormatVersion != ExperimentFormat {
 		return fmt.Errorf("unsupported format %q", document.FormatVersion)
 	}
@@ -493,9 +497,6 @@ func validateExperiment(document Experiment) error {
 	}
 	if !ValidDigest(document.ArtifactChecksum) {
 		return fmt.Errorf("artifact checksum %q is invalid", document.ArtifactChecksum)
-	}
-	if document.QueryBehaviorFingerprint != document.Plan.QueryBehaviorFingerprint {
-		return errors.New("query behavior fingerprint differs from nested plan")
 	}
 	if document.Properties == nil || document.ObservationRequirementDefinitionIDs == nil ||
 		document.Provenance.SourceDefinitionIDs == nil || document.Provenance.SourceLocations == nil {
@@ -866,7 +867,8 @@ func pointerValue(value *string) string {
 	return *value
 }
 
-func verifyChecksums(document Experiment) error {
+// VerifyExperimentChecksums independently checks the nested DrivePlan and outer ExperimentSpec.
+func VerifyExperimentChecksums(document Experiment) error {
 	nested, err := ExpectedDrivePlanChecksum(document.Plan)
 	if err != nil {
 		return err
@@ -880,6 +882,14 @@ func verifyChecksums(document Experiment) error {
 	}
 	if outer != document.ArtifactChecksum {
 		return fmt.Errorf("ExperimentSpec artifact checksum mismatch: got %q, want %q", document.ArtifactChecksum, outer)
+	}
+	return nil
+}
+
+// ValidateExperimentClosure checks relationships between otherwise valid retained v2 fields.
+func ValidateExperimentClosure(document Experiment) error {
+	if document.QueryBehaviorFingerprint != document.Plan.QueryBehaviorFingerprint {
+		return errors.New("query behavior fingerprint differs from nested plan")
 	}
 	return nil
 }

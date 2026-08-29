@@ -188,6 +188,23 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 	}
 }
 
+func TestExperimentV2HooksPreserveDecodeExperimentContract(t *testing.T) {
+	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+	document, err := DecodeExperiment(canonical)
+	require.NoError(t, err)
+	require.NoError(t, ValidateExperiment(document))
+	require.NoError(t, ValidateExperimentClosure(document))
+	require.NoError(t, VerifyExperimentChecksums(document))
+
+	document.ArtifactChecksum = "sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"
+	hookErr := VerifyExperimentChecksums(document)
+	require.Error(t, hookErr)
+	mutated, err := CanonicalExperimentBytes(document)
+	require.NoError(t, err)
+	_, decodeErr := DecodeExperiment(mutated)
+	require.EqualError(t, decodeErr, hookErr.Error())
+}
+
 func TestDecodeExperimentRejectsResealedMalformedV2Values(t *testing.T) {
 	value := ModelValue{DefinitionID: "switch.state.power", Value: "off"}
 	cases := map[string]struct {

@@ -1,0 +1,224 @@
+{
+  "formatVersion": "umpire-experiment/v2",
+  "queryBehaviorFingerprint": "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
+  "plan": {
+    "formatVersion": "umpire-drive-plan/v2",
+    "queryDefinitionId": "workflow-nexus.query.exact-action-caller-closure",
+    "queryBehaviorFingerprint": "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
+    "behaviorDefinitionId": "workflow-nexus.behavior.exact-action",
+    "behaviorFingerprint": "sha256:322893fbbe0a80ca186aa1f10268df45966bda212db37c725ea71fd75903b703",
+    "targetDefinitionId": "workflow-nexus.target.caller-closure",
+    "targetBehaviorFingerprint": "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd",
+    "kernelDefinitionId": "workflow-nexus.kernel.caller-closure",
+    "kernelBehaviorFingerprint": "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd",
+    "bindings": [
+      {
+        "roleDefinitionId": "workflow-nexus.role.operation",
+        "value": {
+          "definitionId": "workflow-nexus.state.config",
+          "value": "{ op := NexusAutoClose.OpState.started,\n  policy := NexusAutoClose.Policy.requestCancel,\n  cancels := [NexusAutoClose.Initiator.user],\n  callerOpen := true,\n  slack := false }"
+        }
+      }
+    ],
+    "symbolicRoles": [],
+    "modelPreconditions": [
+      {
+        "definitionId": "workflow-nexus.setup.operation-is-clash",
+        "relation": "equal",
+        "left": {
+          "kind": "role",
+          "definitionId": "workflow-nexus.role.operation"
+        },
+        "right": {
+          "kind": "value",
+          "value": {
+            "definitionId": "workflow-nexus.state.config",
+            "value": "{ op := NexusAutoClose.OpState.started,\n  policy := NexusAutoClose.Policy.requestCancel,\n  cancels := [NexusAutoClose.Initiator.user],\n  callerOpen := true,\n  slack := false }"
+          }
+        }
+      }
+    ],
+    "initialState": {
+      "definitionId": "workflow-nexus.state.config",
+      "value": "{ op := NexusAutoClose.OpState.started,\n  policy := NexusAutoClose.Policy.requestCancel,\n  cancels := [NexusAutoClose.Initiator.user],\n  callerOpen := true,\n  slack := false }"
+    },
+    "requestedActions": [
+      {
+        "definitionId": "workflow.action.force-close",
+        "value": "force-close"
+      }
+    ],
+    "modelOutcomes": [
+      {
+        "definitionId": "nexus.outcome.cancellation-upgraded",
+        "value": "upgrade"
+      }
+    ],
+    "resultingStates": [
+      {
+        "definitionId": "workflow-nexus.state.config",
+        "value": "{ op := NexusAutoClose.OpState.started,\n  policy := NexusAutoClose.Policy.requestCancel,\n  cancels := [NexusAutoClose.Initiator.system],\n  callerOpen := false,\n  slack := false }"
+      }
+    ],
+    "linearExtension": [
+      {
+        "definitionId": "workflow-nexus.occurrence.force-close",
+        "actionDefinitionId": "workflow.action.force-close",
+        "position": 1,
+        "authoredDefinitionId": "workflow-nexus.occurrence.force-close"
+      }
+    ],
+    "selectedChoices": [],
+    "selectedVariants": [],
+    "requestedFaults": [],
+    "capabilityRequirementDefinitionIds": [
+      "nexus.capability.cancellation",
+      "workflow-nexus.capability.ownership",
+      "workflow.capability.lifecycle"
+    ],
+    "expandedLimits": {
+      "behavior": {
+        "transitions": {
+          "value": 1,
+          "unit": "semantic-transitions"
+        },
+        "selectedActions": {
+          "value": 1,
+          "unit": "selected-actions"
+        }
+      },
+      "search": {
+        "value": 8,
+        "unit": "candidate-evaluations"
+      }
+    },
+    "checkpoints": [
+      {
+        "transition": 1,
+        "observations": [
+          {
+            "definitionId": "nexus.observation.cancellation-delivered",
+            "value": "true"
+          },
+          {
+            "definitionId": "nexus.observation.pending-cancellation-count",
+            "value": "1"
+          },
+          {
+            "definitionId": "workflow-nexus.relation.owns-operation",
+            "value": "true"
+          }
+        ]
+      }
+    ],
+    "selectionReason": "satisfying-witness",
+    "explored": {
+      "setups": 1,
+      "traces": 2,
+      "transitions": 1,
+      "propertyEvaluations": 1
+    },
+    "knownGaps": [
+      {
+        "kind": "input",
+        "code": "umpire.known-gap.execution-evidence",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.artifact-migrations",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.artifact-reading",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.evidence-evaluation",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-scheduler-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-storage-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "interpretation",
+        "code": "umpire.known-gap.runtime-transport-order",
+        "subject": null,
+        "detail": null
+      },
+      {
+        "kind": "claim",
+        "code": "umpire.known-gap.promotion",
+        "subject": null,
+        "detail": null
+      }
+    ],
+    "provenance": {
+      "sourceDefinitionIds": [
+        "workflow-nexus.behavior.exact-action",
+        "workflow-nexus.kernel.caller-closure",
+        "workflow-nexus.property.caller-closure",
+        "workflow-nexus.query.exact-action-caller-closure",
+        "workflow-nexus.target.caller-closure"
+      ],
+      "sourceLocations": [
+        {
+          "path": "Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
+          "line": 1,
+          "column": 1,
+          "provenance": "lean-model"
+        }
+      ]
+    },
+    "artifactChecksum": "sha256:328a90c67ca91a885a31b1e146d36af09a73cba7f729eab69a6028041a8b0bb8"
+  },
+  "properties": [
+    {
+      "definitionId": "workflow-nexus.property.caller-closure",
+      "behaviorFingerprint": "sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f",
+      "requirementDefinitionIds": [
+        "nexus.capability.cancellation",
+        "workflow-nexus.capability.ownership",
+        "workflow.capability.lifecycle"
+      ]
+    }
+  ],
+  "observationRequirementDefinitionIds": [
+    "nexus.observation.cancellation-delivered",
+    "nexus.observation.pending-cancellation-count",
+    "workflow-nexus.relation.owns-operation"
+  ],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "workflow-nexus.behavior.exact-action",
+      "workflow-nexus.kernel.caller-closure",
+      "workflow-nexus.property.caller-closure",
+      "workflow-nexus.query.exact-action-caller-closure",
+      "workflow-nexus.target.caller-closure"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "artifactChecksum": "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8"
+}
