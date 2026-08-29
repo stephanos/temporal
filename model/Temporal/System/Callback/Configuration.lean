@@ -255,6 +255,71 @@ def CallbackAddressRules.validate
             validateRules rest
     validateRules rules.rules
 
+-- This owner-authored shape intentionally does not read the generated catalog:
+-- validation must detect any imported callback schema drift.
+private def callbackSchemaFields : List (String × ValueSchema) → SchemaFields
+  | [] => .nil
+  | (name, schema) :: tail => .cons name schema (callbackSchemaFields tail)
+
+private def callbackRegexpInstructionSchema : ValueSchema :=
+  .struct "regexp/syntax.Inst" (callbackSchemaFields [
+    ("Arg", .uint "uint32" false),
+    ("Op", .uint "regexp/syntax.InstOp" false),
+    ("Out", .uint "uint32" false),
+    ("Rune", .list "[]int32" 0 (.int "int32" false) true)
+  ]) false
+
+private def callbackRegexpOnePassInstructionSchema : ValueSchema :=
+  .struct "regexp.onePassInst" (callbackSchemaFields [
+    ("Inst", callbackRegexpInstructionSchema),
+    ("Next", .list "[]uint32" 0 (.uint "uint32" false) true)
+  ]) false
+
+private def callbackRegexpOnePassProgramSchema : ValueSchema :=
+  .struct "*regexp.onePassProg" (callbackSchemaFields [
+    ("Inst", .list "[]regexp.onePassInst" 0 callbackRegexpOnePassInstructionSchema true),
+    ("NumCap", .int "int" false),
+    ("Start", .int "int" false)
+  ]) true
+
+private def callbackRegexpProgramSchema : ValueSchema :=
+  .struct "*syntax.Prog" (callbackSchemaFields [
+    ("Inst", .list "[]syntax.Inst" 0 callbackRegexpInstructionSchema true),
+    ("NumCap", .int "int" false),
+    ("Start", .int "int" false)
+  ]) true
+
+private def callbackRegexpSchema : ValueSchema :=
+  .struct "*regexp.Regexp" (callbackSchemaFields [
+    ("cond", .uint "regexp/syntax.EmptyOp" false),
+    ("expr", .string "string" false),
+    ("longest", .bool "bool" false),
+    ("matchcap", .int "int" false),
+    ("maxBitStateLen", .int "int" false),
+    ("minInputLen", .int "int" false),
+    ("mpool", .int "int" false),
+    ("numSubexp", .int "int" false),
+    ("onepass", callbackRegexpOnePassProgramSchema),
+    ("prefix", .string "string" false),
+    ("prefixBytes", .list "[]uint8" 0 (.uint "uint8" false) true),
+    ("prefixComplete", .bool "bool" false),
+    ("prefixEnd", .uint "uint32" false),
+    ("prefixRune", .int "int32" false),
+    ("prog", callbackRegexpProgramSchema),
+    ("subexpNames", .list "[]string" 0 (.string "string" false) true)
+  ]) true
+
+private def callbackAddressRuleSchema : ValueSchema :=
+  .struct "go.temporal.io/server/chasm/lib/callback.AddressMatchRule" (callbackSchemaFields [
+    ("AllowInsecure", .bool "bool" false),
+    ("Regexp", callbackRegexpSchema)
+  ]) false
+
+private def callbackAllowedAddressesExpectedSchema : ValueSchema :=
+  .struct "go.temporal.io/server/chasm/lib/callback.AddressMatchRules" (callbackSchemaFields [
+    ("Rules", .list "[]callback.AddressMatchRule" 0 callbackAddressRuleSchema true)
+  ]) false
+
 private def historyEnableChasmCallbacksSpec : ConfigUseSpec Bool := {
   id := DefinitionId.of "temporal.callback.enable-chasm"
   key := "history.enablechasmcallbacks"
@@ -288,7 +353,7 @@ private def callbackAllowedAddressesSpec : ConfigUseSpec CallbackAddressRules :=
   key := "callback.allowedaddresses"
   settingIdentity := "sha256:452cd642fac8adb5d5e1e2c0a4ef1d149cfb621ed663842c1bde7dd123faca9b"
   impacts := [.validation, .externallyVisibleSemantics]
-  expectedSchema := .struct "go.temporal.io/server/chasm/lib/callback.AddressMatchRules" (.cons "Rules" (.list "[]callback.AddressMatchRule" 0 (.struct "go.temporal.io/server/chasm/lib/callback.AddressMatchRule" (.cons "AllowInsecure" (.bool "bool" false) (.cons "Regexp" (.struct "*regexp.Regexp" (.cons "cond" (.uint "regexp/syntax.EmptyOp" false) (.cons "expr" (.string "string" false) (.cons "longest" (.bool "bool" false) (.cons "matchcap" (.int "int" false) (.cons "maxBitStateLen" (.int "int" false) (.cons "minInputLen" (.int "int" false) (.cons "mpool" (.int "int" false) (.cons "numSubexp" (.int "int" false) (.cons "onepass" (.struct "*regexp.onePassProg" (.cons "Inst" (.list "[]regexp.onePassInst" 0 (.struct "regexp.onePassInst" (.cons "Inst" (.struct "regexp/syntax.Inst" (.cons "Arg" (.uint "uint32" false) (.cons "Op" (.uint "regexp/syntax.InstOp" false) (.cons "Out" (.uint "uint32" false) (.cons "Rune" (.list "[]int32" 0 (.int "int32" false) true) (.nil))))) false) (.cons "Next" (.list "[]uint32" 0 (.uint "uint32" false) true) (.nil))) false) true) (.cons "NumCap" (.int "int" false) (.cons "Start" (.int "int" false) (.nil)))) true) (.cons "prefix" (.string "string" false) (.cons "prefixBytes" (.list "[]uint8" 0 (.uint "uint8" false) true) (.cons "prefixComplete" (.bool "bool" false) (.cons "prefixEnd" (.uint "uint32" false) (.cons "prefixRune" (.int "int32" false) (.cons "prog" (.struct "*syntax.Prog" (.cons "Inst" (.list "[]syntax.Inst" 0 (.struct "regexp/syntax.Inst" (.cons "Arg" (.uint "uint32" false) (.cons "Op" (.uint "regexp/syntax.InstOp" false) (.cons "Out" (.uint "uint32" false) (.cons "Rune" (.list "[]int32" 0 (.int "int32" false) true) (.nil))))) false) true) (.cons "NumCap" (.int "int" false) (.cons "Start" (.int "int" false) (.nil)))) true) (.cons "subexpNames" (.list "[]string" 0 (.string "string" false) true) (.nil))))))))))))))))) true) (.nil))) false) true) (.nil)) false
+  expectedSchema := callbackAllowedAddressesExpectedSchema
   expectedDefault := .concrete (.object (.cons "Rules" .null .nil))
   behaviorFingerprint := behaviorFingerprintOf "temporal.config/callback-allowed-addresses/v1"
   decode := decodeCallbackAddressRules
