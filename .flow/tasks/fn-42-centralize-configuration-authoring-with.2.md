@@ -45,9 +45,12 @@ Migrate all six owner declarations and their cross-owner metadata coverage to th
 - [ ] Full model and lint gates satisfy R5 with no generated or unrelated changes.
 
 ## Done summary
-TBD
+Hard-cut exactly four Callback and two Matching settings to private `ConfigUseSpec` declarations with inline proof-only checked extraction while preserving public contexts, registries, use functions, behavior, and comments. Cross-owner integration coverage now pins the complete ordered checked-definition metadata for all six settings.
 
+baseline: green via handoff (verified at e6d56be2 by fn-42-centralize-configuration-authoring-with.1; required `make lint-model` rerun passed)
+
+stage: impl-review - ran [2026-08-28T23:54:15Z..2026-08-28T23:57:48Z] (codex; SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b5868effd0c023a6efef893ed9aec502bb40b1a0
+- Tests: cd model && mise exec -- lake build Temporal.System.Callback.ConfigurationTests Temporal.System.Matching.ConfigurationTests Temporal.System.ConfigurationIntegrationTests, cd model && mise exec -- lake build Temporal.System.Configuration.Tests, cd model && mise exec -- lake build TemporalModelTests, make umpire-build-model, make lint-model
 - PRs:
