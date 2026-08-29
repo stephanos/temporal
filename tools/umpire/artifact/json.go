@@ -2,6 +2,7 @@ package artifact
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -275,12 +276,13 @@ func inspectJSON(
 ) (jsonAnalysis, error) {
 	cursor := jsonCursor{
 		encoded:    encoded,
-		firstSeed:  maphash.MakeSeed(),
-		secondSeed: maphash.MakeSeed(),
+		exactKeys:  make([]uint32, jsonKeyTableSlots),
+		foldedKeys: make([]uint32, jsonKeyTableSlots),
+		keySeed:    maphash.MakeSeed(),
 	}
 	var analysis jsonAnalysis
 	if err := cursor.inspectValue(schema, "$", false, bounds, limits, &analysis); err != nil {
-		if errors.Is(err, errDuplicateKeyFound) || errors.Is(err, errCollectionLimitFound) {
+		if errors.Is(err, errDuplicateKeyFound) {
 			return analysis, nil
 		}
 		return jsonAnalysis{}, err
@@ -293,72 +295,43 @@ func inspectJSON(
 }
 
 type jsonCursor struct {
-	encoded    []byte
-	position   int
-	firstSeed  maphash.Seed
-	secondSeed maphash.Seed
+	encoded      []byte
+	position     int
+	exactKeys    []uint32
+	foldedKeys   []uint32
+	keySeed      maphash.Seed
+	nextObjectID uint64
 }
 
-var (
-	errDuplicateKeyFound    = errors.New("duplicate JSON key found")
-	errCollectionLimitFound = errors.New("JSON collection limit found")
-)
+var errDuplicateKeyFound = errors.New("duplicate JSON key found")
 
-type jsonKeyDigest struct {
-	first  uint64
-	second uint64
-}
+// Each object key consumes at least four punctuation/scalar tokens; twice that
+// maximum keeps both fixed open-addressed tables below a 50 percent load.
+const jsonKeyTableSlots = MaximumJSONTokens / 2
 
-type jsonKeyTracker struct {
-	exact      map[jsonKeyDigest]struct{}
-	folded     map[jsonKeyDigest]struct{}
-	firstSeed  maphash.Seed
-	secondSeed maphash.Seed
-}
-
-func newJSONKeyTracker(capacity int, firstSeed, secondSeed maphash.Seed) *jsonKeyTracker {
-	return &jsonKeyTracker{
-		exact:      make(map[jsonKeyDigest]struct{}, capacity),
-		folded:     make(map[jsonKeyDigest]struct{}, capacity),
-		firstSeed:  firstSeed,
-		secondSeed: secondSeed,
-	}
-}
-
-func (t *jsonKeyTracker) note(encoded []byte, key jsonString, analysis *jsonAnalysis) error {
-	exactIdentity := hashJSONString(encoded, key, false, t)
-	if _, exists := t.exact[exactIdentity]; exists {
-		analysis.duplicateKey = true
-		return errDuplicateKeyFound
-	}
-	t.exact[exactIdentity] = struct{}{}
-	foldedIdentity := hashJSONString(encoded, key, true, t)
-	if _, exists := t.folded[foldedIdentity]; exists {
-		analysis.caseCollision = true
-	} else {
-		t.folded[foldedIdentity] = struct{}{}
-	}
-	return nil
-}
-
-func hashJSONString(encoded []byte, value jsonString, fold bool, tracker *jsonKeyTracker) jsonKeyDigest {
-	var first maphash.Hash
-	var second maphash.Hash
-	first.SetSeed(tracker.firstSeed)
-	second.SetSeed(tracker.secondSeed)
+func hashJSONString(encoded []byte, value jsonString, objectID uint64, fold bool, seed maphash.Seed) uint32 {
+	var hash maphash.Hash
+	hash.SetSeed(seed)
+	var objectBytes [8]byte
+	binary.LittleEndian.PutUint64(objectBytes[:], objectID)
+	_, _ = hash.Write(objectBytes[:])
 	iterator := jsonStringIterator{encoded: encoded, value: value, position: value.start}
 	var buffer [utf8.UTFMax]byte
 	for {
 		character, ok := iterator.next()
 		if !ok {
-			return jsonKeyDigest{first: first.Sum64(), second: second.Sum64()}
+			sum := hash.Sum64()
+			digest := uint32(sum ^ sum>>32)
+			if digest == 0 {
+				return 1
+			}
+			return digest
 		}
 		if fold {
 			character = unicode.ToLower(character)
 		}
 		width := utf8.EncodeRune(buffer[:], character)
-		_, _ = first.Write(buffer[:width])
-		_, _ = second.Write(buffer[:width])
+		_, _ = hash.Write(buffer[:width])
 	}
 }
 
@@ -466,12 +439,13 @@ func (c *jsonCursor) inspectObject(
 	if bounds.CollectionLimit != nil {
 		limit = tighterLimit(limit, bounds.CollectionLimit(path, CollectionObject))
 	}
-	keys := newJSONKeyTracker(limit, c.firstSeed, c.secondSeed)
+	objectID := c.nextObjectID
+	c.nextObjectID++
+	contentStart := c.position
 	members := 0
 	for c.position < len(c.encoded) && c.encoded[c.position] != '}' {
 		if members >= limit {
 			analysis.collectionLimit = true
-			return errCollectionLimitFound
 		}
 		if err := c.inspectObjectMember(
 			schema,
@@ -479,7 +453,8 @@ func (c *jsonCursor) inspectObject(
 			bounds,
 			limits,
 			analysis,
-			keys,
+			objectID,
+			contentStart,
 			members,
 			limit,
 		); err != nil {
@@ -501,10 +476,12 @@ func (c *jsonCursor) inspectObjectMember(
 	bounds Bounds,
 	limits structuralLimits,
 	analysis *jsonAnalysis,
-	keys *jsonKeyTracker,
+	objectID uint64,
+	contentStart int,
 	members int,
 	limit int,
 ) error {
+	keyPosition := c.position
 	key, next, err := scanJSONString(c.encoded, c.position)
 	if err != nil {
 		return err
@@ -512,7 +489,7 @@ func (c *jsonCursor) inspectObjectMember(
 	if exceeds(key.decodedBytes, limits.stringBytes) {
 		analysis.stringLimit = true
 	}
-	if err := keys.note(c.encoded, key, analysis); err != nil {
+	if err := c.noteObjectKey(objectID, contentStart, keyPosition, key, analysis); err != nil {
 		return err
 	}
 	childSchema := resolveChildSchema(c.encoded, schema, key, analysis)
@@ -528,6 +505,74 @@ func (c *jsonCursor) inspectObjectMember(
 	}
 	c.position++
 	return c.inspectValue(childSchema, childPath, formatField, bounds, limits, analysis)
+}
+
+func (c *jsonCursor) noteObjectKey(
+	objectID uint64,
+	contentStart int,
+	keyPosition int,
+	key jsonString,
+	analysis *jsonAnalysis,
+) error {
+	exactDigest := hashJSONString(c.encoded, key, objectID, false, c.keySeed)
+	if c.seenKey(c.exactKeys, exactDigest, contentStart, keyPosition, key, false) {
+		analysis.duplicateKey = true
+		return errDuplicateKeyFound
+	}
+	if analysis.caseCollision {
+		return nil
+	}
+	foldedDigest := hashJSONString(c.encoded, key, objectID, true, c.keySeed)
+	if c.seenKey(c.foldedKeys, foldedDigest, contentStart, keyPosition, key, true) {
+		analysis.caseCollision = true
+	}
+	return nil
+}
+
+func (c *jsonCursor) seenKey(
+	table []uint32,
+	digest uint32,
+	contentStart int,
+	keyPosition int,
+	key jsonString,
+	fold bool,
+) bool {
+	index := int(digest & uint32(len(table)-1))
+	for probes := 0; probes < len(table); probes++ {
+		switch table[index] {
+		case 0:
+			table[index] = digest
+			return false
+		case digest:
+			if c.priorObjectKeyMatches(contentStart, keyPosition, key, fold) {
+				return true
+			}
+		default:
+		}
+		index = (index + 1) & (len(table) - 1)
+	}
+	return false
+}
+
+func (c *jsonCursor) priorObjectKeyMatches(contentStart, keyPosition int, key jsonString, fold bool) bool {
+	probe := jsonCursor{encoded: c.encoded, position: contentStart}
+	for probe.position < keyPosition {
+		previous, next, err := scanJSONString(probe.encoded, probe.position)
+		if err != nil {
+			return false
+		}
+		if compareJSONStrings(c.encoded, previous, key, fold) {
+			return true
+		}
+		probe.position = next
+		probe.skipSpace()
+		probe.position++
+		if err := probe.skipValue(); err != nil {
+			return false
+		}
+		probe.skipComma()
+	}
+	return false
 }
 
 func boundedChildPath(
@@ -592,7 +637,6 @@ func (c *jsonCursor) inspectArray(
 	for c.position < len(c.encoded) && c.encoded[c.position] != ']' {
 		if items >= limit {
 			analysis.collectionLimit = true
-			return errCollectionLimitFound
 		}
 		if err := c.inspectValue(elementSchema, elementPath, false, bounds, limits, analysis); err != nil {
 			return err
@@ -606,6 +650,61 @@ func (c *jsonCursor) inspectArray(
 	}
 	if c.position >= len(c.encoded) || c.encoded[c.position] != ']' {
 		return errors.New("missing JSON array delimiter")
+	}
+	c.position++
+	return nil
+}
+
+func (c *jsonCursor) skipValue() error {
+	c.skipSpace()
+	if c.position >= len(c.encoded) {
+		return errors.New("missing JSON value")
+	}
+	switch c.encoded[c.position] {
+	case '"':
+		_, next, err := scanJSONString(c.encoded, c.position)
+		c.position = next
+		return err
+	case '{':
+		return c.skipObject()
+	case '[':
+		return c.skipArray()
+	default:
+		for c.position < len(c.encoded) && !isJSONSeparator(c.encoded[c.position]) {
+			c.position++
+		}
+		return nil
+	}
+}
+
+func (c *jsonCursor) skipObject() error {
+	c.position++
+	c.skipSpace()
+	for c.position < len(c.encoded) && c.encoded[c.position] != '}' {
+		_, next, err := scanJSONString(c.encoded, c.position)
+		if err != nil {
+			return err
+		}
+		c.position = next
+		c.skipSpace()
+		c.position++
+		if err := c.skipValue(); err != nil {
+			return err
+		}
+		c.skipComma()
+	}
+	c.position++
+	return nil
+}
+
+func (c *jsonCursor) skipArray() error {
+	c.position++
+	c.skipSpace()
+	for c.position < len(c.encoded) && c.encoded[c.position] != ']' {
+		if err := c.skipValue(); err != nil {
+			return err
+		}
+		c.skipComma()
 	}
 	c.position++
 	return nil
@@ -641,6 +740,28 @@ func decodeJSONString(encoded []byte, value jsonString) (string, error) {
 		}
 		if _, err := decoded.WriteRune(character); err != nil {
 			return "", err
+		}
+	}
+}
+
+func compareJSONStrings(encoded []byte, left, right jsonString, fold bool) bool {
+	leftIterator := jsonStringIterator{encoded: encoded, value: left, position: left.start}
+	rightIterator := jsonStringIterator{encoded: encoded, value: right, position: right.start}
+	for {
+		leftRune, leftOK := leftIterator.next()
+		rightRune, rightOK := rightIterator.next()
+		if leftOK != rightOK {
+			return false
+		}
+		if !leftOK {
+			return true
+		}
+		if fold {
+			leftRune = unicode.ToLower(leftRune)
+			rightRune = unicode.ToLower(rightRune)
+		}
+		if leftRune != rightRune {
+			return false
 		}
 	}
 }

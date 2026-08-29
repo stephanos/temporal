@@ -24,6 +24,15 @@ type strictNumberProbe struct {
 	Value         json.Number `json:"value"`
 }
 
+type nestedBoundaryProbe struct {
+	FormatVersion string       `json:"formatVersion"`
+	Values        []namedProbe `json:"values"`
+}
+
+type namedProbe struct {
+	Name string `json:"name"`
+}
+
 func TestStrictJSONCanonicalPretty(t *testing.T) {
 	encoded, err := CanonicalPretty(strictProbe{
 		FormatVersion: "umpire-probe/v2",
@@ -244,6 +253,68 @@ func TestStrictJSONStopsObjectBookkeepingAtNPlusOne(t *testing.T) {
 		return result.AllocedBytesPerOp()
 	}
 	require.LessOrEqual(t, allocatedBytes(far), allocatedBytes(near)+1_024)
+}
+
+func TestStrictJSONPreservesHigherPrecedencePastCollectionLimit(t *testing.T) {
+	cases := map[string]struct {
+		decoder func([]byte) error
+		encoded []byte
+		want    ErrorCode
+	}{
+		"duplicate N+1 key": {
+			decoder: decodeObjectBoundary,
+			encoded: objectDocumentWithFinalKey(t, "key-000000", "key-000000"),
+			want:    ErrorDuplicateKey,
+		},
+		"case-colliding N+1 key": {
+			decoder: decodeObjectBoundary,
+			encoded: objectDocumentWithFinalKey(t, "Name", "name"),
+			want:    ErrorCaseCollision,
+		},
+		"unknown field after array N+1": {
+			decoder: func(encoded []byte) error {
+				decoder := Decoder[nestedBoundaryProbe]{
+					Format: "umpire-nested-boundary/v2",
+					Bounds: Bounds{CollectionLimit: func(path JSONPath, kind CollectionKind) int {
+						if path == "$.values" && kind == CollectionArray {
+							return 1
+						}
+						return 0
+					}},
+				}
+				_, err := decoder.Decode(encoded)
+				return err
+			},
+			encoded: []byte(`{"formatVersion":"umpire-nested-boundary/v2","values":[{"name":"first"},{"unknown":true}]}`),
+			want:    ErrorUnknownField,
+		},
+	}
+	for name, test := range cases {
+		t.Run(name, func(t *testing.T) {
+			requireErrorCode(t, test.decoder(test.encoded), test.want)
+		})
+	}
+}
+
+func decodeObjectBoundary(encoded []byte) error {
+	decoder := Decoder[objectBoundaryProbe]{Format: "umpire-map-boundary/v2"}
+	_, err := decoder.Decode(encoded)
+	return err
+}
+
+func objectDocumentWithFinalKey(t *testing.T, firstKey, finalKey string) []byte {
+	t.Helper()
+	var encoded strings.Builder
+	encoded.WriteString(`{"formatVersion":"umpire-map-boundary/v2","values":{`)
+	_, err := fmt.Fprintf(&encoded, `"%s":""`, firstKey)
+	require.NoError(t, err)
+	for index := 1; index < MaximumJSONObjectMembers; index++ {
+		_, err = fmt.Fprintf(&encoded, `,"key-%06d":""`, index)
+		require.NoError(t, err)
+	}
+	_, err = fmt.Fprintf(&encoded, `,"%s":""}}`, finalKey)
+	require.NoError(t, err)
+	return []byte(encoded.String())
 }
 
 func overlimitObjectDocument(t *testing.T, members int) []byte {
