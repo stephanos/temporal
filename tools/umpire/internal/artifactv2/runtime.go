@@ -436,6 +436,9 @@ func ValidateExperimentRun(document ExperimentRun) error {
 	if err := validatePhaseOutcomes(document.PhaseOutcomes); err != nil {
 		return err
 	}
+	if err := validatePhaseProgression(document.PhaseOutcomes); err != nil {
+		return err
+	}
 	if err := validateControlAttempts(document.ControlAttempts, document.Attempt); err != nil {
 		return err
 	}
@@ -457,12 +460,12 @@ func ValidateExperimentRun(document ExperimentRun) error {
 	if err := validateProvenance(document.Provenance); err != nil {
 		return err
 	}
-	switch document.OperationalStatus {
-	case "succeeded", "failed", "incomplete":
-		return nil
-	default:
-		return fmt.Errorf("operational status %q is invalid", document.OperationalStatus)
+	expected := expectedOperationalStatus(document)
+	if document.OperationalStatus != expected {
+		return fmt.Errorf("operational status %q is inconsistent with Run outcomes; expected %q",
+			document.OperationalStatus, expected)
 	}
+	return nil
 }
 
 func validatePhaseOutcomes(outcomes []PhaseOutcome) error {
@@ -504,6 +507,26 @@ func validateTerminalPhaseOutcome(outcome PhaseOutcome, requiresCode bool) error
 	}
 	if outcome.Code != nil && !validDefinitionID(*outcome.Code) {
 		return fmt.Errorf("terminal phase %q code %q is invalid", outcome.Phase, *outcome.Code)
+	}
+	return nil
+}
+
+func validatePhaseProgression(outcomes []PhaseOutcome) error {
+	preparation := outcomes[0].Status
+	realization := outcomes[1].Status
+	observation := outcomes[2].Status
+	cleanup := outcomes[4].Status
+	if preparation == "not-started" {
+		return errors.New("preparation must start before an ExperimentRun can exist")
+	}
+	if preparation != "succeeded" && realization != "not-started" {
+		return errors.New("realization cannot start before preparation succeeds")
+	}
+	if (realization == "not-started") != (observation == "not-started") {
+		return errors.New("observation must start exactly when realization starts")
+	}
+	if cleanup == "not-started" {
+		return errors.New("cleanup must start exactly once after preparation begins")
 	}
 	return nil
 }
@@ -610,6 +633,47 @@ func validateCleanupOutcome(cleanup CleanupOutcome) error {
 		return fmt.Errorf("cleanup status %q is invalid", cleanup.Status)
 	}
 	return nil
+}
+
+// expectedOperationalStatus validates the declared summary; it does not construct or normalize a Run.
+func expectedOperationalStatus(document ExperimentRun) string {
+	for _, phase := range document.PhaseOutcomes {
+		if phase.Status == "failed" {
+			return "failed"
+		}
+	}
+	for _, control := range document.ControlAttempts {
+		if control.Status == "rejected" || control.Status == "unsupported" || control.Status == "failed" {
+			return "failed"
+		}
+	}
+	for _, source := range document.SourceClosures {
+		if source.Status == "failed" {
+			return "failed"
+		}
+	}
+	if document.Cleanup.Status == "failed" {
+		return "failed"
+	}
+	for _, phase := range document.PhaseOutcomes {
+		if phase.Status != "succeeded" {
+			return "incomplete"
+		}
+	}
+	for _, control := range document.ControlAttempts {
+		if control.Status != "accepted" {
+			return "incomplete"
+		}
+	}
+	for _, source := range document.SourceClosures {
+		if source.Status != "closed" {
+			return "incomplete"
+		}
+	}
+	if document.Cleanup.Status != "complete" || len(document.KnownGaps) != 0 {
+		return "incomplete"
+	}
+	return "succeeded"
 }
 
 func ValidateExperimentRunClosure(

@@ -106,6 +106,14 @@ private def phaseOutcome
   code := none
 }
 
+private def notStartedPhaseOutcome (outcome : PhaseOutcome) : PhaseOutcome := {
+  phase := outcome.phase
+  status := .notStarted
+  startedAtUnixMillis := none
+  finishedAtUnixMillis := none
+  code := none
+}
+
 private def experimentRunDraft : ExperimentRun := {
   formatVersion := "umpire-experiment-run/v2"
   runIdentity := id "switch.run.1"
@@ -217,6 +225,89 @@ example :
     }).seal.isValidTransport &&
     !({ experimentRun with runtimeConfiguration := experimentBinding }).seal.closes
       compiledArtifact runtimeConfiguration := by
+  native_decide
+
+/-! Operational precedence rejects contradictory summaries and preserves hard-failure dominance. -/
+example :
+    !({ experimentRun with operationalStatus := .failed }).seal.isValidTransport &&
+    !({ experimentRun with phaseOutcomes := experimentRun.phaseOutcomes.map fun
+      (outcome : PhaseOutcome) =>
+      if outcome.phase == ExecutionPhase.realization then
+        { outcome with status := .failed, code := some (id "switch.phase.failed") }
+      else outcome
+    }).seal.isValidTransport &&
+    !({ experimentRun with sourceClosures := experimentRun.sourceClosures.map fun
+      (closure : SourceClosure) =>
+      if closure.sourceDefinitionId == id "umpire.evidence.source.cleanup" then
+        { closure with status := .partiallyClosed }
+      else closure
+    }).seal.isValidTransport &&
+    !({ experimentRun with
+      operationalStatus := .incomplete
+      phaseOutcomes := experimentRun.phaseOutcomes.map fun (outcome : PhaseOutcome) =>
+        if outcome.phase == ExecutionPhase.realization then
+          { outcome with status := .failed, code := some (id "switch.phase.failed") }
+        else outcome
+      cleanup := {
+        status := .incomplete
+        openHandleCount := 0
+        code := some (id "switch.cleanup.incomplete")
+      }
+    }).seal.isValidTransport := by
+  native_decide
+
+/-! A Run rejects phase progressions that cannot arise from the five-phase execution contract. -/
+example :
+    !({ experimentRun with
+      operationalStatus := .incomplete
+      phaseOutcomes := experimentRun.phaseOutcomes.map fun (outcome : PhaseOutcome) =>
+        if outcome.phase == ExecutionPhase.preparation ||
+            outcome.phase == ExecutionPhase.realization ||
+            outcome.phase == ExecutionPhase.observation then
+          notStartedPhaseOutcome outcome
+        else outcome
+    }).seal.isValidTransport &&
+    !({ experimentRun with
+      operationalStatus := .incomplete
+      phaseOutcomes := experimentRun.phaseOutcomes.map fun (outcome : PhaseOutcome) =>
+        if outcome.phase == ExecutionPhase.realization then
+          notStartedPhaseOutcome outcome
+        else outcome
+    }).seal.isValidTransport &&
+    !({ experimentRun with
+      operationalStatus := .incomplete
+      phaseOutcomes := experimentRun.phaseOutcomes.map fun (outcome : PhaseOutcome) =>
+        if outcome.phase == ExecutionPhase.cleanup then
+          notStartedPhaseOutcome outcome
+        else outcome
+    }).seal.isValidTransport := by
+  native_decide
+
+/-! Runtime provenance rejects the same empty, blank, and zero-position rows as Go admission. -/
+example :
+    !({ runtimeConfiguration with provenance := {
+      runtimeConfiguration.provenance with sourceLocations := []
+    }} : RuntimeConfiguration).seal.isValidTransport &&
+    !({ runtimeConfiguration with provenance := {
+      runtimeConfiguration.provenance with sourceLocations :=
+        runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
+          { source with path := "" }
+    }} : RuntimeConfiguration).seal.isValidTransport &&
+    !({ runtimeConfiguration with provenance := {
+      runtimeConfiguration.provenance with sourceLocations :=
+        runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
+          { source with provenance := "" }
+    }} : RuntimeConfiguration).seal.isValidTransport &&
+    !({ runtimeConfiguration with provenance := {
+      runtimeConfiguration.provenance with sourceLocations :=
+        runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
+          { source with line := 0 }
+    }} : RuntimeConfiguration).seal.isValidTransport &&
+    !({ runtimeConfiguration with provenance := {
+      runtimeConfiguration.provenance with sourceLocations :=
+        runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
+          { source with column := 0 }
+    }} : RuntimeConfiguration).seal.isValidTransport := by
   native_decide
 
 end Umpire.Artifact.Tests.Runtime
