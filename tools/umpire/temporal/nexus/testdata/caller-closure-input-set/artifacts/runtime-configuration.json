@@ -1,0 +1,97 @@
+{
+  "formatVersion": "umpire-runtime-configuration/v2",
+  "configurationDefinitionId": "temporal.nexus.runtime-configuration.caller-closure",
+  "behaviorFingerprint": "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
+    "behaviorFingerprint": "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
+    "provenanceChecksum": "sha256:f7a6ebefca8202c6a7c467fd516e54d162c7d1f254c6c9a1f004a7f0b4135ab8"
+  },
+  "authorityProfile": {
+    "definitionId": "temporal.runtime-profile.ephemeral-local",
+    "version": 2,
+    "behaviorFingerprint": "sha256:dd92f1ee14df101f2ea4abb4439f4722de8c061292a4fdd6b6476c7ca7e09b31",
+    "requiredCapabilityDefinitionIds": []
+  },
+  "phaseLimits": [
+    {
+      "phase": "preparation",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "realization",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "observation",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 3584,
+      "maxBytes": 12582912
+    },
+    {
+      "phase": "isolation",
+      "durationMilliseconds": 15000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "cleanup",
+      "durationMilliseconds": 15000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    }
+  ],
+  "observation": {
+    "profileDefinitionId": "temporal.nexus.synthetic.basic-lifecycle.profile",
+    "profileBehaviorFingerprint": "sha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105",
+    "programDefinitionId": "temporal.nexus.observation-program.basic-lifecycle",
+    "programBehaviorFingerprint": "sha256:1ab36fdcd2978dec901678491646ec67fe0fc1d3bd1883e599bc2c53810b3480",
+    "mappingDefinitionId": "temporal.nexus.synthetic.basic-lifecycle.mapping",
+    "mappingBehaviorFingerprint": "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2"
+  },
+  "participantBindings": [
+    {
+      "participantDefinitionId": "temporal.nexus.participant.caller-closure",
+      "protocolDefinitionId": "umpire.participant-protocol.v2",
+      "protocolVersion": 2,
+      "programDefinitionId": "temporal.nexus.participant-program.caller-closure",
+      "programBehaviorFingerprint": "sha256:f2f1a9a1346576b4d8c6b0b4f7f6c8a138461f90c168ab57747b316807666e56",
+      "capabilityDefinitionIds": [
+        "nexus.capability.cancellation",
+        "workflow-nexus.capability.ownership",
+        "workflow.capability.lifecycle"
+      ]
+    }
+  ],
+  "knownGaps": [],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "temporal.nexus.observation-program.basic-lifecycle",
+      "temporal.nexus.participant-program.caller-closure",
+      "temporal.nexus.runtime-configuration.caller-closure",
+      "temporal.nexus.synthetic.basic-lifecycle.mapping",
+      "temporal.nexus.synthetic.basic-lifecycle.profile",
+      "temporal.runtime-profile.ephemeral-local"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Temporal/System/Execution/Nexus.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:3b8bae9ef57fa5f400076af50d01a283d8b928481d654abd0d3c39dd72ea2f6c",
+  "artifactChecksum": "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5"
+}
