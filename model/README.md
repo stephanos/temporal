@@ -196,13 +196,38 @@ The output directory contains one canonical manifest and one canonical artifact 
 Fn-5 owns discovery and explanation. Operational endpoints, credentials, namespaces, and runtime
 authority remain downstream bindings.
 
-The current `umpire-drive-plan/v2` and `umpire-experiment/v2` Artifacts have one exact persisted
-representation: fixed-order JSON with two-space indentation, stable escaping and base-10 natural
-numbers, no trailing spaces, and exactly one terminal LF. Their Artifact Checksums use the same
-deterministic pretty bytes with only that document's own checksum omitted; the ExperimentSpec
-preimage retains its already-sealed DrivePlan. This pre-release correction supersedes fn-37's
-compact spelling in place. No external or immutable published v2 compatibility set predates it, so
-compact and alternate-whitespace input reject rather than entering a compatibility path.
+The retained boundary is exactly the embedded `umpire-drive-plan/v2` plus the persisted
+`umpire-experiment/v2`, `umpire-runtime-configuration/v2`, `umpire-experiment-run/v2`,
+`umpire-raw-evidence/v2`, `umpire-evidence/v2`, and `umpire-result/v2` families. Every document has
+one representation: fixed-order JSON with two-space indentation, stable escaping and base-10
+natural numbers, no trailing spaces, and exactly one terminal LF. Artifact Checksum input is the
+UTF-8 domain, one LF, and that document's exact deterministic-pretty bytes with only its own
+`artifactChecksum` field omitted; the ExperimentSpec preimage retains its already-sealed DrivePlan.
+Behavior Fingerprints identify checked meaning, provenance checksums bind exact provenance, and
+Artifact Checksums identify the complete persisted bytes; none substitutes for another.
+
+Runtime, Evidence, and Result documents preserve their phase-specific Limits and Known Gaps rather
+than turning exhaustion, unsupported interpretation, incomplete cleanup, or absent Evidence into a
+successful Run Evaluation. Complete set admission accepts only the fixed two-member executable,
+four-member execution, or six-member evaluation closure and verifies every Definition ID, Behavior
+Fingerprint, checksum, binding, and reference before returning a value.
+
+From the repository root, the read-only checks are:
+
+```bash
+make umpire-check-artifact FAMILY=umpire-experiment/v2 ARTIFACT=tools/umpire/artifact/testdata/switch-experiment-v2.json
+make umpire-check-artifact-set SET=tools/umpire/artifact/testdata/valid-run-evaluation-set
+```
+
+Both checks are silent on success, write failures only to stderr, return 2 for invalid arguments and
+1 for filesystem or admission failure, and never rewrite or publish their inputs. Immutable
+publication remains the separate `PublishSet` API: it validates and privately stages the complete
+set, installs one manifest-digest directory with a single rename, and lets readers observe absence
+or one fully revalidated set. Publication removes abandoned private staging directories under its
+lock; general artifact management, schema migration, generic envelopes, and runtime/platform/CI
+orchestration remain outside this boundary. This pre-release correction supersedes fn-37's compact
+spelling in place. Compact or alternate-whitespace input has no normalization, alias, fallback, or
+migration path.
 
 ## Offline Observation
 

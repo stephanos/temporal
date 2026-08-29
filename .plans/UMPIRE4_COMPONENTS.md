@@ -1,6 +1,6 @@
 # Umpire components and delivery status
 
-Status: reconciled 2026-08-28 against the current `model/` tree, its generators, and the existing Go
+Status: reconciled 2026-08-29 against the current `model/` tree, its generators, and the existing Go
 Umpire implementations. The component boundaries were originally extracted from the
 [Inspect Umpire Branch](https://chatgpt.com/share/6a8b71cb-74e4-83e8-947a-c2f6d595fefc)
 design conversation. This remains an architectural inventory, not an approved implementation plan.
@@ -23,10 +23,10 @@ implementation was found.
 | C1 API importer | Partial | Deterministic full-descriptor Lean projection is built. A standalone catalog, complete field dispositions, drift report, explain surface, and shared bounded-selection policy are missing. |
 | C2 config importer | Partial | The initialized production registry, typed generated settings, identities, and Go-produced resolution fixtures are built. Product classifications currently cover selected Callback and Matching uses; no standalone explain/check surface exists. |
 | C3 Lean authoring DSL | Partial | Checked targets, Properties, Behaviors, Queries, and finite authored Spaces are built, including canonical axes/choices, request-only faults, seek-only coverage goals, and checked metadata. Fn-5 catalog/list/explain aggregation and usability evidence remain. |
-| C4 ExperimentSpec compiler | Partial | Pure planning and `umpire-gen-tests` retain canonical `umpire-experiment/v2` artifacts for one selected trace or an atomic bounded Space batch. Persisted decoding/validation, runtime configuration, and runtime consumption remain missing. |
+| C4 ExperimentSpec compiler | Partial | Pure planning and `umpire-gen-tests` retain canonical `umpire-experiment/v2` artifacts for one selected trace or an atomic bounded Space batch. Strict persisted admission, the inert RuntimeConfiguration contract, exact sets, and immutable publication are built; runtime consumption remains missing. |
 | C5 Go/docs generator | Partial | One stable caller-closure regression has deterministic checked-in Go and Markdown Generated Views; broader catalog and promotion surfaces remain. |
 | C6 execution runtime | Separate | Go runtimes drive Temporal and retain cleanup/run data, but none decodes or executes `umpire-experiment/v2`. |
-| C7 Evidence/Run Evaluation | Partial + separate | Current Lean checks Properties over Model Traces and exports observation requirements. Go/Umpire3 Evidence systems exist separately; no current-model observation program or live evaluated Result exists. |
+| C7 Evidence/Run Evaluation | Partial + separate | Current Lean checks Properties over Model Traces and owns Observation Evaluation and Implementation Link meaning. Exact inert v2 RawEvidence, Evidence, and Result transport/admission are built, but no live current-model Run Evaluation produces them. |
 | C8 exploration | Partial | Deterministic finite exhaustive/shortest-style planning is built. The named coverage-guided policy only seed-rotates enumeration; it does not consume coverage state. Broader campaign exploration exists separately. |
 | C9 SDK participant | Separate | Umpire3 has participant protocols and a Temporal SDK adapter. The current v2 generator emits no participant-program or runtime bindings; the concrete program and separate RuntimeConfiguration remain downstream. |
 | C10 replay/promote | Separate | Go campaign pipelines minimize, replay, and propose regressions, but cannot read the current artifact or generate a Lean regression from it. |
@@ -36,7 +36,7 @@ implementation was found.
 | Milestone | Status | Summary |
 | --- | --- | --- |
 | A: describe real tests | In progress | The model-only C1-C4 slice now includes ordinary Nexus Lifecycle/Operations walkthroughs and an experimental two-by-two authored Space proof; broader Generated View catalog/promotion and usability evidence remain. |
-| B: check real Temporal | Not integrated | No current-artifact decoder, local driver binding, live evidence interpreter, or evaluated Result path exists. |
+| B: check real Temporal | Not integrated | The current Artifact decoder and persistence boundary exist, but no local driver binding, live Evidence interpreter, or evaluated Result path exists. |
 | C: find things | Foundations only | Finite planning and separate campaign tooling exist, but discovery, minimization, replay, and promotion are not composed end to end. |
 | D: reuse the investment | Separately advanced | Formal, optional Veil, and Claim Assessment machinery are substantial in Umpire3, but current-model checker-view binding and the active R6/R7 Claim Assessment work remain open. |
 
@@ -48,12 +48,12 @@ make its component built.
 | Slice | Flow spec | Plan status | Bounded ownership |
 | --- | --- | --- | --- |
 | C7 offline observation | `fn-4-umpire-observation-and-semantic-verdicts` | Reviewed: Ship; six tasks ready | Closed reusable mapping expressions, bounded synthetic Observation Evaluation, coordinate-complete Evidence Links, unchanged pure Property evaluation, and one Temporal-owned synthetic profile. Live collection and Run Evaluation remain separate. |
-| C3/C5 catalog and exact promotion | `fn-5-umpire-discovery-promotion-and-artifact` | Reviewed: Ship; seven tasks ready; dependency synchronized | Checked eight-query plus one authored-space semantic catalog closure, generated glossary/index and list/explain UX, lineage-linked exact in-memory promotion with compiled Temporal source bindings, and a two-regression thin Generated View set. Persisted readers/migrations remain wholly owned by fn-18; live replay/minimization remain separate. |
+| C3/C5 catalog and exact promotion | `fn-5-umpire-discovery-promotion-and-artifact` | Reviewed: Ship; seven tasks ready; dependency synchronized | Checked eight-query plus one authored-space semantic catalog closure, generated glossary/index and list/explain UX, lineage-linked exact in-memory promotion with compiled Temporal source bindings, and a two-regression thin Generated View set. Fn-18 now owns sole-v2 admission and persistence; post-v2 evolution and live replay/minimization remain separate. |
 | Milestone A pilot gate | `fn-14-milestone-a-pilot-baseline-and-lean` | Reviewed: Ship; six tasks ready | Frozen eight-defect/twelve-mutation baseline, provider-free cost and coverage measurement, exactly three fresh Agentworkflow authoring trial slots, and a strict `LEAN_FIRST_GO` / `FACADE_FOLLOW_UP` / `NO_GO` / `INCONCLUSIVE` receipt. No facade or live-runtime implementation. |
 | C1/C2 standalone input catalogs | `fn-15-standalone-api-and-config-input-catalogs` | Reviewed: Ship; seven tasks ready | Complete mechanical API facts, exact bounded current-model selection, all generated settings plus six owned semantic uses, and one shared exact list/explain/check engine. Drift verification, live lookup, runtime, and Run Evaluation remain separate. |
-| C3/C4 authored variation spaces | `fn-16-authored-variation-spaces-and` | Implemented and verified | Checked finite axes/choices, request-only faults, seek-only coverage goals, canonical metadata for fn-5, dependent-kernel point lowering, atomic bounded batch compilation, and byte-identical v2 output through `umpire-gen-tests`. RuntimeConfiguration, coverage scoring, artifact reading, runtime, and Run Evaluation remain separate. |
+| C3/C4 authored variation spaces | `fn-16-authored-variation-spaces-and` | Implemented and verified | Checked finite axes/choices, request-only faults, seek-only coverage goals, canonical metadata for fn-5, dependent-kernel point lowering, atomic bounded batch compilation, and byte-identical v2 output through `umpire-gen-tests`. RuntimeConfiguration and Artifact admission are now separate implemented fn-18 contracts; coverage scoring, runtime, and Run Evaluation remain separate. |
 | C8 bounded semantic exploration | `fn-17-bounded-semantic-exploration-and` | Reviewed: Ship; seven tasks ready | Pure selection over fn-16's atomic bounded universe with exhaustive, pair/t-wise, seeded-random, proof-reduced symmetry, real coverage-guided state/report/resume, and pinned precedence. Runtime, evidence, persisted readers, replay, minimization, and promotion remain separate. |
-| C4/C7/C8 versioned artifact boundary | `fn-18-versioned-umpire-artifact-boundary` | Reviewed: Ship; eleven tasks ready | The current v2 Artifact is the sole baseline. Strict bounded Go admission preserves Definition IDs, Behavior Fingerprints, Artifact Checksums, Limits, Known Gaps, exact reference closure, and immutable atomic publication. Only future post-v2 successors may add migrations. Execution, Evidence collection/interpretation, replay, promotion, and Claim Assessment remain separate. |
+| C4/C7/C8 versioned artifact boundary | `fn-18-versioned-umpire-artifact-boundary` | Implemented and verified | The current v2 Artifact is the sole baseline. Strict bounded Go admission preserves Definition IDs, Behavior Fingerprints, Artifact Checksums, Limits, Known Gaps, exact reference closure, and immutable atomic publication. Read-only checks expose one Artifact or complete set without publishing. Only future post-v2 successors may add migrations. Execution, Evidence collection/interpretation, replay, promotion, and Claim Assessment remain separate. |
 | C6/C9 bounded local execution | `fn-19-bounded-local-temporal-execution-and` | Reviewed: Ship; nine tasks ready | One fn-18-admitted caller-closure input set, domain-neutral five-phase runtime/participant boundary, production-safe `temporaltest` lifecycle, closed ephemeral authority, exact Nexus SDK force-close participant, four-source raw evidence, and an admitted/published run set. Semantic interpretation, Result/Run Evaluation, replay, promotion, remote/CI/canary, and Claim Assessment remain separate. |
 | C7 local Run Evaluation | `fn-20-local-execution-semantic-conformance` | Reviewed: Ship; seven tasks ready | One exact four-member local run set passes through a private bounded Go-to-Lean checker bridge and the existing Observation Evaluation, Implementation Link, and Property authorities. Operational, Observation Evaluation, Implementation Link, Property, and tooling outcomes remain independent in the admitted six-member Evidence/Result set. Replay, promotion, formal checking, and Claim Assessment remain separate. |
 | C4/C6/C7/C9 deterministic Nexus negative control | `fn-21-nexus-duplicate-observation-control` | Reviewed: Ship; seven tasks ready | One exact request-only duplicate-delivery fault lowers to a second closed local program/configuration, drives one normal requested/completed cancellation lifecycle, records mechanical callback count one plus one labeled synthetic contribution, and lets the existing Run Evaluation authority report an accepted uniqueness-only violation. Generic fault infrastructure, a new Artifact family, replay, promotion, and non-local Claim Assessment remain separate. |
@@ -68,9 +68,9 @@ make its component built.
 | C12 release evidence graph and manual authorization | `fn-30-release-evidence-graph-and-manual` | Reviewed: Ship; seven tasks ready; depends on fn-14, fn-18, and fn-26 through fn-29 | One signed seven-slot evidence index authenticates complete or explicitly held inputs, externally signed build/deployment attestations bind one immutable server candidate, and one fixed Lean policy produces an inspectable accepted/held/rejected graph. Separate protected owner roles create append-only approve/deny/revoke decisions; neither Claim Assessment nor authorization can deploy, promote, route, configure, or roll back. |
 
 Bottom line: the component decomposition still holds, but the current implementation is not an
-end-to-end Umpire pipeline. It is a model-only slice ending at deterministic artifact compilation
-and inspection.
-The next runtime seam is a strict decoder/validator and local execution adapter for the generated
+end-to-end Umpire pipeline. It ends at deterministic Artifact compilation, strict admission, exact
+set closure, and immutable persistence without executing those Artifacts.
+The next runtime seam is a local execution adapter consuming the already-admitted
 `umpire-experiment/v2` plus its separate RuntimeConfiguration. Veil belongs at a different seam inside C11: an optional, family-owned
 Lean checker target bound by proof to an explicit canonical view, never a generated backend or a
 second semantic authority.
@@ -139,24 +139,32 @@ These artifacts are the seams between components:
 | Config catalog | Keys, types, defaults, precedence, scope, and declared classification | The complete initialized registry snapshot and resolution fixtures exist in `model/Temporal/DynamicConfig/`; handwritten classifications and typed uses exist for selected Callback and Matching settings. |
 | Semantic catalog | Lean-owned resources, actions, properties, observations, targets, and hashes | Checked declarations and canonical projections exist in `model/Umpire/`, including `CheckedSpaceMetadata`; fn-5 still owns consolidated catalog aggregation and list/explain. |
 | Regression/space | Named regressions and exploration spaces over Lean semantics | Checked `Property`, `Behavior`, `Query`, and Space values exist, with reusable Switch and Temporal examples; there is no persisted regression catalog. |
-| ExperimentSpec | Environment-independent executable specification with a drive plan, properties, requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints | `umpire-experiment/v2` is the sole byte-identical planning artifact emitted by planning and `umpire-gen-tests`. It and its nested `umpire-drive-plan/v2` use fixed-order, two-space-indented JSON with stable escaping and numbers, no trailing spaces, and one terminal LF. Runtime bindings belong to a separate RuntimeConfiguration; runtime reading remains an explicit Known Gap. |
-| ExperimentRun | One realized execution binding an `ExperimentSpec` to an environment, seed, controls, receipts, and cleanup outcome | Run/artifact concepts exist in the Go Umpire implementations, but not for the current `model/` `ExperimentSpec`. |
-| Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | Implemented in the Go Umpire baselines; not connected to the current `model/` artifact. |
-| Semantic evidence | Lean-defined interpretation of raw facts | Implemented in Umpire3's model/runtime path and partially mirrored by generic Go interpretation; not generated from the current `model/` declarations. |
-| Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | Result models exist in the Go Umpire baselines; no current-model Run Evaluation result is produced. |
+| ExperimentSpec | Environment-independent executable specification with a drive plan, properties, requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints | `umpire-experiment/v2` is the sole byte-identical planning Artifact emitted by planning and `umpire-gen-tests`; its nested plan is exactly `umpire-drive-plan/v2`. Strict Go admission and complete-set closure are implemented. Runtime bindings belong to the separate admitted `umpire-runtime-configuration/v2`; runtime consumption remains a Known Gap. |
+| ExperimentRun | One realized execution binding an `ExperimentSpec` to an environment, seed, controls, receipts, and cleanup outcome | Exact inert `umpire-experiment-run/v2` Lean/Go codecs, admission, closure, and fixtures are implemented; no current runtime produces it. |
+| Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | Exact bounded `umpire-raw-evidence/v2` Lean/Go codecs, admission, closure, and fixtures are implemented; no live adapter collects it. |
+| Semantic evidence | Lean-defined interpretation of raw facts | Exact `umpire-evidence/v2` transport mirrors the current Observation Evaluation types, Evidence-backed Model Trace, and Evidence Links; no live Run Evaluation produces it. |
+| Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | Exact `umpire-result/v2` transport preserves operational, Observation Evaluation, Implementation Link, Property, Limit, Known Gap, cleanup, and semantic statuses independently; no current runtime/evaluator produces it. |
 | Replay bundle | ExperimentSpec, ExperimentRun, evidence, result, Limits, and provenance | Campaign/replay artifacts exist in the Go Umpire baselines; they do not accept `umpire-experiment/v2`. |
 | Veil binding | Source-bound correspondence between an explicit canonical first-order view and family-authored Veil declarations | Umpire3 exports `umpire3/veil-binding/v1` with declaration mappings, source/view digests, backend revision, semantic relation, and trust data. The current model has no corresponding checker view or binding. |
 | Verification receipt | Checker target, Limits, trust mode, proof/counterexample, and provenance | Umpire3 has checker receipts and release evidence. The current `model/` produces `PlannerRun` results, not a verification receipt. |
 
-Every persisted artifact should carry a format version. Semantic artifacts should additionally carry
-source and Behavior Fingerprints, declared Known Gaps, and enough provenance to reject incompatible or
-stale consumers. The current `ExperimentSpec` and `DrivePlan` meet this baseline; the missing
-reader/migration/runtime boundary must preserve it.
+The retained boundary is exactly embedded `umpire-drive-plan/v2` plus persisted
+`umpire-experiment/v2`, `umpire-runtime-configuration/v2`, `umpire-experiment-run/v2`,
+`umpire-raw-evidence/v2`, `umpire-evidence/v2`, and `umpire-result/v2`. Every document uses
+fixed-order two-space pretty JSON, stable escaping and canonical numbers, no trailing spaces, and
+exactly one terminal LF. Artifact Checksum input is `domain + "\n" + preimage`, where the preimage
+is those exact pretty bytes with only that document's own checksum omitted and one LF. Behavior
+Fingerprints identify checked meaning; provenance and Artifact checksums independently bind
+provenance and complete content.
 
-Their deterministic pretty v2 bytes and checksum preimages are the one pre-release baseline and
-supersede fn-37's compact spelling in place. No external or immutable published v2 compatibility
-set predates this correction, so compact or alternate-whitespace input has no reader, migration,
-alias, or fallback.
+Exact executable, execution, and evaluation closures contain two, four, and six members
+respectively. Their manifest and members preserve every Limit and Known Gap and reject incompatible
+references or stale checksums. `PublishSet` validates and privately stages a complete set, then
+installs one immutable manifest-digest directory with a single rename; readers observe absence or a
+fully revalidated set. Read-only checks never call publication. This baseline supersedes fn-37's
+compact spelling in place. Compact/alternate whitespace, other families, schema migrations, generic
+envelopes, platform orchestration, and mutating artifact-management commands have no normalization,
+alias, or fallback here.
 
 ## 3. Components
 
@@ -287,7 +295,9 @@ requested action from its model-owned outcome. Ordinary planning leaves choices,
 faults empty; checked Space intent populates those same fields without changing the artifact format.
 `umpire-gen-tests` emits those same canonical v2 planning Artifacts without adding participant,
 setup, ordering, termination, cleanup, or other runtime bindings. Those bindings belong to the
-separate RuntimeConfiguration contract. Artifact reading and runtime consumption are not implemented.
+separate `umpire-runtime-configuration/v2` contract. Fn-18 now supplies strict read-only admission,
+exact executable/execution/evaluation set closure, and immutable publication for that boundary.
+Runtime consumption is not implemented.
 
 ### C5. Go test and documentation generator
 
@@ -323,18 +333,20 @@ This remains a Generated View-only pilot: it neither executes Temporal nor suppl
 or Run Evaluation. The manifest is closed to one stable regression. The reviewed
 `fn-5-umpire-discovery-promotion-and-artifact` plan owns the broader checked catalog, list/explain,
 exact in-memory promotion, and two-regression Generated View slice, but none of that plan is implemented
-yet. Persisted readers and migrations remain a separate fn-18 boundary.
+yet. Sole-v2 persisted admission is now implemented by fn-18; future post-v2 migration remains a
+separate concern.
 
 ### C6. Execution runtime
 
 **Responsibility:** realize one `ExperimentSpec` against an environment and return an
 `ExperimentRun` plus raw evidence without deciding whether Temporal was correct.
 
-**Status: existing Go baseline, not integrated with the current model.**
+**Status: existing Go runtime baseline, not integrated with the current model.**
 `common/testing/umpire`, `tools/umpire2`, and `tools/umpire3/execution` already implement bounded
 preparation, realization, observation, isolation, cleanup, and run artifacts for their own
-contracts. None currently reads `model/Umpire.Artifact.ExperimentSpec`; the current artifact
-therefore lists execution evidence and runtime order among its Known Gaps.
+contracts. The current fn-18 boundary admits ExperimentSpec, RuntimeConfiguration, ExperimentRun,
+and RawEvidence bytes and closures, but no runtime consumes or produces those current Artifacts;
+execution therefore remains an explicit Known Gap.
 
 ```text
 ExperimentSpec + Environment -> ExperimentRun + raw evidence
@@ -446,8 +458,8 @@ and turn a stable discovery into a reviewed regression.
 **Status: existing Go baselines, not integrated with the current model.**
 `common/testing/umpire/campaign` implements bounded selection, monotonic reduction, replay, and
 deterministic regression candidates; Umpire3 has its own campaign/replay/promotion pipeline. The
-current `ExperimentSpec` explicitly omits artifact reading and promotion, and no path proposes or
-generates a Lean regression from one of its failures.
+current Artifact boundary supports strict reading, but no current path replays a Run, minimizes a
+failure, or proposes and generates a Lean regression from one.
 
 ```text
 ReplayBundle -> replayed result -> minimized bundle -> Lean regression proposal
@@ -585,14 +597,16 @@ C1/C2 generated structure
         -> C3 checked target/property/behavior/query/space
         -> C8 finite planning
         -> C4 umpire-experiment/v2 inspection
+        -> strict v2 admission/set closure/immutable persistence
         -> [missing current-model runtime adapter]
         -> C6-C12 baselines in other Umpire trees
 ```
 
 C5's broader catalog and exact-promotion slice now has a reviewed Flow plan, while its implementation
-remains open. The most important runtime architectural gap is still a versioned adapter that can
-decode and validate `umpire-experiment/v2` without restating its Lean-owned semantics, then return
-run/evidence/result artifacts bound to the same Behavior Fingerprints.
+remains open. The most important runtime architectural gap is an adapter that consumes the exact
+admitted `umpire-experiment/v2` and RuntimeConfiguration without restating Lean-owned semantics,
+then returns the already-defined run/evidence/result Artifacts bound to the same Behavior
+Fingerprints.
 
 ## 5. Delivery milestones
 
