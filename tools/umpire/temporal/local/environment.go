@@ -25,8 +25,6 @@ const (
 	runtimeCodeCanceled      = "umpire.runtime.code.canceled"
 	runtimeCodeCleanupFailed = "umpire.runtime.code.cleanup-failed"
 	runtimeCodeFailed        = "umpire.runtime.code.failed"
-	runtimeCodeIsolationFail = "umpire.runtime.code.isolation-failed"
-	runtimeCodeIsolationOpen = "umpire.runtime.code.isolation-incomplete"
 	runtimeCodeTimedOut      = "umpire.runtime.code.timed-out"
 	runtimeCodeUnsupported   = "umpire.runtime.code.unsupported"
 
@@ -444,17 +442,17 @@ func (e *environment) Isolate(
 	e.isolation.isolationCalled = true
 	if e.isolation.invalid || e.isolation.operationCount > 1 || e.isolation.controlCount > 1 {
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptFailed,
-			runtimeCodeIsolationFail, nil, nil, e.identities)
+			runtimeCodeFailed, nil, nil, e.identities)
 	}
 	if !e.isolation.operationRecorded || e.isolation.operationCount != 1 ||
 		!e.isolation.controlRecorded || e.isolation.controlCount != 1 ||
 		!e.isolation.inputsClosed {
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptCanceled,
-			runtimeCodeIsolationOpen, nil, nil, e.identities)
+			runtimeCodeCanceled, nil, nil, e.identities)
 	}
 	if e.executionProbe == nil {
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptCanceled,
-			runtimeCodeIsolationOpen, nil, nil, e.identities)
+			runtimeCodeCanceled, nil, nil, e.identities)
 	}
 	if err := e.executionProbe.Verify(ctx, e.workflowCorrelation); err != nil {
 		if ctx.Err() != nil {
@@ -463,7 +461,7 @@ func (e *environment) Isolate(
 			)
 		}
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptFailed,
-			runtimeCodeIsolationFail, nil, nil, e.identities)
+			runtimeCodeFailed, nil, nil, e.identities)
 	}
 	return lifecycleReceipt(
 		command, lifecycleFactIsolation, umpireruntime.ReceiptAccepted,
