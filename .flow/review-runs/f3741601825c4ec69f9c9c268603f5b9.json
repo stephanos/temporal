@@ -1,0 +1,129 @@
+{
+  "backend": "codex",
+  "counter_scope": "impl:fn-19-bounded-local-temporal-execution-and.5",
+  "failure_class": null,
+  "finalized": {
+    "digest": "complete",
+    "receipt": "pending",
+    "status": "not_applicable"
+  },
+  "findings_container": {
+    "backend": "codex",
+    "baseSha": "8a658182e1b33eece31a5152b26aae02790de4b1",
+    "headSha": "5a9172fcdc966f96aa2275ce79003df0aa881fde",
+    "items": [
+      {
+        "body": "The generated configuration now declares zero authority capabilities, while `local.NewAuthority` still requires the three generic capabilities. `runtime.CheckRequest` compares these lists exactly, so the canonical admitted fixture always fails with `PreflightCapability` before execution. The new Go test only exercises artifact admission and therefore misses this incompatibility.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-e4f588bab56589c19350b45467705b5086dbf4c28bd8b17aad5a4838e5b29cad",
+        "id": "finding-cb4a634ca3396623db0fb5f3e176fa97",
+        "lastSeenReceiptId": "review-2ba73125b2e9ea48d9fb01bc992ed142c296e9885c66b5f5fcee8e0f84b6d2cd",
+        "ordinal": 1,
+        "rIds": [
+          "R1",
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "fixed",
+        "suggestion": "Reconcile the capability representation across the model, fn-18 closure, and Go authority. Either retain the three profile capabilities in the configuration or update runtime preflight to validate generic prerequisites through the profile identity instead of comparing them with the empty transport field. Add a test that passes this fixture through `local.NewAuthority` and `runtime.CheckRequest`.",
+        "title": "The generated configuration now declares zero authority capabilities, while `local"
+      },
+      {
+        "anchor": {
+          "baseSha": "8a658182e1b33eece31a5152b26aae02790de4b1",
+          "headSha": "5a9172fcdc966f96aa2275ce79003df0aa881fde",
+          "path": "tools/umpire/runtime/request.go",
+          "side": "head",
+          "startLine": 76
+        },
+        "body": "The fix removes all validation of `AuthorityProfile.RequiredCapabilityDefinitionIDs`. Adding a participant capability redundantly to the authority list preserves fn-18\u2019s deduplicated capability union, so the altered set remains admissible. After resealing checksums while retaining the canonical behavior fingerprint, `CheckRequest` now accepts this capability drift, contrary to the exact preflight contract.",
+        "classification": "introduced",
+        "confidence": 100,
+        "firstSeenReceiptId": "review-2ba73125b2e9ea48d9fb01bc992ed142c296e9885c66b5f5fcee8e0f84b6d2cd",
+        "id": "finding-17a8a71e2dafef601eb25b8351087bc4",
+        "lastSeenReceiptId": "review-2ba73125b2e9ea48d9fb01bc992ed142c296e9885c66b5f5fcee8e0f84b6d2cd",
+        "ordinal": 2,
+        "rIds": [
+          "R1",
+          "R5"
+        ],
+        "severity": "P1",
+        "status": "open",
+        "suggestion": "Validate the serialized authority capability list against an explicit semantic-capability expectation. For this binding, require it to be empty. Keep the authority\u2019s three generic runtime prerequisites separate, and add a negative preflight test for a redundant authority capability.",
+        "title": "The fix removes all validation of `AuthorityProfile"
+      }
+    ],
+    "reviewKind": "implementation",
+    "round": 2,
+    "schemaVersion": 1,
+    "sourceReceiptId": "review-2ba73125b2e9ea48d9fb01bc992ed142c296e9885c66b5f5fcee8e0f84b6d2cd",
+    "supersedesReceiptId": "review-e4f588bab56589c19350b45467705b5086dbf4c28bd8b17aad5a4838e5b29cad"
+  },
+  "findings_digest": {
+    "backend": "codex",
+    "digest_truncated": false,
+    "items": [
+      {
+        "chainRoot": "finding-cb4a634ca3396623db0fb5f3e176fa97",
+        "classification": "introduced",
+        "findingId": "finding-cb4a634ca3396623db0fb5f3e176fa97",
+        "firstSeenThisRound": false,
+        "severity": "P1",
+        "status": "fixed"
+      },
+      {
+        "chainRoot": "finding-17a8a71e2dafef601eb25b8351087bc4",
+        "classification": "introduced",
+        "findingId": "finding-17a8a71e2dafef601eb25b8351087bc4",
+        "firstSeenThisRound": true,
+        "severity": "P1",
+        "status": "open"
+      }
+    ],
+    "reviewKind": "implementation"
+  },
+  "metadata": {
+    "artifact_sha256": "ff4fda51fae8070bb414d22d9329dfee11647bc4b83ba1933ab16cbc4204ee1f",
+    "counter_scope": "impl:fn-19-bounded-local-temporal-execution-and.5",
+    "epoch": 0,
+    "forced": false,
+    "review_type": "impl"
+  },
+  "outcome": "verdict",
+  "receipt_payload": {
+    "base": "8a658182e1b33eece31a5152b26aae02790de4b1",
+    "effort": "high",
+    "id": "fn-19-bounded-local-temporal-execution-and.5",
+    "introduced_count": 1,
+    "mode": "codex",
+    "model": "gpt-5.6-sol",
+    "pre_existing_count": 0,
+    "review": "Prior finding #1: fixed\n\n## New finding\n\n- **Severity**: P1\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/umpire/runtime/request.go:76`\n- **R-IDs**: `[R1, R5]`\n- **Problem**: The fix removes all validation of `AuthorityProfile.RequiredCapabilityDefinitionIDs`. Adding a participant capability redundantly to the authority list preserves fn-18\u2019s deduplicated capability union, so the altered set remains admissible. After resealing checksums while retaining the canonical behavior fingerprint, `CheckRequest` now accepts this capability drift, contrary to the exact preflight contract.\n- **Suggestion**: Validate the serialized authority capability list against an explicit semantic-capability expectation. For this binding, require it to be empty. Keep the authority\u2019s three generic runtime prerequisites separate, and add a negative preflight test for a redundant authority capability.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | partial | The canonical fixture now passes local runtime preflight, but authority capability drift can also pass. |\n| R5 | partial | The exact participant binding works, but capability ownership is not enforced exactly before execution. |\n| R7 | met | Focused mutation checks and aggregate test wiring cover this task\u2019s verification slice. |\n\nUnaddressed R-IDs: []\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+    "session_id": "01a04e67-70a9-7641-bcfb-57ce95404488",
+    "spec": "codex:gpt-5.6-sol:high",
+    "timestamp": "2026-08-29T16:52:41.999025Z",
+    "type": "impl_review",
+    "unaddressed": [],
+    "verdict": "NEEDS_WORK"
+  },
+  "receipt_target": "/tmp/impl-review-receipt-fn-19-bounded-local-temporal-execution-and.5.json",
+  "reservation_id": "f3741601825c4ec69f9c9c268603f5b9",
+  "reset_rounds_on_ship": true,
+  "response": "Prior finding #1: fixed\n\n## New finding\n\n- **Severity**: P1\n- **Confidence**: 100\n- **Classification**: introduced\n- **File:Line**: `tools/umpire/runtime/request.go:76`\n- **R-IDs**: `[R1, R5]`\n- **Problem**: The fix removes all validation of `AuthorityProfile.RequiredCapabilityDefinitionIDs`. Adding a participant capability redundantly to the authority list preserves fn-18\u2019s deduplicated capability union, so the altered set remains admissible. After resealing checksums while retaining the canonical behavior fingerprint, `CheckRequest` now accepts this capability drift, contrary to the exact preflight contract.\n- **Suggestion**: Validate the serialized authority capability list against an explicit semantic-capability expectation. For this binding, require it to be empty. Keep the authority\u2019s three generic runtime prerequisites separate, and add a negative preflight test for a redundant authority capability.\n\n## Requirements coverage\n\n| R-ID | Status | Evidence |\n|---|---|---|\n| R1 | partial | The canonical fixture now passes local runtime preflight, but authority capability drift can also pass. |\n| R5 | partial | The exact participant binding works, but capability ownership is not enforced exactly before execution. |\n| R7 | met | Focused mutation checks and aggregate test wiring cover this task\u2019s verification slice. |\n\nUnaddressed R-IDs: []\n\n```json\n{\"classification_counts\":{\"introduced\":1,\"pre_existing\":0},\"unaddressed\":[]}\n```\n\n<verdict>NEEDS_WORK</verdict>\n",
+  "response_sha256": "c15425ce8fe04a0d420d4d5e128f2181b045ecd4cb0b064bed4745eb4db5bc55",
+  "review_kind": "impl",
+  "review_type": "impl",
+  "reviewed_base_sha": "8a658182e1b33eece31a5152b26aae02790de4b1",
+  "reviewed_effort": "high",
+  "reviewed_head_sha": "5a9172fcdc966f96aa2275ce79003df0aa881fde",
+  "reviewed_model": "gpt-5.6-sol",
+  "scope": "impl:fn-19-bounded-local-temporal-execution-and.5",
+  "spec_id": "fn-19-bounded-local-temporal-execution-and",
+  "status_target": null,
+  "superseded_by": null,
+  "task_id": "fn-19-bounded-local-temporal-execution-and.5",
+  "timestamp": "2026-08-29T16:52:42.001940Z",
+  "tool_calls": null,
+  "verdict": "NEEDS_WORK"
+}

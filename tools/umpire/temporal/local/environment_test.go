@@ -145,9 +145,7 @@ func testRequest(t *testing.T, runIdentity string) umpireruntime.CheckedRunReque
 	require.NoError(t, err)
 	experiment, err := artifact.DecodeExperimentV2(experimentBytes)
 	require.NoError(t, err)
-	experiment.Plan.CapabilityRequirementDefinitionIDs = append(
-		[]string{"switch.capability.state"}, RequiredCapabilityDefinitionIDs()...,
-	)
+	experiment.Plan.CapabilityRequirementDefinitionIDs = []string{"switch.capability.state"}
 	experiment, err = artifactv2.SealExperiment(experiment)
 	require.NoError(t, err)
 
@@ -164,7 +162,7 @@ func testRequest(t *testing.T, runIdentity string) umpireruntime.CheckedRunReque
 		DefinitionID:                    ProfileDefinitionID,
 		Version:                         artifactv2.NaturalFromUint64(ProfileVersion),
 		BehaviorFingerprint:             ProfileBehaviorFingerprint,
-		RequiredCapabilityDefinitionIDs: RequiredCapabilityDefinitionIDs(),
+		RequiredCapabilityDefinitionIDs: []string{},
 	}
 	configuration, err = artifactv2.SealRuntimeConfiguration(configuration)
 	require.NoError(t, err)
