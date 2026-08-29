@@ -36,9 +36,16 @@ Implement R2/R5's one SDK participant and semantic-to-operational adapter withou
 - [ ] Participant protocol stays language-neutral and non-persisted.
 
 ## Done summary
-TBD
+Implemented one bounded real-SDK Nexus caller and handler bound to the exact System-owned force-close program and closed local authority, including readiness, terminal history/cancellation receipts, isolation, exactly-once partial cleanup, and the zero-argument loopback HTTP prerequisite. Unsupported/drifted inputs reject before IO, single-attempt operation failures stay operational, and the canonical program version is guarded against Lean model drift.
 
+Verification is green for the implemented runtime/local/Nexus/temporaltest and Lean LocalProfile Quick surfaces, focused live lifecycle, race, vet, and diff checks. The missing `umpire-local-run` package, `Temporal.Feature.Nexus.ExecutionTests` target, and `umpire-run-local` Make target were red before this task and remain inherited later-task surfaces.
+
+baseline: green for implemented dependency surfaces; inherited red for three later-task Quick entries listed above
+
+review: SHIP after one fixed P1 finding; memory capture skipped because flow memory is not initialized
+
+stage: impl-review - ran [2026-08-29T18:04:05Z..2026-08-29T18:22:45Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f4b2a4665e7d9c9ae5230bde2030589be300ef36, 58b512f6cc5f4ac7eeabeefa592858b5e5b0d904
+- Tests: go test -count=1 ./tools/umpire/runtime/..., go test -count=1 ./tools/umpire/temporal/local/..., go test -count=1 ./tools/umpire/temporal/nexus/..., go test -count=1 ./temporaltest/..., cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests, go test -race -count=1 ./tools/umpire/runtime/... ./tools/umpire/temporal/local/... ./tools/umpire/temporal/nexus/..., go vet ./tools/umpire/runtime/... ./tools/umpire/temporal/local/... ./tools/umpire/temporal/nexus/..., git diff --check, INHERITED_RED:go test -count=1 ./tools/umpire/cmd/umpire-local-run/... - package absent before edit, INHERITED_RED:cd model && mise exec -- lake build Temporal.Feature.Nexus.ExecutionTests - target absent before edit, INHERITED_RED:make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-input-set OUTPUT_ROOT=/tmp/umpire-local-runs RUN_ID=umpire.local.caller-closure.run-1 - target absent before edit
 - PRs:
