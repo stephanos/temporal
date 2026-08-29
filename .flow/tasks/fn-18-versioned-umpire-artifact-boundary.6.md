@@ -45,9 +45,10 @@ Persist the output of Observation Evaluation and the separate Run Evaluation Res
 `mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestResult`
 
 ## Done summary
-TBD
+Implemented the canonical v2 Evidence and Result transport boundary in Go and Lean with exact pretty-JSON checksum parity, closed bindings/provenance/status matrices, exhaustive mutation coverage, and no semantic evaluator logic. Final verification passed the focused/full Go suites, Lean aggregate, model lint, regression, vet, pinned lint, race, and fuzz; inherited missing `umpire-check-artifact*` targets remain deferred to task .11, and the green gate receipt was non-warrantable only because of the protected inherited `config/development.yaml` dirty state.
 
+stage: impl-review - ran [2026-08-29T07:27:30Z..2026-08-29T07:55:31Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0e2088c6d205124d69777d6ffae6afeb9806bbfc, edbb3ad9c8112215f4b5e18d8ccdfd9ca5636371, 467a28f46e4ffc1c5d40f1a47e72e05620aae893
+- Tests: baseline: green, mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestResult, mise exec -- go test -count=1 ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/... ./tools/common/artifactio/..., cd model && mise exec -- lake build Umpire.Artifact.Tests.Result Umpire.Artifact.Tests.Codecs UmpireTests, make lint-model, make umpire-check-regression, mise exec -- go vet ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/... ./tools/common/artifactio/..., mise exec -- ./.bin/golangci-lint-v2.13.1 run --timeout 10m --new-from-rev=edbb3ad9c --config=.github/.golangci.yml ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/... ./tools/common/artifactio/..., mise exec -- go test -race -count=1 ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/... ./tools/common/artifactio/..., mise exec -- go test -count=1 ./tools/umpire/artifact -run '^$' -fuzz '^FuzzStrictJSONNoPanicOrPermissiveSuccess$' -fuzztime=5s, git diff --check, GATE_RECEIPT_NOT_WRITTEN:unittest:inherited protected config/development.yaml dirty state made receipt non-warrantable
 - PRs:
