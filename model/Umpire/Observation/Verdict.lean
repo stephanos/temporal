@@ -150,16 +150,16 @@ private def validLogicalTimeSteps
           | none => false
       | _ => false
 
-private def hasRequiredLogicalTime
+def CheckedProperty.hasRequiredLogicalTime
     (property : CheckedProperty)
-    (trace : EvidenceBackedTrace) : Bool :=
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) : Bool :=
   if !propertyUsesLogicalTime property then
     true
   else
     match property.access.logicalTimeSource with
     | none => false
     | some source =>
-        !trace.trace.steps.isEmpty && validLogicalTimeSteps source none trace.trace.steps
+        !trace.steps.isEmpty && validLogicalTimeSteps source none trace.steps
 
 private def capabilityMismatch (property : CheckedProperty) : List DefinitionId :=
   let admitted := property.access.capabilities.map PropertyCapability.id
@@ -328,7 +328,7 @@ def evaluateObservationProperty
                           kind := .missingCapability
                           relatedDefinitionIds := missingCapabilities
                         } (some trace.traceId) (some trace.appliedBound)
-                      else if !hasRequiredLogicalTime property trace then
+                    else if !property.hasRequiredLogicalTime trace.trace then
                         failureVerdict query property .unknown {
                           kind := .missingLogicalTime
                           relatedDefinitionIds := property.access.logicalTimeSource.toList
