@@ -38,9 +38,12 @@ Publish and load one immutable admitted Artifact set without exposing partial or
 `mise exec -- go test -count=1 ./tools/umpire/artifact/... ./tools/common/artifactio/...`
 
 ## Done summary
-TBD
+Implemented immutable admitted Artifact-set publication and loading behind a deep artifactio module. Publication validates the complete canonical set, stages an exact private tree, fsyncs files and directories, and exposes it with one sibling rename at `root/sets/<manifest-sha256>`; loading opens that exact digest directory without following symlinks and revalidates the manifest and every member before returning an admitted value. There is no mutable current pointer, multi-root replacement, compatibility normalization, or partial-success path.
 
+Coverage includes byte-identical idempotence, conflict and permission rejection, symlink/non-regular/escape rejection, stale-stage recovery, interruption before install, concurrent publishers, and readers observing only absence or one complete set. The configured implementation review found a manifest A→B→A race; manifest reads are now pinned to the initially verified bytes and a synchronized regression test proves the fix.
+
+stage: impl-review - ran [2026-08-29T09:59:28Z..2026-08-29T10:02:48Z] (model: gpt-5.6-sol)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e70aaea77c77629ef44f0bf6debf7d6cbe8c9b81, df217e3c6949fca9907c2895c5c0345e84c6aa4b
+- Tests: baseline: mise exec -- go test -count=1 ./tools/umpire/artifact/... ./tools/common/artifactio/... (pass), TDD RED: focused tests failed because artifact.PublishSet, artifact.LoadSet, and artifactio.ImmutableDirectory were absent, mise exec -- go test -count=1 ./tools/umpire/artifact/... ./tools/common/artifactio/... (pass at reviewed HEAD), mise exec -- go test -race -count=1 ./tools/common/artifactio/... ./tools/umpire/artifact/... (pass), manifest A-to-B-to-A synchronized regression: behaviorally red before fix, green after pinning the first verified manifest, mise exec -- go test -race -count=1 ./tools/common/artifactio/... -run 'TestImmutableDirectory(RejectsManifestABA|Interruption|RejectsConcurrentWriter|Recovers)' (pass), mise exec -- go vet ./tools/common/artifactio/... ./tools/umpire/artifact/... (pass), scoped golangci-lint (0 issues), gofmt and git diff --check (pass), make lint-model (pass), make umpire-check-legacy-vocabulary (pass at reviewed HEAD), make umpire-check-regression (pass at reviewed HEAD: generated views, Go regression tests, active vocabulary, 226-job Lean build), flowctl codex impl-review fn-18-versioned-umpire-artifact-boundary.10 --base c8844972d --receipt /tmp/impl-review-receipt-fn-18-versioned-umpire-artifact-boundary.10.json (SHIP)
 - PRs:
