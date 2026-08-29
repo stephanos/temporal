@@ -280,6 +280,58 @@ func TestRunDetachesIsolationAndCleanupFromCanceledParent(t *testing.T) {
 	require.Equal(t, 1, state.environment.cleanupCalls)
 }
 
+func TestRunAdmitsOnlyOneRequestAtATime(t *testing.T) {
+	request := newEngineRequest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	firstEntered := make(chan struct{})
+	firstRelease := make(chan struct{})
+	secondEntered := make(chan struct{})
+	secondRelease := make(chan struct{})
+	firstDone := make(chan error, 1)
+	secondDone := make(chan error, 1)
+	participant := newOracleState(t, "", oracleSucceeded, false).participant
+
+	go func() {
+		_, err := Run(ctx, request, blockingFactory{entered: firstEntered, release: firstRelease}, participant)
+		firstDone <- err
+	}()
+	require.Eventually(t, func() bool {
+		select {
+		case <-firstEntered:
+			return true
+		default:
+			return false
+		}
+	}, time.Second, time.Millisecond)
+
+	go func() {
+		_, err := Run(ctx, request, blockingFactory{entered: secondEntered, release: secondRelease}, participant)
+		secondDone <- err
+	}()
+	require.Never(t, func() bool {
+		select {
+		case <-secondEntered:
+			return true
+		default:
+			return false
+		}
+	}, 100*time.Millisecond, time.Millisecond)
+
+	close(firstRelease)
+	require.Eventually(t, func() bool {
+		select {
+		case <-secondEntered:
+			return true
+		default:
+			return false
+		}
+	}, time.Second, time.Millisecond)
+	close(secondRelease)
+	require.Error(t, <-firstDone)
+	require.Error(t, <-secondDone)
+}
+
 func TestRunKeepsControlPartialWhenCancellationPreventsTheRequest(t *testing.T) {
 	request := newEngineRequest(t)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -587,6 +639,24 @@ func (s *oracleState) takeFacts(phase Phase, count int) []Fact {
 }
 
 type oracleFactory struct{ state *oracleState }
+
+type blockingFactory struct {
+	entered chan struct{}
+	release chan struct{}
+}
+
+func (f blockingFactory) Prepare(
+	ctx context.Context,
+	_ CheckedRunRequest,
+	_ Command,
+) (Environment, Receipt) {
+	close(f.entered)
+	select {
+	case <-f.release:
+	case <-ctx.Done():
+	}
+	return nil, Receipt{}
+}
 
 func (f *oracleFactory) Prepare(
 	ctx context.Context,
