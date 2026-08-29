@@ -43,6 +43,7 @@ Defined the sealed, authority-free ephemeral-local execution profile under Tempo
 
 baseline: red (parent final-spec Quick targets assigned to later fn19 tasks were absent before fn19.1; the pre-existing temporaltest suite passed)
 stage: impl-review - ran (SHIP at 2026-08-29T11:46:28.933655Z)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 0a43d66f181edea90ed504f17a543d26d87056c3, 741fccfd7bd8e9264d0fbcd4a3c1459ed227a131
 - Tests: baseline: red (go test -count=1 ./tools/umpire/runtime/...; go test -count=1 ./tools/umpire/temporal/local/...; go test -count=1 ./tools/umpire/temporal/nexus/...; go test -count=1 ./tools/umpire/cmd/umpire-local-run/...; LocalProfileTests and Nexus ExecutionTests targets absent before implementation/later tasks), go test -count=1 ./temporaltest/..., cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests TemporalModelTests, mise exec -- make lint-model, git diff --check fd5075998e7b58f6e0be0815a873af2219caea5e..HEAD plus Temporal.System.Execution Feature-import/runtime-IO guards, flowctl codex impl-review fn-19-bounded-local-temporal-execution-and.1 --base fd5075998e7b58f6e0be0815a873af2219caea5e (SHIP)
