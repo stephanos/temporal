@@ -11,6 +11,7 @@ const (
 	PreflightConfiguration PreflightErrorKind = "configuration"
 	PreflightTarget        PreflightErrorKind = "target"
 	PreflightAction        PreflightErrorKind = "action"
+	PreflightFault         PreflightErrorKind = "fault"
 	PreflightOccurrence    PreflightErrorKind = "occurrence"
 	PreflightParticipant   PreflightErrorKind = "participant"
 	PreflightProtocol      PreflightErrorKind = "protocol"

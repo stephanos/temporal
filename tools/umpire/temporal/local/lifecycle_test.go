@@ -3,6 +3,7 @@ package local
 import (
 	"context"
 	"errors"
+	"strings"
 	"testing"
 	"time"
 
@@ -110,6 +111,14 @@ func TestLifecycleFactsHaveDistinctOperationIdentities(t *testing.T) {
 		context.Background(), prepareCommand, noopRegistration{},
 	)
 	require.Equal(t, umpireruntime.ReceiptAccepted, workerReceipt.Status())
+	realizeCommand, ok := request.Command(umpireruntime.CommandRealize)
+	require.True(t, ok)
+	observeCommand, ok := request.Command(umpireruntime.CommandObserve)
+	require.True(t, ok)
+	operationIdentity := operationCorrelation(request)
+	require.NoError(t, environment.RecordOperationCount(prepareCommand, operationIdentity, 1))
+	require.NoError(t, environment.RecordControlCount(realizeCommand, operationIdentity, 1))
+	require.NoError(t, environment.CloseIsolationInputs(observeCommand))
 	isolationReceipt := environment.Isolate(context.Background(), request.IsolationCommand())
 	require.Equal(t, umpireruntime.ReceiptAccepted, isolationReceipt.Status())
 	cleanupCommand, ok := request.Command(umpireruntime.CommandCleanup)
@@ -126,6 +135,66 @@ func TestLifecycleFactsHaveDistinctOperationIdentities(t *testing.T) {
 		identities[facts[0].DefinitionID()] = struct{}{}
 	}
 	require.Len(t, identities, 4)
+}
+
+func TestIsolationRequiresOneClosedOperationAndControlCollection(t *testing.T) {
+	tests := []struct {
+		name           string
+		operationCount uint64
+		controlCount   uint64
+		closeInputs    bool
+		executionCount int
+		wantStatus     umpireruntime.ReceiptStatus
+	}{
+		{name: "exact closure", operationCount: 1, controlCount: 1, closeInputs: true, executionCount: 1, wantStatus: umpireruntime.ReceiptAccepted},
+		{name: "second operation", operationCount: 2, controlCount: 1, closeInputs: true, executionCount: 1, wantStatus: umpireruntime.ReceiptFailed},
+		{name: "second control", operationCount: 1, controlCount: 2, closeInputs: true, executionCount: 1, wantStatus: umpireruntime.ReceiptFailed},
+		{name: "second namespace execution", operationCount: 1, controlCount: 1, closeInputs: true, executionCount: 2, wantStatus: umpireruntime.ReceiptFailed},
+		{name: "open collection inputs", operationCount: 1, controlCount: 1, executionCount: 1, wantStatus: umpireruntime.ReceiptCanceled},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := testRequest(t, "umpire.local.environment.isolation."+strings.ReplaceAll(test.name, " ", "-"))
+			prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
+			require.True(t, ok)
+			backend := &recordingAuthority{
+				resources:               []ownedResource{{kind: ownedServer}},
+				isolationExecutionCount: test.executionCount,
+			}
+			runtimeEnvironment, receipt := newFactory(
+				&recordingStarter{authority: backend},
+			).Prepare(context.Background(), request, prepareCommand)
+			require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
+			environment, ok := AsEnvironment(runtimeEnvironment)
+			require.True(t, ok)
+			realizeCommand, ok := request.Command(umpireruntime.CommandRealize)
+			require.True(t, ok)
+			observeCommand, ok := request.Command(umpireruntime.CommandObserve)
+			require.True(t, ok)
+			operationIdentity := operationCorrelation(request)
+
+			require.NoError(t, environment.RecordOperationCount(
+				prepareCommand, operationIdentity, test.operationCount,
+			))
+			require.NoError(t, environment.RecordControlCount(
+				realizeCommand, operationIdentity, test.controlCount,
+			))
+			if test.closeInputs {
+				require.NoError(t, environment.CloseIsolationInputs(observeCommand))
+			}
+
+			isolationReceipt := environment.Isolate(
+				context.Background(), request.IsolationCommand(),
+			)
+			require.Equal(t, test.wantStatus, isolationReceipt.Status())
+
+			cleanupCommand, ok := request.Command(umpireruntime.CommandCleanup)
+			require.True(t, ok)
+			cleanupReceipt := environment.Cleanup(context.Background(), cleanupCommand)
+			require.Equal(t, umpireruntime.ReceiptAccepted, cleanupReceipt.Status())
+		})
+	}
 }
 
 func TestCleanupDeadlineReturnsTimeoutCompatibleReceipt(t *testing.T) {
@@ -214,6 +283,15 @@ type noopRegistration struct{}
 
 func (noopRegistration) Register(worker.Registry) {}
 
+func operationCorrelation(request umpireruntime.CheckedRunRequest) string {
+	for _, correlation := range request.Correlations() {
+		if correlation.Kind() == umpireruntime.CorrelationOperation {
+			return correlation.Identity()
+		}
+	}
+	return ""
+}
+
 func receiptSource(receipt umpireruntime.Receipt) string {
 	facts := receipt.Facts()
 	if len(facts) != 1 {
@@ -245,13 +323,33 @@ func (s *recordingStarter) Start(context.Context) (temporalAuthority, error) {
 }
 
 type recordingAuthority struct {
-	resources    []ownedResource
-	client       client.Client
-	clientErr    error
-	workerErr    error
-	stopErr      error
-	stopFunc     func(context.Context) error
-	releaseOrder []string
+	resources               []ownedResource
+	client                  client.Client
+	clientErr               error
+	workerErr               error
+	stopErr                 error
+	stopFunc                func(context.Context) error
+	releaseOrder            []string
+	isolationExecutionCount int
+}
+
+type recordingIsolationProbe struct {
+	executionCount int
+}
+
+func (p recordingIsolationProbe) Verify(context.Context, string) error {
+	if p.executionCount == 1 {
+		return nil
+	}
+	return errors.New("namespace execution count is not one")
+}
+
+func (a *recordingAuthority) isolationProbe(string) executionIsolationProbe {
+	count := a.isolationExecutionCount
+	if count == 0 {
+		count = 1
+	}
+	return recordingIsolationProbe{executionCount: count}
 }
 
 func (a *recordingAuthority) Connect(context.Context) error {

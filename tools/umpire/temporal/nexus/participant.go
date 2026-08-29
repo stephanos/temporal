@@ -266,6 +266,9 @@ func (a *sdkCommandAdapter) Prepare(
 	select {
 	case <-a.operation.started:
 		starts, _ := a.operation.counts()
+		if err := environment.RecordOperationCount(command, a.operationCorrelation, starts); err != nil {
+			return adapterFailureReceipt(ctx, command, err, facts, acquired, correlations)
+		}
 		if starts != 1 {
 			return adapterReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
 				facts, acquired, nil, correlations)
@@ -313,6 +316,11 @@ func (a *sdkCommandAdapter) Realize(
 	select {
 	case <-a.operation.canceled:
 		starts, cancellations := a.operation.counts()
+		if err := a.environment.RecordControlCount(
+			command, a.operationCorrelation, cancellations,
+		); err != nil {
+			return adapterFailureReceipt(ctx, command, err, nil, nil, correlations)
+		}
 		if starts != 1 || cancellations != 1 {
 			return adapterReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
 				nil, nil, nil, correlations)
@@ -329,8 +337,15 @@ func (a *sdkCommandAdapter) Observe(
 	ctx context.Context,
 	_ umpireruntime.Environment,
 	command umpireruntime.Command,
-) umpireruntime.Receipt {
+) (receipt umpireruntime.Receipt) {
 	correlations := a.correlations()
+	if a.environment != nil {
+		defer func() {
+			if err := a.environment.CloseIsolationInputs(command); err != nil {
+				receipt = adapterFailureReceipt(ctx, command, err, receipt.Facts(), nil, correlations)
+			}
+		}()
+	}
 	if a.environment == nil || a.run == nil || a.operation == nil || !a.forceCloseAcknowledged {
 		return adapterReceipt(command, umpireruntime.ReceiptUnsupported, runtimeCodeUnsupported,
 			nil, nil, nil, correlations)

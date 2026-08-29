@@ -163,6 +163,21 @@ func TestCheckRequestRejectsEachPreflightMutationBeforeIO(t *testing.T) {
 			},
 		},
 		{
+			name: "fault",
+			kind: umpireruntime.PreflightFault,
+			run: func(t *testing.T) (umpireruntime.CheckedRunRequest, error) {
+				set := mutateExperiment(t, fixture, func(experiment *artifactv2.Experiment) {
+					experiment.Plan.RequestedFaults = []artifactv2.ModelValue{{
+						DefinitionID: "switch.fault.requested",
+						Value:        "enabled",
+					}}
+				})
+				return umpireruntime.CheckRequest(
+					set, fixture.authority, "runtime.run.fault-requested", 0, 1,
+				)
+			},
+		},
+		{
 			name: "occurrence",
 			kind: umpireruntime.PreflightOccurrence,
 			run: func(t *testing.T) (umpireruntime.CheckedRunRequest, error) {
@@ -617,6 +632,36 @@ func mutateConfiguration(
 	configurationBytes, err := artifactv2.CanonicalRuntimeConfigurationBytes(configuration)
 	require.NoError(t, err)
 	experimentBytes, err := artifactv2.CanonicalExperimentBytes(fixture.experiment)
+	require.NoError(t, err)
+	set, err := artifact.AdmitSet([]artifact.SetMember{
+		{Path: "artifacts/experiment.json", Encoded: experimentBytes},
+		{Path: "artifacts/runtime-configuration.json", Encoded: configurationBytes},
+	})
+	require.NoError(t, err)
+	return set
+}
+
+func mutateExperiment(
+	t *testing.T,
+	fixture checkedFixture,
+	mutate func(*artifactv2.Experiment),
+) artifact.AdmittedSet {
+	t.Helper()
+	experiment := fixture.experiment
+	experiment.Plan.RequestedFaults = append([]artifactv2.ModelValue{}, experiment.Plan.RequestedFaults...)
+	mutate(&experiment)
+	experiment, err := artifactv2.SealExperiment(experiment)
+	require.NoError(t, err)
+	experimentBytes, err := artifactv2.CanonicalExperimentBytes(experiment)
+	require.NoError(t, err)
+	experimentBinding, err := artifactv2.ExperimentArtifactBinding(experiment)
+	require.NoError(t, err)
+
+	configuration := fixture.runtimeConfiguration
+	configuration.Experiment = experimentBinding
+	configuration, err = artifactv2.SealRuntimeConfiguration(configuration)
+	require.NoError(t, err)
+	configurationBytes, err := artifactv2.CanonicalRuntimeConfigurationBytes(configuration)
 	require.NoError(t, err)
 	set, err := artifact.AdmitSet([]artifact.SetMember{
 		{Path: "artifacts/experiment.json", Encoded: experimentBytes},

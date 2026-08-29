@@ -1,7 +1,7 @@
 {
   "branch_name": "umpire",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-08-29T20:00:58.746091Z",
   "created_at": "2026-08-26T10:22:45.707562Z",
   "default_impl": null,
   "default_review": null,
@@ -26,7 +26,7 @@
     "fn-19-bounded-local-temporal-execution-and.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T10:36:08.819455Z",
   "ready": true,
@@ -1229,6 +1229,59 @@
       "task": "fn-19-bounded-local-temporal-execution-and.8",
       "timestamp": "2026-08-29T19:48:17.981579Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2564f17de3771a279e27e981762bf3cd645ed550f09ae728a668f00fc03159c3",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-264c1f81708c88149265a48c46679e8a",
+            "classification": "introduced",
+            "findingId": "finding-264c1f81708c88149265a48c46679e8a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-404aad820fcf3bfa176cd28fcd9f3f3e",
+            "classification": "introduced",
+            "findingId": "finding-404aad820fcf3bfa176cd28fcd9f3f3e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6751993047b57dfbcee4bc3b3ed88830eb2c2341",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1110882,
+      "output_sha256": "4642de0413e0e325f683679c6616bd240ef863e11dd9a68555221a162a046d91",
+      "reservation_id": "a9006a8cfe8e49dfaee3b92d7a6eab8a",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-29T20:00:58.730268Z",
+      "tool_calls": 34,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -1247,6 +1300,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-19-bounded-local-temporal-execution-and.1": 0,
     "impl:fn-19-bounded-local-temporal-execution-and.2": 0,
     "impl:fn-19-bounded-local-temporal-execution-and.3": 0,
@@ -1272,5 +1326,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-29T19:48:17.990920Z"
+  "updated_at": "2026-08-29T20:00:58.752501Z"
 }
