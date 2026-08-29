@@ -70,6 +70,17 @@ type AdmittedSet struct {
 	manifest       artifactSetManifest
 	manifestBytes  []byte
 	manifestSHA256 string
+	executable     *admittedExecutableValues
+}
+
+type admittedExecutableValues struct {
+	experiment           artifactv2.Experiment
+	runtimeConfiguration artifactv2.RuntimeConfiguration
+}
+
+// ExecutableSet is the exact typed two-member prefix retained during Artifact set admission.
+type ExecutableSet struct {
+	admitted AdmittedSet
 }
 
 type admittedExecutionMembers struct {
@@ -107,6 +118,35 @@ func (s AdmittedSet) ManifestSHA256() string {
 // ManifestBytes returns a copy of the exact deterministic manifest bytes.
 func (s AdmittedSet) ManifestBytes() []byte {
 	return append([]byte(nil), s.manifestBytes...)
+}
+
+// Executable returns the already-admitted typed values only for an exact two-member set.
+func (s AdmittedSet) Executable() (ExecutableSet, bool) {
+	if s.executable == nil || len(s.members) != 2 {
+		return ExecutableSet{}, false
+	}
+	return ExecutableSet{admitted: s}, true
+}
+
+// AdmittedSet returns the exact admitted set associated with this typed projection.
+func (s ExecutableSet) AdmittedSet() AdmittedSet {
+	return cloneAdmittedSet(s.admitted)
+}
+
+// Experiment returns an immutable copy of the admitted ExperimentSpec value.
+func (s ExecutableSet) Experiment() artifactv2.Experiment {
+	if s.admitted.executable == nil {
+		return artifactv2.Experiment{}
+	}
+	return cloneExperiment(s.admitted.executable.experiment)
+}
+
+// RuntimeConfiguration returns an immutable copy of the admitted RuntimeConfiguration value.
+func (s ExecutableSet) RuntimeConfiguration() artifactv2.RuntimeConfiguration {
+	if s.admitted.executable == nil {
+		return artifactv2.RuntimeConfiguration{}
+	}
+	return cloneRuntimeConfiguration(s.admitted.executable.runtimeConfiguration)
 }
 
 // AdmitSet admits only an exact executable, execution, or evaluation closure.
@@ -161,7 +201,7 @@ func AdmitSet(members []SetMember) (AdmittedSet, error) {
 	if err := validateArtifactSetPaths(members); err != nil {
 		return AdmittedSet{}, wrapAdmission(ErrorClosure, err)
 	}
-	return buildAdmittedSet(members, rows)
+	return buildAdmittedSet(members, rows, experiment, runtimeConfiguration)
 }
 
 func admitExecutionMembers(
@@ -334,6 +374,8 @@ func validateArtifactSetPaths(members []SetMember) error {
 func buildAdmittedSet(
 	members []SetMember,
 	rows []artifactSetManifestMember,
+	experiment artifactv2.Experiment,
+	runtimeConfiguration artifactv2.RuntimeConfiguration,
 ) (AdmittedSet, error) {
 	memberRows, err := CanonicalPretty(rows)
 	if err != nil {
@@ -360,12 +402,19 @@ func buildAdmittedSet(
 	if err != nil {
 		return AdmittedSet{}, wrapAdmission(ErrorMalformedValue, err)
 	}
-	return AdmittedSet{
+	admitted := AdmittedSet{
 		members:        cloneSetMembers(members),
 		manifest:       manifest,
 		manifestBytes:  manifestBytes,
 		manifestSHA256: "sha256:" + rawSHA256("", manifestBytes),
-	}, nil
+	}
+	if len(members) == 2 {
+		admitted.executable = &admittedExecutableValues{
+			experiment:           cloneExperiment(experiment),
+			runtimeConfiguration: cloneRuntimeConfiguration(runtimeConfiguration),
+		}
+	}
+	return admitted, nil
 }
 
 func artifactSetManifestCollectionLimit(path JSONPath, kind CollectionKind) int {
@@ -468,4 +517,126 @@ func cloneSetMembers(members []SetMember) []SetMember {
 		cloned[index] = SetMember{Path: member.Path, Encoded: append([]byte(nil), member.Encoded...)}
 	}
 	return cloned
+}
+
+func cloneAdmittedSet(admitted AdmittedSet) AdmittedSet {
+	cloned := admitted
+	cloned.members = cloneSetMembers(admitted.members)
+	cloned.manifest.Members = append([]artifactSetManifestMember(nil), admitted.manifest.Members...)
+	cloned.manifestBytes = append([]byte(nil), admitted.manifestBytes...)
+	if admitted.executable != nil {
+		cloned.executable = &admittedExecutableValues{
+			experiment:           cloneExperiment(admitted.executable.experiment),
+			runtimeConfiguration: cloneRuntimeConfiguration(admitted.executable.runtimeConfiguration),
+		}
+	}
+	return cloned
+}
+
+func cloneExperiment(document artifactv2.Experiment) artifactv2.Experiment {
+	cloned := document
+	cloned.Properties = append([]artifactv2.Property(nil), document.Properties...)
+	for index := range cloned.Properties {
+		cloned.Properties[index].RequirementDefinitionIDs = append(
+			[]string(nil), document.Properties[index].RequirementDefinitionIDs...,
+		)
+	}
+	cloned.ObservationRequirementDefinitionIDs = append(
+		[]string(nil), document.ObservationRequirementDefinitionIDs...,
+	)
+	cloned.Provenance = cloneProvenance(document.Provenance)
+	cloned.Plan = cloneDrivePlan(document.Plan)
+	return cloned
+}
+
+func cloneDrivePlan(plan artifactv2.DrivePlan) artifactv2.DrivePlan {
+	cloned := plan
+	cloned.Bindings = append([]artifactv2.Binding(nil), plan.Bindings...)
+	cloned.SymbolicRoles = append([]artifactv2.Role(nil), plan.SymbolicRoles...)
+	cloned.ModelPreconditions = append([]artifactv2.Precondition(nil), plan.ModelPreconditions...)
+	for index := range cloned.ModelPreconditions {
+		cloned.ModelPreconditions[index].Left.Value = cloneModelValuePointer(
+			plan.ModelPreconditions[index].Left.Value,
+		)
+		cloned.ModelPreconditions[index].Right.Value = cloneModelValuePointer(
+			plan.ModelPreconditions[index].Right.Value,
+		)
+	}
+	cloned.RequestedActions = append([]artifactv2.ModelValue(nil), plan.RequestedActions...)
+	cloned.ModelOutcomes = append([]artifactv2.ModelValue(nil), plan.ModelOutcomes...)
+	cloned.ResultingStates = append([]artifactv2.ModelValue(nil), plan.ResultingStates...)
+	cloned.LinearExtension = append([]artifactv2.Occurrence(nil), plan.LinearExtension...)
+	for index := range cloned.LinearExtension {
+		cloned.LinearExtension[index].AuthoredDefinitionID = cloneStringPointer(
+			plan.LinearExtension[index].AuthoredDefinitionID,
+		)
+	}
+	cloned.SelectedChoices = append([]artifactv2.ModelValue(nil), plan.SelectedChoices...)
+	cloned.SelectedVariants = append([]artifactv2.ModelValue(nil), plan.SelectedVariants...)
+	cloned.RequestedFaults = append([]artifactv2.ModelValue(nil), plan.RequestedFaults...)
+	cloned.CapabilityRequirementDefinitionIDs = append(
+		[]string(nil), plan.CapabilityRequirementDefinitionIDs...,
+	)
+	cloned.Checkpoints = append([]artifactv2.Checkpoint(nil), plan.Checkpoints...)
+	for index := range cloned.Checkpoints {
+		cloned.Checkpoints[index].Observations = append(
+			[]artifactv2.ModelValue(nil), plan.Checkpoints[index].Observations...,
+		)
+	}
+	cloned.KnownGaps = cloneKnownGaps(plan.KnownGaps)
+	cloned.Provenance = cloneProvenance(plan.Provenance)
+	return cloned
+}
+
+func cloneRuntimeConfiguration(
+	document artifactv2.RuntimeConfiguration,
+) artifactv2.RuntimeConfiguration {
+	cloned := document
+	cloned.AuthorityProfile.RequiredCapabilityDefinitionIDs = append(
+		[]string(nil), document.AuthorityProfile.RequiredCapabilityDefinitionIDs...,
+	)
+	cloned.PhaseLimits = append([]artifactv2.PhaseLimit(nil), document.PhaseLimits...)
+	cloned.ParticipantBindings = append(
+		[]artifactv2.ParticipantBinding(nil), document.ParticipantBindings...,
+	)
+	for index := range cloned.ParticipantBindings {
+		cloned.ParticipantBindings[index].CapabilityDefinitionIDs = append(
+			[]string(nil), document.ParticipantBindings[index].CapabilityDefinitionIDs...,
+		)
+	}
+	cloned.KnownGaps = cloneKnownGaps(document.KnownGaps)
+	cloned.Provenance = cloneProvenance(document.Provenance)
+	return cloned
+}
+
+func cloneProvenance(provenance artifactv2.Provenance) artifactv2.Provenance {
+	return artifactv2.Provenance{
+		SourceDefinitionIDs: append([]string(nil), provenance.SourceDefinitionIDs...),
+		SourceLocations:     append([]artifactv2.SourceLocation(nil), provenance.SourceLocations...),
+	}
+}
+
+func cloneKnownGaps(gaps []artifactv2.KnownGap) []artifactv2.KnownGap {
+	cloned := append([]artifactv2.KnownGap(nil), gaps...)
+	for index := range cloned {
+		cloned[index].Subject = cloneStringPointer(gaps[index].Subject)
+		cloned[index].Detail = cloneStringPointer(gaps[index].Detail)
+	}
+	return cloned
+}
+
+func cloneModelValuePointer(value *artifactv2.ModelValue) *artifactv2.ModelValue {
+	if value == nil {
+		return nil
+	}
+	cloned := *value
+	return &cloned
+}
+
+func cloneStringPointer(value *string) *string {
+	if value == nil {
+		return nil
+	}
+	cloned := *value
+	return &cloned
 }
