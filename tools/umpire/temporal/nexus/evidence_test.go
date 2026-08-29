@@ -58,29 +58,30 @@ func TestProjectTerminalHistoryRejectsEveryIncompleteOrCorruptClosure(t *testing
 		events        []*historypb.HistoryEvent
 		iteratorError error
 		cancellations uint64
+		retained      int
 	}{
-		{name: "iterator error after partial history", events: closedCallerHistory()[:2], iteratorError: errors.New("page failed"), cancellations: 1},
-		{name: "missing terminal event", events: closedCallerHistory()[:5], cancellations: 1},
+		{name: "iterator error after partial history", events: closedCallerHistory()[:2], iteratorError: errors.New("page failed"), cancellations: 1, retained: 2},
+		{name: "missing terminal event", events: closedCallerHistory()[:5], cancellations: 1, retained: 5},
 		{name: "duplicate event ID", events: mutateHistory(closedCallerHistory(), func(events []*historypb.HistoryEvent) {
 			events[2].EventId = events[1].EventId
-		}), cancellations: 1},
+		}), cancellations: 1, retained: 2},
 		{name: "missing control receipt event", events: mutateHistory(closedCallerHistory(), func(events []*historypb.HistoryEvent) {
 			events[4].EventType = enumspb.EVENT_TYPE_WORKFLOW_TASK_COMPLETED
-		}), cancellations: 1},
+		}), cancellations: 1, retained: 6},
 		{name: "duplicate required event", events: append(closedCallerHistory(), &historypb.HistoryEvent{
 			EventId: 7, EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED,
-		}), cancellations: 1},
-		{name: "missing cancellation callback", events: closedCallerHistory(), cancellations: 0},
-		{name: "duplicate cancellation callback", events: closedCallerHistory(), cancellations: 2},
+		}), cancellations: 1, retained: 7},
+		{name: "missing cancellation callback", events: closedCallerHistory(), cancellations: 0, retained: 6},
+		{name: "duplicate cancellation callback", events: closedCallerHistory(), cancellations: 2, retained: 6},
 		{name: "nil history event", events: mutateHistory(closedCallerHistory(), func(events []*historypb.HistoryEvent) {
 			events[2] = nil
-		}), cancellations: 1},
+		}), cancellations: 1, retained: 2},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			iterator := &historyIteratorStub{events: test.events, terminalError: test.iteratorError}
 			facts, err := projectTerminalHistory(command, iterator, correlations, test.cancellations)
 			require.Error(t, err)
-			require.Nil(t, facts)
+			require.Len(t, facts, test.retained)
 		})
 	}
 
@@ -93,8 +94,8 @@ func TestProjectTerminalHistoryRejectsEveryIncompleteOrCorruptClosure(t *testing
 		}
 		iterator := &historyIteratorStub{events: events}
 		facts, err := projectTerminalHistory(command, iterator, correlations, 1)
-		require.Error(t, err)
-		require.Nil(t, facts)
+		require.ErrorIs(t, err, errHistoryCapacity)
+		require.Len(t, facts, int(command.Limit().MaxRecords()-1))
 		require.LessOrEqual(t, iterator.nextCalls, int(command.Limit().MaxRecords()))
 	})
 }

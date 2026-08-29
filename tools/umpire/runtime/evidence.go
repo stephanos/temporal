@@ -283,6 +283,18 @@ func (a *evidenceAccumulator) markCapacity(source *evidenceSourceState) {
 	})
 }
 
+func (a *evidenceAccumulator) markSourceCapacity(sourceDefinitionID string) error {
+	source, ok := a.sources[sourceDefinitionID]
+	if !ok {
+		return fmt.Errorf("evidence source %q is unknown", sourceDefinitionID)
+	}
+	if source.closed {
+		return fmt.Errorf("evidence source %q is already closed", sourceDefinitionID)
+	}
+	a.markCapacity(source)
+	return nil
+}
+
 func (a *evidenceAccumulator) closeSource(sourceDefinitionID string, status string) error {
 	source, ok := a.sources[sourceDefinitionID]
 	if !ok {

@@ -333,6 +333,7 @@ type Receipt struct {
 	facts             []Fact
 	acquiredResources []Resource
 	releasedResources []Resource
+	historyCapacity   bool
 }
 
 // NewReceipt validates bounded canonical fact and resource collections.
@@ -342,6 +343,31 @@ func NewReceipt(
 	facts []Fact,
 	acquiredResources []Resource,
 	releasedResources []Resource,
+) (Receipt, error) {
+	return newReceipt(command, status, facts, acquiredResources, releasedResources, false)
+}
+
+// NewHistoryCapacityReceipt retains one accepted bounded history prefix while
+// reporting that the next history fact exceeded the command's capacity.
+func NewHistoryCapacityReceipt(
+	command Command,
+	facts []Fact,
+	acquiredResources []Resource,
+	releasedResources []Resource,
+) (Receipt, error) {
+	if command.kind != CommandObserve {
+		return Receipt{}, fmt.Errorf("history capacity requires an observation command")
+	}
+	return newReceipt(command, ReceiptAccepted, facts, acquiredResources, releasedResources, true)
+}
+
+func newReceipt(
+	command Command,
+	status ReceiptStatus,
+	facts []Fact,
+	acquiredResources []Resource,
+	releasedResources []Resource,
+	historyCapacity bool,
 ) (Receipt, error) {
 	if command.runIdentity == "" {
 		return Receipt{}, fmt.Errorf("receipt requires a checked command")
@@ -368,6 +394,7 @@ func NewReceipt(
 		facts:             cloneFacts(facts),
 		acquiredResources: slices.Clone(acquiredResources),
 		releasedResources: slices.Clone(releasedResources),
+		historyCapacity:   historyCapacity,
 	}, nil
 }
 

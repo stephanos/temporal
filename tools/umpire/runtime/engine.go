@@ -366,6 +366,11 @@ func (s *engineState) consumeReceipt(
 			return fmt.Errorf("evidence fact was rejected")
 		}
 	}
+	if receipt.historyCapacity {
+		if err := s.evidence.markSourceCapacity(EvidenceSourceHistory); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

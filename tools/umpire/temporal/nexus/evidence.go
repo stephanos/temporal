@@ -14,6 +14,8 @@ type historyIterator interface {
 	Next() (*historypb.HistoryEvent, error)
 }
 
+var errHistoryCapacity = errors.New("history projection exceeds capacity")
+
 // projectTerminalHistory is the only SDK-history-to-runtime-fact boundary.
 // It deliberately retains no event attributes, payloads, headers, or errors.
 func projectTerminalHistory(
@@ -38,15 +40,15 @@ func projectTerminalHistory(
 	lastType := enumspb.EVENT_TYPE_UNSPECIFIED
 	for iterator.HasNext() {
 		if uint64(len(facts)) >= maximumHistoryFacts {
-			return nil, errors.New("history projection exceeds capacity")
+			return facts, errHistoryCapacity
 		}
 		event, err := iterator.Next()
 		if err != nil {
-			return nil, errors.New("history iteration failed")
+			return facts, errors.New("history iteration failed")
 		}
 		if event == nil || event.GetEventId() <= previousEventID ||
 			event.GetEventType() == enumspb.EVENT_TYPE_UNSPECIFIED {
-			return nil, errors.New("history event is malformed or out of order")
+			return facts, errors.New("history event is malformed or out of order")
 		}
 		fact, err := historyFact(
 			command,
@@ -56,7 +58,7 @@ func projectTerminalHistory(
 			correlations,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("project history event: %w", err)
+			return facts, fmt.Errorf("project history event: %w", err)
 		}
 		facts = append(facts, fact)
 		previousFact = fact.DefinitionID()
@@ -71,7 +73,7 @@ func projectTerminalHistory(
 		eventCounts[enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCEL_REQUESTED] != 1 ||
 		eventCounts[enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCEL_REQUEST_COMPLETED] != 1 ||
 		eventCounts[enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED] != 1 {
-		return nil, errors.New("history closure is incomplete")
+		return facts, errors.New("history closure is incomplete")
 	}
 	return facts, nil
 }
