@@ -50,6 +50,8 @@ Hard-cut exactly four Callback and two Matching settings to private `ConfigUseSp
 baseline: green via handoff (verified at e6d56be2 by fn-42-centralize-configuration-authoring-with.1; required `make lint-model` rerun passed)
 
 stage: impl-review - ran [2026-08-28T23:54:15Z..2026-08-28T23:57:48Z] (codex; SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: b5868effd0c023a6efef893ed9aec502bb40b1a0
 - Tests: cd model && mise exec -- lake build Temporal.System.Callback.ConfigurationTests Temporal.System.Matching.ConfigurationTests Temporal.System.ConfigurationIntegrationTests, cd model && mise exec -- lake build Temporal.System.Configuration.Tests, cd model && mise exec -- lake build TemporalModelTests, make umpire-build-model, make lint-model
