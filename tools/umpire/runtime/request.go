@@ -222,11 +222,11 @@ func (r CheckedRunRequest) Seed() uint64         { return r.seed }
 func (r CheckedRunRequest) Attempt() uint64      { return r.attempt }
 
 func (r CheckedRunRequest) PhaseLimits() []PhaseLimit {
-	return append([]PhaseLimit(nil), r.authority.phaseLimits...)
+	return slices.Clone(r.authority.phaseLimits)
 }
 
 func (r CheckedRunRequest) Correlations() []Correlation {
-	return append([]Correlation(nil), r.correlations...)
+	return slices.Clone(r.correlations)
 }
 
 // Command returns the one request-bound value for a supported participant command kind.

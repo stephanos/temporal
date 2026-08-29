@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
@@ -117,7 +118,7 @@ func (s AdmittedSet) ManifestSHA256() string {
 
 // ManifestBytes returns a copy of the exact deterministic manifest bytes.
 func (s AdmittedSet) ManifestBytes() []byte {
-	return append([]byte(nil), s.manifestBytes...)
+	return slices.Clone(s.manifestBytes)
 }
 
 // Executable returns the already-admitted typed values only for an exact two-member set.
@@ -512,9 +513,9 @@ func rawSHA256(domain string, canonical []byte) string {
 }
 
 func cloneSetMembers(members []SetMember) []SetMember {
-	cloned := make([]SetMember, len(members))
+	cloned := slices.Clone(members)
 	for index, member := range members {
-		cloned[index] = SetMember{Path: member.Path, Encoded: append([]byte(nil), member.Encoded...)}
+		cloned[index].Encoded = slices.Clone(member.Encoded)
 	}
 	return cloned
 }
@@ -522,8 +523,8 @@ func cloneSetMembers(members []SetMember) []SetMember {
 func cloneAdmittedSet(admitted AdmittedSet) AdmittedSet {
 	cloned := admitted
 	cloned.members = cloneSetMembers(admitted.members)
-	cloned.manifest.Members = append([]artifactSetManifestMember(nil), admitted.manifest.Members...)
-	cloned.manifestBytes = append([]byte(nil), admitted.manifestBytes...)
+	cloned.manifest.Members = slices.Clone(admitted.manifest.Members)
+	cloned.manifestBytes = slices.Clone(admitted.manifestBytes)
 	if admitted.executable != nil {
 		cloned.executable = &admittedExecutableValues{
 			experiment:           cloneExperiment(admitted.executable.experiment),
@@ -535,14 +536,14 @@ func cloneAdmittedSet(admitted AdmittedSet) AdmittedSet {
 
 func cloneExperiment(document artifactv2.Experiment) artifactv2.Experiment {
 	cloned := document
-	cloned.Properties = append([]artifactv2.Property(nil), document.Properties...)
+	cloned.Properties = slices.Clone(document.Properties)
 	for index := range cloned.Properties {
-		cloned.Properties[index].RequirementDefinitionIDs = append(
-			[]string(nil), document.Properties[index].RequirementDefinitionIDs...,
+		cloned.Properties[index].RequirementDefinitionIDs = slices.Clone(
+			document.Properties[index].RequirementDefinitionIDs,
 		)
 	}
-	cloned.ObservationRequirementDefinitionIDs = append(
-		[]string(nil), document.ObservationRequirementDefinitionIDs...,
+	cloned.ObservationRequirementDefinitionIDs = slices.Clone(
+		document.ObservationRequirementDefinitionIDs,
 	)
 	cloned.Provenance = cloneProvenance(document.Provenance)
 	cloned.Plan = cloneDrivePlan(document.Plan)
@@ -551,9 +552,9 @@ func cloneExperiment(document artifactv2.Experiment) artifactv2.Experiment {
 
 func cloneDrivePlan(plan artifactv2.DrivePlan) artifactv2.DrivePlan {
 	cloned := plan
-	cloned.Bindings = append([]artifactv2.Binding(nil), plan.Bindings...)
-	cloned.SymbolicRoles = append([]artifactv2.Role(nil), plan.SymbolicRoles...)
-	cloned.ModelPreconditions = append([]artifactv2.Precondition(nil), plan.ModelPreconditions...)
+	cloned.Bindings = slices.Clone(plan.Bindings)
+	cloned.SymbolicRoles = slices.Clone(plan.SymbolicRoles)
+	cloned.ModelPreconditions = slices.Clone(plan.ModelPreconditions)
 	for index := range cloned.ModelPreconditions {
 		cloned.ModelPreconditions[index].Left.Value = cloneModelValuePointer(
 			plan.ModelPreconditions[index].Left.Value,
@@ -562,25 +563,25 @@ func cloneDrivePlan(plan artifactv2.DrivePlan) artifactv2.DrivePlan {
 			plan.ModelPreconditions[index].Right.Value,
 		)
 	}
-	cloned.RequestedActions = append([]artifactv2.ModelValue(nil), plan.RequestedActions...)
-	cloned.ModelOutcomes = append([]artifactv2.ModelValue(nil), plan.ModelOutcomes...)
-	cloned.ResultingStates = append([]artifactv2.ModelValue(nil), plan.ResultingStates...)
-	cloned.LinearExtension = append([]artifactv2.Occurrence(nil), plan.LinearExtension...)
+	cloned.RequestedActions = slices.Clone(plan.RequestedActions)
+	cloned.ModelOutcomes = slices.Clone(plan.ModelOutcomes)
+	cloned.ResultingStates = slices.Clone(plan.ResultingStates)
+	cloned.LinearExtension = slices.Clone(plan.LinearExtension)
 	for index := range cloned.LinearExtension {
 		cloned.LinearExtension[index].AuthoredDefinitionID = cloneStringPointer(
 			plan.LinearExtension[index].AuthoredDefinitionID,
 		)
 	}
-	cloned.SelectedChoices = append([]artifactv2.ModelValue(nil), plan.SelectedChoices...)
-	cloned.SelectedVariants = append([]artifactv2.ModelValue(nil), plan.SelectedVariants...)
-	cloned.RequestedFaults = append([]artifactv2.ModelValue(nil), plan.RequestedFaults...)
-	cloned.CapabilityRequirementDefinitionIDs = append(
-		[]string(nil), plan.CapabilityRequirementDefinitionIDs...,
+	cloned.SelectedChoices = slices.Clone(plan.SelectedChoices)
+	cloned.SelectedVariants = slices.Clone(plan.SelectedVariants)
+	cloned.RequestedFaults = slices.Clone(plan.RequestedFaults)
+	cloned.CapabilityRequirementDefinitionIDs = slices.Clone(
+		plan.CapabilityRequirementDefinitionIDs,
 	)
-	cloned.Checkpoints = append([]artifactv2.Checkpoint(nil), plan.Checkpoints...)
+	cloned.Checkpoints = slices.Clone(plan.Checkpoints)
 	for index := range cloned.Checkpoints {
-		cloned.Checkpoints[index].Observations = append(
-			[]artifactv2.ModelValue(nil), plan.Checkpoints[index].Observations...,
+		cloned.Checkpoints[index].Observations = slices.Clone(
+			plan.Checkpoints[index].Observations,
 		)
 	}
 	cloned.KnownGaps = cloneKnownGaps(plan.KnownGaps)
@@ -592,16 +593,16 @@ func cloneRuntimeConfiguration(
 	document artifactv2.RuntimeConfiguration,
 ) artifactv2.RuntimeConfiguration {
 	cloned := document
-	cloned.AuthorityProfile.RequiredCapabilityDefinitionIDs = append(
-		[]string(nil), document.AuthorityProfile.RequiredCapabilityDefinitionIDs...,
+	cloned.AuthorityProfile.RequiredCapabilityDefinitionIDs = slices.Clone(
+		document.AuthorityProfile.RequiredCapabilityDefinitionIDs,
 	)
-	cloned.PhaseLimits = append([]artifactv2.PhaseLimit(nil), document.PhaseLimits...)
-	cloned.ParticipantBindings = append(
-		[]artifactv2.ParticipantBinding(nil), document.ParticipantBindings...,
+	cloned.PhaseLimits = slices.Clone(document.PhaseLimits)
+	cloned.ParticipantBindings = slices.Clone(
+		document.ParticipantBindings,
 	)
 	for index := range cloned.ParticipantBindings {
-		cloned.ParticipantBindings[index].CapabilityDefinitionIDs = append(
-			[]string(nil), document.ParticipantBindings[index].CapabilityDefinitionIDs...,
+		cloned.ParticipantBindings[index].CapabilityDefinitionIDs = slices.Clone(
+			document.ParticipantBindings[index].CapabilityDefinitionIDs,
 		)
 	}
 	cloned.KnownGaps = cloneKnownGaps(document.KnownGaps)
@@ -611,13 +612,13 @@ func cloneRuntimeConfiguration(
 
 func cloneProvenance(provenance artifactv2.Provenance) artifactv2.Provenance {
 	return artifactv2.Provenance{
-		SourceDefinitionIDs: append([]string(nil), provenance.SourceDefinitionIDs...),
-		SourceLocations:     append([]artifactv2.SourceLocation(nil), provenance.SourceLocations...),
+		SourceDefinitionIDs: slices.Clone(provenance.SourceDefinitionIDs),
+		SourceLocations:     slices.Clone(provenance.SourceLocations),
 	}
 }
 
 func cloneKnownGaps(gaps []artifactv2.KnownGap) []artifactv2.KnownGap {
-	cloned := append([]artifactv2.KnownGap(nil), gaps...)
+	cloned := slices.Clone(gaps)
 	for index := range cloned {
 		cloned[index].Subject = cloneStringPointer(gaps[index].Subject)
 		cloned[index].Detail = cloneStringPointer(gaps[index].Detail)
