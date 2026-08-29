@@ -309,6 +309,16 @@ example :
     !({ runtimeConfiguration with provenance := {
       runtimeConfiguration.provenance with sourceLocations :=
         runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
+          { source with path := String.singleton (Char.ofNat 0x000b) }
+    }} : RuntimeConfiguration).seal.isValidTransport &&
+    !({ runtimeConfiguration with provenance := {
+      runtimeConfiguration.provenance with sourceLocations :=
+        runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
+          { source with path := String.singleton (Char.ofNat 0x000c) }
+    }} : RuntimeConfiguration).seal.isValidTransport &&
+    !({ runtimeConfiguration with provenance := {
+      runtimeConfiguration.provenance with sourceLocations :=
+        runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
           { source with provenance := "" }
     }} : RuntimeConfiguration).seal.isValidTransport &&
     !({ runtimeConfiguration with provenance := {
