@@ -11,6 +11,8 @@ import (
 	"time"
 
 	enumspb "go.temporal.io/api/enums/v1"
+	nexuspb "go.temporal.io/api/nexus/v1"
+	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/sdk/client"
 	sdktemporal "go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
@@ -46,6 +48,18 @@ type WorkerRegistration interface {
 	Register(worker.Registry)
 }
 
+// WorkerEndpoint is one opaque, run-owned routing handle. Only its name is
+// available to the built-in workflow; namespace and task queue remain private.
+type WorkerEndpoint struct {
+	name        string
+	id          string
+	version     int64
+	runIdentity string
+}
+
+// Name returns the closed endpoint name required by the SDK workflow client.
+func (e WorkerEndpoint) Name() string { return e.name }
+
 // Environment is the Temporal-specific vertical adapter available to the one
 // built-in participant. Its domain-neutral lifecycle remains runtime.Environment.
 type Environment interface {
@@ -53,6 +67,8 @@ type Environment interface {
 	Client() client.Client
 	Identities() Identities
 	WorkflowOptions(umpireruntime.Command) (client.StartWorkflowOptions, bool)
+	CreateWorkerEndpoint(context.Context, umpireruntime.Command) (WorkerEndpoint, error)
+	DeleteWorkerEndpoint(context.Context, umpireruntime.Command, WorkerEndpoint) error
 	StartWorker(context.Context, umpireruntime.Command, WorkerRegistration) umpireruntime.Receipt
 }
 
@@ -192,6 +208,65 @@ func (e *environment) WorkflowOptions(command umpireruntime.Command) (client.Sta
 		WorkflowExecutionErrorWhenAlreadyStarted: true,
 		RetryPolicy:                              &sdktemporal.RetryPolicy{MaximumAttempts: 1},
 	}, true
+}
+
+func (e *environment) CreateWorkerEndpoint(
+	ctx context.Context,
+	command umpireruntime.Command,
+) (WorkerEndpoint, error) {
+	if ctx == nil || ctx.Err() != nil || command.RunIdentity() != e.runIdentity ||
+		command.Attempt() != 1 || command.Kind() != umpireruntime.CommandPrepare {
+		if ctx == nil || ctx.Err() != nil {
+			return WorkerEndpoint{}, contextError(ctx)
+		}
+		return WorkerEndpoint{}, errors.New("unsupported worker endpoint creation")
+	}
+	digest := sha256.Sum256([]byte("umpire.temporal.local.worker-endpoint/v1\n" + e.runIdentity))
+	name := "umpire-" + hex.EncodeToString(digest[:16])
+	response, err := e.client.OperatorService().CreateNexusEndpoint(
+		ctx,
+		&operatorservice.CreateNexusEndpointRequest{Spec: &nexuspb.EndpointSpec{
+			Name: name,
+			Target: &nexuspb.EndpointTarget{Variant: &nexuspb.EndpointTarget_Worker_{
+				Worker: &nexuspb.EndpointTarget_Worker{
+					Namespace: e.authority.Namespace(),
+					TaskQueue: e.taskQueue,
+				},
+			}},
+		}},
+	)
+	if err != nil {
+		return WorkerEndpoint{}, err
+	}
+	if response.GetEndpoint() == nil {
+		return WorkerEndpoint{}, errors.New("worker endpoint creation returned no handle")
+	}
+	return WorkerEndpoint{
+		name: name, id: response.Endpoint.Id, version: response.Endpoint.Version,
+		runIdentity: e.runIdentity,
+	}, nil
+}
+
+func (e *environment) DeleteWorkerEndpoint(
+	ctx context.Context,
+	command umpireruntime.Command,
+	endpoint WorkerEndpoint,
+) error {
+	if ctx == nil || ctx.Err() != nil || command.RunIdentity() != e.runIdentity ||
+		command.Attempt() != 1 || command.Kind() != umpireruntime.CommandCleanup ||
+		endpoint.runIdentity != e.runIdentity || endpoint.id == "" || endpoint.version <= 0 {
+		if ctx == nil || ctx.Err() != nil {
+			return contextError(ctx)
+		}
+		return errors.New("unsupported worker endpoint deletion")
+	}
+	_, err := e.client.OperatorService().DeleteNexusEndpoint(
+		ctx,
+		&operatorservice.DeleteNexusEndpointRequest{
+			Id: endpoint.id, Version: endpoint.version,
+		},
+	)
+	return err
 }
 
 func (e *environment) StartWorker(
@@ -615,7 +690,7 @@ func ownedKindForResource(kind umpireruntime.ResourceKind) ownedResourceKind {
 type temporalStarter struct{}
 
 func (temporalStarter) Start(ctx context.Context) (temporalAuthority, error) {
-	server, err := temporaltest.NewServerWithContext(ctx)
+	server, err := temporaltest.NewServerWithContext(ctx, temporaltest.WithFrontendHTTP())
 	if server == nil {
 		return nil, err
 	}
