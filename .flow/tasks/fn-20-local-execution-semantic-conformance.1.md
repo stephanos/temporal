@@ -47,6 +47,7 @@ baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests.Chec
 GATE_RECEIPT_NOT_WRITTEN:unittest:inherited protected config/development.yaml dirty state made receipt non-warrantable
 
 stage: impl-review - ran [2026-08-29T22:29:27Z..2026-08-29T22:40:02Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 12a1acd2d9c22f839215273930a4199e9756619f, e9a28ac0b0b52dca194c0643783b984ec1f7b81e
 - Tests: baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests.Check failed pre-edit: task target absent), cd model && mise exec -- lake build Umpire.Observation.Tests.Check, cd model && mise exec -- lake build Umpire.Observation.ImportTests Umpire.Observation.Tests, make umpire-check-regression, make lint-model, GATE_RECEIPT_NOT_WRITTEN:unittest:inherited protected config/development.yaml dirty state made receipt non-warrantable
