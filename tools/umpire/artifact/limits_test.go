@@ -34,6 +34,11 @@ type tokenBoundaryProbe struct {
 	Values        [][]int `json:"values"`
 }
 
+type payloadBoundaryProbe struct {
+	FormatVersion string   `json:"formatVersion"`
+	Payload       []string `json:"payload"`
+}
+
 func TestStrictJSONEveryDeclaredCeilingHasItsExactValue(t *testing.T) {
 	limits := map[string]struct {
 		got  int
@@ -64,11 +69,14 @@ func TestStrictJSONEveryDeclaredCeilingHasItsExactValue(t *testing.T) {
 func TestStrictJSONStructuralCeilingsUseEncodedBoundaries(t *testing.T) {
 	t.Run("document bytes N and N+1", func(t *testing.T) {
 		encoded := canonicalDocumentOfSize(t, MaximumDocumentBytes)
-		require.NoError(t, checkDocumentBytes(encoded, standardStructuralLimits))
-		requireErrorCode(t, checkDocumentBytes(append(encoded, ' '), standardStructuralLimits), ErrorByteLimit)
+		decoder := Decoder[arrayBoundaryProbe]{Format: "umpire-document-boundary/v2"}
+		_, err := decoder.Decode(encoded)
+		require.NoError(t, err)
+		_, err = decoder.Decode(append(encoded, ' '))
+		requireErrorCode(t, err, ErrorByteLimit)
 	})
 
-	t.Run("token ceiling brackets the only representable boundary", func(t *testing.T) {
+	t.Run("token ceiling N and N+1 accounting", func(t *testing.T) {
 		atNMinusOne := canonicalTokenDocument(t, 3_963)
 		atNPlusOne := canonicalTokenDocument(t, 3_964)
 		metrics, err := measureJSON(atNMinusOne)
@@ -83,6 +91,18 @@ func TestStrictJSONStructuralCeilingsUseEncodedBoundaries(t *testing.T) {
 		require.NoError(t, err)
 		_, err = decoder.Decode(atNPlusOne)
 		requireErrorCode(t, err, ErrorTokenLimit)
+
+		// Every complete JSON value has an odd token count under punctuation-and-scalar
+		// accounting, so this even ceiling has no byte encoding at exactly N. Exercise
+		// the exact numerical N/N+1 check in addition to the encoded N-1/N+1 neighbors.
+		require.NoError(t, checkStructuralMetrics(jsonMetrics{
+			tokens: MaximumJSONTokens,
+			depth:  MaximumJSONDepth,
+		}, standardStructuralLimits))
+		requireErrorCode(t, checkStructuralMetrics(jsonMetrics{
+			tokens: MaximumJSONTokens + 1,
+			depth:  MaximumJSONDepth,
+		}, standardStructuralLimits), ErrorTokenLimit)
 	})
 
 	t.Run("depth N and N+1", func(t *testing.T) {
@@ -276,21 +296,53 @@ func testStringBoundary(t *testing.T, limit, bytes int) {
 
 func testPayloadBoundary(t *testing.T, limit int) {
 	t.Helper()
-	total := limit
-	decoder := Decoder[arrayBoundaryProbe]{
+	const format = "umpire-payload-boundary/v2"
+	decoder := Decoder[payloadBoundaryProbe]{
 		Format: "umpire-payload-boundary/v2",
-		Bounds: Bounds{PayloadLimit: func([]byte) error {
-			if total > limit {
+		Bounds: Bounds{PayloadLimit: func(encoded []byte) error {
+			if decodedPayloadBytes(encoded, format) > limit {
 				return errors.New("decoded payload exceeds limit")
 			}
 			return nil
 		}},
 	}
-	encoded, err := CanonicalPretty(arrayBoundaryProbe{FormatVersion: "umpire-payload-boundary/v2"})
+	atN := canonicalPayloadDocument(t, format, limit)
+	_, err := decoder.Decode(atN)
 	require.NoError(t, err)
-	_, err = decoder.Decode(encoded)
-	require.NoError(t, err)
-	total++
-	_, err = decoder.Decode(encoded)
+	atNPlusOne := canonicalPayloadDocument(t, format, limit+1)
+	_, err = decoder.Decode(atNPlusOne)
 	requireErrorCode(t, err, ErrorPayloadLimit)
+}
+
+func canonicalPayloadDocument(t *testing.T, format string, payloadBytes int) []byte {
+	t.Helper()
+	const chunkBytes = MaximumJSONStringBytes / 2
+	payload := make([]string, 0, payloadBytes/chunkBytes+1)
+	for payloadBytes > 0 {
+		chunk := min(payloadBytes, chunkBytes)
+		payload = append(payload, strings.Repeat("x", chunk))
+		payloadBytes -= chunk
+	}
+	encoded, err := CanonicalPretty(payloadBoundaryProbe{FormatVersion: format, Payload: payload})
+	require.NoError(t, err)
+	return encoded
+}
+
+func decodedPayloadBytes(encoded []byte, format string) int {
+	total := 0
+	for position := 0; position < len(encoded); {
+		if encoded[position] != '"' {
+			position++
+			continue
+		}
+		value, next, err := scanJSONString(encoded, position)
+		if err != nil {
+			return 0
+		}
+		position = next
+		if nextNonspace(encoded, position) != ':' {
+			total += value.decodedBytes
+		}
+	}
+	return total - len(format)
 }
