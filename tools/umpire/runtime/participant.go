@@ -98,7 +98,8 @@ func NewProgram(
 	if occurrences[0].actionDefinitionID != actionDefinitionIDs[0] {
 		return Program{}, preflightError(PreflightAction, "program-occurrence-action")
 	}
-	if len(capabilityDefinitionIDs) == 0 {
+	if len(capabilityDefinitionIDs) == 0 ||
+		len(capabilityDefinitionIDs) > artifact.MaximumJSONArrayItems {
 		return Program{}, preflightError(PreflightCapability, "program-capabilities")
 	}
 	if err := validateIdentitySet(
@@ -110,10 +111,10 @@ func NewProgram(
 		definitionID:            definitionID,
 		version:                 version,
 		behaviorFingerprint:     behaviorFingerprint,
-		targetDefinitionIDs:     append([]string(nil), targetDefinitionIDs...),
-		actionDefinitionIDs:     append([]string(nil), actionDefinitionIDs...),
-		occurrences:             append([]Occurrence(nil), occurrences...),
-		capabilityDefinitionIDs: append([]string(nil), capabilityDefinitionIDs...),
+		targetDefinitionIDs:     slices.Clone(targetDefinitionIDs),
+		actionDefinitionIDs:     slices.Clone(actionDefinitionIDs),
+		occurrences:             slices.Clone(occurrences),
+		capabilityDefinitionIDs: slices.Clone(capabilityDefinitionIDs),
 	}, nil
 }
 
@@ -128,31 +129,31 @@ func (p Program) Occurrence() Occurrence {
 }
 
 func (p Program) TargetDefinitionIDs() []string {
-	return append([]string(nil), p.targetDefinitionIDs...)
+	return slices.Clone(p.targetDefinitionIDs)
 }
 
 func (p Program) ActionDefinitionIDs() []string {
-	return append([]string(nil), p.actionDefinitionIDs...)
+	return slices.Clone(p.actionDefinitionIDs)
 }
 
 func (p Program) Occurrences() []Occurrence {
-	return append([]Occurrence(nil), p.occurrences...)
+	return slices.Clone(p.occurrences)
 }
 
 func (p Program) CapabilityDefinitionIDs() []string {
-	return append([]string(nil), p.capabilityDefinitionIDs...)
+	return slices.Clone(p.capabilityDefinitionIDs)
 }
 
 func (p Program) CommandKinds() []CommandKind {
-	return append([]CommandKind(nil), commandOrder[:]...)
+	return slices.Clone(commandOrder[:])
 }
 
 func (p Program) clone() Program {
 	cloned := p
-	cloned.targetDefinitionIDs = append([]string(nil), p.targetDefinitionIDs...)
-	cloned.actionDefinitionIDs = append([]string(nil), p.actionDefinitionIDs...)
-	cloned.occurrences = append([]Occurrence(nil), p.occurrences...)
-	cloned.capabilityDefinitionIDs = append([]string(nil), p.capabilityDefinitionIDs...)
+	cloned.targetDefinitionIDs = slices.Clone(p.targetDefinitionIDs)
+	cloned.actionDefinitionIDs = slices.Clone(p.actionDefinitionIDs)
+	cloned.occurrences = slices.Clone(p.occurrences)
+	cloned.capabilityDefinitionIDs = slices.Clone(p.capabilityDefinitionIDs)
 	return cloned
 }
 
@@ -267,6 +268,9 @@ func NewFact(
 		!validIdentity(kindDefinitionID) {
 		return Fact{}, fmt.Errorf("invalid fact identity")
 	}
+	if len(causalDefinitionIDs) > artifact.MaximumJSONArrayItems {
+		return Fact{}, fmt.Errorf("fact causal identities exceed limit")
+	}
 	if err := validateIdentitySet(causalDefinitionIDs, PreflightCapability, "fact-causes"); err != nil {
 		return Fact{}, fmt.Errorf("invalid fact causal identities")
 	}
@@ -294,8 +298,8 @@ func NewFact(
 	return Fact{
 		definitionID: definitionID, sourceDefinitionID: sourceDefinitionID,
 		kindDefinitionID:    kindDefinitionID,
-		causalDefinitionIDs: append([]string(nil), causalDefinitionIDs...),
-		fields:              append([]FactField(nil), fields...),
+		causalDefinitionIDs: slices.Clone(causalDefinitionIDs),
+		fields:              slices.Clone(fields),
 	}, nil
 }
 
@@ -304,11 +308,11 @@ func (f Fact) SourceDefinitionID() string { return f.sourceDefinitionID }
 func (f Fact) KindDefinitionID() string   { return f.kindDefinitionID }
 
 func (f Fact) CausalDefinitionIDs() []string {
-	return append([]string(nil), f.causalDefinitionIDs...)
+	return slices.Clone(f.causalDefinitionIDs)
 }
 
 func (f Fact) Fields() []FactField {
-	return append([]FactField(nil), f.fields...)
+	return slices.Clone(f.fields)
 }
 
 // ReceiptStatus is one terminal participant-command status.
@@ -362,8 +366,8 @@ func NewReceipt(
 	return Receipt{
 		command: command, status: status,
 		facts:             cloneFacts(facts),
-		acquiredResources: append([]Resource(nil), acquiredResources...),
-		releasedResources: append([]Resource(nil), releasedResources...),
+		acquiredResources: slices.Clone(acquiredResources),
+		releasedResources: slices.Clone(releasedResources),
 	}, nil
 }
 
@@ -372,11 +376,11 @@ func (r Receipt) Status() ReceiptStatus { return r.status }
 func (r Receipt) Facts() []Fact         { return cloneFacts(r.facts) }
 
 func (r Receipt) AcquiredResources() []Resource {
-	return append([]Resource(nil), r.acquiredResources...)
+	return slices.Clone(r.acquiredResources)
 }
 
 func (r Receipt) ReleasedResources() []Resource {
-	return append([]Resource(nil), r.releasedResources...)
+	return slices.Clone(r.releasedResources)
 }
 
 func validateFacts(facts []Fact, maxBytes uint64) error {
@@ -408,6 +412,9 @@ func validateResources(resources []Resource) error {
 	if resources == nil {
 		return fmt.Errorf("resource collection must not be nil")
 	}
+	if len(resources) > artifact.MaximumJSONArrayItems {
+		return fmt.Errorf("resource collection exceeds limit")
+	}
 	if !slices.IsSortedFunc(resources, compareResource) {
 		return fmt.Errorf("resources are not in canonical order")
 	}
@@ -430,12 +437,12 @@ func compareResource(left, right Resource) int {
 }
 
 func cloneFacts(facts []Fact) []Fact {
-	cloned := append([]Fact(nil), facts...)
+	cloned := slices.Clone(facts)
 	for index := range cloned {
-		cloned[index].causalDefinitionIDs = append(
-			[]string(nil), facts[index].causalDefinitionIDs...,
+		cloned[index].causalDefinitionIDs = slices.Clone(
+			facts[index].causalDefinitionIDs,
 		)
-		cloned[index].fields = append([]FactField(nil), facts[index].fields...)
+		cloned[index].fields = slices.Clone(facts[index].fields)
 	}
 	return cloned
 }
