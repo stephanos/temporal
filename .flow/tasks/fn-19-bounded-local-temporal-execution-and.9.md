@@ -37,9 +37,12 @@ Create the R4/R7 prerequisite that makes the existing loopback server usable by 
 - [ ] No runtime-specific or Umpire-specific vocabulary enters temporaltest.
 
 ## Done summary
-TBD
+Added error-returning, context-aware temporaltest server/client/worker lifecycle APIs with typed residual ownership, bounded once-only cleanup, explicit SDK worker stop timeouts, and panic-oriented compatibility wrappers. Deterministic tests cover each acquisition and release boundary, cancellation between boundaries, resumable cleanup deadlines, nil testing integration, and legacy dial limits while preserving the existing lifecycle comments.
 
+Baseline and verification: runtime, temporaltest, LocalProfileTests, temporaltest race, and vet are green. The local/Nexus/CLI packages, Nexus ExecutionTests, and root run target were absent both before and after this task and remain inherited-red later-task surfaces. Gate receipt creation was non-blockingly unavailable because the inherited false-symlink config path leaves the checkout dirty. Memory capture was attempted after NEEDS_WORK to SHIP, but memory is not initialized.
+
+stage: impl-review - ran [2026-08-29T13:53:53Z..2026-08-29T13:59:44Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c1a46aee0907a62589379d22679d2fa26be84838, 2eafc4b31000ce114098d17f61a4c453abcc9857
+- Tests: go test -count=1 ./tools/umpire/runtime/..., go test -count=1 ./temporaltest/..., cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests, go test -race -count=1 ./temporaltest/..., go vet ./temporaltest/..., INHERITED_RED: go test -count=1 ./tools/umpire/temporal/local/... (package absent before and after; later-task surface), INHERITED_RED: go test -count=1 ./tools/umpire/temporal/nexus/... (package absent before and after; later-task surface), INHERITED_RED: go test -count=1 ./tools/umpire/cmd/umpire-local-run/... (package absent before and after; later-task surface), INHERITED_RED: cd model && mise exec -- lake build Temporal.Feature.Nexus.ExecutionTests (module absent before and after; later-task surface), INHERITED_RED: make umpire-run-local SET=... (target absent before and after; later-task surface)
 - PRs:
