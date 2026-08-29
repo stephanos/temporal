@@ -314,8 +314,11 @@ three stages but cannot collapse one layer's failure into another's status.
   `Umpire.ImplementationLink.Language`, `Umpire.ImplementationLink.Application`, and
   `Umpire.Planning.Engine` implement public facades and should not normally be imported directly.
 
-Artifacts are pure model products. They do not claim that Temporal was started, actions were
-executed, or runtime evidence was collected.
+DrivePlan and ExperimentSpec are pure model products. They do not claim that Temporal was started,
+actions were executed, or runtime Evidence was collected. The later Runtime, Evidence, and Result
+modules define inert transport records for facts and outcomes supplied by their owning downstream
+stages; admitting those bytes verifies transport and closure, not that Execution or Run Evaluation
+occurred.
 
 The public `Umpire.Artifact` facade exposes the retained v2 Planning, Runtime, Evidence, Result, and
 Set modules without aliases. Persisted documents use only deterministic two-space pretty JSON with

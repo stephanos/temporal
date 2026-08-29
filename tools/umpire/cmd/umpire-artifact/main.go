@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	exitSuccess = 0
-	exitFailure = 1
-	exitUsage   = 2
+	exitSuccess     = 0
+	exitFailure     = 1
+	exitUsage       = 2
+	maximumSetFiles = 7
 )
 
 type usageError struct {
@@ -170,6 +171,12 @@ func readSetFiles(root string) (map[string][]byte, error) {
 			}
 			return nil
 		}
+		if !supportedSetFilePath(relative) {
+			return fmt.Errorf("unexpected file %q", relative)
+		}
+		if len(files) >= maximumSetFiles {
+			return fmt.Errorf("artifact set has more than %d files", maximumSetFiles)
+		}
 		if entry.Type()&os.ModeSymlink != 0 {
 			return fmt.Errorf("%q is not a regular file", relative)
 		}
@@ -184,6 +191,21 @@ func readSetFiles(root string) (map[string][]byte, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+func supportedSetFilePath(path string) bool {
+	switch path {
+	case "manifest.json",
+		"artifacts/experiment.json",
+		"artifacts/runtime-configuration.json",
+		"artifacts/experiment-run.json",
+		"artifacts/raw-evidence.json",
+		"artifacts/evidence.json",
+		"artifacts/result.json":
+		return true
+	default:
+		return false
+	}
 }
 
 func readRegularFile(path string) ([]byte, error) {
