@@ -1,6 +1,7 @@
 package runtime_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -68,7 +69,10 @@ func TestCheckRequestAcceptsOneImmutableExactInput(t *testing.T) {
 		umpireruntime.CorrelationParticipant,
 	}, correlationKinds(correlations))
 	for _, correlation := range correlations {
-		require.True(t, strings.HasPrefix(correlation.Identity(), request.RunIdentity()+"."))
+		require.True(t, strings.HasPrefix(
+			correlation.Identity(),
+			"runtime.correlation."+string(correlation.Kind())+".",
+		))
 	}
 
 	limits := request.PhaseLimits()
@@ -291,6 +295,7 @@ func TestCheckedContractValuesEnforceBoundsAndCanonicalOrder(t *testing.T) {
 		[]umpireruntime.FactField{field},
 	)
 	require.NoError(t, err)
+	require.NotNil(t, fact.CausalDefinitionIDs())
 	resource, err := umpireruntime.NewResource(
 		umpireruntime.ResourceParticipant,
 		"runtime.resource.participant-1",
@@ -334,6 +339,114 @@ func TestCheckedContractValuesEnforceBoundsAndCanonicalOrder(t *testing.T) {
 		1,
 	)
 	requirePreflightKind(t, err, umpireruntime.PreflightBudget)
+	var preflight *umpireruntime.PreflightError
+	_, err = umpireruntime.NewPhaseLimit(
+		umpireruntime.Phase("invalid\nphase"),
+		time.Second,
+		1,
+		1,
+		1,
+	)
+	require.ErrorAs(t, err, &preflight)
+	require.Equal(t, "phase-limit", preflight.Subject())
+}
+
+func TestCheckedCollectionsPreserveShapeAndEnforceLimits(t *testing.T) {
+	fixture := newCheckedFixture(t)
+	occurrence := fixture.program.Occurrence()
+	capabilities := numberedIdentities("runtime.capability", artifact.MaximumJSONArrayItems)
+	program, err := umpireruntime.NewProgram(
+		programDefinitionID,
+		2,
+		programFingerprint,
+		fixture.program.TargetDefinitionIDs(),
+		fixture.program.ActionDefinitionIDs(),
+		[]umpireruntime.Occurrence{occurrence},
+		capabilities,
+	)
+	require.NoError(t, err)
+	require.Equal(t, capabilities, program.CapabilityDefinitionIDs())
+	_, err = umpireruntime.NewProgram(
+		programDefinitionID,
+		2,
+		programFingerprint,
+		fixture.program.TargetDefinitionIDs(),
+		fixture.program.ActionDefinitionIDs(),
+		[]umpireruntime.Occurrence{occurrence},
+		numberedIdentities("runtime.capability", artifact.MaximumJSONArrayItems+1),
+	)
+	require.Error(t, err)
+
+	causes := numberedIdentities("runtime.cause", artifact.MaximumJSONArrayItems)
+	fact, err := umpireruntime.NewFact(
+		"runtime.fact.maximum-causes",
+		"runtime.source.participant",
+		"runtime.fact-kind.receipt",
+		causes,
+		[]umpireruntime.FactField{},
+	)
+	require.NoError(t, err)
+	require.Equal(t, causes, fact.CausalDefinitionIDs())
+	require.NotNil(t, fact.Fields())
+	_, err = umpireruntime.NewFact(
+		"runtime.fact.too-many-causes",
+		"runtime.source.participant",
+		"runtime.fact-kind.receipt",
+		numberedIdentities("runtime.cause", artifact.MaximumJSONArrayItems+1),
+		[]umpireruntime.FactField{},
+	)
+	require.Error(t, err)
+
+	command, ok := mustCheckedRequest(t, fixture).Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	resources := make([]umpireruntime.Resource, artifact.MaximumJSONArrayItems)
+	for index, identity := range numberedIdentities("runtime.resource", len(resources)) {
+		resources[index], err = umpireruntime.NewResource(umpireruntime.ResourceParticipant, identity)
+		require.NoError(t, err)
+	}
+	receipt, err := umpireruntime.NewReceipt(
+		command,
+		umpireruntime.ReceiptAccepted,
+		[]umpireruntime.Fact{},
+		resources,
+		[]umpireruntime.Resource{},
+	)
+	require.NoError(t, err)
+	require.NotNil(t, receipt.Facts())
+	require.Equal(t, resources, receipt.AcquiredResources())
+	require.NotNil(t, receipt.ReleasedResources())
+	extraResource, err := umpireruntime.NewResource(
+		umpireruntime.ResourceParticipant,
+		"runtime.resource.overflow",
+	)
+	require.NoError(t, err)
+	_, err = umpireruntime.NewReceipt(
+		command,
+		umpireruntime.ReceiptAccepted,
+		[]umpireruntime.Fact{},
+		append(resources, extraResource),
+		[]umpireruntime.Resource{},
+	)
+	require.Error(t, err)
+}
+
+func TestCheckRequestAcceptsEveryBoundedRunIdentity(t *testing.T) {
+	fixture := newCheckedFixture(t)
+	for _, length := range []int{500, 501, umpireruntime.MaximumIdentityBytes} {
+		t.Run(fmt.Sprintf("%d bytes", length), func(t *testing.T) {
+			runIdentity := "runtime." + strings.Repeat("x", length-len("runtime."))
+			request, err := umpireruntime.CheckRequest(
+				fixture.set,
+				fixture.authority,
+				runIdentity,
+				0,
+				1,
+			)
+			require.NoError(t, err)
+			require.Equal(t, runIdentity, request.RunIdentity())
+			require.Len(t, request.Correlations(), 5)
+		})
+	}
 }
 
 func newCheckedFixture(t *testing.T) checkedFixture {
@@ -539,6 +652,14 @@ func valueOr(value string, fallback string) string {
 		return value
 	}
 	return fallback
+}
+
+func numberedIdentities(prefix string, count int) []string {
+	identities := make([]string, count)
+	for index := range identities {
+		identities[index] = fmt.Sprintf("%s.%04d", prefix, index)
+	}
+	return identities
 }
 
 type countingFactory struct {

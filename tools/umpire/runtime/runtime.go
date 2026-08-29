@@ -2,6 +2,8 @@
 package runtime
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"slices"
 	"strings"
 	"time"
@@ -70,12 +72,12 @@ func NewPhaseLimit(
 			return candidate, nil
 		}
 	}
-	return PhaseLimit{}, preflightError(PreflightBudget, string(phase))
+	return PhaseLimit{}, preflightError(PreflightBudget, "phase-limit")
 }
 
 // CanonicalPhaseLimits returns the fixed five phase budgets in execution order.
 func CanonicalPhaseLimits() []PhaseLimit {
-	return append([]PhaseLimit(nil), canonicalPhaseLimits[:]...)
+	return slices.Clone(canonicalPhaseLimits[:])
 }
 
 func (l PhaseLimit) Phase() Phase            { return l.phase }
@@ -157,8 +159,8 @@ func NewAuthority(
 		behaviorFingerprint:       behaviorFingerprint,
 		configurationDefinitionID: configurationDefinitionID,
 		configurationFingerprint:  configurationFingerprint,
-		requiredCapabilities:      append([]string(nil), requiredCapabilities...),
-		phaseLimits:               append([]PhaseLimit(nil), phaseLimits...),
+		requiredCapabilities:      slices.Clone(requiredCapabilities),
+		phaseLimits:               slices.Clone(phaseLimits),
 		seed:                      seed,
 		attempt:                   attempt,
 		participantDefinitionID:   participantDefinitionID,
@@ -189,17 +191,17 @@ func (a Authority) ProgramCount() uint64            { return a.programCount }
 func (a Authority) Program() Program                { return a.program.clone() }
 
 func (a Authority) RequiredCapabilityDefinitionIDs() []string {
-	return append([]string(nil), a.requiredCapabilities...)
+	return slices.Clone(a.requiredCapabilities)
 }
 
 func (a Authority) PhaseLimits() []PhaseLimit {
-	return append([]PhaseLimit(nil), a.phaseLimits...)
+	return slices.Clone(a.phaseLimits)
 }
 
 func (a Authority) clone() Authority {
 	cloned := a
-	cloned.requiredCapabilities = append([]string(nil), a.requiredCapabilities...)
-	cloned.phaseLimits = append([]PhaseLimit(nil), a.phaseLimits...)
+	cloned.requiredCapabilities = slices.Clone(a.requiredCapabilities)
+	cloned.phaseLimits = slices.Clone(a.phaseLimits)
 	cloned.program = a.program.clone()
 	return cloned
 }
@@ -235,7 +237,9 @@ func (c Correlation) Identity() string      { return c.identity }
 func deriveCorrelations(runIdentity string) ([]Correlation, error) {
 	correlations := make([]Correlation, 0, len(correlationOrder))
 	for _, kind := range correlationOrder {
-		identity := runIdentity + "." + string(kind)
+		preimage := []byte("umpire.runtime-correlation/v1\n" + string(kind) + "\n" + runIdentity)
+		digest := sha256.Sum256(preimage)
+		identity := "runtime.correlation." + string(kind) + "." + hex.EncodeToString(digest[:])
 		if !validIdentity(identity) {
 			return nil, preflightError(PreflightRunIdentity, "derived-correlation")
 		}

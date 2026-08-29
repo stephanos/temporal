@@ -112,6 +112,20 @@ func TestArtifactSetExecutableProjectionIsExactAndImmutable(t *testing.T) {
 	executable, ok := admitted.Executable()
 	require.True(t, ok)
 	require.Equal(t, admitted.Identity(), executable.AdmittedSet().Identity())
+	wantExperiment, err := artifact.DecodeExperimentV2(members[0].Encoded)
+	require.NoError(t, err)
+	wantRuntimeConfiguration, err := artifact.DecodeRuntimeConfigurationV2(members[1].Encoded)
+	require.NoError(t, err)
+	require.Equal(t, wantExperiment, executable.Experiment())
+	require.Equal(t, wantRuntimeConfiguration, executable.RuntimeConfiguration())
+	encodedExperiment, err := artifact.EncodeExperimentV2(executable.Experiment())
+	require.NoError(t, err)
+	require.Equal(t, members[0].Encoded, encodedExperiment)
+	encodedRuntimeConfiguration, err := artifact.EncodeRuntimeConfigurationV2(
+		executable.RuntimeConfiguration(),
+	)
+	require.NoError(t, err)
+	require.Equal(t, members[1].Encoded, encodedRuntimeConfiguration)
 
 	experiment := executable.Experiment()
 	runtimeConfiguration := executable.RuntimeConfiguration()
