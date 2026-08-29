@@ -409,8 +409,12 @@ private def sourceLocationLe (left right : SourceLocation) : Bool :=
 
 private def provenanceValid (provenance : ArtifactProvenance) : Bool :=
   idsCanonical provenance.sourceDefinitionIds &&
+    provenance.sourceLocations != [] &&
     provenance.sourceLocations == provenance.sourceLocations.mergeSort sourceLocationLe &&
-    provenance.sourceLocations.eraseDups.length == provenance.sourceLocations.length
+    provenance.sourceLocations.eraseDups.length == provenance.sourceLocations.length &&
+    provenance.sourceLocations.all fun source =>
+      !source.path.trimAscii.isEmpty && !source.provenance.trimAscii.isEmpty &&
+        source.line > 0 && source.column > 0
 
 private def knownGapsValid (knownGaps : List KnownGap) : Bool :=
   (validateKnownGaps knownGaps).isOk
@@ -456,6 +460,14 @@ private def phaseOutcomeValid (outcome : PhaseOutcome) : Bool :=
   | .succeeded => terminalPhaseValid outcome false
   | .failed | .timedOut | .canceled => terminalPhaseValid outcome true
 
+private def phaseProgressionValid : List PhaseOutcome → Bool
+  | preparation :: realization :: observation :: _isolation :: cleanup :: [] =>
+      preparation.status != .notStarted &&
+        (preparation.status == .succeeded || realization.status == .notStarted) &&
+        ((realization.status == .notStarted) == (observation.status == .notStarted)) &&
+        cleanup.status != .notStarted
+  | _ => false
+
 private def controlAttemptValid (runAttempt : Nat) (attempt : ControlAttempt) : Bool :=
   attempt.occurrenceDefinitionId.isNamespaced && attempt.actionDefinitionId.isNamespaced &&
     attempt.attempt > 0 && attempt.attempt == runAttempt &&
@@ -490,16 +502,31 @@ private def cleanupValid (cleanup : CleanupOutcome) : Bool :=
   | .complete => cleanup.openHandleCount == 0 && cleanup.code.isNone
   | .incomplete | .failed => cleanup.code.any DefinitionId.isNamespaced
 
+/-! This validates the declared summary; it does not construct or normalize a Run. -/
+private def expectedOperationalStatus (run : ExperimentRun) : OperationalStatus :=
+  if run.phaseOutcomes.any fun outcome => outcome.status == .failed then .failed
+  else if run.controlAttempts.any fun attempt =>
+      attempt.status == .rejected || attempt.status == .unsupported || attempt.status == .failed
+    then .failed
+  else if run.sourceClosures.any fun closure => closure.status == .failed then .failed
+  else if run.cleanup.status == .failed then .failed
+  else if run.phaseOutcomes.any fun outcome => outcome.status != .succeeded then .incomplete
+  else if run.controlAttempts.any fun attempt => attempt.status != .accepted then .incomplete
+  else if run.sourceClosures.any fun closure => closure.status != .closed then .incomplete
+  else if run.cleanup.status != .complete || run.knownGaps != [] then .incomplete
+  else .succeeded
+
 /-- Check the closed Run transport while leaving evidence-fact resolution to RawEvidence admission. -/
 def ExperimentRun.isValidTransport (run : ExperimentRun) : Bool :=
   run.formatVersion == "umpire-experiment-run/v2" && run.runIdentity.isNamespaced &&
     run.experiment.formatVersion == "umpire-experiment/v2" &&
     run.runtimeConfiguration.formatVersion == "umpire-runtime-configuration/v2" &&
     run.attempt > 0 && run.phaseOutcomes.map PhaseOutcome.phase == executionPhases &&
-    run.phaseOutcomes.all phaseOutcomeValid && controlAttemptsValid run.attempt run.controlAttempts &&
+    run.phaseOutcomes.all phaseOutcomeValid && phaseProgressionValid run.phaseOutcomes &&
+    controlAttemptsValid run.attempt run.controlAttempts &&
     sourceClosuresValid run.sourceClosures && cleanupValid run.cleanup &&
     phaseLimitsValid run.limits && knownGapsValid run.knownGaps && provenanceValid run.provenance &&
-    run.hasValidChecksums
+    run.operationalStatus == expectedOperationalStatus run && run.hasValidChecksums
 
 private def plannedControlLe (left right : DefinitionId × DefinitionId) : Bool :=
   decide (left.1.value ≤ right.1.value)
