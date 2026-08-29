@@ -204,4 +204,8 @@ def runtimeConfigurationChecksumOf (canonicalContent : String) : ArtifactChecksu
 def experimentRunChecksumOf (canonicalContent : String) : ArtifactChecksum :=
   ⟨derive "umpire.experiment-run/v2" canonicalContent⟩
 
+/-- Checksum an exact pretty RawEvidence object without its checksum field. -/
+def rawEvidenceChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+  ⟨derive "umpire.raw-evidence/v2" canonicalContent⟩
+
 end Umpire

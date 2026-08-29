@@ -12,6 +12,7 @@ import Umpire.Planning.Tests
 import Umpire.Planning.VisibilityTests
 import Umpire.Artifact.Tests.Codecs
 import Umpire.Artifact.Tests.Runtime
+import Umpire.Artifact.Tests.Evidence
 import Umpire.ExecutionHandoffTests
 import Umpire.Tests.MigrationCompatibility
 import Umpire.Observation.Tests
