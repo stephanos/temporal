@@ -94,10 +94,17 @@ func (a *executionAdmission) acquire(ctx context.Context) error {
 	if ctx == nil {
 		return errors.New("umpire runtime execution admission requires a context")
 	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
 	case <-a.slot:
+		if err := ctx.Err(); err != nil {
+			a.release()
+			return err
+		}
 		return nil
 	}
 }

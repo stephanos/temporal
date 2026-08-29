@@ -332,6 +332,45 @@ func TestRunAdmitsOnlyOneRequestAtATime(t *testing.T) {
 	require.Error(t, <-secondDone)
 }
 
+func TestExecutionAdmissionRejectsAlreadyCanceledContextWithoutConsumingSlot(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	for iteration := 0; iteration < 256; iteration++ {
+		admission := newExecutionAdmission()
+		err := admission.acquire(ctx)
+		if err == nil {
+			admission.release()
+		}
+		require.ErrorIs(t, err, context.Canceled)
+
+		nextCtx, nextCancel := context.WithTimeout(context.Background(), time.Second)
+		require.NoError(t, admission.acquire(nextCtx))
+		nextCancel()
+		admission.release()
+	}
+}
+
+func TestRunRejectsAlreadyCanceledRequestBeforePreparationAndAllowsNextRequest(t *testing.T) {
+	request := newEngineRequest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	rejected := newOracleState(t, "", oracleSucceeded, false)
+
+	output, err := Run(ctx, request, rejected.factory, rejected.participant)
+	require.ErrorIs(t, err, context.Canceled)
+	require.Empty(t, output.AdmittedSet().Identity())
+	require.Equal(t, 0, rejected.factory.prepareCalls)
+	require.Equal(t, 0, rejected.participant.prepareCalls)
+
+	admitted := newOracleState(t, "", oracleSucceeded, false)
+	output, err = Run(context.Background(), request, admitted.factory, admitted.participant)
+	require.NoError(t, err)
+	require.NotEmpty(t, output.AdmittedSet().Identity())
+	require.Equal(t, 1, admitted.factory.prepareCalls)
+	require.Equal(t, 1, admitted.participant.prepareCalls)
+}
+
 func TestRunKeepsControlPartialWhenCancellationPreventsTheRequest(t *testing.T) {
 	request := newEngineRequest(t)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -638,7 +677,10 @@ func (s *oracleState) takeFacts(phase Phase, count int) []Fact {
 	return facts
 }
 
-type oracleFactory struct{ state *oracleState }
+type oracleFactory struct {
+	state        *oracleState
+	prepareCalls int
+}
 
 type blockingFactory struct {
 	entered chan struct{}
@@ -663,6 +705,7 @@ func (f *oracleFactory) Prepare(
 	_ CheckedRunRequest,
 	command Command,
 ) (Environment, Receipt) {
+	f.prepareCalls++
 	if f.state.factoryContextTerminal == oracleTimedOut {
 		ctx.(*oraclePhaseContext).terminate(context.DeadlineExceeded)
 	}

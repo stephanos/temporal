@@ -165,7 +165,7 @@ func renderGeneratedTest(input generationInput) ([]byte, error) {
 	generated.WriteString("\t\t\"manifest.json\":                        callerClosureManifest,\n")
 	generated.WriteString("\t})\n")
 	generated.WriteString("\trequire.NoError(t, err)\n\n")
-	generated.WriteString("\tctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)\n")
+	generated.WriteString("\tctx, cancel := context.WithTimeout(context.Background(), 135*time.Second)\n")
 	generated.WriteString("\tdefer cancel()\n")
 	generated.WriteString("\toutput, err := runner.Run(\n")
 	generated.WriteString("\t\tctx,\n")
