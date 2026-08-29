@@ -409,7 +409,8 @@ private def sourceLocationLe (left right : SourceLocation) : Bool :=
 
 private def unicodeWhitespace (character : Char) : Bool :=
   let code := character.toNat
-  character.isWhitespace || code == 0x0085 || code == 0x00a0 || code == 0x1680 ||
+  decide (0x0009 ≤ code ∧ code ≤ 0x000d) || code == 0x0020 ||
+    code == 0x0085 || code == 0x00a0 || code == 0x1680 ||
     decide (0x2000 ≤ code ∧ code ≤ 0x200a) || code == 0x2028 || code == 0x2029 ||
     code == 0x202f || code == 0x205f || code == 0x3000
 
