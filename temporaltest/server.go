@@ -32,6 +32,7 @@ type TestServer struct {
 	defaultClientOptions       client.Options
 	defaultWorkerOptions       worker.Options
 	serverOptions              []temporal.ServerOption
+	frontendHTTPPort           int
 	lifecycleBackend           lifecycleBackend
 	clientSequence             int
 	cleanupStarted             bool
@@ -348,6 +349,7 @@ func (ts *TestServer) newLiteServer() (*temporalite.LiteServer, error) {
 			dynamicconfig.ForceSearchAttributesCacheRefreshOnRead.Key(): []dynamicconfig.ConstrainedValue{{Value: true}},
 		},
 		// Disable "accept incoming network connections?" prompt on macOS
-		FrontendIP: "127.0.0.1",
+		FrontendIP:       "127.0.0.1",
+		FrontendHTTPPort: ts.frontendHTTPPort,
 	}, ts.serverOptions...)
 }
