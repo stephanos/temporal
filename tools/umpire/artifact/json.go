@@ -3,10 +3,13 @@ package artifact
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"reflect"
 	"strings"
+	"unicode"
+	"unicode/utf16"
+	"unicode/utf8"
 )
 
 func CanonicalPretty(value any) ([]byte, error) {
@@ -21,117 +24,145 @@ func CanonicalPretty(value any) ([]byte, error) {
 }
 
 type jsonMetrics struct {
-	tokens int
-	depth  int
-}
-
-type metricFrame struct {
-	kind      json.Delim
-	count     int
-	expectKey bool
-}
-
-type metricState struct {
-	metrics jsonMetrics
-	stack   []metricFrame
+	tokens      int
+	depth       int
+	stringBytes int
 }
 
 func measureJSON(encoded []byte) (jsonMetrics, error) {
-	decoder := json.NewDecoder(bytes.NewReader(encoded))
-	decoder.UseNumber()
-	var state metricState
-	for {
-		token, err := decoder.Token()
-		if err == io.EOF {
-			return state.metrics, nil
-		}
-		if err != nil {
-			return jsonMetrics{}, err
-		}
-		if err := state.consume(token); err != nil {
-			return jsonMetrics{}, err
-		}
-	}
-}
-
-func (s *metricState) consume(token json.Token) error {
-	delimiter, isDelimiter := token.(json.Delim)
-	if isDelimiter && (delimiter == '}' || delimiter == ']') {
-		return s.consumeClosing(delimiter)
-	}
-	if s.expectsObjectKey() {
-		return s.consumeObjectKey(token)
-	}
-	startMetricValue(&s.metrics, s.stack)
-	s.metrics.tokens++
-	depth := len(s.stack) + 1
-	if depth > s.metrics.depth {
-		s.metrics.depth = depth
-	}
-	if !isDelimiter {
-		completeMetricValue(s.stack)
-		return nil
-	}
-	switch delimiter {
-	case '{':
-		s.stack = append(s.stack, metricFrame{kind: delimiter, expectKey: true})
-	case '[':
-		s.stack = append(s.stack, metricFrame{kind: delimiter})
-	default:
-		return fmt.Errorf("unexpected opening delimiter %q", delimiter)
-	}
-	return nil
-}
-
-func (s *metricState) consumeClosing(delimiter json.Delim) error {
-	s.metrics.tokens++
-	if len(s.stack) == 0 || (delimiter == '}' && s.stack[len(s.stack)-1].kind != '{') ||
-		(delimiter == ']' && s.stack[len(s.stack)-1].kind != '[') {
-		return fmt.Errorf("unexpected closing delimiter %q", delimiter)
-	}
-	s.stack = s.stack[:len(s.stack)-1]
-	completeMetricValue(s.stack)
-	return nil
-}
-
-func (s *metricState) expectsObjectKey() bool {
-	return len(s.stack) > 0 && s.stack[len(s.stack)-1].kind == '{' && s.stack[len(s.stack)-1].expectKey
-}
-
-func (s *metricState) consumeObjectKey(token json.Token) error {
-	if _, ok := token.(string); !ok {
-		return fmt.Errorf("JSON object key has type %T", token)
-	}
-	frame := &s.stack[len(s.stack)-1]
-	if frame.count > 0 {
-		s.metrics.tokens++
-	}
-	s.metrics.tokens += 2
-	frame.count++
-	frame.expectKey = false
-	return nil
-}
-
-func startMetricValue(metrics *jsonMetrics, stack []metricFrame) {
-	if len(stack) == 0 {
-		return
-	}
-	frame := &stack[len(stack)-1]
-	if frame.kind == '[' {
-		if frame.count > 0 {
+	var metrics jsonMetrics
+	depth := 0
+	for position := 0; position < len(encoded); {
+		switch character := encoded[position]; character {
+		case ' ', '\t', '\r', '\n':
+			position++
+		case '{', '[':
 			metrics.tokens++
+			depth++
+			metrics.depth = max(metrics.depth, depth)
+			position++
+		case '}', ']':
+			metrics.tokens++
+			depth--
+			position++
+		case ',', ':':
+			metrics.tokens++
+			position++
+		case '"':
+			value, next, err := scanJSONString(encoded, position)
+			if err != nil {
+				return jsonMetrics{}, err
+			}
+			metrics.tokens++
+			metrics.stringBytes = max(metrics.stringBytes, value.decodedBytes)
+			position = next
+			if nextNonspace(encoded, position) != ':' {
+				metrics.depth = max(metrics.depth, depth+1)
+			}
+		default:
+			metrics.tokens++
+			metrics.depth = max(metrics.depth, depth+1)
+			position++
+			for position < len(encoded) && !isJSONSeparator(encoded[position]) {
+				position++
+			}
 		}
-		frame.count++
 	}
+	return metrics, nil
 }
 
-func completeMetricValue(stack []metricFrame) {
-	if len(stack) == 0 {
-		return
+type jsonString struct {
+	start        int
+	end          int
+	decodedBytes int
+}
+
+func scanJSONString(encoded []byte, start int) (jsonString, int, error) {
+	decodedBytes := 0
+	for position := start + 1; position < len(encoded); position++ {
+		switch encoded[position] {
+		case '"':
+			return jsonString{start: start + 1, end: position, decodedBytes: decodedBytes}, position + 1, nil
+		case '\\':
+			position++
+			if position >= len(encoded) {
+				return jsonString{}, 0, errors.New("unterminated JSON escape")
+			}
+			if encoded[position] != 'u' {
+				decodedBytes++
+				continue
+			}
+			codePoint, next, err := scanUnicodeEscape(encoded, position)
+			if err != nil {
+				return jsonString{}, 0, err
+			}
+			position = next
+			decodedBytes += utf8.RuneLen(rune(codePoint))
+		default:
+			decodedBytes++
+		}
 	}
-	frame := &stack[len(stack)-1]
-	if frame.kind == '{' {
-		frame.expectKey = true
+	return jsonString{}, 0, errors.New("unterminated JSON string")
+}
+
+func scanUnicodeEscape(encoded []byte, position int) (codePoint int, next int, err error) {
+	codePoint, err = scanHexQuad(encoded, position+1)
+	if err != nil {
+		return 0, 0, err
+	}
+	position += 4
+	if !utf16.IsSurrogate(rune(codePoint)) || codePoint > 0xdbff {
+		return codePoint, position, nil
+	}
+	if position+6 >= len(encoded) || encoded[position+1] != '\\' || encoded[position+2] != 'u' {
+		return 0, 0, errors.New("unpaired JSON surrogate")
+	}
+	low, lowErr := scanHexQuad(encoded, position+3)
+	if lowErr != nil || low < 0xdc00 || low > 0xdfff {
+		return 0, 0, errors.New("unpaired JSON surrogate")
+	}
+	return int(utf16.DecodeRune(rune(codePoint), rune(low))), position + 6, nil
+}
+
+func scanHexQuad(encoded []byte, start int) (int, error) {
+	if start+4 > len(encoded) {
+		return 0, errors.New("short JSON unicode escape")
+	}
+	value := 0
+	for _, character := range encoded[start : start+4] {
+		value <<= 4
+		switch {
+		case character >= '0' && character <= '9':
+			value += int(character - '0')
+		case character >= 'a' && character <= 'f':
+			value += int(character-'a') + 10
+		case character >= 'A' && character <= 'F':
+			value += int(character-'A') + 10
+		default:
+			return 0, errors.New("invalid JSON unicode escape")
+		}
+	}
+	return value, nil
+}
+
+func nextNonspace(encoded []byte, position int) byte {
+	for position < len(encoded) {
+		switch encoded[position] {
+		case ' ', '\t', '\r', '\n':
+			position++
+		default:
+			return encoded[position]
+		}
+	}
+	return 0
+}
+
+func isJSONSeparator(character byte) bool {
+	switch character {
+	case ' ', '\t', '\r', '\n', ',', ']', '}':
+		return true
+	default:
+		return false
 	}
 }
 
@@ -147,7 +178,6 @@ const (
 type jsonSchema struct {
 	kind    schemaKind
 	fields  map[string]*jsonSchema
-	folded  map[string]string
 	element *jsonSchema
 }
 
@@ -184,7 +214,6 @@ func buildSchema(typ reflect.Type, cache map[reflect.Type]*jsonSchema) *jsonSche
 func populateObjectSchema(schema *jsonSchema, typ reflect.Type, cache map[reflect.Type]*jsonSchema) {
 	schema.kind = schemaObject
 	schema.fields = make(map[string]*jsonSchema)
-	schema.folded = make(map[string]string)
 	for index := 0; index < typ.NumField(); index++ {
 		field := typ.Field(index)
 		if field.PkgPath != "" {
@@ -201,7 +230,6 @@ func populateObjectSchema(schema *jsonSchema, typ reflect.Type, cache map[reflec
 			name = field.Name
 		}
 		schema.fields[name] = buildSchema(field.Type, cache)
-		schema.folded[strings.ToLower(name)] = name
 	}
 }
 
@@ -215,7 +243,6 @@ func addEmbeddedSchema(schema *jsonSchema, field reflect.StructField, name strin
 	}
 	for embeddedName, embeddedField := range embedded.fields {
 		schema.fields[embeddedName] = embeddedField
-		schema.folded[strings.ToLower(embeddedName)] = embeddedName
 	}
 	return true
 }
@@ -237,65 +264,99 @@ func (a jsonAnalysis) format() (string, bool) {
 }
 
 func inspectJSON(encoded []byte, schema *jsonSchema, bounds Bounds, limits structuralLimits) (jsonAnalysis, error) {
-	decoder := json.NewDecoder(bytes.NewReader(encoded))
-	decoder.UseNumber()
+	cursor := jsonCursor{encoded: encoded}
 	var analysis jsonAnalysis
-	if err := inspectJSONValue(decoder, schema, "$", bounds, limits, &analysis); err != nil {
+	if err := cursor.inspectValue(schema, "$", false, bounds, limits, &analysis); err != nil {
 		return jsonAnalysis{}, err
 	}
-	if err := requireEOF(decoder); err != nil {
-		return jsonAnalysis{}, err
+	cursor.skipSpace()
+	if cursor.position != len(encoded) {
+		return jsonAnalysis{}, errors.New("unexpected trailing JSON bytes")
 	}
 	return analysis, nil
 }
 
-func inspectJSONValue(
-	decoder *json.Decoder,
+type jsonCursor struct {
+	encoded  []byte
+	position int
+}
+
+func (c *jsonCursor) inspectValue(
 	schema *jsonSchema,
 	path JSONPath,
+	formatField bool,
 	bounds Bounds,
 	limits structuralLimits,
 	analysis *jsonAnalysis,
 ) error {
-	token, err := decoder.Token()
-	if err != nil {
-		return err
+	c.skipSpace()
+	if c.position >= len(c.encoded) {
+		return errors.New("missing JSON value")
 	}
-	if path == "$.formatVersion" {
-		analysis.formatSeen = true
-		analysis.formatValue, analysis.formatString = token.(string)
-	}
-	delimiter, structured := token.(json.Delim)
-	if !structured {
-		if value, ok := token.(string); ok {
-			limit := limits.stringBytes
-			if bounds.StringLimit != nil {
-				limit = tighterLimit(limit, bounds.StringLimit(path))
-			}
-			if exceeds(len(value), limit) {
-				analysis.stringLimit = true
-			}
+	switch c.encoded[c.position] {
+	case '{':
+		if formatField {
+			analysis.formatSeen = true
 		}
-		if number, ok := token.(json.Number); ok && !isCanonicalInteger(string(number)) {
+		return c.inspectObject(schema, path, bounds, limits, analysis)
+	case '[':
+		if formatField {
+			analysis.formatSeen = true
+		}
+		return c.inspectArray(schema, path, bounds, limits, analysis)
+	case '"':
+		return c.inspectString(path, formatField, bounds, limits, analysis)
+	default:
+		if formatField {
+			analysis.formatSeen = true
+		}
+		start := c.position
+		for c.position < len(c.encoded) && !isJSONSeparator(c.encoded[c.position]) {
+			c.position++
+		}
+		if isJSONNumber(c.encoded[start:c.position]) && !isCanonicalIntegerBytes(c.encoded[start:c.position]) {
 			analysis.noncanonicalValue = true
 		}
 		return nil
 	}
-	switch delimiter {
-	case '{':
-		return inspectJSONObject(decoder, schema, path, bounds, limits, analysis)
-	case '[':
-		return inspectJSONArray(decoder, schema, path, bounds, limits, analysis)
-	default:
-		return fmt.Errorf("unexpected JSON delimiter %q", delimiter)
-	}
 }
 
-func isCanonicalInteger(value string) bool {
-	if value == "0" {
+func (c *jsonCursor) inspectString(
+	path JSONPath,
+	formatField bool,
+	bounds Bounds,
+	limits structuralLimits,
+	analysis *jsonAnalysis,
+) error {
+	value, next, err := scanJSONString(c.encoded, c.position)
+	if err != nil {
+		return err
+	}
+	c.position = next
+	limit := limits.stringBytes
+	if bounds.StringLimit != nil {
+		limit = tighterLimit(limit, bounds.StringLimit(path))
+	}
+	if exceeds(value.decodedBytes, limit) {
+		analysis.stringLimit = true
+	}
+	if !formatField {
+		return nil
+	}
+	analysis.formatSeen = true
+	analysis.formatString = true
+	if exceeds(value.decodedBytes, limits.stringBytes) {
+		return nil
+	}
+	analysis.formatValue, err = decodeJSONString(c.encoded, value)
+	return err
+}
+
+func isCanonicalIntegerBytes(value []byte) bool {
+	if bytes.Equal(value, []byte{'0'}) {
 		return true
 	}
-	value = strings.TrimPrefix(value, "-")
+	value = bytes.TrimPrefix(value, []byte{'-'})
 	if len(value) == 0 || value[0] == '0' {
 		return false
 	}
@@ -307,81 +368,164 @@ func isCanonicalInteger(value string) bool {
 	return true
 }
 
-func inspectJSONObject(
-	decoder *json.Decoder,
+func isJSONNumber(value []byte) bool {
+	return len(value) > 0 && (value[0] == '-' || value[0] >= '0' && value[0] <= '9')
+}
+
+func (c *jsonCursor) inspectObject(
 	schema *jsonSchema,
 	path JSONPath,
 	bounds Bounds,
 	limits structuralLimits,
 	analysis *jsonAnalysis,
 ) error {
+	c.position++
+	c.skipSpace()
 	limit := limits.objectMembers
 	if bounds.CollectionLimit != nil {
 		limit = tighterLimit(limit, bounds.CollectionLimit(path, CollectionObject))
 	}
-	seen := make(map[string]struct{})
-	folded := make(map[string]string)
+	contentStart := c.position
+	var keys [MaximumJSONObjectMembers]jsonString
 	members := 0
-	for decoder.More() {
+	for c.position < len(c.encoded) && c.encoded[c.position] != '}' {
 		if members >= limit {
 			analysis.collectionLimit = true
 		}
+		if err := c.inspectObjectMember(
+			schema,
+			path,
+			bounds,
+			limits,
+			analysis,
+			contentStart,
+			members,
+			limit,
+			keys[:],
+		); err != nil {
+			return err
+		}
 		members++
-		keyToken, err := decoder.Token()
-		if err != nil {
-			return err
-		}
-		key, ok := keyToken.(string)
-		if !ok {
-			return fmt.Errorf("JSON object key has type %T", keyToken)
-		}
-		if exceeds(len(key), limits.stringBytes) {
-			analysis.stringLimit = true
-		}
-		foldedKey := noteObjectKey(key, seen, folded, analysis)
-		childSchema := resolveChildSchema(schema, key, foldedKey, analysis)
-		if err := inspectJSONValue(decoder, childSchema, appendObjectPath(path, key), bounds, limits, analysis); err != nil {
-			return err
-		}
+		c.skipComma()
 	}
-	closing, err := decoder.Token()
-	if err != nil {
-		return err
+	if c.position >= len(c.encoded) || c.encoded[c.position] != '}' {
+		return errors.New("missing JSON object delimiter")
 	}
-	if closing != json.Delim('}') {
-		return fmt.Errorf("unexpected JSON object delimiter %q", closing)
-	}
+	c.position++
 	return nil
 }
 
-func noteObjectKey(key string, seen map[string]struct{}, folded map[string]string, analysis *jsonAnalysis) string {
-	if _, exists := seen[key]; exists {
-		analysis.duplicateKey = true
+func (c *jsonCursor) inspectObjectMember(
+	schema *jsonSchema,
+	path JSONPath,
+	bounds Bounds,
+	limits structuralLimits,
+	analysis *jsonAnalysis,
+	contentStart int,
+	members int,
+	limit int,
+	keys []jsonString,
+) error {
+	keyPosition := c.position
+	key, next, err := scanJSONString(c.encoded, c.position)
+	if err != nil {
+		return err
 	}
-	seen[key] = struct{}{}
-	foldedKey := strings.ToLower(key)
-	previous, exists := folded[foldedKey]
-	if exists && previous != key {
-		analysis.caseCollision = true
+	if exceeds(key.decodedBytes, limits.stringBytes) {
+		analysis.stringLimit = true
 	}
-	if !exists {
-		folded[foldedKey] = key
+	c.noteObjectKey(contentStart, keyPosition, key, keys[:min(members, len(keys))], analysis)
+	if members < len(keys) {
+		keys[members] = key
 	}
-	return foldedKey
+	childSchema := resolveChildSchema(c.encoded, schema, key, analysis)
+	formatField := path == "$" && jsonStringEqualsPlain(c.encoded, key, "formatVersion")
+	childPath, err := boundedChildPath(c.encoded, key, path, members, limit, limits.stringBytes)
+	if err != nil {
+		return err
+	}
+	c.position = next
+	c.skipSpace()
+	if c.position >= len(c.encoded) || c.encoded[c.position] != ':' {
+		return errors.New("missing JSON object colon")
+	}
+	c.position++
+	return c.inspectValue(childSchema, childPath, formatField, bounds, limits, analysis)
 }
 
-func resolveChildSchema(schema *jsonSchema, key, foldedKey string, analysis *jsonAnalysis) *jsonSchema {
+func boundedChildPath(
+	encoded []byte,
+	key jsonString,
+	path JSONPath,
+	members int,
+	limit int,
+	stringLimit int,
+) (JSONPath, error) {
+	if members >= limit || exceeds(key.decodedBytes, stringLimit) {
+		return path, nil
+	}
+	decodedKey, err := decodeJSONString(encoded, key)
+	if err != nil {
+		return "", err
+	}
+	return appendObjectPath(path, decodedKey), nil
+}
+
+func (c *jsonCursor) noteObjectKey(
+	contentStart int,
+	keyPosition int,
+	key jsonString,
+	stored []jsonString,
+	analysis *jsonAnalysis,
+) {
+	if len(stored) < MaximumJSONObjectMembers {
+		for _, previous := range stored {
+			noteKeyCollision(c.encoded, previous, key, analysis)
+		}
+		return
+	}
+	probe := jsonCursor{encoded: c.encoded, position: contentStart}
+	for probe.position < keyPosition {
+		previous, next, err := scanJSONString(probe.encoded, probe.position)
+		if err != nil {
+			return
+		}
+		noteKeyCollision(c.encoded, previous, key, analysis)
+		probe.position = next
+		probe.skipSpace()
+		probe.position++
+		_ = probe.skipValue()
+		probe.skipSpace()
+		if probe.position < keyPosition && probe.encoded[probe.position] == ',' {
+			probe.position++
+			probe.skipSpace()
+		}
+	}
+}
+
+func noteKeyCollision(encoded []byte, previous, key jsonString, analysis *jsonAnalysis) {
+	if jsonStringsEqual(encoded, previous, key) {
+		analysis.duplicateKey = true
+		return
+	}
+	if jsonStringsFoldEqual(encoded, previous, key) {
+		analysis.caseCollision = true
+	}
+}
+
+func resolveChildSchema(encoded []byte, schema *jsonSchema, key jsonString, analysis *jsonAnalysis) *jsonSchema {
 	if schema == nil {
 		return &jsonSchema{kind: schemaAny}
 	}
 	switch schema.kind {
 	case schemaObject:
-		if canonical, exists := schema.folded[foldedKey]; exists && canonical != key {
-			analysis.caseCollision = true
-		}
-		child, known := schema.fields[key]
-		if known {
-			return child
+		for name, child := range schema.fields {
+			if jsonStringEqualsPlain(encoded, key, name) {
+				return child
+			}
+			if jsonStringFoldEqualsPlain(encoded, key, name) {
+				analysis.caseCollision = true
+			}
 		}
 		analysis.unknownField = true
 	case schemaMap:
@@ -391,14 +535,15 @@ func resolveChildSchema(schema *jsonSchema, key, foldedKey string, analysis *jso
 	return &jsonSchema{kind: schemaAny}
 }
 
-func inspectJSONArray(
-	decoder *json.Decoder,
+func (c *jsonCursor) inspectArray(
 	schema *jsonSchema,
 	path JSONPath,
 	bounds Bounds,
 	limits structuralLimits,
 	analysis *jsonAnalysis,
 ) error {
+	c.position++
+	c.skipSpace()
 	limit := limits.arrayItems
 	if bounds.CollectionLimit != nil {
 		limit = tighterLimit(limit, bounds.CollectionLimit(path, CollectionArray))
@@ -407,24 +552,217 @@ func inspectJSONArray(
 	if schema != nil && schema.kind == schemaArray {
 		elementSchema = schema.element
 	}
+	elementPath := appendArrayPath(path)
 	items := 0
-	for decoder.More() {
+	for c.position < len(c.encoded) && c.encoded[c.position] != ']' {
 		if items >= limit {
 			analysis.collectionLimit = true
 		}
-		items++
-		if err := inspectJSONValue(decoder, elementSchema, appendArrayPath(path), bounds, limits, analysis); err != nil {
+		if err := c.inspectValue(elementSchema, elementPath, false, bounds, limits, analysis); err != nil {
 			return err
 		}
+		items++
+		c.skipSpace()
+		if c.position < len(c.encoded) && c.encoded[c.position] == ',' {
+			c.position++
+			c.skipSpace()
+		}
 	}
-	closing, err := decoder.Token()
-	if err != nil {
-		return err
+	if c.position >= len(c.encoded) || c.encoded[c.position] != ']' {
+		return errors.New("missing JSON array delimiter")
 	}
-	if closing != json.Delim(']') {
-		return fmt.Errorf("unexpected JSON array delimiter %q", closing)
-	}
+	c.position++
 	return nil
+}
+
+func (c *jsonCursor) skipValue() error {
+	c.skipSpace()
+	if c.position >= len(c.encoded) {
+		return errors.New("missing JSON value")
+	}
+	switch c.encoded[c.position] {
+	case '"':
+		_, next, err := scanJSONString(c.encoded, c.position)
+		c.position = next
+		return err
+	case '{':
+		return c.skipObject()
+	case '[':
+		return c.skipArray()
+	default:
+		for c.position < len(c.encoded) && !isJSONSeparator(c.encoded[c.position]) {
+			c.position++
+		}
+		return nil
+	}
+}
+
+func (c *jsonCursor) skipObject() error {
+	c.position++
+	c.skipSpace()
+	for c.position < len(c.encoded) && c.encoded[c.position] != '}' {
+		_, next, err := scanJSONString(c.encoded, c.position)
+		if err != nil {
+			return err
+		}
+		c.position = next
+		c.skipSpace()
+		c.position++
+		if err := c.skipValue(); err != nil {
+			return err
+		}
+		c.skipComma()
+	}
+	c.position++
+	return nil
+}
+
+func (c *jsonCursor) skipArray() error {
+	c.position++
+	c.skipSpace()
+	for c.position < len(c.encoded) && c.encoded[c.position] != ']' {
+		if err := c.skipValue(); err != nil {
+			return err
+		}
+		c.skipComma()
+	}
+	c.position++
+	return nil
+}
+
+func (c *jsonCursor) skipComma() {
+	c.skipSpace()
+	if c.position < len(c.encoded) && c.encoded[c.position] == ',' {
+		c.position++
+		c.skipSpace()
+	}
+}
+
+func (c *jsonCursor) skipSpace() {
+	for c.position < len(c.encoded) {
+		switch c.encoded[c.position] {
+		case ' ', '\t', '\r', '\n':
+			c.position++
+		default:
+			return
+		}
+	}
+}
+
+func decodeJSONString(encoded []byte, value jsonString) (string, error) {
+	var decoded strings.Builder
+	decoded.Grow(value.decodedBytes)
+	iterator := jsonStringIterator{encoded: encoded, value: value, position: value.start}
+	for {
+		character, ok := iterator.next()
+		if !ok {
+			return decoded.String(), nil
+		}
+		if _, err := decoded.WriteRune(character); err != nil {
+			return "", err
+		}
+	}
+}
+
+func jsonStringsEqual(encoded []byte, left, right jsonString) bool {
+	return compareJSONStrings(encoded, left, right, false)
+}
+
+func jsonStringsFoldEqual(encoded []byte, left, right jsonString) bool {
+	return compareJSONStrings(encoded, left, right, true)
+}
+
+func compareJSONStrings(encoded []byte, left, right jsonString, fold bool) bool {
+	leftIterator := jsonStringIterator{encoded: encoded, value: left, position: left.start}
+	rightIterator := jsonStringIterator{encoded: encoded, value: right, position: right.start}
+	for {
+		leftRune, leftOK := leftIterator.next()
+		rightRune, rightOK := rightIterator.next()
+		if leftOK != rightOK {
+			return false
+		}
+		if !leftOK {
+			return true
+		}
+		if fold {
+			leftRune = unicode.ToLower(leftRune)
+			rightRune = unicode.ToLower(rightRune)
+		}
+		if leftRune != rightRune {
+			return false
+		}
+	}
+}
+
+func jsonStringEqualsPlain(encoded []byte, value jsonString, plain string) bool {
+	return compareJSONStringPlain(encoded, value, plain, false)
+}
+
+func jsonStringFoldEqualsPlain(encoded []byte, value jsonString, plain string) bool {
+	return compareJSONStringPlain(encoded, value, plain, true)
+}
+
+func compareJSONStringPlain(encoded []byte, value jsonString, plain string, fold bool) bool {
+	iterator := jsonStringIterator{encoded: encoded, value: value, position: value.start}
+	for _, plainRune := range plain {
+		valueRune, ok := iterator.next()
+		if !ok {
+			return false
+		}
+		if fold {
+			valueRune = unicode.ToLower(valueRune)
+			plainRune = unicode.ToLower(plainRune)
+		}
+		if valueRune != plainRune {
+			return false
+		}
+	}
+	_, remains := iterator.next()
+	return !remains
+}
+
+type jsonStringIterator struct {
+	encoded  []byte
+	value    jsonString
+	position int
+}
+
+func (i *jsonStringIterator) next() (rune, bool) {
+	if i.position >= i.value.end {
+		return 0, false
+	}
+	if i.encoded[i.position] != '\\' {
+		character, width := utf8.DecodeRune(i.encoded[i.position:i.value.end])
+		i.position += width
+		return character, true
+	}
+	i.position++
+	escape := i.encoded[i.position]
+	i.position++
+	switch escape {
+	case '"', '\\', '/':
+		return rune(escape), true
+	case 'b':
+		return '\b', true
+	case 'f':
+		return '\f', true
+	case 'n':
+		return '\n', true
+	case 'r':
+		return '\r', true
+	case 't':
+		return '\t', true
+	default:
+		codePoint, _ := scanHexQuad(i.encoded, i.position)
+		i.position += 4
+		if codePoint >= 0xd800 && codePoint <= 0xdbff {
+			i.position += 2
+			low, _ := scanHexQuad(i.encoded, i.position)
+			i.position += 4
+			return utf16.DecodeRune(rune(codePoint), rune(low)), true
+		}
+		return rune(codePoint), true
+	}
 }
 
 func appendObjectPath(path JSONPath, key string) JSONPath {
