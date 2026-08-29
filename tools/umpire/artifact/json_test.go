@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -53,6 +55,7 @@ func TestStrictJSONAcceptsOnlyCanonicalPrettyBytes(t *testing.T) {
 		"missing LF":           bytes.TrimSuffix([]byte(canonicalStrictProbe), []byte{'\n'}),
 		"extra LF":             append([]byte(canonicalStrictProbe), '\n'),
 		"alternate escape":     bytes.Replace([]byte(canonicalStrictProbe), []byte(`"probe"`), []byte(`"\u0070robe"`), 1),
+		"escaped slash":        bytes.Replace([]byte(canonicalStrictProbe), []byte(`umpire-probe/v2`), []byte(`umpire-probe\/v2`), 1),
 	}
 	for name, encoded := range cases {
 		t.Run(name, func(t *testing.T) {
@@ -209,6 +212,41 @@ func TestStrictJSONCountsPunctuationScalarsAndRootDepth(t *testing.T) {
 			require.Equal(t, test.wantDepth, metrics.depth)
 		})
 	}
+}
+
+func TestStrictJSONScannerUsesBoundedBookkeeping(t *testing.T) {
+	encoded := []byte(strings.Repeat("[", 4_096) + "null" + strings.Repeat("]", 4_096))
+	var scanErr error
+	allocations := testing.AllocsPerRun(5, func() {
+		_, scanErr = measureJSON(encoded)
+	})
+
+	require.NoError(t, scanErr)
+	require.Zero(t, allocations)
+}
+
+func TestStrictJSONFindsPrecedenceErrorsPastObjectLimitWithoutGrowingKeyState(t *testing.T) {
+	var encoded strings.Builder
+	encoded.WriteString(`{"formatVersion":"umpire-map-boundary/v2","values":{`)
+	for index := range MaximumJSONObjectMembers + 1 {
+		if index > 0 {
+			encoded.WriteByte(',')
+		}
+		_, err := fmt.Fprintf(&encoded, `"key-%03d":""`, index)
+		require.NoError(t, err)
+	}
+	_, err := fmt.Fprintf(&encoded, `,"key-%03d":""}}`, MaximumJSONObjectMembers)
+	require.NoError(t, err)
+
+	decoder := Decoder[objectBoundaryProbe]{Format: "umpire-map-boundary/v2"}
+	_, err = decoder.Decode([]byte(encoded.String()))
+	requireErrorCode(t, err, ErrorDuplicateKey)
+}
+
+func TestStrictJSONCountsDecodedStringBytesWithoutMaterializingStrings(t *testing.T) {
+	metrics, err := measureJSON([]byte(`"é\u00e9\uD83D\uDE00"`))
+	require.NoError(t, err)
+	require.Equal(t, 8, metrics.stringBytes)
 }
 
 func TestStrictJSONAppliesStableErrorPrecedence(t *testing.T) {
