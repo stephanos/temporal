@@ -94,6 +94,7 @@ type Authority struct {
 	configurationDefinitionID string
 	configurationFingerprint  string
 	requiredCapabilities      []string
+	configurationCapabilities []string
 	phaseLimits               []PhaseLimit
 	seed                      uint64
 	attempt                   uint64
@@ -113,6 +114,7 @@ func NewAuthority(
 	configurationDefinitionID string,
 	configurationFingerprint string,
 	requiredCapabilities []string,
+	configurationCapabilities []string,
 	phaseLimits []PhaseLimit,
 	seed uint64,
 	attempt uint64,
@@ -134,6 +136,13 @@ func NewAuthority(
 	}
 	if len(requiredCapabilities) != 3 {
 		return Authority{}, preflightError(PreflightCapability, "profile-capabilities")
+	}
+	if err := validateIdentitySet(
+		configurationCapabilities,
+		PreflightCapability,
+		"configuration-profile-capabilities",
+	); err != nil {
+		return Authority{}, err
 	}
 	if !slices.Equal(phaseLimits, canonicalPhaseLimits[:]) {
 		return Authority{}, preflightError(PreflightBudget, "phase-limits")
@@ -160,6 +169,7 @@ func NewAuthority(
 		configurationDefinitionID: configurationDefinitionID,
 		configurationFingerprint:  configurationFingerprint,
 		requiredCapabilities:      slices.Clone(requiredCapabilities),
+		configurationCapabilities: slices.Clone(configurationCapabilities),
 		phaseLimits:               slices.Clone(phaseLimits),
 		seed:                      seed,
 		attempt:                   attempt,
@@ -201,6 +211,7 @@ func (a Authority) PhaseLimits() []PhaseLimit {
 func (a Authority) clone() Authority {
 	cloned := a
 	cloned.requiredCapabilities = slices.Clone(a.requiredCapabilities)
+	cloned.configurationCapabilities = slices.Clone(a.configurationCapabilities)
 	cloned.phaseLimits = slices.Clone(a.phaseLimits)
 	cloned.program = a.program.clone()
 	return cloned

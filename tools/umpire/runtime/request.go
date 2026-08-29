@@ -70,10 +70,12 @@ func CheckRequest(
 		protocolVersion != authority.protocolVersion {
 		return CheckedRunRequest{}, preflightError(PreflightProtocol, "participant-protocol")
 	}
-	// The exact profile identity closes generic runtime prerequisites. The serialized profile field
-	// contributes only semantic capabilities to fn-18's Experiment closure; the participant owns
-	// all such capabilities for this first binding.
-	if !slices.Equal(binding.CapabilityDefinitionIDs, program.capabilityDefinitionIDs) {
+	// Generic runtime prerequisites and serialized semantic capabilities are separate checked
+	// authority inputs. Fn-18 closes the latter against the Experiment capability union.
+	if !slices.Equal(
+		configuration.AuthorityProfile.RequiredCapabilityDefinitionIDs,
+		authority.configurationCapabilities,
+	) || !slices.Equal(binding.CapabilityDefinitionIDs, program.capabilityDefinitionIDs) {
 		return CheckedRunRequest{}, preflightError(PreflightCapability, "configuration-capabilities")
 	}
 	if err := checkPhaseLimits(configuration.PhaseLimits, authority.phaseLimits); err != nil {
