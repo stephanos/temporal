@@ -53,15 +53,79 @@ private def manifestMember
   provenanceChecksum := binding.provenanceChecksum
 }
 
-private def experimentTransportValid (experiment : ExperimentSpec) : Bool :=
-  experiment.formatVersion == "umpire-experiment/v2" &&
-    experiment.plan.formatVersion == "umpire-drive-plan/v2" &&
+private def setDefinitionIdLe (left right : DefinitionId) : Bool :=
+  decide (left.value ≤ right.value)
+
+private def setModelValueLe (left right : ModelValue) : Bool :=
+  decide (left.definitionId.value < right.definitionId.value) ||
+    (left.definitionId == right.definitionId && decide (left.value ≤ right.value))
+
+private def setBindingLe (left right : RoleBinding) : Bool :=
+  decide (left.role.value < right.role.value) ||
+    (left.role == right.role && setModelValueLe left.value right.value)
+
+private def setPropertyLe (left right : PortableProperty) : Bool :=
+  decide (left.definitionId.value ≤ right.definitionId.value)
+
+private def setDefinitionIdsValid (ids : List DefinitionId) : Bool :=
+  ids == (ids.mergeSort setDefinitionIdLe).eraseDups && ids.all DefinitionId.isNamespaced
+
+private def setModelValueValid (value : ModelValue) : Bool :=
+  value.definitionId.isNamespaced
+
+private def setOperandValid : SetupOperand → Bool
+  | .role definitionId => definitionId.isNamespaced
+  | .value value => setModelValueValid value
+
+private def setRoleKindValid : DefinitionKind → Bool
+  | .state | .action | .outcome | .observation | .relation | .capability | .provider | .law |
+      .connector | .target | .kernel => true
+  | _ => false
+
+private def drivePlanCollectionsValid (plan : DrivePlan) : Bool :=
+  plan.bindings == plan.bindings.mergeSort setBindingLe &&
+    plan.bindings.all fun binding =>
+      binding.role.isNamespaced && setModelValueValid binding.value &&
+    plan.symbolicRoles.all fun role =>
+      role.id.isNamespaced && setRoleKindValid role.valueKind &&
+    plan.modelPreconditions.all fun precondition =>
+      precondition.id.isNamespaced && setOperandValid precondition.left &&
+        setOperandValid precondition.right &&
+    setModelValueValid plan.initialState &&
+    [plan.requestedActions, plan.modelOutcomes, plan.resultingStates, plan.selectedChoices,
+      plan.selectedVariants, plan.requestedFaults].all fun values =>
+        values.all setModelValueValid &&
+    plan.linearExtension.all fun occurrence =>
+      occurrence.definitionId.isNamespaced && occurrence.actionDefinitionId.isNamespaced &&
+        occurrence.authoredDefinitionId.all DefinitionId.isNamespaced &&
+    plan.checkpoints.all fun checkpoint => checkpoint.observations.all setModelValueValid
+
+/-- Check the complete canonical DrivePlan transport retained inside an Artifact set. -/
+def DrivePlan.isValidTransport (plan : DrivePlan) : Bool :=
+  plan.formatVersion == "umpire-drive-plan/v2" && plan.queryDefinitionId.isNamespaced &&
+    plan.behaviorDefinitionId.isNamespaced && plan.targetDefinitionId.isNamespaced &&
+    plan.kernelDefinitionId.isNamespaced && drivePlanCollectionsValid plan &&
+    setDefinitionIdsValid plan.capabilityRequirementDefinitionIds &&
+    plan.provenance.isValidTransport && (validateKnownGaps plan.knownGaps).isOk &&
+    plan.hasValidArtifactChecksum
+
+private def experimentPropertiesValid (properties : List PortableProperty) : Bool :=
+  properties != [] && properties == properties.mergeSort setPropertyLe &&
+    properties.all fun property =>
+      property.definitionId.isNamespaced &&
+        setDefinitionIdsValid property.requirementDefinitionIds
+
+/-- Check the complete canonical ExperimentSpec transport retained inside an Artifact set. -/
+def ExperimentSpec.isValidTransport (experiment : ExperimentSpec) : Bool :=
+  experiment.formatVersion == "umpire-experiment/v2" && experiment.plan.isValidTransport &&
     experiment.queryBehaviorFingerprint == experiment.plan.queryBehaviorFingerprint &&
-    experiment.plan.hasValidArtifactChecksum && experiment.hasValidArtifactChecksum
+    experimentPropertiesValid experiment.properties &&
+    setDefinitionIdsValid experiment.observationRequirementDefinitionIds &&
+    experiment.provenance.isValidTransport && experiment.hasValidArtifactChecksum
 
 /-- Check one exact 2-, 4-, or 6-member closure without executing or interpreting any member. -/
 def ArtifactSet.isValidClosure (set : ArtifactSet) : Bool :=
-  experimentTransportValid set.experiment && set.runtimeConfiguration.isValidTransport &&
+  set.experiment.isValidTransport && set.runtimeConfiguration.isValidTransport &&
     set.runtimeConfiguration.closesExperiment set.experiment &&
     match set.experimentRun, set.rawEvidence, set.evidence, set.result with
     | none, none, none, none => true
