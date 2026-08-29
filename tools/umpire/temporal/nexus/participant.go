@@ -311,7 +311,7 @@ func (a *sdkCommandAdapter) Realize(
 	}
 	a.forceCloseAttempted = true
 	if err := a.environment.Client().CancelWorkflow(ctx, a.run.GetID(), a.run.GetRunID()); err != nil {
-		return adapterFailureReceipt(ctx, command, err, nil, nil, correlations)
+		return adapterControlFailureReceipt(ctx, command, err, nil, nil, correlations)
 	}
 	select {
 	case <-a.operation.canceled:
@@ -319,17 +319,17 @@ func (a *sdkCommandAdapter) Realize(
 		if err := a.environment.RecordControlCount(
 			command, a.operationCorrelation, cancellations,
 		); err != nil {
-			return adapterFailureReceipt(ctx, command, err, nil, nil, correlations)
+			return adapterControlFailureReceipt(ctx, command, err, nil, nil, correlations)
 		}
 		if starts != 1 || cancellations != 1 {
-			return adapterReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
+			return adapterControlReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
 				nil, nil, nil, correlations)
 		}
 		a.forceCloseAcknowledged = true
 		correlations = a.correlations()
-		return adapterReceipt(command, umpireruntime.ReceiptAccepted, "", nil, nil, nil, correlations)
+		return adapterControlReceipt(command, umpireruntime.ReceiptAccepted, "", nil, nil, nil, correlations)
 	case <-ctx.Done():
-		return adapterFailureReceipt(ctx, command, ctx.Err(), nil, nil, correlations)
+		return adapterControlFailureReceipt(ctx, command, ctx.Err(), nil, nil, correlations)
 	}
 }
 
@@ -424,6 +424,23 @@ func adapterFailureReceipt(
 	resources []umpireruntime.Resource,
 	correlations adapterCorrelations,
 ) umpireruntime.Receipt {
+	status, code := adapterFailureStatus(ctx)
+	return adapterReceipt(command, status, code, facts, resources, nil, correlations)
+}
+
+func adapterControlFailureReceipt(
+	ctx context.Context,
+	command umpireruntime.Command,
+	_ error,
+	facts []umpireruntime.Fact,
+	resources []umpireruntime.Resource,
+	correlations adapterCorrelations,
+) umpireruntime.Receipt {
+	status, code := adapterFailureStatus(ctx)
+	return adapterControlReceipt(command, status, code, facts, resources, nil, correlations)
+}
+
+func adapterFailureStatus(ctx context.Context) (umpireruntime.ReceiptStatus, string) {
 	status := umpireruntime.ReceiptFailed
 	code := runtimeCodeFailed
 	if ctx == nil || ctx.Err() != nil {
@@ -433,7 +450,7 @@ func adapterFailureReceipt(
 			code = runtimeCodeTimedOut
 		}
 	}
-	return adapterReceipt(command, status, code, facts, resources, nil, correlations)
+	return status, code
 }
 
 func adapterReceipt(
@@ -445,7 +462,19 @@ func adapterReceipt(
 	released []umpireruntime.Resource,
 	correlations adapterCorrelations,
 ) umpireruntime.Receipt {
-	return newAdapterReceipt(command, status, code, facts, acquired, released, correlations, false)
+	return newAdapterReceipt(command, status, code, facts, acquired, released, correlations, false, false)
+}
+
+func adapterControlReceipt(
+	command umpireruntime.Command,
+	status umpireruntime.ReceiptStatus,
+	code string,
+	facts []umpireruntime.Fact,
+	acquired []umpireruntime.Resource,
+	released []umpireruntime.Resource,
+	correlations adapterCorrelations,
+) umpireruntime.Receipt {
+	return newAdapterReceipt(command, status, code, facts, acquired, released, correlations, true, false)
 }
 
 func adapterHistoryCapacityReceipt(
@@ -455,7 +484,7 @@ func adapterHistoryCapacityReceipt(
 ) umpireruntime.Receipt {
 	return newAdapterReceipt(
 		command, umpireruntime.ReceiptAccepted, "umpire.runtime.code.capacity",
-		facts, nil, nil, correlations, true,
+		facts, nil, nil, correlations, false, true,
 	)
 }
 
@@ -467,6 +496,7 @@ func newAdapterReceipt(
 	acquired []umpireruntime.Resource,
 	released []umpireruntime.Resource,
 	correlations adapterCorrelations,
+	controlAttempted bool,
 	historyCapacity bool,
 ) umpireruntime.Receipt {
 	if facts == nil {
@@ -490,6 +520,8 @@ func newAdapterReceipt(
 	var receipt umpireruntime.Receipt
 	if historyCapacity {
 		receipt, err = umpireruntime.NewHistoryCapacityReceipt(command, facts, acquired, released)
+	} else if controlAttempted {
+		receipt, err = umpireruntime.NewControlReceipt(command, status, facts, acquired, released)
 	} else {
 		receipt, err = umpireruntime.NewReceipt(command, status, facts, acquired, released)
 	}

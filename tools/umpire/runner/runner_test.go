@@ -3,6 +3,9 @@ package runner_test
 import (
 	"context"
 	"errors"
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"testing"
@@ -73,6 +76,13 @@ func TestRunPassesTheExactAdmittedSetToTheAdapter(t *testing.T) {
 	require.Equal(t, input.Identity(), adapter.admitted.Identity())
 }
 
+func TestExecutionSurfaceExposesOnlyTheDigestBoundRunner(t *testing.T) {
+	require.NotContains(t, topLevelFunctions(t, "runner.go"), "RunChecked")
+	require.NotContains(t, topLevelFunctions(
+		t, filepath.Join("..", "temporal", "nexus", "output.go"),
+	), "Run")
+}
+
 type recordingAdapter struct {
 	checkCalls int
 	admitted   artifact.AdmittedSet
@@ -121,4 +131,18 @@ func admitCallerClosureSet(t *testing.T) artifact.AdmittedSet {
 	admitted, err := artifact.AdmitSetFiles(files)
 	require.NoError(t, err)
 	return admitted
+}
+
+func topLevelFunctions(t *testing.T, path string) []string {
+	t.Helper()
+	parsed, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
+	require.NoError(t, err)
+	names := []string{}
+	for _, declaration := range parsed.Decls {
+		function, ok := declaration.(*ast.FuncDecl)
+		if ok && function.Recv == nil {
+			names = append(names, function.Name.Name)
+		}
+	}
+	return names
 }
