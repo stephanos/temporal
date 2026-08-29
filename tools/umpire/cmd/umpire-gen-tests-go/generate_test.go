@@ -22,6 +22,7 @@ func TestRenderGeneratedRunnerTestMatchesTheCheckedInOrdinaryGoTest(t *testing.T
 
 	generated, err := renderGeneratedTest(input)
 	require.NoError(t, err)
+	require.Contains(t, string(generated), "context.WithTimeout(context.Background(), 135*time.Second)")
 	want, err := os.ReadFile(filepath.Join(packageRoot, generatedTestFileName))
 	require.NoError(t, err)
 	require.Equal(t, want, generated)
