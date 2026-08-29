@@ -16,13 +16,13 @@ import (
 	"go.temporal.io/server/tools/umpire/temporal/nexus"
 )
 
-//go:embed testdata/caller-closure-input-set/manifest.json
+//go:embed "testdata/caller-closure-input-set/manifest.json"
 var callerClosureManifest []byte
 
-//go:embed testdata/caller-closure-input-set/artifacts/experiment.json
+//go:embed "testdata/caller-closure-input-set/artifacts/experiment.json"
 var callerClosureExperiment []byte
 
-//go:embed testdata/caller-closure-input-set/artifacts/runtime-configuration.json
+//go:embed "testdata/caller-closure-input-set/artifacts/runtime-configuration.json"
 var callerClosureRuntimeConfiguration []byte
 
 // TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally runs the exact
