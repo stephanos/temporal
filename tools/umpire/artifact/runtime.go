@@ -93,7 +93,8 @@ func runtimeV2StringLimit(path JSONPath) int {
 	switch {
 	case strings.HasSuffix(fieldPath, ".detail"):
 		return MaximumDiagnosticBytes
-	case strings.HasSuffix(fieldPath, "DefinitionId"),
+	case strings.HasSuffix(fieldPath, ".definitionId"),
+		strings.HasSuffix(fieldPath, "DefinitionId"),
 		strings.HasSuffix(fieldPath, "DefinitionIds[*]"),
 		strings.HasSuffix(fieldPath, "Fingerprint"),
 		strings.HasSuffix(fieldPath, "Checksum"),
