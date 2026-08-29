@@ -80,7 +80,7 @@ func exactCheckedRequest(request umpireruntime.CheckedRunRequest) bool {
 	configuration := request.RuntimeConfiguration()
 	return request.Seed() == 0 && request.Attempt() == 1 &&
 		program.DefinitionID() == callerClosureProgramDefinitionID &&
-		program.Version() == 2 &&
+		program.Version() == callerClosureProgramVersion &&
 		program.BehaviorFingerprint() == callerClosureProgramBehaviorFingerprint &&
 		slices.Equal(program.TargetDefinitionIDs(), []string{callerClosureTargetDefinitionID}) &&
 		slices.Equal(program.ActionDefinitionIDs(), []string{forceCloseActionDefinitionID}) &&

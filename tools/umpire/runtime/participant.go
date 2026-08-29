@@ -77,7 +77,7 @@ func NewProgram(
 	occurrences []Occurrence,
 	capabilityDefinitionIDs []string,
 ) (Program, error) {
-	if !validIdentity(definitionID) || version != 2 || !artifactv2.ValidDigest(behaviorFingerprint) {
+	if !validIdentity(definitionID) || version == 0 || !artifactv2.ValidDigest(behaviorFingerprint) {
 		return Program{}, preflightError(PreflightParticipant, "program")
 	}
 	if len(targetDefinitionIDs) != 1 {
