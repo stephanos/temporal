@@ -28,7 +28,6 @@ type jsonMetrics struct {
 	tokens      int
 	depth       int
 	stringBytes int
-	objectKeys  int
 }
 
 func measureJSON(encoded []byte) (jsonMetrics, error) {
@@ -58,9 +57,7 @@ func measureJSON(encoded []byte) (jsonMetrics, error) {
 			metrics.tokens++
 			metrics.stringBytes = max(metrics.stringBytes, value.decodedBytes)
 			position = next
-			if nextNonspace(encoded, position) == ':' {
-				metrics.objectKeys++
-			} else {
+			if nextNonspace(encoded, position) != ':' {
 				metrics.depth = max(metrics.depth, depth+1)
 			}
 		default:
@@ -275,12 +272,15 @@ func inspectJSON(
 	schema *jsonSchema,
 	bounds Bounds,
 	limits structuralLimits,
-	objectKeys int,
 ) (jsonAnalysis, error) {
-	cursor := jsonCursor{encoded: encoded, keys: newJSONKeyTracker(objectKeys)}
+	cursor := jsonCursor{
+		encoded:    encoded,
+		firstSeed:  maphash.MakeSeed(),
+		secondSeed: maphash.MakeSeed(),
+	}
 	var analysis jsonAnalysis
 	if err := cursor.inspectValue(schema, "$", false, bounds, limits, &analysis); err != nil {
-		if errors.Is(err, errDuplicateKeyFound) {
+		if errors.Is(err, errDuplicateKeyFound) || errors.Is(err, errCollectionLimitFound) {
 			return analysis, nil
 		}
 		return jsonAnalysis{}, err
@@ -293,54 +293,46 @@ func inspectJSON(
 }
 
 type jsonCursor struct {
-	encoded  []byte
-	position int
-	keys     *jsonKeyTracker
+	encoded    []byte
+	position   int
+	firstSeed  maphash.Seed
+	secondSeed maphash.Seed
 }
 
-var errDuplicateKeyFound = errors.New("duplicate JSON key found")
+var (
+	errDuplicateKeyFound    = errors.New("duplicate JSON key found")
+	errCollectionLimitFound = errors.New("JSON collection limit found")
+)
 
 type jsonKeyDigest struct {
 	first  uint64
 	second uint64
 }
 
-type jsonKeyIdentity struct {
-	objectID int
-	digest   jsonKeyDigest
-}
-
 type jsonKeyTracker struct {
-	exact        map[jsonKeyIdentity]struct{}
-	folded       map[jsonKeyIdentity]struct{}
-	firstSeed    maphash.Seed
-	secondSeed   maphash.Seed
-	nextObjectID int
+	exact      map[jsonKeyDigest]struct{}
+	folded     map[jsonKeyDigest]struct{}
+	firstSeed  maphash.Seed
+	secondSeed maphash.Seed
 }
 
-func newJSONKeyTracker(capacity int) *jsonKeyTracker {
+func newJSONKeyTracker(capacity int, firstSeed, secondSeed maphash.Seed) *jsonKeyTracker {
 	return &jsonKeyTracker{
-		exact:      make(map[jsonKeyIdentity]struct{}, capacity),
-		folded:     make(map[jsonKeyIdentity]struct{}, capacity),
-		firstSeed:  maphash.MakeSeed(),
-		secondSeed: maphash.MakeSeed(),
+		exact:      make(map[jsonKeyDigest]struct{}, capacity),
+		folded:     make(map[jsonKeyDigest]struct{}, capacity),
+		firstSeed:  firstSeed,
+		secondSeed: secondSeed,
 	}
 }
 
-func (t *jsonKeyTracker) startObject() int {
-	objectID := t.nextObjectID
-	t.nextObjectID++
-	return objectID
-}
-
-func (t *jsonKeyTracker) note(encoded []byte, objectID int, key jsonString, analysis *jsonAnalysis) error {
-	exactIdentity := jsonKeyIdentity{objectID: objectID, digest: hashJSONString(encoded, key, false, t)}
+func (t *jsonKeyTracker) note(encoded []byte, key jsonString, analysis *jsonAnalysis) error {
+	exactIdentity := hashJSONString(encoded, key, false, t)
 	if _, exists := t.exact[exactIdentity]; exists {
 		analysis.duplicateKey = true
 		return errDuplicateKeyFound
 	}
 	t.exact[exactIdentity] = struct{}{}
-	foldedIdentity := jsonKeyIdentity{objectID: objectID, digest: hashJSONString(encoded, key, true, t)}
+	foldedIdentity := hashJSONString(encoded, key, true, t)
 	if _, exists := t.folded[foldedIdentity]; exists {
 		analysis.caseCollision = true
 	} else {
@@ -474,11 +466,12 @@ func (c *jsonCursor) inspectObject(
 	if bounds.CollectionLimit != nil {
 		limit = tighterLimit(limit, bounds.CollectionLimit(path, CollectionObject))
 	}
-	objectID := c.keys.startObject()
+	keys := newJSONKeyTracker(limit, c.firstSeed, c.secondSeed)
 	members := 0
 	for c.position < len(c.encoded) && c.encoded[c.position] != '}' {
 		if members >= limit {
 			analysis.collectionLimit = true
+			return errCollectionLimitFound
 		}
 		if err := c.inspectObjectMember(
 			schema,
@@ -486,7 +479,7 @@ func (c *jsonCursor) inspectObject(
 			bounds,
 			limits,
 			analysis,
-			objectID,
+			keys,
 			members,
 			limit,
 		); err != nil {
@@ -508,7 +501,7 @@ func (c *jsonCursor) inspectObjectMember(
 	bounds Bounds,
 	limits structuralLimits,
 	analysis *jsonAnalysis,
-	objectID int,
+	keys *jsonKeyTracker,
 	members int,
 	limit int,
 ) error {
@@ -519,7 +512,7 @@ func (c *jsonCursor) inspectObjectMember(
 	if exceeds(key.decodedBytes, limits.stringBytes) {
 		analysis.stringLimit = true
 	}
-	if err := c.keys.note(c.encoded, objectID, key, analysis); err != nil {
+	if err := keys.note(c.encoded, key, analysis); err != nil {
 		return err
 	}
 	childSchema := resolveChildSchema(c.encoded, schema, key, analysis)
@@ -599,6 +592,7 @@ func (c *jsonCursor) inspectArray(
 	for c.position < len(c.encoded) && c.encoded[c.position] != ']' {
 		if items >= limit {
 			analysis.collectionLimit = true
+			return errCollectionLimitFound
 		}
 		if err := c.inspectValue(elementSchema, elementPath, false, bounds, limits, analysis); err != nil {
 			return err
