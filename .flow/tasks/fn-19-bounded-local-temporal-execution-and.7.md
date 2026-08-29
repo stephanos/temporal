@@ -36,9 +36,14 @@ Complete R3/R5/R6's live operational proof by projecting allowlisted SDK/history
 - [ ] No semantic evidence, Result, or Run Evaluation claim exists.
 
 ## Done summary
-TBD
+Implemented the bounded Nexus terminal-history projector and admitted four-member in-memory output, with exact four-source closure, allowlisted mechanical fields, mutation coverage, and one live publish/reopen harness. The review fix preserves every valid failure prefix and reports N+1 history as an explicit capacity gap with partial capture and incomplete operational status.
 
+Verification is green for runtime, local, Nexus, temporaltest, and Lean LocalProfile. The missing `umpire-local-run` package, `Temporal.Feature.Nexus.ExecutionTests` target, and `umpire-run-local` Make target were red before this task and remain inherited later-task surfaces; memory capture was skipped because flow memory is not initialized.
+
+baseline: green for implemented dependency surfaces; inherited red for the three later-task Quick entries listed above
+
+stage: impl-review - ran [2026-08-29T18:42:35Z..2026-08-29T19:05:06Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 040a250cc30e2a6cdb56f61949badeed8605779d, 17f4bea7fb6ce24cd298d38f73f2e498f6a9cebe
+- Tests: go test -count=1 ./tools/umpire/runtime/..., go test -count=1 ./tools/umpire/temporal/local/..., go test -count=1 ./tools/umpire/temporal/nexus/..., go test -count=1 ./temporaltest/..., cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests, git diff --check -- tools/umpire/runtime tools/umpire/temporal/nexus, INHERITED_RED:go test -count=1 ./tools/umpire/cmd/umpire-local-run/... - package absent before edit and after verification, INHERITED_RED:cd model && mise exec -- lake build Temporal.Feature.Nexus.ExecutionTests - target absent before edit and after verification, INHERITED_RED:make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-input-set OUTPUT_ROOT=/tmp/umpire-local-runs RUN_ID=umpire.local.caller-closure.run-1 - target absent before edit and after verification
 - PRs:
