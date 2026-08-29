@@ -150,6 +150,48 @@ func (s ExecutableSet) RuntimeConfiguration() artifactv2.RuntimeConfiguration {
 	return cloneRuntimeConfiguration(s.admitted.executable.runtimeConfiguration)
 }
 
+// AdmitExecution extends this exact executable snapshot with typed Run and RawEvidence values.
+func (s ExecutableSet) AdmitExecution(
+	run artifactv2.ExperimentRun,
+	rawEvidence artifactv2.RawEvidence,
+) (AdmittedSet, error) {
+	if s.admitted.executable == nil || len(s.admitted.members) != 2 {
+		return AdmittedSet{}, wrapAdmission(ErrorClosure,
+			errors.New("execution extension requires one exact executable set"))
+	}
+	runBytes, err := EncodeExperimentRunV2(run)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	rawEvidenceBytes, err := EncodeRawEvidenceV2(rawEvidence)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	members := append(cloneSetMembers(s.admitted.members),
+		SetMember{Path: artifactSetPaths[2], Encoded: runBytes},
+		SetMember{Path: artifactSetPaths[3], Encoded: rawEvidenceBytes},
+	)
+	experiment := s.admitted.executable.experiment
+	runtimeConfiguration := s.admitted.executable.runtimeConfiguration
+	execution, err := admitExecutionMembers(members, experiment, runtimeConfiguration)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	experimentBinding, err := artifactv2.ExperimentArtifactBinding(experiment)
+	if err != nil {
+		return AdmittedSet{}, wrapAdmission(ErrorClosure, err)
+	}
+	rows := []artifactSetManifestMember{
+		manifestMember(members[0].Path, experimentBinding),
+		manifestMember(members[1].Path, artifactv2.RuntimeConfigurationArtifactBinding(runtimeConfiguration)),
+	}
+	rows = append(rows, execution.rows...)
+	if err := validateArtifactSetPaths(members); err != nil {
+		return AdmittedSet{}, wrapAdmission(ErrorClosure, err)
+	}
+	return buildAdmittedSet(members, rows, experiment, runtimeConfiguration)
+}
+
 // AdmitSet admits only an exact executable, execution, or evaluation closure.
 func AdmitSet(members []SetMember) (AdmittedSet, error) {
 	if err := classifyArtifactSetMemberFormats(members); err != nil {
