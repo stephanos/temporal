@@ -55,13 +55,13 @@ func Run(
 	if err != nil {
 		return umpireruntime.Output{}, err
 	}
-	return RunChecked(ctx, request, adapter)
+	return runChecked(ctx, request, adapter)
 }
 
-// RunChecked executes one request that has already passed generated binding
+// runChecked executes one request that has already passed generated binding
 // and adapter preflight. It exists so focused adapter tests can retain their
 // checked-request seam without adding a second execution surface.
-func RunChecked(
+func runChecked(
 	ctx context.Context,
 	request umpireruntime.CheckedRunRequest,
 	adapter Adapter,

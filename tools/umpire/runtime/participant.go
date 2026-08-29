@@ -333,6 +333,7 @@ type Receipt struct {
 	facts             []Fact
 	acquiredResources []Resource
 	releasedResources []Resource
+	controlAttempted  bool
 	historyCapacity   bool
 }
 
@@ -344,7 +345,22 @@ func NewReceipt(
 	acquiredResources []Resource,
 	releasedResources []Resource,
 ) (Receipt, error) {
-	return newReceipt(command, status, facts, acquiredResources, releasedResources, false)
+	return newReceipt(command, status, facts, acquiredResources, releasedResources, false, false)
+}
+
+// NewControlReceipt records that the realization command issued its one
+// bounded control request before reaching this terminal result.
+func NewControlReceipt(
+	command Command,
+	status ReceiptStatus,
+	facts []Fact,
+	acquiredResources []Resource,
+	releasedResources []Resource,
+) (Receipt, error) {
+	if command.kind != CommandRealize {
+		return Receipt{}, fmt.Errorf("control receipt requires a realization command")
+	}
+	return newReceipt(command, status, facts, acquiredResources, releasedResources, true, false)
 }
 
 // NewHistoryCapacityReceipt retains one accepted bounded history prefix while
@@ -358,7 +374,7 @@ func NewHistoryCapacityReceipt(
 	if command.kind != CommandObserve {
 		return Receipt{}, fmt.Errorf("history capacity requires an observation command")
 	}
-	return newReceipt(command, ReceiptAccepted, facts, acquiredResources, releasedResources, true)
+	return newReceipt(command, ReceiptAccepted, facts, acquiredResources, releasedResources, false, true)
 }
 
 func newReceipt(
@@ -367,6 +383,7 @@ func newReceipt(
 	facts []Fact,
 	acquiredResources []Resource,
 	releasedResources []Resource,
+	controlAttempted bool,
 	historyCapacity bool,
 ) (Receipt, error) {
 	if command.runIdentity == "" {
@@ -394,13 +411,15 @@ func newReceipt(
 		facts:             cloneFacts(facts),
 		acquiredResources: slices.Clone(acquiredResources),
 		releasedResources: slices.Clone(releasedResources),
+		controlAttempted:  controlAttempted,
 		historyCapacity:   historyCapacity,
 	}, nil
 }
 
-func (r Receipt) Command() Command      { return r.command }
-func (r Receipt) Status() ReceiptStatus { return r.status }
-func (r Receipt) Facts() []Fact         { return cloneFacts(r.facts) }
+func (r Receipt) Command() Command       { return r.command }
+func (r Receipt) Status() ReceiptStatus  { return r.status }
+func (r Receipt) Facts() []Fact          { return cloneFacts(r.facts) }
+func (r Receipt) ControlAttempted() bool { return r.controlAttempted }
 
 func (r Receipt) AcquiredResources() []Resource {
 	return slices.Clone(r.acquiredResources)

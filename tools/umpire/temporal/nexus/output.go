@@ -2,7 +2,6 @@ package nexus
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,7 +10,6 @@ import (
 
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
-	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 )
 
@@ -61,15 +59,9 @@ var requiredTerminalEvents = [...]string{
 	"temporal.history.WorkflowExecutionCanceled",
 }
 
-// Run executes the exact checked caller-closure request and returns one admitted
-// in-memory four-member output. It performs no publication or interpretation.
-func Run(
-	ctx context.Context,
-	request umpireruntime.CheckedRunRequest,
-) (umpireruntime.Output, error) {
-	return runner.RunChecked(ctx, request, Binding{})
-}
-
+// The exact checked caller-closure request executes through the digest-bound
+// runner and returns one admitted in-memory four-member output. It performs no
+// publication or interpretation.
 func validateExecutionClosure(
 	executable artifact.ExecutableSet,
 	admitted artifact.AdmittedSet,
