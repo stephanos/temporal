@@ -87,14 +87,15 @@ func (boundedPhaseContextFactory) phaseContext(
 }
 
 type engineState struct {
-	request           CheckedRunRequest
-	evidence          *evidenceAccumulator
-	phaseOutcomes     []artifactv2.PhaseOutcome
-	controlAttempts   []artifactv2.ControlAttempt
-	liveResources     map[string]Resource
-	acquiredResources map[string]struct{}
-	invariant         *InvariantError
-	executionStarted  bool
+	request             CheckedRunRequest
+	evidence            *evidenceAccumulator
+	phaseOutcomes       []artifactv2.PhaseOutcome
+	controlAttempts     []artifactv2.ControlAttempt
+	participantReceipts map[CommandKind]bool
+	liveResources       map[string]Resource
+	acquiredResources   map[string]struct{}
+	invariant           *InvariantError
+	executionStarted    bool
 }
 
 // Run executes one already-checked request and returns only admitted in-memory artifacts.
@@ -120,10 +121,11 @@ func runWithPhaseContexts(
 	}
 	state := &engineState{
 		request: request, evidence: newEvidenceAccumulator(request),
-		phaseOutcomes:     notStartedPhaseOutcomes(),
-		controlAttempts:   []artifactv2.ControlAttempt{},
-		liveResources:     make(map[string]Resource),
-		acquiredResources: make(map[string]struct{}),
+		phaseOutcomes:       notStartedPhaseOutcomes(),
+		controlAttempts:     []artifactv2.ControlAttempt{},
+		participantReceipts: make(map[CommandKind]bool),
+		liveResources:       make(map[string]Resource),
+		acquiredResources:   make(map[string]struct{}),
 	}
 	invocationDeadline := time.Now().Add(totalPhaseDuration(limits))
 	state.executionStarted = true
@@ -156,6 +158,7 @@ func runWithPhaseContexts(
 			if err := state.consumeReceipt(PhasePreparation, preparationCommand, participantReceipt, ""); err != nil {
 				state.recordInvariant(PhasePreparation, "umpire.runtime.invariant.participant-prepare-receipt")
 			} else {
+				state.participantReceipts[CommandPrepare] = true
 				preparationStatuses = append(preparationStatuses,
 					terminalPhaseStatus(preparationContext, participantReceipt.status))
 			}
@@ -207,10 +210,15 @@ func (s *engineState) executeRealizationAndObservation(
 	if receipt.command == realizationCommand {
 		status = terminalPhaseStatus(realizationContext, receipt.status)
 	}
-	controlStatus := controlStatus(receipt.status, status)
-	if err := s.consumeReceipt(PhaseRealization, realizationCommand, receipt, controlStatus); err != nil {
+	realizationControlStatus := ""
+	if receipt.controlAttempted {
+		realizationControlStatus = controlStatus(receipt.status, status)
+	}
+	if err := s.consumeReceipt(PhaseRealization, realizationCommand, receipt, realizationControlStatus); err != nil {
 		s.recordInvariant(PhaseRealization, "umpire.runtime.invariant.realization-receipt")
 		status = "failed"
+	} else {
+		s.participantReceipts[CommandRealize] = true
 	}
 	s.finishPhase(PhaseRealization, started, status)
 	cancel()
@@ -232,6 +240,8 @@ func (s *engineState) executeRealizationAndObservation(
 	if err := s.consumeReceipt(PhaseObservation, observationCommand, observationReceipt, ""); err != nil {
 		s.recordInvariant(PhaseObservation, "umpire.runtime.invariant.observation-receipt")
 		observationStatus = "failed"
+	} else {
+		s.participantReceipts[CommandObserve] = true
 	}
 	s.finishPhase(PhaseObservation, started, observationStatus)
 	observationCancel()
@@ -284,6 +294,8 @@ func (s *engineState) executeCleanup(
 		if err := s.consumeReceipt(PhaseCleanup, command, receipt, ""); err != nil {
 			s.recordInvariant(PhaseCleanup, "umpire.runtime.invariant.participant-cleanup-receipt")
 			status = "failed"
+		} else {
+			s.participantReceipts[CommandCleanup] = true
 		}
 		statuses = append(statuses, status)
 	}
@@ -318,6 +330,9 @@ func (s *engineState) consumeReceipt(
 	case ReceiptAccepted, ReceiptRejected, ReceiptUnsupported, ReceiptFailed, ReceiptCanceled:
 	default:
 		return errors.New("receipt status is invalid")
+	}
+	if receipt.controlAttempted != (control != "") {
+		return errors.New("receipt control-attempt state is invalid")
 	}
 	for _, resource := range receipt.acquiredResources {
 		key := resourceKey(resource)
@@ -403,11 +418,18 @@ func (s *engineState) buildOutput() (Output, error) {
 	} else if cleanupStatus == "failed" {
 		cleanupSourceStatus = "failed"
 	}
+	participantSourceStatus := "closed"
+	for _, command := range commandOrder {
+		if !s.participantReceipts[command] {
+			participantSourceStatus = "partial"
+			break
+		}
+	}
 	for _, closure := range []struct{ source, status string }{
 		{EvidenceSourceCleanup, cleanupSourceStatus},
 		{EvidenceSourceControlReceipt, controlSourceStatus},
 		{EvidenceSourceHistory, historyStatus},
-		{EvidenceSourceParticipantOutput, "closed"},
+		{EvidenceSourceParticipantOutput, participantSourceStatus},
 	} {
 		if err := s.evidence.closeSource(closure.source, closure.status); err != nil {
 			s.recordInvariant(PhaseCleanup, "umpire.runtime.invariant.source-closure")

@@ -312,7 +312,8 @@ func TestCheckRequestRejectsEachPreflightMutationBeforeIO(t *testing.T) {
 
 func TestCheckedContractValuesEnforceBoundsAndCanonicalOrder(t *testing.T) {
 	fixture := newCheckedFixture(t)
-	command, ok := mustCheckedRequest(t, fixture).Command(umpireruntime.CommandPrepare)
+	request := mustCheckedRequest(t, fixture)
+	command, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
 
 	field, err := umpireruntime.NewFactField("runtime.field.status", "accepted")
@@ -343,6 +344,27 @@ func TestCheckedContractValuesEnforceBoundsAndCanonicalOrder(t *testing.T) {
 	require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
 	require.Equal(t, []umpireruntime.Fact{fact}, receipt.Facts())
 	require.Equal(t, []umpireruntime.Resource{resource}, receipt.AcquiredResources())
+	require.False(t, receipt.ControlAttempted())
+
+	realizationCommand, ok := request.Command(umpireruntime.CommandRealize)
+	require.True(t, ok)
+	controlReceipt, err := umpireruntime.NewControlReceipt(
+		realizationCommand,
+		umpireruntime.ReceiptAccepted,
+		[]umpireruntime.Fact{},
+		[]umpireruntime.Resource{},
+		[]umpireruntime.Resource{},
+	)
+	require.NoError(t, err)
+	require.True(t, controlReceipt.ControlAttempted())
+	_, err = umpireruntime.NewControlReceipt(
+		command,
+		umpireruntime.ReceiptAccepted,
+		[]umpireruntime.Fact{},
+		[]umpireruntime.Resource{},
+		[]umpireruntime.Resource{},
+	)
+	require.Error(t, err)
 
 	_, err = umpireruntime.NewFactField(
 		"runtime.field.too-large",

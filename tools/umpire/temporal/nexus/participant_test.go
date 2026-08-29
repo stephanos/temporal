@@ -125,6 +125,26 @@ func TestParticipantCancellationIsOperationalAndPerformsNoAdapterIO(t *testing.T
 	require.Empty(t, receipt.ReleasedResources())
 }
 
+func TestParticipantCancellationBeforeRealizationIssuesNoControlRequest(t *testing.T) {
+	request := checkedCallerClosureRequest(t, "canceled-realization")
+	adapter := &recordingCommandAdapter{}
+	participant, err := newParticipant(request, adapter)
+	require.NoError(t, err)
+	prepare, ok := request.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	require.Equal(t, umpireruntime.ReceiptAccepted,
+		participant.Prepare(context.Background(), inertEnvironment{}, prepare).Status())
+	realize, ok := request.Command(umpireruntime.CommandRealize)
+	require.True(t, ok)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	receipt := participant.Realize(ctx, inertEnvironment{}, realize)
+	require.Equal(t, umpireruntime.ReceiptCanceled, receipt.Status())
+	require.False(t, receipt.ControlAttempted())
+	require.Equal(t, []umpireruntime.CommandKind{umpireruntime.CommandPrepare}, adapter.calls)
+}
+
 func TestSDKAndContextFailuresRemainOperationalReceipts(t *testing.T) {
 	request := checkedCallerClosureRequest(t, "operational-failures")
 	command, ok := request.Command(umpireruntime.CommandPrepare)

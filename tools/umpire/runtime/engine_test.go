@@ -76,7 +76,13 @@ func TestRunMatchesIndependentExhaustivePhaseOracle(t *testing.T) {
 			require.Equal(t, row.historySource, sourceStatus(run.SourceClosures, EvidenceSourceHistory))
 			require.Equal(t, row.controlSource, sourceStatus(run.SourceClosures, EvidenceSourceControlReceipt))
 			require.Equal(t, row.cleanupSource, sourceStatus(run.SourceClosures, EvidenceSourceCleanup))
-			require.Equal(t, "closed", sourceStatus(run.SourceClosures, EvidenceSourceParticipantOutput))
+			participantSource := "closed"
+			if row.target == PhasePreparation {
+				participantSource = "partial"
+			}
+			require.Equal(t, participantSource, sourceStatus(
+				run.SourceClosures, EvidenceSourceParticipantOutput,
+			))
 			require.Equal(t, row.cleanupStatus, run.Cleanup.Status)
 			require.Equal(t, artifactv2.NaturalFromUint64(row.cleanupOpenHandle), run.Cleanup.OpenHandleCount)
 			require.Equal(t, row.capture, rawEvidence.CaptureStatus)
@@ -274,6 +280,37 @@ func TestRunDetachesIsolationAndCleanupFromCanceledParent(t *testing.T) {
 	require.Equal(t, 1, state.environment.cleanupCalls)
 }
 
+func TestRunKeepsControlPartialWhenCancellationPreventsTheRequest(t *testing.T) {
+	request := newEngineRequest(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	state := newOracleState(t, "", oracleSucceeded, false)
+
+	output, err := runWithPhaseContexts(
+		ctx, request, state.factory, state.participant,
+		cancelBeforePhaseContextFactory{target: PhaseRealization, cancel: cancel},
+	)
+	require.NoError(t, err)
+	run := output.ExperimentRun()
+	require.Equal(t, "canceled", run.PhaseOutcomes[1].Status)
+	require.Equal(t, "not-attempted", run.ControlAttempts[0].Status)
+	require.Equal(t, "partial", sourceStatus(
+		run.SourceClosures, EvidenceSourceControlReceipt,
+	))
+}
+
+func TestRunKeepsParticipantOutputPartialWhenPreparationStopsPrimaryCommands(t *testing.T) {
+	request := newEngineRequest(t)
+	state := newOracleState(t, PhasePreparation, oracleFailed, false)
+
+	output, err := runWithPhaseContexts(
+		context.Background(), request, state.factory, state.participant, oraclePhaseContextFactory{},
+	)
+	require.NoError(t, err)
+	require.Equal(t, "partial", sourceStatus(
+		output.ExperimentRun().SourceClosures, EvidenceSourceParticipantOutput,
+	))
+}
+
 func TestRunRejectsMissingOrInvalidControlReceiptBeforeAdmission(t *testing.T) {
 	request := newEngineRequest(t)
 	state := newOracleState(t, "", oracleSucceeded, false)
@@ -423,6 +460,26 @@ func (oraclePhaseContextFactory) phaseContext(
 	return controlled, func() { controlled.terminate(context.Canceled) }
 }
 
+type cancelBeforePhaseContextFactory struct {
+	target Phase
+	cancel context.CancelFunc
+}
+
+func (f cancelBeforePhaseContextFactory) phaseContext(
+	parent context.Context,
+	phase Phase,
+	limit PhaseLimit,
+	detached bool,
+	invocationDeadline time.Time,
+) (context.Context, context.CancelFunc) {
+	if phase == f.target {
+		f.cancel()
+	}
+	return boundedPhaseContextFactory{}.phaseContext(
+		parent, phase, limit, detached, invocationDeadline,
+	)
+}
+
 type oracleState struct {
 	t                            *testing.T
 	target                       Phase
@@ -503,6 +560,8 @@ func (s *oracleState) receipt(
 	var err error
 	if phase == PhaseObservation && s.historyCapacity {
 		receipt, err = NewHistoryCapacityReceipt(command, facts, acquired, released)
+	} else if phase == PhaseRealization {
+		receipt, err = NewControlReceipt(command, status, facts, acquired, released)
 	} else {
 		receipt, err = NewReceipt(command, status, facts, acquired, released)
 	}
@@ -591,6 +650,13 @@ func (p *oracleParticipant) Prepare(ctx context.Context, _ Environment, command 
 }
 
 func (p *oracleParticipant) Realize(ctx context.Context, _ Environment, command Command) Receipt {
+	if ctx.Err() != nil {
+		receipt, err := NewReceipt(
+			command, ReceiptCanceled, []Fact{}, []Resource{}, []Resource{},
+		)
+		require.NoError(p.state.t, err)
+		return receipt
+	}
 	if p.invalidReceipt {
 		return Receipt{}
 	}
