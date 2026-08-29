@@ -18,6 +18,7 @@ inductive SemanticVerdictStatus where
 
 inductive SemanticVerdictFailureKind where
   | observationEvaluationFailure (kind : ObservationFailureKind)
+  | semanticTraceUnavailable
   | queryPropertyMismatch
   | invalidEvidenceBound
   | missingCapability
