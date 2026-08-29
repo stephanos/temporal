@@ -3,6 +3,7 @@ package temporaltest
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -21,15 +22,19 @@ import (
 //
 // Methods on TestServer are not safe for concurrent use.
 type TestServer struct {
-	server               *temporalite.LiteServer
+	server               liteServer
+	serverResource       *ownedLifecycleResource
 	defaultTestNamespace string
 	defaultClient        client.Client
-	clients              []client.Client
-	workers              []worker.Worker
+	clients              []ownedClient
+	workers              []ownedWorker
 	t                    *testing.T
 	defaultClientOptions client.Options
 	defaultWorkerOptions worker.Options
 	serverOptions        []temporal.ServerOption
+	lifecycleBackend     lifecycleBackend
+	clientSequence       int
+	cleanupStarted       bool
 }
 
 func (ts *TestServer) fatal(err error) {
@@ -41,35 +46,129 @@ func (ts *TestServer) fatal(err error) {
 
 // NewWorker registers and starts a Temporal worker on the specified task queue.
 func (ts *TestServer) NewWorker(taskQueue string, registerFunc func(registry worker.Registry)) worker.Worker {
-	return ts.NewWorkerWithOptions(taskQueue, registerFunc, ts.defaultWorkerOptions)
+	worker, err := ts.NewWorkerWithContext(context.Background(), taskQueue, registerFunc)
+	if err != nil {
+		ts.fatal(err)
+	}
+	return worker
+}
+
+// NewWorkerWithContext registers and starts a Temporal worker on the specified
+// task queue, returning lifecycle errors instead of terminating the caller.
+func (ts *TestServer) NewWorkerWithContext(
+	ctx context.Context,
+	taskQueue string,
+	registerFunc func(registry worker.Registry),
+) (worker.Worker, error) {
+	return ts.NewWorkerWithOptionsContext(ctx, taskQueue, registerFunc, ts.defaultWorkerOptions)
 }
 
 // NewWorkerWithOptions returns a Temporal worker on the specified task queue.
 //
 // WorkflowPanicPolicy is always set to worker.FailWorkflow so that workflow executions
 // fail fast when workflow code panics or detects non-determinism.
+// WorkerStopTimeout defaults to 10 seconds when it is not positive.
 func (ts *TestServer) NewWorkerWithOptions(taskQueue string, registerFunc func(registry worker.Registry), opts worker.Options) worker.Worker {
-	opts.WorkflowPanicPolicy = worker.FailWorkflow
-
-	w := worker.New(ts.GetDefaultClient(), taskQueue, opts)
-	registerFunc(w)
-	ts.workers = append(ts.workers, w)
-
-	if err := w.Start(); err != nil {
+	worker, err := ts.NewWorkerWithOptionsContext(context.Background(), taskQueue, registerFunc, opts)
+	if err != nil {
 		ts.fatal(err)
 	}
+	return worker
+}
 
-	return w
+// NewWorkerWithOptionsContext returns a Temporal worker on the specified task
+// queue, returning lifecycle errors instead of terminating the caller.
+//
+// WorkflowPanicPolicy is always set to worker.FailWorkflow so that workflow executions
+// fail fast when workflow code panics or detects non-determinism.
+// WorkerStopTimeout defaults to 10 seconds when it is not positive.
+func (ts *TestServer) NewWorkerWithOptionsContext(
+	ctx context.Context,
+	taskQueue string,
+	registerFunc func(registry worker.Registry),
+	opts worker.Options,
+) (worker.Worker, error) {
+	if ctx == nil {
+		return nil, &LifecycleError{Operation: LifecycleOperationCreateWorker, Err: errors.New("nil context")}
+	}
+	if err := ts.acquisitionAllowed(LifecycleOperationCreateWorker); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, ts.startupError(LifecycleOperationCreateWorker, err)
+	}
+	opts.WorkflowPanicPolicy = worker.FailWorkflow
+	if opts.WorkerStopTimeout <= 0 {
+		opts.WorkerStopTimeout = defaultWorkerStopTimeout
+	}
+
+	temporalClient, err := ts.GetDefaultClientWithContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	temporalWorker, err := callLifecycle(func() (worker.Worker, error) {
+		return ts.lifecycleBackend.createWorker(temporalClient, taskQueue, opts)
+	})
+	var resource *ownedLifecycleResource
+	if temporalWorker != nil {
+		resource = ts.ownWorker(taskQueue, temporalWorker)
+	}
+	if err != nil {
+		return temporalWorker, ts.startupError(LifecycleOperationCreateWorker, err)
+	}
+	if temporalWorker == nil {
+		return nil, ts.startupError(LifecycleOperationCreateWorker, errors.New("worker construction returned nil"))
+	}
+
+	if err := callLifecycleError(func() error {
+		return ts.lifecycleBackend.registerWorker(temporalWorker, registerFunc)
+	}); err != nil {
+		return temporalWorker, ts.startupError(LifecycleOperationRegisterWorker, err)
+	}
+
+	if err := resource.startOperation(ctx, func(startCtx context.Context) error {
+		return ts.lifecycleBackend.startWorker(startCtx, temporalWorker)
+	}); err != nil {
+		return temporalWorker, ts.startupError(LifecycleOperationStartWorker, err)
+	}
+
+	return temporalWorker, nil
 }
 
 // GetDefaultClient returns the default Temporal client configured for making requests to the server.
 //
 // It is configured to use a pre-registered test namespace and will be closed on TestServer.Stop.
 func (ts *TestServer) GetDefaultClient() client.Client {
-	if ts.defaultClient == nil {
-		ts.defaultClient = ts.NewClientWithOptions(ts.defaultClientOptions)
+	client, err := ts.GetDefaultClientWithContext(context.Background())
+	if err != nil {
+		ts.fatal(err)
 	}
-	return ts.defaultClient
+	return client
+}
+
+// GetDefaultClientWithContext returns the default Temporal client configured
+// for making requests to the server, returning lifecycle errors instead of
+// terminating the caller.
+//
+// It is configured to use a pre-registered test namespace and will be closed on TestServer.Stop.
+func (ts *TestServer) GetDefaultClientWithContext(ctx context.Context) (client.Client, error) {
+	if ctx == nil {
+		return nil, &LifecycleError{Operation: LifecycleOperationCreateClient, Err: errors.New("nil context")}
+	}
+	if err := ts.acquisitionAllowed(LifecycleOperationCreateClient); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, ts.startupError(LifecycleOperationCreateClient, err)
+	}
+	if ts.defaultClient == nil {
+		defaultClient, err := ts.NewClientWithOptionsContext(ctx, ts.defaultClientOptions)
+		if err != nil {
+			return defaultClient, err
+		}
+		ts.defaultClient = defaultClient
+	}
+	return ts.defaultClient, nil
 }
 
 // GetDefaultNamespace returns the randomly generated namespace which has been pre-registered with the test server.
@@ -90,6 +189,31 @@ func (ts *TestServer) GetFrontendHostPort() string {
 // If no namespace option is set it will use a pre-registered test namespace.
 // The returned client will be closed on TestServer.Stop.
 func (ts *TestServer) NewClientWithOptions(opts client.Options) client.Client {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	client, err := ts.NewClientWithOptionsContext(ctx, opts)
+	if err != nil {
+		ts.fatal(err)
+	}
+	return client
+}
+
+// NewClientWithOptionsContext returns a new Temporal client configured for
+// making requests to the server, returning lifecycle errors instead of
+// terminating the caller.
+//
+// If no namespace option is set it will use a pre-registered test namespace.
+// The returned client will be closed on TestServer.Stop.
+func (ts *TestServer) NewClientWithOptionsContext(ctx context.Context, opts client.Options) (client.Client, error) {
+	if ctx == nil {
+		return nil, &LifecycleError{Operation: LifecycleOperationCreateClient, Err: errors.New("nil context")}
+	}
+	if err := ts.acquisitionAllowed(LifecycleOperationCreateClient); err != nil {
+		return nil, err
+	}
+	if err := ctx.Err(); err != nil {
+		return nil, ts.startupError(LifecycleOperationCreateClient, err)
+	}
 	if opts.Namespace == "" {
 		opts.Namespace = ts.defaultTestNamespace
 	}
@@ -97,31 +221,32 @@ func (ts *TestServer) NewClientWithOptions(opts client.Options) client.Client {
 		opts.Logger = &testLogger{ts.t}
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	c, err := ts.server.NewClientWithOptions(ctx, opts)
+	temporalClient, err := callLifecycle(func() (client.Client, error) {
+		return ts.lifecycleBackend.createClient(ctx, ts.server, opts)
+	})
+	if temporalClient != nil {
+		ts.ownClient(temporalClient)
+	}
 	if err != nil {
-		ts.fatal(fmt.Errorf("error creating client: %w", err))
+		return temporalClient, ts.startupError(LifecycleOperationCreateClient, fmt.Errorf("error creating client: %w", err))
+	}
+	if temporalClient == nil {
+		return nil, ts.startupError(LifecycleOperationCreateClient, errors.New("client construction returned nil"))
 	}
 
-	ts.clients = append(ts.clients, c)
-
-	return c
+	return temporalClient, nil
 }
 
 // Stop closes test clients and shuts down the server.
 func (ts *TestServer) Stop() {
-	for _, w := range ts.workers {
-		w.Stop()
-	}
-	for _, c := range ts.clients {
-		c.Close()
-	}
-	if err := ts.server.Stop(); err != nil {
+	if err := ts.StopContext(context.Background()); err != nil {
 		// Log instead of throwing error because there's no need to fail the test
 		// if it already succeeded.
-		ts.t.Logf("error shutting down Temporal server: %s", err)
+		if ts.t != nil {
+			ts.t.Logf("error shutting down Temporal server: %s", err)
+			return
+		}
+		ts.fatal(err)
 	}
 }
 
@@ -130,22 +255,79 @@ func (ts *TestServer) Stop() {
 // If not specifying the WithT option, the caller should execute Stop when finished to close
 // the server and release resources.
 func NewServer(opts ...TestServerOption) *TestServer {
+	server, err := NewServerWithContext(context.Background(), opts...)
+	if err != nil {
+		server.fatal(err)
+	}
+	return server
+}
+
+// NewServerWithContext starts and returns a new TestServer, returning a partial
+// owned handle with any startup error so callers can inspect or retry cleanup.
+//
+// If not specifying the WithT option, the caller should execute StopContext
+// when finished to close the server and release resources.
+func NewServerWithContext(ctx context.Context, opts ...TestServerOption) (*TestServer, error) {
 	testNamespace := fmt.Sprintf("temporaltest-%d", rand.Intn(1e6))
 
 	ts := TestServer{
 		defaultTestNamespace: testNamespace,
+		lifecycleBackend:     defaultLifecycleBackend(),
+	}
+	if ctx == nil {
+		return &ts, &LifecycleError{Operation: LifecycleOperationCreateServer, Err: errors.New("nil context")}
 	}
 
 	// Apply options
 	for _, opt := range opts {
-		opt.apply(&ts)
+		if err := callLifecycleError(func() error {
+			opt.apply(&ts)
+			return nil
+		}); err != nil {
+			return &ts, ts.startupError(LifecycleOperationApplyOptions, err)
+		}
+	}
+	if err := ctx.Err(); err != nil {
+		return &ts, &LifecycleError{Operation: LifecycleOperationCreateServer, Err: err}
 	}
 
 	if ts.t != nil {
 		ts.t.Cleanup(ts.Stop)
 	}
 
-	s, err := temporalite.NewLiteServer(&temporalite.LiteServerConfig{
+	server, err := callLifecycle(func() (liteServer, error) {
+		return ts.lifecycleBackend.createServer(&ts)
+	})
+	if server != nil {
+		ts.ownServer(server)
+	}
+	if err != nil {
+		return &ts, ts.startupError(LifecycleOperationCreateServer, fmt.Errorf("error creating server: %w", err))
+	}
+	if server == nil {
+		return &ts, ts.startupError(LifecycleOperationCreateServer, errors.New("server construction returned nil"))
+	}
+
+	// Start does not block as long as InterruptOn is unset.
+	if err := ts.serverResource.startOperation(ctx, func(startCtx context.Context) error {
+		return ts.lifecycleBackend.startServer(startCtx, server)
+	}); err != nil {
+		return &ts, ts.startupError(LifecycleOperationStartServer, err)
+	}
+
+	// This sleep helps avoid a panic in github.com/temporalio/ringpop-go@v0.0.0-20230606200434-b5c079f412d3/swim/labels.go:175
+	timer := time.NewTimer(100 * time.Millisecond)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return &ts, nil
+	case <-ctx.Done():
+		return &ts, ts.startupError(LifecycleOperationServerReady, ctx.Err())
+	}
+}
+
+func (ts *TestServer) newLiteServer() (*temporalite.LiteServer, error) {
+	return temporalite.NewLiteServer(&temporalite.LiteServerConfig{
 		Namespaces: []string{ts.defaultTestNamespace},
 		Ephemeral:  true,
 		Logger:     log.NewNoopLogger(),
@@ -155,18 +337,4 @@ func NewServer(opts ...TestServerOption) *TestServer {
 		// Disable "accept incoming network connections?" prompt on macOS
 		FrontendIP: "127.0.0.1",
 	}, ts.serverOptions...)
-	if err != nil {
-		ts.fatal(fmt.Errorf("error creating server: %w", err))
-	}
-	ts.server = s
-
-	// Start does not block as long as InterruptOn is unset.
-	if err := s.Start(); err != nil {
-		ts.fatal(err)
-	}
-
-	// This sleep helps avoid a panic in github.com/temporalio/ringpop-go@v0.0.0-20230606200434-b5c079f412d3/swim/labels.go:175
-	time.Sleep(100 * time.Millisecond)
-
-	return &ts
 }
