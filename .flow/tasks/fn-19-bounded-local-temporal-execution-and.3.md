@@ -35,9 +35,12 @@ Implement R2/R3/R6's deterministic phase machine, cleanup dominance, bounded fac
 - [ ] Focused Go engine/evidence tests pass.
 
 ## Done summary
-TBD
+Implemented the bounded five-phase runtime engine, request-bound four-source evidence accumulator, and artifact-owned exact-set execution extension. Independent oracle coverage now includes every phase terminal outcome, both preparation actors, every receipt status, context races, compound precedence, duplicate/missing receipts, all-source N/N+1 capacity, cleanup dominance, and exact admitted Run/RawEvidence closure.
 
+Baseline: green for runtime, temporaltest, and Temporal.System.Execution.LocalProfileTests; inherited red for local/Nexus/CLI packages, Nexus ExecutionTests, and the root run target because those later-task surfaces were absent before this task. Verification: all task-owned/currently available gates passed; the first temporaltest verification attempt hit an incomplete downloaded module cache and passed after retry against a validated complete cache. Memory capture was attempted after NEEDS_WORK to SHIP but the repository memory store is not initialized.
+
+stage: impl-review - ran [2026-08-29T13:05:55Z..2026-08-29T13:20:40Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5beeb23b9fa0c9fd8111387b1d0cf95044be387b, fe9ad3ccbd37de1e303b784decc78d45b22481ef
+- Tests: go test -count=1 ./tools/umpire/runtime/..., go test -count=1 ./tools/umpire/artifact/..., go test -race -count=1 ./tools/umpire/runtime/..., go vet ./tools/umpire/runtime/..., go test -count=1 ./temporaltest/..., cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests, git diff --check, baseline: red (go test -count=1 ./tools/umpire/temporal/local/... failed pre-edit: later-task package absent), baseline: red (go test -count=1 ./tools/umpire/temporal/nexus/... failed pre-edit: later-task package absent), baseline: red (go test -count=1 ./tools/umpire/cmd/umpire-local-run/... failed pre-edit: later-task package absent), baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.ExecutionTests failed pre-edit: later-task module absent), baseline: red (make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-input-set OUTPUT_ROOT=/tmp/umpire-local-runs RUN_ID=umpire.local.caller-closure.run-1 failed pre-edit: later-task target absent)
 - PRs:
