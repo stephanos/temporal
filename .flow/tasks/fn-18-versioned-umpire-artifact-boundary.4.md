@@ -40,9 +40,12 @@ Define exact inert transports for one runtime configuration and one bounded Exec
 `mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestRuntime`
 
 ## Done summary
-TBD
+Defined the exact canonical v2 RuntimeConfiguration and ExperimentRun transports in Lean and Go, including deterministic pretty-byte checksums, Artifact bindings, fixed phase/control/source/cleanup matrices, operational-status precedence, bounded admission, provenance parity, and task-boundary closure checks. RawEvidence receipt resolution remains intentionally deferred to task .5; no semantic evaluation, authorization, endpoint, credential, namespace, Property, or Claim Assessment surface was added.
 
+Baseline: green (`mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestRuntime`). Final exact Quick, full artifact Go, Lean Runtime/Codecs/UmpireTests, fixture/preimage parity, regression, model lint, vet, golangci-lint, race, gofmt, and diff checks passed. The unittest gate receipt was not writable because the protected inherited `config/development.yaml` false symlink stat keeps the worktree dirty; the task gate itself passed. Review-fix memory capture was attempted but repository memory is not initialized.
+
+stage: impl-review - ran [2026-08-29T03:02:13Z..2026-08-29T05:17:57.929549Z] (model: gpt-5.6-sol)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4f5ad19c64a921999c6837787870e972e8e0da82, e74929561ce590be2a29994a8769fe904079e2f7, 93f4c8b2eed3ce8e709b5eda07eeb65dde02477e, 2589c47c2d51b451bff9df265e96ca1107f71d8a, 7be518b9585735981801dd70902f394f573c1cc2
+- Tests: baseline: green (mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestRuntime), mise exec -- go test -count=1 ./tools/umpire/artifact/... -run TestRuntime, mise exec -- go test -count=1 ./tools/umpire/artifact/..., mise exec -- go test -count=1 ./tools/umpire/artifact -run 'Test(RuntimeConfigurationV2|ExperimentRunV2)CanonicalFixtureRoundTrip|TestRuntimeV2IndependentPrettyPreimageChecksums', cd model && mise exec -- lake build Umpire.Artifact.Tests.Runtime Umpire.Artifact.Tests.Codecs UmpireTests, make umpire-check-regression, make lint-model, mise exec -- go vet ./tools/umpire/artifact/..., ./.bin/golangci-lint-v2.13.1 run ./tools/umpire/artifact/..., mise exec -- go test -count=1 -race ./tools/umpire/artifact/..., gofmt -d tools/umpire/artifact/runtime.go tools/umpire/artifact/runtime_test.go tools/umpire/internal/artifactv2/runtime.go, git diff --check, GATE_RECEIPT_NOT_WRITTEN:unittest - protected inherited config/development.yaml false symlink stat kept worktree dirty
 - PRs:
