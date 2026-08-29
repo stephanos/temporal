@@ -8,6 +8,7 @@ import Temporal.System.Callback.ConfigurationTests
 import Temporal.System.Configuration.Tests
 import Temporal.System.ConfigurationIntegrationTests
 import Temporal.System.Execution.LocalProfileTests
+import Temporal.System.Execution.NexusTests
 import Temporal.System.Matching.ConfigurationTests
 import Temporal.System.Nexus.ImplementationLinkTests
 

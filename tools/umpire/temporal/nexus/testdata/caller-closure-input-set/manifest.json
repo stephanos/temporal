@@ -1,0 +1,21 @@
+{
+  "formatVersion": "umpire-artifact-set/v2",
+  "artifactSetIdentity": "umpire.artifact-set.ed3605976ba999ec8e166d4309247e2b711fee18f4a421cfb8c6dc037344f1a2",
+  "members": [
+    {
+      "path": "artifacts/experiment.json",
+      "formatVersion": "umpire-experiment/v2",
+      "artifactChecksum": "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
+      "behaviorFingerprint": "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
+      "provenanceChecksum": "sha256:f7a6ebefca8202c6a7c467fd516e54d162c7d1f254c6c9a1f004a7f0b4135ab8"
+    },
+    {
+      "path": "artifacts/runtime-configuration.json",
+      "formatVersion": "umpire-runtime-configuration/v2",
+      "artifactChecksum": "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5",
+      "behaviorFingerprint": "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
+      "provenanceChecksum": "sha256:3b8bae9ef57fa5f400076af50d01a283d8b928481d654abd0d3c39dd72ea2f6c"
+    }
+  ],
+  "artifactSetChecksum": "sha256:074356889cda0296b13152f87e57d7b980d76125329a9014ceb5321c3f5bda7b"
+}

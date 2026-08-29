@@ -260,7 +260,7 @@ example :
       ({ configuration with authorityProfile := {
         configuration.authorityProfile with
         requiredCapabilityDefinitionIds :=
-          configuration.authorityProfile.requiredCapabilityDefinitionIds.drop 1
+          [id "umpire.runtime.capability.unexpected"]
       }}).seal).toOption.isNone := by
   native_decide
 

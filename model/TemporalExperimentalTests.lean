@@ -1,4 +1,5 @@
 import Umpire.Tests.MigrationCompatibility
+import Temporal.NexusExecutionIntegrationTests
 import TemporalModelTests
 import Temporal.Feature.Nexus.Experimental.CallerClosureTests
 import Temporal.Feature.Nexus.Experimental.VariationSpaceTests

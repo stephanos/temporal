@@ -280,7 +280,12 @@ def CheckedLocalProfile.authorityProfile (profile : CheckedLocalProfile) : Autho
   definitionId := profile.reference.definitionId
   version := profile.reference.version
   behaviorFingerprint := profile.reference.behaviorFingerprint
-  requiredCapabilityDefinitionIds := profile.requiredCapabilities
+  /-
+  Generic server/worker/history prerequisites identify the adapter profile; they are not semantic
+  capabilities required by the ExperimentSpec. Fn-18 admits only the exact Experiment capability
+  union, which the concrete participant binding contributes.
+  -/
+  requiredCapabilityDefinitionIds := []
 }
 
 /--
@@ -299,7 +304,7 @@ def CheckedLocalProfile.checkRuntimeConfiguration
       configuration.authorityProfile.version != profile.reference.version ||
       configuration.authorityProfile.behaviorFingerprint != profile.reference.behaviorFingerprint then
     throw (profileError .profile subject)
-  if configuration.authorityProfile.requiredCapabilityDefinitionIds != profile.requiredCapabilities then
+  if configuration.authorityProfile.requiredCapabilityDefinitionIds != [] then
     throw (profileError .capability subject)
   if configuration.phaseLimits != profile.phaseLimits then
     throw (profileError .budget subject)
