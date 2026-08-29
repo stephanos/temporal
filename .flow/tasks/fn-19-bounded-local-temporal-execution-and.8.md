@@ -39,9 +39,14 @@ Complete R7/R8/R9 with the reusable runner handoff, one deterministic generated 
 - [ ] Existing comments remain preserved.
 
 ## Done summary
-TBD
+Implemented the reusable digest-bound local runner, closed Nexus adapter, deterministic generation-only Go seam, and ordinary generated live test, with exact two-member input and four-member output boundaries documented honestly. The review fix made generator tests fresh-checkout-safe, safely constrained embed directives, and completed the exact budget and evidence-disposition documentation.
 
+Verification is green for every reconciled parent Quick command plus race, vet, and diff checks. The pre-edit baseline inherited three stale legacy Quick failures (the prohibited local-run CLI, Feature-owned Lean target, and Make wrapper); this task replaced them with the normative runner/generated-test commands. Memory capture was skipped because flow memory is enabled but not initialized.
+
+baseline: green for implemented dependency surfaces; inherited red for the three task-owned stale legacy Quick entries described above
+
+stage: impl-review - ran [2026-08-29T19:43:28Z..2026-08-29T19:48:17Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 507a8626e9e46a4637f762128e512c43e7e65376, 2dabcde445694955fff47c741e857cd528a742e8
+- Tests: go test -count=1 ./tools/umpire/runtime/..., go test -count=1 ./tools/umpire/runner/..., go test -count=1 ./tools/umpire/temporal/local/..., go test -count=1 ./tools/umpire/temporal/nexus/..., go test -count=1 ./tools/umpire/cmd/umpire-gen-tests-go/..., go test -count=1 ./temporaltest/..., cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests, cd model && mise exec -- lake build Temporal.NexusExecutionIntegrationTests, go test -count=1 ./tools/umpire/temporal/nexus/... -run '^TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally$', go test -race -count=1 ./tools/umpire/runner/... ./tools/umpire/cmd/umpire-gen-tests-go/... ./tools/umpire/temporal/nexus/..., go vet ./tools/umpire/runner/... ./tools/umpire/cmd/umpire-gen-tests-go/... ./tools/umpire/temporal/nexus/..., git diff --check, INHERITED_RED:go test -count=1 ./tools/umpire/cmd/umpire-local-run/... - prohibited package absent before edit, INHERITED_RED:cd model && mise exec -- lake build Temporal.Feature.Nexus.ExecutionTests - stale Feature-owned target absent before edit, INHERITED_RED:make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-input-set OUTPUT_ROOT=/tmp/umpire-local-runs RUN_ID=umpire.local.caller-closure.run-1 - prohibited Make wrapper absent before edit
 - PRs:
