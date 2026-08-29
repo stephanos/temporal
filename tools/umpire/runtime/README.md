@@ -41,11 +41,29 @@ or evaluate a Property. `tools/umpire/runtime` owns the domain-neutral five-phas
 `tools/umpire/temporal/local` owns the sole invocation-local loopback authority; and
 `tools/umpire/temporal/nexus` owns the exact System-derived caller-closure binding.
 
-The profile has fixed single-attempt preparation, realization, observation, isolation, and cleanup
-budgets. It retains exactly four bounded sources: participant output, workflow history, the control
-receipt, and cleanup. A started operational failure or incomplete run remains an admitted Run plus
-RawEvidence when its closure is valid. Cleanup is still attempted exactly once through its
-independent bounded context.
+The profile has these fixed phase budgets; callers cannot override them:
+
+| Phase | Deadline | Attempts | Record limit | Byte limit |
+| --- | ---: | ---: | ---: | ---: |
+| Preparation | 30 seconds | 1 | 128 | 1 MiB |
+| Realization | 30 seconds | 1 | 128 | 1 MiB |
+| Observation | 30 seconds | 1 | 3,584 | 12 MiB |
+| Isolation | 15 seconds | 1 | 128 | 1 MiB |
+| Cleanup | 15 seconds | 1 | 128 | 1 MiB |
+
+The aggregate ceiling is 120 seconds, 5 attempts, 4,096 records, and 16 MiB. The four bounded
+sources are participant output, workflow history, the control receipt, and cleanup. The raw field
+dispositions are closed too:
+
+- Retain only event type and ID, workflow/run/operation correlation IDs, command kind and status,
+  cancellation callback count, open-handle count, and closed error codes.
+- Represent namespace, task-queue, and endpoint identities only as named SHA-256 digest tokens.
+- Never retain headers, credentials, raw Nexus or SDK payload bytes, stack traces, or arbitrary
+  error text; their presence is omitted, redacted, or represented by a named SHA-256 digest token
+  where the closed evidence contract calls for one.
+
+A started operational failure or incomplete run remains an admitted Run plus RawEvidence when its
+closure is valid. Cleanup is still attempted exactly once through its independent bounded context.
 
 This slice proves operational execution only. It does not perform Observation Evaluation,
 Implementation Link checking, Property evaluation, semantic Run Evaluation, remote execution, CI
