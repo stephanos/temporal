@@ -61,42 +61,6 @@ introducing another Behavior, Query, Property, planner, or outcome language. Che
 canonical metadata and Behavior Fingerprints, and Planning accepts checked values rather than raw
 author input.
 
-## Artifact API
-
-`Umpire.Artifact` exposes the vertical Artifact modules in dependency order: Planning, Runtime,
-Evidence, Result, and Set. The retained boundary is exactly the embedded `umpire-drive-plan/v2`
-plus the persisted `umpire-experiment/v2`, `umpire-runtime-configuration/v2`,
-`umpire-experiment-run/v2`, `umpire-raw-evidence/v2`, `umpire-evidence/v2`, and
-`umpire-result/v2` families. It adds no forwarding aliases or generic envelope.
-
-Every persisted document is fixed-order UTF-8 JSON with two-space indentation, stable escaping and
-canonical base-10 natural numbers, no trailing spaces, and exactly one terminal LF. Its Artifact
-Checksum hashes `domain + "\n" + preimage`, where the preimage is that document's exact pretty
-encoding with only its own `artifactChecksum` omitted and one terminal LF. The outer ExperimentSpec
-preimage retains the already-sealed DrivePlan. Behavior Fingerprints continue to identify checked
-meaning; provenance and Artifact checksums independently bind provenance and complete content.
-
-RuntimeConfiguration, ExperimentRun, RawEvidence, Evidence, and Result keep phase Limits, Known
-Gaps, operational status, Observation Evaluation, Evidence Links, Implementation Link status,
-Property verdicts, Run Evaluation, and cleanup status distinct. Exact set admission accepts only:
-
-- ExperimentSpec plus RuntimeConfiguration;
-- those two plus ExperimentRun and RawEvidence; or
-- those four plus Evidence and Result.
-
-Go admission rejects unsupported formats, wrong families, duplicate or case-colliding keys,
-unknown fields, malformed or oversized values, noncanonical bytes, stale checksums, unsafe set
-paths, and incomplete cross-document closure. Compact JSON and alternate whitespace do not enter a
-normalizer, compatibility alias, fallback, or migration.
-
-The root `umpire-check-artifact` and `umpire-check-artifact-set` targets are read-only admission
-checks. They are silent on success and never publish as a side effect. `PublishSet` remains an
-explicit Go API: it stages and revalidates a complete admitted set privately, installs its immutable
-manifest-digest directory with one rename, and lets `LoadSet` return only a complete revalidated
-snapshot. Interrupted private staging is cleaned under the publication lock; generic artifact
-management, schema migrations, receipt envelopes, runtime execution, CI, and other platform work
-remain separate.
-
 ## Core and Target APIs
 
 `Umpire.Core` defines the vocabulary shared by every other module. `Umpire.Target` owns target
@@ -435,7 +399,11 @@ contains the outcome, optional artifact, and instrumentation.
 
 ## Artifact API
 
-`Umpire.Artifact` defines portable, environment-independent products of pure model planning.
+`Umpire.Artifact` exposes its vertical modules in dependency order: Planning, Runtime, Evidence,
+Result, and Set. Planning owns the portable, environment-independent products of pure model
+planning; the later modules define inert transport records for runtime facts and semantic results
+supplied by their owning downstream stages. Admission verifies those records but never invents an
+Execution, Observation Evaluation, Implementation Link, Property, or Run Evaluation outcome.
 
 - `DrivePlan` records bindings, selected choices and variants, requested faults, requested actions,
   model-owned outcomes, resulting states, checkpoints, Limits, selection reason, and provenance.
@@ -451,6 +419,12 @@ contains the outcome, optional artifact, and instrumentation.
   kernel-produced `BehaviorTrace`.
 - `checkExecutionHandoff` retains reusable validation for model-owned lifecycle references without
   changing ExperimentSpec bytes or giving Space another persisted schema.
+
+The retained boundary is exactly embedded `umpire-drive-plan/v2` plus persisted
+`umpire-experiment/v2`, `umpire-runtime-configuration/v2`, `umpire-experiment-run/v2`,
+`umpire-raw-evidence/v2`, `umpire-evidence/v2`, and `umpire-result/v2`. The latter five keep phase
+Limits, Known Gaps, operational status, Observation Evaluation, Evidence Links, Implementation Link
+status, Property verdicts, Run Evaluation, and cleanup status distinct.
 
 Canonical serialization entry points include:
 
@@ -469,12 +443,29 @@ fn-37's compact bytes and compact checksum preimages. No external or immutable p
 predates the correction, and there is no compact reader, alternate writer, migration, alias, or
 fallback.
 
+Go admission rejects unsupported formats, wrong families, duplicate or case-colliding keys,
+unknown fields, malformed or oversized values, noncanonical bytes, stale checksums, unsafe set
+paths, and incomplete cross-document closure. Exact set admission accepts only ExperimentSpec plus
+RuntimeConfiguration; those two plus ExperimentRun and RawEvidence; or those four plus Evidence and
+Result.
+
+The root `umpire-check-artifact` and `umpire-check-artifact-set` targets are read-only admission
+checks. They are silent on success and never publish as a side effect. `PublishSet` remains an
+explicit Go API: it stages and revalidates a complete admitted set privately, installs its immutable
+manifest-digest directory with one rename, and lets `LoadSet` return only a complete revalidated
+snapshot. Interrupted private staging is cleaned under the publication lock; generic artifact
+management, schema migrations, receipt envelopes, runtime execution, CI, and other platform work
+remain separate.
+
 Canonical error projections are available as `canonicalDefinitionErrorJson`,
 `canonicalPropertyErrorJson`, `canonicalBehaviorErrorJson`, and `canonicalQueryErrorJson`.
 
-Artifacts do not claim that a runtime action occurred or that execution evidence was collected.
-The model-owned `umpire-gen-tests` tool accepts named regressions, test sets, and model-selected
-batches without exposing discovery or explanation; Space exposes no competing command.
+DrivePlan and ExperimentSpec do not claim that a runtime action occurred or that execution Evidence
+was collected. ExperimentRun, RawEvidence, Evidence, and Result truthfully transport supplied
+statuses and facts, but their mere admission does not prove an action, Evidence interpretation,
+Property verdict, or Claim Assessment. The model-owned `umpire-gen-tests` tool accepts named
+regressions, test sets, and model-selected batches without exposing discovery or explanation; Space
+exposes no competing command.
 
 ## Expert reference example
 

@@ -45,24 +45,21 @@ func AdmitSetFiles(files map[string][]byte) (AdmittedSet, error) {
 	if !exists {
 		return AdmittedSet{}, errors.New("artifact set has no manifest")
 	}
-	manifest, err := artifactSetManifestDecoder.Decode(encodedManifest)
+	members := make([]SetMember, 0, len(artifactSetPaths))
+	for _, path := range artifactSetPaths {
+		if encoded, exists := files[path]; exists {
+			members = append(members, SetMember{Path: path, Encoded: append([]byte(nil), encoded...)})
+		}
+	}
+	admitted, err := AdmitSetManifest(encodedManifest, members)
 	if err != nil {
 		return AdmittedSet{}, err
-	}
-	members := make([]SetMember, len(manifest.Members))
-	for index, row := range manifest.Members {
-		encoded, exists := files[row.Path]
-		if !exists {
-			return AdmittedSet{}, wrapAdmission(ErrorClosure,
-				fmt.Errorf("artifact set is missing member %q", row.Path))
-		}
-		members[index] = SetMember{Path: row.Path, Encoded: append([]byte(nil), encoded...)}
 	}
 	if len(files) != len(members)+1 {
 		return AdmittedSet{}, wrapAdmission(ErrorClosure,
 			errors.New("artifact set contains unexpected files"))
 	}
-	return AdmitSetManifest(encodedManifest, members)
+	return admitted, nil
 }
 
 func admittedSetFiles(admitted AdmittedSet) (map[string][]byte, error) {
