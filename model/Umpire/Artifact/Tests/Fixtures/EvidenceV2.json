@@ -1,0 +1,164 @@
+{
+  "formatVersion": "umpire-evidence/v2",
+  "runIdentity": "switch.run.1",
+  "behaviorFingerprint": "sha256:0aa42f873839132836c028886c9be5ad63e5dc66dbc967182ae139159501c8ab",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+    "behaviorFingerprint": "sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0",
+    "provenanceChecksum": "sha256:9ac3c6316036d5631c81c30f45e408e80e8536359f36ef6bdd504c9f57470f41"
+  },
+  "runtimeConfiguration": {
+    "formatVersion": "umpire-runtime-configuration/v2",
+    "artifactChecksum": "sha256:454acc851c5c1638166b1a334eaaedc97e4515b5ebe6614d5a57672ddbd9d1c2",
+    "behaviorFingerprint": "sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
+    "provenanceChecksum": "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e"
+  },
+  "run": {
+    "formatVersion": "umpire-experiment-run/v2",
+    "artifactChecksum": "sha256:f1e9bce053d7ab53f9e9259187395456dc026934a317144785b1dcbe7475868e",
+    "behaviorFingerprint": "sha256:41e30ef6849aec9841e5af3a478e7ca4062f5229142318572b8afd9f36ec7f07",
+    "provenanceChecksum": "sha256:b879d5eba0c02a60c52e59a009c79f953310a6c49e3453ea863fddcbb07a75a9"
+  },
+  "rawEvidence": {
+    "formatVersion": "umpire-raw-evidence/v2",
+    "artifactChecksum": "sha256:39cc910d042990a7d64c180dc62a87004d9f6b3091f2ae690986781bc27af028",
+    "behaviorFingerprint": "sha256:2a0e83ab40ee0bb739827351e4fca37e29095333c469b975278f882ed3581e8c",
+    "provenanceChecksum": "sha256:58874d22fb498df81f0ad4a5812183031af5827e3f528d963d147cb760ee5bb7"
+  },
+  "observationProgram": {
+    "definitionId": "switch.observation.program",
+    "behaviorFingerprint": "sha256:9115e2c6fa437e90ee8bbbb326a489a01653f92c6289c23fb9b65a4fab044efc"
+  },
+  "mapping": {
+    "definitionId": "switch.observation.mapping",
+    "behaviorFingerprint": "sha256:f9f81b529dde00a6f3ce17a0a68a039d2b61bb0d332fdd7ec26cecd7cb56c63c"
+  },
+  "observationEvaluationStatus": "accepted",
+  "evidenceBackedModelTrace": {
+    "traceId": "switch.trace.accepted",
+    "observationPlan": {
+      "definitionId": "switch.observation.program",
+      "behaviorFingerprint": "sha256:9115e2c6fa437e90ee8bbbb326a489a01653f92c6289c23fb9b65a4fab044efc"
+    },
+    "mappingDefinitionId": "switch.observation.mapping",
+    "mappingVersion": 1,
+    "mappingBehaviorFingerprint": "sha256:f9f81b529dde00a6f3ce17a0a68a039d2b61bb0d332fdd7ec26cecd7cb56c63c",
+    "source": {
+      "path": "Umpire/Artifact/Tests/Result.lean",
+      "line": 1,
+      "column": 1,
+      "provenance": "lean-model"
+    },
+    "profileDefinitionId": "switch.observation.profile",
+    "profileVersion": 1,
+    "sourceClosed": true,
+    "vocabulary": [
+      {
+        "definitionId": "switch.state.power",
+        "kind": "state",
+        "canonicalBehavior": "switch.state.off/v1"
+      }
+    ],
+    "appliedLimit": {
+      "value": 2,
+      "unit": "evidence-records"
+    },
+    "evidenceDefinitionIds": [
+      "switch.evidence.history.1"
+    ],
+    "trace": {
+      "traceId": "switch.trace.accepted",
+      "initialState": {
+        "definitionId": "switch.state.power",
+        "value": "off"
+      },
+      "steps": []
+    }
+  },
+  "evidenceLinks": [
+    {
+      "coordinate": {
+        "kind": "initial-state",
+        "step": null,
+        "position": null
+      },
+      "mappingDefinitionId": "switch.observation.mapping",
+      "mappingVersion": 1,
+      "mappingBehaviorFingerprint": "sha256:f9f81b529dde00a6f3ce17a0a68a039d2b61bb0d332fdd7ec26cecd7cb56c63c",
+      "profileDefinitionId": "switch.observation.profile",
+      "profileVersion": 1,
+      "evidenceDefinitionIds": [
+        "switch.evidence.history.1"
+      ],
+      "ruleDefinitionId": "switch.observation.rule.initial-state",
+      "bindingDefinitionIds": [],
+      "orderingSupport": [
+        {
+          "factDefinitionId": "switch.evidence.history.1",
+          "kindDefinitionId": "umpire.evidence.kind.history",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        }
+      ],
+      "closureSupport": [
+        {
+          "kindDefinitionId": "umpire.evidence.kind.history",
+          "lastOrdinal": 1
+        }
+      ],
+      "appliedDispositions": [
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.history",
+            "fieldDefinitionId": "umpire.evidence.field.event"
+          },
+          "kind": "retained",
+          "normalizedValue": "flip-requested",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        }
+      ],
+      "appliedLimit": {
+        "value": 2,
+        "unit": "evidence-records"
+      },
+      "meaningBehaviorFingerprint": "sha256:53e7c1cf1774a2d43104dbded2b710626bfc7589f51c6c36dbd1e49263cb45be"
+    }
+  ],
+  "dispositions": [
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.history",
+        "fieldDefinitionId": "umpire.evidence.field.event"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-output",
+        "fieldDefinitionId": "umpire.evidence.field.rejected"
+      },
+      "disposition": "reject",
+      "digestPolicyDefinitionId": null
+    }
+  ],
+  "diagnostics": [],
+  "knownGaps": [],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "switch.evidence.interpreted"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Umpire/Artifact/Tests/Result.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:b84f046f2250d5718d6d135ad1a6e7b2059b221ddd30ce6c3a6ac08baaff5310",
+  "artifactChecksum": "sha256:bb69268b4310d2369c61d0841cfe532f8cd009274484b1ebc3fe3ef9a3f899ba"
+}
