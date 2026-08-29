@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -12,6 +14,22 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
+
+func TestFrontendHTTPOptionStartsLoopbackListener(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	server, err := NewServerWithContext(ctx, WithT(t), WithFrontendHTTP())
+	require.NoError(t, err)
+	require.Positive(t, server.frontendHTTPPort)
+
+	connection, err := net.DialTimeout(
+		"tcp",
+		net.JoinHostPort("127.0.0.1", strconv.Itoa(server.frontendHTTPPort)),
+		time.Second,
+	)
+	require.NoError(t, err)
+	require.NoError(t, connection.Close())
+}
 
 func TestLifecycleStartupFailuresUnwindOwnedResources(t *testing.T) {
 	t.Parallel()
