@@ -152,6 +152,35 @@ func TestCleanupDeadlineReturnsTimeoutCompatibleReceipt(t *testing.T) {
 	require.Empty(t, backend.releaseOrder)
 }
 
+func TestCleanupDeadlineReachedDuringStopReturnsTimeoutCompatibleReceipt(t *testing.T) {
+	request := testRequest(t, "umpire.local.environment.cleanup-stop-deadline")
+	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	backend := &recordingAuthority{
+		resources: []ownedResource{{kind: ownedServer}},
+		stopFunc: func(ctx context.Context) error {
+			<-ctx.Done()
+			return ctx.Err()
+		},
+	}
+	runtimeEnvironment, receipt := newFactory(
+		&recordingStarter{authority: backend},
+	).Prepare(context.Background(), request, prepareCommand)
+	require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
+	environment, ok := AsEnvironment(runtimeEnvironment)
+	require.True(t, ok)
+	cleanupCommand, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	deadline, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
+	defer cancel()
+
+	cleanupReceipt := environment.Cleanup(deadline, cleanupCommand)
+	require.Equal(t, umpireruntime.ReceiptCanceled, cleanupReceipt.Status())
+	require.Equal(t, "umpire.runtime.code.timed-out", errorCode(cleanupReceipt))
+	require.Equal(t, "2", receiptField(cleanupReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
+	require.Empty(t, cleanupReceipt.ReleasedResources())
+}
+
 func TestConcreteCleanupFailureDominatesExpiredDeadline(t *testing.T) {
 	request := testRequest(t, "umpire.local.environment.cleanup-deadline-failure")
 	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)

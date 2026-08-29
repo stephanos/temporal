@@ -274,8 +274,8 @@ func (e *environment) Cleanup(
 	}
 	sortResources(released)
 	if err != nil {
-		return cleanupReceipt(command, umpireruntime.ReceiptFailed,
-			closedCleanupCode(ctx, err), released, len(e.live))
+		status, code := closedFailure(ctx, err, true)
+		return cleanupReceipt(command, status, code, released, len(e.live))
 	}
 	return cleanupReceipt(command, umpireruntime.ReceiptAccepted, "", released, len(e.live))
 }
@@ -409,11 +409,6 @@ func hasConcreteFailure(err error) bool {
 		return hasConcreteFailure(wrapped.Unwrap())
 	}
 	return !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded)
-}
-
-func closedCleanupCode(ctx context.Context, err error) string {
-	_, code := closedFailure(ctx, err, true)
-	return code
 }
 
 func contextError(ctx context.Context) error {
