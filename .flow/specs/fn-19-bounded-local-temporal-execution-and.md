@@ -46,7 +46,7 @@ Temporal-specific authority and lifecycle code lives below `tools/umpire/tempora
 
 ### Exact input and authority contract
 
-The CLI accepts one fn-18 `AdmittedSet` whose manifest contains exactly one `umpire-experiment/v3` and one `umpire-runtime-configuration/v2`, with no Run, evidence, Result, coverage, or unrelated member. Set admission, member identities, semantic references, and all cross-bindings are complete before runtime preflight.
+The CLI accepts one fn-18 `AdmittedSet` whose manifest contains exactly one `umpire-experiment/v2` and one `umpire-runtime-configuration/v2`, with no Run, evidence, Result, coverage, or unrelated member. The ExperimentSpec is accepted only in fn-18's sole deterministic fixed-order two-space pretty JSON representation with exactly one terminal LF; its Artifact Checksum hashes the UTF-8 bytes `"umpire.experiment-spec/v2" + "\n" + preimage`, where `preimage` is those exact pretty bytes with only the outer ExperimentSpec `artifactChecksum` omitted and the already-sealed DrivePlan retained. Set admission, member identities, semantic references, and all cross-bindings are complete before runtime preflight.
 
 `CheckedRunRequest` contains the admitted set, a 1–512-byte namespaced `runIdentity`, unsigned seed, positive attempt, and an in-memory `AuthorityProfile`. This first binding accepts seed `0` and attempt `1` only. Workflow, operation, task-queue, worker, and participant correlation IDs are derived from the run identity plus closed kind suffixes; duplicate kind/ID pairs reject before server startup.
 
