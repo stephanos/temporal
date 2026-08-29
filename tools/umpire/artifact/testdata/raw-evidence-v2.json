@@ -1,0 +1,186 @@
+{
+  "formatVersion": "umpire-raw-evidence/v2",
+  "runIdentity": "switch.run.1",
+  "behaviorFingerprint": "sha256:2a0e83ab40ee0bb739827351e4fca37e29095333c469b975278f882ed3581e8c",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+    "behaviorFingerprint": "sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0",
+    "provenanceChecksum": "sha256:9ac3c6316036d5631c81c30f45e408e80e8536359f36ef6bdd504c9f57470f41"
+  },
+  "runtimeConfiguration": {
+    "formatVersion": "umpire-runtime-configuration/v2",
+    "artifactChecksum": "sha256:454acc851c5c1638166b1a334eaaedc97e4515b5ebe6614d5a57672ddbd9d1c2",
+    "behaviorFingerprint": "sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
+    "provenanceChecksum": "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e"
+  },
+  "run": {
+    "formatVersion": "umpire-experiment-run/v2",
+    "artifactChecksum": "sha256:f1e9bce053d7ab53f9e9259187395456dc026934a317144785b1dcbe7475868e",
+    "behaviorFingerprint": "sha256:41e30ef6849aec9841e5af3a478e7ca4062f5229142318572b8afd9f36ec7f07",
+    "provenanceChecksum": "sha256:b879d5eba0c02a60c52e59a009c79f953310a6c49e3453ea863fddcbb07a75a9"
+  },
+  "captureStatus": "closed",
+  "sources": [
+    {
+      "sourceDefinitionId": "umpire.evidence.source.cleanup",
+      "status": "closed",
+      "factCount": 1,
+      "byteCount": 64
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.control-receipt",
+      "status": "closed",
+      "factCount": 1,
+      "byteCount": 128
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "status": "closed",
+      "factCount": 2,
+      "byteCount": 512
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.participant-output",
+      "status": "closed",
+      "factCount": 2,
+      "byteCount": 256
+    }
+  ],
+  "facts": [
+    {
+      "factDefinitionId": "switch.evidence.cleanup.1",
+      "sourceDefinitionId": "umpire.evidence.source.cleanup",
+      "ordinal": 0,
+      "kindDefinitionId": "umpire.evidence.kind.cleanup",
+      "causalFactDefinitionIds": [],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.status",
+          "disposition": "plain",
+          "value": "complete"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "switch.evidence.control-receipt.1",
+      "sourceDefinitionId": "umpire.evidence.source.control-receipt",
+      "ordinal": 0,
+      "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+      "causalFactDefinitionIds": [],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.action-definition-id",
+          "disposition": "plain",
+          "value": "switch.action.flip"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.attempt",
+          "disposition": "plain",
+          "value": 1
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.occurrence-definition-id",
+          "disposition": "plain",
+          "value": "switch.occurrence.flip"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.status",
+          "disposition": "plain",
+          "value": "accepted"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "switch.evidence.history.1",
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "ordinal": 0,
+      "kindDefinitionId": "umpire.evidence.kind.history",
+      "causalFactDefinitionIds": [],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event",
+          "disposition": "plain",
+          "value": "flip-requested"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "switch.evidence.history.2",
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "ordinal": 1,
+      "kindDefinitionId": "umpire.evidence.kind.history",
+      "causalFactDefinitionIds": [
+        "switch.evidence.history.1"
+      ],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event",
+          "disposition": "plain",
+          "value": "flip-completed"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "switch.evidence.participant.1",
+      "sourceDefinitionId": "umpire.evidence.source.participant-output",
+      "ordinal": 0,
+      "kindDefinitionId": "umpire.evidence.kind.participant-output",
+      "causalFactDefinitionIds": [],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.state",
+          "disposition": "plain",
+          "value": false
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "switch.evidence.participant.2",
+      "sourceDefinitionId": "umpire.evidence.source.participant-output",
+      "ordinal": 1,
+      "kindDefinitionId": "umpire.evidence.kind.participant-output",
+      "causalFactDefinitionIds": [
+        "switch.evidence.participant.1"
+      ],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.digest",
+          "disposition": "sha256",
+          "value": "sha256:463fc89536c47a3158c1d27030df5d1b9a5665bc256a7079632485eb3b0e3f86"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.rejected",
+          "disposition": "rejected",
+          "value": null
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.secret",
+          "disposition": "redacted",
+          "value": null
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.state",
+          "disposition": "plain",
+          "value": true
+        }
+      ]
+    }
+  ],
+  "knownGaps": [],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "switch.raw-evidence.1"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Umpire/Artifact/Tests/Evidence.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:58874d22fb498df81f0ad4a5812183031af5827e3f528d963d147cb760ee5bb7",
+  "artifactChecksum": "sha256:39cc910d042990a7d64c180dc62a87004d9f6b3091f2ae690986781bc27af028"
+}

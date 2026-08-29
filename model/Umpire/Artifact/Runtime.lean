@@ -227,7 +227,8 @@ structure ExperimentRun where
   artifactChecksum : ArtifactChecksum
   deriving BEq, DecidableEq, Repr
 
-private def artifactBindingJson (binding : ArtifactBinding) : String :=
+/-- Encode an exact ArtifactBinding with the canonical v2 field order. -/
+def ArtifactBinding.canonicalJson (binding : ArtifactBinding) : String :=
   "{\"formatVersion\":" ++ quoteRuntime binding.formatVersion ++
     ",\"artifactChecksum\":" ++ quoteRuntime binding.artifactChecksum.render ++
     ",\"behaviorFingerprint\":" ++ quoteRuntime binding.behaviorFingerprint.render ++
@@ -268,7 +269,7 @@ private def runtimeConfigurationContentJson (configuration : RuntimeConfiguratio
   "{\"formatVersion\":" ++ quoteRuntime configuration.formatVersion ++
     ",\"configurationDefinitionId\":" ++ quoteRuntime configuration.configurationDefinitionId.value ++
     ",\"behaviorFingerprint\":" ++ quoteRuntime configuration.behaviorFingerprint.render ++
-    ",\"experiment\":" ++ artifactBindingJson configuration.experiment ++
+    ",\"experiment\":" ++ configuration.experiment.canonicalJson ++
     ",\"authorityProfile\":" ++ authorityProfileJson configuration.authorityProfile ++
     ",\"phaseLimits\":" ++ runtimeArray (configuration.phaseLimits.map phaseLimitJson) ++
     ",\"observation\":" ++ observationConfigurationJson configuration.observation ++
@@ -308,8 +309,8 @@ private def experimentRunContentJson (run : ExperimentRun) : String :=
   "{\"formatVersion\":" ++ quoteRuntime run.formatVersion ++
     ",\"runIdentity\":" ++ quoteRuntime run.runIdentity.value ++
     ",\"behaviorFingerprint\":" ++ quoteRuntime run.behaviorFingerprint.render ++
-    ",\"experiment\":" ++ artifactBindingJson run.experiment ++
-    ",\"runtimeConfiguration\":" ++ artifactBindingJson run.runtimeConfiguration ++
+    ",\"experiment\":" ++ run.experiment.canonicalJson ++
+    ",\"runtimeConfiguration\":" ++ run.runtimeConfiguration.canonicalJson ++
     ",\"attempt\":" ++ toString run.attempt ++
     ",\"operationalStatus\":" ++ quoteRuntime run.operationalStatus.name ++
     ",\"phaseOutcomes\":" ++ runtimeArray (run.phaseOutcomes.map phaseOutcomeJson) ++
@@ -366,7 +367,8 @@ def canonicalExperimentRunJson (run : ExperimentRun) : String :=
 def canonicalExperimentRunBytes (run : ExperimentRun) : String :=
   canonicalExperimentRunJson run ++ "\n"
 
-private def artifactBindingOfExperiment (experiment : ExperimentSpec) : ArtifactBinding := {
+/-- Return the exact immutable binding for one sealed ExperimentSpec. -/
+def ExperimentSpec.artifactBinding (experiment : ExperimentSpec) : ArtifactBinding := {
   formatVersion := experiment.formatVersion
   artifactChecksum := experiment.artifactChecksum
   behaviorFingerprint := experiment.queryBehaviorFingerprint
@@ -379,6 +381,14 @@ def RuntimeConfiguration.artifactBinding
   artifactChecksum := configuration.artifactChecksum
   behaviorFingerprint := configuration.behaviorFingerprint
   provenanceChecksum := configuration.provenanceChecksum
+}
+
+/-- Return the exact immutable binding for one sealed ExperimentRun. -/
+def ExperimentRun.artifactBinding (run : ExperimentRun) : ArtifactBinding := {
+  formatVersion := run.formatVersion
+  artifactChecksum := run.artifactChecksum
+  behaviorFingerprint := run.behaviorFingerprint
+  provenanceChecksum := run.provenanceChecksum
 }
 
 private def phaseLimitsValid (limits : List PhaseLimit) : Bool :=
@@ -417,7 +427,8 @@ private def unicodeWhitespace (character : Char) : Bool :=
 private def stringIsBlank (value : String) : Bool :=
   value.toList.all unicodeWhitespace
 
-private def provenanceValid (provenance : ArtifactProvenance) : Bool :=
+/-- Check the shared closed provenance transport used by the runtime Artifact families. -/
+def ArtifactProvenance.isValidTransport (provenance : ArtifactProvenance) : Bool :=
   idsCanonical provenance.sourceDefinitionIds &&
     provenance.sourceLocations != [] &&
     provenance.sourceLocations == provenance.sourceLocations.mergeSort sourceLocationLe &&
@@ -442,7 +453,7 @@ def RuntimeConfiguration.isValidTransport (configuration : RuntimeConfiguration)
     configuration.observation.programDefinitionId.isNamespaced &&
     configuration.observation.mappingDefinitionId.isNamespaced &&
     participantBindingsValid configuration.participantBindings &&
-    knownGapsValid configuration.knownGaps && provenanceValid configuration.provenance &&
+    knownGapsValid configuration.knownGaps && configuration.provenance.isValidTransport &&
     configuration.hasValidChecksums
 
 /-- Close the exact Experiment binding and its capability set. -/
@@ -452,7 +463,7 @@ def RuntimeConfiguration.closesExperiment
   let capabilities := canonicalDefinitionIds
     (configuration.authorityProfile.requiredCapabilityDefinitionIds ++
       configuration.participantBindings.flatMap ParticipantBinding.capabilityDefinitionIds)
-  configuration.experiment == artifactBindingOfExperiment experiment &&
+  configuration.experiment == experiment.artifactBinding &&
     capabilities == experiment.plan.capabilityRequirementDefinitionIds
 
 private def terminalPhaseValid (outcome : PhaseOutcome) (requiresCode : Bool) : Bool :=
@@ -535,7 +546,7 @@ def ExperimentRun.isValidTransport (run : ExperimentRun) : Bool :=
     run.phaseOutcomes.all phaseOutcomeValid && phaseProgressionValid run.phaseOutcomes &&
     controlAttemptsValid run.attempt run.controlAttempts &&
     sourceClosuresValid run.sourceClosures && cleanupValid run.cleanup &&
-    phaseLimitsValid run.limits && knownGapsValid run.knownGaps && provenanceValid run.provenance &&
+    phaseLimitsValid run.limits && knownGapsValid run.knownGaps && run.provenance.isValidTransport &&
     run.operationalStatus == expectedOperationalStatus run && run.hasValidChecksums
 
 private def plannedControlLe (left right : DefinitionId × DefinitionId) : Bool :=
@@ -550,7 +561,7 @@ def ExperimentRun.closes
     (occurrence.definitionId, occurrence.actionDefinitionId)
   let attempted := run.controlAttempts.map fun attempt =>
     (attempt.occurrenceDefinitionId, attempt.actionDefinitionId)
-  configuration.closesExperiment experiment && run.experiment == artifactBindingOfExperiment experiment &&
+  configuration.closesExperiment experiment && run.experiment == experiment.artifactBinding &&
     run.runtimeConfiguration == configuration.artifactBinding && run.limits == configuration.phaseLimits &&
     attempted == planned.mergeSort plannedControlLe
 
