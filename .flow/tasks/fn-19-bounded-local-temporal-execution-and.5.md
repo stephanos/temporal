@@ -41,9 +41,16 @@ Complete R1/R5's model-owned Nexus-specific binding and canonical two-member inp
 - [ ] No new semantic or artifact authority is introduced.
 
 ## Done summary
-TBD
+Implemented the deep `Temporal.System.Execution.Nexus` contract for inert, preflight-checked Nexus programs/configuration and a neutral integration proof that consumes the complete fn18 caller-closure experiment. Added the exact canonical pretty-printed Artifact Set fixture, strict admission/preflight drift coverage, and kept `Temporal.Feature.Nexus` independent of System with `Examples/` absent.
 
+Verification is green for focused Go runtime/local/Nexus/temporaltest suites, exact artifact admission, System and neutral-integration Lean builds, the full model import-policy lint, and built-in Lean lint. The stale future-task CLI/Feature execution/Make surfaces were inherited absent and intentionally remain outside this task.
+
+baseline: green for implemented dependency surfaces; inherited red for stale future-task `umpire-local-run`, `Temporal.Feature.Nexus.ExecutionTests`, and `umpire-run-local` Quick entries
+
+review: SHIP after two fixed P1 findings; memory capture skipped because flow memory is not initialized
+
+stage: impl-review - ran [2026-08-29T16:47:38Z..2026-08-29T16:58:46Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e3cfa915b6f9a4b112bcfff6434cfbcd3d313fdd, 5a9172fcdc966f96aa2275ce79003df0aa881fde, 22916a8c5cfe3d26a2474ea7f6e9dabcabc866b8
+- Tests: go test -count=1 ./tools/umpire/runtime/..., go test -count=1 ./tools/umpire/temporal/local/..., go test -count=1 ./tools/umpire/temporal/nexus/..., go test -count=1 ./temporaltest/..., go run ./tools/umpire/cmd/umpire-artifact check-set --set tools/umpire/temporal/nexus/testdata/caller-closure-input-set, cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests, cd model && mise exec -- lake build Temporal.System.Execution.NexusTests Temporal.NexusExecutionIntegrationTests TemporalModelTests TemporalExperimentalTests, cd model && mise exec -- lake exe modelLint, cd model && mise exec -- lake --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs
 - PRs:
