@@ -62,6 +62,7 @@ var evidenceFieldAllowlist = map[string]struct{}{
 
 var numericEvidenceFields = map[string]struct{}{
 	EvidenceFieldCancellationCallbackCount:            {},
+	EvidenceFieldEventID:                              {},
 	EvidenceFieldOpenHandleCount:                      {},
 	artifactv2.ControlReceiptAttemptFieldDefinitionID: {},
 }
@@ -97,6 +98,7 @@ type evidenceSourceState struct {
 
 type evidenceAccumulator struct {
 	limits       map[Phase]PhaseLimit
+	fieldRules   evidenceFieldRules
 	phaseRecords map[Phase]uint64
 	phaseBytes   map[Phase]uint64
 	sources      map[string]*evidenceSourceState
@@ -106,9 +108,15 @@ type evidenceAccumulator struct {
 	totalBytes   uint64
 }
 
-func newEvidenceAccumulator(limits []PhaseLimit) *evidenceAccumulator {
+type evidenceFieldRules struct {
+	exactValues map[string]map[string]struct{}
+}
+
+func newEvidenceAccumulator(request CheckedRunRequest) *evidenceAccumulator {
+	limits := request.PhaseLimits()
 	accumulator := &evidenceAccumulator{
 		limits:       make(map[Phase]PhaseLimit, len(limits)),
+		fieldRules:   newEvidenceFieldRules(request),
 		phaseRecords: make(map[Phase]uint64, len(limits)),
 		phaseBytes:   make(map[Phase]uint64, len(limits)),
 		sources:      make(map[string]*evidenceSourceState, len(evidenceSourceOrder)),
@@ -126,6 +134,56 @@ func newEvidenceAccumulator(limits []PhaseLimit) *evidenceAccumulator {
 		}
 	}
 	return accumulator
+}
+
+func newEvidenceFieldRules(request CheckedRunRequest) evidenceFieldRules {
+	exactValues := map[string]map[string]struct{}{
+		EvidenceFieldCommandKind: valueSet(
+			string(CommandPrepare), string(CommandRealize), string(CommandObserve),
+			string(commandIsolate), string(CommandCleanup),
+		),
+		EvidenceFieldErrorCode: valueSet(
+			"umpire.runtime.code.canceled",
+			"umpire.runtime.code.capacity",
+			"umpire.runtime.code.cleanup-failed",
+			"umpire.runtime.code.failed",
+			"umpire.runtime.code.rejected",
+			"umpire.runtime.code.timed-out",
+			"umpire.runtime.code.unsupported",
+		),
+		EvidenceFieldRunCorrelationID: valueSet(request.RunIdentity()),
+		EvidenceFieldStatus: valueSet(
+			"accepted", "canceled", "closed", "complete", "failed", "incomplete",
+			"not-attempted", "not-started", "partial", "rejected", "succeeded",
+			"timed-out", "unsupported",
+		),
+		artifactv2.ControlReceiptActionFieldDefinitionID: valueSet(
+			request.Program().Occurrence().ActionDefinitionID(),
+		),
+		artifactv2.ControlReceiptAttemptFieldDefinitionID: valueSet(
+			strconv.FormatUint(request.Attempt(), 10),
+		),
+		artifactv2.ControlReceiptOccurrenceFieldDefinitionID: valueSet(
+			request.Program().Occurrence().DefinitionID(),
+		),
+	}
+	for _, correlation := range request.Correlations() {
+		switch correlation.Kind() {
+		case CorrelationWorkflow:
+			exactValues[EvidenceFieldWorkflowCorrelationID] = valueSet(correlation.Identity())
+		case CorrelationOperation:
+			exactValues[EvidenceFieldOperationCorrelationID] = valueSet(correlation.Identity())
+		}
+	}
+	return evidenceFieldRules{exactValues: exactValues}
+}
+
+func valueSet(values ...string) map[string]struct{} {
+	set := make(map[string]struct{}, len(values))
+	for _, value := range values {
+		set[value] = struct{}{}
+	}
+	return set
 }
 
 func (a *evidenceAccumulator) append(phase Phase, fact Fact) (appendOutcome, error) {
@@ -158,7 +216,7 @@ func (a *evidenceAccumulator) appendFact(
 	if _, duplicate := a.facts[fact.definitionID]; duplicate {
 		return appendRejected, fmt.Errorf("evidence fact %q is duplicated", fact.definitionID)
 	}
-	if err := validateEvidenceFields(fact.fields); err != nil {
+	if err := a.validateEvidenceFields(fact.fields); err != nil {
 		return appendRejected, err
 	}
 	ordinal := uint64(len(source.facts))
@@ -317,7 +375,7 @@ func rawEvidenceFact(fact Fact, ordinal uint64) (artifactv2.RawEvidenceFact, err
 	}, nil
 }
 
-func validateEvidenceFields(fields []FactField) error {
+func (a *evidenceAccumulator) validateEvidenceFields(fields []FactField) error {
 	for _, field := range fields {
 		if _, ok := evidenceFieldAllowlist[field.definitionID]; !ok {
 			return fmt.Errorf("evidence field %q is not allowlisted", field.definitionID)
@@ -329,6 +387,14 @@ func validateEvidenceFields(fields []FactField) error {
 		}
 		if _, digest := digestEvidenceFields[field.definitionID]; digest && !artifactv2.ValidDigest(field.value) {
 			return fmt.Errorf("digest evidence field %q is invalid", field.definitionID)
+		}
+		if field.definitionID == EvidenceFieldEventType && !validIdentity(field.value) {
+			return fmt.Errorf("evidence event type %q is invalid", field.value)
+		}
+		if values, exact := a.fieldRules.exactValues[field.definitionID]; exact {
+			if _, allowed := values[field.value]; !allowed {
+				return fmt.Errorf("evidence field %q is not request-bound or closed", field.definitionID)
+			}
 		}
 	}
 	return nil
