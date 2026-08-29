@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	enumspb "go.temporal.io/api/enums/v1"
@@ -204,6 +205,55 @@ func (cfg *LiteServerConfig) validate() error {
 type LiteServer struct {
 	internal         temporal.Server
 	frontendHostPort string
+	startOperation   contextOperation
+	stopOperation    contextOperation
+}
+
+type contextOperation struct {
+	mu      sync.Mutex
+	started bool
+	done    chan struct{}
+	err     error
+}
+
+func (o *contextOperation) start(operation func() error) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if o.started {
+		return
+	}
+	o.started = true
+	o.done = make(chan struct{})
+	go func() {
+		defer close(o.done)
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				o.err = fmt.Errorf("panic: %v", recovered)
+			}
+		}()
+		o.err = operation()
+	}()
+}
+
+func (o *contextOperation) wait(ctx context.Context) error {
+	o.mu.Lock()
+	done := o.done
+	started := o.started
+	o.mu.Unlock()
+	if !started {
+		return nil
+	}
+	select {
+	case <-done:
+		return o.err
+	default:
+	}
+	select {
+	case <-done:
+		return o.err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 }
 
 // NewLiteServer initializes a Server with a SQLite backend.
@@ -303,16 +353,37 @@ func NewLiteServer(liteConfig *LiteServerConfig, opts ...temporal.ServerOption) 
 
 // Start temporal server.
 func (s *LiteServer) Start() error {
+	return s.StartContext(context.Background())
+}
+
+// StartContext starts the Temporal server while bounding how long the caller
+// waits. If the context expires, a later StopContext call first waits for the
+// same in-progress start rather than losing ownership of it.
+func (s *LiteServer) StartContext(ctx context.Context) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
 	// We wrap Server instead of simply embedding it in the LiteServer struct so
 	// that it's possible to add additional lifecycle hooks here if necessary.
-	return s.internal.Start()
+	s.startOperation.start(s.internal.Start)
+	return s.startOperation.wait(ctx)
 }
 
 // Stop the server.
 func (s *LiteServer) Stop() error {
+	return s.StopContext(context.Background())
+}
+
+// StopContext stops the Temporal server while bounding how long the caller
+// waits. Repeated calls wait for the same stop operation.
+func (s *LiteServer) StopContext(ctx context.Context) error {
 	// We wrap Server instead of simply embedding it in the LiteServer struct so
 	// that it's possible to add additional lifecycle hooks here if necessary.
-	return s.internal.Stop()
+	if err := s.startOperation.wait(ctx); err != nil && ctx.Err() != nil {
+		return err
+	}
+	s.stopOperation.start(s.internal.Stop)
+	return s.stopOperation.wait(ctx)
 }
 
 // NewClient initializes a client ready to communicate with the Temporal
@@ -328,7 +399,7 @@ func (s *LiteServer) NewClient(ctx context.Context, namespace string) (client.Cl
 // Note that options.HostPort will always be overridden.
 func (s *LiteServer) NewClientWithOptions(ctx context.Context, options client.Options) (client.Client, error) {
 	options.HostPort = s.frontendHostPort
-	return client.Dial(options)
+	return client.DialContext(ctx, options)
 }
 
 // FrontendHostPort returns the host:port for this server.
