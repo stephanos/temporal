@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	defaultWorkerStopTimeout   = 10 * time.Second
-	startupFailureCleanupLimit = 15 * time.Second
+	defaultWorkerStopTimeout          = 10 * time.Second
+	defaultClientStartupTimeout       = 10 * time.Second
+	defaultStartupFailureCleanupLimit = 15 * time.Second
 )
 
 // LifecycleResourceKind identifies a resource owned by a TestServer lifecycle.
@@ -146,6 +147,12 @@ func withLifecycleBackend(backend lifecycleBackend) TestServerOption {
 	})
 }
 
+func withStartupFailureCleanupLimit(limit time.Duration) TestServerOption {
+	return applyFunc(func(server *TestServer) {
+		server.startupFailureCleanupLimit = limit
+	})
+}
+
 type lifecycleOperation struct {
 	once sync.Once
 	done chan struct{}
@@ -185,10 +192,10 @@ func (o *lifecycleOperation) wait(ctx context.Context) error {
 }
 
 type ownedLifecycleResource struct {
-	resource LifecycleResource
-	start    *lifecycleOperation
-	release  lifecycleOperation
-	releasef func(context.Context) error
+	resource     LifecycleResource
+	acquisitions []*lifecycleOperation
+	release      lifecycleOperation
+	releasef     func(context.Context) error
 
 	mu       sync.Mutex
 	released bool
@@ -212,19 +219,22 @@ func newOwnedLifecycleResource(resource LifecycleResource, release func(context.
 	}
 }
 
-func (r *ownedLifecycleResource) startOperation(ctx context.Context, start func(context.Context) error) error {
-	r.start = new(lifecycleOperation)
-	*r.start = newLifecycleOperation()
-	r.start.run(func() error { return start(context.Background()) })
-	return r.start.wait(ctx)
+func (r *ownedLifecycleResource) acquisitionOperation(ctx context.Context, acquire func(context.Context) error) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	operation := newLifecycleOperation()
+	r.acquisitions = append(r.acquisitions, &operation)
+	operation.run(func() error { return acquire(context.Background()) })
+	return operation.wait(ctx)
 }
 
 func (r *ownedLifecycleResource) releaseResource(ctx context.Context) error {
 	if r.isReleased() {
 		return nil
 	}
-	if r.start != nil {
-		if err := r.start.wait(ctx); err != nil && ctx.Err() != nil {
+	for _, acquisition := range r.acquisitions {
+		if err := acquisition.wait(ctx); err != nil && ctx.Err() != nil {
 			return err
 		}
 	}
@@ -264,7 +274,11 @@ func callLifecycleError(operation func() error) (err error) {
 
 func (ts *TestServer) startupError(operation LifecycleOperation, err error) error {
 	lifecycleErr := &LifecycleError{Operation: operation, Err: err}
-	cleanupCtx, cancel := context.WithTimeout(context.Background(), startupFailureCleanupLimit)
+	limit := ts.startupFailureCleanupLimit
+	if limit <= 0 {
+		limit = defaultStartupFailureCleanupLimit
+	}
+	cleanupCtx, cancel := context.WithTimeout(context.Background(), limit)
 	defer cancel()
 	return errors.Join(lifecycleErr, ts.StopContext(cleanupCtx))
 }
