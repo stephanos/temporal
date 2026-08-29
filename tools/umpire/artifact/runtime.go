@@ -91,13 +91,16 @@ func ValidateExperimentRunV2Closure(
 func runtimeV2StringLimit(path JSONPath) int {
 	fieldPath := string(path)
 	switch {
-	case strings.HasSuffix(fieldPath, ".detail"):
+	case strings.HasSuffix(fieldPath, ".detail"),
+		strings.HasSuffix(fieldPath, ".knownGapReason"):
 		return MaximumDiagnosticBytes
 	case strings.HasSuffix(fieldPath, ".definitionId"),
 		strings.HasSuffix(fieldPath, "DefinitionId"),
 		strings.HasSuffix(fieldPath, "DefinitionIds[*]"),
+		strings.HasSuffix(fieldPath, ".alternatives[*]"),
 		strings.HasSuffix(fieldPath, "Fingerprint"),
 		strings.HasSuffix(fieldPath, "Checksum"),
+		strings.HasSuffix(fieldPath, ".identity"),
 		strings.HasSuffix(fieldPath, ".formatVersion"),
 		strings.HasSuffix(fieldPath, ".runIdentity"),
 		strings.HasSuffix(fieldPath, ".code"),
