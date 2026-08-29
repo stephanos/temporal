@@ -208,4 +208,16 @@ def experimentRunChecksumOf (canonicalContent : String) : ArtifactChecksum :=
 def rawEvidenceChecksumOf (canonicalContent : String) : ArtifactChecksum :=
   ⟨derive "umpire.raw-evidence/v2" canonicalContent⟩
 
+/-- Checksum an exact pretty interpreted Evidence object without its checksum field. -/
+def evidenceChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+  ⟨derive "umpire.evidence/v2" canonicalContent⟩
+
+/-- Checksum an exact pretty Run Evaluation Result object without its checksum field. -/
+def resultChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+  ⟨derive "umpire.result/v2" canonicalContent⟩
+
+/-- Checksum the exact pretty stable evaluation-outcome Generated View. -/
+def evaluationOutcomeChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+  ⟨derive "umpire.evaluation-outcome/v2" canonicalContent⟩
+
 end Umpire
