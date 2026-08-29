@@ -38,9 +38,16 @@ Add the small domain-neutral semantic-check deep module consumed by the private 
 - [ ] Reusable modules import no Temporal, artifact IO, process, or command package.
 - [ ] Focused Lean tests cover satisfied, violated, Observation Evaluation non-success, incomplete verdicts, repeated values, and N/N+1 evidence.
 ## Done summary
-TBD
+Implemented the domain-neutral Run Evaluation seam across checked Observation Evaluation, Evidence-backed System Model Trace, checked Implementation Link, Feature Model Trace, and unchanged Property evaluation. The result retains Observation, Implementation Link, and canonical Property/Query outcomes independently, fails closed on every non-accepted altitude, and contains no Temporal, Artifact, process, plan, operational, or outcome-identity meaning.
 
+Focused tests cover satisfied and violated Properties, Observation and Implementation Link non-success, incomplete verdict partitions, repeated values, deterministic canonical ordering, exact N/N+1 evidence behavior, logical-time prerequisites, and destination/query target binding. Memory capture was attempted after review fixes but the repository memory store is not initialized.
+
+baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests.Check failed pre-edit: task target absent)
+
+GATE_RECEIPT_NOT_WRITTEN:unittest:inherited protected config/development.yaml dirty state made receipt non-warrantable
+
+stage: impl-review - ran [2026-08-29T22:29:27Z..2026-08-29T22:40:02Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 12a1acd2d9c22f839215273930a4199e9756619f, e9a28ac0b0b52dca194c0643783b984ec1f7b81e
+- Tests: baseline: red (cd model && mise exec -- lake build Umpire.Observation.Tests.Check failed pre-edit: task target absent), cd model && mise exec -- lake build Umpire.Observation.Tests.Check, cd model && mise exec -- lake build Umpire.Observation.ImportTests Umpire.Observation.Tests, make umpire-check-regression, make lint-model, GATE_RECEIPT_NOT_WRITTEN:unittest:inherited protected config/development.yaml dirty state made receipt non-warrantable
 - PRs:
