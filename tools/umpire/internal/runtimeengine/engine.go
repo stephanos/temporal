@@ -78,6 +78,34 @@ var commandOrder = [...]CommandKind{
 	CommandCleanup,
 }
 
+var engineAdmission = newExecutionAdmission()
+
+type executionAdmission struct {
+	slot chan struct{}
+}
+
+func newExecutionAdmission() *executionAdmission {
+	admission := &executionAdmission{slot: make(chan struct{}, 1)}
+	admission.slot <- struct{}{}
+	return admission
+}
+
+func (a *executionAdmission) acquire(ctx context.Context) error {
+	if ctx == nil {
+		return errors.New("umpire runtime execution admission requires a context")
+	}
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-a.slot:
+		return nil
+	}
+}
+
+func (a *executionAdmission) release() {
+	a.slot <- struct{}{}
+}
+
 type phaseContextFactory interface {
 	phaseContext(context.Context, Phase, PhaseLimit, bool, time.Time) (context.Context, context.CancelFunc)
 }
@@ -120,6 +148,10 @@ func Run(
 	factory EnvironmentFactory,
 	participant Participant,
 ) (Output, error) {
+	if err := engineAdmission.acquire(ctx); err != nil {
+		return Output{}, err
+	}
+	defer engineAdmission.release()
 	return runWithPhaseContexts(ctx, request, factory, participant, boundedPhaseContextFactory{})
 }
 
