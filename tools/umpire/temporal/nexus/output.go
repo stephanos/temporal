@@ -11,9 +11,11 @@ import (
 
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
+	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
-	"go.temporal.io/server/tools/umpire/temporal/local"
 )
+
+var errExecutionClosure = errors.New("umpire.temporal.nexus.invariant.execution-closure")
 
 var retainedFieldDisposition = map[string]string{
 	umpireruntime.EvidenceFieldCancellationCallbackCount: "number",
@@ -65,24 +67,7 @@ func Run(
 	ctx context.Context,
 	request umpireruntime.CheckedRunRequest,
 ) (umpireruntime.Output, error) {
-	participant, err := NewParticipant(request)
-	if err != nil {
-		return umpireruntime.Output{}, err
-	}
-	output, err := umpireruntime.Run(ctx, request, local.NewFactory(), participant)
-	if err != nil {
-		return umpireruntime.Output{}, err
-	}
-	executable, ok := request.AdmittedSet().Executable()
-	if !ok || validateExecutionClosure(
-		executable,
-		output.AdmittedSet(),
-		output.ExperimentRun(),
-		output.RawEvidence(),
-	) != nil {
-		return umpireruntime.Output{}, errors.New("umpire.temporal.nexus.invariant.execution-closure")
-	}
-	return output, nil
+	return runner.RunChecked(ctx, request, Binding{})
 }
 
 func validateExecutionClosure(
