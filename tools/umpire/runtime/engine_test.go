@@ -35,27 +35,28 @@ type oracleRow struct {
 	historySource     string
 	controlSource     string
 	cleanupSource     string
+	capture           string
 	cleanupStatus     string
 	cleanupOpenHandle uint64
 }
 
 var exhaustiveOracle = []oracleRow{
-	{name: "success", terminal: oracleSucceeded, phases: [5]string{"succeeded", "succeeded", "succeeded", "succeeded", "succeeded"}, control: "accepted", operational: "succeeded", historySource: "closed", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "preparation failed", target: PhasePreparation, terminal: oracleFailed, phases: [5]string{"failed", "not-started", "not-started", "succeeded", "succeeded"}, control: "not-attempted", operational: "failed", historySource: "partial", controlSource: "partial", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "preparation timed out", target: PhasePreparation, terminal: oracleTimedOut, phases: [5]string{"timed-out", "not-started", "not-started", "succeeded", "succeeded"}, control: "not-attempted", operational: "incomplete", historySource: "partial", controlSource: "partial", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "preparation canceled", target: PhasePreparation, terminal: oracleCanceled, phases: [5]string{"canceled", "not-started", "not-started", "succeeded", "succeeded"}, control: "not-attempted", operational: "incomplete", historySource: "partial", controlSource: "partial", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "realization failed", target: PhaseRealization, terminal: oracleFailed, phases: [5]string{"succeeded", "failed", "succeeded", "succeeded", "succeeded"}, control: "failed", operational: "failed", historySource: "closed", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "realization timed out", target: PhaseRealization, terminal: oracleTimedOut, phases: [5]string{"succeeded", "timed-out", "succeeded", "succeeded", "succeeded"}, control: "canceled", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "realization canceled", target: PhaseRealization, terminal: oracleCanceled, phases: [5]string{"succeeded", "canceled", "succeeded", "succeeded", "succeeded"}, control: "canceled", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "observation failed", target: PhaseObservation, terminal: oracleFailed, phases: [5]string{"succeeded", "succeeded", "failed", "succeeded", "succeeded"}, control: "accepted", operational: "failed", historySource: "failed", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "observation timed out", target: PhaseObservation, terminal: oracleTimedOut, phases: [5]string{"succeeded", "succeeded", "timed-out", "succeeded", "succeeded"}, control: "accepted", operational: "incomplete", historySource: "partial", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "observation canceled", target: PhaseObservation, terminal: oracleCanceled, phases: [5]string{"succeeded", "succeeded", "canceled", "succeeded", "succeeded"}, control: "accepted", operational: "incomplete", historySource: "partial", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "isolation failed", target: PhaseIsolation, terminal: oracleFailed, phases: [5]string{"succeeded", "succeeded", "succeeded", "failed", "succeeded"}, control: "accepted", operational: "failed", historySource: "closed", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "isolation timed out", target: PhaseIsolation, terminal: oracleTimedOut, phases: [5]string{"succeeded", "succeeded", "succeeded", "timed-out", "succeeded"}, control: "accepted", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "isolation canceled", target: PhaseIsolation, terminal: oracleCanceled, phases: [5]string{"succeeded", "succeeded", "succeeded", "canceled", "succeeded"}, control: "accepted", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "closed", cleanupStatus: "complete"},
-	{name: "cleanup failed", target: PhaseCleanup, terminal: oracleFailed, phases: [5]string{"succeeded", "succeeded", "succeeded", "succeeded", "failed"}, control: "accepted", operational: "failed", historySource: "closed", controlSource: "closed", cleanupSource: "failed", cleanupStatus: "failed", cleanupOpenHandle: 1},
-	{name: "cleanup timed out", target: PhaseCleanup, terminal: oracleTimedOut, phases: [5]string{"succeeded", "succeeded", "succeeded", "succeeded", "timed-out"}, control: "accepted", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "partial", cleanupStatus: "incomplete", cleanupOpenHandle: 1},
-	{name: "cleanup canceled", target: PhaseCleanup, terminal: oracleCanceled, phases: [5]string{"succeeded", "succeeded", "succeeded", "succeeded", "canceled"}, control: "accepted", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "partial", cleanupStatus: "incomplete", cleanupOpenHandle: 1},
+	{name: "success", terminal: oracleSucceeded, phases: [5]string{"succeeded", "succeeded", "succeeded", "succeeded", "succeeded"}, control: "accepted", operational: "succeeded", historySource: "closed", controlSource: "closed", cleanupSource: "closed", capture: "closed", cleanupStatus: "complete"},
+	{name: "preparation failed", target: PhasePreparation, terminal: oracleFailed, phases: [5]string{"failed", "not-started", "not-started", "succeeded", "succeeded"}, control: "not-attempted", operational: "failed", historySource: "partial", controlSource: "partial", cleanupSource: "closed", capture: "partial", cleanupStatus: "complete"},
+	{name: "preparation timed out", target: PhasePreparation, terminal: oracleTimedOut, phases: [5]string{"timed-out", "not-started", "not-started", "succeeded", "succeeded"}, control: "not-attempted", operational: "incomplete", historySource: "partial", controlSource: "partial", cleanupSource: "closed", capture: "partial", cleanupStatus: "complete"},
+	{name: "preparation canceled", target: PhasePreparation, terminal: oracleCanceled, phases: [5]string{"canceled", "not-started", "not-started", "succeeded", "succeeded"}, control: "not-attempted", operational: "incomplete", historySource: "partial", controlSource: "partial", cleanupSource: "closed", capture: "partial", cleanupStatus: "complete"},
+	{name: "realization failed", target: PhaseRealization, terminal: oracleFailed, phases: [5]string{"succeeded", "failed", "succeeded", "succeeded", "succeeded"}, control: "failed", operational: "failed", historySource: "closed", controlSource: "closed", cleanupSource: "closed", capture: "closed", cleanupStatus: "complete"},
+	{name: "realization timed out", target: PhaseRealization, terminal: oracleTimedOut, phases: [5]string{"succeeded", "timed-out", "succeeded", "succeeded", "succeeded"}, control: "canceled", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "closed", capture: "closed", cleanupStatus: "complete"},
+	{name: "realization canceled", target: PhaseRealization, terminal: oracleCanceled, phases: [5]string{"succeeded", "canceled", "succeeded", "succeeded", "succeeded"}, control: "canceled", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "closed", capture: "closed", cleanupStatus: "complete"},
+	{name: "observation failed", target: PhaseObservation, terminal: oracleFailed, phases: [5]string{"succeeded", "succeeded", "failed", "succeeded", "succeeded"}, control: "accepted", operational: "failed", historySource: "failed", controlSource: "closed", cleanupSource: "closed", capture: "failed", cleanupStatus: "complete"},
+	{name: "observation timed out", target: PhaseObservation, terminal: oracleTimedOut, phases: [5]string{"succeeded", "succeeded", "timed-out", "succeeded", "succeeded"}, control: "accepted", operational: "incomplete", historySource: "partial", controlSource: "closed", cleanupSource: "closed", capture: "partial", cleanupStatus: "complete"},
+	{name: "observation canceled", target: PhaseObservation, terminal: oracleCanceled, phases: [5]string{"succeeded", "succeeded", "canceled", "succeeded", "succeeded"}, control: "accepted", operational: "incomplete", historySource: "partial", controlSource: "closed", cleanupSource: "closed", capture: "partial", cleanupStatus: "complete"},
+	{name: "isolation failed", target: PhaseIsolation, terminal: oracleFailed, phases: [5]string{"succeeded", "succeeded", "succeeded", "failed", "succeeded"}, control: "accepted", operational: "failed", historySource: "closed", controlSource: "closed", cleanupSource: "closed", capture: "closed", cleanupStatus: "complete"},
+	{name: "isolation timed out", target: PhaseIsolation, terminal: oracleTimedOut, phases: [5]string{"succeeded", "succeeded", "succeeded", "timed-out", "succeeded"}, control: "accepted", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "closed", capture: "closed", cleanupStatus: "complete"},
+	{name: "isolation canceled", target: PhaseIsolation, terminal: oracleCanceled, phases: [5]string{"succeeded", "succeeded", "succeeded", "canceled", "succeeded"}, control: "accepted", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "closed", capture: "closed", cleanupStatus: "complete"},
+	{name: "cleanup failed", target: PhaseCleanup, terminal: oracleFailed, phases: [5]string{"succeeded", "succeeded", "succeeded", "succeeded", "failed"}, control: "accepted", operational: "failed", historySource: "closed", controlSource: "closed", cleanupSource: "failed", capture: "failed", cleanupStatus: "failed", cleanupOpenHandle: 1},
+	{name: "cleanup timed out", target: PhaseCleanup, terminal: oracleTimedOut, phases: [5]string{"succeeded", "succeeded", "succeeded", "succeeded", "timed-out"}, control: "accepted", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "partial", capture: "partial", cleanupStatus: "incomplete", cleanupOpenHandle: 1},
+	{name: "cleanup canceled", target: PhaseCleanup, terminal: oracleCanceled, phases: [5]string{"succeeded", "succeeded", "succeeded", "succeeded", "canceled"}, control: "accepted", operational: "incomplete", historySource: "closed", controlSource: "closed", cleanupSource: "partial", capture: "partial", cleanupStatus: "incomplete", cleanupOpenHandle: 1},
 }
 
 func TestRunMatchesIndependentExhaustivePhaseOracle(t *testing.T) {
@@ -68,6 +69,7 @@ func TestRunMatchesIndependentExhaustivePhaseOracle(t *testing.T) {
 			)
 			require.NoError(t, err)
 			run := output.ExperimentRun()
+			rawEvidence := output.RawEvidence()
 			require.Equal(t, row.operational, run.OperationalStatus)
 			require.Equal(t, row.phases[:], phaseStatuses(run.PhaseOutcomes))
 			require.Equal(t, row.control, run.ControlAttempts[0].Status)
@@ -77,6 +79,19 @@ func TestRunMatchesIndependentExhaustivePhaseOracle(t *testing.T) {
 			require.Equal(t, "closed", sourceStatus(run.SourceClosures, EvidenceSourceParticipantOutput))
 			require.Equal(t, row.cleanupStatus, run.Cleanup.Status)
 			require.Equal(t, artifactv2.NaturalFromUint64(row.cleanupOpenHandle), run.Cleanup.OpenHandleCount)
+			require.Equal(t, row.capture, rawEvidence.CaptureStatus)
+			require.Equal(t, run.RunIdentity, rawEvidence.RunIdentity)
+			require.Equal(t, run.ArtifactChecksum, rawEvidence.Run.ArtifactChecksum)
+			require.Equal(t, run.KnownGaps, rawEvidence.KnownGaps)
+			require.Equal(t, sourceStatus(run.SourceClosures, EvidenceSourceCleanup), sourceStatusFromEvidence(rawEvidence.Sources, EvidenceSourceCleanup))
+			require.Equal(t, sourceStatus(run.SourceClosures, EvidenceSourceControlReceipt), sourceStatusFromEvidence(rawEvidence.Sources, EvidenceSourceControlReceipt))
+			require.Equal(t, sourceStatus(run.SourceClosures, EvidenceSourceHistory), sourceStatusFromEvidence(rawEvidence.Sources, EvidenceSourceHistory))
+			require.Equal(t, sourceStatus(run.SourceClosures, EvidenceSourceParticipantOutput), sourceStatusFromEvidence(rawEvidence.Sources, EvidenceSourceParticipantOutput))
+			expectedFactCount := 1
+			if row.control == "not-attempted" {
+				expectedFactCount = 0
+			}
+			require.Len(t, rawEvidence.Facts, expectedFactCount)
 			require.Equal(t, 1, state.participant.cleanupCalls)
 			require.Equal(t, 1, state.environment.cleanupCalls)
 			require.Equal(t, 1, state.environment.isolationCalls)
@@ -120,6 +135,129 @@ func TestRunConcreteCleanupFailureDominatesItsExpiredDeadline(t *testing.T) {
 	require.Equal(t, "failed", sourceStatus(run.SourceClosures, EvidenceSourceCleanup))
 }
 
+func TestRunStopsPreparationWhenFactoryContextIsTerminal(t *testing.T) {
+	request := newEngineRequest(t)
+	for _, test := range []struct {
+		name          string
+		context       oracleTerminal
+		receiptStatus ReceiptStatus
+		expected      string
+	}{
+		{name: "accepted after deadline", context: oracleTimedOut, receiptStatus: ReceiptAccepted, expected: "timed-out"},
+		{name: "accepted after cancellation", context: oracleCanceled, receiptStatus: ReceiptAccepted, expected: "canceled"},
+		{name: "failure dominates deadline", context: oracleTimedOut, receiptStatus: ReceiptFailed, expected: "failed"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			state := newOracleState(t, "", oracleSucceeded, false)
+			state.factoryContextTerminal = test.context
+			state.factoryReceiptStatus = test.receiptStatus
+			output, err := runWithPhaseContexts(
+				context.Background(), request, state.factory, state.participant, oraclePhaseContextFactory{},
+			)
+			require.NoError(t, err)
+			run := output.ExperimentRun()
+			require.Equal(t, test.expected, run.PhaseOutcomes[0].Status)
+			require.Equal(t, 0, state.participant.prepareCalls)
+			require.Equal(t, 0, state.participant.cleanupCalls)
+			require.Equal(t, 1, state.environment.isolationCalls)
+			require.Equal(t, 1, state.environment.cleanupCalls)
+			requireExactExecutionSet(t, output.AdmittedSet())
+		})
+	}
+}
+
+func TestRunRecordsFactoryPreparationReceiptOutcomes(t *testing.T) {
+	request := newEngineRequest(t)
+	for _, test := range []struct {
+		status   ReceiptStatus
+		expected string
+	}{
+		{status: ReceiptFailed, expected: "failed"},
+		{status: ReceiptRejected, expected: "failed"},
+		{status: ReceiptUnsupported, expected: "failed"},
+		{status: ReceiptCanceled, expected: "canceled"},
+	} {
+		t.Run(string(test.status), func(t *testing.T) {
+			state := newOracleState(t, "", oracleSucceeded, false)
+			state.factoryReceiptStatus = test.status
+			output, err := runWithPhaseContexts(
+				context.Background(), request, state.factory, state.participant, oraclePhaseContextFactory{},
+			)
+			require.NoError(t, err)
+			run := output.ExperimentRun()
+			require.Equal(t, test.expected, run.PhaseOutcomes[0].Status)
+			require.Equal(t, "not-attempted", run.ControlAttempts[0].Status)
+			require.Equal(t, 0, state.participant.prepareCalls)
+			require.Equal(t, 1, state.environment.cleanupCalls)
+			requireExactExecutionSet(t, output.AdmittedSet())
+		})
+	}
+}
+
+func TestRunRecordsParticipantPreparationReceiptOutcomes(t *testing.T) {
+	request := newEngineRequest(t)
+	for _, status := range []ReceiptStatus{ReceiptRejected, ReceiptUnsupported} {
+		t.Run(string(status), func(t *testing.T) {
+			state := newOracleState(t, "", oracleSucceeded, false)
+			state.forcedReceiptStatuses = map[Phase]ReceiptStatus{PhasePreparation: status}
+			output, err := runWithPhaseContexts(
+				context.Background(), request, state.factory, state.participant, oraclePhaseContextFactory{},
+			)
+			require.NoError(t, err)
+			run := output.ExperimentRun()
+			require.Equal(t, "failed", run.PhaseOutcomes[0].Status)
+			require.Equal(t, "not-attempted", run.ControlAttempts[0].Status)
+			require.Equal(t, 1, state.participant.prepareCalls)
+			require.Equal(t, 1, state.participant.cleanupCalls)
+			require.Equal(t, 1, state.environment.cleanupCalls)
+			requireExactExecutionSet(t, output.AdmittedSet())
+		})
+	}
+}
+
+func TestRunRecordsRejectedAndUnsupportedControlReceipts(t *testing.T) {
+	request := newEngineRequest(t)
+	for _, status := range []ReceiptStatus{ReceiptRejected, ReceiptUnsupported} {
+		t.Run(string(status), func(t *testing.T) {
+			state := newOracleState(t, "", oracleSucceeded, false)
+			state.forcedReceiptStatuses = map[Phase]ReceiptStatus{PhaseRealization: status}
+			output, err := runWithPhaseContexts(
+				context.Background(), request, state.factory, state.participant, oraclePhaseContextFactory{},
+			)
+			require.NoError(t, err)
+			run := output.ExperimentRun()
+			require.Equal(t, "failed", run.PhaseOutcomes[1].Status)
+			require.Equal(t, string(status), run.ControlAttempts[0].Status)
+			require.Equal(t, "failed", run.OperationalStatus)
+			require.Equal(t, 1, state.participant.cleanupCalls)
+			require.Equal(t, 1, state.environment.cleanupCalls)
+			requireExactExecutionSet(t, output.AdmittedSet())
+		})
+	}
+}
+
+func TestRunAppliesCompoundOutcomePrecedence(t *testing.T) {
+	request := newEngineRequest(t)
+	state := newOracleState(t, "", oracleSucceeded, false)
+	state.phaseTerminals = map[Phase]oracleTerminal{
+		PhaseObservation: oracleFailed,
+		PhaseIsolation:   oracleTimedOut,
+		PhaseCleanup:     oracleCanceled,
+	}
+	output, err := runWithPhaseContexts(
+		context.Background(), request, state.factory, state.participant, oraclePhaseContextFactory{},
+	)
+	require.NoError(t, err)
+	run := output.ExperimentRun()
+	require.Equal(t, []string{"succeeded", "succeeded", "failed", "timed-out", "canceled"}, phaseStatuses(run.PhaseOutcomes))
+	require.Equal(t, "failed", run.OperationalStatus)
+	require.Equal(t, "failed", sourceStatus(run.SourceClosures, EvidenceSourceHistory))
+	require.Equal(t, "partial", sourceStatus(run.SourceClosures, EvidenceSourceCleanup))
+	require.Equal(t, 1, state.participant.cleanupCalls)
+	require.Equal(t, 1, state.environment.cleanupCalls)
+	requireExactExecutionSet(t, output.AdmittedSet())
+}
+
 func TestRunDetachesIsolationAndCleanupFromCanceledParent(t *testing.T) {
 	request := newEngineRequest(t)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -136,10 +274,23 @@ func TestRunDetachesIsolationAndCleanupFromCanceledParent(t *testing.T) {
 	require.Equal(t, 1, state.environment.cleanupCalls)
 }
 
-func TestRunRejectsInvalidAdapterOutputBeforeAdmission(t *testing.T) {
+func TestRunRejectsMissingOrInvalidControlReceiptBeforeAdmission(t *testing.T) {
 	request := newEngineRequest(t)
 	state := newOracleState(t, "", oracleSucceeded, false)
 	state.participant.invalidReceipt = true
+	output, err := Run(context.Background(), request, state.factory, state.participant)
+	var invariant *InvariantError
+	require.ErrorAs(t, err, &invariant)
+	require.True(t, invariant.ExecutionOccurred())
+	require.Empty(t, output.AdmittedSet().Identity())
+	require.Equal(t, 1, state.participant.cleanupCalls)
+	require.Equal(t, 1, state.environment.cleanupCalls)
+}
+
+func TestRunRejectsDuplicateControlReceiptBeforeAdmission(t *testing.T) {
+	request := newEngineRequest(t)
+	state := newOracleState(t, "", oracleSucceeded, false)
+	state.participant.duplicateControlReceipt = true
 	output, err := Run(context.Background(), request, state.factory, state.participant)
 	var invariant *InvariantError
 	require.ErrorAs(t, err, &invariant)
@@ -260,6 +411,10 @@ type oracleState struct {
 	factCounts                   map[Phase]int
 	nextFact                     int
 	extraEnvironmentCleanupFacts int
+	factoryContextTerminal       oracleTerminal
+	factoryReceiptStatus         ReceiptStatus
+	forcedReceiptStatuses        map[Phase]ReceiptStatus
+	phaseTerminals               map[Phase]oracleTerminal
 	factory                      *oracleFactory
 	environment                  *oracleEnvironment
 	participant                  *oracleParticipant
@@ -289,6 +444,9 @@ func (s *oracleState) receipt(
 	if s.target == phase {
 		terminal = s.terminal
 	}
+	if forced, ok := s.phaseTerminals[phase]; ok {
+		terminal = forced
+	}
 	if phase == PhaseCleanup && s.cleanupFailure {
 		terminal = oracleFailed
 	}
@@ -310,6 +468,9 @@ func (s *oracleState) receipt(
 		} else {
 			ctx.(*oraclePhaseContext).terminate(context.Canceled)
 		}
+	}
+	if forced, ok := s.forcedReceiptStatuses[phase]; ok {
+		status = forced
 	}
 	if status != ReceiptAccepted && phase == PhaseCleanup {
 		released = []Resource{}
@@ -340,12 +501,22 @@ func (s *oracleState) takeFacts(phase Phase, count int) []Fact {
 type oracleFactory struct{ state *oracleState }
 
 func (f *oracleFactory) Prepare(
-	_ context.Context,
+	ctx context.Context,
 	_ CheckedRunRequest,
 	command Command,
 ) (Environment, Receipt) {
+	if f.state.factoryContextTerminal == oracleTimedOut {
+		ctx.(*oraclePhaseContext).terminate(context.DeadlineExceeded)
+	}
+	if f.state.factoryContextTerminal == oracleCanceled {
+		ctx.(*oraclePhaseContext).terminate(context.Canceled)
+	}
+	status := f.state.factoryReceiptStatus
+	if status == "" {
+		status = ReceiptAccepted
+	}
 	resource := mustOracleResource(f.state.t, ResourceEnvironment, "runtime.resource.environment")
-	receipt, err := NewReceipt(command, ReceiptAccepted, []Fact{}, []Resource{resource}, []Resource{})
+	receipt, err := NewReceipt(command, status, []Fact{}, []Resource{resource}, []Resource{})
 	require.NoError(f.state.t, err)
 	return f.state.environment, receipt
 }
@@ -375,14 +546,17 @@ func (e *oracleEnvironment) Cleanup(ctx context.Context, command Command) Receip
 }
 
 type oracleParticipant struct {
-	state                 *oracleState
-	cleanupCalls          int
-	observationEntryError error
-	cleanupEntryError     error
-	invalidReceipt        bool
+	state                   *oracleState
+	prepareCalls            int
+	cleanupCalls            int
+	observationEntryError   error
+	cleanupEntryError       error
+	invalidReceipt          bool
+	duplicateControlReceipt bool
 }
 
 func (p *oracleParticipant) Prepare(ctx context.Context, _ Environment, command Command) Receipt {
+	p.prepareCalls++
 	resource := mustOracleResource(p.state.t, ResourceParticipant, "runtime.resource.participant")
 	return p.state.receipt(ctx, command, PhasePreparation, []Resource{resource}, []Resource{})
 }
@@ -390,6 +564,13 @@ func (p *oracleParticipant) Prepare(ctx context.Context, _ Environment, command 
 func (p *oracleParticipant) Realize(ctx context.Context, _ Environment, command Command) Receipt {
 	if p.invalidReceipt {
 		return Receipt{}
+	}
+	if p.duplicateControlReceipt {
+		fact, err := controlReceiptFact(command, "accepted")
+		require.NoError(p.state.t, err)
+		receipt, err := NewReceipt(command, ReceiptAccepted, []Fact{fact}, []Resource{}, []Resource{})
+		require.NoError(p.state.t, err)
+		return receipt
 	}
 	return p.state.receipt(ctx, command, PhaseRealization, []Resource{}, []Resource{})
 }
