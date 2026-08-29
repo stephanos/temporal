@@ -117,6 +117,14 @@ private def unresolvedPropertyVerdict
   }
 }
 
+private def queryMatchesDestination
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (query : CheckedQuery DestinationLawStatement) : Bool :=
+  query.target.id == checked.destinationTarget.id &&
+    query.target.behaviorFingerprint == checked.destinationTarget.behaviorFingerprint
+
 private def translatedPropertyVerdict
     (query : CheckedQuery DestinationLawStatement)
     (property : CheckedProperty)
@@ -131,6 +139,10 @@ private def translatedPropertyVerdict
       if expected != property then
         unresolvedPropertyVerdict query property .unsupported .queryPropertyMismatch
           [query.id, property.id] (some sourceTrace.traceId) (some sourceTrace.appliedBound)
+      else if !property.hasRequiredLogicalTime application.trace then
+        unresolvedPropertyVerdict query property .unknown .missingLogicalTime
+          property.access.logicalTimeSource.toList
+          (some sourceTrace.traceId) (some sourceTrace.appliedBound)
       else
         let evaluation := evaluateProperty property application.trace
         let clauses := property.clauses.filterMap fun clause =>
@@ -164,6 +176,17 @@ private def implementationLinkFailureVerdict
     .semanticTraceUnavailable [diagnostic.implementationLinkId, property.id]
     (some sourceTrace.traceId) (some sourceTrace.appliedBound)
 
+private def targetMismatchVerdict
+    (query : CheckedQuery DestinationLawStatement)
+    (property : CheckedProperty)
+    (sourceTrace : EvidenceBackedTrace)
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue) : SemanticPropertyVerdict :=
+  unresolvedPropertyVerdict query property .unsupported .semanticTraceUnavailable
+    [query.target.id, checked.destinationTarget.id, property.id]
+    (some sourceTrace.traceId) (some sourceTrace.appliedBound)
+
 /-- Evaluate one bounded Evidence bundle through the full checked semantic altitude chain. -/
 def checkRunEvaluation
     [BEq SourceSetup] [BEq DestinationSetup]
@@ -188,8 +211,13 @@ def checkRunEvaluation
   | .accepted sourceTrace =>
       let linkResult := applyImplementationLink checked sourceSetup sourceTrace
       let verdicts := match linkResult with
-        | .applied application => properties.map fun property =>
-            translatedPropertyVerdict query property sourceTrace application
+        | .applied application =>
+            if queryMatchesDestination checked query then
+              properties.map fun property =>
+                translatedPropertyVerdict query property sourceTrace application
+            else
+              properties.map fun property =>
+                targetMismatchVerdict query property sourceTrace checked
         | .invalid diagnostic
         | .unknown diagnostic
         | .conflict diagnostic

@@ -14,7 +14,9 @@
     "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-20-local-execution-semantic-conformance",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-20-local-execution-semantic-conformance.1": 1
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -173,6 +175,59 @@
       "task": null,
       "timestamp": "2026-08-26T11:03:06.642143Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3e36f4ff31e4bac75558dc4c398b2500a2ac135ec63969a6932b9579df503ccc",
+      "backend": "codex",
+      "base_sha": "3fbeabc5fb1c21bf6f3f095eb7aeeb8175e4bdc6",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f24695aa38589df50972a593b8de1075",
+            "classification": "introduced",
+            "findingId": "finding-f24695aa38589df50972a593b8de1075",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-5d5128086e7ff30ef2dfc6345e6a822a",
+            "classification": "introduced",
+            "findingId": "finding-5d5128086e7ff30ef2dfc6345e6a822a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "12a1acd2d9c22f839215273930a4199e9756619f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 359544,
+      "output_sha256": "52d9e38a58b95a958aae21db384a0a6c7cfaf556e5bc38b05179552d6a304412",
+      "reservation_id": "0762550f86db4479bf5cc0c6a7c71d3a",
+      "round_consumed": true,
+      "scope": "impl:fn-20-local-execution-semantic-conformance.1",
+      "superseded_by": null,
+      "task": "fn-20-local-execution-semantic-conformance.1",
+      "timestamp": "2026-08-29T22:34:57.609441Z",
+      "tool_calls": 35,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -182,6 +237,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-20-local-execution-semantic-conformance.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-20-local-execution-semantic-conformance.md",
@@ -198,5 +254,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-29T22:13:28.894827Z"
+  "updated_at": "2026-08-29T22:34:57.618567Z"
 }
