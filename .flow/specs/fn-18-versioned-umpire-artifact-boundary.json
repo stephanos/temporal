@@ -13,8 +13,7 @@
     "fn-16-authored-variation-spaces-and",
     "fn-31-deepen-umpire-target-and-simplify",
     "fn-32-add-umpire-refinement-and-the-first",
-    "fn-37-hard-cut-umpire-vocabulary-and-current",
-    "fn-43-deepen-ordinary-property-behavior-and"
+    "fn-37-hard-cut-umpire-vocabulary-and-current"
   ],
   "id": "fn-18-versioned-umpire-artifact-boundary",
   "impl_review_rounds": {
@@ -662,5 +661,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T16:15:40.094305Z"
+  "updated_at": "2026-08-29T00:28:29.559097Z"
 }
