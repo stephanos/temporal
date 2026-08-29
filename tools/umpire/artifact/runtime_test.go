@@ -753,6 +753,18 @@ func TestRuntimeConfigurationV2RejectsOneAtATimeMutations(t *testing.T) {
 			}),
 			code: artifact.ErrorMalformedValue,
 		},
+		"vertical-tab provenance path": {
+			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.Provenance.SourceLocations[0].Path = "\u000b"
+			}),
+			code: artifact.ErrorMalformedValue,
+		},
+		"form-feed provenance path": {
+			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.Provenance.SourceLocations[0].Path = "\u000c"
+			}),
+			code: artifact.ErrorMalformedValue,
+		},
 		"blank provenance label": {
 			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
 				document.Provenance.SourceLocations[0].Provenance = " "
