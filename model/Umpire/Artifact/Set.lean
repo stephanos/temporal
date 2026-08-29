@@ -1,0 +1,166 @@
+import Umpire.Artifact.Result
+
+namespace Umpire
+
+/-! Exact closed v2 Artifact sets and their deterministic manifest. -/
+
+private def quoteSet (value : String) : String := Lean.Json.compress (.str value)
+
+private def setArray (items : List String) : String :=
+  "[" ++ String.intercalate "," items ++ "]"
+
+/-- One exact member row in the deterministic Artifact set manifest. -/
+structure ArtifactSetManifestMember where
+  path : String
+  formatVersion : String
+  artifactChecksum : ArtifactChecksum
+  behaviorFingerprint : BehaviorFingerprint
+  provenanceChecksum : ArtifactChecksum
+  deriving BEq, DecidableEq, Repr
+
+/-- The complete deterministic manifest for one admitted Artifact set. -/
+structure ArtifactSetManifest where
+  formatVersion : String
+  artifactSetIdentity : String
+  members : List ArtifactSetManifestMember
+  artifactSetChecksum : ArtifactChecksum
+  deriving BEq, DecidableEq, Repr
+
+/-- The retained documents that may form one exact executable, execution, or evaluation closure. -/
+structure ArtifactSet where
+  experiment : ExperimentSpec
+  runtimeConfiguration : RuntimeConfiguration
+  experimentRun : Option ExperimentRun := none
+  rawEvidence : Option RawEvidence := none
+  evidence : Option EvidenceArtifact := none
+  result : Option ResultArtifact := none
+  deriving BEq, DecidableEq, Repr
+
+private def resultArtifactBinding (result : ResultArtifact) : ArtifactBinding := {
+  formatVersion := result.formatVersion
+  artifactChecksum := result.artifactChecksum
+  behaviorFingerprint := result.behaviorFingerprint
+  provenanceChecksum := result.provenanceChecksum
+}
+
+private def manifestMember
+    (path : String)
+    (binding : ArtifactBinding) : ArtifactSetManifestMember := {
+  path
+  formatVersion := binding.formatVersion
+  artifactChecksum := binding.artifactChecksum
+  behaviorFingerprint := binding.behaviorFingerprint
+  provenanceChecksum := binding.provenanceChecksum
+}
+
+private def experimentTransportValid (experiment : ExperimentSpec) : Bool :=
+  experiment.formatVersion == "umpire-experiment/v2" &&
+    experiment.plan.formatVersion == "umpire-drive-plan/v2" &&
+    experiment.queryBehaviorFingerprint == experiment.plan.queryBehaviorFingerprint &&
+    experiment.plan.hasValidArtifactChecksum && experiment.hasValidArtifactChecksum
+
+/-- Check one exact 2-, 4-, or 6-member closure without executing or interpreting any member. -/
+def ArtifactSet.isValidClosure (set : ArtifactSet) : Bool :=
+  experimentTransportValid set.experiment && set.runtimeConfiguration.isValidTransport &&
+    set.runtimeConfiguration.closesExperiment set.experiment &&
+    match set.experimentRun, set.rawEvidence, set.evidence, set.result with
+    | none, none, none, none => true
+    | some run, some rawEvidence, none, none =>
+        run.isValidTransport && rawEvidence.isValidTransport &&
+          rawEvidence.closes set.experiment set.runtimeConfiguration run
+    | some run, some rawEvidence, some evidence, some result =>
+        run.isValidTransport && rawEvidence.isValidTransport && evidence.isValidTransport &&
+          result.isValidTransport &&
+          result.closes set.experiment set.runtimeConfiguration run rawEvidence evidence &&
+          result.implementationLink.sourceTarget.definitionId ==
+            set.experiment.plan.targetDefinitionId &&
+          result.implementationLink.sourceTarget.behaviorFingerprint ==
+            set.experiment.plan.targetBehaviorFingerprint
+    | _, _, _, _ => false
+
+private def ArtifactSet.manifestMembers? (set : ArtifactSet) : Option (List ArtifactSetManifestMember) :=
+  if !set.isValidClosure then none
+  else
+    let initial := [
+      manifestMember "artifacts/experiment.json" set.experiment.artifactBinding,
+      manifestMember "artifacts/runtime-configuration.json"
+        set.runtimeConfiguration.artifactBinding
+    ]
+    match set.experimentRun, set.rawEvidence, set.evidence, set.result with
+    | none, none, none, none => some initial
+    | some run, some rawEvidence, none, none =>
+        some (initial ++ [
+          manifestMember "artifacts/experiment-run.json" run.artifactBinding,
+          manifestMember "artifacts/raw-evidence.json" rawEvidence.artifactBinding
+        ])
+    | some run, some rawEvidence, some evidence, some result =>
+        some (initial ++ [
+          manifestMember "artifacts/experiment-run.json" run.artifactBinding,
+          manifestMember "artifacts/raw-evidence.json" rawEvidence.artifactBinding,
+          manifestMember "artifacts/evidence.json" evidence.artifactBinding,
+          manifestMember "artifacts/result.json" (resultArtifactBinding result)
+        ])
+    | _, _, _, _ => none
+
+private def ArtifactSetManifestMember.canonicalJson
+    (member : ArtifactSetManifestMember) : String :=
+  "{\"path\":" ++ quoteSet member.path ++
+    ",\"formatVersion\":" ++ quoteSet member.formatVersion ++
+    ",\"artifactChecksum\":" ++ quoteSet member.artifactChecksum.render ++
+    ",\"behaviorFingerprint\":" ++ quoteSet member.behaviorFingerprint.render ++
+    ",\"provenanceChecksum\":" ++ quoteSet member.provenanceChecksum.render ++ "}"
+
+private def manifestMembersJson (members : List ArtifactSetManifestMember) : String :=
+  setArray (members.map ArtifactSetManifestMember.canonicalJson)
+
+private def artifactSetIdentity (members : List ArtifactSetManifestMember) : String :=
+  "umpire.artifact-set." ++ Fingerprint.sha256Hex
+    ("umpire.artifact-set-identity/v2\n" ++ Json.prettyBytes (manifestMembersJson members))
+
+private def artifactSetChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+  (ArtifactChecksum.parse? ("sha256:" ++ Fingerprint.sha256Hex
+    ("umpire.artifact-set/v2\n" ++ canonicalContent))).getD (drivePlanChecksumOf "")
+
+private def artifactSetManifestContentJson (manifest : ArtifactSetManifest) : String :=
+  "{\"formatVersion\":" ++ quoteSet manifest.formatVersion ++
+    ",\"artifactSetIdentity\":" ++ quoteSet manifest.artifactSetIdentity ++
+    ",\"members\":" ++ manifestMembersJson manifest.members ++ "}"
+
+def ArtifactSetManifest.expectedChecksum (manifest : ArtifactSetManifest) : ArtifactChecksum :=
+  artifactSetChecksumOf (Json.prettyBytes (artifactSetManifestContentJson manifest))
+
+private def sealArtifactSetManifest
+    (members : List ArtifactSetManifestMember) : ArtifactSetManifest :=
+  let withoutChecksum : ArtifactSetManifest := {
+    formatVersion := "umpire-artifact-set/v2"
+    artifactSetIdentity := artifactSetIdentity members
+    members
+    artifactSetChecksum := drivePlanChecksumOf ""
+  }
+  { withoutChecksum with artifactSetChecksum := withoutChecksum.expectedChecksum }
+
+/-- Derive the sole valid manifest when the retained documents form an exact closed set. -/
+def ArtifactSet.manifest? (set : ArtifactSet) : Option ArtifactSetManifest :=
+  set.manifestMembers?.map sealArtifactSetManifest
+
+/-- Check that a supplied manifest is exactly the one derived from a closed retained set. -/
+def ArtifactSetManifest.isValidFor
+    (manifest : ArtifactSetManifest)
+    (set : ArtifactSet) : Bool :=
+  set.manifest? == some manifest
+
+/-- Encode an Artifact set manifest in its sole deterministic pretty representation. -/
+def canonicalArtifactSetManifestJson (manifest : ArtifactSetManifest) : String :=
+  let content := artifactSetManifestContentJson manifest
+  Json.pretty ((content.dropEnd 1).toString ++
+    ",\"artifactSetChecksum\":" ++ quoteSet manifest.artifactSetChecksum.render ++ "}")
+
+def canonicalArtifactSetManifestBytes (manifest : ArtifactSetManifest) : String :=
+  canonicalArtifactSetManifestJson manifest ++ "\n"
+
+/-- Return the raw SHA-256 of the complete canonical manifest bytes. -/
+def ArtifactSetManifest.manifestSha256 (manifest : ArtifactSetManifest) : ArtifactChecksum :=
+  (ArtifactChecksum.parse? ("sha256:" ++ Fingerprint.sha256Hex
+    (canonicalArtifactSetManifestBytes manifest))).getD (drivePlanChecksumOf "")
+
+end Umpire
