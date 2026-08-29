@@ -92,7 +92,8 @@ private def sourceJson (source : SourceLocation) : String :=
     ",\"column\":" ++ toString source.column ++
     ",\"provenance\":" ++ quote source.provenance ++ "}"
 
-private def provenanceJson (provenance : ArtifactProvenance) : String :=
+/-- Encode one ArtifactProvenance with the canonical v2 field and collection order. -/
+def ArtifactProvenance.canonicalJson (provenance : ArtifactProvenance) : String :=
   "{\"sourceDefinitionIds\":" ++
       array (canonicalIds provenance.sourceDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++
     ",\"sourceLocations\":" ++
@@ -133,7 +134,7 @@ private def drivePlanContentJson (plan : DrivePlan) : String :=
     ",\"selectionReason\":" ++ quote plan.selectionReason.name ++
     ",\"explored\":" ++ exploredJson plan.explored ++
     ",\"knownGaps\":" ++ array (plan.knownGaps.map canonicalKnownGapJson) ++
-    ",\"provenance\":" ++ provenanceJson plan.provenance ++ "}"
+    ",\"provenance\":" ++ plan.provenance.canonicalJson ++ "}"
 
 def DrivePlan.expectedArtifactChecksum (plan : DrivePlan) : ArtifactChecksum :=
   drivePlanChecksumOf (Json.prettyBytes (drivePlanContentJson plan))
@@ -160,7 +161,7 @@ private def experimentSpecContentJson (spec : ExperimentSpec) : String :=
     ",\"observationRequirementDefinitionIds\":" ++
       array (canonicalIds spec.observationRequirementDefinitionIds |>.map
         (quote ∘ DefinitionId.value)) ++
-    ",\"provenance\":" ++ provenanceJson spec.provenance ++ "}"
+    ",\"provenance\":" ++ spec.provenance.canonicalJson ++ "}"
 
 def ExperimentSpec.expectedArtifactChecksum (spec : ExperimentSpec) : ArtifactChecksum :=
   experimentSpecChecksumOf (Json.prettyBytes (experimentSpecContentJson spec))
