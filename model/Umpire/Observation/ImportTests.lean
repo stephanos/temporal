@@ -17,3 +17,5 @@ import Umpire.Observation
 #check Umpire.evaluateObservationProperty
 #check Umpire.StrictQuerySummary
 #check Umpire.summarizeQueryVerdicts
+#check Umpire.RunEvaluation
+#check Umpire.checkRunEvaluation
