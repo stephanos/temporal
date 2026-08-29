@@ -99,6 +99,61 @@ func TestCheckSetRejectsCompactMemberWithoutMutatingInput(t *testing.T) {
 	require.Equal(t, before, snapshotTree(t, setPath))
 }
 
+func TestCheckSetClassifiesUnsupportedMemberBeforeStaleManifestChecksum(t *testing.T) {
+	setPath := filepath.Join(t.TempDir(), "input")
+	writeEvaluationSet(t, setPath)
+	manifestPath := filepath.Join(setPath, "manifest.json")
+	manifest, err := os.ReadFile(manifestPath)
+	require.NoError(t, err)
+	manifest = bytes.Replace(manifest,
+		[]byte("sha256:12a0e9709e823da060eef54998e6cd36973779c725b177ce1eda5b9954e3499b"),
+		[]byte("sha256:02a0e9709e823da060eef54998e6cd36973779c725b177ce1eda5b9954e3499b"), 1)
+	require.NoError(t, os.WriteFile(manifestPath, manifest, 0o640))
+	experimentPath := filepath.Join(setPath, "artifacts", "experiment.json")
+	experiment, err := os.ReadFile(experimentPath)
+	require.NoError(t, err)
+	experiment = bytes.Replace(experiment,
+		[]byte("umpire-experiment/v2"), []byte("umpire-experiment/v3"), 1)
+	require.NoError(t, os.WriteFile(experimentPath, experiment, 0o640))
+	before := snapshotTree(t, setPath)
+
+	code, stdout, stderr := runCommand("check-set", "--set", setPath)
+
+	require.Equal(t, exitFailure, code)
+	require.Empty(t, stdout)
+	require.Equal(t,
+		"umpire-artifact: unsupported-format: got \"umpire-experiment/v3\"; expected \"umpire-experiment/v2\"\n",
+		stderr,
+	)
+	require.Equal(t, before, snapshotTree(t, setPath))
+}
+
+func TestCheckSetRejectsUnexpectedOversizedFileBeforeReading(t *testing.T) {
+	setPath := filepath.Join(t.TempDir(), "input")
+	writeEvaluationSet(t, setPath)
+	path := filepath.Join(setPath, "unexpected.bin")
+	file, err := os.Create(path)
+	require.NoError(t, err)
+	require.NoError(t, file.Truncate(artifact.MaximumDocumentBytes+1))
+	require.NoError(t, file.Close())
+	before, err := os.Lstat(path)
+	require.NoError(t, err)
+
+	code, stdout, stderr := runCommand("check-set", "--set", setPath)
+
+	require.Equal(t, exitFailure, code)
+	require.Empty(t, stdout)
+	require.Equal(t,
+		"umpire-artifact: read Artifact set: unexpected file \"unexpected.bin\"\n",
+		stderr,
+	)
+	after, err := os.Lstat(path)
+	require.NoError(t, err)
+	require.Equal(t, before.Mode(), after.Mode())
+	require.Equal(t, before.ModTime(), after.ModTime())
+	require.Equal(t, before.Size(), after.Size())
+}
+
 func TestCheckSetRejectsUnexpectedFilesAndSymlinks(t *testing.T) {
 	for _, test := range []struct {
 		name    string
@@ -111,7 +166,7 @@ func TestCheckSetRejectsUnexpectedFilesAndSymlinks(t *testing.T) {
 				t.Helper()
 				require.NoError(t, os.WriteFile(filepath.Join(root, "extra.json"), []byte("{}\n"), 0o600))
 			},
-			want: "umpire-artifact: closure: artifact set contains unexpected files\n",
+			want: "umpire-artifact: read Artifact set: unexpected file \"extra.json\"\n",
 		},
 		{
 			name: "symlinked manifest",
