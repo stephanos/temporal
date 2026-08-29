@@ -627,11 +627,13 @@ private def evaluationOutcomeJson
 def ResultArtifact.expectedEvaluationOutcomeChecksum
     (result : ResultArtifact)
     (evidence : EvidenceArtifact)
-    (experiment : ExperimentSpec) : Option ArtifactChecksum := do
-  let trace ← evidence.evidenceBackedModelTrace
-  some <| evaluationOutcomeChecksumOf <| Json.prettyBytes <|
-    evaluationOutcomeJson trace evidence.evidenceLinks evidence.observationProgram evidence.mapping
-      result.implementationLink result.querySummary experiment.properties result.propertyVerdicts result.limits
+    (experiment : ExperimentSpec) : Option ArtifactChecksum :=
+  if result.semanticStatus == "satisfied" || result.semanticStatus == "violated" then do
+    let trace ← evidence.evidenceBackedModelTrace
+    some <| evaluationOutcomeChecksumOf <| Json.prettyBytes <|
+      evaluationOutcomeJson trace evidence.evidenceLinks evidence.observationProgram evidence.mapping
+        result.implementationLink result.querySummary experiment.properties result.propertyVerdicts result.limits
+  else none
 
 private def implementationLinkFailureStatus? (kind : String) : Option String :=
   if ["stale-source-target", "stale-destination-target", "behavior-fingerprint-drift",

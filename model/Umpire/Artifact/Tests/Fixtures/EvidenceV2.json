@@ -104,7 +104,7 @@
       "closureSupport": [
         {
           "kindDefinitionId": "umpire.evidence.kind.history",
-          "lastOrdinal": 1
+          "lastOrdinal": 0
         }
       ],
       "appliedDispositions": [
@@ -160,5 +160,5 @@
     ]
   },
   "provenanceChecksum": "sha256:b84f046f2250d5718d6d135ad1a6e7b2059b221ddd30ce6c3a6ac08baaff5310",
-  "artifactChecksum": "sha256:bb69268b4310d2369c61d0841cfe532f8cd009274484b1ebc3fe3ef9a3f899ba"
+  "artifactChecksum": "sha256:bff1971d4762c0f0d642bf4d7c5b18b7492cf7d54f316a5ccc38362474e4a081"
 }

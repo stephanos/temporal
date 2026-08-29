@@ -616,6 +616,35 @@ func validateEvidenceLinks(links []EvidenceLink, trace EvidenceBackedModelTrace)
 		}
 		seenEvidence = append(seenEvidence, link.EvidenceDefinitionIDs...)
 	}
+	if len(links[0].ClosureSupport) == 0 {
+		return errors.New("Evidence Links require closure support")
+	}
+	lastOrdinalByKind := make(map[string]Natural)
+	for _, link := range links {
+		for _, fact := range link.OrderingSupport {
+			current, found := lastOrdinalByKind[fact.KindDefinitionID]
+			if !found || compareNatural(current, fact.Ordinal) < 0 {
+				lastOrdinalByKind[fact.KindDefinitionID] = fact.Ordinal
+			}
+		}
+	}
+	closureByKind := make(map[string]Natural, len(links[0].ClosureSupport))
+	for _, closure := range links[0].ClosureSupport {
+		closureByKind[closure.KindDefinitionID] = closure.LastOrdinal
+		expected, found := lastOrdinalByKind[closure.KindDefinitionID]
+		if !found {
+			expected = NaturalFromUint64(0)
+		}
+		if closure.LastOrdinal != expected {
+			return fmt.Errorf("Evidence closure support %q has a stale terminal ordinal",
+				closure.KindDefinitionID)
+		}
+	}
+	for kind := range lastOrdinalByKind {
+		if _, found := closureByKind[kind]; !found {
+			return fmt.Errorf("Evidence ordering kind %q has no closure support", kind)
+		}
+	}
 	slices.Sort(seenEvidence)
 	seenEvidence = slices.Compact(seenEvidence)
 	if !slices.Equal(seenEvidence, trace.EvidenceDefinitionIDs) {
@@ -763,6 +792,7 @@ func expectedModelCoordinates(trace ModelTrace) []ModelCoordinate {
 			})
 		}
 	}
+	slices.SortFunc(coordinates, compareModelCoordinate)
 	return coordinates
 }
 
@@ -1225,6 +1255,22 @@ func validatePropertyVerdict(verdict PropertyVerdict) error {
 		if err := validateSemanticVerdictDiagnostic(*verdict.Diagnostic, verdict.Status); err != nil {
 			return err
 		}
+		tracePresent := verdict.TraceID != nil
+		limitPresent := verdict.EvidenceLimit != nil
+		switch verdict.Diagnostic.Kind {
+		case "query-property-mismatch":
+			if tracePresent || limitPresent {
+				return errors.New("query-property-mismatch must not carry trace context")
+			}
+		case "observation-evaluation-failure":
+			if tracePresent != limitPresent {
+				return errors.New("observation evaluation failure has partial trace context")
+			}
+		default:
+			if !tracePresent || !limitPresent {
+				return fmt.Errorf("semantic diagnostic %q requires trace context", verdict.Diagnostic.Kind)
+			}
+		}
 	default:
 		return fmt.Errorf("Property verdict status %q is invalid", verdict.Status)
 	}
@@ -1530,10 +1576,10 @@ func ValidateEvidenceClosure(
 func validateEvidenceDispositionsAgainstRaw(
 	document Evidence,
 	rawEvidence RawEvidence,
-) (map[FieldReference]string, error) {
-	dispositions := make(map[FieldReference]string, len(document.Dispositions))
+) (map[FieldReference]FieldDispositionRecord, error) {
+	dispositions := make(map[FieldReference]FieldDispositionRecord, len(document.Dispositions))
 	for _, disposition := range document.Dispositions {
-		dispositions[disposition.Field] = disposition.Disposition
+		dispositions[disposition.Field] = disposition
 		if !rawEvidenceHasField(rawEvidence, disposition.Field) {
 			return nil, fmt.Errorf("Evidence disposition field %q is absent from RawEvidence",
 				disposition.Field.FieldDefinitionID)
@@ -1557,7 +1603,7 @@ func validateEvidenceDispositionsAgainstRaw(
 			reference := FieldReference{
 				KindDefinitionID: fact.KindDefinitionID, FieldDefinitionID: field.FieldDefinitionID,
 			}
-			if dispositions[reference] != "reject" {
+			if dispositions[reference].Disposition != "reject" {
 				return nil, fmt.Errorf("rejected RawEvidence field %q has no reject disposition",
 					field.FieldDefinitionID)
 			}
@@ -1569,7 +1615,7 @@ func validateEvidenceDispositionsAgainstRaw(
 func validateEvidenceLinksAgainstRaw(
 	document Evidence,
 	rawEvidence RawEvidence,
-	dispositions map[FieldReference]string,
+	dispositions map[FieldReference]FieldDispositionRecord,
 ) error {
 	facts := make(map[string]RawEvidenceFact, len(rawEvidence.Facts))
 	for _, fact := range rawEvidence.Facts {
@@ -1592,15 +1638,20 @@ func validateEvidenceLinksAgainstRaw(
 			appliedFields[applied.Field] = struct{}{}
 			switch applied.Kind {
 			case "retained":
-				if declaration != "retain" || rawEvidenceFieldDisposition(rawEvidence, applied.Field) != "plain" {
+				if declaration.Disposition != "retain" ||
+					rawEvidenceFieldDisposition(rawEvidence, applied.Field) != "plain" {
 					return errors.New("retained Evidence attempts to expose prohibited raw field material")
 				}
 			case "redacted":
-				if declaration != "redact" || rawEvidenceFieldDisposition(rawEvidence, applied.Field) != "redacted" {
+				if declaration.Disposition != "redact" ||
+					rawEvidenceFieldDisposition(rawEvidence, applied.Field) != "redacted" {
 					return errors.New("redacted Evidence disposition does not match RawEvidence")
 				}
 			case "digest-token":
-				if declaration != "hash" || rawEvidenceFieldDisposition(rawEvidence, applied.Field) != "sha256" {
+				if declaration.Disposition != "hash" ||
+					declaration.DigestPolicyDefinitionID == nil || applied.DigestPolicyDefinitionID == nil ||
+					*declaration.DigestPolicyDefinitionID != *applied.DigestPolicyDefinitionID ||
+					rawEvidenceFieldDisposition(rawEvidence, applied.Field) != "sha256" {
 					return errors.New("digest Evidence disposition does not match RawEvidence")
 				}
 			}
@@ -1608,7 +1659,7 @@ func validateEvidenceLinksAgainstRaw(
 	}
 	for field, disposition := range dispositions {
 		_, applied := appliedFields[field]
-		if disposition == "reject" {
+		if disposition.Disposition == "reject" {
 			if applied {
 				return errors.New("rejected Evidence field must not contribute to a Model Fact")
 			}
@@ -1731,6 +1782,15 @@ func ValidateResultClosure(
 			verdict.PropertyBehaviorFingerprint {
 			return fmt.Errorf("Result Property verdict %q is stale", verdict.PropertyDefinitionID)
 		}
+		if verdict.TraceID != nil {
+			if evidence.EvidenceBackedModelTrace == nil ||
+				*verdict.TraceID != evidence.EvidenceBackedModelTrace.TraceID ||
+				verdict.EvidenceLimit == nil ||
+				*verdict.EvidenceLimit != evidence.EvidenceBackedModelTrace.AppliedLimit {
+				return fmt.Errorf("Result Property verdict %q has stale Evidence trace context",
+					verdict.PropertyDefinitionID)
+			}
+		}
 		for _, clause := range verdict.Clauses {
 			for _, link := range clause.EvidenceLinks {
 				if !slices.ContainsFunc(evidence.EvidenceLinks, func(candidate EvidenceLink) bool {
@@ -1804,7 +1864,7 @@ func validateQuerySummaryClosure(summary QuerySummary, experiment Experiment) er
 		!slices.Equal(summary.DivergentPropertyDefinitionIDs, divergent) ||
 		!slices.Equal(summary.WrongQueryResultDefinitionIDs, wrongQuery) ||
 		!slices.Equal(summary.TraceIDs, traceIDs) {
-		return errors.New("Query summary structural partition is stale")
+		return errors.New("query summary structural partition is stale")
 	}
 	return nil
 }
