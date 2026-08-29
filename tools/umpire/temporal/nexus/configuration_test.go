@@ -9,6 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
+	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
+	"go.temporal.io/server/tools/umpire/temporal/local"
 )
 
 func TestCallerClosureInputSetIsStrictlyAdmitted(t *testing.T) {
@@ -42,6 +44,63 @@ func TestCallerClosureInputSetIsStrictlyAdmitted(t *testing.T) {
 	require.Equal(t, configurationBytes, encodedConfiguration)
 
 	require.Equal(t, manifestBytes, admitted.ManifestBytes())
+}
+
+func TestCallerClosureInputSetPassesLocalRuntimePreflight(t *testing.T) {
+	setPath := filepath.Join("testdata", "caller-closure-input-set")
+	experimentBytes, err := os.ReadFile(filepath.Join(setPath, "artifacts", "experiment.json"))
+	require.NoError(t, err)
+	configurationBytes, err := os.ReadFile(filepath.Join(
+		setPath, "artifacts", "runtime-configuration.json"))
+	require.NoError(t, err)
+	manifestBytes, err := os.ReadFile(filepath.Join(setPath, "manifest.json"))
+	require.NoError(t, err)
+	admitted, err := artifact.AdmitSetFiles(map[string][]byte{
+		"artifacts/experiment.json":            experimentBytes,
+		"artifacts/runtime-configuration.json": configurationBytes,
+		"manifest.json":                        manifestBytes,
+	})
+	require.NoError(t, err)
+	executable, ok := admitted.Executable()
+	require.True(t, ok)
+	configuration := executable.RuntimeConfiguration()
+	require.Len(t, configuration.ParticipantBindings, 1)
+	binding := configuration.ParticipantBindings[0]
+
+	occurrence, err := umpireruntime.NewOccurrence(
+		"workflow-nexus.occurrence.force-close",
+		"workflow.action.force-close",
+		1,
+	)
+	require.NoError(t, err)
+	program, err := umpireruntime.NewProgram(
+		binding.ProgramDefinitionID,
+		2,
+		binding.ProgramBehaviorFingerprint,
+		[]string{"workflow-nexus.target.caller-closure"},
+		[]string{"workflow.action.force-close"},
+		[]umpireruntime.Occurrence{occurrence},
+		binding.CapabilityDefinitionIDs,
+	)
+	require.NoError(t, err)
+	authority, err := local.NewAuthority(
+		configuration.ConfigurationDefinitionID,
+		configuration.BehaviorFingerprint,
+		binding.ParticipantDefinitionID,
+		binding.ProtocolDefinitionID,
+		program,
+	)
+	require.NoError(t, err)
+
+	request, err := umpireruntime.CheckRequest(
+		admitted,
+		authority,
+		"umpire.local.caller-closure.preflight-1",
+		0,
+		1,
+	)
+	require.NoError(t, err)
+	require.Equal(t, admitted.Identity(), request.AdmittedSet().Identity())
 }
 
 func TestCallerClosureInputSetRejectsNoncanonicalMemberBytes(t *testing.T) {
