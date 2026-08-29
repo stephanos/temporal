@@ -200,6 +200,74 @@ func TestArtifactSetRejectsNoncanonicalAndStaleMembersAtomically(t *testing.T) {
 	})
 }
 
+func TestUnsupportedFormatMixedArtifactSetsPrecedeChecksumsAndClosure(t *testing.T) {
+	fixtures := []string{
+		"experiment",
+		"runtime-configuration",
+		"experiment-run",
+		"raw-evidence",
+		"evidence",
+		"result",
+	}
+	for index, fixture := range fixtures {
+		for _, major := range []string{"v1", "v3"} {
+			t.Run(fixture+"/"+major, func(t *testing.T) {
+				members := artifactSetFixtureMembers(t)
+				invalidIndex := 0
+				if index == invalidIndex {
+					invalidIndex = 1
+				}
+				corruptFirstArtifactChecksum(t, members[invalidIndex].Encoded)
+				members[index].Encoded = readExperimentV2Fixture(t,
+					"tools/umpire/artifact/testdata/unsupported/"+fixture+"-"+major+".json")
+				before := cloneArtifactSetMembers(members)
+
+				admitted, err := artifact.AdmitSet(members)
+				requireArtifactSetErrorCode(t, err, artifact.ErrorUnsupportedFormat)
+				require.Empty(t, admitted.Identity())
+				require.Nil(t, admitted.ManifestBytes())
+				require.Equal(t, before, members)
+			})
+		}
+	}
+}
+
+func TestUnsupportedFormatMixedArtifactSetsPreserveStructuralPrecedence(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func([]artifact.SetMember)
+		code   artifact.ErrorCode
+	}{
+		{
+			name: "syntax before unsupported format",
+			mutate: func(members []artifact.SetMember) {
+				members[0].Encoded = readExperimentV2Fixture(t,
+					"tools/umpire/artifact/testdata/unsupported/experiment-v1.json")
+				members[5].Encoded = []byte("{\n")
+			},
+			code: artifact.ErrorSyntax,
+		},
+		{
+			name: "unsupported format before wrong family",
+			mutate: func(members []artifact.SetMember) {
+				members[0].Encoded = []byte("{\n  \"formatVersion\": \"umpire-result/v2\"\n}\n")
+				members[5].Encoded = readExperimentV2Fixture(t,
+					"tools/umpire/artifact/testdata/unsupported/result-v3.json")
+			},
+			code: artifact.ErrorUnsupportedFormat,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			members := artifactSetFixtureMembers(t)
+			test.mutate(members)
+			admitted, err := artifact.AdmitSet(members)
+			requireArtifactSetErrorCode(t, err, test.code)
+			require.Empty(t, admitted.Identity())
+			require.Nil(t, admitted.ManifestBytes())
+		})
+	}
+}
+
 func TestArtifactSetAdmittedValueOwnsManifestBytes(t *testing.T) {
 	members := artifactSetFixtureMembers(t)
 	admitted, err := artifact.AdmitSet(members)
@@ -228,6 +296,27 @@ func artifactSetFixtureMembers(t *testing.T) []artifact.SetMember {
 			"tools/umpire/artifact/testdata/evidence-v2.json")},
 		{Path: "artifacts/result.json", Encoded: readExperimentV2Fixture(t,
 			"tools/umpire/artifact/testdata/result-v2.json")},
+	}
+}
+
+func cloneArtifactSetMembers(members []artifact.SetMember) []artifact.SetMember {
+	cloned := make([]artifact.SetMember, len(members))
+	for index, member := range members {
+		cloned[index] = artifact.SetMember{Path: member.Path, Encoded: bytes.Clone(member.Encoded)}
+	}
+	return cloned
+}
+
+func corruptFirstArtifactChecksum(t *testing.T, encoded []byte) {
+	t.Helper()
+	prefix := []byte(`"artifactChecksum": "sha256:`)
+	start := bytes.Index(encoded, prefix)
+	require.NotEqual(t, -1, start)
+	position := start + len(prefix)
+	if encoded[position] == '0' {
+		encoded[position] = '1'
+	} else {
+		encoded[position] = '0'
 	}
 }
 
