@@ -352,7 +352,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-39-make-the-temporal-nexus-feature-model.md",
-  "status": "open",
+  "status": "done",
   "title": "Make the Temporal Nexus Feature model easier to browse",
   "tracker": {
     "baseHashFlow": null,
@@ -365,5 +365,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-28T23:17:36.309618Z"
+  "updated_at": "2026-08-29T11:32:22.409757Z"
 }
