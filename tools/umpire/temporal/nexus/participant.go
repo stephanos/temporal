@@ -340,8 +340,11 @@ func (a *sdkCommandAdapter) Observe(
 	)
 	_, cancellations := a.operation.counts()
 	facts, err := projectTerminalHistory(command, iterator, correlations, cancellations)
+	if errors.Is(err, errHistoryCapacity) {
+		return adapterHistoryCapacityReceipt(command, facts, correlations)
+	}
 	if err != nil {
-		return adapterFailureReceipt(ctx, command, err, nil, nil, correlations)
+		return adapterFailureReceipt(ctx, command, err, facts, nil, correlations)
 	}
 	return adapterReceipt(command, umpireruntime.ReceiptAccepted, "", facts, nil, nil, correlations)
 }
@@ -427,6 +430,30 @@ func adapterReceipt(
 	released []umpireruntime.Resource,
 	correlations adapterCorrelations,
 ) umpireruntime.Receipt {
+	return newAdapterReceipt(command, status, code, facts, acquired, released, correlations, false)
+}
+
+func adapterHistoryCapacityReceipt(
+	command umpireruntime.Command,
+	facts []umpireruntime.Fact,
+	correlations adapterCorrelations,
+) umpireruntime.Receipt {
+	return newAdapterReceipt(
+		command, umpireruntime.ReceiptAccepted, "umpire.runtime.code.capacity",
+		facts, nil, nil, correlations, true,
+	)
+}
+
+func newAdapterReceipt(
+	command umpireruntime.Command,
+	status umpireruntime.ReceiptStatus,
+	code string,
+	facts []umpireruntime.Fact,
+	acquired []umpireruntime.Resource,
+	released []umpireruntime.Resource,
+	correlations adapterCorrelations,
+	historyCapacity bool,
+) umpireruntime.Receipt {
 	if facts == nil {
 		facts = []umpireruntime.Fact{}
 	}
@@ -445,7 +472,12 @@ func adapterReceipt(
 	})
 	slices.SortFunc(acquired, compareResources)
 	slices.SortFunc(released, compareResources)
-	receipt, err := umpireruntime.NewReceipt(command, status, facts, acquired, released)
+	var receipt umpireruntime.Receipt
+	if historyCapacity {
+		receipt, err = umpireruntime.NewHistoryCapacityReceipt(command, facts, acquired, released)
+	} else {
+		receipt, err = umpireruntime.NewReceipt(command, status, facts, acquired, released)
+	}
 	if err != nil {
 		return emptyReceipt(command, umpireruntime.ReceiptFailed)
 	}
