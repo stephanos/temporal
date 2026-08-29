@@ -225,22 +225,40 @@ func TestStrictJSONScannerUsesBoundedBookkeeping(t *testing.T) {
 	require.Zero(t, allocations)
 }
 
-func TestStrictJSONFindsPrecedenceErrorsPastObjectLimitWithoutGrowingKeyState(t *testing.T) {
+func TestStrictJSONStopsObjectBookkeepingAtNPlusOne(t *testing.T) {
+	near := overlimitObjectDocument(t, MaximumJSONObjectMembers+1)
+	far := overlimitObjectDocument(t, MaximumJSONArrayItems)
+	decoder := Decoder[objectBoundaryProbe]{Format: "umpire-map-boundary/v2"}
+	_, err := decoder.Decode(near)
+	requireErrorCode(t, err, ErrorCollectionLimit)
+	_, err = decoder.Decode(far)
+	requireErrorCode(t, err, ErrorCollectionLimit)
+
+	allocatedBytes := func(encoded []byte) int64 {
+		result := testing.Benchmark(func(benchmark *testing.B) {
+			benchmark.ReportAllocs()
+			for range benchmark.N {
+				_, _ = decoder.Decode(encoded)
+			}
+		})
+		return result.AllocedBytesPerOp()
+	}
+	require.LessOrEqual(t, allocatedBytes(far), allocatedBytes(near)+1_024)
+}
+
+func overlimitObjectDocument(t *testing.T, members int) []byte {
+	t.Helper()
 	var encoded strings.Builder
 	encoded.WriteString(`{"formatVersion":"umpire-map-boundary/v2","values":{`)
-	for index := range MaximumJSONArrayItems {
+	for index := range members {
 		if index > 0 {
 			encoded.WriteByte(',')
 		}
-		_, err := fmt.Fprintf(&encoded, `"key-%03d":""`, index)
+		_, err := fmt.Fprintf(&encoded, `"key-%06d":""`, index)
 		require.NoError(t, err)
 	}
-	_, err := fmt.Fprintf(&encoded, `,"key-%03d":""}}`, MaximumJSONArrayItems-1)
-	require.NoError(t, err)
-
-	decoder := Decoder[objectBoundaryProbe]{Format: "umpire-map-boundary/v2"}
-	_, err = decoder.Decode([]byte(encoded.String()))
-	requireErrorCode(t, err, ErrorDuplicateKey)
+	encoded.WriteString("}}")
+	return []byte(encoded.String())
 }
 
 func TestStrictJSONCountsDecodedStringBytesWithoutMaterializingStrings(t *testing.T) {
@@ -410,15 +428,26 @@ func TestStrictJSONBoundOverridesCanOnlyTighten(t *testing.T) {
 		},
 	}
 
+	collectionLimits := standardStructuralLimits
+	collectionLimits.arrayItems = 0
 	analysis, err := inspectJSON(
 		[]byte(canonicalStrictProbe),
 		schemaFor[strictProbe](),
 		decoder.Bounds,
-		structuralLimits{documentBytes: MaximumDocumentBytes, tokens: MaximumJSONTokens, depth: MaximumJSONDepth, arrayItems: 0, objectMembers: 0, stringBytes: 0},
-		3,
+		collectionLimits,
 	)
 	require.NoError(t, err)
 	require.True(t, analysis.collectionLimit)
+
+	stringLimits := standardStructuralLimits
+	stringLimits.stringBytes = 0
+	analysis, err = inspectJSON(
+		[]byte(canonicalStrictProbe),
+		schemaFor[strictProbe](),
+		decoder.Bounds,
+		stringLimits,
+	)
+	require.NoError(t, err)
 	require.True(t, analysis.stringLimit)
 }
 

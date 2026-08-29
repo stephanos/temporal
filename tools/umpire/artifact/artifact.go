@@ -73,7 +73,7 @@ func inspectAdmission[T any](d Decoder[T], encoded []byte, limits structuralLimi
 	if err := checkStructuralMetrics(metrics, limits); err != nil {
 		return jsonAnalysis{}, err
 	}
-	analysis, err := inspectJSON(encoded, schemaFor[T](), d.Bounds, limits, metrics.objectKeys)
+	analysis, err := inspectJSON(encoded, schemaFor[T](), d.Bounds, limits)
 	if err != nil {
 		return jsonAnalysis{}, wrapAdmission(ErrorSyntax, err)
 	}
