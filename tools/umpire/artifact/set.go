@@ -78,6 +78,17 @@ type admittedExecutionMembers struct {
 	rows        []artifactSetManifestMember
 }
 
+type artifactSetFormatClassifier func([]byte) error
+
+var artifactSetMemberFormatClassifiers = [...]artifactSetFormatClassifier{
+	func(encoded []byte) error { return classifyArtifactSetFormat(experimentV2Decoder, encoded) },
+	func(encoded []byte) error { return classifyArtifactSetFormat(runtimeConfigurationV2Decoder, encoded) },
+	func(encoded []byte) error { return classifyArtifactSetFormat(experimentRunV2Decoder, encoded) },
+	func(encoded []byte) error { return classifyArtifactSetFormat(rawEvidenceV2Decoder, encoded) },
+	func(encoded []byte) error { return classifyArtifactSetFormat(evidenceV2Decoder, encoded) },
+	func(encoded []byte) error { return classifyArtifactSetFormat(resultV2Decoder, encoded) },
+}
+
 // Identity returns the content-derived Artifact set identity.
 func (s AdmittedSet) Identity() string {
 	return s.manifest.ArtifactSetIdentity
@@ -100,6 +111,9 @@ func (s AdmittedSet) ManifestBytes() []byte {
 
 // AdmitSet admits only an exact executable, execution, or evaluation closure.
 func AdmitSet(members []SetMember) (AdmittedSet, error) {
+	if err := classifyArtifactSetMemberFormats(members); err != nil {
+		return AdmittedSet{}, err
+	}
 	if len(members) != 2 && len(members) != 4 && len(members) != 6 {
 		return AdmittedSet{}, wrapAdmission(ErrorClosure,
 			fmt.Errorf("artifact set has %d members; expected 2, 4, or 6", len(members)))
@@ -216,6 +230,11 @@ func admitEvaluationMembers(
 
 // AdmitSetManifest admits an existing manifest only when it is the exact manifest for the members.
 func AdmitSetManifest(encodedManifest []byte, members []SetMember) (AdmittedSet, error) {
+	manifestFormatErr := classifyArtifactSetFormat(artifactSetManifestDecoder, encodedManifest)
+	memberFormatErr := classifyArtifactSetMemberFormats(members)
+	if err := earlierArtifactSetFormatError(manifestFormatErr, memberFormatErr); err != nil {
+		return AdmittedSet{}, err
+	}
 	admitted, err := AdmitSet(members)
 	if err != nil {
 		return AdmittedSet{}, err
@@ -233,6 +252,58 @@ func AdmitSetManifest(encodedManifest []byte, members []SetMember) (AdmittedSet,
 			errors.New("artifact set manifest does not match its exact member closure"))
 	}
 	return admitted, nil
+}
+
+func classifyArtifactSetMemberFormats(members []SetMember) error {
+	var selected error
+	for index := 0; index < len(members) && index < len(artifactSetMemberFormatClassifiers); index++ {
+		err := artifactSetMemberFormatClassifiers[index](members[index].Encoded)
+		selected = earlierArtifactSetFormatError(selected, err)
+	}
+	return selected
+}
+
+func classifyArtifactSetFormat[T any](decoder Decoder[T], encoded []byte) error {
+	_, err := inspectAdmissionFormat(decoder, encoded, standardStructuralLimits)
+	return err
+}
+
+func earlierArtifactSetFormatError(first error, second error) error {
+	if first == nil {
+		return second
+	}
+	if second == nil {
+		return first
+	}
+	firstCode, firstOK := CodeOf(first)
+	secondCode, secondOK := CodeOf(second)
+	if secondOK && (!firstOK || artifactSetFormatErrorRank(secondCode) < artifactSetFormatErrorRank(firstCode)) {
+		return second
+	}
+	return first
+}
+
+func artifactSetFormatErrorRank(code ErrorCode) int {
+	switch code {
+	case ErrorByteLimit:
+		return 0
+	case ErrorSyntax:
+		return 1
+	case ErrorTokenLimit:
+		return 2
+	case ErrorDepthLimit:
+		return 3
+	case ErrorDuplicateKey:
+		return 4
+	case ErrorCaseCollision:
+		return 5
+	case ErrorUnsupportedFormat:
+		return 6
+	case ErrorWrongFamily:
+		return 7
+	default:
+		return 8
+	}
 }
 
 func manifestMember(path string, binding artifactv2.ArtifactBinding) artifactSetManifestMember {

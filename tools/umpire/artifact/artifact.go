@@ -66,6 +66,28 @@ func decodeWithStructuralLimits[T any](d Decoder[T], encoded []byte, limits stru
 }
 
 func inspectAdmission[T any](d Decoder[T], encoded []byte, limits structuralLimits) (jsonAnalysis, error) {
+	analysis, err := inspectAdmissionFormat(d, encoded, limits)
+	if err != nil {
+		return jsonAnalysis{}, err
+	}
+	if analysis.unknownField {
+		return jsonAnalysis{}, wrapAdmission(ErrorUnknownField, errors.New("JSON object contains an unknown field"))
+	}
+	if analysis.collectionLimit {
+		return jsonAnalysis{}, wrapAdmission(ErrorCollectionLimit, errors.New("JSON collection exceeds its limit"))
+	}
+	if analysis.stringLimit {
+		return jsonAnalysis{}, wrapAdmission(ErrorStringLimit, errors.New("decoded JSON string exceeds its byte limit"))
+	}
+	if d.Bounds.PayloadLimit != nil {
+		if err := d.Bounds.PayloadLimit(encoded); err != nil {
+			return jsonAnalysis{}, wrapAdmission(ErrorPayloadLimit, err)
+		}
+	}
+	return analysis, nil
+}
+
+func inspectAdmissionFormat[T any](d Decoder[T], encoded []byte, limits structuralLimits) (jsonAnalysis, error) {
 	if err := checkDocumentBytes(encoded, limits); err != nil {
 		return jsonAnalysis{}, err
 	}
@@ -105,20 +127,6 @@ func inspectAdmission[T any](d Decoder[T], encoded []byte, limits structuralLimi
 		if code := compareFormat(expected.Format, actual); code != "" {
 			return jsonAnalysis{}, wrapAdmission(code,
 				fmt.Errorf("got %q at %s; expected %q", actual, expected.Path, expected.Format))
-		}
-	}
-	if analysis.unknownField {
-		return jsonAnalysis{}, wrapAdmission(ErrorUnknownField, errors.New("JSON object contains an unknown field"))
-	}
-	if analysis.collectionLimit {
-		return jsonAnalysis{}, wrapAdmission(ErrorCollectionLimit, errors.New("JSON collection exceeds its limit"))
-	}
-	if analysis.stringLimit {
-		return jsonAnalysis{}, wrapAdmission(ErrorStringLimit, errors.New("decoded JSON string exceeds its byte limit"))
-	}
-	if d.Bounds.PayloadLimit != nil {
-		if err := d.Bounds.PayloadLimit(encoded); err != nil {
-			return jsonAnalysis{}, wrapAdmission(ErrorPayloadLimit, err)
 		}
 	}
 	return analysis, nil
