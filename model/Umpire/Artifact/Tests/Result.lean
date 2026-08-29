@@ -62,7 +62,7 @@ private def initialEvidenceLink : ArtifactEvidenceLink := {
   }]
   closureSupport := [{
     kindDefinitionId := id "umpire.evidence.kind.history"
-    lastOrdinal := 1
+    lastOrdinal := 0
   }]
   appliedDispositions := [{
     field := fieldReference
@@ -247,6 +247,23 @@ private def resultWithOutcome : ResultArtifact := {
 
 def result : ResultArtifact := resultWithOutcome.seal
 
+private def incompleteQuerySummary : ArtifactQuerySummary := {
+  querySummary with
+  status := "incomplete"
+  propertyVerdicts := []
+  missingPropertyDefinitionIds := querySummary.requiredPropertyDefinitionIds
+  traceIds := []
+}
+
+private def incompleteResult : ResultArtifact := ({
+  resultDraft with
+  implementationLinkStatus := "not-evaluated"
+  propertyVerdicts := []
+  querySummary := incompleteQuerySummary
+  semanticStatus := "incomplete"
+  evaluationOutcomeChecksum := none
+} : ResultArtifact).seal
+
 /-! Lean owns the authoritative interpreted Evidence and Result fixture bytes. -/
 example : canonicalEvidenceArtifactBytes evidence = include_str "Fixtures/EvidenceV2.json" := by
   native_decide
@@ -264,6 +281,17 @@ example : evidence.isValidTransport &&
     evidence.closes compiledArtifact runtimeConfiguration experimentRun rawEvidence &&
     result.isValidTransport &&
     result.closes compiledArtifact runtimeConfiguration experimentRun rawEvidence evidence := by
+  native_decide
+
+/-! Accepted Evidence still closes an unresolved Result without inventing an outcome checksum. -/
+example : incompleteResult.expectedEvaluationOutcomeChecksum evidence compiledArtifact = none := by
+  native_decide
+
+example : incompleteResult.isValidTransport := by
+  native_decide
+
+example : incompleteResult.closes
+    compiledArtifact runtimeConfiguration experimentRun rawEvidence evidence := by
   native_decide
 
 /-! Operational failure and semantic non-success remain independent transport axes. -/
