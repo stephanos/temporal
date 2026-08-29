@@ -317,6 +317,20 @@ three stages but cannot collapse one layer's failure into another's status.
 Artifacts are pure model products. They do not claim that Temporal was started, actions were
 executed, or runtime evidence was collected.
 
+The public `Umpire.Artifact` facade exposes the retained v2 Planning, Runtime, Evidence, Result, and
+Set modules without aliases. Persisted documents use only deterministic two-space pretty JSON with
+fixed order, stable escaping and numbers, and exactly one terminal LF. Artifact Checksum preimages
+use those exact pretty bytes with only the owning checksum omitted; Behavior Fingerprints remain
+meaning identities, not byte checksums. The strict Go boundary admits only the closed two-, four-,
+or six-member prototype sets while preserving every Limit, Known Gap, Evidence Link,
+Implementation Link, and Run Evaluation distinction.
+
+Read-only Artifact checks never publish. Explicit immutable publication validates and privately
+stages a complete set before one manifest-digest-directory rename, so readers see absence or one
+complete revalidated set. Compact or alternate-whitespace input, migrations, generic envelopes,
+artifact-management platforms, runtime execution, and CI orchestration are not hidden behind this
+boundary.
+
 ## Tests and inspection
 
 `Temporal.Feature.NexusTests` imports only the ordinary Nexus facade and smoke-checks representative

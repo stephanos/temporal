@@ -594,14 +594,26 @@ runtime bindings when they do not change semantic meaning.
 
 ### 8.2 Artifact requirements
 
-Every persisted artifact carries an exact format version. Semantic artifacts additionally carry
-Behavior Fingerprints and digests, provenance, Limits, and Known Gaps. Operational artifacts carry
-environment, authority, source closure, cleanup, and failure status.
+The retained implemented boundary is exactly embedded `umpire-drive-plan/v2` plus persisted
+`umpire-experiment/v2`, `umpire-runtime-configuration/v2`, `umpire-experiment-run/v2`,
+`umpire-raw-evidence/v2`, `umpire-evidence/v2`, and `umpire-result/v2`. Each document carries its
+exact format version, Behavior Fingerprint, Artifact Checksum, relevant provenance, Limits, and
+Known Gaps. Operational documents additionally preserve authority/profile bindings, source closure,
+cleanup, and failure status without converting them into a semantic conclusion.
 
-Readers reject unknown major versions, meaning-bearing unknown fields, duplicate normalized keys,
-stale digests, incompatible references, incomplete sets, unsafe paths, and values exceeding
-declared admission Limits. Named migrations transform complete sets deterministically and never
-invent new semantic meaning for an old field.
+Canonical bytes are fixed-order UTF-8 JSON with two-space indentation, stable escaping and
+canonical natural numbers, no trailing spaces, and exactly one terminal LF. Each Artifact Checksum
+hashes `domain + "\n" + preimage`; `preimage` is that document's exact deterministic-pretty bytes
+with only its own `artifactChecksum` omitted and one terminal LF. Behavior Fingerprints identify
+checked meaning rather than file content, and provenance checksums independently bind exact
+provenance.
+
+Readers reject unknown versions, wrong families, unknown fields, duplicate or case-colliding keys,
+stale digests, incompatible references, incomplete sets, unsafe paths, noncanonical bytes, and
+values exceeding declared admission Limits. Exact executable, execution, and evaluation closures
+contain two, four, and six members respectively. Compact or alternate-whitespace input has no
+normalization, alias, fallback, or migration. Named post-v2 migrations, other Artifact families,
+generic envelopes, and platform orchestration remain deferred.
 
 ## 9. Go modules
 
@@ -625,14 +637,19 @@ one caller do not justify a new seam.
 `tools/umpire/artifact` is one deep module with an interface shaped like:
 
 ```text
-AdmitSet(bytes, limits) → checked artifact set
-MigrateSet(set, targetVersion) → migrated set
-PublishSet(root, set) → atomic immutable publication
+Decode<Family>V2(bytes) → inert checked document
+AdmitSet / AdmitSetManifest / AdmitSetFiles(bytes) → exact closed Artifact set
+PublishSet(root, admitted set) → immutable manifest-digest directory
+LoadSet(directory) → complete revalidated Artifact set
 ```
 
-It owns bounded strict JSON admission, exact version dispatch, cross-document identity and digest
-validation, complete-set closure, deterministic migrations, atomic publication, and crash recovery.
-It does not plan, execute, evaluate properties, interpret evidence, or repair invalid meaning.
+It owns bounded strict JSON admission, exact sole-v2 dispatch, cross-document Definition ID,
+Behavior Fingerprint, Artifact/provenance checksum and reference validation, complete-set closure,
+and immutable atomic publication. Publication privately stages and revalidates the complete set,
+installs it with one rename, and cleans abandoned private staging directories under its lock;
+readers therefore see absence or one complete revalidated set. It does not migrate, plan, execute,
+evaluate Properties, perform Observation Evaluation or Run Evaluation, interpret Evidence, or
+repair invalid meaning.
 
 `tools/common/artifactio` remains the lower-level filesystem implementation for safe file and set
 publication.
@@ -726,6 +743,7 @@ Canary is intentionally absent from this directory.
 
 Commands remain thin compositions over modules. The intended user operations include:
 
+- checking one exact Artifact or one complete Artifact set without publishing it;
 - checking model-declared verification profiles;
 - listing and explaining declarations;
 - generating canonical test manifests and specifications;
@@ -769,6 +787,7 @@ tools/umpire/
 
 | Command | Owner | Responsibility |
 | --- | --- | --- |
+| `umpire-artifact check` / `check-set` | Go Artifact admission | Read-only exact-byte admission of one named retained family or one complete fixed-closure set; success is silent and publication is never a side effect. |
 | `umpire-check-model` | Go verification adapter plus Lean `Temporal.Tool.CheckModel` | Run model-declared per-commit, nightly, or named checks and assemble an honest verification receipt. |
 | `umpire-gen-tests` | Lean `Temporal.Tool.GenerateTests` executable | List, explain, and compile named regressions, test sets, or selected batches into canonical JSON manifests and complete traces. |
 | `umpire-gen-tests-go` | Go Generated View module | Convert admitted manifests into readable deterministic Go tests. |
@@ -939,18 +958,18 @@ families will copy the current low-level interface.
 - Add `Umpire.ImplementationLink` and one Feature/System correspondence.
 - Add `Umpire.Space` with finite choices, fault intent, and coverage goals.
 - Complete structural and semantic catalogs with list/explain interfaces.
-- Deepen `Umpire.Artifact` construction and versioning.
+- Retain the implemented `Umpire.Artifact` vertical facade and exact v2 construction boundary.
 
 Retire the shallow Search facade as Query and Exploration take ownership. Split Callback
 configuration from its mechanism only when the new observation or execution work benefits from the
 seam. Split CallerClosure after the target interface removes its boilerplate.
 
-### Priority 3: establish artifact transport
+### Priority 3: retain the established Artifact transport
 
-- Implement strict bounded artifact admission.
-- Freeze the minimal RuntimeConfiguration, ExperimentRun, evidence, Result, coverage, verification,
-  and Claim Assessment schemas.
-- Add complete-set validation, deterministic migrations, atomic publication, and crash recovery.
+- Keep strict bounded sole-v2 admission and exact two-, four-, and six-member set validation.
+- Keep the frozen RuntimeConfiguration, ExperimentRun, RawEvidence, Evidence, and Result schemas.
+- Keep immutable atomic publication and private staging cleanup; defer post-v2 migrations, coverage,
+  verification, Claim Assessment, generic envelopes, and platform recovery to their owning slices.
 
 Runtime must not grow around ad hoc structs or an unversioned JSON contract.
 

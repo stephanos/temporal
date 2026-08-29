@@ -1,0 +1,95 @@
+{
+  "formatVersion": "umpire-runtime-configuration/v2",
+  "configurationDefinitionId": "switch.runtime.configuration",
+  "behaviorFingerprint": "sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+    "behaviorFingerprint": "sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0",
+    "provenanceChecksum": "sha256:9ac3c6316036d5631c81c30f45e408e80e8536359f36ef6bdd504c9f57470f41"
+  },
+  "authorityProfile": {
+    "definitionId": "switch.runtime.profile",
+    "version": 2,
+    "behaviorFingerprint": "sha256:44c1679e8770f2be478d5d4bbda5566b9a369df11fe98717bf22e665681a99ec",
+    "requiredCapabilityDefinitionIds": []
+  },
+  "phaseLimits": [
+    {
+      "phase": "preparation",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "realization",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "observation",
+      "durationMilliseconds": 30000,
+      "maxAttempts": 1,
+      "maxRecords": 3584,
+      "maxBytes": 12582912
+    },
+    {
+      "phase": "isolation",
+      "durationMilliseconds": 15000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    },
+    {
+      "phase": "cleanup",
+      "durationMilliseconds": 15000,
+      "maxAttempts": 1,
+      "maxRecords": 128,
+      "maxBytes": 1048576
+    }
+  ],
+  "observation": {
+    "profileDefinitionId": "switch.observation.profile",
+    "profileBehaviorFingerprint": "sha256:90445782b6263c18353c89a4ae0f08f7ef84317e2192e2e4dec4fb28754632f5",
+    "programDefinitionId": "switch.observation.program",
+    "programBehaviorFingerprint": "sha256:9115e2c6fa437e90ee8bbbb326a489a01653f92c6289c23fb9b65a4fab044efc",
+    "mappingDefinitionId": "switch.observation.mapping",
+    "mappingBehaviorFingerprint": "sha256:f9f81b529dde00a6f3ce17a0a68a039d2b61bb0d332fdd7ec26cecd7cb56c63c"
+  },
+  "participantBindings": [
+    {
+      "participantDefinitionId": "switch.participant",
+      "protocolDefinitionId": "switch.protocol",
+      "protocolVersion": 2,
+      "programDefinitionId": "switch.participant.program",
+      "programBehaviorFingerprint": "sha256:92489e8192608a0a88e319591737e528194b9c1239ac3d08f92bdc692aca3d31",
+      "capabilityDefinitionIds": [
+        "switch.capability.state"
+      ]
+    }
+  ],
+  "knownGaps": [],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "switch.observation.mapping",
+      "switch.observation.profile",
+      "switch.observation.program",
+      "switch.participant.program",
+      "switch.runtime.configuration",
+      "switch.runtime.profile"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Umpire/Artifact/Tests/Runtime.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e",
+  "artifactChecksum": "sha256:454acc851c5c1638166b1a334eaaedc97e4515b5ebe6614d5a57672ddbd9d1c2"
+}

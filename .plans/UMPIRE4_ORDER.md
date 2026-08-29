@@ -102,8 +102,10 @@ compiled experiment produced by the completed fn-16, complete its executable con
 and require every Execution boundary to consume the same published bytes and identifiers without
 recompilation. Reject compact or alternate-whitespace v2, v1, malformed, stale, oversized, or
 checksum-inconsistent inputs without a compatibility reader or migration.
-Defer generic receipt envelopes, coverage checkpoints, other migrations, interrupted-publication
-recovery, and artifact-management CLI surfaces.
+Expose only read-only checks for one Artifact and one complete set; checking never publishes.
+Immutable publication may clean its own abandoned private staging directories while holding its
+lock. Defer generic receipt envelopes, coverage checkpoints, post-v2 migrations, multi-root or
+remote recovery, mutating artifact-management CLI surfaces, and platform orchestration.
 
 ## P1 — First complete vertical slice
 

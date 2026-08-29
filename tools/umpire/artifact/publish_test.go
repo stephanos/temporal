@@ -35,6 +35,25 @@ func TestPublishSetLoadsOneCompleteImmutableDirectory(t *testing.T) {
 	require.Equal(t, destination, identicalDestination)
 }
 
+func TestAdmitSetFilesOwnsExactInputSnapshot(t *testing.T) {
+	members := artifactSetFixtureMembers(t)
+	admitted, err := artifact.AdmitSet(members)
+	require.NoError(t, err)
+	files := map[string][]byte{"manifest.json": admitted.ManifestBytes()}
+	for _, member := range members {
+		files[member.Path] = bytes.Clone(member.Encoded)
+	}
+
+	fromFiles, err := artifact.AdmitSetFiles(files)
+	require.NoError(t, err)
+	wantManifest := fromFiles.ManifestBytes()
+	files["manifest.json"][0] = '['
+	files[members[0].Path][0] = '['
+
+	require.Equal(t, admitted.Identity(), fromFiles.Identity())
+	require.Equal(t, wantManifest, fromFiles.ManifestBytes())
+}
+
 func TestLoadSetRejectsUnsafeOrConflictingDestinations(t *testing.T) {
 	tests := []struct {
 		name   string

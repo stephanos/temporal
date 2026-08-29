@@ -35,7 +35,34 @@ func LoadSet(destination string) (AdmittedSet, error) {
 	if err != nil {
 		return AdmittedSet{}, err
 	}
-	return admitPublishedArtifactSet(files)
+	return AdmitSetFiles(files)
+}
+
+// AdmitSetFiles admits one exact byte snapshot containing only a manifest and
+// its complete executable, execution, or evaluation closure.
+func AdmitSetFiles(files map[string][]byte) (AdmittedSet, error) {
+	encodedManifest, exists := files[artifactSetManifestPath]
+	if !exists {
+		return AdmittedSet{}, errors.New("artifact set has no manifest")
+	}
+	manifest, err := artifactSetManifestDecoder.Decode(encodedManifest)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	members := make([]SetMember, len(manifest.Members))
+	for index, row := range manifest.Members {
+		encoded, exists := files[row.Path]
+		if !exists {
+			return AdmittedSet{}, wrapAdmission(ErrorClosure,
+				fmt.Errorf("artifact set is missing member %q", row.Path))
+		}
+		members[index] = SetMember{Path: row.Path, Encoded: append([]byte(nil), encoded...)}
+	}
+	if len(files) != len(members)+1 {
+		return AdmittedSet{}, wrapAdmission(ErrorClosure,
+			errors.New("artifact set contains unexpected files"))
+	}
+	return AdmitSetManifest(encodedManifest, members)
 }
 
 func admittedSetFiles(admitted AdmittedSet) (map[string][]byte, error) {
@@ -66,31 +93,6 @@ func artifactSetMemberPaths(encodedManifest []byte) ([]string, error) {
 }
 
 func validatePublishedArtifactSet(files map[string][]byte) error {
-	_, err := admitPublishedArtifactSet(files)
+	_, err := AdmitSetFiles(files)
 	return err
-}
-
-func admitPublishedArtifactSet(files map[string][]byte) (AdmittedSet, error) {
-	encodedManifest, exists := files[artifactSetManifestPath]
-	if !exists {
-		return AdmittedSet{}, errors.New("published Artifact set has no manifest")
-	}
-	manifest, err := artifactSetManifestDecoder.Decode(encodedManifest)
-	if err != nil {
-		return AdmittedSet{}, err
-	}
-	members := make([]SetMember, len(manifest.Members))
-	for index, row := range manifest.Members {
-		encoded, exists := files[row.Path]
-		if !exists {
-			return AdmittedSet{}, wrapAdmission(ErrorClosure,
-				fmt.Errorf("published Artifact set is missing member %q", row.Path))
-		}
-		members[index] = SetMember{Path: row.Path, Encoded: append([]byte(nil), encoded...)}
-	}
-	if len(files) != len(members)+1 {
-		return AdmittedSet{}, wrapAdmission(ErrorClosure,
-			errors.New("published Artifact set contains unexpected files"))
-	}
-	return AdmitSetManifest(encodedManifest, members)
 }

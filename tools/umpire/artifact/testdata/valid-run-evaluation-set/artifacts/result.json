@@ -1,0 +1,369 @@
+{
+  "formatVersion": "umpire-result/v2",
+  "runIdentity": "switch.run.1",
+  "behaviorFingerprint": "sha256:f6fbf2847d73f198dd50a9c466e6f1834f67042db0df0a54965c2bcb6b4f7a41",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+    "behaviorFingerprint": "sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0",
+    "provenanceChecksum": "sha256:9ac3c6316036d5631c81c30f45e408e80e8536359f36ef6bdd504c9f57470f41"
+  },
+  "runtimeConfiguration": {
+    "formatVersion": "umpire-runtime-configuration/v2",
+    "artifactChecksum": "sha256:454acc851c5c1638166b1a334eaaedc97e4515b5ebe6614d5a57672ddbd9d1c2",
+    "behaviorFingerprint": "sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
+    "provenanceChecksum": "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e"
+  },
+  "run": {
+    "formatVersion": "umpire-experiment-run/v2",
+    "artifactChecksum": "sha256:f1e9bce053d7ab53f9e9259187395456dc026934a317144785b1dcbe7475868e",
+    "behaviorFingerprint": "sha256:41e30ef6849aec9841e5af3a478e7ca4062f5229142318572b8afd9f36ec7f07",
+    "provenanceChecksum": "sha256:b879d5eba0c02a60c52e59a009c79f953310a6c49e3453ea863fddcbb07a75a9"
+  },
+  "rawEvidence": {
+    "formatVersion": "umpire-raw-evidence/v2",
+    "artifactChecksum": "sha256:39cc910d042990a7d64c180dc62a87004d9f6b3091f2ae690986781bc27af028",
+    "behaviorFingerprint": "sha256:2a0e83ab40ee0bb739827351e4fca37e29095333c469b975278f882ed3581e8c",
+    "provenanceChecksum": "sha256:58874d22fb498df81f0ad4a5812183031af5827e3f528d963d147cb760ee5bb7"
+  },
+  "evidence": {
+    "formatVersion": "umpire-evidence/v2",
+    "artifactChecksum": "sha256:bff1971d4762c0f0d642bf4d7c5b18b7492cf7d54f316a5ccc38362474e4a081",
+    "behaviorFingerprint": "sha256:0aa42f873839132836c028886c9be5ad63e5dc66dbc967182ae139159501c8ab",
+    "provenanceChecksum": "sha256:b84f046f2250d5718d6d135ad1a6e7b2059b221ddd30ce6c3a6ac08baaff5310"
+  },
+  "operationalStatus": "succeeded",
+  "observationEvaluationStatus": "accepted",
+  "implementationLink": {
+    "definitionId": "switch.implementation-link.system-to-feature",
+    "behaviorFingerprint": "sha256:0ec0f5e52dc5ed18516f1ffb9ae2973a98c5c7469a5482e2f0ef53f522f37d69",
+    "sourceTarget": {
+      "definitionId": "switch.target.two-state",
+      "kind": "target",
+      "behaviorFingerprint": "sha256:0443154d4f2860a69590a3d3867f4992ad17024ebf62b424545382c41b871666"
+    },
+    "destinationTarget": {
+      "definitionId": "switch.target.feature",
+      "kind": "target",
+      "behaviorFingerprint": "sha256:bf5ea7369835e8267f27e21cc1fb185505c83a6558905fb82b57fb55bd014828"
+    },
+    "diagnostic": null
+  },
+  "implementationLinkStatus": "applied",
+  "propertyVerdicts": [
+    {
+      "queryDefinitionId": "switch.query.exact-action",
+      "propertyDefinitionId": "switch.property.flip-turns-on",
+      "propertyBehaviorFingerprint": "sha256:d468cc8254badb7773914f14e152fbaeb4d90d743fc399926de7fcb3741f8522",
+      "traceId": "switch.trace.accepted",
+      "status": "satisfied",
+      "queryLimits": {
+        "behavior": {
+          "transitions": {
+            "value": 1,
+            "unit": "semantic-transitions"
+          },
+          "selectedActions": {
+            "value": 1,
+            "unit": "selected-actions"
+          }
+        },
+        "search": {
+          "value": 8,
+          "unit": "candidate-evaluations"
+        }
+      },
+      "evidenceLimit": {
+        "value": 2,
+        "unit": "evidence-records"
+      },
+      "provenanceDefinitionIds": [
+        "switch.property.flip-turns-on",
+        "switch.query.exact-action"
+      ],
+      "clauses": [
+        {
+          "propertyDefinitionId": "switch.property.flip-turns-on",
+          "clauseDefinitionId": "switch.property.flip-turns-on.clause",
+          "status": "satisfied",
+          "coordinates": [
+            {
+              "kind": "initial-state",
+              "step": null,
+              "position": null
+            }
+          ],
+          "queryLimits": {
+            "behavior": {
+              "transitions": {
+                "value": 1,
+                "unit": "semantic-transitions"
+              },
+              "selectedActions": {
+                "value": 1,
+                "unit": "selected-actions"
+              }
+            },
+            "search": {
+              "value": 8,
+              "unit": "candidate-evaluations"
+            }
+          },
+          "propertyLimit": {
+            "value": 1,
+            "unit": "observation-positions"
+          },
+          "evidenceLimit": {
+            "value": 2,
+            "unit": "evidence-records"
+          },
+          "provenanceDefinitionIds": [
+            "switch.property.flip-turns-on"
+          ],
+          "evidenceLinks": [
+            {
+              "coordinate": {
+                "kind": "initial-state",
+                "step": null,
+                "position": null
+              },
+              "mappingDefinitionId": "switch.observation.mapping",
+              "mappingVersion": 1,
+              "mappingBehaviorFingerprint": "sha256:f9f81b529dde00a6f3ce17a0a68a039d2b61bb0d332fdd7ec26cecd7cb56c63c",
+              "profileDefinitionId": "switch.observation.profile",
+              "profileVersion": 1,
+              "evidenceDefinitionIds": [
+                "switch.evidence.history.1"
+              ],
+              "ruleDefinitionId": "switch.observation.rule.initial-state",
+              "bindingDefinitionIds": [],
+              "orderingSupport": [
+                {
+                  "factDefinitionId": "switch.evidence.history.1",
+                  "kindDefinitionId": "umpire.evidence.kind.history",
+                  "ordinal": 0,
+                  "causalFactDefinitionIds": []
+                }
+              ],
+              "closureSupport": [
+                {
+                  "kindDefinitionId": "umpire.evidence.kind.history",
+                  "lastOrdinal": 0
+                }
+              ],
+              "appliedDispositions": [
+                {
+                  "field": {
+                    "kindDefinitionId": "umpire.evidence.kind.history",
+                    "fieldDefinitionId": "umpire.evidence.field.event"
+                  },
+                  "kind": "retained",
+                  "normalizedValue": "flip-requested",
+                  "digestPolicyDefinitionId": null,
+                  "digestToken": null
+                }
+              ],
+              "appliedLimit": {
+                "value": 2,
+                "unit": "evidence-records"
+              },
+              "meaningBehaviorFingerprint": "sha256:53e7c1cf1774a2d43104dbded2b710626bfc7589f51c6c36dbd1e49263cb45be"
+            }
+          ]
+        }
+      ],
+      "diagnostic": null
+    }
+  ],
+  "querySummary": {
+    "queryDefinitionId": "switch.query.exact-action",
+    "status": "satisfied",
+    "queryLimits": {
+      "behavior": {
+        "transitions": {
+          "value": 1,
+          "unit": "semantic-transitions"
+        },
+        "selectedActions": {
+          "value": 1,
+          "unit": "selected-actions"
+        }
+      },
+      "search": {
+        "value": 8,
+        "unit": "candidate-evaluations"
+      }
+    },
+    "requiredPropertyDefinitionIds": [
+      "switch.property.flip-turns-on"
+    ],
+    "propertyVerdicts": [
+      {
+        "queryDefinitionId": "switch.query.exact-action",
+        "propertyDefinitionId": "switch.property.flip-turns-on",
+        "propertyBehaviorFingerprint": "sha256:d468cc8254badb7773914f14e152fbaeb4d90d743fc399926de7fcb3741f8522",
+        "traceId": "switch.trace.accepted",
+        "status": "satisfied",
+        "queryLimits": {
+          "behavior": {
+            "transitions": {
+              "value": 1,
+              "unit": "semantic-transitions"
+            },
+            "selectedActions": {
+              "value": 1,
+              "unit": "selected-actions"
+            }
+          },
+          "search": {
+            "value": 8,
+            "unit": "candidate-evaluations"
+          }
+        },
+        "evidenceLimit": {
+          "value": 2,
+          "unit": "evidence-records"
+        },
+        "provenanceDefinitionIds": [
+          "switch.property.flip-turns-on",
+          "switch.query.exact-action"
+        ],
+        "clauses": [
+          {
+            "propertyDefinitionId": "switch.property.flip-turns-on",
+            "clauseDefinitionId": "switch.property.flip-turns-on.clause",
+            "status": "satisfied",
+            "coordinates": [
+              {
+                "kind": "initial-state",
+                "step": null,
+                "position": null
+              }
+            ],
+            "queryLimits": {
+              "behavior": {
+                "transitions": {
+                  "value": 1,
+                  "unit": "semantic-transitions"
+                },
+                "selectedActions": {
+                  "value": 1,
+                  "unit": "selected-actions"
+                }
+              },
+              "search": {
+                "value": 8,
+                "unit": "candidate-evaluations"
+              }
+            },
+            "propertyLimit": {
+              "value": 1,
+              "unit": "observation-positions"
+            },
+            "evidenceLimit": {
+              "value": 2,
+              "unit": "evidence-records"
+            },
+            "provenanceDefinitionIds": [
+              "switch.property.flip-turns-on"
+            ],
+            "evidenceLinks": [
+              {
+                "coordinate": {
+                  "kind": "initial-state",
+                  "step": null,
+                  "position": null
+                },
+                "mappingDefinitionId": "switch.observation.mapping",
+                "mappingVersion": 1,
+                "mappingBehaviorFingerprint": "sha256:f9f81b529dde00a6f3ce17a0a68a039d2b61bb0d332fdd7ec26cecd7cb56c63c",
+                "profileDefinitionId": "switch.observation.profile",
+                "profileVersion": 1,
+                "evidenceDefinitionIds": [
+                  "switch.evidence.history.1"
+                ],
+                "ruleDefinitionId": "switch.observation.rule.initial-state",
+                "bindingDefinitionIds": [],
+                "orderingSupport": [
+                  {
+                    "factDefinitionId": "switch.evidence.history.1",
+                    "kindDefinitionId": "umpire.evidence.kind.history",
+                    "ordinal": 0,
+                    "causalFactDefinitionIds": []
+                  }
+                ],
+                "closureSupport": [
+                  {
+                    "kindDefinitionId": "umpire.evidence.kind.history",
+                    "lastOrdinal": 0
+                  }
+                ],
+                "appliedDispositions": [
+                  {
+                    "field": {
+                      "kindDefinitionId": "umpire.evidence.kind.history",
+                      "fieldDefinitionId": "umpire.evidence.field.event"
+                    },
+                    "kind": "retained",
+                    "normalizedValue": "flip-requested",
+                    "digestPolicyDefinitionId": null,
+                    "digestToken": null
+                  }
+                ],
+                "appliedLimit": {
+                  "value": 2,
+                  "unit": "evidence-records"
+                },
+                "meaningBehaviorFingerprint": "sha256:53e7c1cf1774a2d43104dbded2b710626bfc7589f51c6c36dbd1e49263cb45be"
+              }
+            ]
+          }
+        ],
+        "diagnostic": null
+      }
+    ],
+    "missingPropertyDefinitionIds": [],
+    "duplicatePropertyDefinitionIds": [],
+    "unexpectedPropertyDefinitionIds": [],
+    "divergentPropertyDefinitionIds": [],
+    "wrongQueryResultDefinitionIds": [],
+    "traceIds": [
+      "switch.trace.accepted"
+    ]
+  },
+  "semanticStatus": "satisfied",
+  "limits": [
+    {
+      "stage": "observation-evaluation",
+      "limit": {
+        "value": 2,
+        "unit": "evidence-records"
+      }
+    },
+    {
+      "stage": "query",
+      "limit": {
+        "value": 8,
+        "unit": "candidate-evaluations"
+      }
+    }
+  ],
+  "knownGaps": [],
+  "cleanupStatus": "complete",
+  "evaluationOutcomeChecksum": "sha256:6950bb24b35f2a8300bd0767aafac702bdb83eff6fd0f64bf3b30a53fa414a1d",
+  "provenance": {
+    "sourceDefinitionIds": [
+      "switch.result.interpreted"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Umpire/Artifact/Tests/Result.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:45dc784e74ecf8f34b9acd5e050da1943b882f782030211bb3f9a3bceef6f795",
+  "artifactChecksum": "sha256:0c7f62e69339afce41804fe5ac043d6d2bfa47f334efb35d449e475c0b3c4338"
+}

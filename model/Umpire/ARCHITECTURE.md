@@ -22,7 +22,7 @@ Focused imports are available when a consumer needs a smaller surface:
 | `Umpire.Property` | Portable property authoring, checking, and evaluation. |
 | `Umpire.Behavior` | Setup and trace-shape constraints. |
 | `Umpire.Query` | Checked combinations of Targets, Properties, Behaviors, Limits, and policies. |
-| `Umpire.Artifact` | Portable drive plans and experiment specifications. |
+| `Umpire.Artifact` | Exact v2 planning, runtime, Evidence, Result, set-admission, and immutable-publication contracts. |
 | `Umpire.Planning` | Deterministic incremental planning over checked queries. |
 | `Umpire.Space` | Checked finite axes, request-only faults, seek-only coverage goals, metadata, point lowering, and atomic batch compilation. |
 | `Umpire.Observation` | Checked Evidence mappings, Observation Evaluation, Evidence Links, dispositions, Property verdicts, and strict aggregation. |
@@ -60,6 +60,42 @@ languages; it is not another scenario language. Space composes one checked Query
 introducing another Behavior, Query, Property, planner, or outcome language. Checked types freeze
 canonical metadata and Behavior Fingerprints, and Planning accepts checked values rather than raw
 author input.
+
+## Artifact API
+
+`Umpire.Artifact` exposes the vertical Artifact modules in dependency order: Planning, Runtime,
+Evidence, Result, and Set. The retained boundary is exactly the embedded `umpire-drive-plan/v2`
+plus the persisted `umpire-experiment/v2`, `umpire-runtime-configuration/v2`,
+`umpire-experiment-run/v2`, `umpire-raw-evidence/v2`, `umpire-evidence/v2`, and
+`umpire-result/v2` families. It adds no forwarding aliases or generic envelope.
+
+Every persisted document is fixed-order UTF-8 JSON with two-space indentation, stable escaping and
+canonical base-10 natural numbers, no trailing spaces, and exactly one terminal LF. Its Artifact
+Checksum hashes `domain + "\n" + preimage`, where the preimage is that document's exact pretty
+encoding with only its own `artifactChecksum` omitted and one terminal LF. The outer ExperimentSpec
+preimage retains the already-sealed DrivePlan. Behavior Fingerprints continue to identify checked
+meaning; provenance and Artifact checksums independently bind provenance and complete content.
+
+RuntimeConfiguration, ExperimentRun, RawEvidence, Evidence, and Result keep phase Limits, Known
+Gaps, operational status, Observation Evaluation, Evidence Links, Implementation Link status,
+Property verdicts, Run Evaluation, and cleanup status distinct. Exact set admission accepts only:
+
+- ExperimentSpec plus RuntimeConfiguration;
+- those two plus ExperimentRun and RawEvidence; or
+- those four plus Evidence and Result.
+
+Go admission rejects unsupported formats, wrong families, duplicate or case-colliding keys,
+unknown fields, malformed or oversized values, noncanonical bytes, stale checksums, unsafe set
+paths, and incomplete cross-document closure. Compact JSON and alternate whitespace do not enter a
+normalizer, compatibility alias, fallback, or migration.
+
+The root `umpire-check-artifact` and `umpire-check-artifact-set` targets are read-only admission
+checks. They are silent on success and never publish as a side effect. `PublishSet` remains an
+explicit Go API: it stages and revalidates a complete admitted set privately, installs its immutable
+manifest-digest directory with one rename, and lets `LoadSet` return only a complete revalidated
+snapshot. Interrupted private staging is cleaned under the publication lock; generic artifact
+management, schema migrations, receipt envelopes, runtime execution, CI, and other platform work
+remain separate.
 
 ## Core and Target APIs
 
