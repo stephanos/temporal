@@ -11,7 +11,6 @@ import (
 	"io"
 	"slices"
 	"strings"
-	"unicode"
 )
 
 const (
@@ -498,6 +497,13 @@ func ValidateExperiment(document Experiment) error {
 	if !ValidDigest(document.ArtifactChecksum) {
 		return fmt.Errorf("artifact checksum %q is invalid", document.ArtifactChecksum)
 	}
+	if err := validateExperimentCollections(document); err != nil {
+		return err
+	}
+	return validateDrivePlan(document.Plan)
+}
+
+func validateExperimentCollections(document Experiment) error {
 	if document.Properties == nil || document.ObservationRequirementDefinitionIDs == nil ||
 		document.Provenance.SourceDefinitionIDs == nil || document.Provenance.SourceLocations == nil {
 		return errors.New("ExperimentSpec arrays must not be null")
@@ -505,7 +511,7 @@ func ValidateExperiment(document Experiment) error {
 	if len(document.Properties) == 0 {
 		return errors.New("at least one property identity is required")
 	}
-	if err := validateStringSet("observation requirement definition ID", document.ObservationRequirementDefinitionIDs); err != nil {
+	if err := validateDefinitionIDSet("observation requirement definition ID", document.ObservationRequirementDefinitionIDs); err != nil {
 		return err
 	}
 	if err := validateProvenance(document.Provenance); err != nil {
@@ -518,7 +524,7 @@ func ValidateExperiment(document Experiment) error {
 		if property.RequirementDefinitionIDs == nil {
 			return fmt.Errorf("property %q requirement definition IDs must not be null", property.DefinitionID)
 		}
-		if err := validateStringSet("property requirement definition ID", property.RequirementDefinitionIDs); err != nil {
+		if err := validateDefinitionIDSet("property requirement definition ID", property.RequirementDefinitionIDs); err != nil {
 			return err
 		}
 	}
@@ -526,9 +532,6 @@ func ValidateExperiment(document Experiment) error {
 		return strings.Compare(left.DefinitionID, right.DefinitionID)
 	}) {
 		return errors.New("properties are not in canonical order")
-	}
-	if err := validateDrivePlan(document.Plan); err != nil {
-		return err
 	}
 	return nil
 }
@@ -542,7 +545,7 @@ func validateDrivePlan(plan DrivePlan) error {
 		plan.Provenance.SourceLocations == nil {
 		return errors.New("DrivePlan arrays must not be null")
 	}
-	if err := validateStringSet("capability requirement definition ID", plan.CapabilityRequirementDefinitionIDs); err != nil {
+	if err := validateDefinitionIDSet("capability requirement definition ID", plan.CapabilityRequirementDefinitionIDs); err != nil {
 		return err
 	}
 	if err := validateBindings(plan.Bindings); err != nil {
@@ -739,13 +742,8 @@ func validateModelValue(label string, value ModelValue) error {
 }
 
 func validateProvenance(provenance Provenance) error {
-	if err := validateStringSet("source definition ID", provenance.SourceDefinitionIDs); err != nil {
+	if err := validateDefinitionIDSet("source definition ID", provenance.SourceDefinitionIDs); err != nil {
 		return err
-	}
-	for _, identity := range provenance.SourceDefinitionIDs {
-		if !validDefinitionID(identity) {
-			return fmt.Errorf("source definition ID %q is invalid", identity)
-		}
 	}
 	if len(provenance.SourceLocations) == 0 {
 		return errors.New("at least one source location is required")
@@ -783,13 +781,31 @@ func validDefinitionID(value string) bool {
 		if segment == "" {
 			return false
 		}
-		for _, character := range segment {
-			if !unicode.IsLetter(character) && !unicode.IsNumber(character) && character != '-' && character != '_' {
+		for _, character := range []byte(segment) {
+			if !isASCIIAlphanumeric(character) && character != '-' && character != '_' {
 				return false
 			}
 		}
 	}
 	return true
+}
+
+func isASCIIAlphanumeric(character byte) bool {
+	return character >= 'a' && character <= 'z' ||
+		character >= 'A' && character <= 'Z' ||
+		character >= '0' && character <= '9'
+}
+
+func validateDefinitionIDSet(label string, values []string) error {
+	if err := validateStringSet(label, values); err != nil {
+		return err
+	}
+	for _, value := range values {
+		if !validDefinitionID(value) {
+			return fmt.Errorf("%s %q is invalid", label, value)
+		}
+	}
+	return nil
 }
 
 func validateStringSet(label string, values []string) error {
