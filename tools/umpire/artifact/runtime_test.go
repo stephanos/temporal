@@ -128,9 +128,11 @@ func TestRuntimeV2ExperimentRunClosedStatusMatrices(t *testing.T) {
 		{
 			name: "phase not started",
 			mutate: func(document *artifactv2.ExperimentRun) {
-				document.PhaseOutcomes[1].Status = "not-started"
-				document.PhaseOutcomes[1].StartedAtUnixMillis = nil
-				document.PhaseOutcomes[1].FinishedAtUnixMillis = nil
+				for index := 1; index <= 2; index++ {
+					document.PhaseOutcomes[index].Status = "not-started"
+					document.PhaseOutcomes[index].StartedAtUnixMillis = nil
+					document.PhaseOutcomes[index].FinishedAtUnixMillis = nil
+				}
 				document.OperationalStatus = "incomplete"
 			},
 		},
@@ -233,6 +235,168 @@ func TestRuntimeV2ExperimentRunClosedStatusMatrices(t *testing.T) {
 			encoded := resealedExperimentRunV2Mutation(t, test.mutate)
 			_, err := artifact.DecodeExperimentRunV2(encoded)
 			require.NoError(t, err)
+		})
+	}
+}
+
+func TestRuntimeV2ExperimentRunRejectsOperationalStatusAndPhaseProgression(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(*artifactv2.ExperimentRun)
+	}{
+		{
+			name: "all success declared failed",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.OperationalStatus = "failed"
+			},
+		},
+		{
+			name: "phase failure declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[1].Status = "failed"
+				document.PhaseOutcomes[1].Code = stringPointer("switch.phase.failed")
+			},
+		},
+		{
+			name: "phase timeout declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[1].Status = "timed-out"
+				document.PhaseOutcomes[1].Code = stringPointer("switch.phase.timed-out")
+			},
+		},
+		{
+			name: "phase cancellation declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[1].Status = "canceled"
+				document.PhaseOutcomes[1].Code = stringPointer("switch.phase.canceled")
+			},
+		},
+		{
+			name: "control rejection declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.ControlAttempts[0].Status = "rejected"
+				document.ControlAttempts[0].Code = stringPointer("switch.control.rejected")
+			},
+		},
+		{
+			name: "control cancellation declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.ControlAttempts[0].Status = "canceled"
+				document.ControlAttempts[0].Code = stringPointer("switch.control.canceled")
+			},
+		},
+		{
+			name: "control not attempted declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.ControlAttempts[0].Status = "not-attempted"
+				document.ControlAttempts[0].ReceiptFactDefinitionID = nil
+			},
+		},
+		{
+			name: "source failure declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.SourceClosures[0].Status = "failed"
+			},
+		},
+		{
+			name: "partial source declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.SourceClosures[0].Status = "partial"
+			},
+		},
+		{
+			name: "cleanup failure declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.Cleanup.Status = "failed"
+				document.Cleanup.Code = stringPointer("switch.cleanup.failed")
+			},
+		},
+		{
+			name: "incomplete cleanup declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.Cleanup.Status = "incomplete"
+				document.Cleanup.Code = stringPointer("switch.cleanup.incomplete")
+			},
+		},
+		{
+			name: "Known Gap declared succeeded",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.KnownGaps = []artifactv2.KnownGap{{
+					Kind: "input", Code: "switch.gap.capacity",
+				}}
+			},
+		},
+		{
+			name: "phase failure does not dominate incomplete cleanup",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[1].Status = "failed"
+				document.PhaseOutcomes[1].Code = stringPointer("switch.phase.failed")
+				document.Cleanup.Status = "incomplete"
+				document.Cleanup.Code = stringPointer("switch.cleanup.incomplete")
+				document.OperationalStatus = "incomplete"
+			},
+		},
+		{
+			name: "cleanup failure does not dominate phase timeout",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[1].Status = "timed-out"
+				document.PhaseOutcomes[1].Code = stringPointer("switch.phase.timed-out")
+				document.Cleanup.Status = "failed"
+				document.Cleanup.Code = stringPointer("switch.cleanup.failed")
+				document.OperationalStatus = "incomplete"
+			},
+		},
+		{
+			name: "preparation not started",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				for index := 0; index <= 2; index++ {
+					document.PhaseOutcomes[index].Status = "not-started"
+					document.PhaseOutcomes[index].StartedAtUnixMillis = nil
+					document.PhaseOutcomes[index].FinishedAtUnixMillis = nil
+				}
+				document.OperationalStatus = "incomplete"
+			},
+		},
+		{
+			name: "preparation failed but realization started",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[0].Status = "failed"
+				document.PhaseOutcomes[0].Code = stringPointer("switch.phase.failed")
+				document.OperationalStatus = "failed"
+			},
+		},
+		{
+			name: "observation started without realization",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[1].Status = "not-started"
+				document.PhaseOutcomes[1].StartedAtUnixMillis = nil
+				document.PhaseOutcomes[1].FinishedAtUnixMillis = nil
+				document.OperationalStatus = "incomplete"
+			},
+		},
+		{
+			name: "observation not started after realization",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[2].Status = "not-started"
+				document.PhaseOutcomes[2].StartedAtUnixMillis = nil
+				document.PhaseOutcomes[2].FinishedAtUnixMillis = nil
+				document.OperationalStatus = "incomplete"
+			},
+		},
+		{
+			name: "cleanup not started",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.PhaseOutcomes[4].Status = "not-started"
+				document.PhaseOutcomes[4].StartedAtUnixMillis = nil
+				document.PhaseOutcomes[4].FinishedAtUnixMillis = nil
+				document.OperationalStatus = "incomplete"
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			encoded := resealedExperimentRunV2Mutation(t, test.mutate)
+			_, err := artifact.DecodeExperimentRunV2(encoded)
+			requireRuntimeV2ErrorCode(t, err, artifact.ErrorMalformedValue)
 		})
 	}
 }
@@ -363,6 +527,19 @@ func TestRuntimeV2StringBounds(t *testing.T) {
 			}),
 			overLimit: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
 				document.ConfigurationDefinitionID = identityOverLimit
+			}),
+			decode: func(encoded []byte) error {
+				_, err := artifact.DecodeRuntimeConfigurationV2(encoded)
+				return err
+			},
+		},
+		{
+			name: "RuntimeConfiguration nested identity",
+			atLimit: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.AuthorityProfile.DefinitionID = identityAtLimit
+			}),
+			overLimit: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.AuthorityProfile.DefinitionID = identityOverLimit
 			}),
 			decode: func(encoded []byte) error {
 				_, err := artifact.DecodeRuntimeConfigurationV2(encoded)
@@ -557,6 +734,30 @@ func TestRuntimeConfigurationV2RejectsOneAtATimeMutations(t *testing.T) {
 		"malformed provenance": {
 			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
 				document.Provenance.SourceLocations[0].Line = "0"
+			}),
+			code: artifact.ErrorMalformedValue,
+		},
+		"empty provenance locations": {
+			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.Provenance.SourceLocations = []artifactv2.SourceLocation{}
+			}),
+			code: artifact.ErrorMalformedValue,
+		},
+		"blank provenance path": {
+			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.Provenance.SourceLocations[0].Path = " "
+			}),
+			code: artifact.ErrorMalformedValue,
+		},
+		"blank provenance label": {
+			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.Provenance.SourceLocations[0].Provenance = " "
+			}),
+			code: artifact.ErrorMalformedValue,
+		},
+		"zero provenance column": {
+			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.Provenance.SourceLocations[0].Column = "0"
 			}),
 			code: artifact.ErrorMalformedValue,
 		},
