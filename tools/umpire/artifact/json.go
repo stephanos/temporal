@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"hash/maphash"
 	"reflect"
 	"strings"
 	"unicode"
@@ -27,6 +28,7 @@ type jsonMetrics struct {
 	tokens      int
 	depth       int
 	stringBytes int
+	objectKeys  int
 }
 
 func measureJSON(encoded []byte) (jsonMetrics, error) {
@@ -56,7 +58,9 @@ func measureJSON(encoded []byte) (jsonMetrics, error) {
 			metrics.tokens++
 			metrics.stringBytes = max(metrics.stringBytes, value.decodedBytes)
 			position = next
-			if nextNonspace(encoded, position) != ':' {
+			if nextNonspace(encoded, position) == ':' {
+				metrics.objectKeys++
+			} else {
 				metrics.depth = max(metrics.depth, depth+1)
 			}
 		default:
@@ -111,15 +115,18 @@ func scanUnicodeEscape(encoded []byte, position int) (codePoint int, next int, e
 		return 0, 0, err
 	}
 	position += 4
-	if !utf16.IsSurrogate(rune(codePoint)) || codePoint > 0xdbff {
+	if !utf16.IsSurrogate(rune(codePoint)) {
 		return codePoint, position, nil
 	}
+	if codePoint > 0xdbff {
+		return utf8.RuneError, position, nil
+	}
 	if position+6 >= len(encoded) || encoded[position+1] != '\\' || encoded[position+2] != 'u' {
-		return 0, 0, errors.New("unpaired JSON surrogate")
+		return utf8.RuneError, position, nil
 	}
 	low, lowErr := scanHexQuad(encoded, position+3)
 	if lowErr != nil || low < 0xdc00 || low > 0xdfff {
-		return 0, 0, errors.New("unpaired JSON surrogate")
+		return utf8.RuneError, position, nil
 	}
 	return int(utf16.DecodeRune(rune(codePoint), rune(low))), position + 6, nil
 }
@@ -263,10 +270,19 @@ func (a jsonAnalysis) format() (string, bool) {
 	return a.formatValue, a.formatSeen && a.formatString
 }
 
-func inspectJSON(encoded []byte, schema *jsonSchema, bounds Bounds, limits structuralLimits) (jsonAnalysis, error) {
-	cursor := jsonCursor{encoded: encoded}
+func inspectJSON(
+	encoded []byte,
+	schema *jsonSchema,
+	bounds Bounds,
+	limits structuralLimits,
+	objectKeys int,
+) (jsonAnalysis, error) {
+	cursor := jsonCursor{encoded: encoded, keys: newJSONKeyTracker(objectKeys)}
 	var analysis jsonAnalysis
 	if err := cursor.inspectValue(schema, "$", false, bounds, limits, &analysis); err != nil {
+		if errors.Is(err, errDuplicateKeyFound) {
+			return analysis, nil
+		}
 		return jsonAnalysis{}, err
 	}
 	cursor.skipSpace()
@@ -279,6 +295,79 @@ func inspectJSON(encoded []byte, schema *jsonSchema, bounds Bounds, limits struc
 type jsonCursor struct {
 	encoded  []byte
 	position int
+	keys     *jsonKeyTracker
+}
+
+var errDuplicateKeyFound = errors.New("duplicate JSON key found")
+
+type jsonKeyDigest struct {
+	first  uint64
+	second uint64
+}
+
+type jsonKeyIdentity struct {
+	objectID int
+	digest   jsonKeyDigest
+}
+
+type jsonKeyTracker struct {
+	exact        map[jsonKeyIdentity]struct{}
+	folded       map[jsonKeyIdentity]struct{}
+	firstSeed    maphash.Seed
+	secondSeed   maphash.Seed
+	nextObjectID int
+}
+
+func newJSONKeyTracker(capacity int) *jsonKeyTracker {
+	return &jsonKeyTracker{
+		exact:      make(map[jsonKeyIdentity]struct{}, capacity),
+		folded:     make(map[jsonKeyIdentity]struct{}, capacity),
+		firstSeed:  maphash.MakeSeed(),
+		secondSeed: maphash.MakeSeed(),
+	}
+}
+
+func (t *jsonKeyTracker) startObject() int {
+	objectID := t.nextObjectID
+	t.nextObjectID++
+	return objectID
+}
+
+func (t *jsonKeyTracker) note(encoded []byte, objectID int, key jsonString, analysis *jsonAnalysis) error {
+	exactIdentity := jsonKeyIdentity{objectID: objectID, digest: hashJSONString(encoded, key, false, t)}
+	if _, exists := t.exact[exactIdentity]; exists {
+		analysis.duplicateKey = true
+		return errDuplicateKeyFound
+	}
+	t.exact[exactIdentity] = struct{}{}
+	foldedIdentity := jsonKeyIdentity{objectID: objectID, digest: hashJSONString(encoded, key, true, t)}
+	if _, exists := t.folded[foldedIdentity]; exists {
+		analysis.caseCollision = true
+	} else {
+		t.folded[foldedIdentity] = struct{}{}
+	}
+	return nil
+}
+
+func hashJSONString(encoded []byte, value jsonString, fold bool, tracker *jsonKeyTracker) jsonKeyDigest {
+	var first maphash.Hash
+	var second maphash.Hash
+	first.SetSeed(tracker.firstSeed)
+	second.SetSeed(tracker.secondSeed)
+	iterator := jsonStringIterator{encoded: encoded, value: value, position: value.start}
+	var buffer [utf8.UTFMax]byte
+	for {
+		character, ok := iterator.next()
+		if !ok {
+			return jsonKeyDigest{first: first.Sum64(), second: second.Sum64()}
+		}
+		if fold {
+			character = unicode.ToLower(character)
+		}
+		width := utf8.EncodeRune(buffer[:], character)
+		_, _ = first.Write(buffer[:width])
+		_, _ = second.Write(buffer[:width])
+	}
 }
 
 func (c *jsonCursor) inspectValue(
@@ -385,8 +474,7 @@ func (c *jsonCursor) inspectObject(
 	if bounds.CollectionLimit != nil {
 		limit = tighterLimit(limit, bounds.CollectionLimit(path, CollectionObject))
 	}
-	contentStart := c.position
-	var keys [MaximumJSONObjectMembers]jsonString
+	objectID := c.keys.startObject()
 	members := 0
 	for c.position < len(c.encoded) && c.encoded[c.position] != '}' {
 		if members >= limit {
@@ -398,10 +486,9 @@ func (c *jsonCursor) inspectObject(
 			bounds,
 			limits,
 			analysis,
-			contentStart,
+			objectID,
 			members,
 			limit,
-			keys[:],
 		); err != nil {
 			return err
 		}
@@ -421,12 +508,10 @@ func (c *jsonCursor) inspectObjectMember(
 	bounds Bounds,
 	limits structuralLimits,
 	analysis *jsonAnalysis,
-	contentStart int,
+	objectID int,
 	members int,
 	limit int,
-	keys []jsonString,
 ) error {
-	keyPosition := c.position
 	key, next, err := scanJSONString(c.encoded, c.position)
 	if err != nil {
 		return err
@@ -434,9 +519,8 @@ func (c *jsonCursor) inspectObjectMember(
 	if exceeds(key.decodedBytes, limits.stringBytes) {
 		analysis.stringLimit = true
 	}
-	c.noteObjectKey(contentStart, keyPosition, key, keys[:min(members, len(keys))], analysis)
-	if members < len(keys) {
-		keys[members] = key
+	if err := c.keys.note(c.encoded, objectID, key, analysis); err != nil {
+		return err
 	}
 	childSchema := resolveChildSchema(c.encoded, schema, key, analysis)
 	formatField := path == "$" && jsonStringEqualsPlain(c.encoded, key, "formatVersion")
@@ -469,48 +553,6 @@ func boundedChildPath(
 		return "", err
 	}
 	return appendObjectPath(path, decodedKey), nil
-}
-
-func (c *jsonCursor) noteObjectKey(
-	contentStart int,
-	keyPosition int,
-	key jsonString,
-	stored []jsonString,
-	analysis *jsonAnalysis,
-) {
-	if len(stored) < MaximumJSONObjectMembers {
-		for _, previous := range stored {
-			noteKeyCollision(c.encoded, previous, key, analysis)
-		}
-		return
-	}
-	probe := jsonCursor{encoded: c.encoded, position: contentStart}
-	for probe.position < keyPosition {
-		previous, next, err := scanJSONString(probe.encoded, probe.position)
-		if err != nil {
-			return
-		}
-		noteKeyCollision(c.encoded, previous, key, analysis)
-		probe.position = next
-		probe.skipSpace()
-		probe.position++
-		_ = probe.skipValue()
-		probe.skipSpace()
-		if probe.position < keyPosition && probe.encoded[probe.position] == ',' {
-			probe.position++
-			probe.skipSpace()
-		}
-	}
-}
-
-func noteKeyCollision(encoded []byte, previous, key jsonString, analysis *jsonAnalysis) {
-	if jsonStringsEqual(encoded, previous, key) {
-		analysis.duplicateKey = true
-		return
-	}
-	if jsonStringsFoldEqual(encoded, previous, key) {
-		analysis.caseCollision = true
-	}
 }
 
 func resolveChildSchema(encoded []byte, schema *jsonSchema, key jsonString, analysis *jsonAnalysis) *jsonSchema {
@@ -575,61 +617,6 @@ func (c *jsonCursor) inspectArray(
 	return nil
 }
 
-func (c *jsonCursor) skipValue() error {
-	c.skipSpace()
-	if c.position >= len(c.encoded) {
-		return errors.New("missing JSON value")
-	}
-	switch c.encoded[c.position] {
-	case '"':
-		_, next, err := scanJSONString(c.encoded, c.position)
-		c.position = next
-		return err
-	case '{':
-		return c.skipObject()
-	case '[':
-		return c.skipArray()
-	default:
-		for c.position < len(c.encoded) && !isJSONSeparator(c.encoded[c.position]) {
-			c.position++
-		}
-		return nil
-	}
-}
-
-func (c *jsonCursor) skipObject() error {
-	c.position++
-	c.skipSpace()
-	for c.position < len(c.encoded) && c.encoded[c.position] != '}' {
-		_, next, err := scanJSONString(c.encoded, c.position)
-		if err != nil {
-			return err
-		}
-		c.position = next
-		c.skipSpace()
-		c.position++
-		if err := c.skipValue(); err != nil {
-			return err
-		}
-		c.skipComma()
-	}
-	c.position++
-	return nil
-}
-
-func (c *jsonCursor) skipArray() error {
-	c.position++
-	c.skipSpace()
-	for c.position < len(c.encoded) && c.encoded[c.position] != ']' {
-		if err := c.skipValue(); err != nil {
-			return err
-		}
-		c.skipComma()
-	}
-	c.position++
-	return nil
-}
-
 func (c *jsonCursor) skipComma() {
 	c.skipSpace()
 	if c.position < len(c.encoded) && c.encoded[c.position] == ',' {
@@ -660,36 +647,6 @@ func decodeJSONString(encoded []byte, value jsonString) (string, error) {
 		}
 		if _, err := decoded.WriteRune(character); err != nil {
 			return "", err
-		}
-	}
-}
-
-func jsonStringsEqual(encoded []byte, left, right jsonString) bool {
-	return compareJSONStrings(encoded, left, right, false)
-}
-
-func jsonStringsFoldEqual(encoded []byte, left, right jsonString) bool {
-	return compareJSONStrings(encoded, left, right, true)
-}
-
-func compareJSONStrings(encoded []byte, left, right jsonString, fold bool) bool {
-	leftIterator := jsonStringIterator{encoded: encoded, value: left, position: left.start}
-	rightIterator := jsonStringIterator{encoded: encoded, value: right, position: right.start}
-	for {
-		leftRune, leftOK := leftIterator.next()
-		rightRune, rightOK := rightIterator.next()
-		if leftOK != rightOK {
-			return false
-		}
-		if !leftOK {
-			return true
-		}
-		if fold {
-			leftRune = unicode.ToLower(leftRune)
-			rightRune = unicode.ToLower(rightRune)
-		}
-		if leftRune != rightRune {
-			return false
 		}
 	}
 }
@@ -753,14 +710,8 @@ func (i *jsonStringIterator) next() (rune, bool) {
 	case 't':
 		return '\t', true
 	default:
-		codePoint, _ := scanHexQuad(i.encoded, i.position)
-		i.position += 4
-		if codePoint >= 0xd800 && codePoint <= 0xdbff {
-			i.position += 2
-			low, _ := scanHexQuad(i.encoded, i.position)
-			i.position += 4
-			return utf16.DecodeRune(rune(codePoint), rune(low)), true
-		}
+		codePoint, last, _ := scanUnicodeEscape(i.encoded, i.position-1)
+		i.position = last + 1
 		return rune(codePoint), true
 	}
 }

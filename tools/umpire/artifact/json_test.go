@@ -228,14 +228,14 @@ func TestStrictJSONScannerUsesBoundedBookkeeping(t *testing.T) {
 func TestStrictJSONFindsPrecedenceErrorsPastObjectLimitWithoutGrowingKeyState(t *testing.T) {
 	var encoded strings.Builder
 	encoded.WriteString(`{"formatVersion":"umpire-map-boundary/v2","values":{`)
-	for index := range MaximumJSONObjectMembers + 1 {
+	for index := range MaximumJSONArrayItems {
 		if index > 0 {
 			encoded.WriteByte(',')
 		}
 		_, err := fmt.Fprintf(&encoded, `"key-%03d":""`, index)
 		require.NoError(t, err)
 	}
-	_, err := fmt.Fprintf(&encoded, `,"key-%03d":""}}`, MaximumJSONObjectMembers)
+	_, err := fmt.Fprintf(&encoded, `,"key-%03d":""}}`, MaximumJSONArrayItems-1)
 	require.NoError(t, err)
 
 	decoder := Decoder[objectBoundaryProbe]{Format: "umpire-map-boundary/v2"}
@@ -415,6 +415,7 @@ func TestStrictJSONBoundOverridesCanOnlyTighten(t *testing.T) {
 		schemaFor[strictProbe](),
 		decoder.Bounds,
 		structuralLimits{documentBytes: MaximumDocumentBytes, tokens: MaximumJSONTokens, depth: MaximumJSONDepth, arrayItems: 0, objectMembers: 0, stringBytes: 0},
+		3,
 	)
 	require.NoError(t, err)
 	require.True(t, analysis.collectionLimit)

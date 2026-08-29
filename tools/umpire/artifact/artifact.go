@@ -70,13 +70,10 @@ func inspectAdmission[T any](d Decoder[T], encoded []byte, limits structuralLimi
 	if err != nil {
 		return jsonAnalysis{}, wrapAdmission(ErrorSyntax, err)
 	}
-	if exceeds(metrics.tokens, limits.tokens) {
-		return jsonAnalysis{}, wrapAdmission(ErrorTokenLimit, fmt.Errorf("document has %d tokens; limit is %d", metrics.tokens, limits.tokens))
+	if err := checkStructuralMetrics(metrics, limits); err != nil {
+		return jsonAnalysis{}, err
 	}
-	if exceeds(metrics.depth, limits.depth) {
-		return jsonAnalysis{}, wrapAdmission(ErrorDepthLimit, fmt.Errorf("document has depth %d; limit is %d", metrics.depth, limits.depth))
-	}
-	analysis, err := inspectJSON(encoded, schemaFor[T](), d.Bounds, limits)
+	analysis, err := inspectJSON(encoded, schemaFor[T](), d.Bounds, limits, metrics.objectKeys)
 	if err != nil {
 		return jsonAnalysis{}, wrapAdmission(ErrorSyntax, err)
 	}
@@ -108,6 +105,16 @@ func inspectAdmission[T any](d Decoder[T], encoded []byte, limits structuralLimi
 		}
 	}
 	return analysis, nil
+}
+
+func checkStructuralMetrics(metrics jsonMetrics, limits structuralLimits) error {
+	if exceeds(metrics.tokens, limits.tokens) {
+		return wrapAdmission(ErrorTokenLimit, fmt.Errorf("document has %d tokens; limit is %d", metrics.tokens, limits.tokens))
+	}
+	if exceeds(metrics.depth, limits.depth) {
+		return wrapAdmission(ErrorDepthLimit, fmt.Errorf("document has depth %d; limit is %d", metrics.depth, limits.depth))
+	}
+	return nil
 }
 
 func decodeTransport[T any](d Decoder[T], encoded []byte) (T, error) {
