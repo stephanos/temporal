@@ -393,7 +393,9 @@ func (a *sdkCommandAdapter) Cleanup(
 		}
 	}
 	if failed {
-		return adapterFailureReceipt(ctx, command, fmt.Errorf("participant cleanup failed"), nil, released, correlations)
+		return adapterCleanupFailureReceipt(
+			ctx, command, fmt.Errorf("participant cleanup failed"), nil, released, correlations,
+		)
 	}
 	return adapterReceipt(command, umpireruntime.ReceiptAccepted, "", nil, nil, released, correlations)
 }
@@ -426,6 +428,18 @@ func adapterFailureReceipt(
 ) umpireruntime.Receipt {
 	status, code := adapterFailureStatus(ctx)
 	return adapterReceipt(command, status, code, facts, resources, nil, correlations)
+}
+
+func adapterCleanupFailureReceipt(
+	ctx context.Context,
+	command umpireruntime.Command,
+	_ error,
+	facts []umpireruntime.Fact,
+	released []umpireruntime.Resource,
+	correlations adapterCorrelations,
+) umpireruntime.Receipt {
+	status, code := adapterFailureStatus(ctx)
+	return newAdapterReceipt(command, status, code, facts, nil, released, correlations, false, false)
 }
 
 func adapterControlFailureReceipt(

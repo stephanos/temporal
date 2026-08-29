@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"go.temporal.io/server/tools/umpire/artifact"
+	"go.temporal.io/server/tools/umpire/internal/runtimeengine"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 )
 
@@ -80,7 +81,7 @@ func runChecked(
 	if factory == nil || participant == nil {
 		return umpireruntime.Output{}, errors.New("umpire runner adapter is incomplete")
 	}
-	output, err := umpireruntime.Run(ctx, request, factory, participant)
+	output, err := runtimeengine.Run(ctx, request, factory, participant)
 	if err != nil {
 		return umpireruntime.Output{}, err
 	}
