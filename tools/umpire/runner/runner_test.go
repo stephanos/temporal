@@ -6,8 +6,11 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -79,8 +82,14 @@ func TestRunPassesTheExactAdmittedSetToTheAdapter(t *testing.T) {
 func TestExecutionSurfaceExposesOnlyTheDigestBoundRunner(t *testing.T) {
 	require.NotContains(t, topLevelFunctions(t, "runner.go"), "RunChecked")
 	require.NotContains(t, topLevelFunctions(
+		t, filepath.Join("..", "runtime", "engine.go"),
+	), "Run")
+	require.NotContains(t, topLevelFunctions(
 		t, filepath.Join("..", "temporal", "nexus", "output.go"),
 	), "Run")
+	require.Equal(t, []string{filepath.Join("runner", "runner.go")}, goFilesImporting(
+		t, "..", "go.temporal.io/server/tools/umpire/internal/runtimeengine",
+	))
 }
 
 type recordingAdapter struct {
@@ -145,4 +154,30 @@ func topLevelFunctions(t *testing.T, path string) []string {
 		}
 	}
 	return names
+}
+
+func goFilesImporting(t *testing.T, root string, importPath string) []string {
+	t.Helper()
+	paths := []string{}
+	err := filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() || !strings.HasSuffix(path, ".go") {
+			return nil
+		}
+		parsed, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.ImportsOnly)
+		require.NoError(t, err)
+		for _, imported := range parsed.Imports {
+			if imported.Path.Value == `"`+importPath+`"` {
+				relative, err := filepath.Rel(root, path)
+				require.NoError(t, err)
+				paths = append(paths, relative)
+			}
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	sort.Strings(paths)
+	return paths
 }

@@ -493,7 +493,7 @@ func fixtureProvenance() artifactv2.Provenance {
 	return artifactv2.Provenance{
 		SourceDefinitionIDs: []string{"umpire.runtime.engine"},
 		SourceLocations: []artifactv2.SourceLocation{{
-			Path:       "tools/umpire/runtime/engine.go",
+			Path:       "tools/umpire/internal/runtimeengine/engine.go",
 			Line:       artifactv2.NaturalFromUint64(1),
 			Column:     artifactv2.NaturalFromUint64(1),
 			Provenance: "runtime-engine",

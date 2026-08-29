@@ -10,18 +10,20 @@ import (
 	nexussdk "github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 	"go.temporal.io/server/tools/umpire/temporal/local"
 )
 
 func TestLiveParticipantRealizesOneForceCloseAndClosesOperationalSources(t *testing.T) {
-	request := checkedCallerClosureRequest(t, "live-force-close")
-	runtimeParticipant, err := NewParticipant(request)
-	require.NoError(t, err)
+	input := admitCallerClosureSet(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
-	output, err := umpireruntime.Run(ctx, request, local.NewFactory(), runtimeParticipant)
+	output, err := runner.Run(
+		ctx, input, callerClosureInputBinding(),
+		"umpire.local.caller-closure.live-force-close", Binding{},
+	)
 	require.NoError(t, err)
 	run := output.ExperimentRun()
 	require.Len(t, run.ControlAttempts, 1)
@@ -274,6 +276,36 @@ func TestCleanupReleasesEveryPartialPreparationExactlyOnce(t *testing.T) {
 	}
 }
 
+func TestCleanupFailureRetainsReleasedResourcesWithoutReacquiringThem(t *testing.T) {
+	request := checkedCallerClosureRequest(t, "partial-cleanup-failure")
+	command, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	resource, err := umpireruntime.NewResource(
+		umpireruntime.ResourceParticipant,
+		"runtime.correlation.participant.partial-cleanup-failure",
+	)
+	require.NoError(t, err)
+	sdkClient := &recordingCleanupClient{terminateErr: errors.New("terminate failed")}
+	environment := &recordingCleanupEnvironment{sdkClient: sdkClient}
+	adapter := &sdkCommandAdapter{
+		participantResource: resource,
+		environment:         environment,
+		endpointAcquired:    true,
+		run:                 fixedWorkflowRun{workflowID: "workflow", runID: "run"},
+	}
+
+	first := adapter.Cleanup(context.Background(), inertEnvironment{}, command)
+	require.Equal(t, umpireruntime.ReceiptFailed, first.Status())
+	require.Empty(t, first.AcquiredResources())
+	require.Equal(t, []umpireruntime.Resource{resource}, first.ReleasedResources())
+	second := adapter.Cleanup(context.Background(), inertEnvironment{}, command)
+	require.Equal(t, umpireruntime.ReceiptFailed, second.Status())
+	require.Empty(t, second.AcquiredResources())
+	require.Empty(t, second.ReleasedResources())
+	require.Equal(t, 2, sdkClient.terminations)
+	require.Equal(t, 1, environment.deletions)
+}
+
 func receiptField(t *testing.T, receipt umpireruntime.Receipt, definitionID string) string {
 	t.Helper()
 	values := []string{}
@@ -325,6 +357,7 @@ func (o *panickingCallerClosureOperation) Cancel(
 type recordingCleanupClient struct {
 	client.Client
 	terminations int
+	terminateErr error
 }
 
 func (c *recordingCleanupClient) TerminateWorkflow(
@@ -335,7 +368,7 @@ func (c *recordingCleanupClient) TerminateWorkflow(
 	...interface{},
 ) error {
 	c.terminations++
-	return nil
+	return c.terminateErr
 }
 
 type recordingCleanupEnvironment struct {

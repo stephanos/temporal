@@ -420,6 +420,7 @@ func (r Receipt) Command() Command       { return r.command }
 func (r Receipt) Status() ReceiptStatus  { return r.status }
 func (r Receipt) Facts() []Fact          { return cloneFacts(r.facts) }
 func (r Receipt) ControlAttempted() bool { return r.controlAttempted }
+func (r Receipt) HistoryCapacity() bool  { return r.historyCapacity }
 
 func (r Receipt) AcquiredResources() []Resource {
 	return slices.Clone(r.acquiredResources)
