@@ -108,6 +108,104 @@ example :
         [(.unsupported, true, some .semanticTraceUnavailable)]) := by
   native_decide
 
+def logicalTimePropertyDeclaration : PropertyDeclaration := {
+  Umpire.Examples.Switch.propertyDeclaration with
+  id := DefinitionId.of "test.run-evaluation.property.logical-time"
+  logicalTimeSource := some Umpire.Examples.Switch.powerObservationId
+  clauses := [
+    .ordered (DefinitionId.of "test.run-evaluation.property.logical-time.clause")
+      {
+        field := .observation
+        reference := Umpire.Examples.Switch.powerObservationId
+        constraint := .present
+      }
+      {
+        field := .observation
+        reference := Umpire.Examples.Switch.powerObservationId
+        constraint := .present
+      }
+      .logicalTime
+  ]
+}
+
+def logicalTimeProperty : CheckedProperty :=
+  (checkProperty (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
+    (.portable logicalTimePropertyDeclaration)).toOption.get (by native_decide)
+
+def logicalTimeQuery : CheckedQuery Umpire.Examples.Switch.LawStatement :=
+  (checkQuery (QueryCheckContext.ofTarget Umpire.Examples.Switch.target) {
+    id := DefinitionId.of "test.run-evaluation.query.logical-time"
+    source := Umpire.Examples.Switch.source
+    target := Umpire.Examples.Switch.target.id
+    form := .select [logicalTimeProperty]
+    behavior := Umpire.Examples.Switch.exploratoryQuery.behavior
+    limits := Umpire.Examples.Switch.exploratoryQuery.limits
+    policy := Umpire.Examples.Switch.exploratoryQuery.policy
+  }).toOption.get (by native_decide)
+
+def missingLogicalTimeRunEvaluation := checkRunEvaluation observationPlan repeatedEvidence checkedLink
+  Umpire.Examples.Switch.switchSetup logicalTimeQuery [logicalTimeProperty]
+
+/-- Invalid logical time is unresolved before the unchanged Property evaluator can report false. -/
+example :
+    (missingLogicalTimeRunEvaluation.implementationLink.map ImplementationLinkResult.status,
+      missingLogicalTimeRunEvaluation.querySummary.status,
+      missingLogicalTimeRunEvaluation.querySummary.verdicts.map fun verdict =>
+        (verdict.status, verdict.clauses.isEmpty,
+          verdict.diagnostic.map SemanticVerdictDiagnostic.kind)) =
+      (some .applied, .incomplete, [(.unknown, true, some .missingLogicalTime)]) := by
+  native_decide
+
+def otherTargetId : DefinitionId := DefinitionId.of "test.run-evaluation.target.other"
+
+def otherTargetDefinition : TargetDefinition
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
+  Umpire.Examples.Switch.targetDefinition with
+  id := otherTargetId
+  definitions := Umpire.Examples.Switch.targetDefinition.definitions.map fun definition =>
+    if definition.id == Umpire.Examples.Switch.targetId then
+      { definition with id := otherTargetId }
+    else
+      definition
+}
+
+def otherTargetAuthoring : AuthoredTarget Umpire.Examples.Switch.LawStatement
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
+  AuthoredTarget.make otherTargetDefinition Umpire.Examples.Switch.targetComposition
+    (.available Umpire.Examples.Switch.transitionKernel rfl Umpire.Examples.Switch.finitePlanning)
+
+def otherTarget : QueryTarget Umpire.Examples.Switch.LawStatement :=
+  checkedTarget otherTargetAuthoring
+
+def otherTargetProperty : CheckedProperty :=
+  (checkProperty (PropertyCheckContext.ofTarget otherTarget)
+    (.portable Umpire.Examples.Switch.propertyDeclaration)).toOption.get (by native_decide)
+
+def otherTargetQuery : CheckedQuery Umpire.Examples.Switch.LawStatement :=
+  (checkQuery (QueryCheckContext.ofTarget otherTarget) {
+    id := DefinitionId.of "test.run-evaluation.query.other-target"
+    source := Umpire.Examples.Switch.source
+    target := otherTarget.id
+    form := .select [otherTargetProperty]
+    behavior := Umpire.Examples.Switch.exploratoryQuery.behavior
+    limits := Umpire.Examples.Switch.exploratoryQuery.limits
+    policy := Umpire.Examples.Switch.exploratoryQuery.policy
+  }).toOption.get (by native_decide)
+
+def mismatchedTargetRunEvaluation := checkRunEvaluation observationPlan repeatedEvidence checkedLink
+  Umpire.Examples.Switch.switchSetup otherTargetQuery [otherTargetProperty]
+
+/-- A Query checked for another destination target cannot reach Property evaluation. -/
+example :
+    (mismatchedTargetRunEvaluation.implementationLink.map ImplementationLinkResult.status,
+      mismatchedTargetRunEvaluation.querySummary.status,
+      mismatchedTargetRunEvaluation.querySummary.verdicts.map fun verdict =>
+        (verdict.status, verdict.clauses.isEmpty,
+          verdict.diagnostic.map SemanticVerdictDiagnostic.kind)) =
+      (some .applied, .incomplete,
+        [(.unsupported, true, some .semanticTraceUnavailable)]) := by
+  native_decide
+
 def incompleteRunEvaluation := checkRunEvaluation observationPlan repeatedEvidence checkedLink
   Umpire.Examples.Switch.switchSetup Umpire.Examples.Switch.exploratoryQuery []
 
