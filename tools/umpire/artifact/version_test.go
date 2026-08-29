@@ -37,8 +37,7 @@ func TestUnsupportedFormatArtifactFamiliesPrecedeFieldValidation(t *testing.T) {
 	for _, test := range tests {
 		for _, major := range []string{"v1", "v3"} {
 			t.Run(test.name+"/"+major, func(t *testing.T) {
-				encoded := readExperimentV2Fixture(t,
-					"tools/umpire/artifact/testdata/unsupported/"+test.fixture+"-"+major+".json")
+				encoded := readExperimentV2Fixture(t, unsupportedFormatFixturePath(test.fixture, major))
 				value, err := test.decode(encoded)
 				requireArtifactSetErrorCode(t, err, artifact.ErrorUnsupportedFormat)
 				require.ErrorIs(t, err, artifact.ErrUnsupportedFormat)
@@ -46,6 +45,14 @@ func TestUnsupportedFormatArtifactFamiliesPrecedeFieldValidation(t *testing.T) {
 			})
 		}
 	}
+}
+
+func unsupportedFormatFixturePath(fixture string, major string) string {
+	extension := ".json"
+	if fixture == "experiment" && major == "v1" {
+		extension = ".jsonfixture"
+	}
+	return "tools/umpire/artifact/testdata/unsupported/" + fixture + "-" + major + extension
 }
 
 func TestUnsupportedFormatArtifactSetManifestPrecedesMemberValidation(t *testing.T) {

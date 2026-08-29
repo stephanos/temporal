@@ -219,7 +219,7 @@ func TestUnsupportedFormatMixedArtifactSetsPrecedeChecksumsAndClosure(t *testing
 				}
 				corruptFirstArtifactChecksum(t, members[invalidIndex].Encoded)
 				members[index].Encoded = readExperimentV2Fixture(t,
-					"tools/umpire/artifact/testdata/unsupported/"+fixture+"-"+major+".json")
+					unsupportedFormatFixturePath(fixture, major))
 				before := cloneArtifactSetMembers(members)
 
 				admitted, err := artifact.AdmitSet(members)
@@ -242,7 +242,7 @@ func TestUnsupportedFormatMixedArtifactSetsPreserveStructuralPrecedence(t *testi
 			name: "syntax before unsupported format",
 			mutate: func(members []artifact.SetMember) {
 				members[0].Encoded = readExperimentV2Fixture(t,
-					"tools/umpire/artifact/testdata/unsupported/experiment-v1.json")
+					unsupportedFormatFixturePath("experiment", "v1"))
 				members[5].Encoded = []byte("{\n")
 			},
 			code: artifact.ErrorSyntax,
