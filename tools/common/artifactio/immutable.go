@@ -31,6 +31,11 @@ type immutablePublishHooks struct {
 	beforeInstall func() error
 }
 
+type immutableReadHooks struct {
+	afterManifest        func()
+	beforeManifestReopen func()
+}
+
 // Publish installs one previously absent root/sets/<digest> directory with a
 // single sibling rename. An existing byte-identical directory is revalidated
 // and returned without replacement.
@@ -189,18 +194,18 @@ func (directory ImmutableDirectory) read(
 	digest string,
 	requireExactDestination bool,
 ) (map[string][]byte, error) {
+	return directory.readWithHooks(destination, digest, requireExactDestination, immutableReadHooks{})
+}
+
+func (directory ImmutableDirectory) readWithHooks(
+	destination string,
+	digest string,
+	requireExactDestination bool,
+	hooks immutableReadHooks,
+) (map[string][]byte, error) {
 	if requireExactDestination {
-		if _, err := validateImmutableDestination(destination); err != nil {
+		if err := validateImmutableReadDestination(destination); err != nil {
 			return nil, err
-		}
-		setsRoot, err := openDirectoryNoFollow(filepath.Dir(destination))
-		if err != nil {
-			return nil, fmt.Errorf("open immutable sets directory: %w", err)
-		}
-		permissionErr := requirePrivateDirectory(setsRoot, filepath.Dir(destination))
-		closeErr := setsRoot.Close()
-		if permissionErr != nil || closeErr != nil {
-			return nil, errors.Join(permissionErr, closeErr)
 		}
 	}
 	root, err := openDirectoryNoFollow(destination)
@@ -219,6 +224,9 @@ func (directory ImmutableDirectory) read(
 	if hex.EncodeToString(manifestHash[:]) != digest {
 		return nil, errors.New("immutable directory name does not match manifest SHA-256")
 	}
+	if hooks.afterManifest != nil {
+		hooks.afterManifest()
+	}
 	paths, err := directory.pathsFromManifest(manifest)
 	if err != nil {
 		return nil, err
@@ -227,12 +235,19 @@ func (directory ImmutableDirectory) read(
 		return nil, err
 	}
 	files := make(map[string][]byte, len(paths))
+	files[directory.ManifestPath] = bytes.Clone(manifest)
 	for _, path := range paths {
+		if path == directory.ManifestPath {
+			continue
+		}
 		encoded, readErr := readRegularFileAt(root, path, directory.MaximumFileBytes)
 		if readErr != nil {
 			return nil, fmt.Errorf("read immutable file %q: %w", path, readErr)
 		}
 		files[path] = encoded
+	}
+	if hooks.beforeManifestReopen != nil {
+		hooks.beforeManifestReopen()
 	}
 	reopenedManifest, err := readRegularFileAt(root, directory.ManifestPath, directory.MaximumFileBytes)
 	if err != nil {
@@ -247,6 +262,18 @@ func (directory ImmutableDirectory) read(
 		}
 	}
 	return cloneFileMap(files), nil
+}
+
+func validateImmutableReadDestination(destination string) error {
+	if _, err := validateImmutableDestination(destination); err != nil {
+		return err
+	}
+	setsRoot, err := openDirectoryNoFollow(filepath.Dir(destination))
+	if err != nil {
+		return fmt.Errorf("open immutable sets directory: %w", err)
+	}
+	permissionErr := requirePrivateDirectory(setsRoot, filepath.Dir(destination))
+	return errors.Join(permissionErr, setsRoot.Close())
 }
 
 func (directory ImmutableDirectory) validateFiles(digest string, files map[string][]byte) ([]string, error) {

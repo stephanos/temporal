@@ -1,6 +1,7 @@
 package artifactio
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
@@ -10,6 +11,72 @@ import (
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestImmutableDirectoryRejectsManifestABADuringRead(t *testing.T) {
+	root := t.TempDir()
+	directory, filesA, digestA := immutableDirectoryFixture()
+	destination, err := directory.Publish(root, digestA, filesA)
+	require.NoError(t, err)
+	manifestB := []byte("manifest-b\n")
+	filesB := map[string][]byte{
+		"manifest.json":    manifestB,
+		"artifacts/a.json": []byte("a-b\n"),
+		"artifacts/b.json": []byte("b-b\n"),
+	}
+	directory.MemberPaths = func(encoded []byte) ([]string, error) {
+		if !bytes.Equal(encoded, filesA["manifest.json"]) && !bytes.Equal(encoded, manifestB) {
+			return nil, errors.New("invalid manifest")
+		}
+		return []string{"artifacts/a.json", "artifacts/b.json"}, nil
+	}
+	directory.Validate = func(candidate map[string][]byte) error {
+		expected := filesA
+		if bytes.Equal(candidate["manifest.json"], manifestB) {
+			expected = filesB
+		}
+		if !equalFileMaps(candidate, expected) {
+			return errors.New("manifest and members are mixed")
+		}
+		return nil
+	}
+
+	aRead := make(chan struct{})
+	bInstalled := make(chan struct{})
+	reopen := make(chan struct{})
+	aRestored := make(chan struct{})
+	writerErr := make(chan error, 1)
+	go func() {
+		<-aRead
+		for path, encoded := range filesB {
+			if err := os.WriteFile(filepath.Join(destination, filepath.FromSlash(path)), encoded, 0o600); err != nil {
+				writerErr <- err
+				return
+			}
+		}
+		close(bInstalled)
+		<-reopen
+		if err := os.WriteFile(filepath.Join(destination, "manifest.json"), filesA["manifest.json"], 0o600); err != nil {
+			writerErr <- err
+			return
+		}
+		close(aRestored)
+		writerErr <- nil
+	}()
+
+	loaded, err := directory.readWithHooks(destination, digestA, true, immutableReadHooks{
+		afterManifest: func() {
+			close(aRead)
+			<-bInstalled
+		},
+		beforeManifestReopen: func() {
+			close(reopen)
+			<-aRestored
+		},
+	})
+	require.Error(t, err)
+	require.Nil(t, loaded)
+	require.NoError(t, <-writerErr)
+}
 
 func TestImmutableDirectoryInterruptionExposesNoDigestDirectory(t *testing.T) {
 	root := t.TempDir()
