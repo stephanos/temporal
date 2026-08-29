@@ -13,6 +13,7 @@ import (
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
+	"google.golang.org/protobuf/proto"
 )
 
 func TestProjectTerminalHistoryDrainsTheIteratorAndClosesTheCausalChain(t *testing.T) {
@@ -219,8 +220,7 @@ func mutateHistory(
 ) []*historypb.HistoryEvent {
 	cloned := make([]*historypb.HistoryEvent, len(events))
 	for index, event := range events {
-		clonedEvent := *event
-		cloned[index] = &clonedEvent
+		cloned[index] = proto.Clone(event).(*historypb.HistoryEvent)
 	}
 	mutate(cloned)
 	return cloned
