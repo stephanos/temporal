@@ -390,31 +390,37 @@ func TestCrossLanguageGoldensRejectIdentityAndClosureMutations(t *testing.T) {
 	})
 
 	t.Run("canonical content fields retain old checksum", func(t *testing.T) {
-		documents := loadCrossLanguageGoldenDocuments(t)
 		mutations := []struct {
 			name   string
-			mutate func(*artifactv2.Experiment)
+			mutate func(*artifactv2.Experiment, crossLanguageGoldenDocuments)
 		}{
-			{name: "Definition ID", mutate: func(document *artifactv2.Experiment) {
+			{name: "Definition ID", mutate: func(document *artifactv2.Experiment, _ crossLanguageGoldenDocuments) {
 				document.Plan.QueryDefinitionID = "switch.query.exact-actioo"
 			}},
-			{name: "Behavior Fingerprint", mutate: func(document *artifactv2.Experiment) {
+			{name: "Behavior Fingerprint", mutate: func(
+				document *artifactv2.Experiment,
+				documents crossLanguageGoldenDocuments,
+			) {
 				document.Plan.QueryBehaviorFingerprint = documents.runtimeConfiguration.BehaviorFingerprint
 			}},
-			{name: "Limit", mutate: func(document *artifactv2.Experiment) {
+			{name: "Limit", mutate: func(document *artifactv2.Experiment, _ crossLanguageGoldenDocuments) {
 				document.Plan.ExpandedLimits.Search.Value = artifactv2.NaturalFromUint64(9)
 			}},
-			{name: "Known Gap", mutate: func(document *artifactv2.Experiment) {
+			{name: "Known Gap", mutate: func(document *artifactv2.Experiment, _ crossLanguageGoldenDocuments) {
 				document.Plan.KnownGaps[0].Code = "umpire.known-gap.execution-evidencf"
 			}},
-			{name: "Artifact Checksum", mutate: func(document *artifactv2.Experiment) {
+			{name: "Artifact Checksum", mutate: func(
+				document *artifactv2.Experiment,
+				documents crossLanguageGoldenDocuments,
+			) {
 				document.ArtifactChecksum = documents.rawEvidence.ArtifactChecksum
 			}},
 		}
 		for _, mutation := range mutations {
 			t.Run(mutation.name, func(t *testing.T) {
+				documents := loadCrossLanguageGoldenDocuments(t)
 				document := documents.experiment
-				mutation.mutate(&document)
+				mutation.mutate(&document, documents)
 				encoded, err := artifactv2.CanonicalExperimentBytes(document)
 				require.NoError(t, err)
 				_, err = artifact.DecodeExperimentV2(encoded)
