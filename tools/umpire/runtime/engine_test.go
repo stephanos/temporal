@@ -653,7 +653,7 @@ func newEngineRequest(t *testing.T) CheckedRunRequest {
 		"runtime.profile.ephemeral-local", 2,
 		"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
 		"switch.runtime.configuration", runtimeConfiguration.BehaviorFingerprint,
-		profileCapabilities, CanonicalPhaseLimits(), 0, 1,
+		profileCapabilities, profileCapabilities, CanonicalPhaseLimits(), 0, 1,
 		"runtime.participant.sdk", "runtime.protocol.v2", 2, 1, 1, program,
 	)
 	require.NoError(t, err)

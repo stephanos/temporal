@@ -44,6 +44,7 @@ func NewAuthority(
 		configurationDefinitionID,
 		configurationBehaviorFingerprint,
 		RequiredCapabilityDefinitionIDs(),
+		[]string{},
 		umpireruntime.CanonicalPhaseLimits(),
 		0,
 		1,

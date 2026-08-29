@@ -213,6 +213,21 @@ func TestCheckRequestRejectsEachPreflightMutationBeforeIO(t *testing.T) {
 			},
 		},
 		{
+			name: "profile capability ownership",
+			kind: umpireruntime.PreflightCapability,
+			run: func(t *testing.T) (umpireruntime.CheckedRunRequest, error) {
+				set := mutateConfiguration(t, fixture, func(configuration *artifactv2.RuntimeConfiguration) {
+					configuration.AuthorityProfile.RequiredCapabilityDefinitionIDs = append(
+						append([]string{}, profileCapabilities...),
+						"switch.capability.state",
+					)
+				})
+				return umpireruntime.CheckRequest(
+					set, fixture.authority, "runtime.run.profile-capability-drift", 0, 1,
+				)
+			},
+		},
+		{
 			name: "budget",
 			kind: umpireruntime.PreflightBudget,
 			run: func(t *testing.T) (umpireruntime.CheckedRunRequest, error) {
@@ -571,6 +586,7 @@ func newAuthority(
 		profileFingerprint,
 		"switch.runtime.configuration",
 		"sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
+		profileCapabilities,
 		profileCapabilities,
 		umpireruntime.CanonicalPhaseLimits(),
 		0,
