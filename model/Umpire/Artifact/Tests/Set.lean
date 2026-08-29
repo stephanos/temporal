@@ -1,0 +1,88 @@
+import Umpire.Artifact.Set
+import Umpire.Artifact.Tests.Result
+
+/-! Complete Artifact set closure and deterministic manifest regressions. -/
+
+namespace Umpire.Artifact.Tests.Set
+
+open Umpire
+open Umpire.Examples.Switch
+open Umpire.Artifact.Tests.Runtime
+open Umpire.Artifact.Tests.Evidence
+open Umpire.Artifact.Tests.Result
+
+def evaluationSet : ArtifactSet := {
+  experiment := compiledArtifact
+  runtimeConfiguration
+  experimentRun := some experimentRun
+  rawEvidence := some rawEvidence
+  evidence := some evidence
+  result := some result
+}
+
+def executableSet : ArtifactSet := {
+  experiment := compiledArtifact
+  runtimeConfiguration
+}
+
+def executionSet : ArtifactSet := {
+  executableSet with
+  experimentRun := some experimentRun
+  rawEvidence := some rawEvidence
+}
+
+example : executableSet.isValidClosure && executionSet.isValidClosure &&
+    evaluationSet.isValidClosure := by
+  native_decide
+
+example :
+    executableSet.manifest?.map ArtifactSetManifest.artifactSetIdentity =
+      some "umpire.artifact-set.4b7c7fb8319e64bbab53abc7f0f73f3b22733b08c11caa9cbd508fe1f59c7775" &&
+    executionSet.manifest?.map ArtifactSetManifest.artifactSetIdentity =
+      some "umpire.artifact-set.3dda4efe07ac24ef454f7dc4227440277cb59caf4a4d671ac09d5bc11555f2f0" &&
+    evaluationSet.manifest?.map ArtifactSetManifest.artifactSetIdentity =
+      some "umpire.artifact-set.1f4d21d39c33440ff37bee22db09680293459a69eb702f5496f8bfa6b1dab890" := by
+  native_decide
+
+example : evaluationSet.manifest?.any fun manifest =>
+    manifest.artifactSetChecksum.render ==
+      "sha256:12a0e9709e823da060eef54998e6cd36973779c725b177ce1eda5b9954e3499b" &&
+    manifest.manifestSha256.render ==
+      "sha256:052fa0eff77536213db67f452c543df4bbda4a606ee6f504d3b6cb596b33c9db" &&
+    canonicalArtifactSetManifestBytes manifest == include_str "Fixtures/ArtifactSetV2.json" := by
+  native_decide
+
+/-! Partial and stale document families produce no manifest or partial admitted value. -/
+example :
+    !({ executionSet with rawEvidence := none } : ArtifactSet).isValidClosure &&
+    ({ executionSet with rawEvidence := none } : ArtifactSet).manifest?.isNone &&
+    !({ evaluationSet with result := none } : ArtifactSet).isValidClosure &&
+    !({ executableSet with runtimeConfiguration := {
+      runtimeConfiguration with experiment := runtimeConfiguration.artifactBinding
+    }} : ArtifactSet).isValidClosure := by
+  native_decide
+
+/-! Exact member paths and order are part of the admitted manifest, not presentation metadata. -/
+example : evaluationSet.manifest?.any fun manifest =>
+    !({ manifest with members := manifest.members.reverse }).isValidFor evaluationSet := by
+  native_decide
+
+/-! A Result may resolve its Implementation Link source only through the retained Experiment. -/
+example :
+    let staleDraft : ResultArtifact := {
+      result with
+      implementationLink := {
+        result.implementationLink with
+        sourceTarget := result.implementationLink.destinationTarget
+      }
+      evaluationOutcomeChecksum := none
+    }
+    let staleWithOutcome := {
+      staleDraft with
+      evaluationOutcomeChecksum := staleDraft.expectedEvaluationOutcomeChecksum evidence compiledArtifact
+    }
+    let staleResult := staleWithOutcome.seal
+    !({ evaluationSet with result := some staleResult } : ArtifactSet).isValidClosure := by
+  native_decide
+
+end Umpire.Artifact.Tests.Set
