@@ -336,6 +336,28 @@ func TestRunAdmitsExactEvidenceCapacityBoundary(t *testing.T) {
 	}
 }
 
+func TestRunClosesAnExplicitHistoryCapacityReceiptAsPartial(t *testing.T) {
+	request := newEngineRequest(t)
+	state := newOracleState(t, "", oracleSucceeded, false)
+	state.factCounts = map[Phase]int{PhaseObservation: 2}
+	state.historyCapacity = true
+
+	output, err := Run(context.Background(), request, state.factory, state.participant)
+	require.NoError(t, err)
+	run := output.ExperimentRun()
+	rawEvidence := output.RawEvidence()
+	require.Equal(t, "succeeded", run.PhaseOutcomes[2].Status)
+	require.Equal(t, "partial", sourceStatus(run.SourceClosures, EvidenceSourceHistory))
+	require.Equal(t, "incomplete", run.OperationalStatus)
+	require.Equal(t, "partial", rawEvidence.CaptureStatus)
+	historySource := EvidenceSourceHistory
+	require.Equal(t, []artifactv2.KnownGap{{
+		Kind: "input", Code: "umpire.evidence.gap.capacity", Subject: &historySource,
+	}}, run.KnownGaps)
+	require.Equal(t, run.KnownGaps, rawEvidence.KnownGaps)
+	requireExactExecutionSet(t, output.AdmittedSet())
+}
+
 func phaseStatuses(outcomes []artifactv2.PhaseOutcome) []string {
 	statuses := make([]string, len(outcomes))
 	for index, outcome := range outcomes {
@@ -409,6 +431,7 @@ type oracleState struct {
 	deadlineCleanupFailure       bool
 	cancelParent                 context.CancelFunc
 	factCounts                   map[Phase]int
+	historyCapacity              bool
 	nextFact                     int
 	extraEnvironmentCleanupFacts int
 	factoryContextTerminal       oracleTerminal
@@ -476,7 +499,13 @@ func (s *oracleState) receipt(
 		released = []Resource{}
 	}
 	facts := s.takeFacts(phase, s.factCounts[phase])
-	receipt, err := NewReceipt(command, status, facts, acquired, released)
+	var receipt Receipt
+	var err error
+	if phase == PhaseObservation && s.historyCapacity {
+		receipt, err = NewHistoryCapacityReceipt(command, facts, acquired, released)
+	} else {
+		receipt, err = NewReceipt(command, status, facts, acquired, released)
+	}
 	require.NoError(s.t, err)
 	return receipt
 }
