@@ -1,4 +1,4 @@
-package runtime
+package runtimeengine
 
 import (
 	"context"
@@ -760,7 +760,7 @@ func newEngineRequest(t *testing.T) CheckedRunRequest {
 func readEngineFixture(t *testing.T, name string) []byte {
 	t.Helper()
 	encoded, err := os.ReadFile(filepath.Join(
-		"..", "..", "..", "model", "Umpire", "Artifact", "Tests", "Fixtures", name,
+		"..", "..", "..", "..", "model", "Umpire", "Artifact", "Tests", "Fixtures", name,
 	))
 	require.NoError(t, err)
 	return encoded
