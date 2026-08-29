@@ -104,6 +104,36 @@ func TestArtifactSetAdmitsOnlyThreeExactClosures(t *testing.T) {
 	}
 }
 
+func TestArtifactSetExecutableProjectionIsExactAndImmutable(t *testing.T) {
+	members := artifactSetFixtureMembers(t)
+	admitted, err := artifact.AdmitSet(members[:2])
+	require.NoError(t, err)
+
+	executable, ok := admitted.Executable()
+	require.True(t, ok)
+	require.Equal(t, admitted.Identity(), executable.AdmittedSet().Identity())
+
+	experiment := executable.Experiment()
+	runtimeConfiguration := executable.RuntimeConfiguration()
+	experiment.Plan.CapabilityRequirementDefinitionIDs[0] = "changed.capability"
+	runtimeConfiguration.AuthorityProfile.RequiredCapabilityDefinitionIDs = append(
+		runtimeConfiguration.AuthorityProfile.RequiredCapabilityDefinitionIDs,
+		"changed.capability",
+	)
+	runtimeConfiguration.ParticipantBindings[0].CapabilityDefinitionIDs[0] = "changed.capability"
+
+	again, ok := admitted.Executable()
+	require.True(t, ok)
+	require.NotEqual(t, experiment, again.Experiment())
+	require.NotEqual(t, runtimeConfiguration, again.RuntimeConfiguration())
+	require.Equal(t, admitted.Identity(), again.AdmittedSet().Identity())
+
+	executionSet, err := artifact.AdmitSet(members[:4])
+	require.NoError(t, err)
+	_, ok = executionSet.Executable()
+	require.False(t, ok)
+}
+
 func TestArtifactSetRejectsMemberPathAndOrderMutations(t *testing.T) {
 	for _, test := range []struct {
 		name   string
