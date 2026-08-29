@@ -589,7 +589,11 @@ func validateDrivePlan(plan DrivePlan) error {
 	if err := validateProvenance(plan.Provenance); err != nil {
 		return err
 	}
-	for _, gap := range plan.KnownGaps {
+	return validateKnownGaps(plan.KnownGaps)
+}
+
+func validateKnownGaps(knownGaps []KnownGap) error {
+	for _, gap := range knownGaps {
 		switch gap.Kind {
 		case "capability-contract", "input", "interpretation", "claim":
 		default:
@@ -602,11 +606,11 @@ func validateDrivePlan(plan DrivePlan) error {
 			return fmt.Errorf("known gap subject %q is invalid", *gap.Subject)
 		}
 	}
-	if !slices.IsSortedFunc(plan.KnownGaps, compareKnownGap) {
+	if !slices.IsSortedFunc(knownGaps, compareKnownGap) {
 		return errors.New("known gaps are not in canonical order")
 	}
-	for index := 1; index < len(plan.KnownGaps); index++ {
-		previous, current := plan.KnownGaps[index-1], plan.KnownGaps[index]
+	for index := 1; index < len(knownGaps); index++ {
+		previous, current := knownGaps[index-1], knownGaps[index]
 		if previous.Kind == current.Kind && previous.Code == current.Code && pointerValue(previous.Subject) == pointerValue(current.Subject) {
 			return fmt.Errorf("duplicate or conflicting known gap %q", current.Code)
 		}
