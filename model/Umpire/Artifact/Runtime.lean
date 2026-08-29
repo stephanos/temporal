@@ -407,13 +407,22 @@ private def sourceLocationLe (left right : SourceLocation) : Bool :=
     (left.path == right.path && left.line == right.line && left.column == right.column &&
       decide (left.provenance ≤ right.provenance))
 
+private def unicodeWhitespace (character : Char) : Bool :=
+  let code := character.toNat
+  character.isWhitespace || code == 0x0085 || code == 0x00a0 || code == 0x1680 ||
+    decide (0x2000 ≤ code ∧ code ≤ 0x200a) || code == 0x2028 || code == 0x2029 ||
+    code == 0x202f || code == 0x205f || code == 0x3000
+
+private def stringIsBlank (value : String) : Bool :=
+  value.toList.all unicodeWhitespace
+
 private def provenanceValid (provenance : ArtifactProvenance) : Bool :=
   idsCanonical provenance.sourceDefinitionIds &&
     provenance.sourceLocations != [] &&
     provenance.sourceLocations == provenance.sourceLocations.mergeSort sourceLocationLe &&
     provenance.sourceLocations.eraseDups.length == provenance.sourceLocations.length &&
     provenance.sourceLocations.all fun source =>
-      !source.path.trimAscii.isEmpty && !source.provenance.trimAscii.isEmpty &&
+      !stringIsBlank source.path && !stringIsBlank source.provenance &&
         source.line > 0 && source.column > 0
 
 private def knownGapsValid (knownGaps : List KnownGap) : Bool :=
@@ -513,7 +522,7 @@ private def expectedOperationalStatus (run : ExperimentRun) : OperationalStatus 
   else if run.phaseOutcomes.any fun outcome => outcome.status != .succeeded then .incomplete
   else if run.controlAttempts.any fun attempt => attempt.status != .accepted then .incomplete
   else if run.sourceClosures.any fun closure => closure.status != .closed then .incomplete
-  else if run.cleanup.status != .complete || run.knownGaps != [] then .incomplete
+  else if run.cleanup.status != .complete then .incomplete
   else .succeeded
 
 /-- Check the closed Run transport while leaving evidence-fact resolution to RawEvidence admission. -/

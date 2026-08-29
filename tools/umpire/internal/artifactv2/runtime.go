@@ -670,7 +670,7 @@ func expectedOperationalStatus(document ExperimentRun) string {
 			return "incomplete"
 		}
 	}
-	if document.Cleanup.Status != "complete" || len(document.KnownGaps) != 0 {
+	if document.Cleanup.Status != "complete" {
 		return "incomplete"
 	}
 	return "succeeded"

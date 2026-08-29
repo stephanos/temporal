@@ -137,6 +137,14 @@ func TestRuntimeV2ExperimentRunClosedStatusMatrices(t *testing.T) {
 			},
 		},
 		{
+			name: "interpretation Known Gap remains operationally independent",
+			mutate: func(document *artifactv2.ExperimentRun) {
+				document.KnownGaps = []artifactv2.KnownGap{{
+					Kind: "interpretation", Code: "switch.gap.interpretation",
+				}}
+			},
+		},
+		{
 			name: "phase failed",
 			mutate: func(document *artifactv2.ExperimentRun) {
 				document.PhaseOutcomes[1].Status = "failed"
@@ -316,14 +324,6 @@ func TestRuntimeV2ExperimentRunRejectsOperationalStatusAndPhaseProgression(t *te
 			mutate: func(document *artifactv2.ExperimentRun) {
 				document.Cleanup.Status = "incomplete"
 				document.Cleanup.Code = stringPointer("switch.cleanup.incomplete")
-			},
-		},
-		{
-			name: "Known Gap declared succeeded",
-			mutate: func(document *artifactv2.ExperimentRun) {
-				document.KnownGaps = []artifactv2.KnownGap{{
-					Kind: "input", Code: "switch.gap.capacity",
-				}}
 			},
 		},
 		{
@@ -565,13 +565,11 @@ func TestRuntimeV2StringBounds(t *testing.T) {
 				document.KnownGaps = []artifactv2.KnownGap{{
 					Kind: "input", Code: "switch.gap.capacity", Detail: stringPointer(detailAtLimit),
 				}}
-				document.OperationalStatus = "incomplete"
 			}),
 			overLimit: resealedExperimentRunV2Mutation(t, func(document *artifactv2.ExperimentRun) {
 				document.KnownGaps = []artifactv2.KnownGap{{
 					Kind: "input", Code: "switch.gap.capacity", Detail: stringPointer(detailOverLimit),
 				}}
-				document.OperationalStatus = "incomplete"
 			}),
 			decode: func(encoded []byte) error {
 				_, err := artifact.DecodeExperimentRunV2(encoded)
@@ -746,6 +744,12 @@ func TestRuntimeConfigurationV2RejectsOneAtATimeMutations(t *testing.T) {
 		"blank provenance path": {
 			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
 				document.Provenance.SourceLocations[0].Path = " "
+			}),
+			code: artifact.ErrorMalformedValue,
+		},
+		"Unicode whitespace provenance path": {
+			encoded: resealedRuntimeConfigurationV2Mutation(t, func(document *artifactv2.RuntimeConfiguration) {
+				document.Provenance.SourceLocations[0].Path = "\u00a0"
 			}),
 			code: artifact.ErrorMalformedValue,
 		},
