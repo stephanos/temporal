@@ -192,4 +192,16 @@ def drivePlanChecksumOf (canonicalContent : String) : ArtifactChecksum :=
 def experimentSpecChecksumOf (canonicalContent : String) : ArtifactChecksum :=
   ⟨derive "umpire.experiment-spec/v2" canonicalContent⟩
 
+/-- Checksum an exact pretty Artifact provenance object. -/
+def provenanceChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+  ⟨derive "umpire.provenance/v2" canonicalContent⟩
+
+/-- Checksum an exact pretty RuntimeConfiguration object without its checksum field. -/
+def runtimeConfigurationChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+  ⟨derive "umpire.runtime-configuration/v2" canonicalContent⟩
+
+/-- Checksum an exact pretty ExperimentRun object without its checksum field. -/
+def experimentRunChecksumOf (canonicalContent : String) : ArtifactChecksum :=
+  ⟨derive "umpire.experiment-run/v2" canonicalContent⟩
+
 end Umpire
