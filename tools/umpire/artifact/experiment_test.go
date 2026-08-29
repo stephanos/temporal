@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -106,6 +107,10 @@ func TestExperimentV2RejectsOneAtATimeMutations(t *testing.T) {
 	earlierWithInvalidField = replaceExperimentV2Once(t, earlierWithInvalidField,
 		"{\n  \"formatVersion\":", "{\n  \"legacy\": true,\n  \"formatVersion\":")
 	legacyKey := "semantic" + "Identity"
+	nestedEarlierFormat := "umpire-drive-plan/" + "v" + "1"
+	nestedEarlierWithUnknown := replaceExperimentV2Once(t, canonical,
+		"\"plan\": {\n    \"formatVersion\": \"umpire-drive-plan/v2\",",
+		"\"plan\": {\n    \"unknown\": true,\n    \"formatVersion\": \""+nestedEarlierFormat+"\",")
 
 	cases := map[string]struct {
 		encoded []byte
@@ -127,6 +132,20 @@ func TestExperimentV2RejectsOneAtATimeMutations(t *testing.T) {
 		"wrong family": {
 			encoded: replaceExperimentV2Once(t, canonical,
 				`"umpire-experiment/v2"`, `"umpire-result/v2"`),
+			code: artifact.ErrorWrongFamily,
+		},
+		"nested pre-v2 before unknown field": {
+			encoded: nestedEarlierWithUnknown,
+			code:    artifact.ErrorUnsupportedFormat,
+		},
+		"unsupported nested later major": {
+			encoded: replaceExperimentV2Once(t, canonical,
+				`"umpire-drive-plan/v2"`, `"umpire-drive-plan/v3"`),
+			code: artifact.ErrorUnsupportedFormat,
+		},
+		"wrong nested family": {
+			encoded: replaceExperimentV2Once(t, canonical,
+				`"umpire-drive-plan/v2"`, `"umpire-result/v2"`),
 			code: artifact.ErrorWrongFamily,
 		},
 		"duplicate key": {
@@ -185,6 +204,12 @@ func TestExperimentV2RejectsOneAtATimeMutations(t *testing.T) {
 			}),
 			code: artifact.ErrorMalformedValue,
 		},
+		"non-ASCII Definition ID": {
+			encoded: resealedExperimentV2Mutation(t, func(document *artifactv2.Experiment) {
+				document.Plan.QueryDefinitionID = "switch.query.exact-actiøn"
+			}),
+			code: artifact.ErrorMalformedValue,
+		},
 		"malformed Behavior Fingerprint": {
 			encoded: resealedExperimentV2Mutation(t, func(document *artifactv2.Experiment) {
 				document.Plan.BehaviorFingerprint = "sha256:ABC"
@@ -223,7 +248,7 @@ func TestExperimentV2RejectsOneAtATimeMutations(t *testing.T) {
 		},
 		"invalid requirement": {
 			encoded: resealedExperimentV2Mutation(t, func(document *artifactv2.Experiment) {
-				document.Properties[0].RequirementDefinitionIDs = []string{""}
+				document.Properties[0].RequirementDefinitionIDs = []string{"unnamespaced"}
 			}),
 			code: artifact.ErrorMalformedValue,
 		},
@@ -264,6 +289,149 @@ func TestExperimentV2RejectsOneAtATimeMutations(t *testing.T) {
 	}
 }
 
+func TestExperimentV2StringBounds(t *testing.T) {
+	identityAtLimit := "a." + strings.Repeat("x", artifact.MaximumIdentityBytes-2)
+	identityOverLimit := identityAtLimit + "x"
+	detailAtLimit := strings.Repeat("x", artifact.MaximumDiagnosticBytes)
+	detailOverLimit := detailAtLimit + "x"
+
+	for _, test := range []struct {
+		name      string
+		atLimit   func(*artifactv2.Experiment)
+		overLimit func(*artifactv2.Experiment)
+	}{
+		{
+			name: "identity",
+			atLimit: func(document *artifactv2.Experiment) {
+				document.Plan.QueryDefinitionID = identityAtLimit
+			},
+			overLimit: func(document *artifactv2.Experiment) {
+				document.Plan.QueryDefinitionID = identityOverLimit
+			},
+		},
+		{
+			name: "diagnostic detail",
+			atLimit: func(document *artifactv2.Experiment) {
+				document.Plan.KnownGaps[0].Detail = &detailAtLimit
+			},
+			overLimit: func(document *artifactv2.Experiment) {
+				document.Plan.KnownGaps[0].Detail = &detailOverLimit
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := artifact.DecodeExperimentV2(resealedExperimentV2Mutation(t, test.atLimit))
+			require.NoError(t, err)
+
+			_, err = artifact.DecodeExperimentV2(resealedExperimentV2Mutation(t, test.overLimit))
+			requireExperimentV2ErrorCode(t, err, artifact.ErrorStringLimit)
+		})
+	}
+}
+
+func TestExperimentV2RejectsMalformedDefinitionIDSets(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		mutate func(*artifactv2.Experiment)
+	}{
+		{
+			name: "plan capability requirement",
+			mutate: func(document *artifactv2.Experiment) {
+				document.Plan.CapabilityRequirementDefinitionIDs = []string{"unnamespaced"}
+			},
+		},
+		{
+			name: "plan source definition",
+			mutate: func(document *artifactv2.Experiment) {
+				document.Plan.Provenance.SourceDefinitionIDs = []string{"unnamespaced"}
+			},
+		},
+		{
+			name: "property requirement",
+			mutate: func(document *artifactv2.Experiment) {
+				document.Properties[0].RequirementDefinitionIDs = []string{"unnamespaced"}
+			},
+		},
+		{
+			name: "observation requirement",
+			mutate: func(document *artifactv2.Experiment) {
+				document.ObservationRequirementDefinitionIDs = []string{"unnamespaced"}
+			},
+		},
+		{
+			name: "experiment source definition",
+			mutate: func(document *artifactv2.Experiment) {
+				document.Provenance.SourceDefinitionIDs = []string{"nonascii.réquirement"}
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := artifact.DecodeExperimentV2(resealedExperimentV2Mutation(t, test.mutate))
+			requireExperimentV2ErrorCode(t, err, artifact.ErrorMalformedValue)
+		})
+	}
+}
+
+func TestExperimentV2EncodeRejectsInvalidValues(t *testing.T) {
+	canonical := readExperimentV2Fixture(t,
+		"tools/umpire/artifact/testdata/switch-experiment-v2.json")
+	document, err := artifactv2.DecodeExperiment(canonical)
+	require.NoError(t, err)
+
+	for _, test := range []struct {
+		name   string
+		mutate func(*artifactv2.Experiment)
+		code   artifact.ErrorCode
+	}{
+		{
+			name: "unsupported outer format",
+			mutate: func(document *artifactv2.Experiment) {
+				document.FormatVersion = "umpire-experiment/" + "v" + "1"
+			},
+			code: artifact.ErrorUnsupportedFormat,
+		},
+		{
+			name: "unsupported nested format",
+			mutate: func(document *artifactv2.Experiment) {
+				document.Plan.FormatVersion = "umpire-drive-plan/" + "v" + "1"
+			},
+			code: artifact.ErrorUnsupportedFormat,
+		},
+		{
+			name: "malformed field",
+			mutate: func(document *artifactv2.Experiment) {
+				document.Plan.QueryDefinitionID = "unnamespaced"
+			},
+			code: artifact.ErrorMalformedValue,
+		},
+		{
+			name: "stale checksum",
+			mutate: func(document *artifactv2.Experiment) {
+				document.Plan.ArtifactChecksum = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+			},
+			code: artifact.ErrorArtifactChecksum,
+		},
+		{
+			name: "closure drift",
+			mutate: func(document *artifactv2.Experiment) {
+				document.QueryBehaviorFingerprint = "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+				sealed, sealErr := artifactv2.SealExperiment(*document)
+				require.NoError(t, sealErr)
+				*document = sealed
+			},
+			code: artifact.ErrorClosure,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			mutated := document
+			test.mutate(&mutated)
+			encoded, err := artifact.EncodeExperimentV2(mutated)
+			require.Nil(t, encoded)
+			requireExperimentV2ErrorCode(t, err, test.code)
+		})
+	}
+}
+
 func readExperimentV2Fixture(t *testing.T, relative string) []byte {
 	t.Helper()
 	repositoryRoot := filepath.Clean(filepath.Join("..", "..", ".."))
@@ -290,6 +458,14 @@ func replaceExperimentV2Once(t *testing.T, encoded []byte, old, replacement stri
 	t.Helper()
 	require.Equal(t, 1, bytes.Count(encoded, []byte(old)))
 	return bytes.Replace(encoded, []byte(old), []byte(replacement), 1)
+}
+
+func requireExperimentV2ErrorCode(t *testing.T, err error, expected artifact.ErrorCode) {
+	t.Helper()
+	require.Error(t, err)
+	code, ok := artifact.CodeOf(err)
+	require.True(t, ok, err)
+	require.Equal(t, expected, code)
 }
 
 func independentExperimentV2Checksum(domain string, preimage []byte) string {
