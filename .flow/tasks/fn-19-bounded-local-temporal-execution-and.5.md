@@ -50,6 +50,7 @@ baseline: green for implemented dependency surfaces; inherited red for stale fut
 review: SHIP after two fixed P1 findings; memory capture skipped because flow memory is not initialized
 
 stage: impl-review - ran [2026-08-29T16:47:38Z..2026-08-29T16:58:46Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: e3cfa915b6f9a4b112bcfff6434cfbcd3d313fdd, 5a9172fcdc966f96aa2275ce79003df0aa881fde, 22916a8c5cfe3d26a2474ea7f6e9dabcabc866b8
 - Tests: go test -count=1 ./tools/umpire/runtime/..., go test -count=1 ./tools/umpire/temporal/local/..., go test -count=1 ./tools/umpire/temporal/nexus/..., go test -count=1 ./temporaltest/..., go run ./tools/umpire/cmd/umpire-artifact check-set --set tools/umpire/temporal/nexus/testdata/caller-closure-input-set, cd model && mise exec -- lake build Temporal.System.Execution.LocalProfileTests, cd model && mise exec -- lake build Temporal.System.Execution.NexusTests Temporal.NexusExecutionIntegrationTests TemporalModelTests TemporalExperimentalTests, cd model && mise exec -- lake exe modelLint, cd model && mise exec -- lake --wfail lint --builtin-only --lint-only=.all,.extra,-.missingDocs
