@@ -22,7 +22,16 @@ private def matchingUpdateAckIntervalSpec : ConfigUseSpec Int := {
   settingIdentity := "sha256:58c6db0d991c651b92e007384724788f74236057d53c6814293a5439e216501f"
   impacts := [.timing, .performance]
   expectedSchema := .duration "time.Duration" false
-  expectedDefault := Temporal.DynamicConfig.Settings.matching_updateackinterval.defaultValue
+  expectedDefault := .constrained [
+    {
+      constraints := emptyConstraints
+      value := .concrete (.duration 60000000000)
+    },
+    {
+      constraints := { emptyConstraints with taskQueueName := some "temporal-sys-per-ns-tq" }
+      value := .concrete (.duration 300000000000)
+    }
+  ]
   behaviorFingerprint := behaviorFingerprintOf "temporal.config/matching-update-ack-interval/v1"
   decode := decodeDuration
   contextPolicy := .taskQueue
