@@ -75,7 +75,7 @@ func rawEvidenceV2PayloadLimit(encoded []byte) error {
 	cursor := jsonCursor{encoded: encoded}
 	cursor.skipSpace()
 	if cursor.position >= len(encoded) || encoded[cursor.position] != '{' {
-		return errors.New("RawEvidence payload root is not an object")
+		return nil
 	}
 	cursor.position++
 	cursor.skipSpace()
@@ -104,7 +104,7 @@ func rawEvidenceV2PayloadLimit(encoded []byte) error {
 func rawEvidenceV2FactsPayloadLimit(cursor *jsonCursor) error {
 	cursor.skipSpace()
 	if cursor.position >= len(cursor.encoded) || cursor.encoded[cursor.position] != '[' {
-		return errors.New("RawEvidence facts payload is not an array")
+		return cursor.skipValue()
 	}
 	cursor.position++
 	cursor.skipSpace()
@@ -131,7 +131,7 @@ func rawEvidenceV2FactsPayloadLimit(cursor *jsonCursor) error {
 func rawEvidenceV2FactPayload(cursor *jsonCursor) (int, error) {
 	cursor.skipSpace()
 	if cursor.position >= len(cursor.encoded) || cursor.encoded[cursor.position] != '{' {
-		return 0, errors.New("RawEvidence fact payload is not an object")
+		return 0, cursor.skipValue()
 	}
 	cursor.position++
 	cursor.skipSpace()
@@ -166,7 +166,7 @@ func rawEvidenceV2FactPayload(cursor *jsonCursor) (int, error) {
 func rawEvidenceV2FieldsPayload(cursor *jsonCursor) (int, error) {
 	cursor.skipSpace()
 	if cursor.position >= len(cursor.encoded) || cursor.encoded[cursor.position] != '[' {
-		return 0, errors.New("RawEvidence fields payload is not an array")
+		return 0, cursor.skipValue()
 	}
 	cursor.position++
 	cursor.skipSpace()
@@ -188,7 +188,7 @@ func rawEvidenceV2FieldsPayload(cursor *jsonCursor) (int, error) {
 func rawEvidenceV2FieldPayload(cursor *jsonCursor) (int, error) {
 	cursor.skipSpace()
 	if cursor.position >= len(cursor.encoded) || cursor.encoded[cursor.position] != '{' {
-		return 0, errors.New("RawEvidence field payload is not an object")
+		return 0, cursor.skipValue()
 	}
 	cursor.position++
 	cursor.skipSpace()
