@@ -1625,7 +1625,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-19-bounded-local-temporal-execution-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Bounded local Temporal execution and SDK participant",
   "tracker": {
     "baseHashFlow": null,
@@ -1638,5 +1638,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-29T22:08:09.489787Z"
+  "updated_at": "2026-08-29T22:13:28.679351Z"
 }
