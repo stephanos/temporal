@@ -13,6 +13,7 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	nexuspb "go.temporal.io/api/nexus/v1"
 	"go.temporal.io/api/operatorservice/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	sdktemporal "go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
@@ -24,6 +25,8 @@ const (
 	runtimeCodeCanceled      = "umpire.runtime.code.canceled"
 	runtimeCodeCleanupFailed = "umpire.runtime.code.cleanup-failed"
 	runtimeCodeFailed        = "umpire.runtime.code.failed"
+	runtimeCodeIsolationFail = "umpire.runtime.code.isolation-failed"
+	runtimeCodeIsolationOpen = "umpire.runtime.code.isolation-incomplete"
 	runtimeCodeTimedOut      = "umpire.runtime.code.timed-out"
 	runtimeCodeUnsupported   = "umpire.runtime.code.unsupported"
 
@@ -70,6 +73,9 @@ type Environment interface {
 	CreateWorkerEndpoint(context.Context, umpireruntime.Command) (WorkerEndpoint, error)
 	DeleteWorkerEndpoint(context.Context, umpireruntime.Command, WorkerEndpoint) error
 	StartWorker(context.Context, umpireruntime.Command, WorkerRegistration) umpireruntime.Receipt
+	RecordOperationCount(umpireruntime.Command, string, uint64) error
+	RecordControlCount(umpireruntime.Command, string, uint64) error
+	CloseIsolationInputs(umpireruntime.Command) error
 }
 
 // NewFactory returns the sole closed local authority factory. It deliberately
@@ -127,6 +133,9 @@ func (f *factory) Prepare(
 		)
 	}
 	environment.client = authority.SDKClient()
+	if environment.executionProbe == nil && environment.client != nil {
+		environment.executionProbe = sdkExecutionIsolationProbe{client: environment.client}
+	}
 	acquired := environment.recordOwnedResources()
 	return environment, lifecycleReceipt(
 		command, lifecycleFactAuthority, umpireruntime.ReceiptAccepted,
@@ -157,6 +166,59 @@ type environment struct {
 	mu            sync.Mutex
 	live          map[umpireruntime.ResourceKind]umpireruntime.Resource
 	workerStarted bool
+
+	prepareCommand   umpireruntime.Command
+	realizeCommand   umpireruntime.Command
+	observeCommand   umpireruntime.Command
+	isolationCommand umpireruntime.Command
+	isolation        isolationCollection
+	executionProbe   executionIsolationProbe
+}
+
+type isolationCollection struct {
+	operationRecorded bool
+	operationCount    uint64
+	controlRecorded   bool
+	controlCount      uint64
+	inputsClosed      bool
+	invalid           bool
+	isolationCalled   bool
+}
+
+type executionIsolationProbe interface {
+	Verify(context.Context, string) error
+}
+
+type sdkExecutionIsolationProbe struct {
+	client client.Client
+}
+
+func (p sdkExecutionIsolationProbe) Verify(ctx context.Context, workflowIdentity string) error {
+	ticker := time.NewTicker(25 * time.Millisecond)
+	defer ticker.Stop()
+	for {
+		response, err := p.client.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
+			PageSize: 2,
+		})
+		if err != nil {
+			return err
+		}
+		if response != nil && len(response.Executions) == 1 && len(response.NextPageToken) == 0 {
+			execution := response.Executions[0].GetExecution()
+			if execution != nil && execution.GetWorkflowId() == workflowIdentity {
+				return nil
+			}
+			return errors.New("namespace contains an unexpected execution")
+		}
+		if response != nil && (len(response.Executions) > 1 || len(response.NextPageToken) != 0) {
+			return errors.New("namespace contains more than one execution")
+		}
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-ticker.C:
+		}
+	}
 }
 
 func newEnvironment(
@@ -168,6 +230,10 @@ func newEnvironment(
 		runIdentity: request.RunIdentity(),
 		live:        make(map[umpireruntime.ResourceKind]umpireruntime.Resource),
 	}
+	environment.prepareCommand, _ = request.Command(umpireruntime.CommandPrepare)
+	environment.realizeCommand, _ = request.Command(umpireruntime.CommandRealize)
+	environment.observeCommand, _ = request.Command(umpireruntime.CommandObserve)
+	environment.isolationCommand = request.IsolationCommand()
 	for _, correlation := range request.Correlations() {
 		switch correlation.Kind() {
 		case umpireruntime.CorrelationWorkflow:
@@ -179,6 +245,11 @@ func newEnvironment(
 		case umpireruntime.CorrelationWorker:
 			environment.workerIdentity = correlation.Identity()
 		}
+	}
+	if provider, ok := authority.(interface {
+		isolationProbe(string) executionIsolationProbe
+	}); ok {
+		environment.executionProbe = provider.isolationProbe(environment.workflowCorrelation)
 	}
 	environment.identities = Identities{
 		Namespace: digestIdentity("namespace", authority.Namespace()),
@@ -301,19 +372,98 @@ func (e *environment) StartWorker(
 	)
 }
 
+// RecordOperationCount retains the bounded actual operation count observed by
+// the participant without retaining SDK payloads or live operation handles.
+func (e *environment) RecordOperationCount(
+	command umpireruntime.Command,
+	operationIdentity string,
+	count uint64,
+) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if command != e.prepareCommand || operationIdentity != e.operationCorrelation ||
+		e.isolation.operationRecorded || e.isolation.inputsClosed {
+		e.isolation.invalid = true
+		return errors.New("unsupported isolation operation record")
+	}
+	e.isolation.operationRecorded = true
+	e.isolation.operationCount = count
+	return nil
+}
+
+// RecordControlCount retains the bounded actual force-close control count
+// observed by the participant for the later isolation proof.
+func (e *environment) RecordControlCount(
+	command umpireruntime.Command,
+	operationIdentity string,
+	count uint64,
+) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if command != e.realizeCommand || operationIdentity != e.operationCorrelation ||
+		e.isolation.controlRecorded || e.isolation.inputsClosed {
+		e.isolation.invalid = true
+		return errors.New("unsupported isolation control record")
+	}
+	e.isolation.controlRecorded = true
+	e.isolation.controlCount = count
+	return nil
+}
+
+// CloseIsolationInputs seals the invocation-owned count collection after the
+// participant has completed its bounded observation attempt.
+func (e *environment) CloseIsolationInputs(command umpireruntime.Command) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if command != e.observeCommand || e.isolation.inputsClosed {
+		e.isolation.invalid = true
+		return errors.New("unsupported isolation collection close")
+	}
+	e.isolation.inputsClosed = true
+	return nil
+}
+
 func (e *environment) Isolate(
 	ctx context.Context,
 	command umpireruntime.Command,
 ) umpireruntime.Receipt {
+	e.mu.Lock()
+	defer e.mu.Unlock()
 	if ctx == nil || ctx.Err() != nil {
 		return lifecycleFailureReceipt(
 			ctx, command, lifecycleFactIsolation, contextError(ctx), false, nil, e.identities,
 		)
 	}
-	if command.RunIdentity() != e.runIdentity || command.Attempt() != 1 ||
-		command.Phase() != umpireruntime.PhaseIsolation {
+	if command != e.isolationCommand {
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptUnsupported,
 			runtimeCodeUnsupported, nil, nil, e.identities)
+	}
+	if e.isolation.isolationCalled {
+		e.isolation.invalid = true
+	}
+	e.isolation.isolationCalled = true
+	if e.isolation.invalid || e.isolation.operationCount > 1 || e.isolation.controlCount > 1 {
+		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptFailed,
+			runtimeCodeIsolationFail, nil, nil, e.identities)
+	}
+	if !e.isolation.operationRecorded || e.isolation.operationCount != 1 ||
+		!e.isolation.controlRecorded || e.isolation.controlCount != 1 ||
+		!e.isolation.inputsClosed {
+		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptCanceled,
+			runtimeCodeIsolationOpen, nil, nil, e.identities)
+	}
+	if e.executionProbe == nil {
+		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptCanceled,
+			runtimeCodeIsolationOpen, nil, nil, e.identities)
+	}
+	if err := e.executionProbe.Verify(ctx, e.workflowCorrelation); err != nil {
+		if ctx.Err() != nil {
+			return lifecycleFailureReceipt(
+				ctx, command, lifecycleFactIsolation, err, false, nil, e.identities,
+			)
+		}
+		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptFailed,
+			runtimeCodeIsolationFail, nil, nil, e.identities)
 	}
 	return lifecycleReceipt(
 		command, lifecycleFactIsolation, umpireruntime.ReceiptAccepted,

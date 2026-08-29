@@ -48,7 +48,10 @@ func CheckRequest(
 		program.targetDefinitionIDs[0] != experiment.Plan.TargetDefinitionID {
 		return CheckedRunRequest{}, preflightError(PreflightTarget, "program-target")
 	}
-	if len(experiment.Plan.RequestedFaults) != 0 || len(experiment.Plan.RequestedActions) != 1 ||
+	if len(experiment.Plan.RequestedFaults) != 0 {
+		return CheckedRunRequest{}, preflightError(PreflightFault, "requested-faults")
+	}
+	if len(experiment.Plan.RequestedActions) != 1 ||
 		len(program.actionDefinitionIDs) != 1 ||
 		program.actionDefinitionIDs[0] != experiment.Plan.RequestedActions[0].DefinitionID {
 		return CheckedRunRequest{}, preflightError(PreflightAction, "program-action")
