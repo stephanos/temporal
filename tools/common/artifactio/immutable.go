@@ -11,7 +11,8 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"syscall"
+
+	"golang.org/x/sys/unix"
 )
 
 const immutableSetStagingPrefix = ".temporal-immutable-set-"
@@ -470,7 +471,7 @@ func validateImmutableTree(root *os.File, paths []string) error {
 }
 
 func validateImmutableTreeAt(directory *os.File, expected *immutableTree, relative string) error {
-	duplicate, err := syscall.Dup(int(directory.Fd()))
+	duplicate, err := unix.Dup(int(directory.Fd()))
 	if err != nil {
 		return fmt.Errorf("duplicate immutable directory descriptor: %w", err)
 	}
@@ -529,7 +530,7 @@ func openDirectoryNoFollow(path string) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	rootFD, err := syscall.Open(string(filepath.Separator), syscall.O_RDONLY|syscall.O_DIRECTORY|syscall.O_NOFOLLOW|syscall.O_CLOEXEC, 0)
+	rootFD, err := unix.Open(string(filepath.Separator), unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -552,7 +553,7 @@ func openDirectoryNoFollow(path string) (*os.File, error) {
 }
 
 func openDirectoryAt(parent *os.File, name string) (*os.File, error) {
-	fd, err := syscall.Openat(int(parent.Fd()), name, syscall.O_RDONLY|syscall.O_DIRECTORY|syscall.O_NOFOLLOW|syscall.O_CLOEXEC, 0)
+	fd, err := unix.Openat(int(parent.Fd()), name, unix.O_RDONLY|unix.O_DIRECTORY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -560,7 +561,7 @@ func openDirectoryAt(parent *os.File, name string) (*os.File, error) {
 }
 
 func openRegularFileAt(parent *os.File, name string) (*os.File, error) {
-	fd, err := syscall.Openat(int(parent.Fd()), name, syscall.O_RDONLY|syscall.O_NOFOLLOW|syscall.O_CLOEXEC, 0)
+	fd, err := unix.Openat(int(parent.Fd()), name, unix.O_RDONLY|unix.O_NOFOLLOW|unix.O_CLOEXEC, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -569,7 +570,7 @@ func openRegularFileAt(parent *os.File, name string) (*os.File, error) {
 
 func readRegularFileAt(root *os.File, path string, maximum int64) ([]byte, error) {
 	components := strings.Split(filepath.ToSlash(path), "/")
-	currentFD, err := syscall.Dup(int(root.Fd()))
+	currentFD, err := unix.Dup(int(root.Fd()))
 	if err != nil {
 		return nil, err
 	}
