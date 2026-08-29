@@ -62,6 +62,33 @@ example :
     }} : ArtifactSet).isValidClosure := by
   native_decide
 
+/-! Lean rejects the same checksum-preserving noncanonical Experiment collections as Go. -/
+example :
+    let duplicateObservationRequirements := {
+      compiledArtifact with
+      observationRequirementDefinitionIds :=
+        compiledArtifact.observationRequirementDefinitionIds ++
+          compiledArtifact.observationRequirementDefinitionIds
+    }
+    let duplicatePlanCapabilities := {
+      compiledArtifact with plan := {
+        compiledArtifact.plan with
+        capabilityRequirementDefinitionIds :=
+          compiledArtifact.plan.capabilityRequirementDefinitionIds ++
+            compiledArtifact.plan.capabilityRequirementDefinitionIds
+      }
+    }
+    let reversedProvenance := {
+      compiledArtifact with provenance := {
+        compiledArtifact.provenance with
+        sourceDefinitionIds := compiledArtifact.provenance.sourceDefinitionIds.reverse
+      }
+    }
+    !({ evaluationSet with experiment := duplicateObservationRequirements } : ArtifactSet).isValidClosure &&
+    !({ evaluationSet with experiment := duplicatePlanCapabilities } : ArtifactSet).isValidClosure &&
+    !({ evaluationSet with experiment := reversedProvenance } : ArtifactSet).isValidClosure := by
+  native_decide
+
 /-! Exact member paths and order are part of the admitted manifest, not presentation metadata. -/
 example : evaluationSet.manifest?.any fun manifest =>
     !({ manifest with members := manifest.members.reverse }).isValidFor evaluationSet := by
