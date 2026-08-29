@@ -727,6 +727,16 @@ func TestResultV2ImplementationPropertySemanticAndChecksumMatrices(t *testing.T)
 			},
 		},
 		{
+			name: "observation failure trace and Evidence Limit both missing", status: "unknown",
+			kind: "observation-evaluation-failure",
+			mutate: func(verdict *artifactv2.PropertyVerdict) {
+				diagnostic := observationDiagnosticV2(&evidence, "empty-evidence")
+				verdict.Diagnostic.ObservationDiagnostic = &diagnostic
+				verdict.TraceID = nil
+				verdict.EvidenceLimit = nil
+			},
+		},
+		{
 			name: "trace and Evidence Limit half present", status: "unknown",
 			kind: "invalid-evidence-bound",
 			mutate: func(verdict *artifactv2.PropertyVerdict) {

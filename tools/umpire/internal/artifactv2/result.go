@@ -1262,10 +1262,6 @@ func validatePropertyVerdict(verdict PropertyVerdict) error {
 			if tracePresent || limitPresent {
 				return errors.New("query-property-mismatch must not carry trace context")
 			}
-		case "observation-evaluation-failure":
-			if tracePresent != limitPresent {
-				return errors.New("observation evaluation failure has partial trace context")
-			}
 		default:
 			if !tracePresent || !limitPresent {
 				return fmt.Errorf("semantic diagnostic %q requires trace context", verdict.Diagnostic.Kind)
