@@ -4,6 +4,8 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -20,7 +22,7 @@ func TestCheckRequestBindsTheExactCallerClosureProgram(t *testing.T) {
 
 	program := request.Program()
 	require.Equal(t, callerClosureProgramDefinitionID, program.DefinitionID())
-	require.EqualValues(t, 2, program.Version())
+	require.EqualValues(t, 1, program.Version())
 	require.Equal(t, callerClosureProgramBehaviorFingerprint, program.BehaviorFingerprint())
 	require.Equal(t, []string{callerClosureTargetDefinitionID}, program.TargetDefinitionIDs())
 	require.Equal(t, []string{forceCloseActionDefinitionID}, program.ActionDefinitionIDs())
@@ -39,6 +41,18 @@ func TestCheckRequestBindsTheExactCallerClosureProgram(t *testing.T) {
 	require.EqualValues(t, 1, occurrences[0].Position())
 	require.EqualValues(t, 0, request.Seed())
 	require.EqualValues(t, 1, request.Attempt())
+}
+
+func TestCallerClosureProgramVersionMatchesTheSystemModel(t *testing.T) {
+	model, err := os.ReadFile(filepath.Join(
+		"..", "..", "..", "..", "model", "Temporal", "System", "Execution", "Nexus.lean",
+	))
+	require.NoError(t, err)
+	version := regexp.MustCompile(
+		`(?s)private def canonicalParticipantProgramDraft.*?reference := \{.*?version := ([0-9]+).*?def canonicalParticipantProgramDefinition.*?canonicalParticipantProgramDraft\.reference with`,
+	).FindSubmatch(model)
+	require.Len(t, version, 2)
+	require.Equal(t, strconv.FormatUint(callerClosureProgramVersion, 10), string(version[1]))
 }
 
 func TestCheckRequestRejectsAnUnsupportedSetBeforeExecution(t *testing.T) {

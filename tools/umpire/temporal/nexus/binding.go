@@ -12,6 +12,7 @@ const (
 	callerClosureParticipantDefinitionID          = "temporal.nexus.participant.caller-closure"
 	callerClosureProtocolDefinitionID             = "umpire.participant-protocol.v2"
 	callerClosureProgramDefinitionID              = "temporal.nexus.participant-program.caller-closure"
+	callerClosureProgramVersion                   = 1
 	callerClosureProgramBehaviorFingerprint       = "sha256:f2f1a9a1346576b4d8c6b0b4f7f6c8a138461f90c168ab57747b316807666e56"
 	callerClosureTargetDefinitionID               = "workflow-nexus.target.caller-closure"
 	forceCloseActionDefinitionID                  = "workflow.action.force-close"
@@ -40,7 +41,7 @@ func CheckRequest(
 	}
 	program, err := umpireruntime.NewProgram(
 		callerClosureProgramDefinitionID,
-		2,
+		callerClosureProgramVersion,
 		callerClosureProgramBehaviorFingerprint,
 		[]string{callerClosureTargetDefinitionID},
 		[]string{forceCloseActionDefinitionID},
