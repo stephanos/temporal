@@ -24,6 +24,11 @@ const (
 	runtimeCodeFailed        = "umpire.runtime.code.failed"
 	runtimeCodeTimedOut      = "umpire.runtime.code.timed-out"
 	runtimeCodeUnsupported   = "umpire.runtime.code.unsupported"
+
+	lifecycleFactAuthority = "authority-prepare"
+	lifecycleFactWorker    = "worker-start"
+	lifecycleFactIsolation = "environment-isolate"
+	lifecycleFactCleanup   = "environment-cleanup"
 )
 
 // Identities contains only digest tokens safe for retained evidence. The raw
@@ -77,34 +82,39 @@ func (f *factory) Prepare(
 	command umpireruntime.Command,
 ) (umpireruntime.Environment, umpireruntime.Receipt) {
 	if !validPreparation(request, command) {
-		return nil, lifecycleReceipt(command, umpireruntime.ReceiptUnsupported,
+		return nil, lifecycleReceipt(command, lifecycleFactAuthority, umpireruntime.ReceiptUnsupported,
 			runtimeCodeUnsupported, nil, nil, Identities{})
 	}
 	if ctx == nil || ctx.Err() != nil {
-		return nil, lifecycleFailureReceipt(ctx, command, contextError(ctx), false, nil, Identities{})
+		return nil, lifecycleFailureReceipt(
+			ctx, command, lifecycleFactAuthority, contextError(ctx), false, nil, Identities{},
+		)
 	}
 
 	authority, startErr := f.starter.Start(ctx)
 	if authority == nil {
-		return nil, lifecycleFailureReceipt(ctx, command, startErr, false, nil, Identities{})
+		return nil, lifecycleFailureReceipt(
+			ctx, command, lifecycleFactAuthority, startErr, false, nil, Identities{},
+		)
 	}
 	environment := newEnvironment(request, authority)
 	if startErr != nil {
 		acquired := environment.recordOwnedResources()
 		return environment, lifecycleFailureReceipt(
-			ctx, command, startErr, false, acquired, environment.identities,
+			ctx, command, lifecycleFactAuthority, startErr, false, acquired, environment.identities,
 		)
 	}
 	if err := authority.Connect(ctx); err != nil {
 		acquired := environment.recordOwnedResources()
 		return environment, lifecycleFailureReceipt(
-			ctx, command, err, false, acquired, environment.identities,
+			ctx, command, lifecycleFactAuthority, err, false, acquired, environment.identities,
 		)
 	}
 	environment.client = authority.SDKClient()
 	acquired := environment.recordOwnedResources()
 	return environment, lifecycleReceipt(
-		command, umpireruntime.ReceiptAccepted, "", acquired, nil, environment.identities,
+		command, lifecycleFactAuthority, umpireruntime.ReceiptAccepted,
+		"", acquired, nil, environment.identities,
 	)
 }
 
@@ -192,11 +202,13 @@ func (e *environment) StartWorker(
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if ctx == nil || ctx.Err() != nil {
-		return lifecycleFailureReceipt(ctx, command, contextError(ctx), false, nil, e.identities)
+		return lifecycleFailureReceipt(
+			ctx, command, lifecycleFactWorker, contextError(ctx), false, nil, e.identities,
+		)
 	}
 	if registration == nil || command.RunIdentity() != e.runIdentity || command.Attempt() != 1 ||
 		command.Kind() != umpireruntime.CommandPrepare || e.workerStarted {
-		return lifecycleReceipt(command, umpireruntime.ReceiptUnsupported,
+		return lifecycleReceipt(command, lifecycleFactWorker, umpireruntime.ReceiptUnsupported,
 			runtimeCodeUnsupported, nil, nil, e.identities)
 	}
 	e.workerStarted = true
@@ -204,9 +216,14 @@ func (e *environment) StartWorker(
 	err := e.authority.StartWorker(ctx, e.taskQueue, e.workerIdentity, registration)
 	acquired := e.recordOwnedResourcesAfter(before)
 	if err != nil {
-		return lifecycleFailureReceipt(ctx, command, err, false, acquired, e.identities)
+		return lifecycleFailureReceipt(
+			ctx, command, lifecycleFactWorker, err, false, acquired, e.identities,
+		)
 	}
-	return lifecycleReceipt(command, umpireruntime.ReceiptAccepted, "", acquired, nil, e.identities)
+	return lifecycleReceipt(
+		command, lifecycleFactWorker, umpireruntime.ReceiptAccepted,
+		"", acquired, nil, e.identities,
+	)
 }
 
 func (e *environment) Isolate(
@@ -214,14 +231,19 @@ func (e *environment) Isolate(
 	command umpireruntime.Command,
 ) umpireruntime.Receipt {
 	if ctx == nil || ctx.Err() != nil {
-		return lifecycleFailureReceipt(ctx, command, contextError(ctx), false, nil, e.identities)
+		return lifecycleFailureReceipt(
+			ctx, command, lifecycleFactIsolation, contextError(ctx), false, nil, e.identities,
+		)
 	}
 	if command.RunIdentity() != e.runIdentity || command.Attempt() != 1 ||
 		command.Phase() != umpireruntime.PhaseIsolation {
-		return lifecycleReceipt(command, umpireruntime.ReceiptUnsupported,
+		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptUnsupported,
 			runtimeCodeUnsupported, nil, nil, e.identities)
 	}
-	return lifecycleReceipt(command, umpireruntime.ReceiptAccepted, "", nil, nil, e.identities)
+	return lifecycleReceipt(
+		command, lifecycleFactIsolation, umpireruntime.ReceiptAccepted,
+		"", nil, nil, e.identities,
+	)
 }
 
 func (e *environment) Cleanup(
@@ -232,7 +254,7 @@ func (e *environment) Cleanup(
 	defer e.mu.Unlock()
 	if command.RunIdentity() != e.runIdentity || command.Attempt() != 1 ||
 		command.Kind() != umpireruntime.CommandCleanup {
-		return lifecycleReceipt(command, umpireruntime.ReceiptUnsupported,
+		return lifecycleReceipt(command, lifecycleFactCleanup, umpireruntime.ReceiptUnsupported,
 			runtimeCodeUnsupported, nil, nil, e.identities)
 	}
 	if ctx == nil || ctx.Err() != nil {
@@ -332,13 +354,14 @@ func digestIdentity(kind string, raw string) string {
 func lifecycleFailureReceipt(
 	ctx context.Context,
 	command umpireruntime.Command,
+	factIdentityKind string,
 	err error,
 	cleanup bool,
 	acquired []umpireruntime.Resource,
 	identities Identities,
 ) umpireruntime.Receipt {
 	status, code := closedFailure(ctx, err, cleanup)
-	return lifecycleReceipt(command, status, code, acquired, nil, identities)
+	return lifecycleReceipt(command, factIdentityKind, status, code, acquired, nil, identities)
 }
 
 func closedFailure(
@@ -346,16 +369,46 @@ func closedFailure(
 	err error,
 	cleanup bool,
 ) (umpireruntime.ReceiptStatus, string) {
-	if errors.Is(err, context.Canceled) || ctx != nil && errors.Is(ctx.Err(), context.Canceled) {
+	if hasConcreteFailure(err) {
+		if cleanup {
+			return umpireruntime.ReceiptFailed, runtimeCodeCleanupFailed
+		}
+		return umpireruntime.ReceiptFailed, runtimeCodeFailed
+	}
+	if ctx != nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return umpireruntime.ReceiptCanceled, runtimeCodeTimedOut
+	}
+	if ctx != nil && errors.Is(ctx.Err(), context.Canceled) {
 		return umpireruntime.ReceiptCanceled, runtimeCodeCanceled
 	}
-	if errors.Is(err, context.DeadlineExceeded) || ctx != nil && errors.Is(ctx.Err(), context.DeadlineExceeded) {
+	if errors.Is(err, context.Canceled) {
+		return umpireruntime.ReceiptCanceled, runtimeCodeCanceled
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
 		return umpireruntime.ReceiptFailed, runtimeCodeTimedOut
 	}
 	if cleanup {
 		return umpireruntime.ReceiptFailed, runtimeCodeCleanupFailed
 	}
 	return umpireruntime.ReceiptFailed, runtimeCodeFailed
+}
+
+func hasConcreteFailure(err error) bool {
+	if err == nil {
+		return false
+	}
+	if joined, ok := err.(interface{ Unwrap() []error }); ok {
+		for _, cause := range joined.Unwrap() {
+			if hasConcreteFailure(cause) {
+				return true
+			}
+		}
+		return false
+	}
+	if wrapped, ok := err.(interface{ Unwrap() error }); ok && wrapped.Unwrap() != nil {
+		return hasConcreteFailure(wrapped.Unwrap())
+	}
+	return !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded)
 }
 
 func closedCleanupCode(ctx context.Context, err error) string {
@@ -372,6 +425,7 @@ func contextError(ctx context.Context) error {
 
 func lifecycleReceipt(
 	command umpireruntime.Command,
+	factIdentityKind string,
 	status umpireruntime.ReceiptStatus,
 	code string,
 	acquired []umpireruntime.Resource,
@@ -386,7 +440,7 @@ func lifecycleReceipt(
 	}
 	fields := environmentFields(command, status, code, identities)
 	fact := checkedFact(command, umpireruntime.EvidenceSourceParticipantOutput,
-		"environment", "umpire.evidence.kind.environment-lifecycle", fields)
+		factIdentityKind, "umpire.evidence.kind.environment-lifecycle", fields)
 	receipt, err := umpireruntime.NewReceipt(
 		command, status, []umpireruntime.Fact{fact}, acquired, released,
 	)
