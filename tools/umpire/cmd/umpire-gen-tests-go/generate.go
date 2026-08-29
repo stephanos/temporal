@@ -7,7 +7,9 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"unicode"
 
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/runner"
@@ -87,6 +89,9 @@ func loadGenerationInput(manifestPath, outputRoot string) (generationInput, erro
 		filepath.IsAbs(embedRoot) {
 		return generationInput{}, errors.New("generated test fixture must be below its Go package")
 	}
+	if err := validateEmbedRoot(embedRoot); err != nil {
+		return generationInput{}, err
+	}
 
 	experiment := executable.Experiment()
 	configuration := executable.RuntimeConfiguration()
@@ -103,6 +108,19 @@ func loadGenerationInput(manifestPath, outputRoot string) (generationInput, erro
 			RuntimeConfigurationBehaviorFingerprint: configuration.BehaviorFingerprint,
 		},
 	}, nil
+}
+
+func validateEmbedRoot(embedRoot string) error {
+	for _, character := range embedRoot {
+		switch character {
+		case '*', '?', '[', '\\':
+			return errors.New("unsafe generated test fixture path contains an embed pattern metacharacter")
+		}
+		if unicode.IsControl(character) {
+			return errors.New("unsafe generated test fixture path contains a control character")
+		}
+	}
+	return nil
 }
 
 func readRegularFile(path string) ([]byte, error) {
@@ -132,11 +150,11 @@ func renderGeneratedTest(input generationInput) ([]byte, error) {
 	generated.WriteString("\tumpireruntime \"go.temporal.io/server/tools/umpire/runtime\"\n")
 	generated.WriteString("\t\"go.temporal.io/server/tools/umpire/temporal/nexus\"\n")
 	generated.WriteString(")\n\n")
-	fmt.Fprintf(&generated, "//go:embed %s/manifest.json\n", input.embedRoot)
+	fmt.Fprintf(&generated, "//go:embed %s\n", strconv.Quote(input.embedRoot+"/manifest.json"))
 	generated.WriteString("var callerClosureManifest []byte\n\n")
-	fmt.Fprintf(&generated, "//go:embed %s/artifacts/experiment.json\n", input.embedRoot)
+	fmt.Fprintf(&generated, "//go:embed %s\n", strconv.Quote(input.embedRoot+"/artifacts/experiment.json"))
 	generated.WriteString("var callerClosureExperiment []byte\n\n")
-	fmt.Fprintf(&generated, "//go:embed %s/artifacts/runtime-configuration.json\n", input.embedRoot)
+	fmt.Fprintf(&generated, "//go:embed %s\n", strconv.Quote(input.embedRoot+"/artifacts/runtime-configuration.json"))
 	generated.WriteString("var callerClosureRuntimeConfiguration []byte\n\n")
 	generated.WriteString("// TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally runs the exact\n")
 	generated.WriteString("// generated two-member input through the bounded local adapter without publishing it.\n")
