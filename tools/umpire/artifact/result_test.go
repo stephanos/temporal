@@ -41,6 +41,40 @@ func TestResultV2AcceptedEvidenceAndResolvedResultRoundTrip(t *testing.T) {
 	require.False(t, bytes.HasSuffix(resultBytes, []byte("\n\n")))
 }
 
+func TestResultV2AdmitsKindMajorMultistepCoordinateOrder(t *testing.T) {
+	experiment, runtimeConfiguration, run := rawEvidenceV2ClosureInputs(t)
+	rawEvidence := rawEvidenceV2Document(t)
+	document := acceptedEvidenceV2Document(t, experiment, runtimeConfiguration, run, rawEvidence)
+	secondStep := document.EvidenceBackedModelTrace.Trace.Steps[0]
+	secondStep.Position = artifactv2.NaturalFromUint64(2)
+	document.EvidenceBackedModelTrace.Trace.Steps = append(
+		document.EvidenceBackedModelTrace.Trace.Steps, secondStep,
+	)
+	stepTwo := artifactv2.NaturalFromUint64(2)
+	selectedTwo := document.EvidenceLinks[1]
+	selectedTwo.Coordinate.Step = &stepTwo
+	outcomeTwo := document.EvidenceLinks[2]
+	outcomeTwo.Coordinate.Step = &stepTwo
+	resultingTwo := document.EvidenceLinks[3]
+	resultingTwo.Coordinate.Step = &stepTwo
+	observationTwo := document.EvidenceLinks[4]
+	observationTwo.Coordinate.Step = &stepTwo
+	document.EvidenceLinks = []artifactv2.EvidenceLink{
+		document.EvidenceLinks[0],
+		document.EvidenceLinks[1], selectedTwo,
+		document.EvidenceLinks[2], outcomeTwo,
+		document.EvidenceLinks[3], resultingTwo,
+		document.EvidenceLinks[4], observationTwo,
+	}
+	document = sealedEvidenceV2Document(t, document)
+
+	encoded, err := artifact.EncodeEvidenceV2(document)
+	require.NoError(t, err)
+	decoded, err := artifact.DecodeEvidenceV2(encoded)
+	require.NoError(t, err)
+	require.Equal(t, document, decoded)
+}
+
 func TestResultV2CanonicalLeanFixtureParity(t *testing.T) {
 	experiment, runtimeConfiguration, run := rawEvidenceV2ClosureInputs(t)
 	rawEvidence := rawEvidenceV2Document(t)
@@ -88,7 +122,6 @@ func TestResultV2CanonicalLeanFixtureParity(t *testing.T) {
 	}
 
 }
-
 func TestResultV2EvidenceClosedStatusAndNullabilityMatrix(t *testing.T) {
 	experiment, runtimeConfiguration, run := rawEvidenceV2ClosureInputs(t)
 	rawEvidence := rawEvidenceV2Document(t)
@@ -429,6 +462,30 @@ func TestResultV2EvidenceRejectsIncompleteLinksStaleReferencesAndRawLeakage(t *t
 				document.EvidenceLinks[1].ClosureSupport[0].LastOrdinal = artifactv2.NaturalFromUint64(2)
 			},
 		},
+		{
+			name: "empty closure support",
+			mutate: func(document *artifactv2.Evidence) {
+				for index := range document.EvidenceLinks {
+					document.EvidenceLinks[index].ClosureSupport = []artifactv2.EvidenceClosureFact{}
+				}
+			},
+		},
+		{
+			name: "closure support misses an ordering kind",
+			mutate: func(document *artifactv2.Evidence) {
+				document.EvidenceLinks[0].OrderingSupport[0].KindDefinitionID =
+					"umpire.evidence.kind.other"
+			},
+		},
+		{
+			name: "uniformly stale closure ordinal",
+			mutate: func(document *artifactv2.Evidence) {
+				for index := range document.EvidenceLinks {
+					document.EvidenceLinks[index].ClosureSupport[0].LastOrdinal =
+						artifactv2.NaturalFromUint64(2)
+				}
+			},
+		},
 	} {
 		t.Run("transport rejects "+test.name, func(t *testing.T) {
 			document := acceptedEvidenceV2Document(t, experiment, runtimeConfiguration, run, rawEvidence)
@@ -541,6 +598,14 @@ func TestResultV2EvidenceAdmitsOpaqueDigestTokenWithoutRawValue(t *testing.T) {
 	require.NoError(t, artifact.ValidateEvidenceV2Closure(
 		decoded, experiment, runtimeConfiguration, run, rawEvidence,
 	))
+
+	stalePolicy := "switch.observation.digest-policy.stale"
+	document.EvidenceLinks[0].AppliedDispositions[1].DigestPolicyDefinitionID = &stalePolicy
+	document = sealedEvidenceV2Document(t, document)
+	err = artifact.ValidateEvidenceV2Closure(
+		document, experiment, runtimeConfiguration, run, rawEvidence,
+	)
+	requireResultV2ErrorCode(t, err, artifact.ErrorClosure)
 }
 
 func TestResultV2AdmitsOpaqueObservationTraceIdentity(t *testing.T) {
@@ -644,6 +709,56 @@ func TestResultV2ImplementationPropertySemanticAndChecksumMatrices(t *testing.T)
 			require.NoError(t, artifact.ValidateResultV2Closure(
 				decoded, experiment, runtimeConfiguration, run, rawEvidence, evidence,
 			))
+		})
+	}
+
+	for _, test := range []struct {
+		name   string
+		status string
+		kind   string
+		mutate func(*artifactv2.PropertyVerdict)
+	}{
+		{
+			name: "required trace and Evidence Limit both missing", status: "unknown",
+			kind: "invalid-evidence-bound",
+			mutate: func(verdict *artifactv2.PropertyVerdict) {
+				verdict.TraceID = nil
+				verdict.EvidenceLimit = nil
+			},
+		},
+		{
+			name: "trace and Evidence Limit half present", status: "unknown",
+			kind: "invalid-evidence-bound",
+			mutate: func(verdict *artifactv2.PropertyVerdict) {
+				verdict.TraceID = nil
+			},
+		},
+		{
+			name: "query mismatch carries invented trace context", status: "unsupported",
+			kind: "query-property-mismatch",
+			mutate: func(verdict *artifactv2.PropertyVerdict) {
+				traceID := evidence.EvidenceBackedModelTrace.TraceID
+				limit := evidence.EvidenceBackedModelTrace.AppliedLimit
+				verdict.TraceID = &traceID
+				verdict.EvidenceLimit = &limit
+			},
+		},
+	} {
+		t.Run("rejects Property nullability "+test.name, func(t *testing.T) {
+			document := propertyNonSuccessResultV2Document(
+				t, experiment, runtimeConfiguration, run, rawEvidence, evidence, test.status, test.kind,
+			)
+			test.mutate(&document.PropertyVerdicts[0])
+			document.QuerySummary.PropertyVerdicts = document.PropertyVerdicts
+			document.QuerySummary.TraceIDs = document.QuerySummary.TraceIDs[:0]
+			if document.PropertyVerdicts[0].TraceID != nil {
+				document.QuerySummary.TraceIDs = append(
+					document.QuerySummary.TraceIDs, *document.PropertyVerdicts[0].TraceID,
+				)
+			}
+			document = sealedResultV2Document(t, document)
+			_, err := artifact.EncodeResultV2(document)
+			requireResultV2ErrorCode(t, err, artifact.ErrorMalformedValue)
 		})
 	}
 
@@ -956,6 +1071,36 @@ func TestResultV2RejectsCanonicalChecksumAndClosureMutations(t *testing.T) {
 				document.PropertyVerdicts[0].Clauses[0].EvidenceLinks[0].RuleDefinitionID =
 					"switch.observation.rule.stale"
 				document.QuerySummary.PropertyVerdicts = document.PropertyVerdicts
+			},
+		},
+		{
+			name: "Property verdict trace differs from Evidence",
+			mutate: func(document *artifactv2.Result) {
+				traceID := "sha256:" + strings.Repeat("b", 64)
+				document.PropertyVerdicts[0].TraceID = &traceID
+				document.QuerySummary.PropertyVerdicts = document.PropertyVerdicts
+				document.QuerySummary.TraceIDs = []string{traceID}
+				checksum, checksumErr := artifactv2.ExpectedEvaluationOutcomeChecksum(
+					*document, evidence, experiment,
+				)
+				require.NoError(t, checksumErr)
+				document.EvaluationOutcomeChecksum = &checksum
+			},
+		},
+		{
+			name: "Property verdict Evidence Limit differs from Evidence",
+			mutate: func(document *artifactv2.Result) {
+				limit := artifactv2.Limit{
+					Value: artifactv2.NaturalFromUint64(1), Unit: "evidence-records",
+				}
+				document.PropertyVerdicts[0].EvidenceLimit = &limit
+				document.PropertyVerdicts[0].Clauses[0].EvidenceLimit = limit
+				document.QuerySummary.PropertyVerdicts = document.PropertyVerdicts
+				checksum, checksumErr := artifactv2.ExpectedEvaluationOutcomeChecksum(
+					*document, evidence, experiment,
+				)
+				require.NoError(t, checksumErr)
+				document.EvaluationOutcomeChecksum = &checksum
 			},
 		},
 		{
@@ -1314,6 +1459,7 @@ func leanFixtureEvidenceV2Document(
 	document.EvidenceBackedModelTrace.EvidenceDefinitionIDs = []string{"switch.evidence.history.1"}
 	document.EvidenceBackedModelTrace.Trace.Steps = []artifactv2.ModelTraceStep{}
 	document.EvidenceLinks = document.EvidenceLinks[:1]
+	document.EvidenceLinks[0].ClosureSupport[0].LastOrdinal = artifactv2.NaturalFromUint64(0)
 	return sealedEvidenceV2Document(t, document)
 }
 
@@ -1545,6 +1691,13 @@ func propertyNonSuccessResultV2Document(
 		Diagnostic: &artifactv2.SemanticVerdictDiagnostic{
 			Kind: diagnosticKind, RelatedDefinitionIDs: []string{property.DefinitionID},
 		},
+	}
+	if diagnosticKind != "query-property-mismatch" {
+		traceID := evidence.EvidenceBackedModelTrace.TraceID
+		evidenceLimit := evidence.EvidenceBackedModelTrace.AppliedLimit
+		verdict.TraceID = &traceID
+		verdict.EvidenceLimit = &evidenceLimit
+		document.QuerySummary.TraceIDs = []string{traceID}
 	}
 	document.PropertyVerdicts = []artifactv2.PropertyVerdict{verdict}
 	document.QuerySummary.PropertyVerdicts = document.PropertyVerdicts
