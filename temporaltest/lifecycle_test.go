@@ -206,6 +206,121 @@ func TestLifecycleDeadlineCanBeCleanedUpLaterWithoutDuplicateRelease(t *testing.
 	require.Equal(t, wantEvents, fixture.snapshotEvents())
 }
 
+func TestLifecycleRegistrationCancellationUnwindsWithoutStartingWorker(t *testing.T) {
+	t.Parallel()
+	fixture := newLifecycleFixture()
+	fixture.registrationEntered = make(chan struct{})
+	fixture.blockRegistration = make(chan struct{})
+	defer func() {
+		select {
+		case <-fixture.blockRegistration:
+		default:
+			close(fixture.blockRegistration)
+		}
+	}()
+	server, err := NewServerWithContext(
+		context.Background(),
+		withLifecycleBackend(fixture.backend()),
+		withStartupFailureCleanupLimit(20*time.Millisecond),
+	)
+	require.NoError(t, err)
+	fixture.clearEvents()
+	ctx, cancel := context.WithCancel(context.Background())
+	result := make(chan error, 1)
+	go func() {
+		_, workerErr := server.NewWorkerWithContext(ctx, "queue", func(worker.Registry) {})
+		result <- workerErr
+	}()
+	requireSignal(t, fixture.registrationEntered)
+
+	cancel()
+	select {
+	case err = <-result:
+	case <-time.After(time.Second):
+		t.Fatal("worker registration ignored the lifecycle deadline")
+	}
+
+	require.ErrorIs(t, err, context.Canceled)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
+	var cleanupErr *CleanupError
+	require.ErrorAs(t, err, &cleanupErr)
+	require.Equal(t, []LifecycleResource{
+		{Kind: LifecycleResourceWorker, Name: "queue"},
+		{Kind: LifecycleResourceClient, Name: "client-1"},
+		{Kind: LifecycleResourceServer, Name: "server"},
+	}, cleanupErr.Remaining)
+	require.Equal(t, []string{
+		"create-client", "create-worker", "register-worker",
+	}, fixture.snapshotEvents())
+	close(fixture.blockRegistration)
+	require.NoError(t, server.StopContext(context.Background()))
+	require.Empty(t, server.OwnedResources())
+}
+
+func TestLifecycleCancellationBetweenAcquisitionsDoesNotStartNextResource(t *testing.T) {
+	t.Parallel()
+
+	t.Run("server construction and start", func(t *testing.T) {
+		t.Parallel()
+		fixture := newLifecycleFixture()
+		ctx, cancel := context.WithCancel(context.Background())
+		fixture.afterCreateServer = cancel
+
+		server, err := NewServerWithContext(ctx, withLifecycleBackend(fixture.backend()))
+
+		require.ErrorIs(t, err, context.Canceled)
+		require.Equal(t, []string{"create-server", "stop-server"}, fixture.snapshotEvents())
+		require.Empty(t, server.OwnedResources())
+	})
+
+	t.Run("worker registration and start", func(t *testing.T) {
+		t.Parallel()
+		fixture := newLifecycleFixture()
+		server, err := NewServerWithContext(context.Background(), withLifecycleBackend(fixture.backend()))
+		require.NoError(t, err)
+		fixture.clearEvents()
+		ctx, cancel := context.WithCancel(context.Background())
+
+		_, err = server.NewWorkerWithContext(ctx, "queue", func(worker.Registry) { cancel() })
+
+		require.ErrorIs(t, err, context.Canceled)
+		require.Equal(t, []string{
+			"create-client", "create-worker", "register-worker",
+			"stop-worker", "close-client", "stop-server",
+		}, fixture.snapshotEvents())
+		require.Empty(t, server.OwnedResources())
+	})
+}
+
+func TestLegacyDefaultClientRetainsDialDeadline(t *testing.T) {
+	t.Parallel()
+	wantErr := errors.New("deadline observed")
+	fixture := newLifecycleFixture()
+	fixture.checkClientContext = func(ctx context.Context) error {
+		deadline, ok := ctx.Deadline()
+		if !ok {
+			return errors.New("client context has no deadline")
+		}
+		remaining := time.Until(deadline)
+		if remaining <= 9*time.Second || remaining > 10*time.Second {
+			return fmt.Errorf("unexpected client deadline: %s", remaining)
+		}
+		return wantErr
+	}
+	server, err := NewServerWithContext(context.Background(), withLifecycleBackend(fixture.backend()))
+	require.NoError(t, err)
+
+	var recovered any
+	func() {
+		defer func() { recovered = recover() }()
+		server.GetDefaultClient()
+	}()
+
+	require.Error(t, recovered.(error))
+	require.ErrorIs(t, recovered.(error), wantErr)
+	require.Empty(t, server.OwnedResources())
+}
+
 func TestLifecycleWithNilTestingIntegrationReturnsErrorsWithoutPanicking(t *testing.T) {
 	t.Parallel()
 	fixture := newLifecycleFixture()
@@ -346,13 +461,17 @@ func startCompleteLifecycle(t *testing.T, fixture *lifecycleFixture) *TestServer
 }
 
 type lifecycleFixture struct {
-	mu              sync.Mutex
-	events          []string
-	acquireFailure  string
-	releaseFailure  string
-	blockWorkerStop chan struct{}
-	workerOptions   worker.Options
-	clientSequence  int
+	mu                  sync.Mutex
+	events              []string
+	acquireFailure      string
+	releaseFailure      string
+	blockWorkerStop     chan struct{}
+	blockRegistration   chan struct{}
+	registrationEntered chan struct{}
+	afterCreateServer   func()
+	checkClientContext  func(context.Context) error
+	workerOptions       worker.Options
+	clientSequence      int
 }
 
 func newLifecycleFixture() *lifecycleFixture {
@@ -363,6 +482,9 @@ func (f *lifecycleFixture) backend() lifecycleBackend {
 	return lifecycleBackend{
 		createServer: func(*TestServer) (liteServer, error) {
 			f.record("create-server")
+			if f.afterCreateServer != nil {
+				f.afterCreateServer()
+			}
 			if f.acquireFailure == "create-server" {
 				return nil, errors.New("injected server construction failure")
 			}
@@ -376,8 +498,11 @@ func (f *lifecycleFixture) backend() lifecycleBackend {
 			f.record("stop-server")
 			return f.releaseError("stop-server")
 		},
-		createClient: func(context.Context, liteServer, client.Options) (client.Client, error) {
+		createClient: func(ctx context.Context, _ liteServer, _ client.Options) (client.Client, error) {
 			f.record("create-client")
+			if f.checkClientContext != nil {
+				return nil, f.checkClientContext(ctx)
+			}
 			f.mu.Lock()
 			f.clientSequence++
 			name := fmt.Sprintf("client-%d", f.clientSequence)
@@ -397,9 +522,19 @@ func (f *lifecycleFixture) backend() lifecycleBackend {
 			created := &fixtureWorker{}
 			return created, f.acquireError("create-worker")
 		},
-		registerWorker: func(worker.Registry, func(worker.Registry)) error {
+		registerWorker: func(registry worker.Registry, registerFunc func(worker.Registry)) error {
 			f.record("register-worker")
-			return f.acquireError("register-worker")
+			if f.registrationEntered != nil {
+				close(f.registrationEntered)
+			}
+			if f.blockRegistration != nil {
+				<-f.blockRegistration
+			}
+			if err := f.acquireError("register-worker"); err != nil {
+				return err
+			}
+			registerFunc(registry)
+			return nil
 		},
 		startWorker: func(context.Context, worker.Worker) error {
 			f.record("start-worker")
@@ -448,6 +583,15 @@ func (f *lifecycleFixture) clearEvents() {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	f.events = nil
+}
+
+func requireSignal(t *testing.T, signal <-chan struct{}) {
+	t.Helper()
+	select {
+	case <-signal:
+	case <-time.After(time.Second):
+		t.Fatal("operation did not reach the expected boundary")
+	}
 }
 
 type fixtureServer struct{}
