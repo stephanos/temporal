@@ -335,50 +335,13 @@ func (a *sdkCommandAdapter) Observe(
 		return adapterReceipt(command, umpireruntime.ReceiptUnsupported, runtimeCodeUnsupported,
 			nil, nil, nil, correlations)
 	}
-	terminalIterator := a.environment.Client().GetWorkflowHistory(
-		ctx, a.run.GetID(), a.run.GetRunID(), true, enumspb.HISTORY_EVENT_FILTER_TYPE_CLOSE_EVENT,
+	iterator := a.environment.Client().GetWorkflowHistory(
+		ctx, a.run.GetID(), a.run.GetRunID(), true, enumspb.HISTORY_EVENT_FILTER_TYPE_ALL_EVENT,
 	)
-	if !terminalIterator.HasNext() {
-		return adapterFailureReceipt(ctx, command, fmt.Errorf("terminal history is unavailable"), nil, nil, correlations)
-	}
-	terminalEvent, err := terminalIterator.Next()
+	_, cancellations := a.operation.counts()
+	facts, err := projectTerminalHistory(command, iterator, correlations, cancellations)
 	if err != nil {
 		return adapterFailureReceipt(ctx, command, err, nil, nil, correlations)
-	}
-	if terminalEvent.GetEventType() != enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED {
-		return adapterReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
-			nil, nil, nil, correlations)
-	}
-	iterator := a.environment.Client().GetWorkflowHistory(
-		ctx, a.run.GetID(), a.run.GetRunID(), false, enumspb.HISTORY_EVENT_FILTER_TYPE_ALL_EVENT,
-	)
-	facts := []umpireruntime.Fact{}
-	counts := make(map[enumspb.EventType]uint64)
-	previous := ""
-	lastType := enumspb.EVENT_TYPE_UNSPECIFIED
-	for iterator.HasNext() {
-		event, err := iterator.Next()
-		if err != nil {
-			return adapterFailureReceipt(ctx, command, err, facts, nil, correlations)
-		}
-		fact, err := historyFact(command, event.GetEventId(), event.GetEventType(), previous, correlations)
-		if err != nil {
-			return adapterFailureReceipt(ctx, command, err, facts, nil, correlations)
-		}
-		facts = append(facts, fact)
-		previous = fact.DefinitionID()
-		lastType = event.GetEventType()
-		counts[lastType]++
-	}
-	_, cancellations := a.operation.counts()
-	if lastType != enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED || cancellations != 1 ||
-		counts[enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED] != 1 ||
-		counts[enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED] != 1 ||
-		counts[enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCEL_REQUESTED] != 1 ||
-		counts[enumspb.EVENT_TYPE_NEXUS_OPERATION_CANCEL_REQUEST_COMPLETED] != 1 ||
-		counts[enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_CANCELED] != 1 {
-		return adapterReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
-			facts, nil, nil, correlations)
 	}
 	return adapterReceipt(command, umpireruntime.ReceiptAccepted, "", facts, nil, nil, correlations)
 }
