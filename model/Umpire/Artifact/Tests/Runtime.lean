@@ -256,6 +256,14 @@ example :
     }).seal.isValidTransport := by
   native_decide
 
+/-! Known Gaps remain independent from a Run's operational summary. -/
+example :
+    ({ experimentRun with knownGaps := [{
+      kind := .interpretation
+      code := id "switch.gap.interpretation"
+    }] }).seal.isValidTransport := by
+  native_decide
+
 /-! A Run rejects phase progressions that cannot arise from the five-phase execution contract. -/
 example :
     !({ experimentRun with
@@ -292,6 +300,11 @@ example :
       runtimeConfiguration.provenance with sourceLocations :=
         runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
           { source with path := "" }
+    }} : RuntimeConfiguration).seal.isValidTransport &&
+    !({ runtimeConfiguration with provenance := {
+      runtimeConfiguration.provenance with sourceLocations :=
+        runtimeConfiguration.provenance.sourceLocations.map fun (source : SourceLocation) =>
+          { source with path := String.singleton (Char.ofNat 0x00a0) }
     }} : RuntimeConfiguration).seal.isValidTransport &&
     !({ runtimeConfiguration with provenance := {
       runtimeConfiguration.provenance with sourceLocations :=
