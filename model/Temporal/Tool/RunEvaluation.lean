@@ -401,6 +401,15 @@ private structure RawClosure where
   byteCount : Nat
   deriving BEq
 
+private structure RawControlAttempt where
+  occurrence : DefinitionId
+  action : DefinitionId
+  attempt : Nat
+  receipt : Option DefinitionId
+  status : String
+  code : Option DefinitionId
+  deriving BEq
+
 private def parseField (json : Lean.Json) : Except String RawField := do
   exactObject json ["fieldDefinitionId", "disposition", "value"] "facts.fields"
   let disposition ← textValue json "disposition"
@@ -457,6 +466,45 @@ private def parseClosure (json : Lean.Json) : Except String RawClosure := do
     byteCount := ← natValue json "byteCount"
   }
 
+private def optionalIdValue
+    (json : Lean.Json)
+    (field : String) : Except String (Option DefinitionId) := do
+  let raw ← value json field
+  if raw.isNull then pure none
+  else
+    let result ← idValue json field
+    pure (some result)
+
+private def parseControlAttempts (json : Lean.Json) : Except String RawControlAttempt := do
+  let values ← match json.getArr? with
+    | .ok values => pure values.toList
+    | .error _ => throw "controlAttempts"
+  let attempt ← match values with
+    | [attempt] => pure attempt
+    | _ => throw "controlAttempts"
+  exactObject attempt ["occurrenceDefinitionId", "actionDefinitionId", "attempt",
+    "receiptFactDefinitionId", "status", "code"] "controlAttempts"
+  let projection : RawControlAttempt := {
+    occurrence := ← idValue attempt "occurrenceDefinitionId"
+    action := ← idValue attempt "actionDefinitionId"
+    attempt := ← natValue attempt "attempt"
+    receipt := ← optionalIdValue attempt "receiptFactDefinitionId"
+    status := ← textValue attempt "status"
+    code := ← optionalIdValue attempt "code"
+  }
+  if projection.occurrence != id "temporal.nexus.occurrence.force-close" ||
+      projection.action != id "workflow.action.force-close" || projection.attempt != 1 then
+    throw "controlAttempts"
+  match projection.status with
+  | "not-attempted" =>
+      if projection.receipt.isSome || projection.code.isSome then throw "controlAttempts"
+  | "accepted" =>
+      if projection.receipt.isNone || projection.code.isSome then throw "controlAttempts"
+  | "rejected" | "unsupported" | "failed" | "canceled" =>
+      if projection.receipt.isNone || projection.code.isNone then throw "controlAttempts"
+  | _ => throw "controlAttempts"
+  pure projection
+
 private def sourceCleanup := id "umpire.evidence.source.cleanup"
 private def sourceControl := id "umpire.evidence.source.control-receipt"
 private def sourceHistory := id "umpire.evidence.source.history"
@@ -465,17 +513,17 @@ private def sourceParticipant := id "umpire.evidence.source.participant-output"
 private structure SourceSchema where
   source : DefinitionId
   kind : DefinitionId
-  count : Nat
+  maxCount : Nat
 
 private def expectedSources : List SourceSchema := [
   { source := sourceCleanup, kind := Temporal.System.Nexus.Observation.Profile.cleanupKind,
-    count := 1 },
+    maxCount := 1 },
   { source := sourceControl,
-    kind := Temporal.System.Nexus.Observation.Profile.controlReceiptKind, count := 1 },
+    kind := Temporal.System.Nexus.Observation.Profile.controlReceiptKind, maxCount := 1 },
   { source := sourceHistory, kind := Temporal.System.Nexus.Observation.Profile.historyKind,
-    count := 6 },
+    maxCount := 6 },
   { source := sourceParticipant,
-    kind := Temporal.System.Nexus.Observation.Profile.participantKind, count := 1 }
+    kind := Temporal.System.Nexus.Observation.Profile.participantKind, maxCount := 1 }
 ]
 
 private def hasExactFields (json : Lean.Json) (fields : List String) : Bool :=
@@ -515,22 +563,8 @@ private def validPhaseOutcomes (json : Lean.Json) : Bool :=
       values.size == phases.length &&
         (List.zip phases values.toList).all fun pair => validPhaseOutcome pair.1 pair.2
 
-private def validControlAttempts (json : Lean.Json) : Bool :=
-  match json.getArr? with
-  | .error _ => false
-  | .ok values => match values.toList with
-    | [attempt] =>
-        hasExactFields attempt ["occurrenceDefinitionId", "actionDefinitionId", "attempt",
-          "receiptFactDefinitionId", "status", "code"] &&
-          (jsonText? attempt "occurrenceDefinitionId").any (id · |>.isNamespaced) &&
-          jsonText? attempt "actionDefinitionId" == some "workflow.action.force-close" &&
-          jsonNat? attempt "attempt" == some 1 && jsonText? attempt "status" == some "accepted" &&
-          (jsonText? attempt "receiptFactDefinitionId").any (id · |>.isNamespaced) &&
-          jsonNull attempt "code"
-    | _ => false
-
 private def validRuntimeProjections (request : Request) : Bool :=
-  validPhaseOutcomes request.phaseOutcomes && validControlAttempts request.controlAttempts
+  validPhaseOutcomes request.phaseOutcomes
 
 private def sourceSchema? (source : DefinitionId) : Option SourceSchema :=
   expectedSources.find? fun schema => schema.source == source
@@ -541,7 +575,8 @@ private def exactSourceSet (sources : List DefinitionId) : Bool :=
 
 private def validateSourceClosure
     (sources : List RawSource)
-    (closures : List RawClosure) : Except String Unit := do
+    (closures : List RawClosure)
+    (facts : List RawFact) : Except String Unit := do
   if !exactSourceSet (sources.map RawSource.definitionId) then
     throw "sources.set"
   if !exactSourceSet (closures.map RawClosure.definitionId) then
@@ -556,8 +591,44 @@ private def validateSourceClosure
     if source.status != closure.status || source.factCount != closure.recordCount ||
         source.byteCount != closure.byteCount then
       throw "sourceClosures"
-    if source.status == "closed" && source.factCount != schema.count then
+    if source.factCount !=
+        (facts.filter fun fact => fact.sourceDefinitionId == source.definitionId).length then
       throw "sources.factCount"
+    if source.factCount > schema.maxCount then throw "sources.factCount"
+
+private def exactRawField
+    (fact : RawFact)
+    (fieldId : DefinitionId)
+    (expected : EvidenceValue) : Bool :=
+  match fact.fields.filter fun field => field.definitionId == fieldId with
+  | [{ disposition := "plain", value, .. }] => value == expected
+  | _ => false
+
+private def validateControlAttempt
+    (attempt : RawControlAttempt)
+    (facts : List RawFact) : Except String Unit := do
+  let controlFacts := facts.filter fun fact => fact.sourceDefinitionId == sourceControl
+  if attempt.status == "not-attempted" then
+    if !controlFacts.isEmpty then throw "controlAttempts"
+    return
+  let receipt ← match attempt.receipt with
+    | some receipt => pure receipt
+    | none => throw "controlAttempts"
+  let fact ← match controlFacts with
+    | [fact] => pure fact
+    | _ => throw "controlAttempts"
+  if fact.definitionId != receipt ||
+      fact.kindDefinitionId != Temporal.System.Nexus.Observation.Profile.controlReceiptKind ||
+      fact.fields.length != 4 ||
+      !exactRawField fact Temporal.System.Nexus.Observation.Profile.actionField
+        (.text attempt.action.value) ||
+      !exactRawField fact Temporal.System.Nexus.Observation.Profile.attemptField
+        (.natural attempt.attempt) ||
+      !exactRawField fact Temporal.System.Nexus.Observation.Profile.occurrenceField
+        (.text attempt.occurrence.value) ||
+      !exactRawField fact Temporal.System.Nexus.Observation.Profile.statusField
+        (.text attempt.status) then
+    throw "controlAttempts"
 
 private def evidenceField (field : RawField) : Except String EvidenceFieldValue := do
   if field.disposition == "plain" then
@@ -620,9 +691,11 @@ private def adapt (request : Request) : Except String EvidenceBundle := do
   let sources ← sourceValues.mapM parseSource
   let closures ← closureValues.mapM parseClosure
   let facts ← factValues.mapM parseFact
+  let controlAttempt ← parseControlAttempts request.controlAttempts
   let runGaps ← parseGaps request.runKnownGaps
   let rawGaps ← parseGaps request.rawEvidenceKnownGaps
-  validateSourceClosure sources closures
+  validateSourceClosure sources closures facts
+  validateControlAttempt controlAttempt facts
   pure {
     profile := Temporal.System.Nexus.Observation.Profile.id
     profileVersion := 1
