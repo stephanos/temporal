@@ -1,0 +1,81 @@
+{
+  "formatVersion": "umpire-semantic-check-response/v2",
+  "checkerIdentity": "temporal.nexus.caller-closure.run-evaluation",
+  "checkerVersion": 2,
+  "checkerBehaviorFingerprint": "sha256:e649a5e059ef42806eb661deb1c1ccba08ec5202425d7a824f7e25026f8134da",
+  "experimentArtifactChecksum": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "runtimeConfigurationArtifactChecksum": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "runArtifactChecksum": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+  "rawEvidenceArtifactChecksum": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+  "experimentBehaviorFingerprint": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+  "runtimeConfigurationBehaviorFingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+  "runIdentity": "temporal.run.caller-closure.fixture",
+  "observationEvaluationStatus": "unknown",
+  "evidenceBackedModelTrace": null,
+  "evidenceLinks": [],
+  "dispositions": [],
+  "diagnostics": [],
+  "observationKnownGaps": [
+    {
+      "kind": "interpretation",
+      "code": "umpire.gap.observation.fixture",
+      "subject": null,
+      "detail": null
+    }
+  ],
+  "propertyVerdicts": [],
+  "querySummary": {
+    "queryDefinitionId": "temporal.query.caller-closure.fixture",
+    "status": "incomplete",
+    "queryLimits": {
+      "behavior": {
+        "transitions": {
+          "value": 1,
+          "unit": "transitions"
+        },
+        "selectedActions": {
+          "value": 1,
+          "unit": "transitions"
+        }
+      },
+      "search": {
+        "value": 1,
+        "unit": "transitions"
+      }
+    },
+    "requiredPropertyDefinitionIds": [
+      "temporal.property.caller-closure.fixture"
+    ],
+    "propertyVerdicts": [],
+    "missingPropertyDefinitionIds": [
+      "temporal.property.caller-closure.fixture"
+    ],
+    "duplicatePropertyDefinitionIds": [],
+    "unexpectedPropertyDefinitionIds": [],
+    "divergentPropertyDefinitionIds": [],
+    "wrongQueryResultDefinitionIds": [],
+    "traceIds": []
+  },
+  "semanticStatus": "incomplete",
+  "resultKnownGaps": [
+    {
+      "kind": "capability",
+      "code": "umpire.gap.run.fixture",
+      "subject": null,
+      "detail": null
+    },
+    {
+      "kind": "input",
+      "code": "umpire.gap.raw-evidence.fixture",
+      "subject": null,
+      "detail": null
+    },
+    {
+      "kind": "interpretation",
+      "code": "umpire.gap.observation.fixture",
+      "subject": null,
+      "detail": null
+    }
+  ],
+  "evaluationOutcomeChecksum": null
+}
