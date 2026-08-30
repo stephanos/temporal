@@ -1699,6 +1699,7 @@ func rawEvidenceFieldDisposition(document RawEvidence, reference FieldReference)
 }
 
 type evaluationOutcomeView struct {
+	Plan                     DrivePlan                `json:"plan"`
 	EvidenceBackedModelTrace EvidenceBackedModelTrace `json:"evidenceBackedModelTrace"`
 	EvidenceLinks            []EvidenceLink           `json:"evidenceLinks"`
 	ObservationProgram       DefinitionReference      `json:"observationProgram"`
@@ -1715,6 +1716,7 @@ func ExpectedEvaluationOutcomeChecksum(result Result, evidence Evidence, experim
 		return "", errors.New("evaluation outcome requires an Evidence-backed Model Trace")
 	}
 	view := evaluationOutcomeView{
+		Plan:                     experiment.Plan,
 		EvidenceBackedModelTrace: *evidence.EvidenceBackedModelTrace,
 		EvidenceLinks:            evidence.EvidenceLinks,
 		ObservationProgram:       evidence.ObservationProgram,
