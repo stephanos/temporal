@@ -76,7 +76,7 @@ private def facts : Lean.Json := array <| [
         (text "workflow.action.force-close"),
       field "umpire.evidence.field.attempt" "plain" (natural 1),
       field "umpire.evidence.field.occurrence-definition-id" "plain"
-        (text "temporal.nexus.occurrence.force-close"),
+        (text "workflow-nexus.occurrence.force-close"),
       field "umpire.evidence.field.status" "plain" (text "accepted")
     ]
 ] ++ (List.zip (List.range 6) [
@@ -111,7 +111,7 @@ private def failedPhaseOutcomes : Lean.Json := array <|
     ]
 
 private def controlAttempts : Lean.Json := array [object [
-  ("occurrenceDefinitionId", text "temporal.nexus.occurrence.force-close"),
+  ("occurrenceDefinitionId", text "workflow-nexus.occurrence.force-close"),
   ("actionDefinitionId", text "workflow.action.force-close"),
   ("attempt", natural 1),
   ("receiptFactDefinitionId", text "umpire.runtime.fact.control.fixture"),
@@ -304,7 +304,7 @@ private def extraSourceFactRequest : Request := { request with
 private def invalidDispositionRequest : Request := { request with
   facts := replaceFact 0 <| fact "umpire.runtime.fact.cleanup.fixture"
     "umpire.evidence.source.cleanup" "umpire.evidence.kind.cleanup" 0 [] [
-      field "umpire.evidence.field.open-handle-count" "redacted" (natural 0),
+      field "umpire.evidence.field.open-handle-count" "masked" (natural 0),
       field "umpire.evidence.field.status" "plain" (text "complete")
     ]
 }
@@ -324,7 +324,7 @@ private def closureProjection
 ]
 
 private def notAttemptedControlAttempts : Lean.Json := array [object [
-  ("occurrenceDefinitionId", text "temporal.nexus.occurrence.force-close"),
+  ("occurrenceDefinitionId", text "workflow-nexus.occurrence.force-close"),
   ("actionDefinitionId", text "workflow.action.force-close"),
   ("attempt", natural 1), ("receiptFactDefinitionId", .null),
   ("status", text "not-attempted"), ("code", .null)
@@ -356,7 +356,7 @@ private def rejectedControlFact : Lean.Json := fact
       (text "workflow.action.force-close"),
     field "umpire.evidence.field.attempt" "plain" (natural 1),
     field "umpire.evidence.field.occurrence-definition-id" "plain"
-      (text "temporal.nexus.occurrence.force-close"),
+      (text "workflow-nexus.occurrence.force-close"),
     field "umpire.evidence.field.status" "plain" (text "rejected")
   ]
 
@@ -369,7 +369,7 @@ private def participantFact : Lean.Json := fact
   ]
 
 private def rejectedControlAttempts : Lean.Json := array [object [
-  ("occurrenceDefinitionId", text "temporal.nexus.occurrence.force-close"),
+  ("occurrenceDefinitionId", text "workflow-nexus.occurrence.force-close"),
   ("actionDefinitionId", text "workflow.action.force-close"),
   ("attempt", natural 1),
   ("receiptFactDefinitionId", text "umpire.runtime.fact.control.fixture"),

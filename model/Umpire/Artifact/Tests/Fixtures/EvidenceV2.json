@@ -38,8 +38,8 @@
   "evidenceBackedModelTrace": {
     "traceId": "switch.trace.accepted",
     "observationPlan": {
-      "definitionId": "switch.observation.program",
-      "behaviorFingerprint": "sha256:9115e2c6fa437e90ee8bbbb326a489a01653f92c6289c23fb9b65a4fab044efc"
+      "definitionId": "switch.observation.mapping",
+      "behaviorFingerprint": "sha256:f9f81b529dde00a6f3ce17a0a68a039d2b61bb0d332fdd7ec26cecd7cb56c63c"
     },
     "mappingDefinitionId": "switch.observation.mapping",
     "mappingVersion": 1,
@@ -160,5 +160,5 @@
     ]
   },
   "provenanceChecksum": "sha256:b84f046f2250d5718d6d135ad1a6e7b2059b221ddd30ce6c3a6ac08baaff5310",
-  "artifactChecksum": "sha256:bff1971d4762c0f0d642bf4d7c5b18b7492cf7d54f316a5ccc38362474e4a081"
+  "artifactChecksum": "sha256:9f2f2314f61a827f376f64a6670667d7900853ea8b3ec76f65a35f4d08107bc9"
 }

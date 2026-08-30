@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -16,8 +17,10 @@ import (
 const canonicalJSONWriteChunk = 32 << 10
 
 var (
-	naturalType    = reflect.TypeFor[artifactv2.Natural]()
-	jsonNumberType = reflect.TypeFor[json.Number]()
+	naturalType         = reflect.TypeFor[artifactv2.Natural]()
+	jsonNumberType      = reflect.TypeFor[json.Number]()
+	checkerRequestType  = reflect.TypeFor[checkerRequest]()
+	checkerResponseType = reflect.TypeFor[checkerResponse]()
 )
 
 type canonicalJSONWriter struct {
@@ -39,6 +42,13 @@ func writeCanonicalPrettyJSON(writer io.Writer, value any) error {
 }
 
 func (encoder *canonicalJSONWriter) writeValue(value reflect.Value) error {
+	return encoder.writeValueWithObjectOrder(value, false)
+}
+
+func (encoder *canonicalJSONWriter) writeValueWithObjectOrder(
+	value reflect.Value,
+	sortObjectFields bool,
+) error {
 	for value.IsValid() && (value.Kind() == reflect.Interface || value.Kind() == reflect.Pointer) {
 		if value.IsNil() {
 			return encoder.writeString("null")
@@ -65,19 +75,24 @@ func (encoder *canonicalJSONWriter) writeValue(value reflect.Value) error {
 	case reflect.String:
 		return encoder.writeJSONString(value.String())
 	case reflect.Struct:
-		return encoder.writeStruct(value)
+		return encoder.writeStruct(value, sortObjectFields)
 	case reflect.Slice, reflect.Array:
 		if value.Kind() == reflect.Slice && value.IsNil() {
 			return encoder.writeString("null")
 		}
-		return encoder.writeArray(value)
+		return encoder.writeArray(value, sortObjectFields)
 	default:
 		return fmt.Errorf("unsupported checker JSON type %s", value.Type())
 	}
 }
 
-func (encoder *canonicalJSONWriter) writeStruct(value reflect.Value) error {
+func (encoder *canonicalJSONWriter) writeStruct(value reflect.Value, sortObjectFields bool) error {
 	fields := canonicalJSONFields(value)
+	if sortObjectFields {
+		slices.SortFunc(fields, func(left, right canonicalJSONField) int {
+			return strings.Compare(left.name, right.name)
+		})
+	}
 	if len(fields) == 0 {
 		return encoder.writeString("{}")
 	}
@@ -86,7 +101,8 @@ func (encoder *canonicalJSONWriter) writeStruct(value reflect.Value) error {
 	}
 	encoder.depth++
 	for index, field := range fields {
-		if err := encoder.writeStructField(field, index != 0); err != nil {
+		sortNestedObjectFields := sortObjectFields || checkerProtocolJSONField(value.Type(), field.name)
+		if err := encoder.writeStructField(field, index != 0, sortNestedObjectFields); err != nil {
 			return err
 		}
 	}
@@ -120,7 +136,29 @@ func canonicalJSONFields(value reflect.Value) []canonicalJSONField {
 	return fields
 }
 
-func (encoder *canonicalJSONWriter) writeStructField(field canonicalJSONField, preceded bool) error {
+func checkerProtocolJSONField(owner reflect.Type, name string) bool {
+	if owner == checkerRequestType {
+		switch name {
+		case "phaseOutcomes", "controlAttempts", "sourceClosures", "sources", "facts",
+			"runKnownGaps", "rawEvidenceKnownGaps":
+			return true
+		}
+	}
+	if owner == checkerResponseType {
+		switch name {
+		case "evidenceBackedModelTrace", "evidenceLinks", "dispositions", "diagnostics",
+			"observationKnownGaps", "propertyVerdicts", "querySummary", "resultKnownGaps":
+			return true
+		}
+	}
+	return false
+}
+
+func (encoder *canonicalJSONWriter) writeStructField(
+	field canonicalJSONField,
+	preceded bool,
+	sortObjectFields bool,
+) error {
 	if preceded {
 		if err := encoder.writeString(","); err != nil {
 			return err
@@ -135,10 +173,10 @@ func (encoder *canonicalJSONWriter) writeStructField(field canonicalJSONField, p
 	if err := encoder.writeString(": "); err != nil {
 		return err
 	}
-	return encoder.writeValue(field.value)
+	return encoder.writeValueWithObjectOrder(field.value, sortObjectFields)
 }
 
-func (encoder *canonicalJSONWriter) writeArray(value reflect.Value) error {
+func (encoder *canonicalJSONWriter) writeArray(value reflect.Value, sortObjectFields bool) error {
 	if value.Len() == 0 {
 		return encoder.writeString("[]")
 	}
@@ -155,7 +193,7 @@ func (encoder *canonicalJSONWriter) writeArray(value reflect.Value) error {
 		if err := encoder.writeIndent(); err != nil {
 			return err
 		}
-		if err := encoder.writeValue(value.Index(index)); err != nil {
+		if err := encoder.writeValueWithObjectOrder(value.Index(index), sortObjectFields); err != nil {
 			return err
 		}
 	}

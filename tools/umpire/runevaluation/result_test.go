@@ -364,8 +364,8 @@ func acceptedCallerClosureResponse(t *testing.T, request checkerRequest, semanti
 	trace := evidence.EvidenceBackedModelTrace
 	require.NotNil(t, trace)
 	trace.ObservationPlan = artifactv2.DefinitionReference{
-		DefinitionID:        request.ObservationProgram.DefinitionID,
-		BehaviorFingerprint: request.ObservationProgram.BehaviorFingerprint,
+		DefinitionID:        request.Mapping.DefinitionID,
+		BehaviorFingerprint: request.Mapping.BehaviorFingerprint,
 	}
 	trace.MappingDefinitionID = request.Mapping.DefinitionID
 	trace.MappingBehaviorFingerprint = request.Mapping.BehaviorFingerprint
@@ -411,8 +411,8 @@ func acceptedCallerClosureResponse(t *testing.T, request checkerRequest, semanti
 	result.QuerySummary.TraceIDs = []string{*verdict.TraceID}
 
 	outcomeChecksum := map[string]string{
-		"satisfied": "sha256:4ce40b1dc74f7263faf2b8c7a505060a3b327faef0f323439c0ef8dad65e6a7e",
-		"violated":  "sha256:da5eafe2de5ac5075eef8f8bf4cef6e3cd577dc2536b291b324e6988ab0b54ec",
+		"satisfied": "sha256:14ea9d07c16493b740bc067d9adb8b4abac636f1a2a1be40c1f01daeb3978106",
+		"violated":  "sha256:13691743a0be9b79151d34f8804961d00904ef77fd63d17b6232f4b8effd30fb",
 	}[semanticStatus]
 	return checkerResponse{
 		FormatVersion:                           checkerResponseFormat,
@@ -456,7 +456,7 @@ func nonAcceptedCallerClosureResponse(
 	response.EvidenceBackedModelTrace = nil
 	response.EvidenceLinks = []artifactv2.EvidenceLink{}
 	response.Diagnostics = []artifactv2.ObservationDiagnostic{{
-		Kind: diagnosticKind, ObservationPlanDefinitionID: request.ObservationProgram.DefinitionID,
+		Kind: diagnosticKind, ObservationPlanDefinitionID: request.Mapping.DefinitionID,
 		RelatedDefinitionIDs: []string{}, Alternatives: []string{},
 	}}
 	response.PropertyVerdicts = []artifactv2.PropertyVerdict{}
@@ -470,8 +470,8 @@ func nonAcceptedCallerClosureResponse(
 }
 
 func adaptCallerClosureEvidenceLink(link *artifactv2.EvidenceLink) {
-	link.MappingDefinitionID = callerClosureMappingID
-	link.MappingBehaviorFingerprint = callerClosureMappingFingerprint
+	link.MappingDefinitionID = callerClosureCheckedMappingID
+	link.MappingBehaviorFingerprint = callerClosureCheckedMappingFingerprint
 	link.ProfileDefinitionID = callerClosureObservationProfileID
 	link.AppliedLimit = artifactv2.Limit{
 		Value: artifactv2.NaturalFromUint64(4096), Unit: "evidence-records",
