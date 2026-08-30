@@ -1,7 +1,11 @@
 package runevaluation
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
+	"reflect"
+	"slices"
 	"strings"
 
 	"go.temporal.io/server/tools/umpire/artifact"
@@ -86,14 +90,21 @@ func encodeCheckerRequest(request checkerRequest) ([]byte, error) {
 	if err := validateCheckerRequest(request); err != nil {
 		return nil, err
 	}
-	encoded, err := artifact.CanonicalPretty(request)
-	if err != nil {
+	encoded := newBoundedCapture(maximumCheckerProtocolBytes, nil)
+	if err := writeCanonicalCheckerRequest(request, encoded); err != nil {
 		return nil, errors.New("encode checker request")
 	}
-	if len(encoded) > maximumCheckerProtocolBytes {
+	if encoded.exceeded() {
 		return nil, errors.New("checker request is oversized")
 	}
-	return encoded, nil
+	return encoded.take(), nil
+}
+
+func writeCanonicalCheckerRequest(request checkerRequest, writer io.Writer) error {
+	encoder := json.NewEncoder(writer)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(request)
 }
 
 func decodeCheckerResponse(encoded []byte, request checkerRequest) (checkerResponse, error) {
@@ -115,7 +126,310 @@ func decodeCheckerResponse(encoded []byte, request checkerRequest) (checkerRespo
 		response.RunIdentity != request.RunIdentity {
 		return checkerResponse{}, errors.New("checker response binding drifted")
 	}
+	if err := validateCheckerResponseProjection(response, request); err != nil {
+		return checkerResponse{}, err
+	}
 	return response, nil
+}
+
+func validateCheckerResponseProjection(response checkerResponse, request checkerRequest) error {
+	if err := artifactv2.ValidateEvidence(projectCheckerEvidence(response, request)); err != nil {
+		return errors.New("checker response Evidence projection is invalid")
+	}
+	if err := artifactv2.ValidateResult(projectCheckerResult(response, request)); err != nil {
+		return errors.New("checker response Result projection is invalid")
+	}
+	if err := validateCheckerSemanticBindings(response, request); err != nil {
+		return err
+	}
+	if err := validateCheckerQueryPartition(response, request); err != nil {
+		return err
+	}
+	return validateCheckerKnownGapUnion(response, request)
+}
+
+func projectCheckerEvidence(response checkerResponse, request checkerRequest) artifactv2.Evidence {
+	return artifactv2.Evidence{
+		FormatVersion:               artifactv2.EvidenceFormat,
+		RunIdentity:                 response.RunIdentity,
+		BehaviorFingerprint:         checkerBehaviorFingerprint,
+		Experiment:                  request.Experiment,
+		RuntimeConfiguration:        request.RuntimeConfiguration,
+		Run:                         request.Run,
+		RawEvidence:                 request.RawEvidence,
+		ObservationProgram:          artifactDefinitionReference(request.ObservationProgram),
+		Mapping:                     artifactDefinitionReference(request.Mapping),
+		ObservationEvaluationStatus: response.ObservationEvaluationStatus,
+		EvidenceBackedModelTrace:    response.EvidenceBackedModelTrace,
+		EvidenceLinks:               response.EvidenceLinks,
+		Dispositions:                response.Dispositions,
+		Diagnostics:                 response.Diagnostics,
+		KnownGaps:                   response.ObservationKnownGaps,
+		Provenance:                  checkerValidationProvenance(),
+		ProvenanceChecksum:          request.RawEvidence.ProvenanceChecksum,
+		ArtifactChecksum:            request.RawEvidence.ArtifactChecksum,
+	}
+}
+
+func projectCheckerResult(response checkerResponse, request checkerRequest) artifactv2.Result {
+	implementationStatus := "not-evaluated"
+	if len(response.PropertyVerdicts) != 0 {
+		implementationStatus = "applied"
+	}
+	return artifactv2.Result{
+		FormatVersion:               artifactv2.ResultFormat,
+		RunIdentity:                 response.RunIdentity,
+		BehaviorFingerprint:         checkerBehaviorFingerprint,
+		Experiment:                  request.Experiment,
+		RuntimeConfiguration:        request.RuntimeConfiguration,
+		Run:                         request.Run,
+		RawEvidence:                 request.RawEvidence,
+		Evidence:                    checkerEvidenceBinding(request),
+		OperationalStatus:           "succeeded",
+		ObservationEvaluationStatus: response.ObservationEvaluationStatus,
+		ImplementationLink:          checkerImplementationLink(request),
+		ImplementationLinkStatus:    implementationStatus,
+		PropertyVerdicts:            response.PropertyVerdicts,
+		QuerySummary:                response.QuerySummary,
+		SemanticStatus:              response.SemanticStatus,
+		Limits:                      []artifactv2.StagedLimit{},
+		KnownGaps:                   response.ResultKnownGaps,
+		CleanupStatus:               "complete",
+		EvaluationOutcomeChecksum:   response.EvaluationOutcomeChecksum,
+		Provenance:                  checkerValidationProvenance(),
+		ProvenanceChecksum:          request.Run.ProvenanceChecksum,
+		ArtifactChecksum:            request.Run.ArtifactChecksum,
+	}
+}
+
+func artifactDefinitionReference(reference definitionReference) artifactv2.DefinitionReference {
+	return artifactv2.DefinitionReference{
+		DefinitionID:        reference.DefinitionID,
+		BehaviorFingerprint: reference.BehaviorFingerprint,
+	}
+}
+
+func checkerEvidenceBinding(request checkerRequest) artifactv2.ArtifactBinding {
+	return artifactv2.ArtifactBinding{
+		FormatVersion:       artifactv2.EvidenceFormat,
+		ArtifactChecksum:    request.Run.ArtifactChecksum,
+		BehaviorFingerprint: checkerBehaviorFingerprint,
+		ProvenanceChecksum:  request.Run.ProvenanceChecksum,
+	}
+}
+
+func checkerImplementationLink(request checkerRequest) artifactv2.ImplementationLinkRecord {
+	return artifactv2.ImplementationLinkRecord{
+		DefinitionID:        request.Mapping.DefinitionID,
+		BehaviorFingerprint: request.Mapping.BehaviorFingerprint,
+		SourceTarget: artifactv2.ImplementationTargetReference{
+			DefinitionID:        request.ObservationProgram.DefinitionID,
+			Kind:                "target",
+			BehaviorFingerprint: request.ObservationProgram.BehaviorFingerprint,
+		},
+		DestinationTarget: artifactv2.ImplementationTargetReference{
+			DefinitionID:        request.Query.DefinitionID,
+			Kind:                "target",
+			BehaviorFingerprint: request.Query.BehaviorFingerprint,
+		},
+	}
+}
+
+func checkerValidationProvenance() artifactv2.Provenance {
+	one := artifactv2.NaturalFromUint64(1)
+	return artifactv2.Provenance{
+		SourceDefinitionIDs: []string{},
+		SourceLocations: []artifactv2.SourceLocation{{
+			Path: "checker-response", Line: one, Column: one, Provenance: "generated",
+		}},
+	}
+}
+
+func validateCheckerSemanticBindings(response checkerResponse, request checkerRequest) error {
+	if response.QuerySummary.QueryDefinitionID != request.Query.DefinitionID {
+		return errors.New("checker response query binding drifted")
+	}
+	if trace := response.EvidenceBackedModelTrace; trace != nil {
+		if trace.ObservationPlan != artifactDefinitionReference(request.ObservationProgram) ||
+			trace.MappingDefinitionID != request.Mapping.DefinitionID ||
+			trace.MappingBehaviorFingerprint != request.Mapping.BehaviorFingerprint {
+			return errors.New("checker response Observation binding drifted")
+		}
+	}
+	for _, verdict := range response.PropertyVerdicts {
+		if err := validateCheckerPropertyBinding(verdict, response, request); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateCheckerPropertyBinding(
+	verdict artifactv2.PropertyVerdict,
+	response checkerResponse,
+	request checkerRequest,
+) error {
+	propertyIndex := slices.IndexFunc(request.Properties, func(property propertyReference) bool {
+		return property.DefinitionID == verdict.PropertyDefinitionID
+	})
+	if propertyIndex < 0 || request.Properties[propertyIndex].BehaviorFingerprint !=
+		verdict.PropertyBehaviorFingerprint || verdict.QueryDefinitionID != request.Query.DefinitionID {
+		return errors.New("checker response Property binding drifted")
+	}
+	if verdict.TraceID != nil &&
+		(response.EvidenceBackedModelTrace == nil ||
+			*verdict.TraceID != response.EvidenceBackedModelTrace.TraceID ||
+			verdict.EvidenceLimit == nil ||
+			*verdict.EvidenceLimit != response.EvidenceBackedModelTrace.AppliedLimit) {
+		return errors.New("checker response Property trace binding drifted")
+	}
+	for _, clause := range verdict.Clauses {
+		for _, link := range clause.EvidenceLinks {
+			if !slices.ContainsFunc(response.EvidenceLinks, func(candidate artifactv2.EvidenceLink) bool {
+				return reflect.DeepEqual(candidate, link)
+			}) {
+				return errors.New("checker response Property Evidence Link drifted")
+			}
+		}
+	}
+	return nil
+}
+
+func validateCheckerQueryPartition(response checkerResponse, request checkerRequest) error {
+	required := make([]string, len(request.Properties))
+	properties := make(map[string]propertyReference, len(request.Properties))
+	for index, property := range request.Properties {
+		required[index] = property.DefinitionID
+		properties[property.DefinitionID] = property
+	}
+	if !slices.Equal(response.QuerySummary.RequiredPropertyDefinitionIDs, required) {
+		return errors.New("checker response required Property partition drifted")
+	}
+
+	counts := make(map[string]int, len(response.PropertyVerdicts))
+	unexpected := make([]string, 0)
+	divergent := make([]string, 0)
+	wrongQuery := make([]string, 0)
+	traceIDs := make([]string, 0, len(response.PropertyVerdicts))
+	for _, verdict := range response.PropertyVerdicts {
+		counts[verdict.PropertyDefinitionID]++
+		property, found := properties[verdict.PropertyDefinitionID]
+		if !found {
+			unexpected = append(unexpected, verdict.PropertyDefinitionID)
+		} else if property.BehaviorFingerprint != verdict.PropertyBehaviorFingerprint {
+			divergent = append(divergent, verdict.PropertyDefinitionID)
+		}
+		if verdict.QueryDefinitionID != request.Query.DefinitionID ||
+			!reflect.DeepEqual(verdict.QueryLimits, response.QuerySummary.QueryLimits) {
+			wrongQuery = append(wrongQuery, verdict.PropertyDefinitionID)
+		}
+		if verdict.TraceID != nil {
+			traceIDs = append(traceIDs, *verdict.TraceID)
+		}
+	}
+	return validateCheckerQueryPartitionValues(response.QuerySummary, required, counts,
+		unexpected, divergent, wrongQuery, traceIDs)
+}
+
+func validateCheckerQueryPartitionValues(
+	summary artifactv2.QuerySummary,
+	required []string,
+	counts map[string]int,
+	unexpected []string,
+	divergent []string,
+	wrongQuery []string,
+	traceIDs []string,
+) error {
+	missing := make([]string, 0)
+	duplicates := make([]string, 0)
+	for _, propertyID := range required {
+		switch counts[propertyID] {
+		case 0:
+			missing = append(missing, propertyID)
+		case 1:
+		default:
+			duplicates = append(duplicates, propertyID)
+		}
+	}
+	for _, values := range [][]string{unexpected, divergent, wrongQuery, traceIDs} {
+		slices.Sort(values)
+	}
+	unexpected = slices.Compact(unexpected)
+	divergent = slices.Compact(divergent)
+	wrongQuery = slices.Compact(wrongQuery)
+	traceIDs = slices.Compact(traceIDs)
+	if !slices.Equal(summary.MissingPropertyDefinitionIDs, missing) ||
+		!slices.Equal(summary.DuplicatePropertyDefinitionIDs, duplicates) ||
+		!slices.Equal(summary.UnexpectedPropertyDefinitionIDs, unexpected) ||
+		!slices.Equal(summary.DivergentPropertyDefinitionIDs, divergent) ||
+		!slices.Equal(summary.WrongQueryResultDefinitionIDs, wrongQuery) ||
+		!slices.Equal(summary.TraceIDs, traceIDs) {
+		return errors.New("checker response query structural partition drifted")
+	}
+	return nil
+}
+
+func validateCheckerKnownGapUnion(response checkerResponse, request checkerRequest) error {
+	expected := make([]artifactv2.KnownGap, 0,
+		len(request.RunKnownGaps)+len(request.RawEvidenceKnownGaps)+len(response.ObservationKnownGaps))
+	expected = append(expected, request.RunKnownGaps...)
+	expected = append(expected, request.RawEvidenceKnownGaps...)
+	expected = append(expected, response.ObservationKnownGaps...)
+	slices.SortFunc(expected, compareCheckerKnownGap)
+	expected = slices.CompactFunc(expected, func(left, right artifactv2.KnownGap) bool {
+		return compareCheckerKnownGap(left, right) == 0
+	})
+	if !reflect.DeepEqual(expected, response.ResultKnownGaps) {
+		return errors.New("checker response Known Gap union drifted")
+	}
+	return nil
+}
+
+func compareCheckerKnownGap(left, right artifactv2.KnownGap) int {
+	for _, comparison := range []int{
+		checkerCompareInt(checkerKnownGapKindRank(left.Kind), checkerKnownGapKindRank(right.Kind)),
+		strings.Compare(left.Code, right.Code),
+		strings.Compare(checkerPointerValue(left.Subject), checkerPointerValue(right.Subject)),
+		strings.Compare(checkerPointerValue(left.Detail), checkerPointerValue(right.Detail)),
+	} {
+		if comparison != 0 {
+			return comparison
+		}
+	}
+	return 0
+}
+
+func checkerKnownGapKindRank(kind string) int {
+	switch kind {
+	case "capability-contract":
+		return 0
+	case "input":
+		return 1
+	case "interpretation":
+		return 2
+	case "claim":
+		return 3
+	default:
+		return 4
+	}
+}
+
+func checkerCompareInt(left, right int) int {
+	switch {
+	case left < right:
+		return -1
+	case left > right:
+		return 1
+	default:
+		return 0
+	}
+}
+
+func checkerPointerValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
 }
 
 func validateCheckerResponse(response checkerResponse) error {
