@@ -60,7 +60,7 @@ type checkerProcess struct {
 	controllerExecutable string
 	expectedSHA256       string
 	timeout              time.Duration
-	beforeStart          func()
+	beforeStart          func(string)
 }
 
 func runFixedChecker(ctx context.Context, request checkerRequest) (checkerResponse, error) {
@@ -107,7 +107,13 @@ func (process checkerProcess) run(ctx context.Context, request checkerRequest) (
 	stderr.onWrite = func() { cancelRun(stderrCause) }
 
 	if process.beforeStart != nil {
-		process.beforeStart()
+		process.beforeStart(checkerExecutable.path)
+	}
+	if err := checkerExecutable.verifyOpenFile(); err != nil {
+		return checkerResponse{}, err
+	}
+	if err := verifyCheckerSnapshotPath(checkerExecutable.path, checkerExecutable.file); err != nil {
+		return checkerResponse{}, err
 	}
 	command := exec.CommandContext(runContext, checkerExecutable.path)
 	command.Args[0] = checkerExecutable.sibling
@@ -117,6 +123,7 @@ func (process checkerProcess) run(ctx context.Context, request checkerRequest) (
 	command.Stdout = stdout
 	command.Stderr = stderr
 	command.WaitDelay = checkerWaitDelay
+	bindCheckerSnapshot(command, checkerExecutable.file)
 	if err := command.Start(); err != nil {
 		if ctx.Err() != nil {
 			return checkerResponse{}, &checkerFailure{code: checkerFailureCanceled}
@@ -251,7 +258,26 @@ func openVerifiedCheckerSibling(
 type verifiedCheckerExecutable struct {
 	sibling string
 	path    string
+	file    *os.File
+	digest  string
 	cleanup func()
+}
+
+func (executable verifiedCheckerExecutable) verifyOpenFile() error {
+	if _, err := executable.file.Seek(0, io.SeekStart); err != nil {
+		return &checkerFailure{code: checkerFailureUnsafe}
+	}
+	digest := sha256.New()
+	if _, err := io.Copy(digest, executable.file); err != nil {
+		return &checkerFailure{code: checkerFailureUnsafe}
+	}
+	if _, err := executable.file.Seek(0, io.SeekStart); err != nil {
+		return &checkerFailure{code: checkerFailureUnsafe}
+	}
+	if "sha256:"+hex.EncodeToString(digest.Sum(nil)) != executable.digest {
+		return &checkerFailure{code: checkerFailureUnsafe}
+	}
+	return nil
 }
 
 func prepareVerifiedCheckerExecutable(
@@ -296,11 +322,45 @@ func prepareVerifiedCheckerExecutable(
 		cleanup()
 		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
 	}
-	return verifiedCheckerExecutable{
+	opened, err := os.Open(snapshotPath)
+	if err != nil {
+		cleanup()
+		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	openedInfo, err := opened.Stat()
+	pathInfo, pathErr := os.Lstat(snapshotPath)
+	if err != nil || pathErr != nil || !openedInfo.Mode().IsRegular() ||
+		!pathInfo.Mode().IsRegular() || !os.SameFile(openedInfo, pathInfo) {
+		_ = opened.Close()
+		cleanup()
+		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	if err := protectCheckerSnapshot(snapshotPath); err != nil {
+		_ = opened.Close()
+		cleanup()
+		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	cleanup = sync.OnceFunc(func() {
+		_ = unprotectCheckerSnapshot(snapshotPath)
+		_ = opened.Close()
+		_ = os.Remove(snapshotPath)
+	})
+	executable := verifiedCheckerExecutable{
 		sibling: checker,
 		path:    snapshotPath,
+		file:    opened,
+		digest:  actualSHA256,
 		cleanup: cleanup,
-	}, nil
+	}
+	if err := executable.verifyOpenFile(); err != nil {
+		cleanup()
+		return verifiedCheckerExecutable{}, err
+	}
+	if err := verifyCheckerSnapshotPath(snapshotPath, opened); err != nil {
+		cleanup()
+		return verifiedCheckerExecutable{}, err
+	}
+	return executable, nil
 }
 
 type boundedCapture struct {
