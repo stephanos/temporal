@@ -1248,6 +1248,7 @@ func TestResultV2EvaluationChecksumUsesExactPrettyPreimage(t *testing.T) {
 	result := resolvedResultV2Document(t, experiment, runtimeConfiguration, run, rawEvidence, evidence)
 
 	preimage, err := artifact.CanonicalPretty(struct {
+		Plan                     artifactv2.DrivePlan                `json:"plan"`
 		EvidenceBackedModelTrace artifactv2.EvidenceBackedModelTrace `json:"evidenceBackedModelTrace"`
 		EvidenceLinks            []artifactv2.EvidenceLink           `json:"evidenceLinks"`
 		ObservationProgram       artifactv2.DefinitionReference      `json:"observationProgram"`
@@ -1258,6 +1259,7 @@ func TestResultV2EvaluationChecksumUsesExactPrettyPreimage(t *testing.T) {
 		PropertyVerdicts         []artifactv2.PropertyVerdict        `json:"propertyVerdicts"`
 		Limits                   []artifactv2.StagedLimit            `json:"limits"`
 	}{
+		Plan:                     experiment.Plan,
 		EvidenceBackedModelTrace: *evidence.EvidenceBackedModelTrace,
 		EvidenceLinks:            evidence.EvidenceLinks,
 		ObservationProgram:       evidence.ObservationProgram,
@@ -1274,6 +1276,23 @@ func TestResultV2EvaluationChecksumUsesExactPrettyPreimage(t *testing.T) {
 		independentExperimentV2Checksum("umpire.evaluation-outcome/v2", preimage),
 		*result.EvaluationOutcomeChecksum,
 	)
+}
+
+func TestResultV2EvaluationChecksumChangesForPlanOnlyMutation(t *testing.T) {
+	experiment, runtimeConfiguration, run := rawEvidenceV2ClosureInputs(t)
+	rawEvidence := rawEvidenceV2Document(t)
+	evidence := acceptedEvidenceV2Document(t, experiment, runtimeConfiguration, run, rawEvidence)
+	result := resolvedResultV2Document(t, experiment, runtimeConfiguration, run, rawEvidence, evidence)
+
+	baseline, err := artifactv2.ExpectedEvaluationOutcomeChecksum(result, evidence, experiment)
+	require.NoError(t, err)
+	mutatedExperiment := experiment
+	mutatedExperiment.Plan.SelectionReason = "behavior-selection"
+	mutatedExperiment, err = artifactv2.SealExperiment(mutatedExperiment)
+	require.NoError(t, err)
+	mutated, err := artifactv2.ExpectedEvaluationOutcomeChecksum(result, evidence, mutatedExperiment)
+	require.NoError(t, err)
+	require.NotEqual(t, baseline, mutated)
 }
 
 func TestResultV2AdmitsOperationalFailureIndependentlyFromResolvedSemantics(t *testing.T) {
