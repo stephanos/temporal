@@ -25,14 +25,12 @@ Create the production Known Gap source catalog and reuse named fixed/synthesized
 
 ### Quick commands
 `cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.KnownGaps Temporal.Tool.RunEvaluationTests`
-
 ## Acceptance
 - [ ] All fixed planner gaps appear exactly once with unchanged KnownGap values/order.
 - [ ] Each synthesized production family has one typed namespaced source descriptor reused by its producer.
 - [ ] Duplicate IDs/codes, invalid namespaces/prefixes, wrong lineage/scope, and noncanonical order fail atomically.
 - [ ] Request/raw unknown codes are not turned into wildcard semantic definitions.
 - [ ] Existing Run Evaluation behavior, protocol, artifacts, canonical bytes, and comments remain unchanged.
-
 ## Done summary
 TBD
 
