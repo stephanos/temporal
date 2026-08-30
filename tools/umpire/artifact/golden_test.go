@@ -328,7 +328,7 @@ func TestCrossLanguageGoldensNestedProjectionsAndReceiptLink(t *testing.T) {
 func TestCrossLanguageGoldensRejectIdentityAndClosureMutations(t *testing.T) {
 	t.Run("Definition ID", func(t *testing.T) {
 		documents := loadCrossLanguageGoldenDocuments(t)
-		documents.evidence.Mapping.DefinitionID = documents.runtimeConfiguration.Observation.ProgramDefinitionID
+		documents.evidence.ObservationProgram.DefinitionID = documents.evidence.Mapping.DefinitionID
 		documents.evidence = sealGoldenEvidence(t, documents.evidence)
 		requireGoldenClosureError(t, artifact.ValidateEvidenceV2Closure(documents.evidence, documents.experiment,
 			documents.runtimeConfiguration, documents.experimentRun, documents.rawEvidence))

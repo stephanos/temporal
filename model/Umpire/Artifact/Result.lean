@@ -734,6 +734,16 @@ def EvidenceArtifact.isValidTransport (evidence : EvidenceArtifact) : Bool :=
     observationStatusMatrixValid evidence && (validateKnownGaps evidence.knownGaps).isOk &&
     evidence.provenance.isValidTransport && evidence.hasValidChecksums
 
+private def evidenceMappingCloses (evidence : EvidenceArtifact) : Bool :=
+  match evidence.evidenceBackedModelTrace, evidence.diagnostics with
+  | some trace, [] =>
+      trace.observationPlan == evidence.mapping &&
+        trace.mappingDefinitionId == evidence.mapping.definitionId &&
+        trace.mappingBehaviorFingerprint == evidence.mapping.behaviorFingerprint
+  | none, [diagnostic] =>
+      diagnostic.observationPlanDefinitionId == evidence.mapping.definitionId
+  | _, _ => false
+
 def EvidenceArtifact.closes
     (evidence : EvidenceArtifact)
     (experiment : ExperimentSpec)
@@ -747,9 +757,7 @@ def EvidenceArtifact.closes
     evidence.runIdentity == run.runIdentity &&
     evidence.observationProgram.definitionId == configuration.observation.programDefinitionId &&
     evidence.observationProgram.behaviorFingerprint ==
-      configuration.observation.programBehaviorFingerprint &&
-    evidence.mapping.definitionId == configuration.observation.mappingDefinitionId &&
-    evidence.mapping.behaviorFingerprint == configuration.observation.mappingBehaviorFingerprint
+      configuration.observation.programBehaviorFingerprint && evidenceMappingCloses evidence
 
 private def resultStatusMatrixValid (result : ResultArtifact) : Bool :=
   let resolved := result.semanticStatus == "satisfied" || result.semanticStatus == "violated"

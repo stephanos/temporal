@@ -404,6 +404,12 @@ func validateObservationStatusMatrix(document Evidence) error {
 		if err := validateEvidenceBackedModelTrace(*document.EvidenceBackedModelTrace); err != nil {
 			return err
 		}
+		trace := *document.EvidenceBackedModelTrace
+		if trace.ObservationPlan != document.Mapping ||
+			trace.MappingDefinitionID != document.Mapping.DefinitionID ||
+			trace.MappingBehaviorFingerprint != document.Mapping.BehaviorFingerprint {
+			return errors.New("evidence-backed Model Trace does not match the Evidence mapping")
+		}
 		if err := validateEvidenceLinks(document.EvidenceLinks, *document.EvidenceBackedModelTrace); err != nil {
 			return err
 		}
@@ -428,8 +434,8 @@ func validateObservationStatusMatrix(document Evidence) error {
 		return fmt.Errorf("observation evaluation status %q is invalid", document.ObservationEvaluationStatus)
 	}
 	for _, diagnostic := range document.Diagnostics {
-		if diagnostic.ObservationPlanDefinitionID != document.ObservationProgram.DefinitionID {
-			return errors.New("observation diagnostic plan does not match Observation program")
+		if diagnostic.ObservationPlanDefinitionID != document.Mapping.DefinitionID {
+			return errors.New("observation diagnostic plan does not match mapping")
 		}
 	}
 	return nil
@@ -603,7 +609,6 @@ func validateEvidenceLinks(links []EvidenceLink, trace EvidenceBackedModelTrace)
 	if len(links) != len(expected) {
 		return errors.New("Evidence Links are not a bijection with Model Trace coordinates")
 	}
-	seenEvidence := make([]string, 0, len(trace.EvidenceDefinitionIDs))
 	for index, link := range links {
 		if compareModelCoordinate(link.Coordinate, expected[index]) != 0 {
 			return fmt.Errorf("Evidence Link %d is not in canonical Model coordinate order", index)
@@ -611,10 +616,12 @@ func validateEvidenceLinks(links []EvidenceLink, trace EvidenceBackedModelTrace)
 		if err := validateEvidenceLink(link, trace); err != nil {
 			return err
 		}
+		if index > 0 && !reflect.DeepEqual(link.OrderingSupport, links[0].OrderingSupport) {
+			return errors.New("Evidence Links do not share exact ordering support")
+		}
 		if index > 0 && !reflect.DeepEqual(link.ClosureSupport, links[0].ClosureSupport) {
 			return errors.New("Evidence Links do not share exact closure support")
 		}
-		seenEvidence = append(seenEvidence, link.EvidenceDefinitionIDs...)
 	}
 	if len(links[0].ClosureSupport) == 0 {
 		return errors.New("Evidence Links require closure support")
@@ -644,11 +651,6 @@ func validateEvidenceLinks(links []EvidenceLink, trace EvidenceBackedModelTrace)
 		if _, found := closureByKind[kind]; !found {
 			return fmt.Errorf("Evidence ordering kind %q has no closure support", kind)
 		}
-	}
-	slices.Sort(seenEvidence)
-	seenEvidence = slices.Compact(seenEvidence)
-	if !slices.Equal(seenEvidence, trace.EvidenceDefinitionIDs) {
-		return errors.New("Evidence Links do not consume the trace Evidence identities exactly")
 	}
 	return nil
 }
@@ -682,6 +684,11 @@ func validateEvidenceLink(link EvidenceLink, trace EvidenceBackedModelTrace) err
 		link.AppliedDispositions == nil {
 		return errors.New("Evidence Link support arrays are incomplete")
 	}
+	for _, evidenceDefinitionID := range link.EvidenceDefinitionIDs {
+		if !slices.Contains(trace.EvidenceDefinitionIDs, evidenceDefinitionID) {
+			return errors.New("Evidence Link identity is absent from its Evidence-backed Model Trace")
+		}
+	}
 	if err := validateOrderingSupport(link.OrderingSupport); err != nil {
 		return err
 	}
@@ -689,8 +696,8 @@ func validateEvidenceLink(link EvidenceLink, trace EvidenceBackedModelTrace) err
 	for index, fact := range link.OrderingSupport {
 		orderingEvidenceIDs[index] = fact.FactDefinitionID
 	}
-	if !slices.Equal(orderingEvidenceIDs, link.EvidenceDefinitionIDs) {
-		return errors.New("Evidence Link identities do not match its ordering support")
+	if !slices.Equal(orderingEvidenceIDs, trace.EvidenceDefinitionIDs) {
+		return errors.New("Evidence Link ordering support does not match its Evidence-backed Model Trace")
 	}
 	if err := validateClosureSupport(link.ClosureSupport); err != nil {
 		return err
@@ -1548,22 +1555,19 @@ func ValidateEvidenceClosure(
 		return errors.New("Evidence run identity does not match its bound Run")
 	}
 	if document.ObservationProgram.DefinitionID != runtimeConfiguration.Observation.ProgramDefinitionID ||
-		document.ObservationProgram.BehaviorFingerprint != runtimeConfiguration.Observation.ProgramBehaviorFingerprint ||
-		document.Mapping.DefinitionID != runtimeConfiguration.Observation.MappingDefinitionID ||
-		document.Mapping.BehaviorFingerprint != runtimeConfiguration.Observation.MappingBehaviorFingerprint {
-		return errors.New("Evidence Observation program or mapping is stale")
+		document.ObservationProgram.BehaviorFingerprint != runtimeConfiguration.Observation.ProgramBehaviorFingerprint {
+		return errors.New("Evidence Observation program is stale")
+	}
+	if document.ObservationEvaluationStatus != "accepted" {
+		return nil
 	}
 	dispositions, err := validateEvidenceDispositionsAgainstRaw(document, rawEvidence)
 	if err != nil {
 		return err
 	}
-	if document.ObservationEvaluationStatus != "accepted" {
-		return nil
-	}
 	trace := *document.EvidenceBackedModelTrace
-	if trace.ObservationPlan != document.ObservationProgram || trace.MappingDefinitionID != document.Mapping.DefinitionID ||
-		trace.MappingBehaviorFingerprint != document.Mapping.BehaviorFingerprint ||
-		trace.ProfileDefinitionID != runtimeConfiguration.Observation.ProfileDefinitionID {
+	if trace.ObservationPlan != document.Mapping || trace.MappingDefinitionID != document.Mapping.DefinitionID ||
+		trace.MappingBehaviorFingerprint != document.Mapping.BehaviorFingerprint {
 		return errors.New("Evidence-backed Model Trace does not match the bound Observation identities")
 	}
 	return validateEvidenceLinksAgainstRaw(document, rawEvidence, dispositions)
@@ -1659,8 +1663,6 @@ func validateEvidenceLinksAgainstRaw(
 			if applied {
 				return errors.New("rejected Evidence field must not contribute to a Model Fact")
 			}
-		} else if !applied {
-			return fmt.Errorf("consumed Evidence field %q has no applied disposition", field.FieldDefinitionID)
 		}
 	}
 	return nil

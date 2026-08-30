@@ -89,7 +89,7 @@ private def evidenceDraft : EvidenceArtifact := {
   observationEvaluationStatus := "accepted"
   evidenceBackedModelTrace := some {
     traceId := "switch.trace.accepted"
-    observationPlan := observationProgram
+    observationPlan := mapping
     mappingDefinitionId := mapping.definitionId
     mappingVersion := 1
     mappingBehaviorFingerprint := mapping.behaviorFingerprint
@@ -293,6 +293,16 @@ example : evidence.isValidTransport &&
     evidence.closes compiledArtifact runtimeConfiguration experimentRun rawEvidence &&
     result.isValidTransport &&
     result.closes compiledArtifact runtimeConfiguration experimentRun rawEvidence evidence := by
+  native_decide
+
+private def crossPlanEvidence : EvidenceArtifact := {
+  evidence with
+  evidenceBackedModelTrace := evidence.evidenceBackedModelTrace.map fun trace =>
+    { trace with observationPlan := observationProgram }
+}
+
+example : !crossPlanEvidence.closes
+    compiledArtifact runtimeConfiguration experimentRun rawEvidence := by
   native_decide
 
 /-! Accepted Evidence still closes an unresolved Result without inventing an outcome checksum. -/

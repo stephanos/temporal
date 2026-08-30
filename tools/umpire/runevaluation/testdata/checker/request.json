@@ -57,18 +57,18 @@
   "facts": [],
   "runKnownGaps": [
     {
-      "kind": "capability-contract",
       "code": "umpire.gap.run.fixture",
-      "subject": null,
-      "detail": null
+      "detail": null,
+      "kind": "capability-contract",
+      "subject": null
     }
   ],
   "rawEvidenceKnownGaps": [
     {
-      "kind": "input",
       "code": "umpire.gap.raw-evidence.fixture",
-      "subject": null,
-      "detail": null
+      "detail": null,
+      "kind": "input",
+      "subject": null
     }
   ]
 }

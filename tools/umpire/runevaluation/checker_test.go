@@ -48,15 +48,16 @@ func TestEncodeCheckerRequestUsesCanonicalProtocolEnvelope(t *testing.T) {
 }
 
 func TestCheckerRequestWriterPreservesCanonicalStringEncoding(t *testing.T) {
-	request := testCheckerRequest()
-	detail := "<>&\b\f\n\r\t\"\\\u2028\u2029" + string([]byte{0xff})
-	request.RunKnownGaps[0].Detail = &detail
-	expected, err := artifact.CanonicalPretty(request)
-	require.NoError(t, err)
+	type stringProbe struct {
+		Value string `json:"value"`
+	}
+	probe := stringProbe{Value: "<>&\x00\x01\b\f\n\r\t\"\\\u2028\u2029" + string([]byte{0xff})}
 
 	var encoded bytes.Buffer
-	require.NoError(t, writeCanonicalCheckerRequest(request, &encoded))
-	require.Equal(t, expected, encoded.Bytes())
+	require.NoError(t, writeCanonicalPrettyJSON(&encoded, probe))
+	const expected = "{\n  \"value\": \"<>&\\u0000\\u0001\\b\\f\\n\\r\\t\\\"\\\\\\u2028\\u2029�\"\n}\n"
+	//nolint:testifylint
+	require.Equal(t, expected, encoded.String())
 }
 
 func TestDecodeCheckerResponseRequiresCanonicalClosedBindings(t *testing.T) {
@@ -104,8 +105,8 @@ func TestDecodeCheckerResponseRequiresCanonicalClosedBindings(t *testing.T) {
 		}},
 		{name: "divergent summary verdicts", mutate: func(encoded []byte) []byte {
 			return bytes.Replace(encoded,
-				[]byte("\"propertyVerdicts\": [],\n    \"missingPropertyDefinitionIds\""),
-				[]byte("\"propertyVerdicts\": [{}],\n    \"missingPropertyDefinitionIds\""), 1)
+				[]byte("\"propertyVerdicts\": [],\n    \"queryDefinitionId\""),
+				[]byte("\"propertyVerdicts\": [{}],\n    \"queryDefinitionId\""), 1)
 		}},
 		{name: "invalid nested enum", mutate: func(encoded []byte) []byte {
 			return bytes.Replace(encoded, []byte("\"unit\": \"semantic-transitions\""),
@@ -427,7 +428,7 @@ func testCheckerResponse() checkerResponse {
 		Dispositions:                            []artifactv2.FieldDispositionRecord{},
 		Diagnostics: []artifactv2.ObservationDiagnostic{{
 			Kind:                        "empty-evidence",
-			ObservationPlanDefinitionID: "temporal.observation.caller-closure.fixture",
+			ObservationPlanDefinitionID: "temporal.mapping.caller-closure.fixture",
 			RelatedDefinitionIDs:        []string{},
 			Alternatives:                []string{},
 		}},

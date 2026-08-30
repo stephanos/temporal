@@ -291,8 +291,8 @@ func expectedCallerClosureRequest(t *testing.T, admitted artifact.AdmittedSet) c
 			BehaviorFingerprint: configuration.Observation.ProgramBehaviorFingerprint,
 		},
 		Mapping: definitionReference{
-			DefinitionID:        configuration.Observation.MappingDefinitionID,
-			BehaviorFingerprint: configuration.Observation.MappingBehaviorFingerprint,
+			DefinitionID:        callerClosureCheckedMappingID,
+			BehaviorFingerprint: callerClosureCheckedMappingFingerprint,
 		},
 		PhaseOutcomes:        run.PhaseOutcomes,
 		ControlAttempts:      run.ControlAttempts,
@@ -322,7 +322,7 @@ func unknownCheckerResponse(request checkerRequest) checkerResponse {
 		EvidenceLinks:                           []artifactv2.EvidenceLink{},
 		Dispositions:                            []artifactv2.FieldDispositionRecord{},
 		Diagnostics: []artifactv2.ObservationDiagnostic{{
-			Kind: "empty-evidence", ObservationPlanDefinitionID: request.ObservationProgram.DefinitionID,
+			Kind: "empty-evidence", ObservationPlanDefinitionID: request.Mapping.DefinitionID,
 			RelatedDefinitionIDs: []string{}, Alternatives: []string{},
 		}},
 		ObservationKnownGaps: []artifactv2.KnownGap{},

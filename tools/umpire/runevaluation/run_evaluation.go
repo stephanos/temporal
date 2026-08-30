@@ -12,29 +12,31 @@ import (
 )
 
 const (
-	callerClosureExperimentChecksum            = "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8"
-	callerClosureExperimentProvenanceChecksum  = "sha256:f7a6ebefca8202c6a7c467fd516e54d162c7d1f254c6c9a1f004a7f0b4135ab8"
-	callerClosureConfigurationChecksum         = "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5"
-	callerClosureConfigurationFingerprint      = "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67"
-	callerClosureConfigurationProvenance       = "sha256:3b8bae9ef57fa5f400076af50d01a283d8b928481d654abd0d3c39dd72ea2f6c"
-	callerClosureQueryID                       = "workflow-nexus.query.exact-action-caller-closure"
-	callerClosureQueryFingerprint              = "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af"
-	callerClosureTargetID                      = "workflow-nexus.target.caller-closure"
-	callerClosureTargetFingerprint             = "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd"
-	callerClosurePropertyID                    = "workflow-nexus.property.caller-closure"
-	callerClosurePropertyFingerprint           = "sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f"
-	callerClosureConfigurationID               = "temporal.nexus.runtime-configuration.caller-closure"
-	localAuthorityProfileID                    = "temporal.runtime-profile.ephemeral-local"
-	localAuthorityProfileFingerprint           = "sha256:dd92f1ee14df101f2ea4abb4439f4722de8c061292a4fdd6b6476c7ca7e09b31"
-	callerClosureObservationProfileID          = "temporal.nexus.synthetic.basic-lifecycle.profile"
-	callerClosureObservationProfileFingerprint = "sha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105"
-	callerClosureObservationProgramID          = "temporal.nexus.observation-program.basic-lifecycle"
-	callerClosureObservationProgramFingerprint = "sha256:1ab36fdcd2978dec901678491646ec67fe0fc1d3bd1883e599bc2c53810b3480"
-	callerClosureMappingID                     = "temporal.nexus.synthetic.basic-lifecycle.mapping"
-	callerClosureMappingFingerprint            = "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2"
-	callerClosureParticipantID                 = "temporal.nexus.participant.caller-closure"
-	callerClosureParticipantProgramID          = "temporal.nexus.participant-program.caller-closure"
-	callerClosureParticipantProgramFingerprint = "sha256:f2f1a9a1346576b4d8c6b0b4f7f6c8a138461f90c168ab57747b316807666e56"
+	callerClosureExperimentChecksum              = "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8"
+	callerClosureExperimentProvenanceChecksum    = "sha256:f7a6ebefca8202c6a7c467fd516e54d162c7d1f254c6c9a1f004a7f0b4135ab8"
+	callerClosureConfigurationChecksum           = "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5"
+	callerClosureConfigurationFingerprint        = "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67"
+	callerClosureConfigurationProvenance         = "sha256:3b8bae9ef57fa5f400076af50d01a283d8b928481d654abd0d3c39dd72ea2f6c"
+	callerClosureQueryID                         = "workflow-nexus.query.exact-action-caller-closure"
+	callerClosureQueryFingerprint                = "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af"
+	callerClosureTargetID                        = "workflow-nexus.target.caller-closure"
+	callerClosureTargetFingerprint               = "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd"
+	callerClosurePropertyID                      = "workflow-nexus.property.caller-closure"
+	callerClosurePropertyFingerprint             = "sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f"
+	callerClosureConfigurationID                 = "temporal.nexus.runtime-configuration.caller-closure"
+	localAuthorityProfileID                      = "temporal.runtime-profile.ephemeral-local"
+	localAuthorityProfileFingerprint             = "sha256:dd92f1ee14df101f2ea4abb4439f4722de8c061292a4fdd6b6476c7ca7e09b31"
+	callerClosureObservationProfileID            = "temporal.nexus.synthetic.basic-lifecycle.profile"
+	callerClosureObservationProfileFingerprint   = "sha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105"
+	callerClosureObservationProgramID            = "temporal.nexus.observation-program.basic-lifecycle"
+	callerClosureObservationProgramFingerprint   = "sha256:1ab36fdcd2978dec901678491646ec67fe0fc1d3bd1883e599bc2c53810b3480"
+	callerClosureConfigurationMappingID          = "temporal.nexus.synthetic.basic-lifecycle.mapping"
+	callerClosureConfigurationMappingFingerprint = "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2"
+	callerClosureCheckedMappingID                = "temporal.system.nexus.caller-closure.mapping"
+	callerClosureCheckedMappingFingerprint       = "sha256:d5d437c89205880d27770b5abdac8aa3eabf07a21e40264ae5601162d70a7f17"
+	callerClosureParticipantID                   = "temporal.nexus.participant.caller-closure"
+	callerClosureParticipantProgramID            = "temporal.nexus.participant-program.caller-closure"
+	callerClosureParticipantProgramFingerprint   = "sha256:f2f1a9a1346576b4d8c6b0b4f7f6c8a138461f90c168ab57747b316807666e56"
 )
 
 var callerClosureRequirements = []string{
@@ -148,8 +150,8 @@ func exactCallerClosureConfiguration(configuration artifactv2.RuntimeConfigurati
 		configuration.Observation.ProfileBehaviorFingerprint != callerClosureObservationProfileFingerprint ||
 		configuration.Observation.ProgramDefinitionID != callerClosureObservationProgramID ||
 		configuration.Observation.ProgramBehaviorFingerprint != callerClosureObservationProgramFingerprint ||
-		configuration.Observation.MappingDefinitionID != callerClosureMappingID ||
-		configuration.Observation.MappingBehaviorFingerprint != callerClosureMappingFingerprint ||
+		configuration.Observation.MappingDefinitionID != callerClosureConfigurationMappingID ||
+		configuration.Observation.MappingBehaviorFingerprint != callerClosureConfigurationMappingFingerprint ||
 		len(configuration.ParticipantBindings) != 1 {
 		return false
 	}
@@ -222,8 +224,8 @@ func newCheckerRequest(execution artifact.ExecutionSet) (checkerRequest, error) 
 			BehaviorFingerprint: configuration.Observation.ProgramBehaviorFingerprint,
 		},
 		Mapping: definitionReference{
-			DefinitionID:        configuration.Observation.MappingDefinitionID,
-			BehaviorFingerprint: configuration.Observation.MappingBehaviorFingerprint,
+			DefinitionID:        callerClosureCheckedMappingID,
+			BehaviorFingerprint: callerClosureCheckedMappingFingerprint,
 		},
 		PhaseOutcomes:        run.PhaseOutcomes,
 		ControlAttempts:      run.ControlAttempts,

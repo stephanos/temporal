@@ -81,8 +81,20 @@ type checkerResponse struct {
 }
 
 var checkerResponseDecoder = artifact.Decoder[checkerResponse]{
-	Format:   checkerResponseFormat,
-	Validate: validateCheckerResponse,
+	Format:    checkerResponseFormat,
+	Validate:  validateCheckerResponse,
+	Canonical: canonicalCheckerResponse,
+}
+
+func canonicalCheckerResponse(response checkerResponse) ([]byte, error) {
+	encoded := newBoundedCapture(maximumCheckerProtocolBytes, nil)
+	if err := writeCanonicalPrettyJSON(encoded, response); err != nil {
+		return nil, err
+	}
+	if encoded.exceeded() {
+		return nil, errors.New("checker response is oversized")
+	}
+	return encoded.take(), nil
 }
 
 func encodeCheckerRequest(request checkerRequest) ([]byte, error) {
@@ -232,7 +244,7 @@ func validateCheckerSemanticBindings(response checkerResponse, request checkerRe
 		return errors.New("checker response query binding drifted")
 	}
 	if trace := response.EvidenceBackedModelTrace; trace != nil {
-		if trace.ObservationPlan != artifactDefinitionReference(request.ObservationProgram) ||
+		if trace.ObservationPlan != artifactDefinitionReference(request.Mapping) ||
 			trace.MappingDefinitionID != request.Mapping.DefinitionID ||
 			trace.MappingBehaviorFingerprint != request.Mapping.BehaviorFingerprint {
 			return errors.New("checker response Observation binding drifted")
