@@ -16,6 +16,7 @@ Add the exact direct/root command, sole production publication call, and frozen 
 - Call Task `.4` and make the sole production fn-18 `PublishSet` call only after complete six-member admission; publish before stdout and never delete/rewrite/rerun on a reporting failure.
 - Treat operational/Observation Evaluation/semantic non-success as a published status 2, distinct from admission/checker/output/publication/reporting status 1.
 - Add only the repository-root `umpire-check-local-run-evaluation` target; build/install the Go command and Lean checker as a sibling pair and validate SET/OUTPUT_ROOT before invocation.
+- Enforce R2 against accidental or tool-controlled pathname substitution: use descriptor-bound execution on Linux and, on Darwin, a private mode-0700 pair with embedded digest and `UF_IMMUTABLE` held on the exact open vnode through child wait. Treat a concurrent same-UID actor able to clear vnode flags, mutate or ptrace the launcher, or otherwise compromise the process as outside the threat boundary.
 - Test permission/path/conflict, signal/cancellation, idempotent existing destination, broken stdout/stderr, and post-publication reporting cases with exact bytes and side-effect assertions.
 
 ### Investigation targets
@@ -30,7 +31,7 @@ Add the exact direct/root command, sole production publication call, and frozen 
 - [ ] Direct and Make commands produce exact summary/error bytes and statuses for satisfied, violated, non-accepted, operational failed/incomplete, input, checker, output-invariant, publication, and reporting cases.
 - [ ] Missing/extra/malformed arguments and unsafe output roots fail before checker startup; no stdout or partial destination exists.
 - [ ] The CLI is the sole production publisher, identical publication is idempotent, and post-publication output failure includes the authoritative destination.
-- [ ] The installed-pair contract exposes no checker path/PATH/env/plugin override and detects substituted siblings.
+- [ ] The installed-pair contract exposes no checker path/PATH/env/plugin override and detects accidental or tool-controlled substituted siblings under the explicit R2 threat boundary.
 - [ ] All Make changes are confined to the repository-root Makefile and existing comments are preserved.
 
 ## Done summary
