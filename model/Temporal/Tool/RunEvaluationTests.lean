@@ -309,6 +309,92 @@ private def invalidDispositionRequest : Request := { request with
     ]
 }
 
+private def sourceProjection
+    (definitionId status : String)
+    (count : Nat) : Lean.Json := object [
+  ("sourceDefinitionId", text definitionId), ("status", text status),
+  ("factCount", natural count), ("byteCount", natural 0)
+]
+
+private def closureProjection
+    (definitionId status : String)
+    (count : Nat) : Lean.Json := object [
+  ("sourceDefinitionId", text definitionId), ("status", text status),
+  ("recordCount", natural count), ("byteCount", natural 0)
+]
+
+private def notAttemptedControlAttempts : Lean.Json := array [object [
+  ("occurrenceDefinitionId", text "temporal.nexus.occurrence.force-close"),
+  ("actionDefinitionId", text "workflow.action.force-close"),
+  ("attempt", natural 1), ("receiptFactDefinitionId", .null),
+  ("status", text "not-attempted"), ("code", .null)
+]]
+
+private def notAttemptedRequest : Request :=
+  let withoutControl := match facts.getArr? with
+    | .error _ => facts
+    | .ok values => .arr (values.eraseIdx! 1)
+  let partialSources := match sources.getArr? with
+    | .error _ => sources
+    | .ok values => .arr (values.set! 1 <|
+        sourceProjection "umpire.evidence.source.control-receipt" "partial" 0)
+  let partialClosures := match sourceClosures.getArr? with
+    | .error _ => sourceClosures
+    | .ok values => .arr (values.set! 1 <|
+        closureProjection "umpire.evidence.source.control-receipt" "partial" 0)
+  { request with
+    controlAttempts := notAttemptedControlAttempts
+    sourceClosures := partialClosures
+    captureStatus := "partial"
+    sources := partialSources
+    facts := withoutControl }
+
+private def rejectedControlFact : Lean.Json := fact
+  "umpire.runtime.fact.control.fixture" "umpire.evidence.source.control-receipt"
+  "umpire.evidence.kind.control-receipt" 0 [] [
+    field "umpire.evidence.field.action-definition-id" "plain"
+      (text "workflow.action.force-close"),
+    field "umpire.evidence.field.attempt" "plain" (natural 1),
+    field "umpire.evidence.field.occurrence-definition-id" "plain"
+      (text "temporal.nexus.occurrence.force-close"),
+    field "umpire.evidence.field.status" "plain" (text "rejected")
+  ]
+
+private def participantFact : Lean.Json := fact
+  "umpire.runtime.fact.participant.fixture" "umpire.evidence.source.participant-output"
+  "umpire.evidence.kind.participant-command" 0 [] [
+    field "umpire.evidence.field.cancellation-callback-count" "plain" (natural 1),
+    field "umpire.evidence.field.endpoint-identity" "sha256"
+      (text (fingerprint "endpoint").render)
+  ]
+
+private def rejectedControlAttempts : Lean.Json := array [object [
+  ("occurrenceDefinitionId", text "temporal.nexus.occurrence.force-close"),
+  ("actionDefinitionId", text "workflow.action.force-close"),
+  ("attempt", natural 1),
+  ("receiptFactDefinitionId", text "umpire.runtime.fact.control.fixture"),
+  ("status", text "rejected"), ("code", text "umpire.runtime.control.rejected")
+]]
+
+private def closedFailedRequest : Request := { request with
+  phaseOutcomes := failedPhaseOutcomes
+  controlAttempts := rejectedControlAttempts
+  sourceClosures := array [
+    closureProjection "umpire.evidence.source.cleanup" "closed" 1,
+    closureProjection "umpire.evidence.source.control-receipt" "closed" 1,
+    closureProjection "umpire.evidence.source.history" "closed" 1,
+    closureProjection "umpire.evidence.source.participant-output" "closed" 1
+  ]
+  sources := array [
+    sourceProjection "umpire.evidence.source.cleanup" "closed" 1,
+    sourceProjection "umpire.evidence.source.control-receipt" "closed" 1,
+    sourceProjection "umpire.evidence.source.history" "closed" 1,
+    sourceProjection "umpire.evidence.source.participant-output" "closed" 1
+  ]
+  facts := array [cleanupFact, rejectedControlFact,
+    historyFact 0 "temporal.history.WorkflowExecutionStarted", participantFact]
+}
+
 private def knownGapJson : Lean.Json := array [object [
   ("kind", text "input"), ("code", text "umpire.gap.fixture"),
   ("subject", .null), ("detail", .null)
@@ -321,18 +407,33 @@ private def rejectedField (candidate : Request) : Option String :=
   | .error failure => some failure.field
   | .ok _ => none
 
-private def extraFactResponse := responseOf extraFactRequest
 private def extraFieldResponse := responseOf extraFieldRequest
 private def crossedTypeResponse := responseOf crossedTypeRequest
 private def gapResponse := responseOf gapRequest
+private def notAttemptedResponse? :=
+  (Temporal.Tool.RunEvaluation.evaluateRequest notAttemptedRequest).toOption
+private def closedFailedResponse? :=
+  (Temporal.Tool.RunEvaluation.evaluateRequest closedFailedRequest).toOption
 
-private def conflictingFacts : Lean.Json :=
-  match facts.getArr? with
-  | .error _ => facts
-  | .ok values => .arr (values.push values[0]!)
+private def conflictingRequest : Request := { closedFailedRequest with
+  sourceClosures := array [
+    closureProjection "umpire.evidence.source.cleanup" "closed" 1,
+    closureProjection "umpire.evidence.source.control-receipt" "closed" 1,
+    closureProjection "umpire.evidence.source.history" "closed" 2,
+    closureProjection "umpire.evidence.source.participant-output" "closed" 1
+  ]
+  sources := array [
+    sourceProjection "umpire.evidence.source.cleanup" "closed" 1,
+    sourceProjection "umpire.evidence.source.control-receipt" "closed" 1,
+    sourceProjection "umpire.evidence.source.history" "closed" 2,
+    sourceProjection "umpire.evidence.source.participant-output" "closed" 1
+  ]
+  facts := array [cleanupFact, rejectedControlFact,
+    historyFact 0 "temporal.history.WorkflowExecutionStarted",
+    historyFact 0 "temporal.history.WorkflowExecutionStarted", participantFact]
+}
 
-private def conflictResponse := responseOf
-  { request with facts := conflictingFacts }
+private def conflictResponse := responseOf conflictingRequest
 
 private def jsonArrayEmpty (value : Lean.Json) : Bool :=
   match value.getArr? with
@@ -349,21 +450,30 @@ private def incompleteProjection (candidate : Response) : Bool :=
 /-! The closed protocol rejects an extra source and malformed digest before semantics. -/
 example : rejectedField extraSourceRequest = some "sources.set" &&
     rejectedField extraSourceFactRequest = some "facts.sourceDefinitionId" &&
+    rejectedField extraFactRequest = some "sources.factCount" &&
     rejectedField invalidDispositionRequest = some "facts.fields.disposition" &&
     rejectedField malformedDigestRequest = some "facts.fields.value" := by native_decide
 
 /-! Total fact/field/type closure reaches checked Observation without adapter-side semantics. -/
-example : extraFactResponse.observationEvaluationStatus = "unknown" &&
-    extraFieldResponse.observationEvaluationStatus = "unsupported" &&
+example : extraFieldResponse.observationEvaluationStatus = "unsupported" &&
     crossedTypeResponse.observationEvaluationStatus = "unknown" := by native_decide
 
 /-! Every non-accepted Observation status projects a fn18-valid empty incomplete Result row. -/
-example : incompleteProjection extraFactResponse && incompleteProjection conflictResponse &&
+example : incompleteProjection crossedTypeResponse && incompleteProjection conflictResponse &&
     incompleteProjection extraFieldResponse && conflictResponse.observationEvaluationStatus = "conflict" := by
   native_decide
 
 /-! Upstream Known Gaps force unknown semantics without a Property verdict or outcome checksum. -/
 example : gapResponse.observationEvaluationStatus = "unknown" &&
     incompleteProjection gapResponse && !jsonArrayEmpty gapResponse.resultKnownGaps := by native_decide
+
+/-! Valid fn19 non-success control/source closures reach fn-4 instead of protocol rejection. -/
+example : notAttemptedResponse?.any fun candidate =>
+    candidate.observationEvaluationStatus == "unknown" && incompleteProjection candidate := by
+  native_decide
+
+example : closedFailedResponse?.any fun candidate =>
+    candidate.observationEvaluationStatus == "unknown" && incompleteProjection candidate := by
+  native_decide
 
 end Temporal.Tool.RunEvaluation.Tests
