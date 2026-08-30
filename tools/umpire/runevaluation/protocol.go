@@ -249,6 +249,17 @@ func validateCheckerSemanticBindings(response checkerResponse, request checkerRe
 			trace.MappingBehaviorFingerprint != request.Mapping.BehaviorFingerprint {
 			return errors.New("checker response Observation binding drifted")
 		}
+		profileVersion := artifactv2.NaturalFromUint64(1)
+		if trace.ProfileDefinitionID != callerClosureCheckedProfileID ||
+			trace.ProfileVersion != profileVersion {
+			return errors.New("checker response profile binding drifted")
+		}
+		for _, link := range response.EvidenceLinks {
+			if link.ProfileDefinitionID != callerClosureCheckedProfileID ||
+				link.ProfileVersion != profileVersion {
+				return errors.New("checker response profile binding drifted")
+			}
+		}
 	}
 	for _, verdict := range response.PropertyVerdicts {
 		if err := validateCheckerPropertyBinding(verdict, response, request); err != nil {
