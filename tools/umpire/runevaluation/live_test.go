@@ -325,6 +325,8 @@ func liveEvidenceFacts(
 				"temporal.history.WorkflowExecutionCanceled" {
 				terminalHistory = fact.FactDefinitionID
 			}
+		default:
+			require.Failf(t, "unexpected evidence source", "source=%q", fact.SourceDefinitionID)
 		}
 	}
 	require.NotEmpty(t, cleanup)
