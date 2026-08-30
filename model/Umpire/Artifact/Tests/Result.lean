@@ -276,6 +276,18 @@ example : evidence.hasValidChecksums && result.hasValidChecksums &&
     result.evaluationOutcomeChecksum == result.expectedEvaluationOutcomeChecksum evidence compiledArtifact := by
   native_decide
 
+private def planOnlyMutation : ExperimentSpec :=
+  let planDraft := { compiledArtifact.plan with selectionReason := .behaviorSelection }
+  let plan := { planDraft with artifactChecksum := planDraft.expectedArtifactChecksum }
+  let experimentDraft := { compiledArtifact with plan }
+  { experimentDraft with artifactChecksum := experimentDraft.expectedArtifactChecksum }
+
+/-! Stable accepted-outcome identity binds the exact sealed DrivePlan, not only its Properties. -/
+example : planOnlyMutation.hasValidArtifactChecksum && planOnlyMutation.plan.hasValidArtifactChecksum &&
+    result.expectedEvaluationOutcomeChecksum evidence compiledArtifact !=
+      result.expectedEvaluationOutcomeChecksum evidence planOnlyMutation := by
+  native_decide
+
 /-! Exact parent bindings close without interpreting RawEvidence or applying an Implementation Link. -/
 example : evidence.isValidTransport &&
     evidence.closes compiledArtifact runtimeConfiguration experimentRun rawEvidence &&
