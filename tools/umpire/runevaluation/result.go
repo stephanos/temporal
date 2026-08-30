@@ -34,6 +34,27 @@ func (failure *evaluationFailure) Error() string {
 	return fmt.Sprintf("run evaluation %s/%s: %s", failure.kind, failure.phase, failure.code)
 }
 
+func (failure *evaluationFailure) Kind() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.kind
+}
+
+func (failure *evaluationFailure) Phase() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.phase
+}
+
+func (failure *evaluationFailure) Code() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.code
+}
+
 func (failure *evaluationFailure) Unwrap() error {
 	if failure == nil {
 		return nil
