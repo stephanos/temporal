@@ -34,10 +34,10 @@ These are additive, inert functions returning the existing public records. They 
 
 ## Approach
 
-1. Add and test the Core named-value constructor, then migrate repeated ordinary Model Values.
-2. Add the bounded Query constructor and migrate all ordinary fixed-unit Query limits.
+1. Add and test the Core named-value constructor, inventory author-written `ModelValue` literals repository-wide, then migrate every ordinary production and shared-positive-fixture pair while retaining raw mutation/negative/runtime-derived records deliberately.
+2. Add the bounded Query constructor, inventory all fixed-unit triples repository-wide, and migrate every ordinary production and shared-positive-fixture declaration.
 3. Add Space leaf constructors and rewrite the production Variation Space plus shared fixtures.
-4. Add forward mapping constructors and rewrite ordinary production/link fixtures.
+4. Add forward mapping constructors, inventory mapping pairs repository-wide, and rewrite ordinary production and positive Link fixtures while retaining deliberate mutations raw.
 5. Document exported conveniences and run identity, planner, artifact, aggregate, regression, and lint gates.
 
 ## Edge Cases & Constraints
@@ -64,10 +64,10 @@ make lint-code
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** `ModelValue.named` constructs the exact existing Definition-ID/value pair, and ordinary Umpire/Temporal production declarations plus shared fixtures use it wherever no non-default record behavior exists. Errors: blank/non-namespaced/unknown/wrong-kind values remain representable raw input and retain their existing owning-checker diagnostic; no validation or inference is added to the constructor.
-- **R2:** `QueryLimits.bounded` constructs the exact existing transition, selected-action, and candidate-evaluation Limits with their fixed units, and every ordinary fixed-unit declaration uses it. Errors: zero, inconsistent, or insufficient bounds retain existing Query/Planning outcomes; custom-unit or deliberately expanded records continue to use the raw structure.
+- **R1:** `ModelValue.named` constructs the exact existing Definition-ID/value pair, and a repository-wide inventory proves ordinary Umpire/Temporal production declarations plus shared positive fixtures use it wherever no non-default record behavior exists. Errors: blank/non-namespaced/unknown/wrong-kind values remain representable raw input and retain their existing owning-checker diagnostic; no validation or inference is added to the constructor, and every retained literal has a mutation, negative-test, runtime-derived, or non-`ModelValue` reason.
+- **R2:** `QueryLimits.bounded` constructs the exact existing transition, selected-action, and candidate-evaluation Limits with their fixed units, and a repository-wide inventory proves every ordinary production and shared-positive-fixture fixed-unit declaration uses it. Errors: zero, inconsistent, or insufficient bounds retain existing Query/Planning outcomes; custom-unit, mutation, and deliberately expanded records continue to use the raw structure.
 - **R3:** Space exposes focused constructors for ordinary baseline, bound-value, fault-selection, fault-axis, occurrence-fault, and seek-goal leaves, and the production Variation Space plus shared fixtures use them. Errors: baseline effects, empty choices, unknown roles/values/faults/occurrences/capabilities, incompatible faults, invalid minima, duplicates, and bounds retain current Space diagnostics.
-- **R4:** Implementation Link exposes explicit forward constructors for value and semantic mapping pairs, and ordinary production mappings plus shared fixtures use them. Errors: missing, duplicate, ambiguous, wrong-kind, fingerprint-drifted, or uncovered mappings retain current Link diagnostics; constructors never perform lookup or checking.
+- **R4:** Implementation Link exposes explicit forward constructors for value and semantic mapping pairs, and a repository-wide inventory proves ordinary production mappings plus positive fixtures use them. Errors: missing, duplicate, ambiguous, wrong-kind, fingerprint-drifted, or uncovered mappings retain current Link diagnostics; constructors never perform lookup or checking, and deliberate mutation witnesses remain raw.
 - **R5:** Every constructor has a concise public docstring, a direct equivalence test, facade/import visibility where intended, and no implicit DSL machinery. Errors: a macro, notation, coercion, default semantic inference, callback, registration side effect, hidden checker, or parallel record type fails completion.
 - **R6:** Migrated declarations preserve names, comments, order, source provenance, checked identities, planner/Space/Link results, canonical JSON, artifacts, checksums, fingerprints, and generated views. Errors: eligible ordinary boilerplate remaining without a documented non-default reason, lost comment, identity/byte drift, warning, or lint failure blocks completion.
 
