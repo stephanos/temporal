@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-30T16:04:32.563983Z",
+  "depends_on": [],
+  "id": "fn-46-export-lean-model-module-impact-index.1",
+  "priority": null,
+  "spec": "fn-46-export-lean-model-module-impact-index",
+  "spec_path": ".flow/tasks/fn-46-export-lean-model-module-impact-index.1.md",
+  "status": "todo",
+  "title": "Extract the shared ModelLint package loader",
+  "updated_at": "2026-08-30T16:23:09.478145Z"
+}

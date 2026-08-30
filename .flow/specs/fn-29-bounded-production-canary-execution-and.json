@@ -11,7 +11,8 @@
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
     "fn-26-local-qualification-receipts-and-staged",
-    "fn-28-authorized-remote-staging-black-box"
+    "fn-28-authorized-remote-staging-black-box",
+    "fn-48-canonicalize-known-gaps-as-a-checked-set"
   ],
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {},
@@ -162,5 +163,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T19:07:03.263646Z"
+  "updated_at": "2026-08-30T16:04:03.836201Z"
 }

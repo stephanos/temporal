@@ -10,7 +10,9 @@
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-19-bounded-local-temporal-execution-and",
     "fn-20-local-execution-semantic-conformance",
-    "fn-37-hard-cut-umpire-vocabulary-and-current"
+    "fn-37-hard-cut-umpire-vocabulary-and-current",
+    "fn-47-generate-umpire-semantic-outcome-and",
+    "fn-48-canonicalize-known-gaps-as-a-checked-set"
   ],
   "id": "fn-26-local-qualification-receipts-and-staged",
   "impl_review_rounds": {},
@@ -313,5 +315,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T19:07:02.505237Z"
+  "updated_at": "2026-08-30T16:04:03.411897Z"
 }
