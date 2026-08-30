@@ -26,14 +26,12 @@ Publish the facade, atomic generation/check commands, and concise documentation 
 
 ### Quick commands
 `make umpire-check-semantic-inventory && make lint-model`
-
 ## Acceptance
 - [ ] Generation replaces the checked document only after successful complete render and preserves the old file on failure/interruption.
 - [ ] Check mode never writes and reports deterministic diff for missing/stale/extra content.
 - [ ] `lint-model` includes only this narrow drift check and passes with focused/aggregate Lean tests.
 - [ ] Docs link the inventory and state that stage types, Result schema, artifact bytes, and runtime behavior remain authoritative/unchanged.
 - [ ] No GitHub Actions, broad API drift gate, public docs, or deferred spec behavior is added.
-
 ## Done summary
 TBD
 

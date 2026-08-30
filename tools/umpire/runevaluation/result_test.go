@@ -411,8 +411,8 @@ func acceptedCallerClosureResponse(t *testing.T, request checkerRequest, semanti
 	result.QuerySummary.TraceIDs = []string{*verdict.TraceID}
 
 	outcomeChecksum := map[string]string{
-		"satisfied": "sha256:aaa003026ed096fc9d2f435e6acf1806a81dd4597a32b86b0a39580fe9b74950",
-		"violated":  "sha256:c9ddf0938c9bc484e8ee5c1e9a27834a94a756347c7902c9bdac1aa3251cc883",
+		"satisfied": "sha256:c378127ec24bf01167ac5e548a93649328ad0a047a333abc7760c36f9a9e8fc6",
+		"violated":  "sha256:16bdd408796ad87301d0ee56b58a0a03c70777839990c71d9fc42dcc03a39450",
 	}[semanticStatus]
 	return checkerResponse{
 		FormatVersion:                           checkerResponseFormat,
