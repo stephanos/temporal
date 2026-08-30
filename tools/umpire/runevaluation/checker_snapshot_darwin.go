@@ -9,12 +9,13 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-func protectCheckerSnapshot(path string) error {
-	return unix.Chflags(path, unix.UF_IMMUTABLE)
+func protectCheckerSnapshot(_ string, file *os.File) error {
+	// Darwin has no descriptor-based exec, so pin the exact open vnode immutable across launch.
+	return unix.Fchflags(int(file.Fd()), unix.UF_IMMUTABLE)
 }
 
-func unprotectCheckerSnapshot(path string) error {
-	return unix.Chflags(path, 0)
+func unprotectCheckerSnapshot(_ string, file *os.File) error {
+	return unix.Fchflags(int(file.Fd()), 0)
 }
 
 func verifyCheckerSnapshotPath(path string, file *os.File) error {

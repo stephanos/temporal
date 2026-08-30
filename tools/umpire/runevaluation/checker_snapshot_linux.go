@@ -7,11 +7,11 @@ import (
 	"os/exec"
 )
 
-func protectCheckerSnapshot(string) error {
+func protectCheckerSnapshot(string, *os.File) error {
 	return nil
 }
 
-func unprotectCheckerSnapshot(string) error {
+func unprotectCheckerSnapshot(string, *os.File) error {
 	return nil
 }
 

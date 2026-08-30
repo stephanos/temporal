@@ -265,7 +265,11 @@ func TestCheckerProcessCancellationAndTimeoutReapTheChild(t *testing.T) {
 		}()
 		pidPath := filepath.Join(filepath.Dir(process.controllerExecutable), "child.pid")
 		await.RequireTrue(t, func() bool {
-			_, err := os.Stat(pidPath)
+			encoded, err := os.ReadFile(pidPath)
+			if err != nil {
+				return false
+			}
+			_, err = strconv.Atoi(string(encoded))
 			return err == nil
 		}, time.Second, 10*time.Millisecond)
 		cancel()
