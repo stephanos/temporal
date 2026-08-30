@@ -39,7 +39,7 @@ func TestCheckerRequestSeparatesRuntimeAndCheckedMappings(t *testing.T) {
 	require.Equal(t, "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2",
 		execution.RuntimeConfiguration().Observation.MappingBehaviorFingerprint)
 	require.Equal(t, "temporal.system.nexus.caller-closure.mapping", request.Mapping.DefinitionID)
-	require.Equal(t, "sha256:d5d437c89205880d27770b5abdac8aa3eabf07a21e40264ae5601162d70a7f17",
+	require.Equal(t, "sha256:150c75ffcdd8b8e6e2ca8807c2c6ac7d924407b3291a0bc1f10ea04469a7df9b",
 		request.Mapping.BehaviorFingerprint)
 }
 

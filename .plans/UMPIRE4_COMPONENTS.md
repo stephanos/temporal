@@ -25,8 +25,8 @@ implementation was found.
 | C3 Lean authoring DSL | Partial | Checked targets, Properties, Behaviors, Queries, and finite authored Spaces are built, including canonical axes/choices, request-only faults, seek-only coverage goals, and checked metadata. Fn-5 catalog/list/explain aggregation and usability evidence remain. |
 | C4 ExperimentSpec compiler | Partial | Pure planning and `umpire-gen-tests` retain canonical `umpire-experiment/v2` artifacts for one selected trace or an atomic bounded Space batch. Strict persisted admission, the inert RuntimeConfiguration contract, exact sets, immutable publication, and one exact local runtime consumer are built; broader runtime bindings remain. |
 | C5 Go/docs generator | Partial | One stable caller-closure regression has deterministic checked-in Go and Markdown Generated Views, and one generation-only Go seam emits an ordinary digest-bound local execution test; broader catalog and promotion surfaces remain. |
-| C6 execution runtime | Partial | One exact admitted caller-closure set runs through the domain-neutral bounded runner and invocation-local Temporal adapter, returning admitted Run/RawEvidence in memory. Additional profiles and semantic Run Evaluation remain downstream. |
-| C7 Evidence/Run Evaluation | Partial + separate | Current Lean checks Properties over Model Traces and owns Observation Evaluation and Implementation Link meaning. Exact inert v2 RawEvidence, Evidence, and Result transport/admission are built, but no live current-model Run Evaluation produces them. |
+| C6 execution runtime | Partial | One exact admitted caller-closure set runs through the domain-neutral bounded runner and invocation-local Temporal adapter, returning admitted Run/RawEvidence in memory. Its fixed local semantic consumer is now integrated; additional profiles remain downstream. |
+| C7 Evidence/Run Evaluation | One bounded local slice | The fixed caller-closure checker consumes real fn-19 RawEvidence through checked Observation Evaluation, Implementation Link, and unchanged Property authorities, then publishes an admitted six-member Evidence/Result set. Other profiles and non-local evaluation remain open. |
 | C8 exploration | Partial | Deterministic finite exhaustive/shortest-style planning is built. The named coverage-guided policy only seed-rotates enumeration; it does not consume coverage state. Broader campaign exploration exists separately. |
 | C9 SDK participant | Partial | The first System-owned caller-closure participant program and RuntimeConfiguration bind one exact Go SDK adapter through the generated test. Additional programs and SDKs remain downstream. |
 | C10 replay/promote | Separate | Go campaign pipelines minimize, replay, and propose regressions, but cannot read the current artifact or generate a Lean regression from it. |
@@ -36,7 +36,7 @@ implementation was found.
 | Milestone | Status | Summary |
 | --- | --- | --- |
 | A: describe real tests | In progress | The model-only C1-C4 slice now includes ordinary Nexus Lifecycle/Operations walkthroughs and an experimental two-by-two authored Space proof; broader Generated View catalog/promotion and usability evidence remain. |
-| B: check real Temporal | Operational slice | The exact current Artifact now drives one bounded local caller-closure run and returns closed raw evidence. Live semantic Evidence interpretation and evaluated Result/Run Evaluation remain unintegrated. |
+| B: check real Temporal | One bounded local slice | The exact current Artifact drives one local caller-closure run, closes raw evidence and cleanup, and produces an accepted/satisfied six-member Run Evaluation set. Broader profiles, remote execution, replay, and qualification remain open. |
 | C: find things | Foundations only | Finite planning and separate campaign tooling exist, but discovery, minimization, replay, and promotion are not composed end to end. |
 | D: reuse the investment | Separately advanced | Formal, optional Veil, and Claim Assessment machinery are substantial in Umpire3, but current-model checker-view binding and the active R6/R7 Claim Assessment work remain open. |
 
@@ -54,8 +54,8 @@ make its component built.
 | C3/C4 authored variation spaces | `fn-16-authored-variation-spaces-and` | Implemented and verified | Checked finite axes/choices, request-only faults, seek-only coverage goals, canonical metadata for fn-5, dependent-kernel point lowering, atomic bounded batch compilation, and byte-identical v2 output through `umpire-gen-tests`. RuntimeConfiguration and Artifact admission are now separate implemented fn-18 contracts; coverage scoring, runtime, and Run Evaluation remain separate. |
 | C8 bounded semantic exploration | `fn-17-bounded-semantic-exploration-and` | Reviewed: Ship; seven tasks ready | Pure selection over fn-16's atomic bounded universe with exhaustive, pair/t-wise, seeded-random, proof-reduced symmetry, real coverage-guided state/report/resume, and pinned precedence. Runtime, evidence, persisted readers, replay, minimization, and promotion remain separate. |
 | C4/C7/C8 versioned artifact boundary | `fn-18-versioned-umpire-artifact-boundary` | Implemented and verified | The current v2 Artifact is the sole baseline. Strict bounded Go admission preserves Definition IDs, Behavior Fingerprints, Artifact Checksums, Limits, Known Gaps, exact reference closure, and immutable atomic publication. Read-only checks expose one Artifact or complete set without publishing. Only future post-v2 successors may add migrations. Execution, Evidence collection/interpretation, replay, promotion, and Claim Assessment remain separate. |
-| C6/C9 bounded local execution | `fn-19-bounded-local-temporal-execution-and` | Implementation in progress; generated local slice built | One fn-18-admitted caller-closure input set, domain-neutral five-phase runtime/participant boundary, production-safe `temporaltest` lifecycle, closed ephemeral authority, exact Nexus SDK force-close participant, four-source raw evidence, and an admitted in-memory run set exercised by a deterministic ordinary generated Go test. Semantic interpretation, Result/Run Evaluation, replay, promotion, remote/CI/canary, and Claim Assessment remain separate. |
-| C7 local Run Evaluation | `fn-20-local-execution-semantic-conformance` | Reviewed: Ship; seven tasks ready | One exact four-member local run set passes through a private bounded Go-to-Lean checker bridge and the existing Observation Evaluation, Implementation Link, and Property authorities. Operational, Observation Evaluation, Implementation Link, Property, and tooling outcomes remain independent in the admitted six-member Evidence/Result set. Replay, promotion, formal checking, and Claim Assessment remain separate. |
+| C6/C9 bounded local execution | `fn-19-bounded-local-temporal-execution-and` | Implemented and verified | One fn-18-admitted caller-closure input set, domain-neutral five-phase runtime/participant boundary, production-safe `temporaltest` lifecycle, closed ephemeral authority, exact Nexus SDK force-close participant, four-source raw evidence, and an admitted in-memory run set exercised by a deterministic ordinary generated Go test. Its one fixed semantic consumer is integrated by fn-20; replay, promotion, remote/CI/canary, and Claim Assessment remain separate. |
+| C7 local Run Evaluation | `fn-20-local-execution-semantic-conformance` | Implementation complete; final parent gate pending | One exact four-member local run set passes through a private bounded Go-to-Lean checker bridge and the existing Observation Evaluation, Implementation Link, and Property authorities. Operational, Observation Evaluation, Implementation Link, Property, and tooling outcomes remain independent in the admitted six-member Evidence/Result set. Replay, promotion, formal checking, non-local evaluation, and Claim Assessment remain separate. |
 | C4/C6/C7/C9 deterministic Nexus negative control | `fn-21-nexus-duplicate-observation-control` | Reviewed: Ship; seven tasks ready | One exact request-only duplicate-delivery fault lowers to a second closed local program/configuration, drives one normal requested/completed cancellation lifecycle, records mechanical callback count one plus one labeled synthetic contribution, and lets the existing Run Evaluation authority report an accepted uniqueness-only violation. Generic fault infrastructure, a new Artifact family, replay, promotion, and non-local Claim Assessment remain separate. |
 | C10 deterministic replay, minimization, and reviewed promotion | `fn-22-deterministic-replay-semantic` | Reviewed: Ship; eight tasks ready | The exact fn-21 six-member violation set is admitted, reproduced twice, compared by a closed normalized violation signature, reduced only through checked action/order/fault edits, explained by a non-destructive evidence core, and bound to one statically elaborated fn-5 proposal candidate. One bounded local command emits an exact report/progress contract and review-only Lean source; no new persisted artifact family, dynamic campaign surface, automatic regression installation, or non-local Claim Assessment is introduced. |
 | C11 Veil compatibility and adoption gate | `fn-23-veil-toolchain-compatibility-and` | Reviewed: Ship; six tasks ready | Two exact pinned Veil candidates are evaluated under Lean 4.33.1 only through an opt-in Linux/aarch64 diagnostic with frozen Git/npm/solver/Lean/Zig/Node/runtime closures, no-network execution, honest solver trust, candidate-scoped measurements, and one canonical adopt/defer/inconclusive receipt. No Veil dependency, semantic claim, default build integration, generated source, or production surface is introduced. |
@@ -70,10 +70,11 @@ make its component built.
 Bottom line: the component decomposition still holds, but the current implementation is not an
 end-to-end Umpire pipeline. It now reaches one deterministic generated Go test that consumes an
 exact admitted `umpire-experiment/v2` plus its separate RuntimeConfiguration, executes the closed
-local caller-closure adapter, and returns admitted Run/RawEvidence in memory. Semantic Run
-Evaluation is the next integration seam. Veil belongs at a different seam inside C11: an optional, family-owned
-Lean checker target bound by proof to an explicit canonical view, never a generated backend or a
-second semantic authority.
+local caller-closure adapter, returns admitted Run/RawEvidence, and publishes one checked
+six-member Evidence/Result extension. Replay/promotion, additional profiles, formal checker
+integration, and non-local Claim Assessment are the next seams. Veil belongs at a different seam
+inside C11: an optional, family-owned Lean checker target bound by proof to an explicit canonical
+view, never a generated backend or a second semantic authority.
 
 ## 1. Organizing principle
 
@@ -124,10 +125,10 @@ Dynamic-config declarations -+
                                   replay bundle
 ```
 
-The solid current `model/` path ends at deterministic `ExperimentSpec` inspection. Runtime
-execution, Observation Evaluation, replay, and promotion remain separate implementations. The
-single public command can eventually remain `umpire`; the decomposition is an internal and
-artifact-level boundary, not a requirement to ship many unrelated binaries.
+The current bounded path now continues from deterministic `ExperimentSpec` inspection through one
+local caller-closure execution and checked Run Evaluation. Replay, promotion, other profiles, and
+non-local Observation Evaluation remain separate implementations. The decomposition is an internal
+and artifact-level boundary, not a requirement to ship many unrelated binaries.
 
 ## 2. Artifact contracts
 
@@ -140,10 +141,10 @@ These artifacts are the seams between components:
 | Semantic catalog | Lean-owned resources, actions, properties, observations, targets, and hashes | Checked declarations and canonical projections exist in `model/Umpire/`, including `CheckedSpaceMetadata`; fn-5 still owns consolidated catalog aggregation and list/explain. |
 | Regression/space | Named regressions and exploration spaces over Lean semantics | Checked `Property`, `Behavior`, `Query`, and Space values exist, with reusable Switch and Temporal examples; there is no persisted regression catalog. |
 | ExperimentSpec | Environment-independent executable specification with a drive plan, properties, requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints | `umpire-experiment/v2` is the sole byte-identical planning Artifact emitted by planning and `umpire-gen-tests`; its nested plan is exactly `umpire-drive-plan/v2`. Strict Go admission and complete-set closure are implemented. Runtime bindings belong to the separate admitted `umpire-runtime-configuration/v2`; runtime consumption remains a Known Gap. |
-| ExperimentRun | One realized execution binding an `ExperimentSpec` to an environment, seed, controls, receipts, and cleanup outcome | Exact inert `umpire-experiment-run/v2` Lean/Go codecs, admission, closure, and fixtures are implemented; no current runtime produces it. |
-| Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | Exact bounded `umpire-raw-evidence/v2` Lean/Go codecs, admission, closure, and fixtures are implemented; no live adapter collects it. |
-| Semantic evidence | Lean-defined interpretation of raw facts | Exact `umpire-evidence/v2` transport mirrors the current Observation Evaluation types, Evidence-backed Model Trace, and Evidence Links; no live Run Evaluation produces it. |
-| Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | Exact `umpire-result/v2` transport preserves operational, Observation Evaluation, Implementation Link, Property, Limit, Known Gap, cleanup, and semantic statuses independently; no current runtime/evaluator produces it. |
+| ExperimentRun | One realized execution binding an `ExperimentSpec` to an environment, seed, controls, receipts, and cleanup outcome | Exact `umpire-experiment-run/v2` Lean/Go codecs, admission, closure, and fixtures are implemented; one bounded local caller-closure runtime produces it. |
+| Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | Exact bounded `umpire-raw-evidence/v2` Lean/Go codecs, admission, closure, and fixtures are implemented; one local adapter collects four closed sources. |
+| Semantic evidence | Lean-defined interpretation of raw facts | Exact `umpire-evidence/v2` transport mirrors the current Observation Evaluation types, Evidence-backed Model Trace, and Evidence Links; one fixed live caller-closure Run Evaluation produces it. |
+| Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | Exact `umpire-result/v2` transport preserves operational, Observation Evaluation, Implementation Link, Property, Limit, Known Gap, cleanup, and semantic statuses independently; one fixed local evaluator produces it. |
 | Replay bundle | ExperimentSpec, ExperimentRun, evidence, result, Limits, and provenance | Campaign/replay artifacts exist in the Go Umpire baselines; they do not accept `umpire-experiment/v2`. |
 | Veil binding | Source-bound correspondence between an explicit canonical first-order view and family-authored Veil declarations | Umpire3 exports `umpire3/veil-binding/v1` with declaration mappings, source/view digests, backend revision, semantic relation, and trust data. The current model has no corresponding checker view or binding. |
 | Verification receipt | Checker target, Limits, trust mode, proof/counterexample, and provenance | Umpire3 has checker receipts and release evidence. The current `model/` produces `PlannerRun` results, not a verification receipt. |
@@ -339,8 +340,8 @@ literal set/member digest binding and calls `tools/umpire/runner` directly. It d
 behavioral intent, publish output, or evaluate semantic meaning.
 
 The model-view path remains a Generated View-only pilot. The separate operational Generated View now
-executes one closed local slice and returns RawEvidence, but still supplies no Run Evaluation. Both
-paths are closed to one stable regression. The reviewed
+executes one closed local slice and returns RawEvidence; the fixed downstream checker proves one
+Run Evaluation without changing the Generated View. Both paths are closed to one stable regression. The reviewed
 `fn-5-umpire-discovery-promotion-and-artifact` plan owns the broader checked catalog, list/explain,
 exact in-memory promotion, and two-regression Generated View slice, but none of that plan is implemented
 yet. Sole-v2 persisted admission is now implemented by fn-18; future post-v2 migration remains a
@@ -378,35 +379,33 @@ local-run/run-tests command, profile selector, remote adapter, or ambient author
 **Responsibility:** interpret raw implementation facts through Lean-owned observation programs and
 compare them with the `ExperimentSpec` requirements and realized `ExperimentRun`.
 
-**Status: existing baselines, not integrated with the current model; the offline semantic boundary
-has a reviewed implementation plan.** Generic facts, lifecycle and
-relation state, evidence profiles, assessed claims, and fail-closed handling exist under
-`common/testing/umpire`; Umpire3 also has Lean-owned observation programs and a live Run Evaluation
-path. The current `model/` exports property observation requirements, but does not export an
-observation program or consume facts to produce a result.
+**Status: implemented for one bounded local caller-closure scenario.** The fn-19 four-member
+execution set now passes through the fixed private Go/Lean sibling pair, checked System Observation,
+checked Implementation Link, unchanged Feature Property, and strict Query summary. The sole
+publisher preserves the four input members and adds Evidence and Result as one admitted six-member
+set. Repeated checking publishes the same manifest-digest destination.
 
-`fn-4-umpire-observation-and-semantic-verdicts` now plans the independently implementable offline
-slice: a reusable checked Observation mapping language, bounded synthetic Observation Evaluation,
-coordinate-keyed Evidence Links, semantic verdicts through the unchanged Property evaluator, and one
-synthetic Temporal profile. It deliberately does not collect live evidence or claim live
-Run Evaluation; those remain downstream work.
+The live proof keeps operational completion, Observation acceptance, Implementation Link
+application, Property satisfaction, and cleanup independently inspectable. It runs corruption and
+ambiguity controls first, reopens the published set, and independently checks the zero-handle/four-
+source closure plus the API/history-backed caller-closure clauses. Generic profiles, remote
+Observation Evaluation, replay, promotion, formal checking, and Claim Assessment remain downstream.
 
 ```text
 ExperimentSpec + ExperimentRun + raw evidence -> semantic evidence -> evaluated Result
 ```
 
-Proposed CLI:
+Current fixed offline CLI:
 
 ```text
-umpire evidence normalize <raw-evidence>
-umpire result check <experiment> <evidence>
-umpire result explain <result>
+umpire-local-run-evaluation --set <four-member-directory> --output-root <directory>
+make umpire-check-local-run-evaluation SET=<four-member-directory> OUTPUT_ROOT=<directory>
 ```
 
 This component owns evidence identity, causal matching, source-local ordering, closure, ambiguity,
 conflicts, Known Gaps, and diagnostic obligations. Missing or ambiguous evidence fails closed. It
-must remain separate from execution so fixtures can test output, history, link, log, metric, and span
-interpretation without a running server.
+remains separate from execution: the command consumes an already-admitted four-member set, performs
+no Temporal or network operation, and publishes only after complete checking.
 
 ### C8. Exploration engine
 
@@ -612,15 +611,17 @@ C1/C2 generated structure
         -> strict v2 admission/set closure/immutable persistence
         -> deterministic ordinary generated Go test
         -> bounded local C6/C9 execution + admitted Run/RawEvidence
-        -> [missing current-model semantic Run Evaluation]
-        -> remaining C7/C10-C12 integrations
+        -> fixed C7 Observation/Implementation Link/Property Run Evaluation
+        -> admitted six-member Evidence/Result publication
+        -> remaining profiles and C10-C12 integrations
 ```
 
 C5's broader catalog and exact-promotion slice now has a reviewed Flow plan, while its implementation
 remains open. The first exact admitted `umpire-experiment/v2` and RuntimeConfiguration now execute
 without restating Lean-owned semantics and return Run/RawEvidence bound to the same Behavior
-Fingerprints. The most important integration gap is the downstream authority that maps that live
-evidence and produces the already-defined Evidence/Result Run Evaluation.
+Fingerprints. The fixed downstream Lean authority maps that live evidence and produces the
+Evidence/Result Run Evaluation for this one scenario. Broader profiles, replay, promotion, and
+non-local qualification remain integration gaps.
 
 ## 5. Delivery milestones
 
@@ -669,11 +670,11 @@ machinery; broader generated-test coverage remains part of C5.
 
 Components: C6, C7, C9, and one local environment adapter.
 
-**Status: operational execution integrated; semantic Run Evaluation not integrated.** The exact
-current caller-closure ExperimentSpec/RuntimeConfiguration set now drives the invocation-local
-Temporal/Nexus adapter and returns an admitted ExperimentRun plus closed four-source RawEvidence.
-No live Evidence mapper, Implementation Link check, Property verdict, or Result consumes that output
-yet.
+**Status: complete for one bounded local caller-closure scenario.** The exact current
+ExperimentSpec/RuntimeConfiguration set drives the invocation-local Temporal/Nexus adapter, returns
+an admitted ExperimentRun plus closed four-source RawEvidence, and passes that output through the
+fixed checked Observation, Implementation Link, Property, and Result path. This does not complete
+other profiles, remote execution, CI/staging/canary qualification, or release evidence.
 
 Deliverable:
 
@@ -693,8 +694,8 @@ Exit evidence:
 - missing, corrupted, duplicated, or causally unrelated evidence fails closed; and
 - cleanup and evidence-source closure are explicit in the Result.
 
-The first two bullets and raw cleanup/source closure are implemented. The remaining bullets require
-the live semantic Run Evaluation boundary before Milestone B is complete.
+All five bullets are now exercised by the bounded live regression for this one scenario. That proof
+does not generalize Milestone B to another profile or environment.
 
 ### Milestone C: The model finds things
 
@@ -757,18 +758,19 @@ scheduling remain downstream of a credible local slice.
 ## 6. Pilot sequence
 
 The Nexus caller-closure Behavior, reusable model DSL, Generated Views, v2 `ExperimentSpec`, exact
-RuntimeConfiguration, bounded local runner, SDK participant, and operational generated Go test are
-now implemented. The remaining bounded proof-of-value sequence is:
+RuntimeConfiguration, bounded local runner, SDK participant, operational generated Go test, and one
+checked local Run Evaluation are now implemented. Steps 3 and 4 below are complete for that one
+scenario; step 5 remains the next integration boundary:
 
 1. Finish the simple Nexus authoring examples and assess whether Lean-first authoring is usable
    enough to defer C5's generated Go facade.
 2. Record historical bugs, realistic mutations, current hand-authored coverage, comparison costs,
    time budget, and stop/go thresholds before beginning live integration.
-3. Complete the live semantic boundary from admitted ExperimentRun/RawEvidence through Observation
-   Evaluation, Implementation Link checking, Property evaluation, and Result without introducing
-   another semantic IR.
-4. Run evidence corruption and ambiguity fixtures before treating a green operational run as Run
-   Evaluation.
+3. **Complete for one local scenario:** carry admitted ExperimentRun/RawEvidence through Observation
+   Evaluation, Implementation Link checking, Property evaluation, and Result without another
+   semantic IR.
+4. **Complete for the same scenario:** run evidence corruption and ambiguity fixtures before the
+   green operational control and independently verify cleanup/source closure in the Result.
 5. Compose the current finite planner with campaign minimization, replay, and reviewed promotion for
    the same scenario.
 6. Measure defect detection, feedback latency, semantic interaction coverage, marginal authoring

@@ -167,7 +167,16 @@ private def artifactClosureLe
     (left right : ArtifactEvidenceClosureFact) : Bool :=
   decide (left.kindDefinitionId.value < right.kindDefinitionId.value)
 
-private def artifactEvidenceLink (link : EvidenceLink) : ArtifactEvidenceLink := {
+private def artifactOrderingLe
+    (left right : ArtifactEvidenceOrderingFact) : Bool :=
+  decide (left.factDefinitionId.value ≤ right.factDefinitionId.value)
+
+private def artifactEvidenceLink
+    (orderingFact : EvidenceOrderingFact → ArtifactEvidenceOrderingFact)
+    (closureSupport : List ArtifactEvidenceClosureFact)
+    (link : EvidenceLink) : ArtifactEvidenceLink :=
+  let orderingSupport := link.orderingSupport.map orderingFact |>.mergeSort artifactOrderingLe
+  {
   coordinate := artifactCoordinate link.coordinate
   mappingDefinitionId := link.mappingId
   mappingVersion := link.mappingVersion
@@ -175,19 +184,12 @@ private def artifactEvidenceLink (link : EvidenceLink) : ArtifactEvidenceLink :=
     (BehaviorFingerprint.parse? link.mappingDigest).getD (behaviorFingerprintOf link.mappingDigest)
   profileDefinitionId := link.profileId
   profileVersion := link.profileVersion
-  evidenceDefinitionIds := link.evidenceIdentities
+  evidenceDefinitionIds := link.evidenceIdentities.mergeSort fun left right =>
+    decide (left.value ≤ right.value)
   ruleDefinitionId := link.ruleId
   bindingDefinitionIds := link.bindingIds
-  orderingSupport := link.orderingSupport.map fun fact => {
-    factDefinitionId := fact.recordId
-    kindDefinitionId := fact.kind
-    ordinal := fact.origin.map EvidenceOrigin.ordinal |>.getD fact.sequence
-    causalFactDefinitionIds := fact.causalParents
-  }
-  closureSupport := (link.closureSupport.map fun closure => {
-    kindDefinitionId := closure.kind
-    lastOrdinal := if closure.source.isSome then closure.lastSequence - 1 else closure.lastSequence
-  }).mergeSort artifactClosureLe
+  orderingSupport
+  closureSupport
   appliedDispositions := link.appliedDispositions.map artifactDisposition
   appliedLimit := artifactEvidenceLimit link.appliedBound
   meaningBehaviorFingerprint :=
@@ -225,7 +227,8 @@ private def artifactTrace (trace : EvidenceBackedTrace) : ArtifactEvidenceBacked
     canonicalBehavior := meaning.canonicalBehavior
   }
   appliedLimit := artifactEvidenceLimit trace.appliedBound
-  evidenceDefinitionIds := trace.evidenceIdentities
+  evidenceDefinitionIds := trace.evidenceIdentities.mergeSort fun left right =>
+    decide (left.value ≤ right.value)
   trace := {
     traceId := trace.traceId
     initialState := trace.trace.initialState
@@ -239,15 +242,6 @@ private def artifactTrace (trace : EvidenceBackedTrace) : ArtifactEvidenceBacked
   }
 }
 
-private def artifactDeclaredDisposition
-    (declaration : FieldDispositionDeclaration) : ArtifactFieldDispositionRecord := {
-  field := artifactField declaration.field
-  disposition := declaration.disposition.name
-  digestPolicyDefinitionId := match declaration.disposition with
-    | .hash policy => policy
-    | _ => none
-}
-
 private def artifactSemanticDiagnostic
     (diagnostic : SemanticVerdictDiagnostic) : ArtifactSemanticVerdictDiagnostic := {
   kind := semanticFailureName diagnostic.kind
@@ -255,7 +249,10 @@ private def artifactSemanticDiagnostic
   observationDiagnostic := diagnostic.observationEvaluation.map artifactObservationDiagnostic
 }
 
-private def artifactClause (clause : SemanticClauseVerdict) : ArtifactSemanticClauseVerdict := {
+private def artifactClause
+    (orderingFact : EvidenceOrderingFact → ArtifactEvidenceOrderingFact)
+    (closureSupport : List ArtifactEvidenceClosureFact)
+    (clause : SemanticClauseVerdict) : ArtifactSemanticClauseVerdict := {
   propertyDefinitionId := clause.propertyId
   clauseDefinitionId := clause.clauseId
   status := semanticStatusName clause.status
@@ -264,10 +261,12 @@ private def artifactClause (clause : SemanticClauseVerdict) : ArtifactSemanticCl
   propertyLimit := clause.propertyLimit.map artifactLimit
   evidenceLimit := artifactEvidenceLimit clause.evidenceBound
   provenanceDefinitionIds := clause.provenance
-  evidenceLinks := clause.evidenceLinks.map artifactEvidenceLink
+  evidenceLinks := clause.evidenceLinks.map (artifactEvidenceLink orderingFact closureSupport)
 }
 
 private def artifactProperty
+    (orderingFact : EvidenceOrderingFact → ArtifactEvidenceOrderingFact)
+    (closureSupport : List ArtifactEvidenceClosureFact)
     (verdict : SemanticPropertyVerdict) : ArtifactPropertyVerdict := {
   queryDefinitionId := verdict.queryId
   propertyDefinitionId := verdict.propertyId
@@ -279,16 +278,19 @@ private def artifactProperty
   queryLimits := verdict.queryLimits
   evidenceLimit := verdict.evidenceBound.map artifactEvidenceLimit
   provenanceDefinitionIds := verdict.provenance
-  clauses := verdict.clauses.map artifactClause
+  clauses := verdict.clauses.map (artifactClause orderingFact closureSupport)
   diagnostic := verdict.diagnostic.map artifactSemanticDiagnostic
 }
 
-private def artifactSummary (summary : StrictQuerySummary) : ArtifactQuerySummary := {
+private def artifactSummary
+    (orderingFact : EvidenceOrderingFact → ArtifactEvidenceOrderingFact)
+    (closureSupport : List ArtifactEvidenceClosureFact)
+    (summary : StrictQuerySummary) : ArtifactQuerySummary := {
   queryDefinitionId := summary.queryId
   status := strictStatusName summary.status
   queryLimits := summary.queryLimits
   requiredPropertyDefinitionIds := summary.requiredProperties
-  propertyVerdicts := summary.verdicts.map artifactProperty
+  propertyVerdicts := summary.verdicts.map (artifactProperty orderingFact closureSupport)
   missingPropertyDefinitionIds := summary.missingProperties
   duplicatePropertyDefinitionIds := summary.duplicateProperties
   unexpectedPropertyDefinitionIds := summary.unexpectedProperties
@@ -528,17 +530,22 @@ private def sourceParticipant := id "umpire.evidence.source.participant-output"
 private structure SourceSchema where
   source : DefinitionId
   kind : DefinitionId
-  maxCount : Nat
+  rawKinds : List DefinitionId
 
 private def expectedSources : List SourceSchema := [
   { source := sourceCleanup, kind := Temporal.System.Nexus.Observation.Profile.cleanupKind,
-    maxCount := 1 },
+    rawKinds := [Temporal.System.Nexus.Observation.Profile.cleanupKind,
+      Temporal.System.Nexus.Observation.Profile.participantKind,
+      id "umpire.evidence.kind.environment-cleanup"] },
   { source := sourceControl,
-    kind := Temporal.System.Nexus.Observation.Profile.controlReceiptKind, maxCount := 1 },
+    kind := Temporal.System.Nexus.Observation.Profile.controlReceiptKind,
+    rawKinds := [Temporal.System.Nexus.Observation.Profile.controlReceiptKind] },
   { source := sourceHistory, kind := Temporal.System.Nexus.Observation.Profile.historyKind,
-    maxCount := 6 },
+    rawKinds := [Temporal.System.Nexus.Observation.Profile.historyKind] },
   { source := sourceParticipant,
-    kind := Temporal.System.Nexus.Observation.Profile.participantKind, maxCount := 1 }
+    kind := Temporal.System.Nexus.Observation.Profile.participantKind,
+    rawKinds := [Temporal.System.Nexus.Observation.Profile.participantKind,
+      id "umpire.evidence.kind.environment-lifecycle"] }
 ]
 
 private def hasExactFields (json : Lean.Json) (fields : List String) : Bool :=
@@ -597,9 +604,8 @@ private def validateSourceClosure
   if !exactSourceSet (closures.map RawClosure.definitionId) then
     throw "sourceClosures.set"
   for source in sources do
-    let schema ← match sourceSchema? source.definitionId with
-      | some schema => pure schema
-      | none => throw "sources.sourceDefinitionId"
+    if (sourceSchema? source.definitionId).isNone then
+      throw "sources.sourceDefinitionId"
     let closure ← match closures.find? fun closure => closure.definitionId == source.definitionId with
       | some closure => pure closure
       | none => throw "sourceClosures.sourceDefinitionId"
@@ -609,7 +615,6 @@ private def validateSourceClosure
     if source.factCount !=
         (facts.filter fun fact => fact.sourceDefinitionId == source.definitionId).length then
       throw "sources.factCount"
-    if source.factCount > schema.maxCount then throw "sources.factCount"
 
 private def exactRawField
     (fact : RawFact)
@@ -662,30 +667,103 @@ private def evidenceField (field : RawField) : Except String EvidenceFieldValue 
       reportedDigestToken := some token
     }
 
+private def rawFactHasField (fact : RawFact) (field : DefinitionId) : Bool :=
+  fact.fields.any fun candidate => candidate.definitionId == field
+
+private def semanticFactKind (schema : SourceSchema) (fact : RawFact) : DefinitionId :=
+  if schema.source == sourceParticipant &&
+      !rawFactHasField fact Temporal.System.Nexus.Observation.Profile.cancellationCountField then
+    Temporal.System.Nexus.Observation.Profile.cleanupKind
+  else
+    schema.kind
+
+private def requestFacts (request : Request) : List RawFact :=
+  match request.facts.getArr? with
+  | .error _ => []
+  | .ok values => (values.toList.mapM parseFact).toOption.getD []
+
+private def artifactOrderingFactFor
+    (facts : List RawFact)
+    (fact : EvidenceOrderingFact) : ArtifactEvidenceOrderingFact :=
+  match facts.find? fun raw => raw.definitionId == fact.recordId with
+  | some raw => {
+      factDefinitionId := raw.definitionId
+      kindDefinitionId := raw.kindDefinitionId
+      ordinal := raw.ordinal
+      causalFactDefinitionIds := raw.causalParents
+    }
+  | none => {
+      factDefinitionId := fact.recordId
+      kindDefinitionId := fact.kind
+      ordinal := fact.origin.map EvidenceOrigin.ordinal |>.getD fact.sequence
+      causalFactDefinitionIds := fact.causalParents
+    }
+
+private def artifactRawClosures (facts : List RawFact) : List ArtifactEvidenceClosureFact :=
+  let kinds := facts.map RawFact.kindDefinitionId |>.eraseDups
+  (kinds.map fun kind => {
+    kindDefinitionId := kind
+    lastOrdinal := facts.filter (fun fact => fact.kindDefinitionId == kind)
+      |>.foldl (fun current fact => Nat.max current fact.ordinal) 0
+  }).mergeSort artifactClosureLe
+
+private def artifactDispositionForRaw
+    (fact : RawFact)
+    (field : RawField) : Option ArtifactFieldDispositionRecord := do
+  let schema ← sourceSchema? fact.sourceDefinitionId
+  let declaration ← Temporal.System.Nexus.Observation.checkedPlan.dispositions.find? fun item =>
+    item.field == { kind := semanticFactKind schema fact, field := field.definitionId }
+  some {
+    field := { kindDefinitionId := fact.kindDefinitionId, fieldDefinitionId := field.definitionId }
+    disposition := declaration.disposition.name
+    digestPolicyDefinitionId := match declaration.disposition with
+      | .hash policy => policy
+      | _ => none
+  }
+
+private def artifactDispositionLe
+    (left right : ArtifactFieldDispositionRecord) : Bool :=
+  decide (left.field.kindDefinitionId.value < right.field.kindDefinitionId.value) ||
+    (left.field.kindDefinitionId == right.field.kindDefinitionId &&
+      decide (left.field.fieldDefinitionId.value ≤ right.field.fieldDefinitionId.value))
+
+private def artifactRawDispositions (facts : List RawFact) : List ArtifactFieldDispositionRecord :=
+  facts.flatMap (fun fact => fact.fields.filterMap (artifactDispositionForRaw fact))
+    |>.mergeSort artifactDispositionLe |>.eraseDups
+
 private def evidenceRecord (fact : RawFact) : Except String SyntheticEvidenceRecord := do
-  if (sourceSchema? fact.sourceDefinitionId).isNone then throw "facts.sourceDefinitionId"
+  let schema ← match sourceSchema? fact.sourceDefinitionId with
+    | some schema => pure schema
+    | none => throw "facts.sourceDefinitionId"
+  if !schema.rawKinds.contains fact.kindDefinitionId then throw "facts.kindDefinitionId"
   pure {
     id := fact.definitionId
     profile := Temporal.System.Nexus.Observation.Profile.id
     profileVersion := 1
-    kind := fact.kindDefinitionId
+    kind := semanticFactKind schema fact
     sequence := fact.ordinal + 1
     origin := some { source := fact.sourceDefinitionId, ordinal := fact.ordinal }
     causalParents := fact.causalParents
     fields := ← fact.fields.mapM evidenceField
   }
 
-private def evidenceClosure (closure : RawClosure) : Except String EvidenceClosureFact := do
-  let schema ← match sourceSchema? closure.definitionId with
-    | some schema => pure schema
-    | none => throw "sourceClosures.sourceDefinitionId"
-  pure {
-    kind := schema.kind
-    lastSequence := closure.recordCount
-    source := some closure.definitionId
-    recordCount := some closure.recordCount
-    byteCount := some closure.byteCount
-  }
+private def evidenceClosures
+    (closures : List RawClosure)
+    (records : List SyntheticEvidenceRecord) : List EvidenceClosureFact :=
+  closures.flatMap fun closure =>
+    let sourceRecords := records.filter fun record =>
+      record.origin.any fun origin => origin.source == closure.definitionId
+    let kinds := sourceRecords.map SyntheticEvidenceRecord.kind |>.eraseDups
+    kinds.map fun kind =>
+      let kindRecords := sourceRecords.filter fun record => record.kind == kind
+      {
+        kind
+        lastSequence := kindRecords.foldl (fun current record =>
+          Nat.max current (record.origin.map (fun origin => origin.ordinal + 1) |>.getD 0)) 0
+        source := some closure.definitionId
+        recordCount := some kindRecords.length
+        byteCount := some closure.byteCount
+      }
 
 private def evidenceGap (gap : KnownGap) : EvidenceGap := {
   code := gap.code
@@ -713,16 +791,19 @@ private def adapt (request : Request) : Except String EvidenceBundle := do
   let rawGaps ← parseGaps request.rawEvidenceKnownGaps
   validateSourceClosure sources closures facts
   validateControlAttempt controlAttempt facts
+  let records ← facts.mapM evidenceRecord
   pure {
     profile := Temporal.System.Nexus.Observation.Profile.id
     profileVersion := 1
-    records := ← facts.mapM evidenceRecord
-    closures := ← closures.mapM evidenceClosure
+    records
+    closures := evidenceClosures closures records
     knownGaps := (runGaps ++ rawGaps).map evidenceGap
     sourceClosed := request.captureStatus == "closed" &&
       sources.all (fun source => source.status == "closed") &&
       closures.all (fun closure => closure.status == "closed")
-    closedFieldKinds := expectedSources.map SourceSchema.kind
+    closedFieldKinds := expectedSources.filterMap fun schema =>
+      if schema.source == sourceCleanup || schema.source == sourceParticipant then none
+      else some schema.kind
   }
 
 private def adapterError (field : String) : Protocol.Error := {
@@ -772,24 +853,28 @@ private def provenance : ArtifactProvenance := {
 }
 
 private def observationProjection
+    (request : Request)
     (evaluation : Umpire.RunEvaluation
       Temporal.System.Nexus.ImplementationLink.CallerClosure.checked) :
     Option ArtifactEvidenceBackedModelTrace × List ArtifactEvidenceLink ×
       List ArtifactFieldDispositionRecord × List ArtifactObservationDiagnostic :=
+  let facts := requestFacts request
+  let orderingFact := artifactOrderingFactFor facts
+  let closures := artifactRawClosures facts
+  let dispositions := artifactRawDispositions facts
   match evaluation.observation with
   | .accepted trace =>
-      (some (artifactTrace trace), trace.evidenceLinks.map artifactEvidenceLink,
-        trace.dispositions.map artifactDeclaredDisposition, [])
+      (some (artifactTrace trace),
+        trace.evidenceLinks.map (artifactEvidenceLink orderingFact closures), dispositions, [])
   | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
-      (none, [], Temporal.System.Nexus.Observation.checkedPlan.dispositions.map
-        artifactDeclaredDisposition, [artifactObservationDiagnostic diagnostic])
+      (none, [], dispositions, [artifactObservationDiagnostic diagnostic])
 
 private def evidenceArtifact
     (request : Request)
     (evaluation : Umpire.RunEvaluation
       Temporal.System.Nexus.ImplementationLink.CallerClosure.checked)
     (observationGaps : List KnownGap) : EvidenceArtifact :=
-  let projection := observationProjection evaluation
+  let projection := observationProjection request evaluation
   ({
     formatVersion := "umpire-evidence/v2"
     runIdentity := request.runIdentity
@@ -847,7 +932,9 @@ private def resultArtifact
     (resultGaps : List KnownGap) : ResultArtifact :=
   let implementationStatus := evaluation.implementationLink.map
     (ImplementationLinkStatus.name ∘ ImplementationLinkResult.status) |>.getD "not-evaluated"
-  let evaluatedSummary := artifactSummary evaluation.querySummary
+  let facts := requestFacts request
+  let evaluatedSummary := artifactSummary (artifactOrderingFactFor facts)
+    (artifactRawClosures facts) evaluation.querySummary
   let summary :=
     if evaluation.observation.status == .accepted && implementationStatus == "applied" then
       evaluatedSummary
