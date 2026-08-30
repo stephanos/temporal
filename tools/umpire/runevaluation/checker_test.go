@@ -47,6 +47,18 @@ func TestEncodeCheckerRequestUsesCanonicalProtocolEnvelope(t *testing.T) {
 	require.Equal(t, expected, encoded)
 }
 
+func TestCheckerRequestWriterPreservesCanonicalStringEncoding(t *testing.T) {
+	request := testCheckerRequest()
+	detail := "<>&\b\f\n\r\t\"\\\u2028\u2029" + string([]byte{0xff})
+	request.RunKnownGaps[0].Detail = &detail
+	expected, err := artifact.CanonicalPretty(request)
+	require.NoError(t, err)
+
+	var encoded bytes.Buffer
+	require.NoError(t, writeCanonicalCheckerRequest(request, &encoded))
+	require.Equal(t, expected, encoded.Bytes())
+}
+
 func TestDecodeCheckerResponseRequiresCanonicalClosedBindings(t *testing.T) {
 	encoded, err := os.ReadFile("testdata/checker/response.json")
 	require.NoError(t, err)
@@ -146,10 +158,12 @@ func TestCheckerRequestWriterBoundsExactNAndNPlusOne(t *testing.T) {
 	exactPadding := strings.Repeat("x", padding)
 	request.RunKnownGaps[0].Detail = &exactPadding
 	exact := newBoundedCapture(maximumCheckerProtocolBytes, nil)
-	require.NoError(t, writeCanonicalCheckerRequest(request, exact))
+	exactWrites := &measuringWriter{writer: exact}
+	require.NoError(t, writeCanonicalCheckerRequest(request, exactWrites))
 	require.False(t, exact.exceeded())
 	require.Equal(t, maximumCheckerProtocolBytes, exact.length())
 	require.LessOrEqual(t, exact.capacity(), maximumCheckerProtocolBytes)
+	require.LessOrEqual(t, exactWrites.maximumWrite, 32<<10)
 	encoded, err := encodeCheckerRequest(request)
 	require.NoError(t, err)
 	require.Len(t, encoded, maximumCheckerProtocolBytes)
@@ -158,12 +172,24 @@ func TestCheckerRequestWriterBoundsExactNAndNPlusOne(t *testing.T) {
 	overPadding := exactPadding + "x"
 	request.RunKnownGaps[0].Detail = &overPadding
 	over := newBoundedCapture(maximumCheckerProtocolBytes, nil)
-	require.NoError(t, writeCanonicalCheckerRequest(request, over))
+	overWrites := &measuringWriter{writer: over}
+	require.NoError(t, writeCanonicalCheckerRequest(request, overWrites))
 	require.True(t, over.exceeded())
 	require.Equal(t, maximumCheckerProtocolBytes, over.length())
 	require.LessOrEqual(t, over.capacity(), maximumCheckerProtocolBytes)
+	require.LessOrEqual(t, overWrites.maximumWrite, 32<<10)
 	_, err = encodeCheckerRequest(request)
 	require.Error(t, err)
+}
+
+type measuringWriter struct {
+	writer       io.Writer
+	maximumWrite int
+}
+
+func (writer *measuringWriter) Write(value []byte) (int, error) {
+	writer.maximumWrite = max(writer.maximumWrite, len(value))
+	return writer.writer.Write(value)
 }
 
 func TestCheckerProcessRoundTripsTheExactClosedProtocol(t *testing.T) {
