@@ -60,6 +60,7 @@ type checkerProcess struct {
 	controllerExecutable string
 	expectedSHA256       string
 	timeout              time.Duration
+	beforeStart          func()
 }
 
 func runFixedChecker(ctx context.Context, request checkerRequest) (checkerResponse, error) {
@@ -82,10 +83,13 @@ func (process checkerProcess) run(ctx context.Context, request checkerRequest) (
 	if err != nil {
 		return checkerResponse{}, &checkerFailure{code: checkerFailureInvalidRequest}
 	}
-	checker, err := resolveVerifiedCheckerSibling(process.controllerExecutable, process.expectedSHA256)
+	checkerExecutable, err := prepareVerifiedCheckerExecutable(
+		process.controllerExecutable, process.expectedSHA256,
+	)
 	if err != nil {
 		return checkerResponse{}, err
 	}
+	defer checkerExecutable.cleanup()
 	timeout := process.timeout
 	if timeout <= 0 {
 		timeout = checkerTimeout
@@ -102,8 +106,12 @@ func (process checkerProcess) run(ctx context.Context, request checkerRequest) (
 	stderr := newBoundedCapture(maximumCheckerProtocolBytes, func() { cancelRun(stderrCause) })
 	stderr.onWrite = func() { cancelRun(stderrCause) }
 
-	command := exec.CommandContext(runContext, checker)
-	command.Dir = filepath.Dir(checker)
+	if process.beforeStart != nil {
+		process.beforeStart()
+	}
+	command := exec.CommandContext(runContext, checkerExecutable.path)
+	command.Args[0] = checkerExecutable.sibling
+	command.Dir = filepath.Dir(checkerExecutable.sibling)
 	command.Env = []string{}
 	command.Stdin = bytes.NewReader(encoded)
 	command.Stdout = stdout
@@ -150,6 +158,9 @@ func resolveCheckerSibling(controllerExecutable string) (string, error) {
 	}
 	controller, err = filepath.EvalSymlinks(controller)
 	if err != nil {
+		return "", &checkerFailure{code: checkerFailureController}
+	}
+	if filepath.Base(controller) != "umpire-local-run-evaluation" {
 		return "", &checkerFailure{code: checkerFailureController}
 	}
 	controllerInfo, err := os.Stat(controller)
@@ -235,6 +246,61 @@ func openVerifiedCheckerSibling(
 		return failed()
 	}
 	return checker, file, nil
+}
+
+type verifiedCheckerExecutable struct {
+	sibling string
+	path    string
+	cleanup func()
+}
+
+func prepareVerifiedCheckerExecutable(
+	controllerExecutable string,
+	expectedSHA256 string,
+) (verifiedCheckerExecutable, error) {
+	checker, source, err := openVerifiedCheckerSibling(controllerExecutable, expectedSHA256)
+	if err != nil {
+		return verifiedCheckerExecutable{}, err
+	}
+	defer func() { _ = source.Close() }()
+	snapshot, err := os.CreateTemp(filepath.Dir(checker), ".umpire-run-evaluation-checker-")
+	if err != nil {
+		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	snapshotPath := snapshot.Name()
+	cleanup := sync.OnceFunc(func() { _ = os.Remove(snapshotPath) })
+	failed := func() (verifiedCheckerExecutable, error) {
+		_ = snapshot.Close()
+		cleanup()
+		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	sourceInfo, err := source.Stat()
+	if err != nil || !sourceInfo.Mode().IsRegular() {
+		return failed()
+	}
+	digest := sha256.New()
+	if _, err := io.Copy(io.MultiWriter(snapshot, digest), source); err != nil {
+		return failed()
+	}
+	actualSHA256 := "sha256:" + hex.EncodeToString(digest.Sum(nil))
+	if expectedSHA256 != "" && actualSHA256 != expectedSHA256 {
+		return failed()
+	}
+	if err := snapshot.Chmod(sourceInfo.Mode().Perm() & 0o555); err != nil {
+		return failed()
+	}
+	if err := snapshot.Sync(); err != nil {
+		return failed()
+	}
+	if err := snapshot.Close(); err != nil {
+		cleanup()
+		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	return verifiedCheckerExecutable{
+		sibling: checker,
+		path:    snapshotPath,
+		cleanup: cleanup,
+	}, nil
 }
 
 type boundedCapture struct {

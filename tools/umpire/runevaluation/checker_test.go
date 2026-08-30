@@ -248,7 +248,7 @@ func TestCheckerProcessRejectsAnUnexecutableSiblingBeforeSpawn(t *testing.T) {
 func TestCheckerProcessCancellationAndTimeoutReapTheChild(t *testing.T) {
 	t.Run("timeout", func(t *testing.T) {
 		process := testCheckerProcess(t, "sleep")
-		process.timeout = 200 * time.Millisecond
+		process.timeout = time.Second
 
 		_, err := process.run(context.Background(), testCheckerRequest())
 		require.ErrorIs(t, err, &checkerFailure{code: checkerFailureTimeout})
@@ -337,12 +337,73 @@ func TestRunFixedCheckerRequiresInstalledDigest(t *testing.T) {
 	require.ErrorIs(t, err, &checkerFailure{code: checkerFailureUnsafe})
 }
 
+func TestCheckerProcessExecutesVerifiedBytesWhenSiblingChangesBeforeStart(t *testing.T) {
+	for _, testCase := range []struct {
+		name   string
+		mutate func(*testing.T, string)
+	}{
+		{
+			name: "replaced",
+			mutate: func(t *testing.T, checker string) {
+				replacement := filepath.Join(filepath.Dir(checker), "replacement-checker")
+				require.NoError(t, os.WriteFile(replacement, []byte("substituted"), 0o700))
+				require.NoError(t, os.Rename(replacement, checker))
+			},
+		},
+		{
+			name: "modified in place",
+			mutate: func(t *testing.T, checker string) {
+				require.NoError(t, os.WriteFile(checker, []byte("substituted"), 0o700))
+			},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			controller := testController(t, "valid-substitution-"+testCase.name)
+			checker := filepath.Join(filepath.Dir(controller), checkerExecutableName)
+			executable, err := os.ReadFile(checkerFixtureExecutable)
+			require.NoError(t, err)
+			require.NoError(t, os.WriteFile(checker, executable, 0o700))
+			process := checkerProcess{
+				controllerExecutable: controller,
+				expectedSHA256:       fileSHA256(t, checker),
+				timeout:              checkerTimeout,
+				beforeStart:          func() { testCase.mutate(t, checker) },
+			}
+
+			response, err := process.run(context.Background(), testCheckerRequest())
+			require.NoError(t, err)
+			require.Equal(t, testCheckerResponse(), response)
+			for _, entry := range directoryEntries(t, filepath.Dir(checker)) {
+				require.False(t, strings.HasPrefix(entry.Name(), ".umpire-run-evaluation-checker-"))
+			}
+		})
+	}
+}
+
+func TestResolveCheckerSiblingRequiresTheFixedControllerName(t *testing.T) {
+	directory := t.TempDir()
+	controller := filepath.Join(directory, "renamed-controller")
+	require.NoError(t, os.WriteFile(controller, []byte("fixture"), 0o700))
+	require.NoError(t, os.Link(checkerFixtureExecutable,
+		filepath.Join(directory, checkerExecutableName)))
+
+	_, err := resolveCheckerSibling(controller)
+	require.ErrorIs(t, err, &checkerFailure{code: checkerFailureController})
+}
+
 func fileSHA256(t *testing.T, path string) string {
 	t.Helper()
 	encoded, err := os.ReadFile(path)
 	require.NoError(t, err)
 	digest := sha256.Sum256(encoded)
 	return "sha256:" + hex.EncodeToString(digest[:])
+}
+
+func directoryEntries(t *testing.T, path string) []os.DirEntry {
+	t.Helper()
+	entries, err := os.ReadDir(path)
+	require.NoError(t, err)
+	return entries
 }
 
 func TestBoundedCheckerCaptureNeverAllocatesTheLimitPlusOneByte(t *testing.T) {
