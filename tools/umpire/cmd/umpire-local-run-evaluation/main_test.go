@@ -118,6 +118,44 @@ func TestRunRejectsUnsafeSetAndOutputRootsBeforeChecking(t *testing.T) {
 	}
 }
 
+func TestRunCanonicalizesSymlinkedAncestorsToPhysicalRoots(t *testing.T) {
+	setParent := t.TempDir()
+	outputParent := t.TempDir()
+	physicalSet := filepath.Join(setParent, "set")
+	physicalOutput := filepath.Join(outputParent, "output")
+	require.NoError(t, os.Mkdir(physicalSet, 0o700))
+	require.NoError(t, os.Mkdir(physicalOutput, 0o700))
+	setAlias := filepath.Join(t.TempDir(), "set-parent")
+	outputAlias := filepath.Join(t.TempDir(), "output-parent")
+	if err := os.Symlink(setParent, setAlias); err != nil {
+		t.Skipf("symlinks unavailable: %v", err)
+	}
+	require.NoError(t, os.Symlink(outputParent, outputAlias))
+	input := admittedFixtureSet(t, 4)
+	output := admittedFixtureSet(t, 6)
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := execute(context.Background(), []string{
+		"--set", filepath.Join(setAlias, "set"),
+		"--output-root", filepath.Join(outputAlias, "output"),
+	}, &stdout, &stderr, commandDependencies{
+		loadSet: func(root string) (artifact.AdmittedSet, error) {
+			require.Equal(t, physicalSet, root)
+			return input, nil
+		},
+		check: func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
+		publishSet: func(root string, admitted artifact.AdmittedSet) (string, error) {
+			require.Equal(t, physicalOutput, root)
+			return artifact.PublishSet(root, admitted)
+		},
+	})
+
+	require.Equal(t, exitSatisfied, code)
+	require.NotEmpty(t, stdout.String())
+	require.Empty(t, stderr.String())
+}
+
 func TestRunRejectsOverlappingSetAndOutputRootsBeforeAdmission(t *testing.T) {
 	setRoot := t.TempDir()
 	outputInsideSet := filepath.Join(setRoot, "output")
