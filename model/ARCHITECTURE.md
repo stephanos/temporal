@@ -227,6 +227,8 @@ Temporal-specific modules are split by semantic altitude:
   for dispatch, cancellation recording, and completion recording.
 - `Temporal.System.Nexus.ImplementationLink` is the sole production leaf that imports both Nexus
   sides and proves the checked bounded forward correspondence into the unchanged Feature lifecycle.
+- `Temporal.System.Nexus.Observation` owns the fixed checked caller-closure System evidence profile
+  and mapping consumed by local Run Evaluation.
 - `Temporal.Feature.Nexus.Experimental.AutoClose` owns the detailed AutoClose configuration,
   lifecycle, reachability, history, and proofs as explicit opt-in material.
 - `Temporal.Feature.Nexus.Experimental.CallerClosure` is the opt-in Workflow–Nexus integration
@@ -238,6 +240,9 @@ Temporal-specific modules are split by semantic altitude:
   that facade.
 - `Temporal.Tool.Inspect` owns canonical artifact rendering, scenario lookup, CLI diagnostics, and
   the executable entry point. It does not own feature semantics.
+- `Temporal.Tool.RunEvaluation` owns the closed private Generated View adapter and fixed checker
+  composition for one local caller-closure execution. It has no filesystem, network, publication,
+  or Temporal execution authority.
 
 Property, Behavior, and Query remain distinct throughout the Temporal examples. A Property states
 what a Model Trace must mean. A Behavior selects allowed controllable actions and setup without
@@ -265,13 +270,12 @@ state/action/outcome/observation fields, rejects its raw-detail field, applies a
 offline result contains an Evidence-backed Model Trace, the independently evaluated asynchronous-start Property
 verdict, and its strict Query summary.
 
-The future runtime seam stops at `EvidenceBundle`. A future adapter would have to translate an
-external source into the declared profile and version; stable record identities; evidence kinds;
-typed fields and optional digest metadata; sequence and causal-parent facts; optional binding and
-fault-target facts; source-closure facts; and any compatible alternatives plus their missing
-discriminator. Umpire remains responsible for every check after that handoff. No live adapter is
-implemented here, and this model does not execute Temporal, collect or persist live evidence,
-perform Run Evaluation, promote a result, or define a second profile.
+The reusable runtime seam stops at `EvidenceBundle`. The fixed caller-closure adapter now translates
+one exact fn-19 four-source Generated View into that declared profile and version while preserving
+stable record identities, typed fields and digest metadata, source-local ordinals, causal parents,
+and source closure. Umpire remains responsible for every check after that handoff. The checker does
+not execute Temporal, read or publish artifacts, select another profile, perform replay or
+promotion, or qualify non-local evidence.
 
 The checked cross-altitude path adds a separate stage after accepted Observation Evaluation:
 
@@ -285,8 +289,9 @@ authoritative Feature Model Trace + CheckedProperty
 
 Observation, Implementation Link, and Property outcomes keep distinct identities and diagnostics.
 An Observation non-success never invokes the Implementation Link; an Implementation Link
-non-success never invokes Feature Property evaluation. A later Run Evaluation may orchestrate the
-three stages but cannot collapse one layer's failure into another's status.
+non-success never invokes Feature Property evaluation. The fixed local caller-closure Run
+Evaluation now orchestrates the three stages without collapsing one layer's failure into another's
+status; other profiles and non-local paths remain open.
 
 ## Package boundaries
 
@@ -305,8 +310,8 @@ three stages but cannot collapse one layer's failure into another's status.
 - `Temporal.System` owns configuration and execution-oriented mechanisms without defining feature
   behavior; only its focused Nexus Implementation Link leaf imports both independently authored
   sides.
-- `Temporal.Tool` owns inspection and other developer tools without becoming part of the
-  production aggregate.
+- `Temporal.Tool` owns inspection and the fixed private caller-closure checker without becoming
+  part of the production aggregate or acquiring runtime/publication authority.
 - `Temporal.API` and `Temporal.DynamicConfig` remain generated structures outside the
   Feature/System semantic layers.
 - `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
@@ -315,10 +320,11 @@ three stages but cannot collapse one layer's failure into another's status.
   `Umpire.Planning.Engine` implement public facades and should not normally be imported directly.
 
 DrivePlan and ExperimentSpec are pure model products. They do not claim that Temporal was started,
-actions were executed, or runtime Evidence was collected. The later Runtime, Evidence, and Result
-modules define inert transport records for facts and outcomes supplied by their owning downstream
-stages; admitting those bytes verifies transport and closure, not that Execution or Run Evaluation
-occurred.
+actions were executed, or runtime Evidence was collected. Runtime, Evidence, and Result modules
+define transport records for facts and outcomes supplied by their owning downstream stages;
+admitting arbitrary bytes verifies transport and closure, not provenance. One separately bounded
+local caller-closure harness now proves an actual fn-19 execution and Run Evaluation through those
+records.
 
 The public `Umpire.Artifact` facade exposes the retained v2 Planning, Runtime, Evidence, Result, and
 Set modules without aliases. Persisted documents use only deterministic two-space pretty JSON with

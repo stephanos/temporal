@@ -129,10 +129,8 @@ private def completeBundle : EvidenceBundle := {
   ]
   sourceClosed := true
   closedFieldKinds := [
-    Temporal.System.Nexus.Observation.Profile.cleanupKind,
     Temporal.System.Nexus.Observation.Profile.controlReceiptKind,
-    Temporal.System.Nexus.Observation.Profile.historyKind,
-    Temporal.System.Nexus.Observation.Profile.participantKind
+    Temporal.System.Nexus.Observation.Profile.historyKind
   ]
 }
 

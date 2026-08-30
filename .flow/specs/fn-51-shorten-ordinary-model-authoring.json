@@ -1,0 +1,46 @@
+{
+  "branch_name": "fn-51-shorten-ordinary-model-authoring",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-30T16:08:50.634510Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-43-deepen-ordinary-property-behavior-and"
+  ],
+  "id": "fn-51-shorten-ordinary-model-authoring",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "c8a5a4465688437ebf9f60bbf748a344": {
+      "artifact_sha256": "d8304ae6adbbff3831d3a520d088ec8392997873c207e161168c492cfd26a63e",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
+  "spec_path": ".flow/specs/fn-51-shorten-ordinary-model-authoring.md",
+  "status": "open",
+  "title": "Shorten ordinary model authoring",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-30T16:27:20.234135Z"
+}

@@ -260,14 +260,13 @@ existing asynchronous-start Property, and produces one satisfied strict summary.
 also preserve the exact offline `unknown`, `conflict`, and `unsupported` outcomes for incomplete,
 ambiguous, contradictory, mismatched, rejected, or otherwise unusable synthetic bundles.
 
-A future adapter has one typed handoff: construct a complete `EvidenceBundle` containing the
-profile identity/version, records, closure facts, and—when applicable—compatible alternatives and
-their missing discriminator. Each record preserves identity, profile identity/version, kind,
-sequence, causal parents, typed fields with optional digest metadata, optional binding facts, and
-an optional fault target. Umpire, not the adapter, compiles mappings, enforces the Limit and
-dispositions, qualifies evidence, evaluates Properties, and aggregates verdicts. No adapter is
-implemented in this release, and these modules do not execute Temporal, collect or persist live
-Evidence, perform Run Evaluation, promote a result, or support another profile.
+`Temporal.Tool.RunEvaluation` now provides one closed adapter for the experimental caller-closure
+scenario. It converts the exact fn-19 four-source Generated View into a complete `EvidenceBundle`
+while preserving fact identity, source-local ordinal, causality, closure, typed fields, and digest
+metadata. The checked `Temporal.System.Nexus.Observation` plan—not Go—owns the mapping, Limit,
+dispositions, and Evidence-backed System trace. This is one fixed local scenario, not a generic
+profile loader: the model still does not execute Temporal, select a checker or profile at runtime,
+perform replay or promotion, or qualify a non-local result.
 
 ## Checked Implementation Links
 
@@ -290,10 +289,19 @@ Feature trace ─ checked Feature Property ─▶ satisfied | violated
 ```
 
 The first Nexus correspondence covers ordinary start, cancellation, and successful completion.
-AutoClose and CallerClosure remain Experimental and outside this seam. A future Run Evaluation may
-orchestrate these checked stages, but it must retain the responsible layer, canonical identity, and
-Evidence Links for every non-success rather than turning an Observation or Implementation Link
-failure into a Property violation.
+AutoClose and CallerClosure remain Experimental and outside the ordinary seam. The fixed local
+caller-closure Run Evaluation now orchestrates these checked stages and retains the responsible
+layer, canonical identity, and Evidence Links for every non-success rather than turning an
+Observation or Implementation Link failure into a Property violation. Other scenarios remain
+unintegrated.
+
+For one admitted four-member caller-closure execution set, the repository-root
+`umpire-check-local-run-evaluation` target builds the fixed Go/Lean sibling pair, checks the set,
+and immutably publishes the six-member extension containing Evidence and Result. See
+[`tools/umpire/runevaluation/README.md`](../tools/umpire/runevaluation/README.md) for the exact
+offline command, outputs, statuses, Limits, dispositions, and fail-closed boundary. Operational
+success, accepted Observation Evaluation, applied Implementation Link, and Property satisfaction
+remain independently inspectable.
 
 Build each stage through the final module and target names:
 
@@ -374,8 +382,10 @@ make umpire-inspect SCENARIO=switch.query.exact-action
 
 On success the inspector writes one canonical JSON `ExperimentSpec` to standard output. The
 compiler and inspector do not write an artifact file, start a live server, execute a workflow, or
-collect evidence. Runtime driving, construction of a future adapter's `EvidenceBundle`, and
-promotion remain separate work; offline Observation Evaluation is the current `Umpire.Observation` API.
+collect evidence. The separate fixed caller-closure adapter can now construct one live
+`EvidenceBundle` and run the checked local semantic path after execution. Broader runtime driving,
+other profiles, replay, and promotion remain separate work; reusable offline Observation
+Evaluation remains the `Umpire.Observation` API.
 
 Generated API declarations remain generated structures only. Behavioral meaning, including whether
 a selected action is applicable and which transition outcomes are possible, remains owned by the

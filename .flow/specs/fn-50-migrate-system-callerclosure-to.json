@@ -1,0 +1,133 @@
+{
+  "branch_name": "fn-50-migrate-system-callerclosure-to",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-30T16:08:41.780689Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-41-finitemachine-target-authoring"
+  ],
+  "id": "fn-50-migrate-system-callerclosure-to",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-30T16:27:04.107364Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "a0049403d6711f289db503cf5e901710b06d04f8771aa4d7d144d3e86b92cc82",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e1ad47310e70d9b8cbc2d9b977bf251b",
+            "classification": "introduced",
+            "findingId": "finding-e1ad47310e70d9b8cbc2d9b977bf251b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8633f32e4acd9dbd549ff08b3f379f791b31fcf9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 277058,
+      "output_sha256": "499bc976a9b05a07f455bbb5f4fa27d1f943cbdba6aec11e62774570a225588b",
+      "reservation_id": "492a5873141644189bd876bd4a6afbdd",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-30T16:24:39.837617Z",
+      "tool_calls": 22,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c6dc7e557ada8e39b12f15d2054c078551d4f232d41624df83b4d33bea19f5ef",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e1ad47310e70d9b8cbc2d9b977bf251b",
+            "classification": "introduced",
+            "findingId": "finding-e1ad47310e70d9b8cbc2d9b977bf251b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8633f32e4acd9dbd549ff08b3f379f791b31fcf9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 307,
+      "output_sha256": "0fb237eee1b630d9179057db88264253534f7a27be97baaefd38f45625b79aed",
+      "reservation_id": "eec340a2c05a4000a5b2364ef958ae57",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-30T16:27:04.104626Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-50-migrate-system-callerclosure-to.md",
+  "status": "open",
+  "title": "Migrate System CallerClosure to FiniteMachine",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-30T16:27:04.107758Z"
+}

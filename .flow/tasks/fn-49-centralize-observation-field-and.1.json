@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-30T16:08:40.721759Z",
+  "depends_on": [],
+  "id": "fn-49-centralize-observation-field-and.1",
+  "priority": null,
+  "spec": "fn-49-centralize-observation-field-and",
+  "spec_path": ".flow/tasks/fn-49-centralize-observation-field-and.1.md",
+  "status": "todo",
+  "title": "Introduce Observation field specifications",
+  "updated_at": "2026-08-30T16:08:40.721759Z"
+}

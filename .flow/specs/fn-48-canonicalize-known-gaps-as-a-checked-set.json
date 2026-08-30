@@ -1,0 +1,182 @@
+{
+  "branch_name": "fn-48-canonicalize-known-gaps-as-a-checked-set",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-08-30T16:03:49.436876Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-43-deepen-ordinary-property-behavior-and",
+    "fn-47-generate-umpire-semantic-outcome-and"
+  ],
+  "id": "fn-48-canonicalize-known-gaps-as-a-checked-set",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-08-30T16:17:57.793725Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "378e8efe14f559ff2c6207e5ea98f82876204baf98ed010aea013c35e88072c3",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-220dd4994334860f2110a9c07549435e",
+            "classification": "introduced",
+            "findingId": "finding-220dd4994334860f2110a9c07549435e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-85e15970448296dbb114b0d1cbc8b953",
+            "classification": "introduced",
+            "findingId": "finding-85e15970448296dbb114b0d1cbc8b953",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-681f72be1bbee7813056554598c0ef6b",
+            "classification": "introduced",
+            "findingId": "finding-681f72be1bbee7813056554598c0ef6b",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-29b24f4201c65fe7a50037641317798d",
+            "classification": "introduced",
+            "findingId": "finding-29b24f4201c65fe7a50037641317798d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8633f32e4acd9dbd549ff08b3f379f791b31fcf9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 310775,
+      "output_sha256": "cca57bef6bad525884299462a4d3ca9559696171955aac71c1cba35776153487",
+      "reservation_id": "fb7bd134de8d44908fad9835dfaac280",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-30T16:15:20.852083Z",
+      "tool_calls": 14,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "9698dd79bcf671df42fbdb7af88212190bbf8092d472b27bc2f19203365ffe7c",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-220dd4994334860f2110a9c07549435e",
+            "classification": "introduced",
+            "findingId": "finding-220dd4994334860f2110a9c07549435e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-85e15970448296dbb114b0d1cbc8b953",
+            "classification": "introduced",
+            "findingId": "finding-85e15970448296dbb114b0d1cbc8b953",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-681f72be1bbee7813056554598c0ef6b",
+            "classification": "introduced",
+            "findingId": "finding-681f72be1bbee7813056554598c0ef6b",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-29b24f4201c65fe7a50037641317798d",
+            "classification": "introduced",
+            "findingId": "finding-29b24f4201c65fe7a50037641317798d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8633f32e4acd9dbd549ff08b3f379f791b31fcf9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 83,
+      "output_sha256": "40d2d19134681e086a006dfc0c8bb45ef809e3140d67088c1eab2d9a33648691",
+      "reservation_id": "13ec7111fc3e41629a0d51371451f446",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-30T16:17:57.790354Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-48-canonicalize-known-gaps-as-a-checked-set.md",
+  "status": "open",
+  "title": "Canonicalize Known Gaps as a checked set",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-08-30T16:17:57.794290Z"
+}
