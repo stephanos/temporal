@@ -96,7 +96,7 @@ func execute(
 			Code: "umpire.run-evaluation.publication.unsafe-root",
 		})
 	}
-	input, err := dependencies.loadSet(setPath)
+	input, err := dependencies.loadSet(physicalSet)
 	if err != nil {
 		return reportError(stderr, commandError{
 			Kind: "input", Phase: "admission", Subject: "set",
@@ -125,7 +125,7 @@ func execute(
 			CheckingOccurred: kind != "input", RunIdentity: &runIdentity,
 		})
 	}
-	destination, err := dependencies.publishSet(outputRoot, output)
+	destination, err := dependencies.publishSet(physicalOutputRoot, output)
 	if err != nil {
 		return reportError(stderr, commandError{
 			Kind: "publication", Phase: "publication", Subject: "output-root",
@@ -253,24 +253,34 @@ func physicalDirectory(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for current := absolute; ; current = filepath.Dir(current) {
+	leaf, err := os.Lstat(absolute)
+	if err != nil {
+		return "", err
+	}
+	if leaf.Mode()&os.ModeSymlink != 0 {
+		return "", errors.New("path is a symbolic link")
+	}
+	if !leaf.IsDir() {
+		return "", errors.New("path is not a directory")
+	}
+	resolved, err := filepath.EvalSymlinks(absolute)
+	if err != nil {
+		return "", errors.New("path is not physical")
+	}
+	for current := resolved; ; current = filepath.Dir(current) {
 		info, err := os.Lstat(current)
 		if err != nil {
 			return "", err
 		}
 		if info.Mode()&os.ModeSymlink != 0 {
-			return "", errors.New("path contains a symbolic link")
+			return "", errors.New("resolved path contains a symbolic link")
 		}
-		if current == absolute && !info.IsDir() {
+		if current == resolved && !info.IsDir() {
 			return "", errors.New("path is not a directory")
 		}
 		if parent := filepath.Dir(current); parent == current {
 			break
 		}
-	}
-	resolved, err := filepath.EvalSymlinks(absolute)
-	if err != nil || filepath.Clean(resolved) != filepath.Clean(absolute) {
-		return "", errors.New("path is not physical")
 	}
 	return resolved, nil
 }
