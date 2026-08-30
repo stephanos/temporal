@@ -26,12 +26,13 @@ const (
 	callerClosureConfigurationID                 = "temporal.nexus.runtime-configuration.caller-closure"
 	localAuthorityProfileID                      = "temporal.runtime-profile.ephemeral-local"
 	localAuthorityProfileFingerprint             = "sha256:dd92f1ee14df101f2ea4abb4439f4722de8c061292a4fdd6b6476c7ca7e09b31"
-	callerClosureObservationProfileID            = "temporal.nexus.synthetic.basic-lifecycle.profile"
-	callerClosureObservationProfileFingerprint   = "sha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105"
+	callerClosureConfigurationProfileID          = "temporal.nexus.synthetic.basic-lifecycle.profile"
+	callerClosureConfigurationProfileFingerprint = "sha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105"
 	callerClosureObservationProgramID            = "temporal.nexus.observation-program.basic-lifecycle"
 	callerClosureObservationProgramFingerprint   = "sha256:1ab36fdcd2978dec901678491646ec67fe0fc1d3bd1883e599bc2c53810b3480"
 	callerClosureConfigurationMappingID          = "temporal.nexus.synthetic.basic-lifecycle.mapping"
 	callerClosureConfigurationMappingFingerprint = "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2"
+	callerClosureCheckedProfileID                = "temporal.system.nexus.caller-closure.profile"
 	callerClosureCheckedMappingID                = "temporal.system.nexus.caller-closure.mapping"
 	callerClosureCheckedMappingFingerprint       = "sha256:d5d437c89205880d27770b5abdac8aa3eabf07a21e40264ae5601162d70a7f17"
 	callerClosureParticipantID                   = "temporal.nexus.participant.caller-closure"
@@ -146,8 +147,8 @@ func exactCallerClosureConfiguration(configuration artifactv2.RuntimeConfigurati
 		configuration.AuthorityProfile.Version != artifactv2.NaturalFromUint64(2) ||
 		configuration.AuthorityProfile.BehaviorFingerprint != localAuthorityProfileFingerprint ||
 		len(configuration.AuthorityProfile.RequiredCapabilityDefinitionIDs) != 0 ||
-		configuration.Observation.ProfileDefinitionID != callerClosureObservationProfileID ||
-		configuration.Observation.ProfileBehaviorFingerprint != callerClosureObservationProfileFingerprint ||
+		configuration.Observation.ProfileDefinitionID != callerClosureConfigurationProfileID ||
+		configuration.Observation.ProfileBehaviorFingerprint != callerClosureConfigurationProfileFingerprint ||
 		configuration.Observation.ProgramDefinitionID != callerClosureObservationProgramID ||
 		configuration.Observation.ProgramBehaviorFingerprint != callerClosureObservationProgramFingerprint ||
 		configuration.Observation.MappingDefinitionID != callerClosureConfigurationMappingID ||
