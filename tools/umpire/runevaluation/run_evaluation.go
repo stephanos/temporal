@@ -3,7 +3,10 @@ package runevaluation
 import (
 	"context"
 	"errors"
+	"os"
+	"os/signal"
 	"slices"
+	"syscall"
 
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
@@ -50,7 +53,13 @@ type checkerCall func(context.Context, checkerRequest) (checkerResponse, error)
 
 // Check evaluates one exact admitted local caller-closure execution set in memory.
 func Check(admittedSet artifact.AdmittedSet) (artifact.AdmittedSet, error) {
-	return checkWithChecker(context.Background(), admittedSet, runFixedChecker)
+	ctx, stop := checkerSignalContext()
+	defer stop()
+	return checkWithChecker(ctx, admittedSet, runFixedChecker)
+}
+
+func checkerSignalContext() (context.Context, context.CancelFunc) {
+	return signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 }
 
 func checkWithChecker(

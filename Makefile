@@ -1000,6 +1000,25 @@ umpire-check-artifact-set:
 	@test -n "$(SET)" || { echo "SET is required" >&2; exit 2; }
 	@$(UMPIRE_ARTIFACT_COMMAND) check-set --set "$(SET)"
 
+umpire-check-local-run-evaluation:
+	@test -n "$(SET)" || { echo "SET is required" >&2; exit 2; }
+	@test -n "$(OUTPUT_ROOT)" || { echo "OUTPUT_ROOT is required" >&2; exit 2; }
+	@test -d "$(SET)" || { echo "SET must be a directory" >&2; exit 2; }
+	@test -d "$(OUTPUT_ROOT)" || { echo "OUTPUT_ROOT must be a directory" >&2; exit 2; }
+	@set -eu; installation=$$(mktemp -d); \
+		trap 'rm -rf "$$installation"' EXIT; \
+		cd model && $(LEAN_LAKE) build temporal-run-evaluation-checker >/dev/null; \
+		cd ..; \
+		cp "model/.lake/build/bin/temporal-run-evaluation-checker" \
+			"$$installation/temporal-run-evaluation-checker"; \
+		chmod 0700 "$$installation/temporal-run-evaluation-checker"; \
+		checker_sha=$$(shasum -a 256 "$$installation/temporal-run-evaluation-checker" | awk '{print $$1}'); \
+		go build -ldflags "-X main.expectedCheckerSHA256=sha256:$$checker_sha -X go.temporal.io/server/tools/umpire/runevaluation.installedCheckerSHA256=sha256:$$checker_sha" \
+			-o "$$installation/umpire-local-run-evaluation" \
+			./tools/umpire/cmd/umpire-local-run-evaluation; \
+		"$$installation/umpire-local-run-evaluation" \
+			--set "$(SET)" --output-root "$(OUTPUT_ROOT)"
+
 umpire-inspect:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
 	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$(SCENARIO)"
