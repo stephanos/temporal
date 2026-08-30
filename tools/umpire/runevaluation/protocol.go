@@ -1,7 +1,6 @@
 package runevaluation
 
 import (
-	"encoding/json"
 	"errors"
 	"io"
 	"reflect"
@@ -101,10 +100,7 @@ func encodeCheckerRequest(request checkerRequest) ([]byte, error) {
 }
 
 func writeCanonicalCheckerRequest(request checkerRequest, writer io.Writer) error {
-	encoder := json.NewEncoder(writer)
-	encoder.SetEscapeHTML(false)
-	encoder.SetIndent("", "  ")
-	return encoder.Encode(request)
+	return writeCanonicalPrettyJSON(writer, request)
 }
 
 func decodeCheckerResponse(encoded []byte, request checkerRequest) (checkerResponse, error) {
