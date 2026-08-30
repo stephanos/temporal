@@ -5,6 +5,7 @@ import Temporal.Feature.Nexus.Experimental.CallerClosureTests
 import Temporal.Feature.Nexus.Experimental.VariationSpaceTests
 import Temporal.Tool.InspectTests
 import Temporal.Tool.GenerateTestsTests
+import Temporal.Tool.RunEvaluationTests
 
 namespace TemporalExperimentalTests
 

@@ -175,8 +175,7 @@ def implementationSemanticReference?
 
 private def conflictingCapabilityId?
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation) : Option DefinitionId :=
-  let ids := target.providers.map (fun provider => provider.contract.id)
-    |>.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
+  let ids := target.requiredCapabilities
   ids.find? fun id =>
     let providers := target.providers.filter fun provider => provider.contract.id == id
     match target.definitions.find? (fun definition =>

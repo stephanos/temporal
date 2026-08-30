@@ -1,5 +1,5 @@
 name = "temporal-model"
-defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "TemporalExperimentalTests", "temporal-model-inspect", "umpire-gen-tests"]
+defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "TemporalExperimentalTests", "temporal-model-inspect", "temporal-run-evaluation-checker", "umpire-gen-tests"]
 builtinLint = true
 lintDriver = "modelLint"
 
@@ -40,6 +40,10 @@ root = "Temporal.Tool.Inspect"
 [[lean_exe]]
 name = "umpire-gen-tests"
 root = "Temporal.Tool.GenerateTestsMain"
+
+[[lean_exe]]
+name = "temporal-run-evaluation-checker"
+root = "Temporal.Tool.RunEvaluationMain"
 
 [[lean_exe]]
 name = "umpire-gen-tests-tests"

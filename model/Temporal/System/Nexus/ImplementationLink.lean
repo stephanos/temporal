@@ -1,4 +1,6 @@
 import Temporal.Feature.Nexus.Lifecycle
+import Temporal.Feature.Nexus.Experimental.CallerClosure
+import Temporal.System.Nexus.CallerClosure
 import Temporal.System.Nexus.Core
 import Umpire.ImplementationLink
 import Umpire.Property
@@ -418,3 +420,255 @@ def evaluateFeatureProperty
       | .unsupported diagnostic => .implementationLinkFailure diagnostic
 
 end Temporal.System.Nexus.ImplementationLink
+
+namespace Temporal.System.Nexus.ImplementationLink.CallerClosure
+
+open Umpire
+
+private def id (value : String) : DefinitionId := DefinitionId.of value
+
+def source : SourceLocation := {
+  path := "Temporal/System/Nexus/ImplementationLink.lean"
+  line := 1
+  column := 1
+  provenance := "lean-model"
+}
+
+def implementationLinkId : DefinitionId :=
+  id "temporal.system.nexus.caller-closure.implementation-link"
+
+def mapSetup
+    (_ : List RoleBinding) : List RoleBinding :=
+  Temporal.Feature.Nexus.Experimental.CallerClosure.clashSetup
+
+def mapState (state : ModelValue) : ModelValue :=
+  if state = Temporal.System.Nexus.CallerClosure.openState then
+    Temporal.Feature.Nexus.Experimental.CallerClosure.clashState
+  else
+    Temporal.Feature.Nexus.Experimental.CallerClosure.closedState
+
+def mapAction (_ : ModelValue) : ModelValue :=
+  Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction
+
+def mapOutcome (_ : ModelValue) : ModelValue :=
+  Temporal.Feature.Nexus.Experimental.CallerClosure.upgradedOutcome
+
+def mapObservation (observation : ModelValue) : ModelValue :=
+  if observation = Temporal.System.Nexus.CallerClosure.deliveryObservation then
+    Temporal.Feature.Nexus.Experimental.CallerClosure.deliveredObservation
+  else if observation = Temporal.System.Nexus.CallerClosure.cancellationCountObservation then
+    Temporal.Feature.Nexus.Experimental.CallerClosure.cancellationCountObservation
+  else
+    Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipObservation
+
+def sourceCapabilityReference : ImplementationSemanticReference :=
+  (implementationSemanticReference? Temporal.System.Nexus.CallerClosure.target
+    Temporal.System.Nexus.CallerClosure.capabilityId .capability).get (by native_decide)
+
+def destinationCapabilityReference : ImplementationSemanticReference :=
+  (implementationSemanticReference?
+    Temporal.Feature.Nexus.Experimental.CallerClosure.target
+    Temporal.Feature.Nexus.Experimental.CallerClosure.cancellationCapabilityId
+    .capability).get (by native_decide)
+
+def sourceLifecycleCapabilityReference : ImplementationSemanticReference :=
+  (implementationSemanticReference? Temporal.System.Nexus.CallerClosure.target
+    Temporal.System.Nexus.CallerClosure.lifecycleCapabilityId .capability).get
+      (by native_decide)
+
+def destinationLifecycleCapabilityReference : ImplementationSemanticReference :=
+  (implementationSemanticReference?
+    Temporal.Feature.Nexus.Experimental.CallerClosure.target
+    Temporal.Feature.Nexus.Experimental.CallerClosure.workflowCapabilityId
+    .capability).get (by native_decide)
+
+def sourceOwnershipCapabilityReference : ImplementationSemanticReference :=
+  (implementationSemanticReference? Temporal.System.Nexus.CallerClosure.target
+    Temporal.System.Nexus.CallerClosure.ownershipCapabilityId .capability).get
+      (by native_decide)
+
+def destinationOwnershipCapabilityReference : ImplementationSemanticReference :=
+  (implementationSemanticReference?
+    Temporal.Feature.Nexus.Experimental.CallerClosure.target
+    Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipCapabilityId
+    .capability).get (by native_decide)
+
+def capabilityMapping : ImplementationSemanticMapping := {
+  source := sourceCapabilityReference
+  destination := destinationCapabilityReference
+}
+
+def lifecycleCapabilityMapping : ImplementationSemanticMapping := {
+  source := sourceLifecycleCapabilityReference
+  destination := destinationLifecycleCapabilityReference
+}
+
+def ownershipCapabilityMapping : ImplementationSemanticMapping := {
+  source := sourceOwnershipCapabilityReference
+  destination := destinationOwnershipCapabilityReference
+}
+
+def declaration : ImplementationLinkDeclaration
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
+  id := implementationLinkId
+  source
+  sourceTarget := .ofTarget Temporal.System.Nexus.CallerClosure.target
+  destinationTarget := .ofTarget Temporal.Feature.Nexus.Experimental.CallerClosure.target
+  setupMappings := [{
+    source := Temporal.System.Nexus.CallerClosure.setup
+    destination := Temporal.Feature.Nexus.Experimental.CallerClosure.clashSetup
+  }]
+  stateMappings := [
+    { source := Temporal.System.Nexus.CallerClosure.openState,
+      destination := Temporal.Feature.Nexus.Experimental.CallerClosure.clashState },
+    { source := Temporal.System.Nexus.CallerClosure.closedState,
+      destination := Temporal.Feature.Nexus.Experimental.CallerClosure.closedState }
+  ]
+  actionMappings := [{
+    source := Temporal.System.Nexus.CallerClosure.forceCloseAction
+    destination := Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction
+  }]
+  outcomeMappings := [{
+    source := Temporal.System.Nexus.CallerClosure.cancellationUpgradedOutcome
+    destination := Temporal.Feature.Nexus.Experimental.CallerClosure.upgradedOutcome
+  }]
+  observationMappings := [
+    { source := Temporal.System.Nexus.CallerClosure.deliveryObservation,
+      destination := Temporal.Feature.Nexus.Experimental.CallerClosure.deliveredObservation },
+    { source := Temporal.System.Nexus.CallerClosure.cancellationCountObservation,
+      destination :=
+        Temporal.Feature.Nexus.Experimental.CallerClosure.cancellationCountObservation },
+    { source := Temporal.System.Nexus.CallerClosure.ownershipObservation,
+      destination := Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipObservation }
+  ]
+  relationMappings := []
+  capabilityMappings := [
+    capabilityMapping,
+    lifecycleCapabilityMapping,
+    ownershipCapabilityMapping
+  ]
+  applicationLimit := { value := 1, unit := .semanticTransitions }
+  documentation :=
+    "The closed Nexus System mechanism forward-simulates caller-closure product meaning."
+}
+
+theorem requiredCoverage : ImplementationLinkRequiredCoverage declaration
+    Temporal.System.Nexus.CallerClosure.target mapSetup mapState mapAction mapOutcome
+      mapObservation := {
+  setup := by
+    intro value admitted
+    change value = Temporal.System.Nexus.CallerClosure.setup at admitted
+    subst value
+    simp [declaration, mapSetup]
+  state := by
+    intro value admitted
+    change value = Temporal.System.Nexus.CallerClosure.openState ∨
+      value = Temporal.System.Nexus.CallerClosure.closedState at admitted
+    rcases admitted with rfl | rfl
+    · apply Or.inl
+      change ImplementationValueMapping.mk Temporal.System.Nexus.CallerClosure.openState
+        (mapState Temporal.System.Nexus.CallerClosure.openState) ∈ declaration.stateMappings
+      rw [show mapState Temporal.System.Nexus.CallerClosure.openState =
+        Temporal.Feature.Nexus.Experimental.CallerClosure.clashState by native_decide]
+      exact List.mem_cons.mpr (.inl rfl)
+    · apply Or.inl
+      change ImplementationValueMapping.mk Temporal.System.Nexus.CallerClosure.closedState
+        (mapState Temporal.System.Nexus.CallerClosure.closedState) ∈ declaration.stateMappings
+      rw [show mapState Temporal.System.Nexus.CallerClosure.closedState =
+        Temporal.Feature.Nexus.Experimental.CallerClosure.closedState by native_decide]
+      exact List.mem_cons.mpr (.inr (List.mem_singleton.mpr rfl))
+  action := by
+    intro value admitted
+    change value = Temporal.System.Nexus.CallerClosure.forceCloseAction at admitted
+    subst value
+    simp [declaration, mapAction]
+  outcome := by
+    intro value admitted
+    change value = Temporal.System.Nexus.CallerClosure.cancellationUpgradedOutcome at admitted
+    subst value
+    simp [declaration, mapOutcome]
+  observation := by
+    intro value admitted
+    change value = Temporal.System.Nexus.CallerClosure.deliveryObservation ∨
+      value = Temporal.System.Nexus.CallerClosure.cancellationCountObservation ∨
+      value = Temporal.System.Nexus.CallerClosure.ownershipObservation at admitted
+    rcases admitted with rfl | rfl | rfl
+    · apply Or.inl
+      change ImplementationValueMapping.mk
+        Temporal.System.Nexus.CallerClosure.deliveryObservation
+        (mapObservation Temporal.System.Nexus.CallerClosure.deliveryObservation) ∈
+          declaration.observationMappings
+      rw [show mapObservation Temporal.System.Nexus.CallerClosure.deliveryObservation =
+        Temporal.Feature.Nexus.Experimental.CallerClosure.deliveredObservation by native_decide]
+      exact List.mem_cons.mpr (.inl rfl)
+    · apply Or.inl
+      change ImplementationValueMapping.mk
+        Temporal.System.Nexus.CallerClosure.cancellationCountObservation
+        (mapObservation Temporal.System.Nexus.CallerClosure.cancellationCountObservation) ∈
+          declaration.observationMappings
+      rw [show mapObservation Temporal.System.Nexus.CallerClosure.cancellationCountObservation =
+        Temporal.Feature.Nexus.Experimental.CallerClosure.cancellationCountObservation by
+          native_decide]
+      exact List.mem_cons.mpr (.inr (List.mem_cons.mpr (.inl rfl)))
+    · apply Or.inl
+      change ImplementationValueMapping.mk
+        Temporal.System.Nexus.CallerClosure.ownershipObservation
+        (mapObservation Temporal.System.Nexus.CallerClosure.ownershipObservation) ∈
+          declaration.observationMappings
+      rw [show mapObservation Temporal.System.Nexus.CallerClosure.ownershipObservation =
+        Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipObservation by native_decide]
+      exact List.mem_cons.mpr (.inr (List.mem_cons.mpr (.inr
+        (List.mem_singleton.mpr rfl))))
+  relation := by native_decide
+  capability := by native_decide
+}
+
+def witness : ImplementationLinkWitness declaration
+    Temporal.System.Nexus.CallerClosure.target
+    Temporal.Feature.Nexus.Experimental.CallerClosure.target := {
+  index := implementationLinkWitnessIndex declaration
+    Temporal.System.Nexus.CallerClosure.target
+    Temporal.Feature.Nexus.Experimental.CallerClosure.target
+  mapSetup
+  mapState
+  mapAction
+  mapOutcome
+  mapObservation
+  initialForward := by
+    intro setup state admitted
+    change Temporal.System.Nexus.CallerClosure.authoritativeInitial setup state at admitted
+    rcases admitted with ⟨rfl, rfl⟩
+    change Temporal.Feature.Nexus.Experimental.CallerClosure.authoritativeInitial
+      Temporal.Feature.Nexus.Experimental.CallerClosure.clashSetup
+      Temporal.Feature.Nexus.Experimental.CallerClosure.clashState
+    exact ⟨rfl, rfl,
+      Temporal.Feature.Nexus.Experimental.AutoClose.wClash_reachable .upgrade⟩
+  stepForward := by
+    intro state action result admitted
+    change Temporal.System.Nexus.CallerClosure.authoritativeStep state action result at admitted
+    rcases admitted with ⟨rfl, rfl, rfl⟩
+    change Temporal.Feature.Nexus.Experimental.CallerClosure.authoritativeStep
+      Temporal.Feature.Nexus.Experimental.CallerClosure.clashState
+      Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction
+      Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseResult
+    exact ⟨rfl, rfl, rfl,
+      Temporal.Feature.Nexus.Experimental.AutoClose.upgrade_honors_delivery
+        Temporal.Feature.Nexus.Experimental.AutoClose.wClash,
+      Temporal.Feature.Nexus.Experimental.AutoClose.upgrade_preserves_uniqueness
+        Temporal.Feature.Nexus.Experimental.AutoClose.wClash
+        (Temporal.Feature.Nexus.Experimental.AutoClose.wClash_reachable .upgrade),
+      Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipReconciledProof⟩
+  requiredCoverage
+}
+
+def checkedResult := checkImplementationLink declaration
+  Temporal.System.Nexus.CallerClosure.target
+  Temporal.Feature.Nexus.Experimental.CallerClosure.target witness
+
+private theorem checkedResult_isSome : checkedResult.toOption.isSome = true := by
+  native_decide
+
+def checked := checkedResult.toOption.get checkedResult_isSome
+
+end Temporal.System.Nexus.ImplementationLink.CallerClosure
