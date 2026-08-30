@@ -2,6 +2,7 @@ package runevaluation
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"testing"
@@ -53,6 +54,63 @@ func TestCheckWithCheckerRejectsNonExecutionBeforeChecking(t *testing.T) {
 				})
 			require.Error(t, err)
 			require.Zero(t, checkingCalls)
+		})
+	}
+}
+
+func TestCheckWithCheckerErrorsExposeStableClassification(t *testing.T) {
+	type classifiedFailure interface {
+		error
+		Kind() string
+		Phase() string
+		Code() string
+	}
+	for _, testCase := range []struct {
+		name string
+		run  func(*testing.T) error
+		want []string
+	}{
+		{
+			name: "input",
+			run: func(t *testing.T) error {
+				_, err := checkWithChecker(context.Background(), callerClosureExecutableFixture(t),
+					func(context.Context, checkerRequest) (checkerResponse, error) {
+						panic("checker reached for invalid input")
+					})
+				return err
+			},
+			want: []string{"input", "admission", "umpire.run-evaluation.input.exact-four-member-set"},
+		},
+		{
+			name: "checker",
+			run: func(t *testing.T) error {
+				_, err := checkWithChecker(context.Background(), callerClosureExecutionFixture(t),
+					func(context.Context, checkerRequest) (checkerResponse, error) {
+						return checkerResponse{}, errors.New("checker failed")
+					})
+				return err
+			},
+			want: []string{"checker", "Observation Evaluation", "umpire.run-evaluation.checker.failed"},
+		},
+		{
+			name: "output invariant",
+			run: func(t *testing.T) error {
+				_, err := checkWithChecker(context.Background(), callerClosureExecutionFixture(t),
+					func(context.Context, checkerRequest) (checkerResponse, error) {
+						return checkerResponse{}, nil
+					})
+				return err
+			},
+			want: []string{"output-invariant", "evaluation", "umpire.run-evaluation.response.invalid"},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			err := testCase.run(t)
+			require.Error(t, err)
+			var classified classifiedFailure
+			require.ErrorAs(t, err, &classified)
+			require.Equal(t, testCase.want,
+				[]string{classified.Kind(), classified.Phase(), classified.Code()})
 		})
 	}
 }

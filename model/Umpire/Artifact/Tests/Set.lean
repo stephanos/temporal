@@ -94,6 +94,26 @@ example : evaluationSet.manifest?.any fun manifest =>
     !({ manifest with members := manifest.members.reverse }).isValidFor evaluationSet := by
   native_decide
 
+/-! The exact retained Experiment target may close through the Implementation Link destination. -/
+example :
+    let destinationDraft : ResultArtifact := {
+      result with
+      implementationLink := {
+        result.implementationLink with
+        sourceTarget := result.implementationLink.destinationTarget
+        destinationTarget := result.implementationLink.sourceTarget
+      }
+      evaluationOutcomeChecksum := none
+    }
+    let destinationWithOutcome := {
+      destinationDraft with
+      evaluationOutcomeChecksum :=
+        destinationDraft.expectedEvaluationOutcomeChecksum evidence compiledArtifact
+    }
+    let destinationResult := destinationWithOutcome.seal
+    ({ evaluationSet with result := some destinationResult } : ArtifactSet).isValidClosure := by
+  native_decide
+
 /-! A Result may resolve its Implementation Link source only through the retained Experiment. -/
 example :
     let staleDraft : ResultArtifact := {

@@ -136,10 +136,14 @@ def ArtifactSet.isValidClosure (set : ArtifactSet) : Bool :=
         run.isValidTransport && rawEvidence.isValidTransport && evidence.isValidTransport &&
           result.isValidTransport &&
           result.closes set.experiment set.runtimeConfiguration run rawEvidence evidence &&
-          result.implementationLink.sourceTarget.definitionId ==
-            set.experiment.plan.targetDefinitionId &&
-          result.implementationLink.sourceTarget.behaviorFingerprint ==
-            set.experiment.plan.targetBehaviorFingerprint
+          ((result.implementationLink.sourceTarget.definitionId ==
+                set.experiment.plan.targetDefinitionId &&
+              result.implementationLink.sourceTarget.behaviorFingerprint ==
+                set.experiment.plan.targetBehaviorFingerprint) ||
+            (result.implementationLink.destinationTarget.definitionId ==
+                set.experiment.plan.targetDefinitionId &&
+              result.implementationLink.destinationTarget.behaviorFingerprint ==
+                set.experiment.plan.targetBehaviorFingerprint))
     | _, _, _, _ => false
 
 private def ArtifactSet.manifestMembers? (set : ArtifactSet) : Option (List ArtifactSetManifestMember) :=
