@@ -108,21 +108,7 @@ func decodeCheckerResponse(encoded []byte, request checkerRequest) (checkerRespo
 	if err != nil {
 		return checkerResponse{}, err
 	}
-	if response.CheckerIdentity != request.CheckerIdentity ||
-		response.CheckerVersion != request.CheckerVersion ||
-		response.CheckerBehaviorFingerprint != request.CheckerBehaviorFingerprint {
-		return checkerResponse{}, errors.New("checker response handshake drifted")
-	}
-	if response.ExperimentArtifactChecksum != request.Experiment.ArtifactChecksum ||
-		response.RuntimeConfigurationArtifactChecksum != request.RuntimeConfiguration.ArtifactChecksum ||
-		response.RunArtifactChecksum != request.Run.ArtifactChecksum ||
-		response.RawEvidenceArtifactChecksum != request.RawEvidence.ArtifactChecksum ||
-		response.ExperimentBehaviorFingerprint != request.Experiment.BehaviorFingerprint ||
-		response.RuntimeConfigurationBehaviorFingerprint != request.RuntimeConfiguration.BehaviorFingerprint ||
-		response.RunIdentity != request.RunIdentity {
-		return checkerResponse{}, errors.New("checker response binding drifted")
-	}
-	if err := validateCheckerResponseProjection(response, request); err != nil {
+	if err := validateCheckerResponseForRequest(response, request); err != nil {
 		return checkerResponse{}, err
 	}
 	return response, nil
