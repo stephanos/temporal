@@ -72,6 +72,7 @@ type AdmittedSet struct {
 	manifestBytes  []byte
 	manifestSHA256 string
 	executable     *admittedExecutableValues
+	execution      *admittedExecutionValues
 }
 
 type admittedExecutableValues struct {
@@ -79,8 +80,20 @@ type admittedExecutableValues struct {
 	runtimeConfiguration artifactv2.RuntimeConfiguration
 }
 
+type admittedExecutionValues struct {
+	experiment           artifactv2.Experiment
+	runtimeConfiguration artifactv2.RuntimeConfiguration
+	run                  artifactv2.ExperimentRun
+	rawEvidence          artifactv2.RawEvidence
+}
+
 // ExecutableSet is the exact typed two-member prefix retained during Artifact set admission.
 type ExecutableSet struct {
+	admitted AdmittedSet
+}
+
+// ExecutionSet is the exact typed four-member prefix retained during Artifact set admission.
+type ExecutionSet struct {
 	admitted AdmittedSet
 }
 
@@ -127,6 +140,14 @@ func (s AdmittedSet) Executable() (ExecutableSet, bool) {
 		return ExecutableSet{}, false
 	}
 	return ExecutableSet{admitted: s}, true
+}
+
+// Execution returns the already-admitted typed values only for an exact four-member set.
+func (s AdmittedSet) Execution() (ExecutionSet, bool) {
+	if s.execution == nil || len(s.members) != 4 {
+		return ExecutionSet{}, false
+	}
+	return ExecutionSet{admitted: s}, true
 }
 
 // AdmittedSet returns the exact admitted set associated with this typed projection.
@@ -189,7 +210,104 @@ func (s ExecutableSet) AdmitExecution(
 	if err := validateArtifactSetPaths(members); err != nil {
 		return AdmittedSet{}, wrapAdmission(ErrorClosure, err)
 	}
-	return buildAdmittedSet(members, rows, experiment, runtimeConfiguration)
+	admitted, err := buildAdmittedSet(members, rows, experiment, runtimeConfiguration)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	admitted.execution = newAdmittedExecutionValues(
+		experiment, runtimeConfiguration, execution.run, execution.rawEvidence,
+	)
+	return admitted, nil
+}
+
+// AdmittedSet returns the exact admitted set associated with this typed projection.
+func (s ExecutionSet) AdmittedSet() AdmittedSet {
+	return cloneAdmittedSet(s.admitted)
+}
+
+// Experiment returns an immutable copy of the admitted ExperimentSpec value.
+func (s ExecutionSet) Experiment() artifactv2.Experiment {
+	if s.admitted.execution == nil {
+		return artifactv2.Experiment{}
+	}
+	return cloneExperiment(s.admitted.execution.experiment)
+}
+
+// RuntimeConfiguration returns an immutable copy of the admitted RuntimeConfiguration value.
+func (s ExecutionSet) RuntimeConfiguration() artifactv2.RuntimeConfiguration {
+	if s.admitted.execution == nil {
+		return artifactv2.RuntimeConfiguration{}
+	}
+	return cloneRuntimeConfiguration(s.admitted.execution.runtimeConfiguration)
+}
+
+// ExperimentRun returns an immutable copy of the admitted ExperimentRun value.
+func (s ExecutionSet) ExperimentRun() artifactv2.ExperimentRun {
+	if s.admitted.execution == nil {
+		return artifactv2.ExperimentRun{}
+	}
+	return cloneExperimentRun(s.admitted.execution.run)
+}
+
+// RawEvidence returns an immutable copy of the admitted RawEvidence value.
+func (s ExecutionSet) RawEvidence() artifactv2.RawEvidence {
+	if s.admitted.execution == nil {
+		return artifactv2.RawEvidence{}
+	}
+	return cloneRawEvidence(s.admitted.execution.rawEvidence)
+}
+
+// AdmitEvaluation extends this exact execution snapshot with typed Evidence and Result values.
+func (s ExecutionSet) AdmitEvaluation(
+	evidence artifactv2.Evidence,
+	result artifactv2.Result,
+) (AdmittedSet, error) {
+	if s.admitted.execution == nil || len(s.admitted.members) != 4 {
+		return AdmittedSet{}, wrapAdmission(ErrorClosure,
+			errors.New("evaluation extension requires one exact execution set"))
+	}
+	evidenceBytes, err := EncodeEvidenceV2(evidence)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	resultBytes, err := EncodeResultV2(result)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	members := append(cloneSetMembers(s.admitted.members),
+		SetMember{Path: artifactSetPaths[4], Encoded: evidenceBytes},
+		SetMember{Path: artifactSetPaths[5], Encoded: resultBytes},
+	)
+	execution := admittedExecutionMembers{
+		run: s.admitted.execution.run, rawEvidence: s.admitted.execution.rawEvidence,
+	}
+	evaluationRows, err := admitEvaluationMembers(
+		members,
+		s.admitted.execution.experiment,
+		s.admitted.execution.runtimeConfiguration,
+		execution,
+	)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	experimentBinding, err := artifactv2.ExperimentArtifactBinding(s.admitted.execution.experiment)
+	if err != nil {
+		return AdmittedSet{}, wrapAdmission(ErrorClosure, err)
+	}
+	rows := []artifactSetManifestMember{
+		manifestMember(members[0].Path, experimentBinding),
+		manifestMember(members[1].Path,
+			artifactv2.RuntimeConfigurationArtifactBinding(s.admitted.execution.runtimeConfiguration)),
+		manifestMember(members[2].Path, artifactv2.ExperimentRunArtifactBinding(execution.run)),
+		manifestMember(members[3].Path, artifactv2.RawEvidenceArtifactBinding(execution.rawEvidence)),
+	}
+	rows = append(rows, evaluationRows...)
+	if err := validateArtifactSetPaths(members); err != nil {
+		return AdmittedSet{}, wrapAdmission(ErrorClosure, err)
+	}
+	return buildAdmittedSet(
+		members, rows, s.admitted.execution.experiment, s.admitted.execution.runtimeConfiguration,
+	)
 }
 
 // AdmitSet admits only an exact executable, execution, or evaluation closure.
@@ -224,15 +342,17 @@ func AdmitSet(members []SetMember) (AdmittedSet, error) {
 		manifestMember(members[1].Path, artifactv2.RuntimeConfigurationArtifactBinding(runtimeConfiguration)),
 	)
 
+	var execution *admittedExecutionMembers
 	if len(members) >= 4 {
-		execution, executionErr := admitExecutionMembers(members, experiment, runtimeConfiguration)
+		admittedExecution, executionErr := admitExecutionMembers(members, experiment, runtimeConfiguration)
 		if executionErr != nil {
 			return AdmittedSet{}, executionErr
 		}
-		rows = append(rows, execution.rows...)
+		execution = &admittedExecution
+		rows = append(rows, admittedExecution.rows...)
 		if len(members) == 6 {
 			evaluationRows, evaluationErr := admitEvaluationMembers(
-				members, experiment, runtimeConfiguration, execution,
+				members, experiment, runtimeConfiguration, admittedExecution,
 			)
 			if evaluationErr != nil {
 				return AdmittedSet{}, evaluationErr
@@ -244,7 +364,16 @@ func AdmitSet(members []SetMember) (AdmittedSet, error) {
 	if err := validateArtifactSetPaths(members); err != nil {
 		return AdmittedSet{}, wrapAdmission(ErrorClosure, err)
 	}
-	return buildAdmittedSet(members, rows, experiment, runtimeConfiguration)
+	admitted, err := buildAdmittedSet(members, rows, experiment, runtimeConfiguration)
+	if err != nil {
+		return AdmittedSet{}, err
+	}
+	if len(members) == 4 && execution != nil {
+		admitted.execution = newAdmittedExecutionValues(
+			experiment, runtimeConfiguration, execution.run, execution.rawEvidence,
+		)
+	}
+	return admitted, nil
 }
 
 func admitExecutionMembers(
@@ -294,11 +423,17 @@ func admitEvaluationMembers(
 	); err != nil {
 		return nil, err
 	}
-	if result.ImplementationLink.SourceTarget.DefinitionID != experiment.Plan.TargetDefinitionID ||
-		result.ImplementationLink.SourceTarget.BehaviorFingerprint !=
-			experiment.Plan.TargetBehaviorFingerprint {
+	sourceMatches := result.ImplementationLink.SourceTarget.DefinitionID ==
+		experiment.Plan.TargetDefinitionID &&
+		result.ImplementationLink.SourceTarget.BehaviorFingerprint ==
+			experiment.Plan.TargetBehaviorFingerprint
+	destinationMatches := result.ImplementationLink.DestinationTarget.DefinitionID ==
+		experiment.Plan.TargetDefinitionID &&
+		result.ImplementationLink.DestinationTarget.BehaviorFingerprint ==
+			experiment.Plan.TargetBehaviorFingerprint
+	if !sourceMatches && !destinationMatches {
 		return nil, wrapAdmission(ErrorClosure,
-			errors.New("result Implementation Link source target does not match ExperimentSpec"))
+			errors.New("result Implementation Link endpoints do not match ExperimentSpec"))
 	}
 	return []artifactSetManifestMember{
 		manifestMember(members[4].Path, artifactv2.EvidenceArtifactBinding(evidence)),
@@ -573,7 +708,29 @@ func cloneAdmittedSet(admitted AdmittedSet) AdmittedSet {
 			runtimeConfiguration: cloneRuntimeConfiguration(admitted.executable.runtimeConfiguration),
 		}
 	}
+	if admitted.execution != nil {
+		cloned.execution = newAdmittedExecutionValues(
+			admitted.execution.experiment,
+			admitted.execution.runtimeConfiguration,
+			admitted.execution.run,
+			admitted.execution.rawEvidence,
+		)
+	}
 	return cloned
+}
+
+func newAdmittedExecutionValues(
+	experiment artifactv2.Experiment,
+	runtimeConfiguration artifactv2.RuntimeConfiguration,
+	run artifactv2.ExperimentRun,
+	rawEvidence artifactv2.RawEvidence,
+) *admittedExecutionValues {
+	return &admittedExecutionValues{
+		experiment:           cloneExperiment(experiment),
+		runtimeConfiguration: cloneRuntimeConfiguration(runtimeConfiguration),
+		run:                  cloneExperimentRun(run),
+		rawEvidence:          cloneRawEvidence(rawEvidence),
+	}
 }
 
 func cloneExperiment(document artifactv2.Experiment) artifactv2.Experiment {
@@ -652,6 +809,48 @@ func cloneRuntimeConfiguration(
 	return cloned
 }
 
+func cloneExperimentRun(run artifactv2.ExperimentRun) artifactv2.ExperimentRun {
+	cloned := run
+	cloned.PhaseOutcomes = slices.Clone(run.PhaseOutcomes)
+	for index := range cloned.PhaseOutcomes {
+		cloned.PhaseOutcomes[index].StartedAtUnixMillis = cloneNaturalPointer(
+			run.PhaseOutcomes[index].StartedAtUnixMillis,
+		)
+		cloned.PhaseOutcomes[index].FinishedAtUnixMillis = cloneNaturalPointer(
+			run.PhaseOutcomes[index].FinishedAtUnixMillis,
+		)
+		cloned.PhaseOutcomes[index].Code = cloneStringPointer(run.PhaseOutcomes[index].Code)
+	}
+	cloned.ControlAttempts = slices.Clone(run.ControlAttempts)
+	for index := range cloned.ControlAttempts {
+		cloned.ControlAttempts[index].ReceiptFactDefinitionID = cloneStringPointer(
+			run.ControlAttempts[index].ReceiptFactDefinitionID,
+		)
+		cloned.ControlAttempts[index].Code = cloneStringPointer(run.ControlAttempts[index].Code)
+	}
+	cloned.SourceClosures = slices.Clone(run.SourceClosures)
+	cloned.Cleanup.Code = cloneStringPointer(run.Cleanup.Code)
+	cloned.Limits = slices.Clone(run.Limits)
+	cloned.KnownGaps = cloneKnownGaps(run.KnownGaps)
+	cloned.Provenance = cloneProvenance(run.Provenance)
+	return cloned
+}
+
+func cloneRawEvidence(document artifactv2.RawEvidence) artifactv2.RawEvidence {
+	cloned := document
+	cloned.Sources = slices.Clone(document.Sources)
+	cloned.Facts = slices.Clone(document.Facts)
+	for index := range cloned.Facts {
+		cloned.Facts[index].CausalFactDefinitionIDs = slices.Clone(
+			document.Facts[index].CausalFactDefinitionIDs,
+		)
+		cloned.Facts[index].Fields = slices.Clone(document.Facts[index].Fields)
+	}
+	cloned.KnownGaps = cloneKnownGaps(document.KnownGaps)
+	cloned.Provenance = cloneProvenance(document.Provenance)
+	return cloned
+}
+
 func cloneProvenance(provenance artifactv2.Provenance) artifactv2.Provenance {
 	return artifactv2.Provenance{
 		SourceDefinitionIDs: slices.Clone(provenance.SourceDefinitionIDs),
@@ -669,6 +868,14 @@ func cloneKnownGaps(gaps []artifactv2.KnownGap) []artifactv2.KnownGap {
 }
 
 func cloneModelValuePointer(value *artifactv2.ModelValue) *artifactv2.ModelValue {
+	if value == nil {
+		return nil
+	}
+	cloned := *value
+	return &cloned
+}
+
+func cloneNaturalPointer(value *artifactv2.Natural) *artifactv2.Natural {
 	if value == nil {
 		return nil
 	}
