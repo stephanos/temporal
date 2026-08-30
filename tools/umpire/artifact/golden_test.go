@@ -193,6 +193,7 @@ func TestCrossLanguageGoldensExactFieldSequencesAndChecksums(t *testing.T) {
 	})
 
 	view := struct {
+		Plan                     artifactv2.DrivePlan                `json:"plan"`
 		EvidenceBackedModelTrace artifactv2.EvidenceBackedModelTrace `json:"evidenceBackedModelTrace"`
 		EvidenceLinks            []artifactv2.EvidenceLink           `json:"evidenceLinks"`
 		ObservationProgram       artifactv2.DefinitionReference      `json:"observationProgram"`
@@ -203,6 +204,7 @@ func TestCrossLanguageGoldensExactFieldSequencesAndChecksums(t *testing.T) {
 		PropertyVerdicts         []artifactv2.PropertyVerdict        `json:"propertyVerdicts"`
 		Limits                   []artifactv2.StagedLimit            `json:"limits"`
 	}{
+		Plan:                     documents.experiment.Plan,
 		EvidenceBackedModelTrace: *documents.evidence.EvidenceBackedModelTrace,
 		EvidenceLinks:            documents.evidence.EvidenceLinks,
 		ObservationProgram:       documents.evidence.ObservationProgram,
