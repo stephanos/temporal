@@ -510,7 +510,7 @@ func (s *engineState) buildOutput() (Output, error) {
 		Limits: slices.Clone(configuration.PhaseLimits), KnownGaps: cloneEngineGaps(gaps),
 		Provenance: engineProvenance(),
 	}
-	run.OperationalStatus = operationalStatus(run)
+	run.OperationalStatus = OperationalStatus(run)
 	run.BehaviorFingerprint, err = behaviorFingerprint(struct {
 		RunIdentity       string                      `json:"runIdentity"`
 		PhaseOutcomes     []artifactv2.PhaseOutcome   `json:"phaseOutcomes"`
@@ -712,7 +712,8 @@ func cleanupOutcome(status string, openHandles uint64) artifactv2.CleanupOutcome
 	return outcome
 }
 
-func operationalStatus(run artifactv2.ExperimentRun) string {
+// OperationalStatus derives the canonical operational-precedence summary.
+func OperationalStatus(run artifactv2.ExperimentRun) string {
 	for _, phase := range run.PhaseOutcomes {
 		if phase.Status == "failed" {
 			return "failed"
