@@ -15,13 +15,13 @@ func TestArtifactSetEvaluationClosureCanonicalManifest(t *testing.T) {
 	admitted, err := artifact.AdmitSet(artifactSetFixtureMembers(t))
 	require.NoError(t, err)
 	require.Equal(t,
-		"umpire.artifact-set.1f4d21d39c33440ff37bee22db09680293459a69eb702f5496f8bfa6b1dab890",
+		"umpire.artifact-set.c5ecf27335cb3441e768818b0eb4025eeed3de5c6bdea6e0f3dc2a66f9922c69",
 		admitted.Identity())
 	require.Equal(t,
-		"sha256:12a0e9709e823da060eef54998e6cd36973779c725b177ce1eda5b9954e3499b",
+		"sha256:084ed42fd042c6c08bd62a1e5942a15a0c53a3da813041965f3d58c1cb73d172",
 		admitted.Checksum())
 	require.Equal(t,
-		"sha256:052fa0eff77536213db67f452c543df4bbda4a606ee6f504d3b6cb596b33c9db",
+		"sha256:ed15c7a3c10b3442d769ad99496e07c57f70648d1aa43197857b220185f5ce66",
 		admitted.ManifestSHA256())
 	require.Equal(t, readExperimentV2Fixture(t,
 		"model/Umpire/Artifact/Tests/Fixtures/ArtifactSetV2.json"), admitted.ManifestBytes())
@@ -79,9 +79,9 @@ func TestArtifactSetAdmitsOnlyThreeExactClosures(t *testing.T) {
 		},
 		{
 			name: "evaluation", count: 6,
-			identity: "umpire.artifact-set.1f4d21d39c33440ff37bee22db09680293459a69eb702f5496f8bfa6b1dab890",
-			checksum: "sha256:12a0e9709e823da060eef54998e6cd36973779c725b177ce1eda5b9954e3499b",
-			sha256:   "sha256:052fa0eff77536213db67f452c543df4bbda4a606ee6f504d3b6cb596b33c9db",
+			identity: "umpire.artifact-set.c5ecf27335cb3441e768818b0eb4025eeed3de5c6bdea6e0f3dc2a66f9922c69",
+			checksum: "sha256:084ed42fd042c6c08bd62a1e5942a15a0c53a3da813041965f3d58c1cb73d172",
+			sha256:   "sha256:ed15c7a3c10b3442d769ad99496e07c57f70648d1aa43197857b220185f5ce66",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
