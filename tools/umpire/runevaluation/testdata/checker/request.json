@@ -57,7 +57,7 @@
   "facts": [],
   "runKnownGaps": [
     {
-      "kind": "capability",
+      "kind": "capability-contract",
       "code": "umpire.gap.run.fixture",
       "subject": null,
       "detail": null
