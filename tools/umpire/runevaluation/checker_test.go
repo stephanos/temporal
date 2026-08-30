@@ -367,7 +367,7 @@ func TestCheckerProcessExecutesVerifiedBytesWhenSiblingChangesBeforeStart(t *tes
 				controllerExecutable: controller,
 				expectedSHA256:       fileSHA256(t, checker),
 				timeout:              checkerTimeout,
-				beforeStart:          func() { testCase.mutate(t, checker) },
+				beforeStart:          func(string) { testCase.mutate(t, checker) },
 			}
 
 			response, err := process.run(context.Background(), testCheckerRequest())
@@ -377,6 +377,33 @@ func TestCheckerProcessExecutesVerifiedBytesWhenSiblingChangesBeforeStart(t *tes
 				require.False(t, strings.HasPrefix(entry.Name(), ".umpire-run-evaluation-checker-"))
 			}
 		})
+	}
+}
+
+func TestCheckerProcessExecutesVerifiedSnapshotWhenReplacementIsAttempted(t *testing.T) {
+	controller := testController(t, "valid-snapshot-substitution")
+	checker := filepath.Join(filepath.Dir(controller), checkerExecutableName)
+	executable, err := os.ReadFile(checkerFixtureExecutable)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(checker, executable, 0o700))
+	var replacementErr error
+	process := checkerProcess{
+		controllerExecutable: controller,
+		expectedSHA256:       fileSHA256(t, checker),
+		timeout:              checkerTimeout,
+		beforeStart: func(snapshot string) {
+			replacement := filepath.Join(filepath.Dir(snapshot), "replacement-snapshot")
+			require.NoError(t, os.WriteFile(replacement, []byte("substituted"), 0o500))
+			replacementErr = os.Rename(replacement, snapshot)
+		},
+	}
+
+	response, err := process.run(context.Background(), testCheckerRequest())
+	require.NoError(t, err)
+	require.Equal(t, testCheckerResponse(), response)
+	requireProcessReaped(t, process.controllerExecutable)
+	if replacementErr != nil {
+		require.ErrorIs(t, replacementErr, os.ErrPermission)
 	}
 }
 
