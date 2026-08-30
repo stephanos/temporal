@@ -39,6 +39,11 @@ structure EvidenceBindingFact where
   value : EvidenceValue
   deriving BEq, DecidableEq, Repr
 
+structure EvidenceOrigin where
+  source : DefinitionId
+  ordinal : Nat
+  deriving BEq, DecidableEq, Repr
+
 /-- One finite typed synthetic record. Its raw values never cross the Observation Evaluation boundary. -/
 structure SyntheticEvidenceRecord where
   id : DefinitionId
@@ -46,6 +51,7 @@ structure SyntheticEvidenceRecord where
   profileVersion : Nat
   kind : DefinitionId
   sequence : Nat
+  origin : Option EvidenceOrigin := none
   causalParents : List DefinitionId := []
   fields : List EvidenceFieldValue
   bindingFacts : List EvidenceBindingFact := []
@@ -55,11 +61,19 @@ structure SyntheticEvidenceRecord where
 structure EvidenceClosureFact where
   kind : DefinitionId
   lastSequence : Nat
+  source : Option DefinitionId := none
+  recordCount : Option Nat := none
+  byteCount : Option Nat := none
   deriving BEq, DecidableEq, Repr
 
 structure CompatibleInterpretation where
   id : DefinitionId
   evidenceIdentities : List DefinitionId
+  deriving BEq, DecidableEq, Repr
+
+structure EvidenceGap where
+  code : DefinitionId
+  relatedDefinitionIds : List DefinitionId := []
   deriving BEq, DecidableEq, Repr
 
 /-- Complete synthetic input envelope. Alternatives are preserved as data instead of selected. -/
@@ -70,6 +84,9 @@ structure EvidenceBundle where
   closures : List EvidenceClosureFact
   compatibleAlternatives : List CompatibleInterpretation := []
   missingDiscriminator : Option DefinitionId := none
+  knownGaps : List EvidenceGap := []
+  sourceClosed : Bool := true
+  closedFieldKinds : List DefinitionId := []
   deriving BEq, DecidableEq, Repr
 
 /-- The four exhaustive outcomes of Observation Evaluation. -/
@@ -83,6 +100,7 @@ inductive ObservationStatus where
 inductive ObservationFailureKind where
   | emptyEvidence
   | evidenceBoundExhausted
+  | knownGap
   | missingInitialState
   | missingClosure
   | sequenceGap
@@ -152,6 +170,7 @@ structure EvidenceOrderingFact where
   recordId : DefinitionId
   kind : DefinitionId
   sequence : Nat
+  origin : Option EvidenceOrigin := none
   causalParents : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
@@ -168,6 +187,20 @@ inductive AppliedDispositionEvidence where
 structure AppliedFieldDisposition where
   field : EvidenceFieldReference
   evidence : AppliedDispositionEvidence
+  deriving BEq, DecidableEq, Repr
+
+structure EvidenceFieldSupport where
+  field : DefinitionId
+  valueType : ObservationValueType
+  evidence : AppliedDispositionEvidence
+  deriving BEq, DecidableEq, Repr
+
+structure EvidenceRecordSupport where
+  recordId : DefinitionId
+  origin : Option EvidenceOrigin
+  kind : DefinitionId
+  causalParents : List DefinitionId
+  fields : List EvidenceFieldSupport
   deriving BEq, DecidableEq, Repr
 
 /-- Why the checked mapping accepted one Model Fact from the supplied Evidence. -/
@@ -203,6 +236,7 @@ structure EvidenceBackedTrace where
   dispositions : List FieldDispositionDeclaration
   appliedBound : EvidenceBound
   evidenceIdentities : List DefinitionId
+  recordSupport : List EvidenceRecordSupport
   trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
   evidenceLinks : List EvidenceLink
   deriving BEq, DecidableEq, Repr
@@ -260,7 +294,16 @@ private def firstDuplicateField : List EvidenceFieldValue → Option EvidenceFie
 private def fieldValueLe (left right : EvidenceFieldValue) : Bool := idLe left.field right.field
 
 private def recordLe (left right : SyntheticEvidenceRecord) : Bool :=
-  left.sequence < right.sequence || (left.sequence == right.sequence && idLe left.id right.id)
+  match left.origin, right.origin with
+  | some leftOrigin, some rightOrigin =>
+      decide (leftOrigin.source.value < rightOrigin.source.value) ||
+        (leftOrigin.source == rightOrigin.source &&
+          (leftOrigin.ordinal < rightOrigin.ordinal ||
+            (leftOrigin.ordinal == rightOrigin.ordinal && idLe left.id right.id)))
+  | none, none =>
+      left.sequence < right.sequence || (left.sequence == right.sequence && idLe left.id right.id)
+  | none, some _ => true
+  | some _, none => false
 
 private def interpretationLe (left right : CompatibleInterpretation) : Bool := idLe left.id right.id
 
@@ -273,11 +316,19 @@ private def firstContradictoryInterpretation :
         firstContradictoryInterpretation (second :: rest)
   | _ => none
 
-private def closureLe (left right : EvidenceClosureFact) : Bool := idLe left.kind right.kind
+private def closureLe (left right : EvidenceClosureFact) : Bool :=
+  match left.source, right.source with
+  | some leftSource, some rightSource =>
+      decide (leftSource.value < rightSource.value) ||
+        (leftSource == rightSource && idLe left.kind right.kind)
+  | none, none => idLe left.kind right.kind
+  | none, some _ => true
+  | some _, none => false
 
 private def firstDuplicateClosure : List EvidenceClosureFact → Option EvidenceClosureFact
   | first :: second :: rest =>
-      if first.kind == second.kind then some first else firstDuplicateClosure (second :: rest)
+      if first.source == second.source && first.kind == second.kind then some first
+      else firstDuplicateClosure (second :: rest)
   | _ => none
 
 private def referenceLe (left right : EvidenceFieldReference) : Bool :=
@@ -352,11 +403,66 @@ private def validateRecord
     | some .reject => throw (diagnostic plan .rejectedFieldPresent [record.id, field.field])
     | some (.hash (some policy)) => validateDigestMetadata plan record field policy
     | some (.hash none) => throw (diagnostic plan .digestPolicyMismatch [record.id, field.field])
-    | _ => pure ()
+    | some .retain | some .redact | none => pure ()
   for fact in record.bindingFacts do
     let matchingFacts := record.bindingFacts.filter fun other => other.binding == fact.binding
     if matchingFacts.any fun other => other.value != fact.value then
       throw (diagnostic plan .contradictoryBinding [record.id, fact.binding])
+
+private partial def recordDependsOn
+    (records : List SyntheticEvidenceRecord)
+    (recordId target : DefinitionId)
+    (visited : List DefinitionId := []) : Bool :=
+  if recordId == target then true
+  else if visited.contains recordId then false
+  else
+    match records.find? fun record => record.id == recordId with
+    | none => false
+    | some record => record.causalParents.any fun parent =>
+        recordDependsOn records parent target (recordId :: visited)
+
+private def validateMultiSourceSequenceAndCausality
+    (plan : CheckedObservationPlan)
+    (records : List SyntheticEvidenceRecord) : Except ObservationDiagnostic Unit := do
+  let sources := canonicalIds <| records.filterMap fun record =>
+    record.origin.map EvidenceOrigin.source
+  for source in sources do
+    let sourceRecords := (records.filter fun record =>
+      record.origin.any fun origin => origin.source == source).mergeSort recordLe
+    let mut expectedOrdinal := 0
+    for record in sourceRecords do
+      let origin ← match record.origin with
+        | some origin => pure origin
+        | none => throw (diagnostic plan .incomparableOrdering [record.id])
+      if origin.ordinal != expectedOrdinal then
+        throw (diagnostic plan .sequenceGap [record.id, source])
+      expectedOrdinal := expectedOrdinal + 1
+  for record in records do
+    for parent in record.causalParents do
+      let parentRecord ← match records.find? fun candidate => candidate.id == parent with
+        | some candidate => pure candidate
+        | none => throw (diagnostic plan .missingCausalParent [record.id, parent])
+      if recordDependsOn records parent record.id then
+        throw (diagnostic plan .contradictoryOrder [record.id, parent])
+      match record.origin, parentRecord.origin with
+      | some recordOrigin, some parentOrigin =>
+          if recordOrigin.source == parentOrigin.source &&
+              parentOrigin.ordinal >= recordOrigin.ordinal then
+            throw (diagnostic plan .contradictoryOrder [record.id, parent])
+      | _, _ => throw (diagnostic plan .incomparableOrdering [record.id, parent])
+    match record.faultTarget with
+    | some target =>
+        let targetRecord ← match records.find? fun candidate => candidate.id == target with
+          | some candidate => pure candidate
+          | none => throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
+        let sameSourceBefore := match targetRecord.origin, record.origin with
+          | some targetOrigin, some recordOrigin =>
+              targetOrigin.source == recordOrigin.source &&
+                targetOrigin.ordinal < recordOrigin.ordinal
+          | _, _ => false
+        if !sameSourceBefore && !recordDependsOn records record.id target then
+          throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
+    | none => pure ()
 
 private def validateSequenceAndCausality
     (plan : CheckedObservationPlan)
@@ -365,6 +471,11 @@ private def validateSequenceAndCausality
   match firstDuplicateId (ids.mergeSort idLe) with
   | some duplicate => throw (diagnostic plan .duplicateEvidenceIdentity [duplicate])
   | none => pure ()
+  if records.all fun record => record.origin.isSome then
+    validateMultiSourceSequenceAndCausality plan records
+    return
+  if records.any fun record => record.origin.isSome then
+    throw (diagnostic plan .incomparableOrdering ids)
   for record in records do
     match record.faultTarget with
     | some target =>
@@ -399,6 +510,36 @@ private def validateSequenceAndCausality
 private def validateClosures
     (plan : CheckedObservationPlan)
     (bundle : EvidenceBundle) : Except ObservationDiagnostic Unit := do
+  if bundle.records.all fun record => record.origin.isSome then
+    let closures := bundle.closures.mergeSort closureLe
+    match firstDuplicateClosure closures with
+    | some duplicate => throw (diagnostic plan .missingClosure [duplicate.kind])
+    | none => pure ()
+    for closure in closures do
+      let source ← match closure.source with
+        | some source => pure source
+        | none => throw (diagnostic plan .missingClosure [closure.kind])
+      if !(plan.closures.any fun required => required.kind == closure.kind) then
+        throw (diagnostic plan .missingClosure [closure.kind])
+      let sourceRecords := bundle.records.filter fun record =>
+        record.kind == closure.kind &&
+          record.origin.any fun origin => origin.source == source
+      let lastSequence := sourceRecords.foldl (fun current record =>
+        Nat.max current (record.origin.map (fun origin => origin.ordinal + 1) |>.getD 0)) 0
+      if sourceRecords.isEmpty || closure.lastSequence != lastSequence ||
+          closure.recordCount != some sourceRecords.length || closure.byteCount.isNone then
+        throw (diagnostic plan .missingClosure [source, closure.kind])
+    for record in bundle.records do
+      let origin ← match record.origin with
+        | some origin => pure origin
+        | none => throw (diagnostic plan .missingClosure [record.id])
+      if !(closures.any fun closure => closure.source == some origin.source &&
+          closure.kind == record.kind) then
+        throw (diagnostic plan .missingClosure [record.id, origin.source, record.kind])
+    for required in plan.closures do
+      if !(bundle.records.any fun record => record.kind == required.kind) then
+        throw (diagnostic plan .missingClosure [required.kind])
+    return
   for required in plan.closures do
     let closure ← match bundle.closures.find? fun fact => fact.kind == required.kind with
       | some closure => pure closure
@@ -599,14 +740,24 @@ private def digestClaimsForRule
   return (← digestClaimsInExpression plan record rule.value) ++
     (← rule.condition.toList.mapM (digestClaimsInExpression plan record)).flatten
 
+private def ruleReferencesRecord
+    (plan : CheckedObservationPlan)
+    (record : SyntheticEvidenceRecord)
+    (rule : CheckedObservationRule) : Bool :=
+  let references := canonicalReferences <|
+    expressionReferences plan rule.value ++
+      rule.condition.toList.flatMap (expressionReferences plan)
+  references.isEmpty || references.all fun reference => reference.kind == record.kind
+
 private def detectDigestIssues
     (plan : CheckedObservationPlan)
     (records : List SyntheticEvidenceRecord) : Except ObservationDiagnostic Unit := do
   let mut claims := []
   for record in records do
     for rule in plan.rules do
-      if ← conditionHolds plan record rule.condition then
-        claims := claims ++ (← digestClaimsForRule plan record rule)
+      if ruleReferencesRecord plan record rule then
+        if ← conditionHolds plan record rule.condition then
+          claims := claims ++ (← digestClaimsForRule plan record rule)
   for claim in claims do
     match claims.find? fun other =>
         claim.policyId == other.policyId && claim.effectiveToken == other.effectiveToken &&
@@ -658,6 +809,39 @@ private def appliedDisposition
     | .reject => throw (diagnostic plan .rejectedFieldPresent [record.id, reference.field])
   pure { field := reference, evidence }
 
+private def evidenceFieldSupport
+    (plan : CheckedObservationPlan)
+    (record : SyntheticEvidenceRecord)
+    (field : EvidenceFieldValue) : Except ObservationDiagnostic EvidenceFieldSupport := do
+  let reference : EvidenceFieldReference := { kind := record.kind, field := field.field }
+  let disposition ← match dispositionFor plan reference with
+    | some disposition => pure disposition
+    | none => throw (diagnostic plan .disallowedRawMaterial [record.id, field.field])
+  let evidence ← match disposition with
+    | .retain => pure (.retained field.value.render)
+    | .redact => pure .redactedContribution
+    | .hash (some policyId) =>
+        let policy ← match findPolicy plan policyId with
+          | some policy => pure policy
+          | none => throw (diagnostic plan .digestPolicyMismatch [record.id, field.field, policyId])
+        pure (.digestToken policyId
+          (field.reportedDigestToken.getD (syntheticDigestToken policy field.value.render)))
+    | .hash none => throw (diagnostic plan .digestPolicyMismatch [record.id, field.field])
+    | .reject => throw (diagnostic plan .rejectedFieldPresent [record.id, field.field])
+  pure { field := field.field, valueType := field.value.valueType, evidence }
+
+private def evidenceRecordSupport
+    (plan : CheckedObservationPlan)
+    (record : SyntheticEvidenceRecord) : Except ObservationDiagnostic EvidenceRecordSupport := do
+  let fields ← (record.fields.mergeSort fieldValueLe).mapM (evidenceFieldSupport plan record)
+  pure {
+    recordId := record.id
+    origin := record.origin
+    kind := record.kind
+    causalParents := canonicalIds record.causalParents
+    fields
+  }
+
 private structure Emission where
   record : SyntheticEvidenceRecord
   rule : CheckedObservationRule
@@ -671,32 +855,34 @@ private def emissionsFor
     (record : SyntheticEvidenceRecord) : Except ObservationDiagnostic (List Emission) := do
   let mut emissions := []
   for rule in plan.rules.mergeSort (ruleLe plan) do
-    if ← conditionHolds plan record rule.condition then
-      let value ← evaluateExpression plan record rule.value
-      let rendered ← match value with
-        | .text rendered => pure rendered
-        | _ => throw (diagnostic plan .normalizationFailure [record.id, rule.id])
-      let references := canonicalReferences <|
-        expressionReferences plan rule.value ++
-          rule.condition.toList.flatMap (expressionReferences plan)
-      let mut dispositions := []
-      for reference in references do
-        dispositions := (← appliedDisposition plan record rule reference) :: dispositions
-      emissions := {
-        record
-        rule
-        value := { definitionId := rule.output, value := rendered }
-        bindingIds := canonicalIds <|
-          expressionBindingIds plan rule.value ++
-            rule.condition.toList.flatMap (expressionBindingIds plan)
-        dispositions := dispositions.reverse
-      } :: emissions
+    if ruleReferencesRecord plan record rule then
+      if ← conditionHolds plan record rule.condition then
+        let value ← evaluateExpression plan record rule.value
+        let rendered ← match value with
+          | .text rendered => pure rendered
+          | _ => throw (diagnostic plan .normalizationFailure [record.id, rule.id])
+        let references := canonicalReferences <|
+          expressionReferences plan rule.value ++
+            rule.condition.toList.flatMap (expressionReferences plan)
+        let mut dispositions := []
+        for reference in references do
+          dispositions := (← appliedDisposition plan record rule reference) :: dispositions
+        emissions := {
+          record
+          rule
+          value := { definitionId := rule.output, value := rendered }
+          bindingIds := canonicalIds <|
+            expressionBindingIds plan rule.value ++
+              rule.condition.toList.flatMap (expressionBindingIds plan)
+          dispositions := dispositions.reverse
+        } :: emissions
   pure emissions.reverse
 
 private def orderingFact (record : SyntheticEvidenceRecord) : EvidenceOrderingFact := {
   recordId := record.id
   kind := record.kind
   sequence := record.sequence
+  origin := record.origin
   causalParents := canonicalIds record.causalParents
 }
 
@@ -714,7 +900,9 @@ private def evidenceLinkFor
   evidenceIdentities := [emission.record.id]
   ruleId := emission.rule.id
   bindingIds := emission.bindingIds
-  orderingSupport := [orderingFact emission.record]
+  orderingSupport := if emission.record.origin.isSome then
+      bundle.records.mergeSort recordLe |>.map orderingFact
+    else [orderingFact emission.record]
   closureSupport := bundle.closures.mergeSort closureLe
   appliedDispositions := emission.dispositions
   appliedBound := plan.evidenceBound
@@ -746,11 +934,25 @@ private def ensureComparableEmissions
 private def evidenceBackedTraceId
     (mappingDigest : String)
     (evidenceIdentities : List DefinitionId)
+    (recordSupport : List EvidenceRecordSupport)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
     (evidenceLinks : List EvidenceLink) : String :=
   (behaviorFingerprintOf <|
-    mappingDigest ++ ":" ++ reprStr evidenceIdentities ++ ":" ++ reprStr trace ++
-      ":" ++ reprStr evidenceLinks).render
+    mappingDigest ++ ":" ++ reprStr evidenceIdentities ++ ":" ++ reprStr recordSupport ++
+      ":" ++ reprStr trace ++ ":" ++ reprStr evidenceLinks).render
+
+private structure RecordEmissions where
+  record : SyntheticEvidenceRecord
+  emissions : List Emission
+
+private def recordPrecedes
+    (records : List SyntheticEvidenceRecord)
+    (left right : SyntheticEvidenceRecord) : Bool :=
+  let sourceLocal := match left.origin, right.origin with
+    | some leftOrigin, some rightOrigin =>
+        leftOrigin.source == rightOrigin.source && leftOrigin.ordinal < rightOrigin.ordinal
+    | _, _ => false
+  sourceLocal || recordDependsOn records right.id left.id
 
 private def evaluateChecked
     (plan : CheckedObservationPlan)
@@ -761,6 +963,11 @@ private def evaluateChecked
       limit := some plan.evidenceBound
       observedCount := some bundle.records.length
     }
+  if !bundle.sourceClosed then
+    throw (diagnostic plan .missingClosure)
+  if !bundle.knownGaps.isEmpty then
+    throw (diagnostic plan .knownGap <|
+      bundle.knownGaps.flatMap fun gap => gap.code :: gap.relatedDefinitionIds)
   if bundle.records.isEmpty then
     throw (diagnostic plan .emptyEvidence)
   if bundle.profile != plan.profile.id then
@@ -770,8 +977,18 @@ private def evaluateChecked
   let records := bundle.records.mergeSort recordLe
   for record in records do
     validateRecord plan record
-  validateClosures plan bundle
+  if !bundle.closedFieldKinds.isEmpty then
+    for record in records do
+      let declaration ← match plan.profile.kinds.find? fun kind => kind.id == record.kind with
+        | some declaration => pure declaration
+        | none => throw (diagnostic plan .kindMismatch [record.id, record.kind])
+      if bundle.closedFieldKinds.contains record.kind then
+        let expectedFields := declaration.fields.map EvidenceFieldDeclaration.id |>.mergeSort idLe
+        let actualFields := record.fields.map EvidenceFieldValue.field |>.mergeSort idLe
+        if actualFields != expectedFields then
+          throw (diagnostic plan .fieldMismatch [record.id, record.kind])
   validateSequenceAndCausality plan records
+  validateClosures plan bundle
   for record in records do
     validateBindingFacts plan record
   detectDigestIssues plan records
@@ -792,32 +1009,54 @@ private def evaluateChecked
       alternatives
       missingDiscriminator := some missingDiscriminator
     }
-  let first :: remainingRecords := records
+  let recordEmissions ← records.mapM fun record => do
+    pure { record, emissions := ← emissionsFor plan record }
+  let multiSource := records.all fun record => record.origin.isSome
+  let firstRecord :: remainingRecords ← if multiSource then do
+      let emissions := recordEmissions.flatMap RecordEmissions.emissions
+      let stateEmissions := emissions.filter fun emission => emission.rule.outputKind == .state
+      let initialCandidates := stateEmissions.filter fun candidate =>
+        stateEmissions.all fun other =>
+          (candidate.record.id == other.record.id && candidate.rule.id == other.rule.id) ||
+            recordPrecedes records candidate.record other.record
+      let initial ← match initialCandidates with
+        | [initial] => pure initial
+        | [] => throw (diagnostic plan .missingInitialState)
+        | multiple => throw (diagnostic plan .contradictoryFact
+            (multiple.map fun emission => emission.record.id))
+      let remaining := emissions.filter fun emission =>
+        emission.record.id != initial.record.id || emission.rule.id != initial.rule.id
+      ensureComparableEmissions plan initial.record remaining
+      let ordered := remaining.mergeSort fun left right =>
+        if left.rule.id == right.rule.id then recordLe left.record right.record
+        else ruleLe plan left.rule right.rule
+      pure [{ record := initial.record, emissions := [initial] },
+        { record := initial.record, emissions := ordered }]
+    else pure recordEmissions
     | throw (diagnostic plan .emptyEvidence)
-  let firstEmissions ← emissionsFor plan first
-  let initialCandidates := firstEmissions.filter fun emission => emission.rule.outputKind == .state
+  let initialCandidates := firstRecord.emissions.filter fun emission =>
+    emission.rule.outputKind == .state
   let initial ← match initialCandidates with
     | [initial] => pure initial
-    | [] => throw (diagnostic plan .missingInitialState [first.id])
+    | [] => throw (diagnostic plan .missingInitialState [firstRecord.record.id])
     | multiple => throw (diagnostic plan .contradictoryFact
-        (first.id :: multiple.map fun emission => emission.rule.output))
-  if firstEmissions.any fun emission => emission.rule.outputKind != .state then
-    throw (diagnostic plan .unconsumedReference [first.id])
+        (firstRecord.record.id :: multiple.map fun emission => emission.rule.output))
+  if firstRecord.emissions.any fun emission => emission.rule.outputKind != .state then
+    throw (diagnostic plan .unconsumedReference [firstRecord.record.id])
   let mut steps := []
   let mut evidenceLinks := [evidenceLinkFor plan bundle .initialState initial]
   let mut stepPosition := 1
-  for record in remainingRecords do
-    let emissions ← emissionsFor plan record
-    ensureComparableEmissions plan record emissions
-    let action ← singleEmission plan record .action emissions
-    let outcome ← singleEmission plan record .outcome emissions
-    let state ← singleEmission plan record .state emissions
-    let observations := emissions.filter fun emission => emission.rule.outputKind == .observation
-    let usable := emissions.filter fun emission =>
+  for item in remainingRecords do
+    ensureComparableEmissions plan item.record item.emissions
+    let action ← singleEmission plan item.record .action item.emissions
+    let outcome ← singleEmission plan item.record .outcome item.emissions
+    let state ← singleEmission plan item.record .state item.emissions
+    let observations := item.emissions.filter fun emission => emission.rule.outputKind == .observation
+    let usable := item.emissions.filter fun emission =>
       emission.rule.outputKind == .action || emission.rule.outputKind == .outcome ||
         emission.rule.outputKind == .state || emission.rule.outputKind == .observation
-    if usable.length != emissions.length then
-      throw (diagnostic plan .unconsumedReference [record.id])
+    if usable.length != item.emissions.length then
+      throw (diagnostic plan .unconsumedReference [item.record.id])
     steps := steps ++ [{
       selectedAction := action.value
       modelOutcome := outcome.value
@@ -836,8 +1075,10 @@ private def evaluateChecked
     steps
   }
   let evidenceIdentities := records.map SyntheticEvidenceRecord.id
+  let recordSupport ← records.mapM (evidenceRecordSupport plan)
   let accepted : EvidenceBackedTrace := {
-    traceId := evidenceBackedTraceId plan.behaviorFingerprint.render evidenceIdentities trace evidenceLinks
+    traceId := evidenceBackedTraceId plan.behaviorFingerprint.render evidenceIdentities recordSupport trace
+      evidenceLinks
     checkedPlan := plan
     mappingId := plan.id
     mappingVersion := plan.version
@@ -850,6 +1091,7 @@ private def evaluateChecked
     dispositions := plan.dispositions
     appliedBound := plan.evidenceBound
     evidenceIdentities
+    recordSupport
     trace
     evidenceLinks
   }
@@ -871,8 +1113,28 @@ private def orderingFactByRecordLe (left right : EvidenceOrderingFact) : Bool :=
   idLe left.recordId right.recordId
 
 private def orderingFactBySequenceLe (left right : EvidenceOrderingFact) : Bool :=
-  left.sequence < right.sequence ||
-    (left.sequence == right.sequence && idLe left.recordId right.recordId)
+  match left.origin, right.origin with
+  | some leftOrigin, some rightOrigin =>
+      decide (leftOrigin.source.value < rightOrigin.source.value) ||
+        (leftOrigin.source == rightOrigin.source &&
+          (leftOrigin.ordinal < rightOrigin.ordinal ||
+            (leftOrigin.ordinal == rightOrigin.ordinal && idLe left.recordId right.recordId)))
+  | none, none => left.sequence < right.sequence ||
+      (left.sequence == right.sequence && idLe left.recordId right.recordId)
+  | none, some _ => true
+  | some _, none => false
+
+private partial def orderingDependsOn
+    (facts : List EvidenceOrderingFact)
+    (recordId target : DefinitionId)
+    (visited : List DefinitionId := []) : Bool :=
+  if recordId == target then true
+  else if visited.contains recordId then false
+  else
+    match facts.find? fun fact => fact.recordId == recordId with
+    | none => false
+    | some fact => fact.causalParents.any fun parent =>
+        orderingDependsOn facts parent target (recordId :: visited)
 
 private def canonicalOrderingFacts
     (mappingId : DefinitionId) :
@@ -898,6 +1160,59 @@ private def validateOrderingProvenance
     orderingFactByRecordLe
   let facts := (← canonicalOrderingFacts trace.mappingId ordered).mergeSort orderingFactBySequenceLe
   if facts.map EvidenceOrderingFact.recordId != trace.evidenceIdentities then
+    throw { kind := .missingOrderSupport, planId := trace.mappingId }
+  if facts.all fun fact => fact.origin.isSome then
+    let sources := canonicalIds <| facts.filterMap fun fact => fact.origin.map EvidenceOrigin.source
+    for source in sources do
+      let sourceFacts := facts.filter fun fact =>
+        fact.origin.any fun origin => origin.source == source
+      let mut expectedOrdinal := 0
+      for fact in sourceFacts do
+        let origin ← match fact.origin with
+          | some origin => pure origin
+          | none => throw { kind := .missingOrderSupport, planId := trace.mappingId }
+        if origin.ordinal != expectedOrdinal then
+          throw {
+            kind := .missingOrderSupport
+            planId := trace.mappingId
+            relatedDefinitionIds := [fact.recordId, source]
+          }
+        expectedOrdinal := expectedOrdinal + 1
+    for fact in facts do
+      for parent in fact.causalParents do
+        let parentFact ← match facts.find? fun candidate => candidate.recordId == parent with
+          | some parentFact => pure parentFact
+          | none => throw {
+              kind := .missingOrderSupport
+              planId := trace.mappingId
+              relatedDefinitionIds := [fact.recordId, parent]
+            }
+        if orderingDependsOn facts parent fact.recordId then
+          throw {
+            kind := .missingOrderSupport
+            planId := trace.mappingId
+            relatedDefinitionIds := [fact.recordId, parent]
+          }
+        match fact.origin, parentFact.origin with
+        | some factOrigin, some parentOrigin =>
+            if factOrigin.source == parentOrigin.source &&
+                parentOrigin.ordinal >= factOrigin.ordinal then
+              throw {
+                kind := .missingOrderSupport
+                planId := trace.mappingId
+                relatedDefinitionIds := [fact.recordId, parent]
+              }
+        | _, _ => throw { kind := .missingOrderSupport, planId := trace.mappingId }
+    for evidenceLink in trace.evidenceLinks do
+      let support := evidenceLink.orderingSupport.mergeSort orderingFactBySequenceLe
+      if support != facts then
+        throw {
+          kind := .missingOrderSupport
+          planId := trace.mappingId
+          relatedDefinitionIds := [evidenceLink.ruleId]
+        }
+    return facts
+  if facts.any fun fact => fact.origin.isSome then
     throw { kind := .missingOrderSupport, planId := trace.mappingId }
   let mut expectedSequence := 1
   for fact in facts do
@@ -957,6 +1272,40 @@ private def validateClosureProvenance
         planId := trace.mappingId
         relatedDefinitionIds := [evidenceLink.ruleId]
       }
+  if ordering.all fun fact => fact.origin.isSome then
+    for fact in ordering do
+      let origin ← match fact.origin with
+        | some origin => pure origin
+        | none => throw { kind := .missingClosureSupport, planId := trace.mappingId }
+      if !(closures.any fun closure => closure.source == some origin.source &&
+          closure.kind == fact.kind) then
+        throw {
+          kind := .missingClosureSupport
+          planId := trace.mappingId
+          relatedDefinitionIds := [fact.recordId, origin.source, fact.kind]
+        }
+    for closure in closures do
+      let source ← match closure.source with
+        | some source => pure source
+        | none => throw {
+            kind := .missingClosureSupport
+            planId := trace.mappingId
+            relatedDefinitionIds := [closure.kind]
+          }
+      let sourceFacts := ordering.filter fun fact =>
+        fact.kind == closure.kind && fact.origin.any fun origin => origin.source == source
+      let lastSequence := sourceFacts.foldl (fun current fact =>
+        Nat.max current (fact.origin.map (fun origin => origin.ordinal + 1) |>.getD 0)) 0
+      if sourceFacts.isEmpty || closure.lastSequence != lastSequence ||
+          closure.recordCount != some sourceFacts.length || closure.byteCount.isNone then
+        throw {
+          kind := .missingClosureSupport
+          planId := trace.mappingId
+          relatedDefinitionIds := [source, closure.kind]
+        }
+    return
+  if ordering.any fun fact => fact.origin.isSome then
+    throw { kind := .missingClosureSupport, planId := trace.mappingId }
   for fact in ordering do
     if !(closures.any fun closure => closure.kind == fact.kind) then
       throw {
@@ -1191,6 +1540,74 @@ private def validateCheckedProvenance
       relatedDefinitionIds := [evidenceLink.ruleId]
     }
 
+private def validateRecordSupport
+    (trace : EvidenceBackedTrace)
+    (ordering : List EvidenceOrderingFact) : Except ObservationDiagnostic Unit := do
+  if trace.recordSupport.map EvidenceRecordSupport.recordId != trace.evidenceIdentities then
+    throw { kind := .unconsumedReference, planId := trace.mappingId }
+  for support in trace.recordSupport do
+    let order ← match ordering.find? fun fact => fact.recordId == support.recordId with
+      | some order => pure order
+      | none => throw {
+          kind := .missingOrderSupport
+          planId := trace.mappingId
+          relatedDefinitionIds := [support.recordId]
+        }
+    if support.origin != order.origin || support.kind != order.kind ||
+        support.causalParents != order.causalParents then
+      throw {
+        kind := .missingOrderSupport
+        planId := trace.mappingId
+        relatedDefinitionIds := [support.recordId]
+      }
+    let fieldIds := support.fields.map EvidenceFieldSupport.field
+    if fieldIds.eraseDups.length != fieldIds.length then
+      throw {
+        kind := .contradictoryFact
+        planId := trace.mappingId
+        relatedDefinitionIds := [support.recordId]
+      }
+    for field in support.fields do
+      let kind ← match trace.checkedPlan.profile.kinds.find? fun kind => kind.id == support.kind with
+        | some kind => pure kind
+        | none => throw {
+            kind := .kindMismatch
+            planId := trace.mappingId
+            relatedDefinitionIds := [support.recordId, support.kind]
+          }
+      let declaration ← match kind.fields.find? fun declaration => declaration.id == field.field with
+        | some declaration => pure declaration
+        | none => throw {
+            kind := .fieldMismatch
+            planId := trace.mappingId
+            relatedDefinitionIds := [support.recordId, field.field]
+          }
+      if declaration.valueType != field.valueType then
+        throw {
+          kind := .normalizationFailure
+          planId := trace.mappingId
+          relatedDefinitionIds := [support.recordId, field.field]
+        }
+      let disposition ← match trace.dispositions.find? fun item =>
+          item.field == { kind := support.kind, field := field.field } with
+        | some disposition => pure disposition.disposition
+        | none => throw {
+            kind := .disallowedRawMaterial
+            planId := trace.mappingId
+            relatedDefinitionIds := [support.recordId, field.field]
+          }
+      let valid := match disposition, field.evidence with
+        | .retain, .retained _ => true
+        | .redact, .redactedContribution => true
+        | .hash (some expected), .digestToken actual _ => expected == actual
+        | _, _ => false
+      if !valid then
+        throw {
+          kind := .inconsistentEvidenceLink
+          planId := trace.mappingId
+          relatedDefinitionIds := [support.recordId, field.field]
+        }
+
 /-- Revalidate a wrapper before any downstream property evaluation. -/
 def validateEvidenceBackedTrace (trace : EvidenceBackedTrace) : Except ObservationDiagnostic Unit := do
   let plan := trace.checkedPlan
@@ -1226,16 +1643,21 @@ def validateEvidenceBackedTrace (trace : EvidenceBackedTrace) : Except Observati
         planId := trace.mappingId
         relatedDefinitionIds := [evidenceLink.ruleId]
       }
-  if evidenceLinkEvidenceIds trace.evidenceLinks != canonicalIds trace.evidenceIdentities then
+  let linkedEvidence := evidenceLinkEvidenceIds trace.evidenceLinks
+  if linkedEvidence.isEmpty || linkedEvidence.any fun identity =>
+      !trace.evidenceIdentities.contains identity then
+    throw { kind := .unconsumedReference, planId := trace.mappingId }
+  if trace.recordSupport.map EvidenceRecordSupport.recordId != trace.evidenceIdentities then
     throw { kind := .unconsumedReference, planId := trace.mappingId }
   let ordering ← validateOrderingProvenance trace
   validateClosureProvenance trace ordering
+  validateRecordSupport trace ordering
   for evidenceLink in trace.evidenceLinks do
     for applied in evidenceLink.appliedDispositions do
       validateAppliedDisposition trace evidenceLink applied
     validateCheckedProvenance trace evidenceLink
-  if trace.traceId != evidenceBackedTraceId trace.mappingDigest trace.evidenceIdentities trace.trace
-      trace.evidenceLinks then
+  if trace.traceId != evidenceBackedTraceId trace.mappingDigest trace.evidenceIdentities
+      trace.recordSupport trace.trace trace.evidenceLinks then
     throw { kind := .inconsistentEvidenceLink, planId := trace.mappingId }
 
 /-- Evaluate Evidence without exposing an intermediate or partially constructed Model Trace. -/

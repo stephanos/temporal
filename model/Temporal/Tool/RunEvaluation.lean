@@ -65,6 +65,7 @@ private def observationStatusName : ObservationStatus → String
 private def observationFailureName : ObservationFailureKind → String
   | .emptyEvidence => "empty-evidence"
   | .evidenceBoundExhausted => "evidence-bound-exhausted"
+  | .knownGap => "known-gap"
   | .missingInitialState => "missing-initial-state"
   | .missingClosure => "missing-closure"
   | .sequenceGap => "sequence-gap"
@@ -390,6 +391,14 @@ private structure RawSource where
   definitionId : DefinitionId
   status : String
   factCount : Nat
+  byteCount : Nat
+  deriving BEq
+
+private structure RawClosure where
+  definitionId : DefinitionId
+  status : String
+  recordCount : Nat
+  byteCount : Nat
   deriving BEq
 
 private def parseField (json : Lean.Json) : Except String RawField := do
@@ -432,104 +441,41 @@ private def parseSource (json : Lean.Json) : Except String RawSource := do
     definitionId := ← idValue json "sourceDefinitionId"
     status
     factCount := ← natValue json "factCount"
+    byteCount := ← natValue json "byteCount"
   }
 
-private def field? (fact : RawFact) (fieldId : DefinitionId) : Option RawField :=
-  fact.fields.find? fun field => field.definitionId == fieldId
-
-private def fieldText? (fact : RawFact) (fieldId : DefinitionId) : Option String := do
-  let field ← field? fact fieldId
-  match field.value with
-  | .text value => some value
-  | .natural value => some (toString value)
-  | .boolean value => some (if value then "true" else "false")
-
-private def fieldNat? (fact : RawFact) (fieldId : DefinitionId) : Option Nat := do
-  let field ← field? fact fieldId
-  match field.value with
-  | .natural value => some value
-  | .text value => value.toNat?
-  | .boolean _ => none
-
-private inductive AdapterResult where
-  | admitted (bundle : EvidenceBundle)
-  | overBound (observed : Nat)
-  | unknown
-  | conflict
-  | unsupported
-
-private def failureBundle : AdapterResult → EvidenceBundle
-  | .admitted bundle => bundle
-  | .overBound observed => {
-      profile := Temporal.System.Nexus.Observation.Profile.id
-      profileVersion := 1
-      records := (List.range observed).map fun sequence => {
-        id := id ("umpire.evidence.limit.record-" ++ toString sequence)
-        profile := Temporal.System.Nexus.Observation.Profile.id
-        profileVersion := 1
-        kind := Temporal.System.Nexus.Observation.Profile.historyKind
-        sequence := sequence + 1
-        fields := []
-      }
-      closures := []
-    }
-  | .unknown => {
-      profile := Temporal.System.Nexus.Observation.Profile.id
-      profileVersion := 1
-      records := []
-      closures := []
-    }
-  | .conflict =>
-      let record : SyntheticEvidenceRecord := {
-        id := id "umpire.evidence.conflict.duplicate"
-        profile := Temporal.System.Nexus.Observation.Profile.id
-        profileVersion := 1
-        kind := Temporal.System.Nexus.Observation.Profile.historyKind
-        sequence := 1
-        fields := []
-      }
-      {
-        profile := Temporal.System.Nexus.Observation.Profile.id
-        profileVersion := 1
-        records := [record, record]
-        closures := [
-          { kind := Temporal.System.Nexus.Observation.Profile.cleanupKind, lastSequence := 0 },
-          { kind := Temporal.System.Nexus.Observation.Profile.controlReceiptKind,
-            lastSequence := 0 },
-          { kind := Temporal.System.Nexus.Observation.Profile.historyKind, lastSequence := 1 },
-          { kind := Temporal.System.Nexus.Observation.Profile.participantKind, lastSequence := 0 }
-        ]
-      }
-  | .unsupported => {
-      profile := id "umpire.evidence.profile.unsupported"
-      profileVersion := 1
-      records := [{
-        id := id "umpire.evidence.unsupported.record"
-        profile := id "umpire.evidence.profile.unsupported"
-        profileVersion := 1
-        kind := id "umpire.evidence.kind.unsupported"
-        sequence := 1
-        fields := []
-      }]
-      closures := []
-    }
+private def parseClosure (json : Lean.Json) : Except String RawClosure := do
+  exactObject json ["sourceDefinitionId", "status", "recordCount", "byteCount"]
+    "sourceClosures"
+  let status ← textValue json "status"
+  if status != "closed" && status != "partial" && status != "failed" then
+    throw "sourceClosures.status"
+  pure {
+    definitionId := ← idValue json "sourceDefinitionId"
+    status
+    recordCount := ← natValue json "recordCount"
+    byteCount := ← natValue json "byteCount"
+  }
 
 private def sourceCleanup := id "umpire.evidence.source.cleanup"
 private def sourceControl := id "umpire.evidence.source.control-receipt"
 private def sourceHistory := id "umpire.evidence.source.history"
 private def sourceParticipant := id "umpire.evidence.source.participant-output"
 
-private def expectedSources : List (DefinitionId × Nat) := [
-  (sourceCleanup, 1), (sourceControl, 1), (sourceHistory, 6), (sourceParticipant, 1)
-]
+private structure SourceSchema where
+  source : DefinitionId
+  kind : DefinitionId
+  count : Nat
 
-private def expectedHistoryEvents : List String := [
-  "temporal.history.WorkflowExecutionStarted",
-  "temporal.history.NexusOperationScheduled",
-  "temporal.history.NexusOperationStarted",
-  "temporal.history.NexusOperationCancelRequested",
-  "temporal.history.NexusOperationCancelRequestCompleted",
-  "temporal.history.WorkflowExecutionCanceled"
+private def expectedSources : List SourceSchema := [
+  { source := sourceCleanup, kind := Temporal.System.Nexus.Observation.Profile.cleanupKind,
+    count := 1 },
+  { source := sourceControl,
+    kind := Temporal.System.Nexus.Observation.Profile.controlReceiptKind, count := 1 },
+  { source := sourceHistory, kind := Temporal.System.Nexus.Observation.Profile.historyKind,
+    count := 6 },
+  { source := sourceParticipant,
+    kind := Temporal.System.Nexus.Observation.Profile.participantKind, count := 1 }
 ]
 
 private def hasExactFields (json : Lean.Json) (fields : List String) : Bool :=
@@ -583,213 +529,122 @@ private def validControlAttempts (json : Lean.Json) : Bool :=
           jsonNull attempt "code"
     | _ => false
 
-private def validSourceClosures (json : Lean.Json) : Bool :=
-  match json.getArr? with
-  | .error _ => false
-  | .ok values =>
-      values.size == expectedSources.length &&
-        (List.zip values.toList expectedSources).all fun pair =>
-          hasExactFields pair.1 ["sourceDefinitionId", "status", "recordCount", "byteCount"] &&
-            jsonText? pair.1 "sourceDefinitionId" == some pair.2.1.value &&
-            jsonText? pair.1 "status" == some "closed" &&
-            jsonNat? pair.1 "recordCount" == some pair.2.2 &&
-            (jsonNat? pair.1 "byteCount").isSome
-
 private def validRuntimeProjections (request : Request) : Bool :=
-  validPhaseOutcomes request.phaseOutcomes && validControlAttempts request.controlAttempts &&
-    validSourceClosures request.sourceClosures
+  validPhaseOutcomes request.phaseOutcomes && validControlAttempts request.controlAttempts
 
-private def duplicateIds (facts : List RawFact) : Bool :=
-  (facts.map RawFact.definitionId |>.eraseDups |>.length) != facts.length
+private def sourceSchema? (source : DefinitionId) : Option SourceSchema :=
+  expectedSources.find? fun schema => schema.source == source
 
-private def exactSourceFacts
-    (sources : List RawSource)
-    (facts : List RawFact) : Bool :=
+private def exactSourceSet (sources : List DefinitionId) : Bool :=
   sources.length == expectedSources.length &&
-    (List.zip sources expectedSources).all fun pair =>
-      pair.1.definitionId == pair.2.1 && pair.1.status == "closed" &&
-        pair.1.factCount == pair.2.2 &&
-        (facts.filter fun fact => fact.sourceDefinitionId == pair.1.definitionId).length == pair.2.2
+    expectedSources.all fun expected => sources.contains expected.source
 
-private def exactSourceOrdinals (facts : List RawFact) : Bool :=
-  expectedSources.all fun expected =>
-    let localFacts := facts.filter fun fact => fact.sourceDefinitionId == expected.1
-    localFacts.map RawFact.ordinal == List.range expected.2
-
-private def exactHistoryChain (history : List RawFact) : Bool :=
-  history.length == expectedHistoryEvents.length &&
-    (List.zip history expectedHistoryEvents).all fun pair =>
-      pair.1.kindDefinitionId == Temporal.System.Nexus.Observation.Profile.historyKind &&
-        fieldText? pair.1 Temporal.System.Nexus.Observation.Profile.eventTypeField == some pair.2 &&
-        fieldNat? pair.1 Temporal.System.Nexus.Observation.Profile.eventIdField ==
-          some (pair.1.ordinal + 1) &&
-        (if pair.1.ordinal == 0 then pair.1.causalParents.isEmpty
-          else pair.1.causalParents ==
-            (history[pair.1.ordinal - 1]?.map fun fact => [fact.definitionId]).getD [])
-
-private def commonCorrelation?
-    (history : List RawFact)
-    (fieldId : DefinitionId) : Option String := do
-  let first ← history.head?
-  let value ← fieldText? first fieldId
-  if value.isEmpty || !(history.all fun fact => fieldText? fact fieldId == some value) then none
-  else some value
-
-private def exactField
-    (fact : RawFact)
-    (fieldId : DefinitionId)
-    (disposition : String)
-    (expected : EvidenceValue) : Bool :=
-  match fact.fields.filter fun field => field.definitionId == fieldId with
-  | [field] => field.disposition == disposition && field.value == expected
-  | _ => false
-
-private def admittedBundle
-    (request : Request)
+private def validateSourceClosure
     (sources : List RawSource)
-    (facts : List RawFact) : AdapterResult :=
-  if duplicateIds facts then
-    .conflict
-  else if request.captureStatus != "closed" ||
-      !exactSourceFacts sources facts || !exactSourceOrdinals facts then
-    .unknown
-  else
-    let cleanup := facts.filter fun fact => fact.sourceDefinitionId == sourceCleanup
-    let control := facts.filter fun fact => fact.sourceDefinitionId == sourceControl
-    let history := facts.filter fun fact => fact.sourceDefinitionId == sourceHistory
-    let participant := facts.filter fun fact => fact.sourceDefinitionId == sourceParticipant
-    if !exactHistoryChain history then
-      .conflict
-    else match cleanup, control, participant,
-        commonCorrelation? history Temporal.System.Nexus.Observation.Profile.operationCorrelationField,
-        commonCorrelation? history Temporal.System.Nexus.Observation.Profile.runCorrelationField,
-        commonCorrelation? history Temporal.System.Nexus.Observation.Profile.workflowCorrelationField with
-      | [cleanup], [control], [participant], some operationCorrelation,
-          some runCorrelation, some workflowCorrelation =>
-          if runCorrelation != request.runIdentity.value ||
-              cleanup.kindDefinitionId != Temporal.System.Nexus.Observation.Profile.cleanupKind ||
-              control.kindDefinitionId != Temporal.System.Nexus.Observation.Profile.controlReceiptKind ||
-              participant.kindDefinitionId != Temporal.System.Nexus.Observation.Profile.participantKind ||
-              !exactField cleanup Temporal.System.Nexus.Observation.Profile.openHandleCountField
-                "plain" (.natural 0) ||
-              !exactField cleanup Temporal.System.Nexus.Observation.Profile.statusField
-                "plain" (.text "complete") ||
-              !exactField control Temporal.System.Nexus.Observation.Profile.actionField
-                "plain" (.text "workflow.action.force-close") ||
-              !exactField control Temporal.System.Nexus.Observation.Profile.attemptField
-                "plain" (.natural 1) ||
-              !exactField control Temporal.System.Nexus.Observation.Profile.statusField
-                "plain" (.text "accepted") ||
-              !exactField participant
-                Temporal.System.Nexus.Observation.Profile.cancellationCountField
-                "plain" (.natural 1) then
-            .conflict
-          else match participant.fields.filter fun field =>
-              field.definitionId == Temporal.System.Nexus.Observation.Profile.endpointIdentityField with
-            | [{ disposition := "sha256", value := .text endpoint, .. }] =>
-                if !(endpoint.startsWith "sha256:") || endpoint.length != 71 then .unsupported
-                else match history.head?, history.getLast? with
-                | some initialFact, some terminalFact =>
-                  let initialId := initialFact.definitionId
-                  let terminalId := terminalFact.definitionId
-                  let initial : SyntheticEvidenceRecord := {
-                    id := initialId
-                    profile := Temporal.System.Nexus.Observation.Profile.id
-                    profileVersion := 1
-                    kind := Temporal.System.Nexus.Observation.Profile.historyKind
-                    sequence := 1
-                    fields := [
-                      { field := Temporal.System.Nexus.Observation.Profile.actionField,
-                        value := .text "not-selected" },
-                      { field := Temporal.System.Nexus.Observation.Profile.attemptField,
-                        value := .natural 0 },
-                      { field := Temporal.System.Nexus.Observation.Profile.statusField,
-                        value := .text "not-attempted" },
-                      { field := Temporal.System.Nexus.Observation.Profile.eventIdField,
-                        value := .natural 1 },
-                      { field := Temporal.System.Nexus.Observation.Profile.eventTypeField,
-                        value := .text "temporal.history.WorkflowExecutionStarted" },
-                      { field := Temporal.System.Nexus.Observation.Profile.operationCorrelationField,
-                        value := .text operationCorrelation },
-                      { field := Temporal.System.Nexus.Observation.Profile.runCorrelationField,
-                        value := .text runCorrelation },
-                      { field := Temporal.System.Nexus.Observation.Profile.workflowCorrelationField,
-                        value := .text workflowCorrelation },
-                      { field := Temporal.System.Nexus.Observation.Profile.cancellationCountField,
-                        value := .natural 0 }
-                    ]
-                  }
-                  let terminal : SyntheticEvidenceRecord := {
-                    id := terminalId
-                    profile := Temporal.System.Nexus.Observation.Profile.id
-                    profileVersion := 1
-                    kind := Temporal.System.Nexus.Observation.Profile.historyKind
-                    sequence := 2
-                    causalParents := [initialId]
-                    fields := [
-                      { field := Temporal.System.Nexus.Observation.Profile.actionField,
-                        value := .text "workflow.action.force-close" },
-                      { field := Temporal.System.Nexus.Observation.Profile.attemptField,
-                        value := .natural 1 },
-                      { field := Temporal.System.Nexus.Observation.Profile.statusField,
-                        value := .text "accepted" },
-                      { field := Temporal.System.Nexus.Observation.Profile.eventIdField,
-                        value := .natural 6 },
-                      { field := Temporal.System.Nexus.Observation.Profile.eventTypeField,
-                        value := .text "temporal.history.WorkflowExecutionCanceled" },
-                      { field := Temporal.System.Nexus.Observation.Profile.operationCorrelationField,
-                        value := .text operationCorrelation },
-                      { field := Temporal.System.Nexus.Observation.Profile.runCorrelationField,
-                        value := .text runCorrelation },
-                      { field := Temporal.System.Nexus.Observation.Profile.workflowCorrelationField,
-                        value := .text workflowCorrelation },
-                      { field := Temporal.System.Nexus.Observation.Profile.cancellationCountField,
-                        value := .natural 1 }
-                    ]
-                  }
-                  .admitted {
-                    profile := Temporal.System.Nexus.Observation.Profile.id
-                    profileVersion := 1
-                    records := [initial, terminal]
-                    closures := [
-                      { kind := Temporal.System.Nexus.Observation.Profile.cleanupKind,
-                        lastSequence := 0 },
-                      { kind := Temporal.System.Nexus.Observation.Profile.controlReceiptKind,
-                        lastSequence := 0 },
-                      { kind := Temporal.System.Nexus.Observation.Profile.historyKind,
-                        lastSequence := 2 },
-                      { kind := Temporal.System.Nexus.Observation.Profile.participantKind,
-                        lastSequence := 0 }
-                    ]
-                  }
-                | _, _ => .unknown
-            | _ => .unsupported
-      | _, _, _, _, _, _ => .unknown
+    (closures : List RawClosure) : Except String Unit := do
+  if !exactSourceSet (sources.map RawSource.definitionId) then
+    throw "sources.set"
+  if !exactSourceSet (closures.map RawClosure.definitionId) then
+    throw "sourceClosures.set"
+  for source in sources do
+    let schema ← match sourceSchema? source.definitionId with
+      | some schema => pure schema
+      | none => throw "sources.sourceDefinitionId"
+    let closure ← match closures.find? fun closure => closure.definitionId == source.definitionId with
+      | some closure => pure closure
+      | none => throw "sourceClosures.sourceDefinitionId"
+    if source.status != closure.status || source.factCount != closure.recordCount ||
+        source.byteCount != closure.byteCount then
+      throw "sourceClosures"
+    if source.status == "closed" && source.factCount != schema.count then
+      throw "sources.factCount"
 
-private def adapt (request : Request) : AdapterResult :=
-  if !validRuntimeProjections request then .unsupported
-  else if request.captureStatus != "closed" then .unknown
+private def evidenceField (field : RawField) : Except String EvidenceFieldValue := do
+  if field.disposition == "plain" then
+    pure { field := field.definitionId, value := field.value }
   else
-    match request.sources.getArr?, request.facts.getArr? with
-    | .ok sourceValues, .ok factValues =>
-        if factValues.size > Temporal.System.Nexus.Observation.checkedPlan.evidenceBound.value then
-          .overBound factValues.size
-        else match sourceValues.toList.mapM parseSource, factValues.toList.mapM parseFact,
-            parseGaps request.runKnownGaps, parseGaps request.rawEvidenceKnownGaps with
-          | .ok sources, .ok facts, .ok _, .ok _ => admittedBundle request sources facts
-          | .error error, _, _, _ | _, .error error, _, _ =>
-              if error.contains "disposition" || error.contains "value" ||
-                  error.contains "sources" then .unsupported
-              else .unknown
-          | _, _, .error _, _ | _, _, _, .error _ => .unsupported
-    | _, _ => .unsupported
+    let token ← match field.value with
+      | .text token => pure token
+      | _ => throw "facts.fields.value"
+    if (BehaviorFingerprint.parse? token).isNone then throw "facts.fields.value"
+    pure {
+      field := field.definitionId
+      value := field.value
+      digestPolicy := some Temporal.System.Nexus.Observation.Profile.endpointDigestPolicyId
+      reportedDigestToken := some token
+    }
+
+private def evidenceRecord (fact : RawFact) : Except String SyntheticEvidenceRecord := do
+  if (sourceSchema? fact.sourceDefinitionId).isNone then throw "facts.sourceDefinitionId"
+  pure {
+    id := fact.definitionId
+    profile := Temporal.System.Nexus.Observation.Profile.id
+    profileVersion := 1
+    kind := fact.kindDefinitionId
+    sequence := fact.ordinal + 1
+    origin := some { source := fact.sourceDefinitionId, ordinal := fact.ordinal }
+    causalParents := fact.causalParents
+    fields := ← fact.fields.mapM evidenceField
+  }
+
+private def evidenceClosure (closure : RawClosure) : Except String EvidenceClosureFact := do
+  let schema ← match sourceSchema? closure.definitionId with
+    | some schema => pure schema
+    | none => throw "sourceClosures.sourceDefinitionId"
+  pure {
+    kind := schema.kind
+    lastSequence := closure.recordCount
+    source := some closure.definitionId
+    recordCount := some closure.recordCount
+    byteCount := some closure.byteCount
+  }
+
+private def evidenceGap (gap : KnownGap) : EvidenceGap := {
+  code := gap.code
+  relatedDefinitionIds := gap.subject.toList
+}
+
+private def adapt (request : Request) : Except String EvidenceBundle := do
+  if !validRuntimeProjections request then throw "runtimeProjections"
+  if !["closed", "partial", "failed"].contains request.captureStatus then
+    throw "captureStatus"
+  let sourceValues ← match request.sources.getArr? with
+    | .ok values => pure values.toList
+    | .error _ => throw "sources"
+  let closureValues ← match request.sourceClosures.getArr? with
+    | .ok values => pure values.toList
+    | .error _ => throw "sourceClosures"
+  let factValues ← match request.facts.getArr? with
+    | .ok values => pure values.toList
+    | .error _ => throw "facts"
+  let sources ← sourceValues.mapM parseSource
+  let closures ← closureValues.mapM parseClosure
+  let facts ← factValues.mapM parseFact
+  let runGaps ← parseGaps request.runKnownGaps
+  let rawGaps ← parseGaps request.rawEvidenceKnownGaps
+  validateSourceClosure sources closures
+  pure {
+    profile := Temporal.System.Nexus.Observation.Profile.id
+    profileVersion := 1
+    records := ← facts.mapM evidenceRecord
+    closures := ← closures.mapM evidenceClosure
+    knownGaps := (runGaps ++ rawGaps).map evidenceGap
+    sourceClosed := request.captureStatus == "closed" &&
+      sources.all (fun source => source.status == "closed") &&
+      closures.all (fun closure => closure.status == "closed")
+    closedFieldKinds := expectedSources.map SourceSchema.kind
+  }
+
+private def adapterError (field : String) : Protocol.Error := {
+  kind := .invalidValue
+  field
+}
 
 def evaluateSemantics
-    (request : Request) : Umpire.RunEvaluation
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked :=
-  let adapter := adapt request
-  Umpire.checkRunEvaluation Temporal.System.Nexus.Observation.checkedPlan
-    (failureBundle adapter)
+    (request : Request) : Except Protocol.Error (Umpire.RunEvaluation
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked) := do
+  let bundle ← (adapt request).mapError adapterError
+  pure <| Umpire.checkRunEvaluation Temporal.System.Nexus.Observation.checkedPlan bundle
     Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
     Temporal.System.Nexus.CallerClosure.setup
     Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQuery
@@ -888,9 +743,11 @@ private def cleanupStatus (request : Request) : String :=
       let cleanup := outcomes.toList.find? fun outcome =>
         (outcome.getObjVal? "phase").toOption.bind
           (fun value => value.getStr?.toOption) == some "cleanup"
-      (cleanup.bind fun outcome =>
-        (outcome.getObjVal? "status").toOption.bind (fun value => value.getStr?.toOption)).getD
-          "failed"
+      match cleanup.bind fun outcome =>
+          (outcome.getObjVal? "status").toOption.bind (fun value => value.getStr?.toOption) with
+      | some "succeeded" => "complete"
+      | some "not-started" => "incomplete"
+      | _ => "failed"
 
 private def resultArtifact
     (request : Request)
@@ -898,10 +755,19 @@ private def resultArtifact
       Temporal.System.Nexus.ImplementationLink.CallerClosure.checked)
     (evidence : EvidenceArtifact)
     (resultGaps : List KnownGap) : ResultArtifact :=
-  let properties := evaluation.querySummary.verdicts.map artifactProperty
-  let summary := artifactSummary evaluation.querySummary
   let implementationStatus := evaluation.implementationLink.map
     (ImplementationLinkStatus.name ∘ ImplementationLinkResult.status) |>.getD "not-evaluated"
+  let evaluatedSummary := artifactSummary evaluation.querySummary
+  let summary :=
+    if evaluation.observation.status == .accepted && implementationStatus == "applied" then
+      evaluatedSummary
+    else
+      { evaluatedSummary with
+        status := "incomplete"
+        propertyVerdicts := []
+        missingPropertyDefinitionIds := evaluatedSummary.requiredPropertyDefinitionIds
+        traceIds := [] }
+  let properties := summary.propertyVerdicts
   let limits : List ArtifactStagedLimit := [
     { stage := "observation-evaluation",
       limit := artifactEvidenceLimit Temporal.System.Nexus.Observation.checkedPlan.evidenceBound },
@@ -925,7 +791,7 @@ private def resultArtifact
     implementationLinkStatus := implementationStatus
     propertyVerdicts := properties
     querySummary := summary
-    semanticStatus := strictStatusName evaluation.querySummary.status
+    semanticStatus := summary.status
     limits
     knownGaps := resultGaps
     cleanupStatus := cleanupStatus request
@@ -938,17 +804,20 @@ private def resultArtifact
     Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
   ({ draft with evaluationOutcomeChecksum := outcome } : ResultArtifact).seal
 
-def evaluateRequest (request : Request) : Response :=
-  let evaluation := evaluateSemantics request
+def evaluateRequest (request : Request) : Except Protocol.Error Response := do
+  let evaluation ← evaluateSemantics request
   let observationGaps := semanticGaps evaluation.observation
   let runGaps := (parseGaps request.runKnownGaps).toOption.getD []
   let rawGaps := (parseGaps request.rawEvidenceKnownGaps).toOption.getD []
   let resultGaps := canonicalGaps (runGaps ++ rawGaps ++ observationGaps)
   let evidence := evidenceArtifact request evaluation observationGaps
   let result := resultArtifact request evaluation evidence resultGaps
+  if !evidence.isValidTransport then throw (adapterError "evidence")
+  if !result.isValidTransport then
+    throw (adapterError "result")
   let evidenceJson := canonicalJsonValue (canonicalEvidenceArtifactJson evidence)
   let resultJson := canonicalJsonValue (canonicalResultArtifactJson result)
-  {
+  pure {
     formatVersion := responseFormatVersion
     checkerIdentity
     checkerVersion
@@ -968,7 +837,7 @@ def evaluateRequest (request : Request) : Response :=
     observationKnownGaps := gapsJson observationGaps
     propertyVerdicts := jsonField resultJson "propertyVerdicts"
     querySummary := jsonField resultJson "querySummary"
-    semanticStatus := strictStatusName evaluation.querySummary.status
+    semanticStatus := result.semanticStatus
     resultKnownGaps := gapsJson resultGaps
     evaluationOutcomeChecksum := result.evaluationOutcomeChecksum
   }
@@ -997,8 +866,10 @@ def runBytes (input : ByteArray) : CheckerResult :=
   match decodeRequest input with
   | .error failure => { status := 1, stdout := .empty, stderr := errorLine failure }
   | .ok request =>
-      match encodeResponse (evaluateRequest request) with
+      match evaluateRequest request with
       | .error failure => { status := 1, stdout := .empty, stderr := errorLine failure }
-      | .ok output => { status := 0, stdout := output, stderr := "" }
+      | .ok response => match encodeResponse response with
+        | .error failure => { status := 1, stdout := .empty, stderr := errorLine failure }
+        | .ok output => { status := 0, stdout := output, stderr := "" }
 
 end Temporal.Tool.RunEvaluation

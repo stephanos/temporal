@@ -605,6 +605,7 @@ private def portablePropertyResultJson (property : PortableProperty) : String :=
       (property.requirementDefinitionIds.map (quoteResult ∘ DefinitionId.value)) ++ "}"
 
 private def evaluationOutcomeJson
+    (plan : DrivePlan)
     (trace : ArtifactEvidenceBackedModelTrace)
     (evidenceLinks : List ArtifactEvidenceLink)
     (observationProgram mapping : ArtifactDefinitionReference)
@@ -613,7 +614,8 @@ private def evaluationOutcomeJson
     (properties : List PortableProperty)
     (propertyVerdicts : List ArtifactPropertyVerdict)
     (limits : List ArtifactStagedLimit) : String :=
-  "{\"evidenceBackedModelTrace\":" ++ evidenceBackedModelTraceJson trace ++
+  "{\"plan\":" ++ canonicalDrivePlanJson plan ++
+    ",\"evidenceBackedModelTrace\":" ++ evidenceBackedModelTraceJson trace ++
     ",\"evidenceLinks\":" ++ resultArray (evidenceLinks.map evidenceLinkJson) ++
     ",\"observationProgram\":" ++ definitionReferenceJson observationProgram ++
     ",\"mapping\":" ++ definitionReferenceJson mapping ++
@@ -631,8 +633,9 @@ def ResultArtifact.expectedEvaluationOutcomeChecksum
   if result.semanticStatus == "satisfied" || result.semanticStatus == "violated" then do
     let trace ← evidence.evidenceBackedModelTrace
     some <| evaluationOutcomeChecksumOf <| Json.prettyBytes <|
-      evaluationOutcomeJson trace evidence.evidenceLinks evidence.observationProgram evidence.mapping
-        result.implementationLink result.querySummary experiment.properties result.propertyVerdicts result.limits
+      evaluationOutcomeJson experiment.plan trace evidence.evidenceLinks evidence.observationProgram
+        evidence.mapping result.implementationLink result.querySummary experiment.properties
+        result.propertyVerdicts result.limits
   else none
 
 private def implementationLinkFailureStatus? (kind : String) : Option String :=

@@ -41,14 +41,14 @@ example :
     executionSet.manifest?.map ArtifactSetManifest.artifactSetIdentity =
       some "umpire.artifact-set.3dda4efe07ac24ef454f7dc4227440277cb59caf4a4d671ac09d5bc11555f2f0" &&
     evaluationSet.manifest?.map ArtifactSetManifest.artifactSetIdentity =
-      some "umpire.artifact-set.1f4d21d39c33440ff37bee22db09680293459a69eb702f5496f8bfa6b1dab890" := by
+      some "umpire.artifact-set.c5ecf27335cb3441e768818b0eb4025eeed3de5c6bdea6e0f3dc2a66f9922c69" := by
   native_decide
 
 example : evaluationSet.manifest?.any fun manifest =>
     manifest.artifactSetChecksum.render ==
-      "sha256:12a0e9709e823da060eef54998e6cd36973779c725b177ce1eda5b9954e3499b" &&
+      "sha256:084ed42fd042c6c08bd62a1e5942a15a0c53a3da813041965f3d58c1cb73d172" &&
     manifest.manifestSha256.render ==
-      "sha256:052fa0eff77536213db67f452c543df4bbda4a606ee6f504d3b6cb596b33c9db" &&
+      "sha256:ed15c7a3c10b3442d769ad99496e07c57f70648d1aa43197857b220185f5ce66" &&
     canonicalArtifactSetManifestBytes manifest == include_str "Fixtures/ArtifactSetV2.json" := by
   native_decide
 

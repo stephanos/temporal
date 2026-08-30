@@ -17,8 +17,9 @@ def completeFirstEvidenceLink : EvidenceLink :=
 private def rehashEvidenceBackedTrace (trace : EvidenceBackedTrace) : EvidenceBackedTrace := {
   trace with
   traceId := (behaviorFingerprintOf <|
-    trace.mappingDigest ++ ":" ++ reprStr trace.evidenceIdentities ++ ":" ++ reprStr trace.trace ++
-      ":" ++ reprStr trace.evidenceLinks).render
+    trace.mappingDigest ++ ":" ++ reprStr trace.evidenceIdentities ++ ":" ++
+      reprStr trace.recordSupport ++ ":" ++ reprStr trace.trace ++ ":" ++
+      reprStr trace.evidenceLinks).render
 }
 
 /-- Rehashed wrappers still fail when a rule's required disposition evidence is incomplete. -/
@@ -173,6 +174,94 @@ example :
       .observation 2 1,
       .observation 2 2
     ] := by
+  native_decide
+
+def primaryEvidenceSource : DefinitionId := id "test.evidence.source.primary"
+def auxiliaryEvidenceSource : DefinitionId := id "test.evidence.source.auxiliary"
+def auxiliaryEvidenceId : DefinitionId := id "test.evidence.record.auxiliary"
+
+def multiSourceEvidence : EvidenceBundle := {
+  completeEvidence with
+  records := [
+    { stepEvidence with origin := some { source := primaryEvidenceSource, ordinal := 1 } },
+    {
+      id := auxiliaryEvidenceId
+      profile := profileId
+      profileVersion := 1
+      kind := eventKind
+      sequence := 1
+      origin := some { source := auxiliaryEvidenceSource, ordinal := 0 }
+      fields := [textField roleField "support"]
+    },
+    { initialEvidence with origin := some { source := primaryEvidenceSource, ordinal := 0 } }
+  ]
+  closures := [
+    { kind := eventKind, lastSequence := 2, source := some primaryEvidenceSource,
+      recordCount := some 2, byteCount := some 64 },
+    { kind := eventKind, lastSequence := 1, source := some auxiliaryEvidenceSource,
+      recordCount := some 1, byteCount := some 16 }
+  ]
+}
+
+def multiSourceTrace : EvidenceBackedTrace :=
+  (acceptedOf (evaluateFixture multiSourceEvidence)).get (by native_decide)
+
+/-! Independent source-local order and causal order remain complete provenance without inventing a
+cross-source step. -/
+example :
+    (multiSourceTrace.trace,
+      multiSourceTrace.recordSupport.map fun support =>
+          (support.recordId, support.origin, support.fields.map fun field =>
+            (field.field, field.valueType)),
+      multiSourceTrace.evidenceLinks.all fun link =>
+        link.orderingSupport.map (fun fact => (fact.recordId, fact.origin)) == [
+          (auxiliaryEvidenceId,
+            some { source := auxiliaryEvidenceSource, ordinal := 0 }),
+          (initialEvidenceId, some { source := primaryEvidenceSource, ordinal := 0 }),
+          (stepEvidenceId, some { source := primaryEvidenceSource, ordinal := 1 })
+        ] && link.closureSupport.length == 2) == (
+      expectedTrace,
+      [
+        (auxiliaryEvidenceId, some { source := auxiliaryEvidenceSource, ordinal := 0 },
+          [(roleField, .text)]),
+        (initialEvidenceId, some { source := primaryEvidenceSource, ordinal := 0 },
+          [(nameField, .text), (roleField, .text)]),
+        (stepEvidenceId, some { source := primaryEvidenceSource, ordinal := 1 },
+          [(hashedField, .text), (roleField, .text), (secretField, .text)])
+      ],
+      true) := by
+  native_decide
+
+/-! Every multi-source coordinate retains the complete source-local ordering and closure proof. -/
+example :
+    let first := multiSourceTrace.evidenceLinks.head?.get (by native_decide)
+    let links := { first with orderingSupport := first.orderingSupport.tail } ::
+      multiSourceTrace.evidenceLinks.tail
+    diagnosticKindOf (validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+      multiSourceTrace with evidenceLinks := links
+    }) = some .missingOrderSupport := by
+  native_decide
+
+example :
+    let first := multiSourceTrace.evidenceLinks.head?.get (by native_decide)
+    let links := { first with closureSupport := first.closureSupport.tail } ::
+      multiSourceTrace.evidenceLinks.tail
+    diagnosticKindOf (validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+      multiSourceTrace with evidenceLinks := links
+    }) = some .missingClosureSupport := by
+  native_decide
+
+/-! Source-local causal orphans and cycles retain their exact fn-4 diagnostic classes. -/
+example :
+    let orphan := { multiSourceEvidence with records := multiSourceEvidence.records.map fun record =>
+      if record.id == stepEvidenceId then
+        { record with causalParents := [id "test.evidence.record.missing"] }
+      else record }
+    let cyclic := { multiSourceEvidence with records := multiSourceEvidence.records.map fun record =>
+      if record.id == initialEvidenceId then { record with causalParents := [stepEvidenceId] }
+      else record }
+    (evaluateFixture orphan).diagnostic?.map ObservationDiagnostic.kind == some .missingCausalParent &&
+      (evaluateFixture cyclic).diagnostic?.map ObservationDiagnostic.kind == some .contradictoryOrder := by
   native_decide
 
 end Umpire.ObservationTests
