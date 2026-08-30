@@ -106,14 +106,14 @@ func (process checkerProcess) run(ctx context.Context, request checkerRequest) (
 	stderr := newBoundedCapture(maximumCheckerProtocolBytes, func() { cancelRun(stderrCause) })
 	stderr.onWrite = func() { cancelRun(stderrCause) }
 
-	if process.beforeStart != nil {
-		process.beforeStart(checkerExecutable.path)
-	}
 	if err := checkerExecutable.verifyOpenFile(); err != nil {
 		return checkerResponse{}, err
 	}
 	if err := verifyCheckerSnapshotPath(checkerExecutable.path, checkerExecutable.file); err != nil {
 		return checkerResponse{}, err
+	}
+	if process.beforeStart != nil {
+		process.beforeStart(checkerExecutable.path)
 	}
 	command := exec.CommandContext(runContext, checkerExecutable.path)
 	command.Args[0] = checkerExecutable.sibling
@@ -335,13 +335,13 @@ func prepareVerifiedCheckerExecutable(
 		cleanup()
 		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
 	}
-	if err := protectCheckerSnapshot(snapshotPath); err != nil {
+	if err := protectCheckerSnapshot(snapshotPath, opened); err != nil {
 		_ = opened.Close()
 		cleanup()
 		return verifiedCheckerExecutable{}, &checkerFailure{code: checkerFailureUnsafe}
 	}
 	cleanup = sync.OnceFunc(func() {
-		_ = unprotectCheckerSnapshot(snapshotPath)
+		_ = unprotectCheckerSnapshot(snapshotPath, opened)
 		_ = opened.Close()
 		_ = os.Remove(snapshotPath)
 	})
