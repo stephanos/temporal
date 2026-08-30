@@ -43,8 +43,14 @@ def workflowCorrelationField : DefinitionId :=
   definitionId "umpire.evidence.field.workflow-correlation-id"
 def cancellationCountField : DefinitionId :=
   definitionId "umpire.evidence.field.cancellation-callback-count"
+def commandKindField : DefinitionId := definitionId "umpire.evidence.field.command-kind"
 def endpointIdentityField : DefinitionId := definitionId "umpire.evidence.field.endpoint-identity"
+def errorCodeField : DefinitionId := definitionId "umpire.evidence.field.error-code"
+def namespaceIdentityField : DefinitionId :=
+  definitionId "umpire.evidence.field.namespace-identity"
 def openHandleCountField : DefinitionId := definitionId "umpire.evidence.field.open-handle-count"
+def taskQueueIdentityField : DefinitionId :=
+  definitionId "umpire.evidence.field.task-queue-identity"
 def endpointDigestPolicyId : DefinitionId :=
   definitionId "temporal.system.nexus.caller-closure.digest.endpoint"
 
@@ -53,8 +59,16 @@ def declaration : EvidenceProfileDeclaration := {
   source
   kinds := [
     { id := cleanupKind, fields := [
+        { id := commandKindField, valueType := .text },
+        { id := endpointIdentityField, valueType := .text },
+        { id := errorCodeField, valueType := .text },
+        { id := namespaceIdentityField, valueType := .text },
         { id := openHandleCountField, valueType := .natural },
-        { id := statusField, valueType := .text }
+        { id := operationCorrelationField, valueType := .text },
+        { id := runCorrelationField, valueType := .text },
+        { id := statusField, valueType := .text },
+        { id := taskQueueIdentityField, valueType := .text },
+        { id := workflowCorrelationField, valueType := .text }
       ] },
     { id := controlReceiptKind, fields := [
         { id := actionField, valueType := .text },
@@ -71,7 +85,15 @@ def declaration : EvidenceProfileDeclaration := {
       ] },
     { id := participantKind, fields := [
         { id := cancellationCountField, valueType := .natural },
-        { id := endpointIdentityField, valueType := .text }
+        { id := commandKindField, valueType := .text },
+        { id := endpointIdentityField, valueType := .text },
+        { id := errorCodeField, valueType := .text },
+        { id := namespaceIdentityField, valueType := .text },
+        { id := operationCorrelationField, valueType := .text },
+        { id := runCorrelationField, valueType := .text },
+        { id := statusField, valueType := .text },
+        { id := taskQueueIdentityField, valueType := .text },
+        { id := workflowCorrelationField, valueType := .text }
       ] }
   ]
 }
@@ -186,9 +208,25 @@ def mappingDeclaration : ObservationMappingDeclaration := {
     { kind := Profile.participantKind }
   ]
   dispositions := [
+    { field := { kind := Profile.cleanupKind, field := Profile.commandKindField },
+      disposition := .retain },
+    { field := { kind := Profile.cleanupKind, field := Profile.endpointIdentityField },
+      disposition := .hash (some Profile.endpointDigestPolicyId) },
+    { field := { kind := Profile.cleanupKind, field := Profile.errorCodeField },
+      disposition := .retain },
+    { field := { kind := Profile.cleanupKind, field := Profile.namespaceIdentityField },
+      disposition := .hash (some Profile.endpointDigestPolicyId) },
     { field := { kind := Profile.cleanupKind, field := Profile.openHandleCountField },
       disposition := .retain },
+    { field := { kind := Profile.cleanupKind, field := Profile.operationCorrelationField },
+      disposition := .retain },
+    { field := { kind := Profile.cleanupKind, field := Profile.runCorrelationField },
+      disposition := .retain },
     { field := { kind := Profile.cleanupKind, field := Profile.statusField },
+      disposition := .retain },
+    { field := { kind := Profile.cleanupKind, field := Profile.taskQueueIdentityField },
+      disposition := .hash (some Profile.endpointDigestPolicyId) },
+    { field := { kind := Profile.cleanupKind, field := Profile.workflowCorrelationField },
       disposition := .retain },
     { field := { kind := Profile.controlReceiptKind, field := Profile.actionField },
       disposition := .retain },
@@ -210,8 +248,24 @@ def mappingDeclaration : ObservationMappingDeclaration := {
       disposition := .retain },
     { field := { kind := Profile.participantKind, field := Profile.cancellationCountField },
       disposition := .retain },
+    { field := { kind := Profile.participantKind, field := Profile.commandKindField },
+      disposition := .retain },
     { field := { kind := Profile.participantKind, field := Profile.endpointIdentityField },
-      disposition := .hash (some Profile.endpointDigestPolicyId) }
+      disposition := .hash (some Profile.endpointDigestPolicyId) },
+    { field := { kind := Profile.participantKind, field := Profile.errorCodeField },
+      disposition := .retain },
+    { field := { kind := Profile.participantKind, field := Profile.namespaceIdentityField },
+      disposition := .hash (some Profile.endpointDigestPolicyId) },
+    { field := { kind := Profile.participantKind, field := Profile.operationCorrelationField },
+      disposition := .retain },
+    { field := { kind := Profile.participantKind, field := Profile.runCorrelationField },
+      disposition := .retain },
+    { field := { kind := Profile.participantKind, field := Profile.statusField },
+      disposition := .retain },
+    { field := { kind := Profile.participantKind, field := Profile.taskQueueIdentityField },
+      disposition := .hash (some Profile.endpointDigestPolicyId) },
+    { field := { kind := Profile.participantKind, field := Profile.workflowCorrelationField },
+      disposition := .retain }
   ]
   evidenceBound := { value := 4096, unit := .evidenceRecords }
   documentation := "Closed four-source Nexus caller-closure evidence to one System trace."

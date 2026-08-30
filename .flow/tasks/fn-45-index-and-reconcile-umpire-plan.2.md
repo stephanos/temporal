@@ -1,0 +1,43 @@
+---
+satisfies: [R1, R2]
+---
+# fn-45-index-and-reconcile-umpire-plan.2 Author the complete plan authority registry
+
+## Description
+Populate the production v1 registry and focused command surface for R1/R2.
+
+**Size:** M
+**Files:** `.plans/index.json`, `tools/planindex/index_test.go`, `tools/planindex/check_test.go`, `Makefile`
+**Touches:** [.plans/index.json, tools/planindex/*_test.go, Makefile]
+
+### Approach
+- Classify every current `.plans/*.md` exactly once using the approved authority precedence and lifecycle vocabulary.
+- Classify every current `.flow/specs/*.json` exactly once as Umpire roadmap, Umpire support, or other; record exact disposition/phase/execution/dependencies, including fn-45 through fn-51.
+- Add production-root tests and `umpire-check-plan-index`; do not add tracker sync or CI workflow files.
+- Keep intentional historical missing links explicit and minimal in `allowedMissingLinks`.
+- The desired-state registry is expected to report Flow/document drift until tasks .3-.6 finish; do not weaken it to make this wave green.
+
+### Investigation targets
+**Required** (read before coding):
+- `.plans/UMPIRE4_SPEC.md` — normative root.
+- `.plans/UMPIRE4_ORDER.md` — delivery-order root and Flow mapping.
+- `.plans/UMPIRE4_SPEC_COMPS.md:7-16` — architecture/descriptive boundary.
+- `.plans/UMPIRE4_SPEC_MODEL_ARCH.md:1-65` — scoped model contract.
+- `.flow/specs/fn-48-canonicalize-known-gaps-as-a-checked-set.json` — support spec depending on deferred fn-43.
+- `Makefile:1283-1317` — PHONY and focused lint target style.
+
+### Quick commands
+`go test -count=1 -tags test_dep ./tools/planindex/...`
+## Acceptance
+- [ ] Every current plan Markdown file and Flow spec JSON has one canonical ordered registry row and no row remains unclassified.
+- [ ] Flow rows encode exact scope, phase, disposition, execution, and complete dependency sets; fn-45..47 are retained support, fn-48/fn-49/fn-51 are deferred support, and fn-50 is retained support.
+- [ ] Production-root tests detect an added, removed, renamed, or multiply registered plan/spec.
+- [ ] Parser/schema/unit tests pass; the not-yet-reconciled production command fails only with the expected deterministic document/Flow drift.
+- [ ] The Make target is focused/read-only and existing comments are preserved.
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:

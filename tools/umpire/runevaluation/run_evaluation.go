@@ -37,7 +37,7 @@ const (
 	callerClosureConfigurationMappingFingerprint = "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2"
 	callerClosureCheckedProfileID                = "temporal.system.nexus.caller-closure.profile"
 	callerClosureCheckedMappingID                = "temporal.system.nexus.caller-closure.mapping"
-	callerClosureCheckedMappingFingerprint       = "sha256:d5d437c89205880d27770b5abdac8aa3eabf07a21e40264ae5601162d70a7f17"
+	callerClosureCheckedMappingFingerprint       = "sha256:150c75ffcdd8b8e6e2ca8807c2c6ac7d924407b3291a0bc1f10ea04469a7df9b"
 	callerClosureParticipantID                   = "temporal.nexus.participant.caller-closure"
 	callerClosureParticipantProgramID            = "temporal.nexus.participant-program.caller-closure"
 	callerClosureParticipantProgramFingerprint   = "sha256:f2f1a9a1346576b4d8c6b0b4f7f6c8a138461f90c168ab57747b316807666e56"
