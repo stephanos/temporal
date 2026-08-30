@@ -1,0 +1,291 @@
+package runevaluation
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"slices"
+	"strconv"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/umpire/artifact"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
+	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
+)
+
+func TestRawArtifactMutationFailsAtAdmission(t *testing.T) {
+	experiment := append(readCallerClosureInput(t, "experiment.json"), ' ')
+	_, err := artifact.AdmitSet([]artifact.SetMember{
+		{Path: "artifacts/experiment.json", Encoded: experiment},
+		{Path: "artifacts/runtime-configuration.json",
+			Encoded: readCallerClosureInput(t, "runtime-configuration.json")},
+	})
+	require.Error(t, err)
+	code, ok := artifact.CodeOf(err)
+	require.True(t, ok)
+	require.Equal(t, artifact.ErrorNoncanonical, code)
+}
+
+func TestCheckerRequestSeparatesRuntimeAndCheckedMappings(t *testing.T) {
+	input := callerClosureExecutionFixture(t)
+	execution, ok := input.Execution()
+	require.True(t, ok)
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+
+	require.Equal(t, "temporal.nexus.synthetic.basic-lifecycle.mapping",
+		execution.RuntimeConfiguration().Observation.MappingDefinitionID)
+	require.Equal(t, "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2",
+		execution.RuntimeConfiguration().Observation.MappingBehaviorFingerprint)
+	require.Equal(t, "temporal.system.nexus.caller-closure.mapping", request.Mapping.DefinitionID)
+	require.Equal(t, "sha256:d5d437c89205880d27770b5abdac8aa3eabf07a21e40264ae5601162d70a7f17",
+		request.Mapping.BehaviorFingerprint)
+}
+
+func TestRealCheckerObservationMutationMatrix(t *testing.T) {
+	process := realCheckerProcess(t)
+	baselineRequest := exactCallerClosureMutationRequest(t)
+	baseline, err := process.run(context.Background(), baselineRequest)
+	require.NoError(t, err)
+
+	for _, testCase := range []struct {
+		name           string
+		mutate         func(*checkerRequest)
+		status         string
+		diagnosticKind string
+		clearValue     string
+	}{
+		{
+			name: "missing order",
+			mutate: func(request *checkerRequest) {
+				request.Facts[7].Ordinal = artifactv2.NaturalFromUint64(6)
+			},
+			status: "unknown", diagnosticKind: "sequence-gap",
+		},
+		{
+			name: "conflicting duplicate",
+			mutate: func(request *checkerRequest) {
+				request.Facts[7] = request.Facts[6]
+			},
+			status: "conflict", diagnosticKind: "duplicate-evidence-identity",
+		},
+		{
+			name: "clear endpoint",
+			mutate: func(request *checkerRequest) {
+				request.Facts[8].Fields[1].Disposition = "plain"
+				request.Facts[8].Fields[1].Value = "clear-endpoint.example"
+			},
+			status: "unsupported", diagnosticKind: "digest-policy-mismatch",
+			clearValue: "clear-endpoint.example",
+		},
+		{
+			name: "redacted endpoint",
+			mutate: func(request *checkerRequest) {
+				request.Facts[8].Fields[1].Disposition = "redacted"
+				request.Facts[8].Fields[1].Value = nil
+			},
+			status: "unsupported", diagnosticKind: "digest-policy-mismatch",
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			request := exactCallerClosureMutationRequest(t)
+			testCase.mutate(&request)
+
+			response, err := process.run(context.Background(), request)
+			require.NoError(t, err)
+			require.Equal(t, testCase.status, response.ObservationEvaluationStatus)
+			require.Equal(t, "incomplete", response.SemanticStatus)
+			require.Empty(t, response.PropertyVerdicts)
+			require.Nil(t, response.EvidenceBackedModelTrace)
+			require.Len(t, response.Diagnostics, 1)
+			require.Equal(t, testCase.diagnosticKind, response.Diagnostics[0].Kind)
+			if testCase.clearValue != "" {
+				encoded, err := artifact.CanonicalPretty(response)
+				require.NoError(t, err)
+				require.False(t, bytes.Contains(encoded, []byte(testCase.clearValue)))
+			}
+		})
+	}
+
+	permutedRequest := exactCallerClosureMutationRequest(t)
+	slices.Reverse(permutedRequest.Facts)
+	permuted, err := process.run(context.Background(), permutedRequest)
+	require.NoError(t, err)
+	require.Equal(t, baseline, permuted)
+}
+
+func TestRealCheckerPartialEvidencePublishesAnInMemoryResult(t *testing.T) {
+	process := realCheckerProcess(t)
+	input := callerClosureExecutionFixture(t)
+	execution, ok := input.Execution()
+	require.True(t, ok)
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+
+	stdout, stderr, runErr := runRealCheckerOutput(t, process, request)
+	require.NoError(t, runErr, string(stderr))
+	require.Empty(t, stderr)
+	response, err := decodeCheckerResponse(stdout, request)
+	require.NoError(t, err)
+	require.Equal(t, "unknown", response.ObservationEvaluationStatus)
+	require.Equal(t, "incomplete", response.SemanticStatus)
+	require.Empty(t, response.PropertyVerdicts)
+	require.Nil(t, response.EvidenceBackedModelTrace)
+	partialEvidence := projectCheckerEvidence(response, request)
+	require.NoError(t, artifactv2.ValidateEvidence(partialEvidence))
+	crossPlanEvidence := partialEvidence
+	crossPlanEvidence.Diagnostics = append(
+		[]artifactv2.ObservationDiagnostic(nil), partialEvidence.Diagnostics...,
+	)
+	crossPlanEvidence.Diagnostics[0].ObservationPlanDefinitionID = request.ObservationProgram.DefinitionID
+	require.ErrorContains(t, artifactv2.ValidateEvidence(crossPlanEvidence),
+		"does not match mapping")
+	evidence, result, err := constructEvaluation(execution, request, response)
+	require.NoError(t, err)
+	_, err = execution.AdmitEvaluation(evidence, result)
+	require.NoError(t, err)
+
+	output, err := checkWithChecker(context.Background(), input, process.run)
+	require.NoError(t, err)
+	require.NotEmpty(t, output.Identity())
+}
+
+func exactCallerClosureMutationRequest(t *testing.T) checkerRequest {
+	t.Helper()
+	input := callerClosureExecutionFixture(t)
+	execution, ok := input.Execution()
+	require.True(t, ok)
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+	one := artifactv2.NaturalFromUint64(1)
+	receiptID := "umpire.runtime.fact.control.fixture"
+	request.ControlAttempts = []artifactv2.ControlAttempt{{
+		OccurrenceDefinitionID:  "workflow-nexus.occurrence.force-close",
+		ActionDefinitionID:      "workflow.action.force-close",
+		Attempt:                 one,
+		ReceiptFactDefinitionID: &receiptID,
+		Status:                  "accepted",
+	}}
+	request.CaptureStatus = "closed"
+	request.Sources = mutationSources("closed")
+	request.SourceClosures = mutationSourceClosures("closed")
+	request.Facts = exactCallerClosureFacts()
+	return request
+}
+
+func mutationSources(status string) []artifactv2.RawEvidenceSource {
+	counts := []uint64{1, 1, 6, 1}
+	definitions := []string{
+		umpireruntime.EvidenceSourceCleanup,
+		umpireruntime.EvidenceSourceControlReceipt,
+		umpireruntime.EvidenceSourceHistory,
+		umpireruntime.EvidenceSourceParticipantOutput,
+	}
+	result := make([]artifactv2.RawEvidenceSource, len(definitions))
+	for index, definitionID := range definitions {
+		result[index] = artifactv2.RawEvidenceSource{
+			SourceDefinitionID: definitionID,
+			Status:             status,
+			FactCount:          artifactv2.NaturalFromUint64(counts[index]),
+			ByteCount:          artifactv2.NaturalFromUint64(0),
+		}
+	}
+	return result
+}
+
+func mutationSourceClosures(status string) []artifactv2.SourceClosure {
+	sources := mutationSources(status)
+	result := make([]artifactv2.SourceClosure, len(sources))
+	for index, source := range sources {
+		result[index] = artifactv2.SourceClosure{
+			SourceDefinitionID: source.SourceDefinitionID,
+			Status:             source.Status,
+			RecordCount:        source.FactCount,
+			ByteCount:          source.ByteCount,
+		}
+	}
+	return result
+}
+
+func exactCallerClosureFacts() []artifactv2.RawEvidenceFact {
+	facts := []artifactv2.RawEvidenceFact{
+		mutationFact("umpire.runtime.fact.cleanup.fixture", umpireruntime.EvidenceSourceCleanup,
+			"umpire.evidence.kind.cleanup", 0, nil, []artifactv2.RawEvidenceField{
+				mutationField("umpire.evidence.field.open-handle-count", json.Number("0")),
+				mutationField("umpire.evidence.field.status", "complete"),
+			}),
+		mutationFact("umpire.runtime.fact.control.fixture", umpireruntime.EvidenceSourceControlReceipt,
+			"umpire.evidence.kind.control-receipt", 0, nil, []artifactv2.RawEvidenceField{
+				mutationField("umpire.evidence.field.action-definition-id", "workflow.action.force-close"),
+				mutationField("umpire.evidence.field.attempt", json.Number("1")),
+				mutationField("umpire.evidence.field.occurrence-definition-id",
+					"workflow-nexus.occurrence.force-close"),
+				mutationField("umpire.evidence.field.status", "accepted"),
+			}),
+	}
+	events := []string{
+		"temporal.history.WorkflowExecutionStarted",
+		"temporal.history.NexusOperationScheduled",
+		"temporal.history.NexusOperationStarted",
+		"temporal.history.NexusOperationCancelRequested",
+		"temporal.history.NexusOperationCancelRequestCompleted",
+		"temporal.history.WorkflowExecutionCanceled",
+	}
+	for index, event := range events {
+		definitionID := "umpire.runtime.fact.history." + strconv.Itoa(index+1)
+		parents := []string{}
+		if index != 0 {
+			parents = []string{"umpire.runtime.fact.history." + strconv.Itoa(index)}
+		}
+		facts = append(facts, mutationFact(definitionID, umpireruntime.EvidenceSourceHistory,
+			"umpire.evidence.kind.workflow-history-event", uint64(index), parents,
+			[]artifactv2.RawEvidenceField{
+				mutationField("umpire.evidence.field.event-id", json.Number(strconv.Itoa(index+1))),
+				mutationField("umpire.evidence.field.event-type", event),
+				mutationField("umpire.evidence.field.operation-correlation-id",
+					"temporal.operation.caller-closure.fixture"),
+				mutationField("umpire.evidence.field.run-correlation-id",
+					"temporal.run.caller-closure.fixture"),
+				mutationField("umpire.evidence.field.workflow-correlation-id",
+					"temporal.workflow.caller-closure.fixture"),
+			}))
+	}
+	facts = append(facts, mutationFact(
+		"umpire.runtime.fact.participant.fixture", umpireruntime.EvidenceSourceParticipantOutput,
+		"umpire.evidence.kind.participant-command", 0, nil, []artifactv2.RawEvidenceField{
+			mutationField("umpire.evidence.field.cancellation-callback-count", json.Number("1")),
+			{
+				FieldDefinitionID: "umpire.evidence.field.endpoint-identity",
+				Disposition:       "sha256",
+				Value:             "sha256:d86e4da201f1fdd1e116376d712fe630f7bbf8d98cc08fa3ed1b2c087a7aac1c",
+			},
+		}))
+	return facts
+}
+
+func mutationFact(
+	definitionID string,
+	sourceDefinitionID string,
+	kindDefinitionID string,
+	ordinal uint64,
+	parents []string,
+	fields []artifactv2.RawEvidenceField,
+) artifactv2.RawEvidenceFact {
+	if parents == nil {
+		parents = []string{}
+	}
+	return artifactv2.RawEvidenceFact{
+		FactDefinitionID: definitionID, SourceDefinitionID: sourceDefinitionID,
+		Ordinal: artifactv2.NaturalFromUint64(ordinal), KindDefinitionID: kindDefinitionID,
+		CausalFactDefinitionIDs: parents, Fields: fields,
+	}
+}
+
+func mutationField(definitionID string, value any) artifactv2.RawEvidenceField {
+	return artifactv2.RawEvidenceField{
+		FieldDefinitionID: definitionID,
+		Disposition:       "plain",
+		Value:             value,
+	}
+}

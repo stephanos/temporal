@@ -536,12 +536,9 @@ func TestResultV2EvidenceRejectsIncompleteLinksStaleReferencesAndRawLeakage(t *t
 			},
 		},
 		{
-			name: "Evidence identities disagree with ordering support",
+			name: "foreign Evidence identity",
 			mutate: func(document *artifactv2.Evidence) {
-				document.EvidenceLinks[0].EvidenceDefinitionIDs,
-					document.EvidenceLinks[1].EvidenceDefinitionIDs =
-					document.EvidenceLinks[1].EvidenceDefinitionIDs,
-					document.EvidenceLinks[0].EvidenceDefinitionIDs
+				document.EvidenceLinks[0].EvidenceDefinitionIDs = []string{"switch.evidence.history.foreign"}
 			},
 		},
 		{
@@ -723,27 +720,25 @@ func TestResultV2AdmitsOpaqueObservationTraceIdentity(t *testing.T) {
 	))
 }
 
-func TestResultV2EvidenceRequiresDispositionForEveryRejectedRawField(t *testing.T) {
+func TestResultV2EvidenceRequiresRejectedDispositionOnlyForAcceptedEvidence(t *testing.T) {
 	experiment, runtimeConfiguration, run := rawEvidenceV2ClosureInputs(t)
 	rawEvidence := rawEvidenceV2Document(t)
 
-	for _, status := range []string{"accepted", "unknown"} {
-		t.Run(status, func(t *testing.T) {
-			document := acceptedEvidenceV2Document(t, experiment, runtimeConfiguration, run, rawEvidence)
-			if status == "unknown" {
-				document = nonAcceptedEvidenceV2Document(
-					t, experiment, runtimeConfiguration, run, rawEvidence, status, "empty-evidence",
-				)
-			}
-			document.Dispositions = document.Dispositions[:1]
-			document = sealedEvidenceV2Document(t, document)
+	accepted := acceptedEvidenceV2Document(t, experiment, runtimeConfiguration, run, rawEvidence)
+	accepted.Dispositions = accepted.Dispositions[:1]
+	accepted = sealedEvidenceV2Document(t, accepted)
+	requireResultV2ErrorCode(t, artifact.ValidateEvidenceV2Closure(
+		accepted, experiment, runtimeConfiguration, run, rawEvidence,
+	), artifact.ErrorClosure)
 
-			err := artifact.ValidateEvidenceV2Closure(
-				document, experiment, runtimeConfiguration, run, rawEvidence,
-			)
-			requireResultV2ErrorCode(t, err, artifact.ErrorClosure)
-		})
-	}
+	unknown := nonAcceptedEvidenceV2Document(
+		t, experiment, runtimeConfiguration, run, rawEvidence, "unknown", "empty-evidence",
+	)
+	unknown.Dispositions = unknown.Dispositions[:1]
+	unknown = sealedEvidenceV2Document(t, unknown)
+	require.NoError(t, artifact.ValidateEvidenceV2Closure(
+		unknown, experiment, runtimeConfiguration, run, rawEvidence,
+	))
 }
 
 func TestResultV2ImplementationPropertySemanticAndChecksumMatrices(t *testing.T) {
@@ -1488,6 +1483,19 @@ func acceptedEvidenceV2Document(
 			artifactv2.BehaviorFingerprint([]byte("switch.meaning.step/v1")),
 		))
 	}
+	for index := range evidenceLinks {
+		evidenceLinks[index].OrderingSupport = []artifactv2.EvidenceOrderingFact{
+			{
+				FactDefinitionID: "switch.evidence.history.1", KindDefinitionID: "umpire.evidence.kind.history",
+				Ordinal: artifactv2.NaturalFromUint64(0), CausalFactDefinitionIDs: []string{},
+			},
+			{
+				FactDefinitionID: "switch.evidence.history.2", KindDefinitionID: "umpire.evidence.kind.history",
+				Ordinal:                 artifactv2.NaturalFromUint64(1),
+				CausalFactDefinitionIDs: []string{"switch.evidence.history.1"},
+			},
+		}
+	}
 	document := artifactv2.Evidence{
 		FormatVersion:               artifactv2.EvidenceFormat,
 		RunIdentity:                 run.RunIdentity,
@@ -1501,7 +1509,7 @@ func acceptedEvidenceV2Document(
 		ObservationEvaluationStatus: "accepted",
 		EvidenceBackedModelTrace: &artifactv2.EvidenceBackedModelTrace{
 			TraceID:                    "switch.trace.accepted",
-			ObservationPlan:            program,
+			ObservationPlan:            mapping,
 			MappingDefinitionID:        mapping.DefinitionID,
 			MappingVersion:             artifactv2.NaturalFromUint64(1),
 			MappingBehaviorFingerprint: mapping.BehaviorFingerprint,
@@ -1576,6 +1584,7 @@ func leanFixtureEvidenceV2Document(
 	document.EvidenceBackedModelTrace.EvidenceDefinitionIDs = []string{"switch.evidence.history.1"}
 	document.EvidenceBackedModelTrace.Trace.Steps = []artifactv2.ModelTraceStep{}
 	document.EvidenceLinks = document.EvidenceLinks[:1]
+	document.EvidenceLinks[0].OrderingSupport = document.EvidenceLinks[0].OrderingSupport[:1]
 	document.EvidenceLinks[0].ClosureSupport[0].LastOrdinal = artifactv2.NaturalFromUint64(0)
 	return sealedEvidenceV2Document(t, document)
 }
@@ -1757,7 +1766,7 @@ func nonAcceptedEvidenceV2Document(
 func observationDiagnosticV2(document *artifactv2.Evidence, kind string) artifactv2.ObservationDiagnostic {
 	return artifactv2.ObservationDiagnostic{
 		Kind:                        kind,
-		ObservationPlanDefinitionID: document.ObservationProgram.DefinitionID,
+		ObservationPlanDefinitionID: document.Mapping.DefinitionID,
 		RelatedDefinitionIDs:        []string{},
 		Alternatives:                []string{},
 	}
