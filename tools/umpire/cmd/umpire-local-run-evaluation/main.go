@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"io"
@@ -24,13 +22,10 @@ const (
 	errorFormat   = "umpire-local-run-evaluation-error/v2"
 )
 
-var expectedCheckerSHA256 string
-
 type commandDependencies struct {
-	loadSet       func(string) (artifact.AdmittedSet, error)
-	verifySibling func() error
-	check         func(artifact.AdmittedSet) (artifact.AdmittedSet, error)
-	publishSet    func(string, artifact.AdmittedSet) (string, error)
+	loadSet    func(string) (artifact.AdmittedSet, error)
+	check      func(artifact.AdmittedSet) (artifact.AdmittedSet, error)
+	publishSet func(string, artifact.AdmittedSet) (string, error)
 }
 
 type commandSummary struct {
@@ -67,10 +62,9 @@ func main() {
 
 func run(arguments []string, stdout io.Writer, stderr io.Writer) int {
 	return execute(context.Background(), arguments, stdout, stderr, commandDependencies{
-		loadSet:       loadInputSet,
-		verifySibling: verifyCheckerSibling,
-		check:         runevaluation.Check,
-		publishSet:    artifact.PublishSet,
+		loadSet:    loadInputSet,
+		check:      runevaluation.Check,
+		publishSet: artifact.PublishSet,
 	})
 }
 
@@ -117,12 +111,6 @@ func execute(
 		})
 	}
 	runIdentity := execution.ExperimentRun().RunIdentity
-	if err := dependencies.verifySibling(); err != nil {
-		return reportError(stderr, commandError{
-			Kind: "checker", Phase: "generated-view", Subject: "checker",
-			Code: "umpire.run-evaluation.checker.sibling-invalid", RunIdentity: &runIdentity,
-		})
-	}
 	if err := ctx.Err(); err != nil {
 		return reportError(stderr, commandError{
 			Kind: "checker", Phase: "Observation Evaluation", Subject: "checker",
@@ -296,49 +284,6 @@ func pathsOverlap(left string, right string) bool {
 		}
 	}
 	return false
-}
-
-func verifyCheckerSibling() error {
-	if expectedCheckerSHA256 == "" {
-		return errors.New("checker digest is not embedded")
-	}
-	controller, err := os.Executable()
-	if err != nil {
-		return err
-	}
-	return verifyInstalledSibling(controller, expectedCheckerSHA256)
-}
-
-func verifyInstalledSibling(controller string, expectedDigest string) error {
-	controller, err := filepath.Abs(controller)
-	if err != nil {
-		return err
-	}
-	if filepath.Base(controller) != "umpire-local-run-evaluation" {
-		return errors.New("controller does not have the installed command name")
-	}
-	controllerInfo, err := os.Lstat(controller)
-	if err != nil || !controllerInfo.Mode().IsRegular() || controllerInfo.Mode()&os.ModeSymlink != 0 {
-		return errors.New("controller is not a regular installed file")
-	}
-	if _, err := physicalDirectory(filepath.Dir(controller)); err != nil {
-		return err
-	}
-	checker := filepath.Join(filepath.Dir(controller), "temporal-run-evaluation-checker")
-	info, err := os.Lstat(checker)
-	if err != nil || !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
-		return errors.New("checker sibling is not a regular file")
-	}
-	encoded, err := os.ReadFile(checker)
-	if err != nil {
-		return err
-	}
-	digest := sha256.Sum256(encoded)
-	actual := "sha256:" + hex.EncodeToString(digest[:])
-	if actual != expectedDigest {
-		return errors.New("checker sibling digest does not match the installed pair")
-	}
-	return nil
 }
 
 func evaluationSummary(destination string, admitted artifact.AdmittedSet) (commandSummary, error) {

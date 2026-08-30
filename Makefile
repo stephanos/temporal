@@ -1013,7 +1013,7 @@ umpire-check-local-run-evaluation:
 			"$$installation/temporal-run-evaluation-checker"; \
 		chmod 0700 "$$installation/temporal-run-evaluation-checker"; \
 		checker_sha=$$(shasum -a 256 "$$installation/temporal-run-evaluation-checker" | awk '{print $$1}'); \
-		go build -ldflags "-X main.expectedCheckerSHA256=sha256:$$checker_sha -X go.temporal.io/server/tools/umpire/runevaluation.installedCheckerSHA256=sha256:$$checker_sha" \
+		go build -ldflags "-X go.temporal.io/server/tools/umpire/runevaluation.installedCheckerSHA256=sha256:$$checker_sha" \
 			-o "$$installation/umpire-local-run-evaluation" \
 			./tools/umpire/cmd/umpire-local-run-evaluation; \
 		"$$installation/umpire-local-run-evaluation" \

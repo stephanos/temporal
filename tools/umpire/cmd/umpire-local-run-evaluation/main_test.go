@@ -30,8 +30,7 @@ func TestRunPublishesSatisfiedSetBeforeWritingExactSummary(t *testing.T) {
 		stdout,
 		&stderr,
 		commandDependencies{
-			loadSet:       func(string) (artifact.AdmittedSet, error) { return input, nil },
-			verifySibling: func() error { return nil },
+			loadSet: func(string) (artifact.AdmittedSet, error) { return input, nil },
 			check: func(admitted artifact.AdmittedSet) (artifact.AdmittedSet, error) {
 				require.Equal(t, input.Identity(), admitted.Identity())
 				return output, nil
@@ -227,13 +226,6 @@ func TestRunReportsToolingFailuresAtTheirOwningBoundary(t *testing.T) {
 			wantStderr: "{\"formatVersion\":\"umpire-local-run-evaluation-error/v2\",\"kind\":\"input\",\"phase\":\"admission\",\"subject\":\"set\",\"code\":\"umpire.run-evaluation.input.closure\",\"checkingOccurred\":false,\"publicationOccurred\":false,\"runIdentity\":null,\"artifactSetChecksum\":null,\"manifestSha256\":null,\"destination\":null}\n",
 		},
 		{
-			name: "sibling verification",
-			configure: func(dependencies *commandDependencies) {
-				dependencies.verifySibling = func() error { return errors.New("substituted") }
-			},
-			wantStderr: fmt.Sprintf("{\"formatVersion\":\"umpire-local-run-evaluation-error/v2\",\"kind\":\"checker\",\"phase\":\"generated-view\",\"subject\":\"checker\",\"code\":\"umpire.run-evaluation.checker.sibling-invalid\",\"checkingOccurred\":false,\"publicationOccurred\":false,\"runIdentity\":%q,\"artifactSetChecksum\":null,\"manifestSha256\":null,\"destination\":null}\n", runIdentity),
-		},
-		{
 			name: "checker",
 			configure: func(dependencies *commandDependencies) {
 				dependencies.check = func(artifact.AdmittedSet) (artifact.AdmittedSet, error) {
@@ -269,10 +261,11 @@ func TestRunReportsToolingFailuresAtTheirOwningBoundary(t *testing.T) {
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			dependencies := commandDependencies{
-				loadSet:       func(string) (artifact.AdmittedSet, error) { return input, nil },
-				verifySibling: func() error { return nil },
-				check:         func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return admittedFixtureSet(t, 6), nil },
-				publishSet:    artifact.PublishSet,
+				loadSet: func(string) (artifact.AdmittedSet, error) { return input, nil },
+				check: func(artifact.AdmittedSet) (artifact.AdmittedSet, error) {
+					return admittedFixtureSet(t, 6), nil
+				},
+				publishSet: artifact.PublishSet,
 			}
 			testCase.configure(&dependencies)
 			var stdout bytes.Buffer
@@ -290,6 +283,34 @@ func TestRunReportsToolingFailuresAtTheirOwningBoundary(t *testing.T) {
 	}
 }
 
+func TestRunReportsSemanticInputRejectionBeforeInstalledPairResolution(t *testing.T) {
+	input := admittedFixtureSet(t, 4)
+	setRoot := t.TempDir()
+	outputRoot := t.TempDir()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+
+	code := execute(context.Background(),
+		[]string{"--set", setRoot, "--output-root", outputRoot},
+		&stdout, &stderr, commandDependencies{
+			loadSet: func(string) (artifact.AdmittedSet, error) { return input, nil },
+			check: func(artifact.AdmittedSet) (artifact.AdmittedSet, error) {
+				return artifact.AdmittedSet{}, classifiedTestError{
+					kind: "input", phase: "generated-view",
+					code: "umpire.run-evaluation.input.unsupported-profile",
+				}
+			},
+			publishSet: artifact.PublishSet,
+		})
+
+	require.Equal(t, exitToolingError, code)
+	require.Empty(t, stdout.String())
+	require.Contains(t, stderr.String(),
+		`"kind":"input","phase":"generated-view","subject":"set"`)
+	require.Contains(t, stderr.String(),
+		`"code":"umpire.run-evaluation.input.unsupported-profile"`)
+}
+
 func TestRunReportsBrokenStdoutAfterKeepingAuthoritativePublication(t *testing.T) {
 	input := admittedFixtureSet(t, 4)
 	output := admittedFixtureSet(t, 6)
@@ -301,10 +322,9 @@ func TestRunReportsBrokenStdoutAfterKeepingAuthoritativePublication(t *testing.T
 	code := execute(context.Background(),
 		[]string{"--set", setRoot, "--output-root", outputRoot},
 		errorWriter{}, &stderr, commandDependencies{
-			loadSet:       func(string) (artifact.AdmittedSet, error) { return input, nil },
-			verifySibling: func() error { return nil },
-			check:         func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
-			publishSet:    artifact.PublishSet,
+			loadSet:    func(string) (artifact.AdmittedSet, error) { return input, nil },
+			check:      func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
+			publishSet: artifact.PublishSet,
 		})
 
 	require.Equal(t, exitToolingError, code)
@@ -322,10 +342,9 @@ func TestRunReturnsTheSameRevalidatedDestinationForAnIdenticalRetry(t *testing.T
 	setRoot := t.TempDir()
 	outputRoot := t.TempDir()
 	dependencies := commandDependencies{
-		loadSet:       func(string) (artifact.AdmittedSet, error) { return input, nil },
-		verifySibling: func() error { return nil },
-		check:         func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
-		publishSet:    artifact.PublishSet,
+		loadSet:    func(string) (artifact.AdmittedSet, error) { return input, nil },
+		check:      func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
+		publishSet: artifact.PublishSet,
 	}
 	arguments := []string{"--set", setRoot, "--output-root", outputRoot}
 
@@ -350,10 +369,9 @@ func TestRunDoesNotRepairAConflictingImmutableDestination(t *testing.T) {
 	setRoot := t.TempDir()
 	outputRoot := t.TempDir()
 	dependencies := commandDependencies{
-		loadSet:       func(string) (artifact.AdmittedSet, error) { return input, nil },
-		verifySibling: func() error { return nil },
-		check:         func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
-		publishSet:    artifact.PublishSet,
+		loadSet:    func(string) (artifact.AdmittedSet, error) { return input, nil },
+		check:      func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
+		publishSet: artifact.PublishSet,
 	}
 	arguments := []string{"--set", setRoot, "--output-root", outputRoot}
 	var stdout bytes.Buffer
@@ -390,10 +408,9 @@ func TestRunReportsActualOutputPermissionFailureWithoutPartialDestination(t *tes
 	code := execute(context.Background(),
 		[]string{"--set", setRoot, "--output-root", outputRoot},
 		&stdout, &stderr, commandDependencies{
-			loadSet:       func(string) (artifact.AdmittedSet, error) { return input, nil },
-			verifySibling: func() error { return nil },
-			check:         func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
-			publishSet:    artifact.PublishSet,
+			loadSet:    func(string) (artifact.AdmittedSet, error) { return input, nil },
+			check:      func(artifact.AdmittedSet) (artifact.AdmittedSet, error) { return output, nil },
+			publishSet: artifact.PublishSet,
 		})
 
 	require.Equal(t, exitToolingError, code)
@@ -433,32 +450,6 @@ func TestSummaryExitStatusRequiresAllThreeSuccessDimensions(t *testing.T) {
 			}))
 		})
 	}
-}
-
-func TestInstalledSiblingVerificationRejectsSubstitutionAndUnsafeFiles(t *testing.T) {
-	directory := t.TempDir()
-	controller := filepath.Join(directory, "umpire-local-run-evaluation")
-	checker := filepath.Join(directory, "temporal-run-evaluation-checker")
-	require.NoError(t, os.WriteFile(controller, []byte("controller"), 0o700))
-	require.NoError(t, os.WriteFile(checker, []byte("checker"), 0o700))
-
-	require.NoError(t, verifyInstalledSibling(
-		controller,
-		"sha256:d2d2328e3359f3de3515871090d1316cbcdc5383204c204f9390788c3ef8618f",
-	))
-
-	require.NoError(t, os.WriteFile(checker, []byte("substituted"), 0o700))
-	require.Error(t, verifyInstalledSibling(
-		controller,
-		"sha256:d2d2328e3359f3de3515871090d1316cbcdc5383204c204f9390788c3ef8618f",
-	))
-
-	require.NoError(t, os.Remove(checker))
-	require.Error(t, verifyInstalledSibling(controller, "sha256:"+strings.Repeat("0", 64)))
-	if err := os.Symlink(controller, checker); err != nil {
-		t.Skipf("symlinks unavailable: %v", err)
-	}
-	require.Error(t, verifyInstalledSibling(controller, "sha256:"+strings.Repeat("0", 64)))
 }
 
 type publicationWriter struct {
@@ -551,10 +542,6 @@ func unreachableDependencies(t *testing.T) commandDependencies {
 		loadSet: func(string) (artifact.AdmittedSet, error) {
 			unreachable()
 			return artifact.AdmittedSet{}, nil
-		},
-		verifySibling: func() error {
-			unreachable()
-			return nil
 		},
 		check: func(artifact.AdmittedSet) (artifact.AdmittedSet, error) {
 			unreachable()
