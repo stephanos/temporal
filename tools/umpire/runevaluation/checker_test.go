@@ -17,6 +17,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/common/testing/await"
+	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
@@ -82,12 +83,87 @@ func TestDecodeCheckerResponseRequiresCanonicalClosedBindings(t *testing.T) {
 		{name: "open observation enum", mutate: func(encoded []byte) []byte {
 			return bytes.Replace(encoded, []byte("\"unknown\""), []byte("\"maybe\""), 1)
 		}},
+		{name: "invalid Known Gap kind", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded, []byte("\"kind\": \"input\""), []byte("\"kind\": \"free-form\""), 1)
+		}},
+		{name: "stale query identity", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded, []byte("temporal.query.caller-closure.fixture"),
+				[]byte("temporal.query.caller-closure.stale"), 1)
+		}},
+		{name: "divergent summary verdicts", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded,
+				[]byte("\"propertyVerdicts\": [],\n    \"missingPropertyDefinitionIds\""),
+				[]byte("\"propertyVerdicts\": [{}],\n    \"missingPropertyDefinitionIds\""), 1)
+		}},
+		{name: "invalid nested enum", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded, []byte("\"unit\": \"semantic-transitions\""),
+				[]byte("\"unit\": \"invalid\""), 1)
+		}},
+		{name: "invalid diagnostic kind", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded, []byte("\"kind\": \"empty-evidence\""),
+				[]byte("\"kind\": \"unlisted-diagnostic\""), 1)
+		}},
+		{name: "stale Known Gap union", mutate: func(encoded []byte) []byte {
+			return replaceLast(encoded, []byte("umpire.gap.observation.fixture"),
+				[]byte("umpire.gap.observation.stale"))
+		}},
+		{name: "divergent semantic status", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded, []byte("\"semanticStatus\": \"incomplete\""),
+				[]byte("\"semanticStatus\": \"satisfied\""), 1)
+		}},
+		{name: "inconsistent outcome checksum", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded, []byte("\"evaluationOutcomeChecksum\": null"),
+				[]byte("\"evaluationOutcomeChecksum\": \""+testDigest("a")+"\""), 1)
+		}},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
 			_, err := decodeCheckerResponse(testCase.mutate(bytes.Clone(encoded)), testCheckerRequest())
 			require.Error(t, err)
 		})
 	}
+}
+
+func replaceLast(value []byte, old []byte, replacement []byte) []byte {
+	index := bytes.LastIndex(value, old)
+	if index < 0 {
+		return value
+	}
+	result := make([]byte, 0, len(value)-len(old)+len(replacement))
+	result = append(result, value[:index]...)
+	result = append(result, replacement...)
+	return append(result, value[index+len(old):]...)
+}
+
+func TestCheckerRequestWriterBoundsExactNAndNPlusOne(t *testing.T) {
+	request := testCheckerRequest()
+	empty := ""
+	request.RunKnownGaps[0].Detail = &empty
+	base, err := artifact.CanonicalPretty(request)
+	require.NoError(t, err)
+	padding := maximumCheckerProtocolBytes - len(base)
+	require.Positive(t, padding)
+
+	exactPadding := strings.Repeat("x", padding)
+	request.RunKnownGaps[0].Detail = &exactPadding
+	exact := newBoundedCapture(maximumCheckerProtocolBytes, nil)
+	require.NoError(t, writeCanonicalCheckerRequest(request, exact))
+	require.False(t, exact.exceeded())
+	require.Equal(t, maximumCheckerProtocolBytes, exact.length())
+	require.LessOrEqual(t, exact.capacity(), maximumCheckerProtocolBytes)
+	encoded, err := encodeCheckerRequest(request)
+	require.NoError(t, err)
+	require.Len(t, encoded, maximumCheckerProtocolBytes)
+	require.LessOrEqual(t, cap(encoded), maximumCheckerProtocolBytes)
+
+	overPadding := exactPadding + "x"
+	request.RunKnownGaps[0].Detail = &overPadding
+	over := newBoundedCapture(maximumCheckerProtocolBytes, nil)
+	require.NoError(t, writeCanonicalCheckerRequest(request, over))
+	require.True(t, over.exceeded())
+	require.Equal(t, maximumCheckerProtocolBytes, over.length())
+	require.LessOrEqual(t, over.capacity(), maximumCheckerProtocolBytes)
+	_, err = encodeCheckerRequest(request)
+	require.Error(t, err)
 }
 
 func TestCheckerProcessRoundTripsTheExactClosedProtocol(t *testing.T) {
@@ -299,7 +375,7 @@ func testCheckerRequest() checkerRequest {
 		Sources:         []artifactv2.RawEvidenceSource{},
 		Facts:           []artifactv2.RawEvidenceFact{},
 		RunKnownGaps: []artifactv2.KnownGap{{
-			Kind: "capability", Code: "umpire.gap.run.fixture",
+			Kind: "capability-contract", Code: "umpire.gap.run.fixture",
 		}},
 		RawEvidenceKnownGaps: []artifactv2.KnownGap{{
 			Kind: "input", Code: "umpire.gap.raw-evidence.fixture",
@@ -323,7 +399,12 @@ func testCheckerResponse() checkerResponse {
 		ObservationEvaluationStatus:             "unknown",
 		EvidenceLinks:                           []artifactv2.EvidenceLink{},
 		Dispositions:                            []artifactv2.FieldDispositionRecord{},
-		Diagnostics:                             []artifactv2.ObservationDiagnostic{},
+		Diagnostics: []artifactv2.ObservationDiagnostic{{
+			Kind:                        "empty-evidence",
+			ObservationPlanDefinitionID: "temporal.observation.caller-closure.fixture",
+			RelatedDefinitionIDs:        []string{},
+			Alternatives:                []string{},
+		}},
 		ObservationKnownGaps: []artifactv2.KnownGap{{
 			Kind: "interpretation", Code: "umpire.gap.observation.fixture",
 		}},
@@ -343,7 +424,7 @@ func testCheckerResponse() checkerResponse {
 		},
 		SemanticStatus: "incomplete",
 		ResultKnownGaps: []artifactv2.KnownGap{
-			{Kind: "capability", Code: "umpire.gap.run.fixture"},
+			{Kind: "capability-contract", Code: "umpire.gap.run.fixture"},
 			{Kind: "input", Code: "umpire.gap.raw-evidence.fixture"},
 			{Kind: "interpretation", Code: "umpire.gap.observation.fixture"},
 		},
@@ -351,10 +432,18 @@ func testCheckerResponse() checkerResponse {
 }
 
 func testLimits() artifactv2.Limits {
-	limit := artifactv2.Limit{Value: artifactv2.NaturalFromUint64(1), Unit: "transitions"}
 	return artifactv2.Limits{
-		Behavior: artifactv2.BehaviorLimits{Transitions: limit, SelectedActions: limit},
-		Search:   limit,
+		Behavior: artifactv2.BehaviorLimits{
+			Transitions: artifactv2.Limit{
+				Value: artifactv2.NaturalFromUint64(1), Unit: "semantic-transitions",
+			},
+			SelectedActions: artifactv2.Limit{
+				Value: artifactv2.NaturalFromUint64(1), Unit: "selected-actions",
+			},
+		},
+		Search: artifactv2.Limit{
+			Value: artifactv2.NaturalFromUint64(1), Unit: "candidate-evaluations",
+		},
 	}
 }
 
