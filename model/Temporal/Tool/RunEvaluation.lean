@@ -163,6 +163,10 @@ private def artifactDisposition
         normalizedValue := some normalizedValue, digestPolicyDefinitionId := none,
         digestToken := none }
 
+private def artifactClosureLe
+    (left right : ArtifactEvidenceClosureFact) : Bool :=
+  decide (left.kindDefinitionId.value < right.kindDefinitionId.value)
+
 private def artifactEvidenceLink (link : EvidenceLink) : ArtifactEvidenceLink := {
   coordinate := artifactCoordinate link.coordinate
   mappingDefinitionId := link.mappingId
@@ -177,13 +181,13 @@ private def artifactEvidenceLink (link : EvidenceLink) : ArtifactEvidenceLink :=
   orderingSupport := link.orderingSupport.map fun fact => {
     factDefinitionId := fact.recordId
     kindDefinitionId := fact.kind
-    ordinal := fact.sequence
+    ordinal := fact.origin.map EvidenceOrigin.ordinal |>.getD fact.sequence
     causalFactDefinitionIds := fact.causalParents
   }
-  closureSupport := link.closureSupport.map fun closure => {
+  closureSupport := (link.closureSupport.map fun closure => {
     kindDefinitionId := closure.kind
-    lastOrdinal := closure.lastSequence
-  }
+    lastOrdinal := if closure.source.isSome then closure.lastSequence - 1 else closure.lastSequence
+  }).mergeSort artifactClosureLe
   appliedDispositions := link.appliedDispositions.map artifactDisposition
   appliedLimit := artifactEvidenceLimit link.appliedBound
   meaningBehaviorFingerprint :=
@@ -413,13 +417,17 @@ private structure RawControlAttempt where
 private def parseField (json : Lean.Json) : Except String RawField := do
   exactObject json ["fieldDefinitionId", "disposition", "value"] "facts.fields"
   let disposition ← textValue json "disposition"
-  if disposition != "plain" && disposition != "sha256" then throw "facts.fields.disposition"
+  if !["plain", "sha256", "redacted", "rejected"].contains disposition then
+    throw "facts.fields.disposition"
   let raw ← value json "value"
-  let fieldValue ← match raw.getStr? with
-    | .ok value => pure (.text value)
-    | .error _ => match raw.getNat? with
-      | .ok value => pure (.natural value)
-      | .error _ => throw "facts.fields.value"
+  let fieldValue ←
+    if disposition == "redacted" || disposition == "rejected" then
+      if raw.isNull then pure (.text "") else throw "facts.fields.value"
+    else match raw.getStr? with
+      | .ok value => pure (.text value)
+      | .error _ => match raw.getNat? with
+        | .ok value => pure (.natural value)
+        | .error _ => throw "facts.fields.value"
   pure {
     definitionId := ← idValue json "fieldDefinitionId"
     disposition
@@ -475,6 +483,12 @@ private def optionalIdValue
     let result ← idValue json field
     pure (some result)
 
+private def callerClosureOccurrence? : Option DefinitionId :=
+  (Temporal.System.Execution.Nexus.canonicalParticipantProgramDefinition.occurrences.find?
+    fun occurrence =>
+      occurrence.actionDefinitionId == Temporal.System.Execution.Nexus.actionDefinitionId).map
+        fun occurrence => occurrence.definitionId
+
 private def parseControlAttempts (json : Lean.Json) : Except String RawControlAttempt := do
   let values ← match json.getArr? with
     | .ok values => pure values.toList
@@ -492,8 +506,9 @@ private def parseControlAttempts (json : Lean.Json) : Except String RawControlAt
     status := ← textValue attempt "status"
     code := ← optionalIdValue attempt "code"
   }
-  if projection.occurrence != id "temporal.nexus.occurrence.force-close" ||
-      projection.action != id "workflow.action.force-close" || projection.attempt != 1 then
+  if some projection.occurrence != callerClosureOccurrence? ||
+      projection.action != Temporal.System.Execution.Nexus.actionDefinitionId ||
+      projection.attempt != 1 then
     throw "controlAttempts"
   match projection.status with
   | "not-attempted" =>
@@ -632,6 +647,8 @@ private def validateControlAttempt
 
 private def evidenceField (field : RawField) : Except String EvidenceFieldValue := do
   if field.disposition == "plain" then
+    pure { field := field.definitionId, value := field.value }
+  else if field.disposition == "redacted" || field.disposition == "rejected" then
     pure { field := field.definitionId, value := field.value }
   else
     let token ← match field.value with
