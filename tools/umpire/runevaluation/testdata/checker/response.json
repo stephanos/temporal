@@ -14,7 +14,17 @@
   "evidenceBackedModelTrace": null,
   "evidenceLinks": [],
   "dispositions": [],
-  "diagnostics": [],
+  "diagnostics": [
+    {
+      "kind": "empty-evidence",
+      "observationPlanDefinitionId": "temporal.observation.caller-closure.fixture",
+      "relatedDefinitionIds": [],
+      "appliedLimit": null,
+      "observedCount": null,
+      "alternatives": [],
+      "missingDiscriminatorDefinitionId": null
+    }
+  ],
   "observationKnownGaps": [
     {
       "kind": "interpretation",
@@ -31,16 +41,16 @@
       "behavior": {
         "transitions": {
           "value": 1,
-          "unit": "transitions"
+          "unit": "semantic-transitions"
         },
         "selectedActions": {
           "value": 1,
-          "unit": "transitions"
+          "unit": "selected-actions"
         }
       },
       "search": {
         "value": 1,
-        "unit": "transitions"
+        "unit": "candidate-evaluations"
       }
     },
     "requiredPropertyDefinitionIds": [
@@ -59,7 +69,7 @@
   "semanticStatus": "incomplete",
   "resultKnownGaps": [
     {
-      "kind": "capability",
+      "kind": "capability-contract",
       "code": "umpire.gap.run.fixture",
       "subject": null,
       "detail": null
