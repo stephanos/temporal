@@ -369,7 +369,7 @@ func acceptedCallerClosureResponse(t *testing.T, request checkerRequest, semanti
 	}
 	trace.MappingDefinitionID = request.Mapping.DefinitionID
 	trace.MappingBehaviorFingerprint = request.Mapping.BehaviorFingerprint
-	trace.ProfileDefinitionID = callerClosureObservationProfileID
+	trace.ProfileDefinitionID = callerClosureCheckedProfileID
 	trace.AppliedLimit = artifactv2.Limit{
 		Value: artifactv2.NaturalFromUint64(4096), Unit: "evidence-records",
 	}
@@ -411,8 +411,8 @@ func acceptedCallerClosureResponse(t *testing.T, request checkerRequest, semanti
 	result.QuerySummary.TraceIDs = []string{*verdict.TraceID}
 
 	outcomeChecksum := map[string]string{
-		"satisfied": "sha256:14ea9d07c16493b740bc067d9adb8b4abac636f1a2a1be40c1f01daeb3978106",
-		"violated":  "sha256:13691743a0be9b79151d34f8804961d00904ef77fd63d17b6232f4b8effd30fb",
+		"satisfied": "sha256:aaa003026ed096fc9d2f435e6acf1806a81dd4597a32b86b0a39580fe9b74950",
+		"violated":  "sha256:c9ddf0938c9bc484e8ee5c1e9a27834a94a756347c7902c9bdac1aa3251cc883",
 	}[semanticStatus]
 	return checkerResponse{
 		FormatVersion:                           checkerResponseFormat,
@@ -472,7 +472,7 @@ func nonAcceptedCallerClosureResponse(
 func adaptCallerClosureEvidenceLink(link *artifactv2.EvidenceLink) {
 	link.MappingDefinitionID = callerClosureCheckedMappingID
 	link.MappingBehaviorFingerprint = callerClosureCheckedMappingFingerprint
-	link.ProfileDefinitionID = callerClosureObservationProfileID
+	link.ProfileDefinitionID = callerClosureCheckedProfileID
 	link.AppliedLimit = artifactv2.Limit{
 		Value: artifactv2.NaturalFromUint64(4096), Unit: "evidence-records",
 	}

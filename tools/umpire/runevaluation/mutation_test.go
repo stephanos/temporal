@@ -43,6 +43,42 @@ func TestCheckerRequestSeparatesRuntimeAndCheckedMappings(t *testing.T) {
 		request.Mapping.BehaviorFingerprint)
 }
 
+func TestCheckerResponseRejectsConsistentCheckedProfileDriftAtTheProtocolBoundary(t *testing.T) {
+	input := acceptedCallerClosureExecutionFixture(t, "succeeded")
+	output, err := checkWithChecker(context.Background(), input,
+		func(_ context.Context, request checkerRequest) (checkerResponse, error) {
+			response := acceptedCallerClosureResponse(t, request, "satisfied")
+			staleProfileID := "temporal.system.nexus.caller-closure.profile.stale"
+			staleProfileVersion := artifactv2.NaturalFromUint64(2)
+			response.EvidenceBackedModelTrace.ProfileDefinitionID = staleProfileID
+			response.EvidenceBackedModelTrace.ProfileVersion = staleProfileVersion
+			mutateLinks := func(links []artifactv2.EvidenceLink) {
+				for index := range links {
+					links[index].ProfileDefinitionID = staleProfileID
+					links[index].ProfileVersion = staleProfileVersion
+				}
+			}
+			mutateLinks(response.EvidenceLinks)
+			for verdictIndex := range response.PropertyVerdicts {
+				for clauseIndex := range response.PropertyVerdicts[verdictIndex].Clauses {
+					mutateLinks(response.PropertyVerdicts[verdictIndex].Clauses[clauseIndex].EvidenceLinks)
+				}
+			}
+			for verdictIndex := range response.QuerySummary.PropertyVerdicts {
+				for clauseIndex := range response.QuerySummary.PropertyVerdicts[verdictIndex].Clauses {
+					mutateLinks(response.QuerySummary.PropertyVerdicts[verdictIndex].Clauses[clauseIndex].EvidenceLinks)
+				}
+			}
+			return response, nil
+		})
+	require.Error(t, err)
+	require.Empty(t, output.Identity())
+	var failure *evaluationFailure
+	require.ErrorAs(t, err, &failure)
+	require.Equal(t, "evaluation", failure.Phase())
+	require.ErrorContains(t, failure.Unwrap(), "profile binding drifted")
+}
+
 func TestRealCheckerObservationMutationMatrix(t *testing.T) {
 	process := realCheckerProcess(t)
 	baselineRequest := exactCallerClosureMutationRequest(t)
