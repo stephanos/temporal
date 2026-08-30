@@ -39,9 +39,12 @@ Join the real Lean checker and Go controller with independent corruption/ambigui
 - [ ] The real sibling integration is byte-deterministic, bounded, cancellable, and leaves no child or partial set.
 
 ## Done summary
-TBD
+Implemented independent fail-closed mutation oracles from raw admission through System Observation, checked Implementation/Evidence Links, Feature trace identity, and Property evaluation, with deterministic real-sibling execution, cancellation, partial-result admission, and exact canonical wire closure. Split runtime configuration identities from checked mapping/profile authority, pinned both checked bindings, preserved raw origin ordinals and nonaccepted Results, and regenerated only dependent canonical fixtures.
 
+Verification passed for focused Go/Lean suites, artifact cross-language closure, race, fuzz, scoped Go lint/errortype, Lean lint, and the full Umpire regression; repository-wide `lint-code` remains inherited-red only at `tools/umpire/runtime/errors.go:60:9` (`et:unw+`).
+
+stage: impl-review - ran [2026-08-30T04:52:03Z..2026-08-30T05:04:21Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0c6f1024be33c836dcd46cddac7f15b35753e142, a7b041cef14044475d3ac15295c20d2289468c33, c31e6ba4ba77451239e683750fcae8cd38857c32
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Check, cd model && mise exec -- lake build Temporal.Tool.RunEvaluationTests temporal-run-evaluation-checker, go test -count=1 ./tools/umpire/runevaluation/..., go test -tags test_dep -count=1 ./tools/umpire/runevaluation/... ./tools/umpire/artifact/..., go test -tags test_dep -race -count=1 ./tools/umpire/runevaluation, go test -tags test_dep -run '^$' -fuzz '^FuzzDecodeCheckerResponse$' -fuzztime=2s ./tools/umpire/runevaluation, cd model && mise exec -- lake build Umpire.Artifact.Tests.Goldens Umpire.Artifact.Tests.Set Umpire.Artifact.Tests.Result Temporal.Tool.RunEvaluationMutationTests Temporal.Tool.RunEvaluationTests temporal-run-evaluation-checker TemporalModelTests, make lint-model, .bin/golangci-lint-v2.13.1 run --build-tags disable_grpc_modules,,test_dep, --timeout 10m --fix=false --new-from-rev=b5e87c26eab2bb05236ea75a9b0256c032e2f94f --config=.github/.golangci.yml ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/... ./tools/umpire/runevaluation/..., .bin/errortype -style-check=false ./tools/umpire/artifact/... ./tools/umpire/internal/artifactv2/... ./tools/umpire/runevaluation/..., make umpire-check-regression, TDD_RED: go test -tags test_dep -count=1 -run '^TestCheckerResponseRejectsConsistentCheckedProfileDriftAtTheProtocolBoundary$' ./tools/umpire/runevaluation (failed at construction before the checked-profile protocol binding), INHERITED_RED: make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=b5e87c26eab2bb05236ea75a9b0256c032e2f94f lint-code (tools/umpire/runtime/errors.go:60:9 et:unw+)
 - PRs:
