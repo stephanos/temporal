@@ -3,7 +3,10 @@ package runevaluation
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +20,8 @@ const (
 	checkerTimeout        = 30 * time.Second
 	checkerWaitDelay      = 2 * time.Second
 )
+
+var installedCheckerSHA256 string
 
 type checkerFailureCode string
 
@@ -53,16 +58,21 @@ func (failure *checkerFailure) Is(target error) bool {
 
 type checkerProcess struct {
 	controllerExecutable string
+	expectedSHA256       string
 	timeout              time.Duration
 }
 
 func runFixedChecker(ctx context.Context, request checkerRequest) (checkerResponse, error) {
+	if installedCheckerSHA256 == "" {
+		return checkerResponse{}, &checkerFailure{code: checkerFailureUnsafe}
+	}
 	controller, err := os.Executable()
 	if err != nil {
 		return checkerResponse{}, &checkerFailure{code: checkerFailureController}
 	}
 	return (checkerProcess{
 		controllerExecutable: controller,
+		expectedSHA256:       installedCheckerSHA256,
 		timeout:              checkerTimeout,
 	}).run(ctx, request)
 }
@@ -72,7 +82,7 @@ func (process checkerProcess) run(ctx context.Context, request checkerRequest) (
 	if err != nil {
 		return checkerResponse{}, &checkerFailure{code: checkerFailureInvalidRequest}
 	}
-	checker, err := resolveCheckerSibling(process.controllerExecutable)
+	checker, err := resolveVerifiedCheckerSibling(process.controllerExecutable, process.expectedSHA256)
 	if err != nil {
 		return checkerResponse{}, err
 	}
@@ -171,6 +181,60 @@ func resolveCheckerSibling(controllerExecutable string) (string, error) {
 		return "", &checkerFailure{code: checkerFailureNonRegular}
 	}
 	return resolved, nil
+}
+
+func resolveVerifiedCheckerSibling(controllerExecutable string, expectedSHA256 string) (string, error) {
+	checker, file, err := openVerifiedCheckerSibling(controllerExecutable, expectedSHA256)
+	if err != nil {
+		return "", err
+	}
+	if err := file.Close(); err != nil {
+		return "", &checkerFailure{code: checkerFailureUnsafe}
+	}
+	return checker, nil
+}
+
+func openVerifiedCheckerSibling(
+	controllerExecutable string,
+	expectedSHA256 string,
+) (string, *os.File, error) {
+	checker, err := resolveCheckerSibling(controllerExecutable)
+	if err != nil {
+		return "", nil, err
+	}
+	before, err := os.Lstat(checker)
+	if err != nil || !before.Mode().IsRegular() {
+		return "", nil, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	file, err := os.Open(checker)
+	if err != nil {
+		return "", nil, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	failed := func() (string, *os.File, error) {
+		_ = file.Close()
+		return "", nil, &checkerFailure{code: checkerFailureUnsafe}
+	}
+	opened, err := file.Stat()
+	if err != nil || !opened.Mode().IsRegular() || !os.SameFile(before, opened) {
+		return failed()
+	}
+	if expectedSHA256 != "" {
+		digest := sha256.New()
+		if _, err := io.Copy(digest, file); err != nil {
+			return failed()
+		}
+		if "sha256:"+hex.EncodeToString(digest.Sum(nil)) != expectedSHA256 {
+			return failed()
+		}
+	}
+	after, err := os.Lstat(checker)
+	if err != nil || !os.SameFile(before, after) {
+		return failed()
+	}
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		return failed()
+	}
+	return checker, file, nil
 }
 
 type boundedCapture struct {

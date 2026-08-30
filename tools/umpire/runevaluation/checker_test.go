@@ -3,6 +3,8 @@ package runevaluation
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"io"
 	"os"
 	"os/exec"
@@ -307,6 +309,40 @@ func TestResolveCheckerSiblingRejectsUnsafeOrMissingTargets(t *testing.T) {
 		_, err := resolveCheckerSibling(aliasController)
 		require.ErrorIs(t, err, &checkerFailure{code: checkerFailureMissing})
 	})
+}
+
+func TestResolveVerifiedCheckerSiblingRejectsChangedBytes(t *testing.T) {
+	controller := testController(t, "verified-sibling")
+	checker := filepath.Join(filepath.Dir(controller), checkerExecutableName)
+	executable, err := os.ReadFile(checkerFixtureExecutable)
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(checker, executable, 0o700))
+	expected := fileSHA256(t, checker)
+
+	resolved, err := resolveVerifiedCheckerSibling(controller, expected)
+	require.NoError(t, err)
+	require.Equal(t, checker, resolved)
+
+	require.NoError(t, os.WriteFile(checker, append(executable, 0), 0o700))
+	_, err = resolveVerifiedCheckerSibling(controller, expected)
+	require.ErrorIs(t, err, &checkerFailure{code: checkerFailureUnsafe})
+}
+
+func TestRunFixedCheckerRequiresInstalledDigest(t *testing.T) {
+	previous := installedCheckerSHA256
+	installedCheckerSHA256 = ""
+	t.Cleanup(func() { installedCheckerSHA256 = previous })
+
+	_, err := runFixedChecker(context.Background(), testCheckerRequest())
+	require.ErrorIs(t, err, &checkerFailure{code: checkerFailureUnsafe})
+}
+
+func fileSHA256(t *testing.T, path string) string {
+	t.Helper()
+	encoded, err := os.ReadFile(path)
+	require.NoError(t, err)
+	digest := sha256.Sum256(encoded)
+	return "sha256:" + hex.EncodeToString(digest[:])
 }
 
 func TestBoundedCheckerCaptureNeverAllocatesTheLimitPlusOneByte(t *testing.T) {
