@@ -153,8 +153,14 @@ private def request : Request := {
   rawEvidenceKnownGaps := array []
 }
 
-private def evaluation := Temporal.Tool.RunEvaluation.evaluateSemantics request
-private def response := Temporal.Tool.RunEvaluation.evaluateRequest request
+private def evaluationResult := Temporal.Tool.RunEvaluation.evaluateSemantics request
+private theorem evaluationResult_isSome : evaluationResult.toOption.isSome = true := by native_decide
+private def evaluation := evaluationResult.toOption.get evaluationResult_isSome
+private def responseResult := Temporal.Tool.RunEvaluation.evaluateRequest request
+private theorem responseResult_isSome : responseResult.toOption.isSome = true := by native_decide
+private def response := responseResult.toOption.get responseResult_isSome
+private def responseOf (candidate : Request) : Response :=
+  (Temporal.Tool.RunEvaluation.evaluateRequest candidate).toOption.getD response
 private def requestBytes := (encodeRequest request).toOption.getD .empty
 private def checkerResult := Temporal.Tool.RunEvaluation.runBytes requestBytes
 
@@ -170,7 +176,19 @@ example : response.observationEvaluationStatus = "accepted" &&
 example : checkerResult.status = 0 && checkerResult.stderr.isEmpty &&
     checkerResult.stdout == (encodeResponse response).toOption.getD .empty := by native_decide
 
-private def failedOperationalResponse := Temporal.Tool.RunEvaluation.evaluateRequest
+private def acceptedTrace : Option EvidenceBackedTrace := match evaluation.observation with
+  | .accepted trace => some trace
+  | _ => none
+
+/-! The adapter translates every source fact once; checked Observation alone decides which records
+establish the one-step System trace. -/
+example : acceptedTrace.any fun trace =>
+    trace.evidenceIdentities.length == 9 && trace.recordSupport.length == 9 &&
+      trace.trace.steps.length == 1 && trace.evidenceLinks.all fun link =>
+        link.orderingSupport.length == 9 && link.closureSupport.length == 4 := by
+  native_decide
+
+private def failedOperationalResponse := responseOf
   { request with phaseOutcomes := failedPhaseOutcomes }
 
 example : failedOperationalResponse.observationEvaluationStatus = "accepted" &&
@@ -218,43 +236,134 @@ private def overProtocolLimitRejected : Bool := match decodeRequest overProtocol
 example : exactProtocolLimitHandled := by native_decide
 example : overProtocolLimitRejected := by native_decide
 
-/-! Missing closure is unknown, duplicated fact identity is conflict, and a non-closed schema
-value is unsupported; none can receive an accepted checksum. -/
-private def unknownResponse := Temporal.Tool.RunEvaluation.evaluateRequest
-  { request with captureStatus := "partial" }
+private def replaceFact (position : Nat) (replacement : Lean.Json) : Lean.Json :=
+  match facts.getArr? with
+  | .error _ => facts
+  | .ok values => .arr (values.set! position replacement)
+
+private def appendValue (values value : Lean.Json) : Lean.Json :=
+  match values.getArr? with
+  | .error _ => values
+  | .ok items => .arr (items.push value)
+
+private def cleanupFact (extraFields : List Lean.Json := []) : Lean.Json := fact
+  "umpire.runtime.fact.cleanup.fixture" "umpire.evidence.source.cleanup"
+  "umpire.evidence.kind.cleanup" 0 [] <| [
+    field "umpire.evidence.field.open-handle-count" "plain" (natural 0),
+    field "umpire.evidence.field.status" "plain" (text "complete")
+  ] ++ extraFields
+
+private def crossedTypeCleanupFact : Lean.Json := fact
+  "umpire.runtime.fact.cleanup.fixture" "umpire.evidence.source.cleanup"
+  "umpire.evidence.kind.cleanup" 0 [] [
+    field "umpire.evidence.field.open-handle-count" "plain" (text "0"),
+    field "umpire.evidence.field.status" "plain" (text "complete")
+  ]
+
+private def malformedDigestParticipantFact : Lean.Json := fact
+  "umpire.runtime.fact.participant.fixture" "umpire.evidence.source.participant-output"
+  "umpire.evidence.kind.participant-command" 0 [] [
+    field "umpire.evidence.field.cancellation-callback-count" "plain" (natural 1),
+    field "umpire.evidence.field.endpoint-identity" "sha256" (text "sha256:malformed")
+  ]
+
+private def extraSourceRequest : Request := { request with
+  sources := appendValue sources (source "umpire.evidence.source.extra" 0)
+}
+
+private def extraFactRequest : Request := { request with
+  facts := appendValue facts <| fact "umpire.runtime.fact.cleanup.extra"
+    "umpire.evidence.source.cleanup" "umpire.evidence.kind.cleanup" 1 [] [
+      field "umpire.evidence.field.open-handle-count" "plain" (natural 0),
+      field "umpire.evidence.field.status" "plain" (text "complete")
+    ]
+}
+
+private def extraFieldRequest : Request := { request with
+  facts := replaceFact 0 <| cleanupFact [
+    field "umpire.evidence.field.extra" "plain" (text "extra")
+  ]
+}
+
+private def crossedTypeRequest : Request := { request with
+  facts := replaceFact 0 crossedTypeCleanupFact
+}
+
+private def malformedDigestRequest : Request := { request with
+  facts := replaceFact 8 malformedDigestParticipantFact
+}
+
+private def extraSourceFactRequest : Request := { request with
+  facts := appendValue facts <| fact "umpire.runtime.fact.extra"
+    "umpire.evidence.source.extra" "umpire.evidence.kind.cleanup" 0 [] [
+      field "umpire.evidence.field.open-handle-count" "plain" (natural 0),
+      field "umpire.evidence.field.status" "plain" (text "complete")
+    ]
+}
+
+private def invalidDispositionRequest : Request := { request with
+  facts := replaceFact 0 <| fact "umpire.runtime.fact.cleanup.fixture"
+    "umpire.evidence.source.cleanup" "umpire.evidence.kind.cleanup" 0 [] [
+      field "umpire.evidence.field.open-handle-count" "redacted" (natural 0),
+      field "umpire.evidence.field.status" "plain" (text "complete")
+    ]
+}
+
+private def knownGapJson : Lean.Json := array [object [
+  ("kind", text "input"), ("code", text "umpire.gap.fixture"),
+  ("subject", .null), ("detail", .null)
+]]
+
+private def gapRequest : Request := { request with runKnownGaps := knownGapJson }
+
+private def rejectedField (candidate : Request) : Option String :=
+  match Temporal.Tool.RunEvaluation.evaluateRequest candidate with
+  | .error failure => some failure.field
+  | .ok _ => none
+
+private def extraFactResponse := responseOf extraFactRequest
+private def extraFieldResponse := responseOf extraFieldRequest
+private def crossedTypeResponse := responseOf crossedTypeRequest
+private def gapResponse := responseOf gapRequest
 
 private def conflictingFacts : Lean.Json :=
   match facts.getArr? with
   | .error _ => facts
   | .ok values => .arr (values.push values[0]!)
 
-private def conflictResponse := Temporal.Tool.RunEvaluation.evaluateRequest
+private def conflictResponse := responseOf
   { request with facts := conflictingFacts }
 
-private def unsupportedSources : Lean.Json := array [object [
-  ("sourceDefinitionId", text "umpire.evidence.source.cleanup"),
-  ("status", text "invalid"), ("factCount", natural 1), ("byteCount", natural 0)
-]]
+private def jsonArrayEmpty (value : Lean.Json) : Bool :=
+  match value.getArr? with
+  | .ok values => values.isEmpty
+  | .error _ => false
 
-private def unsupportedResponse := Temporal.Tool.RunEvaluation.evaluateRequest
-  { request with sources := unsupportedSources }
+private def incompleteProjection (candidate : Response) : Bool :=
+  jsonArrayEmpty candidate.propertyVerdicts && candidate.semanticStatus == "incomplete" &&
+    candidate.evaluationOutcomeChecksum.isNone &&
+    (candidate.querySummary.getObjVal? "status").toOption.bind
+      (fun value => value.getStr?.toOption) == some "incomplete" &&
+    (candidate.querySummary.getObjVal? "propertyVerdicts").toOption.any jsonArrayEmpty
 
-private def atEvidenceLimit := Temporal.Tool.RunEvaluation.evaluateRequest
-  { request with facts := array ((List.range 4096).map fun _ => .null) }
+/-! The closed protocol rejects an extra source and malformed digest before semantics. -/
+example : rejectedField extraSourceRequest = some "sources.set" &&
+    rejectedField extraSourceFactRequest = some "facts.sourceDefinitionId" &&
+    rejectedField invalidDispositionRequest = some "facts.fields.disposition" &&
+    rejectedField malformedDigestRequest = some "facts.fields.value" := by native_decide
 
-private def overEvidenceLimit := Temporal.Tool.RunEvaluation.evaluateRequest
-  { request with facts := array ((List.range 4097).map fun _ => .null) }
+/-! Total fact/field/type closure reaches checked Observation without adapter-side semantics. -/
+example : extraFactResponse.observationEvaluationStatus = "unknown" &&
+    extraFieldResponse.observationEvaluationStatus = "unsupported" &&
+    crossedTypeResponse.observationEvaluationStatus = "unknown" := by native_decide
 
-example : unknownResponse.observationEvaluationStatus = "unknown" &&
-    conflictResponse.observationEvaluationStatus = "conflict" &&
-    unsupportedResponse.observationEvaluationStatus = "unsupported" &&
-    unknownResponse.evaluationOutcomeChecksum.isNone &&
-    conflictResponse.evaluationOutcomeChecksum.isNone &&
-    unsupportedResponse.evaluationOutcomeChecksum.isNone := by native_decide
-
-example : atEvidenceLimit.observationEvaluationStatus = "unknown" &&
-    overEvidenceLimit.observationEvaluationStatus = "unknown" &&
-    (Lean.Json.compress overEvidenceLimit.diagnostics).contains "evidence-bound-exhausted" := by
+/-! Every non-accepted Observation status projects a fn18-valid empty incomplete Result row. -/
+example : incompleteProjection extraFactResponse && incompleteProjection conflictResponse &&
+    incompleteProjection extraFieldResponse && conflictResponse.observationEvaluationStatus = "conflict" := by
   native_decide
+
+/-! Upstream Known Gaps force unknown semantics without a Property verdict or outcome checksum. -/
+example : gapResponse.observationEvaluationStatus = "unknown" &&
+    incompleteProjection gapResponse && !jsonArrayEmpty gapResponse.resultKnownGaps := by native_decide
 
 end Temporal.Tool.RunEvaluation.Tests

@@ -45,6 +45,8 @@ def cancellationCountField : DefinitionId :=
   definitionId "umpire.evidence.field.cancellation-callback-count"
 def endpointIdentityField : DefinitionId := definitionId "umpire.evidence.field.endpoint-identity"
 def openHandleCountField : DefinitionId := definitionId "umpire.evidence.field.open-handle-count"
+def endpointDigestPolicyId : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.digest.endpoint"
 
 def declaration : EvidenceProfileDeclaration := {
   id
@@ -61,15 +63,11 @@ def declaration : EvidenceProfileDeclaration := {
         { id := statusField, valueType := .text }
       ] },
     { id := historyKind, fields := [
-        { id := actionField, valueType := .text },
-        { id := attemptField, valueType := .natural },
-        { id := statusField, valueType := .text },
         { id := eventIdField, valueType := .natural },
         { id := eventTypeField, valueType := .text },
         { id := operationCorrelationField, valueType := .text },
         { id := runCorrelationField, valueType := .text },
-        { id := workflowCorrelationField, valueType := .text },
-        { id := cancellationCountField, valueType := .natural }
+        { id := workflowCorrelationField, valueType := .text }
       ] },
     { id := participantKind, fields := [
         { id := cancellationCountField, valueType := .natural },
@@ -129,6 +127,11 @@ def mappingDeclaration : ObservationMappingDeclaration := {
   id := Mapping.id
   source
   profile := Profile.id
+  digestPolicies := [{
+    id := Profile.endpointDigestPolicyId
+    name := "synthetic.digest"
+    version := 1
+  }]
   rules := [
     {
       id := Mapping.stateRuleId
@@ -143,11 +146,11 @@ def mappingDeclaration : ObservationMappingDeclaration := {
     },
     constantRule Mapping.actionRuleId actionId .action forceCloseAction.value
       (.and
-        (equalsText Profile.historyKind Profile.actionField
+        (equalsText Profile.controlReceiptKind Profile.actionField
           "workflow.action.force-close")
         (.and
-          (equalsNatural Profile.historyKind Profile.attemptField 1)
-          (equalsText Profile.historyKind Profile.statusField "accepted"))),
+          (equalsNatural Profile.controlReceiptKind Profile.attemptField 1)
+          (equalsText Profile.controlReceiptKind Profile.statusField "accepted"))),
     constantRule Mapping.outcomeRuleId outcomeId .outcome cancellationUpgradedOutcome.value
       (equalsText Profile.historyKind Profile.eventTypeField
         "temporal.history.WorkflowExecutionCanceled"),
@@ -160,9 +163,9 @@ def mappingDeclaration : ObservationMappingDeclaration := {
       output := cancellationCountObservationId
       outputKind := .observation
       value := .portable (.normalize { name := "natural.render", version := 1 }
-        (field Profile.historyKind Profile.cancellationCountField))
+        (field Profile.participantKind Profile.cancellationCountField))
       condition := portableCondition
-        (equalsNatural Profile.historyKind Profile.cancellationCountField 1)
+        (equalsNatural Profile.participantKind Profile.cancellationCountField 1)
     },
     constantRule Mapping.ownershipRuleId ownershipObservationId .observation
       ownershipObservation.value
@@ -195,12 +198,6 @@ def mappingDeclaration : ObservationMappingDeclaration := {
       disposition := .retain },
     { field := { kind := Profile.controlReceiptKind, field := Profile.statusField },
       disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.actionField },
-      disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.attemptField },
-      disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.statusField },
-      disposition := .retain },
     { field := { kind := Profile.historyKind, field := Profile.eventIdField },
       disposition := .retain },
     { field := { kind := Profile.historyKind, field := Profile.eventTypeField },
@@ -211,12 +208,10 @@ def mappingDeclaration : ObservationMappingDeclaration := {
       disposition := .retain },
     { field := { kind := Profile.historyKind, field := Profile.workflowCorrelationField },
       disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.cancellationCountField },
-      disposition := .retain },
     { field := { kind := Profile.participantKind, field := Profile.cancellationCountField },
       disposition := .retain },
     { field := { kind := Profile.participantKind, field := Profile.endpointIdentityField },
-      disposition := .reject }
+      disposition := .hash (some Profile.endpointDigestPolicyId) }
   ]
   evidenceBound := { value := 4096, unit := .evidenceRecords }
   documentation := "Closed four-source Nexus caller-closure evidence to one System trace."
