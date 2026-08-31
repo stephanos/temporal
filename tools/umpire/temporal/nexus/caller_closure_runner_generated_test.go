@@ -4,8 +4,12 @@
 package nexus_test
 
 import (
+	"bytes"
 	"context"
 	_ "embed"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -124,6 +128,60 @@ func admitCallerClosure(t *testing.T) artifact.AdmittedSet {
 	return input
 }
 
+func writeCallerClosureExecution(
+	t *testing.T,
+	root string,
+	admitted artifact.AdmittedSet,
+) {
+	t.Helper()
+	execution, ok := admitted.Execution()
+	require.True(t, ok)
+	experiment, err := artifact.EncodeExperimentV2(execution.Experiment())
+	require.NoError(t, err)
+	configuration, err := artifact.EncodeRuntimeConfigurationV2(execution.RuntimeConfiguration())
+	require.NoError(t, err)
+	run, err := artifact.EncodeExperimentRunV2(execution.ExperimentRun())
+	require.NoError(t, err)
+	rawEvidence, err := artifact.EncodeRawEvidenceV2(execution.RawEvidence())
+	require.NoError(t, err)
+	files := map[string][]byte{
+		"manifest.json":                        admitted.ManifestBytes(),
+		"artifacts/experiment.json":            experiment,
+		"artifacts/runtime-configuration.json": configuration,
+		"artifacts/experiment-run.json":        run,
+		"artifacts/raw-evidence.json":          rawEvidence,
+	}
+	for path, encoded := range files {
+		absolute := filepath.Join(root, filepath.FromSlash(path))
+		require.NoError(t, os.MkdirAll(filepath.Dir(absolute), 0o700))
+		require.NoError(t, os.WriteFile(absolute, encoded, 0o600))
+	}
+}
+
+func runCallerClosureEvaluation(t *testing.T, admitted artifact.AdmittedSet) {
+	t.Helper()
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
+	require.NoError(t, err)
+	executionRoot := t.TempDir()
+	writeCallerClosureExecution(t, executionRoot, admitted)
+	outputRoot := t.TempDir()
+	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
+	defer cancel()
+	command := exec.CommandContext(
+		ctx,
+		"make", "-C", repositoryRoot, "--no-print-directory",
+		"umpire-check-local-run-evaluation",
+		"SET="+executionRoot,
+		"OUTPUT_ROOT="+outputRoot,
+	)
+	command.Env = os.Environ()
+	var output bytes.Buffer
+	command.Stdout = &output
+	command.Stderr = &output
+	require.NoError(t, command.Run(), output.String())
+	require.NoError(t, ctx.Err())
+}
+
 // TestHermeticCIPortability runs the exact
 // generated two-member input through the bounded local adapter without publishing it.
 func TestHermeticCIPortability(t *testing.T) {
@@ -182,4 +240,5 @@ func TestHermeticCIPortability(t *testing.T) {
 	}, sourceDefinitionIDs)
 	require.Empty(t, run.KnownGaps)
 	require.Empty(t, output.RawEvidence().KnownGaps)
+	runCallerClosureEvaluation(t, output.AdmittedSet())
 }
