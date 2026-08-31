@@ -48,6 +48,9 @@ func TestRunRejectsIncompleteInputBeforeAdapterConstruction(t *testing.T) {
 	)
 
 	require.ErrorContains(t, err, "exact two-member executable set")
+	requireRunnerFailureClassification(
+		t, err, "input-binding", "umpire.runner.input-binding.invalid",
+	)
 	require.Equal(t, 0, adapter.checkCalls)
 }
 
@@ -66,6 +69,9 @@ func TestRunRejectsGeneratedDigestDriftBeforeAdapterConstruction(t *testing.T) {
 	)
 
 	require.ErrorContains(t, err, "generated input binding")
+	requireRunnerFailureClassification(
+		t, err, "input-binding", "umpire.runner.input-binding.drift",
+	)
 	require.Equal(t, 0, adapter.checkCalls)
 }
 
@@ -102,6 +108,9 @@ func TestRunRejectsLimitNPlusOneBeforeAdapterConstruction(t *testing.T) {
 	)
 
 	require.ErrorContains(t, err, "generated input binding")
+	requireRunnerFailureClassification(
+		t, err, "input-binding", "umpire.runner.input-binding.drift",
+	)
 	require.Equal(t, 0, adapter.checkCalls)
 }
 
@@ -138,6 +147,9 @@ func TestRunRejectsAuthorityLeakBeforeParticipantConstruction(t *testing.T) {
 			)
 
 			require.ErrorContains(t, err, "generated authority binding")
+			requireRunnerFailureClassification(
+				t, err, "authority-binding", "umpire.runner.authority-binding.unauthorized",
+			)
 			require.Equal(t, 0, adapter.participantCalls)
 			require.Equal(t, 0, adapter.environmentCalls)
 		})
@@ -157,6 +169,25 @@ func TestExecutionSurfaceExposesOnlyTheDigestBoundRunner(t *testing.T) {
 		filepath.Join("runevaluation", "run_evaluation.go"),
 		filepath.Join("runner", "runner.go"),
 	}, goFilesImporting(t, "..", "go.temporal.io/server/tools/umpire/internal/runtimeengine"))
+}
+
+func requireRunnerFailureClassification(
+	t *testing.T,
+	err error,
+	wantKind string,
+	wantCode string,
+) {
+	t.Helper()
+	var classified interface {
+		error
+		Kind() string
+		Phase() string
+		Code() string
+	}
+	require.ErrorAs(t, err, &classified)
+	require.Equal(t, []string{wantKind, "admission", wantCode}, []string{
+		classified.Kind(), classified.Phase(), classified.Code(),
+	})
 }
 
 type recordingAdapter struct {

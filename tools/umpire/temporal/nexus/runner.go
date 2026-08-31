@@ -48,7 +48,7 @@ func (Binding) ValidateOutput(
 		output.ExperimentRun(),
 		output.RawEvidence(),
 	); err != nil {
-		return errExecutionClosure
+		return classifyExecutionClosure(err)
 	}
 	return nil
 }
