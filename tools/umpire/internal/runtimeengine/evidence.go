@@ -27,33 +27,47 @@ var evidenceSourceOrder = [...]string{
 }
 
 const (
-	EvidenceFieldCancellationCallbackCount = umpireruntime.EvidenceFieldCancellationCallbackCount
-	EvidenceFieldCommandKind               = umpireruntime.EvidenceFieldCommandKind
-	EvidenceFieldEndpointIdentity          = umpireruntime.EvidenceFieldEndpointIdentity
-	EvidenceFieldErrorCode                 = umpireruntime.EvidenceFieldErrorCode
-	EvidenceFieldEventID                   = umpireruntime.EvidenceFieldEventID
-	EvidenceFieldEventType                 = umpireruntime.EvidenceFieldEventType
-	EvidenceFieldNamespaceIdentity         = umpireruntime.EvidenceFieldNamespaceIdentity
-	EvidenceFieldOpenHandleCount           = umpireruntime.EvidenceFieldOpenHandleCount
-	EvidenceFieldOperationCorrelationID    = umpireruntime.EvidenceFieldOperationCorrelationID
-	EvidenceFieldRunCorrelationID          = umpireruntime.EvidenceFieldRunCorrelationID
-	EvidenceFieldStatus                    = umpireruntime.EvidenceFieldStatus
-	EvidenceFieldTaskQueueIdentity         = umpireruntime.EvidenceFieldTaskQueueIdentity
-	EvidenceFieldWorkflowCorrelationID     = umpireruntime.EvidenceFieldWorkflowCorrelationID
+	EvidenceFieldCancellationCallbackCount   = umpireruntime.EvidenceFieldCancellationCallbackCount
+	EvidenceFieldCancellationCompletedCount  = umpireruntime.EvidenceFieldCancellationCompletedCount
+	EvidenceFieldCancellationRequestedCount  = umpireruntime.EvidenceFieldCancellationRequestedCount
+	EvidenceFieldCapabilityDefinitionID      = umpireruntime.EvidenceFieldCapabilityDefinitionID
+	EvidenceFieldCommandKind                 = umpireruntime.EvidenceFieldCommandKind
+	EvidenceFieldEndpointIdentity            = umpireruntime.EvidenceFieldEndpointIdentity
+	EvidenceFieldErrorCode                   = umpireruntime.EvidenceFieldErrorCode
+	EvidenceFieldEventID                     = umpireruntime.EvidenceFieldEventID
+	EvidenceFieldEventType                   = umpireruntime.EvidenceFieldEventType
+	EvidenceFieldFaultDefinitionID           = umpireruntime.EvidenceFieldFaultDefinitionID
+	EvidenceFieldFaultReceiptDefinitionID    = umpireruntime.EvidenceFieldFaultReceiptDefinitionID
+	EvidenceFieldNamespaceIdentity           = umpireruntime.EvidenceFieldNamespaceIdentity
+	EvidenceFieldOpenHandleCount             = umpireruntime.EvidenceFieldOpenHandleCount
+	EvidenceFieldOperationCorrelationID      = umpireruntime.EvidenceFieldOperationCorrelationID
+	EvidenceFieldRunCorrelationID            = umpireruntime.EvidenceFieldRunCorrelationID
+	EvidenceFieldStatus                      = umpireruntime.EvidenceFieldStatus
+	EvidenceFieldSyntheticContributionCount  = umpireruntime.EvidenceFieldSyntheticContributionCount
+	EvidenceFieldSyntheticContributionMarker = umpireruntime.EvidenceFieldSyntheticContributionMarker
+	EvidenceFieldTaskQueueIdentity           = umpireruntime.EvidenceFieldTaskQueueIdentity
+	EvidenceFieldWorkflowCorrelationID       = umpireruntime.EvidenceFieldWorkflowCorrelationID
 )
 
 var evidenceFieldAllowlist = map[string]struct{}{
 	EvidenceFieldCancellationCallbackCount:               {},
+	EvidenceFieldCancellationCompletedCount:              {},
+	EvidenceFieldCancellationRequestedCount:              {},
+	EvidenceFieldCapabilityDefinitionID:                  {},
 	EvidenceFieldCommandKind:                             {},
 	EvidenceFieldEndpointIdentity:                        {},
 	EvidenceFieldErrorCode:                               {},
 	EvidenceFieldEventID:                                 {},
 	EvidenceFieldEventType:                               {},
+	EvidenceFieldFaultDefinitionID:                       {},
+	EvidenceFieldFaultReceiptDefinitionID:                {},
 	EvidenceFieldNamespaceIdentity:                       {},
 	EvidenceFieldOpenHandleCount:                         {},
 	EvidenceFieldOperationCorrelationID:                  {},
 	EvidenceFieldRunCorrelationID:                        {},
 	EvidenceFieldStatus:                                  {},
+	EvidenceFieldSyntheticContributionCount:              {},
+	EvidenceFieldSyntheticContributionMarker:             {},
 	EvidenceFieldTaskQueueIdentity:                       {},
 	EvidenceFieldWorkflowCorrelationID:                   {},
 	artifactv2.ControlReceiptActionFieldDefinitionID:     {},
@@ -63,8 +77,11 @@ var evidenceFieldAllowlist = map[string]struct{}{
 
 var numericEvidenceFields = map[string]struct{}{
 	EvidenceFieldCancellationCallbackCount:            {},
+	EvidenceFieldCancellationCompletedCount:           {},
+	EvidenceFieldCancellationRequestedCount:           {},
 	EvidenceFieldEventID:                              {},
 	EvidenceFieldOpenHandleCount:                      {},
+	EvidenceFieldSyntheticContributionCount:           {},
 	artifactv2.ControlReceiptAttemptFieldDefinitionID: {},
 }
 
