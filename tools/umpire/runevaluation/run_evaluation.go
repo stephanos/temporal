@@ -41,6 +41,22 @@ const (
 	callerClosureParticipantID                   = "temporal.nexus.participant.caller-closure"
 	callerClosureParticipantProgramID            = "temporal.nexus.participant-program.caller-closure"
 	callerClosureParticipantProgramFingerprint   = "sha256:f2f1a9a1346576b4d8c6b0b4f7f6c8a138461f90c168ab57747b316807666e56"
+	duplicateDeliveryExperimentChecksum          = "sha256:09091758defd5ce50cc9acbba23a5c8499da4eef9b6e36878ac989ddea87fedf"
+	duplicateDeliveryExperimentFingerprint       = "sha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91"
+	duplicateDeliveryExperimentProvenance        = "sha256:4136694dfede1044bbf391c5faba21a1a89a589890aa2915eb860a46942797c2"
+	duplicateDeliveryQueryID                     = "temporal.nexus.caller-closure.space.duplicate-delivery-negative-control.point.088f85a0eb86d54cfee9512429211767702568152794d302210b0a4041327d4f.query"
+	duplicateDeliveryConfigurationChecksum       = "sha256:440c0632b911571e4efb34c96fb4c4c7096fbd52f23900ed4784e037370063cf"
+	duplicateDeliveryConfigurationFingerprint    = "sha256:d88670a6766c2ef9037c82183f00c1c42179a7578c3c4c07714eadb5540750c0"
+	duplicateDeliveryConfigurationProvenance     = "sha256:b11d3931cdb55c2331ca816a912cca8113032c8d29a8e81a37d473c261345b5a"
+	duplicateDeliveryConfigurationID             = "temporal.nexus.runtime-configuration.caller-closure-duplicate-delivery"
+	duplicateDeliveryProfileID                   = "temporal.system.nexus.caller-closure.duplicate-delivery.profile"
+	duplicateDeliveryProfileFingerprint          = "sha256:02517311485c8f87f13581d9381447ae34cb159526bdc865c1054efe2067acb8"
+	duplicateDeliveryObservationProgramID        = "temporal.system.nexus.caller-closure.duplicate-delivery.observation-program"
+	duplicateDeliveryObservationProgramFP        = "sha256:7226f7762d3a21e7a66d460a4bf6b9d9a1d244bca847e4919cc0bc7debf432bd"
+	duplicateDeliveryMappingID                   = "temporal.system.nexus.caller-closure.duplicate-delivery.mapping"
+	duplicateDeliveryMappingFingerprint          = "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438"
+	duplicateDeliveryParticipantProgramID        = "temporal.nexus.participant-program.caller-closure-duplicate-delivery"
+	duplicateDeliveryParticipantProgramFP        = "sha256:3cd71d91c2ba9eef0e9b2a04cccf49d09b214282625ef815c2da8474ee49afee"
 )
 
 var callerClosureRequirements = []string{
@@ -110,7 +126,8 @@ func checkedCallerClosureExecution(admittedSet artifact.AdmittedSet) (artifact.E
 	configuration := execution.RuntimeConfiguration()
 	run := execution.ExperimentRun()
 	rawEvidence := execution.RawEvidence()
-	if !exactCallerClosureExperiment(experiment) || !exactCallerClosureConfiguration(configuration) {
+	if (!exactCallerClosureExperiment(experiment) || !exactCallerClosureConfiguration(configuration)) &&
+		(!exactDuplicateDeliveryExperiment(experiment) || !exactDuplicateDeliveryConfiguration(configuration)) {
 		return artifact.ExecutionSet{}, newEvaluationFailure(
 			"input", "generated-view", "umpire.run-evaluation.input.unsupported-profile", nil,
 		)
@@ -126,6 +143,24 @@ func checkedCallerClosureExecution(admittedSet artifact.AdmittedSet) (artifact.E
 		)
 	}
 	return execution, nil
+}
+
+func exactDuplicateDeliveryExperiment(experiment artifactv2.Experiment) bool {
+	binding, err := artifactv2.ExperimentArtifactBinding(experiment)
+	if err != nil {
+		return false
+	}
+	return binding.ArtifactChecksum == duplicateDeliveryExperimentChecksum &&
+		binding.BehaviorFingerprint == duplicateDeliveryExperimentFingerprint &&
+		binding.ProvenanceChecksum == duplicateDeliveryExperimentProvenance &&
+		experiment.Plan.QueryDefinitionID == duplicateDeliveryQueryID &&
+		experiment.Plan.QueryBehaviorFingerprint == duplicateDeliveryExperimentFingerprint &&
+		experiment.Plan.TargetDefinitionID == callerClosureTargetID &&
+		experiment.Plan.TargetBehaviorFingerprint == callerClosureTargetFingerprint &&
+		len(experiment.Properties) == 1 &&
+		experiment.Properties[0].DefinitionID == callerClosurePropertyID &&
+		experiment.Properties[0].BehaviorFingerprint == callerClosurePropertyFingerprint &&
+		slices.Equal(experiment.Properties[0].RequirementDefinitionIDs, callerClosureRequirements)
 }
 
 func exactCallerClosureExperiment(experiment artifactv2.Experiment) bool {
@@ -174,6 +209,34 @@ func exactCallerClosureConfiguration(configuration artifactv2.RuntimeConfigurati
 		slices.Equal(participant.CapabilityDefinitionIDs, callerClosureRequirements)
 }
 
+func exactDuplicateDeliveryConfiguration(configuration artifactv2.RuntimeConfiguration) bool {
+	binding := artifactv2.RuntimeConfigurationArtifactBinding(configuration)
+	if binding.ArtifactChecksum != duplicateDeliveryConfigurationChecksum ||
+		binding.BehaviorFingerprint != duplicateDeliveryConfigurationFingerprint ||
+		binding.ProvenanceChecksum != duplicateDeliveryConfigurationProvenance ||
+		configuration.ConfigurationDefinitionID != duplicateDeliveryConfigurationID ||
+		configuration.AuthorityProfile.DefinitionID != localAuthorityProfileID ||
+		configuration.AuthorityProfile.Version != artifactv2.NaturalFromUint64(2) ||
+		configuration.AuthorityProfile.BehaviorFingerprint != localAuthorityProfileFingerprint ||
+		len(configuration.AuthorityProfile.RequiredCapabilityDefinitionIDs) != 0 ||
+		configuration.Observation.ProfileDefinitionID != duplicateDeliveryProfileID ||
+		configuration.Observation.ProfileBehaviorFingerprint != duplicateDeliveryProfileFingerprint ||
+		configuration.Observation.ProgramDefinitionID != duplicateDeliveryObservationProgramID ||
+		configuration.Observation.ProgramBehaviorFingerprint != duplicateDeliveryObservationProgramFP ||
+		configuration.Observation.MappingDefinitionID != duplicateDeliveryMappingID ||
+		configuration.Observation.MappingBehaviorFingerprint != duplicateDeliveryMappingFingerprint ||
+		len(configuration.ParticipantBindings) != 1 {
+		return false
+	}
+	participant := configuration.ParticipantBindings[0]
+	return participant.ParticipantDefinitionID == callerClosureParticipantID &&
+		participant.ProtocolDefinitionID == "umpire.participant-protocol.v2" &&
+		participant.ProtocolVersion == artifactv2.NaturalFromUint64(2) &&
+		participant.ProgramDefinitionID == duplicateDeliveryParticipantProgramID &&
+		participant.ProgramBehaviorFingerprint == duplicateDeliveryParticipantProgramFP &&
+		slices.Equal(participant.CapabilityDefinitionIDs, callerClosureRequirements)
+}
+
 func exactCallerClosureSources(
 	closures []artifactv2.SourceClosure,
 	sources []artifactv2.RawEvidenceSource,
@@ -215,6 +278,14 @@ func newCheckerRequest(execution artifact.ExecutionSet) (checkerRequest, error) 
 			RequirementDefinitionIDs: slices.Clone(property.RequirementDefinitionIDs),
 		}
 	}
+	checkedMapping := definitionReference{
+		DefinitionID: callerClosureCheckedMappingID, BehaviorFingerprint: callerClosureCheckedMappingFingerprint,
+	}
+	if exactDuplicateDeliveryExperiment(experiment) && exactDuplicateDeliveryConfiguration(configuration) {
+		checkedMapping = definitionReference{
+			DefinitionID: duplicateDeliveryMappingID, BehaviorFingerprint: duplicateDeliveryMappingFingerprint,
+		}
+	}
 	request := checkerRequest{
 		FormatVersion:              checkerRequestFormat,
 		CheckerIdentity:            checkerIdentity,
@@ -233,10 +304,7 @@ func newCheckerRequest(execution artifact.ExecutionSet) (checkerRequest, error) 
 			DefinitionID:        configuration.Observation.ProgramDefinitionID,
 			BehaviorFingerprint: configuration.Observation.ProgramBehaviorFingerprint,
 		},
-		Mapping: definitionReference{
-			DefinitionID:        callerClosureCheckedMappingID,
-			BehaviorFingerprint: callerClosureCheckedMappingFingerprint,
-		},
+		Mapping:              checkedMapping,
 		PhaseOutcomes:        run.PhaseOutcomes,
 		ControlAttempts:      run.ControlAttempts,
 		SourceClosures:       run.SourceClosures,
