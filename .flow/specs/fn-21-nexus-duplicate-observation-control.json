@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-21-nexus-duplicate-observation-control",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-08-31T13:49:28.061364Z",
   "created_at": "2026-08-26T11:25:26.363868Z",
   "default_impl": null,
   "default_review": null,
@@ -25,7 +25,7 @@
     "fn-21-nexus-duplicate-observation-control.7": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T11:41:38.181641Z",
   "ready": true,
@@ -760,6 +760,51 @@
       "task": "fn-21-nexus-duplicate-observation-control.6",
       "timestamp": "2026-08-31T13:28:43.084200Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3565ed503cad76d8dc2b3a9bd981bb24e7594861cf3fe2e4b2f13588b2dd5686",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-89d1769f0344fdc8c7a9f2625f57e3d4",
+            "classification": "introduced",
+            "findingId": "finding-89d1769f0344fdc8c7a9f2625f57e3d4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "217bd8e10cf01cf0dc48f7d73cdbfd7d22ead06e",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 732234,
+      "output_sha256": "331acd0a49e016b28038826cd1b5d3fbc186c708fc4fd0c6e4b68c939d8d2dd5",
+      "reservation_id": "dff1e7ba273447b1ac01e8dbe115b615",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-31T13:49:28.045183Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -776,6 +821,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-21-nexus-duplicate-observation-control.1": 0,
     "impl:fn-21-nexus-duplicate-observation-control.2": 0,
     "impl:fn-21-nexus-duplicate-observation-control.3": 0,
@@ -799,5 +845,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T13:28:43.090937Z"
+  "updated_at": "2026-08-31T13:49:28.067093Z"
 }

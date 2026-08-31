@@ -425,7 +425,8 @@ func TestValidateExecutionClosureAdmitsFaultedEvidenceForEvaluation(t *testing.T
 			},
 		},
 		{
-			name: "missing completed cancellation lifecycle is admitted for evaluation",
+			name:      "missing completed cancellation lifecycle is a runtime invariant",
+			wantError: true,
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
 				setRawFieldOnHistoryEvent(rawEvidence,
 					"temporal.history.NexusOperationCancelRequestCompleted",
@@ -434,7 +435,8 @@ func TestValidateExecutionClosureAdmitsFaultedEvidenceForEvaluation(t *testing.T
 			},
 		},
 		{
-			name: "second cancellation request chain is admitted for evaluation",
+			name:      "second cancellation request chain is a runtime invariant",
+			wantError: true,
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
 				setRawFieldOnHistoryEvent(rawEvidence,
 					"temporal.history.WorkflowExecutionStarted",
@@ -496,6 +498,15 @@ func TestValidateExecutionClosureAdmitsFaultedEvidenceForEvaluation(t *testing.T
 			err = validateExecutionClosure(executable, candidate, run, rawEvidence)
 			if test.wantError {
 				require.Error(t, err)
+				request, requestErr := CheckRequest(
+					admitCallerClosureDuplicateDeliverySet(t),
+					run.RunIdentity,
+				)
+				require.NoError(t, requestErr)
+				require.ErrorIs(t, (Binding{}).ValidateOutput(
+					request,
+					umpireruntime.NewOutput(candidate, run, rawEvidence),
+				), errExecutionClosure)
 				return
 			}
 			require.NoError(t, err)
