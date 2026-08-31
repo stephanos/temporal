@@ -18,6 +18,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	"go.temporal.io/server/tools/umpire/runevaluation"
 	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
@@ -176,6 +177,7 @@ type callerClosureEvaluationSummary struct {
 	OperationalStatus           string `json:"operationalStatus"`
 	ObservationEvaluationStatus string `json:"observationEvaluationStatus"`
 	SemanticStatus              string `json:"semanticStatus"`
+	EvaluationOutcomeChecksum   string `json:"evaluationOutcomeChecksum"`
 	ArtifactSetChecksum         string `json:"artifactSetChecksum"`
 	ManifestSHA256              string `json:"manifestSha256"`
 	Destination                 string `json:"destination"`
@@ -183,6 +185,7 @@ type callerClosureEvaluationSummary struct {
 
 type callerClosureEvaluation struct {
 	admitted artifact.AdmittedSet
+	result   artifactv2.Result
 	summary  callerClosureEvaluationSummary
 }
 
@@ -231,7 +234,7 @@ func runCallerClosurePath(
 	return outcome
 }
 
-func newCallerClosurePath(t *testing.T) callerClosurePath {
+func newCallerClosurePath(t *testing.T, runIdentity string) callerClosurePath {
 	t.Helper()
 	return callerClosurePath{
 		checkSubject: func() error {
@@ -256,7 +259,7 @@ func newCallerClosurePath(t *testing.T) callerClosurePath {
 						"umpire.runtime.capability.sdk-worker-lifecycle",
 					},
 				},
-				"umpire.generated.caller-closure.run-1",
+				runIdentity,
 				nexus.Binding{},
 			)
 		},
@@ -321,7 +324,15 @@ func runCallerClosureEvaluation(
 		loaded.ManifestSHA256() != summary.ManifestSHA256 {
 		return callerClosureEvaluation{}, errors.New("Run Evaluation publication identity drifted")
 	}
-	return callerClosureEvaluation{admitted: loaded, summary: summary}, nil
+	resultBytes, err := os.ReadFile(filepath.Join(summary.Destination, "artifacts", "result.json"))
+	if err != nil {
+		return callerClosureEvaluation{}, err
+	}
+	result, err := artifact.DecodeResultV2(resultBytes)
+	if err != nil {
+		return callerClosureEvaluation{}, err
+	}
+	return callerClosureEvaluation{admitted: loaded, result: result, summary: summary}, nil
 }
 
 // TestHermeticCIPortability runs the exact
@@ -329,41 +340,58 @@ func runCallerClosureEvaluation(
 func TestHermeticCIPortability(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 315*time.Second)
 	defer cancel()
-	outcome := runCallerClosurePath(ctx, newCallerClosurePath(t))
-	require.NoError(t, outcome.toolingFailure, outcome.toolingPhase)
-	require.NotNil(t, outcome.execution)
-	require.NotNil(t, outcome.evaluation)
-	require.NotEmpty(t, outcome.evaluation.admitted.Identity())
-	run := outcome.execution.ExperimentRun()
-	require.Equal(t, "succeeded", run.OperationalStatus)
-	phaseStatuses := make([]string, len(run.PhaseOutcomes))
-	for index, phase := range run.PhaseOutcomes {
-		phaseStatuses[index] = phase.Status
+	localPath := newCallerClosurePath(t, "umpire.local.caller-closure.portability-reference-1")
+	ciPath := newCallerClosurePath(t, "umpire.ci.caller-closure.portability-proof-1")
+	localInput, err := localPath.admit()
+	require.NoError(t, err)
+	ciInput, err := ciPath.admit()
+	require.NoError(t, err)
+	require.Equal(t, localInput.Identity(), ciInput.Identity())
+	require.Equal(t, localInput.Checksum(), ciInput.Checksum())
+	require.Equal(t, localInput.ManifestBytes(), ciInput.ManifestBytes())
+	localOutcome := runCallerClosurePath(ctx, localPath)
+	localResult := requireCallerClosureSuccessfulPortabilityResult(t, localOutcome)
+	ciOutcome := runCallerClosurePath(ctx, ciPath)
+	ciResult := requireCallerClosureSuccessfulPortabilityResult(t, ciOutcome)
+	require.NotEqual(t, localOutcome.execution.ExperimentRun().RunIdentity, ciOutcome.execution.ExperimentRun().RunIdentity)
+	require.NotEqual(t, localOutcome.execution.AdmittedSet().Identity(), ciOutcome.execution.AdmittedSet().Identity())
+	require.NotEqual(t, localOutcome.evaluation.summary.Destination, ciOutcome.evaluation.summary.Destination)
+	require.Equal(t, localOutcome.evaluation.result.Experiment, ciOutcome.evaluation.result.Experiment)
+	require.Equal(t, localOutcome.evaluation.result.RuntimeConfiguration, ciOutcome.evaluation.result.RuntimeConfiguration)
+	require.NotEqual(t, localOutcome.evaluation.result.Run, ciOutcome.evaluation.result.Run)
+	require.NotEqual(t, localOutcome.evaluation.result.RawEvidence, ciOutcome.evaluation.result.RawEvidence)
+	require.NotEqual(t, localOutcome.evaluation.result.Evidence, ciOutcome.evaluation.result.Evidence)
+	requireCallerClosureEqualResultMeaning(t, localOutcome.evaluation.result, ciOutcome.evaluation.result)
+	require.NotEqual(t, localResult.EvaluationOutcomeChecksum, ciResult.EvaluationOutcomeChecksum)
+	require.Equal(t, localResult.StableMeaning, ciResult.StableMeaning)
+	require.True(t, localResult.ProvesPortableSuccess(localResult.StableMeaning))
+	require.True(t, ciResult.ProvesPortableSuccess(localResult.StableMeaning))
+	retryEvaluation, err := runCallerClosureEvaluation(t, ctx, ciOutcome.execution.AdmittedSet())
+	require.NoError(t, err)
+	retryOutcome := callerClosurePathOutcome{
+		execution: ciOutcome.execution, evaluation: &retryEvaluation,
 	}
-	require.Equal(t, []string{
-		"succeeded",
-		"succeeded",
-		"succeeded",
-		"succeeded",
-		"succeeded",
-	}, phaseStatuses)
-	require.Equal(t, "complete", run.Cleanup.Status)
-	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
-	require.Equal(t, "closed", outcome.execution.RawEvidence().CaptureStatus)
-	sources := outcome.execution.RawEvidence().Sources
-	sourceDefinitionIDs := make([]string, len(sources))
-	for index, source := range sources {
-		sourceDefinitionIDs[index] = source.SourceDefinitionID
+	retryResult := retainCallerClosurePortabilityResult(retryOutcome)
+	requireCallerClosureEqualResultMeaning(t, ciOutcome.evaluation.result, retryEvaluation.result)
+	require.Equal(t, ciResult.StableMeaning, retryResult.StableMeaning)
+	require.Equal(t, ciResult.EvaluationOutcomeChecksum, retryResult.EvaluationOutcomeChecksum)
+	require.NotEqual(t, ciOutcome.evaluation.summary.Destination, retryEvaluation.summary.Destination)
+	require.True(t, retryResult.ProvesPortableSuccess(localResult.StableMeaning))
+	requireCallerClosureBoundedProofMatrix(t, localResult.StableMeaning)
+	limitOutcome := callerClosureLimitNPlusOneOutcome(ctx, t)
+	limitResult := retainCallerClosurePortabilityResult(limitOutcome)
+	require.False(t, limitResult.ProvesPortableSuccess(localResult.StableMeaning))
+	require.Equal(t, "runner", limitResult.ToolingPhase)
+	require.Error(t, limitResult.ToolingFailure)
+	require.Empty(t, limitResult.PhaseStatuses)
+	var classified interface {
+		error
+		Kind() string
+		Phase() string
+		Code() string
 	}
+	require.ErrorAs(t, limitResult.ToolingFailure, &classified)
 	require.Equal(t, []string{
-		umpireruntime.EvidenceSourceCleanup,
-		umpireruntime.EvidenceSourceControlReceipt,
-		umpireruntime.EvidenceSourceHistory,
-		umpireruntime.EvidenceSourceParticipantOutput,
-	}, sourceDefinitionIDs)
-	require.Empty(t, run.KnownGaps)
-	require.Empty(t, outcome.execution.RawEvidence().KnownGaps)
-	require.Equal(t, "succeeded", outcome.evaluation.summary.OperationalStatus)
-	require.Equal(t, "accepted", outcome.evaluation.summary.ObservationEvaluationStatus)
-	require.Equal(t, "satisfied", outcome.evaluation.summary.SemanticStatus)
+		"input-binding", "admission", "umpire.runner.input-binding.drift",
+	}, []string{classified.Kind(), classified.Phase(), classified.Code()})
 }
