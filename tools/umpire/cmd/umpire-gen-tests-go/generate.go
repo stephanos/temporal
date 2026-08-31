@@ -74,7 +74,8 @@ func loadGenerationInput(manifestPath, outputRoot string) (generationInput, erro
 	if err != nil {
 		return generationInput{}, fmt.Errorf("admit executable Artifact set: %w", err)
 	}
-	if _, err := nexus.CheckRequest(admitted, "umpire.generated.preflight.caller-closure-1"); err != nil {
+	request, err := nexus.CheckRequest(admitted, "umpire.generated.preflight.caller-closure-1")
+	if err != nil {
 		return generationInput{}, fmt.Errorf("bind generated test adapter: %w", err)
 	}
 	executable, ok := admitted.Executable()
@@ -97,6 +98,7 @@ func loadGenerationInput(manifestPath, outputRoot string) (generationInput, erro
 
 	experiment := executable.Experiment()
 	configuration := executable.RuntimeConfiguration()
+	authority := request.Authority()
 	subject, err := runevaluation.PinSubject(files["artifacts/experiment.json"])
 	if err != nil {
 		return generationInput{}, fmt.Errorf("pin generated Run Evaluation subject: %w", err)
@@ -106,13 +108,14 @@ func loadGenerationInput(manifestPath, outputRoot string) (generationInput, erro
 		embedRoot:   embedRoot,
 		subject:     subject,
 		binding: runner.InputBinding{
-			ArtifactSetIdentity:                     admitted.Identity(),
-			ArtifactSetChecksum:                     admitted.Checksum(),
-			ManifestSHA256:                          admitted.ManifestSHA256(),
-			ExperimentArtifactChecksum:              experiment.ArtifactChecksum,
-			ExperimentBehaviorFingerprint:           experiment.QueryBehaviorFingerprint,
-			RuntimeConfigurationArtifactChecksum:    configuration.ArtifactChecksum,
-			RuntimeConfigurationBehaviorFingerprint: configuration.BehaviorFingerprint,
+			ArtifactSetIdentity:                      admitted.Identity(),
+			ArtifactSetChecksum:                      admitted.Checksum(),
+			ManifestSHA256:                           admitted.ManifestSHA256(),
+			ExperimentArtifactChecksum:               experiment.ArtifactChecksum,
+			ExperimentBehaviorFingerprint:            experiment.QueryBehaviorFingerprint,
+			RuntimeConfigurationArtifactChecksum:     configuration.ArtifactChecksum,
+			RuntimeConfigurationBehaviorFingerprint:  configuration.BehaviorFingerprint,
+			AuthorityRequiredCapabilityDefinitionIDs: authority.RequiredCapabilityDefinitionIDs(),
 		},
 	}, nil
 }
@@ -177,12 +180,9 @@ func renderGeneratedTest(input generationInput) ([]byte, error) {
 	generated.WriteString("\trequire.NoError(t, err)\n")
 	generated.WriteString("\treturn input\n")
 	generated.WriteString("}\n\n")
-	generated.WriteString("func TestHermeticCIPortability(t *testing.T) {\n")
-	generated.WriteString("\trequire.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))\n")
-	generated.WriteString("}\n\n")
-	generated.WriteString("// TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally runs the exact\n")
+	generated.WriteString("// TestHermeticCIPortability runs the exact\n")
 	generated.WriteString("// generated two-member input through the bounded local adapter without publishing it.\n")
-	generated.WriteString("func TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally(t *testing.T) {\n")
+	generated.WriteString("func TestHermeticCIPortability(t *testing.T) {\n")
 	generated.WriteString("\trequire.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))\n")
 	generated.WriteString("\tinput := admitCallerClosure(t)\n")
 	generated.WriteString("\n")
@@ -198,7 +198,21 @@ func renderGeneratedTest(input generationInput) ([]byte, error) {
 	generated.WriteString("\t\tnexus.Binding{},\n")
 	generated.WriteString("\t)\n")
 	generated.WriteString("\trequire.NoError(t, err)\n")
-	generated.WriteString("\trequire.Equal(t, \"succeeded\", output.ExperimentRun().OperationalStatus)\n")
+	generated.WriteString("\trun := output.ExperimentRun()\n")
+	generated.WriteString("\trequire.Equal(t, \"succeeded\", run.OperationalStatus)\n")
+	generated.WriteString("\tphaseStatuses := make([]string, len(run.PhaseOutcomes))\n")
+	generated.WriteString("\tfor index, phase := range run.PhaseOutcomes {\n")
+	generated.WriteString("\t\tphaseStatuses[index] = phase.Status\n")
+	generated.WriteString("\t}\n")
+	generated.WriteString("\trequire.Equal(t, []string{\n")
+	generated.WriteString("\t\t\"succeeded\",\n")
+	generated.WriteString("\t\t\"succeeded\",\n")
+	generated.WriteString("\t\t\"succeeded\",\n")
+	generated.WriteString("\t\t\"succeeded\",\n")
+	generated.WriteString("\t\t\"succeeded\",\n")
+	generated.WriteString("\t}, phaseStatuses)\n")
+	generated.WriteString("\trequire.Equal(t, \"complete\", run.Cleanup.Status)\n")
+	generated.WriteString("\trequire.EqualValues(t, \"0\", run.Cleanup.OpenHandleCount)\n")
 	generated.WriteString("\trequire.Equal(t, \"closed\", output.RawEvidence().CaptureStatus)\n")
 	generated.WriteString("\tsources := output.RawEvidence().Sources\n")
 	generated.WriteString("\tsourceDefinitionIDs := make([]string, len(sources))\n")
@@ -211,7 +225,7 @@ func renderGeneratedTest(input generationInput) ([]byte, error) {
 	generated.WriteString("\t\tumpireruntime.EvidenceSourceHistory,\n")
 	generated.WriteString("\t\tumpireruntime.EvidenceSourceParticipantOutput,\n")
 	generated.WriteString("\t}, sourceDefinitionIDs)\n")
-	generated.WriteString("\trequire.Empty(t, output.ExperimentRun().KnownGaps)\n")
+	generated.WriteString("\trequire.Empty(t, run.KnownGaps)\n")
 	generated.WriteString("\trequire.Empty(t, output.RawEvidence().KnownGaps)\n")
 	generated.WriteString("}\n")
 	formatted, err := format.Source([]byte(generated.String()))
@@ -229,6 +243,11 @@ func writeBinding(generated *strings.Builder, binding runner.InputBinding) {
 	fmt.Fprintf(generated, "\t\t\tExperimentBehaviorFingerprint: %q,\n", binding.ExperimentBehaviorFingerprint)
 	fmt.Fprintf(generated, "\t\t\tRuntimeConfigurationArtifactChecksum: %q,\n", binding.RuntimeConfigurationArtifactChecksum)
 	fmt.Fprintf(generated, "\t\t\tRuntimeConfigurationBehaviorFingerprint: %q,\n", binding.RuntimeConfigurationBehaviorFingerprint)
+	generated.WriteString("\t\t\tAuthorityRequiredCapabilityDefinitionIDs: []string{\n")
+	for _, definitionID := range binding.AuthorityRequiredCapabilityDefinitionIDs {
+		fmt.Fprintf(generated, "\t\t\t\t%q,\n", definitionID)
+	}
+	generated.WriteString("\t\t\t},\n")
 }
 
 func writeSubjectBinding(generated *strings.Builder, subject runevaluation.SubjectBinding) {

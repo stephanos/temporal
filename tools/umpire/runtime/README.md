@@ -10,14 +10,15 @@ go run ./tools/umpire/cmd/umpire-gen-tests-go \
   tools/umpire/temporal/nexus/testdata/caller-closure-input-set/manifest.json \
   --output tools/umpire/temporal/nexus
 go test -count=1 ./tools/umpire/temporal/nexus/... \
-  -run '^TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally$'
+  -run '^TestHermeticCIPortability$'
 ```
 
 `umpire-gen-tests-go` is generation-only. It strictly admits the complete two-member Artifact set,
 checks that the current closed Nexus adapter accepts it, and renders a deterministic `_test.go`.
 The generated test embeds the exact two-space pretty JSON plus one terminal LF and retains literal
 bindings for the set identity, set checksum, manifest SHA-256, and both member checksums and Behavior
-Fingerprints. Any byte, version, closure, or digest drift fails before runtime IO.
+Fingerprints, plus the required local authority capabilities. Any byte, version, closure, authority,
+or digest drift fails before runtime IO.
 
 The planning `ExperimentSpec` remains Lean-owned and byte-identical to the output selected by
 `umpire-gen-tests`. `Temporal.System.Execution` separately owns the local profile, participant

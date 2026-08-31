@@ -119,6 +119,11 @@ func callerClosureInputBinding() runner.InputBinding {
 		ExperimentBehaviorFingerprint:           "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
 		RuntimeConfigurationArtifactChecksum:    "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5",
 		RuntimeConfigurationBehaviorFingerprint: "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
+		AuthorityRequiredCapabilityDefinitionIDs: []string{
+			"umpire.runtime.capability.complete-workflow-history-read",
+			"umpire.runtime.capability.ephemeral-server-lifecycle",
+			"umpire.runtime.capability.sdk-worker-lifecycle",
+		},
 	}
 }
 
@@ -131,5 +136,10 @@ func callerClosureDuplicateDeliveryInputBinding() runner.InputBinding {
 		ExperimentBehaviorFingerprint:           "sha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91",
 		RuntimeConfigurationArtifactChecksum:    "sha256:440c0632b911571e4efb34c96fb4c4c7096fbd52f23900ed4784e037370063cf",
 		RuntimeConfigurationBehaviorFingerprint: "sha256:d88670a6766c2ef9037c82183f00c1c42179a7578c3c4c07714eadb5540750c0",
+		AuthorityRequiredCapabilityDefinitionIDs: []string{
+			"umpire.runtime.capability.complete-workflow-history-read",
+			"umpire.runtime.capability.ephemeral-server-lifecycle",
+			"umpire.runtime.capability.sdk-worker-lifecycle",
+		},
 	}
 }

@@ -35,6 +35,11 @@ var liveDuplicateDeliveryBinding = runner.InputBinding{
 	ExperimentBehaviorFingerprint:           duplicateDeliveryExperimentFingerprint,
 	RuntimeConfigurationArtifactChecksum:    duplicateDeliveryConfigurationChecksum,
 	RuntimeConfigurationBehaviorFingerprint: duplicateDeliveryConfigurationFingerprint,
+	AuthorityRequiredCapabilityDefinitionIDs: []string{
+		"umpire.runtime.capability.complete-workflow-history-read",
+		"umpire.runtime.capability.ephemeral-server-lifecycle",
+		"umpire.runtime.capability.sdk-worker-lifecycle",
+	},
 }
 
 type liveNexusControlOutcome struct {
