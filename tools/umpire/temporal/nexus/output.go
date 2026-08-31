@@ -377,60 +377,104 @@ func faultEvaluationDispositionMayBeOpaque(
 	}
 }
 
+type historyFactSummary struct {
+	eventCounts         map[string]uint64
+	lastEventType       string
+	allEventTypesUsable bool
+}
+
 func validateHistoryClosure(rawEvidence artifactv2.RawEvidence, requireCallerClosure bool) error {
-	historyStatus := ""
+	historyStatus, historyFacts := historyEvidence(rawEvidence)
+	summary, err := validateHistoryFactChain(historyFacts, requireCallerClosure)
+	if err != nil {
+		return err
+	}
+	if historyStatus != "closed" {
+		return nil
+	}
+	if !requireCallerClosure {
+		return validateFaultedLifecycleCounts(summary)
+	}
+	if err := validateCallerClosureLifecycle(summary); err != nil {
+		return err
+	}
+	return validateCancellationCallbackCount(rawEvidence)
+}
+
+func historyEvidence(
+	rawEvidence artifactv2.RawEvidence,
+) (historyStatus string, historyFacts []artifactv2.RawEvidenceFact) {
 	for _, source := range rawEvidence.Sources {
 		if source.SourceDefinitionID == umpireruntime.EvidenceSourceHistory {
 			historyStatus = source.Status
 		}
 	}
-	historyFacts := make([]artifactv2.RawEvidenceFact, 0)
 	for _, fact := range rawEvidence.Facts {
 		if fact.SourceDefinitionID == umpireruntime.EvidenceSourceHistory {
 			historyFacts = append(historyFacts, fact)
 		}
 	}
+	return historyStatus, historyFacts
+}
+
+func validateHistoryFactChain(
+	historyFacts []artifactv2.RawEvidenceFact,
+	requireEventTypes bool,
+) (historyFactSummary, error) {
 	previousFact := ""
 	previousEventID := uint64(0)
-	eventCounts := make(map[string]uint64)
-	lastEventType := ""
+	summary := historyFactSummary{
+		eventCounts:         make(map[string]uint64),
+		allEventTypesUsable: true,
+	}
 	for index, fact := range historyFacts {
 		if fact.KindDefinitionID != "umpire.evidence.kind.workflow-history-event" {
-			return errors.New("history fact has the wrong mechanical kind")
+			return historyFactSummary{}, errors.New("history fact has the wrong mechanical kind")
 		}
 		if index == 0 {
 			if len(fact.CausalFactDefinitionIDs) != 0 {
-				return errors.New("first history fact has a causal predecessor")
+				return historyFactSummary{}, errors.New("first history fact has a causal predecessor")
 			}
 		} else if !slices.Equal(fact.CausalFactDefinitionIDs, []string{previousFact}) {
-			return errors.New("history facts do not form one gapless causal chain")
+			return historyFactSummary{}, errors.New("history facts do not form one gapless causal chain")
 		}
 		eventID, err := rawNaturalField(fact, umpireruntime.EvidenceFieldEventID)
 		if err != nil || eventID <= previousEventID {
-			return errors.New("history event IDs are not strictly increasing")
+			return historyFactSummary{}, errors.New("history event IDs are not strictly increasing")
 		}
-		if requireCallerClosure {
-			eventType, err := rawStringField(fact, umpireruntime.EvidenceFieldEventType)
-			if err != nil {
-				return err
+		eventType, err := rawStringField(fact, umpireruntime.EvidenceFieldEventType)
+		if err != nil {
+			if requireEventTypes {
+				return historyFactSummary{}, err
 			}
-			lastEventType = eventType
-			eventCounts[eventType]++
+			summary.allEventTypesUsable = false
+		} else {
+			summary.lastEventType = eventType
+			summary.eventCounts[eventType]++
 		}
 		previousFact = fact.FactDefinitionID
 		previousEventID = eventID
 	}
-	if historyStatus != "closed" || !requireCallerClosure {
-		return nil
-	}
-	if lastEventType != "temporal.history.WorkflowExecutionCanceled" {
+	return summary, nil
+}
+
+func validateCallerClosureLifecycle(summary historyFactSummary) error {
+	if summary.lastEventType != "temporal.history.WorkflowExecutionCanceled" {
 		return errors.New("closed history is not terminal caller cancellation")
 	}
 	for _, eventType := range requiredTerminalEvents {
-		if eventCounts[eventType] != 1 {
-			return fmt.Errorf("closed history has %d %s events", eventCounts[eventType], eventType)
+		if summary.eventCounts[eventType] != 1 {
+			return fmt.Errorf(
+				"closed history has %d %s events",
+				summary.eventCounts[eventType],
+				eventType,
+			)
 		}
 	}
+	return nil
+}
+
+func validateCancellationCallbackCount(rawEvidence artifactv2.RawEvidence) error {
 	callbacks := uint64(0)
 	callbackFields := 0
 	for _, fact := range rawEvidence.Facts {
@@ -449,6 +493,36 @@ func validateHistoryClosure(rawEvidence artifactv2.RawEvidence, requireCallerClo
 	}
 	if callbackFields != 1 || callbacks != 1 {
 		return errors.New("closed history requires exactly one cancellation callback")
+	}
+	return nil
+}
+
+func validateFaultedLifecycleCounts(
+	summary historyFactSummary,
+) error {
+	for _, eventType := range requiredTerminalEvents {
+		if summary.eventCounts[eventType] > 1 {
+			return fmt.Errorf(
+				"faulted history has %d %s events",
+				summary.eventCounts[eventType],
+				eventType,
+			)
+		}
+	}
+	if !summary.allEventTypesUsable {
+		return nil
+	}
+	if summary.lastEventType != "temporal.history.WorkflowExecutionCanceled" {
+		return errors.New("closed faulted history is not terminal caller cancellation")
+	}
+	for _, eventType := range requiredTerminalEvents {
+		if summary.eventCounts[eventType] != 1 {
+			return fmt.Errorf(
+				"faulted history has %d %s events",
+				summary.eventCounts[eventType],
+				eventType,
+			)
+		}
 	}
 	return nil
 }
