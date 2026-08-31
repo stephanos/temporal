@@ -578,7 +578,7 @@ private theorem canonicalPlanResult_isSome : canonicalPlanResult.toOption.isSome
 def checkedPlan : CheckedObservationPlan :=
   canonicalPlanResult.toOption.get canonicalPlanResult_isSome
 
-private def qualificationDiagnostic
+private def observationDiagnostic
     (kind : ObservationFailureKind)
     (relatedDefinitionIds : List DefinitionId := []) : ObservationDiagnostic := {
   kind
@@ -607,14 +607,14 @@ private def requiredText
     (field : DefinitionId) : Except ObservationDiagnostic String :=
   match evidenceText? record field with
   | some value => pure value
-  | none => throw (qualificationDiagnostic .unresolvedBinding [record.id, field])
+  | none => throw (observationDiagnostic .unresolvedBinding [record.id, field])
 
 private def requireText
     (record : SyntheticEvidenceRecord)
     (field : DefinitionId)
     (expected : String) : Except ObservationDiagnostic Unit := do
   if (← requiredText record field) != expected then
-    throw (qualificationDiagnostic .contradictoryFact [record.id, field])
+    throw (observationDiagnostic .contradictoryFact [record.id, field])
 
 private def requireNatural
     (record : SyntheticEvidenceRecord)
@@ -623,16 +623,16 @@ private def requireNatural
   match evidenceNatural? record field with
   | some value =>
       if value == expected then pure ()
-      else throw (qualificationDiagnostic .contradictoryFact [record.id, field])
-  | none => throw (qualificationDiagnostic .unresolvedBinding [record.id, field])
+      else throw (observationDiagnostic .contradictoryFact [record.id, field])
+  | none => throw (observationDiagnostic .unresolvedBinding [record.id, field])
 
 private def exactRecordOfKind
     (bundle : EvidenceBundle)
     (kind : DefinitionId) : Except ObservationDiagnostic SyntheticEvidenceRecord :=
   match bundle.records.filter fun record => record.kind == kind with
   | [record] => pure record
-  | [] => throw (qualificationDiagnostic .unresolvedBinding [kind])
-  | records => throw (qualificationDiagnostic .contradictoryFact
+  | [] => throw (observationDiagnostic .unresolvedBinding [kind])
+  | records => throw (observationDiagnostic .contradictoryFact
       (kind :: records.map SyntheticEvidenceRecord.id))
 
 private def historyRecordLe
@@ -656,9 +656,9 @@ private def exactHistoryEvent
   match records.filter fun record =>
       evidenceText? record Profile.eventTypeField == some eventType with
   | [record] => pure record
-  | [] => throw (qualificationDiagnostic .unresolvedBinding
+  | [] => throw (observationDiagnostic .unresolvedBinding
       [Profile.historyKind, Profile.eventTypeField])
-  | multiple => throw (qualificationDiagnostic .contradictoryFact
+  | multiple => throw (observationDiagnostic .contradictoryFact
       (multiple.map SyntheticEvidenceRecord.id))
 
 private def requireMatchingText
@@ -666,10 +666,10 @@ private def requireMatchingText
     (field : DefinitionId)
     (expected : String) : Except ObservationDiagnostic Unit := do
   if expected == "" then
-    throw (qualificationDiagnostic .unresolvedBinding [field])
+    throw (observationDiagnostic .unresolvedBinding [field])
   for record in records do
     if (← requiredText record field) != expected then
-      throw (qualificationDiagnostic .contradictoryBinding [record.id, field])
+      throw (observationDiagnostic .contradictoryBinding [record.id, field])
 
 private def checkDuplicateDeliveryEvidence
     (bundle : EvidenceBundle) : Except ObservationDiagnostic Unit := do
@@ -682,16 +682,16 @@ private def checkDuplicateDeliveryEvidence
   let completed ← exactHistoryEvent history expectedHistoryEventTypes[2]
   let canceled ← exactHistoryEvent history expectedHistoryEventTypes[3]
   if history.length != expectedHistoryEventTypes.length then
-    throw (qualificationDiagnostic .contradictoryFact
+    throw (observationDiagnostic .contradictoryFact
       (history.map SyntheticEvidenceRecord.id))
   let actualEventTypes ← history.mapM fun record => requiredText record Profile.eventTypeField
   if actualEventTypes != expectedHistoryEventTypes then
-    throw (qualificationDiagnostic .contradictoryOrder
+    throw (observationDiagnostic .contradictoryOrder
       (history.map SyntheticEvidenceRecord.id))
   if !started.causalParents.isEmpty || requested.causalParents != [started.id] ||
       completed.causalParents != [requested.id] || canceled.causalParents != [completed.id] ||
       !participant.causalParents.contains completed.id || participant.faultTarget != some completed.id then
-    throw (qualificationDiagnostic .contradictoryOrder [
+    throw (observationDiagnostic .contradictoryOrder [
       started.id, requested.id, completed.id, canceled.id, participant.id
     ])
   requireText control Profile.faultDefinitionField faultDefinitionId.value
@@ -712,7 +712,7 @@ private def checkDuplicateDeliveryEvidence
   requireMatchingText history Profile.runCorrelationField runCorrelation
   requireMatchingText history Profile.workflowCorrelationField workflowCorrelation
 
-private def resultOfQualificationDiagnostic
+private def resultOfObservationDiagnostic
     (diagnostic : ObservationDiagnostic) : ObservationResult :=
   match diagnostic.status with
   | .unknown => .unknown diagnostic
@@ -727,7 +727,7 @@ def qualifyDuplicateDeliveryObservation (bundle : EvidenceBundle) : ObservationR
   | .accepted trace =>
       match checkDuplicateDeliveryEvidence bundle with
       | .ok _ => .accepted trace
-      | .error diagnostic => resultOfQualificationDiagnostic diagnostic
+      | .error diagnostic => resultOfObservationDiagnostic diagnostic
   | .unknown diagnostic => .unknown diagnostic
   | .conflict diagnostic => .conflict diagnostic
   | .unsupported diagnostic => .unsupported diagnostic
