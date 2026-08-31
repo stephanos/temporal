@@ -47,14 +47,12 @@ func TestCheckSubjectProvesLocalAndCISubjectParity(t *testing.T) {
 	})
 
 	uses := []struct {
-		name                     string
-		runtimeTransportIdentity string
-		encoded                  []byte
+		name    string
+		encoded []byte
 	}{
-		{name: "local", runtimeTransportIdentity: "umpire.local.caller-closure.run-1", encoded: localBytes},
-		{name: "CI", runtimeTransportIdentity: "umpire.ci.caller-closure.run-1", encoded: ciBytes},
+		{name: "local", encoded: localBytes},
+		{name: "CI", encoded: ciBytes},
 	}
-	require.NotEqual(t, uses[0].runtimeTransportIdentity, uses[1].runtimeTransportIdentity)
 	for _, use := range uses {
 		t.Run(use.name, func(t *testing.T) {
 			actual, err := PinSubject(use.encoded)
