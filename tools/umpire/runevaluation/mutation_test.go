@@ -128,7 +128,9 @@ func TestRealCheckerObservationMutationMatrix(t *testing.T) {
 			request := exactCallerClosureMutationRequest(t)
 			testCase.mutate(&request)
 
-			response, err := process.run(context.Background(), request)
+			stdout, stderr, runErr := runRealCheckerOutput(t, process, request)
+			require.NoError(t, runErr, string(stderr))
+			response, err := decodeCheckerResponse(stdout, request)
 			require.NoError(t, err)
 			require.Equal(t, testCase.status, response.ObservationEvaluationStatus)
 			require.Equal(t, "incomplete", response.SemanticStatus)
@@ -149,6 +151,207 @@ func TestRealCheckerObservationMutationMatrix(t *testing.T) {
 	permuted, err := process.run(context.Background(), permutedRequest)
 	require.NoError(t, err)
 	require.Equal(t, baseline, permuted)
+}
+
+func TestRealCheckerDuplicateDeliveryMutationMatrix(t *testing.T) {
+	process := realCheckerProcess(t)
+
+	for _, testCase := range []struct {
+		name           string
+		mutate         func(*testing.T, *checkerRequest)
+		status         string
+		diagnosticKind string
+	}{
+		{
+			name: "missing marker",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+				fact.Fields = slices.DeleteFunc(fact.Fields, func(field artifactv2.RawEvidenceField) bool {
+					return field.FieldDefinitionID ==
+						"umpire.evidence.field.synthetic-contribution-marker"
+				})
+			},
+			status: "unknown", diagnosticKind: "unresolved-binding",
+		},
+		{
+			name: "synthetic count two",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+				setMutationField(t, fact, "umpire.evidence.field.synthetic-contribution-count",
+					artifactv2.NaturalFromUint64(2))
+			},
+			status: "conflict", diagnosticKind: "contradictory-fact",
+		},
+		{
+			name: "correlation drift",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+				setMutationField(t, fact, umpireruntime.EvidenceFieldOperationCorrelationID,
+					"runtime.correlation.operation.drifted")
+			},
+			status: "conflict", diagnosticKind: "contradictory-binding",
+		},
+		{
+			name: "redacted marker",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+				for index := range fact.Fields {
+					if fact.Fields[index].FieldDefinitionID ==
+						"umpire.evidence.field.synthetic-contribution-marker" {
+						fact.Fields[index].Disposition = "redacted"
+						fact.Fields[index].Value = nil
+						return
+					}
+				}
+				require.Fail(t, "synthetic marker field not found")
+			},
+			status: "unsupported", diagnosticKind: "field-mismatch",
+		},
+		{
+			name: "missing participant causal parent",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+				fact.CausalFactDefinitionIDs = []string{}
+			},
+			status: "unknown", diagnosticKind: "missing-causal-parent",
+		},
+		{
+			name: "incompatible history order",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.history.00000000000000000004.fixture")
+				fact.CausalFactDefinitionIDs = []string{
+					"umpire.runtime.fact.history.00000000000000000001.fixture",
+				}
+			},
+			status: "conflict", diagnosticKind: "contradictory-fact",
+		},
+		{
+			name: "missing history causal parent",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.history.00000000000000000004.fixture")
+				fact.CausalFactDefinitionIDs = []string{}
+			},
+			status: "unknown", diagnosticKind: "missing-causal-parent",
+		},
+		{
+			name: "missing completed event",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.history.00000000000000000005.fixture")
+				setMutationField(t, fact, umpireruntime.EvidenceFieldEventType,
+					"temporal.history.NexusOperationStarted")
+			},
+			status: "unknown", diagnosticKind: "unresolved-binding",
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			input := duplicateDeliveryExecutionFixture(t)
+			execution, ok := input.Execution()
+			require.True(t, ok)
+			request, err := newCheckerRequest(execution)
+			require.NoError(t, err)
+			testCase.mutate(t, &request)
+
+			stdout, stderr, runErr := runRealCheckerOutput(t, process, request)
+			require.NoError(t, runErr, string(stderr))
+			response, err := decodeCheckerResponse(stdout, request)
+			require.NoError(t, err)
+			require.Equal(t, testCase.status, response.ObservationEvaluationStatus)
+			require.Equal(t, "incomplete", response.SemanticStatus)
+			require.Empty(t, response.PropertyVerdicts)
+			require.Nil(t, response.EvidenceBackedModelTrace)
+			require.Len(t, response.Diagnostics, 1)
+			require.Equal(t, testCase.diagnosticKind, response.Diagnostics[0].Kind)
+		})
+	}
+}
+
+func TestRealCheckerRejectsCrossedDuplicateDeliverySemanticClosure(t *testing.T) {
+	process := realCheckerProcess(t)
+	input := duplicateDeliveryExecutionFixture(t)
+	execution, ok := input.Execution()
+	require.True(t, ok)
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+	request.Query = definitionReference{
+		DefinitionID: callerClosureQueryID, BehaviorFingerprint: callerClosureQueryFingerprint,
+	}
+	request.ObservationProgram = definitionReference{
+		DefinitionID:        callerClosureObservationProgramID,
+		BehaviorFingerprint: callerClosureObservationProgramFingerprint,
+	}
+	request.Mapping = definitionReference{
+		DefinitionID:        callerClosureCheckedMappingID,
+		BehaviorFingerprint: callerClosureCheckedMappingFingerprint,
+	}
+
+	stdout, stderr, runErr := runRealCheckerOutput(t, process, request)
+	require.Error(t, runErr)
+	require.Empty(t, stdout)
+	require.JSONEq(t, `{"field":"semantics","kind":"closure-drift"}`, string(stderr))
+}
+
+func TestDuplicateDeliveryResponseRejectsStrictNormalSemanticBindings(t *testing.T) {
+	process := realCheckerProcess(t)
+	input := duplicateDeliveryExecutionFixture(t)
+	execution, ok := input.Execution()
+	require.True(t, ok)
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+	response, err := process.run(context.Background(), request)
+	require.NoError(t, err)
+
+	response.ImplementationLink = callerClosureImplementationLink()
+	response.EvidenceBackedModelTrace.ProfileDefinitionID = callerClosureCheckedProfileID
+	mutateProfile := func(links []artifactv2.EvidenceLink) {
+		for index := range links {
+			links[index].ProfileDefinitionID = callerClosureCheckedProfileID
+		}
+	}
+	mutateProfile(response.EvidenceLinks)
+	for verdictIndex := range response.PropertyVerdicts {
+		for clauseIndex := range response.PropertyVerdicts[verdictIndex].Clauses {
+			mutateProfile(response.PropertyVerdicts[verdictIndex].Clauses[clauseIndex].EvidenceLinks)
+		}
+	}
+	for verdictIndex := range response.QuerySummary.PropertyVerdicts {
+		for clauseIndex := range response.QuerySummary.PropertyVerdicts[verdictIndex].Clauses {
+			mutateProfile(response.QuerySummary.PropertyVerdicts[verdictIndex].Clauses[clauseIndex].EvidenceLinks)
+		}
+	}
+
+	output, err := checkWithChecker(context.Background(), input,
+		func(context.Context, checkerRequest) (checkerResponse, error) {
+			return response, nil
+		})
+	require.Error(t, err)
+	require.Empty(t, output.Identity())
+	var failure *evaluationFailure
+	require.ErrorAs(t, err, &failure)
+	require.Equal(t, "evaluation", failure.Phase())
+	require.ErrorContains(t, failure.Unwrap(), "Implementation Link binding drifted")
+}
+
+func duplicateDeliveryFact(
+	t *testing.T,
+	request *checkerRequest,
+	definitionID string,
+) *artifactv2.RawEvidenceFact {
+	t.Helper()
+	for index := range request.Facts {
+		if request.Facts[index].FactDefinitionID == definitionID {
+			return &request.Facts[index]
+		}
+	}
+	require.Failf(t, "duplicate-delivery fact not found", "definitionID=%q", definitionID)
+	return nil
 }
 
 func TestRealCheckerMisboundParticipantCancellationEvidenceIsSemanticConflict(t *testing.T) {

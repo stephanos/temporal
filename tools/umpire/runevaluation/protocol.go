@@ -2,6 +2,7 @@ package runevaluation
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"reflect"
 	"slices"
@@ -12,12 +13,14 @@ import (
 )
 
 const (
-	checkerRequestFormat        = "umpire-semantic-check-request/v2"
-	checkerResponseFormat       = "umpire-semantic-check-response/v2"
-	checkerIdentity             = "temporal.nexus.caller-closure.run-evaluation"
-	checkerBehaviorFingerprint  = "sha256:e649a5e059ef42806eb661deb1c1ccba08ec5202425d7a824f7e25026f8134da"
-	checkerVersion              = "2"
-	maximumCheckerProtocolBytes = 32 << 20
+	checkerRequestFormat                  = "umpire-semantic-check-request/v2"
+	checkerResponseFormat                 = "umpire-semantic-check-response/v2"
+	checkerIdentity                       = "temporal.nexus.caller-closure.run-evaluation"
+	checkerBehaviorFingerprint            = "sha256:e649a5e059ef42806eb661deb1c1ccba08ec5202425d7a824f7e25026f8134da"
+	checkerVersion                        = "2"
+	maximumCheckerProtocolBytes           = 32 << 20
+	duplicateDeliveryImplementationLinkID = "temporal.system.nexus.caller-closure.duplicate-delivery.implementation-link"
+	duplicateDeliveryImplementationLinkFP = "sha256:6b1099df851bc9bb2b8ceedc6d40226989d63d2b8b4d4b62e6b3564040c80c9c"
 )
 
 type definitionReference struct {
@@ -130,10 +133,10 @@ func decodeCheckerResponse(encoded []byte, request checkerRequest) (checkerRespo
 
 func validateCheckerResponseProjection(response checkerResponse, request checkerRequest) error {
 	if err := artifactv2.ValidateEvidence(projectCheckerEvidence(response, request)); err != nil {
-		return errors.New("checker response Evidence projection is invalid")
+		return fmt.Errorf("checker response Evidence projection is invalid: %w", err)
 	}
 	if err := artifactv2.ValidateResult(projectCheckerResult(response, request)); err != nil {
-		return errors.New("checker response Result projection is invalid")
+		return fmt.Errorf("checker response Result projection is invalid: %w", err)
 	}
 	if err := validateCheckerSemanticBindings(response, request); err != nil {
 		return err
@@ -223,7 +226,14 @@ func checkerValidationProvenance() artifactv2.Provenance {
 func validateCheckerSemanticBindings(response checkerResponse, request checkerRequest) error {
 	implementationLink := response.ImplementationLink
 	implementationLink.Diagnostic = nil
-	if !reflect.DeepEqual(implementationLink, callerClosureImplementationLink()) {
+	expectedImplementationLink := callerClosureImplementationLink()
+	expectedProfileID := callerClosureCheckedProfileID
+	if duplicateDeliveryCheckerRequest(request) {
+		expectedImplementationLink.DefinitionID = duplicateDeliveryImplementationLinkID
+		expectedImplementationLink.BehaviorFingerprint = duplicateDeliveryImplementationLinkFP
+		expectedProfileID = duplicateDeliveryProfileID
+	}
+	if !reflect.DeepEqual(implementationLink, expectedImplementationLink) {
 		return errors.New("checker response Implementation Link binding drifted")
 	}
 	if response.QuerySummary.QueryDefinitionID != request.Query.DefinitionID {
@@ -236,12 +246,12 @@ func validateCheckerSemanticBindings(response checkerResponse, request checkerRe
 			return errors.New("checker response Observation binding drifted")
 		}
 		profileVersion := artifactv2.NaturalFromUint64(1)
-		if trace.ProfileDefinitionID != callerClosureCheckedProfileID ||
+		if trace.ProfileDefinitionID != expectedProfileID ||
 			trace.ProfileVersion != profileVersion {
 			return errors.New("checker response profile binding drifted")
 		}
 		for _, link := range response.EvidenceLinks {
-			if link.ProfileDefinitionID != callerClosureCheckedProfileID ||
+			if link.ProfileDefinitionID != expectedProfileID ||
 				link.ProfileVersion != profileVersion {
 				return errors.New("checker response profile binding drifted")
 			}
@@ -519,6 +529,32 @@ func validateCheckerRequest(request checkerRequest) error {
 		return errors.New("checker request capture status is invalid")
 	}
 	return nil
+}
+
+func duplicateDeliveryCheckerRequest(request checkerRequest) bool {
+	return request.Experiment.ArtifactChecksum == duplicateDeliveryExperimentChecksum &&
+		request.Experiment.BehaviorFingerprint == duplicateDeliveryExperimentFingerprint &&
+		request.Experiment.ProvenanceChecksum == duplicateDeliveryExperimentProvenance &&
+		request.RuntimeConfiguration.ArtifactChecksum == duplicateDeliveryConfigurationChecksum &&
+		request.RuntimeConfiguration.BehaviorFingerprint == duplicateDeliveryConfigurationFingerprint &&
+		request.RuntimeConfiguration.ProvenanceChecksum == duplicateDeliveryConfigurationProvenance &&
+		request.Query == (definitionReference{
+			DefinitionID:        duplicateDeliveryQueryID,
+			BehaviorFingerprint: duplicateDeliveryExperimentFingerprint,
+		}) && exactCheckerProperties(request.Properties) &&
+		request.ObservationProgram == (definitionReference{
+			DefinitionID:        duplicateDeliveryObservationProgramID,
+			BehaviorFingerprint: duplicateDeliveryObservationProgramFP,
+		}) && request.Mapping == (definitionReference{
+		DefinitionID:        duplicateDeliveryMappingID,
+		BehaviorFingerprint: duplicateDeliveryMappingFingerprint,
+	})
+}
+
+func exactCheckerProperties(properties []propertyReference) bool {
+	return len(properties) == 1 && properties[0].DefinitionID == callerClosurePropertyID &&
+		properties[0].BehaviorFingerprint == callerClosurePropertyFingerprint &&
+		slices.Equal(properties[0].RequirementDefinitionIDs, callerClosureRequirements)
 }
 
 func validateCheckerRequestBindings(request checkerRequest) error {

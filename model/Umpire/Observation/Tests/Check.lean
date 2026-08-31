@@ -277,4 +277,24 @@ example :
       ] := by
   native_decide
 
+def observedRunEvaluation := checkObservedRunEvaluation
+  (evaluateEvidence observationPlan observedEvidence) checkedLink checkedObservedTranslation
+  Umpire.Examples.Switch.switchSetup Umpire.Examples.Switch.exploratoryQuery
+  [Umpire.Examples.Switch.flipProperty]
+
+/-- The shared composition kernel retains the observed translation while exposing no authority
+claim for its translated trace. -/
+example :
+    observedRunEvaluation.implementationLink.map (fun result =>
+      (result.status, result.translated?.map TranslatedObservedTrace.hasAuthorityClaim)) =
+        some (.applied, some false) := by
+  native_decide
+
+/-- Adding the observed adapter does not change the strict composition result. -/
+example :
+    (repeatedRunEvaluation.observation.status,
+      repeatedRunEvaluation.implementationLink.map ImplementationLinkResult.status,
+      repeatedRunEvaluation.querySummary.status) = (.accepted, some .applied, .violated) := by
+  native_decide
+
 end Umpire.ObservationCheckTests

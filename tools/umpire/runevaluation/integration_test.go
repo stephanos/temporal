@@ -81,29 +81,12 @@ func TestRealCheckerSiblingIsDeterministic(t *testing.T) {
 
 func TestRealCheckerSiblingAdmitsDuplicateDeliveryViolation(t *testing.T) {
 	process := realCheckerProcess(t)
-	root := filepath.Join(
-		"..", "temporal", "nexus", "testdata", "caller-closure-duplicate-delivery-run-set",
-	)
-	members := make([]artifact.SetMember, 0, 4)
-	for _, name := range []string{
-		"experiment.json", "runtime-configuration.json", "experiment-run.json", "raw-evidence.json",
-	} {
-		encoded, err := os.ReadFile(filepath.Join(root, "artifacts", name))
-		require.NoError(t, err)
-		members = append(members, artifact.SetMember{Path: "artifacts/" + name, Encoded: encoded})
-	}
-	input, err := artifact.AdmitSet(members)
-	require.NoError(t, err)
+	input := duplicateDeliveryExecutionFixture(t)
 	execution, ok := input.Execution()
 	require.True(t, ok)
 
 	request, err := newCheckerRequest(execution)
 	require.NoError(t, err)
-	configuration := execution.RuntimeConfiguration()
-	request.Mapping = definitionReference{
-		DefinitionID: configuration.Observation.MappingDefinitionID,
-		BehaviorFingerprint: configuration.Observation.MappingBehaviorFingerprint,
-	}
 	require.Equal(t, "temporal.system.nexus.caller-closure.duplicate-delivery.observation-program",
 		request.ObservationProgram.DefinitionID)
 	require.Equal(t, "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
@@ -135,8 +118,17 @@ func TestRealCheckerSiblingAdmitsDuplicateDeliveryViolation(t *testing.T) {
 	require.Equal(t, "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
 		response.EvidenceBackedModelTrace.ProfileDefinitionID)
 	propertyEvidence := propertyEvidenceDefinitionIDs(verdict.Clauses)
-	require.Contains(t, propertyEvidence, "umpire.runtime.fact.participant.fixture")
 	require.Contains(t, propertyEvidence,
+		"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+	require.Len(t, response.EvidenceLinks, 7)
+	orderingEvidence := make([]string, 0)
+	for _, link := range response.EvidenceLinks {
+		for _, support := range link.OrderingSupport {
+			orderingEvidence = append(orderingEvidence, support.FactDefinitionID)
+		}
+	}
+	require.Contains(t, orderingEvidence, "umpire.runtime.fact.participant.fixture")
+	require.Contains(t, orderingEvidence,
 		"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
 
 	evidence, result, err := constructEvaluation(execution, request, response)
@@ -150,6 +142,24 @@ func TestRealCheckerSiblingAdmitsDuplicateDeliveryViolation(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, first.Identity(), second.Identity())
 	require.Equal(t, first.ManifestBytes(), second.ManifestBytes())
+}
+
+func duplicateDeliveryExecutionFixture(t *testing.T) artifact.AdmittedSet {
+	t.Helper()
+	root := filepath.Join(
+		"..", "temporal", "nexus", "testdata", "caller-closure-duplicate-delivery-run-set",
+	)
+	members := make([]artifact.SetMember, 0, 4)
+	for _, name := range []string{
+		"experiment.json", "runtime-configuration.json", "experiment-run.json", "raw-evidence.json",
+	} {
+		encoded, err := os.ReadFile(filepath.Join(root, "artifacts", name))
+		require.NoError(t, err)
+		members = append(members, artifact.SetMember{Path: "artifacts/" + name, Encoded: encoded})
+	}
+	input, err := artifact.AdmitSet(members)
+	require.NoError(t, err)
+	return input
 }
 
 func TestRealCheckerSiblingAdmitsExactAcceptedSet(t *testing.T) {
