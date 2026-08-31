@@ -319,6 +319,8 @@ func unknownCheckerResponse(request checkerRequest) checkerResponse {
 		RuntimeConfigurationBehaviorFingerprint: request.RuntimeConfiguration.BehaviorFingerprint,
 		RunIdentity:                             request.RunIdentity,
 		ObservationEvaluationStatus:             "unknown",
+		ImplementationLink:                      callerClosureImplementationLink(),
+		ImplementationLinkStatus:                "not-evaluated",
 		EvidenceLinks:                           []artifactv2.EvidenceLink{},
 		Dispositions:                            []artifactv2.FieldDispositionRecord{},
 		Diagnostics: []artifactv2.ObservationDiagnostic{{

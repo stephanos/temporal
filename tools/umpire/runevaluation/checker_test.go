@@ -95,6 +95,15 @@ func TestDecodeCheckerResponseRequiresCanonicalClosedBindings(t *testing.T) {
 		{name: "stale response", mutate: func(encoded []byte) []byte {
 			return bytes.Replace(encoded, []byte(testDigest("3")), []byte(testDigest("9")), 1)
 		}},
+		{name: "stale Implementation Link", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded,
+				[]byte("temporal.system.nexus.caller-closure.implementation-link"),
+				[]byte("temporal.system.nexus.caller-closure.substituted-link"), 1)
+		}},
+		{name: "missing Implementation Link diagnostic", mutate: func(encoded []byte) []byte {
+			return bytes.Replace(encoded, []byte("\"implementationLinkStatus\": \"not-evaluated\""),
+				[]byte("\"implementationLinkStatus\": \"unknown\""), 1)
+		}},
 		{name: "open observation enum", mutate: func(encoded []byte) []byte {
 			return bytes.Replace(encoded, []byte("\"unknown\""), []byte("\"maybe\""), 1)
 		}},
@@ -552,6 +561,8 @@ func testCheckerResponse() checkerResponse {
 		RuntimeConfigurationBehaviorFingerprint: testDigest("2"),
 		RunIdentity:                             "temporal.run.caller-closure.fixture",
 		ObservationEvaluationStatus:             "unknown",
+		ImplementationLink:                      callerClosureImplementationLink(),
+		ImplementationLinkStatus:                "not-evaluated",
 		EvidenceLinks:                           []artifactv2.EvidenceLink{},
 		Dispositions:                            []artifactv2.FieldDispositionRecord{},
 		Diagnostics: []artifactv2.ObservationDiagnostic{{
