@@ -265,16 +265,52 @@ func TestFaultedExecutionRejectsImpossibleReceiptAndObservationOrder(t *testing.
 		require.Error(t, err)
 	})
 
+	for _, test := range []struct {
+		name   string
+		mutate func(*artifactv2.RawEvidenceFact)
+	}{
+		{
+			name: "partial fault binding cannot bind",
+			mutate: func(receipt *artifactv2.RawEvidenceFact) {
+				removeRawField(receipt, umpireruntime.EvidenceFieldFaultReceiptDefinitionID)
+			},
+		},
+		{
+			name: "non-string fault binding cannot bind",
+			mutate: func(receipt *artifactv2.RawEvidenceFact) {
+				setRawField(receipt.Fields, umpireruntime.EvidenceFieldFaultDefinitionID, json.Number("1"))
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			executable, _, run, rawEvidence := closedFaultedExecutionFixture(t)
+			test.mutate(&rawEvidence.Facts[1])
+			recomputeFixtureByteCounts(t, &run, &rawEvidence)
+			run = sealRun(t, run)
+			rawEvidence.Run = artifactv2.ExperimentRunArtifactBinding(run)
+			rawEvidence = sealRawEvidence(t, rawEvidence)
+
+			_, err := executable.AdmitExecution(run, rawEvidence)
+			require.Error(t, err)
+		})
+	}
+
 	t.Run("synthetic contribution cannot precede callback", func(t *testing.T) {
 		executable, _, run, rawEvidence := closedFaultedExecutionFixture(t)
-		index := rawFactIndexByKind(t, &rawEvidence, duplicateObservationFactKind)
+		index := rawFactIndexWithField(
+			t,
+			&rawEvidence,
+			umpireruntime.EvidenceFieldSyntheticContributionMarker,
+		)
 		rawEvidence.Facts[index].Ordinal = artifactv2.NaturalFromUint64(0)
+		rawEvidence = sealRawEvidence(t, rawEvidence)
 
-		require.Error(t, validateDuplicateDeliveryEvidence(executable, run, rawEvidence))
+		_, err := executable.AdmitExecution(run, rawEvidence)
+		require.Error(t, err)
 	})
 }
 
-func TestValidateExecutionClosureEnforcesTheFaultedEvidenceOutcomeTable(t *testing.T) {
+func TestValidateExecutionClosureAdmitsFaultedEvidenceForEvaluation(t *testing.T) {
 	executable, admitted, run, rawEvidence := closedFaultedExecutionFixture(t)
 	require.NoError(t, validateExecutionClosure(executable, admitted, run, rawEvidence))
 
@@ -317,54 +353,61 @@ func TestValidateExecutionClosureEnforcesTheFaultedEvidenceOutcomeTable(t *testi
 			},
 		},
 		{
-			name: "missing injected marker is an invariant",
+			name: "missing injected marker is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				removeRawField(rawEvidence, umpireruntime.EvidenceFieldSyntheticContributionMarker)
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
+				removeRawField(&rawEvidence.Facts[index],
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
 			},
-			wantError: true,
 		},
 		{
-			name: "duplicate synthetic contribution count is an invariant",
+			name: "duplicate synthetic contribution count is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				setRawFieldOnKind(rawEvidence, duplicateObservationFactKind,
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
+				setRawField(rawEvidence.Facts[index].Fields,
 					umpireruntime.EvidenceFieldSyntheticContributionCount, json.Number("2"))
 			},
-			wantError: true,
 		},
 		{
-			name: "duplicate mechanical callback count is an invariant",
+			name: "duplicate mechanical callback count is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				setRawField(rawEvidenceFactsWithField(*rawEvidence,
-					umpireruntime.EvidenceFieldCancellationCallbackCount)[0].Fields,
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldCancellationCallbackCount)
+				setRawField(rawEvidence.Facts[index].Fields,
 					umpireruntime.EvidenceFieldCancellationCallbackCount, json.Number("2"))
 			},
-			wantError: true,
 		},
 		{
-			name: "fault identity drift is an invariant",
+			name: "fault identity drift is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				setRawFieldOnKind(rawEvidence, duplicateObservationFactKind,
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
+				setRawField(rawEvidence.Facts[index].Fields,
 					umpireruntime.EvidenceFieldFaultDefinitionID, "temporal.nexus.fault.other")
 			},
-			wantError: true,
 		},
 		{
-			name: "fault receipt is required",
+			name: "missing fault receipt is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				removeRawField(rawEvidence, umpireruntime.EvidenceFieldFaultReceiptDefinitionID)
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
+				removeRawField(&rawEvidence.Facts[index],
+					umpireruntime.EvidenceFieldFaultReceiptDefinitionID)
 			},
-			wantError: true,
 		},
 		{
-			name: "cross-run correlation is an invariant",
+			name: "cross-run correlation is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				setRawFieldOnKind(rawEvidence, duplicateObservationFactKind,
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
+				setRawField(rawEvidence.Facts[index].Fields,
 					umpireruntime.EvidenceFieldRunCorrelationID, "umpire.local.caller-closure.other-run")
 			},
-			wantError: true,
 		},
 		{
-			name: "shared stale correlation is an invariant",
+			name: "shared stale correlation is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
 				for factIndex := range rawEvidence.Facts {
 					setRawField(rawEvidence.Facts[factIndex].Fields,
@@ -372,40 +415,38 @@ func TestValidateExecutionClosureEnforcesTheFaultedEvidenceOutcomeTable(t *testi
 						"runtime.correlation.operation.stale")
 				}
 			},
-			wantError: true,
 		},
 		{
-			name: "missing callback causality is an invariant",
+			name: "missing callback causality is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				index := rawFactIndexByKind(t, rawEvidence, duplicateObservationFactKind)
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
 				rawEvidence.Facts[index].CausalFactDefinitionIDs = []string{}
 			},
-			wantError: true,
 		},
 		{
-			name: "missing completed cancellation lifecycle is an invariant",
+			name: "missing completed cancellation lifecycle is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
 				setRawFieldOnHistoryEvent(rawEvidence,
 					"temporal.history.NexusOperationCancelRequestCompleted",
 					umpireruntime.EvidenceFieldEventType,
 					"temporal.history.WorkflowTaskCompleted")
 			},
-			wantError: true,
 		},
 		{
-			name: "second cancellation request chain is an invariant",
+			name: "second cancellation request chain is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
 				setRawFieldOnHistoryEvent(rawEvidence,
 					"temporal.history.WorkflowExecutionStarted",
 					umpireruntime.EvidenceFieldEventType,
 					"temporal.history.NexusOperationCancelRequested")
 			},
-			wantError: true,
 		},
 		{
-			name: "second distinct synthetic contribution is an invariant",
+			name: "second distinct synthetic contribution is admitted for evaluation",
 			mutate: func(run *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				index := rawFactIndexByKind(t, rawEvidence, duplicateObservationFactKind)
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
 				duplicate := rawEvidence.Facts[index]
 				duplicate.FactDefinitionID += ".second"
 				duplicate.Ordinal = artifactv2.NaturalFromUint64(2)
@@ -416,23 +457,23 @@ func TestValidateExecutionClosureEnforcesTheFaultedEvidenceOutcomeTable(t *testi
 				rawEvidence.Sources[3].FactCount = artifactv2.NaturalFromUint64(3)
 				run.SourceClosures[3].RecordCount = artifactv2.NaturalFromUint64(3)
 			},
-			wantError: true,
 		},
 		{
-			name: "unusable marker disposition is an invariant",
+			name: "unusable marker disposition is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				index := rawFactIndexByKind(t, rawEvidence, duplicateObservationFactKind)
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
 				setRawFieldDisposition(rawEvidence.Facts[index].Fields,
 					umpireruntime.EvidenceFieldSyntheticContributionMarker, "redacted")
 				setRawField(rawEvidence.Facts[index].Fields,
 					umpireruntime.EvidenceFieldSyntheticContributionMarker, nil)
 			},
-			wantError: true,
 		},
 		{
 			name: "unsafe payload field is an invariant",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				index := rawFactIndexByKind(t, rawEvidence, duplicateObservationFactKind)
+				index := rawFactIndexWithField(t, rawEvidence,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker)
 				fields := rawEvidence.Facts[index].Fields
 				last := len(fields) - 1
 				fields = append(fields, artifactv2.RawEvidenceField{})
@@ -458,7 +499,11 @@ func TestValidateExecutionClosureEnforcesTheFaultedEvidenceOutcomeTable(t *testi
 				return
 			}
 			require.NoError(t, err)
-			require.Equal(t, test.wantStatus, run.OperationalStatus)
+			if test.wantStatus == "" {
+				require.Equal(t, "succeeded", run.OperationalStatus)
+			} else {
+				require.Equal(t, test.wantStatus, run.OperationalStatus)
+			}
 		})
 	}
 }
@@ -619,6 +664,27 @@ func closedExecutionFixtureWithInput(
 	request, err := CheckRequest(input, runIdentity)
 	require.NoError(t, err)
 	correlations := requestCorrelations(request)
+	receiptFields := []artifactv2.RawEvidenceField{
+		plainField(artifactv2.ControlReceiptActionFieldDefinitionID, forceCloseActionDefinitionID),
+		plainNumberField(artifactv2.ControlReceiptAttemptFieldDefinitionID, "1"),
+		plainField(artifactv2.ControlReceiptOccurrenceFieldDefinitionID, forceCloseOccurrenceDefinitionID),
+		plainField(artifactv2.ControlReceiptStatusFieldDefinitionID, "accepted"),
+	}
+	if faulted {
+		receiptFields = []artifactv2.RawEvidenceField{
+			plainField(artifactv2.ControlReceiptActionFieldDefinitionID, forceCloseActionDefinitionID),
+			plainNumberField(artifactv2.ControlReceiptAttemptFieldDefinitionID, "1"),
+			plainField(umpireruntime.EvidenceFieldCapabilityDefinitionID,
+				"nexus.capability.cancellation"),
+			plainField(umpireruntime.EvidenceFieldFaultDefinitionID,
+				duplicateDeliveryFaultDefinitionID),
+			plainField(umpireruntime.EvidenceFieldFaultReceiptDefinitionID,
+				duplicateDeliveryFaultReceiptDefinitionID),
+			plainField(artifactv2.ControlReceiptOccurrenceFieldDefinitionID, forceCloseOccurrenceDefinitionID),
+			plainField(umpireruntime.EvidenceFieldOperationCorrelationID, correlations.operation),
+			plainField(artifactv2.ControlReceiptStatusFieldDefinitionID, "accepted"),
+		}
+	}
 	facts := []artifactv2.RawEvidenceFact{
 		{
 			FactDefinitionID:        "umpire.runtime.fact.cleanup.fixture",
@@ -637,12 +703,7 @@ func closedExecutionFixtureWithInput(
 			Ordinal:                 artifactv2.NaturalFromUint64(0),
 			KindDefinitionID:        artifactv2.ControlReceiptKindDefinitionID,
 			CausalFactDefinitionIDs: []string{},
-			Fields: []artifactv2.RawEvidenceField{
-				plainField(artifactv2.ControlReceiptActionFieldDefinitionID, forceCloseActionDefinitionID),
-				plainNumberField(artifactv2.ControlReceiptAttemptFieldDefinitionID, "1"),
-				plainField(artifactv2.ControlReceiptOccurrenceFieldDefinitionID, forceCloseOccurrenceDefinitionID),
-				plainField(artifactv2.ControlReceiptStatusFieldDefinitionID, "accepted"),
-			},
+			Fields:                  receiptFields,
 		},
 	}
 	previous := ""
@@ -672,7 +733,7 @@ func closedExecutionFixtureWithInput(
 		FactDefinitionID:        "umpire.runtime.fact.participant.fixture",
 		SourceDefinitionID:      umpireruntime.EvidenceSourceParticipantOutput,
 		Ordinal:                 artifactv2.NaturalFromUint64(0),
-		KindDefinitionID:        "umpire.evidence.kind.participant-command",
+		KindDefinitionID:        umpireruntime.EvidenceKindParticipantCommand,
 		CausalFactDefinitionIDs: []string{},
 		Fields: []artifactv2.RawEvidenceField{
 			plainNumberField(umpireruntime.EvidenceFieldCancellationCallbackCount, "1"),
@@ -693,7 +754,7 @@ func closedExecutionFixtureWithInput(
 			FactDefinitionID:        "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
 			SourceDefinitionID:      umpireruntime.EvidenceSourceParticipantOutput,
 			Ordinal:                 artifactv2.NaturalFromUint64(1),
-			KindDefinitionID:        duplicateObservationFactKind,
+			KindDefinitionID:        umpireruntime.EvidenceKindParticipantCommand,
 			CausalFactDefinitionIDs: []string{"umpire.runtime.fact.participant.fixture"},
 			Fields: []artifactv2.RawEvidenceField{
 				plainNumberField(umpireruntime.EvidenceFieldCancellationCompletedCount, "1"),
@@ -831,20 +892,6 @@ func setRawField(fields []artifactv2.RawEvidenceField, definitionID string, valu
 	}
 }
 
-func setRawFieldOnKind(
-	rawEvidence *artifactv2.RawEvidence,
-	kindDefinitionID string,
-	fieldDefinitionID string,
-	value any,
-) {
-	for index := range rawEvidence.Facts {
-		if rawEvidence.Facts[index].KindDefinitionID == kindDefinitionID {
-			setRawField(rawEvidence.Facts[index].Fields, fieldDefinitionID, value)
-			return
-		}
-	}
-}
-
 func setRawFieldOnHistoryEvent(
 	rawEvidence *artifactv2.RawEvidence,
 	eventType string,
@@ -864,30 +911,28 @@ func setRawFieldOnHistoryEvent(
 	}
 }
 
-func removeRawField(rawEvidence *artifactv2.RawEvidence, definitionID string) {
-	for factIndex := range rawEvidence.Facts {
-		for fieldIndex := range rawEvidence.Facts[factIndex].Fields {
-			if rawEvidence.Facts[factIndex].Fields[fieldIndex].FieldDefinitionID == definitionID {
-				rawEvidence.Facts[factIndex].Fields = append(
-					rawEvidence.Facts[factIndex].Fields[:fieldIndex],
-					rawEvidence.Facts[factIndex].Fields[fieldIndex+1:]...,
-				)
-				return
-			}
+func removeRawField(fact *artifactv2.RawEvidenceFact, definitionID string) {
+	for fieldIndex := range fact.Fields {
+		if fact.Fields[fieldIndex].FieldDefinitionID == definitionID {
+			fact.Fields = append(fact.Fields[:fieldIndex], fact.Fields[fieldIndex+1:]...)
+			return
 		}
 	}
 }
 
-func rawFactIndexByKind(
+func rawFactIndexWithField(
 	t *testing.T,
 	rawEvidence *artifactv2.RawEvidence,
-	kindDefinitionID string,
+	fieldDefinitionID string,
 ) int {
 	t.Helper()
 	matches := []int{}
 	for index, fact := range rawEvidence.Facts {
-		if fact.KindDefinitionID == kindDefinitionID {
-			matches = append(matches, index)
+		for _, field := range fact.Fields {
+			if field.FieldDefinitionID == fieldDefinitionID {
+				matches = append(matches, index)
+				break
+			}
 		}
 	}
 	require.Len(t, matches, 1)

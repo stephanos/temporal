@@ -406,7 +406,12 @@ func (s *engineState) consumeReceipt(
 		delete(s.liveResources, key)
 	}
 	if control != "" {
-		fact, err := controlReceiptFact(expected, control)
+		fact, err := boundControlReceiptFact(
+			expected,
+			control,
+			s.request,
+			receipt.Facts(),
+		)
 		if err != nil {
 			return err
 		}
@@ -638,14 +643,44 @@ func controlStatus(receipt ReceiptStatus, phaseStatus string) string {
 }
 
 func controlReceiptFact(command Command, status string) (Fact, error) {
-	fields := make([]FactField, 0, 4)
-	for _, field := range []struct{ definitionID, value string }{
-		{artifactv2.ControlReceiptActionFieldDefinitionID, command.ActionDefinitionID()},
-		{artifactv2.ControlReceiptAttemptFieldDefinitionID, fmt.Sprintf("%d", command.Attempt())},
-		{artifactv2.ControlReceiptOccurrenceFieldDefinitionID, command.OccurrenceDefinitionID()},
-		{artifactv2.ControlReceiptStatusFieldDefinitionID, status},
-	} {
-		value, err := umpireruntime.NewFactField(field.definitionID, field.value)
+	return newControlReceiptFact(command, status, nil)
+}
+
+func boundControlReceiptFact(
+	command Command,
+	status string,
+	request CheckedRunRequest,
+	facts []Fact,
+) (Fact, error) {
+	return newControlReceiptFact(
+		command,
+		status,
+		acceptedFaultBindingValues(command, status, request, facts),
+	)
+}
+
+func newControlReceiptFact(
+	command Command,
+	status string,
+	faultBindings map[string]string,
+) (Fact, error) {
+	values := map[string]string{
+		artifactv2.ControlReceiptActionFieldDefinitionID:     command.ActionDefinitionID(),
+		artifactv2.ControlReceiptAttemptFieldDefinitionID:    fmt.Sprintf("%d", command.Attempt()),
+		artifactv2.ControlReceiptOccurrenceFieldDefinitionID: command.OccurrenceDefinitionID(),
+		artifactv2.ControlReceiptStatusFieldDefinitionID:     status,
+	}
+	for definitionID, value := range faultBindings {
+		values[definitionID] = value
+	}
+	definitionIDs := make([]string, 0, len(values))
+	for definitionID := range values {
+		definitionIDs = append(definitionIDs, definitionID)
+	}
+	slices.Sort(definitionIDs)
+	fields := make([]FactField, 0, len(values))
+	for _, definitionID := range definitionIDs {
+		value, err := umpireruntime.NewFactField(definitionID, values[definitionID])
 		if err != nil {
 			return Fact{}, err
 		}
@@ -655,6 +690,83 @@ func controlReceiptFact(command Command, status string) (Fact, error) {
 		controlReceiptFactID(command), EvidenceSourceControlReceipt,
 		artifactv2.ControlReceiptKindDefinitionID, []string{}, fields,
 	)
+}
+
+func acceptedFaultBindingValues(
+	command Command,
+	status string,
+	request CheckedRunRequest,
+	facts []Fact,
+) map[string]string {
+	if status != "accepted" {
+		return nil
+	}
+	experiment := request.Experiment()
+	if len(experiment.Plan.RequestedFaults) != 1 ||
+		experiment.Plan.RequestedFaults[0].Value != command.OccurrenceDefinitionID() {
+		return nil
+	}
+	operationCorrelation := requestCorrelationIdentity(request, CorrelationOperation)
+	if operationCorrelation == "" {
+		return nil
+	}
+	var result map[string]string
+	for _, fact := range facts {
+		candidate := matchingFaultBindingValues(
+			fact,
+			experiment.Plan.RequestedFaults[0].DefinitionID,
+			experiment.Plan.CapabilityRequirementDefinitionIDs,
+			operationCorrelation,
+		)
+		if candidate == nil {
+			continue
+		}
+		if result != nil {
+			return nil
+		}
+		result = candidate
+	}
+	return result
+}
+
+func matchingFaultBindingValues(
+	fact Fact,
+	faultDefinitionID string,
+	requiredCapabilities []string,
+	operationCorrelation string,
+) map[string]string {
+	if fact.KindDefinitionID() != umpireruntime.EvidenceKindParticipantCommand {
+		return nil
+	}
+	wanted := map[string]struct{}{
+		artifactv2.ControlReceiptCapabilityFieldDefinitionID:   {},
+		artifactv2.ControlReceiptFaultFieldDefinitionID:        {},
+		artifactv2.ControlReceiptFaultReceiptFieldDefinitionID: {},
+		artifactv2.ControlReceiptOperationFieldDefinitionID:    {},
+	}
+	values := make(map[string]string, len(wanted))
+	for _, field := range fact.Fields() {
+		if _, ok := wanted[field.DefinitionID()]; ok {
+			values[field.DefinitionID()] = field.Value()
+		}
+	}
+	if len(values) != len(wanted) ||
+		values[artifactv2.ControlReceiptFaultFieldDefinitionID] != faultDefinitionID ||
+		values[artifactv2.ControlReceiptOperationFieldDefinitionID] != operationCorrelation ||
+		!slices.Contains(requiredCapabilities,
+			values[artifactv2.ControlReceiptCapabilityFieldDefinitionID]) {
+		return nil
+	}
+	return values
+}
+
+func requestCorrelationIdentity(request CheckedRunRequest, kind CorrelationKind) string {
+	for _, correlation := range request.Correlations() {
+		if correlation.Kind() == kind {
+			return correlation.Identity()
+		}
+	}
+	return ""
 }
 
 func controlReceiptFactID(command Command) string {
