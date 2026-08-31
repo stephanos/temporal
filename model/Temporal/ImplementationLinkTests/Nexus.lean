@@ -547,7 +547,7 @@ namespace DuplicateDelivery
 open Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery
 
 def strictApplication := applyImplementationLink
-  Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checked
+  Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
   Temporal.System.Nexus.CallerClosure.setup
   Temporal.System.Nexus.ObservationFaultTests.completeTrace
 
@@ -592,10 +592,9 @@ example : propertyEvaluation.map (fun evaluation =>
   native_decide
 
 example :
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checkedResult.isOk =
-      true ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checked.hasCanonicalIdentity =
-      true ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.hasCanonicalIdentity = true ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.declaration.id =
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.implementationLinkId ∧
     checkedObservedTranslation.hasCanonicalIdentity = true ∧
     checkedObservedTranslation.declaration.observationMappings.contains {
       source := sourceCancellationCountTwo

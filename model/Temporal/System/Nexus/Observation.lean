@@ -578,6 +578,160 @@ private theorem canonicalPlanResult_isSome : canonicalPlanResult.toOption.isSome
 def checkedPlan : CheckedObservationPlan :=
   canonicalPlanResult.toOption.get canonicalPlanResult_isSome
 
+private def qualificationDiagnostic
+    (kind : ObservationFailureKind)
+    (relatedDefinitionIds : List DefinitionId := []) : ObservationDiagnostic := {
+  kind
+  planId := checkedPlan.id
+  relatedDefinitionIds
+}
+
+private def evidenceText?
+    (record : SyntheticEvidenceRecord)
+    (field : DefinitionId) : Option String := do
+  let fieldValue ← record.fields.find? fun candidate => candidate.field == field
+  match fieldValue.value with
+  | .text value => some value
+  | _ => none
+
+private def evidenceNatural?
+    (record : SyntheticEvidenceRecord)
+    (field : DefinitionId) : Option Nat := do
+  let fieldValue ← record.fields.find? fun candidate => candidate.field == field
+  match fieldValue.value with
+  | .natural value => some value
+  | _ => none
+
+private def requiredText
+    (record : SyntheticEvidenceRecord)
+    (field : DefinitionId) : Except ObservationDiagnostic String :=
+  match evidenceText? record field with
+  | some value => pure value
+  | none => throw (qualificationDiagnostic .unresolvedBinding [record.id, field])
+
+private def requireText
+    (record : SyntheticEvidenceRecord)
+    (field : DefinitionId)
+    (expected : String) : Except ObservationDiagnostic Unit := do
+  if (← requiredText record field) != expected then
+    throw (qualificationDiagnostic .contradictoryFact [record.id, field])
+
+private def requireNatural
+    (record : SyntheticEvidenceRecord)
+    (field : DefinitionId)
+    (expected : Nat) : Except ObservationDiagnostic Unit :=
+  match evidenceNatural? record field with
+  | some value =>
+      if value == expected then pure ()
+      else throw (qualificationDiagnostic .contradictoryFact [record.id, field])
+  | none => throw (qualificationDiagnostic .unresolvedBinding [record.id, field])
+
+private def exactRecordOfKind
+    (bundle : EvidenceBundle)
+    (kind : DefinitionId) : Except ObservationDiagnostic SyntheticEvidenceRecord :=
+  match bundle.records.filter fun record => record.kind == kind with
+  | [record] => pure record
+  | [] => throw (qualificationDiagnostic .unresolvedBinding [kind])
+  | records => throw (qualificationDiagnostic .contradictoryFact
+      (kind :: records.map SyntheticEvidenceRecord.id))
+
+private def historyRecordLe
+    (left right : SyntheticEvidenceRecord) : Bool :=
+  match left.origin, right.origin with
+  | some leftOrigin, some rightOrigin => leftOrigin.ordinal ≤ rightOrigin.ordinal
+  | none, none => left.sequence ≤ right.sequence
+  | none, some _ => true
+  | some _, none => false
+
+private def expectedHistoryEventTypes : List String := [
+  "temporal.history.WorkflowExecutionStarted",
+  "temporal.history.NexusOperationCancelRequested",
+  "temporal.history.NexusOperationCancelRequestCompleted",
+  "temporal.history.WorkflowExecutionCanceled"
+]
+
+private def exactHistoryEvent
+    (records : List SyntheticEvidenceRecord)
+    (eventType : String) : Except ObservationDiagnostic SyntheticEvidenceRecord :=
+  match records.filter fun record =>
+      evidenceText? record Profile.eventTypeField == some eventType with
+  | [record] => pure record
+  | [] => throw (qualificationDiagnostic .unresolvedBinding
+      [Profile.historyKind, Profile.eventTypeField])
+  | multiple => throw (qualificationDiagnostic .contradictoryFact
+      (multiple.map SyntheticEvidenceRecord.id))
+
+private def requireMatchingText
+    (records : List SyntheticEvidenceRecord)
+    (field : DefinitionId)
+    (expected : String) : Except ObservationDiagnostic Unit := do
+  if expected == "" then
+    throw (qualificationDiagnostic .unresolvedBinding [field])
+  for record in records do
+    if (← requiredText record field) != expected then
+      throw (qualificationDiagnostic .contradictoryBinding [record.id, field])
+
+private def checkDuplicateDeliveryEvidence
+    (bundle : EvidenceBundle) : Except ObservationDiagnostic Unit := do
+  let control ← exactRecordOfKind bundle Profile.controlReceiptKind
+  let participant ← exactRecordOfKind bundle Profile.participantKind
+  let history := (bundle.records.filter fun record => record.kind == Profile.historyKind)
+    |>.mergeSort historyRecordLe
+  let started ← exactHistoryEvent history expectedHistoryEventTypes[0]
+  let requested ← exactHistoryEvent history expectedHistoryEventTypes[1]
+  let completed ← exactHistoryEvent history expectedHistoryEventTypes[2]
+  let canceled ← exactHistoryEvent history expectedHistoryEventTypes[3]
+  if history.length != expectedHistoryEventTypes.length then
+    throw (qualificationDiagnostic .contradictoryFact
+      (history.map SyntheticEvidenceRecord.id))
+  let actualEventTypes ← history.mapM fun record => requiredText record Profile.eventTypeField
+  if actualEventTypes != expectedHistoryEventTypes then
+    throw (qualificationDiagnostic .contradictoryOrder
+      (history.map SyntheticEvidenceRecord.id))
+  if !started.causalParents.isEmpty || requested.causalParents != [started.id] ||
+      completed.causalParents != [requested.id] || canceled.causalParents != [completed.id] ||
+      !participant.causalParents.contains completed.id || participant.faultTarget != some completed.id then
+    throw (qualificationDiagnostic .contradictoryOrder [
+      started.id, requested.id, completed.id, canceled.id, participant.id
+    ])
+  requireText control Profile.faultDefinitionField faultDefinitionId.value
+  requireText control Profile.faultReceiptField faultReceiptId.value
+  requireText control Profile.capabilityDefinitionField cancellationCapabilityId.value
+  requireText participant Profile.faultDefinitionField faultDefinitionId.value
+  requireText participant Profile.faultReceiptField faultReceiptId.value
+  requireText participant Profile.capabilityDefinitionField cancellationCapabilityId.value
+  requireText participant Profile.syntheticMarkerField injectedMarker
+  requireNatural participant Profile.cancellationCountField mechanicalCallbackCount
+  requireNatural participant Profile.syntheticContributionCountField syntheticContributionCount
+  requireNatural participant Profile.cancellationRequestedCountField 1
+  requireNatural participant Profile.cancellationCompletedCountField 1
+  let operationCorrelation ← requiredText participant Profile.operationCorrelationField
+  let runCorrelation ← requiredText participant Profile.runCorrelationField
+  let workflowCorrelation ← requiredText participant Profile.workflowCorrelationField
+  requireMatchingText (control :: history) Profile.operationCorrelationField operationCorrelation
+  requireMatchingText history Profile.runCorrelationField runCorrelation
+  requireMatchingText history Profile.workflowCorrelationField workflowCorrelation
+
+private def resultOfQualificationDiagnostic
+    (diagnostic : ObservationDiagnostic) : ObservationResult :=
+  match diagnostic.status with
+  | .unknown => .unknown diagnostic
+  | .conflict => .conflict diagnostic
+  | .unsupported => .unsupported diagnostic
+  | .accepted => .unknown diagnostic
+
+/-- Qualify the accepted generic Observation result against the exact lifecycle, causal receipt,
+and shared-correlation contract of the duplicate-delivery negative control. -/
+def qualifyDuplicateDeliveryObservation (bundle : EvidenceBundle) : ObservationResult :=
+  match evaluateEvidence checkedPlan bundle with
+  | .accepted trace =>
+      match checkDuplicateDeliveryEvidence bundle with
+      | .ok _ => .accepted trace
+      | .error diagnostic => resultOfQualificationDiagnostic diagnostic
+  | .unknown diagnostic => .unknown diagnostic
+  | .conflict diagnostic => .conflict diagnostic
+  | .unsupported diagnostic => .unsupported diagnostic
+
 inductive DuplicateDeliveryCheckErrorKind where
   | observation
   | contractDrift
@@ -612,6 +766,21 @@ def mappingBehaviorFingerprint : BehaviorFingerprint := checkedPlan.behaviorFing
 
 def mappingVersion : Nat := checkedPlan.version
 
+def qualificationBehaviorFingerprint : BehaviorFingerprint := behaviorFingerprintOf <| reprStr (
+  expectedHistoryEventTypes,
+  Profile.operationCorrelationField,
+  Profile.runCorrelationField,
+  Profile.workflowCorrelationField,
+  Profile.faultDefinitionField,
+  Profile.faultReceiptField,
+  Profile.capabilityDefinitionField,
+  faultDefinitionId,
+  faultReceiptId,
+  cancellationCapabilityId,
+  mechanicalCallbackCount,
+  syntheticContributionCount
+)
+
 def programId : DefinitionId :=
   definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.observation-program"
 
@@ -620,7 +789,8 @@ def programVersion : Nat := 1
 def programBehaviorFingerprint : BehaviorFingerprint := behaviorFingerprintOf <|
   programId.value ++ "/v" ++ toString programVersion ++ "/" ++
     Profile.id.value ++ "/" ++ profileBehaviorFingerprint.render ++ "/" ++
-    Mapping.id.value ++ "/" ++ mappingBehaviorFingerprint.render
+    Mapping.id.value ++ "/" ++ mappingBehaviorFingerprint.render ++ "/" ++
+    qualificationBehaviorFingerprint.render
 
 end DuplicateDelivery
 
