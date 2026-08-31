@@ -40,9 +40,14 @@ This task ends at R4's admitted transport truth: the real callback and labeled s
 - [ ] R4 exact fault-realization evidence is bounded, causal, closed, and admitted.
 
 ## Done summary
-TBD
+Implemented and admitted the closed R3/R4 duplicate-delivery transport evidence contract.
 
+- The synthetic contribution is a separate `umpire.evidence.kind.participant-command` fact with exact callback/synthetic counts, marker, fault receipt, capability, and shared correlations.
+- Accepted faulted control receipts retain the exact four additional fault-binding identities; normal receipts remain the original four-field shape and normal fixture bytes are unchanged.
+- Artifact admission permits only the closed four- or eight-field receipt shapes. Runtime output validation retains structural/safety admission while leaving semantic missing/count/conflict/disposition cases to fn-20 Observation Evaluation.
+- The persisted faulted four-member run set was regenerated from the exact admitted fixture. Focused live, mutation, package aggregate, RunEvaluation aggregate, and model-lint gates pass. Full Go lint remains inherited red with 1,387 repository findings; all 19 task-path reports are on pre-existing lines and no lint auto-edits occurred.
+- Mandatory Codex implementation review reached SHIP with zero introduced findings. The normative task boundary preserves distinct raw callback/synthetic facts and the complete history chain; Task `.5` owns raw-to-semantic coalescing and `faultTarget` derivation in the fn-20 adapter.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7e31acfcd34b13c3faa13f76982723af908c05c3, 58cf618ab46e537b3e7d1b7eeaa353485c979751, 7122f8ac93dd18184280362c7362e7fda04754cd, d9be6d23949d74414a8c3075f40fbfdcfd5ce626, 19e17b40e2fd1e52b690f65ca644983afb85c3eb, db74045b34db117e4dca17b4ab1bf9fc68a1d613, 2f727d5eaa5e462abe8b594912b9e05dd8e2a5ab, 97d52a485b6effb6f5434db64eebb89e5ddbcc64
+- Tests: RED: TMPDIR=/private/tmp/umpire-fn21-task4-tmp go test -tags test_dep ./tools/umpire/temporal/nexus -run '^TestLiveFaultedCallerClosureReturnsClosedFaultRealizationEvidence$' -count=1 (expected participant-command, observed custom marker kind), RED: TMPDIR=/private/tmp/umpire-fn21-task4-tmp go test -tags test_dep ./tools/umpire/temporal/nexus -run '^(TestValidateExecutionClosureAdmitsFaultedEvidenceForEvaluation|TestLiveFaultedCallerClosureReturnsClosedFaultRealizationEvidence)$' -count=1 (8-field control receipt rejected; custom kind observed), TMPDIR=/private/tmp/umpire-fn21-task4-tmp go test -tags test_dep ./tools/umpire/runtime ./tools/umpire/internal/artifactv2 ./tools/umpire/internal/runtimeengine ./tools/umpire/temporal/nexus -count=1, TMPDIR=/private/tmp/umpire-fn21-task4-tmp go test -tags test_dep ./tools/umpire/runevaluation -count=1, make lint-model, inherited red: make GOLANGCI_LINT_FIX=false lint-code (1,387 repository findings; 19 task-path reports, zero introduced; no auto-edits), git diff 18d58b84898fa46e8f043ab05a065043648b5eb5 --name-only -- tools/umpire/temporal/nexus/testdata/caller-closure-input-set tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set (empty), Codex impl-review receipt /tmp/impl-review-receipt-fn-21-nexus-duplicate-observation-control.4.json: SHIP, zero introduced findings
 - PRs:
