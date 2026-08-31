@@ -270,12 +270,15 @@ state/action/outcome/observation fields, rejects its raw-detail field, applies a
 offline result contains an Evidence-backed Model Trace, the independently evaluated asynchronous-start Property
 verdict, and its strict Query summary.
 
-The reusable runtime seam stops at `EvidenceBundle`. The fixed caller-closure adapter now translates
-one exact fn-19 four-source Generated View into that declared profile and version while preserving
-stable record identities, typed fields and digest metadata, source-local ordinals, causal parents,
-and source closure. Umpire remains responsible for every check after that handoff. The checker does
-not execute Temporal, read or publish artifacts, select another profile, perform replay or
-promotion, or qualify non-local evidence.
+The reusable runtime seam stops at `EvidenceBundle`. The fixed caller-closure adapters now translate
+the exact normal and duplicate-delivery fn-19 four-source Generated Views into their declared
+profiles and versions. RawEvidence retains every authority, worker, participant, history, and
+cleanup fact plus exact source closure. The fault adapter projects only the checked lifecycle,
+mechanical callback, and labeled synthetic contribution into semantic support, while persisted
+Evidence Links retain the exact contributing raw identities and causal ordering. Umpire remains
+responsible for every check after that handoff. The checker does not execute Temporal, read or
+publish artifacts, select another profile, perform replay or promotion, or qualify non-local
+evidence.
 
 The checked cross-altitude path adds a separate stage after accepted Observation Evaluation:
 
@@ -290,8 +293,10 @@ authoritative Feature Model Trace + CheckedProperty
 Observation, Implementation Link, and Property outcomes keep distinct identities and diagnostics.
 An Observation non-success never invokes the Implementation Link; an Implementation Link
 non-success never invokes Feature Property evaluation. The fixed local caller-closure Run
-Evaluation now orchestrates the three stages without collapsing one layer's failure into another's
-status; other profiles and non-local paths remain open.
+Evaluation now orchestrates the three stages for a satisfied normal control and an accepted
+negative control with only uniqueness violated. The latter has one real callback plus one
+test-owned synthetic contribution, so it is not a Temporal defect claim. Neither path collapses one
+layer's failure into another's status; other profiles and non-local paths remain open.
 
 ## Package boundaries
 
@@ -323,8 +328,8 @@ DrivePlan and ExperimentSpec are pure model products. They do not claim that Tem
 actions were executed, or runtime Evidence was collected. Runtime, Evidence, and Result modules
 define transport records for facts and outcomes supplied by their owning downstream stages;
 admitting arbitrary bytes verifies transport and closure, not provenance. One separately bounded
-local caller-closure harness now proves an actual fn-19 execution and Run Evaluation through those
-records.
+local caller-closure harness now proves paired normal and synthetic-negative fn-19 executions and
+Run Evaluations through those records, including immutable publication and reopen.
 
 The public `Umpire.Artifact` facade exposes the retained v2 Planning, Runtime, Evidence, Result, and
 Set modules without aliases. Persisted documents use only deterministic two-space pretty JSON with

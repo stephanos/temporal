@@ -89,10 +89,55 @@ fn-19 execution, invokes the root command twice, reopens the six-member output, 
 checks cleanup/source closure and the API/history-backed caller-closure Property:
 
 ```sh
-go test -count=1 -run '^TestBoundedLiveCallerClosureEvaluation$' \
+TMPDIR=/private/tmp go test -count=1 -tags test_dep \
+  -run '^TestBoundedLiveCallerClosureEvaluation$' \
   ./tools/umpire/runevaluation
 ```
 
 This proves one invocation-owned loopback caller-closure scenario. It does not provide replay,
 minimization, promotion, formal-checker integration, remote/staging/canary execution, CI
 qualification, release eligibility, or Claim Assessment.
+
+## Paired normal and negative live controls
+
+The paired regression runs all admission, mutation, and status controls before it executes either
+live input. It then sends the exact normal and duplicate-delivery inputs through the same bounded
+runner, root Run Evaluation command, immutable publication, and reopen checks:
+
+```sh
+TMPDIR=/private/tmp go test -count=1 -tags test_dep \
+  ./tools/umpire/runevaluation \
+  -run '^TestBoundedLiveNexusNegativeControl$'
+```
+
+The normal control is operational `succeeded`, Observation Evaluation `accepted`, Implementation
+Link `applied`, semantic `satisfied`, and exits 0. The faulted control is operational `succeeded`,
+Observation Evaluation `accepted`, Implementation Link `applied`, semantic `violated`, and exits
+2; delivery and ownership remain satisfied while only uniqueness is violated. This separates the
+requested duplicate-delivery fault, its accepted fault receipt, successful operation and cleanup,
+accepted Observation Evaluation, and final Property verdict instead of treating exit 2 as an
+execution failure.
+
+The faulted run contains the real
+`NexusOperationCancelRequested` → `NexusOperationCancelRequestCompleted` history relation and one
+real cancellation callback. Its test-owned participant adds exactly one labeled synthetic
+duplicate-delivery contribution, causally below that callback and the completed history event.
+Run Evaluation therefore observes semantic count two without claiming that Temporal delivered two
+callbacks. This is a controlled negative control, not evidence of a Temporal product defect.
+
+Crossed normal/fault bindings fail before execution and publish nothing. Missing causal support
+stays `unknown`; contradictory values, order, or correlation stay `conflict`; incompatible schema
+or dispositions stay `unsupported`; and no such result exposes a partial trace. Re-publishing one
+already-constructed set and rechecking the same immutable four-member execution set are
+idempotent. Separate live executions use fresh transport facts and destinations, so the proof
+compares only the declared stable semantic identities rather than requiring byte-identical runs.
+
+The checked-in duplicate-delivery execution fixture exercises the same offline status-2 contract:
+
+```sh
+sh -c 'make --no-print-directory umpire-check-local-run-evaluation SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set OUTPUT_ROOT=/private/tmp; test "$?" -eq 2'
+```
+
+The pair remains one invocation-owned loopback profile. Replay, minimization, promotion, generic
+fault infrastructure, additional profiles, formal-checker integration, remote/staging/canary
+execution, CI qualification, release eligibility, and Claim Assessment remain outside it.

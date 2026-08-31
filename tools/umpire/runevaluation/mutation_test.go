@@ -326,6 +326,82 @@ func TestRealCheckerDuplicateDeliveryMutationMatrix(t *testing.T) {
 	}
 }
 
+func TestRealCheckerDuplicateDeliveryIgnoresOrdinaryOperationalFacts(t *testing.T) {
+	process := realCheckerProcess(t)
+	input := duplicateDeliveryExecutionFixture(t)
+	execution, ok := input.Execution()
+	require.True(t, ok)
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+
+	callback := duplicateDeliveryFact(t, &request, "umpire.runtime.fact.participant.fixture")
+	extra := *callback
+	extra.FactDefinitionID = "umpire.runtime.fact.authority-prepare.fixture"
+	extra.Ordinal = artifactv2.NaturalFromUint64(2)
+	extra.Fields = slices.DeleteFunc(slices.Clone(extra.Fields), func(field artifactv2.RawEvidenceField) bool {
+		return field.FieldDefinitionID == umpireruntime.EvidenceFieldCancellationCallbackCount
+	})
+	setMutationField(t, &extra, umpireruntime.EvidenceFieldCommandKind, "prepare")
+	request.Facts = append(request.Facts, extra)
+	request.Sources[3].FactCount = artifactv2.NaturalFromUint64(3)
+	request.SourceClosures[3].RecordCount = artifactv2.NaturalFromUint64(3)
+	require.EqualValues(t, "3", request.Sources[3].FactCount)
+	require.EqualValues(t, "3", request.SourceClosures[3].RecordCount)
+	cleanup := duplicateDeliveryFact(t, &request, "umpire.runtime.fact.cleanup.fixture")
+	cleanup.Ordinal = artifactv2.NaturalFromUint64(1)
+	extraCleanup := mutationFact(
+		"umpire.runtime.fact.participant-cleanup.fixture",
+		umpireruntime.EvidenceSourceCleanup,
+		"umpire.evidence.kind.participant-command",
+		0,
+		nil,
+		[]artifactv2.RawEvidenceField{
+			mutationField(umpireruntime.EvidenceFieldCommandKind, "cleanup"),
+			mutationField(umpireruntime.EvidenceFieldStatus, "accepted"),
+		},
+	)
+	request.Facts = append(request.Facts, extraCleanup)
+	request.Sources[0].FactCount = artifactv2.NaturalFromUint64(2)
+	request.SourceClosures[0].RecordCount = artifactv2.NaturalFromUint64(2)
+	require.EqualValues(t, "2", request.Sources[0].FactCount)
+	require.EqualValues(t, "2", request.SourceClosures[0].RecordCount)
+
+	stdout, stderr, runErr := runRealCheckerOutput(t, process, request)
+	require.NoError(t, runErr, string(stderr))
+	response, err := decodeCheckerResponse(stdout, request)
+	require.NoError(t, err, string(stdout))
+	require.Equal(t, "accepted", response.ObservationEvaluationStatus)
+	require.Equal(t, "violated", response.SemanticStatus)
+	require.Len(t, response.PropertyVerdicts, 1)
+	require.Equal(t, "violated", response.PropertyVerdicts[0].Status)
+	require.Equal(t, []string{"satisfied", "satisfied", "violated"}, []string{
+		response.PropertyVerdicts[0].Clauses[0].Status,
+		response.PropertyVerdicts[0].Clauses[1].Status,
+		response.PropertyVerdicts[0].Clauses[2].Status,
+	})
+	require.NotEmpty(t, response.EvidenceLinks)
+	for _, link := range response.EvidenceLinks {
+		orderingEvidence := make([]string, 0, len(link.OrderingSupport))
+		for _, support := range link.OrderingSupport {
+			orderingEvidence = append(orderingEvidence, support.FactDefinitionID)
+		}
+		require.Contains(t, orderingEvidence, callback.FactDefinitionID)
+		require.Contains(t, orderingEvidence, cleanup.FactDefinitionID)
+		require.Contains(t, orderingEvidence,
+			"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+		require.NotContains(t, orderingEvidence, extra.FactDefinitionID)
+		require.NotContains(t, orderingEvidence, extraCleanup.FactDefinitionID)
+	}
+	participantClosureFound := false
+	for _, closure := range response.EvidenceLinks[0].ClosureSupport {
+		if closure.KindDefinitionID == "umpire.evidence.kind.participant-command" {
+			participantClosureFound = true
+			require.EqualValues(t, "1", closure.LastOrdinal)
+		}
+	}
+	require.True(t, participantClosureFound)
+}
+
 func TestRealCheckerRejectsCrossedDuplicateDeliverySemanticClosure(t *testing.T) {
 	process := realCheckerProcess(t)
 	input := duplicateDeliveryExecutionFixture(t)
