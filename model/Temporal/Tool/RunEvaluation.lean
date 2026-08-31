@@ -670,6 +670,60 @@ private def evidenceField (field : RawField) : Except String EvidenceFieldValue 
 private def rawFactHasField (fact : RawFact) (field : DefinitionId) : Bool :=
   fact.fields.any fun candidate => candidate.definitionId == field
 
+private def rawFactHasExactFields (fact : RawFact) (fields : List DefinitionId) : Bool :=
+  fact.fields.length == fields.length && fields.all fun field =>
+    (fact.fields.filter fun candidate => candidate.definitionId == field).length == 1
+
+private def exactRawText? (fact : RawFact) (fieldId : DefinitionId) : Option String :=
+  match fact.fields.filter fun field => field.definitionId == fieldId with
+  | [{ disposition := "plain", value := .text value, .. }] => some value
+  | _ => none
+
+private def participantCancellationFields : List DefinitionId := [
+  Temporal.System.Nexus.Observation.Profile.cancellationCountField,
+  Temporal.System.Nexus.Observation.Profile.commandKindField,
+  Temporal.System.Nexus.Observation.Profile.endpointIdentityField,
+  Temporal.System.Nexus.Observation.Profile.namespaceIdentityField,
+  Temporal.System.Nexus.Observation.Profile.operationCorrelationField,
+  Temporal.System.Nexus.Observation.Profile.runCorrelationField,
+  Temporal.System.Nexus.Observation.Profile.statusField,
+  Temporal.System.Nexus.Observation.Profile.taskQueueIdentityField,
+  Temporal.System.Nexus.Observation.Profile.workflowCorrelationField
+]
+
+private def validateParticipantCancellation
+    (request : Request)
+    (facts : List RawFact) : Except String Unit := do
+  let candidates := facts.filter fun fact =>
+    rawFactHasField fact Temporal.System.Nexus.Observation.Profile.cancellationCountField
+  if candidates.isEmpty then return
+  let candidate ← match candidates with
+    | [candidate] => pure candidate
+    | _ => throw "facts.participantCancellation"
+  let historyFacts := facts.filter fun fact => fact.sourceDefinitionId == sourceHistory
+  let realizations := facts.filter fun fact =>
+    fact.sourceDefinitionId == sourceParticipant &&
+      fact.kindDefinitionId == Temporal.System.Nexus.Observation.Profile.participantKind &&
+      exactRawField fact Temporal.System.Nexus.Observation.Profile.commandKindField (.text "realize")
+  if realizations != [candidate] ||
+      !rawFactHasExactFields candidate participantCancellationFields ||
+      !exactRawField candidate Temporal.System.Nexus.Observation.Profile.cancellationCountField
+        (.natural 1) ||
+      !exactRawField candidate Temporal.System.Nexus.Observation.Profile.statusField
+        (.text "accepted") ||
+      !exactRawField candidate Temporal.System.Nexus.Observation.Profile.runCorrelationField
+        (.text request.runIdentity.value) ||
+      historyFacts.isEmpty || !(historyFacts.all fun history =>
+        exactRawText? history Temporal.System.Nexus.Observation.Profile.runCorrelationField ==
+          some request.runIdentity.value &&
+        exactRawText? history Temporal.System.Nexus.Observation.Profile.operationCorrelationField ==
+          exactRawText? candidate
+            Temporal.System.Nexus.Observation.Profile.operationCorrelationField &&
+        exactRawText? history Temporal.System.Nexus.Observation.Profile.workflowCorrelationField ==
+          exactRawText? candidate
+            Temporal.System.Nexus.Observation.Profile.workflowCorrelationField) then
+    throw "facts.participantCancellation"
+
 private def semanticFactKind (schema : SourceSchema) (fact : RawFact) : DefinitionId :=
   if schema.source == sourceParticipant &&
       !rawFactHasField fact Temporal.System.Nexus.Observation.Profile.cancellationCountField then
@@ -791,6 +845,7 @@ private def adapt (request : Request) : Except String EvidenceBundle := do
   let rawGaps ← parseGaps request.rawEvidenceKnownGaps
   validateSourceClosure sources closures facts
   validateControlAttempt controlAttempt facts
+  validateParticipantCancellation request facts
   let records ← facts.mapM evidenceRecord
   pure {
     profile := Temporal.System.Nexus.Observation.Profile.id
