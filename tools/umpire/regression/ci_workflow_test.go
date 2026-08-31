@@ -104,3 +104,25 @@ func TestHermeticCIWorkflowDelegatesToOrdinaryPinnedTest(t *testing.T) {
 	normalizedDryRun := strings.Join(strings.Fields(strings.ReplaceAll(string(dryRun), "\\\n", " ")), " ")
 	require.Equal(t, 1, strings.Count(normalizedDryRun, hermeticCITestCommand))
 }
+
+func TestHermeticCIDocumentationStatesBoundedClaim(t *testing.T) {
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	require.NoError(t, err)
+
+	for _, path := range []string{
+		"tools/umpire/runtime/README.md",
+		".plans/UMPIRE4_COMPONENTS.md",
+	} {
+		documentation, err := os.ReadFile(filepath.Join(repositoryRoot, path))
+		require.NoError(t, err)
+		text := string(documentation)
+		normalizedText := strings.Join(strings.Fields(text), " ")
+
+		require.Contains(t, text, hermeticCITestCommand)
+		require.Contains(t, text, "make umpire-check-regression")
+		require.Contains(t, normalizedText, "byte-identical canonical v2 `ExperimentSpec`")
+		require.Contains(t, normalizedText, "stable typed semantic meaning")
+		require.Contains(t, normalizedText, "runtime-scoped transport identities")
+		require.Contains(t, normalizedText, "Evaluation Profiles, Evaluation Receipts, provenance schemas, new artifact-set versions, Claim Assessment, remote, canary, and release work are excluded")
+	}
+}

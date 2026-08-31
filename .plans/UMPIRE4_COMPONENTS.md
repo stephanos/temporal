@@ -62,7 +62,7 @@ make its component built.
 | C11 Lean-native receipts and canonical replay | `fn-24-lean-native-verification-receipts-and` | Reviewed: Ship; six tasks ready | A reusable Temporal-free formal module runs the exact checked Query/dependent kernel itself, emits honest bounded-search receipts, and admits a violation only after the candidate replays through the canonical kernel, Behavior, and pure Property evaluator. One caller-closure verify receipt and one family-test negative control prove both paths; Veil, ExperimentSpec, runtime, promotion, and Claim Assessment remain separate. |
 | C11 optional CallerClosure checker binding | `fn-25-optional-callerclosure-veil-binding-and` | Reviewed: Ship; six tasks ready; depends on fn-23 and fn-24 | One completed compatibility receipt freezes an adopt or defer branch. Adoption adds one family-owned finite view with bidirectional correspondence, one exact optional handwritten declaration, a non-breaking external receipt v2, and mandatory canonical replay; defer/inconclusive adds no dependency, source, command, or placeholder claim. The reusable Umpire package remains Temporal/Nexus/checker-name free. |
 | C12 local Evaluation Receipt | `fn-26-local-qualification-receipts-and-staged` | Reviewed: Ship; six tasks ready; depends on fn-18, fn-19, and fn-20 | One offline local Evaluation Profile admits the exact six-member v2 Run Evaluation set plus optional admitted verification Evidence, preserves every phase status and Known Gap independently, and publishes one environment-scoped Evaluation Receipt. It acquires no Execution authority and accepts no pilot or pre-v2 compatibility input. |
-| C12 hermetic CI execution | `fn-27-hermetic-ci-execution-and-qualification` | Reviewed: Ship; nine tasks ready; depends on fn-18, fn-19, and fn-20 | One ordinary generated Go test consumes the byte-identical local v2 `ExperimentSpec`, reuses the disposable loopback runner and canonical Run Evaluation authority, and proves Artifact Checksum and Behavior Fingerprint parity. It adds no CI Evaluation Profile, Evaluation Receipt, provenance schema, new Artifact-set version, or Claim Assessment path. |
+| C12 hermetic CI execution | `fn-27-hermetic-ci-execution-and-qualification` | Implemented and verified | One ordinary generated Go test consumes the byte-identical local v2 `ExperimentSpec`, reuses the disposable loopback runner and canonical Run Evaluation authority, and proves Artifact Checksum, Behavior Fingerprint, and stable typed semantic parity while allowing fresh transport identities. It adds no CI Evaluation Profile, Evaluation Receipt, provenance schema, new Artifact-set version, or Claim Assessment path. |
 | C12 authorized remote staging black-box Claim Assessment | `fn-28-authorized-remote-staging-black-box` | Reviewed: Ship; eleven tasks ready; depends on fn-14, fn-18, fn-19, fn-20, and fn-27 | One fixed protected environment supplies an in-memory mTLS authority for a preallocated staging namespace and Nexus endpoint. A server-enforced lease, idempotent one-mutation participant, public-only Evidence mapping, cleanup-before-Run Evaluation ordering, ephemeral recovery/reconcile path, and versioned remote Evaluation Receipt preserve the same `ExperimentSpec` without target selection or internal Evidence. The claim is staging-scoped and never canary or release eligible. |
 | C12 bounded production canary Claim Assessment | `fn-29-bounded-production-canary-execution-and` | Reviewed: Ship; thirteen tasks ready; depends on fn-14, fn-18, fn-19, fn-20, fn-26, fn-27, and fn-28 | One trusted-ref-gated protected workflow runs the same ExperimentSpec against a fixed, dedicated production-canary namespace and Nexus route with no customer traffic, faults, deployment, configuration, or routing mutation. Exact lease reuse/fencing, idempotent mutation, public evidence, cleanup-reserved RPC accounting, versioned recovery, and strict receipt/set successors keep every canary receipt non-release-eligible. Receipt bytes are inspectable but not self-authenticating; release aggregation and its trusted artifact channel remain separate. |
 | C12 release evidence graph and manual authorization | `fn-30-release-evidence-graph-and-manual` | Reviewed: Ship; seven tasks ready; depends on fn-14, fn-18, and fn-26 through fn-29 | One signed seven-slot evidence index authenticates complete or explicitly held inputs, externally signed build/deployment attestations bind one immutable server candidate, and one fixed Lean policy produces an inspectable accepted/held/rejected graph. Separate protected owner roles create append-only approve/deny/revoke decisions; neither Claim Assessment nor authorization can deploy, promote, route, configure, or roll back. |
@@ -531,15 +531,31 @@ receipt, and canonical replay. Veil does not enter `ExperimentSpec`, runtime exe
 binaries, or the default regression gate until its deterministic build and developer-cost budgets
 are accepted.
 
-### C12. Deployment and Claim Assessment
+### C12. Deployment portability and Claim Assessment
 
 **Responsibility:** realize the same `ExperimentSpec` under authorized remote profiles and assemble
 assessed release claims without erasing environment-specific trust and Known Gaps.
 
-**Status: generic and Umpire3 foundations exist; current-model Claim Assessment is not implemented.**
-The Go Umpire trees include environment profiles, guarded canary controls, Claim Assessment models, and
-release evidence. `UMPIRE_LEAN.md` R6 still tracks independently retained local, CI, remote, and
-public-gRPC Claim Assessment. The current `umpire-experiment/v2` is not accepted by these paths.
+**Status: bounded hermetic CI portability is implemented; current-model Claim Assessment is not.**
+The ordinary CI test executes the byte-identical canonical v2 `ExperimentSpec` from the local path
+through the same invocation-owned loopback runner and Run Evaluation authority:
+
+```sh
+mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/nexus/... -run '^TestHermeticCIPortability$'
+```
+
+`make umpire-check-regression` is the aggregate repository gate and invokes the same test. The proof
+requires equal Artifact Checksum and Behavior Fingerprints, then compares stable typed semantic
+meaning across operational, Observation Evaluation, Implementation Link, Property and clause,
+Limit, Known Gap, and cleanup outcomes. Fresh executions may have different runtime-scoped
+transport identities; workflow YAML cannot construct semantic declarations or reinterpret Evidence.
+Evaluation Profiles, Evaluation Receipts, provenance schemas, new artifact-set versions, Claim
+Assessment, remote, canary, and release work are excluded from this bounded hermetic proof.
+
+The Go Umpire trees also contain older environment profiles, guarded canary controls, Claim
+Assessment models, and release evidence. `UMPIRE_LEAN.md` R6 still tracks independently retained
+local, CI, remote, and public-gRPC Claim Assessment. The current `umpire-experiment/v2` is not
+accepted by those paths.
 
 ```text
 ExperimentSpec + deployment profile + authority -> ExperimentRun + evaluated Result / release graph
@@ -613,15 +629,17 @@ C1/C2 generated structure
         -> bounded local C6/C9 execution + admitted Run/RawEvidence
         -> fixed C7 Observation/Implementation Link/Property Run Evaluation
         -> admitted six-member Evidence/Result publication
-        -> remaining profiles and C10-C12 integrations
+        -> hermetic CI execution with stable typed semantic parity
+        -> remaining remote profiles and C10-C12 Claim Assessment integrations
 ```
 
 C5's broader catalog and exact-promotion slice now has a reviewed Flow plan, while its implementation
 remains open. The first exact admitted `umpire-experiment/v2` and RuntimeConfiguration now execute
 without restating Lean-owned semantics and return Run/RawEvidence bound to the same Behavior
 Fingerprints. The fixed downstream Lean authority maps that live evidence and produces the
-Evidence/Result Run Evaluation for this one scenario. Broader profiles, replay, promotion, and
-non-local qualification remain integration gaps.
+Evidence/Result Run Evaluation for this one scenario. The same Artifact and authority now support
+the bounded hermetic CI proof. Broader remote profiles, replay, promotion, and Claim Assessment
+remain integration gaps.
 
 ## 5. Delivery milestones
 
