@@ -143,6 +143,7 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 	require.Contains(t, helperBody, `"umpire-check-local-run-evaluation"`)
 	require.NotContains(t, helperBody, "runevaluation.Check(")
 	require.Contains(t, helperBody, "exitError.ExitCode() != 2")
+	require.Contains(t, helperBody, "runErr == nil && stderr.Len() != 0")
 	require.NotContains(t, encoded, "artifact.PublishSet(")
 	require.NotContains(t, encoded, "EvaluationProfile")
 	require.NotContains(t, encoded, "EvaluationReceipt")
