@@ -66,8 +66,9 @@ type Adapter interface {
 	ValidateOutput(umpireruntime.CheckedRunRequest, umpireruntime.Output) error
 }
 
-// Run verifies the generated digest binding before allowing the adapter to
-// construct authority or participant state, then executes wholly in memory.
+// Run verifies the generated input binding before asking the adapter to
+// construct authority, then verifies that binding before allowing participant
+// or environment construction and executes wholly in memory.
 // It never reads bytes, publishes output, or interprets evidence.
 func Run(
 	ctx context.Context,
