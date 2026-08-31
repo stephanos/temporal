@@ -921,7 +921,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-27-hermetic-ci-execution-and-qualification.md",
-  "status": "open",
+  "status": "done",
   "title": "Hermetic CI execution and qualification",
   "tracker": {
     "baseHashFlow": null,
@@ -934,5 +934,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T23:39:52.870798Z"
+  "updated_at": "2026-08-31T23:53:11.503417Z"
 }
