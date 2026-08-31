@@ -261,12 +261,15 @@ also preserve the exact offline `unknown`, `conflict`, and `unsupported` outcome
 ambiguous, contradictory, mismatched, rejected, or otherwise unusable synthetic bundles.
 
 `Temporal.Tool.RunEvaluation` now provides one closed adapter for the experimental caller-closure
-scenario. It converts the exact fn-19 four-source Generated View into a complete `EvidenceBundle`
-while preserving fact identity, source-local ordinal, causality, closure, typed fields, and digest
-metadata. The checked `Temporal.System.Nexus.Observation` plan—not Go—owns the mapping, Limit,
-dispositions, and Evidence-backed System trace. This is one fixed local scenario, not a generic
-profile loader: the model still does not execute Temporal, select a checker or profile at runtime,
-perform replay or promotion, or qualify a non-local result.
+scenario and its exact duplicate-delivery negative control. It converts either fn-19 four-source
+Generated View into a complete `EvidenceBundle` while preserving raw fact identity, causality,
+typed fields, digest metadata, and source closure. The fault adapter projects the complete raw
+history onto the requested/completed lifecycle and selects only the checked, labeled synthetic
+contribution; ordinary authority, worker, participant, and cleanup lifecycle facts remain in
+RawEvidence but do not become semantic support. The checked `Temporal.System.Nexus.Observation`
+plans—not Go—own the mappings, Limits, dispositions, and Evidence-backed System traces. This is one
+fixed local pair, not a generic profile loader: the model still does not execute Temporal, select a
+checker or profile at runtime, perform replay or promotion, or qualify a non-local result.
 
 ## Checked Implementation Links
 
@@ -290,8 +293,11 @@ Feature trace ─ checked Feature Property ─▶ satisfied | violated
 
 The first Nexus correspondence covers ordinary start, cancellation, and successful completion.
 AutoClose and CallerClosure remain Experimental and outside the ordinary seam. The fixed local
-caller-closure Run Evaluation now orchestrates these checked stages and retains the responsible
-layer, canonical identity, and Evidence Links for every non-success rather than turning an
+caller-closure Run Evaluation now proves both a satisfied normal control and an accepted
+duplicate-delivery control whose unchanged Feature Property reports only uniqueness violated. The
+faulted run still has one real requested/completed cancellation lifecycle and callback; its second
+semantic contribution is explicitly synthetic and test-owned, not a Temporal defect claim. Both
+paths retain the responsible layer, canonical identity, and Evidence Links rather than turning an
 Observation or Implementation Link failure into a Property violation. Other scenarios remain
 unintegrated.
 
@@ -299,9 +305,9 @@ For one admitted four-member caller-closure execution set, the repository-root
 `umpire-check-local-run-evaluation` target builds the fixed Go/Lean sibling pair, checks the set,
 and immutably publishes the six-member extension containing Evidence and Result. See
 [`tools/umpire/runevaluation/README.md`](../tools/umpire/runevaluation/README.md) for the exact
-offline command, outputs, statuses, Limits, dispositions, and fail-closed boundary. Operational
-success, accepted Observation Evaluation, applied Implementation Link, and Property satisfaction
-remain independently inspectable.
+offline and paired-live commands, outputs, statuses, Limits, dispositions, and fail-closed
+boundary. Operational success, accepted Observation Evaluation, applied Implementation Link, and
+Property satisfaction or violation remain independently inspectable.
 
 Build each stage through the final module and target names:
 
