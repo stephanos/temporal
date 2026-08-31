@@ -79,6 +79,79 @@ func TestRealCheckerSiblingIsDeterministic(t *testing.T) {
 
 }
 
+func TestRealCheckerSiblingAdmitsDuplicateDeliveryViolation(t *testing.T) {
+	process := realCheckerProcess(t)
+	root := filepath.Join(
+		"..", "temporal", "nexus", "testdata", "caller-closure-duplicate-delivery-run-set",
+	)
+	members := make([]artifact.SetMember, 0, 4)
+	for _, name := range []string{
+		"experiment.json", "runtime-configuration.json", "experiment-run.json", "raw-evidence.json",
+	} {
+		encoded, err := os.ReadFile(filepath.Join(root, "artifacts", name))
+		require.NoError(t, err)
+		members = append(members, artifact.SetMember{Path: "artifacts/" + name, Encoded: encoded})
+	}
+	input, err := artifact.AdmitSet(members)
+	require.NoError(t, err)
+	execution, ok := input.Execution()
+	require.True(t, ok)
+
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+	configuration := execution.RuntimeConfiguration()
+	request.Mapping = definitionReference{
+		DefinitionID: configuration.Observation.MappingDefinitionID,
+		BehaviorFingerprint: configuration.Observation.MappingBehaviorFingerprint,
+	}
+	require.Equal(t, "temporal.system.nexus.caller-closure.duplicate-delivery.observation-program",
+		request.ObservationProgram.DefinitionID)
+	require.Equal(t, "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+		request.Mapping.DefinitionID)
+
+	stdout, stderr, runErr := runRealCheckerOutput(t, process, request)
+	require.NoError(t, runErr, string(stderr))
+	require.Empty(t, stderr)
+	response, err := decodeCheckerResponse(stdout, request)
+	require.NoError(t, err)
+	require.Equal(t, "accepted", response.ObservationEvaluationStatus)
+	require.Equal(t, "applied", response.ImplementationLinkStatus)
+	require.Equal(t, "violated", response.SemanticStatus)
+	require.Equal(t, "violated", response.QuerySummary.Status)
+	require.Len(t, response.PropertyVerdicts, 1)
+	verdict := response.PropertyVerdicts[0]
+	require.Equal(t, "violated", verdict.Status)
+	require.Equal(t, []string{
+		"workflow-nexus.property.clause.delivery",
+		"workflow-nexus.property.clause.ownership",
+		"workflow-nexus.property.clause.uniqueness",
+	}, clauseDefinitionIDs(verdict.Clauses))
+	require.Equal(t, []string{"satisfied", "satisfied", "violated"}, []string{
+		verdict.Clauses[0].Status,
+		verdict.Clauses[1].Status,
+		verdict.Clauses[2].Status,
+	})
+	require.NotNil(t, response.EvidenceBackedModelTrace)
+	require.Equal(t, "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+		response.EvidenceBackedModelTrace.ProfileDefinitionID)
+	propertyEvidence := propertyEvidenceDefinitionIDs(verdict.Clauses)
+	require.Contains(t, propertyEvidence, "umpire.runtime.fact.participant.fixture")
+	require.Contains(t, propertyEvidence,
+		"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+
+	evidence, result, err := constructEvaluation(execution, request, response)
+	require.NoError(t, err)
+	require.Equal(t, "succeeded", result.OperationalStatus)
+	require.Equal(t, "accepted", result.ObservationEvaluationStatus)
+	require.Equal(t, "violated", result.SemanticStatus)
+	first, err := execution.AdmitEvaluation(evidence, result)
+	require.NoError(t, err)
+	second, err := checkWithChecker(context.Background(), input, process.run)
+	require.NoError(t, err)
+	require.Equal(t, first.Identity(), second.Identity())
+	require.Equal(t, first.ManifestBytes(), second.ManifestBytes())
+}
+
 func TestRealCheckerSiblingAdmitsExactAcceptedSet(t *testing.T) {
 	process := realCheckerProcess(t)
 	input := realAcceptedCallerClosureExecutionFixture(t)
