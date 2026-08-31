@@ -88,8 +88,19 @@ private def facts : Lean.Json := array <| [
   fact "umpire.runtime.fact.participant.fixture" "umpire.evidence.source.participant-output"
     "umpire.evidence.kind.participant-command" 0 [] [
       field "umpire.evidence.field.cancellation-callback-count" "plain" (natural 1),
+      field "umpire.evidence.field.command-kind" "plain" (text "realize"),
       field "umpire.evidence.field.endpoint-identity" "sha256"
-        (text (fingerprint "endpoint").render)
+        (text (fingerprint "endpoint").render),
+      field "umpire.evidence.field.namespace-identity" "sha256"
+        (text (fingerprint "namespace").render),
+      field "umpire.evidence.field.operation-correlation-id" "plain"
+        (text "temporal.operation.caller-closure.fixture"),
+      field "umpire.evidence.field.run-correlation-id" "plain" (text runIdentity.value),
+      field "umpire.evidence.field.status" "plain" (text "accepted"),
+      field "umpire.evidence.field.task-queue-identity" "sha256"
+        (text (fingerprint "task-queue").render),
+      field "umpire.evidence.field.workflow-correlation-id" "plain"
+        (text "temporal.workflow.caller-closure.fixture")
     ]
 ]
 
@@ -264,7 +275,18 @@ private def malformedDigestParticipantFact : Lean.Json := fact
   "umpire.runtime.fact.participant.fixture" "umpire.evidence.source.participant-output"
   "umpire.evidence.kind.participant-command" 0 [] [
     field "umpire.evidence.field.cancellation-callback-count" "plain" (natural 1),
-    field "umpire.evidence.field.endpoint-identity" "sha256" (text "sha256:malformed")
+    field "umpire.evidence.field.command-kind" "plain" (text "realize"),
+    field "umpire.evidence.field.endpoint-identity" "sha256" (text "sha256:malformed"),
+    field "umpire.evidence.field.namespace-identity" "sha256"
+      (text (fingerprint "namespace").render),
+    field "umpire.evidence.field.operation-correlation-id" "plain"
+      (text "temporal.operation.caller-closure.fixture"),
+    field "umpire.evidence.field.run-correlation-id" "plain" (text runIdentity.value),
+    field "umpire.evidence.field.status" "plain" (text "accepted"),
+    field "umpire.evidence.field.task-queue-identity" "sha256"
+      (text (fingerprint "task-queue").render),
+    field "umpire.evidence.field.workflow-correlation-id" "plain"
+      (text "temporal.workflow.caller-closure.fixture")
   ]
 
 private def extraSourceRequest : Request := { request with
@@ -363,9 +385,19 @@ private def rejectedControlFact : Lean.Json := fact
 private def participantFact : Lean.Json := fact
   "umpire.runtime.fact.participant.fixture" "umpire.evidence.source.participant-output"
   "umpire.evidence.kind.participant-command" 0 [] [
-    field "umpire.evidence.field.cancellation-callback-count" "plain" (natural 1),
+    field "umpire.evidence.field.command-kind" "plain" (text "realize"),
     field "umpire.evidence.field.endpoint-identity" "sha256"
-      (text (fingerprint "endpoint").render)
+      (text (fingerprint "endpoint").render),
+    field "umpire.evidence.field.namespace-identity" "sha256"
+      (text (fingerprint "namespace").render),
+    field "umpire.evidence.field.operation-correlation-id" "plain"
+      (text "temporal.operation.caller-closure.fixture"),
+    field "umpire.evidence.field.run-correlation-id" "plain" (text runIdentity.value),
+    field "umpire.evidence.field.status" "plain" (text "rejected"),
+    field "umpire.evidence.field.task-queue-identity" "sha256"
+      (text (fingerprint "task-queue").render),
+    field "umpire.evidence.field.workflow-correlation-id" "plain"
+      (text "temporal.workflow.caller-closure.fixture")
   ]
 
 private def rejectedControlAttempts : Lean.Json := array [object [
