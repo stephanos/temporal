@@ -434,7 +434,7 @@ func (a *sdkCommandAdapter) contributeDuplicateObservation(
 	fact, err := umpireruntime.NewFact(
 		factIdentity("participant-synthetic-duplicate-delivery-observation", command.RunIdentity()),
 		umpireruntime.EvidenceSourceParticipantOutput,
-		duplicateObservationFactKind,
+		umpireruntime.EvidenceKindParticipantCommand,
 		[]string{factIdentity("participant-realize", command.RunIdentity())},
 		fields,
 	)
@@ -695,7 +695,7 @@ func operationalFact(
 	return umpireruntime.NewFact(
 		factIdentity("participant-"+string(command.Kind()), command.RunIdentity()),
 		participantFactSource(command.Kind()),
-		"umpire.evidence.kind.participant-command",
+		umpireruntime.EvidenceKindParticipantCommand,
 		[]string{},
 		fields,
 	)

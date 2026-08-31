@@ -19,6 +19,7 @@
     "fn-21-nexus-duplicate-observation-control.1": 0,
     "fn-21-nexus-duplicate-observation-control.2": 0,
     "fn-21-nexus-duplicate-observation-control.3": 0,
+    "fn-21-nexus-duplicate-observation-control.4": 1,
     "fn-21-nexus-duplicate-observation-control.7": 0
   },
   "next_task": 1,
@@ -404,6 +405,59 @@
       "timestamp": "2026-08-31T07:33:47.859708Z",
       "tool_calls": 21,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "add575de33056453cf3c459e9b321abfb47926a162a3fb0d4e431a16d2c12a6a",
+      "backend": "codex",
+      "base_sha": "18d58b84898fa46e8f043ab05a065043648b5eb5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1dae2b99207b0ca59de10da997ea0b34",
+            "classification": "introduced",
+            "findingId": "finding-1dae2b99207b0ca59de10da997ea0b34",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-656a66c756545958e311586625853617",
+            "classification": "introduced",
+            "findingId": "finding-656a66c756545958e311586625853617",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "58cf618ab46e537b3e7d1b7eeaa353485c979751",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 516474,
+      "output_sha256": "b4efb346f0044e1b9bda1df28f1527b23afe3c752989e3222952cbf9a85a414d",
+      "reservation_id": "e3e32107fc05460188481dfd9955b9c4",
+      "round_consumed": true,
+      "scope": "impl:fn-21-nexus-duplicate-observation-control.4",
+      "superseded_by": null,
+      "task": "fn-21-nexus-duplicate-observation-control.4",
+      "timestamp": "2026-08-31T08:41:37.966801Z",
+      "tool_calls": 41,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -420,6 +474,7 @@
     "impl:fn-21-nexus-duplicate-observation-control.1": 0,
     "impl:fn-21-nexus-duplicate-observation-control.2": 0,
     "impl:fn-21-nexus-duplicate-observation-control.3": 0,
+    "impl:fn-21-nexus-duplicate-observation-control.4": 0,
     "impl:fn-21-nexus-duplicate-observation-control.7": 0,
     "plan": 0
   },
@@ -437,5 +492,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T07:33:47.871783Z"
+  "updated_at": "2026-08-31T08:41:37.981642Z"
 }

@@ -45,6 +45,14 @@ func TestLiveCallerClosureReturnsAndPublishesOneExactOperationalSet(t *testing.T
 	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
 	require.Empty(t, run.KnownGaps)
 	require.Empty(t, rawEvidence.KnownGaps)
+	receipt := rawFactsByKind(rawEvidence.Facts, artifactv2.ControlReceiptKindDefinitionID)
+	require.Len(t, receipt, 1)
+	require.Equal(t, []string{
+		artifactv2.ControlReceiptActionFieldDefinitionID,
+		artifactv2.ControlReceiptAttemptFieldDefinitionID,
+		artifactv2.ControlReceiptOccurrenceFieldDefinitionID,
+		artifactv2.ControlReceiptStatusFieldDefinitionID,
+	}, rawEvidenceFieldDefinitionIDs(receipt[0]))
 
 	runBytes, err := artifact.EncodeExperimentRunV2(run)
 	require.NoError(t, err)
@@ -119,8 +127,12 @@ func TestLiveFaultedCallerClosureReturnsClosedFaultRealizationEvidence(t *testin
 	require.Equal(t, forceCloseOccurrenceDefinitionID,
 		executable.Experiment().Plan.RequestedFaults[0].Value)
 
-	synthetic := rawFactsByKind(rawEvidence.Facts, duplicateObservationFactKind)
+	synthetic := rawEvidenceFactsWithField(
+		rawEvidence,
+		umpireruntime.EvidenceFieldSyntheticContributionMarker,
+	)
 	require.Len(t, synthetic, 1)
+	require.Equal(t, umpireruntime.EvidenceKindParticipantCommand, synthetic[0].KindDefinitionID)
 	require.Equal(t, duplicateDeliverySyntheticFieldOrder[:],
 		rawEvidenceFieldDefinitionIDs(synthetic[0]))
 	require.Equal(t, "1", rawFactFieldValue(t, synthetic[0],
@@ -137,6 +149,27 @@ func TestLiveFaultedCallerClosureReturnsClosedFaultRealizationEvidence(t *testin
 		umpireruntime.EvidenceFieldCancellationRequestedCount))
 	require.Equal(t, "1", rawFactFieldValue(t, synthetic[0],
 		umpireruntime.EvidenceFieldCancellationCompletedCount))
+	receipt := rawFactsByKind(rawEvidence.Facts, artifactv2.ControlReceiptKindDefinitionID)
+	require.Len(t, receipt, 1)
+	require.Equal(t, []string{
+		artifactv2.ControlReceiptActionFieldDefinitionID,
+		artifactv2.ControlReceiptAttemptFieldDefinitionID,
+		umpireruntime.EvidenceFieldCapabilityDefinitionID,
+		umpireruntime.EvidenceFieldFaultDefinitionID,
+		umpireruntime.EvidenceFieldFaultReceiptDefinitionID,
+		artifactv2.ControlReceiptOccurrenceFieldDefinitionID,
+		umpireruntime.EvidenceFieldOperationCorrelationID,
+		artifactv2.ControlReceiptStatusFieldDefinitionID,
+	}, rawEvidenceFieldDefinitionIDs(receipt[0]))
+	for _, definitionID := range []string{
+		umpireruntime.EvidenceFieldCapabilityDefinitionID,
+		umpireruntime.EvidenceFieldFaultDefinitionID,
+		umpireruntime.EvidenceFieldFaultReceiptDefinitionID,
+		umpireruntime.EvidenceFieldOperationCorrelationID,
+	} {
+		require.Equal(t, rawFactFieldValue(t, synthetic[0], definitionID),
+			rawFactFieldValue(t, receipt[0], definitionID))
+	}
 
 	callback := rawEvidenceFactsWithField(
 		rawEvidence,

@@ -91,9 +91,21 @@ var duplicateDeliveryOnlyFields = map[string]struct{}{
 	umpireruntime.EvidenceFieldSyntheticContributionMarker: {},
 }
 
-type cancellationLifecycle struct {
-	requested artifactv2.RawEvidenceFact
-	completed artifactv2.RawEvidenceFact
+var faultEvaluationDispositionFields = map[string]struct{}{
+	umpireruntime.EvidenceFieldCancellationCallbackCount:   {},
+	umpireruntime.EvidenceFieldCancellationCompletedCount:  {},
+	umpireruntime.EvidenceFieldCancellationRequestedCount:  {},
+	umpireruntime.EvidenceFieldCapabilityDefinitionID:      {},
+	umpireruntime.EvidenceFieldCommandKind:                 {},
+	umpireruntime.EvidenceFieldEventType:                   {},
+	umpireruntime.EvidenceFieldFaultDefinitionID:           {},
+	umpireruntime.EvidenceFieldFaultReceiptDefinitionID:    {},
+	umpireruntime.EvidenceFieldOperationCorrelationID:      {},
+	umpireruntime.EvidenceFieldRunCorrelationID:            {},
+	umpireruntime.EvidenceFieldStatus:                      {},
+	umpireruntime.EvidenceFieldSyntheticContributionCount:  {},
+	umpireruntime.EvidenceFieldSyntheticContributionMarker: {},
+	umpireruntime.EvidenceFieldWorkflowCorrelationID:       {},
 }
 
 // The exact checked caller-closure request executes through the digest-bound
@@ -129,15 +141,14 @@ func validateExecutionClosure(
 	); err != nil {
 		return err
 	}
-	if err := validateMechanicalEvidence(run, rawEvidence); err != nil {
+	faulted := configuration.ConfigurationDefinitionID == duplicateDeliveryConfigurationDefinitionID
+	if err := validateMechanicalEvidence(run, rawEvidence, faulted); err != nil {
 		return err
 	}
-	if configuration.ConfigurationDefinitionID == duplicateDeliveryConfigurationDefinitionID {
-		if err := validateDuplicateDeliveryEvidence(executable, run, rawEvidence); err != nil {
+	if !faulted {
+		if err := rejectDuplicateDeliveryEvidence(rawEvidence); err != nil {
 			return err
 		}
-	} else if err := rejectDuplicateDeliveryEvidence(rawEvidence); err != nil {
-		return err
 	}
 	expected, err := executable.AdmitExecution(run, rawEvidence)
 	if err != nil {
@@ -152,185 +163,11 @@ func validateExecutionClosure(
 	return requirePrettyLine(admitted.ManifestBytes())
 }
 
-func validateDuplicateDeliveryEvidence(
-	executable artifact.ExecutableSet,
-	run artifactv2.ExperimentRun,
-	rawEvidence artifactv2.RawEvidence,
-) error {
-	if err := validateDuplicateDeliveryRequest(executable.Experiment(), run); err != nil {
-		return err
-	}
-	syntheticFacts := rawEvidenceFactsByKind(rawEvidence, duplicateObservationFactKind)
-	if run.OperationalStatus != "succeeded" && len(syntheticFacts) == 0 {
-		return nil
-	}
-	if run.OperationalStatus == "succeeded" && !acceptedControlAttempt(run.ControlAttempts[0]) {
-		return errors.New("successful faulted execution has no accepted control receipt")
-	}
-	synthetic, err := exactDuplicateDeliverySyntheticFact(syntheticFacts, run.RunIdentity)
-	if err != nil {
-		return err
-	}
-	callback, err := exactMechanicalCallbackFact(rawEvidence, synthetic)
-	if err != nil {
-		return err
-	}
-	lifecycle, err := exactCancellationLifecycle(rawEvidence)
-	if err != nil {
-		return err
-	}
-	return validateFaultRealizationCorrelations(
-		executable, run.RunIdentity, synthetic, callback, lifecycle.requested, lifecycle.completed,
-	)
-}
-
-func validateDuplicateDeliveryRequest(
-	experiment artifactv2.Experiment,
-	run artifactv2.ExperimentRun,
-) error {
-	if len(experiment.Plan.RequestedFaults) != 1 ||
-		experiment.Plan.RequestedFaults[0].DefinitionID != duplicateDeliveryFaultDefinitionID ||
-		experiment.Plan.RequestedFaults[0].Value != forceCloseOccurrenceDefinitionID {
-		return errors.New("faulted execution does not bind the exact requested fault")
-	}
-	if len(run.ControlAttempts) != 1 ||
-		run.ControlAttempts[0].OccurrenceDefinitionID != forceCloseOccurrenceDefinitionID ||
-		run.ControlAttempts[0].ActionDefinitionID != forceCloseActionDefinitionID ||
-		run.ControlAttempts[0].Attempt.String() != "1" {
-		return errors.New("faulted execution does not bind the exact control occurrence")
-	}
-	return nil
-}
-
-func acceptedControlAttempt(attempt artifactv2.ControlAttempt) bool {
-	return attempt.Status == "accepted" && attempt.ReceiptFactDefinitionID != nil
-}
-
-func exactDuplicateDeliverySyntheticFact(
-	facts []artifactv2.RawEvidenceFact,
-	runIdentity string,
-) (artifactv2.RawEvidenceFact, error) {
-	if len(facts) != 1 {
-		return artifactv2.RawEvidenceFact{}, fmt.Errorf(
-			"faulted execution has %d synthetic contribution facts", len(facts))
-	}
-	synthetic := facts[0]
-	if !slices.Equal(rawEvidenceFieldDefinitionIDs(synthetic),
-		duplicateDeliverySyntheticFieldOrder[:]) {
-		return artifactv2.RawEvidenceFact{},
-			errors.New("synthetic contribution does not have the exact closed fields")
-	}
-	for definitionID, expected := range map[string]string{
-		umpireruntime.EvidenceFieldCancellationCompletedCount:  "1",
-		umpireruntime.EvidenceFieldCancellationRequestedCount:  "1",
-		umpireruntime.EvidenceFieldCapabilityDefinitionID:      "nexus.capability.cancellation",
-		umpireruntime.EvidenceFieldCommandKind:                 string(umpireruntime.CommandRealize),
-		umpireruntime.EvidenceFieldFaultDefinitionID:           duplicateDeliveryFaultDefinitionID,
-		umpireruntime.EvidenceFieldFaultReceiptDefinitionID:    duplicateDeliveryFaultReceiptDefinitionID,
-		umpireruntime.EvidenceFieldRunCorrelationID:            runIdentity,
-		umpireruntime.EvidenceFieldStatus:                      "accepted",
-		umpireruntime.EvidenceFieldSyntheticContributionCount:  "1",
-		umpireruntime.EvidenceFieldSyntheticContributionMarker: duplicateObservationFactKind,
-	} {
-		actual, err := rawFieldString(synthetic, definitionID)
-		if err != nil || actual != expected {
-			return artifactv2.RawEvidenceFact{}, fmt.Errorf(
-				"synthetic contribution field %q is not exact", definitionID)
-		}
-	}
-	return synthetic, nil
-}
-
-func exactMechanicalCallbackFact(
-	rawEvidence artifactv2.RawEvidence,
-	synthetic artifactv2.RawEvidenceFact,
-) (artifactv2.RawEvidenceFact, error) {
-	callbackFacts := rawEvidenceFactsWithField(
-		rawEvidence,
-		umpireruntime.EvidenceFieldCancellationCallbackCount,
-	)
-	if len(callbackFacts) != 1 {
-		return artifactv2.RawEvidenceFact{}, fmt.Errorf(
-			"faulted execution has %d mechanical callback facts", len(callbackFacts))
-	}
-	callback := callbackFacts[0]
-	callbackCount, err := rawNaturalField(callback, umpireruntime.EvidenceFieldCancellationCallbackCount)
-	if err != nil || callbackCount != 1 {
-		return artifactv2.RawEvidenceFact{},
-			errors.New("mechanical cancellation callback count is not one")
-	}
-	syntheticOrdinal, syntheticOrdinalErr := rawOrdinal(synthetic)
-	callbackOrdinal, callbackOrdinalErr := rawOrdinal(callback)
-	if !slices.Equal(synthetic.CausalFactDefinitionIDs, []string{callback.FactDefinitionID}) ||
-		synthetic.SourceDefinitionID != callback.SourceDefinitionID ||
-		syntheticOrdinalErr != nil || callbackOrdinalErr != nil ||
-		syntheticOrdinal <= callbackOrdinal {
-		return artifactv2.RawEvidenceFact{},
-			errors.New("synthetic contribution does not follow the real callback fact")
-	}
-	return callback, nil
-}
-
-func exactCancellationLifecycle(
-	rawEvidence artifactv2.RawEvidence,
-) (cancellationLifecycle, error) {
-	requested, err := exactHistoryEventFact(
-		rawEvidence,
-		"temporal.history.NexusOperationCancelRequested",
-	)
-	if err != nil {
-		return cancellationLifecycle{}, err
-	}
-	completed, err := exactHistoryEventFact(
-		rawEvidence,
-		"temporal.history.NexusOperationCancelRequestCompleted",
-	)
-	if err != nil {
-		return cancellationLifecycle{}, err
-	}
-	completedOrdinal, completedOrdinalErr := rawOrdinal(completed)
-	requestedOrdinal, requestedOrdinalErr := rawOrdinal(requested)
-	if !slices.Equal(completed.CausalFactDefinitionIDs, []string{requested.FactDefinitionID}) ||
-		completedOrdinalErr != nil || requestedOrdinalErr != nil ||
-		completedOrdinal <= requestedOrdinal {
-		return cancellationLifecycle{}, errors.New("completed cancellation does not follow its request")
-	}
-	return cancellationLifecycle{requested: requested, completed: completed}, nil
-}
-
-func validateFaultRealizationCorrelations(
-	executable artifact.ExecutableSet,
-	runIdentity string,
-	facts ...artifactv2.RawEvidenceFact,
-) error {
-	request, err := CheckRequest(executable.AdmittedSet(), runIdentity)
-	if err != nil {
-		return fmt.Errorf("recheck faulted execution request: %w", err)
-	}
-	correlations := requestCorrelations(request)
-	for definitionID, expected := range map[string]string{
-		umpireruntime.EvidenceFieldOperationCorrelationID: correlations.operation,
-		umpireruntime.EvidenceFieldRunCorrelationID:       runIdentity,
-		umpireruntime.EvidenceFieldWorkflowCorrelationID:  correlations.workflow,
-	} {
-		if expected == "" {
-			return fmt.Errorf("synthetic contribution correlation %q is unavailable", definitionID)
-		}
-		for _, fact := range facts {
-			actual, fieldErr := rawStringField(fact, definitionID)
-			if fieldErr != nil || actual != expected {
-				return fmt.Errorf("fault realization correlation %q does not close", definitionID)
-			}
-		}
-	}
-	return nil
-}
-
 func rejectDuplicateDeliveryEvidence(rawEvidence artifactv2.RawEvidence) error {
-	if len(rawEvidenceFactsByKind(rawEvidence, duplicateObservationFactKind)) != 0 {
-		return errors.New("normal execution contains a synthetic duplicate contribution")
-	}
 	for _, fact := range rawEvidence.Facts {
+		if fact.KindDefinitionID == duplicateObservationFactKind {
+			return errors.New("normal execution contains a synthetic duplicate contribution")
+		}
 		for _, field := range fact.Fields {
 			if _, faultOnly := duplicateDeliveryOnlyFields[field.FieldDefinitionID]; faultOnly {
 				return fmt.Errorf("normal execution contains fault-only field %q", field.FieldDefinitionID)
@@ -338,19 +175,6 @@ func rejectDuplicateDeliveryEvidence(rawEvidence artifactv2.RawEvidence) error {
 		}
 	}
 	return nil
-}
-
-func rawEvidenceFactsByKind(
-	rawEvidence artifactv2.RawEvidence,
-	kindDefinitionID string,
-) []artifactv2.RawEvidenceFact {
-	facts := make([]artifactv2.RawEvidenceFact, 0, 1)
-	for _, fact := range rawEvidence.Facts {
-		if fact.KindDefinitionID == kindDefinitionID {
-			facts = append(facts, fact)
-		}
-	}
-	return facts
 }
 
 func rawEvidenceFactsWithField(
@@ -401,21 +225,6 @@ func rawEvidenceFieldDefinitionIDs(fact artifactv2.RawEvidenceFact) []string {
 	return definitionIDs
 }
 
-func rawFieldString(fact artifactv2.RawEvidenceFact, definitionID string) (string, error) {
-	if value, err := rawStringField(fact, definitionID); err == nil {
-		return value, nil
-	}
-	value, err := rawNaturalField(fact, definitionID)
-	if err != nil {
-		return "", err
-	}
-	return strconv.FormatUint(value, 10), nil
-}
-
-func rawOrdinal(fact artifactv2.RawEvidenceFact) (uint64, error) {
-	return strconv.ParseUint(fact.Ordinal.String(), 10, 64)
-}
-
 func requestCorrelations(request umpireruntime.CheckedRunRequest) adapterCorrelations {
 	result := adapterCorrelations{}
 	for _, correlation := range request.Correlations() {
@@ -442,6 +251,7 @@ func requirePrettyLine(encoded []byte) error {
 func validateMechanicalEvidence(
 	run artifactv2.ExperimentRun,
 	rawEvidence artifactv2.RawEvidence,
+	faulted bool,
 ) error {
 	if len(rawEvidence.Sources) != len(exactSourceOrder) ||
 		len(run.SourceClosures) != len(exactSourceOrder) {
@@ -467,11 +277,11 @@ func validateMechanicalEvidence(
 		return err
 	}
 	for _, fact := range rawEvidence.Facts {
-		if err := validateRetainedFields(fact); err != nil {
+		if err := validateRetainedFields(fact, faulted); err != nil {
 			return err
 		}
 	}
-	if err := validateHistoryClosure(rawEvidence); err != nil {
+	if err := validateHistoryClosure(rawEvidence, !faulted); err != nil {
 		return err
 	}
 	return validateCleanupClosure(run, rawEvidence)
@@ -509,11 +319,14 @@ func optionalString(value *string) string {
 	return *value
 }
 
-func validateRetainedFields(fact artifactv2.RawEvidenceFact) error {
+func validateRetainedFields(fact artifactv2.RawEvidenceFact, faulted bool) error {
 	for _, field := range fact.Fields {
 		kind, allowed := retainedFieldDisposition[field.FieldDefinitionID]
 		if !allowed {
 			return fmt.Errorf("evidence field %q is not allowlisted", field.FieldDefinitionID)
+		}
+		if faulted && faultEvaluationDispositionMayBeOpaque(fact, field.FieldDefinitionID) {
+			continue
 		}
 		switch kind {
 		case "sha256":
@@ -544,7 +357,27 @@ func validateRetainedFields(fact artifactv2.RawEvidenceFact) error {
 	return nil
 }
 
-func validateHistoryClosure(rawEvidence artifactv2.RawEvidence) error {
+func faultEvaluationDispositionMayBeOpaque(
+	fact artifactv2.RawEvidenceFact,
+	fieldDefinitionID string,
+) bool {
+	if _, semantic := faultEvaluationDispositionFields[fieldDefinitionID]; !semantic {
+		return false
+	}
+	switch fact.SourceDefinitionID {
+	case umpireruntime.EvidenceSourceParticipantOutput:
+		return true
+	case umpireruntime.EvidenceSourceHistory:
+		return fieldDefinitionID == umpireruntime.EvidenceFieldEventType ||
+			fieldDefinitionID == umpireruntime.EvidenceFieldOperationCorrelationID ||
+			fieldDefinitionID == umpireruntime.EvidenceFieldRunCorrelationID ||
+			fieldDefinitionID == umpireruntime.EvidenceFieldWorkflowCorrelationID
+	default:
+		return false
+	}
+}
+
+func validateHistoryClosure(rawEvidence artifactv2.RawEvidence, requireCallerClosure bool) error {
 	historyStatus := ""
 	for _, source := range rawEvidence.Sources {
 		if source.SourceDefinitionID == umpireruntime.EvidenceSourceHistory {
@@ -576,16 +409,18 @@ func validateHistoryClosure(rawEvidence artifactv2.RawEvidence) error {
 		if err != nil || eventID <= previousEventID {
 			return errors.New("history event IDs are not strictly increasing")
 		}
-		eventType, err := rawStringField(fact, umpireruntime.EvidenceFieldEventType)
-		if err != nil {
-			return err
+		if requireCallerClosure {
+			eventType, err := rawStringField(fact, umpireruntime.EvidenceFieldEventType)
+			if err != nil {
+				return err
+			}
+			lastEventType = eventType
+			eventCounts[eventType]++
 		}
 		previousFact = fact.FactDefinitionID
 		previousEventID = eventID
-		lastEventType = eventType
-		eventCounts[eventType]++
 	}
-	if historyStatus != "closed" {
+	if historyStatus != "closed" || !requireCallerClosure {
 		return nil
 	}
 	if lastEventType != "temporal.history.WorkflowExecutionCanceled" {

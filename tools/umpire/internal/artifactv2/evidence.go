@@ -13,13 +13,24 @@ const RawEvidenceFormat = "umpire-raw-evidence/v2"
 const rawEvidenceChecksumDomain = "umpire.raw-evidence/v2"
 
 const (
-	ControlReceiptSourceDefinitionID          = "umpire.evidence.source.control-receipt"
-	ControlReceiptKindDefinitionID            = "umpire.evidence.kind.control-receipt"
-	ControlReceiptActionFieldDefinitionID     = "umpire.evidence.field.action-definition-id"
-	ControlReceiptAttemptFieldDefinitionID    = "umpire.evidence.field.attempt"
-	ControlReceiptOccurrenceFieldDefinitionID = "umpire.evidence.field.occurrence-definition-id"
-	ControlReceiptStatusFieldDefinitionID     = "umpire.evidence.field.status"
+	ControlReceiptSourceDefinitionID            = "umpire.evidence.source.control-receipt"
+	ControlReceiptKindDefinitionID              = "umpire.evidence.kind.control-receipt"
+	ControlReceiptActionFieldDefinitionID       = "umpire.evidence.field.action-definition-id"
+	ControlReceiptAttemptFieldDefinitionID      = "umpire.evidence.field.attempt"
+	ControlReceiptCapabilityFieldDefinitionID   = "umpire.evidence.field.capability-definition-id"
+	ControlReceiptFaultFieldDefinitionID        = "umpire.evidence.field.fault-definition-id"
+	ControlReceiptFaultReceiptFieldDefinitionID = "umpire.evidence.field.fault-receipt-definition-id"
+	ControlReceiptOccurrenceFieldDefinitionID   = "umpire.evidence.field.occurrence-definition-id"
+	ControlReceiptOperationFieldDefinitionID    = "umpire.evidence.field.operation-correlation-id"
+	ControlReceiptStatusFieldDefinitionID       = "umpire.evidence.field.status"
 )
+
+var controlReceiptFaultBindingFieldDefinitionIDs = map[string]struct{}{
+	ControlReceiptCapabilityFieldDefinitionID:   {},
+	ControlReceiptFaultFieldDefinitionID:        {},
+	ControlReceiptFaultReceiptFieldDefinitionID: {},
+	ControlReceiptOperationFieldDefinitionID:    {},
+}
 
 type RawEvidenceSource struct {
 	SourceDefinitionID string  `json:"sourceDefinitionId"`
@@ -447,8 +458,8 @@ func validateControlReceiptFact(fact RawEvidenceFact, attempt ControlAttempt) er
 		fact.KindDefinitionID != ControlReceiptKindDefinitionID {
 		return fmt.Errorf("control receipt %q has the wrong source or kind", fact.FactDefinitionID)
 	}
-	if len(fact.Fields) != 4 {
-		return fmt.Errorf("control receipt %q must contain exactly four binding fields",
+	if len(fact.Fields) != 4 && len(fact.Fields) != 8 {
+		return fmt.Errorf("control receipt %q must contain four or eight binding fields",
 			fact.FactDefinitionID)
 	}
 	values := make(map[string]any, len(fact.Fields))
@@ -460,6 +471,13 @@ func validateControlReceiptFact(fact RawEvidenceFact, attempt ControlAttempt) er
 		if field.Disposition != "plain" {
 			return fmt.Errorf("control receipt %q field %q is not plain",
 				fact.FactDefinitionID, field.FieldDefinitionID)
+		}
+		if _, optional := controlReceiptFaultBindingFieldDefinitionIDs[field.FieldDefinitionID]; optional {
+			value, ok := field.Value.(string)
+			if !ok || !validDefinitionID(value) {
+				return fmt.Errorf("control receipt %q field %q is not one closed identity",
+					fact.FactDefinitionID, field.FieldDefinitionID)
+			}
 		}
 		values[field.FieldDefinitionID] = field.Value
 	}
@@ -473,6 +491,23 @@ func validateControlReceiptFact(fact RawEvidenceFact, attempt ControlAttempt) er
 		value, ok := values[fieldDefinitionID]
 		if !ok || value != expectedValue {
 			return fmt.Errorf("control receipt %q field %q does not match ExperimentRun",
+				fact.FactDefinitionID, fieldDefinitionID)
+		}
+	}
+	if len(fact.Fields) == 8 {
+		for fieldDefinitionID := range controlReceiptFaultBindingFieldDefinitionIDs {
+			if _, ok := values[fieldDefinitionID]; !ok {
+				return fmt.Errorf("control receipt %q is missing fault-binding field %q",
+					fact.FactDefinitionID, fieldDefinitionID)
+			}
+		}
+	}
+	for fieldDefinitionID := range values {
+		if _, mandatory := expected[fieldDefinitionID]; mandatory {
+			continue
+		}
+		if _, optional := controlReceiptFaultBindingFieldDefinitionIDs[fieldDefinitionID]; !optional {
+			return fmt.Errorf("control receipt %q has unknown binding field %q",
 				fact.FactDefinitionID, fieldDefinitionID)
 		}
 	}
