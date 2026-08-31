@@ -124,13 +124,9 @@ func admitCallerClosure(t *testing.T) artifact.AdmittedSet {
 	return input
 }
 
-func TestHermeticCIPortability(t *testing.T) {
-	require.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))
-}
-
-// TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally runs the exact
+// TestHermeticCIPortability runs the exact
 // generated two-member input through the bounded local adapter without publishing it.
-func TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally(t *testing.T) {
+func TestHermeticCIPortability(t *testing.T) {
 	require.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))
 	input := admitCallerClosure(t)
 
@@ -147,12 +143,31 @@ func TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally(t *t
 			ExperimentBehaviorFingerprint:           "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
 			RuntimeConfigurationArtifactChecksum:    "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5",
 			RuntimeConfigurationBehaviorFingerprint: "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
+			AuthorityRequiredCapabilityDefinitionIDs: []string{
+				"umpire.runtime.capability.complete-workflow-history-read",
+				"umpire.runtime.capability.ephemeral-server-lifecycle",
+				"umpire.runtime.capability.sdk-worker-lifecycle",
+			},
 		},
 		"umpire.generated.caller-closure.run-1",
 		nexus.Binding{},
 	)
 	require.NoError(t, err)
-	require.Equal(t, "succeeded", output.ExperimentRun().OperationalStatus)
+	run := output.ExperimentRun()
+	require.Equal(t, "succeeded", run.OperationalStatus)
+	phaseStatuses := make([]string, len(run.PhaseOutcomes))
+	for index, phase := range run.PhaseOutcomes {
+		phaseStatuses[index] = phase.Status
+	}
+	require.Equal(t, []string{
+		"succeeded",
+		"succeeded",
+		"succeeded",
+		"succeeded",
+		"succeeded",
+	}, phaseStatuses)
+	require.Equal(t, "complete", run.Cleanup.Status)
+	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
 	require.Equal(t, "closed", output.RawEvidence().CaptureStatus)
 	sources := output.RawEvidence().Sources
 	sourceDefinitionIDs := make([]string, len(sources))
@@ -165,6 +180,6 @@ func TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally(t *t
 		umpireruntime.EvidenceSourceHistory,
 		umpireruntime.EvidenceSourceParticipantOutput,
 	}, sourceDefinitionIDs)
-	require.Empty(t, output.ExperimentRun().KnownGaps)
+	require.Empty(t, run.KnownGaps)
 	require.Empty(t, output.RawEvidence().KnownGaps)
 }
