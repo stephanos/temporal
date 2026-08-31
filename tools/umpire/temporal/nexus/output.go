@@ -585,7 +585,7 @@ func rawStringField(fact artifactv2.RawEvidenceFact, definitionID string) (strin
 			continue
 		}
 		value, ok := field.Value.(string)
-		if !ok || value == "" {
+		if field.Disposition != "plain" || !ok || value == "" {
 			return "", fmt.Errorf("field %q is not one string", definitionID)
 		}
 		return value, nil
