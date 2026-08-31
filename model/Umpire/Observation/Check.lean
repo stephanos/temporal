@@ -60,10 +60,10 @@ private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
 
 private def relevantEvidenceLinks
     (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (application : AppliedImplementationLink checked)
+    (implementationEvidenceLinks : List ImplementationLinkEvidenceLink)
     (clause : ResolvedPropertyClause) : List EvidenceLink :=
   let patterns := clausePatterns clause
-  application.evidenceLinks.filterMap fun implementationEvidenceLink =>
+  implementationEvidenceLinks.filterMap fun implementationEvidenceLink =>
     match valueAtCoordinate destinationTrace implementationEvidenceLink.coordinate with
     | none => none
     | some value =>
@@ -78,10 +78,10 @@ private def translatedClauseVerdict
     (query : CheckedQuery DestinationLawStatement)
     (sourceTrace : EvidenceBackedTrace)
     (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (application : AppliedImplementationLink checked)
+    (implementationEvidenceLinks : List ImplementationLinkEvidenceLink)
     (clause : ResolvedPropertyClause)
     (result : PropertyClauseResult) : SemanticClauseVerdict :=
-  let evidenceLinks := relevantEvidenceLinks destinationTrace application clause
+  let evidenceLinks := relevantEvidenceLinks destinationTrace implementationEvidenceLinks clause
   {
     propertyId := result.propertyId
     clauseId := result.clauseId
@@ -129,7 +129,8 @@ private def translatedPropertyVerdict
     (query : CheckedQuery DestinationLawStatement)
     (property : CheckedProperty)
     (sourceTrace : EvidenceBackedTrace)
-    (application : AppliedImplementationLink checked) :
+    (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
+    (implementationEvidenceLinks : List ImplementationLinkEvidenceLink) :
     SemanticPropertyVerdict :=
   match query.form.properties.find? fun expected => expected.id == property.id with
   | none =>
@@ -139,15 +140,16 @@ private def translatedPropertyVerdict
       if expected != property then
         unresolvedPropertyVerdict query property .unsupported .queryPropertyMismatch
           [query.id, property.id] (some sourceTrace.traceId) (some sourceTrace.appliedBound)
-      else if !property.hasRequiredLogicalTime application.trace then
+      else if !property.hasRequiredLogicalTime destinationTrace then
         unresolvedPropertyVerdict query property .unknown .missingLogicalTime
           property.access.logicalTimeSource.toList
           (some sourceTrace.traceId) (some sourceTrace.appliedBound)
       else
-        let evaluation := evaluateProperty property application.trace
+        let evaluation := evaluateProperty property destinationTrace
         let clauses := property.clauses.filterMap fun clause =>
           (evaluation.clauses.find? fun result => result.clauseId == clause.id).map fun result =>
-            translatedClauseVerdict query sourceTrace application.trace application clause result
+            translatedClauseVerdict query sourceTrace destinationTrace implementationEvidenceLinks
+              clause result
         {
           queryId := query.id
           propertyId := property.id
@@ -158,7 +160,7 @@ private def translatedPropertyVerdict
           evidenceBound := some sourceTrace.appliedBound
           provenance := canonicalIds
             ([query.id, property.id, sourceTrace.mappingId] ++
-              (application.evidenceLinks.head?.map
+              (implementationEvidenceLinks.head?.map
                 ImplementationLinkEvidenceLink.implementationLinkId).toList ++ property.requires ++
               clauses.flatMap SemanticClauseVerdict.provenance)
           clauses
@@ -187,6 +189,60 @@ private def targetMismatchVerdict
     [query.target.id, checked.destinationTarget.id, property.id]
     (some sourceTrace.traceId) (some sourceTrace.appliedBound)
 
+private inductive TranslationOutcome where
+  | translated
+      (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
+      (evidenceLinks : List ImplementationLinkEvidenceLink)
+  | failed (diagnostic : ImplementationLinkDiagnostic)
+
+private def strictTranslationOutcome
+    (result : ImplementationLinkResult checked) : TranslationOutcome :=
+  match result with
+  | .applied application => .translated application.trace application.evidenceLinks
+  | .invalid diagnostic
+  | .unknown diagnostic
+  | .conflict diagnostic
+  | .unsupported diagnostic => .failed diagnostic
+
+private def observedTranslationOutcome
+    (result : ObservedTraceTranslationResult checked translation) : TranslationOutcome :=
+  match result with
+  | .translated application => .translated application.trace application.evidenceLinks
+  | .invalid diagnostic
+  | .unknown diagnostic
+  | .conflict diagnostic
+  | .unsupported diagnostic => .failed diagnostic
+
+private def composeRunEvaluation
+    (observation : ObservationResult)
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (query : CheckedQuery DestinationLawStatement)
+    (properties : List CheckedProperty)
+    (applyTranslation : EvidenceBackedTrace → LinkResult)
+    (translationOutcome : LinkResult → TranslationOutcome) :
+    Option LinkResult × StrictQuerySummary :=
+  match observation with
+  | .unknown _ | .conflict _ | .unsupported _ =>
+      let verdicts := properties.map fun property =>
+        evaluateObservationProperty query property observation
+      (none, summarizeQueryVerdicts query verdicts)
+  | .accepted sourceTrace =>
+      let linkResult := applyTranslation sourceTrace
+      let verdicts := match translationOutcome linkResult with
+        | .translated destinationTrace evidenceLinks =>
+            if queryMatchesDestination checked query then
+              properties.map fun property =>
+                translatedPropertyVerdict query property sourceTrace destinationTrace evidenceLinks
+            else
+              properties.map fun property =>
+                targetMismatchVerdict query property sourceTrace checked
+        | .failed diagnostic =>
+            properties.map fun property =>
+              implementationLinkFailureVerdict query property sourceTrace diagnostic
+      (some linkResult, summarizeQueryVerdicts query verdicts)
+
 /-- Evaluate one bounded Evidence bundle through the full checked semantic altitude chain. -/
 def checkRunEvaluation
     [BEq SourceSetup] [BEq DestinationSetup]
@@ -199,35 +255,42 @@ def checkRunEvaluation
     (query : CheckedQuery DestinationLawStatement)
     (properties : List CheckedProperty) : RunEvaluation checked :=
   let observation := evaluateEvidence plan bundle
-  match observation with
-  | .unknown _ | .conflict _ | .unsupported _ =>
-      let verdicts := properties.map fun property =>
-        evaluateObservationProperty query property observation
-      {
-        observation
-        implementationLink := none
-        querySummary := summarizeQueryVerdicts query verdicts
-      }
-  | .accepted sourceTrace =>
-      let linkResult := applyImplementationLink checked sourceSetup sourceTrace
-      let verdicts := match linkResult with
-        | .applied application =>
-            if queryMatchesDestination checked query then
-              properties.map fun property =>
-                translatedPropertyVerdict query property sourceTrace application
-            else
-              properties.map fun property =>
-                targetMismatchVerdict query property sourceTrace checked
-        | .invalid diagnostic
-        | .unknown diagnostic
-        | .conflict diagnostic
-        | .unsupported diagnostic =>
-            properties.map fun property =>
-              implementationLinkFailureVerdict query property sourceTrace diagnostic
-      {
-        observation
-        implementationLink := some linkResult
-        querySummary := summarizeQueryVerdicts query verdicts
-      }
+  let composition := composeRunEvaluation observation checked query properties
+    (applyImplementationLink checked sourceSetup) strictTranslationOutcome
+  {
+    observation
+    implementationLink := composition.1
+    querySummary := composition.2
+  }
+
+/-- One total semantic result for an authority-free checked observed-trace translation. -/
+structure ObservedRunEvaluation
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked) where
+  observation : ObservationResult
+  implementationLink : Option (ObservedTraceTranslationResult checked translation)
+  querySummary : StrictQuerySummary
+
+/-- Compose one already-qualified Observation result through the same Property authority while
+retaining the authority-free observed-link result as a distinct altitude. -/
+def checkObservedRunEvaluation
+    [BEq SourceSetup] [BEq DestinationSetup]
+    (observation : ObservationResult)
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked)
+    (sourceSetup : SourceSetup)
+    (query : CheckedQuery DestinationLawStatement)
+    (properties : List CheckedProperty) : ObservedRunEvaluation checked translation :=
+  let composition := composeRunEvaluation observation checked query properties
+    (applyObservedTraceTranslation translation sourceSetup) observedTranslationOutcome
+  {
+    observation
+    implementationLink := composition.1
+    querySummary := composition.2
+  }
 
 end Umpire

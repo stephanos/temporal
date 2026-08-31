@@ -200,7 +200,8 @@ private def artifactObservationDiagnostic
     (diagnostic : ObservationDiagnostic) : ArtifactObservationDiagnostic := {
   kind := observationFailureName diagnostic.kind
   observationPlanDefinitionId := diagnostic.planId
-  relatedDefinitionIds := diagnostic.relatedDefinitionIds
+  relatedDefinitionIds := (diagnostic.relatedDefinitionIds.mergeSort fun left right =>
+    decide (left.value ≤ right.value)).eraseDups
   appliedLimit := diagnostic.limit.map artifactEvidenceLimit
   observedCount := diagnostic.observedCount
   alternatives := diagnostic.alternatives
@@ -299,6 +300,17 @@ private def artifactSummary
   traceIds := summary.traceIds
 }
 
+private structure SemanticEvaluation where
+  observation : ObservationResult
+  implementationLinkDefinitionId : DefinitionId
+  implementationLinkBehaviorFingerprint : BehaviorFingerprint
+  implementationLinkStatus : String
+  implementationLinkDiagnostic : Option ImplementationLinkDiagnostic
+  querySummary : StrictQuerySummary
+  checkedPlan : CheckedObservationPlan
+  querySearchLimit : Limit
+  experiment : ExperimentSpec
+
 private def artifactTarget
     (reference : ImplementationTargetReference) : ArtifactImplementationTargetReference := {
   definitionId := reference.id
@@ -322,19 +334,15 @@ private def artifactImplementationDiagnostic
 }
 
 private def artifactImplementationLink
-    (evaluation : Umpire.RunEvaluation
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked) :
+    (evaluation : SemanticEvaluation) :
     ArtifactImplementationLinkRecord := {
-  definitionId :=
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.declaration.id
-  behaviorFingerprint :=
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.behaviorFingerprint
+  definitionId := evaluation.implementationLinkDefinitionId
+  behaviorFingerprint := evaluation.implementationLinkBehaviorFingerprint
   sourceTarget := artifactTarget (.ofTarget
     Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.sourceTarget)
   destinationTarget := artifactTarget (.ofTarget
     Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.destinationTarget)
-  diagnostic := evaluation.implementationLink.bind ImplementationLinkResult.diagnostic? |>.map
-    artifactImplementationDiagnostic
+  diagnostic := evaluation.implementationLinkDiagnostic.map artifactImplementationDiagnostic
 }
 
 private def gapKindRank : KnownGapKind → String
@@ -624,7 +632,14 @@ private def exactRawField
   | [{ disposition := "plain", value, .. }] => value == expected
   | _ => false
 
+private def isDuplicateDeliveryRequest (request : Request) : Bool :=
+  request.experiment == expectedDuplicateDeliveryExperimentBinding &&
+    request.runtimeConfiguration == expectedDuplicateDeliveryRuntimeConfigurationBinding &&
+    request.observationProgram == expectedDuplicateDeliveryObservationProgram &&
+    request.mapping == expectedDuplicateDeliveryMapping
+
 private def validateControlAttempt
+    (request : Request)
     (attempt : RawControlAttempt)
     (facts : List RawFact) : Except String Unit := do
   let controlFacts := facts.filter fun fact => fact.sourceDefinitionId == sourceControl
@@ -637,9 +652,10 @@ private def validateControlAttempt
   let fact ← match controlFacts with
     | [fact] => pure fact
     | _ => throw "controlAttempts"
+  let expectedFields := if isDuplicateDeliveryRequest request then 8 else 4
   if fact.definitionId != receipt ||
       fact.kindDefinitionId != Temporal.System.Nexus.Observation.Profile.controlReceiptKind ||
-      fact.fields.length != 4 ||
+      fact.fields.length != expectedFields ||
       !exactRawField fact Temporal.System.Nexus.Observation.Profile.actionField
         (.text attempt.action.value) ||
       !exactRawField fact Temporal.System.Nexus.Observation.Profile.attemptField
@@ -648,6 +664,19 @@ private def validateControlAttempt
         (.text attempt.occurrence.value) ||
       !exactRawField fact Temporal.System.Nexus.Observation.Profile.statusField
         (.text attempt.status) then
+    throw "controlAttempts"
+  if isDuplicateDeliveryRequest request &&
+      (!exactRawField fact
+          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.faultDefinitionField
+          (.text Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId.value) ||
+        !exactRawField fact
+          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.faultReceiptField
+          (.text Temporal.System.Nexus.Observation.DuplicateDelivery.faultReceiptId.value) ||
+        !exactRawField fact
+          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.capabilityDefinitionField
+          (.text Temporal.System.Nexus.Observation.DuplicateDelivery.cancellationCapabilityId.value) ||
+        !(fact.fields.any fun field => field.definitionId ==
+          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.operationCorrelationField)) then
     throw "controlAttempts"
 
 private def evidenceField (field : RawField) : Except String EvidenceFieldValue := do
@@ -779,11 +808,14 @@ private def artifactRawClosures (facts : List RawFact) : List ArtifactEvidenceCl
   }).mergeSort artifactClosureLe
 
 private def artifactDispositionForRaw
+    (plan : CheckedObservationPlan)
+    (duplicateDelivery : Bool)
     (fact : RawFact)
     (field : RawField) : Option ArtifactFieldDispositionRecord := do
   let schema ← sourceSchema? fact.sourceDefinitionId
-  let declaration ← Temporal.System.Nexus.Observation.checkedPlan.dispositions.find? fun item =>
-    item.field == { kind := semanticFactKind schema fact, field := field.definitionId }
+  let semanticKind := if duplicateDelivery then schema.kind else semanticFactKind schema fact
+  let declaration ← plan.dispositions.find? fun item =>
+    item.field == { kind := semanticKind, field := field.definitionId }
   some {
     field := { kindDefinitionId := fact.kindDefinitionId, fieldDefinitionId := field.definitionId }
     disposition := declaration.disposition.name
@@ -798,8 +830,12 @@ private def artifactDispositionLe
     (left.field.kindDefinitionId == right.field.kindDefinitionId &&
       decide (left.field.fieldDefinitionId.value ≤ right.field.fieldDefinitionId.value))
 
-private def artifactRawDispositions (facts : List RawFact) : List ArtifactFieldDispositionRecord :=
-  facts.flatMap (fun fact => fact.fields.filterMap (artifactDispositionForRaw fact))
+private def artifactRawDispositions
+    (plan : CheckedObservationPlan)
+    (duplicateDelivery : Bool)
+    (facts : List RawFact) : List ArtifactFieldDispositionRecord :=
+  facts.flatMap (fun fact =>
+      fact.fields.filterMap (artifactDispositionForRaw plan duplicateDelivery fact))
     |>.mergeSort artifactDispositionLe |>.eraseDups
 
 private def evidenceRecord (fact : RawFact) : Except String SyntheticEvidenceRecord := do
@@ -817,6 +853,96 @@ private def evidenceRecord (fact : RawFact) : Except String SyntheticEvidenceRec
     causalParents := fact.causalParents
     fields := ← fact.fields.mapM evidenceField
   }
+
+private def duplicateDeliveryRecord
+    (fact : RawFact)
+    (kind : DefinitionId)
+    (ordinal : Nat)
+    (causalParents : List DefinitionId)
+    (fields : List RawField)
+    (faultTarget : Option DefinitionId := none) : Except String SyntheticEvidenceRecord := do
+  pure {
+    id := fact.definitionId
+    profile := Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.id
+    profileVersion := 1
+    kind
+    sequence := ordinal + 1
+    origin := some { source := fact.sourceDefinitionId, ordinal }
+    causalParents
+    fields := ← fields.mapM evidenceField
+    faultTarget
+  }
+
+private def duplicateDeliveryHistoryTypes : List String := [
+  "temporal.history.WorkflowExecutionStarted",
+  "temporal.history.NexusOperationCancelRequested",
+  "temporal.history.NexusOperationCancelRequestCompleted",
+  "temporal.history.WorkflowExecutionCanceled"
+]
+
+private def rawFactOrdinalLe (left right : RawFact) : Bool := left.ordinal ≤ right.ordinal
+
+private def exactRawHistoryChain (facts : List RawFact) : Bool :=
+  let history := (facts.filter fun fact => fact.sourceDefinitionId == sourceHistory)
+    |>.mergeSort rawFactOrdinalLe
+  history.length == 6 && history.zipIdx.all fun pair =>
+    pair.1.ordinal == pair.2 &&
+      pair.1.causalParents == if pair.2 == 0 then [] else
+        (history[pair.2 - 1]?).map RawFact.definitionId |>.toList
+
+private def mergeParticipantFields
+    (callback synthetic : RawFact) : List RawField :=
+  synthetic.fields ++ callback.fields.filter fun field =>
+    !(synthetic.fields.any fun candidate => candidate.definitionId == field.definitionId)
+
+private def duplicateDeliveryRecords
+    (facts : List RawFact) : Except String (List SyntheticEvidenceRecord) := do
+  let ordinary := facts.filter fun fact =>
+    fact.sourceDefinitionId != sourceHistory && fact.sourceDefinitionId != sourceParticipant
+  let ordinaryRecords ← ordinary.mapM fun fact => do
+    let record ← evidenceRecord fact
+    pure { record with
+      profile := Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.id }
+  let rawHistory := (facts.filter fun fact => fact.sourceDefinitionId == sourceHistory)
+    |>.mergeSort rawFactOrdinalLe
+  let projectedHistory := if exactRawHistoryChain facts then
+      rawHistory.filter fun fact =>
+        (exactRawText? fact Temporal.System.Nexus.Observation.Profile.eventTypeField).any
+          duplicateDeliveryHistoryTypes.contains
+    else rawHistory
+  let historyRecords ← projectedHistory.zipIdx.mapM fun pair =>
+    duplicateDeliveryRecord pair.1
+      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.historyKind pair.2
+      (if pair.2 == 0 then [] else
+        (projectedHistory[pair.2 - 1]?).map RawFact.definitionId |>.toList) pair.1.fields
+  let participants := (facts.filter fun fact => fact.sourceDefinitionId == sourceParticipant)
+    |>.mergeSort rawFactOrdinalLe
+  let callbacks := participants.filter fun fact =>
+    rawFactHasField fact
+      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
+  let synthetic := participants.filter fun fact =>
+    !rawFactHasField fact
+      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
+  let participantRecords ← match callbacks, synthetic with
+    | [callback], [synthetic] =>
+        let completed? := projectedHistory.find? fun fact =>
+          exactRawText? fact Temporal.System.Nexus.Observation.Profile.eventTypeField ==
+            some "temporal.history.NexusOperationCancelRequestCompleted"
+        let completedId? := completed?.map RawFact.definitionId
+        let structuralParents := if synthetic.causalParents == [callback.definitionId] then
+            [callback.definitionId] ++ completedId?.toList
+          else synthetic.causalParents
+        let proxy ← duplicateDeliveryRecord callback
+          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cleanupKind 0 [] []
+        let combined ← duplicateDeliveryRecord synthetic
+          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.participantKind 1
+          structuralParents (mergeParticipantFields callback synthetic) completedId?
+        pure [proxy, combined]
+    | _, _ => participants.mapM fun fact =>
+        (duplicateDeliveryRecord fact
+          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.participantKind
+          fact.ordinal fact.causalParents fact.fields (faultTarget := none))
+  pure (ordinaryRecords ++ historyRecords ++ participantRecords)
 
 private def evidenceClosures
     (closures : List RawClosure)
@@ -861,11 +987,16 @@ private def adapt (request : Request) : Except String EvidenceBundle := do
   let runGaps ← parseGaps request.runKnownGaps
   let rawGaps ← parseGaps request.rawEvidenceKnownGaps
   validateSourceClosure sources closures facts
-  validateControlAttempt controlAttempt facts
-  let records ← facts.mapM evidenceRecord
-  let cancellationAlternatives := participantCancellationAlternatives request facts
+  validateControlAttempt request controlAttempt facts
+  let records ← if isDuplicateDeliveryRequest request then
+      duplicateDeliveryRecords facts
+    else facts.mapM evidenceRecord
+  let cancellationAlternatives := if isDuplicateDeliveryRequest request then []
+    else participantCancellationAlternatives request facts
   pure {
-    profile := Temporal.System.Nexus.Observation.Profile.id
+    profile := if isDuplicateDeliveryRequest request then
+        Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.id
+      else Temporal.System.Nexus.Observation.Profile.id
     profileVersion := 1
     records
     closures := evidenceClosures closures records
@@ -886,6 +1017,33 @@ private def adapterError (field : String) : Protocol.Error := {
   field
 }
 
+private def duplicateDeliveryDispositionMismatch?
+    (request : Request) : Option DefinitionId :=
+  requestFacts request |>.findSome? fun fact => do
+    let schema ← sourceSchema? fact.sourceDefinitionId
+    fact.fields.findSome? fun field => do
+      let declaration ←
+        Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.dispositions.find? fun item =>
+          item.field == { kind := schema.kind, field := field.definitionId }
+      let compatible := match declaration.disposition with
+        | .retain => field.disposition == "plain"
+        | .redact => field.disposition == "redacted"
+        | .reject => field.disposition == "rejected"
+        | .hash _ => field.disposition == "sha256"
+      if compatible then none else some field.definitionId
+
+private def duplicateDeliveryMissingCausalParent?
+    (request : Request) : Option DefinitionId :=
+  let facts := requestFacts request
+  let participant? := facts.find? fun fact =>
+    fact.sourceDefinitionId == sourceParticipant &&
+      !rawFactHasField fact
+        Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField &&
+      fact.causalParents.isEmpty
+  let history? := facts.find? fun fact =>
+    fact.sourceDefinitionId == sourceHistory && fact.ordinal > 0 && fact.causalParents.isEmpty
+  (participant? <|> history?).map RawFact.definitionId
+
 def evaluateSemantics
     (request : Request) : Except Protocol.Error (Umpire.RunEvaluation
       Temporal.System.Nexus.ImplementationLink.CallerClosure.checked) := do
@@ -895,6 +1053,76 @@ def evaluateSemantics
     Temporal.System.Nexus.CallerClosure.setup
     Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQuery
     [Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosureProperty]
+
+private def duplicateDeliveryQuery : CheckedQuery
+    Temporal.Feature.Nexus.Experimental.CallerClosure.LawStatement := {
+  Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQuery with
+  id := expectedDuplicateDeliveryQuery.definitionId
+  behaviorFingerprint := expectedDuplicateDeliveryQuery.behaviorFingerprint
+}
+
+private def evaluateDuplicateDeliverySemantics
+    (request : Request) : Except Protocol.Error (Umpire.ObservedRunEvaluation
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checkedObservedTranslation) := do
+  let bundle ← (adapt request).mapError adapterError
+  let observation := match duplicateDeliveryMissingCausalParent? request,
+      duplicateDeliveryDispositionMismatch? request with
+    | some fact, _ => .unknown {
+        kind := .missingCausalParent
+        planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+        relatedDefinitionIds := [fact]
+      }
+    | none, some field => .unsupported {
+        kind := .fieldMismatch
+        planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+        relatedDefinitionIds := [field]
+      }
+    | none, none =>
+        Temporal.System.Nexus.Observation.DuplicateDelivery.qualifyDuplicateDeliveryObservation bundle
+  pure <| Umpire.checkObservedRunEvaluation observation
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checkedObservedTranslation
+    Temporal.System.Nexus.CallerClosure.setup duplicateDeliveryQuery
+    [Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosureProperty]
+
+private def strictSemanticEvaluation
+    (evaluation : Umpire.RunEvaluation
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked) : SemanticEvaluation := {
+  observation := evaluation.observation
+  implementationLinkDefinitionId :=
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.declaration.id
+  implementationLinkBehaviorFingerprint :=
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.behaviorFingerprint
+  implementationLinkStatus := evaluation.implementationLink.map
+    (ImplementationLinkStatus.name ∘ ImplementationLinkResult.status) |>.getD "not-evaluated"
+  implementationLinkDiagnostic :=
+    evaluation.implementationLink.bind ImplementationLinkResult.diagnostic?
+  querySummary := evaluation.querySummary
+  checkedPlan := Temporal.System.Nexus.Observation.checkedPlan
+  querySearchLimit := Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQuery.limits.search
+  experiment := Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
+}
+
+private def observedSemanticEvaluation
+    (evaluation : Umpire.ObservedRunEvaluation
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checkedObservedTranslation) :
+    SemanticEvaluation := {
+  observation := evaluation.observation
+  implementationLinkDefinitionId :=
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.observedImplementationLinkId
+  implementationLinkBehaviorFingerprint :=
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.behaviorFingerprint
+  implementationLinkStatus := evaluation.implementationLink.map
+    (ImplementationLinkStatus.name ∘ ObservedTraceTranslationResult.status) |>.getD "not-evaluated"
+  implementationLinkDiagnostic :=
+    evaluation.implementationLink.bind ObservedTraceTranslationResult.diagnostic?
+  querySummary := evaluation.querySummary
+  checkedPlan := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan
+  querySearchLimit := duplicateDeliveryQuery.limits.search
+  experiment := expectedDuplicateDeliveryExperiment
+}
 
 private def semanticGaps (observation : ObservationResult) : List KnownGap :=
   observation.diagnostic?.map (fun diagnostic => {
@@ -929,14 +1157,14 @@ private def provenance : ArtifactProvenance := {
 
 private def observationProjection
     (request : Request)
-    (evaluation : Umpire.RunEvaluation
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked) :
+    (evaluation : SemanticEvaluation) :
     Option ArtifactEvidenceBackedModelTrace × List ArtifactEvidenceLink ×
       List ArtifactFieldDispositionRecord × List ArtifactObservationDiagnostic :=
   let facts := requestFacts request
   let orderingFact := artifactOrderingFactFor facts
   let closures := artifactRawClosures facts
-  let dispositions := artifactRawDispositions facts
+  let dispositions := artifactRawDispositions evaluation.checkedPlan
+    (isDuplicateDeliveryRequest request) facts
   match evaluation.observation with
   | .accepted trace =>
       (some (artifactTrace trace),
@@ -946,8 +1174,7 @@ private def observationProjection
 
 private def evidenceArtifact
     (request : Request)
-    (evaluation : Umpire.RunEvaluation
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked)
+    (evaluation : SemanticEvaluation)
     (observationGaps : List KnownGap) : EvidenceArtifact :=
   let projection := observationProjection request evaluation
   ({
@@ -1001,12 +1228,10 @@ private def cleanupStatus (request : Request) : String :=
 
 private def resultArtifact
     (request : Request)
-    (evaluation : Umpire.RunEvaluation
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked)
+    (evaluation : SemanticEvaluation)
     (evidence : EvidenceArtifact)
     (resultGaps : List KnownGap) : ResultArtifact :=
-  let implementationStatus := evaluation.implementationLink.map
-    (ImplementationLinkStatus.name ∘ ImplementationLinkResult.status) |>.getD "not-evaluated"
+  let implementationStatus := evaluation.implementationLinkStatus
   let facts := requestFacts request
   let evaluatedSummary := artifactSummary (artifactOrderingFactFor facts)
     (artifactRawClosures facts) evaluation.querySummary
@@ -1022,10 +1247,10 @@ private def resultArtifact
   let properties := summary.propertyVerdicts
   let limits : List ArtifactStagedLimit := [
     { stage := "observation-evaluation",
-      limit := artifactEvidenceLimit Temporal.System.Nexus.Observation.checkedPlan.evidenceBound },
+      limit := artifactEvidenceLimit evaluation.checkedPlan.evidenceBound },
     { stage := "query",
       limit := artifactLimit
-        Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQuery.limits.search }
+        evaluation.querySearchLimit }
   ]
   let draft : ResultArtifact := {
     formatVersion := "umpire-result/v2"
@@ -1053,11 +1278,13 @@ private def resultArtifact
     artifactChecksum := emptyChecksum
   }
   let outcome := draft.expectedEvaluationOutcomeChecksum evidence
-    Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
+    evaluation.experiment
   ({ draft with evaluationOutcomeChecksum := outcome } : ResultArtifact).seal
 
 def evaluateRequest (request : Request) : Except Protocol.Error Response := do
-  let evaluation ← evaluateSemantics request
+  let evaluation ← if isDuplicateDeliveryRequest request then
+      observedSemanticEvaluation <$> evaluateDuplicateDeliverySemantics request
+    else strictSemanticEvaluation <$> evaluateSemantics request
   let observationGaps := semanticGaps evaluation.observation
   let runGaps := (parseGaps request.runKnownGaps).toOption.getD []
   let rawGaps := (parseGaps request.rawEvidenceKnownGaps).toOption.getD []

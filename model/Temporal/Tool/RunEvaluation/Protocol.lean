@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Experimental.CallerClosure
+import Temporal.Feature.Nexus.Experimental.CallerClosureFault
 import Temporal.System.Execution.Nexus
 import Temporal.System.Nexus.Observation
 import Umpire.Artifact.Result
@@ -356,21 +357,74 @@ def expectedMapping : DefinitionReference := {
   behaviorFingerprint := Temporal.System.Nexus.Observation.checkedPlan.behaviorFingerprint
 }
 
+private def duplicateDeliveryExperiments : List ExperimentSpec :=
+  Temporal.Feature.Nexus.Experimental.CallerClosureFault.batchResult.toOption.get
+    (by native_decide)
+
+def expectedDuplicateDeliveryExperiment : ExperimentSpec :=
+  duplicateDeliveryExperiments.tail.head?.get (by native_decide)
+
+def expectedDuplicateDeliveryExperimentBinding : ArtifactBinding :=
+  Temporal.System.Execution.Nexus.duplicateDeliveryExperimentBinding
+
+def expectedDuplicateDeliveryRuntimeConfigurationBinding : ArtifactBinding :=
+  (Temporal.System.Execution.Nexus.duplicateDeliveryRuntimeConfigurationFor
+    expectedDuplicateDeliveryExperiment).artifactBinding
+
+def expectedDuplicateDeliveryQuery : DefinitionReference := {
+  definitionId := expectedDuplicateDeliveryExperiment.plan.queryDefinitionId
+  behaviorFingerprint := expectedDuplicateDeliveryExperiment.plan.queryBehaviorFingerprint
+}
+
+def expectedDuplicateDeliveryProperties : List PropertyReference :=
+  expectedDuplicateDeliveryExperiment.properties.map fun property => {
+    definitionId := property.definitionId
+    behaviorFingerprint := property.behaviorFingerprint
+    requirementDefinitionIds := property.requirementDefinitionIds
+  }
+
+def expectedDuplicateDeliveryObservationProgram : DefinitionReference := {
+  definitionId :=
+    Temporal.System.Execution.Nexus.duplicateDeliveryObservationProgramDefinition.reference.definitionId
+  behaviorFingerprint :=
+    Temporal.System.Execution.Nexus.duplicateDeliveryObservationProgramDefinition.reference.behaviorFingerprint
+}
+
+def expectedDuplicateDeliveryMapping : DefinitionReference := {
+  definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+  behaviorFingerprint :=
+    Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.behaviorFingerprint
+}
+
+private def normalClosure (request : Request) : Bool :=
+  request.experiment == expectedExperimentBinding &&
+    request.runtimeConfiguration == expectedRuntimeConfigurationBinding &&
+    request.query == expectedQuery && request.properties == expectedProperties &&
+    request.observationProgram == expectedObservationProgram && request.mapping == expectedMapping
+
+private def duplicateDeliveryClosure (request : Request) : Bool :=
+  request.experiment == expectedDuplicateDeliveryExperimentBinding &&
+    request.runtimeConfiguration == expectedDuplicateDeliveryRuntimeConfigurationBinding &&
+    request.query == expectedDuplicateDeliveryQuery &&
+    request.properties == expectedDuplicateDeliveryProperties &&
+    request.observationProgram == expectedDuplicateDeliveryObservationProgram &&
+    request.mapping == expectedDuplicateDeliveryMapping
+
 private def validateClosure (request : Request) : Except Error Unit := do
   if request.formatVersion != requestFormatVersion ||
       request.checkerIdentity != checkerIdentity || request.checkerVersion != checkerVersion ||
       request.checkerBehaviorFingerprint != checkerBehaviorFingerprint then
     throw (error .closureDrift "checker")
-  if request.experiment != expectedExperimentBinding then
+  if request.experiment != expectedExperimentBinding &&
+      request.experiment != expectedDuplicateDeliveryExperimentBinding then
     throw (error .closureDrift "experiment")
-  if request.runtimeConfiguration != expectedRuntimeConfigurationBinding then
+  if request.runtimeConfiguration != expectedRuntimeConfigurationBinding &&
+      request.runtimeConfiguration != expectedDuplicateDeliveryRuntimeConfigurationBinding then
     throw (error .closureDrift "runtimeConfiguration")
   if request.run.formatVersion != "umpire-experiment-run/v2" ||
       request.rawEvidence.formatVersion != "umpire-raw-evidence/v2" then
     throw (error .closureDrift "run")
-  if request.query != expectedQuery || request.properties != expectedProperties ||
-      request.observationProgram != expectedObservationProgram ||
-      request.mapping != expectedMapping then
+  if !normalClosure request && !duplicateDeliveryClosure request then
     throw (error .closureDrift "semantics")
   if request.captureStatus != "closed" && request.captureStatus != "partial" &&
       request.captureStatus != "failed" then
