@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-21-nexus-duplicate-observation-control",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-08-31T13:49:28.061364Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-31T14:04:50.564699Z",
   "created_at": "2026-08-26T11:25:26.363868Z",
   "default_impl": null,
   "default_review": null,
@@ -25,7 +25,7 @@
     "fn-21-nexus-duplicate-observation-control.7": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T11:41:38.181641Z",
   "ready": true,
@@ -805,6 +805,50 @@
       "timestamp": "2026-08-31T13:49:28.045183Z",
       "tool_calls": 25,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "57d7e4dd00411509abea1d41d6556449c96dcb5487c53ab860c60982ec02a534",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-89d1769f0344fdc8c7a9f2625f57e3d4",
+            "classification": "introduced",
+            "findingId": "finding-89d1769f0344fdc8c7a9f2625f57e3d4",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "46b4083600ea895b9df25406c098cefdc0a18fba",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 3606,
+      "output_sha256": "80977f44582f61b1fd4e87c98edc5ae74959d296b85549ad791a468a9f541c7d",
+      "reservation_id": "5f0e121e422342f8aa46b70a16d16bb5",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-31T14:04:50.557743Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -816,7 +860,7 @@
     "impl:fn-21-nexus-duplicate-observation-control.6": 1,
     "impl:fn-21-nexus-duplicate-observation-control.7": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -845,5 +889,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T13:49:28.067093Z"
+  "updated_at": "2026-08-31T14:04:50.565630Z"
 }
