@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
+	"go.temporal.io/server/tools/umpire/runevaluation"
 	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 	"go.temporal.io/server/tools/umpire/temporal/nexus"
@@ -25,15 +26,113 @@ var callerClosureExperiment []byte
 //go:embed "testdata/caller-closure-input-set/artifacts/runtime-configuration.json"
 var callerClosureRuntimeConfiguration []byte
 
-// TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally runs the exact
-// generated two-member input through the bounded local adapter without publishing it.
-func TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally(t *testing.T) {
+var callerClosureSubject = runevaluation.SubjectBinding{
+	ExperimentSHA256:           "sha256:528c23e7807ee9833af65baeb32a8ec2d38ffacc1fae829600692d3d3eb93fd1",
+	ExperimentFormatVersion:    "umpire-experiment/v2",
+	DrivePlanFormatVersion:     "umpire-drive-plan/v2",
+	ExperimentArtifactChecksum: "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
+	DrivePlanArtifactChecksum:  "sha256:328a90c67ca91a885a31b1e146d36af09a73cba7f729eab69a6028041a8b0bb8",
+	DefinitionIDs: []string{
+		"workflow-nexus.query.exact-action-caller-closure",
+		"workflow-nexus.behavior.exact-action",
+		"workflow-nexus.target.caller-closure",
+		"workflow-nexus.kernel.caller-closure",
+		"workflow-nexus.role.operation",
+		"workflow-nexus.state.config",
+		"workflow-nexus.setup.operation-is-clash",
+		"workflow-nexus.role.operation",
+		"workflow-nexus.state.config",
+		"workflow-nexus.state.config",
+		"workflow.action.force-close",
+		"nexus.outcome.cancellation-upgraded",
+		"workflow-nexus.state.config",
+		"workflow-nexus.occurrence.force-close",
+		"workflow.action.force-close",
+		"workflow-nexus.occurrence.force-close",
+		"nexus.capability.cancellation",
+		"workflow-nexus.capability.ownership",
+		"workflow.capability.lifecycle",
+		"nexus.observation.cancellation-delivered",
+		"nexus.observation.pending-cancellation-count",
+		"workflow-nexus.relation.owns-operation",
+		"workflow-nexus.property.caller-closure",
+		"nexus.capability.cancellation",
+		"workflow-nexus.capability.ownership",
+		"workflow.capability.lifecycle",
+		"nexus.observation.cancellation-delivered",
+		"nexus.observation.pending-cancellation-count",
+		"workflow-nexus.relation.owns-operation",
+		"workflow-nexus.behavior.exact-action",
+		"workflow-nexus.kernel.caller-closure",
+		"workflow-nexus.property.caller-closure",
+		"workflow-nexus.query.exact-action-caller-closure",
+		"workflow-nexus.target.caller-closure",
+		"workflow-nexus.behavior.exact-action",
+		"workflow-nexus.kernel.caller-closure",
+		"workflow-nexus.property.caller-closure",
+		"workflow-nexus.query.exact-action-caller-closure",
+		"workflow-nexus.target.caller-closure",
+	},
+	BehaviorFingerprints: []string{
+		"sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
+		"sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
+		"sha256:322893fbbe0a80ca186aa1f10268df45966bda212db37c725ea71fd75903b703",
+		"sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd",
+		"sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd",
+		"sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f",
+	},
+	Limits: []runevaluation.SubjectLimit{
+		{Path: "behavior.transitions", Value: "1", Unit: "semantic-transitions"},
+		{Path: "behavior.selectedActions", Value: "1", Unit: "selected-actions"},
+		{Path: "search", Value: "8", Unit: "candidate-evaluations"},
+	},
+	KnownGaps: []runevaluation.SubjectKnownGap{
+		{Kind: "input", Code: "umpire.known-gap.execution-evidence"},
+		{Kind: "interpretation", Code: "umpire.known-gap.artifact-migrations"},
+		{Kind: "interpretation", Code: "umpire.known-gap.artifact-reading"},
+		{Kind: "interpretation", Code: "umpire.known-gap.evidence-evaluation"},
+		{Kind: "interpretation", Code: "umpire.known-gap.runtime-scheduler-order"},
+		{Kind: "interpretation", Code: "umpire.known-gap.runtime-storage-order"},
+		{Kind: "interpretation", Code: "umpire.known-gap.runtime-transport-order"},
+		{Kind: "claim", Code: "umpire.known-gap.promotion"},
+	},
+	Query: runevaluation.SubjectDefinition{DefinitionID: "workflow-nexus.query.exact-action-caller-closure", Kind: "", BehaviorFingerprint: "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af"},
+	Properties: []runevaluation.SubjectDefinition{
+		{DefinitionID: "workflow-nexus.property.caller-closure", BehaviorFingerprint: "sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f"},
+	},
+	ObservationRequirementDefinitionIDs: []string{
+		"nexus.observation.cancellation-delivered",
+		"nexus.observation.pending-cancellation-count",
+		"workflow-nexus.relation.owns-operation",
+	},
+	ObservationProgram:                    runevaluation.SubjectDefinition{DefinitionID: "temporal.nexus.observation-program.basic-lifecycle", Kind: "", BehaviorFingerprint: "sha256:1ab36fdcd2978dec901678491646ec67fe0fc1d3bd1883e599bc2c53810b3480"},
+	ImplementationLinkID:                  "temporal.system.nexus.caller-closure.implementation-link",
+	ImplementationLinkBehaviorFingerprint: "sha256:96b55d0e5a782099f66479c6ced603c08c8046b565f89435b5b2a54848aed777",
+	ImplementationLinkSourceTarget:        runevaluation.SubjectDefinition{DefinitionID: "temporal.system.nexus.caller-closure.target", Kind: "target", BehaviorFingerprint: "sha256:6729e790d336a96173ffd0ebe0b2b2d2406e6c5444596924f0c06c4ba9652bf8"},
+	ImplementationLinkDestinationTarget:   runevaluation.SubjectDefinition{DefinitionID: "workflow-nexus.target.caller-closure", Kind: "target", BehaviorFingerprint: "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd"},
+	ImplementationLinkDiagnosticPresent:   false,
+}
+
+func admitCallerClosure(t *testing.T) artifact.AdmittedSet {
+	t.Helper()
 	input, err := artifact.AdmitSetFiles(map[string][]byte{
 		"artifacts/experiment.json":            callerClosureExperiment,
 		"artifacts/runtime-configuration.json": callerClosureRuntimeConfiguration,
 		"manifest.json":                        callerClosureManifest,
 	})
 	require.NoError(t, err)
+	return input
+}
+
+func TestHermeticCIPortability(t *testing.T) {
+	require.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))
+}
+
+// TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally runs the exact
+// generated two-member input through the bounded local adapter without publishing it.
+func TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally(t *testing.T) {
+	require.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))
+	input := admitCallerClosure(t)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 135*time.Second)
 	defer cancel()

@@ -12,6 +12,7 @@ import (
 	"unicode"
 
 	"go.temporal.io/server/tools/umpire/artifact"
+	"go.temporal.io/server/tools/umpire/runevaluation"
 	"go.temporal.io/server/tools/umpire/runner"
 	"go.temporal.io/server/tools/umpire/temporal/nexus"
 )
@@ -22,6 +23,7 @@ type generationInput struct {
 	packageName string
 	embedRoot   string
 	binding     runner.InputBinding
+	subject     runevaluation.SubjectBinding
 }
 
 func run(args []string) error {
@@ -95,9 +97,14 @@ func loadGenerationInput(manifestPath, outputRoot string) (generationInput, erro
 
 	experiment := executable.Experiment()
 	configuration := executable.RuntimeConfiguration()
+	subject, err := runevaluation.PinSubject(files["artifacts/experiment.json"])
+	if err != nil {
+		return generationInput{}, fmt.Errorf("pin generated Run Evaluation subject: %w", err)
+	}
 	return generationInput{
 		packageName: packageName + "_test",
 		embedRoot:   embedRoot,
+		subject:     subject,
 		binding: runner.InputBinding{
 			ArtifactSetIdentity:                     admitted.Identity(),
 			ArtifactSetChecksum:                     admitted.Checksum(),
@@ -147,6 +154,7 @@ func renderGeneratedTest(input generationInput) ([]byte, error) {
 	generated.WriteString("\t\"github.com/stretchr/testify/require\"\n")
 	generated.WriteString("\t\"go.temporal.io/server/tools/umpire/artifact\"\n")
 	generated.WriteString("\t\"go.temporal.io/server/tools/umpire/runner\"\n")
+	generated.WriteString("\t\"go.temporal.io/server/tools/umpire/runevaluation\"\n")
 	generated.WriteString("\tumpireruntime \"go.temporal.io/server/tools/umpire/runtime\"\n")
 	generated.WriteString("\t\"go.temporal.io/server/tools/umpire/temporal/nexus\"\n")
 	generated.WriteString(")\n\n")
@@ -156,15 +164,28 @@ func renderGeneratedTest(input generationInput) ([]byte, error) {
 	generated.WriteString("var callerClosureExperiment []byte\n\n")
 	fmt.Fprintf(&generated, "//go:embed %s\n", strconv.Quote(input.embedRoot+"/artifacts/runtime-configuration.json"))
 	generated.WriteString("var callerClosureRuntimeConfiguration []byte\n\n")
-	generated.WriteString("// TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally runs the exact\n")
-	generated.WriteString("// generated two-member input through the bounded local adapter without publishing it.\n")
-	generated.WriteString("func TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally(t *testing.T) {\n")
+	generated.WriteString("var callerClosureSubject = runevaluation.SubjectBinding{\n")
+	writeSubjectBinding(&generated, input.subject)
+	generated.WriteString("}\n\n")
+	generated.WriteString("func admitCallerClosure(t *testing.T) artifact.AdmittedSet {\n")
+	generated.WriteString("\tt.Helper()\n")
 	generated.WriteString("\tinput, err := artifact.AdmitSetFiles(map[string][]byte{\n")
 	generated.WriteString("\t\t\"artifacts/experiment.json\":            callerClosureExperiment,\n")
 	generated.WriteString("\t\t\"artifacts/runtime-configuration.json\": callerClosureRuntimeConfiguration,\n")
 	generated.WriteString("\t\t\"manifest.json\":                        callerClosureManifest,\n")
 	generated.WriteString("\t})\n")
-	generated.WriteString("\trequire.NoError(t, err)\n\n")
+	generated.WriteString("\trequire.NoError(t, err)\n")
+	generated.WriteString("\treturn input\n")
+	generated.WriteString("}\n\n")
+	generated.WriteString("func TestHermeticCIPortability(t *testing.T) {\n")
+	generated.WriteString("\trequire.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))\n")
+	generated.WriteString("}\n\n")
+	generated.WriteString("// TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally runs the exact\n")
+	generated.WriteString("// generated two-member input through the bounded local adapter without publishing it.\n")
+	generated.WriteString("func TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally(t *testing.T) {\n")
+	generated.WriteString("\trequire.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))\n")
+	generated.WriteString("\tinput := admitCallerClosure(t)\n")
+	generated.WriteString("\n")
 	generated.WriteString("\tctx, cancel := context.WithTimeout(context.Background(), 135*time.Second)\n")
 	generated.WriteString("\tdefer cancel()\n")
 	generated.WriteString("\toutput, err := runner.Run(\n")
@@ -208,6 +229,69 @@ func writeBinding(generated *strings.Builder, binding runner.InputBinding) {
 	fmt.Fprintf(generated, "\t\t\tExperimentBehaviorFingerprint: %q,\n", binding.ExperimentBehaviorFingerprint)
 	fmt.Fprintf(generated, "\t\t\tRuntimeConfigurationArtifactChecksum: %q,\n", binding.RuntimeConfigurationArtifactChecksum)
 	fmt.Fprintf(generated, "\t\t\tRuntimeConfigurationBehaviorFingerprint: %q,\n", binding.RuntimeConfigurationBehaviorFingerprint)
+}
+
+func writeSubjectBinding(generated *strings.Builder, subject runevaluation.SubjectBinding) {
+	fmt.Fprintf(generated, "\tExperimentSHA256: %q,\n", subject.ExperimentSHA256)
+	fmt.Fprintf(generated, "\tExperimentFormatVersion: %q,\n", subject.ExperimentFormatVersion)
+	fmt.Fprintf(generated, "\tDrivePlanFormatVersion: %q,\n", subject.DrivePlanFormatVersion)
+	fmt.Fprintf(generated, "\tExperimentArtifactChecksum: %q,\n", subject.ExperimentArtifactChecksum)
+	fmt.Fprintf(generated, "\tDrivePlanArtifactChecksum: %q,\n", subject.DrivePlanArtifactChecksum)
+	writeStringSlice(generated, "DefinitionIDs", subject.DefinitionIDs)
+	writeStringSlice(generated, "BehaviorFingerprints", subject.BehaviorFingerprints)
+	generated.WriteString("\tLimits: []runevaluation.SubjectLimit{\n")
+	for _, limit := range subject.Limits {
+		fmt.Fprintf(generated, "\t\t{Path: %q, Value: %q, Unit: %q},\n", limit.Path, limit.Value, limit.Unit)
+	}
+	generated.WriteString("\t},\n")
+	generated.WriteString("\tKnownGaps: []runevaluation.SubjectKnownGap{\n")
+	for _, knownGap := range subject.KnownGaps {
+		fmt.Fprintf(generated, "\t\t{Kind: %q, Code: %q", knownGap.Kind, knownGap.Code)
+		if knownGap.SubjectPresent {
+			fmt.Fprintf(generated, ", SubjectPresent: true, Subject: %q", knownGap.Subject)
+		}
+		if knownGap.DetailPresent {
+			fmt.Fprintf(generated, ", DetailPresent: true, Detail: %q", knownGap.Detail)
+		}
+		generated.WriteString("},\n")
+	}
+	generated.WriteString("\t},\n")
+	writeSubjectDefinition(generated, "Query", subject.Query)
+	generated.WriteString("\tProperties: []runevaluation.SubjectDefinition{\n")
+	for _, property := range subject.Properties {
+		fmt.Fprintf(generated, "\t\t{DefinitionID: %q, BehaviorFingerprint: %q},\n", property.DefinitionID, property.BehaviorFingerprint)
+	}
+	generated.WriteString("\t},\n")
+	writeStringSlice(generated, "ObservationRequirementDefinitionIDs", subject.ObservationRequirementDefinitionIDs)
+	writeSubjectDefinition(generated, "ObservationProgram", subject.ObservationProgram)
+	fmt.Fprintf(generated, "\tImplementationLinkID: %q,\n", subject.ImplementationLinkID)
+	fmt.Fprintf(generated, "\tImplementationLinkBehaviorFingerprint: %q,\n", subject.ImplementationLinkBehaviorFingerprint)
+	writeSubjectDefinition(generated, "ImplementationLinkSourceTarget", subject.ImplementationLinkSourceTarget)
+	writeSubjectDefinition(generated, "ImplementationLinkDestinationTarget", subject.ImplementationLinkDestinationTarget)
+	fmt.Fprintf(generated, "\tImplementationLinkDiagnosticPresent: %t,\n", subject.ImplementationLinkDiagnosticPresent)
+}
+
+func writeStringSlice(generated *strings.Builder, field string, values []string) {
+	fmt.Fprintf(generated, "\t%s: []string{\n", field)
+	for _, value := range values {
+		fmt.Fprintf(generated, "\t\t%q,\n", value)
+	}
+	generated.WriteString("\t},\n")
+}
+
+func writeSubjectDefinition(
+	generated *strings.Builder,
+	field string,
+	definition runevaluation.SubjectDefinition,
+) {
+	fmt.Fprintf(
+		generated,
+		"\t%s: runevaluation.SubjectDefinition{DefinitionID: %q, Kind: %q, BehaviorFingerprint: %q},\n",
+		field,
+		definition.DefinitionID,
+		definition.Kind,
+		definition.BehaviorFingerprint,
+	)
 }
 
 func writeGeneratedTest(outputRoot string, generated []byte) error {
