@@ -883,7 +883,18 @@ private def completeRawHistoryChain (facts : List RawFact) : Bool :=
       pair.1.causalParents == if pair.2 == 0 then [] else
         (history[pair.2 - 1]?).map RawFact.definitionId |>.toList
 
-private def duplicateDeliverySyntheticFact (fact : RawFact) : Bool :=
+private def duplicateDeliverySyntheticDiscriminatorFields : List DefinitionId := [
+  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.syntheticMarkerField,
+  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.syntheticContributionCountField,
+  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.faultDefinitionField,
+  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.faultReceiptField
+]
+
+private def duplicateDeliverySyntheticCandidate (fact : RawFact) : Bool :=
+  fact.sourceDefinitionId == sourceParticipant &&
+    duplicateDeliverySyntheticDiscriminatorFields.any (rawFactHasField fact)
+
+private def duplicateDeliverySelectedSyntheticFact (fact : RawFact) : Bool :=
   fact.sourceDefinitionId == sourceParticipant &&
     exactRawField fact
       Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.syntheticMarkerField
@@ -936,9 +947,10 @@ private def duplicateDeliveryRecords
   let callbacks := participants.filter fun fact =>
     rawFactHasField fact
       Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
-  let synthetic := participants.filter duplicateDeliverySyntheticFact
-  let participantRecords ← match callbacks, synthetic with
-    | [callback], [synthetic] =>
+  let syntheticCandidates := participants.filter duplicateDeliverySyntheticCandidate
+  let selectedSynthetic := syntheticCandidates.filter duplicateDeliverySelectedSyntheticFact
+  let participantRecords ← match callbacks, syntheticCandidates, selectedSynthetic with
+    | [callback], [_], [synthetic] =>
         let completed? := projectedHistory.find? fun fact =>
           exactRawText? fact Temporal.System.Nexus.Observation.Profile.eventTypeField ==
             some "temporal.history.NexusOperationCancelRequestCompleted"
@@ -952,10 +964,16 @@ private def duplicateDeliveryRecords
           Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.participantKind 1
           structuralParents (mergeParticipantFields callback synthetic) completedId?
         pure [proxy, combined]
-    | _, _ => (callbacks ++ synthetic).mapM fun fact =>
-        (duplicateDeliveryRecord fact
-          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.participantKind
-          fact.ordinal fact.causalParents fact.fields (faultTarget := none))
+    | _, candidates, _ => do
+        let proxyRecords ← callbacks.zipIdx.mapM fun pair =>
+          duplicateDeliveryRecord pair.1
+            Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cleanupKind
+            pair.2 [] []
+        let candidateRecords ← candidates.zipIdx.mapM fun pair =>
+          duplicateDeliveryRecord pair.1
+            Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.participantKind
+            (callbacks.length + pair.2) pair.1.causalParents pair.1.fields (faultTarget := none)
+        pure (proxyRecords ++ candidateRecords)
   pure (ordinaryRecords ++ historyRecords ++ participantRecords)
 
 private def evidenceClosures
@@ -1073,7 +1091,7 @@ private def duplicateDeliveryParticipantCorrelationFailure?
   let callbacks := participants.filter fun fact =>
     rawFactHasField fact
       Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
-  let synthetic := participants.filter duplicateDeliverySyntheticFact
+  let synthetic := participants.filter duplicateDeliverySelectedSyntheticFact
   match callbacks, synthetic with
   | [callback], [synthetic] =>
       match duplicateDeliveryCorrelationFields.find? fun field =>
@@ -1104,11 +1122,22 @@ private def duplicateDeliveryParticipantCorrelationFailure?
               else none
   | _, _ => none
 
+private def duplicateDeliverySyntheticCandidateFailure?
+    (request : Request) : Option ObservationResult :=
+  let candidates := requestFacts request |>.filter duplicateDeliverySyntheticCandidate
+  if candidates.length > 1 then
+    some <| .conflict {
+      kind := .contradictoryFact
+      planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+      relatedDefinitionIds := candidates.map RawFact.definitionId
+    }
+  else none
+
 private def duplicateDeliveryMissingCausalParent?
     (request : Request) : Option DefinitionId :=
   let facts := requestFacts request
   let participant? := facts.find? fun fact =>
-    duplicateDeliverySyntheticFact fact && fact.causalParents.isEmpty
+    duplicateDeliverySelectedSyntheticFact fact && fact.causalParents.isEmpty
   let history? := facts.find? fun fact =>
     fact.sourceDefinitionId == sourceHistory && fact.ordinal > 0 && fact.causalParents.isEmpty
   (participant? <|> history?).map RawFact.definitionId
@@ -1153,10 +1182,12 @@ private def evaluateDuplicateDeliverySemantics
             planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
             relatedDefinitionIds := [field]
           }
-        | none => match duplicateDeliveryParticipantCorrelationFailure? request with
+        | none => match duplicateDeliverySyntheticCandidateFailure? request with
           | some failure => failure
-          | none =>
-              Temporal.System.Nexus.Observation.DuplicateDelivery.qualifyDuplicateDeliveryObservation bundle
+          | none => match duplicateDeliveryParticipantCorrelationFailure? request with
+            | some failure => failure
+            | none =>
+                Temporal.System.Nexus.Observation.DuplicateDelivery.qualifyDuplicateDeliveryObservation bundle
   pure <| Umpire.checkObservedRunEvaluation observation
     Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
     Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checkedObservedTranslation

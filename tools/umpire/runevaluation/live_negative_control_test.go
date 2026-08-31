@@ -128,6 +128,8 @@ func requirePairedLiveNexusNegativeControl(t *testing.T, repositoryRoot string) 
 	require.NotEqual(t, normal.evaluation.ManifestBytes(), faulted.evaluation.ManifestBytes())
 	require.NotEqual(t, normal.summary.Destination, faulted.summary.Destination)
 	require.NotEqual(t, normal.result.ArtifactChecksum, faulted.result.ArtifactChecksum)
+	require.Equal(t, checkerBehaviorFingerprint, normal.result.BehaviorFingerprint)
+	require.Equal(t, checkerBehaviorFingerprint, faulted.result.BehaviorFingerprint)
 	require.Equal(t, normal.result.BehaviorFingerprint, faulted.result.BehaviorFingerprint)
 	require.Equal(t,
 		normal.result.PropertyVerdicts[0].PropertyDefinitionID,

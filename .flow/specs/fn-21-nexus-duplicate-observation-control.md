@@ -89,7 +89,8 @@ cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerCl
 go test -count=1 ./tools/umpire/temporal/nexus/...
 go test -count=1 ./tools/umpire/runevaluation/...
 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tools/umpire/runevaluation -run '^TestBoundedLiveNexusNegativeControl$'
-sh -c 'make --no-print-directory umpire-check-local-run-evaluation SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set OUTPUT_ROOT=/private/tmp; test "$?" -eq 2'
+# Requires the verified installed sibling pair described in tools/umpire/runevaluation/README.md.
+sh -c 'output_root=$(mktemp -d /private/tmp/umpire-local-results.XXXXXX); trap "rm -rf $output_root" EXIT; status=0; umpire-local-run-evaluation --set tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set --output-root "$output_root" || status=$?; test "$status" -eq 2'
 make umpire-check-regression
 ```
 
