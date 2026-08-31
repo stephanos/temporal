@@ -472,6 +472,17 @@ func TestValidateExecutionClosureAdmitsFaultedEvidenceForEvaluation(t *testing.T
 			},
 		},
 		{
+			name: "unusable history event type disposition is admitted for evaluation",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				index := rawFactIndexWithHistoryEvent(t, rawEvidence,
+					"temporal.history.NexusOperationCancelRequestCompleted")
+				setRawField(rawEvidence.Facts[index].Fields,
+					umpireruntime.EvidenceFieldEventType, testDigest('a'))
+				setRawFieldDisposition(rawEvidence.Facts[index].Fields,
+					umpireruntime.EvidenceFieldEventType, "sha256")
+			},
+		},
+		{
 			name: "unsafe payload field is an invariant",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
 				index := rawFactIndexWithField(t, rawEvidence,
@@ -920,6 +931,25 @@ func setRawFieldOnHistoryEvent(
 			return
 		}
 	}
+}
+
+func rawFactIndexWithHistoryEvent(
+	t *testing.T,
+	rawEvidence *artifactv2.RawEvidence,
+	eventType string,
+) int {
+	t.Helper()
+	for index, fact := range rawEvidence.Facts {
+		if fact.SourceDefinitionID != umpireruntime.EvidenceSourceHistory {
+			continue
+		}
+		actual, err := rawStringField(fact, umpireruntime.EvidenceFieldEventType)
+		if err == nil && actual == eventType {
+			return index
+		}
+	}
+	require.FailNow(t, "history event is missing", eventType)
+	return 0
 }
 
 func removeRawField(fact *artifactv2.RawEvidenceFact, definitionID string) {

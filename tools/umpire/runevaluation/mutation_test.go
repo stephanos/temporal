@@ -283,6 +283,22 @@ func TestRealCheckerDuplicateDeliveryMutationMatrix(t *testing.T) {
 			status: "unsupported", diagnosticKind: "field-mismatch",
 		},
 		{
+			name: "hashed completed event type",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.history.00000000000000000005.fixture")
+				for index := range fact.Fields {
+					if fact.Fields[index].FieldDefinitionID == umpireruntime.EvidenceFieldEventType {
+						fact.Fields[index].Disposition = "sha256"
+						fact.Fields[index].Value = testDigest("a")
+						return
+					}
+				}
+				require.Fail(t, "history event type field not found")
+			},
+			status: "unsupported", diagnosticKind: "field-mismatch",
+		},
+		{
 			name: "missing participant causal parent",
 			mutate: func(t *testing.T, request *checkerRequest) {
 				fact := duplicateDeliveryFact(t, request,
