@@ -1053,7 +1053,8 @@ umpire-gen-regression-views:
 umpire-check-regression-views:
 	@printf $(COLOR) "Check generated Umpire regression views..."
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR)
-	@set -eu; temporary=$$(mktemp -d); \
+	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		temporary=$$(mktemp -d "$$temporary_root/umpire-regression.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		$(UMPIRE_GEN_REGRESSION_VIEWS_COMMAND) --repository-root . --output-root "$$temporary"; \
 		diff -u tools/umpire/regression/catalog_generated_test.go \
@@ -1064,8 +1065,9 @@ umpire-check-regression-views:
 			"$$temporary/tools/umpire/regression/switch_generated_view_test.go"; \
 		diff -u model/Umpire/Examples/Generated/Switch.md \
 			"$$temporary/model/Umpire/Examples/Generated/Switch.md"
-	@go test -count=1 -tags test_dep \
-		./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression
+	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
+			./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression
 
 umpire-check-legacy-vocabulary:
 	@printf $(COLOR) "Check active Umpire vocabulary..."
