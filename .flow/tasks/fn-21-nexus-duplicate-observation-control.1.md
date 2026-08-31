@@ -7,8 +7,8 @@ satisfies: [R1, R7]
 Author the Temporal-owned one-axis/two-choice space and compile its selected fault point through the existing fn-16 path for R1/R7. Keep the current caller-closure target, Property, ordinary query, and artifact untouched.
 
 **Size:** M
-**Files:** `model/Temporal/Feature/Nexus/CallerClosureFault.lean`, `model/Temporal/Feature/Nexus/CallerClosureFaultTests.lean`, `model/Temporal/Feature/Nexus.lean`, `model/Temporal/Feature.lean`, `model/TemporalModelTests.lean`
-**Touches:** [model/Temporal/Feature/Nexus/CallerClosureFault.lean, model/Temporal/Feature/Nexus/CallerClosureFaultTests.lean, model/Temporal/Feature/Nexus.lean, model/Temporal/Feature.lean, model/TemporalModelTests.lean]
+**Files:** `model/Temporal/Feature/Nexus/Experimental/CallerClosureFault.lean`, `model/Temporal/Feature/Nexus/Experimental/CallerClosureFaultTests.lean`, `model/TemporalExperimentalTests.lean`
+**Touches:** [model/Temporal/Feature/Nexus/Experimental/CallerClosureFault.lean, model/Temporal/Feature/Nexus/Experimental/CallerClosureFaultTests.lean, model/TemporalExperimentalTests.lean]
 
 ### Approach
 - Compose the spec's exact space/axis/choice/fault/goal identities over the existing checked exact-action caller-closure Query and required force-close occurrence.
@@ -21,9 +21,9 @@ Author the Temporal-owned one-axis/two-choice space and compile its selected fau
 **Required** (read before coding):
 - `.flow/specs/fn-16-authored-variation-spaces-and.md:42-100` — checked space/fault/lowering contract
 - `.flow/tasks/fn-16-authored-variation-spaces-and.5.md:13-34` — Temporal variation-space proof pattern
-- `model/Temporal/Feature/Nexus/CallerClosure.lean:34-48` — canonical Behavior Fingerprints
-- `model/Temporal/Feature/Nexus/CallerClosure.lean:441-507` — Property, Query, and occurrence
-- `model/Temporal/Feature/Nexus/CallerClosureTests.lean:232-243` — exact-identity assertion style
+- `model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean:34-48` — canonical Behavior Fingerprints
+- `model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean:441-507` — Property, Query, and occurrence
+- `model/Temporal/Feature/Nexus/Experimental/CallerClosureTests.lean:232-243` — exact-identity assertion style
 
 ### Acceptance
 - [ ] Exactly two canonical points compile and only the fault point carries the exact requested fault/capability intent.
@@ -42,6 +42,8 @@ Added the exact checked caller-closure baseline/fault Space under the reconciled
 baseline: red (`cd model && mise exec -- lake build Temporal.Feature.Nexus.CallerClosureFaultTests` failed pre-edit because the pre-fn39 target path is intentionally absent); canonical Experimental target progressed RED to GREEN. `make lint-code` remains inherited red with 1,378 pre-existing Go findings in untouched files; `make lint-model` and all task gates pass.
 
 stage: impl-review - ran (SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: a09a3aa55187da4712ea0c63d70b515f545dbb6f
 - Tests: baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.CallerClosureFaultTests failed pre-edit: stale non-Experimental target absent), cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosureFaultTests, cd model && mise exec -- lake build TemporalExperimentalTests, go test -count=1 ./tools/umpire/temporal/nexus/..., go test -count=1 ./tools/umpire/runevaluation/..., make lint-model, make umpire-check-regression
