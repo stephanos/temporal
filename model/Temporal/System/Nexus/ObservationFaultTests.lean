@@ -15,6 +15,7 @@ example : checkedPlan.hasCanonicalIdentity = true ∧
     mappingBehaviorFingerprint = checkedPlan.behaviorFingerprint ∧
     profileVersion = 1 ∧ mappingVersion = 1 ∧ programVersion = 1 ∧
     profileBehaviorFingerprint != behaviorFingerprintOf "" ∧
+    qualificationBehaviorFingerprint != behaviorFingerprintOf "" ∧
     programBehaviorFingerprint != behaviorFingerprintOf "" := by
   native_decide
 
@@ -105,6 +106,18 @@ private def unauthorizedRuleDeclaration : ObservationMappingDeclaration := {
   }]
 }
 
+private def cleartextFromHashedDeclaration : ObservationMappingDeclaration := {
+  mappingDeclaration with
+  rules := mappingDeclaration.rules.map fun rule =>
+    if rule.id == Mapping.cancellationCountRuleId then {
+      semanticCountRule with
+      value := .portable (.field {
+        kind := Profile.participantKind
+        field := Temporal.System.Nexus.Observation.Profile.endpointIdentityField
+      })
+    } else rule
+}
+
 def mutationKinds : List (Option DuplicateDeliveryCheckErrorKind) := [
     errorKind? <| checkDuplicateDeliveryObservation missingSyntheticCountProfile
       mappingDeclaration,
@@ -118,7 +131,9 @@ def mutationKinds : List (Option DuplicateDeliveryCheckErrorKind) := [
     errorKind? <| checkDuplicateDeliveryObservation Profile.declaration
       impossibleCountDeclaration,
     errorKind? <| checkDuplicateDeliveryObservation Profile.declaration
-      unauthorizedRuleDeclaration
+      unauthorizedRuleDeclaration,
+    errorKind? <| checkDuplicateDeliveryObservation Profile.declaration
+      cleartextFromHashedDeclaration
   ]
 
 /-- Every schema, identity, disposition, count-relation, and output mutation fails compilation. -/
@@ -129,6 +144,7 @@ example : mutationKinds = [
     some .observation,
     some .observation,
     some .contractDrift,
+    some .observation,
     some .observation
   ] := by
   native_decide
@@ -230,7 +246,8 @@ private def historyRecords : List SyntheticEvidenceRecord :=
     historyRecord pair.1 pair.2
 
 private def participantRecord : SyntheticEvidenceRecord :=
-  record participantRecordId participantSource Profile.participantKind 0 [] [
+  { record participantRecordId participantSource Profile.participantKind 0
+      [historyRecordId 2] [
     evidenceField Profile.cancellationCountField (.natural mechanicalCallbackCount),
     evidenceField Profile.syntheticContributionCountField (.natural syntheticContributionCount),
     evidenceField Profile.syntheticMarkerField (.text injectedMarker),
@@ -242,7 +259,7 @@ private def participantRecord : SyntheticEvidenceRecord :=
     evidenceField Profile.operationCorrelationField (.text operationCorrelation),
     evidenceField Profile.runCorrelationField (.text runCorrelation),
     evidenceField Profile.workflowCorrelationField (.text workflowCorrelation)
-  ]
+  ] with faultTarget := some (historyRecordId 2) }
 
 private def closure
     (kind evidenceSource : DefinitionId)
@@ -267,7 +284,79 @@ def completeBundle : EvidenceBundle := {
   sourceClosed := true
 }
 
-def completeObservation : ObservationResult := evaluateEvidence checkedPlan completeBundle
+private def bundleWithHistoryEventTypes (eventTypes : List String) : EvidenceBundle :=
+  let records := (List.zip (List.range eventTypes.length) eventTypes).map fun pair =>
+    historyRecord pair.1 pair.2
+  {
+    completeBundle with
+    records := [cleanupRecord, controlRecord] ++ records ++ [participantRecord]
+    closures := [
+      closure Profile.cleanupKind cleanupSource 1,
+      closure Profile.controlReceiptKind controlSource 1,
+      closure Profile.historyKind historySource records.length,
+      closure Profile.participantKind participantSource 1
+    ]
+  }
+
+private def replaceTextField
+    (record : SyntheticEvidenceRecord)
+    (field : DefinitionId)
+    (value : String) : SyntheticEvidenceRecord := {
+  record with
+  fields := record.fields.map fun item =>
+    if item.field == field then { item with value := .text value } else item
+}
+
+private def replaceRecord
+    (bundle : EvidenceBundle)
+    (replacement : SyntheticEvidenceRecord) : EvidenceBundle := {
+  bundle with
+  records := bundle.records.map fun record =>
+    if record.id == replacement.id then replacement else record
+}
+
+private def qualificationMutations : List EvidenceBundle := [
+  bundleWithHistoryEventTypes [
+    "temporal.history.WorkflowExecutionStarted",
+    "temporal.history.NexusOperationCancelRequestCompleted",
+    "temporal.history.WorkflowExecutionCanceled"
+  ],
+  bundleWithHistoryEventTypes [
+    "temporal.history.WorkflowExecutionStarted",
+    "temporal.history.NexusOperationCancelRequested",
+    "temporal.history.WorkflowExecutionCanceled"
+  ],
+  bundleWithHistoryEventTypes [
+    "temporal.history.WorkflowExecutionStarted",
+    "temporal.history.WorkflowTaskCompleted",
+    "temporal.history.NexusOperationCancelRequestCompleted",
+    "temporal.history.WorkflowExecutionCanceled"
+  ],
+  replaceRecord completeBundle <|
+    replaceTextField participantRecord Profile.operationCorrelationField "mismatched-operation",
+  replaceRecord completeBundle <|
+    replaceTextField (historyRecord 1 historyEventTypes[1])
+      Profile.runCorrelationField "mismatched-run",
+  replaceRecord completeBundle <|
+    replaceTextField (historyRecord 2 historyEventTypes[2])
+      Profile.workflowCorrelationField "mismatched-workflow"
+]
+
+def uncheckedQualificationStatuses : List ObservationStatus :=
+  qualificationMutations.map fun bundle => (evaluateEvidence checkedPlan bundle).status
+
+def checkedQualificationStatuses : List ObservationStatus :=
+  qualificationMutations.map fun bundle => (qualifyDuplicateDeliveryObservation bundle).status
+
+/-- Generic mapping alone cannot qualify lifecycle and cross-source correlation evidence. -/
+example :
+    uncheckedQualificationStatuses = List.replicate qualificationMutations.length .accepted ∧
+    checkedQualificationStatuses = [
+      .unknown, .unknown, .unknown, .conflict, .conflict, .conflict
+    ] := by
+  native_decide
+
+def completeObservation : ObservationResult := qualifyDuplicateDeliveryObservation completeBundle
 
 def acceptedTrace? : ObservationResult → Option EvidenceBackedTrace
   | .accepted trace => some trace
