@@ -76,6 +76,8 @@ structure Response where
   runtimeConfigurationBehaviorFingerprint : BehaviorFingerprint
   runIdentity : DefinitionId
   observationEvaluationStatus : String
+  implementationLink : Lean.Json
+  implementationLinkStatus : String
   evidenceBackedModelTrace : Lean.Json
   evidenceLinks : Lean.Json
   dispositions : Lean.Json
@@ -144,6 +146,8 @@ def canonicalResponseJson (response : Response) : String :=
       quote response.runtimeConfigurationBehaviorFingerprint.render ++
     ",\"runIdentity\":" ++ quote response.runIdentity.value ++
     ",\"observationEvaluationStatus\":" ++ quote response.observationEvaluationStatus ++
+    ",\"implementationLink\":" ++ jsonValue response.implementationLink ++
+    ",\"implementationLinkStatus\":" ++ quote response.implementationLinkStatus ++
     ",\"evidenceBackedModelTrace\":" ++ jsonValue response.evidenceBackedModelTrace ++
     ",\"evidenceLinks\":" ++ jsonValue response.evidenceLinks ++
     ",\"dispositions\":" ++ jsonValue response.dispositions ++
