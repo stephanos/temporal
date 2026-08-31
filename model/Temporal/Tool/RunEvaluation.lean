@@ -652,31 +652,19 @@ private def validateControlAttempt
   let fact ← match controlFacts with
     | [fact] => pure fact
     | _ => throw "controlAttempts"
-  let expectedFields := if isDuplicateDeliveryRequest request then 8 else 4
   if fact.definitionId != receipt ||
-      fact.kindDefinitionId != Temporal.System.Nexus.Observation.Profile.controlReceiptKind ||
-      fact.fields.length != expectedFields ||
-      !exactRawField fact Temporal.System.Nexus.Observation.Profile.actionField
-        (.text attempt.action.value) ||
-      !exactRawField fact Temporal.System.Nexus.Observation.Profile.attemptField
-        (.natural attempt.attempt) ||
-      !exactRawField fact Temporal.System.Nexus.Observation.Profile.occurrenceField
-        (.text attempt.occurrence.value) ||
-      !exactRawField fact Temporal.System.Nexus.Observation.Profile.statusField
-        (.text attempt.status) then
+      fact.kindDefinitionId != Temporal.System.Nexus.Observation.Profile.controlReceiptKind then
     throw "controlAttempts"
-  if isDuplicateDeliveryRequest request &&
-      (!exactRawField fact
-          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.faultDefinitionField
-          (.text Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId.value) ||
-        !exactRawField fact
-          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.faultReceiptField
-          (.text Temporal.System.Nexus.Observation.DuplicateDelivery.faultReceiptId.value) ||
-        !exactRawField fact
-          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.capabilityDefinitionField
-          (.text Temporal.System.Nexus.Observation.DuplicateDelivery.cancellationCapabilityId.value) ||
-        !(fact.fields.any fun field => field.definitionId ==
-          Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.operationCorrelationField)) then
+  if !isDuplicateDeliveryRequest request &&
+      (fact.fields.length != 4 ||
+        !exactRawField fact Temporal.System.Nexus.Observation.Profile.actionField
+          (.text attempt.action.value) ||
+        !exactRawField fact Temporal.System.Nexus.Observation.Profile.attemptField
+          (.natural attempt.attempt) ||
+        !exactRawField fact Temporal.System.Nexus.Observation.Profile.occurrenceField
+          (.text attempt.occurrence.value) ||
+        !exactRawField fact Temporal.System.Nexus.Observation.Profile.statusField
+          (.text attempt.status)) then
     throw "controlAttempts"
 
 private def evidenceField (field : RawField) : Except String EvidenceFieldValue := do
@@ -890,10 +878,15 @@ private def exactRawHistoryChain (facts : List RawFact) : Bool :=
       pair.1.causalParents == if pair.2 == 0 then [] else
         (history[pair.2 - 1]?).map RawFact.definitionId |>.toList
 
+private def duplicateDeliveryCallbackFields : List DefinitionId := [
+  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField,
+  Temporal.System.Nexus.Observation.Profile.endpointIdentityField
+]
+
 private def mergeParticipantFields
     (callback synthetic : RawFact) : List RawField :=
   synthetic.fields ++ callback.fields.filter fun field =>
-    !(synthetic.fields.any fun candidate => candidate.definitionId == field.definitionId)
+    duplicateDeliveryCallbackFields.contains field.definitionId
 
 private def duplicateDeliveryRecords
     (facts : List RawFact) : Except String (List SyntheticEvidenceRecord) := do
@@ -1032,6 +1025,66 @@ private def duplicateDeliveryDispositionMismatch?
         | .hash _ => field.disposition == "sha256"
       if compatible then none else some field.definitionId
 
+private def duplicateDeliverySchemaMismatch?
+    (request : Request) : Option DefinitionId :=
+  requestFacts request |>.findSome? fun fact => do
+    let schema ← sourceSchema? fact.sourceDefinitionId
+    if !schema.rawKinds.contains fact.kindDefinitionId then
+      some fact.kindDefinitionId
+    else
+      fact.fields.findSome? fun field =>
+        if Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.dispositions.any fun item =>
+            item.field == { kind := schema.kind, field := field.definitionId } then
+          none
+        else
+          some field.definitionId
+
+private def duplicateDeliveryCorrelationFields : List DefinitionId := [
+  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.operationCorrelationField,
+  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.runCorrelationField,
+  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.workflowCorrelationField
+]
+
+private def duplicateDeliveryParticipantCorrelationFailure?
+    (request : Request) : Option ObservationResult :=
+  let participants := requestFacts request |>.filter fun fact =>
+    fact.sourceDefinitionId == sourceParticipant
+  let callbacks := participants.filter fun fact =>
+    rawFactHasField fact
+      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
+  let synthetic := participants.filter fun fact =>
+    !rawFactHasField fact
+      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
+  match callbacks, synthetic with
+  | [callback], [synthetic] =>
+      match duplicateDeliveryCorrelationFields.find? fun field =>
+          (exactRawText? callback field).isNone || (exactRawText? synthetic field).isNone with
+      | some field => some <| .unknown {
+          kind := .unresolvedBinding
+          planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+          relatedDefinitionIds := [callback.definitionId, synthetic.definitionId, field]
+        }
+      | none =>
+          match duplicateDeliveryCorrelationFields.find? fun field =>
+              exactRawText? callback field != exactRawText? synthetic field with
+          | some field => some <| .conflict {
+              kind := .contradictoryBinding
+              planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+              relatedDefinitionIds := [callback.definitionId, synthetic.definitionId, field]
+            }
+          | none =>
+              if exactRawText? callback
+                  Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.runCorrelationField !=
+                  some request.runIdentity.value then
+                some <| .conflict {
+                  kind := .contradictoryBinding
+                  planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+                  relatedDefinitionIds := [callback.definitionId, synthetic.definitionId,
+                    Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.runCorrelationField]
+                }
+              else none
+  | _, _ => none
+
 private def duplicateDeliveryMissingCausalParent?
     (request : Request) : Option DefinitionId :=
   let facts := requestFacts request
@@ -1066,20 +1119,28 @@ private def evaluateDuplicateDeliverySemantics
       Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
       Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checkedObservedTranslation) := do
   let bundle ← (adapt request).mapError adapterError
-  let observation := match duplicateDeliveryMissingCausalParent? request,
-      duplicateDeliveryDispositionMismatch? request with
-    | some fact, _ => .unknown {
+  let observation := match duplicateDeliveryMissingCausalParent? request with
+    | some fact => .unknown {
         kind := .missingCausalParent
         planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
         relatedDefinitionIds := [fact]
       }
-    | none, some field => .unsupported {
-        kind := .fieldMismatch
-        planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
-        relatedDefinitionIds := [field]
-      }
-    | none, none =>
-        Temporal.System.Nexus.Observation.DuplicateDelivery.qualifyDuplicateDeliveryObservation bundle
+    | none => match duplicateDeliveryDispositionMismatch? request with
+      | some field => .unsupported {
+          kind := .fieldMismatch
+          planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+          relatedDefinitionIds := [field]
+        }
+      | none => match duplicateDeliverySchemaMismatch? request with
+        | some field => .unsupported {
+            kind := .fieldMismatch
+            planId := Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan.id
+            relatedDefinitionIds := [field]
+          }
+        | none => match duplicateDeliveryParticipantCorrelationFailure? request with
+          | some failure => failure
+          | none =>
+              Temporal.System.Nexus.Observation.DuplicateDelivery.qualifyDuplicateDeliveryObservation bundle
   pure <| Umpire.checkObservedRunEvaluation observation
     Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
     Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checkedObservedTranslation
