@@ -6,6 +6,10 @@ satisfies: [R3, R4]
 ## Description
 Project the requested fault, completed real receipt, injected marker, separate counts, and shared correlation into fn-19/fn-18 operational artifacts for R3/R4. Prove operational success only when all existing phase/source/cleanup obligations close.
 
+### Transport/semantic boundary (normative)
+
+This task ends at R4's admitted transport truth: the real callback and labeled synthetic contribution remain distinct participant-command RawEvidence facts, and RawEvidence retains the complete requested/completed history chain. It intentionally does not coalesce those records into Task `.7`'s semantic profile or derive that profile's `faultTarget`; Task `.5` owns both operations in the existing fn-20 raw-to-semantic adapter before Observation Evaluation. No RunEvaluation or Lean implementation belongs in Task `.4`.
+
 **Size:** M
 **Files:** `tools/umpire/runtime/evidence.go`, `tools/umpire/internal/artifactv2/evidence.go`, `tools/umpire/internal/runtimeengine/evidence.go`, `tools/umpire/internal/runtimeengine/engine.go`, `tools/umpire/temporal/nexus/participant.go`, `tools/umpire/temporal/nexus/evidence.go`, `tools/umpire/temporal/nexus/output.go`, `tools/umpire/temporal/nexus/evidence_test.go`, `tools/umpire/temporal/nexus/integration_test.go`, `tools/umpire/temporal/nexus/participant_test.go`, `tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set/**`
 **Touches:** [tools/umpire/runtime/evidence.go, tools/umpire/internal/artifactv2/evidence.go, tools/umpire/internal/runtimeengine/evidence.go, tools/umpire/internal/runtimeengine/engine.go, tools/umpire/temporal/nexus/participant.go, tools/umpire/temporal/nexus/evidence.go, tools/umpire/temporal/nexus/output.go, tools/umpire/temporal/nexus/evidence_test.go, tools/umpire/temporal/nexus/integration_test.go, tools/umpire/temporal/nexus/participant_test.go, tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set/**]
