@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-20-local-execution-semantic-conformance",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "needs_work",
+  "completion_reviewed_at": "2026-08-31T03:12:09.792944Z",
   "created_at": "2026-08-26T10:50:28.403420Z",
   "default_impl": null,
   "default_review": null,
@@ -24,7 +24,7 @@
     "fn-20-local-execution-semantic-conformance.7": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 0,
+  "plan_review_rounds": 1,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-26T11:03:06.644646Z",
   "ready": true,
@@ -1476,6 +1476,51 @@
       "task": "fn-20-local-execution-semantic-conformance.7",
       "timestamp": "2026-08-31T03:02:57.714669Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "27936a5eb76d0a81e5cd48a34f97c19bc077eca471aeb9ac14e3b86de753c8d3",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f05749174db1670566168bd8f5f683d4",
+            "classification": "introduced",
+            "findingId": "finding-f05749174db1670566168bd8f5f683d4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1a5d8b5de6803e9c2b9b6425b0d52e68f4020bbb",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 677297,
+      "output_sha256": "22aa5c108ae02b1baf413f584c7d973bce655453572b4005263ac684c66fcc25",
+      "reservation_id": "67c86c918da944cf8cb40334c1f7437b",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-31T03:12:09.780355Z",
+      "tool_calls": 21,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -1492,6 +1537,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-20-local-execution-semantic-conformance.1": 0,
     "impl:fn-20-local-execution-semantic-conformance.2": 0,
     "impl:fn-20-local-execution-semantic-conformance.3": 0,
@@ -1515,5 +1561,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T03:02:57.721518Z"
+  "updated_at": "2026-08-31T03:12:09.797846Z"
 }
