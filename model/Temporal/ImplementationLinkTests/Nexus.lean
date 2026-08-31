@@ -1,5 +1,6 @@
 import Temporal.Feature.Nexus.Operations
 import Temporal.System.Nexus.ImplementationLink
+import Temporal.System.Nexus.ObservationFaultTests
 
 /-!
 Composed checks for the ordinary Nexus lifecycle. Synthetic Evidence exists only to establish the
@@ -540,5 +541,68 @@ example : [
       result.implementationLinkDiagnostic?.isSome &&
       result.evaluated?.isNone := by
   native_decide
+
+namespace DuplicateDelivery
+
+open Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery
+
+def strictApplication := applyImplementationLink
+  Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checked
+  Temporal.System.Nexus.CallerClosure.setup
+  Temporal.System.Nexus.ObservationFaultTests.completeTrace
+
+def observedApplication := applyObservedTraceTranslation checkedObservedTranslation
+  Temporal.System.Nexus.CallerClosure.setup
+  Temporal.System.Nexus.ObservationFaultTests.completeTrace
+
+def translatedTrace :=
+  observedApplication.translated?.map TranslatedObservedTrace.trace
+
+def propertyEvaluation := translatedTrace.map <|
+  evaluateProperty Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosureProperty
+
+/-- The strict conformance path stays closed while the checked observed path carries no authority. -/
+example :
+    strictApplication.status = .invalid ∧
+    strictApplication.diagnostic?.map ImplementationLinkDiagnostic.kind =
+      some .nonAuthoritativeSourceStep ∧
+    observedApplication.status = .applied ∧
+    observedApplication.translated?.map (fun translation =>
+      (translation.hasAuthorityClaim,
+        translation.evidenceLinks.length,
+        translation.evidenceLinks.all fun evidenceLink =>
+          evidenceLink.implementationLinkId == observedImplementationLinkId &&
+            evidenceLink.implementationLinkBehaviorFingerprint ==
+              checkedObservedTranslation.behaviorFingerprint)) =
+      some (false, 7, true) := by
+  native_decide
+
+/-- The unchanged Feature Property isolates the count-two uniqueness violation. -/
+example : propertyEvaluation.map (fun evaluation =>
+    (evaluation.propertyId,
+      evaluation.satisfied,
+      evaluation.clauses.map fun clause => (clause.clauseId, clause.satisfied))) = some (
+    Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosurePropertyId,
+    false,
+    [
+      (DefinitionId.of "workflow-nexus.property.clause.delivery", true),
+      (DefinitionId.of "workflow-nexus.property.clause.ownership", true),
+      (DefinitionId.of "workflow-nexus.property.clause.uniqueness", false)
+    ]) := by
+  native_decide
+
+example :
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checkedResult.isOk =
+      true ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.checked.hasCanonicalIdentity =
+      true ∧
+    checkedObservedTranslation.hasCanonicalIdentity = true ∧
+    checkedObservedTranslation.declaration.observationMappings.contains {
+      source := sourceCancellationCountTwo
+      destination := destinationCancellationCountTwo
+    } := by
+  native_decide
+
+end DuplicateDelivery
 
 end Temporal.ImplementationLinkTests.Nexus

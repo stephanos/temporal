@@ -132,7 +132,8 @@ def stepRecord
     (sequence : Nat)
     (parent : DefinitionId)
     (outcome : String := "deferred")
-    (state : String := "off") : SyntheticEvidenceRecord := {
+    (state : String := "off")
+    (observation : String := "off") : SyntheticEvidenceRecord := {
   id := recordId
   profile := profileId
   profileVersion := 1
@@ -144,7 +145,7 @@ def stepRecord
     textField stateField state,
     textField actionField "flip",
     textField outcomeField outcome,
-    textField observationField "off"
+    textField observationField observation
   ]
 }
 
@@ -284,6 +285,145 @@ private theorem checkedLinkResult_isSome : checkedLinkResult.toOption.isSome = t
   native_decide
 
 def checkedLink := checkedLinkResult.toOption.get checkedLinkResult_isSome
+
+def observedPowerOffObservation : ModelValue := {
+  Umpire.Examples.Switch.powerOffObservation with value := "observed-off"
+}
+
+def observedEvidence : EvidenceBundle := {
+  repeatedEvidence with
+  records := [
+    stepRecord secondStepRecordId 3 firstStepRecordId
+      (observation := observedPowerOffObservation.value),
+    initialRecord,
+    stepRecord firstStepRecordId 2 initialRecordId
+      (observation := observedPowerOffObservation.value)
+  ]
+}
+
+def observedTranslationDeclaration : ObservedTraceTranslationDeclaration := {
+  id := id "test.implementation-link.switch-observed-translation"
+  source
+  observationMappings := linkDeclaration.observationMappings ++ [{
+    source := observedPowerOffObservation
+    destination := observedPowerOffObservation
+  }]
+}
+
+def checkedObservedTranslationResult :=
+  checkObservedTraceTranslation checkedLink observedTranslationDeclaration
+
+private theorem checkedObservedTranslationResult_isSome :
+    checkedObservedTranslationResult.toOption.isSome = true := by
+  native_decide
+
+def checkedObservedTranslation :=
+  checkedObservedTranslationResult.toOption.get checkedObservedTranslationResult_isSome
+
+def observedTrace : EvidenceBackedTrace :=
+  (acceptedTrace? observedEvidence).get (by native_decide)
+
+def strictObservedApplication := applyImplementationLink checkedLink
+  Umpire.Examples.Switch.switchSetup observedTrace
+
+def checkedObservedApplication := applyObservedTraceTranslation checkedObservedTranslation
+  Umpire.Examples.Switch.switchSetup observedTrace
+
+/-- Observed translation accepts an explicitly checked value without claiming Target authority. -/
+example :
+    strictObservedApplication.status = .invalid ∧
+    strictObservedApplication.diagnostic?.map ImplementationLinkDiagnostic.kind =
+      some .nonAuthoritativeSourceStep ∧
+    checkedObservedApplication.status = .applied ∧
+    checkedObservedApplication.translated?.map (fun translation =>
+      (translation.trace == observedTrace.trace,
+        translation.evidenceLinks.length,
+        translation.hasAuthorityClaim)) = some (true, 9, false) := by
+  native_decide
+
+private def observedErrorKind?
+    (result : Except ObservedTraceTranslationError
+      (CheckedObservedTraceTranslation checkedLink)) :
+    Option ObservedTraceTranslationErrorKind :=
+  match result with
+  | .ok _ => none
+  | .error translationError => some translationError.kind
+
+def missingObservedMappingDeclaration : ObservedTraceTranslationDeclaration := {
+  observedTranslationDeclaration with
+  observationMappings := observedTranslationDeclaration.observationMappings.tail
+}
+
+def duplicateObservedMappingDeclaration : ObservedTraceTranslationDeclaration := {
+  observedTranslationDeclaration with
+  observationMappings := observedTranslationDeclaration.observationMappings ++
+    [observedPowerOffObservation, observedPowerOffObservation].map fun value => {
+      source := value
+      destination := value
+    }
+}
+
+def ambiguousObservedMappingDeclaration : ObservedTraceTranslationDeclaration := {
+  observedTranslationDeclaration with
+  observationMappings := observedTranslationDeclaration.observationMappings ++ [{
+    source := observedPowerOffObservation
+    destination := Umpire.Examples.Switch.powerOffObservation
+  }]
+}
+
+def incompatibleObservedMappingDeclaration : ObservedTraceTranslationDeclaration := {
+  observedTranslationDeclaration with
+  observationMappings := observedTranslationDeclaration.observationMappings ++ [{
+    source := { observedPowerOffObservation with
+      definitionId := id "test.implementation-link.observation.unexpected" }
+    destination := observedPowerOffObservation
+  }]
+}
+
+/-- Observed mapping compilation fails closed before any trace translation. -/
+example : [
+    observedErrorKind? <| checkObservedTraceTranslation checkedLink
+      { observedTranslationDeclaration with version := 0 },
+    observedErrorKind? <| checkObservedTraceTranslation checkedLink
+      missingObservedMappingDeclaration,
+    observedErrorKind? <| checkObservedTraceTranslation checkedLink
+      duplicateObservedMappingDeclaration,
+    observedErrorKind? <| checkObservedTraceTranslation checkedLink
+      ambiguousObservedMappingDeclaration,
+    observedErrorKind? <| checkObservedTraceTranslation checkedLink
+      incompatibleObservedMappingDeclaration
+  ] = [
+    some .invalidVersion,
+    some .incompleteSupportPartition,
+    some .duplicateMapping,
+    some .ambiguousMapping,
+    some .incompatibleMapping
+  ] := by
+  native_decide
+
+def reorderedObservedTranslation :=
+  (checkObservedTraceTranslation checkedLink {
+    observedTranslationDeclaration with
+    observationMappings := observedTranslationDeclaration.observationMappings.reverse
+  }).toOption.get (by native_decide)
+
+def changedObservedTranslation :=
+  (checkObservedTraceTranslation checkedLink {
+    observedTranslationDeclaration with
+    observationMappings := observedTranslationDeclaration.observationMappings.map fun mapping =>
+      if mapping.source == observedPowerOffObservation then {
+        mapping with destination := { mapping.destination with value := "observed-off-changed" }
+      } else mapping
+  }).toOption.get (by native_decide)
+
+/-- Source order is non-semantic while every observed value participates in identity. -/
+example :
+    checkedObservedTranslation.hasCanonicalIdentity ∧
+    reorderedObservedTranslation.behaviorFingerprint =
+      checkedObservedTranslation.behaviorFingerprint ∧
+    changedObservedTranslation.behaviorFingerprint !=
+      checkedObservedTranslation.behaviorFingerprint := by
+  native_decide
 
 def limitedDeclaration := {
   linkDeclaration with applicationLimit := { value := 1, unit := .semanticTransitions }

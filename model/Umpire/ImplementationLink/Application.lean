@@ -6,6 +6,10 @@ Total application of one checked Implementation Link to an already Evidence-back
 Trace. Application replays the complete source trace through the retained source kernel before it
 translates any value. Only `applied` exposes the complete destination trace; every failure exposes
 one canonical diagnostic and no partial trace.
+
+An explicitly checked observed-trace translation reuses the same envelope and positional Evidence
+Links for values outside Target authority. Its result omits the authority proof and cannot be
+confused with `AppliedImplementationLink`.
 -/
 
 namespace Umpire
@@ -220,6 +224,143 @@ private def implementationLinkDiagnostic
     identity := behaviorFingerprintOf semantic
   }
 
+/-- A checked observed-trace translation can admit explicitly declared values outside Target
+authority while retaining the checked Implementation Link's semantic correspondence. -/
+structure ObservedTraceTranslationDeclaration where
+  id : DefinitionId
+  source : SourceLocation
+  version : Nat := 1
+  observationMappings : List (ImplementationValueMapping ModelValue ModelValue)
+  documentation : String := ""
+  deriving BEq, DecidableEq, Repr
+
+inductive ObservedTraceTranslationErrorKind where
+  | emptyDefinitionId
+  | invalidDefinitionId
+  | invalidVersion
+  | behaviorFingerprintDrift
+  | duplicateMapping
+  | ambiguousMapping
+  | incompatibleMapping
+  | incompleteSupportPartition
+  deriving BEq, DecidableEq, Ord, Repr
+
+structure ObservedTraceTranslationError where
+  kind : ObservedTraceTranslationErrorKind
+  definitionId : DefinitionId
+  relatedDefinitionIds : List DefinitionId := []
+  deriving BEq, DecidableEq, Repr
+
+private def observedMappingLe
+    (left right : ImplementationValueMapping ModelValue ModelValue) : Bool :=
+  decide (reprStr left.source < reprStr right.source) ||
+    (left.source == right.source && decide (reprStr left.destination ≤ reprStr right.destination))
+
+private def observedMappingJson
+    (mapping : ImplementationValueMapping ModelValue ModelValue) : String :=
+  "{\"source\":" ++ quote (reprStr mapping.source) ++
+    ",\"destination\":" ++ quote (reprStr mapping.destination) ++ "}"
+
+private def observedTraceTranslationSemanticJson
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (id : DefinitionId)
+    (version : Nat)
+    (observationMappings : List (ImplementationValueMapping ModelValue ModelValue)) : String :=
+  "{\"definitionId\":" ++ quote id.value ++
+    ",\"version\":" ++ toString version ++
+    ",\"baseImplementationLinkId\":" ++ quote checked.declaration.id.value ++
+    ",\"baseImplementationLinkBehaviorFingerprint\":" ++
+      quote checked.behaviorFingerprint.render ++
+    ",\"sourceTarget\":" ++ targetReferenceIdentityJson (.ofTarget checked.sourceTarget) ++
+    ",\"destinationTarget\":" ++
+      targetReferenceIdentityJson (.ofTarget checked.destinationTarget) ++
+    ",\"observationMappings\":" ++
+      array (observationMappings.map observedMappingJson) ++ "}"
+
+private def canonicalObservedTraceTranslationJson
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (declaration : ObservedTraceTranslationDeclaration)
+    (observationMappings : List (ImplementationValueMapping ModelValue ModelValue)) : String :=
+  "{\"semantic\":" ++ observedTraceTranslationSemanticJson checked declaration.id
+      declaration.version observationMappings ++
+    ",\"source\":" ++ quote (reprStr declaration.source) ++
+    ",\"documentation\":" ++ quote declaration.documentation ++ "}"
+
+/-- Canonical observed-value extension of one already checked forward simulation. -/
+structure CheckedObservedTraceTranslation
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue) where
+  declaration : ObservedTraceTranslationDeclaration
+  canonicalMetadata : String
+  behaviorFingerprint : BehaviorFingerprint
+
+def CheckedObservedTraceTranslation.hasCanonicalIdentity
+    (translation : CheckedObservedTraceTranslation checked) : Bool :=
+  let mappings := translation.declaration.observationMappings
+  translation.behaviorFingerprint == behaviorFingerprintOf
+      (observedTraceTranslationSemanticJson checked translation.declaration.id
+        translation.declaration.version mappings) &&
+    translation.canonicalMetadata ==
+      canonicalObservedTraceTranslationJson checked translation.declaration mappings
+
+private def observedTranslationError
+    (kind : ObservedTraceTranslationErrorKind)
+    (declaration : ObservedTraceTranslationDeclaration)
+    (relatedDefinitionIds : List DefinitionId := []) : ObservedTraceTranslationError := {
+  kind
+  definitionId := declaration.id
+  relatedDefinitionIds := canonicalIds relatedDefinitionIds
+}
+
+/-- Check an exact observed-value table against the semantic references of a checked link.
+Values may be outside Target authority, but their Definition IDs may not invent a new meaning. -/
+def checkObservedTraceTranslation
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (declaration : ObservedTraceTranslationDeclaration) :
+    Except ObservedTraceTranslationError (CheckedObservedTraceTranslation checked) := do
+  if declaration.id.value == "" then
+    throw (observedTranslationError .emptyDefinitionId declaration)
+  if !declaration.id.isNamespaced then
+    throw (observedTranslationError .invalidDefinitionId declaration [declaration.id])
+  if declaration.version == 0 then
+    throw (observedTranslationError .invalidVersion declaration [declaration.id])
+  if !checked.hasCanonicalIdentity then
+    throw (observedTranslationError .behaviorFingerprintDrift declaration
+      [checked.declaration.id])
+  for mapping in declaration.observationMappings do
+    if (declaration.observationMappings.filter fun other => other == mapping).length > 1 then
+      throw (observedTranslationError .duplicateMapping declaration
+        [mapping.source.definitionId, mapping.destination.definitionId])
+    if (declaration.observationMappings.filter fun other =>
+        other.source == mapping.source).length > 1 then
+      throw (observedTranslationError .ambiguousMapping declaration
+        [mapping.source.definitionId, mapping.destination.definitionId])
+    if !(checked.declaration.observationMappings.any fun base =>
+        base.source.definitionId == mapping.source.definitionId &&
+          base.destination.definitionId == mapping.destination.definitionId) then
+      throw (observedTranslationError .incompatibleMapping declaration
+        [mapping.source.definitionId, mapping.destination.definitionId])
+  for base in checked.declaration.observationMappings do
+    if !(declaration.observationMappings.contains base) then
+      throw (observedTranslationError .incompleteSupportPartition declaration
+        [base.source.definitionId, base.destination.definitionId])
+  let mappings := declaration.observationMappings.mergeSort observedMappingLe
+  let checkedDeclaration := { declaration with observationMappings := mappings }
+  pure {
+    declaration := checkedDeclaration
+    canonicalMetadata := canonicalObservedTraceTranslationJson checked checkedDeclaration mappings
+    behaviorFingerprint := behaviorFingerprintOf
+      (observedTraceTranslationSemanticJson checked checkedDeclaration.id
+        checkedDeclaration.version mappings)
+  }
+
 /-- One destination fact retains its exact source coordinate, source fact, and Observation Evidence Link. -/
 structure ImplementationLinkEvidenceLink where
   identity : BehaviorFingerprint
@@ -234,24 +375,43 @@ structure ImplementationLinkEvidenceLink where
   sourceEvidenceLinkBehaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
-private def evidenceLinkIdentity
-    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
-      SourceSetup ModelValue ModelValue ModelValue ModelValue
-      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+private def evidenceLinkIdentityFor
+    (implementationLinkId : DefinitionId)
+    (implementationLinkBehaviorFingerprint : BehaviorFingerprint)
+    (sourceTarget destinationTarget : ImplementationTargetReference)
     (coordinate : ModelCoordinate)
     (sourceValue destinationValue : ModelValue)
     (sourceEvidenceLink : EvidenceLink) : BehaviorFingerprint :=
   behaviorFingerprintOf <|
-    "{\"implementationLinkId\":" ++ quote checked.declaration.id.value ++
-    ",\"implementationLinkBehaviorFingerprint\":" ++ quote checked.behaviorFingerprint.render ++
-    ",\"sourceTarget\":" ++
-      targetReferenceIdentityJson (.ofTarget checked.sourceTarget) ++
-    ",\"destinationTarget\":" ++
-      targetReferenceIdentityJson (.ofTarget checked.destinationTarget) ++
+    "{\"implementationLinkId\":" ++ quote implementationLinkId.value ++
+    ",\"implementationLinkBehaviorFingerprint\":" ++
+      quote implementationLinkBehaviorFingerprint.render ++
+    ",\"sourceTarget\":" ++ targetReferenceIdentityJson sourceTarget ++
+    ",\"destinationTarget\":" ++ targetReferenceIdentityJson destinationTarget ++
     ",\"coordinate\":" ++ quote (coordinateName coordinate) ++
     ",\"sourceValue\":" ++ quote (reprStr sourceValue) ++
     ",\"destinationValue\":" ++ quote (reprStr destinationValue) ++
     ",\"sourceEvidenceLink\":" ++ quote (reprStr sourceEvidenceLink) ++ "}"
+
+private def implementationLinkEvidenceLinkFor
+    (implementationLinkId : DefinitionId)
+    (implementationLinkBehaviorFingerprint : BehaviorFingerprint)
+    (sourceTarget destinationTarget : ImplementationTargetReference)
+    (coordinate : ModelCoordinate)
+    (sourceValue destinationValue : ModelValue)
+    (sourceEvidenceLink : EvidenceLink) : ImplementationLinkEvidenceLink := {
+  identity := evidenceLinkIdentityFor implementationLinkId implementationLinkBehaviorFingerprint
+    sourceTarget destinationTarget coordinate sourceValue destinationValue sourceEvidenceLink
+  implementationLinkId
+  implementationLinkBehaviorFingerprint
+  sourceTarget
+  destinationTarget
+  coordinate
+  sourceValue
+  destinationValue
+  sourceEvidenceLink
+  sourceEvidenceLinkBehaviorFingerprint := behaviorFingerprintOf (reprStr sourceEvidenceLink)
+}
 
 private def implementationLinkEvidenceLink
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -259,18 +419,10 @@ private def implementationLinkEvidenceLink
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (coordinate : ModelCoordinate)
     (sourceValue destinationValue : ModelValue)
-    (sourceEvidenceLink : EvidenceLink) : ImplementationLinkEvidenceLink := {
-  identity := evidenceLinkIdentity checked coordinate sourceValue destinationValue sourceEvidenceLink
-  implementationLinkId := checked.declaration.id
-  implementationLinkBehaviorFingerprint := checked.behaviorFingerprint
-  sourceTarget := .ofTarget checked.sourceTarget
-  destinationTarget := .ofTarget checked.destinationTarget
-  coordinate
-  sourceValue
-  destinationValue
-  sourceEvidenceLink
-  sourceEvidenceLinkBehaviorFingerprint := behaviorFingerprintOf (reprStr sourceEvidenceLink)
-}
+    (sourceEvidenceLink : EvidenceLink) : ImplementationLinkEvidenceLink :=
+  implementationLinkEvidenceLinkFor checked.declaration.id checked.behaviorFingerprint
+    (.ofTarget checked.sourceTarget) (.ofTarget checked.destinationTarget) coordinate
+    sourceValue destinationValue sourceEvidenceLink
 
 private def expectedCoordinates
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) : List ModelCoordinate :=
@@ -614,12 +766,16 @@ private theorem CheckedImplementationLink.traceForward
   steps := checked.stepsForward trace.initialState trace.steps admitted.steps
 }
 
-private def buildImplementationLinkEvidenceLinks
+private def buildImplementationLinkEvidenceLinksWith
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
       SourceSetup ModelValue ModelValue ModelValue ModelValue
       DestinationSetup ModelValue ModelValue ModelValue ModelValue)
     (sourceTrace : EvidenceBackedTrace)
-    (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
+    (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
+    (mapValue : ModelCoordinate → ModelValue →
+      Except ImplementationLinkDiagnostic ModelValue)
+    (makeLink : ModelCoordinate → ModelValue → ModelValue → EvidenceLink →
+      ImplementationLinkEvidenceLink) :
     Except ImplementationLinkDiagnostic (List ImplementationLinkEvidenceLink) := do
   let mut links := []
   for coordinate in expectedCoordinates sourceTrace.trace do
@@ -631,7 +787,7 @@ private def buildImplementationLinkEvidenceLinks
       | some evidenceLink => pure evidenceLink
       | none => throw (implementationLinkDiagnostic checked .absentCoordinate (some coordinate)
           [sourceValue.definitionId])
-    let destinationValue ← mappedValueAt checked coordinate sourceValue
+    let destinationValue ← mapValue coordinate sourceValue
     match modelValueAt destinationTrace coordinate with
     | some actualDestination =>
         if actualDestination != destinationValue then
@@ -641,9 +797,18 @@ private def buildImplementationLinkEvidenceLinks
             (evidenceLinkBehaviorFingerprint :=
               some (behaviorFingerprintOf (reprStr sourceEvidenceLink)))
     | none => throw <| implementationLinkDiagnostic checked .invalidCoordinate (some coordinate)
-    links := links ++ [implementationLinkEvidenceLink checked coordinate sourceValue
-      destinationValue sourceEvidenceLink]
+    links := links ++ [makeLink coordinate sourceValue destinationValue sourceEvidenceLink]
   pure links
+
+private def buildImplementationLinkEvidenceLinks
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (sourceTrace : EvidenceBackedTrace)
+    (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
+    Except ImplementationLinkDiagnostic (List ImplementationLinkEvidenceLink) :=
+  buildImplementationLinkEvidenceLinksWith checked sourceTrace destinationTrace
+    (mappedValueAt checked) (implementationLinkEvidenceLink checked)
 
 /-- Complete successful output, indexed by the exact checked link and carrying destination authority. -/
 structure AppliedImplementationLink
@@ -762,5 +927,225 @@ def applyImplementationLink
   match applyCheckedImplementationLink checked sourceSetup evidenceBackedTrace with
   | .ok application => .applied application
   | .error failure => resultOfDiagnostic failure
+
+private def observedDiagnosticFrom
+    (translation : CheckedObservedTraceTranslation checked)
+    (diagnostic : ImplementationLinkDiagnostic) : ImplementationLinkDiagnostic :=
+  let canonicalFields : ImplementationLinkDiagnostic := {
+    diagnostic with
+    implementationLinkId := translation.declaration.id
+    implementationLinkBehaviorFingerprint := translation.behaviorFingerprint
+    identity := behaviorFingerprintOf ""
+  }
+  { canonicalFields with
+    identity := behaviorFingerprintOf (canonicalImplementationLinkDiagnosticJson canonicalFields) }
+
+private def observedImplementationLinkDiagnostic
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked)
+    (kind : ImplementationLinkFailureKind)
+    (coordinate : Option ModelCoordinate := none)
+    (relatedDefinitionIds : List DefinitionId := [])
+    (sourceSetupBehaviorFingerprint : Option BehaviorFingerprint := none)
+    (appliedLimit : Option Limit := none)
+    (observedCount : Option Nat := none)
+    (evidenceLinkBehaviorFingerprint : Option BehaviorFingerprint := none) :
+    ImplementationLinkDiagnostic :=
+  observedDiagnosticFrom translation <| implementationLinkDiagnostic checked kind coordinate
+    relatedDefinitionIds sourceSetupBehaviorFingerprint appliedLimit observedCount
+    (evidenceLinkBehaviorFingerprint := evidenceLinkBehaviorFingerprint)
+
+private def observedMappedValueAt
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked)
+    (coordinate : ModelCoordinate)
+    (sourceValue : ModelValue) : Except ImplementationLinkDiagnostic ModelValue :=
+  match coordinate with
+  | .observation _ _ =>
+      match translation.declaration.observationMappings.filter fun mapping =>
+          mapping.source == sourceValue with
+      | [mapping] => pure mapping.destination
+      | [] => throw <| observedImplementationLinkDiagnostic checked translation .absentCoordinate
+          (some coordinate) [sourceValue.definitionId]
+      | mappings => throw <| observedImplementationLinkDiagnostic checked translation .multipleMappings
+          (some coordinate) (sourceValue.definitionId ::
+            mappings.map (fun mapping => mapping.destination.definitionId))
+  | _ =>
+      match mappedValueAt checked coordinate sourceValue with
+      | .ok value => pure value
+      | .error diagnostic => throw (observedDiagnosticFrom translation diagnostic)
+
+private def translateObservedValues
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked)
+    (step position : Nat) : List ModelValue →
+    Except ImplementationLinkDiagnostic (List ModelValue)
+  | [] => pure []
+  | value :: rest => do
+      let destination ← observedMappedValueAt checked translation
+        (.observation step position) value
+      let destinations ← translateObservedValues checked translation step (position + 1) rest
+      pure (destination :: destinations)
+
+private def translateObservedSteps
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked)
+    (position : Nat) : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue) →
+    Except ImplementationLinkDiagnostic
+      (List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
+  | [] => pure []
+  | step :: rest => do
+      let selectedAction ← observedMappedValueAt checked translation
+        (.selectedAction position) step.selectedAction
+      let modelOutcome ← observedMappedValueAt checked translation
+        (.modelOutcome position) step.modelOutcome
+      let resultingState ← observedMappedValueAt checked translation
+        (.resultingState position) step.resultingState
+      let observations ← translateObservedValues checked translation position 1 step.observations
+      let translatedRest ← translateObservedSteps checked translation (position + 1) rest
+      pure ({ selectedAction, modelOutcome, resultingState, observations } :: translatedRest)
+
+private def translateObservedTrace
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
+    Except ImplementationLinkDiagnostic
+      (ModelTrace ModelValue ModelValue ModelValue ModelValue) := do
+  let initialState ← observedMappedValueAt checked translation .initialState trace.initialState
+  let steps ← translateObservedSteps checked translation 1 trace.steps
+  pure { initialState, steps }
+
+/-- Successful observed translation retains the full Evidence Link envelope and intentionally
+contains no proof that the source or destination trace is Target-authoritative. -/
+structure TranslatedObservedTrace
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked) where
+  sourceTraceId : String
+  sourceSetup : SourceSetup
+  destinationSetup : DestinationSetup
+  trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
+  evidenceLinks : List ImplementationLinkEvidenceLink
+
+def TranslatedObservedTrace.hasAuthorityClaim
+    (_ : TranslatedObservedTrace checked translation) : Bool := false
+
+inductive ObservedTraceTranslationResult
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked) where
+  | translated (result : TranslatedObservedTrace checked translation)
+  | invalid (diagnostic : ImplementationLinkDiagnostic)
+  | unknown (diagnostic : ImplementationLinkDiagnostic)
+  | conflict (diagnostic : ImplementationLinkDiagnostic)
+  | unsupported (diagnostic : ImplementationLinkDiagnostic)
+
+def ObservedTraceTranslationResult.status :
+    ObservedTraceTranslationResult checked translation → ImplementationLinkStatus
+  | .translated _ => .applied
+  | .invalid _ => .invalid
+  | .unknown _ => .unknown
+  | .conflict _ => .conflict
+  | .unsupported _ => .unsupported
+
+def ObservedTraceTranslationResult.diagnostic? :
+    ObservedTraceTranslationResult checked translation → Option ImplementationLinkDiagnostic
+  | .translated _ => none
+  | .invalid diagnostic
+  | .unknown diagnostic
+  | .conflict diagnostic
+  | .unsupported diagnostic => some diagnostic
+
+def ObservedTraceTranslationResult.translated? :
+    ObservedTraceTranslationResult checked translation →
+      Option (TranslatedObservedTrace checked translation)
+  | .translated result => some result
+  | _ => none
+
+private def observedResultOfDiagnostic
+    (diagnostic : ImplementationLinkDiagnostic) :
+    ObservedTraceTranslationResult checked translation :=
+  match diagnostic.kind.status with
+  | .invalid => .invalid diagnostic
+  | .unknown => .unknown diagnostic
+  | .conflict => .conflict diagnostic
+  | .unsupported => .unsupported diagnostic
+  | .applied => .invalid diagnostic
+
+private def applyCheckedObservedTraceTranslation
+    [BEq SourceSetup] [BEq DestinationSetup]
+    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
+    (translation : CheckedObservedTraceTranslation checked)
+    (sourceSetup : SourceSetup)
+    (evidenceBackedTrace : EvidenceBackedTrace) :
+    Except ImplementationLinkDiagnostic (TranslatedObservedTrace checked translation) := do
+  if !checked.hasCanonicalIdentity || !translation.hasCanonicalIdentity then
+    throw (observedImplementationLinkDiagnostic checked translation .behaviorFingerprintDrift
+      (relatedDefinitionIds := [checked.declaration.id, translation.declaration.id]))
+  match evidenceEnvelopeFailure? checked evidenceBackedTrace with
+  | some failure => throw (observedDiagnosticFrom translation failure)
+  | none => pure ()
+  match validateEvidenceBackedTrace evidenceBackedTrace with
+  | .ok _ => pure ()
+  | .error observationDiagnostic =>
+      throw (observedImplementationLinkDiagnostic checked translation .evidenceLinkMismatch
+        (relatedDefinitionIds := observationDiagnostic.planId ::
+          observationDiagnostic.relatedDefinitionIds)
+        (evidenceLinkBehaviorFingerprint :=
+          some (evidenceLinkSetFingerprint evidenceBackedTrace)))
+  let destinationSetup ← match mappedSetup checked sourceSetup with
+    | .ok setup => pure setup
+    | .error diagnostic => throw (observedDiagnosticFrom translation diagnostic)
+  match validateVocabulary checked evidenceBackedTrace with
+  | .ok _ => pure ()
+  | .error diagnostic => throw (observedDiagnosticFrom translation diagnostic)
+  if evidenceBackedTrace.trace.steps.length > checked.declaration.applicationLimit.value then
+    throw (observedImplementationLinkDiagnostic checked translation .limitReached
+      (some (.selectedAction (checked.declaration.applicationLimit.value + 1)))
+      (appliedLimit := some checked.declaration.applicationLimit)
+      (observedCount := some evidenceBackedTrace.trace.steps.length))
+  let destinationTrace ← translateObservedTrace checked translation evidenceBackedTrace.trace
+  let evidenceLinks ← match buildImplementationLinkEvidenceLinksWith checked evidenceBackedTrace
+      destinationTrace (observedMappedValueAt checked translation)
+      (implementationLinkEvidenceLinkFor translation.declaration.id
+        translation.behaviorFingerprint (.ofTarget checked.sourceTarget)
+        (.ofTarget checked.destinationTarget)) with
+    | .ok links => pure links
+    | .error diagnostic => throw (observedDiagnosticFrom translation diagnostic)
+  pure {
+    sourceTraceId := evidenceBackedTrace.traceId
+    sourceSetup
+    destinationSetup
+    trace := destinationTrace
+    evidenceLinks
+  }
+
+/-- Validate and translate one complete observed trace without asserting Target conformance. -/
+def applyObservedTraceTranslation
+    [BEq SourceSetup] [BEq DestinationSetup]
+    {checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
+      SourceSetup ModelValue ModelValue ModelValue ModelValue
+      DestinationSetup ModelValue ModelValue ModelValue ModelValue}
+    (translation : CheckedObservedTraceTranslation checked)
+    (sourceSetup : SourceSetup)
+    (evidenceBackedTrace : EvidenceBackedTrace) :
+    ObservedTraceTranslationResult checked translation :=
+  match applyCheckedObservedTraceTranslation checked translation sourceSetup evidenceBackedTrace with
+  | .ok result => .translated result
+  | .error diagnostic => observedResultOfDiagnostic diagnostic
 
 end Umpire

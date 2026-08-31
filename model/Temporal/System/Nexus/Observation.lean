@@ -281,4 +281,347 @@ private theorem checkedPlanResult_isSome : checkedPlanResult.toOption.isSome = t
 def checkedPlan : CheckedObservationPlan :=
   checkedPlanResult.toOption.get checkedPlanResult_isSome
 
+namespace DuplicateDelivery
+
+/-!
+The negative control has a distinct checked profile and mapping identity, but it reuses the same
+Observation compiler and System meanings as the ordinary caller-closure path. Mechanical delivery
+stays one; only the exact labeled one-plus-one evidence relation emits semantic count two.
+-/
+
+def mechanicalCallbackCount : Nat := 1
+def syntheticContributionCount : Nat := 1
+def semanticCancellationCount : Nat := 2
+
+def faultDefinitionId : DefinitionId :=
+  definitionId "temporal.nexus.caller-closure.fault.duplicate-delivery-observation"
+def cancellationCapabilityId : DefinitionId :=
+  definitionId "nexus.capability.cancellation"
+def forceCloseOccurrenceId : DefinitionId :=
+  definitionId "workflow-nexus.occurrence.force-close"
+def faultReceiptId : DefinitionId :=
+  definitionId "temporal.nexus.caller-closure.fault-receipt.duplicate-delivery-observation"
+def injectedMarker : String :=
+  "temporal.nexus.caller-closure.marker.injected-duplicate-delivery-observation"
+
+namespace Profile
+
+def id : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.profile"
+
+def cleanupKind := Temporal.System.Nexus.Observation.Profile.cleanupKind
+def controlReceiptKind := Temporal.System.Nexus.Observation.Profile.controlReceiptKind
+def historyKind := Temporal.System.Nexus.Observation.Profile.historyKind
+def participantKind := Temporal.System.Nexus.Observation.Profile.participantKind
+
+def actionField := Temporal.System.Nexus.Observation.Profile.actionField
+def attemptField := Temporal.System.Nexus.Observation.Profile.attemptField
+def occurrenceField := Temporal.System.Nexus.Observation.Profile.occurrenceField
+def statusField := Temporal.System.Nexus.Observation.Profile.statusField
+def eventIdField := Temporal.System.Nexus.Observation.Profile.eventIdField
+def eventTypeField := Temporal.System.Nexus.Observation.Profile.eventTypeField
+def operationCorrelationField :=
+  Temporal.System.Nexus.Observation.Profile.operationCorrelationField
+def runCorrelationField := Temporal.System.Nexus.Observation.Profile.runCorrelationField
+def workflowCorrelationField :=
+  Temporal.System.Nexus.Observation.Profile.workflowCorrelationField
+def cancellationCountField :=
+  Temporal.System.Nexus.Observation.Profile.cancellationCountField
+def endpointDigestPolicyId :=
+  Temporal.System.Nexus.Observation.Profile.endpointDigestPolicyId
+
+def faultDefinitionField : DefinitionId :=
+  definitionId "umpire.evidence.field.fault-definition-id"
+def faultReceiptField : DefinitionId :=
+  definitionId "umpire.evidence.field.fault-receipt-definition-id"
+def capabilityDefinitionField : DefinitionId :=
+  definitionId "umpire.evidence.field.capability-definition-id"
+def syntheticContributionCountField : DefinitionId :=
+  definitionId "umpire.evidence.field.synthetic-contribution-count"
+def syntheticMarkerField : DefinitionId :=
+  definitionId "umpire.evidence.field.synthetic-contribution-marker"
+def cancellationRequestedCountField : DefinitionId :=
+  definitionId "umpire.evidence.field.cancellation-requested-count"
+def cancellationCompletedCountField : DefinitionId :=
+  definitionId "umpire.evidence.field.cancellation-completed-count"
+
+private def extendKind (kind : EvidenceKindDeclaration) : EvidenceKindDeclaration :=
+  if kind.id == controlReceiptKind then {
+    kind with fields := kind.fields ++ [
+      { id := faultDefinitionField, valueType := .text },
+      { id := faultReceiptField, valueType := .text },
+      { id := capabilityDefinitionField, valueType := .text },
+      { id := operationCorrelationField, valueType := .text }
+    ]
+  } else if kind.id == participantKind then {
+    kind with fields := kind.fields ++ [
+      { id := faultDefinitionField, valueType := .text },
+      { id := faultReceiptField, valueType := .text },
+      { id := capabilityDefinitionField, valueType := .text },
+      { id := syntheticContributionCountField, valueType := .natural },
+      { id := syntheticMarkerField, valueType := .text },
+      { id := cancellationRequestedCountField, valueType := .natural },
+      { id := cancellationCompletedCountField, valueType := .natural }
+    ]
+  } else kind
+
+def declaration : EvidenceProfileDeclaration := {
+  Temporal.System.Nexus.Observation.Profile.declaration with
+  id
+  kinds := Temporal.System.Nexus.Observation.Profile.declaration.kinds.map extendKind
+}
+
+end Profile
+
+namespace Mapping
+
+def id : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.mapping"
+def stateRuleId : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.rule.state"
+def actionRuleId : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.rule.action"
+def outcomeRuleId : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.rule.outcome"
+def deliveryRuleId : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.rule.delivery"
+def cancellationCountRuleId : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.rule.cancellation-count"
+def ownershipRuleId : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.rule.ownership"
+
+end Mapping
+
+private def profileField (kind fieldId : DefinitionId) : ObservationExpression :=
+  .field { kind, field := fieldId }
+
+private def profileEqualsText
+    (kind fieldId : DefinitionId)
+    (value : String) : ObservationExpression :=
+  .equals (profileField kind fieldId) (.text value)
+
+private def profileEqualsNatural
+    (kind fieldId : DefinitionId)
+    (value : Nat) : ObservationExpression :=
+  .equals (profileField kind fieldId) (.natural value)
+
+private def allConditions : List ObservationExpression → ObservationExpression
+  | [] => .boolean true
+  | [condition] => condition
+  | condition :: rest => .and condition (allConditions rest)
+
+private def faultConstantRule
+    (ruleId output : DefinitionId)
+    (outputKind : DefinitionKind)
+    (value : String)
+    (condition : ObservationExpression) : ObservationRule := {
+  id := ruleId
+  output
+  outputKind
+  value := .portable (.text value)
+  condition := some (.portable condition)
+}
+
+def stateRule : ObservationRule := {
+  id := Mapping.stateRuleId
+  output := stateId
+  outputKind := .state
+  value := .portable (profileField Profile.historyKind Profile.eventTypeField)
+  condition := some (.portable (.or
+    (profileEqualsText Profile.historyKind Profile.eventTypeField
+      "temporal.history.WorkflowExecutionStarted")
+    (profileEqualsText Profile.historyKind Profile.eventTypeField
+      "temporal.history.WorkflowExecutionCanceled")))
+}
+
+def actionRule : ObservationRule :=
+  faultConstantRule Mapping.actionRuleId actionId .action forceCloseAction.value <|
+    allConditions [
+      profileEqualsText Profile.controlReceiptKind Profile.actionField
+        "workflow.action.force-close",
+      profileEqualsNatural Profile.controlReceiptKind Profile.attemptField 1,
+      profileEqualsText Profile.controlReceiptKind Profile.occurrenceField
+        forceCloseOccurrenceId.value,
+      profileEqualsText Profile.controlReceiptKind Profile.statusField "accepted",
+      profileEqualsText Profile.controlReceiptKind Profile.faultDefinitionField
+        faultDefinitionId.value,
+      profileEqualsText Profile.controlReceiptKind Profile.faultReceiptField faultReceiptId.value,
+      profileEqualsText Profile.controlReceiptKind Profile.capabilityDefinitionField
+        cancellationCapabilityId.value
+    ]
+
+def outcomeRule : ObservationRule :=
+  faultConstantRule Mapping.outcomeRuleId outcomeId .outcome
+    cancellationUpgradedOutcome.value
+    (profileEqualsText Profile.historyKind Profile.eventTypeField
+      "temporal.history.WorkflowExecutionCanceled")
+
+def deliveryRule : ObservationRule :=
+  faultConstantRule Mapping.deliveryRuleId deliveryObservationId .observation
+    deliveryObservation.value
+    (profileEqualsText Profile.historyKind Profile.eventTypeField
+      "temporal.history.WorkflowExecutionCanceled")
+
+def semanticCountRule : ObservationRule := {
+  id := Mapping.cancellationCountRuleId
+  output := cancellationCountObservationId
+  outputKind := .observation
+  value := .portable (.text (toString semanticCancellationCount))
+  condition := some (.portable <| allConditions [
+    profileEqualsNatural Profile.participantKind Profile.cancellationCountField
+      mechanicalCallbackCount,
+    profileEqualsNatural Profile.participantKind Profile.syntheticContributionCountField
+      syntheticContributionCount,
+    profileEqualsText Profile.participantKind Profile.syntheticMarkerField injectedMarker,
+    profileEqualsNatural Profile.participantKind Profile.cancellationRequestedCountField 1,
+    profileEqualsNatural Profile.participantKind Profile.cancellationCompletedCountField 1,
+    profileEqualsText Profile.participantKind Profile.faultDefinitionField faultDefinitionId.value,
+    profileEqualsText Profile.participantKind Profile.faultReceiptField faultReceiptId.value,
+    profileEqualsText Profile.participantKind Profile.capabilityDefinitionField
+      cancellationCapabilityId.value,
+    .present (profileField Profile.participantKind Profile.operationCorrelationField),
+    .present (profileField Profile.participantKind Profile.runCorrelationField),
+    .present (profileField Profile.participantKind Profile.workflowCorrelationField)
+  ])
+}
+
+def ownershipRule : ObservationRule :=
+  faultConstantRule Mapping.ownershipRuleId ownershipObservationId .observation
+    ownershipObservation.value
+    (profileEqualsText Profile.historyKind Profile.eventTypeField
+      "temporal.history.WorkflowExecutionCanceled")
+
+private def additionalDispositions : List FieldDispositionDeclaration := [
+  {
+    field := { kind := Profile.controlReceiptKind, field := Profile.faultDefinitionField }
+    disposition := .retain
+  },
+  {
+    field := { kind := Profile.controlReceiptKind, field := Profile.faultReceiptField }
+    disposition := .retain
+  },
+  {
+    field := { kind := Profile.controlReceiptKind, field := Profile.capabilityDefinitionField }
+    disposition := .retain
+  },
+  {
+    field := { kind := Profile.controlReceiptKind, field := Profile.operationCorrelationField }
+    disposition := .retain
+  },
+  {
+    field := {
+      kind := Profile.participantKind
+      field := Profile.syntheticContributionCountField
+    }
+    disposition := .retain
+  },
+  {
+    field := { kind := Profile.participantKind, field := Profile.syntheticMarkerField }
+    disposition := .retain
+  },
+  {
+    field := { kind := Profile.participantKind, field := Profile.faultDefinitionField }
+    disposition := .retain
+  },
+  {
+    field := { kind := Profile.participantKind, field := Profile.faultReceiptField }
+    disposition := .retain
+  },
+  {
+    field := { kind := Profile.participantKind, field := Profile.capabilityDefinitionField }
+    disposition := .retain
+  },
+  {
+    field := {
+      kind := Profile.participantKind
+      field := Profile.cancellationRequestedCountField
+    }
+    disposition := .retain
+  },
+  {
+    field := {
+      kind := Profile.participantKind
+      field := Profile.cancellationCompletedCountField
+    }
+    disposition := .retain
+  }
+]
+
+def mappingDeclaration : ObservationMappingDeclaration := {
+  id := Mapping.id
+  source
+  profile := Profile.id
+  digestPolicies := Temporal.System.Nexus.Observation.mappingDeclaration.digestPolicies
+  rules := [stateRule, actionRule, outcomeRule, deliveryRule, semanticCountRule, ownershipRule]
+  ordering := [
+    { before := Mapping.actionRuleId, after := Mapping.outcomeRuleId },
+    { before := Mapping.outcomeRuleId, after := Mapping.stateRuleId },
+    { before := Mapping.stateRuleId, after := Mapping.deliveryRuleId },
+    { before := Mapping.deliveryRuleId, after := Mapping.cancellationCountRuleId },
+    { before := Mapping.cancellationCountRuleId, after := Mapping.ownershipRuleId }
+  ]
+  closures := Temporal.System.Nexus.Observation.mappingDeclaration.closures
+  dispositions := Temporal.System.Nexus.Observation.mappingDeclaration.dispositions ++
+    additionalDispositions
+  evidenceBound := Temporal.System.Nexus.Observation.mappingDeclaration.evidenceBound
+  documentation :=
+    "Closed duplicate-delivery evidence derives count two from callback one plus contribution one."
+}
+
+private def canonicalPlanResult : Except ObservationError CheckedObservationPlan :=
+  checkObservation (ObservationCheckContext.ofTarget target [Profile.declaration])
+    mappingDeclaration
+
+private theorem canonicalPlanResult_isSome : canonicalPlanResult.toOption.isSome = true := by
+  native_decide
+
+def checkedPlan : CheckedObservationPlan :=
+  canonicalPlanResult.toOption.get canonicalPlanResult_isSome
+
+inductive DuplicateDeliveryCheckErrorKind where
+  | observation
+  | contractDrift
+  deriving BEq, DecidableEq, Repr
+
+structure DuplicateDeliveryCheckError where
+  kind : DuplicateDeliveryCheckErrorKind
+  observationError : Option ObservationError := none
+  deriving Repr
+
+/-- Compile a candidate with the reusable Observation checker, then require the exact closed
+negative-control contract. Canonically equivalent declaration reordering remains accepted. -/
+def checkDuplicateDeliveryObservation
+    (profile : EvidenceProfileDeclaration)
+    (declaration : ObservationMappingDeclaration) :
+    Except DuplicateDeliveryCheckError CheckedObservationPlan := do
+  let candidate ← (checkObservation (ObservationCheckContext.ofTarget target [profile]) declaration)
+    |>.mapError fun observationError => {
+      kind := .observation
+      observationError := some observationError
+    }
+  if candidate.behaviorFingerprint != checkedPlan.behaviorFingerprint then
+    throw { kind := .contractDrift }
+  pure candidate
+
+def profileBehaviorFingerprint : BehaviorFingerprint :=
+  behaviorFingerprintOf (reprStr checkedPlan.profile)
+
+def profileVersion : Nat := 1
+
+def mappingBehaviorFingerprint : BehaviorFingerprint := checkedPlan.behaviorFingerprint
+
+def mappingVersion : Nat := checkedPlan.version
+
+def programId : DefinitionId :=
+  definitionId "temporal.system.nexus.caller-closure.duplicate-delivery.observation-program"
+
+def programVersion : Nat := 1
+
+def programBehaviorFingerprint : BehaviorFingerprint := behaviorFingerprintOf <|
+  programId.value ++ "/v" ++ toString programVersion ++ "/" ++
+    Profile.id.value ++ "/" ++ profileBehaviorFingerprint.render ++ "/" ++
+    Mapping.id.value ++ "/" ++ mappingBehaviorFingerprint.render
+
+end DuplicateDelivery
+
 end Temporal.System.Nexus.Observation

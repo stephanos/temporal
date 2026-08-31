@@ -6,20 +6,21 @@ satisfies: [R2, R5, R7]
 ## Description
 ### Umpire4 reconciliation (normative)
 
-Compile a `Temporal.System.Nexus` observation mapping and its explicit checked correspondence to the Feature target through `Temporal.System.Nexus.ImplementationLink`. Do not place fault-specific execution or evidence mapping under Feature.
+Compile a `Temporal.System.Nexus` observation mapping and its explicit checked correspondence to the Feature target through `Temporal.System.Nexus.ImplementationLink`. Admit the fault-only count-two value through a checked observed-trace translation that reuses the normal target-owned Link without claiming source or destination authority. Preserve strict `applyImplementationLink` behavior. Do not place fault-specific execution or evidence mapping under Feature.
 
 The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
 
 Compile the exact fault-specific Temporal evidence profile/program/mapping before RuntimeConfiguration composition for R2/R5/R7. Reuse the baseline caller-closure declarations and unchanged reusable Observation checker/evaluator.
 
 **Size:** M
-**Files:** `model/Temporal/System/Nexus/Observation.lean`, `model/Temporal/System/Nexus/ObservationFaultTests.lean`, `model/Temporal/System/Nexus/ImplementationLink.lean`, `model/Temporal/ImplementationLinkTests/Nexus.lean`, `model/TemporalModelTests.lean`
-**Touches:** [model/Temporal/System/Nexus/Observation.lean, model/Temporal/System/Nexus/ObservationFaultTests.lean, model/Temporal/System/Nexus/ImplementationLink.lean, model/Temporal/ImplementationLinkTests/Nexus.lean, model/TemporalModelTests.lean]
+**Files:** `model/Umpire/ImplementationLink/Application.lean`, `model/Umpire/ImplementationLink/Tests/Application.lean`, `model/Temporal/System/Nexus/Observation.lean`, `model/Temporal/System/Nexus/ObservationFaultTests.lean`, `model/Temporal/System/Nexus/ImplementationLink.lean`, `model/Temporal/ImplementationLinkTests/Nexus.lean`, `model/TemporalModelTests.lean`
+**Touches:** [model/Umpire/ImplementationLink/Application.lean, model/Umpire/ImplementationLink/Tests/Application.lean, model/Temporal/System/Nexus/Observation.lean, model/Temporal/System/Nexus/ObservationFaultTests.lean, model/Temporal/System/Nexus/ImplementationLink.lean, model/Temporal/ImplementationLinkTests/Nexus.lean, model/TemporalModelTests.lean]
 
 ### Approach
 - Compose a second checked System mapping/profile identity from fn-20's baseline caller-closure declarations and Task `.1`'s exact fault identity; do not copy the generic mapper or Property evaluator.
 - Freeze the fault-specific source schema before runtime binding: one requested/completed cancellation lifecycle, mechanical callback count one, synthetic-contribution count one, one injected marker, exact receipt/correlation/order/closure fields, and their dispositions.
 - Derive semantic cancellation count two only from the exact callback-one plus contribution-one relation; retain delivery/ownership rules unchanged and preserve complete coordinate Evidence Links.
+- Check an observed-trace translation over the normal System/Feature targets with explicit count-one-to-one and count-two-to-two value mappings. Reuse the strict Link's identity, envelope, setup, vocabulary, limit, exact mapping, and Evidence-Link validation while omitting any Target-authority proof from the observed result.
 - Expose the checked program/mapping semantic references and digests consumed by Task `.2`; every reorder-equivalent declaration remains identical while each meaning-bearing mutation changes identity or fails checking.
 - Prove missing/duplicate/wrong-kind fields, stale fault/capability identities, impossible count relation, cleartext-from-redacted copying, and unauthorized semantic declarations fail mapping compilation.
 
@@ -37,6 +38,7 @@ Compile the exact fault-specific Temporal evidence profile/program/mapping befor
 - [ ] One deterministic checked profile/program/mapping variant exists before Task `.2` and exposes exact semantic references/digests.
 - [ ] Mechanical callback count remains one; only the checked mapping derives semantic count two from one labeled synthetic contribution.
 - [ ] Baseline mapping and pure Property/evaluator definitions remain unchanged.
+- [ ] Strict Link application still rejects non-authoritative count two, while the checked observed translation preserves complete Evidence Links and translates count two without an authority claim.
 - [ ] Every invalid schema/reference/disposition/count-relation mutation fails compilation at its owning checked boundary.
 - [ ] Focused and aggregate Lean tests pass with no Temporal vocabulary entering reusable Umpire modules.
 ## Acceptance
