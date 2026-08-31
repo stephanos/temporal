@@ -63,3 +63,5 @@ Verification passed: focused and aggregate Lean targets, full `make lint-model` 
 - Commits: 9d5d861c0a8b57d7bb6669c9e0ffba9249961892, f8d9566ca2503c0d57c38e1f58c78ea4a9798c9c, 30f5bb5592d72dfdb6f71ef60a656cc44ec5ad8a, 95f9878c516b3b76dd463c44f24b5cf2743fc67c
 - Tests: mise exec -- lake build Temporal.Tool.RunEvaluationTests Temporal.Tool.RunEvaluationMutationTests Umpire.Observation.Tests.Check, mise exec -- lake build TemporalModelTests, make lint-model, TMPDIR=/private/tmp go test -tags test_dep -count=1 ./tools/umpire/runevaluation/..., TMPDIR=/private/tmp go test -tags test_dep -count=1 ./tools/umpire/temporal/nexus/..., .bin/golangci-lint-v2.13.1 run --build-tags 'disable_grpc_modules,,test_dep,' --timeout 10m --fix=false --config=.github/.golangci.yml ./tools/umpire/runevaluation/...
 - PRs:
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
