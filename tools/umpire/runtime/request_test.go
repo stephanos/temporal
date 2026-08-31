@@ -12,6 +12,7 @@ import (
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
+	"go.temporal.io/server/tools/umpire/temporal/local"
 )
 
 const (
@@ -89,6 +90,315 @@ func TestCheckRequestAcceptsOneImmutableExactInput(t *testing.T) {
 	require.Equal(t, fixture.program.DefinitionID(), command.ProgramDefinitionID())
 	require.Equal(t, fixture.program.Occurrence().DefinitionID(), command.OccurrenceDefinitionID())
 	require.Equal(t, umpireruntime.PhaseIsolation, request.IsolationCommand().Phase())
+}
+
+func TestDuplicateDeliveryInputSetIsCanonicalAndPreflightClosed(t *testing.T) {
+	const faultDefinitionID = "temporal.nexus.caller-closure.fault.duplicate-delivery-observation"
+	fixture := newNexusFixture(
+		t,
+		"caller-closure-duplicate-delivery-input-set",
+		faultDefinitionID,
+	)
+	factory := &countingFactory{}
+
+	require.Equal(t,
+		"umpire.artifact-set.2a6c3ef5fbd3b7dfba1acbe2c9ffc5ec3072b19daf50d3d63bd16b122fc2bd68",
+		fixture.set.Identity(),
+	)
+	require.Equal(t,
+		"sha256:3ddabf041e499ee0b7e970cac3900b8d6306ec9009e92924ef7b9ea0f584a5f8",
+		fixture.set.Checksum(),
+	)
+	require.Equal(t,
+		"sha256:09091758defd5ce50cc9acbba23a5c8499da4eef9b6e36878ac989ddea87fedf",
+		fixture.experiment.ArtifactChecksum,
+	)
+	require.Equal(t,
+		"sha256:440c0632b911571e4efb34c96fb4c4c7096fbd52f23900ed4784e037370063cf",
+		fixture.runtimeConfiguration.ArtifactChecksum,
+	)
+	require.Equal(t,
+		"temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+		fixture.runtimeConfiguration.Observation.ProfileDefinitionID,
+	)
+	require.Equal(t,
+		"sha256:02517311485c8f87f13581d9381447ae34cb159526bdc865c1054efe2067acb8",
+		fixture.runtimeConfiguration.Observation.ProfileBehaviorFingerprint,
+	)
+	require.Equal(t,
+		"temporal.system.nexus.caller-closure.duplicate-delivery.observation-program",
+		fixture.runtimeConfiguration.Observation.ProgramDefinitionID,
+	)
+	require.Equal(t,
+		"sha256:7226f7762d3a21e7a66d460a4bf6b9d9a1d244bca847e4919cc0bc7debf432bd",
+		fixture.runtimeConfiguration.Observation.ProgramBehaviorFingerprint,
+	)
+	require.Equal(t,
+		"temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+		fixture.runtimeConfiguration.Observation.MappingDefinitionID,
+	)
+	require.Equal(t,
+		"sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+		fixture.runtimeConfiguration.Observation.MappingBehaviorFingerprint,
+	)
+
+	request, err := umpireruntime.CheckRequest(
+		fixture.set, fixture.authority, "runtime.run.duplicate-delivery", 0, 1,
+	)
+	require.NoError(t, err)
+	require.Equal(t, fixture.set.Identity(), request.AdmittedSet().Identity())
+	require.Equal(t, 0, factory.calls)
+
+	faultDrifts := []struct {
+		name   string
+		faults func(artifactv2.Experiment) []artifactv2.ModelValue
+	}{
+		{
+			name: "missing",
+			faults: func(artifactv2.Experiment) []artifactv2.ModelValue {
+				return []artifactv2.ModelValue{}
+			},
+		},
+		{
+			name: "wrong identity",
+			faults: func(experiment artifactv2.Experiment) []artifactv2.ModelValue {
+				return []artifactv2.ModelValue{{
+					DefinitionID: "temporal.nexus.caller-closure.fault.other",
+					Value:        experiment.Plan.LinearExtension[0].DefinitionID,
+				}}
+			},
+		},
+		{
+			name: "wrong occurrence",
+			faults: func(artifactv2.Experiment) []artifactv2.ModelValue {
+				return []artifactv2.ModelValue{{
+					DefinitionID: faultDefinitionID,
+					Value:        "workflow-nexus.occurrence.other",
+				}}
+			},
+		},
+		{
+			name: "duplicate",
+			faults: func(experiment artifactv2.Experiment) []artifactv2.ModelValue {
+				return append(
+					append([]artifactv2.ModelValue{}, experiment.Plan.RequestedFaults...),
+					experiment.Plan.RequestedFaults...,
+				)
+			},
+		},
+	}
+	for _, drift := range faultDrifts {
+		t.Run("fault "+drift.name, func(t *testing.T) {
+			set := mutateExperiment(t, fixture, func(experiment *artifactv2.Experiment) {
+				experiment.Plan.RequestedFaults = drift.faults(*experiment)
+			})
+			request, err := umpireruntime.CheckRequest(
+				set,
+				fixture.authority,
+				"runtime.run.duplicate-delivery-fault-drift",
+				0,
+				1,
+			)
+			requirePreflightKind(t, err, umpireruntime.PreflightFault)
+			require.Empty(t, request.RunIdentity())
+			require.Equal(t, 0, factory.calls)
+		})
+	}
+
+	normalFixture := newNexusFixture(t, "caller-closure-input-set", "")
+	normalWithFault := mutateExperiment(t, normalFixture, func(experiment *artifactv2.Experiment) {
+		experiment.Plan.RequestedFaults = append(
+			[]artifactv2.ModelValue{},
+			fixture.experiment.Plan.RequestedFaults...,
+		)
+	})
+	observationDrifts := []struct {
+		name   string
+		mutate func(*artifactv2.ObservationConfiguration)
+	}{
+		{
+			name: "profile identity",
+			mutate: func(observation *artifactv2.ObservationConfiguration) {
+				observation.ProfileDefinitionID =
+					"temporal.system.nexus.caller-closure.profile.other"
+			},
+		},
+		{
+			name: "profile fingerprint",
+			mutate: func(observation *artifactv2.ObservationConfiguration) {
+				observation.ProfileBehaviorFingerprint =
+					"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			},
+		},
+		{
+			name: "program identity",
+			mutate: func(observation *artifactv2.ObservationConfiguration) {
+				observation.ProgramDefinitionID =
+					"temporal.system.nexus.caller-closure.observation-program.other"
+			},
+		},
+		{
+			name: "program fingerprint",
+			mutate: func(observation *artifactv2.ObservationConfiguration) {
+				observation.ProgramBehaviorFingerprint =
+					"sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+			},
+		},
+		{
+			name: "mapping identity",
+			mutate: func(observation *artifactv2.ObservationConfiguration) {
+				observation.MappingDefinitionID =
+					"temporal.system.nexus.caller-closure.mapping.other"
+			},
+		},
+		{
+			name: "mapping fingerprint",
+			mutate: func(observation *artifactv2.ObservationConfiguration) {
+				observation.MappingBehaviorFingerprint =
+					"sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+			},
+		},
+	}
+	for _, drift := range observationDrifts {
+		t.Run("observation "+drift.name+" drift", func(t *testing.T) {
+			set := mutateConfiguration(t, fixture, func(configuration *artifactv2.RuntimeConfiguration) {
+				drift.mutate(&configuration.Observation)
+			})
+			request, err := umpireruntime.CheckRequest(
+				set,
+				fixture.authority,
+				"runtime.run.duplicate-delivery-observation-drift",
+				0,
+				1,
+			)
+			requirePreflightKind(t, err, umpireruntime.PreflightConfiguration)
+			require.Empty(t, request.RunIdentity())
+			require.Equal(t, 0, factory.calls)
+		})
+	}
+	budgetDrift := mutateConfiguration(t, fixture, func(configuration *artifactv2.RuntimeConfiguration) {
+		configuration.PhaseLimits[0].DurationMilliseconds = artifactv2.Natural("30001")
+	})
+	budgetAuthority := authorityForSet(t, budgetDrift, fixture.program)
+	observationProgram := newObservationProgram(t, fixture.runtimeConfiguration.Observation)
+	capabilityProgram, err := umpireruntime.NewProgramWithRequestedFault(
+		fixture.program.DefinitionID(),
+		fixture.program.Version(),
+		fixture.program.BehaviorFingerprint(),
+		fixture.program.TargetDefinitionIDs(),
+		fixture.program.ActionDefinitionIDs(),
+		fixture.program.Occurrences(),
+		observationProgram,
+		faultDefinitionID,
+		fixture.program.CapabilityDefinitionIDs()[1:],
+	)
+	require.NoError(t, err)
+	capabilityAuthority := authorityForSet(t, fixture.set, capabilityProgram)
+	programDrift, err := umpireruntime.NewProgramWithRequestedFault(
+		"temporal.nexus.participant-program.caller-closure-other",
+		fixture.program.Version(),
+		fixture.program.BehaviorFingerprint(),
+		fixture.program.TargetDefinitionIDs(),
+		fixture.program.ActionDefinitionIDs(),
+		fixture.program.Occurrences(),
+		observationProgram,
+		faultDefinitionID,
+		fixture.program.CapabilityDefinitionIDs(),
+	)
+	require.NoError(t, err)
+	programAuthority := authorityForSet(t, fixture.set, programDrift)
+	protocolAuthority, err := local.NewAuthority(
+		fixture.runtimeConfiguration.ConfigurationDefinitionID,
+		fixture.runtimeConfiguration.BehaviorFingerprint,
+		fixture.runtimeConfiguration.ParticipantBindings[0].ParticipantDefinitionID,
+		"umpire.participant-protocol.other",
+		fixture.program,
+	)
+	require.NoError(t, err)
+	profileAuthority, err := umpireruntime.NewAuthority(
+		"temporal.runtime-profile.other",
+		local.ProfileVersion,
+		local.ProfileBehaviorFingerprint,
+		fixture.runtimeConfiguration.ConfigurationDefinitionID,
+		fixture.runtimeConfiguration.BehaviorFingerprint,
+		local.RequiredCapabilityDefinitionIDs(),
+		[]string{},
+		umpireruntime.CanonicalPhaseLimits(),
+		0,
+		1,
+		fixture.runtimeConfiguration.ParticipantBindings[0].ParticipantDefinitionID,
+		fixture.runtimeConfiguration.ParticipantBindings[0].ProtocolDefinitionID,
+		2,
+		1,
+		1,
+		fixture.program,
+	)
+	require.NoError(t, err)
+
+	tests := []struct {
+		name      string
+		kind      umpireruntime.PreflightErrorKind
+		set       artifact.AdmittedSet
+		authority umpireruntime.Authority
+		seed      uint64
+		attempt   uint64
+	}{
+		{
+			name: "normal program rejects fault", kind: umpireruntime.PreflightFault,
+			set: normalWithFault, authority: normalFixture.authority, attempt: 1,
+		},
+		{
+			name: "normal configuration crossing", kind: umpireruntime.PreflightConfiguration,
+			set: normalFixture.set, authority: fixture.authority, attempt: 1,
+		},
+		{
+			name: "faulted configuration crossing", kind: umpireruntime.PreflightConfiguration,
+			set: fixture.set, authority: normalFixture.authority, attempt: 1,
+		},
+		{
+			name: "profile drift", kind: umpireruntime.PreflightProfile,
+			set: fixture.set, authority: profileAuthority, attempt: 1,
+		},
+		{
+			name: "program drift", kind: umpireruntime.PreflightParticipant,
+			set: fixture.set, authority: programAuthority, attempt: 1,
+		},
+		{
+			name: "protocol drift", kind: umpireruntime.PreflightProtocol,
+			set: fixture.set, authority: protocolAuthority, attempt: 1,
+		},
+		{
+			name: "capability drift", kind: umpireruntime.PreflightCapability,
+			set: fixture.set, authority: capabilityAuthority, attempt: 1,
+		},
+		{
+			name: "budget drift", kind: umpireruntime.PreflightBudget,
+			set: budgetDrift, authority: budgetAuthority, attempt: 1,
+		},
+		{
+			name: "seed drift", kind: umpireruntime.PreflightSeed,
+			set: fixture.set, authority: fixture.authority, seed: 1, attempt: 1,
+		},
+		{
+			name: "attempt drift", kind: umpireruntime.PreflightAttempt,
+			set: fixture.set, authority: fixture.authority, attempt: 2,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			before := factory.calls
+			request, err := umpireruntime.CheckRequest(
+				test.set,
+				test.authority,
+				"runtime.run.duplicate-delivery-rejected",
+				test.seed,
+				test.attempt,
+			)
+			requirePreflightKind(t, err, test.kind)
+			require.Empty(t, request.RunIdentity())
+			require.Equal(t, before, factory.calls)
+		})
+	}
 }
 
 func TestCheckRequestRejectsEachPreflightMutationBeforeIO(t *testing.T) {
@@ -556,6 +866,112 @@ func newCheckedFixture(t *testing.T) checkedFixture {
 		program:              program,
 		authority:            authority,
 	}
+}
+
+func newNexusFixture(
+	t *testing.T,
+	directory string,
+	requestedFaultDefinitionID string,
+) checkedFixture {
+	t.Helper()
+	root := filepath.Join("..", "temporal", "nexus", "testdata", directory)
+	files := make(map[string][]byte, 3)
+	for _, path := range []string{
+		"artifacts/experiment.json",
+		"artifacts/runtime-configuration.json",
+		"manifest.json",
+	} {
+		encoded, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(path)))
+		require.NoError(t, err)
+		files[path] = encoded
+	}
+	set, err := artifact.AdmitSetFiles(files)
+	require.NoError(t, err)
+	executable, ok := set.Executable()
+	require.True(t, ok)
+	experiment := executable.Experiment()
+	configuration := executable.RuntimeConfiguration()
+	require.Len(t, configuration.ParticipantBindings, 1)
+	binding := configuration.ParticipantBindings[0]
+	occurrence, err := umpireruntime.NewOccurrence(
+		experiment.Plan.LinearExtension[0].DefinitionID,
+		experiment.Plan.LinearExtension[0].ActionDefinitionID,
+		1,
+	)
+	require.NoError(t, err)
+	var program umpireruntime.Program
+	if requestedFaultDefinitionID == "" {
+		program, err = umpireruntime.NewProgram(
+			binding.ProgramDefinitionID,
+			1,
+			binding.ProgramBehaviorFingerprint,
+			[]string{experiment.Plan.TargetDefinitionID},
+			[]string{experiment.Plan.RequestedActions[0].DefinitionID},
+			[]umpireruntime.Occurrence{occurrence},
+			binding.CapabilityDefinitionIDs,
+		)
+	} else {
+		observationProgram := newObservationProgram(t, configuration.Observation)
+		program, err = umpireruntime.NewProgramWithRequestedFault(
+			binding.ProgramDefinitionID,
+			1,
+			binding.ProgramBehaviorFingerprint,
+			[]string{experiment.Plan.TargetDefinitionID},
+			[]string{experiment.Plan.RequestedActions[0].DefinitionID},
+			[]umpireruntime.Occurrence{occurrence},
+			observationProgram,
+			requestedFaultDefinitionID,
+			binding.CapabilityDefinitionIDs,
+		)
+	}
+	require.NoError(t, err)
+	authority := authorityForSet(t, set, program)
+	return checkedFixture{
+		set:                  set,
+		experiment:           experiment,
+		runtimeConfiguration: configuration,
+		program:              program,
+		authority:            authority,
+	}
+}
+
+func newObservationProgram(
+	t *testing.T,
+	configuration artifactv2.ObservationConfiguration,
+) umpireruntime.ObservationProgram {
+	t.Helper()
+	program, err := umpireruntime.NewObservationProgram(
+		configuration.ProfileDefinitionID,
+		configuration.ProfileBehaviorFingerprint,
+		configuration.ProgramDefinitionID,
+		configuration.ProgramBehaviorFingerprint,
+		configuration.MappingDefinitionID,
+		configuration.MappingBehaviorFingerprint,
+	)
+	require.NoError(t, err)
+	return program
+}
+
+func authorityForSet(
+	t *testing.T,
+	set artifact.AdmittedSet,
+	program umpireruntime.Program,
+) umpireruntime.Authority {
+	t.Helper()
+	executable, ok := set.Executable()
+	require.True(t, ok)
+	configuration := executable.RuntimeConfiguration()
+	require.Len(t, configuration.ParticipantBindings, 1)
+	binding := configuration.ParticipantBindings[0]
+	authority, err := local.NewAuthority(
+		configuration.ConfigurationDefinitionID,
+		configuration.BehaviorFingerprint,
+		binding.ParticipantDefinitionID,
+		binding.ProtocolDefinitionID,
+		program,
+	)
+	require.NoError(t, err)
+	return authority
 }
 
 type programMutation struct {
