@@ -28,6 +28,32 @@ func TestRenderGeneratedRunnerTestMatchesTheCheckedInOrdinaryGoTest(t *testing.T
 	require.Equal(t, want, generated)
 }
 
+func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.T) {
+	packageRoot := filepath.Join("..", "..", "temporal", "nexus")
+	manifestPath := filepath.Join(
+		packageRoot,
+		"testdata",
+		"caller-closure-input-set",
+		"manifest.json",
+	)
+	input, err := loadGenerationInput(manifestPath, packageRoot)
+	require.NoError(t, err)
+
+	generated, err := renderGeneratedTest(input)
+	require.NoError(t, err)
+	encoded := string(generated)
+	require.Contains(t, encoded, "func TestHermeticCIPortability(t *testing.T)")
+	require.Contains(t, encoded, "runevaluation.CheckSubject")
+	require.Contains(t, encoded, "ExperimentSHA256:")
+	require.Contains(t, encoded, `"sha256:528c23e7807ee9833af65baeb32a8ec2d38ffacc1fae829600692d3d3eb93fd1"`)
+	require.Contains(t, encoded, "ImplementationLinkID:")
+	require.Contains(t, encoded, `"temporal.system.nexus.caller-closure.implementation-link"`)
+	require.Less(t,
+		strings.Index(encoded, "runevaluation.CheckSubject"),
+		strings.Index(encoded, "runner.Run("),
+	)
+}
+
 func TestRunRegeneratesOnlyTheDeterministicGoTest(t *testing.T) {
 	packageRoot := filepath.Join(hostTempDir(t), "nexus")
 	fixtureRoot := filepath.Join(packageRoot, "testdata", "caller-closure-input-set")
