@@ -795,6 +795,11 @@ private def artifactRawClosures (facts : List RawFact) : List ArtifactEvidenceCl
       |>.foldl (fun current fact => Nat.max current fact.ordinal) 0
   }).mergeSort artifactClosureLe
 
+private def artifactEvidenceClosures
+    (facts : List RawFact)
+    (evidenceIdentities : List DefinitionId) : List ArtifactEvidenceClosureFact :=
+  artifactRawClosures <| facts.filter fun fact => evidenceIdentities.contains fact.definitionId
+
 private def artifactDispositionForRaw
     (plan : CheckedObservationPlan)
     (duplicateDelivery : Bool)
@@ -870,13 +875,25 @@ private def duplicateDeliveryHistoryTypes : List String := [
 
 private def rawFactOrdinalLe (left right : RawFact) : Bool := left.ordinal ≤ right.ordinal
 
-private def exactRawHistoryChain (facts : List RawFact) : Bool :=
+private def completeRawHistoryChain (facts : List RawFact) : Bool :=
   let history := (facts.filter fun fact => fact.sourceDefinitionId == sourceHistory)
     |>.mergeSort rawFactOrdinalLe
-  history.length == 6 && history.zipIdx.all fun pair =>
+  !history.isEmpty && history.zipIdx.all fun pair =>
     pair.1.ordinal == pair.2 &&
       pair.1.causalParents == if pair.2 == 0 then [] else
         (history[pair.2 - 1]?).map RawFact.definitionId |>.toList
+
+private def duplicateDeliverySyntheticFact (fact : RawFact) : Bool :=
+  fact.sourceDefinitionId == sourceParticipant &&
+    exactRawField fact
+      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.syntheticMarkerField
+      (.text Temporal.System.Nexus.Observation.DuplicateDelivery.injectedMarker) &&
+    exactRawField fact
+      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.faultDefinitionField
+      (.text Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId.value) &&
+    exactRawField fact
+      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.faultReceiptField
+      (.text Temporal.System.Nexus.Observation.DuplicateDelivery.faultReceiptId.value)
 
 private def duplicateDeliveryCallbackFields : List DefinitionId := [
   Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField,
@@ -891,14 +908,20 @@ private def mergeParticipantFields
 private def duplicateDeliveryRecords
     (facts : List RawFact) : Except String (List SyntheticEvidenceRecord) := do
   let ordinary := facts.filter fun fact =>
-    fact.sourceDefinitionId != sourceHistory && fact.sourceDefinitionId != sourceParticipant
+    fact.sourceDefinitionId != sourceHistory && fact.sourceDefinitionId != sourceParticipant &&
+      (fact.sourceDefinitionId != sourceCleanup ||
+        rawFactHasField fact Temporal.System.Nexus.Observation.Profile.openHandleCountField)
   let ordinaryRecords ← ordinary.mapM fun fact => do
-    let record ← evidenceRecord fact
-    pure { record with
-      profile := Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.id }
+    if fact.sourceDefinitionId == sourceCleanup then
+      duplicateDeliveryRecord fact
+        Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cleanupKind 0 [] fact.fields
+    else
+      let record ← evidenceRecord fact
+      pure { record with
+        profile := Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.id }
   let rawHistory := (facts.filter fun fact => fact.sourceDefinitionId == sourceHistory)
     |>.mergeSort rawFactOrdinalLe
-  let projectedHistory := if exactRawHistoryChain facts then
+  let projectedHistory := if completeRawHistoryChain facts then
       rawHistory.filter fun fact =>
         (exactRawText? fact Temporal.System.Nexus.Observation.Profile.eventTypeField).any
           duplicateDeliveryHistoryTypes.contains
@@ -913,9 +936,7 @@ private def duplicateDeliveryRecords
   let callbacks := participants.filter fun fact =>
     rawFactHasField fact
       Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
-  let synthetic := participants.filter fun fact =>
-    !rawFactHasField fact
-      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
+  let synthetic := participants.filter duplicateDeliverySyntheticFact
   let participantRecords ← match callbacks, synthetic with
     | [callback], [synthetic] =>
         let completed? := projectedHistory.find? fun fact =>
@@ -931,7 +952,7 @@ private def duplicateDeliveryRecords
           Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.participantKind 1
           structuralParents (mergeParticipantFields callback synthetic) completedId?
         pure [proxy, combined]
-    | _, _ => participants.mapM fun fact =>
+    | _, _ => (callbacks ++ synthetic).mapM fun fact =>
         (duplicateDeliveryRecord fact
           Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.participantKind
           fact.ordinal fact.causalParents fact.fields (faultTarget := none))
@@ -1052,9 +1073,7 @@ private def duplicateDeliveryParticipantCorrelationFailure?
   let callbacks := participants.filter fun fact =>
     rawFactHasField fact
       Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
-  let synthetic := participants.filter fun fact =>
-    !rawFactHasField fact
-      Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
+  let synthetic := participants.filter duplicateDeliverySyntheticFact
   match callbacks, synthetic with
   | [callback], [synthetic] =>
       match duplicateDeliveryCorrelationFields.find? fun field =>
@@ -1089,10 +1108,7 @@ private def duplicateDeliveryMissingCausalParent?
     (request : Request) : Option DefinitionId :=
   let facts := requestFacts request
   let participant? := facts.find? fun fact =>
-    fact.sourceDefinitionId == sourceParticipant &&
-      !rawFactHasField fact
-        Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField &&
-      fact.causalParents.isEmpty
+    duplicateDeliverySyntheticFact fact && fact.causalParents.isEmpty
   let history? := facts.find? fun fact =>
     fact.sourceDefinitionId == sourceHistory && fact.ordinal > 0 && fact.causalParents.isEmpty
   (participant? <|> history?).map RawFact.definitionId
@@ -1223,11 +1239,11 @@ private def observationProjection
       List ArtifactFieldDispositionRecord × List ArtifactObservationDiagnostic :=
   let facts := requestFacts request
   let orderingFact := artifactOrderingFactFor facts
-  let closures := artifactRawClosures facts
   let dispositions := artifactRawDispositions evaluation.checkedPlan
     (isDuplicateDeliveryRequest request) facts
   match evaluation.observation with
   | .accepted trace =>
+      let closures := artifactEvidenceClosures facts trace.evidenceIdentities
       (some (artifactTrace trace),
         trace.evidenceLinks.map (artifactEvidenceLink orderingFact closures), dispositions, [])
   | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
@@ -1294,8 +1310,11 @@ private def resultArtifact
     (resultGaps : List KnownGap) : ResultArtifact :=
   let implementationStatus := evaluation.implementationLinkStatus
   let facts := requestFacts request
+  let closures := match evaluation.observation with
+    | .accepted trace => artifactEvidenceClosures facts trace.evidenceIdentities
+    | _ => artifactRawClosures facts
   let evaluatedSummary := artifactSummary (artifactOrderingFactFor facts)
-    (artifactRawClosures facts) evaluation.querySummary
+    closures evaluation.querySummary
   let summary :=
     if evaluation.observation.status == .accepted && implementationStatus == "applied" then
       evaluatedSummary
