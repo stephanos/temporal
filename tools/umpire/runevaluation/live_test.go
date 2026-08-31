@@ -111,6 +111,7 @@ func requireCorruptionAndAmbiguityControls(t *testing.T, repositoryRoot string) 
 		"TestCheckerRequestSeparatesRuntimeAndCheckedMappings|" +
 		"TestCheckerResponseRejectsConsistentCheckedProfileDriftAtTheProtocolBoundary|" +
 		"TestRealCheckerObservationMutationMatrix|" +
+		"TestRealCheckerMisboundParticipantCancellationEvidenceIsSemanticConflict|" +
 		"TestRealCheckerPartialEvidencePublishesAnInMemoryResult|" +
 		"TestRealCheckerSiblingIsDeterministic|" +
 		"TestRealCheckerSiblingAdmitsExactAcceptedSet|" +
