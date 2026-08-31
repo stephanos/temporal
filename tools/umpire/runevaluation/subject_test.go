@@ -68,19 +68,29 @@ func TestCheckSubjectRejectsIndependentArtifactAndModelMutations(t *testing.T) {
 	expected := callerClosureSubjectGolden()
 	semanticFingerprint := independentSubjectSHA256([]byte("recompiled-query"))
 	closureFingerprint := independentSubjectSHA256([]byte("incomplete-query-closure"))
+	propertyFingerprint := independentSubjectSHA256([]byte("drifted-property"))
 
 	mutations := []struct {
-		name     string
-		mutate   func([]byte) []byte
-		admitted bool
+		name         string
+		mutate       func([]byte) []byte
+		artifactCode artifact.ErrorCode
+		failureClass []string
+		admitted     bool
 	}{
 		{
 			name: "canonical byte",
 			mutate: func(encoded []byte) []byte {
-				mutated := bytes.Clone(encoded)
-				mutated[len(mutated)-2] ^= 1
-				return mutated
+				return bytes.Replace(encoded, []byte("{\n"), []byte("{ \n"), 1)
 			},
+			artifactCode: artifact.ErrorNoncanonical,
+		},
+		{
+			name: "format version",
+			mutate: func(encoded []byte) []byte {
+				return replaceSubjectBytesOnce(t, encoded,
+					"umpire-experiment/v2", "umpire-experiment/v3")
+			},
+			artifactCode: artifact.ErrorUnsupportedFormat,
 		},
 		{
 			name: "Artifact Checksum",
@@ -88,21 +98,19 @@ func TestCheckSubjectRejectsIndependentArtifactAndModelMutations(t *testing.T) {
 				return replaceSubjectBytesOnce(t, encoded, expected.ExperimentArtifactChecksum,
 					"sha256:0000000000000000000000000000000000000000000000000000000000000000")
 			},
+			artifactCode: artifact.ErrorArtifactChecksum,
 		},
 		{
 			name: "Behavior Fingerprint",
 			mutate: func(encoded []byte) []byte {
-				return replaceSubjectBytesOnce(t, encoded,
-					"  \"queryBehaviorFingerprint\": \""+expected.Query.BehaviorFingerprint+"\",\n  \"plan\":",
-					"  \"queryBehaviorFingerprint\": \"sha256:1111111111111111111111111111111111111111111111111111111111111111\",\n  \"plan\":")
+				return independentlyResealSubject(t, encoded, func(experiment *artifactv2.Experiment) {
+					experiment.Properties[0].BehaviorFingerprint = propertyFingerprint
+				})
 			},
-		},
-		{
-			name: "format crossing",
-			mutate: func(encoded []byte) []byte {
-				return replaceSubjectBytesOnce(t, encoded,
-					"umpire-experiment/v2", "umpire-result/v2")
+			failureClass: []string{
+				"subject-binding", "admission", "umpire.run-evaluation.subject.binding-drift",
 			},
+			admitted: true,
 		},
 		{
 			name: "incomplete closure",
@@ -111,14 +119,18 @@ func TestCheckSubjectRejectsIndependentArtifactAndModelMutations(t *testing.T) {
 					experiment.QueryBehaviorFingerprint = closureFingerprint
 				})
 			},
+			artifactCode: artifact.ErrorClosure,
 		},
 		{
-			name: "semantic recompilation",
+			name: "generated semantic difference",
 			mutate: func(encoded []byte) []byte {
 				return independentlyResealSubject(t, encoded, func(experiment *artifactv2.Experiment) {
 					experiment.QueryBehaviorFingerprint = semanticFingerprint
 					experiment.Plan.QueryBehaviorFingerprint = semanticFingerprint
 				})
+			},
+			failureClass: []string{
+				"subject-binding", "admission", "umpire.run-evaluation.subject.binding-drift",
 			},
 			admitted: true,
 		},
@@ -131,7 +143,16 @@ func TestCheckSubjectRejectsIndependentArtifactAndModelMutations(t *testing.T) {
 				_, err := artifact.DecodeExperimentV2(mutated)
 				require.NoError(t, err)
 			}
-			require.Error(t, CheckSubject(mutated, expected))
+			err := CheckSubject(mutated, expected)
+			require.Error(t, err)
+			if mutation.artifactCode != "" {
+				code, ok := artifact.CodeOf(err)
+				require.True(t, ok)
+				require.Equal(t, mutation.artifactCode, code)
+			}
+			if mutation.failureClass != nil {
+				requireSubjectFailureClassification(t, err, mutation.failureClass)
+			}
 		})
 	}
 }
@@ -223,9 +244,27 @@ func TestCheckSubjectRejectsCanonicalByteAndGeneratedBindingDrift(t *testing.T) 
 		t.Run(testCase.name, func(t *testing.T) {
 			mutated := cloneSubjectBinding(pinned)
 			testCase.mutate(&mutated)
-			require.Error(t, CheckSubject(experimentBytes, mutated))
+			err := CheckSubject(experimentBytes, mutated)
+			require.Error(t, err)
+			requireSubjectFailureClassification(t, err, []string{
+				"subject-binding", "admission", "umpire.run-evaluation.subject.binding-drift",
+			})
 		})
 	}
+}
+
+func requireSubjectFailureClassification(t *testing.T, err error, want []string) {
+	t.Helper()
+	var classified interface {
+		error
+		Kind() string
+		Phase() string
+		Code() string
+	}
+	require.ErrorAs(t, err, &classified)
+	require.Equal(t, want, []string{
+		classified.Kind(), classified.Phase(), classified.Code(),
+	})
 }
 
 func callerClosureSubjectGolden() SubjectBinding {

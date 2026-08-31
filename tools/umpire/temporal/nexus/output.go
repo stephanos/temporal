@@ -14,6 +14,53 @@ import (
 )
 
 var errExecutionClosure = errors.New("umpire.temporal.nexus.invariant.execution-closure")
+var errCleanupLeakage = errors.New("closed cleanup does not prove zero open handles")
+
+type executionClosureFailure struct {
+	kind  string
+	phase string
+	code  string
+}
+
+func (*executionClosureFailure) Error() string {
+	return errExecutionClosure.Error()
+}
+
+func (failure *executionClosureFailure) Kind() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.kind
+}
+
+func (failure *executionClosureFailure) Phase() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.phase
+}
+
+func (failure *executionClosureFailure) Code() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.code
+}
+
+func (*executionClosureFailure) Is(target error) bool {
+	return target == errExecutionClosure
+}
+
+func classifyExecutionClosure(err error) error {
+	if errors.Is(err, errCleanupLeakage) {
+		return &executionClosureFailure{
+			kind:  "output-invariant",
+			phase: "cleanup",
+			code:  "umpire.temporal.nexus.execution-closure.cleanup-leakage",
+		}
+	}
+	return errExecutionClosure
+}
 
 var retainedFieldDisposition = map[string]string{
 	umpireruntime.EvidenceFieldCancellationCallbackCount:   "number",
@@ -560,7 +607,7 @@ func validateCleanupClosure(
 		}
 	}
 	if openHandleFields != 1 || openHandles != 0 || !run.Cleanup.OpenHandleCount.IsZero() {
-		return errors.New("closed cleanup does not prove zero open handles")
+		return errCleanupLeakage
 	}
 	return nil
 }
