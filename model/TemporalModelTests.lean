@@ -11,6 +11,7 @@ import Temporal.System.Execution.LocalProfileTests
 import Temporal.System.Execution.NexusTests
 import Temporal.System.Matching.ConfigurationTests
 import Temporal.System.Nexus.ImplementationLinkTests
+import Temporal.System.Nexus.ObservationFaultTests
 import Temporal.Tool.RunEvaluationMutationTests
 
 namespace TemporalModelTests
