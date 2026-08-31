@@ -132,10 +132,12 @@ already-constructed set and rechecking the same immutable four-member execution 
 idempotent. Separate live executions use fresh transport facts and destinations, so the proof
 compares only the declared stable semantic identities rather than requiring byte-identical runs.
 
-The checked-in duplicate-delivery execution fixture exercises the same offline status-2 contract:
+With the verified Go/Lean sibling pair installed, the checked-in duplicate-delivery execution
+fixture exercises the same offline status-2 contract. The direct controller status distinguishes
+the semantic non-success from a generic Make failure:
 
 ```sh
-sh -c 'make --no-print-directory umpire-check-local-run-evaluation SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set OUTPUT_ROOT=/private/tmp; test "$?" -eq 2'
+sh -c 'output_root=$(mktemp -d /private/tmp/umpire-local-results.XXXXXX); trap "rm -rf $output_root" EXIT; status=0; umpire-local-run-evaluation --set tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set --output-root "$output_root" || status=$?; test "$status" -eq 2'
 ```
 
 The pair remains one invocation-owned loopback profile. Replay, minimization, promotion, generic
