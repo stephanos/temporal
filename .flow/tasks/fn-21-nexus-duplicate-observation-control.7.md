@@ -48,9 +48,12 @@ Compile the exact fault-specific Temporal evidence profile/program/mapping befor
 
 
 ## Done summary
-TBD
+Compiled the distinct System-owned duplicate-delivery evidence profile/mapping and exact lifecycle/correlation qualification, then translated its Evidence-backed count-two value through an authority-free checked observed translation over the unchanged normal System/Feature Link. The baseline System target/mapping, strict Link contract, Feature declarations, and Property evaluator remain unchanged; mutation tests cover schema, disposition, identity, count, lifecycle, causal, and correlation failures.
 
+Baseline was inherited red for all six parent-spec Quick commands: the named Lean target is obsolete, the Go suites/regression hit the macOS `/var` symlink guard, and the local-run commands depend on absent later-task Make targets/fixtures. `make lint-code` also remains inherited red with 1,378 pre-existing Go findings and no Go diff; focused suites, aggregate `TemporalModelTests`, and `make lint-model` pass. Review-fix memory capture was attempted but Flow memory is not initialized.
+
+stage: impl-review - ran [2026-08-31T05:13:25Z..2026-08-31T05:29:51Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9f4e52b73a34d99320c86e719044224e1e1a23dd, 258fff92c59c6e5470089e5bc74301f92fe62d06
+- Tests: baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.CallerClosureFaultTests failed pre-edit: obsolete target absent), baseline: red (go test -count=1 ./tools/umpire/temporal/nexus/... failed pre-edit: macOS /var symlink containment), baseline: red (go test -count=1 ./tools/umpire/runevaluation/... failed pre-edit: /var vs /private/var path identity), baseline: red (make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set OUTPUT_ROOT=/tmp/umpire-local-runs RUN_ID=caller-closure-duplicate-delivery failed pre-edit: Make target absent), baseline: red (make umpire-check-local-run-evaluation SET=/tmp/umpire-local-runs/caller-closure-duplicate-delivery OUTPUT_ROOT=/tmp/umpire-local-results failed pre-edit: later-task input set absent), baseline: red (make umpire-check-regression failed pre-edit: macOS /var symlink containment), cd model && mise exec -- lake build Umpire.ImplementationLink.Tests.Application, cd model && mise exec -- lake build Temporal.System.Nexus.ObservationFaultTests, cd model && mise exec -- lake build Temporal.ImplementationLinkTests.Nexus, cd model && mise exec -- lake build TemporalModelTests, make lint-model, inherited red: make lint-code (1378 pre-existing Go findings; no Go diff)
 - PRs:
