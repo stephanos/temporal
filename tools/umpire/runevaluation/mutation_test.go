@@ -185,6 +185,24 @@ func TestRealCheckerDuplicateDeliveryMutationMatrix(t *testing.T) {
 			status: "conflict", diagnosticKind: "contradictory-fact",
 		},
 		{
+			name: "second synthetic marker drift",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				synthetic := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.synthetic-duplicate.fixture")
+				extra := *synthetic
+				extra.FactDefinitionID =
+					"umpire.runtime.fact.participant.synthetic-duplicate-drifted.fixture"
+				extra.Ordinal = artifactv2.NaturalFromUint64(2)
+				extra.Fields = slices.Clone(extra.Fields)
+				setMutationField(t, &extra,
+					"umpire.evidence.field.synthetic-contribution-marker", "drifted-marker")
+				request.Facts = append(request.Facts, extra)
+				request.Sources[3].FactCount = artifactv2.NaturalFromUint64(3)
+				request.SourceClosures[3].RecordCount = artifactv2.NaturalFromUint64(3)
+			},
+			status: "conflict", diagnosticKind: "contradictory-fact",
+		},
+		{
 			name: "correlation drift",
 			mutate: func(t *testing.T, request *checkerRequest) {
 				fact := duplicateDeliveryFact(t, request,
