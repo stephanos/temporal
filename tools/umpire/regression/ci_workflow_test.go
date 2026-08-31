@@ -24,7 +24,6 @@ type ciWorkflow struct {
 
 type ciWorkflowTrigger struct {
 	Branches []string `yaml:"branches"`
-	Paths    []string `yaml:"paths"`
 }
 
 type ciWorkflowConcurrency struct {
@@ -56,21 +55,12 @@ func TestHermeticCIWorkflowDelegatesToOrdinaryPinnedTest(t *testing.T) {
 	decoder.KnownFields(true)
 	require.NoError(t, decoder.Decode(&workflow))
 
-	paths := []string{
-		".github/workflows/umpire.yml",
-		"model/**",
-		"tools/umpire/**",
-		"Makefile",
-		"go.mod",
-		"go.sum",
-	}
 	require.Equal(t, ciWorkflow{
 		Name: "Umpire",
 		On: map[string]ciWorkflowTrigger{
-			"pull_request": {Paths: paths},
+			"pull_request": {},
 			"push": {
 				Branches: []string{"main", "stephanos/umpire"},
-				Paths:    paths,
 			},
 		},
 		Permissions: map[string]string{"contents": "read"},
@@ -95,6 +85,8 @@ func TestHermeticCIWorkflowDelegatesToOrdinaryPinnedTest(t *testing.T) {
 					{
 						Uses: "jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925",
 						With: map[string]any{
+							"version":           "2026.8.16",
+							"sha256":            "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35",
 							"working_directory": "model",
 							"cache":             false,
 						},
