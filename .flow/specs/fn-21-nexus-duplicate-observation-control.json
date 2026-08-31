@@ -19,7 +19,7 @@
     "fn-21-nexus-duplicate-observation-control.1": 0,
     "fn-21-nexus-duplicate-observation-control.2": 0,
     "fn-21-nexus-duplicate-observation-control.3": 0,
-    "fn-21-nexus-duplicate-observation-control.4": 2,
+    "fn-21-nexus-duplicate-observation-control.4": 0,
     "fn-21-nexus-duplicate-observation-control.7": 0
   },
   "next_task": 1,
@@ -487,12 +487,42 @@
       "task": "fn-21-nexus-duplicate-observation-control.4",
       "timestamp": "2026-08-31T09:32:23.334870Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "57a6d50935a6d9e2d1dd083508c3ff2d8be081dc474c0e4ef6b154ac24ef2921",
+      "backend": "codex",
+      "base_sha": "18d58b84898fa46e8f043ab05a065043648b5eb5",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2f727d5eaa5e462abe8b594912b9e05dd8e2a5ab",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 724,
+      "output_sha256": "727a8cf79ddc6c7851bd18df5995b58ff9a5fe527ac3999c30a54ed57f7cca31",
+      "reservation_id": "c9c71e761cc94f5d8dc00eea7d8fed56",
+      "round_consumed": true,
+      "scope": "impl:fn-21-nexus-duplicate-observation-control.4",
+      "superseded_by": null,
+      "task": "fn-21-nexus-duplicate-observation-control.4",
+      "timestamp": "2026-08-31T09:36:23.912841Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-21-nexus-duplicate-observation-control.1": 1,
     "impl:fn-21-nexus-duplicate-observation-control.2": 1,
     "impl:fn-21-nexus-duplicate-observation-control.3": 1,
+    "impl:fn-21-nexus-duplicate-observation-control.4": 1,
     "impl:fn-21-nexus-duplicate-observation-control.7": 1,
     "plan": 1,
     "plan#completion": 0
@@ -521,5 +551,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T09:32:23.340856Z"
+  "updated_at": "2026-08-31T09:36:23.918986Z"
 }
