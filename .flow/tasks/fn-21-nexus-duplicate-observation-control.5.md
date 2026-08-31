@@ -48,9 +48,18 @@ Exercise Task `.7`'s already-checked fault-specific mapping through the existing
 - [ ] R7 Property, reusable-package, and single-authority boundaries hold.
 
 ## Done summary
-TBD
+Implemented the exact duplicate-delivery Run Evaluation path through the existing controller, protocol, Observation Evaluation, Implementation Link, and Property composition authorities.
 
+- Preserved the truthful six-history/two-participant raw set while identity-gating a four-history/one-participant semantic projection with derived completed-cancellation `faultTarget` and both raw participant identities in causal support.
+- Reused one private Run Evaluation composition kernel for strict and authority-free observed translation; the normal strict API and canonical output behavior remain unchanged.
+- Added exact fault request/response closure gates, rejected mixed normal/fault identities, and retained the existing artifact/result family and Go controller.
+- Pinned the accepted uniqueness-only violation, seven-link provenance, idempotent recheck, the full mutation partition, crossed-identity failures, callback correlation absence/drift, control-receipt disposition handling, and excess-field schema rejection.
+- Fixed review findings by independently closing both raw participant correlations, separating fault semantic qualification from normal transport validation, and replacing the quadratic participant merge with a fixed-field linear projection.
+
+stage: impl-review - ran [Codex backend], final SHIP
+
+Verification passed: focused and aggregate Lean targets, full `make lint-model` build/replay/lint, tagged RunEvaluation and Nexus Go suites with physical Darwin TMPDIR, and focused RunEvaluation Go lint with zero findings. Full `make lint-code` remains an inherited repository-wide red with 1,374 unrelated findings; its six unrelated auto-edits were exactly inverted and no protected paths were touched.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9d5d861c0a8b57d7bb6669c9e0ffba9249961892, f8d9566ca2503c0d57c38e1f58c78ea4a9798c9c, 30f5bb5592d72dfdb6f71ef60a656cc44ec5ad8a, 95f9878c516b3b76dd463c44f24b5cf2743fc67c
+- Tests: mise exec -- lake build Temporal.Tool.RunEvaluationTests Temporal.Tool.RunEvaluationMutationTests Umpire.Observation.Tests.Check, mise exec -- lake build TemporalModelTests, make lint-model, TMPDIR=/private/tmp go test -tags test_dep -count=1 ./tools/umpire/runevaluation/..., TMPDIR=/private/tmp go test -tags test_dep -count=1 ./tools/umpire/temporal/nexus/..., .bin/golangci-lint-v2.13.1 run --build-tags 'disable_grpc_modules,,test_dep,' --timeout 10m --fix=false --config=.github/.golangci.yml ./tools/umpire/runevaluation/...
 - PRs:
