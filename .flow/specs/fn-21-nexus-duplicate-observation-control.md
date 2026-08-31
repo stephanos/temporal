@@ -88,8 +88,8 @@ The mutation oracle is closed and owned as follows:
 cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosureFaultTests
 go test -count=1 ./tools/umpire/temporal/nexus/...
 go test -count=1 ./tools/umpire/runevaluation/...
-make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set OUTPUT_ROOT=/tmp/umpire-local-runs RUN_ID=caller-closure-duplicate-delivery
-make umpire-check-local-run-evaluation SET=/tmp/umpire-local-runs/caller-closure-duplicate-delivery OUTPUT_ROOT=/tmp/umpire-local-results
+TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tools/umpire/runevaluation -run '^TestBoundedLiveNexusNegativeControl$'
+make umpire-check-local-run-evaluation SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set OUTPUT_ROOT=/private/tmp
 make umpire-check-regression
 ```
 
