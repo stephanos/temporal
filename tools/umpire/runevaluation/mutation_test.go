@@ -195,6 +195,59 @@ func TestRealCheckerDuplicateDeliveryMutationMatrix(t *testing.T) {
 			status: "conflict", diagnosticKind: "contradictory-binding",
 		},
 		{
+			name: "missing callback correlation",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.fixture")
+				fact.Fields = slices.DeleteFunc(fact.Fields, func(field artifactv2.RawEvidenceField) bool {
+					return field.FieldDefinitionID == umpireruntime.EvidenceFieldOperationCorrelationID
+				})
+			},
+			status: "unknown", diagnosticKind: "unresolved-binding",
+		},
+		{
+			name: "callback correlation drift",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.fixture")
+				setMutationField(t, fact, umpireruntime.EvidenceFieldOperationCorrelationID,
+					"runtime.correlation.operation.callback-drifted")
+			},
+			status: "conflict", diagnosticKind: "contradictory-binding",
+		},
+		{
+			name: "redacted control receipt",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.control-receipt.fixture")
+				for index := range fact.Fields {
+					if fact.Fields[index].FieldDefinitionID ==
+						"umpire.evidence.field.fault-receipt-definition-id" {
+						fact.Fields[index].Disposition = "redacted"
+						fact.Fields[index].Value = nil
+						return
+					}
+				}
+				require.Fail(t, "fault receipt field not found")
+			},
+			status: "unsupported", diagnosticKind: "field-mismatch",
+		},
+		{
+			name: "excess participant fields",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				fact := duplicateDeliveryFact(t, request,
+					"umpire.runtime.fact.participant.fixture")
+				for index := range 4096 {
+					fact.Fields = append(fact.Fields, artifactv2.RawEvidenceField{
+						FieldDefinitionID: "umpire.evidence.field.excess-" + strconv.Itoa(index),
+						Disposition:       "plain",
+						Value:             "excess",
+					})
+				}
+			},
+			status: "unsupported", diagnosticKind: "field-mismatch",
+		},
+		{
 			name: "redacted marker",
 			mutate: func(t *testing.T, request *checkerRequest) {
 				fact := duplicateDeliveryFact(t, request,
