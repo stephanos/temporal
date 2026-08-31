@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-27-hermetic-ci-execution-and-qualification",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-08-31T23:39:52.866128Z",
   "created_at": "2026-08-26T14:12:48.962246Z",
   "default_impl": null,
   "default_review": null,
@@ -860,6 +860,36 @@
       "timestamp": "2026-08-31T23:32:16.585346Z",
       "tool_calls": 7,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "7dab87a2ff37c90da8025e841ce22faa330438c26c64a4453387312d1b9b4d45",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e19097414e2a29b8316ca8e92d37a547be5e29a9",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 524279,
+      "output_sha256": "180182e8d89d08938f98abecc78377f7efe8cadf1c52b828c2277fe02319a525",
+      "reservation_id": "81240e14af754b499e777432132ac0a2",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-08-31T23:39:52.853641Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -873,11 +903,12 @@
     "impl:fn-27-hermetic-ci-execution-and-qualification.8": 1,
     "impl:fn-27-hermetic-ci-execution-and-qualification.9": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-27-hermetic-ci-execution-and-qualification.1": 0,
     "impl:fn-27-hermetic-ci-execution-and-qualification.2": 0,
     "impl:fn-27-hermetic-ci-execution-and-qualification.3": 0,
@@ -903,5 +934,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T23:32:16.594976Z"
+  "updated_at": "2026-08-31T23:39:52.870798Z"
 }
