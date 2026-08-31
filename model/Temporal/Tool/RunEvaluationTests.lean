@@ -226,6 +226,40 @@ example : requestRoundTrip := by native_decide
 example : (encodeRequest request).toOption.bind String.fromUTF8? |>.any fun value =>
     value.contains "\n  \"" && value.endsWith "\n" && !(value.endsWith "\n\n") := by native_decide
 
+private def duplicateDeliveryClosureRequest : Request := {
+  request with
+  experiment := expectedDuplicateDeliveryExperimentBinding
+  runtimeConfiguration := expectedDuplicateDeliveryRuntimeConfigurationBinding
+  query := expectedDuplicateDeliveryQuery
+  properties := expectedDuplicateDeliveryProperties
+  observationProgram := expectedDuplicateDeliveryObservationProgram
+  mapping := expectedDuplicateDeliveryMapping
+}
+
+private def protocolAccepts (candidate : Request) : Bool :=
+  match encodeRequest candidate with
+  | .error _ => false
+  | .ok bytes => (decodeRequest bytes).toOption == some candidate
+
+private def protocolRejectsClosureDrift (candidate : Request) : Bool :=
+  match encodeRequest candidate >>= decodeRequest with
+  | .error failure => failure.kind == .closureDrift
+  | .ok _ => false
+
+/-- The same protocol version admits exactly the compiled fault closure and rejects crossed or
+drifted identity combinations. -/
+example : protocolAccepts duplicateDeliveryClosureRequest := by native_decide
+example : protocolRejectsClosureDrift {
+    duplicateDeliveryClosureRequest with
+    runtimeConfiguration := expectedRuntimeConfigurationBinding
+  } := by native_decide
+example : protocolRejectsClosureDrift {
+    duplicateDeliveryClosureRequest with mapping := expectedMapping
+  } := by native_decide
+example : protocolRejectsClosureDrift {
+    request with observationProgram := expectedDuplicateDeliveryObservationProgram
+  } := by native_decide
+
 private def driftResult := (encodeRequest { request with checkerIdentity := "drifted" }).bind
   decodeRequest
 
