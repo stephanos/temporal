@@ -7,8 +7,8 @@ satisfies: [R4, R5, R6, R7]
 Complete R4-R7 with one paired live normal/faulted proof, immutable-set publication/status assertions, copy-paste usage, and honest roadmap reconciliation. This task adds no command or Make target.
 
 **Size:** M
-**Files:** `tools/umpire/runevaluation/live_negative_control_test.go`, `tools/umpire/runevaluation/mutation_test.go`, `model/Temporal/Tool/RunEvaluation.lean`, `tools/umpire/runevaluation/README.md`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`
-**Touches:** [tools/umpire/runevaluation/live_negative_control_test.go, tools/umpire/runevaluation/mutation_test.go, model/Temporal/Tool/RunEvaluation.lean, tools/umpire/runevaluation/README.md, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md]
+**Files:** `.flow/specs/fn-21-nexus-duplicate-observation-control.md`, `tools/umpire/runevaluation/live_negative_control_test.go`, `tools/umpire/runevaluation/mutation_test.go`, `model/Temporal/Tool/RunEvaluation.lean`, `tools/umpire/runevaluation/README.md`, `model/README.md`, `model/ARCHITECTURE.md`, `.plans/UMPIRE4_COMPONENTS.md`
+**Touches:** [.flow/specs/fn-21-nexus-duplicate-observation-control.md, tools/umpire/runevaluation/live_negative_control_test.go, tools/umpire/runevaluation/mutation_test.go, model/Temporal/Tool/RunEvaluation.lean, tools/umpire/runevaluation/README.md, model/README.md, model/ARCHITECTURE.md, .plans/UMPIRE4_COMPONENTS.md]
 
 ### Approach
 - Run the complete independent mutation/status suite before two bounded live controls: existing normal and exact faulted input, each through fn-19 execution, fn-20 checking, fn-18 publication, reopen, and strict set validation.
