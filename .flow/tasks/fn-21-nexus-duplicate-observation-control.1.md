@@ -37,9 +37,12 @@ Author the Temporal-owned one-axis/two-choice space and compile its selected fau
 - [ ] R7 package purity, comments, and no-general-fault boundaries hold.
 
 ## Done summary
-TBD
+Added the exact checked caller-closure baseline/fault Space under the reconciled Experimental boundary, with canonical metadata, intent, target-owned count-one trace, byte identity, and fail-closed negative proofs. The focused suite covers invalid limits/effects/goals, stale occurrence/action/capability, duplicate/incompatible selection, outcome/evidence authoring, lowering failure, and no-artifact planning failure; the original caller-closure artifact and Property sources remain untouched.
 
+baseline: red (`cd model && mise exec -- lake build Temporal.Feature.Nexus.CallerClosureFaultTests` failed pre-edit because the pre-fn39 target path is intentionally absent); canonical Experimental target progressed RED to GREEN. `make lint-code` remains inherited red with 1,378 pre-existing Go findings in untouched files; `make lint-model` and all task gates pass.
+
+stage: impl-review - ran (SHIP)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a09a3aa55187da4712ea0c63d70b515f545dbb6f
+- Tests: baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.CallerClosureFaultTests failed pre-edit: stale non-Experimental target absent), cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosureFaultTests, cd model && mise exec -- lake build TemporalExperimentalTests, go test -count=1 ./tools/umpire/temporal/nexus/..., go test -count=1 ./tools/umpire/runevaluation/..., make lint-model, make umpire-check-regression
 - PRs:
