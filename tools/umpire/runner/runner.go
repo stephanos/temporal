@@ -26,6 +26,37 @@ type InputBinding struct {
 	AuthorityRequiredCapabilityDefinitionIDs []string
 }
 
+type bindingFailure struct {
+	kind    string
+	code    string
+	message string
+}
+
+func (failure *bindingFailure) Error() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.message
+}
+
+func (failure *bindingFailure) Kind() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.kind
+}
+
+func (*bindingFailure) Phase() string {
+	return "admission"
+}
+
+func (failure *bindingFailure) Code() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.code
+}
+
 // Adapter supplies one closed authority/program binding below the reusable
 // runner. It receives only an already-admitted set and checked runtime values.
 type Adapter interface {
@@ -99,7 +130,11 @@ func runChecked(
 func validateInputBinding(admitted artifact.AdmittedSet, expected InputBinding) error {
 	executable, ok := admitted.Executable()
 	if !ok {
-		return errors.New("umpire runner requires an exact two-member executable set")
+		return &bindingFailure{
+			kind:    "input-binding",
+			code:    "umpire.runner.input-binding.invalid",
+			message: "umpire runner requires an exact two-member executable set",
+		}
 	}
 	experiment := executable.Experiment()
 	configuration := executable.RuntimeConfiguration()
@@ -110,7 +145,11 @@ func validateInputBinding(admitted artifact.AdmittedSet, expected InputBinding) 
 		experiment.QueryBehaviorFingerprint != expected.ExperimentBehaviorFingerprint ||
 		configuration.ArtifactChecksum != expected.RuntimeConfigurationArtifactChecksum ||
 		configuration.BehaviorFingerprint != expected.RuntimeConfigurationBehaviorFingerprint {
-		return errors.New("umpire runner generated input binding does not match the admitted set")
+		return &bindingFailure{
+			kind:    "input-binding",
+			code:    "umpire.runner.input-binding.drift",
+			message: "umpire runner generated input binding does not match the admitted set",
+		}
 	}
 	return nil
 }
@@ -123,7 +162,11 @@ func validateAuthorityBinding(
 		request.Authority().RequiredCapabilityDefinitionIDs(),
 		expected.AuthorityRequiredCapabilityDefinitionIDs,
 	) {
-		return errors.New("umpire runner generated authority binding does not match the checked request")
+		return &bindingFailure{
+			kind:    "authority-binding",
+			code:    "umpire.runner.authority-binding.unauthorized",
+			message: "umpire runner generated authority binding does not match the checked request",
+		}
 	}
 	return nil
 }
