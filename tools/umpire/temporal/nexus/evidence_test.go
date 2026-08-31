@@ -205,6 +205,41 @@ func TestValidateExecutionClosureAdmitsOnlyTheClosedMechanicalFourMemberSet(t *t
 	}
 }
 
+func TestBindingRejectsCleanupLeakageWithStableClassification(t *testing.T) {
+	input := admitCallerClosureSet(t)
+	executable, _, run, rawEvidence := closedExecutionFixtureWithInput(t, input, false)
+	setRawField(
+		rawEvidence.Facts[0].Fields,
+		umpireruntime.EvidenceFieldOpenHandleCount,
+		json.Number("1"),
+	)
+	run = sealRun(t, run)
+	rawEvidence.Run = artifactv2.ExperimentRunArtifactBinding(run)
+	rawEvidence = sealRawEvidence(t, rawEvidence)
+	admitted, err := executable.AdmitExecution(run, rawEvidence)
+	require.NoError(t, err)
+	request, err := CheckRequest(input, run.RunIdentity)
+	require.NoError(t, err)
+
+	err = (Binding{}).ValidateOutput(
+		request,
+		umpireruntime.NewOutput(admitted, run, rawEvidence),
+	)
+	require.ErrorIs(t, err, errExecutionClosure)
+	var classified interface {
+		error
+		Kind() string
+		Phase() string
+		Code() string
+	}
+	require.ErrorAs(t, err, &classified)
+	require.Equal(t, []string{
+		"output-invariant",
+		"cleanup",
+		"umpire.temporal.nexus.execution-closure.cleanup-leakage",
+	}, []string{classified.Kind(), classified.Phase(), classified.Code()})
+}
+
 func TestFaultedExecutionFixtureIsTheExactClosedFourMemberSet(t *testing.T) {
 	executable, expected, run, rawEvidence := closedFaultedExecutionFixture(t)
 	require.NoError(t, validateExecutionClosure(executable, expected, run, rawEvidence))

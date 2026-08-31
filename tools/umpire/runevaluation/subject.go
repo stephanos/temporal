@@ -3,12 +3,34 @@ package runevaluation
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"errors"
 	"reflect"
 
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
+
+type subjectBindingFailure struct {
+	message string
+}
+
+func (failure *subjectBindingFailure) Error() string {
+	if failure == nil {
+		return ""
+	}
+	return failure.message
+}
+
+func (*subjectBindingFailure) Kind() string {
+	return "subject-binding"
+}
+
+func (*subjectBindingFailure) Phase() string {
+	return "admission"
+}
+
+func (*subjectBindingFailure) Code() string {
+	return "umpire.run-evaluation.subject.binding-drift"
+}
 
 // SubjectDefinition binds one definition ID to its admitted behavior.
 type SubjectDefinition struct {
@@ -63,7 +85,9 @@ func PinSubject(experimentBytes []byte) (SubjectBinding, error) {
 		return SubjectBinding{}, err
 	}
 	if !exactCallerClosureExperiment(experiment) {
-		return SubjectBinding{}, errors.New("run evaluation subject is not the exact caller-closure profile")
+		return SubjectBinding{}, &subjectBindingFailure{
+			message: "run evaluation subject is not the exact caller-closure profile",
+		}
 	}
 
 	implementationLink := callerClosureImplementationLink()
@@ -120,7 +144,7 @@ func CheckSubject(
 		return err
 	}
 	if !reflect.DeepEqual(actual, expected) {
-		return errors.New("run evaluation subject binding drifted")
+		return &subjectBindingFailure{message: "run evaluation subject binding drifted"}
 	}
 	return nil
 }
