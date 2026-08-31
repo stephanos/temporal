@@ -11,7 +11,9 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
+	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
+	"go.temporal.io/server/tools/umpire/temporal/nexus"
 )
 
 func TestCallerClosurePathTraversesEveryStageExactlyOnce(t *testing.T) {
@@ -293,50 +295,37 @@ func requireCallerClosureSuccessfulPortabilityResult(
 	return retainCallerClosurePortabilityResult(outcome)
 }
 
-func TestCallerClosurePortabilityResultRetainsTheBoundedProofMatrix(t *testing.T) {
-	requireCallerClosureBoundedProofMatrix(t, callerClosureStableMeaning{
-		ObservationEvaluationStatus: "accepted",
-		SemanticStatus:              "satisfied",
-	})
-}
-
 func requireCallerClosureBoundedProofMatrix(
 	t *testing.T,
 	localMeaning callerClosureStableMeaning,
+	outcomes []callerClosurePathOutcome,
 ) {
 	t.Helper()
-	limitFailure := errors.New("Limit N+1 rejected before runtime IO")
-	semanticNonSuccessChecksum := "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-	localEvaluationOutcomeChecksum := "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
-	for _, testCase := range []struct {
+	testCases := []struct {
 		name               string
-		outcome            callerClosurePathOutcome
+		wantOperational    string
 		wantPhases         []string
 		wantCapture        string
 		wantOpenHandles    string
 		wantMeaning        callerClosureStableMeaning
 		wantToolingPhase   string
-		wantToolingFailure error
+		wantToolingFailure bool
+		wantEvaluation     bool
+		wantChecksum       bool
 		wantPortable       bool
 	}{
 		{
-			name: "success at Limit N",
-			outcome: callerClosurePortabilityOutcome(
-				t, "succeeded", "complete", "closed", "", "accepted", "satisfied",
-				localEvaluationOutcomeChecksum,
-			),
+			name:            "success at Limit N",
+			wantOperational: "succeeded",
 			wantPhases: []string{
 				"succeeded", "succeeded", "succeeded", "succeeded", "succeeded",
 			},
 			wantCapture: "closed", wantOpenHandles: "0", wantMeaning: localMeaning,
-			wantPortable: true,
+			wantEvaluation: true, wantChecksum: true, wantPortable: true,
 		},
 		{
-			name: "semantic non-success",
-			outcome: callerClosurePortabilityOutcome(
-				t, "succeeded", "complete", "closed", "", "accepted", "violated",
-				semanticNonSuccessChecksum,
-			),
+			name:            "semantic non-success",
+			wantOperational: "succeeded",
 			wantPhases: []string{
 				"succeeded", "succeeded", "succeeded", "succeeded", "succeeded",
 			},
@@ -344,67 +333,275 @@ func requireCallerClosureBoundedProofMatrix(
 			wantMeaning: callerClosureStableMeaning{
 				ObservationEvaluationStatus: "accepted",
 				SemanticStatus:              "violated",
-			},
+			}, wantEvaluation: true, wantChecksum: true,
 		},
 		{
-			name: "cancellation",
-			outcome: callerClosurePortabilityOutcome(
-				t, "incomplete", "complete", "closed", "canceled", "unknown", "incomplete", "",
-			),
+			name: "cancellation", wantOperational: "incomplete",
 			wantPhases: []string{
 				"succeeded", "canceled", "succeeded", "succeeded", "succeeded",
 			},
 			wantCapture: "closed", wantOpenHandles: "0",
 			wantMeaning: callerClosureStableMeaning{
 				ObservationEvaluationStatus: "unknown", SemanticStatus: "incomplete",
-			},
+			}, wantEvaluation: true,
 		},
 		{
-			name: "timeout",
-			outcome: callerClosurePortabilityOutcome(
-				t, "incomplete", "complete", "partial", "timed-out", "unknown", "incomplete", "",
-			),
+			name: "timeout", wantOperational: "incomplete",
 			wantPhases: []string{
 				"succeeded", "succeeded", "timed-out", "succeeded", "succeeded",
 			},
 			wantCapture: "partial", wantOpenHandles: "0",
 			wantMeaning: callerClosureStableMeaning{
 				ObservationEvaluationStatus: "unknown", SemanticStatus: "incomplete",
-			},
+			}, wantEvaluation: true,
 		},
 		{
-			name: "Limit N+1",
-			outcome: callerClosurePathOutcome{
-				toolingPhase: "runner", toolingFailure: limitFailure,
-			},
-			wantToolingPhase: "runner", wantToolingFailure: limitFailure,
+			name:             "Limit N+1",
+			wantToolingPhase: "runner", wantToolingFailure: true,
 		},
 		{
-			name: "cleanup failure",
-			outcome: callerClosurePortabilityOutcome(
-				t, "failed", "failed", "failed", "failed", "unknown", "incomplete", "",
-			),
+			name: "cleanup failure", wantOperational: "failed",
 			wantPhases: []string{
 				"succeeded", "succeeded", "succeeded", "succeeded", "failed",
 			},
-			wantCapture: "failed", wantOpenHandles: "1",
+			wantCapture: "failed", wantOpenHandles: "0",
 			wantMeaning: callerClosureStableMeaning{
 				ObservationEvaluationStatus: "unknown", SemanticStatus: "incomplete",
-			},
+			}, wantEvaluation: true,
 		},
-	} {
+	}
+	require.Len(t, outcomes, len(testCases))
+	for index, testCase := range testCases {
 		t.Run(testCase.name, func(t *testing.T) {
-			result := retainCallerClosurePortabilityResult(testCase.outcome)
+			result := retainCallerClosurePortabilityResult(outcomes[index])
 
+			require.Equal(t, testCase.wantOperational, result.OperationalStatus)
 			require.Equal(t, testCase.wantPhases, result.PhaseStatuses)
 			require.Equal(t, testCase.wantCapture, result.CaptureStatus)
 			require.Equal(t, testCase.wantOpenHandles, result.OpenHandleCount)
 			require.Equal(t, testCase.wantMeaning, result.StableMeaning)
 			require.Equal(t, testCase.wantToolingPhase, result.ToolingPhase)
-			require.ErrorIs(t, result.ToolingFailure, testCase.wantToolingFailure)
+			if testCase.wantToolingFailure {
+				require.Error(t, result.ToolingFailure)
+			} else {
+				require.NoError(t, result.ToolingFailure)
+			}
+			if testCase.wantEvaluation {
+				require.NotNil(t, outcomes[index].evaluation)
+			}
+			if testCase.wantChecksum {
+				require.NotEmpty(t, result.EvaluationOutcomeChecksum)
+			} else {
+				require.Empty(t, result.EvaluationOutcomeChecksum)
+			}
 			require.Equal(t, testCase.wantPortable, result.ProvesPortableSuccess(localMeaning))
 		})
 	}
+}
+
+type callerClosureControlledPhase string
+
+const (
+	callerClosureCanceledRealization callerClosureControlledPhase = "canceled-realization"
+	callerClosureTimedOutObservation callerClosureControlledPhase = "timed-out-observation"
+	callerClosureFailedCleanup       callerClosureControlledPhase = "failed-cleanup"
+)
+
+func callerClosureBoundedProofOutcomes(
+	ctx context.Context,
+	t *testing.T,
+	success callerClosurePathOutcome,
+) []callerClosurePathOutcome {
+	t.Helper()
+	return []callerClosurePathOutcome{
+		success,
+		callerClosureDuplicateDeliveryOutcome(ctx, t),
+		callerClosureControlledOutcome(ctx, t, callerClosureCanceledRealization),
+		callerClosureControlledOutcome(ctx, t, callerClosureTimedOutObservation),
+		callerClosureLimitNPlusOneOutcome(ctx, t),
+		callerClosureControlledOutcome(ctx, t, callerClosureFailedCleanup),
+	}
+}
+
+func callerClosureControlledOutcome(
+	ctx context.Context,
+	t *testing.T,
+	phase callerClosureControlledPhase,
+) callerClosurePathOutcome {
+	t.Helper()
+	runIdentity := "umpire.ci.caller-closure." + string(phase) + "-1"
+	path := newCallerClosurePath(t, runIdentity, callerClosureControlledAdapter{
+		t: t, phase: phase,
+	})
+	return runCallerClosurePath(ctx, path)
+}
+
+func callerClosureDuplicateDeliveryOutcome(
+	ctx context.Context,
+	t *testing.T,
+) callerClosurePathOutcome {
+	t.Helper()
+	input := admitCallerClosureInputAt(t, "caller-closure-duplicate-delivery-input-set")
+	const runIdentity = "umpire.ci.caller-closure.semantic-non-success-1"
+	path := callerClosurePath{
+		checkSubject: func() error { return nil },
+		admit: func() (artifact.AdmittedSet, error) {
+			return input, nil
+		},
+		run: func(ctx context.Context, admitted artifact.AdmittedSet) (umpireruntime.Output, error) {
+			return runner.Run(
+				ctx, admitted, callerClosureDuplicateDeliveryBinding(), runIdentity, nexus.Binding{},
+			)
+		},
+		evaluate: func(ctx context.Context, admitted artifact.AdmittedSet) (callerClosureEvaluation, error) {
+			return runCallerClosureEvaluation(t, ctx, admitted)
+		},
+	}
+	return runCallerClosurePath(ctx, path)
+}
+
+func admitCallerClosureInputAt(t *testing.T, name string) artifact.AdmittedSet {
+	t.Helper()
+	files := make(map[string][]byte, 3)
+	for _, relative := range []string{
+		"manifest.json",
+		"artifacts/experiment.json",
+		"artifacts/runtime-configuration.json",
+	} {
+		encoded, err := os.ReadFile(filepath.Join("testdata", name, filepath.FromSlash(relative)))
+		require.NoError(t, err)
+		files[relative] = encoded
+	}
+	admitted, err := artifact.AdmitSetFiles(files)
+	require.NoError(t, err)
+	return admitted
+}
+
+func callerClosureDuplicateDeliveryBinding() runner.InputBinding {
+	return runner.InputBinding{
+		ArtifactSetIdentity:                     "umpire.artifact-set.2a6c3ef5fbd3b7dfba1acbe2c9ffc5ec3072b19daf50d3d63bd16b122fc2bd68",
+		ArtifactSetChecksum:                     "sha256:3ddabf041e499ee0b7e970cac3900b8d6306ec9009e92924ef7b9ea0f584a5f8",
+		ManifestSHA256:                          "sha256:96cf1869d444e1db25f9999ea3d3928f5c07308b8c7f387b570027f5f69b5f4b",
+		ExperimentArtifactChecksum:              "sha256:09091758defd5ce50cc9acbba23a5c8499da4eef9b6e36878ac989ddea87fedf",
+		ExperimentBehaviorFingerprint:           "sha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91",
+		RuntimeConfigurationArtifactChecksum:    "sha256:440c0632b911571e4efb34c96fb4c4c7096fbd52f23900ed4784e037370063cf",
+		RuntimeConfigurationBehaviorFingerprint: "sha256:d88670a6766c2ef9037c82183f00c1c42179a7578c3c4c07714eadb5540750c0",
+		AuthorityRequiredCapabilityDefinitionIDs: []string{
+			"umpire.runtime.capability.complete-workflow-history-read",
+			"umpire.runtime.capability.ephemeral-server-lifecycle",
+			"umpire.runtime.capability.sdk-worker-lifecycle",
+		},
+	}
+}
+
+type callerClosureControlledAdapter struct {
+	t     *testing.T
+	phase callerClosureControlledPhase
+}
+
+func (adapter callerClosureControlledAdapter) CheckRequest(
+	admitted artifact.AdmittedSet,
+	runIdentity string,
+) (umpireruntime.CheckedRunRequest, error) {
+	return (nexus.Binding{}).CheckRequest(admitted, runIdentity)
+}
+
+func (callerClosureControlledAdapter) EnvironmentFactory() umpireruntime.EnvironmentFactory {
+	return (nexus.Binding{}).EnvironmentFactory()
+}
+
+func (adapter callerClosureControlledAdapter) NewParticipant(
+	request umpireruntime.CheckedRunRequest,
+) (umpireruntime.Participant, error) {
+	participant, err := (nexus.Binding{}).NewParticipant(request)
+	if err != nil {
+		return nil, err
+	}
+	return callerClosureControlledParticipant{
+		t: adapter.t, phase: adapter.phase, delegate: participant,
+	}, nil
+}
+
+func (callerClosureControlledAdapter) ValidateOutput(
+	request umpireruntime.CheckedRunRequest,
+	output umpireruntime.Output,
+) error {
+	return (nexus.Binding{}).ValidateOutput(request, output)
+}
+
+type callerClosureControlledParticipant struct {
+	t        *testing.T
+	phase    callerClosureControlledPhase
+	delegate umpireruntime.Participant
+}
+
+func (participant callerClosureControlledParticipant) Prepare(
+	ctx context.Context,
+	environment umpireruntime.Environment,
+	command umpireruntime.Command,
+) umpireruntime.Receipt {
+	return participant.delegate.Prepare(ctx, environment, command)
+}
+
+func (participant callerClosureControlledParticipant) Realize(
+	ctx context.Context,
+	environment umpireruntime.Environment,
+	command umpireruntime.Command,
+) umpireruntime.Receipt {
+	receipt := participant.delegate.Realize(ctx, environment, command)
+	if participant.phase == callerClosureCanceledRealization {
+		return callerClosureReceiptWithStatus(participant.t, receipt, umpireruntime.ReceiptCanceled)
+	}
+	return receipt
+}
+
+func (participant callerClosureControlledParticipant) Observe(
+	ctx context.Context,
+	environment umpireruntime.Environment,
+	command umpireruntime.Command,
+) umpireruntime.Receipt {
+	receipt := participant.delegate.Observe(ctx, environment, command)
+	if participant.phase == callerClosureTimedOutObservation {
+		<-ctx.Done()
+	}
+	return receipt
+}
+
+func (participant callerClosureControlledParticipant) Cleanup(
+	ctx context.Context,
+	environment umpireruntime.Environment,
+	command umpireruntime.Command,
+) umpireruntime.Receipt {
+	receipt := participant.delegate.Cleanup(ctx, environment, command)
+	if participant.phase == callerClosureFailedCleanup {
+		return callerClosureReceiptWithStatus(participant.t, receipt, umpireruntime.ReceiptFailed)
+	}
+	return receipt
+}
+
+func callerClosureReceiptWithStatus(
+	t *testing.T,
+	receipt umpireruntime.Receipt,
+	status umpireruntime.ReceiptStatus,
+) umpireruntime.Receipt {
+	t.Helper()
+	var (
+		controlled umpireruntime.Receipt
+		err        error
+	)
+	if receipt.ControlAttempted() {
+		controlled, err = umpireruntime.NewControlReceipt(
+			receipt.Command(), status, receipt.Facts(),
+			receipt.AcquiredResources(), receipt.ReleasedResources(),
+		)
+	} else {
+		controlled, err = umpireruntime.NewReceipt(
+			receipt.Command(), status, receipt.Facts(),
+			receipt.AcquiredResources(), receipt.ReleasedResources(),
+		)
+	}
+	require.NoError(t, err)
+	return controlled
 }
 
 func requireCallerClosureEqualResultMeaning(
@@ -413,6 +610,8 @@ func requireCallerClosureEqualResultMeaning(
 	ci artifactv2.Result,
 ) {
 	t.Helper()
+	require.Equal(t, local.FormatVersion, ci.FormatVersion)
+	require.Equal(t, local.BehaviorFingerprint, ci.BehaviorFingerprint)
 	require.Equal(t, local.OperationalStatus, ci.OperationalStatus)
 	require.Equal(t, local.ObservationEvaluationStatus, ci.ObservationEvaluationStatus)
 	require.Equal(t, local.ImplementationLink, ci.ImplementationLink)
@@ -439,6 +638,25 @@ func requireCallerClosureEqualResultMeaning(
 	require.Equal(t, local.Limits, ci.Limits)
 	require.Equal(t, local.KnownGaps, ci.KnownGaps)
 	require.Equal(t, local.CleanupStatus, ci.CleanupStatus)
+}
+
+func requireCallerClosureDistinctResultTransport(
+	t *testing.T,
+	local artifactv2.Result,
+	ci artifactv2.Result,
+) {
+	t.Helper()
+	require.NotEqual(t, local.RunIdentity, ci.RunIdentity)
+	require.NotEqual(t, local.QuerySummary.TraceIDs, ci.QuerySummary.TraceIDs)
+	require.Len(t, ci.PropertyVerdicts, len(local.PropertyVerdicts))
+	for index, localVerdict := range local.PropertyVerdicts {
+		ciVerdict := ci.PropertyVerdicts[index]
+		require.NotEqual(t, localVerdict.TraceID, ciVerdict.TraceID)
+		require.Len(t, ciVerdict.Clauses, len(localVerdict.Clauses))
+		for clauseIndex, localClause := range localVerdict.Clauses {
+			require.NotEqual(t, localClause.EvidenceLinks, ciVerdict.Clauses[clauseIndex].EvidenceLinks)
+		}
+	}
 }
 
 func requireCallerClosureEqualPropertyVerdicts(
@@ -481,7 +699,9 @@ func callerClosureLimitNPlusOneOutcome(
 	t *testing.T,
 ) callerClosurePathOutcome {
 	t.Helper()
-	path := newCallerClosurePath(t, "umpire.ci.caller-closure.limit-n-plus-one-1")
+	path := newCallerClosurePath(
+		t, "umpire.ci.caller-closure.limit-n-plus-one-1", nexus.Binding{},
+	)
 	input, err := path.admit()
 	require.NoError(t, err)
 	executable, ok := input.Executable()
@@ -504,44 +724,6 @@ func callerClosureLimitNPlusOneOutcome(
 		return input, nil
 	}
 	return runCallerClosurePath(ctx, path)
-}
-
-func callerClosurePortabilityOutcome(
-	t *testing.T,
-	operationalStatus string,
-	cleanupStatus string,
-	captureStatus string,
-	terminalPhaseStatus string,
-	observationStatus string,
-	semanticStatus string,
-	evaluationOutcomeChecksum string,
-) callerClosurePathOutcome {
-	t.Helper()
-	output := callerClosurePathOutput(t, operationalStatus, cleanupStatus)
-	run := output.ExperimentRun()
-	rawEvidence := output.RawEvidence()
-	rawEvidence.CaptureStatus = captureStatus
-	switch terminalPhaseStatus {
-	case "canceled":
-		run.PhaseOutcomes[1].Status = terminalPhaseStatus
-	case "timed-out":
-		run.PhaseOutcomes[2].Status = terminalPhaseStatus
-	case "failed":
-		run.PhaseOutcomes[4].Status = terminalPhaseStatus
-		run.Cleanup.OpenHandleCount = "1"
-	default:
-		require.Empty(t, terminalPhaseStatus)
-	}
-	output = umpireruntime.NewOutput(output.AdmittedSet(), run, rawEvidence)
-	return callerClosurePathOutcome{
-		execution: &output,
-		evaluation: &callerClosureEvaluation{summary: callerClosureEvaluationSummary{
-			OperationalStatus:           operationalStatus,
-			ObservationEvaluationStatus: observationStatus,
-			SemanticStatus:              semanticStatus,
-			EvaluationOutcomeChecksum:   evaluationOutcomeChecksum,
-		}},
-	}
 }
 
 func TestCallerClosureEvaluationPreservesSemanticNonSuccess(t *testing.T) {
