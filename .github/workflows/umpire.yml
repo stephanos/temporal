@@ -2,24 +2,10 @@ name: Umpire
 
 on:
   pull_request:
-    paths:
-      - ".github/workflows/umpire.yml"
-      - "model/**"
-      - "tools/umpire/**"
-      - "Makefile"
-      - "go.mod"
-      - "go.sum"
   push:
     branches:
       - main
       - stephanos/umpire
-    paths:
-      - ".github/workflows/umpire.yml"
-      - "model/**"
-      - "tools/umpire/**"
-      - "Makefile"
-      - "go.mod"
-      - "go.sum"
 
 permissions:
   contents: read
@@ -41,6 +27,8 @@ jobs:
           cache: false
       - uses: jdx/mise-action@dba19683ed58901619b14f395a24841710cb4925 # v4.1.0
         with:
+          version: "2026.8.16"
+          sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
           working_directory: model
           cache: false
       - name: Run the ordinary Umpire test
