@@ -89,7 +89,7 @@ cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerCl
 go test -count=1 ./tools/umpire/temporal/nexus/...
 go test -count=1 ./tools/umpire/runevaluation/...
 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tools/umpire/runevaluation -run '^TestBoundedLiveNexusNegativeControl$'
-make umpire-check-local-run-evaluation SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set OUTPUT_ROOT=/private/tmp
+sh -c 'make --no-print-directory umpire-check-local-run-evaluation SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set OUTPUT_ROOT=/private/tmp; test "$?" -eq 2'
 make umpire-check-regression
 ```
 
