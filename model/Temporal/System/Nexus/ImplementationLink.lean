@@ -674,9 +674,6 @@ def checked := checkedResult.toOption.get checkedResult_isSome
 
 namespace DuplicateDelivery
 
-def baseImplementationLinkId : DefinitionId :=
-  id "temporal.system.nexus.caller-closure.duplicate-delivery.implementation-link.base"
-
 def observedImplementationLinkId : DefinitionId :=
   id "temporal.system.nexus.caller-closure.duplicate-delivery.implementation-link"
 
@@ -688,71 +685,11 @@ def destinationCancellationCountTwo : ModelValue := {
   Temporal.Feature.Nexus.Experimental.CallerClosure.cancellationCountObservation with value := "2"
 }
 
-def declaration : ImplementationLinkDeclaration
-    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue
-    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  Temporal.System.Nexus.ImplementationLink.CallerClosure.declaration with
-  id := baseImplementationLinkId
-  documentation :=
-    "The normal authoritative transition anchors checked duplicate-delivery observed translation."
-}
-
-theorem requiredCoverage : ImplementationLinkRequiredCoverage declaration
-    Temporal.System.Nexus.CallerClosure.target mapSetup mapState mapAction mapOutcome
-      mapObservation := {
-  setup := by
-    simpa [declaration] using
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.requiredCoverage.setup
-  state := by
-    simpa [declaration] using
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.requiredCoverage.state
-  action := by
-    simpa [declaration] using
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.requiredCoverage.action
-  outcome := by
-    simpa [declaration] using
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.requiredCoverage.outcome
-  observation := by
-    simpa [declaration] using
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.requiredCoverage.observation
-  relation := by
-    simpa [declaration] using
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.requiredCoverage.relation
-  capability := by
-    simpa [declaration] using
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.requiredCoverage.capability
-}
-
-def witness : ImplementationLinkWitness declaration
-    Temporal.System.Nexus.CallerClosure.target
-    Temporal.Feature.Nexus.Experimental.CallerClosure.target := {
-  index := implementationLinkWitnessIndex declaration
-    Temporal.System.Nexus.CallerClosure.target
-    Temporal.Feature.Nexus.Experimental.CallerClosure.target
-  mapSetup
-  mapState
-  mapAction
-  mapOutcome
-  mapObservation
-  initialForward :=
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.witness.initialForward
-  stepForward := Temporal.System.Nexus.ImplementationLink.CallerClosure.witness.stepForward
-  requiredCoverage
-}
-
-def checkedResult := checkImplementationLink declaration
-  Temporal.System.Nexus.CallerClosure.target
-  Temporal.Feature.Nexus.Experimental.CallerClosure.target witness
-
-private theorem checkedResult_isSome : checkedResult.toOption.isSome = true := by
-  native_decide
-
-def checked := checkedResult.toOption.get checkedResult_isSome
-
 def observedDeclaration : ObservedTraceTranslationDeclaration := {
   id := observedImplementationLinkId
   source
-  observationMappings := declaration.observationMappings ++ [{
+  observationMappings :=
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.declaration.observationMappings ++ [{
     source := sourceCancellationCountTwo
     destination := destinationCancellationCountTwo
   }]
@@ -761,7 +698,8 @@ def observedDeclaration : ObservedTraceTranslationDeclaration := {
 }
 
 def checkedObservedTranslationResult :=
-  checkObservedTraceTranslation checked observedDeclaration
+  checkObservedTraceTranslation
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked observedDeclaration
 
 private theorem checkedObservedTranslationResult_isSome :
     checkedObservedTranslationResult.toOption.isSome = true := by
