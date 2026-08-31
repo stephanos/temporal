@@ -146,7 +146,7 @@ func checkerProtocolJSONField(owner reflect.Type, name string) bool {
 	}
 	if owner == checkerResponseType {
 		switch name {
-		case "evidenceBackedModelTrace", "evidenceLinks", "dispositions", "diagnostics",
+		case "implementationLink", "evidenceBackedModelTrace", "evidenceLinks", "dispositions", "diagnostics",
 			"observationKnownGaps", "propertyVerdicts", "querySummary", "resultKnownGaps":
 			return true
 		}
