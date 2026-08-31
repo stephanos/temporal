@@ -55,7 +55,10 @@ func TestLiveParticipantRealizesOneForceCloseAndClosesOperationalSources(t *test
 	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequestCompleted"])
 	require.Equal(t, 1, eventCounts["temporal.history.WorkflowExecutionCanceled"])
 	require.Equal(t, []string{"1"}, cancellationCallbacks)
-	require.Empty(t, rawFactsByKind(output.RawEvidence().Facts, duplicateObservationFactKind))
+	require.Empty(t, rawEvidenceFactsWithField(
+		output.RawEvidence(),
+		umpireruntime.EvidenceFieldSyntheticContributionMarker,
+	))
 }
 
 func TestLiveFaultedParticipantCompletesOneCancellationBeforeOneDuplicateObservation(t *testing.T) {
@@ -87,7 +90,12 @@ func TestLiveFaultedParticipantCompletesOneCancellationBeforeOneDuplicateObserva
 	}
 	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequested"])
 	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequestCompleted"])
-	require.Len(t, rawFactsByKind(output.RawEvidence().Facts, duplicateObservationFactKind), 1)
+	synthetic := rawEvidenceFactsWithField(
+		output.RawEvidence(),
+		umpireruntime.EvidenceFieldSyntheticContributionMarker,
+	)
+	require.Len(t, synthetic, 1)
+	require.Equal(t, umpireruntime.EvidenceKindParticipantCommand, synthetic[0].KindDefinitionID)
 }
 
 func TestParticipantAdmitsOnlyTheExactCheckedRequest(t *testing.T) {
@@ -248,7 +256,10 @@ func TestRealizationContributesOneDuplicateObservationOnlyForTheFaultedProgram(t
 			receipt := adapter.Realize(context.Background(), inertEnvironment{}, command)
 			require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
 			require.True(t, receipt.ControlAttempted())
-			synthetic := receiptFactsByKind(receipt, duplicateObservationFactKind)
+			synthetic := receiptFactsWithField(
+				receipt,
+				umpireruntime.EvidenceFieldSyntheticContributionMarker,
+			)
 			require.Len(t, synthetic, test.wantSynthetic)
 			if test.wantSynthetic == 1 {
 				require.Equal(t, umpireruntime.EvidenceSourceParticipantOutput,
@@ -264,7 +275,10 @@ func TestRealizationContributesOneDuplicateObservationOnlyForTheFaultedProgram(t
 
 			duplicate := adapter.Realize(context.Background(), inertEnvironment{}, command)
 			require.Equal(t, umpireruntime.ReceiptUnsupported, duplicate.Status())
-			require.Empty(t, receiptFactsByKind(duplicate, duplicateObservationFactKind))
+			require.Empty(t, receiptFactsWithField(
+				duplicate,
+				umpireruntime.EvidenceFieldSyntheticContributionMarker,
+			))
 			require.Equal(t, 1, sdkClient.cancellations)
 			require.Equal(t, 0, sdkClient.historyReads)
 		})
@@ -333,7 +347,10 @@ func TestFaultedRealizationEmitsNoSyntheticObservationWithoutCompletedCancellati
 
 			receipt := adapter.Realize(ctx, inertEnvironment{}, command)
 			require.Equal(t, test.wantStatus, receipt.Status())
-			require.Empty(t, receiptFactsByKind(receipt, duplicateObservationFactKind))
+			require.Empty(t, receiptFactsWithField(
+				receipt,
+				umpireruntime.EvidenceFieldSyntheticContributionMarker,
+			))
 			require.False(t, adapter.forceCloseAcknowledged)
 			require.NotEqual(t, duplicateObservationContributed, adapter.duplicateObservation)
 			require.Equal(t, 1, sdkClient.cancellations)
@@ -362,7 +379,10 @@ func TestFaultedRealizationRejectsAnUnstartedCancellationWithoutSyntheticObserva
 
 	receipt := adapter.Realize(context.Background(), inertEnvironment{}, command)
 	require.Equal(t, umpireruntime.ReceiptRejected, receipt.Status())
-	require.Empty(t, receiptFactsByKind(receipt, duplicateObservationFactKind))
+	require.Empty(t, receiptFactsWithField(
+		receipt,
+		umpireruntime.EvidenceFieldSyntheticContributionMarker,
+	))
 	require.False(t, adapter.forceCloseAcknowledged)
 	require.NotEqual(t, duplicateObservationContributed, adapter.duplicateObservation)
 	require.Equal(t, 1, sdkClient.cancellations)
@@ -552,11 +572,14 @@ func receiptField(t *testing.T, receipt umpireruntime.Receipt, definitionID stri
 	return values[0]
 }
 
-func receiptFactsByKind(receipt umpireruntime.Receipt, kind string) []umpireruntime.Fact {
+func receiptFactsWithField(receipt umpireruntime.Receipt, definitionID string) []umpireruntime.Fact {
 	facts := []umpireruntime.Fact{}
 	for _, fact := range receipt.Facts() {
-		if fact.KindDefinitionID() == kind {
-			facts = append(facts, fact)
+		for _, field := range fact.Fields() {
+			if field.DefinitionID() == definitionID {
+				facts = append(facts, fact)
+				break
+			}
 		}
 	}
 	return facts
