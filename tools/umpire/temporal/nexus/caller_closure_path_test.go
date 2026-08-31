@@ -10,6 +10,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 )
 
@@ -186,6 +187,360 @@ func TestCallerClosurePathRetainsIndependentOutcomes(t *testing.T) {
 			require.Equal(t, testCase.observationStatus, outcome.evaluation.summary.ObservationEvaluationStatus)
 			require.Equal(t, testCase.semanticStatus, outcome.evaluation.summary.SemanticStatus)
 		})
+	}
+}
+
+type callerClosureStableMeaning struct {
+	ObservationEvaluationStatus string
+	SemanticStatus              string
+}
+
+type callerClosurePortabilityResult struct {
+	OperationalStatus           string
+	EvaluationOperationalStatus string
+	PhaseStatuses               []string
+	CleanupStatus               string
+	OpenHandleCount             string
+	CaptureStatus               string
+	EvaluationOutcomeChecksum   string
+	StableMeaning               callerClosureStableMeaning
+	ToolingPhase                string
+	ToolingFailure              error
+}
+
+func retainCallerClosurePortabilityResult(
+	outcome callerClosurePathOutcome,
+) callerClosurePortabilityResult {
+	result := callerClosurePortabilityResult{
+		ToolingPhase: outcome.toolingPhase, ToolingFailure: outcome.toolingFailure,
+	}
+	if outcome.execution != nil {
+		run := outcome.execution.ExperimentRun()
+		result.OperationalStatus = run.OperationalStatus
+		result.PhaseStatuses = make([]string, len(run.PhaseOutcomes))
+		for index, phase := range run.PhaseOutcomes {
+			result.PhaseStatuses[index] = phase.Status
+		}
+		result.CleanupStatus = run.Cleanup.Status
+		result.OpenHandleCount = string(run.Cleanup.OpenHandleCount)
+		result.CaptureStatus = outcome.execution.RawEvidence().CaptureStatus
+	}
+	if outcome.evaluation != nil {
+		result.EvaluationOperationalStatus = outcome.evaluation.summary.OperationalStatus
+		result.EvaluationOutcomeChecksum = outcome.evaluation.summary.EvaluationOutcomeChecksum
+		result.StableMeaning = callerClosureStableMeaning{
+			ObservationEvaluationStatus: outcome.evaluation.summary.ObservationEvaluationStatus,
+			SemanticStatus:              outcome.evaluation.summary.SemanticStatus,
+		}
+	}
+	return result
+}
+
+func (result callerClosurePortabilityResult) ProvesPortableSuccess(
+	local callerClosureStableMeaning,
+) bool {
+	if result.ToolingFailure != nil || result.OperationalStatus != "succeeded" ||
+		result.EvaluationOperationalStatus != "succeeded" ||
+		result.CleanupStatus != "complete" || result.OpenHandleCount != "0" ||
+		result.CaptureStatus != "closed" || result.EvaluationOutcomeChecksum == "" ||
+		result.StableMeaning != local {
+		return false
+	}
+	for _, status := range result.PhaseStatuses {
+		if status != "succeeded" {
+			return false
+		}
+	}
+	return len(result.PhaseStatuses) == 5
+}
+
+func requireCallerClosureSuccessfulPortabilityResult(
+	t *testing.T,
+	outcome callerClosurePathOutcome,
+) callerClosurePortabilityResult {
+	t.Helper()
+	require.NoError(t, outcome.toolingFailure, outcome.toolingPhase)
+	require.NotNil(t, outcome.execution)
+	require.NotNil(t, outcome.evaluation)
+	require.NotEmpty(t, outcome.evaluation.admitted.Identity())
+	run := outcome.execution.ExperimentRun()
+	require.Equal(t, "succeeded", run.OperationalStatus)
+	require.Equal(t, []string{
+		"succeeded", "succeeded", "succeeded", "succeeded", "succeeded",
+	}, retainCallerClosurePortabilityResult(outcome).PhaseStatuses)
+	require.Equal(t, "complete", run.Cleanup.Status)
+	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
+	require.Equal(t, "closed", outcome.execution.RawEvidence().CaptureStatus)
+	sources := outcome.execution.RawEvidence().Sources
+	sourceDefinitionIDs := make([]string, len(sources))
+	for index, source := range sources {
+		sourceDefinitionIDs[index] = source.SourceDefinitionID
+	}
+	require.Equal(t, []string{
+		umpireruntime.EvidenceSourceCleanup,
+		umpireruntime.EvidenceSourceControlReceipt,
+		umpireruntime.EvidenceSourceHistory,
+		umpireruntime.EvidenceSourceParticipantOutput,
+	}, sourceDefinitionIDs)
+	require.Empty(t, run.KnownGaps)
+	require.Empty(t, outcome.execution.RawEvidence().KnownGaps)
+	require.Equal(t, "succeeded", outcome.evaluation.summary.OperationalStatus)
+	require.Equal(t, "accepted", outcome.evaluation.summary.ObservationEvaluationStatus)
+	require.Equal(t, "satisfied", outcome.evaluation.summary.SemanticStatus)
+	execution, ok := outcome.execution.AdmittedSet().Execution()
+	require.True(t, ok)
+	require.EqualValues(t, "3584", execution.RuntimeConfiguration().PhaseLimits[2].MaxRecords)
+	return retainCallerClosurePortabilityResult(outcome)
+}
+
+func TestCallerClosurePortabilityResultRetainsTheBoundedProofMatrix(t *testing.T) {
+	requireCallerClosureBoundedProofMatrix(t, callerClosureStableMeaning{
+		ObservationEvaluationStatus: "accepted",
+		SemanticStatus:              "satisfied",
+	})
+}
+
+func requireCallerClosureBoundedProofMatrix(
+	t *testing.T,
+	localMeaning callerClosureStableMeaning,
+) {
+	t.Helper()
+	limitFailure := errors.New("Limit N+1 rejected before runtime IO")
+	semanticNonSuccessChecksum := "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+	localEvaluationOutcomeChecksum := "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+	for _, testCase := range []struct {
+		name               string
+		outcome            callerClosurePathOutcome
+		wantPhases         []string
+		wantCapture        string
+		wantOpenHandles    string
+		wantMeaning        callerClosureStableMeaning
+		wantToolingPhase   string
+		wantToolingFailure error
+		wantPortable       bool
+	}{
+		{
+			name: "success at Limit N",
+			outcome: callerClosurePortabilityOutcome(
+				t, "succeeded", "complete", "closed", "", "accepted", "satisfied",
+				localEvaluationOutcomeChecksum,
+			),
+			wantPhases: []string{
+				"succeeded", "succeeded", "succeeded", "succeeded", "succeeded",
+			},
+			wantCapture: "closed", wantOpenHandles: "0", wantMeaning: localMeaning,
+			wantPortable: true,
+		},
+		{
+			name: "semantic non-success",
+			outcome: callerClosurePortabilityOutcome(
+				t, "succeeded", "complete", "closed", "", "accepted", "violated",
+				semanticNonSuccessChecksum,
+			),
+			wantPhases: []string{
+				"succeeded", "succeeded", "succeeded", "succeeded", "succeeded",
+			},
+			wantCapture: "closed", wantOpenHandles: "0",
+			wantMeaning: callerClosureStableMeaning{
+				ObservationEvaluationStatus: "accepted",
+				SemanticStatus:              "violated",
+			},
+		},
+		{
+			name: "cancellation",
+			outcome: callerClosurePortabilityOutcome(
+				t, "incomplete", "complete", "closed", "canceled", "unknown", "incomplete", "",
+			),
+			wantPhases: []string{
+				"succeeded", "canceled", "succeeded", "succeeded", "succeeded",
+			},
+			wantCapture: "closed", wantOpenHandles: "0",
+			wantMeaning: callerClosureStableMeaning{
+				ObservationEvaluationStatus: "unknown", SemanticStatus: "incomplete",
+			},
+		},
+		{
+			name: "timeout",
+			outcome: callerClosurePortabilityOutcome(
+				t, "incomplete", "complete", "partial", "timed-out", "unknown", "incomplete", "",
+			),
+			wantPhases: []string{
+				"succeeded", "succeeded", "timed-out", "succeeded", "succeeded",
+			},
+			wantCapture: "partial", wantOpenHandles: "0",
+			wantMeaning: callerClosureStableMeaning{
+				ObservationEvaluationStatus: "unknown", SemanticStatus: "incomplete",
+			},
+		},
+		{
+			name: "Limit N+1",
+			outcome: callerClosurePathOutcome{
+				toolingPhase: "runner", toolingFailure: limitFailure,
+			},
+			wantToolingPhase: "runner", wantToolingFailure: limitFailure,
+		},
+		{
+			name: "cleanup failure",
+			outcome: callerClosurePortabilityOutcome(
+				t, "failed", "failed", "failed", "failed", "unknown", "incomplete", "",
+			),
+			wantPhases: []string{
+				"succeeded", "succeeded", "succeeded", "succeeded", "failed",
+			},
+			wantCapture: "failed", wantOpenHandles: "1",
+			wantMeaning: callerClosureStableMeaning{
+				ObservationEvaluationStatus: "unknown", SemanticStatus: "incomplete",
+			},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			result := retainCallerClosurePortabilityResult(testCase.outcome)
+
+			require.Equal(t, testCase.wantPhases, result.PhaseStatuses)
+			require.Equal(t, testCase.wantCapture, result.CaptureStatus)
+			require.Equal(t, testCase.wantOpenHandles, result.OpenHandleCount)
+			require.Equal(t, testCase.wantMeaning, result.StableMeaning)
+			require.Equal(t, testCase.wantToolingPhase, result.ToolingPhase)
+			require.ErrorIs(t, result.ToolingFailure, testCase.wantToolingFailure)
+			require.Equal(t, testCase.wantPortable, result.ProvesPortableSuccess(localMeaning))
+		})
+	}
+}
+
+func requireCallerClosureEqualResultMeaning(
+	t *testing.T,
+	local artifactv2.Result,
+	ci artifactv2.Result,
+) {
+	t.Helper()
+	require.Equal(t, local.OperationalStatus, ci.OperationalStatus)
+	require.Equal(t, local.ObservationEvaluationStatus, ci.ObservationEvaluationStatus)
+	require.Equal(t, local.ImplementationLink, ci.ImplementationLink)
+	require.Equal(t, local.ImplementationLinkStatus, ci.ImplementationLinkStatus)
+	requireCallerClosureEqualPropertyVerdicts(t, local.PropertyVerdicts, ci.PropertyVerdicts)
+	require.Equal(t, local.QuerySummary.QueryDefinitionID, ci.QuerySummary.QueryDefinitionID)
+	require.Equal(t, local.QuerySummary.Status, ci.QuerySummary.Status)
+	require.Equal(t, local.QuerySummary.QueryLimits, ci.QuerySummary.QueryLimits)
+	require.Equal(t, local.QuerySummary.RequiredPropertyDefinitionIDs,
+		ci.QuerySummary.RequiredPropertyDefinitionIDs)
+	requireCallerClosureEqualPropertyVerdicts(t,
+		local.QuerySummary.PropertyVerdicts, ci.QuerySummary.PropertyVerdicts)
+	require.Equal(t, local.QuerySummary.MissingPropertyDefinitionIDs,
+		ci.QuerySummary.MissingPropertyDefinitionIDs)
+	require.Equal(t, local.QuerySummary.DuplicatePropertyDefinitionIDs,
+		ci.QuerySummary.DuplicatePropertyDefinitionIDs)
+	require.Equal(t, local.QuerySummary.UnexpectedPropertyDefinitionIDs,
+		ci.QuerySummary.UnexpectedPropertyDefinitionIDs)
+	require.Equal(t, local.QuerySummary.DivergentPropertyDefinitionIDs,
+		ci.QuerySummary.DivergentPropertyDefinitionIDs)
+	require.Equal(t, local.QuerySummary.WrongQueryResultDefinitionIDs,
+		ci.QuerySummary.WrongQueryResultDefinitionIDs)
+	require.Equal(t, local.SemanticStatus, ci.SemanticStatus)
+	require.Equal(t, local.Limits, ci.Limits)
+	require.Equal(t, local.KnownGaps, ci.KnownGaps)
+	require.Equal(t, local.CleanupStatus, ci.CleanupStatus)
+}
+
+func requireCallerClosureEqualPropertyVerdicts(
+	t *testing.T,
+	local []artifactv2.PropertyVerdict,
+	ci []artifactv2.PropertyVerdict,
+) {
+	t.Helper()
+	require.Len(t, ci, len(local))
+	for index, localVerdict := range local {
+		ciVerdict := ci[index]
+		require.Equal(t, localVerdict.QueryDefinitionID, ciVerdict.QueryDefinitionID)
+		require.Equal(t, localVerdict.PropertyDefinitionID, ciVerdict.PropertyDefinitionID)
+		require.Equal(t, localVerdict.PropertyBehaviorFingerprint,
+			ciVerdict.PropertyBehaviorFingerprint)
+		require.Equal(t, localVerdict.Status, ciVerdict.Status)
+		require.Equal(t, localVerdict.QueryLimits, ciVerdict.QueryLimits)
+		require.Equal(t, localVerdict.EvidenceLimit, ciVerdict.EvidenceLimit)
+		require.Equal(t, localVerdict.ProvenanceDefinitionIDs,
+			ciVerdict.ProvenanceDefinitionIDs)
+		require.Equal(t, localVerdict.Diagnostic, ciVerdict.Diagnostic)
+		require.Len(t, ciVerdict.Clauses, len(localVerdict.Clauses))
+		for clauseIndex, localClause := range localVerdict.Clauses {
+			ciClause := ciVerdict.Clauses[clauseIndex]
+			require.Equal(t, localClause.PropertyDefinitionID, ciClause.PropertyDefinitionID)
+			require.Equal(t, localClause.ClauseDefinitionID, ciClause.ClauseDefinitionID)
+			require.Equal(t, localClause.Status, ciClause.Status)
+			require.Equal(t, localClause.Coordinates, ciClause.Coordinates)
+			require.Equal(t, localClause.QueryLimits, ciClause.QueryLimits)
+			require.Equal(t, localClause.PropertyLimit, ciClause.PropertyLimit)
+			require.Equal(t, localClause.EvidenceLimit, ciClause.EvidenceLimit)
+			require.Equal(t, localClause.ProvenanceDefinitionIDs,
+				ciClause.ProvenanceDefinitionIDs)
+		}
+	}
+}
+
+func callerClosureLimitNPlusOneOutcome(
+	ctx context.Context,
+	t *testing.T,
+) callerClosurePathOutcome {
+	t.Helper()
+	path := newCallerClosurePath(t, "umpire.ci.caller-closure.limit-n-plus-one-1")
+	input, err := path.admit()
+	require.NoError(t, err)
+	executable, ok := input.Executable()
+	require.True(t, ok)
+	configuration := executable.RuntimeConfiguration()
+	require.Len(t, configuration.PhaseLimits, 5)
+	configuration.PhaseLimits[2].MaxRecords = artifactv2.NaturalFromUint64(3585)
+	configuration, err = artifactv2.SealRuntimeConfiguration(configuration)
+	require.NoError(t, err)
+	experiment, err := artifact.EncodeExperimentV2(executable.Experiment())
+	require.NoError(t, err)
+	encodedConfiguration, err := artifact.EncodeRuntimeConfigurationV2(configuration)
+	require.NoError(t, err)
+	input, err = artifact.AdmitSet([]artifact.SetMember{
+		{Path: "artifacts/experiment.json", Encoded: experiment},
+		{Path: "artifacts/runtime-configuration.json", Encoded: encodedConfiguration},
+	})
+	require.NoError(t, err)
+	path.admit = func() (artifact.AdmittedSet, error) {
+		return input, nil
+	}
+	return runCallerClosurePath(ctx, path)
+}
+
+func callerClosurePortabilityOutcome(
+	t *testing.T,
+	operationalStatus string,
+	cleanupStatus string,
+	captureStatus string,
+	terminalPhaseStatus string,
+	observationStatus string,
+	semanticStatus string,
+	evaluationOutcomeChecksum string,
+) callerClosurePathOutcome {
+	t.Helper()
+	output := callerClosurePathOutput(t, operationalStatus, cleanupStatus)
+	run := output.ExperimentRun()
+	rawEvidence := output.RawEvidence()
+	rawEvidence.CaptureStatus = captureStatus
+	switch terminalPhaseStatus {
+	case "canceled":
+		run.PhaseOutcomes[1].Status = terminalPhaseStatus
+	case "timed-out":
+		run.PhaseOutcomes[2].Status = terminalPhaseStatus
+	case "failed":
+		run.PhaseOutcomes[4].Status = terminalPhaseStatus
+		run.Cleanup.OpenHandleCount = "1"
+	default:
+		require.Empty(t, terminalPhaseStatus)
+	}
+	output = umpireruntime.NewOutput(output.AdmittedSet(), run, rawEvidence)
+	return callerClosurePathOutcome{
+		execution: &output,
+		evaluation: &callerClosureEvaluation{summary: callerClosureEvaluationSummary{
+			OperationalStatus:           operationalStatus,
+			ObservationEvaluationStatus: observationStatus,
+			SemanticStatus:              semanticStatus,
+			EvaluationOutcomeChecksum:   evaluationOutcomeChecksum,
+		}},
 	}
 }
 
