@@ -1,4 +1,5 @@
 import Temporal.System.Execution.LocalProfile
+import Temporal.System.Nexus.Observation
 import Umpire.Artifact.Set
 
 namespace Temporal.System.Execution.Nexus
@@ -171,6 +172,20 @@ def experimentBinding : ArtifactBinding := {
     (by native_decide)
 }
 
+/-- Exact fault-bearing caller-closure ExperimentSpec binding accepted by the negative control. -/
+def duplicateDeliveryExperimentBinding : ArtifactBinding := {
+  formatVersion := "umpire-experiment/v2"
+  artifactChecksum := exactArtifactChecksum
+    "sha256:09091758defd5ce50cc9acbba23a5c8499da4eef9b6e36878ac989ddea87fedf"
+    (by native_decide)
+  behaviorFingerprint := exactBehaviorFingerprint
+    "sha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91"
+    (by native_decide)
+  provenanceChecksum := exactArtifactChecksum
+    "sha256:4136694dfede1044bbf391c5faba21a1a89a589890aa2915eb860a46942797c2"
+    (by native_decide)
+}
+
 private def targetBehaviorFingerprint : BehaviorFingerprint := exactBehaviorFingerprint
   "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd"
   (by native_decide)
@@ -239,6 +254,28 @@ def canonicalObservationProgramDefinition : ObservationProgramDefinition := {
   }
 }
 
+/-- Task `.7`'s checked duplicate-delivery profile, program, and mapping references. -/
+def duplicateDeliveryObservationProgramDefinition : ObservationProgramDefinition := {
+  reference := {
+    definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.programId
+    version := Temporal.System.Nexus.Observation.DuplicateDelivery.programVersion
+    behaviorFingerprint :=
+      Temporal.System.Nexus.Observation.DuplicateDelivery.programBehaviorFingerprint
+  }
+  profile := {
+    definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.id
+    version := Temporal.System.Nexus.Observation.DuplicateDelivery.profileVersion
+    behaviorFingerprint :=
+      Temporal.System.Nexus.Observation.DuplicateDelivery.profileBehaviorFingerprint
+  }
+  mapping := {
+    definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.Mapping.id
+    version := Temporal.System.Nexus.Observation.DuplicateDelivery.mappingVersion
+    behaviorFingerprint :=
+      Temporal.System.Nexus.Observation.DuplicateDelivery.mappingBehaviorFingerprint
+  }
+}
+
 private def occurrenceJson (occurrence : ProgramOccurrence) : String :=
   "{\"definitionId\":" ++ quote occurrence.definitionId.value ++
     ",\"actionDefinitionId\":" ++ quote occurrence.actionDefinitionId.value ++
@@ -295,12 +332,33 @@ private def canonicalParticipantProgramDraft : ParticipantProgramDefinition := {
   provenance := [canonicalProgramSource]
 }
 
+private def duplicateDeliveryParticipantProgramDraft : ParticipantProgramDefinition := {
+  canonicalParticipantProgramDraft with
+  reference := {
+    definitionId := id "temporal.nexus.participant-program.caller-closure-duplicate-delivery"
+    version := 1
+    behaviorFingerprint := behaviorFingerprintOf "unsealed-participant-program"
+  }
+  requestedFaultDefinitionIds := [
+    Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId
+  ]
+}
+
 /-- Canonical unchecked fixture used by program/composition mutation tests. -/
 def canonicalParticipantProgramDefinition : ParticipantProgramDefinition := {
   canonicalParticipantProgramDraft with
   reference := {
     canonicalParticipantProgramDraft.reference with
     behaviorFingerprint := canonicalParticipantProgramDraft.expectedBehaviorFingerprint
+  }
+}
+
+/-- Canonical unchecked negative-control fixture used by program/composition mutation tests. -/
+def duplicateDeliveryParticipantProgramDefinition : ParticipantProgramDefinition := {
+  duplicateDeliveryParticipantProgramDraft with
+  reference := {
+    duplicateDeliveryParticipantProgramDraft.reference with
+    behaviorFingerprint := duplicateDeliveryParticipantProgramDraft.expectedBehaviorFingerprint
   }
 }
 
@@ -325,37 +383,49 @@ private def participantProgramProvenanceValid
   } : ArtifactProvenance).isValidTransport
 
 /-- Check the complete inert Nexus participant-program contract before runtime IO. -/
-def checkParticipantProgram
+private def checkParticipantProgramAgainst
+    (expected : ParticipantProgramDefinition)
     (definition : ParticipantProgramDefinition) : Except NexusExecutionError CheckedParticipantProgram := do
   let subject := definition.reference.definitionId
   if definition.participantDefinitionIds !=
-      canonicalParticipantProgramDraft.participantDefinitionIds then
+      expected.participantDefinitionIds then
     throw (executionError .participant subject)
-  if definition.protocolDefinitionId != canonicalParticipantProgramDraft.protocolDefinitionId ||
-      definition.protocolVersion != canonicalParticipantProgramDraft.protocolVersion then
+  if definition.protocolDefinitionId != expected.protocolDefinitionId ||
+      definition.protocolVersion != expected.protocolVersion then
     throw (executionError .protocol subject)
-  if definition.targetDefinitionIds != canonicalParticipantProgramDraft.targetDefinitionIds then
+  if definition.targetDefinitionIds != expected.targetDefinitionIds then
     throw (executionError .target subject)
-  if definition.actionDefinitionIds != canonicalParticipantProgramDraft.actionDefinitionIds ||
+  if definition.actionDefinitionIds != expected.actionDefinitionIds ||
       definition.occurrences.any fun occurrence =>
         !definition.actionDefinitionIds.contains occurrence.actionDefinitionId then
     throw (executionError .action subject)
-  if definition.occurrences != canonicalParticipantProgramDraft.occurrences then
+  if definition.occurrences != expected.occurrences then
     throw (executionError .occurrence subject)
-  if definition.requestedFaultDefinitionIds != [] then
+  if definition.requestedFaultDefinitionIds != expected.requestedFaultDefinitionIds then
     throw (executionError .fault subject)
   if definition.capabilityDefinitionIds !=
-      canonicalParticipantProgramDraft.capabilityDefinitionIds then
+      expected.capabilityDefinitionIds then
     throw (executionError .capability subject)
-  if definition.reference.definitionId != canonicalParticipantProgramDraft.reference.definitionId ||
-      definition.reference.version != canonicalParticipantProgramDraft.reference.version ||
-      definition.commands != canonicalParticipantProgramDraft.commands ||
+  if definition.reference.definitionId != expected.reference.definitionId ||
+      definition.reference.version != expected.reference.version ||
+      definition.commands != expected.commands ||
       definition.evidenceSourceDefinitionIds !=
-        canonicalParticipantProgramDraft.evidenceSourceDefinitionIds ||
+        expected.evidenceSourceDefinitionIds ||
       !participantProgramProvenanceValid definition ||
       definition.reference.behaviorFingerprint != definition.expectedBehaviorFingerprint then
     throw (executionError .program subject)
   pure (.mk { definition })
+
+/-- Check either exact closed Nexus participant-program contract before runtime IO. -/
+def checkParticipantProgram
+    (definition : ParticipantProgramDefinition) : Except NexusExecutionError CheckedParticipantProgram :=
+  if definition.reference.definitionId == canonicalParticipantProgramDraft.reference.definitionId then
+    checkParticipantProgramAgainst canonicalParticipantProgramDraft definition
+  else if definition.reference.definitionId ==
+      duplicateDeliveryParticipantProgramDraft.reference.definitionId then
+    checkParticipantProgramAgainst duplicateDeliveryParticipantProgramDraft definition
+  else
+    .error (executionError .program definition.reference.definitionId)
 
 private theorem canonicalParticipantProgram_isSome :
     (checkParticipantProgram canonicalParticipantProgramDefinition).toOption.isSome = true := by
@@ -365,6 +435,15 @@ private theorem canonicalParticipantProgram_isSome :
 def callerClosureProgram : CheckedParticipantProgram :=
   (checkParticipantProgram canonicalParticipantProgramDefinition).toOption.get
     canonicalParticipantProgram_isSome
+
+private theorem duplicateDeliveryParticipantProgram_isSome :
+    (checkParticipantProgram duplicateDeliveryParticipantProgramDefinition).toOption.isSome = true := by
+  native_decide
+
+/-- The sole checked duplicate-delivery program available to the bounded runtime adapter. -/
+def duplicateDeliveryProgram : CheckedParticipantProgram :=
+  (checkParticipantProgram duplicateDeliveryParticipantProgramDefinition).toOption.get
+    duplicateDeliveryParticipantProgram_isSome
 
 private def authorityProfileJson (profile : AuthorityProfile) : String :=
   "{\"definitionId\":" ++ quote profile.definitionId.value ++
@@ -459,11 +538,63 @@ private def runtimeConfigurationDraft (experiment : ExperimentSpec) : RuntimeCon
   artifactChecksum := emptyChecksum
 }
 
+private def duplicateDeliveryRuntimeConfigurationDraft
+    (experiment : ExperimentSpec) : RuntimeConfiguration := {
+  formatVersion := "umpire-runtime-configuration/v2"
+  configurationDefinitionId :=
+    id "temporal.nexus.runtime-configuration.caller-closure-duplicate-delivery"
+  behaviorFingerprint := behaviorFingerprintOf "unsealed-runtime-configuration"
+  experiment := experiment.artifactBinding
+  authorityProfile := ephemeralLocalProfile.authorityProfile
+  phaseLimits := ephemeralLocalProfile.phaseLimits
+  observation := {
+    profileDefinitionId := duplicateDeliveryObservationProgramDefinition.profile.definitionId
+    profileBehaviorFingerprint :=
+      duplicateDeliveryObservationProgramDefinition.profile.behaviorFingerprint
+    programDefinitionId := duplicateDeliveryObservationProgramDefinition.reference.definitionId
+    programBehaviorFingerprint :=
+      duplicateDeliveryObservationProgramDefinition.reference.behaviorFingerprint
+    mappingDefinitionId := duplicateDeliveryObservationProgramDefinition.mapping.definitionId
+    mappingBehaviorFingerprint :=
+      duplicateDeliveryObservationProgramDefinition.mapping.behaviorFingerprint
+  }
+  participantBindings := [{
+    participantDefinitionId := id "temporal.nexus.participant.caller-closure"
+    protocolDefinitionId := duplicateDeliveryParticipantProgramDefinition.protocolDefinitionId
+    protocolVersion := duplicateDeliveryParticipantProgramDefinition.protocolVersion
+    programDefinitionId := duplicateDeliveryParticipantProgramDefinition.reference.definitionId
+    programBehaviorFingerprint :=
+      duplicateDeliveryParticipantProgramDefinition.reference.behaviorFingerprint
+    capabilityDefinitionIds := duplicateDeliveryParticipantProgramDefinition.capabilityDefinitionIds
+  }]
+  knownGaps := []
+  provenance := {
+    sourceDefinitionIds := [
+      duplicateDeliveryParticipantProgramDefinition.reference.definitionId,
+      id "temporal.nexus.runtime-configuration.caller-closure-duplicate-delivery",
+      ephemeralLocalProfile.reference.definitionId,
+      duplicateDeliveryObservationProgramDefinition.mapping.definitionId,
+      duplicateDeliveryObservationProgramDefinition.reference.definitionId,
+      duplicateDeliveryObservationProgramDefinition.profile.definitionId,
+    ]
+    sourceLocations := [canonicalConfigurationSource]
+  }
+  provenanceChecksum := emptyChecksum
+  artifactChecksum := emptyChecksum
+}
+
 /-- Compose the exact sealed fn-18 RuntimeConfiguration around one complete ExperimentSpec. -/
 def runtimeConfigurationFor (experiment : ExperimentSpec) : RuntimeConfiguration :=
   { runtimeConfigurationDraft experiment with
       behaviorFingerprint := expectedRuntimeConfigurationBehaviorFingerprint
         (runtimeConfigurationDraft experiment) } |>.seal
+
+/-- Compose the sealed negative-control RuntimeConfiguration around its exact ExperimentSpec. -/
+def duplicateDeliveryRuntimeConfigurationFor
+    (experiment : ExperimentSpec) : RuntimeConfiguration :=
+  { duplicateDeliveryRuntimeConfigurationDraft experiment with
+      behaviorFingerprint := expectedRuntimeConfigurationBehaviorFingerprint
+        (duplicateDeliveryRuntimeConfigurationDraft experiment) } |>.seal
 
 private def mapLocalProfileError (kind : LocalProfileErrorKind) : NexusExecutionErrorKind :=
   match kind with
@@ -476,14 +607,17 @@ private def mapLocalProfileError (kind : LocalProfileErrorKind) : NexusExecution
   | .participant => .participant
   | .protocol => .protocol
 
-private def checkExperiment (experiment : ExperimentSpec) : Except NexusExecutionError Unit := do
+private def checkExperimentAgainst
+    (binding : ArtifactBinding)
+    (requestedFaults : List ModelValue)
+    (experiment : ExperimentSpec) : Except NexusExecutionError Unit := do
   let subject := experiment.plan.queryDefinitionId
   if experiment.plan.targetDefinitionId != targetDefinitionId ||
       experiment.plan.targetBehaviorFingerprint != targetBehaviorFingerprint ||
       experiment.plan.kernelDefinitionId != kernelDefinitionId ||
       experiment.plan.kernelBehaviorFingerprint != targetBehaviorFingerprint then
     throw (executionError .target subject)
-  if experiment.plan.requestedFaults != [] then
+  if experiment.plan.requestedFaults != requestedFaults then
     throw (executionError .fault subject)
   if experiment.plan.requestedActions != [requestedAction] then
     throw (executionError .action subject)
@@ -497,19 +631,16 @@ private def checkExperiment (experiment : ExperimentSpec) : Except NexusExecutio
   if experiment.plan.capabilityRequirementDefinitionIds !=
       canonicalParticipantProgramDefinition.capabilityDefinitionIds then
     throw (executionError .capability subject)
-  if experiment.artifactBinding != experimentBinding || !experiment.isValidTransport then
+  if experiment.artifactBinding != binding || !experiment.isValidTransport then
     throw (executionError .inputSet subject)
 
-private def checkObservationProgram
+private def checkObservationProgramAgainst
+    (expected : ObservationProgramDefinition)
     (definition : ObservationProgramDefinition) : Except NexusExecutionError Unit := do
   let subject := definition.reference.definitionId
-  if definition.profile != observationProfileReference ||
-      definition.mapping != observationMappingReference then
+  if definition.profile != expected.profile || definition.mapping != expected.mapping then
     throw (executionError .reference subject)
-  if definition.reference.definitionId != canonicalObservationProgramDraft.reference.definitionId ||
-      definition.reference.version != canonicalObservationProgramDraft.reference.version ||
-      definition.reference.behaviorFingerprint !=
-        expectedObservationProgramBehaviorFingerprint definition then
+  if definition.reference != expected.reference then
     throw (executionError .program subject)
 
 private def checkConfiguration
@@ -517,6 +648,7 @@ private def checkConfiguration
     (experiment : ExperimentSpec)
     (observationProgram : ObservationProgramDefinition)
     (participantProgram : ParticipantProgramDefinition)
+    (expectedConfiguration : RuntimeConfiguration)
     (profile : CheckedLocalProfile) : Except NexusExecutionError Unit := do
   let subject := configuration.configurationDefinitionId
   if configuration.experiment != experiment.artifactBinding then
@@ -554,13 +686,11 @@ private def checkConfiguration
     throw (executionError .program subject)
   if binding.capabilityDefinitionIds != participantProgram.capabilityDefinitionIds then
     throw (executionError .capability subject)
-  if configuration.configurationDefinitionId !=
-      (runtimeConfigurationDraft experiment).configurationDefinitionId ||
-      configuration.knownGaps != [] || !configuration.isValidTransport ||
+  if configuration.knownGaps != [] || !configuration.isValidTransport ||
       configuration.behaviorFingerprint !=
         expectedRuntimeConfigurationBehaviorFingerprint configuration ||
       !configuration.closesExperiment experiment ||
-      configuration != runtimeConfigurationFor experiment then
+      configuration != expectedConfiguration then
     throw (executionError .configuration subject)
   match profile.checkRuntimeConfiguration configuration with
   | .ok _ => pure ()
@@ -608,11 +738,24 @@ def checkExecution
     | .ok checked => pure checked
     | .error error =>
         throw (executionError (mapLocalProfileError error.kind) error.subject)
-  checkExperiment definition.experiment
-  checkObservationProgram definition.observationProgram
   let participantProgram ← checkParticipantProgram definition.participantProgram
+  let expectedConfiguration ←
+    if definition.participantProgram.reference.definitionId ==
+        canonicalParticipantProgramDefinition.reference.definitionId then
+      checkExperimentAgainst experimentBinding [] definition.experiment
+      checkObservationProgramAgainst canonicalObservationProgramDefinition
+        definition.observationProgram
+      pure (runtimeConfigurationFor definition.experiment)
+    else
+      checkExperimentAgainst duplicateDeliveryExperimentBinding [{
+        definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId
+        value := id "workflow-nexus.occurrence.force-close" |>.value
+      }] definition.experiment
+      checkObservationProgramAgainst duplicateDeliveryObservationProgramDefinition
+        definition.observationProgram
+      pure (duplicateDeliveryRuntimeConfigurationFor definition.experiment)
   checkConfiguration definition.configuration definition.experiment definition.observationProgram
-    definition.participantProgram profile
+    definition.participantProgram expectedConfiguration profile
   pure (.mk {
     experiment := definition.experiment
     profile := profile
@@ -628,6 +771,15 @@ def executionDefinitionFor (experiment : ExperimentSpec) : ExecutionDefinition :
   observationProgram := canonicalObservationProgramDefinition
   participantProgram := canonicalParticipantProgramDefinition
   configuration := runtimeConfigurationFor experiment
+}
+
+/-- Compose the unchecked closed negative-control definition around its fault-bearing spec. -/
+def duplicateDeliveryExecutionDefinitionFor (experiment : ExperimentSpec) : ExecutionDefinition := {
+  experiment := experiment
+  localProfile := canonicalLocalProfileDefinition
+  observationProgram := duplicateDeliveryObservationProgramDefinition
+  participantProgram := duplicateDeliveryParticipantProgramDefinition
+  configuration := duplicateDeliveryRuntimeConfigurationFor experiment
 }
 
 end Temporal.System.Execution.Nexus

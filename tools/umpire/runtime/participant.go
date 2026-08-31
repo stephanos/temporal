@@ -56,15 +56,74 @@ var commandOrder = [...]CommandKind{
 
 const commandIsolate CommandKind = "isolate"
 
+// ObservationProgram is one checked profile, program, and mapping reference tuple.
+type ObservationProgram struct {
+	profileDefinitionID        string
+	profileBehaviorFingerprint string
+	programDefinitionID        string
+	programBehaviorFingerprint string
+	mappingDefinitionID        string
+	mappingBehaviorFingerprint string
+	checked                    bool
+}
+
+// NewObservationProgram checks one exact observation-program binding without interpreting it.
+func NewObservationProgram(
+	profileDefinitionID string,
+	profileBehaviorFingerprint string,
+	programDefinitionID string,
+	programBehaviorFingerprint string,
+	mappingDefinitionID string,
+	mappingBehaviorFingerprint string,
+) (ObservationProgram, error) {
+	for _, reference := range []struct {
+		definitionID        string
+		behaviorFingerprint string
+	}{
+		{profileDefinitionID, profileBehaviorFingerprint},
+		{programDefinitionID, programBehaviorFingerprint},
+		{mappingDefinitionID, mappingBehaviorFingerprint},
+	} {
+		if !validIdentity(reference.definitionID) ||
+			!artifactv2.ValidDigest(reference.behaviorFingerprint) {
+			return ObservationProgram{}, preflightError(
+				PreflightConfiguration,
+				"observation-program",
+			)
+		}
+	}
+	return ObservationProgram{
+		profileDefinitionID:        profileDefinitionID,
+		profileBehaviorFingerprint: profileBehaviorFingerprint,
+		programDefinitionID:        programDefinitionID,
+		programBehaviorFingerprint: programBehaviorFingerprint,
+		mappingDefinitionID:        mappingDefinitionID,
+		mappingBehaviorFingerprint: mappingBehaviorFingerprint,
+		checked:                    true,
+	}, nil
+}
+
+func (p ObservationProgram) matches(actual artifactv2.ObservationConfiguration) bool {
+	return p.checked &&
+		p.profileDefinitionID == actual.ProfileDefinitionID &&
+		p.profileBehaviorFingerprint == actual.ProfileBehaviorFingerprint &&
+		p.programDefinitionID == actual.ProgramDefinitionID &&
+		p.programBehaviorFingerprint == actual.ProgramBehaviorFingerprint &&
+		p.mappingDefinitionID == actual.MappingDefinitionID &&
+		p.mappingBehaviorFingerprint == actual.MappingBehaviorFingerprint
+}
+
 // Program is checked inert participant metadata, never executable behavior.
 type Program struct {
-	definitionID            string
-	version                 uint64
-	behaviorFingerprint     string
-	targetDefinitionIDs     []string
-	actionDefinitionIDs     []string
-	occurrences             []Occurrence
-	capabilityDefinitionIDs []string
+	definitionID                string
+	version                     uint64
+	behaviorFingerprint         string
+	targetDefinitionIDs         []string
+	actionDefinitionIDs         []string
+	occurrences                 []Occurrence
+	requestedFaultDefinitionIDs []string
+	observationProgram          ObservationProgram
+	capabilityDefinitionIDs     []string
 }
 
 // NewProgram checks the one closed program shape without adding a callback or plugin surface.
@@ -75,6 +134,55 @@ func NewProgram(
 	targetDefinitionIDs []string,
 	actionDefinitionIDs []string,
 	occurrences []Occurrence,
+	capabilityDefinitionIDs []string,
+) (Program, error) {
+	return newProgram(
+		definitionID,
+		version,
+		behaviorFingerprint,
+		targetDefinitionIDs,
+		actionDefinitionIDs,
+		occurrences,
+		[]string{},
+		ObservationProgram{},
+		capabilityDefinitionIDs,
+	)
+}
+
+// NewProgramWithRequestedFault checks the one closed program shape requiring one exact fault.
+func NewProgramWithRequestedFault(
+	definitionID string,
+	version uint64,
+	behaviorFingerprint string,
+	targetDefinitionIDs []string,
+	actionDefinitionIDs []string,
+	occurrences []Occurrence,
+	observationProgram ObservationProgram,
+	requestedFaultDefinitionID string,
+	capabilityDefinitionIDs []string,
+) (Program, error) {
+	return newProgram(
+		definitionID,
+		version,
+		behaviorFingerprint,
+		targetDefinitionIDs,
+		actionDefinitionIDs,
+		occurrences,
+		[]string{requestedFaultDefinitionID},
+		observationProgram,
+		capabilityDefinitionIDs,
+	)
+}
+
+func newProgram(
+	definitionID string,
+	version uint64,
+	behaviorFingerprint string,
+	targetDefinitionIDs []string,
+	actionDefinitionIDs []string,
+	occurrences []Occurrence,
+	requestedFaultDefinitionIDs []string,
+	observationProgram ObservationProgram,
 	capabilityDefinitionIDs []string,
 ) (Program, error) {
 	if !validIdentity(definitionID) || version == 0 || !artifactv2.ValidDigest(behaviorFingerprint) {
@@ -98,6 +206,17 @@ func NewProgram(
 	if occurrences[0].actionDefinitionID != actionDefinitionIDs[0] {
 		return Program{}, preflightError(PreflightAction, "program-occurrence-action")
 	}
+	if len(requestedFaultDefinitionIDs) > 1 {
+		return Program{}, preflightError(PreflightFault, "program-faults")
+	}
+	if err := validateIdentitySet(
+		requestedFaultDefinitionIDs, PreflightFault, "program-faults",
+	); err != nil {
+		return Program{}, err
+	}
+	if len(requestedFaultDefinitionIDs) == 1 && !observationProgram.checked {
+		return Program{}, preflightError(PreflightConfiguration, "observation-program")
+	}
 	if len(capabilityDefinitionIDs) == 0 ||
 		len(capabilityDefinitionIDs) > artifact.MaximumJSONArrayItems {
 		return Program{}, preflightError(PreflightCapability, "program-capabilities")
@@ -108,13 +227,15 @@ func NewProgram(
 		return Program{}, err
 	}
 	return Program{
-		definitionID:            definitionID,
-		version:                 version,
-		behaviorFingerprint:     behaviorFingerprint,
-		targetDefinitionIDs:     slices.Clone(targetDefinitionIDs),
-		actionDefinitionIDs:     slices.Clone(actionDefinitionIDs),
-		occurrences:             slices.Clone(occurrences),
-		capabilityDefinitionIDs: slices.Clone(capabilityDefinitionIDs),
+		definitionID:                definitionID,
+		version:                     version,
+		behaviorFingerprint:         behaviorFingerprint,
+		targetDefinitionIDs:         slices.Clone(targetDefinitionIDs),
+		actionDefinitionIDs:         slices.Clone(actionDefinitionIDs),
+		occurrences:                 slices.Clone(occurrences),
+		requestedFaultDefinitionIDs: slices.Clone(requestedFaultDefinitionIDs),
+		observationProgram:          observationProgram,
+		capabilityDefinitionIDs:     slices.Clone(capabilityDefinitionIDs),
 	}, nil
 }
 
@@ -153,6 +274,7 @@ func (p Program) clone() Program {
 	cloned.targetDefinitionIDs = slices.Clone(p.targetDefinitionIDs)
 	cloned.actionDefinitionIDs = slices.Clone(p.actionDefinitionIDs)
 	cloned.occurrences = slices.Clone(p.occurrences)
+	cloned.requestedFaultDefinitionIDs = slices.Clone(p.requestedFaultDefinitionIDs)
 	cloned.capabilityDefinitionIDs = slices.Clone(p.capabilityDefinitionIDs)
 	return cloned
 }

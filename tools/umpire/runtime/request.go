@@ -44,11 +44,18 @@ func CheckRequest(
 		return CheckedRunRequest{}, preflightError(PreflightConfiguration, "configuration-identity")
 	}
 	program := authority.program
+	if len(program.requestedFaultDefinitionIDs) == 1 &&
+		!program.observationProgram.matches(configuration.Observation) {
+		return CheckedRunRequest{}, preflightError(
+			PreflightConfiguration,
+			"observation-program",
+		)
+	}
 	if len(program.targetDefinitionIDs) != 1 ||
 		program.targetDefinitionIDs[0] != experiment.Plan.TargetDefinitionID {
 		return CheckedRunRequest{}, preflightError(PreflightTarget, "program-target")
 	}
-	if len(experiment.Plan.RequestedFaults) != 0 {
+	if !requestedFaultsMatch(experiment, program) {
 		return CheckedRunRequest{}, preflightError(PreflightFault, "requested-faults")
 	}
 	if len(experiment.Plan.RequestedActions) != 1 ||
@@ -103,6 +110,18 @@ func CheckRequest(
 	}
 	request.commands = buildCommands(request)
 	return request, nil
+}
+
+func requestedFaultsMatch(experiment artifactv2.Experiment, program Program) bool {
+	if len(experiment.Plan.RequestedFaults) != len(program.requestedFaultDefinitionIDs) {
+		return false
+	}
+	if len(program.requestedFaultDefinitionIDs) == 0 {
+		return true
+	}
+	requested := experiment.Plan.RequestedFaults[0]
+	return requested.DefinitionID == program.requestedFaultDefinitionIDs[0] &&
+		requested.Value == program.occurrences[0].definitionID
 }
 
 func checkProfile(configuration artifactv2.RuntimeConfiguration, authority Authority) error {

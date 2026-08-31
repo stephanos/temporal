@@ -1,4 +1,5 @@
 import Temporal.System.Execution.Nexus
+import Temporal.System.Nexus.Observation
 
 namespace Temporal.System.Execution.NexusTests
 
@@ -25,9 +26,53 @@ private def programIdentityChanges (candidate : ParticipantProgramDefinition) : 
     candidate.expectedBehaviorFingerprint
 
 #check (callerClosureProgram : CheckedParticipantProgram)
+#check (duplicateDeliveryProgram : CheckedParticipantProgram)
 #check (executionDefinitionFor : ExperimentSpec → ExecutionDefinition)
+#check (duplicateDeliveryExecutionDefinitionFor : ExperimentSpec → ExecutionDefinition)
 #check (checkExecution : ExecutionDefinition → Except NexusExecutionError CheckedExecution)
 #check (CheckedExecution.artifactSet : CheckedExecution → ArtifactSet)
+
+example : duplicateDeliveryProgram.definition.requestedFaultDefinitionIds =
+      [Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId] ∧
+    duplicateDeliveryProgram.definition.reference.definitionId !=
+      callerClosureProgram.definition.reference.definitionId ∧
+    duplicateDeliveryObservationProgramDefinition.profile = {
+      definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.id
+      version := Temporal.System.Nexus.Observation.DuplicateDelivery.profileVersion
+      behaviorFingerprint :=
+        Temporal.System.Nexus.Observation.DuplicateDelivery.profileBehaviorFingerprint
+    } ∧
+    duplicateDeliveryObservationProgramDefinition.mapping = {
+      definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.Mapping.id
+      version := Temporal.System.Nexus.Observation.DuplicateDelivery.mappingVersion
+      behaviorFingerprint :=
+        Temporal.System.Nexus.Observation.DuplicateDelivery.mappingBehaviorFingerprint
+    } ∧
+    duplicateDeliveryObservationProgramDefinition.reference = {
+      definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.programId
+      version := Temporal.System.Nexus.Observation.DuplicateDelivery.programVersion
+      behaviorFingerprint :=
+        Temporal.System.Nexus.Observation.DuplicateDelivery.programBehaviorFingerprint
+    } := by
+  native_decide
+
+example : programErrorKindOf
+      (checkParticipantProgram duplicateDeliveryProgram.definition) = none ∧
+    programErrorKindOf (checkParticipantProgram {
+      duplicateDeliveryProgram.definition with requestedFaultDefinitionIds := []
+    }) = some .fault ∧
+    programErrorKindOf (checkParticipantProgram {
+      duplicateDeliveryProgram.definition with requestedFaultDefinitionIds := [
+        id "temporal.nexus.caller-closure.fault.other"
+      ]
+    }) = some .fault ∧
+    programErrorKindOf (checkParticipantProgram {
+      duplicateDeliveryProgram.definition with requestedFaultDefinitionIds := [
+        Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId,
+        Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId
+      ]
+    }) = some .fault := by
+  native_decide
 
 example : callerClosureProgram.definition = canonicalParticipantProgramDefinition ∧
     callerClosureProgram.definition.targetDefinitionIds = [targetDefinitionId] ∧
