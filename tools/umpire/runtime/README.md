@@ -53,8 +53,9 @@ Assessment, remote, canary, and release work are excluded from this bounded herm
 
 `tools/umpire/runner` is the reusable generated-test handoff. It accepts an already-admitted exact
 two-member set, a generated digest binding, a run identity, and one closed adapter. It verifies the
-binding before the adapter can construct authority or participant state, runs the bounded phase
-engine in memory, and returns an admitted four-member set:
+input binding before the adapter constructs authority, then verifies that authority binding before
+participant or environment construction. It runs the bounded phase engine in memory and returns an
+admitted four-member set:
 
 1. `umpire-experiment/v2`
 2. `umpire-runtime-configuration/v2`
