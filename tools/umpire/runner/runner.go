@@ -5,6 +5,7 @@ package runner
 import (
 	"context"
 	"errors"
+	"slices"
 
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/runtimeengine"
@@ -15,13 +16,14 @@ import (
 // set. Generated tests retain these values as literals so admission cannot be
 // replaced by a fresh compilation of behavioral intent.
 type InputBinding struct {
-	ArtifactSetIdentity                     string
-	ArtifactSetChecksum                     string
-	ManifestSHA256                          string
-	ExperimentArtifactChecksum              string
-	ExperimentBehaviorFingerprint           string
-	RuntimeConfigurationArtifactChecksum    string
-	RuntimeConfigurationBehaviorFingerprint string
+	ArtifactSetIdentity                      string
+	ArtifactSetChecksum                      string
+	ManifestSHA256                           string
+	ExperimentArtifactChecksum               string
+	ExperimentBehaviorFingerprint            string
+	RuntimeConfigurationArtifactChecksum     string
+	RuntimeConfigurationBehaviorFingerprint  string
+	AuthorityRequiredCapabilityDefinitionIDs []string
 }
 
 // Adapter supplies one closed authority/program binding below the reusable
@@ -54,6 +56,9 @@ func Run(
 	}
 	request, err := adapter.CheckRequest(admitted, runIdentity)
 	if err != nil {
+		return umpireruntime.Output{}, err
+	}
+	if err := validateAuthorityBinding(binding, request); err != nil {
 		return umpireruntime.Output{}, err
 	}
 	return runChecked(ctx, request, adapter)
@@ -106,6 +111,19 @@ func validateInputBinding(admitted artifact.AdmittedSet, expected InputBinding) 
 		configuration.ArtifactChecksum != expected.RuntimeConfigurationArtifactChecksum ||
 		configuration.BehaviorFingerprint != expected.RuntimeConfigurationBehaviorFingerprint {
 		return errors.New("umpire runner generated input binding does not match the admitted set")
+	}
+	return nil
+}
+
+func validateAuthorityBinding(
+	expected InputBinding,
+	request umpireruntime.CheckedRunRequest,
+) error {
+	if !slices.Equal(
+		request.Authority().RequiredCapabilityDefinitionIDs(),
+		expected.AuthorityRequiredCapabilityDefinitionIDs,
+	) {
+		return errors.New("umpire runner generated authority binding does not match the checked request")
 	}
 	return nil
 }
