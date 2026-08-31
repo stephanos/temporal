@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
@@ -186,6 +187,20 @@ func TestCallerClosurePathRetainsIndependentOutcomes(t *testing.T) {
 			require.Equal(t, testCase.semanticStatus, outcome.evaluation.summary.SemanticStatus)
 		})
 	}
+}
+
+func TestCallerClosureEvaluationPreservesSemanticNonSuccess(t *testing.T) {
+	output := callerClosurePathOutput(t, "succeeded", "complete")
+	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
+	defer cancel()
+
+	evaluation, err := runCallerClosureEvaluation(t, ctx, output.AdmittedSet())
+
+	require.NoError(t, err)
+	require.Equal(t, "succeeded", evaluation.summary.OperationalStatus)
+	require.Equal(t, "accepted", evaluation.summary.ObservationEvaluationStatus)
+	require.Equal(t, "violated", evaluation.summary.SemanticStatus)
+	require.NotEmpty(t, evaluation.admitted.Identity())
 }
 
 func callerClosurePathOutput(

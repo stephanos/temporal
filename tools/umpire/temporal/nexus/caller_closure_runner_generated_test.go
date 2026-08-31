@@ -303,7 +303,7 @@ func runCallerClosureEvaluation(
 			return callerClosureEvaluation{}, fmt.Errorf("Run Evaluation failed: %s: %w", stderr.String(), runErr)
 		}
 	}
-	if stderr.Len() != 0 {
+	if runErr == nil && stderr.Len() != 0 {
 		return callerClosureEvaluation{}, errors.New("Run Evaluation emitted stderr")
 	}
 	var summary callerClosureEvaluationSummary
