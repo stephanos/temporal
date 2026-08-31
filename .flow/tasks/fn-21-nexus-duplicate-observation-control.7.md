@@ -13,11 +13,11 @@ The legacy implementation detail below is retained for context but is subordinat
 Compile the exact fault-specific Temporal evidence profile/program/mapping before RuntimeConfiguration composition for R2/R5/R7. Reuse the baseline caller-closure declarations and unchanged reusable Observation checker/evaluator.
 
 **Size:** M
-**Files:** `model/Temporal/Feature/Nexus/Observation.lean`, `model/Temporal/Feature/Nexus/ObservationFaultTests.lean`, `model/Temporal/Feature/Nexus/ObservationTests.lean`, `model/Temporal/Feature/Nexus.lean`, `model/TemporalModelTests.lean`
-**Touches:** [model/Temporal/Feature/Nexus/Observation.lean, model/Temporal/Feature/Nexus/ObservationFaultTests.lean, model/Temporal/Feature/Nexus/ObservationTests.lean, model/Temporal/Feature/Nexus.lean, model/TemporalModelTests.lean]
+**Files:** `model/Temporal/System/Nexus/Observation.lean`, `model/Temporal/System/Nexus/ObservationFaultTests.lean`, `model/Temporal/System/Nexus/ImplementationLink.lean`, `model/Temporal/ImplementationLinkTests/Nexus.lean`, `model/TemporalModelTests.lean`
+**Touches:** [model/Temporal/System/Nexus/Observation.lean, model/Temporal/System/Nexus/ObservationFaultTests.lean, model/Temporal/System/Nexus/ImplementationLink.lean, model/Temporal/ImplementationLinkTests/Nexus.lean, model/TemporalModelTests.lean]
 
 ### Approach
-- Compose a second checked Temporal mapping/profile identity from fn-20's baseline caller-closure declarations and Task `.1`'s exact fault identity; do not copy the generic mapper or Property evaluator.
+- Compose a second checked System mapping/profile identity from fn-20's baseline caller-closure declarations and Task `.1`'s exact fault identity; do not copy the generic mapper or Property evaluator.
 - Freeze the fault-specific source schema before runtime binding: one requested/completed cancellation lifecycle, mechanical callback count one, synthetic-contribution count one, one injected marker, exact receipt/correlation/order/closure fields, and their dispositions.
 - Derive semantic cancellation count two only from the exact callback-one plus contribution-one relation; retain delivery/ownership rules unchanged and preserve complete coordinate Evidence Links.
 - Expose the checked program/mapping semantic references and digests consumed by Task `.2`; every reorder-equivalent declaration remains identical while each meaning-bearing mutation changes identity or fails checking.
@@ -28,7 +28,9 @@ Compile the exact fault-specific Temporal evidence profile/program/mapping befor
 - `.flow/tasks/fn-20-local-execution-semantic-conformance.2.md:13-35` — baseline checked Nexus mapping/checker seam
 - `.flow/tasks/fn-4-umpire-observation-and-semantic-verdicts.4.md` — Temporal-owned profile/program ownership
 - `.flow/specs/fn-18-versioned-umpire-artifact-boundary.md:99-103` — Evidence Link/disposition wire contract
-- `model/Temporal/Feature/Nexus/CallerClosure.lean:441-462` — unchanged semantic outputs and Property clauses
+- `model/Temporal/System/Nexus/Observation.lean` — current System-owned caller-closure mapping
+- `model/Temporal/System/Nexus/ImplementationLink.lean:424-636` — current checked CallerClosure link
+- `model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean:531-560` — unchanged semantic outputs and Property clauses
 - `.flow/specs/fn-21-nexus-duplicate-observation-control.md` — exact fault evidence and mutation table
 
 ### Acceptance
