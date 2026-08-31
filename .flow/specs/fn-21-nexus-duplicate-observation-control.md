@@ -85,7 +85,7 @@ The mutation oracle is closed and owned as follows:
 <!-- scope: technical -->
 
 ```bash
-cd model && mise exec -- lake build Temporal.Feature.Nexus.CallerClosureFaultTests
+cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosureFaultTests
 go test -count=1 ./tools/umpire/temporal/nexus/...
 go test -count=1 ./tools/umpire/runevaluation/...
 make umpire-run-local SET=tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set OUTPUT_ROOT=/tmp/umpire-local-runs RUN_ID=caller-closure-duplicate-delivery
