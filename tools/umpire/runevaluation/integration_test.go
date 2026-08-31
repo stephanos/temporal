@@ -148,7 +148,7 @@ func realAcceptedCallerClosureExecutionFixture(t *testing.T) artifact.AdmittedSe
 	rawEvidence.Run = artifactv2.ExperimentRunArtifactBinding(sealedRun)
 	rawEvidence.CaptureStatus = "closed"
 	rawEvidence.Sources = mutationSources("closed")
-	rawEvidence.Facts = exactCallerClosureFacts()
+	rawEvidence.Facts = exactCallerClosureFacts(rawEvidence.RunIdentity)
 	sealedRawEvidence, err := artifactv2.SealRawEvidence(rawEvidence)
 	require.NoError(t, err)
 	executableInput := callerClosureExecutableFixture(t)

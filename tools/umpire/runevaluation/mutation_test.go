@@ -109,8 +109,8 @@ func TestRealCheckerObservationMutationMatrix(t *testing.T) {
 		{
 			name: "clear endpoint",
 			mutate: func(request *checkerRequest) {
-				request.Facts[8].Fields[1].Disposition = "plain"
-				request.Facts[8].Fields[1].Value = "clear-endpoint.example"
+				request.Facts[8].Fields[2].Disposition = "plain"
+				request.Facts[8].Fields[2].Value = "clear-endpoint.example"
 			},
 			status: "unsupported", diagnosticKind: "digest-policy-mismatch",
 			clearValue: "clear-endpoint.example",
@@ -118,8 +118,8 @@ func TestRealCheckerObservationMutationMatrix(t *testing.T) {
 		{
 			name: "redacted endpoint",
 			mutate: func(request *checkerRequest) {
-				request.Facts[8].Fields[1].Disposition = "redacted"
-				request.Facts[8].Fields[1].Value = nil
+				request.Facts[8].Fields[2].Disposition = "redacted"
+				request.Facts[8].Fields[2].Value = nil
 			},
 			status: "unsupported", diagnosticKind: "digest-policy-mismatch",
 		},
@@ -149,6 +149,76 @@ func TestRealCheckerObservationMutationMatrix(t *testing.T) {
 	permuted, err := process.run(context.Background(), permutedRequest)
 	require.NoError(t, err)
 	require.Equal(t, baseline, permuted)
+}
+
+func TestRealCheckerRejectsMisboundParticipantCancellationEvidence(t *testing.T) {
+	process := realCheckerProcess(t)
+
+	for _, testCase := range []struct {
+		name   string
+		mutate func(*testing.T, *checkerRequest)
+	}{
+		{
+			name: "prepare command",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				setMutationField(t, &request.Facts[8], umpireruntime.EvidenceFieldCommandKind, "prepare")
+			},
+		},
+		{
+			name: "observe command",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				setMutationField(t, &request.Facts[8], umpireruntime.EvidenceFieldCommandKind, "observe")
+			},
+		},
+		{
+			name: "nonaccepted status",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				setMutationField(t, &request.Facts[8], umpireruntime.EvidenceFieldStatus, "rejected")
+			},
+		},
+		{
+			name: "run correlation drift",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				setMutationField(t, &request.Facts[8], umpireruntime.EvidenceFieldRunCorrelationID,
+					"umpire.local.caller-closure.drifted")
+			},
+		},
+		{
+			name: "workflow correlation drift",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				setMutationField(t, &request.Facts[8], umpireruntime.EvidenceFieldWorkflowCorrelationID,
+					"temporal.workflow.caller-closure.drifted")
+			},
+		},
+		{
+			name: "operation correlation drift",
+			mutate: func(t *testing.T, request *checkerRequest) {
+				setMutationField(t, &request.Facts[8], umpireruntime.EvidenceFieldOperationCorrelationID,
+					"temporal.operation.caller-closure.drifted")
+			},
+		},
+		{
+			name: "duplicate cancellation candidate",
+			mutate: func(_ *testing.T, request *checkerRequest) {
+				duplicate := request.Facts[8]
+				duplicate.FactDefinitionID = "umpire.runtime.fact.participant.duplicate"
+				duplicate.Ordinal = artifactv2.NaturalFromUint64(1)
+				request.Facts = append(request.Facts, duplicate)
+				request.Sources[3].FactCount = artifactv2.NaturalFromUint64(2)
+				request.SourceClosures[3].RecordCount = artifactv2.NaturalFromUint64(2)
+			},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			request := exactCallerClosureMutationRequest(t)
+			testCase.mutate(t, &request)
+
+			response, err := process.run(context.Background(), request)
+			require.Error(t, err)
+			require.ErrorIs(t, err, &checkerFailure{code: checkerFailureStderr})
+			require.Empty(t, response.CheckerIdentity)
+		})
+	}
 }
 
 func TestRealCheckerPartialEvidencePublishesAnInMemoryResult(t *testing.T) {
@@ -206,7 +276,7 @@ func exactCallerClosureMutationRequest(t *testing.T) checkerRequest {
 	request.CaptureStatus = "closed"
 	request.Sources = mutationSources("closed")
 	request.SourceClosures = mutationSourceClosures("closed")
-	request.Facts = exactCallerClosureFacts()
+	request.Facts = exactCallerClosureFacts(request.RunIdentity)
 	return request
 }
 
@@ -244,7 +314,7 @@ func mutationSourceClosures(status string) []artifactv2.SourceClosure {
 	return result
 }
 
-func exactCallerClosureFacts() []artifactv2.RawEvidenceFact {
+func exactCallerClosureFacts(runIdentity string) []artifactv2.RawEvidenceFact {
 	facts := []artifactv2.RawEvidenceFact{
 		mutationFact("umpire.runtime.fact.cleanup.fixture", umpireruntime.EvidenceSourceCleanup,
 			"umpire.evidence.kind.cleanup", 0, nil, []artifactv2.RawEvidenceField{
@@ -282,7 +352,7 @@ func exactCallerClosureFacts() []artifactv2.RawEvidenceFact {
 				mutationField("umpire.evidence.field.operation-correlation-id",
 					"temporal.operation.caller-closure.fixture"),
 				mutationField("umpire.evidence.field.run-correlation-id",
-					"temporal.run.caller-closure.fixture"),
+					runIdentity),
 				mutationField("umpire.evidence.field.workflow-correlation-id",
 					"temporal.workflow.caller-closure.fixture"),
 			}))
@@ -291,13 +361,46 @@ func exactCallerClosureFacts() []artifactv2.RawEvidenceFact {
 		"umpire.runtime.fact.participant.fixture", umpireruntime.EvidenceSourceParticipantOutput,
 		"umpire.evidence.kind.participant-command", 0, nil, []artifactv2.RawEvidenceField{
 			mutationField("umpire.evidence.field.cancellation-callback-count", json.Number("1")),
+			mutationField("umpire.evidence.field.command-kind", "realize"),
 			{
 				FieldDefinitionID: "umpire.evidence.field.endpoint-identity",
 				Disposition:       "sha256",
 				Value:             "sha256:d86e4da201f1fdd1e116376d712fe630f7bbf8d98cc08fa3ed1b2c087a7aac1c",
 			},
+			{
+				FieldDefinitionID: "umpire.evidence.field.namespace-identity",
+				Disposition:       "sha256",
+				Value:             "sha256:d86e4da201f1fdd1e116376d712fe630f7bbf8d98cc08fa3ed1b2c087a7aac1c",
+			},
+			mutationField("umpire.evidence.field.operation-correlation-id",
+				"temporal.operation.caller-closure.fixture"),
+			mutationField("umpire.evidence.field.run-correlation-id", runIdentity),
+			mutationField("umpire.evidence.field.status", "accepted"),
+			{
+				FieldDefinitionID: "umpire.evidence.field.task-queue-identity",
+				Disposition:       "sha256",
+				Value:             "sha256:d86e4da201f1fdd1e116376d712fe630f7bbf8d98cc08fa3ed1b2c087a7aac1c",
+			},
+			mutationField("umpire.evidence.field.workflow-correlation-id",
+				"temporal.workflow.caller-closure.fixture"),
 		}))
 	return facts
+}
+
+func setMutationField(
+	t *testing.T,
+	fact *artifactv2.RawEvidenceFact,
+	definitionID string,
+	value any,
+) {
+	t.Helper()
+	for index := range fact.Fields {
+		if fact.Fields[index].FieldDefinitionID == definitionID {
+			fact.Fields[index].Value = value
+			return
+		}
+	}
+	require.Failf(t, "mutation field not found", "field=%q", definitionID)
 }
 
 func mutationFact(
