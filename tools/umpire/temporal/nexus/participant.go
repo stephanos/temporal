@@ -13,6 +13,7 @@ import (
 
 	enumspb "go.temporal.io/api/enums/v1"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 	"go.temporal.io/server/tools/umpire/temporal/local"
 )
@@ -23,6 +24,8 @@ const (
 	runtimeCodeRejected    = "umpire.runtime.code.rejected"
 	runtimeCodeTimedOut    = "umpire.runtime.code.timed-out"
 	runtimeCodeUnsupported = "umpire.runtime.code.unsupported"
+
+	duplicateObservationFactKind = "temporal.nexus.caller-closure.marker.injected-duplicate-delivery-observation"
 )
 
 type commandAdapter interface {
@@ -77,11 +80,9 @@ func exactCheckedRequest(request umpireruntime.CheckedRunRequest) bool {
 	program := request.Program()
 	occurrences := program.Occurrences()
 	authority := request.Authority()
-	configuration := request.RuntimeConfiguration()
 	return request.Seed() == 0 && request.Attempt() == 1 &&
-		program.DefinitionID() == callerClosureProgramDefinitionID &&
 		program.Version() == callerClosureProgramVersion &&
-		program.BehaviorFingerprint() == callerClosureProgramBehaviorFingerprint &&
+		exactProgramAndConfiguration(request) &&
 		slices.Equal(program.TargetDefinitionIDs(), []string{callerClosureTargetDefinitionID}) &&
 		slices.Equal(program.ActionDefinitionIDs(), []string{forceCloseActionDefinitionID}) &&
 		len(occurrences) == 1 &&
@@ -92,13 +93,31 @@ func exactCheckedRequest(request umpireruntime.CheckedRunRequest) bool {
 		authority.DefinitionID() == local.ProfileDefinitionID &&
 		authority.Version() == local.ProfileVersion &&
 		authority.BehaviorFingerprint() == local.ProfileBehaviorFingerprint &&
-		authority.ConfigurationDefinitionID() == callerClosureConfigurationDefinitionID &&
-		authority.ConfigurationBehaviorFingerprint() == callerClosureConfigurationBehaviorFingerprint &&
 		authority.ParticipantDefinitionID() == callerClosureParticipantDefinitionID &&
 		authority.ProtocolDefinitionID() == callerClosureProtocolDefinitionID &&
-		authority.ProtocolVersion() == 2 &&
-		configuration.ConfigurationDefinitionID == callerClosureConfigurationDefinitionID &&
-		configuration.BehaviorFingerprint == callerClosureConfigurationBehaviorFingerprint
+		authority.ProtocolVersion() == 2
+}
+
+func exactProgramAndConfiguration(request umpireruntime.CheckedRunRequest) bool {
+	program := request.Program()
+	authority := request.Authority()
+	configuration := request.RuntimeConfiguration()
+	switch program.DefinitionID() {
+	case callerClosureProgramDefinitionID:
+		return program.BehaviorFingerprint() == callerClosureProgramBehaviorFingerprint &&
+			authority.ConfigurationDefinitionID() == callerClosureConfigurationDefinitionID &&
+			authority.ConfigurationBehaviorFingerprint() == callerClosureConfigurationBehaviorFingerprint &&
+			configuration.ConfigurationDefinitionID == callerClosureConfigurationDefinitionID &&
+			configuration.BehaviorFingerprint == callerClosureConfigurationBehaviorFingerprint
+	case duplicateDeliveryProgramDefinitionID:
+		return program.BehaviorFingerprint() == duplicateDeliveryProgramBehaviorFingerprint &&
+			authority.ConfigurationDefinitionID() == duplicateDeliveryConfigurationDefinitionID &&
+			authority.ConfigurationBehaviorFingerprint() == duplicateDeliveryConfigurationFingerprint &&
+			configuration.ConfigurationDefinitionID == duplicateDeliveryConfigurationDefinitionID &&
+			configuration.BehaviorFingerprint == duplicateDeliveryConfigurationFingerprint
+	default:
+		return false
+	}
 }
 
 func (p *participant) Prepare(ctx context.Context, environment umpireruntime.Environment, command umpireruntime.Command) umpireruntime.Receipt {
@@ -186,11 +205,22 @@ type sdkCommandAdapter struct {
 	endpoint    local.WorkerEndpoint
 	operation   *callerClosureOperation
 	run         client.WorkflowRun
+	runDone     chan error
 
 	endpointAcquired       bool
 	forceCloseAttempted    bool
 	forceCloseAcknowledged bool
+	duplicateObservation   duplicateObservationState
 }
+
+type duplicateObservationState uint8
+
+const (
+	duplicateObservationDisabled duplicateObservationState = iota
+	duplicateObservationAwaitingCompletion
+	duplicateObservationCompleted
+	duplicateObservationContributed
+)
 
 func newSDKCommandAdapter(request umpireruntime.CheckedRunRequest) (*sdkCommandAdapter, error) {
 	adapter := &sdkCommandAdapter{}
@@ -213,6 +243,11 @@ func newSDKCommandAdapter(request umpireruntime.CheckedRunRequest) (*sdkCommandA
 		return nil, err
 	}
 	adapter.participantResource = resource
+	if exactCheckedRequest(request) &&
+		request.Program().DefinitionID() == duplicateDeliveryProgramDefinitionID &&
+		request.RuntimeConfiguration().ConfigurationDefinitionID == duplicateDeliveryConfigurationDefinitionID {
+		adapter.duplicateObservation = duplicateObservationAwaitingCompletion
+	}
 	return adapter, nil
 }
 
@@ -310,6 +345,10 @@ func (a *sdkCommandAdapter) Realize(
 			nil, nil, nil, correlations)
 	}
 	a.forceCloseAttempted = true
+	if a.runDone == nil {
+		a.runDone = make(chan error, 1)
+		go func() { a.runDone <- a.run.Get(ctx, nil) }()
+	}
 	if err := a.environment.Client().CancelWorkflow(ctx, a.run.GetID(), a.run.GetRunID()); err != nil {
 		return adapterControlFailureReceipt(ctx, command, err, nil, nil, correlations)
 	}
@@ -325,12 +364,76 @@ func (a *sdkCommandAdapter) Realize(
 			return adapterControlReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
 				nil, nil, nil, correlations)
 		}
+		select {
+		case err := <-a.runDone:
+			if ctx.Err() != nil || !temporal.IsCanceledError(err) {
+				return adapterControlFailureReceipt(ctx, command, err, nil, nil, correlations)
+			}
+		case <-ctx.Done():
+			return adapterControlFailureReceipt(ctx, command, ctx.Err(), nil, nil, correlations)
+		}
+		if err := a.completeDuplicateObservationReceipt(); err != nil {
+			return adapterControlReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
+				nil, nil, nil, correlations)
+		}
+		facts, err := a.contributeDuplicateObservation(command, correlations)
+		if err != nil {
+			return adapterControlReceipt(command, umpireruntime.ReceiptRejected, runtimeCodeRejected,
+				nil, nil, nil, correlations)
+		}
 		a.forceCloseAcknowledged = true
 		correlations = a.correlations()
-		return adapterControlReceipt(command, umpireruntime.ReceiptAccepted, "", nil, nil, nil, correlations)
+		return adapterControlReceipt(command, umpireruntime.ReceiptAccepted, "", facts, nil, nil, correlations)
 	case <-ctx.Done():
 		return adapterControlFailureReceipt(ctx, command, ctx.Err(), nil, nil, correlations)
 	}
+}
+
+func (a *sdkCommandAdapter) completeDuplicateObservationReceipt() error {
+	switch a.duplicateObservation {
+	case duplicateObservationDisabled:
+		return nil
+	case duplicateObservationAwaitingCompletion:
+		a.duplicateObservation = duplicateObservationCompleted
+		return nil
+	default:
+		return errors.New("duplicate observation completion transition")
+	}
+}
+
+func (a *sdkCommandAdapter) contributeDuplicateObservation(
+	command umpireruntime.Command,
+	correlations adapterCorrelations,
+) ([]umpireruntime.Fact, error) {
+	if a.duplicateObservation == duplicateObservationDisabled {
+		return nil, nil
+	}
+	if a.duplicateObservation != duplicateObservationCompleted {
+		return nil, errors.New("duplicate observation activation")
+	}
+	a.duplicateObservation = duplicateObservationContributed
+	values := map[string]string{
+		umpireruntime.EvidenceFieldCommandKind:            string(command.Kind()),
+		umpireruntime.EvidenceFieldOperationCorrelationID: correlations.operation,
+		umpireruntime.EvidenceFieldRunCorrelationID:       command.RunIdentity(),
+		umpireruntime.EvidenceFieldStatus:                 string(umpireruntime.ReceiptAccepted),
+		umpireruntime.EvidenceFieldWorkflowCorrelationID:  correlations.workflow,
+	}
+	fields, err := checkedFields(values)
+	if err != nil {
+		return nil, err
+	}
+	fact, err := umpireruntime.NewFact(
+		factIdentity("participant-duplicate-delivery-observation", command.RunIdentity()),
+		umpireruntime.EvidenceSourceParticipantOutput,
+		duplicateObservationFactKind,
+		[]string{},
+		fields,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return []umpireruntime.Fact{fact}, nil
 }
 
 func (a *sdkCommandAdapter) Observe(

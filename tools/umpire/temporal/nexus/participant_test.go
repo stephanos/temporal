@@ -9,7 +9,11 @@ import (
 
 	nexussdk "github.com/nexus-rpc/sdk-go/nexus"
 	"github.com/stretchr/testify/require"
+	enumspb "go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/temporal"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 	"go.temporal.io/server/tools/umpire/temporal/local"
@@ -51,6 +55,39 @@ func TestLiveParticipantRealizesOneForceCloseAndClosesOperationalSources(t *test
 	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequestCompleted"])
 	require.Equal(t, 1, eventCounts["temporal.history.WorkflowExecutionCanceled"])
 	require.Equal(t, []string{"1"}, cancellationCallbacks)
+	require.Empty(t, rawFactsByKind(output.RawEvidence().Facts, duplicateObservationFactKind))
+}
+
+func TestLiveFaultedParticipantCompletesOneCancellationBeforeOneDuplicateObservation(t *testing.T) {
+	input := admitCallerClosureDuplicateDeliverySet(t)
+	ctx, cancel := context.WithTimeout(context.Background(), 135*time.Second)
+	defer cancel()
+
+	output, err := runner.Run(
+		ctx, input, callerClosureDuplicateDeliveryInputBinding(),
+		"umpire.local.caller-closure.live-duplicate-delivery", Binding{},
+	)
+	require.NoError(t, err)
+	run := output.ExperimentRun()
+	require.Equal(t, "succeeded", run.OperationalStatus)
+	require.Len(t, run.ControlAttempts, 1)
+	require.Equal(t, "accepted", run.ControlAttempts[0].Status)
+	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
+
+	eventCounts := map[string]int{}
+	for _, fact := range output.RawEvidence().Facts {
+		for _, field := range fact.Fields {
+			if field.FieldDefinitionID != umpireruntime.EvidenceFieldEventType {
+				continue
+			}
+			value, ok := field.Value.(string)
+			require.True(t, ok)
+			eventCounts[value]++
+		}
+	}
+	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequested"])
+	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequestCompleted"])
+	require.Len(t, rawFactsByKind(output.RawEvidence().Facts, duplicateObservationFactKind), 1)
 }
 
 func TestParticipantAdmitsOnlyTheExactCheckedRequest(t *testing.T) {
@@ -60,6 +97,10 @@ func TestParticipantAdmitsOnlyTheExactCheckedRequest(t *testing.T) {
 	participant, err := NewParticipant(checkedCallerClosureRequest(t, "exact-request"))
 	require.NoError(t, err)
 	require.NotNil(t, participant)
+
+	faulted, err := NewParticipant(checkedDuplicateDeliveryRequest(t, "exact-faulted-request"))
+	require.NoError(t, err)
+	require.NotNil(t, faulted)
 }
 
 func TestParticipantRejectsWrongCorrelationAndDuplicateCommandsBeforeAdapterIO(t *testing.T) {
@@ -147,6 +188,196 @@ func TestParticipantCancellationBeforeRealizationIssuesNoControlRequest(t *testi
 	require.Equal(t, []umpireruntime.CommandKind{umpireruntime.CommandPrepare}, adapter.calls)
 }
 
+func TestRealizationContributesOneDuplicateObservationOnlyForTheFaultedProgram(t *testing.T) {
+	for _, test := range []struct {
+		name          string
+		request       func(*testing.T) umpireruntime.CheckedRunRequest
+		wantSynthetic int
+	}{
+		{
+			name: "normal",
+			request: func(t *testing.T) umpireruntime.CheckedRunRequest {
+				return checkedCallerClosureRequest(t, "normal-realization")
+			},
+		},
+		{
+			name: "faulted",
+			request: func(t *testing.T) umpireruntime.CheckedRunRequest {
+				return checkedDuplicateDeliveryRequest(t, "faulted-realization")
+			},
+			wantSynthetic: 1,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			request := test.request(t)
+			adapter, err := newSDKCommandAdapter(request)
+			require.NoError(t, err)
+			operation := newCallerClosureOperation(adapter.operationCorrelation)
+			_, err = operation.Start(
+				context.Background(), adapter.operationCorrelation, nexussdk.StartOperationOptions{},
+			)
+			require.NoError(t, err)
+			completed := make(chan error, 1)
+			sdkClient := &recordingRealizationClient{}
+			sdkClient.onCancel = func() error {
+				if err := operation.Cancel(
+					context.Background(), adapter.operationCorrelation, nexussdk.CancelOperationOptions{},
+				); err != nil {
+					return err
+				}
+				completed <- temporal.NewCanceledError()
+				return nil
+			}
+			environment := &recordingRealizationEnvironment{sdkClient: sdkClient}
+			adapter.environment = environment
+			adapter.operation = operation
+			adapter.run = fixedWorkflowRun{workflowID: "workflow", runID: "run"}
+			adapter.runDone = completed
+			command, ok := request.Command(umpireruntime.CommandRealize)
+			require.True(t, ok)
+			premature, prematureErr := adapter.contributeDuplicateObservation(
+				command, adapter.correlations(),
+			)
+			require.Empty(t, premature)
+			if test.wantSynthetic == 1 {
+				require.Error(t, prematureErr)
+			} else {
+				require.NoError(t, prematureErr)
+			}
+
+			receipt := adapter.Realize(context.Background(), inertEnvironment{}, command)
+			require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
+			require.True(t, receipt.ControlAttempted())
+			synthetic := receiptFactsByKind(receipt, duplicateObservationFactKind)
+			require.Len(t, synthetic, test.wantSynthetic)
+			if test.wantSynthetic == 1 {
+				require.Equal(t, umpireruntime.EvidenceSourceParticipantOutput,
+					synthetic[0].SourceDefinitionID())
+				require.Equal(t, adapter.operationCorrelation,
+					factField(t, synthetic[0], umpireruntime.EvidenceFieldOperationCorrelationID))
+				_, err := adapter.contributeDuplicateObservation(command, adapter.correlations())
+				require.Error(t, err)
+			}
+			require.Equal(t, 1, sdkClient.cancellations)
+			require.Equal(t, 0, sdkClient.historyReads)
+			require.Equal(t, []uint64{1}, environment.controlCounts)
+
+			duplicate := adapter.Realize(context.Background(), inertEnvironment{}, command)
+			require.Equal(t, umpireruntime.ReceiptUnsupported, duplicate.Status())
+			require.Empty(t, receiptFactsByKind(duplicate, duplicateObservationFactKind))
+			require.Equal(t, 1, sdkClient.cancellations)
+			require.Equal(t, 0, sdkClient.historyReads)
+		})
+	}
+}
+
+func TestFaultedRealizationEmitsNoSyntheticObservationWithoutCompletedCancellation(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		suffix     string
+		completion error
+		cancelErr  error
+		cancelWait bool
+		wantStatus umpireruntime.ReceiptStatus
+	}{
+		{
+			name: "cancellation request failed", suffix: "request-failed", cancelErr: errors.New("cancel failed"),
+			wantStatus: umpireruntime.ReceiptFailed,
+		},
+		{
+			name: "completion receipt failed", suffix: "receipt-failed", completion: errors.New("completion failed"),
+			wantStatus: umpireruntime.ReceiptFailed,
+		},
+		{
+			name: "completion receipt missing", suffix: "receipt-missing", cancelWait: true,
+			wantStatus: umpireruntime.ReceiptCanceled,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			request := checkedDuplicateDeliveryRequest(t, "incomplete-realization-"+test.suffix)
+			adapter, err := newSDKCommandAdapter(request)
+			require.NoError(t, err)
+			operation := newCallerClosureOperation(adapter.operationCorrelation)
+			_, err = operation.Start(
+				context.Background(), adapter.operationCorrelation, nexussdk.StartOperationOptions{},
+			)
+			require.NoError(t, err)
+			adapter.operation = operation
+			adapter.run = fixedWorkflowRun{workflowID: "workflow", runID: "run"}
+			adapter.runDone = make(chan error, 1)
+			sdkClient := &recordingRealizationClient{}
+			environment := &recordingRealizationEnvironment{sdkClient: sdkClient}
+			adapter.environment = environment
+			sdkClient.onCancel = func() error {
+				if test.cancelErr != nil {
+					return test.cancelErr
+				}
+				if err := operation.Cancel(
+					context.Background(), adapter.operationCorrelation, nexussdk.CancelOperationOptions{},
+				); err != nil {
+					return err
+				}
+				if !test.cancelWait {
+					adapter.runDone <- test.completion
+				}
+				return nil
+			}
+			ctx := context.Background()
+			cancel := func() {}
+			if test.cancelWait {
+				ctx, cancel = context.WithTimeout(ctx, time.Millisecond)
+			}
+			defer cancel()
+			command, ok := request.Command(umpireruntime.CommandRealize)
+			require.True(t, ok)
+
+			receipt := adapter.Realize(ctx, inertEnvironment{}, command)
+			require.Equal(t, test.wantStatus, receipt.Status())
+			require.Empty(t, receiptFactsByKind(receipt, duplicateObservationFactKind))
+			require.False(t, adapter.forceCloseAcknowledged)
+			require.NotEqual(t, duplicateObservationContributed, adapter.duplicateObservation)
+			require.Equal(t, 1, sdkClient.cancellations)
+			require.Equal(t, 0, sdkClient.historyReads)
+		})
+	}
+}
+
+func TestFaultedRealizationRejectsAnUnstartedCancellationWithoutSyntheticObservation(t *testing.T) {
+	request := checkedDuplicateDeliveryRequest(t, "rejected-unstarted-cancellation")
+	adapter, err := newSDKCommandAdapter(request)
+	require.NoError(t, err)
+	operation := newCallerClosureOperation(adapter.operationCorrelation)
+	adapter.operation = operation
+	adapter.run = fixedWorkflowRun{workflowID: "workflow", runID: "run"}
+	adapter.runDone = make(chan error, 1)
+	sdkClient := &recordingRealizationClient{}
+	adapter.environment = &recordingRealizationEnvironment{sdkClient: sdkClient}
+	sdkClient.onCancel = func() error {
+		return operation.Cancel(
+			context.Background(), adapter.operationCorrelation, nexussdk.CancelOperationOptions{},
+		)
+	}
+	command, ok := request.Command(umpireruntime.CommandRealize)
+	require.True(t, ok)
+
+	receipt := adapter.Realize(context.Background(), inertEnvironment{}, command)
+	require.Equal(t, umpireruntime.ReceiptRejected, receipt.Status())
+	require.Empty(t, receiptFactsByKind(receipt, duplicateObservationFactKind))
+	require.False(t, adapter.forceCloseAcknowledged)
+	require.NotEqual(t, duplicateObservationContributed, adapter.duplicateObservation)
+	require.Equal(t, 1, sdkClient.cancellations)
+}
+
+func TestWorkerReadinessCancellationEmitsNoReadinessClaim(t *testing.T) {
+	sdkClient := &unreadyClient{}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := waitForWorkerReadiness(ctx, sdkClient, "task-queue")
+	require.ErrorIs(t, err, context.Canceled)
+	require.Equal(t, 2, sdkClient.descriptions)
+}
+
 func TestSDKAndContextFailuresRemainOperationalReceipts(t *testing.T) {
 	request := checkedCallerClosureRequest(t, "operational-failures")
 	command, ok := request.Command(umpireruntime.CommandPrepare)
@@ -192,7 +423,7 @@ func TestHandlerPanicsAreNonRetryable(t *testing.T) {
 	require.EqualValues(t, 1, operation.cancelCount)
 }
 
-func TestHandlerBindsIdentityAndRejectsDuplicateDelivery(t *testing.T) {
+func TestHandlerBindsIdentityAndHandlesDuplicateCancellationIdempotently(t *testing.T) {
 	operation := newCallerClosureOperation("operation.expected")
 
 	result, err := operation.Start(context.Background(), "operation.other", nexussdk.StartOperationOptions{})
@@ -216,8 +447,9 @@ func TestHandlerBindsIdentityAndRejectsDuplicateDelivery(t *testing.T) {
 	require.NoError(t, operation.Cancel(
 		context.Background(), "operation.expected", nexussdk.CancelOperationOptions{},
 	))
-	err = operation.Cancel(context.Background(), "operation.expected", nexussdk.CancelOperationOptions{})
-	requireHandlerError(t, err, nexussdk.HandlerErrorTypeConflict)
+	require.NoError(t, operation.Cancel(
+		context.Background(), "operation.expected", nexussdk.CancelOperationOptions{},
+	))
 	require.EqualValues(t, 1, operation.startCount)
 	require.EqualValues(t, 1, operation.cancelCount)
 }
@@ -320,6 +552,37 @@ func receiptField(t *testing.T, receipt umpireruntime.Receipt, definitionID stri
 	return values[0]
 }
 
+func receiptFactsByKind(receipt umpireruntime.Receipt, kind string) []umpireruntime.Fact {
+	facts := []umpireruntime.Fact{}
+	for _, fact := range receipt.Facts() {
+		if fact.KindDefinitionID() == kind {
+			facts = append(facts, fact)
+		}
+	}
+	return facts
+}
+
+func rawFactsByKind(facts []artifactv2.RawEvidenceFact, kind string) []artifactv2.RawEvidenceFact {
+	matched := []artifactv2.RawEvidenceFact{}
+	for _, fact := range facts {
+		if fact.KindDefinitionID == kind {
+			matched = append(matched, fact)
+		}
+	}
+	return matched
+}
+
+func factField(t *testing.T, fact umpireruntime.Fact, definitionID string) string {
+	t.Helper()
+	for _, field := range fact.Fields() {
+		if field.DefinitionID() == definitionID {
+			return field.Value()
+		}
+	}
+	require.FailNow(t, "missing fact field", definitionID)
+	return ""
+}
+
 func requireHandlerError(t *testing.T, err error, kind nexussdk.HandlerErrorType) {
 	t.Helper()
 	var handlerError *nexussdk.HandlerError
@@ -358,6 +621,71 @@ type recordingCleanupClient struct {
 	client.Client
 	terminations int
 	terminateErr error
+}
+
+type recordingRealizationClient struct {
+	client.Client
+	cancellations int
+	historyReads  int
+	onCancel      func() error
+}
+
+type unreadyClient struct {
+	client.Client
+	descriptions int
+}
+
+func (c *unreadyClient) DescribeTaskQueue(
+	context.Context,
+	string,
+	enumspb.TaskQueueType,
+) (*workflowservice.DescribeTaskQueueResponse, error) {
+	c.descriptions++
+	return nil, errors.New("not ready")
+}
+
+func (c *recordingRealizationClient) CancelWorkflow(
+	context.Context,
+	string,
+	string,
+) error {
+	c.cancellations++
+	if c.onCancel == nil {
+		return nil
+	}
+	return c.onCancel()
+}
+
+func (c *recordingRealizationClient) GetWorkflowHistory(
+	context.Context,
+	string,
+	string,
+	bool,
+	enumspb.HistoryEventFilterType,
+) client.HistoryEventIterator {
+	c.historyReads++
+	return nil
+}
+
+type recordingRealizationEnvironment struct {
+	local.Environment
+	sdkClient     client.Client
+	controlCounts []uint64
+}
+
+func (e *recordingRealizationEnvironment) Client() client.Client { return e.sdkClient }
+
+func (e *recordingRealizationEnvironment) Identities() local.Identities {
+	return local.Identities{}
+}
+
+func (e *recordingRealizationEnvironment) RecordControlCount(
+	_ umpireruntime.Command,
+	_ string,
+	count uint64,
+) error {
+	e.controlCounts = append(e.controlCounts, count)
+	return nil
 }
 
 func (c *recordingCleanupClient) TerminateWorkflow(
@@ -402,6 +730,16 @@ func (r fixedWorkflowRun) GetRunID() string { return r.runID }
 func checkedCallerClosureRequest(t *testing.T, suffix string) umpireruntime.CheckedRunRequest {
 	t.Helper()
 	request, err := CheckRequest(admitCallerClosureSet(t), "umpire.local.caller-closure."+suffix)
+	require.NoError(t, err)
+	return request
+}
+
+func checkedDuplicateDeliveryRequest(t *testing.T, suffix string) umpireruntime.CheckedRunRequest {
+	t.Helper()
+	request, err := CheckRequest(
+		admitCallerClosureDuplicateDeliverySet(t),
+		"umpire.local.caller-closure."+suffix,
+	)
 	require.NoError(t, err)
 	return request
 }
