@@ -18,6 +18,7 @@
   "impl_review_rounds": {
     "fn-21-nexus-duplicate-observation-control.1": 0,
     "fn-21-nexus-duplicate-observation-control.2": 0,
+    "fn-21-nexus-duplicate-observation-control.3": 0,
     "fn-21-nexus-duplicate-observation-control.7": 0
   },
   "next_task": 1,
@@ -343,11 +344,72 @@
       "timestamp": "2026-08-31T06:29:05.939303Z",
       "tool_calls": 28,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b4520650b3aa5df32c5437d0d78456b11d214103de1757e68f9e015406aba3dc",
+      "backend": "codex",
+      "base_sha": "7ba902576806a9d602b84f9f4b2b59ec601470cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7ff10a26973bbef797b89149cb97499bd5af1ecd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "transport_failure",
+      "output_bytes": 344962,
+      "output_sha256": "03b66209a2cedced8b0506b48b3bf308780401597f9b2b37e8c766d4b2d9c8ec",
+      "reservation_id": "8a5c383b33f64e069ee1b0306390ccd8",
+      "round_consumed": false,
+      "scope": "impl:fn-21-nexus-duplicate-observation-control.3",
+      "superseded_by": null,
+      "task": "fn-21-nexus-duplicate-observation-control.3",
+      "timestamp": "2026-08-31T07:27:50.711610Z",
+      "tool_calls": 15,
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "b4520650b3aa5df32c5437d0d78456b11d214103de1757e68f9e015406aba3dc",
+      "backend": "codex",
+      "base_sha": "7ba902576806a9d602b84f9f4b2b59ec601470cc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7ff10a26973bbef797b89149cb97499bd5af1ecd",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 378969,
+      "output_sha256": "77e7fe7f5c44c685cbedccc3a5362841cb326abd078e0d06b778e9cf10fa70bc",
+      "reservation_id": "b4f38799fecb4b649401cf3b35a9f2f9",
+      "round_consumed": true,
+      "scope": "impl:fn-21-nexus-duplicate-observation-control.3",
+      "superseded_by": null,
+      "task": "fn-21-nexus-duplicate-observation-control.3",
+      "timestamp": "2026-08-31T07:33:47.859708Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-21-nexus-duplicate-observation-control.1": 1,
     "impl:fn-21-nexus-duplicate-observation-control.2": 1,
+    "impl:fn-21-nexus-duplicate-observation-control.3": 1,
     "impl:fn-21-nexus-duplicate-observation-control.7": 1,
     "plan": 1,
     "plan#completion": 0
@@ -357,6 +419,7 @@
   "review_transport_failures": {
     "impl:fn-21-nexus-duplicate-observation-control.1": 0,
     "impl:fn-21-nexus-duplicate-observation-control.2": 0,
+    "impl:fn-21-nexus-duplicate-observation-control.3": 0,
     "impl:fn-21-nexus-duplicate-observation-control.7": 0,
     "plan": 0
   },
@@ -374,5 +437,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T06:29:05.952393Z"
+  "updated_at": "2026-08-31T07:33:47.871783Z"
 }
