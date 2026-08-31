@@ -1,0 +1,35 @@
+{
+  "formatVersion": "umpire-artifact-set/v2",
+  "artifactSetIdentity": "umpire.artifact-set.ee734997485e9c2aeb0f5aa6b2082a8084f7588f098e5d9e83f4bd46a8d22040",
+  "members": [
+    {
+      "path": "artifacts/experiment.json",
+      "formatVersion": "umpire-experiment/v2",
+      "artifactChecksum": "sha256:09091758defd5ce50cc9acbba23a5c8499da4eef9b6e36878ac989ddea87fedf",
+      "behaviorFingerprint": "sha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91",
+      "provenanceChecksum": "sha256:4136694dfede1044bbf391c5faba21a1a89a589890aa2915eb860a46942797c2"
+    },
+    {
+      "path": "artifacts/runtime-configuration.json",
+      "formatVersion": "umpire-runtime-configuration/v2",
+      "artifactChecksum": "sha256:440c0632b911571e4efb34c96fb4c4c7096fbd52f23900ed4784e037370063cf",
+      "behaviorFingerprint": "sha256:d88670a6766c2ef9037c82183f00c1c42179a7578c3c4c07714eadb5540750c0",
+      "provenanceChecksum": "sha256:b11d3931cdb55c2331ca816a912cca8113032c8d29a8e81a37d473c261345b5a"
+    },
+    {
+      "path": "artifacts/experiment-run.json",
+      "formatVersion": "umpire-experiment-run/v2",
+      "artifactChecksum": "sha256:80b3d8bec05b067c1aa091a389fc4a8b286f651911f73582d089fe3fe8840f08",
+      "behaviorFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
+    },
+    {
+      "path": "artifacts/raw-evidence.json",
+      "formatVersion": "umpire-raw-evidence/v2",
+      "artifactChecksum": "sha256:f461d066a480527dbd7a797fb5f53ba6c91b24e9fb5eb3a8ff03296d69b5b852",
+      "behaviorFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
+    }
+  ],
+  "artifactSetChecksum": "sha256:f573d44183a97c969c9b1125c29251d94c4542303b3cc6295b293761fe12505e"
+}

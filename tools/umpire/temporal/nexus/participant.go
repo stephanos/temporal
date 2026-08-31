@@ -25,7 +25,8 @@ const (
 	runtimeCodeTimedOut    = "umpire.runtime.code.timed-out"
 	runtimeCodeUnsupported = "umpire.runtime.code.unsupported"
 
-	duplicateObservationFactKind = "temporal.nexus.caller-closure.marker.injected-duplicate-delivery-observation"
+	duplicateDeliveryFaultReceiptDefinitionID = "temporal.nexus.caller-closure.fault-receipt.duplicate-delivery-observation"
+	duplicateObservationFactKind              = "temporal.nexus.caller-closure.marker.injected-duplicate-delivery-observation"
 )
 
 type commandAdapter interface {
@@ -413,21 +414,28 @@ func (a *sdkCommandAdapter) contributeDuplicateObservation(
 	}
 	a.duplicateObservation = duplicateObservationContributed
 	values := map[string]string{
-		umpireruntime.EvidenceFieldCommandKind:            string(command.Kind()),
-		umpireruntime.EvidenceFieldOperationCorrelationID: correlations.operation,
-		umpireruntime.EvidenceFieldRunCorrelationID:       command.RunIdentity(),
-		umpireruntime.EvidenceFieldStatus:                 string(umpireruntime.ReceiptAccepted),
-		umpireruntime.EvidenceFieldWorkflowCorrelationID:  correlations.workflow,
+		umpireruntime.EvidenceFieldCancellationCompletedCount:  "1",
+		umpireruntime.EvidenceFieldCancellationRequestedCount:  "1",
+		umpireruntime.EvidenceFieldCapabilityDefinitionID:      "nexus.capability.cancellation",
+		umpireruntime.EvidenceFieldCommandKind:                 string(command.Kind()),
+		umpireruntime.EvidenceFieldFaultDefinitionID:           duplicateDeliveryFaultDefinitionID,
+		umpireruntime.EvidenceFieldFaultReceiptDefinitionID:    duplicateDeliveryFaultReceiptDefinitionID,
+		umpireruntime.EvidenceFieldOperationCorrelationID:      correlations.operation,
+		umpireruntime.EvidenceFieldRunCorrelationID:            command.RunIdentity(),
+		umpireruntime.EvidenceFieldStatus:                      string(umpireruntime.ReceiptAccepted),
+		umpireruntime.EvidenceFieldSyntheticContributionCount:  "1",
+		umpireruntime.EvidenceFieldSyntheticContributionMarker: duplicateObservationFactKind,
+		umpireruntime.EvidenceFieldWorkflowCorrelationID:       correlations.workflow,
 	}
 	fields, err := checkedFields(values)
 	if err != nil {
 		return nil, err
 	}
 	fact, err := umpireruntime.NewFact(
-		factIdentity("participant-duplicate-delivery-observation", command.RunIdentity()),
+		factIdentity("participant-synthetic-duplicate-delivery-observation", command.RunIdentity()),
 		umpireruntime.EvidenceSourceParticipantOutput,
 		duplicateObservationFactKind,
-		[]string{},
+		[]string{factIdentity("participant-realize", command.RunIdentity())},
 		fields,
 	)
 	if err != nil {

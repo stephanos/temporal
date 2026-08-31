@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 
@@ -203,6 +205,264 @@ func TestValidateExecutionClosureAdmitsOnlyTheClosedMechanicalFourMemberSet(t *t
 	}
 }
 
+func TestFaultedExecutionFixtureIsTheExactClosedFourMemberSet(t *testing.T) {
+	executable, expected, run, rawEvidence := closedFaultedExecutionFixture(t)
+	require.NoError(t, validateExecutionClosure(executable, expected, run, rawEvidence))
+
+	root := filepath.Join("testdata", "caller-closure-duplicate-delivery-run-set")
+	files := make(map[string][]byte, 5)
+	for _, path := range []string{
+		"artifacts/experiment.json",
+		"artifacts/runtime-configuration.json",
+		"artifacts/experiment-run.json",
+		"artifacts/raw-evidence.json",
+		"manifest.json",
+	} {
+		encoded, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(path)))
+		require.NoError(t, err)
+		files[path] = encoded
+	}
+	actual, err := artifact.AdmitSetFiles(files)
+	require.NoError(t, err)
+	require.Equal(t, expected.Identity(), actual.Identity())
+	require.Equal(t, expected.Checksum(), actual.Checksum())
+	require.Equal(t, expected.ManifestSHA256(), actual.ManifestSHA256())
+	require.Equal(t, expected.ManifestBytes(), actual.ManifestBytes())
+
+	for _, path := range []string{
+		"artifacts/experiment.json",
+		"artifacts/runtime-configuration.json",
+	} {
+		normal, err := os.ReadFile(filepath.Join("testdata", "caller-closure-input-set", path))
+		require.NoError(t, err)
+		before, err := os.ReadFile(filepath.Join("testdata", "caller-closure-duplicate-delivery-input-set", path))
+		require.NoError(t, err)
+		after := files[path]
+		require.Equal(t, before, after)
+		require.NotEqual(t, normal, after)
+	}
+}
+
+func TestFaultedExecutionRejectsImpossibleReceiptAndObservationOrder(t *testing.T) {
+	t.Run("missing control receipt cannot bind", func(t *testing.T) {
+		executable, _, run, rawEvidence := closedFaultedExecutionFixture(t)
+		receiptID := *run.ControlAttempts[0].ReceiptFactDefinitionID
+		facts := make([]artifactv2.RawEvidenceFact, 0, len(rawEvidence.Facts)-1)
+		for _, fact := range rawEvidence.Facts {
+			if fact.FactDefinitionID != receiptID {
+				facts = append(facts, fact)
+			}
+		}
+		rawEvidence.Facts = facts
+		rawEvidence.Sources[1].FactCount = artifactv2.NaturalFromUint64(0)
+		run.SourceClosures[1].RecordCount = artifactv2.NaturalFromUint64(0)
+		recomputeFixtureByteCounts(t, &run, &rawEvidence)
+		run = sealRun(t, run)
+		rawEvidence.Run = artifactv2.ExperimentRunArtifactBinding(run)
+		rawEvidence = sealRawEvidence(t, rawEvidence)
+
+		_, err := executable.AdmitExecution(run, rawEvidence)
+		require.Error(t, err)
+	})
+
+	t.Run("synthetic contribution cannot precede callback", func(t *testing.T) {
+		executable, _, run, rawEvidence := closedFaultedExecutionFixture(t)
+		index := rawFactIndexByKind(t, &rawEvidence, duplicateObservationFactKind)
+		rawEvidence.Facts[index].Ordinal = artifactv2.NaturalFromUint64(0)
+
+		require.Error(t, validateDuplicateDeliveryEvidence(executable, run, rawEvidence))
+	})
+}
+
+func TestValidateExecutionClosureEnforcesTheFaultedEvidenceOutcomeTable(t *testing.T) {
+	executable, admitted, run, rawEvidence := closedFaultedExecutionFixture(t)
+	require.NoError(t, validateExecutionClosure(executable, admitted, run, rawEvidence))
+
+	for _, test := range []struct {
+		name       string
+		wantStatus string
+		wantError  bool
+		mutate     func(*artifactv2.ExperimentRun, *artifactv2.RawEvidence)
+	}{
+		{
+			name:       "capacity gap is operationally incomplete",
+			wantStatus: "incomplete",
+			mutate: func(run *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				subject := umpireruntime.EvidenceSourceParticipantOutput
+				gap := artifactv2.KnownGap{
+					Kind: "input", Code: "umpire.evidence.gap.capacity", Subject: &subject,
+				}
+				run.OperationalStatus = "incomplete"
+				run.SourceClosures[3].Status = "partial"
+				run.KnownGaps = []artifactv2.KnownGap{gap}
+				rawEvidence.CaptureStatus = "partial"
+				rawEvidence.Sources[3].Status = "partial"
+				rawEvidence.KnownGaps = []artifactv2.KnownGap{gap}
+			},
+		},
+		{
+			name:       "cleanup failure is operationally failed",
+			wantStatus: "failed",
+			mutate: func(run *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				phaseCode := "umpire.runtime.phase.cleanup.failed"
+				cleanupCode := "umpire.runtime.cleanup.failed"
+				run.OperationalStatus = "failed"
+				run.PhaseOutcomes[4].Status = "failed"
+				run.PhaseOutcomes[4].Code = &phaseCode
+				run.SourceClosures[0].Status = "failed"
+				run.Cleanup.Status = "failed"
+				run.Cleanup.Code = &cleanupCode
+				rawEvidence.CaptureStatus = "failed"
+				rawEvidence.Sources[0].Status = "failed"
+			},
+		},
+		{
+			name: "missing injected marker is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				removeRawField(rawEvidence, umpireruntime.EvidenceFieldSyntheticContributionMarker)
+			},
+			wantError: true,
+		},
+		{
+			name: "duplicate synthetic contribution count is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				setRawFieldOnKind(rawEvidence, duplicateObservationFactKind,
+					umpireruntime.EvidenceFieldSyntheticContributionCount, json.Number("2"))
+			},
+			wantError: true,
+		},
+		{
+			name: "duplicate mechanical callback count is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				setRawField(rawEvidenceFactsWithField(*rawEvidence,
+					umpireruntime.EvidenceFieldCancellationCallbackCount)[0].Fields,
+					umpireruntime.EvidenceFieldCancellationCallbackCount, json.Number("2"))
+			},
+			wantError: true,
+		},
+		{
+			name: "fault identity drift is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				setRawFieldOnKind(rawEvidence, duplicateObservationFactKind,
+					umpireruntime.EvidenceFieldFaultDefinitionID, "temporal.nexus.fault.other")
+			},
+			wantError: true,
+		},
+		{
+			name: "fault receipt is required",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				removeRawField(rawEvidence, umpireruntime.EvidenceFieldFaultReceiptDefinitionID)
+			},
+			wantError: true,
+		},
+		{
+			name: "cross-run correlation is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				setRawFieldOnKind(rawEvidence, duplicateObservationFactKind,
+					umpireruntime.EvidenceFieldRunCorrelationID, "umpire.local.caller-closure.other-run")
+			},
+			wantError: true,
+		},
+		{
+			name: "shared stale correlation is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				for factIndex := range rawEvidence.Facts {
+					setRawField(rawEvidence.Facts[factIndex].Fields,
+						umpireruntime.EvidenceFieldOperationCorrelationID,
+						"runtime.correlation.operation.stale")
+				}
+			},
+			wantError: true,
+		},
+		{
+			name: "missing callback causality is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				index := rawFactIndexByKind(t, rawEvidence, duplicateObservationFactKind)
+				rawEvidence.Facts[index].CausalFactDefinitionIDs = []string{}
+			},
+			wantError: true,
+		},
+		{
+			name: "missing completed cancellation lifecycle is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				setRawFieldOnHistoryEvent(rawEvidence,
+					"temporal.history.NexusOperationCancelRequestCompleted",
+					umpireruntime.EvidenceFieldEventType,
+					"temporal.history.WorkflowTaskCompleted")
+			},
+			wantError: true,
+		},
+		{
+			name: "second cancellation request chain is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				setRawFieldOnHistoryEvent(rawEvidence,
+					"temporal.history.WorkflowExecutionStarted",
+					umpireruntime.EvidenceFieldEventType,
+					"temporal.history.NexusOperationCancelRequested")
+			},
+			wantError: true,
+		},
+		{
+			name: "second distinct synthetic contribution is an invariant",
+			mutate: func(run *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				index := rawFactIndexByKind(t, rawEvidence, duplicateObservationFactKind)
+				duplicate := rawEvidence.Facts[index]
+				duplicate.FactDefinitionID += ".second"
+				duplicate.Ordinal = artifactv2.NaturalFromUint64(2)
+				duplicate.CausalFactDefinitionIDs = append(
+					[]string(nil), duplicate.CausalFactDefinitionIDs...)
+				duplicate.Fields = append([]artifactv2.RawEvidenceField(nil), duplicate.Fields...)
+				rawEvidence.Facts = append(rawEvidence.Facts, duplicate)
+				rawEvidence.Sources[3].FactCount = artifactv2.NaturalFromUint64(3)
+				run.SourceClosures[3].RecordCount = artifactv2.NaturalFromUint64(3)
+			},
+			wantError: true,
+		},
+		{
+			name: "unusable marker disposition is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				index := rawFactIndexByKind(t, rawEvidence, duplicateObservationFactKind)
+				setRawFieldDisposition(rawEvidence.Facts[index].Fields,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker, "redacted")
+				setRawField(rawEvidence.Facts[index].Fields,
+					umpireruntime.EvidenceFieldSyntheticContributionMarker, nil)
+			},
+			wantError: true,
+		},
+		{
+			name: "unsafe payload field is an invariant",
+			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
+				index := rawFactIndexByKind(t, rawEvidence, duplicateObservationFactKind)
+				fields := rawEvidence.Facts[index].Fields
+				last := len(fields) - 1
+				fields = append(fields, artifactv2.RawEvidenceField{})
+				copy(fields[last+1:], fields[last:])
+				fields[last] = plainField("umpire.evidence.field.unsafe-payload", "secret")
+				rawEvidence.Facts[index].Fields = fields
+			},
+			wantError: true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			executable, _, run, rawEvidence := closedFaultedExecutionFixture(t)
+			test.mutate(&run, &rawEvidence)
+			recomputeFixtureByteCounts(t, &run, &rawEvidence)
+			run = sealRun(t, run)
+			rawEvidence.Run = artifactv2.ExperimentRunArtifactBinding(run)
+			rawEvidence = sealRawEvidence(t, rawEvidence)
+			candidate, err := executable.AdmitExecution(run, rawEvidence)
+			require.NoError(t, err)
+			err = validateExecutionClosure(executable, candidate, run, rawEvidence)
+			if test.wantError {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, test.wantStatus, run.OperationalStatus)
+		})
+	}
+}
+
 func closedCallerHistory() []*historypb.HistoryEvent {
 	return []*historypb.HistoryEvent{
 		{EventId: 1, EventType: enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_STARTED},
@@ -224,19 +484,6 @@ func mutateHistory(
 	}
 	mutate(cloned)
 	return cloned
-}
-
-func requestCorrelations(request umpireruntime.CheckedRunRequest) adapterCorrelations {
-	result := adapterCorrelations{}
-	for _, correlation := range request.Correlations() {
-		switch correlation.Kind() {
-		case umpireruntime.CorrelationWorkflow:
-			result.workflow = correlation.Identity()
-		case umpireruntime.CorrelationOperation:
-			result.operation = correlation.Identity()
-		}
-	}
-	return result
 }
 
 func factFieldValue(t *testing.T, fact umpireruntime.Fact, definitionID string) string {
@@ -291,7 +538,30 @@ func closedExecutionFixture(t *testing.T) (
 	artifactv2.RawEvidence,
 ) {
 	t.Helper()
-	input := admitCallerClosureSet(t)
+	return closedExecutionFixtureWithInput(t, admitCallerClosureSet(t), false)
+}
+
+func closedFaultedExecutionFixture(t *testing.T) (
+	artifact.ExecutableSet,
+	artifact.AdmittedSet,
+	artifactv2.ExperimentRun,
+	artifactv2.RawEvidence,
+) {
+	t.Helper()
+	return closedExecutionFixtureWithInput(t, admitCallerClosureDuplicateDeliverySet(t), true)
+}
+
+func closedExecutionFixtureWithInput(
+	t *testing.T,
+	input artifact.AdmittedSet,
+	faulted bool,
+) (
+	artifact.ExecutableSet,
+	artifact.AdmittedSet,
+	artifactv2.ExperimentRun,
+	artifactv2.RawEvidence,
+) {
+	t.Helper()
 	executable, ok := input.Executable()
 	require.True(t, ok)
 	experiment := executable.Experiment()
@@ -301,11 +571,15 @@ func closedExecutionFixture(t *testing.T) (
 	runIdentity := "umpire.local.caller-closure.closed-fixture"
 	receiptID := "umpire.runtime.fact.control-receipt.fixture"
 
+	participantFacts := uint64(1)
+	if faulted {
+		participantFacts++
+	}
 	sources := []artifactv2.RawEvidenceSource{
 		closedSource(umpireruntime.EvidenceSourceCleanup, 1),
 		closedSource(umpireruntime.EvidenceSourceControlReceipt, 1),
 		closedSource(umpireruntime.EvidenceSourceHistory, 6),
-		closedSource(umpireruntime.EvidenceSourceParticipantOutput, 1),
+		closedSource(umpireruntime.EvidenceSourceParticipantOutput, participantFacts),
 	}
 	run := artifactv2.ExperimentRun{
 		FormatVersion:        artifactv2.ExperimentRunFormat,
@@ -333,7 +607,7 @@ func closedExecutionFixture(t *testing.T) (
 			closedClosure(umpireruntime.EvidenceSourceCleanup, 1),
 			closedClosure(umpireruntime.EvidenceSourceControlReceipt, 1),
 			closedClosure(umpireruntime.EvidenceSourceHistory, 6),
-			closedClosure(umpireruntime.EvidenceSourceParticipantOutput, 1),
+			closedClosure(umpireruntime.EvidenceSourceParticipantOutput, participantFacts),
 		},
 		Cleanup:    artifactv2.CleanupOutcome{Status: "complete", OpenHandleCount: artifactv2.NaturalFromUint64(0)},
 		Limits:     configuration.PhaseLimits,
@@ -342,7 +616,9 @@ func closedExecutionFixture(t *testing.T) (
 	}
 	run = sealRun(t, run)
 
-	correlations := requestCorrelations(checkedCallerClosureRequest(t, "closed-fixture"))
+	request, err := CheckRequest(input, runIdentity)
+	require.NoError(t, err)
+	correlations := requestCorrelations(request)
 	facts := []artifactv2.RawEvidenceFact{
 		{
 			FactDefinitionID:        "umpire.runtime.fact.cleanup.fixture",
@@ -400,13 +676,44 @@ func closedExecutionFixture(t *testing.T) (
 		CausalFactDefinitionIDs: []string{},
 		Fields: []artifactv2.RawEvidenceField{
 			plainNumberField(umpireruntime.EvidenceFieldCancellationCallbackCount, "1"),
+			plainField(umpireruntime.EvidenceFieldCommandKind, "realize"),
 			{
 				FieldDefinitionID: umpireruntime.EvidenceFieldEndpointIdentity,
 				Disposition:       "sha256",
 				Value:             testDigest('e'),
 			},
+			plainField(umpireruntime.EvidenceFieldOperationCorrelationID, correlations.operation),
+			plainField(umpireruntime.EvidenceFieldRunCorrelationID, runIdentity),
+			plainField(umpireruntime.EvidenceFieldStatus, "accepted"),
+			plainField(umpireruntime.EvidenceFieldWorkflowCorrelationID, correlations.workflow),
 		},
 	})
+	if faulted {
+		facts = append(facts, artifactv2.RawEvidenceFact{
+			FactDefinitionID:        "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+			SourceDefinitionID:      umpireruntime.EvidenceSourceParticipantOutput,
+			Ordinal:                 artifactv2.NaturalFromUint64(1),
+			KindDefinitionID:        duplicateObservationFactKind,
+			CausalFactDefinitionIDs: []string{"umpire.runtime.fact.participant.fixture"},
+			Fields: []artifactv2.RawEvidenceField{
+				plainNumberField(umpireruntime.EvidenceFieldCancellationCompletedCount, "1"),
+				plainNumberField(umpireruntime.EvidenceFieldCancellationRequestedCount, "1"),
+				plainField(umpireruntime.EvidenceFieldCapabilityDefinitionID, "nexus.capability.cancellation"),
+				plainField(umpireruntime.EvidenceFieldCommandKind, "realize"),
+				plainField(umpireruntime.EvidenceFieldFaultDefinitionID,
+					duplicateDeliveryFaultDefinitionID),
+				plainField(umpireruntime.EvidenceFieldFaultReceiptDefinitionID,
+					duplicateDeliveryFaultReceiptDefinitionID),
+				plainField(umpireruntime.EvidenceFieldOperationCorrelationID, correlations.operation),
+				plainField(umpireruntime.EvidenceFieldRunCorrelationID, runIdentity),
+				plainField(umpireruntime.EvidenceFieldStatus, "accepted"),
+				plainNumberField(umpireruntime.EvidenceFieldSyntheticContributionCount, "1"),
+				plainField(umpireruntime.EvidenceFieldSyntheticContributionMarker,
+					duplicateObservationFactKind),
+				plainField(umpireruntime.EvidenceFieldWorkflowCorrelationID, correlations.workflow),
+			},
+		})
+	}
 	rawEvidence := artifactv2.RawEvidence{
 		FormatVersion:        artifactv2.RawEvidenceFormat,
 		RunIdentity:          runIdentity,
@@ -522,6 +829,69 @@ func setRawField(fields []artifactv2.RawEvidenceField, definitionID string, valu
 			return
 		}
 	}
+}
+
+func setRawFieldOnKind(
+	rawEvidence *artifactv2.RawEvidence,
+	kindDefinitionID string,
+	fieldDefinitionID string,
+	value any,
+) {
+	for index := range rawEvidence.Facts {
+		if rawEvidence.Facts[index].KindDefinitionID == kindDefinitionID {
+			setRawField(rawEvidence.Facts[index].Fields, fieldDefinitionID, value)
+			return
+		}
+	}
+}
+
+func setRawFieldOnHistoryEvent(
+	rawEvidence *artifactv2.RawEvidence,
+	eventType string,
+	fieldDefinitionID string,
+	value any,
+) {
+	for index := range rawEvidence.Facts {
+		fact := rawEvidence.Facts[index]
+		if fact.SourceDefinitionID != umpireruntime.EvidenceSourceHistory {
+			continue
+		}
+		actual, err := rawStringField(fact, umpireruntime.EvidenceFieldEventType)
+		if err == nil && actual == eventType {
+			setRawField(rawEvidence.Facts[index].Fields, fieldDefinitionID, value)
+			return
+		}
+	}
+}
+
+func removeRawField(rawEvidence *artifactv2.RawEvidence, definitionID string) {
+	for factIndex := range rawEvidence.Facts {
+		for fieldIndex := range rawEvidence.Facts[factIndex].Fields {
+			if rawEvidence.Facts[factIndex].Fields[fieldIndex].FieldDefinitionID == definitionID {
+				rawEvidence.Facts[factIndex].Fields = append(
+					rawEvidence.Facts[factIndex].Fields[:fieldIndex],
+					rawEvidence.Facts[factIndex].Fields[fieldIndex+1:]...,
+				)
+				return
+			}
+		}
+	}
+}
+
+func rawFactIndexByKind(
+	t *testing.T,
+	rawEvidence *artifactv2.RawEvidence,
+	kindDefinitionID string,
+) int {
+	t.Helper()
+	matches := []int{}
+	for index, fact := range rawEvidence.Facts {
+		if fact.KindDefinitionID == kindDefinitionID {
+			matches = append(matches, index)
+		}
+	}
+	require.Len(t, matches, 1)
+	return matches[0]
 }
 
 func setRawFieldID(fields []artifactv2.RawEvidenceField, definitionID string, replacement string) {
