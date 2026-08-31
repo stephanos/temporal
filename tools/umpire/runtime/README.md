@@ -25,6 +25,30 @@ The planning `ExperimentSpec` remains Lean-owned and byte-identical to the outpu
 program, RuntimeConfiguration meaning, and evidence-source contract. The Go test does not rebuild
 setup, action, order, observation, termination, or cleanup intent.
 
+## Hermetic CI portability
+
+The ordinary pinned CI command is:
+
+```sh
+mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/nexus/... -run '^TestHermeticCIPortability$'
+```
+
+`make umpire-check-regression` is the aggregate repository gate and invokes that same generated Go
+test. Both commands consume the byte-identical canonical v2 `ExperimentSpec` used by the local path,
+check its format, Artifact Checksum, Definition IDs, and Behavior Fingerprints before runtime IO,
+and compose the invocation-owned loopback runner with the shared Run Evaluation authority. The CI
+workflow supplies orchestration only; it does not construct or reinterpret semantic declarations.
+
+The portability proof compares stable typed semantic meaning: operational, Observation Evaluation,
+Implementation Link, Property and clause, Limit, Known Gap, and cleanup outcomes. Fresh local and CI
+executions may have different runtime-scoped transport identities such as run, correlation, trace,
+Evidence Link, output-set, and destination identities. Those differences do not permit the input
+Artifact Checksum or Behavior Fingerprints to drift and do not turn a semantic or operational
+non-success into portable success.
+
+Evaluation Profiles, Evaluation Receipts, provenance schemas, new artifact-set versions, Claim
+Assessment, remote, canary, and release work are excluded from this bounded hermetic proof.
+
 ## Library boundary
 
 `tools/umpire/runner` is the reusable generated-test handoff. It accepts an already-admitted exact
@@ -66,6 +90,7 @@ dispositions are closed too:
 A started operational failure or incomplete run remains an admitted Run plus RawEvidence when its
 closure is valid. Cleanup is still attempted exactly once through its independent bounded context.
 
-This slice proves operational execution only. It does not perform Observation Evaluation,
-Implementation Link checking, Property evaluation, semantic Run Evaluation, remote execution, CI
-qualification, replay, promotion, or Claim Assessment. Those remain downstream components.
+The runtime and runner libraries prove operational execution only. The generated portability test
+composes their output with the existing downstream Observation Evaluation, Implementation Link,
+Property evaluation, and Run Evaluation boundary; the libraries do not acquire that semantic
+authority themselves.
