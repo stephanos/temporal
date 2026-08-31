@@ -12,7 +12,9 @@
     "fn-20-local-execution-semantic-conformance"
   ],
   "id": "fn-27-hermetic-ci-execution-and-qualification",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-27-hermetic-ci-execution-and-qualification.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -256,15 +258,47 @@
       "task": null,
       "timestamp": "2026-08-26T14:33:24.484439Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b45efdc2e97a551fbd2b63f9b4f20f6409d6c9e3cc84a4ca952cf06e17c2e5b6",
+      "backend": "codex",
+      "base_sha": "152b91b1680f8649a0a7261d2864a3ac2dcc7bf3",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b211253a91be3223529ce69089dc94c905248426",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 246693,
+      "output_sha256": "b37b2c37c68e15891f6f572d40d25e8dacccbbce01dbca0e19b5d87e5236d5c1",
+      "reservation_id": "355a22bd55b34996af193c9a6d9e07f6",
+      "round_consumed": true,
+      "scope": "impl:fn-27-hermetic-ci-execution-and-qualification.1",
+      "superseded_by": null,
+      "task": "fn-27-hermetic-ci-execution-and-qualification.1",
+      "timestamp": "2026-08-31T16:10:01.598761Z",
+      "tool_calls": 17,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-27-hermetic-ci-execution-and-qualification.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-27-hermetic-ci-execution-and-qualification.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-27-hermetic-ci-execution-and-qualification.md",
@@ -281,5 +315,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T19:07:02.764506Z"
+  "updated_at": "2026-08-31T16:10:01.607458Z"
 }
