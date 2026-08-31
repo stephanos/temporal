@@ -151,8 +151,11 @@ func TestRealCheckerObservationMutationMatrix(t *testing.T) {
 	require.Equal(t, baseline, permuted)
 }
 
-func TestRealCheckerRejectsMisboundParticipantCancellationEvidence(t *testing.T) {
+func TestRealCheckerMisboundParticipantCancellationEvidenceIsSemanticConflict(t *testing.T) {
 	process := realCheckerProcess(t)
+	input := callerClosureExecutionFixture(t)
+	execution, ok := input.Execution()
+	require.True(t, ok)
 
 	for _, testCase := range []struct {
 		name   string
@@ -214,9 +217,18 @@ func TestRealCheckerRejectsMisboundParticipantCancellationEvidence(t *testing.T)
 			testCase.mutate(t, &request)
 
 			response, err := process.run(context.Background(), request)
-			require.Error(t, err)
-			require.ErrorIs(t, err, &checkerFailure{code: checkerFailureStderr})
-			require.Empty(t, response.CheckerIdentity)
+			require.NoError(t, err)
+			require.Equal(t, "conflict", response.ObservationEvaluationStatus)
+			require.Equal(t, "incomplete", response.SemanticStatus)
+			require.Empty(t, response.PropertyVerdicts)
+			require.Nil(t, response.EvidenceBackedModelTrace)
+			require.Len(t, response.Diagnostics, 1)
+			require.Equal(t, "contradictory-fact", response.Diagnostics[0].Kind)
+			evidence, result, err := constructEvaluation(execution, request, response)
+			require.NoError(t, err)
+			published, err := execution.AdmitEvaluation(evidence, result)
+			require.NoError(t, err)
+			require.NotEmpty(t, published.Identity())
 		})
 	}
 }
