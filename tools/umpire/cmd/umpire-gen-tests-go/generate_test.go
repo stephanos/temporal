@@ -56,6 +56,7 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 	parsed, err := parser.ParseFile(fileSet, "generated_test.go", generated, 0)
 	require.NoError(t, err)
 	var portabilityTest *ast.FuncDecl
+	var evaluationHelper *ast.FuncDecl
 	for _, declaration := range parsed.Decls {
 		function, ok := declaration.(*ast.FuncDecl)
 		if !ok {
@@ -68,12 +69,22 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 		if function.Name.Name == "TestHermeticCIPortability" {
 			portabilityTest = function
 		}
+		if function.Name.Name == "runCallerClosureEvaluation" {
+			evaluationHelper = function
+		}
 	}
 	require.NotNil(t, portabilityTest)
+	require.NotNil(t, evaluationHelper)
 	runnerCalls := 0
+	evaluationCalls := 0
 	ast.Inspect(portabilityTest.Body, func(node ast.Node) bool {
 		call, ok := node.(*ast.CallExpr)
 		if !ok {
+			return true
+		}
+		if identifier, ok := call.Fun.(*ast.Ident); ok &&
+			identifier.Name == "runCallerClosureEvaluation" {
+			evaluationCalls++
 			return true
 		}
 		selector, ok := call.Fun.(*ast.SelectorExpr)
@@ -87,6 +98,24 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 		return true
 	})
 	require.Equal(t, 1, runnerCalls)
+	require.Equal(t, 1, evaluationCalls)
+	commandCalls := 0
+	ast.Inspect(evaluationHelper.Body, func(node ast.Node) bool {
+		call, ok := node.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		selector, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok || selector.Sel.Name != "CommandContext" {
+			return true
+		}
+		identifier, ok := selector.X.(*ast.Ident)
+		if ok && identifier.Name == "exec" {
+			commandCalls++
+		}
+		return true
+	})
+	require.Equal(t, 1, commandCalls)
 	bodyStart := fileSet.Position(portabilityTest.Body.Pos()).Offset
 	bodyEnd := fileSet.Position(portabilityTest.Body.End()).Offset
 	body := encoded[bodyStart:bodyEnd]
@@ -94,6 +123,15 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 		strings.Index(body, "runevaluation.CheckSubject"),
 		strings.Index(body, "runner.Run("),
 	)
+	require.Greater(t,
+		strings.Index(body, "runCallerClosureEvaluation("),
+		strings.Index(body, "runner.Run("),
+	)
+	helperStart := fileSet.Position(evaluationHelper.Body.Pos()).Offset
+	helperEnd := fileSet.Position(evaluationHelper.Body.End()).Offset
+	helperBody := encoded[helperStart:helperEnd]
+	require.Contains(t, helperBody, `"umpire-check-local-run-evaluation"`)
+	require.NotContains(t, helperBody, "runevaluation.Check(")
 	require.Contains(t, body, `require.Equal(t, "complete", run.Cleanup.Status)`)
 	require.Contains(t, body, `require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)`)
 }
