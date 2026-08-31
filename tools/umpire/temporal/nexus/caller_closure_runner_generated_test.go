@@ -234,7 +234,11 @@ func runCallerClosurePath(
 	return outcome
 }
 
-func newCallerClosurePath(t *testing.T, runIdentity string) callerClosurePath {
+func newCallerClosurePath(
+	t *testing.T,
+	runIdentity string,
+	adapter runner.Adapter,
+) callerClosurePath {
 	t.Helper()
 	return callerClosurePath{
 		checkSubject: func() error {
@@ -260,7 +264,7 @@ func newCallerClosurePath(t *testing.T, runIdentity string) callerClosurePath {
 					},
 				},
 				runIdentity,
-				nexus.Binding{},
+				adapter,
 			)
 		},
 		evaluate: func(ctx context.Context, admitted artifact.AdmittedSet) (callerClosureEvaluation, error) {
@@ -340,8 +344,12 @@ func runCallerClosureEvaluation(
 func TestHermeticCIPortability(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 315*time.Second)
 	defer cancel()
-	localPath := newCallerClosurePath(t, "umpire.local.caller-closure.portability-reference-1")
-	ciPath := newCallerClosurePath(t, "umpire.ci.caller-closure.portability-proof-1")
+	localPath := newCallerClosurePath(
+		t, "umpire.local.caller-closure.portability-reference-1", nexus.Binding{},
+	)
+	ciPath := newCallerClosurePath(
+		t, "umpire.ci.caller-closure.portability-proof-1", nexus.Binding{},
+	)
 	localInput, err := localPath.admit()
 	require.NoError(t, err)
 	ciInput, err := ciPath.admit()
@@ -362,6 +370,7 @@ func TestHermeticCIPortability(t *testing.T) {
 	require.NotEqual(t, localOutcome.evaluation.result.RawEvidence, ciOutcome.evaluation.result.RawEvidence)
 	require.NotEqual(t, localOutcome.evaluation.result.Evidence, ciOutcome.evaluation.result.Evidence)
 	requireCallerClosureEqualResultMeaning(t, localOutcome.evaluation.result, ciOutcome.evaluation.result)
+	requireCallerClosureDistinctResultTransport(t, localOutcome.evaluation.result, ciOutcome.evaluation.result)
 	require.NotEqual(t, localResult.EvaluationOutcomeChecksum, ciResult.EvaluationOutcomeChecksum)
 	require.Equal(t, localResult.StableMeaning, ciResult.StableMeaning)
 	require.True(t, localResult.ProvesPortableSuccess(localResult.StableMeaning))
@@ -377,7 +386,9 @@ func TestHermeticCIPortability(t *testing.T) {
 	require.Equal(t, ciResult.EvaluationOutcomeChecksum, retryResult.EvaluationOutcomeChecksum)
 	require.NotEqual(t, ciOutcome.evaluation.summary.Destination, retryEvaluation.summary.Destination)
 	require.True(t, retryResult.ProvesPortableSuccess(localResult.StableMeaning))
-	requireCallerClosureBoundedProofMatrix(t, localResult.StableMeaning)
+	requireCallerClosureBoundedProofMatrix(
+		t, localResult.StableMeaning, callerClosureBoundedProofOutcomes(ctx, t, localOutcome),
+	)
 	limitOutcome := callerClosureLimitNPlusOneOutcome(ctx, t)
 	limitResult := retainCallerClosurePortabilityResult(limitOutcome)
 	require.False(t, limitResult.ProvesPortableSuccess(localResult.StableMeaning))
