@@ -20,6 +20,7 @@
     "fn-21-nexus-duplicate-observation-control.2": 0,
     "fn-21-nexus-duplicate-observation-control.3": 0,
     "fn-21-nexus-duplicate-observation-control.4": 0,
+    "fn-21-nexus-duplicate-observation-control.5": 1,
     "fn-21-nexus-duplicate-observation-control.7": 0
   },
   "next_task": 1,
@@ -516,6 +517,67 @@
       "task": "fn-21-nexus-duplicate-observation-control.4",
       "timestamp": "2026-08-31T09:36:23.912841Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b4f9902f71040828c4c1ebce56cb3660c5727c859d9fc1fb0469f97c54a42740",
+      "backend": "codex",
+      "base_sha": "13e7e5895586cde8871adf02cbe288753d3fde02",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5bfdaab98d74bcb4c321908131f1334c",
+            "classification": "introduced",
+            "findingId": "finding-5bfdaab98d74bcb4c321908131f1334c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-84e4df47b21ad1e467a7a3eb21a67488",
+            "classification": "introduced",
+            "findingId": "finding-84e4df47b21ad1e467a7a3eb21a67488",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d991fdb3674aad926fc2f0eb9100c886",
+            "classification": "introduced",
+            "findingId": "finding-d991fdb3674aad926fc2f0eb9100c886",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "30f5bb5592d72dfdb6f71ef60a656cc44ec5ad8a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 552005,
+      "output_sha256": "af1974c1c2c80365dcdce38bd63e402e78e68773b6e74b8709ef676482637271",
+      "reservation_id": "755f8cda906748edb9a3725f2ab93b1a",
+      "round_consumed": true,
+      "scope": "impl:fn-21-nexus-duplicate-observation-control.5",
+      "superseded_by": null,
+      "task": "fn-21-nexus-duplicate-observation-control.5",
+      "timestamp": "2026-08-31T11:10:23.195600Z",
+      "tool_calls": 25,
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -534,6 +596,7 @@
     "impl:fn-21-nexus-duplicate-observation-control.2": 0,
     "impl:fn-21-nexus-duplicate-observation-control.3": 0,
     "impl:fn-21-nexus-duplicate-observation-control.4": 0,
+    "impl:fn-21-nexus-duplicate-observation-control.5": 0,
     "impl:fn-21-nexus-duplicate-observation-control.7": 0,
     "plan": 0
   },
@@ -551,5 +614,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-31T09:36:23.918986Z"
+  "updated_at": "2026-08-31T11:10:23.211396Z"
 }
