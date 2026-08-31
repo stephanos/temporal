@@ -33,8 +33,28 @@ This task implements only its retained serial/black-box slice. Deferred control-
 - [ ] Focused tests pass, existing comments are preserved, and no deferred API or persisted format is introduced.
 
 ## Done summary
-TBD
+Blocked:
+The pre-implementation owner-control gate failed closed. No named owner-supplied fixed staging
+profile or staging harness is present in the Umpire 4 tree, repository automation/configuration,
+available environment capability names, or local Git refs.
 
+The repository's only remote execution implementation is the legacy Umpire 3 adapter/profile. It
+does not qualify: it consumes the Umpire 3 experiment family, permits caller-selected endpoint,
+namespace, and task queue values, and does not provide fn-28's fixed owner authority/target
+preflight or postflight target-identity contract. Its canary controller is production-oriented
+control-plane machinery explicitly deferred by fn-28.
+
+Missing external prerequisites:
+
+- a named fixed nonproduction profile and harness;
+- fail-closed owner authority and target-identity preflight;
+- owner-enforced concurrency one and fixed Execution/Evidence Limits;
+- owner-attested isolated namespace or Run-owned resources;
+- cleanup verification and postflight target identity;
+- a corresponding canary dry-run binding with no production Execution authority.
+
+Per `.plans/UMPIRE4_ORDER.md`, Umpire must not implement substitutes for these controls. No remote
+mutation or implementation was attempted.
 ## Evidence
 - Commits:
 - Tests:
