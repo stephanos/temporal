@@ -114,10 +114,6 @@ func sealEvaluationResult(
 	evidence artifactv2.Evidence,
 ) (artifactv2.Result, error) {
 	run := execution.ExperimentRun()
-	implementationStatus := "not-evaluated"
-	if response.ObservationEvaluationStatus == "accepted" {
-		implementationStatus = "applied"
-	}
 	result := artifactv2.Result{
 		FormatVersion:               artifactv2.ResultFormat,
 		RunIdentity:                 request.RunIdentity,
@@ -129,8 +125,8 @@ func sealEvaluationResult(
 		Evidence:                    artifactv2.EvidenceArtifactBinding(evidence),
 		OperationalStatus:           runtimeengine.OperationalStatus(run),
 		ObservationEvaluationStatus: response.ObservationEvaluationStatus,
-		ImplementationLink:          callerClosureImplementationLink(),
-		ImplementationLinkStatus:    implementationStatus,
+		ImplementationLink:          response.ImplementationLink,
+		ImplementationLinkStatus:    response.ImplementationLinkStatus,
 		PropertyVerdicts:            response.PropertyVerdicts,
 		QuerySummary:                response.QuerySummary,
 		SemanticStatus:              response.SemanticStatus,

@@ -29,6 +29,8 @@ func TestConstructEvaluationPreservesResponseAndAddsExactTransportClosure(t *tes
 	require.Equal(t, response.PropertyVerdicts, result.PropertyVerdicts)
 	require.Equal(t, response.QuerySummary, result.QuerySummary)
 	require.Equal(t, response.ResultKnownGaps, result.KnownGaps)
+	require.Equal(t, response.ImplementationLinkStatus, result.ImplementationLinkStatus)
+	require.Equal(t, response.ImplementationLink, result.ImplementationLink)
 	require.Equal(t, "incomplete", result.OperationalStatus)
 	require.Equal(t, execution.ExperimentRun().Cleanup.Status, result.CleanupStatus)
 	require.Equal(t, "not-evaluated", result.ImplementationLinkStatus)
@@ -126,6 +128,32 @@ func TestCheckWithCheckerAdmitsTheCompleteIndependentStatusMatrix(t *testing.T) 
 				require.NotEmpty(t, output.Identity())
 			})
 		}
+	}
+}
+
+func TestCheckWithCheckerAdmitsAcceptedNonAppliedImplementationLinkResults(t *testing.T) {
+	input := acceptedCallerClosureExecutionFixture(t, "succeeded")
+	execution, ok := input.Execution()
+	require.True(t, ok)
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+
+	for _, status := range []string{"unknown", "conflict", "unsupported"} {
+		t.Run(status, func(t *testing.T) {
+			response := nonAppliedCallerClosureResponse(t, request, status)
+			output, err := checkWithChecker(context.Background(), input,
+				func(context.Context, checkerRequest) (checkerResponse, error) { return response, nil })
+			require.NoError(t, err)
+			require.NotEmpty(t, output.Identity())
+
+			_, result, err := constructEvaluation(execution, request, response)
+			require.NoError(t, err)
+			require.Equal(t, response.ImplementationLink, result.ImplementationLink)
+			require.Equal(t, status, result.ImplementationLinkStatus)
+			require.Equal(t, "incomplete", result.SemanticStatus)
+			require.Empty(t, result.PropertyVerdicts)
+			require.Nil(t, result.EvaluationOutcomeChecksum)
+		})
 	}
 }
 
@@ -257,6 +285,13 @@ func TestCheckWithCheckerRejectsEverySemanticOutputInvariantClass(t *testing.T) 
 				ObservationPlanDefinitionID: callerClosureObservationProgramID,
 				RelatedDefinitionIDs:        []string{}, Alternatives: []string{},
 			}}
+		}},
+		{name: "Implementation Link binding", mutate: func(response *checkerResponse) {
+			response.ImplementationLink.DefinitionID =
+				"temporal.system.nexus.caller-closure.substituted-link"
+		}},
+		{name: "Implementation Link diagnostic matrix", mutate: func(response *checkerResponse) {
+			response.ImplementationLinkStatus = "unknown"
 		}},
 	} {
 		t.Run(testCase.name, func(t *testing.T) {
@@ -427,6 +462,8 @@ func acceptedCallerClosureResponse(t *testing.T, request checkerRequest, semanti
 		RuntimeConfigurationBehaviorFingerprint: request.RuntimeConfiguration.BehaviorFingerprint,
 		RunIdentity:                             request.RunIdentity,
 		ObservationEvaluationStatus:             "accepted",
+		ImplementationLink:                      callerClosureImplementationLink(),
+		ImplementationLinkStatus:                "applied",
 		EvidenceBackedModelTrace:                trace,
 		EvidenceLinks:                           evidence.EvidenceLinks,
 		Dispositions:                            evidence.Dispositions,
@@ -453,12 +490,47 @@ func nonAcceptedCallerClosureResponse(
 		"unsupported": "profile-mismatch",
 	}[observationStatus]
 	response.ObservationEvaluationStatus = observationStatus
+	response.ImplementationLinkStatus = "not-evaluated"
 	response.EvidenceBackedModelTrace = nil
 	response.EvidenceLinks = []artifactv2.EvidenceLink{}
 	response.Diagnostics = []artifactv2.ObservationDiagnostic{{
 		Kind: diagnosticKind, ObservationPlanDefinitionID: request.Mapping.DefinitionID,
 		RelatedDefinitionIDs: []string{}, Alternatives: []string{},
 	}}
+	response.PropertyVerdicts = []artifactv2.PropertyVerdict{}
+	response.QuerySummary.Status = "incomplete"
+	response.QuerySummary.PropertyVerdicts = []artifactv2.PropertyVerdict{}
+	response.QuerySummary.MissingPropertyDefinitionIDs = []string{request.Properties[0].DefinitionID}
+	response.QuerySummary.TraceIDs = []string{}
+	response.SemanticStatus = "incomplete"
+	response.EvaluationOutcomeChecksum = nil
+	return response
+}
+
+func nonAppliedCallerClosureResponse(
+	t *testing.T,
+	request checkerRequest,
+	implementationStatus string,
+) checkerResponse {
+	t.Helper()
+	response := acceptedCallerClosureResponse(t, request, "satisfied")
+	diagnostic := artifactv2.ImplementationLinkDiagnostic{
+		Kind: map[string]string{
+			"unknown": "absent-coordinate", "conflict": "duplicate-coordinate",
+			"unsupported": "unsupported-vocabulary",
+		}[implementationStatus],
+		Coordinate:           &artifactv2.ModelCoordinate{Kind: "initial-state"},
+		RelatedDefinitionIDs: []string{},
+	}
+	if implementationStatus == "unsupported" {
+		kind := "observation"
+		diagnostic.UnsupportedVocabularyKind = &kind
+	}
+	response.ImplementationLinkStatus = implementationStatus
+	response.ImplementationLink.Diagnostic = &diagnostic
+	identity, err := artifactv2.ExpectedImplementationLinkDiagnosticIdentity(response.ImplementationLink)
+	require.NoError(t, err)
+	response.ImplementationLink.Diagnostic.Identity = identity
 	response.PropertyVerdicts = []artifactv2.PropertyVerdict{}
 	response.QuerySummary.Status = "incomplete"
 	response.QuerySummary.PropertyVerdicts = []artifactv2.PropertyVerdict{}

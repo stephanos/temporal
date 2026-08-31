@@ -11,6 +11,22 @@
   "runtimeConfigurationBehaviorFingerprint": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
   "runIdentity": "temporal.run.caller-closure.fixture",
   "observationEvaluationStatus": "unknown",
+  "implementationLink": {
+    "behaviorFingerprint": "sha256:96b55d0e5a782099f66479c6ced603c08c8046b565f89435b5b2a54848aed777",
+    "definitionId": "temporal.system.nexus.caller-closure.implementation-link",
+    "destinationTarget": {
+      "behaviorFingerprint": "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd",
+      "definitionId": "workflow-nexus.target.caller-closure",
+      "kind": "target"
+    },
+    "diagnostic": null,
+    "sourceTarget": {
+      "behaviorFingerprint": "sha256:6729e790d336a96173ffd0ebe0b2b2d2406e6c5444596924f0c06c4ba9652bf8",
+      "definitionId": "temporal.system.nexus.caller-closure.target",
+      "kind": "target"
+    }
+  },
+  "implementationLinkStatus": "not-evaluated",
   "evidenceBackedModelTrace": null,
   "evidenceLinks": [],
   "dispositions": [],

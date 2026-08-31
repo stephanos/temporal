@@ -68,6 +68,8 @@ type checkerResponse struct {
 	RuntimeConfigurationBehaviorFingerprint string                               `json:"runtimeConfigurationBehaviorFingerprint"`
 	RunIdentity                             string                               `json:"runIdentity"`
 	ObservationEvaluationStatus             string                               `json:"observationEvaluationStatus"`
+	ImplementationLink                      artifactv2.ImplementationLinkRecord  `json:"implementationLink"`
+	ImplementationLinkStatus                string                               `json:"implementationLinkStatus"`
 	EvidenceBackedModelTrace                *artifactv2.EvidenceBackedModelTrace `json:"evidenceBackedModelTrace"`
 	EvidenceLinks                           []artifactv2.EvidenceLink            `json:"evidenceLinks"`
 	Dispositions                            []artifactv2.FieldDispositionRecord  `json:"dispositions"`
@@ -166,10 +168,6 @@ func projectCheckerEvidence(response checkerResponse, request checkerRequest) ar
 }
 
 func projectCheckerResult(response checkerResponse, request checkerRequest) artifactv2.Result {
-	implementationStatus := "not-evaluated"
-	if len(response.PropertyVerdicts) != 0 {
-		implementationStatus = "applied"
-	}
 	return artifactv2.Result{
 		FormatVersion:               artifactv2.ResultFormat,
 		RunIdentity:                 response.RunIdentity,
@@ -181,8 +179,8 @@ func projectCheckerResult(response checkerResponse, request checkerRequest) arti
 		Evidence:                    checkerEvidenceBinding(request),
 		OperationalStatus:           "succeeded",
 		ObservationEvaluationStatus: response.ObservationEvaluationStatus,
-		ImplementationLink:          checkerImplementationLink(request),
-		ImplementationLinkStatus:    implementationStatus,
+		ImplementationLink:          response.ImplementationLink,
+		ImplementationLinkStatus:    response.ImplementationLinkStatus,
 		PropertyVerdicts:            response.PropertyVerdicts,
 		QuerySummary:                response.QuerySummary,
 		SemanticStatus:              response.SemanticStatus,
@@ -212,23 +210,6 @@ func checkerEvidenceBinding(request checkerRequest) artifactv2.ArtifactBinding {
 	}
 }
 
-func checkerImplementationLink(request checkerRequest) artifactv2.ImplementationLinkRecord {
-	return artifactv2.ImplementationLinkRecord{
-		DefinitionID:        request.Mapping.DefinitionID,
-		BehaviorFingerprint: request.Mapping.BehaviorFingerprint,
-		SourceTarget: artifactv2.ImplementationTargetReference{
-			DefinitionID:        request.ObservationProgram.DefinitionID,
-			Kind:                "target",
-			BehaviorFingerprint: request.ObservationProgram.BehaviorFingerprint,
-		},
-		DestinationTarget: artifactv2.ImplementationTargetReference{
-			DefinitionID:        request.Query.DefinitionID,
-			Kind:                "target",
-			BehaviorFingerprint: request.Query.BehaviorFingerprint,
-		},
-	}
-}
-
 func checkerValidationProvenance() artifactv2.Provenance {
 	one := artifactv2.NaturalFromUint64(1)
 	return artifactv2.Provenance{
@@ -240,6 +221,11 @@ func checkerValidationProvenance() artifactv2.Provenance {
 }
 
 func validateCheckerSemanticBindings(response checkerResponse, request checkerRequest) error {
+	implementationLink := response.ImplementationLink
+	implementationLink.Diagnostic = nil
+	if !reflect.DeepEqual(implementationLink, callerClosureImplementationLink()) {
+		return errors.New("checker response Implementation Link binding drifted")
+	}
 	if response.QuerySummary.QueryDefinitionID != request.Query.DefinitionID {
 		return errors.New("checker response query binding drifted")
 	}
@@ -477,6 +463,8 @@ func validateCheckerResponseBindings(response checkerResponse) error {
 
 func validateCheckerResponseSemanticValues(response checkerResponse) error {
 	if !oneOf(response.ObservationEvaluationStatus, "accepted", "unknown", "conflict", "unsupported") ||
+		!oneOf(response.ImplementationLinkStatus,
+			"applied", "not-evaluated", "invalid", "unknown", "conflict", "unsupported") ||
 		!oneOf(response.SemanticStatus, "satisfied", "violated", "incomplete") ||
 		!oneOf(response.QuerySummary.Status, "satisfied", "violated", "incomplete") {
 		return errors.New("checker response status is invalid")

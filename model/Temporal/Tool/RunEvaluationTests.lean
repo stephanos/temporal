@@ -182,6 +182,8 @@ example : evaluation.implementationLink.map ImplementationLinkResult.status = so
   native_decide
 example : evaluation.querySummary.status = .satisfied := by native_decide
 example : response.observationEvaluationStatus = "accepted" &&
+    response.implementationLinkStatus = "applied" &&
+    (response.implementationLink.getObjVal? "diagnostic").toOption == some .null &&
     response.semanticStatus = "satisfied" && response.evaluationOutcomeChecksum.isSome := by
   native_decide
 example : checkerResult.status = 0 && checkerResult.stderr.isEmpty &&
@@ -473,7 +475,9 @@ private def jsonArrayEmpty (value : Lean.Json) : Bool :=
   | .error _ => false
 
 private def incompleteProjection (candidate : Response) : Bool :=
-  jsonArrayEmpty candidate.propertyVerdicts && candidate.semanticStatus == "incomplete" &&
+  candidate.implementationLinkStatus == "not-evaluated" &&
+    (candidate.implementationLink.getObjVal? "diagnostic").toOption == some .null &&
+    jsonArrayEmpty candidate.propertyVerdicts && candidate.semanticStatus == "incomplete" &&
     candidate.evaluationOutcomeChecksum.isNone &&
     (candidate.querySummary.getObjVal? "status").toOption.bind
       (fun value => value.getStr?.toOption) == some "incomplete" &&
