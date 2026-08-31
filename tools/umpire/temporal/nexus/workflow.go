@@ -86,7 +86,7 @@ func (o *callerClosureOperation) Cancel(
 		return nonRetryableHandlerError(nexussdk.HandlerErrorTypeBadRequest, "unsupported token")
 	}
 	if o.cancelCount != 0 {
-		return nonRetryableHandlerError(nexussdk.HandlerErrorTypeConflict, "duplicate cancel")
+		return nil
 	}
 	o.cancelCount = 1
 	close(o.canceled)
