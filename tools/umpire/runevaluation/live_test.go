@@ -30,6 +30,11 @@ var liveCallerClosureBinding = runner.InputBinding{
 	ExperimentBehaviorFingerprint:           "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
 	RuntimeConfigurationArtifactChecksum:    "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5",
 	RuntimeConfigurationBehaviorFingerprint: "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
+	AuthorityRequiredCapabilityDefinitionIDs: []string{
+		"umpire.runtime.capability.complete-workflow-history-read",
+		"umpire.runtime.capability.ephemeral-server-lifecycle",
+		"umpire.runtime.capability.sdk-worker-lifecycle",
+	},
 }
 
 type liveEvaluationSummary struct {

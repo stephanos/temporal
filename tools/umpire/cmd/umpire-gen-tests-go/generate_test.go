@@ -1,6 +1,9 @@
 package main
 
 import (
+	"go/ast"
+	"go/parser"
+	"go/token"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,10 +51,51 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 	require.Contains(t, encoded, `"sha256:528c23e7807ee9833af65baeb32a8ec2d38ffacc1fae829600692d3d3eb93fd1"`)
 	require.Contains(t, encoded, "ImplementationLinkID:")
 	require.Contains(t, encoded, `"temporal.system.nexus.caller-closure.implementation-link"`)
+
+	fileSet := token.NewFileSet()
+	parsed, err := parser.ParseFile(fileSet, "generated_test.go", generated, 0)
+	require.NoError(t, err)
+	var portabilityTest *ast.FuncDecl
+	for _, declaration := range parsed.Decls {
+		function, ok := declaration.(*ast.FuncDecl)
+		if !ok {
+			continue
+		}
+		require.NotEqual(t,
+			"TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally",
+			function.Name.Name,
+		)
+		if function.Name.Name == "TestHermeticCIPortability" {
+			portabilityTest = function
+		}
+	}
+	require.NotNil(t, portabilityTest)
+	runnerCalls := 0
+	ast.Inspect(portabilityTest.Body, func(node ast.Node) bool {
+		call, ok := node.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		selector, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok || selector.Sel.Name != "Run" {
+			return true
+		}
+		identifier, ok := selector.X.(*ast.Ident)
+		if ok && identifier.Name == "runner" {
+			runnerCalls++
+		}
+		return true
+	})
+	require.Equal(t, 1, runnerCalls)
+	bodyStart := fileSet.Position(portabilityTest.Body.Pos()).Offset
+	bodyEnd := fileSet.Position(portabilityTest.Body.End()).Offset
+	body := encoded[bodyStart:bodyEnd]
 	require.Less(t,
-		strings.Index(encoded, "runevaluation.CheckSubject"),
-		strings.Index(encoded, "runner.Run("),
+		strings.Index(body, "runevaluation.CheckSubject"),
+		strings.Index(body, "runner.Run("),
 	)
+	require.Contains(t, body, `require.Equal(t, "complete", run.Cleanup.Status)`)
+	require.Contains(t, body, `require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)`)
 }
 
 func TestRunRegeneratesOnlyTheDeterministicGoTest(t *testing.T) {
