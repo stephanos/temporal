@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus.Experimental.CallerClosure
+import Temporal.Feature.Nexus.Experimental.CallerClosureFault
 import Temporal.System.Execution.Nexus
 
 namespace Temporal.NexusExecutionIntegrationTests
@@ -16,6 +17,24 @@ private def canonicalExecutionDefinition : ExecutionDefinition :=
 
 private def canonicalRuntimeConfiguration : RuntimeConfiguration :=
   runtimeConfigurationFor canonicalExperiment
+
+private def faultedExperiments : List ExperimentSpec :=
+  Temporal.Feature.Nexus.Experimental.CallerClosureFault.batchResult.toOption.get
+    (by native_decide)
+
+private def faultedExperiment : ExperimentSpec :=
+  faultedExperiments.tail.head?.get (by native_decide)
+
+private def faultedExecutionDefinition : ExecutionDefinition :=
+  duplicateDeliveryExecutionDefinitionFor faultedExperiment
+
+private theorem duplicateDeliveryExecution_isSome :
+    (checkExecution faultedExecutionDefinition).toOption.isSome = true := by
+  native_decide
+
+private def duplicateDeliveryExecution : CheckedExecution :=
+  (checkExecution faultedExecutionDefinition).toOption.get
+    duplicateDeliveryExecution_isSome
 
 private theorem callerClosureExecution_isSome :
     (checkExecution canonicalExecutionDefinition).toOption.isSome = true := by
@@ -50,8 +69,22 @@ private def expectedRuntimeConfigurationJson : String :=
 private def expectedManifestJson : String :=
   include_str "../../tools/umpire/temporal/nexus/testdata/caller-closure-input-set/manifest.json"
 
+private def expectedDuplicateDeliveryExperimentJson : String :=
+  include_str "../../tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set/artifacts/experiment.json"
+
+private def expectedDuplicateDeliveryRuntimeConfigurationJson : String :=
+  include_str "../../tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set/artifacts/runtime-configuration.json"
+
+private def expectedDuplicateDeliveryManifestJson : String :=
+  include_str "../../tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set/manifest.json"
+
 private def actualManifestJson : String :=
   match callerClosureExecution.artifactSet.manifest? with
+  | some manifest => canonicalArtifactSetManifestBytes manifest
+  | none => ""
+
+private def actualDuplicateDeliveryManifestJson : String :=
+  match duplicateDeliveryExecution.artifactSet.manifest? with
   | some manifest => canonicalArtifactSetManifestBytes manifest
   | none => ""
 
@@ -99,6 +132,93 @@ example : canonicalExperimentSpecBytes callerClosureExecution.experiment = expec
   native_decide
 
 example : errorKindOf (checkExecution canonicalExecutionDefinition) = none := by
+  native_decide
+
+example : errorKindOf (checkExecution faultedExecutionDefinition) = none ∧
+    duplicateDeliveryExecution.experiment = faultedExperiment ∧
+    duplicateDeliveryExecution.program = duplicateDeliveryProgram.definition ∧
+    duplicateDeliveryExecution.observationProgram =
+      duplicateDeliveryObservationProgramDefinition ∧
+    duplicateDeliveryExecution.configuration =
+      duplicateDeliveryRuntimeConfigurationFor faultedExperiment ∧
+    duplicateDeliveryExecution.artifactSet.isValidClosure := by
+  native_decide
+
+example : canonicalExperimentSpecBytes duplicateDeliveryExecution.experiment =
+      expectedDuplicateDeliveryExperimentJson ∧
+    canonicalRuntimeConfigurationBytes duplicateDeliveryExecution.configuration =
+      expectedDuplicateDeliveryRuntimeConfigurationJson ∧
+    actualDuplicateDeliveryManifestJson = expectedDuplicateDeliveryManifestJson ∧
+    canonicalExperimentSpecBytes callerClosureExecution.experiment = expectedExperimentJson ∧
+    canonicalRuntimeConfigurationBytes callerClosureExecution.configuration =
+      expectedRuntimeConfigurationJson ∧
+    actualManifestJson = expectedManifestJson := by
+  native_decide
+
+example : duplicateDeliveryExecution.experiment.artifactBinding !=
+      callerClosureExecution.experiment.artifactBinding ∧
+    duplicateDeliveryExecution.program.reference !=
+      callerClosureExecution.program.reference ∧
+    duplicateDeliveryExecution.configuration.artifactBinding !=
+      callerClosureExecution.configuration.artifactBinding ∧
+    duplicateDeliveryExecution.artifactSet.manifest? !=
+      callerClosureExecution.artifactSet.manifest? := by
+  native_decide
+
+example :
+    errorKindOf (checkExecution {
+      canonicalExecutionDefinition with experiment := faultedExperiment
+    }) = some .fault ∧
+    errorKindOf (checkExecution {
+      faultedExecutionDefinition with experiment := canonicalExperiment
+    }) = some .fault ∧
+    errorKindOf (checkExecution {
+      faultedExecutionDefinition with
+      participantProgram := canonicalParticipantProgramDefinition
+    }) = some .fault ∧
+    errorKindOf (checkExecution {
+      faultedExecutionDefinition with
+      observationProgram := canonicalObservationProgramDefinition
+    }) = some .reference ∧
+    errorKindOf (checkExecution {
+      faultedExecutionDefinition with configuration := canonicalRuntimeConfiguration
+    }) = some .inputSet := by
+  native_decide
+
+example :
+    errorKindOf (checkExecution {
+      faultedExecutionDefinition with
+      experiment := {
+        faultedExperiment with
+        plan := { faultedExperiment.plan with requestedFaults := [] }
+      }
+    }) = some .fault ∧
+    errorKindOf (checkExecution {
+      faultedExecutionDefinition with
+      experiment := {
+        faultedExperiment with
+        plan := { faultedExperiment.plan with requestedFaults :=
+          faultedExperiment.plan.requestedFaults ++ faultedExperiment.plan.requestedFaults }
+      }
+    }) = some .fault ∧
+    errorKindOf (checkExecution {
+      faultedExecutionDefinition with
+      experiment := {
+        faultedExperiment with
+        plan := { faultedExperiment.plan with requestedFaults :=
+          faultedExperiment.plan.requestedFaults.map fun fault =>
+            { fault with definitionId := id "temporal.nexus.caller-closure.fault.other" } }
+      }
+    }) = some .fault ∧
+    errorKindOf (checkExecution {
+      faultedExecutionDefinition with
+      experiment := {
+        faultedExperiment with
+        plan := { faultedExperiment.plan with requestedFaults :=
+          faultedExperiment.plan.requestedFaults.map fun fault =>
+            { fault with value := "workflow-nexus.occurrence.other" } }
+      }
+    }) = some .fault := by
   native_decide
 
 example : callerClosureExecution.observationProgram.profile.behaviorFingerprint.render =
