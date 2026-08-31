@@ -25,7 +25,7 @@ func TestRenderGeneratedRunnerTestMatchesTheCheckedInOrdinaryGoTest(t *testing.T
 
 	generated, err := renderGeneratedTest(input)
 	require.NoError(t, err)
-	require.Contains(t, string(generated), "context.WithTimeout(context.Background(), 135*time.Second)")
+	require.Contains(t, string(generated), "context.WithTimeout(context.Background(), 315*time.Second)")
 	want, err := os.ReadFile(filepath.Join(packageRoot, generatedTestFileName))
 	require.NoError(t, err)
 	require.Equal(t, want, generated)
@@ -56,6 +56,8 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 	parsed, err := parser.ParseFile(fileSet, "generated_test.go", generated, 0)
 	require.NoError(t, err)
 	var portabilityTest *ast.FuncDecl
+	var pathRunner *ast.FuncDecl
+	var pathFactory *ast.FuncDecl
 	var evaluationHelper *ast.FuncDecl
 	for _, declaration := range parsed.Decls {
 		function, ok := declaration.(*ast.FuncDecl)
@@ -69,15 +71,23 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 		if function.Name.Name == "TestHermeticCIPortability" {
 			portabilityTest = function
 		}
+		if function.Name.Name == "runCallerClosurePath" {
+			pathRunner = function
+		}
+		if function.Name.Name == "newCallerClosurePath" {
+			pathFactory = function
+		}
 		if function.Name.Name == "runCallerClosureEvaluation" {
 			evaluationHelper = function
 		}
 	}
 	require.NotNil(t, portabilityTest)
+	require.NotNil(t, pathRunner)
+	require.NotNil(t, pathFactory)
 	require.NotNil(t, evaluationHelper)
 	runnerCalls := 0
 	evaluationCalls := 0
-	ast.Inspect(portabilityTest.Body, func(node ast.Node) bool {
+	ast.Inspect(pathFactory.Body, func(node ast.Node) bool {
 		call, ok := node.(*ast.CallExpr)
 		if !ok {
 			return true
@@ -116,8 +126,8 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 		return true
 	})
 	require.Equal(t, 1, commandCalls)
-	bodyStart := fileSet.Position(portabilityTest.Body.Pos()).Offset
-	bodyEnd := fileSet.Position(portabilityTest.Body.End()).Offset
+	bodyStart := fileSet.Position(pathFactory.Body.Pos()).Offset
+	bodyEnd := fileSet.Position(pathFactory.Body.End()).Offset
 	body := encoded[bodyStart:bodyEnd]
 	require.Less(t,
 		strings.Index(body, "runevaluation.CheckSubject"),
@@ -132,8 +142,16 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 	helperBody := encoded[helperStart:helperEnd]
 	require.Contains(t, helperBody, `"umpire-check-local-run-evaluation"`)
 	require.NotContains(t, helperBody, "runevaluation.Check(")
-	require.Contains(t, body, `require.Equal(t, "complete", run.Cleanup.Status)`)
-	require.Contains(t, body, `require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)`)
+	require.Contains(t, helperBody, "exitError.ExitCode() != 2")
+	require.NotContains(t, encoded, "artifact.PublishSet(")
+	require.NotContains(t, encoded, "EvaluationProfile")
+	require.NotContains(t, encoded, "EvaluationReceipt")
+	require.NotContains(t, encoded, "ClaimAssessment")
+	portabilityStart := fileSet.Position(portabilityTest.Body.Pos()).Offset
+	portabilityEnd := fileSet.Position(portabilityTest.Body.End()).Offset
+	portabilityBody := encoded[portabilityStart:portabilityEnd]
+	require.Contains(t, portabilityBody, `require.Equal(t, "complete", run.Cleanup.Status)`)
+	require.Contains(t, portabilityBody, `require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)`)
 }
 
 func TestRunRegeneratesOnlyTheDeterministicGoTest(t *testing.T) {

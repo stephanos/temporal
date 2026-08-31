@@ -7,6 +7,9 @@ import (
 	"bytes"
 	"context"
 	_ "embed"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -117,33 +120,38 @@ var callerClosureSubject = runevaluation.SubjectBinding{
 	ImplementationLinkDiagnosticPresent:   false,
 }
 
-func admitCallerClosure(t *testing.T) artifact.AdmittedSet {
-	t.Helper()
-	input, err := artifact.AdmitSetFiles(map[string][]byte{
+func admitCallerClosure() (artifact.AdmittedSet, error) {
+	return artifact.AdmitSetFiles(map[string][]byte{
 		"artifacts/experiment.json":            callerClosureExperiment,
 		"artifacts/runtime-configuration.json": callerClosureRuntimeConfiguration,
 		"manifest.json":                        callerClosureManifest,
 	})
-	require.NoError(t, err)
-	return input
 }
 
 func writeCallerClosureExecution(
-	t *testing.T,
 	root string,
 	admitted artifact.AdmittedSet,
-) {
-	t.Helper()
+) error {
 	execution, ok := admitted.Execution()
-	require.True(t, ok)
+	if !ok {
+		return errors.New("caller-closure Run Evaluation requires an exact execution set")
+	}
 	experiment, err := artifact.EncodeExperimentV2(execution.Experiment())
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 	configuration, err := artifact.EncodeRuntimeConfigurationV2(execution.RuntimeConfiguration())
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 	run, err := artifact.EncodeExperimentRunV2(execution.ExperimentRun())
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 	rawEvidence, err := artifact.EncodeRawEvidenceV2(execution.RawEvidence())
-	require.NoError(t, err)
+	if err != nil {
+		return err
+	}
 	files := map[string][]byte{
 		"manifest.json":                        admitted.ManifestBytes(),
 		"artifacts/experiment.json":            experiment,
@@ -153,20 +161,126 @@ func writeCallerClosureExecution(
 	}
 	for path, encoded := range files {
 		absolute := filepath.Join(root, filepath.FromSlash(path))
-		require.NoError(t, os.MkdirAll(filepath.Dir(absolute), 0o700))
-		require.NoError(t, os.WriteFile(absolute, encoded, 0o600))
+		if err := os.MkdirAll(filepath.Dir(absolute), 0o700); err != nil {
+			return err
+		}
+		if err := os.WriteFile(absolute, encoded, 0o600); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type callerClosureEvaluationSummary struct {
+	FormatVersion               string `json:"formatVersion"`
+	OperationalStatus           string `json:"operationalStatus"`
+	ObservationEvaluationStatus string `json:"observationEvaluationStatus"`
+	SemanticStatus              string `json:"semanticStatus"`
+	ArtifactSetChecksum         string `json:"artifactSetChecksum"`
+	ManifestSHA256              string `json:"manifestSha256"`
+	Destination                 string `json:"destination"`
+}
+
+type callerClosureEvaluation struct {
+	admitted artifact.AdmittedSet
+	summary  callerClosureEvaluationSummary
+}
+
+type callerClosurePath struct {
+	checkSubject func() error
+	admit        func() (artifact.AdmittedSet, error)
+	run          func(context.Context, artifact.AdmittedSet) (umpireruntime.Output, error)
+	evaluate     func(context.Context, artifact.AdmittedSet) (callerClosureEvaluation, error)
+}
+
+type callerClosurePathOutcome struct {
+	execution      *umpireruntime.Output
+	evaluation     *callerClosureEvaluation
+	toolingPhase   string
+	toolingFailure error
+}
+
+func runCallerClosurePath(
+	ctx context.Context,
+	path callerClosurePath,
+) callerClosurePathOutcome {
+	if err := path.checkSubject(); err != nil {
+		return callerClosurePathOutcome{toolingPhase: "admission", toolingFailure: err}
+	}
+	input, err := path.admit()
+	if err != nil {
+		return callerClosurePathOutcome{toolingPhase: "admission", toolingFailure: err}
+	}
+	output, err := path.run(ctx, input)
+	if err != nil {
+		return callerClosurePathOutcome{toolingPhase: "runner", toolingFailure: err}
+	}
+	outcome := callerClosurePathOutcome{execution: &output}
+	evaluation, err := path.evaluate(ctx, output.AdmittedSet())
+	if err != nil {
+		outcome.toolingPhase = "Run Evaluation"
+		outcome.toolingFailure = err
+		return outcome
+	}
+	if evaluation.summary.OperationalStatus != output.ExperimentRun().OperationalStatus {
+		outcome.toolingPhase = "Run Evaluation"
+		outcome.toolingFailure = errors.New("Run Evaluation operational status drifted")
+		return outcome
+	}
+	outcome.evaluation = &evaluation
+	return outcome
+}
+
+func newCallerClosurePath(t *testing.T) callerClosurePath {
+	t.Helper()
+	return callerClosurePath{
+		checkSubject: func() error {
+			return runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject)
+		},
+		admit: admitCallerClosure,
+		run: func(ctx context.Context, input artifact.AdmittedSet) (umpireruntime.Output, error) {
+			return runner.Run(
+				ctx,
+				input,
+				runner.InputBinding{
+					ArtifactSetIdentity:                     "umpire.artifact-set.ed3605976ba999ec8e166d4309247e2b711fee18f4a421cfb8c6dc037344f1a2",
+					ArtifactSetChecksum:                     "sha256:074356889cda0296b13152f87e57d7b980d76125329a9014ceb5321c3f5bda7b",
+					ManifestSHA256:                          "sha256:f381da231395b8fec738837535a8bb8da0dd227a08e3d60bf9c2bda620c46b14",
+					ExperimentArtifactChecksum:              "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
+					ExperimentBehaviorFingerprint:           "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
+					RuntimeConfigurationArtifactChecksum:    "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5",
+					RuntimeConfigurationBehaviorFingerprint: "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
+					AuthorityRequiredCapabilityDefinitionIDs: []string{
+						"umpire.runtime.capability.complete-workflow-history-read",
+						"umpire.runtime.capability.ephemeral-server-lifecycle",
+						"umpire.runtime.capability.sdk-worker-lifecycle",
+					},
+				},
+				"umpire.generated.caller-closure.run-1",
+				nexus.Binding{},
+			)
+		},
+		evaluate: func(ctx context.Context, admitted artifact.AdmittedSet) (callerClosureEvaluation, error) {
+			return runCallerClosureEvaluation(t, ctx, admitted)
+		},
 	}
 }
 
-func runCallerClosureEvaluation(t *testing.T, admitted artifact.AdmittedSet) {
+func runCallerClosureEvaluation(
+	t *testing.T,
+	ctx context.Context,
+	admitted artifact.AdmittedSet,
+) (callerClosureEvaluation, error) {
 	t.Helper()
 	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
-	require.NoError(t, err)
+	if err != nil {
+		return callerClosureEvaluation{}, err
+	}
 	executionRoot := t.TempDir()
-	writeCallerClosureExecution(t, executionRoot, admitted)
+	if err := writeCallerClosureExecution(executionRoot, admitted); err != nil {
+		return callerClosureEvaluation{}, err
+	}
 	outputRoot := t.TempDir()
-	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
-	defer cancel()
 	command := exec.CommandContext(
 		ctx,
 		"make", "-C", repositoryRoot, "--no-print-directory",
@@ -175,43 +289,52 @@ func runCallerClosureEvaluation(t *testing.T, admitted artifact.AdmittedSet) {
 		"OUTPUT_ROOT="+outputRoot,
 	)
 	command.Env = os.Environ()
-	var output bytes.Buffer
-	command.Stdout = &output
-	command.Stderr = &output
-	require.NoError(t, command.Run(), output.String())
-	require.NoError(t, ctx.Err())
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	command.Stdout = &stdout
+	command.Stderr = &stderr
+	runErr := command.Run()
+	if err := ctx.Err(); err != nil {
+		return callerClosureEvaluation{}, err
+	}
+	if runErr != nil {
+		var exitError *exec.ExitError
+		if !errors.As(runErr, &exitError) || exitError.ExitCode() != 2 {
+			return callerClosureEvaluation{}, fmt.Errorf("Run Evaluation failed: %s: %w", stderr.String(), runErr)
+		}
+	}
+	if stderr.Len() != 0 {
+		return callerClosureEvaluation{}, errors.New("Run Evaluation emitted stderr")
+	}
+	var summary callerClosureEvaluationSummary
+	if err := json.Unmarshal(stdout.Bytes(), &summary); err != nil {
+		return callerClosureEvaluation{}, err
+	}
+	if summary.FormatVersion != "umpire-local-run-evaluation-summary/v2" {
+		return callerClosureEvaluation{}, errors.New("Run Evaluation summary format drifted")
+	}
+	loaded, err := artifact.LoadSet(summary.Destination)
+	if err != nil {
+		return callerClosureEvaluation{}, err
+	}
+	if loaded.Checksum() != summary.ArtifactSetChecksum ||
+		loaded.ManifestSHA256() != summary.ManifestSHA256 {
+		return callerClosureEvaluation{}, errors.New("Run Evaluation publication identity drifted")
+	}
+	return callerClosureEvaluation{admitted: loaded, summary: summary}, nil
 }
 
 // TestHermeticCIPortability runs the exact
-// generated two-member input through the bounded local adapter without publishing it.
+// generated two-member input through the bounded runner and shared Run Evaluation path.
 func TestHermeticCIPortability(t *testing.T) {
-	require.NoError(t, runevaluation.CheckSubject(callerClosureExperiment, callerClosureSubject))
-	input := admitCallerClosure(t)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 135*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 315*time.Second)
 	defer cancel()
-	output, err := runner.Run(
-		ctx,
-		input,
-		runner.InputBinding{
-			ArtifactSetIdentity:                     "umpire.artifact-set.ed3605976ba999ec8e166d4309247e2b711fee18f4a421cfb8c6dc037344f1a2",
-			ArtifactSetChecksum:                     "sha256:074356889cda0296b13152f87e57d7b980d76125329a9014ceb5321c3f5bda7b",
-			ManifestSHA256:                          "sha256:f381da231395b8fec738837535a8bb8da0dd227a08e3d60bf9c2bda620c46b14",
-			ExperimentArtifactChecksum:              "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
-			ExperimentBehaviorFingerprint:           "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
-			RuntimeConfigurationArtifactChecksum:    "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5",
-			RuntimeConfigurationBehaviorFingerprint: "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
-			AuthorityRequiredCapabilityDefinitionIDs: []string{
-				"umpire.runtime.capability.complete-workflow-history-read",
-				"umpire.runtime.capability.ephemeral-server-lifecycle",
-				"umpire.runtime.capability.sdk-worker-lifecycle",
-			},
-		},
-		"umpire.generated.caller-closure.run-1",
-		nexus.Binding{},
-	)
-	require.NoError(t, err)
-	run := output.ExperimentRun()
+	outcome := runCallerClosurePath(ctx, newCallerClosurePath(t))
+	require.NoError(t, outcome.toolingFailure, outcome.toolingPhase)
+	require.NotNil(t, outcome.execution)
+	require.NotNil(t, outcome.evaluation)
+	require.NotEmpty(t, outcome.evaluation.admitted.Identity())
+	run := outcome.execution.ExperimentRun()
 	require.Equal(t, "succeeded", run.OperationalStatus)
 	phaseStatuses := make([]string, len(run.PhaseOutcomes))
 	for index, phase := range run.PhaseOutcomes {
@@ -226,8 +349,8 @@ func TestHermeticCIPortability(t *testing.T) {
 	}, phaseStatuses)
 	require.Equal(t, "complete", run.Cleanup.Status)
 	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
-	require.Equal(t, "closed", output.RawEvidence().CaptureStatus)
-	sources := output.RawEvidence().Sources
+	require.Equal(t, "closed", outcome.execution.RawEvidence().CaptureStatus)
+	sources := outcome.execution.RawEvidence().Sources
 	sourceDefinitionIDs := make([]string, len(sources))
 	for index, source := range sources {
 		sourceDefinitionIDs[index] = source.SourceDefinitionID
@@ -239,6 +362,8 @@ func TestHermeticCIPortability(t *testing.T) {
 		umpireruntime.EvidenceSourceParticipantOutput,
 	}, sourceDefinitionIDs)
 	require.Empty(t, run.KnownGaps)
-	require.Empty(t, output.RawEvidence().KnownGaps)
-	runCallerClosureEvaluation(t, output.AdmittedSet())
+	require.Empty(t, outcome.execution.RawEvidence().KnownGaps)
+	require.Equal(t, "succeeded", outcome.evaluation.summary.OperationalStatus)
+	require.Equal(t, "accepted", outcome.evaluation.summary.ObservationEvaluationStatus)
+	require.Equal(t, "satisfied", outcome.evaluation.summary.SemanticStatus)
 }
