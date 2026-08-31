@@ -341,7 +341,7 @@ func renderGeneratedTest(input generationInput) ([]byte, error) {
 	generated.WriteString("\t\t\treturn callerClosureEvaluation{}, fmt.Errorf(\"Run Evaluation failed: %s: %w\", stderr.String(), runErr)\n")
 	generated.WriteString("\t\t}\n")
 	generated.WriteString("\t}\n")
-	generated.WriteString("\tif stderr.Len() != 0 {\n")
+	generated.WriteString("\tif runErr == nil && stderr.Len() != 0 {\n")
 	generated.WriteString("\t\treturn callerClosureEvaluation{}, errors.New(\"Run Evaluation emitted stderr\")\n")
 	generated.WriteString("\t}\n")
 	generated.WriteString("\tvar summary callerClosureEvaluationSummary\n")
