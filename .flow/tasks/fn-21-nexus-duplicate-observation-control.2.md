@@ -7,8 +7,8 @@ satisfies: [R2, R7]
 Add the second exact model-owned participant program, RuntimeConfiguration, and admitted two-member input set for R2/R7. Consume Task `.7`'s already-checked mapping references and preserve the original normal program/configuration/fixture bytes.
 
 **Size:** M
-**Files:** `model/Temporal/Feature/Nexus/Execution.lean`, `model/Temporal/Feature/Nexus/ExecutionTests.lean`, `tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set/**`, `tools/umpire/runtime/request_test.go`
-**Touches:** [model/Temporal/Feature/Nexus/Execution.lean, model/Temporal/Feature/Nexus/ExecutionTests.lean, tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set/**, tools/umpire/runtime/request_test.go]
+**Files:** `model/Temporal/System/Execution/Nexus.lean`, `model/Temporal/System/Execution/NexusTests.lean`, `tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set/**`, `tools/umpire/runtime/request_test.go`
+**Touches:** [model/Temporal/System/Execution/Nexus.lean, model/Temporal/System/Execution/NexusTests.lean, tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set/**, tools/umpire/runtime/request_test.go]
 
 ### Approach
 - Extend fn-19's model-owned execution composition with one second closed program/configuration identity rather than widening the normal program.
