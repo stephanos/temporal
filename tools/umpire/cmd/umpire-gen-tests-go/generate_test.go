@@ -151,8 +151,24 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 	portabilityStart := fileSet.Position(portabilityTest.Body.Pos()).Offset
 	portabilityEnd := fileSet.Position(portabilityTest.Body.End()).Offset
 	portabilityBody := encoded[portabilityStart:portabilityEnd]
-	require.Contains(t, portabilityBody, `require.Equal(t, "complete", run.Cleanup.Status)`)
-	require.Contains(t, portabilityBody, `require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)`)
+	require.Contains(t, portabilityBody, "requireCallerClosureSuccessfulPortabilityResult")
+	require.Contains(t, portabilityBody, `"umpire.local.caller-closure.portability-reference-1"`)
+	require.Contains(t, portabilityBody, `"umpire.ci.caller-closure.portability-proof-1"`)
+	require.Contains(t, portabilityBody,
+		`require.Equal(t, localInput.ManifestBytes(), ciInput.ManifestBytes())`,
+	)
+	require.Contains(t, portabilityBody,
+		`require.NotEqual(t, localOutcome.execution.ExperimentRun().RunIdentity, ciOutcome.execution.ExperimentRun().RunIdentity)`,
+	)
+	require.Contains(t, portabilityBody,
+		`require.Equal(t, localResult.StableMeaning, ciResult.StableMeaning)`,
+	)
+	require.Contains(t, portabilityBody,
+		`requireCallerClosureEqualResultMeaning(t, localOutcome.evaluation.result, ciOutcome.evaluation.result)`,
+	)
+	require.Contains(t, portabilityBody,
+		`require.NotEqual(t, localResult.EvaluationOutcomeChecksum, ciResult.EvaluationOutcomeChecksum)`,
+	)
 }
 
 func TestRunRegeneratesOnlyTheDeterministicGoTest(t *testing.T) {
