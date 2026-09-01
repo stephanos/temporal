@@ -158,7 +158,14 @@ theorem callerClosureTargetAuthoringRetainsCompositionAndPlannerOrder :
     Temporal.System.Nexus.CallerClosure.target.connectors = [] ∧
     Temporal.System.Nexus.CallerClosure.finitePlanning.actions = [
       Temporal.System.Nexus.CallerClosure.forceCloseAction
-    ] := by
+    ] ∧
+    (match checkTarget Temporal.System.Nexus.CallerClosure.targetAuthoring with
+      | .error _ => none
+      | .ok checked =>
+          some <| match checked.planning with
+            | .unavailable => none
+            | .available capability => some capability.actions) =
+      some (some [Temporal.System.Nexus.CallerClosure.forceCloseAction]) := by
   native_decide
 
 theorem callerClosureCheckedTargetRetainsCanonicalIdentity :
@@ -170,7 +177,10 @@ theorem callerClosureCheckedTargetRetainsCanonicalIdentity :
         canonicalCheckedTargetJson Temporal.System.Nexus.CallerClosure.target,
         Temporal.System.Nexus.CallerClosure.target.behaviorFingerprint) ∧
     Temporal.System.Nexus.CallerClosure.target.behaviorFingerprint.render =
-      "sha256:6729e790d336a96173ffd0ebe0b2b2d2406e6c5444596924f0c06c4ba9652bf8" := by
+      "sha256:6729e790d336a96173ffd0ebe0b2b2d2406e6c5444596924f0c06c4ba9652bf8" ∧
+    (behaviorFingerprintOf <|
+      canonicalCheckedTargetJson Temporal.System.Nexus.CallerClosure.target).render =
+      "sha256:dac443c8cb5c3ddb60391f746cac3d296f721014051c47d5a5fb3e4df5817744" := by
   native_decide
 
 theorem callerClosureFiniteMachineRetainsOrderedSemantics :
