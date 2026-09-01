@@ -195,9 +195,9 @@ private def composeRunEvaluation
     (translationOutcome : LinkResult → TranslationOutcome) :
     Option LinkResult × StrictQuerySummary :=
   match observation with
-  | .unknown _ | .conflict _ | .unsupported _ =>
+  | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
       let verdicts := properties.map fun property =>
-        evaluateObservationProperty query property observation
+        observationEvaluationFailureVerdict query property diagnostic
       (none, summarizeQueryVerdicts query verdicts)
   | .accepted sourceTrace =>
       let linkResult := applyTranslation sourceTrace
