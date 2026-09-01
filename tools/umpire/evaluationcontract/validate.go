@@ -252,7 +252,44 @@ func (v *contractValidator) validateEmitOrdering(orderingValues []*umpirespb.Emi
 			return admissionError(ErrorBinding, path+".successorEmitDefinitionId", "emit is not declared")
 		}
 	}
+	if hasEmitOrderingCycle(orderingValues, emitIDs) {
+		return admissionError(ErrorOrdering, "$.observation.ordering", "emit ordering contains a cycle")
+	}
 	return nil
+}
+
+func hasEmitOrderingCycle(orderingValues []*umpirespb.EmitOrdering, emitIDs map[string]struct{}) bool {
+	adjacency := make(map[string][]string, len(emitIDs))
+	indegree := make(map[string]int, len(emitIDs))
+	for emitID := range emitIDs {
+		indegree[emitID] = 0
+	}
+	for _, ordering := range orderingValues {
+		predecessor := ordering.GetPredecessorEmitDefinitionId()
+		successor := ordering.GetSuccessorEmitDefinitionId()
+		adjacency[predecessor] = append(adjacency[predecessor], successor)
+		indegree[successor]++
+	}
+	ready := make([]string, 0, len(emitIDs))
+	for emitID, degree := range indegree {
+		if degree == 0 {
+			ready = append(ready, emitID)
+		}
+	}
+	slices.Sort(ready)
+	visited := 0
+	for len(ready) > 0 {
+		current := ready[0]
+		ready = ready[1:]
+		visited++
+		for _, successor := range adjacency[current] {
+			indegree[successor]--
+			if indegree[successor] == 0 {
+				ready = append(ready, successor)
+			}
+		}
+	}
+	return visited != len(emitIDs)
 }
 
 func (v *contractValidator) validateEvidenceProfile(profile *umpirespb.EvidenceProfile) error {
@@ -535,7 +572,7 @@ func (v *contractValidator) validateLink() error {
 	if link.GetSourceTarget().GetDefinitionId() == link.GetDestinationTarget().GetDefinitionId() {
 		return admissionError(ErrorBinding, "$.implementationLink", "source and destination targets must differ")
 	}
-	if err := validateLimit(link.GetApplicationLimit(), "$.implementationLink.applicationLimit"); err != nil {
+	if err := validateLimit(link.GetApplicationLimit(), "$.implementationLink.applicationLimit", applicationLimitUnit); err != nil {
 		return err
 	}
 	if link.GetApplicationLimit().GetValue() > v.limits.GetMaxEvaluationWork() {
@@ -778,15 +815,32 @@ func (v *contractValidator) collection(path string, length int, required bool) e
 }
 
 func validateCoordinate(coordinate *umpirespb.ModelCoordinate, path string) error {
-	if coordinate == nil || coordinate.GetField() == umpirespb.TRACE_FIELD_UNSPECIFIED ||
-		coordinate.GetStep() < 0 || coordinate.GetPosition() < 0 {
+	if coordinate == nil {
 		return admissionError(ErrorMalformedValue, path, "Model coordinate is malformed")
 	}
-	return nil
+	switch coordinate.GetField() {
+	case umpirespb.TRACE_FIELD_INITIAL_STATE:
+		if coordinate.GetStep() == 0 && coordinate.GetPosition() == 0 {
+			return nil
+		}
+	case umpirespb.TRACE_FIELD_PRIOR_STATE,
+		umpirespb.TRACE_FIELD_SELECTED_ACTION,
+		umpirespb.TRACE_FIELD_MODEL_OUTCOME,
+		umpirespb.TRACE_FIELD_RESULTING_STATE:
+		if coordinate.GetStep() > 0 && coordinate.GetPosition() == 0 {
+			return nil
+		}
+	case umpirespb.TRACE_FIELD_OBSERVATION:
+		if coordinate.GetStep() > 0 && coordinate.GetPosition() > 0 {
+			return nil
+		}
+	default:
+	}
+	return admissionError(ErrorMalformedValue, path, "Model coordinate shape is invalid")
 }
 
-func validateLimit(limit *umpirespb.Limit, path string) error {
-	if limit == nil || limit.GetValue() <= 0 || strings.TrimSpace(limit.GetUnit()) == "" {
+func validateLimit(limit *umpirespb.Limit, path, unit string) error {
+	if limit == nil || limit.GetValue() <= 0 || limit.GetUnit() != unit {
 		return admissionError(ErrorLimit, path, "positive typed Limit is required")
 	}
 	return nil
