@@ -44,6 +44,8 @@ cd model && mise exec -- lake build Umpire.CoreTests
 Moved `ModelCoordinate` and its preserved documentation to Core, added canonical source-order enumeration, strict one-based `ModelValue` lookup, and Definition-kind classification, and covered empty, one-step, multi-observation, repeated-value, zero, and out-of-range behavior. `Umpire.CoreTests`, downstream Observation/Implementation Link builds, and `make lint-model` pass; `make lint-code` remains red on 1,373 inherited Go findings and applied autofixes were exactly undone because this task changes only Lean.
 
 stage: impl-review - ran [2026-09-01T01:21:08Z..2026-09-01T01:24:35Z] (Codex SHIP; receipt /tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.1.json)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 824ddf38ad4f8d064f47f3e599efdd66032ada56
 - Tests: baseline: green - cd model && mise exec -- lake build Umpire.CoreTests, RED_EXPECTED: cd model && mise exec -- lake build Umpire.CoreTests (exit 1: missing Umpire.ModelTrace.coordinates, Umpire.ModelTrace.valueAt?, and Umpire.ModelCoordinate.definitionKind), cd model && mise exec -- lake build Umpire.CoreTests, cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.ImplementationLink.Tests, make lint-model, INHERITED_RED: make lint-code (exit 2: 1373 pre-existing Go lint findings; task diff contains only model/Umpire/*.lean; lint autofixes exactly undone), git diff --check, impl-review Codex SHIP session 01a05a8e-4b55-7d11-bfd3-6083358faef2 receipt /tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.1.json
