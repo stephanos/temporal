@@ -87,95 +87,142 @@ def authoritativeStep
     (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
   state = openState ∧ action = forceCloseAction ∧ result = closeResult
 
-def transitionKernel : TransitionKernel
+def finiteMachine : FiniteMachine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := { id := kernelId, source }
+  setups := [setup]
+  states := [openState, closedState]
+  actions := [forceCloseAction]
+  outcomes := [cancellationUpgradedOutcome]
+  observations := [deliveryObservation, cancellationCountObservation, ownershipObservation]
+  encodeSetup := fun _ => "caller-closure"
+  encodeState := reprStr
+  encodeAction := reprStr
+  encodeOutcome := reprStr
+  encodeObservation := reprStr
+  initialStates := fun candidate => if candidate = setup then [openState] else []
+  steps := fun state action =>
+    if state = openState ∧ action = forceCloseAction then [closeResult] else []
+  setupCoverage := by intro candidate state member; simp_all
+  initialStateCoverage := by intro candidate state member; simp_all
+  transitionSourceCoverage := by
+    intro state action result member
+    by_cases selected : state = openState ∧ action = forceCloseAction
+    · simp [selected.1]
+    · simp [selected] at member
+  actionCoverage := by
+    intro state action result member
+    by_cases selected : state = openState ∧ action = forceCloseAction
+    · simp [selected.2]
+    · simp [selected] at member
+  resultingStateCoverage := by
+    intro state action result member
+    by_cases selected : state = openState ∧ action = forceCloseAction
+    · rw [if_pos selected] at member
+      simp [List.mem_singleton.mp member, closeResult]
+    · rw [if_neg selected] at member
+      exact (List.not_mem_nil member).elim
+  outcomeCoverage := by
+    intro state action result member
+    by_cases selected : state = openState ∧ action = forceCloseAction
+    · rw [if_pos selected] at member
+      simp [List.mem_singleton.mp member, closeResult]
+    · rw [if_neg selected] at member
+      exact (List.not_mem_nil member).elim
+  observationCoverage := by
+    intro state action result observation member observationMember
+    by_cases selected : state = openState ∧ action = forceCloseAction
+    · rw [if_pos selected] at member
+      simpa [List.mem_singleton.mp member, closeResult] using observationMember
+    · rw [if_neg selected] at member
+      exact (List.not_mem_nil member).elim
+  actionExecutable := by
+    intro action member
+    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
+    subst action
+    exact ⟨openState, closeResult, by simp⟩
+}
+
+private theorem setupDomain_eq :
+    (fun candidate => candidate = setup) = finiteMachine.kernel.setupDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine]
+
+private theorem stateDomain_eq :
+    (fun candidate => candidate = openState ∨ candidate = closedState) =
+      finiteMachine.kernel.stateDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine]
+
+private theorem actionDomain_eq :
+    (fun candidate => candidate = forceCloseAction) = finiteMachine.kernel.actionDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine]
+
+private theorem outcomeDomain_eq :
+    (fun candidate => candidate = cancellationUpgradedOutcome) =
+      finiteMachine.kernel.outcomeDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine]
+
+private theorem observationDomain_eq :
+    (fun candidate => candidate = deliveryObservation ∨
+      candidate = cancellationCountObservation ∨ candidate = ownershipObservation) =
+      finiteMachine.kernel.observationDomain := by
+  funext candidate
+  apply propext
+  simp [finiteMachine]
+
+private theorem authoritativeInitial_iff
+    (candidateSetup : List RoleBinding) (state : ModelValue) :
+    finiteMachine.kernel.authoritativeInitial candidateSetup state ↔
+      authoritativeInitial candidateSetup state := by
+  simp [finiteMachine, authoritativeInitial]
+
+private theorem authoritativeStep_iff
+    (state action : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue) :
+    finiteMachine.kernel.authoritativeStep state action result ↔
+      authoritativeStep state action result := by
+  simp [finiteMachine, authoritativeStep, and_assoc]
+
+def transitionKernel : TransitionKernel
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
+  metadata := finiteMachine.kernel.metadata
   setupDomain := fun candidate => candidate = setup
   stateDomain := fun candidate => candidate = openState ∨ candidate = closedState
   actionDomain := fun candidate => candidate = forceCloseAction
   outcomeDomain := fun candidate => candidate = cancellationUpgradedOutcome
   observationDomain := fun candidate => candidate = deliveryObservation ∨
     candidate = cancellationCountObservation ∨ candidate = ownershipObservation
-  initialStates := fun candidate => if candidate = setup then [openState] else []
+  initialStates := finiteMachine.kernel.initialStates
   authoritativeInitial
   initialSound := by
     intro candidate state member
-    by_cases selected : candidate = setup
-    · simp [selected] at member
-      exact ⟨selected, member⟩
-    · simp [selected] at member
+    exact (authoritativeInitial_iff candidate state).mp
+      (finiteMachine.kernel.initialSound candidate state member)
   initialComplete := by
     intro candidate state admitted
-    rcases admitted with ⟨rfl, rfl⟩
-    simp
-  steps := fun state action =>
-    if state = openState ∧ action = forceCloseAction then [closeResult] else []
+    exact finiteMachine.kernel.initialComplete candidate state
+      ((authoritativeInitial_iff candidate state).mpr admitted)
+  steps := finiteMachine.kernel.steps
   authoritativeStep
   stepSound := by
     intro state action result member
-    by_cases selected : state = openState ∧ action = forceCloseAction
-    · simp [selected] at member
-      exact ⟨selected.1, selected.2, member⟩
-    · simp [selected] at member
+    exact (authoritativeStep_iff state action result).mp
+      (finiteMachine.kernel.stepSound state action result member)
   stepComplete := by
     intro state action result admitted
-    rcases admitted with ⟨rfl, rfl, rfl⟩
-    simp
-  behaviorDomain := .complete {
-    setups := [setup]
-    states := [openState, closedState]
-    actions := [forceCloseAction]
-    outcomes := [cancellationUpgradedOutcome]
-    observations := [deliveryObservation, cancellationCountObservation, ownershipObservation]
-    encodeSetup := fun _ => "caller-closure"
-    encodeState := reprStr
-    encodeAction := reprStr
-    encodeOutcome := reprStr
-    encodeObservation := reprStr
-    setupSound := by simp
-    setupComplete := by intro candidate admitted; simpa using admitted
-    stateSound := by simp
-    stateComplete := by intro candidate admitted; simpa using admitted
-    actionSound := by simp
-    actionComplete := by intro candidate admitted; simpa using admitted
-    outcomeSound := by simp
-    outcomeComplete := by intro candidate admitted; simpa using admitted
-    observationSound := by simp
-    observationComplete := by intro candidate admitted; simpa using admitted
-    setupCoverage := by intro candidate state member; simp_all
-    initialStateCoverage := by intro candidate state member; simp_all
-    transitionSourceCoverage := by
-      intro state action result member
-      by_cases selected : state = openState ∧ action = forceCloseAction
-      · simp [selected.1]
-      · simp [selected] at member
-    actionCoverage := by
-      intro state action result member
-      by_cases selected : state = openState ∧ action = forceCloseAction
-      · simp [selected.2]
-      · simp [selected] at member
-    resultingStateCoverage := by
-      intro state action result member
-      by_cases selected : state = openState ∧ action = forceCloseAction
-      · rw [if_pos selected] at member
-        simp [List.mem_singleton.mp member, closeResult]
-      · rw [if_neg selected] at member
-        exact (List.not_mem_nil member).elim
-    outcomeCoverage := by
-      intro state action result member
-      by_cases selected : state = openState ∧ action = forceCloseAction
-      · rw [if_pos selected] at member
-        simp [List.mem_singleton.mp member, closeResult]
-      · rw [if_neg selected] at member
-        exact (List.not_mem_nil member).elim
-    observationCoverage := by
-      intro state action result observation member observationMember
-      by_cases selected : state = openState ∧ action = forceCloseAction
-      · rw [if_pos selected] at member
-        simpa [List.mem_singleton.mp member, closeResult] using observationMember
-      · rw [if_neg selected] at member
-        exact (List.not_mem_nil member).elim
-  }
+    exact finiteMachine.kernel.stepComplete state action result
+      ((authoritativeStep_iff state action result).mpr admitted)
+  behaviorDomain := by
+    rw [setupDomain_eq, stateDomain_eq, actionDomain_eq, outcomeDomain_eq,
+      observationDomain_eq]
+    exact finiteMachine.kernel.behaviorDomain
 }
 
 private def metadata
@@ -277,15 +324,15 @@ def targetDefinition : TargetDefinition
 }
 
 def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep := {
-  actions := [forceCloseAction]
+  actions := finiteMachine.planning.actions
   actionSound := by
     intro action member
-    simp only [List.mem_cons, List.not_mem_nil, or_false] at member
-    subst action
-    exact ⟨openState, closeResult, ⟨rfl, rfl, rfl⟩⟩
+    rcases finiteMachine.planning.actionSound action member with ⟨state, result, admitted⟩
+    exact ⟨state, result, (authoritativeStep_iff state action result).mp admitted⟩
   actionComplete := by
     intro state action result admitted
-    simp [admitted.2.1]
+    exact finiteMachine.planning.actionComplete state action result
+      ((authoritativeStep_iff state action result).mpr admitted)
 }
 
 def targetAuthoring : AuthoredTarget LawStatement
