@@ -1,6 +1,7 @@
 [
   {
     "name": "any true",
+    "source": "lean-observation-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_ACCEPTED",
@@ -12,6 +13,7 @@
   },
   {
     "name": "all false",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
@@ -23,6 +25,7 @@
   },
   {
     "name": "any false",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
@@ -34,6 +37,7 @@
   },
   {
     "name": "present false",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
@@ -45,6 +49,7 @@
   },
   {
     "name": "field type error",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
@@ -56,6 +61,7 @@
   },
   {
     "name": "field missing",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
@@ -67,6 +73,7 @@
   },
   {
     "name": "equals type error",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
@@ -78,6 +85,7 @@
   },
   {
     "name": "all type error",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
@@ -89,6 +97,7 @@
   },
   {
     "name": "any type error",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
@@ -100,6 +109,7 @@
   },
   {
     "name": "natural render type error",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
@@ -111,6 +121,7 @@
   },
   {
     "name": "equals text rejects natural",
+    "source": "lean-compiler-invariant",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_ACCEPTED",
@@ -122,6 +133,7 @@
   },
   {
     "name": "natural at most rejects text",
+    "source": "lean-compiler-invariant",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_ACCEPTED",
@@ -132,18 +144,20 @@
     "diagnosticCode": "DIAGNOSTIC_CODE_TYPE_MISMATCH"
   },
   {
-    "name": "correlation conflict",
+    "name": "raw known gap",
+    "source": "lean-observation-check-or-evaluation",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
-    "observationStatus": "OBSERVATION_STATUS_CONFLICT",
+    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
     "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
     "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
     "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
     "decision": "CANARY_DECISION_INCONCLUSIVE",
-    "diagnosticCode": "DIAGNOSTIC_CODE_CORRELATION"
+    "diagnosticCode": "DIAGNOSTIC_CODE_MISSING_BINDING"
   },
   {
     "name": "correlation missing",
+    "source": "portable-v1-proof",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
@@ -155,6 +169,7 @@
   },
   {
     "name": "crossed pair",
+    "source": "portable-contract-binding-proof",
     "toolingStatus": "TOOLING_STATUS_INVALID_INPUT",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
@@ -165,18 +180,8 @@
     "diagnosticCode": "DIAGNOSTIC_CODE_CORRELATION"
   },
   {
-    "name": "raw known gap",
-    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
-    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
-    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
-    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
-    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
-    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
-    "decision": "CANARY_DECISION_INCONCLUSIVE",
-    "diagnosticCode": "DIAGNOSTIC_CODE_MISSING_BINDING"
-  },
-  {
     "name": "work limit exceeded",
+    "source": "portable-work-boundary-proof",
     "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
     "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
     "observationStatus": "OBSERVATION_STATUS_ACCEPTED",
