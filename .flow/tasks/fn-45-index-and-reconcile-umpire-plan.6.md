@@ -38,9 +38,14 @@ Apply and verify the explicit one-time Flow reconciliation for R3-R6 after all p
 - [ ] No retained task depends directly or transitively on deferred-only scope.
 - [ ] Setters run serially in a quiescent checkout and are post-verified; interrupted reconciliation is checker-visible/idempotently resumable, full Flow/index validation exits zero, and the inherited warning baseline is surfaced without increase or suppression.
 ## Done summary
-TBD
+Reconciled the nine stale Umpire Flow readiness gates through serial supported setters while preserving the open superseded tombstone, completed-prerequisite reviews, retained dependency graph, and decision-gated P3 work. Final Flow validation has zero errors with the unchanged 203-warning baseline, the plan index is valid, and the idempotency audit finds no remaining setter.
 
+Baseline: red (`make umpire-check-plan-index` reported exactly fn-5, fn-21 through fn-26, fn-29, and fn-30 readiness drift; `flowctl validate --all --json` was green with zero errors and 203 inherited warnings).
+
+stage: impl-review - ran [SHIP at 2026-09-01T10:43:52Z; session 01a05c8e-2c8d-74c3-9b3d-2b1a012bbd8c; 0 open findings] (model: gpt-5.6-sol)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6563d4cfa992806944f7ce7c8846cfd6a057c53d, c73100ec421feeb275f68f64d9f2713b3d86b430
+- Tests: baseline: red (make umpire-check-plan-index exited 2 with exactly nine readiness mismatches; flowctl validate --all --json was valid with 0 errors and 203 inherited warnings), TDD RED: make umpire-check-plan-index (fn-5, fn-21 through fn-26, fn-29, and fn-30 readiness drift before setters), serial flowctl spec unready plus paired Markdown/JSON and per-spec validation for fn-21, fn-5, fn-22 through fn-26, fn-29, and fn-30, /Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl validate --all --json && make umpire-check-plan-index (exit 0; 0 errors; 203 inherited warnings; plan index valid), idempotent readiness and dependency audit (0 pending setters; fn-21/fn-42/fn-44/fn-50 open-unready-SHIP; fn-28 retains fn-27/no fn-21; fn-17 no fn-5; fn-33 fn-40/no fn-5; no retained-to-deferred path), git diff --check
 - PRs:
