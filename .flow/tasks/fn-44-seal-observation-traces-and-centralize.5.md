@@ -43,6 +43,8 @@ Locked the accepted Run Evaluation handoff to a complete literal artifact projec
 The deliberate `mappingVersion := 0` mutation failed the new artifact oracle before restoration. Focused/aggregate and regression gates plus `make lint-model` passed; `make lint-code GOLANGCI_LINT_FIX=false` reproduced the same 1,386 inherited Go findings as fn44.4 against this Lean-only diff.
 
 stage: impl-review - ran (Codex SHIP; receipt `/tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.5.json`)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 56bc083a8408900c19c610d00b16ad25c42c0fae
 - Tests: cd model && mise exec -- lake build Umpire.Observation.Tests Temporal.Tool.RunEvaluationTests TemporalModelTests, RED_EXPECTED: cd model && mise exec -- lake build Temporal.Tool.RunEvaluationTests (exit 1 after deliberate artifact mappingVersion drift), make umpire-check-regression, make lint-model, INHERITED_RED: make lint-code GOLANGCI_LINT_FIX=false (exit 2: same 1386 pre-existing Go findings as fn44.4; task diff is Lean-only), git diff --check, impl-review Codex SHIP receipt /tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.5.json
