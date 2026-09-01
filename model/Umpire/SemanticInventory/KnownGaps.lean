@@ -14,7 +14,10 @@ namespace SemanticInventory
 /-- A closed production source is either one exact Known Gap or one generated namespaced family. -/
 inductive KnownGapSource where
   | exact (gap : KnownGap)
-  | namespacedPrefix (kind : KnownGapKind) (namespaceId : DefinitionId)
+  | namespacedPrefix
+      (kind : KnownGapKind)
+      (namespaceId : DefinitionId)
+      (suffixes : List String)
   deriving BEq, DecidableEq, Repr
 
 namespace KnownGapSource
@@ -22,25 +25,39 @@ namespace KnownGapSource
 /-- The exact code or family prefix that identifies a source. -/
 def codeNamespace : KnownGapSource → DefinitionId
   | .exact gap => gap.code
-  | .namespacedPrefix _ namespaceId => namespaceId
+  | .namespacedPrefix _ namespaceId _ => namespaceId
 
 /-- Whether a Known Gap belongs to this closed source. -/
 def covers : KnownGapSource → KnownGap → Bool
   | .exact expected, candidate => expected == candidate
-  | .namespacedPrefix kind namespaceId, candidate =>
-      candidate.kind == kind && candidate.code.value.startsWith (namespaceId.value ++ ".")
+  | .namespacedPrefix kind namespaceId suffixes, candidate =>
+      candidate.kind == kind && suffixes.any fun suffix =>
+        candidate.code == DefinitionId.of (namespaceId.value ++ "." ++ suffix)
+
+/-- Materialize a gap using this source's catalog-owned kind and code namespace. -/
+def materialize
+    (source : KnownGapSource)
+    (suffix : String)
+    (subject : Option DefinitionId) : KnownGap :=
+  match source with
+  | .exact gap => gap
+  | .namespacedPrefix kind namespaceId _ => {
+      kind
+      code := DefinitionId.of (namespaceId.value ++ "." ++ suffix)
+      subject
+    }
 
 private def label : KnownGapSource → String
   | .exact gap => gap.code.value
-  | .namespacedPrefix _ namespaceId => namespaceId.value ++ ".*"
+  | .namespacedPrefix _ namespaceId _ => namespaceId.value ++ ".*"
 
 private def shape : KnownGapSource → KnownGapSourceShape
   | .exact _ => .exactKnownGap
-  | .namespacedPrefix _ _ => .generatedKnownGapFamily
+  | .namespacedPrefix _ _ _ => .generatedKnownGapFamily
 
 private def expectedLineage : KnownGapSource → KnownGapLineage
   | .exact _ => .authored
-  | .namespacedPrefix _ _ => .synthesized
+  | .namespacedPrefix _ _ _ => .synthesized
 
 end KnownGapSource
 
@@ -129,8 +146,10 @@ def validateProductionKnownGapSources
     | .exact gap =>
         if !gap.code.isNamespaced || gap.subject.any (fun subject => !subject.isNamespaced) then
           throw (sourceError .invalidCode descriptor)
-    | .namespacedPrefix _ namespaceId =>
-        if !namespaceId.isNamespaced then
+    | .namespacedPrefix _ namespaceId suffixes =>
+        if !namespaceId.isNamespaced || suffixes.isEmpty || !suffixes.Nodup ||
+            suffixes.any (fun suffix => suffix.toList.contains '.' ||
+              !(DefinitionId.of ("source." ++ suffix)).isNamespaced) then
           throw (sourceError .invalidPrefix descriptor)
   match firstDuplicateId [] sources with
   | some descriptor => throw (sourceError .duplicateId descriptor)
@@ -181,6 +200,45 @@ def plannerKnownGapSources : List KnownGapSourceDescriptor := [
     "Promotion is not established by pure planning."
 ]
 
+/-- Closed suffixes emitted by the Observation diagnostic family. -/
+def observationKnownGapSuffixes : List String := [
+  "empty-evidence",
+  "evidence-bound-exhausted",
+  "known-gap",
+  "missing-initial-state",
+  "missing-closure",
+  "sequence-gap",
+  "missing-causal-parent",
+  "normalization-failure",
+  "unresolved-binding",
+  "incomparable-ordering",
+  "profile-mismatch",
+  "profile-version-mismatch",
+  "kind-mismatch",
+  "field-mismatch",
+  "duplicate-evidence-identity",
+  "contradictory-fact",
+  "contradictory-binding",
+  "contradictory-order",
+  "misdirected-fault-receipt",
+  "compatible-alternatives",
+  "zero-usable-interpretations",
+  "absent-model-coordinate",
+  "duplicate-model-coordinate",
+  "extra-model-coordinate",
+  "inconsistent-evidence-link",
+  "unconsumed-reference",
+  "missing-closure-support",
+  "missing-order-support",
+  "raw-value-leakage",
+  "redacted-value-leakage",
+  "rejected-value-leakage",
+  "rejected-field-present",
+  "digest-policy-mismatch",
+  "digest-collision",
+  "disallowed-raw-material"
+]
+
 /-- The generated Observation diagnostic family emitted by Run Evaluation. -/
 def observationKnownGapSource : KnownGapSourceDescriptor := {
   id := DefinitionId.of "umpire.semantic-inventory.known-gap-source.09-observation-diagnostic"
@@ -188,6 +246,7 @@ def observationKnownGapSource : KnownGapSourceDescriptor := {
   lineage := .synthesized
   scope := .production
   source := .namespacedPrefix .interpretation (DefinitionId.of "umpire.observation")
+    observationKnownGapSuffixes
   description := "A closed Observation diagnostic synthesized during Run Evaluation."
 }
 
@@ -240,12 +299,9 @@ def observationFailureKnownGapSuffix : ObservationFailureKind → String
 /-- Materialize one Known Gap from the catalog-owned Observation family. -/
 def observationKnownGap
     (kind : ObservationFailureKind)
-    (subject : DefinitionId) : KnownGap := {
-  kind := .interpretation
-  code := DefinitionId.of (observationKnownGapSource.source.codeNamespace.value ++ "." ++
-    observationFailureKnownGapSuffix kind)
-  subject := some subject
-}
+    (subject : DefinitionId) : KnownGap :=
+  observationKnownGapSource.source.materialize (observationFailureKnownGapSuffix kind)
+    (some subject)
 
 end SemanticInventory
 end Umpire
