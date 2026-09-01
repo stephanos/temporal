@@ -38,9 +38,13 @@ Complete authored, projected, carried, and test-only Known Gap coverage and stag
 - [ ] Result composition remains stage-separated and byte-identical with no schema field change.
 - [ ] Missing lineage/scope/carry target, invalid projection mapping, and duplicate ownership fail focused and Run Evaluation tests.
 ## Done summary
-TBD
+Completed the 24-row Known Gap catalog with typed Implementation Link families, a non-semantic request/raw admitted-input boundary, a separately lossy Observation projection, distinct exact Result carry origins, and test-only fixtures/references. Added closed validation and owner-local regressions for lineage, scope, exact-code uniqueness, resolved carries, fixture bindings, and byte-identical stage separation; the non-trivial review findings were fixed before same-session SHIP. Memory capture was attempted after the review fix but skipped because Flow memory is not initialized.
 
+Baseline: recovered strict TDD RED in `Umpire.SemanticInventory.Tests.KnownGaps`; final exact Quick and `make lint-model` passed.
+
+stage: impl-review - ran (Codex NEEDS_WORK -> SHIP; session 01a05d27-ea22-7a30-aac0-41fc56b236c2; receipt /tmp/impl-review-receipt-fn-47-generate-umpire-semantic-outcome-and.4.json; 0 open findings)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 462a8beed399e72365ea3f449842725d0ebd04c1, 62226e0c915d1b8435e4efd2ddb23b5eb9c52325, 3eabd1e7b9d8a582baae31deb13d343604ef6cc5
+- Tests: cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.KnownGaps Umpire.Planning.Tests.KnownGaps Umpire.Observation.Tests Umpire.ImplementationLink.Tests Temporal.Tool.RunEvaluationTests, make lint-model, impl-review Codex SHIP session 01a05d27-ea22-7a30-aac0-41fc56b236c2 receipt /tmp/impl-review-receipt-fn-47-generate-umpire-semantic-outcome-and.4.json
 - PRs:
