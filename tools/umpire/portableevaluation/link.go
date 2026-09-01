@@ -10,14 +10,8 @@ func (i *interpreter) applyLink(
 	sourceLinks []*umpirespb.EvidenceLink,
 ) (*umpirespb.ImplementationLinkResult, *evaluationFailure) {
 	values := traceValues(sourceTrace)
-	applicationLimit := i.contract.GetImplementationLink().GetApplicationLimit()
-	if int64(len(sourceTrace.GetSteps())) > applicationLimit.GetValue() {
-		return nil, limitFailure(
-			"Implementation Link applications exceed the contract Limit",
-			applicationLimit.GetUnit(),
-			applicationLimit.GetValue(),
-			int64(len(sourceTrace.GetSteps())),
-		)
+	if failure := validateApplicationLimit(sourceTrace, i.contract.GetImplementationLink().GetApplicationLimit()); failure != nil {
+		return nil, failure
 	}
 
 	destinationTrace := traceShape(sourceTrace)
@@ -76,10 +70,13 @@ func (i *interpreter) applyLink(
 				detail: "Implementation Link application has no source Evidence Link",
 			}
 		}
+		if failure := i.reserveEvidenceLink(sourceLink); failure != nil {
+			return nil, failure
+		}
 		applications = append(applications, &umpirespb.RenameExactApplication{
 			Coordinate:         proto.CloneOf(candidate.coordinate),
 			Entry:              proto.CloneOf(entry),
-			SourceEvidenceLink: proto.CloneOf(sourceLink),
+			SourceEvidenceLink: sourceLink,
 		})
 	}
 	destinationTrace.TraceId = traceIdentity(destinationTrace)
@@ -88,6 +85,18 @@ func (i *interpreter) applyLink(
 		Trace:        destinationTrace,
 		Applications: applications,
 	}, nil
+}
+
+func validateApplicationLimit(trace *umpirespb.ModelTrace, limit *umpirespb.Limit) *evaluationFailure {
+	if int64(len(trace.GetSteps())) <= limit.GetValue() {
+		return nil
+	}
+	return limitFailure(
+		"Implementation Link applications exceed the contract Limit",
+		limit.GetUnit(),
+		limit.GetValue(),
+		int64(len(trace.GetSteps())),
+	)
 }
 
 func traceShape(source *umpirespb.ModelTrace) *umpirespb.ModelTrace {
