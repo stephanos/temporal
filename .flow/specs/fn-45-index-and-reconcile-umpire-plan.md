@@ -67,8 +67,9 @@ Objects allow no extra fields. The complete cross-field matrix is:
   committed task-status snapshots or external runtime state.
 - `unclassified` is accepted by the parser while editing but always fails the checked registry.
 
-At the current snapshot, fn-42, fn-44, and fn-50 are completed-prerequisite Umpire-support specs
-that remain open/unready; fn-43 and fn-45 through fn-49 plus fn-51 are retained Umpire-support specs.
+At the current snapshot, fn-21 is a completed-prerequisite Umpire-roadmap spec whose stale ready
+flag is reconciled to false by task .6. Fn-42, fn-44, and fn-50 are completed-prerequisite
+Umpire-support specs that remain open/unready; fn-43 and fn-45 through fn-49 plus fn-51 are retained Umpire-support specs.
 The fn-43/fn-48/fn-49/fn-51 simplicity track is retained and non-prototype-gating, not deferred.
 The registry reports committed Flow state and does not claim that spec-level readiness captures a
 live task's external authorization or blocked reason.
@@ -160,8 +161,8 @@ not override active authority.
   unreadable files, invalid Flow JSON, and state disagreement fail non-zero without changing files;
   external URLs are ignored.
 - **R3:** Flow retains fn-14 as its supported open/unready superseded tombstone; records fn-15,
-  fn-23 through fn-26, fn-29, and fn-30 as deferred/unready; records open-SHIP fn-42, fn-44, and
-  fn-50 as completed prerequisites; and retains fn-43, fn-48, fn-49, and fn-51 as unready,
+  fn-23 through fn-26, fn-29, and fn-30 as deferred/unready; records open-SHIP fn-21, fn-42, fn-44,
+  and fn-50 as completed prerequisites with readiness false; and retains fn-43, fn-48, fn-49, and fn-51 as unready,
   non-prototype-gating support. Retained P3 work, including fn-5, fn-17, fn-22, fn-33, and fn-40,
   remains unready until the fn-28 evidence decision without adding retroactive dependency edges;
   fn-28 keeps its existing fn-27 prerequisite. Fn-17 and fn-33 drop their obsolete fn-5 dependency,
@@ -188,8 +189,9 @@ not override active authority.
 ## Early proof point
 
 Task fn-45.1 proves a strict registry can detect complete plan, authority-graph, link, and Flow drift
-without mutation. If it cannot do so with deterministic fixture output, reconsider the registry
-schema before classifying documents or rewriting Flow plans.
+without mutation; task fn-45.2 completes the disposition-aware dependency invariant against the
+production classification. If those checks cannot produce deterministic fixture output, reconsider
+the registry schema before rewriting Flow plans.
 
 ## Requirement coverage
 
@@ -200,7 +202,7 @@ schema before classifying documents or rewriting Flow plans.
 | R3 | Flow disposition and gate reconciliation | fn-45.6 | — |
 | R4 | Reduced fn-5 scope | fn-45.4, fn-45.6 | — |
 | R5 | Reduced fn-17/fn-33 scope | fn-45.5, fn-45.6 | — |
-| R6 | Documentation and full validation | fn-45.3, fn-45.6 | — |
+| R6 | Documentation and full validation | fn-45.2, fn-45.3, fn-45.6 | — |
 
 ## References
 
