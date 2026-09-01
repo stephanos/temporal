@@ -47,13 +47,6 @@ private def portableDefinitionKind
   | .capability => pure .capability
   | kind => nonPortable owner source ("definition-kind." ++ kind.name)
 
-private def definitionFingerprint (definition : DefinitionMetadata) : BehaviorFingerprint :=
-  behaviorFingerprintOf <|
-    "{\"definitionId\":" ++ Lean.Json.compress (.str definition.id.value) ++
-      ",\"kind\":" ++ Lean.Json.compress (.str definition.kind.name) ++
-      ",\"version\":" ++ toString definition.version ++
-      ",\"canonicalBehavior\":" ++ Lean.Json.compress (.str definition.canonicalBehavior) ++ "}"
-
 private def definitionBinding
     (owner : DefinitionId)
     (source : SourceLocation)
@@ -63,7 +56,10 @@ private def definitionBinding
   let some definition := definitions.find? fun candidate =>
       candidate.id == id && candidate.kind == kind
     | nonPortable owner source ("missing-definition." ++ id.value)
-  pure { definitionId := id, behaviorFingerprint := definitionFingerprint definition }
+  pure {
+    definitionId := id
+    behaviorFingerprint := implementationSemanticFingerprint definition definition.canonicalBehavior
+  }
 
 /-- Lower only version-one Observation operators present in the protobuf interpreter table. -/
 def lowerObservationExpression
@@ -404,10 +400,16 @@ private def lowerImplementationLink
         behaviorFingerprint := mapping.destination.behaviorFingerprint
       }
     }
+  let definitionId := if duplicateDelivery then
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.observedImplementationLinkId
+  else declaration.id
+  let behaviorFingerprint := if duplicateDelivery then
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.behaviorFingerprint
+  else link.behaviorFingerprint
   pure {
     definition := {
-      definitionId := declaration.id
-      behaviorFingerprint := link.behaviorFingerprint
+      definitionId
+      behaviorFingerprint
     }
     source := declaration.source
     sourceTarget := {
@@ -559,8 +561,17 @@ private def lowerCheckedTest
   }
   let knownGaps := (experiment.plan.knownGaps ++ runtimeConfiguration.knownGaps)
     |>.map portableKnownGap |>.mergeSort gapLe |>.eraseDups
+  let definitionSources :=
+    (Temporal.System.Nexus.CallerClosure.target.definitions ++
+      Temporal.Feature.Nexus.Experimental.CallerClosure.target.definitions).map (·.source)
   let provenance := (experiment.provenance.sourceLocations ++
-    runtimeConfiguration.provenance.sourceLocations ++ [plan.source, link.source, property.source])
+    runtimeConfiguration.provenance.sourceLocations ++ [
+      plan.source,
+      link.source,
+      Temporal.System.Nexus.CallerClosure.target.source,
+      Temporal.Feature.Nexus.Experimental.CallerClosure.target.source,
+      property.source
+    ] ++ definitionSources)
       |>.mergeSort sourceLe |>.eraseDups
   pure {
     contractId := experiment.plan.queryDefinitionId.value ++ ".evaluation-contract"

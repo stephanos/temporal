@@ -41,6 +41,42 @@ example : duplicateBytesExact = true := by
 example : canonicalProtoJSON normal != canonicalProtoJSON duplicate := by
   native_decide
 
+example :
+    normal.implementationLink.definition.definitionId =
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.implementationLinkId ∧
+    normal.implementationLink.definition.behaviorFingerprint =
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.behaviorFingerprint := by
+  native_decide
+
+example :
+    duplicate.implementationLink.definition.definitionId =
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.observedImplementationLinkId ∧
+    duplicate.implementationLink.definition.behaviorFingerprint =
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.behaviorFingerprint := by
+  native_decide
+
+private def destinationActionFingerprintMatches : Bool :=
+  match normal.implementationLink.entries.find? fun entry =>
+      entry.destination.definition.definitionId ==
+        Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseActionId,
+    Temporal.Feature.Nexus.Experimental.CallerClosure.target.definitions.find? fun definition =>
+      definition.id == Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseActionId &&
+        definition.kind == .action with
+  | some entry, some definition =>
+      entry.destination.definition.behaviorFingerprint ==
+        implementationSemanticFingerprint definition definition.canonicalBehavior
+  | _, _ => false
+
+example : destinationActionFingerprintMatches = true := by
+  native_decide
+
+private def hasTargetProvenance (contract : Contract) : Bool :=
+  contract.provenance.contains Temporal.System.Nexus.CallerClosure.target.source &&
+    contract.provenance.contains Temporal.Feature.Nexus.Experimental.CallerClosure.target.source
+
+example : hasTargetProvenance normal && hasTargetProvenance duplicate = true := by
+  native_decide
+
 private def unsupportedRejected : Bool :=
   match lowerObservationExpression
       (DefinitionId.of "unsupported.test")
