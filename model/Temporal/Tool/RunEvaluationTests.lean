@@ -193,6 +193,128 @@ private def acceptedTrace : Option EvidenceBackedTrace := match evaluation.obser
   | .accepted trace => some trace
   | _ => none
 
+private def expectedEvidenceBackedModelTrace : Lean.Json := object [
+  ("traceId", text
+    "sha256:fd5f352adb1c6be44eb0a597650ae647a58568685f0d8598e58c528ace31b424"),
+  ("observationPlan", object [
+    ("definitionId", text "temporal.system.nexus.caller-closure.mapping"),
+    ("behaviorFingerprint", text
+      "sha256:150c75ffcdd8b8e6e2ca8807c2c6ac7d924407b3291a0bc1f10ea04469a7df9b")
+  ]),
+  ("mappingDefinitionId", text "temporal.system.nexus.caller-closure.mapping"),
+  ("mappingVersion", natural 1),
+  ("mappingBehaviorFingerprint", text
+    "sha256:150c75ffcdd8b8e6e2ca8807c2c6ac7d924407b3291a0bc1f10ea04469a7df9b"),
+  ("source", object [
+    ("path", text "Temporal/System/Nexus/Observation.lean"),
+    ("line", natural 1),
+    ("column", natural 1),
+    ("provenance", text "lean-model")
+  ]),
+  ("profileDefinitionId", text "temporal.system.nexus.caller-closure.profile"),
+  ("profileVersion", natural 1),
+  ("sourceClosed", .bool true),
+  ("vocabulary", array [
+    object [
+      ("definitionId", text "temporal.system.nexus.caller-closure.action"),
+      ("kind", text "action"),
+      ("canonicalBehavior", text "temporal-system-nexus-caller-closure-action/v1")
+    ],
+    object [
+      ("definitionId", text
+        "temporal.system.nexus.caller-closure.observation.cancellation-count"),
+      ("kind", text "observation"),
+      ("canonicalBehavior", text "temporal-system-nexus-caller-closure-count/v1")
+    ],
+    object [
+      ("definitionId", text "temporal.system.nexus.caller-closure.observation.delivery"),
+      ("kind", text "observation"),
+      ("canonicalBehavior", text "temporal-system-nexus-caller-closure-delivery/v1")
+    ],
+    object [
+      ("definitionId", text "temporal.system.nexus.caller-closure.observation.ownership"),
+      ("kind", text "observation"),
+      ("canonicalBehavior", text "temporal-system-nexus-caller-closure-ownership/v1")
+    ],
+    object [
+      ("definitionId", text "temporal.system.nexus.caller-closure.outcome"),
+      ("kind", text "outcome"),
+      ("canonicalBehavior", text "temporal-system-nexus-caller-closure-outcome/v1")
+    ],
+    object [
+      ("definitionId", text "temporal.system.nexus.caller-closure.state"),
+      ("kind", text "state"),
+      ("canonicalBehavior", text "temporal-system-nexus-caller-closure-state/v1")
+    ]
+  ]),
+  ("appliedLimit", object [
+    ("value", natural 4096),
+    ("unit", text "evidence-records")
+  ]),
+  ("evidenceDefinitionIds", array <| [
+    "umpire.runtime.fact.cleanup.fixture",
+    "umpire.runtime.fact.control.fixture",
+    "umpire.runtime.fact.history.1",
+    "umpire.runtime.fact.history.2",
+    "umpire.runtime.fact.history.3",
+    "umpire.runtime.fact.history.4",
+    "umpire.runtime.fact.history.5",
+    "umpire.runtime.fact.history.6",
+    "umpire.runtime.fact.participant.fixture"
+  ].map text),
+  ("trace", object [
+    ("traceId", text
+      "sha256:fd5f352adb1c6be44eb0a597650ae647a58568685f0d8598e58c528ace31b424"),
+    ("initialState", object [
+      ("definitionId", text "temporal.system.nexus.caller-closure.state"),
+      ("value", text "temporal.history.WorkflowExecutionStarted")
+    ]),
+    ("steps", array [object [
+      ("position", natural 1),
+      ("selectedAction", object [
+        ("definitionId", text "temporal.system.nexus.caller-closure.action"),
+        ("value", text "force-close")
+      ]),
+      ("modelOutcome", object [
+        ("definitionId", text "temporal.system.nexus.caller-closure.outcome"),
+        ("value", text "upgrade")
+      ]),
+      ("resultingState", object [
+        ("definitionId", text "temporal.system.nexus.caller-closure.state"),
+        ("value", text "temporal.history.WorkflowExecutionCanceled")
+      ]),
+      ("observations", array [
+        object [
+          ("definitionId", text "temporal.system.nexus.caller-closure.observation.delivery"),
+          ("value", text "true")
+        ],
+        object [
+          ("definitionId", text
+            "temporal.system.nexus.caller-closure.observation.cancellation-count"),
+          ("value", text "1")
+        ],
+        object [
+          ("definitionId", text "temporal.system.nexus.caller-closure.observation.ownership"),
+          ("value", text "true")
+        ]
+      ])
+    ]])
+  ])
+]
+
+private def acceptedProjectionIsExact : Bool :=
+  response.observationEvaluationStatus == "accepted" &&
+    response.implementationLinkStatus == "applied" && response.semanticStatus == "satisfied" &&
+    response.evidenceBackedModelTrace == expectedEvidenceBackedModelTrace &&
+    response.evaluationOutcomeChecksum == ArtifactChecksum.parse?
+      "sha256:d9918ec1a68d3d225c04a8bc54c9722d64e34cd9988b3b4814b7ab3273d72f97" &&
+    (String.fromUTF8? checkerResult.stdout).any fun bytes =>
+      Fingerprint.sha256Hex bytes ==
+        "1d7e9c7216429ec7920e638eb1f20c5506adedc67edf9c57a7549b4e8e09b2c8"
+
+/-! Accepted projection preserves every trace field and the exact encoded response bytes. -/
+example : acceptedProjectionIsExact := by native_decide
+
 /-! The adapter translates every source fact once; checked Observation alone decides which records
 establish the one-step System trace. -/
 example : acceptedTrace.any fun trace =>
@@ -509,7 +631,8 @@ private def jsonArrayEmpty (value : Lean.Json) : Bool :=
   | .error _ => false
 
 private def incompleteProjection (candidate : Response) : Bool :=
-  candidate.implementationLinkStatus == "not-evaluated" &&
+  candidate.evidenceBackedModelTrace == .null && jsonArrayEmpty candidate.evidenceLinks &&
+    candidate.implementationLinkStatus == "not-evaluated" &&
     (candidate.implementationLink.getObjVal? "diagnostic").toOption == some .null &&
     jsonArrayEmpty candidate.propertyVerdicts && candidate.semanticStatus == "incomplete" &&
     candidate.evaluationOutcomeChecksum.isNone &&
