@@ -63,7 +63,7 @@ This fits the existing roadmap rather than replacing it: COMPAT-7 already
 proposes a Linux/arm64 platform bundle, and SIM-5 already proposes a
 process-backed fidelity tier
 ([compatibility](GOMAD3_NEXT_COMPATIBILITY.md#compat-7-platform-bundles),
-[simulation](GOMAD3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier)). The
+[simulation](GOMAD3_NEXT_SIM.md#sim-5-process-backed-fidelity-tier--complete)). The
 syscall layer belongs beneath the Go execution backends as defense in depth;
 it does not replace Gomad's semantic network, storage, World, or fault models.
 The heterogeneous backend is a separate machine-level seam that may reuse
