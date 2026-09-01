@@ -32,6 +32,12 @@ Add the shared typed authoring seam and prove its projection, checking, and proo
 - Authored expected key, identity, schema, and default must remain independent of the current generated setting; no `fromGeneratedSetting` shortcut.
 - Existing public checked definitions already use private native-decision witnesses. Keep the proof explicit at owner call sites and avoid widening the shared helper's trust boundary.
 
+### Lifecycle reconciliation
+
+The implementation and its original review remain reachable at commit `e579e0c95baa2aed35f5ddb02f9d6af8c8e6427f`.
+This reopened lifecycle run verifies that exact `e579e0c95^..e579e0c95` implementation range rather
+than introducing a duplicate source change.
+
 ### Acceptance
 - [ ] A representative valid spec projects one key/identity consistently and produces the same checked metadata as the existing records.
 - [ ] Mutated key, identity, impacts, schema, default, policy, opaque metadata/value, and decoder cases retain the exact existing `ConfigError` outputs.
