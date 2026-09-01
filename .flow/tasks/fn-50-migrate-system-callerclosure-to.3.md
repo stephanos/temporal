@@ -27,7 +27,7 @@ Review public guidance/comments and run final compatibility gates (R5).
 - [ ] Existing comments unrelated to the changed representation remain byte-for-byte present.
 - [ ] Focused and aggregate Lean builds, exact regression, trust/import, and `make lint-model` pass.
 - [ ] Literal `make lint-code` runs and reproduces only the pre-edit inherited 1,373-finding golangci baseline with no task Go path; the existing `tools/umpire/runtime/errors.go:60:9` `errortype` finding is unchanged, and a no-fix golangci run scoped from the task base passes.
-- [ ] No generated, artifact, checksum, fingerprint, or unrelated-file drift remains.
+- [ ] No generated, artifact, checksum, fingerprint, or fn50-authored unrelated-file drift remains; separately authorized roadmap commits `428fc87d9` and `69ce0485f` are excluded from fn50 implementation and evidence.
 
 ## Done summary
 Audited CallerClosure construction guidance and comment preservation without changing model or public documentation: FiniteMachine is already the ordinary route, the direct TransitionKernel route remains expert-only, and the pre-migration CallerClosure comment is byte-identical. Reconciled R5 to require literal full lint classification plus green task-scoped no-fix lint and trust/import checks; all task-owned checks satisfy that contract with no model, generated, Go, artifact, or roadmap drift.

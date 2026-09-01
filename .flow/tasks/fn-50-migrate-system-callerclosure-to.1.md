@@ -37,6 +37,6 @@ Expressed System CallerClosure as one `FiniteMachine`, with the compatibility ke
 stage: impl-review - ran [2026-09-01T04:17:18Z..2026-09-01T04:19:25Z]
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: c1e931633d4f37fbefbbf8deaeb1686bdb961a8e
+- Commits: 407213f9805b15e851880ec6e3fc0a53cd029e56
 - Tests: cd model && mise exec -- lake build Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus, cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine, cd model && mise exec -- lake build TemporalModelTests TemporalExperimentalTests UmpireTests, make umpire-check-regression, make lint-model, make lint-code (accepted inherited branch-wide red: 1373 findings — errcheck 220, exhaustive 6, forbidigo 211, govet 5, revive 792, staticcheck 135, testifylint 4; no task Go paths; six --fix edits exact-inverse-restored), baseline: red (make lint-code failed pre-edit with the identical 1373 inherited findings; accepted by standing roadmap policy)
 - PRs:
