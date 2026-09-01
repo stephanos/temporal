@@ -40,6 +40,8 @@ Implemented the strict read-only Umpire plan-index command: closed token-level J
 The persisted run base is `5e4def302`; `0000c9fc2` is the conductor-owned approved fn45 contract reconciliation, followed by implementation `8b23bc5a7`, review fixes `9a4137a3b`, and review metadata `5971cf936`. The expected greenfield baseline was red because `tools/planindex` did not exist. Final focused tests, package vet, and diff check pass; task-scoped golangci reports zero introduced issues, while the make wrapper remains red only for the inherited `tools/umpire/runtime/errors.go:60` et/unw warning. Flow memory capture was skipped because memory is not initialized.
 
 stage: impl-review - ran [2026-09-01T08:08:35Z..2026-09-01T08:14:04Z]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 0000c9fc223a4e5bb27a26ed7a843d9f3ef5d7c6, 8b23bc5a72e2061142633aad8680b865c9c2db74, 9a4137a3bb47c456c07486c21055a1d8fd161ecd, 5971cf936ce6d5c0cddc7e6b6c115dd033d611ea
 - Tests: baseline: red (go test -count=1 -tags test_dep ./tools/planindex/... failed pre-edit because the greenfield package did not exist), go test -count=1 -tags test_dep ./tools/planindex/..., go vet -tags test_dep ./tools/planindex/..., git diff --check, make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=0000c9fc2 (golangci: 0 introduced issues; inherited tools/umpire/runtime/errors.go:60 et/unw warning keeps wrapper red)
