@@ -56,12 +56,6 @@ private def stringArray (json : Lean.Json) (field : String) : Except String (Lis
     | .ok result => pure result
     | .error _ => throw field
 
-private def observationStatusName : ObservationStatus → String
-  | .accepted => "accepted"
-  | .unknown => "unknown"
-  | .conflict => "conflict"
-  | .unsupported => "unsupported"
-
 private def observationFailureName : ObservationFailureKind → String
   | .emptyEvidence => "empty-evidence"
   | .evidenceBoundExhausted => "evidence-bound-exhausted"
@@ -98,18 +92,6 @@ private def observationFailureName : ObservationFailureKind → String
   | .digestPolicyMismatch => "digest-policy-mismatch"
   | .digestCollision => "digest-collision"
   | .disallowedRawMaterial => "disallowed-raw-material"
-
-private def semanticStatusName : SemanticVerdictStatus → String
-  | .satisfied => "satisfied"
-  | .violated => "violated"
-  | .unknown => "unknown"
-  | .conflict => "conflict"
-  | .unsupported => "unsupported"
-
-private def strictStatusName : StrictQueryStatus → String
-  | .satisfied => "satisfied"
-  | .violated => "violated"
-  | .incomplete => "incomplete"
 
 private def semanticFailureName : SemanticVerdictFailureKind → String
   | .observationEvaluationFailure kind => "observation-evaluation-failure:" ++ observationFailureName kind
@@ -256,7 +238,7 @@ private def artifactClause
     (clause : SemanticClauseVerdict) : ArtifactSemanticClauseVerdict := {
   propertyDefinitionId := clause.propertyId
   clauseDefinitionId := clause.clauseId
-  status := semanticStatusName clause.status
+  status := clause.status.name
   coordinates := clause.coordinates.map artifactCoordinate
   queryLimits := clause.queryLimits
   propertyLimit := clause.propertyLimit.map artifactLimit
@@ -275,7 +257,7 @@ private def artifactProperty
     (BehaviorFingerprint.parse? verdict.propertyDigest).getD
       (behaviorFingerprintOf verdict.propertyDigest)
   traceId := verdict.traceId
-  status := semanticStatusName verdict.status
+  status := verdict.status.name
   queryLimits := verdict.queryLimits
   evidenceLimit := verdict.evidenceBound.map artifactEvidenceLimit
   provenanceDefinitionIds := verdict.provenance
@@ -288,7 +270,7 @@ private def artifactSummary
     (closureSupport : List ArtifactEvidenceClosureFact)
     (summary : StrictQuerySummary) : ArtifactQuerySummary := {
   queryDefinitionId := summary.queryId
-  status := strictStatusName summary.status
+  status := summary.status.name
   queryLimits := summary.queryLimits
   requiredPropertyDefinitionIds := summary.requiredProperties
   propertyVerdicts := summary.verdicts.map (artifactProperty orderingFact closureSupport)
@@ -1203,7 +1185,8 @@ private def strictSemanticEvaluation
   implementationLinkBehaviorFingerprint :=
     Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.behaviorFingerprint
   implementationLinkStatus := evaluation.implementationLink.map
-    (ImplementationLinkStatus.name ∘ ImplementationLinkResult.status) |>.getD "not-evaluated"
+    (ImplementationLinkStatus.name ∘ ImplementationLinkResult.status) |>.getD
+      ImplementationLinkStatus.notEvaluatedProjectionSentinel.name
   implementationLinkDiagnostic :=
     evaluation.implementationLink.bind ImplementationLinkResult.diagnostic?
   querySummary := evaluation.querySummary
@@ -1223,7 +1206,8 @@ private def observedSemanticEvaluation
   implementationLinkBehaviorFingerprint :=
     Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.behaviorFingerprint
   implementationLinkStatus := evaluation.implementationLink.map
-    (ImplementationLinkStatus.name ∘ ObservedTraceTranslationResult.status) |>.getD "not-evaluated"
+    (ImplementationLinkStatus.name ∘ ObservedTraceTranslationResult.status) |>.getD
+      ImplementationLinkStatus.notEvaluatedProjectionSentinel.name
   implementationLinkDiagnostic :=
     evaluation.implementationLink.bind ObservedTraceTranslationResult.diagnostic?
   querySummary := evaluation.querySummary
@@ -1301,7 +1285,7 @@ private def evidenceArtifact
       definitionId := request.mapping.definitionId
       behaviorFingerprint := request.mapping.behaviorFingerprint
     }
-    observationEvaluationStatus := observationStatusName evaluation.observation.status
+    observationEvaluationStatus := evaluation.observation.status.name
     evidenceBackedModelTrace := projection.1
     evidenceLinks := projection.2.1
     dispositions := projection.2.2.1
@@ -1374,7 +1358,7 @@ private def resultArtifact
     rawEvidence := request.rawEvidence
     evidence := evidence.artifactBinding
     operationalStatus := operationalStatus request
-    observationEvaluationStatus := observationStatusName evaluation.observation.status
+    observationEvaluationStatus := evaluation.observation.status.name
     implementationLink := artifactImplementationLink evaluation
     implementationLinkStatus := implementationStatus
     propertyVerdicts := properties
@@ -1419,7 +1403,7 @@ def evaluateRequest (request : Request) : Except Protocol.Error Response := do
     experimentBehaviorFingerprint := request.experiment.behaviorFingerprint
     runtimeConfigurationBehaviorFingerprint := request.runtimeConfiguration.behaviorFingerprint
     runIdentity := request.runIdentity
-    observationEvaluationStatus := observationStatusName evaluation.observation.status
+    observationEvaluationStatus := evaluation.observation.status.name
     implementationLink := jsonField resultJson "implementationLink"
     implementationLinkStatus := result.implementationLinkStatus
     evidenceBackedModelTrace := jsonField evidenceJson "evidenceBackedModelTrace"
