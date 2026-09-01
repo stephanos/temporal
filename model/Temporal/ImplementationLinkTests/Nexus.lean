@@ -580,6 +580,30 @@ example :
       missingCoordinateResult.evaluated?.isNone := by
   native_decide
 
+theorem callerClosureCheckedLinkRetainsCanonicalCorrespondence :
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checkedResult.isOk = true ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.hasCanonicalIdentity = true ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.sourceTarget.id =
+      Temporal.System.Nexus.CallerClosure.target.id ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.sourceTarget.source =
+      Temporal.System.Nexus.CallerClosure.target.source ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.destinationTarget.id =
+      Temporal.Feature.Nexus.Experimental.CallerClosure.target.id ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.destinationTarget.source =
+      Temporal.Feature.Nexus.Experimental.CallerClosure.target.source ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.declaration.capabilityMappings = [
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.capabilityMapping,
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.lifecycleCapabilityMapping,
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.ownershipCapabilityMapping
+    ] ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.sourceTarget.behaviorFingerprint.render =
+      "sha256:6729e790d336a96173ffd0ebe0b2b2d2406e6c5444596924f0c06c4ba9652bf8" ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.destinationTarget.behaviorFingerprint.render =
+      "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd" ∧
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.behaviorFingerprint.render =
+      "sha256:96b55d0e5a782099f66479c6ced603c08c8046b565f89435b5b2a54848aed777" := by
+  native_decide
+
 namespace DuplicateDelivery
 
 open Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery

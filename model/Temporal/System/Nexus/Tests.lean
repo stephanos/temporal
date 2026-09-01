@@ -79,6 +79,100 @@ example : target.kernel.authoritativeInitial queuedSetup queuedState ∧
 #check (Temporal.System.Nexus.CallerClosure.finiteMachine : FiniteMachine
   (List RoleBinding) ModelValue ModelValue ModelValue ModelValue)
 
+theorem callerClosureDefinitionsRetainCanonicalMetadata :
+    Temporal.System.Nexus.CallerClosure.definitions = [
+      { id := Temporal.System.Nexus.CallerClosure.targetId, kind := .target,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-target/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.kernelId, kind := .kernel,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-kernel/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.capabilityId, kind := .capability,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure/v1", documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.providerId, kind := .provider,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-provider/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.lifecycleCapabilityId, kind := .capability,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-lifecycle/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.ownershipCapabilityId, kind := .capability,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-ownership/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.lifecycleProviderId, kind := .provider,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-lifecycle-provider/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.ownershipProviderId, kind := .provider,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-ownership-provider/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.lawId, kind := .law,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := Temporal.System.Nexus.CallerClosure.law.body,
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.stateId, kind := .state,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-state/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.actionId, kind := .action,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-action/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.outcomeId, kind := .outcome,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-outcome/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.deliveryObservationId, kind := .observation,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-delivery/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.cancellationCountObservationId,
+        kind := .observation, source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-count/v1",
+        documentation := "" },
+      { id := Temporal.System.Nexus.CallerClosure.ownershipObservationId, kind := .observation,
+        source := Temporal.System.Nexus.CallerClosure.source, version := 1,
+        canonicalBehavior := "temporal-system-nexus-caller-closure-ownership/v1",
+        documentation := "" }
+    ] := by
+  native_decide
+
+theorem callerClosureTargetAuthoringRetainsCompositionAndPlannerOrder :
+    (checkTarget Temporal.System.Nexus.CallerClosure.targetAuthoring).isOk = true ∧
+    Temporal.System.Nexus.CallerClosure.target.requiredCapabilities = [
+      Temporal.System.Nexus.CallerClosure.capabilityId,
+      Temporal.System.Nexus.CallerClosure.lifecycleCapabilityId,
+      Temporal.System.Nexus.CallerClosure.ownershipCapabilityId
+    ] ∧
+    Temporal.System.Nexus.CallerClosure.target.providers.map CapabilityProvider.id = [
+      Temporal.System.Nexus.CallerClosure.providerId,
+      Temporal.System.Nexus.CallerClosure.lifecycleProviderId,
+      Temporal.System.Nexus.CallerClosure.ownershipProviderId
+    ] ∧
+    Temporal.System.Nexus.CallerClosure.target.connectors = [] ∧
+    Temporal.System.Nexus.CallerClosure.finitePlanning.actions = [
+      Temporal.System.Nexus.CallerClosure.forceCloseAction
+    ] := by
+  native_decide
+
+theorem callerClosureCheckedTargetRetainsCanonicalIdentity :
+    (checkTarget Temporal.System.Nexus.CallerClosure.targetAuthoring).toOption.map (fun checked =>
+      (checked.id, checked.source, canonicalCheckedTargetJson checked,
+        checked.behaviorFingerprint)) =
+      some (Temporal.System.Nexus.CallerClosure.targetId,
+        Temporal.System.Nexus.CallerClosure.source,
+        canonicalCheckedTargetJson Temporal.System.Nexus.CallerClosure.target,
+        Temporal.System.Nexus.CallerClosure.target.behaviorFingerprint) ∧
+    Temporal.System.Nexus.CallerClosure.target.behaviorFingerprint.render =
+      "sha256:6729e790d336a96173ffd0ebe0b2b2d2406e6c5444596924f0c06c4ba9652bf8" := by
+  native_decide
+
 theorem callerClosureFiniteMachineRetainsOrderedSemantics :
     Temporal.System.Nexus.CallerClosure.finiteMachine.setups =
       [Temporal.System.Nexus.CallerClosure.setup] ∧
