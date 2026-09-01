@@ -139,7 +139,7 @@ example :
     productionKnownGapSources.all (fun descriptor => !descriptor.source.covers requestGap) := by
   native_decide
 
-example : knownGapCatalog.length = 22 ∧
+example : knownGapCatalog.length = 24 ∧
     catalogValidationErrorKind? knownGapCatalog = none ∧
     (knownGapCatalog.drop 9).map KnownGapCatalogDescriptor.id = [
       "umpire.semantic-inventory.known-gap-source.10-implementation-link-setup",
@@ -149,51 +149,79 @@ example : knownGapCatalog.length = 22 ∧
       "umpire.semantic-inventory.known-gap-source.14-implementation-link-observation",
       "umpire.semantic-inventory.known-gap-source.15-implementation-link-relation",
       "umpire.semantic-inventory.known-gap-source.16-implementation-link-capability",
-      "umpire.semantic-inventory.known-gap-source.17-observation-known-gap-admission",
-      "umpire.semantic-inventory.known-gap-source.18-result-known-gap-carry",
-      "umpire.semantic-inventory.known-gap-source.19-test-capability",
-      "umpire.semantic-inventory.known-gap-source.20-test-input",
-      "umpire.semantic-inventory.known-gap-source.21-test-interpretation",
-      "umpire.semantic-inventory.known-gap-source.22-test-claim"
+      "umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input",
+      "umpire.semantic-inventory.known-gap-source.18-observation-known-gap-admission",
+      "umpire.semantic-inventory.known-gap-source.19-result-request-raw-known-gap-carry",
+      "umpire.semantic-inventory.known-gap-source.20-result-observation-known-gap-carry",
+      "umpire.semantic-inventory.known-gap-source.21-test-capability",
+      "umpire.semantic-inventory.known-gap-source.22-test-input",
+      "umpire.semantic-inventory.known-gap-source.23-test-interpretation",
+      "umpire.semantic-inventory.known-gap-source.24-test-claim-reference"
     ] := by
   native_decide
 
 example :
-    let projection := catalogAt 16
+    let admitted := catalogAt 16
+    admitted.shape = .admittedKnownGapInput ∧
+      admitted.lineage = .carried ∧
+      admitted.scope = .production ∧
+      admitted.fieldMapping = none ∧
+    let projection := catalogAt 17
     projection.shape = .evidenceGapAdmissionProjection ∧
       projection.lineage = .carried ∧
       projection.scope = .production ∧
+      projection.source = admitted.id ∧
       projection.fieldMapping = some .observationAdmission ∧
-    let carry := catalogAt 17
-    carry.shape = .carriedCatalogEntry ∧
-      carry.lineage = .carried ∧
-      carry.scope = .production ∧
-      carry.source = projection.id ∧
-      carry.fieldMapping = some .exact := by
+    let requestCarry := catalogAt 18
+    requestCarry.shape = .carriedCatalogEntry ∧
+      requestCarry.lineage = .carried ∧
+      requestCarry.scope = .production ∧
+      requestCarry.source = admitted.id ∧
+      requestCarry.source != projection.id ∧
+      requestCarry.fieldMapping = some .exact ∧
+    let observationCarry := catalogAt 19
+    observationCarry.shape = .carriedCatalogEntry ∧
+      observationCarry.lineage = .carried ∧
+      observationCarry.scope = .production ∧
+      observationCarry.source = (catalogAt 8).id ∧
+      observationCarry.source != projection.id ∧
+      observationCarry.fieldMapping = some .exact := by
   native_decide
 
 example :
-    (knownGapCatalog.drop 18).all fun row => row.scope == .testOnly := by
+    (knownGapCatalog.drop 20).all (fun row => row.scope == .testOnly) ∧
+      let claimReference := catalogAt 23
+      claimReference.shape = .carriedCatalogEntry ∧
+        claimReference.lineage = .carried ∧
+        claimReference.source = (catalogAt 7).id ∧
+        claimReference.fieldMapping = some .exact := by
   native_decide
 
 example :
-    let projection := catalogAt 16
+    let projection := catalogAt 17
     let invalid := { projection with fieldMapping := some .exact }
-    catalogValidationErrorKind? (knownGapCatalog.take 16 ++ invalid :: knownGapCatalog.drop 17) =
+    catalogValidationErrorKind? (knownGapCatalog.take 17 ++ invalid :: knownGapCatalog.drop 18) =
       some .invalidProjectionMapping := by
   native_decide
 
 example :
-    let carry := catalogAt 17
-    let invalid := { carry with source := "umpire.semantic-inventory.known-gap-source.missing" }
-    catalogValidationErrorKind? (knownGapCatalog.take 17 ++ invalid :: knownGapCatalog.drop 18) =
-      some .unresolvedCarry := by
+    let projection := catalogAt 17
+    let carry := catalogAt 18
+    let missing := "umpire.semantic-inventory.known-gap-source.missing"
+    [
+      catalogValidationErrorKind?
+        (knownGapCatalog.take 17 ++ { projection with source := missing } ::
+          knownGapCatalog.drop 18),
+      catalogValidationErrorKind?
+        (knownGapCatalog.take 18 ++ { carry with source := missing } ::
+          knownGapCatalog.drop 19)
+    ] = [some .unresolvedCarry, some .unresolvedCarry] := by
   native_decide
 
 example :
     let family := catalogAt 9
     let duplicate := {
-      family with id := "umpire.semantic-inventory.known-gap-source.23-duplicate-setup"
+      family with id := "umpire.semantic-inventory.known-gap-source.25-duplicate-setup"
     }
     catalogValidationErrorKind? (knownGapCatalog ++ [duplicate]) = some .duplicateOwnership := by
   native_decide
@@ -206,6 +234,19 @@ example :
         some .invalidLineage ∧
       catalogValidationErrorKind? (knownGapCatalog.take 9 ++ wrongScope :: knownGapCatalog.drop 10) =
         some .invalidScope := by
+  native_decide
+
+example :
+    let fixture := catalogAt 20
+    let wrongScope := { fixture with scope := .production }
+    let duplicateCode := {
+      (catalogAt 0) with id := "umpire.semantic-inventory.known-gap-source.25-duplicate-code"
+    }
+    catalogValidationErrorKind?
+        (knownGapCatalog.take 20 ++ wrongScope :: knownGapCatalog.drop 21) =
+        some .invalidScope ∧
+      catalogValidationErrorKind? (knownGapCatalog ++ [duplicateCode]) =
+        some .duplicateCode := by
   native_decide
 
 end Umpire.SemanticInventoryTests.KnownGaps
