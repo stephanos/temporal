@@ -1,5 +1,6 @@
 import Temporal.Tool.PortableEvaluationContract
 import Umpire.Artifact.Tests.PortableEvaluationContract
+import Umpire.Observation.Tests.Fixtures
 
 namespace Temporal.Tool.PortableEvaluationContractTests
 
@@ -155,73 +156,57 @@ def anyOperatorContractProtoJSON : Except NonPortableError String :=
       contract with observation := { contract.observation with emits }
     }
 
-private inductive BranchEvaluation where
-  | value (value : PortableValue)
-  | missing
-  | typeError
-  deriving BEq, Nonempty
+private inductive CanonicalBranchOutcome where
+  | observation (status : ObservationStatus) (failure : Option ObservationFailureKind)
+  | rejected (error : ObservationErrorKind)
+  deriving BEq, DecidableEq
 
-private abbrev BranchFields := List (EvidenceFieldReference × BranchEvaluation)
-
-private def branchField : EvidenceFieldReference := {
-  kind := DefinitionId.of "umpire.evidence.kind.branch-oracle"
-  field := DefinitionId.of "umpire.evidence.field.branch-oracle"
+private def canonicalBranchDeclaration
+    (value : Umpire.ObservationExpression)
+    (condition : Option Umpire.ObservationExpression) : ObservationMappingDeclaration := {
+  Umpire.ObservationTests.baseDeclaration with
+  id := Umpire.ObservationTests.id "test.mapping.portable-branch-oracle"
+  bindings := []
+  rules := [{
+    Umpire.ObservationTests.initialRule with
+    value := .portable value
+    condition := condition.map (.portable ·)
+  }]
+  ordering := []
 }
 
-private def branchValue
-    (fields : BranchFields)
-    (reference : EvidenceFieldReference) : BranchEvaluation :=
-  (fields.find? fun entry => entry.1 == reference).map (·.2) |>.getD .missing
+private def canonicalBranchBundle
+    (fields : List EvidenceFieldValue) : EvidenceBundle := {
+  profile := Umpire.ObservationTests.profileId
+  profileVersion := 1
+  records := [{
+    id := Umpire.ObservationTests.id "test.evidence.portable-branch-oracle"
+    profile := Umpire.ObservationTests.profileId
+    profileVersion := 1
+    kind := Umpire.ObservationTests.eventKind
+    sequence := 1
+    fields
+  }]
+  closures := [{ kind := Umpire.ObservationTests.eventKind, lastSequence := 1 }]
+}
 
-private def equalValues (left right : PortableValue) : BranchEvaluation :=
-  match left, right with
-  | .text left, .text right => .value (.boolean (left == right))
-  | .natural left, .natural right => .value (.boolean (left == right))
-  | .boolean left, .boolean right => .value (.boolean (left == right))
-  | _, _ => .typeError
+private def canonicalBranchOutcome
+    (value : Umpire.ObservationExpression)
+    (condition : Option Umpire.ObservationExpression)
+    (fields : List EvidenceFieldValue := []) : CanonicalBranchOutcome :=
+  match checkObservation Umpire.ObservationTests.context
+      (canonicalBranchDeclaration value condition) with
+  | .error error => .rejected error.kind
+  | .ok plan =>
+      let result := evaluateEvidence plan (canonicalBranchBundle fields)
+      .observation result.status (result.diagnostic?.map ObservationDiagnostic.kind)
 
-private def booleanValues (all : Bool) (values : List BranchEvaluation) : BranchEvaluation :=
-  match values.find? fun value =>
-      match value with
-      | .value (.boolean _) => false
-      | _ => true with
-  | some .missing => .missing
-  | some .typeError | some (.value _) => .typeError
-  | none =>
-      let booleans := values.filterMap fun value =>
-        match value with
-        | .value (.boolean boolean) => some boolean
-        | _ => none
-      .value (.boolean (if all then booleans.all id else booleans.any id))
-
-private partial def evaluateBranchExpression
-    (fields : BranchFields) :
-    Umpire.Artifact.PortableEvaluationContract.ObservationExpression → BranchEvaluation
-  | .literalText value => .value (.text value)
-  | .literalNatural value => .value (.natural value)
-  | .field reference => branchValue fields reference
-  | .naturalRenderV1 operand =>
-      match evaluateBranchExpression fields operand with
-      | .value (.natural value) => .value (.text (toString value))
-      | .missing => .missing
-      | _ => .typeError
-  | .present operand =>
-      match evaluateBranchExpression fields operand with
-      | .missing => .value (.boolean false)
-      | .typeError => .typeError
-      | .value _ => .value (.boolean true)
-  | .equals left right =>
-      match evaluateBranchExpression fields left, evaluateBranchExpression fields right with
-      | .missing, _ | _, .missing => .missing
-      | .typeError, _ | _, .typeError => .typeError
-      | .value left, .value right => equalValues left right
-  | .all operands =>
-      booleanValues true (operands.map (evaluateBranchExpression fields))
-  | .any operands =>
-      booleanValues false (operands.map (evaluateBranchExpression fields))
+private def canonicalNameField : Umpire.ObservationExpression :=
+  Umpire.ObservationTests.field Umpire.ObservationTests.nameField
 
 private structure BranchOracle where
   name : String
+  source : String
   toolingStatus : String
   operationalStatus : String
   observationStatus : String
@@ -231,12 +216,13 @@ private structure BranchOracle where
   decision : String
   diagnosticCode : String
 
-private def expressionBranchOracle
+private def canonicalBranchOracle
     (name : String)
-    (result : BranchEvaluation) : BranchOracle :=
+    (result : CanonicalBranchOutcome) : BranchOracle :=
   match result with
-  | .value (.boolean true) => {
+  | .observation .accepted none => {
       name
+      source := "lean-observation-evaluation"
       toolingStatus := "TOOLING_STATUS_SUCCEEDED"
       operationalStatus := "OPERATIONAL_STATUS_SUCCEEDED"
       observationStatus := "OBSERVATION_STATUS_ACCEPTED"
@@ -248,13 +234,21 @@ private def expressionBranchOracle
     }
   | result =>
       let (observationStatus, diagnosticCode) := match result with
-        | .value (.boolean false) =>
+        | .observation .unknown (some .unresolvedBinding) =>
+            ("OBSERVATION_STATUS_UNKNOWN", "DIAGNOSTIC_CODE_MISSING_FIELD")
+        | .observation .unknown (some .knownGap) =>
+            ("OBSERVATION_STATUS_UNKNOWN", "DIAGNOSTIC_CODE_MISSING_BINDING")
+        | .observation .unknown _ =>
             ("OBSERVATION_STATUS_UNKNOWN", "DIAGNOSTIC_CODE_MISSING_COORDINATE")
-        | .missing => ("OBSERVATION_STATUS_UNKNOWN", "DIAGNOSTIC_CODE_MISSING_FIELD")
-        | .typeError | .value _ =>
+        | .observation .conflict _ =>
+            ("OBSERVATION_STATUS_CONFLICT", "DIAGNOSTIC_CODE_DUPLICATE_FIELD")
+        | .observation .unsupported _ | .rejected .typeMismatch =>
+            ("OBSERVATION_STATUS_UNSUPPORTED", "DIAGNOSTIC_CODE_TYPE_MISMATCH")
+        | .observation .accepted _ | .rejected _ =>
             ("OBSERVATION_STATUS_UNSUPPORTED", "DIAGNOSTIC_CODE_TYPE_MISMATCH")
       {
         name
+        source := "lean-observation-check-or-evaluation"
         toolingStatus := "TOOLING_STATUS_SUCCEEDED"
         operationalStatus := "OPERATIONAL_STATUS_SUCCEEDED"
         observationStatus
@@ -267,6 +261,7 @@ private def expressionBranchOracle
 
 private def propertyTypeErrorOracle (name : String) : BranchOracle := {
   name
+  source := "lean-compiler-invariant"
   toolingStatus := "TOOLING_STATUS_SUCCEEDED"
   operationalStatus := "OPERATIONAL_STATUS_SUCCEEDED"
   observationStatus := "OBSERVATION_STATUS_ACCEPTED"
@@ -277,9 +272,10 @@ private def propertyTypeErrorOracle (name : String) : BranchOracle := {
   diagnosticCode := "DIAGNOSTIC_CODE_TYPE_MISMATCH"
 }
 
-private def closedFailureOracle
+private def portableOnlyFailureOracle
     (name observationStatus diagnosticCode : String) : BranchOracle := {
   name
+  source := "portable-v1-proof"
   toolingStatus := "TOOLING_STATUS_SUCCEEDED"
   operationalStatus := "OPERATIONAL_STATUS_SUCCEEDED"
   observationStatus
@@ -290,9 +286,42 @@ private def closedFailureOracle
   diagnosticCode
 }
 
+private def correlationSlotsHaveAlternativeReferences (contract : Contract) : Bool :=
+  contract.observation.profile.correlationSlots.all fun slot =>
+    slot.fields.length > 1 &&
+      (slot.fields.map EvidenceFieldReference.kind).eraseDups.length > 1
+
+/-! Correlation references are alternatives; Run Evaluation's closed-kind check has no such IR. -/
+example : correlationSlotsHaveAlternativeReferences normal &&
+    correlationSlotsHaveAlternativeReferences duplicate = true := by
+  native_decide
+
+private def compilerValueMatchesPattern
+    (operator : PatternOperator)
+    (value : PortableValue) : Bool :=
+  match operator, value with
+  | .equalsText _, .text _ | .naturalAtMost _, .natural _ => true
+  | _, _ => false
+
+private def compilerPatternIsTyped (contract : Contract) (pattern : Pattern) : Bool :=
+  let entries := contract.implementationLink.entries.filter fun entry =>
+    entry.destination.definition.definitionId == pattern.definition.definitionId
+  !entries.isEmpty && entries.all fun entry =>
+    compilerValueMatchesPattern pattern.operator entry.destination.value
+
+private def compilerPropertyPatternsAreTyped (contract : Contract) : Bool :=
+  contract.properties.all fun property => property.clauses.all fun clause =>
+    compilerPatternIsTyped contract clause.trigger && compilerPatternIsTyped contract clause.required
+
+/-! Wrong tagged Property operands are outside the image of the Lean semantic compiler. -/
+example : compilerPropertyPatternsAreTyped normal &&
+    compilerPropertyPatternsAreTyped duplicate = true := by
+  native_decide
+
 private def invalidInputOracle
     (name observationStatus diagnosticCode : String) : BranchOracle := {
   name
+  source := "portable-contract-binding-proof"
   toolingStatus := "TOOLING_STATUS_INVALID_INPUT"
   operationalStatus := "OPERATIONAL_STATUS_SUCCEEDED"
   observationStatus
@@ -303,8 +332,14 @@ private def invalidInputOracle
   diagnosticCode
 }
 
+/-! Crossed pairs cannot preserve both Lean-compiled executable artifact bindings. -/
+example : normal.experiment != duplicate.experiment ∨
+    normal.runtimeConfig != duplicate.runtimeConfig := by
+  native_decide
+
 private def workLimitOracle : BranchOracle := {
   name := "work limit exceeded"
+  source := "portable-work-boundary-proof"
   toolingStatus := "TOOLING_STATUS_SUCCEEDED"
   operationalStatus := "OPERATIONAL_STATUS_SUCCEEDED"
   observationStatus := "OBSERVATION_STATUS_ACCEPTED"
@@ -315,39 +350,88 @@ private def workLimitOracle : BranchOracle := {
   diagnosticCode := "DIAGNOSTIC_CODE_LIMIT_REACHED"
 }
 
-private def oracleBranches : List BranchOracle := [
-  expressionBranchOracle "any true" <| evaluateBranchExpression [] <|
-    .any [.equals (.literalText "left") (.literalText "right"),
-      .equals (.literalNatural 1) (.literalNatural 1)],
-  expressionBranchOracle "all false" <| evaluateBranchExpression [] <|
-    .all [.equals (.literalText "same") (.literalText "same"),
-      .equals (.literalText "left") (.literalText "right")],
-  expressionBranchOracle "any false" <| evaluateBranchExpression [] <|
-    .any [.equals (.literalText "left") (.literalText "right"),
-      .equals (.literalNatural 1) (.literalNatural 2)],
-  expressionBranchOracle "present false" <| evaluateBranchExpression [] <|
-    .present (.field branchField),
-  expressionBranchOracle "field type error" <|
-    evaluateBranchExpression [(branchField, .typeError)] (.field branchField),
-  expressionBranchOracle "field missing" <| evaluateBranchExpression [] (.field branchField),
-  expressionBranchOracle "equals type error" <| evaluateBranchExpression [] <|
-    .equals (.literalText "1") (.literalNatural 1),
-  expressionBranchOracle "all type error" <| evaluateBranchExpression [] <|
-    .all [.literalText "not-a-boolean"],
-  expressionBranchOracle "any type error" <| evaluateBranchExpression [] <|
-    .any [.literalNatural 1],
-  expressionBranchOracle "natural render type error" <| evaluateBranchExpression [] <|
-    .naturalRenderV1 (.literalText "1"),
+/-! The exact portable work boundary is Lean-owned contract data, never an implicit Go default. -/
+example : normal.limits.maxEvaluationWork > 0 ∧
+    duplicate.limits.maxEvaluationWork > 0 := by
+  native_decide
+
+private theorem exactWorkBoundary (work : Nat) (positive : 0 < work) :
+    work ≤ work ∧ ¬work ≤ work - 1 := by
+  omega
+
+private def canonicalOperatorOutcomes : List CanonicalBranchOutcome := [
+  canonicalBranchOutcome (.text "emitted")
+    (some (.or
+      (.equals (.text "left") (.text "right"))
+      (.equals (.natural 1) (.natural 1)))),
+  canonicalBranchOutcome (.text "emitted")
+    (some (.and
+      (.equals (.text "same") (.text "same"))
+      (.equals (.text "left") (.text "right")))),
+  canonicalBranchOutcome (.text "emitted")
+    (some (.or
+      (.equals (.text "left") (.text "right"))
+      (.equals (.natural 1) (.natural 2)))),
+  canonicalBranchOutcome (.text "emitted")
+    (some (.present canonicalNameField)),
+  canonicalBranchOutcome (.text "emitted")
+    (some (.equals canonicalNameField (.natural 1))),
+  canonicalBranchOutcome canonicalNameField none,
+  canonicalBranchOutcome (.text "emitted")
+    (some (.equals (.text "1") (.natural 1))),
+  canonicalBranchOutcome (.text "emitted")
+    (some (.and (.text "not-a-boolean") (.boolean true))),
+  canonicalBranchOutcome (.text "emitted")
+    (some (.or (.natural 1) (.boolean false))),
+  canonicalBranchOutcome
+    (.normalize { name := "natural.render", version := 1 } (.text "1")) none,
+]
+
+example : canonicalOperatorOutcomes = [
+    .observation .accepted none,
+    .observation .unknown (some .missingInitialState),
+    .observation .unknown (some .missingInitialState),
+    .observation .unknown (some .missingInitialState),
+    .rejected .typeMismatch,
+    .observation .unknown (some .unresolvedBinding),
+    .rejected .typeMismatch,
+    .rejected .typeMismatch,
+    .rejected .typeMismatch,
+    .rejected .typeMismatch
+  ] := by
+  native_decide
+
+private def canonicalOperatorNames : List String := [
+  "any true", "all false", "any false", "present false", "field type error", "field missing",
+  "equals type error", "all type error", "any type error", "natural render type error"
+]
+
+private def canonicalKnownGapOutcome : CanonicalBranchOutcome :=
+  match checkObservation Umpire.ObservationTests.context
+      (canonicalBranchDeclaration (.text "emitted") none) with
+  | .error error => .rejected error.kind
+  | .ok plan =>
+      let bundle := {
+        canonicalBranchBundle [] with
+        knownGaps := [{ code := DefinitionId.of "umpire.gap.parity" }]
+      }
+      let result := evaluateEvidence plan bundle
+      .observation result.status (result.diagnostic?.map ObservationDiagnostic.kind)
+
+example : canonicalKnownGapOutcome =
+    .observation .unknown (some .knownGap) := by
+  native_decide
+
+private def oracleBranches : List BranchOracle :=
+  (List.zip canonicalOperatorNames canonicalOperatorOutcomes).map (fun entry =>
+    canonicalBranchOracle entry.1 entry.2) ++ [
   propertyTypeErrorOracle "equals text rejects natural",
   propertyTypeErrorOracle "natural at most rejects text",
-  closedFailureOracle "correlation conflict" "OBSERVATION_STATUS_CONFLICT"
-    "DIAGNOSTIC_CODE_CORRELATION",
-  closedFailureOracle "correlation missing" "OBSERVATION_STATUS_UNKNOWN"
+  canonicalBranchOracle "raw known gap" canonicalKnownGapOutcome,
+  portableOnlyFailureOracle "correlation missing" "OBSERVATION_STATUS_UNKNOWN"
     "DIAGNOSTIC_CODE_MISSING_BINDING",
   invalidInputOracle "crossed pair" "OBSERVATION_STATUS_UNKNOWN"
     "DIAGNOSTIC_CODE_CORRELATION",
-  closedFailureOracle "raw known gap" "OBSERVATION_STATUS_UNKNOWN"
-    "DIAGNOSTIC_CODE_MISSING_BINDING",
   workLimitOracle
 ]
 
@@ -355,6 +439,7 @@ private def quote (value : String) : String := Lean.Json.compress (.str value)
 
 private def branchOracleJSON (oracle : BranchOracle) : String :=
   "{\"name\":" ++ quote oracle.name ++
+    ",\"source\":" ++ quote oracle.source ++
     ",\"toolingStatus\":" ++ quote oracle.toolingStatus ++
     ",\"operationalStatus\":" ++ quote oracle.operationalStatus ++
     ",\"observationStatus\":" ++ quote oracle.observationStatus ++
