@@ -95,6 +95,9 @@ func (i *interpreter) evaluateEmitRecord(
 	}
 	condition, failure := i.evaluateExpression(emit.GetCondition(), record)
 	if failure != nil {
+		if failure.code == umpirespb.DIAGNOSTIC_CODE_MISSING_FIELD {
+			return nil, nil
+		}
 		return nil, failure
 	}
 	conditionValue, ok := condition.GetValue().(*umpirespb.Value_BoolValue)
@@ -179,6 +182,10 @@ func (i *interpreter) normalizeEvidence() ([]*normalizedRecord, *evaluationFailu
 	}
 	if failure = validateCausalOrder(records); failure != nil {
 		return nil, failure
+	}
+	i.recordsByID = make(map[string]*normalizedRecord, len(records))
+	for _, record := range records {
+		i.recordsByID[record.fact.FactDefinitionID] = record
 	}
 	if failure = validateCorrelations(profile.GetCorrelationSlots(), records); failure != nil {
 		return nil, failure
@@ -427,7 +434,7 @@ func (i *interpreter) evaluateExpression(
 	case *umpirespb.ObservationExpression_LiteralNatural:
 		return &umpirespb.Value{Value: &umpirespb.Value_Natural{Natural: operator.LiteralNatural.GetValue()}}, nil
 	case *umpirespb.ObservationExpression_Field:
-		matches := recordFields(record, operator.Field)
+		matches := i.expressionRecordFields(record, operator.Field)
 		switch len(matches) {
 		case 0:
 			return nil, &evaluationFailure{
@@ -530,7 +537,7 @@ func (i *interpreter) evidenceLink(candidate *emission) (*umpirespb.EvidenceLink
 	references = uniqueFieldReferences(references)
 	applied := make([]*umpirespb.AppliedDisposition, 0, len(references))
 	for _, reference := range references {
-		matches := recordFields(candidate.record, reference)
+		matches := i.expressionRecordFields(candidate.record, reference)
 		if len(matches) != 1 {
 			return nil, conflictFailure(umpirespb.DIAGNOSTIC_CODE_DUPLICATE_FIELD,
 				[]string{candidate.record.fact.FactDefinitionID, reference.GetFieldDefinitionId()},
@@ -742,6 +749,24 @@ func recordFields(record *normalizedRecord, reference *umpirespb.EvidenceFieldRe
 	return matches
 }
 
+func (i *interpreter) expressionRecordFields(
+	record *normalizedRecord,
+	reference *umpirespb.EvidenceFieldReference,
+) []*normalizedField {
+	matches := recordFields(record, reference)
+	if len(matches) != 0 {
+		return matches
+	}
+	for _, parentID := range record.fact.CausalFactDefinitionIDs {
+		parent := i.recordsByID[parentID]
+		if parent == nil || parent.fact.KindDefinitionID != reference.GetKindDefinitionId() {
+			continue
+		}
+		matches = append(matches, i.expressionRecordFields(parent, reference)...)
+	}
+	return matches
+}
+
 func validateCausalOrder(records []*normalizedRecord) *evaluationFailure {
 	byID := make(map[string]*normalizedRecord, len(records))
 	for _, record := range records {
@@ -796,7 +821,6 @@ func validateCorrelations(slots []*umpirespb.CorrelationSlot, records []*normali
 		var expected string
 		hasExpected := false
 		for _, reference := range slot.GetFields() {
-			found := false
 			for _, record := range records {
 				for _, field := range recordFields(record, reference) {
 					value, ok := comparableFieldValue(field)
@@ -805,7 +829,6 @@ func validateCorrelations(slots []*umpirespb.CorrelationSlot, records []*normali
 							[]string{slot.GetDefinitionId(), reference.GetFieldDefinitionId()},
 							"correlation field has no comparable admitted value")
 					}
-					found = true
 					if !hasExpected {
 						expected = value
 						hasExpected = true
@@ -816,12 +839,12 @@ func validateCorrelations(slots []*umpirespb.CorrelationSlot, records []*normali
 					}
 				}
 			}
-			if !found {
-				return &evaluationFailure{
-					class: umpirespb.DIAGNOSTIC_CLASS_UNKNOWN, code: umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
-					related: []string{slot.GetDefinitionId(), reference.GetFieldDefinitionId()},
-					detail:  "correlation slot is missing a required field",
-				}
+		}
+		if !hasExpected {
+			return &evaluationFailure{
+				class: umpirespb.DIAGNOSTIC_CLASS_UNKNOWN, code: umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
+				related: []string{slot.GetDefinitionId()},
+				detail:  "correlation slot has no admitted value",
 			}
 		}
 	}

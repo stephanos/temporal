@@ -3,6 +3,7 @@ package evaluationcontract
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"unicode/utf8"
@@ -33,7 +34,7 @@ const (
 
 var (
 	deterministicMarshal = proto.MarshalOptions{Deterministic: true}
-	canonicalJSONMarshal = protojson.MarshalOptions{Multiline: true, Indent: "  "}
+	canonicalJSONMarshal = protojson.MarshalOptions{}
 )
 
 // Pack converts exact canonical ProtoJSON into the deterministic protobuf contract artifact.
@@ -129,7 +130,11 @@ func CanonicalProtoJSON(contract *umpirespb.EvaluationContract) ([]byte, error) 
 	if err != nil {
 		return nil, admissionError(ErrorMalformedValue, "$", "marshal ProtoJSON: %v", err)
 	}
-	return append(encoded, '\n'), nil
+	var indented bytes.Buffer
+	if err := json.Indent(&indented, encoded, "", "  "); err != nil {
+		return nil, admissionError(ErrorMalformedValue, "$", "indent ProtoJSON: %v", err)
+	}
+	return append(indented.Bytes(), '\n'), nil
 }
 
 func seal(contract *umpirespb.EvaluationContract) ([]byte, error) {
