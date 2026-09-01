@@ -1,0 +1,465 @@
+{
+  "formatVersion": "umpire-raw-evidence/v2",
+  "runIdentity": "umpire.local.caller-closure.closed-fixture",
+  "behaviorFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:09091758defd5ce50cc9acbba23a5c8499da4eef9b6e36878ac989ddea87fedf",
+    "behaviorFingerprint": "sha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91",
+    "provenanceChecksum": "sha256:4136694dfede1044bbf391c5faba21a1a89a589890aa2915eb860a46942797c2"
+  },
+  "runtimeConfiguration": {
+    "formatVersion": "umpire-runtime-configuration/v2",
+    "artifactChecksum": "sha256:440c0632b911571e4efb34c96fb4c4c7096fbd52f23900ed4784e037370063cf",
+    "behaviorFingerprint": "sha256:d88670a6766c2ef9037c82183f00c1c42179a7578c3c4c07714eadb5540750c0",
+    "provenanceChecksum": "sha256:b11d3931cdb55c2331ca816a912cca8113032c8d29a8e81a37d473c261345b5a"
+  },
+  "run": {
+    "formatVersion": "umpire-experiment-run/v2",
+    "artifactChecksum": "sha256:3b89253505d802d01cb02f338713d30d36faa4c7b15fddd55a06def90c7fcedc",
+    "behaviorFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
+  },
+  "captureStatus": "closed",
+  "sources": [
+    {
+      "sourceDefinitionId": "umpire.evidence.source.cleanup",
+      "status": "closed",
+      "factCount": 1,
+      "byteCount": 501
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.control-receipt",
+      "status": "closed",
+      "factCount": 1,
+      "byteCount": 1664
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "status": "closed",
+      "factCount": 6,
+      "byteCount": 7550
+    },
+    {
+      "sourceDefinitionId": "umpire.evidence.source.participant-output",
+      "status": "closed",
+      "factCount": 2,
+      "byteCount": 3969
+    }
+  ],
+  "facts": [
+    {
+      "factDefinitionId": "umpire.runtime.fact.cleanup.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.cleanup",
+      "ordinal": 0,
+      "kindDefinitionId": "umpire.evidence.kind.cleanup",
+      "causalFactDefinitionIds": [],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.open-handle-count",
+          "disposition": "plain",
+          "value": 0
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.status",
+          "disposition": "plain",
+          "value": "complete"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.control-receipt.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.control-receipt",
+      "ordinal": 0,
+      "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+      "causalFactDefinitionIds": [],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.action-definition-id",
+          "disposition": "plain",
+          "value": "workflow.action.force-close"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.attempt",
+          "disposition": "plain",
+          "value": 1
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.capability-definition-id",
+          "disposition": "plain",
+          "value": "nexus.capability.cancellation"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.fault-definition-id",
+          "disposition": "plain",
+          "value": "temporal.nexus.caller-closure.fault.duplicate-delivery-observation"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id",
+          "disposition": "plain",
+          "value": "temporal.nexus.caller-closure.fault-receipt.duplicate-delivery-observation"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.occurrence-definition-id",
+          "disposition": "plain",
+          "value": "workflow-nexus.occurrence.force-close"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.status",
+          "disposition": "plain",
+          "value": "accepted"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.history.00000000000000000001.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "ordinal": 0,
+      "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+      "causalFactDefinitionIds": [],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-id",
+          "disposition": "plain",
+          "value": 1
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-type",
+          "disposition": "plain",
+          "value": "temporal.history.WorkflowExecutionStarted"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.run-correlation-id",
+          "disposition": "plain",
+          "value": "umpire.local.caller-closure.closed-fixture"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.history.00000000000000000002.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "ordinal": 1,
+      "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+      "causalFactDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000001.fixture"
+      ],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-id",
+          "disposition": "plain",
+          "value": 2
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-type",
+          "disposition": "plain",
+          "value": "temporal.history.NexusOperationScheduled"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.run-correlation-id",
+          "disposition": "plain",
+          "value": "umpire.local.caller-closure.closed-fixture"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.history.00000000000000000003.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "ordinal": 2,
+      "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+      "causalFactDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000002.fixture"
+      ],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-id",
+          "disposition": "plain",
+          "value": 3
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-type",
+          "disposition": "plain",
+          "value": "temporal.history.NexusOperationStarted"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.run-correlation-id",
+          "disposition": "plain",
+          "value": "umpire.local.caller-closure.closed-fixture"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.history.00000000000000000004.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "ordinal": 3,
+      "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+      "causalFactDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000003.fixture"
+      ],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-id",
+          "disposition": "plain",
+          "value": 4
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-type",
+          "disposition": "plain",
+          "value": "temporal.history.NexusOperationCancelRequested"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.run-correlation-id",
+          "disposition": "plain",
+          "value": "umpire.local.caller-closure.closed-fixture"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.history.00000000000000000005.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "ordinal": 4,
+      "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+      "causalFactDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000004.fixture"
+      ],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-id",
+          "disposition": "plain",
+          "value": 5
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-type",
+          "disposition": "plain",
+          "value": "temporal.history.NexusOperationCancelRequestCompleted"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.run-correlation-id",
+          "disposition": "plain",
+          "value": "umpire.local.caller-closure.closed-fixture"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.history.00000000000000000006.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.history",
+      "ordinal": 5,
+      "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+      "causalFactDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000005.fixture"
+      ],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-id",
+          "disposition": "plain",
+          "value": 6
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.event-type",
+          "disposition": "plain",
+          "value": "temporal.history.WorkflowExecutionCanceled"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.run-correlation-id",
+          "disposition": "plain",
+          "value": "umpire.local.caller-closure.closed-fixture"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.participant.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.participant-output",
+      "ordinal": 0,
+      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+      "causalFactDefinitionIds": [],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.cancellation-callback-count",
+          "disposition": "plain",
+          "value": 1
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.command-kind",
+          "disposition": "plain",
+          "value": "realize"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.endpoint-identity",
+          "disposition": "sha256",
+          "value": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.run-correlation-id",
+          "disposition": "plain",
+          "value": "umpire.local.caller-closure.closed-fixture"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.status",
+          "disposition": "plain",
+          "value": "accepted"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a"
+        }
+      ]
+    },
+    {
+      "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+      "sourceDefinitionId": "umpire.evidence.source.participant-output",
+      "ordinal": 1,
+      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+      "causalFactDefinitionIds": [
+        "umpire.runtime.fact.participant.fixture"
+      ],
+      "fields": [
+        {
+          "fieldDefinitionId": "umpire.evidence.field.cancellation-completed-count",
+          "disposition": "plain",
+          "value": 1
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.cancellation-requested-count",
+          "disposition": "plain",
+          "value": 1
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.capability-definition-id",
+          "disposition": "plain",
+          "value": "nexus.capability.cancellation"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.command-kind",
+          "disposition": "plain",
+          "value": "realize"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.fault-definition-id",
+          "disposition": "plain",
+          "value": "temporal.nexus.caller-closure.fault.duplicate-delivery-observation"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id",
+          "disposition": "plain",
+          "value": "temporal.nexus.caller-closure.fault-receipt.duplicate-delivery-observation"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.run-correlation-id",
+          "disposition": "plain",
+          "value": "umpire.local.caller-closure.closed-fixture"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.status",
+          "disposition": "plain",
+          "value": "accepted"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-count",
+          "disposition": "plain",
+          "value": 1
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-marker",
+          "disposition": "plain",
+          "value": "temporal.nexus.caller-closure.marker.injected-duplicate-delivery-observation"
+        },
+        {
+          "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id",
+          "disposition": "plain",
+          "value": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a"
+        }
+      ]
+    }
+  ],
+  "knownGaps": [],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "umpire.runtime.engine"
+    ],
+    "sourceLocations": [
+      {
+        "path": "tools/umpire/internal/runtimeengine/engine.go",
+        "line": 1,
+        "column": 1,
+        "provenance": "runtime-engine"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb",
+  "artifactChecksum": "sha256:1ba4c911e94b7bdaa13f25e28a73bd94b80ee0a4555d77b078566d77cbea8c40"
+}

@@ -45,6 +45,7 @@ type interpreter struct {
 	evidenceSupportSet  bool
 	resultBytesReserved int64
 	evidenceLinkSizes   map[*umpirespb.EvidenceLink]int64
+	recordsByID         map[string]*normalizedRecord
 }
 
 func newInterpreter(ctx context.Context, request Request) *interpreter {
@@ -86,6 +87,14 @@ func (i *interpreter) evaluate() *umpirespb.EvaluationResult {
 		} else {
 			i.failBeforeObservation(umpirespb.TOOLING_STATUS_INVALID_INPUT, failure)
 		}
+		return i.finish()
+	}
+	if len(i.request.RawEvidence.KnownGaps) != 0 {
+		i.failObservation(&evaluationFailure{
+			class:  umpirespb.DIAGNOSTIC_CLASS_UNKNOWN,
+			code:   umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
+			detail: "Known Gaps prevent a closed semantic result",
+		})
 		return i.finish()
 	}
 

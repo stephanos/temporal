@@ -146,4 +146,31 @@ example :
       (Umpire.Artifact.Tests.PortableEvaluationContract.mutationChangesBytes normal) = true := by
   native_decide
 
+def anyOperatorContractProtoJSON : Except NonPortableError String :=
+  normalContract.map fun contract =>
+    let emits := match contract.observation.emits with
+      | [] => []
+      | emit :: rest => { emit with condition := .any [emit.condition, emit.condition] } :: rest
+    canonicalProtoJSON {
+      contract with observation := { contract.observation with emits }
+    }
+
 end Temporal.Tool.PortableEvaluationContractTests
+
+def main (args : List String) : IO UInt32 := do
+  let contract ← match args with
+    | ["normal"] => pure Temporal.Tool.PortableEvaluationContract.normalContractProtoJSON
+    | ["duplicate-delivery"] =>
+        pure Temporal.Tool.PortableEvaluationContract.duplicateContractProtoJSON
+    | ["any-operator"] =>
+        pure Temporal.Tool.PortableEvaluationContractTests.anyOperatorContractProtoJSON
+    | _ =>
+        IO.eprintln "expected normal, duplicate-delivery, or any-operator"
+        return 2
+  match contract with
+  | .ok encoded =>
+      IO.print encoded
+      pure 0
+  | .error failure =>
+      IO.eprintln (repr failure)
+      pure 1
