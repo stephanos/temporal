@@ -14,7 +14,6 @@ import (
 	"unicode"
 )
 
-var markdownLinkPattern = regexp.MustCompile(`!?\[[^\]]*\]\(([^)]*)\)`)
 var markdownReferencePattern = regexp.MustCompile(`(?m)^[ \t]{0,3}\[[^]\n]+\]:[ \t]*(\S+)`)
 var flowIDPattern = regexp.MustCompile(`^fn-[0-9]+-[a-z0-9]+(?:-[a-z0-9]+)*$`)
 
@@ -77,6 +76,8 @@ func (c *repositoryChecker) checkDocuments(entries []documentEntry) {
 	counts := make(map[string]int)
 	for _, entry := range entries {
 		counts[entry.Path]++
+	}
+	for _, entry := range entries {
 		if counts[entry.Path] == 1 {
 			c.documents[entry.Path] = entry
 		}
@@ -104,6 +105,7 @@ func (c *repositoryChecker) checkDocuments(entries []documentEntry) {
 	}
 	c.checkAuthorityRoots()
 	c.checkAuthorityCycles()
+	c.checkSupersessionCycles()
 }
 
 func (c *repositoryChecker) checkDocument(entry documentEntry) {
@@ -161,8 +163,41 @@ func (c *repositoryChecker) checkDocumentGraph(entry documentEntry) {
 	if entry.SupersededBy != nil {
 		if !validDocumentPath(*entry.SupersededBy) {
 			c.add("document %s: supersededBy target %q is not a normalized registered document path", entry.Path, *entry.SupersededBy)
+		} else if *entry.SupersededBy == entry.Path {
+			c.add("document %s: supersededBy must not reference itself", entry.Path)
 		} else if _, ok := c.documents[*entry.SupersededBy]; !ok {
 			c.add("document %s: supersededBy target %q is not registered", entry.Path, *entry.SupersededBy)
+		}
+	}
+}
+
+func (c *repositoryChecker) checkSupersessionCycles() {
+	state := make(map[string]uint8)
+	stack := make([]string, 0, len(c.documents))
+	var visit func(string)
+	visit = func(documentPath string) {
+		state[documentPath] = 1
+		stack = append(stack, documentPath)
+		target := c.documents[documentPath].SupersededBy
+		if target != nil && *target != documentPath {
+			if _, ok := c.documents[*target]; ok {
+				switch state[*target] {
+				case 0:
+					visit(*target)
+				case 1:
+					start := slices.Index(stack, *target)
+					cycle := append(slices.Clone(stack[start:]), *target)
+					c.add("supersession graph: cycle %s", strings.Join(cycle, " -> "))
+				default:
+				}
+			}
+		}
+		stack = stack[:len(stack)-1]
+		state[documentPath] = 2
+	}
+	for _, documentPath := range sortedKeys(c.documents) {
+		if state[documentPath] == 0 {
+			visit(documentPath)
 		}
 	}
 }
@@ -258,6 +293,10 @@ func (c *repositoryChecker) checkMarkdownLink(entry documentEntry, destination s
 		return
 	}
 	if !anchors[anchor] {
+		if allowedMissing(entry.AllowedMissingLinks, target, anchor) {
+			usedAllowances[missingLinkIdentity(target, anchor)] = true
+			return
+		}
 		c.add("document %s: anchor %q is missing from %s", entry.Path, anchor, target)
 	}
 }
@@ -315,6 +354,8 @@ func (c *repositoryChecker) checkFlowSpecs(entries []flowSpecEntry) {
 	counts := make(map[string]int)
 	for _, entry := range entries {
 		counts[entry.ID]++
+	}
+	for _, entry := range entries {
 		if counts[entry.ID] == 1 {
 			c.flowSpecs[entry.ID] = entry
 		}
@@ -587,12 +628,118 @@ func markdownDestination(raw string) string {
 
 func markdownDestinations(content string) []string {
 	var destinations []string
-	for _, pattern := range []*regexp.Regexp{markdownLinkPattern, markdownReferencePattern} {
-		for _, match := range pattern.FindAllStringSubmatch(content, -1) {
+	for _, line := range renderedMarkdownLines(content) {
+		line = stripInlineCode(line)
+		for _, destination := range inlineMarkdownDestinations(line) {
+			destinations = append(destinations, markdownDestination(destination))
+		}
+		for _, match := range markdownReferencePattern.FindAllStringSubmatch(line, -1) {
 			destinations = append(destinations, markdownDestination(match[1]))
 		}
 	}
 	return destinations
+}
+
+func inlineMarkdownDestinations(line string) []string {
+	var destinations []string
+	for offset := 0; offset < len(line); {
+		relativeStart := strings.Index(line[offset:], "](")
+		if relativeStart < 0 {
+			break
+		}
+		start := offset + relativeStart + 2
+		depth := 1
+		for position := start; position < len(line); position++ {
+			if line[position] == '\\' {
+				position++
+				continue
+			}
+			switch line[position] {
+			case '(':
+				depth++
+			case ')':
+				depth--
+				if depth == 0 {
+					destinations = append(destinations, line[start:position])
+					offset = position + 1
+				}
+			default:
+			}
+			if depth == 0 {
+				break
+			}
+		}
+		if depth != 0 {
+			break
+		}
+	}
+	return destinations
+}
+
+func stripInlineCode(line string) string {
+	var result strings.Builder
+	for position := 0; position < len(line); {
+		if line[position] != '`' {
+			result.WriteByte(line[position])
+			position++
+			continue
+		}
+		runEnd := position
+		for runEnd < len(line) && line[runEnd] == '`' {
+			runEnd++
+		}
+		marker := line[position:runEnd]
+		closing := strings.Index(line[runEnd:], marker)
+		if closing < 0 {
+			result.WriteString(marker)
+			position = runEnd
+			continue
+		}
+		position = runEnd + closing + len(marker)
+	}
+	return result.String()
+}
+
+func renderedMarkdownLines(content string) []string {
+	var lines []string
+	var fence byte
+	var fenceLength int
+	for _, line := range strings.Split(content, "\n") {
+		marker, length, bare := markdownFence(line)
+		if fence != 0 {
+			if marker == fence && length >= fenceLength && bare {
+				fence = 0
+				fenceLength = 0
+			}
+			continue
+		}
+		if marker != 0 {
+			fence = marker
+			fenceLength = length
+			continue
+		}
+		lines = append(lines, line)
+	}
+	return lines
+}
+
+func markdownFence(line string) (marker byte, length int, bare bool) {
+	indent := 0
+	for indent < len(line) && line[indent] == ' ' {
+		indent++
+	}
+	if indent > 3 || indent == len(line) || (line[indent] != '`' && line[indent] != '~') {
+		return 0, 0, false
+	}
+	marker = line[indent]
+	end := indent
+	for end < len(line) && line[end] == marker {
+		end++
+	}
+	if end-indent < 3 {
+		return 0, 0, false
+	}
+	return marker, end - indent, strings.TrimSpace(line[end:]) == ""
 }
 
 func externalDestination(destination string) bool {
@@ -633,7 +780,7 @@ func markdownAnchors(markdownPath string) (map[string]bool, error) {
 	}
 	anchors := make(map[string]bool)
 	counts := make(map[string]int)
-	for _, line := range strings.Split(string(content), "\n") {
+	for _, line := range renderedMarkdownLines(string(content)) {
 		trimmed := strings.TrimSpace(line)
 		if !strings.HasPrefix(trimmed, "#") {
 			continue
