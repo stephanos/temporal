@@ -10,7 +10,9 @@
     "fn-41-finitemachine-target-authoring"
   ],
   "id": "fn-50-migrate-system-callerclosure-to",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-50-migrate-system-callerclosure-to.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -104,15 +106,47 @@
       "task": null,
       "timestamp": "2026-08-30T16:27:04.104626Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e52eae28ff5dd554c649c148f2d88935ba8caba3af8f9bc96290660f10188be9",
+      "backend": "codex",
+      "base_sha": "ababcaf77704899d24f0910b5441d63befa32705",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c1e931633d4f37fbefbbf8deaeb1686bdb961a8e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 235364,
+      "output_sha256": "785ff040eefca3cf55820aa81a4ff0a68509a947e3f7051a2ac738ea210e3ebc",
+      "reservation_id": "dfdf77f982914eeba05f4b1f476a88f4",
+      "round_consumed": true,
+      "scope": "impl:fn-50-migrate-system-callerclosure-to.1",
+      "superseded_by": null,
+      "task": "fn-50-migrate-system-callerclosure-to.1",
+      "timestamp": "2026-09-01T04:19:25.468755Z",
+      "tool_calls": 11,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-50-migrate-system-callerclosure-to.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-50-migrate-system-callerclosure-to.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-50-migrate-system-callerclosure-to.md",
@@ -129,5 +163,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-30T16:27:04.107758Z"
+  "updated_at": "2026-09-01T04:19:25.479075Z"
 }

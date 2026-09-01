@@ -32,9 +32,10 @@ Replace the manual finite kernel and planning proof with the existing adapter wh
 - [ ] Invalid setup/state/action combinations remain empty or false.
 - [ ] Focused CallerClosure and FiniteMachine compatibility tests pass with all comments preserved.
 ## Done summary
-TBD
+Expressed System CallerClosure as one `FiniteMachine`, with the compatibility kernel and finite planning transporting machine proofs while preserving the existing public equality/conjunction proof shapes. Focused tests pin ordered domains and encoders, invalid setup/state/action rejection, and unchanged Implementation Link `change`/`rcases` consumers; the inherited branch-wide Go lint baseline was reproduced exactly and introduced no task-path findings.
 
+stage: impl-review - ran [2026-09-01T04:17:18Z..2026-09-01T04:19:25Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c1e931633d4f37fbefbbf8deaeb1686bdb961a8e
+- Tests: cd model && mise exec -- lake build Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus, cd model && mise exec -- lake build Umpire.Target.Tests.FiniteMachine, cd model && mise exec -- lake build TemporalModelTests TemporalExperimentalTests UmpireTests, make umpire-check-regression, make lint-model, make lint-code (accepted inherited branch-wide red: 1373 findings — errcheck 220, exhaustive 6, forbidigo 211, govet 5, revive 792, staticcheck 135, testifylint 4; no task Go paths; six --fix edits exact-inverse-restored), baseline: red (make lint-code failed pre-edit with the identical 1373 inherited findings; accepted by standing roadmap policy)
 - PRs:
