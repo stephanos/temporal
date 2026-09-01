@@ -42,9 +42,12 @@ cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Observation.Tes
 - [ ] Focused Property and Observation suites pass with preserved comments, import direction, and warnings baseline.
 
 ## Done summary
-TBD
+Migrated Observation coordinate enumeration, lookup, and kind handling to the Core API, and centralized strict Property field compatibility for both verdict consumers. Added zero-coordinate admission and empty/one-step/multi-step prior-state regressions; the focused Lean build and model lint pass, while `make lint-code` reproduces exactly 1,373 inherited Go findings outside this task.
 
+baseline: green (`cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Observation.Tests`)
+
+stage: impl-review - ran (Codex SHIP; receipt `/tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.2.json`)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 36fc1a5ef2017109209e1183b4dc8b96b5d3a8e1
+- Tests: cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Observation.Tests, make lint-model, make lint-code (inherited red: 1373 pre-existing Go findings; no task-path findings)
 - PRs:
