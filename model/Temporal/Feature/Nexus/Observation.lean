@@ -164,10 +164,14 @@ structure OfflineObservation where
 /-- The complete typed handoff available to a future adapter that can produce an `EvidenceBundle`. -/
 def evaluateSyntheticEvidence (bundle : EvidenceBundle) : OfflineObservation :=
   let evaluation := evaluateEvidence checkedPlan bundle
-  let verdict := evaluateObservationProperty
-    Temporal.Feature.Nexus.Operations.AsyncStart.query
-    Temporal.Feature.Nexus.Operations.AsyncStart.property
-    evaluation
+  let verdict := match evaluation with
+    | .accepted trace => evaluateObservationProperty
+        Temporal.Feature.Nexus.Operations.AsyncStart.query
+        Temporal.Feature.Nexus.Operations.AsyncStart.property trace
+    | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
+        observationEvaluationFailureVerdict
+          Temporal.Feature.Nexus.Operations.AsyncStart.query
+          Temporal.Feature.Nexus.Operations.AsyncStart.property diagnostic
   {
     evaluation
     verdicts := [verdict]
