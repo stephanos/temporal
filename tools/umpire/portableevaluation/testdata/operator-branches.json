@@ -1,0 +1,189 @@
+[
+  {
+    "name": "any true",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_ACCEPTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_APPLIED",
+    "semanticStatus": "EVALUATION_STATUS_SATISFIED",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_PASS",
+    "diagnosticCode": ""
+  },
+  {
+    "name": "all false",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_MISSING_COORDINATE"
+  },
+  {
+    "name": "any false",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_MISSING_COORDINATE"
+  },
+  {
+    "name": "present false",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_MISSING_COORDINATE"
+  },
+  {
+    "name": "field type error",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_TYPE_MISMATCH"
+  },
+  {
+    "name": "field missing",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_MISSING_FIELD"
+  },
+  {
+    "name": "equals type error",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_TYPE_MISMATCH"
+  },
+  {
+    "name": "all type error",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_TYPE_MISMATCH"
+  },
+  {
+    "name": "any type error",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_TYPE_MISMATCH"
+  },
+  {
+    "name": "natural render type error",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNSUPPORTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_TYPE_MISMATCH"
+  },
+  {
+    "name": "equals text rejects natural",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_ACCEPTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_APPLIED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_TYPE_MISMATCH"
+  },
+  {
+    "name": "natural at most rejects text",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_ACCEPTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_APPLIED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_TYPE_MISMATCH"
+  },
+  {
+    "name": "correlation conflict",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_CONFLICT",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_CORRELATION"
+  },
+  {
+    "name": "correlation missing",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_MISSING_BINDING"
+  },
+  {
+    "name": "crossed pair",
+    "toolingStatus": "TOOLING_STATUS_INVALID_INPUT",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_CORRELATION"
+  },
+  {
+    "name": "raw known gap",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_UNKNOWN",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_MISSING_BINDING"
+  },
+  {
+    "name": "work limit exceeded",
+    "toolingStatus": "TOOLING_STATUS_SUCCEEDED",
+    "operationalStatus": "OPERATIONAL_STATUS_SUCCEEDED",
+    "observationStatus": "OBSERVATION_STATUS_ACCEPTED",
+    "implementationLinkStatus": "IMPLEMENTATION_LINK_STATUS_APPLIED",
+    "semanticStatus": "EVALUATION_STATUS_INCOMPLETE",
+    "cleanupStatus": "CLEANUP_STATUS_COMPLETE",
+    "decision": "CANARY_DECISION_INCONCLUSIVE",
+    "diagnosticCode": "DIAGNOSTIC_CODE_LIMIT_REACHED"
+  }
+]
