@@ -25,7 +25,8 @@ Review public guidance/comments and run final compatibility gates (R5).
 ## Acceptance
 - [ ] No public document or comment makes a stale claim about CallerClosure construction.
 - [ ] Existing comments unrelated to the changed representation remain byte-for-byte present.
-- [ ] Focused and aggregate Lean builds, exact regression, trust/import, `make lint-model`, and `make lint-code` pass.
+- [ ] Focused and aggregate Lean builds, exact regression, trust/import, and `make lint-model` pass.
+- [ ] Literal `make lint-code` runs and reproduces only the pre-edit inherited 1,373-finding golangci baseline with no task Go path; the existing `tools/umpire/runtime/errors.go:60:9` `errortype` finding is unchanged, and a no-fix golangci run scoped from the task base passes.
 - [ ] No generated, artifact, checksum, fingerprint, or unrelated-file drift remains.
 
 ## Done summary
@@ -33,13 +34,12 @@ Audited the CallerClosure module comment and public Target-authoring guidance: t
 comment remains byte-for-byte intact, and the documentation already presents `FiniteMachine` as
 the ordinary route with direct `TransitionKernel` construction reserved for expert cases. No model
 or documentation edit was required. Focused, aggregate, regression, import/trust, and model-lint
-gates pass with no generated or unrelated drift. The exact pre-edit `make lint-code` baseline
-remains inherited red with 1,373 branch-wide findings and no task Go path; a final task-scoped
-no-fix run reports zero golangci issues before the existing
-`tools/umpire/runtime/errors.go:60:9` full-tree `errortype` finding. This is the same standing
-roadmap-baseline exception recorded by fn50.1 and fn50.2, not a regression caused by this task.
+gates pass with no generated or unrelated drift. The literal `make lint-code` run reproduces its
+pre-edit inherited 1,373-finding branch-wide golangci baseline with no task Go path, and the existing
+`tools/umpire/runtime/errors.go:60:9` full-tree `errortype` finding is unchanged. The separately
+required no-fix golangci run scoped from the task base reports zero issues.
 
 ## Evidence
 - Commits: 4e9db4fd528005c64c6a415bda4a9b085f76ab73
-- Tests: cd model && mise exec -- lake build Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus; cd model && mise exec -- lake build TemporalModelTests TemporalExperimentalTests UmpireTests; make umpire-check-regression; make lint-model; cd model && mise exec -- lake build Umpire.Target.ImportTests Umpire.Target.Tests.FiniteMachine Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus; migration trust scan (no added sorry/admit/axiom and no CallerClosure production native_decide); make lint-code (accepted inherited red: identical 1,373 pre-existing findings, no task Go path, six auto-fix edits exact-inverse-restored); GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=8459df4d5c2220a6426583a3388491a829c9b6c6 make lint-code (golangci: 0 task-diff issues; inherited errortype: tools/umpire/runtime/errors.go:60:9)
+- Tests: cd model && mise exec -- lake build Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus; cd model && mise exec -- lake build TemporalModelTests TemporalExperimentalTests UmpireTests; make umpire-check-regression; make lint-model; cd model && mise exec -- lake build Umpire.Target.ImportTests Umpire.Target.Tests.FiniteMachine Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus; migration trust scan (no added sorry/admit/axiom and no CallerClosure production native_decide); make lint-code (classified inherited red: identical pre-edit 1,373 findings, no task Go path, six auto-fix edits exact-inverse-restored); GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=8459df4d5c2220a6426583a3388491a829c9b6c6 make lint-code (golangci: 0 task-diff issues; unchanged inherited errortype: tools/umpire/runtime/errors.go:60:9); .bin/golangci-lint-v2.13.1 run --build-tags disable_grpc_modules,test_dep --timeout 10m --fix=false --new-from-rev=8459df4d5c2220a6426583a3388491a829c9b6c6 --config=.github/.golangci.yml
 - PRs:
