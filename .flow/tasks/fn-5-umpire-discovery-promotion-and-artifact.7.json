@@ -8,10 +8,13 @@
     "fn-5-umpire-discovery-promotion-and-artifact.6"
   ],
   "id": "fn-5-umpire-discovery-promotion-and-artifact.7",
+  "impl": null,
   "priority": null,
+  "review": null,
   "spec": "fn-5-umpire-discovery-promotion-and-artifact",
   "spec_path": ".flow/tasks/fn-5-umpire-discovery-promotion-and-artifact.7.md",
   "status": "todo",
-  "title": "Wire root commands and document catalog-to-promotion lifecycle",
-  "updated_at": "2026-08-27T19:34:44.138553Z"
+  "sync": null,
+  "title": "Wire focused Nexus discovery and promotion checks",
+  "updated_at": "2026-09-01T09:37:23.241250Z"
 }

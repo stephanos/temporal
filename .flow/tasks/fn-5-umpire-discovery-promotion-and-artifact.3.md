@@ -1,48 +1,46 @@
 ---
-satisfies: [R1, R2, R7]
+satisfies: [R1]
 ---
-# fn-5-umpire-discovery-promotion-and-artifact.3 Generate the glossary and machine catalog index
+# fn-5-umpire-discovery-promotion-and-artifact.3 Add exact Nexus explain output
 
 ## Description
-Project the checked production catalog into reviewable Markdown and canonical JSON for R1/R2/R7.
+Add one exact `explain` lookup over the same checked Nexus inventory used by `list`.
 
-**Size:** M
-**Files:** `tools/common/artifactio/set.go`, `tools/common/artifactio/set_test.go`, `tools/common/artifactio/check.go`, `tools/common/artifactio/check_test.go`, `tools/umpire/internal/generate/catalog/catalog.go`, `tools/umpire/internal/generate/catalog/generate.go`, `tools/umpire/internal/generate/catalog/render.go`, `tools/umpire/internal/generate/catalog/generate_test.go`, `tools/umpire/cmd/umpire-gen-catalog/main.go`, `model/GLOSSARY.md`, `model/Temporal/Tool/Generated/Catalog.json`
-**Touches:** [tools/common/artifactio/set.go, tools/common/artifactio/set_test.go, tools/common/artifactio/check.go, tools/common/artifactio/check_test.go, tools/umpire/internal/generate/catalog/**, tools/umpire/cmd/umpire-gen-catalog/main.go, model/GLOSSARY.md, model/Temporal/Tool/Generated/Catalog.json]
+**Size:** S
+**Files:** `model/Temporal/Tool/NexusDiscovery.lean`, `model/Temporal/Tool/NexusDiscoveryTests.lean`, `model/Temporal/Tool/Inspect.lean`, `model/Temporal/Tool/InspectTests.lean`
+**Touches:** [model/Temporal/Tool/NexusDiscovery.lean, model/Temporal/Tool/NexusDiscoveryTests.lean, model/Temporal/Tool/Inspect.lean, model/Temporal/Tool/InspectTests.lean]
 
 ### Approach
 
-- Invoke exactly `temporal-model-catalog export` from the known model root and strictly validate the `umpire-semantic-catalog-export/v2` stdout/stderr/exit contract. Reject unsupported versions, missing/extra fields or rows/bindings, duplicates, noncanonical order/bytes, success stderr, nonzero status, and empty/extra stdout.
-- Render both outputs from one validated Generated View in canonical Definition ID order.
-- Publish the exact two-file set transactionally through `artifactio.Set`; validate candidates before replacement.
-- Add a reusable exact candidate-set comparison seam in `artifactio` that shares `Set.Publish` path/containment validation and holds the same artifact-set lock across the complete multi-file read. It rejects symlinked roots or managed components, non-regular managed files, escapes, and permission errors rather than following or weakening them. If interrupted publication state requires recovery, comparison returns a distinct recovery-required error without mutation; publication remains the only recovery owner.
-- Add an explicit non-mutating `--check` mode that renders expected bytes in memory and compares the current two files through that locked seam, without temporary regeneration or filesystem mutation.
-- Treat Lean output as input authority and never read generated prose back into semantics.
+- Resolve exactly one canonical query identity from the checked inventory without case folding,
+  prefix matching, aliases, or semantic redirection.
+- Emit one canonical `umpire-nexus-explanation/v1` value containing the matching list summary plus
+  its checked Property/Behavior/Query and planned ExperimentSpec lineage.
+- Reuse the list row encoder and diagnostic shell so shared fields cannot drift across commands.
+- Pin all four successful identities and the unknown, case-shifted, empty, and extra-argument paths.
+
+### Non-goals
+
+- No generic reference graph, generated glossary, machine index, search language, or source-text explanation.
 
 ### Investigation targets
 
 **Required:**
-- `tools/umpire/internal/generate/regression/generate.go:20-178` — injected inspector, candidate validation, and publication pattern.
-- `tools/umpire/internal/generate/regression/generate_test.go:17-99` — deterministic and failure tests.
-- `tools/common/artifactio/set.go:16-103` — complete-set publication.
-- `model/Temporal/Tool/Inspect.lean:23-67` — stdout/stderr result behavior.
-- `tools/umpire/cmd/umpire-gen-regressions/main.go` — thin command boundary.
+- `model/Temporal/Tool/NexusDiscovery.lean` — task `.1` inventory and task `.2` canonical row encoder.
+- `model/Temporal/Tool/Inspect.lean` — existing CLI dispatch and failure result.
+- `model/Temporal/Tool/InspectTests.lean` — exact diagnostics and compatibility expectations.
+- `.plans/UMPIRE4_SPEC.md` — CLI-03 inspectability vocabulary.
 
 ### Quick command
 
-`go test -count=1 -tags test_dep ./tools/umpire/internal/generate/catalog/...`
+`cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests temporal-model-inspect`
 
 ## Acceptance
-- [ ] Repeated generation yields byte-identical `model/GLOSSARY.md` and catalog JSON.
-- [ ] Generation consumes exactly one complete `umpire-semantic-catalog-export/v2` response and rejects unsupported version, incomplete/extra/duplicate/noncanonical content, nonzero exit, success stderr, or partial stdout before rendering.
-- [ ] `--check` detects stale or missing outputs by in-memory comparison and performs no writes.
-- [ ] Checks reject symlinked roots/components, non-regular files, containment escapes, permission failures, and recovery-required interrupted state without mutation, and cannot observe a mixed set during a concurrent lock-cooperating publication.
-- [ ] Every checked catalog entry appears exactly once in both projections with matching Definition ID/kind/Behavior Fingerprint/reference data.
-- [ ] Stable-entry Generated View bindings appear exactly once in catalog JSON with safe fixture paths, unique Generated View keys, and binding Behavior Fingerprints, without changing catalog Behavior Fingerprint.
-- [ ] Malformed output, stderr, nonzero exit, duplicate/stale entries, unsafe paths, and partial publication fail closed.
-- [ ] Concurrent/interrupted publication preserves the prior complete pair; concurrent-reader/writer tests prove checks hold the shared set lock for the full read.
-- [ ] Go tests use `require` and whole-value comparisons.
-- [ ] No generated output becomes a semantic input.
+- [ ] Each of the four canonical query identities returns one deterministic explanation consistent with its list row.
+- [ ] Unknown, case-shifted, prefix, empty, ambiguous, and extra selectors fail with empty stdout and one exact structured diagnostic.
+- [ ] Explanation lineage comes from checked values and the existing planned ExperimentSpec, never copied prose or source parsing.
+- [ ] `list`, existing positional inspection, and their canonical outputs remain unchanged.
+- [ ] Existing comments in touched files are preserved.
 
 ## Done summary
 TBD

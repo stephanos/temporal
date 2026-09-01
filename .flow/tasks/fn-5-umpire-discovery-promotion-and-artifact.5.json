@@ -8,10 +8,13 @@
     "fn-5-umpire-discovery-promotion-and-artifact.4"
   ],
   "id": "fn-5-umpire-discovery-promotion-and-artifact.5",
+  "impl": null,
   "priority": null,
+  "review": null,
   "spec": "fn-5-umpire-discovery-promotion-and-artifact",
   "spec_path": ".flow/tasks/fn-5-umpire-discovery-promotion-and-artifact.5.md",
   "status": "todo",
-  "title": "Bind and expose Temporal promotion proposals",
-  "updated_at": "2026-08-27T19:34:43.469988Z"
+  "sync": null,
+  "title": "Bind the duplicate-delivery promotion candidate",
+  "updated_at": "2026-09-01T09:37:22.588251Z"
 }

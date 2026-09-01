@@ -1,117 +1,154 @@
-# Umpire discovery promotion and artifact evolution
+# Umpire discovery promotion and artifact
 
 > HTML render lens (local): open `.flow/artifacts/fn-5-umpire-discovery-promotion-and-artifact/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Umpire4 architecture reconciliation
 
-The checked semantic catalog covers the public `Target`, `Property`, `Behavior`, `Space`, `Query`, `Observation`, `Implementation Link`, and verification-profile declarations exposed by their owning modules. Generated API/config catalogs remain separate structural-input adapters and do not become semantic entries merely because they are discoverable.
-
-The existing exact in-memory planner-witness promotion path remains valid for model-owned witnesses. A runtime discovery reaches the same reviewed proposal compiler only after downstream Run Evaluation has produced an evaluated violation, semantic minimization has completed, and canonical replay through the referenced checked target, Behavior, Implementation Link, and Property agrees. A loose runtime trace, raw evidence, concrete rerun, or Temporal SDK history replay is never promotable.
+This stable Flow handle is retained so completed prerequisite and downstream references do not move.
+The implementation scope is the two capabilities below and nothing implied by the historical title.
 
 ## Overview
+<!-- scope: both -->
 
-Make the current Lean-owned semantic vocabulary discoverable and give selected in-memory model witnesses one checked path into exact regressions. One reusable catalog feeds a generated glossary, a machine index, deterministic list/explain commands, exact promotion proposals, and the existing thin Go/Markdown regression projections.
-
-Strict persisted-artifact decoding, compatibility, and migrations are deliberately moved to `fn-18-versioned-umpire-artifact-boundary`; this spec never adds a permissive reader or a second semantic representation.
+Give the current Nexus model a small, concrete discovery surface and give the one duplicate-delivery
+failure a checked path to a Lean source proposal for human review. The discovery rows are a closed
+projection of already checked Nexus values; the promotion path is a closed binding for one already
+known failure, not a new semantic authority.
 
 ## Goal & Context
 <!-- scope: business -->
 
-Model engineers can find a term, understand its kind and dependencies, inspect which scenarios are eligible for stable Generated View, and turn a complete selected Model Trace into a reviewable `traceExactly` regression without reauthoring its meaning. Generated documentation remains synchronized with the checked Lean catalog, and promoted proposals retain why and from where they were selected.
+Contributors can currently inspect one scenario when they already know its identity, but cannot ask
+which retained Nexus examples exist or explain the checked declarations that make up one example.
+The later fn-22 workflow also needs a static, compile-checked proposal target after it has reproduced,
+minimized, and Exactly Replayed the duplicate-delivery failure. This spec supplies those two seams
+without reversing the dependency: fn-22 consumes fn-5.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
 
+`Temporal.Tool.NexusDiscovery` owns one closed `NexusDiscoveryEntry` list. It contains exactly these
+four current examples, in canonical query-identity order:
+
+1. `temporal.nexus.basic-lifecycle.query.async-start`
+2. `temporal.nexus.basic-lifecycle.query.cancellation`
+3. `temporal.nexus.basic-lifecycle.query.successful-completion`
+4. `workflow-nexus.query.exact-action-caller-closure`
+
+Each entry is constructed from its existing checked Property, Behavior, Query, and planned
+`ExperimentSpec`; it carries their canonical identities and source locations rather than copied
+semantic prose. `list` projects deterministic summaries from all four entries. `explain` performs
+an exact query-identity lookup and projects the same summary plus the checked declaration and plan
+lineage for that one example. Neither command infers entries by scanning imports or source text.
+
+`Umpire.Promotion` owns a sealed `CompiledPromotionSource` and the smallest checker needed to prove
+that a proposal uses a checked original Query, its target-owned `.found` trace, fresh fixed promoted
+Behavior/Query identities, fixed imports, deterministic source bytes, and successful clean
+elaboration. `Temporal.Tool.PromotionBinding` owns exactly one static
+`PromotionCandidateBinding`,
+`temporal.nexus.caller-closure.promotion.cancel-unique-regression`. The binding uses the existing
+duplicate-delivery negative-control Query lineage but promotes the checked expected count-one trace,
+never the observed count-two trace.
+
+`Temporal.Tool.PromotionEligibility` defines one proof-bearing
+`umpire-reviewed-promotion-eligibility/v1` handoff and a private-constructor
+`CheckedPromotionEligibility`. The handoff cross-binds the fixed candidate, original result and
+Violation Signature, reproduced-result receipt, complete `minimized|irreducible` reduction receipt,
+minimized candidate, and Exact Replay receipt by their canonical identities and digests. Its checker
+recomputes every receipt identity, requires the same Query/result/signature/candidate lineage across
+all three gates, and rejects any incomplete or non-success gate before producing the checked token.
+Only that token can resolve the static binding.
+
+Fn-22 remains responsible for producing the handoff after runtime reproduction, complete minimized or irreducible reduction, and Exact Replay, but consumes the fn-5 checker and type; fn-5 does not import fn-22. The fn-5 executable accepts exactly one canonical handoff on stdin, no candidate argument or override, and emits one canonical
+`umpire-promotion-proposal/v2` envelope plus one LF only after eligibility checking. Runtime,
+reduction, and replay lineage gates proposal resolution but never enters `CompiledPromotionSource`.
+
 ```mermaid
 flowchart LR
-  M[Checked Lean metadata] --> C[Umpire.Catalog]
-  T[Temporal registry] --> C
-  C --> Q[list / explain]
-  C --> G[GLOSSARY.md + catalog JSON]
-  W[Original PlannerRun.found] --> P[Umpire.Promotion.compileExactProposal]
-  C --> P
-  P --> X[Checked traceExactly proposal]
-  C --> R[Stable Generated View selection]
-  X --> R
-  R --> O[Thin Go + Markdown projections]
+  N[Four checked Nexus examples] --> L[list]
+  N --> E[explain exact query identity]
+  D[Duplicate-delivery checked Query lineage] --> B[One static promotion binding]
+  B --> C[Elaborated CompiledPromotionSource]
+  C --> P[Review-only proposal envelope]
+  F[fn-22 proof-bearing eligibility handoff] --> H[CheckedPromotionEligibility]
+  H --> B
 ```
-
-`Umpire.Catalog` is a deep, Temporal-independent module over existing checked metadata, including fn-16's canonical `CheckedSpaceMetadata`. A `CatalogEntry` carries stable Definition ID, declaration kind, summary, Source Location, version, and Behavior Fingerprint, required/provided capabilities, exact references, aliases, deprecation/replacement metadata, and a closed disposition. `CheckedCatalog` canonicalizes and validates the complete entry graph before lookup or encoding. It copies no Property clauses, Behavior traces, target kernels, space compiler logic, or planner logic.
-
-The Temporal production registry composes reusable framework entries with current Switch and Nexus entries. Its closed dispositions are `discoverable`, `stableRegression`, `exploratory`, `internal`, and `deprecated`. A disposition controls presentation and Generated View eligibility only; it does not alter semantics.
-
-The Temporal list/explain/check/export adapter imports `Temporal.Tool.Catalog.Core` from fn-15 for exact selector parsing, canonical ordering, result/error envelopes, and effect-thin command dispatch. The fn-5 semantic registry remains a distinct domain adapter and executable: it does not merge its entries with API/config input catalogs or reimplement the generic query mechanics. Its closed `export` view is the sole machine transport into generators: one versioned canonical snapshot contains the catalog Behavior Fingerprint, every checked row including `internal` rows, and every validated stable Generated View binding.
-
-`Umpire.Promotion.compileExactProposal` consumes the canonical `CheckedCatalog`, `originalQuery : CheckedQuery LawStatement`, an `originalRun : PlannerRun` whose outcome is `.found trace reason` with an artifact, explicit fresh promoted Behavior and Query declaration IDs, and `kernel : IncrementalPlannerKernel originalQuery.target`. It never accepts a loose caller-authored trace/reason pair. It recomputes `artifactOfSelection originalQuery trace reason originalRun.result.metadata.explored` and requires whole-value equality with `originalRun.artifact`, then validates the original Definition IDs, Behavior Fingerprints, and references against catalog authority and rejects promoted IDs that collide with any canonical Definition ID or alias. It constructs a new authored `traceExactly` Behavior plus a new checked Query through existing checkers, proves the promoted target equals the original target so the kernel can be transported, replans through the existing planner, and returns a `PromotionProposal` only when the witness, reason, properties, target, query form, policy, expanded Limits, and independently expected Behavior Fingerprints agree. Promotion necessarily creates new Behavior and Query Definition IDs/Behavior Fingerprints plus a new DrivePlan Artifact Checksum; the proposal records those Definition IDs, Behavior Fingerprints, and the Artifact Checksum and ordinary recomputed promoted provenance plus explicit lineage to the original Query Definition ID/Behavior Fingerprint and DrivePlan Artifact Checksum and provenance rather than claiming identity preservation.
-
-The reusable proposal contains canonical authored data and lineage but no Temporal names or source renderer. A validated Temporal-owned `PromotionCandidateBinding` supplies module imports and accepted Behavior, Query, target, and kernel constants for deterministic Lean source generation. Its sealed `CompiledPromotionSource` is created only while the candidate module is elaborated: the exact emitted declaration is elaborated against those imports and typed constants before canonical bytes enter the closed registry. The CLI can emit only registered compiled-source tokens, so invalid source fails model build/registration and is never returned successfully. A separate validated `CatalogGeneratedViewBinding` supplies inspector selectors, checked-in fixture paths, and per-entry Generated View keys for `stableRegression` entries; the aggregate Go and Markdown output paths are owned once by the generator, not repeated per entry. These bindings have their own Behavior Fingerprints and appear in the generated machine Generated View, but they do not alter the Behavior Fingerprint of the reusable catalog entry.
 
 ## API Contracts
 <!-- scope: technical -->
 
-- `checkCatalog` returns one canonical `CheckedCatalog` or a structured error before list, explain, generation, Generated View, or promotion.
-- Catalog Behavior Fingerprint covers all meaning-bearing metadata and graph edges, but not source ordering or generated prose layout.
-- `listCatalog` and `explainCatalog` are pure exact, case-sensitive queries. CLI success is canonical compact JSON on stdout with one terminal LF; errors are structured JSON on stderr with empty stdout and nonzero status.
-- `exportCatalog` returns exactly one `umpire-semantic-catalog-export/v2` envelope containing the checked catalog Behavior Fingerprint, every canonical row including `internal` rows, and every stable Generated View binding with its Behavior Fingerprint, selector, fixture path, and Generated View key. It has no selector, filtering, pagination, or presentation fields. Status 0 emits exactly one canonical compact JSON document plus one LF and empty stderr; invalid catalog, unsupported command/arguments, or serialization failure emits empty stdout, one structured error plus one LF on stderr, and status 1.
-- The Temporal presentation layer supplies semantic catalog records to fn-15's generic checked query core; generic query mechanics carry no semantic entry vocabulary or Generated View eligibility. The export envelope is a semantic-adapter transport, not another catalog or persisted reader.
-- Generated `model/GLOSSARY.md` and `model/Temporal/Tool/Generated/Catalog.json` are projections of the same validated `umpire-semantic-catalog-export/v2` snapshot. Neither is read back as semantic authority.
-- `compileExactProposal` accepts only the canonical checked catalog, the original checked Query, and an original `PlannerRun` with a genuine `.found trace reason` and artifact that validate exactly against that Query. It supports every current `QueryForm` only with its exact reason/outcome semantics: `verify` requires an exhaustive query and a violating counterexample; `witness` requires a satisfying witness; `counterexample` requires a violating counterexample; `select` requires behavior selection. Outcomes without `.found` are not promotable. It returns no partial proposal and never accepts a loose trace/reason pair, raw JSON, evidence, a runtime Result, or caller-authored Lean source.
-- Reusable promotion requires explicit promoted Behavior and Query declaration IDs that are fresh across canonical catalog Definition IDs and aliases. It preserves the original property set, target composition, query form, policy, expanded Limits, exact witness, selection reason, and source provenance while deriving new checked identities. It records original Query Definition ID/Behavior Fingerprint and DrivePlan Artifact Checksum and provenance beside the promoted Behavior and Query Definition IDs/Behavior Fingerprints plus the promoted DrivePlan Artifact Checksum and ordinarily recomputed promoted provenance. Target-owned outcomes are copied from the selected Model Trace, never guessed or authored independently.
-- Temporal source rendering requires a validated `PromotionCandidateBinding`; its imports and accepted constant references participate in the candidate/source Behavior Fingerprint, not the reusable catalog Behavior Fingerprint. Only a sealed `CompiledPromotionSource` produced by successful elaboration of the exact emitted declaration can enter the production registry or reach the CLI; a clean integration compilation defends that structural gate.
-- Every `stableRegression` entry requires exactly one validated Temporal `CatalogGeneratedViewBinding`. Inspector selector, fixture path, or Generated View-key changes alter the Generated View-binding Behavior Fingerprint and generated Generated View, not the entry's Behavior Fingerprint; aggregate output paths are validated once as set-level generator configuration.
-- The existing Generated View generator selects `stableRegression` catalog entries, invokes the canonical inspector, verifies exact checked-in fixtures, and transactionally renders one aggregate ordinary Go test file and one aggregate Markdown file in canonical Definition ID order.
-- The first stable set contains the current Switch exact-action regression and Nexus caller-closure regression. Ordinary Go wrappers remain metadata/fixture checks only; they do not execute Temporal or claim Run Evaluation.
+- `temporal-model-inspect list` emits one canonical `umpire-nexus-discovery/v1` JSON value containing
+  the four summaries in exact query-identity order, followed by one LF and empty stderr.
+- `temporal-model-inspect explain <query-id>` accepts exactly one canonical query identity from the
+  closed list and emits one canonical `umpire-nexus-explanation/v1` JSON value followed by one LF.
+  Unknown, case-shifted, ambiguous, or extra selectors emit empty stdout, one structured diagnostic
+  plus one LF on stderr, and status 1. Existing positional scenario inspection remains unchanged.
+- Discovery rows expose only existing checked identities, kind labels, source locations, Behavior
+  Fingerprints, and planned `ExperimentSpec` identity. Output ordering is independent of authoring
+  order and repeated calls are byte-identical.
+- `temporal-model-promote` accepts no arguments and reads exactly one canonical
+  `umpire-reviewed-promotion-eligibility/v1` value from stdin. There is no alternate candidate,
+  source path, executable path, import, promoted identity, trace, or unchecked-ID mode. Success emits
+  exactly one canonical `umpire-promotion-proposal/v2` value plus one LF; malformed, incomplete,
+  crossed, non-success, noncanonical, elaboration, or serialization failure emits no partial stdout.
+- The promotion envelope binds the candidate identity, original Query/artifact/target/kernel
+  identities, fixed promoted identities, source identity, SHA-256, and exact source bytes. The source
+  is a review artifact only and is never written into a Lean package by the command.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-Duplicate or case-colliding identities, wrong declaration kinds, missing Source Locations/Behavior Fingerprints, dangling references, alias cycles, invalid deprecation replacements, conflicting dispositions, and duplicate semantic entries fail catalog checking. Authored source collections are canonicalized; exact encoded-order validation belongs to the persisted reader boundary in fn-18.
-
-Unknown, internal, or ambiguous selectors fail without suggestions that change identity. Deprecated selectors return structured replacement guidance but do not silently redirect. Full-list output is finite and unpaginated because the production catalog is compiled and bounded.
-
-Catalog export fails closed on an invalid catalog, unsupported schema, malformed or extra arguments, duplicate rows or bindings, noncanonical ordering, serialization failure, nonzero model execution, any success stderr, or any missing/extra success bytes. Generators reject every other schema version and never combine records from multiple invocations.
-
-Promotion rejects non-`.found` outcomes, a QueryForm/SelectionReason mismatch, property truth incompatible with that reason, unresolved roles, unknown declarations, promoted declaration IDs colliding with canonical catalog Definition IDs or aliases, catalog Definition ID/Behavior Fingerprint/reference mismatch, incompatible Limits, failed promoted/original target equality, trace/reason drift after replanning, invalid source bindings, failed source elaboration, nondeterministic source rendering, and any proposal whose expected oracle comes from the renderer under test. The typed reusable compiler cannot receive a target-mismatched kernel; missing candidate kernels and stale textual kernel bindings fail at the Temporal candidate boundary. Reordered equivalent source collections yield identical checked values; the promoted Definition IDs/Behavior Fingerprints and DrivePlan Artifact Checksum remain distinct from their recorded lineage fields.
-
-Generation validates the entire candidate set before publication. Unsafe paths, missing fixtures, stale catalog Definition IDs, Generated View collisions, write/flush/close/replace failures, interruption, or concurrent publication preserve the prior complete generated set. Non-mutating checks acquire the same set lock for the complete read; if interrupted publication state requires recovery, they return a distinct recovery-required error without mutating it, while the next publication remains the sole recovery owner.
+- The four-entry Nexus inventory is explicit and checked for duplicate identities, wrong kinds,
+  missing source/fingerprint fields, crossed Property/Behavior/Query ownership, missing plans, and
+  nondeterministic order before either discovery command can succeed.
+- `explain` is exact: it does not case-fold, prefix-match, alias, or silently redirect selectors.
+- Promotion rejects non-`.found` planning, target/kernel/query drift, observed-trace substitution,
+  reused promoted identities, missing imports, nondeterministic rendering, digest drift, or source
+  that does not elaborate in a clean focused Lake build.
+- Promotion eligibility is fail-closed inside fn-5 before binding resolution. A bare candidate identity,
+  raw violation, incomplete reduction, non-reproduction, missing Exact Replay result,
+  receipt-digest mismatch, or crossed lineage cannot produce `CheckedPromotionEligibility` or invoke
+  the review-only proposal path.
+- Existing comments and current single-scenario inspector behavior are preserved.
 
 ## Quick commands
 
-```bash
-cd model && mise exec -- lake build Umpire.Catalog.Tests Umpire.Promotion.Tests Temporal.Tool.CatalogTests
-cd model && mise exec -- lake build temporal-model-catalog temporal-model-promote
-make umpire-list-catalog
-make umpire-explain-catalog SUBJECT=workflow-nexus.query.exact-action-caller-closure
-make umpire-check-catalog
+```sh
+cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromotionTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote
 make umpire-check-regression
 ```
 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** Public Lean metadata checks into one deterministic catalog, exports one canonical versioned full snapshot, and generates a checked-in `model/GLOSSARY.md` plus machine-readable index. The production seed registry is exactly the two public Switch Queries (`switch.query.exact-action`, `switch.query.exact-trace`), the six public Nexus Queries named in task `.2`, and fn-16's `temporal.nexus.basic-lifecycle.space.fault-matrix` checked-space metadata. The catalog is their least typed metadata closure and is checked against a golden Definition ID/kind set; its Nexus partition is exactly 61 entries (BasicLifecycle 10, BasicOperations 6, VariationSpace 15, CallerClosure 30). Errors: missing/extra seeds or closure entries, duplicate/case-colliding identities, wrong kinds, missing source or Behavior Fingerprint, dangling references, alias cycles, invalid deprecations, conflicting dispositions, unsupported export schema, or noncanonical export bytes fail before output. [paraphrase]
-- **R2:** Top-level Makefile generation and non-mutating check targets fail when the glossary, index, stable fixtures, or Generated View selection is stale, incomplete, inconsistent, or nondeterministic; checks render expected bytes in memory, compare the checked-in outputs directly while holding the shared complete-set lock, fail without mutation when interrupted state requires recovery, and no model-local Makefile carries this wiring. [user]
-- **R3:** Deterministic list/explain commands expose vocabulary, properties, behaviors, queries, capabilities, targets, scenarios, dispositions, aliases, and deprecations directly from the checked catalog without creating a second authority. Errors: malformed, unknown, internal, ambiguous, and deprecated selectors produce exact structured results. [paraphrase]
-- **R4:** `compileExactProposal` uses the canonical checked catalog to turn explicit fresh promoted declaration IDs, `originalQuery : CheckedQuery LawStatement`, an exactly bound `originalRun : PlannerRun` with `.found trace reason` and artifact, and `kernel : IncrementalPlannerKernel originalQuery.target` into a checked `traceExactly` regression proposal with new Behavior and Query Definition IDs/Behavior Fingerprints plus a new DrivePlan Artifact Checksum and explicit lineage to the original Query Definition ID/Behavior Fingerprint and DrivePlan Artifact Checksum and provenance. It recomputes the entire original artifact from the Query, found trace/reason, and explored counts and requires whole-value equality before promotion. All four current QueryForms are supported only for their exact form/reason/property semantics, and the replanned trace/reason must match. It retains properties, target, query form, policy, expanded Limits, witness, selection reason, and source provenance while recomputing promoted provenance normally. A validated Temporal candidate binding can enter the production registry only with a sealed source token created by elaborating the exact emitted Lean declaration. Errors: original Query/run/artifact mismatch, non-`.found` or form/reason mismatch, catalog mismatch, IDs colliding with canonical identities or aliases, failed target equality, missing candidate kernel/binding, trace/reason drift, failed source elaboration, or partial rendering yields no successfully emitted proposal. [paraphrase]
-- **R5:** Versioned readers and deterministic named migrations preserve declared compatible artifacts and reject unknown majors or semantic reinterpretation. This captured requirement is retained but implemented by `fn-18-versioned-umpire-artifact-boundary`, not by this spec; fn-5 adds no reader or migration. [paraphrase]
-- **R6:** The existing regression Generated View generator selects the closed `stableRegression` catalog set and deterministically publishes aggregate thin Go and Markdown projections for the current Switch and caller-closure exact scenarios. Errors: catalog/fixture Behavior Fingerprint or Artifact Checksum mismatch, unsafe or colliding output, incomplete set, stale generated bytes, or a wrapper that performs runtime semantics fails verification. [paraphrase]
-- **R7:** Catalog, discovery, promotion, and Generated View layers preserve the current semantic APIs and boundaries. Errors: a second semantic IR, copied property/behavior/planner logic, live evidence/runtime/replay/minimization behavior, generated API drift gate, model-local Makefile, Umpire3 dependency/inspection/use, or compatibility alias is a verification failure. [user]
-- **R8:** The semantic catalog includes the checked Target/Observation/Implementation Link/Space/Query and verification-profile vocabulary supplied by their owning modules, and runtime-origin promotion is admitted only after accepted semantic minimization plus canonical replay. Errors: treating a structural input as semantic meaning, cataloging an unchecked declaration, accepting raw evidence or a loose runtime trace, skipping Implementation Link/canonical replay, or letting SDK history replay establish a semantic violation yields no promotion proposal.
+- **R1:** `temporal-model-inspect list` and `explain` expose one coherent, deterministic, exact view
+  of the four retained Nexus examples and their existing checked Property, Behavior, Query, source,
+  fingerprint, and plan identities. Invalid inventory state or selectors fail structurally without
+  partial output, while existing positional inspection remains byte-compatible.
+- **R2:** Exactly one checked binding can compile the minimized duplicate-delivery failure's original
+  target-owned expected count-one trace into deterministic Lean source and a canonical review-only
+  proposal. Binding resolution requires fn-5's private checked eligibility token, constructed only
+  from a canonical fn-22 handoff whose reproduced-result, complete minimized-or-irreducible, and
+  Exact Replay receipts recompute and cross-bind to the same fixed lineage. Bare identity invocation,
+  observed count-two evidence, incomplete or crossed receipts, drift, unelaborated source, or any
+  override produces no proposal and nothing is installed automatically.
 
 ## Early proof point
 
-Task `fn-5-umpire-discovery-promotion-and-artifact.1` proves that heterogeneous checked framework and model metadata can form one deterministic reference graph without copying semantic bodies. Task `.4` is the promotion proof: an independently produced Switch checked Query plus its exactly bound `PlannerRun.found` and target-indexed kernel must compile through existing checkers and planning to the same trace/reason but new lineage-linked checked identities. Task `.5` must then structurally elaborate the exact Temporal-bound source before registry admission and compile the emitted bytes in a clean test invocation. If any proof fails, reconsider the catalog adapter, exact-proposal boundary, or source-binding contract before integration.
+Task `.1` must prove the four current examples form one deterministic closed inventory without
+copying their checked meaning. Task `.4` must prove a proposal cannot substitute the observed
+count-two trace for the target-owned expected count-one trace. If either proof fails, revise the
+concrete adapter or sealed-source boundary before wiring a command.
 
-## Boundaries
+## Non-goals
 <!-- scope: business -->
 
-- No persisted artifact reader, compatibility parser, schema migration, or best-effort repair; fn-18 owns those.
-- No runtime execution, raw evidence, Observation Claim Assessment, live replay, minimization, or deployment Claim Assessment.
-- No graphical interface, network service, pagination, arbitrary query language, or Go authoring facade.
-- No second Behavior/Drive language, semantic IR, target outcome authority, or hand-maintained glossary.
-- No generated Lean API drift verification, temporary regeneration/diff gate, or CI workflow.
-- No model-local Makefile; repository integration is root-Make only.
-- No dependency on, inspection of, or use of Umpire3.
+- A generic semantic graph or reusable reference graph.
+- A generated glossary or machine index.
+- A broad stable regression set or generalized regression suite.
+- General artifact evolution, schema migration, or a new persisted artifact family.
+- Source scanning, automatic proposal installation, runtime replay, minimization orchestration,
+  SDK history replay, campaign management, remote execution, or CI/release Claim Assessment.
 
 ## Decision Context
 <!-- scope: both -->
@@ -119,26 +156,21 @@ Task `fn-5-umpire-discovery-promotion-and-artifact.1` proves that heterogeneous 
 ### Motivation
 <!-- scope: business -->
 
-Stable concepts are useful only when authors can find them and reviewers can understand their relationships. Exact promotion closes the in-memory model-witness-to-regression loop while retaining the existing Property, Behavior, Query, planner, and artifact semantics.
+The existing inspector and checked Nexus values already provide the authority needed for the
+retained discovery surface. Extending that concrete tool keeps the user experience coherent and
+avoids introducing a second vocabulary.
 
 ### Implementation Tradeoffs
 <!-- scope: technical -->
 
-One checked catalog is preferable to parallel glossary and generator manifests because it makes identity, reference, deprecation, and Generated View eligibility validation reusable. A single closed full-export envelope gives generators a complete machine boundary without exposing a general query language or making generated JSON authoritative. Checked-in generated Markdown and JSON make semantic surface changes reviewable, while keeping Lean as authority.
-
-Fn-15 owns the reusable query mechanics because API, config, and semantic catalogs need the same exact command behavior. Fn-16 owns checked authored-space metadata and compilation. This spec owns only the semantic catalog/adapter and retains its independently checked `Umpire.Catalog` graph.
-
-Promotion returns inert checked values and lineage rather than editing files. The Temporal adapter adds inspectable source through validated accepted-name bindings. Later live replay/minimization can call the same compiler after proving evidence binding. Strict persisted decoding and migrations form a different deep module and are therefore transferred intact to fn-18.
+A single static promotion binding preserves the useful checked-source seam required by fn-22 while
+keeping runtime evidence and review policy outside the reusable Lean source type. The closed
+four-entry adapter is deliberately concrete: adding an entry requires a reviewed code change, but
+that cost makes current scope and ownership obvious.
 
 ## Requirement coverage
 
-| Req | Description | Task(s) | Gap justification |
-| --- | --- | --- | --- |
-| R1 | Checked catalog and generated glossary/index | `.1`, `.2`, `.3`, `.7` | — |
-| R2 | Root generation/check integration | `.3`, `.6`, `.7` | — |
-| R3 | Catalog list/explain | `.1`, `.2`, `.7` | — |
-| R4 | Exact in-memory promotion | `.4`, `.5`, `.7` | — |
-| R5 | Strict readers and migrations | — | Owned completely by `fn-18-versioned-umpire-artifact-boundary`; retained here only for captured-requirement traceability. |
-| R6 | Catalog-selected stable regression projections | `.2`, `.6`, `.7` | — |
-| R7 | Semantic and package boundaries | `.1`–`.7` | — |
-| R8 | Revised catalog and runtime-promotion boundary | `.1`–`.7` | — |
+| Requirement | Tasks | Notes |
+|---|---|---|
+| R1 | `.1`, `.2`, `.3`, `.7` | Closed Nexus inventory plus exact list/explain and focused integration checks |
+| R2 | `.4`, `.5`, `.6`, `.7` | Sealed source, one duplicate-delivery binding, elaboration, and review-only command checks |
