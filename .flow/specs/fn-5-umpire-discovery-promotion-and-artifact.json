@@ -407,7 +407,7 @@
   },
   "spec_path": ".flow/specs/fn-5-umpire-discovery-promotion-and-artifact.md",
   "status": "open",
-  "title": "Umpire discovery promotion and artifact evolution",
+  "title": "Umpire discovery promotion and artifact",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -419,5 +419,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T19:34:41.802514Z"
+  "updated_at": "2026-09-01T09:37:23.886985Z"
 }

@@ -1,45 +1,49 @@
 ---
-satisfies: [R1, R3, R7]
+satisfies: [R1]
 ---
-# fn-5-umpire-discovery-promotion-and-artifact.1 Define the reusable checked semantic catalog
+# fn-5-umpire-discovery-promotion-and-artifact.1 Define the closed Nexus discovery inventory
 
 ## Description
-Create the domain-neutral catalog language and checker for R1/R3/R7.
+Create the concrete checked inventory that is the sole input to retained Nexus `list` and `explain`.
 
-**Size:** M
-**Files:** `model/Umpire/Catalog.lean`, `model/Umpire/Catalog/Language.lean`, `model/Umpire/Catalog/Tests/Fixtures.lean`, `model/Umpire/Catalog/Tests/Validation.lean`, `model/Umpire.lean`
-**Touches:** [model/Umpire/Catalog.lean, model/Umpire/Catalog/Language.lean, model/Umpire/Catalog/Tests/Fixtures.lean, model/Umpire/Catalog/Tests/Validation.lean, model/Umpire.lean]
+**Size:** S
+**Files:** `model/Temporal/Tool/NexusDiscovery.lean`, `model/Temporal/Tool/NexusDiscoveryTests.lean`, `model/TemporalExperimentalTests.lean`
+**Touches:** [model/Temporal/Tool/NexusDiscovery.lean, model/Temporal/Tool/NexusDiscoveryTests.lean, model/TemporalExperimentalTests.lean]
 
 ### Approach
 
-- Define catalog entries, aliases, deprecations, references, dispositions, checked graph identity, exact lookup, and structured errors over existing checked declaration metadata plus fn-16's `CheckedSpaceMetadata` Generated View.
-- Validate the complete graph before constructing `CheckedCatalog`; do not copy clauses, traces, kernels, or planner logic.
-- Make authoring-order permutations canonical and keep constructors for checked values private.
+- Define one private-constructor `NexusDiscoveryEntry` from existing checked Property, Behavior,
+  Query, source, Behavior Fingerprint, and planned `ExperimentSpec` identities.
+- Register exactly the async-start, cancellation, successful-completion, and exact-action
+  caller-closure examples in canonical query-identity order.
+- Validate the entire inventory before exposing it: exact four-row membership, unique and correctly
+  owned identities, expected declaration kinds, nonempty source/fingerprint values, present plans,
+  and deterministic order.
+- Keep semantic values in their current owning modules; this adapter projects identities only.
 
-### Key context
+### Non-goals
 
-- The parent spec is blocked on all of fn-16, so this task is not dispatchable before `CheckedSpaceMetadata` and its public facade land. Consume that dependency-owned contract; do not recreate it here.
+- No generic semantic graph, generated glossary, machine index, source scan, or broad regression set.
 
 ### Investigation targets
 
 **Required:**
-- `model/Umpire/Core.lean:8-105` — current Definition ID, kind, Source Location, and Model Values.
-- `model/Umpire/Core.lean:189-224` — structured error conventions.
-- `model/Umpire/Core.lean:430-464` — Definition ID and kind validation.
-- `model/Umpire/Property/Language.lean:192-270` — authored-to-checked lifecycle.
-- `.flow/tasks/fn-16-authored-variation-spaces-and.3.md` — dependency-owned checked metadata handoff this task consumes after fn-16 completes.
-- `model/Umpire/ARCHITECTURE.md:31-44` — package lifecycle boundary.
+- `model/Temporal/Feature/Nexus/Operations/AsyncStart.lean` — first ordinary checked example.
+- `model/Temporal/Feature/Nexus/Operations/Cancellation.lean` — second ordinary checked example.
+- `model/Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean` — third ordinary checked example.
+- `model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean` — retained experimental example.
+- `model/Temporal/Tool/Inspect.lean` — current scenario registry and exact diagnostics.
+- `model/Temporal/Tool/InspectTests.lean` — current inspector compatibility tests.
 
 ### Quick command
 
-`cd model && mise exec -- lake build Umpire.Catalog.Tests.Validation`
+`cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests`
 
 ## Acceptance
-- [ ] Heterogeneous checked metadata forms one canonical catalog independent of authoring order.
-- [ ] Duplicate/case-colliding Definition IDs, wrong kinds, missing Behavior Fingerprints/Source Locations, dangling references, alias cycles, invalid replacements, and conflicting dispositions have exact error fixtures.
-- [ ] Exact list/lookup primitives never normalize or silently redirect selectors.
-- [ ] Catalog Behavior Fingerprint changes only for meaning-bearing metadata and graph changes.
-- [ ] The package imports no Temporal module and contains no copied semantic bodies.
+- [ ] The inventory contains exactly the four named Nexus query examples in canonical query-identity order.
+- [ ] Every row is constructed from existing checked Property, Behavior, Query, source, fingerprint, and planned ExperimentSpec values without copied semantic prose.
+- [ ] Duplicate, missing, wrong-kind, crossed-owner, missing-plan, and reordered fixtures fail with exact focused tests.
+- [ ] The module performs no source scan and imports only the concrete Nexus owners it projects.
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
