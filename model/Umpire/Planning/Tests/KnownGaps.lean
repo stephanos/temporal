@@ -1,4 +1,4 @@
-import Umpire.Planning.Types
+import Umpire.SemanticInventory.KnownGaps
 
 /-! Closed Known Gap validation and canonical encoding. -/
 
@@ -55,6 +55,34 @@ example : canonicalKnownGapJson inputGap =
     "{\"kind\":\"input\",\"code\":\"umpire.known-gap.runtime-evidence\"," ++
       "\"subject\":\"umpire.target.fixture\"," ++
       "\"detail\":\"Runtime Evidence is not available to model-only Planning.\"}" := by
+  native_decide
+
+private def catalogRow (catalogId : String) : KnownGapCatalogDescriptor :=
+  SemanticInventory.knownGapCatalog.find? (fun row => row.id == catalogId) |>.getD {
+    id := "umpire.semantic-inventory.known-gap-source.unknown"
+    owner := "Umpire.SemanticInventory"
+    lineage := .authored
+    scope := .testOnly
+    shape := .exactKnownGap
+    source := "umpire.known-gap.unknown"
+    fieldMapping := none
+    description := "Unknown test catalog row."
+  }
+
+/-! Private fixtures remain one-way bound to their public catalog source or reference. -/
+example : [
+    (catalogRow "umpire.semantic-inventory.known-gap-source.21-test-capability").source,
+    (catalogRow "umpire.semantic-inventory.known-gap-source.22-test-input").source,
+    (catalogRow "umpire.semantic-inventory.known-gap-source.23-test-interpretation").source
+  ] = [capabilityGap.code.value, inputGap.code.value, interpretationGap.code.value] ∧
+    let claimReference :=
+      catalogRow "umpire.semantic-inventory.known-gap-source.24-test-claim-reference"
+    claimGap = plannerPromotionKnownGap ∧
+      claimReference.scope = .testOnly ∧
+      claimReference.shape = .carriedCatalogEntry ∧
+      claimReference.source =
+        "umpire.semantic-inventory.known-gap-source.08-promotion" ∧
+      claimReference.fieldMapping = some .exact := by
   native_decide
 
 end Umpire.PlanningTests.KnownGaps

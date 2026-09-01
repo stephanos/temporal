@@ -98,11 +98,12 @@ def KnownGapScope.name : KnownGapScope → String
   | .production => "production"
   | .testOnly => "test-only"
 
-/-- The five closed source shapes represented by the Known Gap inventory. -/
+/-- The six closed source shapes represented by the Known Gap inventory. -/
 inductive KnownGapSourceShape where
   | exactKnownGap
   | generatedKnownGapFamily
   | authoredImplementationLinkKnownGapFamily
+  | admittedKnownGapInput
   | evidenceGapAdmissionProjection
   | carriedCatalogEntry
   deriving BEq, DecidableEq, Ord, Repr
@@ -112,6 +113,7 @@ def KnownGapSourceShape.name : KnownGapSourceShape → String
   | .generatedKnownGapFamily => "generated-known-gap-family"
   | .authoredImplementationLinkKnownGapFamily =>
       "authored-implementation-link-known-gap-family"
+  | .admittedKnownGapInput => "admitted-known-gap-input"
   | .evidenceGapAdmissionProjection => "evidence-gap-admission-projection"
   | .carriedCatalogEntry => "carried-catalog-entry"
 
