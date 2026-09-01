@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-44-seal-observation-traces-and-centralize",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-01T03:57:04.452823Z",
   "created_at": "2026-08-30T15:42:34.556515Z",
   "default_impl": null,
   "default_review": null,
@@ -431,6 +431,71 @@
       "timestamp": "2026-09-01T03:08:40.465498Z",
       "tool_calls": 20,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "7f31ef6c6029926f4297197fd8574549945655bba4d952447f18403f73b12344",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0646e2c1f8e1d7afa565c59d78f8ec33660a57a3",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 288908,
+      "output_sha256": "0072466867b5622f47d508af36b5a723a3e39b6fdf2f2d04a381770cb3339348",
+      "reservation_id": "1e5813c1676e496a9bce314a7a99727a",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T03:44:30.586991Z",
+      "tool_calls": 19,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c4822d0969492ca0687040a1a44b44edf78de998129e7032882bff9e64deef84",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "ab013874c9d7ec6d1afad1ba9b895987ac422862",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 3118,
+      "output_sha256": "c7cc2db69083fc1eebfaf37ea85fbd70b706035b1b4685986819630de3a35e4c",
+      "reservation_id": "d9cf8bc1a54746068ee998856053d876",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T03:57:04.446197Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -440,11 +505,12 @@
     "impl:fn-44-seal-observation-traces-and-centralize.4": 1,
     "impl:fn-44-seal-observation-traces-and-centralize.5": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-44-seal-observation-traces-and-centralize.1": 0,
     "impl:fn-44-seal-observation-traces-and-centralize.2": 0,
     "impl:fn-44-seal-observation-traces-and-centralize.3": 0,
@@ -466,5 +532,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T03:08:40.473191Z"
+  "updated_at": "2026-09-01T03:57:04.453757Z"
 }
