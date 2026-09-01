@@ -1714,7 +1714,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-20-local-execution-semantic-conformance.md",
-  "status": "open",
+  "status": "done",
   "title": "Local execution semantic conformance",
   "tracker": {
     "baseHashFlow": null,
@@ -1727,5 +1727,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T00:49:38.725354Z"
+  "updated_at": "2026-09-01T01:11:47.169597Z"
 }
