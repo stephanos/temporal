@@ -52,6 +52,8 @@ Sequencing adjustment (approved): sealing the type required the minimal removal 
 `make lint-code` reproduced the exact inherited 1,373 Go findings from the pre-existing baseline; this task's cumulative diff is Lean/Flow only. Flow memory capture was attempted after NEEDS_WORK→SHIP but memory is not initialized.
 
 stage: impl-review - ran [2026-09-01T02:17:45Z..2026-09-01T02:25:33Z] | Codex NEEDS_WORK→SHIP; receipt `/tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.3.json`
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: ef322c22aa72a96d10530139baa135b02c71e43e, d3e92f1351bcf2da136dd6b8f833e166efa7a2a6
 - Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.EvidenceLink, cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.ImportTests, cd model && mise exec -- lake build Temporal.Tool.RunEvaluationMutationTests Temporal.ImplementationLinkTests.Nexus, make lint-model, cd model && mise exec -- lake build Umpire.Observation.Tests, make lint-code (inherited: exit 2 with the exact pre-existing 1,373 Go findings; cumulative task diff is Lean/Flow only), git diff --check
