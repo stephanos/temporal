@@ -32,9 +32,13 @@ Extend the owner-local exact-one constructor classifiers across the semantic eva
 - [ ] Cross-family equal names remain distinct and tests reject accidental collapse.
 - [ ] Existing comments and Result semantics are preserved.
 ## Done summary
-TBD
+Added owner-local ordered constructor catalogs and exact-one proofs for Observation, Implementation Link, semantic Property, and strict Query outcomes. Run Evaluation now reuses the byte-identical owner renderers, while optional Implementation Link absence is a separate typed projection sentinel and cross-family equal names remain distinct.
 
+Baseline: staged red for future semantic-inventory executable/test and Make targets; `make lint-model` was green at 201/201.
+
+stage: impl-review - ran [SHIP at 2026-09-01T12:16:23Z; session 01a05ce2-8279-7451-bc72-0daae4278e76; 0 open findings]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 25acfaa1a85dc36541fccd2c627aca64bd4d03ca, 85b4874c35a24271d021e68b9342e975586009a6
+- Tests: baseline: staged red (future semantic-inventory executable/test and Make targets absent); make lint-model green 201/201, TDD RED: cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.SemanticStages (missing owner catalog/proof and projection-sentinel APIs), cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.SemanticStages, cd model && mise exec -- lake build Temporal.Tool.RunEvaluationTests, make lint-model
 - PRs:
