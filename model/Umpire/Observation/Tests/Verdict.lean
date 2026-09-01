@@ -188,4 +188,37 @@ example :
     ]] := by
   native_decide
 
+/-- Property field compatibility rejects invalid coordinates and preserves prior-state edges. -/
+example :
+    let oneStepTrace := completeEvidenceBackedTrace.trace
+    let twoStepTrace := (acceptedOf (evaluateFixture repeatedValueEvidence)).get (by native_decide)
+      |>.trace
+    let emptyTrace := { oneStepTrace with steps := [] }
+    [
+      (PropertyTraceField.valueAt? .state emptyTrace .initialState).isSome,
+      (PropertyTraceField.valueAt? .priorState emptyTrace .initialState).isSome,
+      (PropertyTraceField.valueAt? .resultingState emptyTrace .initialState).isSome,
+      (PropertyTraceField.valueAt? .priorState oneStepTrace .initialState).isSome,
+      (PropertyTraceField.valueAt? .priorState oneStepTrace (.resultingState 1)).isSome,
+      (PropertyTraceField.valueAt? .resultingState oneStepTrace (.resultingState 1)).isSome,
+      (PropertyTraceField.valueAt? .priorState twoStepTrace (.resultingState 1)).isSome,
+      (PropertyTraceField.valueAt? .priorState twoStepTrace (.resultingState 2)).isSome,
+      (PropertyTraceField.valueAt? .observation twoStepTrace (.observation 1 1)).isSome,
+      (PropertyTraceField.valueAt? .relation twoStepTrace (.observation 1 1)).isSome,
+      (PropertyTraceField.valueAt? .selectedAction twoStepTrace (.selectedAction 0)).isSome,
+      (PropertyTraceField.valueAt? .modelOutcome twoStepTrace (.modelOutcome 0)).isSome,
+      (PropertyTraceField.valueAt? .state twoStepTrace (.resultingState 0)).isSome,
+      (PropertyTraceField.valueAt? .observation twoStepTrace (.observation 0 1)).isSome,
+      (PropertyTraceField.valueAt? .relation twoStepTrace (.observation 1 0)).isSome,
+      (PropertyTraceField.valueAt? .selectedAction twoStepTrace (.selectedAction 3)).isSome,
+      (PropertyTraceField.valueAt? .observation twoStepTrace (.observation 1 99)).isSome
+    ] = [
+      true, false, false,
+      true, false, true,
+      true, false,
+      true, true,
+      false, false, false, false, false, false, false
+    ] := by
+  native_decide
+
 end Umpire.ObservationTests

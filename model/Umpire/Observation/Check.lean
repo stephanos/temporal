@@ -21,34 +21,6 @@ structure RunEvaluation
 private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
   ids.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
 
-private def valueAtCoordinate
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
-    ModelCoordinate → Option ModelValue
-  | .initialState => some trace.initialState
-  | .selectedAction step =>
-      (trace.steps[step - 1]?).map ModelTraceStep.selectedAction
-  | .modelOutcome step =>
-      (trace.steps[step - 1]?).map ModelTraceStep.modelOutcome
-  | .resultingState step =>
-      (trace.steps[step - 1]?).map ModelTraceStep.resultingState
-  | .observation step position => do
-      let traceStep ← trace.steps[step - 1]?
-      traceStep.observations[position - 1]?
-
-private def coordinateSupportsField
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (coordinate : ModelCoordinate)
-    (field : PropertyTraceField) : Bool :=
-  match coordinate with
-  | .initialState =>
-      field == .state || (field == .priorState && !trace.steps.isEmpty)
-  | .selectedAction _ => field == .selectedAction
-  | .modelOutcome _ => field == .modelOutcome
-  | .resultingState step =>
-      field == .state || field == .resultingState ||
-        (field == .priorState && step < trace.steps.length)
-  | .observation _ _ => field == .observation || field == .relation
-
 private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
   | .stateInvariant _ state => [state]
   | .transitionContract _ precondition postcondition => [precondition, postcondition]
@@ -64,15 +36,14 @@ private def relevantEvidenceLinks
     (clause : ResolvedPropertyClause) : List EvidenceLink :=
   let patterns := clausePatterns clause
   implementationEvidenceLinks.filterMap fun implementationEvidenceLink =>
-    match valueAtCoordinate destinationTrace implementationEvidenceLink.coordinate with
-    | none => none
-    | some value =>
-        if patterns.any fun pattern =>
-            coordinateSupportsField destinationTrace implementationEvidenceLink.coordinate
-                pattern.field && value.definitionId == pattern.reference then
-          some implementationEvidenceLink.sourceEvidenceLink
-        else
-          none
+    if patterns.any fun pattern =>
+        match PropertyTraceField.valueAt? pattern.field destinationTrace
+            implementationEvidenceLink.coordinate with
+        | none => false
+        | some value => value.definitionId == pattern.reference then
+      some implementationEvidenceLink.sourceEvidenceLink
+    else
+      none
 
 private def translatedClauseVerdict
     (query : CheckedQuery DestinationLawStatement)
