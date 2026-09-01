@@ -322,6 +322,24 @@ offline and paired-live commands, outputs, statuses, Limits, dispositions, and f
 boundary. Operational success, accepted Observation Evaluation, applied Implementation Link, and
 Property satisfaction or violation remain independently inspectable.
 
+## Semantic inventory
+
+[`SEMANTIC_INVENTORY.md`](SEMANTIC_INVENTORY.md) is the checked, generated navigation view of the
+owner-published outcome, projection-sentinel, and Known Gap catalogs. Stage-owned types, the Result
+schema, canonical Artifact bytes, and runtime behavior remain authoritative and unchanged; the
+inventory is neither another semantic source nor a persistence schema.
+
+From the repository root, regenerate or read-only check the single managed document:
+
+```sh
+make umpire-gen-semantic-inventory
+make umpire-check-semantic-inventory
+```
+
+The narrow local drift check builds on the completed fn-20 dependency and the completed-prerequisite
+fn-44/fn-45 baselines. It does not reopen broad generated API drift verification or add CI workflow
+coverage.
+
 Build each stage through the final module and target names:
 
 ```sh

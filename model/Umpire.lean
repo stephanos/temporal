@@ -9,3 +9,4 @@ import Umpire.Planning
 import Umpire.Space
 import Umpire.Observation
 import Umpire.ImplementationLink
+import Umpire.SemanticInventory
