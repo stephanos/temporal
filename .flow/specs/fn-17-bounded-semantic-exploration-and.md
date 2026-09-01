@@ -2,116 +2,109 @@
 
 > HTML render lens (local): open `.flow/artifacts/fn-17-bounded-semantic-exploration-and/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
-## Umpire4 architecture reconciliation
-
-The Lean-owned module exposes the serializable semantic protocol `initialize`, `nextBatch`, and `observe`. It owns semantic candidate identity, deterministic selection, model-defined coverage, and opaque resumable state. Closed v1 has a finite immutable candidate universe and deliberately has no mutation language, adaptive corpus, or priority feedback. This spec remains pure: it performs no runtime I/O, leasing, checkpoint publication, or command handling.
-
-The downstream campaign spec owns Go concurrency and the `umpire-fuzz` surface while consuming this protocol, artifacts, the shared runner, and conformance. Exhaustive model-only checks stay under `umpire-check-model`; runtime fuzzing never claims completeness.
-
-`ExplorationSource/v1` is closed: `space` consumes fn-16 `CheckedExperimentSpace`, while `exactCatalogArtifacts` consumes a non-empty, identity-sorted list of one to 256 `CheckedExactCatalogArtifact` values. Each is an in-memory proof-bearing `ExactCatalogArtifactCertificate/v1` constructed by the Temporal-owned caller from the checked fn-5 catalog subject and projection binding, the whole canonical ExperimentSpec, its checked Query/model trace/property context, and proofs that canonical compilation yields exactly those bytes, identities, and coverage signature. The fn-5 projection binding remains location metadata; the certificate—not a fixture read—supplies semantic admission, while the fn-5 projection checker separately proves published fixture equality. Umpire validates the certificate without filesystem access or a Temporal registry. Exact sources preserve bytes and identities, support only `exhaustive`, seed zero, no symmetry/t-wise goals, and a selection ceiling no larger than their member count. Pinned regressions remain a separate partition.
-
-The pure protocol state contains the fixed selected order, cursor, at most one outstanding batch, and an identity-sorted observed-admission map. `initialize` computes selection once with cursor zero and no outstanding/observed members. `nextBatch(state)` has no caller-supplied size: when state is `ready`, it emits exactly `min(8, remaining)` ExperimentSpecs in selected order, advances the cursor, and records that exact non-empty outstanding list; `awaiting-observation` and `drained` states reject. `ExplorationObservation/v1` remains domain-neutral and contains only protocol identity, prior-state identity, candidate identity, ExperimentSpec identity, an opaque checked admission identity, and reproduction-tuple digest. The downstream Lean bridge validates the full runtime Result closure and constructs that opaque admission identity; Umpire does not name or import Result, evidence, Refinement, or conformance types. `observe` accepts exactly one observation for every outstanding candidate, canonicalizes them to outstanding order, rejects missing/extra/duplicate/crossed bindings atomically, records the identity-sorted admission map, and clears the batch. Coverage and selection never change during observation. Protocol status is `ready`, `awaiting-observation`, or `drained`; semantic selection termination remains the separate CoverageReport termination. Closed v1 has no mutations, adaptive corpus, priority scores, leases, paths, publication, runtime/evidence vocabulary, or Go coordination state.
-
 ## Overview
 
-Add one pure reusable `Umpire.Exploration` layer that consumes either fn-16 checked finite experiment spaces or fn-5-bound exact artifact sources, then selects useful `ExperimentSpec`s with exhaustive, pairwise, t-wise, seeded-random, or genuinely coverage-guided strategies. It maintains immutable semantic coverage state, supports compatible in-memory resume, honors proof-carrying coverage symmetry, selects pinned regressions outside the exploration budget, and emits an inspectable semantic coverage report.
+Add one pure `Umpire.Exploration` layer over the existing checked finite Experiment Space. It offers
+exactly two deterministic policies: bounded exhaustive enumeration and one policy that prioritizes a
+caller-named uncovered Model Coordinate. Checked pinned Regressions are selected independently of
+the exploration budget and take precedence over duplicate exploratory candidates.
 
-The layer never executes an experiment, reads persisted artifacts, interprets evidence, realizes a fault, replays or minimizes a result, promotes a regression, or changes Property/Behavior/Query/target semantics.
+The layer does not execute experiments, interpret Evidence, persist campaign state, or promote
+Regressions. Fn-33 owns the first runtime campaign and consumes only the narrow in-memory
+one-candidate session seam defined here.
 
 ## Goal & Context
 <!-- scope: business -->
 
-Model authors need an exploratory mode that can say “find a small deterministic set of paths that exercises these semantic goals” without confusing case count, requested controls, or model traces with live evidence. Success means the same checked space can be explored repeatedly or resumed with stable selections and an exact explanation of covered, uncovered, pinned, selected, and omitted semantic coordinates.
+The retained Nexus prototype needs a small, explainable way to enumerate its finite candidate space
+or choose a candidate that covers one known gap. The same checked inputs and Limits must yield the
+same selected identities, while partial work must never claim exhaustive coverage.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
 
 ```text
-CheckedExperimentSpace + exact base kernel
+CheckedExperimentSpace + exact planner kernel
                     |
                     v
-       fn-16 compileBatch (atomic, <= 256)
+        canonical CandidateUniverse (<= 256)
+                    |
+      exhaustive | uncovered-coordinate
                     |
                     v
-      canonical CandidateUniverse + pinned specs
-                    |
-     strategy + budget + CoverageState + symmetry
+    pinned partition + exploratory selections
                     |
                     v
-       Umpire.Exploration pure selector
-             /                  \
-            v                    v
- selected ExperimentSpecs   CoverageReport
+      one-candidate in-memory session for fn-33
 ```
 
-`Umpire.Exploration` is a terminal reusable package above `Umpire.Space`, `Umpire.Planning`, and `Umpire.Artifact`. It does not redefine axes, choices, fault intents, coverage goals, point lowering, target kernels, or artifact compilation. Temporal-owned semantic bindings stay under `Temporal.Feature`; the downstream campaign owns the first concrete command.
+`CandidateUniverse` is compiled atomically from one fn-16 `CheckedExperimentSpace` with the caller's
+exact target kernel. It contains canonical ExperimentSpec bytes and identities plus the Model
+Coordinates already present in each selected model trace. Duplicate identities, invalid artifacts,
+or more than 256 candidates reject the request before selection.
 
-`ExplorationStrategy` is separate from the existing per-Query `SearchStrategy`. Its closed v1 variants are `exhaustive`, `pairwise`, `tWise strength`, `seededRandom`, and `coverageGuided`. The existing Query policy still controls target-trace planning inside each point. The misleading existing `SearchStrategy.coverageGuided` seed rotation is renamed to `seeded` with canonical name `seeded`, and legacy `coverage-guided` is rejected rather than aliased; only this package may claim coverage guidance.
+`ExplorationPolicy` is closed to `exhaustive` and `uncoveredCoordinate coordinate`. Both use an
+explicit `experiment-specs` Limit. Exhaustive succeeds only after every non-pinned candidate in the
+finite universe has been considered; reaching the Limit first is `limit-reached`, not exhaustion.
+The guided policy selects candidates containing the named coordinate first, with ExperimentSpec
+semantic identity as the tie-break, then stops at its Limit. It does not mutate the space, learn a
+corpus, or alter subsequent scoring from runtime outcomes.
 
-An `ExplorationPolicy` contains strategy, an explicit selection-budget ceiling in `experiment-specs`, a canonical seed field, and optional `CheckedCoverageSymmetry`. Bounds are fixed at one to 256 exploratory selections; t-wise strength is two to four and cannot exceed the number of axes. Pairwise is exactly t-wise strength two. Only seeded-random accepts a nonzero seed; every other strategy requires zero. Every output records the canonical seed.
+`PinnedExperimentSpec` inputs are checked canonical ExperimentSpecs with unique identities and the
+same target-kernel contract. They form a separate ordered partition, do not consume the exploration
+Limit, and win semantic-identity overlap.
 
-For a `space` source, candidate construction first calls fn-16 atomic `compileBatch` with the caller-provided exact base kernel. For an `exactCatalogArtifacts` source, it validates every proof-bearing `CheckedExactCatalogArtifact` in memory and admits the certificate whole ExperimentSpec bytes without relowering or reading its projection path. Every strategy therefore sees one complete, canonically ordered, at-most-256 universe from its declared source. Point-lowering/planning failure or catalog/certificate/artifact drift rejects before selection. Candidate identity is `ExperimentSpec.semanticIdentity`; duplicate identities reject rather than being silently deduplicated.
-
-Semantic coverage is not raw case count. A candidate's canonical `CoverageSignature` contains:
-
-- selected axis/choice coordinates;
-- requested-fault-intent coordinates, explicitly labeled as planned intent rather than realization;
-- initial and resulting state, selected action, target-owned outcome, observation, and relation coordinates from the model-selected trace; and
-- pure Property evaluation coordinates, including property identity and satisfied/violated result.
-
-Every fn-16 coverage goal is evaluated against those signatures. One distinct spec may credit a given goal at most once, even if its trace repeats the subject. Axis-choice and requested-fault goals match intent coordinates. State/action/outcome/observation/relation goals match target-owned model coordinates. Property goals match a resolved pure model evaluation and the report retains satisfied/violated counts; neither result is live conformance evidence. The report also lists all discovered semantic coordinates so coverage remains meaningful when no explicit goal names them.
-
-`CoverageState` is an immutable checked value with space digest, universe digest, policy-compatibility digest, goal digest, symmetry digest, pinned-set digest, the recorded selection-budget ceiling, selected and omitted candidate identities, per-coordinate hit sets, per-goal distinct credit identities, and selection cursor/provenance. Resume accepts the same checked inputs and a new ceiling greater than or equal to the prior recorded ceiling; it rejects any changed space, universe, algorithm/version, strategy parameter, seed, goals, symmetry, pinned set, reduced ceiling, or non-monotone/tampered counts. This spec exposes no persisted state decoder or migration.
-
-`CheckedCoverageSymmetry` is an optional proof-carrying Lean value over the compiled universe, not an inferred authoring heuristic. It supplies canonical orbit representatives, an explicit axis/choice renaming, and proofs that members have the same goal-credit set and semantic coverage signature under that renaming. It also induces a total quotient on pair/t-wise interaction coordinates and proves that renaming maps every concrete interaction to the representative interaction class. Validation requires total, idempotent representatives in the same universe and disjoint closed orbits. Reduction retains the lexicographically least representative. Reports distinguish directly selected concrete interactions from symmetry-equivalent credited interactions. Without such a witness no symmetry reduction or equivalent credit occurs.
-
-`CoverageReport` has canonical format identity `umpire-coverage-report/v1`, source/policy/state/universe digests, selected and omitted candidates with reasons, direct and symmetry-equivalent interaction coverage, semantic coordinate hit counts, per-goal credited spec identities/minimum/deficit, pinned/exploratory partitions, seed and budget ceilings, and one termination: `goals-satisfied`, `interactions-satisfied`, `universe-exhausted`, or `budget-exhausted`. Goal or interaction satisfaction is not verification. Only exhaustive universe exhaustion can establish that an uncovered model coordinate or goal is unreachable within the checked finite universe; sampled termination never does.
-
-Pinned regressions enter as checked canonical `PinnedExperimentSpec`s. They must have recomputable artifact identity, unique identities, a matching target-kernel contract, and compatible semantic vocabulary. They are included and credited before exploration, never consume the exploration budget, and remain a separate output partition. If a candidate has the same semantic identity, the pinned copy wins and the exploratory candidate is omitted as `pinned-precedence`. Any invalid pinned input rejects the run.
+The in-memory `ExplorationSession` fixes one checked request and selected order. `next` returns at
+most one not-yet-observed candidate; `observe` accepts exactly the checked admission binding for that
+candidate before another can be returned. The value is process-local and has no encoder, decoder,
+checkpoint, compatibility version, or restart contract.
 
 ## Selection Algorithms
 <!-- scope: technical -->
 
-- `exhaustive` selects canonical non-pinned representatives until the universe ends or the selection ceiling is reached.
-- `pairwise` and `tWise` build the exact finite interaction universe from canonical axis-choice assignments, then greedily select the candidate covering the most uncovered interactions. Ties use candidate semantic identity. They stop at `interactions-satisfied` as soon as every direct interaction—or every induced quotient interaction when checked symmetry is present—is covered; an insufficient ceiling returns a valid incomplete report.
-- `seededRandom` orders candidates by a stable hash of algorithm version, nonzero seed, and candidate semantic identity; it uses no platform RNG or source order and stops only at universe or budget exhaustion.
-- `coverageGuided` greedily maximizes a closed score tuple: newly satisfied required goal credits, then total goal-deficit reduction, then previously unseen semantic coordinates, then candidate semantic identity. It stops at `goals-satisfied`, or at universe/budget exhaustion. Pinned credits and resumed state participate before the first exploratory choice.
-- Optional symmetry reduction is a sound preselection quotient for all strategies. Pair/t-wise selectors operate over the proof-induced interaction quotient and report direct versus equivalent credits separately. Reports retain every member-to-representative omission so reduction cannot make the concrete universe appear smaller without explanation.
-
-All algorithms are total over the compiled bounded universe and recompute their canonical result from checked inputs. Pair/t-wise interaction coverage is reported separately from semantic goal coverage. No strategy changes a Query, target kernel, planned trace, or artifact.
+- `exhaustive` walks non-pinned candidates in canonical semantic-identity order and reports
+  `exhausted` only when the complete checked universe was considered within the Limit.
+- `uncoveredCoordinate coordinate` puts candidates containing that exact Model Coordinate first,
+  then orders ties by semantic identity. If no candidate contains it, the result says
+  `coordinate-uncovered`; it does not claim the coordinate is unreachable unless exhaustive
+  enumeration also completed.
+- Pinned Regressions precede exploratory selections, consume no exploration budget, and remove an
+  overlapping exploratory identity with the explicit reason `pinned-precedence`.
 
 ## API Contracts
 <!-- scope: technical -->
 
-- `checkExplorationRequest` returns one complete checked request or the first structured error in canonical identity order. It validates policy bounds, t strength, pinned specs, symmetry, and optional resume compatibility before selection.
-- `buildCandidateUniverse` dispatches on the closed source. `space` delegates exclusively to fn-16 `compileBatch` with `kernel : IncrementalPlannerKernel space.baseQuery.target`. `exactCatalogArtifacts` validates the in-memory `ExactCatalogArtifactCertificate/v1`: catalog membership and stable projection binding, checked Query/model trace/property context, compilation equality, whole canonical bytes, semantic identities, and recomputed coverage signature. It returns the certificate ExperimentSpec unchanged and never reads the projection path. Neither path constructs, copies, or reinterprets a kernel or artifact.
-- `explore` returns `Except ExplorationError ExplorationResult`. Preselection validation or candidate compilation is atomic: failures return no state/report/specs. Budget termination after a valid universe returns a successful partial result with `budget-exhausted`.
-- `resumeExplore` is monotonic. It may only retain prior selections/credits and add new ones; the selection ceiling may stay equal or increase but cannot fall below the prior recorded ceiling. Recomputing fresh at the new ceiling must equal resumed state, selected bytes, and report bytes.
-- Canonical output order is pinned specs by identity followed by exploratory specs in selection order; report maps and omission lists are identity-sorted. Strategy decisions record their score/reason.
-- `CoverageReport` has a canonical encoder for inspection. There is no report/state reader, filesystem persistence, migration, or compatibility alias in this spec; fn-18 owns strict versioned persisted decoding.
-- Versioned pure `initialize`, `nextBatch`, and `observe` implement the exact cursor/outstanding/observed transition equations above. `nextBatch(state)` accepts no size and emits exactly `min(8, remaining)` selected ExperimentSpecs only from `ready`. `observe` requires the complete outstanding batch and records opaque checked admission identities plus reproduction digests without changing selection or coverage. State maps are identity-sorted and final state/report bytes are independent of runtime completion order. The functions contain no runtime/evidence vocabulary and perform no admission checking, leasing, execution, persistence, or command parsing; the downstream Lean bridge and Go campaign own those effects.
+- `checkExplorationRequest` checks one finite Space, exact kernel, closed policy, Limit, coordinate,
+  and pinned partition atomically and returns canonical typed errors.
+- `buildCandidateUniverse` delegates to fn-16 `compileBatch`, preserves canonical ExperimentSpec
+  bytes, rejects duplicate identities, and never reads a catalog or filesystem path.
+- `explore` returns the pinned and exploratory partitions, the selected identities, the requested
+  coordinate outcome, and `exhausted|limit-reached`; it exposes no general reporting schema.
+- `beginSession`, `next`, and `observe` provide the minimal process-local one-candidate seam consumed
+  by fn-33. Crossed, stale, duplicate, missing, or extra observations return no successor session.
+- Canonical ordering depends only on checked semantic inputs, Limits, and ExperimentSpec identities,
+  never source order, timestamps, platform randomness, or runtime completion order.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- Empty/duplicate universes, noncanonical or identity-invalid artifacts, mismatched target contracts, impossible strategy parameters, and malformed symmetry or resume state fail before selection.
-- The candidate universe never exceeds 256 members. A space source inherits fn-16's limit; an exact source admits one to 256 fn-5-bound members. Exploration budget counts only newly selected non-pinned specs; per-point Query candidate-evaluation bounds remain independently visible in each artifact.
-- Repeated trace subjects credit a goal once per distinct spec. Repeated invocation, resume, pinned/exploratory overlap, and symmetry overlap cannot double-credit.
-- Requested fault selection credits only a `fault-intent` coordinate and never target outcome, realization, receipt, or success.
-- A statically feasible but dynamically uncovered goal is `uncovered`; it is `unreachable-in-universe` only after exhaustive universe exhaustion. Budget- or goal-terminated runs cannot claim unreachability.
-- Reordering authored axes/choices/goals, compiled candidate input, pinned input, or symmetry declarations cannot affect checked identities, selected bytes, or report bytes.
-- The package and its tests perform no runtime I/O. Command handling and durable campaign state are downstream concerns.
+- Empty or oversized universes, invalid or duplicate artifacts, incompatible pinned inputs, zero or
+  oversized Limits, and a guided coordinate outside the checked coordinate vocabulary fail before
+  selection.
+- Requested fault coordinates remain model intent. Selecting them is not Evidence that a fault was
+  realized or that a Property passed.
+- A reached Limit is inconclusive. Only complete exhaustive enumeration can establish finite-space
+  exhaustion.
+- The package is pure Lean and performs no runtime I/O, command handling, persistence, or promotion.
 
 ## Quick commands
 <!-- scope: technical -->
 
 ```bash
-cd model && mise exec -- lake build Umpire.Exploration.Tests.Coverage
+cd model && mise exec -- lake build Umpire.Exploration.Tests.Validation
 cd model && mise exec -- lake build Umpire.Exploration.Tests.Selection
-cd model && mise exec -- lake build Umpire.Exploration.Tests.Resume
-cd model && mise exec -- lake build Umpire.Exploration.Tests.Symmetry
+cd model && mise exec -- lake build Umpire.Exploration.Tests.Session
 cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.ExplorationTests
-cd model && mise exec -- lake build Umpire.Exploration.Tests.Protocol
 cd model && mise exec -- lake build UmpireTests TemporalModelTests
 make umpire-build-model
 ```
@@ -119,72 +112,66 @@ make umpire-build-model
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** One reusable checked Exploration language accepts fn-16 spaces plus closed strategy, explicit selection budget/seed, optional proof-carrying symmetry, pinned specs, and compatible prior state. Exact bounds, typed errors, canonical ordering, and semantic identities are enforced before selection. [paraphrase]
-- **R2:** Every strategy consumes the same atomic fn-16 candidate universe produced with the caller's exact target kernel. Candidate compilation remains bounded to 256 points, duplicate/noncanonical/non-artifact points reject the run, and per-point planner bounds remain distinct from the exploration selection budget. [user]
-- **R3:** Semantic coverage signatures and reports distinguish choice intent, requested-fault intent, target-owned state/action/outcome/observation/relation coordinates, and pure property results. Each distinct spec credits each goal at most once; case count, fault request, or model satisfaction is never represented as execution/conformance evidence. [user]
-- **R4:** Exhaustive, exact pairwise, t-wise strength 2–4, stable seeded-random, and genuinely coverage-guided selectors are deterministic, bounded, and explain every selection/omission. Pair/t-wise coverage and semantic-goal coverage remain separate. [paraphrase]
-- **R5:** Optional symmetry reduction requires a checked proof that every orbit preserves goal credits and semantic coverage under an explicit axis/choice renaming and induces a total quotient over pair/t-wise interactions; no symmetry is inferred. Representatives and omissions are deterministic, direct/equivalent interaction credits remain distinct, and coverage cannot inflate. [paraphrase]
-- **R6:** Immutable state/report values support monotonic compatible in-memory resume with a nondecreasing recorded selection ceiling. Fresh and resumed runs at the same larger ceiling are byte-identical; stale/tampered/incompatible state fails. Termination distinguishes goals satisfied, interactions satisfied, universe exhausted, and budget exhausted without overclaiming verification or reachability. [paraphrase]
-- **R7:** Valid pinned regressions are selected and credited before exploration, stay in a separate result partition, consume no exploration budget, and win semantic-identity overlap. Invalid pinned inputs fail the run; no second regression registry or promotion path is created. [user]
-- **R8:** Synthetic fixtures and the exact Temporal Nexus fault-matrix example prove deterministic selection, semantic reports, protocol behavior, and vertical package purity. No runtime, evidence, conformance, fault realization, persisted reader/migration, replay/minimization/promotion, Go facade, command, model-local Makefile, or Umpire3 use is introduced. [user]
-- **R9:** Lean Exploration provides versioned pure `initialize`, `nextBatch`, and `observe` operations. Canonical state binds the fixed selected order, cursor, zero-or-one outstanding batch, identity-sorted observed-admission map, strategy/version/bounds/seed/model/checker identities, coverage, omissions, protocol status, and separate selection termination. Initialize fixes selection once. `nextBatch(state)` has no size argument and emits exactly `min(8, remaining)` only from `ready`. Observe requires exactly the outstanding candidates and records only opaque checked admission identities/reproduction digests. Closed v1 contains no mutation, adaptive corpus, priority, runtime, or evidence extension point. Errors: stale/crossed state, incompatible inputs, nextBatch while awaiting/drained, missing/extra/duplicate observation, unknown admission identity, non-monotone update, or incomplete reproduction tuple yields no state.
-- **R10:** `ExplorationSource/v1` admits either one fn-16 space or one non-empty list of one to 256 proof-bearing `CheckedExactCatalogArtifact` values. The Temporal-owned `ExactCatalogArtifactCertificate/v1` ties an existing fn-5 subject/projection binding to the whole canonical ExperimentSpec, checked Query/model trace/property context, compilation equality, and recomputable coverage signature. Umpire validates it in memory and preserves exact bytes/identities; it never reads a fixture path or invents a catalog, Space, Query, or artifact. Exact sources support exhaustive seed-zero selection only. Errors: catalog/projection/certificate/context/compilation/signature drift, duplicate/noncanonical members, unsupported policy features, or N+1 members rejects atomically.
-- **R11:** `ExplorationObservation/v1` is domain-neutral: protocol/prior-state, candidate/ExperimentSpec, opaque checked admission identity, and reproduction-tuple digest only. `nextBatch(state)` accepts no size and emits exactly `min(8, remaining)` in fixed selection order from `ready`, creating the sole outstanding batch. `observe` accepts exactly one checked observation per outstanding candidate, canonicalizes to outstanding order, inserts an identity-sorted admission map, clears the batch, and leaves selection/coverage unchanged. Errors: nextBatch while awaiting/drained, missing/extra/duplicate/crossed observation, incomplete binding, or non-monotone update yields no new state.
+- **R1:** One checked finite candidate universe of at most 256 canonical ExperimentSpecs is compiled
+  atomically from one fn-16 Space with the exact planner kernel. Errors: empty/oversized input,
+  compilation failure, invalid artifacts, duplicate identities, or incompatible bounds reject with
+  no partial universe.
+- **R2:** Bounded exhaustive enumeration is deterministic and reports exhaustion only after every
+  non-pinned candidate in the checked finite universe has been considered. Reaching the explicit
+  exploration Limit first reports `limit-reached` and proves no absence claim.
+- **R3:** The only guided policy prioritizes one caller-named uncovered Model Coordinate and uses
+  semantic identity for ties. It reports whether that coordinate was selected or remains uncovered
+  without changing the Space, Query, Target, or policy from observations.
+- **R4:** Valid pinned Regressions are checked and selected in a separate identity-sorted partition,
+  consume no exploration budget, and win identity overlap. Invalid or incompatible pinned inputs
+  reject the request atomically.
+- **R5:** Pure focused fixtures and the exact Nexus Space prove deterministic exhaustive and guided
+  selections, pinned precedence, truthful Limit/exhaustion outcomes, and the minimal in-memory
+  one-candidate session. No runtime, persistence, or command surface enters `Umpire.Exploration`.
 
 ## Early proof point
 <!-- scope: technical -->
 
-Task `.3` is the algorithm proof gate. On independent three-axis and four-axis finite fixtures, compare pairwise and t-wise strengths two, three, and four with a brute-force interaction oracle at every relevant ceiling; prove seeded-random permutation stability; prove interaction-complete early stopping; prove budget-exhausted reports expose every missing interaction; and prove reordered input is byte-identical. Tasks `.4`–`.7` must not proceed if this oracle disagrees.
+Task `.3` must prove bounded exhaustive ordering and Limit semantics on a small finite fixture.
+Task `.4` then proves that one requested uncovered coordinate changes the first eligible selection
+without changing the universe or inventing runtime feedback. Integration work must not proceed if
+either proof is nondeterministic.
 
 ## Boundaries
 <!-- scope: business -->
 
-- No changes to Property, Behavior, Query, target-owned transition semantics, or the ExperimentSpec schema.
-- No alternate Space checker/compiler or target kernel.
-- No live runtime, SDK participant, server, fault realization, receipt, evidence, Observation qualification, or semantic conformance.
-- No persisted artifact/state/report reader, schema migration, retained campaign store, or compatibility alias.
-- No replay, minimization, discovery promotion, source emission, generated Go projection, or second catalog/glossary/registry.
-- No release/CI qualification claim.
-- No model-local Makefile.
-- No Umpire3 inspection, import, invocation, dependency, compatibility, or migration path.
+- Pairwise and t-wise families, symmetry proofs, seeded sampling families, multiple source kinds,
+  generalized resume state, generalized coverage reporting, and adaptive corpora are deferred.
+- No persisted reader, migration, checkpoint, lease, campaign service, runtime Evidence handling,
+  replay, minimization, promotion, or alternate Regression registry.
+- No changes to Property, Behavior, Query, target-owned transition semantics, or ExperimentSpec.
+- No model-local Makefile, Umpire3 compatibility path, or new command.
 
 ## Decision Context
 <!-- scope: both -->
 
-Compiling the complete fn-16 universe before selection is intentionally bounded and gives every strategy one authoritative candidate set. It avoids teaching pairwise or coverage algorithms to fabricate queries, outcomes, or partial artifacts. The 256-point cap makes the pure selection algorithms and brute-force proof fixtures practical.
-
-Exploration strategy is separate from Query search strategy because they act at different levels: Query search chooses one target-owned trace for one point; Exploration chooses among already compiled point artifacts. Renaming the existing seed-rotation policy prevents a false coverage claim while retaining deterministic seeded target enumeration.
-
-Proof-carrying symmetry is optional because automatic semantic equivalence inference would be unsound. Pinned inputs are explicit checked values so the package can enforce precedence without owning fn-5's catalog or regression projection authority.
-
-Persisted resume is deferred to fn-18's versioned decoding boundary. This spec establishes the immutable state identity and canonical report encoder that such a reader must validate, while still proving in-memory resume and command-level fresh exploration.
+The checked finite Space already contains the small Nexus prototype universe. Two policies are
+enough to demonstrate complete bounded search and one semantic-gap-directed choice. Keeping the
+session process-local avoids defining recovery infrastructure before the serial campaign proves
+useful. Pinned precedence stays in the pure layer because independence from exploration Limits is a
+model-selection invariant.
 
 ## References
 <!-- scope: technical -->
 
-- `.plans/UMPIRE4_COMPONENTS.md:362-390` — C8 responsibility, strategies, semantic coverage, and pinned precedence.
-- `.flow/specs/fn-16-authored-variation-spaces-and.md:14-86` — checked space, goals, proof-carrying lowering, and atomic batch contract.
-- `model/Umpire/Search.lean:5-76` — existing per-Query strategy, seed, bounds, and completeness vocabulary.
-- `model/Umpire/Planning/Engine.lean:210-230` — current seed rotation that must stop claiming coverage guidance.
-- `model/Umpire/Planning/Engine.lean:260-470` — bounded target-owned enumeration and artifact boundary.
-- `model/Umpire/Artifact.lean:36-80,228-382` — canonical ExperimentSpec and reserved intent fields.
-- `model/Umpire/Property/Language.lean:1162-1228` — unchanged pure model evaluation.
-- `model/Temporal/Tool/Inspect.lean:17-88` — effect-thin canonical command pattern.
-- `Makefile:988-1032` — root-only model command conventions.
+- `.plans/UMPIRE4_ORDER.md` — retained bounded fn-17 scope.
+- `.plans/UMPIRE4_SPEC.md` — PLN-01 through PLN-05 and EXP-01 through EXP-05.
+- `.flow/specs/fn-16-authored-variation-spaces-and.md` — checked finite Space and atomic compilation.
+- `model/Umpire/Search.lean` — current planner policy and semantic-identity ordering vocabulary.
+- `model/Umpire/Artifact.lean` — canonical ExperimentSpec identity/content rules.
 
 ## Requirement coverage
 <!-- scope: both -->
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Checked request, strategy, bounds, state | `.1`, `.4`, `.5` | — |
-| R2 | Atomic candidate universe | `.2`, `.5` | — |
-| R3 | Semantic coordinates, goals, reports | `.2`, `.4`, `.5`, `.6` | — |
-| R4 | Five deterministic selectors | `.3`, `.5`, `.6` | — |
-| R5 | Proof-carrying symmetry | `.4`, `.5` | — |
-| R6 | Resume and exact termination | `.4`, `.5`, `.6` | — |
-| R7 | Pinned precedence | `.5`, `.6` | — |
-| R8 | Fixtures, Temporal example, protocol, docs | `.1`–`.7` | — |
-| R9 | Serializable pure exploration protocol | `.1`, `.4`, `.5`, `.7`, `.8` | — |
-| R10 | Proof-bearing catalog-bound exact artifact source | `.6`, `.8` | — |
-| R11 | Deterministic bounded protocol batches | `.1`, `.4`, `.6`, `.8` | — |
+| R1 | Checked finite universe | `.1`, `.2` | — |
+| R2 | Bounded exhaustive enumeration | `.3`, `.5` | — |
+| R3 | Uncovered-coordinate guidance | `.4`, `.5`, `.6` | — |
+| R4 | Pinned precedence outside budget | `.5`, `.6` | — |
+| R5 | Nexus proof, session, facades, docs | `.6`, `.7`, `.8` | — |

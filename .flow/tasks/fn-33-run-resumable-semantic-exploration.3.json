@@ -13,6 +13,6 @@
   "spec": "fn-33-run-resumable-semantic-exploration",
   "spec_path": ".flow/tasks/fn-33-run-resumable-semantic-exploration.3.md",
   "status": "todo",
-  "title": "Execute each candidate through the shared runner and Run Evaluation",
-  "updated_at": "2026-08-27T19:33:19.523294Z"
+  "title": "Execute one candidate through the shared runner and Run Evaluation",
+  "updated_at": "2026-09-01T10:06:29.142444Z"
 }

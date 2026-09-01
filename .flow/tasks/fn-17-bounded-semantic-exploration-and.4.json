@@ -11,6 +11,6 @@
   "spec": "fn-17-bounded-semantic-exploration-and",
   "spec_path": ".flow/tasks/fn-17-bounded-semantic-exploration-and.4.md",
   "status": "todo",
-  "title": "Add proof-carrying symmetry, coverage guidance, reports, and resume",
-  "updated_at": "2026-08-26T09:21:49.875349Z"
+  "title": "Prioritize one uncovered Model Coordinate",
+  "updated_at": "2026-09-01T10:06:16.795453Z"
 }

@@ -1,40 +1,31 @@
 ---
-satisfies: [R2, R3, R8]
+satisfies: [R1]
 ---
-# fn-17-bounded-semantic-exploration-and.2 Build the atomic candidate universe and semantic signatures
+# fn-17-bounded-semantic-exploration-and.2 Build the canonical finite candidate universe
 
 ## Description
-Implement R2/R3's one authoritative bridge from a checked fn-16 space to a canonical coverage-scored candidate universe.
+Compile one checked fn-16 Space atomically into the canonical at-most-256 candidate universe.
 
 **Size:** M
-**Files:** `model/Umpire/Exploration/Candidate.lean`, `model/Umpire/Exploration/Coverage.lean`, `model/Umpire/Exploration/Tests/Coverage.lean`, `model/Umpire/Exploration/Tests/Fixtures.lean`
+**Files:** `model/Umpire/Exploration/Candidate.lean`, `model/Umpire/Exploration/Coverage.lean`, `model/Umpire/Exploration/Tests/Candidate.lean`
 **Touches:** [model/Umpire/Exploration/Candidate.lean, model/Umpire/Exploration/Coverage.lean, model/Umpire/Exploration/Tests/**]
 
 ### Approach
-- Call fn-16 `compileBatch` with the caller's dependent base-target kernel and validate the full at-most-256 output before constructing `CandidateUniverse`.
-- Recompute ExperimentSpec identities, reject duplicates, and digest canonical identity order independently of incoming list order.
-- Project each artifact into exact intent/model/property coordinates, preserving the request-only fault label and evaluating Property through the existing pure semantics.
-- Credit a goal at most once per distinct spec, retain property truth polarity, and expose goal-independent semantic coordinate coverage.
-- Test raw-case-count divergence, repeated trace subjects, selected-fault intent versus target outcome, relation/observation distinction, and reordered candidates.
+- Delegate to fn-16 `compileBatch` with the caller's exact target kernel and reject the whole build on any point failure.
+- Preserve canonical ExperimentSpec bytes, recompute identities, reject duplicates, and order independently of source order.
+- Extract only Model Coordinates already present in the checked trace, keeping requested faults labeled as intent.
+- Test N/N+1, invalid artifact, duplicate identity, and reordered-input cases.
 
 ### Investigation targets
 **Required** (read before coding):
-- `model/Umpire/Artifact.lean:36-80,228-382` — canonical artifact fields and identities
-- `model/Umpire/Planning/Engine.lean:367-470` — selected model trace/artifact seam
-- `model/Umpire/Property/Language.lean:1162-1228` — pure Property evaluation
-- `model/Umpire/Space/Compilation.lean` — fn-16 batch contract after dependency lands
-- `model/Umpire/Planning/Tests/Artifacts.lean:22-68` — inspectability and identity tests
-
-### Acceptance
-- [ ] Every candidate came through fn-16 atomic compilation with the exact supplied kernel; a batch failure yields no universe.
-- [ ] Signature tests pin all coordinate kinds and one-credit-per-spec behavior.
-- [ ] Duplicate/invalid artifacts fail instead of deduplicating, and source order cannot change universe bytes.
-- [ ] Model coverage never claims runtime realization or conformance.
+- `model/Umpire/Space/Compilation.lean` — atomic finite compilation.
+- `model/Umpire/Artifact.lean` — canonical artifact fields and identities.
+- `model/Umpire/Planning/Engine.lean` — selected trace and exact kernel seam.
 
 ## Acceptance
-- [ ] Candidate construction and coverage extraction implement R2/R3 exactly.
-- [ ] The 256-point bound and separate per-Query/exploration units remain visible.
-- [ ] Focused coverage tests pass.
+- [ ] Every candidate comes from one atomic checked Space compilation with the exact kernel.
+- [ ] Invalid, duplicate, empty, or oversized universes produce no partial value.
+- [ ] Coordinate extraction and canonical-order tests pass without runtime claims.
 
 ## Done summary
 TBD

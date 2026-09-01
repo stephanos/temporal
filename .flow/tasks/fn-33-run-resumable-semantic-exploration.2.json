@@ -11,6 +11,6 @@
   "spec": "fn-33-run-resumable-semantic-exploration",
   "spec_path": ".flow/tasks/fn-33-run-resumable-semantic-exploration.2.md",
   "status": "todo",
-  "title": "Drive Lean-owned one-at-a-time candidate selection",
-  "updated_at": "2026-08-27T19:33:19.185434Z"
+  "title": "Bind Lean-owned candidate selection and coverage",
+  "updated_at": "2026-09-01T10:06:28.810687Z"
 }

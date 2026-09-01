@@ -1,36 +1,31 @@
 ---
-satisfies: [R6]
+satisfies: [R2, R6]
 ---
-# fn-33-run-resumable-semantic-exploration.6 Enforce deferred concurrency and resume boundaries
+# fn-33-run-resumable-semantic-exploration.6 Enforce the one-active-candidate coordinator boundary
 
 ## Description
-
-Add import/API/CLI guards and synchronize architecture and operator documentation.
+Make the serial process-local coordinator invariant explicit and testable before runner integration.
 
 **Size:** M
-**Files:** `tools/umpire/campaign/boundary_test.go`, `model/ARCHITECTURE.md`, `model/Umpire/ARCHITECTURE.md`, `docs/README.md`
-**Touches:** [`tools/umpire/campaign/boundary_test.go`, `model/ARCHITECTURE.md`, `model/Umpire/ARCHITECTURE.md`, `docs/README.md`]
+**Files:** `tools/umpire/campaign/session.go`, `tools/umpire/campaign/session_test.go`, `model/Temporal/Tool/ExplorationBridgeTests.lean`
+**Touches:** [tools/umpire/campaign/session.go, tools/umpire/campaign/session_test.go, model/Temporal/Tool/ExplorationBridgeTests.lean]
 
 ### Approach
-- Fail if worker pools, leases, lock files, generation graphs, checkpoints, crash recovery, resume, adaptive corpora, or generalized multi-environment orchestration appear.
-- Reuse the exact v2 Artifact, shared runner, and Run Evaluation boundaries named by the parent plan; do not add a parallel semantic or persistence authority.
-- Add focused positive, N/N+1, stale/crossed-binding, cancellation, and mutation fixtures at the responsible boundary.
+- Model only `idle`, `candidate-active`, and `finished` process-local states with one allowed transition at a time.
+- Reject another `next` while a candidate is active and reject observation before cleanup plus Result admission are complete.
+- Discard the session on interruption and return the corresponding terminal tooling outcome.
+- Add API-shape guards for one process-local session and no persisted coordinator format.
 
 ### Investigation targets
-
 **Required** (read before coding):
-- `.plans/UMPIRE4_ORDER.md` — retained prototype scope and deferred infrastructure.
-- Parent Flow spec — exact contracts, Limits, failure ownership, and task boundary.
-- Existing fn-18/fn-19/fn-20 implementation — Artifact, runner, cleanup, and Run Evaluation authority to reuse.
-
-### Key context
-
-This task implements only its retained serial/black-box slice. Deferred control-plane, concurrency, recovery, checkpoint, resume, receipt, and Claim Assessment machinery must not appear as placeholders.
+- Task `.1` bridge states and bindings.
+- Existing fn-19 cleanup lifecycle.
+- Parent spec `Boundaries`.
 
 ## Acceptance
-- [ ] Fail if worker pools, leases, lock files, generation graphs, checkpoints, crash recovery, resume, adaptive corpora, or generalized multi-environment orchestration appear.
-- [ ] Exact bindings and Limits fail closed under representative one-field and N/N+1 mutations.
-- [ ] Focused tests pass, existing comments are preserved, and no deferred API or persisted format is introduced.
+- [ ] The coordinator permits only one active candidate and one admitted Result transition.
+- [ ] Invalid ordering and interruption fail closed without semantic coverage credit.
+- [ ] Focused state-machine and API-shape tests pass with no persisted format.
 
 ## Done summary
 TBD

@@ -1,36 +1,31 @@
 ---
-satisfies: [R8]
+satisfies: [R5]
 ---
-# fn-17-bounded-semantic-exploration-and.7 Publish Exploration facades and protocol documentation
+# fn-17-bounded-semantic-exploration-and.7 Publish the retained Exploration facades and documentation
 
 ## Description
-Publish only the `Umpire.Exploration` and Temporal semantic facades plus protocol/coverage documentation. Command ergonomics, durable resume, and runtime claims belong to fn-33.
+Publish only the bounded selection facade, Nexus adapter, and focused authoring documentation.
 
 **Size:** M
 **Files:** `model/Umpire.lean`, `model/Temporal.lean`, `model/README.md`, `model/Umpire/ARCHITECTURE.md`, `.plans/UMPIRE4_SPEC_COMPS.md`
 **Touches:** [model/Umpire.lean, model/Temporal.lean, model/README.md, model/Umpire/ARCHITECTURE.md, .plans/UMPIRE4_SPEC_COMPS.md]
 
 ### Approach
-- Export the vertical Exploration facade and exact Temporal adapters without flattening implementation modules.
-- Document the checked-source-to-selected-spec/report API path, strategy/budget grammar, semantic-versus-case coverage, pinned precedence, exact-certificate boundary, pure protocol equations, and in-memory resume compatibility.
-- State explicitly that closed v1 has no mutation language, adaptive corpus, priority feedback, persisted reader, or command surface.
-- Update implementation status only for delivered algorithms/state/report/protocol; keep runtime campaign, replay, minimization, promotion, and qualification milestones separate.
-- Coordinate fn-5's generated glossary terms without adding a separate glossary or list/explain implementation.
-- Preserve existing comments and point command users to fn-33's eventual `umpire-fuzz` surface rather than creating `temporal-model-explore` or `umpire-explore`.
+- Export the checked request, two selectors, pinned partition, narrow outcome, and process-local session through cohesive facades.
+- Document finite exhaustion versus Limit Reached, model intent versus Evidence, and pinned precedence outside budget.
+- Point runtime users to fn-33's serial `umpire-fuzz run` surface.
+- Preserve existing comments and keep deferred families out of public APIs.
 
 ### Investigation targets
 **Required** (read before coding):
-- `model/README.md:130-165` — current model use walkthrough
-- `model/Umpire/ARCHITECTURE.md:145-235` — Query/search/planning/artifact documentation
-- `.plans/UMPIRE4_SPEC_COMPS.md` — current component and milestone ownership
-- `model/Umpire.lean`, `model/Temporal.lean` — public facade pattern after fn-16
+- `model/Umpire.lean` and `model/Temporal.lean` — public facade pattern.
+- `model/Umpire/ARCHITECTURE.md` — current planning boundary.
+- `.plans/UMPIRE4_SPEC_COMPS.md` — component ownership.
 
 ## Acceptance
-- [ ] Public facades expose the pure checked source, selection, report, and protocol APIs without internal-module leakage.
-- [ ] Documentation distinguishes model coverage from execution evidence, selection termination from protocol drainage, and in-memory state from fn-33 durable campaign checkpoints.
-- [ ] Documentation states the exact-certificate trust boundary and that projection fixture equality remains fn-5's separate check.
-- [ ] No Makefile, executable, model-local Makefile, extra glossary, persisted reader, CI file, or Umpire3 reference/use is added.
-- [ ] Focused suites plus `UmpireTests` and `TemporalModelTests` pass with existing comments preserved.
+- [ ] Public facades expose only the retained pure contracts without internal-module leakage.
+- [ ] Documentation states the exact finite, Limit, Evidence, pinned, and fn-33 ownership boundaries.
+- [ ] Aggregate Lean suites pass and existing comments remain intact.
 
 ## Done summary
 TBD

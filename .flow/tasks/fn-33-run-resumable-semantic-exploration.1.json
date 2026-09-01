@@ -9,6 +9,6 @@
   "spec": "fn-33-run-resumable-semantic-exploration",
   "spec_path": ".flow/tasks/fn-33-run-resumable-semantic-exploration.1.md",
   "status": "todo",
-  "title": "Freeze the bounded serial exploration bridge",
-  "updated_at": "2026-08-27T19:33:18.811924Z"
+  "title": "Define the bounded one-candidate Lean bridge",
+  "updated_at": "2026-09-01T10:06:28.477567Z"
 }
