@@ -41,9 +41,10 @@ make lint-code
 - [ ] No generated file, artifact schema, runtime behavior, persisted byte, fingerprint, or checksum changes.
 
 ## Done summary
-TBD
+Documented Core-owned strict one-based trace coordinates and the single opaque Observation admission handoff across the three learner-facing architecture paths, assigning Property, Implementation Link, Run Evaluation, and Artifact validation to their owning stages without changing runtime or persisted behavior. Full Lean builds, regression, and model lint passed; non-mutating Go lint reproduced the exact 1,386-finding inherited baseline with no Go or Lean source changes.
 
+stage: impl-review - ran (Flow deterministic docs-only triage SHIP; receipt `/tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.6.json`)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9c8ef68bdd9dc01c2956f9329196b8d7a11040bd
+- Tests: cd model && mise exec -- lake build Umpire.CoreTests Umpire.Observation.Tests Umpire.ImplementationLink.Tests UmpireTests TemporalModelTests, make umpire-build-model, make umpire-check-regression, make lint-model, make lint-code GOLANGCI_LINT_FIX=false (expected inherited failure: exact pre/post baseline of 1,386 findings; no Go paths changed), git diff --check 0a791c54131514ea4e1fc2fd3086a32960f0c700..HEAD, baseline: red (make lint-code GOLANGCI_LINT_FIX=false failed pre-edit with the same 1,386 inherited findings documented by fn44.5)
 - PRs:
