@@ -146,6 +146,18 @@ example : evidenceLinkFailureKinds = [
 ] := by
   native_decide
 
+/-- A zero step cannot alias the first selected-action coordinate during admission. -/
+example :
+    let evidenceLinks := completeEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
+      if evidenceLink.coordinate == .selectedAction 1 then
+        { evidenceLink with coordinate := .selectedAction 0 }
+      else
+        evidenceLink
+    diagnosticKindOf (validateEvidenceBackedTrace {
+      completeEvidenceBackedTrace with evidenceLinks
+    }) = some .absentModelCoordinate := by
+  native_decide
+
 /-- Closed evidence with a second step that repeats the first step's values. -/
 def repeatedValueEvidence : EvidenceBundle := {
   completeEvidence with

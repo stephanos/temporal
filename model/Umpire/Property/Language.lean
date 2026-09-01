@@ -32,6 +32,27 @@ def PropertyTraceField.definitionKind : PropertyTraceField → DefinitionKind
   | .observation => .observation
   | .relation => .relation
 
+/-- Look up a strict Model Trace coordinate only when it is compatible with this Property field.
+Initial state is prior state only for a nonempty trace, and a resulting state is prior state only
+when another step follows it. -/
+def PropertyTraceField.valueAt?
+    (field : PropertyTraceField)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
+    (coordinate : ModelCoordinate) : Option ModelValue := do
+  let value ← trace.valueAt? coordinate
+  let compatible : Bool := match field with
+    | .state | .selectedAction | .modelOutcome | .observation =>
+        coordinate.definitionKind == field.definitionKind
+    | .priorState => match coordinate with
+        | .initialState => !trace.steps.isEmpty
+        | .resultingState step => decide (step < trace.steps.length)
+        | _ => false
+    | .resultingState => match coordinate with
+        | .resultingState _ => true
+        | _ => false
+    | .relation => coordinate.definitionKind == .observation
+  if compatible then some value else none
+
 inductive ValueConstraint where
   | present
   | equals (value : String)

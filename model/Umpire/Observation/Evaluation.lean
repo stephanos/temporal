@@ -1088,15 +1088,6 @@ private def evaluateChecked
   }
   pure accepted
 
-private def expectedCoordinates
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
-    List ModelCoordinate :=
-  .initialState :: (trace.steps.mapIdx fun index step =>
-    let stepPosition := index + 1
-    [.selectedAction stepPosition, .modelOutcome stepPosition, .resultingState stepPosition] ++
-      step.observations.mapIdx fun observationIndex _ =>
-        .observation stepPosition (observationIndex + 1)).flatten
-
 private def evidenceLinkEvidenceIds (evidenceLinks : List EvidenceLink) : List DefinitionId :=
   canonicalIds (evidenceLinks.flatMap EvidenceLink.evidenceIdentities)
 
@@ -1367,21 +1358,6 @@ private def validateAppliedDisposition
         relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field, policy]
       }
 
-private def modelValueAt
-    (trace : EvidenceBackedTrace)
-    (coordinate : ModelCoordinate) : Option ModelValue :=
-  match coordinate with
-  | .initialState => some trace.trace.initialState
-  | .selectedAction step =>
-      trace.trace.steps[step - 1]?.map ModelTraceStep.selectedAction
-  | .modelOutcome step =>
-      trace.trace.steps[step - 1]?.map ModelTraceStep.modelOutcome
-  | .resultingState step =>
-      trace.trace.steps[step - 1]?.map ModelTraceStep.resultingState
-  | .observation step position => do
-      let traceStep ← trace.trace.steps[step - 1]?
-      traceStep.observations[position - 1]?
-
 private def renderedEvidenceValue
     (valueType : ObservationValueType)
     (rendered : String) : Option EvidenceValue :=
@@ -1481,12 +1457,6 @@ private partial def evaluateProvenanceExpression
             throw failure
           pure (.text first)
 
-private def coordinateKind : ModelCoordinate → DefinitionKind
-  | .initialState | .resultingState _ => .state
-  | .selectedAction _ => .action
-  | .modelOutcome _ => .outcome
-  | .observation _ _ => .observation
-
 private def validateCheckedProvenance
     (trace : EvidenceBackedTrace)
     (evidenceLink : EvidenceLink) : Except ObservationDiagnostic Unit := do
@@ -1498,7 +1468,7 @@ private def validateCheckedProvenance
         planId := trace.mappingId
         relatedDefinitionIds := [evidenceLink.ruleId]
       }
-  let value ← match modelValueAt trace evidenceLink.coordinate with
+  let value ← match trace.trace.valueAt? evidenceLink.coordinate with
     | some value => pure value
     | none => throw {
         kind := .inconsistentEvidenceLink
@@ -1520,7 +1490,7 @@ private def validateCheckedProvenance
         | .boolean value => pure value
         | _ => pure false
   if rule.output != value.definitionId ||
-      rule.outputKind != coordinateKind evidenceLink.coordinate ||
+      rule.outputKind != evidenceLink.coordinate.definitionKind ||
       computedValue != .text value.value || !conditionHolds ||
       rule.meaning.canonicalBehavior != evidenceLink.meaningDigest ||
       evidenceLink.bindingIds != expectedBindings ||
@@ -1609,7 +1579,7 @@ def validateEvidenceBackedTrace (trace : EvidenceBackedTrace) : Except Observati
       trace.vocabulary != plan.meanings || trace.dispositions != plan.dispositions ||
       trace.appliedBound != plan.evidenceBound then
     throw { kind := .inconsistentEvidenceLink, planId := trace.mappingId }
-  let expected := expectedCoordinates trace.trace
+  let expected := trace.trace.coordinates
   let actual := trace.evidenceLinks.map EvidenceLink.coordinate
   for coordinate in expected do
     let count := (actual.filter fun candidate => candidate == coordinate).length
