@@ -49,14 +49,29 @@ The registry root has exactly `format`, `documents`, and `flowSpecs`. Its closed
 | `flowSpecs[].scope` | `umpire-roadmap|umpire-support|other`. |
 | `flowSpecs[].disposition` | `retained|completed-prerequisite|deferred|superseded|out-of-scope|unclassified`. |
 | `flowSpecs[].phase` | `p0|p1|p2|p3|verification|support|none`. |
-| `flowSpecs[].execution` | `ready|unready|closed`, matching tracked `status` plus the explicit readiness flag. |
+| `flowSpecs[].status` | `open|done`, exactly matching the tracked Flow spec body. |
+| `flowSpecs[].ready` | Boolean matching the explicit Flow readiness flag; an absent/null flag normalizes to `false`. |
+| `flowSpecs[].completionReview` | `unknown|ship|needs_work|needs_human`, matching the tracked completion-review status with absent/null normalized to `unknown`. |
 | `flowSpecs[].specDependencies` | Sorted unique array containing the exact canonical spec dependency set. |
 
-Objects allow no extra fields. `scope=other` requires `disposition=out-of-scope` and `phase=none`;
-Umpire rows cannot be out of scope. Deferred rows are unready, completed prerequisites are closed,
-and `unclassified` is accepted while editing but fails the checked registry. At the planning snapshot,
-fn-45 through fn-47 are retained Umpire-support specs; fn-48, fn-49, and fn-51 are deferred/unready
-support because they depend on deferred fn-43; fn-50 is retained/unready support after completed fn-41.
+Objects allow no extra fields. The complete cross-field matrix is:
+
+- `scope=other` iff `disposition=out-of-scope` and `phase=none`; direct Flow state fields still match.
+- `scope=umpire-roadmap` requires `phase=p0|p1|p2|p3|verification` and a disposition other than
+  `out-of-scope`; `scope=umpire-support` requires `phase=support` and the same disposition rule.
+- `disposition=retained` requires `status=open`; readiness and completion-review status match Flow.
+- `disposition=deferred|superseded` requires `status=open`, `ready=false`, and a non-`ship`
+  completion-review status.
+- `disposition=completed-prerequisite` accepts `status=done`; it also accepts `status=open` only
+  when `ready=false` and `completionReview=ship`. The checker does not infer completion from stale
+  committed task-status snapshots or external runtime state.
+- `unclassified` is accepted by the parser while editing but always fails the checked registry.
+
+At the current snapshot, fn-42, fn-44, and fn-50 are completed-prerequisite Umpire-support specs
+that remain open/unready; fn-43 and fn-45 through fn-49 plus fn-51 are retained Umpire-support specs.
+The fn-43/fn-48/fn-49/fn-51 simplicity track is retained and non-prototype-gating, not deferred.
+The registry reports committed Flow state and does not claim that spec-level readiness captures a
+live task's external authorization or blocked reason.
 Any later-created spec fails the checker until an owner explicitly classifies it.
 
 ## API Contracts
@@ -80,8 +95,10 @@ Any later-created spec fails the checker until an owner explicitly classifies it
    explicit in the registry.
 4. Reduce fn-5 and fn-17 task contracts to the retained prototype scope and correct fn-33's serial
    campaign contract.
-5. Use `flowctl` to tombstone/unready specs and add the minimum dependency edges that encode the P2/P3
-   gate, then validate the full Flow graph and the plan index.
+5. Use `flowctl` to reconcile explicit readiness for superseded, deferred, and decision-gated work.
+   Preserve the roadmap's P2/P3 decision gate in the authority registry and prose rather than adding
+   retroactive dependencies to completed specs or turning delivery priority into hard Flow edges,
+   then validate the full Flow graph and the plan index.
 
 ## Quick commands
 
@@ -99,9 +116,12 @@ $FLOWCTL validate --all --json
   normative-rules root and delivery-order root remain explicit rather than inferred from prose.
 - Duplicate JSON names are rejected even though legacy Go JSON decoding normally accepts them.
 - The checker reads only beneath the repository root and does not follow an index path outside it.
-- Every Flow setter must compare an accepted content hash and expected Flow state immediately before
-  its own write, then verify the paired Markdown/JSON result. Flowctl has no cross-spec transaction:
-  interruption is handled by idempotent re-check/resume, never by claiming rollback.
+- Flow reconciliation is a one-time quiescent-checkout migration: the conductor dispatches only one
+  writer and no external writer may participate during tasks .4-.6. Each supported setter runs
+  serially and is followed immediately by paired Markdown/JSON verification. Bundled flowctl provides
+  no compare-and-set primitive, so concurrent editing is explicitly unsupported rather than
+  presented as protected; interruption resumes by re-reading authoritative state and applying only
+  remaining setters idempotently.
 - The reduced fn-5/fn-17 tasks must retain existing comments and history while removing dependencies
   on deferred machinery. Old task IDs remain stable where possible.
 - At 10x the current number of plans/specs, checks remain adjacency-list and sorted-slice based; no
@@ -139,12 +159,17 @@ not override active authority.
   absolute or escaping paths, symlink aliases/escapes, missing files/anchors, undeclared missing links,
   unreadable files, invalid Flow JSON, and state disagreement fail non-zero without changing files;
   external URLs are ignored.
-- **R3:** Flow retains fn-14 as its supported open/unready superseded tombstone; records fn-15, fn-23
-  through fn-26, fn-29, fn-30, fn-43, fn-48, fn-49, and fn-51 as deferred and unready; makes fn-27
-  depend on fn-21; and makes retained P3 roots fn-5 and fn-17 depend on fn-28, which already follows
-  fn-27. Errors: missing IDs, unexpected current state, duplicate/cyclic dependencies, or a changed
-  per-target baseline abort that setter without overwriting the concurrent edit; an interrupted
-  multi-spec run remains checker-visible and idempotently resumable.
+- **R3:** Flow retains fn-14 as its supported open/unready superseded tombstone; records fn-15,
+  fn-23 through fn-26, fn-29, and fn-30 as deferred/unready; records open-SHIP fn-42, fn-44, and
+  fn-50 as completed prerequisites; and retains fn-43, fn-48, fn-49, and fn-51 as unready,
+  non-prototype-gating support. Retained P3 work, including fn-5, fn-17, fn-22, fn-33, and fn-40,
+  remains unready until the fn-28 evidence decision without adding retroactive dependency edges;
+  fn-28 keeps its existing fn-27 prerequisite. Fn-17 and fn-33 drop their obsolete fn-5 dependency,
+  while fn-33 gains the real fn-40 prerequisite its retained campaign consumes. Errors: missing IDs,
+  unexpected current state, duplicate/cyclic dependencies, obsolete hard-edge insertion, or
+  incomplete post-write verification fail the migration; an interrupted multi-spec run remains
+  checker-visible and idempotently resumable. Concurrent mutation is outside this migration's
+  supported execution contract.
 - **R4:** fn-5 tasks describe only coherent list/explain for retained Nexus declarations and one
   checked review-only promotion path for the minimized duplicate-delivery failure. Errors: any
   retained task still requires a generic semantic graph, generated glossary, machine catalog index,
@@ -154,8 +179,9 @@ not override active authority.
   campaign. Errors: pairwise/t-wise families, symmetry proofs, multiple source kinds, generalized
   resume/reporting, adaptive corpora, campaign concurrency, leases, or crash-safe state remaining in
   retained task contracts fail the checker/review.
-- **R6:** Active/reference plan links and authority statements are synchronized with the registry,
-  and `flowctl validate --all --json` plus `make umpire-check-plan-index` pass after reconciliation.
+- **R6:** Active/reference plan links and authority statements are synchronized with the registry;
+  the delivery-order queue contains only remaining work and does not reintroduce completed fn-42 or
+  fn-50 entries; and `flowctl validate --all --json` plus `make umpire-check-plan-index` pass after reconciliation.
   Errors: intentionally historical missing links must be explicitly allowlisted; any new warning,
   retained-to-deferred dependency, or checker mutation is a failure.
 

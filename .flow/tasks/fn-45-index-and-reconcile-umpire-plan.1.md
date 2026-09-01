@@ -19,7 +19,7 @@ Implement the reusable parser and pure validation core for R1/R2. Keep repositor
 ### Investigation targets
 **Required** (read before coding):
 - `.plans/UMPIRE4_SPEC.md:3-14` — normative authority.
-- `.plans/UMPIRE4_ORDER.md:28-31,223-261` — reduced scope, gate, and dispositions.
+- `.plans/UMPIRE4_ORDER.md:28-31,150-177` — reduced scope, gate, and dispositions.
 - `.flow/specs/fn-23-veil-toolchain-compatibility-and.json` — tracked readiness shape.
 - `tools/umpire/cmd/umpire-check-legacy-vocabulary/main.go` — focused checker command pattern.
 
@@ -30,7 +30,7 @@ Implement the reusable parser and pure validation core for R1/R2. Keep repositor
 `go test -count=1 -tags test_dep ./tools/planindex/...`
 ## Acceptance
 - [ ] Strict parser rejects malformed/duplicate-key/unknown-field/version/enum/type/nullability input with deterministic diagnostics.
-- [ ] Pure checks cover complete document and Flow-spec registration, graph integrity, links/anchors, confined paths, exact Flow state/dependencies, and cross-field invariants.
+- [ ] Pure checks cover complete document and Flow-spec registration, graph integrity, links/anchors, confined paths, exact Flow state/dependencies, and cross-field invariants, including completed-prerequisite specs that remain open under Flow lifecycle policy.
 - [ ] Success and multi-error output are byte-stable across reordered fixture input.
 - [ ] All checks are read-only and use no new third-party library.
 - [ ] Go tests use `require` and whole-value comparisons.
