@@ -7,7 +7,7 @@ Build a minimal but capable vertical slice that demonstrates the possibilities i
 
 1. **Normal caller closure:** a known deterministic regression executes through a preprogrammed SDK
    participant and satisfies its property.
-2. **Duplicate-delivery control:** the same model plus one authored fault produces a accepted
+2. **Duplicate-delivery control:** the same model plus one authored fault produces an accepted
    uniqueness violation, which is replayed, reduced, and proposed as a permanent regression.
 
 The prototype should prove the architecture can support the full vision without first building the
@@ -178,25 +178,18 @@ remaining dependency edits and require no retained task to depend on a deferred 
 
 ## Preferred consolidation
 
-The existing Flow IDs may be retained for history, but the remaining roadmap has seven conceptual
+The existing Flow IDs remain the source of history. The remaining roadmap has four conceptual
 delivery tracks:
 
-1. **Consolidate layered model helpers:** fn-38, preserving the current public API.
-2. **Deepen and organize ordinary Nexus authoring:** fn-41 followed by fn-39, preserving the public
-   API and canonical outputs while simplifying Target construction and then separating semantic,
-   target, walkthrough, planning, and test concerns.
-3. **Centralize configuration authoring:** fn-42, independently hard-cutting Callback and Matching
-   declarations to the checked `ConfigUseSpec` seam.
-4. **Persist portable experiments:** the minimal fn-18 boundary over the completed fn-16 output.
-5. **Execute and judge two Nexus examples portably:** fn-19, fn-20, fn-21, and the minimal fn-27/fn-28
-   portability checks.
-6. **Explore, standardize policy authoring, replay, and promote:** fn-5, fn-17, fn-40, fn-33, and
+1. **Centralize configuration authoring:** fn-42 hard-cuts Callback and Matching declarations to the
+   checked `ConfigUseSpec` seam.
+2. **Complete the portability gate:** fn-28 binds the completed local and CI subject to fixed-profile
+   staging and a canary dry-run without adding a control plane.
+3. **Explore, standardize policy authoring, replay, and promote:** fn-5, fn-17, fn-40, fn-33, and
    fn-22.
-7. **Harden and shorten model authoring without gating the prototype:** fn-44 and fn-50 settle the
-   reusable trace and finite-machine seams; fn-43 deepens ordinary authoring; fn-48, fn-49, and
-   fn-51 then centralize Known Gaps and Observation structure and remove repetitive record literals.
+4. **Harden and shorten model authoring without gating the prototype:** fn-50 settles the remaining
+   finite-machine seam; fn-43 deepens ordinary authoring; fn-48, fn-49, and fn-51 then centralize
+   Known Gaps and Observation structure and remove repetitive record literals.
 
-The first decision point is the completion of the normal fn-19/fn-20 path. The second is completion
-of the fn-21 negative control. Complete the reduced portability proof after that second gate and
-before the exploration lifecycle. Work beyond those gates should remain deferred if either example
-cannot demonstrate a concise, deterministic, inspectable end-to-end experience.
+The next prototype decision point is completion of fn-28. Keep P3 deferred until the fixed staging
+and canary dry-run evidence makes the end-to-end experience portable and inspectable.
