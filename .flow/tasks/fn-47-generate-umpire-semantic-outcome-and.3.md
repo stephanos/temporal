@@ -32,9 +32,14 @@ Create the production Known Gap source catalog and reuse named fixed/synthesized
 - [ ] Request/raw unknown codes are not turned into wildcard semantic definitions.
 - [ ] Existing Run Evaluation behavior, protocol, artifacts, canonical bytes, and comments remain unchanged.
 ## Done summary
-TBD
+Named the eight canonical planner Known Gaps and added a validated production catalog for exact and closed synthesized Observation sources. Run Evaluation now reuses the catalog-owned Observation declaration, while raw request gaps remain carried and all artifact/protocol behavior stays unchanged.
 
+The initial review found wildcard coverage and duplicated family-kind authority; both were fixed with a closed suffix set and descriptor-derived materialization before same-session SHIP. Memory capture was attempted after the non-trivial review fix but skipped because Flow memory is not initialized.
+
+stage: impl-review - ran (Codex NEEDS_WORK -> SHIP; session 01a05cf9-454d-7d80-ac47-af5a859de2af; receipt /tmp/impl-review-receipt-fn-47-generate-umpire-semantic-outcome-and.3.json)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b77eb4bbe69d474e548c07dbc5dd609aa3fbb47c, abe914145b9309d04133ebf366d46865a2e6ed59
+- Tests: BASELINE_RED_EXPECTED: cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.KnownGaps Temporal.Tool.RunEvaluationTests (missing KnownGaps target; existing RunEvaluationTests built green), RED_EXPECTED: cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.KnownGaps (missing catalog module before implementation), RED_EXPECTED: cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.KnownGaps (raw interpretation code umpire.observation.raw-unknown was incorrectly covered before review fix), cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.KnownGaps Temporal.Tool.RunEvaluationTests, make lint-model, git diff --check, impl-review Codex SHIP session 01a05cf9-454d-7d80-ac47-af5a859de2af receipt /tmp/impl-review-receipt-fn-47-generate-umpire-semantic-outcome-and.3.json
 - PRs:
