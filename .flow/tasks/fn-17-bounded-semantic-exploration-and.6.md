@@ -7,8 +7,8 @@ satisfies: [R3, R4, R5]
 Apply exhaustive and uncovered-coordinate selection to the existing small Nexus checked Space.
 
 **Size:** M
-**Files:** `model/Temporal/Feature/Nexus/Examples/Exploration.lean`, `model/Temporal/Feature/Nexus/Examples/ExplorationTests.lean`, `model/TemporalModelTests.lean`
-**Touches:** [model/Temporal/Feature/Nexus/Examples/Exploration.lean, model/Temporal/Feature/Nexus/Examples/ExplorationTests.lean, model/TemporalModelTests.lean]
+**Files:** `model/Temporal/Feature/Nexus/Experimental/Exploration.lean`, `model/Temporal/Feature/Nexus/Experimental/ExplorationTests.lean`, `model/TemporalModelTests.lean`
+**Touches:** [model/Temporal/Feature/Nexus/Experimental/Exploration.lean, model/Temporal/Feature/Nexus/Experimental/ExplorationTests.lean, model/TemporalModelTests.lean]
 
 ### Approach
 - Bind the existing Nexus Space and exact planner kernel in `Temporal.Feature`, keeping Nexus identities out of reusable `Umpire` modules.
@@ -18,8 +18,9 @@ Apply exhaustive and uncovered-coordinate selection to the existing small Nexus 
 
 ### Investigation targets
 **Required** (read before coding):
-- `model/Temporal/Feature/Nexus/Examples/VariationSpace.lean` — exact checked Space.
-- `model/Temporal/Feature/Nexus/Examples/BasicLifecycle.lean` — checked kernel.
+- `model/Temporal/Feature/Nexus/Experimental/VariationSpace.lean` — exact checked Space and planner-policy binding.
+- `model/Temporal/Feature/Nexus/Lifecycle/Target.lean` — checked lifecycle kernel.
+- `model/Temporal/Feature/Nexus/Operations/Planning.lean` — ordinary checked planning seam.
 - Task `.8` — one-candidate session seam.
 
 ## Acceptance
