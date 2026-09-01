@@ -828,9 +828,7 @@
       "ready": false,
       "completionReview": "unknown",
       "specDependencies": [
-        "fn-20-local-execution-semantic-conformance",
-        "fn-44-seal-observation-traces-and-centralize",
-        "fn-45-index-and-reconcile-umpire-plan"
+        "fn-20-local-execution-semantic-conformance"
       ]
     },
     {

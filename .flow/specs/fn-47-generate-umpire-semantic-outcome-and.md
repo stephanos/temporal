@@ -15,9 +15,12 @@ written plan text has already drifted from current constructors. Developers and 
 one reviewable, source-derived inventory before extending receipts, profiles, campaigns, or property
 behavior.
 
-This work begins only after fn-44 finalizes accepted-trace migration and fn-20 finalizes the current
-Run Evaluation documentation boundary. It changes no user-visible runtime behavior, artifact bytes,
-or operational deployment surface.
+Fn-20 is the completed hard dependency for the current Run Evaluation documentation boundary.
+Fn-44's accepted-trace migration and fn-45's plan-authority reconciliation are completed-prerequisite
+provenance: every task is done and each spec has a SHIP completion review, while the specs remain open
+only for the later landing lifecycle. They therefore do not remain hard readiness edges for this
+implementation. This work changes no user-visible runtime behavior, artifact bytes, or operational
+deployment surface.
 
 ## Architecture & Data Models
 
@@ -60,8 +63,10 @@ absent from `EvidenceGap`. The existing `KnownGapKind`, `ImplementationLinkKnown
   payload-free families may use existing values directly; payload-bearing families use matchers that
   ignore payload identity while retaining the owner's current name function.
 - The aggregator validates unique family/catalog IDs, unique rendered status names within each
-  family, valid namespaced gap codes/prefixes, resolved carried-from references, canonical order, and
-  complete production/test classification before rendering.
+  family, valid namespaced gap codes/prefixes, resolved carried-from references, canonical
+  owner-local catalog order, and complete production/test classification before rendering. It sorts
+  the otherwise unordered assembled family/source lists by their validated canonical keys before
+  rendering.
 - `cd model && mise exec -- lake exe temporal-model-semantic-inventory` validates and buffers exactly
   the complete Markdown bytes plus terminal LF before one stdout write; validation/render errors
   produce non-zero status, diagnostics on stderr, and no Markdown. A failure during the final OS
@@ -79,7 +84,7 @@ absent from `EvidenceGap`. The existing `KnownGapKind`, `ImplementationLinkKnown
 2. Add exhaustive Observation, Implementation Link, semantic Property, and strict Query catalogs,
    keeping optional projection sentinels separate.
 3. Catalog fixed and synthesized production Known Gaps and make actual producers reuse the named
-   typed declarations after fn-44 lands.
+   typed declarations from the completed fn-44 baseline.
 4. Complete authored, carried, and test-only gap coverage and validate that Result composition retains
    distinct stages without schema changes.
 5. Add the deterministic Markdown renderer, checked document, atomic generation target, read-only
@@ -88,8 +93,8 @@ absent from `EvidenceGap`. The existing `KnownGapKind`, `ImplementationLinkKnown
 ## Quick commands
 
 ```bash
-cd model && mise exec -- lake build Umpire.SemanticInventory.Tests temporal-model-semantic-inventory
-cd model && mise exec -- lake exe Umpire.SemanticInventory.Tests
+cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.PlanningRuntime Umpire.SemanticInventory.Tests.SemanticStages Umpire.SemanticInventory.Tests.KnownGaps Temporal.Tool.SemanticInventoryTests temporal-model-semantic-inventory temporal-model-semantic-inventory-tests
+cd model && mise exec -- lake exe temporal-model-semantic-inventory-tests
 make umpire-check-semantic-inventory
 make lint-model
 ```
@@ -163,14 +168,17 @@ local checked-document drift test; the broader policy remains declined.
 - **R4:** `model/SEMANTIC_INVENTORY.md` is a deterministic complete projection with the title and
   generated-warning preamble, ordered Outcome families and Projection sentinels sections, and one
   Known Gap flows table with columns Catalog ID, Owner, Lineage, Scope, Shape, Source/reference,
-  Field mapping, and Description. It has canonical ordering, no timestamps or machine paths, exact
-  source owners, and terminal LF. Errors: validation/render failure occurs before stdout; final-write
-  failure is non-zero; interrupted generation leaves the prior file; missing/stale/extra document
-  content makes the read-only check fail with a deterministic diff.
+  Field mapping, and Description. Owner-local catalogs must already have canonical order; permutation
+  of the assembled outer family/source lists is normalized by validated canonical keys. The document
+  has no timestamps or machine paths, exact source owners, and terminal LF. Errors:
+  validation/render failure occurs before stdout; final-write failure is non-zero; interrupted
+  generation leaves the prior file; missing/stale/extra document content makes the read-only check
+  fail with a deterministic diff.
 - **R5:** The Lake executable, atomic generation target, narrow check target, `lint-model` integration,
-  and model documentation links pass after fn-20 and fn-44 complete. Errors: running against an
-  unfinished dependency, changing broad CI workflows, generating additional files, or folding
-  deferred fn-24/fn-26/fn-33/fn-43 behavior into this spec is a failure.
+  and model documentation links pass against completed fn-20 plus the completed-prerequisite fn-44
+  and fn-45 baselines. Errors: running against an unfinished dependency, changing broad CI workflows,
+  generating additional files, or folding deferred fn-24/fn-26/fn-33/fn-43 behavior into this spec
+  is a failure.
 
 ## Early proof point
 
@@ -201,5 +209,7 @@ remaining stages.
   fixed planner gaps.
 - `model/Umpire/Artifact/Result.lean` — stage-preserving Result composition.
 - `model/Temporal/Tool/RunEvaluation.lean` — current synthesis and carry boundary after fn-44.
-- `.flow/specs/fn-20-local-execution-semantic-conformance.md` and
-  `.flow/specs/fn-44-seal-observation-traces-and-centralize.md` — required baselines.
+- `.flow/specs/fn-20-local-execution-semantic-conformance.md` — completed hard dependency.
+- `.flow/specs/fn-44-seal-observation-traces-and-centralize.md` and
+  `.flow/specs/fn-45-index-and-reconcile-umpire-plan.md` — completed-prerequisite provenance with all
+  tasks done and completion-review SHIP; their later landing lifecycle is not a readiness edge here.

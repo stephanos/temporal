@@ -129,8 +129,11 @@ fn-43 -> {fn-48, fn-49, fn-51}
 fn-47 ----------------> fn-48
 ```
 
-Fn-47 retains its own inventory dependencies, including fn-44. Fn-48 may later feed the deferred
-fn-26, fn-29, and fn-30 governance work without pulling those specs into the prototype queue.
+Fn-47 retains fn-20 as its completed hard dependency. The completed fn-44 accepted-trace migration
+and fn-45 plan-authority reconciliation are prerequisite provenance rather than readiness edges: all
+of their tasks are done and their completion reviews are SHIP, while spec landing remains a later
+lifecycle step. Fn-48 may later feed the deferred fn-26, fn-29, and fn-30 governance work without
+pulling those specs into the prototype queue.
 
 ## Prototype verification gate
 
