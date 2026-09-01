@@ -62,8 +62,10 @@ func TestCheckRepositoryValidatesCoverageGraphAndLifecycle(t *testing.T) {
 	index.Documents = append(index.Documents, index.Documents[0])
 
 	want := []string{
-		`authority graph: cycle .plans/A.md -> .plans/B.md -> .plans/A.md`,
+		`authority graph: expected exactly one normative-rules document; found 0`,
+		`document .plans/A.md: not registered`,
 		`document .plans/A.md: registered more than once`,
+		`document .plans/B.md: authority parent ".plans/A.md" is not registered`,
 		`document .plans/B.md: supersededBy must be null unless lifecycle is superseded`,
 		`document .plans/C.md: authority unclassified is not permitted in a checked registry`,
 		`document .plans/C.md: lifecycle unclassified is not permitted in a checked registry`,
@@ -73,6 +75,50 @@ func TestCheckRepositoryValidatesCoverageGraphAndLifecycle(t *testing.T) {
 		`documents: entries must be sorted by path`,
 	}
 	require.Equal(t, want, checkRepository(root, index))
+}
+
+func TestCheckRepositoryRejectsSupersessionCycles(t *testing.T) {
+	tests := []struct {
+		name string
+		edit func(*planIndex)
+		want []string
+	}{
+		{
+			name: "self reference",
+			edit: func(index *planIndex) {
+				index.Documents[1].Lifecycle = "superseded"
+				index.Documents[1].SupersededBy = stringPointer(".plans/B.md")
+			},
+			want: []string{`document .plans/B.md: supersededBy must not reference itself`},
+		},
+		{
+			name: "cycle",
+			edit: func(index *planIndex) {
+				index.Documents[1].Lifecycle = "superseded"
+				index.Documents[1].SupersededBy = stringPointer(".plans/C.md")
+				index.Documents[2].Lifecycle = "superseded"
+				index.Documents[2].SupersededBy = stringPointer(".plans/B.md")
+			},
+			want: []string{`supersession graph: cycle .plans/B.md -> .plans/C.md -> .plans/B.md`},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			root, index := validRepositoryFixture(t)
+			test.edit(&index)
+			require.Equal(t, test.want, checkRepository(root, index))
+		})
+	}
+}
+
+func TestCheckRepositoryRejectsAuthorityCycles(t *testing.T) {
+	root, index := validRepositoryFixture(t)
+	index.Documents[0].AuthorityParents = []string{".plans/B.md"}
+
+	require.Equal(t, []string{
+		`authority graph: cycle .plans/A.md -> .plans/B.md -> .plans/A.md`,
+	}, checkRepository(root, index))
 }
 
 func TestCheckRepositoryValidatesMarkdownLinksAndAllowlist(t *testing.T) {
@@ -86,6 +132,62 @@ func TestCheckRepositoryValidatesMarkdownLinksAndAllowlist(t *testing.T) {
 		`document .plans/C.md: local link ".plans/Missing.md" is missing and not allowlisted`,
 	}
 	require.Equal(t, want, checkRepository(root, index))
+}
+
+func TestCheckRepositoryAllowsMissingAnchorOnExistingTarget(t *testing.T) {
+	root, index := validRepositoryFixture(t)
+	writeFixtureFile(t, root, ".plans/A.md", "# Authority\n[future anchor](B.md#future)\n")
+	index.Documents[0].AllowedMissingLinks = []allowedMissingLink{{
+		Target: ".plans/B.md", Reason: "historical heading", Anchor: stringPointer("future"),
+	}}
+
+	require.Equal(t, []string{}, checkRepository(root, index))
+}
+
+func TestCheckRepositoryParsesRenderedMarkdownLinksAndAnchors(t *testing.T) {
+	root, index := validRepositoryFixture(t)
+	writeFixtureFile(t, root, ".plans/A.md", "# Authority\n`[inline code](MissingInline.md)`\n```markdown\n# Fake\n```not a closing fence\n[fenced code](MissingFence.md)\n```\n[balanced](Target_(one).md#target-one)\n")
+	writeFixtureFile(t, root, ".plans/B.md", "# Delivery\n[not a rendered heading](A.md#fake)\n")
+	writeFixtureFile(t, root, ".plans/Target_(one).md", "# Target one\n")
+	index.Documents[0].AllowedMissingLinks = []allowedMissingLink{}
+	index.Documents = append(index.Documents, documentEntry{
+		Path: ".plans/Target_(one).md", Lifecycle: "reference", Authority: "descriptive",
+		AuthorityParents: []string{".plans/B.md"}, AllowedMissingLinks: []allowedMissingLink{},
+	})
+
+	require.Equal(t, []string{
+		`document .plans/B.md: anchor "fake" is missing from .plans/A.md`,
+	}, checkRepository(root, index))
+}
+
+func TestCheckRepositoryIsStableAcrossConflictingDuplicateRows(t *testing.T) {
+	root, index := validRepositoryFixture(t)
+	conflictingDocument := index.Documents[0]
+	conflictingDocument.Lifecycle = "historical"
+	conflictingDocument.Authority = "historical"
+	conflictingFlowSpec := index.FlowSpecs[0]
+	conflictingFlowSpec.Ready = false
+
+	first := index
+	first.Documents = append(first.Documents, conflictingDocument)
+	first.FlowSpecs = append(first.FlowSpecs, conflictingFlowSpec)
+	second := index
+	second.Documents = append([]documentEntry{conflictingDocument}, second.Documents...)
+	second.FlowSpecs = append([]flowSpecEntry{conflictingFlowSpec}, second.FlowSpecs...)
+
+	want := []string{
+		`authority graph: expected exactly one normative-rules document; found 0`,
+		`document .plans/A.md: not registered`,
+		`document .plans/A.md: registered more than once`,
+		`document .plans/B.md: authority parent ".plans/A.md" is not registered`,
+		`documents: entries must be sorted by path`,
+		`flow spec fn-1-example: not registered`,
+		`flow spec fn-1-example: registered more than once`,
+		`flow spec fn-2-support: dependency "fn-1-example" is not registered`,
+		`flowSpecs: entries must be sorted by id`,
+	}
+	require.Equal(t, want, checkRepository(root, first))
+	require.Equal(t, want, checkRepository(root, second))
 }
 
 func TestCheckRepositoryRejectsNoncanonicalAndEscapingPaths(t *testing.T) {
