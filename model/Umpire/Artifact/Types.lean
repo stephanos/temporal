@@ -127,15 +127,47 @@ structure ArtifactIntentError where
   relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
-def canonicalPlannerKnownGaps : List KnownGap := [
-  { kind := .input, code := DefinitionId.of "umpire.known-gap.execution-evidence" },
-  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.artifact-migrations" },
-  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.artifact-reading" },
-  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.evidence-evaluation" },
-  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-scheduler-order" },
-  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-storage-order" },
-  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-transport-order" },
+/-- Planning does not itself provide runtime Execution Evidence. -/
+def plannerExecutionEvidenceKnownGap : KnownGap :=
+  { kind := .input, code := DefinitionId.of "umpire.known-gap.execution-evidence" }
+
+/-- Planning does not interpret Artifact format migrations. -/
+def plannerArtifactMigrationsKnownGap : KnownGap :=
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.artifact-migrations" }
+
+/-- Planning does not read persisted Artifacts. -/
+def plannerArtifactReadingKnownGap : KnownGap :=
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.artifact-reading" }
+
+/-- Planning does not evaluate runtime Evidence. -/
+def plannerEvidenceEvaluationKnownGap : KnownGap :=
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.evidence-evaluation" }
+
+/-- Planning does not interpret runtime scheduler ordering. -/
+def plannerRuntimeSchedulerOrderKnownGap : KnownGap :=
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-scheduler-order" }
+
+/-- Planning does not interpret runtime storage ordering. -/
+def plannerRuntimeStorageOrderKnownGap : KnownGap :=
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-storage-order" }
+
+/-- Planning does not interpret runtime transport ordering. -/
+def plannerRuntimeTransportOrderKnownGap : KnownGap :=
+  { kind := .interpretation, code := DefinitionId.of "umpire.known-gap.runtime-transport-order" }
+
+/-- Planning does not itself promote a result to a Regression. -/
+def plannerPromotionKnownGap : KnownGap :=
   { kind := .claim, code := DefinitionId.of "umpire.known-gap.promotion" }
+
+def canonicalPlannerKnownGaps : List KnownGap := [
+  plannerExecutionEvidenceKnownGap,
+  plannerArtifactMigrationsKnownGap,
+  plannerArtifactReadingKnownGap,
+  plannerEvidenceEvaluationKnownGap,
+  plannerRuntimeSchedulerOrderKnownGap,
+  plannerRuntimeStorageOrderKnownGap,
+  plannerRuntimeTransportOrderKnownGap,
+  plannerPromotionKnownGap
 ]
 
 end Umpire

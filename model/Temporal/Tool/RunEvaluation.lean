@@ -1,6 +1,7 @@
 import Temporal.Tool.RunEvaluation.Protocol
 import Temporal.System.Nexus.ImplementationLink
 import Umpire.Observation.Check
+import Umpire.SemanticInventory.KnownGaps
 
 /-!
 The private evaluator is the sole semantic composition boundary for the local runner. Runtime
@@ -56,45 +57,10 @@ private def stringArray (json : Lean.Json) (field : String) : Except String (Lis
     | .ok result => pure result
     | .error _ => throw field
 
-private def observationFailureName : ObservationFailureKind → String
-  | .emptyEvidence => "empty-evidence"
-  | .evidenceBoundExhausted => "evidence-bound-exhausted"
-  | .knownGap => "known-gap"
-  | .missingInitialState => "missing-initial-state"
-  | .missingClosure => "missing-closure"
-  | .sequenceGap => "sequence-gap"
-  | .missingCausalParent => "missing-causal-parent"
-  | .normalizationFailure => "normalization-failure"
-  | .unresolvedBinding => "unresolved-binding"
-  | .incomparableOrdering => "incomparable-ordering"
-  | .profileMismatch => "profile-mismatch"
-  | .profileVersionMismatch => "profile-version-mismatch"
-  | .kindMismatch => "kind-mismatch"
-  | .fieldMismatch => "field-mismatch"
-  | .duplicateEvidenceIdentity => "duplicate-evidence-identity"
-  | .contradictoryFact => "contradictory-fact"
-  | .contradictoryBinding => "contradictory-binding"
-  | .contradictoryOrder => "contradictory-order"
-  | .misdirectedFaultReceipt => "misdirected-fault-receipt"
-  | .compatibleAlternatives => "compatible-alternatives"
-  | .zeroUsableInterpretations => "zero-usable-interpretations"
-  | .absentModelCoordinate => "absent-model-coordinate"
-  | .duplicateModelCoordinate => "duplicate-model-coordinate"
-  | .extraModelCoordinate => "extra-model-coordinate"
-  | .inconsistentEvidenceLink => "inconsistent-evidence-link"
-  | .unconsumedReference => "unconsumed-reference"
-  | .missingClosureSupport => "missing-closure-support"
-  | .missingOrderSupport => "missing-order-support"
-  | .rawValueLeakage => "raw-value-leakage"
-  | .redactedValueLeakage => "redacted-value-leakage"
-  | .rejectedValueLeakage => "rejected-value-leakage"
-  | .rejectedFieldPresent => "rejected-field-present"
-  | .digestPolicyMismatch => "digest-policy-mismatch"
-  | .digestCollision => "digest-collision"
-  | .disallowedRawMaterial => "disallowed-raw-material"
-
 private def semanticFailureName : SemanticVerdictFailureKind → String
-  | .observationEvaluationFailure kind => "observation-evaluation-failure:" ++ observationFailureName kind
+  | .observationEvaluationFailure kind =>
+      "observation-evaluation-failure:" ++
+        Umpire.SemanticInventory.observationFailureKnownGapSuffix kind
   | .semanticTraceUnavailable => "semantic-trace-unavailable"
   | .queryPropertyMismatch => "query-property-mismatch"
   | .invalidEvidenceBound => "invalid-evidence-bound"
@@ -180,7 +146,7 @@ private def artifactEvidenceLink
 
 private def artifactObservationDiagnostic
     (diagnostic : ObservationDiagnostic) : ArtifactObservationDiagnostic := {
-  kind := observationFailureName diagnostic.kind
+  kind := Umpire.SemanticInventory.observationFailureKnownGapSuffix diagnostic.kind
   observationPlanDefinitionId := diagnostic.planId
   relatedDefinitionIds := (diagnostic.relatedDefinitionIds.mergeSort fun left right =>
     decide (left.value ≤ right.value)).eraseDups
@@ -1217,11 +1183,8 @@ private def observedSemanticEvaluation
 }
 
 private def semanticGaps (observation : ObservationResult) : List KnownGap :=
-  observation.diagnostic?.map (fun diagnostic => {
-    kind := .interpretation
-    code := id ("umpire.observation." ++ observationFailureName diagnostic.kind)
-    subject := some diagnostic.planId
-  }) |>.toList
+  observation.diagnostic?.map (fun diagnostic =>
+    Umpire.SemanticInventory.observationKnownGap diagnostic.kind diagnostic.planId) |>.toList
 
 private def jsonArray (values : List String) : Lean.Json :=
   (Lean.Json.parse ("[" ++ String.intercalate "," values ++ "]")).toOption.getD (.arr #[])
