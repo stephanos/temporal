@@ -198,7 +198,7 @@ the registry schema before rewriting Flow plans.
 | Req | Description | Task(s) | Gap justification |
 |-----|-------------|---------|-------------------|
 | R1 | Closed complete registry | fn-45.1, fn-45.2 | — |
-| R2 | Deterministic read-only checker | fn-45.1, fn-45.2 | — |
+| R2 | Deterministic read-only checker | fn-45.1, fn-45.2, fn-45.3 | — |
 | R3 | Flow disposition and gate reconciliation | fn-45.6 | — |
 | R4 | Reduced fn-5 scope | fn-45.4, fn-45.6 | — |
 | R5 | Reduced fn-17/fn-33 scope | fn-45.5, fn-45.6 | — |

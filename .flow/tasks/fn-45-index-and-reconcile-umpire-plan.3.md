@@ -1,5 +1,5 @@
 ---
-satisfies: [R6]
+satisfies: [R2, R6]
 ---
 # fn-45-index-and-reconcile-umpire-plan.3 Repair plan links and authority descriptions
 
@@ -7,8 +7,8 @@ satisfies: [R6]
 Synchronize active/reference documentation with the registry for R6 and make historical exceptions explicit.
 
 **Size:** M
-**Files:** `.plans/GOMAD3_CMPR.md`, `.plans/UMPIRE2.md`, `.plans/UMPIRE3.md`, `.plans/UMPIRE4_DSL.md`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_ORDER.md`, `.plans/index.json`
-**Touches:** [.plans/GOMAD3_CMPR.md, .plans/UMPIRE2.md, .plans/UMPIRE3.md, .plans/UMPIRE4_DSL.md, .plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_ORDER.md, .plans/index.json]
+**Files:** `.plans/GOMAD3_CMPR.md`, `.plans/UMPIRE2.md`, `.plans/UMPIRE3.md`, `.plans/UMPIRE4_DSL.md`, `.plans/UMPIRE4_COMPONENTS.md`, `.plans/UMPIRE4_ORDER.md`, `.plans/index.json`, `tools/planindex/check_test.go`
+**Touches:** [.plans/GOMAD3_CMPR.md, .plans/UMPIRE2.md, .plans/UMPIRE3.md, .plans/UMPIRE4_DSL.md, .plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_ORDER.md, .plans/index.json, tools/planindex/check_test.go]
 
 ### Approach
 - Repair stale U4 links where the intended successor is unambiguous and preserve historical wording/comments.
@@ -16,8 +16,9 @@ Synchronize active/reference documentation with the registry for R6 and make his
 - Mark `UMPIRE4_COMPONENTS.md` descriptive, remove stale authority/status implications, and point to the current normative/order/architecture documents.
 - Remove completed fn-42 and fn-50 delivery entries from `UMPIRE4_ORDER.md` while preserving its remaining-work-only intent, retained simplicity dependencies, and prototype decision gate.
 - Record genuinely historical missing targets in `allowedMissingLinks` rather than inventing replacement content.
+- Add `TestRepositoryPlanLinks` against the production root under an observed failing RED before repairing documents, so the focused Quick command cannot pass vacuously.
 - Do not turn any hand-authored plan into generated output.
-- Use the focused repository-link test in this wave; the all-state Make check remains intentionally red until task .6 reconciles Flow.
+- Use the focused repository-link test in this wave; the all-state Make check remains intentionally red for only the dependency and readiness drift owned by tasks .5 and .6.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -36,7 +37,8 @@ Synchronize active/reference documentation with the registry for R6 and make his
 - [ ] Descriptive components prose no longer presents stale readiness as authority.
 - [ ] The delivery-order queue contains only remaining work and does not reintroduce completed fn-42 or fn-50 entries.
 - [ ] No historical design meaning or existing comment is silently rewritten.
-- [ ] Focused repository-link tests pass; any remaining full-check failure is only the Flow drift owned by task .6.
+- [ ] `TestRepositoryPlanLinks` executes against the production root, observes the pre-repair link findings as RED, and cannot pass via `[no tests to run]`.
+- [ ] Focused repository-link tests pass; the full check has zero document/link findings and zero unexpected Flow findings, with any remaining failure limited to the dependency and readiness drift owned by tasks .5 and .6.
 ## Done summary
 TBD
 
