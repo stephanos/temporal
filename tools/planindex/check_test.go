@@ -298,6 +298,30 @@ func TestRunUsesStableStreamsAndDoesNotAcceptArguments(t *testing.T) {
 	require.Equal(t, "planindex accepts no positional arguments\n", stderr.String())
 }
 
+func TestRepositoryPlanIndexCoversProductionFiles(t *testing.T) {
+	root := filepath.Clean("../..")
+	encoded, err := os.ReadFile(filepath.Join(root, ".plans", "index.json"))
+	require.NoError(t, err)
+	index, err := parseIndex(encoded)
+	require.NoError(t, err)
+
+	documents, err := discoverFiles(root, ".plans", ".md")
+	require.NoError(t, err)
+	registeredDocuments := make([]string, 0, len(index.Documents))
+	for _, document := range index.Documents {
+		registeredDocuments = append(registeredDocuments, document.Path)
+	}
+	require.Equal(t, documents, registeredDocuments)
+
+	flowSpecs, err := discoverFiles(root, ".flow/specs", ".json")
+	require.NoError(t, err)
+	registeredFlowSpecs := make([]string, 0, len(index.FlowSpecs))
+	for _, spec := range index.FlowSpecs {
+		registeredFlowSpecs = append(registeredFlowSpecs, filepath.ToSlash(filepath.Join(".flow/specs", spec.ID+".json")))
+	}
+	require.Equal(t, flowSpecs, registeredFlowSpecs)
+}
+
 func validRepositoryFixture(t *testing.T) (string, planIndex) {
 	t.Helper()
 	root := t.TempDir()
