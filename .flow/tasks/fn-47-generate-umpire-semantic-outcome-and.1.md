@@ -33,9 +33,12 @@ Define the reusable descriptor vocabulary and owner-local exact-one Planning/run
 - [ ] A missing, overlapping, or unclassified constructor fails the proof or focused tests.
 - [ ] Existing comments are preserved.
 ## Done summary
-TBD
+Added typed semantic-inventory descriptors, closed Known Gap source/carry vocabulary, and owner-local exact-one classifiers for Planning plus all five runtime status families. Focused tests pin current name order and payload-independent Planning classification without changing constructors, rendered behavior, or comments.
 
+Baseline: expected greenfield red (future semantic-inventory Lake executable/test and Make targets were absent); `make lint-model` was green at 200/200.
+
+stage: impl-review - ran [SHIP at 2026-09-01T11:50:37Z; session 01a05ccb-f00a-7cd0-a2bf-3243759aa4d9; 0 open findings]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 09f35d0612a94bc3ebaaf59a1374b42bab213479
+- Tests: baseline: expected greenfield red (future semantic-inventory Lake executable/test and Make targets absent); make lint-model green 200/200, TDD RED: cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.PlanningRuntime (missing task-owned classifier/catalog API), cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.PlanningRuntime, make lint-model, Lean #print axioms for all six exact-one classifier proofs (no axioms)
 - PRs:
