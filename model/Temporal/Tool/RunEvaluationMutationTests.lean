@@ -279,33 +279,54 @@ example : [
 private def completeTrace : EvidenceBackedTrace :=
   (acceptedTrace? completeObservation).get (by native_decide)
 
-private def missingLinkTrace : EvidenceBackedTrace := {
-  completeTrace with evidenceLinks := completeTrace.evidenceLinks.dropLast
+private def uncheckedTraceOf (trace : EvidenceBackedTrace) : UncheckedEvidenceBackedTrace := {
+  traceId := trace.traceId
+  checkedPlan := trace.checkedPlan
+  mappingId := trace.mappingId
+  mappingVersion := trace.mappingVersion
+  mappingDigest := trace.mappingDigest
+  source := trace.source
+  profileId := trace.profileId
+  profileVersion := trace.profileVersion
+  sourceClosed := trace.sourceClosed
+  vocabulary := trace.vocabulary
+  dispositions := trace.dispositions
+  appliedBound := trace.appliedBound
+  evidenceIdentities := trace.evidenceIdentities
+  recordSupport := trace.recordSupport
+  trace := trace.trace
+  evidenceLinks := trace.evidenceLinks
 }
 
-private def missingLinkResult := applyImplementationLink
-  Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
-  Temporal.System.Nexus.CallerClosure.setup missingLinkTrace
+private def completeUncheckedTrace : UncheckedEvidenceBackedTrace :=
+  uncheckedTraceOf completeTrace
 
-private def mismatchedLinkTrace : EvidenceBackedTrace := {
-  completeTrace with
+private def missingLinkTrace : UncheckedEvidenceBackedTrace := {
+  completeUncheckedTrace with evidenceLinks := completeTrace.evidenceLinks.dropLast
+}
+
+private def mismatchedLinkTrace : UncheckedEvidenceBackedTrace := {
+  completeUncheckedTrace with
   evidenceLinks := completeTrace.evidenceLinks.mapIdx fun index evidenceLink =>
     if index == 0 then
       { evidenceLink with mappingDigest := (behaviorFingerprintOf "mismatched-mapping").render }
     else evidenceLink
 }
 
-private def mismatchedLinkResult := applyImplementationLink
-  Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
-  Temporal.System.Nexus.CallerClosure.setup mismatchedLinkTrace
+private def admissionOutcome
+    (result : Except ObservationDiagnostic EvidenceBackedTrace) :
+    ObservationStatus × Option ObservationFailureKind :=
+  match result with
+  | .ok _ => (.accepted, none)
+  | .error diagnostic => (diagnostic.status, some diagnostic.kind)
 
-/-! A valid System Observation cannot bypass an absent or mismatched checked Evidence Link. -/
-example : missingLinkResult.status = .unknown ∧ missingLinkResult.applied?.isNone ∧
-    missingLinkResult.diagnostic?.map ImplementationLinkDiagnostic.kind =
-      some .absentCoordinate ∧
-    mismatchedLinkResult.status = .conflict ∧ mismatchedLinkResult.applied?.isNone ∧
-    mismatchedLinkResult.diagnostic?.map ImplementationLinkDiagnostic.kind =
-      some .evidenceLinkMismatch := by
+/-! An absent or mismatched checked Evidence Link cannot pass Observation admission. -/
+example :
+    [admissionOutcome (validateEvidenceBackedTrace missingLinkTrace),
+      admissionOutcome (validateEvidenceBackedTrace mismatchedLinkTrace)] = [
+      (.unknown, some .absentModelCoordinate),
+      (.conflict, some .inconsistentEvidenceLink)
+    ] := by
   native_decide
 
 private def appliedLink := applyImplementationLink

@@ -9,34 +9,34 @@ open Umpire
 def dispositionFailureKinds : List (ObservationStatus × Option ObservationFailureKind) := [
   let evidenceLink := completeFirstEvidenceLink
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with evidenceLinks := [{
+    completeUncheckedEvidenceBackedTrace with evidenceLinks := [{
       evidenceLink with appliedDispositions := [{
         field := { kind := eventKind, field := secretField }
         evidence := .raw "forbidden-secret"
       }]
-    }] ++ completeEvidenceBackedTrace.evidenceLinks.tail
+    }] ++ completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
   }
-  (.unsupported, diagnosticKindOf result),
+  admissionStatusAndKind result,
   let evidenceLink := completeFirstEvidenceLink
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with evidenceLinks := [{
+    completeUncheckedEvidenceBackedTrace with evidenceLinks := [{
       evidenceLink with appliedDispositions := [{
         field := { kind := eventKind, field := secretField }
         evidence := .retained "forbidden-secret"
       }]
-    }] ++ completeEvidenceBackedTrace.evidenceLinks.tail
+    }] ++ completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
   }
-  (.unsupported, diagnosticKindOf result),
+  admissionStatusAndKind result,
   let evidenceLink := completeFirstEvidenceLink
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with evidenceLinks := [{
+    completeUncheckedEvidenceBackedTrace with evidenceLinks := [{
       evidenceLink with appliedDispositions := [{
         field := { kind := eventKind, field := rejectedField }
         evidence := .rejectedMaterial "forbidden-rejected"
       }]
-    }] ++ completeEvidenceBackedTrace.evidenceLinks.tail
+    }] ++ completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
   }
-  (.unsupported, diagnosticKindOf result)
+  admissionStatusAndKind result
 ]
 
 example : dispositionFailureKinds = [

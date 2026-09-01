@@ -43,8 +43,9 @@ example : [
         observedCount := some 2
       }),
     evaluateObservationProperty (verdictQuery [satisfiedProperty]) satisfiedProperty
-      (.accepted {
-        completeEvidenceBackedTrace with evidenceLinks := completeEvidenceBackedTrace.evidenceLinks.tail
+      (observationResultOfAdmission <| validateEvidenceBackedTrace {
+        completeUncheckedEvidenceBackedTrace with
+        evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
       })
   ].map (fun verdict => (verdict.status, verdict.clauses.isEmpty)) = [
     (.unknown, true),
@@ -157,21 +158,22 @@ example :
     )] := by
   native_decide
 
-/-- Conflicting duplicate vocabulary is unsupported independent of source order. -/
+/-- Conflicting duplicate vocabulary fails at admission independent of source order. -/
 example :
-    let original := completeEvidenceBackedTrace.vocabulary.head?.get (by native_decide)
+    let original := completeUncheckedEvidenceBackedTrace.vocabulary.head?.get (by native_decide)
     let conflicting := { original with canonicalBehavior := original.canonicalBehavior ++ "/other" }
     [
-      { completeEvidenceBackedTrace with
-        vocabulary := conflicting :: completeEvidenceBackedTrace.vocabulary },
-      { completeEvidenceBackedTrace with
-        vocabulary := completeEvidenceBackedTrace.vocabulary ++ [conflicting] }
+      { completeUncheckedEvidenceBackedTrace with
+        vocabulary := conflicting :: completeUncheckedEvidenceBackedTrace.vocabulary },
+      { completeUncheckedEvidenceBackedTrace with
+        vocabulary := completeUncheckedEvidenceBackedTrace.vocabulary ++ [conflicting] }
     ].map (fun trace =>
+      let observationResult := observationResultOfAdmission (validateEvidenceBackedTrace trace)
       let verdict := evaluateObservationProperty (verdictQuery [satisfiedProperty])
-        satisfiedProperty (.accepted trace)
+        satisfiedProperty observationResult
       (verdict.status, verdict.diagnostic.map SemanticVerdictDiagnostic.kind)) = [
-      (.unsupported, some .ambiguousVocabulary),
-      (.unsupported, some .ambiguousVocabulary)
+      (.conflict, some (.observationEvaluationFailure .inconsistentEvidenceLink)),
+      (.conflict, some (.observationEvaluationFailure .inconsistentEvidenceLink))
     ] := by
   native_decide
 

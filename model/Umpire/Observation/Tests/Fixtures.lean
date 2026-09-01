@@ -287,11 +287,48 @@ def acceptedOf (result : ObservationResult) : Option EvidenceBackedTrace :=
   | .accepted trace => some trace
   | _ => none
 
+def uncheckedTraceOf (trace : EvidenceBackedTrace) : UncheckedEvidenceBackedTrace := {
+  traceId := trace.traceId
+  checkedPlan := trace.checkedPlan
+  mappingId := trace.mappingId
+  mappingVersion := trace.mappingVersion
+  mappingDigest := trace.mappingDigest
+  source := trace.source
+  profileId := trace.profileId
+  profileVersion := trace.profileVersion
+  sourceClosed := trace.sourceClosed
+  vocabulary := trace.vocabulary
+  dispositions := trace.dispositions
+  appliedBound := trace.appliedBound
+  evidenceIdentities := trace.evidenceIdentities
+  recordSupport := trace.recordSupport
+  trace := trace.trace
+  evidenceLinks := trace.evidenceLinks
+}
+
 def diagnosticKindOf
-    (result : Except ObservationDiagnostic Unit) : Option ObservationFailureKind :=
+    (result : Except ObservationDiagnostic α) : Option ObservationFailureKind :=
   match result with
   | .ok _ => none
   | .error diagnostic => some diagnostic.kind
+
+def admissionStatusAndKind
+    (result : Except ObservationDiagnostic EvidenceBackedTrace) :
+    ObservationStatus × Option ObservationFailureKind :=
+  match result with
+  | .ok _ => (.accepted, none)
+  | .error diagnostic => (diagnostic.status, some diagnostic.kind)
+
+def observationResultOfAdmission
+    (result : Except ObservationDiagnostic EvidenceBackedTrace) : ObservationResult :=
+  match result with
+  | .ok trace => .accepted trace
+  | .error diagnostic =>
+      match diagnostic.status with
+      | .unknown => .unknown diagnostic
+      | .conflict => .conflict diagnostic
+      | .unsupported => .unsupported diagnostic
+      | .accepted => .unknown diagnostic
 
 /-! Checked Property and Query inputs for semantic-verdict tests. -/
 
