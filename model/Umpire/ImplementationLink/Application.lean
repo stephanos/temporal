@@ -7,9 +7,9 @@ Trace. Application replays the complete source trace through the retained source
 translates any value. Only `applied` exposes the complete destination trace; every failure exposes
 one canonical diagnostic and no partial trace.
 
-An explicitly checked observed-trace translation reuses the same envelope and positional Evidence
-Links for values outside Target authority. Its result omits the authority proof and cannot be
-confused with `AppliedImplementationLink`.
+An explicitly checked observed-trace translation reuses the admitted positional Evidence Links for
+values outside Target authority. Its result omits the authority proof and cannot be confused with
+`AppliedImplementationLink`.
 -/
 
 namespace Umpire
@@ -424,77 +424,6 @@ private def implementationLinkEvidenceLink
     (.ofTarget checked.sourceTarget) (.ofTarget checked.destinationTarget) coordinate
     sourceValue destinationValue sourceEvidenceLink
 
-private def expectedCoordinates
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) : List ModelCoordinate :=
-  .initialState :: (trace.steps.mapIdx fun index step =>
-    let position := index + 1
-    [.selectedAction position, .modelOutcome position, .resultingState position] ++
-      step.observations.mapIdx fun observationIndex _ =>
-        .observation position (observationIndex + 1)).flatten
-
-private def modelValueAt
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (coordinate : ModelCoordinate) : Option ModelValue :=
-  match coordinate with
-  | .initialState => some trace.initialState
-  | .selectedAction step => do
-      if step == 0 then none else
-        let traceStep ← trace.steps[step - 1]?
-        pure traceStep.selectedAction
-  | .modelOutcome step => do
-      if step == 0 then none else
-        let traceStep ← trace.steps[step - 1]?
-        pure traceStep.modelOutcome
-  | .resultingState step => do
-      if step == 0 then none else
-        let traceStep ← trace.steps[step - 1]?
-        pure traceStep.resultingState
-  | .observation step position => do
-      if step == 0 || position == 0 then none else
-        let traceStep ← trace.steps[step - 1]?
-        traceStep.observations[position - 1]?
-
-private def coordinateKind : ModelCoordinate → DefinitionKind
-  | .initialState | .resultingState _ => .state
-  | .selectedAction _ => .action
-  | .modelOutcome _ => .outcome
-  | .observation _ _ => .observation
-
-private def evidenceLinkSetFingerprint (trace : EvidenceBackedTrace) : BehaviorFingerprint :=
-  behaviorFingerprintOf (reprStr trace.evidenceLinks)
-
-private def evidenceEnvelopeFailure?
-    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
-      SourceSetup ModelValue ModelValue ModelValue ModelValue
-      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
-    (trace : EvidenceBackedTrace) : Option ImplementationLinkDiagnostic :=
-  match trace.evidenceLinks.find? fun evidenceLink =>
-      (modelValueAt trace.trace evidenceLink.coordinate).isNone with
-  | some evidenceLink => some <| implementationLinkDiagnostic checked .invalidCoordinate
-      (some evidenceLink.coordinate) [evidenceLink.ruleId]
-      (evidenceLinkBehaviorFingerprint := some (behaviorFingerprintOf (reprStr evidenceLink)))
-  | none =>
-      match trace.evidenceLinks.find? fun evidenceLink =>
-          (trace.evidenceLinks.filter fun other =>
-            other.coordinate == evidenceLink.coordinate).length > 1 with
-      | some evidenceLink =>
-          let matchingLinks := trace.evidenceLinks.filter fun other =>
-            other.coordinate == evidenceLink.coordinate
-          let kind := if matchingLinks.all fun other => other == evidenceLink then
-            ImplementationLinkFailureKind.duplicateCoordinate
-          else
-            ImplementationLinkFailureKind.contradictoryCoordinate
-          some <| implementationLinkDiagnostic checked kind (some evidenceLink.coordinate)
-            (matchingLinks.map EvidenceLink.ruleId)
-            (evidenceLinkBehaviorFingerprint := some (evidenceLinkSetFingerprint trace))
-      | none =>
-          match (expectedCoordinates trace.trace).find? fun coordinate =>
-              !(trace.evidenceLinks.any fun evidenceLink => evidenceLink.coordinate == coordinate) with
-          | some coordinate => some <| implementationLinkDiagnostic checked .absentCoordinate
-              (some coordinate) (evidenceLinkBehaviorFingerprint :=
-                some (evidenceLinkSetFingerprint trace))
-          | none => none
-
 private def supportedVocabularyKind : DefinitionKind → Bool
   | .state | .action | .outcome | .observation | .relation | .capability => true
   | _ => false
@@ -543,11 +472,11 @@ private def validateVocabulary
         (relatedDefinitionIds := [meaning.definitionId]))
     if meaning.kind == .relation || meaning.kind == .capability then
       validateSemanticMapping checked meaning
-  for coordinate in expectedCoordinates trace.trace do
-    let value ← match modelValueAt trace.trace coordinate with
+  for coordinate in trace.trace.coordinates do
+    let value ← match trace.trace.valueAt? coordinate with
       | some value => pure value
       | none => throw <| implementationLinkDiagnostic checked .invalidCoordinate (some coordinate)
-    let kind := coordinateKind coordinate
+    let kind := coordinate.definitionKind
     if !(trace.vocabulary.any fun meaning =>
         meaning.definitionId == value.definitionId && meaning.kind == kind) then
       throw <| implementationLinkDiagnostic checked .behaviorFingerprintDrift
@@ -778,8 +707,8 @@ private def buildImplementationLinkEvidenceLinksWith
       ImplementationLinkEvidenceLink) :
     Except ImplementationLinkDiagnostic (List ImplementationLinkEvidenceLink) := do
   let mut links := []
-  for coordinate in expectedCoordinates sourceTrace.trace do
-    let sourceValue ← match modelValueAt sourceTrace.trace coordinate with
+  for coordinate in sourceTrace.trace.coordinates do
+    let sourceValue ← match sourceTrace.trace.valueAt? coordinate with
       | some value => pure value
       | none => throw <| implementationLinkDiagnostic checked .invalidCoordinate (some coordinate)
     let sourceEvidenceLink ← match sourceTrace.evidenceLinks.find? fun evidenceLink =>
@@ -788,7 +717,7 @@ private def buildImplementationLinkEvidenceLinksWith
       | none => throw (implementationLinkDiagnostic checked .absentCoordinate (some coordinate)
           [sourceValue.definitionId])
     let destinationValue ← mapValue coordinate sourceValue
-    match modelValueAt destinationTrace coordinate with
+    match destinationTrace.valueAt? coordinate with
     | some actualDestination =>
         if actualDestination != destinationValue then
           throw <| implementationLinkDiagnostic checked .evidenceLinkMismatch (some coordinate)
@@ -887,9 +816,6 @@ private def applyCheckedImplementationLink
       !checked.hasCanonicalIdentity then
     throw (implementationLinkDiagnostic checked .behaviorFingerprintDrift
       (relatedDefinitionIds := [sourceReference.id, destinationReference.id]))
-  match evidenceEnvelopeFailure? checked evidenceBackedTrace with
-  | some failure => throw failure
-  | none => pure ()
   let _ ← mappedSetup checked sourceSetup
   let sourceAuthority ← admittedSourceTrace checked sourceSetup evidenceBackedTrace.trace
   validateVocabulary checked evidenceBackedTrace
@@ -909,7 +835,7 @@ private def applyCheckedImplementationLink
     authoritative := checked.traceForward sourceSetup evidenceBackedTrace.trace sourceAuthority.down
   }
 
-/-- Replay, validate, and translate one complete Evidence-backed source Model Trace. -/
+/-- Replay and translate one admitted Evidence-backed source Model Trace. -/
 def applyImplementationLink
     [BEq SourceSetup] [BEq DestinationSetup]
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -1089,9 +1015,6 @@ private def applyCheckedObservedTraceTranslation
   if !checked.hasCanonicalIdentity || !translation.hasCanonicalIdentity then
     throw (observedImplementationLinkDiagnostic checked translation .behaviorFingerprintDrift
       (relatedDefinitionIds := [checked.declaration.id, translation.declaration.id]))
-  match evidenceEnvelopeFailure? checked evidenceBackedTrace with
-  | some failure => throw (observedDiagnosticFrom translation failure)
-  | none => pure ()
   let destinationSetup ← match mappedSetup checked sourceSetup with
     | .ok setup => pure setup
     | .error diagnostic => throw (observedDiagnosticFrom translation diagnostic)
@@ -1119,7 +1042,7 @@ private def applyCheckedObservedTraceTranslation
     evidenceLinks
   }
 
-/-- Validate and translate one complete observed trace without asserting Target conformance. -/
+/-- Translate one admitted observed trace without asserting Target conformance. -/
 def applyObservedTraceTranslation
     [BEq SourceSetup] [BEq DestinationSetup]
     {checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement

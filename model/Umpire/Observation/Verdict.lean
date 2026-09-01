@@ -115,7 +115,8 @@ private def failureVerdict
   diagnostic := some diagnostic
 }
 
-private def observationEvaluationFailureVerdict
+/-- Preserve one unresolved verdict for an Observation non-success without evaluating a Property. -/
+def observationEvaluationFailureVerdict
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
     (diagnostic : ObservationDiagnostic)
@@ -253,11 +254,12 @@ private def resolvedVerdict
     clauses
   }
 
-/-- Validate every Property prerequisite before invoking the unchanged Property evaluator. -/
+/-- Validate every Property-owned prerequisite over one admitted trace before invoking the
+unchanged Property evaluator. -/
 def evaluateObservationProperty
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
-    (observationResult : ObservationResult) : SemanticPropertyVerdict :=
+    (trace : EvidenceBackedTrace) : SemanticPropertyVerdict :=
   match query.form.properties.find? fun expected => expected.id == property.id with
   | none =>
       failureVerdict query property .unsupported {
@@ -271,35 +273,24 @@ def evaluateObservationProperty
           relatedDefinitionIds := [query.id, property.id]
         }
       else
-        match observationResult with
-        | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
-            observationEvaluationFailureVerdict query property diagnostic
-        | .accepted trace =>
-            match vocabularyFailure property trace with
-            | some diagnostic =>
-                failureVerdict query property .unsupported diagnostic
-                  (some trace.traceId) (some trace.appliedBound)
-            | none =>
-                if trace.appliedBound.value == 0 ||
-                    trace.evidenceIdentities.length > trace.appliedBound.value then
-                  failureVerdict query property .unknown {
-                    kind := .invalidEvidenceBound
-                    relatedDefinitionIds := [trace.mappingId]
-                  } (some trace.traceId) (some trace.appliedBound)
-                else
-                  let missingCapabilities := capabilityMismatch property
-                  if !missingCapabilities.isEmpty then
-                    failureVerdict query property .unsupported {
-                      kind := .missingCapability
-                      relatedDefinitionIds := missingCapabilities
-                    } (some trace.traceId) (some trace.appliedBound)
-                else if !property.hasRequiredLogicalTime trace.trace then
-                    failureVerdict query property .unknown {
-                      kind := .missingLogicalTime
-                      relatedDefinitionIds := property.access.logicalTimeSource.toList
-                    } (some trace.traceId) (some trace.appliedBound)
-                  else
-                    resolvedVerdict query property trace
+        match vocabularyFailure property trace with
+        | some diagnostic =>
+            failureVerdict query property .unsupported diagnostic
+              (some trace.traceId) (some trace.appliedBound)
+        | none =>
+            let missingCapabilities := capabilityMismatch property
+            if !missingCapabilities.isEmpty then
+              failureVerdict query property .unsupported {
+                kind := .missingCapability
+                relatedDefinitionIds := missingCapabilities
+              } (some trace.traceId) (some trace.appliedBound)
+            else if !property.hasRequiredLogicalTime trace.trace then
+              failureVerdict query property .unknown {
+                kind := .missingLogicalTime
+                relatedDefinitionIds := property.access.logicalTimeSource.toList
+              } (some trace.traceId) (some trace.appliedBound)
+            else
+              resolvedVerdict query property trace
 
 private def verdictLe (left right : SemanticPropertyVerdict) : Bool :=
   decide (reprStr left ≤ reprStr right)
