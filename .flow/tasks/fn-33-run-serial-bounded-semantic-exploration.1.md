@@ -12,7 +12,7 @@ Define the fixed canonical bridge frames and checked binding envelope for one ca
 
 ### Approach
 - Support `initialize`, `next`, `observe`, and `finish` with at most one candidate and one complete Result binding per frame.
-- Bind Space, fn-17 policy, fn-40 PlannerPolicy, environment, Definition IDs, fingerprints, checksum, and Limits canonically.
+- Bind the exact `CallerClosureFault.preparedResult` Space, fn-17 policy, fn-40 PlannerPolicy, fixed local-loopback Nexus environment, Definition IDs, fingerprints, checksum, and Limits canonically.
 - Reject crossed, stale, duplicate, incomplete, and N/N+1 frames before producing a successor.
 - Reuse the existing v2 Artifact and Run Evaluation boundaries without adding semantic or persistence authority.
 
@@ -21,9 +21,11 @@ Define the fixed canonical bridge frames and checked binding envelope for one ca
 - Parent spec — exact bridge frames and bindings.
 - Fn-17 task `.8` — process-local session seam.
 - Existing fn-18 and fn-20 implementation — admitted Result authority.
+- `model/Temporal/Feature/Nexus/Experimental/CallerClosureFault.lean` and the baseline/duplicate-delivery runtime bindings — the complete runnable campaign universe.
 
 ## Acceptance
 - [ ] Bridge frames carry only the retained checked values and one candidate/Result at a time.
+- [ ] Both candidates in the exact two-choice Space map to an existing runner and Run Evaluation closure; the basic-lifecycle VariationSpace and arbitrary adapters reject.
 - [ ] Representative one-field and cardinality mutations fail closed.
 - [ ] Focused Lean and Go bridge tests pass with existing comments preserved.
 
