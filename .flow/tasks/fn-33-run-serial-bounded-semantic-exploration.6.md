@@ -1,7 +1,7 @@
 ---
 satisfies: [R2, R6]
 ---
-# fn-33-run-resumable-semantic-exploration.6 Enforce the one-active-candidate coordinator boundary
+# fn-33-run-serial-bounded-semantic-exploration.6 Enforce the one-active-candidate coordinator boundary
 
 ## Description
 Make the serial process-local coordinator invariant explicit and testable before runner integration.

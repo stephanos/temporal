@@ -640,7 +640,7 @@
       ]
     },
     {
-      "id": "fn-33-run-resumable-semantic-exploration",
+      "id": "fn-33-run-serial-bounded-semantic-exploration",
       "scope": "umpire-roadmap",
       "disposition": "retained",
       "phase": "p3",

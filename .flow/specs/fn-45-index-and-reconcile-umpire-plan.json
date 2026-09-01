@@ -8,14 +8,11 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-45-index-and-reconcile-umpire-plan",
-  "impl_review_rounds": {
-    "fn-45-index-and-reconcile-umpire-plan.3": 0,
-    "fn-45-index-and-reconcile-umpire-plan.4": 0
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-09-01T09:03:47.002488Z",
+  "plan_reviewed_at": "2026-09-01T10:18:14.199574Z",
   "review_attempts": [
     {
       "artifact_sha256": "1f00eb5b62beb907adbcd81c74af13bac5149abdd2ad80944f6c48c53a63284d",
@@ -954,15 +951,121 @@
       "task": "fn-45-index-and-reconcile-umpire-plan.4",
       "timestamp": "2026-09-01T09:50:05.990912Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4463cbe1a11fe9b6e25f69c6592cf12a5987fbf887493f4ba2e58e6732a943c7",
+      "backend": "codex",
+      "base_sha": "5e4def302ce9fe4ba0c875ce882977b3699bf118",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-97e1bb037b4b305bcf8484eacc4e88f2",
+            "classification": "introduced",
+            "findingId": "finding-97e1bb037b4b305bcf8484eacc4e88f2",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a70945bd55bb8a62817756ac6782cfd0",
+            "classification": "introduced",
+            "findingId": "finding-a70945bd55bb8a62817756ac6782cfd0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 10,
+      "head_sha": "9f771c7e64d3e7299a60f2bc0848bed4b9b5409e",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 451049,
+      "output_sha256": "e099baf4637f05704d0ef4b8d6ec9ffd96852b467cd768238c51fa7d3177314a",
+      "reservation_id": "535e9c73d6574db39acf5d725dfcd091",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T10:16:48.474777Z",
+      "tool_calls": 18,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8728f217da1ed937ecf3ddc7400de7d47f7e39719b4cc89567e7c4211aa749e8",
+      "backend": "codex",
+      "base_sha": "5e4def302ce9fe4ba0c875ce882977b3699bf118",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-97e1bb037b4b305bcf8484eacc4e88f2",
+            "classification": "introduced",
+            "findingId": "finding-97e1bb037b4b305bcf8484eacc4e88f2",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-a70945bd55bb8a62817756ac6782cfd0",
+            "classification": "introduced",
+            "findingId": "finding-a70945bd55bb8a62817756ac6782cfd0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 10,
+      "head_sha": "9f771c7e64d3e7299a60f2bc0848bed4b9b5409e",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 226,
+      "output_sha256": "ab59fa438f13b439200c240373ef68634f389f87d465942c1b6c766cac856013",
+      "reservation_id": "43e7ccfb53f64d988718df69d2618d70",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T10:18:14.194258Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-45-index-and-reconcile-umpire-plan.1": 2,
     "impl:fn-45-index-and-reconcile-umpire-plan.2": 2,
-    "impl:fn-45-index-and-reconcile-umpire-plan.3": 1,
-    "impl:fn-45-index-and-reconcile-umpire-plan.4": 1,
-    "plan": 9,
-    "plan#completion": 4
+    "impl:fn-45-index-and-reconcile-umpire-plan.3": 2,
+    "impl:fn-45-index-and-reconcile-umpire-plan.4": 2,
+    "impl:fn-45-index-and-reconcile-umpire-plan.5": 1,
+    "plan": 11,
+    "plan#completion": 5
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -987,5 +1090,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T09:50:05.995963Z"
+  "updated_at": "2026-09-01T10:18:14.200378Z"
 }
