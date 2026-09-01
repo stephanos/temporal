@@ -8,13 +8,11 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-45-index-and-reconcile-umpire-plan",
-  "impl_review_rounds": {
-    "fn-45-index-and-reconcile-umpire-plan.1": 0
-  },
+  "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-09-01T07:41:32.896083Z",
+  "plan_reviewed_at": "2026-09-01T08:31:56.742615Z",
   "review_attempts": [
     {
       "artifact_sha256": "1f00eb5b62beb907adbcd81c74af13bac5149abdd2ad80944f6c48c53a63284d",
@@ -534,12 +532,117 @@
       "task": "fn-45-index-and-reconcile-umpire-plan.1",
       "timestamp": "2026-09-01T08:14:04.150780Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "212077d9b3784389bf42010535be7e1689f0e720fb91dca07b01c0ad347b58ac",
+      "backend": "codex",
+      "base_sha": "5e4def302ce9fe4ba0c875ce882977b3699bf118",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f42a1e577ef941143c22d942097d40fd",
+            "classification": "introduced",
+            "findingId": "finding-f42a1e577ef941143c22d942097d40fd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d31c9524c9621d6fb619021718436291",
+            "classification": "introduced",
+            "findingId": "finding-d31c9524c9621d6fb619021718436291",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 4,
+      "head_sha": "361d856632134e506498cd42a233c0de515f8d6f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 449515,
+      "output_sha256": "2a2a3764423415b297bed0c54173fbda235e25c2a50b510e6a65c44afc4b1a51",
+      "reservation_id": "5ebaa0ee34674e569747e883695e0f27",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T08:30:41.349577Z",
+      "tool_calls": 11,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "44d0b3cb81c842db388df263e27b74cd4d3bc91711aed07a0690d3645738f893",
+      "backend": "codex",
+      "base_sha": "5e4def302ce9fe4ba0c875ce882977b3699bf118",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f42a1e577ef941143c22d942097d40fd",
+            "classification": "introduced",
+            "findingId": "finding-f42a1e577ef941143c22d942097d40fd",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d31c9524c9621d6fb619021718436291",
+            "classification": "introduced",
+            "findingId": "finding-d31c9524c9621d6fb619021718436291",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 4,
+      "head_sha": "361d856632134e506498cd42a233c0de515f8d6f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 83,
+      "output_sha256": "40d2d19134681e086a006dfc0c8bb45ef809e3140d67088c1eab2d9a33648691",
+      "reservation_id": "0a8f3bc8efe84419a1d2d90e78200106",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T08:31:56.737305Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-45-index-and-reconcile-umpire-plan.1": 1,
-    "plan": 3,
-    "plan#completion": 1
+    "impl:fn-45-index-and-reconcile-umpire-plan.1": 2,
+    "plan": 5,
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -561,5 +664,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T08:14:04.155121Z"
+  "updated_at": "2026-09-01T08:31:56.743256Z"
 }
