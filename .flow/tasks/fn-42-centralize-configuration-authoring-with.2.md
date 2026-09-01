@@ -32,6 +32,13 @@ Migrate all six owner declarations and their cross-owner metadata coverage to th
 - This is an authorized hard cut of unused authoring symbols, not permission to rename or remove the consumer-facing use functions and registries.
 - Shared configuration must remain owner-independent, and owner-specific scalar/address decoders and exact-context constructors stay in their current modules.
 
+### Lifecycle reconciliation
+
+The hard-cut implementation and its acceptance hardening remain reachable at commits
+`b5868effd0c023a6efef893ed9aec502bb40b1a0`, `cd9cfc2454fed801f95811972b4523a9c4d30d92`,
+and `32ffa50c84d1892b42270c90b70b128a7b850ee8`. This reopened lifecycle run verifies
+that existing implementation rather than introducing duplicate source changes.
+
 ### Acceptance
 - [ ] Exactly four Callback and two Matching specs produce the same ordered checked-definition metadata and registry keys as before.
 - [ ] No owner-local `DefinitionResult`, named `isSome` witness, duplicate classification/interpretation record, or obsolete classification aggregate remains.
