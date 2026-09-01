@@ -52,14 +52,20 @@ that existing implementation rather than introducing duplicate source changes.
 - [ ] Full model and lint gates satisfy R5 with no generated or unrelated changes.
 
 ## Done summary
-Hard-cut exactly four Callback and two Matching settings to private `ConfigUseSpec` declarations with inline proof-only checked extraction while preserving public contexts, registries, use functions, behavior, and comments. Cross-owner integration coverage now pins the complete ordered checked-definition metadata for all six settings.
+Reconciled the reopened task lifecycle to the reachable hard-cut implementation at `b5868effd0c023a6efef893ed9aec502bb40b1a0` and its acceptance hardening at `cd9cfc2454fed801f95811972b4523a9c4d30d92` and `32ffa50c84d1892b42270c90b70b128a7b850ee8`, without duplicating production changes. Fresh current-tree verification and a same-session Codex review confirm the four Callback and two Matching specs retain their exact checked metadata, stable consumer interfaces, behavior, and R3-R5 coverage.
 
-baseline: green via handoff (verified at e6d56be2 by fn-42-centralize-configuration-authoring-with.1; required `make lint-model` rerun passed)
+baseline: green via handoff (verified at 51437e6d by fn-42-centralize-configuration-authoring-with.1); fresh aggregate model, full model build, and model lint baselines passed
 
-stage: impl-review - ran [2026-08-28T23:54:15Z..2026-08-28T23:57:48Z] (codex; SHIP)
+GATE_SKIPPED:focused-config:docs-only - cumulative diff classified tier-B (no executable paths touched)
+
+GATE_SKIPPED:aggregate-model:docs-only - cumulative diff classified tier-B (no executable paths touched)
+
+GATE_SKIPPED:umpire-model:docs-only - cumulative diff classified tier-B (no executable paths touched)
+
+stage: impl-review - ran [2026-09-01T06:54:24Z..2026-09-01T06:56:41Z] (codex; SHIP)
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: b5868effd0c023a6efef893ed9aec502bb40b1a0
-- Tests: cd model && mise exec -- lake build Temporal.System.Callback.ConfigurationTests Temporal.System.Matching.ConfigurationTests Temporal.System.ConfigurationIntegrationTests, cd model && mise exec -- lake build Temporal.System.Configuration.Tests, cd model && mise exec -- lake build TemporalModelTests, make umpire-build-model, make lint-model
+- Commits: 9d8a2c159f290ee9e464afacc9b30c7d4a4c63c6, 6b21cd8f17d38814d65cc3cfa99e20b56e992b80
+- Tests: baseline: green via handoff (verified at 51437e6d by fn-42-centralize-configuration-authoring-with.1), cd model && mise exec -- lake build Temporal.System.Callback.ConfigurationTests Temporal.System.Matching.ConfigurationTests Temporal.System.ConfigurationIntegrationTests, cd model && mise exec -- lake build TemporalModelTests, make umpire-build-model, make lint-model, GATE_SKIPPED:focused-config:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:aggregate-model:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:umpire-model:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
