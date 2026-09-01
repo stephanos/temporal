@@ -29,9 +29,12 @@ Add the smallest versioned protobuf vocabulary that can carry one closed per-tes
 - [ ] `make proto`, focused proto lint, and Umpire spec checks pass with generated outputs included.
 
 ## Done summary
-TBD
+Defined the versioned, closed Umpire protobuf evaluation-contract vocabulary and generated Go surface, then reconciled the normative portable-interpreter, strict-admission, and per-test local-decision rules in the Umpire 4 specification.
 
+Verification: `make proto`, `go test -count=1 -tags test_dep ./api/umpire/v1`, and `make lint-model` passed. `make umpire-check-regression` reproduced the approved inherited pre-edit red at `model/Umpire/SemanticInventory/KnownGaps.lean:296`; `make lint-code` remained inherited-red with no findings under `api/umpire`, and the later-task `Temporal.Tool.PortableEvaluationContractTests` target is DEFERRED(task .3).
+
+stage: impl-review - ran [2026-09-01T17:33:23Z..2026-09-01T17:40:01Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4fb4b7658e8a442fd52455ead88897d0f0a3b6e3
+- Tests: make proto, go test -count=1 -tags test_dep ./api/umpire/v1, make lint-model, INHERITED_RED: make umpire-check-regression (pre-edit and verify: model/Umpire/SemanticInventory/KnownGaps.lean:296 active vocabulary), INHERITED_RED: make lint-code (1373 pre-existing repository-wide findings; no api/umpire findings), DEFERRED(task .3): cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests
 - PRs:
