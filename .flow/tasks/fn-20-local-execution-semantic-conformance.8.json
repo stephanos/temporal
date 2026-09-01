@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-01T00:05:35.540903Z",
+  "depends_on": [
+    "fn-20-local-execution-semantic-conformance.7"
+  ],
+  "id": "fn-20-local-execution-semantic-conformance.8",
+  "priority": null,
+  "spec": "fn-20-local-execution-semantic-conformance",
+  "spec_path": ".flow/tasks/fn-20-local-execution-semantic-conformance.8.md",
+  "status": "todo",
+  "title": "Prove causal ordering against skewed wall clocks",
+  "updated_at": "2026-09-01T00:05:35.540903Z"
+}
