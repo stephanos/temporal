@@ -178,6 +178,25 @@ private def acceptedTrace? (bundle : EvidenceBundle) : Option EvidenceBackedTrac
   | .accepted trace => some trace
   | _ => none
 
+private def uncheckedTraceOf (trace : EvidenceBackedTrace) : UncheckedEvidenceBackedTrace := {
+  traceId := trace.traceId
+  checkedPlan := trace.checkedPlan
+  mappingId := trace.mappingId
+  mappingVersion := trace.mappingVersion
+  mappingDigest := trace.mappingDigest
+  source := trace.source
+  profileId := trace.profileId
+  profileVersion := trace.profileVersion
+  sourceClosed := trace.sourceClosed
+  vocabulary := trace.vocabulary
+  dispositions := trace.dispositions
+  appliedBound := trace.appliedBound
+  evidenceIdentities := trace.evidenceIdentities
+  recordSupport := trace.recordSupport
+  trace := trace.trace
+  evidenceLinks := trace.evidenceLinks
+}
+
 def repeatedEvidenceTrace : EvidenceBackedTrace :=
   (acceptedTrace? repeatedEvidence).get (by native_decide)
 
@@ -538,56 +557,62 @@ def impossibleInitialApplication := applyImplementationLink checkedLink
 def impossibleStepApplication := applyImplementationLink checkedLink
   Umpire.Examples.Switch.switchSetup impossibleStepTrace
 
-def invalidCoordinateTrace : EvidenceBackedTrace := {
-  repeatedEvidenceTrace with
+private def repeatedUncheckedEvidenceTrace : UncheckedEvidenceBackedTrace :=
+  uncheckedTraceOf repeatedEvidenceTrace
+
+def invalidCoordinateTrace : UncheckedEvidenceBackedTrace := {
+  repeatedUncheckedEvidenceTrace with
   evidenceLinks := repeatedEvidenceTrace.evidenceLinks.mapIdx fun index evidenceLink =>
     if index == 0 then { evidenceLink with coordinate := .selectedAction 0 } else evidenceLink
 }
 
-def invalidCoordinateApplication := applyImplementationLink checkedLink
-  Umpire.Examples.Switch.switchSetup invalidCoordinateTrace
-
-def absentCoordinateTrace : EvidenceBackedTrace := {
-  repeatedEvidenceTrace with evidenceLinks := repeatedEvidenceTrace.evidenceLinks.tail
+def absentCoordinateTrace : UncheckedEvidenceBackedTrace := {
+  repeatedUncheckedEvidenceTrace with evidenceLinks := repeatedEvidenceTrace.evidenceLinks.tail
 }
 
-def absentCoordinateApplication := applyImplementationLink checkedLink
-  Umpire.Examples.Switch.switchSetup absentCoordinateTrace
-
-def duplicateCoordinateTrace : EvidenceBackedTrace := {
-  repeatedEvidenceTrace with
+def duplicateCoordinateTrace : UncheckedEvidenceBackedTrace := {
+  repeatedUncheckedEvidenceTrace with
   evidenceLinks := repeatedEvidenceTrace.evidenceLinks.head?.toList ++
     repeatedEvidenceTrace.evidenceLinks
 }
 
-def duplicateCoordinateApplication := applyImplementationLink checkedLink
-  Umpire.Examples.Switch.switchSetup duplicateCoordinateTrace
-
-def contradictoryCoordinateTrace : EvidenceBackedTrace := {
-  repeatedEvidenceTrace with
+def contradictoryCoordinateTrace : UncheckedEvidenceBackedTrace := {
+  repeatedUncheckedEvidenceTrace with
   evidenceLinks := (repeatedEvidenceTrace.evidenceLinks.head?.map fun evidenceLink => {
     evidenceLink with ruleId := id "test.implementation-link.rule.contradiction"
   }).toList ++ repeatedEvidenceTrace.evidenceLinks
 }
 
-def contradictoryCoordinateApplication := applyImplementationLink checkedLink
-  Umpire.Examples.Switch.switchSetup contradictoryCoordinateTrace
-
-def mismatchedEvidenceLinkTrace : EvidenceBackedTrace := {
-  repeatedEvidenceTrace with
+def mismatchedEvidenceLinkTrace : UncheckedEvidenceBackedTrace := {
+  repeatedUncheckedEvidenceTrace with
   evidenceLinks := repeatedEvidenceTrace.evidenceLinks.mapIdx fun index evidenceLink =>
     if index == 0 then { evidenceLink with mappingDigest := "sha256:mismatched" }
     else evidenceLink
 }
-
-def mismatchedEvidenceLinkApplication := applyImplementationLink checkedLink
-  Umpire.Examples.Switch.switchSetup mismatchedEvidenceLinkTrace
 
 def limitApplication := applyImplementationLink checkedLimitedLink
   Umpire.Examples.Switch.switchSetup repeatedEvidenceTrace
 
 def knownGapApplication := applyImplementationLink checkedGapLink
   Umpire.Examples.Switch.switchSetup repeatedEvidenceTrace
+
+/-- Malformed unchecked wrappers fail at Observation admission before Link application. -/
+def observationAdmissionFailureMatrix :
+    List (ObservationStatus × Option ObservationFailureKind) :=
+  [invalidCoordinateTrace, absentCoordinateTrace, duplicateCoordinateTrace,
+    contradictoryCoordinateTrace, mismatchedEvidenceLinkTrace].map fun trace =>
+      match validateEvidenceBackedTrace trace with
+      | .ok _ => (.accepted, none)
+      | .error diagnostic => (diagnostic.status, some diagnostic.kind)
+
+example : observationAdmissionFailureMatrix = [
+  (.unknown, some .absentModelCoordinate),
+  (.unknown, some .absentModelCoordinate),
+  (.conflict, some .duplicateModelCoordinate),
+  (.conflict, some .duplicateModelCoordinate),
+  (.conflict, some .inconsistentEvidenceLink)
+] := by
+  native_decide
 
 /-- The positive application returns the complete repeated-value trace with one link per position. -/
 example : completeApplication.applied?.map (fun application =>
@@ -633,31 +658,16 @@ def failureMatrix : List (ImplementationLinkStatus × Option ImplementationLinkF
     impossibleInitialApplication.diagnostic?.map ImplementationLinkDiagnostic.kind),
   (impossibleStepApplication.status,
     impossibleStepApplication.diagnostic?.map ImplementationLinkDiagnostic.kind),
-  (invalidCoordinateApplication.status,
-    invalidCoordinateApplication.diagnostic?.map ImplementationLinkDiagnostic.kind),
-  (absentCoordinateApplication.status,
-    absentCoordinateApplication.diagnostic?.map ImplementationLinkDiagnostic.kind),
-  (duplicateCoordinateApplication.status,
-    duplicateCoordinateApplication.diagnostic?.map ImplementationLinkDiagnostic.kind),
-  (contradictoryCoordinateApplication.status,
-    contradictoryCoordinateApplication.diagnostic?.map ImplementationLinkDiagnostic.kind),
-  (mismatchedEvidenceLinkApplication.status,
-    mismatchedEvidenceLinkApplication.diagnostic?.map ImplementationLinkDiagnostic.kind),
   (limitApplication.status, limitApplication.diagnostic?.map ImplementationLinkDiagnostic.kind),
   (knownGapApplication.status,
     knownGapApplication.diagnostic?.map ImplementationLinkDiagnostic.kind)
 ]
 
-/-- Source admission, coordinate, Evidence Link, Limit, and Known Gap failures stay exact. -/
+/-- Source admission, Limit, and Known Gap failures stay exact for admitted traces. -/
 example : failureMatrix = [
   (.invalid, some .sourceSetupMismatch),
   (.invalid, some .nonAuthoritativeSourceInitial),
   (.invalid, some .nonAuthoritativeSourceStep),
-  (.invalid, some .invalidCoordinate),
-  (.unknown, some .absentCoordinate),
-  (.conflict, some .duplicateCoordinate),
-  (.conflict, some .contradictoryCoordinate),
-  (.conflict, some .evidenceLinkMismatch),
   (.unknown, some .limitReached),
   (.unsupported, some .knownGap)
 ] := by
@@ -695,14 +705,9 @@ example : [
   setupMismatchApplication.applied?.isSome,
   impossibleInitialApplication.applied?.isSome,
   impossibleStepApplication.applied?.isSome,
-  invalidCoordinateApplication.applied?.isSome,
-  absentCoordinateApplication.applied?.isSome,
-  duplicateCoordinateApplication.applied?.isSome,
-  contradictoryCoordinateApplication.applied?.isSome,
-  mismatchedEvidenceLinkApplication.applied?.isSome,
   limitApplication.applied?.isSome,
   knownGapApplication.applied?.isSome
-] = List.replicate 10 false := by
+] = List.replicate 5 false := by
   native_decide
 
 /-- Diagnostic identity is the fingerprint of every canonical provenance field. -/

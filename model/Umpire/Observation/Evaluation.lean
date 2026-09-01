@@ -212,8 +212,8 @@ structure EvidenceLink where
   meaningDigest : String
   deriving BEq, DecidableEq, Repr
 
-/-- Complete auditable wrapper around the unchanged immutable Model Trace. -/
-structure EvidenceBackedTrace where
+/-- Wide unchecked carrier used only while assembling and negatively testing trace admission. -/
+structure UncheckedEvidenceBackedTrace where
   traceId : String
   checkedPlan : CheckedObservationPlan
   mappingId : DefinitionId
@@ -231,6 +231,50 @@ structure EvidenceBackedTrace where
   trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
   evidenceLinks : List EvidenceLink
   deriving BEq, DecidableEq, Repr
+
+/--
+Complete auditable wrapper around the unchanged immutable Model Trace. Its private constructor
+ensures that only successful Observation admission can produce one.
+-/
+structure EvidenceBackedTrace where
+  private mk ::
+  traceId : String
+  checkedPlan : CheckedObservationPlan
+  mappingId : DefinitionId
+  mappingVersion : Nat
+  mappingDigest : String
+  source : SourceLocation
+  profileId : DefinitionId
+  profileVersion : Nat
+  sourceClosed : Bool
+  vocabulary : List MeaningProvision
+  dispositions : List FieldDispositionDeclaration
+  appliedBound : EvidenceBound
+  evidenceIdentities : List DefinitionId
+  recordSupport : List EvidenceRecordSupport
+  trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
+  evidenceLinks : List EvidenceLink
+  deriving BEq, DecidableEq, Repr
+
+private def EvidenceBackedTrace.ofUnchecked
+    (unchecked : UncheckedEvidenceBackedTrace) : EvidenceBackedTrace := {
+  traceId := unchecked.traceId
+  checkedPlan := unchecked.checkedPlan
+  mappingId := unchecked.mappingId
+  mappingVersion := unchecked.mappingVersion
+  mappingDigest := unchecked.mappingDigest
+  source := unchecked.source
+  profileId := unchecked.profileId
+  profileVersion := unchecked.profileVersion
+  sourceClosed := unchecked.sourceClosed
+  vocabulary := unchecked.vocabulary
+  dispositions := unchecked.dispositions
+  appliedBound := unchecked.appliedBound
+  evidenceIdentities := unchecked.evidenceIdentities
+  recordSupport := unchecked.recordSupport
+  trace := unchecked.trace
+  evidenceLinks := unchecked.evidenceLinks
+}
 
 /-- Observation Evaluation never exposes a partial Model Trace; only `accepted` carries one. -/
 inductive ObservationResult where
@@ -947,7 +991,7 @@ private def recordPrecedes
 
 private def evaluateChecked
     (plan : CheckedObservationPlan)
-    (bundle : EvidenceBundle) : Except ObservationDiagnostic EvidenceBackedTrace := do
+    (bundle : EvidenceBundle) : Except ObservationDiagnostic UncheckedEvidenceBackedTrace := do
   if bundle.records.length > plan.evidenceBound.value then
     throw {
       (diagnostic plan .evidenceBoundExhausted) with
@@ -1067,7 +1111,7 @@ private def evaluateChecked
   }
   let evidenceIdentities := records.map SyntheticEvidenceRecord.id
   let recordSupport ← records.mapM (evidenceRecordSupport plan)
-  let accepted : EvidenceBackedTrace := {
+  let unchecked : UncheckedEvidenceBackedTrace := {
     traceId := evidenceBackedTraceId plan.behaviorFingerprint.render evidenceIdentities recordSupport trace
       evidenceLinks
     checkedPlan := plan
@@ -1086,7 +1130,7 @@ private def evaluateChecked
     trace
     evidenceLinks
   }
-  pure accepted
+  pure unchecked
 
 private def evidenceLinkEvidenceIds (evidenceLinks : List EvidenceLink) : List DefinitionId :=
   canonicalIds (evidenceLinks.flatMap EvidenceLink.evidenceIdentities)
@@ -1137,7 +1181,7 @@ private def canonicalOrderingFacts
         return first :: (← canonicalOrderingFacts mappingId (second :: rest))
 
 private def validateOrderingProvenance
-    (trace : EvidenceBackedTrace) : Except ObservationDiagnostic (List EvidenceOrderingFact) := do
+    (trace : UncheckedEvidenceBackedTrace) : Except ObservationDiagnostic (List EvidenceOrderingFact) := do
   let ordered := (trace.evidenceLinks.flatMap EvidenceLink.orderingSupport).mergeSort
     orderingFactByRecordLe
   let facts := (← canonicalOrderingFacts trace.mappingId ordered).mergeSort orderingFactBySequenceLe
@@ -1233,7 +1277,7 @@ private def validateOrderingProvenance
   pure facts
 
 private def validateClosureProvenance
-    (trace : EvidenceBackedTrace)
+    (trace : UncheckedEvidenceBackedTrace)
     (ordering : List EvidenceOrderingFact) : Except ObservationDiagnostic Unit := do
   let closures := trace.evidenceLinks.head?.map fun evidenceLink =>
     evidenceLink.closureSupport.mergeSort closureLe
@@ -1306,7 +1350,7 @@ private def validateClosureProvenance
       }
 
 private def validateAppliedDisposition
-    (trace : EvidenceBackedTrace)
+    (trace : UncheckedEvidenceBackedTrace)
     (evidenceLink : EvidenceLink)
     (applied : AppliedFieldDisposition) : Except ObservationDiagnostic Unit := do
   let expected ← match trace.dispositions.find? fun declaration => declaration.field == applied.field with
@@ -1370,7 +1414,7 @@ private def renderedEvidenceValue
       else none
 
 private partial def evaluateProvenanceExpression
-    (trace : EvidenceBackedTrace)
+    (trace : UncheckedEvidenceBackedTrace)
     (evidenceLink : EvidenceLink)
     (expression : CheckedObservationExpression)
     (visited : List DefinitionId := []) : Except ObservationDiagnostic EvidenceValue := do
@@ -1458,7 +1502,7 @@ private partial def evaluateProvenanceExpression
           pure (.text first)
 
 private def validateCheckedProvenance
-    (trace : EvidenceBackedTrace)
+    (trace : UncheckedEvidenceBackedTrace)
     (evidenceLink : EvidenceLink) : Except ObservationDiagnostic Unit := do
   let plan := trace.checkedPlan
   let rule ← match plan.rules.find? fun candidate => candidate.id == evidenceLink.ruleId with
@@ -1502,7 +1546,7 @@ private def validateCheckedProvenance
     }
 
 private def validateRecordSupport
-    (trace : EvidenceBackedTrace)
+    (trace : UncheckedEvidenceBackedTrace)
     (ordering : List EvidenceOrderingFact) : Except ObservationDiagnostic Unit := do
   if trace.recordSupport.map EvidenceRecordSupport.recordId != trace.evidenceIdentities then
     throw { kind := .unconsumedReference, planId := trace.mappingId }
@@ -1569,8 +1613,9 @@ private def validateRecordSupport
           relatedDefinitionIds := [support.recordId, field.field]
         }
 
-/-- Revalidate a wrapper before any downstream property evaluation. -/
-def validateEvidenceBackedTrace (trace : EvidenceBackedTrace) : Except ObservationDiagnostic Unit := do
+/-- Admit a complete unchecked carrier as an immutable semantic trace. -/
+def validateEvidenceBackedTrace
+    (trace : UncheckedEvidenceBackedTrace) : Except ObservationDiagnostic EvidenceBackedTrace := do
   let plan := trace.checkedPlan
   if !plan.hasCanonicalIdentity ||
       trace.mappingId != plan.id || trace.mappingVersion != plan.version ||
@@ -1620,15 +1665,16 @@ def validateEvidenceBackedTrace (trace : EvidenceBackedTrace) : Except Observati
   if trace.traceId != evidenceBackedTraceId trace.mappingDigest trace.evidenceIdentities
       trace.recordSupport trace.trace trace.evidenceLinks then
     throw { kind := .inconsistentEvidenceLink, planId := trace.mappingId }
+  pure (EvidenceBackedTrace.ofUnchecked trace)
 
 /-- Evaluate Evidence without exposing an intermediate or partially constructed Model Trace. -/
 def evaluateEvidence
     (plan : CheckedObservationPlan)
     (bundle : EvidenceBundle) : ObservationResult :=
   match evaluateChecked plan bundle with
-  | .ok trace =>
-      match validateEvidenceBackedTrace trace with
-      | .ok _ => .accepted trace
+  | .ok unchecked =>
+      match validateEvidenceBackedTrace unchecked with
+      | .ok trace => .accepted trace
       | .error failure => resultOfDiagnostic failure
   | .error failure => resultOfDiagnostic failure
 
