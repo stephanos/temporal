@@ -4,35 +4,33 @@ satisfies: [R2]
 # fn-5-umpire-discovery-promotion-and-artifact.5 Bind the duplicate-delivery promotion candidate
 
 ## Description
-Create the one static Temporal binding that fn-22 may invoke only after its reproduction,
-minimization, and Exact Replay gates pass.
+Create the one static Temporal binding whose inert checked proposal fn-22 may cross-bind only after
+its reproduction, minimization, and Exact Replay gates pass.
 
 **Size:** M
-**Files:** `model/Temporal/Feature/Nexus/Experimental/CallerClosurePromotion.lean`, `model/Temporal/Feature/Nexus/Experimental/CallerClosurePromotionTests.lean`, `model/Temporal/Tool/PromotionEligibility.lean`, `model/Temporal/Tool/PromotionBinding.lean`, `model/Temporal/Tool/PromotionBindingTests.lean`
-**Touches:** [model/Temporal/Feature/Nexus/Experimental/CallerClosurePromotion.lean, model/Temporal/Feature/Nexus/Experimental/CallerClosurePromotionTests.lean, model/Temporal/Tool/PromotionEligibility.lean, model/Temporal/Tool/PromotionBinding.lean, model/Temporal/Tool/PromotionBindingTests.lean]
+**Files:** `model/Temporal/Feature/Nexus/Experimental/CallerClosurePromotion.lean`, `model/Temporal/Feature/Nexus/Experimental/CallerClosurePromotionTests.lean`, `model/Temporal/Tool/PromotionBinding.lean`, `model/Temporal/Tool/PromotionBindingTests.lean`
+**Touches:** [model/Temporal/Feature/Nexus/Experimental/CallerClosurePromotion.lean, model/Temporal/Feature/Nexus/Experimental/CallerClosurePromotionTests.lean, model/Temporal/Tool/PromotionBinding.lean, model/Temporal/Tool/PromotionBindingTests.lean]
 
 ### Approach
 
-- Register exactly `temporal.nexus.caller-closure.promotion.cancel-unique-regression` against the
-  existing duplicate-delivery negative-control Query, target, kernel, and expected count-one plan.
+- Register exactly `temporal.nexus.caller-closure.promotion.cancel-unique-regression` against two
+  explicit lineages: the unchanged `exactActionQuery`, target, kernel, PlannerRun, and base
+  `ExperimentSpec` that supply the expected count-one trace; and the selected duplicate-delivery
+  Space-point `ExperimentSpec` whose distinct identity/checksum is reproduced and minimized by fn-22.
 - Fix fresh promoted identities `workflow-nexus.behavior.regression.cancel-is-unique` and
   `workflow-nexus.query.regression.cancel-is-unique`; reject collisions with every identity exposed
   by the closed Nexus discovery inventory.
 - Bind the exact required imports and compile through task `.4` into one sealed
   `CompiledPromotionSource`.
-- Define the exact `umpire-reviewed-promotion-eligibility/v1` handoff for this candidate. It carries
-  canonical reproduced-result, complete `minimized|irreducible`, and Exact Replay receipt bytes plus
-  their identities/digests and cross-binds them to the same original result, Violation Signature,
-  minimized candidate, checked Query lineage, and fixed promotion binding.
-- Keep `CheckedPromotionEligibility`'s constructor private. Recompute every receipt identity and
-  admit the token only when all gates are successful, complete, canonical, and cross-bound. Resolve
-  the static binding only from that token; a candidate identity alone has no resolution API.
-- Keep the static source binding independent of fn-22 implementation types. Fn-22 produces the
-  canonical handoff after its runtime gates and consumes this fn-5 checker, preserving dependency direction.
+- Emit only inert checked source lineage. Runtime Result, Violation Signature, reproduction,
+  minimization, and Exact Replay receipts never enter the binding or `CompiledPromotionSource`.
+- Keep the static binding independent of fn-22 implementation types. Fn-22 consumes the fixed
+  candidate output, separately validates and cross-binds its runtime lineage, and owns the eligibility
+  claim and review-artifact write, preserving dependency direction.
 
 ### Non-goals
 
-- No candidate registry extension point, generic graph lookup, unchecked identity/source override, observed-trace promotion, or automatic installation.
+- No candidate registry extension point, generic graph lookup, dynamic identity/source override, observed-trace promotion, runtime eligibility claim, or automatic installation.
 
 ### Investigation targets
 
@@ -49,12 +47,11 @@ minimization, and Exact Replay gates pass.
 `cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosurePromotionTests Temporal.Tool.PromotionBindingTests`
 
 ## Acceptance
-- [ ] Exactly one fixed candidate resolves, and only from private-constructor checked eligibility; a bare identity has no production resolution path.
-- [ ] The binding uses the existing fault-bearing Query lineage and its target-owned expected count-one trace, never the observed count-two result.
+- [ ] Exactly one fixed candidate identity resolves, with no path, import, identity, trace, or source override.
+- [ ] The unchanged base Query/PlannerRun/base ExperimentSpec supplies the target-owned expected count-one trace, while the selected fault-bearing ExperimentSpec retains its separate identity/checksum; neither is conflated with the observed count-two result.
 - [ ] The two promoted identities are fixed, fresh, and collision-checked against every retained Nexus discovery identity.
-- [ ] Missing, incomplete, non-success, noncanonical, digest-mismatched, or crossed reproduction/reduction/Exact-Replay receipts fail before binding resolution.
-- [ ] Changed candidate/query/artifact/target/kernel/import/promoted identity or source digest fails before a sealed source is returned.
-- [ ] Runtime/reduction/replay lineage remains outside `CompiledPromotionSource`, and the fn22-to-fn5 dependency direction is preserved.
+- [ ] Changed candidate, base Query/plan/ExperimentSpec, fault-bearing ExperimentSpec, target/kernel/import/promoted identity, or source digest fails before a sealed source is returned.
+- [ ] Direct candidate resolution makes no runtime eligibility claim; runtime/reduction/replay lineage remains outside `CompiledPromotionSource`, and the fn22-to-fn5 dependency direction is preserved.
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
