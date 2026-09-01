@@ -122,6 +122,51 @@ func TestCheckRepositoryRejectsAuthorityCycles(t *testing.T) {
 	}, checkRepository(root, index))
 }
 
+func TestCheckRepositoryRejectsFlowDependencyCycles(t *testing.T) {
+	tests := []struct {
+		name string
+		edit func(string, *planIndex)
+		want string
+	}{
+		{
+			name: "self reference",
+			edit: func(root string, index *planIndex) {
+				index.FlowSpecs[0].SpecDependencies = []string{"fn-1-example"}
+				writeFlowFixture(t, root, "fn-1-example", "open", true, "unknown", []string{"fn-1-example"})
+			},
+			want: `flow dependency graph: cycle fn-1-example -> fn-1-example`,
+		},
+		{
+			name: "two nodes",
+			edit: func(root string, index *planIndex) {
+				index.FlowSpecs[0].SpecDependencies = []string{"fn-2-support"}
+				writeFlowFixture(t, root, "fn-1-example", "open", true, "unknown", []string{"fn-2-support"})
+			},
+			want: `flow dependency graph: cycle fn-1-example -> fn-2-support -> fn-1-example`,
+		},
+		{
+			name: "transitive",
+			edit: func(root string, index *planIndex) {
+				index.FlowSpecs[0].SpecDependencies = []string{"fn-2-support"}
+				index.FlowSpecs[1].SpecDependencies = []string{"fn-3-other"}
+				index.FlowSpecs[2].SpecDependencies = []string{"fn-1-example"}
+				writeFlowFixture(t, root, "fn-1-example", "open", true, "unknown", []string{"fn-2-support"})
+				writeFlowFixture(t, root, "fn-2-support", "open", false, "ship", []string{"fn-3-other"})
+				writeFlowFixture(t, root, "fn-3-other", "done", false, "unknown", []string{"fn-1-example"})
+			},
+			want: `flow dependency graph: cycle fn-1-example -> fn-2-support -> fn-3-other -> fn-1-example`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			root, index := validRepositoryFixture(t)
+			test.edit(root, &index)
+			require.Equal(t, []string{test.want}, checkRepository(root, index))
+		})
+	}
+}
+
 func TestCheckRepositoryValidatesMarkdownLinksAndAllowlist(t *testing.T) {
 	root, index := validRepositoryFixture(t)
 	index.Documents[0].AllowedMissingLinks = []allowedMissingLink{}
