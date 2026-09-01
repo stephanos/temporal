@@ -27,6 +27,32 @@ private def rehashEvidenceBackedTrace
       reprStr trace.evidenceLinks).render
 }
 
+/-- A canonical plan's evidence bound is enforced again at unchecked trace admission. -/
+example :
+    let declaration := {
+      evaluationDeclaration with
+      evidenceBound := { value := 1, unit := .evidenceRecords }
+    }
+    let plan := (checkObservation evaluationContext declaration).toOption.get (by native_decide)
+    let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
+      evidenceLink with
+      mappingDigest := plan.behaviorFingerprint.render
+      appliedBound := plan.evidenceBound
+    }
+    let unchecked := rehashEvidenceBackedTrace {
+      completeUncheckedEvidenceBackedTrace with
+      checkedPlan := plan
+      mappingDigest := plan.behaviorFingerprint.render
+      appliedBound := plan.evidenceBound
+      evidenceLinks
+    }
+    (match validateEvidenceBackedTrace unchecked with
+      | .ok _ => none
+      | .error diagnostic => some (diagnostic.kind, diagnostic.limit, diagnostic.observedCount)) =
+      some (.evidenceBoundExhausted, some plan.evidenceBound,
+        some unchecked.evidenceIdentities.length) := by
+  native_decide
+
 /-- Rehashed wrappers still fail when a rule's required disposition evidence is incomplete. -/
 example :
     let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.mapIdx fun index evidenceLink =>

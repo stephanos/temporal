@@ -1624,6 +1624,12 @@ def validateEvidenceBackedTrace
       trace.vocabulary != plan.meanings || trace.dispositions != plan.dispositions ||
       trace.appliedBound != plan.evidenceBound then
     throw { kind := .inconsistentEvidenceLink, planId := trace.mappingId }
+  if trace.evidenceIdentities.length > trace.appliedBound.value then
+    throw {
+      (diagnostic plan .evidenceBoundExhausted) with
+      limit := some trace.appliedBound
+      observedCount := some trace.evidenceIdentities.length
+    }
   let expected := trace.trace.coordinates
   let actual := trace.evidenceLinks.map EvidenceLink.coordinate
   for coordinate in expected do
