@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -260,6 +261,53 @@ func TestCheckRepositoryValidatesFlowStateAndCrossFields(t *testing.T) {
 		`flow spec fn-3-other: scope other requires disposition out-of-scope and phase none`,
 	}
 	require.Equal(t, want, checkRepository(root, index))
+}
+
+func TestCheckRepositoryRejectsRetainedDependenciesOnDeferredScope(t *testing.T) {
+	tests := []struct {
+		name         string
+		dependencies map[string][]string
+		wantPath     string
+	}{
+		{
+			name:         "direct",
+			dependencies: map[string][]string{"fn-1-example": {"fn-4-deferred"}},
+			wantPath:     "fn-1-example -> fn-4-deferred",
+		},
+		{
+			name: "transitive",
+			dependencies: map[string][]string{
+				"fn-1-example": {"fn-2-support"},
+				"fn-2-support": {"fn-4-deferred"},
+			},
+			wantPath: "fn-1-example -> fn-2-support -> fn-4-deferred",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			root, index := validRepositoryFixture(t)
+			index.FlowSpecs = append(index.FlowSpecs, flowSpecEntry{
+				ID: "fn-4-deferred", Scope: "umpire-roadmap", Disposition: "deferred", Phase: "p3",
+				Status: "open", Ready: false, CompletionReview: "unknown", SpecDependencies: []string{},
+			})
+			writeFlowFixture(t, root, "fn-4-deferred", "open", false, "unknown", nil)
+			for id, dependencies := range test.dependencies {
+				for position := range index.FlowSpecs {
+					if index.FlowSpecs[position].ID != id {
+						continue
+					}
+					index.FlowSpecs[position].SpecDependencies = dependencies
+					entry := index.FlowSpecs[position]
+					writeFlowFixture(t, root, id, entry.Status, entry.Ready, entry.CompletionReview, dependencies)
+				}
+			}
+
+			require.Equal(t, []string{
+				fmt.Sprintf("flow spec fn-1-example: retained dependency path reaches deferred-only scope: %s", test.wantPath),
+			}, checkRepository(root, index))
+		})
+	}
 }
 
 func TestCheckRepositoryReportsInvalidFlowJSONAndCoverage(t *testing.T) {
