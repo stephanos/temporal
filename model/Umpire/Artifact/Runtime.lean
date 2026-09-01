@@ -1,4 +1,5 @@
 import Umpire.Artifact.Codecs
+import Umpire.SemanticInventory.Types
 
 namespace Umpire
 
@@ -120,6 +121,21 @@ def PhaseOutcomeStatus.name : PhaseOutcomeStatus → String
   | .timedOut => "timed-out"
   | .canceled => "canceled"
 
+/-- Canonical documentation and exact constructor matchers for execution-phase outcomes. -/
+def PhaseOutcomeStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier PhaseOutcomeStatus) := [
+  .ofValue .notStarted { name := "not-started", description := "The phase did not start." },
+  .ofValue .succeeded { name := "succeeded", description := "The phase completed successfully." },
+  .ofValue .failed { name := "failed", description := "The phase failed." },
+  .ofValue .timedOut { name := "timed-out", description := "The phase reached its time Limit." },
+  .ofValue .canceled { name := "canceled", description := "The phase was canceled." }
+]
+
+theorem PhaseOutcomeStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne PhaseOutcomeStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
+
 /-- One phase outcome with the exact timestamp/code matrix for its status. -/
 structure PhaseOutcome where
   phase : ExecutionPhase
@@ -147,6 +163,25 @@ def ControlAttemptStatus.name : ControlAttemptStatus → String
   | .canceled => "canceled"
   | .notAttempted => "not-attempted"
 
+/-- Canonical documentation and exact constructor matchers for control attempts. -/
+def ControlAttemptStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier ControlAttemptStatus) := [
+  .ofValue .accepted { name := "accepted", description := "The control was accepted." },
+  .ofValue .rejected { name := "rejected", description := "The control was rejected." },
+  .ofValue .unsupported { name := "unsupported", description := "The control is unsupported." },
+  .ofValue .failed { name := "failed", description := "The control attempt failed." },
+  .ofValue .canceled { name := "canceled", description := "The control attempt was canceled." },
+  .ofValue .notAttempted {
+    name := "not-attempted"
+    description := "The control was explicitly not attempted."
+  }
+]
+
+theorem ControlAttemptStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne ControlAttemptStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
+
 /-- One planned occurrence's bounded control attempt and its receipt-fact identity. -/
 structure ControlAttempt where
   occurrenceDefinitionId : DefinitionId
@@ -169,6 +204,22 @@ def SourceClosureStatus.name : SourceClosureStatus → String
   | .partiallyClosed => "partial"
   | .failed => "failed"
 
+/-- Canonical documentation and exact constructor matchers for evidence-source closure. -/
+def SourceClosureStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier SourceClosureStatus) := [
+  .ofValue .closed { name := "closed", description := "The evidence source closed completely." },
+  .ofValue .partiallyClosed {
+    name := "partial"
+    description := "The evidence source closed only partially."
+  },
+  .ofValue .failed { name := "failed", description := "Closing the evidence source failed." }
+]
+
+theorem SourceClosureStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne SourceClosureStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
+
 /-- Final counts for one canonically identified evidence source. -/
 structure SourceClosure where
   sourceDefinitionId : DefinitionId
@@ -189,6 +240,19 @@ def CleanupStatus.name : CleanupStatus → String
   | .incomplete => "incomplete"
   | .failed => "failed"
 
+/-- Canonical documentation and exact constructor matchers for cleanup. -/
+def CleanupStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier CleanupStatus) := [
+  .ofValue .complete { name := "complete", description := "Cleanup completed." },
+  .ofValue .incomplete { name := "incomplete", description := "Cleanup left open handles." },
+  .ofValue .failed { name := "failed", description := "Cleanup failed." }
+]
+
+theorem CleanupStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne CleanupStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
+
 structure CleanupOutcome where
   status : CleanupStatus
   openHandleCount : Nat
@@ -206,6 +270,19 @@ def OperationalStatus.name : OperationalStatus → String
   | .succeeded => "succeeded"
   | .incomplete => "incomplete"
   | .failed => "failed"
+
+/-- Canonical documentation and exact constructor matchers for overall execution status. -/
+def OperationalStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier OperationalStatus) := [
+  .ofValue .succeeded { name := "succeeded", description := "Execution succeeded." },
+  .ofValue .incomplete { name := "incomplete", description := "Execution is incomplete." },
+  .ofValue .failed { name := "failed", description := "Execution failed." }
+]
+
+theorem OperationalStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne OperationalStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
 
 /-- An inert record of one bounded Run; it carries neither Property nor Claim Assessment. -/
 structure ExperimentRun where
