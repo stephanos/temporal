@@ -12,7 +12,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-09-01T09:00:09.417070Z",
+  "plan_reviewed_at": "2026-09-01T09:03:47.002488Z",
   "review_attempts": [
     {
       "artifact_sha256": "1f00eb5b62beb907adbcd81c74af13bac5149abdd2ad80944f6c48c53a63284d",
@@ -756,13 +756,57 @@
       "task": null,
       "timestamp": "2026-09-01T09:00:09.413196Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9f6e32faed9b6af3245081d8e920b9dcb0192f9a08b8be8264b4760b3c558044",
+      "backend": "codex",
+      "base_sha": "5e4def302ce9fe4ba0c875ce882977b3699bf118",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9218a9ef2910de43a07642d7cfa0f587",
+            "classification": "introduced",
+            "findingId": "finding-9218a9ef2910de43a07642d7cfa0f587",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 8,
+      "head_sha": "7713902833ec83d89d1d9b1b8f6f75f92e706f58",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 110,
+      "output_sha256": "7f26a0084aee2e7bd0197f2631e88bf6a492e6723ac41af24b460c41530f7da6",
+      "reservation_id": "0e9157953cea4d909552b802220d0281",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T09:03:46.998467Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-45-index-and-reconcile-umpire-plan.1": 2,
     "impl:fn-45-index-and-reconcile-umpire-plan.2": 2,
-    "plan": 7,
-    "plan#completion": 3
+    "plan": 9,
+    "plan#completion": 4
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -785,5 +829,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T09:00:09.417663Z"
+  "updated_at": "2026-09-01T09:03:47.003118Z"
 }
