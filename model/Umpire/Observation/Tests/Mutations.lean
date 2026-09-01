@@ -202,37 +202,37 @@ example : (completeEvidenceBackedTrace.mappingDigest, completeEvidenceBackedTrac
     (literalMappingDigest, literalEvidenceLinks literalMappingDigest) := by
   native_decide
 
-def literalEvidenceBackedTrace : EvidenceBackedTrace := {
-  completeEvidenceBackedTrace with
+def literalUncheckedEvidenceBackedTrace : UncheckedEvidenceBackedTrace := {
+  completeUncheckedEvidenceBackedTrace with
   mappingDigest := literalMappingDigest
   evidenceLinks := literalEvidenceLinks literalMappingDigest
 }
 
 def literalFirstEvidenceLink : EvidenceLink :=
-  literalEvidenceBackedTrace.evidenceLinks.head?.get (by native_decide)
+  literalUncheckedEvidenceBackedTrace.evidenceLinks.head?.get (by native_decide)
 
-def missingCoordinateMutation : EvidenceBackedTrace := {
-  literalEvidenceBackedTrace with
-  evidenceLinks := literalEvidenceBackedTrace.evidenceLinks.tail
+def missingCoordinateMutation : UncheckedEvidenceBackedTrace := {
+  literalUncheckedEvidenceBackedTrace with
+  evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.tail
 }
 
-def duplicateModelCoordinateMutation : EvidenceBackedTrace := {
-  literalEvidenceBackedTrace with
-  evidenceLinks := literalFirstEvidenceLink :: literalEvidenceBackedTrace.evidenceLinks
+def duplicateModelCoordinateMutation : UncheckedEvidenceBackedTrace := {
+  literalUncheckedEvidenceBackedTrace with
+  evidenceLinks := literalFirstEvidenceLink :: literalUncheckedEvidenceBackedTrace.evidenceLinks
 }
 
-def shiftedCoordinateMutation : EvidenceBackedTrace := {
-  literalEvidenceBackedTrace with
-  evidenceLinks := literalEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
+def shiftedCoordinateMutation : UncheckedEvidenceBackedTrace := {
+  literalUncheckedEvidenceBackedTrace with
+  evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
     if evidenceLink.coordinate == .observation 1 2 then
       { evidenceLink with coordinate := .observation 1 3 }
     else
       evidenceLink
 }
 
-def missingOrderingMutation : EvidenceBackedTrace := {
-  literalEvidenceBackedTrace with
-  evidenceLinks := literalEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
+def missingOrderingMutation : UncheckedEvidenceBackedTrace := {
+  literalUncheckedEvidenceBackedTrace with
+  evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
     evidenceLink with
     orderingSupport := evidenceLink.orderingSupport.map fun fact =>
       if fact.recordId == stepEvidenceId then
@@ -242,15 +242,15 @@ def missingOrderingMutation : EvidenceBackedTrace := {
   }
 }
 
-def redactedCleartextMutation : EvidenceBackedTrace := {
-  literalEvidenceBackedTrace with
+def redactedCleartextMutation : UncheckedEvidenceBackedTrace := {
+  literalUncheckedEvidenceBackedTrace with
   evidenceLinks := [{
     literalFirstEvidenceLink with
     appliedDispositions := [{
       field := { kind := eventKind, field := secretField }
       evidence := .retained "forbidden-secret"
     }]
-  }] ++ literalEvidenceBackedTrace.evidenceLinks.tail
+  }] ++ literalUncheckedEvidenceBackedTrace.evidenceLinks.tail
 }
 
 /-- Missing, duplicate, shifted, unordered, and cleartext-tainted wrappers fail at named boundaries. -/
@@ -290,7 +290,7 @@ example :
     let mutant := evaluateObservationProperty (verdictQuery [propertyMutation])
       propertyMutation completeEvaluation
     (completeEvaluation.status,
-      diagnosticKindOf (validateEvidenceBackedTrace literalEvidenceBackedTrace),
+      diagnosticKindOf (validateEvidenceBackedTrace literalUncheckedEvidenceBackedTrace),
       baseline.status,
       mutant.status) =
       (.accepted, none, .satisfied, .violated) := by
