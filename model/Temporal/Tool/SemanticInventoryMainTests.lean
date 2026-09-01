@@ -18,6 +18,15 @@ private def runRenderer : IO IO.Process.Output :=
     args := #["exec", "--", "lake", "-q", "exe", "temporal-model-semantic-inventory"]
   }
 
+private def runFixtureProcess (fixture : String) : IO IO.Process.Output :=
+  IO.Process.output {
+    cmd := "mise"
+    args := #[
+      "exec", "--", "lake", "-q", "exe", "temporal-model-semantic-inventory-tests",
+      fixture
+    ]
+  }
+
 private def touchRendererSource : IO Unit := do
   let output ← IO.Process.output {
     cmd := "touch"
@@ -35,6 +44,16 @@ private def processRegression : IO Unit := do
     require (output.exitCode == 0) "renderer process failed"
     require (output.stdout == expected) "renderer stdout was not canonical"
     require output.stderr.isEmpty "renderer wrote diagnostics on success"
+
+private def processFailureRegression : IO Unit := do
+  for (fixture, diagnostic) in [
+    ("invalid-inventory", "invalid outcome family: catalog or owner-local order drift\n"),
+    ("writer-failure", "semantic inventory write failed: injected final writer failure\n")
+  ] do
+    let output ← runFixtureProcess fixture
+    require (output.exitCode != 0) s!"{fixture} process unexpectedly succeeded"
+    require output.stdout.isEmpty s!"{fixture} process wrote stdout"
+    require (output.stderr == diagnostic) s!"{fixture} process diagnostic drifted"
 
 private def streamRegression : IO Unit := do
   let stdout ← IO.mkRef ""
@@ -62,14 +81,36 @@ private def streamRegression : IO Unit := do
 /-- Run stream-boundary and process-level semantic-inventory regressions. -/
 def runRegressions : IO Unit := do
   streamRegression
+  processFailureRegression
   processRegression
+
+/-- Run one subprocess-only failure fixture, when the name is recognized. -/
+def runFixture (fixture : String) : IO (Option UInt32) := do
+  match fixture with
+  | "invalid-inventory" =>
+      some <$> run { currentInventory with outcomeFamilies := [] } IO.print IO.eprint
+  | "writer-failure" =>
+      some <$> run currentInventory
+        (fun _ => fail "injected final writer failure") IO.eprint
+  | _ => pure none
 
 end Temporal.Tool.SemanticInventoryMainTests
 
-def main : IO UInt32 := do
-  try
-    Temporal.Tool.SemanticInventoryMainTests.runRegressions
-    pure 0
-  catch failure =>
-    IO.eprintln s!"semantic-inventory regression: {failure}"
-    pure 1
+def main (args : List String) : IO UInt32 := do
+  match args with
+  | [] =>
+      try
+        Temporal.Tool.SemanticInventoryMainTests.runRegressions
+        pure 0
+      catch failure =>
+        IO.eprintln s!"semantic-inventory regression: {failure}"
+        pure 1
+  | [fixture] =>
+      match ← Temporal.Tool.SemanticInventoryMainTests.runFixture fixture with
+      | some status => pure status
+      | none =>
+          IO.eprintln s!"semantic-inventory regression: unknown fixture {fixture}"
+          pure 1
+  | _ =>
+      IO.eprintln "semantic-inventory regression: expected at most one fixture"
+      pure 1
