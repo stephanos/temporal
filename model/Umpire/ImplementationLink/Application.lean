@@ -1,5 +1,6 @@
 import Umpire.ImplementationLink.Language
 import Umpire.Observation.Evaluation
+import Umpire.SemanticInventory.Types
 
 /-!
 Total application of one checked Implementation Link to an already Evidence-backed source Model
@@ -30,6 +31,45 @@ def ImplementationLinkStatus.name : ImplementationLinkStatus → String
   | .unknown => "unknown"
   | .conflict => "conflict"
   | .unsupported => "unsupported"
+
+/-- Canonical documentation and exact constructor matchers for Implementation Link outcomes. -/
+def ImplementationLinkStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier ImplementationLinkStatus) := [
+  .ofValue .applied {
+    name := "applied"
+    description := "The Implementation Link produced one complete destination Model Trace."
+  },
+  .ofValue .invalid {
+    name := "invalid"
+    description := "The Implementation Link or its source input was invalid."
+  },
+  .ofValue .unknown {
+    name := "unknown"
+    description := "The Implementation Link could not decide within the available input or Limits."
+  },
+  .ofValue .conflict {
+    name := "conflict"
+    description := "The Implementation Link found contradictory mappings or Evidence."
+  },
+  .ofValue .unsupported {
+    name := "unsupported"
+    description := "The Implementation Link does not support the supplied vocabulary."
+  }
+]
+
+/-- Every Implementation Link outcome matches exactly one descriptor. -/
+theorem ImplementationLinkStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne ImplementationLinkStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
+
+/-- Rendered absence for a projection whose optional Implementation Link stage did not run. -/
+def ImplementationLinkStatus.notEvaluatedProjectionSentinel : ProjectionSentinelDescriptor := {
+  id := "implementation-link.not-evaluated"
+  owner := "Implementation Link"
+  name := "not-evaluated"
+  description := "The optional Implementation Link stage was not evaluated."
+}
 
 /-- Exhaustive application failures for the bounded positional prototype. -/
 inductive ImplementationLinkFailureKind where
