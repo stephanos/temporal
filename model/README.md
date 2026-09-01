@@ -236,12 +236,16 @@ current Temporal-owned synthetic profile. The public offline sequence is:
 
 1. Declare an `EvidenceProfileDeclaration` and `ObservationMappingDeclaration` against a checked
    Target, then call `checkObservation` to obtain one canonical `CheckedObservationPlan`.
-2. Supply one complete synthetic `EvidenceBundle` and call `evaluateEvidence`. Only the `accepted`
-   result carries an `EvidenceBackedTrace`; `unknown`, `conflict`, and `unsupported` carry typed
-   diagnostics and no partial trace.
-3. Call `evaluateObservationProperty` independently for each required checked Property. Its status is
-   `satisfied`, `violated`, `unknown`, `conflict`, or `unsupported` and retains the applied evidence
-   Evidence Limit plus coordinate-based clause Evidence Links when available.
+2. Supply one complete synthetic `EvidenceBundle` and call `evaluateEvidence`, the single
+   Observation admission handoff. Only the `accepted` result carries an opaque
+   `EvidenceBackedTrace`; `unknown`, `conflict`, and `unsupported` carry typed diagnostics and no
+   partial trace. The accepted type has no public constructor or record-update path and exposes only
+   read-only projections; it is a checked handoff value, not another authoring or scenario language.
+3. Call `evaluateObservationProperty` independently for each required checked Property with that
+   accepted trace. It validates the query/Property relationship, capability access, and logical-time
+   prerequisites without repeating Observation admission. Its status is `satisfied`, `violated`,
+   `unknown`, `conflict`, or `unsupported` and retains the applied Evidence Limit plus
+   coordinate-based clause Evidence Links when available.
 4. Call `summarizeQueryVerdicts`. It succeeds only when every required Property has exactly one
    resolved result for the same Query, Model Trace, and Evidence Limit; otherwise its status is
    `incomplete`.
@@ -250,6 +254,12 @@ Field dispositions make retention explicit: `retain` keeps an approved normalize
 keeps only a contribution marker, `hash` keeps only a token under the named/versioned synthetic
 digest policy, and `reject` refuses present input. Raw evidence is not a field of `EvidenceBackedTrace`,
 `SemanticPropertyVerdict`, or `StrictQuerySummary`.
+
+All trace positions in this path use the single `Umpire.Core` coordinate API. Coordinates enumerate
+initial state followed by each step's selected Action, Model Outcome, resulting state, and
+observations in source order. Numeric step and observation positions are strictly one-based;
+`ModelTrace.valueAt?` rejects zero and out-of-range positions, and
+`ModelCoordinate.definitionKind` supplies the shared kind mapping.
 
 The Nexus profile maps the ordinary BasicLifecycle state, start/cancel/succeed action,
 transition-outcome, and lifecycle-observation vocabulary. Its state, action, outcome, and
@@ -267,7 +277,9 @@ typed fields, digest metadata, and source closure. The fault adapter projects th
 history onto the requested/completed lifecycle and selects only the checked, labeled synthetic
 contribution; ordinary authority, worker, participant, and cleanup lifecycle facts remain in
 RawEvidence but do not become semantic support. The checked `Temporal.System.Nexus.Observation`
-plans—not Go—own the mappings, Limits, dispositions, and Evidence-backed System traces. This is one
+plans—not Go—own the mappings, Limits, dispositions, and admitted Evidence-backed System traces.
+Run Evaluation invokes Implementation Link application and Property evaluation only after that
+admission succeeds and preserves each stage's status and no-partial-result guarantee. This is one
 fixed local pair, not a generic profile loader: the model still does not execute Temporal, select a
 checker or profile at runtime, perform replay or promotion, or qualify a non-local result.
 
@@ -280,10 +292,11 @@ binds the two Target identities and Behavior Fingerprints, mapping version, supp
 partition, obligations, and positive application Limit. Proof terms remain nonserialized.
 
 Application starts only after Observation Evaluation has accepted one complete System
-`EvidenceBackedTrace`. `applyImplementationLink` replays that trace through the checked System
-kernel before translating it positionally. Success contains one complete authoritative Feature
-Model Trace and coordinate-complete Implementation Link Evidence Links; failure contains no partial
-Feature trace. The three semantic results remain separate:
+`EvidenceBackedTrace`. `applyImplementationLink` does not repeat Observation envelope admission. It
+checks the Link's source Target, application Limit, mapping, support/Known Gap partition, and
+translation while replaying the accepted trace through the checked System kernel. Success contains
+one complete authoritative Feature Model Trace and coordinate-complete Implementation Link Evidence
+Links; failure contains no partial Feature trace. The three semantic results remain separate:
 
 ```text
 EvidenceBundle ─ Observation Evaluation ─▶ accepted System trace | Observation diagnostic
