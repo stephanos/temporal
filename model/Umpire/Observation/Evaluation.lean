@@ -157,15 +157,6 @@ structure ObservationDiagnostic where
 def ObservationDiagnostic.status (diagnostic : ObservationDiagnostic) : ObservationStatus :=
   diagnostic.kind.status
 
-/-- One stable, one-based location of a Model Fact in a Model Trace. -/
-inductive ModelCoordinate where
-  | initialState
-  | selectedAction (step : Nat)
-  | modelOutcome (step : Nat)
-  | resultingState (step : Nat)
-  | observation (step position : Nat)
-  deriving BEq, DecidableEq, Ord, Repr
-
 structure EvidenceOrderingFact where
   recordId : DefinitionId
   kind : DefinitionId
