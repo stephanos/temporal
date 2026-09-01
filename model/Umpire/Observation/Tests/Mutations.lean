@@ -285,10 +285,11 @@ def propertyMutation : CheckedProperty :=
 
 /-- The unchanged evaluation stays valid; only the independently checked Property verdict moves. -/
 example :
+    let trace := (acceptedOf completeEvaluation).get (by native_decide)
     let baseline := evaluateObservationProperty (verdictQuery [satisfiedProperty])
-      satisfiedProperty completeEvaluation
+      satisfiedProperty trace
     let mutant := evaluateObservationProperty (verdictQuery [propertyMutation])
-      propertyMutation completeEvaluation
+      propertyMutation trace
     (completeEvaluation.status,
       diagnosticKindOf (validateEvidenceBackedTrace literalUncheckedEvidenceBackedTrace),
       baseline.status,
