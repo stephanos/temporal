@@ -1,0 +1,128 @@
+{
+  "formatVersion": "umpire-result/v2",
+  "runIdentity": "umpire.local.caller-closure.closed-fixture",
+  "behaviorFingerprint": "sha256:e649a5e059ef42806eb661deb1c1ccba08ec5202425d7a824f7e25026f8134da",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
+    "behaviorFingerprint": "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
+    "provenanceChecksum": "sha256:f7a6ebefca8202c6a7c467fd516e54d162c7d1f254c6c9a1f004a7f0b4135ab8"
+  },
+  "runtimeConfiguration": {
+    "formatVersion": "umpire-runtime-configuration/v2",
+    "artifactChecksum": "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5",
+    "behaviorFingerprint": "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
+    "provenanceChecksum": "sha256:3b8bae9ef57fa5f400076af50d01a283d8b928481d654abd0d3c39dd72ea2f6c"
+  },
+  "run": {
+    "formatVersion": "umpire-experiment-run/v2",
+    "artifactChecksum": "sha256:d034132f628749fd85205d8288799a5f8d19a0aa7085eaac50e627510204289a",
+    "behaviorFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
+  },
+  "rawEvidence": {
+    "formatVersion": "umpire-raw-evidence/v2",
+    "artifactChecksum": "sha256:593de43c17179a77b375c5e1fa1fb4d3458875a90abb4d6ec7c549e5a26455f0",
+    "behaviorFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
+  },
+  "evidence": {
+    "formatVersion": "umpire-evidence/v2",
+    "artifactChecksum": "sha256:149f699f62a45ba2ae84cacf6496eac1dfa049032a689a35ae8ac501d1e6cdbd",
+    "behaviorFingerprint": "sha256:e649a5e059ef42806eb661deb1c1ccba08ec5202425d7a824f7e25026f8134da",
+    "provenanceChecksum": "sha256:d1310fcad6c48888887bc32a71d43faaa594df1ec59371e79396e09f4b371b47"
+  },
+  "operationalStatus": "succeeded",
+  "observationEvaluationStatus": "conflict",
+  "implementationLink": {
+    "definitionId": "temporal.system.nexus.caller-closure.implementation-link",
+    "behaviorFingerprint": "sha256:96b55d0e5a782099f66479c6ced603c08c8046b565f89435b5b2a54848aed777",
+    "sourceTarget": {
+      "definitionId": "temporal.system.nexus.caller-closure.target",
+      "kind": "target",
+      "behaviorFingerprint": "sha256:6729e790d336a96173ffd0ebe0b2b2d2406e6c5444596924f0c06c4ba9652bf8"
+    },
+    "destinationTarget": {
+      "definitionId": "workflow-nexus.target.caller-closure",
+      "kind": "target",
+      "behaviorFingerprint": "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd"
+    },
+    "diagnostic": null
+  },
+  "implementationLinkStatus": "not-evaluated",
+  "propertyVerdicts": [],
+  "querySummary": {
+    "queryDefinitionId": "workflow-nexus.query.exact-action-caller-closure",
+    "status": "incomplete",
+    "queryLimits": {
+      "behavior": {
+        "transitions": {
+          "value": 1,
+          "unit": "semantic-transitions"
+        },
+        "selectedActions": {
+          "value": 1,
+          "unit": "selected-actions"
+        }
+      },
+      "search": {
+        "value": 8,
+        "unit": "candidate-evaluations"
+      }
+    },
+    "requiredPropertyDefinitionIds": [
+      "workflow-nexus.property.caller-closure"
+    ],
+    "propertyVerdicts": [],
+    "missingPropertyDefinitionIds": [
+      "workflow-nexus.property.caller-closure"
+    ],
+    "duplicatePropertyDefinitionIds": [],
+    "unexpectedPropertyDefinitionIds": [],
+    "divergentPropertyDefinitionIds": [],
+    "wrongQueryResultDefinitionIds": [],
+    "traceIds": []
+  },
+  "semanticStatus": "incomplete",
+  "limits": [
+    {
+      "stage": "observation-evaluation",
+      "limit": {
+        "value": 4096,
+        "unit": "evidence-records"
+      }
+    },
+    {
+      "stage": "query",
+      "limit": {
+        "value": 8,
+        "unit": "candidate-evaluations"
+      }
+    }
+  ],
+  "knownGaps": [
+    {
+      "kind": "interpretation",
+      "code": "umpire.observation.contradictory-fact",
+      "subject": "temporal.system.nexus.caller-closure.mapping",
+      "detail": null
+    }
+  ],
+  "cleanupStatus": "complete",
+  "evaluationOutcomeChecksum": null,
+  "provenance": {
+    "sourceDefinitionIds": [
+      "temporal.tool.run-evaluation"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Temporal/Tool/RunEvaluation.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:d1310fcad6c48888887bc32a71d43faaa594df1ec59371e79396e09f4b371b47",
+  "artifactChecksum": "sha256:fdfe039b43c62d0d292707bfbee03601720662a07298330170a09231ce7234f1"
+}

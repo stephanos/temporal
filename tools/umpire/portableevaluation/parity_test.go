@@ -96,6 +96,7 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 			}
 		})
 	}
+	generateLeanRunBranchOracles(t, repositoryRoot, normalEvidence)
 	command := exec.Command(
 		"mise", "exec", "--", "lake", "env", "lean", "--run",
 		"Temporal/Tool/PortableEvaluationContractTests.lean", "operator-branches",
@@ -106,6 +107,49 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 	require.NoError(t, os.WriteFile(
 		filepath.Join(*parityFixtureOutput, "operator-branches.json"), branches, 0o644,
 	))
+}
+
+func generateLeanRunBranchOracles(
+	t *testing.T,
+	repositoryRoot string,
+	baseline artifactv2.RawEvidence,
+) {
+	t.Helper()
+	tests := []struct {
+		name   string
+		mutate func(testing.TB, *artifactv2.RawEvidence)
+	}{
+		{
+			name: "correlation-conflict",
+			mutate: func(t testing.TB, evidence *artifactv2.RawEvidence) {
+				setRawField(t, evidence, "umpire.evidence.kind.workflow-history-event",
+					"umpire.evidence.field.operation-correlation-id",
+					"runtime.correlation.operation.conflict")
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run("run-branch-"+test.name, func(t *testing.T) {
+			evidence := cloneParityEvidence(t, baseline)
+			test.mutate(t, &evidence)
+			evidence = resealRawEvidence(t, evidence)
+			_, oracle := leanRunEvaluationOracle(t, repositoryRoot, "normal", evidence)
+			root := filepath.Join(*parityFixtureOutput, "run-branches", test.name)
+			require.NoError(t, os.MkdirAll(root, 0o755))
+			for path, encoded := range oracle {
+				require.NoError(t, os.WriteFile(filepath.Join(root, path), encoded, 0o644))
+			}
+		})
+	}
+}
+
+func cloneParityEvidence(t testing.TB, evidence artifactv2.RawEvidence) artifactv2.RawEvidence {
+	t.Helper()
+	encoded, err := artifact.EncodeRawEvidenceV2(evidence)
+	require.NoError(t, err)
+	cloned, err := artifact.DecodeRawEvidenceV2(encoded)
+	require.NoError(t, err)
+	return cloned
 }
 
 func materializeDuplicateParityField(
@@ -159,6 +203,7 @@ type leanEvaluationSummary struct {
 
 type leanBranchOracle struct {
 	Name                     string `json:"name"`
+	Source                   string `json:"source"`
 	ToolingStatus            string `json:"toolingStatus"`
 	OperationalStatus        string `json:"operationalStatus"`
 	ObservationStatus        string `json:"observationStatus"`
@@ -178,11 +223,45 @@ func loadBranchOracles(t testing.TB) map[string]leanBranchOracle {
 	result := make(map[string]leanBranchOracle, len(values))
 	for _, value := range values {
 		require.NotEmpty(t, value.Name)
+		require.NotEmpty(t, value.Source)
 		_, duplicate := result[value.Name]
 		require.False(t, duplicate, value.Name)
 		result[value.Name] = value
 	}
 	return result
+}
+
+func loadLeanRunBranchOracle(
+	t testing.TB,
+	name string,
+) (artifactv2.Evidence, artifactv2.Result) {
+	t.Helper()
+	root := filepath.Join("testdata", "run-branches", name)
+	evidenceBytes, err := os.ReadFile(filepath.Join(root, "lean-evidence.json"))
+	require.NoError(t, err)
+	evidence, err := artifact.DecodeEvidenceV2(evidenceBytes)
+	require.NoError(t, err)
+	resultBytes, err := os.ReadFile(filepath.Join(root, "lean-result.json"))
+	require.NoError(t, err)
+	result, err := artifact.DecodeResultV2(resultBytes)
+	require.NoError(t, err)
+	return evidence, result
+}
+
+func requireLeanRunBranchStatusParity(
+	t testing.TB,
+	actual *umpirespb.EvaluationResult,
+	evidence artifactv2.Evidence,
+	result artifactv2.Result,
+) {
+	t.Helper()
+	require.Equal(t, result.OperationalStatus, operationalStatusName(actual.GetOperationalStatus()))
+	require.Equal(t, evidence.ObservationEvaluationStatus,
+		observationStatusName(actual.GetObservation().GetStatus()))
+	require.Equal(t, result.ImplementationLinkStatus,
+		implementationLinkStatusName(actual.GetImplementationLink().GetStatus()))
+	require.Equal(t, result.SemanticStatus, evaluationStatusName(actual.GetSemanticStatus()))
+	require.Equal(t, result.CleanupStatus, cleanupStatusName(actual.GetCleanupStatus()))
 }
 
 func requireBranchOracle(
@@ -282,12 +361,10 @@ func leanRunEvaluationOracle(
 		"umpire-check-local-run-evaluation", "SET="+setRoot, "OUTPUT_ROOT="+outputRoot,
 	)
 	stdout, err := command.Output()
-	if name == "duplicate-delivery" {
+	if err != nil {
 		var exitError *exec.ExitError
 		require.ErrorAs(t, err, &exitError)
 		require.Equal(t, 2, exitError.ExitCode(), string(exitError.Stderr))
-	} else {
-		require.NoError(t, err)
 	}
 	var summary leanEvaluationSummary
 	require.NoError(t, json.Unmarshal(bytes.TrimSpace(stdout), &summary))
@@ -649,24 +726,26 @@ func TestCorrelationSlotsAllowOptionalReferencesAndRejectWhollyMissing(t *testin
 	require.Equal(t, umpirespb.OBSERVATION_STATUS_ACCEPTED, result.GetObservation().GetStatus())
 
 	operationField := "umpire.evidence.field.operation-correlation-id"
-	conflicting := evidence
-	conflicting.Facts = append([]artifactv2.RawEvidenceFact(nil), evidence.Facts...)
-	for index := range conflicting.Facts {
-		conflicting.Facts[index].Fields =
-			append([]artifactv2.RawEvidenceField(nil), evidence.Facts[index].Fields...)
-	}
-	setRawField(t, &conflicting, "umpire.evidence.kind.workflow-history-event",
-		operationField, "runtime.correlation.operation.conflict")
-	conflicting = resealRawEvidence(t, conflicting)
-	result = Evaluate(context.Background(), requestFor(contract, conflicting))
-	requireBranchOracle(t, oracles["correlation conflict"], result)
-
-	for _, fact := range evidence.Facts {
-		removeRawField(&evidence, fact.KindDefinitionID, operationField)
-	}
-	evidence = resealRawEvidence(t, evidence)
-	result = Evaluate(context.Background(), requestFor(contract, evidence))
-	requireBranchOracle(t, oracles["correlation missing"], result)
+	t.Run("production Run Evaluation conflict", func(t *testing.T) {
+		conflicting := cloneParityEvidence(t, evidence)
+		setRawField(t, &conflicting, "umpire.evidence.kind.workflow-history-event",
+			operationField, "runtime.correlation.operation.conflict")
+		conflicting = resealRawEvidence(t, conflicting)
+		result := Evaluate(context.Background(), requestFor(contract, conflicting))
+		leanEvidence, leanResult := loadLeanRunBranchOracle(t, "correlation-conflict")
+		requireLeanRunBranchStatusParity(t, result, leanEvidence, leanResult)
+	})
+	t.Run("portable-only wholly missing optional slot", func(t *testing.T) {
+		missing := cloneParityEvidence(t, evidence)
+		for _, fact := range missing.Facts {
+			removeRawField(&missing, fact.KindDefinitionID, operationField)
+		}
+		missing = resealRawEvidence(t, missing)
+		result := Evaluate(context.Background(), requestFor(contract, missing))
+		oracle := oracles["correlation missing"]
+		require.Equal(t, "portable-v1-proof", oracle.Source)
+		requireBranchOracle(t, oracle, result)
+	})
 }
 
 func TestLeanParityContractsFailClosedOnCanonicalOrderAndCrossedPairs(t *testing.T) {
