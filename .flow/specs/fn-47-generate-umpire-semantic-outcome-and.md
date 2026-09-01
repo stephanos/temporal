@@ -50,10 +50,13 @@ Known Gap inventory entries have a stable catalog ID, owning stage, lineage, sco
 field mapping, and description. Lineage is exactly `authored`, `synthesized`, or `carried`; scope is
 exactly `production` or `test-only`. Source shape distinguishes an exact existing `KnownGap`, a
 namespaced generated `KnownGap` family, a typed authored `ImplementationLinkKnownGap` family, an
-`EvidenceGap` admission projection, and a reference to an earlier catalog entry. Carry mappings
-separately identify exact four-field `KnownGap` propagation and the intentionally lossy Observation
-admission mapping `code -> code`, `subject.toList -> relatedDefinitionIds`, with `kind` and `detail`
-absent from `EvidenceGap`. The existing `KnownGapKind`, `ImplementationLinkKnownGap`, and
+admitted request/raw `KnownGap` input that carries arbitrary validated values without declaring
+wildcard semantics, an `EvidenceGap` admission projection, and a reference to an earlier catalog
+entry. Carry mappings separately identify exact four-field `KnownGap` propagation and the
+intentionally lossy Observation admission mapping `code -> code`, `subject.toList ->
+relatedDefinitionIds`, with `kind` and `detail` absent from `EvidenceGap`. Exact Result carry rows
+resolve separately to the request/raw input and the synthesized Observation source; neither descends
+from the lossy projection. The existing `KnownGapKind`, `ImplementationLinkKnownGap`, and
 `EvidenceGap` types remain unchanged.
 
 ## API Contracts
@@ -67,6 +70,9 @@ absent from `EvidenceGap`. The existing `KnownGapKind`, `ImplementationLinkKnown
   owner-local catalog order, and complete production/test classification before rendering. It sorts
   the otherwise unordered assembled family/source lists by their validated canonical keys before
   rendering.
+- Complete-catalog validation pins each closed row's expected scope, rejects duplicate exact codes
+  across production and tests, and treats a test use of an existing production gap as a resolved
+  reference rather than a second exact source declaration.
 - `cd model && mise exec -- lake exe temporal-model-semantic-inventory` validates and buffers exactly
   the complete Markdown bytes plus terminal LF before one stdout write; validation/render errors
   produce non-zero status, diagnostics on stderr, and no Markdown. A failure during the final OS
@@ -85,16 +91,18 @@ absent from `EvidenceGap`. The existing `KnownGapKind`, `ImplementationLinkKnown
    keeping optional projection sentinels separate.
 3. Catalog fixed and synthesized production Known Gaps and make actual producers reuse the named
    typed declarations from the completed fn-44 baseline.
-4. Complete authored, carried, and test-only gap coverage and validate that Result composition retains
-   distinct stages without schema changes.
+4. Complete authored, admitted-input, projected, carried, and test-only gap coverage; give exact
+   Result carries separate resolved request/raw and Observation origins; and validate that Result
+   composition retains distinct stages without schema changes.
 5. Add the deterministic Markdown renderer, checked document, atomic generation target, read-only
    drift target, and concise model documentation links.
 
 ## Quick commands
 
 ```bash
-cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.PlanningRuntime Umpire.SemanticInventory.Tests.SemanticStages Umpire.SemanticInventory.Tests.KnownGaps Temporal.Tool.SemanticInventoryTests temporal-model-semantic-inventory temporal-model-semantic-inventory-tests
+cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.PlanningRuntime Umpire.SemanticInventory.Tests.SemanticStages Umpire.SemanticInventory.Tests.KnownGaps Umpire.Planning.Tests.KnownGaps Temporal.Tool.SemanticInventoryTests temporal-model-semantic-inventory temporal-model-semantic-inventory-tests temporal-model-semantic-inventory-make-tests
 cd model && mise exec -- lake exe temporal-model-semantic-inventory-tests
+cd model && mise exec -- lake exe temporal-model-semantic-inventory-make-tests
 make umpire-check-semantic-inventory
 make lint-model
 ```
@@ -113,6 +121,8 @@ make lint-model
 - The request/raw gap path is documented twice where behavior differs: Observation admission is an
   explicitly lossy `KnownGap -> EvidenceGap` projection, while Result aggregation is an exact
   four-field `KnownGap` carry. Neither is mislabeled as the other.
+- Synthesized Observation gaps have their own exact Result carry from the generated Observation
+  source and never appear to descend from the lossy request/raw admission projection.
 - Unknown/dynamic request gap codes are represented by the carried source that admitted them, not by
   inventing a wildcard semantic definition. Generated observation families use one validated
   namespaced prefix.
@@ -159,12 +169,14 @@ local checked-document drift test; the broader policy remains declined.
   universal enum, cross-family name collapse, false reachability, added artifact/protocol fields, or
   changed canonical bytes is a failure.
 - **R3:** The Known Gap catalog records every fixed production gap, generated family, typed authored
-  Implementation Link family, EvidenceGap admission projection, exact Result carry boundary, and
-  test-only fixture with typed `authored|synthesized|carried` lineage and `production|test-only`
-  scope, while actual fixed/synthesized producers reuse named declarations. The Observation admission
-  row pins its lossy field mapping separately from exact Result propagation. Errors: duplicate
-  IDs/codes, invalid namespaces, unresolved carries, invalid field mappings, wildcard invented
-  semantics, missing scope/lineage, or a `KnownGapKind` expansion fail atomically.
+  Implementation Link family, non-semantic request/raw admitted input, EvidenceGap admission
+  projection, separately resolved request/raw and Observation exact Result carry boundaries, and
+  test-only fixture/use with typed `authored|synthesized|carried` lineage and
+  `production|test-only` scope, while actual fixed/synthesized producers reuse named declarations.
+  The Observation admission row pins its lossy field mapping separately from exact Result
+  propagation. Errors: duplicate IDs or exact codes across scopes, invalid namespaces, unresolved
+  carries, invalid field mappings, wildcard invented semantics, scope/lineage drift, or a
+  `KnownGapKind` expansion fail atomically.
 - **R4:** `model/SEMANTIC_INVENTORY.md` is a deterministic complete projection with the title and
   generated-warning preamble, ordered Outcome families and Projection sentinels sections, and one
   Known Gap flows table with columns Catalog ID, Owner, Lineage, Scope, Shape, Source/reference,
@@ -173,7 +185,9 @@ local checked-document drift test; the broader policy remains declined.
   has no timestamps or machine paths, exact source owners, and terminal LF. Errors:
   validation/render failure occurs before stdout; final-write failure is non-zero; interrupted
   generation leaves the prior file; missing/stale/extra document content makes the read-only check
-  fail with a deterministic diff.
+  fail with a deterministic diff. Isolated Make integration tests inject renderer failure and a
+  terminated renderer, assert sibling-temp cleanup and unchanged prior bytes, cover missing/stale/extra
+  diffs and check-mode immutability, and pin stable readable installed permissions.
 - **R5:** The Lake executable, atomic generation target, narrow check target, `lint-model` integration,
   and model documentation links pass against completed fn-20 plus the completed-prerequisite fn-44
   and fn-45 baselines. Errors: running against an unfinished dependency, changing broad CI workflows,
