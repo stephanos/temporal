@@ -34,9 +34,18 @@ Rewrite fn-5's spec/task delegation payloads to the retained R4 scope while pres
 - [ ] Setters run serially in a quiescent checkout and verify Markdown/JSON afterward; interruption is fail-stop and idempotently resumable without claiming protection from unsupported concurrent writers.
 - [ ] Flow validation passes and existing history/comments are preserved.
 ## Done summary
-TBD
+Reduced fn-5 to two retained requirements: deterministic list/explain for four current Nexus examples and one inert, checked review-only duplicate-delivery proposal whose runtime eligibility remains exclusively owned by fn-22. All seven stable task IDs now trace to those capabilities, deferred breadth is explicit under Non-goals, valid inventory permutations canonicalize, and the base expected-trace lineage is distinct from the fault-bearing ExperimentSpec lineage.
 
+The serial Flow setters were semantically idempotent and preserved paired Markdown/JSON, history, the artifact-link comment, and scope comments. Codex review found three contract issues, all fixed in the same session before SHIP; memory capture was skipped because Flow memory is not initialized.
+
+GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched)
+
+GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched)
+
+stage: impl-review - ran [NEEDS_WORK to SHIP at 2026-09-01T09:50:05Z; session 01a05c55-c001-7d71-ab2d-e260c61a1c1f]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 56fae915d5f0039e04f707060226a6bd646d2760, ab5a2bc6aef181c69e6ad46d817b01d9129deeea, 1f51dc319141a30c112c3ac0214fdd7e7648f9b6
+- Tests: baseline: green (/Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl validate --spec fn-5 --json), TDD RED: deterministic fn5 contract-language audit (35 forbidden positive-scope violations before setters), /Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl validate --spec fn-5 --json (valid; 0 errors; 0 warnings), /Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl validate --all --json (valid; 0 errors; 0 warnings), deterministic fn5 retained-contract audit (7 tasks; 2 R-IDs; fixed fn22 argv; canonical permutations; separate base/fault lineages; 0 forbidden positive-scope violations), git diff --check d62ae892478d856a0e3561c61779ef4292688d27..HEAD, GATE_SKIPPED:unittest:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:smoke:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
