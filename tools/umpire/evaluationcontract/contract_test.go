@@ -92,6 +92,13 @@ func TestAdmitRejectsOneFieldStructuralMutations(t *testing.T) {
 			},
 		},
 		{
+			name: "invalid application limit unit",
+			code: ErrorLimit,
+			mutate: func(contract *umpirespb.EvaluationContract) {
+				contract.ImplementationLink.ApplicationLimit.Unit = " link-entries "
+			},
+		},
+		{
 			name: "crossed query binding",
 			code: ErrorBinding,
 			mutate: func(contract *umpirespb.EvaluationContract) {
@@ -142,6 +149,66 @@ func TestAdmitRejectsOneFieldStructuralMutations(t *testing.T) {
 
 			_, err := Admit(encoded)
 			requireAdmissionCode(t, err, testCase.code)
+		})
+	}
+}
+
+func TestAdmitRejectsInvalidCoordinateBoundaries(t *testing.T) {
+	for _, testCase := range []struct {
+		name       string
+		coordinate *umpirespb.ModelCoordinate
+	}{
+		{name: "initial state with step", coordinate: &umpirespb.ModelCoordinate{Field: umpirespb.TRACE_FIELD_INITIAL_STATE, Step: 1}},
+		{name: "step field at zero", coordinate: &umpirespb.ModelCoordinate{Field: umpirespb.TRACE_FIELD_SELECTED_ACTION}},
+		{name: "step field with position", coordinate: &umpirespb.ModelCoordinate{Field: umpirespb.TRACE_FIELD_SELECTED_ACTION, Step: 1, Position: 1}},
+		{name: "observation at step zero", coordinate: &umpirespb.ModelCoordinate{Field: umpirespb.TRACE_FIELD_OBSERVATION, Position: 1}},
+		{name: "observation at position zero", coordinate: &umpirespb.ModelCoordinate{Field: umpirespb.TRACE_FIELD_OBSERVATION, Step: 1}},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			contract := testContract()
+			contract.Observation.Emits[0].Coordinate = testCase.coordinate
+
+			_, err := Admit(encodeUnchecked(t, contract))
+			requireAdmissionCode(t, err, ErrorMalformedValue)
+		})
+	}
+}
+
+func TestAdmitRejectsCyclicEmitOrdering(t *testing.T) {
+	acyclic := testContractWithThreeEmits()
+	acyclic.Observation.Ordering = []*umpirespb.EmitOrdering{
+		{PredecessorEmitDefinitionId: "system.emit.a", SuccessorEmitDefinitionId: "system.emit.b"},
+		{PredecessorEmitDefinitionId: "system.emit.b", SuccessorEmitDefinitionId: "system.emit.delivery-count"},
+	}
+	_, err := Admit(packTestContract(t, acyclic))
+	require.NoError(t, err)
+
+	for _, testCase := range []struct {
+		name     string
+		ordering []*umpirespb.EmitOrdering
+	}{
+		{
+			name: "two-node cycle",
+			ordering: []*umpirespb.EmitOrdering{
+				{PredecessorEmitDefinitionId: "system.emit.a", SuccessorEmitDefinitionId: "system.emit.b"},
+				{PredecessorEmitDefinitionId: "system.emit.b", SuccessorEmitDefinitionId: "system.emit.a"},
+			},
+		},
+		{
+			name: "longer cycle",
+			ordering: []*umpirespb.EmitOrdering{
+				{PredecessorEmitDefinitionId: "system.emit.a", SuccessorEmitDefinitionId: "system.emit.b"},
+				{PredecessorEmitDefinitionId: "system.emit.b", SuccessorEmitDefinitionId: "system.emit.delivery-count"},
+				{PredecessorEmitDefinitionId: "system.emit.delivery-count", SuccessorEmitDefinitionId: "system.emit.a"},
+			},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			contract := testContractWithThreeEmits()
+			contract.Observation.Ordering = testCase.ordering
+
+			_, admissionErr := Admit(encodeUnchecked(t, contract))
+			requireAdmissionCode(t, admissionErr, ErrorOrdering)
 		})
 	}
 }
@@ -274,7 +341,7 @@ func testContract() *umpirespb.EvaluationContract {
 				OutputDefinition:       observationValue.Definition,
 				OutputKind:             observationValue.Kind,
 				Coordinate: &umpirespb.ModelCoordinate{
-					Field: umpirespb.TRACE_FIELD_OBSERVATION, Step: 0, Position: 0,
+					Field: umpirespb.TRACE_FIELD_OBSERVATION, Step: 1, Position: 1,
 				},
 				Condition: &umpirespb.ObservationExpression{Operator: &umpirespb.ObservationExpression_Equals{
 					Equals: &umpirespb.Equals{
@@ -299,7 +366,7 @@ func testContract() *umpirespb.EvaluationContract {
 			Entries: []*umpirespb.RenameExactEntry{{
 				Source: observationValue, Destination: linkedValue,
 			}},
-			ApplicationLimit: &umpirespb.Limit{Value: 10, Unit: "link-entries"},
+			ApplicationLimit: &umpirespb.Limit{Value: 10, Unit: applicationLimitUnit},
 		},
 		Properties: []*umpirespb.Property{{
 			Definition: testBinding("workflow-nexus.property.caller-closure", '0'),
@@ -329,6 +396,18 @@ func testContract() *umpirespb.EvaluationContract {
 			testSourceLocation("model/Temporal/Tool/PortableEvaluationContract.lean", 40),
 		},
 	}
+}
+
+func testContractWithThreeEmits() *umpirespb.EvaluationContract {
+	contract := testContract()
+	first := proto.CloneOf(contract.Observation.Emits[0])
+	first.DefinitionId = "system.emit.a"
+	first.Coordinate.Position = 2
+	second := proto.CloneOf(contract.Observation.Emits[0])
+	second.DefinitionId = "system.emit.b"
+	second.Coordinate.Position = 3
+	contract.Observation.Emits = []*umpirespb.Emit{first, second, contract.Observation.Emits[0]}
+	return contract
 }
 
 func testBinding(definitionID string, fingerprintByte byte) *umpirespb.DefinitionBinding {

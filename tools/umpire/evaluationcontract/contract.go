@@ -17,6 +17,7 @@ const (
 	SupportedMajorVersion int32 = 1
 	SupportedMinorVersion int32 = 0
 	checksumDomain              = "umpire.evaluation-contract/v1"
+	applicationLimitUnit        = "semantic-transitions"
 
 	MaximumContractBytes   = 1 << 20
 	MaximumProtoJSONBytes  = 2 << 20
