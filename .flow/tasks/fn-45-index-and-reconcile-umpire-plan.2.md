@@ -39,9 +39,14 @@ Populate the production v1 registry and focused command surface for R1/R2.
 - [ ] Parser/schema/unit tests pass; the not-yet-reconciled production command fails only with the expected deterministic document/Flow drift, including fn-17/fn-33 dependencies until task .5 and fn-21 readiness until task .6.
 - [ ] The Make target is focused/read-only and existing comments are preserved.
 ## Done summary
-TBD
+Added the complete v1 authority registry for all 25 plan documents and 51 Flow specs, production coverage, deterministic direct/transitive retained-to-deferred rejection, and the focused read-only Make target. Final focused tests and Flow validation pass; the production check reports only staged task .3/.5/.6 drift, while global lint retains the pre-existing `tools/umpire/runtime/errors.go:60` errortype finding.
 
+The TDD RED is `361d85663`, approved contract reconciliation is `afbc62df1`, GREEN implementation is `fa52ae24d`, and Codex SHIP review provenance is recorded by `6fe54afb8` (session `01a05c24-091f-7201-8763-60c24bb72dcd`, zero findings). Flow validation remains valid with zero errors and the unchanged 203-warning inherited baseline.
+
+stage: impl-review - ran [SHIP at 2026-09-01T08:47:40Z; session 01a05c24-091f-7201-8763-60c24bb72dcd]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 361d856632134e506498cd42a233c0de515f8d6f, afbc62df1018fa302365f17209a09516057d651e, fa52ae24d12c90a11ece38ac39a156d1a70a0ce3, 6fe54afb84d0c1a279d154319fa431e2c016521a
+- Tests: baseline: green (go test -count=1 -tags test_dep ./tools/planindex/... and flowctl validate --all --json); expected RED (make umpire-check-plan-index target absent pre-edit), TDD RED: go test -count=1 -tags test_dep ./tools/planindex -run '^TestCheckRepositoryRejectsRetainedDependenciesOnDeferredScope$' (exit 1 before checker implementation), go test -count=1 -tags test_dep ./tools/planindex/..., go vet -tags test_dep ./tools/planindex/..., .bin/errortype -style-check=false ./tools/planindex/..., flowctl validate --all --json (valid; 0 errors; unchanged inherited 203 warnings), make umpire-check-plan-index (expected staged drift only: 15 task .3 document findings, 2 task .5 dependency findings, 9 task .6 readiness findings; 0 unexpected findings), git diff --check, make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=61eade94a3dd876faaaaac55c682504fb40e20f3 (golangci: 0 introduced issues; inherited tools/umpire/runtime/errors.go:60 errortype finding keeps wrapper red)
 - PRs:
