@@ -1,4 +1,5 @@
 import Umpire.Observation.Language
+import Umpire.SemanticInventory.Types
 
 /-!
 Pure Observation Evaluation of bounded synthetic Evidence. The boundary consumes a complete
@@ -96,6 +97,39 @@ inductive ObservationStatus where
   | conflict
   | unsupported
   deriving BEq, DecidableEq, Ord, Repr
+
+def ObservationStatus.name : ObservationStatus → String
+  | .accepted => "accepted"
+  | .unknown => "unknown"
+  | .conflict => "conflict"
+  | .unsupported => "unsupported"
+
+/-- Canonical documentation and exact constructor matchers for Observation outcomes. -/
+def ObservationStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier ObservationStatus) := [
+  .ofValue .accepted {
+    name := "accepted"
+    description := "Observation Evaluation produced one Evidence-backed Model Trace."
+  },
+  .ofValue .unknown {
+    name := "unknown"
+    description := "Observation Evaluation could not decide from the available Evidence."
+  },
+  .ofValue .conflict {
+    name := "conflict"
+    description := "Observation Evaluation found contradictory Evidence."
+  },
+  .ofValue .unsupported {
+    name := "unsupported"
+    description := "Observation Evaluation does not support the supplied Evidence vocabulary."
+  }
+]
+
+/-- Every Observation outcome matches exactly one descriptor. -/
+theorem ObservationStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne ObservationStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
 
 inductive ObservationFailureKind where
   | emptyEvidence

@@ -1,5 +1,6 @@
 import Umpire.Observation.Evaluation
 import Umpire.Query
+import Umpire.SemanticInventory.Types
 
 /-!
 Semantic Property verdicts over accepted Evidence and strict checked-Query aggregation. These
@@ -15,6 +16,44 @@ inductive SemanticVerdictStatus where
   | conflict
   | unsupported
   deriving BEq, DecidableEq, Ord, Repr
+
+def SemanticVerdictStatus.name : SemanticVerdictStatus → String
+  | .satisfied => "satisfied"
+  | .violated => "violated"
+  | .unknown => "unknown"
+  | .conflict => "conflict"
+  | .unsupported => "unsupported"
+
+/-- Canonical documentation and exact constructor matchers for semantic Property outcomes. -/
+def SemanticVerdictStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier SemanticVerdictStatus) := [
+  .ofValue .satisfied {
+    name := "satisfied"
+    description := "The semantic Property is satisfied."
+  },
+  .ofValue .violated {
+    name := "violated"
+    description := "The semantic Property is violated."
+  },
+  .ofValue .unknown {
+    name := "unknown"
+    description := "The semantic Property cannot be decided from the available Evidence."
+  },
+  .ofValue .conflict {
+    name := "conflict"
+    description := "The semantic Property evaluation found conflicting Evidence."
+  },
+  .ofValue .unsupported {
+    name := "unsupported"
+    description := "The semantic Property evaluation does not support the supplied input."
+  }
+]
+
+/-- Every semantic Property outcome matches exactly one descriptor. -/
+theorem SemanticVerdictStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne SemanticVerdictStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
 
 inductive SemanticVerdictFailureKind where
   | observationEvaluationFailure (kind : ObservationFailureKind)
@@ -64,6 +103,34 @@ inductive StrictQueryStatus where
   | violated
   | incomplete
   deriving BEq, DecidableEq, Ord, Repr
+
+def StrictQueryStatus.name : StrictQueryStatus → String
+  | .satisfied => "satisfied"
+  | .violated => "violated"
+  | .incomplete => "incomplete"
+
+/-- Canonical documentation and exact constructor matchers for strict Query outcomes. -/
+def StrictQueryStatus.constructorClassifiers :
+    List (OutcomeConstructorClassifier StrictQueryStatus) := [
+  .ofValue .satisfied {
+    name := "satisfied"
+    description := "Every required semantic Property is satisfied."
+  },
+  .ofValue .violated {
+    name := "violated"
+    description := "At least one required semantic Property is violated."
+  },
+  .ofValue .incomplete {
+    name := "incomplete"
+    description := "The strict Query does not have one complete consistent verdict set."
+  }
+]
+
+/-- Every strict Query outcome matches exactly one descriptor. -/
+theorem StrictQueryStatus.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne StrictQueryStatus.constructorClassifiers := by
+  intro status
+  cases status <;> rfl
 
 structure StrictQuerySummary where
   queryId : DefinitionId
