@@ -9,6 +9,6 @@
   "spec": "fn-17-bounded-semantic-exploration-and",
   "spec_path": ".flow/tasks/fn-17-bounded-semantic-exploration-and.1.md",
   "status": "todo",
-  "title": "Define the bounded exploration request and coordinate vocabulary",
-  "updated_at": "2026-09-01T10:06:04.433305Z"
+  "title": "Rename Query seeded strategy and define bounded exploration requests",
+  "updated_at": "2026-09-01T10:19:33.891942Z"
 }

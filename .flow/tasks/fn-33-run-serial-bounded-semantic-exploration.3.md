@@ -1,7 +1,7 @@
 ---
 satisfies: [R2, R3]
 ---
-# fn-33-run-resumable-semantic-exploration.3 Execute one candidate through the shared runner and Run Evaluation
+# fn-33-run-serial-bounded-semantic-exploration.3 Execute one candidate through the shared runner and Run Evaluation
 
 ## Description
 Implement the serial path from one checked candidate through cleanup, Result admission, and observe.

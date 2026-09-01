@@ -9,6 +9,11 @@ exactly two deterministic policies: bounded exhaustive enumeration and one polic
 caller-named uncovered Model Coordinate. Checked pinned Regressions are selected independently of
 the exploration budget and take precedence over duplicate exploratory candidates.
 
+As the prerequisite handoff to fn-40, this spec also hard-renames the existing Query
+`SearchStrategy.coverageGuided` seed-rotation strategy to `seeded`. The rename changes no traversal
+behavior, removes the misleading coverage claim without a compatibility alias, and updates every
+repository caller plus canonical identity fixture in the same task.
+
 The layer does not execute experiments, interpret Evidence, persist campaign state, or promote
 Regressions. Fn-33 owns the first runtime campaign and consumes only the narrow in-memory
 one-candidate session seam defined here.
@@ -50,6 +55,12 @@ The guided policy selects candidates containing the named coordinate first, with
 semantic identity as the tie-break, then stops at its Limit. It does not mutate the space, learn a
 corpus, or alter subsequent scoring from runtime outcomes.
 
+The Query-level `SearchStrategy.seeded` remains distinct from these Exploration policies. It keeps
+the prior deterministic seed-rotation semantics and canonical name `seeded`; the old constructor and
+`coverage-guided` spelling are removed. Repository-wide exhaustive matches, authored Query values,
+artifacts, generated views, and identity expectations update together so fn-40 consumes one settled
+policy vocabulary.
+
 `PinnedExperimentSpec` inputs are checked canonical ExperimentSpecs with unique identities and the
 same target-kernel contract. They form a separate ordered partition, do not consume the exploration
 Limit, and win semantic-identity overlap.
@@ -76,6 +87,9 @@ checkpoint, compatibility version, or restart contract.
 
 - `checkExplorationRequest` checks one finite Space, exact kernel, closed policy, Limit, coordinate,
   and pinned partition atomically and returns canonical typed errors.
+- `SearchStrategy.seeded` replaces the former Query-level coverage-guided constructor and text name
+  as a hard cut. It preserves deterministic seed rotation, exposes no compatibility alias, and all
+  repository callers and canonical identities migrate in the same task.
 - `buildCandidateUniverse` delegates to fn-16 `compileBatch`, preserves canonical ExperimentSpec
   bytes, rejects duplicate identities, and never reads a catalog or filesystem path.
 - `explore` returns the pinned and exploratory partitions, the selected identities, the requested
@@ -93,6 +107,8 @@ checkpoint, compatibility version, or restart contract.
   selection.
 - Requested fault coordinates remain model intent. Selecting them is not Evidence that a fault was
   realized or that a Property passed.
+- The Query strategy rename intentionally changes canonical identities that include its constructor
+  or name; stale old spellings reject instead of silently mapping to `seeded`.
 - A reached Limit is inconclusive. Only complete exhaustive enumeration can establish finite-space
   exhaustion.
 - The package is pure Lean and performs no runtime I/O, command handling, persistence, or promotion.
@@ -112,10 +128,12 @@ make umpire-build-model
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** One checked finite candidate universe of at most 256 canonical ExperimentSpecs is compiled
-  atomically from one fn-16 Space with the exact planner kernel. Errors: empty/oversized input,
-  compilation failure, invalid artifacts, duplicate identities, or incompatible bounds reject with
-  no partial universe.
+- **R1:** The Query-level seed-rotation strategy is hard-renamed from `coverageGuided` to `seeded`
+  without changing traversal semantics or retaining a compatibility alias; repository callers and
+  canonical identities migrate together. One checked finite candidate universe of at most 256
+  canonical ExperimentSpecs is then compiled atomically from one fn-16 Space with the exact planner
+  kernel. Errors: an old strategy spelling, empty/oversized input, compilation failure, invalid
+  artifacts, duplicate identities, or incompatible bounds reject with no partial universe.
 - **R2:** Bounded exhaustive enumeration is deterministic and reports exhaustion only after every
   non-pinned candidate in the checked finite universe has been considered. Reaching the explicit
   exploration Limit first reports `limit-reached` and proves no absence claim.
@@ -170,7 +188,7 @@ model-selection invariant.
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Checked finite universe | `.1`, `.2` | — |
+| R1 | Query seeded hard rename and checked finite universe | `.1`, `.2` | — |
 | R2 | Bounded exhaustive enumeration | `.3`, `.5` | — |
 | R3 | Uncovered-coordinate guidance | `.4`, `.5`, `.6` | — |
 | R4 | Pinned precedence outside budget | `.5`, `.6` | — |

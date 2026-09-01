@@ -175,9 +175,10 @@ not override active authority.
   checked review-only promotion path for the minimized duplicate-delivery failure. Errors: any
   retained task still requires a generic semantic graph, generated glossary, machine catalog index,
   broad stable regression set, or general artifact evolution fails the checker/review.
-- **R5:** fn-17 tasks describe only bounded exhaustive enumeration, one uncovered-coordinate-guided
-  policy, and pinned regressions outside the exploration budget; fn-33 describes a serial bounded
-  campaign. Errors: pairwise/t-wise families, symmetry proofs, multiple source kinds, generalized
+- **R5:** fn-17 tasks retain the `coverageGuided` to `seeded` Query-strategy rename required by fn-40
+  and describe only bounded exhaustive enumeration, one uncovered-coordinate-guided policy, and
+  pinned regressions outside the exploration budget; fn-33 describes a serial bounded campaign.
+  Errors: pairwise/t-wise families, symmetry proofs, multiple source kinds, generalized
   resume/reporting, adaptive corpora, campaign concurrency, leases, or crash-safe state remaining in
   retained task contracts fail the checker/review.
 - **R6:** Active/reference plan links and authority statements are synchronized with the registry;
@@ -197,9 +198,9 @@ the registry schema before rewriting Flow plans.
 
 | Req | Description | Task(s) | Gap justification |
 |-----|-------------|---------|-------------------|
-| R1 | Closed complete registry | fn-45.1, fn-45.2 | — |
+| R1 | Closed complete registry | fn-45.1, fn-45.2, fn-45.5 | — |
 | R2 | Deterministic read-only checker | fn-45.1, fn-45.2, fn-45.3 | — |
-| R3 | Flow disposition and gate reconciliation | fn-45.6 | — |
+| R3 | Flow disposition and gate reconciliation | fn-45.5, fn-45.6 | — |
 | R4 | Reduced fn-5 scope | fn-45.4, fn-45.6 | — |
 | R5 | Reduced fn-17/fn-33 scope | fn-45.5, fn-45.6 | — |
 | R6 | Documentation and full validation | fn-45.2, fn-45.3, fn-45.6 | — |

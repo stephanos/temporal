@@ -1,7 +1,7 @@
 ---
 satisfies: [R5]
 ---
-# fn-33-run-resumable-semantic-exploration.5 Prove deterministic serial exploration and pinned independence
+# fn-33-run-serial-bounded-semantic-exploration.5 Prove deterministic serial exploration and pinned independence
 
 ## Description
 Prove the complete bounded campaign preserves fn-17 selection and ordinary Regression ownership.
