@@ -72,7 +72,8 @@ func (i *interpreter) validatePropertyVocabulary(property *umpirespb.Property) *
 	for _, requirement := range property.GetRequirements() {
 		found := false
 		for _, entry := range i.contract.GetImplementationLink().GetDefinitionEntries() {
-			found = found || proto.Equal(requirement, entry.GetDestination())
+			found = found || entry.GetKind() == umpirespb.DEFINITION_KIND_CAPABILITY &&
+				proto.Equal(requirement, entry.GetDestination())
 		}
 		if !found {
 			return unsupportedFailure(umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
