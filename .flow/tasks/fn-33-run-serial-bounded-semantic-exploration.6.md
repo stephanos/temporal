@@ -7,8 +7,8 @@ satisfies: [R2, R6]
 Make the serial process-local coordinator invariant explicit and testable before runner integration.
 
 **Size:** M
-**Files:** `tools/umpire/campaign/session.go`, `tools/umpire/campaign/session_test.go`, `model/Temporal/Tool/ExplorationBridgeTests.lean`
-**Touches:** [tools/umpire/campaign/session.go, tools/umpire/campaign/session_test.go, model/Temporal/Tool/ExplorationBridgeTests.lean]
+**Files:** `tools/umpire/campaign/session.go`, `tools/umpire/campaign/session_test.go`
+**Touches:** [tools/umpire/campaign/session.go, tools/umpire/campaign/session_test.go]
 
 ### Approach
 - Model only `idle`, `candidate-active`, and `finished` process-local states with one allowed transition at a time.

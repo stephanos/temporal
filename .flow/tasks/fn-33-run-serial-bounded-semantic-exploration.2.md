@@ -11,10 +11,10 @@ Connect the bridge to fn-17 so Lean alone chooses each candidate and owns semant
 **Touches:** [model/Temporal/Tool/ExplorationBridge.lean, model/Temporal/Tool/ExplorationBridgeTests.lean]
 
 ### Approach
-- Initialize fn-17 from one checked Space, one retained policy, fn-40 PlannerPolicy, and explicit Limits.
+- Initialize fn-17 from the exact two-choice caller-closure fault Space, one retained policy, fn-40 PlannerPolicy, and explicit Limits.
 - Return at most one checked v2 ExperimentSpec from `next` and keep coordinate ordering and exhaustion opaque to Go.
 - Admit only the exact checked observation for the outstanding candidate before advancing.
-- Test exhaustive and uncovered-coordinate policies at the bridge seam.
+- Test exhaustive and duplicate-delivery uncovered-coordinate policies at the bridge seam.
 
 ### Investigation targets
 **Required** (read before coding):
