@@ -194,34 +194,6 @@ private def vocabularyFailure
           }
   check property.access.meanings
 
-private def valueAtCoordinate
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
-    ModelCoordinate → Option ModelValue
-  | .initialState => some trace.initialState
-  | .selectedAction step =>
-      (trace.steps[step - 1]?).map ModelTraceStep.selectedAction
-  | .modelOutcome step =>
-      (trace.steps[step - 1]?).map ModelTraceStep.modelOutcome
-  | .resultingState step =>
-      (trace.steps[step - 1]?).map ModelTraceStep.resultingState
-  | .observation step position => do
-      let traceStep ← trace.steps[step - 1]?
-      traceStep.observations[position - 1]?
-
-private def coordinateSupportsField
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (coordinate : ModelCoordinate)
-    (field : PropertyTraceField) : Bool :=
-  match coordinate with
-  | .initialState =>
-      field == .state || (field == .priorState && !trace.steps.isEmpty)
-  | .selectedAction _ => field == .selectedAction
-  | .modelOutcome _ => field == .modelOutcome
-  | .resultingState step =>
-      field == .state || field == .resultingState ||
-        (field == .priorState && step < trace.steps.length)
-  | .observation _ _ => field == .observation || field == .relation
-
 private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
   | .stateInvariant _ state => [state]
   | .transitionContract _ precondition postcondition => [precondition, postcondition]
@@ -236,11 +208,10 @@ private def relevantEvidenceLinks
     (clause : ResolvedPropertyClause) : List EvidenceLink :=
   let patterns := clausePatterns clause
   trace.evidenceLinks.filter fun evidenceLink =>
-    match valueAtCoordinate trace.trace evidenceLink.coordinate with
-    | none => false
-    | some value => patterns.any fun pattern =>
-        coordinateSupportsField trace.trace evidenceLink.coordinate pattern.field &&
-          value.definitionId == pattern.reference
+    patterns.any fun pattern =>
+      match PropertyTraceField.valueAt? pattern.field trace.trace evidenceLink.coordinate with
+      | none => false
+      | some value => value.definitionId == pattern.reference
 
 private def clauseVerdict
     (query : CheckedQuery LawStatement)
