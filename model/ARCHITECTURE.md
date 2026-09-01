@@ -163,6 +163,13 @@ The shared `Temporal.System.Configuration` facade also does not import its
 `Temporal.System.Callback.Configuration` or `Temporal.System.Matching.Configuration` consumers.
 `Temporal.Tool.*` may compose feature models with reusable examples for inspection.
 
+`Temporal.Tool.SemanticInventory` is the leaf documentation aggregator for the typed outcome and
+Known Gap catalogs. It renders [`SEMANTIC_INVENTORY.md`](SEMANTIC_INVENTORY.md) as a checked
+repository-local navigation view; stage types, Result schema, canonical Artifact bytes, and runtime
+behavior remain authoritative and unchanged. `Umpire.SemanticInventory` exposes only the reusable
+documentation vocabulary and Known Gap catalog facade, not the Temporal aggregator or a replacement
+semantic language.
+
 ## Modeling lifecycle
 
 Public Umpire APIs follow an authored → checked → planned → artifact lifecycle:
