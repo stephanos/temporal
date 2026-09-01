@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-50-migrate-system-callerclosure-to",
   "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-09-01T05:48:28.459646Z",
+  "completion_reviewed_at": "2026-09-01T06:11:14.430403Z",
   "created_at": "2026-08-30T16:08:41.780689Z",
   "default_impl": null,
   "default_review": null,
@@ -525,6 +525,58 @@
       "task": null,
       "timestamp": "2026-09-01T05:48:28.453022Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "0da7c541e2839d4e07a9879da5af96e5660e33074fc134b9963ae999af097037",
+      "backend": "codex",
+      "base_sha": "1e8ee72ffa52320d1ac13e893b11deb1514f1e13",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "classification": "introduced",
+            "findingId": "finding-1aa0ecff0e16900d88d87360354c0580",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2cbae385877066e799a1b9a8ad43bf98",
+            "classification": "introduced",
+            "findingId": "finding-2cbae385877066e799a1b9a8ad43bf98",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "da9885948295068117fe02064e680b9af926b5ce",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2956,
+      "output_sha256": "134c5b08f7f03a3de562bdeae8154a805da80ae206ecab458d3c1daaa87cd5b9",
+      "reservation_id": "b2dbcf79da104bba91f6594e207ade82",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T06:11:14.426021Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -532,7 +584,7 @@
     "impl:fn-50-migrate-system-callerclosure-to.2": 1,
     "impl:fn-50-migrate-system-callerclosure-to.3": 1,
     "plan": 1,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -557,5 +609,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T05:48:28.460575Z"
+  "updated_at": "2026-09-01T06:11:14.431069Z"
 }
