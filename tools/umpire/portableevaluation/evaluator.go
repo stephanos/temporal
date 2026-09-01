@@ -45,7 +45,6 @@ type interpreter struct {
 	evidenceSupportSet  bool
 	resultBytesReserved int64
 	evidenceLinkSizes   map[*umpirespb.EvidenceLink]int64
-	recordsByID         map[string]*normalizedRecord
 }
 
 func newInterpreter(ctx context.Context, request Request) *interpreter {
