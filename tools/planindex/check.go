@@ -379,6 +379,45 @@ func (c *repositoryChecker) checkFlowSpecs(entries []flowSpecEntry) {
 	for _, id := range sortedKeys(c.flowSpecs) {
 		c.checkFlowSpec(c.flowSpecs[id])
 	}
+	c.checkRetainedFlowDependencies()
+}
+
+func (c *repositoryChecker) checkRetainedFlowDependencies() {
+	type dependencyPath struct {
+		id   string
+		path []string
+	}
+
+	for _, rootID := range sortedKeys(c.flowSpecs) {
+		root := c.flowSpecs[rootID]
+		if root.Disposition != "retained" {
+			continue
+		}
+		visited := map[string]bool{rootID: true}
+		queue := []dependencyPath{{id: rootID, path: []string{rootID}}}
+		for len(queue) > 0 {
+			current := queue[0]
+			queue = queue[1:]
+			dependencies := slices.Clone(c.flowSpecs[current.id].SpecDependencies)
+			slices.Sort(dependencies)
+			for _, dependencyID := range dependencies {
+				if visited[dependencyID] {
+					continue
+				}
+				visited[dependencyID] = true
+				dependency, ok := c.flowSpecs[dependencyID]
+				if !ok {
+					continue
+				}
+				pathToDependency := append(slices.Clone(current.path), dependencyID)
+				if dependency.Disposition == "deferred" {
+					c.add("flow spec %s: retained dependency path reaches deferred-only scope: %s", rootID, strings.Join(pathToDependency, " -> "))
+					continue
+				}
+				queue = append(queue, dependencyPath{id: dependencyID, path: pathToDependency})
+			}
+		}
+	}
 }
 
 func (c *repositoryChecker) checkFlowSpec(entry flowSpecEntry) {
