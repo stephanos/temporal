@@ -87,6 +87,9 @@ def authoritativeStep
     (result : TransitionResult ModelValue ModelValue ModelValue) : Prop :=
   state = openState ∧ action = forceCloseAction ∧ result = closeResult
 
+/-- Ordered finite authority for caller closure: the sole setup admits the open state, and only
+force-close produces `closeResult`. The public kernel and planning declarations below are
+compatibility projections of this machine. -/
 def finiteMachine : FiniteMachine
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   metadata := { id := kernelId, source }
