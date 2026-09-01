@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-45-index-and-reconcile-umpire-plan",
   "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-09-01T10:54:05.699465Z",
+  "completion_reviewed_at": "2026-09-01T11:14:09.594646Z",
   "created_at": "2026-08-30T16:01:33.209109Z",
   "default_impl": null,
   "default_review": null,
@@ -1243,6 +1243,41 @@
       "task": null,
       "timestamp": "2026-09-01T10:54:05.694168Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e8cbd51f0953eaaa4aebbae5bc70e0d47fc60e06ccec4d6878e91d208cda24a0",
+      "backend": "codex",
+      "base_sha": "5e4def302ce9fe4ba0c875ce882977b3699bf118",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 7,
+      "head_sha": "d98d3441a200ce2c4fbc97d1f48ef3bebbaf0d13",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2522,
+      "output_sha256": "e33238483a0662bba6e15854c6a77cf6872467ae7e7ed461388487defd92a017",
+      "reservation_id": "2e8b3b8785e647079b1b009fef0e8ebe",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T11:14:09.589639Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1253,7 +1288,7 @@
     "impl:fn-45-index-and-reconcile-umpire-plan.5": 3,
     "impl:fn-45-index-and-reconcile-umpire-plan.6": 1,
     "plan": 11,
-    "plan#completion": 7
+    "plan#completion": 8
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -1281,5 +1316,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T10:54:05.700124Z"
+  "updated_at": "2026-09-01T11:14:09.595327Z"
 }
