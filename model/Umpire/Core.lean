@@ -111,11 +111,61 @@ structure ModelTraceStep (State Action Outcome Observation : Type) where
   observations : List Observation
   deriving BEq, DecidableEq, Repr
 
+/-- One stable, one-based location of a Model Fact in a Model Trace. -/
+inductive ModelCoordinate where
+  | initialState
+  | selectedAction (step : Nat)
+  | modelOutcome (step : Nat)
+  | resultingState (step : Nat)
+  | observation (step position : Nat)
+  deriving BEq, DecidableEq, Ord, Repr
+
 /-- Pure model data only. Execution Evidence and Claim Assessment are deliberately absent. -/
 structure ModelTrace (State Action Outcome Observation : Type) where
   initialState : State
   steps : List (ModelTraceStep State Action Outcome Observation)
   deriving BEq, DecidableEq, Repr
+
+/-- Return the Definition kind selected by a Model Trace coordinate. -/
+def ModelCoordinate.definitionKind : ModelCoordinate → DefinitionKind
+  | .initialState | .resultingState _ => .state
+  | .selectedAction _ => .action
+  | .modelOutcome _ => .outcome
+  | .observation _ _ => .observation
+
+/-- Enumerate every Model Trace coordinate in canonical source order. -/
+def ModelTrace.coordinates
+    {State Action Outcome Observation : Type}
+    (trace : ModelTrace State Action Outcome Observation) : List ModelCoordinate :=
+  .initialState :: (trace.steps.mapIdx fun index step =>
+    let stepPosition := index + 1
+    [.selectedAction stepPosition, .modelOutcome stepPosition, .resultingState stepPosition] ++
+      step.observations.mapIdx fun observationIndex _ =>
+        .observation stepPosition (observationIndex + 1)).flatten
+
+/-- Look up a Model Value at a strict one-based coordinate, rejecting zero and out-of-range
+positions. -/
+def ModelTrace.valueAt?
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
+    (coordinate : ModelCoordinate) : Option ModelValue :=
+  match coordinate with
+  | .initialState => some trace.initialState
+  | .selectedAction step => do
+      if step == 0 then none else
+        let traceStep ← trace.steps[step - 1]?
+        pure traceStep.selectedAction
+  | .modelOutcome step => do
+      if step == 0 then none else
+        let traceStep ← trace.steps[step - 1]?
+        pure traceStep.modelOutcome
+  | .resultingState step => do
+      if step == 0 then none else
+        let traceStep ← trace.steps[step - 1]?
+        pure traceStep.resultingState
+  | .observation step position => do
+      if step == 0 || position == 0 then none else
+        let traceStep ← trace.steps[step - 1]?
+        traceStep.observations[position - 1]?
 
 structure TransitionResult (State Outcome Observation : Type) where
   modelOutcome : Outcome
