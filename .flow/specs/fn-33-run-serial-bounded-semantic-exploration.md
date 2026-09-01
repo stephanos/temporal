@@ -1,6 +1,6 @@
 # Run serial bounded semantic exploration with umpire-fuzz
 
-> HTML render lens (local): open `.flow/artifacts/fn-33-run-resumable-semantic-exploration/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+> HTML render lens (local): open `.flow/artifacts/fn-33-run-serial-bounded-semantic-exploration/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Overview
 

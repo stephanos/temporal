@@ -1,7 +1,7 @@
 ---
 satisfies: [R1, R3]
 ---
-# fn-33-run-resumable-semantic-exploration.1 Define the bounded one-candidate Lean bridge
+# fn-33-run-serial-bounded-semantic-exploration.1 Define the bounded one-candidate Lean bridge
 
 ## Description
 Define the fixed canonical bridge frames and checked binding envelope for one campaign candidate.
