@@ -11,6 +11,6 @@
   "spec": "fn-33-run-resumable-semantic-exploration",
   "spec_path": ".flow/tasks/fn-33-run-resumable-semantic-exploration.6.md",
   "status": "todo",
-  "title": "Enforce deferred concurrency and resume boundaries",
-  "updated_at": "2026-08-27T19:33:20.581502Z"
+  "title": "Enforce the one-active-candidate coordinator boundary",
+  "updated_at": "2026-09-01T10:06:30.151490Z"
 }

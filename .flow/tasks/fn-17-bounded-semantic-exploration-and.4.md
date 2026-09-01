@@ -1,40 +1,31 @@
 ---
-satisfies: [R1, R3, R5, R6, R8]
+satisfies: [R3]
 ---
-# fn-17-bounded-semantic-exploration-and.4 Add proof-carrying symmetry, coverage guidance, reports, and resume
+# fn-17-bounded-semantic-exploration-and.4 Prioritize one uncovered Model Coordinate
 
 ## Description
-Implement R1/R3/R5/R6's stateful-looking but pure coverage layer after the combinatorial oracle passes.
+Implement the single retained semantic guidance policy over the immutable candidate universe.
 
 **Size:** M
-**Files:** `model/Umpire/Exploration/Symmetry.lean`, `model/Umpire/Exploration/Guided.lean`, `model/Umpire/Exploration/State.lean`, `model/Umpire/Exploration/Report.lean`, `model/Umpire/Exploration/Tests/Symmetry.lean`, `model/Umpire/Exploration/Tests/Resume.lean`
-**Touches:** [model/Umpire/Exploration/Symmetry.lean, model/Umpire/Exploration/Guided.lean, model/Umpire/Exploration/State.lean, model/Umpire/Exploration/Report.lean, model/Umpire/Exploration/Tests/**]
+**Files:** `model/Umpire/Exploration/Guided.lean`, `model/Umpire/Exploration/Tests/Guided.lean`
+**Touches:** [model/Umpire/Exploration/Guided.lean, model/Umpire/Exploration/Tests/Guided.lean]
 
 ### Approach
-- Define checked orbit representatives with proof obligations for equal goal credits and semantic coverage under declared axis/choice renaming; validate total/idempotent/closed/disjoint orbits and the induced total quotient on concrete pair/t-wise interactions.
-- Implement the closed coverage-guided score tuple and semantic-identity tie-break exactly as specified.
-- Update immutable state monotonically, with distinct spec-identity hit sets rather than raw counters.
-- Implement strict compatibility validation and fresh-equals-resumed behavior while requiring the new ceiling to be at least the prior recorded ceiling.
-- Encode canonical `umpire-coverage-report/v1` bytes, direct versus symmetry-equivalent interaction coverage, complete selection/omission provenance, exact deficits, and the four non-overclaiming termination statuses.
+- Accept exactly one checked uncovered Model Coordinate and rank matching candidates before nonmatching candidates.
+- Break every tie with ExperimentSpec semantic identity and apply the explicit exploration Limit.
+- Return `coordinate-selected` or `coordinate-uncovered`; claim unreachable only when a separate exhaustive run completed.
+- Prove observations cannot change the universe, coordinate, ordering, or scoring rule.
 
 ### Investigation targets
 **Required** (read before coding):
-- `model/Umpire/Planning/Engine.lean:260-365` — existing in-memory cursor precedent
-- `model/Umpire/Artifact.lean:228-248` — canonical JSON/identity pattern
-- `model/Umpire/Behavior/Language.lean:930-951` — pure checked membership pattern
-- parent spec `CoverageState`, `CheckedCoverageSymmetry`, and `CoverageReport` contracts
-
-### Acceptance
-- [ ] Invalid symmetry proofs/partitions and stale/tampered/non-monotone resume states fail before selection.
-- [ ] Equivalent candidates reduce to the least representative without lost or inflated credit, direct and symmetry-equivalent interactions remain distinct, and every omission remains reported.
-- [ ] An oracle fixture whose renamed orbit members contain distinct concrete interactions proves the induced quotient rather than treating omitted interactions as directly covered.
-- [ ] Fresh and resumed runs at each larger budget have equal state/report/selection bytes.
-- [ ] Only exhaustive universe exhaustion can report unreachable-in-universe.
+- Task `.2` coordinate extraction and canonical universe.
+- Task `.3` Limit and ordering behavior.
+- `.plans/UMPIRE4_SPEC.md` — EXP-02 and PLN-04.
 
 ## Acceptance
-- [ ] R5/R6 symmetry, guidance, report, and resume contracts are implemented exactly.
-- [ ] Coverage-guided selection responds to prior/pinned credits and actual deficits.
-- [ ] Focused symmetry/resume/report tests pass.
+- [ ] A matching uncovered coordinate deterministically changes the first eligible selection.
+- [ ] Unknown coordinates reject and absent matches remain truthful without an unreachability claim.
+- [ ] Focused guidance and reorder tests pass with no adaptive state.
 
 ## Done summary
 TBD

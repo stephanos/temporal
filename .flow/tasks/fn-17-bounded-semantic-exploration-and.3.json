@@ -11,6 +11,6 @@
   "spec": "fn-17-bounded-semantic-exploration-and",
   "spec_path": ".flow/tasks/fn-17-bounded-semantic-exploration-and.3.md",
   "status": "todo",
-  "title": "Implement and oracle-check deterministic combinatorial selectors",
-  "updated_at": "2026-08-26T09:21:49.875272Z"
+  "title": "Implement bounded exhaustive enumeration",
+  "updated_at": "2026-09-01T10:06:16.463214Z"
 }

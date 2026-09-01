@@ -11,6 +11,6 @@
   "spec": "fn-17-bounded-semantic-exploration-and",
   "spec_path": ".flow/tasks/fn-17-bounded-semantic-exploration-and.8.md",
   "status": "todo",
-  "title": "Admit proof-bearing exact artifacts and deterministic protocol batches",
-  "updated_at": "2026-08-26T21:52:12.054373Z"
+  "title": "Add the in-memory one-candidate session seam",
+  "updated_at": "2026-09-01T10:06:18.129821Z"
 }
