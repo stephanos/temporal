@@ -94,6 +94,33 @@ example :
       (.unknown, none, .incomplete, [(.unknown, none, true)])) = true := by
   native_decide
 
+def divergentObservationFailureProperty : CheckedProperty := {
+  Umpire.Examples.Switch.flipProperty with clauses := []
+}
+
+def divergentObservationFailureRunEvaluation := checkRunEvaluation observationPlan
+  { repeatedEvidence with closures := [] } checkedLink Umpire.Examples.Switch.switchSetup
+  Umpire.Examples.Switch.exploratoryQuery [divergentObservationFailureProperty]
+
+def divergentObservedRunEvaluation := checkObservedRunEvaluation
+  (evaluateEvidence observationPlan { repeatedEvidence with closures := [] }) checkedLink
+  checkedObservedTranslation Umpire.Examples.Switch.switchSetup
+  Umpire.Examples.Switch.exploratoryQuery [divergentObservationFailureProperty]
+
+/-- Query/Property identity remains authoritative when Observation fails before Link invocation. -/
+example :
+    ((divergentObservationFailureRunEvaluation.implementationLink.map
+        ImplementationLinkResult.status,
+      divergentObservationFailureRunEvaluation.querySummary.verdicts.map fun verdict =>
+        (verdict.status, verdict.diagnostic.map SemanticVerdictDiagnostic.kind)),
+      (divergentObservedRunEvaluation.implementationLink.map
+        ObservedTraceTranslationResult.status,
+      divergentObservedRunEvaluation.querySummary.verdicts.map fun verdict =>
+        (verdict.status, verdict.diagnostic.map SemanticVerdictDiagnostic.kind))) =
+      ((none, [(.unsupported, some .queryPropertyMismatch)]),
+        (none, [(.unsupported, some .queryPropertyMismatch)])) := by
+  native_decide
+
 def implementationLinkFailureRunEvaluation := checkRunEvaluation observationPlan repeatedEvidence
   checkedLink [] Umpire.Examples.Switch.exploratoryQuery [Umpire.Examples.Switch.flipProperty]
 
