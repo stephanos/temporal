@@ -9,6 +9,6 @@
   "spec": "fn-17-bounded-semantic-exploration-and",
   "spec_path": ".flow/tasks/fn-17-bounded-semantic-exploration-and.1.md",
   "status": "todo",
-  "title": "Define checked exploration requests and semantic coverage vocabulary",
-  "updated_at": "2026-08-26T09:21:49.874277Z"
+  "title": "Define the bounded exploration request and coordinate vocabulary",
+  "updated_at": "2026-09-01T10:06:04.433305Z"
 }

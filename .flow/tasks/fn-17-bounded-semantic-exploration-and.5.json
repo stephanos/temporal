@@ -12,6 +12,6 @@
   "spec": "fn-17-bounded-semantic-exploration-and",
   "spec_path": ".flow/tasks/fn-17-bounded-semantic-exploration-and.5.md",
   "status": "todo",
-  "title": "Integrate exploration and pinned-regression precedence",
-  "updated_at": "2026-08-26T09:21:49.875420Z"
+  "title": "Integrate retained selection with pinned-regression precedence",
+  "updated_at": "2026-09-01T10:06:17.129129Z"
 }

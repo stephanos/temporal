@@ -10,8 +10,7 @@
     "fn-16-authored-variation-spaces-and",
     "fn-3-umpire-semantic-authoring-and-planning",
     "fn-9-umpire-reusable-dsl-package-split",
-    "fn-10-temporal-semantic-model-layout-and",
-    "fn-5-umpire-discovery-promotion-and-artifact"
+    "fn-10-temporal-semantic-model-layout-and"
   ],
   "id": "fn-17-bounded-semantic-exploration-and",
   "impl_review_rounds": {},
@@ -466,5 +465,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T21:55:31.469970Z"
+  "updated_at": "2026-09-01T10:06:42.575459Z"
 }
