@@ -9,8 +9,8 @@ languages and their denotations. Where the documents overlap, the model-architec
 source placement and import isolation.
 
 This document does not describe the Go Umpire2 runtime or the independent Umpire3 implementation.
-See [`UMPIRE.md`](UMPIRE.md) and [`UMPIRE3.md`](UMPIRE3.md) for those systems. Shared product goals
-remain in [`UMPIRE_VISION.md`](UMPIRE_VISION.md).
+See [`UMPIRE2.md`](UMPIRE2.md) and [`UMPIRE3.md`](UMPIRE3.md) for those systems. Shared product goals
+remain in [`UMPIRE4_VISION.md`](UMPIRE4_VISION.md).
 
 ## Purpose
 
