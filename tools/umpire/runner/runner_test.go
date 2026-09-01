@@ -95,6 +95,37 @@ func TestRunPassesTheExactAdmittedSetToTheAdapter(t *testing.T) {
 	require.EqualValues(t, "3584", executable.RuntimeConfiguration().PhaseLimits[2].MaxRecords)
 }
 
+func TestRunClassifiesAdapterPreflightAsNotStarted(t *testing.T) {
+	input := admitCallerClosureSet(t)
+	adapter := &recordingAdapter{checkErr: errors.New("checked adapter reached")}
+
+	_, err := runner.Run(
+		context.Background(),
+		input,
+		expectedCallerClosureInput,
+		"umpire.generated.runner.preflight-classification-1",
+		adapter,
+	)
+
+	require.Error(t, err)
+	requireExecutionOccurred(t, err, false)
+}
+
+func TestRunClassifiesParticipantConstructionAsNotStarted(t *testing.T) {
+	input := admitCallerClosureSet(t)
+
+	_, err := runner.Run(
+		context.Background(),
+		input,
+		expectedCallerClosureInput,
+		"umpire.generated.runner.participant-classification-1",
+		participantFailureAdapter{Binding: nexus.Binding{}},
+	)
+
+	require.Error(t, err)
+	requireExecutionOccurred(t, err, false)
+}
+
 func TestRunRejectsLimitNPlusOneBeforeAdapterConstruction(t *testing.T) {
 	adapter := &recordingAdapter{}
 	_, err := runner.Run(
@@ -200,6 +231,25 @@ type authorityLeakAdapter struct {
 	capabilities     []string
 	participantCalls int
 	environmentCalls int
+}
+
+type participantFailureAdapter struct {
+	nexus.Binding
+}
+
+func (participantFailureAdapter) NewParticipant(
+	umpireruntime.CheckedRunRequest,
+) (umpireruntime.Participant, error) {
+	return nil, errors.New("participant construction failed")
+}
+
+func requireExecutionOccurred(t *testing.T, err error, want bool) {
+	t.Helper()
+	var classified interface {
+		ExecutionOccurred() bool
+	}
+	require.ErrorAs(t, err, &classified)
+	require.Equal(t, want, classified.ExecutionOccurred())
 }
 
 func (a *authorityLeakAdapter) CheckRequest(
