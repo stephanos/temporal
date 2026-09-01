@@ -77,6 +77,9 @@ Nexus operation at most once.
 - **SEM-08 — Explicit Implementation Link.** A dedicated Implementation Link MUST connect
   `Temporal.Feature` product behavior to `Temporal.System` implementation behavior. Declaration
   order and implicit selection MUST NOT create that connection.
+- **SEM-10 — Portable interpreter seam.** Lean MUST compile a selected checked Test into its
+  Portable Evaluation Contract. The contract and its fixed-version interpreter MUST NOT add,
+  select, override, or retrieve behavior independently of that checked model input.
 
 ### Enforced module boundaries
 
@@ -197,6 +200,10 @@ Nexus operation at most once.
   and Limits as a Test Plan.
 - **Artifact.** Immutable, versioned, inspectable data exchanged across components, languages, and
   processes. Artifacts cannot define model behavior.
+- **Portable Evaluation Contract.** A versioned, closed, per-Test Artifact that Lean derives from
+  one selected checked Test, its Observation, Implementation Link, Properties, Limits, Known Gaps,
+  Definition IDs, and Behavior Fingerprints for interpretation without a Lean runtime. It is
+  portable model-derived data, not another authoring language or behavioral authority.
 - **Artifact Checksum.** A reproducible checksum over all Artifact content in canonical order,
   excluding the checksum field itself. It identifies one exact Artifact; it is not a Definition ID
   or Behavior Fingerprint.
@@ -244,6 +251,11 @@ Nexus operation at most once.
 - **ART-07 — Generated Views.** The same source Artifact MUST always produce the same Generated View.
   Generated Go tests and documentation MUST be bound to their source Artifact Checksums and MUST NOT
   be editable sources of model behavior.
+- **ART-08 — Closed portable evaluation.** A Portable Evaluation Contract MUST use a versioned,
+  finite operator vocabulary, be closed over one exact Test, carry its source bindings and Limits,
+  and contain no callback, executable, environment selector, registry lookup, or extension hook.
+  Admission MUST reject unknown major versions, fields, enum values, operators, crossed bindings,
+  and noncanonical bytes before runtime I/O.
 
 ## Execution, Evidence, and Run Evaluation
 
@@ -275,6 +287,10 @@ Nexus operation at most once.
 - **Result.** The complete interpreted report for a Run. It keeps operational, Observation
   Evaluation, Implementation Link, Property, and cleanup statuses separate and records Known Gaps
   independently.
+- **Local Canary Decision.** A `pass`, `fail`, or `inconclusive` decision about only the exact Test
+  and Evidence named by one Portable Evaluation Contract. It is neither a Claim Assessment nor a
+  statement about model consistency, exhaustive coverage, compiler correctness, release
+  eligibility, or any other Test.
 
 ### Execution and Evidence rules
 
@@ -301,6 +317,10 @@ Nexus operation at most once.
   Evidence, Known Gaps, divergence, infrastructure failures, and cleanup results.
 - **EVD-09 — Evidence Links.** Every accepted Model Fact MUST retain an Evidence Link to its mapping,
   Evidence records, bindings, ordering facts, and completeness checks.
+- **EVD-10 — Strict portable interpretation.** A portable interpreter MUST evaluate only its
+  admitted contract's versioned operators, in canonical order, under precharged work and structural
+  Limits. Unknown, missing, conflicting, noncanonical, out-of-range, or unsupported semantics MUST
+  NOT produce a Local Canary Decision of `pass`.
 
 ## Exploration, replay, and promotion
 
@@ -375,3 +395,8 @@ Nexus operation at most once.
   and limits on possible impact.
 - **QLF-03 — Complete claims.** Every Claim Assessment MUST expose its environment, Evidence policy,
   Limits, Assurance Method, Known Gaps, cleanup outcome, and Behavior Fingerprints.
+- **QLF-04 — Per-Test local decisions.** A Local Canary Decision MUST be `pass` only when the exact
+  Run is operationally successful and closed, Observation Evaluation is accepted, its
+  Implementation Link is applied, every required Property is satisfied, and cleanup is complete.
+  It MUST be `fail` only for a trustworthy closed Property violation, and `inconclusive` for every
+  operational, closure, tooling, unknown, conflict, unsupported, or cleanup failure.

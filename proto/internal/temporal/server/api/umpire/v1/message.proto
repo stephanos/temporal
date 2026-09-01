@@ -1,0 +1,599 @@
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+
+// FormatVersion identifies one incompatible contract vocabulary and its additive revision.
+message FormatVersion {
+  int32 major = 1;
+  int32 minor = 2;
+}
+
+// DefinitionBinding binds portable data to one exact model definition.
+message DefinitionBinding {
+  string definition_id = 1;
+  string behavior_fingerprint = 2;
+}
+
+// ArtifactBinding binds the contract to one exact admitted Umpire artifact.
+message ArtifactBinding {
+  string format_version = 1;
+  string artifact_checksum = 2;
+  string behavior_fingerprint = 3;
+  string provenance_checksum = 4;
+}
+
+message SourceLocation {
+  string path = 1;
+  int64 line = 2;
+  int64 column = 3;
+  string provenance = 4;
+}
+
+// The contract keeps related messages and enums together as one closed interpreter vocabulary.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum KnownGapKind {
+  KNOWN_GAP_KIND_UNSPECIFIED = 0;
+  KNOWN_GAP_KIND_CAPABILITY_CONTRACT = 1;
+  KNOWN_GAP_KIND_INPUT = 2;
+  KNOWN_GAP_KIND_INTERPRETATION = 3;
+  KNOWN_GAP_KIND_CLAIM = 4;
+}
+
+message KnownGap {
+  KnownGapKind kind = 1;
+  string code = 2;
+  string subject = 3;
+  string detail = 4;
+}
+
+enum ValueKind {
+  VALUE_KIND_UNSPECIFIED = 0;
+  VALUE_KIND_TEXT = 1;
+  VALUE_KIND_NATURAL = 2;
+  VALUE_KIND_BOOLEAN = 3;
+}
+
+// Value is a tagged interpreter value. Naturals use canonical unsigned base-10 text.
+message Value {
+  oneof value {
+    string text = 1;
+    string natural = 2;
+    bool bool_value = 3;
+  }
+}
+
+enum DefinitionKind {
+  DEFINITION_KIND_UNSPECIFIED = 0;
+  DEFINITION_KIND_SETUP = 1;
+  DEFINITION_KIND_STATE = 2;
+  DEFINITION_KIND_ACTION = 3;
+  DEFINITION_KIND_OUTCOME = 4;
+  DEFINITION_KIND_OBSERVATION = 5;
+  DEFINITION_KIND_RELATION = 6;
+  DEFINITION_KIND_CAPABILITY = 7;
+}
+
+message ModelValue {
+  DefinitionBinding definition = 1;
+  DefinitionKind kind = 2;
+  Value value = 3;
+}
+
+enum TraceField {
+  TRACE_FIELD_UNSPECIFIED = 0;
+  TRACE_FIELD_INITIAL_STATE = 1;
+  TRACE_FIELD_PRIOR_STATE = 2;
+  TRACE_FIELD_SELECTED_ACTION = 3;
+  TRACE_FIELD_MODEL_OUTCOME = 4;
+  TRACE_FIELD_RESULTING_STATE = 5;
+  TRACE_FIELD_OBSERVATION = 6;
+}
+
+message ModelCoordinate {
+  TraceField field = 1;
+  int64 step = 2;
+  int64 position = 3;
+}
+
+message Limit {
+  int64 value = 1;
+  string unit = 2;
+}
+
+// EvaluationLimits independently bound admission, input, evaluation, and output work.
+message EvaluationLimits {
+  int64 max_contract_bytes = 1;
+  int64 max_input_bytes = 2;
+  int64 max_evidence_records = 3;
+  int64 max_expression_depth = 4;
+  int64 max_collection_items = 5;
+  string max_natural = 6;
+  int64 max_evaluation_work = 7;
+  int64 max_diagnostic_bytes = 8;
+  int64 max_result_bytes = 9;
+  int64 max_total_duration_milliseconds = 10;
+}
+
+enum DigestAlgorithm {
+  DIGEST_ALGORITHM_UNSPECIFIED = 0;
+  DIGEST_ALGORITHM_SYNTHETIC_DIGEST_V1 = 1;
+}
+
+message DigestPolicy {
+  string definition_id = 1;
+  DigestAlgorithm algorithm = 2;
+}
+
+enum FieldDispositionKind {
+  FIELD_DISPOSITION_KIND_UNSPECIFIED = 0;
+  FIELD_DISPOSITION_KIND_RETAIN = 1;
+  FIELD_DISPOSITION_KIND_REDACT = 2;
+  FIELD_DISPOSITION_KIND_HASH = 3;
+  FIELD_DISPOSITION_KIND_REJECT = 4;
+}
+
+message EvidenceFieldDeclaration {
+  string field_definition_id = 1;
+  ValueKind value_kind = 2;
+  FieldDispositionKind disposition = 3;
+  string digest_policy_definition_id = 4;
+}
+
+message EvidenceKindDeclaration {
+  string kind_definition_id = 1;
+  string source_definition_id = 2;
+  repeated EvidenceFieldDeclaration fields = 3;
+}
+
+// Every declared source must close explicitly before absence can be established.
+message EvidenceSourceDeclaration {
+  string source_definition_id = 1;
+}
+
+message EvidenceCardinality {
+  string kind_definition_id = 1;
+  int64 minimum = 2;
+  int64 maximum = 3;
+}
+
+message EvidenceFieldReference {
+  string kind_definition_id = 1;
+  string field_definition_id = 2;
+}
+
+enum CorrelationSlotKind {
+  CORRELATION_SLOT_KIND_UNSPECIFIED = 0;
+  CORRELATION_SLOT_KIND_RUN = 1;
+  CORRELATION_SLOT_KIND_WORKFLOW = 2;
+  CORRELATION_SLOT_KIND_OPERATION = 3;
+}
+
+// A correlation slot requires every listed field to carry one identical dynamic value.
+message CorrelationSlot {
+  string definition_id = 1;
+  CorrelationSlotKind kind = 2;
+  repeated EvidenceFieldReference fields = 3;
+}
+
+message EvidenceProfile {
+  DefinitionBinding definition = 1;
+  int32 version = 2;
+  repeated EvidenceSourceDeclaration sources = 3;
+  repeated EvidenceKindDeclaration kinds = 4;
+  repeated DigestPolicy digest_policies = 5;
+  repeated EvidenceCardinality cardinalities = 6;
+  repeated CorrelationSlot correlation_slots = 7;
+}
+
+message LiteralText {
+  string value = 1;
+}
+
+message LiteralNatural {
+  string value = 1;
+}
+
+message NaturalRenderV1 {
+  ObservationExpression operand = 1;
+}
+
+message Present {
+  ObservationExpression operand = 1;
+}
+
+message Equals {
+  ObservationExpression left = 1;
+  ObservationExpression right = 2;
+}
+
+message All {
+  repeated ObservationExpression operands = 1;
+}
+
+message Any {
+  repeated ObservationExpression operands = 1;
+}
+
+// ObservationExpression is the complete version-one Observation operator table.
+message ObservationExpression {
+  oneof operator {
+    LiteralText literal_text = 1;
+    LiteralNatural literal_natural = 2;
+    EvidenceFieldReference field = 3;
+    NaturalRenderV1 natural_render_v1 = 4;
+    Present present = 5;
+    Equals equals = 6;
+    All all = 7;
+    Any any = 8;
+  }
+}
+
+// Emit is the only version-one trace operator.
+message Emit {
+  string definition_id = 1;
+  string source_kind_definition_id = 2;
+  DefinitionBinding output_definition = 3;
+  DefinitionKind output_kind = 4;
+  ModelCoordinate coordinate = 5;
+  ObservationExpression condition = 6;
+  ObservationExpression value = 7;
+}
+
+message EmitOrdering {
+  string predecessor_emit_definition_id = 1;
+  string successor_emit_definition_id = 2;
+}
+
+message ObservationProgram {
+  DefinitionBinding definition = 1;
+  SourceLocation source = 2;
+  DefinitionBinding mapping = 3;
+  int32 mapping_version = 4;
+  EvidenceProfile profile = 5;
+  repeated Emit emits = 6;
+  repeated EmitOrdering ordering = 7;
+}
+
+message RenameExactEntry {
+  ModelValue source = 1;
+  ModelValue destination = 2;
+}
+
+// DefinitionRenameEntry retains exact non-value link bindings such as capabilities.
+message DefinitionRenameEntry {
+  DefinitionBinding source = 1;
+  DefinitionKind kind = 2;
+  DefinitionBinding destination = 3;
+}
+
+// RenameExactLink is the only version-one Implementation Link operator.
+message RenameExactLink {
+  DefinitionBinding definition = 1;
+  SourceLocation source = 2;
+  DefinitionBinding source_target = 3;
+  DefinitionBinding destination_target = 4;
+  repeated RenameExactEntry entries = 5;
+  repeated DefinitionRenameEntry definition_entries = 6;
+  Limit application_limit = 7;
+}
+
+enum PropertyClauseProvenance {
+  PROPERTY_CLAUSE_PROVENANCE_UNSPECIFIED = 0;
+  PROPERTY_CLAUSE_PROVENANCE_TRANSITION_CONTRACT = 1;
+  PROPERTY_CLAUSE_PROVENANCE_INPUT_OUTPUT = 2;
+}
+
+message EqualsText {
+  string value = 1;
+}
+
+message NaturalAtMost {
+  string bound = 1;
+}
+
+// Pattern is the complete version-one Property pattern operator table.
+message Pattern {
+  TraceField field = 1;
+  DefinitionBinding definition = 2;
+  oneof operator {
+    EqualsText equals_text = 3;
+    // The field name is the normative version-one operator name.
+    // (-- api-linter: core::0140::prepositions=disabled --)
+    NaturalAtMost natural_at_most = 4;
+  }
+}
+
+// PerStepImplies is the only version-one Property clause operator.
+message PerStepImplies {
+  Pattern trigger = 1;
+  Pattern required = 2;
+}
+
+message PropertyClause {
+  string definition_id = 1;
+  PropertyClauseProvenance provenance = 2;
+  PerStepImplies per_step_implies = 3;
+}
+
+message Property {
+  DefinitionBinding definition = 1;
+  SourceLocation source = 2;
+  repeated DefinitionBinding requirements = 3;
+  repeated PropertyClause clauses = 4;
+}
+
+// EvaluationContract is closed over one exact Test and contains no runtime selector or code hook.
+message EvaluationContract {
+  FormatVersion version = 1;
+  string contract_id = 2;
+  bytes artifact_checksum = 3;
+  ArtifactBinding experiment = 4;
+  ArtifactBinding runtime_config = 5;
+  DefinitionBinding test = 6;
+  DefinitionBinding query = 7;
+  EvaluationLimits limits = 8;
+  ObservationProgram observation = 9;
+  RenameExactLink implementation_link = 10;
+  repeated Property properties = 11;
+  repeated KnownGap known_gaps = 12;
+  repeated SourceLocation provenance = 13;
+}
+
+message ModelTraceStep {
+  int64 position = 1;
+  ModelValue prior_state = 2;
+  ModelValue selected_action = 3;
+  ModelValue model_outcome = 4;
+  ModelValue resulting_state = 5;
+  repeated ModelValue observations = 6;
+}
+
+message ModelTrace {
+  string trace_id = 1;
+  ModelValue initial_state = 2;
+  repeated ModelTraceStep steps = 3;
+}
+
+message OrderingFact {
+  string evidence_definition_id = 1;
+  string source_definition_id = 2;
+  int64 ordinal = 3;
+  repeated string causal_evidence_definition_ids = 4;
+}
+
+message ClosureFact {
+  string source_definition_id = 1;
+  int64 record_count = 2;
+  int64 byte_count = 3;
+}
+
+message AppliedDisposition {
+  EvidenceFieldReference field = 1;
+  FieldDispositionKind disposition = 2;
+  Value normalized_value = 3;
+  string digest_policy_definition_id = 4;
+  string digest_token = 5;
+}
+
+message EvidenceLink {
+  ModelCoordinate coordinate = 1;
+  DefinitionBinding mapping = 2;
+  string rule_definition_id = 3;
+  repeated string evidence_definition_ids = 4;
+  repeated OrderingFact ordering_support = 5;
+  repeated ClosureFact closure_support = 6;
+  repeated AppliedDisposition applied_dispositions = 7;
+}
+
+enum DiagnosticClass {
+  DIAGNOSTIC_CLASS_UNSPECIFIED = 0;
+  DIAGNOSTIC_CLASS_INVALID = 1;
+  DIAGNOSTIC_CLASS_UNKNOWN = 2;
+  DIAGNOSTIC_CLASS_CONFLICT = 3;
+  DIAGNOSTIC_CLASS_UNSUPPORTED = 4;
+}
+
+enum DiagnosticCode {
+  DIAGNOSTIC_CODE_UNSPECIFIED = 0;
+  DIAGNOSTIC_CODE_MISSING_FIELD = 1;
+  DIAGNOSTIC_CODE_MISSING_BINDING = 2;
+  DIAGNOSTIC_CODE_MISSING_COORDINATE = 3;
+  DIAGNOSTIC_CODE_MISSING_LINK_MAPPING = 4;
+  DIAGNOSTIC_CODE_MISSING_CLOSURE = 5;
+  DIAGNOSTIC_CODE_DUPLICATE_FIELD = 6;
+  DIAGNOSTIC_CODE_DUPLICATE_BINDING = 7;
+  DIAGNOSTIC_CODE_DUPLICATE_COORDINATE = 8;
+  DIAGNOSTIC_CODE_CONTRADICTORY_COORDINATE = 9;
+  DIAGNOSTIC_CODE_EXTRA_COORDINATE = 10;
+  DIAGNOSTIC_CODE_DUPLICATE_LINK_MAPPING = 11;
+  DIAGNOSTIC_CODE_CONTRADICTORY_LINK_MAPPING = 12;
+  DIAGNOSTIC_CODE_SOURCE_IDENTITY = 13;
+  DIAGNOSTIC_CODE_SOURCE_ORDER = 14;
+  DIAGNOSTIC_CODE_CAUSAL_ORDER = 15;
+  DIAGNOSTIC_CODE_CORRELATION = 16;
+  DIAGNOSTIC_CODE_UNDECLARED_KIND = 17;
+  DIAGNOSTIC_CODE_UNDECLARED_FIELD = 18;
+  DIAGNOSTIC_CODE_TYPE_MISMATCH = 19;
+  DIAGNOSTIC_CODE_UNSUPPORTED_OPERATOR = 20;
+  DIAGNOSTIC_CODE_NONCANONICAL_NATURAL = 21;
+  DIAGNOSTIC_CODE_NATURAL_OUT_OF_RANGE = 22;
+  DIAGNOSTIC_CODE_LIMIT_REACHED = 23;
+  DIAGNOSTIC_CODE_MALFORMED_CONTRACT = 24;
+}
+
+message Diagnostic {
+  DiagnosticClass diagnostic_class = 1;
+  DiagnosticCode code = 2;
+  repeated string related_definition_ids = 3;
+  ModelCoordinate coordinate = 4;
+  Limit applied_limit = 5;
+  int64 observed_count = 6;
+  string detail = 7;
+}
+
+// Umpire Stage Status is normative terminology rather than lifecycle state.
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ToolingStatus {
+  TOOLING_STATUS_UNSPECIFIED = 0;
+  TOOLING_STATUS_SUCCEEDED = 1;
+  TOOLING_STATUS_INVALID_CONTRACT = 2;
+  TOOLING_STATUS_INVALID_INPUT = 3;
+  TOOLING_STATUS_BUSY = 4;
+  TOOLING_STATUS_POISONED = 5;
+  TOOLING_STATUS_CANCELED = 6;
+  TOOLING_STATUS_INTERNAL_ERROR = 7;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum OperationalStatus {
+  OPERATIONAL_STATUS_UNSPECIFIED = 0;
+  OPERATIONAL_STATUS_SUCCEEDED = 1;
+  OPERATIONAL_STATUS_INCOMPLETE = 2;
+  OPERATIONAL_STATUS_FAILED = 3;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ObservationStatus {
+  OBSERVATION_STATUS_UNSPECIFIED = 0;
+  OBSERVATION_STATUS_ACCEPTED = 1;
+  OBSERVATION_STATUS_UNKNOWN = 2;
+  OBSERVATION_STATUS_CONFLICT = 3;
+  OBSERVATION_STATUS_UNSUPPORTED = 4;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ImplementationLinkStatus {
+  IMPLEMENTATION_LINK_STATUS_UNSPECIFIED = 0;
+  IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED = 1;
+  IMPLEMENTATION_LINK_STATUS_APPLIED = 2;
+  IMPLEMENTATION_LINK_STATUS_INVALID = 3;
+  IMPLEMENTATION_LINK_STATUS_UNKNOWN = 4;
+  IMPLEMENTATION_LINK_STATUS_CONFLICT = 5;
+  IMPLEMENTATION_LINK_STATUS_UNSUPPORTED = 6;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum SemanticStatus {
+  SEMANTIC_STATUS_UNSPECIFIED = 0;
+  SEMANTIC_STATUS_SATISFIED = 1;
+  SEMANTIC_STATUS_VIOLATED = 2;
+  SEMANTIC_STATUS_UNKNOWN = 3;
+  SEMANTIC_STATUS_CONFLICT = 4;
+  SEMANTIC_STATUS_UNSUPPORTED = 5;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum EvaluationStatus {
+  EVALUATION_STATUS_UNSPECIFIED = 0;
+  EVALUATION_STATUS_SATISFIED = 1;
+  EVALUATION_STATUS_VIOLATED = 2;
+  EVALUATION_STATUS_INCOMPLETE = 3;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum CleanupStatus {
+  CLEANUP_STATUS_UNSPECIFIED = 0;
+  CLEANUP_STATUS_COMPLETE = 1;
+  CLEANUP_STATUS_INCOMPLETE = 2;
+  CLEANUP_STATUS_FAILED = 3;
+}
+
+enum CanaryDecision {
+  CANARY_DECISION_UNSPECIFIED = 0;
+  CANARY_DECISION_PASS = 1;
+  CANARY_DECISION_FAIL = 2;
+  CANARY_DECISION_INCONCLUSIVE = 3;
+}
+
+message ObservationEvaluationResult {
+  ObservationStatus status = 1;
+  ModelTrace trace = 2;
+  repeated EvidenceLink evidence_links = 3;
+  repeated Diagnostic diagnostics = 4;
+}
+
+message RenameExactApplication {
+  ModelCoordinate coordinate = 1;
+  RenameExactEntry entry = 2;
+  EvidenceLink source_evidence_link = 3;
+}
+
+message ImplementationLinkResult {
+  ImplementationLinkStatus status = 1;
+  ModelTrace trace = 2;
+  repeated RenameExactApplication applications = 3;
+  repeated Diagnostic diagnostics = 4;
+}
+
+message PropertyClauseResult {
+  DefinitionBinding property = 1;
+  string clause_definition_id = 2;
+  SemanticStatus status = 3;
+  repeated ModelCoordinate coordinates = 4;
+  repeated EvidenceLink evidence_links = 5;
+  repeated Diagnostic diagnostics = 6;
+}
+
+message PropertyResult {
+  DefinitionBinding property = 1;
+  SemanticStatus status = 2;
+  repeated PropertyClauseResult clauses = 3;
+  repeated Diagnostic diagnostics = 4;
+}
+
+enum WorkUnitKind {
+  WORK_UNIT_KIND_UNSPECIFIED = 0;
+  WORK_UNIT_KIND_EXPRESSION_VISIT = 1;
+  WORK_UNIT_KIND_RULE_RECORD_CANDIDATE = 2;
+  WORK_UNIT_KIND_EMITTED_COORDINATE = 3;
+  WORK_UNIT_KIND_LINK_ENTRY = 4;
+  WORK_UNIT_KIND_CLAUSE_STEP_PAIR = 5;
+  WORK_UNIT_KIND_PATTERN_VALUE_CANDIDATE = 6;
+}
+
+// Every item counted here costs exactly one work unit and is charged before evaluation.
+message WorkCharge {
+  WorkUnitKind kind = 1;
+  int64 count = 2;
+}
+
+message EvaluationWork {
+  repeated WorkCharge charges = 1;
+  int64 total = 2;
+  int64 limit = 3;
+}
+
+// EvaluationResult decides only the exact Test named by its admitted contract.
+message EvaluationResult {
+  FormatVersion version = 1;
+  bytes contract_checksum = 2;
+  string run_identity = 3;
+  ToolingStatus tooling_status = 4;
+  OperationalStatus operational_status = 5;
+  ObservationEvaluationResult observation = 6;
+  ImplementationLinkResult implementation_link = 7;
+  repeated PropertyResult properties = 8;
+  EvaluationStatus semantic_status = 9;
+  CleanupStatus cleanup_status = 10;
+  CanaryDecision decision = 11;
+  EvaluationWork work = 12;
+  repeated KnownGap known_gaps = 13;
+  repeated Diagnostic diagnostics = 14;
+}
+
+// EvaluationInput carries only exact admitted artifacts; it contains no environment selector.
+message EvaluationInput {
+  bytes experiment = 1;
+  bytes runtime_config = 2;
+}
+
+message ExecuteRequest {
+  bytes evaluation_contract = 1;
+  EvaluationInput input = 2;
+}
+
+message ExecuteResponse {
+  EvaluationResult result = 1;
+}
