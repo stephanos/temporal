@@ -7,8 +7,8 @@ satisfies: [R1, R2]
 Extend the owner-local exact-one constructor classifiers across the semantic evaluation stages for R1/R2.
 
 **Size:** M
-**Files:** `model/Umpire/Observation/Evaluation.lean`, `model/Umpire/ImplementationLink/Application.lean`, `model/Umpire/Observation/Verdict.lean`, `model/Umpire/SemanticInventory/Tests/SemanticStages.lean`
-**Touches:** [model/Umpire/Observation/Evaluation.lean, model/Umpire/ImplementationLink/Application.lean, model/Umpire/Observation/Verdict.lean, model/Umpire/SemanticInventory/Tests/SemanticStages.lean]
+**Files:** `model/Umpire/Observation/Evaluation.lean`, `model/Umpire/ImplementationLink/Application.lean`, `model/Umpire/Observation/Verdict.lean`, `model/Temporal/Tool/RunEvaluation.lean`, `model/Umpire/SemanticInventory/Tests/SemanticStages.lean`
+**Touches:** [model/Umpire/Observation/Evaluation.lean, model/Umpire/ImplementationLink/Application.lean, model/Umpire/Observation/Verdict.lean, model/Temporal/Tool/RunEvaluation.lean, model/Umpire/SemanticInventory/Tests/SemanticStages.lean]
 
 ### Approach
 - Add typed ordered constructor descriptors and exact-one classifiers beside ObservationStatus, ImplementationLinkStatus, SemanticVerdictStatus, and StrictQueryStatus.

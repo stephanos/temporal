@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-08-30T16:04:32.926893Z",
   "depends_on": [
-    "fn-47-generate-umpire-semantic-outcome-and.1"
+    "fn-47-generate-umpire-semantic-outcome-and.1",
+    "fn-47-generate-umpire-semantic-outcome-and.2"
   ],
   "id": "fn-47-generate-umpire-semantic-outcome-and.3",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-47-generate-umpire-semantic-outcome-and.3.md",
   "status": "todo",
   "title": "Catalog fixed and synthesized Known Gap sources",
-  "updated_at": "2026-08-30T16:30:03.009499Z"
+  "updated_at": "2026-09-01T11:29:30.358968Z"
 }
