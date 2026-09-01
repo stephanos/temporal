@@ -23,6 +23,37 @@ structure ImplementationLinkKnownGap (Source : Type) where
   reason : String
   deriving BEq, DecidableEq, Repr
 
+/-- The seven typed source domains that may own authored Implementation Link Known Gaps. -/
+inductive ImplementationLinkKnownGapFamily where
+  | setup
+  | state
+  | action
+  | outcome
+  | observation
+  | relation
+  | capability
+  deriving BEq, DecidableEq, Ord, Repr
+
+def ImplementationLinkKnownGapFamily.name : ImplementationLinkKnownGapFamily → String
+  | .setup => "setup"
+  | .state => "state"
+  | .action => "action"
+  | .outcome => "outcome"
+  | .observation => "observation"
+  | .relation => "relation"
+  | .capability => "capability"
+
+/-- Canonical declaration-field order for polymorphic authored Known Gap families. -/
+def ImplementationLinkKnownGapFamily.all : List ImplementationLinkKnownGapFamily := [
+  .setup,
+  .state,
+  .action,
+  .outcome,
+  .observation,
+  .relation,
+  .capability
+]
+
 /-- A semantic reference binds kind and meaning fingerprint, not only a reusable Definition ID. -/
 structure ImplementationSemanticReference where
   id : DefinitionId

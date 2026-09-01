@@ -21,6 +21,24 @@ private def exactGaps (sources : List KnownGapSourceDescriptor) : List KnownGap 
 private def sourceAt (index : Nat) : KnownGapSourceDescriptor :=
   productionKnownGapSources[index]?.getD observationKnownGapSource
 
+private def catalogValidationErrorKind?
+    (catalog : List KnownGapCatalogDescriptor) : Option KnownGapCatalogErrorKind :=
+  match validateKnownGapCatalog catalog with
+  | .ok _ => none
+  | .error error => some error.kind
+
+private def catalogAt (index : Nat) : KnownGapCatalogDescriptor :=
+  knownGapCatalog[index]?.getD {
+    id := "umpire.semantic-inventory.known-gap-source.unknown"
+    owner := "Umpire.SemanticInventory"
+    lineage := .carried
+    scope := .production
+    shape := .carriedCatalogEntry
+    source := "umpire.semantic-inventory.known-gap-source.unknown"
+    fieldMapping := some .exact
+    description := "Unknown catalog row."
+  }
+
 example : exactGaps plannerKnownGapSources = canonicalPlannerKnownGaps := by
   native_decide
 
@@ -119,6 +137,75 @@ example :
       code := DefinitionId.of "umpire.observation.raw-unknown"
     }
     productionKnownGapSources.all (fun descriptor => !descriptor.source.covers requestGap) := by
+  native_decide
+
+example : knownGapCatalog.length = 22 ∧
+    catalogValidationErrorKind? knownGapCatalog = none ∧
+    (knownGapCatalog.drop 9).map KnownGapCatalogDescriptor.id = [
+      "umpire.semantic-inventory.known-gap-source.10-implementation-link-setup",
+      "umpire.semantic-inventory.known-gap-source.11-implementation-link-state",
+      "umpire.semantic-inventory.known-gap-source.12-implementation-link-action",
+      "umpire.semantic-inventory.known-gap-source.13-implementation-link-outcome",
+      "umpire.semantic-inventory.known-gap-source.14-implementation-link-observation",
+      "umpire.semantic-inventory.known-gap-source.15-implementation-link-relation",
+      "umpire.semantic-inventory.known-gap-source.16-implementation-link-capability",
+      "umpire.semantic-inventory.known-gap-source.17-observation-known-gap-admission",
+      "umpire.semantic-inventory.known-gap-source.18-result-known-gap-carry",
+      "umpire.semantic-inventory.known-gap-source.19-test-capability",
+      "umpire.semantic-inventory.known-gap-source.20-test-input",
+      "umpire.semantic-inventory.known-gap-source.21-test-interpretation",
+      "umpire.semantic-inventory.known-gap-source.22-test-claim"
+    ] := by
+  native_decide
+
+example :
+    let projection := catalogAt 16
+    projection.shape = .evidenceGapAdmissionProjection ∧
+      projection.lineage = .carried ∧
+      projection.scope = .production ∧
+      projection.fieldMapping = some .observationAdmission ∧
+    let carry := catalogAt 17
+    carry.shape = .carriedCatalogEntry ∧
+      carry.lineage = .carried ∧
+      carry.scope = .production ∧
+      carry.source = projection.id ∧
+      carry.fieldMapping = some .exact := by
+  native_decide
+
+example :
+    (knownGapCatalog.drop 18).all fun row => row.scope == .testOnly := by
+  native_decide
+
+example :
+    let projection := catalogAt 16
+    let invalid := { projection with fieldMapping := some .exact }
+    catalogValidationErrorKind? (knownGapCatalog.take 16 ++ invalid :: knownGapCatalog.drop 17) =
+      some .invalidProjectionMapping := by
+  native_decide
+
+example :
+    let carry := catalogAt 17
+    let invalid := { carry with source := "umpire.semantic-inventory.known-gap-source.missing" }
+    catalogValidationErrorKind? (knownGapCatalog.take 17 ++ invalid :: knownGapCatalog.drop 18) =
+      some .unresolvedCarry := by
+  native_decide
+
+example :
+    let family := catalogAt 9
+    let duplicate := {
+      family with id := "umpire.semantic-inventory.known-gap-source.23-duplicate-setup"
+    }
+    catalogValidationErrorKind? (knownGapCatalog ++ [duplicate]) = some .duplicateOwnership := by
+  native_decide
+
+example :
+    let family := catalogAt 9
+    let wrongLineage := { family with lineage := .carried }
+    let wrongScope := { family with scope := .testOnly }
+    catalogValidationErrorKind? (knownGapCatalog.take 9 ++ wrongLineage :: knownGapCatalog.drop 10) =
+        some .invalidLineage ∧
+      catalogValidationErrorKind? (knownGapCatalog.take 9 ++ wrongScope :: knownGapCatalog.drop 10) =
+        some .invalidScope := by
   native_decide
 
 end Umpire.SemanticInventoryTests.KnownGaps

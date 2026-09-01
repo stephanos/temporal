@@ -264,6 +264,10 @@ structure ResultArtifact where
   artifactChecksum : ArtifactChecksum
   deriving BEq, DecidableEq, Repr
 
+/-- Result aggregation retains all four Known Gap fields without projection. -/
+def ResultArtifact.knownGapCarryMapping : KnownGapCarryMapping :=
+  .exact
+
 private def quoteResult (value : String) : String := Lean.Json.compress (.str value)
 
 private def resultArray (items : List String) : String :=

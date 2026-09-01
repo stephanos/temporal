@@ -587,10 +587,19 @@ private def closedFailedRequest : Request := { request with
 
 private def knownGapJson : Lean.Json := array [object [
   ("kind", text "input"), ("code", text "umpire.gap.fixture"),
-  ("subject", .null), ("detail", .null)
+  ("subject", text "temporal.gap.run-subject"), ("detail", text "run detail")
 ]]
 
-private def gapRequest : Request := { request with runKnownGaps := knownGapJson }
+private def rawKnownGapJson : Lean.Json := array [object [
+  ("kind", text "claim"), ("code", text "umpire.gap.raw-fixture"),
+  ("subject", text "temporal.gap.raw-subject"), ("detail", text "raw detail")
+]]
+
+private def gapRequest : Request := {
+  request with
+  runKnownGaps := knownGapJson
+  rawEvidenceKnownGaps := rawKnownGapJson
+}
 
 private def rejectedField (candidate : Request) : Option String :=
   match Temporal.Tool.RunEvaluation.evaluateRequest candidate with
@@ -659,6 +668,53 @@ example : incompleteProjection crossedTypeResponse && incompleteProjection confl
 /-! Upstream Known Gaps force unknown semantics without a Property verdict or outcome checksum. -/
 example : gapResponse.observationEvaluationStatus = "unknown" &&
     incompleteProjection gapResponse && !jsonArrayEmpty gapResponse.resultKnownGaps := by native_decide
+
+/-! Observation admission is lossy while Result aggregation carries every Known Gap field exactly. -/
+example : gapResponse.diagnostics == array [object [
+      ("kind", text "known-gap"),
+      ("observationPlanDefinitionId", text "temporal.system.nexus.caller-closure.mapping"),
+      ("relatedDefinitionIds", array [
+        text "temporal.gap.raw-subject",
+        text "temporal.gap.run-subject",
+        text "umpire.gap.fixture",
+        text "umpire.gap.raw-fixture"
+      ]),
+      ("appliedLimit", .null),
+      ("observedCount", .null),
+      ("alternatives", array []),
+      ("missingDiscriminatorDefinitionId", .null)
+    ]] := by
+  native_decide
+
+example : gapResponse.observationKnownGaps == array [object [
+      ("kind", text "interpretation"),
+      ("code", text "umpire.observation.known-gap"),
+      ("subject", text "temporal.system.nexus.caller-closure.mapping"),
+      ("detail", .null)
+    ]] := by
+  native_decide
+
+example : gapResponse.resultKnownGaps == array [
+      object [
+        ("kind", text "input"),
+        ("code", text "umpire.gap.fixture"),
+        ("subject", text "temporal.gap.run-subject"),
+        ("detail", text "run detail")
+      ],
+      object [
+        ("kind", text "interpretation"),
+        ("code", text "umpire.observation.known-gap"),
+        ("subject", text "temporal.system.nexus.caller-closure.mapping"),
+        ("detail", .null)
+      ],
+      object [
+        ("kind", text "claim"),
+        ("code", text "umpire.gap.raw-fixture"),
+        ("subject", text "temporal.gap.raw-subject"),
+        ("detail", text "raw detail")
+      ]
+    ] := by
+  native_decide
 
 /-! Valid fn19 non-success control/source closures reach fn-4 instead of protocol rejection. -/
 example : notAttemptedResponse?.any fun candidate =>

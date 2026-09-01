@@ -77,6 +77,10 @@ structure EvidenceGap where
   relatedDefinitionIds : List DefinitionId := []
   deriving BEq, DecidableEq, Repr
 
+/-- The intentionally lossy Known Gap mapping admitted by Observation Evaluation. -/
+def EvidenceGap.knownGapAdmissionMapping : KnownGapCarryMapping :=
+  .observationAdmission
+
 /-- Complete synthetic input envelope. Alternatives are preserved as data instead of selected. -/
 structure EvidenceBundle where
   profile : DefinitionId
