@@ -41,9 +41,18 @@ cd model && mise exec -- lake build Umpire.Observation.Tests
 - [ ] Valid accepted projections, equality/debug behavior required by current consumers, trace fingerprints, and Evidence Links remain identical.
 - [ ] Public import checks expose the semantic accepted type but not an unchecked ordinary construction path.
 ## Done summary
-TBD
+Sealed `EvidenceBackedTrace` behind successful Observation admission, retained read-only/equality/debug behavior, and moved negative fixtures to the unchecked carrier. The review fix also enforces the canonical evidence bound at direct admission with an exact bound-one/two-record regression.
 
+Baseline: green (`cd model && mise exec -- lake build Umpire.Observation.Tests`, 47/47).
+
+RED/GREEN: the new bound-one/two-record admission regression failed in `Umpire.Observation.Tests.EvidenceLink` before the admission check and passed after it; aggregate Observation/import builds and `make lint-model` are green.
+
+Sequencing adjustment (approved): sealing the type required the minimal removal of three now-invalid complete accepted-envelope revalidation calls and migration of their forged-wrapper tests to Observation admission. No raw/coercion compatibility path was added; fn44.4 retains the residual Property/Link-owned validation migration.
+
+`make lint-code` reproduced the exact inherited 1,373 Go findings from the pre-existing baseline; this task's cumulative diff is Lean/Flow only. Flow memory capture was attempted after NEEDS_WORK→SHIP but memory is not initialized.
+
+stage: impl-review - ran [2026-09-01T02:17:45Z..2026-09-01T02:25:33Z] | Codex NEEDS_WORK→SHIP; receipt `/tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.3.json`
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ef322c22aa72a96d10530139baa135b02c71e43e, d3e92f1351bcf2da136dd6b8f833e166efa7a2a6
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.EvidenceLink, cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.ImportTests, cd model && mise exec -- lake build Temporal.Tool.RunEvaluationMutationTests Temporal.ImplementationLinkTests.Nexus, make lint-model, cd model && mise exec -- lake build Umpire.Observation.Tests, make lint-code (inherited: exit 2 with the exact pre-existing 1,373 Go findings; cumulative task diff is Lean/Flow only), git diff --check
 - PRs:
