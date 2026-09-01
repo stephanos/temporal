@@ -369,6 +369,21 @@ func TestEvaluatePropertyDestinationVocabulary(t *testing.T) {
 			decision:   umpirespb.CANARY_DECISION_INCONCLUSIVE,
 		},
 		{
+			name: "crossed requirement kind",
+			modify: func(contract *umpirespb.EvaluationContract) {
+				contract.ImplementationLink.DefinitionEntries = []*umpirespb.DefinitionRenameEntry{{
+					Source: testBinding("system.capability"), Kind: umpirespb.DEFINITION_KIND_RELATION,
+					Destination: testBinding("feature.capability"),
+				}}
+				contract.Properties[0].Requirements = []*umpirespb.DefinitionBinding{
+					testBinding("feature.capability"),
+				}
+			},
+			wantStatus: umpirespb.SEMANTIC_STATUS_UNSUPPORTED,
+			wantCode:   umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
+			decision:   umpirespb.CANARY_DECISION_INCONCLUSIVE,
+		},
+		{
 			name: "declared requirement",
 			modify: func(contract *umpirespb.EvaluationContract) {
 				contract.ImplementationLink.DefinitionEntries = []*umpirespb.DefinitionRenameEntry{{
