@@ -379,7 +379,41 @@ func (c *repositoryChecker) checkFlowSpecs(entries []flowSpecEntry) {
 	for _, id := range sortedKeys(c.flowSpecs) {
 		c.checkFlowSpec(c.flowSpecs[id])
 	}
+	c.checkFlowDependencyCycles()
 	c.checkRetainedFlowDependencies()
+}
+
+func (c *repositoryChecker) checkFlowDependencyCycles() {
+	state := make(map[string]uint8)
+	stack := make([]string, 0, len(c.flowSpecs))
+	var visit func(string)
+	visit = func(id string) {
+		state[id] = 1
+		stack = append(stack, id)
+		dependencies := slices.Clone(c.flowSpecs[id].SpecDependencies)
+		slices.Sort(dependencies)
+		for _, dependency := range dependencies {
+			if _, ok := c.flowSpecs[dependency]; !ok {
+				continue
+			}
+			switch state[dependency] {
+			case 0:
+				visit(dependency)
+			case 1:
+				start := slices.Index(stack, dependency)
+				cycle := append(slices.Clone(stack[start:]), dependency)
+				c.add("flow dependency graph: cycle %s", strings.Join(cycle, " -> "))
+			default:
+			}
+		}
+		stack = stack[:len(stack)-1]
+		state[id] = 2
+	}
+	for _, id := range sortedKeys(c.flowSpecs) {
+		if state[id] == 0 {
+			visit(id)
+		}
+	}
 }
 
 func (c *repositoryChecker) checkRetainedFlowDependencies() {
