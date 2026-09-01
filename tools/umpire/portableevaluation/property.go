@@ -44,6 +44,11 @@ func (i *interpreter) evaluateProperty(
 	link *umpirespb.ImplementationLinkResult,
 ) (*umpirespb.PropertyResult, *evaluationFailure) {
 	result := &umpirespb.PropertyResult{Property: proto.CloneOf(property.GetDefinition())}
+	if failure := i.validatePropertyVocabulary(property); failure != nil {
+		result.Status = semanticStatus(failure.class)
+		result.Diagnostics = append(result.Diagnostics, failure.diagnostic())
+		return result, failure
+	}
 	for _, clause := range property.GetClauses() {
 		clauseResult, failure := i.evaluateClause(property, clause, link)
 		result.Clauses = append(result.Clauses, clauseResult)
@@ -61,6 +66,60 @@ func (i *interpreter) evaluateProperty(
 		}
 	}
 	return result, nil
+}
+
+func (i *interpreter) validatePropertyVocabulary(property *umpirespb.Property) *evaluationFailure {
+	for _, requirement := range property.GetRequirements() {
+		found := false
+		for _, entry := range i.contract.GetImplementationLink().GetDefinitionEntries() {
+			found = found || proto.Equal(requirement, entry.GetDestination())
+		}
+		if !found {
+			return unsupportedFailure(umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
+				[]string{property.GetDefinition().GetDefinitionId(), requirement.GetDefinitionId()},
+				"Property requirement is not declared by the Implementation Link destination vocabulary")
+		}
+	}
+	for _, clause := range property.GetClauses() {
+		operator := clause.GetPerStepImplies()
+		for _, pattern := range []*umpirespb.Pattern{operator.GetTrigger(), operator.GetRequired()} {
+			if !i.destinationDefinesPattern(pattern) {
+				return unsupportedFailure(umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
+					[]string{property.GetDefinition().GetDefinitionId(), clause.GetDefinitionId(),
+						pattern.GetDefinition().GetDefinitionId()},
+					"Property pattern is not declared by the Implementation Link destination vocabulary")
+			}
+		}
+	}
+	return nil
+}
+
+func (i *interpreter) destinationDefinesPattern(pattern *umpirespb.Pattern) bool {
+	wantKind := patternDefinitionKind(pattern.GetField())
+	for _, entry := range i.contract.GetImplementationLink().GetEntries() {
+		destination := entry.GetDestination()
+		if destination.GetKind() == wantKind && proto.Equal(destination.GetDefinition(), pattern.GetDefinition()) {
+			return true
+		}
+	}
+	return false
+}
+
+func patternDefinitionKind(field umpirespb.TraceField) umpirespb.DefinitionKind {
+	switch field {
+	case umpirespb.TRACE_FIELD_INITIAL_STATE,
+		umpirespb.TRACE_FIELD_PRIOR_STATE,
+		umpirespb.TRACE_FIELD_RESULTING_STATE:
+		return umpirespb.DEFINITION_KIND_STATE
+	case umpirespb.TRACE_FIELD_SELECTED_ACTION:
+		return umpirespb.DEFINITION_KIND_ACTION
+	case umpirespb.TRACE_FIELD_MODEL_OUTCOME:
+		return umpirespb.DEFINITION_KIND_OUTCOME
+	case umpirespb.TRACE_FIELD_OBSERVATION:
+		return umpirespb.DEFINITION_KIND_OBSERVATION
+	default:
+		return umpirespb.DEFINITION_KIND_UNSPECIFIED
+	}
 }
 
 func (i *interpreter) evaluateClause(
@@ -81,7 +140,9 @@ func (i *interpreter) evaluateClause(
 		if failure != nil {
 			return failedClause(result, failure), failure
 		}
-		appendPatternSupport(result, trigger)
+		if failure := i.appendPatternSupport(result, trigger); failure != nil {
+			return failedClause(result, failure), failure
+		}
 		if !trigger.matched {
 			continue
 		}
@@ -89,7 +150,9 @@ func (i *interpreter) evaluateClause(
 		if failure != nil {
 			return failedClause(result, failure), failure
 		}
-		appendPatternSupport(result, required)
+		if failure := i.appendPatternSupport(result, required); failure != nil {
+			return failedClause(result, failure), failure
+		}
 		if !required.matched {
 			result.Status = umpirespb.SEMANTIC_STATUS_VIOLATED
 		}
@@ -221,13 +284,23 @@ func applicationEvidenceLink(
 	return nil
 }
 
-func appendPatternSupport(result *umpirespb.PropertyClauseResult, pattern *patternEvaluation) {
+func (i *interpreter) appendPatternSupport(
+	result *umpirespb.PropertyClauseResult,
+	pattern *patternEvaluation,
+) *evaluationFailure {
 	for _, coordinate := range pattern.coordinates {
 		result.Coordinates = appendUniqueCoordinate(result.Coordinates, coordinate)
 	}
 	for _, link := range pattern.links {
+		if containsEvidenceLink(result.GetEvidenceLinks(), link) {
+			continue
+		}
+		if failure := i.reserveEvidenceLink(link); failure != nil {
+			return failure
+		}
 		result.EvidenceLinks = appendUniqueEvidenceLink(result.EvidenceLinks, link)
 	}
+	return nil
 }
 
 func appendUniqueCoordinate(
@@ -246,10 +319,17 @@ func appendUniqueEvidenceLink(
 	links []*umpirespb.EvidenceLink,
 	candidate *umpirespb.EvidenceLink,
 ) []*umpirespb.EvidenceLink {
+	if containsEvidenceLink(links, candidate) {
+		return links
+	}
+	return append(links, candidate)
+}
+
+func containsEvidenceLink(links []*umpirespb.EvidenceLink, candidate *umpirespb.EvidenceLink) bool {
 	for _, link := range links {
-		if proto.Equal(link, candidate) {
-			return links
+		if link == candidate || proto.Equal(link, candidate) {
+			return true
 		}
 	}
-	return append(links, proto.CloneOf(candidate))
+	return false
 }

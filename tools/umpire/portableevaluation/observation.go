@@ -555,9 +555,25 @@ func (i *interpreter) evidenceLink(candidate *emission) (*umpirespb.EvidenceLink
 		EvidenceDefinitionIds: []string{candidate.record.fact.FactDefinitionID},
 		AppliedDispositions:   applied,
 	}
+	i.prepareEvidenceSupport()
+	linkSize := embeddedEvidenceLinkSize(int64(proto.Size(link)) + i.evidenceSupportSize)
+	if failure := i.reserveResultBytes(linkSize); failure != nil {
+		return nil, failure
+	}
+	link.OrderingSupport = i.orderingSupport
+	link.ClosureSupport = i.closureSupport
+	i.evidenceLinkSizes[link] = linkSize
+	return link, nil
+}
+
+func (i *interpreter) prepareEvidenceSupport() {
+	if i.evidenceSupportSet {
+		return
+	}
+	i.evidenceSupportSet = true
 	for _, fact := range i.request.RawEvidence.Facts {
 		ordinal, _ := strconv.ParseInt(string(fact.Ordinal), 10, 64)
-		link.OrderingSupport = append(link.OrderingSupport, &umpirespb.OrderingFact{
+		i.orderingSupport = append(i.orderingSupport, &umpirespb.OrderingFact{
 			EvidenceDefinitionId:        fact.FactDefinitionID,
 			SourceDefinitionId:          fact.SourceDefinitionID,
 			Ordinal:                     ordinal,
@@ -567,13 +583,16 @@ func (i *interpreter) evidenceLink(candidate *emission) (*umpirespb.EvidenceLink
 	for _, source := range i.request.RawEvidence.Sources {
 		recordCount, _ := strconv.ParseInt(string(source.FactCount), 10, 64)
 		byteCount, _ := strconv.ParseInt(string(source.ByteCount), 10, 64)
-		link.ClosureSupport = append(link.ClosureSupport, &umpirespb.ClosureFact{
+		i.closureSupport = append(i.closureSupport, &umpirespb.ClosureFact{
 			SourceDefinitionId: source.SourceDefinitionID,
 			RecordCount:        recordCount,
 			ByteCount:          byteCount,
 		})
 	}
-	return link, nil
+	i.evidenceSupportSize = int64(proto.Size(&umpirespb.EvidenceLink{
+		OrderingSupport: i.orderingSupport,
+		ClosureSupport:  i.closureSupport,
+	}))
 }
 
 func validateCoordinateKind(emit *umpirespb.Emit) *evaluationFailure {
