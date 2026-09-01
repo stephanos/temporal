@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-42-centralize-configuration-authoring-with",
-  "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-09-01T07:06:00.873616Z",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": "2026-09-01T07:13:04.728389Z",
   "created_at": "2026-08-28T15:21:08.325274Z",
   "default_impl": null,
   "default_review": null,
@@ -394,5 +394,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T07:06:00.875559Z"
+  "updated_at": "2026-09-01T07:13:04.728538Z"
 }
