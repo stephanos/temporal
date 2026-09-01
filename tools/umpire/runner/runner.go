@@ -32,6 +32,29 @@ type bindingFailure struct {
 	message string
 }
 
+type runFailure struct {
+	cause             error
+	executionOccurred bool
+}
+
+func (failure *runFailure) Error() string {
+	if failure == nil || failure.cause == nil {
+		return ""
+	}
+	return failure.cause.Error()
+}
+
+func (failure *runFailure) Unwrap() error {
+	if failure == nil {
+		return nil
+	}
+	return failure.cause
+}
+
+func (failure *runFailure) ExecutionOccurred() bool {
+	return failure != nil && failure.executionOccurred
+}
+
 func (failure *bindingFailure) Error() string {
 	if failure == nil {
 		return ""
@@ -78,20 +101,24 @@ func Run(
 	adapter Adapter,
 ) (umpireruntime.Output, error) {
 	if err := validateInputBinding(admitted, binding); err != nil {
-		return umpireruntime.Output{}, err
+		return umpireruntime.Output{}, classifyRunFailure(err, false)
 	}
 	if ctx == nil {
-		return umpireruntime.Output{}, errors.New("umpire runner requires a context")
+		return umpireruntime.Output{}, classifyRunFailure(
+			errors.New("umpire runner requires a context"), false,
+		)
 	}
 	if adapter == nil {
-		return umpireruntime.Output{}, errors.New("umpire runner requires an adapter")
+		return umpireruntime.Output{}, classifyRunFailure(
+			errors.New("umpire runner requires an adapter"), false,
+		)
 	}
 	request, err := adapter.CheckRequest(admitted, runIdentity)
 	if err != nil {
-		return umpireruntime.Output{}, err
+		return umpireruntime.Output{}, classifyRunFailure(err, false)
 	}
 	if err := validateAuthorityBinding(binding, request); err != nil {
-		return umpireruntime.Output{}, err
+		return umpireruntime.Output{}, classifyRunFailure(err, false)
 	}
 	return runChecked(ctx, request, adapter)
 }
@@ -105,27 +132,47 @@ func runChecked(
 	adapter Adapter,
 ) (umpireruntime.Output, error) {
 	if ctx == nil {
-		return umpireruntime.Output{}, errors.New("umpire runner requires a context")
+		return umpireruntime.Output{}, classifyRunFailure(
+			errors.New("umpire runner requires a context"), false,
+		)
 	}
 	if adapter == nil {
-		return umpireruntime.Output{}, errors.New("umpire runner requires an adapter")
+		return umpireruntime.Output{}, classifyRunFailure(
+			errors.New("umpire runner requires an adapter"), false,
+		)
 	}
 	participant, err := adapter.NewParticipant(request)
 	if err != nil {
-		return umpireruntime.Output{}, err
+		return umpireruntime.Output{}, classifyRunFailure(err, false)
 	}
 	factory := adapter.EnvironmentFactory()
 	if factory == nil || participant == nil {
-		return umpireruntime.Output{}, errors.New("umpire runner adapter is incomplete")
+		return umpireruntime.Output{}, classifyRunFailure(
+			errors.New("umpire runner adapter is incomplete"), false,
+		)
 	}
 	output, err := runtimeengine.Run(ctx, request, factory, participant)
 	if err != nil {
-		return umpireruntime.Output{}, err
+		return umpireruntime.Output{}, classifyRunFailure(err, executionOccurred(err))
 	}
 	if err := adapter.ValidateOutput(request, output); err != nil {
-		return umpireruntime.Output{}, err
+		return umpireruntime.Output{}, classifyRunFailure(err, true)
 	}
 	return output, nil
+}
+
+func classifyRunFailure(err error, executionOccurred bool) error {
+	if err == nil {
+		return nil
+	}
+	return &runFailure{cause: err, executionOccurred: executionOccurred}
+}
+
+func executionOccurred(err error) bool {
+	var classified interface {
+		ExecutionOccurred() bool
+	}
+	return errors.As(err, &classified) && classified.ExecutionOccurred()
 }
 
 func validateInputBinding(admitted artifact.AdmittedSet, expected InputBinding) error {
