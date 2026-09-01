@@ -370,6 +370,22 @@ func TestRepositoryPlanIndexCoversProductionFiles(t *testing.T) {
 	require.Equal(t, flowSpecs, registeredFlowSpecs)
 }
 
+func TestRepositoryPlanLinks(t *testing.T) {
+	root := filepath.Clean("../..")
+	encoded, err := os.ReadFile(filepath.Join(root, ".plans", "index.json"))
+	require.NoError(t, err)
+	index, err := parseIndex(encoded)
+	require.NoError(t, err)
+
+	checker := repositoryChecker{root: root}
+	for _, document := range index.Documents {
+		resolved, err := resolveRepositoryFile(root, document.Path)
+		require.NoError(t, err)
+		checker.checkMarkdown(document, resolved)
+	}
+	require.Empty(t, checker.findings)
+}
+
 func validRepositoryFixture(t *testing.T) (string, planIndex) {
 	t.Helper()
 	root := t.TempDir()
