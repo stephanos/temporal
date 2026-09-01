@@ -1,4 +1,6 @@
 import Umpire.Artifact.Types
+import Umpire.Artifact.Result
+import Umpire.ImplementationLink.Language
 import Umpire.Observation.Evaluation
 import Umpire.SemanticInventory.Types
 
@@ -257,6 +259,181 @@ def productionKnownGapSources : List KnownGapSourceDescriptor :=
 /-- Erased production rows consumed by the semantic-inventory renderer. -/
 def productionKnownGapCatalog : List KnownGapCatalogDescriptor :=
   productionKnownGapSources.map KnownGapSourceDescriptor.catalog
+
+private def implementationLinkKnownGapCatalogRow
+    (ordinal : String)
+    (family : ImplementationLinkKnownGapFamily) : KnownGapCatalogDescriptor := {
+  id := "umpire.semantic-inventory.known-gap-source." ++ ordinal ++
+    "-implementation-link-" ++ family.name
+  owner := "Umpire.ImplementationLink"
+  lineage := .authored
+  scope := .production
+  shape := .authoredImplementationLinkKnownGapFamily
+  source := family.name
+  fieldMapping := none
+  description := "Polymorphic authored " ++ family.name ++
+    " Known Gaps retained by an Implementation Link declaration."
+}
+
+/-- The seven polymorphic declaration fields that may author Implementation Link Known Gaps. -/
+def implementationLinkKnownGapCatalog : List KnownGapCatalogDescriptor := [
+  implementationLinkKnownGapCatalogRow "10" .setup,
+  implementationLinkKnownGapCatalogRow "11" .state,
+  implementationLinkKnownGapCatalogRow "12" .action,
+  implementationLinkKnownGapCatalogRow "13" .outcome,
+  implementationLinkKnownGapCatalogRow "14" .observation,
+  implementationLinkKnownGapCatalogRow "15" .relation,
+  implementationLinkKnownGapCatalogRow "16" .capability
+]
+
+/-- The lossy request and Raw Evidence Known Gap admission into Observation Evaluation. -/
+def observationKnownGapAdmissionCatalogRow : KnownGapCatalogDescriptor := {
+  id := "umpire.semantic-inventory.known-gap-source.17-observation-known-gap-admission"
+  owner := "Umpire.Observation"
+  lineage := .carried
+  scope := .production
+  shape := .evidenceGapAdmissionProjection
+  source := "umpire.known-gap.request-and-raw-admission"
+  fieldMapping := some EvidenceGap.knownGapAdmissionMapping
+  description := "Request and Raw Evidence Known Gaps admitted as lossy Evidence Gaps."
+}
+
+/-- The exact Known Gap aggregation boundary retained by the Result Artifact. -/
+def resultKnownGapCarryCatalogRow : KnownGapCatalogDescriptor := {
+  id := "umpire.semantic-inventory.known-gap-source.18-result-known-gap-carry"
+  owner := "Umpire.Artifact.Result"
+  lineage := .carried
+  scope := .production
+  shape := .carriedCatalogEntry
+  source := observationKnownGapAdmissionCatalogRow.id
+  fieldMapping := some ResultArtifact.knownGapCarryMapping
+  description := "Run, Raw Evidence, and Observation Known Gaps carried exactly into Result."
+}
+
+private def testKnownGapCatalogRow
+    (ordinal slug source description : String) : KnownGapCatalogDescriptor := {
+  id := "umpire.semantic-inventory.known-gap-source." ++ ordinal ++ "-test-" ++ slug
+  owner := "Umpire.PlanningTests.KnownGaps"
+  lineage := .authored
+  scope := .testOnly
+  shape := .exactKnownGap
+  source
+  fieldMapping := none
+  description
+}
+
+/-- Test-only Known Gap fixtures, separated from every production source. -/
+def testKnownGapCatalog : List KnownGapCatalogDescriptor := [
+  testKnownGapCatalogRow "19" "capability" "umpire.known-gap.capability-contract"
+    "Test-only capability-contract Known Gap fixture.",
+  testKnownGapCatalogRow "20" "input" "umpire.known-gap.runtime-evidence"
+    "Test-only input Known Gap fixture.",
+  testKnownGapCatalogRow "21" "interpretation" "umpire.known-gap.runtime-order"
+    "Test-only interpretation Known Gap fixture.",
+  testKnownGapCatalogRow "22" "claim" "umpire.known-gap.promotion"
+    "Test-only claim Known Gap fixture."
+]
+
+/-- The complete canonical Known Gap catalog, including explicitly scoped test fixtures. -/
+def knownGapCatalog : List KnownGapCatalogDescriptor :=
+  productionKnownGapCatalog ++ implementationLinkKnownGapCatalog ++
+    [observationKnownGapAdmissionCatalogRow, resultKnownGapCarryCatalogRow] ++
+    testKnownGapCatalog
+
+/-- Atomic validation failures for the complete Known Gap catalog. -/
+inductive KnownGapCatalogErrorKind where
+  | duplicateId
+  | invalidId
+  | invalidSource
+  | invalidLineage
+  | invalidScope
+  | invalidProjectionMapping
+  | unresolvedCarry
+  | duplicateOwnership
+  | noncanonicalOrder
+  deriving BEq, DecidableEq, Ord, Repr
+
+/-- The first complete-catalog row that violates a Known Gap invariant. -/
+structure KnownGapCatalogError where
+  kind : KnownGapCatalogErrorKind
+  id : String
+  source : String
+  deriving BEq, DecidableEq, Repr
+
+private def catalogError
+    (kind : KnownGapCatalogErrorKind)
+    (row : KnownGapCatalogDescriptor) : KnownGapCatalogError := {
+  kind
+  id := row.id
+  source := row.source
+}
+
+private def catalogExpectedLineage : KnownGapSourceShape → KnownGapLineage
+  | .exactKnownGap => .authored
+  | .generatedKnownGapFamily => .synthesized
+  | .authoredImplementationLinkKnownGapFamily => .authored
+  | .evidenceGapAdmissionProjection => .carried
+  | .carriedCatalogEntry => .carried
+
+private def catalogScopeIsValid (row : KnownGapCatalogDescriptor) : Bool :=
+  match row.shape with
+  | .exactKnownGap => true
+  | _ => row.scope == .production
+
+private def catalogSourceIsValid (row : KnownGapCatalogDescriptor) : Bool :=
+  match row.shape with
+  | .exactKnownGap => (DefinitionId.of row.source).isNamespaced
+  | .generatedKnownGapFamily => row.source == observationKnownGapSource.source.label
+  | .authoredImplementationLinkKnownGapFamily =>
+      ImplementationLinkKnownGapFamily.all.any fun family => family.name == row.source
+  | .evidenceGapAdmissionProjection =>
+      row.source == observationKnownGapAdmissionCatalogRow.source
+  | .carriedCatalogEntry => (DefinitionId.of row.source).isNamespaced
+
+private def catalogMappingIsValid (row : KnownGapCatalogDescriptor) : Bool :=
+  match row.shape with
+  | .exactKnownGap | .generatedKnownGapFamily |
+      .authoredImplementationLinkKnownGapFamily => row.fieldMapping.isNone
+  | .evidenceGapAdmissionProjection =>
+      row.fieldMapping == some EvidenceGap.knownGapAdmissionMapping
+  | .carriedCatalogEntry =>
+      row.fieldMapping == some ResultArtifact.knownGapCarryMapping
+
+private def catalogOwnershipKey (row : KnownGapCatalogDescriptor) : String :=
+  row.scope.name ++ ":" ++ row.shape.name ++ ":" ++ row.source
+
+private def validateKnownGapCatalogRows
+    (seenIds ownershipKeys : List String)
+    (previousId : Option String) :
+    List KnownGapCatalogDescriptor → Except KnownGapCatalogError Unit
+  | [] => pure ()
+  | row :: rest => do
+      if seenIds.contains row.id then
+        throw (catalogError .duplicateId row)
+      if !(DefinitionId.of row.id).isNamespaced then
+        throw (catalogError .invalidId row)
+      if row.lineage != catalogExpectedLineage row.shape then
+        throw (catalogError .invalidLineage row)
+      if !catalogScopeIsValid row then
+        throw (catalogError .invalidScope row)
+      if !catalogSourceIsValid row then
+        throw (catalogError .invalidSource row)
+      if !catalogMappingIsValid row then
+        throw (catalogError .invalidProjectionMapping row)
+      if row.shape == .carriedCatalogEntry && !seenIds.contains row.source then
+        throw (catalogError .unresolvedCarry row)
+      let ownershipKey := catalogOwnershipKey row
+      if ownershipKeys.contains ownershipKey then
+        throw (catalogError .duplicateOwnership row)
+      if previousId.any fun previous => decide (row.id < previous) then
+        throw (catalogError .noncanonicalOrder row)
+      validateKnownGapCatalogRows (row.id :: seenIds) (ownershipKey :: ownershipKeys)
+        (some row.id) rest
+
+/-- Validate the complete Known Gap catalog without returning a partially accepted prefix. -/
+def validateKnownGapCatalog
+    (catalog : List KnownGapCatalogDescriptor) : Except KnownGapCatalogError Unit :=
+  validateKnownGapCatalogRows [] [] none catalog
 
 /-- Stable suffixes for the closed Observation diagnostic family. -/
 def observationFailureKnownGapSuffix : ObservationFailureKind → String
