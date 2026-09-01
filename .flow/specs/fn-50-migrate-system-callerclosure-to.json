@@ -13,7 +13,7 @@
   "impl_review_rounds": {
     "fn-50-migrate-system-callerclosure-to.1": 0,
     "fn-50-migrate-system-callerclosure-to.2": 0,
-    "fn-50-migrate-system-callerclosure-to.3": 2
+    "fn-50-migrate-system-callerclosure-to.3": 3
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -332,8 +332,18 @@
     "plan": 1,
     "plan#completion": 0
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-50-migrate-system-callerclosure-to.3": 1
+  },
+  "review_reservations": {
+    "451e61fb5b314b1abaee4b1b305cc594": {
+      "artifact_sha256": "2153aec9077474610e9370414a3fc621f95be12544b258185f13717f7678e894",
+      "counter_scope": "impl:fn-50-migrate-system-callerclosure-to.3",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-50-migrate-system-callerclosure-to.1": 0,
     "impl:fn-50-migrate-system-callerclosure-to.2": 0,
@@ -354,5 +364,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T05:24:53.721586Z"
+  "updated_at": "2026-09-01T05:28:02.782250Z"
 }
