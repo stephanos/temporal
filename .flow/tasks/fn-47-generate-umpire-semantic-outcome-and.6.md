@@ -7,12 +7,13 @@ satisfies: [R4, R5]
 Publish the facade, atomic generation/check commands, and concise documentation for R4/R5.
 
 **Size:** M
-**Files:** `model/Umpire/SemanticInventory.lean`, `model/Umpire.lean`, `Makefile`, `model/README.md`, `model/ARCHITECTURE.md`
-**Touches:** [model/Umpire/SemanticInventory.lean, model/Umpire.lean, Makefile, model/README.md, model/ARCHITECTURE.md]
+**Files:** `model/Umpire/SemanticInventory.lean`, `model/Umpire.lean`, `model/Temporal/Tool/SemanticInventoryMakeTests.lean`, `model/Temporal/Tool/SemanticInventoryMakeTestsMain.lean`, `model/lakefile.toml`, `Makefile`, `model/README.md`, `model/ARCHITECTURE.md`
+**Touches:** [model/Umpire/SemanticInventory.lean, model/Umpire.lean, model/Temporal/Tool/SemanticInventoryMakeTests.lean, model/Temporal/Tool/SemanticInventoryMakeTestsMain.lean, model/lakefile.toml, Makefile, model/README.md, model/ARCHITECTURE.md]
 
 ### Approach
 - Expose a narrow inventory facade without flattening stage implementation modules.
 - Add atomic sibling-temp generation and read-only temp-render/diff targets; include only the check in `lint-model`.
+- Keep the document path and renderer command overridable by private Make variables so one non-default process-test executable can exercise the real recipes in an isolated temporary tree. Cover renderer failure after partial temp output, termination before replacement, sibling-temp cleanup, missing/stale/extra deterministic diffs, check-mode immutability, and stable readable installed permissions.
 - Document source ownership, regeneration/check commands, dependency baseline, and non-semantic/non-schema boundaries.
 - Do not edit GitHub workflows or generalize this into generated API drift infrastructure.
 
@@ -25,13 +26,15 @@ Publish the facade, atomic generation/check commands, and concise documentation 
 - `.flow/memory/declined/generated-api-drift-verification.md` — narrow reopening boundary.
 
 ### Quick commands
-`make umpire-check-semantic-inventory && make lint-model`
+`cd model && mise exec -- lake build temporal-model-semantic-inventory-make-tests && mise exec -- lake exe temporal-model-semantic-inventory-make-tests` then `make umpire-check-semantic-inventory && make lint-model`
 ## Acceptance
 - [ ] Generation replaces the checked document only after successful complete render and preserves the old file on failure/interruption.
 - [ ] Check mode never writes and reports deterministic diff for missing/stale/extra content.
+- [ ] Isolated process tests run the actual Make recipes with injected renderer failure and termination, assert the prior document is byte-identical, verify sibling-temp cleanup, pin stable readable permissions, and prove check mode is immutable.
 - [ ] `lint-model` includes only this narrow drift check and passes with focused/aggregate Lean tests.
 - [ ] Docs link the inventory and state that stage types, Result schema, artifact bytes, and runtime behavior remain authoritative/unchanged.
 - [ ] No GitHub Actions, broad API drift gate, public docs, or deferred spec behavior is added.
+- [ ] The Make process-test executable is non-default and adds no generated repository artifact.
 ## Done summary
 TBD
 
