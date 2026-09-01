@@ -16,7 +16,7 @@ private def validationErrorKind?
 private def exactGaps (sources : List KnownGapSourceDescriptor) : List KnownGap :=
   sources.filterMap fun descriptor => match descriptor.source with
     | .exact gap => some gap
-    | .namespacedPrefix _ _ => none
+    | .namespacedPrefix _ _ _ => none
 
 private def sourceAt (index : Nat) : KnownGapSourceDescriptor :=
   productionKnownGapSources[index]?.getD observationKnownGapSource
@@ -43,7 +43,7 @@ example : productionKnownGapSources.map (DefinitionId.value ∘ KnownGapSourceDe
   native_decide
 
 example : observationKnownGapSource.source = .namespacedPrefix .interpretation
-      (DefinitionId.of "umpire.observation") ∧
+      (DefinitionId.of "umpire.observation") observationKnownGapSuffixes ∧
     observationKnownGap .missingClosure (DefinitionId.of "temporal.observation.fixture") = {
       kind := .interpretation
       code := DefinitionId.of "umpire.observation.missing-closure"
@@ -80,7 +80,8 @@ example :
 example :
     let last := productionKnownGapSources.getLast?.getD observationKnownGapSource
     let invalid := { last with
-      source := .namespacedPrefix .interpretation (DefinitionId.of "observation") }
+      source := .namespacedPrefix .interpretation (DefinitionId.of "observation")
+        observationKnownGapSuffixes }
     validationErrorKind? (productionKnownGapSources.dropLast ++ [invalid]) =
       some .invalidPrefix := by
   native_decide
@@ -103,9 +104,19 @@ example : validationErrorKind? productionKnownGapSources.reverse = some .noncano
   native_decide
 
 example :
+    let changedKind : KnownGapSource := .namespacedPrefix .claim
+      (DefinitionId.of "umpire.observation") ["missing-closure"]
+    changedKind.materialize "missing-closure" (some (DefinitionId.of "umpire.fixture")) = {
+      kind := .claim
+      code := DefinitionId.of "umpire.observation.missing-closure"
+      subject := some (DefinitionId.of "umpire.fixture")
+    } := by
+  native_decide
+
+example :
     let requestGap : KnownGap := {
-      kind := .input
-      code := DefinitionId.of "temporal.request.raw-unknown"
+      kind := .interpretation
+      code := DefinitionId.of "umpire.observation.raw-unknown"
     }
     productionKnownGapSources.all (fun descriptor => !descriptor.source.covers requestGap) := by
   native_decide
