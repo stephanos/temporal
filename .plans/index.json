@@ -826,7 +826,7 @@
       "phase": "support",
       "status": "open",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-20-local-execution-semantic-conformance"
       ]
