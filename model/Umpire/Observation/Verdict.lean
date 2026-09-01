@@ -253,8 +253,7 @@ private def resolvedVerdict
     clauses
   }
 
-/-- Revalidate accepted evidence and every Property prerequisite before invoking the unchanged
-Property evaluator. -/
+/-- Validate every Property prerequisite before invoking the unchanged Property evaluator. -/
 def evaluateObservationProperty
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
@@ -281,31 +280,26 @@ def evaluateObservationProperty
                 failureVerdict query property .unsupported diagnostic
                   (some trace.traceId) (some trace.appliedBound)
             | none =>
-                match validateEvidenceBackedTrace trace with
-                | .error diagnostic =>
-                    observationEvaluationFailureVerdict query property diagnostic
-                      (some trace.traceId) (some trace.appliedBound)
-                | .ok _ =>
-                    if trace.appliedBound.value == 0 ||
-                        trace.evidenceIdentities.length > trace.appliedBound.value then
-                      failureVerdict query property .unknown {
-                        kind := .invalidEvidenceBound
-                        relatedDefinitionIds := [trace.mappingId]
-                      } (some trace.traceId) (some trace.appliedBound)
-                    else
-                      let missingCapabilities := capabilityMismatch property
-                      if !missingCapabilities.isEmpty then
-                        failureVerdict query property .unsupported {
-                          kind := .missingCapability
-                          relatedDefinitionIds := missingCapabilities
-                        } (some trace.traceId) (some trace.appliedBound)
-                    else if !property.hasRequiredLogicalTime trace.trace then
-                        failureVerdict query property .unknown {
-                          kind := .missingLogicalTime
-                          relatedDefinitionIds := property.access.logicalTimeSource.toList
-                        } (some trace.traceId) (some trace.appliedBound)
-                      else
-                        resolvedVerdict query property trace
+                if trace.appliedBound.value == 0 ||
+                    trace.evidenceIdentities.length > trace.appliedBound.value then
+                  failureVerdict query property .unknown {
+                    kind := .invalidEvidenceBound
+                    relatedDefinitionIds := [trace.mappingId]
+                  } (some trace.traceId) (some trace.appliedBound)
+                else
+                  let missingCapabilities := capabilityMismatch property
+                  if !missingCapabilities.isEmpty then
+                    failureVerdict query property .unsupported {
+                      kind := .missingCapability
+                      relatedDefinitionIds := missingCapabilities
+                    } (some trace.traceId) (some trace.appliedBound)
+                else if !property.hasRequiredLogicalTime trace.trace then
+                    failureVerdict query property .unknown {
+                      kind := .missingLogicalTime
+                      relatedDefinitionIds := property.access.logicalTimeSource.toList
+                    } (some trace.traceId) (some trace.appliedBound)
+                  else
+                    resolvedVerdict query property trace
 
 private def verdictLe (left right : SemanticPropertyVerdict) : Bool :=
   decide (reprStr left ≤ reprStr right)

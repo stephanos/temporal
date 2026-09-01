@@ -414,9 +414,41 @@ private def acceptedTrace? : ObservationResult → Option EvidenceBackedTrace
 def startTrace : EvidenceBackedTrace :=
   (acceptedTrace? startObservation).get (by native_decide)
 
-def missingCoordinateObservation : ObservationResult := .accepted {
-  startTrace with evidenceLinks := startTrace.evidenceLinks.tail
+private def uncheckedTraceOf (trace : EvidenceBackedTrace) : UncheckedEvidenceBackedTrace := {
+  traceId := trace.traceId
+  checkedPlan := trace.checkedPlan
+  mappingId := trace.mappingId
+  mappingVersion := trace.mappingVersion
+  mappingDigest := trace.mappingDigest
+  source := trace.source
+  profileId := trace.profileId
+  profileVersion := trace.profileVersion
+  sourceClosed := trace.sourceClosed
+  vocabulary := trace.vocabulary
+  dispositions := trace.dispositions
+  appliedBound := trace.appliedBound
+  evidenceIdentities := trace.evidenceIdentities
+  recordSupport := trace.recordSupport
+  trace := trace.trace
+  evidenceLinks := trace.evidenceLinks
 }
+
+private def observationResultOfAdmission
+    (result : Except ObservationDiagnostic EvidenceBackedTrace) : ObservationResult :=
+  match result with
+  | .ok trace => .accepted trace
+  | .error diagnostic =>
+      match diagnostic.status with
+      | .unknown => .unknown diagnostic
+      | .conflict => .conflict diagnostic
+      | .unsupported => .unsupported diagnostic
+      | .accepted => .unknown diagnostic
+
+def missingCoordinateObservation : ObservationResult :=
+  let unchecked := uncheckedTraceOf startTrace
+  observationResultOfAdmission <| validateEvidenceBackedTrace {
+    unchecked with evidenceLinks := unchecked.evidenceLinks.tail
+  }
 
 def missingCoordinateResult : FeaturePropertyResult := evaluateFeatureProperty
   Temporal.System.Nexus.queuedSetup
@@ -491,24 +523,23 @@ example : [
     .observation,
     .implementationLink,
     .implementationLink,
-    .implementationLink,
+    .observation,
     .implementationLink,
     .property
   ] ∧
   observationFailureResult.observationDiagnostic?.map ObservationDiagnostic.kind =
     some .missingClosure ∧
+  missingCoordinateResult.observationDiagnostic?.map ObservationDiagnostic.kind =
+    some .absentModelCoordinate ∧
   [
     wrongSetupResult.implementationLinkDiagnostic?.map ImplementationLinkDiagnostic.kind,
     impossibleTransitionResult.implementationLinkDiagnostic?.map
-      ImplementationLinkDiagnostic.kind,
-    missingCoordinateResult.implementationLinkDiagnostic?.map
       ImplementationLinkDiagnostic.kind,
     behaviorFingerprintDriftResult.implementationLinkDiagnostic?.map
       ImplementationLinkDiagnostic.kind
   ] = [
     some .nonAuthoritativeSourceInitial,
     some .nonAuthoritativeSourceStep,
-    some .absentCoordinate,
     some .behaviorFingerprintDrift
   ] ∧
   propertyFailureResult.evaluated?.map (fun result => result.evaluation.satisfied) = some false := by
@@ -534,12 +565,19 @@ example :
 example : [
     wrongSetupResult,
     impossibleTransitionResult,
-    missingCoordinateResult,
     behaviorFingerprintDriftResult
   ].all fun result =>
     result.observationDiagnostic?.isNone &&
       result.implementationLinkDiagnostic?.isSome &&
       result.evaluated?.isNone := by
+  native_decide
+
+/-- A malformed unchecked trace stops at Observation admission without a later-stage result. -/
+example :
+    missingCoordinateResult.observationDiagnostic?.map ObservationDiagnostic.kind =
+        some .absentModelCoordinate ∧
+      missingCoordinateResult.implementationLinkDiagnostic?.isNone ∧
+      missingCoordinateResult.evaluated?.isNone := by
   native_decide
 
 namespace DuplicateDelivery

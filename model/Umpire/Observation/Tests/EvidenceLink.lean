@@ -10,11 +10,16 @@ open Umpire
 def completeEvidenceBackedTrace : EvidenceBackedTrace :=
   (acceptedOf completeEvaluation).get (by native_decide)
 
+/-- The unchecked form used only by negative admission fixtures. -/
+def completeUncheckedEvidenceBackedTrace : UncheckedEvidenceBackedTrace :=
+  uncheckedTraceOf completeEvidenceBackedTrace
+
 /-- The first Evidence Link in the complete accepted trace. -/
 def completeFirstEvidenceLink : EvidenceLink :=
   completeEvidenceBackedTrace.evidenceLinks.head?.get (by native_decide)
 
-private def rehashEvidenceBackedTrace (trace : EvidenceBackedTrace) : EvidenceBackedTrace := {
+private def rehashEvidenceBackedTrace
+    (trace : UncheckedEvidenceBackedTrace) : UncheckedEvidenceBackedTrace := {
   trace with
   traceId := (behaviorFingerprintOf <|
     trace.mappingDigest ++ ":" ++ reprStr trace.evidenceIdentities ++ ":" ++
@@ -24,19 +29,19 @@ private def rehashEvidenceBackedTrace (trace : EvidenceBackedTrace) : EvidenceBa
 
 /-- Rehashed wrappers still fail when a rule's required disposition evidence is incomplete. -/
 example :
-    let evidenceLinks := completeEvidenceBackedTrace.evidenceLinks.mapIdx fun index evidenceLink =>
+    let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.mapIdx fun index evidenceLink =>
       if index == 0 then { evidenceLink with appliedDispositions := evidenceLink.appliedDispositions.tail }
       else evidenceLink
-    let mutated := rehashEvidenceBackedTrace { completeEvidenceBackedTrace with evidenceLinks }
+    let mutated := rehashEvidenceBackedTrace { completeUncheckedEvidenceBackedTrace with evidenceLinks }
     diagnosticKindOf (validateEvidenceBackedTrace mutated) != none := by
   native_decide
 
 /-- Rehashing cannot make a Model Value inconsistent with its disposition evidence valid. -/
 example :
     let mutated := rehashEvidenceBackedTrace {
-      completeEvidenceBackedTrace with trace := {
-        completeEvidenceBackedTrace.trace with initialState := {
-          completeEvidenceBackedTrace.trace.initialState with value := "tampered"
+      completeUncheckedEvidenceBackedTrace with trace := {
+        completeUncheckedEvidenceBackedTrace.trace with initialState := {
+          completeUncheckedEvidenceBackedTrace.trace.initialState with value := "tampered"
         }
       }
     }
@@ -45,10 +50,11 @@ example :
 
 /-- Wrapper vocabulary remains exactly the canonical checked-plan vocabulary. -/
 example :
-    let original := completeEvidenceBackedTrace.vocabulary.head?.get (by native_decide)
+    let original := completeUncheckedEvidenceBackedTrace.vocabulary.head?.get (by native_decide)
     let forged := { original with canonicalBehavior := original.canonicalBehavior ++ "/forged" }
     diagnosticKindOf (validateEvidenceBackedTrace {
-      completeEvidenceBackedTrace with vocabulary := completeEvidenceBackedTrace.vocabulary ++ [forged]
+      completeUncheckedEvidenceBackedTrace with
+      vocabulary := completeUncheckedEvidenceBackedTrace.vocabulary ++ [forged]
     }) != none := by
   native_decide
 
@@ -82,44 +88,46 @@ example :
 /-- Exact statuses and diagnostics for invalid Evidence Link fixtures. -/
 def evidenceLinkFailureKinds : List (ObservationStatus × Option ObservationFailureKind) := [
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with evidenceLinks := completeEvidenceBackedTrace.evidenceLinks.tail
+    completeUncheckedEvidenceBackedTrace with
+    evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
   }
-  (.unknown, diagnosticKindOf result),
+  admissionStatusAndKind result,
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with
-    evidenceLinks := completeFirstEvidenceLink :: completeEvidenceBackedTrace.evidenceLinks
+    completeUncheckedEvidenceBackedTrace with
+    evidenceLinks := completeFirstEvidenceLink :: completeUncheckedEvidenceBackedTrace.evidenceLinks
   }
-  (.conflict, diagnosticKindOf result),
+  admissionStatusAndKind result,
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with evidenceLinks := completeEvidenceBackedTrace.evidenceLinks ++ [{
+    completeUncheckedEvidenceBackedTrace with
+    evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks ++ [{
       completeFirstEvidenceLink with coordinate := .observation 1 99
     }]
   }
-  (.conflict, diagnosticKindOf result),
+  admissionStatusAndKind result,
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with trace := {
-      completeEvidenceBackedTrace.trace with initialState := {
-        completeEvidenceBackedTrace.trace.initialState with value := "tampered"
+    completeUncheckedEvidenceBackedTrace with trace := {
+      completeUncheckedEvidenceBackedTrace.trace with initialState := {
+        completeUncheckedEvidenceBackedTrace.trace.initialState with value := "tampered"
       }
     }
   }
-  (.conflict, diagnosticKindOf result),
+  admissionStatusAndKind result,
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with evidenceIdentities :=
-      completeEvidenceBackedTrace.evidenceIdentities ++ [id "test.evidence.record.unconsumed"]
+    completeUncheckedEvidenceBackedTrace with evidenceIdentities :=
+      completeUncheckedEvidenceBackedTrace.evidenceIdentities ++ [id "test.evidence.record.unconsumed"]
   }
-  (.unknown, diagnosticKindOf result),
-  let evidenceLinks := completeEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
+  admissionStatusAndKind result,
+  let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
     evidenceLink with closureSupport := [{
         kind := eventKind
         lastSequence := 99
       }]
   }
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with evidenceLinks
+    completeUncheckedEvidenceBackedTrace with evidenceLinks
   }
-  (.unknown, diagnosticKindOf result),
-  let evidenceLinks := completeEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
+  admissionStatusAndKind result,
+  let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
     let recordId := evidenceLink.evidenceIdentities.head?.getD (id "test.evidence.record.missing")
     { evidenceLink with orderingSupport := [{
         recordId
@@ -129,9 +137,9 @@ def evidenceLinkFailureKinds : List (ObservationStatus × Option ObservationFail
       }]
     }
   let result := validateEvidenceBackedTrace {
-    completeEvidenceBackedTrace with evidenceLinks
+    completeUncheckedEvidenceBackedTrace with evidenceLinks
   }
-  (.unknown, diagnosticKindOf result)
+  admissionStatusAndKind result
 ]
 
 /-- Missing, duplicate, extra, inconsistent, and unsupported Evidence Links fail exactly. -/
@@ -148,13 +156,13 @@ example : evidenceLinkFailureKinds = [
 
 /-- A zero step cannot alias the first selected-action coordinate during admission. -/
 example :
-    let evidenceLinks := completeEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
+    let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink =>
       if evidenceLink.coordinate == .selectedAction 1 then
         { evidenceLink with coordinate := .selectedAction 0 }
       else
         evidenceLink
     diagnosticKindOf (validateEvidenceBackedTrace {
-      completeEvidenceBackedTrace with evidenceLinks
+      completeUncheckedEvidenceBackedTrace with evidenceLinks
     }) = some .absentModelCoordinate := by
   native_decide
 
@@ -249,8 +257,9 @@ example :
     let first := multiSourceTrace.evidenceLinks.head?.get (by native_decide)
     let links := { first with orderingSupport := first.orderingSupport.tail } ::
       multiSourceTrace.evidenceLinks.tail
+    let unchecked := uncheckedTraceOf multiSourceTrace
     diagnosticKindOf (validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-      multiSourceTrace with evidenceLinks := links
+      unchecked with evidenceLinks := links
     }) = some .missingOrderSupport := by
   native_decide
 
@@ -258,8 +267,9 @@ example :
     let first := multiSourceTrace.evidenceLinks.head?.get (by native_decide)
     let links := { first with closureSupport := first.closureSupport.tail } ::
       multiSourceTrace.evidenceLinks.tail
+    let unchecked := uncheckedTraceOf multiSourceTrace
     diagnosticKindOf (validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-      multiSourceTrace with evidenceLinks := links
+      unchecked with evidenceLinks := links
     }) = some .missingClosureSupport := by
   native_decide
 

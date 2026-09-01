@@ -890,13 +890,6 @@ private def applyCheckedImplementationLink
   match evidenceEnvelopeFailure? checked evidenceBackedTrace with
   | some failure => throw failure
   | none => pure ()
-  match validateEvidenceBackedTrace evidenceBackedTrace with
-  | .ok _ => pure ()
-  | .error observationDiagnostic =>
-      throw (implementationLinkDiagnostic checked .evidenceLinkMismatch
-        (relatedDefinitionIds := observationDiagnostic.planId ::
-          observationDiagnostic.relatedDefinitionIds)
-        (evidenceLinkBehaviorFingerprint := some (evidenceLinkSetFingerprint evidenceBackedTrace)))
   let _ ← mappedSetup checked sourceSetup
   let sourceAuthority ← admittedSourceTrace checked sourceSetup evidenceBackedTrace.trace
   validateVocabulary checked evidenceBackedTrace
@@ -1099,14 +1092,6 @@ private def applyCheckedObservedTraceTranslation
   match evidenceEnvelopeFailure? checked evidenceBackedTrace with
   | some failure => throw (observedDiagnosticFrom translation failure)
   | none => pure ()
-  match validateEvidenceBackedTrace evidenceBackedTrace with
-  | .ok _ => pure ()
-  | .error observationDiagnostic =>
-      throw (observedImplementationLinkDiagnostic checked translation .evidenceLinkMismatch
-        (relatedDefinitionIds := observationDiagnostic.planId ::
-          observationDiagnostic.relatedDefinitionIds)
-        (evidenceLinkBehaviorFingerprint :=
-          some (evidenceLinkSetFingerprint evidenceBackedTrace)))
   let destinationSetup ← match mappedSetup checked sourceSetup with
     | .ok setup => pure setup
     | .error diagnostic => throw (observedDiagnosticFrom translation diagnostic)
