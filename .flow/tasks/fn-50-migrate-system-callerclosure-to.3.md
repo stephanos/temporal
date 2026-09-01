@@ -29,9 +29,17 @@ Review public guidance/comments and run final compatibility gates (R5).
 - [ ] No generated, artifact, checksum, fingerprint, or unrelated-file drift remains.
 
 ## Done summary
-TBD
+Audited the CallerClosure module comment and public Target-authoring guidance: the pre-migration
+comment remains byte-for-byte intact, and the documentation already presents `FiniteMachine` as
+the ordinary route with direct `TransitionKernel` construction reserved for expert cases. No model
+or documentation edit was required. Focused, aggregate, regression, import/trust, and model-lint
+gates pass with no generated or unrelated drift. The exact pre-edit `make lint-code` baseline
+remains inherited red with 1,373 branch-wide findings and no task Go path; a final task-scoped
+no-fix run reports zero golangci issues before the existing
+`tools/umpire/runtime/errors.go:60:9` full-tree `errortype` finding. This is the same standing
+roadmap-baseline exception recorded by fn50.1 and fn50.2, not a regression caused by this task.
 
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4e9db4fd528005c64c6a415bda4a9b085f76ab73
+- Tests: cd model && mise exec -- lake build Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus; cd model && mise exec -- lake build TemporalModelTests TemporalExperimentalTests UmpireTests; make umpire-check-regression; make lint-model; cd model && mise exec -- lake build Umpire.Target.ImportTests Umpire.Target.Tests.FiniteMachine Temporal.System.Nexus.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus; migration trust scan (no added sorry/admit/axiom and no CallerClosure production native_decide); make lint-code (accepted inherited red: identical 1,373 pre-existing findings, no task Go path, six auto-fix edits exact-inverse-restored); GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=8459df4d5c2220a6426583a3388491a829c9b6c6 make lint-code (golangci: 0 task-diff issues; inherited errortype: tools/umpire/runtime/errors.go:60:9)
 - PRs:
