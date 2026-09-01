@@ -1,0 +1,941 @@
+{
+  "format": "umpire-plan-index/v1",
+  "documents": [
+    {
+      "path": ".plans/AGENT_PLAN.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD3_CMPR.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD3_NEXT.md",
+      "lifecycle": "active",
+      "authority": "architecture",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD3_NEXT_BUG_FINDING.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD3_NEXT_COMPATIBILITY.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD3_NEXT_PRODUCTIONIZATION.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD3_NEXT_SIM.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD3_OS.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD3_SUMMARY.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/GOMAD_CMP.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/LEAN_GUIDELINES.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/PLAN_ARCHITECTURE.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/PLAN_NEXT.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [
+        ".plans/PLAN_ARCHITECTURE.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/PLAN_UPDATE_PROPS.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [
+        ".plans/PLAN_ARCHITECTURE.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE2.md",
+      "lifecycle": "reference",
+      "authority": "architecture",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE3.md",
+      "lifecycle": "historical",
+      "authority": "historical",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": [
+        {
+          "target": ".plans/UMPIRE.md",
+          "reason": "Historical Umpire3 cross-version reference.",
+          "anchor": null
+        },
+        {
+          "target": ".plans/UMPIRE_DSL.md",
+          "reason": "Historical Umpire3 cross-version reference.",
+          "anchor": null
+        },
+        {
+          "target": ".plans/UMPIRE_VISION.md",
+          "reason": "Historical Umpire3 cross-version reference.",
+          "anchor": null
+        }
+      ]
+    },
+    {
+      "path": ".plans/UMPIRE4_COMPONENTS.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC_COMPS.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_DSL.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC_COMPS.md",
+        ".plans/UMPIRE4_SPEC_MODEL_ARCH.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_ORDER.md",
+      "lifecycle": "active",
+      "authority": "delivery-order",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_RESEARCH.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_SPEC.md",
+      "lifecycle": "active",
+      "authority": "normative-rules",
+      "authorityParents": [],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_SPEC_CLI.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC_COMPS.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_SPEC_COMPS.md",
+      "lifecycle": "active",
+      "authority": "architecture",
+      "authorityParents": [
+        ".plans/UMPIRE4_ORDER.md",
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_SPEC_MODEL_ARCH.md",
+      "lifecycle": "active",
+      "authority": "architecture",
+      "authorityParents": [
+        ".plans/UMPIRE4_ORDER.md",
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE4_VISION.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    }
+  ],
+  "flowSpecs": [
+    {
+      "id": "fn-1-lean-regression-dsl-and-nexus",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-10-temporal-semantic-model-layout-and",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-11-basic-nexus-umpire-dsl-showcases",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-10-temporal-semantic-model-layout-and"
+      ]
+    },
+    {
+      "id": "fn-12-lean-test-suite-decomposition-follow-up",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-10-temporal-semantic-model-layout-and"
+      ]
+    },
+    {
+      "id": "fn-13-deterministic-go-regression-projections",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-1-lean-regression-dsl-and-nexus",
+        "fn-10-temporal-semantic-model-layout-and"
+      ]
+    },
+    {
+      "id": "fn-14-milestone-a-pilot-baseline-and-lean",
+      "scope": "umpire-roadmap",
+      "disposition": "superseded",
+      "phase": "p0",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-11-basic-nexus-umpire-dsl-showcases",
+        "fn-13-deterministic-go-regression-projections",
+        "fn-2-agentworkflow-configuration-and-cli",
+        "fn-5-umpire-discovery-promotion-and-artifact"
+      ]
+    },
+    {
+      "id": "fn-15-standalone-api-and-config-input-catalogs",
+      "scope": "umpire-roadmap",
+      "disposition": "deferred",
+      "phase": "p0",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-6-plan-simplify-lean-api-generator-output",
+        "fn-7-migrate-lean-model-descriptor-generator",
+        "fn-8-umpire-temporal-dynamic-config"
+      ]
+    },
+    {
+      "id": "fn-16-authored-variation-spaces-and",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-10-temporal-semantic-model-layout-and",
+        "fn-3-umpire-semantic-authoring-and-planning",
+        "fn-31-deepen-umpire-target-and-simplify",
+        "fn-9-umpire-reusable-dsl-package-split"
+      ]
+    },
+    {
+      "id": "fn-17-bounded-semantic-exploration-and",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p3",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-10-temporal-semantic-model-layout-and",
+        "fn-16-authored-variation-spaces-and",
+        "fn-3-umpire-semantic-authoring-and-planning",
+        "fn-9-umpire-reusable-dsl-package-split"
+      ]
+    },
+    {
+      "id": "fn-18-versioned-umpire-artifact-boundary",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-16-authored-variation-spaces-and",
+        "fn-3-umpire-semantic-authoring-and-planning",
+        "fn-31-deepen-umpire-target-and-simplify",
+        "fn-32-add-umpire-refinement-and-the-first",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-4-umpire-observation-and-semantic-verdicts",
+        "fn-9-umpire-reusable-dsl-package-split"
+      ]
+    },
+    {
+      "id": "fn-19-bounded-local-temporal-execution-and",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p1",
+      "status": "done",
+      "ready": true,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-31-deepen-umpire-target-and-simplify",
+        "fn-32-add-umpire-refinement-and-the-first",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-39-make-the-temporal-nexus-feature-model"
+      ]
+    },
+    {
+      "id": "fn-2-agentworkflow-configuration-and-cli",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-20-local-execution-semantic-conformance",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p1",
+      "status": "done",
+      "ready": true,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-32-add-umpire-refinement-and-the-first",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-4-umpire-observation-and-semantic-verdicts"
+      ]
+    },
+    {
+      "id": "fn-21-nexus-duplicate-observation-control",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p1",
+      "status": "open",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-16-authored-variation-spaces-and",
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-20-local-execution-semantic-conformance",
+        "fn-32-add-umpire-refinement-and-the-first",
+        "fn-37-hard-cut-umpire-vocabulary-and-current"
+      ]
+    },
+    {
+      "id": "fn-22-deterministic-replay-semantic",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p3",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-16-authored-variation-spaces-and",
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-20-local-execution-semantic-conformance",
+        "fn-21-nexus-duplicate-observation-control",
+        "fn-32-add-umpire-refinement-and-the-first",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-5-umpire-discovery-promotion-and-artifact"
+      ]
+    },
+    {
+      "id": "fn-23-veil-toolchain-compatibility-and",
+      "scope": "umpire-roadmap",
+      "disposition": "deferred",
+      "phase": "verification",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-24-lean-native-verification-receipts-and",
+      "scope": "umpire-roadmap",
+      "disposition": "deferred",
+      "phase": "verification",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-31-deepen-umpire-target-and-simplify",
+        "fn-32-add-umpire-refinement-and-the-first",
+        "fn-34-enforce-lean-model-boundaries-with",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-43-deepen-ordinary-property-behavior-and",
+        "fn-47-generate-umpire-semantic-outcome-and"
+      ]
+    },
+    {
+      "id": "fn-25-optional-callerclosure-veil-binding-and",
+      "scope": "umpire-roadmap",
+      "disposition": "deferred",
+      "phase": "verification",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-23-veil-toolchain-compatibility-and",
+        "fn-24-lean-native-verification-receipts-and",
+        "fn-34-enforce-lean-model-boundaries-with",
+        "fn-37-hard-cut-umpire-vocabulary-and-current"
+      ]
+    },
+    {
+      "id": "fn-26-local-qualification-receipts-and-staged",
+      "scope": "umpire-roadmap",
+      "disposition": "deferred",
+      "phase": "verification",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-20-local-execution-semantic-conformance",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-47-generate-umpire-semantic-outcome-and",
+        "fn-48-canonicalize-known-gaps-as-a-checked-set"
+      ]
+    },
+    {
+      "id": "fn-27-hermetic-ci-execution-and-qualification",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p2",
+      "status": "done",
+      "ready": true,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-20-local-execution-semantic-conformance"
+      ]
+    },
+    {
+      "id": "fn-28-authorized-remote-staging-black-box",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p2",
+      "status": "open",
+      "ready": true,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-20-local-execution-semantic-conformance",
+        "fn-27-hermetic-ci-execution-and-qualification"
+      ]
+    },
+    {
+      "id": "fn-29-bounded-production-canary-execution-and",
+      "scope": "umpire-roadmap",
+      "disposition": "deferred",
+      "phase": "verification",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-20-local-execution-semantic-conformance",
+        "fn-26-local-qualification-receipts-and-staged",
+        "fn-28-authorized-remote-staging-black-box",
+        "fn-48-canonicalize-known-gaps-as-a-checked-set"
+      ]
+    },
+    {
+      "id": "fn-3-umpire-semantic-authoring-and-planning",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-30-release-evidence-graph-and-manual",
+      "scope": "umpire-roadmap",
+      "disposition": "deferred",
+      "phase": "verification",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-26-local-qualification-receipts-and-staged",
+        "fn-27-hermetic-ci-execution-and-qualification",
+        "fn-28-authorized-remote-staging-black-box",
+        "fn-29-bounded-production-canary-execution-and",
+        "fn-48-canonicalize-known-gaps-as-a-checked-set"
+      ]
+    },
+    {
+      "id": "fn-31-deepen-umpire-target-and-simplify",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-34-enforce-lean-model-boundaries-with"
+      ]
+    },
+    {
+      "id": "fn-32-add-umpire-refinement-and-the-first",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-31-deepen-umpire-target-and-simplify",
+        "fn-34-enforce-lean-model-boundaries-with",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-4-umpire-observation-and-semantic-verdicts"
+      ]
+    },
+    {
+      "id": "fn-33-run-resumable-semantic-exploration",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p3",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-17-bounded-semantic-exploration-and",
+        "fn-18-versioned-umpire-artifact-boundary",
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-20-local-execution-semantic-conformance",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-40-centralize-plannerpolicy-constructors",
+        "fn-47-generate-umpire-semantic-outcome-and"
+      ]
+    },
+    {
+      "id": "fn-34-enforce-lean-model-boundaries-with",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-35-clarify-core-nexus-lifecycles-and",
+      "scope": "other",
+      "disposition": "out-of-scope",
+      "phase": "none",
+      "status": "done",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-36-nexus-lifecycle-cleanup",
+      "scope": "other",
+      "disposition": "out-of-scope",
+      "phase": "none",
+      "status": "done",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-37-hard-cut-umpire-vocabulary-and-current",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-31-deepen-umpire-target-and-simplify",
+        "fn-4-umpire-observation-and-semantic-verdicts"
+      ]
+    },
+    {
+      "id": "fn-38-consolidate-layered-model-helpers",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-39-make-the-temporal-nexus-feature-model",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-38-consolidate-layered-model-helpers",
+        "fn-41-finitemachine-target-authoring"
+      ]
+    },
+    {
+      "id": "fn-4-umpire-observation-and-semantic-verdicts",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": true,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-10-temporal-semantic-model-layout-and",
+        "fn-3-umpire-semantic-authoring-and-planning",
+        "fn-9-umpire-reusable-dsl-package-split"
+      ]
+    },
+    {
+      "id": "fn-40-centralize-plannerpolicy-constructors",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p3",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-17-bounded-semantic-exploration-and"
+      ]
+    },
+    {
+      "id": "fn-41-finitemachine-target-authoring",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-38-consolidate-layered-model-helpers"
+      ]
+    },
+    {
+      "id": "fn-42-centralize-configuration-authoring-with",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-43-deepen-ordinary-property-behavior-and",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-38-consolidate-layered-model-helpers",
+        "fn-40-centralize-plannerpolicy-constructors",
+        "fn-41-finitemachine-target-authoring",
+        "fn-44-seal-observation-traces-and-centralize",
+        "fn-50-migrate-system-callerclosure-to"
+      ]
+    },
+    {
+      "id": "fn-44-seal-observation-traces-and-centralize",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-45-index-and-reconcile-umpire-plan",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-46-export-lean-model-module-impact-index",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-45-index-and-reconcile-umpire-plan"
+      ]
+    },
+    {
+      "id": "fn-47-generate-umpire-semantic-outcome-and",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-20-local-execution-semantic-conformance",
+        "fn-44-seal-observation-traces-and-centralize",
+        "fn-45-index-and-reconcile-umpire-plan"
+      ]
+    },
+    {
+      "id": "fn-48-canonicalize-known-gaps-as-a-checked-set",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-43-deepen-ordinary-property-behavior-and",
+        "fn-47-generate-umpire-semantic-outcome-and"
+      ]
+    },
+    {
+      "id": "fn-49-centralize-observation-field-and",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-43-deepen-ordinary-property-behavior-and"
+      ]
+    },
+    {
+      "id": "fn-5-umpire-discovery-promotion-and-artifact",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p3",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-10-temporal-semantic-model-layout-and",
+        "fn-13-deterministic-go-regression-projections",
+        "fn-16-authored-variation-spaces-and",
+        "fn-3-umpire-semantic-authoring-and-planning",
+        "fn-31-deepen-umpire-target-and-simplify",
+        "fn-32-add-umpire-refinement-and-the-first",
+        "fn-37-hard-cut-umpire-vocabulary-and-current",
+        "fn-9-umpire-reusable-dsl-package-split"
+      ]
+    },
+    {
+      "id": "fn-50-migrate-system-callerclosure-to",
+      "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-41-finitemachine-target-authoring"
+      ]
+    },
+    {
+      "id": "fn-51-shorten-ordinary-model-authoring",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-43-deepen-ordinary-property-behavior-and"
+      ]
+    },
+    {
+      "id": "fn-6-plan-simplify-lean-api-generator-output",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-7-migrate-lean-model-descriptor-generator",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-8-umpire-temporal-dynamic-config",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": [
+        "fn-3-umpire-semantic-authoring-and-planning"
+      ]
+    },
+    {
+      "id": "fn-9-umpire-reusable-dsl-package-split",
+      "scope": "umpire-roadmap",
+      "disposition": "completed-prerequisite",
+      "phase": "p0",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    }
+  ]
+}
