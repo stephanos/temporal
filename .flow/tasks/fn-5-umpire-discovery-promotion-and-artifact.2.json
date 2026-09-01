@@ -7,10 +7,13 @@
     "fn-5-umpire-discovery-promotion-and-artifact.1"
   ],
   "id": "fn-5-umpire-discovery-promotion-and-artifact.2",
+  "impl": null,
   "priority": null,
+  "review": null,
   "spec": "fn-5-umpire-discovery-promotion-and-artifact",
   "spec_path": ".flow/tasks/fn-5-umpire-discovery-promotion-and-artifact.2.md",
   "status": "todo",
-  "title": "Assemble the Temporal production catalog and catalog executable",
-  "updated_at": "2026-08-27T19:34:42.474006Z"
+  "sync": null,
+  "title": "Add deterministic Nexus list output",
+  "updated_at": "2026-09-01T09:37:21.616500Z"
 }

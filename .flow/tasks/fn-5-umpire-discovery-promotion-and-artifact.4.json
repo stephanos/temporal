@@ -7,10 +7,13 @@
     "fn-5-umpire-discovery-promotion-and-artifact.1"
   ],
   "id": "fn-5-umpire-discovery-promotion-and-artifact.4",
+  "impl": null,
   "priority": null,
+  "review": null,
   "spec": "fn-5-umpire-discovery-promotion-and-artifact",
   "spec_path": ".flow/tasks/fn-5-umpire-discovery-promotion-and-artifact.4.md",
   "status": "todo",
-  "title": "Compile exact in-memory promotion proposals",
-  "updated_at": "2026-08-27T19:34:43.127865Z"
+  "sync": null,
+  "title": "Seal review-only Lean promotion sources",
+  "updated_at": "2026-09-01T09:37:22.264504Z"
 }
