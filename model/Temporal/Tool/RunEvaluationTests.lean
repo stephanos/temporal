@@ -546,4 +546,136 @@ example : closedFailedResponse?.any fun candidate =>
     candidate.observationEvaluationStatus == "unknown" && incompleteProjection candidate := by
   native_decide
 
+private structure WallClockedHistoryFact where
+  sourceOrdinal : Nat
+  wallClockMillis : Nat
+  eventType : String
+
+private def skewedWallClockHistory : List WallClockedHistoryFact := [
+  { sourceOrdinal := 0, wallClockMillis := 600,
+    eventType := "temporal.history.WorkflowExecutionStarted" },
+  { sourceOrdinal := 1, wallClockMillis := 500,
+    eventType := "temporal.history.NexusOperationScheduled" },
+  { sourceOrdinal := 2, wallClockMillis := 400,
+    eventType := "temporal.history.NexusOperationStarted" },
+  { sourceOrdinal := 3, wallClockMillis := 300,
+    eventType := "temporal.history.NexusOperationCancelRequested" },
+  { sourceOrdinal := 4, wallClockMillis := 200,
+    eventType := "temporal.history.NexusOperationCancelRequestCompleted" },
+  { sourceOrdinal := 5, wallClockMillis := 100,
+    eventType := "temporal.history.WorkflowExecutionCanceled" }
+]
+
+private def wallClockLe
+    (left right : WallClockedHistoryFact) : Bool :=
+  left.wallClockMillis ≤ right.wallClockMillis
+
+private def timestampOrderedHistory : List WallClockedHistoryFact :=
+  skewedWallClockHistory.mergeSort wallClockLe
+
+private def admittedParents (candidate : WallClockedHistoryFact) : List String :=
+  if candidate.sourceOrdinal == 0 then [] else [historyId (candidate.sourceOrdinal - 1)]
+
+private def timestampParents
+    (ordered : List WallClockedHistoryFact)
+    (position : Nat) : List String :=
+  if position == 0 then [] else
+    (ordered[position - 1]?).map (fun candidate => historyId candidate.sourceOrdinal) |>.toList
+
+private def skewedWallClockOrderContradictsEvidenceOrder : Bool :=
+  timestampOrderedHistory.map WallClockedHistoryFact.wallClockMillis == [100, 200, 300, 400, 500, 600] &&
+    timestampOrderedHistory.map WallClockedHistoryFact.sourceOrdinal == [5, 4, 3, 2, 1, 0] &&
+    timestampOrderedHistory.zipIdx.all fun pair =>
+      admittedParents pair.1 != timestampParents timestampOrderedHistory pair.2
+
+private def replaceHistoryFacts (history : List Lean.Json) : Lean.Json :=
+  match facts.getArr? with
+  | .error _ => facts
+  | .ok values => array (values.toList.take 2 ++ history ++ values.toList.drop 8)
+
+private def timestampSortedHistoryFacts : List Lean.Json :=
+  timestampOrderedHistory.map fun candidate =>
+    historyFact candidate.sourceOrdinal candidate.eventType
+
+private def projectedHistoryFact
+    (candidate : WallClockedHistoryFact)
+    (ordinal : Nat)
+    (parents : List String) : Lean.Json :=
+  let fields := (historyFact candidate.sourceOrdinal candidate.eventType).getObjVal? "fields"
+    |>.toOption.getD (array [])
+  object [
+    ("factDefinitionId", text (historyId candidate.sourceOrdinal)),
+    ("sourceDefinitionId", text "umpire.evidence.source.history"),
+    ("ordinal", natural ordinal),
+    ("kindDefinitionId", text "umpire.evidence.kind.workflow-history-event"),
+    ("causalFactDefinitionIds", array (parents.map text)),
+    ("fields", fields)
+  ]
+
+private def timestampAuthoritativeHistoryFacts : List Lean.Json :=
+  timestampOrderedHistory.zipIdx.map fun pair =>
+    projectedHistoryFact pair.1 pair.2 (timestampParents timestampOrderedHistory pair.2)
+
+private def skewedRequest : Request := {
+  request with facts := replaceHistoryFacts timestampSortedHistoryFacts
+}
+
+private def timestampAuthoritativeRequest : Request := {
+  request with facts := replaceHistoryFacts timestampAuthoritativeHistoryFacts
+}
+
+private def orderingProjection
+    (fact : EvidenceOrderingFact) : String × String × Nat × List String :=
+  (fact.recordId.value,
+    fact.origin.map (fun origin => origin.source.value) |>.getD "",
+    fact.origin.map EvidenceOrigin.ordinal |>.getD 0,
+    fact.causalParents.map DefinitionId.value)
+
+private def expectedOrderingSupport : List (String × String × Nat × List String) := [
+  ("umpire.runtime.fact.cleanup.fixture", "umpire.evidence.source.cleanup", 0, []),
+  ("umpire.runtime.fact.control.fixture", "umpire.evidence.source.control-receipt", 0, []),
+  ("umpire.runtime.fact.history.1", "umpire.evidence.source.history", 0, []),
+  ("umpire.runtime.fact.history.2", "umpire.evidence.source.history", 1,
+    ["umpire.runtime.fact.history.1"]),
+  ("umpire.runtime.fact.history.3", "umpire.evidence.source.history", 2,
+    ["umpire.runtime.fact.history.2"]),
+  ("umpire.runtime.fact.history.4", "umpire.evidence.source.history", 3,
+    ["umpire.runtime.fact.history.3"]),
+  ("umpire.runtime.fact.history.5", "umpire.evidence.source.history", 4,
+    ["umpire.runtime.fact.history.4"]),
+  ("umpire.runtime.fact.history.6", "umpire.evidence.source.history", 5,
+    ["umpire.runtime.fact.history.5"]),
+  ("umpire.runtime.fact.participant.fixture", "umpire.evidence.source.participant-output", 0, [])
+]
+
+private def authoritativeSkewedResultIsExact : Bool :=
+  (Temporal.Tool.RunEvaluation.evaluateSemantics skewedRequest).toOption.any fun candidate =>
+    match candidate.observation with
+    | .accepted trace =>
+      candidate.implementationLink.map ImplementationLinkResult.status == some .applied &&
+        candidate.querySummary.status == .satisfied &&
+        !trace.evidenceLinks.isEmpty &&
+        trace.evidenceLinks.all fun link =>
+          link.orderingSupport.map orderingProjection == expectedOrderingSupport
+    | _ => false
+
+private def timestampProjectionChangesResult : Bool :=
+  (Temporal.Tool.RunEvaluation.evaluateRequest timestampAuthoritativeRequest).toOption.any fun candidate =>
+    candidate.observationEvaluationStatus == "accepted" &&
+      candidate.semanticStatus == "incomplete" && candidate.evaluationOutcomeChecksum.isNone
+
+private def authoritativeSkewedResponseIsExact : Bool :=
+  (Temporal.Tool.RunEvaluation.evaluateRequest skewedRequest).toOption.any fun candidate =>
+    candidate.observationEvaluationStatus == "accepted" &&
+      candidate.implementationLinkStatus == "applied" &&
+      candidate.semanticStatus == "satisfied" &&
+      candidate.evaluationOutcomeChecksum == ArtifactChecksum.parse?
+        "sha256:d9918ec1a68d3d225c04a8bc54c9722d64e34cd9988b3b4814b7ab3273d72f97"
+
+private def skewedWallClockFixtureIsDiscriminating : Bool :=
+  skewedWallClockOrderContradictsEvidenceOrder && authoritativeSkewedResultIsExact &&
+    authoritativeSkewedResponseIsExact && timestampProjectionChangesResult
+
+example : skewedWallClockFixtureIsDiscriminating := by native_decide
+
 end Temporal.Tool.RunEvaluation.Tests
