@@ -66,5 +66,5 @@ stage: impl-review - ran [2026-09-01T06:37:38Z..2026-09-01T06:40:02Z] (codex; SH
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: e579e0c95baa2aed35f5ddb02f9d6af8c8e6427f, bf4bc07b7726c36a1478d43344d13569ca9c2b2d, 04b2e2333d18aadf1df5dacbecfebea4e7078e77
-- Tests: baseline: green (cd model && mise exec -- lake build Temporal.System.Configuration.Tests; cd model && mise exec -- lake build TemporalModelTests; make umpire-build-model; make lint-model), GATE_SKIPPED:focused-config:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:aggregate-model:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:umpire-model:docs-only - cumulative diff classified tier-B (no executable paths touched), make lint-model
+- Tests: cd model && mise exec -- lake build Temporal.System.Configuration.Tests, cd model && mise exec -- lake build TemporalModelTests, make umpire-build-model, make lint-model, GATE_SKIPPED:focused-config:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:aggregate-model:docs-only - cumulative diff classified tier-B (no executable paths touched), GATE_SKIPPED:umpire-model:docs-only - cumulative diff classified tier-B (no executable paths touched)
 - PRs:
