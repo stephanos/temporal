@@ -1,15 +1,15 @@
 
-¨temporal.nexus.caller-closure.space.duplicate-delivery-negative-control.point.088f85a0eb86d54cfee9512429211767702568152794d302210b0a4041327d4f.query.evaluation-contract ´ÙÑˆâBæ.½+c Ea<«iÊÌvÀy1~XÝ	®"ñ
+¨temporal.nexus.caller-closure.space.duplicate-delivery-negative-control.point.088f85a0eb86d54cfee9512429211767702568152794d302210b0a4041327d4f.query.evaluation-contract µæv³=Í.1FšjÿÊcß»H¹t^÷BJj{a[Å6"ñ
 umpire-experiment/v2Gsha256:09091758defd5ce50cc9acbba23a5c8499da4eef9b6e36878ac989ddea87fedfGsha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91"Gsha256:4136694dfede1044bbf391c5faba21a1a89a589890aa2915eb860a46942797c2*ü
 umpire-runtime-configuration/v2Gsha256:440c0632b911571e4efb34c96fb4c4c7096fbd52f23900ed4784e037370063cfGsha256:d88670a6766c2ef9037c82183f00c1c42179a7578c3c4c07714eadb5540750c0"Gsha256:b11d3931cdb55c2331ca816a912cca8113032c8d29a8e81a37d473c261345b5a2å
 ™temporal.nexus.caller-closure.space.duplicate-delivery-negative-control.point.088f85a0eb86d54cfee9512429211767702568152794d302210b0a4041327d4f.query.testGsha256:9f9f2adb67f62b2c0d5fd0a0adad94e4a46348e8cd71aab08d5084cd01e9c41d:à
 ”temporal.nexus.caller-closure.space.duplicate-delivery-negative-control.point.088f85a0eb86d54cfee9512429211767702568152794d302210b0a4041327d4f.queryGsha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91B.€€@€€€€  @(N2
-42949672958€ê0@€€H€€€PÀ©JœQ
+42949672958€ê0@€€H€€€PÀ©J‰_
 –
 Ktemporal.system.nexus.caller-closure.duplicate-delivery.observation-programGsha256:7226f7762d3a21e7a66d460a4bf6b9d9a1d244bca847e4919cc0bc7debf432bd8
 &Temporal/System/Nexus/Observation.lean"
 lean-modelŠ
-?temporal.system.nexus.caller-closure.duplicate-delivery.mappingGsha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438 *• 
+?temporal.system.nexus.caller-closure.duplicate-delivery.mappingGsha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438 *’,
 Š
 ?temporal.system.nexus.caller-closure.duplicate-delivery.profileGsha256:02517311485c8f87f13581d9381447ae34cb159526bdc865c1054efe2067acb8 
 umpire.evidence.source.cleanup(
@@ -53,6 +53,24 @@ $umpire.evidence.kind.control-receipt&umpire.evidence.source.control-receipt0
 2umpire.evidence.field.synthetic-contribution-count9
 3umpire.evidence.field.synthetic-contribution-markere
 )umpire.evidence.field.task-queue-identity"4temporal.system.nexus.caller-closure.digest.endpoint3
+-umpire.evidence.field.workflow-correlation-id"î
+<umpire.evidence.kind.participant-command.synthetic-duplicate)umpire.evidence.source.participant-output7
+1umpire.evidence.field.cancellation-callback-count8
+2umpire.evidence.field.cancellation-completed-count8
+2umpire.evidence.field.cancellation-requested-count4
+.umpire.evidence.field.capability-definition-id(
+"umpire.evidence.field.command-kindc
+'umpire.evidence.field.endpoint-identity"4temporal.system.nexus.caller-closure.digest.endpoint&
+ umpire.evidence.field.error-code/
+)umpire.evidence.field.fault-definition-id7
+1umpire.evidence.field.fault-receipt-definition-idd
+(umpire.evidence.field.namespace-identity"4temporal.system.nexus.caller-closure.digest.endpoint4
+.umpire.evidence.field.operation-correlation-id.
+(umpire.evidence.field.run-correlation-id"
+umpire.evidence.field.status8
+2umpire.evidence.field.synthetic-contribution-count9
+3umpire.evidence.field.synthetic-contribution-markere
+)umpire.evidence.field.task-queue-identity"4temporal.system.nexus.caller-closure.digest.endpoint3
 -umpire.evidence.field.workflow-correlation-id"¶
 +umpire.evidence.kind.workflow-history-eventumpire.evidence.source.history$
 umpire.evidence.field.event-id&
@@ -63,20 +81,24 @@ $umpire.evidence.kind.control-receipt&umpire.evidence.source.control-receipt0
 4temporal.system.nexus.caller-closure.digest.endpoint2!
 umpire.evidence.kind.cleanup€ 2)
 $umpire.evidence.kind.control-receipt€ 2-
-(umpire.evidence.kind.participant-command€ 20
-+umpire.evidence.kind.workflow-history-event€ :Œ
+(umpire.evidence.kind.participant-command€ 2A
+<umpire.evidence.kind.participant-command.synthetic-duplicate€ 20
++umpire.evidence.kind.workflow-history-event€ :ü
 %umpire.evidence.correlation.operationN
 umpire.evidence.kind.cleanup.umpire.evidence.field.operation-correlation-idV
 $umpire.evidence.kind.control-receipt.umpire.evidence.field.operation-correlation-idZ
-(umpire.evidence.kind.participant-command.umpire.evidence.field.operation-correlation-id]
-+umpire.evidence.kind.workflow-history-event.umpire.evidence.field.operation-correlation-id:œ
+(umpire.evidence.kind.participant-command.umpire.evidence.field.operation-correlation-idn
+<umpire.evidence.kind.participant-command.synthetic-duplicate.umpire.evidence.field.operation-correlation-id]
++umpire.evidence.kind.workflow-history-event.umpire.evidence.field.operation-correlation-id:†
 umpire.evidence.correlation.runH
 umpire.evidence.kind.cleanup(umpire.evidence.field.run-correlation-idT
-(umpire.evidence.kind.participant-command(umpire.evidence.field.run-correlation-idW
-+umpire.evidence.kind.workflow-history-event(umpire.evidence.field.run-correlation-id:°
+(umpire.evidence.kind.participant-command(umpire.evidence.field.run-correlation-idh
+<umpire.evidence.kind.participant-command.synthetic-duplicate(umpire.evidence.field.run-correlation-idW
++umpire.evidence.kind.workflow-history-event(umpire.evidence.field.run-correlation-id:Ÿ
 $umpire.evidence.correlation.workflowM
 umpire.evidence.kind.cleanup-umpire.evidence.field.workflow-correlation-idY
-(umpire.evidence.kind.participant-command-umpire.evidence.field.workflow-correlation-id\
+(umpire.evidence.kind.participant-command-umpire.evidence.field.workflow-correlation-idm
+<umpire.evidence.kind.participant-command.synthetic-duplicate-umpire.evidence.field.workflow-correlation-id\
 +umpire.evidence.kind.workflow-history-event-umpire.evidence.field.workflow-correlation-id2	
 Ctemporal.system.nexus.caller-closure.duplicate-delivery.rule.action$umpire.evidence.kind.control-receiptv
 +temporal.system.nexus.caller-closure.actionGsha256:bcc8eb5ebade5e2b41952b60f0f2edb5adaabc157e5e4cb2aac78402fc4f6f3c *2Ž:‹
@@ -116,56 +138,54 @@ $umpire.evidence.kind.control-receipt.umpire.evidence.field.capability-definiti
 
 nexus.capability.cancellation:
 
-force-close2•
-Otemporal.system.nexus.caller-closure.duplicate-delivery.rule.cancellation-count(umpire.evidence.kind.participant-commandŽ
-Ctemporal.system.nexus.caller-closure.observation.cancellation-countGsha256:66e8faebb2e8b32b36907b10d9959cbdc37463525e4417e93e9315035ba3079a *2õ
-:ò
-
-j2h
-_]
-(umpire.evidence.kind.participant-command1umpire.evidence.field.cancellation-callback-count
+force-close2…
+Otemporal.system.nexus.caller-closure.duplicate-delivery.rule.cancellation-count<umpire.evidence.kind.participant-command.synthetic-duplicateŽ
+Ctemporal.system.nexus.caller-closure.observation.cancellation-countGsha256:66e8faebb2e8b32b36907b10d9959cbdc37463525e4417e93e9315035ba3079a *2Ñ:Î
+~2|
+sq
+<umpire.evidence.kind.participant-command.synthetic-duplicate1umpire.evidence.field.cancellation-callback-count
 1
-k2i
-`^
-(umpire.evidence.kind.participant-command2umpire.evidence.field.synthetic-contribution-count
+2}
+tr
+<umpire.evidence.kind.participant-command.synthetic-duplicate2umpire.evidence.field.synthetic-contribution-count
 1
-¸2µ
-a_
-(umpire.evidence.kind.participant-command3umpire.evidence.field.synthetic-contribution-markerP
+Ì2É
+us
+<umpire.evidence.kind.participant-command.synthetic-duplicate3umpire.evidence.field.synthetic-contribution-markerP
 N
 Ltemporal.nexus.caller-closure.marker.injected-duplicate-delivery-observation
-k2i
-`^
-(umpire.evidence.kind.participant-command2umpire.evidence.field.cancellation-requested-count
+2}
+tr
+<umpire.evidence.kind.participant-command.synthetic-duplicate2umpire.evidence.field.cancellation-requested-count
 1
-k2i
-`^
-(umpire.evidence.kind.participant-command2umpire.evidence.field.cancellation-completed-count
+2}
+tr
+<umpire.evidence.kind.participant-command.synthetic-duplicate2umpire.evidence.field.cancellation-completed-count
 1
-¤2¡
-WU
-(umpire.evidence.kind.participant-command)umpire.evidence.field.fault-definition-idF
+¸2µ
+ki
+<umpire.evidence.kind.participant-command.synthetic-duplicate)umpire.evidence.field.fault-definition-idF
 D
 Btemporal.nexus.caller-closure.fault.duplicate-delivery-observation
-´2±
-_]
-(umpire.evidence.kind.participant-command1umpire.evidence.field.fault-receipt-definition-idN
+È2Å
+sq
+<umpire.evidence.kind.participant-command.synthetic-duplicate1umpire.evidence.field.fault-receipt-definition-idN
 L
 Jtemporal.nexus.caller-closure.fault-receipt.duplicate-delivery-observation
-„2
-\Z
-(umpire.evidence.kind.participant-command.umpire.evidence.field.capability-definition-id!
+˜2•
+pn
+<umpire.evidence.kind.participant-command.synthetic-duplicate.umpire.evidence.field.capability-definition-id!
 
 nexus.capability.cancellation
-`*^
-\Z
-(umpire.evidence.kind.participant-command.umpire.evidence.field.operation-correlation-id
-Z*X
-VT
-(umpire.evidence.kind.participant-command(umpire.evidence.field.run-correlation-id
-_*]
-[Y
-(umpire.evidence.kind.participant-command-umpire.evidence.field.workflow-correlation-id:
+t*r
+pn
+<umpire.evidence.kind.participant-command.synthetic-duplicate.umpire.evidence.field.operation-correlation-id
+n*l
+jh
+<umpire.evidence.kind.participant-command.synthetic-duplicate(umpire.evidence.field.run-correlation-id
+s*q
+om
+<umpire.evidence.kind.participant-command.synthetic-duplicate-umpire.evidence.field.workflow-correlation-id:
 
 22˜
 Etemporal.system.nexus.caller-closure.duplicate-delivery.rule.delivery+umpire.evidence.kind.workflow-history-event„

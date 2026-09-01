@@ -46,7 +46,6 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 	duplicateEvidence, err := artifact.DecodeRawEvidenceV2(duplicateEvidenceBytes)
 	require.NoError(t, err)
 	var normalEvidence artifactv2.RawEvidence
-	var normalOracle map[string][]byte
 
 	for _, name := range []string{"normal", "duplicate-delivery", "any-operator"} {
 		t.Run(name, func(t *testing.T) {
@@ -78,12 +77,11 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 				evidence = projectEvidenceToContract(t, contract, duplicateEvidence)
 				evidence, oracle = leanRunEvaluationOracle(t, repositoryRoot, name, evidence)
 				normalEvidence = evidence
-				normalOracle = oracle
 			case "duplicate-delivery":
 				evidence, oracle = leanRunEvaluationOracle(t, repositoryRoot, name, evidence)
+				evidence = materializeDuplicateParityField(t, evidence)
 			case "any-operator":
 				evidence = normalEvidence
-				oracle = normalOracle
 			}
 			evidenceBytes, err := artifact.EncodeRawEvidenceV2(evidence)
 			require.NoError(t, err)
@@ -98,10 +96,129 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 			}
 		})
 	}
+	command := exec.Command(
+		"mise", "exec", "--", "lake", "env", "lean", "--run",
+		"Temporal/Tool/PortableEvaluationContractTests.lean", "operator-branches",
+	)
+	command.Dir = filepath.Join(repositoryRoot, "model")
+	branches, err := command.Output()
+	require.NoError(t, err)
+	require.NoError(t, os.WriteFile(
+		filepath.Join(*parityFixtureOutput, "operator-branches.json"), branches, 0o644,
+	))
+}
+
+func materializeDuplicateParityField(
+	t testing.TB,
+	evidence artifactv2.RawEvidence,
+) artifactv2.RawEvidence {
+	t.Helper()
+	const (
+		parentID    = "umpire.runtime.fact.participant.fixture"
+		childID     = "umpire.runtime.fact.participant.synthetic-duplicate.fixture"
+		childKindID = "umpire.evidence.kind.participant-command.synthetic-duplicate"
+		fieldID     = "umpire.evidence.field.cancellation-callback-count"
+	)
+	var inherited *artifactv2.RawEvidenceField
+	for factIndex := range evidence.Facts {
+		if evidence.Facts[factIndex].FactDefinitionID != parentID {
+			continue
+		}
+		for fieldIndex := range evidence.Facts[factIndex].Fields {
+			if evidence.Facts[factIndex].Fields[fieldIndex].FieldDefinitionID == fieldID {
+				field := evidence.Facts[factIndex].Fields[fieldIndex]
+				inherited = &field
+			}
+		}
+	}
+	require.NotNil(t, inherited)
+	materialized := false
+	for factIndex := range evidence.Facts {
+		if evidence.Facts[factIndex].FactDefinitionID != childID {
+			continue
+		}
+		evidence.Facts[factIndex].KindDefinitionID = childKindID
+		require.False(t, rawEvidenceFactHasField(evidence.Facts[factIndex], fieldID))
+		evidence.Facts[factIndex].Fields = append(evidence.Facts[factIndex].Fields, *inherited)
+		slices.SortFunc(evidence.Facts[factIndex].Fields,
+			func(left, right artifactv2.RawEvidenceField) int {
+				return strings.Compare(left.FieldDefinitionID, right.FieldDefinitionID)
+			})
+		materialized = true
+	}
+	require.True(t, materialized)
+	sealed, err := artifactv2.SealRawEvidence(evidence)
+	require.NoError(t, err)
+	require.NoError(t, artifactv2.ValidateRawEvidence(sealed))
+	return sealed
 }
 
 type leanEvaluationSummary struct {
 	Destination string `json:"destination"`
+}
+
+type leanBranchOracle struct {
+	Name                     string `json:"name"`
+	ToolingStatus            string `json:"toolingStatus"`
+	OperationalStatus        string `json:"operationalStatus"`
+	ObservationStatus        string `json:"observationStatus"`
+	ImplementationLinkStatus string `json:"implementationLinkStatus"`
+	SemanticStatus           string `json:"semanticStatus"`
+	CleanupStatus            string `json:"cleanupStatus"`
+	Decision                 string `json:"decision"`
+	DiagnosticCode           string `json:"diagnosticCode"`
+}
+
+func loadBranchOracles(t testing.TB) map[string]leanBranchOracle {
+	t.Helper()
+	encoded, err := os.ReadFile(filepath.Join("testdata", "operator-branches.json"))
+	require.NoError(t, err)
+	var values []leanBranchOracle
+	require.NoError(t, json.Unmarshal(encoded, &values))
+	result := make(map[string]leanBranchOracle, len(values))
+	for _, value := range values {
+		require.NotEmpty(t, value.Name)
+		_, duplicate := result[value.Name]
+		require.False(t, duplicate, value.Name)
+		result[value.Name] = value
+	}
+	return result
+}
+
+func requireBranchOracle(
+	t testing.TB,
+	oracle leanBranchOracle,
+	result *umpirespb.EvaluationResult,
+) {
+	t.Helper()
+	require.NotEmpty(t, oracle.Name)
+	tooling, ok := umpirespb.ToolingStatus_value[oracle.ToolingStatus]
+	require.True(t, ok)
+	operational, ok := umpirespb.OperationalStatus_value[oracle.OperationalStatus]
+	require.True(t, ok)
+	observation, ok := umpirespb.ObservationStatus_value[oracle.ObservationStatus]
+	require.True(t, ok)
+	link, ok := umpirespb.ImplementationLinkStatus_value[oracle.ImplementationLinkStatus]
+	require.True(t, ok)
+	semantic, ok := umpirespb.EvaluationStatus_value[oracle.SemanticStatus]
+	require.True(t, ok)
+	cleanup, ok := umpirespb.CleanupStatus_value[oracle.CleanupStatus]
+	require.True(t, ok)
+	decision, ok := umpirespb.CanaryDecision_value[oracle.Decision]
+	require.True(t, ok)
+	require.Equal(t, umpirespb.ToolingStatus(tooling), result.GetToolingStatus())
+	require.Equal(t, umpirespb.OperationalStatus(operational), result.GetOperationalStatus())
+	require.Equal(t, umpirespb.ObservationStatus(observation), result.GetObservation().GetStatus())
+	require.Equal(t, umpirespb.ImplementationLinkStatus(link),
+		result.GetImplementationLink().GetStatus())
+	require.Equal(t, umpirespb.EvaluationStatus(semantic), result.GetSemanticStatus())
+	require.Equal(t, umpirespb.CleanupStatus(cleanup), result.GetCleanupStatus())
+	require.Equal(t, umpirespb.CanaryDecision(decision), result.GetDecision())
+	if oracle.DiagnosticCode != "" {
+		diagnostic, ok := umpirespb.DiagnosticCode_value[oracle.DiagnosticCode]
+		require.True(t, ok)
+		require.Contains(t, allDiagnostics(result), umpirespb.DiagnosticCode(diagnostic))
+	}
 }
 
 func leanRunEvaluationOracle(
@@ -330,15 +447,6 @@ func TestPortableEvaluatorMatchesLeanRunEvaluationFixtures(t *testing.T) {
 				umpirespb.SEMANTIC_STATUS_VIOLATED,
 			},
 		},
-		{
-			name: "any-operator", semantic: umpirespb.EVALUATION_STATUS_SATISFIED,
-			decision: umpirespb.CANARY_DECISION_PASS,
-			clauseState: []umpirespb.SemanticStatus{
-				umpirespb.SEMANTIC_STATUS_SATISFIED,
-				umpirespb.SEMANTIC_STATUS_SATISFIED,
-				umpirespb.SEMANTIC_STATUS_SATISFIED,
-			},
-		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -418,23 +526,23 @@ func TestLeanParityContractsCoverV1OperatorVocabulary(t *testing.T) {
 }
 
 func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) {
+	oracles := loadBranchOracles(t)
 	tests := []struct {
-		name        string
-		fixture     string
-		mutate      func(testing.TB, *umpirespb.EvaluationContract, *artifactv2.RawEvidence)
-		observation umpirespb.ObservationStatus
-		semantic    umpirespb.EvaluationStatus
-		code        umpirespb.DiagnosticCode
+		name    string
+		fixture string
+		mutate  func(testing.TB, *umpirespb.EvaluationContract, *artifactv2.RawEvidence)
 	}{
+		{
+			name: "any true", fixture: "any-operator",
+			mutate: func(testing.TB, *umpirespb.EvaluationContract, *artifactv2.RawEvidence) {
+			},
+		},
 		{
 			name: "all false", fixture: "normal",
 			mutate: func(t testing.TB, _ *umpirespb.EvaluationContract, evidence *artifactv2.RawEvidence) {
 				setRawField(t, evidence, "umpire.evidence.kind.control-receipt",
 					"umpire.evidence.field.action-definition-id", "workflow.action.other")
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNKNOWN,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_MISSING_COORDINATE,
 		},
 		{
 			name: "any false", fixture: "any-operator",
@@ -442,19 +550,14 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				setRawField(t, evidence, "umpire.evidence.kind.control-receipt",
 					"umpire.evidence.field.action-definition-id", "workflow.action.other")
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNKNOWN,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_MISSING_COORDINATE,
 		},
 		{
 			name: "present false", fixture: "duplicate-delivery",
 			mutate: func(_ testing.TB, _ *umpirespb.EvaluationContract, evidence *artifactv2.RawEvidence) {
-				removeRawField(evidence, "umpire.evidence.kind.participant-command",
+				removeRawField(evidence,
+					"umpire.evidence.kind.participant-command.synthetic-duplicate",
 					"umpire.evidence.field.operation-correlation-id")
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNKNOWN,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_MISSING_COORDINATE,
 		},
 		{
 			name: "field type error", fixture: "normal",
@@ -462,9 +565,6 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				setRawField(t, evidence, "umpire.evidence.kind.participant-command",
 					"umpire.evidence.field.cancellation-callback-count", true)
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNSUPPORTED,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
 		},
 		{
 			name: "field missing", fixture: "normal",
@@ -479,9 +579,6 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				}
 				require.Fail(t, "natural_render_v1 emit is absent")
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNKNOWN,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_MISSING_FIELD,
 		},
 		{
 			name: "equals type error", fixture: "normal",
@@ -489,9 +586,6 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				equals := contract.GetObservation().GetEmits()[0].GetCondition().GetAll().GetOperands()[0].GetEquals()
 				equals.Right = &umpirespb.ObservationExpression{Operator: &umpirespb.ObservationExpression_LiteralNatural{LiteralNatural: &umpirespb.LiteralNatural{Value: "1"}}}
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNSUPPORTED,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
 		},
 		{
 			name: "all type error", fixture: "normal",
@@ -499,9 +593,6 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				contract.GetObservation().GetEmits()[0].GetCondition().GetAll().Operands[0] =
 					literalText("not-a-boolean")
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNSUPPORTED,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
 		},
 		{
 			name: "any type error", fixture: "any-operator",
@@ -509,9 +600,6 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				contract.GetObservation().GetEmits()[0].GetCondition().GetAny().Operands[0] =
 					literalText("not-a-boolean")
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNSUPPORTED,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
 		},
 		{
 			name: "natural render type error", fixture: "normal",
@@ -524,9 +612,6 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				}
 				require.Fail(t, "natural_render_v1 emit is absent")
 			},
-			observation: umpirespb.OBSERVATION_STATUS_UNSUPPORTED,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
 		},
 		{
 			name: "equals text rejects natural", fixture: "normal",
@@ -534,9 +619,6 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				setDestinationValue(t, contract, "nexus.observation.cancellation-delivered",
 					&umpirespb.Value{Value: &umpirespb.Value_Natural{Natural: "1"}})
 			},
-			observation: umpirespb.OBSERVATION_STATUS_ACCEPTED,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
 		},
 		{
 			name: "natural at most rejects text", fixture: "normal",
@@ -544,9 +626,6 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 				setDestinationValue(t, contract, "nexus.observation.pending-cancellation-count",
 					&umpirespb.Value{Value: &umpirespb.Value_Text{Text: "1"}})
 			},
-			observation: umpirespb.OBSERVATION_STATUS_ACCEPTED,
-			semantic:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
-			code:        umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
 		},
 	}
 	for _, test := range tests {
@@ -558,15 +637,13 @@ func TestLeanParityContractsCoverFalseMissingAndTypeErrorBranches(t *testing.T) 
 
 			result := Evaluate(context.Background(), requestFor(contract, evidence))
 
-			require.Equal(t, test.observation, result.GetObservation().GetStatus())
-			require.Equal(t, test.semantic, result.GetSemanticStatus())
-			require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
-			require.Contains(t, allDiagnostics(result), test.code)
+			requireBranchOracle(t, oracles[test.name], result)
 		})
 	}
 }
 
 func TestCorrelationSlotsAllowOptionalReferencesAndRejectWhollyMissing(t *testing.T) {
+	oracles := loadBranchOracles(t)
 	contract, evidence := loadParityFixture(t, "normal")
 	result := Evaluate(context.Background(), requestFor(contract, evidence))
 	require.Equal(t, umpirespb.OBSERVATION_STATUS_ACCEPTED, result.GetObservation().GetStatus())
@@ -582,16 +659,14 @@ func TestCorrelationSlotsAllowOptionalReferencesAndRejectWhollyMissing(t *testin
 		operationField, "runtime.correlation.operation.conflict")
 	conflicting = resealRawEvidence(t, conflicting)
 	result = Evaluate(context.Background(), requestFor(contract, conflicting))
-	require.Equal(t, umpirespb.OBSERVATION_STATUS_CONFLICT, result.GetObservation().GetStatus())
-	require.Contains(t, allDiagnostics(result), umpirespb.DIAGNOSTIC_CODE_CORRELATION)
+	requireBranchOracle(t, oracles["correlation conflict"], result)
 
 	for _, fact := range evidence.Facts {
 		removeRawField(&evidence, fact.KindDefinitionID, operationField)
 	}
 	evidence = resealRawEvidence(t, evidence)
 	result = Evaluate(context.Background(), requestFor(contract, evidence))
-	require.Equal(t, umpirespb.OBSERVATION_STATUS_UNKNOWN, result.GetObservation().GetStatus())
-	require.Contains(t, allDiagnostics(result), umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING)
+	requireBranchOracle(t, oracles["correlation missing"], result)
 }
 
 func TestLeanParityContractsFailClosedOnCanonicalOrderAndCrossedPairs(t *testing.T) {
@@ -619,22 +694,17 @@ func TestLeanParityContractsFailClosedOnCanonicalOrderAndCrossedPairs(t *testing
 	}
 	normalContract, normalEvidence := loadParityFixture(t, "normal")
 	duplicateContract, duplicateEvidence := loadParityFixture(t, "duplicate-delivery")
+	oracle := loadBranchOracles(t)["crossed pair"]
 	for _, request := range []Request{
 		requestFor(normalContract, duplicateEvidence), requestFor(duplicateContract, normalEvidence),
 	} {
 		result := Evaluate(context.Background(), request)
-		require.Equal(t, umpirespb.TOOLING_STATUS_INVALID_INPUT, result.GetToolingStatus())
-		require.Equal(t, umpirespb.OPERATIONAL_STATUS_SUCCEEDED, result.GetOperationalStatus())
-		require.Equal(t, umpirespb.OBSERVATION_STATUS_UNKNOWN, result.GetObservation().GetStatus())
-		require.Equal(t, umpirespb.IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED,
-			result.GetImplementationLink().GetStatus())
-		require.Equal(t, umpirespb.EVALUATION_STATUS_INCOMPLETE, result.GetSemanticStatus())
-		require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
-		require.Contains(t, allDiagnostics(result), umpirespb.DIAGNOSTIC_CODE_CORRELATION)
+		requireBranchOracle(t, oracle, result)
 	}
 }
 
 func TestLeanParityContractsEnforceExactWorkBoundary(t *testing.T) {
+	oracle := loadBranchOracles(t)["work limit exceeded"]
 	for _, name := range []string{"normal", "duplicate-delivery", "any-operator"} {
 		t.Run(name, func(t *testing.T) {
 			contract, evidence := loadParityFixture(t, name)
@@ -653,13 +723,13 @@ func TestLeanParityContractsEnforceExactWorkBoundary(t *testing.T) {
 			over.Limits.MaxEvaluationWork = exactWork - 1
 			over = repackParityContract(t, over)
 			overResult := Evaluate(context.Background(), requestFor(over, evidence))
-			require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, overResult.GetDecision())
-			require.Contains(t, allDiagnostics(overResult), umpirespb.DIAGNOSTIC_CODE_LIMIT_REACHED)
+			requireBranchOracle(t, oracle, overResult)
 		})
 	}
 }
 
 func TestLeanParityRawKnownGapIsRetainedAndInconclusive(t *testing.T) {
+	oracle := loadBranchOracles(t)["raw known gap"]
 	contract, evidence := loadParityFixture(t, "normal")
 	subject := "temporal.run.gap"
 	detail := "bounded Evidence omission"
@@ -670,11 +740,7 @@ func TestLeanParityRawKnownGapIsRetainedAndInconclusive(t *testing.T) {
 
 	result := Evaluate(context.Background(), requestFor(contract, evidence))
 
-	require.Equal(t, umpirespb.OBSERVATION_STATUS_UNKNOWN, result.GetObservation().GetStatus())
-	require.Equal(t, umpirespb.IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED,
-		result.GetImplementationLink().GetStatus())
-	require.Equal(t, umpirespb.EVALUATION_STATUS_INCOMPLETE, result.GetSemanticStatus())
-	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
+	requireBranchOracle(t, oracle, result)
 	require.Equal(t, "umpire.gap.parity", result.GetKnownGaps()[0].GetCode())
 	require.Len(t, result.GetKnownGaps(), len(contract.GetKnownGaps())+1)
 }
@@ -854,7 +920,7 @@ func requireLeanRunEvaluationParity(
 		goDispositions := make([]stableDisposition, len(goLink.GetAppliedDispositions()))
 		for dispositionIndex, disposition := range goLink.GetAppliedDispositions() {
 			goDispositions[dispositionIndex] = stableDisposition{
-				KindDefinitionID:         disposition.GetField().GetKindDefinitionId(),
+				KindDefinitionID:         semanticEvidenceKindID(disposition.GetField().GetKindDefinitionId()),
 				FieldDefinitionID:        disposition.GetField().GetFieldDefinitionId(),
 				Disposition:              stableDispositionKind(disposition.GetDisposition()),
 				NormalizedValue:          stableValue(disposition.GetNormalizedValue()),
@@ -908,6 +974,10 @@ func requireLeanRunEvaluationParity(
 	for index, gap := range expectedGaps {
 		protorequire.ProtoEqual(t, gap, result.GetKnownGaps()[index])
 	}
+}
+
+func semanticEvidenceKindID(definitionID string) string {
+	return strings.TrimSuffix(definitionID, ".synthetic-duplicate")
 }
 
 type stableDisposition struct {

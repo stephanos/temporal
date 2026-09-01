@@ -320,6 +320,63 @@ private def lowerObservationProgram
     ordering
   }
 
+private def duplicateParticipantKind : DefinitionId :=
+  DefinitionId.of "umpire.evidence.kind.participant-command.synthetic-duplicate"
+
+private partial def rebindExpressionKind
+    (fromKind toKind : DefinitionId) :
+    Umpire.Artifact.PortableEvaluationContract.ObservationExpression →
+      Umpire.Artifact.PortableEvaluationContract.ObservationExpression
+  | .literalText value => .literalText value
+  | .literalNatural value => .literalNatural value
+  | .field reference =>
+      .field { reference with kind := if reference.kind == fromKind then toKind else reference.kind }
+  | .naturalRenderV1 operand => .naturalRenderV1 (rebindExpressionKind fromKind toKind operand)
+  | .present operand => .present (rebindExpressionKind fromKind toKind operand)
+  | .equals left right =>
+      .equals (rebindExpressionKind fromKind toKind left)
+        (rebindExpressionKind fromKind toKind right)
+  | .all operands => .all (operands.map (rebindExpressionKind fromKind toKind))
+  | .any operands => .any (operands.map (rebindExpressionKind fromKind toKind))
+
+private def specializeDuplicateObservationProgram
+    (program : ObservationProgram) : Except NonPortableError ObservationProgram := do
+  let participantKind := Temporal.System.Nexus.Observation.Profile.participantKind
+  let some participant := program.profile.kinds.find? fun kind =>
+      kind.kindDefinitionId == participantKind
+    | nonPortable program.mapping.definitionId program.source
+        "evidence.missing-duplicate-participant-kind"
+  let duplicateKind := { participant with kindDefinitionId := duplicateParticipantKind }
+  let kinds := (duplicateKind :: program.profile.kinds).mergeSort fun left right =>
+    decide (left.kindDefinitionId.value ≤ right.kindDefinitionId.value)
+  let cardinalities := ({
+    kindDefinitionId := duplicateParticipantKind
+    minimum := 0
+    maximum := program.profile.cardinalities.foldl (fun maximum cardinality =>
+      Nat.max maximum cardinality.maximum) 0
+  } :: program.profile.cardinalities).mergeSort fun left right =>
+    decide (left.kindDefinitionId.value ≤ right.kindDefinitionId.value)
+  let correlationSlots := program.profile.correlationSlots.map fun slot => {
+    slot with fields := slot.fields.flatMap fun reference =>
+      if reference.kind == participantKind then
+        [reference, { reference with kind := duplicateParticipantKind }]
+      else [reference]
+  }
+  let cancellationRuleId :=
+    Temporal.System.Nexus.Observation.DuplicateDelivery.Mapping.cancellationCountRuleId.value
+  let emits := program.emits.map fun emit =>
+    if emit.definitionId == cancellationRuleId then {
+      emit with
+      sourceKindDefinitionId := duplicateParticipantKind
+      condition := rebindExpressionKind participantKind duplicateParticipantKind emit.condition
+      value := rebindExpressionKind participantKind duplicateParticipantKind emit.value
+    } else emit
+  pure {
+    program with
+    profile := { program.profile with kinds, cardinalities, correlationSlots }
+    emits
+  }
+
 private def modelValue
     (owner : DefinitionId)
     (source : SourceLocation)
@@ -580,6 +637,11 @@ private def lowerCheckedTest
       property.source
     ] ++ definitionSources)
       |>.mergeSort sourceLe |>.eraseDups
+  let observation ← lowerObservationProgram plan program
+    Temporal.System.Nexus.CallerClosure.target.definitions
+  let observation ← if duplicateDelivery then
+    specializeDuplicateObservationProgram observation
+  else pure observation
   pure {
     contractId := experiment.plan.queryDefinitionId.value ++ ".evaluation-contract"
     experiment := experiment.artifactBinding
@@ -592,8 +654,7 @@ private def lowerCheckedTest
     }
     query
     limits := limits experiment runtimeConfiguration plan
-    observation := ← lowerObservationProgram plan program
-      Temporal.System.Nexus.CallerClosure.target.definitions
+    observation
     implementationLink := link
     properties := [property]
     knownGaps
