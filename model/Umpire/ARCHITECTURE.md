@@ -74,6 +74,11 @@ Important value types:
   provider, law, connector, target, or kernel.
 - `ModelValue` pairs a declaration identity with a canonical string value.
 - `ModelTrace` and `ModelTraceStep` represent pure Model Traces.
+- `ModelCoordinate` identifies one canonical location in a Model Trace. `ModelTrace.coordinates`
+  enumerates initial state followed by each step's selected Action, Model Outcome, resulting state,
+  and observations in source order. `ModelTrace.valueAt?` is the sole positional lookup and rejects
+  zero or out-of-range step and observation positions; every numeric position is strictly one-based.
+  `ModelCoordinate.definitionKind` is the sole coordinate-kind mapping.
 - `TransitionResult` represents one model-owned transition result.
 - `Limit` associates one value with an explicit `LimitUnit`.
 
@@ -207,7 +212,8 @@ EvidenceProfileDeclaration + ObservationMappingDeclaration + CheckedTarget
   ── ObservationCheckContext.ofTarget / checkObservation ──▶ CheckedObservationPlan
 CheckedObservationPlan + synthetic EvidenceBundle
   ── evaluateEvidence ──▶ ObservationResult
-CheckedQuery + CheckedProperty + ObservationResult
+ObservationResult.accepted ──▶ opaque EvidenceBackedTrace
+CheckedQuery + CheckedProperty + EvidenceBackedTrace
   ── evaluateObservationProperty ──▶ SemanticPropertyVerdict
 CheckedQuery + property verdicts
   ── summarizeQueryVerdicts ──▶ StrictQuerySummary
@@ -215,10 +221,20 @@ CheckedQuery + property verdicts
 
 `checkObservation` compiles the closed expression grammar, declared ordering and closures, Model
 Facts, field dispositions, and positive `evidence-records` Limit into one canonical
-`CheckedObservationPlan`. `evaluateEvidence` then either returns one complete `EvidenceBackedTrace` with
-an Evidence Link for every Model Coordinate, or one closed diagnostic without exposing a partial
-trace. The raw `EvidenceBundle` is consumed only during Observation Evaluation and is not retained in the
+`CheckedObservationPlan`. `evaluateEvidence` is the single Observation admission handoff. It either
+returns `ObservationResult.accepted` with one complete, opaque `EvidenceBackedTrace` and an Evidence
+Link for every Core-owned Model Coordinate, or one closed diagnostic without exposing a partial
+trace. The accepted type has no public constructor or record-update path; documented field-style
+projections provide read-only access to the semantic content needed downstream. It is a checked
+handoff value, not another authoring or scenario language. The raw
+`EvidenceBundle` is consumed only during Observation Evaluation and is not retained in the
 Evidence-backed Model Trace or verdicts.
+
+`evaluateObservationProperty` accepts only the admitted trace and validates Property-owned query
+membership, exact Property identity, capability access, and logical-time prerequisites before
+invoking the unchanged Property evaluator. It does not repeat Observation envelope admission. An
+Observation non-success carries no accepted trace, so Property evaluation cannot produce a partial
+or layer-confused result.
 
 Every consumed field has exactly one disposition:
 
@@ -270,17 +286,22 @@ canonical `CheckedImplementationLink`.
 
 The prototype proves a bounded forward simulation. It does not require a reverse mapping,
 bisimulation, surjectivity, or named Behavior-occurrence correspondence. `applyImplementationLink`
-accepts only an `EvidenceBackedTrace`, re-admits its source setup, initial state, and every step
-through the checked source kernel, and then returns one complete authoritative destination Model
-Trace with a coordinate-complete `ImplementationLinkEvidenceLink` set. It never exposes a partial
+accepts only an admitted `EvidenceBackedTrace`; it does not repeat Observation envelope admission.
+It validates its own application Limit and source-Target identity, replays the accepted trace's
+source setup, initial state, and every step through the checked source kernel, and checks the
+declared mapping, support/Known Gap partition, and translation. It then returns one complete
+authoritative destination Model Trace with a coordinate-complete
+`ImplementationLinkEvidenceLink` set, or one Link-owned diagnostic without exposing a partial
 destination trace.
 
 Implementation Link application has its own `invalid`, `unknown`, `conflict`, and `unsupported`
 outcomes and canonical diagnostics. Those outcomes are distinct from Observation Evaluation
 (`accepted`, `unknown`, `conflict`, or `unsupported`) and from Feature Property evaluation
 (`satisfied` or `violated` for the direct evaluator). Implementation Link does not interpret raw
-Evidence and does not invoke a Property; a later Run Evaluation composes the three checked stages
-without collapsing their identities or diagnostics.
+Evidence and does not invoke a Property; a later Run Evaluation passes the accepted trace across
+this handoff and invokes later stages only after their prerequisite succeeds. It composes the three
+checked stages without repeating Observation admission or collapsing stage identities,
+diagnostics, or no-partial-result guarantees.
 
 ## Query and search API
 
