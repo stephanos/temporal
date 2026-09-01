@@ -182,12 +182,26 @@ Public Umpire APIs follow an authored → checked → planned → artifact lifec
 5. Derive the planner kernel with `IncrementalPlannerKernel.ofCheckedQuery?`, then call `plan`.
 6. Inspect the resulting `PlannerRun` and optional `ExperimentSpec`.
 
+`Umpire.Core` is the single authority for Model Trace coordinates. It defines canonical source-order
+enumeration, strict one-based lookup that rejects zero and out-of-range positions, and the mapping
+from each coordinate to its Definition kind. Observation, Property, and Implementation Link use
+that same API rather than defining private positional semantics.
+
+Observation Evaluation is the only admission boundary for an Evidence-backed Model Trace. A
+successful `evaluateEvidence` result carries one opaque `EvidenceBackedTrace`; every non-success
+carries a diagnostic and no partial trace. Property evaluation, Implementation Link application,
+Run Evaluation, and Artifact projection receive the already-admitted value through read-only
+projections and retain only their own validation responsibilities. This checked value is not a new
+authoring or scenario language.
+
 When one independently checked Target implements another, author an inert
 `ImplementationLinkDeclaration` and exact forward witness, call `checkImplementationLink`, and
-apply only the resulting `CheckedImplementationLink` to an Evidence-backed source Model Trace.
-Application first re-admits the source trace through its checked kernel and then returns either one
-complete authoritative destination trace plus coordinate-complete Evidence Links or one typed
-Implementation Link diagnostic.
+apply only the resulting `CheckedImplementationLink` to an admitted `EvidenceBackedTrace`.
+Application does not repeat Observation envelope admission: it validates the Link's source Target,
+application Limit, mapping, support/Known Gap partition, and translation while replaying the source
+Model Trace through its checked kernel. It then returns either one complete authoritative
+destination trace plus coordinate-complete Evidence Links or one typed Implementation Link
+diagnostic, never a partial destination trace.
 
 Property, Behavior, and Query are the scenario and question languages; Target is their common
 checked substrate. Ordinary authors consume it without constructing raw providers or connectors,
@@ -221,8 +235,8 @@ Temporal-specific modules are split by semantic altitude:
 - `Temporal.Feature.Nexus.Operations` owns the start, cancellation, and successful-completion
   walkthroughs over that shared target.
 - `Temporal.Feature.Nexus.Observation` owns the sole synthetic BasicLifecycle evidence profile,
-  its checked mapping, and the offline `EvidenceBundle` → Observation Evaluation → Property-verdict → strict-
-  summary composition over the ordinary asynchronous-start Query.
+  its checked mapping, and the offline `EvidenceBundle` → Observation admission → opaque accepted
+  trace → Property-verdict → strict-summary composition over the ordinary asynchronous-start Query.
 - `Temporal.System.Nexus.Core` owns the independently authored pure mechanism states and transitions
   for dispatch, cancellation recording, and completion recording.
 - `Temporal.System.Nexus.ImplementationLink` is the sole production leaf that imports both Nexus
@@ -241,8 +255,10 @@ Temporal-specific modules are split by semantic altitude:
 - `Temporal.Tool.Inspect` owns canonical artifact rendering, scenario lookup, CLI diagnostics, and
   the executable entry point. It does not own feature semantics.
 - `Temporal.Tool.RunEvaluation` owns the closed private Generated View adapter and fixed checker
-  composition for one local caller-closure execution. It has no filesystem, network, publication,
-  or Temporal execution authority.
+  composition for one local caller-closure execution. It invokes Implementation Link application
+  and Property evaluation only after Observation admission succeeds, preserves their separate
+  statuses and no-partial-result guarantees, and has no filesystem, network, publication, or
+  Temporal execution authority.
 
 Property, Behavior, and Query remain distinct throughout the Temporal examples. A Property states
 what a Model Trace must mean. A Behavior selects allowed controllable actions and setup without
