@@ -44,6 +44,8 @@ Made `evaluateObservationProperty` accepted-trace-only, removed its impossible E
 Baseline and focused/Temporal verification passed; `make lint-model` passed. `make lint-code GOLANGCI_LINT_FIX=false` reproduced 1,386 inherited Go findings against a Lean-only task diff.
 
 stage: impl-review - ran (Codex SHIP; receipt `/tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.4.json`)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 35ec1979f47eca5eed527115d11cd3d4ce0a2840
 - Tests: cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.ImplementationLink.Tests Temporal.ImplementationLinkTests.Nexus, RED_EXPECTED: cd model && mise exec -- lake build Umpire.Observation.Tests (exit 1: EvidenceBackedTrace expected ObservationResult before accepted-only signature), cd model && mise exec -- lake build Umpire.Observation.Tests, make lint-model, INHERITED_RED: make lint-code GOLANGCI_LINT_FIX=false (exit 2: 1386 pre-existing Go findings; task diff is Lean-only), git diff --check, impl-review Codex SHIP receipt /tmp/impl-review-receipt-fn-44-seal-observation-traces-and-centralize.4.json
