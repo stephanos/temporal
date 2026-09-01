@@ -42,9 +42,16 @@ Synchronize active/reference documentation with the registry for R6 and make his
 - [ ] `TestRepositoryPlanLinks` executes against the production root, observes the pre-repair link findings as RED, and cannot pass via `[no tests to run]`.
 - [ ] Focused repository-link tests pass; the full check has zero document/link findings and zero unexpected Flow findings, with any remaining failure limited to the dependency and readiness drift owned by tasks .5 and .6.
 ## Done summary
-TBD
+Added a production-root repository-link regression, repaired the registered Umpire and Gomad links, made the historical missing synthesis explicit, and reduced `UMPIRE4_ORDER.md` to remaining delivery work while retaining completed prerequisites. R2/R6 are covered by the focused production-link test and the full registry check's zero document findings.
 
+Baseline: the original task Quick exited 0 with `[no tests to run]`; the supported replan added `TestRepositoryPlanLinks`, whose test-only commit then observed the required production-link RED before document repair. Provenance from base `1590bf134d676c1f3cdce572e56b732a07d26f17`: conductor-owned contract reconciliation `cd72d4740`, RED test `771390283`, conductor-owned Gomad ownership reconciliation `be4941cc7`, GREEN implementation `60cb2be49`, and Codex SHIP review metadata `5478baf2b`.
+
+Verification: the exact focused Quick, all `tools/planindex` tests, package vet, JSON parsing, diff checks, and `flowctl validate --all --json` pass. `make umpire-check-plan-index` retains only task .5 dependency and task .6 readiness drift, with zero document/link or unexpected findings. Task-scoped no-fix lint reports zero golangci issues before the unchanged inherited `tools/umpire/runtime/errors.go:60` errortype finding keeps the wrapper red.
+
+stage: impl-review - ran [SHIP; session 01a05c39-673c-77a1-8e02-71fa4e79740d; zero findings]
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cd72d474039cf9b553080ee20137ac24ec9d0e58, 7713902833ec83d89d1d9b1b8f6f75f92e706f58, be4941cc7bb2dfbe0cbc85daf3334969f3a82a70, 60cb2be4966088d7e56e1aa5188102eab3182d2c, 5478baf2ba9b8b53e07be2d77ac60b93ddc784e7
+- Tests: baseline: invalid/vacuous — go test -count=1 -tags test_dep ./tools/planindex/... -run '^TestRepositoryPlanLinks$' exited 0 with [no tests to run] before the supported task replan, TDD RED: go test -count=1 -tags test_dep ./tools/planindex/... -run '^TestRepositoryPlanLinks$' (exit 1 after test-only commit 771390283; production link findings observed before document repair), go test -count=1 -tags test_dep ./tools/planindex/... -run '^TestRepositoryPlanLinks$', go test -count=1 -tags test_dep ./tools/planindex/..., go vet -tags test_dep ./tools/planindex/..., jq empty .plans/index.json, flowctl validate --all --json (valid: true), make umpire-check-plan-index (expected exit 2: only task .5 dependency and task .6 readiness drift; zero document/link and unexpected findings), git diff --check, make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=1590bf134 (golangci: 0 issues; inherited unchanged tools/umpire/runtime/errors.go:60 errortype finding keeps wrapper red)
 - PRs:
