@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-47-generate-umpire-semantic-outcome-and",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-01T15:21:10.532969Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-01T15:35:18.674018Z",
   "created_at": "2026-08-30T16:01:34.319127Z",
   "default_impl": null,
   "default_review": null,
@@ -19,7 +19,7 @@
     "fn-47-generate-umpire-semantic-outcome-and.6": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-09-01T13:46:02.561463Z",
   "review_attempts": [
@@ -772,6 +772,50 @@
       "timestamp": "2026-09-01T15:21:10.522080Z",
       "tool_calls": 21,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6ebdfc9a494bd09c42c948fd89ee3ecc7b00b52328950dcd3d8e6ec791fb98fa",
+      "backend": "codex",
+      "base_sha": "8a98b7d897e64cf4e097303369603d21df1b606a",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-630e811aa1fabd914909e568ec34547a",
+            "classification": "introduced",
+            "findingId": "finding-630e811aa1fabd914909e568ec34547a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "98aae2ebc0c9b359303ac46bbb5650e9c3bc3dec",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 4526,
+      "output_sha256": "8f5f7afd724dc4b46cc52e83356a013688a101d4efdd1099c87a3a42ea74b1e7",
+      "reservation_id": "7b7fee15d4e44a37bf0eb59f234f3d1e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T15:35:18.667991Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -782,7 +826,7 @@
     "impl:fn-47-generate-umpire-semantic-outcome-and.5": 1,
     "impl:fn-47-generate-umpire-semantic-outcome-and.6": 1,
     "plan": 3,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -810,5 +854,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T15:21:10.537196Z"
+  "updated_at": "2026-09-01T15:35:18.674695Z"
 }
