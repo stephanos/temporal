@@ -33,9 +33,13 @@ Aggregate, validate, and render the checked Markdown projection for R4.
 - [ ] The checked document has no timestamp, absolute path, runtime reachability overclaim, or hand-authored semantic content.
 - [ ] No additional generated file or default Lake target is added; the process-test executable is non-default.
 ## Done summary
-TBD
+Aggregated the typed outcome, projection-sentinel, and 24-row Known Gap catalogs behind complete validation and deterministic canonical Markdown rendering. Added non-default renderer/process-test executables, stale/warm and stream-failure regressions, and the byte-exact checked document.
 
+Baseline: red before edits only because `temporal-model-semantic-inventory` and `temporal-model-semantic-inventory-tests` did not yet exist; baseline `make lint-model` was green (202/202).
+
+stage: impl-review - ran [2026-09-01T14:31:02Z..2026-09-01T14:35:01Z] (Codex SHIP; session 01a05d61-73be-7812-8425-978ae178c14e; 0 open findings)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ce72755d96339c271184994b77aaaacf486159e9
+- Tests: baseline: red (task Quick commands failed pre-edit only because temporal-model-semantic-inventory and temporal-model-semantic-inventory-tests did not exist), baseline: make lint-model (green, 202/202), cd model && mise exec -- lake env lean Temporal/Tool/SemanticInventoryTests.lean (strict RED: missing Temporal.Tool.SemanticInventory), cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.PlanningRuntime Umpire.SemanticInventory.Tests.SemanticStages Umpire.SemanticInventory.Tests.KnownGaps Temporal.Tool.SemanticInventoryTests temporal-model-semantic-inventory temporal-model-semantic-inventory-tests, cd model && mise exec -- lake exe temporal-model-semantic-inventory-tests, cd model && mise exec -- lake -q exe temporal-model-semantic-inventory >/tmp/semantic-inventory.md, cmp -s /tmp/fn47-task5-final-render.md model/SEMANTIC_INVENTORY.md, make lint-model, impl-review Codex SHIP session 01a05d61-73be-7812-8425-978ae178c14e receipt /tmp/impl-review-receipt-fn-47-generate-umpire-semantic-outcome-and.5.json
 - PRs:
