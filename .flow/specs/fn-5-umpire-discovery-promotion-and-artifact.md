@@ -42,36 +42,35 @@ an exact query-identity lookup and projects the same summary plus the checked de
 lineage for that one example. Neither command infers entries by scanning imports or source text.
 
 `Umpire.Promotion` owns a sealed `CompiledPromotionSource` and the smallest checker needed to prove
-that a proposal uses a checked original Query, its target-owned `.found` trace, fresh fixed promoted
-Behavior/Query identities, fixed imports, deterministic source bytes, and successful clean
-elaboration. `Temporal.Tool.PromotionBinding` owns exactly one static
+that a proposal uses the unchanged base checked Query, its target-owned `.found` expected count-one
+trace and base planned `ExperimentSpec`, fresh fixed promoted Behavior/Query identities, fixed
+imports, deterministic source bytes, and successful clean elaboration.
+`Temporal.Tool.PromotionBinding` owns exactly one static
 `PromotionCandidateBinding`,
-`temporal.nexus.caller-closure.promotion.cancel-unique-regression`. The binding uses the existing
-duplicate-delivery negative-control Query lineage but promotes the checked expected count-one trace,
-never the observed count-two trace.
+`temporal.nexus.caller-closure.promotion.cancel-unique-regression`. The binding keeps two distinct
+lineages: the unchanged `exactActionQuery`/PlannerRun/base `ExperimentSpec` supplies the checked
+expected count-one trace, while the selected duplicate-delivery Space point supplies the separate
+fault-bearing `ExperimentSpec` identity/checksum later reproduced and minimized by fn-22. The fault
+intent and observed count-two result are never treated as target-owned Query output.
 
-`Temporal.Tool.PromotionEligibility` defines one proof-bearing
-`umpire-reviewed-promotion-eligibility/v1` handoff and a private-constructor
-`CheckedPromotionEligibility`. The handoff cross-binds the fixed candidate, original result and
-Violation Signature, reproduced-result receipt, complete `minimized|irreducible` reduction receipt,
-minimized candidate, and Exact Replay receipt by their canonical identities and digests. Its checker
-recomputes every receipt identity, requires the same Query/result/signature/candidate lineage across
-all three gates, and rejects any incomplete or non-success gate before producing the checked token.
-Only that token can resolve the static binding.
-
-Fn-22 remains responsible for producing the handoff after runtime reproduction, complete minimized or irreducible reduction, and Exact Replay, but consumes the fn-5 checker and type; fn-5 does not import fn-22. The fn-5 executable accepts exactly one canonical handoff on stdin, no candidate argument or override, and emits one canonical
-`umpire-promotion-proposal/v2` envelope plus one LF only after eligibility checking. Runtime,
-reduction, and replay lineage gates proposal resolution but never enters `CompiledPromotionSource`.
+The fn-5 executable retains the closed downstream contract
+`temporal-model-promote temporal.nexus.caller-closure.promotion.cancel-unique-regression` and emits
+one inert canonical `umpire-promotion-proposal/v2` envelope plus one LF. Direct invocation proves
+only that the fixed expected-trace source is checked, deterministic, and elaborates; it makes no
+claim that any runtime failure is reproduced, minimized, or accepted by Exact Replay. Fn-22 owns
+those eligibility gates and separately cross-binds the selected fault-bearing `ExperimentSpec`,
+minimized Result, Violation Signature, and inert fn-5 proposal before it writes a review artifact.
+Fn-5 does not import fn-22, consume runtime evidence, or install source.
 
 ```mermaid
 flowchart LR
   N[Four checked Nexus examples] --> L[list]
   N --> E[explain exact query identity]
-  D[Duplicate-delivery checked Query lineage] --> B[One static promotion binding]
+  Q[Base Query + expected count-one plan] --> B[One static promotion binding]
+  D[Fault-bearing ExperimentSpec identity] --> F[fn-22 eligibility + cross-binding]
   B --> C[Elaborated CompiledPromotionSource]
   C --> P[Review-only proposal envelope]
-  F[fn-22 proof-bearing eligibility handoff] --> H[CheckedPromotionEligibility]
-  H --> B
+  P --> F
 ```
 
 ## API Contracts
@@ -86,14 +85,15 @@ flowchart LR
 - Discovery rows expose only existing checked identities, kind labels, source locations, Behavior
   Fingerprints, and planned `ExperimentSpec` identity. Output ordering is independent of authoring
   order and repeated calls are byte-identical.
-- `temporal-model-promote` accepts no arguments and reads exactly one canonical
-  `umpire-reviewed-promotion-eligibility/v1` value from stdin. There is no alternate candidate,
-  source path, executable path, import, promoted identity, trace, or unchecked-ID mode. Success emits
-  exactly one canonical `umpire-promotion-proposal/v2` value plus one LF; malformed, incomplete,
-  crossed, non-success, noncanonical, elaboration, or serialization failure emits no partial stdout.
-- The promotion envelope binds the candidate identity, original Query/artifact/target/kernel
-  identities, fixed promoted identities, source identity, SHA-256, and exact source bytes. The source
-  is a review artifact only and is never written into a Lean package by the command.
+- `temporal-model-promote temporal.nexus.caller-closure.promotion.cancel-unique-regression` accepts
+  only that exact candidate identity and no source path, executable path, import, promoted identity,
+  trace, or output override. Success emits exactly one canonical `umpire-promotion-proposal/v2`
+  value plus one LF; unknown candidate, validation, elaboration, argument, or serialization failure
+  emits no partial stdout.
+- The inert promotion envelope separately binds the base Query/PlannerRun/base-`ExperimentSpec`
+  identities, the selected fault-bearing `ExperimentSpec` identity/checksum, fixed promoted
+  identities, source identity, SHA-256, and exact source bytes. It contains no runtime eligibility
+  claim and is never written into a Lean package by the command.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -102,13 +102,13 @@ flowchart LR
   missing source/fingerprint fields, crossed Property/Behavior/Query ownership, missing plans, and
   nondeterministic order before either discovery command can succeed.
 - `explain` is exact: it does not case-fold, prefix-match, alias, or silently redirect selectors.
-- Promotion rejects non-`.found` planning, target/kernel/query drift, observed-trace substitution,
+- Promotion rejects non-`.found` base planning, base Query/PlannerRun/`ExperimentSpec` drift,
+  fault-bearing `ExperimentSpec` drift, crossed base/fault lineage, observed-trace substitution,
   reused promoted identities, missing imports, nondeterministic rendering, digest drift, or source
   that does not elaborate in a clean focused Lake build.
-- Promotion eligibility is fail-closed inside fn-5 before binding resolution. A bare candidate identity,
-  raw violation, incomplete reduction, non-reproduction, missing Exact Replay result,
-  receipt-digest mismatch, or crossed lineage cannot produce `CheckedPromotionEligibility` or invoke
-  the review-only proposal path.
+- Direct fn-5 invocation never establishes runtime eligibility. Fn-22 must reject non-reproduction,
+  incomplete reduction, missing Exact Replay, receipt-digest mismatch, or crossed runtime lineage
+  before cross-binding and writing the inert proposal as a review artifact.
 - Existing comments and current single-scenario inspector behavior are preserved.
 
 ## Quick commands
@@ -125,13 +125,14 @@ make umpire-check-regression
   of the four retained Nexus examples and their existing checked Property, Behavior, Query, source,
   fingerprint, and plan identities. Invalid inventory state or selectors fail structurally without
   partial output, while existing positional inspection remains byte-compatible.
-- **R2:** Exactly one checked binding can compile the minimized duplicate-delivery failure's original
-  target-owned expected count-one trace into deterministic Lean source and a canonical review-only
-  proposal. Binding resolution requires fn-5's private checked eligibility token, constructed only
-  from a canonical fn-22 handoff whose reproduced-result, complete minimized-or-irreducible, and
-  Exact Replay receipts recompute and cross-bind to the same fixed lineage. Bare identity invocation,
-  observed count-two evidence, incomplete or crossed receipts, drift, unelaborated source, or any
-  override produces no proposal and nothing is installed automatically.
+- **R2:** Exactly one checked binding can compile the unchanged base Query's target-owned expected
+  count-one trace into deterministic Lean source and a canonical inert review-only proposal for the
+  separately identified duplicate-delivery Space-point `ExperimentSpec`. The fixed candidate-argument
+  command makes no runtime eligibility claim. Fn-22 alone admits its output after runtime
+  reproduction, complete minimized-or-irreducible reduction, and Exact Replay, then cross-binds the
+  fault-bearing `ExperimentSpec`, Result, Violation Signature, and proposal before publication.
+  Observed count-two substitution, conflated base/fault identities, drift, unelaborated source, or
+  any override produces no proposal and nothing is installed automatically.
 
 ## Early proof point
 
