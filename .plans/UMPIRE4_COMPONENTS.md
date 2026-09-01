@@ -1,10 +1,12 @@
-# Umpire components and delivery status
+# Umpire components and historical delivery inventory
 
-Status: reconciled 2026-08-31 against the current `model/` tree, its generators, and the existing Go
-Umpire implementations. The component boundaries were originally extracted from the
+Inventory snapshot: reconciled 2026-08-31 against the current `model/` tree, its generators, and
+the existing Go Umpire implementations. The component boundaries were originally extracted from the
 [Inspect Umpire Branch](https://chatgpt.com/share/6a8b71cb-74e4-83e8-947a-c2f6d595fefc)
 design conversation. This remains an architectural inventory, not an approved implementation plan.
-Where it conflicts with `UMPIRE_LEAN.md`, the active roadmap takes precedence.
+[`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md) owns normative rules,
+[`UMPIRE4_ORDER.md`](UMPIRE4_ORDER.md) owns remaining delivery order, and
+[`UMPIRE4_SPEC_COMPS.md`](UMPIRE4_SPEC_COMPS.md) owns the current component architecture.
 
 Component status in this document means integration status for the current `model/` semantic
 pipeline. Functionality in `common/testing/umpire`, `tools/umpire2`, or `tools/umpire3` is called out
@@ -40,12 +42,13 @@ implementation was found.
 | C: find things | Foundations only | Finite planning and separate campaign tooling exist, but discovery, minimization, replay, and promotion are not composed end to end. |
 | D: reuse the investment | Separately advanced | Formal, optional Veil, and Claim Assessment machinery are substantial in Umpire3, but current-model checker-view binding and the active R6/R7 Claim Assessment work remain open. |
 
-### Active Flow delivery plans
+### Historical Flow plan snapshots
 
-Planning status is tracked separately from implementation status above. A reviewed plan does not
-make its component built.
+The table below preserves the plan descriptions recorded by the 2026-08-31 reconciliation. Its
+status phrases do not declare current readiness or delivery order; use Flow and `UMPIRE4_ORDER.md`
+for those decisions. A reviewed plan does not make its component built.
 
-| Slice | Flow spec | Plan status | Bounded ownership |
+| Slice | Flow spec | Reconciliation snapshot | Bounded ownership |
 | --- | --- | --- | --- |
 | C7 offline observation | `fn-4-umpire-observation-and-semantic-verdicts` | Reviewed: Ship; six tasks ready | Closed reusable mapping expressions, bounded synthetic Observation Evaluation, coordinate-complete Evidence Links, unchanged pure Property evaluation, and one Temporal-owned synthetic profile. Live collection and Run Evaluation remain separate. |
 | C3/C5 catalog and exact promotion | `fn-5-umpire-discovery-promotion-and-artifact` | Reviewed: Ship; seven tasks ready; dependency synchronized | Checked eight-query plus one authored-space semantic catalog closure, generated glossary/index and list/explain UX, lineage-linked exact in-memory promotion with compiled Temporal source bindings, and a two-regression thin Generated View set. Fn-18 now owns sole-v2 admission and persistence; post-v2 evolution and live replay/minimization remain separate. |

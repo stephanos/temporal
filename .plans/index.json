@@ -177,7 +177,13 @@
         ".plans/UMPIRE4_SPEC_COMPS.md"
       ],
       "supersededBy": null,
-      "allowedMissingLinks": []
+      "allowedMissingLinks": [
+        {
+          "target": ".plans/UMPIRE_CHATS.md",
+          "reason": "Preserved reference to the historical Umpire design-conversation synthesis.",
+          "anchor": null
+        }
+      ]
     },
     {
       "path": ".plans/UMPIRE4_DSL.md",

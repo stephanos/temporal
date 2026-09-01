@@ -12,9 +12,9 @@ Umpire3.
 
 | Document | Scope |
 | --- | --- |
-| [`UMPIRE_VISION.md`](UMPIRE_VISION.md) | Product vision shared by all Umpire efforts |
+| [`UMPIRE4_VISION.md`](UMPIRE4_VISION.md) | Product vision shared by all Umpire efforts |
 | This document | Implemented Umpire2 runtime, protocol, authoring, and assurance contracts |
-| [`UMPIRE_DSL.md`](UMPIRE_DSL.md) | Domain-neutral semantic languages and the current `model/` pipeline |
+| [`UMPIRE4_DSL.md`](UMPIRE4_DSL.md) | Domain-neutral semantic languages and the current `model/` pipeline |
 | [`UMPIRE3.md`](UMPIRE3.md) | Independent Umpire3 architecture, trust model, and remaining roadmap |
 
 ```text
