@@ -1,47 +1,53 @@
 ---
-satisfies: [R2, R6, R7]
+satisfies: [R2]
 ---
-# fn-5-umpire-discovery-promotion-and-artifact.6 Select and render the broader stable regression set
+# fn-5-umpire-discovery-promotion-and-artifact.6 Compile the single duplicate-delivery proposal
 
 ## Description
-Replace the one-entry Go manifest with checked catalog selection and publish aggregate projections for R2/R6/R7.
+Expose the eligibility-gated fixed binding through one effect-thin executable and prove its exact
+review-only proposal bytes compile without modifying the source tree.
 
 **Size:** M
-**Files:** `tools/umpire/internal/generate/regression/catalog.go`, `tools/umpire/internal/generate/regression/generate.go`, `tools/umpire/internal/generate/regression/render.go`, `tools/umpire/internal/generate/regression/generate_test.go`, `tools/umpire/internal/generate/regression/render_test.go`, `model/Umpire/Examples/testdata/switch-experiment-spec.json`, `tools/umpire/regression/catalog_generated_test.go`, `model/Temporal/Tool/Generated/Regressions.md`
-**Touches:** [tools/umpire/internal/generate/regression/**, model/Umpire/Examples/testdata/switch-experiment-spec.json, tools/umpire/regression/catalog_generated_test.go, model/Temporal/Tool/Generated/Regressions.md]
+**Files:** `model/Temporal/Tool/Promote.lean`, `model/Temporal/Tool/PromoteTests.lean`, `model/TemporalExperimentalTests.lean`, `model/lakefile.toml`
+**Touches:** [model/Temporal/Tool/Promote.lean, model/Temporal/Tool/PromoteTests.lean, model/TemporalExperimentalTests.lean, model/lakefile.toml]
 
 ### Approach
 
-- Load only the validated generated catalog Generated View and select the exact `stableRegression` set; resolve every entry through its validated Temporal Generated View binding, canonical inspector selector, checked-in fixture path, and unique Generated View key.
-- Reuse the existing Switch exact-action fixture without renaming or changing its current semantic artifact.
-- Replace per-entry output ownership with one set-level aggregate output configuration, then render one aggregate Go file and one aggregate Markdown file in canonical Definition ID order while retaining the ordinary `RequireGeneratedView` wrapper.
-- Validate all candidates before one transactional complete-set publication.
-- Provide a non-mutating check path that reuses task `.3`'s shared exact candidate-set comparison seam to compare current aggregate outputs directly.
+- Add `temporal-model-promote` with no arguments. Read exactly one canonical
+  `umpire-reviewed-promotion-eligibility/v1` handoff from stdin, validate it through task `.5`, and
+  make `CheckedPromotionEligibility` the only route to the fixed binding.
+- Emit one canonical `umpire-promotion-proposal/v2` envelope containing original lineage, promoted
+  identities, compiled-source identity/SHA, and exact source bytes, followed by one LF.
+- Reject any argument, empty/bare-ID/malformed/noncanonical handoff, failed/incomplete/crossed gate,
+  unsealed source, serialization drift, and elaboration drift with empty stdout, one structured
+  diagnostic plus one LF, and status 1.
+- Compile the emitted bytes in an isolated focused Lake fixture and assert the command never creates,
+  overwrites, or edits a Lean source or generated file.
+
+### Non-goals
+
+- No broad stable regression set, general artifact evolution, destination path, automatic install, unchecked-ID mode, or multiple-candidate command surface.
 
 ### Investigation targets
 
 **Required:**
-- `tools/umpire/internal/generate/regression/catalog.go:1-76` — one-entry manifest to retire.
-- `tools/umpire/internal/generate/regression/render.go:1-140` — current per-record rendering.
-- `tools/umpire/internal/generate/regression/generate.go:96-178` — validate-before-publish path.
-- `tools/umpire/regression/generated_view.go:37-105` — thin wrapper and strict fixture contract.
-- `model/Temporal/Tool/Inspect.lean:53-77` — current two-scenario registry.
-- `model/Umpire/Examples/SwitchTests.lean:44-68` — canonical artifact assertions.
+- `model/Temporal/Tool/Inspect.lean` — current effect-thin result and diagnostic conventions.
+- `model/Temporal/Tool/InspectTests.lean` — stdout/stderr/status fixture style.
+- `model/Temporal/Tool/PromotionBinding.lean` — task `.5` exact binding.
+- `model/lakefile.toml` — executable and aggregate target registration.
+- `.plans/LEAN_GUIDELINES.md` — clean elaboration and deterministic source constraints.
 
-### Quick commands
+### Quick command
 
-`go test -count=1 -tags test_dep ./tools/umpire/internal/generate/regression ./tools/umpire/regression`
+`cd model && mise exec -- lake build Temporal.Tool.PromoteTests TemporalExperimentalTests temporal-model-promote`
 
 ## Acceptance
-- [ ] The selected manifest is derived from the checked catalog and contains exactly the two initial stable Definition IDs.
-- [ ] Each selected entry resolves through exactly one Generated View binding; missing, duplicate, stale, or unsafe fixture bindings fail before inspection.
-- [ ] Aggregate Go/Markdown paths are owned once at set level; multiple stable entries cannot collide or overwrite the output map.
-- [ ] Switch and caller-closure fixtures match canonical inspector bytes and semantic fingerprints.
-- [ ] Aggregate Go and Markdown contain both entries once in canonical order.
-- [ ] Missing/extra/stale/colliding entries and unsafe paths fail before publication.
-- [ ] Publication remains transactional under validation, write, concurrency, and interruption failures.
-- [ ] Check mode detects stale or missing aggregate outputs without writing or temporary regeneration.
-- [ ] Generated wrappers remain Generated View-only and use `require` through `RequireGeneratedView`.
+- [ ] The executable accepts no arguments and emits one canonical proposal envelope plus one LF only from a valid checked eligibility handoff on stdin.
+- [ ] The envelope binds every fixed original/promoted/source identity, SHA-256, and exact source byte required by fn-22 validation.
+- [ ] Bare candidate identity, missing/extra arguments, malformed/noncanonical handoff, failed/incomplete/crossed receipts, stale lineage, unsealed source, or non-elaborating input yields status 1, empty stdout, and one exact diagnostic.
+- [ ] Emitted proposal source compiles in a clean focused Lake fixture and repeated invocations are byte-identical.
+- [ ] The command performs no source-tree, fixture, documentation, or generated-file write.
+- [ ] Existing comments in touched files are preserved.
 
 ## Done summary
 TBD
