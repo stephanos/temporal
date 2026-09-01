@@ -585,7 +585,11 @@ func TestEvaluateRetainsRawEvidenceKnownGaps(t *testing.T) {
 
 	result := Evaluate(context.Background(), request)
 
-	require.Equal(t, umpirespb.CANARY_DECISION_PASS, result.GetDecision())
+	require.Equal(t, umpirespb.OBSERVATION_STATUS_UNKNOWN, result.GetObservation().GetStatus())
+	require.Equal(t, umpirespb.IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED,
+		result.GetImplementationLink().GetStatus())
+	require.Equal(t, umpirespb.EVALUATION_STATUS_INCOMPLETE, result.GetSemanticStatus())
+	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
 	protorequire.ProtoEqual(t, &umpirespb.KnownGap{
 		Kind: umpirespb.KNOWN_GAP_KIND_INPUT, Code: "evidence.gap.bounded-omission",
 		Subject: subject, Detail: detail,
