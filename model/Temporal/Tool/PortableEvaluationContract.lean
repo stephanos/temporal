@@ -374,15 +374,22 @@ private def lowerImplementationLink
       link.destinationTarget.definitions .outcome mapping.destination
     pure ({ source := source, destination := destination } : RenameExactEntry)
   let observations ← declaration.observationMappings.mapM fun mapping => do
-    let source ← modelValue declaration.id declaration.source
+    let loweredSource ← modelValue declaration.id declaration.source
       link.sourceTarget.definitions .observation mapping.source
+    let source := if mapping.source.definitionId ==
+        Temporal.System.Nexus.CallerClosure.cancellationCountObservationId then
+      { loweredSource with value := .text mapping.source.value }
+    else loweredSource
     let destination ← modelValue declaration.id declaration.source
       link.destinationTarget.definitions .observation mapping.destination
     pure ({ source := source, destination := destination } : RenameExactEntry)
   let duplicateEntries ← if duplicateDelivery then do
-    let source ← modelValue declaration.id declaration.source link.sourceTarget.definitions
+    let loweredSource ← modelValue declaration.id declaration.source link.sourceTarget.definitions
       .observation
       Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.sourceCancellationCountTwo
+    let duplicateSource :=
+      Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.sourceCancellationCountTwo
+    let source := { loweredSource with value := .text duplicateSource.value }
     let destination ← modelValue declaration.id declaration.source link.destinationTarget.definitions
       .observation
       Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery.destinationCancellationCountTwo

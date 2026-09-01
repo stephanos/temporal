@@ -1,0 +1,1324 @@
+{
+  "formatVersion": "umpire-evidence/v2",
+  "runIdentity": "umpire.local.caller-closure.closed-fixture",
+  "behaviorFingerprint": "sha256:e649a5e059ef42806eb661deb1c1ccba08ec5202425d7a824f7e25026f8134da",
+  "experiment": {
+    "formatVersion": "umpire-experiment/v2",
+    "artifactChecksum": "sha256:09091758defd5ce50cc9acbba23a5c8499da4eef9b6e36878ac989ddea87fedf",
+    "behaviorFingerprint": "sha256:eb6c9391f0bbd82effc5793d4b0650c3b01f2471b5f05838cdec7377a5931a91",
+    "provenanceChecksum": "sha256:4136694dfede1044bbf391c5faba21a1a89a589890aa2915eb860a46942797c2"
+  },
+  "runtimeConfiguration": {
+    "formatVersion": "umpire-runtime-configuration/v2",
+    "artifactChecksum": "sha256:440c0632b911571e4efb34c96fb4c4c7096fbd52f23900ed4784e037370063cf",
+    "behaviorFingerprint": "sha256:d88670a6766c2ef9037c82183f00c1c42179a7578c3c4c07714eadb5540750c0",
+    "provenanceChecksum": "sha256:b11d3931cdb55c2331ca816a912cca8113032c8d29a8e81a37d473c261345b5a"
+  },
+  "run": {
+    "formatVersion": "umpire-experiment-run/v2",
+    "artifactChecksum": "sha256:3b89253505d802d01cb02f338713d30d36faa4c7b15fddd55a06def90c7fcedc",
+    "behaviorFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
+  },
+  "rawEvidence": {
+    "formatVersion": "umpire-raw-evidence/v2",
+    "artifactChecksum": "sha256:1ba4c911e94b7bdaa13f25e28a73bd94b80ee0a4555d77b078566d77cbea8c40",
+    "behaviorFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
+  },
+  "observationProgram": {
+    "definitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.observation-program",
+    "behaviorFingerprint": "sha256:7226f7762d3a21e7a66d460a4bf6b9d9a1d244bca847e4919cc0bc7debf432bd"
+  },
+  "mapping": {
+    "definitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+    "behaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438"
+  },
+  "observationEvaluationStatus": "accepted",
+  "evidenceBackedModelTrace": {
+    "traceId": "sha256:497c3480f73079d751a45ff7eb7db8f58a7afc09c1e89b35f0cbc20e24622051",
+    "observationPlan": {
+      "definitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+      "behaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438"
+    },
+    "mappingDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+    "mappingVersion": 1,
+    "mappingBehaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+    "source": {
+      "path": "Temporal/System/Nexus/Observation.lean",
+      "line": 1,
+      "column": 1,
+      "provenance": "lean-model"
+    },
+    "profileDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+    "profileVersion": 1,
+    "sourceClosed": true,
+    "vocabulary": [
+      {
+        "definitionId": "temporal.system.nexus.caller-closure.action",
+        "kind": "action",
+        "canonicalBehavior": "temporal-system-nexus-caller-closure-action/v1"
+      },
+      {
+        "definitionId": "temporal.system.nexus.caller-closure.observation.cancellation-count",
+        "kind": "observation",
+        "canonicalBehavior": "temporal-system-nexus-caller-closure-count/v1"
+      },
+      {
+        "definitionId": "temporal.system.nexus.caller-closure.observation.delivery",
+        "kind": "observation",
+        "canonicalBehavior": "temporal-system-nexus-caller-closure-delivery/v1"
+      },
+      {
+        "definitionId": "temporal.system.nexus.caller-closure.observation.ownership",
+        "kind": "observation",
+        "canonicalBehavior": "temporal-system-nexus-caller-closure-ownership/v1"
+      },
+      {
+        "definitionId": "temporal.system.nexus.caller-closure.outcome",
+        "kind": "outcome",
+        "canonicalBehavior": "temporal-system-nexus-caller-closure-outcome/v1"
+      },
+      {
+        "definitionId": "temporal.system.nexus.caller-closure.state",
+        "kind": "state",
+        "canonicalBehavior": "temporal-system-nexus-caller-closure-state/v1"
+      }
+    ],
+    "appliedLimit": {
+      "value": 4096,
+      "unit": "evidence-records"
+    },
+    "evidenceDefinitionIds": [
+      "umpire.runtime.fact.cleanup.fixture",
+      "umpire.runtime.fact.control-receipt.fixture",
+      "umpire.runtime.fact.history.00000000000000000001.fixture",
+      "umpire.runtime.fact.history.00000000000000000004.fixture",
+      "umpire.runtime.fact.history.00000000000000000005.fixture",
+      "umpire.runtime.fact.history.00000000000000000006.fixture",
+      "umpire.runtime.fact.participant.fixture",
+      "umpire.runtime.fact.participant.synthetic-duplicate.fixture"
+    ],
+    "trace": {
+      "traceId": "sha256:497c3480f73079d751a45ff7eb7db8f58a7afc09c1e89b35f0cbc20e24622051",
+      "initialState": {
+        "definitionId": "temporal.system.nexus.caller-closure.state",
+        "value": "temporal.history.WorkflowExecutionStarted"
+      },
+      "steps": [
+        {
+          "position": 1,
+          "selectedAction": {
+            "definitionId": "temporal.system.nexus.caller-closure.action",
+            "value": "force-close"
+          },
+          "modelOutcome": {
+            "definitionId": "temporal.system.nexus.caller-closure.outcome",
+            "value": "upgrade"
+          },
+          "resultingState": {
+            "definitionId": "temporal.system.nexus.caller-closure.state",
+            "value": "temporal.history.WorkflowExecutionCanceled"
+          },
+          "observations": [
+            {
+              "definitionId": "temporal.system.nexus.caller-closure.observation.delivery",
+              "value": "true"
+            },
+            {
+              "definitionId": "temporal.system.nexus.caller-closure.observation.cancellation-count",
+              "value": "2"
+            },
+            {
+              "definitionId": "temporal.system.nexus.caller-closure.observation.ownership",
+              "value": "true"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "evidenceLinks": [
+    {
+      "coordinate": {
+        "kind": "initial-state",
+        "step": null,
+        "position": null
+      },
+      "mappingDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+      "mappingVersion": 1,
+      "mappingBehaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+      "profileDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+      "profileVersion": 1,
+      "evidenceDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000001.fixture"
+      ],
+      "ruleDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.rule.state",
+      "bindingDefinitionIds": [],
+      "orderingSupport": [
+        {
+          "factDefinitionId": "umpire.runtime.fact.cleanup.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.control-receipt.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000001.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000004.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 3,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000003.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000005.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 4,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000004.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000006.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 5,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000005.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 1,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.participant.fixture"
+          ]
+        }
+      ],
+      "closureSupport": [
+        {
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 1
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "lastOrdinal": 5
+        }
+      ],
+      "appliedDispositions": [
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+            "fieldDefinitionId": "umpire.evidence.field.event-type"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.history.WorkflowExecutionStarted",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        }
+      ],
+      "appliedLimit": {
+        "value": 4096,
+        "unit": "evidence-records"
+      },
+      "meaningBehaviorFingerprint": "sha256:8256a6ada04030b4a41aa23066b8f45a35c5614a68c2ad467e9f52c76eb5de5a"
+    },
+    {
+      "coordinate": {
+        "kind": "selected-action",
+        "step": 1,
+        "position": null
+      },
+      "mappingDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+      "mappingVersion": 1,
+      "mappingBehaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+      "profileDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+      "profileVersion": 1,
+      "evidenceDefinitionIds": [
+        "umpire.runtime.fact.control-receipt.fixture"
+      ],
+      "ruleDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.rule.action",
+      "bindingDefinitionIds": [],
+      "orderingSupport": [
+        {
+          "factDefinitionId": "umpire.runtime.fact.cleanup.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.control-receipt.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000001.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000004.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 3,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000003.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000005.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 4,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000004.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000006.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 5,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000005.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 1,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.participant.fixture"
+          ]
+        }
+      ],
+      "closureSupport": [
+        {
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 1
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "lastOrdinal": 5
+        }
+      ],
+      "appliedDispositions": [
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+            "fieldDefinitionId": "umpire.evidence.field.action-definition-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "workflow.action.force-close",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+            "fieldDefinitionId": "umpire.evidence.field.attempt"
+          },
+          "kind": "retained",
+          "normalizedValue": "1",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+            "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "nexus.capability.cancellation",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+            "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.nexus.caller-closure.fault.duplicate-delivery-observation",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+            "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.nexus.caller-closure.fault-receipt.duplicate-delivery-observation",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+            "fieldDefinitionId": "umpire.evidence.field.occurrence-definition-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "workflow-nexus.occurrence.force-close",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+            "fieldDefinitionId": "umpire.evidence.field.status"
+          },
+          "kind": "retained",
+          "normalizedValue": "accepted",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        }
+      ],
+      "appliedLimit": {
+        "value": 4096,
+        "unit": "evidence-records"
+      },
+      "meaningBehaviorFingerprint": "sha256:189618f95682e21efcb3355bc35bd916f2adc6930a09fbe7ab847c3981f7ac1d"
+    },
+    {
+      "coordinate": {
+        "kind": "model-outcome",
+        "step": 1,
+        "position": null
+      },
+      "mappingDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+      "mappingVersion": 1,
+      "mappingBehaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+      "profileDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+      "profileVersion": 1,
+      "evidenceDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000006.fixture"
+      ],
+      "ruleDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.rule.outcome",
+      "bindingDefinitionIds": [],
+      "orderingSupport": [
+        {
+          "factDefinitionId": "umpire.runtime.fact.cleanup.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.control-receipt.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000001.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000004.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 3,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000003.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000005.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 4,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000004.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000006.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 5,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000005.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 1,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.participant.fixture"
+          ]
+        }
+      ],
+      "closureSupport": [
+        {
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 1
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "lastOrdinal": 5
+        }
+      ],
+      "appliedDispositions": [
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+            "fieldDefinitionId": "umpire.evidence.field.event-type"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.history.WorkflowExecutionCanceled",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        }
+      ],
+      "appliedLimit": {
+        "value": 4096,
+        "unit": "evidence-records"
+      },
+      "meaningBehaviorFingerprint": "sha256:13e48b5c5c4766102b4d5dda00391a536736ee8d78fc6b3bda7651b47911f096"
+    },
+    {
+      "coordinate": {
+        "kind": "resulting-state",
+        "step": 1,
+        "position": null
+      },
+      "mappingDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+      "mappingVersion": 1,
+      "mappingBehaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+      "profileDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+      "profileVersion": 1,
+      "evidenceDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000006.fixture"
+      ],
+      "ruleDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.rule.state",
+      "bindingDefinitionIds": [],
+      "orderingSupport": [
+        {
+          "factDefinitionId": "umpire.runtime.fact.cleanup.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.control-receipt.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000001.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000004.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 3,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000003.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000005.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 4,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000004.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000006.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 5,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000005.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 1,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.participant.fixture"
+          ]
+        }
+      ],
+      "closureSupport": [
+        {
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 1
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "lastOrdinal": 5
+        }
+      ],
+      "appliedDispositions": [
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+            "fieldDefinitionId": "umpire.evidence.field.event-type"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.history.WorkflowExecutionCanceled",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        }
+      ],
+      "appliedLimit": {
+        "value": 4096,
+        "unit": "evidence-records"
+      },
+      "meaningBehaviorFingerprint": "sha256:8256a6ada04030b4a41aa23066b8f45a35c5614a68c2ad467e9f52c76eb5de5a"
+    },
+    {
+      "coordinate": {
+        "kind": "observation",
+        "step": 1,
+        "position": 1
+      },
+      "mappingDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+      "mappingVersion": 1,
+      "mappingBehaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+      "profileDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+      "profileVersion": 1,
+      "evidenceDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000006.fixture"
+      ],
+      "ruleDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.rule.delivery",
+      "bindingDefinitionIds": [],
+      "orderingSupport": [
+        {
+          "factDefinitionId": "umpire.runtime.fact.cleanup.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.control-receipt.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000001.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000004.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 3,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000003.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000005.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 4,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000004.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000006.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 5,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000005.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 1,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.participant.fixture"
+          ]
+        }
+      ],
+      "closureSupport": [
+        {
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 1
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "lastOrdinal": 5
+        }
+      ],
+      "appliedDispositions": [
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+            "fieldDefinitionId": "umpire.evidence.field.event-type"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.history.WorkflowExecutionCanceled",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        }
+      ],
+      "appliedLimit": {
+        "value": 4096,
+        "unit": "evidence-records"
+      },
+      "meaningBehaviorFingerprint": "sha256:e9c0982567fedd7f6a1cd73c13125cc6c720aa73859c3760ca65e2333a73a436"
+    },
+    {
+      "coordinate": {
+        "kind": "observation",
+        "step": 1,
+        "position": 2
+      },
+      "mappingDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+      "mappingVersion": 1,
+      "mappingBehaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+      "profileDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+      "profileVersion": 1,
+      "evidenceDefinitionIds": [
+        "umpire.runtime.fact.participant.synthetic-duplicate.fixture"
+      ],
+      "ruleDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.rule.cancellation-count",
+      "bindingDefinitionIds": [],
+      "orderingSupport": [
+        {
+          "factDefinitionId": "umpire.runtime.fact.cleanup.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.control-receipt.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000001.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000004.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 3,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000003.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000005.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 4,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000004.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000006.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 5,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000005.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 1,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.participant.fixture"
+          ]
+        }
+      ],
+      "closureSupport": [
+        {
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 1
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "lastOrdinal": 5
+        }
+      ],
+      "appliedDispositions": [
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.cancellation-callback-count"
+          },
+          "kind": "retained",
+          "normalizedValue": "1",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.cancellation-completed-count"
+          },
+          "kind": "retained",
+          "normalizedValue": "1",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.cancellation-requested-count"
+          },
+          "kind": "retained",
+          "normalizedValue": "1",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "nexus.capability.cancellation",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.nexus.caller-closure.fault.duplicate-delivery-observation",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.nexus.caller-closure.fault-receipt.duplicate-delivery-observation",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "runtime.correlation.operation.c801cd2a6bec89ef09397bddd2b0b4af0836d3911c433aa080466aec0d638167",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.run-correlation-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "umpire.local.caller-closure.closed-fixture",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-count"
+          },
+          "kind": "retained",
+          "normalizedValue": "1",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-marker"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.nexus.caller-closure.marker.injected-duplicate-delivery-observation",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        },
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id"
+          },
+          "kind": "retained",
+          "normalizedValue": "runtime.correlation.workflow.0318f004399bf2f576b0ad93d282ba2546016a05b9addbc8b212d1ce5f808c7a",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        }
+      ],
+      "appliedLimit": {
+        "value": 4096,
+        "unit": "evidence-records"
+      },
+      "meaningBehaviorFingerprint": "sha256:34ea88bfb882a3dbcd5b62b26aa3e2073f35b0497e2c54c837adb3b24e2ae6c5"
+    },
+    {
+      "coordinate": {
+        "kind": "observation",
+        "step": 1,
+        "position": 3
+      },
+      "mappingDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
+      "mappingVersion": 1,
+      "mappingBehaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438",
+      "profileDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.profile",
+      "profileVersion": 1,
+      "evidenceDefinitionIds": [
+        "umpire.runtime.fact.history.00000000000000000006.fixture"
+      ],
+      "ruleDefinitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.rule.ownership",
+      "bindingDefinitionIds": [],
+      "orderingSupport": [
+        {
+          "factDefinitionId": "umpire.runtime.fact.cleanup.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.control-receipt.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000001.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000004.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 3,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000003.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000005.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 4,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000004.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.history.00000000000000000006.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "ordinal": 5,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.history.00000000000000000005.fixture"
+          ]
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 0,
+          "causalFactDefinitionIds": []
+        },
+        {
+          "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "ordinal": 1,
+          "causalFactDefinitionIds": [
+            "umpire.runtime.fact.participant.fixture"
+          ]
+        }
+      ],
+      "closureSupport": [
+        {
+          "kindDefinitionId": "umpire.evidence.kind.cleanup",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 1
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+          "lastOrdinal": 5
+        }
+      ],
+      "appliedDispositions": [
+        {
+          "field": {
+            "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+            "fieldDefinitionId": "umpire.evidence.field.event-type"
+          },
+          "kind": "retained",
+          "normalizedValue": "temporal.history.WorkflowExecutionCanceled",
+          "digestPolicyDefinitionId": null,
+          "digestToken": null
+        }
+      ],
+      "appliedLimit": {
+        "value": 4096,
+        "unit": "evidence-records"
+      },
+      "meaningBehaviorFingerprint": "sha256:dee4824cbf29084265b89598192fab18742130d88bcacc88ae93db1e2bcbf6e0"
+    }
+  ],
+  "dispositions": [
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.cleanup",
+        "fieldDefinitionId": "umpire.evidence.field.open-handle-count"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.cleanup",
+        "fieldDefinitionId": "umpire.evidence.field.status"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+        "fieldDefinitionId": "umpire.evidence.field.action-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+        "fieldDefinitionId": "umpire.evidence.field.attempt"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+        "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+        "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+        "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+        "fieldDefinitionId": "umpire.evidence.field.occurrence-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+        "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.control-receipt",
+        "fieldDefinitionId": "umpire.evidence.field.status"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.cancellation-callback-count"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.cancellation-completed-count"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.cancellation-requested-count"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.command-kind"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.endpoint-identity"
+      },
+      "disposition": "hash",
+      "digestPolicyDefinitionId": "temporal.system.nexus.caller-closure.digest.endpoint"
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.run-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.status"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-count"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-marker"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+        "fieldDefinitionId": "umpire.evidence.field.event-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+        "fieldDefinitionId": "umpire.evidence.field.event-type"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+        "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+        "fieldDefinitionId": "umpire.evidence.field.run-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.workflow-history-event",
+        "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    }
+  ],
+  "diagnostics": [],
+  "knownGaps": [],
+  "provenance": {
+    "sourceDefinitionIds": [
+      "temporal.tool.run-evaluation"
+    ],
+    "sourceLocations": [
+      {
+        "path": "Temporal/Tool/RunEvaluation.lean",
+        "line": 1,
+        "column": 1,
+        "provenance": "lean-model"
+      }
+    ]
+  },
+  "provenanceChecksum": "sha256:d1310fcad6c48888887bc32a71d43faaa594df1ec59371e79396e09f4b371b47",
+  "artifactChecksum": "sha256:22d0c58e14b4ff849505ee0fb217c4155fe0936f1ba9d8ff0ef1157bec96c745"
+}
