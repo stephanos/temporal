@@ -14,10 +14,11 @@ The prototype should prove the architecture can support the full vision without 
 complete production platform. In particular:
 
 - Lean remains the single source of behavioral meaning.
-- The same deterministic `ExperimentSpec` is usable locally, in CI, and through a black-box public
-  boundary.
-- A canary binding is represented by the same environment contract and a dry-run fixture; production
-  canary execution is not part of the prototype.
+- The same deterministic `ExperimentSpec` is usable locally, in CI, and through a disposable
+  self-hosted cluster boundary.
+- Lean compiles one closed per-test evaluation contract ahead of time, allowing a resident Go
+  executor to make a bounded local canary decision without Lean; production deployment is not part
+  of the prototype.
 - One preprogrammed SDK participant resolves late-bound Nexus identifiers during execution.
 - Evidence conclusions use causal or source-local ordering rather than synchronized clocks, proven
   with deliberately skewed timestamps.
@@ -32,19 +33,23 @@ not additional hard dependencies. Completed specs are prerequisites, not entries
 
 ## Remaining P2 portability proof
 
-### 1. fn-28 — Black-box staging execution
+### 1. fn-28 — Portable evaluation contract and disposable-cluster qualification
 
-Run the same normal `ExperimentSpec` against one controlled nonproduction endpoint using only public
-gRPC Evidence plus participant-owned Execution Receipts. Before implementation, name the owner-supplied fixed
-staging profile and harness that provide fail-closed authority and target preflight, concurrency one,
-fixed Execution/Evidence Limits, isolated namespace or Run-owned resources, cleanup verification,
-and postflight target identity. If those existing controls are unavailable, fn-28 is blocked; do not
-build replacements in Umpire. Do not build a general target selector, protected workflow, lease
-system, recovery controller, or Claim Assessment platform.
+Compile the exact selected Test, Observation, Implementation Link, Property clauses, Limits, Known
+Gaps, and bindings into a closed protobuf evaluation contract. A resident Go executor with no Lean
+runtime must admit the contract, run it, wait for explicit bounded Evidence closure, evaluate only
+the bundled per-test semantics, and retain the detailed stage statuses while mapping them
+conservatively to local `pass`, `fail`, or `inconclusive`.
 
-The environment binding must also support a canary dry-run fixture that consumes the same normal
-Artifact bytes, format version, Artifact Checksum, and Behavior Fingerprints, proving the Artifact
-and Evidence contract can be bound without granting production Execution authority.
+Qualify that architecture with one tagged Go integration test using `testcore.NewEnv`. Keep one
+disposable self-hosted cluster and one Go executor process alive while running the pre-generated
+normal caller-closure and duplicate-delivery contracts with fresh run isolation. The normal contract
+must pass locally and the negative control must fail for its expected uniqueness violation without
+invoking Lean, Make, a nested Go test, or a per-verification process.
+
+The local decision applies only to one exact contract. Whole-model validity, exhaustive coverage,
+compiler correctness, cross-test claims, production fleet scheduling, leases, crash recovery,
+release eligibility, and Claim Assessment remain offline or deferred.
 
 ## P3 — Exploration and regression lifecycle
 
@@ -138,10 +143,12 @@ pulling those specs into the prototype queue.
 ## Prototype verification gate
 
 The local and ordinary-CI portions of this gate are complete. Before starting P3, fn-28 must produce
-fixed-profile staging and canary dry-run records that name the same normal artifact byte hash, format
-identity, and Behavior Fingerprint as those completed runs. The staging record must also prove
-bounded execution, isolation, and complete cleanup. Run `flowctl validate --all --json` after the
-remaining dependency edits and require no retained task to depend on a deferred task.
+deterministic protobuf contracts bound to the same normal artifact byte hash, format identity, and
+Behavior Fingerprint as the completed local and CI runs. The tagged disposable-cluster proof must
+show bounded execution, explicit Evidence closure, local evaluation without Lean, fresh run
+isolation, and complete cleanup while reusing one resident Go process and cluster. Run
+`flowctl validate --all --json` after the remaining dependency edits and require no retained task to
+depend on a deferred task.
 
 ## Removed from the prototype queue
 
@@ -160,7 +167,7 @@ remaining dependency edits and require no retained task to depend on a deferred 
 - **fn-26 — Local Evaluation Receipts and staged profile contract.** Policy infrastructure after
   a useful local `Result` exists.
 - **fn-29 — Bounded production canary execution and Claim Assessment.** Production control-plane work;
-  the prototype retains only a dry-run binding proof.
+  the prototype retains only a no-Lean local decision over one portable per-test contract.
 - **fn-30 — Release evidence graph and manual authorization.** Release governance after real
   Claim Assessment evidence exists.
 
@@ -169,13 +176,14 @@ remaining dependency edits and require no retained task to depend on a deferred 
 The existing Flow IDs remain the source of history. The remaining roadmap has three conceptual
 delivery tracks:
 
-1. **Complete the portability gate:** fn-28 binds the completed local and CI subject to fixed-profile
-   staging and a canary dry-run without adding a control plane.
+1. **Complete the portability gate:** fn-28 compiles the completed local and CI subject into a
+   portable per-test protobuf contract and qualifies a no-Lean resident Go executor against a
+   disposable cluster without adding a production control plane.
 2. **Explore, standardize policy authoring, replay, and promote:** fn-5, fn-17, fn-40, fn-33, and
    fn-22.
 3. **Harden and shorten model authoring without gating the prototype:** with the fn-50
    finite-machine seam complete, fn-43 deepens ordinary authoring; fn-48, fn-49, and fn-51 then
    centralize Known Gaps and Observation structure and remove repetitive record literals.
 
-The next prototype decision point is completion of fn-28. Keep P3 deferred until the fixed staging
-and canary dry-run evidence makes the end-to-end experience portable and inspectable.
+The next prototype decision point is completion of fn-28. Keep P3 deferred until the portable
+contract and disposable-cluster evidence make the no-Lean end-to-end experience inspectable.

@@ -1,5 +1,5 @@
 {
-  "branch_name": "fn-28-authorized-remote-staging-black-box",
+  "branch_name": "stephanos/umpire",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
   "created_at": "2026-08-26T14:55:14.717973Z",
@@ -12,12 +12,12 @@
     "fn-20-local-execution-semantic-conformance",
     "fn-27-hermetic-ci-execution-and-qualification"
   ],
-  "id": "fn-28-authorized-remote-staging-black-box",
+  "id": "fn-28-portable-evaluation-contract-and",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-08-26T15:16:29.883934Z",
+  "plan_reviewed_at": "2026-09-01T17:13:10.402582Z",
   "ready": true,
   "review_attempts": [
     {
@@ -188,20 +188,125 @@
       "task": null,
       "timestamp": "2026-08-26T15:16:29.880944Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3fae2200f3d929cc8ae159f721661903153eff6a17d255017bbed3074fbfa4e0",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d3bd8f0ac89029227f58375784168ae",
+            "classification": "introduced",
+            "findingId": "finding-6d3bd8f0ac89029227f58375784168ae",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-827d249d33af58bfd2b4af507e9dae5f",
+            "classification": "introduced",
+            "findingId": "finding-827d249d33af58bfd2b4af507e9dae5f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "c36288c07771c6115e3adc85946056f0bc5f358a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 356833,
+      "output_sha256": "e14b819abce07ff0f9e9b82ff3c615dc593873a2015767fe7c3d1e05b9095bf7",
+      "reservation_id": "5030b13740db45218e3c2ebc82df6043",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T17:09:18.514070Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "aecd04ba431c89c7ce1f299a20411ee39019e18acc0e9376959f5846d2a29f55",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6d3bd8f0ac89029227f58375784168ae",
+            "classification": "introduced",
+            "findingId": "finding-6d3bd8f0ac89029227f58375784168ae",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-827d249d33af58bfd2b4af507e9dae5f",
+            "classification": "introduced",
+            "findingId": "finding-827d249d33af58bfd2b4af507e9dae5f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 2,
+      "head_sha": "c36288c07771c6115e3adc85946056f0bc5f358a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 304,
+      "output_sha256": "c8313fac2b2f6fc31536a0183c702cd19470b62247011670ec8ba3ba0b1df6bc",
+      "reservation_id": "5f97652f4e0e4a61a5bee42b77b2e209",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-01T17:13:10.398978Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 1,
-    "plan#completion": 0
+    "plan": 3,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
     "plan": 0
   },
-  "spec_path": ".flow/specs/fn-28-authorized-remote-staging-black-box.md",
+  "spec_path": ".flow/specs/fn-28-portable-evaluation-contract-and.md",
   "status": "open",
-  "title": "Authorized remote staging black-box execution and qualification",
+  "title": "Portable evaluation contract and disposable-cluster qualification",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -213,5 +318,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-27T19:33:14.481902Z"
+  "updated_at": "2026-09-01T17:13:20.354463Z"
 }

@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T14:55:23.885310Z",
+  "depends_on": [
+    "fn-28-portable-evaluation-contract-and.8"
+  ],
+  "id": "fn-28-portable-evaluation-contract-and.9",
+  "impl": null,
+  "priority": null,
+  "review": null,
+  "spec": "fn-28-portable-evaluation-contract-and",
+  "spec_path": ".flow/tasks/fn-28-portable-evaluation-contract-and.9.md",
+  "status": "todo",
+  "sync": null,
+  "title": "Run the no-Lean end-to-end disposable-cluster mini-demo",
+  "updated_at": "2026-09-01T17:12:09.542034Z"
+}

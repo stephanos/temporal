@@ -10,7 +10,7 @@
     "fn-18-versioned-umpire-artifact-boundary",
     "fn-26-local-qualification-receipts-and-staged",
     "fn-27-hermetic-ci-execution-and-qualification",
-    "fn-28-authorized-remote-staging-black-box",
+    "fn-28-portable-evaluation-contract-and",
     "fn-29-bounded-production-canary-execution-and",
     "fn-48-canonicalize-known-gaps-as-a-checked-set"
   ],
@@ -236,5 +236,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T10:37:51.111550Z"
+  "updated_at": "2026-09-01T17:03:14.386250Z"
 }
