@@ -82,7 +82,7 @@ def ImplementationTargetReference.ofTarget
 }
 
 /-- Fingerprint one resolved target-owned semantic definition exactly as checking does. -/
-private def implementationSemanticFingerprint
+def implementationSemanticFingerprint
     (definition : DefinitionMetadata)
     (canonicalBehavior : String) : BehaviorFingerprint :=
   behaviorFingerprintOf <|
