@@ -13,10 +13,10 @@ Define the narrow checked source boundary used by the one retained duplicate-del
 ### Approach
 
 - Define private-constructor `CompiledPromotionSource` and the smallest compiler input needed to
-  bind a checked original Query, its target/kernel-owned `.found` trace, fresh promoted
-  Behavior/Query identities, fixed imports, and deterministic source bytes.
-- Recompute the original plan and require whole-value equality before rendering; the observed runtime
-  trace is never accepted as expected model behavior.
+  bind an unchanged base checked Query, its target/kernel-owned `.found` trace and base planned
+  `ExperimentSpec`, fresh promoted Behavior/Query identities, fixed imports, and deterministic bytes.
+- Recompute the base plan and require whole-value equality with the base `ExperimentSpec` before
+  rendering; fault intent and the observed runtime trace are never accepted as expected model behavior.
 - Seal a source only after deterministic rendering, SHA-256 identity computation, and successful
   elaboration through a clean focused Lake test.
 - Keep runtime reproduction, minimization, Exact Replay receipts, Nexus identities, and proposal
@@ -40,8 +40,8 @@ Define the narrow checked source boundary used by the one retained duplicate-del
 `cd model && mise exec -- lake build Umpire.PromotionTests UmpireTests`
 
 ## Acceptance
-- [ ] Only a checked original Query with its recomputed target-owned `.found` trace can produce a sealed source.
-- [ ] Non-found results, target/kernel/query drift, trace/reason/count drift, reused promoted identities, missing imports, nondeterministic rendering, and digest drift fail without a partial source.
+- [ ] Only an unchanged base checked Query with its recomputed target-owned `.found` trace and matching base ExperimentSpec can produce a sealed source.
+- [ ] Non-found results, base target/kernel/query/ExperimentSpec drift, trace/reason/count drift, reused promoted identities, missing imports, nondeterministic rendering, and digest drift fail without a partial source.
 - [ ] Substituting the observed duplicate-delivery count-two trace for the expected count-one trace is rejected by a focused test.
 - [ ] Exact source bytes elaborate in a clean focused Lake invocation before `CompiledPromotionSource` is exposed.
 - [ ] The reusable module imports no Temporal, Nexus, runtime, replay, minimization, filesystem, or command package.

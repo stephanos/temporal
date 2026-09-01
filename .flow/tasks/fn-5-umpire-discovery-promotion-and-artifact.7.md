@@ -15,9 +15,9 @@ documentation without expanding either surface.
 
 - Extend the existing root inspector target to document and exercise `list` and exact `explain` while
   preserving positional scenario inspection.
-- Add one fixed review-only promotion check target that supplies a checked test handoff on stdin and
-  exposes no candidate, source, or destination override; its check renders in memory, verifies
-  canonical bytes, and clean-elaborates the embedded source.
+- Add one fixed review-only promotion check target that invokes the closed candidate identity and
+  exposes no source or destination override; its check renders the inert proposal in memory, verifies
+  both base and fault-bearing lineages, and clean-elaborates the embedded source.
 - Keep both focused suites in the existing experimental aggregate and `umpire-check-regression` path.
 - Document the four discovery entries, exact command examples, expected-count-one proposal meaning,
   and the fn22-to-fn5 caller gate without claiming runtime reproduction or installation.
@@ -43,7 +43,7 @@ documentation without expanding either surface.
 `make umpire-check-regression`
 
 ## Acceptance
-- [ ] Root commands expose only deterministic Nexus list/explain and one non-mutating promotion check whose checked handoff is fixed by the test target; no raw promotion invocation is advertised.
+- [ ] Root commands expose deterministic Nexus list/explain and one non-mutating fixed-candidate promotion check; documentation says the output is inert and fn-22 alone establishes runtime eligibility.
 - [ ] Focused discovery/promotion tests and the existing experimental aggregate are wired into the root non-mutating regression check.
 - [ ] Existing positional inspector behavior and checked-in regression outputs remain unchanged.
 - [ ] Documentation names the exact four entries, the expected-count-one proposal, and fn-22 eligibility gate without claiming replay, minimization, automatic installation, or broader coverage.
