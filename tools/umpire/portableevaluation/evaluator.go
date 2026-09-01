@@ -14,10 +14,13 @@ import (
 
 // Request contains the exact admitted contract and one bounded Raw Evidence snapshot.
 type Request struct {
-	Contract          *umpirespb.EvaluationContract
-	RawEvidence       artifactv2.RawEvidence
-	OperationalStatus umpirespb.OperationalStatus
-	CleanupStatus     umpirespb.CleanupStatus
+	Contract            *umpirespb.EvaluationContract
+	RawEvidence         artifactv2.RawEvidence
+	ExpectedRunIdentity string
+	ExpectedRun         artifactv2.ArtifactBinding
+	ExpectedClosures    []artifactv2.SourceClosure
+	OperationalStatus   umpirespb.OperationalStatus
+	CleanupStatus       umpirespb.CleanupStatus
 }
 
 // Evaluate interprets one contract without consulting Lean or a model registry.
@@ -30,12 +33,18 @@ func Evaluate(ctx context.Context, request Request) *umpirespb.EvaluationResult 
 }
 
 type interpreter struct {
-	ctx      context.Context
-	cancel   context.CancelFunc
-	request  Request
-	contract *umpirespb.EvaluationContract
-	result   *umpirespb.EvaluationResult
-	work     workTracker
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	request             Request
+	contract            *umpirespb.EvaluationContract
+	result              *umpirespb.EvaluationResult
+	work                workTracker
+	orderingSupport     []*umpirespb.OrderingFact
+	closureSupport      []*umpirespb.ClosureFact
+	evidenceSupportSize int64
+	evidenceSupportSet  bool
+	resultBytesReserved int64
+	evidenceLinkSizes   map[*umpirespb.EvidenceLink]int64
 }
 
 func newInterpreter(ctx context.Context, request Request) *interpreter {
@@ -46,7 +55,10 @@ func newInterpreter(ctx context.Context, request Request) *interpreter {
 		Decision:          umpirespb.CANARY_DECISION_INCONCLUSIVE,
 		SemanticStatus:    umpirespb.EVALUATION_STATUS_INCOMPLETE,
 	}
-	return &interpreter{ctx: ctx, request: request, result: result}
+	return &interpreter{
+		ctx: ctx, request: request, result: result,
+		evidenceLinkSizes: make(map[*umpirespb.EvidenceLink]int64),
+	}
 }
 
 func (i *interpreter) evaluate() *umpirespb.EvaluationResult {
@@ -122,6 +134,12 @@ func admitContract(contract *umpirespb.EvaluationContract) (*umpirespb.Evaluatio
 	if err != nil {
 		return nil, malformedFailure(err.Error())
 	}
+	minimumResultBytes := int64(proto.Size(&umpirespb.EvaluationResult{
+		Decision: umpirespb.CANARY_DECISION_INCONCLUSIVE,
+	}))
+	if admitted.GetLimits().GetMaxResultBytes() < minimumResultBytes {
+		return nil, malformedFailure("result byte Limit cannot encode an inconclusive decision")
+	}
 	return admitted, nil
 }
 
@@ -157,7 +175,29 @@ func (i *interpreter) validateInput() *evaluationFailure {
 			detail: "Raw Evidence artifact bindings do not match the contract",
 		}
 	}
+	if i.request.ExpectedRunIdentity == "" || i.request.ExpectedRunIdentity != i.request.RawEvidence.RunIdentity ||
+		!rawArtifactBindingMatches(i.request.ExpectedRun, i.request.RawEvidence.Run) ||
+		!sourceClosuresMatch(i.request.ExpectedClosures, i.request.RawEvidence.Sources) {
+		return &evaluationFailure{
+			class: umpirespb.DIAGNOSTIC_CLASS_CONFLICT, code: umpirespb.DIAGNOSTIC_CODE_CORRELATION,
+			detail: "Raw Evidence run identity, binding, or source closure does not match the expected run",
+		}
+	}
 	return nil
+}
+
+func sourceClosuresMatch(expected []artifactv2.SourceClosure, actual []artifactv2.RawEvidenceSource) bool {
+	if len(expected) != len(actual) {
+		return false
+	}
+	for index, closure := range expected {
+		source := actual[index]
+		if closure.SourceDefinitionID != source.SourceDefinitionID || closure.Status != source.Status ||
+			closure.RecordCount != source.FactCount || closure.ByteCount != source.ByteCount {
+			return false
+		}
+	}
+	return true
 }
 
 func artifactBindingMatches(expected *umpirespb.ArtifactBinding, actual artifactv2.ArtifactBinding) bool {
@@ -165,6 +205,40 @@ func artifactBindingMatches(expected *umpirespb.ArtifactBinding, actual artifact
 		expected.GetArtifactChecksum() == actual.ArtifactChecksum &&
 		expected.GetBehaviorFingerprint() == actual.BehaviorFingerprint &&
 		expected.GetProvenanceChecksum() == actual.ProvenanceChecksum
+}
+
+func rawArtifactBindingMatches(expected, actual artifactv2.ArtifactBinding) bool {
+	return expected.FormatVersion == actual.FormatVersion &&
+		expected.ArtifactChecksum == actual.ArtifactChecksum &&
+		expected.BehaviorFingerprint == actual.BehaviorFingerprint &&
+		expected.ProvenanceChecksum == actual.ProvenanceChecksum
+}
+
+func (i *interpreter) reserveResultBytes(size int64) *evaluationFailure {
+	observed := i.resultBytesReserved + size
+	limit := i.contract.GetLimits().GetMaxResultBytes()
+	if observed > limit {
+		return limitFailure("Evaluation Result exceeds the contract Limit", "result-bytes", limit, observed)
+	}
+	i.resultBytesReserved = observed
+	return nil
+}
+
+func (i *interpreter) reserveEvidenceLink(link *umpirespb.EvidenceLink) *evaluationFailure {
+	size, ok := i.evidenceLinkSizes[link]
+	if !ok {
+		size = embeddedEvidenceLinkSize(int64(proto.Size(link)))
+		i.evidenceLinkSizes[link] = size
+	}
+	return i.reserveResultBytes(size)
+}
+
+func embeddedEvidenceLinkSize(payload int64) int64 {
+	lengthBytes := int64(1)
+	for value := uint64(payload); value >= 1<<7; value >>= 7 {
+		lengthBytes++
+	}
+	return 1 + lengthBytes + payload
 }
 
 func (i *interpreter) failBeforeObservation(status umpirespb.ToolingStatus, failure *evaluationFailure) {

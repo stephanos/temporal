@@ -51,6 +51,9 @@ func TestEvaluateSatisfiedClosedEvidence(t *testing.T) {
 		require.Len(t, link.GetClosureSupport(), 1)
 		require.NotNil(t, link.GetMapping())
 	}
+	links := result.GetObservation().GetEvidenceLinks()
+	require.Same(t, links[0].GetOrderingSupport()[0], links[1].GetOrderingSupport()[0])
+	require.Same(t, links[0].GetClosureSupport()[0], links[1].GetClosureSupport()[0])
 }
 
 func TestEvaluateViolatedClosedEvidence(t *testing.T) {
@@ -61,11 +64,7 @@ func TestEvaluateViolatedClosedEvidence(t *testing.T) {
 			"2",
 		)
 	})
-	request := Request{
-		Contract: contract, RawEvidence: testRawEvidence(t, contract),
-		OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-		CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-	}
+	request := requestFor(contract, testRawEvidence(t, contract))
 
 	result := Evaluate(context.Background(), request)
 
@@ -81,6 +80,7 @@ func TestEvaluateIncompleteClosureIsUnknown(t *testing.T) {
 	request.RawEvidence.Sources[0].Status = "partial"
 	request.RawEvidence.CaptureStatus = "partial"
 	request.RawEvidence = resealRawEvidence(t, request.RawEvidence)
+	request.ExpectedClosures[0].Status = "partial"
 
 	result := Evaluate(context.Background(), request)
 
@@ -102,11 +102,7 @@ func TestEvaluateConflictingCorrelation(t *testing.T) {
 			}},
 		}}
 	})
-	request := Request{
-		Contract: contract, RawEvidence: testRawEvidence(t, contract),
-		OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-		CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-	}
+	request := requestFor(contract, testRawEvidence(t, contract))
 
 	result := Evaluate(context.Background(), request)
 
@@ -146,22 +142,14 @@ func TestEvaluateWorkLimitExactBoundary(t *testing.T) {
 	exactContract := testContractWith(t, func(contract *umpirespb.EvaluationContract) {
 		contract.Limits.MaxEvaluationWork = requiredWork
 	})
-	exact := Evaluate(context.Background(), Request{
-		Contract: exactContract, RawEvidence: testRawEvidence(t, exactContract),
-		OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-		CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-	})
+	exact := Evaluate(context.Background(), requestFor(exactContract, testRawEvidence(t, exactContract)))
 	require.Equal(t, requiredWork, exact.GetWork().GetTotal())
 	require.Equal(t, umpirespb.CANARY_DECISION_PASS, exact.GetDecision())
 
 	belowContract := testContractWith(t, func(contract *umpirespb.EvaluationContract) {
 		contract.Limits.MaxEvaluationWork = requiredWork - 1
 	})
-	below := Evaluate(context.Background(), Request{
-		Contract: belowContract, RawEvidence: testRawEvidence(t, belowContract),
-		OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-		CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-	})
+	below := Evaluate(context.Background(), requestFor(belowContract, testRawEvidence(t, belowContract)))
 	require.Equal(t, requiredWork-1, below.GetWork().GetTotal())
 	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, below.GetDecision())
 	require.Contains(t, allDiagnostics(below), umpirespb.DIAGNOSTIC_CODE_LIMIT_REACHED)
@@ -216,11 +204,7 @@ func TestEvaluateInputLimitsExactBoundaries(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			contract := testContractWith(t, test.modify)
 
-			result := Evaluate(context.Background(), Request{
-				Contract: contract, RawEvidence: evidence,
-				OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-				CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-			})
+			result := Evaluate(context.Background(), requestFor(contract, evidence))
 
 			require.Equal(t, test.wantStatus, result.GetObservation().GetStatus())
 			if test.wantLimit {
@@ -239,22 +223,14 @@ func TestEvaluateResultLimitExactBoundary(t *testing.T) {
 	exactContract := testContractWith(t, func(contract *umpirespb.EvaluationContract) {
 		contract.Limits.MaxResultBytes = requiredBytes
 	})
-	exact := Evaluate(context.Background(), Request{
-		Contract: exactContract, RawEvidence: testRawEvidence(t, exactContract),
-		OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-		CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-	})
+	exact := Evaluate(context.Background(), requestFor(exactContract, testRawEvidence(t, exactContract)))
 	require.Equal(t, requiredBytes, int64(proto.Size(exact)))
 	require.Equal(t, umpirespb.CANARY_DECISION_PASS, exact.GetDecision())
 
 	belowContract := testContractWith(t, func(contract *umpirespb.EvaluationContract) {
 		contract.Limits.MaxResultBytes = requiredBytes - 1
 	})
-	below := Evaluate(context.Background(), Request{
-		Contract: belowContract, RawEvidence: testRawEvidence(t, belowContract),
-		OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-		CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-	})
+	below := Evaluate(context.Background(), requestFor(belowContract, testRawEvidence(t, belowContract)))
 	require.LessOrEqual(t, int64(proto.Size(below)), requiredBytes-1)
 	require.Equal(t, umpirespb.TOOLING_STATUS_INTERNAL_ERROR, below.GetToolingStatus())
 	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, below.GetDecision())
@@ -307,6 +283,7 @@ func TestEvaluatePropertyPatternOutcomes(t *testing.T) {
 		{
 			name: "missing required value is violation",
 			modify: func(contract *umpirespb.EvaluationContract) {
+				declareMissingObservationVocabulary(contract, naturalValue("0"))
 				contract.Properties[0].Clauses[0].PerStepImplies.Required = naturalPattern(
 					"feature.observation.missing", "1",
 				)
@@ -318,6 +295,7 @@ func TestEvaluatePropertyPatternOutcomes(t *testing.T) {
 		{
 			name: "missing trigger is vacuously satisfied",
 			modify: func(contract *umpirespb.EvaluationContract) {
+				declareMissingObservationVocabulary(contract, textValue("unused"))
 				contract.Properties[0].Clauses[0].PerStepImplies.Trigger = textPattern(
 					umpirespb.TRACE_FIELD_OBSERVATION, "feature.observation.missing", "unused",
 				)
@@ -352,17 +330,81 @@ func TestEvaluatePropertyPatternOutcomes(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			contract := testContractWith(t, test.modify)
-			result := Evaluate(context.Background(), Request{
-				Contract: contract, RawEvidence: testRawEvidence(t, contract),
-				OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-				CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-			})
+			result := Evaluate(context.Background(), requestFor(contract, testRawEvidence(t, contract)))
 
 			require.Equal(t, test.propertyStatus, result.GetProperties()[0].GetStatus())
 			require.Equal(t, test.evaluation, result.GetSemanticStatus())
 			require.Equal(t, test.decision, result.GetDecision())
 		})
 	}
+}
+
+func TestEvaluatePropertyDestinationVocabulary(t *testing.T) {
+	tests := []struct {
+		name       string
+		modify     func(*umpirespb.EvaluationContract)
+		wantStatus umpirespb.SemanticStatus
+		wantCode   umpirespb.DiagnosticCode
+		decision   umpirespb.CanaryDecision
+	}{
+		{
+			name: "undeclared pattern",
+			modify: func(contract *umpirespb.EvaluationContract) {
+				contract.Properties[0].Clauses[0].PerStepImplies.Trigger.Definition =
+					testBinding("feature.action.undeclared")
+			},
+			wantStatus: umpirespb.SEMANTIC_STATUS_UNSUPPORTED,
+			wantCode:   umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
+			decision:   umpirespb.CANARY_DECISION_INCONCLUSIVE,
+		},
+		{
+			name: "undeclared requirement",
+			modify: func(contract *umpirespb.EvaluationContract) {
+				contract.Properties[0].Requirements = []*umpirespb.DefinitionBinding{
+					testBinding("feature.capability"),
+				}
+			},
+			wantStatus: umpirespb.SEMANTIC_STATUS_UNSUPPORTED,
+			wantCode:   umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
+			decision:   umpirespb.CANARY_DECISION_INCONCLUSIVE,
+		},
+		{
+			name: "declared requirement",
+			modify: func(contract *umpirespb.EvaluationContract) {
+				contract.ImplementationLink.DefinitionEntries = []*umpirespb.DefinitionRenameEntry{{
+					Source: testBinding("system.capability"), Kind: umpirespb.DEFINITION_KIND_CAPABILITY,
+					Destination: testBinding("feature.capability"),
+				}}
+				contract.Properties[0].Requirements = []*umpirespb.DefinitionBinding{
+					testBinding("feature.capability"),
+				}
+			},
+			wantStatus: umpirespb.SEMANTIC_STATUS_SATISFIED,
+			decision:   umpirespb.CANARY_DECISION_PASS,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			contract := testContractWith(t, test.modify)
+
+			result := Evaluate(context.Background(), requestFor(contract, testRawEvidence(t, contract)))
+
+			require.Equal(t, test.wantStatus, result.GetProperties()[0].GetStatus())
+			require.Equal(t, test.decision, result.GetDecision())
+			if test.wantCode != umpirespb.DIAGNOSTIC_CODE_UNSPECIFIED {
+				require.Contains(t, allDiagnostics(result), test.wantCode)
+			}
+		})
+	}
+}
+
+func TestDestinationPatternRequiresExactFingerprint(t *testing.T) {
+	contract := testContract(t)
+	pattern := proto.CloneOf(contract.GetProperties()[0].GetClauses()[0].GetPerStepImplies().GetTrigger())
+	pattern.Definition.BehaviorFingerprint =
+		"sha256:1111111111111111111111111111111111111111111111111111111111111111"
+
+	require.False(t, (&interpreter{contract: contract}).destinationDefinesPattern(pattern))
 }
 
 func TestEvaluateRetainsExactBindingsAndClauseEvidence(t *testing.T) {
@@ -396,11 +438,7 @@ func TestEvaluateMissingRenameExactMapping(t *testing.T) {
 		contract.ImplementationLink.Entries = contract.ImplementationLink.Entries[1:]
 	})
 
-	result := Evaluate(context.Background(), Request{
-		Contract: contract, RawEvidence: testRawEvidence(t, contract),
-		OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-		CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-	})
+	result := Evaluate(context.Background(), requestFor(contract, testRawEvidence(t, contract)))
 
 	require.Equal(t, umpirespb.OBSERVATION_STATUS_ACCEPTED, result.GetObservation().GetStatus())
 	require.Equal(t, umpirespb.IMPLEMENTATION_LINK_STATUS_UNKNOWN, result.GetImplementationLink().GetStatus())
@@ -419,6 +457,95 @@ func TestEvaluateRejectsCrossedArtifactBinding(t *testing.T) {
 	require.Equal(t, umpirespb.OBSERVATION_STATUS_UNKNOWN, result.GetObservation().GetStatus())
 	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_CORRELATION, result.GetDiagnostics()[0].GetCode())
 	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
+}
+
+func TestEvaluateRejectsStaleRunAndClosure(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*Request)
+	}{
+		{
+			name: "run identity",
+			mutate: func(request *Request) {
+				request.RawEvidence.RunIdentity = "test.run.stale"
+				request.RawEvidence = resealRawEvidence(t, request.RawEvidence)
+			},
+		},
+		{
+			name: "run binding",
+			mutate: func(request *Request) {
+				request.RawEvidence.Run.ArtifactChecksum =
+					"sha256:1111111111111111111111111111111111111111111111111111111111111111"
+				request.RawEvidence = resealRawEvidence(t, request.RawEvidence)
+			},
+		},
+		{
+			name: "post closure evidence",
+			mutate: func(request *Request) {
+				postClosure := request.RawEvidence.Facts[1]
+				postClosure.FactDefinitionID = "evidence.fact.post-closure"
+				postClosure.Ordinal = artifactv2.NaturalFromUint64(2)
+				postClosure.CausalFactDefinitionIDs = []string{"evidence.fact.finish"}
+				request.RawEvidence.Facts = append(request.RawEvidence.Facts, postClosure)
+				request.RawEvidence.Sources[0].FactCount = artifactv2.NaturalFromUint64(3)
+				request.RawEvidence = resealRawEvidence(t, request.RawEvidence)
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := testRequest(t)
+			test.mutate(&request)
+
+			result := Evaluate(context.Background(), request)
+
+			require.Equal(t, umpirespb.TOOLING_STATUS_INVALID_INPUT, result.GetToolingStatus())
+			require.Equal(t, umpirespb.OBSERVATION_STATUS_UNKNOWN, result.GetObservation().GetStatus())
+			require.Equal(t, umpirespb.DIAGNOSTIC_CLASS_CONFLICT, result.GetDiagnostics()[0].GetDiagnosticClass())
+			require.Equal(t, umpirespb.DIAGNOSTIC_CODE_CORRELATION, result.GetDiagnostics()[0].GetCode())
+			require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
+		})
+	}
+}
+
+func TestEvaluateRejectsMalformedAndMisorderedEvidence(t *testing.T) {
+	tests := []struct {
+		name   string
+		mutate func(*artifactv2.RawEvidence)
+	}{
+		{
+			name: "malformed causal list",
+			mutate: func(evidence *artifactv2.RawEvidence) {
+				evidence.Facts[0].CausalFactDefinitionIDs = nil
+			},
+		},
+		{
+			name: "source order",
+			mutate: func(evidence *artifactv2.RawEvidence) {
+				evidence.Facts[0], evidence.Facts[1] = evidence.Facts[1], evidence.Facts[0]
+			},
+		},
+		{
+			name: "causal order",
+			mutate: func(evidence *artifactv2.RawEvidence) {
+				evidence.Facts[1].CausalFactDefinitionIDs = []string{"evidence.fact.dangling"}
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := testRequest(t)
+			test.mutate(&request.RawEvidence)
+			request.RawEvidence = sealRawEvidenceUnchecked(t, request.RawEvidence)
+
+			result := Evaluate(context.Background(), request)
+
+			require.Equal(t, umpirespb.TOOLING_STATUS_INVALID_INPUT, result.GetToolingStatus())
+			require.Equal(t, umpirespb.DIAGNOSTIC_CLASS_INVALID, result.GetDiagnostics()[0].GetDiagnosticClass())
+			require.Equal(t, umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH, result.GetDiagnostics()[0].GetCode())
+			require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
+		})
+	}
 }
 
 func TestEvaluateRejectsContractMutation(t *testing.T) {
@@ -458,6 +585,19 @@ func TestEvaluateRejectsInvalidRawEvidenceChecksum(t *testing.T) {
 
 	require.Equal(t, umpirespb.TOOLING_STATUS_INVALID_INPUT, result.GetToolingStatus())
 	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH, result.GetDiagnostics()[0].GetCode())
+	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
+}
+
+func TestEvaluateRejectsResultLimitBelowMinimum(t *testing.T) {
+	contract := testContractWith(t, func(contract *umpirespb.EvaluationContract) {
+		contract.Limits.MaxDiagnosticBytes = 1
+		contract.Limits.MaxResultBytes = 1
+	})
+
+	result := Evaluate(context.Background(), requestFor(contract, testRawEvidence(t, contract)))
+
+	require.Equal(t, umpirespb.TOOLING_STATUS_INVALID_CONTRACT, result.GetToolingStatus())
+	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_MALFORMED_CONTRACT, result.GetDiagnostics()[0].GetCode())
 	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
 }
 
@@ -623,6 +763,214 @@ func TestPresentRetainsConflictAndUnsupported(t *testing.T) {
 	}
 }
 
+func TestNormalizeFieldDispositionMatrix(t *testing.T) {
+	fact := artifactv2.RawEvidenceFact{
+		FactDefinitionID: "evidence.fact", KindDefinitionID: "evidence.kind.event",
+	}
+	tests := []struct {
+		name      string
+		raw       artifactv2.RawEvidenceField
+		kind      umpirespb.FieldDispositionKind
+		wantValue *umpirespb.Value
+		wantToken string
+		wantCode  umpirespb.DiagnosticCode
+	}{
+		{
+			name: "retain", raw: artifactv2.RawEvidenceField{
+				FieldDefinitionID: "evidence.field", Disposition: "plain", Value: "visible",
+			},
+			kind: umpirespb.FIELD_DISPOSITION_KIND_RETAIN, wantValue: textValue("visible"),
+		},
+		{
+			name: "retain rejects hidden", raw: artifactv2.RawEvidenceField{
+				FieldDefinitionID: "evidence.field", Disposition: "redacted",
+			},
+			kind: umpirespb.FIELD_DISPOSITION_KIND_RETAIN, wantCode: umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
+		},
+		{
+			name: "redact", raw: artifactv2.RawEvidenceField{
+				FieldDefinitionID: "evidence.field", Disposition: "redacted",
+			},
+			kind: umpirespb.FIELD_DISPOSITION_KIND_REDACT,
+		},
+		{
+			name: "redact rejects exposed", raw: artifactv2.RawEvidenceField{
+				FieldDefinitionID: "evidence.field", Disposition: "plain", Value: "secret",
+			},
+			kind: umpirespb.FIELD_DISPOSITION_KIND_REDACT, wantCode: umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
+		},
+		{
+			name: "hash", raw: artifactv2.RawEvidenceField{
+				FieldDefinitionID: "evidence.field", Disposition: "sha256", Value: fixtureDigest,
+			},
+			kind: umpirespb.FIELD_DISPOSITION_KIND_HASH, wantToken: fixtureDigest,
+		},
+		{
+			name: "hash rejects malformed", raw: artifactv2.RawEvidenceField{
+				FieldDefinitionID: "evidence.field", Disposition: "sha256", Value: "not-a-digest",
+			},
+			kind: umpirespb.FIELD_DISPOSITION_KIND_HASH, wantCode: umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH,
+		},
+		{
+			name: "reject", raw: artifactv2.RawEvidenceField{
+				FieldDefinitionID: "evidence.field", Disposition: "plain", Value: "forbidden",
+			},
+			kind: umpirespb.FIELD_DISPOSITION_KIND_REJECT, wantCode: umpirespb.DIAGNOSTIC_CODE_UNDECLARED_FIELD,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			declaration := &umpirespb.EvidenceFieldDeclaration{
+				FieldDefinitionId: "evidence.field", ValueKind: umpirespb.VALUE_KIND_TEXT,
+				Disposition: test.kind,
+			}
+
+			field, failure := expressionTestInterpreter().normalizeField(fact, test.raw, declaration)
+
+			if test.wantCode != umpirespb.DIAGNOSTIC_CODE_UNSPECIFIED {
+				require.Nil(t, field)
+				require.NotNil(t, failure)
+				require.Equal(t, umpirespb.DIAGNOSTIC_CLASS_UNSUPPORTED, failure.class)
+				require.Equal(t, test.wantCode, failure.code)
+				return
+			}
+			require.Nil(t, failure)
+			require.True(t, proto.Equal(test.wantValue, field.value))
+			require.Equal(t, test.wantToken, field.digestToken)
+		})
+	}
+}
+
+func TestSelectEmissionRejectsDuplicateAndContradictoryValues(t *testing.T) {
+	emit := testEmit(
+		"emit.state", "system.state", umpirespb.DEFINITION_KIND_STATE,
+		initialState(), literalText("unused"), literalText("unused"),
+	)
+	tests := []struct {
+		name   string
+		values []*umpirespb.ModelValue
+		code   umpirespb.DiagnosticCode
+	}{
+		{
+			name: "duplicate", values: []*umpirespb.ModelValue{
+				testModelValue("system.state", umpirespb.DEFINITION_KIND_STATE, textValue("open")),
+				testModelValue("system.state", umpirespb.DEFINITION_KIND_STATE, textValue("open")),
+			},
+			code: umpirespb.DIAGNOSTIC_CODE_DUPLICATE_COORDINATE,
+		},
+		{
+			name: "contradictory", values: []*umpirespb.ModelValue{
+				testModelValue("system.state", umpirespb.DEFINITION_KIND_STATE, textValue("open")),
+				testModelValue("system.state", umpirespb.DEFINITION_KIND_STATE, textValue("closed")),
+			},
+			code: umpirespb.DIAGNOSTIC_CODE_CONTRADICTORY_COORDINATE,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			candidates := make([]*emission, len(test.values))
+			for index, value := range test.values {
+				candidates[index] = &emission{emit: emit, value: value}
+			}
+
+			_, failure := selectEmission(emit, candidates)
+
+			require.NotNil(t, failure)
+			require.Equal(t, umpirespb.DIAGNOSTIC_CLASS_CONFLICT, failure.class)
+			require.Equal(t, test.code, failure.code)
+		})
+	}
+}
+
+func TestApplyLinkRejectsDuplicateAndContradictoryMappings(t *testing.T) {
+	source := testModelValue("system.state", umpirespb.DEFINITION_KIND_STATE, textValue("open"))
+	coordinate := initialState()
+	tests := []struct {
+		name         string
+		destinations []*umpirespb.ModelValue
+		code         umpirespb.DiagnosticCode
+	}{
+		{
+			name: "duplicate", destinations: []*umpirespb.ModelValue{
+				testModelValue("feature.state", umpirespb.DEFINITION_KIND_STATE, textValue("open")),
+				testModelValue("feature.state", umpirespb.DEFINITION_KIND_STATE, textValue("open")),
+			},
+			code: umpirespb.DIAGNOSTIC_CODE_DUPLICATE_LINK_MAPPING,
+		},
+		{
+			name: "contradictory", destinations: []*umpirespb.ModelValue{
+				testModelValue("feature.state", umpirespb.DEFINITION_KIND_STATE, textValue("open")),
+				testModelValue("feature.other-state", umpirespb.DEFINITION_KIND_STATE, textValue("open")),
+			},
+			code: umpirespb.DIAGNOSTIC_CODE_CONTRADICTORY_LINK_MAPPING,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			entries := make([]*umpirespb.RenameExactEntry, len(test.destinations))
+			for index, destination := range test.destinations {
+				entries[index] = &umpirespb.RenameExactEntry{
+					Source: proto.CloneOf(source), Destination: destination,
+				}
+			}
+			interpreter := newInterpreter(context.Background(), Request{})
+			interpreter.contract = &umpirespb.EvaluationContract{
+				Limits: &umpirespb.EvaluationLimits{MaxResultBytes: 1 << 20},
+				ImplementationLink: &umpirespb.RenameExactLink{
+					Entries: entries, ApplicationLimit: &umpirespb.Limit{Value: 1, Unit: "semantic-transitions"},
+				},
+			}
+			interpreter.work.limit = 10
+
+			_, failure := interpreter.applyLink(
+				&umpirespb.ModelTrace{InitialState: source},
+				[]*umpirespb.EvidenceLink{{Coordinate: coordinate}},
+			)
+
+			require.NotNil(t, failure)
+			require.Equal(t, umpirespb.DIAGNOSTIC_CLASS_CONFLICT, failure.class)
+			require.Equal(t, test.code, failure.code)
+		})
+	}
+}
+
+func TestImplementationLinkApplicationLimitExactBoundary(t *testing.T) {
+	limit := &umpirespb.Limit{Value: 1, Unit: "semantic-transitions"}
+
+	require.Nil(t, validateApplicationLimit(&umpirespb.ModelTrace{
+		Steps: []*umpirespb.ModelTraceStep{{Position: 1}},
+	}, limit))
+	failure := validateApplicationLimit(&umpirespb.ModelTrace{
+		Steps: []*umpirespb.ModelTraceStep{{Position: 1}, {Position: 2}},
+	}, limit)
+	require.NotNil(t, failure)
+	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_LIMIT_REACHED, failure.code)
+	require.Equal(t, int64(1), failure.limit.GetValue())
+	require.Equal(t, int64(2), failure.observed)
+}
+
+func TestEvidenceLinkPreflightsResultGrowth(t *testing.T) {
+	request := testRequest(t)
+	interpreter := newInterpreter(context.Background(), request)
+	interpreter.contract = &umpirespb.EvaluationContract{
+		Limits:      &umpirespb.EvaluationLimits{MaxResultBytes: 1},
+		Observation: &umpirespb.ObservationProgram{Mapping: testBinding("test.mapping")},
+	}
+	candidate := &emission{
+		emit:   &umpirespb.Emit{DefinitionId: "emit.value", Coordinate: initialState()},
+		record: &normalizedRecord{fact: request.RawEvidence.Facts[0]},
+	}
+
+	link, failure := interpreter.evidenceLink(candidate)
+
+	require.Nil(t, link)
+	require.NotNil(t, failure)
+	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_LIMIT_REACHED, failure.code)
+	require.Zero(t, interpreter.resultBytesReserved)
+	require.Len(t, interpreter.orderingSupport, len(request.RawEvidence.Facts))
+	require.Len(t, interpreter.closureSupport, len(request.RawEvidence.Sources))
+}
+
 func expressionTestInterpreter() *interpreter {
 	return &interpreter{
 		ctx:      context.Background(),
@@ -645,11 +993,7 @@ func FuzzEvaluateFailsClosed(f *testing.F) {
 		}
 		evidence = resealRawEvidence(t, evidence)
 
-		result := Evaluate(context.Background(), Request{
-			Contract: contract, RawEvidence: evidence,
-			OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
-			CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
-		})
+		result := Evaluate(context.Background(), requestFor(contract, evidence))
 
 		if result.GetDecision() == umpirespb.CANARY_DECISION_PASS {
 			require.Equal(t, umpirespb.TOOLING_STATUS_SUCCEEDED, result.GetToolingStatus())
@@ -666,6 +1010,13 @@ func resealRawEvidence(t testing.TB, evidence artifactv2.RawEvidence) artifactv2
 	sealed, err := artifactv2.SealRawEvidence(evidence)
 	require.NoError(t, err)
 	require.NoError(t, artifactv2.ValidateRawEvidence(sealed))
+	return sealed
+}
+
+func sealRawEvidenceUnchecked(t testing.TB, evidence artifactv2.RawEvidence) artifactv2.RawEvidence {
+	t.Helper()
+	sealed, err := artifactv2.SealRawEvidence(evidence)
+	require.NoError(t, err)
 	return sealed
 }
 
@@ -701,9 +1052,20 @@ func testRequest(t testing.TB) Request {
 	t.Helper()
 	contract := testContract(t)
 	evidence := testRawEvidence(t, contract)
+	return requestFor(contract, evidence)
+}
+
+func requestFor(contract *umpirespb.EvaluationContract, evidence artifactv2.RawEvidence) Request {
+	closures := make([]artifactv2.SourceClosure, len(evidence.Sources))
+	for index, source := range evidence.Sources {
+		closures[index] = artifactv2.SourceClosure{
+			SourceDefinitionID: source.SourceDefinitionID, Status: source.Status,
+			RecordCount: source.FactCount, ByteCount: source.ByteCount,
+		}
+	}
 	return Request{
-		Contract:          contract,
-		RawEvidence:       evidence,
+		Contract: contract, RawEvidence: evidence, ExpectedClosures: closures,
+		ExpectedRunIdentity: evidence.RunIdentity, ExpectedRun: evidence.Run,
 		OperationalStatus: umpirespb.OPERATIONAL_STATUS_SUCCEEDED,
 		CleanupStatus:     umpirespb.CLEANUP_STATUS_COMPLETE,
 	}
@@ -896,6 +1258,17 @@ func testRename(source, destination string, kind umpirespb.DefinitionKind, value
 	return &umpirespb.RenameExactEntry{
 		Source: testModelValue(source, kind, value), Destination: testModelValue(destination, kind, value),
 	}
+}
+
+func declareMissingObservationVocabulary(contract *umpirespb.EvaluationContract, value *umpirespb.Value) {
+	entry := testRename(
+		"system.observation.missing", "feature.observation.missing",
+		umpirespb.DEFINITION_KIND_OBSERVATION, value,
+	)
+	entries := contract.GetImplementationLink().GetEntries()
+	contract.ImplementationLink.Entries = append(entries, nil)
+	copy(contract.ImplementationLink.Entries[3:], contract.ImplementationLink.Entries[2:])
+	contract.ImplementationLink.Entries[2] = entry
 }
 
 func testModelValue(id string, kind umpirespb.DefinitionKind, value *umpirespb.Value) *umpirespb.ModelValue {
