@@ -36,9 +36,12 @@ Publish the facade, atomic generation/check commands, and concise documentation 
 - [ ] No GitHub Actions, broad API drift gate, public docs, or deferred spec behavior is added.
 - [ ] The Make process-test executable is non-default and adds no generated repository artifact.
 ## Done summary
-TBD
+Wired the narrow semantic inventory facade, atomic generation and read-only drift checking, isolated real-Make process coverage, lint integration, and authority documentation. Generation now preserves checked bytes on renderer failure or termination, while missing, stale, and extra check states produce deterministic diffs without mutation.
 
+baseline: green via conductor handoff (focused Quick failed only on task-owned missing targets before implementation; full lint green)
+stage: impl-review - ran [02e8c1c24; SHIP session 01a05d80-69e9-7b10-b689-89c0f829d0d5]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 02e8c1c24a626ee2b21699d14896e7a497d5d463, 0823aa0292f4b671a551661949d9f59f46a32760
+- Tests: baseline: green via conductor handoff (focused Quick failed only on absent task-owned Make-test target; make lint-model rc0), cd model && mise exec -- lake build temporal-model-semantic-inventory-make-tests && mise exec -- lake exe temporal-model-semantic-inventory-make-tests, cd model && mise exec -- lake build Umpire.SemanticInventory.Tests.PlanningRuntime Umpire.SemanticInventory.Tests.SemanticStages Umpire.SemanticInventory.Tests.KnownGaps Umpire.Planning.Tests.KnownGaps Temporal.Tool.SemanticInventoryTests temporal-model-semantic-inventory temporal-model-semantic-inventory-tests temporal-model-semantic-inventory-make-tests, cd model && mise exec -- lake exe temporal-model-semantic-inventory-tests, cd model && mise exec -- lake exe temporal-model-semantic-inventory-make-tests, make umpire-check-semantic-inventory, make lint-model
 - PRs:
