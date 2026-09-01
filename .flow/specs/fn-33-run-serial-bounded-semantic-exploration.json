@@ -1,5 +1,5 @@
 {
-  "branch_name": "fn-33-run-resumable-semantic-exploration",
+  "branch_name": "fn-33-run-serial-bounded-semantic-exploration",
   "completion_review_status": "unknown",
   "completion_reviewed_at": null,
   "created_at": "2026-08-26T20:35:48.907514Z",
@@ -15,7 +15,7 @@
     "fn-47-generate-umpire-semantic-outcome-and",
     "fn-40-centralize-plannerpolicy-constructors"
   ],
-  "id": "fn-33-run-resumable-semantic-exploration",
+  "id": "fn-33-run-serial-bounded-semantic-exploration",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -505,9 +505,9 @@
   "review_transport_failures": {
     "plan": 0
   },
-  "spec_path": ".flow/specs/fn-33-run-resumable-semantic-exploration.md",
+  "spec_path": ".flow/specs/fn-33-run-serial-bounded-semantic-exploration.md",
   "status": "open",
-  "title": "Run resumable semantic exploration campaigns with umpire-fuzz",
+  "title": "Run serial bounded semantic exploration with umpire-fuzz",
   "tracker": {
     "baseHashFlow": null,
     "baseHashTracker": null,
@@ -519,5 +519,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T10:06:43.228922Z"
+  "updated_at": "2026-09-01T10:11:28.540131Z"
 }

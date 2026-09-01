@@ -1,7 +1,7 @@
 ---
 satisfies: [R1]
 ---
-# fn-33-run-resumable-semantic-exploration.2 Bind Lean-owned candidate selection and coverage
+# fn-33-run-serial-bounded-semantic-exploration.2 Bind Lean-owned candidate selection and coverage
 
 ## Description
 Connect the bridge to fn-17 so Lean alone chooses each candidate and owns semantic coverage.

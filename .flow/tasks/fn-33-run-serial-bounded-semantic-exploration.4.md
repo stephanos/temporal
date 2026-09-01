@@ -1,7 +1,7 @@
 ---
 satisfies: [R4]
 ---
-# fn-33-run-resumable-semantic-exploration.4 Expose the closed serial umpire-fuzz run command
+# fn-33-run-serial-bounded-semantic-exploration.4 Expose the closed serial umpire-fuzz run command
 
 ## Description
 Add the bounded public command and honest terminal output over the completed serial loop.

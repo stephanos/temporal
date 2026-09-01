@@ -1,0 +1,19 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-08-26T20:35:49.141644Z",
+  "depends_on": [
+    "fn-33-run-serial-bounded-semantic-exploration.1"
+  ],
+  "id": "fn-33-run-serial-bounded-semantic-exploration.2",
+  "impl": null,
+  "priority": null,
+  "review": null,
+  "spec": "fn-33-run-serial-bounded-semantic-exploration",
+  "spec_path": ".flow/tasks/fn-33-run-serial-bounded-semantic-exploration.2.md",
+  "status": "todo",
+  "sync": null,
+  "title": "Bind Lean-owned candidate selection and coverage",
+  "updated_at": "2026-09-01T10:10:46.642021Z"
+}
