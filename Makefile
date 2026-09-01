@@ -1117,7 +1117,7 @@ umpire-check-legacy-vocabulary:
 	@printf $(COLOR) "Check active Umpire vocabulary..."
 	@mise exec -- go run ./tools/umpire/cmd/umpire-check-legacy-vocabulary
 
-umpire-check-regression: umpire-check-regression-views umpire-check-legacy-vocabulary
+umpire-check-regression: umpire-check-regression-views umpire-check-portable-evaluation-fixtures umpire-check-legacy-vocabulary
 	@mise exec -- go test -count=1 -tags test_dep \
 		./tools/umpire/temporal/nexus/... -run '^TestHermeticCIPortability$$'
 	@set -eu; \
