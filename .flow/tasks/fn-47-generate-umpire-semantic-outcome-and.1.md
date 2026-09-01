@@ -11,7 +11,7 @@ Define the reusable descriptor vocabulary and owner-local exact-one Planning/run
 **Touches:** [model/Umpire/SemanticInventory/Types.lean, model/Umpire/Planning/Engine.lean, model/Umpire/Artifact/Runtime.lean, model/Umpire/SemanticInventory/Tests/PlanningRuntime.lean]
 
 ### Approach
-- Define documentation descriptors, the five explicit Known Gap source shapes and exact/lossy carry mappings, and catalog validation primitives in the shared module.
+- Define documentation descriptors, the initial shared Known Gap source shapes and exact/lossy carry mappings, and catalog validation primitives in the shared module; task fn-47.4 owns any additional lineage shape proved necessary by the complete current flow inventory.
 - Add canonical constructor descriptors and exact-one classifiers beside PlanningOutcome and each runtime status owner. Payload-free enums may use values; PlanningOutcome.found and .invalid match constructors while ignoring arbitrary payload identity.
 - Preserve current constructors, rendered names, behavior, derived instances, and comments.
 - Test exact ordered names, representative payload independence, and compile-time constructor exhaustiveness without source scanning or reflection.
