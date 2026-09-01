@@ -46,6 +46,14 @@ name = "temporal-run-evaluation-checker"
 root = "Temporal.Tool.RunEvaluationMain"
 
 [[lean_exe]]
+name = "temporal-model-semantic-inventory"
+root = "Temporal.Tool.SemanticInventoryMain"
+
+[[lean_exe]]
+name = "temporal-model-semantic-inventory-tests"
+root = "Temporal.Tool.SemanticInventoryMainTests"
+
+[[lean_exe]]
 name = "umpire-gen-tests-tests"
 root = "Temporal.Tool.GenerateTestsIOTestsMain"
 
