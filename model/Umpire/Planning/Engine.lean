@@ -1,4 +1,5 @@
 import Umpire.Artifact
+import Umpire.SemanticInventory.Types
 
 /-! Implementation behind the `Umpire.Planning` public facade. -/
 
@@ -209,6 +210,65 @@ def PlanningOutcome.name : PlanningOutcome → String
   | .limitReached => "limit-reached"
   | .unsatisfiable => "unsatisfiable"
   | .invalid _ => "invalid"
+
+private def planningOutcomeConstructorIndex : PlanningOutcome → Nat
+  | .found _ _ => 0
+  | .verified => 1
+  | .noSuchTraceWithinCompleteLimits => 2
+  | .limitReached => 3
+  | .unsatisfiable => 4
+  | .invalid _ => 5
+
+/-- Canonical documentation and exact constructor matchers for Planning outcomes. -/
+def PlanningOutcome.constructorClassifiers :
+    List (OutcomeConstructorClassifier PlanningOutcome) := [
+  {
+    descriptor := { name := "found", description := "Planning selected one Model Trace." }
+    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 0
+  },
+  {
+    descriptor := {
+      name := "verified-within-limits"
+      description := "Planning verified the requested universal claim within complete Limits."
+    }
+    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 1
+  },
+  {
+    descriptor := {
+      name := "no-such-trace-within-complete-limits"
+      description := "Complete bounded search found no matching Model Trace."
+    }
+    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 2
+  },
+  {
+    descriptor := {
+      name := "limit-reached"
+      description := "Planning reached its search Limit before completing the Query."
+    }
+    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 3
+  },
+  {
+    descriptor := {
+      name := "unsatisfiable"
+      description := "The checked Behavior admits no Model Traces."
+    }
+    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 4
+  },
+  {
+    descriptor := { name := "invalid", description := "Planning rejected the Query." }
+    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 5
+  }
+]
+
+/-- Every Planning outcome, including arbitrary payloads, matches exactly one descriptor. -/
+theorem PlanningOutcome.constructorClassifiers_exactlyOne :
+    OutcomeConstructorClassifiers.ExactlyOne PlanningOutcome.constructorClassifiers
+  | .found _ _ => rfl
+  | .verified => rfl
+  | .noSuchTraceWithinCompleteLimits => rfl
+  | .limitReached => rfl
+  | .unsatisfiable => rfl
+  | .invalid _ => rfl
 
 structure PlanningResult where
   private mk ::
