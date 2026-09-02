@@ -56,9 +56,7 @@ structure PromotionBaseAnchor where
 /-- Fixed names and imports used by the deterministic Lean source renderer. -/
 structure PromotionSourceSpec where
   imports : List String
-  baseModule : String
   namespaceName : String
-  baseQueryReference : String
   sourceDefinitionId : DefinitionId
   sourceLocation : SourceLocation
   promotedBehaviorDefinitionId : DefinitionId
@@ -171,17 +169,13 @@ def renderPromotionSource (spec : PromotionSourceSpec) (trace : BehaviorTrace) :
       "",
       "def expectedTrace : BehaviorTrace := " ++ renderBehaviorTrace trace,
       "",
-      "def promotedQueryResult :=",
-      "  checkPromotedQuery " ++ spec.baseQueryReference ++ " expectedTrace",
+      "def promotedQueryResult",
+      "    {LawStatement : LawDefinition → Prop}",
+      "    (baseQuery : CheckedQuery LawStatement) :",
+      "    Except PromotionError (CheckedQuery LawStatement) :=",
+      "  checkPromotedQuery baseQuery expectedTrace",
       "    " ++ renderDefinitionId spec.promotedBehaviorDefinitionId,
       "    " ++ renderDefinitionId spec.promotedQueryDefinitionId ++ " source",
-      "",
-      "private theorem promotedQueryResult_isSome :",
-      "    promotedQueryResult.toOption.isSome = true := by",
-      "  native_decide",
-      "",
-      "def promotedQuery :=",
-      "  promotedQueryResult.toOption.get promotedQueryResult_isSome",
       "",
       "end " ++ spec.namespaceName,
       ""
@@ -277,14 +271,12 @@ def checkPromotedQuery
 private def validateSourceSpec
     (query : CheckedQuery LawStatement)
     (spec : PromotionSourceSpec) : Except PromotionError Unit := do
-  if spec.imports != ["Umpire.Promotion", spec.baseModule] then
+  if spec.imports != ["Umpire.Promotion"] then
     throw (promotionError .missingImport spec.sourceDefinitionId
-      "imports must be the fixed promotion and base modules")
-  if !validQualifiedName spec.baseModule || !validQualifiedName spec.namespaceName ||
-      !validQualifiedName spec.baseQueryReference ||
-      !spec.baseQueryReference.startsWith (spec.baseModule ++ ".") then
+      "imports must contain only the fixed promotion module")
+  if !validQualifiedName spec.namespaceName then
     throw (promotionError .invalidSourceSpec spec.sourceDefinitionId
-      "invalid module, namespace, or base Query reference")
+      "invalid namespace")
   if !spec.sourceDefinitionId.isNamespaced || spec.sourceLocation.path == "" ||
       spec.sourceLocation.line == 0 || spec.sourceLocation.column == 0 then
     throw (promotionError .invalidSourceSpec spec.sourceDefinitionId
