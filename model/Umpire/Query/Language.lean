@@ -38,11 +38,41 @@ structure QueryLimits where
   search : Limit
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- Deterministic planning parameters. The seed is part of Query identity for every strategy, but
+only the seeded strategy uses it to change traversal. -/
 structure PlannerPolicy where
   strategy : SearchStrategy
   seed : Nat
   tieBreak : TieBreakPolicy
   deriving BEq, DecidableEq, Ord, Repr
+
+namespace PlannerPolicy
+
+/-- Select shortest traversal with seed `17` and Definition-ID tie-breaking. The seed remains part
+of Query identity even though shortest traversal does not consume it. -/
+def shortest : PlannerPolicy := {
+  strategy := .shortest
+  seed := 17
+  tieBreak := .definitionId
+}
+
+/-- Select exhaustive traversal with seed `17` and Definition-ID tie-breaking. The seed remains
+part of Query identity even though exhaustive traversal does not consume it. -/
+def exhaustive : PlannerPolicy := {
+  strategy := .exhaustive
+  seed := 17
+  tieBreak := .definitionId
+}
+
+/-- Select deterministic seeded traversal with Definition-ID tie-breaking. The supplied seed,
+including zero, affects both traversal and Query identity; omitting it selects seed `17`. -/
+def seeded (seed : Nat := 17) : PlannerPolicy := {
+  strategy := .seeded
+  seed
+  tieBreak := .definitionId
+}
+
+end PlannerPolicy
 
 /-- Query planning consumes the target-owned semantic kernel directly. -/
 abbrev QueryTarget (LawStatement : LawDefinition → Prop) : Type :=

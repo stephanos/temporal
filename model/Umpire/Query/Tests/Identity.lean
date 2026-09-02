@@ -16,6 +16,34 @@ def fingerprintOf
     (queryDeclaration : QueryDeclaration) : Option BehaviorFingerprint :=
   (checkQuery queryContext queryDeclaration).toOption.map CheckedQuery.behaviorFingerprint
 
+example : PlannerPolicy.shortest = {
+    strategy := .shortest
+    seed := 17
+    tieBreak := .definitionId
+  } := by
+  rfl
+
+example : PlannerPolicy.exhaustive = {
+    strategy := .exhaustive
+    seed := 17
+    tieBreak := .definitionId
+  } := by
+  rfl
+
+example : PlannerPolicy.seeded = {
+    strategy := .seeded
+    seed := 17
+    tieBreak := .definitionId
+  } := by
+  rfl
+
+example : PlannerPolicy.seeded 0 = {
+    strategy := .seeded
+    seed := 0
+    tieBreak := .definitionId
+  } := by
+  rfl
+
 def reorderedTargetDefinition : TargetDefinition
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
   targetDefinition with definitions := targetDefinition.definitions.reverse

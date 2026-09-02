@@ -260,17 +260,9 @@ def limits : QueryLimits := {
   search := { value := 10, unit := .candidateEvaluations }
 }
 
-def exhaustivePolicy : PlannerPolicy := {
-  strategy := .exhaustive
-  seed := 17
-  tieBreak := .definitionId
-}
+def exhaustivePolicy : PlannerPolicy := PlannerPolicy.exhaustive
 
-def searchPolicy : PlannerPolicy := {
-  strategy := .shortest
-  seed := 17
-  tieBreak := .definitionId
-}
+def searchPolicy : PlannerPolicy := PlannerPolicy.shortest
 
 def context : QueryCheckContext (fun _ => True) :=
   .ofTarget targetWithoutPlanning
