@@ -1190,6 +1190,7 @@ umpire-check-regression: umpire-check-regression-views umpire-check-portable-eva
 		}
 	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests $(UMPIRE_REGRESSION_INSPECTOR)
 	@cd model && $(LEAN_LAKE) exe umpire-gen-tests-tests
+	@cd model && $(LEAN_LAKE) exe temporal-model-promote-tests
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \
