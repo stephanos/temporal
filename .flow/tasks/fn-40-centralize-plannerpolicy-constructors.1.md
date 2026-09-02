@@ -42,9 +42,10 @@ Add the canonical constructor interface after the fn-17.1 strategy rename, then 
 - [ ] Focused Umpire tests pass with existing comments preserved.
 
 ## Done summary
-TBD
+Added documented `PlannerPolicy.shortest`, `PlannerPolicy.exhaustive`, and defaultable `PlannerPolicy.seeded` constructors; Query fixtures now use the ordinary aliases, exact default/zero fields are checked, and the deliberate seed-18 identity mutation remains explicit. Focused, aggregate, full model, and model-lint checks pass; the pre-existing regression-vocabulary failure and 1,385-item Go lint baseline are unchanged and explicitly waived by the owner.
 
+stage: impl-review - ran | SHIP (codex)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 91f561cb273c3e1323a3a491862ce883996b664e
+- Tests: cd model && mise exec -- lake build Umpire.Query.Tests.Identity (TDD red before constructors; green after implementation), cd model && mise exec -- lake build Umpire.Query.Tests.Identity Umpire.Query.Tests, cd model && mise exec -- lake build UmpireTests, cd model && mise exec -- lake build Umpire.Examples.Switch Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.Experimental.CallerClosureTests, make umpire-build-model, make lint-model, make umpire-check-regression (inherited baseline and post-change red only: retired umpire-experiment/v1 test literals in fn-17 files; owner-authorized waiver), GOLANGCI_LINT_FIX=false make lint-code (inherited baseline: 1385 issues)
 - PRs:
