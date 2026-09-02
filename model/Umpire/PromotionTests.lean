@@ -47,10 +47,8 @@ private def baseAnchor : PromotionBaseAnchor := {
 }
 
 private def sourceSpec : PromotionSourceSpec := {
-  imports := ["Umpire.Promotion", "Umpire.Examples.Switch"]
-  baseModule := "Umpire.Examples.Switch"
+  imports := ["Umpire.Promotion"]
   namespaceName := "Umpire.Promotion.Tests.Fixtures.CompiledSource"
-  baseQueryReference := "Umpire.Examples.Switch.exactActionQuery"
   sourceDefinitionId := DefinitionId.of "umpire.promotion.source.switch-count-one"
   sourceLocation := {
     path := "Umpire/Promotion/Tests/Fixtures/CompiledSource.lean"
@@ -67,7 +65,7 @@ private def sourceExpectation : PromotionSourceExpectation :=
   let bytes := include_str "Promotion/Tests/Fixtures/CompiledSource.lean"
   {
     bytes
-    sha256 := "sha256:d9522e2497cde6b04f0915a5a60c45fabb35865904064c349769cc1db22aa43c"
+    sha256 := "sha256:66230be5a4b04ea5fd8b552212c2cf3c0eb7692bc23bacbc032274e1c3a133e9"
   }
 
 private def errorKindOf
@@ -147,10 +145,6 @@ private def nonFoundAnchor : PromotionBaseAnchor := {
   selectionReason := .satisfyingWitness
 }
 
-private def nonFoundSourceSpec : PromotionSourceSpec := {
-  sourceSpec with baseQueryReference := "Umpire.Examples.Switch.nonFoundQuery"
-}
-
 /-! Every meaning-bearing base or source mutation fails before a partial source is returned. -/
 example :
     [
@@ -190,7 +184,7 @@ example :
       errorKindOf (compileWith (anchor := {
         baseAnchor with experimentSpec := changedExperimentSpec
       })),
-      errorKindOf (compileWith (spec := { sourceSpec with imports := ["Umpire.Promotion"] })),
+      errorKindOf (compileWith (spec := { sourceSpec with imports := [] })),
       errorKindOf (compileWith (spec := {
         sourceSpec with namespaceName := "invalid namespace"
       })),
@@ -231,23 +225,50 @@ example :
 /-! A non-found base result cannot be reclassified as a promotable source. -/
 example :
     errorKindOf (compilePromotionSource nonFoundQuery incrementalKernel nonFoundAnchor
-      nonFoundSourceSpec sourceExpectation) = some .nonFoundResult := by
+      sourceSpec sourceExpectation) = some .nonFoundResult := by
   native_decide
 
-/-! The clean-elaborated source contains the exact checked trace and fresh identities. -/
-example :
-    Umpire.Promotion.Tests.Fixtures.CompiledSource.promotedQuery.id =
-        sourceSpec.promotedQueryDefinitionId ∧
-      Umpire.Promotion.Tests.Fixtures.CompiledSource.promotedQuery.behavior.id =
-        sourceSpec.promotedBehaviorDefinitionId ∧
-      Umpire.Promotion.Tests.Fixtures.CompiledSource.promotedQuery.behavior.traceExactly =
-        some targetOwnedCountOneTrace := by
+private def fixturePromotedQueryResult :=
+  Umpire.Promotion.Tests.Fixtures.CompiledSource.promotedQueryResult exactActionQuery
+
+private theorem fixturePromotedQueryResult_isSome :
+    fixturePromotedQueryResult.toOption.isSome = true := by
   native_decide
+
+private def fixturePromotedQuery :=
+  fixturePromotedQueryResult.toOption.get fixturePromotedQueryResult_isSome
+
+/-! The clean-elaborated source binds a typed base Query to the exact trace and fresh identities. -/
+example :
+    fixturePromotedQuery.id = sourceSpec.promotedQueryDefinitionId ∧
+      fixturePromotedQuery.behavior.id = sourceSpec.promotedBehaviorDefinitionId ∧
+      fixturePromotedQuery.behavior.traceExactly = some targetOwnedCountOneTrace := by
+  native_decide
+
+/--
+error: `baseQueryReference` is not a field of structure `PromotionSourceSpec`
+---
+info: let __src := sourceSpec;
+__src : PromotionSourceSpec
+-/
+#guard_msgs in
+#check ({ sourceSpec with
+  baseQueryReference := "Umpire.DoesNotExist.query"
+} : PromotionSourceSpec)
 
 /-!
 error: Unknown constant `Umpire.CompiledPromotionSource.mk`
 -/
 #guard_msgs (error, substring := true) in
 #check Umpire.CompiledPromotionSource.mk
+
+/--
+error: invalid {...} notation, constructor for `CompiledPromotionSource` is marked as private
+-/
+#guard_msgs in
+def replaceCompiledSourceBytes
+    (compiled : CompiledPromotionSource) : CompiledPromotionSource := {
+  compiled with sourceBytes := ""
+}
 
 end Umpire.PromotionTests
