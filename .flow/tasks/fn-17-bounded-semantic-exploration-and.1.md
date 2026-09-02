@@ -34,9 +34,10 @@ Hard-rename the Query seed-rotation strategy to `seeded`, then define the closed
 - [ ] Focused validation tests pass and existing comments remain intact.
 
 ## Done summary
-TBD
+Introduced the checked bounded-exploration request boundary, typed experiment-spec limits, structural coordinate validation, canonical pinned-plan validation, and the hard-renamed seeded query strategy. Focused validation, aggregate model builds, and Lean lint pass; the absent downstream Selection/Session/Nexus modules and unrelated Go lint error in tools/umpire1/monitor_test.go remain inherited baseline failures.
 
+stage: impl-review - ran
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8afb493106016d7fe0814e172cfbe26857708e9d
+- Tests: cd model && mise exec -- lake build Umpire.Exploration.Tests.Validation, cd model && mise exec -- lake build Umpire.Exploration.Tests.Validation Umpire.Property.Tests.Validation Umpire.Query.Tests.Identity, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-build-model, make lint-model, baseline: red (cd model && mise exec -- lake build Umpire.Exploration.Tests.Selection failed pre-edit: downstream module absent), baseline: red (cd model && mise exec -- lake build Umpire.Exploration.Tests.Session failed pre-edit: downstream module absent), baseline: red (cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.ExplorationTests failed pre-edit: downstream module absent), GOLANGCI_LINT_FIX=false make lint-code (inherited failure: tools/umpire1/monitor_test.go:17,19 undefined v1)
 - PRs:

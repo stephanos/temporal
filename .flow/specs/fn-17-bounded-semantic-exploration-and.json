@@ -13,7 +13,9 @@
     "fn-10-temporal-semantic-model-layout-and"
   ],
   "id": "fn-17-bounded-semantic-exploration-and",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-17-bounded-semantic-exploration-and.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -440,15 +442,47 @@
       "task": null,
       "timestamp": "2026-08-26T21:53:30.703295Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a61419156c5877b0a489bc9b26e6fa6ae4891ae1da422e64f92ace5ef226917f",
+      "backend": "codex",
+      "base_sha": "f2c3f2610b04f0a8edc1f1b74590bd7254601958",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8afb493106016d7fe0814e172cfbe26857708e9d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 259779,
+      "output_sha256": "40fc304c84b9fba80623369cf5ff8c4845b6aff4d3ff5e64a6ee2bbe26811d67",
+      "reservation_id": "73b5c8a38e3f48c594d675dae3ef6a7a",
+      "round_consumed": true,
+      "scope": "impl:fn-17-bounded-semantic-exploration-and.1",
+      "superseded_by": null,
+      "task": "fn-17-bounded-semantic-exploration-and.1",
+      "timestamp": "2026-09-02T18:25:28.181054Z",
+      "tool_calls": 27,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-17-bounded-semantic-exploration-and.1": 1,
     "plan": 2,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-17-bounded-semantic-exploration-and.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-17-bounded-semantic-exploration-and.md",
@@ -465,5 +499,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T10:19:33.556461Z"
+  "updated_at": "2026-09-02T18:25:28.193914Z"
 }
