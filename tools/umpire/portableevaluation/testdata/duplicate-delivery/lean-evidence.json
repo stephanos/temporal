@@ -16,13 +16,13 @@
   },
   "run": {
     "formatVersion": "umpire-experiment-run/v2",
-    "artifactChecksum": "sha256:3b89253505d802d01cb02f338713d30d36faa4c7b15fddd55a06def90c7fcedc",
+    "artifactChecksum": "sha256:30ed270c1e863fd5b5536468f1c584e28d6cbe2f3b45d462584336326016ccee",
     "behaviorFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
   },
   "rawEvidence": {
     "formatVersion": "umpire-raw-evidence/v2",
-    "artifactChecksum": "sha256:1ba4c911e94b7bdaa13f25e28a73bd94b80ee0a4555d77b078566d77cbea8c40",
+    "artifactChecksum": "sha256:5c995fd27a08730dcc1cd7779ddf0f6cda62353a2f46e1ec8c67d11881674ea8",
     "behaviorFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
   },
@@ -36,7 +36,7 @@
   },
   "observationEvaluationStatus": "accepted",
   "evidenceBackedModelTrace": {
-    "traceId": "sha256:497c3480f73079d751a45ff7eb7db8f58a7afc09c1e89b35f0cbc20e24622051",
+    "traceId": "sha256:0a780eefe1b0df0cd1f420a0c5dd4b12e78d9217a7c72a3572747fc84e3b8dfc",
     "observationPlan": {
       "definitionId": "temporal.system.nexus.caller-closure.duplicate-delivery.mapping",
       "behaviorFingerprint": "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438"
@@ -100,7 +100,7 @@
       "umpire.runtime.fact.participant.synthetic-duplicate.fixture"
     ],
     "trace": {
-      "traceId": "sha256:497c3480f73079d751a45ff7eb7db8f58a7afc09c1e89b35f0cbc20e24622051",
+      "traceId": "sha256:0a780eefe1b0df0cd1f420a0c5dd4b12e78d9217a7c72a3572747fc84e3b8dfc",
       "initialState": {
         "definitionId": "temporal.system.nexus.caller-closure.state",
         "value": "temporal.history.WorkflowExecutionStarted"
@@ -206,7 +206,7 @@
         },
         {
           "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "ordinal": 1,
           "causalFactDefinitionIds": [
             "umpire.runtime.fact.participant.fixture"
@@ -224,6 +224,10 @@
         },
         {
           "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "lastOrdinal": 1
         },
         {
@@ -316,7 +320,7 @@
         },
         {
           "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "ordinal": 1,
           "causalFactDefinitionIds": [
             "umpire.runtime.fact.participant.fixture"
@@ -334,6 +338,10 @@
         },
         {
           "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "lastOrdinal": 1
         },
         {
@@ -486,7 +494,7 @@
         },
         {
           "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "ordinal": 1,
           "causalFactDefinitionIds": [
             "umpire.runtime.fact.participant.fixture"
@@ -504,6 +512,10 @@
         },
         {
           "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "lastOrdinal": 1
         },
         {
@@ -596,7 +608,7 @@
         },
         {
           "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "ordinal": 1,
           "causalFactDefinitionIds": [
             "umpire.runtime.fact.participant.fixture"
@@ -614,6 +626,10 @@
         },
         {
           "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "lastOrdinal": 1
         },
         {
@@ -706,7 +722,7 @@
         },
         {
           "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "ordinal": 1,
           "causalFactDefinitionIds": [
             "umpire.runtime.fact.participant.fixture"
@@ -724,6 +740,10 @@
         },
         {
           "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "lastOrdinal": 1
         },
         {
@@ -816,7 +836,7 @@
         },
         {
           "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "ordinal": 1,
           "causalFactDefinitionIds": [
             "umpire.runtime.fact.participant.fixture"
@@ -834,6 +854,10 @@
         },
         {
           "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "lastOrdinal": 1
         },
         {
@@ -844,7 +868,7 @@
       "appliedDispositions": [
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.cancellation-callback-count"
           },
           "kind": "retained",
@@ -854,7 +878,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.cancellation-completed-count"
           },
           "kind": "retained",
@@ -864,7 +888,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.cancellation-requested-count"
           },
           "kind": "retained",
@@ -874,7 +898,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
           },
           "kind": "retained",
@@ -884,7 +908,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
           },
           "kind": "retained",
@@ -894,7 +918,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
           },
           "kind": "retained",
@@ -904,7 +928,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id"
           },
           "kind": "retained",
@@ -914,7 +938,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.run-correlation-id"
           },
           "kind": "retained",
@@ -924,7 +948,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-count"
           },
           "kind": "retained",
@@ -934,7 +958,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-marker"
           },
           "kind": "retained",
@@ -944,7 +968,7 @@
         },
         {
           "field": {
-            "kindDefinitionId": "umpire.evidence.kind.participant-command",
+            "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
             "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id"
           },
           "kind": "retained",
@@ -1026,7 +1050,7 @@
         },
         {
           "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-          "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "ordinal": 1,
           "causalFactDefinitionIds": [
             "umpire.runtime.fact.participant.fixture"
@@ -1044,6 +1068,10 @@
         },
         {
           "kindDefinitionId": "umpire.evidence.kind.participant-command",
+          "lastOrdinal": 0
+        },
+        {
+          "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
           "lastOrdinal": 1
         },
         {
@@ -1162,30 +1190,6 @@
     {
       "field": {
         "kindDefinitionId": "umpire.evidence.kind.participant-command",
-        "fieldDefinitionId": "umpire.evidence.field.cancellation-completed-count"
-      },
-      "disposition": "retain",
-      "digestPolicyDefinitionId": null
-    },
-    {
-      "field": {
-        "kindDefinitionId": "umpire.evidence.kind.participant-command",
-        "fieldDefinitionId": "umpire.evidence.field.cancellation-requested-count"
-      },
-      "disposition": "retain",
-      "digestPolicyDefinitionId": null
-    },
-    {
-      "field": {
-        "kindDefinitionId": "umpire.evidence.kind.participant-command",
-        "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
-      },
-      "disposition": "retain",
-      "digestPolicyDefinitionId": null
-    },
-    {
-      "field": {
-        "kindDefinitionId": "umpire.evidence.kind.participant-command",
         "fieldDefinitionId": "umpire.evidence.field.command-kind"
       },
       "disposition": "retain",
@@ -1198,22 +1202,6 @@
       },
       "disposition": "hash",
       "digestPolicyDefinitionId": "temporal.system.nexus.caller-closure.digest.endpoint"
-    },
-    {
-      "field": {
-        "kindDefinitionId": "umpire.evidence.kind.participant-command",
-        "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
-      },
-      "disposition": "retain",
-      "digestPolicyDefinitionId": null
-    },
-    {
-      "field": {
-        "kindDefinitionId": "umpire.evidence.kind.participant-command",
-        "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
-      },
-      "disposition": "retain",
-      "digestPolicyDefinitionId": null
     },
     {
       "field": {
@@ -1242,6 +1230,94 @@
     {
       "field": {
         "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.cancellation-callback-count"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.cancellation-completed-count"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.cancellation-requested-count"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.command-kind"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.run-correlation-id"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
+        "fieldDefinitionId": "umpire.evidence.field.status"
+      },
+      "disposition": "retain",
+      "digestPolicyDefinitionId": null
+    },
+    {
+      "field": {
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
         "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-count"
       },
       "disposition": "retain",
@@ -1249,7 +1325,7 @@
     },
     {
       "field": {
-        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
         "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-marker"
       },
       "disposition": "retain",
@@ -1257,7 +1333,7 @@
     },
     {
       "field": {
-        "kindDefinitionId": "umpire.evidence.kind.participant-command",
+        "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
         "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id"
       },
       "disposition": "retain",
@@ -1320,5 +1396,5 @@
     ]
   },
   "provenanceChecksum": "sha256:d1310fcad6c48888887bc32a71d43faaa594df1ec59371e79396e09f4b371b47",
-  "artifactChecksum": "sha256:22d0c58e14b4ff849505ee0fb217c4155fe0936f1ba9d8ff0ef1157bec96c745"
+  "artifactChecksum": "sha256:394c69bb7ae1b54068c5cbb6dabfc08961b123ec69d95089c251bac6a1e1504a"
 }
