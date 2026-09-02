@@ -51,9 +51,14 @@ proposal bytes compile without modifying the source tree.
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-TBD
+Implemented the effect-thin fixed-candidate `temporal-model-promote` command with a sealed canonical v2 proposal, exact lineage/source bindings, structured failures, and no runtime-eligibility claim. Added a complete pinned golden and executable regression covering exact streams/status, byte stability, isolated source elaboration, and repository non-mutation; corrected the fn-5 Quick target typo under the user's standing replan authorization.
 
+Verification passed for the corrected parent Lean Quick, task Quick plus executable regression, `make lint-model`, and `git diff --check`. `make umpire-check-regression` remains red only at the pre-edit `KnownGaps.lean:296` vocabulary finding, and `make lint-code` remains at the pre-existing 1373 repository findings.
+
+stage: impl-review - ran [2026-09-02T16:55:48.233488Z..2026-09-02T17:09:52.829756Z]
+stage: plan-sync - skipped(config: planSync.enabled=false)
+stage: tracker-sync - skipped(config: tracker inactive)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: dc73777924f1d51bcda5f19a335d7224a606f39c, 360564640827c87a0d256d0d91ab4baa15f78727, a7dd2fa3425ea6391dd1ea2ec3252d8ab55b2183
+- Tests: baseline: red (cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromotionTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote failed pre-edit: future temporal-model-promote target absent; terminal run also exposed inherited nonexistent Temporal.Tool.PromotionTests target), cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromotionBindingTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote, cd model && mise exec -- lake build Temporal.Tool.PromoteTests TemporalExperimentalTests temporal-model-promote temporal-model-promote-tests && mise exec -- lake -q exe temporal-model-promote-tests, make lint-model, make umpire-check-regression (inherited failure: model/Umpire/SemanticInventory/KnownGaps.lean:296 forbidden Temporal-owned vocabulary; all preceding checks green), make lint-code (inherited failure: 1373 pre-existing repository findings), git diff --check
 - PRs:
