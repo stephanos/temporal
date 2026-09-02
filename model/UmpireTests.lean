@@ -29,6 +29,7 @@ import Umpire.Space.Tests.Intent
 import Umpire.Space.Tests.Metadata
 import Umpire.Space.Tests.Validation
 import Umpire.Exploration.Tests.Validation
+import Umpire.Exploration.Tests.Candidate
 
 namespace UmpireTests
 
