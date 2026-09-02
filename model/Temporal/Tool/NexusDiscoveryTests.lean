@@ -143,6 +143,102 @@ example : inventory.canonicalListBytes = expectedListBytes ∧
       some expectedListBytes := by
   native_decide
 
+private def expectedLineageJson : List String := [
+  "{\"formatVersion\":\"umpire-experiment/v2\"," ++
+    "\"artifactChecksum\":\"sha256:abb2057aa18959317fd8fdaad26dc16c5e9f07405c0cc6964775ba243c16344c\"," ++
+    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.async-start\"," ++
+    "\"queryBehaviorFingerprint\":\"sha256:b70aabc48c562222b0af17da83b46d9969c70ad56e408380e85628396a79a198\"," ++
+    "\"behaviorDefinitionId\":\"temporal.nexus.basic-lifecycle.behavior.async-start\"," ++
+    "\"behaviorFingerprint\":\"sha256:a03bbfcba396776571b733d6cb61f34ad744a4dada0ac180bb8cfed4435036d1\"," ++
+    "\"targetDefinitionId\":\"temporal.nexus.basic-lifecycle.target\"," ++
+    "\"targetBehaviorFingerprint\":\"sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93\"," ++
+    "\"kernelDefinitionId\":\"temporal.nexus.basic-lifecycle.kernel\"," ++
+    "\"kernelBehaviorFingerprint\":\"sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93\"," ++
+    "\"properties\":[{\"definitionId\":\"temporal.nexus.basic-lifecycle.property.async-start\"," ++
+      "\"behaviorFingerprint\":\"sha256:51d6b7850f4b10bc77317f4bed7b007c8e3693e7146554090ddeca4109ae25cf\"}]," ++
+    "\"provenanceDefinitionIds\":[\"temporal.nexus.basic-lifecycle.behavior.async-start\"," ++
+      "\"temporal.nexus.basic-lifecycle.kernel\"," ++
+      "\"temporal.nexus.basic-lifecycle.property.async-start\"," ++
+      "\"temporal.nexus.basic-lifecycle.query.async-start\"," ++
+      "\"temporal.nexus.basic-lifecycle.target\"]," ++
+    "\"provenanceSources\":[{\"path\":\"Temporal/Feature/Nexus/Lifecycle.lean\"," ++
+      "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
+      "{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1," ++
+      "\"provenance\":\"lean-model\"}]}",
+  "{\"formatVersion\":\"umpire-experiment/v2\"," ++
+    "\"artifactChecksum\":\"sha256:04de9aaec8cde4836a47cec9f58e45a2345e6985b9a86d6c8003ade0e75f4b04\"," ++
+    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.cancellation\"," ++
+    "\"queryBehaviorFingerprint\":\"sha256:3ffa43c66a7ae10ee8656242b198399b9eda29d8639ef58bdbe2bd268ad6edc5\"," ++
+    "\"behaviorDefinitionId\":\"temporal.nexus.basic-lifecycle.behavior.cancellation\"," ++
+    "\"behaviorFingerprint\":\"sha256:54481a44690637f3837b5d2de4af258dc05d2f40d41fe766e7a61d9533087171\"," ++
+    "\"targetDefinitionId\":\"temporal.nexus.basic-lifecycle.target\"," ++
+    "\"targetBehaviorFingerprint\":\"sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93\"," ++
+    "\"kernelDefinitionId\":\"temporal.nexus.basic-lifecycle.kernel\"," ++
+    "\"kernelBehaviorFingerprint\":\"sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93\"," ++
+    "\"properties\":[{\"definitionId\":\"temporal.nexus.basic-lifecycle.property.cancellation\"," ++
+      "\"behaviorFingerprint\":\"sha256:1ed453c84d07091b4cd04f6baa6276777dbec79e01fe7086df7e3664b36b97db\"}]," ++
+    "\"provenanceDefinitionIds\":[\"temporal.nexus.basic-lifecycle.behavior.cancellation\"," ++
+      "\"temporal.nexus.basic-lifecycle.kernel\"," ++
+      "\"temporal.nexus.basic-lifecycle.property.cancellation\"," ++
+      "\"temporal.nexus.basic-lifecycle.query.cancellation\"," ++
+      "\"temporal.nexus.basic-lifecycle.target\"]," ++
+    "\"provenanceSources\":[{\"path\":\"Temporal/Feature/Nexus/Lifecycle.lean\"," ++
+      "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
+      "{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1," ++
+      "\"provenance\":\"lean-model\"}]}",
+  "{\"formatVersion\":\"umpire-experiment/v2\"," ++
+    "\"artifactChecksum\":\"sha256:f85f0693d52139438ad53cfb4cb91ea58d826c320dfdf2d2c0981c9d5ecdb4b1\"," ++
+    "\"queryDefinitionId\":\"temporal.nexus.basic-lifecycle.query.successful-completion\"," ++
+    "\"queryBehaviorFingerprint\":\"sha256:9d48c2cc92dea47824b2e90f1e5f9f627929cb2aa5d57e6a53077a41b342dbef\"," ++
+    "\"behaviorDefinitionId\":\"temporal.nexus.basic-lifecycle.behavior.successful-completion\"," ++
+    "\"behaviorFingerprint\":\"sha256:f0d3559ebef58a279567a3685cf0a01d91c6db2c887da48ac2c2b0c3803ed86b\"," ++
+    "\"targetDefinitionId\":\"temporal.nexus.basic-lifecycle.target\"," ++
+    "\"targetBehaviorFingerprint\":\"sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93\"," ++
+    "\"kernelDefinitionId\":\"temporal.nexus.basic-lifecycle.kernel\"," ++
+    "\"kernelBehaviorFingerprint\":\"sha256:2dffda3904f7425aa7ef89876393dc1648edcca0a944139672b6e35dd1651d93\"," ++
+    "\"properties\":[{\"definitionId\":\"temporal.nexus.basic-lifecycle.property.successful-completion\"," ++
+      "\"behaviorFingerprint\":\"sha256:5e91ae03d34107a969af623e280f8f90dda88d673b5fec49d13d1f394728fac2\"}]," ++
+    "\"provenanceDefinitionIds\":[\"temporal.nexus.basic-lifecycle.behavior.successful-completion\"," ++
+      "\"temporal.nexus.basic-lifecycle.kernel\"," ++
+      "\"temporal.nexus.basic-lifecycle.property.successful-completion\"," ++
+      "\"temporal.nexus.basic-lifecycle.query.successful-completion\"," ++
+      "\"temporal.nexus.basic-lifecycle.target\"]," ++
+    "\"provenanceSources\":[{\"path\":\"Temporal/Feature/Nexus/Lifecycle.lean\"," ++
+      "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
+      "{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1," ++
+      "\"provenance\":\"lean-model\"}]}",
+  "{\"formatVersion\":\"umpire-experiment/v2\"," ++
+    "\"artifactChecksum\":\"sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8\"," ++
+    "\"queryDefinitionId\":\"workflow-nexus.query.exact-action-caller-closure\"," ++
+    "\"queryBehaviorFingerprint\":\"sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af\"," ++
+    "\"behaviorDefinitionId\":\"workflow-nexus.behavior.exact-action\"," ++
+    "\"behaviorFingerprint\":\"sha256:322893fbbe0a80ca186aa1f10268df45966bda212db37c725ea71fd75903b703\"," ++
+    "\"targetDefinitionId\":\"workflow-nexus.target.caller-closure\"," ++
+    "\"targetBehaviorFingerprint\":\"sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd\"," ++
+    "\"kernelDefinitionId\":\"workflow-nexus.kernel.caller-closure\"," ++
+    "\"kernelBehaviorFingerprint\":\"sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd\"," ++
+    "\"properties\":[{\"definitionId\":\"workflow-nexus.property.caller-closure\"," ++
+      "\"behaviorFingerprint\":\"sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f\"}]," ++
+    "\"provenanceDefinitionIds\":[\"workflow-nexus.behavior.exact-action\"," ++
+      "\"workflow-nexus.kernel.caller-closure\",\"workflow-nexus.property.caller-closure\"," ++
+      "\"workflow-nexus.query.exact-action-caller-closure\"," ++
+      "\"workflow-nexus.target.caller-closure\"]," ++
+    "\"provenanceSources\":[{" ++
+      "\"path\":\"Temporal/Feature/Nexus/Experimental/CallerClosure.lean\"," ++
+      "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}]}"
+]
+
+private def expectedExplanationBytes : List String :=
+  (inventory.entries.zip expectedLineageJson).map fun (entry, lineage) =>
+    "{\"formatVersion\":\"umpire-nexus-explanation/v1\",\"summary\":" ++
+      entry.canonicalSummaryJson ++ ",\"lineage\":" ++ lineage ++ "}\n"
+
+example : inventory.entries.map (fun entry =>
+    (inventory.findEntry? entry.query.id.value).map
+      NexusDiscoveryEntry.canonicalExplanationBytes) =
+    expectedExplanationBytes.map some := by
+  native_decide
+
 private def wrongKind : NexusDiscoveryCandidate := {
   first with property := { first.property with kind := .behavior }
 }

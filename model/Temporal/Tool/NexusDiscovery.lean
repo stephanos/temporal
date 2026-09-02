@@ -11,6 +11,7 @@ This module projects four existing checked Nexus examples into one deterministic
 private entry constructor ensures callers can observe only rows whose declaration ownership,
 planned Artifact lineage, exact membership, and canonical order were validated together.
 The canonical list projection exposes compact summaries of those checked bindings.
+The explanation projection reuses one summary and exposes its complete checked plan lineage.
 -/
 
 namespace Temporal.Tool.NexusDiscovery
@@ -341,6 +342,12 @@ def NexusDiscoveryInventory.canonicalBindingBytes
     frame (planBinding entry.plan)
   ])
 
+/-- Find one validated row by exact canonical Query identity. -/
+def NexusDiscoveryInventory.findEntry?
+    (inventory : NexusDiscoveryInventory)
+    (queryId : String) : Option NexusDiscoveryEntry :=
+  inventory.entries.find? fun entry => entry.query.id.value == queryId
+
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
 private def array (items : List String) : String :=
@@ -362,6 +369,26 @@ private def planSummaryJson (plan : NexusDiscoveryPlan) : String :=
   "{\"formatVersion\":" ++ quote plan.formatVersion ++
     ",\"artifactChecksum\":" ++ quote plan.artifactChecksum.render ++ "}"
 
+private def propertyBindingJson (property : NexusDiscoveryPropertyBinding) : String :=
+  "{\"definitionId\":" ++ quote property.definitionId.value ++
+    ",\"behaviorFingerprint\":" ++ quote property.behaviorFingerprint.render ++ "}"
+
+private def planLineageJson (plan : NexusDiscoveryPlan) : String :=
+  "{\"formatVersion\":" ++ quote plan.formatVersion ++
+    ",\"artifactChecksum\":" ++ quote plan.artifactChecksum.render ++
+    ",\"queryDefinitionId\":" ++ quote plan.queryDefinitionId.value ++
+    ",\"queryBehaviorFingerprint\":" ++ quote plan.queryBehaviorFingerprint.render ++
+    ",\"behaviorDefinitionId\":" ++ quote plan.behaviorDefinitionId.value ++
+    ",\"behaviorFingerprint\":" ++ quote plan.behaviorFingerprint.render ++
+    ",\"targetDefinitionId\":" ++ quote plan.targetDefinitionId.value ++
+    ",\"targetBehaviorFingerprint\":" ++ quote plan.targetBehaviorFingerprint.render ++
+    ",\"kernelDefinitionId\":" ++ quote plan.kernelDefinitionId.value ++
+    ",\"kernelBehaviorFingerprint\":" ++ quote plan.kernelBehaviorFingerprint.render ++
+    ",\"properties\":" ++ array (plan.properties.map propertyBindingJson) ++
+    ",\"provenanceDefinitionIds\":" ++
+      array (plan.provenanceDefinitionIds.map fun id => quote id.value) ++
+    ",\"provenanceSources\":" ++ array (plan.provenanceSources.map sourceJson) ++ "}"
+
 /-- Encode the compact list summary shared by discovery commands. -/
 def NexusDiscoveryEntry.canonicalSummaryJson (entry : NexusDiscoveryEntry) : String :=
   "{\"queryDefinitionId\":" ++ quote entry.query.id.value ++
@@ -369,6 +396,15 @@ def NexusDiscoveryEntry.canonicalSummaryJson (entry : NexusDiscoveryEntry) : Str
     ",\"behavior\":" ++ declarationSummaryJson entry.behavior ++
     ",\"query\":" ++ declarationSummaryJson entry.query ++
     ",\"experimentSpec\":" ++ planSummaryJson entry.plan ++ "}"
+
+/-- Encode one validated row and its complete checked plan lineage as canonical explanation JSON. -/
+def NexusDiscoveryEntry.canonicalExplanationJson (entry : NexusDiscoveryEntry) : String :=
+  "{\"formatVersion\":\"umpire-nexus-explanation/v1\",\"summary\":" ++
+    entry.canonicalSummaryJson ++ ",\"lineage\":" ++ planLineageJson entry.plan ++ "}"
+
+/-- Encode one canonical Nexus explanation followed by one line feed. -/
+def NexusDiscoveryEntry.canonicalExplanationBytes (entry : NexusDiscoveryEntry) : String :=
+  entry.canonicalExplanationJson ++ "\n"
 
 /-- Encode one validated inventory as the canonical version-one discovery JSON value. -/
 def NexusDiscoveryInventory.canonicalListJson (inventory : NexusDiscoveryInventory) : String :=
