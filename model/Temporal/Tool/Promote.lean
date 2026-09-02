@@ -102,12 +102,6 @@ private def instrumentationJson (instrumentation : PlannerInstrumentation) : Str
     ",\"initialKernelPulls\":" ++ toString instrumentation.initialKernelPulls ++
     ",\"stepKernelPulls\":" ++ toString instrumentation.stepKernelPulls ++ "}"
 
-private def sameQuery
-    (left right : CheckedQuery LawStatement) : Bool :=
-  left.id == right.id && left.source == right.source && left.version == right.version &&
-    left.canonicalMetadata == right.canonicalMetadata &&
-    left.behaviorFingerprint == right.behaviorFingerprint
-
 private def plannerRunJson (run : PlannerRun) : String :=
   let selectionReason := match run.result.outcome with
     | .found _ reason => reason.name
@@ -142,7 +136,6 @@ namespace Internal
 structure PromotionProposalInput where
   binding : PromotionCandidateBinding
   candidateDefinitionId : DefinitionId
-  baseQuery : CheckedQuery LawStatement
   basePlannerRun : PlannerRun
   baseExperimentSpec : ExperimentSpec
   faultExperimentSpec : ExperimentSpec
@@ -156,7 +149,6 @@ structure PromotionProposalInput where
 def inputOfBinding (binding : PromotionCandidateBinding) : PromotionProposalInput := {
   binding
   candidateDefinitionId := binding.identity
-  baseQuery := binding.baseQuery
   basePlannerRun := binding.basePlannerRun
   baseExperimentSpec := binding.baseExperimentSpec
   faultExperimentSpec := binding.faultExperimentSpec
@@ -169,16 +161,29 @@ def inputOfBinding (binding : PromotionCandidateBinding) : PromotionProposalInpu
 
 private def validateBase (input : PromotionProposalInput) : Except PromotionFailure Unit := do
   let compiled := input.binding.compiledSource
-  if !sameQuery input.baseQuery input.binding.baseQuery ||
-      input.basePlannerRun != input.binding.basePlannerRun ||
+  let baseQuery := input.binding.baseQuery
+  if input.basePlannerRun != input.binding.basePlannerRun ||
       input.baseExperimentSpec != input.binding.baseExperimentSpec ||
-      !sameQuery input.baseQuery exactActionQuery || input.basePlannerRun != exactActionRun ||
+      baseQuery.id != exactActionQuery.id ||
+      baseQuery.source != exactActionQuery.source ||
+      baseQuery.version != exactActionQuery.version ||
+      baseQuery.form != exactActionQuery.form ||
+      baseQuery.quantifier != exactActionQuery.quantifier ||
+      baseQuery.claim != exactActionQuery.claim ||
+      baseQuery.behavior != exactActionQuery.behavior ||
+      baseQuery.limits != exactActionQuery.limits ||
+      baseQuery.policy != exactActionQuery.policy ||
+      baseQuery.targetComposition != exactActionQuery.targetComposition ||
+      baseQuery.documentation != exactActionQuery.documentation ||
+      baseQuery.canonicalMetadata != exactActionQuery.canonicalMetadata ||
+      baseQuery.behaviorFingerprint != exactActionQuery.behaviorFingerprint ||
+      input.basePlannerRun != exactActionRun ||
       input.baseExperimentSpec != compiledArtifact ||
       input.basePlannerRun.artifact != some input.baseExperimentSpec ||
       !input.baseExperimentSpec.hasValidArtifactChecksum ||
       !input.baseExperimentSpec.plan.hasValidArtifactChecksum ||
-      compiled.baseQueryDefinitionId != input.baseQuery.id ||
-      compiled.baseQueryBehaviorFingerprint != input.baseQuery.behaviorFingerprint ||
+      compiled.baseQueryDefinitionId != baseQuery.id ||
+      compiled.baseQueryBehaviorFingerprint != baseQuery.behaviorFingerprint ||
       compiled.baseBehaviorDefinitionId != input.baseExperimentSpec.plan.behaviorDefinitionId ||
       compiled.baseBehaviorFingerprint != input.baseExperimentSpec.plan.behaviorFingerprint ||
       compiled.baseTargetDefinitionId != input.baseExperimentSpec.plan.targetDefinitionId ||
@@ -243,7 +248,7 @@ def canonicalBytes (input : PromotionProposalInput) : String :=
     "{\"formatVersion\":\"umpire-promotion-proposal/v2\"" ++
       ",\"contract\":\"inert-model-compilation-only\"" ++
       ",\"candidateDefinitionId\":" ++ quote input.candidateDefinitionId.value ++
-      ",\"baseQuery\":" ++ queryBindingJson input.baseQuery ++
+      ",\"baseQuery\":" ++ queryBindingJson input.binding.baseQuery ++
       ",\"basePlannerRun\":" ++ plannerRunJson input.basePlannerRun ++
       ",\"baseExperimentSpec\":" ++ experimentBindingJson input.baseExperimentSpec ++
       ",\"faultExperimentSpec\":" ++ experimentBindingJson input.faultExperimentSpec ++
