@@ -33,11 +33,15 @@ Added the sole tagged portable canary integration test. One `testcore.NewEnv` di
 
 Aligned the live evidence boundary required by that portable path: environment receipts use the cleanup source/kind; successful participant lifecycle receipts retain only semantic realization evidence; synthetic duplicate delivery has a dedicated raw kind and cancellation coordinate; the runtime engine, legacy Lean projection, and canonical fixtures preserve exact raw identities while remaining compatible with the existing semantic model. The stale parity-generator normalization found by review was removed and all affected fixtures regenerated.
 
-Fresh verification passed for the exact tagged acceptance test, hermetic portability, affected runtime/checker packages, portable-evaluation parity, and canonical fixture drift. The task-scoped Codex review reached SHIP after its sole P2 fixture-generation finding was fixed. Existing comments remain intact, and the unrelated user-owned config/schema modifications remain unstaged and uncommitted.
+Late-finalization verification freshly passed the exact tagged acceptance test, affected runtime/checker packages, hermetic portability, portable-evaluation parity, and canonical fixture drift under Xcode `CC`/`CXX`/`SDKROOT` with workspace-local `TMPDIR`/`GOTMPDIR`. The existing task-scoped Codex review remains the authoritative SHIP verdict; no review or unrelated repository-wide ENOSPC-prone gate was rerun.
 
-stage: impl-review - ran (Codex SHIP after one fixed P2 parity-fixture finding; receipt `.flow/tmp/handovers/fn-28.9-review.json`)
+baseline: green (exact tagged acceptance test and all affected focused gates)
+
+GATE_CLASSIFY_FULL: empty finalization diff refuses tier-B; unrelated repository-wide ENOSPC gates were not rerun under the scoped continuation instruction
+
+stage: impl-review - ran (authoritative committed Codex SHIP receipt reused; no new review dispatched)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 079dced3a2fbbf7eb651d7c59c54bcfe9bddd7a9, abc5df5036a49600f9d017b75171dfcd4a185fde
-- Tests: go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpirePortableCanaryExecutor$' (pass), go test -count=1 ./tools/umpire/internal/runtimeengine (pass within affected-package run), go test -count=1 ./tools/umpire/runevaluation (pass), go test -count=1 ./tools/umpire/temporal/local (pass within affected-package run), go test -count=1 ./tools/umpire/temporal/nexus (pass within affected-package run), go test -count=1 ./tools/umpire/temporal/nexus -run '^TestHermeticCIPortability$' (pass), go test -count=1 -tags test_dep ./tools/umpire/portableevaluation/... (pass), make umpire-check-portable-evaluation-fixtures (pass), Codex implementation review c95feb08dc36ba7a6ee1167abeabf621b4af5ea3..abc5df5036a49600f9d017b75171dfcd4a185fde (SHIP)
+- Tests: go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpirePortableCanaryExecutor$', go test -count=1 ./tools/umpire/internal/runtimeengine ./tools/umpire/runevaluation ./tools/umpire/temporal/local ./tools/umpire/temporal/nexus, go test -count=1 ./tools/umpire/temporal/nexus -run '^TestHermeticCIPortability$', go test -count=1 -tags test_dep ./tools/umpire/portableevaluation/..., make umpire-check-portable-evaluation-fixtures, GATE_CLASSIFY_FULL: empty finalization diff refuses tier-B; unrelated repository-wide ENOSPC gates were not rerun under the scoped continuation instruction, Codex implementation review c95feb08dc36ba7a6ee1167abeabf621b4af5ea3..abc5df5036a49600f9d017b75171dfcd4a185fde (SHIP; committed receipt reused)
 - PRs:
