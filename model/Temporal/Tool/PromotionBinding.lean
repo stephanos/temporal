@@ -37,7 +37,6 @@ structure PromotionBindingError where
 /-- Untrusted static input used only by the closed binding checker and its mutation tests. -/
 structure PromotionCandidateInput where
   identity : DefinitionId
-  baseQuery : CheckedQuery LawStatement
   baseAnchor : PromotionBaseAnchor
   faultExperimentSpec : ExperimentSpec
   sourceSpec : PromotionSourceSpec
@@ -80,7 +79,6 @@ def discoveryDefinitionIds : List DefinitionId :=
 /-- The only complete candidate input accepted by the binding checker. -/
 def candidate : PromotionCandidateInput := {
   identity := candidateId
-  baseQuery := exactActionQuery
   baseAnchor
   faultExperimentSpec
   sourceSpec
@@ -92,18 +90,6 @@ private def promotedIdentitiesCollide
   discoveryDefinitionIds.contains candidate.sourceSpec.promotedBehaviorDefinitionId ||
     discoveryDefinitionIds.contains candidate.sourceSpec.promotedQueryDefinitionId
 
-private def baseQueryMatches (candidate : CheckedQuery LawStatement) : Bool :=
-  candidate.id == exactActionQuery.id &&
-    candidate.source == exactActionQuery.source &&
-    candidate.documentation == exactActionQuery.documentation &&
-    candidate.canonicalMetadata == exactActionQuery.canonicalMetadata &&
-    candidate.behaviorFingerprint == exactActionQuery.behaviorFingerprint &&
-    candidate.target.id == exactActionQuery.target.id &&
-    candidate.target.source == exactActionQuery.target.source &&
-    candidate.target.canonicalMetadata == exactActionQuery.target.canonicalMetadata &&
-    candidate.target.behaviorFingerprint == exactActionQuery.target.behaviorFingerprint &&
-    candidate.target.kernel.metadata == exactActionQuery.target.kernel.metadata
-
 /-- Validate the fixed candidate atomically and expose no source on any drift. -/
 def checkCandidate
     (candidate : PromotionCandidateInput) :
@@ -111,7 +97,7 @@ def checkCandidate
   if candidate.identity != candidateId then
     throw (bindingError .candidateIdentityDrift candidate.identity
       "candidate identity does not match the closed binding")
-  if !baseQueryMatches candidate.baseQuery || candidate.baseAnchor != baseAnchor then
+  if candidate.baseAnchor != baseAnchor then
     throw (bindingError .baseLineageDrift candidate.identity
       "base Query, Target, kernel, PlannerRun, ExperimentSpec, or expected trace drift")
   if candidate.faultExperimentSpec != faultExperimentSpec ||
