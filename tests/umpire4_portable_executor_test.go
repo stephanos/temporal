@@ -65,6 +65,27 @@ func TestUmpirePortableCanaryExecutor(t *testing.T) {
 	require.Len(t, factory.identities, 1)
 	require.Len(t, adapter.requests, 1)
 
+	crossed := executePortableFixturePair(t, env.Context(), server.URL, "normal", "duplicate-delivery")
+	require.Equal(t, portableResultSnapshot{
+		tooling:            umpirespb.TOOLING_STATUS_INVALID_INPUT,
+		operational:        umpirespb.OPERATIONAL_STATUS_INCOMPLETE,
+		observation:        umpirespb.OBSERVATION_STATUS_UNKNOWN,
+		implementationLink: umpirespb.IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED,
+		semantic:           umpirespb.EVALUATION_STATUS_INCOMPLETE,
+		cleanup:            umpirespb.CLEANUP_STATUS_INCOMPLETE,
+		decision:           umpirespb.CANARY_DECISION_INCONCLUSIVE,
+	}, portableResultSnapshot{
+		tooling:            crossed.GetToolingStatus(),
+		operational:        crossed.GetOperationalStatus(),
+		observation:        crossed.GetObservation().GetStatus(),
+		implementationLink: crossed.GetImplementationLink().GetStatus(),
+		semantic:           crossed.GetSemanticStatus(),
+		cleanup:            crossed.GetCleanupStatus(),
+		decision:           crossed.GetDecision(),
+	})
+	require.Len(t, factory.identities, 1)
+	require.Len(t, adapter.requests, 1)
+
 	duplicateResult := executePortableFixture(t, env.Context(), server.URL, "duplicate-delivery")
 	requirePortableResult(t, duplicateResult, portableResultSnapshot{
 		tooling:            umpirespb.TOOLING_STATUS_SUCCEEDED,
@@ -294,14 +315,25 @@ func executePortableFixture(
 	fixture string,
 ) *umpirespb.EvaluationResult {
 	t.Helper()
+	return executePortableFixturePair(t, ctx, serverURL, fixture, fixture)
+}
+
+func executePortableFixturePair(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	contractFixture string,
+	inputFixture string,
+) *umpirespb.EvaluationResult {
+	t.Helper()
 	contract, err := os.ReadFile(filepath.Join(
-		"..", "tools", "umpire", "portableevaluation", "testdata", fixture, "contract.pb",
+		"..", "tools", "umpire", "portableevaluation", "testdata", contractFixture, "contract.pb",
 	))
 	require.NoError(t, err)
 	inputRoot := filepath.Join(
 		"..", "tools", "umpire", "temporal", "nexus", "testdata", "caller-closure-input-set",
 	)
-	if fixture == "duplicate-delivery" {
+	if inputFixture == "duplicate-delivery" {
 		inputRoot = filepath.Join(
 			"..", "tools", "umpire", "temporal", "nexus", "testdata",
 			"caller-closure-duplicate-delivery-input-set",
