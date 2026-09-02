@@ -48,9 +48,13 @@ Define the narrow checked source boundary used by the one retained duplicate-del
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-TBD
+Implemented a sealed review-only Lean promotion-source compiler that replans an unchanged checked Query, validates the complete target-owned PlannerRun and ExperimentSpec lineage, rejects observed count-two trace substitution, and exposes no partial source on drift. The renderer is closed over one clean-elaborated syntax shape, accepts only quoted identity/location data, fixes imports and declarations, and seals exact bytes plus SHA-256 behind a private constructor.
 
+Focused compile-time tests cover base/query/target/kernel/artifact/trace/reason drift, non-found planning, reused identities, invalid source data, deterministic bytes and digest, clean fixture elaboration through a typed base Query, and constructor/record-update/syntax-input sealing. The exact Quick build and full model/import-graph lint pass.
+
+stage: impl-review - ran [2026-09-02T15:44:27Z..2026-09-02T15:46:39Z] (model: codex:gpt-5.6-sol:high)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ac7fdbbfc5e860d867875a4451789f64514d9773, c89737339c0a9f09a81ec686b72abd836efeeda7, 1c54abcfbafcef9ffa35291dbbe559742506b935
+- Tests: cd model && mise exec -- lake build Umpire.PromotionTests UmpireTests, make lint-model, git diff --check, /Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl codex impl-review fn-5-umpire-discovery-promotion-and-artifact.4 --base 3868bc28a34a0c658064af9d74ecb0adc6e95e42 --receipt /tmp/impl-review-receipt-fn-5-umpire-discovery-promotion-and-artifact.4.json (SHIP)
 - PRs:
