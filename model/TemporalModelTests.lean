@@ -1,4 +1,5 @@
 import Temporal.Feature.NexusTests
+import Temporal.Feature.Nexus.Experimental.ExplorationTests
 import Temporal.Feature.Nexus.LifecycleTests
 import Temporal.Feature.Nexus.ObservationTests
 import Temporal.Feature.Nexus.OperationsTests
