@@ -36,6 +36,7 @@ The authoritative implementation review is SHIP for 1794943014bc2fb572c9925e3cfb
 baseline: red (environment/repo-wide inherited failures; focused task gates green)
 
 stage: impl-review - ran [2026-09-02T01:44:00Z..2026-09-02T01:44:53Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests: baseline: red (environment/repo-wide inherited failures; focused task gates green), make proto, cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests, go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/... ./tools/umpire/portableevaluation/... ./tools/umpire/executor/..., go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpirePortableCanaryExecutor$', go test -count=1 -tags test_dep ./api/umpire/v1, INHERITED_RED: make lint-model (exit 137 after successful model build; environment OOM), INHERITED_RED: make umpire-check-regression (later-task portable parity fixture generation returned truncated JSON), INHERITED_RED: make lint-code (1948 pre-existing repository-wide findings), GATE_CLASSIFY_FULL: unrelated user-owned config/development.yaml working-tree modification
