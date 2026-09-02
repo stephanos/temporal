@@ -355,6 +355,10 @@ example : normal.limits.maxEvaluationWork > 0 ∧
     duplicate.limits.maxEvaluationWork > 0 := by
   native_decide
 
+example : normal.limits.maxOperatorCount > 0 ∧
+    duplicate.limits.maxOperatorCount > 0 := by
+  native_decide
+
 private theorem exactWorkBoundary (work : Nat) (positive : 0 < work) :
     work ≤ work ∧ ¬work ≤ work - 1 := by
   omega

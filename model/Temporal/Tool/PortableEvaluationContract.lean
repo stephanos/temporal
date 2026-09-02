@@ -603,6 +603,7 @@ private def limits
   maxResultBytes := 4 * 1024 * 1024
   maxTotalDurationMilliseconds := runtimeConfiguration.phaseLimits.foldl
     (fun total limit => total + limit.durationMilliseconds) 0
+  maxOperatorCount := 10000
 }
 
 private def lowerCheckedTest
