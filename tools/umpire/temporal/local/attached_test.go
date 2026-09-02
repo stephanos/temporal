@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"strings"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
@@ -12,6 +14,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/server/common/testing/await"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 )
 
@@ -228,6 +231,111 @@ func TestAttachedCleanupCancellationRetainsOwnedWorker(t *testing.T) {
 	require.Equal(t, 0, borrowedClient.closeCalls)
 }
 
+func TestAttachedWorkerStartCancellationReturnsBeforeBlockedStartAndCleansEventually(t *testing.T) {
+	startEntered := make(chan struct{})
+	startRelease := make(chan struct{})
+	workers := &recordingAttachedWorkerFactory{
+		startEntered: startEntered,
+		startBlock:   startRelease,
+	}
+	factory, err := newAttachedFactory(&recordingAttachedAuthority{
+		client: &recordingAttachedClient{}, namespace: "attached-namespace", endpoint: "127.0.0.1:7233",
+	}, workers.newWorker)
+	require.NoError(t, err)
+	request := testRequest(t, "umpire.attached.start-canceled")
+	prepare, ok := request.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	runtimeEnvironment, preparation := factory.Prepare(context.Background(), request, prepare)
+	require.Equal(t, umpireruntime.ReceiptAccepted, preparation.Status())
+	environment, ok := AsEnvironment(runtimeEnvironment)
+	require.True(t, ok)
+
+	startContext, cancelStart := context.WithCancel(context.Background())
+	startReceipts := make(chan umpireruntime.Receipt, 1)
+	go func() {
+		startReceipts <- environment.StartWorker(startContext, prepare, noopRegistration{})
+	}()
+	<-startEntered
+	cancelStart()
+
+	var startReceipt umpireruntime.Receipt
+	select {
+	case startReceipt = <-startReceipts:
+	case <-time.After(time.Second):
+		close(startRelease)
+		<-startReceipts
+		require.FailNow(t, "worker start did not honor cancellation while blocked")
+	}
+	require.Equal(t, umpireruntime.ReceiptCanceled, startReceipt.Status())
+	require.Equal(t, []umpireruntime.ResourceKind{
+		umpireruntime.ResourceWorker,
+	}, resourceKinds(startReceipt.AcquiredResources()))
+
+	cleanup, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	cleanupReceipts := make(chan umpireruntime.Receipt, 1)
+	go func() {
+		cleanupReceipts <- environment.Cleanup(context.Background(), cleanup)
+	}()
+	close(startRelease)
+	require.Equal(t, umpireruntime.ReceiptAccepted, (<-cleanupReceipts).Status())
+	require.Equal(t, 1, workers.workers[0].stopCount())
+	require.Equal(t, 1, workers.workers[0].closedCount())
+}
+
+func TestAttachedWorkerStopCancellationReturnsBeforeBlockedStopAndClosesOnce(t *testing.T) {
+	stopEntered := make(chan struct{})
+	stopRelease := make(chan struct{})
+	workers := &recordingAttachedWorkerFactory{
+		stopEntered: stopEntered,
+		stopBlock:   stopRelease,
+	}
+	factory, err := newAttachedFactory(&recordingAttachedAuthority{
+		client: &recordingAttachedClient{}, namespace: "attached-namespace", endpoint: "127.0.0.1:7233",
+	}, workers.newWorker)
+	require.NoError(t, err)
+	request := testRequest(t, "umpire.attached.stop-canceled")
+	prepare, ok := request.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	runtimeEnvironment, preparation := factory.Prepare(context.Background(), request, prepare)
+	require.Equal(t, umpireruntime.ReceiptAccepted, preparation.Status())
+	environment, ok := AsEnvironment(runtimeEnvironment)
+	require.True(t, ok)
+	require.Equal(t, umpireruntime.ReceiptAccepted,
+		environment.StartWorker(context.Background(), prepare, noopRegistration{}).Status())
+	cleanup, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+
+	cleanupContext, cancelCleanup := context.WithCancel(context.Background())
+	cleanupReceipts := make(chan umpireruntime.Receipt, 1)
+	go func() {
+		cleanupReceipts <- environment.Cleanup(cleanupContext, cleanup)
+	}()
+	<-stopEntered
+	cancelCleanup()
+
+	var canceled umpireruntime.Receipt
+	select {
+	case canceled = <-cleanupReceipts:
+	case <-time.After(time.Second):
+		close(stopRelease)
+		<-cleanupReceipts
+		require.FailNow(t, "worker stop did not honor cancellation while blocked")
+	}
+	require.Equal(t, umpireruntime.ReceiptCanceled, canceled.Status())
+	require.Equal(t, "2", receiptField(canceled, umpireruntime.EvidenceFieldOpenHandleCount))
+	require.Empty(t, canceled.ReleasedResources())
+
+	close(stopRelease)
+	await.RequireTrue(t, func() bool {
+		return workers.workers[0].closedCount() == 1
+	}, time.Second, time.Millisecond)
+	closed := environment.Cleanup(context.Background(), cleanup)
+	require.Equal(t, umpireruntime.ReceiptAccepted, closed.Status())
+	require.Equal(t, "0", receiptField(closed, umpireruntime.EvidenceFieldOpenHandleCount))
+	require.Equal(t, 1, workers.workers[0].stopCount())
+}
+
 func TestAttachedCleanupFailureRetainsOwnershipUntilClosed(t *testing.T) {
 	borrowedClient := &recordingAttachedClient{}
 	workers := &recordingAttachedWorkerFactory{stopErrors: []error{
@@ -328,9 +436,13 @@ func (c *isolationAttachedClient) ListWorkflow(
 }
 
 type recordingAttachedWorkerFactory struct {
-	calls      int
-	stopErrors []error
-	workers    []*recordingAttachedWorker
+	calls        int
+	stopErrors   []error
+	workers      []*recordingAttachedWorker
+	startBlock   <-chan struct{}
+	startEntered chan<- struct{}
+	stopBlock    <-chan struct{}
+	stopEntered  chan<- struct{}
 }
 
 func (f *recordingAttachedWorkerFactory) newWorker(
@@ -341,7 +453,8 @@ func (f *recordingAttachedWorkerFactory) newWorker(
 	f.calls++
 	owned := &recordingAttachedWorker{
 		client: sdkClient, taskQueue: taskQueue, identity: options.Identity,
-		stopErrors: append([]error{}, f.stopErrors...),
+		stopErrors: append([]error{}, f.stopErrors...), startBlock: f.startBlock,
+		startEntered: f.startEntered, stopBlock: f.stopBlock, stopEntered: f.stopEntered,
 	}
 	f.workers = append(f.workers, owned)
 	return owned, nil
@@ -349,29 +462,69 @@ func (f *recordingAttachedWorkerFactory) newWorker(
 
 type recordingAttachedWorker struct {
 	worker.Registry
-	client     client.Client
-	taskQueue  string
-	identity   string
-	startCalls int
-	stopCalls  int
-	closed     int
-	stopErrors []error
+	mu           sync.Mutex
+	client       client.Client
+	taskQueue    string
+	identity     string
+	startCalls   int
+	stopCalls    int
+	closed       int
+	stopErrors   []error
+	startBlock   <-chan struct{}
+	startEntered chan<- struct{}
+	stopBlock    <-chan struct{}
+	stopEntered  chan<- struct{}
 }
 
 func (w *recordingAttachedWorker) Start() error {
+	w.mu.Lock()
 	w.startCalls++
+	startEntered := w.startEntered
+	startBlock := w.startBlock
+	w.mu.Unlock()
+	if startEntered != nil {
+		close(startEntered)
+	}
+	if startBlock != nil {
+		<-startBlock
+	}
 	return nil
 }
 
-func (w *recordingAttachedWorker) Stop(context.Context) error {
+func (w *recordingAttachedWorker) Stop() error {
+	w.mu.Lock()
 	w.stopCalls++
+	stopEntered := w.stopEntered
+	stopBlock := w.stopBlock
+	var err error
 	if len(w.stopErrors) > 0 {
-		err := w.stopErrors[0]
+		err = w.stopErrors[0]
 		w.stopErrors = w.stopErrors[1:]
-		if err != nil {
-			return err
-		}
 	}
+	w.mu.Unlock()
+	if stopEntered != nil {
+		close(stopEntered)
+	}
+	if stopBlock != nil {
+		<-stopBlock
+	}
+	if err != nil {
+		return err
+	}
+	w.mu.Lock()
 	w.closed++
+	w.mu.Unlock()
 	return nil
+}
+
+func (w *recordingAttachedWorker) stopCount() int {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.stopCalls
+}
+
+func (w *recordingAttachedWorker) closedCount() int {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.closed
 }

@@ -32,7 +32,7 @@ func NewAttachedFactory(authority AttachedAuthority) (umpireruntime.EnvironmentF
 type attachedWorker interface {
 	worker.Registry
 	Start() error
-	Stop(context.Context) error
+	Stop() error
 }
 
 type attachedWorkerFactory func(client.Client, string, worker.Options) (attachedWorker, error)
@@ -137,9 +137,17 @@ func (s attachedStarter) Start(ctx context.Context) (temporalAuthority, error) {
 type attachedTemporalAuthority struct {
 	binding *attachedBinding
 
-	mu     sync.Mutex
-	worker attachedWorker
-	closed bool
+	mu          sync.Mutex
+	worker      attachedWorker
+	startDone   chan struct{}
+	startErr    error
+	stopAttempt *attachedStopAttempt
+	closed      bool
+}
+
+type attachedStopAttempt struct {
+	done chan struct{}
+	err  error
 }
 
 func (a *attachedTemporalAuthority) isolationProbe(
@@ -223,8 +231,8 @@ func (a *attachedTemporalAuthority) StartWorker(
 		return errors.New("attached Temporal worker binding is incomplete")
 	}
 	a.mu.Lock()
-	defer a.mu.Unlock()
-	if a.worker != nil {
+	if a.worker != nil || a.closed {
+		a.mu.Unlock()
 		return errors.New("attached Temporal worker already exists")
 	}
 	owned, err := a.binding.workers(a.binding.client, taskQueue, worker.Options{
@@ -232,14 +240,37 @@ func (a *attachedTemporalAuthority) StartWorker(
 		WorkerStopTimeout: umpireruntime.CanonicalPhaseLimits()[4].Duration(),
 	})
 	if err != nil {
+		a.mu.Unlock()
 		return err
 	}
 	if isNilInterface(owned) {
+		a.mu.Unlock()
 		return errors.New("attached Temporal worker factory returned no worker")
 	}
 	a.worker = owned
+	a.startDone = make(chan struct{})
 	registration.Register(owned)
-	return owned.Start()
+	startDone := a.startDone
+	a.mu.Unlock()
+
+	go func() {
+		err := owned.Start()
+		a.mu.Lock()
+		a.startErr = err
+		close(startDone)
+		a.mu.Unlock()
+	}()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-startDone:
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		a.mu.Lock()
+		defer a.mu.Unlock()
+		return a.startErr
+	}
 }
 
 func (a *attachedTemporalAuthority) Stop(ctx context.Context) error {
@@ -250,17 +281,47 @@ func (a *attachedTemporalAuthority) Stop(ctx context.Context) error {
 		return contextError(ctx)
 	}
 	a.mu.Lock()
-	defer a.mu.Unlock()
 	if a.worker == nil {
 		a.closed = true
+		a.mu.Unlock()
 		return nil
 	}
-	if err := a.worker.Stop(ctx); err != nil {
-		return err
+	if a.stopAttempt == nil {
+		attempt := &attachedStopAttempt{done: make(chan struct{})}
+		a.stopAttempt = attempt
+		owned := a.worker
+		startDone := a.startDone
+		go func() {
+			// SDK worker lifecycle calls are context-free. Waiting outside the
+			// caller lets its deadline remain authoritative while ownership stays
+			// live until a started worker has actually stopped.
+			<-startDone
+			err := owned.Stop()
+			a.mu.Lock()
+			attempt.err = err
+			if err == nil {
+				a.worker = nil
+				a.closed = true
+			}
+			if a.stopAttempt == attempt {
+				a.stopAttempt = nil
+			}
+			close(attempt.done)
+			a.mu.Unlock()
+		}()
 	}
-	a.worker = nil
-	a.closed = true
-	return nil
+	attempt := a.stopAttempt
+	a.mu.Unlock()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-attempt.done:
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		return attempt.err
+	}
 }
 
 func (a *attachedTemporalAuthority) OwnedResources() []ownedResource {
@@ -314,12 +375,9 @@ func newSDKAttachedWorker(
 	return &sdkAttachedWorker{Worker: owned}, nil
 }
 
-func (w *sdkAttachedWorker) Stop(ctx context.Context) error {
+func (w *sdkAttachedWorker) Stop() error {
 	if w == nil || isNilInterface(w.Worker) {
 		return errors.New("attached Temporal worker is incomplete")
-	}
-	if ctx == nil || ctx.Err() != nil {
-		return contextError(ctx)
 	}
 	w.Worker.Stop()
 	return nil
