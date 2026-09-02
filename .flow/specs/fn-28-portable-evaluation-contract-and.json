@@ -1,7 +1,7 @@
 {
   "branch_name": "stephanos/umpire",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-02T07:21:36.476168Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-02T07:48:14.300751Z",
   "created_at": "2026-08-26T14:55:14.717973Z",
   "default_impl": null,
   "default_review": null,
@@ -27,7 +27,7 @@
     "fn-28-portable-evaluation-contract-and.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 2,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-09-01T17:13:10.402582Z",
   "ready": true,
@@ -1556,6 +1556,50 @@
       "timestamp": "2026-09-02T07:21:36.460351Z",
       "tool_calls": 20,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "069bd2a80f91c0a75a04a960eedb6ef1fd187f6f7fd29f28e79aa98c1e9db7db",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e22361a5372da672161e8fefcaa52e9c",
+            "classification": "introduced",
+            "findingId": "finding-e22361a5372da672161e8fefcaa52e9c",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "a978466697408f80e74ddc94f3f7a664729975d8",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 5179,
+      "output_sha256": "4abb58e99a617ed37d705526e23df2cea6d885fdcb4e1821b6e5754b5fedcc57",
+      "reservation_id": "494a991b04d74f4e82adeb0d8f6da2ee",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-02T07:48:14.294334Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1571,7 +1615,7 @@
     "impl:fn-28-portable-evaluation-contract-and.8": 1,
     "impl:fn-28-portable-evaluation-contract-and.9": 1,
     "plan": 3,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {
     "plan": 1
@@ -1582,7 +1626,9 @@
       "counter_scope": "plan",
       "epoch": 1,
       "forced": false,
-      "review_type": "completion"
+      "review_type": "completion",
+      "superseded_by": "494a991b04d74f4e82adeb0d8f6da2ee",
+      "superseded_epoch": 2
     }
   },
   "review_transport_failures": {
@@ -1614,5 +1660,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-02T07:21:36.481852Z"
+  "updated_at": "2026-09-02T07:48:14.301712Z"
 }
