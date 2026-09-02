@@ -47,8 +47,6 @@ private def baseAnchor : PromotionBaseAnchor := {
 }
 
 private def sourceSpec : PromotionSourceSpec := {
-  imports := ["Umpire.Promotion"]
-  namespaceName := "Umpire.Promotion.Tests.Fixtures.CompiledSource"
   sourceDefinitionId := DefinitionId.of "umpire.promotion.source.switch-count-one"
   sourceLocation := {
     path := "Umpire/Promotion/Tests/Fixtures/CompiledSource.lean"
@@ -184,9 +182,8 @@ example :
       errorKindOf (compileWith (anchor := {
         baseAnchor with experimentSpec := changedExperimentSpec
       })),
-      errorKindOf (compileWith (spec := { sourceSpec with imports := [] })),
       errorKindOf (compileWith (spec := {
-        sourceSpec with namespaceName := "invalid namespace"
+        sourceSpec with sourceLocation := { sourceSpec.sourceLocation with path := "" }
       })),
       errorKindOf (compileWith (spec := {
         sourceSpec with promotedBehaviorDefinitionId := exactActionQuery.behavior.id
@@ -213,7 +210,6 @@ example :
       some .plannerRunDrift,
       some .reasonDrift,
       some .experimentSpecDrift,
-      some .missingImport,
       some .invalidSourceSpec,
       some .reusedIdentity,
       some .reusedIdentity,
@@ -254,6 +250,28 @@ __src : PromotionSourceSpec
 #guard_msgs in
 #check ({ sourceSpec with
   baseQueryReference := "Umpire.DoesNotExist.query"
+} : PromotionSourceSpec)
+
+/--
+error: `imports` is not a field of structure `PromotionSourceSpec`
+---
+info: let __src := sourceSpec;
+__src : PromotionSourceSpec
+-/
+#guard_msgs in
+#check ({ sourceSpec with
+  imports := ["Umpire.DoesNotExist"]
+} : PromotionSourceSpec)
+
+/--
+error: `namespaceName` is not a field of structure `PromotionSourceSpec`
+---
+info: let __src := sourceSpec;
+__src : PromotionSourceSpec
+-/
+#guard_msgs in
+#check ({ sourceSpec with
+  namespaceName := "namespace"
 } : PromotionSourceSpec)
 
 /-!
