@@ -328,6 +328,13 @@ Important types:
 - `PlannerPolicy`
 - `SearchStrategy`
 
+Ordinary policies use `PlannerPolicy.shortest`, `PlannerPolicy.exhaustive`, or
+`PlannerPolicy.seeded`; all use Definition-ID tie-breaking and seed `17` by default. Passing a
+natural number to `PlannerPolicy.seeded` preserves that exact seed, including zero. A policy's seed
+is always part of canonical Query identity, but only the seeded strategy uses it to change
+traversal. The public `PlannerPolicy` record remains available for exceptional strategy, seed, or
+tie-break combinations.
+
 `QueryForm` determines the meaning of the result:
 
 - `verify` searches for bounded universal verification.
