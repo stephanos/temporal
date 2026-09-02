@@ -12,7 +12,8 @@
     "fn-20-local-execution-semantic-conformance",
     "fn-26-local-qualification-receipts-and-staged",
     "fn-28-portable-evaluation-contract-and",
-    "fn-48-canonicalize-known-gaps-as-a-checked-set"
+    "fn-48-canonicalize-known-gaps-as-a-checked-set",
+    "fn-52-caller-neutral-grpc-portable-test-plans"
   ],
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {},
@@ -163,5 +164,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T17:03:14.385904Z"
+  "updated_at": "2026-09-02T17:02:05.149816Z"
 }

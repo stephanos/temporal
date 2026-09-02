@@ -18,7 +18,7 @@ func TestAuthorityUsesTheExactModelOwnedLocalProfile(t *testing.T) {
 	)
 	require.NoError(t, err)
 	require.Equal(t, ProfileDefinitionID, authority.DefinitionID())
-	require.EqualValues(t, ProfileVersion, authority.Version())
+	require.Equal(t, ProfileVersion, authority.Version())
 	require.Equal(t, ProfileBehaviorFingerprint, authority.BehaviorFingerprint())
 	require.Equal(t, RequiredCapabilityDefinitionIDs(), authority.RequiredCapabilityDefinitionIDs())
 	require.Equal(t, umpireruntime.CanonicalPhaseLimits(), authority.PhaseLimits())

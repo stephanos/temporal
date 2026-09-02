@@ -29,12 +29,12 @@ func TestExecutableSetAdmitExecutionReusesExactInputBytes(t *testing.T) {
 	require.NoError(t, err)
 
 	require.Len(t, execution.members, 4)
-	require.Equal(t, artifactSetPaths[:4], []string{
+	require.Equal(t, []string{
 		execution.members[0].Path,
 		execution.members[1].Path,
 		execution.members[2].Path,
 		execution.members[3].Path,
-	})
+	}, artifactSetPaths[:4])
 	require.True(t, bytes.Equal(original[0].Encoded, execution.members[0].Encoded))
 	require.True(t, bytes.Equal(original[1].Encoded, execution.members[1].Encoded))
 	require.True(t, bytes.Equal(original[0].Encoded, admitted.members[0].Encoded))
