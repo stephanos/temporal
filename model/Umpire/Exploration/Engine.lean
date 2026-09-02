@@ -55,6 +55,13 @@ private def completionOf
   else
     .limitReached
 
+private def pinnedSelectsCoordinate
+    (request : CheckedExplorationRequest LawStatement)
+    (coordinate : ModelCoordinate) : Bool :=
+  request.pinned.any fun pinned =>
+    (CandidateCoverage.ofExperimentSpec? pinned.experimentSpec).any fun coverage =>
+      coverage.modelCoordinates.contains coordinate
+
 private def exploreChecked
     (request : CheckedExplorationRequest LawStatement)
     (candidateUniverse : CandidateUniverse) :
@@ -76,7 +83,10 @@ private def exploreChecked
         pinned := request.pinned
         exploratory := selection.candidates
         omissions
-        coordinateOutcome := some selection.outcome
+        coordinateOutcome := some <| if pinnedSelectsCoordinate request coordinate then
+          .coordinateSelected
+        else
+          selection.outcome
         completion := completionOf request candidateUniverse
       }
 
