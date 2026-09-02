@@ -114,7 +114,7 @@ flowchart LR
 ## Quick commands
 
 ```sh
-cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromotionTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote
+cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromotionBindingTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote
 make umpire-check-regression
 ```
 
