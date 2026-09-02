@@ -26,6 +26,12 @@ structure ExhaustiveSelection where
 def ExhaustiveSelection.identities (selection : ExhaustiveSelection) : List ArtifactChecksum :=
   selection.candidates.map ExplorationCandidate.identity
 
+private def isPinned
+    (request : CheckedExplorationRequest LawStatement)
+    (candidate : ExplorationCandidate) : Bool :=
+  request.pinned.any fun pinned =>
+    pinned.experimentSpec.artifactChecksum == candidate.identity
+
 /--
 Select the identity-ordered prefix for one checked exhaustive request. Crossed Space or policy
 inputs produce no selection. Only reaching the finite universe end reports exhaustion.
@@ -34,12 +40,15 @@ def selectExhaustive
     (request : CheckedExplorationRequest LawStatement)
     (candidateUniverse : CandidateUniverse) : Option ExhaustiveSelection :=
   if request.policy != .exhaustive ||
-      candidateUniverse.spaceDefinitionId != request.space.id then
+      candidateUniverse.spaceDefinitionId != request.space.id ||
+      candidateUniverse.spaceBehaviorFingerprint != request.space.behaviorFingerprint then
     none
   else
+    let candidates := candidateUniverse.candidates.filter fun candidate =>
+      !isPinned request candidate
     some {
-      candidates := candidateUniverse.candidates.take request.limit.value
-      outcome := if candidateUniverse.candidates.length ≤ request.limit.value then
+      candidates := candidates.take request.limit.value
+      outcome := if candidates.length ≤ request.limit.value then
         .exhausted
       else
         .limitReached
