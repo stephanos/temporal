@@ -62,9 +62,6 @@ example : [
       Internal.candidate with identity := changedId
     }),
     errorKindOf (Internal.checkCandidate {
-      Internal.candidate with baseQuery := { exactActionQuery with id := changedId }
-    }),
-    errorKindOf (Internal.checkCandidate {
       Internal.candidate with baseAnchor := {
         baseAnchor with queryBehaviorFingerprint := changedFingerprint
       }
@@ -131,7 +128,6 @@ example : [
     some .baseLineageDrift,
     some .baseLineageDrift,
     some .baseLineageDrift,
-    some .baseLineageDrift,
     some .faultLineageDrift,
     some .sourceLineageDrift,
     some .sourceLineageDrift,
@@ -166,6 +162,17 @@ __src : PromotionCandidateInput
 #guard_msgs in
 #check ({ Internal.candidate with
   imports := ["Temporal.Runtime"]
+} : PromotionCandidateInput)
+
+/--
+error: `baseQuery` is not a field of structure `PromotionCandidateInput`
+---
+info: let __src := Internal.candidate;
+__src : PromotionCandidateInput
+-/
+#guard_msgs in
+#check ({ Internal.candidate with
+  baseQuery := { exactActionQuery with version := exactActionQuery.version + 1 }
 } : PromotionCandidateInput)
 
 end Temporal.Tool.PromotionBindingTests
