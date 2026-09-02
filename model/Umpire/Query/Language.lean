@@ -11,14 +11,14 @@ inductive SearchStrategy where
   | exhaustive
   | breadthFirst
   | shortest
-  | coverageGuided
+  | seeded
   deriving BEq, DecidableEq, Ord, Repr
 
 def SearchStrategy.name : SearchStrategy → String
   | .exhaustive => "exhaustive"
   | .breadthFirst => "breadth-first"
   | .shortest => "shortest"
-  | .coverageGuided => "coverage-guided"
+  | .seeded => "seeded"
 
 inductive TieBreakPolicy where
   | definitionId
