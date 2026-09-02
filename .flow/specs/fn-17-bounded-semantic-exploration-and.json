@@ -1,7 +1,7 @@
 {
   "branch_name": "umpire",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-02T21:51:52.634653Z",
   "created_at": "2026-08-26T09:19:42.377606Z",
   "default_impl": null,
   "default_review": null,
@@ -963,6 +963,66 @@
       "task": "fn-17-bounded-semantic-exploration-and.7",
       "timestamp": "2026-09-02T21:09:32.288240Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ed0e2583598eae8ea1743c0dfaeb79f5bbfcb0953428e011ddb2ffc04b648eed",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ad11aa0902dadacc3e808e3eb00882276ae24528",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 485381,
+      "output_sha256": "8c5caacc3aedb4a8c7b40de07e6847bc6bbaa259aec095860dbe843e10a4e4dd",
+      "reservation_id": "6a1969abb3fb41da8230ed300adb99e9",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-02T21:19:18.422060Z",
+      "tool_calls": 17,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "fe02da2aae7df2cf968434f53a85d3e37e56460e17ea4002d2dc1f06b521a209",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "90318b727cafe97e24d354f1d887261b6e4adc93",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 589155,
+      "output_sha256": "ad1aa0f5a535e6c5450bef1f0ab78a59eade94c0b14fcdaef0e8262b0c5a5613",
+      "reservation_id": "c76fec4db9864183826787833d062d0c",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-02T21:51:52.624541Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -975,11 +1035,12 @@
     "impl:fn-17-bounded-semantic-exploration-and.7": 1,
     "impl:fn-17-bounded-semantic-exploration-and.8": 1,
     "plan": 2,
-    "plan#completion": 0
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-17-bounded-semantic-exploration-and.1": 0,
     "impl:fn-17-bounded-semantic-exploration-and.2": 0,
     "impl:fn-17-bounded-semantic-exploration-and.3": 0,
@@ -1004,5 +1065,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-02T21:09:32.291462Z"
+  "updated_at": "2026-09-02T21:51:52.639383Z"
 }
