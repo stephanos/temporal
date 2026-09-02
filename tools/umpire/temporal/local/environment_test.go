@@ -137,6 +137,38 @@ func TestFactorySanitizesPartialStartupFailures(t *testing.T) {
 	require.Equal(t, []string{"server"}, backend.releaseOrder)
 }
 
+func TestEnvironmentReceiptsUsePortableEvidenceKinds(t *testing.T) {
+	request := testRequest(t, "umpire.local.environment.portable-evidence")
+	prepare, ok := request.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	cleanup, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+
+	lifecycle := lifecycleReceipt(
+		prepare,
+		lifecycleFactAuthority,
+		umpireruntime.ReceiptAccepted,
+		"",
+		[]umpireruntime.Resource{},
+		[]umpireruntime.Resource{},
+		Identities{},
+	)
+	cleanupResult := cleanupReceipt(
+		cleanup,
+		umpireruntime.ReceiptAccepted,
+		"",
+		[]umpireruntime.Resource{},
+		0,
+	)
+	require.Equal(t, [][2]string{
+		{umpireruntime.EvidenceSourceCleanup, umpireruntime.EvidenceKindCleanup},
+		{umpireruntime.EvidenceSourceCleanup, umpireruntime.EvidenceKindCleanup},
+	}, [][2]string{
+		{lifecycle.Facts()[0].SourceDefinitionID(), lifecycle.Facts()[0].KindDefinitionID()},
+		{cleanupResult.Facts()[0].SourceDefinitionID(), cleanupResult.Facts()[0].KindDefinitionID()},
+	})
+}
+
 func testRequest(t *testing.T, runIdentity string) umpireruntime.CheckedRunRequest {
 	t.Helper()
 	experimentBytes, err := os.ReadFile(filepath.Join(

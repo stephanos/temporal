@@ -95,7 +95,8 @@ func TestLiveFaultedParticipantCompletesOneCancellationBeforeOneDuplicateObserva
 		umpireruntime.EvidenceFieldSyntheticContributionMarker,
 	)
 	require.Len(t, synthetic, 1)
-	require.Equal(t, umpireruntime.EvidenceKindParticipantCommand, synthetic[0].KindDefinitionID)
+	require.Equal(t, umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
+		synthetic[0].KindDefinitionID)
 }
 
 func TestParticipantAdmitsOnlyTheExactCheckedRequest(t *testing.T) {
@@ -109,6 +110,47 @@ func TestParticipantAdmitsOnlyTheExactCheckedRequest(t *testing.T) {
 	faulted, err := NewParticipant(checkedDuplicateDeliveryRequest(t, "exact-faulted-request"))
 	require.NoError(t, err)
 	require.NotNil(t, faulted)
+}
+
+func TestParticipantCleanupFactStaysInParticipantOutputSource(t *testing.T) {
+	request := checkedCallerClosureRequest(t, "cleanup-fact-source")
+	command, ok := request.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+
+	fact, err := operationalFact(
+		command,
+		umpireruntime.ReceiptAccepted,
+		"",
+		adapterCorrelations{},
+	)
+	require.NoError(t, err)
+	require.Equal(t, umpireruntime.EvidenceSourceParticipantOutput, fact.SourceDefinitionID())
+	require.Equal(t, umpireruntime.EvidenceKindParticipantCommand, fact.KindDefinitionID())
+}
+
+func TestParticipantReceiptsRetainOnlyPortableRealizationEvidence(t *testing.T) {
+	request := checkedCallerClosureRequest(t, "portable-receipt-evidence")
+	factCounts := make([]int, 0, 4)
+	for _, kind := range []umpireruntime.CommandKind{
+		umpireruntime.CommandPrepare,
+		umpireruntime.CommandRealize,
+		umpireruntime.CommandObserve,
+		umpireruntime.CommandCleanup,
+	} {
+		command, ok := request.Command(kind)
+		require.True(t, ok)
+		receipt := adapterReceipt(
+			command,
+			umpireruntime.ReceiptAccepted,
+			"",
+			[]umpireruntime.Fact{},
+			[]umpireruntime.Resource{},
+			[]umpireruntime.Resource{},
+			adapterCorrelations{},
+		)
+		factCounts = append(factCounts, len(receipt.Facts()))
+	}
+	require.Equal(t, []int{0, 1, 0, 0}, factCounts)
 }
 
 func TestParticipantRejectsWrongCorrelationAndDuplicateCommandsBeforeAdapterIO(t *testing.T) {
@@ -283,6 +325,45 @@ func TestRealizationContributesOneDuplicateObservationOnlyForTheFaultedProgram(t
 			require.Equal(t, 0, sdkClient.historyReads)
 		})
 	}
+}
+
+func TestDuplicateObservationCarriesSecondCancellationCoordinate(t *testing.T) {
+	request := checkedDuplicateDeliveryRequest(t, "duplicate-cancellation-coordinate")
+	adapter, err := newSDKCommandAdapter(request)
+	require.NoError(t, err)
+	adapter.duplicateObservation = duplicateObservationCompleted
+	command, ok := request.Command(umpireruntime.CommandRealize)
+	require.True(t, ok)
+
+	facts, err := adapter.contributeDuplicateObservation(command, adapterCorrelations{
+		workflow:  "runtime.correlation.workflow.duplicate-cancellation-coordinate",
+		operation: "runtime.correlation.operation.duplicate-cancellation-coordinate",
+	})
+
+	require.NoError(t, err)
+	require.Len(t, facts, 1)
+	require.Equal(t, "1", factField(
+		t, facts[0], umpireruntime.EvidenceFieldCancellationCallbackCount,
+	))
+}
+
+func TestDuplicateObservationUsesPortableSyntheticKind(t *testing.T) {
+	request := checkedDuplicateDeliveryRequest(t, "portable-synthetic-kind")
+	adapter, err := newSDKCommandAdapter(request)
+	require.NoError(t, err)
+	adapter.duplicateObservation = duplicateObservationCompleted
+	command, ok := request.Command(umpireruntime.CommandRealize)
+	require.True(t, ok)
+
+	facts, err := adapter.contributeDuplicateObservation(command, adapterCorrelations{
+		workflow:  "runtime.correlation.workflow.portable-synthetic-kind",
+		operation: "runtime.correlation.operation.portable-synthetic-kind",
+	})
+
+	require.NoError(t, err)
+	require.Len(t, facts, 1)
+	require.Equal(t, umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
+		facts[0].KindDefinitionID())
 }
 
 func TestFaultedRealizationEmitsNoSyntheticObservationWithoutCompletedCancellation(t *testing.T) {

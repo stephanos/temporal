@@ -414,6 +414,7 @@ func (a *sdkCommandAdapter) contributeDuplicateObservation(
 	}
 	a.duplicateObservation = duplicateObservationContributed
 	values := map[string]string{
+		umpireruntime.EvidenceFieldCancellationCallbackCount:   "1",
 		umpireruntime.EvidenceFieldCancellationCompletedCount:  "1",
 		umpireruntime.EvidenceFieldCancellationRequestedCount:  "1",
 		umpireruntime.EvidenceFieldCapabilityDefinitionID:      "nexus.capability.cancellation",
@@ -434,7 +435,7 @@ func (a *sdkCommandAdapter) contributeDuplicateObservation(
 	fact, err := umpireruntime.NewFact(
 		factIdentity("participant-synthetic-duplicate-delivery-observation", command.RunIdentity()),
 		umpireruntime.EvidenceSourceParticipantOutput,
-		umpireruntime.EvidenceKindParticipantCommand,
+		umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
 		[]string{factIdentity("participant-realize", command.RunIdentity())},
 		fields,
 	)
@@ -633,9 +634,11 @@ func newAdapterReceipt(
 	if released == nil {
 		released = []umpireruntime.Resource{}
 	}
-	fact, err := operationalFact(command, status, code, correlations)
-	if err == nil {
-		facts = append(facts, fact)
+	if command.Kind() == umpireruntime.CommandRealize || status != umpireruntime.ReceiptAccepted {
+		fact, err := operationalFact(command, status, code, correlations)
+		if err == nil {
+			facts = append(facts, fact)
+		}
 	}
 	slices.SortFunc(facts, func(left, right umpireruntime.Fact) int {
 		return compareStrings(left.DefinitionID(), right.DefinitionID())
@@ -643,6 +646,7 @@ func newAdapterReceipt(
 	slices.SortFunc(acquired, compareResources)
 	slices.SortFunc(released, compareResources)
 	var receipt umpireruntime.Receipt
+	var err error
 	if historyCapacity {
 		receipt, err = umpireruntime.NewHistoryCapacityReceipt(command, facts, acquired, released)
 	} else if controlAttempted {
@@ -694,7 +698,7 @@ func operationalFact(
 	}
 	return umpireruntime.NewFact(
 		factIdentity("participant-"+string(command.Kind()), command.RunIdentity()),
-		participantFactSource(command.Kind()),
+		umpireruntime.EvidenceSourceParticipantOutput,
 		umpireruntime.EvidenceKindParticipantCommand,
 		[]string{},
 		fields,
@@ -758,13 +762,6 @@ func checkedFields(values map[string]string) ([]umpireruntime.FactField, error) 
 func factIdentity(kind string, runIdentity string) string {
 	digest := sha256.Sum256([]byte("umpire.temporal.nexus.fact/v1\n" + kind + "\n" + runIdentity))
 	return "umpire.runtime.fact." + kind + "." + hex.EncodeToString(digest[:])
-}
-
-func participantFactSource(kind umpireruntime.CommandKind) string {
-	if kind == umpireruntime.CommandCleanup {
-		return umpireruntime.EvidenceSourceCleanup
-	}
-	return umpireruntime.EvidenceSourceParticipantOutput
 }
 
 func receiptErrorCode(receipt umpireruntime.Receipt) string {
