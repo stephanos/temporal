@@ -171,7 +171,7 @@ func (p *simProgram) generate(resetFiles bool) {
 			continue
 		}
 		prev = mod
-		goWork.WriteString(fmt.Sprintf("use %s\n", mod))
+		fmt.Fprintf(&goWork, "use %s\n", mod)
 	}
 	// Include the real source module so that simulator API packages (api/lang,
 	// api/lib, runtime, etc.) can be resolved by their original import paths.
@@ -183,7 +183,7 @@ func (p *simProgram) generate(resetFiles bool) {
 	if err != nil {
 		panic(err)
 	}
-	goWork.WriteString(fmt.Sprintf("use %s\n", relModRoot))
+	fmt.Fprintf(&goWork, "use %s\n", relModRoot)
 	goWork.WriteString("use .")
 	if err = os.WriteFile(filepath.Join(p.workingDir, "go.work"), []byte(goWork.String()), os.ModePerm); err != nil {
 		panic(err)

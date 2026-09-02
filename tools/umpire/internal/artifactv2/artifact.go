@@ -920,7 +920,7 @@ func ValidDigest(value string) bool {
 		return false
 	}
 	for _, character := range value[len(prefix):] {
-		if !('0' <= character && character <= '9') && !('a' <= character && character <= 'f') {
+		if ('0' > character || character > '9') && ('a' > character || character > 'f') {
 			return false
 		}
 	}
