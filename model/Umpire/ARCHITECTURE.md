@@ -435,13 +435,6 @@ through `pinned-precedence`. `beginSession`, `ExplorationSession.next`, and
 and exact Artifact-binding admission. The session is process-local and has no persisted encoding,
 checkpoint, compatibility version, or restart contract.
 
-The Temporal-specific adapter is the explicit opt-in
-`Temporal.Feature.Nexus.Experimental.Exploration` module. Its `run` and `startSession` operations
-bind the checked four-point Nexus variation Space and existing exact planner kernel. Fn-33 owns the
-serial `umpire-fuzz run` runtime, workload completion, eventual Evidence collection, and Run
-Evaluation. The Lean layer owns no command, runtime I/O, persistence, promotion, parallel campaign,
-adaptive corpus, symmetry, or generalized coverage-reporting surface.
-
 ## Promotion API
 
 `Umpire.Promotion` accepts an unchanged checked Query, its target-indexed planner kernel, a complete

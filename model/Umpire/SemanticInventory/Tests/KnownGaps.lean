@@ -18,14 +18,34 @@ private def exactGaps (sources : List KnownGapSourceDescriptor) : List KnownGap 
     | .exact gap => some gap
     | .namespacedPrefix _ _ _ => none
 
+/-- A reusable-boundary fixture for the owner-published admitted input catalog row. -/
+private def requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor := {
+  id := "umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input"
+  owner := "Umpire.SemanticInventoryTests.KnownGaps"
+  lineage := .carried
+  scope := .production
+  shape := .admittedKnownGapInput
+  source := "umpire.run-evaluation.request-and-raw-known-gap-input"
+  fieldMapping := none
+  description := "Validated request and Raw Evidence Known Gaps before stage-specific projection."
+}
+
+private def knownGapCatalog : List KnownGapCatalogDescriptor :=
+  Umpire.SemanticInventory.knownGapCatalog requestRawKnownGapInputCatalogRow
+
 private def sourceAt (index : Nat) : KnownGapSourceDescriptor :=
   productionKnownGapSources[index]?.getD observationKnownGapSource
 
-private def catalogValidationErrorKind?
+private def catalogValidationErrorKindFor?
+    (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor)
     (catalog : List KnownGapCatalogDescriptor) : Option KnownGapCatalogErrorKind :=
-  match validateKnownGapCatalog catalog with
+  match validateKnownGapCatalog requestRawKnownGapInputCatalogRow catalog with
   | .ok _ => none
   | .error error => some error.kind
+
+private def catalogValidationErrorKind?
+    (catalog : List KnownGapCatalogDescriptor) : Option KnownGapCatalogErrorKind :=
+  catalogValidationErrorKindFor? requestRawKnownGapInputCatalogRow catalog
 
 private def catalogAt (index : Nat) : KnownGapCatalogDescriptor :=
   knownGapCatalog[index]?.getD {
@@ -57,7 +77,7 @@ example : productionKnownGapSources.map (DefinitionId.value ∘ KnownGapSourceDe
     "umpire.semantic-inventory.known-gap-source.07-runtime-transport-order",
     "umpire.semantic-inventory.known-gap-source.08-promotion",
     "umpire.semantic-inventory.known-gap-source.09-observation-diagnostic"
-  ] := by
+    ] := by
   native_decide
 
 example : observationKnownGapSource.source = .namespacedPrefix .interpretation
@@ -157,7 +177,13 @@ example : knownGapCatalog.length = 24 ∧
       "umpire.semantic-inventory.known-gap-source.22-test-input",
       "umpire.semantic-inventory.known-gap-source.23-test-interpretation",
       "umpire.semantic-inventory.known-gap-source.24-test-claim-reference"
-    ] := by
+  ] := by
+  native_decide
+
+example :
+    let invalid := { requestRawKnownGapInputCatalogRow with owner := "" }
+    catalogValidationErrorKindFor? invalid
+      (Umpire.SemanticInventory.knownGapCatalog invalid) = some .invalidSource := by
   native_decide
 
 example :

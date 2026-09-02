@@ -177,7 +177,7 @@ func TestCrossLanguageGoldensExactFieldSequencesAndChecksums(t *testing.T) {
 	}
 
 	require.Equal(t, []string{
-		"sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0",
+		"sha256:c296b131ab2a42992a13cc733b050536389c20b3589e7d59cfa70c88f1ae423b",
 		"sha256:6b81f3a1bc1b67f699b5f2dd7bd030e08c4bcf52c656274d4b25abb374bb87df",
 		"sha256:41e30ef6849aec9841e5af3a478e7ca4062f5229142318572b8afd9f36ec7f07",
 		"sha256:2a0e83ab40ee0bb739827351e4fca37e29095333c469b975278f882ed3581e8c",

@@ -73,7 +73,7 @@ func TestRuntimeV2ChecksumsUseExactPrettyPreimages(t *testing.T) {
 		{
 			name:               "RuntimeConfiguration",
 			provenanceChecksum: "sha256:09745642d54e6faf89fd0c5a1a848d62fab3d8e472cc653db4fd02a96ff9e34e",
-			artifactChecksum:   "sha256:454acc851c5c1638166b1a334eaaedc97e4515b5ebe6614d5a57672ddbd9d1c2",
+			artifactChecksum:   "sha256:c4aaec3cec49a58cfb6cc085447afe5c197c2a0b0920cd7ae751a7e997858870",
 			provenance: func() artifactv2.Provenance {
 				return runtimeConfigurationV2Fixture(t).Provenance
 			},
@@ -88,7 +88,7 @@ func TestRuntimeV2ChecksumsUseExactPrettyPreimages(t *testing.T) {
 		{
 			name:               "ExperimentRun",
 			provenanceChecksum: "sha256:b879d5eba0c02a60c52e59a009c79f953310a6c49e3453ea863fddcbb07a75a9",
-			artifactChecksum:   "sha256:f1e9bce053d7ab53f9e9259187395456dc026934a317144785b1dcbe7475868e",
+			artifactChecksum:   "sha256:42dac535e8e87f4545ce96e0bf1de5bb947f02929c75f1978dfaafdde104ea93",
 			provenance: func() artifactv2.Provenance {
 				return experimentRunV2Fixture(t).Provenance
 			},
@@ -785,7 +785,7 @@ func TestRuntimeConfigurationV2RejectsOneAtATimeMutations(t *testing.T) {
 		},
 		"artifact checksum drift": {
 			encoded: replaceExperimentV2Once(t, canonical,
-				"sha256:454acc851c5c1638166b1a334eaaedc97e4515b5ebe6614d5a57672ddbd9d1c2",
+				"sha256:c4aaec3cec49a58cfb6cc085447afe5c197c2a0b0920cd7ae751a7e997858870",
 				"sha256:554acc851c5c1638166b1a334eaaedc97e4515b5ebe6614d5a57672ddbd9d1c2"),
 			code: artifact.ErrorArtifactChecksum,
 		},
@@ -1144,7 +1144,7 @@ func TestRuntimeV2ExperimentRunRejectsOneAtATimeMutations(t *testing.T) {
 		{
 			name: "artifact checksum drift",
 			encoded: replaceExperimentV2Once(t, canonical,
-				"sha256:f1e9bce053d7ab53f9e9259187395456dc026934a317144785b1dcbe7475868e",
+				"sha256:42dac535e8e87f4545ce96e0bf1de5bb947f02929c75f1978dfaafdde104ea93",
 				"sha256:e1e9bce053d7ab53f9e9259187395456dc026934a317144785b1dcbe7475868e"),
 			code: artifact.ErrorArtifactChecksum,
 		},

@@ -122,7 +122,7 @@ example : rawEvidence.hasValidChecksums &&
     rawEvidence.provenanceChecksum.render =
       "sha256:58874d22fb498df81f0ad4a5812183031af5827e3f528d963d147cb760ee5bb7" &&
     rawEvidence.artifactChecksum.render =
-      "sha256:39cc910d042990a7d64c180dc62a87004d9f6b3091f2ae690986781bc27af028" := by
+      "sha256:02980732154cfc8fa80487fc945931fa09046d5ed32c620f890b23876dfec67d" := by
   native_decide
 
 /-! The canonical value closes exact bindings, source summaries, and the attempted receipt. -/
