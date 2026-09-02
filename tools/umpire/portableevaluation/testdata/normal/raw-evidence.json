@@ -16,7 +16,7 @@
   },
   "run": {
     "formatVersion": "umpire-experiment-run/v2",
-    "artifactChecksum": "sha256:d034132f628749fd85205d8288799a5f8d19a0aa7085eaac50e627510204289a",
+    "artifactChecksum": "sha256:a98e123544c4998496f24419a55447ae072131725a3933afbc515c40e2839ec3",
     "behaviorFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
   },
@@ -44,7 +44,7 @@
       "sourceDefinitionId": "umpire.evidence.source.participant-output",
       "status": "closed",
       "factCount": 1,
-      "byteCount": 3969
+      "byteCount": 4129
     }
   ],
   "facts": [
@@ -380,5 +380,5 @@
     ]
   },
   "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb",
-  "artifactChecksum": "sha256:a1d7dcc2c8b7bd1559375a5c3903ced4bf44ae7deb38501e061882574408c450"
+  "artifactChecksum": "sha256:f30f901589200039a0993b6294ed713f5f74b82d89d7a18017ed1aebb35abff2"
 }
