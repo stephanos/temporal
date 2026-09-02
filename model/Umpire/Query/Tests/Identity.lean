@@ -124,7 +124,7 @@ def changedLimitsDeclaration : QueryDeclaration := {
 }
 
 def changedStrategyDeclaration : QueryDeclaration := {
-  declaration (.witness checkedProperty) with policy := { searchPolicy with strategy := .breadthFirst }
+  declaration (.witness checkedProperty) with policy := { searchPolicy with strategy := .seeded }
 }
 
 def changedSeedDeclaration : QueryDeclaration := {
