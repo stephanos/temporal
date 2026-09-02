@@ -34,6 +34,7 @@ Finalized the previously implemented Lean-owned portable Evaluation Contract low
 baseline: red (known inherited broad-gate failures/resource limits; focused task gates green)
 
 stage: impl-review - ran [2026-09-02T02:01:54Z..2026-09-02T02:02:48Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests: baseline: red (known inherited make lint-model rc137 after successful build, make lint-code approximately 1948 repo-wide findings, and later-task regression parity instability; not rerun per conductor instruction), cd model && TMPDIR=$PWD/../.flow/tmp/fn28_3_tmp GOTMPDIR=$PWD/../.flow/tmp/fn28_3_tmp flock ../.flow/tmp/lake-build.lock bash -lc 'mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests' (pass), flock .flow/tmp/lake-build.lock: mise exec -- lake env lean --run Temporal/Tool/PortableEvaluationContractTests.lean normal and duplicate-delivery; jq required-field checks; distinct-byte check (pass), TMPDIR=$PWD/.flow/tmp/fn28_3_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_3_tmp go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/... (pass), git diff --check (pass), GATE_CLASSIFY_FULL: unrelated user-owned config/development.yaml working-tree modification
