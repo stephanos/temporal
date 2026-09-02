@@ -26,12 +26,15 @@ Focused imports are available when a consumer needs a smaller surface:
 | `Umpire.Planning` | Deterministic incremental planning over checked queries. |
 | `Umpire.Promotion` | Deterministic checked source compilation from one unchanged planned Query. |
 | `Umpire.Space` | Checked finite axes, request-only faults, seek-only coverage goals, metadata, point lowering, and atomic batch compilation. |
+| `Umpire.Exploration` | Checked finite-universe selection, pinned precedence, and process-local one-candidate sequencing. |
 | `Umpire.Observation` | Checked Evidence mappings, Observation Evaluation, Evidence Links, dispositions, Property verdicts, and strict aggregation. |
 | `Umpire.ImplementationLink` | Checked forward correspondence between independently authored semantic Targets. |
 
 `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
 `Umpire.Query.Language`, `Umpire.Space.Language`, `Umpire.Space.Intent`,
-`Umpire.Space.Metadata`, `Umpire.Space.Compiler`, `Umpire.Observation.Language`,
+`Umpire.Space.Metadata`, `Umpire.Space.Compiler`, `Umpire.Exploration.Language`,
+`Umpire.Exploration.Candidate`, `Umpire.Exploration.Selection`, `Umpire.Exploration.Guided`,
+`Umpire.Exploration.Engine`, `Umpire.Exploration.Session`, `Umpire.Observation.Language`,
 `Umpire.Observation.Evaluation`, `Umpire.ImplementationLink.Language`,
 `Umpire.ImplementationLink.Application`, and `Umpire.Planning.Engine` implement their public
 facades and should not normally be imported directly.
@@ -50,6 +53,9 @@ CheckedQuery + ExperimentSpaceDeclaration ─ checkExperimentSpace ─▶ Checke
 CheckedExperimentSpace ─ projectCheckedSpaceMetadata ─▶ CheckedSpaceMetadata
 CheckedExperimentSpace + exact assignment ─ lowerSpacePoint ─▶ LoweredSpacePoint
 CheckedExperimentSpace + base Query kernel ─ compileBatch ─▶ List ExperimentSpec
+CheckedExperimentSpace + policy + Limit + pinned ExperimentSpecs + exact kernel
+  ─ checkExplorationRequest / explore ─▶ ExplorationResult
+ExplorationRequest + exact kernel ─ beginSession ─▶ process-local ExplorationSession
 ImplementationLinkDeclaration + checked source/destination Targets + forward witness
   ─ checkImplementationLink ─▶ CheckedImplementationLink
 CheckedImplementationLink + source setup + EvidenceBackedTrace
@@ -381,10 +387,53 @@ caller-owned base kernel through that proof, compiles every canonical point, and
 complete ordered batch or one typed error with no partial batch. Target-owned planning supplies all
 outcomes.
 
-`CheckedSpaceMetadata` is the canonical in-memory, source-backed projection that fn-5 later consumes
-for catalog aggregation and list/explain generation. Space does not persist a registry. Later C8
-exploration may consume checked goals and `lowerSpacePoint`; Space itself does not select a subset,
-score coverage, maintain coverage state, execute a runtime, or evaluate conformance.
+`CheckedSpaceMetadata` is the canonical in-memory, source-backed projection consumed by catalog
+aggregation and list/explain generation. Space does not persist a registry. Exploration consumes
+the checked Space and its compiled points; Space itself does not select a subset, score coverage,
+maintain coverage state, execute a runtime, or evaluate conformance.
+
+## Exploration API
+
+`Umpire.Exploration` is the reusable pure selection layer over one checked finite Space and its
+exact planner kernel. `ExplorationRequest` admits only `exhaustive` or
+`uncoveredCoordinate coordinate`, one positive `experiment-specs` Limit, and a list of canonical
+ExperimentSpecs proposed as pinned Regressions. `checkExplorationRequest` validates those inputs
+atomically and returns an opaque `CheckedExplorationRequest`; invalid Limits, unknown coordinates,
+invalid or duplicate pinned Artifacts, and incompatible target or kernel bindings expose no
+partial checked value.
+
+The retained selectors are exactly:
+
+```lean
+selectExhaustive :
+  CheckedExplorationRequest LawStatement → CandidateUniverse → Option ExhaustiveSelection
+
+selectUncoveredCoordinate :
+  CheckedExplorationRequest LawStatement → CandidateUniverse → Option GuidedSelection
+```
+
+Both reject crossed checked inputs. Exhaustive selection reports `exhausted` only when every
+eligible candidate in the finite universe was considered. Stopping at the Limit reports
+`limit-reached`, which is inconclusive and proves no absence claim. Coordinate guidance puts exact
+matches first and breaks ties by ExperimentSpec semantic identity. Its
+`coordinate-selected|coordinate-uncovered` outcome describes only the selected candidates; a
+requested coordinate or fault remains Model intent and is not Evidence of runtime realization or
+Property satisfaction.
+
+`explore` composes checking, complete candidate compilation, and one selector into the narrow
+`ExplorationResult`. Checked pinned Regressions are identity-sorted in a separate partition, appear
+before exploratory candidates, consume none of the exploration Limit, and win identity overlap
+through `pinned-precedence`. `beginSession`, `ExplorationSession.next`, and
+`ExplorationSession.observe` expose one fixed selected order with at most one outstanding candidate
+and exact Artifact-binding admission. The session is process-local and has no persisted encoding,
+checkpoint, compatibility version, or restart contract.
+
+The Temporal-specific adapter is the explicit opt-in
+`Temporal.Feature.Nexus.Experimental.Exploration` module. Its `run` and `startSession` operations
+bind the checked four-point Nexus variation Space and existing exact planner kernel. Fn-33 owns the
+serial `umpire-fuzz run` runtime, workload completion, eventual Evidence collection, and Run
+Evaluation. The Lean layer owns no command, runtime I/O, persistence, promotion, parallel campaign,
+adaptive corpus, symmetry, or generalized coverage-reporting surface.
 
 ## Promotion API
 

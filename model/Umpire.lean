@@ -8,6 +8,7 @@ import Umpire.Artifact
 import Umpire.Planning
 import Umpire.Promotion
 import Umpire.Space
+import Umpire.Exploration
 import Umpire.Observation
 import Umpire.ImplementationLink
 import Umpire.SemanticInventory

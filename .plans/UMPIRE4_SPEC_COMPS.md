@@ -255,7 +255,7 @@ property. Implementation Link relates meanings but cannot silently select a prov
 | --- | --- | --- |
 | `Umpire.Query` | Combine a checked target, properties, behavior, quantifier, Limits, completeness evidence, and policy. | Present and deep. Remains the first semantic composition point. |
 | `Umpire.Planning` | Deterministic bounded selection or verification over a checked query and finite kernel. | Present and deep. Keep planning outcomes explicit. |
-| `Umpire.Exploration` | Batch selection, semantic coverage, symmetry, resume state, and coverage-guided prioritization. | Planned. Own campaign selection rather than expanding Planning indefinitely. |
+| `Umpire.Exploration` | Checked finite-universe selection through exhaustive or one uncovered-coordinate policy, pinned precedence, and process-local one-candidate sequencing. | Present for the retained bounded slice. Symmetry, persisted resume, adaptive corpora, and generalized coverage reporting remain deferred. |
 | `Umpire.Artifact` | Construct canonical `DrivePlan` and `ExperimentSpec` values from checked selections. | Present but partial. Deepen by controlling construction, anti-forgery, versioning, and canonical serialization. |
 
 `Umpire.Search` is not a peer deep module in its current form. It mostly contains policy, Limits,
@@ -263,8 +263,9 @@ and metadata structures. Query-specific vocabulary should sit behind Query or Pl
 campaign search belongs in Exploration. Retire the standalone facade while implementing those
 owners rather than through an isolated compatibility layer.
 
-Planning selects a trace. Artifact compiles the selected trace into portable intent. Exploration
-selects batches and updates semantic coverage state. These responsibilities must remain separate
+Planning selects a trace. Artifact compiles the selected trace into portable intent. The retained
+Exploration slice selects a deterministic bounded partition from one complete finite candidate
+universe; it does not update persistent coverage state. These responsibilities must remain separate
 even when one public operation composes them.
 
 ### 6.5 Discovery, learning, and assurance
@@ -569,7 +570,7 @@ canonical family model. Neither path enters `Temporal.lean`, ordinary tools, or 
 | `SemanticEvidence` | Lean checker | Result assembly and explanation. |
 | `Result` | Run Evaluation | Replay, promotion, and Claim Assessment. |
 | Replay bundle | Replay | Exact spec, run, evidence, Result, Limits, provenance, and reduction state needed to reproduce a accepted failure. |
-| Coverage report/checkpoint | Lean Exploration | Campaign resume, reporting, and reproducibility. |
+| Coverage report/checkpoint | Lean Exploration | Deferred; the retained process-local session has no persisted coverage or checkpoint Artifact. |
 | Verification receipt | Lean Verify | CI and Claim Assessment. |
 | Evaluation Receipt | Claim Assessment | Environment and downstream policy tools. |
 | Artifact-set manifest | Artifact transport | Exact closure for every persisted workflow. |
@@ -661,7 +662,7 @@ publication.
 | `runner` | Execute one admitted test through preparation, realization, observation, cleanup, and finalization while enforcing phase Limits. |
 | `participant` | Interpret a closed `ParticipantProgram` through an SDK adapter and emit bounded structured observations. |
 | `runevaluation` | Pass admitted run/evidence data through the bounded Lean checker and assemble validated SemanticEvidence and Result artifacts. |
-| `campaign` | Coordinate Lean-selected batches, leases, parallel execution, opaque exploration state, corpus persistence, and operational time budgets. |
+| `campaign` | Coordinate model-selected candidates and operational execution Limits. Fn-33 first owns one serial runtime; leases, parallel execution, persisted exploration state, and corpora remain deferred. |
 | `replay` | Reproduce a evaluated violation, minimize it through checked candidates, identify its evidence core, and request a reviewed promotion proposal. |
 | `verification` | Invoke model-declared native or optional checker profiles and admit provenance-rich receipts. |
 | `evaluation` | Apply named environment Claim Assessment policy to admitted evidence and produce an Evaluation Receipt. |
@@ -702,9 +703,12 @@ ExperimentSpec + ExperimentRun + RawEvidence
 Go validates transport, process behavior, and artifact closure. Lean performs observation
 interpretation, Implementation Link, and property evaluation.
 
-Lean `Umpire.Exploration` and Go `campaign` remain distinct. Lean decides which semantic experiment
-is useful and updates semantic coverage. Go leases and executes batches concurrently and persists
-opaque state. Go must not reproduce coverage scoring, mutation meaning, or selection policy.
+Lean `Umpire.Exploration` and Go `campaign` remain distinct. Lean checks one finite Space, applies
+the exhaustive or caller-named uncovered-coordinate selector, and returns pinned and exploratory
+partitions. Fn-33's Go campaign process owns the serial `umpire-fuzz run` loop, workload completion,
+eventual Evidence arrival, and runtime Limits. It consumes the process-local one-candidate session
+without reproducing selection meaning. Parallel leasing, persisted opaque state, adaptive corpora,
+and generalized coverage reports are deferred.
 
 ### 9.4 Adapters
 
@@ -791,7 +795,7 @@ tools/umpire/
 | `umpire-check-model` | Go verification adapter plus Lean `Temporal.Tool.CheckModel` | Run model-declared per-commit, nightly, or named checks and assemble an honest verification receipt. |
 | `umpire-gen-tests` | Lean `Temporal.Tool.GenerateTests` executable | List, explain, and compile named regressions, test sets, or selected batches into canonical JSON manifests and complete traces. |
 | `umpire-gen-tests-go` | Go Generated View module | Convert admitted manifests into readable deterministic Go tests. |
-| `umpire-fuzz` | Go campaign coordinator plus Lean Exploration | Run time-bounded parallel exploration with opaque resumable semantic state. |
+| `umpire-fuzz run` | Go campaign coordinator plus Lean Exploration | Fn-33 serially executes the next model-selected candidate and waits for bounded workload completion and Evidence; no parallel or persisted-resume contract is implied. |
 
 There is no public `umpire-run-tests` command. Generated Go tests call `runner` directly. Catalog,
 Run Evaluation, replay, and Claim Assessment operations may be focused commands or subcommands of a
@@ -987,11 +991,17 @@ This is the highest-value vertical proof: the model checks real Temporal behavio
 
 ### Priority 5: build the learning loop
 
-- Add `Umpire.Exploration` and the Go campaign coordinator.
-- Add semantic coverage, resume state, symmetry, and guided prioritization.
+- Retain `Umpire.Exploration` as the checked finite selector with exhaustive and one
+  uncovered-coordinate policy, pinned precedence outside the exploration Limit, and a
+  process-local one-candidate session.
+- Add fn-33's serial Go campaign coordinator through `umpire-fuzz run` without moving model
+  selection or correctness judgment into Go.
 - Add deterministic replay and semantic minimization.
 - Identify a non-destructive diagnostic evidence core.
 - Produce reviewed promotion proposals and broader deterministic Generated Views.
+
+Persisted resume, symmetry families, parallel campaign leasing, adaptive corpora, and generalized
+coverage reporting remain deferred until the serial runtime proves the seam.
 
 Exploration success is measured by meaningful semantic coverage and retained regressions, not raw
 case count.
