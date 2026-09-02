@@ -34,6 +34,7 @@ import Umpire.Exploration.Tests.Selection
 import Umpire.Exploration.Tests.Guided
 import Umpire.Exploration.Tests.Engine
 import Umpire.Exploration.Tests.Pinned
+import Umpire.Exploration.Tests.Session
 
 namespace UmpireTests
 
