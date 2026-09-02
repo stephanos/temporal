@@ -75,7 +75,7 @@ The Nexus session preserves its fixed order, permits only one outstanding candid
 only after the exact checked binding; crossed and stale observations remain atomic failures.
 -/
 example :
-    let stale := { firstBinding with formatVersion := "umpire-experiment/v1" }
+    let stale := { firstBinding with formatVersion := "unsupported-format" }
     let afterFirst := firstOutstanding.observe [firstBinding]
     firstStep.1.identity == firstCandidate.identity &&
       firstOutstanding.next.isNone &&
