@@ -385,6 +385,9 @@ func requireLiveNegativeControlResult(
 	require.Equal(t, []string{requested[0].FactDefinitionID},
 		completed[0].CausalFactDefinitionIDs)
 	callback := liveFactsWithField(rawEvidence, umpireruntime.EvidenceFieldCancellationCallbackCount)
+	callback = slices.DeleteFunc(callback, func(fact artifactv2.RawEvidenceFact) bool {
+		return fact.KindDefinitionID != umpireruntime.EvidenceKindParticipantCommand
+	})
 	synthetic := liveFactsWithField(rawEvidence, umpireruntime.EvidenceFieldSyntheticContributionMarker)
 	require.Len(t, callback, 1)
 	require.Len(t, synthetic, 1)
@@ -393,6 +396,9 @@ func requireLiveNegativeControlResult(
 	))
 	require.Equal(t, json.Number("1"), rawEvidenceNaturalField(
 		synthetic[0], umpireruntime.EvidenceFieldSyntheticContributionCount,
+	))
+	require.Equal(t, json.Number("1"), rawEvidenceNaturalField(
+		synthetic[0], umpireruntime.EvidenceFieldCancellationCallbackCount,
 	))
 	require.Equal(t, duplicateDeliveryMarker, rawEvidenceStringField(
 		synthetic[0], umpireruntime.EvidenceFieldSyntheticContributionMarker,

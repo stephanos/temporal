@@ -132,7 +132,8 @@ func TestLiveFaultedCallerClosureReturnsClosedFaultRealizationEvidence(t *testin
 		umpireruntime.EvidenceFieldSyntheticContributionMarker,
 	)
 	require.Len(t, synthetic, 1)
-	require.Equal(t, umpireruntime.EvidenceKindParticipantCommand, synthetic[0].KindDefinitionID)
+	require.Equal(t, umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
+		synthetic[0].KindDefinitionID)
 	require.Equal(t, duplicateDeliverySyntheticFieldOrder[:],
 		rawEvidenceFieldDefinitionIDs(synthetic[0]))
 	require.Equal(t, "1", rawFactFieldValue(t, synthetic[0],
@@ -175,7 +176,9 @@ func TestLiveFaultedCallerClosureReturnsClosedFaultRealizationEvidence(t *testin
 		rawEvidence,
 		umpireruntime.EvidenceFieldCancellationCallbackCount,
 	)
-	require.Len(t, callback, 1)
+	require.Len(t, callback, 2)
+	require.Equal(t, "1", rawFactFieldValue(t, synthetic[0],
+		umpireruntime.EvidenceFieldCancellationCallbackCount))
 	require.Equal(t, []string{callback[0].FactDefinitionID},
 		synthetic[0].CausalFactDefinitionIDs)
 	requested, err := exactHistoryEventFact(

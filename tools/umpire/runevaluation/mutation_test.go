@@ -426,14 +426,17 @@ func TestRealCheckerDuplicateDeliveryIgnoresOrdinaryOperationalFacts(t *testing.
 		require.NotContains(t, orderingEvidence, extra.FactDefinitionID)
 		require.NotContains(t, orderingEvidence, extraCleanup.FactDefinitionID)
 	}
-	participantClosureFound := false
+	closureOrdinals := make(map[string]artifactv2.Natural)
 	for _, closure := range response.EvidenceLinks[0].ClosureSupport {
-		if closure.KindDefinitionID == "umpire.evidence.kind.participant-command" {
-			participantClosureFound = true
-			require.EqualValues(t, "1", closure.LastOrdinal)
+		if closure.KindDefinitionID == umpireruntime.EvidenceKindParticipantCommand ||
+			closure.KindDefinitionID == umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate {
+			closureOrdinals[closure.KindDefinitionID] = closure.LastOrdinal
 		}
 	}
-	require.True(t, participantClosureFound)
+	require.Equal(t, map[string]artifactv2.Natural{
+		umpireruntime.EvidenceKindParticipantCommand:                   artifactv2.NaturalFromUint64(0),
+		umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate: artifactv2.NaturalFromUint64(1),
+	}, closureOrdinals)
 }
 
 func TestRealCheckerRejectsCrossedDuplicateDeliverySemanticClosure(t *testing.T) {
