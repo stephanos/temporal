@@ -272,11 +272,16 @@ def limits (budget : Nat := 10) : QueryLimits := {
   search := { value := budget, unit := .candidateEvaluations }
 }
 
-def policy (strategy : SearchStrategy) (seed : Nat := 17) : PlannerPolicy := {
-  strategy
-  seed
-  tieBreak := .definitionId
-}
+def policy (strategy : SearchStrategy) (seed : Nat := 17) : PlannerPolicy :=
+  match strategy with
+  | .shortest => { PlannerPolicy.shortest with seed }
+  | .exhaustive => { PlannerPolicy.exhaustive with seed }
+  | .seeded => PlannerPolicy.seeded seed
+  | .breadthFirst => {
+      strategy
+      seed
+      tieBreak := .definitionId
+    }
 
 def checkedQuery
     (width : Nat)
@@ -315,19 +320,19 @@ def incrementalKernel? (width : Nat) : Option (IncrementalPlannerKernel (target 
   IncrementalPlannerKernel.ofCheckedQuery? (orderedQuery width)
     (by
       intro evidence evidenceEq
-      simp [orderedQuery, checkedQuery, CheckedQueryTarget.ofTarget, target,
+      simp [orderedQuery, checkedQuery, policy, CheckedQueryTarget.ofTarget, target,
         CheckedTarget.withEquivalentKernel, baseTarget, checkedTarget, targetAuthoring,
         AuthoredTarget.make, targetDefinition, finitePlanning] at evidenceEq
       cases Option.some.inj evidenceEq
       simp)
     (by
       intro _ _ candidate
-      simp only [orderedQuery, checkedQuery, target, CheckedTarget.withEquivalentKernel,
+      simp only [orderedQuery, checkedQuery, policy, target, CheckedTarget.withEquivalentKernel,
         baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition, kernel]
       split <;> simp)
     (by
       intro _ _ state action
-      simp only [orderedQuery, checkedQuery, target, CheckedTarget.withEquivalentKernel,
+      simp only [orderedQuery, checkedQuery, policy, target, CheckedTarget.withEquivalentKernel,
         baseTarget, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition, kernel]
       split
       · rw [List.pairwise_iff_getElem]
