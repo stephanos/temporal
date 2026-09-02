@@ -22,9 +22,10 @@ const (
 	ProtobufContentType = "application/x-protobuf"
 
 	maximumProtobufEnvelopeBytes = 32
+	maximumResponseEnvelopeBytes = 5
 	maximumRequestBytes          = evaluationcontract.MaximumContractBytes +
 		2*artifact.MaximumDocumentBytes + maximumProtobufEnvelopeBytes
-	maximumResponseBytes   = evaluationcontract.MaximumResultBytes
+	maximumResultBytes     = evaluationcontract.MaximumResultBytes
 	maximumRequestDuration = time.Duration(evaluationcontract.MaximumDurationMillis) * time.Millisecond
 )
 
@@ -38,10 +39,11 @@ type Executor interface {
 }
 
 type handler struct {
-	execute              executeFunc
-	maximumRequestBytes  int64
-	maximumResponseBytes int64
-	maximumDuration      time.Duration
+	execute             executeFunc
+	marshal             func(proto.Message) ([]byte, error)
+	maximumRequestBytes int64
+	maximumResultBytes  int64
+	maximumDuration     time.Duration
 }
 
 // New returns the fixed HTTP handler for one resident executor.
@@ -53,7 +55,7 @@ func New(resident Executor) http.Handler {
 	return newHandler(
 		execute,
 		maximumRequestBytes,
-		maximumResponseBytes,
+		maximumResultBytes,
 		maximumRequestDuration,
 	)
 }
@@ -61,12 +63,13 @@ func New(resident Executor) http.Handler {
 func newHandler(
 	execute executeFunc,
 	requestBytes int64,
-	responseBytes int64,
+	resultBytes int64,
 	duration time.Duration,
 ) http.Handler {
 	return &handler{
-		execute: execute, maximumRequestBytes: requestBytes,
-		maximumResponseBytes: responseBytes, maximumDuration: duration,
+		execute: execute, marshal: deterministicMarshal.Marshal,
+		maximumRequestBytes: requestBytes, maximumResultBytes: resultBytes,
+		maximumDuration: duration,
 	}
 }
 
@@ -84,26 +87,39 @@ func (h *handler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		writeTransportStatus(writer, http.StatusUnsupportedMediaType)
 		return
 	}
-	if h == nil || h.execute == nil || h.maximumRequestBytes <= 0 ||
-		h.maximumResponseBytes <= 0 || h.maximumDuration <= 0 {
+	if h == nil || h.execute == nil || h.marshal == nil || h.maximumRequestBytes <= 0 ||
+		h.maximumResultBytes <= 0 || h.maximumDuration <= 0 {
 		writeTransportStatus(writer, http.StatusInternalServerError)
 		return
 	}
+	clientContext := request.Context()
+	ctx, cancel := context.WithTimeout(clientContext, h.maximumDuration)
+	defer cancel()
+	request = request.WithContext(ctx)
+	if deadline, ok := ctx.Deadline(); ok {
+		finishDeadlines := setHTTPDeadlines(writer, deadline)
+		defer finishDeadlines()
+	}
 	executionRequest, status := h.decodeRequest(writer, request)
 	if status != 0 {
-		writeTransportStatus(writer, status)
+		publishTransportFailure(clientContext, ctx, writer, status)
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(request.Context(), h.maximumDuration)
-	defer cancel()
 	response, err := h.execute(ctx, executionRequest)
-	if request.Context().Err() != nil {
+	if clientContext.Err() != nil {
 		return
 	}
 	encoded, status := h.encodeResponse(ctx, response, err)
 	if status != 0 {
-		writeTransportStatus(writer, status)
+		publishTransportFailure(clientContext, ctx, writer, status)
+		return
+	}
+	if clientContext.Err() != nil {
+		return
+	}
+	if contextDeadlineExceeded(ctx) {
+		publishTransportFailure(clientContext, ctx, writer, http.StatusGatewayTimeout)
 		return
 	}
 
@@ -129,6 +145,9 @@ func (h *handler) decodeRequest(
 		err = closeErr
 	}
 	if err != nil {
+		if contextDeadlineExceeded(request.Context()) {
+			return nil, http.StatusRequestTimeout
+		}
 		var maximumBytesError *http.MaxBytesError
 		if errors.As(err, &maximumBytesError) {
 			return nil, http.StatusRequestEntityTooLarge
@@ -141,9 +160,12 @@ func (h *handler) decodeRequest(
 		!validProtoSemantics(executionRequest.ProtoReflect()) {
 		return nil, http.StatusBadRequest
 	}
-	canonical, err := deterministicMarshal.Marshal(executionRequest)
+	canonical, err := h.marshal(executionRequest)
 	if err != nil || !bytes.Equal(encoded, canonical) {
 		return nil, http.StatusBadRequest
+	}
+	if contextDeadlineExceeded(request.Context()) {
+		return nil, http.StatusRequestTimeout
 	}
 	return executionRequest, 0
 }
@@ -154,12 +176,12 @@ func (h *handler) encodeResponse(
 	executeErr error,
 ) ([]byte, int) {
 	if executeErr != nil || response == nil || response.GetResult() == nil {
-		if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		if contextDeadlineExceeded(ctx) {
 			return nil, http.StatusGatewayTimeout
 		}
 		return nil, http.StatusInternalServerError
 	}
-	if errors.Is(ctx.Err(), context.DeadlineExceeded) &&
+	if contextDeadlineExceeded(ctx) &&
 		(response.GetResult().GetToolingStatus() != umpirespb.TOOLING_STATUS_CANCELED ||
 			response.GetResult().GetDecision() != umpirespb.CANARY_DECISION_INCONCLUSIVE) {
 		return nil, http.StatusGatewayTimeout
@@ -167,11 +189,72 @@ func (h *handler) encodeResponse(
 	if !validProtoSemantics(response.ProtoReflect()) {
 		return nil, http.StatusInternalServerError
 	}
-	encoded, err := deterministicMarshal.Marshal(response)
-	if err != nil || int64(len(encoded)) > h.maximumResponseBytes {
+	result, err := h.marshal(response.GetResult())
+	if err != nil || int64(len(result)) > h.maximumResultBytes {
 		return nil, http.StatusInternalServerError
 	}
+	encoded, err := h.marshal(response)
+	if err != nil || int64(len(encoded)) > h.maximumResultBytes+maximumResponseEnvelopeBytes {
+		return nil, http.StatusInternalServerError
+	}
+	if contextDeadlineExceeded(ctx) {
+		return nil, http.StatusGatewayTimeout
+	}
 	return encoded, 0
+}
+
+func setHTTPDeadlines(writer http.ResponseWriter, deadline time.Time) func() {
+	controller := http.NewResponseController(writer)
+	readSet := controller.SetReadDeadline(deadline) == nil
+	writeSet := controller.SetWriteDeadline(deadline) == nil
+	return func() {
+		resetHTTPDeadline(readSet, controller.SetReadDeadline)
+		resetHTTPDeadline(writeSet, controller.SetWriteDeadline)
+	}
+}
+
+func resetHTTPDeadline(set bool, setDeadline func(time.Time) error) {
+	if !set {
+		return
+	}
+	if err := setDeadline(time.Time{}); err != nil {
+		return
+	}
+}
+
+func abortConnection(writer http.ResponseWriter) bool {
+	connection, _, err := http.NewResponseController(writer).Hijack()
+	if err != nil {
+		return false
+	}
+	if err := connection.Close(); err != nil {
+		return true
+	}
+	return true
+}
+
+func contextDeadlineExceeded(ctx context.Context) bool {
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		return true
+	}
+	deadline, ok := ctx.Deadline()
+	return ok && !time.Now().Before(deadline)
+}
+
+func publishTransportFailure(
+	clientContext context.Context,
+	requestContext context.Context,
+	writer http.ResponseWriter,
+	status int,
+) {
+	deadlineExceeded := contextDeadlineExceeded(requestContext)
+	if clientContext.Err() != nil && !deadlineExceeded {
+		return
+	}
+	if deadlineExceeded && abortConnection(writer) {
+		return
+	}
+	writeTransportStatus(writer, status)
 }
 
 func writeTransportStatus(writer http.ResponseWriter, status int) {
