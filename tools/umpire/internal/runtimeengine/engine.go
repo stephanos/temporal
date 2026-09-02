@@ -463,9 +463,10 @@ func (s *engineState) buildOutput() (Output, error) {
 	}
 	observationStatus := s.phaseOutcomes[2].Status
 	historyStatus := "partial"
-	if observationStatus == "succeeded" {
+	switch observationStatus {
+	case "succeeded":
 		historyStatus = "closed"
-	} else if observationStatus == "failed" {
+	case "failed":
 		historyStatus = "failed"
 	}
 	controlSourceStatus := "closed"
