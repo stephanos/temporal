@@ -58,8 +58,8 @@ func TestExperimentV2ChecksumsUseExactPrettyPreimages(t *testing.T) {
 		{
 			name:               "Switch",
 			fixture:            "tools/umpire/artifact/testdata/switch-experiment-v2.json",
-			planChecksum:       "sha256:1caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d",
-			experimentChecksum: "sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+			planChecksum:       "sha256:a695f9f6cc79ba49a721d1764519e2167b5fe66278666238c6da862b1a33b835",
+			experimentChecksum: "sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd",
 		},
 		{
 			name:               "Nexus caller closure",
@@ -180,8 +180,8 @@ func TestExperimentV2RejectsOneAtATimeMutations(t *testing.T) {
 		},
 		"reordered fields": {
 			encoded: replaceExperimentV2Once(t, canonical,
-				"{\n  \"formatVersion\": \"umpire-experiment/v2\",\n  \"queryBehaviorFingerprint\": \"sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0\",",
-				"{\n  \"queryBehaviorFingerprint\": \"sha256:d915da489735c26fcb295cbbd5e246f6758f612eb7141d448ab84716b02766d0\",\n  \"formatVersion\": \"umpire-experiment/v2\","),
+				"{\n  \"formatVersion\": \"umpire-experiment/v2\",\n  \"queryBehaviorFingerprint\": \"sha256:c296b131ab2a42992a13cc733b050536389c20b3589e7d59cfa70c88f1ae423b\",",
+				"{\n  \"queryBehaviorFingerprint\": \"sha256:c296b131ab2a42992a13cc733b050536389c20b3589e7d59cfa70c88f1ae423b\",\n  \"formatVersion\": \"umpire-experiment/v2\","),
 			code: artifact.ErrorNoncanonical,
 		},
 		"alternate string escape": {
@@ -260,13 +260,13 @@ func TestExperimentV2RejectsOneAtATimeMutations(t *testing.T) {
 		},
 		"nested checksum drift": {
 			encoded: replaceExperimentV2Once(t, canonical,
-				"sha256:1caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d",
+				"sha256:a695f9f6cc79ba49a721d1764519e2167b5fe66278666238c6da862b1a33b835",
 				"sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"),
 			code: artifact.ErrorArtifactChecksum,
 		},
 		"outer checksum drift": {
 			encoded: replaceExperimentV2Once(t, canonical,
-				"sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+				"sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd",
 				"sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"),
 			code: artifact.ErrorArtifactChecksum,
 		},

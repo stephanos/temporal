@@ -1,10 +1,10 @@
 {
   "formatVersion": "umpire-experiment/v2",
-  "queryBehaviorFingerprint": "sha256:9d48c2cc92dea47824b2e90f1e5f9f627929cb2aa5d57e6a53077a41b342dbef",
+  "queryBehaviorFingerprint": "sha256:78a5d778be582cf6f581bf465d5790d3f9c45575157d96e3ab20502d9637b160",
   "plan": {
     "formatVersion": "umpire-drive-plan/v2",
     "queryDefinitionId": "temporal.nexus.basic-lifecycle.query.successful-completion",
-    "queryBehaviorFingerprint": "sha256:9d48c2cc92dea47824b2e90f1e5f9f627929cb2aa5d57e6a53077a41b342dbef",
+    "queryBehaviorFingerprint": "sha256:78a5d778be582cf6f581bf465d5790d3f9c45575157d96e3ab20502d9637b160",
     "behaviorDefinitionId": "temporal.nexus.basic-lifecycle.behavior.successful-completion",
     "behaviorFingerprint": "sha256:f0d3559ebef58a279567a3685cf0a01d91c6db2c887da48ac2c2b0c3803ed86b",
     "targetDefinitionId": "temporal.nexus.basic-lifecycle.target",
@@ -181,7 +181,7 @@
         }
       ]
     },
-    "artifactChecksum": "sha256:dbc50d102e777f23ea962909a997d3c6402e840924c44fa990e5bf9be790c755"
+    "artifactChecksum": "sha256:6ce25a32abfd1b1742f8dec9c22a8c8bdb21da366d3392bd2136bf22b356b817"
   },
   "properties": [
     {
@@ -218,5 +218,5 @@
       }
     ]
   },
-  "artifactChecksum": "sha256:f85f0693d52139438ad53cfb4cb91ea58d826c320dfdf2d2c0981c9d5ecdb4b1"
+  "artifactChecksum": "sha256:ef6168a550983456bc05ac599bf1de05b0f85ba2439eb606b46363bfbc5ef98f"
 }

@@ -37,18 +37,18 @@ example : executableSet.isValidClosure && executionSet.isValidClosure &&
 
 example :
     executableSet.manifest?.map ArtifactSetManifest.artifactSetIdentity =
-      some "umpire.artifact-set.4b7c7fb8319e64bbab53abc7f0f73f3b22733b08c11caa9cbd508fe1f59c7775" &&
+      some "umpire.artifact-set.ff833b3c322019881a67443e013ed5060a09aebd4246edba34dae22cb0d0eb80" &&
     executionSet.manifest?.map ArtifactSetManifest.artifactSetIdentity =
-      some "umpire.artifact-set.3dda4efe07ac24ef454f7dc4227440277cb59caf4a4d671ac09d5bc11555f2f0" &&
+      some "umpire.artifact-set.9e4db86fd3bc6b41654ae0aa2f6601805f20cd0e189ff1821b727d82805674f6" &&
     evaluationSet.manifest?.map ArtifactSetManifest.artifactSetIdentity =
-      some "umpire.artifact-set.3443af6c49f2bfbf1b6200410b0ea8588581f9cc0373fa75f07ee9fcf3143309" := by
+      some "umpire.artifact-set.b235748c7bc21083e1c650186d6f8c98a1bca123b46cd0c62b69f18885567372" := by
   native_decide
 
 example : evaluationSet.manifest?.any fun manifest =>
     manifest.artifactSetChecksum.render ==
-      "sha256:833572e59d6dff46a20a3b11e23e5846606a04a7e646cf511c41d296c4f59021" &&
+      "sha256:48a20a42604e2f6d483562fe886df504ca36b6423bccc86b99833210fb0da593" &&
     manifest.manifestSha256.render ==
-      "sha256:9b0d3fb446411f8f2138029820a5bc8ce096aed2de984cc67a8694e50b30ea30" &&
+      "sha256:cf53d048c8dcdbfe680002ad99e892cb1aebba99ed18bfb12b9d063212160da0" &&
     canonicalArtifactSetManifestBytes manifest == include_str "Fixtures/ArtifactSetV2.json" := by
   native_decide
 
