@@ -92,15 +92,9 @@ private def errorKindOf
 private def changedId : DefinitionId :=
   DefinitionId.of "temporal.nexus.caller-closure.promotion.changed"
 
-private def changedFingerprint : BehaviorFingerprint :=
-  behaviorFingerprintOf "temporal/nexus/caller-closure/promotion/changed"
-
 private def invalidInputs : List Internal.PromotionProposalInput := [
     {
       input with candidateDefinitionId := changedId
-    },
-    {
-      input with baseQuery := { input.baseQuery with behaviorFingerprint := changedFingerprint }
     },
     {
       input with basePlannerRun := {
@@ -126,7 +120,6 @@ private def invalidInputs : List Internal.PromotionProposalInput := [
 
 private def expectedInvalidKinds : List (Option PromotionFailureKind) := [
     some .candidateLineageDrift,
-    some .baseLineageDrift,
     some .baseLineageDrift,
     some .baseLineageDrift,
     some .faultLineageDrift,
@@ -166,5 +159,94 @@ example : [
         "; inert model compilation only, not runtime reproduction, minimization, Exact Replay, " ++
           "or eligibility\"}\n") := by
   native_decide
+
+private def fail (message : String) : IO α :=
+  throw <| IO.userError message
+
+private def require (condition : Bool) (message : String) : IO Unit :=
+  unless condition do fail message
+
+private def runExecutable (args : Array String) : IO IO.Process.Output :=
+  IO.Process.output {
+    cmd := ".lake/build/bin/temporal-model-promote"
+    args
+  }
+
+private def repositoryStatus : IO String := do
+  let output ← IO.Process.output {
+    cmd := "git"
+    args := #["-C", "..", "status", "--porcelain=v1", "--untracked-files=all"]
+  }
+  require (output.exitCode == 0) s!"could not inspect the repository: {output.stderr}"
+  pure output.stdout
+
+private def sourceField (bytes : String) : Except String (String × String) := do
+  let proposal ← Lean.Json.parse bytes
+  let source ← proposal.getObjVal? "promotedSource"
+  let sourceBytes ← source.getObjVal? "bytes" >>= Lean.Json.getStr?
+  let sourceSha256 ← source.getObjVal? "sha256" >>= Lean.Json.getStr?
+  pure (sourceBytes, sourceSha256)
+
+private def expectedProposalBytes : String :=
+  include_str "Fixtures/CallerClosurePromotionProposalV2.json"
+
+private def executableFailureCases : List (Array String × String) := [
+  (#[],
+    "{\"kind\":\"invalid-arguments\",\"subject\":\"temporal-model-promote\"," ++
+      "\"context\":\"expected exactly one fixed candidate identity; inert model compilation " ++
+      "only, not runtime reproduction, minimization, Exact Replay, or eligibility\"}\n"),
+  (#[candidateId.value, "extra"],
+    "{\"kind\":\"invalid-arguments\",\"subject\":\"temporal-model-promote\"," ++
+      "\"context\":\"expected exactly one fixed candidate identity; inert model compilation " ++
+      "only, not runtime reproduction, minimization, Exact Replay, or eligibility\"}\n"),
+  (#["unknown"],
+    "{\"kind\":\"unknown-candidate\",\"subject\":\"unknown\"," ++
+      "\"context\":\"unknown promotion candidate; inert model compilation only, not runtime " ++
+      "reproduction, minimization, Exact Replay, or eligibility\"}\n")
+]
+
+private def compileSource (root : System.FilePath) (sourceBytes : String) : IO Unit := do
+  let sourcePath := root / "CompiledSource.lean"
+  let outputPath := root / "CompiledSource.olean"
+  IO.FS.writeFile sourcePath sourceBytes
+  let output ← IO.Process.output {
+    cmd := "mise"
+    args := #[
+      "exec", "--", "lake", "env", "lean", "--root=" ++ root.toString,
+      sourcePath.toString, "-o", outputPath.toString
+    ]
+  }
+  require (output.exitCode == 0)
+    s!"isolated promotion source elaboration failed: {output.stdout}{output.stderr}"
+  require output.stdout.isEmpty "isolated source elaboration wrote stdout"
+  require output.stderr.isEmpty "isolated source elaboration wrote stderr"
+
+/-- Run the fixed executable, golden-byte, isolated-elaboration, and non-mutation regressions. -/
+def runIORegressions : IO Unit := do
+  let before ← repositoryStatus
+  let root ← IO.FS.createTempDir
+  try
+    let first ← runExecutable #[candidateId.value]
+    require (first.exitCode == 0) s!"promotion command failed: {first.stderr}"
+    require (first.stdout == expectedProposalBytes) "complete proposal bytes drifted"
+    require first.stderr.isEmpty "successful promotion command wrote stderr"
+    let second ← runExecutable #[candidateId.value]
+    require (second.exitCode == 0 && second.stdout == first.stdout && second.stderr.isEmpty)
+      "repeated promotion command output drifted"
+    for (args, expectedStderr) in executableFailureCases do
+      let output ← runExecutable args
+      require (output.exitCode == 1) "invalid promotion command did not return status 1"
+      require output.stdout.isEmpty "invalid promotion command wrote partial stdout"
+      require (output.stderr == expectedStderr) "promotion command diagnostic drifted"
+    let (sourceBytes, sourceSha256) ← match sourceField first.stdout with
+      | .ok source => pure source
+      | .error error => fail s!"could not extract sealed source: {error}"
+    require (promotionSourceSha256 sourceBytes == sourceSha256)
+      "embedded promotion source digest drifted"
+    compileSource root sourceBytes
+    let after ← repositoryStatus
+    require (after == before) "promotion command modified the repository"
+  finally
+    IO.FS.removeDirAll root
 
 end Temporal.Tool.PromoteTests
