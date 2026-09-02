@@ -26,11 +26,39 @@ structure ExhaustiveSelection where
 def ExhaustiveSelection.identities (selection : ExhaustiveSelection) : List ArtifactChecksum :=
   selection.candidates.map ExplorationCandidate.identity
 
-private def isPinned
+namespace ExplorationSelection.Internal
+
+/-- Whether one canonical candidate is already retained by the checked pinned partition. -/
+def isPinned
     (request : CheckedExplorationRequest LawStatement)
     (candidate : ExplorationCandidate) : Bool :=
   request.pinned.any fun pinned =>
     pinned.experimentSpec.artifactChecksum == candidate.identity
+
+/-- The canonical candidate partition still eligible for the Exploration Limit. -/
+def eligibleCandidates
+    (request : CheckedExplorationRequest LawStatement)
+    (candidateUniverse : CandidateUniverse) : List ExplorationCandidate :=
+  candidateUniverse.candidates.filter fun candidate => !isPinned request candidate
+
+end ExplorationSelection.Internal
+
+namespace ExhaustiveSelection.Internal
+
+/-- Apply the exhaustive policy after the engine has established request and universe bindings. -/
+def select
+    (request : CheckedExplorationRequest LawStatement)
+    (candidateUniverse : CandidateUniverse) : ExhaustiveSelection :=
+  let candidates := ExplorationSelection.Internal.eligibleCandidates request candidateUniverse
+  {
+    candidates := candidates.take request.limit.value
+    outcome := if candidates.length ≤ request.limit.value then
+      .exhausted
+    else
+      .limitReached
+  }
+
+end ExhaustiveSelection.Internal
 
 /--
 Select the identity-ordered prefix for one checked exhaustive request. Crossed Space or policy
@@ -44,14 +72,6 @@ def selectExhaustive
       candidateUniverse.spaceBehaviorFingerprint != request.space.behaviorFingerprint then
     none
   else
-    let candidates := candidateUniverse.candidates.filter fun candidate =>
-      !isPinned request candidate
-    some {
-      candidates := candidates.take request.limit.value
-      outcome := if candidates.length ≤ request.limit.value then
-        .exhausted
-      else
-        .limitReached
-    }
+    some (ExhaustiveSelection.Internal.select request candidateUniverse)
 
 end Umpire
