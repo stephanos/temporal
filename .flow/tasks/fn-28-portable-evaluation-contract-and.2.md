@@ -29,13 +29,16 @@ Build the semantic-free Go codec that converts Lean-produced canonical ProtoJSON
 - [ ] Focused unit, race, fuzz, and lint checks pass using `require` assertions.
 
 ## Done summary
-Implemented canonical ProtoJSON packing and deterministic protobuf admission for portable Umpire evaluation contracts, including bounded structural validation, domain-separated checksums, canonical-order enforcement, closed binding checks, and typed admission errors. Added focused unit, race, fuzz, and mutation coverage for one-field drift, unknown fields/operators, invalid enums and Limits, crossed fingerprints, coordinate shapes, cyclic ordering, duplicate/contradictory mappings, checksums, canonical bytes, and exact N/N+1 collection bounds.
+Finalized the existing deterministic evaluation-contract packer/admission implementation after auditing commits `36fe448a877e887f5df4045f94ecc81f2b3862af` and `636f17f3c649853127d2bd6ab73826a32e6edf04`, their task receipt, and the authoritative Codex SHIP review. Current focused unit, race, fuzz, vet, and package lint verification is green; no product edit was warranted, and the unrelated user-owned config/schema modifications remain untouched.
 
-Verification: focused unit, race, fuzz, vet, and golangci-lint checks passed. `make lint-code` reproduced the approved inherited 1373 repository-wide findings with zero findings under `tools/umpire/evaluationcontract`; the Lean lowering, portable interpreter/executor aggregate, and tagged integration Quick commands remain deferred to tasks `.3`, `.4`/`.6`, and `.9` respectively.
+The parent Quick commands that exercise later fn-28 tasks were not redundantly rerun; the known repository-wide `lint-model` OOM, `lint-code` findings, and later-task regression parity failure remain inherited and outside this task's acceptance surface.
 
-stage: impl-review - ran [2026-09-01T18:13:22Z..2026-09-01T18:16:51Z]
-stage: plan-sync - skipped(config: planSync.enabled != true)
+baseline: green (focused evaluationcontract unit suite; no task code changed during finalization)
+
+GATE_CLASSIFY_FULL: unrelated user-owned config/development.yaml working-tree modification
+
+stage: impl-review - ran [2026-09-01T18:13:22Z..2026-09-01T18:16:51Z] (authoritative SHIP receipt reused after empty finalization diff)
 ## Evidence
-- Commits: 36fe448a877e887f5df4045f94ecc81f2b3862af, 636f17f3c649853127d2bd6ab73826a32e6edf04, bd499e9d6d84f7cc8402e77a878330504186869c
-- Tests: baseline: green (make proto), go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/..., go test -race -count=1 -tags test_dep ./tools/umpire/evaluationcontract/..., go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/... -run '^$' -fuzz '^FuzzAdmitRejectsSingleByteContractMutations$' -fuzztime=3s, go vet -tags test_dep ./tools/umpire/evaluationcontract/..., .bin/golangci-lint-v2.13.1 run --build-tags 'test_dep' --timeout 10m --config=.github/.golangci.yml ./tools/umpire/evaluationcontract/..., INHERITED_RED: make lint-code (1373 pre-existing repository-wide findings; zero tools/umpire/evaluationcontract findings), DEFERRED(task .3): cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests, DEFERRED(tasks .4/.6): go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/... ./tools/umpire/portableevaluation/... ./tools/umpire/executor/..., DEFERRED(task .9): go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpirePortableCanaryExecutor$'
+- Commits:
+- Tests: baseline: green - TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/..., TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp go test -race -count=1 -tags test_dep ./tools/umpire/evaluationcontract/..., TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/... -run '^$' -fuzz '^FuzzAdmitRejectsSingleByteContractMutations$' -fuzztime=3s, TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp go vet -tags test_dep ./tools/umpire/evaluationcontract/..., TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp .bin/golangci-lint-v2.13.1 run --build-tags 'test_dep' --timeout 10m --config=.github/.golangci.yml ./tools/umpire/evaluationcontract/..., GATE_CLASSIFY_FULL: unrelated user-owned config/development.yaml working-tree modification, AUTHORITATIVE_REVIEW_SHIP: 62c8a5b085b174c4ea4c62951c19fa66c7c423c7..636f17f3c649853127d2bd6ab73826a32e6edf04
 - PRs:
