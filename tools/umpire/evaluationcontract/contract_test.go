@@ -254,6 +254,89 @@ func TestAdmitEnforcesCollectionLimitAtNAndNPlusOne(t *testing.T) {
 	requireAdmissionCode(t, err, ErrorLimit)
 }
 
+func TestAdmitEnforcesContractByteLimitAtNAndNPlusOne(t *testing.T) {
+	exact := testContract()
+	exact.Limits.MaxContractBytes = 1
+	var exactBytes []byte
+	for range 3 {
+		exactBytes = encodeUnchecked(t, exact)
+		if exact.GetLimits().GetMaxContractBytes() == int64(len(exactBytes)) {
+			break
+		}
+		exact.Limits.MaxContractBytes = int64(len(exactBytes))
+	}
+	require.Equal(t, exact.GetLimits().GetMaxContractBytes(), int64(len(exactBytes)))
+
+	_, err := Admit(exactBytes)
+	require.NoError(t, err)
+
+	over := proto.CloneOf(exact)
+	over.Limits.MaxContractBytes--
+	overBytes := encodeUnchecked(t, over)
+	require.Equal(t, over.GetLimits().GetMaxContractBytes()+1, int64(len(overBytes)))
+
+	_, err = Admit(overBytes)
+	requireAdmissionCode(t, err, ErrorLimit)
+}
+
+func TestAdmitEnforcesExpressionDepthAtNAndNPlusOne(t *testing.T) {
+	const depth int64 = 4
+	expression := &umpirespb.ObservationExpression{Operator: &umpirespb.ObservationExpression_LiteralText{
+		LiteralText: &umpirespb.LiteralText{Value: "value"},
+	}}
+	for range depth - 1 {
+		expression = &umpirespb.ObservationExpression{Operator: &umpirespb.ObservationExpression_Present{
+			Present: &umpirespb.Present{Operand: expression},
+		}}
+	}
+
+	exact := testContract()
+	exact.Limits.MaxExpressionDepth = depth
+	exact.Observation.Emits[0].Condition = expression
+	_, err := Admit(encodeUnchecked(t, exact))
+	require.NoError(t, err)
+
+	over := proto.CloneOf(exact)
+	over.Limits.MaxExpressionDepth = depth - 1
+	_, err = Admit(encodeUnchecked(t, over))
+	requireAdmissionCode(t, err, ErrorLimit)
+}
+
+func TestAdmitEnforcesGlobalTimeAndWorkLimitMaxima(t *testing.T) {
+	for _, testCase := range []struct {
+		name  string
+		exact int64
+		set   func(*umpirespb.EvaluationLimits, int64)
+	}{
+		{
+			name:  "evaluation work",
+			exact: MaximumEvaluationWork,
+			set: func(limits *umpirespb.EvaluationLimits, value int64) {
+				limits.MaxEvaluationWork = value
+			},
+		},
+		{
+			name:  "total duration",
+			exact: MaximumDurationMillis,
+			set: func(limits *umpirespb.EvaluationLimits, value int64) {
+				limits.MaxTotalDurationMilliseconds = value
+			},
+		},
+	} {
+		t.Run(testCase.name, func(t *testing.T) {
+			exact := testContract()
+			testCase.set(exact.Limits, testCase.exact)
+			_, err := Admit(encodeUnchecked(t, exact))
+			require.NoError(t, err)
+
+			over := proto.CloneOf(exact)
+			testCase.set(over.Limits, testCase.exact+1)
+			_, err = Admit(encodeUnchecked(t, over))
+			requireAdmissionCode(t, err, ErrorLimit)
+		})
+	}
+}
+
 func testContract() *umpirespb.EvaluationContract {
 	queryFingerprint := testDigest('1')
 	countField := &umpirespb.EvidenceFieldReference{
