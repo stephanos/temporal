@@ -98,6 +98,66 @@ example :
       checkedRequest.space.baseQuery.limits.search.unit == .candidateEvaluations = true := by
   native_decide
 
+private def firstCandidateResult : Option ExplorationCandidate :=
+  universeResult.toOption.bind fun candidateUniverse => candidateUniverse.candidates.head?
+
+private def firstCandidate := firstCandidateResult.get (by native_decide)
+
+private def pinnedRequestResult (value : Nat) := checkExplorationRequest {
+  authoredRequest value with pinned := [firstCandidate.experimentSpec]
+}
+
+private def pinnedRequest2 := (pinnedRequestResult 2).toOption.get (by native_decide)
+private def pinnedRequest3 := (pinnedRequestResult 3).toOption.get (by native_decide)
+private def pinnedRequest4 := (pinnedRequestResult 4).toOption.get (by native_decide)
+
+/-!
+Pinned overlap is removed before the exhaustive Limit: N - 1 remains inconclusive, while N and
+N + 1 exhaust the three non-pinned candidates without selecting the pinned identity again.
+-/
+example :
+    let below := selectionResult pinnedRequest2
+    let exact := selectionResult pinnedRequest3
+    let above := selectionResult pinnedRequest4
+    below.any (fun result =>
+        result.candidates.length == 2 && result.outcome == .limitReached) &&
+      exact.any (fun result =>
+        result.candidates.length == 3 &&
+          !result.identities.contains firstCandidate.identity && result.outcome == .exhausted) &&
+      above.any (fun result =>
+        result.candidates.length == 3 && result.outcome == .exhausted) = true := by
+  native_decide
+
+private def differentDeclaration : ExperimentSpaceDeclaration := {
+  SpaceTests.declaration with
+  coverageGoals := [
+    { SpaceTests.stateGoal with minimum := 1 },
+    SpaceTests.delayGoal,
+    SpaceTests.semanticGoal,
+    SpaceTests.propertyGoal
+  ]
+}
+
+private def differentSpaceResult :=
+  checkExperimentSpace SpaceTests.context differentDeclaration
+
+private def differentSpace := differentSpaceResult.toOption.get (by native_decide)
+
+private def differentRequestResult := checkExplorationRequest {
+  space := differentSpace
+  policy := ExplorationPolicy.exhaustive
+  limit := { value := 3, unit := .experimentSpecs }
+}
+
+private def differentRequest := differentRequestResult.toOption.get (by native_decide)
+
+/-! A same-ID but semantically different checked Space cannot select from this universe. -/
+example :
+    SpaceTests.checked.id == differentSpace.id &&
+      SpaceTests.checked.behaviorFingerprint != differentSpace.behaviorFingerprint &&
+      (selectionResult differentRequest).isNone = true := by
+  native_decide
+
 private def reorderedDeclaration : ExperimentSpaceDeclaration := {
   SpaceTests.declaration with
   axes := (SpaceTests.declaration.axes.map fun axis => {

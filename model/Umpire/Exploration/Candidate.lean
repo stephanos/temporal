@@ -19,6 +19,7 @@ structure ExplorationCandidate where
 structure CandidateUniverse where
   private mk ::
   spaceDefinitionId : DefinitionId
+  spaceBehaviorFingerprint : BehaviorFingerprint
   candidates : List ExplorationCandidate
   deriving BEq, DecidableEq, Repr
 
@@ -111,7 +112,11 @@ private def fromCompiledSpecs
     (request : CheckedExplorationRequest LawStatement)
     (specs : List ExperimentSpec) : Except ExplorationError CandidateUniverse := do
   let orderedCandidates ← checkedCandidates request specs
-  pure { spaceDefinitionId := request.space.id, candidates := orderedCandidates }
+  pure {
+    spaceDefinitionId := request.space.id
+    spaceBehaviorFingerprint := request.space.behaviorFingerprint
+    candidates := orderedCandidates
+  }
 
 private def fromCompilationResult
     (request : CheckedExplorationRequest LawStatement)
