@@ -24,6 +24,7 @@ Focused imports are available when a consumer needs a smaller surface:
 | `Umpire.Query` | Checked combinations of Targets, Properties, Behaviors, Limits, and policies. |
 | `Umpire.Artifact` | Exact v2 planning, runtime, Evidence, Result, set-admission, and immutable-publication contracts. |
 | `Umpire.Planning` | Deterministic incremental planning over checked queries. |
+| `Umpire.Promotion` | Deterministic checked source compilation from one unchanged planned Query. |
 | `Umpire.Space` | Checked finite axes, request-only faults, seek-only coverage goals, metadata, point lowering, and atomic batch compilation. |
 | `Umpire.Observation` | Checked Evidence mappings, Observation Evaluation, Evidence Links, dispositions, Property verdicts, and strict aggregation. |
 | `Umpire.ImplementationLink` | Checked forward correspondence between independently authored semantic Targets. |
@@ -384,6 +385,19 @@ outcomes.
 for catalog aggregation and list/explain generation. Space does not persist a registry. Later C8
 exploration may consume checked goals and `lowerSpacePoint`; Space itself does not select a subset,
 score coverage, maintain coverage state, execute a runtime, or evaluate conformance.
+
+## Promotion API
+
+`Umpire.Promotion` accepts an unchanged checked Query, its target-indexed planner kernel, a complete
+base `PlannerRun`/`ExperimentSpec` anchor, fixed fresh declaration identities, and exact expected
+source bytes. It replans and rechecks the target-owned trace before returning one opaque
+`CompiledPromotionSource`; drift or non-`.found` planning returns a typed error and no source.
+
+The current Temporal caller-closure binding supplies the base Query's expected cancellation count
+of one and keeps the selected duplicate-delivery `ExperimentSpec` in a separate Temporal-owned
+proposal lineage. That proposal remains inert review material. Runtime reproduction, complete
+reduction, Exact Replay, eligibility, publication, and installation are outside this reusable API;
+fn-22 alone owns the current runtime eligibility gate.
 
 ## Planning API
 
