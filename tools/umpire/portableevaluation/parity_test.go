@@ -82,6 +82,8 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 				evidence = materializeDuplicateParityField(t, evidence)
 			case "any-operator":
 				evidence = normalEvidence
+			default:
+				require.Failf(t, "unsupported parity fixture", "name=%q", name)
 			}
 			evidenceBytes, err := artifact.EncodeRawEvidenceV2(evidence)
 			require.NoError(t, err)
@@ -570,8 +572,8 @@ func TestLeanParityContractsCoverV1OperatorVocabulary(t *testing.T) {
 	for _, name := range []string{"normal", "duplicate-delivery", "any-operator"} {
 		contract, _ := loadParityFixture(t, name)
 		for _, emit := range contract.GetObservation().GetEmits() {
-			collectObservationOperators(operators, emit.GetCondition())
-			collectObservationOperators(operators, emit.GetValue())
+			collectObservationOperators(t, operators, emit.GetCondition())
+			collectObservationOperators(t, operators, emit.GetValue())
 		}
 		for _, property := range contract.GetProperties() {
 			for _, clause := range property.GetClauses() {
@@ -584,6 +586,9 @@ func TestLeanParityContractsCoverV1OperatorVocabulary(t *testing.T) {
 						patterns["equals_text"] = true
 					case *umpirespb.Pattern_NaturalAtMost:
 						patterns["natural_at_most"] = true
+					default:
+						require.Failf(t, "unsupported Property pattern operator", "operator=%T",
+							pattern.GetOperator())
 					}
 				}
 			}
@@ -825,9 +830,11 @@ func TestLeanParityRawKnownGapIsRetainedAndInconclusive(t *testing.T) {
 }
 
 func collectObservationOperators(
+	t testing.TB,
 	operators map[string]bool,
 	expression *umpirespb.ObservationExpression,
 ) {
+	t.Helper()
 	switch operator := expression.GetOperator().(type) {
 	case *umpirespb.ObservationExpression_LiteralText:
 		operators["literal_text"] = true
@@ -837,24 +844,26 @@ func collectObservationOperators(
 		operators["field"] = true
 	case *umpirespb.ObservationExpression_NaturalRenderV1:
 		operators["natural_render_v1"] = true
-		collectObservationOperators(operators, operator.NaturalRenderV1.GetOperand())
+		collectObservationOperators(t, operators, operator.NaturalRenderV1.GetOperand())
 	case *umpirespb.ObservationExpression_Present:
 		operators["present"] = true
-		collectObservationOperators(operators, operator.Present.GetOperand())
+		collectObservationOperators(t, operators, operator.Present.GetOperand())
 	case *umpirespb.ObservationExpression_Equals:
 		operators["equals"] = true
-		collectObservationOperators(operators, operator.Equals.GetLeft())
-		collectObservationOperators(operators, operator.Equals.GetRight())
+		collectObservationOperators(t, operators, operator.Equals.GetLeft())
+		collectObservationOperators(t, operators, operator.Equals.GetRight())
 	case *umpirespb.ObservationExpression_All:
 		operators["all"] = true
 		for _, operand := range operator.All.GetOperands() {
-			collectObservationOperators(operators, operand)
+			collectObservationOperators(t, operators, operand)
 		}
 	case *umpirespb.ObservationExpression_Any:
 		operators["any"] = true
 		for _, operand := range operator.Any.GetOperands() {
-			collectObservationOperators(operators, operand)
+			collectObservationOperators(t, operators, operand)
 		}
+	default:
+		require.Failf(t, "unsupported Observation operator", "operator=%T", expression.GetOperator())
 	}
 }
 
