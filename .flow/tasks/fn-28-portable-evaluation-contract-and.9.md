@@ -36,6 +36,7 @@ Aligned the live evidence boundary required by that portable path: environment r
 Fresh verification passed for the exact tagged acceptance test, hermetic portability, affected runtime/checker packages, portable-evaluation parity, and canonical fixture drift. The task-scoped Codex review reached SHIP after its sole P2 fixture-generation finding was fixed. Existing comments remain intact, and the unrelated user-owned config/schema modifications remain unstaged and uncommitted.
 
 stage: impl-review - ran (Codex SHIP after one fixed P2 parity-fixture finding; receipt `.flow/tmp/handovers/fn-28.9-review.json`)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 079dced3a2fbbf7eb651d7c59c54bcfe9bddd7a9, abc5df5036a49600f9d017b75171dfcd4a185fde
 - Tests: go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpirePortableCanaryExecutor$' (pass), go test -count=1 ./tools/umpire/internal/runtimeengine (pass within affected-package run), go test -count=1 ./tools/umpire/runevaluation (pass), go test -count=1 ./tools/umpire/temporal/local (pass within affected-package run), go test -count=1 ./tools/umpire/temporal/nexus (pass within affected-package run), go test -count=1 ./tools/umpire/temporal/nexus -run '^TestHermeticCIPortability$' (pass), go test -count=1 -tags test_dep ./tools/umpire/portableevaluation/... (pass), make umpire-check-portable-evaluation-fixtures (pass), Codex implementation review c95feb08dc36ba7a6ee1167abeabf621b4af5ea3..abc5df5036a49600f9d017b75171dfcd4a185fde (SHIP)
