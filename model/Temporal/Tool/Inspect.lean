@@ -1,6 +1,7 @@
 import Lean.Data.Json
 import Temporal.Feature.Nexus.Experimental.CallerClosure
 import Temporal.Feature.Nexus.Operations
+import Temporal.Tool.NexusDiscovery
 import Umpire.Examples.Switch
 
 namespace Temporal.Tool.Inspect
@@ -89,7 +90,26 @@ def productionRegistry : ScenarioRegistry := [{
   plannedScenario Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact]
 
-def runCli (args : List String) : InspectorResult := runInspector productionRegistry args
+/-- Convert a checked Nexus inventory result into the exact `list` command result. -/
+def runDiscoveryList
+    (result : Except Temporal.Tool.NexusDiscovery.NexusDiscoveryError
+      Temporal.Tool.NexusDiscovery.NexusDiscoveryInventory) : InspectorResult :=
+  match result with
+  | .error failure => {
+      status := 1
+      stdout := ""
+      stderr := diagnostic "invalid-nexus-discovery" failure.queryId.value failure.kind.name
+    }
+  | .ok inventory => {
+      status := 0
+      stdout := inventory.canonicalListBytes
+      stderr := ""
+    }
+
+def runCli (args : List String) : InspectorResult :=
+  match args with
+  | ["list"] => runDiscoveryList (.ok Temporal.Tool.NexusDiscovery.inventory)
+  | _ => runInspector productionRegistry args
 
 end Temporal.Tool.Inspect
 
