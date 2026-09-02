@@ -582,7 +582,8 @@
         "fn-20-local-execution-semantic-conformance",
         "fn-26-local-qualification-receipts-and-staged",
         "fn-28-portable-evaluation-contract-and",
-        "fn-48-canonicalize-known-gaps-as-a-checked-set"
+        "fn-48-canonicalize-known-gaps-as-a-checked-set",
+        "fn-52-caller-neutral-grpc-portable-test-plans"
       ]
     },
     {
@@ -863,7 +864,7 @@
       "phase": "p3",
       "status": "open",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-10-temporal-semantic-model-layout-and",
         "fn-13-deterministic-go-regression-projections",
@@ -897,6 +898,20 @@
       "completionReview": "unknown",
       "specDependencies": [
         "fn-43-deepen-ordinary-property-behavior-and"
+      ]
+    },
+    {
+      "id": "fn-52-caller-neutral-grpc-portable-test-plans",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "verification",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-19-bounded-local-temporal-execution-and",
+        "fn-20-local-execution-semantic-conformance",
+        "fn-28-portable-evaluation-contract-and"
       ]
     },
     {
