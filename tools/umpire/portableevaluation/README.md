@@ -82,13 +82,15 @@ evaluation and cannot produce `pass`.
 ## Limits and Evidence closure
 
 The contract independently bounds contract and input bytes, Evidence records, expression depth,
-collection size, natural values, evaluation work, diagnostics, Result bytes, and total duration.
+total operators, collection size, natural values, evaluation work, diagnostics, Result bytes, and
+total duration.
 Every expression visit, rule/record candidate, emitted coordinate, Link entry, clause/step pair,
 and pattern/value candidate is charged before evaluation. Exact Limit N is admitted and N+1 fails
 at the responsible seam.
 
 The current compiler emits ceilings of 1 MiB for the contract, 16 MiB for evaluation input, depth
-64, 10,000 collection items, natural `4294967295`, 64 KiB of diagnostics, and 4 MiB for the Result.
+64, 10,000 total operators, 10,000 collection items, natural `4294967295`, 64 KiB of diagnostics,
+and 4 MiB for the Result.
 Its Evidence-record Limit comes from the checked Observation plan, its work Limit is derived from
 the selected Test's search Limit with a minimum of 1,000, and its total duration is the sum of the
 RuntimeConfiguration phase Limits. Go also enforces repository-wide hard maxima, so a contract

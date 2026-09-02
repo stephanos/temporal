@@ -560,7 +560,7 @@
       "phase": "p2",
       "status": "open",
       "ready": true,
-      "completionReview": "unknown",
+      "completionReview": "needs_work",
       "specDependencies": [
         "fn-18-versioned-umpire-artifact-boundary",
         "fn-19-bounded-local-temporal-execution-and",

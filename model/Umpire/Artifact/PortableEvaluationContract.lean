@@ -63,6 +63,7 @@ structure EvaluationLimits where
   maxDiagnosticBytes : Nat
   maxResultBytes : Nat
   maxTotalDurationMilliseconds : Nat
+  maxOperatorCount : Nat
   deriving BEq, DecidableEq, Repr
 
 inductive DigestAlgorithm where
@@ -315,7 +316,8 @@ private def limitsJson (limits : EvaluationLimits) : String :=
     ",\"maxDiagnosticBytes\":" ++ quote (toString limits.maxDiagnosticBytes) ++
     ",\"maxResultBytes\":" ++ quote (toString limits.maxResultBytes) ++
     ",\"maxTotalDurationMilliseconds\":" ++
-      quote (toString limits.maxTotalDurationMilliseconds) ++ "}"
+      quote (toString limits.maxTotalDurationMilliseconds) ++
+    ",\"maxOperatorCount\":" ++ quote (toString limits.maxOperatorCount) ++ "}"
 
 private def valueTypeName : ObservationValueType → String
   | .text => "VALUE_KIND_TEXT"

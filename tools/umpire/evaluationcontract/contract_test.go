@@ -302,12 +302,37 @@ func TestAdmitEnforcesExpressionDepthAtNAndNPlusOne(t *testing.T) {
 	requireAdmissionCode(t, err, ErrorLimit)
 }
 
-func TestAdmitEnforcesGlobalTimeAndWorkLimitMaxima(t *testing.T) {
+func TestAdmitEnforcesTotalOperatorLimitAtNAndNPlusOne(t *testing.T) {
+	const operatorCount int64 = 9
+
+	exact := testContract()
+	exact.Limits.MaxOperatorCount = operatorCount
+	_, err := Admit(encodeUnchecked(t, exact))
+	require.NoError(t, err)
+
+	over := proto.CloneOf(exact)
+	over.Observation.Emits[0].Condition = &umpirespb.ObservationExpression{
+		Operator: &umpirespb.ObservationExpression_Present{
+			Present: &umpirespb.Present{Operand: over.Observation.Emits[0].Condition},
+		},
+	}
+	_, err = Admit(encodeUnchecked(t, over))
+	requireAdmissionCode(t, err, ErrorLimit)
+}
+
+func TestAdmitEnforcesGlobalLimitMaxima(t *testing.T) {
 	for _, testCase := range []struct {
 		name  string
 		exact int64
 		set   func(*umpirespb.EvaluationLimits, int64)
 	}{
+		{
+			name:  "operator count",
+			exact: MaximumOperatorCount,
+			set: func(limits *umpirespb.EvaluationLimits, value int64) {
+				limits.MaxOperatorCount = value
+			},
+		},
 		{
 			name:  "evaluation work",
 			exact: MaximumEvaluationWork,
@@ -381,6 +406,7 @@ func testContract() *umpirespb.EvaluationContract {
 			MaxDiagnosticBytes:           1_024,
 			MaxResultBytes:               16_384,
 			MaxTotalDurationMilliseconds: 10_000,
+			MaxOperatorCount:             100,
 		},
 		Observation: &umpirespb.ObservationProgram{
 			Definition:     testBinding("system.observation.caller-closure", '8'),

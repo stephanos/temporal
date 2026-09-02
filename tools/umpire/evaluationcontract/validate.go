@@ -18,6 +18,7 @@ type contractValidator struct {
 	sources      map[string]struct{}
 	kinds        map[string]map[string]umpirespb.ValueKind
 	digestPolicy map[string]struct{}
+	operators    int64
 }
 
 func validateContract(contract *umpirespb.EvaluationContract, checksumOptional bool) error {
@@ -100,6 +101,7 @@ func (v *contractValidator) validateLimits() error {
 		{path: "maxEvidenceRecords", value: v.limits.GetMaxEvidenceRecords(), maximum: MaximumEvidenceRecords},
 		{path: "maxExpressionDepth", value: v.limits.GetMaxExpressionDepth(), maximum: MaximumExpressionDepth},
 		{path: "maxCollectionItems", value: v.limits.GetMaxCollectionItems(), maximum: MaximumCollectionItems},
+		{path: "maxOperatorCount", value: v.limits.GetMaxOperatorCount(), maximum: MaximumOperatorCount},
 		{path: "maxEvaluationWork", value: v.limits.GetMaxEvaluationWork(), maximum: MaximumEvaluationWork},
 		{path: "maxDiagnosticBytes", value: v.limits.GetMaxDiagnosticBytes(), maximum: MaximumDiagnosticBytes},
 		{path: "maxResultBytes", value: v.limits.GetMaxResultBytes(), maximum: MaximumResultBytes},
@@ -207,6 +209,9 @@ func (v *contractValidator) validateEmits(emits []*umpirespb.Emit) (map[string]s
 func (v *contractValidator) validateEmit(emit *umpirespb.Emit, path string, coordinates map[string]struct{}) error {
 	if emit == nil || !validDefinitionID(emit.GetDefinitionId()) {
 		return admissionError(ErrorMalformedValue, path, "emit definition ID is invalid")
+	}
+	if err := v.operator(path); err != nil {
+		return err
 	}
 	if _, ok := v.kinds[emit.GetSourceKindDefinitionId()]; !ok {
 		return admissionError(ErrorBinding, path+".sourceKindDefinitionId", "source kind is not declared")
@@ -480,6 +485,9 @@ func (v *contractValidator) validateExpression(expression *umpirespb.Observation
 	if depth > v.limits.GetMaxExpressionDepth() {
 		return admissionError(ErrorLimit, path, "expression depth %d exceeds limit %d", depth, v.limits.GetMaxExpressionDepth())
 	}
+	if err := v.operator(path); err != nil {
+		return err
+	}
 	switch operator := expression.GetOperator().(type) {
 	case *umpirespb.ObservationExpression_LiteralText:
 		if operator.LiteralText == nil {
@@ -556,6 +564,9 @@ func (v *contractValidator) validateLink() error {
 	link := v.contract.GetImplementationLink()
 	if link == nil {
 		return admissionError(ErrorUnsupportedOperator, "$.implementationLink", "rename_exact link is required")
+	}
+	if err := v.operator("$.implementationLink"); err != nil {
+		return err
 	}
 	if err := v.validateBinding(link.GetDefinition(), "$.implementationLink.definition"); err != nil {
 		return err
@@ -704,6 +715,9 @@ func (v *contractValidator) validateClause(clause *umpirespb.PropertyClause, pat
 	if clause == nil || !validDefinitionID(clause.GetDefinitionId()) {
 		return admissionError(ErrorMalformedValue, path, "clause definition ID is invalid")
 	}
+	if err := v.operator(path); err != nil {
+		return err
+	}
 	if clause.GetProvenance() == umpirespb.PROPERTY_CLAUSE_PROVENANCE_UNSPECIFIED {
 		return admissionError(ErrorUnsupportedEnum, path+".provenance", "clause provenance is unspecified")
 	}
@@ -720,6 +734,9 @@ func (v *contractValidator) validateClause(clause *umpirespb.PropertyClause, pat
 func (v *contractValidator) validatePattern(pattern *umpirespb.Pattern, path string) error {
 	if pattern == nil || pattern.GetField() == umpirespb.TRACE_FIELD_UNSPECIFIED {
 		return admissionError(ErrorMalformedValue, path, "pattern field is required")
+	}
+	if err := v.operator(path); err != nil {
+		return err
 	}
 	if err := v.validateBinding(pattern.GetDefinition(), path+".definition"); err != nil {
 		return err
@@ -810,6 +827,15 @@ func (v *contractValidator) collection(path string, length int, required bool) e
 	}
 	if int64(length) > v.limits.GetMaxCollectionItems() {
 		return admissionError(ErrorLimit, path, "collection has %d items; limit is %d", length, v.limits.GetMaxCollectionItems())
+	}
+	return nil
+}
+
+func (v *contractValidator) operator(path string) error {
+	v.operators++
+	if v.operators > v.limits.GetMaxOperatorCount() {
+		return admissionError(ErrorLimit, "$.limits.maxOperatorCount",
+			"operator at %s makes total %d; limit is %d", path, v.operators, v.limits.GetMaxOperatorCount())
 	}
 	return nil
 }

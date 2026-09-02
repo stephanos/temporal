@@ -114,6 +114,7 @@ message EvaluationLimits {
   int64 max_diagnostic_bytes = 8;
   int64 max_result_bytes = 9;
   int64 max_total_duration_milliseconds = 10;
+  int64 max_operator_count = 11;
 }
 
 enum DigestAlgorithm {
