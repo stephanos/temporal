@@ -55,9 +55,13 @@ its reproduction, minimization, and Exact Replay gates pass.
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-TBD
+Bound the sole caller-closure duplicate-delivery promotion candidate to two distinct checked lineages: the unchanged exact-action Query/PlannerRun/base ExperimentSpec supplies the count-one expected trace, while the selected Space-point ExperimentSpec retains its separate fault identity and checksum. The exact resolver accepts no overrides, collision-checks both fixed promoted identities against every Definition ID exposed by the closed Nexus inventory, and returns only task `.4`'s sealed deterministic source; runtime eligibility, replay, reduction, and fn-22 types remain outside the binding.
 
+Focused mutation checks cover candidate, base Query-anchor, Target, kernel, PlannerRun, base/fault ExperimentSpec, expected trace, source, promoted identity, discovery collision, bytes, and digest drift, plus compile-time rejection of runtime/import/base-Query overrides. The initial aggregate baseline was red because the future task `.6` executable target does not exist; the inherited regression baseline also retained the known `Umpire/SemanticInventory/KnownGaps.lean:296` vocabulary failure. The exact task Quick build, full Lean import-graph/declaration lint, and diff check pass. Tracker sync is inactive.
+
+stage: impl-review - ran (Codex SHIP after one valid P2 finding was fixed by removing the unsupported base-Query override)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0cba3fa358c213e3c4707c1b00e7b76e013e1a6f, e50dddd25aef76f72aa44a49c091acee8e3de202
+- Tests: baseline: red (cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromotionTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote failed pre-edit: future task .6 target temporal-model-promote is absent), baseline: red (make umpire-check-regression failed pre-edit: known model/Umpire/SemanticInventory/KnownGaps.lean:296 Temporal-owned vocabulary finding), cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.CallerClosurePromotionTests Temporal.Tool.PromotionBindingTests, make lint-model, git diff --check, Codex impl-review SHIP: /tmp/impl-review-receipt-fn-5-umpire-discovery-promotion-and-artifact.5.json
 - PRs:
