@@ -88,6 +88,26 @@ func TestEvaluateIncompleteClosureIsUnknown(t *testing.T) {
 	require.Equal(t, umpirespb.OBSERVATION_STATUS_UNKNOWN, result.GetObservation().GetStatus())
 	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_MISSING_CLOSURE, result.GetObservation().GetDiagnostics()[0].GetCode())
 	require.Equal(t, umpirespb.IMPLEMENTATION_LINK_STATUS_NOT_EVALUATED, result.GetImplementationLink().GetStatus())
+	require.Equal(t, umpirespb.EVALUATION_STATUS_INCOMPLETE, result.GetSemanticStatus())
+	require.Empty(t, result.GetProperties())
+	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
+}
+
+func TestEvaluateMissingEvidenceFromClosedSourceIsInconclusive(t *testing.T) {
+	contract := testContract(t)
+	evidence := testRawEvidence(t, contract)
+	evidence.Facts = evidence.Facts[:1]
+	evidence.Sources[0].FactCount = artifactv2.NaturalFromUint64(1)
+	evidence = resealRawEvidence(t, evidence)
+
+	result := Evaluate(context.Background(), requestFor(contract, evidence))
+
+	require.Equal(t, umpirespb.TOOLING_STATUS_SUCCEEDED, result.GetToolingStatus())
+	require.Equal(t, umpirespb.OBSERVATION_STATUS_UNKNOWN, result.GetObservation().GetStatus())
+	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_MISSING_BINDING,
+		result.GetObservation().GetDiagnostics()[0].GetCode())
+	require.Equal(t, umpirespb.EVALUATION_STATUS_INCOMPLETE, result.GetSemanticStatus())
+	require.Empty(t, result.GetProperties())
 	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
 }
 
@@ -108,6 +128,8 @@ func TestEvaluateConflictingCorrelation(t *testing.T) {
 
 	require.Equal(t, umpirespb.OBSERVATION_STATUS_CONFLICT, result.GetObservation().GetStatus())
 	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_CORRELATION, result.GetObservation().GetDiagnostics()[0].GetCode())
+	require.Equal(t, umpirespb.EVALUATION_STATUS_INCOMPLETE, result.GetSemanticStatus())
+	require.Empty(t, result.GetProperties())
 	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
 }
 
@@ -120,6 +142,8 @@ func TestEvaluateUnsupportedEvidenceType(t *testing.T) {
 
 	require.Equal(t, umpirespb.OBSERVATION_STATUS_UNSUPPORTED, result.GetObservation().GetStatus())
 	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_TYPE_MISMATCH, result.GetObservation().GetDiagnostics()[0].GetCode())
+	require.Equal(t, umpirespb.EVALUATION_STATUS_INCOMPLETE, result.GetSemanticStatus())
+	require.Empty(t, result.GetProperties())
 	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
 }
 
@@ -521,6 +545,39 @@ func TestEvaluateRejectsStaleRunAndClosure(t *testing.T) {
 			require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
 		})
 	}
+}
+
+func TestEvaluateRejectsEvidenceKindCrossedWithAnotherSource(t *testing.T) {
+	contract := testContractWith(t, func(contract *umpirespb.EvaluationContract) {
+		contract.Observation.Profile.Sources = []*umpirespb.EvidenceSourceDeclaration{
+			{SourceDefinitionId: "evidence.source.other"},
+			{SourceDefinitionId: "evidence.source.runtime"},
+		}
+	})
+	evidence := testRawEvidence(t, contract)
+	evidence.Sources = []artifactv2.RawEvidenceSource{
+		{
+			SourceDefinitionID: "evidence.source.other", Status: "closed",
+			FactCount: artifactv2.NaturalFromUint64(1), ByteCount: artifactv2.NaturalFromUint64(0),
+		},
+		{
+			SourceDefinitionID: "evidence.source.runtime", Status: "closed",
+			FactCount: artifactv2.NaturalFromUint64(1), ByteCount: artifactv2.NaturalFromUint64(0),
+		},
+	}
+	evidence.Facts[0].SourceDefinitionID = "evidence.source.other"
+	evidence.Facts[1].Ordinal = artifactv2.NaturalFromUint64(0)
+	evidence = resealRawEvidence(t, evidence)
+
+	result := Evaluate(context.Background(), requestFor(contract, evidence))
+
+	require.Equal(t, umpirespb.TOOLING_STATUS_SUCCEEDED, result.GetToolingStatus())
+	require.Equal(t, umpirespb.OBSERVATION_STATUS_CONFLICT, result.GetObservation().GetStatus())
+	require.Equal(t, umpirespb.DIAGNOSTIC_CODE_SOURCE_IDENTITY,
+		result.GetObservation().GetDiagnostics()[0].GetCode())
+	require.Equal(t, umpirespb.EVALUATION_STATUS_INCOMPLETE, result.GetSemanticStatus())
+	require.Empty(t, result.GetProperties())
+	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, result.GetDecision())
 }
 
 func TestEvaluateRejectsMalformedAndMisorderedEvidence(t *testing.T) {
