@@ -746,9 +746,7 @@
       "status": "open",
       "ready": false,
       "completionReview": "unknown",
-      "specDependencies": [
-        "fn-17-bounded-semantic-exploration-and"
-      ]
+      "specDependencies": []
     },
     {
       "id": "fn-41-finitemachine-target-authoring",
