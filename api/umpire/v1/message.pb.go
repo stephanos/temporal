@@ -2054,6 +2054,7 @@ type EvaluationLimits struct {
 	MaxDiagnosticBytes           int64                  `protobuf:"varint,8,opt,name=max_diagnostic_bytes,json=maxDiagnosticBytes,proto3" json:"max_diagnostic_bytes,omitempty"`
 	MaxResultBytes               int64                  `protobuf:"varint,9,opt,name=max_result_bytes,json=maxResultBytes,proto3" json:"max_result_bytes,omitempty"`
 	MaxTotalDurationMilliseconds int64                  `protobuf:"varint,10,opt,name=max_total_duration_milliseconds,json=maxTotalDurationMilliseconds,proto3" json:"max_total_duration_milliseconds,omitempty"`
+	MaxOperatorCount             int64                  `protobuf:"varint,11,opt,name=max_operator_count,json=maxOperatorCount,proto3" json:"max_operator_count,omitempty"`
 	unknownFields                protoimpl.UnknownFields
 	sizeCache                    protoimpl.SizeCache
 }
@@ -2154,6 +2155,13 @@ func (x *EvaluationLimits) GetMaxResultBytes() int64 {
 func (x *EvaluationLimits) GetMaxTotalDurationMilliseconds() int64 {
 	if x != nil {
 		return x.MaxTotalDurationMilliseconds
+	}
+	return 0
+}
+
+func (x *EvaluationLimits) GetMaxOperatorCount() int64 {
+	if x != nil {
+		return x.MaxOperatorCount
 	}
 	return 0
 }
@@ -5435,7 +5443,7 @@ const file_temporal_server_api_umpire_v1_message_proto_rawDesc = "" +
 	"\bposition\x18\x03 \x01(\x03R\bposition\"1\n" +
 	"\x05Limit\x12\x14\n" +
 	"\x05value\x18\x01 \x01(\x03R\x05value\x12\x12\n" +
-	"\x04unit\x18\x02 \x01(\tR\x04unit\"\xf2\x03\n" +
+	"\x04unit\x18\x02 \x01(\tR\x04unit\"\xa0\x04\n" +
 	"\x10EvaluationLimits\x12,\n" +
 	"\x12max_contract_bytes\x18\x01 \x01(\x03R\x10maxContractBytes\x12&\n" +
 	"\x0fmax_input_bytes\x18\x02 \x01(\x03R\rmaxInputBytes\x120\n" +
@@ -5448,7 +5456,8 @@ const file_temporal_server_api_umpire_v1_message_proto_rawDesc = "" +
 	"\x14max_diagnostic_bytes\x18\b \x01(\x03R\x12maxDiagnosticBytes\x12(\n" +
 	"\x10max_result_bytes\x18\t \x01(\x03R\x0emaxResultBytes\x12E\n" +
 	"\x1fmax_total_duration_milliseconds\x18\n" +
-	" \x01(\x03R\x1cmaxTotalDurationMilliseconds\"\x81\x01\n" +
+	" \x01(\x03R\x1cmaxTotalDurationMilliseconds\x12,\n" +
+	"\x12max_operator_count\x18\v \x01(\x03R\x10maxOperatorCount\"\x81\x01\n" +
 	"\fDigestPolicy\x12#\n" +
 	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x12L\n" +
 	"\talgorithm\x18\x02 \x01(\x0e2..temporal.server.api.umpire.v1.DigestAlgorithmR\talgorithm\"\xa9\x02\n" +

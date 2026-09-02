@@ -26,6 +26,7 @@ const (
 	MaximumEvidenceRecords = 100_000
 	MaximumExpressionDepth = 64
 	MaximumCollectionItems = 10_000
+	MaximumOperatorCount   = 100_000
 	MaximumEvaluationWork  = 10_000_000
 	MaximumDiagnosticBytes = 64 << 10
 	MaximumResultBytes     = 4 << 20

@@ -1169,7 +1169,7 @@ func testContractWith(t testing.TB, modify func(*umpirespb.EvaluationContract)) 
 		Query:         testBinding("test.definition.query"),
 		Limits: &umpirespb.EvaluationLimits{
 			MaxContractBytes: 1 << 20, MaxInputBytes: 1 << 20, MaxEvidenceRecords: 16,
-			MaxExpressionDepth: 16, MaxCollectionItems: 64, MaxNatural: "100",
+			MaxExpressionDepth: 16, MaxCollectionItems: 64, MaxOperatorCount: 100, MaxNatural: "100",
 			MaxEvaluationWork: 1000, MaxDiagnosticBytes: 4096, MaxResultBytes: 1 << 20,
 			MaxTotalDurationMilliseconds: 10000,
 		},
