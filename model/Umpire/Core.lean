@@ -85,6 +85,7 @@ inductive LimitUnit where
   | observationPositions
   | logicalTime
   | candidateEvaluations
+  | experimentSpecs
   deriving BEq, DecidableEq, Ord, Repr
 
 def LimitUnit.name : LimitUnit → String
@@ -93,6 +94,7 @@ def LimitUnit.name : LimitUnit → String
   | .observationPositions => "observation-positions"
   | .logicalTime => "logical-time"
   | .candidateEvaluations => "candidate-evaluations"
+  | .experimentSpecs => "experiment-specs"
 
 structure Limit where
   value : Nat

@@ -360,7 +360,7 @@ private def rotate (offset : Nat) (items : List α) : List α :=
 private def applySeed
     (query : CheckedQuery LawStatement)
     (items : List α) : List α :=
-  if query.policy.strategy == .coverageGuided then
+  if query.policy.strategy == .seeded then
     rotate query.policy.seed items
   else
     items
@@ -374,7 +374,7 @@ private def candidateSetups (query : CheckedQuery LawStatement) : List (List Rol
 private def seededIndex
     (query : CheckedQuery LawStatement)
     (limit logicalIndex : Nat) : Nat :=
-  if query.policy.strategy == .coverageGuided && limit > 0 then
+  if query.policy.strategy == .seeded && limit > 0 then
     (logicalIndex + query.policy.seed % limit) % limit
   else
     logicalIndex

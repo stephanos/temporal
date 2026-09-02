@@ -492,9 +492,9 @@ private def requirePositionUnit
     (access : PropertyCapabilityView)
     (unit : LimitUnit)
     (patterns : List PropertyPattern) : Except PropertyError Unit := do
-  if unit == .candidateEvaluations then
+  if unit == .candidateEvaluations || unit == .experimentSpecs then
     throw (propertyError .unitMismatch owner.id owner.source
-      (unit.name ++ " is reserved for Query planning")
+      (unit.name ++ " is not a Property position unit")
       (patterns.map PropertyPattern.reference))
   if unit == .observationPositions &&
       !(patterns.all fun pattern => pattern.field == .observation || pattern.field == .relation) then
@@ -856,6 +856,7 @@ private def positionOf
   | .observationPositions => some occurrence.observationPosition
   | .logicalTime => occurrence.logicalTime
   | .candidateEvaluations => none
+  | .experimentSpecs => none
 
 private def collectPositions : List (Option Nat) → Option (List Nat)
   | [] => some []

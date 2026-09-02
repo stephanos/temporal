@@ -51,6 +51,12 @@ example : [
   ] = [some .unitMismatch, some .unitMismatch] := by
   native_decide
 
+/-! Exploration's ExperimentSpec Limit is not a Property position unit. -/
+example : errorKindOf (checkProperty context (.portable <|
+    candidateEvaluationProperty (.exact { value := 2, unit := .experimentSpecs }))) =
+    some .unitMismatch := by
+  native_decide
+
 def missingLogicalTimeProperty : PropertyDeclaration := {
   portableProperty with
   id := id "test.property.missing-logical-time"
