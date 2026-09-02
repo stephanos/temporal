@@ -57,7 +57,7 @@ Missing, extra, duplicate, crossed, and stale bindings produce no successor and 
 session available for the same exact admission.
 -/
 example :
-    let stale := { firstBinding with formatVersion := "umpire-experiment/v1" }
+    let stale := { firstBinding with formatVersion := "unsupported-format" }
     ([
       ([] : List ArtifactBinding),
       [firstBinding, secondBinding],
