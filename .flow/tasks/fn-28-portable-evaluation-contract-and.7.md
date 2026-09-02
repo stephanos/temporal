@@ -38,6 +38,7 @@ baseline: green (`go test -count=1 -tags test_dep ./tools/umpire/temporal/local/
 GATE_CLASSIFY_FULL: unrelated user-owned `config/development.yaml` working-tree modification
 
 stage: impl-review - ran [2026-09-02T02:52:34Z..2026-09-02T02:53:35Z] (scope-only NEEDS_WORK on an empty finalization range; authoritative implementation SHIP retained)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests: baseline: green (go test -count=1 -tags test_dep ./tools/umpire/temporal/local/...), go test -race -count=1 -tags test_dep ./tools/umpire/temporal/local/..., go vet -tags test_dep ./tools/umpire/temporal/local/..., .bin/golangci-lint-v2.13.1 run --build-tags disable_grpc_modules,test_dep --timeout 10m --fix=false --new-from-rev=372acd4eb40e8dda10473a3b2dc163f30b2b73fc --config=.github/.golangci.yml ./tools/umpire/temporal/local/... (0 issues), go test -count=1 -tags test_dep ./tools/umpire/executor/..., GATE_CLASSIFY_FULL: unrelated user-owned config/development.yaml working-tree modification, NO_RECEIPT: gate receipt was not warrantable while unrelated user-owned config/development.yaml remained dirty, AUTHORITATIVE_REVIEW_SHIP: 372acd4eb40e8dda10473a3b2dc163f30b2b73fc..f0d008def7176dc9a0fbdc12693da8c922dcc307, FINALIZATION_REVIEW_SCOPE_ONLY: 79cd5d2a52e6be1eb5c45f1b92fa58b9221a783a..HEAD returned NEEDS_WORK with 0 introduced and 0 pre-existing findings because the range was empty, INTEGRATION_CONTEXT: tagged TestUmpirePortableCanaryExecutor has no matching test until task .9 and was not treated as task .7 proof
