@@ -31,9 +31,18 @@ task solely to inherit broader machinery. Split mixed tasks at that boundary and
 path to its nearest retained prerequisite. The numbered sections below express delivery priority,
 not additional hard dependencies. Completed specs are prerequisites, not entries in this queue.
 
-## Remaining P2 portability proof
+## Completed portability prerequisite
 
-### 1. fn-28 — Portable evaluation contract and disposable-cluster qualification
+### fn-28 — Portable evaluation contract and disposable-cluster qualification
+
+**Status (2026-09-02): complete.** The protobuf contract vocabulary, deterministic packing and
+strict admission, Lean lowering, Go evaluation, Lean/Go parity fixtures, resident executor,
+attached disposable-cluster adapter, bounded HTTP transport, and tagged no-Lean end-to-end proof
+are complete. The proof reuses one `testcore.NewEnv` cluster and one resident executor for the
+normal caller-closure and duplicate-delivery contracts, with fresh per-run isolation, explicit
+bounded Evidence closure, independent detailed statuses, complete cleanup, and conservative local
+`pass` and trustworthy uniqueness-only `fail` decisions. The fail-closed contract, Limit,
+Evidence-closure, transport, cancellation, and resident-reuse matrix is complete.
 
 Compile the exact selected Test, Observation, Implementation Link, Property clauses, Limits, Known
 Gaps, and bindings into a closed protobuf evaluation contract. A resident Go executor with no Lean
@@ -48,12 +57,12 @@ must pass locally and the negative control must fail for its expected uniqueness
 invoking Lean, Make, a nested Go test, or a per-verification process.
 
 The local decision applies only to one exact contract. Whole-model validity, exhaustive coverage,
-compiler correctness, cross-test claims, production fleet scheduling, leases, crash recovery,
-release eligibility, and Claim Assessment remain offline or deferred.
+compiler correctness, cross-test claims, fleet scheduling, leases, persistence, crash recovery,
+production deployment, release eligibility, and Claim Assessment remain offline or deferred.
 
-## P3 — Exploration and regression lifecycle
+## Remaining P3 — Exploration and regression lifecycle
 
-### 2. fn-5 — Umpire discovery, promotion, and Artifact evolution
+### 1. fn-5 — Umpire discovery, promotion, and Artifact evolution
 
 Reduce this spec to two capabilities:
 
@@ -63,7 +72,7 @@ Reduce this spec to two capabilities:
 Defer the generic semantic graph, generated glossary, machine index, broad stable regression set,
 and general artifact evolution.
 
-### 3. fn-17 — Bounded model exploration and coverage
+### 2. fn-17 — Bounded model exploration and coverage
 
 Select experiments deterministically from the existing small Nexus space. Support bounded exhaustive
 enumeration and one semantic-coverage-guided policy that prioritizes an uncovered coordinate. Keep
@@ -73,7 +82,7 @@ proofs, multiple source kinds, generalized resume state, and adaptive corpora.
 Keep the uncovered-coordinate policy independent of the deferred symmetry, generalized reporting,
 and resume machinery when reducing the existing mixed tasks.
 
-### 4. fn-40 — Centralize PlannerPolicy constructors and default seed
+### 3. fn-40 — Centralize PlannerPolicy constructors and default seed
 
 After fn-17 renames Query's seed-rotated strategy to `seeded`, add canonical
 `PlannerPolicy.shortest`, `PlannerPolicy.exhaustive`, and `PlannerPolicy.seeded` constructors. Use
@@ -86,14 +95,14 @@ become `17`. Traversal for shortest and exhaustive policies must remain unchange
 fn-17's strategy rename and should settle the ordinary policy surface before fn-33 builds the campaign
 command around exploration.
 
-### 5. fn-33 — Run model exploration campaigns with umpire-fuzz
+### 4. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 Reduce the campaign to a serial bounded `umpire-fuzz run` command that asks the Lean-owned
 exploration layer for candidates, executes them through the existing runner/Run Evaluation path, and
 reports semantic coverage and exhaustion honestly. Defer concurrency, leases, crash-safe campaign
 state, and resume.
 
-### 6. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### 5. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
 Consume the fn-21 violation, reproduce it exactly, and try every applicable authored reduction in a
 fixed order while preserving the same violation. The exact control may complete as irreducible; its
@@ -142,13 +151,13 @@ pulling those specs into the prototype queue.
 
 ## Prototype verification gate
 
-The local and ordinary-CI portions of this gate are complete. Before starting P3, fn-28 must produce
+The local, ordinary-CI, and portable self-hosted portions of this gate are complete. Fn-28 produced
 deterministic protobuf contracts bound to the same normal artifact byte hash, format identity, and
-Behavior Fingerprint as the completed local and CI runs. The tagged disposable-cluster proof must
-show bounded execution, explicit Evidence closure, local evaluation without Lean, fresh run
-isolation, and complete cleanup while reusing one resident Go process and cluster. Run
-`flowctl validate --all --json` after the remaining dependency edits and require no retained task to
-depend on a deferred task.
+Behavior Fingerprint as the completed local and CI runs. Its tagged disposable-cluster proof shows
+bounded execution, explicit Evidence closure, local evaluation without Lean, fresh run isolation,
+and complete cleanup while reusing one resident Go process and cluster. This completed prerequisite
+unblocks P3. Continue to run `flowctl validate --all --json` after dependency edits and require no
+retained task to depend on a deferred task.
 
 ## Removed from the prototype queue
 
@@ -173,17 +182,14 @@ depend on a deferred task.
 
 ## Preferred consolidation
 
-The existing Flow IDs remain the source of history. The remaining roadmap has three conceptual
+The existing Flow IDs remain the source of history. The remaining roadmap has two conceptual
 delivery tracks:
 
-1. **Complete the portability gate:** fn-28 compiles the completed local and CI subject into a
-   portable per-test protobuf contract and qualifies a no-Lean resident Go executor against a
-   disposable cluster without adding a production control plane.
-2. **Explore, standardize policy authoring, replay, and promote:** fn-5, fn-17, fn-40, fn-33, and
+1. **Explore, standardize policy authoring, replay, and promote:** fn-5, fn-17, fn-40, fn-33, and
    fn-22.
-3. **Harden and shorten model authoring without gating the prototype:** with the fn-50
+2. **Harden and shorten model authoring without gating the prototype:** with the fn-50
    finite-machine seam complete, fn-43 deepens ordinary authoring; fn-48, fn-49, and fn-51 then
    centralize Known Gaps and Observation structure and remove repetitive record literals.
 
-The next prototype decision point is completion of fn-28. Keep P3 deferred until the portable
-contract and disposable-cluster evidence make the no-Lean end-to-end experience inspectable.
+The next prototype work is P3. Completed fn-28 is its portability prerequisite, not an entry in the
+remaining queue.

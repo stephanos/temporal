@@ -554,7 +554,7 @@
       ]
     },
     {
-      "id": "fn-28-authorized-remote-staging-black-box",
+      "id": "fn-28-portable-evaluation-contract-and",
       "scope": "umpire-roadmap",
       "disposition": "retained",
       "phase": "p2",
@@ -581,7 +581,7 @@
         "fn-19-bounded-local-temporal-execution-and",
         "fn-20-local-execution-semantic-conformance",
         "fn-26-local-qualification-receipts-and-staged",
-        "fn-28-authorized-remote-staging-black-box",
+        "fn-28-portable-evaluation-contract-and",
         "fn-48-canonicalize-known-gaps-as-a-checked-set"
       ]
     },
@@ -607,7 +607,7 @@
         "fn-18-versioned-umpire-artifact-boundary",
         "fn-26-local-qualification-receipts-and-staged",
         "fn-27-hermetic-ci-execution-and-qualification",
-        "fn-28-authorized-remote-staging-black-box",
+        "fn-28-portable-evaluation-contract-and",
         "fn-29-bounded-production-canary-execution-and",
         "fn-48-canonicalize-known-gaps-as-a-checked-set"
       ]

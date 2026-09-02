@@ -266,6 +266,11 @@ Temporal-specific modules are split by semantic altitude:
   and Property evaluation only after Observation admission succeeds, preserves their separate
   statuses and no-partial-result guarantees, and has no filesystem, network, publication, or
   Temporal execution authority.
+- `Temporal.Tool.PortableEvaluationContract` owns the ahead-of-time semantic compiler for the exact
+  normal caller-closure Test and duplicate-delivery negative control. It lowers only supported
+  checked Observation, Implementation Link, and Property constructs into the reusable closed
+  contract vocabulary and reports source-bound `NonPortableError` values for every other construct.
+  Go subsequently performs structural packing and execution, not semantic selection.
 
 Property, Behavior, and Query remain distinct throughout the Temporal examples. A Property states
 what a Model Trace must mean. A Behavior selects allowed controllable actions and setup without
@@ -293,15 +298,34 @@ state/action/outcome/observation fields, rejects its raw-detail field, applies a
 offline result contains an Evidence-backed Model Trace, the independently evaluated asynchronous-start Property
 verdict, and its strict Query summary.
 
-The reusable runtime seam stops at `EvidenceBundle`. The fixed caller-closure adapters now translate
-the exact normal and duplicate-delivery fn-19 four-source Generated Views into their declared
-profiles and versions. RawEvidence retains every authority, worker, participant, history, and
-cleanup fact plus exact source closure. The fault adapter projects only the checked lifecycle,
+The reusable Lean Observation seam accepts `EvidenceBundle`. The fixed caller-closure adapters
+translate the exact normal and duplicate-delivery fn-19 four-source Generated Views into their
+declared profiles and versions. RawEvidence retains every authority, worker, participant, history,
+and cleanup fact plus exact source closure. The fault adapter projects only the checked lifecycle,
 mechanical callback, and labeled synthetic contribution into semantic support, while persisted
-Evidence Links retain the exact contributing raw identities and causal ordering. Umpire remains
-responsible for every check after that handoff. The checker does not execute Temporal, read or
-publish artifacts, select another profile, perform replay or promotion, or qualify non-local
-evidence.
+Evidence Links retain the exact contributing raw identities and causal ordering. The offline
+checker does not execute Temporal, select another profile, perform replay or promotion, or qualify
+non-local evidence.
+
+The portable path compiles those exact checked inputs ahead of time rather than embedding Lean in a
+runtime process:
+
+```text
+checked caller-closure Test and semantic stages
+  -> canonical ProtoJSON from Lean
+  -> deterministic EvaluationContract protobuf from the structural Go packer
+  -> resident Go executor and bounded runner
+  -> explicit source closure
+  -> fixed portable interpreter
+  -> independent detailed statuses plus pass/fail/inconclusive
+```
+
+The contract is closed over one Test and carries its exact artifact/model bindings, Observation
+program, Implementation Link, Properties, Limits, Known Gaps, and provenance. The interpreter
+consults no model registry and adds no behavior. The resident executor is single-flight; overlap is
+typed `busy`, and uncertain cleanup poisons reuse. A thin bounded HTTP protobuf adapter exposes only
+`POST /umpire/v1/execute`; it is not gRPC and has no environment selector, credential, executable,
+or semantic override.
 
 The checked cross-altitude path adds a separate stage after accepted Observation Evaluation:
 
@@ -339,7 +363,8 @@ layer's failure into another's status; other profiles and non-local paths remain
   behavior; only its focused Nexus Implementation Link leaf imports both independently authored
   sides.
 - `Temporal.Tool` owns inspection and the fixed private caller-closure checker without becoming
-  part of the production aggregate or acquiring runtime/publication authority.
+  part of the production aggregate or acquiring runtime/publication authority. Its focused
+  Portable Evaluation compiler creates the closed model-derived contract ahead of runtime.
 - `Temporal.API` and `Temporal.DynamicConfig` remain generated structures outside the
   Feature/System semantic layers.
 - `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
@@ -400,6 +425,30 @@ the `Temporal.System.Configuration` consumer direction, compares deterministic a
 canonical fixtures, and checks inspector diagnostics. `make umpire-inspect SCENARIO=<identity>`
 invokes the final executable without exposing its Lake target name to callers.
 
+The Portable Evaluation compiler and checked fixture workflow are:
+
+```sh
+cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests
+make umpire-check-portable-evaluation-fixtures
+go test -count=1 -tags test_dep \
+  ./tools/umpire/evaluationcontract/... \
+  ./tools/umpire/portableevaluation/... \
+  ./tools/umpire/executor/... \
+  ./tools/umpire/executorhttp/...
+go test -count=1 -tags 'test_dep integration' ./tests \
+  -run '^TestUmpirePortableCanaryExecutor$'
+```
+
+Fixture generation runs Lean before the test and records deterministic contract protobufs plus
+Lean Run Evaluation oracles. The tagged integration test then removes all toolchain executables
+from `PATH`, borrows one disposable `testcore.NewEnv` cluster, and runs both pre-generated contracts
+through one resident executor. It requires a local pass for the normal control, a trustworthy
+uniqueness-only fail for the duplicate-delivery control, fresh per-run identities/resources, and
+complete cleanup. Stable semantic fields are compared independently of runtime run IDs, workflow
+IDs, task queues, per-run Nexus endpoint names, correlations, Evidence IDs, and timestamps. See the
+[Portable Evaluation guide](../tools/umpire/portableevaluation/README.md) for the schema, operator
+table, Limits, HTTP wire contract, and explicit exclusions.
+
 ## Learning path and reference models
 
 - Start at [`Temporal.Feature.Nexus`](Temporal/Feature/Nexus.lean), the ordinary facade and complete
@@ -429,5 +478,7 @@ invokes the final executable without exposing its Lake target name to callers.
   are explicit opt-in references for detailed AutoClose proofs and the inspectable Workflow–Nexus
   caller-closure regression.
 
-All modules produce pure model values. They do not start Temporal, execute Nexus operations,
-collect runtime evidence, or claim that a planned action occurred.
+All Lean modules produce pure model values. They do not start Temporal, execute Nexus operations,
+collect runtime evidence, or claim that a planned action occurred. The separate Go executor may
+realize only an admitted precompiled Test and makes no whole-model, production, release, or Claim
+Assessment statement.
