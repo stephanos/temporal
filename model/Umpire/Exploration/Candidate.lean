@@ -84,13 +84,9 @@ def checkCandidateCount
   if count > SpaceLimits.v1.maximumPoints then
     throw (candidateError request .spacePointLimitExceeded (toString count))
 
-/--
-Validate, recompute, and identity-order one complete compiler result without exposing a partial
-candidate prefix.
--/
-def fromCompiledSpecs
+private def checkedCandidates
     (request : CheckedExplorationRequest LawStatement)
-    (specs : List ExperimentSpec) : Except ExplorationError CandidateUniverse := do
+    (specs : List ExperimentSpec) : Except ExplorationError (List ExplorationCandidate) := do
   checkCandidateCount request specs.length
   let candidates ← specs.mapM (candidateOfExperimentSpec request)
   let orderedCandidates := candidates.mergeSort candidateLe
@@ -102,10 +98,22 @@ def fromCompiledSpecs
   if orderedCandidates.length != request.space.pointCount then
     throw (candidateError request .candidateCountMismatch
       (toString request.space.pointCount ++ ":" ++ toString orderedCandidates.length))
+  pure orderedCandidates
+
+/-- Validate a compiler-sized Artifact list and project only its canonical identity order. -/
+def validateCompiledSpecs
+    (request : CheckedExplorationRequest LawStatement)
+    (specs : List ExperimentSpec) : Except ExplorationError (List ArtifactChecksum) := do
+  let candidates ← checkedCandidates request specs
+  pure (candidates.map ExplorationCandidate.identity)
+
+private def fromCompiledSpecs
+    (request : CheckedExplorationRequest LawStatement)
+    (specs : List ExperimentSpec) : Except ExplorationError CandidateUniverse := do
+  let orderedCandidates ← checkedCandidates request specs
   pure { spaceDefinitionId := request.space.id, candidates := orderedCandidates }
 
-/-- Convert one all-or-nothing Space compiler result into one all-or-nothing candidate universe. -/
-def fromCompilationResult
+private def fromCompilationResult
     (request : CheckedExplorationRequest LawStatement)
     (result : Except SpaceCompilationError (List ExperimentSpec)) :
     Except ExplorationError CandidateUniverse :=

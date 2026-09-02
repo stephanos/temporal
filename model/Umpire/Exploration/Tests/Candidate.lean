@@ -7,6 +7,19 @@ namespace Umpire.ExplorationTests
 
 open Umpire
 
+/-! Only the exact-kernel public builder may construct a CandidateUniverse. -/
+/--
+error: Unknown constant `Umpire.CandidateUniverse.Internal.fromCompiledSpecs`
+-/
+#guard_msgs (error, substring := true) in
+#check Umpire.CandidateUniverse.Internal.fromCompiledSpecs
+
+/--
+error: Unknown constant `Umpire.CandidateUniverse.Internal.fromCompilationResult`
+-/
+#guard_msgs (error, substring := true) in
+#check Umpire.CandidateUniverse.Internal.fromCompilationResult
+
 private theorem except_eq_ok_get
     (result : Except ε α)
     (isSome : result.toOption.isSome = true) :
@@ -102,11 +115,11 @@ example : universeResult.toOption.map (fun result =>
 /-! Candidate identity order is canonical and independent of compiled input order. -/
 example :
     let forward := compiled.toOption.bind fun specs =>
-      (CandidateUniverse.Internal.fromCompiledSpecs checkedRequest specs).toOption
+      (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest specs).toOption
     let reversed := compiled.toOption.bind fun specs =>
-      (CandidateUniverse.Internal.fromCompiledSpecs checkedRequest specs.reverse).toOption
+      (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest specs.reverse).toOption
     forward = reversed ∧ forward.map (fun result =>
-      decide (result.candidates.map ExplorationCandidate.identity |>.Pairwise fun left right =>
+      decide (result.Pairwise fun left right =>
         checksumLe left right = true)) = some true := by
   native_decide
 
@@ -131,17 +144,17 @@ private def invalidTraceArtifact : ExperimentSpec :=
 
 /-! Invalid, incomplete, duplicate, or count-mismatched inputs expose no partial universe. -/
 example : [
-    universeErrorKindOf (CandidateUniverse.Internal.fromCompiledSpecs checkedRequest
+    universeErrorKindOf (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest
       [invalidArtifact]),
-    universeErrorKindOf (CandidateUniverse.Internal.fromCompiledSpecs checkedRequest
+    universeErrorKindOf (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest
       [invalidTraceArtifact]),
-    universeErrorKindOf (CandidateUniverse.Internal.fromCompiledSpecs checkedRequest [
+    universeErrorKindOf (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest [
       Umpire.Examples.Switch.compiledArtifact,
       Umpire.Examples.Switch.compiledArtifact,
       Umpire.Examples.Switch.compiledArtifact,
       Umpire.Examples.Switch.compiledArtifact
     ]),
-    universeErrorKindOf (CandidateUniverse.Internal.fromCompiledSpecs checkedRequest
+    universeErrorKindOf (CandidateUniverse.Internal.validateCompiledSpecs checkedRequest
       [Umpire.Examples.Switch.compiledArtifact])
   ] = [
     some .invalidCandidateArtifact,
@@ -159,19 +172,6 @@ example : [
     universeErrorKindOf (CandidateUniverse.Internal.checkCandidateCount checkedRequest
       (SpaceLimits.v1.maximumPoints + 1))
   ] = [none, some .emptySpace, some .spacePointLimitExceeded] := by
-  native_decide
-
-/-! A compilation failure is preserved as one canonical Exploration error, never a prefix. -/
-example :
-    let compilationError : SpaceCompilationError := {
-      kind := .plannerInvalid
-      pointId := DefinitionId.of "exploration.test.point"
-      sourcePath := "Umpire/Exploration/Tests/Candidate.lean"
-      offendingValue := "invalid"
-      relatedDefinitionIds := [DefinitionId.of "exploration.test.query"]
-    }
-    universeErrorKindOf (CandidateUniverse.Internal.fromCompilationResult checkedRequest
-      (.error compilationError)) = some .candidateCompilationFailed := by
   native_decide
 
 end Umpire.ExplorationTests
