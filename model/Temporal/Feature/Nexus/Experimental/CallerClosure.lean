@@ -651,17 +651,9 @@ def limits : QueryLimits := {
   search := { value := 8, unit := .candidateEvaluations }
 }
 
-def exhaustivePolicy : PlannerPolicy := {
-  strategy := .exhaustive
-  seed := 17
-  tieBreak := .definitionId
-}
+def exhaustivePolicy : PlannerPolicy := PlannerPolicy.exhaustive
 
-def shortestPolicy : PlannerPolicy := {
-  strategy := .shortest
-  seed := 17
-  tieBreak := .definitionId
-}
+def shortestPolicy : PlannerPolicy := PlannerPolicy.shortest
 
 def queryContext : QueryCheckContext LawStatement := .ofTarget target
 
