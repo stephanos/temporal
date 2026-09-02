@@ -117,10 +117,9 @@ private def checkPinned
     }]
   pure checked
 
-/-- Check all bounded Exploration inputs before candidate compilation or selection. -/
-def checkExplorationRequest
+private def checkExplorationRequestInputs
     (request : ExplorationRequest LawStatement) :
-    Except ExplorationError (CheckedExplorationRequest LawStatement) := do
+    Except ExplorationError (List PinnedExperimentSpec) := do
   if request.space.pointCount == 0 then
     throw (requestError request .emptySpace "0")
   if request.space.pointCount > SpaceLimits.v1.maximumPoints then
@@ -134,12 +133,32 @@ def checkExplorationRequest
   | .uncoveredCoordinate coordinate =>
       if !coordinateKnown request.space coordinate then
         throw (requestError request .unknownCoordinate coordinate.name)
-  let pinned ← checkPinned request
+  checkPinned request
+
+/-- Check all bounded Exploration inputs before candidate compilation or selection. -/
+def checkExplorationRequest
+    (request : ExplorationRequest LawStatement) :
+    Except ExplorationError (CheckedExplorationRequest LawStatement) := do
+  let pinned ← checkExplorationRequestInputs request
   pure {
     space := request.space
     policy := request.policy
     limit := request.limit
     pinned
   }
+
+/-- A successfully checked Exploration request retains the exact Space supplied by its caller. -/
+theorem checkExplorationRequest_space
+    (resultEq : checkExplorationRequest request = .ok checked) :
+    checked.space = request.space := by
+  unfold checkExplorationRequest at resultEq
+  cases inputsEq : checkExplorationRequestInputs request with
+  | error error =>
+      rw [inputsEq] at resultEq
+      contradiction
+  | ok pinned =>
+      rw [inputsEq] at resultEq
+      cases resultEq
+      rfl
 
 end Umpire
