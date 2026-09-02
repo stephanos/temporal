@@ -36,6 +36,15 @@ private def advancesFromFirst (candidate : ExplorationSession) : Bool :=
   (candidate.observe [firstBinding]).bind ExplorationSession.next |>.any fun step =>
     step.1.identity == secondCandidate.identity
 
+private def pinnedOnlySession : ExplorationSession :=
+  (beginSession (engineRequest .exhaustive 1
+    (selectedCandidates.map ExplorationCandidate.experimentSpec)) engineKernel).toOption.get
+      (by native_decide)
+
+private def pinnedOverlapSession : ExplorationSession :=
+  (beginSession (engineRequest .exhaustive 1 [firstCandidate.experimentSpec])
+    engineKernel).toOption.get (by native_decide)
+
 /-! `next` preserves the checked selection order and cannot overlap outstanding candidates. -/
 example :
     firstStep.1.identity == firstCandidate.identity &&
@@ -64,6 +73,22 @@ example :
     afterFirst.any (fun admitted => (admitted.observe [firstBinding]).isNone) &&
       (secondOutstanding.observe [firstBinding]).isNone &&
       (secondOutstanding.observe [secondBinding]).isSome = true := by
+  native_decide
+
+/-! Pinned-only sessions preserve their canonical order and exact admission binding. -/
+example :
+    pinnedOnlySession.next.any (fun first =>
+      first.1.identity == firstCandidate.identity &&
+        ((first.2.observe [firstBinding]).bind ExplorationSession.next |>.any (fun second =>
+          second.1.identity == secondCandidate.identity))) = true := by
+  native_decide
+
+/-! Pinned overlap is yielded first, followed by the selected non-overlapping candidate. -/
+example :
+    pinnedOverlapSession.next.any (fun pinned =>
+      pinned.1.identity == firstCandidate.identity &&
+        ((pinned.2.observe [firstBinding]).bind ExplorationSession.next |>.any (fun exploratory =>
+          exploratory.1.identity == secondCandidate.identity))) = true := by
   native_decide
 
 end Umpire.ExplorationTests
