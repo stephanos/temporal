@@ -47,9 +47,13 @@ Create the concrete checked inventory that is the sole input to retained Nexus `
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-TBD
+Defined the closed Nexus discovery inventory over the four retained checked examples. The private checked boundary projects exact Property, Behavior, Query, source, Behavior Fingerprint, and planned ExperimentSpec lineage from the concrete owner modules; validates membership, ownership, kinds, nonempty sources and fingerprints, and present plans; canonicalizes valid permutations by query identity; and exposes deterministic internal binding bytes without preempting the public JSON/CLI work in task .2.
 
+Focused tests cover exact canonical membership, valid permutation stability, duplicates, missing rows, wrong kinds, crossed ownership, missing sources and fingerprints, and missing plans. The focused target, aggregate experimental suite, full Lean model lint, and diff check pass.
+
+stage: impl-review - ran (Codex SHIP; 0 introduced and 0 pre-existing findings)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a33225b6cce1f11930a304471b4f33462fe74975
+- Tests: BASELINE_RED: cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests (expected: module did not exist), cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests (44 jobs), cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests TemporalExperimentalTests (127 jobs), make lint-model (205 jobs), git diff --check, flowctl codex impl-review fn-5-umpire-discovery-promotion-and-artifact.1 --base 6c7e6bdb7 --receipt /tmp/impl-review-receipt-fn-5-umpire-discovery-promotion-and-artifact.1.json (SHIP)
 - PRs:
