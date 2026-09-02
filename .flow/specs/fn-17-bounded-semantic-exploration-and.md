@@ -120,7 +120,7 @@ checkpoint, compatibility version, or restart contract.
 cd model && mise exec -- lake build Umpire.Exploration.Tests.Validation
 cd model && mise exec -- lake build Umpire.Exploration.Tests.Selection
 cd model && mise exec -- lake build Umpire.Exploration.Tests.Session
-cd model && mise exec -- lake build Temporal.Feature.Nexus.Examples.ExplorationTests
+cd model && mise exec -- lake build Temporal.Feature.Nexus.Experimental.ExplorationTests
 cd model && mise exec -- lake build UmpireTests TemporalModelTests
 make umpire-build-model
 ```
