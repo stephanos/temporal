@@ -238,6 +238,8 @@ process-local one-candidate session:
 ```lean
 import Umpire.Exploration
 
+open Umpire
+
 #check checkExplorationRequest
 #check selectExhaustive
 #check selectUncoveredCoordinate
