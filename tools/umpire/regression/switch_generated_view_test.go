@@ -7,7 +7,7 @@ import "testing"
 
 // TestSwitchQueryExactAction verifies the checked-in generated view for switch.query.exact-action.
 // Lean source: model/Umpire/Examples/Switch.lean
-// Artifact checksum: sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179
+// Artifact checksum: sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd
 func TestSwitchQueryExactAction(t *testing.T) {
 	RequireGeneratedView(t, Reference{
 		FormatVersion: "umpire-experiment/v2",
@@ -22,6 +22,6 @@ func TestSwitchQueryExactAction(t *testing.T) {
 		ObservationRequirements: []string{
 			"switch.observation.power",
 		},
-		ArtifactChecksum: "sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+		ArtifactChecksum: "sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd",
 	})
 }

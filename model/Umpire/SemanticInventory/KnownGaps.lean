@@ -290,20 +290,10 @@ def implementationLinkKnownGapCatalog : List KnownGapCatalogDescriptor := [
   implementationLinkKnownGapCatalogRow "16" .capability
 ]
 
-/-- The non-semantic request and Raw Evidence input carrying arbitrary validated Known Gaps. -/
-def requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor := {
-  id := "umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input"
-  owner := "Temporal.Tool.RunEvaluation"
-  lineage := .carried
-  scope := .production
-  shape := .admittedKnownGapInput
-  source := "umpire.run-evaluation.request-and-raw-known-gap-input"
-  fieldMapping := none
-  description := "Validated request and Raw Evidence Known Gaps before stage-specific projection."
-}
-
 /-- The lossy request and Raw Evidence Known Gap admission into Observation Evaluation. -/
-def observationKnownGapAdmissionCatalogRow : KnownGapCatalogDescriptor := {
+def observationKnownGapAdmissionCatalogRow
+    (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor) :
+    KnownGapCatalogDescriptor := {
   id := "umpire.semantic-inventory.known-gap-source.18-observation-known-gap-admission"
   owner := "Umpire.Observation"
   lineage := .carried
@@ -315,7 +305,9 @@ def observationKnownGapAdmissionCatalogRow : KnownGapCatalogDescriptor := {
 }
 
 /-- The exact request and Raw Evidence Known Gap aggregation retained by the Result Artifact. -/
-def resultRequestRawKnownGapCarryCatalogRow : KnownGapCatalogDescriptor := {
+def resultRequestRawKnownGapCarryCatalogRow
+    (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor) :
+    KnownGapCatalogDescriptor := {
   id := "umpire.semantic-inventory.known-gap-source.19-result-request-raw-known-gap-carry"
   owner := "Umpire.Artifact.Result"
   lineage := .carried
@@ -371,10 +363,14 @@ def testKnownGapCatalog : List KnownGapCatalogDescriptor := [
 ]
 
 /-- The complete canonical Known Gap catalog, including explicitly scoped test fixtures. -/
-def knownGapCatalog : List KnownGapCatalogDescriptor :=
+def knownGapCatalog
+    (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor) :
+    List KnownGapCatalogDescriptor :=
   productionKnownGapCatalog ++ implementationLinkKnownGapCatalog ++
-    [requestRawKnownGapInputCatalogRow, observationKnownGapAdmissionCatalogRow,
-      resultRequestRawKnownGapCarryCatalogRow, resultObservationKnownGapCarryCatalogRow] ++
+    [requestRawKnownGapInputCatalogRow,
+      observationKnownGapAdmissionCatalogRow requestRawKnownGapInputCatalogRow,
+      resultRequestRawKnownGapCarryCatalogRow requestRawKnownGapInputCatalogRow,
+      resultObservationKnownGapCarryCatalogRow] ++
     testKnownGapCatalog
 
 /-- Atomic validation failures for the complete Known Gap catalog. -/
@@ -431,7 +427,8 @@ private def catalogScopeIsValid (row : KnownGapCatalogDescriptor) : Bool :=
     else KnownGapScope.production
   row.scope == expected
 
-private def catalogSourceIsValid (row : KnownGapCatalogDescriptor) : Bool :=
+private def catalogSourceIsValid
+    (requestRawKnownGapInputCatalogRow row : KnownGapCatalogDescriptor) : Bool :=
   match row.shape with
   | .exactKnownGap =>
       (productionExactCatalogSources ++ testExactCatalogSources).contains row.source
@@ -440,10 +437,11 @@ private def catalogSourceIsValid (row : KnownGapCatalogDescriptor) : Bool :=
       row.owner == "Umpire.ImplementationLink" &&
         ImplementationLinkKnownGapFamily.all.any fun family => family.name == row.source
   | .admittedKnownGapInput =>
-      row.owner == requestRawKnownGapInputCatalogRow.owner &&
-        row.source == requestRawKnownGapInputCatalogRow.source
+      row == requestRawKnownGapInputCatalogRow &&
+        !row.owner.trimAscii.isEmpty && (DefinitionId.of row.source).isNamespaced
   | .evidenceGapAdmissionProjection =>
-      row.owner == observationKnownGapAdmissionCatalogRow.owner &&
+      row.owner ==
+          (observationKnownGapAdmissionCatalogRow requestRawKnownGapInputCatalogRow).owner &&
         row.source == requestRawKnownGapInputCatalogRow.id
   | .carriedCatalogEntry =>
       (row.owner == "Umpire.Artifact.Result" && [
@@ -467,6 +465,7 @@ private def catalogOwnershipKey (row : KnownGapCatalogDescriptor) : String :=
   row.owner ++ ":" ++ row.shape.name ++ ":" ++ row.source
 
 private def validateKnownGapCatalogRows
+    (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor)
     (seenIds exactCodes ownershipKeys : List String)
     (previousId : Option String) :
     List KnownGapCatalogDescriptor → Except KnownGapCatalogError Unit
@@ -483,7 +482,7 @@ private def validateKnownGapCatalogRows
       if (row.shape == .evidenceGapAdmissionProjection ||
           row.shape == .carriedCatalogEntry) && !seenIds.contains row.source then
         throw (catalogError .unresolvedCarry row)
-      if !catalogSourceIsValid row then
+      if !catalogSourceIsValid requestRawKnownGapInputCatalogRow row then
         throw (catalogError .invalidSource row)
       if !catalogMappingIsValid row then
         throw (catalogError .invalidProjectionMapping row)
@@ -496,13 +495,14 @@ private def validateKnownGapCatalogRows
         throw (catalogError .noncanonicalOrder row)
       let exactCodes := if row.shape == .exactKnownGap then row.source :: exactCodes
         else exactCodes
-      validateKnownGapCatalogRows (row.id :: seenIds) exactCodes
+      validateKnownGapCatalogRows requestRawKnownGapInputCatalogRow (row.id :: seenIds) exactCodes
         (ownershipKey :: ownershipKeys) (some row.id) rest
 
 /-- Validate the complete Known Gap catalog without returning a partially accepted prefix. -/
 def validateKnownGapCatalog
+    (requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor)
     (catalog : List KnownGapCatalogDescriptor) : Except KnownGapCatalogError Unit :=
-  validateKnownGapCatalogRows [] [] [] none catalog
+  validateKnownGapCatalogRows requestRawKnownGapInputCatalogRow [] [] [] none catalog
 
 /-- Stable suffixes for the closed Observation diagnostic family. -/
 def observationFailureKnownGapSuffix : ObservationFailureKind → String
