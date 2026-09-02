@@ -4,18 +4,20 @@
 
 ## Umpire4 architecture reconciliation
 
-This is a standalone `tools/canary` deep module and executable, not an Umpire environment adapter or command. Canary consumes stable Umpire ArtifactSet, runner, participant, Run Evaluation, and Claim Assessment interfaces; Umpire never imports canary and contains no canary-specific profile, approval, credential, lease, fencing, recovery, rollout, or release-policy types.
+This is a standalone `tools/canary` deep module and executable, not an Umpire environment adapter or command. Canary consumes stable Umpire PortableTestPlan/gRPC executor, ArtifactSet, runner, participant, Run Evaluation, and Claim Assessment interfaces; Umpire never imports canary and contains no canary-specific profile, approval, credential, lease, fencing, recovery, rollout, or release-policy types.
 
-`tools/canary` owns signed approval, production authorization, trusted artifact acquisition, isolation, controller and killable workers, leases/fencing/recovery, cleanup, rate/concurrency/blast-radius controls, audit, and the canary workflow/command. The same complete ExperimentSpec remains semantic authority. Fn-14 and CI Claim Assessment are not prerequisites; remote-staging patterns may be reused only through reviewed stable interfaces.
+`tools/canary` owns signed approval, production authorization, trusted artifact acquisition, isolation, controller and killable workers, leases/fencing/recovery, cleanup, rate/concurrency/blast-radius controls, audit, and the canary workflow/command. It admits one pinned Lean-generated PortableTestPlan through the fn-52 gRPC interface; the plan retains the exact ExperimentSpec and validated model provenance while distilling every portable execution and verification rule needed by the canary. Fn-14 and CI Claim Assessment are not prerequisites; remote-staging patterns may be reused only through reviewed stable interfaces.
 
 ## Overview
 
-Add one production-control-plane C12 profile for the current semantic model. The profile runs the
-same byte-identical caller-closure ExperimentSpec used by local, CI, and staging against one fixed,
-preallocated production-canary namespace and Nexus endpoint that carry no customer traffic. It
-observes only the public Temporal boundary plus runner-owned receipts, reuses the canonical Lean
-Run Evaluation authority, and publishes a production-canary-scoped Claim Assessment receipt that is
-structurally ineligible to authorize a release.
+Add one production-control-plane C12 profile for the current semantic model. The profile runs one
+pinned Lean-generated PortableTestPlan whose model binding retains the same byte-identical
+caller-closure ExperimentSpec used by local, CI, and staging. The plan is submitted through the
+caller-neutral Umpire gRPC executor against one fixed, preallocated production-canary namespace and
+Nexus endpoint that carry no customer traffic. It observes only the public Temporal boundary plus
+runner-owned receipts, executes the verification program distilled from canonical Lean Run
+Evaluation, and publishes a production-canary-scoped Claim Assessment receipt that is structurally
+ineligible to authorize a release.
 
 This is a deliberately closed canary, not a deployment system: one manual protected workflow, one
 compiled target/profile, one short-lived in-memory mTLS authority, one exclusive server-side fence,
@@ -45,14 +47,13 @@ Run Evaluation.
 
 ```mermaid
 flowchart LR
-  S[Same ExperimentSpec] --> A[Strict input admission]
+  S[Pinned Lean PortableTestPlan] --> A[Plan + provenance admission]
   P[Protected canary authority] --> T[Production target + isolation preflight]
   A --> T
   T --> L[Exclusive lease + fence]
-  L --> X[One bounded public execution]
-  X --> K[Cleanup + postflight]
-  K --> E[Closed Run + public evidence]
-  E --> C[Canonical Lean Run Evaluation]
+  L --> G[UmpireExecutor.Execute over gRPC]
+  G --> X[Bounded execution + cleanup + Evidence closure]
+  X --> C[Scoped portable ExecutionResult]
   C --> Q[Canary profile Claim Assessment]
   Q --> R[Receipt v5 + ArtifactSet v6]
   R --> O[Immutable publication]
@@ -67,11 +68,13 @@ decision. They contain no Temporal, Nexus, production target, namespace, endpoin
 workflow provider, repository, credential, checker, or scenario name.
 
 Temporal-owned modules define the exact `production-canary-public-grpc` runtime and Claim Assessment
-profiles, caller-closure binding, no-fault/no-traffic safety policy, and public-evidence Observation
-mapping. The pure Query, Property, Behavior, transition kernel, and Result semantics remain
-unchanged. Go owns secret-bearing authority and public transport; one canary controller composes
-admission, execution, Run Evaluation, Claim Assessment, artifact construction, and publication without
-interpreting semantic facts.
+profiles, caller-closure PortableTestPlan binding, no-fault/no-traffic safety policy, and
+public-evidence Observation mapping. This profile name describes the downstream public Temporal
+boundary, not the caller-to-executor gRPC ingress. The pure Query, Property, Behavior, transition
+kernel, and Result semantics remain unchanged. Go owns secret-bearing authority and public
+transport; one canary controller validates the pinned plan provenance and composes admission,
+gRPC execution, Claim Assessment, artifact construction, and publication without interpreting or
+overriding semantic facts.
 
 The future staging implementation's public-remote transport, lease, lifecycle, recovery, progress,
 and publication seams are reused or extracted into environment-neutral Go helpers. The production
@@ -246,6 +249,14 @@ property, action, fault, timeout, retry, checker, executable, publication, or cl
 provenance. Reconcile reads the fixed protected authority/recovery paths, treats a missing record as
 a canonical no-op, and has no execution or artifact capability.
 
+Run mode acquires one exact PortableTestPlan from the trusted input set, verifies its fn-52
+model-compiled provenance and pinned checksum before any remote mutation, and submits that plan to
+the fixed UmpireExecutor gRPC interface. The command accepts neither plan bytes nor an executor
+address as user-selected input. The protected host supplies the executor connection and provenance
+trust configuration outside the semantic plan. A missing, external, stale, unsupported, or crossed
+plan/provenance binding is a pre-dispatch tooling failure and is never downgraded to plan-local
+canary authority.
+
 Status 0 means an accepted, non-release-eligible production-canary receipt was published. Status 2
 means a valid rejected or incomplete receipt was published. Status 1 means a tooling failure and no
 success summary; the canonical record says whether dispatch, cleanup, and publication occurred.
@@ -311,8 +322,8 @@ make umpire-check-regression
 - No server-internal evidence, payload retention, independently authenticated builder/approver or
   isolation proof, formal proof, cross-environment aggregation, release graph, release eligibility,
   deployment approval, or release authorization.
-- No new semantic Property, Behavior, Query, transition, planner, ExperimentSpec, or alternate
-  evaluator.
+- No new semantic Property, Behavior, Query, transition, planner, PortableTestPlan vocabulary,
+  ExperimentSpec, or alternate evaluator; this spec consumes the fn-52 interface unchanged.
 - No default/scheduled/automatic workflow, automatic rerun, test-produced accepted canary fixture,
   compatibility alias, permissive reader, or model-local Make change.
 
@@ -326,11 +337,13 @@ statement as bounded operational provenance and explicitly retain the lack of in
 do not smuggle it into semantic observations.
 
 Build on the staging remote adapter and control protocol rather than creating an unrelated Drive or
-canary execution language. The authored Behavior already fixes the semantic program, while the
-RuntimeConfiguration and Claim Assessment profile close the production operational choices. Preserve
-target-owned redelivery as evidence and use idempotent mutation. Keep the existing generic testing
-canary helper non-authoritative. Defer release evidence aggregation because a single environment
-receipt, even a green production canary, cannot authorize a release by itself.
+canary execution language. Consume the caller-neutral fn-52 gRPC executor with one pinned
+Lean-generated PortableTestPlan: its validated model binding fixes the semantic program and retains
+the byte-identical ExperimentSpec, while the RuntimeConfiguration and Claim Assessment profile close
+the production operational choices. Preserve target-owned redelivery as evidence and use idempotent
+mutation. Keep the existing generic testing canary helper non-authoritative. Defer release evidence
+aggregation because a single environment receipt, even a green production canary, cannot authorize
+a release by itself.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -340,10 +353,12 @@ receipt, even a green production canary, cannot authorize a release by itself.
   protected authority, isolation, public evidence, cleanup, trust, Known Gaps, claim strength, and
   mandatory `releaseEligibility:false` without Temporal/scenario vocabulary in reusable Umpire.
   Unknown, duplicate, contradictory, broadened, secret-bearing, or prior-version mutations reject.
-- **R2:** The byte-identical ExperimentSpec is paired with one distinct no-fault canary
-  RuntimeConfiguration and fixed public Observation mapping while Query, Property, Behavior,
-  transition, and Result authorities remain unchanged. Changed semantics, arbitrary target/action,
-  internal/payload evidence, unknown, unsupported, ambiguity, or conflict cannot qualify.
+- **R2:** One pinned Lean-generated PortableTestPlan retains the byte-identical ExperimentSpec,
+  pairs it with one distinct no-fault canary RuntimeConfiguration, and distills the fixed public
+  Observation, Implementation Link, and Property program consumed through fn-52 gRPC while Query,
+  Property, Behavior, transition, and Result authorities remain unchanged. Changed semantics,
+  external/unvalidated plan provenance, arbitrary target/action, internal/payload evidence, unknown,
+  unsupported, ambiguity, conflict, or an unresolved required external obligation cannot qualify.
 - **R3:** Authority is acquired only from the fixed protected workflow, held in memory, and
   preflights exact TLS, production-canary environment, namespace, Nexus routing, credential,
   workflow-context, public-capability, isolation-attestation, and run-owned-identity closures before
@@ -364,10 +379,12 @@ receipt, even a green production canary, cannot authorize a release by itself.
   v3 record with persisted remaining RPC reserve plus server timeouts, while staging v2 remains
   unchanged. Runner loss, tampered/stale recovery, authority loss, partial startup, cleanup
   uncertainty, or unrelated resource encounter cannot be accepted or redispatched.
-- **R6:** Public execution evidence enters unchanged canonical Lean Run Evaluation through one fixed
-  mapping; isolation/authority provenance affects Claim Assessment only. Operational, evidence,
-  semantic, cleanup, authority, target, fence, isolation, trust, and release-eligibility statuses
-  remain independent, and no second evaluator is introduced.
+- **R6:** Public execution evidence enters the fn-52 portable verification program distilled from
+  canonical Lean Run Evaluation through one fixed mapping; isolation/authority provenance affects
+  Claim Assessment only. The gRPC ExecutionResult retains validated model scope, exact Evidence
+  Links, Known Gaps, external obligations, and independent operational, evidence, semantic, cleanup,
+  authority, target, fence, isolation, trust, and release-eligibility statuses, and no second
+  evaluator is introduced.
 - **R7:** Secret-free ProductionCanaryClaimAssessmentProvenance v2, EvaluationReceipt v5, and
   ArtifactSet v6 have exact canonical identities, limits, reason precedence, source closure,
   `releaseEligibility:false`, and immutable publication while prior versions and six source-member
@@ -399,6 +416,7 @@ participant.
 - Flow specs fn-19 and fn-20 — bounded participant lifecycle and canonical semantic Run Evaluation.
 - Flow specs fn-26 and fn-27 — Claim Assessment and environment-profile versioning.
 - Flow spec fn-28 — protected remote public transport, lease, recovery, and staging Claim Assessment.
+- Flow spec fn-52 — caller-neutral typed PortableTestPlan and UmpireExecutor gRPC ingress.
 - Umpire component and DSL plans — environment-evaluated Result and semantic ownership doctrine.
 
 ## Requirement coverage

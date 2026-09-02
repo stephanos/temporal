@@ -4,48 +4,37 @@ satisfies: [R3, R4, R5, R6, R7, R8]
 # fn-29-bounded-production-canary-execution-and.8 Compose the canary Claim Assessment controller and closed Run mode
 
 ## Description
-### Umpire4 reconciliation (normative)
-
-All canary-specific policy, profiles, claims, approvals, production authority, credentials, leasing, fencing, recovery, cleanup, rate/concurrency/blast-radius controls, audit, commands, workflows, and documentation belong to the independently owned `tools/canary` module. Umpire supplies stable generic artifact, runner, participant, Run Evaluation, and Claim Assessment interfaces only; it never imports `tools/canary` and gains no canary-specific types. The Lean model may define and verify the eligible trace subset, while the standalone canary owns operational policy and consumes the same complete `ExperimentSpec`. Replace legacy `tools/umpire` canary paths and Umpire-specific canary schema extensions accordingly.
-
-The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
-
-Implement R3-R8 behind one production-fixed canary controller and the Claim Assessment binary's closed run mode.
+Compose R3-R8 behind one production-fixed canary controller. The controller acquires and validates the pinned Lean-generated PortableTestPlan, executes it through fn-52's UmpireExecutor gRPC interface, then performs canary-owned Claim Assessment and publication.
 
 **Size:** M
-**Files:** `tools/umpire/canaryassessment/**`, `tools/umpire/evaluation/**`, `tools/umpire/cmd/umpire-assess-production-canary/**`, `model/lakefile.toml`
-**Touches:** [tools/umpire/canaryassessment/**, tools/umpire/evaluation/**, tools/umpire/cmd/umpire-assess-production-canary/**, model/lakefile.toml]
+**Files:** `tools/canary/controller/**`, `tools/canary/cmd/umpire-assess-production-canary/**`, `tools/canary/evaluation/**`, `model/lakefile.toml`
+**Touches:** [tools/canary/controller/**, tools/canary/cmd/umpire-assess-production-canary/**, tools/canary/evaluation/**, model/lakefile.toml]
 
 ### Approach
-- Compose ordered input/pilot/profile/workflow-context admission, protected authority and scope preflight, lease, execution, cleanup/reconciliation, postflight, evidence/provenance closure, Run Evaluation, offline Claim Assessment, v6 construction, and exactly one publication behind a narrow API.
-- Reuse environment-neutral remote transport/control seams while keeping staging and canary policy/controllers separate; production injection fixes authority, profile/checker, program, limits, action, statuses, and publisher.
-- Implement the exact run arguments and canonical secret-free status 0/1/2 summary/error contract with dispatch/cleanup/publication booleans and reporting-after-publication recovery.
-- Maintain the exact controller RPC ledger across phases, transfer only the 24-call reserve into cleanup, and expose narrow RemoteRecoveryRecord v3/progress hooks for Task `.9`; run mode cannot reset, weaken, or select those paths.
-- Preserve every constructible post-dispatch failed/incomplete run and independent status; pre-dispatch tooling failures publish nothing, and no path redispatches, rechecks, or republishes automatically.
-- Register only required sibling executables in the primary Lake package and make no model-local Make change.
+- Compose ordered input/pilot/profile/workflow-context admission, protected authority and scope preflight, lease acquisition, pinned plan/provenance admission, gRPC execution, cleanup/reconciliation/postflight, Claim Assessment, v6 construction, and exactly one publication behind a narrow interface.
+- Supply executor connectivity and provenance trust from protected host configuration; accept no plan bytes, executor address, target, action, Property, or trust anchor from command inputs.
+- Treat the fn-52 typed ExecutionResult as the complete semantic execution output; canary code adds operational Claim Assessment but never interprets or overrides semantic facts.
+- Preserve the exact run/reconcile arguments, status 0/1/2 behavior, RPC ledger and cleanup reserve, post-dispatch evidence, and no-redispatch/no-republication guarantees.
+- Register only required sibling executables and keep every canary-specific policy, credential, lease, recovery, workflow, and command under `tools/canary`.
 
 ### Investigation targets
 **Required** (read before coding):
-- `.flow/tasks/fn-28-authorized-remote-staging-black-box.8.md` — staging controller stage/status contract
-- `.flow/specs/fn-19-bounded-local-temporal-execution-and.md` — runtime API and cleanup dominance
-- `.flow/specs/fn-20-local-execution-semantic-conformance.md` — Run Evaluation API/tooling errors
-- `.flow/specs/fn-26-local-qualification-receipts-and-staged.md` — Evaluation Profile, Evaluation Receipt, and Claim Assessment command contract
-- `.flow/tasks/fn-18-versioned-umpire-artifact-boundary.10.md` — sole publisher behavior
+- `.flow/specs/fn-52-caller-neutral-grpc-portable-test-plans.md` — gRPC execution and provenance interface
+- `.flow/specs/fn-19-bounded-local-temporal-execution-and.md` — runtime and cleanup dominance
+- `.flow/specs/fn-20-local-execution-semantic-conformance.md` — semantic status authority
+- `.flow/specs/fn-26-local-qualification-receipts-and-staged.md` — Claim Assessment and receipt contract
+- `.flow/tasks/fn-29-bounded-production-canary-execution-and.5.md` — exact portable result admission
 
 ### Key context
-Cleanup/postflight and isolation facts must close before Run Evaluation and Claim Assessment; only execution evidence reaches semantics. This controller is deep composition, not a second Drive DSL.
-
-### Acceptance
-- [ ] Malformed/preflight input performs no remote or publication IO.
-- [ ] One valid injected run closes cleanup/postflight before Run Evaluation and publishes one admitted v6 set.
-- [ ] Every cancel/failure/non-success/cleanup/reporting/publication row preserves exact facts without redispatch.
-- [ ] Crash/restart stage fakes prove v3 recovery resumes the remaining reserve rather than resetting the 64-call total, while staging v2 remains outside this controller.
-- [ ] Run mode accepts only set, pilot evidence, output root, and run ID and exposes no target/action/fault/claim selector.
+The controller is deep operational composition around a stable plan/executor interface. Public Temporal gRPC is downstream target access; UmpireExecutor gRPC is the caller-neutral plan ingress. Neither is a new canary execution language.
 ## Acceptance
-- [ ] R3-R8 controller, run mode, sibling handshake, stage order, status, and publication contracts are complete.
-- [ ] Independent stage fakes and command integration tests pass.
+- [ ] Malformed input or missing/external/stale/crossed plan provenance performs no remote or publication I/O.
+- [ ] One valid pinned plan runs through UmpireExecutor gRPC, closes cleanup/postflight, preserves the exact typed result, and publishes one admitted v6 set.
+- [ ] Run mode exposes no plan bytes, executor endpoint, trust anchor, target/action/fault/Property/claim selector, or semantic override.
+- [ ] Cancellation, transport ambiguity, failure, cleanup, reporting, and publication rows preserve exact facts without automatic gRPC redispatch.
+- [ ] Recovery spends only the persisted reserve and cannot submit a plan or start another execution.
+- [ ] R3-R8 controller, command, stage-order, status, provenance, and publication tests pass.
 - [ ] Existing orchestration comments are preserved.
-
 ## Done summary
 TBD
 

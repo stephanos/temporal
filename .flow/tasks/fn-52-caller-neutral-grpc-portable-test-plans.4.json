@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-02T17:00:48.251696Z",
+  "depends_on": [
+    "fn-52-caller-neutral-grpc-portable-test-plans.3"
+  ],
+  "id": "fn-52-caller-neutral-grpc-portable-test-plans.4",
+  "priority": null,
+  "spec": "fn-52-caller-neutral-grpc-portable-test-plans",
+  "spec_path": ".flow/tasks/fn-52-caller-neutral-grpc-portable-test-plans.4.md",
+  "status": "todo",
+  "title": "Execute and evaluate typed plans through existing modules",
+  "updated_at": "2026-09-02T17:08:54.649551Z"
+}

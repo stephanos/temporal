@@ -1,0 +1,151 @@
+{
+  "branch_name": "fn-52-caller-neutral-grpc-portable-test-plans",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-02T17:00:06.971010Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-28-portable-evaluation-contract-and",
+    "fn-19-bounded-local-temporal-execution-and",
+    "fn-20-local-execution-semantic-conformance"
+  ],
+  "id": "fn-52-caller-neutral-grpc-portable-test-plans",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-02T17:09:22.333950Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "16a14ad84f56e919b6175d3f47e6d305d0b2d1f6cea2ad272c0ef7e1936440f2",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e8d7cafe562adfd742c05eed174b6d43",
+            "classification": "introduced",
+            "findingId": "finding-e8d7cafe562adfd742c05eed174b6d43",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c6bce7c15f64a6041480e780843dcf24",
+            "classification": "introduced",
+            "findingId": "finding-c6bce7c15f64a6041480e780843dcf24",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "dc73777924f1d51bcda5f19a335d7224a606f39c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 526495,
+      "output_sha256": "4daddd047dfaef2ba351796d428e07051a9928e1e297d137488b0ea99d6d3762",
+      "reservation_id": "aeacefba798f4d8bba1beb59cad3bdd4",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-02T17:07:32.696895Z",
+      "tool_calls": 13,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ba394bf84fce958ffb9f837555bc7fc392cd6e9924078d38e67e5c076f5ef43b",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e8d7cafe562adfd742c05eed174b6d43",
+            "classification": "introduced",
+            "findingId": "finding-e8d7cafe562adfd742c05eed174b6d43",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-c6bce7c15f64a6041480e780843dcf24",
+            "classification": "introduced",
+            "findingId": "finding-c6bce7c15f64a6041480e780843dcf24",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "360564640827c87a0d256d0d91ab4baa15f78727",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 281,
+      "output_sha256": "284802e75e534bac4e3a70c6974eea71fc1baea1afbc7daf75893cb7b50b751c",
+      "reservation_id": "ac8c21d5938e43149595c124ad60966c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-02T17:09:22.329881Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-52-caller-neutral-grpc-portable-test-plans.md",
+  "status": "open",
+  "title": "Caller-neutral gRPC portable test plans",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-02T17:09:22.334588Z"
+}
