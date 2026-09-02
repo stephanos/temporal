@@ -43,9 +43,13 @@ Add one exact `explain` lookup over the same checked Nexus inventory used by `li
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-TBD
+Added exact Nexus `explain` lookup and canonical `umpire-nexus-explanation/v1` output. Each explanation embeds the byte-identical existing list-row summary and projects the complete checked ExperimentSpec lineage; lookup is exact and introduces no aliases, case folding, prefix matching, or copied semantic prose. Unknown, case-shifted, prefix, missing, and extra selectors return structured diagnostics with empty stdout, while list and positional inspector behavior remain unchanged.
 
+Focused tests cover all four canonical identities, deterministic repeated output, exact summary reuse, complete lineage fields, selector rejection, invalid-inventory failure, and command compatibility. The exact task suite, relinked direct CLI smoke, full Lean model lint, and diff check pass.
+
+stage: impl-review - ran (Codex SHIP; 0 introduced and 0 pre-existing findings)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 32f519e122b23a50e90c3d7c14fd9f7df65a47a3
+- Tests: BASELINE_GREEN: cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests temporal-model-inspect, cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests temporal-model-inspect (95 jobs), direct relinked temporal-model-inspect explain smoke for all four exact identities, repeated byte equality, jq-valid payloads, and exact unknown failure/status/stdout, make lint-model (205 lint jobs), git diff --check, flowctl codex impl-review fn-5-umpire-discovery-promotion-and-artifact.3 --base bcf5d189e --receipt /tmp/impl-review-receipt-fn-5-umpire-discovery-promotion-and-artifact.3.json (SHIP)
 - PRs:
