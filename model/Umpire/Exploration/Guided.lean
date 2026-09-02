@@ -1,4 +1,4 @@
-import Umpire.Exploration.Candidate
+import Umpire.Exploration.Selection
 
 /-! Deterministic bounded guidance toward one checked uncovered Model Coordinate. -/
 
@@ -57,10 +57,23 @@ def outcome
   else
     .coordinateUncovered
 
-end GuidedSelection.Internal
+/-- Apply coordinate guidance after the engine has established request and universe bindings. -/
+def select
+    (request : CheckedExplorationRequest LawStatement)
+    (candidateUniverse : CandidateUniverse)
+    (coordinate : ModelCoordinate) : GuidedSelection :=
+  let eligible := ExplorationSelection.Internal.eligibleCandidates request candidateUniverse
+  let ordered := prioritize coordinate
+    (ArtifactChecksum.render ∘ ExplorationCandidate.identity)
+    (fun candidate => candidate.coverage.modelCoordinates) eligible
+  let candidates := ordered.take request.limit.value
+  {
+    coordinate
+    candidates
+    outcome := outcome coordinate (fun candidate => candidate.coverage.modelCoordinates) candidates
+  }
 
-private def candidateCoordinates (candidate : ExplorationCandidate) : List ModelCoordinate :=
-  candidate.coverage.modelCoordinates
+end GuidedSelection.Internal
 
 /--
 Select a bounded canonical prefix after ranking exact coordinate matches first. Crossed Space or
@@ -76,14 +89,6 @@ def selectUncoveredCoordinate
           candidateUniverse.spaceBehaviorFingerprint != request.space.behaviorFingerprint then
         none
       else
-        let ordered := GuidedSelection.Internal.prioritize coordinate
-          (ArtifactChecksum.render ∘ ExplorationCandidate.identity)
-          candidateCoordinates candidateUniverse.candidates
-        let candidates := ordered.take request.limit.value
-        some {
-          coordinate
-          candidates
-          outcome := GuidedSelection.Internal.outcome coordinate candidateCoordinates candidates
-        }
+        some (GuidedSelection.Internal.select request candidateUniverse coordinate)
 
 end Umpire

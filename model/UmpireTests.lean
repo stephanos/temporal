@@ -30,6 +30,10 @@ import Umpire.Space.Tests.Metadata
 import Umpire.Space.Tests.Validation
 import Umpire.Exploration.Tests.Validation
 import Umpire.Exploration.Tests.Candidate
+import Umpire.Exploration.Tests.Selection
+import Umpire.Exploration.Tests.Guided
+import Umpire.Exploration.Tests.Engine
+import Umpire.Exploration.Tests.Pinned
 
 namespace UmpireTests
 
