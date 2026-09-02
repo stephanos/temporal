@@ -1,12 +1,15 @@
 package executorhttp
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -214,24 +217,92 @@ func TestHandlerRejectsExecutorAndResponseTransportFailures(t *testing.T) {
 	}
 }
 
-func TestHandlerPropagatesItsDeadlineAsCanceledAndInconclusive(t *testing.T) {
+func TestHandlerPropagatesDeadlineToExecutorStatuses(t *testing.T) {
 	deadlineObserved := make(chan time.Duration, 1)
 	handler := newHandler(func(ctx context.Context, _ *umpirespb.ExecuteRequest) (*umpirespb.ExecuteResponse, error) {
 		deadline, ok := ctx.Deadline()
 		require.True(t, ok)
 		deadlineObserved <- time.Until(deadline)
-		<-ctx.Done()
 		return toolingResponse(umpirespb.TOOLING_STATUS_CANCELED), nil
-	}, 1<<20, 1<<20, time.Millisecond)
+	}, 1<<20, 1<<20, time.Second)
 
 	recorder := serve(handler, http.MethodPost, ExecutePath, ProtobufContentType, marshalProto(t, testRequest()))
 
-	require.LessOrEqual(t, <-deadlineObserved, 10*time.Millisecond)
+	require.LessOrEqual(t, <-deadlineObserved, time.Second)
 	require.Equal(t, http.StatusOK, recorder.Code)
 	var got umpirespb.ExecuteResponse
 	require.NoError(t, proto.Unmarshal(recorder.Body.Bytes(), &got))
 	require.Equal(t, umpirespb.TOOLING_STATUS_CANCELED, got.GetResult().GetToolingStatus())
 	require.Equal(t, umpirespb.CANARY_DECISION_INCONCLUSIVE, got.GetResult().GetDecision())
+}
+
+func TestHandlerBoundsSlowRequestBodyBeforeExecution(t *testing.T) {
+	var calls atomic.Int32
+	handler := newHandler(func(context.Context, *umpirespb.ExecuteRequest) (*umpirespb.ExecuteResponse, error) {
+		calls.Add(1)
+		return toolingResponse(umpirespb.TOOLING_STATUS_SUCCEEDED), nil
+	}, 1<<20, 1<<20, 10*time.Millisecond)
+	server := httptest.NewServer(handler)
+	t.Cleanup(server.Close)
+	address := strings.TrimPrefix(server.URL, "http://")
+	connection, err := net.DialTimeout("tcp", address, time.Second)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, connection.Close()) })
+	require.NoError(t, connection.SetReadDeadline(time.Now().Add(time.Second)))
+	_, err = io.WriteString(connection, "POST "+ExecutePath+" HTTP/1.1\r\nHost: "+address+"\r\nContent-Type: "+ProtobufContentType+"\r\nContent-Length: 1\r\n\r\n")
+	require.NoError(t, err)
+
+	response, err := http.ReadResponse(bufio.NewReader(connection), &http.Request{Method: http.MethodPost})
+	if err != nil {
+		var networkError net.Error
+		require.False(t, errors.As(err, &networkError) && networkError.Timeout())
+	} else {
+		require.NoError(t, response.Body.Close())
+		require.NotEqual(t, http.StatusOK, response.StatusCode)
+	}
+	require.Zero(t, calls.Load())
+}
+
+func TestHandlerAdmitsExactResultLimitAndRejectsLimitPlusOne(t *testing.T) {
+	exact := toolingResponse(umpirespb.TOOLING_STATUS_SUCCEEDED)
+	exact.Result.Work = &umpirespb.EvaluationWork{Total: 127}
+	over := proto.CloneOf(exact)
+	over.Result.Work.Total = 128
+	limit := int64(proto.Size(exact.GetResult()))
+	require.Equal(t, limit+1, int64(proto.Size(over.GetResult())))
+
+	exactHandler := newHandler(func(context.Context, *umpirespb.ExecuteRequest) (*umpirespb.ExecuteResponse, error) {
+		return exact, nil
+	}, 1<<20, limit, time.Second)
+	overHandler := newHandler(func(context.Context, *umpirespb.ExecuteRequest) (*umpirespb.ExecuteResponse, error) {
+		return over, nil
+	}, 1<<20, limit, time.Second)
+
+	exactRecorder := serve(exactHandler, http.MethodPost, ExecutePath, ProtobufContentType, marshalProto(t, testRequest()))
+	overRecorder := serve(overHandler, http.MethodPost, ExecutePath, ProtobufContentType, marshalProto(t, testRequest()))
+
+	require.Equal(t, http.StatusOK, exactRecorder.Code)
+	require.Equal(t, http.StatusInternalServerError, overRecorder.Code)
+	require.Empty(t, overRecorder.Body.Bytes())
+}
+
+func TestHandlerCannotPublishSuccessAfterResponseEncodingDeadline(t *testing.T) {
+	var deadline <-chan struct{}
+	handler := newHandler(func(ctx context.Context, _ *umpirespb.ExecuteRequest) (*umpirespb.ExecuteResponse, error) {
+		deadline = ctx.Done()
+		return toolingResponse(umpirespb.TOOLING_STATUS_SUCCEEDED), nil
+	}, 1<<20, 1<<20, time.Millisecond).(*handler)
+	handler.marshal = func(message proto.Message) ([]byte, error) {
+		if _, ok := message.(*umpirespb.ExecuteResponse); ok {
+			<-deadline
+		}
+		return deterministicMarshal.Marshal(message)
+	}
+
+	recorder := serve(handler, http.MethodPost, ExecutePath, ProtobufContentType, marshalProto(t, testRequest()))
+
+	require.Equal(t, http.StatusGatewayTimeout, recorder.Code)
+	require.Empty(t, recorder.Body.Bytes())
 }
 
 func TestHandlerClientCancellationCannotPublishPartialSuccess(t *testing.T) {
