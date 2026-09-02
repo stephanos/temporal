@@ -4,12 +4,33 @@ import Umpire.Exploration.Engine
 
 namespace Umpire
 
+/-- One selected ExperimentSpec in the process-local session's fixed execution order. -/
+structure ExplorationSessionCandidate where
+  private mk ::
+  experimentSpec : ExperimentSpec
+  deriving BEq, DecidableEq, Repr
+
+/-- The semantic identity of one process-local session candidate. -/
+def ExplorationSessionCandidate.identity
+    (candidate : ExplorationSessionCandidate) : ArtifactChecksum :=
+  candidate.experimentSpec.artifactChecksum
+
 /-- A fixed selected order with at most one candidate awaiting exact admission. -/
 structure ExplorationSession where
   private mk ::
-  remaining : List ExplorationCandidate
-  outstanding : Option ExplorationCandidate
+  remaining : List ExplorationSessionCandidate
+  outstanding : Option ExplorationSessionCandidate
   deriving BEq, DecidableEq, Repr
+
+private def sessionCandidateOfPinned
+    (pinned : PinnedExperimentSpec) : ExplorationSessionCandidate := {
+  experimentSpec := pinned.experimentSpec
+}
+
+private def sessionCandidateOfExploratory
+    (candidate : ExplorationCandidate) : ExplorationSessionCandidate := {
+  experimentSpec := candidate.experimentSpec
+}
 
 /-- Check and select one Exploration request before opening its process-local candidate session. -/
 def beginSession
@@ -18,13 +39,14 @@ def beginSession
     Except ExplorationError ExplorationSession := do
   let result ← explore request kernel
   pure {
-    remaining := result.exploratory
+    remaining := result.pinned.map sessionCandidateOfPinned ++
+      result.exploratory.map sessionCandidateOfExploratory
     outstanding := none
   }
 
 /-- Return the next fixed candidate and a session that must observe it before advancing. -/
 def ExplorationSession.next
-    (session : ExplorationSession) : Option (ExplorationCandidate × ExplorationSession) :=
+    (session : ExplorationSession) : Option (ExplorationSessionCandidate × ExplorationSession) :=
   match session.outstanding, session.remaining with
   | none, candidate :: remaining =>
       some (candidate, { remaining, outstanding := some candidate })
