@@ -376,7 +376,7 @@
       "phase": "p3",
       "status": "open",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-10-temporal-semantic-model-layout-and",
         "fn-16-authored-variation-spaces-and",
