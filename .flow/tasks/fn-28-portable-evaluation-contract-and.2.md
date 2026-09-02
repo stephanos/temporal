@@ -38,6 +38,7 @@ baseline: green (focused evaluationcontract unit suite; no task code changed dur
 GATE_CLASSIFY_FULL: unrelated user-owned config/development.yaml working-tree modification
 
 stage: impl-review - ran [2026-09-01T18:13:22Z..2026-09-01T18:16:51Z] (authoritative SHIP receipt reused after empty finalization diff)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests: baseline: green - TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/..., TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp go test -race -count=1 -tags test_dep ./tools/umpire/evaluationcontract/..., TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/... -run '^$' -fuzz '^FuzzAdmitRejectsSingleByteContractMutations$' -fuzztime=3s, TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp go vet -tags test_dep ./tools/umpire/evaluationcontract/..., TMPDIR=$PWD/.flow/tmp/fn28_2_tmp GOTMPDIR=$PWD/.flow/tmp/fn28_2_tmp .bin/golangci-lint-v2.13.1 run --build-tags 'test_dep' --timeout 10m --config=.github/.golangci.yml ./tools/umpire/evaluationcontract/..., GATE_CLASSIFY_FULL: unrelated user-owned config/development.yaml working-tree modification, AUTHORITATIVE_REVIEW_SHIP: 62c8a5b085b174c4ea4c62951c19fa66c7c423c7..636f17f3c649853127d2bd6ab73826a32e6edf04
