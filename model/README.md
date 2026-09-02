@@ -229,6 +229,47 @@ orchestration remain outside this boundary. This pre-release correction supersed
 spelling in place. Compact or alternate-whitespace input has no normalization, alias, fallback, or
 migration path.
 
+## Bounded semantic Exploration
+
+Import `Umpire.Exploration` for the reusable pure API. It exposes the checked request boundary,
+exactly two selectors, the separately checked pinned partition, the narrow selection result, and a
+process-local one-candidate session:
+
+```lean
+import Umpire.Exploration
+
+#check checkExplorationRequest
+#check selectExhaustive
+#check selectUncoveredCoordinate
+#check explore
+#check beginSession
+#check ExplorationSession.next
+#check ExplorationSession.observe
+```
+
+The only policies are `ExplorationPolicy.exhaustive` and
+`ExplorationPolicy.uncoveredCoordinate coordinate`. Exhaustive selection reports `exhausted` only
+after considering the complete finite non-pinned candidate universe. If its `experiment-specs`
+Limit stops selection first, it reports `limit-reached`; that outcome is inconclusive and proves no
+absence claim. Guided selection puts exact matches for one caller-named Model Coordinate first and
+then orders ties by ExperimentSpec semantic identity. Its coordinate outcome says only whether the
+selected candidates contain that coordinate. A requested fault or coordinate remains Model intent,
+not Evidence that the runtime realized a fault or that a Property passed.
+
+Pinned Regressions are validated and identity-sorted as a separate partition. They precede the
+exploratory selection, do not consume its Limit, and remove an overlapping exploratory identity
+with `pinned-precedence`. `beginSession` fixes one checked request and selected order in memory;
+`next` returns at most one candidate, and `observe` accepts only that candidate's exact Artifact
+binding before advancing. The session has no encoder, decoder, checkpoint, restart, or persistence
+contract.
+
+Import `Temporal.Feature.Nexus.Experimental.Exploration` for the retained Nexus adapter. Its `run`
+and `startSession` entry points bind the exact checked four-point Nexus variation Space and its
+existing planner kernel without introducing another policy. Fn-33 owns runtime execution through
+the serial `umpire-fuzz run` surface, including waiting for workload completion and eventual
+Evidence. Exploration itself performs no runtime I/O, Evidence interpretation, persistence,
+promotion, parallel scheduling, adaptive learning, or generalized coverage reporting.
+
 ## Offline Observation
 
 Import `Umpire.Observation` for the reusable API or `Temporal.Feature.Nexus.Observation` for its one
