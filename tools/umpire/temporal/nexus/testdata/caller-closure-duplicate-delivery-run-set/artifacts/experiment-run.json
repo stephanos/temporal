@@ -86,7 +86,7 @@
       "sourceDefinitionId": "umpire.evidence.source.participant-output",
       "status": "closed",
       "recordCount": 2,
-      "byteCount": 3969
+      "byteCount": 4129
     }
   ],
   "cleanup": {
@@ -146,5 +146,5 @@
     ]
   },
   "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb",
-  "artifactChecksum": "sha256:3b89253505d802d01cb02f338713d30d36faa4c7b15fddd55a06def90c7fcedc"
+  "artifactChecksum": "sha256:30ed270c1e863fd5b5536468f1c584e28d6cbe2f3b45d462584336326016ccee"
 }

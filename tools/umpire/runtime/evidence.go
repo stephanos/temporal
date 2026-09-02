@@ -9,7 +9,11 @@ const (
 	EvidenceSourceParticipantOutput = "umpire.evidence.source.participant-output"
 )
 
-const EvidenceKindParticipantCommand = "umpire.evidence.kind.participant-command"
+const (
+	EvidenceKindCleanup                              = "umpire.evidence.kind.cleanup"
+	EvidenceKindParticipantCommand                   = "umpire.evidence.kind.participant-command"
+	EvidenceKindParticipantCommandSyntheticDuplicate = "umpire.evidence.kind.participant-command.synthetic-duplicate"
+)
 
 const (
 	EvidenceFieldCancellationCallbackCount   = "umpire.evidence.field.cancellation-callback-count"

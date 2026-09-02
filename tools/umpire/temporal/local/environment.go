@@ -657,8 +657,8 @@ func lifecycleReceipt(
 		released = []umpireruntime.Resource{}
 	}
 	fields := environmentFields(command, status, code, identities)
-	fact := checkedFact(command, umpireruntime.EvidenceSourceParticipantOutput,
-		factIdentityKind, "umpire.evidence.kind.environment-lifecycle", fields)
+	fact := checkedFact(command, umpireruntime.EvidenceSourceCleanup,
+		factIdentityKind, umpireruntime.EvidenceKindCleanup, fields)
 	receipt, err := umpireruntime.NewReceipt(
 		command, status, []umpireruntime.Fact{fact}, acquired, released,
 	)
@@ -687,7 +687,7 @@ func cleanupReceipt(
 	}
 	slices.SortFunc(fields, compareFactField)
 	fact := checkedFact(command, umpireruntime.EvidenceSourceCleanup,
-		"cleanup", "umpire.evidence.kind.environment-cleanup", fields)
+		"cleanup", umpireruntime.EvidenceKindCleanup, fields)
 	receipt, err := umpireruntime.NewReceipt(
 		command, status, []umpireruntime.Fact{fact}, []umpireruntime.Resource{}, released,
 	)

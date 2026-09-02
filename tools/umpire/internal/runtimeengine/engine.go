@@ -735,7 +735,8 @@ func matchingFaultBindingValues(
 	requiredCapabilities []string,
 	operationCorrelation string,
 ) map[string]string {
-	if fact.KindDefinitionID() != umpireruntime.EvidenceKindParticipantCommand {
+	if fact.KindDefinitionID() != umpireruntime.EvidenceKindParticipantCommand &&
+		fact.KindDefinitionID() != umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate {
 		return nil
 	}
 	wanted := map[string]struct{}{
