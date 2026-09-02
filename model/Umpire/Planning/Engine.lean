@@ -1,4 +1,4 @@
-import Umpire.Artifact
+import Umpire.Artifact.Planning
 import Umpire.SemanticInventory.Types
 
 /-! Implementation behind the `Umpire.Planning` public facade. -/
