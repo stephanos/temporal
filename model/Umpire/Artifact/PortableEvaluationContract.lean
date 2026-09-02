@@ -10,11 +10,13 @@ values remains the responsibility of a Temporal-owned compiler.
 
 namespace Umpire.Artifact.PortableEvaluationContract
 
+/-- A stable definition identity paired with the checked behavior it denotes. -/
 structure DefinitionBinding where
   definitionId : DefinitionId
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
+/-- The closed set of semantic definition roles carried by a portable value. -/
 inductive PortableDefinitionKind where
   | setup
   | state
@@ -25,18 +27,21 @@ inductive PortableDefinitionKind where
   | capability
   deriving BEq, DecidableEq, Repr
 
+/-- A scalar model value that can cross the portable evaluation boundary. -/
 inductive PortableValue where
   | text (value : String)
   | natural (value : Nat)
   | boolean (value : Bool)
   deriving BEq, DecidableEq, Repr
 
+/-- One typed model value bound to its checked definition. -/
 structure ModelValue where
   definition : DefinitionBinding
   kind : PortableDefinitionKind
   value : PortableValue
   deriving BEq, DecidableEq, Repr
 
+/-- A model-trace field addressable by portable properties and observation output. -/
 inductive TraceField where
   | initialState
   | priorState
@@ -46,12 +51,14 @@ inductive TraceField where
   | observation
   deriving BEq, DecidableEq, Repr
 
+/-- The exact field and position of one value in the model trace. -/
 structure ModelCoordinate where
   field : TraceField
   step : Nat := 0
   position : Nat := 0
   deriving BEq, DecidableEq, Repr
 
+/-- The resource ceilings an evaluator must enforce before and during evaluation. -/
 structure EvaluationLimits where
   maxContractBytes : Nat
   maxInputBytes : Nat
@@ -66,15 +73,18 @@ structure EvaluationLimits where
   maxOperatorCount : Nat
   deriving BEq, DecidableEq, Repr
 
+/-- The closed set of digest algorithms portable evidence profiles may request. -/
 inductive DigestAlgorithm where
   | syntheticDigestV1
   deriving BEq, DecidableEq, Repr
 
+/-- A named digest algorithm available to evidence field declarations. -/
 structure DigestPolicy where
   definitionId : DefinitionId
   algorithm : DigestAlgorithm
   deriving BEq, DecidableEq, Repr
 
+/-- The required handling of one evidence field at the portable boundary. -/
 inductive FieldDisposition where
   | retain
   | redact
@@ -82,6 +92,7 @@ inductive FieldDisposition where
   | reject
   deriving BEq, DecidableEq, Repr
 
+/-- The value type and handling policy for one field of an evidence kind. -/
 structure EvidenceFieldDeclaration where
   fieldDefinitionId : DefinitionId
   valueType : ObservationValueType
@@ -89,30 +100,35 @@ structure EvidenceFieldDeclaration where
   digestPolicyDefinitionId : Option DefinitionId := none
   deriving BEq, DecidableEq, Repr
 
+/-- The declared fields and source for one accepted evidence kind. -/
 structure EvidenceKindDeclaration where
   kindDefinitionId : DefinitionId
   sourceDefinitionId : DefinitionId
   fields : List EvidenceFieldDeclaration
   deriving BEq, DecidableEq, Repr
 
+/-- The accepted record-count range for one evidence kind. -/
 structure EvidenceCardinality where
   kindDefinitionId : DefinitionId
   minimum : Nat
   maximum : Nat
   deriving BEq, DecidableEq, Repr
 
+/-- The closed correlation scopes understood by portable observation programs. -/
 inductive CorrelationSlotKind where
   | run
   | workflow
   | operation
   deriving BEq, DecidableEq, Repr
 
+/-- The evidence fields that jointly identify one correlation scope. -/
 structure CorrelationSlot where
   definitionId : DefinitionId
   kind : CorrelationSlotKind
   fields : List EvidenceFieldReference
   deriving BEq, DecidableEq, Repr
 
+/-- The complete closed-world evidence schema consumed by an observation program. -/
 structure EvidenceProfile where
   definition : DefinitionBinding
   version : Nat
@@ -123,6 +139,7 @@ structure EvidenceProfile where
   correlationSlots : List CorrelationSlot
   deriving BEq, DecidableEq, Repr
 
+/-- A total expression over literals and declared evidence fields. -/
 inductive ObservationExpression where
   | literalText (value : String)
   | literalNatural (value : Nat)
@@ -136,6 +153,7 @@ inductive ObservationExpression where
 
 deriving instance Repr for ObservationExpression
 
+/-- One conditional projection from evidence into a model-trace coordinate. -/
 structure Emit where
   definitionId : String
   sourceKindDefinitionId : DefinitionId
@@ -146,11 +164,13 @@ structure Emit where
   value : ObservationExpression
   deriving BEq, Repr
 
+/-- A required predecessor relationship between two emits. -/
 structure EmitOrdering where
   predecessorEmitDefinitionId : String
   successorEmitDefinitionId : String
   deriving BEq, DecidableEq, Repr
 
+/-- The evidence profile and ordered projections that construct a model trace. -/
 structure ObservationProgram where
   definition : DefinitionBinding
   source : SourceLocation
@@ -161,22 +181,26 @@ structure ObservationProgram where
   ordering : List EmitOrdering
   deriving BEq, Repr
 
+/-- One exact source-to-destination model-value mapping. -/
 structure RenameExactEntry where
   source : ModelValue
   destination : ModelValue
   deriving BEq, DecidableEq, Repr
 
+/-- One exact source-to-destination definition mapping for a semantic role. -/
 structure DefinitionRenameEntry where
   source : DefinitionBinding
   kind : PortableDefinitionKind
   destination : DefinitionBinding
   deriving BEq, DecidableEq, Repr
 
+/-- A positive portable bound paired with its closed wire unit. -/
 structure PortableLimit where
   value : Nat
   unit : String
   deriving BEq, DecidableEq, Repr
 
+/-- A bounded, exact implementation link between two checked definition spaces. -/
 structure RenameExactLink where
   definition : DefinitionBinding
   source : SourceLocation
@@ -187,22 +211,26 @@ structure RenameExactLink where
   applicationLimit : PortableLimit
   deriving BEq, DecidableEq, Repr
 
+/-- The semantic source of a portable property clause. -/
 inductive ClauseProvenance where
   | transitionContract
   | inputOutput
   deriving BEq, DecidableEq, Repr
 
+/-- A closed predicate over one model-trace field. -/
 inductive PatternOperator where
   | equalsText (value : String)
   | naturalAtMost (bound : Nat)
   deriving BEq, DecidableEq, Repr
 
+/-- A typed predicate applied to one field of the model trace. -/
 structure Pattern where
   field : TraceField
   definition : DefinitionBinding
   operator : PatternOperator
   deriving BEq, DecidableEq, Repr
 
+/-- One per-step implication checked independently against the model trace. -/
 structure PropertyClause where
   definitionId : String
   provenance : ClauseProvenance
@@ -210,6 +238,7 @@ structure PropertyClause where
   required : Pattern
   deriving BEq, DecidableEq, Repr
 
+/-- A named collection of portable clauses and their semantic requirements. -/
 structure Property where
   definition : DefinitionBinding
   source : SourceLocation
@@ -217,6 +246,7 @@ structure Property where
   clauses : List PropertyClause
   deriving BEq, DecidableEq, Repr
 
+/-- The closed categories of incompleteness an evaluator may report. -/
 inductive PortableKnownGapKind where
   | capabilityContract
   | input
@@ -224,6 +254,7 @@ inductive PortableKnownGapKind where
   | claim
   deriving BEq, DecidableEq, Repr
 
+/-- One explicit limitation carried with the portable evaluation contract. -/
 structure KnownGap where
   kind : PortableKnownGapKind
   code : String
@@ -231,6 +262,7 @@ structure KnownGap where
   detail : String
   deriving BEq, DecidableEq, Repr
 
+/-- The self-contained contract consumed by a portable evaluator. -/
 structure Contract where
   versionMajor : Nat := 1
   versionMinor : Nat := 0
