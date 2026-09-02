@@ -62,6 +62,17 @@ example :
         result.completion == .limitReached) := by
   native_decide
 
+/-! Guided outcome includes coordinate coverage supplied by the selected pinned partition. -/
+example :
+    let pinned := unpinnedCandidates.map ExplorationCandidate.experimentSpec
+    let result :=
+      (engineRun (.uncoveredCoordinate (.observation 1 1)) 1 pinned).toOption
+    result.any (fun result =>
+      result.pinned.length == 4 && result.exploratory.isEmpty &&
+        result.coordinateOutcome == some .coordinateSelected &&
+        result.completion == .exhausted) := by
+  native_decide
+
 /-! Reversed pinned input is canonicalized independently of the exploratory identity order. -/
 example :
     let result := (engineRun .exhaustive 2 [secondPinned, firstPinned]).toOption
