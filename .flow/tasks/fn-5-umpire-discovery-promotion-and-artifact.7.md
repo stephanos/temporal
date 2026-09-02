@@ -51,9 +51,14 @@ documentation without expanding either surface.
 - [ ] Focused tests, aggregate tests, root regression checks, and `git diff --check` pass with comments preserved.
 
 ## Done summary
-TBD
+Added root Nexus list and exact-explain commands, a fixed non-mutating promotion check, deterministic regression wiring, and the missing experimental promotion-suite imports. Documented the exact four-entry discovery surface, expected-count-one inert proposal, and fn-22-only runtime eligibility boundary without changing positional inspection or checked-in outputs.
 
+The canonical focused Quick builds, both root discovery commands, fixed promotion check, positional fixture comparisons, `make lint-model`, and `git diff --check` pass. `make umpire-check-regression` remains red only at the verified pre-edit `model/Umpire/SemanticInventory/KnownGaps.lean:296` Temporal-vocabulary finding; before reaching it, generated-view, portable-evaluation, hermetic Nexus, and the newly wired fixed-promotion checks pass.
+
+stage: impl-review - ran (Codex SHIP; zero findings and no unaddressed requirements)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: tracker-sync - skipped(config: tracker inactive)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 46edf0e2d943b47ccb9b310140597472cf8dd94c
+- Tests: baseline: green (cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromotionBindingTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote; 191 jobs), baseline: red (make umpire-check-regression failed pre-edit only at model/Umpire/SemanticInventory/KnownGaps.lean:296 Temporal-owned vocabulary), TDD_RED: make umpire-list-nexus; make umpire-explain-nexus QUERY=workflow-nexus.query.exact-action-caller-closure; make umpire-check-promotion (targets absent), cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromoteTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote (192 jobs), cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.PromotionBindingTests TemporalExperimentalTests temporal-model-inspect temporal-model-promote (192 jobs), make umpire-list-nexus (status 0; exact four entries; deterministic repeated bytes), make umpire-explain-nexus QUERY=workflow-nexus.query.exact-action-caller-closure (status 0; exact selector; deterministic repeated bytes), make umpire-check-promotion, make umpire-inspect SCENARIO=workflow-nexus.query.exact-action-caller-closure and switch.query.exact-action (checked-in fixtures byte-identical), make lint-model (216 jobs; status 0), make umpire-check-regression (post-change: generated views, portable evaluation, fixed promotion, and hermetic Nexus pass; inherited KnownGaps.lean:296 vocabulary failure remains), git diff --check
 - PRs:
