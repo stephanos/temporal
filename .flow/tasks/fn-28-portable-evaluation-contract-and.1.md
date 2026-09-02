@@ -29,13 +29,14 @@ Add the smallest versioned protobuf vocabulary that can carry one closed per-tes
 - [ ] `make proto`, focused proto lint, and Umpire spec checks pass with generated outputs included.
 
 ## Done summary
-Defined the versioned, closed Umpire protobuf evaluation-contract vocabulary and generated Go surface, then reconciled the normative portable-interpreter, strict-admission, and per-test local-decision rules in the Umpire 4 specification.
+Finalized the existing versioned, closed Umpire protobuf evaluation-contract vocabulary from commit 4fb4b7658e8a442fd52455ead88897d0f0a3b6e3 after confirming its schema, generated bindings, and normative specification are byte-identical to the authoritative SHIP-reviewed implementation. Focused protobuf, Lean, and Go gates are green; repository-wide lint/model/regression failures were reproduced pre-edit and remain inherited outside this task.
 
-Verification: `make proto`, `go test -count=1 -tags test_dep ./api/umpire/v1`, and `make lint-model` passed. `make umpire-check-regression` reproduced the approved inherited pre-edit red at `model/Umpire/SemanticInventory/KnownGaps.lean:296`; `make lint-code` remained inherited-red with no findings under `api/umpire`, and the later-task `Temporal.Tool.PortableEvaluationContractTests` target is DEFERRED(task .3).
+The authoritative implementation review is SHIP for 1794943014bc2fb572c9925e3cfbd8722694a91f..4fb4b7658e8a442fd52455ead88897d0f0a3b6e3. The finalization-base review saw an intentionally empty a012c95b3178dc02636dd9968270a214e4a88f6c..HEAD diff and returned scope-only NEEDS_WORK with zero code findings; no product change was warranted.
 
-stage: impl-review - ran [2026-09-01T17:33:23Z..2026-09-01T17:40:01Z]
-stage: plan-sync - skipped(config: planSync.enabled != true)
+baseline: red (environment/repo-wide inherited failures; focused task gates green)
+
+stage: impl-review - ran [2026-09-02T01:44:00Z..2026-09-02T01:44:53Z]
 ## Evidence
-- Commits: 4fb4b7658e8a442fd52455ead88897d0f0a3b6e3
-- Tests: make proto, go test -count=1 -tags test_dep ./api/umpire/v1, make lint-model, INHERITED_RED: make umpire-check-regression (pre-edit and verify: model/Umpire/SemanticInventory/KnownGaps.lean:296 active vocabulary), INHERITED_RED: make lint-code (1373 pre-existing repository-wide findings; no api/umpire findings), DEFERRED(task .3): cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests
+- Commits:
+- Tests: baseline: red (environment/repo-wide inherited failures; focused task gates green), make proto, cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests, go test -count=1 -tags test_dep ./tools/umpire/evaluationcontract/... ./tools/umpire/portableevaluation/... ./tools/umpire/executor/..., go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpirePortableCanaryExecutor$', go test -count=1 -tags test_dep ./api/umpire/v1, INHERITED_RED: make lint-model (exit 137 after successful model build; environment OOM), INHERITED_RED: make umpire-check-regression (later-task portable parity fixture generation returned truncated JSON), INHERITED_RED: make lint-code (1948 pre-existing repository-wide findings), GATE_CLASSIFY_FULL: unrelated user-owned config/development.yaml working-tree modification
 - PRs:
