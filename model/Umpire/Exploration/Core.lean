@@ -33,9 +33,13 @@ inductive ExplorationErrorKind where
   | invalidPinnedArtifact
   | duplicatePinnedIdentity
   | incompatiblePinnedContract
+  | candidateCompilationFailed
+  | candidateCountMismatch
+  | invalidCandidateArtifact
+  | duplicateCandidateIdentity
   deriving BEq, DecidableEq, Ord, Repr
 
-/-- Stable serialized name of an Exploration request failure. -/
+/-- Stable serialized name of an Exploration failure. -/
 def ExplorationErrorKind.name : ExplorationErrorKind → String
   | .emptySpace => "empty-space"
   | .spacePointLimitExceeded => "space-point-limit-exceeded"
@@ -45,8 +49,12 @@ def ExplorationErrorKind.name : ExplorationErrorKind → String
   | .invalidPinnedArtifact => "invalid-pinned-artifact"
   | .duplicatePinnedIdentity => "duplicate-pinned-identity"
   | .incompatiblePinnedContract => "incompatible-pinned-contract"
+  | .candidateCompilationFailed => "candidate-compilation-failed"
+  | .candidateCountMismatch => "candidate-count-mismatch"
+  | .invalidCandidateArtifact => "invalid-candidate-artifact"
+  | .duplicateCandidateIdentity => "duplicate-candidate-identity"
 
-/-- Canonical typed failure returned before candidate compilation or selection. -/
+/-- Canonical typed failure returned while checking, compiling, or selecting Exploration inputs. -/
 structure ExplorationError where
   kind : ExplorationErrorKind
   definitionId : DefinitionId
