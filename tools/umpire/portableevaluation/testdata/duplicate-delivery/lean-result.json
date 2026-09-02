@@ -16,19 +16,19 @@
   },
   "run": {
     "formatVersion": "umpire-experiment-run/v2",
-    "artifactChecksum": "sha256:3b89253505d802d01cb02f338713d30d36faa4c7b15fddd55a06def90c7fcedc",
+    "artifactChecksum": "sha256:30ed270c1e863fd5b5536468f1c584e28d6cbe2f3b45d462584336326016ccee",
     "behaviorFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
   },
   "rawEvidence": {
     "formatVersion": "umpire-raw-evidence/v2",
-    "artifactChecksum": "sha256:1ba4c911e94b7bdaa13f25e28a73bd94b80ee0a4555d77b078566d77cbea8c40",
+    "artifactChecksum": "sha256:5c995fd27a08730dcc1cd7779ddf0f6cda62353a2f46e1ec8c67d11881674ea8",
     "behaviorFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
   },
   "evidence": {
     "formatVersion": "umpire-evidence/v2",
-    "artifactChecksum": "sha256:22d0c58e14b4ff849505ee0fb217c4155fe0936f1ba9d8ff0ef1157bec96c745",
+    "artifactChecksum": "sha256:394c69bb7ae1b54068c5cbb6dabfc08961b123ec69d95089c251bac6a1e1504a",
     "behaviorFingerprint": "sha256:e649a5e059ef42806eb661deb1c1ccba08ec5202425d7a824f7e25026f8134da",
     "provenanceChecksum": "sha256:d1310fcad6c48888887bc32a71d43faaa594df1ec59371e79396e09f4b371b47"
   },
@@ -55,7 +55,7 @@
       "queryDefinitionId": "temporal.nexus.caller-closure.space.duplicate-delivery-negative-control.point.088f85a0eb86d54cfee9512429211767702568152794d302210b0a4041327d4f.query",
       "propertyDefinitionId": "workflow-nexus.property.caller-closure",
       "propertyBehaviorFingerprint": "sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f",
-      "traceId": "sha256:497c3480f73079d751a45ff7eb7db8f58a7afc09c1e89b35f0cbc20e24622051",
+      "traceId": "sha256:0a780eefe1b0df0cd1f420a0c5dd4b12e78d9217a7c72a3572747fc84e3b8dfc",
       "status": "violated",
       "queryLimits": {
         "behavior": {
@@ -203,7 +203,7 @@
                 },
                 {
                   "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                  "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "ordinal": 1,
                   "causalFactDefinitionIds": [
                     "umpire.runtime.fact.participant.fixture"
@@ -221,6 +221,10 @@
                 },
                 {
                   "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "lastOrdinal": 0
+                },
+                {
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "lastOrdinal": 1
                 },
                 {
@@ -373,7 +377,7 @@
                 },
                 {
                   "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                  "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "ordinal": 1,
                   "causalFactDefinitionIds": [
                     "umpire.runtime.fact.participant.fixture"
@@ -391,6 +395,10 @@
                 },
                 {
                   "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "lastOrdinal": 0
+                },
+                {
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "lastOrdinal": 1
                 },
                 {
@@ -530,7 +538,7 @@
                 },
                 {
                   "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                  "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "ordinal": 1,
                   "causalFactDefinitionIds": [
                     "umpire.runtime.fact.participant.fixture"
@@ -548,6 +556,10 @@
                 },
                 {
                   "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "lastOrdinal": 0
+                },
+                {
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "lastOrdinal": 1
                 },
                 {
@@ -700,7 +712,7 @@
                 },
                 {
                   "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                  "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "ordinal": 1,
                   "causalFactDefinitionIds": [
                     "umpire.runtime.fact.participant.fixture"
@@ -718,6 +730,10 @@
                 },
                 {
                   "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "lastOrdinal": 0
+                },
+                {
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "lastOrdinal": 1
                 },
                 {
@@ -857,7 +873,7 @@
                 },
                 {
                   "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                  "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "ordinal": 1,
                   "causalFactDefinitionIds": [
                     "umpire.runtime.fact.participant.fixture"
@@ -875,6 +891,10 @@
                 },
                 {
                   "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "lastOrdinal": 0
+                },
+                {
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "lastOrdinal": 1
                 },
                 {
@@ -1027,7 +1047,7 @@
                 },
                 {
                   "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                  "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "ordinal": 1,
                   "causalFactDefinitionIds": [
                     "umpire.runtime.fact.participant.fixture"
@@ -1045,6 +1065,10 @@
                 },
                 {
                   "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                  "lastOrdinal": 0
+                },
+                {
+                  "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                   "lastOrdinal": 1
                 },
                 {
@@ -1055,7 +1079,7 @@
               "appliedDispositions": [
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.cancellation-callback-count"
                   },
                   "kind": "retained",
@@ -1065,7 +1089,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.cancellation-completed-count"
                   },
                   "kind": "retained",
@@ -1075,7 +1099,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.cancellation-requested-count"
                   },
                   "kind": "retained",
@@ -1085,7 +1109,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
                   },
                   "kind": "retained",
@@ -1095,7 +1119,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
                   },
                   "kind": "retained",
@@ -1105,7 +1129,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
                   },
                   "kind": "retained",
@@ -1115,7 +1139,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id"
                   },
                   "kind": "retained",
@@ -1125,7 +1149,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.run-correlation-id"
                   },
                   "kind": "retained",
@@ -1135,7 +1159,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-count"
                   },
                   "kind": "retained",
@@ -1145,7 +1169,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-marker"
                   },
                   "kind": "retained",
@@ -1155,7 +1179,7 @@
                 },
                 {
                   "field": {
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id"
                   },
                   "kind": "retained",
@@ -1203,7 +1227,7 @@
         "queryDefinitionId": "temporal.nexus.caller-closure.space.duplicate-delivery-negative-control.point.088f85a0eb86d54cfee9512429211767702568152794d302210b0a4041327d4f.query",
         "propertyDefinitionId": "workflow-nexus.property.caller-closure",
         "propertyBehaviorFingerprint": "sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f",
-        "traceId": "sha256:497c3480f73079d751a45ff7eb7db8f58a7afc09c1e89b35f0cbc20e24622051",
+        "traceId": "sha256:0a780eefe1b0df0cd1f420a0c5dd4b12e78d9217a7c72a3572747fc84e3b8dfc",
         "status": "violated",
         "queryLimits": {
           "behavior": {
@@ -1351,7 +1375,7 @@
                   },
                   {
                     "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "ordinal": 1,
                     "causalFactDefinitionIds": [
                       "umpire.runtime.fact.participant.fixture"
@@ -1369,6 +1393,10 @@
                   },
                   {
                     "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "lastOrdinal": 0
+                  },
+                  {
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "lastOrdinal": 1
                   },
                   {
@@ -1521,7 +1549,7 @@
                   },
                   {
                     "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "ordinal": 1,
                     "causalFactDefinitionIds": [
                       "umpire.runtime.fact.participant.fixture"
@@ -1539,6 +1567,10 @@
                   },
                   {
                     "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "lastOrdinal": 0
+                  },
+                  {
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "lastOrdinal": 1
                   },
                   {
@@ -1678,7 +1710,7 @@
                   },
                   {
                     "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "ordinal": 1,
                     "causalFactDefinitionIds": [
                       "umpire.runtime.fact.participant.fixture"
@@ -1696,6 +1728,10 @@
                   },
                   {
                     "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "lastOrdinal": 0
+                  },
+                  {
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "lastOrdinal": 1
                   },
                   {
@@ -1848,7 +1884,7 @@
                   },
                   {
                     "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "ordinal": 1,
                     "causalFactDefinitionIds": [
                       "umpire.runtime.fact.participant.fixture"
@@ -1866,6 +1902,10 @@
                   },
                   {
                     "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "lastOrdinal": 0
+                  },
+                  {
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "lastOrdinal": 1
                   },
                   {
@@ -2005,7 +2045,7 @@
                   },
                   {
                     "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "ordinal": 1,
                     "causalFactDefinitionIds": [
                       "umpire.runtime.fact.participant.fixture"
@@ -2023,6 +2063,10 @@
                   },
                   {
                     "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "lastOrdinal": 0
+                  },
+                  {
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "lastOrdinal": 1
                   },
                   {
@@ -2175,7 +2219,7 @@
                   },
                   {
                     "factDefinitionId": "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
-                    "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "ordinal": 1,
                     "causalFactDefinitionIds": [
                       "umpire.runtime.fact.participant.fixture"
@@ -2193,6 +2237,10 @@
                   },
                   {
                     "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                    "lastOrdinal": 0
+                  },
+                  {
+                    "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                     "lastOrdinal": 1
                   },
                   {
@@ -2203,7 +2251,7 @@
                 "appliedDispositions": [
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.cancellation-callback-count"
                     },
                     "kind": "retained",
@@ -2213,7 +2261,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.cancellation-completed-count"
                     },
                     "kind": "retained",
@@ -2223,7 +2271,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.cancellation-requested-count"
                     },
                     "kind": "retained",
@@ -2233,7 +2281,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.capability-definition-id"
                     },
                     "kind": "retained",
@@ -2243,7 +2291,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.fault-definition-id"
                     },
                     "kind": "retained",
@@ -2253,7 +2301,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.fault-receipt-definition-id"
                     },
                     "kind": "retained",
@@ -2263,7 +2311,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.operation-correlation-id"
                     },
                     "kind": "retained",
@@ -2273,7 +2321,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.run-correlation-id"
                     },
                     "kind": "retained",
@@ -2283,7 +2331,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-count"
                     },
                     "kind": "retained",
@@ -2293,7 +2341,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.synthetic-contribution-marker"
                     },
                     "kind": "retained",
@@ -2303,7 +2351,7 @@
                   },
                   {
                     "field": {
-                      "kindDefinitionId": "umpire.evidence.kind.participant-command",
+                      "kindDefinitionId": "umpire.evidence.kind.participant-command.synthetic-duplicate",
                       "fieldDefinitionId": "umpire.evidence.field.workflow-correlation-id"
                     },
                     "kind": "retained",
@@ -2330,7 +2378,7 @@
     "divergentPropertyDefinitionIds": [],
     "wrongQueryResultDefinitionIds": [],
     "traceIds": [
-      "sha256:497c3480f73079d751a45ff7eb7db8f58a7afc09c1e89b35f0cbc20e24622051"
+      "sha256:0a780eefe1b0df0cd1f420a0c5dd4b12e78d9217a7c72a3572747fc84e3b8dfc"
     ]
   },
   "semanticStatus": "violated",
@@ -2352,7 +2400,7 @@
   ],
   "knownGaps": [],
   "cleanupStatus": "complete",
-  "evaluationOutcomeChecksum": "sha256:a5740e6fa69baf0e88dee42395b00abfd3fc9f7297edc404763a63b09a79b170",
+  "evaluationOutcomeChecksum": "sha256:98dc5a0700cdbfef161dccda30e45845d65f10e348ed03004e9800a24556f151",
   "provenance": {
     "sourceDefinitionIds": [
       "temporal.tool.run-evaluation"
@@ -2367,5 +2415,5 @@
     ]
   },
   "provenanceChecksum": "sha256:d1310fcad6c48888887bc32a71d43faaa594df1ec59371e79396e09f4b371b47",
-  "artifactChecksum": "sha256:5ba267b5126907dc32e02c71ecd33e912b453d57c8a91b8609f23b82ca73b528"
+  "artifactChecksum": "sha256:d03ce91aeb7a7831c34efe012047b95c0f1372a26122282a7ce2deb8cf6f327d"
 }

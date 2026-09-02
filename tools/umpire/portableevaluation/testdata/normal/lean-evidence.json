@@ -16,13 +16,13 @@
   },
   "run": {
     "formatVersion": "umpire-experiment-run/v2",
-    "artifactChecksum": "sha256:d034132f628749fd85205d8288799a5f8d19a0aa7085eaac50e627510204289a",
+    "artifactChecksum": "sha256:a98e123544c4998496f24419a55447ae072131725a3933afbc515c40e2839ec3",
     "behaviorFingerprint": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
   },
   "rawEvidence": {
     "formatVersion": "umpire-raw-evidence/v2",
-    "artifactChecksum": "sha256:a1d7dcc2c8b7bd1559375a5c3903ced4bf44ae7deb38501e061882574408c450",
+    "artifactChecksum": "sha256:f30f901589200039a0993b6294ed713f5f74b82d89d7a18017ed1aebb35abff2",
     "behaviorFingerprint": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     "provenanceChecksum": "sha256:29eb5bd28dec8f8d3f7b2c004c466dbb60241893ec19b4f42fa6b1bbaa5c1cfb"
   },
@@ -36,7 +36,7 @@
   },
   "observationEvaluationStatus": "accepted",
   "evidenceBackedModelTrace": {
-    "traceId": "sha256:333fae3096191586391102d7c2a70c8ceae3fd77bf4630f7f9584ba1969c9c9f",
+    "traceId": "sha256:86b5ae44196a6bd4e74d7d85174d3acdc4561f1b62267fb5cc0efc08354d139e",
     "observationPlan": {
       "definitionId": "temporal.system.nexus.caller-closure.mapping",
       "behaviorFingerprint": "sha256:150c75ffcdd8b8e6e2ca8807c2c6ac7d924407b3291a0bc1f10ea04469a7df9b"
@@ -101,7 +101,7 @@
       "umpire.runtime.fact.participant.fixture"
     ],
     "trace": {
-      "traceId": "sha256:333fae3096191586391102d7c2a70c8ceae3fd77bf4630f7f9584ba1969c9c9f",
+      "traceId": "sha256:86b5ae44196a6bd4e74d7d85174d3acdc4561f1b62267fb5cc0efc08354d139e",
       "initialState": {
         "definitionId": "temporal.system.nexus.caller-closure.state",
         "value": "temporal.history.WorkflowExecutionStarted"
@@ -1165,5 +1165,5 @@
     ]
   },
   "provenanceChecksum": "sha256:d1310fcad6c48888887bc32a71d43faaa594df1ec59371e79396e09f4b371b47",
-  "artifactChecksum": "sha256:b43cc7fb212f9400488e0fe9d582459a14851bae76a150a02f8ff256fbc514d5"
+  "artifactChecksum": "sha256:154530f2b1d82aa9b76df4b8fee5f2f0537983957e073244944d7344b99a7e5a"
 }

@@ -79,7 +79,6 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 				normalEvidence = evidence
 			case "duplicate-delivery":
 				evidence, oracle = leanRunEvaluationOracle(t, repositoryRoot, name, evidence)
-				evidence = materializeDuplicateParityField(t, evidence)
 			case "any-operator":
 				evidence = normalEvidence
 			default:
@@ -152,51 +151,6 @@ func cloneParityEvidence(t testing.TB, evidence artifactv2.RawEvidence) artifact
 	cloned, err := artifact.DecodeRawEvidenceV2(encoded)
 	require.NoError(t, err)
 	return cloned
-}
-
-func materializeDuplicateParityField(
-	t testing.TB,
-	evidence artifactv2.RawEvidence,
-) artifactv2.RawEvidence {
-	t.Helper()
-	const (
-		parentID    = "umpire.runtime.fact.participant.fixture"
-		childID     = "umpire.runtime.fact.participant.synthetic-duplicate.fixture"
-		childKindID = "umpire.evidence.kind.participant-command.synthetic-duplicate"
-		fieldID     = "umpire.evidence.field.cancellation-callback-count"
-	)
-	var inherited *artifactv2.RawEvidenceField
-	for factIndex := range evidence.Facts {
-		if evidence.Facts[factIndex].FactDefinitionID != parentID {
-			continue
-		}
-		for fieldIndex := range evidence.Facts[factIndex].Fields {
-			if evidence.Facts[factIndex].Fields[fieldIndex].FieldDefinitionID == fieldID {
-				field := evidence.Facts[factIndex].Fields[fieldIndex]
-				inherited = &field
-			}
-		}
-	}
-	require.NotNil(t, inherited)
-	materialized := false
-	for factIndex := range evidence.Facts {
-		if evidence.Facts[factIndex].FactDefinitionID != childID {
-			continue
-		}
-		evidence.Facts[factIndex].KindDefinitionID = childKindID
-		require.False(t, rawEvidenceFactHasField(evidence.Facts[factIndex], fieldID))
-		evidence.Facts[factIndex].Fields = append(evidence.Facts[factIndex].Fields, *inherited)
-		slices.SortFunc(evidence.Facts[factIndex].Fields,
-			func(left, right artifactv2.RawEvidenceField) int {
-				return strings.Compare(left.FieldDefinitionID, right.FieldDefinitionID)
-			})
-		materialized = true
-	}
-	require.True(t, materialized)
-	sealed, err := artifactv2.SealRawEvidence(evidence)
-	require.NoError(t, err)
-	require.NoError(t, artifactv2.ValidateRawEvidence(sealed))
-	return sealed
 }
 
 type leanEvaluationSummary struct {
@@ -1008,7 +962,7 @@ func requireLeanRunEvaluationParity(
 		goDispositions := make([]stableDisposition, len(goLink.GetAppliedDispositions()))
 		for dispositionIndex, disposition := range goLink.GetAppliedDispositions() {
 			goDispositions[dispositionIndex] = stableDisposition{
-				KindDefinitionID:         semanticEvidenceKindID(disposition.GetField().GetKindDefinitionId()),
+				KindDefinitionID:         disposition.GetField().GetKindDefinitionId(),
 				FieldDefinitionID:        disposition.GetField().GetFieldDefinitionId(),
 				Disposition:              stableDispositionKind(disposition.GetDisposition()),
 				NormalizedValue:          stableValue(disposition.GetNormalizedValue()),
@@ -1062,10 +1016,6 @@ func requireLeanRunEvaluationParity(
 	for index, gap := range expectedGaps {
 		protorequire.ProtoEqual(t, gap, result.GetKnownGaps()[index])
 	}
-}
-
-func semanticEvidenceKindID(definitionID string) string {
-	return strings.TrimSuffix(definitionID, ".synthetic-duplicate")
 }
 
 type stableDisposition struct {
