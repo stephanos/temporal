@@ -1,3 +1,4 @@
+import Lean.Data.Json
 import Temporal.Feature.Nexus.Experimental.CallerClosure
 import Temporal.Feature.Nexus.Operations.AsyncStart
 import Temporal.Feature.Nexus.Operations.Cancellation
@@ -9,6 +10,7 @@ import Temporal.Feature.Nexus.Operations.SuccessfulCompletion
 This module projects four existing checked Nexus examples into one deterministic inventory. Its
 private entry constructor ensures callers can observe only rows whose declaration ownership,
 planned Artifact lineage, exact membership, and canonical order were validated together.
+The canonical list projection exposes compact summaries of those checked bindings.
 -/
 
 namespace Temporal.Tool.NexusDiscovery
@@ -95,6 +97,17 @@ inductive NexusDiscoveryErrorKind where
   | missingPlan
   | planIdentityDrift
   deriving BEq, DecidableEq, Repr
+
+/-- Stable diagnostic label for one inventory-admission failure kind. -/
+def NexusDiscoveryErrorKind.name : NexusDiscoveryErrorKind → String
+  | .duplicateQuery => "duplicate-query"
+  | .membershipDrift => "membership-drift"
+  | .wrongKind => "wrong-kind"
+  | .duplicateDeclaration => "duplicate-declaration"
+  | .crossedOwner => "crossed-owner"
+  | .missingSource => "missing-source"
+  | .missingPlan => "missing-plan"
+  | .planIdentityDrift => "plan-identity-drift"
 
 /-- One structural inventory-admission failure. -/
 structure NexusDiscoveryError where
@@ -327,6 +340,44 @@ def NexusDiscoveryInventory.canonicalBindingBytes
     frame (declarationBinding entry.query),
     frame (planBinding entry.plan)
   ])
+
+private def quote (value : String) : String := Lean.Json.compress (.str value)
+
+private def array (items : List String) : String :=
+  "[" ++ String.intercalate "," items ++ "]"
+
+private def sourceJson (source : SourceLocation) : String :=
+  "{\"path\":" ++ quote source.path ++
+    ",\"line\":" ++ toString source.line ++
+    ",\"column\":" ++ toString source.column ++
+    ",\"provenance\":" ++ quote source.provenance ++ "}"
+
+private def declarationSummaryJson (declaration : NexusDiscoveryDeclaration) : String :=
+  "{\"definitionId\":" ++ quote declaration.id.value ++
+    ",\"kind\":" ++ quote declaration.kind.name ++
+    ",\"source\":" ++ sourceJson declaration.source ++
+    ",\"behaviorFingerprint\":" ++ quote declaration.behaviorFingerprint.render ++ "}"
+
+private def planSummaryJson (plan : NexusDiscoveryPlan) : String :=
+  "{\"formatVersion\":" ++ quote plan.formatVersion ++
+    ",\"artifactChecksum\":" ++ quote plan.artifactChecksum.render ++ "}"
+
+/-- Encode the compact list summary shared by discovery commands. -/
+def NexusDiscoveryEntry.canonicalSummaryJson (entry : NexusDiscoveryEntry) : String :=
+  "{\"queryDefinitionId\":" ++ quote entry.query.id.value ++
+    ",\"property\":" ++ declarationSummaryJson entry.property ++
+    ",\"behavior\":" ++ declarationSummaryJson entry.behavior ++
+    ",\"query\":" ++ declarationSummaryJson entry.query ++
+    ",\"experimentSpec\":" ++ planSummaryJson entry.plan ++ "}"
+
+/-- Encode one validated inventory as the canonical version-one discovery JSON value. -/
+def NexusDiscoveryInventory.canonicalListJson (inventory : NexusDiscoveryInventory) : String :=
+  "{\"formatVersion\":\"umpire-nexus-discovery/v1\",\"entries\":" ++
+    array (inventory.entries.map NexusDiscoveryEntry.canonicalSummaryJson) ++ "}"
+
+/-- Encode one validated inventory as canonical discovery JSON followed by one line feed. -/
+def NexusDiscoveryInventory.canonicalListBytes (inventory : NexusDiscoveryInventory) : String :=
+  inventory.canonicalListJson ++ "\n"
 
 private def inventoryResult : Except NexusDiscoveryError NexusDiscoveryInventory :=
   checkInventory expectedCandidates
