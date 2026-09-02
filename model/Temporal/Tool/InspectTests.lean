@@ -1,11 +1,28 @@
 import Temporal.Feature.Nexus.Experimental.CallerClosureTests
 import Temporal.Tool.Inspect
+import Temporal.Tool.NexusDiscovery
 
 namespace Temporal.Tool.InspectTests
 
 open _root_.Umpire
 open Temporal.Feature.Nexus.Experimental.CallerClosure
 open Temporal.Tool.Inspect
+
+example : runCli ["list"] = {
+    status := 0
+    stdout := Temporal.Tool.NexusDiscovery.inventory.canonicalListBytes
+    stderr := ""
+  } := by
+  native_decide
+
+example : runDiscoveryList (Temporal.Tool.NexusDiscovery.checkInventory []) = {
+    status := 1
+    stdout := ""
+    stderr :=
+      "{\"kind\":\"invalid-nexus-discovery\",\"subject\":\"temporal.nexus.discovery\"," ++
+        "\"context\":\"membership-drift\"}\n"
+  } := by
+  native_decide
 
 def expectedStdout : String := canonicalExperimentSpecBytes compiledArtifact
 
