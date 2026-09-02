@@ -252,10 +252,9 @@ is `violated` only when that result set is structurally complete and resolved bu
 violation. Missing, duplicate, unexpected, divergent, wrong-query, cross-trace, cross-Limit, or
 unresolved results make the summary `incomplete`.
 
-### Future adapter handoff
+### Runtime adapter handoff
 
-The exact typed input a future runtime adapter would have to provide is one complete
-`EvidenceBundle`:
+The exact typed input a runtime adapter provides is one complete `EvidenceBundle`:
 
 - `profile` and `profileVersion` select the checked evidence schema;
 - `records` contain `id`, the same `profile` and `profileVersion`, `kind`, one-based `sequence`, and
@@ -267,12 +266,14 @@ The exact typed input a future runtime adapter would have to provide is one comp
   of selecting one silently;
 - `missingDiscriminator` names the fact needed to distinguish those alternatives.
 
-Such an adapter would own translation into these fields while preserving source identity,
-ordering, causality, closure, ambiguity, and declared field types. It would hand the complete bundle
-to `evaluateEvidence`; it would not construct an `EvidenceBackedTrace`, choose an offline status, or
-reinterpret a Property result. This release provides no such adapter: it does not start Temporal,
-execute operations, collect live Evidence, persist raw records, perform Run Evaluation, promote
-results, or admit another evidence profile. Observation also does not redefine Property meaning.
+An adapter owns translation into these fields while preserving source identity, ordering,
+causality, closure, ambiguity, and declared field types. It hands the complete bundle to
+`evaluateEvidence`; it does not construct an `EvidenceBackedTrace`, choose an Observation status,
+or reinterpret a Property result. The fixed caller-closure Run Evaluation adapter implements this
+handoff for its exact normal and duplicate-delivery profiles. The portable compiler additionally
+lowers those same checked Observation plans into closed per-Test contracts for the fixed Go
+interpreter. Neither path admits a generic profile, changes Property meaning, performs replay or
+promotion, or establishes a non-local Claim Assessment.
 
 ## Implementation Link API
 
@@ -447,6 +448,13 @@ The retained boundary is exactly embedded `umpire-drive-plan/v2` plus persisted
 Limits, Known Gaps, operational status, Observation Evaluation, Evidence Links, Implementation Link
 status, Property verdicts, Run Evaluation, and cleanup status distinct.
 
+`Umpire.Artifact.PortableEvaluationContract` is a focused build-time module outside the ordinary
+`Umpire.Artifact` facade. It defines the inert version-one contract vocabulary and its canonical
+ProtoJSON spelling. A Temporal-owned compiler specializes one selected checked caller-closure Test
+into that value; generated protobuf code and Go admission do not add or select behavior. The runtime
+artifact is deterministic `EvaluationContract` protobuf bytes, not a new member of the persisted
+two-, four-, or six-member v2 JSON sets.
+
 Canonical serialization entry points include:
 
 ```lean
@@ -487,6 +495,63 @@ statuses and facts, but their mere admission does not prove an action, Evidence 
 Property verdict, or Claim Assessment. The model-owned `umpire-gen-tests` tool accepts named
 regressions, test sets, and model-selected batches without exposing discovery or explanation; Space
 exposes no competing command.
+
+## Portable Evaluation Contract
+
+Portable Evaluation is a separate ahead-of-time path for one exact checked Test:
+
+```text
+checked Test + Observation + Implementation Link + Properties
+  ── Temporal-owned Lean compiler ──▶ canonical contract ProtoJSON
+  ── structural Go packer ──▶ deterministic EvaluationContract protobuf
+  ── resident Go executor ──▶ detailed EvaluationResult + pass/fail/inconclusive
+```
+
+The Lean compiler is the only semantic compiler. It rejects checked constructs outside the closed
+version-one vocabulary instead of asking Go to infer an approximation. The contract binds the exact
+Experiment, RuntimeConfiguration, Test, Query, Observation program and profile, Implementation
+Link, Properties, Definition IDs, Behavior Fingerprints, Limits, Known Gaps, and provenance. The Go
+packer validates shape and canonical order and seals deterministic protobuf bytes; the interpreter
+consults no Lean runtime or model registry.
+
+The version-one vocabulary contains Observation literals, typed fields, natural rendering,
+presence, equality, ordered `all`/`any`, coordinate `emit`, exact Link renaming,
+`per_step_implies`, and exact-text or bounded-natural Property patterns. It has no executable,
+callback, registry lookup, environment selector, credential, arbitrary network target, or extension
+hook. Unknown versions, fields, enum values, operators, noncanonical bytes, crossed bindings, and
+invalid Limits fail closed before execution or at their responsible evaluation stage.
+
+Every required Evidence source must close explicitly with matching source identity, status, record
+count, and byte count before absence can establish a fact. The resident executor waits for the
+bounded runner's closure rather than inferring closure from wall-clock quiet. Missing, partial,
+stale, crossed, or post-closure Evidence and deadline-before-closure results are inconclusive. Every
+accepted Evidence Link retains source-local or causal ordering and closure support.
+
+`EvaluationResult` keeps tooling, operational, Observation Evaluation, Implementation Link,
+Property/clause, aggregate semantic, cleanup, work, Known Gap, and diagnostic fields independent.
+Local `pass` requires a fully successful, closed, accepted, applied, satisfied, and cleaned-up run.
+Local `fail` requires the same trustworthy closure with a Property violation. Every operational,
+closure, tooling, unknown, conflict, unsupported, cancellation, Limit, or cleanup failure is
+`inconclusive`.
+
+One resident executor is single-flight and may serve sequential requests with fresh run identities.
+Overlap returns typed `busy` before runtime I/O; uncertain cleanup permanently poisons that executor
+instance. Its HTTP adapter is a bounded deterministic protobuf `POST /umpire/v1/execute` endpoint,
+not gRPC, and adds no semantic or environment-selection surface.
+
+The tagged `testcore.NewEnv` proof keeps one disposable self-hosted cluster and one executor alive
+for the pre-generated normal and duplicate-delivery contracts. It observes a local pass and a
+trustworthy uniqueness-only fail with fresh run resources while the runtime `PATH` contains no Go,
+Lean, Lake, Mise, Make, or shell executable. Stable comparison covers model/artifact bindings,
+typed traces, Evidence Links, independent statuses, Properties, Limits, Known Gaps, cleanup, and the
+local decision; executor run IDs, workflow IDs, task queues, per-run Nexus endpoint names,
+correlations, transport Evidence IDs, and timestamps remain dynamic.
+
+This is only a local decision for the admitted Test. It is not whole-model validity, exhaustive
+coverage, compiler correctness, cross-Test consistency, release eligibility, or Claim Assessment,
+and it adds no fleet scheduling, leases, persistence, crash recovery, or production deployment. See
+the [Portable Evaluation guide](../../tools/umpire/portableevaluation/README.md) for the exact
+schema, operators, Limits, fixture workflow, executor/HTTP contract, and test commands.
 
 ## Expert reference example
 

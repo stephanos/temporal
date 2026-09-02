@@ -5,6 +5,24 @@ Temporal. Its two inputs are an admitted four-member execution-set directory and
 existing output-root directory. The execution set must contain exactly `experiment.json`,
 `runtime-configuration.json`, `experiment-run.json`, and `raw-evidence.json` plus its manifest.
 
+The resident Portable Evaluation path reuses the same checked semantic stages but has a different
+boundary. Lean compiles one exact Test, Observation, Implementation Link, and Properties ahead of
+time into deterministic `EvaluationContract` protobuf bytes. A resident Go executor then admits the
+contract plus the exact two-member executable input, performs bounded execution and explicit source
+closure, and evaluates locally without launching this checker or any Lean process. Its bounded HTTP
+adapter is protobuf over `POST /umpire/v1/execute`, not gRPC. See the
+[Portable Evaluation guide](../portableevaluation/README.md) for the exact schema, operator table,
+Limits, fixture/drift workflow, status mapping, stable-versus-dynamic fields, and tagged
+`testcore.NewEnv` proof.
+
+The resident result preserves tooling, operational, Observation Evaluation, Implementation Link,
+Property/clause, aggregate semantic, and cleanup statuses independently. It returns `pass` only for
+a fully closed satisfied run, `fail` only for a trustworthy closed Property violation, and
+`inconclusive` for every operational, closure, unknown, conflict, unsupported, tooling, Limit,
+cancellation, or cleanup failure. That decision is limited to the admitted Test and is not
+whole-model validity, release eligibility, or Claim Assessment. The existing command below remains
+the persisted four-member-to-six-member offline publication path.
+
 From the repository root, the supported build-and-run interface is:
 
 ```sh
