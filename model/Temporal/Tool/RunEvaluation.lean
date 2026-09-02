@@ -83,31 +83,27 @@ private def artifactEvidenceLimit (bound : EvidenceBound) : ArtifactLimit :=
 private def artifactLimit (limit : Limit) : ArtifactLimit :=
   { value := limit.value, unit := limit.unit.name }
 
-private def artifactField (field : EvidenceFieldReference) : ArtifactFieldReference := {
-  kindDefinitionId := field.kind
-  fieldDefinitionId := field.field
-}
-
 private def artifactDisposition
+    (resolveField : EvidenceFieldReference → ArtifactFieldReference)
     (disposition : AppliedFieldDisposition) : ArtifactAppliedFieldDisposition :=
   match disposition.evidence with
   | .retained normalizedValue =>
-      { field := artifactField disposition.field, kind := "retained",
+      { field := resolveField disposition.field, kind := "retained",
         normalizedValue := some normalizedValue, digestPolicyDefinitionId := none,
         digestToken := none }
   | .redactedContribution =>
-      { field := artifactField disposition.field, kind := "redacted-contribution",
+      { field := resolveField disposition.field, kind := "redacted-contribution",
         normalizedValue := none, digestPolicyDefinitionId := none, digestToken := none }
   | .digestToken policy token =>
-      { field := artifactField disposition.field, kind := "digest-token",
+      { field := resolveField disposition.field, kind := "digest-token",
         normalizedValue := none, digestPolicyDefinitionId := some policy,
         digestToken := some token }
   | .raw normalizedValue =>
-      { field := artifactField disposition.field, kind := "raw",
+      { field := resolveField disposition.field, kind := "raw",
         normalizedValue := some normalizedValue, digestPolicyDefinitionId := none,
         digestToken := none }
   | .rejectedMaterial normalizedValue =>
-      { field := artifactField disposition.field, kind := "rejected-material",
+      { field := resolveField disposition.field, kind := "rejected-material",
         normalizedValue := some normalizedValue, digestPolicyDefinitionId := none,
         digestToken := none }
 
@@ -120,6 +116,7 @@ private def artifactOrderingLe
   decide (left.factDefinitionId.value ≤ right.factDefinitionId.value)
 
 private def artifactEvidenceLink
+    (resolveField : List DefinitionId → EvidenceFieldReference → ArtifactFieldReference)
     (orderingFact : EvidenceOrderingFact → ArtifactEvidenceOrderingFact)
     (closureSupport : List ArtifactEvidenceClosureFact)
     (link : EvidenceLink) : ArtifactEvidenceLink :=
@@ -138,7 +135,8 @@ private def artifactEvidenceLink
   bindingDefinitionIds := link.bindingIds
   orderingSupport
   closureSupport
-  appliedDispositions := link.appliedDispositions.map artifactDisposition
+  appliedDispositions := link.appliedDispositions.map
+    (artifactDisposition (resolveField link.evidenceIdentities))
   appliedLimit := artifactEvidenceLimit link.appliedBound
   meaningBehaviorFingerprint :=
     (BehaviorFingerprint.parse? link.meaningDigest).getD (behaviorFingerprintOf link.meaningDigest)
@@ -199,6 +197,7 @@ private def artifactSemanticDiagnostic
 }
 
 private def artifactClause
+    (resolveField : List DefinitionId → EvidenceFieldReference → ArtifactFieldReference)
     (orderingFact : EvidenceOrderingFact → ArtifactEvidenceOrderingFact)
     (closureSupport : List ArtifactEvidenceClosureFact)
     (clause : SemanticClauseVerdict) : ArtifactSemanticClauseVerdict := {
@@ -210,10 +209,12 @@ private def artifactClause
   propertyLimit := clause.propertyLimit.map artifactLimit
   evidenceLimit := artifactEvidenceLimit clause.evidenceBound
   provenanceDefinitionIds := clause.provenance
-  evidenceLinks := clause.evidenceLinks.map (artifactEvidenceLink orderingFact closureSupport)
+  evidenceLinks := clause.evidenceLinks.map
+    (artifactEvidenceLink resolveField orderingFact closureSupport)
 }
 
 private def artifactProperty
+    (resolveField : List DefinitionId → EvidenceFieldReference → ArtifactFieldReference)
     (orderingFact : EvidenceOrderingFact → ArtifactEvidenceOrderingFact)
     (closureSupport : List ArtifactEvidenceClosureFact)
     (verdict : SemanticPropertyVerdict) : ArtifactPropertyVerdict := {
@@ -227,11 +228,12 @@ private def artifactProperty
   queryLimits := verdict.queryLimits
   evidenceLimit := verdict.evidenceBound.map artifactEvidenceLimit
   provenanceDefinitionIds := verdict.provenance
-  clauses := verdict.clauses.map (artifactClause orderingFact closureSupport)
+  clauses := verdict.clauses.map (artifactClause resolveField orderingFact closureSupport)
   diagnostic := verdict.diagnostic.map artifactSemanticDiagnostic
 }
 
 private def artifactSummary
+    (resolveField : List DefinitionId → EvidenceFieldReference → ArtifactFieldReference)
     (orderingFact : EvidenceOrderingFact → ArtifactEvidenceOrderingFact)
     (closureSupport : List ArtifactEvidenceClosureFact)
     (summary : StrictQuerySummary) : ArtifactQuerySummary := {
@@ -239,7 +241,8 @@ private def artifactSummary
   status := summary.status.name
   queryLimits := summary.queryLimits
   requiredPropertyDefinitionIds := summary.requiredProperties
-  propertyVerdicts := summary.verdicts.map (artifactProperty orderingFact closureSupport)
+  propertyVerdicts := summary.verdicts.map
+    (artifactProperty resolveField orderingFact closureSupport)
   missingPropertyDefinitionIds := summary.missingProperties
   duplicatePropertyDefinitionIds := summary.duplicateProperties
   unexpectedPropertyDefinitionIds := summary.unexpectedProperties
@@ -482,6 +485,8 @@ private def sourceCleanup := id "umpire.evidence.source.cleanup"
 private def sourceControl := id "umpire.evidence.source.control-receipt"
 private def sourceHistory := id "umpire.evidence.source.history"
 private def sourceParticipant := id "umpire.evidence.source.participant-output"
+private def duplicateParticipantKind :=
+  id "umpire.evidence.kind.participant-command.synthetic-duplicate"
 
 private structure SourceSchema where
   source : DefinitionId
@@ -501,6 +506,7 @@ private def expectedSources : List SourceSchema := [
   { source := sourceParticipant,
     kind := Temporal.System.Nexus.Observation.Profile.participantKind,
     rawKinds := [Temporal.System.Nexus.Observation.Profile.participantKind,
+      duplicateParticipantKind,
       id "umpire.evidence.kind.environment-lifecycle"] }
 ]
 
@@ -718,6 +724,25 @@ private def requestFacts (request : Request) : List RawFact :=
   | .error _ => []
   | .ok values => (values.toList.mapM parseFact).toOption.getD []
 
+private def evaluationFacts (request : Request) : List RawFact :=
+  requestFacts request |>.filter fun fact =>
+    fact.sourceDefinitionId != sourceCleanup ||
+      rawFactHasField fact Temporal.System.Nexus.Observation.Profile.openHandleCountField
+
+private def artifactFieldForRaw
+    (facts : List RawFact)
+    (evidenceIdentities : List DefinitionId)
+    (field : EvidenceFieldReference) : ArtifactFieldReference :=
+  let kind := if field.kind == Temporal.System.Nexus.Observation.Profile.participantKind &&
+      facts.any fun fact =>
+        evidenceIdentities.contains fact.definitionId &&
+        fact.kindDefinitionId == duplicateParticipantKind &&
+          fact.fields.any fun rawField => rawField.definitionId == field.field then
+    duplicateParticipantKind
+  else
+    field.kind
+  { kindDefinitionId := kind, fieldDefinitionId := field.field }
+
 private def artifactOrderingFactFor
     (facts : List RawFact)
     (fact : EvidenceOrderingFact) : ArtifactEvidenceOrderingFact :=
@@ -840,10 +865,11 @@ private def duplicateDeliverySyntheticDiscriminatorFields : List DefinitionId :=
 
 private def duplicateDeliverySyntheticCandidate (fact : RawFact) : Bool :=
   fact.sourceDefinitionId == sourceParticipant &&
+    fact.kindDefinitionId == duplicateParticipantKind &&
     duplicateDeliverySyntheticDiscriminatorFields.any (rawFactHasField fact)
 
 private def duplicateDeliverySelectedSyntheticFact (fact : RawFact) : Bool :=
-  fact.sourceDefinitionId == sourceParticipant &&
+  duplicateDeliverySyntheticCandidate fact &&
     exactRawField fact
       Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.syntheticMarkerField
       (.text Temporal.System.Nexus.Observation.DuplicateDelivery.injectedMarker) &&
@@ -862,7 +888,9 @@ private def duplicateDeliveryCallbackFields : List DefinitionId := [
 private def mergeParticipantFields
     (callback synthetic : RawFact) : List RawField :=
   synthetic.fields ++ callback.fields.filter fun field =>
-    duplicateDeliveryCallbackFields.contains field.definitionId
+    duplicateDeliveryCallbackFields.contains field.definitionId &&
+      !synthetic.fields.any fun syntheticField =>
+        syntheticField.definitionId == field.definitionId
 
 private def duplicateDeliveryRecords
     (facts : List RawFact) : Except String (List SyntheticEvidenceRecord) := do
@@ -893,7 +921,8 @@ private def duplicateDeliveryRecords
   let participants := (facts.filter fun fact => fact.sourceDefinitionId == sourceParticipant)
     |>.mergeSort rawFactOrdinalLe
   let callbacks := participants.filter fun fact =>
-    rawFactHasField fact
+    fact.kindDefinitionId == Temporal.System.Nexus.Observation.Profile.participantKind &&
+      rawFactHasField fact
       Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
   let syntheticCandidates := participants.filter duplicateDeliverySyntheticCandidate
   let selectedSynthetic := syntheticCandidates.filter duplicateDeliverySelectedSyntheticFact
@@ -999,7 +1028,7 @@ private def adapterError (field : String) : Protocol.Error := {
 
 private def duplicateDeliveryDispositionMismatch?
     (request : Request) : Option DefinitionId :=
-  requestFacts request |>.findSome? fun fact => do
+  evaluationFacts request |>.findSome? fun fact => do
     let schema ← sourceSchema? fact.sourceDefinitionId
     fact.fields.findSome? fun field => do
       let declaration ←
@@ -1014,7 +1043,7 @@ private def duplicateDeliveryDispositionMismatch?
 
 private def duplicateDeliverySchemaMismatch?
     (request : Request) : Option DefinitionId :=
-  requestFacts request |>.findSome? fun fact => do
+  evaluationFacts request |>.findSome? fun fact => do
     let schema ← sourceSchema? fact.sourceDefinitionId
     if !schema.rawKinds.contains fact.kindDefinitionId then
       some fact.kindDefinitionId
@@ -1034,10 +1063,11 @@ private def duplicateDeliveryCorrelationFields : List DefinitionId := [
 
 private def duplicateDeliveryParticipantCorrelationFailure?
     (request : Request) : Option ObservationResult :=
-  let participants := requestFacts request |>.filter fun fact =>
+  let participants := evaluationFacts request |>.filter fun fact =>
     fact.sourceDefinitionId == sourceParticipant
   let callbacks := participants.filter fun fact =>
-    rawFactHasField fact
+    fact.kindDefinitionId == Temporal.System.Nexus.Observation.Profile.participantKind &&
+      rawFactHasField fact
       Temporal.System.Nexus.Observation.DuplicateDelivery.Profile.cancellationCountField
   let synthetic := participants.filter duplicateDeliverySelectedSyntheticFact
   match callbacks, synthetic with
@@ -1072,7 +1102,7 @@ private def duplicateDeliveryParticipantCorrelationFailure?
 
 private def duplicateDeliverySyntheticCandidateFailure?
     (request : Request) : Option ObservationResult :=
-  let candidates := requestFacts request |>.filter duplicateDeliverySyntheticCandidate
+  let candidates := evaluationFacts request |>.filter duplicateDeliverySyntheticCandidate
   if candidates.length > 1 then
     some <| .conflict {
       kind := .contradictoryFact
@@ -1083,7 +1113,7 @@ private def duplicateDeliverySyntheticCandidateFailure?
 
 private def duplicateDeliveryMissingCausalParent?
     (request : Request) : Option DefinitionId :=
-  let facts := requestFacts request
+  let facts := evaluationFacts request
   let participant? := facts.find? fun fact =>
     duplicateDeliverySelectedSyntheticFact fact && fact.causalParents.isEmpty
   let history? := facts.find? fun fact =>
@@ -1215,7 +1245,7 @@ private def observationProjection
     (evaluation : SemanticEvaluation) :
     Option ArtifactEvidenceBackedModelTrace × List ArtifactEvidenceLink ×
       List ArtifactFieldDispositionRecord × List ArtifactObservationDiagnostic :=
-  let facts := requestFacts request
+  let facts := evaluationFacts request
   let orderingFact := artifactOrderingFactFor facts
   let dispositions := artifactRawDispositions evaluation.checkedPlan
     (isDuplicateDeliveryRequest request) facts
@@ -1223,7 +1253,8 @@ private def observationProjection
   | .accepted trace =>
       let closures := artifactEvidenceClosures facts trace.evidenceIdentities
       (some (artifactTrace trace),
-        trace.evidenceLinks.map (artifactEvidenceLink orderingFact closures), dispositions, [])
+        trace.evidenceLinks.map
+          (artifactEvidenceLink (artifactFieldForRaw facts) orderingFact closures), dispositions, [])
   | .unknown diagnostic | .conflict diagnostic | .unsupported diagnostic =>
       (none, [], dispositions, [artifactObservationDiagnostic diagnostic])
 
@@ -1287,11 +1318,12 @@ private def resultArtifact
     (evidence : EvidenceArtifact)
     (resultGaps : List KnownGap) : ResultArtifact :=
   let implementationStatus := evaluation.implementationLinkStatus
-  let facts := requestFacts request
+  let facts := evaluationFacts request
   let closures := match evaluation.observation with
     | .accepted trace => artifactEvidenceClosures facts trace.evidenceIdentities
     | _ => artifactRawClosures facts
-  let evaluatedSummary := artifactSummary (artifactOrderingFactFor facts)
+  let evaluatedSummary := artifactSummary (artifactFieldForRaw facts)
+    (artifactOrderingFactFor facts)
     closures evaluation.querySummary
   let summary :=
     if evaluation.observation.status == .accepted && implementationStatus == "applied" then

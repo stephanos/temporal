@@ -408,7 +408,8 @@ func TestValidateExecutionClosureAdmitsFaultedEvidenceForEvaluation(t *testing.T
 		{
 			name: "duplicate mechanical callback count is admitted for evaluation",
 			mutate: func(_ *artifactv2.ExperimentRun, rawEvidence *artifactv2.RawEvidence) {
-				index := rawFactIndexWithField(t, rawEvidence,
+				index := rawFactIndexWithKindAndField(t, rawEvidence,
+					umpireruntime.EvidenceKindParticipantCommand,
 					umpireruntime.EvidenceFieldCancellationCallbackCount)
 				setRawField(rawEvidence.Facts[index].Fields,
 					umpireruntime.EvidenceFieldCancellationCallbackCount, json.Number("2"))
@@ -811,9 +812,10 @@ func closedExecutionFixtureWithInput(
 			FactDefinitionID:        "umpire.runtime.fact.participant.synthetic-duplicate.fixture",
 			SourceDefinitionID:      umpireruntime.EvidenceSourceParticipantOutput,
 			Ordinal:                 artifactv2.NaturalFromUint64(1),
-			KindDefinitionID:        umpireruntime.EvidenceKindParticipantCommand,
+			KindDefinitionID:        umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
 			CausalFactDefinitionIDs: []string{"umpire.runtime.fact.participant.fixture"},
 			Fields: []artifactv2.RawEvidenceField{
+				plainNumberField(umpireruntime.EvidenceFieldCancellationCallbackCount, "1"),
 				plainNumberField(umpireruntime.EvidenceFieldCancellationCompletedCount, "1"),
 				plainNumberField(umpireruntime.EvidenceFieldCancellationRequestedCount, "1"),
 				plainField(umpireruntime.EvidenceFieldCapabilityDefinitionID, "nexus.capability.cancellation"),
@@ -1004,6 +1006,29 @@ func rawFactIndexWithField(
 	t.Helper()
 	matches := []int{}
 	for index, fact := range rawEvidence.Facts {
+		for _, field := range fact.Fields {
+			if field.FieldDefinitionID == fieldDefinitionID {
+				matches = append(matches, index)
+				break
+			}
+		}
+	}
+	require.Len(t, matches, 1)
+	return matches[0]
+}
+
+func rawFactIndexWithKindAndField(
+	t *testing.T,
+	rawEvidence *artifactv2.RawEvidence,
+	kindDefinitionID string,
+	fieldDefinitionID string,
+) int {
+	t.Helper()
+	matches := []int{}
+	for index, fact := range rawEvidence.Facts {
+		if fact.KindDefinitionID != kindDefinitionID {
+			continue
+		}
 		for _, field := range fact.Fields {
 			if field.FieldDefinitionID == fieldDefinitionID {
 				matches = append(matches, index)

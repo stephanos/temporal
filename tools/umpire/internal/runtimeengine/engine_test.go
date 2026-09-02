@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
+	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 )
 
 type oracleTerminal string
@@ -104,6 +105,43 @@ func TestRunMatchesIndependentExhaustivePhaseOracle(t *testing.T) {
 			requireExactExecutionSet(t, output.AdmittedSet())
 		})
 	}
+}
+
+func TestMatchingFaultBindingValuesAcceptsPortableSyntheticDuplicateKind(t *testing.T) {
+	expected := map[string]string{
+		artifactv2.ControlReceiptCapabilityFieldDefinitionID:   "nexus.capability.cancellation",
+		artifactv2.ControlReceiptFaultFieldDefinitionID:        "temporal.nexus.fault.duplicate-delivery",
+		artifactv2.ControlReceiptFaultReceiptFieldDefinitionID: "temporal.nexus.fault-receipt.duplicate-delivery",
+		artifactv2.ControlReceiptOperationFieldDefinitionID:    "runtime.correlation.operation.synthetic-duplicate",
+	}
+	fields := make([]FactField, 0, len(expected))
+	for _, definitionID := range []string{
+		artifactv2.ControlReceiptCapabilityFieldDefinitionID,
+		artifactv2.ControlReceiptFaultFieldDefinitionID,
+		artifactv2.ControlReceiptFaultReceiptFieldDefinitionID,
+		artifactv2.ControlReceiptOperationFieldDefinitionID,
+	} {
+		field, err := NewFactField(definitionID, expected[definitionID])
+		require.NoError(t, err)
+		fields = append(fields, field)
+	}
+	fact, err := NewFact(
+		"umpire.runtime.fact.synthetic-duplicate-binding",
+		EvidenceSourceParticipantOutput,
+		umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
+		[]string{},
+		fields,
+	)
+	require.NoError(t, err)
+
+	actual := matchingFaultBindingValues(
+		fact,
+		expected[artifactv2.ControlReceiptFaultFieldDefinitionID],
+		[]string{expected[artifactv2.ControlReceiptCapabilityFieldDefinitionID]},
+		expected[artifactv2.ControlReceiptOperationFieldDefinitionID],
+	)
+
+	require.Equal(t, expected, actual)
 }
 
 func TestRunCleanupFailureDominatesEveryEarlierOutcome(t *testing.T) {

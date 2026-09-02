@@ -114,6 +114,7 @@ var requiredTerminalEvents = [...]string{
 }
 
 var duplicateDeliverySyntheticFieldOrder = [...]string{
+	umpireruntime.EvidenceFieldCancellationCallbackCount,
 	umpireruntime.EvidenceFieldCancellationCompletedCount,
 	umpireruntime.EvidenceFieldCancellationRequestedCount,
 	umpireruntime.EvidenceFieldCapabilityDefinitionID,
@@ -212,7 +213,7 @@ func validateExecutionClosure(
 
 func rejectDuplicateDeliveryEvidence(rawEvidence artifactv2.RawEvidence) error {
 	for _, fact := range rawEvidence.Facts {
-		if fact.KindDefinitionID == duplicateObservationFactKind {
+		if fact.KindDefinitionID == umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate {
 			return errors.New("normal execution contains a synthetic duplicate contribution")
 		}
 		for _, field := range fact.Fields {
