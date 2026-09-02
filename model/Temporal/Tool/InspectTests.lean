@@ -24,6 +24,61 @@ example : runDiscoveryList (Temporal.Tool.NexusDiscovery.checkInventory []) = {
   } := by
   native_decide
 
+def explanationResults : List InspectorResult :=
+  Temporal.Tool.NexusDiscovery.inventory.entries.map fun entry =>
+    runCli ["explain", entry.query.id.value]
+
+def expectedExplanationResults : List InspectorResult :=
+  Temporal.Tool.NexusDiscovery.inventory.entries.map fun entry => {
+    status := 0
+    stdout := entry.canonicalExplanationBytes
+    stderr := ""
+  }
+
+example : explanationResults = expectedExplanationResults := by
+  native_decide
+
+def invalidExplanationSelectors : List String := [
+  "missing-query",
+  "Temporal.nexus.basic-lifecycle.query.async-start",
+  "temporal.nexus.basic-lifecycle.query.async",
+  "temporal.nexus.basic-lifecycle.query",
+  "async-start",
+  "temporal.nexus.basic-lifecycle.property.async-start",
+  ""
+]
+
+example : invalidExplanationSelectors.map (fun selector => runCli ["explain", selector]) =
+    invalidExplanationSelectors.map fun selector => {
+      status := 1
+      stdout := ""
+      stderr :=
+        "{\"kind\":\"unknown-nexus-query\",\"subject\":" ++
+          Lean.Json.compress (.str selector) ++
+          ",\"context\":\"nexus discovery inventory\"}\n"
+    } := by
+  native_decide
+
+example : [runCli ["explain"], runCli ["explain", exactActionQueryId.value, "extra"]] =
+    List.replicate 2 {
+      status := 1
+      stdout := ""
+      stderr :=
+        "{\"kind\":\"invalid-arguments\",\"subject\":\"explain\"," ++
+          "\"context\":\"expected exactly one canonical query identity\"}\n"
+    } := by
+  native_decide
+
+example : runDiscoveryExplain (Temporal.Tool.NexusDiscovery.checkInventory [])
+    exactActionQueryId.value = {
+      status := 1
+      stdout := ""
+      stderr :=
+        "{\"kind\":\"invalid-nexus-discovery\",\"subject\":\"temporal.nexus.discovery\"," ++
+          "\"context\":\"membership-drift\"}\n"
+    } := by
+  native_decide
+
 def expectedStdout : String := canonicalExperimentSpecBytes compiledArtifact
 
 example : runCli [exactActionQueryId.value] = {

@@ -90,25 +90,56 @@ def productionRegistry : ScenarioRegistry := [{
   plannedScenario Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact]
 
+private def invalidDiscovery
+    (failure : Temporal.Tool.NexusDiscovery.NexusDiscoveryError) : InspectorResult := {
+  status := 1
+  stdout := ""
+  stderr := diagnostic "invalid-nexus-discovery" failure.queryId.value failure.kind.name
+}
+
 /-- Convert a checked Nexus inventory result into the exact `list` command result. -/
 def runDiscoveryList
     (result : Except Temporal.Tool.NexusDiscovery.NexusDiscoveryError
       Temporal.Tool.NexusDiscovery.NexusDiscoveryInventory) : InspectorResult :=
   match result with
-  | .error failure => {
-      status := 1
-      stdout := ""
-      stderr := diagnostic "invalid-nexus-discovery" failure.queryId.value failure.kind.name
-    }
+  | .error failure => invalidDiscovery failure
   | .ok inventory => {
       status := 0
       stdout := inventory.canonicalListBytes
       stderr := ""
     }
 
+/-- Convert an exact Query lookup over a checked Nexus inventory into an explanation result. -/
+def runDiscoveryExplain
+    (result : Except Temporal.Tool.NexusDiscovery.NexusDiscoveryError
+      Temporal.Tool.NexusDiscovery.NexusDiscoveryInventory)
+    (queryId : String) : InspectorResult :=
+  match result with
+  | .error failure => invalidDiscovery failure
+  | .ok inventory =>
+      match inventory.findEntry? queryId with
+      | none => {
+          status := 1
+          stdout := ""
+          stderr := diagnostic "unknown-nexus-query" queryId "nexus discovery inventory"
+        }
+      | some entry => {
+          status := 0
+          stdout := entry.canonicalExplanationBytes
+          stderr := ""
+        }
+
 def runCli (args : List String) : InspectorResult :=
   match args with
   | ["list"] => runDiscoveryList (.ok Temporal.Tool.NexusDiscovery.inventory)
+  | ["explain", queryId] =>
+      runDiscoveryExplain (.ok Temporal.Tool.NexusDiscovery.inventory) queryId
+  | "explain" :: _ => {
+      status := 1
+      stdout := ""
+      stderr := diagnostic "invalid-arguments" "explain"
+        "expected exactly one canonical query identity"
+    }
   | _ => runInspector productionRegistry args
 
 end Temporal.Tool.Inspect
