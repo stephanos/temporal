@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-5-umpire-discovery-promotion-and-artifact",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-02T17:55:12.700190Z",
   "created_at": "2026-08-24T22:43:58.637899Z",
   "default_impl": null,
   "default_review": null,
@@ -889,6 +889,36 @@
       "timestamp": "2026-09-02T17:41:52.390938Z",
       "tool_calls": 10,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e43c97c8a31f3691165fcc113ea784f9c9a5ccf97cc6ac668e887c52b328cbc2",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "ee09d526c56071653b4a065155ce0d8ed58716fc",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 532878,
+      "output_sha256": "fd9f346a3759a252b5f9a8824f815e2b64458231be4659acc33c8e2c5d10bbcf",
+      "reservation_id": "d3b458b1147f407b80ed21208254a111",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-02T17:55:12.685486Z",
+      "tool_calls": 32,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -900,11 +930,12 @@
     "impl:fn-5-umpire-discovery-promotion-and-artifact.6": 1,
     "impl:fn-5-umpire-discovery-promotion-and-artifact.7": 1,
     "plan": 3,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-5-umpire-discovery-promotion-and-artifact.1": 0,
     "impl:fn-5-umpire-discovery-promotion-and-artifact.2": 0,
     "impl:fn-5-umpire-discovery-promotion-and-artifact.3": 0,
@@ -928,5 +959,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-02T17:41:52.400498Z"
+  "updated_at": "2026-09-02T17:55:12.706121Z"
 }
