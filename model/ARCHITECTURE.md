@@ -124,6 +124,15 @@ Temporal.Feature.Nexus.Experimental.CallerClosure ── Temporal.Tool.Inspect
 Umpire.Examples.Switch ───────────────────────────────────────┤
                                                              ▼
                                                  temporal-model-inspect
+
+Umpire.Promotion ─────────────────────────────────────────────┐
+Temporal.Feature.Nexus.Experimental.CallerClosurePromotion ──┼── Temporal.Tool.PromotionBinding
+                                                             │             │
+                                                             │             ▼
+                                                             └── Temporal.Tool.Promote
+                                                                           │
+                                                                           ▼
+                                                               temporal-model-promote
 ```
 
 `Umpire.Target.FiniteMachine` is an implementation module inside the existing Target node, not a
@@ -260,7 +269,12 @@ Temporal-specific modules are split by semantic altitude:
   `Temporal.System.Matching.Configuration` add consumer-specific meanings in one direction from
   that facade.
 - `Temporal.Tool.Inspect` owns canonical artifact rendering, scenario lookup, CLI diagnostics, and
-  the executable entry point. It does not own feature semantics.
+  the executable entry point. Its closed `NexusDiscovery` input supplies deterministic `list` and
+  exact `explain` results for four checked Nexus examples. It does not own feature semantics.
+- `Temporal.Tool.PromotionBinding` owns the sole fixed caller-closure candidate and keeps its
+  unchanged base Query/expected count-one trace separate from the fault-bearing `ExperimentSpec`.
+  `Temporal.Tool.Promote` serializes that checked binding as one inert review-only proposal. Neither
+  module evaluates runtime eligibility or installs source.
 - `Temporal.Tool.RunEvaluation` owns the closed private Generated View adapter and fixed checker
   composition for one local caller-closure execution. It invokes Implementation Link application
   and Property evaluation only after Observation admission succeeds, preserves their separate
@@ -400,7 +414,8 @@ Lifecycle, Operations, and Observation declarations. `TemporalModelTests.lean` a
 facade check with the focused ordinary Feature and System tests, including the exact
 `Temporal.ImplementationLinkTests.Nexus` composed-test root, without importing experimental modules
 or reusable Umpire test internals.
-`TemporalExperimentalTests.lean` separately assembles the caller-closure and Tool inspector tests.
+`TemporalExperimentalTests.lean` separately assembles the caller-closure, discovery, promotion,
+and Tool inspector tests.
 Compile the final public and test roots with:
 
 ```sh
@@ -410,6 +425,7 @@ mise exec -- lake build Temporal
 mise exec -- lake build TemporalModelTests
 mise exec -- lake build TemporalExperimentalTests
 mise exec -- lake build temporal-model-inspect
+mise exec -- lake build temporal-model-promote
 ```
 
 The inspector registry remains intentionally small. It exposes the canonical scenario identities
@@ -418,6 +434,14 @@ Nexus walkthroughs are compile-checked rather than registered scenarios, while t
 explicitly opts into the experimental caller-closure model. Successful inspection emits one
 canonical JSON `ExperimentSpec`. Unknown scenarios and invalid argument counts retain their
 structured non-zero diagnostics and emit no artifact JSON on standard output.
+
+The inspector's separate discovery branch lists exactly four checked Nexus Query identities and
+explains only an exact identity. The root `umpire-list-nexus` and `umpire-explain-nexus QUERY=...`
+targets expose those operations without changing positional scenario inspection. The fixed
+`umpire-check-promotion` target validates the one inert caller-closure proposal and clean-elaborates
+its embedded expected-count-one source without writing it. Only fn-22 may later establish runtime
+eligibility after reproduction, complete reduction, Exact Replay, and cross-binding; this command
+makes none of those claims.
 
 From the repository root, `make lint-model` owns the transitive Lean import boundaries described
 above. `make umpire-check-regression` builds all final targets, enforces reusable domain purity and

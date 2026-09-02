@@ -424,6 +424,29 @@ collect evidence. The separate fixed caller-closure adapter can now construct on
 other profiles, replay, and promotion remain separate work; reusable offline Observation
 Evaluation remains the `Umpire.Observation` API.
 
+The same inspector exposes a closed Nexus discovery view containing exactly these Query identities:
+
+1. `temporal.nexus.basic-lifecycle.query.async-start`
+2. `temporal.nexus.basic-lifecycle.query.cancellation`
+3. `temporal.nexus.basic-lifecycle.query.successful-completion`
+4. `workflow-nexus.query.exact-action-caller-closure`
+
+List the four entries or explain one exact identity from the repository root:
+
+```sh
+make umpire-list-nexus
+make umpire-explain-nexus QUERY=workflow-nexus.query.exact-action-caller-closure
+```
+
+`make umpire-check-promotion` runs the sole fixed candidate,
+`temporal.nexus.caller-closure.promotion.cancel-unique-regression`, and verifies its canonical
+proposal, separate base and fault-bearing lineages, and embedded source elaboration without writing
+the proposal or source. The proposal is inert: its source preserves the unchanged base Query's
+target-owned expected cancellation count of one. It does not establish that the duplicate-delivery
+failure occurred, replay it, minimize it, or install a Regression. Fn-22 alone may establish runtime
+eligibility by reproducing and completely reducing the failure, validating Exact Replay, and
+cross-binding that runtime Evidence to this proposal.
+
 Generated API declarations remain generated structures only. Behavioral meaning, including whether
 a selected action is applicable and which transition outcomes are possible, remains owned by the
 authored Lean model.
