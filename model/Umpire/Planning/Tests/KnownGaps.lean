@@ -58,7 +58,7 @@ example : canonicalKnownGapJson inputGap =
   native_decide
 
 private def catalogRow (catalogId : String) : KnownGapCatalogDescriptor :=
-  SemanticInventory.knownGapCatalog.find? (fun row => row.id == catalogId) |>.getD {
+  SemanticInventory.testKnownGapCatalog.find? (fun row => row.id == catalogId) |>.getD {
     id := "umpire.semantic-inventory.known-gap-source.unknown"
     owner := "Umpire.SemanticInventory"
     lineage := .authored

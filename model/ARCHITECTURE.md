@@ -264,6 +264,12 @@ Temporal-specific modules are split by semantic altitude:
 - `Temporal.Feature.Nexus.Experimental.CallerClosure` is the opt-in Workflow–Nexus integration
   reference. It owns caller closure, connector composition, cancellation behavior, and its checked
   query modes.
+- `Temporal.Feature.Nexus.Experimental.Exploration` is the explicit opt-in adapter whose `run` and
+  `startSession` operations bind the checked four-point Nexus variation Space and existing exact
+  planner kernel. Fn-33 owns the serial `umpire-fuzz run` runtime, workload completion, eventual
+  Evidence collection, and Run Evaluation. The Lean layer owns no command, runtime I/O,
+  persistence, promotion, parallel campaign, adaptive corpus, symmetry, or generalized
+  coverage-reporting surface.
 - `Temporal.System.Configuration` exposes shared generated-catalog classification, validation,
   resolution, provenance, and immutable views. `Temporal.System.Callback.Configuration` and
   `Temporal.System.Matching.Configuration` add consumer-specific meanings in one direction from

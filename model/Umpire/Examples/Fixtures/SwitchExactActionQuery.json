@@ -32,7 +32,7 @@
   },
   "policy": {
     "strategy": "shortest",
-    "seed": 23,
+    "seed": 17,
     "tieBreak": "definition-id"
   },
   "target": {

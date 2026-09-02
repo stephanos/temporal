@@ -41,7 +41,7 @@ func TestRunPublishesSatisfiedSetBeforeWritingExactSummary(t *testing.T) {
 
 	require.Equal(t, exitSatisfied, code)
 	requireExactBytes(t, fmt.Sprintf(
-		"{\"formatVersion\":\"umpire-local-run-evaluation-summary/v2\",\"runIdentity\":\"switch.run.1\",\"operationalStatus\":\"succeeded\",\"observationEvaluationStatus\":\"accepted\",\"semanticStatus\":\"satisfied\",\"evidenceArtifactChecksum\":\"sha256:9f2f2314f61a827f376f64a6670667d7900853ea8b3ec76f65a35f4d08107bc9\",\"resultArtifactChecksum\":\"sha256:791d5f3304d220d0c29c0e2f56d5a506efc2718b4b6ff39866a26c9f43db3686\",\"evaluationOutcomeChecksum\":\"sha256:fe36d0d3457de2a334158c614d72d6223012b3c6bfd91f2e8c2c3db96115e508\",\"artifactSetChecksum\":\"sha256:833572e59d6dff46a20a3b11e23e5846606a04a7e646cf511c41d296c4f59021\",\"manifestSha256\":\"sha256:9b0d3fb446411f8f2138029820a5bc8ce096aed2de984cc67a8694e50b30ea30\",\"destination\":%q}\n",
+		"{\"formatVersion\":\"umpire-local-run-evaluation-summary/v2\",\"runIdentity\":\"switch.run.1\",\"operationalStatus\":\"succeeded\",\"observationEvaluationStatus\":\"accepted\",\"semanticStatus\":\"satisfied\",\"evidenceArtifactChecksum\":\"sha256:adbc2ead2d0208951158fa16d558a9502cc9a864094f6eeaebc23203c56ca23b\",\"resultArtifactChecksum\":\"sha256:307e466e3ec21b919528be83313e00fd57c3f5be086b48f37226726fc8f5d4f3\",\"evaluationOutcomeChecksum\":\"sha256:f23cfbb71f27517a9d78cb243764094039439bbfe817e509c037aa8fbc285e6e\",\"artifactSetChecksum\":\"sha256:48a20a42604e2f6d483562fe886df504ca36b6423bccc86b99833210fb0da593\",\"manifestSha256\":\"sha256:cf53d048c8dcdbfe680002ad99e892cb1aebba99ed18bfb12b9d063212160da0\",\"destination\":%q}\n",
 		destination,
 	), stdout.String())
 	require.Empty(t, stderr.String())
@@ -367,7 +367,7 @@ func TestRunReportsBrokenStdoutAfterKeepingAuthoritativePublication(t *testing.T
 
 	require.Equal(t, exitToolingError, code)
 	requireExactBytes(t, fmt.Sprintf(
-		"{\"formatVersion\":\"umpire-local-run-evaluation-error/v2\",\"kind\":\"reporting\",\"phase\":\"reporting\",\"subject\":\"stdout\",\"code\":\"umpire.run-evaluation.reporting.failed\",\"checkingOccurred\":true,\"publicationOccurred\":true,\"runIdentity\":\"switch.run.1\",\"artifactSetChecksum\":\"sha256:833572e59d6dff46a20a3b11e23e5846606a04a7e646cf511c41d296c4f59021\",\"manifestSha256\":\"sha256:9b0d3fb446411f8f2138029820a5bc8ce096aed2de984cc67a8694e50b30ea30\",\"destination\":%q}\n",
+		"{\"formatVersion\":\"umpire-local-run-evaluation-error/v2\",\"kind\":\"reporting\",\"phase\":\"reporting\",\"subject\":\"stdout\",\"code\":\"umpire.run-evaluation.reporting.failed\",\"checkingOccurred\":true,\"publicationOccurred\":true,\"runIdentity\":\"switch.run.1\",\"artifactSetChecksum\":\"sha256:48a20a42604e2f6d483562fe886df504ca36b6423bccc86b99833210fb0da593\",\"manifestSha256\":\"sha256:cf53d048c8dcdbfe680002ad99e892cb1aebba99ed18bfb12b9d063212160da0\",\"destination\":%q}\n",
 		destination,
 	), stderr.String())
 	_, err := artifact.LoadSet(destination)

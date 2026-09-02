@@ -7,14 +7,15 @@ satisfies: [R3]
 Refresh the complete canonical fixture/checksum and generated-view surface affected by the seed-17 Query identity migration, then run the full model gates (R3).
 
 **Size:** M
-**Files:** affected files under `model/Umpire/Examples/Fixtures/`, `model/Umpire/Examples/testdata/`, `model/Umpire/Artifact/Tests/Fixtures/`, `model/Temporal/Feature/Nexus/Fixtures/`, `model/Umpire/Examples/Generated/`, `model/Umpire/Artifact/Tests/Codecs.lean`, and generated/checksum consumers under `tools/umpire/`
-**Touches:** [model/Umpire/Examples/Fixtures/**, model/Umpire/Examples/testdata/**, model/Umpire/Artifact/Tests/Fixtures/**, model/Umpire/Artifact/Tests/Codecs.lean, model/Temporal/Feature/Nexus/Fixtures/**, model/Umpire/Examples/Generated/**, tools/umpire/cmd/umpire-gen-regression-views/**, tools/umpire/regression/**, tools/umpire/internal/artifactv2/**]
+**Files:** affected files under `model/Umpire/Examples/Fixtures/`, `model/Umpire/Examples/testdata/`, `model/Umpire/Artifact/Tests/Fixtures/`, `model/Temporal/Feature/Nexus/Fixtures/`, `model/Umpire/Examples/Generated/`, `model/Umpire/Artifact/Tests/Codecs.lean`, generated/checksum consumers under `tools/umpire/`, and the approved semantic-inventory/documentation ownership unblock
+**Touches:** [model/Umpire/Examples/Fixtures/**, model/Umpire/Examples/testdata/**, model/Umpire/Artifact/Tests/**, model/Temporal/Feature/Nexus/Fixtures/**, model/Temporal/Feature/Nexus/Experimental/*Tests.lean, model/Temporal/Tool/NexusDiscoveryTests.lean, model/Umpire/Examples/Generated/**, model/Temporal/Tool/SemanticInventory.lean, model/Umpire/SemanticInventory/**, model/Umpire/Planning/Tests/KnownGaps.lean, model/ARCHITECTURE.md, model/Umpire/ARCHITECTURE.md, tools/umpire/artifact/**, tools/umpire/cmd/umpire-gen-regression-views/**, tools/umpire/cmd/umpire-local-run-evaluation/**, tools/umpire/regression/**, tools/umpire/internal/artifactv2/**]
 
 ### Approach
 - Produce fresh canonical Query and ExperimentSpec bytes from the migrated model declarations and update every byte/checksum fixture as a complete owned set.
 - Regenerate the managed Go and Markdown regression views with the repository generator; do not hand-maintain generated output.
 - Update independent artifact-v2 canonical fixtures and checksum assertions reached by the changed Switch artifact identity.
 - Search for obsolete pre-migration fingerprints/checksums to catch consumers outside the obvious fixture directories.
+- Unblock the full regression gate by restoring Umpire's reusable ownership boundary: publish the Run Evaluation admitted-input row from the Temporal leaf aggregator and keep Temporal adapter documentation on the Temporal architecture surface.
 - Run focused byte-equality checks followed by the repository model regression and import/documentation lint gates.
 
 ### Investigation targets

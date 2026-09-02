@@ -15,13 +15,13 @@ func TestArtifactSetEvaluationClosureCanonicalManifest(t *testing.T) {
 	admitted, err := artifact.AdmitSet(artifactSetFixtureMembers(t))
 	require.NoError(t, err)
 	require.Equal(t,
-		"umpire.artifact-set.3443af6c49f2bfbf1b6200410b0ea8588581f9cc0373fa75f07ee9fcf3143309",
+		"umpire.artifact-set.b235748c7bc21083e1c650186d6f8c98a1bca123b46cd0c62b69f18885567372",
 		admitted.Identity())
 	require.Equal(t,
-		"sha256:833572e59d6dff46a20a3b11e23e5846606a04a7e646cf511c41d296c4f59021",
+		"sha256:48a20a42604e2f6d483562fe886df504ca36b6423bccc86b99833210fb0da593",
 		admitted.Checksum())
 	require.Equal(t,
-		"sha256:9b0d3fb446411f8f2138029820a5bc8ce096aed2de984cc67a8694e50b30ea30",
+		"sha256:cf53d048c8dcdbfe680002ad99e892cb1aebba99ed18bfb12b9d063212160da0",
 		admitted.ManifestSHA256())
 	require.Equal(t, readExperimentV2Fixture(t,
 		"model/Umpire/Artifact/Tests/Fixtures/ArtifactSetV2.json"), admitted.ManifestBytes())
@@ -49,8 +49,8 @@ func TestArtifactSetManifestAdmissionRequiresExactCanonicalBytes(t *testing.T) {
 	require.Empty(t, admitted.Identity())
 
 	staleRow := bytes.Replace(manifest,
-		[]byte("sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"),
-		[]byte("sha256:454acc851c5c1638166b1a334eaaedc97e4515b5ebe6614d5a57672ddbd9d1c2"), 1)
+		[]byte("sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd"),
+		[]byte("sha256:c4aaec3cec49a58cfb6cc085447afe5c197c2a0b0920cd7ae751a7e997858870"), 1)
 	admitted, err = artifact.AdmitSetManifest(staleRow, members)
 	requireArtifactSetErrorCode(t, err, artifact.ErrorArtifactChecksum)
 	require.Empty(t, admitted.Identity())
@@ -67,21 +67,21 @@ func TestArtifactSetAdmitsOnlyThreeExactClosures(t *testing.T) {
 	}{
 		{
 			name: "executable", count: 2,
-			identity: "umpire.artifact-set.4b7c7fb8319e64bbab53abc7f0f73f3b22733b08c11caa9cbd508fe1f59c7775",
-			checksum: "sha256:b616e4474e81c6409fb2476ea959782db1486091cbe71310188a9a6074f798b5",
-			sha256:   "sha256:5c3c519826fa8867a9c453ce1305b6bccd1fb60f2cfd1cfa7f4c2a19e2478f91",
+			identity: "umpire.artifact-set.ff833b3c322019881a67443e013ed5060a09aebd4246edba34dae22cb0d0eb80",
+			checksum: "sha256:991ea89aa68af261f4b6f02f8b2122e29d5b84e4c74ea1e96c49fe819e95f3a0",
+			sha256:   "sha256:2ad20b73d3a179614c824a27485b2ba2ca989def7fe4e852558eb7839b602ba4",
 		},
 		{
 			name: "execution", count: 4,
-			identity: "umpire.artifact-set.3dda4efe07ac24ef454f7dc4227440277cb59caf4a4d671ac09d5bc11555f2f0",
-			checksum: "sha256:2aded1f8e2c52e3a775cb2a3ea009924d874e298cc733f1ba6f5de6559026c45",
-			sha256:   "sha256:76a606f491e778a636fd6b6adb4d604af8f17d79b4d573ca41d421c49213c505",
+			identity: "umpire.artifact-set.9e4db86fd3bc6b41654ae0aa2f6601805f20cd0e189ff1821b727d82805674f6",
+			checksum: "sha256:96000dfb059a08b0362fda0bc7ed7ebf5fcd5b74f5e3db1f03cf2289e0a53c10",
+			sha256:   "sha256:abe5f7e646f1a287f5960035af082598eaafad469fad15bf8044205dbdd05dba",
 		},
 		{
 			name: "evaluation", count: 6,
-			identity: "umpire.artifact-set.3443af6c49f2bfbf1b6200410b0ea8588581f9cc0373fa75f07ee9fcf3143309",
-			checksum: "sha256:833572e59d6dff46a20a3b11e23e5846606a04a7e646cf511c41d296c4f59021",
-			sha256:   "sha256:9b0d3fb446411f8f2138029820a5bc8ce096aed2de984cc67a8694e50b30ea30",
+			identity: "umpire.artifact-set.b235748c7bc21083e1c650186d6f8c98a1bca123b46cd0c62b69f18885567372",
+			checksum: "sha256:48a20a42604e2f6d483562fe886df504ca36b6423bccc86b99833210fb0da593",
+			sha256:   "sha256:cf53d048c8dcdbfe680002ad99e892cb1aebba99ed18bfb12b9d063212160da0",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

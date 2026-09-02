@@ -93,14 +93,14 @@ func TestExpectedChecksumsUseExactPrettyPreimages(t *testing.T) {
 	planChecksum, err := ExpectedDrivePlanChecksum(document.Plan)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:1caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d",
+		"sha256:a695f9f6cc79ba49a721d1764519e2167b5fe66278666238c6da862b1a33b835",
 		planChecksum,
 	)
 	document.Plan.ArtifactChecksum = planChecksum
 	experimentChecksum, err := ExpectedExperimentChecksum(document)
 	require.NoError(t, err)
 	require.Equal(t,
-		"sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179",
+		"sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd",
 		experimentChecksum,
 	)
 }
@@ -136,8 +136,8 @@ func TestDecodeExperimentRejectsNoncanonicalEncodings(t *testing.T) {
 		[]byte("  \"queryBehaviorFingerprint\": \"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\n  \"queryBehaviorFingerprint\": "),
 		1,
 	)
-	malformedFingerprint := bytes.Replace(withoutTerminalLF, []byte("sha256:d915"), []byte("sha256:D915"), 1)
-	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), []byte("sha256:1234"), 1)
+	malformedFingerprint := bytes.Replace(withoutTerminalLF, []byte("sha256:c296"), []byte("sha256:C296"), 1)
+	malformedChecksum := bytes.Replace(withoutTerminalLF, []byte("sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd"), []byte("sha256:1234"), 1)
 
 	cases := map[string][]byte{
 		"reordered object fields":        append(reordered, '\n'),
@@ -174,10 +174,10 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 		want    string
 	}{
 		"nested": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:1caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"),
+			[]byte("sha256:a695f9f6cc79ba49a721d1764519e2167b5fe66278666238c6da862b1a33b835"),
 			[]byte("sha256:2caad30cc09a2006600917465e4f9223529afbba7acf734c3a629b0e3723ba7d"), 1), want: "nested"},
 		"outer": {encoded: bytes.Replace(canonical,
-			[]byte("sha256:c7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"),
+			[]byte("sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd"),
 			[]byte("sha256:d7fc19d59b8b97922df475596bc45022e97c19d051149aa0c9aabe82dff18179"), 1), want: "ExperimentSpec"},
 	}
 	for name, test := range cases {
