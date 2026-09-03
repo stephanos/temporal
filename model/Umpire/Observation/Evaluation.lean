@@ -439,6 +439,7 @@ inductive StructuralFinding where
       (expected actual : List EvidenceClosureFact)
   | duplicateClosureSupport
       (ruleId : DefinitionId)
+      (linkIndex : Nat)
       (source : Option DefinitionId)
       (kind : DefinitionId)
       (conflicting : Bool)
@@ -673,6 +674,7 @@ private def sourceClosureFindings
   pure findings
 
 private def normalizeLinkSupport
+    (linkIndex : Nat)
     (originMode : StructuralOriginMode)
     (sharedFacts : List EvidenceOrderingFact)
     (sharedClosures : List EvidenceClosureFact)
@@ -697,7 +699,7 @@ private def normalizeLinkSupport
   let (closures, duplicateClosureFindings) := canonicalClosures sortedClosures
   let duplicateClosureFindings := duplicateClosureFindings.filterMap fun finding => match finding with
     | .duplicateClosure source kind conflicting =>
-        some (.duplicateClosureSupport support.ruleId source kind conflicting)
+        some (.duplicateClosureSupport support.ruleId linkIndex source kind conflicting)
     | _ => none
   let findings :=
     (if orderingConsistent then [] else
@@ -747,8 +749,8 @@ def analyzeStructure
     | .globalSequence => globalClosureFindings requiredKinds closures closureExpectations
     | .sourceSequence => sourceClosureFindings requiredKinds closures closureExpectations
     | .mixed => []
-  let normalizedLinks := linkSupport.map fun support =>
-    normalizeLinkSupport originMode facts closures support
+  let normalizedLinks := linkSupport.mapIdx fun linkIndex support =>
+    normalizeLinkSupport linkIndex originMode facts closures support
   let links := normalizedLinks.map Prod.fst
   let linkFindings := normalizedLinks.flatMap Prod.snd
   {
@@ -1737,10 +1739,10 @@ private def validateAcceptedClosures
   if firstClosures.isEmpty || !trace.sourceClosed then
     throw { kind := .missingClosureSupport, planId := trace.mappingId }
   match analysis.findings.findSome? fun finding => match finding with
-    | .duplicateClosureSupport ruleId _ _ _ => some {
+    | .duplicateClosureSupport ruleId linkIndex _ kind _ => some {
         kind := .missingClosureSupport
         planId := trace.mappingId
-        relatedDefinitionIds := [ruleId]
+        relatedDefinitionIds := if linkIndex == 0 then [kind] else [ruleId]
       }
     | .inconsistentClosureSupport ruleId _ _ => some {
         kind := .missingClosureSupport
