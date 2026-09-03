@@ -48,6 +48,7 @@ has been handed to the parent for spec-completion repair.
 
 stage: impl-review - ran (Codex SHIP after one documentation correction; 0 introduced findings,
 1 pre-existing finding handed off) (model: gpt-5.6-sol)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: ca4dbd909fe7236c6546f1a229c30e7a5971fdf2, 3f91ef3c5ee8b926968fd45105db68c20f2f14ff
 - Tests: cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Artifact.Tests.Codecs Umpire.Artifact.Tests.Runtime Umpire.Artifact.Tests.Evidence Umpire.Artifact.Tests.Result Temporal.Tool.RunEvaluationTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, CC=/usr/bin/clang TMPDIR=<physical macOS temporary directory> go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/runevaluation, make umpire-check-regression, make lint-model, make lint-code (approved inherited baseline: 1379 findings; errcheck 220, exhaustive 5, forbidigo 211, govet 5, revive 798, staticcheck 136, testifylint 4), git diff --check
