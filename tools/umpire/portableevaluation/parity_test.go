@@ -552,7 +552,7 @@ func TestLeanGeneratedPortablePlansUseSharedAdmissionAndRetainExactBindings(t *t
 	}{
 		{name: "normal", contract: "normal"},
 		{name: "duplicate-delivery", contract: "duplicate-delivery"},
-		{name: "required-obligation", contract: "normal", obligations: 1},
+		{name: "required-obligation", contract: "normal", obligations: 3},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -568,7 +568,9 @@ func TestLeanGeneratedPortablePlansUseSharedAdmissionAndRetainExactBindings(t *t
 
 			protorequire.ProtoEqual(t, contract.GetQuery(), plan.GetModelCompiled().GetQuery())
 			protorequire.ProtoEqual(t, contract.GetObservation().GetProfile(), plan.GetVerification().GetEvidence())
-			protorequire.ProtoEqual(t, contract.GetObservation(), plan.GetVerification().GetObservation())
+			if test.obligations == 0 {
+				protorequire.ProtoEqual(t, contract.GetObservation(), plan.GetVerification().GetObservation())
+			}
 			protorequire.ProtoEqual(t, contract.GetImplementationLink(), plan.GetVerification().GetRenameExactLink())
 			require.Len(t, plan.GetVerification().GetProperties(), len(contract.GetProperties()))
 			for index, property := range contract.GetProperties() {
@@ -597,8 +599,11 @@ func TestLeanGeneratedPortablePlansUseSharedAdmissionAndRetainExactBindings(t *t
 				require.Equal(t, umpirespb.EXECUTION_DECISION_PASS, result.GetDecision())
 			} else {
 				require.Equal(t, umpirespb.EXECUTION_DECISION_INCONCLUSIVE, result.GetDecision())
-				require.Equal(t, umpirespb.EXTERNAL_VERIFICATION_OBLIGATION_KIND_REQUIRED,
-					result.GetUnresolvedExternalObligations()[0].GetKind())
+				require.Len(t, result.GetUnresolvedExternalObligations(), test.obligations)
+				for _, obligation := range result.GetUnresolvedExternalObligations() {
+					require.Equal(t, umpirespb.EXTERNAL_VERIFICATION_OBLIGATION_KIND_REQUIRED,
+						obligation.GetKind())
+				}
 			}
 		})
 	}
@@ -664,7 +669,7 @@ func TestLeanGeneratedPortablePlanRejectsChecksumBindingSourceAndLimitMutations(
 			name: "obligation",
 			mutate: func(plan *umpirespb.PortableTestPlan) {
 				required := loadLeanPortablePlan(t, "required-obligation").GetExternalObligations()
-				require.Len(t, required, 1)
+				require.Len(t, required, 3)
 				plan.ExternalObligations = []*umpirespb.ExternalVerificationObligation{
 					proto.CloneOf(required[0]),
 				}

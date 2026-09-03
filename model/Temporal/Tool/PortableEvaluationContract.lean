@@ -280,25 +280,18 @@ private def orderingLe (left right : EmitOrdering) : Bool :=
     (left.predecessorEmitDefinitionId == right.predecessorEmitDefinitionId &&
       decide (left.successorEmitDefinitionId ≤ right.successorEmitDefinitionId))
 
-private def lowerObservationProgram
+private def assembleObservationProgram
     (plan : CheckedObservationPlan)
     (program : Temporal.System.Execution.Nexus.ObservationProgramDefinition)
-    (definitions : List DefinitionMetadata) : Except NonPortableError ObservationProgram := do
-  if !plan.bindings.isEmpty then
-    nonPortable plan.id plan.source "observation.bindings"
-  let nested ← plan.rules.mapM fun rule =>
-    if rule.output == Temporal.System.Nexus.CallerClosure.stateId then
-      lowerStateRule plan definitions rule
-    else
-      return [← lowerOrdinaryRule plan definitions rule]
-  let emits := nested.flatten.mergeSort emitLe
+    (emits : List Emit) : Except NonPortableError ObservationProgram := do
   let stateRuleId := (plan.rules.find? fun rule =>
     rule.output == Temporal.System.Nexus.CallerClosure.stateId).map (·.id.value)
       |>.getD "missing-state-rule"
   let actionRuleId := (plan.rules.find? fun rule =>
     rule.output == Temporal.System.Nexus.CallerClosure.actionId).map (·.id.value)
       |>.getD "missing-action-rule"
-  let ordering := ({
+  let retained := emits.map Emit.definitionId
+  let ordering := (({
     predecessorEmitDefinitionId := stateRuleId ++ ".initial"
     successorEmitDefinitionId := actionRuleId
   } :: plan.ordering.map fun item => {
@@ -306,7 +299,8 @@ private def lowerObservationProgram
       stateRuleId ++ ".resulting" else item.before.value
     successorEmitDefinitionId := if item.after.value == stateRuleId then
       stateRuleId ++ ".resulting" else item.after.value
-  }).mergeSort orderingLe
+  }).filter fun item => retained.contains item.predecessorEmitDefinitionId &&
+      retained.contains item.successorEmitDefinitionId).mergeSort orderingLe
   pure {
     definition := {
       definitionId := program.reference.definitionId
@@ -319,6 +313,82 @@ private def lowerObservationProgram
     emits
     ordering
   }
+
+private def lowerObservationProgram
+    (plan : CheckedObservationPlan)
+    (program : Temporal.System.Execution.Nexus.ObservationProgramDefinition)
+    (definitions : List DefinitionMetadata) : Except NonPortableError ObservationProgram := do
+  if !plan.bindings.isEmpty then
+    nonPortable plan.id plan.source "observation.bindings"
+  let nested ← plan.rules.mapM fun rule =>
+    if rule.output == Temporal.System.Nexus.CallerClosure.stateId then
+      lowerStateRule plan definitions rule
+    else
+      return [← lowerOrdinaryRule plan definitions rule]
+  let emits := nested.flatten.mergeSort emitLe
+  assembleObservationProgram plan program emits
+
+private def lowerOrdinaryRuleWithFailures
+    (plan : CheckedObservationPlan)
+    (definitions : List DefinitionMetadata)
+    (rule : CheckedObservationRule) : Except NonPortableError
+      (Option Emit × List NonPortableError) := do
+  let some condition := rule.condition
+    | nonPortable plan.id plan.source ("observation.unconditional-rule." ++ rule.id.value)
+  let outputKind ← portableDefinitionKind plan.id plan.source rule.outputKind
+  let outputDefinition ← definitionBinding plan.id plan.source definitions rule.output rule.outputKind
+  let coordinate ← ruleCoordinate plan rule
+  let loweredCondition := lowerObservationExpression plan.id plan.source condition
+  let loweredValue := lowerObservationExpression plan.id plan.source rule.value
+  let sourceKind := firstEvidenceKind condition
+  match loweredCondition, loweredValue with
+  | .error conditionFailure, .error valueFailure =>
+      pure (none, [conditionFailure, valueFailure])
+  | .error failure, .ok _ | .ok _, .error failure => pure (none, [failure])
+  | .ok portableCondition, .ok value =>
+      let some sourceKind := sourceKind
+        | nonPortable plan.id plan.source ("observation.source-kind." ++ rule.id.value)
+      pure (some {
+        definitionId := rule.id.value
+        sourceKindDefinitionId := sourceKind
+        outputDefinition
+        outputKind
+        coordinate
+        condition := portableCondition
+        value
+      }, [])
+
+private def lowerStateRuleWithFailures
+    (plan : CheckedObservationPlan)
+    (definitions : List DefinitionMetadata)
+    (rule : CheckedObservationRule) : Except NonPortableError
+      (Option (List Emit) × List NonPortableError) := do
+  let some condition := rule.condition
+    | nonPortable plan.id plan.source ("observation.unconditional-rule." ++ rule.id.value)
+  let loweredCondition := lowerObservationExpression plan.id plan.source condition
+  let loweredValue := lowerObservationExpression plan.id plan.source rule.value
+  match loweredCondition, loweredValue with
+  | .error conditionFailure, .error valueFailure =>
+      pure (none, [conditionFailure, valueFailure])
+  | .error failure, .ok _ | .ok _, .error failure => pure (none, [failure])
+  | .ok _, .ok _ => pure (some (← lowerStateRule plan definitions rule), [])
+
+private def lowerObservationProgramWithFailures
+    (plan : CheckedObservationPlan)
+    (program : Temporal.System.Execution.Nexus.ObservationProgramDefinition)
+    (definitions : List DefinitionMetadata) : Except NonPortableError
+      (ObservationProgram × List NonPortableError) := do
+  if !plan.bindings.isEmpty then
+    nonPortable plan.id plan.source "observation.bindings"
+  let lowered ← plan.rules.mapM fun rule =>
+    if rule.output == Temporal.System.Nexus.CallerClosure.stateId then
+      lowerStateRuleWithFailures plan definitions rule
+    else do
+      let (emit, failures) ← lowerOrdinaryRuleWithFailures plan definitions rule
+      pure (emit.map (· :: []), failures)
+  let emits := lowered.flatMap (fun item => item.1.getD []) |>.mergeSort emitLe
+  let failures := lowered.flatMap Prod.snd
+  pure (← assembleObservationProgram plan program emits, failures)
 
 private def duplicateParticipantKind : DefinitionId :=
   DefinitionId.of "umpire.evidence.kind.participant-command.synthetic-duplicate"
@@ -823,6 +893,54 @@ private def portableRuntimeProgram
         (portableCapabilityBinding owner source link)
   }
 
+private def portablePlanSelectionReason : Umpire.SelectionReason → PlanSelectionReason
+  | .satisfyingWitness => .satisfyingWitness
+  | .violatingCounterexample => .violatingCounterexample
+  | .behaviorSelection => .behaviorSelection
+
+private def portableArtifactProvenance (provenance : Umpire.ArtifactProvenance) :
+    PlanArtifactProvenance := {
+  sourceDefinitionIds := provenance.sourceDefinitionIds
+  sourceLocations := provenance.sourceLocations
+}
+
+private def portableArtifactProjection
+    (experiment : ExperimentSpec)
+    (runtimeConfiguration : RuntimeConfiguration) : PlanArtifactProjection := {
+  expandedLimits := {
+    maxSemanticTransitions := experiment.plan.expandedLimits.behavior.transitions.value
+    maxSelectedActions := experiment.plan.expandedLimits.behavior.selectedActions.value
+    maxCandidateEvaluations := experiment.plan.expandedLimits.search.value
+  }
+  selectionReason := portablePlanSelectionReason experiment.plan.selectionReason
+  explored := {
+    setups := experiment.plan.explored.setups
+    traces := experiment.plan.explored.traces
+    transitions := experiment.plan.explored.transitions
+    propertyEvaluations := experiment.plan.explored.propertyEvaluations
+  }
+  experimentKnownGaps := experiment.plan.knownGaps.toList.map portableKnownGap
+  experimentProvenance := portableArtifactProvenance experiment.plan.provenance
+  runtimeKnownGaps := runtimeConfiguration.knownGaps.toList.map portableKnownGap
+  runtimeProvenance := portableArtifactProvenance runtimeConfiguration.provenance
+  experimentObservationRequirementDefinitionIds :=
+    experiment.observationRequirementDefinitionIds
+  runtimeObservationConfig := {
+    profile := {
+      definitionId := runtimeConfiguration.observation.profileDefinitionId
+      behaviorFingerprint := runtimeConfiguration.observation.profileBehaviorFingerprint
+    }
+    program := {
+      definitionId := runtimeConfiguration.observation.programDefinitionId
+      behaviorFingerprint := runtimeConfiguration.observation.programBehaviorFingerprint
+    }
+    mapping := {
+      definitionId := runtimeConfiguration.observation.mappingDefinitionId
+      behaviorFingerprint := runtimeConfiguration.observation.mappingBehaviorFingerprint
+    }
+  }
+}
+
 private def portableExecutionProgram
     (experiment : ExperimentSpec)
     (runtimeConfiguration : RuntimeConfiguration)
@@ -871,6 +989,7 @@ private def portableExecutionProgram
       (portableCheckpoint owner source definitions)
     runtime := ← portableRuntimeProgram owner source contract.implementationLink
       runtimeConfiguration contract.observation
+    artifactProjection := portableArtifactProjection experiment runtimeConfiguration
   }
 
 private def portablePlanLimits
@@ -945,14 +1064,30 @@ private def lowerPortableTestPlan
 
 private def requiredObligationFrom
     (plan : PortableTestPlan)
+    (index : Nat)
     (failure : NonPortableError) : ExternalVerificationObligation := {
   definition := syntheticBinding
-    (DefinitionId.of (plan.planId.value ++ ".external-obligation.1"))
-    ("umpire-portable-required-obligation/v1:" ++ failure.construct)
+    (DefinitionId.of (plan.planId.value ++ ".external-obligation." ++ toString index))
+    ("umpire-portable-required-obligation/v1:" ++ failure.sourceDefinitionId.value ++ ":" ++
+      failure.construct)
   kind := .required
   source := failure.source
   statement := "A separately trusted verifier must check " ++ failure.construct ++ "."
 }
+
+private def lowerPortableTestPlanWithObligations
+    (experiment : ExperimentSpec)
+    (runtimeConfiguration : RuntimeConfiguration)
+    (contract : Contract)
+    (checkedObservation : CheckedObservationPlan)
+    (program : Temporal.System.Execution.Nexus.ObservationProgramDefinition) :
+    Except NonPortableError PortableTestPlan := do
+  let (observation, failures) ← lowerObservationProgramWithFailures checkedObservation program
+    Temporal.System.Nexus.CallerClosure.target.definitions
+  let plan ← lowerPortableTestPlan experiment runtimeConfiguration { contract with observation }
+  let obligations := failures.zipIdx.map fun (failure, index) =>
+    requiredObligationFrom plan (index + 1) failure
+  pure { plan with externalObligations := obligations }
 
 private def normalRuntimeConfiguration : RuntimeConfiguration :=
   Temporal.System.Execution.Nexus.runtimeConfigurationFor
@@ -994,20 +1129,40 @@ def duplicatePortablePlan : Except NonPortableError PortableTestPlan := do
     duplicateRuntimeConfiguration
     contract
 
+private def requiredObligationMapping : ObservationMappingDeclaration := {
+  Temporal.System.Nexus.Observation.mappingDeclaration with
+  rules := Temporal.System.Nexus.Observation.mappingDeclaration.rules.map fun rule =>
+    if rule.id == Temporal.System.Nexus.Observation.Mapping.stateRuleId then
+      { rule with condition := some (.portable (.boolean false)) }
+    else if rule.id == Temporal.System.Nexus.Observation.Mapping.actionRuleId then
+      { rule with condition := some (.portable (.boolean true)) }
+    else if rule.id == Temporal.System.Nexus.Observation.Mapping.outcomeRuleId then
+      { rule with condition := some (.portable (.not (.boolean false))) }
+    else rule
+}
+
+private def requiredObligationCheckedPlanResult : Except ObservationError CheckedObservationPlan :=
+  checkObservation
+    (ObservationCheckContext.ofTarget Temporal.System.Nexus.CallerClosure.target
+      [Temporal.System.Nexus.Observation.Profile.declaration])
+    requiredObligationMapping
+
+private theorem requiredObligationCheckedPlanResult_isSome :
+    requiredObligationCheckedPlanResult.toOption.isSome = true := by
+  native_decide
+
+private def requiredObligationCheckedPlan : CheckedObservationPlan :=
+  requiredObligationCheckedPlanResult.toOption.get requiredObligationCheckedPlanResult_isSome
+
 /-- A compiler fixture proving that an unsupported check remains a required external obligation. -/
 def requiredObligationPortablePlan : Except NonPortableError PortableTestPlan := do
-  let plan ← normalPortablePlan
-  let source : SourceLocation := {
-    path := "Temporal/Tool/PortableEvaluationContractTests.lean"
-    line := 1
-    column := 1
-    provenance := "lean-model"
-  }
-  let failure ← match lowerObservationExpression
-      (DefinitionId.of "umpire.test.unsupported-portable-check") source (.boolean true) with
-    | .error failure => pure failure
-    | .ok _ => nonPortable plan.planId source "expected-unsupported-check"
-  pure { plan with externalObligations := [requiredObligationFrom plan failure] }
+  let contract ← normalContract
+  lowerPortableTestPlanWithObligations
+    Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
+    normalRuntimeConfiguration
+    contract
+    requiredObligationCheckedPlan
+    Temporal.System.Execution.Nexus.canonicalObservationProgramDefinition
 
 /-- Canonical ProtoJSON bytes for the ordinary checked caller-closure Test. -/
 def normalContractProtoJSON : Except NonPortableError String :=

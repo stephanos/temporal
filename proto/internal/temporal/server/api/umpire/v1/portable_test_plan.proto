@@ -57,6 +57,13 @@ enum ExternalVerificationObligationKind {
   EXTERNAL_VERIFICATION_OBLIGATION_KIND_ADVISORY = 2;
 }
 
+enum PlanSelectionReason {
+  PLAN_SELECTION_REASON_UNSPECIFIED = 0;
+  PLAN_SELECTION_REASON_SATISFYING_WITNESS = 1;
+  PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE = 2;
+  PLAN_SELECTION_REASON_BEHAVIOR_SELECTION = 3;
+}
+
 enum ProvenanceOutcome {
   PROVENANCE_OUTCOME_UNSPECIFIED = 0;
   PROVENANCE_OUTCOME_EXTERNAL = 1;
@@ -226,6 +233,36 @@ message RuntimeProgram {
   repeated DefinitionBinding authority_required_capabilities = 8;
 }
 
+message PlanSearchLimits {
+  int64 max_semantic_transitions = 1;
+  int64 max_selected_actions = 2;
+  int64 max_candidate_evaluations = 3;
+}
+
+message PlanExploredCounts {
+  int64 setups = 1;
+  int64 traces = 2;
+  int64 transitions = 3;
+  int64 property_evaluations = 4;
+}
+
+message PlanArtifactProvenance {
+  repeated string source_definition_ids = 1;
+  repeated SourceLocation source_locations = 2;
+}
+
+message PlanArtifactProjection {
+  PlanSearchLimits expanded_limits = 1;
+  PlanSelectionReason selection_reason = 2;
+  PlanExploredCounts explored = 3;
+  repeated KnownGap experiment_known_gaps = 4;
+  PlanArtifactProvenance experiment_provenance = 5;
+  repeated KnownGap runtime_known_gaps = 6;
+  PlanArtifactProvenance runtime_provenance = 7;
+  repeated string experiment_observation_requirement_definition_ids = 8;
+  PortableObservationConfig runtime_observation_config = 9;
+}
+
 message ExecutionProgram {
   DefinitionBinding setup = 1;
   DefinitionBinding query = 2;
@@ -247,6 +284,7 @@ message ExecutionProgram {
   repeated DefinitionBinding capability_requirements = 18;
   repeated ExecutionCheckpoint checkpoints = 19;
   RuntimeProgram runtime = 20;
+  PlanArtifactProjection artifact_projection = 21;
 }
 
 message DirectPlanTrace {}

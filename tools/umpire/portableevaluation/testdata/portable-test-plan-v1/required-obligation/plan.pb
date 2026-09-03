@@ -1,5 +1,6 @@
 
-Cworkflow-nexus.query.exact-action-caller-closure.portable-test-plan ^”è‡† »RHŠië GàÔÖÉeS%4µó¡×BÉ2†&
+Cworkflow-nexus.query.exact-action-caller-closure.portable-test-plan ¨]k¸éå<ƒªì2
+bg‡àòA;Ü«ç(ç[J2ä1
 
 6workflow-nexus.query.exact-action-caller-closure.setupGsha256:e09096b6a3a8d167fd1c476c4ac58ee2d68893a3207e2cd25e9d0b77e2ca0928{
 0workflow-nexus.query.exact-action-caller-closureGsha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458afo
@@ -72,11 +73,31 @@ t
 w
 ,temporal.system.nexus.caller-closure.profileGsha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105}
 2temporal.nexus.observation-program.basic-lifecycleGsha256:1ab36fdcd2978dec901678491646ec67fe0fc1d3bd1883e599bc2c53810b3480w
-,temporal.system.nexus.caller-closure.mappingGsha256:150c75ffcdd8b8e6e2ca8807c2c6ac7d924407b3291a0bc1f10ea04469a7df9b*°ê €(€€@*°ê €(€€@*°ê €(€€€*˜u €(€€@*˜u €(€€@2r
+,temporal.system.nexus.caller-closure.mappingGsha256:bbe42ad2120001b68f1def379c0314ddab33488f0cbfa650d3be303eeb4709f0*°ê €(€€@*°ê €(€€@*°ê €(€€€*˜u €(€€@*˜u €(€€@2r
 p
 %umpire.execution.termination.completeGsha256:372ad4b96f0913f09b91874406756befe453b272b2f90f12c3a7118f7538309b:n
 l
-!umpire.execution.cleanup.completeGsha256:2163b74a5d619c57e9c6fd2c32345fce323e6901d7176ce24a4680982770bbb2:µ{
+!umpire.execution.cleanup.completeGsha256:2163b74a5d619c57e9c6fd2c32345fce323e6901d7176ce24a4680982770bbb2ªÚ
+ "'#umpire.known-gap.execution-evidence"($umpire.known-gap.artifact-migrations"%!umpire.known-gap.artifact-reading"($umpire.known-gap.evidence-evaluation",(umpire.known-gap.runtime-scheduler-order"*&umpire.known-gap.runtime-storage-order",(umpire.known-gap.runtime-transport-order"umpire.known-gap.promotion*–
+$workflow-nexus.behavior.exact-action
+$workflow-nexus.kernel.caller-closure
+&workflow-nexus.property.caller-closure
+0workflow-nexus.query.exact-action-caller-closure
+$workflow-nexus.target.caller-closureH
+6Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
+lean-model:â
+2temporal.nexus.observation-program.basic-lifecycle
+1temporal.nexus.participant-program.caller-closure
+3temporal.nexus.runtime-configuration.caller-closure
+0temporal.nexus.synthetic.basic-lifecycle.mapping
+0temporal.nexus.synthetic.basic-lifecycle.profile
+(temporal.runtime-profile.ephemeral-local6
+$Temporal/System/Execution/Nexus.lean"
+lean-modelB(nexus.observation.cancellation-deliveredB,nexus.observation.pending-cancellation-countB&workflow-nexus.relation.owns-operationJù
+{
+0temporal.nexus.synthetic.basic-lifecycle.profileGsha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105}
+2temporal.nexus.observation-program.basic-lifecycleGsha256:1ab36fdcd2978dec901678491646ec67fe0fc1d3bd1883e599bc2c53810b3480{
+0temporal.nexus.synthetic.basic-lifecycle.mappingGsha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2:äi
 Ê
 w
 ,temporal.system.nexus.caller-closure.profileGsha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105 
@@ -133,12 +154,12 @@ $umpire.evidence.kind.control-receipt€ 2-
 $umpire.evidence.correlation.workflowM
 umpire.evidence.kind.cleanup-umpire.evidence.field.workflow-correlation-idY
 (umpire.evidence.kind.participant-command-umpire.evidence.field.workflow-correlation-id\
-+umpire.evidence.kind.workflow-history-event-umpire.evidence.field.workflow-correlation-id¤:
++umpire.evidence.kind.workflow-history-event-umpire.evidence.field.workflow-correlation-idÓ(
 }
 2temporal.nexus.observation-program.basic-lifecycleGsha256:1ab36fdcd2978dec901678491646ec67fe0fc1d3bd1883e599bc2c53810b34808
 &Temporal/System/Nexus/Observation.lean"
 lean-modelw
-,temporal.system.nexus.caller-closure.mappingGsha256:150c75ffcdd8b8e6e2ca8807c2c6ac7d924407b3291a0bc1f10ea04469a7df9b *Ê
+,temporal.system.nexus.caller-closure.mappingGsha256:bbe42ad2120001b68f1def379c0314ddab33488f0cbfa650d3be303eeb4709f0 *Ê
 w
 ,temporal.system.nexus.caller-closure.profileGsha256:ac3cf245ad3e4a311eb6372be9caf49301c7e8ad3ee1b1875a53ea69d1ddc105 
 umpire.evidence.source.cleanup(
@@ -194,26 +215,7 @@ $umpire.evidence.kind.control-receipt€ 2-
 $umpire.evidence.correlation.workflowM
 umpire.evidence.kind.cleanup-umpire.evidence.field.workflow-correlation-idY
 (umpire.evidence.kind.participant-command-umpire.evidence.field.workflow-correlation-id\
-+umpire.evidence.kind.workflow-history-event-umpire.evidence.field.workflow-correlation-id2˜
-0temporal.system.nexus.caller-closure.rule.action$umpire.evidence.kind.control-receiptv
-+temporal.system.nexus.caller-closure.actionGsha256:bcc8eb5ebade5e2b41952b60f0f2edb5adaabc157e5e4cb2aac78402fc4f6f3c *2¬:©
-y2w
-TR
-$umpire.evidence.kind.control-receipt*umpire.evidence.field.action-definition-id
-
-workflow.action.force-close
-R2P
-GE
-$umpire.evidence.kind.control-receiptumpire.evidence.field.attempt
-1
-X2V
-FD
-$umpire.evidence.kind.control-receiptumpire.evidence.field.status
-
-
-accepted:
-
-force-close2Ô
++umpire.evidence.kind.workflow-history-event-umpire.evidence.field.workflow-correlation-id2Ô
 <temporal.system.nexus.caller-closure.rule.cancellation-count(umpire.evidence.kind.participant-commandŽ
 Ctemporal.system.nexus.caller-closure.observation.cancellation-countGsha256:66e8faebb2e8b32b36907b10d9959cbdc37463525e4417e93e9315035ba3079a *2j2h
 _]
@@ -228,15 +230,7 @@ QO
 ,
 *temporal.history.WorkflowExecutionCanceled:
 
-true2÷
-1temporal.system.nexus.caller-closure.rule.outcome+umpire.evidence.kind.workflow-history-eventw
-,temporal.system.nexus.caller-closure.outcomeGsha256:2185cdade30b6f794cbe900182852afa263252f437036958211d4ed74fb2ea5f *2†2ƒ
-QO
-+umpire.evidence.kind.workflow-history-event umpire.evidence.field.event-type.
-,
-*temporal.history.WorkflowExecutionCanceled:
-	
-upgrade2‡
+true2‡
 3temporal.system.nexus.caller-closure.rule.ownership+umpire.evidence.kind.workflow-history-event…
 :temporal.system.nexus.caller-closure.observation.ownershipGsha256:433359295484db1db91a831168ba30f3ddb70804019d1c2a9022e420b6ce0670 *2†2ƒ
 QO
@@ -244,27 +238,9 @@ QO
 ,
 *temporal.history.WorkflowExecutionCanceled:
 
-true2¾
-7temporal.system.nexus.caller-closure.rule.state.initial+umpire.evidence.kind.workflow-history-eventu
-*temporal.system.nexus.caller-closure.stateGsha256:cd889a3d30e2c676a25c690208b9baf3ae1bffaaae3a06221b818d2dfbbe6b62 *2…2‚
-QO
-+umpire.evidence.kind.workflow-history-event umpire.evidence.field.event-type-
-+
-)temporal.history.WorkflowExecutionStarted:QO
-+umpire.evidence.kind.workflow-history-event umpire.evidence.field.event-type2Ã
-9temporal.system.nexus.caller-closure.rule.state.resulting+umpire.evidence.kind.workflow-history-eventu
-*temporal.system.nexus.caller-closure.stateGsha256:cd889a3d30e2c676a25c690208b9baf3ae1bffaaae3a06221b818d2dfbbe6b62 *2†2ƒ
-QO
-+umpire.evidence.kind.workflow-history-event umpire.evidence.field.event-type.
-,
-*temporal.history.WorkflowExecutionCanceled:QO
-+umpire.evidence.kind.workflow-history-event umpire.evidence.field.event-type:e
-0temporal.system.nexus.caller-closure.rule.action1temporal.system.nexus.caller-closure.rule.outcome:s
+true:s
 <temporal.system.nexus.caller-closure.rule.cancellation-count3temporal.system.nexus.caller-closure.rule.ownership:r
-2temporal.system.nexus.caller-closure.rule.delivery<temporal.system.nexus.caller-closure.rule.cancellation-count:n
-1temporal.system.nexus.caller-closure.rule.outcome9temporal.system.nexus.caller-closure.rule.state.resulting:k
-7temporal.system.nexus.caller-closure.rule.state.initial0temporal.system.nexus.caller-closure.rule.action:o
-9temporal.system.nexus.caller-closure.rule.state.resulting2temporal.system.nexus.caller-closure.rule.delivery*‹
+2temporal.system.nexus.caller-closure.rule.delivery<temporal.system.nexus.caller-closure.rule.cancellation-count*‹
 q
 &workflow-nexus.property.caller-closureGsha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192fH
 6Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
@@ -363,10 +339,18 @@ z
 #workflow-nexus.capability.ownershipGsha256:73d04302ed6891531803d91ab7be3e75939f132e8dacac8a33bb6ed880f6ea4c:semantic-transitionsBK
 €€@€N   °ê(À©
 € €€€"@
-4294967295€ê0*	€€€€€J'#umpire.known-gap.execution-evidenceJ($umpire.known-gap.artifact-migrationsJ%!umpire.known-gap.artifact-readingJ($umpire.known-gap.evidence-evaluationJ,(umpire.known-gap.runtime-scheduler-orderJ*&umpire.known-gap.runtime-storage-orderJ,(umpire.known-gap.runtime-transport-orderJumpire.known-gap.promotionR¶
+4294967295€ê0*	€€€€€J'#umpire.known-gap.execution-evidenceJ($umpire.known-gap.artifact-migrationsJ%!umpire.known-gap.artifact-readingJ($umpire.known-gap.evidence-evaluationJ,(umpire.known-gap.runtime-scheduler-orderJ*&umpire.known-gap.runtime-storage-orderJ,(umpire.known-gap.runtime-transport-orderJumpire.known-gap.promotionRª
 ¤
-Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.1Gsha256:9072a241d1e01f917369b7a26b112a34f73635ab02ff904006fc8c95a0372b83D
-2Temporal/Tool/PortableEvaluationContractTests.lean"
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.1Gsha256:933a65ad26d6ce17fbac92954a8ae7b1f4f2dcc027b121ce26cd5855eb7d241b8
+&Temporal/System/Nexus/Observation.lean"
+lean-model"EA separately trusted verifier must check observation.literal-boolean.Rž
+¤
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.2Gsha256:b3dbbe310093af026b1b358913641425576091244756ba8e5a10e1785102f7748
+&Temporal/System/Nexus/Observation.lean"
+lean-model"9A separately trusted verifier must check observation.not.Rª
+¤
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.3Gsha256:933a65ad26d6ce17fbac92954a8ae7b1f4f2dcc027b121ce26cd5855eb7d241b8
+&Temporal/System/Nexus/Observation.lean"
 lean-model"EA separately trusted verifier must check observation.literal-boolean.*‘
 
 €

@@ -124,9 +124,12 @@ example :
 
 private def requiredObligationRetained : Bool :=
   match obligationPlan.externalObligations with
-  | [obligation] =>
-      obligation.kind == .required &&
-        obligation.source.path == "Temporal/Tool/PortableEvaluationContractTests.lean"
+  | [first, second, third] =>
+      first.kind == .required && second.kind == .required && third.kind == .required &&
+        first.definition != second.definition && second.definition != third.definition &&
+        first.source == Temporal.System.Nexus.Observation.mappingDeclaration.source &&
+        second.source == Temporal.System.Nexus.Observation.mappingDeclaration.source &&
+        third.source == Temporal.System.Nexus.Observation.mappingDeclaration.source
   | _ => false
 
 example :

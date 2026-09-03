@@ -3,6 +3,8 @@ package executor
 import (
 	"context"
 	"errors"
+	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/evaluationcontract"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
@@ -19,6 +22,46 @@ import (
 	"go.temporal.io/server/tools/umpire/testplan"
 	"google.golang.org/protobuf/proto"
 )
+
+func TestPrepareLeanGeneratedModelPlansRetainExactArtifactBindings(t *testing.T) {
+	for _, name := range []string{"normal", "duplicate-delivery"} {
+		t.Run(name, func(t *testing.T) {
+			encoded, err := os.ReadFile(filepath.Join(
+				"..", "portableevaluation", "testdata", "portable-test-plan-v1", name, "plan.pb",
+			))
+			require.NoError(t, err)
+			plan := new(umpirespb.PortableTestPlan)
+			require.NoError(t, proto.Unmarshal(encoded, plan))
+			request := fixtureRequest(t, name)
+			wantInput, err := artifact.AdmitSet([]artifact.SetMember{
+				{Path: "artifacts/experiment.json", Encoded: request.GetInput().GetExperiment()},
+				{Path: "artifacts/runtime-configuration.json", Encoded: request.GetInput().GetRuntimeConfig()},
+			})
+			require.NoError(t, err)
+			gotInput, err := projectPortableExecution(plan)
+			require.NoError(t, err)
+			wantExecutable, ok := wantInput.Executable()
+			require.True(t, ok)
+			gotExecutable, ok := gotInput.Executable()
+			require.True(t, ok)
+			require.Equal(t, wantExecutable.Experiment(), gotExecutable.Experiment())
+			require.Equal(t, wantExecutable.RuntimeConfiguration(), gotExecutable.RuntimeConfiguration())
+
+			prepared, err := preparePortableExecution(
+				context.Background(), plan,
+				func(
+					_ context.Context,
+					requested testplan.ModelProvenanceBinding,
+				) (testplan.ModelProvenanceBinding, error) {
+					return requested, nil
+				},
+			)
+
+			require.NoError(t, err)
+			protorequire.ProtoEqual(t, plan, prepared.plan.Plan())
+		})
+	}
+}
 
 func TestPortableExecutorRunsExternalAndModelPlansThroughOnePipeline(t *testing.T) {
 	for _, model := range []bool{false, true} {
@@ -296,6 +339,41 @@ func portableExecutorFixturePlan(t *testing.T, model bool) *umpirespb.PortableTe
 				contract, configuration.AuthorityProfile.RequiredCapabilityDefinitionIDs,
 			),
 		},
+		ArtifactProjection: &umpirespb.PlanArtifactProjection{
+			ExpandedLimits: &umpirespb.PlanSearchLimits{
+				MaxSemanticTransitions:  portableExecutorNatural(t, experiment.Plan.ExpandedLimits.Behavior.Transitions.Value),
+				MaxSelectedActions:      portableExecutorNatural(t, experiment.Plan.ExpandedLimits.Behavior.SelectedActions.Value),
+				MaxCandidateEvaluations: portableExecutorNatural(t, experiment.Plan.ExpandedLimits.Search.Value),
+			},
+			SelectionReason: portableExecutorSelectionReason(experiment.Plan.SelectionReason),
+			Explored: &umpirespb.PlanExploredCounts{
+				Setups:              portableExecutorNatural(t, experiment.Plan.Explored.Setups),
+				Traces:              portableExecutorNatural(t, experiment.Plan.Explored.Traces),
+				Transitions:         portableExecutorNatural(t, experiment.Plan.Explored.Transitions),
+				PropertyEvaluations: portableExecutorNatural(t, experiment.Plan.Explored.PropertyEvaluations),
+			},
+			ExperimentKnownGaps:  portableExecutorKnownGaps(experiment.Plan.KnownGaps),
+			ExperimentProvenance: portableExecutorArtifactProvenance(experiment.Plan.Provenance),
+			RuntimeKnownGaps:     portableExecutorKnownGaps(configuration.KnownGaps),
+			RuntimeProvenance:    portableExecutorArtifactProvenance(configuration.Provenance),
+			ExperimentObservationRequirementDefinitionIds: append(
+				[]string{}, experiment.ObservationRequirementDefinitionIDs...,
+			),
+			RuntimeObservationConfig: &umpirespb.PortableObservationConfig{
+				Profile: portableExecutorBinding(
+					configuration.Observation.ProfileDefinitionID,
+					configuration.Observation.ProfileBehaviorFingerprint,
+				),
+				Program: portableExecutorBinding(
+					configuration.Observation.ProgramDefinitionID,
+					configuration.Observation.ProgramBehaviorFingerprint,
+				),
+				Mapping: portableExecutorBinding(
+					configuration.Observation.MappingDefinitionID,
+					configuration.Observation.MappingBehaviorFingerprint,
+				),
+			},
+		},
 	}
 	for _, occurrence := range experiment.Plan.LinearExtension {
 		execution.Occurrences = append(execution.Occurrences, &umpirespb.PlannedOccurrence{
@@ -334,7 +412,10 @@ func portableExecutorFixturePlan(t *testing.T, model bool) *umpirespb.PortableTe
 			},
 			Output: &umpirespb.OutputLimits{MaxDiagnosticBytes: 64 << 10, MaxResultBytes: 4 << 20},
 		},
-		KnownGaps: []*umpirespb.KnownGap{}, ExternalObligations: []*umpirespb.ExternalVerificationObligation{},
+		KnownGaps: append(
+			portableExecutorKnownGaps(experiment.Plan.KnownGaps), portableExecutorKnownGaps(configuration.KnownGaps)...,
+		),
+		ExternalObligations: []*umpirespb.ExternalVerificationObligation{},
 	}
 	if model {
 		projected, projectErr := projectPortableExecution(plan)
@@ -475,6 +556,55 @@ func portableExecutorLocations(values []artifactv2.SourceLocation) []*umpirespb.
 		}
 	}
 	return result
+}
+
+func portableExecutorArtifactProvenance(value artifactv2.Provenance) *umpirespb.PlanArtifactProvenance {
+	return &umpirespb.PlanArtifactProvenance{
+		SourceDefinitionIds: append([]string{}, value.SourceDefinitionIDs...),
+		SourceLocations:     portableExecutorLocations(value.SourceLocations),
+	}
+}
+
+func portableExecutorKnownGaps(values []artifactv2.KnownGap) []*umpirespb.KnownGap {
+	result := make([]*umpirespb.KnownGap, len(values))
+	for index, value := range values {
+		result[index] = &umpirespb.KnownGap{Kind: portableExecutorKnownGapKind(value.Kind), Code: value.Code}
+		if value.Subject != nil {
+			result[index].Subject = *value.Subject
+		}
+		if value.Detail != nil {
+			result[index].Detail = *value.Detail
+		}
+	}
+	return result
+}
+
+func portableExecutorKnownGapKind(kind string) umpirespb.KnownGapKind {
+	switch kind {
+	case "capability-contract":
+		return umpirespb.KNOWN_GAP_KIND_CAPABILITY_CONTRACT
+	case "input":
+		return umpirespb.KNOWN_GAP_KIND_INPUT
+	case "interpretation":
+		return umpirespb.KNOWN_GAP_KIND_INTERPRETATION
+	case "claim":
+		return umpirespb.KNOWN_GAP_KIND_CLAIM
+	default:
+		return umpirespb.KNOWN_GAP_KIND_UNSPECIFIED
+	}
+}
+
+func portableExecutorSelectionReason(reason string) umpirespb.PlanSelectionReason {
+	switch reason {
+	case "satisfying-witness":
+		return umpirespb.PLAN_SELECTION_REASON_SATISFYING_WITNESS
+	case "violating-counterexample":
+		return umpirespb.PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE
+	case "behavior-selection":
+		return umpirespb.PLAN_SELECTION_REASON_BEHAVIOR_SELECTION
+	default:
+		return umpirespb.PLAN_SELECTION_REASON_UNSPECIFIED
+	}
 }
 
 func portableExecutorNatural(t testing.TB, value artifactv2.Natural) int64 {

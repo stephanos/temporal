@@ -461,10 +461,14 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 
 func TestAdmissionUsesCompleteKnownGapIdentity(t *testing.T) {
 	plan := testPlan()
-	plan.KnownGaps = append(plan.KnownGaps, &umpirespb.KnownGap{
+	second := &umpirespb.KnownGap{
 		Kind: umpirespb.KNOWN_GAP_KIND_CLAIM, Code: "umpire.gap.external-fixture",
 		Subject: "umpire.plan.zzz", Detail: "second scoped gap",
-	})
+	}
+	plan.KnownGaps = append(plan.KnownGaps, second)
+	plan.GetExecution().GetArtifactProjection().ExperimentKnownGaps = append(
+		plan.GetExecution().GetArtifactProjection().GetExperimentKnownGaps(), proto.CloneOf(second),
+	)
 	_, err := Seal(plan)
 	require.NoError(t, err)
 }
@@ -693,10 +697,7 @@ func testPlan() *umpirespb.PortableTestPlan {
 		Execution:    testExecutionProgram(),
 		Verification: testVerificationProgram(),
 		Limits:       testLimits(),
-		KnownGaps: []*umpirespb.KnownGap{{
-			Kind: umpirespb.KNOWN_GAP_KIND_CLAIM,
-			Code: "umpire.gap.external-fixture", Subject: "umpire.plan.external.basic", Detail: "fixture gap",
-		}},
+		KnownGaps:    []*umpirespb.KnownGap{testKnownGap()},
 		ExternalObligations: []*umpirespb.ExternalVerificationObligation{{
 			Definition: testBinding("umpire.obligation.basic"),
 			Kind:       umpirespb.EXTERNAL_VERIFICATION_OBLIGATION_KIND_ADVISORY,
@@ -835,6 +836,52 @@ func testExecutionProgram() *umpirespb.ExecutionProgram {
 				testBinding("umpire.capability.authority"),
 			},
 		},
+		ArtifactProjection: testArtifactProjection(),
+	}
+}
+
+func testArtifactProjection() *umpirespb.PlanArtifactProjection {
+	return &umpirespb.PlanArtifactProjection{
+		ExpandedLimits: &umpirespb.PlanSearchLimits{
+			MaxSemanticTransitions: 1, MaxSelectedActions: 1, MaxCandidateEvaluations: 10,
+		},
+		SelectionReason: umpirespb.PLAN_SELECTION_REASON_BEHAVIOR_SELECTION,
+		Explored: &umpirespb.PlanExploredCounts{
+			Setups: 1, Traces: 1, Transitions: 1, PropertyEvaluations: 1,
+		},
+		ExperimentKnownGaps: []*umpirespb.KnownGap{testKnownGap()},
+		ExperimentProvenance: &umpirespb.PlanArtifactProvenance{
+			SourceDefinitionIds: []string{
+				"umpire.behavior.basic", "umpire.kernel.basic", "umpire.property.basic",
+				"umpire.query.basic", "umpire.target.basic",
+			},
+			SourceLocations: []*umpirespb.SourceLocation{{
+				Path: "clients/example/plan.proto", Line: 1, Column: 1, Provenance: "external fixture",
+			}},
+		},
+		RuntimeKnownGaps: []*umpirespb.KnownGap{},
+		RuntimeProvenance: &umpirespb.PlanArtifactProvenance{
+			SourceDefinitionIds: []string{
+				"umpire.authority.basic", "umpire.evidence-profile.basic", "umpire.observation-mapping.basic",
+				"umpire.observation-program.basic", "umpire.runtime-configuration.basic",
+			},
+			SourceLocations: []*umpirespb.SourceLocation{{
+				Path: "clients/example/runtime.proto", Line: 1, Column: 1, Provenance: "external fixture",
+			}},
+		},
+		ExperimentObservationRequirementDefinitionIds: []string{"umpire.observation.expected"},
+		RuntimeObservationConfig: &umpirespb.PortableObservationConfig{
+			Profile: testBinding("umpire.evidence-profile.basic"),
+			Program: testBinding("umpire.observation-program.basic"),
+			Mapping: testBinding("umpire.observation-mapping.basic"),
+		},
+	}
+}
+
+func testKnownGap() *umpirespb.KnownGap {
+	return &umpirespb.KnownGap{
+		Kind: umpirespb.KNOWN_GAP_KIND_CLAIM,
+		Code: "umpire.gap.external-fixture", Subject: "umpire.plan.external.basic", Detail: "fixture gap",
 	}
 }
 

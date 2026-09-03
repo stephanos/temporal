@@ -336,6 +336,36 @@ func portableExecutionProgram(contract *umpirespb.EvaluationContract) *umpirespb
 			Cleanup:                       &umpirespb.CleanupObligation{Definition: testBinding("test.cleanup.portable")},
 			AuthorityRequiredCapabilities: []*umpirespb.DefinitionBinding{capability},
 		},
+		ArtifactProjection: portableArtifactProjection(contract),
+	}
+}
+
+func portableArtifactProjection(contract *umpirespb.EvaluationContract) *umpirespb.PlanArtifactProjection {
+	observation := contract.GetObservation()
+	return &umpirespb.PlanArtifactProjection{
+		ExpandedLimits: &umpirespb.PlanSearchLimits{
+			MaxSemanticTransitions: 1, MaxSelectedActions: 1, MaxCandidateEvaluations: 10_000_000,
+		},
+		SelectionReason: umpirespb.PLAN_SELECTION_REASON_BEHAVIOR_SELECTION,
+		Explored: &umpirespb.PlanExploredCounts{
+			Setups: 1, Traces: 1, Transitions: 1, PropertyEvaluations: 1,
+		},
+		ExperimentKnownGaps: []*umpirespb.KnownGap{},
+		ExperimentProvenance: &umpirespb.PlanArtifactProvenance{
+			SourceDefinitionIds: []string{"test.query.portable"},
+			SourceLocations:     []*umpirespb.SourceLocation{testLocation()},
+		},
+		RuntimeKnownGaps: []*umpirespb.KnownGap{},
+		RuntimeProvenance: &umpirespb.PlanArtifactProvenance{
+			SourceDefinitionIds: []string{"test.runtime-config.portable"},
+			SourceLocations:     []*umpirespb.SourceLocation{testLocation()},
+		},
+		ExperimentObservationRequirementDefinitionIds: []string{"system.observation.count"},
+		RuntimeObservationConfig: &umpirespb.PortableObservationConfig{
+			Profile: proto.CloneOf(observation.GetProfile().GetDefinition()),
+			Program: proto.CloneOf(observation.GetDefinition()),
+			Mapping: proto.CloneOf(observation.GetMapping()),
+		},
 	}
 }
 
