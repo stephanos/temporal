@@ -519,7 +519,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-44-seal-observation-traces-and-centralize.md",
-  "status": "open",
+  "status": "done",
   "title": "Seal Observation traces and centralize semantic coordinates",
   "tracker": {
     "baseHashFlow": null,
@@ -532,5 +532,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T03:57:04.453757Z"
+  "updated_at": "2026-09-03T16:30:59.903684Z"
 }
