@@ -6,10 +6,14 @@ import (
 	"context"
 	"errors"
 	"slices"
+	"strconv"
 
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/artifact"
+	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	"go.temporal.io/server/tools/umpire/internal/runtimeengine"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
+	"google.golang.org/protobuf/proto"
 )
 
 // InputBinding is the complete generated identity of one executable Artifact
@@ -24,6 +28,21 @@ type InputBinding struct {
 	RuntimeConfigurationArtifactChecksum     string
 	RuntimeConfigurationBehaviorFingerprint  string
 	AuthorityRequiredCapabilityDefinitionIDs []string
+	RuntimeBindingSlots                      []*umpirespb.RuntimeBindingSlot
+}
+
+// RuntimeBindingValue is one adapter-resolved scalar for a declared runtime slot.
+type RuntimeBindingValue struct {
+	Definition *umpirespb.DefinitionBinding
+	Value      *umpirespb.Value
+}
+
+// RuntimeBindingResolver fills only the runtime slots declared by a portable plan.
+type RuntimeBindingResolver interface {
+	ResolveRuntimeBindings(
+		umpireruntime.CheckedRunRequest,
+		[]*umpirespb.RuntimeBindingSlot,
+	) ([]RuntimeBindingValue, error)
 }
 
 type bindingFailure struct {
@@ -118,6 +137,9 @@ func Run(
 		return umpireruntime.Output{}, classifyRunFailure(err, false)
 	}
 	if err := validateAuthorityBinding(binding, request); err != nil {
+		return umpireruntime.Output{}, classifyRunFailure(err, false)
+	}
+	if err := resolveRuntimeBindings(binding, request, adapter); err != nil {
 		return umpireruntime.Output{}, classifyRunFailure(err, false)
 	}
 	return runChecked(ctx, request, adapter)
@@ -217,4 +239,155 @@ func validateAuthorityBinding(
 		}
 	}
 	return nil
+}
+
+func resolveRuntimeBindings(
+	expected InputBinding,
+	request umpireruntime.CheckedRunRequest,
+	adapter Adapter,
+) error {
+	if len(expected.RuntimeBindingSlots) == 0 {
+		return nil
+	}
+	resolver, ok := adapter.(RuntimeBindingResolver)
+	if !ok {
+		return runtimeBindingFailure("runtime binding resolver is required")
+	}
+	slots := make([]*umpirespb.RuntimeBindingSlot, len(expected.RuntimeBindingSlots))
+	for index, slot := range expected.RuntimeBindingSlots {
+		slots[index] = proto.CloneOf(slot)
+	}
+	bindings, err := resolver.ResolveRuntimeBindings(request, slots)
+	if err != nil {
+		return runtimeBindingFailure("runtime binding resolution failed: " + err.Error())
+	}
+	values, err := checkedRuntimeBindingValues(expected.RuntimeBindingSlots, bindings)
+	if err != nil {
+		return err
+	}
+	return validateRuntimePreconditions(request.Experiment().Plan, values)
+}
+
+type checkedRuntimeBindingValue struct {
+	value string
+}
+
+func checkedRuntimeBindingValues(
+	slots []*umpirespb.RuntimeBindingSlot,
+	bindings []RuntimeBindingValue,
+) (map[string]checkedRuntimeBindingValue, error) {
+	if len(bindings) != len(slots) {
+		return nil, runtimeBindingFailure("runtime binding resolution is incomplete")
+	}
+	expected := make(map[string]*umpirespb.RuntimeBindingSlot, len(slots))
+	for _, slot := range slots {
+		if slot == nil || slot.GetDefinition() == nil {
+			return nil, runtimeBindingFailure("runtime binding slot is malformed")
+		}
+		expected[slot.GetDefinition().GetDefinitionId()] = slot
+	}
+	values := make(map[string]checkedRuntimeBindingValue, len(bindings))
+	for _, binding := range bindings {
+		if binding.Definition == nil {
+			return nil, runtimeBindingFailure("runtime binding definition is required")
+		}
+		id := binding.Definition.GetDefinitionId()
+		slot, declared := expected[id]
+		if !declared || !proto.Equal(binding.Definition, slot.GetDefinition()) {
+			return nil, runtimeBindingFailure("runtime binding crossed its declared slot")
+		}
+		if _, duplicate := values[id]; duplicate {
+			return nil, runtimeBindingFailure("runtime binding was resolved more than once")
+		}
+		kind, value, valid := runtimeScalar(binding.Value)
+		if !valid || kind != slot.GetValueKind() {
+			return nil, runtimeBindingFailure("runtime binding has a crossed scalar kind")
+		}
+		values[id] = checkedRuntimeBindingValue{value: value}
+	}
+	return values, nil
+}
+
+func runtimeScalar(value *umpirespb.Value) (umpirespb.PortableValueKind, string, bool) {
+	if value == nil {
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, "", false
+	}
+	switch scalar := value.GetValue().(type) {
+	case *umpirespb.Value_Text:
+		if len(scalar.Text) > artifact.MaximumDiagnosticBytes {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, "", false
+		}
+		return umpirespb.PORTABLE_VALUE_KIND_TEXT, scalar.Text, true
+	case *umpirespb.Value_Natural:
+		if !canonicalNatural(scalar.Natural) {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, "", false
+		}
+		return umpirespb.PORTABLE_VALUE_KIND_NATURAL, scalar.Natural, true
+	case *umpirespb.Value_BoolValue:
+		return umpirespb.PORTABLE_VALUE_KIND_BOOLEAN, strconv.FormatBool(scalar.BoolValue), true
+	default:
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, "", false
+	}
+}
+
+func canonicalNatural(value string) bool {
+	if value == "" || (len(value) > 1 && value[0] == '0') || len(value) > artifact.MaximumDiagnosticBytes {
+		return false
+	}
+	for _, digit := range value {
+		if digit < '0' || digit > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+func validateRuntimePreconditions(
+	plan artifactv2.DrivePlan,
+	bindings map[string]checkedRuntimeBindingValue,
+) error {
+	for _, precondition := range plan.ModelPreconditions {
+		left, leftRuntime, leftOK := runtimeOperandValue(plan, precondition.Left, bindings)
+		right, rightRuntime, rightOK := runtimeOperandValue(plan, precondition.Right, bindings)
+		if !leftRuntime && !rightRuntime {
+			continue
+		}
+		if !leftOK || !rightOK {
+			return runtimeBindingFailure("runtime binding precondition is unresolved")
+		}
+		equal := left == right
+		if (precondition.Relation == "equal" && !equal) ||
+			(precondition.Relation == "different" && equal) {
+			return runtimeBindingFailure("runtime binding precondition is not satisfied")
+		}
+	}
+	return nil
+}
+
+func runtimeOperandValue(
+	plan artifactv2.DrivePlan,
+	operand artifactv2.Operand,
+	bindings map[string]checkedRuntimeBindingValue,
+) (value string, runtimeBound bool, ok bool) {
+	if operand.Kind == "value" && operand.Value != nil {
+		return operand.Value.Value, false, true
+	}
+	if operand.Kind != "role" {
+		return "", false, false
+	}
+	if binding, ok := bindings[operand.DefinitionID]; ok {
+		return binding.value, true, true
+	}
+	for _, binding := range plan.Bindings {
+		if binding.RoleDefinitionID == operand.DefinitionID {
+			return binding.Value.Value, false, true
+		}
+	}
+	return "", false, false
+}
+
+func runtimeBindingFailure(message string) error {
+	return &bindingFailure{
+		kind: "runtime-binding", code: "umpire.runner.runtime-binding.unsatisfied", message: message,
+	}
 }

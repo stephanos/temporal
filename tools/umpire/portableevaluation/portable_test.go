@@ -178,6 +178,7 @@ func TestEvaluatePortableEnforcesWorkAndResultBoundaries(t *testing.T) {
 		})
 		belowResult := EvaluatePortable(context.Background(), portableRequestFor(below, contract, evidence, request))
 		require.LessOrEqual(t, int64(proto.Size(belowResult)), required-1)
+		require.Equal(t, request.ExpectedRunIdentity, belowResult.GetRunIdentity())
 		require.Equal(t, umpirespb.EXECUTION_DECISION_INCONCLUSIVE, belowResult.GetDecision())
 		require.NotEqual(t, umpirespb.EXECUTION_TOOLING_STATUS_INTERNAL_ERROR, belowResult.GetToolingStatus())
 		require.Empty(t, belowResult.GetProperties())
