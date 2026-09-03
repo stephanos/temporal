@@ -99,7 +99,7 @@ structure RuntimeConfiguration where
   phaseLimits : List PhaseLimit
   observation : ObservationConfiguration
   participantBindings : List ParticipantBinding
-  knownGaps : List KnownGap
+  knownGaps : KnownGapSet
   provenance : ArtifactProvenance
   provenanceChecksum : ArtifactChecksum
   artifactChecksum : ArtifactChecksum
@@ -298,7 +298,7 @@ structure ExperimentRun where
   sourceClosures : List SourceClosure
   cleanup : CleanupOutcome
   limits : List PhaseLimit
-  knownGaps : List KnownGap
+  knownGaps : KnownGapSet
   provenance : ArtifactProvenance
   provenanceChecksum : ArtifactChecksum
   artifactChecksum : ArtifactChecksum
@@ -352,7 +352,7 @@ private def runtimeConfigurationContentJson (configuration : RuntimeConfiguratio
     ",\"observation\":" ++ observationConfigurationJson configuration.observation ++
     ",\"participantBindings\":" ++
       runtimeArray (configuration.participantBindings.map participantBindingJson) ++
-    ",\"knownGaps\":" ++ runtimeArray (configuration.knownGaps.map canonicalKnownGapJson) ++
+    ",\"knownGaps\":" ++ runtimeArray (configuration.knownGaps.toList.map canonicalKnownGapJson) ++
     ",\"provenance\":" ++ configuration.provenance.canonicalJson ++
     ",\"provenanceChecksum\":" ++ quoteRuntime configuration.provenanceChecksum.render ++ "}"
 
@@ -395,7 +395,7 @@ private def experimentRunContentJson (run : ExperimentRun) : String :=
     ",\"sourceClosures\":" ++ runtimeArray (run.sourceClosures.map sourceClosureJson) ++
     ",\"cleanup\":" ++ cleanupOutcomeJson run.cleanup ++
     ",\"limits\":" ++ runtimeArray (run.limits.map phaseLimitJson) ++
-    ",\"knownGaps\":" ++ runtimeArray (run.knownGaps.map canonicalKnownGapJson) ++
+    ",\"knownGaps\":" ++ runtimeArray (run.knownGaps.toList.map canonicalKnownGapJson) ++
     ",\"provenance\":" ++ run.provenance.canonicalJson ++
     ",\"provenanceChecksum\":" ++ quoteRuntime run.provenanceChecksum.render ++ "}"
 
@@ -514,9 +514,6 @@ def ArtifactProvenance.isValidTransport (provenance : ArtifactProvenance) : Bool
       !stringIsBlank source.path && !stringIsBlank source.provenance &&
         source.line > 0 && source.column > 0
 
-private def knownGapsValid (knownGaps : List KnownGap) : Bool :=
-  (validateKnownGaps knownGaps).isOk
-
 /-- Check the closed RuntimeConfiguration transport without performing authorization. -/
 def RuntimeConfiguration.isValidTransport (configuration : RuntimeConfiguration) : Bool :=
   configuration.formatVersion == "umpire-runtime-configuration/v2" &&
@@ -530,7 +527,7 @@ def RuntimeConfiguration.isValidTransport (configuration : RuntimeConfiguration)
     configuration.observation.programDefinitionId.isNamespaced &&
     configuration.observation.mappingDefinitionId.isNamespaced &&
     participantBindingsValid configuration.participantBindings &&
-    knownGapsValid configuration.knownGaps && configuration.provenance.isValidTransport &&
+    configuration.provenance.isValidTransport &&
     configuration.hasValidChecksums
 
 /-- Close the exact Experiment binding and its capability set. -/
@@ -623,7 +620,7 @@ def ExperimentRun.isValidTransport (run : ExperimentRun) : Bool :=
     run.phaseOutcomes.all phaseOutcomeValid && phaseProgressionValid run.phaseOutcomes &&
     controlAttemptsValid run.attempt run.controlAttempts &&
     sourceClosuresValid run.sourceClosures && cleanupValid run.cleanup &&
-    phaseLimitsValid run.limits && knownGapsValid run.knownGaps && run.provenance.isValidTransport &&
+    phaseLimitsValid run.limits && run.provenance.isValidTransport &&
     run.operationalStatus == expectedOperationalStatus run && run.hasValidChecksums
 
 private def plannedControlLe (left right : DefinitionId × DefinitionId) : Bool :=
