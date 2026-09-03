@@ -10,8 +10,11 @@ def completeEvaluation : ObservationResult :=
   evaluateFixture completeEvidence
 
 def structuralKind : DefinitionId := id "test.evidence.kind.structural"
+def structuralAuxiliaryKind : DefinitionId := id "test.evidence.kind.structural-auxiliary"
 def structuralSourceA : DefinitionId := id "test.evidence.source.a"
 def structuralSourceB : DefinitionId := id "test.evidence.source.b"
+def structuralRuleA : DefinitionId := id "test.observation.rule.structural-a"
+def structuralRuleB : DefinitionId := id "test.observation.rule.structural-b"
 
 def structuralFact
     (recordId : DefinitionId)
@@ -164,6 +167,92 @@ example :
       analysis.closureExpectations.map fun expectation =>
         (expectation.lastSequence, expectation.recordCount),
       analysis.findings) = (20, [(20, 20)], []) := by
+  native_decide
+
+def linkedStructuralFirstId : DefinitionId := id "test.evidence.record.linked-a"
+def linkedStructuralSecondId : DefinitionId := id "test.evidence.record.linked-b"
+
+def linkedStructuralFacts : List EvidenceOrderingFact := [
+  structuralFact linkedStructuralFirstId 1
+    (some { source := structuralSourceA, ordinal := 0 }),
+  {
+    structuralFact linkedStructuralSecondId 1
+      (some { source := structuralSourceB, ordinal := 0 }) with
+    kind := structuralAuxiliaryKind
+  }
+]
+
+def linkedStructuralClosures : List EvidenceClosureFact := [
+  {
+    kind := structuralKind
+    lastSequence := 1
+    source := some structuralSourceA
+    recordCount := some 1
+    byteCount := some 16
+  },
+  {
+    kind := structuralAuxiliaryKind
+    lastSequence := 1
+    source := some structuralSourceB
+    recordCount := some 1
+    byteCount := some 16
+  }
+]
+
+def linkedStructuralSupport
+    (ruleId : DefinitionId) : Observation.Internal.StructuralLinkSupport := {
+  ruleId
+  evidenceIdentities := [linkedStructuralFirstId, linkedStructuralSecondId]
+  orderingSupport := linkedStructuralFacts
+  closureSupport := linkedStructuralClosures
+}
+
+/-- Missing support on one link identifies that link without re-analyzing the shared union. -/
+example :
+    let second := linkedStructuralSupport structuralRuleB
+    let analysis := Observation.Internal.analyzeStructure [] []
+      [structuralKind, structuralAuxiliaryKind] [
+        linkedStructuralSupport structuralRuleA,
+        {
+          second with
+          orderingSupport := second.orderingSupport.tail
+          closureSupport := second.closureSupport.tail
+        }
+      ]
+    analysis.findings = [
+      .inconsistentOrderingSupport structuralRuleB
+        linkedStructuralFacts linkedStructuralFacts.tail,
+      .inconsistentClosureSupport structuralRuleB
+        linkedStructuralClosures linkedStructuralClosures.tail
+    ] := by
+  native_decide
+
+/-- Reordered link support is normalized once and retained under the responsible rule identity. -/
+example :
+    let second := linkedStructuralSupport structuralRuleB
+    let analysis := Observation.Internal.analyzeStructure [] []
+      [structuralKind, structuralAuxiliaryKind] [
+        linkedStructuralSupport structuralRuleA,
+        {
+          second with
+          orderingSupport := second.orderingSupport.reverse
+          closureSupport := second.closureSupport.reverse
+        }
+      ]
+    (analysis.links, analysis.findings) = ([
+      {
+        ruleId := structuralRuleA
+        evidenceIdentities := [linkedStructuralFirstId, linkedStructuralSecondId]
+        facts := linkedStructuralFacts
+        closures := linkedStructuralClosures
+      },
+      {
+        ruleId := structuralRuleB
+        evidenceIdentities := [linkedStructuralFirstId, linkedStructuralSecondId]
+        facts := linkedStructuralFacts
+        closures := linkedStructuralClosures
+      }
+    ], []) := by
   native_decide
 
 /-- Complete closed evidence produces the independently authored Model Trace. -/
