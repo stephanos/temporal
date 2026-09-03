@@ -744,10 +744,9 @@ def checkExecution
         definition.observationProgram
       pure (runtimeConfigurationFor definition.experiment)
     else
-      checkExperimentAgainst duplicateDeliveryExperimentBinding [{
-        definitionId := Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId
-        value := id "workflow-nexus.occurrence.force-close" |>.value
-      }] definition.experiment
+      checkExperimentAgainst duplicateDeliveryExperimentBinding [ModelValue.named
+        Temporal.System.Nexus.Observation.DuplicateDelivery.faultDefinitionId
+        (id "workflow-nexus.occurrence.force-close" |>.value)] definition.experiment
       checkObservationProgramAgainst duplicateDeliveryObservationProgramDefinition
         definition.observationProgram
       pure (duplicateDeliveryRuntimeConfigurationFor definition.experiment)
