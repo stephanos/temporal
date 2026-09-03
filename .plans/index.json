@@ -773,7 +773,7 @@
     {
       "id": "fn-43-deepen-ordinary-property-behavior-and",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
       "status": "open",
       "ready": false,
