@@ -17,10 +17,11 @@ consistently. Capitalized terms have Umpire-specific meanings. Exact Lean names 
 
 Umpire models expected behavior. A Query asks a bounded question about that behavior, and planning
 searches for an answer. When planning selects a Model Trace, it packages an Execution Plan for the
-trace with its Properties and Limits as a Test Plan. Execution attempts the Test Plan against
-Temporal. Run Evaluation uses the resulting Evidence to check the selected trace and its
-Properties. For example, a Nexus Property can require that closing a Workflow cancels its running
-Nexus operation at most once.
+trace with its Properties and Limits as a Test Plan. Execution attempts either a Test Plan or an
+admitted Portable Plan against Temporal. Run Evaluation uses the resulting Evidence to check the
+selected Test or the exact verification program authorized by an external Portable Plan. For
+example, a Nexus Property can require that closing a Workflow cancels its running Nexus operation
+at most once.
 
 ## How the model is organized
 
@@ -121,6 +122,10 @@ Nexus operation at most once.
   joined above the portable executor interface. Plan-local Conformance MUST use only bundled
   portable clauses, report every unresolved obligation, and MUST NOT claim that the executor
   performed an external obligation.
+- **SEM-15 — Lean portable plan compilation.** The Lean model toolchain MUST compile selected
+  checked Tests and their `Umpire.ExperimentSpec` values into model-compiled Portable Plans. Lean is
+  the first model compiler into this format, but it MUST NOT be the exclusive Portable Plan author;
+  any conforming client MAY author an external Portable Plan under SEM-11 and SEM-12.
 
 ### Enforced module boundaries
 
@@ -302,8 +307,9 @@ Nexus operation at most once.
 
 ### Execution and Evidence concepts
 
-- **Execution.** A bounded attempt to run a Test Plan in an environment. It records what happened
-  but does not decide whether a Property passed.
+- **Execution.** A bounded attempt to run a Test Plan or an admitted Portable Plan in an
+  environment. It records what happened but does not decide whether a Property or portable
+  verification clause passed.
 - **Run.** The record of one Execution in one environment, including attempts to perform Actions and
   apply faults, receipts, Evidence, failures, and cleanup.
 - **Fault Request.** A request to apply a fault at a specific point in a Model Trace. It does not
@@ -320,8 +326,9 @@ Nexus operation at most once.
 - **Observation Evaluation.** The stage that applies an Observation to raw Evidence and produces
   Model Facts and Evidence Links.
 - **Run Evaluation.** The process that uses Observation Evaluation to construct a Model Trace,
-  translates the trace through any required Implementation Link, and evaluates its Properties. It
-  decides what a Run proves but does not perform Execution.
+  applies the admitted trace projection including any required Implementation Link, and evaluates
+  its Properties or portable verification clauses. It decides what a Run proves but does not
+  perform Execution.
 - **Stage Status.** The status of one stage, such as planning, Execution, Observation Evaluation,
   Property checking, or verification. It says nothing about another stage unless a rule explicitly
   connects them.
@@ -329,9 +336,10 @@ Nexus operation at most once.
   Evaluation, Implementation Link, Property, and cleanup statuses separate and records Known Gaps
   independently.
 - **Local Canary Decision.** A `pass`, `fail`, or `inconclusive` decision about only the exact Test
-  and Evidence named by one Portable Evaluation Contract. It is neither a Claim Assessment nor a
-  statement about model consistency, exhaustive coverage, compiler correctness, release
-  eligibility, or any other Test.
+  or external Portable Plan and Evidence named by one Portable Evaluation Contract or admitted
+  Portable Plan. For an external Portable Plan it supports only Plan-local Conformance. It is
+  neither a Claim Assessment nor a statement about model consistency, exhaustive coverage,
+  compiler correctness, release eligibility, or any other Test or plan.
 
 ### Execution and Evidence rules
 
@@ -341,8 +349,8 @@ Nexus operation at most once.
   Plan-local Conformance. Runtime and CLI code MUST NOT independently decide Temporal product
   behavior.
 - **EVD-02 — Separate Run Evaluation.** Execution MUST report what happened. Observation Evaluation,
-  Implementation Link application, and Property evaluation MUST be separate steps that determine
-  what the Evidence proves.
+  trace projection including any required Implementation Link, and Property or portable-clause
+  evaluation MUST be separate steps that determine what the Evidence proves.
 - **EVD-03 — Checked Evidence.** Before a Property uses raw Evidence, Umpire MUST normalize it;
   validate its source and identity; order it causally; check for missing records; and translate it
   into Model Facts.
