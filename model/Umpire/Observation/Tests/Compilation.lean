@@ -245,6 +245,81 @@ def structuralFailures : List (Option ObservationErrorKind) := [
   })
 ]
 
+def cycleA : DefinitionId := id "test.rule.a-tail"
+def cycleB : DefinitionId := id "test.rule.b-cycle"
+def cycleC : DefinitionId := id "test.rule.c-cycle"
+def cycleD : DefinitionId := id "test.rule.d-cycle"
+
+def cycleOutput (ruleId : DefinitionId) : DefinitionId :=
+  id (ruleId.value ++ ".output")
+
+def cycleRule (ruleId : DefinitionId) : ObservationRule := {
+  id := ruleId
+  output := cycleOutput ruleId
+  outputKind := .observation
+  value := .portable (.text ruleId.value)
+}
+
+def divergentCycleContext : ObservationCheckContext := {
+  context with
+  definitions := context.definitions ++ [cycleA, cycleB, cycleC, cycleD].map fun ruleId =>
+    metadata (cycleOutput ruleId).value .observation
+  meanings := context.meanings ++ [cycleA, cycleB, cycleC, cycleD].map fun ruleId => {
+    definitionId := cycleOutput ruleId
+    kind := .observation
+    canonicalBehavior := (cycleOutput ruleId).value ++ "/meaning-v1"
+  }
+}
+
+def divergentCycleDeclaration : ObservationMappingDeclaration := {
+  baseDeclaration with
+  id := id "test.mapping.divergent-cycle"
+  digestPolicies := []
+  bindings := []
+  rules := [cycleRule cycleD, cycleRule cycleB, cycleRule cycleA, cycleRule cycleC]
+  ordering := [
+    { before := cycleC, after := cycleA },
+    { before := cycleB, after := cycleC },
+    { before := cycleC, after := cycleD },
+    { before := cycleD, after := cycleB }
+  ]
+  dispositions := []
+}
+
+def mixedGraphAndBoundFaultDeclaration : ObservationMappingDeclaration := {
+  divergentCycleDeclaration with
+  evidenceBound := { value := 0, unit := .evidenceRecords }
+}
+
+def multipleGraphFaultDeclaration : ObservationMappingDeclaration := {
+  baseDeclaration with
+  ordering := [
+    { before := digestRule.id, after := digestRule.id },
+    { before := initialRule.id, after := contributionRule.id },
+    { before := initialRule.id, after := contributionRule.id },
+    { before := contributionRule.id, after := digestRule.id },
+    { before := digestRule.id, after := initialRule.id },
+    { before := id "test.rule.unknown", after := initialRule.id }
+  ]
+}
+
+def compileErrorJson
+    (result : Except ObservationError CheckedObservationPlan) : Option String :=
+  match result with
+  | .ok _ => none
+  | .error failure => some (canonicalObservationErrorJson failure)
+
+example : (
+    compileErrorJson (checkObservation divergentCycleContext mixedGraphAndBoundFaultDeclaration),
+    compileErrorJson (checkObservation context multipleGraphFaultDeclaration),
+    compileErrorJson (checkObservation divergentCycleContext divergentCycleDeclaration)
+  ) = (
+    some "{\"kind\":\"invalid-bound-value\",\"definitionId\":\"test.mapping.divergent-cycle\",\"sourcePath\":\"Umpire/Observation/Tests/Fixtures.lean\",\"offendingValue\":\"0\",\"relatedDefinitionIds\":[]}",
+    some "{\"kind\":\"contradictory-ordering\",\"definitionId\":\"test.mapping.lifecycle\",\"sourcePath\":\"Umpire/Observation/Tests/Fixtures.lean\",\"offendingValue\":\"test.rule.initial-state->test.rule.contribution\",\"relatedDefinitionIds\":[\"test.rule.contribution\",\"test.rule.initial-state\"]}",
+    some "{\"kind\":\"cyclic-ordering\",\"definitionId\":\"test.mapping.divergent-cycle\",\"sourcePath\":\"Umpire/Observation/Tests/Fixtures.lean\",\"offendingValue\":\"test.rule.b-cycle\",\"relatedDefinitionIds\":[\"test.rule.b-cycle\"]}"
+  ) := by
+  native_decide
+
 /-- Each R1 structural conflict reports its precise typed compile-error category. -/
 example : structuralFailures = [
   some .emptyDefinitionId,

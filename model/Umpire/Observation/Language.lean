@@ -1,3 +1,4 @@
+import Umpire.Shared.DefinitionGraph
 import Umpire.Target
 
 /-!
@@ -437,6 +438,16 @@ private def orderLe (left right : ObservationOrdering) : Bool :=
   decide (left.before.value < right.before.value) ||
     (left.before == right.before && decide (left.after.value ≤ right.after.value))
 
+private def orderingEdge (ordering : ObservationOrdering) : DefinitionGraph.Edge := {
+  before := ordering.before
+  after := ordering.after
+}
+
+private def observationOrder (edge : DefinitionGraph.Edge) : ObservationOrdering := {
+  before := edge.before
+  after := edge.after
+}
+
 private def dispositionLe
     (left right : FieldDispositionDeclaration) : Bool := fieldRefLe left.field right.field
 
@@ -472,11 +483,6 @@ private def error
 private def firstDuplicateFieldRef : List EvidenceFieldReference → Option EvidenceFieldReference
   | first :: second :: rest =>
       if first == second then some first else firstDuplicateFieldRef (second :: rest)
-  | _ => none
-
-private def firstDuplicateOrder : List ObservationOrdering → Option ObservationOrdering
-  | first :: second :: rest =>
-      if first == second then some first else firstDuplicateOrder (second :: rest)
   | _ => none
 
 private def requireDefinitionId
@@ -970,41 +976,28 @@ private def compileRules
     } :: checked
   pure (checked.mergeSort checkedRuleLe)
 
-private partial def pathExists
-    (ordering : List ObservationOrdering)
-    (current target : DefinitionId)
-    (visited : List DefinitionId := []) : Bool :=
-  if current == target then true
-  else if visited.contains current then false
-  else
-    (ordering.filter fun edge => edge.before == current).any fun edge =>
-      pathExists ordering edge.after target (current :: visited)
-
 private def validateOrdering
-    (declaration : ObservationMappingDeclaration) : Except ObservationError (List ObservationOrdering) := do
-  let canonical := declaration.ordering.mergeSort orderLe
-  let ruleIds := declaration.rules.map ObservationRule.id
-  match firstDuplicateOrder canonical with
+    (declaration : ObservationMappingDeclaration)
+    (analysis : DefinitionGraph.Analysis) : Except ObservationError (List ObservationOrdering) := do
+  match analysis.edgeFindings.duplicate with
   | some duplicate => throw (error .contradictoryOrdering declaration
       (duplicate.before.value ++ "->" ++ duplicate.after.value)
       [duplicate.before, duplicate.after])
   | none => pure ()
-  for ordering in canonical do
-    if !ruleIds.contains ordering.before || !ruleIds.contains ordering.after then
+  for evidence in analysis.edgeFindings.perEdge do
+    if !evidence.beforeKnown || !evidence.afterKnown then
       throw (error .contradictoryOrdering declaration
-        (ordering.before.value ++ "->" ++ ordering.after.value)
-        [ordering.before, ordering.after])
-    if ordering.before == ordering.after ||
-        canonical.any (fun reverse =>
-          reverse.before == ordering.after && reverse.after == ordering.before) then
+        (evidence.edge.before.value ++ "->" ++ evidence.edge.after.value)
+        [evidence.edge.before, evidence.edge.after])
+    if evidence.isSelf || evidence.hasReverse then
       throw (error .contradictoryOrdering declaration
-        (ordering.before.value ++ "->" ++ ordering.after.value)
-        [ordering.before, ordering.after])
-  for rule in ruleIds.mergeSort idLe do
-    if (canonical.filter fun edge => edge.before == rule).any fun edge =>
-        pathExists canonical edge.after rule [rule] then
-      throw (error .cyclicOrdering declaration rule.value [rule])
-  pure canonical
+        (evidence.edge.before.value ++ "->" ++ evidence.edge.after.value)
+        [evidence.edge.before, evidence.edge.after])
+  match analysis.cycleEvidence with
+  | some evidence =>
+      let witness := evidence.canonicalWitness
+      throw (error .cyclicOrdering declaration witness.value [witness])
+  | none => pure (analysis.canonicalEdges.map observationOrder)
 
 private def validateClosures
     (declaration : ObservationMappingDeclaration)
@@ -1027,7 +1020,12 @@ def checkObservation
   requireDefinitionId declaration declaration.id
   let profile ← selectedProfile context declaration
   requireUniqueIds declaration (declaration.bindings.map ObservationBinding.id)
-  requireUniqueIds declaration (declaration.rules.map ObservationRule.id)
+  let orderingAnalysis := DefinitionGraph.analyze
+    (declaration.rules.map ObservationRule.id)
+    (declaration.ordering.map orderingEdge)
+  match orderingAnalysis.nodeFindings.duplicate with
+  | some duplicate => throw (error .duplicateDefinitionId declaration duplicate.value [duplicate])
+  | none => pure ()
   for binding in declaration.bindings.mergeSort bindingLe do
     requireDefinitionId declaration binding.id
   for rule in declaration.rules.mergeSort ruleLe do
@@ -1038,7 +1036,7 @@ def checkObservation
   validateDispositions declaration profile
   let bindings ← compileBindings declaration profile
   let rules ← compileRules context declaration profile bindings
-  let ordering ← validateOrdering declaration
+  let ordering ← validateOrdering declaration orderingAnalysis
   let closures ← validateClosures declaration profile
   let meanings := rules.map CheckedObservationRule.meaning |>.mergeSort meaningLe |>.eraseDups
   let semantic := planSemanticJson declaration.id declaration.version profile declaration.digestPolicies

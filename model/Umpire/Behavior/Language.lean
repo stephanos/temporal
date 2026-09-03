@@ -1,3 +1,4 @@
+import Umpire.Shared.DefinitionGraph
 import Umpire.Target
 
 /-! Implementation behind the `Umpire.Behavior` public facade. -/
@@ -239,9 +240,6 @@ private def quote (value : String) : String := Lean.Json.compress (.str value)
 private def array (items : List String) : String :=
   "[" ++ String.intercalate "," items ++ "]"
 
-private def idLe (left right : DefinitionId) : Bool :=
-  decide (left.value ≤ right.value)
-
 private def roleLe (left right : ResourceRole) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
@@ -257,6 +255,16 @@ private def boundLe (left right : OccurrenceBound) : Bool :=
 private def orderLe (left right : OccurrenceOrder) : Bool :=
   decide (left.before.value < right.before.value) ||
     (left.before == right.before && decide (left.after.value ≤ right.after.value))
+
+private def orderingEdge (ordering : OccurrenceOrder) : DefinitionGraph.Edge := {
+  before := ordering.before
+  after := ordering.after
+}
+
+private def occurrenceOrder (edge : DefinitionGraph.Edge) : OccurrenceOrder := {
+  before := edge.before
+  after := edge.after
+}
 
 private def bindingLe (left right : RoleBinding) : Bool :=
   decide (left.role.value ≤ right.role.value)
@@ -308,11 +316,6 @@ private def behaviorError
   offendingValue
   relatedDefinitionIds := DefinitionId.canonicalSet relatedDefinitionIds
 }
-
-private def firstDuplicateOrder : List OccurrenceOrder → Option OccurrenceOrder
-  | first :: second :: rest =>
-      if first == second then some first else firstDuplicateOrder (second :: rest)
-  | _ => none
 
 private def requireDefinitionId
     (owner : DefinitionId)
@@ -387,102 +390,28 @@ private def validateSetupConstraint
     throw (behaviorError .invalidBinding owner.id owner.source
       (leftKind.name ++ " != " ++ rightKind.name) [constraint.id])
 
-private structure OrderingGraph where
-  indegree : Std.HashMap DefinitionId Nat
-  outgoing : Std.HashMap DefinitionId (List DefinitionId)
-  incoming : Std.HashMap DefinitionId (List DefinitionId)
-
-private def buildOrderingGraph
-    (occurrences : List DefinitionId)
-    (ordering : List OccurrenceOrder) : OrderingGraph :=
-  ordering.foldl (init := {
-    indegree := occurrences.foldl (init := {}) fun degrees occurrence =>
-      degrees.insert occurrence 0
-    outgoing := {}
-    incoming := {}
-  }) fun graph edge => {
-    indegree := graph.indegree.modify edge.after (fun count => count + 1)
-    outgoing := graph.outgoing.insert edge.before (edge.after :: graph.outgoing.getD edge.before [])
-    incoming := graph.incoming.insert edge.after (edge.before :: graph.incoming.getD edge.after [])
-  }
-
-private def countTopologically
-    (outgoing : Std.HashMap DefinitionId (List DefinitionId))
-    (indegree : Std.HashMap DefinitionId Nat)
-    (pending : List DefinitionId)
-    (count : Nat) : Nat → Nat × Std.HashMap DefinitionId Nat
-  | 0 => (count, indegree)
-  | fuel + 1 =>
-      match pending with
-      | [] => (count, indegree)
-      | current :: rest =>
-          let (indegree, pending) := (outgoing.getD current []).foldl (init := (indegree, rest))
-            fun (degrees, pending) next =>
-              let remaining := degrees.getD next 0 - 1
-              let degrees := degrees.insert next remaining
-              let pending := if remaining == 0 then next :: pending else pending
-              (degrees, pending)
-          countTopologically outgoing indegree pending (count + 1) fuel
-
-private def followResidualPredecessors
-    (incoming : Std.HashMap DefinitionId (List DefinitionId))
-    (indegree : Std.HashMap DefinitionId Nat)
-    (current : DefinitionId)
-    (visited : List DefinitionId) : Nat → Option DefinitionId
-  | 0 => none
-  | fuel + 1 =>
-      if visited.contains current then
-        some current
-      else
-        let predecessors := (incoming.getD current []).filter
-          (fun predecessor => decide (indegree.getD predecessor 0 > 0))
-        match predecessors.mergeSort idLe with
-        | predecessor :: _ =>
-            followResidualPredecessors incoming indegree predecessor (current :: visited) fuel
-        | [] => none
-
-private def orderingCycleWitness?
-    (occurrences : List DefinitionId)
-    (ordering : List OccurrenceOrder) : Option DefinitionId :=
-  let graph := buildOrderingGraph occurrences ordering
-  let pending := occurrences.filter (fun occurrence => graph.indegree.getD occurrence 0 == 0)
-  let (count, indegree) :=
-    countTopologically graph.outgoing graph.indegree pending 0 occurrences.length
-  if count == occurrences.length then
-    none
-  else
-    match occurrences.find? (fun occurrence => indegree.getD occurrence 0 > 0) with
-    | some start =>
-        followResidualPredecessors graph.incoming indegree start [] (occurrences.length + 1)
-    | none => none
-
 private def validateOrdering
     (owner : BehaviorDeclaration)
-    (occurrences : List NamedOccurrence) :
-    List OccurrenceOrder → Except BehaviorError (List OccurrenceOrder)
-  | ordering => do
-      let canonical := ordering.mergeSort orderLe
-      match firstDuplicateOrder canonical with
-      | some edge =>
-          throw (behaviorError .duplicateOrdering owner.id owner.source
-            (edge.before.value ++ "->" ++ edge.after.value) [edge.before, edge.after])
-      | none => pure ()
-      match canonical.find? fun edge => edge.before == edge.after with
-      | some edge =>
-          throw (behaviorError .selfOrdering owner.id owner.source edge.before.value [edge.before])
-      | none => pure ()
-      let occurrenceIds := occurrences.map NamedOccurrence.id
-      for edge in canonical do
-        if !occurrenceIds.contains edge.before then
-          throw (behaviorError .unknownReference owner.id owner.source
-            edge.before.value [edge.before])
-        if !occurrenceIds.contains edge.after then
-          throw (behaviorError .unknownReference owner.id owner.source
-            edge.after.value [edge.after])
-      match orderingCycleWitness? occurrenceIds canonical with
-      | some witness =>
-          throw (behaviorError .cyclicOrdering owner.id owner.source witness.value [witness])
-      | none => pure canonical
+    (analysis : DefinitionGraph.Analysis) : Except BehaviorError (List OccurrenceOrder) := do
+  match analysis.edgeFindings.duplicate with
+  | some edge =>
+      throw (behaviorError .duplicateOrdering owner.id owner.source
+        (edge.before.value ++ "->" ++ edge.after.value) [edge.before, edge.after])
+  | none => pure ()
+  match analysis.edgeFindings.self with
+  | some edge =>
+      throw (behaviorError .selfOrdering owner.id owner.source edge.before.value [edge.before])
+  | none => pure ()
+  match analysis.edgeFindings.unknownEndpoints with
+  | finding :: _ =>
+      let unknown := if !finding.beforeKnown then finding.edge.before else finding.edge.after
+      throw (behaviorError .unknownReference owner.id owner.source unknown.value [unknown])
+  | [] => pure ()
+  match analysis.cycleEvidence with
+  | some evidence =>
+      let witness := evidence.residualPredecessorWitness
+      throw (behaviorError .cyclicOrdering owner.id owner.source witness.value [witness])
+  | none => pure (analysis.canonicalEdges.map occurrenceOrder)
 
 private def validateBinding
     (context : BehaviorCheckContext)
@@ -885,8 +814,14 @@ def checkBehavior
   requireUniqueIds declaration.id declaration.source (declaration.setup.map SetupConstraint.id)
   requireUniqueIds declaration.id declaration.source declaration.allowedActions
   requireUniqueIds declaration.id declaration.source declaration.forbiddenActions
-  requireUniqueIds declaration.id declaration.source
+  let orderingAnalysis := DefinitionGraph.analyze
     (declaration.requiredOccurrences.map NamedOccurrence.id)
+    (declaration.ordering.map orderingEdge)
+  match orderingAnalysis.nodeFindings.duplicate with
+  | some duplicate =>
+      throw (behaviorError .duplicateDefinitionId declaration.id declaration.source
+        duplicate.value [duplicate])
+  | none => pure ()
   requireUniqueIds declaration.id declaration.source
     (declaration.occurrenceBounds.map OccurrenceBound.action)
   for capability in declaration.requires do
@@ -919,7 +854,7 @@ def checkBehavior
       for action in actions do
         validateReferenceKind context declaration action .action
   | none => pure ()
-  let ordering ← validateOrdering declaration required declaration.ordering
+  let ordering ← validateOrdering declaration orderingAnalysis
   let exactTrace ← declaration.traceExactly.mapM (checkExactTrace context declaration roles)
   let exactSchedule := declaration.actionsExactly <|>
     exactTrace.map fun trace => trace.trace.steps.map

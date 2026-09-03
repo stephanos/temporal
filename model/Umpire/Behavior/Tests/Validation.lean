@@ -1,4 +1,5 @@
 import Umpire.Behavior.Tests.Fixtures
+import Umpire.Shared.DefinitionGraph
 
 /-! Authoring errors, unsatisfiability, schedule contradictions, and occurrence guards. -/
 
@@ -17,6 +18,124 @@ def cyclicDeclaration : BehaviorDeclaration := {
     { before := cancelOccurrence.id, after := closeOccurrence.id }
   ]
 }
+
+def graphA : DefinitionId := id "test.occurrence.a-tail"
+def graphB : DefinitionId := id "test.occurrence.b-cycle"
+def graphC : DefinitionId := id "test.occurrence.c-cycle"
+def graphD : DefinitionId := id "test.occurrence.d-cycle"
+
+def graphEdge (before after : DefinitionId) : DefinitionGraph.Edge := { before, after }
+
+def acyclicGraphAnalysis : DefinitionGraph.Analysis :=
+  DefinitionGraph.analyze [graphD, graphB, graphA, graphC] [graphEdge graphB graphC]
+
+example : (
+    (DefinitionGraph.analyze [] []).topologicalOrder,
+    acyclicGraphAnalysis.canonicalNodes,
+    acyclicGraphAnalysis.canonicalEdges,
+    acyclicGraphAnalysis.topologicalOrder,
+    acyclicGraphAnalysis.cycleEvidence
+  ) = (
+    some [],
+    [graphA, graphB, graphC, graphD],
+    [graphEdge graphB graphC],
+    some [graphA, graphB, graphC, graphD],
+    none
+  ) := by
+  native_decide
+
+def graphFaultAnalysis : DefinitionGraph.Analysis := DefinitionGraph.analyze
+  [graphB, graphA, graphB]
+  [
+    graphEdge graphB graphC,
+    graphEdge graphA graphA,
+    graphEdge graphB graphC
+  ]
+
+example : (
+    graphFaultAnalysis.nodeFindings.duplicate,
+    graphFaultAnalysis.edgeFindings.duplicate,
+    graphFaultAnalysis.edgeFindings.self,
+    graphFaultAnalysis.edgeFindings.unknownEndpoints
+  ) = (
+    some graphB,
+    some (graphEdge graphB graphC),
+    some (graphEdge graphA graphA),
+    [{ edge := graphEdge graphB graphC, beforeKnown := true, afterKnown := false }]
+  ) := by
+  native_decide
+
+def divergentCycleEdges : List DefinitionGraph.Edge := [
+  graphEdge graphC graphA,
+  graphEdge graphB graphC,
+  graphEdge graphC graphD,
+  graphEdge graphD graphB
+]
+
+def divergentCycleEvidence : Option (DefinitionId × DefinitionId) :=
+  (DefinitionGraph.analyze [graphD, graphB, graphA, graphC] divergentCycleEdges).cycleEvidence.map
+    fun evidence => (evidence.residualPredecessorWitness, evidence.canonicalWitness)
+
+example : divergentCycleEvidence = some (graphC, graphB) := by
+  native_decide
+
+def graphOccurrence (occurrenceId : DefinitionId) : NamedOccurrence := {
+  id := occurrenceId
+  action := requestCancel
+}
+
+def divergentCycleDeclaration : BehaviorDeclaration := {
+  id := id "test.behavior.divergent-cycle"
+  source
+  allowedActions := [requestCancel]
+  requiredOccurrences := [
+    graphOccurrence graphD,
+    graphOccurrence graphB,
+    graphOccurrence graphA,
+    graphOccurrence graphC
+  ]
+  ordering := divergentCycleEdges.map fun edge => {
+    before := edge.before
+    after := edge.after
+  }
+}
+
+def mixedGraphAndBindingFaultDeclaration : BehaviorDeclaration := {
+  divergentCycleDeclaration with
+  setup := [{
+    id := id "test.setup.missing-role"
+    relation := .equal
+    left := .role (id "test.role.missing")
+    right := .value operationA
+  }]
+}
+
+def multipleGraphFaultDeclaration : BehaviorDeclaration := {
+  constrainedDeclaration with
+  ordering := [
+    { before := closeOccurrence.id, after := closeOccurrence.id },
+    { before := cancelOccurrence.id, after := closeOccurrence.id },
+    { before := cancelOccurrence.id, after := closeOccurrence.id },
+    { before := closeOccurrence.id, after := cancelOccurrence.id },
+    { before := id "test.occurrence.unknown", after := cancelOccurrence.id }
+  ]
+}
+
+def errorJson (result : Except BehaviorError CheckedBehavior) : Option String :=
+  match result with
+  | .ok _ => none
+  | .error failure => some (canonicalBehaviorErrorJson failure)
+
+example : (
+    errorJson (checkBehavior context mixedGraphAndBindingFaultDeclaration),
+    errorJson (checkBehavior context multipleGraphFaultDeclaration),
+    errorJson (checkBehavior context divergentCycleDeclaration)
+  ) = (
+    some "{\"kind\":\"invalid-binding\",\"definitionId\":\"test.behavior.divergent-cycle\",\"sourcePath\":\"Umpire/Behavior/Tests.lean\",\"offendingValue\":\"test.role.missing\",\"relatedDefinitionIds\":[\"test.role.missing\"]}",
+    some "{\"kind\":\"duplicate-ordering\",\"definitionId\":\"test.behavior.constrained\",\"sourcePath\":\"Umpire/Behavior/Tests.lean\",\"offendingValue\":\"test.occurrence.cancel->test.occurrence.close\",\"relatedDefinitionIds\":[\"test.occurrence.cancel\",\"test.occurrence.close\"]}",
+    some "{\"kind\":\"cyclic-ordering\",\"definitionId\":\"test.behavior.divergent-cycle\",\"sourcePath\":\"Umpire/Behavior/Tests.lean\",\"offendingValue\":\"test.occurrence.c-cycle\",\"relatedDefinitionIds\":[\"test.occurrence.c-cycle\"]}"
+  ) := by
+  native_decide
 
 def invalidBindingDeclaration : BehaviorDeclaration := {
   constrainedDeclaration with
