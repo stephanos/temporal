@@ -247,6 +247,14 @@ successful Run Evaluation. Complete set admission accepts only the fixed two-mem
 four-member execution, or six-member evaluation closure and verifies every Definition ID, Behavior
 Fingerprint, checksum, binding, and reference before returning a value.
 
+Within Lean, Planning owns the public `KnownGap` row and opaque `KnownGapSet`. Trusted producers use
+`KnownGapSet.ofUnordered` to normalize order while still rejecting invalid, duplicate, or
+conflicting rows; decoder-facing code uses `KnownGapSet.checkCanonical` to reject an external list
+whose order is not already canonical. Artifact and Run Evaluation code consumes and unions only
+checked sets, exposing raw rows through `KnownGapSet.toList` solely for canonical serialization.
+Because that opaque value does not cross the wire, Go independently admits the persisted raw arrays
+and verifies the checker's Evidence, Result, and complete Known Gap union.
+
 From the repository root, the read-only checks are:
 
 ```bash

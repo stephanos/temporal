@@ -433,6 +433,13 @@ meaning identities, not byte checksums. The strict Go boundary admits only the c
 or six-member prototype sets while preserving every Limit, Known Gap, Evidence Link,
 Implementation Link, and Run Evaluation distinction.
 
+Planning owns one opaque checked `KnownGapSet` across the Lean layers. Producer construction may
+normalize row order before checking, while strict Lean admission of external rows refuses to repair
+noncanonical input; neither path accepts invalid identifiers, duplicates, or conflicting details.
+Artifact and Run Evaluation consumers compose only checked sets and project their canonical rows at
+serialization boundaries. The separate Go boundary receives raw arrays, so it independently repeats
+strict wire admission and verifies the checker's Evidence, Result, and exact cross-phase union.
+
 The Artifact and Planning codecs retain ownership of each field's name, meaning, and order. They
 import `Umpire.Json` and construct an ordered `CanonicalJson` value from typed nulls, strings,
 naturals, arrays, and objects before rendering. That helper preserves the caller's field order,
