@@ -624,6 +624,55 @@ private def lowerProperty
     clauses := ← checked.clauses.mapM (lowerClause checked link)
   }
 
+private def lowerClauseWithFailures
+    (property : CheckedProperty)
+    (link : RenameExactLink) : ResolvedPropertyClause → Except NonPortableError
+      (Option Umpire.Artifact.PortableEvaluationContract.PropertyClause × List NonPortableError)
+  | .transitionContract id trigger required =>
+      match pattern property link trigger, pattern property link required with
+      | .ok trigger, .ok required => pure (some {
+          definitionId := id.value
+          provenance := .transitionContract
+          trigger
+          required
+        }, [])
+      | .error left, .error right => pure (none, [left, right])
+      | .error failure, .ok _ | .ok _, .error failure => pure (none, [failure])
+  | .inputOutput id trigger required =>
+      match pattern property link trigger, pattern property link required with
+      | .ok trigger, .ok required => pure (some {
+          definitionId := id.value
+          provenance := .inputOutput
+          trigger
+          required
+        }, [])
+      | .error left, .error right => pure (none, [left, right])
+      | .error failure, .ok _ | .ok _, .error failure => pure (none, [failure])
+  | clause =>
+      match lowerClause property link clause with
+      | .ok lowered => pure (some lowered, [])
+      | .error failure => pure (none, [failure])
+
+private def lowerPropertyWithFailures
+    (checked : CheckedProperty)
+    (artifact : PortableProperty)
+    (link : RenameExactLink) : Except NonPortableError
+      (Property × List NonPortableError) := do
+  if checked.id != artifact.definitionId ||
+      checked.behaviorFingerprint != artifact.behaviorFingerprint ||
+      checked.requires != artifact.requirementDefinitionIds then
+    nonPortable checked.id checked.source "property.artifact-binding"
+  let lowered ← checked.clauses.mapM (lowerClauseWithFailures checked link)
+  pure ({
+    definition := {
+      definitionId := checked.id
+      behaviorFingerprint := checked.behaviorFingerprint
+    }
+    source := checked.source
+    requirements := ← checked.requires.mapM (requirementBinding checked link)
+    clauses := lowered.filterMap Prod.fst
+  }, lowered.flatMap Prod.snd)
+
 private def portableKnownGapKind : Umpire.KnownGapKind → PortableKnownGapKind
   | .capabilityContract => .capabilityContract
   | .input => .input
@@ -1070,6 +1119,7 @@ private def requiredObligationFrom
     (DefinitionId.of (plan.planId.value ++ ".external-obligation." ++ toString index))
     ("umpire-portable-required-obligation/v1:" ++ failure.sourceDefinitionId.value ++ ":" ++
       failure.construct)
+  -- Checked semantic failures are gating; advisory obligations require explicit external authoring.
   kind := .required
   source := failure.source
   statement := "A separately trusted verifier must check " ++ failure.construct ++ "."
@@ -1079,13 +1129,14 @@ private def lowerPortableTestPlanWithObligations
     (experiment : ExperimentSpec)
     (runtimeConfiguration : RuntimeConfiguration)
     (contract : Contract)
+    (propertyFailures : List NonPortableError)
     (checkedObservation : CheckedObservationPlan)
     (program : Temporal.System.Execution.Nexus.ObservationProgramDefinition) :
     Except NonPortableError PortableTestPlan := do
   let (observation, failures) ← lowerObservationProgramWithFailures checkedObservation program
     Temporal.System.Nexus.CallerClosure.target.definitions
   let plan ← lowerPortableTestPlan experiment runtimeConfiguration { contract with observation }
-  let obligations := failures.zipIdx.map fun (failure, index) =>
+  let obligations := (propertyFailures ++ failures).zipIdx.map fun (failure, index) =>
     requiredObligationFrom plan (index + 1) failure
   pure { plan with externalObligations := obligations }
 
@@ -1129,6 +1180,101 @@ def duplicatePortablePlan : Except NonPortableError PortableTestPlan := do
     duplicateRuntimeConfiguration
     contract
 
+private def requiredObligationPropertyDeclaration : PropertyDeclaration := {
+  Temporal.Feature.Nexus.Experimental.CallerClosure.propertyDeclaration with
+  clauses := Temporal.Feature.Nexus.Experimental.CallerClosure.propertyDeclaration.clauses ++ [
+    .inputOutput (DefinitionId.of "workflow-nexus.property.clause.present-check")
+      {
+        field := .selectedAction
+        reference := Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseActionId
+        constraint := .equals
+          Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction.value
+      }
+      {
+        field := .observation
+        reference := Temporal.Feature.Nexus.Experimental.CallerClosure.deliveredObservationId
+        constraint := .present
+      },
+    .transitionContract (DefinitionId.of "workflow-nexus.property.clause.not-equals-check")
+      {
+        field := .selectedAction
+        reference := Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseActionId
+        constraint := .notEquals "unsupported-action"
+      }
+      {
+        field := .observation
+        reference := Temporal.Feature.Nexus.Experimental.CallerClosure.deliveredObservationId
+        constraint := .equals "true"
+      },
+    .inputOutput (DefinitionId.of "workflow-nexus.property.clause.natural-at-least-check")
+      {
+        field := .selectedAction
+        reference := Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseActionId
+        constraint := .equals
+          Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction.value
+      }
+      {
+        field := .observation
+        reference := Temporal.Feature.Nexus.Experimental.CallerClosure.cancellationCountObservationId
+        constraint := .naturalAtLeast 1
+      },
+    .stateInvariant (DefinitionId.of "workflow-nexus.property.clause.state-invariant") {
+      field := .state
+      reference := Temporal.Feature.Nexus.Experimental.CallerClosure.configStateId
+      constraint := .equals Temporal.Feature.Nexus.Experimental.CallerClosure.clashState.value
+    }
+  ]
+}
+
+private def requiredObligationPropertyResult : Except PropertyError CheckedProperty :=
+  checkProperty
+    (PropertyCheckContext.ofTarget Temporal.Feature.Nexus.Experimental.CallerClosure.target)
+    (.portable requiredObligationPropertyDeclaration)
+
+private theorem requiredObligationPropertyResult_isSome :
+    requiredObligationPropertyResult.toOption.isSome = true := by
+  native_decide
+
+private def requiredObligationProperty : CheckedProperty :=
+  requiredObligationPropertyResult.toOption.get requiredObligationPropertyResult_isSome
+
+private def requiredObligationExperiment : ExperimentSpec :=
+  let draft : ExperimentSpec := {
+    Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact with
+    artifactChecksum := experimentSpecChecksumOf ""
+    properties := [{
+      definitionId := requiredObligationProperty.id
+      behaviorFingerprint := requiredObligationProperty.behaviorFingerprint
+      requirementDefinitionIds := requiredObligationProperty.requires
+    }]
+  }
+  { draft with artifactChecksum := draft.expectedArtifactChecksum }
+
+private def requiredObligationRuntimeConfiguration : RuntimeConfiguration :=
+  Temporal.System.Execution.Nexus.runtimeConfigurationFor requiredObligationExperiment
+
+private def requiredObligationContract : Except NonPortableError
+    (Contract × List NonPortableError) := do
+  let normal ← normalContract
+  let some artifactProperty := requiredObligationExperiment.properties.head?
+    | nonPortable requiredObligationProperty.id requiredObligationProperty.source
+        "test.property-closure"
+  let (property, failures) ← lowerPropertyWithFailures requiredObligationProperty artifactProperty
+    normal.implementationLink
+  let contract := {
+    normal with
+    experiment := requiredObligationExperiment.artifactBinding
+    runtimeConfig := requiredObligationRuntimeConfiguration.artifactBinding
+    test := {
+      normal.test with
+      behaviorFingerprint := behaviorFingerprintOf
+        (canonicalExperimentSpecBytes requiredObligationExperiment ++
+          canonicalRuntimeConfigurationBytes requiredObligationRuntimeConfiguration)
+    }
+    properties := [property]
+  }
+  pure (contract, failures)
+
 private def requiredObligationMapping : ObservationMappingDeclaration := {
   Temporal.System.Nexus.Observation.mappingDeclaration with
   rules := Temporal.System.Nexus.Observation.mappingDeclaration.rules.map fun rule =>
@@ -1156,11 +1302,12 @@ private def requiredObligationCheckedPlan : CheckedObservationPlan :=
 
 /-- A compiler fixture proving that an unsupported check remains a required external obligation. -/
 def requiredObligationPortablePlan : Except NonPortableError PortableTestPlan := do
-  let contract ← normalContract
+  let (contract, propertyFailures) ← requiredObligationContract
   lowerPortableTestPlanWithObligations
-    Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
-    normalRuntimeConfiguration
+    requiredObligationExperiment
+    requiredObligationRuntimeConfiguration
     contract
+    propertyFailures
     requiredObligationCheckedPlan
     Temporal.System.Execution.Nexus.canonicalObservationProgramDefinition
 
