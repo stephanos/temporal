@@ -126,15 +126,23 @@ private def followResidualPredecessors
             followResidualPredecessors incoming indegree predecessor (current :: visited) fuel
         | [] => none
 
-private partial def pathExists
-    (edges : List Edge)
-    (current target : DefinitionId)
-    (visited : List DefinitionId := []) : Bool :=
-  if current == target then true
-  else if visited.contains current then false
-  else
-    (edges.filter fun edge => edge.before == current).any fun edge =>
-      pathExists edges edge.after target (current :: visited)
+private def pathExists
+    (outgoing : Std.HashMap DefinitionId (List DefinitionId))
+    (pending : List DefinitionId)
+    (target : DefinitionId)
+    (visited : List DefinitionId) : Nat → Bool
+  | 0 => false
+  | fuel + 1 =>
+      match pending with
+      | [] => false
+      | current :: rest =>
+          if current == target then
+            true
+          else if visited.contains current then
+            pathExists outgoing rest target visited fuel
+          else
+            pathExists outgoing (rest ++ outgoing.getD current []) target
+              (current :: visited) fuel
 
 /-- Analyze canonical structure and every graph-validation stage without choosing domain errors. -/
 def analyze (nodes : List DefinitionId) (edges : List Edge) : Analysis :=
@@ -168,7 +176,7 @@ def analyze (nodes : List DefinitionId) (edges : List Edge) : Analysis :=
     (fun node => decide (residualIndegree.getD node 0 > 0))
   let cyclicNodes := canonicalNodes.filter fun node =>
     (validEdges.filter fun edge => edge.before == node).any fun edge =>
-      pathExists validEdges edge.after node [node]
+      pathExists graph.outgoing [edge.after] node [node] (validEdges.length + 1)
   let cycleEvidence :=
     match residualNodes, cyclicNodes with
     | start :: _, canonicalWitness :: _ =>
