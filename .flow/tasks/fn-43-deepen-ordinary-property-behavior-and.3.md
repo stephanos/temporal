@@ -47,9 +47,10 @@ cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Observation.Tests 
 - [ ] Query/Observation invalid fixtures retain prior error kinds, offending values, related IDs, canonical ordering, and source-path fallback after shared identity utilities replace local mechanics.
 - [ ] Existing teaching comments and authored documentation are preserved, and focused Query, Observation, Switch, and Nexus builds pass without semantic/fingerprint/artifact drift or new unapproved axiom dependencies.
 ## Done summary
-TBD
+Added explicit-proof checked Query and Observation facades, centralized their identity and source adapters, and migrated Switch plus the split Nexus operation walkthroughs to semantic checked authoring while preserving diagnostics, artifacts, fingerprints, and authored documentation. Exact adapter fixtures, focused and full model gates, lint, trust auditing, and implementation review are green.
 
+stage: impl-review - ran [2026-09-03T01:34:07Z..2026-09-03T01:37:38Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: da89554df75ac331c2ebe744f9617b015884a90a
+- Tests: baseline: green (cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Query.Tests Umpire.Observation.Tests Umpire.ImplementationLink.Tests UmpireTests; make umpire-build-model; make lint-model), TDD RED: cd model && mise exec -- lake build Umpire.Query.Tests.Validation Umpire.Observation.Tests.Compilation (missing checkedQuery and checkedObservation; exit 1), cd model && mise exec -- lake build Umpire.Query.Tests.Validation Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Observation.Tests Temporal.Feature.Nexus.OperationsTests Umpire.Examples.Switch, cd model && mise exec -- lake build Umpire.Examples.SwitchTests, cd model && mise exec -- lake env lean ../.flow/tmp/Fn43Task3Trust.lean, cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Query.Tests Umpire.Observation.Tests Umpire.ImplementationLink.Tests UmpireTests, make umpire-build-model, make lint-model, git diff --check 5d2404284fcb14777d7aec95fa154857efcf5ef1..HEAD
 - PRs:
