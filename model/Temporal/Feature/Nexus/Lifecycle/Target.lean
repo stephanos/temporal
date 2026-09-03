@@ -435,13 +435,7 @@ theorem target_started_reportSuccess_authoritative :
     step, scheduledState, startedState, startAction, cancelAction,
     reportSuccessAction, ModelValue.named]
 
-def limits : QueryLimits := {
-  behavior := {
-    transitions := { value := 1, unit := .semanticTransitions }
-    selectedActions := { value := 1, unit := .selectedActions }
-  }
-  search := { value := 8, unit := .candidateEvaluations }
-}
+def limits : QueryLimits := QueryLimits.bounded 1 1 8
 
 def policy : PlannerPolicy := PlannerPolicy.shortest
 

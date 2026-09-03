@@ -515,13 +515,7 @@ def appliedTrace : BehaviorTrace :=
 def deferredTrace : BehaviorTrace :=
   BehaviorTrace.singleStep switchSetup offState flipAction deferredResult
 
-def limits : QueryLimits := {
-  behavior := {
-    transitions := { value := 1, unit := .semanticTransitions }
-    selectedActions := { value := 1, unit := .selectedActions }
-  }
-  search := { value := 8, unit := .candidateEvaluations }
-}
+def limits : QueryLimits := QueryLimits.bounded 1 1 8
 
 def shortestPolicy : PlannerPolicy := PlannerPolicy.shortest
 
