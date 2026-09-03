@@ -262,13 +262,7 @@ def behavior : CheckedBehavior := {
   behaviorFingerprint := behaviorFingerprintOf "behavior/v1"
 }
 
-def limits (budget : Nat := 10) : QueryLimits := {
-  behavior := {
-    transitions := { value := 1, unit := .semanticTransitions }
-    selectedActions := { value := 1, unit := .selectedActions }
-  }
-  search := { value := budget, unit := .candidateEvaluations }
-}
+def limits (budget : Nat := 10) : QueryLimits := QueryLimits.bounded 1 1 budget
 
 def policy (strategy : SearchStrategy) (seed : Nat := 17) : PlannerPolicy :=
   match strategy with

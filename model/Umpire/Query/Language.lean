@@ -38,6 +38,17 @@ structure QueryLimits where
   search : Limit
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- Construct Query Limits from explicit bounds using Query's required units without validation or
+inference. -/
+def QueryLimits.bounded
+    (transitionBound selectedActionBound candidateEvaluationBound : Nat) : QueryLimits := {
+  behavior := {
+    transitions := { value := transitionBound, unit := .semanticTransitions }
+    selectedActions := { value := selectedActionBound, unit := .selectedActions }
+  }
+  search := { value := candidateEvaluationBound, unit := .candidateEvaluations }
+}
+
 /-- Deterministic planning parameters. The seed is part of Query identity for every strategy, but
 only the seeded strategy uses it to change traversal. -/
 structure PlannerPolicy where

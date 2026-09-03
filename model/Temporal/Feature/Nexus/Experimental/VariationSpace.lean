@@ -90,13 +90,7 @@ def behaviorDeclaration : BehaviorDeclaration := {
 def behaviorResult : Except BehaviorError CheckedBehavior :=
   checkBehavior (.ofTarget target) behaviorDeclaration
 
-def queryLimits : QueryLimits := {
-  behavior := {
-    transitions := { value := 2, unit := .semanticTransitions }
-    selectedActions := { value := 2, unit := .selectedActions }
-  }
-  search := { value := 32, unit := .candidateEvaluations }
-}
+def queryLimits : QueryLimits := QueryLimits.bounded 2 2 32
 
 /-- Typed failure from any stage of preparing the checked experimental Space. -/
 inductive VariationSpacePreparationError where
