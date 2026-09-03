@@ -1,6 +1,6 @@
 
-Cworkflow-nexus.query.exact-action-caller-closure.portable-test-plan ¨]k¸éå<ƒªì2
-bg‡àòA;Ü«ç(ç[J2ä1
+Cworkflow-nexus.query.exact-action-caller-closure.portable-test-plan &Œ“å°
+m—ÚãQ—<«©ñ‹«”ä@ÂX"’2ä1
 
 6workflow-nexus.query.exact-action-caller-closure.setupGsha256:e09096b6a3a8d167fd1c476c4ac58ee2d68893a3207e2cd25e9d0b77e2ca0928{
 0workflow-nexus.query.exact-action-caller-closureGsha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458afo
@@ -62,7 +62,7 @@ q
 true¢É
 s
 (temporal.runtime-profile.ephemeral-localGsha256:dd92f1ee14df101f2ea4abb4439f4722de8c061292a4fdd6b6476c7ca7e09b31~
-3temporal.nexus.runtime-configuration.caller-closureGsha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67¥
+3temporal.nexus.runtime-configuration.caller-closureGsha256:0e095bf16cb646b0c2492d8e45f0425652de0e346d8b4c3c62a21722095734e1¥
 t
 )temporal.nexus.participant.caller-closureGsha256:db747610454c3a1a561a14d257b093dd97d2a430c2435b0c9ce90ef08dd40147i
 umpire.participant-protocol.v2Gsha256:aeca103a599233354e6f6757f03a02ba4379dda51cef879d3a5837af00340936"|
@@ -242,7 +242,7 @@ QO
 <temporal.system.nexus.caller-closure.rule.cancellation-count3temporal.system.nexus.caller-closure.rule.ownership:r
 2temporal.system.nexus.caller-closure.rule.delivery<temporal.system.nexus.caller-closure.rule.cancellation-count*‹
 q
-&workflow-nexus.property.caller-closureGsha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192fH
+&workflow-nexus.property.caller-closureGsha256:bdaf0003c3ba2cfb491358974081524bb273e7a7622a56a9e9bf4b6fdb44ef62H
 6Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
 lean-modelh
 nexus.capability.cancellationGsha256:f9ce99866d52ad16ebc837b2f276c6db7affab60d11ef9706919faa7375a7ec4n
@@ -339,26 +339,42 @@ z
 #workflow-nexus.capability.ownershipGsha256:73d04302ed6891531803d91ab7be3e75939f132e8dacac8a33bb6ed880f6ea4c:semantic-transitionsBK
 €€@€N   °ê(À©
 € €€€"@
-4294967295€ê0*	€€€€€J'#umpire.known-gap.execution-evidenceJ($umpire.known-gap.artifact-migrationsJ%!umpire.known-gap.artifact-readingJ($umpire.known-gap.evidence-evaluationJ,(umpire.known-gap.runtime-scheduler-orderJ*&umpire.known-gap.runtime-storage-orderJ,(umpire.known-gap.runtime-transport-orderJumpire.known-gap.promotionRª
+4294967295€ê0*	€€€€€J'#umpire.known-gap.execution-evidenceJ($umpire.known-gap.artifact-migrationsJ%!umpire.known-gap.artifact-readingJ($umpire.known-gap.evidence-evaluationJ,(umpire.known-gap.runtime-scheduler-orderJ*&umpire.known-gap.runtime-storage-orderJ,(umpire.known-gap.runtime-transport-orderJumpire.known-gap.promotionRÀ
 ¤
-Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.1Gsha256:933a65ad26d6ce17fbac92954a8ae7b1f4f2dcc027b121ce26cd5855eb7d241b8
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.1Gsha256:6046e77f0d80eeebccd88aff8a542c3032aec4dde1e45a5fc1a5f1d60d5d02adH
+6Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
+lean-model"KA separately trusted verifier must check property.pattern.natural-at-least.Rº
+¤
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.2Gsha256:81533263f73f63dd37e5c6308b7823575d32d5bd042e7293da0119d64676ae3bH
+6Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
+lean-model"EA separately trusted verifier must check property.pattern.not-equals.R·
+¤
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.3Gsha256:7d4d56bffe28ea45b9699facc36998993e9138c2fd1df8669b9f037f9a61c78eH
+6Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
+lean-model"BA separately trusted verifier must check property.pattern.present.RÝ
+¤
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.4Gsha256:d25abe29656517bbbb39ef3f73680270c90b3e56f16d7b4742c6ee2fb555deffH
+6Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
+lean-model"hA separately trusted verifier must check property.clause.workflow-nexus.property.clause.state-invariant.Rª
+¤
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.5Gsha256:933a65ad26d6ce17fbac92954a8ae7b1f4f2dcc027b121ce26cd5855eb7d241b8
 &Temporal/System/Nexus/Observation.lean"
 lean-model"EA separately trusted verifier must check observation.literal-boolean.Rž
 ¤
-Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.2Gsha256:b3dbbe310093af026b1b358913641425576091244756ba8e5a10e1785102f7748
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.6Gsha256:b3dbbe310093af026b1b358913641425576091244756ba8e5a10e1785102f7748
 &Temporal/System/Nexus/Observation.lean"
 lean-model"9A separately trusted verifier must check observation.not.Rª
 ¤
-Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.3Gsha256:933a65ad26d6ce17fbac92954a8ae7b1f4f2dcc027b121ce26cd5855eb7d241b8
+Yworkflow-nexus.query.exact-action-caller-closure.portable-test-plan.external-obligation.7Gsha256:933a65ad26d6ce17fbac92954a8ae7b1f4f2dcc027b121ce26cd5855eb7d241b8
 &Temporal/System/Nexus/Observation.lean"
 lean-model"EA separately trusted verifier must check observation.literal-boolean.*‘
 
 €
-5workflow-nexus.query.exact-action-caller-closure.testGsha256:9d4a0056098a5c4202835fad9c502fbeeb59aba871e5dbc4947046583cbd9e77{
+5workflow-nexus.query.exact-action-caller-closure.testGsha256:8a286597495a83a591069a4c25c518145c86502e3922dcc9a560a4645f61acae{
 0workflow-nexus.query.exact-action-caller-closureGsha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458afñ
-umpire-experiment/v2Gsha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8Gsha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af"Gsha256:f7a6ebefca8202c6a7c467fd516e54d162c7d1f254c6c9a1f004a7f0b4135ab8"ü
-umpire-runtime-configuration/v2Gsha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5Gsha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67"Gsha256:3b8bae9ef57fa5f400076af50d01a283d8b928481d654abd0d3c39dd72ea2f6c*q
-&workflow-nexus.property.caller-closureGsha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f2p
+umpire-experiment/v2Gsha256:5633237462bf60999937037736b2957dabcd111ddadc4848a966fb9053adaf10Gsha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af"Gsha256:f7a6ebefca8202c6a7c467fd516e54d162c7d1f254c6c9a1f004a7f0b4135ab8"ü
+umpire-runtime-configuration/v2Gsha256:38e1873caf68553359a10fa3347ebe1bf539774382731d3a2731307a7675b8fcGsha256:0e095bf16cb646b0c2492d8e45f0425652de0e346d8b4c3c62a21722095734e1"Gsha256:3b8bae9ef57fa5f400076af50d01a283d8b928481d654abd0d3c39dd72ea2f6c*q
+&workflow-nexus.property.caller-closureGsha256:bdaf0003c3ba2cfb491358974081524bb273e7a7622a56a9e9bf4b6fdb44ef622p
 %umpire.compiler.portable-test-plan.v1Gsha256:804985df499a8648f373209979cfd95e150ea06608112cc426d05d5a03de73bb:H
 6Temporal/Feature/Nexus/Experimental/CallerClosure.lean"
 lean-model:6

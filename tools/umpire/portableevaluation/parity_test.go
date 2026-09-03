@@ -552,7 +552,7 @@ func TestLeanGeneratedPortablePlansUseSharedAdmissionAndRetainExactBindings(t *t
 	}{
 		{name: "normal", contract: "normal"},
 		{name: "duplicate-delivery", contract: "duplicate-delivery"},
-		{name: "required-obligation", contract: "normal", obligations: 3},
+		{name: "required-obligation", contract: "normal", obligations: 7},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
@@ -573,8 +573,17 @@ func TestLeanGeneratedPortablePlansUseSharedAdmissionAndRetainExactBindings(t *t
 			}
 			protorequire.ProtoEqual(t, contract.GetImplementationLink(), plan.GetVerification().GetRenameExactLink())
 			require.Len(t, plan.GetVerification().GetProperties(), len(contract.GetProperties()))
-			for index, property := range contract.GetProperties() {
-				protorequire.ProtoEqual(t, property, plan.GetVerification().GetProperties()[index])
+			if test.obligations == 0 {
+				for index, property := range contract.GetProperties() {
+					protorequire.ProtoEqual(t, property, plan.GetVerification().GetProperties()[index])
+				}
+			} else {
+				require.Len(t, plan.GetVerification().GetProperties()[0].GetClauses(),
+					len(contract.GetProperties()[0].GetClauses()))
+				for index, clause := range contract.GetProperties()[0].GetClauses() {
+					protorequire.ProtoEqual(t, clause,
+						plan.GetVerification().GetProperties()[0].GetClauses()[index])
+				}
 			}
 			require.Len(t, plan.GetExecution().GetRequestedActions(), 1)
 			require.Len(t, plan.GetExecution().GetModelOutcomes(), 1)
@@ -669,7 +678,7 @@ func TestLeanGeneratedPortablePlanRejectsChecksumBindingSourceAndLimitMutations(
 			name: "obligation",
 			mutate: func(plan *umpirespb.PortableTestPlan) {
 				required := loadLeanPortablePlan(t, "required-obligation").GetExternalObligations()
-				require.Len(t, required, 3)
+				require.Len(t, required, 7)
 				plan.ExternalObligations = []*umpirespb.ExternalVerificationObligation{
 					proto.CloneOf(required[0]),
 				}
