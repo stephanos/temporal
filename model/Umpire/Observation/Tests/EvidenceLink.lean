@@ -345,21 +345,33 @@ example :
       some (.missingOrderSupport, [first.ruleId]) := by
   native_decide
 
-/-- Per-link duplicate closure support names its rule while cross-link copies remain valid. -/
+/-- Duplicate closure support preserves baseline kind and later-link rule identities. -/
 example :
     let first := completeFirstEvidenceLink
+    let second := completeUncheckedEvidenceBackedTrace.evidenceLinks.tail.head?.get
+      (by native_decide)
     let duplicate := first.closureSupport.head?.get (by native_decide)
-    let links := {
+    let firstLinks := {
       first with closureSupport := duplicate :: first.closureSupport
     } :: completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
-    let withinLink := validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
-      completeUncheckedEvidenceBackedTrace with evidenceLinks := links
+    let laterLinks := first :: {
+      second with closureSupport := duplicate :: second.closureSupport
+    } :: completeUncheckedEvidenceBackedTrace.evidenceLinks.tail.tail
+    let firstLink := validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+      completeUncheckedEvidenceBackedTrace with evidenceLinks := firstLinks
     }
-    (match withinLink with
+    let laterLink := validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+      completeUncheckedEvidenceBackedTrace with evidenceLinks := laterLinks
+    }
+    (match firstLink with
+      | .ok _ => none
+      | .error failure => some (failure.kind, failure.relatedDefinitionIds),
+      match laterLink with
       | .ok _ => none
       | .error failure => some (failure.kind, failure.relatedDefinitionIds),
       (validateEvidenceBackedTrace completeUncheckedEvidenceBackedTrace).toOption.isSome) =
-      (some (.missingClosureSupport, [first.ruleId]), true) := by
+      (some (.missingClosureSupport, [eventKind]),
+        some (.missingClosureSupport, [second.ruleId]), true) := by
   native_decide
 
 example :
