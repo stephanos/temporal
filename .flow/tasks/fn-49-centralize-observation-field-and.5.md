@@ -32,9 +32,8 @@ Update public architecture guidance and run complete model compatibility gates (
 - [ ] No artifact, generated view, fingerprint, or persisted-byte drift remains.
 
 ## Done summary
-TBD
-
+Documented ObservationFieldSpec as the sole typed field projection authority and Observation.Internal.analyzeStructure as shared internal mechanics with raw/accepted boundary-owned diagnostics. Clarified sequence-zero closure for empty required kinds, checked-plan closure precedence, raw evidence non-retention, and opaque accepted-trace ownership across the three architecture guides.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: a75c520917f70cab61d1ec7d16878075ed1a2f66
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests, cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.Tests.Mutations Umpire.Observation.Tests.Verdict Umpire.Observation.ImportTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model, make lint-code (exact inherited 1,379-finding baseline)
 - PRs:
