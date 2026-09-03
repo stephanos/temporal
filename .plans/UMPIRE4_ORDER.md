@@ -39,6 +39,9 @@ making ordinary model code shorter and easier to review.
 
 **Depends on:** completed fn-43.
 
+**Current checkpoint:** `ModelValue.named` and `QueryLimits.bounded` are implemented and migrated;
+Space leaves, forward Link mappings, and the final documentation/verification pass remain.
+
 **Scope:** add inert typed constructors for named Model Values, bounded Query limits, ordinary Space
 leaves, and forward Implementation Link mappings, backed by repository-wide migration inventories
 and unchanged expert record paths.
