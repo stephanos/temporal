@@ -54,6 +54,12 @@ structure KnownGapError where
   subject : Option DefinitionId
   deriving BEq, DecidableEq, Repr
 
+/-- Canonical Known Gaps whose identifiers, uniqueness, and subject details were checked together. -/
+structure KnownGapSet where
+  private mk ::
+  private rows : List KnownGap
+  deriving BEq, DecidableEq, Repr
+
 private def knownGapKindRank : KnownGapKind → String
   | .capabilityContract => "0"
   | .input => "1"
@@ -84,8 +90,7 @@ private def firstKnownGapProblem : List KnownGap → Option KnownGapError
         firstKnownGapProblem (second :: rest)
   | _ => none
 
-/-- Reject malformed, duplicate, conflicting, or noncanonically ordered Known Gaps. -/
-def validateKnownGaps (gaps : List KnownGap) : Except KnownGapError Unit := do
+private def validateKnownGapIdentifiers (gaps : List KnownGap) : Except KnownGapError Unit := do
   for gap in gaps do
     if !gap.code.isNamespaced then
       throw { kind := .invalidCode, code := gap.code, subject := gap.subject }
@@ -94,6 +99,15 @@ def validateKnownGaps (gaps : List KnownGap) : Except KnownGapError Unit := do
         if !subject.isNamespaced then
           throw { kind := .invalidSubject, code := gap.code, subject := gap.subject }
     | none => pure ()
+
+private def validateCanonicalKnownGaps (gaps : List KnownGap) : Except KnownGapError Unit :=
+  match firstKnownGapProblem gaps with
+  | some problem => throw problem
+  | none => pure ()
+
+/-- Reject malformed, duplicate, conflicting, or noncanonically ordered Known Gaps. -/
+def validateKnownGaps (gaps : List KnownGap) : Except KnownGapError Unit := do
+  validateKnownGapIdentifiers gaps
   let canonical := gaps.mergeSort knownGapLe
   if canonical != gaps then
     let gap := gaps.getD 0 {
@@ -101,9 +115,37 @@ def validateKnownGaps (gaps : List KnownGap) : Except KnownGapError Unit := do
       code := DefinitionId.of "umpire.known-gap.unknown"
     }
     throw { kind := .noncanonicalOrder, code := gap.code, subject := gap.subject }
-  match firstKnownGapProblem canonical with
-  | some problem => throw problem
-  | none => pure ()
+  validateCanonicalKnownGaps canonical
+
+namespace KnownGapSet
+
+/-- The empty checked Known Gap collection. -/
+def empty : KnownGapSet :=
+  ⟨[]⟩
+
+/-- Return the checked Known Gaps in canonical order. -/
+def toList (gaps : KnownGapSet) : List KnownGap :=
+  gaps.rows
+
+/-- Admit only Known Gaps already in canonical order. -/
+def checkCanonical (gaps : List KnownGap) : Except KnownGapError KnownGapSet := do
+  validateKnownGaps gaps
+  pure ⟨gaps⟩
+
+/-- Canonicalize and admit Known Gaps produced inside the trusted semantic pipeline. -/
+def ofUnordered (gaps : List KnownGap) : Except KnownGapError KnownGapSet := do
+  validateKnownGapIdentifiers gaps
+  let canonical := gaps.mergeSort knownGapLe
+  validateCanonicalKnownGaps canonical
+  pure ⟨canonical⟩
+
+/-- Combine checked Known Gaps, collapsing exact overlap and rejecting conflicting subject details. -/
+def union (left right : KnownGapSet) : Except KnownGapError KnownGapSet := do
+  let canonical := (left.rows ++ right.rows).mergeSort knownGapLe |>.eraseDups
+  validateCanonicalKnownGaps canonical
+  pure ⟨canonical⟩
+
+end KnownGapSet
 
 /-- Construct the owner-defined Known Gap fields as an ordered typed JSON value. -/
 def KnownGap.canonicalJsonValue (gap : KnownGap) : CanonicalJson :=
