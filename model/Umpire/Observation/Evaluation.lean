@@ -1261,14 +1261,12 @@ private def validateFaultTarget
         throw (diagnostic plan .misdirectedFaultReceipt [record.id, target])
   | .mixed => pure ()
 
-private def rawGlobalClosureDiagnostic?
-    (plan : CheckedObservationPlan) :
+private def duplicateRawClosureDiagnosticFor?
+    (plan : CheckedObservationPlan)
+    (kind : DefinitionId) :
     Observation.Internal.StructuralFinding → Option ObservationDiagnostic
-  | .duplicateClosure _ kind _ | .closureWithoutFacts _ kind |
-      .missingClosure _ _ kind | .closureSequenceMismatch _ kind _ _ |
-      .closureCountMismatch _ kind _ _ | .closureByteCountMissing _ kind |
-      .missingRequiredKind kind =>
-        some (diagnostic plan .missingClosure [kind])
+  | .duplicateClosure _ candidate _ =>
+      if candidate == kind then some (diagnostic plan .missingClosure [kind]) else none
   | _ => none
 
 private def rawSourceClosureDiagnosticFor?
@@ -1312,7 +1310,23 @@ private def validateRawClosures
     Except ObservationDiagnostic Unit := do
   match analysis.originMode with
   | .globalSequence =>
-      match analysis.findings.findSome? (rawGlobalClosureDiagnostic? plan) with
+      for required in plan.closures do
+        match analysis.findings.findSome?
+            (duplicateRawClosureDiagnosticFor? plan required.kind) with
+        | some failure => throw failure
+        | none => pure ()
+        let closure ← match analysis.closures.find? fun closure => closure.kind == required.kind with
+          | some closure => pure closure
+          | none => throw (diagnostic plan .missingClosure [required.kind])
+        let lastSequence := analysis.closureExpectations.find?
+          (fun expectation => expectation.kind == required.kind)
+          |>.map Observation.Internal.ClosureExpectation.lastSequence
+          |>.getD 0
+        if closure.lastSequence != lastSequence then
+          throw (diagnostic plan .missingClosure [required.kind])
+      match analysis.findings.findSome? fun finding => match finding with
+        | .duplicateClosure _ kind _ => some (diagnostic plan .missingClosure [kind])
+        | _ => none with
       | some failure => throw failure
       | none => pure ()
   | .sourceSequence =>
@@ -1649,13 +1663,15 @@ private def acceptedClosureDiagnosticFor?
     Observation.Internal.StructuralFinding → Option ObservationDiagnostic
   | .closureWithoutFacts source kind =>
       if source == closure.source && kind == closure.kind then
-        some {
-          kind := .missingClosureSupport
-          planId := mappingId
-          relatedDefinitionIds := match originMode, source with
-            | .sourceSequence, some sourceId => [sourceId, kind]
-            | _, _ => [kind]
-        }
+        if originMode == .globalSequence && closure.lastSequence == 0 then none
+        else
+          some {
+            kind := .missingClosureSupport
+            planId := mappingId
+            relatedDefinitionIds := match originMode, source with
+              | .sourceSequence, some sourceId => [sourceId, kind]
+              | _, _ => [kind]
+          }
       else none
   | .closureSequenceMismatch source kind _ _ |
       .closureCountMismatch source kind _ _ |
@@ -1741,10 +1757,28 @@ private def validateAcceptedClosures
         (acceptedClosureDiagnosticFor? trace.mappingId analysis.originMode closure) with
     | some failure => throw failure
     | none => pure ()
-  match analysis.findings.findSome?
-      (acceptedMissingRequiredClosureDiagnostic? trace.mappingId) with
-  | some failure => throw failure
-  | none => pure ()
+  match analysis.originMode with
+  | .globalSequence =>
+      for required in trace.checkedPlan.closures do
+        match analysis.closures.find? fun closure => closure.kind == required.kind with
+        | some closure =>
+            if !(analysis.closureExpectations.any fun expectation =>
+                expectation.kind == required.kind) && closure.lastSequence != 0 then
+              throw {
+                kind := .missingClosureSupport
+                planId := trace.mappingId
+                relatedDefinitionIds := [required.kind]
+              }
+        | none => throw {
+            kind := .missingClosureSupport
+            planId := trace.mappingId
+            relatedDefinitionIds := [required.kind]
+          }
+  | .sourceSequence | .mixed =>
+      match analysis.findings.findSome?
+          (acceptedMissingRequiredClosureDiagnostic? trace.mappingId) with
+      | some failure => throw failure
+      | none => pure ()
 
 private def validateAppliedDisposition
     (trace : UncheckedEvidenceBackedTrace)

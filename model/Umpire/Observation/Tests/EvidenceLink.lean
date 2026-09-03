@@ -27,6 +27,43 @@ private def rehashEvidenceBackedTrace
       reprStr trace.evidenceLinks).render
 }
 
+private def zeroRecordUncheckedTrace : UncheckedEvidenceBackedTrace :=
+  let mappingDigest := zeroRecordEvaluationPlan.behaviorFingerprint.render
+  let closures := completeEvidence.closures ++ [zeroRecordClosure]
+  let evidenceLinks := completeUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
+    evidenceLink with mappingDigest, closureSupport := closures
+  }
+  rehashEvidenceBackedTrace {
+    completeUncheckedEvidenceBackedTrace with
+    checkedPlan := zeroRecordEvaluationPlan
+    mappingDigest
+    evidenceLinks
+  }
+
+/-- Accepted admission retains an explicit zero-record global closure. -/
+example : (validateEvidenceBackedTrace zeroRecordUncheckedTrace).toOption.isSome = true := by
+  native_decide
+
+/-- Missing or inconsistent zero-record closure support still fails closed. -/
+example :
+    let missing := zeroRecordUncheckedTrace.evidenceLinks.map fun evidenceLink => {
+      evidenceLink with closureSupport := completeEvidence.closures
+    }
+    let inconsistent := zeroRecordUncheckedTrace.evidenceLinks.map fun evidenceLink => {
+      evidenceLink with closureSupport := completeEvidence.closures ++ [
+        { zeroRecordClosure with lastSequence := 1 }
+      ]
+    }
+    [missing, inconsistent].map (fun evidenceLinks =>
+      match validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+        zeroRecordUncheckedTrace with evidenceLinks
+      } with
+      | .ok _ => none
+      | .error failure => some (failure.kind, failure.relatedDefinitionIds)) =
+      [some (.missingClosureSupport, [zeroRecordKind]),
+        some (.missingClosureSupport, [zeroRecordKind])] := by
+  native_decide
+
 /-- A canonical plan's evidence bound is enforced again at unchecked trace admission. -/
 example :
     let declaration := {
