@@ -141,6 +141,12 @@ structure ModelValue where
   value : String
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- Construct a Model Value from an explicit Definition ID and value without validation or inference. -/
+def ModelValue.named (definitionId : DefinitionId) (value : String) : ModelValue := {
+  definitionId
+  value
+}
+
 structure ModelTraceStep (State Action Outcome Observation : Type) where
   selectedAction : Action
   modelOutcome : Outcome

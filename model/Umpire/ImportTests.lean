@@ -8,6 +8,7 @@ import Umpire
 #check Umpire.DefinitionError
 #check Umpire.SourceLocation
 #check Umpire.ModelValue
+#check Umpire.ModelValue.named
 #check Umpire.ModelTraceStep
 #check Umpire.ModelTrace
 #check Umpire.TargetDeclaration
