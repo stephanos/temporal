@@ -79,6 +79,29 @@ def divergentCycleEvidence : Option (DefinitionId × DefinitionId) :=
 example : divergentCycleEvidence = some (graphC, graphB) := by
   native_decide
 
+def denseNode (index : Nat) : DefinitionId :=
+  id ("test.dense.node-" ++ toString index)
+
+def denseNodes : List DefinitionId :=
+  (List.range 22).map denseNode
+
+def denseTailEdges : List DefinitionGraph.Edge :=
+  (List.range 22).flatMap fun before =>
+    (List.range 22).filterMap fun after =>
+      if 1 < before && before < after then
+        some (graphEdge (denseNode before) (denseNode after))
+      else
+        none
+
+def denseCycleEdges : List DefinitionGraph.Edge :=
+  [graphEdge (denseNode 0) (denseNode 1), graphEdge (denseNode 1) (denseNode 0)] ++
+    denseTailEdges ++
+    (List.range 20).map fun index => graphEdge (denseNode 1) (denseNode (index + 2))
+
+example : (DefinitionGraph.analyze denseNodes denseCycleEdges).cycleEvidence.map
+    (fun evidence => evidence.canonicalWitness) = some (denseNode 0) := by
+  native_decide
+
 def graphOccurrence (occurrenceId : DefinitionId) : NamedOccurrence := {
   id := occurrenceId
   action := requestCancel
