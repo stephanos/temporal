@@ -110,6 +110,23 @@ private def evidenceLinkShape (evidenceLink : EvidenceLink) : EvidenceLinkShape 
 example : checkedPlan = checkedPlanResult.toOption.get (by native_decide) := by
   native_decide
 
+/-- Field specifications retain the authored profile shape and checked mapping identity. -/
+example :
+    Profile.declaration.kinds = [{
+      id := Profile.lifecycleKind
+      fields := [
+        Profile.stateFieldSpec.declaration,
+        Profile.actionFieldSpec.declaration,
+        Profile.outcomeFieldSpec.declaration,
+        Profile.observationFieldSpec.declaration,
+        Profile.rejectedFieldSpec.declaration
+      ]
+    }] ∧
+    checkedPlan.source = Temporal.Feature.Nexus.Observation.source ∧
+    checkedPlan.behaviorFingerprint.render =
+      "sha256:608e4db6c3a29d0f953640621ee34d34e16b0090309e85804e21f0cb21be30a2" := by
+  native_decide
+
 /-- The checked mapping admits exactly the target-owned BasicLifecycle vocabulary. -/
 example : checkedPlanResult.isOk = true ∧ checkedPlan.meanings = [
     { definitionId := cancelActionId, kind := .action,

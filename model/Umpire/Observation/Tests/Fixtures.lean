@@ -17,10 +17,30 @@ def metadata (value : String) (kind : DefinitionKind) : DefinitionMetadata :=
 
 def profileId : DefinitionId := id "test.evidence.profile"
 def eventKind : DefinitionId := id "test.evidence.kind.event"
-def nameField : DefinitionId := id "test.evidence.field.name"
-def secretField : DefinitionId := id "test.evidence.field.secret"
-def hashedField : DefinitionId := id "test.evidence.field.hashed"
-def rejectedField : DefinitionId := id "test.evidence.field.rejected"
+def nameFieldSpec : ObservationFieldSpec := {
+  kind := eventKind
+  field := id "test.evidence.field.name"
+  valueType := .text
+}
+def secretFieldSpec : ObservationFieldSpec := {
+  kind := eventKind
+  field := id "test.evidence.field.secret"
+  valueType := .text
+}
+def hashedFieldSpec : ObservationFieldSpec := {
+  kind := eventKind
+  field := id "test.evidence.field.hashed"
+  valueType := .text
+}
+def rejectedFieldSpec : ObservationFieldSpec := {
+  kind := eventKind
+  field := id "test.evidence.field.rejected"
+  valueType := .text
+}
+def nameField : DefinitionId := nameFieldSpec.field
+def secretField : DefinitionId := secretFieldSpec.field
+def hashedField : DefinitionId := hashedFieldSpec.field
+def rejectedField : DefinitionId := rejectedFieldSpec.field
 
 def operationState : DefinitionId := id "test.state.operation"
 def contributionObservation : DefinitionId := id "test.observation.contribution"
@@ -30,7 +50,12 @@ def unauthorizedObservation : DefinitionId := id "test.observation.unauthorized"
 def completedState : DefinitionId := id "test.state.completed"
 def startAction : DefinitionId := id "test.action.start"
 def successOutcome : DefinitionId := id "test.outcome.success"
-def roleField : DefinitionId := id "test.evidence.field.role"
+def roleFieldSpec : ObservationFieldSpec := {
+  kind := eventKind
+  field := id "test.evidence.field.role"
+  valueType := .text
+}
+def roleField : DefinitionId := roleFieldSpec.field
 
 def evidenceProfile : EvidenceProfileDeclaration := {
   id := profileId
@@ -38,10 +63,10 @@ def evidenceProfile : EvidenceProfileDeclaration := {
   kinds := [{
     id := eventKind
     fields := [
-      { id := nameField, valueType := .text },
-      { id := secretField, valueType := .text },
-      { id := hashedField, valueType := .text },
-      { id := rejectedField, valueType := .text }
+      nameFieldSpec.declaration,
+      secretFieldSpec.declaration,
+      hashedFieldSpec.declaration,
+      rejectedFieldSpec.declaration
     ]
   }]
 }
@@ -54,13 +79,14 @@ def digestPolicy : DigestPolicyDeclaration := {
   version := 1
 }
 
-def field (fieldId : DefinitionId) : ObservationExpression :=
-  .field { kind := eventKind, field := fieldId }
+def field (fieldSpec : ObservationFieldSpec) : ObservationExpression :=
+  fieldSpec.expression
 
 def normalizedName : ObservationBinding := {
   id := id "test.binding.normalized-name"
   valueType := .text
-  expression := .portable (.normalize { name := "text.trim", version := 1 } (field nameField))
+  expression := .portable (.normalize { name := "text.trim", version := 1 }
+    nameFieldSpec.expression)
 }
 
 def initialRule : ObservationRule := {
@@ -69,7 +95,7 @@ def initialRule : ObservationRule := {
   outputKind := .state
   value := .portable (.binding normalizedName.id)
   condition := some (.portable (.and
-    (.present (field nameField))
+    (.present nameFieldSpec.expression)
     (.equals (.boolean true) (.boolean true))))
 }
 
@@ -77,14 +103,14 @@ def contributionRule : ObservationRule := {
   id := id "test.rule.contribution"
   output := contributionObservation
   outputKind := .observation
-  value := .portable (.contributionMarker (field secretField))
+  value := .portable (.contributionMarker secretFieldSpec.expression)
 }
 
 def digestRule : ObservationRule := {
   id := id "test.rule.digest"
   output := digestObservation
   outputKind := .observation
-  value := .portable (.digestToken digestPolicyId (field hashedField))
+  value := .portable (.digestToken digestPolicyId hashedFieldSpec.expression)
 }
 
 def baseDeclaration : ObservationMappingDeclaration := {
@@ -100,11 +126,10 @@ def baseDeclaration : ObservationMappingDeclaration := {
   ]
   closures := [{ kind := eventKind }]
   dispositions := [
-    { field := { kind := eventKind, field := nameField }, disposition := .retain },
-    { field := { kind := eventKind, field := secretField }, disposition := .redact },
-    { field := { kind := eventKind, field := hashedField },
-      disposition := .hash (some digestPolicyId) },
-    { field := { kind := eventKind, field := rejectedField }, disposition := .reject }
+    nameFieldSpec.disposition .retain,
+    secretFieldSpec.disposition .redact,
+    hashedFieldSpec.disposition (.hash (some digestPolicyId)),
+    rejectedFieldSpec.disposition .reject
   ]
   evidenceBound := { value := 10, unit := .evidenceRecords }
 }
@@ -141,14 +166,14 @@ def planIdentityOf
 /-! Independently authored evaluation fixture; it does not derive its expected trace from rules. -/
 
 def stepCondition : ObservationExpressionAuthoring :=
-  .portable (.equals (field roleField) (.text "step"))
+  .portable (.equals roleFieldSpec.expression (.text "step"))
 
 def evaluationDeclaration : ObservationMappingDeclaration := {
   baseDeclaration with
   id := id "test.mapping.observation-evaluation"
   rules := [
     { initialRule with condition := some (.portable
-        (.equals (field roleField) (.text "initial"))) },
+        (.equals roleFieldSpec.expression (.text "initial"))) },
     {
       id := id "test.rule.step-action"
       output := startAction
@@ -181,7 +206,7 @@ def evaluationDeclaration : ObservationMappingDeclaration := {
     { before := contributionRule.id, after := digestRule.id }
   ]
   dispositions := baseDeclaration.dispositions ++ [
-    { field := { kind := eventKind, field := roleField }, disposition := .retain }
+    roleFieldSpec.disposition .retain
   ]
   evidenceBound := { value := 3, unit := .evidenceRecords }
 }
@@ -204,7 +229,7 @@ def evaluationContext : ObservationCheckContext := {
   profiles := [{ evidenceProfile with kinds := [{
     id := eventKind
     fields := evidenceProfile.kinds.flatMap EvidenceKindDeclaration.fields ++ [
-      { id := roleField, valueType := .text }
+      roleFieldSpec.declaration
     ]
   }] }]
 }

@@ -87,7 +87,7 @@ def normalizedDigestRule : ObservationRule := {
   digestRule with
   value := .portable (.digestToken digestPolicyId
     (.normalize { name := "text.lowercase", version := 1 }
-      (.normalize { name := "text.trim", version := 1 } (field hashedField))))
+      (.normalize { name := "text.trim", version := 1 } (field hashedFieldSpec))))
 }
 
 def normalizedDigestDeclaration : ObservationMappingDeclaration := {

@@ -1,5 +1,6 @@
 import Temporal.System.Nexus.Core
 import Temporal.System.Nexus.CallerClosure
+import Temporal.System.Nexus.Observation
 
 namespace Temporal.System.Nexus.Tests
 
@@ -43,6 +44,54 @@ example : target.kernel.initialStates queuedSetup = [queuedState] ∧
     target.kernel.steps runningState recordCompletionAction = [completionRecordedResult] ∧
     target.kernel.steps queuedState recordCancellationAction = [] ∧
     target.kernel.steps cancellationRecordedState dispatchAction = [] := by
+  native_decide
+
+/-- Field specifications retain the authored Observation profile and checked identities. -/
+example :
+    Observation.Profile.declaration.kinds = [
+      { id := Observation.Profile.cleanupKind, fields := [
+          Observation.Profile.cleanupCommandKindFieldSpec.declaration,
+          Observation.Profile.cleanupEndpointIdentityFieldSpec.declaration,
+          Observation.Profile.cleanupErrorCodeFieldSpec.declaration,
+          Observation.Profile.cleanupNamespaceIdentityFieldSpec.declaration,
+          Observation.Profile.cleanupOpenHandleCountFieldSpec.declaration,
+          Observation.Profile.cleanupOperationCorrelationFieldSpec.declaration,
+          Observation.Profile.cleanupRunCorrelationFieldSpec.declaration,
+          Observation.Profile.cleanupStatusFieldSpec.declaration,
+          Observation.Profile.cleanupTaskQueueIdentityFieldSpec.declaration,
+          Observation.Profile.cleanupWorkflowCorrelationFieldSpec.declaration
+        ] },
+      { id := Observation.Profile.controlReceiptKind, fields := [
+          Observation.Profile.controlReceiptActionFieldSpec.declaration,
+          Observation.Profile.controlReceiptAttemptFieldSpec.declaration,
+          Observation.Profile.controlReceiptOccurrenceFieldSpec.declaration,
+          Observation.Profile.controlReceiptStatusFieldSpec.declaration
+        ] },
+      { id := Observation.Profile.historyKind, fields := [
+          Observation.Profile.historyEventIdFieldSpec.declaration,
+          Observation.Profile.historyEventTypeFieldSpec.declaration,
+          Observation.Profile.historyOperationCorrelationFieldSpec.declaration,
+          Observation.Profile.historyRunCorrelationFieldSpec.declaration,
+          Observation.Profile.historyWorkflowCorrelationFieldSpec.declaration
+        ] },
+      { id := Observation.Profile.participantKind, fields := [
+          Observation.Profile.participantCancellationCountFieldSpec.declaration,
+          Observation.Profile.participantCommandKindFieldSpec.declaration,
+          Observation.Profile.participantEndpointIdentityFieldSpec.declaration,
+          Observation.Profile.participantErrorCodeFieldSpec.declaration,
+          Observation.Profile.participantNamespaceIdentityFieldSpec.declaration,
+          Observation.Profile.participantOperationCorrelationFieldSpec.declaration,
+          Observation.Profile.participantRunCorrelationFieldSpec.declaration,
+          Observation.Profile.participantStatusFieldSpec.declaration,
+          Observation.Profile.participantTaskQueueIdentityFieldSpec.declaration,
+          Observation.Profile.participantWorkflowCorrelationFieldSpec.declaration
+        ] }
+    ] ∧
+    Observation.checkedPlan.source = Observation.source ∧
+    Observation.checkedPlan.behaviorFingerprint.render =
+      "sha256:150c75ffcdd8b8e6e2ca8807c2c6ac7d924407b3291a0bc1f10ea04469a7df9b" ∧
+    Observation.DuplicateDelivery.checkedPlan.behaviorFingerprint.render =
+      "sha256:cc5910e77e3d43f4cad56de88a68f099eea8b25bbbe0fde451a02b2afda01438" := by
   native_decide
 
 example : (checkTarget targetAuthoring).toOption.map (fun checked =>

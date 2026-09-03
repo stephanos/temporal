@@ -29,7 +29,7 @@ def unknownOperatorMutation : ObservationMappingDeclaration := {
   baseDeclaration with
   bindings := [{ normalizedName with
     expression := .portable
-      (.normalize { name := "text.unknown", version := 1 } (field nameField)) }]
+      (.normalize { name := "text.unknown", version := 1 } (field nameFieldSpec)) }]
 }
 
 def wrongBindingTypeMutation : ObservationMappingDeclaration := {
@@ -41,7 +41,7 @@ def clearValueTaintMutation : ObservationMappingDeclaration := {
   baseDeclaration with
   rules := baseDeclaration.rules.map fun rule =>
     if rule.id == contributionRule.id then
-      { rule with value := .portable (field secretField) }
+      { rule with value := .portable (field secretFieldSpec) }
     else
       rule
 }
