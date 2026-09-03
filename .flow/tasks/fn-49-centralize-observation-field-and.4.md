@@ -33,9 +33,8 @@ Complete both adapters and pin their distinct diagnostics, precedence, and mutat
 - [ ] Invalid inputs produce no partial accepted trace or downstream verdict.
 - [ ] Observation aggregate and mutation suites pass with no semantic or artifact drift.
 ## Done summary
-TBD
-
+Routed raw Evidence and accepted Evidence Link validation through one shared structural analysis invocation per boundary, removing duplicate normalization/sorting while preserving boundary-owned diagnostics, related identities, first-failure precedence, and no-partial-output behavior. Added link-rule attribution, 10x call-path coverage, duplicate-closure fail-closed handling, explicit zero-record closure compatibility, and checked-plan closure-order regressions.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c9f9dd4f19580876dac8fd9d8f39656b23d6ded0, 3d723338e92b5347b520978fda52091b58b684db
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests, cd model && mise exec -- lake build Umpire.Observation.Tests.Mutations Umpire.Observation.Tests.Verdict, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model, make lint-code (exact inherited 1,379-finding baseline)
 - PRs:
