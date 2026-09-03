@@ -540,6 +540,14 @@ target.
 matching trace, budget exhaustion, unsatisfiable behavior, and an invalid query. `PlannerRun`
 contains the outcome, optional artifact, and instrumentation.
 
+Planning also owns the `KnownGap` row vocabulary and its opaque `KnownGapSet`. Trusted Lean
+producers use `KnownGapSet.ofUnordered` to sort and check authored rows; strict decoder adapters use
+`KnownGapSet.checkCanonical`, which rejects a noncanonical external order instead of repairing it.
+Both paths reject invalid identifiers, duplicates, and conflicting details. After admission,
+semantic consumers accept only the checked set, compose phase-owned gaps with `KnownGapSet.union`,
+and use `KnownGapSet.toList` only for a read-only canonical projection. The representation has no
+public constructor or record-update path.
+
 ## Artifact API
 
 `Umpire.Artifact` exposes its vertical modules in dependency order: Planning, Runtime, Evidence,
@@ -574,6 +582,13 @@ The retained boundary is exactly embedded `umpire-drive-plan/v2` plus persisted
 `umpire-raw-evidence/v2`, `umpire-evidence/v2`, and `umpire-result/v2`. The latter five keep phase
 Limits, Known Gaps, operational status, Observation Evaluation, Evidence Links, Implementation Link
 status, Property verdicts, Run Evaluation, and cleanup status distinct.
+
+Lean Planning, Runtime, Evidence, and Result records carry checked `KnownGapSet` values and project
+their ordered rows only at codec or protocol boundaries. The persisted representation remains the
+unchanged raw JSON array. Go therefore admits every such array independently: it validates kinds,
+namespaced identifiers, canonical order, uniqueness, and subject-detail consistency, then verifies
+the checker response projections and exact Known Gap union without trusting Lean's opaque in-memory
+value.
 
 `Umpire.Artifact.PortableEvaluationContract` is a focused build-time module outside the ordinary
 `Umpire.Artifact` facade. It defines the inert version-one contract vocabulary and its canonical
