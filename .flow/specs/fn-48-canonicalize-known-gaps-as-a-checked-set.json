@@ -13,7 +13,7 @@
     "fn-48-canonicalize-known-gaps-as-a-checked-set.2": 0,
     "fn-48-canonicalize-known-gaps-as-a-checked-set.3": 0,
     "fn-48-canonicalize-known-gaps-as-a-checked-set.4": 0,
-    "fn-48-canonicalize-known-gaps-as-a-checked-set.5": 1
+    "fn-48-canonicalize-known-gaps-as-a-checked-set.5": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -410,6 +410,66 @@
       "timestamp": "2026-09-03T08:13:48.534531Z",
       "tool_calls": 15,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "25a49a4bdbf4b0997690a98e606ddf24ac68581432b8d06c76006879f49ab9a7",
+      "backend": "codex",
+      "base_sha": "6330605699bde800a31da2c532a2fb3f733c0fe8",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-761b4f7c3bc259fb12b3035978182fc7",
+            "classification": "introduced",
+            "findingId": "finding-761b4f7c3bc259fb12b3035978182fc7",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-2d7c9e78c16c4b44df3acc6d01a5bec8",
+            "classification": "pre_existing",
+            "findingId": "finding-2d7c9e78c16c4b44df3acc6d01a5bec8",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-5f508c06800c3cc35b40d87916d50e67",
+            "classification": "pre_existing",
+            "findingId": "finding-5f508c06800c3cc35b40d87916d50e67",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3f91ef3c5ee8b926968fd45105db68c20f2f14ff",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1339,
+      "output_sha256": "94b3b99e219415aaed91023a7605d77d4e5e8a0ab309461fd39fea55fbf748fd",
+      "reservation_id": "05b89db4d7e84eae9b2da7112816032d",
+      "round_consumed": true,
+      "scope": "impl:fn-48-canonicalize-known-gaps-as-a-checked-set.5",
+      "superseded_by": null,
+      "task": "fn-48-canonicalize-known-gaps-as-a-checked-set.5",
+      "timestamp": "2026-09-03T08:16:49.050959Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -417,6 +477,7 @@
     "impl:fn-48-canonicalize-known-gaps-as-a-checked-set.2": 1,
     "impl:fn-48-canonicalize-known-gaps-as-a-checked-set.3": 1,
     "impl:fn-48-canonicalize-known-gaps-as-a-checked-set.4": 1,
+    "impl:fn-48-canonicalize-known-gaps-as-a-checked-set.5": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -444,5 +505,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T08:13:48.544000Z"
+  "updated_at": "2026-09-03T08:16:49.056884Z"
 }

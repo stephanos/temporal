@@ -27,9 +27,28 @@ Update the public model guidance and run the complete Lean/Go compatibility gate
 - [ ] Focused and aggregate Lean builds including `TemporalExperimentalTests`, Go artifactv2/runevaluation tests with `-tags test_dep`, exact regression, `make lint-model`, and `make lint-code` pass.
 - [ ] No generated fixture, artifact byte, checksum, or fingerprint drift remains.
 ## Done summary
-TBD
+Documented the checked Known Gap boundary across the reusable Umpire architecture, model overview,
+cross-layer architecture, and local Run Evaluation guide. The docs now distinguish trusted producer
+normalization with `KnownGapSet.ofUnordered`, strict external Lean admission with
+`KnownGapSet.checkCanonical`, opaque checked semantic consumption and read-only projection at
+explicit codec/protocol/semantic-adapter boundaries, and independent Go raw-wire admission plus
+response projection/union verification.
 
+All focused and aggregate Lean builds, normalized Go wire tests, the exact regression/generated-view
+gate, and model lint passed. `make lint-code` reproduced the approved inherited baseline exactly at
+1,379 unrelated findings (errcheck 220, exhaustive 5, forbidigo 211, govet 5, revive 798,
+staticcheck 136, testifylint 4); its sole unrelated `tools/umpire1/monitor_test.go` auto-fix was
+restored. The normalized Go gate selected Apple Clang and a physical macOS `TMPDIR` to avoid the
+inherited Lean-bundled Clang SDK lookup problem.
+
+Codex review found and verified one documentation correction: `KnownGapSet.toList` is also used at
+explicit semantic-adapter boundaries, not only serialization. Its remaining finding concerns a
+pre-existing portable-compiler canonicalizer outside this task's declared documentation surface and
+has been handed to the parent for spec-completion repair.
+
+stage: impl-review - ran (Codex SHIP after one documentation correction; 0 introduced findings,
+1 pre-existing finding handed off) (model: gpt-5.6-sol)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ca4dbd909fe7236c6546f1a229c30e7a5971fdf2, 3f91ef3c5ee8b926968fd45105db68c20f2f14ff
+- Tests: cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Artifact.Tests.Codecs Umpire.Artifact.Tests.Runtime Umpire.Artifact.Tests.Evidence Umpire.Artifact.Tests.Result Temporal.Tool.RunEvaluationTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, CC=/usr/bin/clang TMPDIR=<physical macOS temporary directory> go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/runevaluation, make umpire-check-regression, make lint-model, make lint-code (approved inherited baseline: 1379 findings; errcheck 220, exhaustive 5, forbidigo 211, govet 5, revive 798, staticcheck 136, testifylint 4), git diff --check
 - PRs:
