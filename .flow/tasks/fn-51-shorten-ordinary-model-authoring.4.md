@@ -31,9 +31,8 @@ Add focused inert constructors for ordinary Space leaves and migrate the product
 - [ ] Checked Space identity, point order, fault intent, coverage goals, artifacts, and focused tests are unchanged.
 
 ## Done summary
-TBD
-
+Added six documented inert Space leaf constructors with direct record-equivalence coverage, then migrated ordinary shared fixtures and production VariationSpace/CallerClosureFault declarations. Explicit-role, incompatible-fault, negative, mutation, boundary, and equivalence-oracle records remain raw; Space diagnostics, identity, ordering, intent, coverage, comments, and artifacts remain unchanged.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7f229aa5887f5d339df00eb3a1d49e456bf8dd5d
+- Tests: cd model && mise exec -- lake build Umpire.Space.Tests.Compilation Umpire.Space.Tests.Determinism Umpire.Space.Tests.Intent Umpire.Space.Tests.Metadata Umpire.Space.Tests.Validation Temporal.Feature.Nexus.Experimental.VariationSpaceTests Temporal.Feature.Nexus.Experimental.CallerClosureFaultTests, make lint-model, CGO_ENABLED=0 mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/nexus/... -run '^TestHermeticCIPortability$'
 - PRs:
