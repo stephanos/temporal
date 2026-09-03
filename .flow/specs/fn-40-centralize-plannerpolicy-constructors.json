@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-40-centralize-plannerpolicy-constructors",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-03T00:02:53.835562Z",
   "created_at": "2026-08-28T15:10:49.040883Z",
   "default_impl": null,
   "default_review": null,
@@ -218,6 +218,36 @@
       "timestamp": "2026-09-02T23:49:45.295462Z",
       "tool_calls": 31,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "280dec716d03cfd2b0b8dbfdac48df0d59735b0ca6413a0d7586d46560730c42",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fc669c8b2c2139d975b1b4d5825df99c977ea22b",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 237877,
+      "output_sha256": "f03c5451b8a02e75878dbedc6d3af11337e4dfe5bd30f03a8bc66c98f5036093",
+      "reservation_id": "805b19e3629d49968d769371e80c3ec7",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T00:02:53.824572Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -225,11 +255,12 @@
     "impl:fn-40-centralize-plannerpolicy-constructors.2": 1,
     "impl:fn-40-centralize-plannerpolicy-constructors.3": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-40-centralize-plannerpolicy-constructors.1": 0,
     "impl:fn-40-centralize-plannerpolicy-constructors.2": 0,
     "impl:fn-40-centralize-plannerpolicy-constructors.3": 0,
@@ -249,5 +280,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-02T23:49:45.309656Z"
+  "updated_at": "2026-09-03T00:02:53.839027Z"
 }
