@@ -275,6 +275,26 @@ def linkedStructuralSupport
   closureSupport := linkedStructuralClosures
 }
 
+/-- Per-link duplicate closures are rejected without treating copies across links as duplicates. -/
+example :
+    let first := linkedStructuralSupport structuralRuleA
+    let duplicate := first.closureSupport.head?.get (by native_decide)
+    let withinLink := Observation.Internal.analyzeStructure [] []
+      [structuralKind, structuralAuxiliaryKind] [{
+        first with closureSupport := duplicate :: first.closureSupport
+      }]
+    let acrossLinks := Observation.Internal.analyzeStructure [] []
+      [structuralKind, structuralAuxiliaryKind] [
+        first,
+        linkedStructuralSupport structuralRuleB
+      ]
+    (withinLink.links.map Observation.Internal.NormalizedStructuralLinkSupport.closures,
+      withinLink.findings,
+      acrossLinks.findings) = ([linkedStructuralClosures], [
+        .duplicateClosureSupport structuralRuleA (some structuralSourceA) structuralKind false
+      ], []) := by
+  native_decide
+
 /-- Missing support on one link identifies that link without re-analyzing the shared union. -/
 example :
     let second := linkedStructuralSupport structuralRuleB
