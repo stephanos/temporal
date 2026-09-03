@@ -154,6 +154,16 @@ System, API, Tool, verification, or test-support modules, and no production modu
 test-support namespace directly or transitively. These are internal implementation and test-support
 seams, not replacements for the existing Umpire and Temporal consumer facades.
 
+Canonical Definition ID ordering, duplicate selection, syntax validation, and source-path display
+belong to `Umpire.Core`; Property, Behavior, Query, and Observation translate those structural
+results into their own typed diagnostics. The still narrower
+`Umpire.Shared.DefinitionGraph` module is imported only by the Behavior and Observation language
+implementations. It owns deterministic graph mechanics but no domain error or validation-stage
+policy. It has no import in the `Umpire.Shared` facade and no explicit entry in the public `Umpire`
+umbrella; ordinary consumers use the language facades instead of importing it directly. Ordered
+JSON construction is a separate codec-owner dependency in `Umpire.Json`; ordinary model authors
+do not need it.
+
 `make lint-model` checks the complete first-party module graph transitively. Its model-specific
 `ModelLint.ImportGraph` policy uses the reusable pure `Tools.LeanImportGraph` traversal and
 `Tools.LeanSourceInventory` discovery modules. It keeps `Shared.*` independent of `Umpire.*` and
@@ -192,11 +202,23 @@ Public Umpire APIs follow an authored → checked → planned → artifact lifec
    created with `AuthoredTarget.make`.
 2. Call `checkTarget` for a source-located diagnostic or `checkedTarget` for a declaration that
    compiles as valid, obtaining one canonical `CheckedTarget`.
-3. Call `checkProperty` and `checkBehavior` with contexts derived from the checked target to
-   validate authored constraints.
-4. Call `checkQuery` to bind that Target to Properties, Behavior, Limits, and policy.
-5. Derive the planner kernel with `IncrementalPlannerKernel.ofCheckedQuery?`, then call `plan`.
-6. Inspect the resulting `PlannerRun` and optional `ExperimentSpec`.
+3. Build ordinary constraints with the small semantic constructors, such as
+   `PropertyPattern.exact`, `SetupConstraint.roleEquals`, `BehaviorTrace.singleStep`, and
+   `BehaviorDeclaration.exactlyOneAction`. They return the existing model records and do not add a
+   second authoring language or choose Target outcomes.
+4. Call `checkProperty` and `checkBehavior` with contexts derived from the checked Target when a
+   typed diagnostic is needed. For a declaration already proved valid, `checkedProperty` and
+   `checkedBehavior` accept that explicit success proof and hide only `Except` extraction.
+5. Call `checkQuery` to bind that Target to Properties, Behavior, Limits, and policy, or use
+   `checkedQuery` with an explicit proof to keep extraction and dependent Target re-ascription
+   inside Query.
+6. Derive the planner kernel with `IncrementalPlannerKernel.ofCheckedQuery?`, then call `plan`.
+7. Inspect the resulting `PlannerRun` and optional `ExperimentSpec`.
+
+Observation follows the same checked-authoring rule after a Target is available:
+`checkObservation` is the authoritative typed diagnostic path, while `checkedObservation` requires
+an explicit proof that that checker succeeded. None of the four checked facades defaults a proof to
+`native_decide` or adds runtime recovery; invalid input remains visible through the raw checker.
 
 `Umpire.Core` is the single authority for Model Trace coordinates. It defines canonical source-order
 enumeration, strict one-based lookup that rejects zero and out-of-range positions, and the mapping
@@ -213,6 +235,10 @@ authoring or scenario language.
 When one independently checked Target implements another, author an inert
 `ImplementationLinkDeclaration` and exact forward witness, call `checkImplementationLink`, and
 apply only the resulting `CheckedImplementationLink` to an admitted `EvidenceBackedTrace`.
+The public `Umpire.ImplementationLink` facade exposes the reusable core: `KernelMorphism` translates
+kernel values, transition results, steps, and traces, and `ForwardSimulation` adds initial and step
+preservation to derive trace preservation. The Link layer around that core still owns declaration
+indexing, mapping coverage, Known Gaps, Limits, fingerprints, and diagnostics.
 Application does not repeat Observation envelope admission: it validates the Link's source Target,
 application Limit, mapping, support/Known Gap partition, and translation while replaying the source
 Model Trace through its checked kernel. It then returns either one complete authoritative
@@ -406,6 +432,12 @@ use those exact pretty bytes with only the owning checksum omitted; Behavior Fin
 meaning identities, not byte checksums. The strict Go boundary admits only the closed two-, four-,
 or six-member prototype sets while preserving every Limit, Known Gap, Evidence Link,
 Implementation Link, and Run Evaluation distinction.
+
+The Artifact and Planning codecs retain ownership of each field's name, meaning, and order. They
+import `Umpire.Json` and construct an ordered `CanonicalJson` value from typed nulls, strings,
+naturals, arrays, and objects before rendering. That helper preserves the caller's field order,
+uses Lean's string escaping, and provides compact, stable pretty, and exactly-one-LF byte renderers;
+it does not parse JSON, define schemas, sort an unordered map, or change any Artifact format.
 
 Read-only Artifact checks never publish. Explicit immutable publication validates and privately
 stages a complete set before one manifest-digest-directory rename, so readers see absence or one
