@@ -153,14 +153,13 @@ func (e *PortableExecutor) Execute(
 	outcome, err := e.run(executionContext, prepared.input, prepared.binding, runIdentity, e.adapter)
 	reusable = outcome.reusable
 	if err != nil {
-		if !executionOccurred(err) {
-			return nil, portableError(PortableErrorFailedPrecondition, err)
+		if executionOccurred(err) {
+			return nil, portableError(PortableErrorInternal, err)
 		}
-		result := portableRunFailure(executionContext, prepared.plan, runIdentity, err)
-		if result == nil {
-			return nil, portableError(PortableErrorInternal, errors.New("failed to scope runtime failure"))
+		if cancellation := executionCancellation(executionContext, err); cancellation != nil {
+			return nil, cancellation
 		}
-		return result, nil
+		return nil, portableError(PortableErrorFailedPrecondition, err)
 	}
 	if outcome.rawEvidence.RunIdentity != runIdentity {
 		reusable = false
@@ -207,6 +206,7 @@ func preparePortableExecution(
 	}
 	bindings, err := portableInputBindings(
 		input,
+		checkedPlan.GetExecution().GetRuntimeBindingSlots(),
 		portableDefinitionIDs(checkedPlan.GetExecution().GetRuntime().GetAuthorityRequiredCapabilities()),
 	)
 	if err != nil {
@@ -221,31 +221,17 @@ func preparePortableExecution(
 	}, nil
 }
 
-func portableRunFailure(
-	ctx context.Context,
-	plan testplan.AuthorizedPlan,
-	runIdentity string,
-	err error,
-) *umpirespb.ExecutionResult {
-	tooling := umpirespb.EXECUTION_TOOLING_STATUS_SUCCEEDED
-	if errors.Is(ctx.Err(), context.Canceled) || errors.Is(ctx.Err(), context.DeadlineExceeded) ||
-		errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
-		tooling = umpirespb.EXECUTION_TOOLING_STATUS_CANCELED
+func executionCancellation(ctx context.Context, err error) error {
+	if contextErr := ctx.Err(); contextErr != nil {
+		return contextErr
 	}
-	result, scopeErr := plan.ScopeResult(&umpirespb.ExecutionResult{
-		RunIdentity: runIdentity, ToolingStatus: tooling,
-		OperationalStatus: umpirespb.EXECUTION_OPERATIONAL_STATUS_INCOMPLETE,
-		Observation:       &umpirespb.ObservationEvaluationResult{Status: umpirespb.OBSERVATION_STATUS_UNKNOWN},
-		TraceProjection:   &umpirespb.TraceProjectionResult{Status: umpirespb.TRACE_PROJECTION_STATUS_NOT_EVALUATED},
-		SemanticStatus:    umpirespb.EXECUTION_EVALUATION_STATUS_INCOMPLETE,
-		CleanupStatus:     umpirespb.EXECUTION_CLEANUP_STATUS_INCOMPLETE,
-		Decision:          umpirespb.EXECUTION_DECISION_INCONCLUSIVE,
-		Work:              &umpirespb.EvaluationWork{},
-	})
-	if scopeErr != nil {
-		return nil
+	if errors.Is(err, context.DeadlineExceeded) {
+		return context.DeadlineExceeded
 	}
-	return result
+	if errors.Is(err, context.Canceled) {
+		return context.Canceled
+	}
+	return nil
 }
 
 func portableError(code PortableErrorCode, err error) error {

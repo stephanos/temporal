@@ -9,11 +9,12 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"sort"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	"go.temporal.io/server/tools/umpire/runner"
@@ -187,6 +188,86 @@ func TestRunRejectsAuthorityLeakBeforeParticipantConstruction(t *testing.T) {
 	}
 }
 
+func TestRunResolvesAndEnforcesDeclaredRuntimeBindingSlotsBeforeDispatch(t *testing.T) {
+	input := mutateCallerClosureExperiment(t, func(experiment *artifactv2.Experiment) {
+		literal := artifactv2.ModelValue{DefinitionID: "test.runtime-value.workflow", Value: "fixture"}
+		experiment.Plan.ModelPreconditions = []artifactv2.Precondition{{
+			DefinitionID: "test.precondition.workflow", Relation: "equal",
+			Left:  artifactv2.Operand{Kind: "role", DefinitionID: "test.runtime-slot.workflow"},
+			Right: artifactv2.Operand{Kind: "value", Value: &literal},
+		}}
+	})
+	binding := inputBindingForSet(t, input)
+	binding.RuntimeBindingSlots = []*umpirespb.RuntimeBindingSlot{{
+		Definition: &umpirespb.DefinitionBinding{
+			DefinitionId:        "test.runtime-slot.workflow",
+			BehaviorFingerprint: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		},
+		ValueKind: umpirespb.PORTABLE_VALUE_KIND_TEXT,
+	}}
+
+	for _, test := range []struct {
+		name             string
+		value            *umpirespb.Value
+		wantParticipants int
+	}{
+		{
+			name: "satisfied precondition",
+			value: &umpirespb.Value{Value: &umpirespb.Value_Text{
+				Text: "fixture",
+			}},
+			wantParticipants: 1,
+		},
+		{
+			name:  "unmet precondition",
+			value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "other"}},
+		},
+		{
+			name:  "crossed scalar kind",
+			value: &umpirespb.Value{Value: &umpirespb.Value_Natural{Natural: "1"}},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			adapter := &runtimeBindingAdapter{value: test.value}
+
+			_, err := runner.Run(
+				context.Background(), input, binding,
+				"umpire.generated.runner.runtime-binding-1", adapter,
+			)
+
+			if test.wantParticipants == 0 {
+				require.ErrorContains(t, err, "runtime binding")
+			} else {
+				require.ErrorContains(t, err, "participant construction failed")
+			}
+			require.Equal(t, test.wantParticipants, adapter.participantCalls)
+			require.Equal(t, 0, adapter.environmentCalls)
+			requireExecutionOccurred(t, err, false)
+		})
+	}
+}
+
+func TestRunRequiresRuntimeBindingResolverBeforeDispatch(t *testing.T) {
+	input := admitCallerClosureSet(t)
+	binding := expectedCallerClosureInput
+	binding.RuntimeBindingSlots = []*umpirespb.RuntimeBindingSlot{{
+		Definition: &umpirespb.DefinitionBinding{
+			DefinitionId:        "test.runtime-slot.workflow",
+			BehaviorFingerprint: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+		},
+		ValueKind: umpirespb.PORTABLE_VALUE_KIND_TEXT,
+	}}
+	adapter := participantFailureAdapter{Binding: nexus.Binding{}}
+
+	_, err := runner.Run(
+		context.Background(), input, binding,
+		"umpire.generated.runner.runtime-resolver-1", adapter,
+	)
+
+	require.ErrorContains(t, err, "runtime binding resolver")
+	requireExecutionOccurred(t, err, false)
+}
+
 func TestExecutionSurfaceExposesOnlyTheDigestBoundRunner(t *testing.T) {
 	require.NotContains(t, topLevelFunctions(t, "runner.go"), "RunChecked")
 	require.NotContains(t, topLevelFunctions(
@@ -235,6 +316,34 @@ type authorityLeakAdapter struct {
 
 type participantFailureAdapter struct {
 	nexus.Binding
+}
+
+type runtimeBindingAdapter struct {
+	nexus.Binding
+	value            *umpirespb.Value
+	participantCalls int
+	environmentCalls int
+}
+
+func (a *runtimeBindingAdapter) ResolveRuntimeBindings(
+	_ umpireruntime.CheckedRunRequest,
+	slots []*umpirespb.RuntimeBindingSlot,
+) ([]runner.RuntimeBindingValue, error) {
+	return []runner.RuntimeBindingValue{{
+		Definition: slots[0].GetDefinition(), Value: a.value,
+	}}, nil
+}
+
+func (a *runtimeBindingAdapter) NewParticipant(
+	umpireruntime.CheckedRunRequest,
+) (umpireruntime.Participant, error) {
+	a.participantCalls++
+	return nil, errors.New("participant construction failed")
+}
+
+func (a *runtimeBindingAdapter) EnvironmentFactory() umpireruntime.EnvironmentFactory {
+	a.environmentCalls++
+	return nil
 }
 
 func (participantFailureAdapter) NewParticipant(
@@ -379,6 +488,54 @@ func mutateCallerClosureConfiguration(
 	return mutated
 }
 
+func mutateCallerClosureExperiment(
+	t *testing.T,
+	mutate func(*artifactv2.Experiment),
+) artifact.AdmittedSet {
+	t.Helper()
+	input := admitCallerClosureSet(t)
+	executable, ok := input.Executable()
+	require.True(t, ok)
+	experiment := executable.Experiment()
+	mutate(&experiment)
+	experiment, err := artifactv2.SealExperiment(experiment)
+	require.NoError(t, err)
+	configuration := executable.RuntimeConfiguration()
+	configuration.Experiment, err = artifactv2.ExperimentArtifactBinding(experiment)
+	require.NoError(t, err)
+	configuration, err = artifactv2.SealRuntimeConfiguration(configuration)
+	require.NoError(t, err)
+	experimentBytes, err := artifact.EncodeExperimentV2(experiment)
+	require.NoError(t, err)
+	configurationBytes, err := artifact.EncodeRuntimeConfigurationV2(configuration)
+	require.NoError(t, err)
+	mutated, err := artifact.AdmitSet([]artifact.SetMember{
+		{Path: "artifacts/experiment.json", Encoded: experimentBytes},
+		{Path: "artifacts/runtime-configuration.json", Encoded: configurationBytes},
+	})
+	require.NoError(t, err)
+	return mutated
+}
+
+func inputBindingForSet(t *testing.T, input artifact.AdmittedSet) runner.InputBinding {
+	t.Helper()
+	executable, ok := input.Executable()
+	require.True(t, ok)
+	experiment := executable.Experiment()
+	configuration := executable.RuntimeConfiguration()
+	return runner.InputBinding{
+		ArtifactSetIdentity: input.Identity(), ArtifactSetChecksum: input.Checksum(),
+		ManifestSHA256:                          input.ManifestSHA256(),
+		ExperimentArtifactChecksum:              experiment.ArtifactChecksum,
+		ExperimentBehaviorFingerprint:           experiment.QueryBehaviorFingerprint,
+		RuntimeConfigurationArtifactChecksum:    configuration.ArtifactChecksum,
+		RuntimeConfigurationBehaviorFingerprint: configuration.BehaviorFingerprint,
+		AuthorityRequiredCapabilityDefinitionIDs: append(
+			[]string(nil), expectedCallerClosureInput.AuthorityRequiredCapabilityDefinitionIDs...,
+		),
+	}
+}
+
 func topLevelFunctions(t *testing.T, path string) []string {
 	t.Helper()
 	parsed, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
@@ -415,6 +572,6 @@ func goFilesImporting(t *testing.T, root string, importPath string) []string {
 		return nil
 	})
 	require.NoError(t, err)
-	sort.Strings(paths)
+	slices.Sort(paths)
 	return paths
 }

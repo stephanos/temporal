@@ -2,6 +2,7 @@ package executor
 
 import (
 	"context"
+	"errors"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -177,6 +178,57 @@ func TestPortableExecutorCancellationAndCleanupPoisoningRemainAtTheExecutionSeam
 	_, err = executor.Execute(context.Background(), portableExecutionRequest())
 	requirePortableExecutorError(t, err, PortableErrorFailedPrecondition)
 	require.Equal(t, int32(1), prepares.Load())
+}
+
+func TestPortableExecutorRejectsPostDispatchInvariantWithoutAResult(t *testing.T) {
+	plan := portableExecutorFixturePlan(t, false)
+	executor := newPortableExecutor(
+		nil, nil, preparePortableExecution,
+		func(
+			context.Context, artifact.AdmittedSet, runner.InputBinding, string, runner.Adapter,
+		) (runOutcome, error) {
+			return runOutcome{reusable: false}, portableExecutionError{
+				err: errors.New("runtime invariant failed"), occurred: true,
+			}
+		},
+		portableevaluation.EvaluatePortable,
+		func() string { return "test.run.portable-invariant" },
+	)
+
+	result, err := executor.Execute(context.Background(), plan)
+
+	require.Nil(t, result)
+	requirePortableExecutorError(t, err, PortableErrorInternal)
+}
+
+func TestPortableExecutorPreservesCancellationDuringRuntimeAdmission(t *testing.T) {
+	plan := portableExecutorFixturePlan(t, false)
+	executor := newPortableExecutor(
+		nil, nil, preparePortableExecution,
+		func(
+			context.Context, artifact.AdmittedSet, runner.InputBinding, string, runner.Adapter,
+		) (runOutcome, error) {
+			return runOutcome{reusable: true}, context.Canceled
+		},
+		portableevaluation.EvaluatePortable,
+		func() string { return "test.run.portable-canceled-admission" },
+	)
+
+	result, err := executor.Execute(context.Background(), plan)
+
+	require.Nil(t, result)
+	require.ErrorIs(t, err, context.Canceled)
+}
+
+type portableExecutionError struct {
+	err      error
+	occurred bool
+}
+
+func (e portableExecutionError) Error() string { return e.err.Error() }
+func (e portableExecutionError) Unwrap() error { return e.err }
+func (e portableExecutionError) ExecutionOccurred() bool {
+	return e.occurred
 }
 
 func portableExecutionRequest() *umpirespb.PortableTestPlan {
