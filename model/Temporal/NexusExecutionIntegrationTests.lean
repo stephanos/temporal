@@ -9,6 +9,9 @@ open Temporal.System.Execution.Nexus
 
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
+private def checkedKnownGaps (gaps : List KnownGap) : KnownGapSet :=
+  (KnownGapSet.ofUnordered gaps).toOption.getD KnownGapSet.empty
+
 private def canonicalExperiment : ExperimentSpec :=
   Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
 
@@ -495,7 +498,7 @@ example : [
       binding with capabilityDefinitionIds := binding.capabilityDefinitionIds.drop 1
     }) canonicalRuntimeConfiguration),
     configurationIdentityChanges {
-      canonicalRuntimeConfiguration with knownGaps := [{
+      canonicalRuntimeConfiguration with knownGaps := checkedKnownGaps [{
         kind := .input
         code := id "umpire.known-gap.mutated"
       }]

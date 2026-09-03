@@ -490,7 +490,7 @@ def runtimeConfigurationGeneratedViewBytes (configuration : RuntimeConfiguration
       ",\"observation\":" ++ observationConfigurationJson configuration.observation ++
       ",\"participantBindings\":" ++
         array (configuration.participantBindings.map participantBindingJson) ++
-      ",\"knownGaps\":" ++ array (configuration.knownGaps.map canonicalKnownGapJson) ++ "}"
+      ",\"knownGaps\":" ++ array (configuration.knownGaps.toList.map canonicalKnownGapJson) ++ "}"
 
 /-- Recompute the Nexus configuration identity from every meaning-bearing field. -/
 def expectedRuntimeConfigurationBehaviorFingerprint
@@ -522,7 +522,7 @@ private def runtimeConfigurationDraft (experiment : ExperimentSpec) : RuntimeCon
     programBehaviorFingerprint := canonicalParticipantProgramDefinition.reference.behaviorFingerprint
     capabilityDefinitionIds := canonicalParticipantProgramDefinition.capabilityDefinitionIds
   }]
-  knownGaps := []
+  knownGaps := KnownGapSet.empty
   provenance := {
     sourceDefinitionIds := [
       canonicalObservationProgramDefinition.reference.definitionId,
@@ -567,7 +567,7 @@ private def duplicateDeliveryRuntimeConfigurationDraft
       duplicateDeliveryParticipantProgramDefinition.reference.behaviorFingerprint
     capabilityDefinitionIds := duplicateDeliveryParticipantProgramDefinition.capabilityDefinitionIds
   }]
-  knownGaps := []
+  knownGaps := KnownGapSet.empty
   provenance := {
     sourceDefinitionIds := [
       duplicateDeliveryParticipantProgramDefinition.reference.definitionId,
@@ -686,7 +686,7 @@ private def checkConfiguration
     throw (executionError .program subject)
   if binding.capabilityDefinitionIds != participantProgram.capabilityDefinitionIds then
     throw (executionError .capability subject)
-  if configuration.knownGaps != [] || !configuration.isValidTransport ||
+  if configuration.knownGaps.toList != [] || !configuration.isValidTransport ||
       configuration.behaviorFingerprint !=
         expectedRuntimeConfigurationBehaviorFingerprint configuration ||
       !configuration.closesExperiment experiment ||

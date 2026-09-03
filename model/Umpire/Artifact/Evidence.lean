@@ -86,7 +86,7 @@ structure RawEvidence where
   captureStatus : SourceClosureStatus
   sources : List RawEvidenceSource
   facts : List RawEvidenceFact
-  knownGaps : List KnownGap
+  knownGaps : KnownGapSet
   provenance : ArtifactProvenance
   provenanceChecksum : ArtifactChecksum
   artifactChecksum : ArtifactChecksum
@@ -122,7 +122,7 @@ private def rawEvidenceContentJson (evidence : RawEvidence) : String :=
     ",\"captureStatus\":" ++ quoteEvidence evidence.captureStatus.name ++
     ",\"sources\":" ++ evidenceArray (evidence.sources.map rawEvidenceSourceJson) ++
     ",\"facts\":" ++ evidenceArray (evidence.facts.map rawEvidenceFactJson) ++
-    ",\"knownGaps\":" ++ evidenceArray (evidence.knownGaps.map canonicalKnownGapJson) ++
+    ",\"knownGaps\":" ++ evidenceArray (evidence.knownGaps.toList.map canonicalKnownGapJson) ++
     ",\"provenance\":" ++ evidence.provenance.canonicalJson ++
     ",\"provenanceChecksum\":" ++ quoteEvidence evidence.provenanceChecksum.render ++ "}"
 
@@ -217,7 +217,7 @@ def RawEvidence.isValidTransport (evidence : RawEvidence) : Bool :=
     rawEvidenceFactsCausalValid evidence.facts [] &&
     rawEvidenceSourceCountsValid evidence.sources evidence.facts &&
     rawEvidencePayloadValid evidence.facts && evidence.captureStatus == expectedCaptureStatus evidence.sources &&
-    (validateKnownGaps evidence.knownGaps).isOk && evidence.provenance.isValidTransport &&
+    evidence.provenance.isValidTransport &&
     evidence.hasValidChecksums
 
 private def controlReceiptSourceId : DefinitionId :=

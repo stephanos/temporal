@@ -9,6 +9,8 @@ open Umpire
 open Umpire.Examples.Switch
 open Umpire.Artifact.Tests.Runtime
 
+#check (RawEvidence.knownGaps : RawEvidence → KnownGapSet)
+
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
 private def fingerprint (value : String) : BehaviorFingerprint :=
@@ -19,6 +21,12 @@ private def checksum (value : String) : ArtifactChecksum :=
 
 private def emptyChecksum : ArtifactChecksum :=
   checksum "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+private def interpretationKnownGaps : KnownGapSet :=
+  (KnownGapSet.ofUnordered [{
+    kind := .interpretation
+    code := id "switch.gap.interpretation"
+  }]).toOption.getD KnownGapSet.empty
 
 private def field
     (definitionId : String)
@@ -96,7 +104,7 @@ private def rawEvidenceDraft : RawEvidence := {
         field "umpire.evidence.field.state" .plain (.boolean true)
       ]
   ]
-  knownGaps := []
+  knownGaps := KnownGapSet.empty
   provenance := {
     sourceDefinitionIds := [id "switch.raw-evidence.1"]
     sourceLocations := [{
@@ -123,6 +131,14 @@ example : rawEvidence.hasValidChecksums &&
       "sha256:58874d22fb498df81f0ad4a5812183031af5827e3f528d963d147cb760ee5bb7" &&
     rawEvidence.artifactChecksum.render =
       "sha256:02980732154cfc8fa80487fc945931fa09046d5ed32c620f890b23876dfec67d" := by
+  native_decide
+
+/-! Nonempty checked Known Gaps preserve their exact canonical JSON projection. -/
+example :
+    let evidence := { rawEvidence with knownGaps := interpretationKnownGaps }.seal
+    evidence.isValidTransport &&
+      (canonicalRawEvidenceBytes evidence).contains
+        "\"knownGaps\": [\n    {\n      \"kind\": \"interpretation\",\n      \"code\": \"switch.gap.interpretation\",\n      \"subject\": null,\n      \"detail\": null\n    }\n  ]" := by
   native_decide
 
 /-! The canonical value closes exact bindings, source summaries, and the attempted receipt. -/

@@ -8,6 +8,9 @@ namespace Umpire.Artifact.Tests.Runtime
 open Umpire
 open Umpire.Examples.Switch
 
+#check (RuntimeConfiguration.knownGaps : RuntimeConfiguration → KnownGapSet)
+#check (ExperimentRun.knownGaps : ExperimentRun → KnownGapSet)
+
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
 private def fingerprint (value : String) : BehaviorFingerprint :=
@@ -18,6 +21,12 @@ private def checksum (value : String) : ArtifactChecksum :=
 
 private def emptyChecksum : ArtifactChecksum :=
   checksum "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+
+private def interpretationKnownGaps : KnownGapSet :=
+  (KnownGapSet.ofUnordered [{
+    kind := .interpretation
+    code := id "switch.gap.interpretation"
+  }]).toOption.getD KnownGapSet.empty
 
 private def experimentBinding : ArtifactBinding := {
   formatVersion := compiledArtifact.formatVersion
@@ -73,7 +82,7 @@ private def runtimeConfigurationDraft : RuntimeConfiguration := {
       fingerprint "sha256:92489e8192608a0a88e319591737e528194b9c1239ac3d08f92bdc692aca3d31"
     capabilityDefinitionIds := [id "switch.capability.state"]
   }]
-  knownGaps := []
+  knownGaps := KnownGapSet.empty
   provenance := {
     sourceDefinitionIds := [
       id "switch.observation.mapping",
@@ -150,7 +159,7 @@ private def experimentRunDraft : ExperimentRun := {
   ]
   cleanup := { status := .complete, openHandleCount := 0, code := none }
   limits := phaseLimits
-  knownGaps := []
+  knownGaps := KnownGapSet.empty
   provenance := {
     sourceDefinitionIds := [
       id "switch.run.1",
@@ -258,10 +267,14 @@ example :
 
 /-! Known Gaps remain independent from a Run's operational summary. -/
 example :
-    ({ experimentRun with knownGaps := [{
-      kind := .interpretation
-      code := id "switch.gap.interpretation"
-    }] }).seal.isValidTransport := by
+    (let configuration := { runtimeConfiguration with knownGaps := interpretationKnownGaps }.seal;
+      configuration.isValidTransport &&
+        (canonicalRuntimeConfigurationBytes configuration).contains
+          "\"knownGaps\": [\n    {\n      \"kind\": \"interpretation\",\n      \"code\": \"switch.gap.interpretation\",\n      \"subject\": null,\n      \"detail\": null\n    }\n  ]") &&
+    (let run := { experimentRun with knownGaps := interpretationKnownGaps }.seal;
+      run.isValidTransport &&
+        (canonicalExperimentRunBytes run).contains
+          "\"knownGaps\": [\n    {\n      \"kind\": \"interpretation\",\n      \"code\": \"switch.gap.interpretation\",\n      \"subject\": null,\n      \"detail\": null\n    }\n  ]") := by
   native_decide
 
 /-! A Run rejects phase progressions that cannot arise from the five-phase execution contract. -/
