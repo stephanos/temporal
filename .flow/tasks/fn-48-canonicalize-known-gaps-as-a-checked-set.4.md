@@ -29,9 +29,16 @@ Finish the Lean consumer cutover in interpreted Evidence, Result artifacts, and 
 - [ ] Go admission/response verification remains independent and fully tested.
 - [ ] Existing protocol errors, result statuses, generated views, canonical bytes, checksums, Result, Run Evaluation, mutation, and Go tests pass.
 ## Done summary
-TBD
+Migrated interpreted Evidence and Result artifacts to carry the opaque checked `KnownGapSet`, projecting canonical rows only at JSON boundaries and removing redundant raw-list validation. Run Evaluation now strictly admits request gaps, composes run, raw-evidence, and Observation phases with checked union, collapses exact overlap, and rejects cross-phase conflicts at `knownGaps` before producing a partial Result. The independent Go response verifier remains unchanged and has explicit overlap coverage.
 
+TDD: the Result field-type checks first failed against `List KnownGap`, then passed after the artifact cutover. Run Evaluation tests cover exact cross-phase collapse and conflict rejection. Focused and aggregate Lean builds, the mutation oracle, normalized Go tests, regression/generated-view checks, and model lint all passed, preserving canonical bytes and checksums.
+
+Baseline: green via handoff (verified at f936174c by fn-48-canonicalize-known-gaps-as-a-checked-set.3). The post-edit `make lint-code` run matched the approved inherited baseline exactly at 1,379 unrelated findings (errcheck 220, exhaustive 5, forbidigo 211, govet 5, revive 798, staticcheck 136, testifylint 4), with zero findings in the task-touched Go file; its unrelated `tools/umpire1/monitor_test.go` auto-fix was restored.
+
+Verification environment: the canonical Go gate initially hit the inherited Lean-bundled Clang header lookup failure, then passed unchanged after selecting Apple Clang and a physical macOS `TMPDIR`.
+
+stage: impl-review - ran (Codex SHIP; 0 findings) (model: gpt-5.6-sol)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7f13929201e6c1bd27740f385f665ce7f6fb53b6
+- Tests: cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Artifact.Tests.Codecs Umpire.Artifact.Tests.Runtime Umpire.Artifact.Tests.Evidence Umpire.Artifact.Tests.Result Temporal.Tool.RunEvaluationTests, cd model && mise exec -- lake build Temporal.Tool.RunEvaluationMutationTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, CC=/usr/bin/clang TMPDIR=/private/tmp/umpire-fn48-task4.dGjGxZ go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/runevaluation, make umpire-check-regression, make lint-model
 - PRs:
