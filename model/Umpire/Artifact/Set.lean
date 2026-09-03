@@ -106,8 +106,7 @@ def DrivePlan.isValidTransport (plan : DrivePlan) : Bool :=
     plan.behaviorDefinitionId.isNamespaced && plan.targetDefinitionId.isNamespaced &&
     plan.kernelDefinitionId.isNamespaced && drivePlanCollectionsValid plan &&
     setDefinitionIdsValid plan.capabilityRequirementDefinitionIds &&
-    plan.provenance.isValidTransport && (validateKnownGaps plan.knownGaps).isOk &&
-    plan.hasValidArtifactChecksum
+    plan.provenance.isValidTransport && plan.hasValidArtifactChecksum
 
 private def experimentPropertiesValid (properties : List PortableProperty) : Bool :=
   properties != [] && properties == properties.mergeSort setPropertyLe &&

@@ -160,7 +160,7 @@ private def drivePlanContentFields (plan : DrivePlan) : List (String × Canonica
   ("checkpoints", .array (plan.checkpoints.map checkpointJson)),
   ("selectionReason", .string plan.selectionReason.name),
   ("explored", exploredJson plan.explored),
-  ("knownGaps", .array (plan.knownGaps.map KnownGap.canonicalJsonValue)),
+  ("knownGaps", .array (plan.knownGaps.toList.map KnownGap.canonicalJsonValue)),
   ("provenance", artifactProvenanceJson plan.provenance)
 ]
 
