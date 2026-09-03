@@ -6,9 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-43-deepen-ordinary-property-behavior-and"
-  ],
+  "depends_on_epics": [],
   "id": "fn-51-shorten-ordinary-model-authoring",
   "impl_review_rounds": {},
   "next_task": 1,

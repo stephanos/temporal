@@ -886,9 +886,7 @@
       "status": "open",
       "ready": false,
       "completionReview": "unknown",
-      "specDependencies": [
-        "fn-43-deepen-ordinary-property-behavior-and"
-      ]
+      "specDependencies": []
     },
     {
       "id": "fn-52-caller-neutral-grpc-portable-test-plans",
