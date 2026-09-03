@@ -13,7 +13,10 @@ Update public architecture guidance and run complete model compatibility gates (
 ### Approach
 - Document field specs as typed projections and structural analysis as internal shared mechanics with boundary-owned diagnostics.
 - Preserve raw-evidence non-retention and accepted-trace ownership language from predecessor work.
-- Run focused suites, aggregate model builds, exact regression, trust/import, and lint checks.
+- Make the documented closure contract explicit: a global empty required kind closes at sequence zero, while nonempty global closures and source-local closures retain their existing structural checks.
+- State that accepted provenance evaluates closures against the checked plan before accepting closure support, preserving its boundary-owned failure precedence.
+- Run the adapter-focused Observation, mutation, and verdict suites before aggregate model builds, exact regression, trust/import, and lint checks.
+<!-- Updated by plan-sync: fn-49-centralize-observation-field-and.4 preserved zero-record global closures and checked-plan closure precedence in the shared adapter -->
 
 ### Investigation targets
 **Required** (read before coding):
@@ -23,8 +26,9 @@ Update public architecture guidance and run complete model compatibility gates (
 
 ## Acceptance
 - [ ] Documentation names one field authority and one internal structural analysis while preserving distinct public diagnostics.
+- [ ] Documentation preserves global zero-record closure compatibility and explains that accepted closure support is checked against the checked plan without exposing raw diagnostics.
 - [ ] Existing comments remain present unless their ownership statement changed.
-- [ ] Focused and aggregate builds, exact regression, import/trust checks, `make lint-model`, and `make lint-code` pass.
+- [ ] Adapter-focused Observation, mutation, and verdict suites, aggregate builds, exact regression, import/trust checks, `make lint-model`, and `make lint-code` pass.
 - [ ] No artifact, generated view, fingerprint, or persisted-byte drift remains.
 
 ## Done summary
