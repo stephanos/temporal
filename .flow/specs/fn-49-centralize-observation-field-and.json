@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-49-centralize-observation-field-and",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-03T12:33:58.189983Z",
   "created_at": "2026-08-30T16:08:34.247974Z",
   "default_impl": null,
   "default_review": null,
@@ -361,6 +361,155 @@
       "task": "fn-49-centralize-observation-field-and.4",
       "timestamp": "2026-09-03T11:39:31.350001Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6b7b83d334abb588d844ed7007d0ccefc74c3bf75dbe469a6e0d60331f28bff7",
+      "backend": "codex",
+      "base_sha": "143c6d0b9c151cc1e2549cdc458b99d98dca3a48",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-02fd70ba7efee645710e06c21227dd2e",
+            "classification": "introduced",
+            "findingId": "finding-02fd70ba7efee645710e06c21227dd2e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "721f74c677cf6cb14589c41f6981d76ff0d53b1b",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 635614,
+      "output_sha256": "09c4147ab5feae61b9445e7a3f097bc095b27e50b08f393f60376a65b8f31d90",
+      "reservation_id": "52a54f1dfa2047cb9362e76d15feadd0",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T12:10:44.818469Z",
+      "tool_calls": 21,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "78952e022fda3a7f1cd1a226ab721d6e55f07aa5ccea70047ee6c1c8b823cce4",
+      "backend": "codex",
+      "base_sha": "143c6d0b9c151cc1e2549cdc458b99d98dca3a48",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-02fd70ba7efee645710e06c21227dd2e",
+            "classification": "introduced",
+            "findingId": "finding-02fd70ba7efee645710e06c21227dd2e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3bb80f5d109fb00c39605b990ac46df0",
+            "classification": "introduced",
+            "findingId": "finding-3bb80f5d109fb00c39605b990ac46df0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "7f0028cfb6798beeb69a29503bf1b0de1a60f01b",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 3520,
+      "output_sha256": "77c6d66280d4fa11a434a1661e388863f58e43ffe69ed56c7683e9b33af01519",
+      "reservation_id": "ccc55cc043594c5fb25b98eb05354102",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T12:24:12.603472Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ed791c6856d34bb1c6b42995d011ba991276220ac164ab5fbfc1875096ec0c50",
+      "backend": "codex",
+      "base_sha": "143c6d0b9c151cc1e2549cdc458b99d98dca3a48",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-02fd70ba7efee645710e06c21227dd2e",
+            "classification": "introduced",
+            "findingId": "finding-02fd70ba7efee645710e06c21227dd2e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-3bb80f5d109fb00c39605b990ac46df0",
+            "classification": "introduced",
+            "findingId": "finding-3bb80f5d109fb00c39605b990ac46df0",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "6c845c371d9462651ba07bb443a99cae2695ef30",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2727,
+      "output_sha256": "f97f372c9995c172353fceba2bcf87cafd5a2654975970926b488f51acfb8881",
+      "reservation_id": "5eee5368067c40d8a3b228d33dbf1705",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T12:33:58.184532Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -369,11 +518,12 @@
     "impl:fn-49-centralize-observation-field-and.3": 1,
     "impl:fn-49-centralize-observation-field-and.4": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-49-centralize-observation-field-and.1": 0,
     "impl:fn-49-centralize-observation-field-and.2": 0,
     "impl:fn-49-centralize-observation-field-and.3": 0,
@@ -394,5 +544,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T11:39:31.355675Z"
+  "updated_at": "2026-09-03T12:33:58.190814Z"
 }
