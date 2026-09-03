@@ -40,9 +40,12 @@ Define the self-contained protobuf plan, unary gRPC method, deterministic semant
 - [ ] R8 legacy message descriptor, generated types, HTTP surface, and compatibility fixtures remain unchanged.
 - [ ] Proto generation and focused tests pass.
 ## Done summary
-TBD
+Implemented the caller-neutral typed PortableTestPlan protocol, deterministic admission/checksum surface, unary gRPC bindings, independent limits, source-faithful model/runtime semantics, and mandatory result reservation while preserving the fn-28 protocol byte-for-byte. Focused admission, generation, Lean model, scoped lint, and aggregate Umpire regression checks are green; the spec-wide Go/integration commands remain inherited-unavailable until downstream executor tasks create their packages/tests.
 
+baseline: red (spec-wide Go/integration Quick commands referenced downstream packages/tests not yet implemented; repository-wide lint also inherited local cgo/toolchain failures)
+
+stage: impl-review - ran [2026-09-03T18:26:38Z..2026-09-03T18:46:42Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ef8dd8c739b26605d838481431b2ce01c0b890fb, 8a5a29ba415f062e35c9e148fc76d308ea8ff5d4
+- Tests: make proto, cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests, go test -count=1 -tags test_dep ./tools/umpire/testplan/..., .bin/golangci-lint-v2.13.1 run --build-tags 'disable_grpc_modules test_dep' --timeout 10m --fix=false --new-from-rev=865f397ca2cf23115117a1b2ea5c591f6ebc5133 --config=.github/.golangci.yml ./tools/umpire/testplan/..., make lint-model, make umpire-check-regression, git diff --exit-code 865f397ca2cf23115117a1b2ea5c591f6ebc5133 -- proto/internal/temporal/server/api/umpire/v1/message.proto api/umpire/v1/message.pb.go api/umpire/v1/message.go-helpers.pb.go tools/umpire/evaluationcontract tools/umpire/executor/testdata
 - PRs:
