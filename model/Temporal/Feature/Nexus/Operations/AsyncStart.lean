@@ -31,22 +31,16 @@ def propertyDeclaration : PropertyDeclaration := {
   clauses := [
     .transitionContract
       (Internal.id "temporal.nexus.basic-lifecycle.property.async-start.state")
-      { field := .selectedAction, reference := startActionId,
-        constraint := .equals startAction.value }
-      { field := .resultingState, reference := operationStateId,
-        constraint := .equals startedState.value },
+      (PropertyPattern.exact .selectedAction startActionId startAction.value)
+      (PropertyPattern.exact .resultingState operationStateId startedState.value),
     .transitionContract
       (Internal.id "temporal.nexus.basic-lifecycle.property.async-start.outcome")
-      { field := .selectedAction, reference := startActionId,
-        constraint := .equals startAction.value }
-      { field := .modelOutcome, reference := transitionOutcomeId,
-        constraint := .equals startedOutcome.value },
+      (PropertyPattern.exact .selectedAction startActionId startAction.value)
+      (PropertyPattern.exact .modelOutcome transitionOutcomeId startedOutcome.value),
     .inputOutput
       (Internal.id "temporal.nexus.basic-lifecycle.property.async-start.observation")
-      { field := .selectedAction, reference := startActionId,
-        constraint := .equals startAction.value }
-      { field := .observation, reference := lifecycleObservationId,
-        constraint := .equals startedObservation.value }
+      (PropertyPattern.exact .selectedAction startActionId startAction.value)
+      (PropertyPattern.exact .observation lifecycleObservationId startedObservation.value)
   ]
   documentation := "Starting a scheduled Nexus operation produces the target-owned started result."
 }
@@ -58,20 +52,16 @@ private theorem propertyResult_isSome : propertyResult.toOption.isSome = true :=
   native_decide
 
 def property : CheckedProperty :=
-  propertyResult.toOption.get propertyResult_isSome
+  checkedProperty (PropertyCheckContext.ofTarget target) (.portable propertyDeclaration)
+    propertyResult_isSome
 
-def behaviorDeclaration : BehaviorDeclaration := {
-  id := behaviorId
-  source
-  requires := [lifecycleCapabilityId]
-  roles := [operationRole]
-  setup := [Internal.operationIs setupConstraintId scheduledState]
-  allowedActions := [startActionId]
-  requiredOccurrences := [{ id := occurrenceId, action := startActionId }]
-  occurrenceBounds := [OccurrenceBound.exactly startActionId 1]
-  actionsExactly := some [startActionId]
-  documentation := "Select exactly one start action and leave its result to the Nexus model."
-}
+def behaviorDeclaration : BehaviorDeclaration :=
+  BehaviorDeclaration.exactlyOneAction behaviorId source
+    { id := occurrenceId, action := startActionId }
+    (requires := [lifecycleCapabilityId])
+    (roles := [operationRole])
+    (setup := [SetupConstraint.roleEquals setupConstraintId operationRoleId scheduledState])
+    (documentation := "Select exactly one start action and leave its result to the Nexus model.")
 
 def behaviorResult : Except BehaviorError CheckedBehavior :=
   Internal.checkBehaviorDeclaration behaviorDeclaration
@@ -80,47 +70,17 @@ private theorem behaviorResult_isSome : behaviorResult.toOption.isSome = true :=
   native_decide
 
 def behavior : CheckedBehavior :=
-  behaviorResult.toOption.get behaviorResult_isSome
+  checkedBehavior (.ofTarget target) behaviorDeclaration behaviorResult_isSome
 
-def intendedTrace : BehaviorTrace := {
-  setup := scheduledSetup
-  trace := {
-    initialState := scheduledState
-    steps := [{
-      selectedAction := startAction
-      modelOutcome := startedOutcome
-      resultingState := startedState
-      observations := [startedObservation]
-    }]
-  }
-}
+def intendedTrace : BehaviorTrace :=
+  BehaviorTrace.singleStep scheduledSetup scheduledState startAction startedResult
 
 /-- This target-inconsistent trace shows that Property, not Behavior, checks the model result. -/
-def wrongOutcomeTrace : BehaviorTrace := {
-  setup := scheduledSetup
-  trace := {
-    initialState := scheduledState
-    steps := [{
-      selectedAction := startAction
-      modelOutcome := succeededOutcome
-      resultingState := succeededState
-      observations := [succeededObservation]
-    }]
-  }
-}
+def wrongOutcomeTrace : BehaviorTrace :=
+  BehaviorTrace.singleStep scheduledSetup scheduledState startAction succeededResult
 
-def wrongActionTrace : BehaviorTrace := {
-  setup := scheduledSetup
-  trace := {
-    initialState := scheduledState
-    steps := [{
-      selectedAction := reportSuccessAction
-      modelOutcome := succeededOutcome
-      resultingState := succeededState
-      observations := [succeededObservation]
-    }]
-  }
-}
+def wrongActionTrace : BehaviorTrace :=
+  BehaviorTrace.singleStep scheduledSetup scheduledState reportSuccessAction succeededResult
 
 def queryResult : Except QueryError (CheckedQuery LawStatement) :=
   checkQuery queryContext (Internal.queryDeclaration queryId property behavior)
@@ -129,7 +89,8 @@ private theorem queryResult_isSome : queryResult.toOption.isSome = true := by
   native_decide
 
 def query : CheckedQuery LawStatement :=
-  materializeQuery (queryResult.toOption.get queryResult_isSome)
+  checkedQuery target (Internal.queryDeclaration queryId property behavior)
+    queryResult_isSome
 
 theorem query_target : query.target = target := by
   rfl
