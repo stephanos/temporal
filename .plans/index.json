@@ -840,7 +840,7 @@
     {
       "id": "fn-49-centralize-observation-field-and",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
       "status": "open",
       "ready": false,
