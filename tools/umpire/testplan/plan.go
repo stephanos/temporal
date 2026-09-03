@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire/artifact"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -82,7 +83,7 @@ func mandatoryResult(plan *umpirespb.PortableTestPlan) *umpirespb.ExecutionResul
 	return &umpirespb.ExecutionResult{
 		Version:           proto.CloneOf(plan.GetVersion()),
 		PlanChecksum:      bytes.Clone(plan.GetPlanChecksum()),
-		RunIdentity:       strings.Repeat("0", 36),
+		RunIdentity:       strings.Repeat("0", artifact.MaximumIdentityBytes),
 		ToolingStatus:     umpirespb.EXECUTION_TOOLING_STATUS_INVALID_PLAN,
 		OperationalStatus: umpirespb.EXECUTION_OPERATIONAL_STATUS_INCOMPLETE,
 		Observation: &umpirespb.ObservationEvaluationResult{

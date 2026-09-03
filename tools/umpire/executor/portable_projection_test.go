@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
+	"google.golang.org/protobuf/proto"
 )
 
 const portableProjectionDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
@@ -42,6 +43,34 @@ func TestPortableModelBindingsMustMatchTheProjectedRunnerInput(t *testing.T) {
 
 	plan.GetModelCompiled().Experiment.ArtifactChecksum = portableProjectionDigest
 	require.False(t, portableModelBindingsMatch(plan, input))
+}
+
+func TestPortableInputBindingCarriesRuntimeSlotsToTheCheckedRunner(t *testing.T) {
+	plan := portableProjectionPlan()
+	plan.GetExecution().RuntimeBindingSlots = []*umpirespb.RuntimeBindingSlot{{
+		Definition: portableProjectionBinding("test.runtime-slot.workflow"),
+		ValueKind:  umpirespb.PORTABLE_VALUE_KIND_TEXT,
+	}}
+	input, err := projectPortableExecution(plan)
+	require.NoError(t, err)
+
+	bindings, err := portableInputBindings(
+		input,
+		plan.GetExecution().GetRuntimeBindingSlots(),
+		portableDefinitionIDs(plan.GetExecution().GetRuntime().GetAuthorityRequiredCapabilities()),
+	)
+
+	require.NoError(t, err)
+	require.Len(t, bindings.binding.RuntimeBindingSlots, 1)
+	require.True(t, proto.Equal(
+		plan.GetExecution().GetRuntimeBindingSlots()[0],
+		bindings.binding.RuntimeBindingSlots[0],
+	))
+	plan.GetExecution().GetRuntimeBindingSlots()[0].ValueKind = umpirespb.PORTABLE_VALUE_KIND_NATURAL
+	require.Equal(
+		t, umpirespb.PORTABLE_VALUE_KIND_TEXT,
+		bindings.binding.RuntimeBindingSlots[0].GetValueKind(),
+	)
 }
 
 func portableProjectionPlan() *umpirespb.PortableTestPlan {

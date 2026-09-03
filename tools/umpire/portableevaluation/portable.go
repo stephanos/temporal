@@ -41,13 +41,23 @@ func EvaluatePortable(ctx context.Context, request PortableRequest) *umpirespb.E
 	})
 	interpreter.directPlanTrace = plan.GetVerification().GetDirectPlanTrace() != nil
 	evaluated := interpreter.evaluateAdmitted(contract)
+	complete := executionResult(plan, evaluated, interpreter.directPlanTrace)
+	limit := int(plan.GetLimits().GetOutput().GetMaxResultBytes())
 	result, ok := boundedExecutionResult(
 		request.Plan,
-		executionResult(plan, evaluated, interpreter.directPlanTrace),
-		int(plan.GetLimits().GetOutput().GetMaxResultBytes()),
+		complete,
+		limit,
 	)
 	if !ok {
-		return request.Plan.ResultLimitExceeded()
+		overflow := request.Plan.ResultLimitExceeded()
+		if overflow == nil {
+			return nil
+		}
+		overflow.RunIdentity = complete.GetRunIdentity()
+		if proto.Size(overflow) > limit {
+			return nil
+		}
+		return overflow
 	}
 	return result
 }
