@@ -3,6 +3,8 @@ import Umpire.ImplementationLink
 /-! Focused Temporal-independent import contract for Implementation Link authoring and checking. -/
 
 #check Umpire.ImplementationLinkDeclaration
+#check Umpire.ImplementationValueMapping.forward
+#check Umpire.ImplementationSemanticMapping.forward
 #check Umpire.ImplementationLinkWitness
 #check Umpire.ImplementationLinkWitnessAuthoring
 #check Umpire.CheckedImplementationLink

@@ -17,6 +17,15 @@ structure ImplementationValueMapping (Source Destination : Type) where
   destination : Destination
   deriving BEq, DecidableEq, Repr
 
+/-- Construct an explicit source-to-destination value mapping without lookup, checking, or
+inference. -/
+def ImplementationValueMapping.forward
+    (source : Source)
+    (destination : Destination) : ImplementationValueMapping Source Destination := {
+  source
+  destination
+}
+
 /-- One explicit omission from the prototype's supported source domain. -/
 structure ImplementationLinkKnownGap (Source : Type) where
   source : Source
@@ -66,6 +75,14 @@ structure ImplementationSemanticMapping where
   source : ImplementationSemanticReference
   destination : ImplementationSemanticReference
   deriving BEq, DecidableEq, Repr
+
+/-- Construct an explicit source-to-destination semantic mapping without lookup, checking, or
+inference. -/
+def ImplementationSemanticMapping.forward
+    (source destination : ImplementationSemanticReference) : ImplementationSemanticMapping := {
+  source
+  destination
+}
 
 /-- An exact checked-Target reference retained in an inert Implementation Link declaration. -/
 structure ImplementationTargetReference where
