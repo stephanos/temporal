@@ -35,6 +35,6 @@ Complete both adapters and pin their distinct diagnostics, precedence, and mutat
 ## Done summary
 Routed raw Evidence and accepted Evidence Link validation through one shared structural analysis invocation per boundary, removing duplicate normalization/sorting while preserving boundary-owned diagnostics, related identities, first-failure precedence, and no-partial-output behavior. Added link-rule attribution, 10x call-path coverage, duplicate-closure fail-closed handling, explicit zero-record closure compatibility, and checked-plan closure-order regressions.
 ## Evidence
-- Commits: c9f9dd4f19580876dac8fd9d8f39656b23d6ded0, 3d723338e92b5347b520978fda52091b58b684db
+- Commits: c9f9dd4f19580876dac8fd9d8f39656b23d6ded0, 3d723338e92b5347b520978fda52091b58b684db, 7f0028cfb6798beeb69a29503bf1b0de1a60f01b, 6c845c371d9462651ba07bb443a99cae2695ef30
 - Tests: cd model && mise exec -- lake build Umpire.Observation.Tests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests, cd model && mise exec -- lake build Umpire.Observation.Tests.Mutations Umpire.Observation.Tests.Verdict, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model, make lint-code (exact inherited 1,379-finding baseline)
 - PRs:
