@@ -5,6 +5,22 @@ Temporal. Its two inputs are an admitted four-member execution-set directory and
 existing output-root directory. The execution set must contain exactly `experiment.json`,
 `runtime-configuration.json`, `experiment-run.json`, and `raw-evidence.json` plus its manifest.
 
+## Known Gap trust boundary
+
+Planning owns Lean's public `KnownGap` row and opaque `KnownGapSet`. Trusted semantic producers may
+use `KnownGapSet.ofUnordered` to normalize order before checking, but invalid identifiers,
+duplicates, and conflicting details still fail. Protocol and decoder paths instead use
+`KnownGapSet.checkCanonical`; an externally supplied list must already have canonical order and is
+never repaired. Once admitted, Lean semantic stages carry only checked sets, compose phase-owned
+gaps with `KnownGapSet.union`, and project rows with `KnownGapSet.toList` only when writing the wire
+response.
+
+The Go controller cannot receive or trust that opaque in-memory value. Its `artifactv2` boundary
+independently validates every persisted raw Known Gap array, including identifiers, canonical order,
+duplicates, and conflicting subject details. After the checker runs, Go independently validates the
+projected Evidence and Result and verifies that the Result contains exactly the canonical union of
+run, RawEvidence, and Observation gaps. Any mismatch fails before publication.
+
 The resident Portable Evaluation path reuses the same checked semantic stages but has a different
 boundary. Lean compiles one exact Test, Observation, Implementation Link, and Properties ahead of
 time into deterministic `EvaluationContract` protobuf bytes. A resident Go executor then admits the
