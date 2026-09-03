@@ -321,8 +321,11 @@ promotion, parallel scheduling, adaptive learning, or generalized coverage repor
 Import `Umpire.Observation` for the reusable API or `Temporal.Feature.Nexus.Observation` for its one
 current Temporal-owned synthetic profile. The public offline sequence is:
 
-1. Declare an `EvidenceProfileDeclaration` and `ObservationMappingDeclaration` against a checked
-   Target, then call `checkObservation` to obtain one canonical `CheckedObservationPlan`.
+1. Define each typed field once as an `ObservationFieldSpec`, using its projections in the explicit
+   `EvidenceProfileDeclaration` and `ObservationMappingDeclaration` against a checked Target. The
+   field specification is the one authority for kind identity, field identity, and value type; it
+   does not default a disposition or register the field. Call `checkObservation` to obtain one
+   canonical `CheckedObservationPlan`.
 2. Supply one complete synthetic `EvidenceBundle` and call `evaluateEvidence`, the single
    Observation admission handoff. Only the `accepted` result carries an opaque
    `EvidenceBackedTrace`; `unknown`, `conflict`, and `unsupported` carry typed diagnostics and no
@@ -341,6 +344,15 @@ Field dispositions make retention explicit: `retain` keeps an approved normalize
 keeps only a contribution marker, `hash` keeps only a token under the named/versioned synthetic
 digest policy, and `reject` refuses present input. Raw evidence is not a field of `EvidenceBackedTrace`,
 `SemanticPropertyVerdict`, or `StrictQuerySummary`.
+
+Raw admission and accepted-trace provenance share `Observation.Internal.analyzeStructure` only for
+normalized identity, order, causality, closure, and per-link support mechanics. Each boundary maps
+those findings to its own public diagnostics: raw admission retains its detailed failures, while
+accepted provenance can report only missing order or closure support. A global required kind with
+no records is complete only with an explicit closure at sequence zero. Nonempty global and
+source-local closures retain their existing structural checks. Accepted provenance evaluates its
+required global closures in checked-plan order and preserves its established failure precedence;
+raw diagnostics never leak through the opaque accepted trace.
 
 All trace positions in this path use the single `Umpire.Core` coordinate API. Coordinates enumerate
 initial state followed by each step's selected Action, Model Outcome, resulting state, and

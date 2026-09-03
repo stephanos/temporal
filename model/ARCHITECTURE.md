@@ -219,6 +219,10 @@ Observation follows the same checked-authoring rule after a Target is available:
 `checkObservation` is the authoritative typed diagnostic path, while `checkedObservation` requires
 an explicit proof that that checker succeeded. None of the four checked facades defaults a proof to
 `native_decide` or adds runtime recovery; invalid input remains visible through the raw checker.
+Each typed field has one inert `ObservationFieldSpec` as its projection authority for Evidence kind,
+field identity, value type, profile declaration, reference, expression, and explicitly chosen
+disposition. Profiles, mappings, closures, and dispositions remain explicit checked declarations;
+the field specification is not another language or registry.
 
 `Umpire.Core` is the single authority for Model Trace coordinates. It defines canonical source-order
 enumeration, strict one-based lookup that rejects zero and out-of-range positions, and the mapping
@@ -230,7 +234,18 @@ successful `evaluateEvidence` result carries one opaque `EvidenceBackedTrace`; e
 carries a diagnostic and no partial trace. Property evaluation, Implementation Link application,
 Run Evaluation, and Artifact projection receive the already-admitted value through read-only
 projections and retain only their own validation responsibilities. This checked value is not a new
-authoring or scenario language.
+authoring or scenario language. The raw Evidence bundle is consumed at Observation Evaluation and
+is not retained by that accepted trace or its downstream verdicts.
+
+Within Observation Evaluation, `Observation.Internal.analyzeStructure` is the one shared internal
+mechanism for normalized identity, sequence, causality, closure, and Evidence Link support analysis.
+Raw Evidence and accepted provenance adapt that analysis into their distinct diagnostics rather
+than exposing a generic validator: raw admission retains detailed Evidence failures, while accepted
+provenance retains only missing-order-support and missing-closure-support failures. An explicit
+global closure at sequence zero completes a checked required kind with no records. Nonempty global
+and source-local closures retain their structural checks, and accepted global closure validation
+follows checked-plan declaration order and its existing failure precedence without leaking raw
+diagnostics.
 
 When one independently checked Target implements another, author an inert
 `ImplementationLinkDeclaration` and exact forward witness, call `checkImplementationLink`, and

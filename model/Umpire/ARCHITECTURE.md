@@ -250,6 +250,14 @@ to Evidence-backed Model Traces. Import the complete public surface with:
 import Umpire.Observation
 ```
 
+Define each typed Evidence field once as an `ObservationFieldSpec`. This inert value is the one
+field projection authority: it owns the Evidence kind identity, field identity, and
+`ObservationValueType`, then projects the exact existing profile declaration, field reference,
+field expression, and author-selected disposition declaration. The profile kind list, mapping
+rules, closure declarations, and disposition list remain explicit, and `checkObservation` remains
+their semantic authority. Direct construction of the projected records remains an expert and
+compatibility path; it does not create a second field meaning.
+
 The offline lifecycle is:
 
 ```text
@@ -275,6 +283,21 @@ projections provide read-only access to the semantic content needed downstream. 
 handoff value, not another authoring or scenario language. The raw
 `EvidenceBundle` is consumed only during Observation Evaluation and is not retained in the
 Evidence-backed Model Trace or verdicts.
+
+`Observation.Internal.analyzeStructure` is the single shared internal mechanism for normalizing
+Evidence identities, sequence and causal order, closure expectations, and per-link support. Raw
+Evidence admission and accepted-trace provenance each adapt their own inputs into that analysis
+once, then map its findings at their own boundary. Raw admission therefore keeps its detailed
+identity, ordering, causality, fault-target, and closure diagnostics, while accepted provenance
+reports only its established missing-order-support or missing-closure-support diagnostics. The
+internal analysis is mechanics, not a public validator or another diagnostic vocabulary.
+
+For global sequencing, an explicit closure for a checked required kind that has no records closes
+at sequence zero. A nonempty global kind still closes at its computed final sequence; source-local
+closures still match source and kind and retain their ordinal, record-count, and byte-count checks.
+Accepted provenance checks global required closures in the checked plan's closure order after its
+existing link-consistency and ordering checks. This preserves boundary-owned first-failure
+precedence without exposing any raw-Evidence diagnostic through the accepted trace.
 
 As with the other authoring languages, `checkObservation` remains the typed diagnostic API.
 `checkedObservation` accepts an explicit success proof and returns that checker's complete plan; it
