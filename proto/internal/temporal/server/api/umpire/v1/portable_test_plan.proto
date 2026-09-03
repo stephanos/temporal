@@ -20,6 +20,7 @@ enum ExecutionPhase {
 enum PreconditionOperator {
   PRECONDITION_OPERATOR_UNSPECIFIED = 0;
   PRECONDITION_OPERATOR_EQUALS = 1;
+  PRECONDITION_OPERATOR_NOT_EQUALS = 2;
 }
 
 enum PortableValueKind {
@@ -27,6 +28,22 @@ enum PortableValueKind {
   PORTABLE_VALUE_KIND_TEXT = 1;
   PORTABLE_VALUE_KIND_NATURAL = 2;
   PORTABLE_VALUE_KIND_BOOLEAN = 3;
+}
+
+enum PortableDefinitionKind {
+  PORTABLE_DEFINITION_KIND_UNSPECIFIED = 0;
+  PORTABLE_DEFINITION_KIND_SETUP = 1;
+  PORTABLE_DEFINITION_KIND_STATE = 2;
+  PORTABLE_DEFINITION_KIND_ACTION = 3;
+  PORTABLE_DEFINITION_KIND_OUTCOME = 4;
+  PORTABLE_DEFINITION_KIND_OBSERVATION = 5;
+  PORTABLE_DEFINITION_KIND_RELATION = 6;
+  PORTABLE_DEFINITION_KIND_CAPABILITY = 7;
+  PORTABLE_DEFINITION_KIND_PROVIDER = 8;
+  PORTABLE_DEFINITION_KIND_LAW = 9;
+  PORTABLE_DEFINITION_KIND_CONNECTOR = 10;
+  PORTABLE_DEFINITION_KIND_TARGET = 11;
+  PORTABLE_DEFINITION_KIND_KERNEL = 12;
 }
 
 enum DecisionPolicyKind {
@@ -122,12 +139,18 @@ message ModelCompiledPlanProvenance {
 
 message SymbolicRole {
   DefinitionBinding definition = 1;
-  PortableValueKind value_kind = 2;
+  PortableDefinitionKind kind = 2;
+}
+
+message PortableModelValue {
+  DefinitionBinding definition = 1;
+  PortableDefinitionKind kind = 2;
+  Value value = 3;
 }
 
 message RoleBinding {
   DefinitionBinding role = 1;
-  ModelValue value = 2;
+  PortableModelValue value = 2;
 }
 
 message RuntimeBindingSlot {
@@ -137,8 +160,9 @@ message RuntimeBindingSlot {
 
 message ExecutionOperand {
   oneof operand {
-    ModelValue literal = 1;
-    DefinitionBinding binding = 2;
+    PortableModelValue literal = 1;
+    DefinitionBinding role = 2;
+    DefinitionBinding runtime_binding_slot = 3;
   }
 }
 
@@ -158,7 +182,7 @@ message PlannedOccurrence {
 
 message ExecutionCheckpoint {
   int64 transition = 1;
-  repeated ModelValue observations = 2;
+  repeated PortableModelValue observations = 2;
 }
 
 message ExecutionPhaseLimit {
@@ -199,6 +223,7 @@ message RuntimeProgram {
   repeated ExecutionPhaseLimit phase_limits = 5;
   TerminationObligation termination = 6;
   CleanupObligation cleanup = 7;
+  repeated DefinitionBinding authority_required_capabilities = 8;
 }
 
 message ExecutionProgram {
@@ -211,14 +236,14 @@ message ExecutionProgram {
   repeated SymbolicRole symbolic_roles = 7;
   repeated RuntimeBindingSlot runtime_binding_slots = 8;
   repeated ExecutionPrecondition preconditions = 9;
-  ModelValue initial_state = 10;
-  repeated ModelValue requested_actions = 11;
-  repeated ModelValue model_outcomes = 12;
-  repeated ModelValue resulting_states = 13;
+  PortableModelValue initial_state = 10;
+  repeated PortableModelValue requested_actions = 11;
+  repeated PortableModelValue model_outcomes = 12;
+  repeated PortableModelValue resulting_states = 13;
   repeated PlannedOccurrence occurrences = 14;
-  repeated ModelValue selected_choices = 15;
-  repeated ModelValue selected_variants = 16;
-  repeated ModelValue requested_faults = 17;
+  repeated PortableModelValue selected_choices = 15;
+  repeated PortableModelValue selected_variants = 16;
+  repeated PortableModelValue requested_faults = 17;
   repeated DefinitionBinding capability_requirements = 18;
   repeated ExecutionCheckpoint checkpoints = 19;
   RuntimeProgram runtime = 20;
