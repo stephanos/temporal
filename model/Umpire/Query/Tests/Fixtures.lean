@@ -250,13 +250,7 @@ def checkedBehavior : CheckedBehavior := {
   behaviorFingerprint := behaviorFingerprintOf "behavior/v1"
 }
 
-def limits : QueryLimits := {
-  behavior := {
-    transitions := { value := 1, unit := .semanticTransitions }
-    selectedActions := { value := 1, unit := .selectedActions }
-  }
-  search := { value := 10, unit := .candidateEvaluations }
-}
+def limits : QueryLimits := QueryLimits.bounded 1 1 10
 
 def exhaustivePolicy : PlannerPolicy := PlannerPolicy.exhaustive
 
