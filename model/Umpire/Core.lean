@@ -24,6 +24,37 @@ def isNamespaced (id : DefinitionId) : Bool :=
   let segments := id.value.splitOn "."
   segments.length > 1 && segments.all isNamespaceSegment
 
+/-- Structural failures shared by authoring languages when validating a Definition ID. -/
+inductive ValidationError where
+  | empty
+  | malformed
+  deriving BEq, DecidableEq, Repr
+
+private def lessOrEqual (left right : DefinitionId) : Bool :=
+  decide (left.value ≤ right.value)
+
+/-- Sort Definition IDs by their string values and remove duplicates. -/
+def canonicalSet (ids : List DefinitionId) : List DefinitionId :=
+  ids.mergeSort lessOrEqual |>.eraseDups
+
+private def firstAdjacentDuplicate : List DefinitionId → Option DefinitionId
+  | first :: second :: rest =>
+      if first == second then some first else firstAdjacentDuplicate (second :: rest)
+  | _ => none
+
+/-- Return the lexicographically smallest Definition ID that occurs more than once. -/
+def firstDuplicate (ids : List DefinitionId) : Option DefinitionId :=
+  firstAdjacentDuplicate (ids.mergeSort lessOrEqual)
+
+/-- Validate the shared syntax of a Definition ID without constructing a language-specific error. -/
+def validate (id : DefinitionId) : Except ValidationError Unit :=
+  if id.value == "" then
+    .error .empty
+  else if !id.isNamespaced then
+    .error .malformed
+  else
+    .ok ()
+
 end DefinitionId
 
 inductive DefinitionKind where
@@ -69,6 +100,10 @@ structure SourceLocation where
   column : Nat := 0
   provenance : String := "authored"
   deriving BEq, DecidableEq, Repr
+
+/-- Return the authored source path, or the stable fallback when no path is available. -/
+def SourceLocation.displayPath (source : SourceLocation) : String :=
+  if source.path == "" then "<unknown>" else source.path
 
 structure DefinitionMetadata where
   id : DefinitionId
@@ -174,6 +209,89 @@ structure TransitionResult (State Outcome Observation : Type) where
   resultingState : State
   observations : List Observation
   deriving BEq, DecidableEq, Repr
+
+/-- Build one Model Trace step from its selected Action and model-owned transition result. -/
+def ModelTraceStep.result
+    {State Action Outcome Observation : Type}
+    (selectedAction : Action)
+    (result : TransitionResult State Outcome Observation) :
+    ModelTraceStep State Action Outcome Observation := {
+  selectedAction
+  modelOutcome := result.modelOutcome
+  resultingState := result.resultingState
+  observations := result.observations
+}
+
+/-- A step built from a transition result retains the selected Action. -/
+@[simp] theorem ModelTraceStep.result_selectedAction
+    {State Action Outcome Observation : Type}
+    (selectedAction : Action)
+    (result : TransitionResult State Outcome Observation) :
+    (ModelTraceStep.result selectedAction result).selectedAction = selectedAction := rfl
+
+/-- A step built from a transition result retains its Model Outcome. -/
+@[simp] theorem ModelTraceStep.result_modelOutcome
+    {State Action Outcome Observation : Type}
+    (selectedAction : Action)
+    (result : TransitionResult State Outcome Observation) :
+    (ModelTraceStep.result selectedAction result).modelOutcome = result.modelOutcome := rfl
+
+/-- A step built from a transition result retains its resulting state. -/
+@[simp] theorem ModelTraceStep.result_resultingState
+    {State Action Outcome Observation : Type}
+    (selectedAction : Action)
+    (result : TransitionResult State Outcome Observation) :
+    (ModelTraceStep.result selectedAction result).resultingState = result.resultingState := rfl
+
+/-- A step built from a transition result retains its observations. -/
+@[simp] theorem ModelTraceStep.result_observations
+    {State Action Outcome Observation : Type}
+    (selectedAction : Action)
+    (result : TransitionResult State Outcome Observation) :
+    (ModelTraceStep.result selectedAction result).observations = result.observations := rfl
+
+/-- Map each semantic component of a transition result without changing its structure. -/
+def TransitionResult.map
+    {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
+    (result : TransitionResult State Outcome Observation)
+    (mapState : State → MappedState)
+    (mapOutcome : Outcome → MappedOutcome)
+    (mapObservation : Observation → MappedObservation) :
+    TransitionResult MappedState MappedOutcome MappedObservation := {
+  modelOutcome := mapOutcome result.modelOutcome
+  resultingState := mapState result.resultingState
+  observations := result.observations.map mapObservation
+}
+
+/-- Mapping a transition result maps its Model Outcome. -/
+@[simp] theorem TransitionResult.map_modelOutcome
+    {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
+    (result : TransitionResult State Outcome Observation)
+    (mapState : State → MappedState)
+    (mapOutcome : Outcome → MappedOutcome)
+    (mapObservation : Observation → MappedObservation) :
+    (result.map mapState mapOutcome mapObservation).modelOutcome =
+      mapOutcome result.modelOutcome := rfl
+
+/-- Mapping a transition result maps its resulting state. -/
+@[simp] theorem TransitionResult.map_resultingState
+    {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
+    (result : TransitionResult State Outcome Observation)
+    (mapState : State → MappedState)
+    (mapOutcome : Outcome → MappedOutcome)
+    (mapObservation : Observation → MappedObservation) :
+    (result.map mapState mapOutcome mapObservation).resultingState =
+      mapState result.resultingState := rfl
+
+/-- Mapping a transition result maps its observations in their existing order. -/
+@[simp] theorem TransitionResult.map_observations
+    {State Outcome Observation MappedState MappedOutcome MappedObservation : Type}
+    (result : TransitionResult State Outcome Observation)
+    (mapState : State → MappedState)
+    (mapOutcome : Outcome → MappedOutcome)
+    (mapObservation : Observation → MappedObservation) :
+    (result.map mapState mapOutcome mapObservation).observations =
+      result.observations.map mapObservation := rfl
 
 /-- Authoritative finite-domain predicates, exhaustive enumerators, and canonical encoders for one Target. -/
 structure TargetBehaviorDomain
