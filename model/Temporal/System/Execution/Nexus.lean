@@ -190,10 +190,7 @@ private def targetBehaviorFingerprint : BehaviorFingerprint := exactBehaviorFing
   "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd"
   (by native_decide)
 
-private def requestedAction : ModelValue := {
-  definitionId := actionDefinitionId
-  value := "force-close"
-}
+private def requestedAction : ModelValue := ModelValue.named actionDefinitionId "force-close"
 
 private def capabilityDefinitionIds : List DefinitionId := [
   id "nexus.capability.cancellation",

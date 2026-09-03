@@ -29,10 +29,8 @@ def metadata
     documentation := "planning fixture"
   }
 
-def value (definitionId : DefinitionId) (payload : String) : ModelValue := {
-  definitionId
-  value := payload
-}
+def value (definitionId : DefinitionId) (payload : String) : ModelValue :=
+  ModelValue.named definitionId payload
 
 def initial : ModelValue := value phase "initial"
 def completed : ModelValue := value phase "completed"
