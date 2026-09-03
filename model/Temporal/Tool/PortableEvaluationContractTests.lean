@@ -20,6 +20,51 @@ private theorem duplicateContract_isSome : duplicateContract.toOption.isSome = t
 private def duplicate : Contract :=
   duplicateContract.toOption.get duplicateContract_isSome
 
+private def compilerKnownGap (detail : String) : Umpire.KnownGap := {
+  kind := .interpretation
+  code := DefinitionId.of "umpire.known-gap.portable-phase-conflict"
+  subject := some (DefinitionId.of "umpire.test.portable-phase-conflict")
+  detail := some detail
+}
+
+private def compilerKnownGapSet (detail : String) : KnownGapSet :=
+  (KnownGapSet.ofUnordered [compilerKnownGap detail]).toOption.getD KnownGapSet.empty
+
+private def compilerKnownGapOwner : DefinitionId :=
+  DefinitionId.of "umpire.test.portable-known-gaps"
+
+private def compilerKnownGapSource : SourceLocation := {
+  path := "PortableEvaluationContractTests.lean"
+  line := 1
+  column := 1
+}
+
+private def portableKnownGapOverlapCollapsed : Bool :=
+  match Internal.lowerKnownGaps compilerKnownGapOwner compilerKnownGapSource
+      (compilerKnownGapSet "same") (compilerKnownGapSet "same") with
+  | .ok [gap] =>
+      gap.kind == .interpretation &&
+        gap.code == "umpire.known-gap.portable-phase-conflict" &&
+        gap.subject == "umpire.test.portable-phase-conflict" &&
+        gap.detail == "same"
+  | _ => false
+
+example : portableKnownGapOverlapCollapsed = true := by
+  native_decide
+
+private def portableKnownGapConflictRejected : Bool :=
+  match Internal.lowerKnownGaps compilerKnownGapOwner compilerKnownGapSource
+      (compilerKnownGapSet "first") (compilerKnownGapSet "second") with
+  | .error failure => failure == {
+      sourceDefinitionId := compilerKnownGapOwner
+      source := compilerKnownGapSource
+      construct := "known-gaps.conflict"
+    }
+  | .ok _ => false
+
+example : portableKnownGapConflictRejected = true := by
+  native_decide
+
 example : canonicalProtoJSON normal = canonicalProtoJSON normal := by
   rfl
 
