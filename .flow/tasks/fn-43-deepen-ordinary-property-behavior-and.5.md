@@ -49,6 +49,8 @@ cd model && mise exec -- lake build Umpire.ImplementationLink.Tests Temporal.Sys
 Extracted a kernel-scoped `KernelMorphism`/`ForwardSimulation` boundary that owns value, transition-result, step, and trace mapping plus preservation proofs, then reused it from witness checking and checked-link application. Preserved Link-owned declaration indexing, coverage, diagnostics, fingerprints, limits, Known Gaps, and concrete Nexus behavior; focused/full Lean gates and the public axiom audit pass.
 
 stage: impl-review - ran [2026-09-03T03:02:09Z..2026-09-03T03:06:26Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
 ## Evidence
 - Commits: de2eb515fd1b64dcbd66730b8dcf325b58879296
 - Tests: GATE_SKIPPED:unittest:green-receipt 7e5e222a - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt 7e5e222a - baseline reused from prior post-gate pass, make lint-model (baseline: green), cd model && mise exec -- lake build Umpire.ImplementationLink.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus, cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Query.Tests Umpire.Observation.Tests Umpire.ImplementationLink.Tests UmpireTests, make umpire-build-model, make lint-model, cd model && mise exec -- lake env lean ../.flow/tmp/Fn43Task5Trust.lean, git diff --check
