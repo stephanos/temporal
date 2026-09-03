@@ -42,6 +42,24 @@ Nexus operation at most once.
 - **Implementation Link.** Lean code that explicitly connects product behavior in
   `Temporal.Feature` to corresponding implementation behavior in `Temporal.System` without merging
   their descriptions.
+- **Portable Plan (`PortableTestPlan`).** A caller-neutral, closed contract for one bounded
+  execution and its finite verification program. It may be external or model-compiled. An external
+  instance is not a Test selected from the Behavior Model.
+- **Plan Authority.** The authority of one admitted Portable Plan to state its exact bounded
+  execution and verification program. It does not define product or implementation behavior in the
+  Behavior Model.
+- **Plan-local Conformance.** A result scope limited to evaluating whether the Evidence from one
+  exact admitted Portable Plan execution satisfies that plan's verification clauses. It does not
+  establish that those clauses are Model Definitions or `Umpire.Property` declarations.
+- **Validated Model Provenance.** An independently verified binding from a model-compiled
+  Portable Plan to its exact checked Test, model inputs, compiler contract, and trusted source.
+  Data carried by the plan alone is not Validated Model Provenance.
+- **Model-bound Scope.** A result scope that attributes the conclusion for one exact Test and its
+  Evidence to the named Behavior Model bindings established by Validated Model Provenance. It does
+  not imply model consistency, exhaustive coverage, compiler correctness, or a Claim Assessment.
+- **External Verification Obligation.** A verification requirement that is not represented by the
+  finite portable verification vocabulary and therefore remains explicit for a separately trusted
+  verifier above the portable executor interface.
 
 ### Where things live
 
@@ -80,6 +98,29 @@ Nexus operation at most once.
 - **SEM-10 — Portable interpreter seam.** Lean MUST compile a selected checked Test into its
   Portable Evaluation Contract. The contract and its fixed-version interpreter MUST NOT add,
   select, override, or retrieve behavior independently of that checked model input.
+- **SEM-11 — Portable plan authority.** An admitted Portable Plan MUST be authoritative for the
+  exact bounded execution and verification performed for that plan. Any conforming client MAY
+  author a Portable Plan, but a non-Lean plan MUST NOT be treated as a Model Definition or as an
+  `Umpire.Property`, `Umpire.Behavior`, or `Umpire.Query` declaration, and neither the plan nor its
+  runtime MAY add or override Behavior Model behavior.
+- **SEM-12 — Plan-local claim scope.** A successfully admitted external Portable Plan MUST
+  produce only Plan-local Conformance. Plan-local Conformance MUST NOT be represented as Behavior
+  Model validity, Model-bound Scope, or a Claim Assessment, and runtime code MUST NOT invent omitted
+  verification clauses or model semantics.
+- **SEM-13 — Independently validated model scope.** Model-bound Scope MUST require the executor
+  host's independently configured verifier to establish Validated Model Provenance for the exact
+  checked Test, Query, `Umpire.ExperimentSpec`, Properties, Definition IDs, Behavior Fingerprints,
+  compiler contract, and trusted source. The submitted plan MUST NOT provide its own trust anchor.
+  Missing, invalid, expired, unsupported, or crossed provenance for a model-bound request MUST
+  reject before runtime I/O and MUST NOT produce Model-bound Scope or silently downgrade to
+  Plan-local Conformance.
+- **SEM-14 — Explicit external obligations.** Every verification requirement not represented by the
+  finite portable vocabulary MUST remain an explicit External Verification Obligation; lowering,
+  admission, and runtime interpretation MUST NOT silently omit it. A required unresolved obligation
+  MUST prevent complete model-bound success until a separately trusted verification receipt is
+  joined above the portable executor interface. Plan-local Conformance MUST use only bundled
+  portable clauses, report every unresolved obligation, and MUST NOT claim that the executor
+  performed an external obligation.
 
 ### Enforced module boundaries
 
@@ -295,7 +336,9 @@ Nexus operation at most once.
 ### Execution and Evidence rules
 
 - **EVD-01 — Thin runtime.** Runtime and CLI code MUST do no more than fill in environment-specific
-  values and execute model-produced Artifacts. It MUST NOT independently decide Temporal product
+  values and execute admitted Artifacts or Portable Plans. Model-bound execution MUST use
+  model-produced data with Validated Model Provenance; external Portable Plans can produce only
+  Plan-local Conformance. Runtime and CLI code MUST NOT independently decide Temporal product
   behavior.
 - **EVD-02 — Separate Run Evaluation.** Execution MUST report what happened. Observation Evaluation,
   Implementation Link application, and Property evaluation MUST be separate steps that determine
