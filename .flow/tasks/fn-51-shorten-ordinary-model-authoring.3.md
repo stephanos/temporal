@@ -33,9 +33,8 @@ Introduce the fixed-unit bounded constructor and migrate ordinary Query declarat
 - [ ] Query diagnostics, identities, planner results, and artifact outputs are unchanged.
 - [ ] Query, Planning, Switch, lifecycle, and experimental focused suites pass.
 ## Done summary
-TBD
-
+Added the documented inert `QueryLimits.bounded` constructor with exact-unit and zero-value equivalence coverage, then migrated all six eligible ordinary production and shared-positive-fixture triples. Deliberate zero-negative and identity-mutation records remain raw; Query checking, identities, planning results, comments, and generated artifacts are unchanged.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 06c0e616efe19f6d39ca6b1edaf62e3218f72813
+- Tests: cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Planning.Tests Umpire.Examples.SwitchTests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.Experimental.CallerClosureTests Temporal.Feature.Nexus.Experimental.VariationSpaceTests, make umpire-check-regression, make lint-model
 - PRs:
