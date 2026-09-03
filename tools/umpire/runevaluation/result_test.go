@@ -234,6 +234,30 @@ func TestCheckWithCheckerPreservesExactKnownGapMembershipAndUnion(t *testing.T) 
 	require.Empty(t, output.Identity())
 }
 
+func TestCheckWithCheckerAcceptsExactKnownGapOverlapAcrossPhases(t *testing.T) {
+	sharedGap := artifactv2.KnownGap{
+		Kind: "capability-contract", Code: "umpire.known-gap.run-evaluation.shared",
+	}
+	observationGap := artifactv2.KnownGap{
+		Kind: "interpretation", Code: "umpire.known-gap.run-evaluation.observation",
+	}
+	input := acceptedCallerClosureExecutionFixtureWithGaps(
+		t, "failed", []artifactv2.KnownGap{sharedGap}, []artifactv2.KnownGap{sharedGap},
+	)
+	execution, ok := input.Execution()
+	require.True(t, ok)
+	request, err := newCheckerRequest(execution)
+	require.NoError(t, err)
+	response := acceptedCallerClosureResponse(t, request, "satisfied")
+	response.ObservationKnownGaps = []artifactv2.KnownGap{observationGap}
+	response.ResultKnownGaps = []artifactv2.KnownGap{sharedGap, observationGap}
+
+	output, err := checkWithChecker(context.Background(), input,
+		func(context.Context, checkerRequest) (checkerResponse, error) { return response, nil })
+	require.NoError(t, err)
+	require.NotEmpty(t, output.Identity())
+}
+
 func TestCheckWithCheckerRejectsEverySemanticOutputInvariantClass(t *testing.T) {
 	input := acceptedCallerClosureExecutionFixture(t, "succeeded")
 	for _, testCase := range []struct {

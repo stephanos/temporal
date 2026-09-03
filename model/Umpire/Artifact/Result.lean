@@ -146,7 +146,7 @@ structure EvidenceArtifact where
   evidenceLinks : List ArtifactEvidenceLink
   dispositions : List ArtifactFieldDispositionRecord
   diagnostics : List ArtifactObservationDiagnostic
-  knownGaps : List KnownGap
+  knownGaps : KnownGapSet
   provenance : ArtifactProvenance
   provenanceChecksum : ArtifactChecksum
   artifactChecksum : ArtifactChecksum
@@ -256,7 +256,7 @@ structure ResultArtifact where
   querySummary : ArtifactQuerySummary
   semanticStatus : String
   limits : List ArtifactStagedLimit
-  knownGaps : List KnownGap
+  knownGaps : KnownGapSet
   cleanupStatus : String
   evaluationOutcomeChecksum : Option ArtifactChecksum
   provenance : ArtifactProvenance
@@ -438,7 +438,8 @@ private def evidenceArtifactContentJson (evidence : EvidenceArtifact) : String :
     ",\"dispositions\":" ++ resultArray
       (evidence.dispositions.map fieldDispositionRecordJson) ++
     ",\"diagnostics\":" ++ resultArray (evidence.diagnostics.map observationDiagnosticJson) ++
-    ",\"knownGaps\":" ++ resultArray (evidence.knownGaps.map canonicalKnownGapJson) ++
+    ",\"knownGaps\":" ++ resultArray
+      (evidence.knownGaps.toList.map canonicalKnownGapJson) ++
     ",\"provenance\":" ++ evidence.provenance.canonicalJson ++
     ",\"provenanceChecksum\":" ++ quoteResult evidence.provenanceChecksum.render ++ "}"
 
@@ -576,7 +577,7 @@ private def resultArtifactContentJson (result : ResultArtifact) : String :=
     ",\"querySummary\":" ++ querySummaryJson result.querySummary ++
     ",\"semanticStatus\":" ++ quoteResult result.semanticStatus ++
     ",\"limits\":" ++ resultArray (result.limits.map stagedLimitJson) ++
-    ",\"knownGaps\":" ++ resultArray (result.knownGaps.map canonicalKnownGapJson) ++
+    ",\"knownGaps\":" ++ resultArray (result.knownGaps.toList.map canonicalKnownGapJson) ++
     ",\"cleanupStatus\":" ++ quoteResult result.cleanupStatus ++
     ",\"evaluationOutcomeChecksum\":" ++
       optionalChecksumResultJson result.evaluationOutcomeChecksum ++
@@ -735,8 +736,8 @@ def EvidenceArtifact.isValidTransport (evidence : EvidenceArtifact) : Bool :=
     evidence.runtimeConfiguration.formatVersion == "umpire-runtime-configuration/v2" &&
     evidence.run.formatVersion == "umpire-experiment-run/v2" &&
     evidence.rawEvidence.formatVersion == "umpire-raw-evidence/v2" &&
-    observationStatusMatrixValid evidence && (validateKnownGaps evidence.knownGaps).isOk &&
-    evidence.provenance.isValidTransport && evidence.hasValidChecksums
+    observationStatusMatrixValid evidence && evidence.provenance.isValidTransport &&
+    evidence.hasValidChecksums
 
 private def evidenceMappingCloses (evidence : EvidenceArtifact) : Bool :=
   match evidence.evidenceBackedModelTrace, evidence.diagnostics with
@@ -785,8 +786,8 @@ def ResultArtifact.isValidTransport (result : ResultArtifact) : Bool :=
       result.implementationLinkStatus &&
     ["satisfied", "violated", "incomplete"].contains result.semanticStatus &&
     ["complete", "incomplete", "failed"].contains result.cleanupStatus &&
-    resultStatusMatrixValid result && (validateKnownGaps result.knownGaps).isOk &&
-    result.provenance.isValidTransport && result.hasValidChecksums
+    resultStatusMatrixValid result && result.provenance.isValidTransport &&
+    result.hasValidChecksums
 
 def ResultArtifact.closes
     (result : ResultArtifact)

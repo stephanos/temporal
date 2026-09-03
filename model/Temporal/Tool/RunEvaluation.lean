@@ -296,19 +296,6 @@ private def artifactImplementationLink
   diagnostic := evaluation.implementationLinkDiagnostic.map artifactImplementationDiagnostic
 }
 
-private def gapKindRank : KnownGapKind → String
-  | .capabilityContract => "0"
-  | .input => "1"
-  | .interpretation => "2"
-  | .claim => "3"
-
-private def gapKey (gap : KnownGap) : String :=
-  String.intercalate "\u001f" [gapKindRank gap.kind, gap.code.value,
-    gap.subject.map DefinitionId.value |>.getD "", gap.detail.getD ""]
-
-private def canonicalGaps (gaps : List KnownGap) : List KnownGap :=
-  gaps.mergeSort (fun left right => decide (gapKey left ≤ gapKey right)) |>.eraseDups
-
 private def parseGap (json : Lean.Json) : Except String KnownGap := do
   exactObject json ["kind", "code", "subject", "detail"] "knownGaps"
   let kind ← match KnownGapKind.parse? (← textValue json "kind") with
@@ -328,14 +315,19 @@ private def parseGap (json : Lean.Json) : Except String KnownGap := do
     | .error _ => throw "knownGaps"
   pure { kind, code := ← idValue json "code", subject, detail }
 
-private def parseGaps (json : Lean.Json) : Except String (List KnownGap) := do
+private def parseGaps (json : Lean.Json) : Except String KnownGapSet := do
   let values ← match json.getArr? with
     | .ok values => pure values.toList
     | .error _ => throw "knownGaps"
   let gaps ← values.mapM parseGap
-  match validateKnownGaps gaps with
-  | .ok _ => pure gaps
+  match KnownGapSet.checkCanonical gaps with
+  | .ok checked => pure checked
   | .error _ => throw "knownGaps"
+
+private def parseRequestGaps (request : Request) : Except String KnownGapSet := do
+  let runGaps ← parseGaps request.runKnownGaps
+  let rawGaps ← parseGaps request.rawEvidenceKnownGaps
+  (KnownGapSet.union runGaps rawGaps).mapError fun _ => "knownGaps"
 
 private structure RawField where
   definitionId : DefinitionId
@@ -993,8 +985,7 @@ private def adapt (request : Request) : Except String EvidenceBundle := do
   let closures ← closureValues.mapM parseClosure
   let facts ← factValues.mapM parseFact
   let controlAttempt ← parseControlAttempts request.controlAttempts
-  let runGaps ← parseGaps request.runKnownGaps
-  let rawGaps ← parseGaps request.rawEvidenceKnownGaps
+  let requestGaps ← parseRequestGaps request
   validateSourceClosure sources closures facts
   validateControlAttempt request controlAttempt facts
   let records ← if isDuplicateDeliveryRequest request then
@@ -1009,7 +1000,7 @@ private def adapt (request : Request) : Except String EvidenceBundle := do
     profileVersion := 1
     records
     closures := evidenceClosures closures records
-    knownGaps := (runGaps ++ rawGaps).map evidenceGap
+    knownGaps := requestGaps.toList.map evidenceGap
     sourceClosed := request.captureStatus == "closed" &&
       sources.all (fun source => source.status == "closed") &&
       closures.all (fun closure => closure.status == "closed")
@@ -1212,15 +1203,16 @@ private def observedSemanticEvaluation
   experiment := expectedDuplicateDeliveryExperiment
 }
 
-private def semanticGaps (observation : ObservationResult) : List KnownGap :=
-  observation.diagnostic?.map (fun diagnostic =>
-    Umpire.SemanticInventory.observationKnownGap diagnostic.kind diagnostic.planId) |>.toList
+private def semanticGaps (observation : ObservationResult) : Except String KnownGapSet :=
+  KnownGapSet.ofUnordered (observation.diagnostic?.map (fun diagnostic =>
+    Umpire.SemanticInventory.observationKnownGap diagnostic.kind diagnostic.planId) |>.toList)
+    |>.mapError fun _ => "knownGaps"
 
 private def jsonArray (values : List String) : Lean.Json :=
   (Lean.Json.parse ("[" ++ String.intercalate "," values ++ "]")).toOption.getD (.arr #[])
 
-private def gapsJson (gaps : List KnownGap) : Lean.Json :=
-  jsonArray (gaps.map canonicalKnownGapJson)
+private def gapsJson (gaps : KnownGapSet) : Lean.Json :=
+  jsonArray (gaps.toList.map canonicalKnownGapJson)
 
 private def jsonField (json : Lean.Json) (field : String) : Lean.Json :=
   (json.getObjVal? field).toOption.getD .null
@@ -1261,7 +1253,7 @@ private def observationProjection
 private def evidenceArtifact
     (request : Request)
     (evaluation : SemanticEvaluation)
-    (observationGaps : List KnownGap) : EvidenceArtifact :=
+    (observationGaps : KnownGapSet) : EvidenceArtifact :=
   let projection := observationProjection request evaluation
   ({
     formatVersion := "umpire-evidence/v2"
@@ -1316,7 +1308,7 @@ private def resultArtifact
     (request : Request)
     (evaluation : SemanticEvaluation)
     (evidence : EvidenceArtifact)
-    (resultGaps : List KnownGap) : ResultArtifact :=
+    (resultGaps : KnownGapSet) : ResultArtifact :=
   let implementationStatus := evaluation.implementationLinkStatus
   let facts := evaluationFacts request
   let closures := match evaluation.observation with
@@ -1372,13 +1364,13 @@ private def resultArtifact
   ({ draft with evaluationOutcomeChecksum := outcome } : ResultArtifact).seal
 
 def evaluateRequest (request : Request) : Except Protocol.Error Response := do
+  let requestGaps ← (parseRequestGaps request).mapError adapterError
   let evaluation ← if isDuplicateDeliveryRequest request then
       observedSemanticEvaluation <$> evaluateDuplicateDeliverySemantics request
     else strictSemanticEvaluation <$> evaluateSemantics request
-  let observationGaps := semanticGaps evaluation.observation
-  let runGaps := (parseGaps request.runKnownGaps).toOption.getD []
-  let rawGaps := (parseGaps request.rawEvidenceKnownGaps).toOption.getD []
-  let resultGaps := canonicalGaps (runGaps ++ rawGaps ++ observationGaps)
+  let observationGaps ← (semanticGaps evaluation.observation).mapError adapterError
+  let resultGaps ← (KnownGapSet.union requestGaps observationGaps).mapError fun _ =>
+    adapterError "knownGaps"
   let evidence := evidenceArtifact request evaluation observationGaps
   let result := resultArtifact request evaluation evidence resultGaps
   if !evidence.isValidTransport then throw (adapterError "evidence")
