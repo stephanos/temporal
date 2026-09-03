@@ -193,6 +193,50 @@ example :
       (.accepted, some (20, 96)) := by
   native_decide
 
+def zeroRecordKind : DefinitionId := id "test.evidence.kind.zero-record"
+
+def zeroRecordEvaluationContext : ObservationCheckContext :=
+  let profile := evaluationContext.profiles.head?.get (by native_decide)
+  {
+    evaluationContext with profiles := [{
+      profile with kinds := profile.kinds ++ [{ id := zeroRecordKind, fields := [] }]
+    }]
+  }
+
+def zeroRecordEvaluationDeclaration : ObservationMappingDeclaration := {
+  evaluationDeclaration with closures := [{ kind := eventKind }, { kind := zeroRecordKind }]
+}
+
+def zeroRecordEvaluationPlan : CheckedObservationPlan :=
+  (checkObservation zeroRecordEvaluationContext zeroRecordEvaluationDeclaration).toOption.get
+    (by native_decide)
+
+def zeroRecordClosure : EvidenceClosureFact := {
+  kind := zeroRecordKind
+  lastSequence := 0
+}
+
+def zeroRecordEvidence : EvidenceBundle := {
+  completeEvidence with closures := completeEvidence.closures ++ [zeroRecordClosure]
+}
+
+/-- An explicit zero-record closure satisfies its checked global closure requirement. -/
+example :
+    let result := evaluateEvidence zeroRecordEvaluationPlan zeroRecordEvidence
+    (result.status, (acceptedOf result).map fun trace => trace.trace) =
+      (.accepted, some expectedTrace) := by
+  native_decide
+
+/-- Competing global closure failures retain checked-plan declaration precedence. -/
+example :
+    let result := evaluateEvidence zeroRecordEvaluationPlan {
+      completeEvidence with closures := [{ zeroRecordClosure with lastSequence := 1 }]
+    }
+    (result.status, result.diagnostic?.map fun failure =>
+      (failure.kind, failure.relatedDefinitionIds), acceptedOf result) =
+      (.unknown, some (.missingClosure, [eventKind]), none) := by
+  native_decide
+
 def linkedStructuralFirstId : DefinitionId := id "test.evidence.record.linked-a"
 def linkedStructuralSecondId : DefinitionId := id "test.evidence.record.linked-b"
 
