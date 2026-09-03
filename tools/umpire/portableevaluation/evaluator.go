@@ -37,6 +37,7 @@ type interpreter struct {
 	cancel              context.CancelFunc
 	request             Request
 	contract            *umpirespb.EvaluationContract
+	directPlanTrace     bool
 	result              *umpirespb.EvaluationResult
 	work                workTracker
 	orderingSupport     []*umpirespb.OrderingFact
@@ -67,6 +68,10 @@ func (i *interpreter) evaluate() *umpirespb.EvaluationResult {
 		i.failBeforeObservation(umpirespb.TOOLING_STATUS_INVALID_CONTRACT, failure)
 		return i.finish()
 	}
+	return i.evaluateAdmitted(contract)
+}
+
+func (i *interpreter) evaluateAdmitted(contract *umpirespb.EvaluationContract) *umpirespb.EvaluationResult {
 	i.contract = contract
 	i.result.Version = proto.CloneOf(contract.GetVersion())
 	i.result.ContractChecksum = append([]byte(nil), contract.GetArtifactChecksum()...)
@@ -78,7 +83,7 @@ func (i *interpreter) evaluate() *umpirespb.EvaluationResult {
 	i.ctx, i.cancel = context.WithTimeout(i.ctx, duration)
 	defer i.cancel()
 
-	if failure = i.validateInput(); failure != nil {
+	if failure := i.validateInput(); failure != nil {
 		if failure.canceled {
 			i.failBeforeObservation(umpirespb.TOOLING_STATUS_CANCELED, failure)
 		} else if failure.code == umpirespb.DIAGNOSTIC_CODE_LIMIT_REACHED {

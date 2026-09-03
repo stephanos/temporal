@@ -45,9 +45,13 @@ type runOutcome struct {
 	reusable          bool
 }
 
+type executionGate struct {
+	state atomic.Uint32
+}
+
 // Executor admits one request at a time and permanently rejects reuse after uncertain cleanup.
 type Executor struct {
-	state           atomic.Uint32
+	gate            executionGate
 	adapter         runner.Adapter
 	run             executeRun
 	evaluate        evaluate
@@ -84,12 +88,15 @@ func (e *Executor) Execute(
 	ctx context.Context,
 	request *umpirespb.ExecuteRequest,
 ) (*umpirespb.ExecuteResponse, error) {
-	admitted, rejection := e.admit()
+	if e == nil {
+		return failedResponse(nil, "", umpirespb.TOOLING_STATUS_INTERNAL_ERROR), nil
+	}
+	admitted, rejection := e.gate.admit()
 	if !admitted {
 		return failedResponse(nil, "", rejection), nil
 	}
 	reusable := false
-	defer func() { e.finish(reusable) }()
+	defer func() { e.gate.finish(reusable) }()
 
 	if ctx == nil {
 		reusable = true
@@ -143,14 +150,14 @@ func (e *Executor) Execute(
 	return &umpirespb.ExecuteResponse{Result: result}, nil
 }
 
-func (e *Executor) admit() (bool, umpirespb.ToolingStatus) {
-	if e == nil {
+func (g *executionGate) admit() (bool, umpirespb.ToolingStatus) {
+	if g == nil {
 		return false, umpirespb.TOOLING_STATUS_INTERNAL_ERROR
 	}
 	for {
-		switch state := executorState(e.state.Load()); state {
+		switch state := executorState(g.state.Load()); state {
 		case stateIdle:
-			if e.state.CompareAndSwap(uint32(stateIdle), uint32(stateActive)) {
+			if g.state.CompareAndSwap(uint32(stateIdle), uint32(stateActive)) {
 				return true, umpirespb.TOOLING_STATUS_SUCCEEDED
 			}
 		case stateActive:
@@ -163,14 +170,14 @@ func (e *Executor) admit() (bool, umpirespb.ToolingStatus) {
 	}
 }
 
-func (e *Executor) finish(reusable bool) {
+func (g *executionGate) finish(reusable bool) {
 	if reusable {
-		if !e.state.CompareAndSwap(uint32(stateActive), uint32(stateIdle)) {
-			e.state.Store(uint32(statePoisoned))
+		if !g.state.CompareAndSwap(uint32(stateActive), uint32(stateIdle)) {
+			g.state.Store(uint32(statePoisoned))
 		}
 		return
 	}
-	e.state.Store(uint32(statePoisoned))
+	g.state.Store(uint32(statePoisoned))
 }
 
 func admitRequest(

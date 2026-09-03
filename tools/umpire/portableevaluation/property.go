@@ -69,6 +69,9 @@ func (i *interpreter) evaluateProperty(
 }
 
 func (i *interpreter) validatePropertyVocabulary(property *umpirespb.Property) *evaluationFailure {
+	if i.directPlanTrace {
+		return nil
+	}
 	for _, requirement := range property.GetRequirements() {
 		found := false
 		for _, entry := range i.contract.GetImplementationLink().GetDefinitionEntries() {
@@ -190,7 +193,11 @@ func (i *interpreter) evaluatePattern(
 			return nil, failure
 		}
 		result.coordinates = appendUniqueCoordinate(result.coordinates, candidate.coordinate)
-		if evidenceLink := applicationEvidenceLink(link.GetApplications(), candidate.coordinate); evidenceLink != nil {
+		evidenceLink := applicationEvidenceLink(link.GetApplications(), candidate.coordinate)
+		if i.directPlanTrace {
+			evidenceLink = sourceEvidenceLink(candidate.coordinate, i.result.GetObservation().GetEvidenceLinks())
+		}
+		if evidenceLink != nil {
 			result.links = appendUniqueEvidenceLink(result.links, evidenceLink)
 		}
 		result.matched = result.matched || matched

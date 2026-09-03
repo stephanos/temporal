@@ -9,6 +9,19 @@ func (i *interpreter) applyLink(
 	sourceTrace *umpirespb.ModelTrace,
 	sourceLinks []*umpirespb.EvidenceLink,
 ) (*umpirespb.ImplementationLinkResult, *evaluationFailure) {
+	if i.directPlanTrace {
+		return &umpirespb.ImplementationLinkResult{
+			Status: umpirespb.IMPLEMENTATION_LINK_STATUS_APPLIED,
+			Trace:  proto.CloneOf(sourceTrace),
+		}, nil
+	}
+	return i.applyRenameExactLink(sourceTrace, sourceLinks)
+}
+
+func (i *interpreter) applyRenameExactLink(
+	sourceTrace *umpirespb.ModelTrace,
+	sourceLinks []*umpirespb.EvidenceLink,
+) (*umpirespb.ImplementationLinkResult, *evaluationFailure) {
 	values := traceValues(sourceTrace)
 	if failure := validateApplicationLimit(sourceTrace, i.contract.GetImplementationLink().GetApplicationLimit()); failure != nil {
 		return nil, failure
