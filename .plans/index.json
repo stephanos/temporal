@@ -830,7 +830,7 @@
     {
       "id": "fn-48-canonicalize-known-gaps-as-a-checked-set",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
       "status": "open",
       "ready": false,
