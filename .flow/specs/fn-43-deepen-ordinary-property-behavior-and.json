@@ -11,7 +11,9 @@
     "fn-41-finitemachine-target-authoring"
   ],
   "id": "fn-43-deepen-ordinary-property-behavior-and",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-43-deepen-ordinary-property-behavior-and.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -153,15 +155,47 @@
       "task": null,
       "timestamp": "2026-08-28T16:32:34.375450Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b3e9db1a7fa9b078a99fe7c1addbfea1346455606f27785ef4ef9b3838db0e00",
+      "backend": "codex",
+      "base_sha": "a3e92ab4e1044b409767378084b39fe8f9d4f983",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375484986e4b1fb457230a3518a8ba2d47ad45ad",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 147250,
+      "output_sha256": "d204aa3738333d7c8cd7964f65ef3f71656eb22460293d0d8d6efdfe06869cb6",
+      "reservation_id": "7e96fa72d3e7449db53afef99c74bdb6",
+      "round_consumed": true,
+      "scope": "impl:fn-43-deepen-ordinary-property-behavior-and.1",
+      "superseded_by": null,
+      "task": "fn-43-deepen-ordinary-property-behavior-and.1",
+      "timestamp": "2026-09-03T00:36:13.202373Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-43-deepen-ordinary-property-behavior-and.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-43-deepen-ordinary-property-behavior-and.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-43-deepen-ordinary-property-behavior-and.md",
@@ -178,5 +212,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T00:23:36.000000Z"
+  "updated_at": "2026-09-03T00:36:13.211495Z"
 }
