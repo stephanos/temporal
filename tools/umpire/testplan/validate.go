@@ -87,13 +87,13 @@ func validatePlan(plan *umpirespb.PortableTestPlan, checksumOptional bool) error
 	if err := validator.validateProvenance(); err != nil {
 		return err
 	}
+	if err := validator.validateKnownGaps(); err != nil {
+		return err
+	}
 	if err := validator.validateExecution(); err != nil {
 		return err
 	}
 	if err := validator.validateVerification(); err != nil {
-		return err
-	}
-	if err := validator.validateKnownGaps(); err != nil {
 		return err
 	}
 	if err := validator.validateObligations(); err != nil {
@@ -306,10 +306,126 @@ func (v *validator) validateExecution() error {
 		},
 		func() error { return v.validateCheckpoints(execution.GetCheckpoints()) },
 		func() error { return v.validateRuntime(execution.GetRuntime()) },
+		func() error { return v.validateArtifactProjection(execution.GetArtifactProjection()) },
 	}
 	for _, check := range checks {
 		if err := check(); err != nil {
 			return err
+		}
+	}
+	return nil
+}
+
+func (v *validator) validateArtifactProjection(projection *umpirespb.PlanArtifactProjection) error {
+	if projection == nil || projection.GetExpandedLimits() == nil || projection.GetExplored() == nil ||
+		projection.GetExperimentProvenance() == nil || projection.GetRuntimeProvenance() == nil {
+		return admissionError(ErrorMalformedValue, "$.execution.artifactProjection", "complete artifact projection is required")
+	}
+	if projection.GetSelectionReason() == umpirespb.PLAN_SELECTION_REASON_UNSPECIFIED {
+		return admissionError(ErrorMalformedValue, "$.execution.artifactProjection.selectionReason", "selection reason is required")
+	}
+	if err := validateArtifactProjectionBounds(projection, v.plan.GetExecution()); err != nil {
+		return err
+	}
+	if err := validateKnownGapList(projection.GetExperimentKnownGaps(), "$.execution.artifactProjection.experimentKnownGaps"); err != nil {
+		return err
+	}
+	if err := validateKnownGapList(projection.GetRuntimeKnownGaps(), "$.execution.artifactProjection.runtimeKnownGaps"); err != nil {
+		return err
+	}
+	if err := validateArtifactProvenance(projection.GetExperimentProvenance(), "$.execution.artifactProjection.experimentProvenance"); err != nil {
+		return err
+	}
+	if err := validateArtifactProvenance(projection.GetRuntimeProvenance(), "$.execution.artifactProjection.runtimeProvenance"); err != nil {
+		return err
+	}
+	if err := validateDefinitionIDs(
+		projection.GetExperimentObservationRequirementDefinitionIds(),
+		"$.execution.artifactProjection.experimentObservationRequirementDefinitionIds",
+	); err != nil {
+		return err
+	}
+	if err := v.validateArtifactRuntimeObservation(projection.GetRuntimeObservationConfig()); err != nil {
+		return err
+	}
+	return validateArtifactKnownGapProjection(projection, v.plan.GetKnownGaps())
+}
+
+func validateArtifactProjectionBounds(
+	projection *umpirespb.PlanArtifactProjection,
+	execution *umpirespb.ExecutionProgram,
+) error {
+	limits := projection.GetExpandedLimits()
+	if limits.GetMaxSemanticTransitions() != int64(len(execution.GetOccurrences())) ||
+		limits.GetMaxSelectedActions() != int64(len(execution.GetRequestedActions())) ||
+		limits.GetMaxCandidateEvaluations() <= 0 ||
+		limits.GetMaxCandidateEvaluations() > MaximumEvaluationWork {
+		return admissionError(ErrorLimit, "$.execution.artifactProjection.expandedLimits", "artifact search limits are inconsistent with the portable plan")
+	}
+	explored := projection.GetExplored()
+	if explored.GetSetups() <= 0 || explored.GetTraces() <= 0 || explored.GetTransitions() <= 0 ||
+		explored.GetPropertyEvaluations() <= 0 ||
+		explored.GetTransitions() > limits.GetMaxSemanticTransitions() ||
+		explored.GetPropertyEvaluations() > limits.GetMaxCandidateEvaluations() {
+		return admissionError(ErrorLimit, "$.execution.artifactProjection.explored", "artifact explored counts are outside the expanded limits")
+	}
+	return nil
+}
+
+func (v *validator) validateArtifactRuntimeObservation(runtimeObservation *umpirespb.PortableObservationConfig) error {
+	if runtimeObservation == nil {
+		return admissionError(ErrorMalformedValue, "$.execution.artifactProjection.runtimeObservationConfig", "runtime artifact Observation configuration is required")
+	}
+	for _, binding := range []struct {
+		path  string
+		value *umpirespb.DefinitionBinding
+	}{
+		{"profile", runtimeObservation.GetProfile()},
+		{"program", runtimeObservation.GetProgram()},
+		{"mapping", runtimeObservation.GetMapping()},
+	} {
+		if err := v.validateBinding(binding.value, "$.execution.artifactProjection.runtimeObservationConfig."+binding.path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func validateArtifactKnownGapProjection(
+	projection *umpirespb.PlanArtifactProjection,
+	want []*umpirespb.KnownGap,
+) error {
+	projectedGaps := append([]*umpirespb.KnownGap{}, projection.GetExperimentKnownGaps()...)
+	projectedGaps = append(projectedGaps, projection.GetRuntimeKnownGaps()...)
+	slices.SortFunc(projectedGaps, func(left, right *umpirespb.KnownGap) int {
+		return strings.Compare(knownGapKey(left), knownGapKey(right))
+	})
+	projectedGaps = slices.CompactFunc(projectedGaps, func(left, right *umpirespb.KnownGap) bool {
+		return knownGapKey(left) == knownGapKey(right)
+	})
+	if !equalKnownGaps(projectedGaps, want) {
+		return admissionError(ErrorBinding, "$.execution.artifactProjection", "artifact Known Gaps do not project to the portable plan")
+	}
+	return nil
+}
+
+func validateArtifactProvenance(provenance *umpirespb.PlanArtifactProvenance, path string) error {
+	if err := validateDefinitionIDs(provenance.GetSourceDefinitionIds(), path+".sourceDefinitionIds"); err != nil {
+		return err
+	}
+	return validateLocations(provenance.GetSourceLocations(), path+".sourceLocations")
+}
+
+func validateDefinitionIDs(ids []string, path string) error {
+	if len(ids) == 0 || !slices.IsSorted(ids) {
+		return admissionError(ErrorOrdering, path, "definition identities must be non-empty and canonically ordered")
+	}
+	for index, id := range ids {
+		if !validDefinitionID(id) || len(id) > artifact.MaximumIdentityBytes {
+			return admissionError(ErrorMalformedValue, fmt.Sprintf("%s[%d]", path, index), "definition identity is malformed")
+		}
+		if index > 0 && ids[index-1] == id {
+			return admissionError(ErrorDuplicate, fmt.Sprintf("%s[%d]", path, index), "duplicate definition identity")
 		}
 	}
 	return nil
@@ -1509,18 +1625,21 @@ func (v *validator) validateDefinitionRenameEntries(entries []*umpirespb.Definit
 }
 
 func (v *validator) validateKnownGaps() error {
-	gaps := v.plan.GetKnownGaps()
-	if err := requireSortedUnique(gaps, knownGapKey, "$.knownGaps"); err != nil {
+	return validateKnownGapList(v.plan.GetKnownGaps(), "$.knownGaps")
+}
+
+func validateKnownGapList(gaps []*umpirespb.KnownGap, path string) error {
+	if err := requireSortedUnique(gaps, knownGapKey, path); err != nil {
 		return err
 	}
 	for index, gap := range gaps {
-		path := fmt.Sprintf("$.knownGaps[%d]", index)
+		gapPath := fmt.Sprintf("%s[%d]", path, index)
 		if gap == nil || gap.GetKind() == umpirespb.KNOWN_GAP_KIND_UNSPECIFIED || !validDefinitionID(gap.GetCode()) ||
 			len(gap.GetDetail()) > artifact.MaximumDiagnosticBytes {
-			return admissionError(ErrorMalformedValue, path, "Known Gap is malformed")
+			return admissionError(ErrorMalformedValue, gapPath, "Known Gap is malformed")
 		}
 		if gap.GetSubject() != "" && !validDefinitionID(gap.GetSubject()) {
-			return admissionError(ErrorMalformedValue, path+".subject", "Known Gap subject is malformed")
+			return admissionError(ErrorMalformedValue, gapPath+".subject", "Known Gap subject is malformed")
 		}
 	}
 	return nil
@@ -1724,6 +1843,18 @@ func knownGapKey(gap *umpirespb.KnownGap) string {
 		return ""
 	}
 	return fmt.Sprintf("%010d\x00%s\x00%s\x00%s", gap.GetKind(), gap.GetCode(), gap.GetSubject(), gap.GetDetail())
+}
+
+func equalKnownGaps(left, right []*umpirespb.KnownGap) bool {
+	if len(left) != len(right) {
+		return false
+	}
+	for index := range left {
+		if !proto.Equal(left[index], right[index]) {
+			return false
+		}
+	}
+	return true
 }
 
 func equalBindings(left, right []*umpirespb.DefinitionBinding) bool {

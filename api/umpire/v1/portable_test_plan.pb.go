@@ -445,6 +445,70 @@ func (ExternalVerificationObligationKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{5}
 }
 
+type PlanSelectionReason int32
+
+const (
+	PLAN_SELECTION_REASON_UNSPECIFIED              PlanSelectionReason = 0
+	PLAN_SELECTION_REASON_SATISFYING_WITNESS       PlanSelectionReason = 1
+	PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE PlanSelectionReason = 2
+	PLAN_SELECTION_REASON_BEHAVIOR_SELECTION       PlanSelectionReason = 3
+)
+
+// Enum value maps for PlanSelectionReason.
+var (
+	PlanSelectionReason_name = map[int32]string{
+		0: "PLAN_SELECTION_REASON_UNSPECIFIED",
+		1: "PLAN_SELECTION_REASON_SATISFYING_WITNESS",
+		2: "PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE",
+		3: "PLAN_SELECTION_REASON_BEHAVIOR_SELECTION",
+	}
+	PlanSelectionReason_value = map[string]int32{
+		"PLAN_SELECTION_REASON_UNSPECIFIED":              0,
+		"PLAN_SELECTION_REASON_SATISFYING_WITNESS":       1,
+		"PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE": 2,
+		"PLAN_SELECTION_REASON_BEHAVIOR_SELECTION":       3,
+	}
+)
+
+func (x PlanSelectionReason) Enum() *PlanSelectionReason {
+	p := new(PlanSelectionReason)
+	*p = x
+	return p
+}
+
+func (x PlanSelectionReason) String() string {
+	switch x {
+	case PLAN_SELECTION_REASON_UNSPECIFIED:
+		return "Unspecified"
+	case PLAN_SELECTION_REASON_SATISFYING_WITNESS:
+		return "SatisfyingWitness"
+	case PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE:
+		return "ViolatingCounterexample"
+	case PLAN_SELECTION_REASON_BEHAVIOR_SELECTION:
+		return "BehaviorSelection"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (PlanSelectionReason) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[6].Descriptor()
+}
+
+func (PlanSelectionReason) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[6]
+}
+
+func (x PlanSelectionReason) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use PlanSelectionReason.Descriptor instead.
+func (PlanSelectionReason) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{6}
+}
+
 type ProvenanceOutcome int32
 
 const (
@@ -488,11 +552,11 @@ func (x ProvenanceOutcome) String() string {
 }
 
 func (ProvenanceOutcome) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[6].Descriptor()
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[7].Descriptor()
 }
 
 func (ProvenanceOutcome) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[6]
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[7]
 }
 
 func (x ProvenanceOutcome) Number() protoreflect.EnumNumber {
@@ -501,7 +565,7 @@ func (x ProvenanceOutcome) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ProvenanceOutcome.Descriptor instead.
 func (ProvenanceOutcome) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{7}
 }
 
 type ClaimScope int32
@@ -547,11 +611,11 @@ func (x ClaimScope) String() string {
 }
 
 func (ClaimScope) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[7].Descriptor()
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[8].Descriptor()
 }
 
 func (ClaimScope) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[7]
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[8]
 }
 
 func (x ClaimScope) Number() protoreflect.EnumNumber {
@@ -560,7 +624,7 @@ func (x ClaimScope) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ClaimScope.Descriptor instead.
 func (ClaimScope) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{8}
 }
 
 // (-- api-linter: core::0216::synonyms=disabled --)
@@ -627,11 +691,11 @@ func (x ExecutionToolingStatus) String() string {
 }
 
 func (ExecutionToolingStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[8].Descriptor()
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[9].Descriptor()
 }
 
 func (ExecutionToolingStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[8]
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[9]
 }
 
 func (x ExecutionToolingStatus) Number() protoreflect.EnumNumber {
@@ -640,7 +704,7 @@ func (x ExecutionToolingStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ExecutionToolingStatus.Descriptor instead.
 func (ExecutionToolingStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{9}
 }
 
 // (-- api-linter: core::0216::synonyms=disabled --)
@@ -692,11 +756,11 @@ func (x ExecutionOperationalStatus) String() string {
 }
 
 func (ExecutionOperationalStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[9].Descriptor()
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[10].Descriptor()
 }
 
 func (ExecutionOperationalStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[9]
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[10]
 }
 
 func (x ExecutionOperationalStatus) Number() protoreflect.EnumNumber {
@@ -705,7 +769,7 @@ func (x ExecutionOperationalStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ExecutionOperationalStatus.Descriptor instead.
 func (ExecutionOperationalStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{10}
 }
 
 // (-- api-linter: core::0216::synonyms=disabled --)
@@ -757,11 +821,11 @@ func (x ExecutionEvaluationStatus) String() string {
 }
 
 func (ExecutionEvaluationStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[10].Descriptor()
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[11].Descriptor()
 }
 
 func (ExecutionEvaluationStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[10]
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[11]
 }
 
 func (x ExecutionEvaluationStatus) Number() protoreflect.EnumNumber {
@@ -770,7 +834,7 @@ func (x ExecutionEvaluationStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ExecutionEvaluationStatus.Descriptor instead.
 func (ExecutionEvaluationStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{10}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{11}
 }
 
 // (-- api-linter: core::0216::synonyms=disabled --)
@@ -822,11 +886,11 @@ func (x ExecutionCleanupStatus) String() string {
 }
 
 func (ExecutionCleanupStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[11].Descriptor()
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[12].Descriptor()
 }
 
 func (ExecutionCleanupStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[11]
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[12]
 }
 
 func (x ExecutionCleanupStatus) Number() protoreflect.EnumNumber {
@@ -835,7 +899,7 @@ func (x ExecutionCleanupStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ExecutionCleanupStatus.Descriptor instead.
 func (ExecutionCleanupStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{12}
 }
 
 type ExecutionDecision int32
@@ -886,11 +950,11 @@ func (x ExecutionDecision) String() string {
 }
 
 func (ExecutionDecision) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[12].Descriptor()
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[13].Descriptor()
 }
 
 func (ExecutionDecision) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[12]
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[13]
 }
 
 func (x ExecutionDecision) Number() protoreflect.EnumNumber {
@@ -899,7 +963,7 @@ func (x ExecutionDecision) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use ExecutionDecision.Descriptor instead.
 func (ExecutionDecision) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{13}
 }
 
 // (-- api-linter: core::0216::synonyms=disabled --)
@@ -971,11 +1035,11 @@ func (x TraceProjectionStatus) String() string {
 }
 
 func (TraceProjectionStatus) Descriptor() protoreflect.EnumDescriptor {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[13].Descriptor()
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[14].Descriptor()
 }
 
 func (TraceProjectionStatus) Type() protoreflect.EnumType {
-	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[13]
+	return &file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes[14]
 }
 
 func (x TraceProjectionStatus) Number() protoreflect.EnumNumber {
@@ -984,7 +1048,7 @@ func (x TraceProjectionStatus) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use TraceProjectionStatus.Descriptor instead.
 func (TraceProjectionStatus) EnumDescriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{14}
 }
 
 type ExternalPlanProvenance struct {
@@ -2025,6 +2089,294 @@ func (x *RuntimeProgram) GetAuthorityRequiredCapabilities() []*DefinitionBinding
 	return nil
 }
 
+type PlanSearchLimits struct {
+	state                   protoimpl.MessageState `protogen:"open.v1"`
+	MaxSemanticTransitions  int64                  `protobuf:"varint,1,opt,name=max_semantic_transitions,json=maxSemanticTransitions,proto3" json:"max_semantic_transitions,omitempty"`
+	MaxSelectedActions      int64                  `protobuf:"varint,2,opt,name=max_selected_actions,json=maxSelectedActions,proto3" json:"max_selected_actions,omitempty"`
+	MaxCandidateEvaluations int64                  `protobuf:"varint,3,opt,name=max_candidate_evaluations,json=maxCandidateEvaluations,proto3" json:"max_candidate_evaluations,omitempty"`
+	unknownFields           protoimpl.UnknownFields
+	sizeCache               protoimpl.SizeCache
+}
+
+func (x *PlanSearchLimits) Reset() {
+	*x = PlanSearchLimits{}
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlanSearchLimits) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlanSearchLimits) ProtoMessage() {}
+
+func (x *PlanSearchLimits) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlanSearchLimits.ProtoReflect.Descriptor instead.
+func (*PlanSearchLimits) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *PlanSearchLimits) GetMaxSemanticTransitions() int64 {
+	if x != nil {
+		return x.MaxSemanticTransitions
+	}
+	return 0
+}
+
+func (x *PlanSearchLimits) GetMaxSelectedActions() int64 {
+	if x != nil {
+		return x.MaxSelectedActions
+	}
+	return 0
+}
+
+func (x *PlanSearchLimits) GetMaxCandidateEvaluations() int64 {
+	if x != nil {
+		return x.MaxCandidateEvaluations
+	}
+	return 0
+}
+
+type PlanExploredCounts struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	Setups              int64                  `protobuf:"varint,1,opt,name=setups,proto3" json:"setups,omitempty"`
+	Traces              int64                  `protobuf:"varint,2,opt,name=traces,proto3" json:"traces,omitempty"`
+	Transitions         int64                  `protobuf:"varint,3,opt,name=transitions,proto3" json:"transitions,omitempty"`
+	PropertyEvaluations int64                  `protobuf:"varint,4,opt,name=property_evaluations,json=propertyEvaluations,proto3" json:"property_evaluations,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *PlanExploredCounts) Reset() {
+	*x = PlanExploredCounts{}
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlanExploredCounts) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlanExploredCounts) ProtoMessage() {}
+
+func (x *PlanExploredCounts) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlanExploredCounts.ProtoReflect.Descriptor instead.
+func (*PlanExploredCounts) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *PlanExploredCounts) GetSetups() int64 {
+	if x != nil {
+		return x.Setups
+	}
+	return 0
+}
+
+func (x *PlanExploredCounts) GetTraces() int64 {
+	if x != nil {
+		return x.Traces
+	}
+	return 0
+}
+
+func (x *PlanExploredCounts) GetTransitions() int64 {
+	if x != nil {
+		return x.Transitions
+	}
+	return 0
+}
+
+func (x *PlanExploredCounts) GetPropertyEvaluations() int64 {
+	if x != nil {
+		return x.PropertyEvaluations
+	}
+	return 0
+}
+
+type PlanArtifactProvenance struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	SourceDefinitionIds []string               `protobuf:"bytes,1,rep,name=source_definition_ids,json=sourceDefinitionIds,proto3" json:"source_definition_ids,omitempty"`
+	SourceLocations     []*SourceLocation      `protobuf:"bytes,2,rep,name=source_locations,json=sourceLocations,proto3" json:"source_locations,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *PlanArtifactProvenance) Reset() {
+	*x = PlanArtifactProvenance{}
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlanArtifactProvenance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlanArtifactProvenance) ProtoMessage() {}
+
+func (x *PlanArtifactProvenance) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlanArtifactProvenance.ProtoReflect.Descriptor instead.
+func (*PlanArtifactProvenance) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *PlanArtifactProvenance) GetSourceDefinitionIds() []string {
+	if x != nil {
+		return x.SourceDefinitionIds
+	}
+	return nil
+}
+
+func (x *PlanArtifactProvenance) GetSourceLocations() []*SourceLocation {
+	if x != nil {
+		return x.SourceLocations
+	}
+	return nil
+}
+
+type PlanArtifactProjection struct {
+	state                                         protoimpl.MessageState     `protogen:"open.v1"`
+	ExpandedLimits                                *PlanSearchLimits          `protobuf:"bytes,1,opt,name=expanded_limits,json=expandedLimits,proto3" json:"expanded_limits,omitempty"`
+	SelectionReason                               PlanSelectionReason        `protobuf:"varint,2,opt,name=selection_reason,json=selectionReason,proto3,enum=temporal.server.api.umpire.v1.PlanSelectionReason" json:"selection_reason,omitempty"`
+	Explored                                      *PlanExploredCounts        `protobuf:"bytes,3,opt,name=explored,proto3" json:"explored,omitempty"`
+	ExperimentKnownGaps                           []*KnownGap                `protobuf:"bytes,4,rep,name=experiment_known_gaps,json=experimentKnownGaps,proto3" json:"experiment_known_gaps,omitempty"`
+	ExperimentProvenance                          *PlanArtifactProvenance    `protobuf:"bytes,5,opt,name=experiment_provenance,json=experimentProvenance,proto3" json:"experiment_provenance,omitempty"`
+	RuntimeKnownGaps                              []*KnownGap                `protobuf:"bytes,6,rep,name=runtime_known_gaps,json=runtimeKnownGaps,proto3" json:"runtime_known_gaps,omitempty"`
+	RuntimeProvenance                             *PlanArtifactProvenance    `protobuf:"bytes,7,opt,name=runtime_provenance,json=runtimeProvenance,proto3" json:"runtime_provenance,omitempty"`
+	ExperimentObservationRequirementDefinitionIds []string                   `protobuf:"bytes,8,rep,name=experiment_observation_requirement_definition_ids,json=experimentObservationRequirementDefinitionIds,proto3" json:"experiment_observation_requirement_definition_ids,omitempty"`
+	RuntimeObservationConfig                      *PortableObservationConfig `protobuf:"bytes,9,opt,name=runtime_observation_config,json=runtimeObservationConfig,proto3" json:"runtime_observation_config,omitempty"`
+	unknownFields                                 protoimpl.UnknownFields
+	sizeCache                                     protoimpl.SizeCache
+}
+
+func (x *PlanArtifactProjection) Reset() {
+	*x = PlanArtifactProjection{}
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *PlanArtifactProjection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PlanArtifactProjection) ProtoMessage() {}
+
+func (x *PlanArtifactProjection) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PlanArtifactProjection.ProtoReflect.Descriptor instead.
+func (*PlanArtifactProjection) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *PlanArtifactProjection) GetExpandedLimits() *PlanSearchLimits {
+	if x != nil {
+		return x.ExpandedLimits
+	}
+	return nil
+}
+
+func (x *PlanArtifactProjection) GetSelectionReason() PlanSelectionReason {
+	if x != nil {
+		return x.SelectionReason
+	}
+	return PLAN_SELECTION_REASON_UNSPECIFIED
+}
+
+func (x *PlanArtifactProjection) GetExplored() *PlanExploredCounts {
+	if x != nil {
+		return x.Explored
+	}
+	return nil
+}
+
+func (x *PlanArtifactProjection) GetExperimentKnownGaps() []*KnownGap {
+	if x != nil {
+		return x.ExperimentKnownGaps
+	}
+	return nil
+}
+
+func (x *PlanArtifactProjection) GetExperimentProvenance() *PlanArtifactProvenance {
+	if x != nil {
+		return x.ExperimentProvenance
+	}
+	return nil
+}
+
+func (x *PlanArtifactProjection) GetRuntimeKnownGaps() []*KnownGap {
+	if x != nil {
+		return x.RuntimeKnownGaps
+	}
+	return nil
+}
+
+func (x *PlanArtifactProjection) GetRuntimeProvenance() *PlanArtifactProvenance {
+	if x != nil {
+		return x.RuntimeProvenance
+	}
+	return nil
+}
+
+func (x *PlanArtifactProjection) GetExperimentObservationRequirementDefinitionIds() []string {
+	if x != nil {
+		return x.ExperimentObservationRequirementDefinitionIds
+	}
+	return nil
+}
+
+func (x *PlanArtifactProjection) GetRuntimeObservationConfig() *PortableObservationConfig {
+	if x != nil {
+		return x.RuntimeObservationConfig
+	}
+	return nil
+}
+
 type ExecutionProgram struct {
 	state                  protoimpl.MessageState   `protogen:"open.v1"`
 	Setup                  *DefinitionBinding       `protobuf:"bytes,1,opt,name=setup,proto3" json:"setup,omitempty"`
@@ -2047,13 +2399,14 @@ type ExecutionProgram struct {
 	CapabilityRequirements []*DefinitionBinding     `protobuf:"bytes,18,rep,name=capability_requirements,json=capabilityRequirements,proto3" json:"capability_requirements,omitempty"`
 	Checkpoints            []*ExecutionCheckpoint   `protobuf:"bytes,19,rep,name=checkpoints,proto3" json:"checkpoints,omitempty"`
 	Runtime                *RuntimeProgram          `protobuf:"bytes,20,opt,name=runtime,proto3" json:"runtime,omitempty"`
+	ArtifactProjection     *PlanArtifactProjection  `protobuf:"bytes,21,opt,name=artifact_projection,json=artifactProjection,proto3" json:"artifact_projection,omitempty"`
 	unknownFields          protoimpl.UnknownFields
 	sizeCache              protoimpl.SizeCache
 }
 
 func (x *ExecutionProgram) Reset() {
 	*x = ExecutionProgram{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[16]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2065,7 +2418,7 @@ func (x *ExecutionProgram) String() string {
 func (*ExecutionProgram) ProtoMessage() {}
 
 func (x *ExecutionProgram) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[16]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2078,7 +2431,7 @@ func (x *ExecutionProgram) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutionProgram.ProtoReflect.Descriptor instead.
 func (*ExecutionProgram) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{16}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ExecutionProgram) GetSetup() *DefinitionBinding {
@@ -2221,6 +2574,13 @@ func (x *ExecutionProgram) GetRuntime() *RuntimeProgram {
 	return nil
 }
 
+func (x *ExecutionProgram) GetArtifactProjection() *PlanArtifactProjection {
+	if x != nil {
+		return x.ArtifactProjection
+	}
+	return nil
+}
+
 type DirectPlanTrace struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -2229,7 +2589,7 @@ type DirectPlanTrace struct {
 
 func (x *DirectPlanTrace) Reset() {
 	*x = DirectPlanTrace{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[17]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2241,7 +2601,7 @@ func (x *DirectPlanTrace) String() string {
 func (*DirectPlanTrace) ProtoMessage() {}
 
 func (x *DirectPlanTrace) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[17]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2254,7 +2614,7 @@ func (x *DirectPlanTrace) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DirectPlanTrace.ProtoReflect.Descriptor instead.
 func (*DirectPlanTrace) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{17}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{21}
 }
 
 type DecisionPolicy struct {
@@ -2266,7 +2626,7 @@ type DecisionPolicy struct {
 
 func (x *DecisionPolicy) Reset() {
 	*x = DecisionPolicy{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[18]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2278,7 +2638,7 @@ func (x *DecisionPolicy) String() string {
 func (*DecisionPolicy) ProtoMessage() {}
 
 func (x *DecisionPolicy) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[18]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2291,7 +2651,7 @@ func (x *DecisionPolicy) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DecisionPolicy.ProtoReflect.Descriptor instead.
 func (*DecisionPolicy) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{18}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *DecisionPolicy) GetKind() DecisionPolicyKind {
@@ -2318,7 +2678,7 @@ type VerificationProgram struct {
 
 func (x *VerificationProgram) Reset() {
 	*x = VerificationProgram{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[19]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2330,7 +2690,7 @@ func (x *VerificationProgram) String() string {
 func (*VerificationProgram) ProtoMessage() {}
 
 func (x *VerificationProgram) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[19]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2343,7 +2703,7 @@ func (x *VerificationProgram) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use VerificationProgram.ProtoReflect.Descriptor instead.
 func (*VerificationProgram) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{19}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *VerificationProgram) GetEvidence() *EvidenceProfile {
@@ -2427,7 +2787,7 @@ type StructuralLimits struct {
 
 func (x *StructuralLimits) Reset() {
 	*x = StructuralLimits{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[20]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2439,7 +2799,7 @@ func (x *StructuralLimits) String() string {
 func (*StructuralLimits) ProtoMessage() {}
 
 func (x *StructuralLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[20]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2452,7 +2812,7 @@ func (x *StructuralLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StructuralLimits.ProtoReflect.Descriptor instead.
 func (*StructuralLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{20}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *StructuralLimits) GetMaxPlanBytes() int64 {
@@ -2496,7 +2856,7 @@ type ExecutionLimits struct {
 
 func (x *ExecutionLimits) Reset() {
 	*x = ExecutionLimits{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[21]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2508,7 +2868,7 @@ func (x *ExecutionLimits) String() string {
 func (*ExecutionLimits) ProtoMessage() {}
 
 func (x *ExecutionLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[21]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2521,7 +2881,7 @@ func (x *ExecutionLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutionLimits.ProtoReflect.Descriptor instead.
 func (*ExecutionLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{21}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *ExecutionLimits) GetMaxActions() int64 {
@@ -2570,7 +2930,7 @@ type EvidenceLimits struct {
 
 func (x *EvidenceLimits) Reset() {
 	*x = EvidenceLimits{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[22]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2582,7 +2942,7 @@ func (x *EvidenceLimits) String() string {
 func (*EvidenceLimits) ProtoMessage() {}
 
 func (x *EvidenceLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[22]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2595,7 +2955,7 @@ func (x *EvidenceLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EvidenceLimits.ProtoReflect.Descriptor instead.
 func (*EvidenceLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{22}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *EvidenceLimits) GetMaxRecords() int64 {
@@ -2630,7 +2990,7 @@ type PortableEvaluationLimits struct {
 
 func (x *PortableEvaluationLimits) Reset() {
 	*x = PortableEvaluationLimits{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[23]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2642,7 +3002,7 @@ func (x *PortableEvaluationLimits) String() string {
 func (*PortableEvaluationLimits) ProtoMessage() {}
 
 func (x *PortableEvaluationLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[23]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2655,7 +3015,7 @@ func (x *PortableEvaluationLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortableEvaluationLimits.ProtoReflect.Descriptor instead.
 func (*PortableEvaluationLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{23}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *PortableEvaluationLimits) GetMaxExpressionDepth() int64 {
@@ -2689,7 +3049,7 @@ type OutputLimits struct {
 
 func (x *OutputLimits) Reset() {
 	*x = OutputLimits{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[24]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2701,7 +3061,7 @@ func (x *OutputLimits) String() string {
 func (*OutputLimits) ProtoMessage() {}
 
 func (x *OutputLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[24]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2714,7 +3074,7 @@ func (x *OutputLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OutputLimits.ProtoReflect.Descriptor instead.
 func (*OutputLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{24}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *OutputLimits) GetMaxDiagnosticBytes() int64 {
@@ -2744,7 +3104,7 @@ type PortableTestPlanLimits struct {
 
 func (x *PortableTestPlanLimits) Reset() {
 	*x = PortableTestPlanLimits{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[25]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2756,7 +3116,7 @@ func (x *PortableTestPlanLimits) String() string {
 func (*PortableTestPlanLimits) ProtoMessage() {}
 
 func (x *PortableTestPlanLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[25]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2769,7 +3129,7 @@ func (x *PortableTestPlanLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortableTestPlanLimits.ProtoReflect.Descriptor instead.
 func (*PortableTestPlanLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{25}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *PortableTestPlanLimits) GetStructural() *StructuralLimits {
@@ -2819,7 +3179,7 @@ type ExternalVerificationObligation struct {
 
 func (x *ExternalVerificationObligation) Reset() {
 	*x = ExternalVerificationObligation{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[26]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2831,7 +3191,7 @@ func (x *ExternalVerificationObligation) String() string {
 func (*ExternalVerificationObligation) ProtoMessage() {}
 
 func (x *ExternalVerificationObligation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[26]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2844,7 +3204,7 @@ func (x *ExternalVerificationObligation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExternalVerificationObligation.ProtoReflect.Descriptor instead.
 func (*ExternalVerificationObligation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{26}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ExternalVerificationObligation) GetDefinition() *DefinitionBinding {
@@ -2897,7 +3257,7 @@ type PortableTestPlan struct {
 
 func (x *PortableTestPlan) Reset() {
 	*x = PortableTestPlan{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[27]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2909,7 +3269,7 @@ func (x *PortableTestPlan) String() string {
 func (*PortableTestPlan) ProtoMessage() {}
 
 func (x *PortableTestPlan) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[27]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2922,7 +3282,7 @@ func (x *PortableTestPlan) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PortableTestPlan.ProtoReflect.Descriptor instead.
 func (*PortableTestPlan) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{27}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *PortableTestPlan) GetVersion() *FormatVersion {
@@ -3034,7 +3394,7 @@ type TraceProjectionResult struct {
 
 func (x *TraceProjectionResult) Reset() {
 	*x = TraceProjectionResult{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[28]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3046,7 +3406,7 @@ func (x *TraceProjectionResult) String() string {
 func (*TraceProjectionResult) ProtoMessage() {}
 
 func (x *TraceProjectionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[28]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3059,7 +3419,7 @@ func (x *TraceProjectionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TraceProjectionResult.ProtoReflect.Descriptor instead.
 func (*TraceProjectionResult) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{28}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *TraceProjectionResult) GetStatus() TraceProjectionStatus {
@@ -3116,7 +3476,7 @@ type ExecutionResult struct {
 
 func (x *ExecutionResult) Reset() {
 	*x = ExecutionResult{}
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[29]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3128,7 +3488,7 @@ func (x *ExecutionResult) String() string {
 func (*ExecutionResult) ProtoMessage() {}
 
 func (x *ExecutionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[29]
+	mi := &file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3141,7 +3501,7 @@ func (x *ExecutionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutionResult.ProtoReflect.Descriptor instead.
 func (*ExecutionResult) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{29}
+	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *ExecutionResult) GetVersion() *FormatVersion {
@@ -3366,7 +3726,29 @@ const file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDesc = "" +
 	"\fphase_limits\x18\x05 \x03(\v22.temporal.server.api.umpire.v1.ExecutionPhaseLimitR\vphaseLimits\x12V\n" +
 	"\vtermination\x18\x06 \x01(\v24.temporal.server.api.umpire.v1.TerminationObligationR\vtermination\x12J\n" +
 	"\acleanup\x18\a \x01(\v20.temporal.server.api.umpire.v1.CleanupObligationR\acleanup\x12x\n" +
-	"\x1fauthority_required_capabilities\x18\b \x03(\v20.temporal.server.api.umpire.v1.DefinitionBindingR\x1dauthorityRequiredCapabilities\"\xd6\r\n" +
+	"\x1fauthority_required_capabilities\x18\b \x03(\v20.temporal.server.api.umpire.v1.DefinitionBindingR\x1dauthorityRequiredCapabilities\"\xba\x01\n" +
+	"\x10PlanSearchLimits\x128\n" +
+	"\x18max_semantic_transitions\x18\x01 \x01(\x03R\x16maxSemanticTransitions\x120\n" +
+	"\x14max_selected_actions\x18\x02 \x01(\x03R\x12maxSelectedActions\x12:\n" +
+	"\x19max_candidate_evaluations\x18\x03 \x01(\x03R\x17maxCandidateEvaluations\"\x99\x01\n" +
+	"\x12PlanExploredCounts\x12\x16\n" +
+	"\x06setups\x18\x01 \x01(\x03R\x06setups\x12\x16\n" +
+	"\x06traces\x18\x02 \x01(\x03R\x06traces\x12 \n" +
+	"\vtransitions\x18\x03 \x01(\x03R\vtransitions\x121\n" +
+	"\x14property_evaluations\x18\x04 \x01(\x03R\x13propertyEvaluations\"\xa6\x01\n" +
+	"\x16PlanArtifactProvenance\x122\n" +
+	"\x15source_definition_ids\x18\x01 \x03(\tR\x13sourceDefinitionIds\x12X\n" +
+	"\x10source_locations\x18\x02 \x03(\v2-.temporal.server.api.umpire.v1.SourceLocationR\x0fsourceLocations\"\x88\a\n" +
+	"\x16PlanArtifactProjection\x12X\n" +
+	"\x0fexpanded_limits\x18\x01 \x01(\v2/.temporal.server.api.umpire.v1.PlanSearchLimitsR\x0eexpandedLimits\x12]\n" +
+	"\x10selection_reason\x18\x02 \x01(\x0e22.temporal.server.api.umpire.v1.PlanSelectionReasonR\x0fselectionReason\x12M\n" +
+	"\bexplored\x18\x03 \x01(\v21.temporal.server.api.umpire.v1.PlanExploredCountsR\bexplored\x12[\n" +
+	"\x15experiment_known_gaps\x18\x04 \x03(\v2'.temporal.server.api.umpire.v1.KnownGapR\x13experimentKnownGaps\x12j\n" +
+	"\x15experiment_provenance\x18\x05 \x01(\v25.temporal.server.api.umpire.v1.PlanArtifactProvenanceR\x14experimentProvenance\x12U\n" +
+	"\x12runtime_known_gaps\x18\x06 \x03(\v2'.temporal.server.api.umpire.v1.KnownGapR\x10runtimeKnownGaps\x12d\n" +
+	"\x12runtime_provenance\x18\a \x01(\v25.temporal.server.api.umpire.v1.PlanArtifactProvenanceR\x11runtimeProvenance\x12h\n" +
+	"1experiment_observation_requirement_definition_ids\x18\b \x03(\tR-experimentObservationRequirementDefinitionIds\x12v\n" +
+	"\x1aruntime_observation_config\x18\t \x01(\v28.temporal.server.api.umpire.v1.PortableObservationConfigR\x18runtimeObservationConfig\"\xbe\x0e\n" +
 	"\x10ExecutionProgram\x12F\n" +
 	"\x05setup\x18\x01 \x01(\v20.temporal.server.api.umpire.v1.DefinitionBindingR\x05setup\x12F\n" +
 	"\x05query\x18\x02 \x01(\v20.temporal.server.api.umpire.v1.DefinitionBindingR\x05query\x12L\n" +
@@ -3388,7 +3770,8 @@ const file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDesc = "" +
 	"\x10requested_faults\x18\x11 \x03(\v21.temporal.server.api.umpire.v1.PortableModelValueR\x0frequestedFaults\x12i\n" +
 	"\x17capability_requirements\x18\x12 \x03(\v20.temporal.server.api.umpire.v1.DefinitionBindingR\x16capabilityRequirements\x12T\n" +
 	"\vcheckpoints\x18\x13 \x03(\v22.temporal.server.api.umpire.v1.ExecutionCheckpointR\vcheckpoints\x12G\n" +
-	"\aruntime\x18\x14 \x01(\v2-.temporal.server.api.umpire.v1.RuntimeProgramR\aruntime\"\x11\n" +
+	"\aruntime\x18\x14 \x01(\v2-.temporal.server.api.umpire.v1.RuntimeProgramR\aruntime\x12f\n" +
+	"\x13artifact_projection\x18\x15 \x01(\v25.temporal.server.api.umpire.v1.PlanArtifactProjectionR\x12artifactProjection\"\x11\n" +
 	"\x0fDirectPlanTrace\"W\n" +
 	"\x0eDecisionPolicy\x12E\n" +
 	"\x04kind\x18\x01 \x01(\x0e21.temporal.server.api.umpire.v1.DecisionPolicyKindR\x04kind\"\x9a\x04\n" +
@@ -3527,7 +3910,12 @@ const file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDesc = "" +
 	"\"ExternalVerificationObligationKind\x125\n" +
 	"1EXTERNAL_VERIFICATION_OBLIGATION_KIND_UNSPECIFIED\x10\x00\x122\n" +
 	".EXTERNAL_VERIFICATION_OBLIGATION_KIND_REQUIRED\x10\x01\x122\n" +
-	".EXTERNAL_VERIFICATION_OBLIGATION_KIND_ADVISORY\x10\x02*\x7f\n" +
+	".EXTERNAL_VERIFICATION_OBLIGATION_KIND_ADVISORY\x10\x02*\xcc\x01\n" +
+	"\x13PlanSelectionReason\x12%\n" +
+	"!PLAN_SELECTION_REASON_UNSPECIFIED\x10\x00\x12,\n" +
+	"(PLAN_SELECTION_REASON_SATISFYING_WITNESS\x10\x01\x122\n" +
+	".PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE\x10\x02\x12,\n" +
+	"(PLAN_SELECTION_REASON_BEHAVIOR_SELECTION\x10\x03*\x7f\n" +
 	"\x11ProvenanceOutcome\x12\"\n" +
 	"\x1ePROVENANCE_OUTCOME_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bPROVENANCE_OUTCOME_EXTERNAL\x10\x01\x12%\n" +
@@ -3587,8 +3975,8 @@ func file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescGZIP() [
 	return file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDescData
 }
 
-var file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes = make([]protoimpl.EnumInfo, 14)
-var file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes = make([]protoimpl.MessageInfo, 30)
+var file_temporal_server_api_umpire_v1_portable_test_plan_proto_enumTypes = make([]protoimpl.EnumInfo, 15)
+var file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes = make([]protoimpl.MessageInfo, 34)
 var file_temporal_server_api_umpire_v1_portable_test_plan_proto_goTypes = []any{
 	(ExecutionPhase)(0),                     // 0: temporal.server.api.umpire.v1.ExecutionPhase
 	(PreconditionOperator)(0),               // 1: temporal.server.api.umpire.v1.PreconditionOperator
@@ -3596,175 +3984,190 @@ var file_temporal_server_api_umpire_v1_portable_test_plan_proto_goTypes = []any{
 	(PortableDefinitionKind)(0),             // 3: temporal.server.api.umpire.v1.PortableDefinitionKind
 	(DecisionPolicyKind)(0),                 // 4: temporal.server.api.umpire.v1.DecisionPolicyKind
 	(ExternalVerificationObligationKind)(0), // 5: temporal.server.api.umpire.v1.ExternalVerificationObligationKind
-	(ProvenanceOutcome)(0),                  // 6: temporal.server.api.umpire.v1.ProvenanceOutcome
-	(ClaimScope)(0),                         // 7: temporal.server.api.umpire.v1.ClaimScope
-	(ExecutionToolingStatus)(0),             // 8: temporal.server.api.umpire.v1.ExecutionToolingStatus
-	(ExecutionOperationalStatus)(0),         // 9: temporal.server.api.umpire.v1.ExecutionOperationalStatus
-	(ExecutionEvaluationStatus)(0),          // 10: temporal.server.api.umpire.v1.ExecutionEvaluationStatus
-	(ExecutionCleanupStatus)(0),             // 11: temporal.server.api.umpire.v1.ExecutionCleanupStatus
-	(ExecutionDecision)(0),                  // 12: temporal.server.api.umpire.v1.ExecutionDecision
-	(TraceProjectionStatus)(0),              // 13: temporal.server.api.umpire.v1.TraceProjectionStatus
-	(*ExternalPlanProvenance)(nil),          // 14: temporal.server.api.umpire.v1.ExternalPlanProvenance
-	(*ModelCompiledPlanProvenance)(nil),     // 15: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance
-	(*SymbolicRole)(nil),                    // 16: temporal.server.api.umpire.v1.SymbolicRole
-	(*PortableModelValue)(nil),              // 17: temporal.server.api.umpire.v1.PortableModelValue
-	(*RoleBinding)(nil),                     // 18: temporal.server.api.umpire.v1.RoleBinding
-	(*RuntimeBindingSlot)(nil),              // 19: temporal.server.api.umpire.v1.RuntimeBindingSlot
-	(*ExecutionOperand)(nil),                // 20: temporal.server.api.umpire.v1.ExecutionOperand
-	(*ExecutionPrecondition)(nil),           // 21: temporal.server.api.umpire.v1.ExecutionPrecondition
-	(*PlannedOccurrence)(nil),               // 22: temporal.server.api.umpire.v1.PlannedOccurrence
-	(*ExecutionCheckpoint)(nil),             // 23: temporal.server.api.umpire.v1.ExecutionCheckpoint
-	(*ExecutionPhaseLimit)(nil),             // 24: temporal.server.api.umpire.v1.ExecutionPhaseLimit
-	(*PortableParticipantBinding)(nil),      // 25: temporal.server.api.umpire.v1.PortableParticipantBinding
-	(*PortableObservationConfig)(nil),       // 26: temporal.server.api.umpire.v1.PortableObservationConfig
-	(*TerminationObligation)(nil),           // 27: temporal.server.api.umpire.v1.TerminationObligation
-	(*CleanupObligation)(nil),               // 28: temporal.server.api.umpire.v1.CleanupObligation
-	(*RuntimeProgram)(nil),                  // 29: temporal.server.api.umpire.v1.RuntimeProgram
-	(*ExecutionProgram)(nil),                // 30: temporal.server.api.umpire.v1.ExecutionProgram
-	(*DirectPlanTrace)(nil),                 // 31: temporal.server.api.umpire.v1.DirectPlanTrace
-	(*DecisionPolicy)(nil),                  // 32: temporal.server.api.umpire.v1.DecisionPolicy
-	(*VerificationProgram)(nil),             // 33: temporal.server.api.umpire.v1.VerificationProgram
-	(*StructuralLimits)(nil),                // 34: temporal.server.api.umpire.v1.StructuralLimits
-	(*ExecutionLimits)(nil),                 // 35: temporal.server.api.umpire.v1.ExecutionLimits
-	(*EvidenceLimits)(nil),                  // 36: temporal.server.api.umpire.v1.EvidenceLimits
-	(*PortableEvaluationLimits)(nil),        // 37: temporal.server.api.umpire.v1.PortableEvaluationLimits
-	(*OutputLimits)(nil),                    // 38: temporal.server.api.umpire.v1.OutputLimits
-	(*PortableTestPlanLimits)(nil),          // 39: temporal.server.api.umpire.v1.PortableTestPlanLimits
-	(*ExternalVerificationObligation)(nil),  // 40: temporal.server.api.umpire.v1.ExternalVerificationObligation
-	(*PortableTestPlan)(nil),                // 41: temporal.server.api.umpire.v1.PortableTestPlan
-	(*TraceProjectionResult)(nil),           // 42: temporal.server.api.umpire.v1.TraceProjectionResult
-	(*ExecutionResult)(nil),                 // 43: temporal.server.api.umpire.v1.ExecutionResult
-	(*SourceLocation)(nil),                  // 44: temporal.server.api.umpire.v1.SourceLocation
-	(*DefinitionBinding)(nil),               // 45: temporal.server.api.umpire.v1.DefinitionBinding
-	(*ArtifactBinding)(nil),                 // 46: temporal.server.api.umpire.v1.ArtifactBinding
-	(*Value)(nil),                           // 47: temporal.server.api.umpire.v1.Value
-	(*EvidenceProfile)(nil),                 // 48: temporal.server.api.umpire.v1.EvidenceProfile
-	(*ObservationProgram)(nil),              // 49: temporal.server.api.umpire.v1.ObservationProgram
-	(*RenameExactLink)(nil),                 // 50: temporal.server.api.umpire.v1.RenameExactLink
-	(*Property)(nil),                        // 51: temporal.server.api.umpire.v1.Property
-	(*FormatVersion)(nil),                   // 52: temporal.server.api.umpire.v1.FormatVersion
+	(PlanSelectionReason)(0),                // 6: temporal.server.api.umpire.v1.PlanSelectionReason
+	(ProvenanceOutcome)(0),                  // 7: temporal.server.api.umpire.v1.ProvenanceOutcome
+	(ClaimScope)(0),                         // 8: temporal.server.api.umpire.v1.ClaimScope
+	(ExecutionToolingStatus)(0),             // 9: temporal.server.api.umpire.v1.ExecutionToolingStatus
+	(ExecutionOperationalStatus)(0),         // 10: temporal.server.api.umpire.v1.ExecutionOperationalStatus
+	(ExecutionEvaluationStatus)(0),          // 11: temporal.server.api.umpire.v1.ExecutionEvaluationStatus
+	(ExecutionCleanupStatus)(0),             // 12: temporal.server.api.umpire.v1.ExecutionCleanupStatus
+	(ExecutionDecision)(0),                  // 13: temporal.server.api.umpire.v1.ExecutionDecision
+	(TraceProjectionStatus)(0),              // 14: temporal.server.api.umpire.v1.TraceProjectionStatus
+	(*ExternalPlanProvenance)(nil),          // 15: temporal.server.api.umpire.v1.ExternalPlanProvenance
+	(*ModelCompiledPlanProvenance)(nil),     // 16: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance
+	(*SymbolicRole)(nil),                    // 17: temporal.server.api.umpire.v1.SymbolicRole
+	(*PortableModelValue)(nil),              // 18: temporal.server.api.umpire.v1.PortableModelValue
+	(*RoleBinding)(nil),                     // 19: temporal.server.api.umpire.v1.RoleBinding
+	(*RuntimeBindingSlot)(nil),              // 20: temporal.server.api.umpire.v1.RuntimeBindingSlot
+	(*ExecutionOperand)(nil),                // 21: temporal.server.api.umpire.v1.ExecutionOperand
+	(*ExecutionPrecondition)(nil),           // 22: temporal.server.api.umpire.v1.ExecutionPrecondition
+	(*PlannedOccurrence)(nil),               // 23: temporal.server.api.umpire.v1.PlannedOccurrence
+	(*ExecutionCheckpoint)(nil),             // 24: temporal.server.api.umpire.v1.ExecutionCheckpoint
+	(*ExecutionPhaseLimit)(nil),             // 25: temporal.server.api.umpire.v1.ExecutionPhaseLimit
+	(*PortableParticipantBinding)(nil),      // 26: temporal.server.api.umpire.v1.PortableParticipantBinding
+	(*PortableObservationConfig)(nil),       // 27: temporal.server.api.umpire.v1.PortableObservationConfig
+	(*TerminationObligation)(nil),           // 28: temporal.server.api.umpire.v1.TerminationObligation
+	(*CleanupObligation)(nil),               // 29: temporal.server.api.umpire.v1.CleanupObligation
+	(*RuntimeProgram)(nil),                  // 30: temporal.server.api.umpire.v1.RuntimeProgram
+	(*PlanSearchLimits)(nil),                // 31: temporal.server.api.umpire.v1.PlanSearchLimits
+	(*PlanExploredCounts)(nil),              // 32: temporal.server.api.umpire.v1.PlanExploredCounts
+	(*PlanArtifactProvenance)(nil),          // 33: temporal.server.api.umpire.v1.PlanArtifactProvenance
+	(*PlanArtifactProjection)(nil),          // 34: temporal.server.api.umpire.v1.PlanArtifactProjection
+	(*ExecutionProgram)(nil),                // 35: temporal.server.api.umpire.v1.ExecutionProgram
+	(*DirectPlanTrace)(nil),                 // 36: temporal.server.api.umpire.v1.DirectPlanTrace
+	(*DecisionPolicy)(nil),                  // 37: temporal.server.api.umpire.v1.DecisionPolicy
+	(*VerificationProgram)(nil),             // 38: temporal.server.api.umpire.v1.VerificationProgram
+	(*StructuralLimits)(nil),                // 39: temporal.server.api.umpire.v1.StructuralLimits
+	(*ExecutionLimits)(nil),                 // 40: temporal.server.api.umpire.v1.ExecutionLimits
+	(*EvidenceLimits)(nil),                  // 41: temporal.server.api.umpire.v1.EvidenceLimits
+	(*PortableEvaluationLimits)(nil),        // 42: temporal.server.api.umpire.v1.PortableEvaluationLimits
+	(*OutputLimits)(nil),                    // 43: temporal.server.api.umpire.v1.OutputLimits
+	(*PortableTestPlanLimits)(nil),          // 44: temporal.server.api.umpire.v1.PortableTestPlanLimits
+	(*ExternalVerificationObligation)(nil),  // 45: temporal.server.api.umpire.v1.ExternalVerificationObligation
+	(*PortableTestPlan)(nil),                // 46: temporal.server.api.umpire.v1.PortableTestPlan
+	(*TraceProjectionResult)(nil),           // 47: temporal.server.api.umpire.v1.TraceProjectionResult
+	(*ExecutionResult)(nil),                 // 48: temporal.server.api.umpire.v1.ExecutionResult
+	(*SourceLocation)(nil),                  // 49: temporal.server.api.umpire.v1.SourceLocation
+	(*DefinitionBinding)(nil),               // 50: temporal.server.api.umpire.v1.DefinitionBinding
+	(*ArtifactBinding)(nil),                 // 51: temporal.server.api.umpire.v1.ArtifactBinding
+	(*Value)(nil),                           // 52: temporal.server.api.umpire.v1.Value
 	(*KnownGap)(nil),                        // 53: temporal.server.api.umpire.v1.KnownGap
-	(*ModelTrace)(nil),                      // 54: temporal.server.api.umpire.v1.ModelTrace
-	(*RenameExactApplication)(nil),          // 55: temporal.server.api.umpire.v1.RenameExactApplication
-	(*Diagnostic)(nil),                      // 56: temporal.server.api.umpire.v1.Diagnostic
-	(*ObservationEvaluationResult)(nil),     // 57: temporal.server.api.umpire.v1.ObservationEvaluationResult
-	(*PropertyResult)(nil),                  // 58: temporal.server.api.umpire.v1.PropertyResult
-	(*EvaluationWork)(nil),                  // 59: temporal.server.api.umpire.v1.EvaluationWork
-	(*EvidenceLink)(nil),                    // 60: temporal.server.api.umpire.v1.EvidenceLink
+	(*EvidenceProfile)(nil),                 // 54: temporal.server.api.umpire.v1.EvidenceProfile
+	(*ObservationProgram)(nil),              // 55: temporal.server.api.umpire.v1.ObservationProgram
+	(*RenameExactLink)(nil),                 // 56: temporal.server.api.umpire.v1.RenameExactLink
+	(*Property)(nil),                        // 57: temporal.server.api.umpire.v1.Property
+	(*FormatVersion)(nil),                   // 58: temporal.server.api.umpire.v1.FormatVersion
+	(*ModelTrace)(nil),                      // 59: temporal.server.api.umpire.v1.ModelTrace
+	(*RenameExactApplication)(nil),          // 60: temporal.server.api.umpire.v1.RenameExactApplication
+	(*Diagnostic)(nil),                      // 61: temporal.server.api.umpire.v1.Diagnostic
+	(*ObservationEvaluationResult)(nil),     // 62: temporal.server.api.umpire.v1.ObservationEvaluationResult
+	(*PropertyResult)(nil),                  // 63: temporal.server.api.umpire.v1.PropertyResult
+	(*EvaluationWork)(nil),                  // 64: temporal.server.api.umpire.v1.EvaluationWork
+	(*EvidenceLink)(nil),                    // 65: temporal.server.api.umpire.v1.EvidenceLink
 }
 var file_temporal_server_api_umpire_v1_portable_test_plan_proto_depIdxs = []int32{
-	44,  // 0: temporal.server.api.umpire.v1.ExternalPlanProvenance.sources:type_name -> temporal.server.api.umpire.v1.SourceLocation
-	45,  // 1: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.test:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 2: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.query:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	46,  // 3: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.experiment:type_name -> temporal.server.api.umpire.v1.ArtifactBinding
-	46,  // 4: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.runtime_config:type_name -> temporal.server.api.umpire.v1.ArtifactBinding
-	45,  // 5: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.properties:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 6: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.compiler_contract:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	44,  // 7: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.sources:type_name -> temporal.server.api.umpire.v1.SourceLocation
-	45,  // 8: temporal.server.api.umpire.v1.SymbolicRole.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	49,  // 0: temporal.server.api.umpire.v1.ExternalPlanProvenance.sources:type_name -> temporal.server.api.umpire.v1.SourceLocation
+	50,  // 1: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.test:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 2: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.query:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	51,  // 3: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.experiment:type_name -> temporal.server.api.umpire.v1.ArtifactBinding
+	51,  // 4: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.runtime_config:type_name -> temporal.server.api.umpire.v1.ArtifactBinding
+	50,  // 5: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.properties:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 6: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.compiler_contract:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	49,  // 7: temporal.server.api.umpire.v1.ModelCompiledPlanProvenance.sources:type_name -> temporal.server.api.umpire.v1.SourceLocation
+	50,  // 8: temporal.server.api.umpire.v1.SymbolicRole.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
 	3,   // 9: temporal.server.api.umpire.v1.SymbolicRole.kind:type_name -> temporal.server.api.umpire.v1.PortableDefinitionKind
-	45,  // 10: temporal.server.api.umpire.v1.PortableModelValue.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 10: temporal.server.api.umpire.v1.PortableModelValue.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
 	3,   // 11: temporal.server.api.umpire.v1.PortableModelValue.kind:type_name -> temporal.server.api.umpire.v1.PortableDefinitionKind
-	47,  // 12: temporal.server.api.umpire.v1.PortableModelValue.value:type_name -> temporal.server.api.umpire.v1.Value
-	45,  // 13: temporal.server.api.umpire.v1.RoleBinding.role:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	17,  // 14: temporal.server.api.umpire.v1.RoleBinding.value:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	45,  // 15: temporal.server.api.umpire.v1.RuntimeBindingSlot.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	52,  // 12: temporal.server.api.umpire.v1.PortableModelValue.value:type_name -> temporal.server.api.umpire.v1.Value
+	50,  // 13: temporal.server.api.umpire.v1.RoleBinding.role:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	18,  // 14: temporal.server.api.umpire.v1.RoleBinding.value:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	50,  // 15: temporal.server.api.umpire.v1.RuntimeBindingSlot.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
 	2,   // 16: temporal.server.api.umpire.v1.RuntimeBindingSlot.value_kind:type_name -> temporal.server.api.umpire.v1.PortableValueKind
-	17,  // 17: temporal.server.api.umpire.v1.ExecutionOperand.literal:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	45,  // 18: temporal.server.api.umpire.v1.ExecutionOperand.role:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 19: temporal.server.api.umpire.v1.ExecutionOperand.runtime_binding_slot:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 20: temporal.server.api.umpire.v1.ExecutionPrecondition.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	18,  // 17: temporal.server.api.umpire.v1.ExecutionOperand.literal:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	50,  // 18: temporal.server.api.umpire.v1.ExecutionOperand.role:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 19: temporal.server.api.umpire.v1.ExecutionOperand.runtime_binding_slot:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 20: temporal.server.api.umpire.v1.ExecutionPrecondition.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
 	1,   // 21: temporal.server.api.umpire.v1.ExecutionPrecondition.operator:type_name -> temporal.server.api.umpire.v1.PreconditionOperator
-	20,  // 22: temporal.server.api.umpire.v1.ExecutionPrecondition.left:type_name -> temporal.server.api.umpire.v1.ExecutionOperand
-	20,  // 23: temporal.server.api.umpire.v1.ExecutionPrecondition.right:type_name -> temporal.server.api.umpire.v1.ExecutionOperand
-	45,  // 24: temporal.server.api.umpire.v1.PlannedOccurrence.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	17,  // 25: temporal.server.api.umpire.v1.ExecutionCheckpoint.observations:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	21,  // 22: temporal.server.api.umpire.v1.ExecutionPrecondition.left:type_name -> temporal.server.api.umpire.v1.ExecutionOperand
+	21,  // 23: temporal.server.api.umpire.v1.ExecutionPrecondition.right:type_name -> temporal.server.api.umpire.v1.ExecutionOperand
+	50,  // 24: temporal.server.api.umpire.v1.PlannedOccurrence.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	18,  // 25: temporal.server.api.umpire.v1.ExecutionCheckpoint.observations:type_name -> temporal.server.api.umpire.v1.PortableModelValue
 	0,   // 26: temporal.server.api.umpire.v1.ExecutionPhaseLimit.phase:type_name -> temporal.server.api.umpire.v1.ExecutionPhase
-	45,  // 27: temporal.server.api.umpire.v1.PortableParticipantBinding.participant:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 28: temporal.server.api.umpire.v1.PortableParticipantBinding.protocol:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 29: temporal.server.api.umpire.v1.PortableParticipantBinding.program:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 30: temporal.server.api.umpire.v1.PortableParticipantBinding.capabilities:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 31: temporal.server.api.umpire.v1.PortableObservationConfig.profile:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 32: temporal.server.api.umpire.v1.PortableObservationConfig.program:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 33: temporal.server.api.umpire.v1.PortableObservationConfig.mapping:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 34: temporal.server.api.umpire.v1.TerminationObligation.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 35: temporal.server.api.umpire.v1.CleanupObligation.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 36: temporal.server.api.umpire.v1.RuntimeProgram.authority_profile:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 37: temporal.server.api.umpire.v1.RuntimeProgram.config:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	25,  // 38: temporal.server.api.umpire.v1.RuntimeProgram.participant_bindings:type_name -> temporal.server.api.umpire.v1.PortableParticipantBinding
-	26,  // 39: temporal.server.api.umpire.v1.RuntimeProgram.observation_config:type_name -> temporal.server.api.umpire.v1.PortableObservationConfig
-	24,  // 40: temporal.server.api.umpire.v1.RuntimeProgram.phase_limits:type_name -> temporal.server.api.umpire.v1.ExecutionPhaseLimit
-	27,  // 41: temporal.server.api.umpire.v1.RuntimeProgram.termination:type_name -> temporal.server.api.umpire.v1.TerminationObligation
-	28,  // 42: temporal.server.api.umpire.v1.RuntimeProgram.cleanup:type_name -> temporal.server.api.umpire.v1.CleanupObligation
-	45,  // 43: temporal.server.api.umpire.v1.RuntimeProgram.authority_required_capabilities:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 44: temporal.server.api.umpire.v1.ExecutionProgram.setup:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 45: temporal.server.api.umpire.v1.ExecutionProgram.query:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 46: temporal.server.api.umpire.v1.ExecutionProgram.behavior:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 47: temporal.server.api.umpire.v1.ExecutionProgram.target:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	45,  // 48: temporal.server.api.umpire.v1.ExecutionProgram.kernel:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	18,  // 49: temporal.server.api.umpire.v1.ExecutionProgram.role_bindings:type_name -> temporal.server.api.umpire.v1.RoleBinding
-	16,  // 50: temporal.server.api.umpire.v1.ExecutionProgram.symbolic_roles:type_name -> temporal.server.api.umpire.v1.SymbolicRole
-	19,  // 51: temporal.server.api.umpire.v1.ExecutionProgram.runtime_binding_slots:type_name -> temporal.server.api.umpire.v1.RuntimeBindingSlot
-	21,  // 52: temporal.server.api.umpire.v1.ExecutionProgram.preconditions:type_name -> temporal.server.api.umpire.v1.ExecutionPrecondition
-	17,  // 53: temporal.server.api.umpire.v1.ExecutionProgram.initial_state:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	17,  // 54: temporal.server.api.umpire.v1.ExecutionProgram.requested_actions:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	17,  // 55: temporal.server.api.umpire.v1.ExecutionProgram.model_outcomes:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	17,  // 56: temporal.server.api.umpire.v1.ExecutionProgram.resulting_states:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	22,  // 57: temporal.server.api.umpire.v1.ExecutionProgram.occurrences:type_name -> temporal.server.api.umpire.v1.PlannedOccurrence
-	17,  // 58: temporal.server.api.umpire.v1.ExecutionProgram.selected_choices:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	17,  // 59: temporal.server.api.umpire.v1.ExecutionProgram.selected_variants:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	17,  // 60: temporal.server.api.umpire.v1.ExecutionProgram.requested_faults:type_name -> temporal.server.api.umpire.v1.PortableModelValue
-	45,  // 61: temporal.server.api.umpire.v1.ExecutionProgram.capability_requirements:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	23,  // 62: temporal.server.api.umpire.v1.ExecutionProgram.checkpoints:type_name -> temporal.server.api.umpire.v1.ExecutionCheckpoint
-	29,  // 63: temporal.server.api.umpire.v1.ExecutionProgram.runtime:type_name -> temporal.server.api.umpire.v1.RuntimeProgram
-	4,   // 64: temporal.server.api.umpire.v1.DecisionPolicy.kind:type_name -> temporal.server.api.umpire.v1.DecisionPolicyKind
-	48,  // 65: temporal.server.api.umpire.v1.VerificationProgram.evidence:type_name -> temporal.server.api.umpire.v1.EvidenceProfile
-	49,  // 66: temporal.server.api.umpire.v1.VerificationProgram.observation:type_name -> temporal.server.api.umpire.v1.ObservationProgram
-	31,  // 67: temporal.server.api.umpire.v1.VerificationProgram.direct_plan_trace:type_name -> temporal.server.api.umpire.v1.DirectPlanTrace
-	50,  // 68: temporal.server.api.umpire.v1.VerificationProgram.rename_exact_link:type_name -> temporal.server.api.umpire.v1.RenameExactLink
-	51,  // 69: temporal.server.api.umpire.v1.VerificationProgram.properties:type_name -> temporal.server.api.umpire.v1.Property
-	32,  // 70: temporal.server.api.umpire.v1.VerificationProgram.decision:type_name -> temporal.server.api.umpire.v1.DecisionPolicy
-	34,  // 71: temporal.server.api.umpire.v1.PortableTestPlanLimits.structural:type_name -> temporal.server.api.umpire.v1.StructuralLimits
-	35,  // 72: temporal.server.api.umpire.v1.PortableTestPlanLimits.execution:type_name -> temporal.server.api.umpire.v1.ExecutionLimits
-	36,  // 73: temporal.server.api.umpire.v1.PortableTestPlanLimits.evidence:type_name -> temporal.server.api.umpire.v1.EvidenceLimits
-	37,  // 74: temporal.server.api.umpire.v1.PortableTestPlanLimits.evaluation:type_name -> temporal.server.api.umpire.v1.PortableEvaluationLimits
-	38,  // 75: temporal.server.api.umpire.v1.PortableTestPlanLimits.output:type_name -> temporal.server.api.umpire.v1.OutputLimits
-	45,  // 76: temporal.server.api.umpire.v1.ExternalVerificationObligation.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
-	5,   // 77: temporal.server.api.umpire.v1.ExternalVerificationObligation.kind:type_name -> temporal.server.api.umpire.v1.ExternalVerificationObligationKind
-	44,  // 78: temporal.server.api.umpire.v1.ExternalVerificationObligation.source:type_name -> temporal.server.api.umpire.v1.SourceLocation
-	52,  // 79: temporal.server.api.umpire.v1.PortableTestPlan.version:type_name -> temporal.server.api.umpire.v1.FormatVersion
-	14,  // 80: temporal.server.api.umpire.v1.PortableTestPlan.external:type_name -> temporal.server.api.umpire.v1.ExternalPlanProvenance
-	15,  // 81: temporal.server.api.umpire.v1.PortableTestPlan.model_compiled:type_name -> temporal.server.api.umpire.v1.ModelCompiledPlanProvenance
-	30,  // 82: temporal.server.api.umpire.v1.PortableTestPlan.execution:type_name -> temporal.server.api.umpire.v1.ExecutionProgram
-	33,  // 83: temporal.server.api.umpire.v1.PortableTestPlan.verification:type_name -> temporal.server.api.umpire.v1.VerificationProgram
-	39,  // 84: temporal.server.api.umpire.v1.PortableTestPlan.limits:type_name -> temporal.server.api.umpire.v1.PortableTestPlanLimits
-	53,  // 85: temporal.server.api.umpire.v1.PortableTestPlan.known_gaps:type_name -> temporal.server.api.umpire.v1.KnownGap
-	40,  // 86: temporal.server.api.umpire.v1.PortableTestPlan.external_obligations:type_name -> temporal.server.api.umpire.v1.ExternalVerificationObligation
-	13,  // 87: temporal.server.api.umpire.v1.TraceProjectionResult.status:type_name -> temporal.server.api.umpire.v1.TraceProjectionStatus
-	54,  // 88: temporal.server.api.umpire.v1.TraceProjectionResult.trace:type_name -> temporal.server.api.umpire.v1.ModelTrace
-	55,  // 89: temporal.server.api.umpire.v1.TraceProjectionResult.applications:type_name -> temporal.server.api.umpire.v1.RenameExactApplication
-	56,  // 90: temporal.server.api.umpire.v1.TraceProjectionResult.diagnostics:type_name -> temporal.server.api.umpire.v1.Diagnostic
-	52,  // 91: temporal.server.api.umpire.v1.ExecutionResult.version:type_name -> temporal.server.api.umpire.v1.FormatVersion
-	6,   // 92: temporal.server.api.umpire.v1.ExecutionResult.provenance_outcome:type_name -> temporal.server.api.umpire.v1.ProvenanceOutcome
-	7,   // 93: temporal.server.api.umpire.v1.ExecutionResult.claim_scope:type_name -> temporal.server.api.umpire.v1.ClaimScope
-	8,   // 94: temporal.server.api.umpire.v1.ExecutionResult.tooling_status:type_name -> temporal.server.api.umpire.v1.ExecutionToolingStatus
-	9,   // 95: temporal.server.api.umpire.v1.ExecutionResult.operational_status:type_name -> temporal.server.api.umpire.v1.ExecutionOperationalStatus
-	57,  // 96: temporal.server.api.umpire.v1.ExecutionResult.observation:type_name -> temporal.server.api.umpire.v1.ObservationEvaluationResult
-	42,  // 97: temporal.server.api.umpire.v1.ExecutionResult.trace_projection:type_name -> temporal.server.api.umpire.v1.TraceProjectionResult
-	58,  // 98: temporal.server.api.umpire.v1.ExecutionResult.properties:type_name -> temporal.server.api.umpire.v1.PropertyResult
-	10,  // 99: temporal.server.api.umpire.v1.ExecutionResult.semantic_status:type_name -> temporal.server.api.umpire.v1.ExecutionEvaluationStatus
-	11,  // 100: temporal.server.api.umpire.v1.ExecutionResult.cleanup_status:type_name -> temporal.server.api.umpire.v1.ExecutionCleanupStatus
-	12,  // 101: temporal.server.api.umpire.v1.ExecutionResult.decision:type_name -> temporal.server.api.umpire.v1.ExecutionDecision
-	59,  // 102: temporal.server.api.umpire.v1.ExecutionResult.work:type_name -> temporal.server.api.umpire.v1.EvaluationWork
-	60,  // 103: temporal.server.api.umpire.v1.ExecutionResult.evidence_links:type_name -> temporal.server.api.umpire.v1.EvidenceLink
-	53,  // 104: temporal.server.api.umpire.v1.ExecutionResult.known_gaps:type_name -> temporal.server.api.umpire.v1.KnownGap
-	40,  // 105: temporal.server.api.umpire.v1.ExecutionResult.unresolved_external_obligations:type_name -> temporal.server.api.umpire.v1.ExternalVerificationObligation
-	56,  // 106: temporal.server.api.umpire.v1.ExecutionResult.diagnostics:type_name -> temporal.server.api.umpire.v1.Diagnostic
-	107, // [107:107] is the sub-list for method output_type
-	107, // [107:107] is the sub-list for method input_type
-	107, // [107:107] is the sub-list for extension type_name
-	107, // [107:107] is the sub-list for extension extendee
-	0,   // [0:107] is the sub-list for field type_name
+	50,  // 27: temporal.server.api.umpire.v1.PortableParticipantBinding.participant:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 28: temporal.server.api.umpire.v1.PortableParticipantBinding.protocol:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 29: temporal.server.api.umpire.v1.PortableParticipantBinding.program:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 30: temporal.server.api.umpire.v1.PortableParticipantBinding.capabilities:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 31: temporal.server.api.umpire.v1.PortableObservationConfig.profile:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 32: temporal.server.api.umpire.v1.PortableObservationConfig.program:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 33: temporal.server.api.umpire.v1.PortableObservationConfig.mapping:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 34: temporal.server.api.umpire.v1.TerminationObligation.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 35: temporal.server.api.umpire.v1.CleanupObligation.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 36: temporal.server.api.umpire.v1.RuntimeProgram.authority_profile:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 37: temporal.server.api.umpire.v1.RuntimeProgram.config:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	26,  // 38: temporal.server.api.umpire.v1.RuntimeProgram.participant_bindings:type_name -> temporal.server.api.umpire.v1.PortableParticipantBinding
+	27,  // 39: temporal.server.api.umpire.v1.RuntimeProgram.observation_config:type_name -> temporal.server.api.umpire.v1.PortableObservationConfig
+	25,  // 40: temporal.server.api.umpire.v1.RuntimeProgram.phase_limits:type_name -> temporal.server.api.umpire.v1.ExecutionPhaseLimit
+	28,  // 41: temporal.server.api.umpire.v1.RuntimeProgram.termination:type_name -> temporal.server.api.umpire.v1.TerminationObligation
+	29,  // 42: temporal.server.api.umpire.v1.RuntimeProgram.cleanup:type_name -> temporal.server.api.umpire.v1.CleanupObligation
+	50,  // 43: temporal.server.api.umpire.v1.RuntimeProgram.authority_required_capabilities:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	49,  // 44: temporal.server.api.umpire.v1.PlanArtifactProvenance.source_locations:type_name -> temporal.server.api.umpire.v1.SourceLocation
+	31,  // 45: temporal.server.api.umpire.v1.PlanArtifactProjection.expanded_limits:type_name -> temporal.server.api.umpire.v1.PlanSearchLimits
+	6,   // 46: temporal.server.api.umpire.v1.PlanArtifactProjection.selection_reason:type_name -> temporal.server.api.umpire.v1.PlanSelectionReason
+	32,  // 47: temporal.server.api.umpire.v1.PlanArtifactProjection.explored:type_name -> temporal.server.api.umpire.v1.PlanExploredCounts
+	53,  // 48: temporal.server.api.umpire.v1.PlanArtifactProjection.experiment_known_gaps:type_name -> temporal.server.api.umpire.v1.KnownGap
+	33,  // 49: temporal.server.api.umpire.v1.PlanArtifactProjection.experiment_provenance:type_name -> temporal.server.api.umpire.v1.PlanArtifactProvenance
+	53,  // 50: temporal.server.api.umpire.v1.PlanArtifactProjection.runtime_known_gaps:type_name -> temporal.server.api.umpire.v1.KnownGap
+	33,  // 51: temporal.server.api.umpire.v1.PlanArtifactProjection.runtime_provenance:type_name -> temporal.server.api.umpire.v1.PlanArtifactProvenance
+	27,  // 52: temporal.server.api.umpire.v1.PlanArtifactProjection.runtime_observation_config:type_name -> temporal.server.api.umpire.v1.PortableObservationConfig
+	50,  // 53: temporal.server.api.umpire.v1.ExecutionProgram.setup:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 54: temporal.server.api.umpire.v1.ExecutionProgram.query:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 55: temporal.server.api.umpire.v1.ExecutionProgram.behavior:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 56: temporal.server.api.umpire.v1.ExecutionProgram.target:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	50,  // 57: temporal.server.api.umpire.v1.ExecutionProgram.kernel:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	19,  // 58: temporal.server.api.umpire.v1.ExecutionProgram.role_bindings:type_name -> temporal.server.api.umpire.v1.RoleBinding
+	17,  // 59: temporal.server.api.umpire.v1.ExecutionProgram.symbolic_roles:type_name -> temporal.server.api.umpire.v1.SymbolicRole
+	20,  // 60: temporal.server.api.umpire.v1.ExecutionProgram.runtime_binding_slots:type_name -> temporal.server.api.umpire.v1.RuntimeBindingSlot
+	22,  // 61: temporal.server.api.umpire.v1.ExecutionProgram.preconditions:type_name -> temporal.server.api.umpire.v1.ExecutionPrecondition
+	18,  // 62: temporal.server.api.umpire.v1.ExecutionProgram.initial_state:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	18,  // 63: temporal.server.api.umpire.v1.ExecutionProgram.requested_actions:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	18,  // 64: temporal.server.api.umpire.v1.ExecutionProgram.model_outcomes:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	18,  // 65: temporal.server.api.umpire.v1.ExecutionProgram.resulting_states:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	23,  // 66: temporal.server.api.umpire.v1.ExecutionProgram.occurrences:type_name -> temporal.server.api.umpire.v1.PlannedOccurrence
+	18,  // 67: temporal.server.api.umpire.v1.ExecutionProgram.selected_choices:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	18,  // 68: temporal.server.api.umpire.v1.ExecutionProgram.selected_variants:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	18,  // 69: temporal.server.api.umpire.v1.ExecutionProgram.requested_faults:type_name -> temporal.server.api.umpire.v1.PortableModelValue
+	50,  // 70: temporal.server.api.umpire.v1.ExecutionProgram.capability_requirements:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	24,  // 71: temporal.server.api.umpire.v1.ExecutionProgram.checkpoints:type_name -> temporal.server.api.umpire.v1.ExecutionCheckpoint
+	30,  // 72: temporal.server.api.umpire.v1.ExecutionProgram.runtime:type_name -> temporal.server.api.umpire.v1.RuntimeProgram
+	34,  // 73: temporal.server.api.umpire.v1.ExecutionProgram.artifact_projection:type_name -> temporal.server.api.umpire.v1.PlanArtifactProjection
+	4,   // 74: temporal.server.api.umpire.v1.DecisionPolicy.kind:type_name -> temporal.server.api.umpire.v1.DecisionPolicyKind
+	54,  // 75: temporal.server.api.umpire.v1.VerificationProgram.evidence:type_name -> temporal.server.api.umpire.v1.EvidenceProfile
+	55,  // 76: temporal.server.api.umpire.v1.VerificationProgram.observation:type_name -> temporal.server.api.umpire.v1.ObservationProgram
+	36,  // 77: temporal.server.api.umpire.v1.VerificationProgram.direct_plan_trace:type_name -> temporal.server.api.umpire.v1.DirectPlanTrace
+	56,  // 78: temporal.server.api.umpire.v1.VerificationProgram.rename_exact_link:type_name -> temporal.server.api.umpire.v1.RenameExactLink
+	57,  // 79: temporal.server.api.umpire.v1.VerificationProgram.properties:type_name -> temporal.server.api.umpire.v1.Property
+	37,  // 80: temporal.server.api.umpire.v1.VerificationProgram.decision:type_name -> temporal.server.api.umpire.v1.DecisionPolicy
+	39,  // 81: temporal.server.api.umpire.v1.PortableTestPlanLimits.structural:type_name -> temporal.server.api.umpire.v1.StructuralLimits
+	40,  // 82: temporal.server.api.umpire.v1.PortableTestPlanLimits.execution:type_name -> temporal.server.api.umpire.v1.ExecutionLimits
+	41,  // 83: temporal.server.api.umpire.v1.PortableTestPlanLimits.evidence:type_name -> temporal.server.api.umpire.v1.EvidenceLimits
+	42,  // 84: temporal.server.api.umpire.v1.PortableTestPlanLimits.evaluation:type_name -> temporal.server.api.umpire.v1.PortableEvaluationLimits
+	43,  // 85: temporal.server.api.umpire.v1.PortableTestPlanLimits.output:type_name -> temporal.server.api.umpire.v1.OutputLimits
+	50,  // 86: temporal.server.api.umpire.v1.ExternalVerificationObligation.definition:type_name -> temporal.server.api.umpire.v1.DefinitionBinding
+	5,   // 87: temporal.server.api.umpire.v1.ExternalVerificationObligation.kind:type_name -> temporal.server.api.umpire.v1.ExternalVerificationObligationKind
+	49,  // 88: temporal.server.api.umpire.v1.ExternalVerificationObligation.source:type_name -> temporal.server.api.umpire.v1.SourceLocation
+	58,  // 89: temporal.server.api.umpire.v1.PortableTestPlan.version:type_name -> temporal.server.api.umpire.v1.FormatVersion
+	15,  // 90: temporal.server.api.umpire.v1.PortableTestPlan.external:type_name -> temporal.server.api.umpire.v1.ExternalPlanProvenance
+	16,  // 91: temporal.server.api.umpire.v1.PortableTestPlan.model_compiled:type_name -> temporal.server.api.umpire.v1.ModelCompiledPlanProvenance
+	35,  // 92: temporal.server.api.umpire.v1.PortableTestPlan.execution:type_name -> temporal.server.api.umpire.v1.ExecutionProgram
+	38,  // 93: temporal.server.api.umpire.v1.PortableTestPlan.verification:type_name -> temporal.server.api.umpire.v1.VerificationProgram
+	44,  // 94: temporal.server.api.umpire.v1.PortableTestPlan.limits:type_name -> temporal.server.api.umpire.v1.PortableTestPlanLimits
+	53,  // 95: temporal.server.api.umpire.v1.PortableTestPlan.known_gaps:type_name -> temporal.server.api.umpire.v1.KnownGap
+	45,  // 96: temporal.server.api.umpire.v1.PortableTestPlan.external_obligations:type_name -> temporal.server.api.umpire.v1.ExternalVerificationObligation
+	14,  // 97: temporal.server.api.umpire.v1.TraceProjectionResult.status:type_name -> temporal.server.api.umpire.v1.TraceProjectionStatus
+	59,  // 98: temporal.server.api.umpire.v1.TraceProjectionResult.trace:type_name -> temporal.server.api.umpire.v1.ModelTrace
+	60,  // 99: temporal.server.api.umpire.v1.TraceProjectionResult.applications:type_name -> temporal.server.api.umpire.v1.RenameExactApplication
+	61,  // 100: temporal.server.api.umpire.v1.TraceProjectionResult.diagnostics:type_name -> temporal.server.api.umpire.v1.Diagnostic
+	58,  // 101: temporal.server.api.umpire.v1.ExecutionResult.version:type_name -> temporal.server.api.umpire.v1.FormatVersion
+	7,   // 102: temporal.server.api.umpire.v1.ExecutionResult.provenance_outcome:type_name -> temporal.server.api.umpire.v1.ProvenanceOutcome
+	8,   // 103: temporal.server.api.umpire.v1.ExecutionResult.claim_scope:type_name -> temporal.server.api.umpire.v1.ClaimScope
+	9,   // 104: temporal.server.api.umpire.v1.ExecutionResult.tooling_status:type_name -> temporal.server.api.umpire.v1.ExecutionToolingStatus
+	10,  // 105: temporal.server.api.umpire.v1.ExecutionResult.operational_status:type_name -> temporal.server.api.umpire.v1.ExecutionOperationalStatus
+	62,  // 106: temporal.server.api.umpire.v1.ExecutionResult.observation:type_name -> temporal.server.api.umpire.v1.ObservationEvaluationResult
+	47,  // 107: temporal.server.api.umpire.v1.ExecutionResult.trace_projection:type_name -> temporal.server.api.umpire.v1.TraceProjectionResult
+	63,  // 108: temporal.server.api.umpire.v1.ExecutionResult.properties:type_name -> temporal.server.api.umpire.v1.PropertyResult
+	11,  // 109: temporal.server.api.umpire.v1.ExecutionResult.semantic_status:type_name -> temporal.server.api.umpire.v1.ExecutionEvaluationStatus
+	12,  // 110: temporal.server.api.umpire.v1.ExecutionResult.cleanup_status:type_name -> temporal.server.api.umpire.v1.ExecutionCleanupStatus
+	13,  // 111: temporal.server.api.umpire.v1.ExecutionResult.decision:type_name -> temporal.server.api.umpire.v1.ExecutionDecision
+	64,  // 112: temporal.server.api.umpire.v1.ExecutionResult.work:type_name -> temporal.server.api.umpire.v1.EvaluationWork
+	65,  // 113: temporal.server.api.umpire.v1.ExecutionResult.evidence_links:type_name -> temporal.server.api.umpire.v1.EvidenceLink
+	53,  // 114: temporal.server.api.umpire.v1.ExecutionResult.known_gaps:type_name -> temporal.server.api.umpire.v1.KnownGap
+	45,  // 115: temporal.server.api.umpire.v1.ExecutionResult.unresolved_external_obligations:type_name -> temporal.server.api.umpire.v1.ExternalVerificationObligation
+	61,  // 116: temporal.server.api.umpire.v1.ExecutionResult.diagnostics:type_name -> temporal.server.api.umpire.v1.Diagnostic
+	117, // [117:117] is the sub-list for method output_type
+	117, // [117:117] is the sub-list for method input_type
+	117, // [117:117] is the sub-list for extension type_name
+	117, // [117:117] is the sub-list for extension extendee
+	0,   // [0:117] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_portable_test_plan_proto_init() }
@@ -3778,11 +4181,11 @@ func file_temporal_server_api_umpire_v1_portable_test_plan_proto_init() {
 		(*ExecutionOperand_Role)(nil),
 		(*ExecutionOperand_RuntimeBindingSlot)(nil),
 	}
-	file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[19].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[23].OneofWrappers = []any{
 		(*VerificationProgram_DirectPlanTrace)(nil),
 		(*VerificationProgram_RenameExactLink)(nil),
 	}
-	file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[27].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[31].OneofWrappers = []any{
 		(*PortableTestPlan_External)(nil),
 		(*PortableTestPlan_ModelCompiled)(nil),
 	}
@@ -3791,8 +4194,8 @@ func file_temporal_server_api_umpire_v1_portable_test_plan_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDesc), len(file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDesc)),
-			NumEnums:      14,
-			NumMessages:   30,
+			NumEnums:      15,
+			NumMessages:   34,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

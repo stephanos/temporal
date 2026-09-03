@@ -114,6 +114,35 @@ func portableProjectionPlan() *umpirespb.PortableTestPlan {
 				PhaseLimits:                   portableProjectionPhaseLimits(),
 				AuthorityRequiredCapabilities: []*umpirespb.DefinitionBinding{capability},
 			},
+			ArtifactProjection: &umpirespb.PlanArtifactProjection{
+				ExpandedLimits: &umpirespb.PlanSearchLimits{
+					MaxSemanticTransitions: 1, MaxSelectedActions: 1, MaxCandidateEvaluations: 10_000,
+				},
+				SelectionReason: umpirespb.PLAN_SELECTION_REASON_BEHAVIOR_SELECTION,
+				Explored: &umpirespb.PlanExploredCounts{
+					Setups: 1, Traces: 1, Transitions: 1, PropertyEvaluations: 1,
+				},
+				ExperimentKnownGaps: []*umpirespb.KnownGap{},
+				ExperimentProvenance: &umpirespb.PlanArtifactProvenance{
+					SourceDefinitionIds: []string{"test.query.portable"},
+					SourceLocations: []*umpirespb.SourceLocation{{
+						Path: "test/portable.plan", Line: 1, Column: 1, Provenance: "test",
+					}},
+				},
+				RuntimeKnownGaps: []*umpirespb.KnownGap{},
+				RuntimeProvenance: &umpirespb.PlanArtifactProvenance{
+					SourceDefinitionIds: []string{"test.runtime.portable"},
+					SourceLocations: []*umpirespb.SourceLocation{{
+						Path: "test/portable.runtime", Line: 1, Column: 1, Provenance: "test",
+					}},
+				},
+				ExperimentObservationRequirementDefinitionIds: []string{"test.observation.portable"},
+				RuntimeObservationConfig: &umpirespb.PortableObservationConfig{
+					Profile: portableProjectionBinding("test.observation-profile.portable"),
+					Program: portableProjectionBinding("test.observation-program.portable"),
+					Mapping: portableProjectionBinding("test.observation-mapping.portable"),
+				},
+			},
 		},
 		Verification: &umpirespb.VerificationProgram{
 			Observation: &umpirespb.ObservationProgram{Emits: []*umpirespb.Emit{}},
