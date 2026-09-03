@@ -6,6 +6,54 @@ namespace Umpire.SpaceTests
 
 open Umpire
 
+example : ChoiceDeclaration.baselineChoice stateBaselineId source = ({
+    id := stateBaselineId
+    source
+    baseline := true
+  } : ChoiceDeclaration) := by
+  rfl
+
+example : ChoiceDeclaration.boundValue stateOffId source Umpire.Examples.Switch.offState = ({
+    id := stateOffId
+    source
+    binding := some Umpire.Examples.Switch.offState
+  } : ChoiceDeclaration) := by
+  rfl
+
+example : ChoiceDeclaration.selectedFault faultDelayId source delayFaultId = ({
+    id := faultDelayId
+    source
+    faults := [delayFaultId]
+  } : ChoiceDeclaration) := by
+  rfl
+
+example : VariationAxisDeclaration.faultAxis faultAxisId source [faultDelay, faultBaseline] = ({
+    id := faultAxisId
+    source
+    choices := [faultDelay, faultBaseline]
+  } : VariationAxisDeclaration) := by
+  rfl
+
+example : FaultIntentDeclaration.atOccurrence delayFaultId source
+    (id "switch.occurrence.flip") Umpire.Examples.Switch.flipActionId
+    Umpire.Examples.Switch.switchCapabilityId = ({
+      id := delayFaultId
+      source
+      occurrence := id "switch.occurrence.flip"
+      action := Umpire.Examples.Switch.flipActionId
+      capability := Umpire.Examples.Switch.switchCapabilityId
+    } : FaultIntentDeclaration) := by
+  rfl
+
+example : CoverageGoalDeclaration.seek stateGoalId source
+    (.axisChoice stateAxisId stateOffId) 2 = ({
+      id := stateGoalId
+      source
+      subject := .axisChoice stateAxisId stateOffId
+      minimum := 2
+    } : CoverageGoalDeclaration) := by
+  rfl
+
 example : [
     DefinitionKind.experimentSpace.name,
     DefinitionKind.variationAxis.name,
