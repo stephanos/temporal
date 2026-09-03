@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-49-centralize-observation-field-and",
   "impl_review_rounds": {
-    "fn-49-centralize-observation-field-and.1": 0
+    "fn-49-centralize-observation-field-and.1": 0,
+    "fn-49-centralize-observation-field-and.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -134,10 +135,41 @@
       "timestamp": "2026-09-03T09:21:19.769270Z",
       "tool_calls": 7,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "051aadb9b312e30b129db4706c73eaa0169b9d7e9673e6671809e00a1b86616f",
+      "backend": "codex",
+      "base_sha": "28350b96b1800347aced005a4fb8d632e36356c0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ef68b3b9b16958289fd618280a4c05fc2dbcf5a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 297363,
+      "output_sha256": "9fa1a3f22cd97282ea448bb83f8fa4cd0ea47875fc1f691fcd0e688915c9c205",
+      "reservation_id": "4d1184004fb84982b013b159069a48c2",
+      "round_consumed": true,
+      "scope": "impl:fn-49-centralize-observation-field-and.2",
+      "superseded_by": null,
+      "task": "fn-49-centralize-observation-field-and.2",
+      "timestamp": "2026-09-03T10:02:07.960620Z",
+      "tool_calls": 28,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-49-centralize-observation-field-and.1": 1,
+    "impl:fn-49-centralize-observation-field-and.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -145,6 +177,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-49-centralize-observation-field-and.1": 0,
+    "impl:fn-49-centralize-observation-field-and.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-49-centralize-observation-field-and.md",
@@ -161,5 +194,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T09:21:19.778012Z"
+  "updated_at": "2026-09-03T10:02:07.970953Z"
 }
