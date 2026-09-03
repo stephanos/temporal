@@ -6,9 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-43-deepen-ordinary-property-behavior-and"
-  ],
+  "depends_on_epics": [],
   "id": "fn-49-centralize-observation-field-and",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -129,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-30T16:21:10.959891Z"
+  "updated_at": "2026-09-03T09:01:43.372238Z"
 }
