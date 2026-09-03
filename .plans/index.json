@@ -894,13 +894,9 @@
       "disposition": "retained",
       "phase": "verification",
       "status": "open",
-      "ready": false,
+      "ready": true,
       "completionReview": "unknown",
-      "specDependencies": [
-        "fn-19-bounded-local-temporal-execution-and",
-        "fn-20-local-execution-semantic-conformance",
-        "fn-28-portable-evaluation-contract-and"
-      ]
+      "specDependencies": []
     },
     {
       "id": "fn-6-plan-simplify-lean-api-generator-output",
