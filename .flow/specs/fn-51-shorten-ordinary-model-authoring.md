@@ -54,7 +54,7 @@ These are additive, inert functions returning the existing public records. They 
 ## Quick commands
 
 ```bash
-cd model && mise exec -- lake build Umpire.CoreTests Umpire.Query.Tests Umpire.Space.Tests Umpire.ImplementationLink.Tests
+cd model && mise exec -- lake build Umpire.CoreTests Umpire.Query.Tests Umpire.Space.Tests.Compilation Umpire.Space.Tests.Determinism Umpire.Space.Tests.Intent Umpire.Space.Tests.Metadata Umpire.Space.Tests.Validation Umpire.ImplementationLink.Tests
 cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests
 make umpire-check-regression
 make lint-model
