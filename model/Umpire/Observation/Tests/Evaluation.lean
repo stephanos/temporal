@@ -169,6 +169,30 @@ example :
       analysis.findings) = (20, [(20, 20)], []) := by
   native_decide
 
+def tenfoldEvaluationPlan : CheckedObservationPlan :=
+  (checkObservation evaluationContext {
+    evaluationDeclaration with evidenceBound := { value := 20, unit := .evidenceRecords }
+  }).toOption.get (by native_decide)
+
+def tenfoldEvaluationEvidence : EvidenceBundle := {
+  completeEvidence with
+  records := initialEvidence :: (List.range 19).map fun offset =>
+    let sequence := offset + 2
+    let recordId := id ("test.evidence.record.scale-" ++ toString sequence)
+    let parentId := if offset == 0 then initialEvidenceId
+      else id ("test.evidence.record.scale-" ++ toString (sequence - 1))
+    { stepEvidence with id := recordId, sequence, causalParents := [parentId] }
+  closures := [{ kind := eventKind, lastSequence := 20 }]
+}
+
+/-- Ten times the ordinary evidence size retains one complete accepted admission. -/
+example :
+    let result := evaluateEvidence tenfoldEvaluationPlan tenfoldEvaluationEvidence
+    (result.status, (acceptedOf result).map fun trace =>
+      (trace.evidenceIdentities.length, trace.evidenceLinks.length)) =
+      (.accepted, some (20, 96)) := by
+  native_decide
+
 def linkedStructuralFirstId : DefinitionId := id "test.evidence.record.linked-a"
 def linkedStructuralSecondId : DefinitionId := id "test.evidence.record.linked-b"
 
@@ -466,6 +490,72 @@ example :
     let result := evaluateFixture contradictoryAlternativeEvidence
     (result.status, resultKindOf result, acceptedOf result) =
       (.conflict, some .contradictoryFact, none) := by
+  native_decide
+
+/-- Duplicate closure facts fail closed through the raw structural adapter without a trace. -/
+example :
+    let result := evaluateFixture {
+      completeEvidence with closures := completeEvidence.closures ++ completeEvidence.closures
+    }
+    (result.status, result.diagnostic?.map fun failure =>
+      (failure.kind, failure.relatedDefinitionIds), acceptedOf result) =
+      (.unknown, some (.missingClosure, [eventKind]), none) := by
+  native_decide
+
+/-- Raw identity and origin failures retain their precedence and complete related identities. -/
+example :
+    let duplicateBeforeMixed := evaluateFixture {
+      completeEvidence with records := [
+        { initialEvidence with origin := some { source := structuralSourceA, ordinal := 0 } },
+        { stepEvidence with id := initialEvidenceId }
+      ]
+    }
+    let mixed := evaluateFixture {
+      completeEvidence with records := [
+        { initialEvidence with origin := some { source := structuralSourceA, ordinal := 0 } },
+        stepEvidence
+      ]
+    }
+    ([duplicateBeforeMixed, mixed].map fun result =>
+      (result.status, result.diagnostic?.map fun failure =>
+        (failure.kind, failure.relatedDefinitionIds), acceptedOf result)) = [
+      (.conflict, some (.duplicateEvidenceIdentity, [initialEvidenceId]), none),
+      (.unknown, some (.incomparableOrdering, [initialEvidenceId, stepEvidenceId]), none)
+    ] := by
+  native_decide
+
+/-- Receipt checks precede global gaps, while source causality precedes receipt checks. -/
+example :
+    let globalFaultBeforeGap := evaluateFixture {
+      completeEvidence with records := [initialEvidence, {
+        stepEvidence with sequence := 3, faultTarget := some stepEvidenceId
+      }]
+    }
+    let missingParentId := id "test.evidence.record.missing"
+    let sourceCausalityBeforeFault := evaluateFixture {
+      completeEvidence with
+      records := [
+        { initialEvidence with origin := some { source := structuralSourceA, ordinal := 0 } },
+        { stepEvidence with
+          origin := some { source := structuralSourceA, ordinal := 1 }
+          causalParents := [missingParentId]
+          faultTarget := some stepEvidenceId
+        }
+      ]
+      closures := [{
+        kind := eventKind
+        lastSequence := 2
+        source := some structuralSourceA
+        recordCount := some 2
+        byteCount := some 64
+      }]
+    }
+    ([globalFaultBeforeGap, sourceCausalityBeforeFault].map fun result =>
+      (result.status, result.diagnostic?.map fun failure =>
+        (failure.kind, failure.relatedDefinitionIds), acceptedOf result)) = [
+      (.conflict, some (.misdirectedFaultReceipt, [stepEvidenceId]), none),
+      (.unknown, some (.missingCausalParent, [missingParentId, stepEvidenceId]), none)
+    ] := by
   native_decide
 
 end Umpire.ObservationTests
