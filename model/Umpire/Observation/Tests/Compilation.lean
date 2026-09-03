@@ -47,7 +47,7 @@ def reorderedInitialRule : ObservationRule := {
   initialRule with
   condition := some (.portable (.and
     (.equals (.boolean true) (.boolean true))
-    (.present (field nameField))))
+    (.present (field nameFieldSpec))))
 }
 
 def reorderedDeclaration : ObservationMappingDeclaration := {
@@ -256,12 +256,12 @@ def structuralFailures : List (Option ObservationErrorKind) := [
   errorKindOf (checkObservation context {
     baseDeclaration with bindings := [{ normalizedName with
       expression := .portable
-        (.normalize { name := "text.unknown", version := 1 } (field nameField)) }]
+        (.normalize { name := "text.unknown", version := 1 } (field nameFieldSpec)) }]
   }),
   errorKindOf (checkObservation context {
     baseDeclaration with bindings := [{ normalizedName with
       expression := .portable
-        (.normalize { name := "text.trim", version := 2 } (field nameField)) }]
+        (.normalize { name := "text.trim", version := 2 } (field nameFieldSpec)) }]
   }),
   errorKindOf (checkObservation context {
     baseDeclaration with bindings := [{ normalizedName with
@@ -270,9 +270,9 @@ def structuralFailures : List (Option ObservationErrorKind) := [
   }),
   errorKindOf (checkObservation context (withSingleRuleExpression (.callback "forbidden"))),
   errorKindOf (checkObservation context (withSingleRuleExpression (.recursive initialRule.id))),
-  errorKindOf (checkObservation context (withSingleRuleExpression (field secretField))),
-  errorKindOf (checkObservation context (withSingleRuleExpression (field hashedField))),
-  errorKindOf (checkObservation context (withSingleRuleExpression (field rejectedField))),
+  errorKindOf (checkObservation context (withSingleRuleExpression (field secretFieldSpec))),
+  errorKindOf (checkObservation context (withSingleRuleExpression (field hashedFieldSpec))),
+  errorKindOf (checkObservation context (withSingleRuleExpression (field rejectedFieldSpec))),
   errorKindOf (checkObservation context {
     baseDeclaration with
     rules := [{ initialRule with output := id "test.state.unknown" }]

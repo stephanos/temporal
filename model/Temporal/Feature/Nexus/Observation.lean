@@ -25,16 +25,36 @@ namespace Profile
 def id : DefinitionId := definitionId "temporal.nexus.synthetic.basic-lifecycle.profile"
 def lifecycleKind : DefinitionId :=
   definitionId "temporal.nexus.synthetic.basic-lifecycle.kind.lifecycle"
-def stateField : DefinitionId :=
-  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.state"
-def actionField : DefinitionId :=
-  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.action"
-def outcomeField : DefinitionId :=
-  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.outcome"
-def observationField : DefinitionId :=
-  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.observation"
-def rejectedField : DefinitionId :=
-  definitionId "temporal.nexus.synthetic.basic-lifecycle.field.raw-detail"
+def stateFieldSpec : ObservationFieldSpec := {
+  kind := lifecycleKind
+  field := definitionId "temporal.nexus.synthetic.basic-lifecycle.field.state"
+  valueType := .text
+}
+def actionFieldSpec : ObservationFieldSpec := {
+  kind := lifecycleKind
+  field := definitionId "temporal.nexus.synthetic.basic-lifecycle.field.action"
+  valueType := .text
+}
+def outcomeFieldSpec : ObservationFieldSpec := {
+  kind := lifecycleKind
+  field := definitionId "temporal.nexus.synthetic.basic-lifecycle.field.outcome"
+  valueType := .text
+}
+def observationFieldSpec : ObservationFieldSpec := {
+  kind := lifecycleKind
+  field := definitionId "temporal.nexus.synthetic.basic-lifecycle.field.observation"
+  valueType := .text
+}
+def rejectedFieldSpec : ObservationFieldSpec := {
+  kind := lifecycleKind
+  field := definitionId "temporal.nexus.synthetic.basic-lifecycle.field.raw-detail"
+  valueType := .text
+}
+def stateField : DefinitionId := stateFieldSpec.field
+def actionField : DefinitionId := actionFieldSpec.field
+def outcomeField : DefinitionId := outcomeFieldSpec.field
+def observationField : DefinitionId := observationFieldSpec.field
+def rejectedField : DefinitionId := rejectedFieldSpec.field
 
 /-- The sole synthetic Temporal profile admitted by this Observation mapping. -/
 def declaration : EvidenceProfileDeclaration := {
@@ -43,11 +63,11 @@ def declaration : EvidenceProfileDeclaration := {
   kinds := [{
     id := lifecycleKind
     fields := [
-      { id := stateField, valueType := .text },
-      { id := actionField, valueType := .text },
-      { id := outcomeField, valueType := .text },
-      { id := observationField, valueType := .text },
-      { id := rejectedField, valueType := .text }
+      stateFieldSpec.declaration,
+      actionFieldSpec.declaration,
+      outcomeFieldSpec.declaration,
+      observationFieldSpec.declaration,
+      rejectedFieldSpec.declaration
     ]
   }]
 }
@@ -72,28 +92,28 @@ def observationRuleId : DefinitionId :=
 
 end Mapping
 
-private def field (fieldId : DefinitionId) : ObservationExpression :=
-  .field { kind := Profile.lifecycleKind, field := fieldId }
+private def field (fieldSpec : ObservationFieldSpec) : ObservationExpression :=
+  fieldSpec.expression
 
-private def equalsText (fieldId : DefinitionId) (value : String) : ObservationExpression :=
-  .equals (field fieldId) (.text value)
+private def equalsText (fieldSpec : ObservationFieldSpec) (value : String) : ObservationExpression :=
+  .equals (field fieldSpec) (.text value)
 
 private def equalsAny
-    (fieldId : DefinitionId) : List String → ObservationExpression
+    (fieldSpec : ObservationFieldSpec) : List String → ObservationExpression
   | [] => .boolean false
   | value :: values =>
       values.foldl (fun condition candidate =>
-        .or condition (equalsText fieldId candidate)) (equalsText fieldId value)
+        .or condition (equalsText fieldSpec candidate)) (equalsText fieldSpec value)
 
 private def rule
     (ruleId output : DefinitionId)
     (outputKind : DefinitionKind)
-    (fieldId : DefinitionId)
+    (fieldSpec : ObservationFieldSpec)
     (condition : ObservationExpression) : ObservationRule := {
   id := ruleId
   output
   outputKind
-  value := .portable (field fieldId)
+  value := .portable (field fieldSpec)
   condition := some (.portable condition)
 }
 
@@ -102,22 +122,22 @@ private def mappingDeclaration : ObservationMappingDeclaration := {
   source
   profile := Profile.id
   rules := [
-    rule Mapping.stateRuleId operationStateId .state Profile.stateField
-      (equalsAny Profile.stateField [
+    rule Mapping.stateRuleId operationStateId .state Profile.stateFieldSpec
+      (equalsAny Profile.stateFieldSpec [
         scheduledState.value, startedState.value, canceledState.value, succeededState.value
       ]),
-    rule Mapping.startRuleId startActionId .action Profile.actionField
-      (equalsText Profile.actionField startAction.value),
-    rule Mapping.cancelRuleId cancelActionId .action Profile.actionField
-      (equalsText Profile.actionField cancelAction.value),
-    rule Mapping.succeedRuleId reportSuccessActionId .action Profile.actionField
-      (equalsText Profile.actionField reportSuccessAction.value),
-    rule Mapping.outcomeRuleId transitionOutcomeId .outcome Profile.outcomeField
-      (equalsAny Profile.outcomeField [
+    rule Mapping.startRuleId startActionId .action Profile.actionFieldSpec
+      (equalsText Profile.actionFieldSpec startAction.value),
+    rule Mapping.cancelRuleId cancelActionId .action Profile.actionFieldSpec
+      (equalsText Profile.actionFieldSpec cancelAction.value),
+    rule Mapping.succeedRuleId reportSuccessActionId .action Profile.actionFieldSpec
+      (equalsText Profile.actionFieldSpec reportSuccessAction.value),
+    rule Mapping.outcomeRuleId transitionOutcomeId .outcome Profile.outcomeFieldSpec
+      (equalsAny Profile.outcomeFieldSpec [
         startedOutcome.value, canceledOutcome.value, succeededOutcome.value
       ]),
-    rule Mapping.observationRuleId lifecycleObservationId .observation Profile.observationField
-      (equalsAny Profile.observationField [
+    rule Mapping.observationRuleId lifecycleObservationId .observation Profile.observationFieldSpec
+      (equalsAny Profile.observationFieldSpec [
         startedObservation.value, canceledObservation.value, succeededObservation.value
       ])
   ]
@@ -130,16 +150,11 @@ private def mappingDeclaration : ObservationMappingDeclaration := {
   ]
   closures := [{ kind := Profile.lifecycleKind }]
   dispositions := [
-    { field := { kind := Profile.lifecycleKind, field := Profile.stateField },
-      disposition := .retain },
-    { field := { kind := Profile.lifecycleKind, field := Profile.actionField },
-      disposition := .retain },
-    { field := { kind := Profile.lifecycleKind, field := Profile.outcomeField },
-      disposition := .retain },
-    { field := { kind := Profile.lifecycleKind, field := Profile.observationField },
-      disposition := .retain },
-    { field := { kind := Profile.lifecycleKind, field := Profile.rejectedField },
-      disposition := .reject }
+    Profile.stateFieldSpec.disposition .retain,
+    Profile.actionFieldSpec.disposition .retain,
+    Profile.outcomeFieldSpec.disposition .retain,
+    Profile.observationFieldSpec.disposition .retain,
+    Profile.rejectedFieldSpec.disposition .reject
   ]
   evidenceBound := { value := 2, unit := .evidenceRecords }
   documentation := "Synthetic scheduled-to-terminal evidence for the ordinary Nexus lifecycle."
