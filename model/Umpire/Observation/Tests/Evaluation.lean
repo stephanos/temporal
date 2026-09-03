@@ -283,15 +283,26 @@ example :
       [structuralKind, structuralAuxiliaryKind] [{
         first with closureSupport := duplicate :: first.closureSupport
       }]
+    let second := linkedStructuralSupport structuralRuleB
+    let laterLink := Observation.Internal.analyzeStructure [] []
+      [structuralKind, structuralAuxiliaryKind] [
+        first,
+        { second with closureSupport := duplicate :: second.closureSupport }
+      ]
     let acrossLinks := Observation.Internal.analyzeStructure [] []
       [structuralKind, structuralAuxiliaryKind] [
         first,
-        linkedStructuralSupport structuralRuleB
+        second
       ]
     (withinLink.links.map Observation.Internal.NormalizedStructuralLinkSupport.closures,
       withinLink.findings,
+      laterLink.findings,
       acrossLinks.findings) = ([linkedStructuralClosures], [
-        .duplicateClosureSupport structuralRuleA (some structuralSourceA) structuralKind false
+        .duplicateClosureSupport structuralRuleA 0
+          (some structuralSourceA) structuralKind false
+      ], [
+        .duplicateClosureSupport structuralRuleB 1
+          (some structuralSourceA) structuralKind false
       ], []) := by
   native_decide
 
