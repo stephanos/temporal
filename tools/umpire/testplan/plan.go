@@ -56,7 +56,7 @@ func Admit(plan *umpirespb.PortableTestPlan) (AdmittedPlan, error) {
 	cloned := proto.CloneOf(plan)
 	return AdmittedPlan{
 		plan:                 cloned,
-		mandatoryResultBytes: proto.Size(mandatoryResult(cloned)),
+		mandatoryResultBytes: mandatoryResultBytes(cloned),
 	}, nil
 }
 
@@ -79,7 +79,7 @@ func expectedChecksum(plan *umpirespb.PortableTestPlan) ([]byte, error) {
 }
 
 func mandatoryResult(plan *umpirespb.PortableTestPlan) *umpirespb.ExecutionResult {
-	result := &umpirespb.ExecutionResult{
+	return &umpirespb.ExecutionResult{
 		Version:           proto.CloneOf(plan.GetVersion()),
 		PlanChecksum:      bytes.Clone(plan.GetPlanChecksum()),
 		RunIdentity:       strings.Repeat("0", 36),
@@ -110,6 +110,10 @@ func mandatoryResult(plan *umpirespb.PortableTestPlan) *umpirespb.ExecutionResul
 			Detail: "result byte limit cannot contain the complete semantic result",
 		}},
 	}
+}
+
+func mandatoryResultBytes(plan *umpirespb.PortableTestPlan) int {
+	result := mandatoryResult(plan)
 	if plan.GetExternal() != nil {
 		result.ProvenanceOutcome = umpirespb.PROVENANCE_OUTCOME_EXTERNAL
 		result.ClaimScope = umpirespb.CLAIM_SCOPE_PLAN_LOCAL
@@ -117,7 +121,7 @@ func mandatoryResult(plan *umpirespb.PortableTestPlan) *umpirespb.ExecutionResul
 		result.ProvenanceOutcome = umpirespb.PROVENANCE_OUTCOME_MODEL_VERIFIED
 		result.ClaimScope = umpirespb.CLAIM_SCOPE_MODEL_BOUND
 	}
-	return result
+	return proto.Size(result)
 }
 
 func cloneMessages[T proto.Message](messages []T) []T {
