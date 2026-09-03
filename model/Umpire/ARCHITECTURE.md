@@ -103,6 +103,11 @@ Important value types:
   outcome, resulting state, and observations without changing their structure or order.
 - `Limit` associates one value with an explicit `LimitUnit`.
 
+`ModelValue.named` is inert, additive shorthand for the existing public `ModelValue` record. It
+pairs one caller-supplied Definition ID with one caller-supplied value string without validating,
+inferring, registering, or canonicalizing either field. Raw record construction remains available,
+and the checker that consumes the value remains the semantic authority.
+
 `SourceLocation.displayPath` supplies the stable source-path fallback used by the authoring
 languages. Behavior and Observation additionally import the internal
 `Umpire.Shared.DefinitionGraph` module to share deterministic node, edge, order, and cycle analysis.
@@ -358,6 +363,11 @@ explicit support/Known Gap partition; one positive application Limit; and an
 `checkImplementationLink` validates the complete declaration and witness before returning one
 canonical `CheckedImplementationLink`.
 
+`ImplementationValueMapping.forward` and `ImplementationSemanticMapping.forward` are inert,
+additive shorthand for their existing public source/destination records. Each records exactly the
+two values supplied by the caller; neither performs lookup, checking, inference, or registration.
+Raw mapping records remain available, and `checkImplementationLink` remains the semantic authority.
+
 `KernelMorphism` is the reusable proof-free mapping of setup, state, Action, Model Outcome, and
 observation values. Its step and trace translation reuse Core `TransitionResult.map` and
 `ModelTraceStep.result`. `ForwardSimulation` adds only the initial-state and step-preservation laws
@@ -437,6 +447,11 @@ Capability. `QueryLimits` keeps Behavior-space Limits separate from the planner'
 candidate-evaluation budget. `checkedQuery` keeps the dependent Target re-ascription inside the
 Query boundary; `checkQuery` remains the API for inspecting a `QueryError`.
 
+`QueryLimits.bounded` is inert, additive shorthand for the existing public `QueryLimits` record.
+It records caller-supplied transition, selected-Action, and candidate-evaluation bounds and fixes
+only their established units. It does not validate or reconcile the bounds; raw records remain
+available, and `checkQuery` retains all Limit policy and diagnostic authority.
+
 ## Space API
 
 `Umpire.Space` composes one checked Query into a finite authored variation Space. Its axes choose a
@@ -444,6 +459,24 @@ baseline, bind at most one existing Behavior role to an existing checked value, 
 fault intents. Faults name one required Behavior occurrence and one target Capability; they are
 requested attempts, not outcomes, observations, receipts, or success claims. Coverage goals are
 seek-only metadata and do not change Property meaning or claim runtime achievement.
+
+The ordinary leaf constructors are:
+
+```lean
+ChoiceDeclaration.baselineChoice
+ChoiceDeclaration.boundValue
+ChoiceDeclaration.selectedFault
+VariationAxisDeclaration.faultAxis
+FaultIntentDeclaration.atOccurrence
+CoverageGoalDeclaration.seek
+```
+
+Each is inert, additive shorthand for its existing public record: an effect-free baseline, one
+explicit binding, one explicit fault selection, a role-free fault axis, an occurrence fault with
+no incompatibility declarations, or one explicit seek goal, respectively. They fill only those
+established ordinary fields and defaults; they do not infer or validate identities, roles, values,
+faults, occurrences, Actions, Capabilities, subjects, or minima. Raw records remain available for
+non-default declarations, and `checkExperimentSpace` remains the semantic authority.
 
 The principal entry points are:
 
