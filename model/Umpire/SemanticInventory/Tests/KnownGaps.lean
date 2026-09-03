@@ -59,7 +59,7 @@ private def catalogAt (index : Nat) : KnownGapCatalogDescriptor :=
     description := "Unknown catalog row."
   }
 
-example : exactGaps plannerKnownGapSources = canonicalPlannerKnownGaps := by
+example : exactGaps plannerKnownGapSources = canonicalPlannerKnownGaps.toList := by
   native_decide
 
 example : plannerKnownGapSources.length = 8 ∧
