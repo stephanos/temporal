@@ -247,7 +247,7 @@ private def canonicalBranchOutcome
       .observation result.status (result.diagnostic?.map ObservationDiagnostic.kind)
 
 private def canonicalNameField : Umpire.ObservationExpression :=
-  Umpire.ObservationTests.field Umpire.ObservationTests.nameField
+  Umpire.ObservationTests.field Umpire.ObservationTests.nameFieldSpec
 
 private structure BranchOracle where
   name : String
