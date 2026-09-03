@@ -6,6 +6,24 @@ namespace Umpire.QueryTests
 
 open Umpire
 
+example : QueryLimits.bounded 1 2 3 = ({
+    behavior := {
+      transitions := { value := 1, unit := .semanticTransitions }
+      selectedActions := { value := 2, unit := .selectedActions }
+    }
+    search := { value := 3, unit := .candidateEvaluations }
+  } : QueryLimits) := by
+  rfl
+
+example : QueryLimits.bounded 0 0 0 = ({
+    behavior := {
+      transitions := { value := 0, unit := .semanticTransitions }
+      selectedActions := { value := 0, unit := .selectedActions }
+    }
+    search := { value := 0, unit := .candidateEvaluations }
+  } : QueryLimits) := by
+  rfl
+
 def canonicalOf
     (queryContext : QueryCheckContext (fun _ => True))
     (queryDeclaration : QueryDeclaration) : Option String :=

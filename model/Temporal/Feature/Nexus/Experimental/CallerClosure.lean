@@ -625,13 +625,7 @@ def exactActionBehavior : CheckedBehavior :=
 def exactTraceBehavior : CheckedBehavior :=
   exactTraceBehaviorResult.toOption.get exactTraceBehaviorResult_isSome
 
-def limits : QueryLimits := {
-  behavior := {
-    transitions := { value := 1, unit := .semanticTransitions }
-    selectedActions := { value := 1, unit := .selectedActions }
-  }
-  search := { value := 8, unit := .candidateEvaluations }
-}
+def limits : QueryLimits := QueryLimits.bounded 1 1 8
 
 def exhaustivePolicy : PlannerPolicy := PlannerPolicy.exhaustive
 
