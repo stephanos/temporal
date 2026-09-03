@@ -39,9 +39,17 @@ Make Lean a deterministic producer of the same typed plan accepted from external
 - [ ] Focused Lean and Go tests pass.
 
 ## Done summary
-TBD
+Lean now compiles the existing caller-closure Test and duplicate-delivery control into the shared admitted PortableTestPlan protobuf without changing their ExperimentSpec or fn-28 identities. The generated plans preserve exact artifact projections and model provenance, retain supported checks, convert unsupported checked Property and Observation semantics into deterministic required obligations, and match Go admission, preparation, evaluation, mutation, scope, and N/N+1 behavior.
 
+Review fixes added exact reconstruction of identity-bearing ExperimentSpec/RuntimeConfiguration fields and replaced synthetic obligation construction with actual checked Property/Observation inputs. Checked semantic failures are required because the Lean source has no advisory annotation; externally authored advisory obligations remain covered by the shared Go path.
+
+baseline: red (the canonical Go commands were already blocked by the not-yet-landed executorgrpc package and the local Darwin cgo `stddef.h` failure; literal `make lint-code` already reported the same 1379-issue repository backlog)
+
+Verification: `make proto`, focused Lean, generated fixture staleness, CGO-disabled scoped Go parity/preparation, `make umpire-check-regression` (270 jobs), `make lint-model` (236 jobs), and scoped non-mutating lint passed. Literal `make lint-code` reproduced exactly errcheck=220, exhaustive=5, forbidigo=211, govet=5, revive=798, staticcheck=136, testifylint=4; its known `tools/umpire1/monitor_test.go` auto-edit was restored.
+
+stage: impl-review - ran [2026-09-03T21:47:32Z..2026-09-03T23:05:26Z] (model: gpt-5.6-sol)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0cdd6df884cf044c5a945ed018562311ea62fb01, 7f4304a8d4168f591be1329ec28dd90158e5e08b, 85172a7076d12034f0ee88fa683f19854f0410cd
+- Tests: make proto, cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests, CGO_ENABLED=0 make umpire-gen-portable-evaluation-fixtures, CGO_ENABLED=0 make umpire-check-portable-evaluation-fixtures, CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/testplan/... ./tools/umpire/executor/... ./tools/umpire/portableevaluation/..., CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/portableevaluation ./tools/umpire/executor -run 'TestLeanGeneratedPortablePlansUseSharedAdmissionAndRetainExactBindings|TestLeanGeneratedPortablePlanRejectsChecksumBindingSourceAndLimitMutations|TestPrepareLeanGeneratedModelPlansRetainExactArtifactBindings', CGO_ENABLED=0 ./.bin/golangci-lint-v2.13.1 run --build-tags test_dep ./tools/umpire/testplan/... ./tools/umpire/executor/... ./tools/umpire/portableevaluation/..., make umpire-check-regression, make lint-model, git diff --exit-code ef58bdd6b2f5c1095eaa066f7063543a10cf507f -- model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean tools/umpire/temporal/nexus/testdata/caller-closure-input-set tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-input-set tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set, baseline: red (go test -count=1 -tags test_dep ./tools/umpire/testplan/... ./tools/umpire/executor/... ./tools/umpire/executorgrpc/... ./tools/umpire/portableevaluation/...: inherited missing future executorgrpc package and Darwin cgo stddef.h), baseline: red (go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpirePortableGRPCExecutor$': inherited Darwin cgo stddef.h and future integration test dependency), make lint-code (inherited red reproduced exactly: 1379 issues; errcheck=220 exhaustive=5 forbidigo=211 govet=5 revive=798 staticcheck=136 testifylint=4)
 - PRs:
