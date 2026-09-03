@@ -284,9 +284,28 @@ example :
     let links := { first with orderingSupport := first.orderingSupport.tail } ::
       multiSourceTrace.evidenceLinks.tail
     let unchecked := uncheckedTraceOf multiSourceTrace
-    diagnosticKindOf (validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+    (match validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
       unchecked with evidenceLinks := links
-    }) = some .missingOrderSupport := by
+    } with
+      | .ok _ => none
+      | .error failure => some (failure.kind, failure.relatedDefinitionIds)) =
+      some (.missingOrderSupport, [first.ruleId]) := by
+  native_decide
+
+/-- Duplicate per-link ordering support fails at the responsible accepted-boundary rule. -/
+example :
+    let first := completeFirstEvidenceLink
+    let duplicate := first.orderingSupport.head?.get (by native_decide)
+    let links := {
+      first with orderingSupport := duplicate :: first.orderingSupport
+    } :: completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+    let result := validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+      completeUncheckedEvidenceBackedTrace with evidenceLinks := links
+    }
+    (match result with
+      | .ok _ => none
+      | .error failure => some (failure.kind, failure.relatedDefinitionIds)) =
+      some (.missingOrderSupport, [first.ruleId]) := by
   native_decide
 
 example :
@@ -294,9 +313,12 @@ example :
     let links := { first with closureSupport := first.closureSupport.tail } ::
       multiSourceTrace.evidenceLinks.tail
     let unchecked := uncheckedTraceOf multiSourceTrace
-    diagnosticKindOf (validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+    (match validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
       unchecked with evidenceLinks := links
-    }) = some .missingClosureSupport := by
+    } with
+      | .ok _ => none
+      | .error failure => some (failure.kind, failure.relatedDefinitionIds)) =
+      some (.missingClosureSupport, [first.ruleId]) := by
   native_decide
 
 /-! Source-local causal orphans and cycles retain their exact fn-4 diagnostic classes. -/
