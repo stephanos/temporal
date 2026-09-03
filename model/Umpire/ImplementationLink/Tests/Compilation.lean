@@ -279,6 +279,40 @@ def oneStepTrace : ModelTrace Bool Bool Bool Bool := {
   }]
 }
 
+def baseKernelMorphism : KernelMorphism Unit Bool Bool Bool Bool Unit Bool Bool Bool Bool := {
+  mapSetup := fun value => value
+  mapState := fun value => value
+  mapAction := fun value => value
+  mapOutcome := fun value => value
+  mapObservation := fun value => value
+}
+
+def mappedOneStepResult := baseKernelMorphism.mapTransitionResult (transition false true)
+
+/-- Kernel morphisms reuse Core transition-result mapping and preserve step/trace structure. -/
+example :
+    mappedOneStepResult = (transition false true).map id id id ∧
+    baseKernelMorphism.mapTrace oneStepTrace = oneStepTrace := by
+  native_decide
+
+def baseForwardSimulation : ForwardSimulation checkedSourceTarget.kernel
+    checkedDestinationTarget.kernel := {
+  morphism := baseKernelMorphism
+  initialForward := by intro _ _ admitted; exact admitted
+  stepForward := by
+    intro _ _ result admitted
+    cases result
+    simpa [baseKernelMorphism, checkedDestinationTarget,
+      KernelMorphism.mapTransitionResult, TransitionResult.map] using admitted
+}
+
+/-- Forward simulation derives destination trace authority through the shared morphism. -/
+example (trace : ModelTrace Bool Bool Bool Bool)
+    (admitted : AuthoritativeModelTrace checkedSourceTarget.kernel () trace) :
+    AuthoritativeModelTrace checkedDestinationTarget.kernel ()
+      (baseForwardSimulation.morphism.mapTrace trace) :=
+  baseForwardSimulation.traceForward () trace admitted
+
 /-- Forward trace authority is derived from the exact initial and step witnesses. -/
 example (trace : ModelTrace Bool Bool Bool Bool)
     (admitted : AuthoritativeModelTrace checkedSourceTarget.kernel () trace) :

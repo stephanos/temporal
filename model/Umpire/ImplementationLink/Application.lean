@@ -5,8 +5,8 @@ import Umpire.SemanticInventory.Types
 /-!
 Total application of one checked Implementation Link to an already Evidence-backed source Model
 Trace. Application replays the complete source trace through the retained source kernel before it
-translates any value. Only `applied` exposes the complete destination trace; every failure exposes
-one canonical diagnostic and no partial trace.
+translates any value through the retained `ForwardSimulation`. Only `applied` exposes the complete
+destination trace; every failure exposes one canonical diagnostic and no partial trace.
 
 An explicitly checked observed-trace translation reuses the admitted positional Evidence Links for
 values outside Target authority. Its result omits the authority proof and cannot be confused with
@@ -541,7 +541,7 @@ private def mappedSetup
   let gaps := checked.declaration.setupKnownGaps.filter fun gap => gap.source == sourceSetup
   match mappings, gaps with
   | [mapping], [] =>
-      let destination := checked.mapSetup sourceSetup
+      let destination := checked.forwardSimulation.morphism.mapSetup sourceSetup
       if mapping.destination != destination then
         throw (implementationLinkDiagnostic checked .sourceSetupMismatch
           (sourceSetupBehaviorFingerprint := some sourceSetupBehaviorFingerprint))
@@ -672,68 +672,17 @@ private def mappedValueAt
     (sourceValue : ModelValue) : Except ImplementationLinkDiagnostic ModelValue :=
   match coordinate with
   | .initialState | .resultingState _ => mappedValue checked coordinate sourceValue
-      checked.declaration.stateMappings checked.declaration.stateKnownGaps checked.mapState
+      checked.declaration.stateMappings checked.declaration.stateKnownGaps
+      checked.forwardSimulation.morphism.mapState
   | .selectedAction _ => mappedValue checked coordinate sourceValue
-      checked.declaration.actionMappings checked.declaration.actionKnownGaps checked.mapAction
+      checked.declaration.actionMappings checked.declaration.actionKnownGaps
+      checked.forwardSimulation.morphism.mapAction
   | .modelOutcome _ => mappedValue checked coordinate sourceValue
-      checked.declaration.outcomeMappings checked.declaration.outcomeKnownGaps checked.mapOutcome
+      checked.declaration.outcomeMappings checked.declaration.outcomeKnownGaps
+      checked.forwardSimulation.morphism.mapOutcome
   | .observation _ _ => mappedValue checked coordinate sourceValue
       checked.declaration.observationMappings checked.declaration.observationKnownGaps
-      checked.mapObservation
-
-private def CheckedImplementationLink.translateStep
-    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
-      SourceSetup ModelValue ModelValue ModelValue ModelValue
-      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
-    (step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue) :
-    ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
-  selectedAction := checked.mapAction step.selectedAction
-  modelOutcome := checked.mapOutcome step.modelOutcome
-  resultingState := checked.mapState step.resultingState
-  observations := step.observations.map checked.mapObservation
-}
-
-private def CheckedImplementationLink.translateTrace
-    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
-      SourceSetup ModelValue ModelValue ModelValue ModelValue
-      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
-    ModelTrace ModelValue ModelValue ModelValue ModelValue := {
-  initialState := checked.mapState trace.initialState
-  steps := trace.steps.map checked.translateStep
-}
-
-private theorem CheckedImplementationLink.stepsForward
-    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
-      SourceSetup ModelValue ModelValue ModelValue ModelValue
-      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
-    (state : ModelValue)
-    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
-    (admitted : AuthoritativeTraceSteps checked.sourceTarget.kernel state steps) :
-    AuthoritativeTraceSteps checked.destinationTarget.kernel (checked.mapState state)
-      (steps.map checked.translateStep) := by
-  induction steps generalizing state with
-  | nil => trivial
-  | cons step rest induction =>
-      exact ⟨checked.stepForward state step.selectedAction {
-          modelOutcome := step.modelOutcome
-          resultingState := step.resultingState
-          observations := step.observations
-        } admitted.1,
-        induction step.resultingState admitted.2⟩
-
-private theorem CheckedImplementationLink.traceForward
-    (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
-      SourceSetup ModelValue ModelValue ModelValue ModelValue
-      DestinationSetup ModelValue ModelValue ModelValue ModelValue)
-    (sourceSetup : SourceSetup)
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (admitted : AuthoritativeModelTrace checked.sourceTarget.kernel sourceSetup trace) :
-    AuthoritativeModelTrace checked.destinationTarget.kernel (checked.mapSetup sourceSetup)
-      (checked.translateTrace trace) := {
-  initial := checked.initialForward sourceSetup trace.initialState admitted.initial
-  steps := checked.stepsForward trace.initialState trace.steps admitted.steps
-}
+      checked.forwardSimulation.morphism.mapObservation
 
 private def buildImplementationLinkEvidenceLinksWith
     (checked : CheckedImplementationLink SourceLawStatement DestinationLawStatement
@@ -864,15 +813,16 @@ private def applyCheckedImplementationLink
       (some (.selectedAction (checked.declaration.applicationLimit.value + 1)))
       (appliedLimit := some checked.declaration.applicationLimit)
       (observedCount := some evidenceBackedTrace.trace.steps.length))
-  let destinationTrace := checked.translateTrace evidenceBackedTrace.trace
+  let destinationTrace := checked.forwardSimulation.morphism.mapTrace evidenceBackedTrace.trace
   let evidenceLinks ← buildImplementationLinkEvidenceLinks checked evidenceBackedTrace destinationTrace
   pure {
     sourceTraceId := evidenceBackedTrace.traceId
     sourceSetup
-    destinationSetup := checked.mapSetup sourceSetup
+    destinationSetup := checked.forwardSimulation.morphism.mapSetup sourceSetup
     trace := destinationTrace
     evidenceLinks
-    authoritative := checked.traceForward sourceSetup evidenceBackedTrace.trace sourceAuthority.down
+    authoritative := checked.forwardSimulation.traceForward sourceSetup evidenceBackedTrace.trace
+      sourceAuthority.down
   }
 
 /-- Replay and translate one admitted Evidence-backed source Model Trace. -/

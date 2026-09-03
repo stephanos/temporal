@@ -3,9 +3,10 @@ import Umpire.Target
 /-!
 The Implementation Link language relates two independently checked Targets without importing either
 Target family. Authored declarations are inert finite tables. A separately supplied witness carries
-the forward-simulation functions and proofs, while `checkImplementationLink` validates and
-canonicalizes every serializable part before returning a checked value. Proofs and mapping functions
-never participate in canonical identity bytes.
+the Link-owned declaration index and coverage around a reusable `KernelMorphism` and
+`ForwardSimulation`, while `checkImplementationLink` validates and canonicalizes every serializable
+part before returning a checked value. Proofs and mapping functions never participate in canonical
+identity bytes.
 -/
 
 namespace Umpire
@@ -255,6 +256,190 @@ def ImplementationLinkObligation.name : ImplementationLinkObligation → String
   | .stepForward => "step-forward"
   | .requiredCoverage => "required-coverage"
 
+/-- The exact Umpire kernel values mapped by the current Implementation Link paths. -/
+structure KernelMorphism
+    (SourceSetup SourceState SourceAction SourceOutcome SourceObservation : Type)
+    (DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation : Type) where
+  mapSetup : SourceSetup → DestinationSetup
+  mapState : SourceState → DestinationState
+  mapAction : SourceAction → DestinationAction
+  mapOutcome : SourceOutcome → DestinationOutcome
+  mapObservation : SourceObservation → DestinationObservation
+
+/-- Translate one kernel transition result through the Core-owned mapping combinator. -/
+def KernelMorphism.mapTransitionResult
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (result : TransitionResult SourceState SourceOutcome SourceObservation) :
+    TransitionResult DestinationState DestinationOutcome DestinationObservation :=
+  result.map morphism.mapState morphism.mapOutcome morphism.mapObservation
+
+/-- Transition-result translation is exactly Core `TransitionResult.map`. -/
+theorem KernelMorphism.mapTransitionResult_eq
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (result : TransitionResult SourceState SourceOutcome SourceObservation) :
+    morphism.mapTransitionResult result =
+      result.map morphism.mapState morphism.mapOutcome morphism.mapObservation := rfl
+
+/-- Translate one Model Trace step without changing its shape or observation order. -/
+def KernelMorphism.mapStep
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (step : ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation) :
+    ModelTraceStep DestinationState DestinationAction DestinationOutcome DestinationObservation :=
+  ModelTraceStep.result (morphism.mapAction step.selectedAction) <|
+    morphism.mapTransitionResult {
+      modelOutcome := step.modelOutcome
+      resultingState := step.resultingState
+      observations := step.observations
+    }
+
+/-- Step translation maps the selected Action. -/
+@[simp] theorem KernelMorphism.mapStep_selectedAction
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (step : ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation) :
+    (morphism.mapStep step).selectedAction = morphism.mapAction step.selectedAction := rfl
+
+/-- Step translation maps the Model Outcome. -/
+@[simp] theorem KernelMorphism.mapStep_modelOutcome
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (step : ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation) :
+    (morphism.mapStep step).modelOutcome = morphism.mapOutcome step.modelOutcome := rfl
+
+/-- Step translation maps the resulting state. -/
+@[simp] theorem KernelMorphism.mapStep_resultingState
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (step : ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation) :
+    (morphism.mapStep step).resultingState = morphism.mapState step.resultingState := rfl
+
+/-- Step translation maps observations in their existing order. -/
+@[simp] theorem KernelMorphism.mapStep_observations
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (step : ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation) :
+    (morphism.mapStep step).observations = step.observations.map morphism.mapObservation := rfl
+
+/-- Translate one complete Model Trace through the same kernel mappings. -/
+def KernelMorphism.mapTrace
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation) :
+    ModelTrace DestinationState DestinationAction DestinationOutcome DestinationObservation := {
+  initialState := morphism.mapState trace.initialState
+  steps := trace.steps.map morphism.mapStep
+}
+
+/-- Trace translation maps the initial state. -/
+@[simp] theorem KernelMorphism.mapTrace_initialState
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation) :
+    (morphism.mapTrace trace).initialState = morphism.mapState trace.initialState := rfl
+
+/-- Trace translation maps every step in its existing order. -/
+@[simp] theorem KernelMorphism.mapTrace_steps
+    (morphism : KernelMorphism
+      SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+      DestinationSetup DestinationState DestinationAction DestinationOutcome
+      DestinationObservation)
+    (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation) :
+    (morphism.mapTrace trace).steps = trace.steps.map morphism.mapStep := rfl
+
+/-- Exact source-kernel admission for every positional step of a Model Trace. -/
+def AuthoritativeTraceSteps
+    (kernel : TransitionKernel Setup State Action Outcome Observation) :
+    State → List (ModelTraceStep State Action Outcome Observation) → Prop
+  | _, [] => True
+  | state, step :: rest =>
+      kernel.authoritativeStep state step.selectedAction {
+        modelOutcome := step.modelOutcome
+        resultingState := step.resultingState
+        observations := step.observations
+      } ∧ AuthoritativeTraceSteps kernel step.resultingState rest
+
+structure AuthoritativeModelTrace
+    (kernel : TransitionKernel Setup State Action Outcome Observation)
+    (setup : Setup)
+    (trace : ModelTrace State Action Outcome Observation) : Prop where
+  initial : kernel.authoritativeInitial setup trace.initialState
+  steps : AuthoritativeTraceSteps kernel trace.initialState trace.steps
+
+/-- Initial and step preservation for one exact pair of Umpire transition kernels. -/
+structure ForwardSimulation
+    (source : TransitionKernel SourceSetup SourceState SourceAction SourceOutcome SourceObservation)
+    (destination : TransitionKernel DestinationSetup DestinationState DestinationAction
+      DestinationOutcome DestinationObservation) where
+  morphism : KernelMorphism
+    SourceSetup SourceState SourceAction SourceOutcome SourceObservation
+    DestinationSetup DestinationState DestinationAction DestinationOutcome DestinationObservation
+  initialForward : ∀ setup state,
+    source.authoritativeInitial setup state →
+      destination.authoritativeInitial (morphism.mapSetup setup) (morphism.mapState state)
+  stepForward : ∀ state action result,
+    source.authoritativeStep state action result →
+      destination.authoritativeStep (morphism.mapState state) (morphism.mapAction action)
+        (morphism.mapTransitionResult result)
+
+private theorem ForwardSimulation.stepsForward
+    {source : TransitionKernel SourceSetup SourceState SourceAction SourceOutcome SourceObservation}
+    {destination : TransitionKernel DestinationSetup DestinationState DestinationAction
+      DestinationOutcome DestinationObservation}
+    (simulation : ForwardSimulation source destination)
+    (state : SourceState)
+    (steps : List (ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation))
+    (admitted : AuthoritativeTraceSteps source state steps) :
+    AuthoritativeTraceSteps destination (simulation.morphism.mapState state)
+      (steps.map (simulation.morphism.mapStep
+        (SourceSetup := SourceSetup) (DestinationSetup := DestinationSetup))) := by
+  induction steps generalizing state with
+  | nil => trivial
+  | cons step rest induction =>
+      exact ⟨simulation.stepForward state step.selectedAction {
+          modelOutcome := step.modelOutcome
+          resultingState := step.resultingState
+          observations := step.observations
+        } admitted.1,
+        induction step.resultingState admitted.2⟩
+
+/-- Trace preservation is derived from the simulation's initial and step laws. -/
+theorem ForwardSimulation.traceForward
+    {source : TransitionKernel SourceSetup SourceState SourceAction SourceOutcome SourceObservation}
+    {destination : TransitionKernel DestinationSetup DestinationState DestinationAction
+      DestinationOutcome DestinationObservation}
+    (simulation : ForwardSimulation source destination)
+    (setup : SourceSetup)
+    (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation)
+    (admitted : AuthoritativeModelTrace source setup trace) :
+    AuthoritativeModelTrace destination (simulation.morphism.mapSetup setup)
+      (simulation.morphism.mapTrace
+        (SourceSetup := SourceSetup) (DestinationSetup := DestinationSetup) trace) := {
+  initial := simulation.initialForward setup trace.initialState admitted.initial
+  steps := simulation.stepsForward trace.initialState trace.steps admitted.steps
+}
+
 /-- Runtime-checkable witness labels supplement the witness's exact dependent indices. -/
 structure ImplementationLinkWitnessIndex where
   definitionId : DefinitionId
@@ -325,23 +510,11 @@ structure ImplementationLinkWitness
     (destination : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
       DestinationAction DestinationOutcome DestinationObservation) where
   index : ImplementationLinkWitnessIndex
-  mapSetup : SourceSetup → DestinationSetup
-  mapState : SourceState → DestinationState
-  mapAction : SourceAction → DestinationAction
-  mapOutcome : SourceOutcome → DestinationOutcome
-  mapObservation : SourceObservation → DestinationObservation
-  initialForward : ∀ setup state,
-    source.kernel.authoritativeInitial setup state →
-      destination.kernel.authoritativeInitial (mapSetup setup) (mapState state)
-  stepForward : ∀ state action result,
-    source.kernel.authoritativeStep state action result →
-      destination.kernel.authoritativeStep (mapState state) (mapAction action) {
-        modelOutcome := mapOutcome result.modelOutcome
-        resultingState := mapState result.resultingState
-        observations := result.observations.map mapObservation
-      }
-  requiredCoverage : ImplementationLinkRequiredCoverage declaration source mapSetup mapState
-    mapAction mapOutcome mapObservation
+  forwardSimulation : ForwardSimulation source.kernel destination.kernel
+  requiredCoverage : ImplementationLinkRequiredCoverage declaration source
+    forwardSimulation.morphism.mapSetup forwardSimulation.morphism.mapState
+    forwardSimulation.morphism.mapAction forwardSimulation.morphism.mapOutcome
+    forwardSimulation.morphism.mapObservation
 
 /-- Missing proof obligations remain representable only at the authored checking boundary. -/
 inductive ImplementationLinkWitnessAuthoring
@@ -360,25 +533,47 @@ instance : Coe (ImplementationLinkWitness declaration source destination)
     (ImplementationLinkWitnessAuthoring declaration source destination) :=
   ⟨ImplementationLinkWitnessAuthoring.complete⟩
 
-/-- Exact source-kernel admission for every positional step of a Model Trace. -/
-def AuthoritativeTraceSteps
-    (kernel : TransitionKernel Setup State Action Outcome Observation) :
-    State → List (ModelTraceStep State Action Outcome Observation) → Prop
-  | _, [] => True
-  | state, step :: rest =>
-      kernel.authoritativeStep state step.selectedAction {
-        modelOutcome := step.modelOutcome
-        resultingState := step.resultingState
-        observations := step.observations
-      } ∧ AuthoritativeTraceSteps kernel step.resultingState rest
+/-- Preserve one authoritative initial state through the witness's shared simulation. -/
+theorem ImplementationLinkWitness.initialForward
+    (witness : ImplementationLinkWitness
+      (SourceSetup := SourceSetup) (SourceState := SourceState) (SourceAction := SourceAction)
+      (SourceOutcome := SourceOutcome) (SourceObservation := SourceObservation)
+      (DestinationSetup := DestinationSetup) (DestinationState := DestinationState)
+      (DestinationAction := DestinationAction) (DestinationOutcome := DestinationOutcome)
+      (DestinationObservation := DestinationObservation) declaration source destination)
+    (setup : SourceSetup)
+    (state : SourceState)
+    (admitted : source.kernel.authoritativeInitial setup state) :
+    destination.kernel.authoritativeInitial
+      (witness.forwardSimulation.morphism.mapSetup setup)
+      (witness.forwardSimulation.morphism.mapState state) :=
+  witness.forwardSimulation.initialForward setup state admitted
 
-structure AuthoritativeModelTrace
-    (kernel : TransitionKernel Setup State Action Outcome Observation)
-    (setup : Setup)
-    (trace : ModelTrace State Action Outcome Observation) : Prop where
-  initial : kernel.authoritativeInitial setup trace.initialState
-  steps : AuthoritativeTraceSteps kernel trace.initialState trace.steps
+/-- Preserve one authoritative transition through the witness's shared simulation. -/
+theorem ImplementationLinkWitness.stepForward
+    (witness : ImplementationLinkWitness
+      (SourceSetup := SourceSetup) (SourceState := SourceState) (SourceAction := SourceAction)
+      (SourceOutcome := SourceOutcome) (SourceObservation := SourceObservation)
+      (DestinationSetup := DestinationSetup) (DestinationState := DestinationState)
+      (DestinationAction := DestinationAction) (DestinationOutcome := DestinationOutcome)
+      (DestinationObservation := DestinationObservation) declaration source destination)
+    (state : SourceState)
+    (action : SourceAction)
+    (result : TransitionResult SourceState SourceOutcome SourceObservation)
+    (admitted : source.kernel.authoritativeStep state action result) :
+    destination.kernel.authoritativeStep
+      (witness.forwardSimulation.morphism.mapState state)
+      (witness.forwardSimulation.morphism.mapAction action)
+      {
+        modelOutcome := witness.forwardSimulation.morphism.mapOutcome result.modelOutcome
+        resultingState := witness.forwardSimulation.morphism.mapState result.resultingState
+        observations := result.observations.map
+          witness.forwardSimulation.morphism.mapObservation
+      } := by
+  simpa [KernelMorphism.mapTransitionResult, TransitionResult.map] using
+    witness.forwardSimulation.stepForward state action result admitted
 
+/-- Translate one step through the witness's shared kernel morphism. -/
 def ImplementationLinkWitness.translateStep
     (witness : ImplementationLinkWitness
       (SourceSetup := SourceSetup) (SourceState := SourceState) (SourceAction := SourceAction)
@@ -387,13 +582,11 @@ def ImplementationLinkWitness.translateStep
       (DestinationAction := DestinationAction) (DestinationOutcome := DestinationOutcome)
       (DestinationObservation := DestinationObservation) declaration source destination)
     (step : ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation) :
-    ModelTraceStep DestinationState DestinationAction DestinationOutcome DestinationObservation := {
-  selectedAction := witness.mapAction step.selectedAction
-  modelOutcome := witness.mapOutcome step.modelOutcome
-  resultingState := witness.mapState step.resultingState
-  observations := step.observations.map witness.mapObservation
-}
+    ModelTraceStep DestinationState DestinationAction DestinationOutcome DestinationObservation :=
+  witness.forwardSimulation.morphism.mapStep
+    (SourceSetup := SourceSetup) (DestinationSetup := DestinationSetup) step
 
+/-- Translate one trace through the witness's shared kernel morphism. -/
 def ImplementationLinkWitness.translateTrace
     (witness : ImplementationLinkWitness
       (SourceSetup := SourceSetup) (SourceState := SourceState) (SourceAction := SourceAction)
@@ -402,34 +595,11 @@ def ImplementationLinkWitness.translateTrace
       (DestinationAction := DestinationAction) (DestinationOutcome := DestinationOutcome)
       (DestinationObservation := DestinationObservation) declaration source destination)
     (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation) :
-    ModelTrace DestinationState DestinationAction DestinationOutcome DestinationObservation := {
-  initialState := witness.mapState trace.initialState
-  steps := trace.steps.map witness.translateStep
-}
+    ModelTrace DestinationState DestinationAction DestinationOutcome DestinationObservation :=
+  witness.forwardSimulation.morphism.mapTrace
+    (SourceSetup := SourceSetup) (DestinationSetup := DestinationSetup) trace
 
-private theorem ImplementationLinkWitness.stepsForward
-    (witness : ImplementationLinkWitness
-      (SourceSetup := SourceSetup) (SourceState := SourceState) (SourceAction := SourceAction)
-      (SourceOutcome := SourceOutcome) (SourceObservation := SourceObservation)
-      (DestinationSetup := DestinationSetup) (DestinationState := DestinationState)
-      (DestinationAction := DestinationAction) (DestinationOutcome := DestinationOutcome)
-      (DestinationObservation := DestinationObservation) declaration source destination)
-    (state : SourceState)
-    (steps : List (ModelTraceStep SourceState SourceAction SourceOutcome SourceObservation))
-    (admitted : AuthoritativeTraceSteps source.kernel state steps) :
-    AuthoritativeTraceSteps destination.kernel (witness.mapState state)
-      (steps.map witness.translateStep) := by
-  induction steps generalizing state with
-  | nil => trivial
-  | cons step rest induction =>
-      exact ⟨witness.stepForward state step.selectedAction {
-          modelOutcome := step.modelOutcome
-          resultingState := step.resultingState
-          observations := step.observations
-        } admitted.1,
-        induction step.resultingState admitted.2⟩
-
-/-- The trace theorem is derived from initial and step forward simulation; authors supply no trace proof. -/
+/-- The trace theorem delegates to the shared simulation; authors supply no trace proof. -/
 theorem ImplementationLinkWitness.traceForward
     (witness : ImplementationLinkWitness
       (SourceSetup := SourceSetup) (SourceState := SourceState) (SourceAction := SourceAction)
@@ -440,11 +610,10 @@ theorem ImplementationLinkWitness.traceForward
     (setup : SourceSetup)
     (trace : ModelTrace SourceState SourceAction SourceOutcome SourceObservation)
     (admitted : AuthoritativeModelTrace source.kernel setup trace) :
-    AuthoritativeModelTrace destination.kernel (witness.mapSetup setup)
-      (witness.translateTrace trace) := {
-  initial := witness.initialForward setup trace.initialState admitted.initial
-  steps := witness.stepsForward trace.initialState trace.steps admitted.steps
-}
+    AuthoritativeModelTrace destination.kernel
+      (witness.forwardSimulation.morphism.mapSetup setup)
+      (witness.translateTrace trace) :=
+  witness.forwardSimulation.traceForward setup trace admitted
 
 inductive ImplementationLinkErrorKind where
   | emptyDefinitionId
@@ -507,7 +676,7 @@ structure ImplementationLinkError where
   relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
 
-/-- A checked link retains proof functions for use while exposing only canonical declaration data. -/
+/-- A checked link retains the shared simulation while Link metadata remains separately owned. -/
 structure CheckedImplementationLink
     (SourceLawStatement : LawDefinition → Prop)
     (DestinationLawStatement : LawDefinition → Prop)
@@ -522,21 +691,7 @@ structure CheckedImplementationLink
     SourceOutcome SourceObservation
   destinationTarget : CheckedTarget DestinationLawStatement DestinationSetup DestinationState
     DestinationAction DestinationOutcome DestinationObservation
-  mapSetup : SourceSetup → DestinationSetup
-  mapState : SourceState → DestinationState
-  mapAction : SourceAction → DestinationAction
-  mapOutcome : SourceOutcome → DestinationOutcome
-  mapObservation : SourceObservation → DestinationObservation
-  initialForward : ∀ setup state,
-    sourceTarget.kernel.authoritativeInitial setup state →
-      destinationTarget.kernel.authoritativeInitial (mapSetup setup) (mapState state)
-  stepForward : ∀ state action result,
-    sourceTarget.kernel.authoritativeStep state action result →
-      destinationTarget.kernel.authoritativeStep (mapState state) (mapAction action) {
-        modelOutcome := mapOutcome result.modelOutcome
-        resultingState := mapState result.resultingState
-        observations := result.observations.map mapObservation
-      }
+  forwardSimulation : ForwardSimulation sourceTarget.kernel destinationTarget.kernel
   canonicalMetadata : String
   behaviorFingerprint : BehaviorFingerprint
 
@@ -979,13 +1134,7 @@ private def checkImplementationLinkWithDomains
         declaration := canonical
         sourceTarget := source
         destinationTarget := destination
-        mapSetup := witness.mapSetup
-        mapState := witness.mapState
-        mapAction := witness.mapAction
-        mapOutcome := witness.mapOutcome
-        mapObservation := witness.mapObservation
-        initialForward := witness.initialForward
-        stepForward := witness.stepForward
+        forwardSimulation := witness.forwardSimulation
         canonicalMetadata := metadata
         behaviorFingerprint := behaviorFingerprintOf semantic
       }
