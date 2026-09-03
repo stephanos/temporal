@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-48-canonicalize-known-gaps-as-a-checked-set",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-03T08:24:45.170673Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-03T08:44:26.882203Z",
   "created_at": "2026-08-30T16:03:49.436876Z",
   "default_impl": null,
   "default_review": null,
@@ -16,7 +16,7 @@
     "fn-48-canonicalize-known-gaps-as-a-checked-set.5": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-08-30T16:17:57.793725Z",
   "review_attempts": [
@@ -523,6 +523,35 @@
       "timestamp": "2026-09-03T08:24:45.157307Z",
       "tool_calls": 17,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "e399d6ea3881404c5189125a0421a052263be25cb49b58bfd7aff69833d55e93",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "528f937ac6205e36bc8e04fe3ddde82a2eeae4a3",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 4029,
+      "output_sha256": "68d0f29fe1b2fb024a6a47077d9be0a14d9299d146db1a99b4f180e283cfaa8e",
+      "reservation_id": "f510ebcc85a64030994d24de9d35df78",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T08:44:26.876656Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -532,7 +561,7 @@
     "impl:fn-48-canonicalize-known-gaps-as-a-checked-set.4": 1,
     "impl:fn-48-canonicalize-known-gaps-as-a-checked-set.5": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -559,5 +588,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T08:24:45.175912Z"
+  "updated_at": "2026-09-03T08:44:26.882973Z"
 }
