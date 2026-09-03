@@ -46,6 +46,8 @@ cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs Umpire.Planning
 Added the ordered `CanonicalJson` typed construction/rendering boundary and migrated Known Gap, PlannedOccurrence, DrivePlan, and ExperimentSpec codecs while preserving exact field order, escaping, checksums, fingerprints, fixture bytes, and terminal-newline behavior. Added focused coverage for both optional-field families, compact/pretty forms, and naturals above machine-word range.
 
 stage: impl-review - ran (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
 ## Evidence
 - Commits: 2d85b128a736f3812054dea0318c8c289bf6c113
 - Tests: baseline: green, GATE_SKIPPED:unittest:green-receipt de2eb515 - baseline reused from prior post-gate pass, GATE_SKIPPED:smoke:green-receipt de2eb515 - baseline reused from prior post-gate pass, make lint-model (baseline), TDD_RED: cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs Umpire.Planning.Tests.Artifacts (failed because CanonicalJson was missing; exit 1), cd model && mise exec -- lake build Umpire.Artifact.Tests.Codecs Umpire.Planning.Tests.Artifacts UmpireTests, cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Query.Tests Umpire.Observation.Tests Umpire.ImplementationLink.Tests UmpireTests, make umpire-build-model, make lint-model, git diff --check 785ef58b1a2c5b052555cd3805d45f6c6b431d52..HEAD, GREEN_RECEIPT: .flow/tmp/green-receipts/2d85b128-unittest.json, GREEN_RECEIPT: .flow/tmp/green-receipts/2d85b128-smoke.json
