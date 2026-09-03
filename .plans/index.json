@@ -741,11 +741,11 @@
     {
       "id": "fn-40-centralize-plannerpolicy-constructors",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "p3",
       "status": "open",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": []
     },
     {
