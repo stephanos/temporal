@@ -251,9 +251,10 @@ Within Lean, Planning owns the public `KnownGap` row and opaque `KnownGapSet`. T
 `KnownGapSet.ofUnordered` to normalize order while still rejecting invalid, duplicate, or
 conflicting rows; decoder-facing code uses `KnownGapSet.checkCanonical` to reject an external list
 whose order is not already canonical. Artifact and Run Evaluation code consumes and unions only
-checked sets, exposing raw rows through `KnownGapSet.toList` solely for canonical serialization.
-Because that opaque value does not cross the wire, Go independently admits the persisted raw arrays
-and verifies the checker's Evidence, Result, and complete Known Gap union.
+checked sets, exposing raw rows through `KnownGapSet.toList` only as a read-only projection at
+explicit codec, protocol, or semantic-adapter boundaries. Because that opaque value does not cross
+the wire, Go independently admits the persisted raw arrays and verifies the checker's Evidence,
+Result, and complete Known Gap union.
 
 From the repository root, the read-only checks are:
 
