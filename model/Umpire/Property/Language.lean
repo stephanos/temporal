@@ -104,6 +104,16 @@ structure PropertyPattern where
   constraint : ValueConstraint := .present
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- Match one trace value by Definition ID and exact payload. -/
+def PropertyPattern.exact
+    (field : PropertyTraceField)
+    (reference : DefinitionId)
+    (value : String) : PropertyPattern := {
+  field
+  reference
+  constraint := .equals value
+}
+
 def PropertyPattern.denote (pattern : PropertyPattern) (value : ModelValue) : Prop :=
   value.definitionId = pattern.reference ∧ pattern.constraint.denote value.value
 
@@ -327,9 +337,6 @@ structure CheckedProperty where
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
 
-private def idLe (left right : DefinitionId) : Bool :=
-  decide (left.value ≤ right.value)
-
 private def capabilityLe (left right : PropertyCapability) : Bool :=
   decide (left.id.value < right.id.value) ||
     (left.id == right.id && decide (left.canonicalBehavior ≤ right.canonicalBehavior))
@@ -349,18 +356,12 @@ private def authoredClauseLe (left right : PropertyClause) : Bool :=
 private def profileLe (left right : PropertyLimitProfile) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
-private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
-  ids.mergeSort idLe |>.eraseDups
-
 private def canonicalCapabilities
     (capabilities : List PropertyCapability) : List PropertyCapability :=
   capabilities.mergeSort capabilityLe |>.eraseDups
 
 private def canonicalMeanings (meanings : List MeaningProvision) : List MeaningProvision :=
   meanings.mergeSort meaningLe |>.eraseDups
-
-private def sourcePath (source : SourceLocation) : String :=
-  if source.path == "" then "<unknown>" else source.path
 
 private def propertyError
     (kind : PropertyErrorKind)
@@ -373,32 +374,27 @@ private def propertyError
     DefinitionId.of "umpire.property.anonymous"
   else
     owner
-  sourcePath := sourcePath source
+  sourcePath := source.displayPath
   offendingValue
-  relatedDefinitionIds := canonicalIds relatedDefinitionIds
+  relatedDefinitionIds := DefinitionId.canonicalSet relatedDefinitionIds
 }
-
-private def firstDuplicateId : List DefinitionId → Option DefinitionId
-  | first :: second :: rest =>
-      if first == second then some first else firstDuplicateId (second :: rest)
-  | _ => none
 
 private def requireDefinitionId
     (owner : DefinitionId)
     (source : SourceLocation)
     (id : DefinitionId) : Except PropertyError Unit :=
-  if id.value == "" then
-    .error (propertyError .emptyDefinitionId owner source "<empty>" [id])
-  else if !id.isNamespaced then
-    .error (propertyError .invalidDefinitionId owner source id.value [id])
-  else
-    .ok ()
+  match id.validate with
+  | .error .empty =>
+      .error (propertyError .emptyDefinitionId owner source "<empty>" [id])
+  | .error .malformed =>
+      .error (propertyError .invalidDefinitionId owner source id.value [id])
+  | .ok () => .ok ()
 
 private def requireUniqueIds
     (owner : DefinitionId)
     (source : SourceLocation)
     (ids : List DefinitionId) : Except PropertyError Unit :=
-  match firstDuplicateId (ids.mergeSort idLe) with
+  match DefinitionId.firstDuplicate ids with
   | some duplicate =>
       .error (propertyError .duplicateDefinitionId owner source duplicate.value [duplicate])
   | none => .ok ()
@@ -412,7 +408,7 @@ private def buildCapabilityView
     (context : PropertyCheckContext)
     (declaration : PropertyDeclaration) : Except PropertyError PropertyCapabilityView := do
   requireUniqueIds declaration.id declaration.source declaration.requires
-  let required := canonicalIds declaration.requires
+  let required := DefinitionId.canonicalSet declaration.requires
   for capabilityId in required do
     requireDefinitionId declaration.id declaration.source capabilityId
     match findDefinition context capabilityId with
@@ -639,7 +635,8 @@ private def propertySemanticJson
     (access : PropertyCapabilityView) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
-    ",\"requires\":" ++ array (canonicalIds requires |>.map (quote ∘ DefinitionId.value)) ++
+    ",\"requires\":" ++
+      array (DefinitionId.canonicalSet requires |>.map (quote ∘ DefinitionId.value)) ++
     ",\"capabilities\":" ++
       array (canonicalCapabilities access.capabilities |>.map capabilityJson) ++
     ",\"meanings\":" ++ array (canonicalMeanings access.meanings |>.map meaningJson) ++
@@ -659,7 +656,8 @@ def canonicalPropertyErrorJson (error : PropertyError) : String :=
     ",\"sourcePath\":" ++ quote error.sourcePath ++
     ",\"offendingValue\":" ++ quote error.offendingValue ++
     ",\"relatedDefinitionIds\":" ++
-      array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
+      array (DefinitionId.canonicalSet error.relatedDefinitionIds |>.map
+        (quote ∘ DefinitionId.value)) ++ "}"
 
 /-- Check an authored property, expand named limits, and freeze its capability view before planning. -/
 def checkProperty
@@ -685,7 +683,7 @@ def checkProperty
     id := declaration.id
     source := declaration.source
     version := declaration.version
-    requires := canonicalIds declaration.requires
+    requires := DefinitionId.canonicalSet declaration.requires
     clauses := clauses.mergeSort clauseLe
     access
     documentation := declaration.documentation
@@ -693,6 +691,14 @@ def checkProperty
     behaviorFingerprint := behaviorFingerprintOf semantic
   }
   pure { checked with canonicalMetadata := canonicalPropertyJson checked }
+
+/-- Produce a checked Property directly from an explicit proof that the typed checker succeeds.
+Use `checkProperty` when an invalid declaration's typed diagnostic is needed. -/
+def checkedProperty
+    (context : PropertyCheckContext)
+    (authoring : PropertyAuthoring)
+    (valid : (checkProperty context authoring).toOption.isSome = true) : CheckedProperty :=
+  (checkProperty context authoring).toOption.get valid
 
 structure PropertyTraceStep where
   priorState : Option ModelValue
@@ -1232,7 +1238,7 @@ private def resultOf
   satisfied := evaluatePropertyClause clause view
   traceSpan := spanOf clause view
   evaluatedLimit := clauseLimit clause
-  semanticProvenance := canonicalIds
+  semanticProvenance := DefinitionId.canonicalSet
     (property.requires ++ (clausePatterns clause).map PropertyPattern.reference)
 }
 

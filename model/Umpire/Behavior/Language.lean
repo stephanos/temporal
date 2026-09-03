@@ -79,6 +79,17 @@ structure SetupConstraint where
   right : SetupOperand
   deriving BEq, DecidableEq, Repr
 
+/-- Require one symbolic setup role to equal one concrete Model Value. -/
+def SetupConstraint.roleEquals
+    (id : DefinitionId)
+    (role : DefinitionId)
+    (value : ModelValue) : SetupConstraint := {
+  id
+  relation := .equal
+  left := .role role
+  right := .value value
+}
+
 /-- A required action occurrence has a stable Definition ID independent of its action Definition ID. -/
 structure NamedOccurrence where
   id : DefinitionId
@@ -129,6 +140,19 @@ structure BehaviorTrace where
   trace : ModelTrace ModelValue ModelValue ModelValue ModelValue
   deriving BEq, DecidableEq, Repr
 
+/-- Build a complete Behavior trace containing one model-owned transition result. -/
+def BehaviorTrace.singleStep
+    (setup : List RoleBinding)
+    (initialState : ModelValue)
+    (selectedAction : ModelValue)
+    (result : TransitionResult ModelValue ModelValue ModelValue) : BehaviorTrace := {
+  setup
+  trace := {
+    initialState
+    steps := [ModelTraceStep.result selectedAction result]
+  }
+}
+
 structure BehaviorDeclaration where
   id : DefinitionId
   source : SourceLocation
@@ -147,6 +171,27 @@ structure BehaviorDeclaration where
   traceExactly : Option AuthoredExactTrace := none
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
+
+/-- Declare exactly one occurrence of one Action while leaving its result to the Target. -/
+def BehaviorDeclaration.exactlyOneAction
+    (id : DefinitionId)
+    (source : SourceLocation)
+    (occurrence : NamedOccurrence)
+    (requires : List DefinitionId := [])
+    (roles : List ResourceRole := [])
+    (setup : List SetupConstraint := [])
+    (documentation : String := "") : BehaviorDeclaration := {
+  id
+  source
+  requires
+  roles
+  setup
+  allowedActions := [occurrence.action]
+  requiredOccurrences := [occurrence]
+  occurrenceBounds := [OccurrenceBound.exactly occurrence.action 1]
+  actionsExactly := some [occurrence.action]
+  documentation
+}
 
 structure BehaviorCheckContext where
   definitions : List DefinitionMetadata
@@ -222,9 +267,6 @@ private def idListKey (ids : List DefinitionId) : String :=
 private def idListLe (left right : List DefinitionId) : Bool :=
   decide (idListKey left ≤ idListKey right)
 
-private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
-  ids.mergeSort idLe |>.eraseDups
-
 private def canonicalIdLists (lists : List (List DefinitionId)) : List (List DefinitionId) :=
   lists.mergeSort idListLe |>.eraseDups
 
@@ -245,9 +287,6 @@ private def canonicalSetupConstraint (constraint : SetupConstraint) : SetupConst
   else
     { constraint with left := constraint.right, right := constraint.left }
 
-private def sourcePath (source : SourceLocation) : String :=
-  if source.path == "" then "<unknown>" else source.path
-
 private def sourceJson (source : SourceLocation) : String :=
   "{\"path\":" ++ quote source.path ++
     ",\"line\":" ++ toString source.line ++
@@ -265,15 +304,10 @@ private def behaviorError
     DefinitionId.of "umpire.behavior.anonymous"
   else
     owner
-  sourcePath := sourcePath source
+  sourcePath := source.displayPath
   offendingValue
-  relatedDefinitionIds := canonicalIds relatedDefinitionIds
+  relatedDefinitionIds := DefinitionId.canonicalSet relatedDefinitionIds
 }
-
-private def firstDuplicateId : List DefinitionId → Option DefinitionId
-  | first :: second :: rest =>
-      if first == second then some first else firstDuplicateId (second :: rest)
-  | _ => none
 
 private def firstDuplicateOrder : List OccurrenceOrder → Option OccurrenceOrder
   | first :: second :: rest =>
@@ -284,18 +318,18 @@ private def requireDefinitionId
     (owner : DefinitionId)
     (source : SourceLocation)
     (id : DefinitionId) : Except BehaviorError Unit :=
-  if id.value == "" then
-    .error (behaviorError .emptyDefinitionId owner source "<empty>" [id])
-  else if !id.isNamespaced then
-    .error (behaviorError .invalidDefinitionId owner source id.value [id])
-  else
-    .ok ()
+  match id.validate with
+  | .error .empty =>
+      .error (behaviorError .emptyDefinitionId owner source "<empty>" [id])
+  | .error .malformed =>
+      .error (behaviorError .invalidDefinitionId owner source id.value [id])
+  | .ok () => .ok ()
 
 private def requireUniqueIds
     (owner : DefinitionId)
     (source : SourceLocation)
     (ids : List DefinitionId) : Except BehaviorError Unit :=
-  match firstDuplicateId (ids.mergeSort idLe) with
+  match DefinitionId.firstDuplicate ids with
   | some duplicate =>
       .error (behaviorError .duplicateDefinitionId owner source duplicate.value [duplicate])
   | none => .ok ()
@@ -808,13 +842,13 @@ private def behaviorSemanticJson
     (spaceStatus : BehaviorSpaceStatus) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
-    ",\"requires\":" ++ actionListJson (canonicalIds requires) ++
+    ",\"requires\":" ++ actionListJson (DefinitionId.canonicalSet requires) ++
     ",\"roles\":" ++ array (roles.mergeSort roleLe |>.map roleJson) ++
     ",\"setup\":" ++ array (setup.mergeSort constraintLe |>.map setupConstraintJson) ++
-    ",\"allowedActions\":" ++ actionListJson (canonicalIds allowedActions) ++
+    ",\"allowedActions\":" ++ actionListJson (DefinitionId.canonicalSet allowedActions) ++
     ",\"requiredOccurrences\":" ++
       array (requiredOccurrences.mergeSort occurrenceLe |>.map occurrenceJson) ++
-    ",\"forbiddenActions\":" ++ actionListJson (canonicalIds forbiddenActions) ++
+    ",\"forbiddenActions\":" ++ actionListJson (DefinitionId.canonicalSet forbiddenActions) ++
     ",\"occurrenceBounds\":" ++
       array (occurrenceBounds.mergeSort boundLe |>.map boundJson) ++
     ",\"ordering\":" ++ array (ordering.mergeSort orderLe |>.map orderJson) ++
@@ -838,7 +872,8 @@ def canonicalBehaviorErrorJson (error : BehaviorError) : String :=
     ",\"sourcePath\":" ++ quote error.sourcePath ++
     ",\"offendingValue\":" ++ quote error.offendingValue ++
     ",\"relatedDefinitionIds\":" ++
-      array (canonicalIds error.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
+      array (DefinitionId.canonicalSet error.relatedDefinitionIds |>.map
+        (quote ∘ DefinitionId.value)) ++ "}"
 
 /-- Check and canonicalize a behavior without selecting a target or enumerating any trace. -/
 def checkBehavior
@@ -865,8 +900,8 @@ def checkBehavior
   let setup := declaration.setup.map canonicalSetupConstraint |>.mergeSort constraintLe
   for constraint in setup do
     validateSetupConstraint context declaration roles constraint
-  let allowed := canonicalIds declaration.allowedActions
-  let forbidden := canonicalIds declaration.forbiddenActions
+  let allowed := DefinitionId.canonicalSet declaration.allowedActions
+  let forbidden := DefinitionId.canonicalSet declaration.forbiddenActions
   let required := declaration.requiredOccurrences.mergeSort occurrenceLe
   if required.length > maxRequiredOccurrences then
     throw (behaviorError .occurrenceLimitExceeded declaration.id declaration.source
@@ -911,7 +946,7 @@ def checkBehavior
     id := declaration.id
     source := declaration.source
     version := declaration.version
-    requires := canonicalIds declaration.requires
+    requires := DefinitionId.canonicalSet declaration.requires
     roles
     setup
     allowedActions := allowed
@@ -929,6 +964,14 @@ def checkBehavior
     behaviorFingerprint := behaviorFingerprintOf semantic
   }
   pure { checked with canonicalMetadata := canonicalBehaviorJson checked }
+
+/-- Produce a checked Behavior directly from an explicit proof that the typed checker succeeds.
+Use `checkBehavior` when an invalid declaration's typed diagnostic is needed. -/
+def checkedBehavior
+    (context : BehaviorCheckContext)
+    (declaration : BehaviorDeclaration)
+    (valid : (checkBehavior context declaration).toOption.isSome = true) : CheckedBehavior :=
+  (checkBehavior context declaration).toOption.get valid
 
 private def bindingFor (bindings : List RoleBinding) (role : DefinitionId) : Option ModelValue :=
   (bindings.find? fun binding => binding.role == role).map RoleBinding.value
