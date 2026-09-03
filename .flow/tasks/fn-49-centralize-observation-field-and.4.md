@@ -12,8 +12,10 @@ Complete both adapters and pin their distinct diagnostics, precedence, and mutat
 
 ### Approach
 - Map raw findings back to the current detailed diagnostic at the same validation stage.
+- Build one `Observation.Internal.StructuralLinkSupport` per accepted Evidence Link, then invoke `analyzeStructure` once with that link-scoped support and consume its normalized per-link boundaries plus rule-attributed inconsistency findings.
 - Map accepted support findings only to missing-order-support or missing-closure-support at the established admission seam.
 - Preserve complete first-failure matrices, related-ID order, no-partial output, and disposition/identity checks around the shared analysis.
+<!-- Updated by plan-sync: fn-49-centralize-observation-field-and.3 used StructuralLinkSupport and rule-attributed normalized per-link support, not only aggregate accepted support -->
 
 ### Investigation targets
 **Required** (read before coding):
@@ -26,6 +28,7 @@ Complete both adapters and pin their distinct diagnostics, precedence, and mutat
 ## Acceptance
 - [ ] Raw validation retains every existing diagnostic kind, status, related-ID order, and precedence.
 - [ ] Accepted validation retains missing-order-support/missing-closure-support classification and never leaks raw diagnostics.
+- [ ] Accepted validation supplies one `StructuralLinkSupport` per Evidence Link, maps normalized per-link facts and closures plus rule-attributed inconsistent support findings at the accepted boundary, and retains the established related identities.
 - [ ] Each adapter invokes structural analysis once and maps the returned normalized facts/findings without rebuilding or sorting them; the 10× fixture preserves this call path and outcome.
 - [ ] Invalid inputs produce no partial accepted trace or downstream verdict.
 - [ ] Observation aggregate and mutation suites pass with no semantic or artifact drift.
