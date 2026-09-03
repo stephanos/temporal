@@ -39,9 +39,8 @@ Replace eligible ordinary production and shared-positive-fixture Model Value lit
 - [ ] Switch, lifecycle, experimental, System execution, Behavior, Observation, Query, Property, and Planning focused tests pass.
 - [ ] No artifact or generated-view drift is introduced.
 ## Done summary
-TBD
-
+Migrated 75 eligible ordinary and shared-positive-fixture `ModelValue` pairs across the planned Umpire and Temporal surfaces to `ModelValue.named`, preserving names, order, comments, values, identities, and generated artifacts. Retained raw literals are deliberate mutation/negative/representation cases, runtime/compiler projections, generated fixtures, or non-`ModelValue` records.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 13c72d683fb49d6e1a6cf59a226f7df6b3e552ba, 37c3f08119999be627816c52153f473216ec4255
+- Tests: cd model && mise exec -- lake build Temporal.System.Execution.NexusTests Temporal.NexusExecutionIntegrationTests, make umpire-check-regression, make lint-model
 - PRs:
