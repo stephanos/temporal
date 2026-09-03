@@ -7,8 +7,8 @@ satisfies: [R7]
 Finish R7 after every abstraction has landed: update the public conceptual guides, verify import boundaries, and run the complete model gates once. This is the single finalization task for documentation and cross-layer verification.
 
 **Size:** S
-**Files:** `model/Umpire/ARCHITECTURE.md`, `model/ARCHITECTURE.md`, `model/README.md`
-**Touches:** [model/Umpire/ARCHITECTURE.md, model/ARCHITECTURE.md, model/README.md]
+**Files:** `model/Umpire/ARCHITECTURE.md`, `model/ARCHITECTURE.md`, `model/README.md`, `model/Umpire/CoreTests/Primitives.lean`
+**Touches:** [model/Umpire/ARCHITECTURE.md, model/ARCHITECTURE.md, model/README.md, model/Umpire/CoreTests/Primitives.lean]
 
 ### Approach
 - Update the authored-to-checked lifecycle and focused import guidance for the four checked facades and semantic constructors.

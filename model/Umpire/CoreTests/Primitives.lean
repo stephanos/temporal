@@ -44,7 +44,7 @@ example : (
 example : [
     validationErrorOf (DefinitionId.validate (definitionId "")),
     validationErrorOf (DefinitionId.validate (definitionId "state")),
-    validationErrorOf (DefinitionId.validate (definitionId "workflow.state.ready"))
+    validationErrorOf (DefinitionId.validate (definitionId "gamma.state.ready"))
   ] = [
     some .empty,
     some .malformed,

@@ -17,11 +17,12 @@ Focused imports are available when a consumer needs a smaller surface:
 
 | Import | Public responsibility |
 | --- | --- |
-| `Umpire.Core` | Semantic vocabulary, capabilities, laws, and finite kernels. |
+| `Umpire.Core` | Semantic vocabulary, canonical Definition identity, trace/result constructors, capabilities, laws, and finite kernels. |
 | `Umpire.Target` | Finite-machine and expert Target authoring, checked composition, and canonical target projections. |
-| `Umpire.Property` | Portable property authoring, checking, and evaluation. |
-| `Umpire.Behavior` | Setup and trace-shape constraints. |
-| `Umpire.Query` | Checked combinations of Targets, Properties, Behaviors, Limits, and policies. |
+| `Umpire.Property` | Portable Property authoring, checked construction, typed diagnostics, and evaluation. |
+| `Umpire.Behavior` | Setup and trace-shape authoring, checked construction, and typed diagnostics. |
+| `Umpire.Query` | Checked combinations of Targets, Properties, Behaviors, Limits, and policies, plus typed diagnostics. |
+| `Umpire.Json` | Ordered typed JSON construction and exact compact or pretty rendering for codec owners. |
 | `Umpire.Artifact` | Exact v2 planning, runtime, Evidence, Result, set-admission, and immutable-publication contracts. |
 | `Umpire.Planning` | Deterministic incremental planning over checked queries. |
 | `Umpire.Promotion` | Deterministic checked source compilation from one unchanged planned Query. |
@@ -37,7 +38,8 @@ Focused imports are available when a consumer needs a smaller surface:
 `Umpire.Exploration.Engine`, `Umpire.Exploration.Session`, `Umpire.Observation.Language`,
 `Umpire.Observation.Evaluation`, `Umpire.ImplementationLink.Language`,
 `Umpire.ImplementationLink.Application`, and `Umpire.Planning.Engine` implement their public
-facades and should not normally be imported directly.
+facades and should not normally be imported directly. `Umpire.Shared.DefinitionGraph` is likewise
+an internal support module rather than a consumer facade.
 
 ## API lifecycle
 
@@ -45,9 +47,11 @@ The public API deliberately separates authoring from checked values:
 
 ```text
 AuthoredTarget ── checkTarget / elaborateTarget ──▶ CheckedTarget
-PropertyDeclaration ─ checkProperty ─▶ CheckedProperty
-BehaviorDeclaration ─ checkBehavior ─▶ CheckedBehavior
-CheckedTarget + QueryDeclaration ─ checkQuery ─▶ CheckedQuery
+PropertyDeclaration ─ checkProperty / checkedProperty + explicit proof ─▶ CheckedProperty
+BehaviorDeclaration ─ checkBehavior / checkedBehavior + explicit proof ─▶ CheckedBehavior
+CheckedTarget + QueryDeclaration ─ checkQuery / checkedQuery + explicit proof ─▶ CheckedQuery
+CheckedTarget + ObservationMappingDeclaration
+  ─ checkObservation / checkedObservation + explicit proof ─▶ CheckedObservationPlan
 CheckedQuery ─ derive planner kernel ─▶ plan ─▶ PlannerRun ─▶ ExperimentSpec?
 CheckedQuery + ExperimentSpaceDeclaration ─ checkExperimentSpace ─▶ CheckedExperimentSpace
 CheckedExperimentSpace ─ projectCheckedSpaceMetadata ─▶ CheckedSpaceMetadata
@@ -68,6 +72,12 @@ introducing another Behavior, Query, Property, planner, or outcome language. Che
 canonical metadata and Behavior Fingerprints, and Planning accepts checked values rather than raw
 author input.
 
+The raw `checkProperty`, `checkBehavior`, `checkQuery`, and `checkObservation` functions are the
+authoritative path when a caller needs the typed error for invalid input. Their `checked*` partners
+only remove `Except` extraction (and Query's dependent Target re-ascription) after the caller
+supplies an explicit proof that the same checker succeeded. They do not hide a `native_decide`
+default, change validation, or add a runtime recovery path.
+
 ## Core and Target APIs
 
 `Umpire.Core` defines the vocabulary shared by every other module. `Umpire.Target` owns target
@@ -76,18 +86,29 @@ authoring, validation, canonicalization, and checked composition.
 Important value types:
 
 - `DefinitionId` identifies semantic declarations. Public identities are expected to be
-  namespaced; construct them with `DefinitionId.of`.
+  namespaced; construct them with `DefinitionId.of`. `DefinitionId.canonicalSet`,
+  `DefinitionId.firstDuplicate`, and `DefinitionId.validate` provide the shared deterministic
+  identity normal form without choosing a language-specific error.
 - `DefinitionMetadata` describes a state, action, outcome, observation, relation, capability,
   provider, law, connector, target, or kernel.
 - `ModelValue` pairs a declaration identity with a canonical string value.
-- `ModelTrace` and `ModelTraceStep` represent pure Model Traces.
+- `ModelTrace` and `ModelTraceStep` represent pure Model Traces. `ModelTraceStep.result` builds one
+  step from its selected Action and the Target-owned transition result.
 - `ModelCoordinate` identifies one canonical location in a Model Trace. `ModelTrace.coordinates`
   enumerates initial state followed by each step's selected Action, Model Outcome, resulting state,
   and observations in source order. `ModelTrace.valueAt?` is the sole positional lookup and rejects
   zero or out-of-range step and observation positions; every numeric position is strictly one-based.
   `ModelCoordinate.definitionKind` is the sole coordinate-kind mapping.
-- `TransitionResult` represents one model-owned transition result.
+- `TransitionResult` represents one model-owned transition result. `TransitionResult.map` maps its
+  outcome, resulting state, and observations without changing their structure or order.
 - `Limit` associates one value with an explicit `LimitUnit`.
+
+`SourceLocation.displayPath` supplies the stable source-path fallback used by the authoring
+languages. Behavior and Observation additionally import the internal
+`Umpire.Shared.DefinitionGraph` module to share deterministic node, edge, order, and cycle analysis.
+That module returns structural findings only: each language still consumes them at its own
+validation stages and constructs its own typed diagnostic and historical cycle witness. It is not
+imported by the `Umpire.Shared` facade or offered as another public authoring language.
 
 Target composition uses:
 
@@ -155,12 +176,15 @@ Main entry points:
 ```lean
 PropertyCheckContext.ofTarget
 checkProperty
+checkedProperty
+PropertyPattern.exact
 evaluateProperty
 ```
 
 `checkProperty` returns either `PropertyError` or `CheckedProperty`. `evaluateProperty` reduces an
 unrestricted semantic trace to the checked property's admitted capability view before evaluating
-its clauses.
+its clauses. `PropertyPattern.exact` is the narrow constructor for matching one trace field by
+Definition ID and exact payload; it returns the existing `PropertyPattern` representation.
 
 ## Behavior API
 
@@ -182,6 +206,9 @@ Convenience constructors include:
 OccurrenceBound.exactly
 OccurrenceBound.atLeast
 OccurrenceBound.atMost
+SetupConstraint.roleEquals
+BehaviorTrace.singleStep
+BehaviorDeclaration.exactlyOneAction
 ```
 
 The main entry point is:
@@ -191,6 +218,12 @@ checkBehavior :
   BehaviorCheckContext →
   BehaviorDeclaration →
   Except BehaviorError CheckedBehavior
+
+checkedBehavior :
+  (context : BehaviorCheckContext) →
+  (declaration : BehaviorDeclaration) →
+  (checkBehavior context declaration).toOption.isSome = true →
+  CheckedBehavior
 ```
 
 Ordinary callers derive the context with `BehaviorCheckContext.ofTarget target`; direct declaration
@@ -199,6 +232,11 @@ contexts remain confined to Behavior's focused lower-level fixtures.
 Checking validates identities and references, canonicalizes constraints, rejects contradictions,
 and records whether the described behavior space is statically unsatisfiable. It does not select a
 target or enumerate a trace.
+
+The semantic constructors above fill only the repeated invariant named by each function:
+role-to-value equality, one transition result, or exactly one required Action. They return the
+existing Behavior records, do not normalize caller collections, and leave Model Outcomes to the
+Target.
 
 `CheckedBehavior.assignOccurrences` canonically attributes selected action positions to authored
 required occurrences. Behavior admission and Artifact linear extensions cross this same seam.
@@ -216,7 +254,8 @@ The offline lifecycle is:
 
 ```text
 EvidenceProfileDeclaration + ObservationMappingDeclaration + CheckedTarget
-  ── ObservationCheckContext.ofTarget / checkObservation ──▶ CheckedObservationPlan
+  ── ObservationCheckContext.ofTarget / checkObservation or checkedObservation
+  ──▶ CheckedObservationPlan
 CheckedObservationPlan + synthetic EvidenceBundle
   ── evaluateEvidence ──▶ ObservationResult
 ObservationResult.accepted ──▶ opaque EvidenceBackedTrace
@@ -236,6 +275,10 @@ projections provide read-only access to the semantic content needed downstream. 
 handoff value, not another authoring or scenario language. The raw
 `EvidenceBundle` is consumed only during Observation Evaluation and is not retained in the
 Evidence-backed Model Trace or verdicts.
+
+As with the other authoring languages, `checkObservation` remains the typed diagnostic API.
+`checkedObservation` accepts an explicit success proof and returns that checker's complete plan; it
+does not replace or bypass checking.
 
 `evaluateObservationProperty` accepts only the admitted trace and validates Property-owned query
 membership, exact Property identity, capability access, and logical-time prerequisites before
@@ -291,6 +334,14 @@ explicit support/Known Gap partition; one positive application Limit; and an
 `ImplementationLinkWitness` indexed by that exact declaration and those exact checked Targets.
 `checkImplementationLink` validates the complete declaration and witness before returning one
 canonical `CheckedImplementationLink`.
+
+`KernelMorphism` is the reusable proof-free mapping of setup, state, Action, Model Outcome, and
+observation values. Its step and trace translation reuse Core `TransitionResult.map` and
+`ModelTraceStep.result`. `ForwardSimulation` adds only the initial-state and step-preservation laws
+and derives whole-trace preservation. Both are available from the focused
+`Umpire.ImplementationLink` facade. The surrounding Implementation Link remains responsible for
+declaration indexing, complete mapping coverage, Known Gaps, fingerprints, Limits, and typed
+diagnostics.
 
 The prototype proves a bounded forward simulation. It does not require a reverse mapping,
 bisimulation, surjectivity, or named Behavior-occurrence correspondence. `applyImplementationLink`
@@ -349,12 +400,19 @@ checkQuery :
   QueryCheckContext LawStatement →
   QueryDeclaration →
   Except QueryError (CheckedQuery LawStatement)
+
+checkedQuery :
+  (target : QueryTarget LawStatement) →
+  (declaration : QueryDeclaration) →
+  (checkQuery (.ofTarget target) declaration).toOption.isSome = true →
+  CheckedQuery LawStatement
 ```
 
 `QueryCheckContext.ofTarget` derives the Query view from the checked Target, including any available
 finite completeness contract. An exhaustive Query rejects a Target that explicitly lacks that
 Capability. `QueryLimits` keeps Behavior-space Limits separate from the planner's
-candidate-evaluation budget.
+candidate-evaluation budget. `checkedQuery` keeps the dependent Target re-ascription inside the
+Query boundary; `checkQuery` remains the API for inspecting a `QueryError`.
 
 ## Space API
 
@@ -504,6 +562,12 @@ Execution, Observation Evaluation, Implementation Link, Property, or Run Evaluat
   kernel-produced `BehaviorTrace`.
 - `checkExecutionHandoff` retains reusable validation for model-owned lifecycle references without
   changing ExperimentSpec bytes or giving Space another persisted schema.
+
+Artifact and Planning codecs own field names, field meaning, and field order. They use the focused
+`Umpire.Json` module's `CanonicalJson` value to construct typed nulls, strings, naturals, arrays,
+and ordered objects, then render compact text, stable pretty text, or persisted bytes with exactly
+one terminal LF. `CanonicalJson` preserves supplied object order and Lean's JSON string escaping;
+it is not a parser, schema engine, unordered map, or alternate Artifact format.
 
 The retained boundary is exactly embedded `umpire-drive-plan/v2` plus persisted
 `umpire-experiment/v2`, `umpire-runtime-configuration/v2`, `umpire-experiment-run/v2`,

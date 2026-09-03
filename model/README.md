@@ -93,6 +93,20 @@ adapters without assembling provider or connector collections, completeness reco
 ordering, or planner kernels. Space authors start from the resulting checked Query rather than
 redeclaring any target, Property, Behavior, or planner semantics.
 
+For valid ordinary declarations, `checkedProperty`, `checkedBehavior`, `checkedQuery`, and
+`checkedObservation` accept an explicit proof that the corresponding raw checker succeeded and
+return its checked value directly. They hide only `Except` extraction, plus Query's dependent
+Target re-ascription; they do not default to `native_decide`, skip validation, or add runtime error
+handling. Keep `checkProperty`, `checkBehavior`, `checkQuery`, and `checkObservation` wherever an
+example or tool needs the authoritative typed diagnostic for invalid input.
+
+Small constructors keep the happy path in domain terms without creating another representation:
+`PropertyPattern.exact` matches one trace value, `SetupConstraint.roleEquals` binds a symbolic
+role, `BehaviorTrace.singleStep` joins an Action to its Target-owned transition result, and
+`BehaviorDeclaration.exactlyOneAction` states the common one-Action shape. Core
+`ModelTraceStep.result` and `TransitionResult.map` provide the representation-independent pieces
+under those authoring APIs.
+
 Import [`Temporal.Feature.Nexus`](Temporal/Feature/Nexus.lean) as the single ordinary Nexus entry
 point, then follow this simple-first reading order:
 
@@ -132,6 +146,18 @@ The stable [`Nexus.Lifecycle`](Temporal/Feature/Nexus/Lifecycle.lean) and
 Their Target and Planning children are implementation reading for contributors who need the checked
 Umpire machinery, not extra steps in the newcomer path. For a separate example of direct expert
 `TransitionKernel` authoring, see [`Umpire.Examples.Switch`](Umpire/Examples/Switch.lean).
+
+The Switch and three ordinary Nexus operation walkthroughs deliberately retain both views: their
+checked happy paths use these semantic APIs, while nearby `*Result` declarations call the raw
+checkers so readers and tests can inspect typed failure behavior. Their authored `documentation`
+values remain part of the model rather than prose duplicated by the helpers.
+
+Below the walkthroughs, `Umpire.Core` owns canonical Definition ID ordering, duplicate selection,
+syntax validation, and source-path fallback. Property, Behavior, Query, and Observation remain the
+owners of their diagnostic types and error precedence. Behavior and Observation alone import the
+internal `Umpire.Shared.DefinitionGraph` analysis; it supplies deterministic node, edge, order, and
+cycle evidence, while each language decides when to consume it and which historical cycle witness
+to report. Ordinary authors import the language facades, not the graph module.
 
 `Temporal/Feature/` owns product-visible behavior, `Temporal/System/` owns configuration and other
 mechanisms, and `Temporal/Tool/Inspect.lean` owns the inspector registry. The ordinary
@@ -205,6 +231,12 @@ UTF-8 domain, one LF, and that document's exact deterministic-pretty bytes with 
 `artifactChecksum` field omitted; the ExperimentSpec preimage retains its already-sealed DrivePlan.
 Behavior Fingerprints identify checked meaning, provenance checksums bind exact provenance, and
 Artifact Checksums identify the complete persisted bytes; none substitutes for another.
+
+Within the Lean codec implementation, `Umpire.Json` owns the ordered `CanonicalJson` value and its
+compact, stable pretty, and exactly-one-terminal-LF renderers. Artifact and Planning modules still
+choose every field name, meaning, and order. `CanonicalJson` keeps that supplied order and reuses
+Lean's string escaping; it is not a parser, schema language, unordered object map, or second wire
+format. Model authors do not need to import it unless they own a codec.
 
 Runtime, Evidence, and Result documents preserve their phase-specific Limits and Known Gaps rather
 than turning exhaustion, unsupported interpretation, incomplete cleanup, or absent Evidence into a
@@ -333,6 +365,12 @@ between independently checked source and destination Targets, provide a forward-
 indexed by those exact inputs, and call `checkImplementationLink` once. The checked value canonically
 binds the two Target identities and Behavior Fingerprints, mapping version, support/Known Gap
 partition, obligations, and positive application Limit. Proof terms remain nonserialized.
+
+At the reusable core of that facade, `KernelMorphism` maps setup, state, Action, Model Outcome, and
+observation values and translates transition results, steps, and traces through the Core mapping
+combinators. `ForwardSimulation` adds only initial-state and step-preservation proofs and derives
+whole-trace preservation. Implementation Link—not that core—continues to own declaration indexing,
+coverage, Known Gaps, Limits, fingerprints, and every Link diagnostic.
 
 Application starts only after Observation Evaluation has accepted one complete System
 `EvidenceBackedTrace`. `applyImplementationLink` does not repeat Observation envelope admission. It
