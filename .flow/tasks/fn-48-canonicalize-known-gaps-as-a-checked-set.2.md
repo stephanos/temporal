@@ -36,6 +36,7 @@ baseline: focused gates green via handoff (verified at 34cabcc9 by fn-48-canonic
 verification environment: the exact Go gate passed after selecting `/usr/bin/clang` and a physical macOS `TMPDIR`, avoiding the inherited Lean-bundled Clang header lookup and `/var` symlink mismatch.
 
 stage: impl-review - ran [2026-09-03T06:26:32Z..2026-09-03T06:31:59Z] (Codex SHIP after one NEEDS_WORK fix loop)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 82c97e4bd98d0cbf234d35871c591acafd18082c, f9556add4cfd06f82b041c2ea976465b5821c6dc
 - Tests: cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Planning.Tests.Artifacts Umpire.Artifact.Tests.Set, cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Artifact.Tests.Codecs Umpire.Artifact.Tests.Runtime Umpire.Artifact.Tests.Evidence Umpire.Artifact.Tests.Result Temporal.Tool.RunEvaluationTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/runevaluation, make umpire-check-regression, make lint-model, make lint-code (waived inherited failure: exact 1,379 baseline findings; zero findings in tools/umpire/internal/artifactv2/artifact_test.go)
