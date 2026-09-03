@@ -220,27 +220,38 @@ theorem baseCoverage : ImplementationLinkRequiredCoverage baseDeclaration checke
 def baseWitness : ImplementationLinkWitness baseDeclaration checkedSourceTarget
     checkedDestinationTarget := {
   index := implementationLinkWitnessIndex baseDeclaration checkedSourceTarget checkedDestinationTarget
-  mapSetup := fun value => value
-  mapState := fun value => value
-  mapAction := fun value => value
-  mapOutcome := fun value => value
-  mapObservation := fun value => value
-  initialForward := by intro setup state admitted; exact admitted
-  stepForward := by
-    intro state action result admitted
-    simpa [checkedDestinationTarget] using admitted
+  forwardSimulation := {
+    morphism := {
+      mapSetup := fun value => value
+      mapState := fun value => value
+      mapAction := fun value => value
+      mapOutcome := fun value => value
+      mapObservation := fun value => value
+    }
+    initialForward := by intro setup state admitted; exact admitted
+    stepForward := by
+      intro state action result admitted
+      cases result
+      simpa [checkedDestinationTarget, KernelMorphism.mapTransitionResult,
+        TransitionResult.map] using admitted
+  }
   requiredCoverage := baseCoverage
 }
 
 def alternateProofWitness : ImplementationLinkWitness baseDeclaration checkedSourceTarget
     checkedDestinationTarget := {
   baseWitness with
-  initialForward := by
-    intro setup state admitted
-    simpa [baseWitness, checkedDestinationTarget] using admitted
-  stepForward := by
-    intro state action result admitted
-    simpa [baseWitness, checkedDestinationTarget] using admitted
+  forwardSimulation := {
+    baseWitness.forwardSimulation with
+    initialForward := by
+      intro setup state admitted
+      simpa [baseWitness, checkedDestinationTarget] using admitted
+    stepForward := by
+      intro state action result admitted
+      cases result
+      simpa [baseWitness, checkedDestinationTarget, KernelMorphism.mapTransitionResult,
+        TransitionResult.map] using admitted
+  }
 }
 
 def reorderedDeclaration :
@@ -271,15 +282,21 @@ def reorderedWitness : ImplementationLinkWitness reorderedDeclaration checkedSou
     checkedDestinationTarget := {
   index := implementationLinkWitnessIndex reorderedDeclaration checkedSourceTarget
     checkedDestinationTarget
-  mapSetup := fun value => value
-  mapState := fun value => value
-  mapAction := fun value => value
-  mapOutcome := fun value => value
-  mapObservation := fun value => value
-  initialForward := by intro setup state admitted; exact admitted
-  stepForward := by
-    intro state action result admitted
-    simpa [checkedDestinationTarget] using admitted
+  forwardSimulation := {
+    morphism := {
+      mapSetup := fun value => value
+      mapState := fun value => value
+      mapAction := fun value => value
+      mapOutcome := fun value => value
+      mapObservation := fun value => value
+    }
+    initialForward := by intro setup state admitted; exact admitted
+    stepForward := by
+      intro state action result admitted
+      cases result
+      simpa [checkedDestinationTarget, KernelMorphism.mapTransitionResult,
+        TransitionResult.map] using admitted
+  }
   requiredCoverage := reorderedCoverage
 }
 

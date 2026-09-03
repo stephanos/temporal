@@ -287,13 +287,20 @@ def linkWitness : ImplementationLinkWitness linkDeclaration Umpire.Examples.Swit
     Umpire.Examples.Switch.target := {
   index := implementationLinkWitnessIndex linkDeclaration Umpire.Examples.Switch.target
     Umpire.Examples.Switch.target
-  mapSetup := fun value => value
-  mapState := fun value => value
-  mapAction := fun value => value
-  mapOutcome := fun value => value
-  mapObservation := fun value => value
-  initialForward := by intro _ _ admitted; exact admitted
-  stepForward := by intro _ _ _ admitted; simpa using admitted
+  forwardSimulation := {
+    morphism := {
+      mapSetup := fun value => value
+      mapState := fun value => value
+      mapAction := fun value => value
+      mapOutcome := fun value => value
+      mapObservation := fun value => value
+    }
+    initialForward := by intro _ _ admitted; exact admitted
+    stepForward := by
+      intro _ _ result admitted
+      cases result
+      simpa [KernelMorphism.mapTransitionResult, TransitionResult.map] using admitted
+  }
   requiredCoverage := linkCoverage
 }
 
@@ -464,13 +471,7 @@ def limitedWitness : ImplementationLinkWitness limitedDeclaration Umpire.Example
     Umpire.Examples.Switch.target := {
   index := implementationLinkWitnessIndex limitedDeclaration Umpire.Examples.Switch.target
     Umpire.Examples.Switch.target
-  mapSetup := fun value => value
-  mapState := fun value => value
-  mapAction := fun value => value
-  mapOutcome := fun value => value
-  mapObservation := fun value => value
-  initialForward := by intro _ _ admitted; exact admitted
-  stepForward := by intro _ _ _ admitted; simpa using admitted
+  forwardSimulation := linkWitness.forwardSimulation
   requiredCoverage := limitedCoverage
 }
 
@@ -527,13 +528,7 @@ def gapWitness : ImplementationLinkWitness gapDeclaration Umpire.Examples.Switch
     Umpire.Examples.Switch.target := {
   index := implementationLinkWitnessIndex gapDeclaration Umpire.Examples.Switch.target
     Umpire.Examples.Switch.target
-  mapSetup := fun value => value
-  mapState := fun value => value
-  mapAction := fun value => value
-  mapOutcome := fun value => value
-  mapObservation := fun value => value
-  initialForward := by intro _ _ admitted; exact admitted
-  stepForward := by intro _ _ _ admitted; simpa using admitted
+  forwardSimulation := linkWitness.forwardSimulation
   requiredCoverage := gapCoverage
 }
 

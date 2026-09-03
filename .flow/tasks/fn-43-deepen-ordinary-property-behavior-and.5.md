@@ -7,8 +7,8 @@ satisfies: [R2, R5, R7]
 Extract the proof-bearing mapping core required by R5 from the duplicated witness and checked-link paths. Keep the abstraction closed over the current Umpire kernel types and responsibilities and consume Task 1's transition-result mapping.
 
 **Size:** M
-**Files:** `model/Umpire/ImplementationLink/Language.lean`, `model/Umpire/ImplementationLink/Application.lean`, `model/Umpire/ImplementationLink/Tests/Compilation.lean`, `model/Umpire/ImplementationLink/Tests/Application.lean`
-**Touches:** [model/Umpire/ImplementationLink/Language.lean, model/Umpire/ImplementationLink/Application.lean, model/Umpire/ImplementationLink/Tests/Compilation.lean, model/Umpire/ImplementationLink/Tests/Application.lean]
+**Files:** `model/Umpire/ImplementationLink/Language.lean`, `model/Umpire/ImplementationLink/Application.lean`, `model/Umpire/ImplementationLink/Tests/Compilation.lean`, `model/Umpire/ImplementationLink/Tests/Application.lean`, `model/Umpire/ImplementationLink/Tests/Fixtures.lean`, `model/Temporal/System/Nexus/ImplementationLink.lean`
+**Touches:** [model/Umpire/ImplementationLink/Language.lean, model/Umpire/ImplementationLink/Application.lean, model/Umpire/ImplementationLink/Tests/Compilation.lean, model/Umpire/ImplementationLink/Tests/Application.lean, model/Umpire/ImplementationLink/Tests/Fixtures.lean, model/Temporal/System/Nexus/ImplementationLink.lean]
 
 ### Approach
 - Identify the minimum shared `KernelMorphism`/`ForwardSimulation` data and laws already duplicated by witness and checked-link translation.
