@@ -51,18 +51,16 @@ def operationRole : ResourceRole := {
   valueKind := .state
 }
 
-def operationA : ModelValue := { definitionId := operationState, value := "operation-a" }
-def operationB : ModelValue := { definitionId := operationState, value := "operation-b" }
-def initial : ModelValue := { definitionId := phaseState, value := "started" }
-def cancelling : ModelValue := { definitionId := phaseState, value := "cancelling" }
-def closed : ModelValue := { definitionId := phaseState, value := "closed" }
+def operationA : ModelValue := ModelValue.named operationState "operation-a"
+def operationB : ModelValue := ModelValue.named operationState "operation-b"
+def initial : ModelValue := ModelValue.named phaseState "started"
+def cancelling : ModelValue := ModelValue.named phaseState "cancelling"
+def closed : ModelValue := ModelValue.named phaseState "closed"
 
-def actionValue (action : DefinitionId) : ModelValue := { definitionId := action, value := action.value }
-def outcomeValue (outcome : DefinitionId) : ModelValue := { definitionId := outcome, value := outcome.value }
-def observationValue (observation : DefinitionId) : ModelValue := {
-  definitionId := observation
-  value := observation.value
-}
+def actionValue (action : DefinitionId) : ModelValue := ModelValue.named action action.value
+def outcomeValue (outcome : DefinitionId) : ModelValue := ModelValue.named outcome outcome.value
+def observationValue (observation : DefinitionId) : ModelValue :=
+  ModelValue.named observation observation.value
 
 def cancelStep (outcome : DefinitionId) :
     ModelTraceStep ModelValue ModelValue ModelValue ModelValue := {
