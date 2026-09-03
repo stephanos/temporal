@@ -59,6 +59,7 @@ cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExper
 make umpire-check-regression
 make lint-model
 make lint-code
+GOLANGCI_LINT_BASE_REV=7d777dbdc8930d36a453bd3ed515e7d0a0ede77d GOLANGCI_LINT_FIX=false make lint-code
 ```
 
 ## Acceptance Criteria
@@ -69,7 +70,7 @@ make lint-code
 - **R3:** Space exposes focused constructors for ordinary baseline, bound-value, fault-selection, fault-axis, occurrence-fault, and seek-goal leaves, and the production Variation Space plus shared fixtures use them. Errors: baseline effects, empty choices, unknown roles/values/faults/occurrences/capabilities, incompatible faults, invalid minima, duplicates, and bounds retain current Space diagnostics.
 - **R4:** Implementation Link exposes explicit forward constructors for value and semantic mapping pairs, and a repository-wide inventory proves ordinary production mappings plus positive fixtures use them. Errors: missing, duplicate, ambiguous, wrong-kind, fingerprint-drifted, or uncovered mappings retain current Link diagnostics; constructors never perform lookup or checking, and deliberate mutation witnesses remain raw.
 - **R5:** Every constructor has a concise public docstring, a direct equivalence test, facade/import visibility where intended, and no implicit DSL machinery. Errors: a macro, notation, coercion, default semantic inference, callback, registration side effect, hidden checker, or parallel record type fails completion.
-- **R6:** Migrated declarations preserve names, comments, order, source provenance, checked identities, planner/Space/Link results, canonical JSON, artifacts, checksums, fingerprints, and generated views. Errors: eligible ordinary boilerplate remaining without a documented non-default reason, lost comment, identity/byte drift, warning, or lint failure blocks completion.
+- **R6:** Migrated declarations preserve names, comments, order, source provenance, checked identities, planner/Space/Link results, canonical JSON, artifacts, checksums, fingerprints, and generated views. The literal `make lint-code` gate MUST run. Its pre-edit branch-wide baseline of 1,379 golangci findings plus the existing `tools/umpire/runtime/errors.go:60:9` `errortype` finding is inherited only when the final run introduces no new or changed finding and reports no task Go path; the no-fix golangci phase scoped from `7d777dbdc8930d36a453bd3ed515e7d0a0ede77d` MUST report zero findings. Errors: eligible ordinary boilerplate remaining without a documented non-default reason, lost comment, identity/byte drift, warning, a new or changed lint finding, a task-path lint finding, or a nonzero scoped golangci finding blocks completion.
 
 ## Early proof point
 
