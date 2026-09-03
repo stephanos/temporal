@@ -41,45 +41,28 @@ def duplicateDeliveryObservationCoverageGoalId : DefinitionId :=
 def forceCloseOccurrenceId : DefinitionId :=
   id "workflow-nexus.occurrence.force-close"
 
-def deliveryBaselineChoice : ChoiceDeclaration := {
-  id := deliveryBaselineChoiceId
-  source
-  baseline := true
-}
+def deliveryBaselineChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.baselineChoice deliveryBaselineChoiceId source
 
-def duplicateDeliveryObservationChoice : ChoiceDeclaration := {
-  id := duplicateDeliveryObservationChoiceId
-  source
-  faults := [duplicateDeliveryObservationFaultId]
-}
+def duplicateDeliveryObservationChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.selectedFault duplicateDeliveryObservationChoiceId source
+    duplicateDeliveryObservationFaultId
 
-def cancellationDeliveryAxis : VariationAxisDeclaration := {
-  id := cancellationDeliveryAxisId
-  source
-  choices := [deliveryBaselineChoice, duplicateDeliveryObservationChoice]
-}
+def cancellationDeliveryAxis : VariationAxisDeclaration :=
+  VariationAxisDeclaration.faultAxis cancellationDeliveryAxisId source
+    [deliveryBaselineChoice, duplicateDeliveryObservationChoice]
 
-def duplicateDeliveryObservationFault : FaultIntentDeclaration := {
-  id := duplicateDeliveryObservationFaultId
-  source
-  occurrence := forceCloseOccurrenceId
-  action := forceCloseActionId
-  capability := cancellationCapabilityId
-}
+def duplicateDeliveryObservationFault : FaultIntentDeclaration :=
+  FaultIntentDeclaration.atOccurrence duplicateDeliveryObservationFaultId source
+    forceCloseOccurrenceId forceCloseActionId cancellationCapabilityId
 
-def deliveryBaselineCoverageGoal : CoverageGoalDeclaration := {
-  id := deliveryBaselineCoverageGoalId
-  source
-  subject := .axisChoice cancellationDeliveryAxisId deliveryBaselineChoiceId
-  minimum := 1
-}
+def deliveryBaselineCoverageGoal : CoverageGoalDeclaration :=
+  CoverageGoalDeclaration.seek deliveryBaselineCoverageGoalId source
+    (.axisChoice cancellationDeliveryAxisId deliveryBaselineChoiceId) 1
 
-def duplicateDeliveryObservationCoverageGoal : CoverageGoalDeclaration := {
-  id := duplicateDeliveryObservationCoverageGoalId
-  source
-  subject := .fault duplicateDeliveryObservationFaultId
-  minimum := 1
-}
+def duplicateDeliveryObservationCoverageGoal : CoverageGoalDeclaration :=
+  CoverageGoalDeclaration.seek duplicateDeliveryObservationCoverageGoalId source
+    (.fault duplicateDeliveryObservationFaultId) 1
 
 def declaration : ExperimentSpaceDeclaration := {
   id := spaceId

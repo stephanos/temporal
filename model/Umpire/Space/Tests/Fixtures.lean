@@ -30,29 +30,17 @@ def delayGoalId : DefinitionId := id "space.test.coverage.delay"
 def semanticGoalId : DefinitionId := id "space.test.coverage.power-state"
 def propertyGoalId : DefinitionId := id "space.test.coverage.property"
 
-def stateBaseline : ChoiceDeclaration := {
-  id := stateBaselineId
-  source
-  baseline := true
-}
+def stateBaseline : ChoiceDeclaration :=
+  ChoiceDeclaration.baselineChoice stateBaselineId source
 
-def stateOff : ChoiceDeclaration := {
-  id := stateOffId
-  source
-  binding := some Umpire.Examples.Switch.offState
-}
+def stateOff : ChoiceDeclaration :=
+  ChoiceDeclaration.boundValue stateOffId source Umpire.Examples.Switch.offState
 
-def faultBaseline : ChoiceDeclaration := {
-  id := faultBaselineId
-  source
-  baseline := true
-}
+def faultBaseline : ChoiceDeclaration :=
+  ChoiceDeclaration.baselineChoice faultBaselineId source
 
-def faultDelay : ChoiceDeclaration := {
-  id := faultDelayId
-  source
-  faults := [delayFaultId]
-}
+def faultDelay : ChoiceDeclaration :=
+  ChoiceDeclaration.selectedFault faultDelayId source delayFaultId
 
 def stateAxis : VariationAxisDeclaration := {
   id := stateAxisId
@@ -61,11 +49,8 @@ def stateAxis : VariationAxisDeclaration := {
   choices := [stateOff, stateBaseline]
 }
 
-def faultAxis : VariationAxisDeclaration := {
-  id := faultAxisId
-  source
-  choices := [faultDelay, faultBaseline]
-}
+def faultAxis : VariationAxisDeclaration :=
+  VariationAxisDeclaration.faultAxis faultAxisId source [faultDelay, faultBaseline]
 
 def delayFault : FaultIntentDeclaration := {
   id := delayFaultId
@@ -85,33 +70,19 @@ def failureFault : FaultIntentDeclaration := {
   incompatibleWith := [delayFaultId]
 }
 
-def stateGoal : CoverageGoalDeclaration := {
-  id := stateGoalId
-  source
-  subject := .axisChoice stateAxisId stateOffId
-  minimum := 2
-}
+def stateGoal : CoverageGoalDeclaration :=
+  CoverageGoalDeclaration.seek stateGoalId source (.axisChoice stateAxisId stateOffId) 2
 
-def delayGoal : CoverageGoalDeclaration := {
-  id := delayGoalId
-  source
-  subject := .fault delayFaultId
-  minimum := 2
-}
+def delayGoal : CoverageGoalDeclaration :=
+  CoverageGoalDeclaration.seek delayGoalId source (.fault delayFaultId) 2
 
-def semanticGoal : CoverageGoalDeclaration := {
-  id := semanticGoalId
-  source
-  subject := .state Umpire.Examples.Switch.powerStateId
-  minimum := 4
-}
+def semanticGoal : CoverageGoalDeclaration :=
+  CoverageGoalDeclaration.seek semanticGoalId source
+    (.state Umpire.Examples.Switch.powerStateId) 4
 
-def propertyGoal : CoverageGoalDeclaration := {
-  id := propertyGoalId
-  source
-  subject := .property Umpire.Examples.Switch.flipPropertyId
-  minimum := 4
-}
+def propertyGoal : CoverageGoalDeclaration :=
+  CoverageGoalDeclaration.seek propertyGoalId source
+    (.property Umpire.Examples.Switch.flipPropertyId) 4
 
 def declaration : ExperimentSpaceDeclaration := {
   id := spaceId

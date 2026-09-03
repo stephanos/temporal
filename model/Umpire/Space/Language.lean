@@ -15,6 +15,35 @@ structure ChoiceDeclaration where
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
+/-- Construct an effect-free baseline choice from an explicit identity and source. -/
+def ChoiceDeclaration.baselineChoice
+    (id : DefinitionId)
+    (source : SourceLocation) : ChoiceDeclaration := {
+  id
+  source
+  baseline := true
+}
+
+/-- Construct a choice that binds one explicit Model Value without validation or inference. -/
+def ChoiceDeclaration.boundValue
+    (id : DefinitionId)
+    (source : SourceLocation)
+    (value : ModelValue) : ChoiceDeclaration := {
+  id
+  source
+  binding := some value
+}
+
+/-- Construct a choice that selects one explicit fault without validation or inference. -/
+def ChoiceDeclaration.selectedFault
+    (id : DefinitionId)
+    (source : SourceLocation)
+    (fault : DefinitionId) : ChoiceDeclaration := {
+  id
+  source
+  faults := [fault]
+}
+
 /-- A finite authored dimension whose choices may bind one role and request declared faults. -/
 structure VariationAxisDeclaration where
   id : DefinitionId
@@ -24,6 +53,16 @@ structure VariationAxisDeclaration where
   choices : List ChoiceDeclaration
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
+
+/-- Construct a fault-only axis from explicit choices without validation or inference. -/
+def VariationAxisDeclaration.faultAxis
+    (id : DefinitionId)
+    (source : SourceLocation)
+    (choices : List ChoiceDeclaration) : VariationAxisDeclaration := {
+  id
+  source
+  choices
+}
 
 /-- A request-only fault attached to one required Behavior occurrence and target capability. -/
 structure FaultIntentDeclaration where
@@ -36,6 +75,19 @@ structure FaultIntentDeclaration where
   incompatibleWith : List DefinitionId := []
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
+
+/-- Construct a fault request at one explicit occurrence with no incompatibility declarations and
+without validation or inference. -/
+def FaultIntentDeclaration.atOccurrence
+    (id : DefinitionId)
+    (source : SourceLocation)
+    (occurrence action capability : DefinitionId) : FaultIntentDeclaration := {
+  id
+  source
+  occurrence
+  action
+  capability
+}
 
 /-- The closed semantic subject language for seek-only coverage goals. -/
 inductive CoverageSubject where
@@ -58,6 +110,19 @@ structure CoverageGoalDeclaration where
   minimum : Nat
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
+
+/-- Construct a seek-only coverage goal from an explicit subject and minimum without validation or
+inference. -/
+def CoverageGoalDeclaration.seek
+    (id : DefinitionId)
+    (source : SourceLocation)
+    (subject : CoverageSubject)
+    (minimum : Nat) : CoverageGoalDeclaration := {
+  id
+  source
+  subject
+  minimum
+}
 
 /-- One bounded authored Space over an existing checked Query. -/
 structure ExperimentSpaceDeclaration where

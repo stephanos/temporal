@@ -118,65 +118,38 @@ def queryResult : Except VariationSpacePreparationError (CheckedQuery LawStateme
     VariationSpacePreparationError.query
   pure (materializeQuery checked)
 
-def startBaselineChoice : ChoiceDeclaration := {
-  id := startBaselineChoiceId
-  source
-  baseline := true
-}
+def startBaselineChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.baselineChoice startBaselineChoiceId source
 
-def startDelayChoice : ChoiceDeclaration := {
-  id := startDelayChoiceId
-  source
-  faults := [startDelayFaultId]
-}
+def startDelayChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.selectedFault startDelayChoiceId source startDelayFaultId
 
-def completionBaselineChoice : ChoiceDeclaration := {
-  id := completionBaselineChoiceId
-  source
-  baseline := true
-}
+def completionBaselineChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.baselineChoice completionBaselineChoiceId source
 
-def completionHandlerFailureChoice : ChoiceDeclaration := {
-  id := completionHandlerFailureChoiceId
-  source
-  faults := [completionHandlerFailureFaultId]
-}
+def completionHandlerFailureChoice : ChoiceDeclaration :=
+  ChoiceDeclaration.selectedFault completionHandlerFailureChoiceId source
+    completionHandlerFailureFaultId
 
-def startFaultAxis : VariationAxisDeclaration := {
-  id := startFaultAxisId
-  source
-  choices := [startBaselineChoice, startDelayChoice]
-}
+def startFaultAxis : VariationAxisDeclaration :=
+  VariationAxisDeclaration.faultAxis startFaultAxisId source
+    [startBaselineChoice, startDelayChoice]
 
-def completionFaultAxis : VariationAxisDeclaration := {
-  id := completionFaultAxisId
-  source
-  choices := [completionBaselineChoice, completionHandlerFailureChoice]
-}
+def completionFaultAxis : VariationAxisDeclaration :=
+  VariationAxisDeclaration.faultAxis completionFaultAxisId source
+    [completionBaselineChoice, completionHandlerFailureChoice]
 
-def startDelayFault : FaultIntentDeclaration := {
-  id := startDelayFaultId
-  source
-  occurrence := startOccurrenceId
-  action := startActionId
-  capability := lifecycleCapabilityId
-}
+def startDelayFault : FaultIntentDeclaration :=
+  FaultIntentDeclaration.atOccurrence startDelayFaultId source startOccurrenceId startActionId
+    lifecycleCapabilityId
 
-def completionHandlerFailureFault : FaultIntentDeclaration := {
-  id := completionHandlerFailureFaultId
-  source
-  occurrence := successOccurrenceId
-  action := reportSuccessActionId
-  capability := lifecycleCapabilityId
-}
+def completionHandlerFailureFault : FaultIntentDeclaration :=
+  FaultIntentDeclaration.atOccurrence completionHandlerFailureFaultId source successOccurrenceId
+    reportSuccessActionId lifecycleCapabilityId
 
 private def coverageGoal
-    (goalId axisId choiceId : DefinitionId) : CoverageGoalDeclaration := {
-  id := goalId
-  source
-  subject := .axisChoice axisId choiceId
-  minimum := 2
-}
+    (goalId axisId choiceId : DefinitionId) : CoverageGoalDeclaration :=
+  CoverageGoalDeclaration.seek goalId source (.axisChoice axisId choiceId) 2
 
 def startBaselineCoverageGoal : CoverageGoalDeclaration :=
   coverageGoal startBaselineCoverageGoalId startFaultAxisId startBaselineChoiceId
