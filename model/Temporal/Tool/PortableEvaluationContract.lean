@@ -666,6 +666,294 @@ private def lowerCheckedTest
     provenance := if provenance.isEmpty then [source] else provenance
   }
 
+private def syntheticBinding (id : DefinitionId) (canonicalBehavior : String) : DefinitionBinding := {
+  definitionId := id
+  behaviorFingerprint := behaviorFingerprintOf canonicalBehavior
+}
+
+private def portableModelValue
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (definitions : List DefinitionMetadata)
+    (value : Umpire.ModelValue) : Except NonPortableError
+      Umpire.Artifact.PortableEvaluationContract.ModelValue := do
+  let some definition := definitions.find? fun candidate => candidate.id == value.definitionId
+    | nonPortable owner source ("missing-definition." ++ value.definitionId.value)
+  modelValue owner source definitions definition.kind value
+
+private def syntheticModelValue
+    (value : Umpire.ModelValue)
+    (kind : PortableDefinitionKind)
+    (semanticKind : String) : Umpire.Artifact.PortableEvaluationContract.ModelValue := {
+  definition := syntheticBinding value.definitionId
+    ("umpire-portable-" ++ semanticKind ++ "/v1:" ++ value.definitionId.value)
+  kind
+  value := .text value.value
+}
+
+private def portableRoleBinding
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (definitions : List DefinitionMetadata)
+    (binding : Umpire.RoleBinding) : Except NonPortableError PortableRoleBinding := do
+  pure {
+    role := syntheticBinding binding.role ("umpire-portable-role/v1:" ++ binding.role.value)
+    value := ← portableModelValue owner source definitions binding.value
+  }
+
+private def portableSymbolicRole (role : Umpire.ResourceRole) :
+    Except NonPortableError PortableSymbolicRole := do
+  pure {
+    definition := syntheticBinding role.id ("umpire-portable-role/v1:" ++ role.id.value)
+    kind := ← portableDefinitionKind role.id fallbackSource role.valueKind
+  }
+
+private def portableOperand
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (definitions : List DefinitionMetadata) : Umpire.SetupOperand →
+    Except NonPortableError ExecutionOperand
+  | .role id => pure (.role (syntheticBinding id ("umpire-portable-role/v1:" ++ id.value)))
+  | .value value => return .literal (← portableModelValue owner source definitions value)
+
+private def portablePrecondition
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (definitions : List DefinitionMetadata)
+    (precondition : Umpire.SetupConstraint) : Except NonPortableError ExecutionPrecondition := do
+  pure {
+    definition := syntheticBinding precondition.id
+      ("umpire-portable-precondition/v1:" ++ precondition.id.value)
+    operator := match precondition.relation with
+      | .equal => .equals
+      | .different => .notEquals
+    left := ← portableOperand owner source definitions precondition.left
+    right := ← portableOperand owner source definitions precondition.right
+  }
+
+private def portableOccurrence (occurrence : Umpire.PlannedOccurrence) :
+    Except NonPortableError PortablePlannedOccurrence := do
+  let some authoredDefinitionId := occurrence.authoredDefinitionId
+    | nonPortable occurrence.definitionId fallbackSource "occurrence.authored-definition"
+  pure {
+    definition := syntheticBinding occurrence.definitionId
+      ("umpire-portable-occurrence/v1:" ++ occurrence.definitionId.value)
+    actionDefinitionId := occurrence.actionDefinitionId
+    position := occurrence.position
+    authoredDefinitionId
+  }
+
+private def portableCheckpoint
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (definitions : List DefinitionMetadata)
+    (checkpoint : Umpire.ObservationCheckpoint) : Except NonPortableError
+      PortableExecutionCheckpoint := do
+  pure {
+    transition := checkpoint.transition
+    observations := ← checkpoint.observations.mapM (portableModelValue owner source definitions)
+  }
+
+private def portablePhaseLimit (limit : Umpire.PhaseLimit) : PortableExecutionPhaseLimit := {
+  phase := limit.phase
+  durationMilliseconds := limit.durationMilliseconds
+  maxAttempts := limit.maxAttempts
+  maxRecords := limit.maxRecords
+  maxBytes := limit.maxBytes
+}
+
+private def portableCapabilityBinding
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (link : RenameExactLink)
+    (id : DefinitionId) : Except NonPortableError DefinitionBinding :=
+  match link.definitionEntries.find? fun entry => entry.destination.definitionId == id with
+  | some entry => pure entry.destination
+  | none => nonPortable owner source ("missing-capability." ++ id.value)
+
+private def portableParticipant
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (link : RenameExactLink)
+    (participant : Umpire.ParticipantBinding) : Except NonPortableError
+      PortableParticipantBinding := do
+  pure {
+    participant := syntheticBinding participant.participantDefinitionId
+      ("umpire-portable-participant/v1:" ++ participant.participantDefinitionId.value)
+    protocol := syntheticBinding participant.protocolDefinitionId
+      ("umpire-portable-participant-protocol/v1:" ++ participant.protocolDefinitionId.value)
+    protocolVersion := participant.protocolVersion
+    program := {
+      definitionId := participant.programDefinitionId
+      behaviorFingerprint := participant.programBehaviorFingerprint
+    }
+    capabilities := ← participant.capabilityDefinitionIds.mapM
+      (portableCapabilityBinding owner source link)
+  }
+
+private def portableRuntimeProgram
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (link : RenameExactLink)
+    (runtimeConfiguration : RuntimeConfiguration)
+    (observation : ObservationProgram) : Except NonPortableError PortableRuntimeProgram := do
+  pure {
+    authorityProfile := {
+      definitionId := runtimeConfiguration.authorityProfile.definitionId
+      behaviorFingerprint := runtimeConfiguration.authorityProfile.behaviorFingerprint
+    }
+    config := {
+      definitionId := runtimeConfiguration.configurationDefinitionId
+      behaviorFingerprint := runtimeConfiguration.behaviorFingerprint
+    }
+    participantBindings := ← runtimeConfiguration.participantBindings.mapM
+      (portableParticipant owner source link)
+    observationConfig := {
+      profile := observation.profile.definition
+      program := observation.definition
+      mapping := observation.mapping
+    }
+    phaseLimits := runtimeConfiguration.phaseLimits.map portablePhaseLimit
+    termination := syntheticBinding (DefinitionId.of "umpire.execution.termination.complete")
+      "umpire-portable-termination-complete/v1"
+    cleanup := syntheticBinding (DefinitionId.of "umpire.execution.cleanup.complete")
+      "umpire-portable-cleanup-complete/v1"
+    authorityRequiredCapabilities := ←
+      runtimeConfiguration.authorityProfile.requiredCapabilityDefinitionIds.mapM
+        (portableCapabilityBinding owner source link)
+  }
+
+private def portableExecutionProgram
+    (experiment : ExperimentSpec)
+    (runtimeConfiguration : RuntimeConfiguration)
+    (contract : Contract) : Except NonPortableError PortableExecutionProgram := do
+  let owner := experiment.plan.queryDefinitionId
+  let source := experiment.provenance.sourceLocations.getD 0 fallbackSource
+  let definitions := Temporal.Feature.Nexus.Experimental.CallerClosure.target.definitions
+  pure {
+    setup := syntheticBinding (DefinitionId.of (owner.value ++ ".setup"))
+      ("umpire-portable-setup/v1:" ++ experiment.plan.artifactChecksum.render)
+    query := contract.query
+    behavior := {
+      definitionId := experiment.plan.behaviorDefinitionId
+      behaviorFingerprint := experiment.plan.behaviorFingerprint
+    }
+    target := {
+      definitionId := experiment.plan.targetDefinitionId
+      behaviorFingerprint := experiment.plan.targetBehaviorFingerprint
+    }
+    kernel := {
+      definitionId := experiment.plan.kernelDefinitionId
+      behaviorFingerprint := experiment.plan.kernelBehaviorFingerprint
+    }
+    roleBindings := ← experiment.plan.bindings.mapM (portableRoleBinding owner source definitions)
+    symbolicRoles := ← experiment.plan.symbolicRoles.mapM portableSymbolicRole
+    runtimeBindingSlots := []
+    preconditions := ← experiment.plan.modelPreconditions.mapM
+      (portablePrecondition owner source definitions)
+    initialState := ← portableModelValue owner source definitions experiment.plan.initialState
+    requestedActions := ← experiment.plan.requestedActions.mapM
+      (portableModelValue owner source definitions)
+    modelOutcomes := ← experiment.plan.modelOutcomes.mapM
+      (portableModelValue owner source definitions)
+    resultingStates := ← experiment.plan.resultingStates.mapM
+      (portableModelValue owner source definitions)
+    occurrences := ← experiment.plan.linearExtension.mapM portableOccurrence
+    selectedChoices := experiment.plan.selectedChoices.map fun value =>
+      syntheticModelValue value .relation "selected-choice"
+    selectedVariants := experiment.plan.selectedVariants.map fun value =>
+      syntheticModelValue value .relation "selected-variant"
+    requestedFaults := experiment.plan.requestedFaults.map fun value =>
+      syntheticModelValue value .action "requested-fault"
+    capabilityRequirements := ← experiment.plan.capabilityRequirementDefinitionIds.mapM
+      (portableCapabilityBinding owner source contract.implementationLink)
+    checkpoints := ← experiment.plan.checkpoints.mapM
+      (portableCheckpoint owner source definitions)
+    runtime := ← portableRuntimeProgram owner source contract.implementationLink
+      runtimeConfiguration contract.observation
+  }
+
+private def portablePlanLimits
+    (contract : Contract)
+    (runtimeConfiguration : RuntimeConfiguration) : PortableTestPlanLimits :=
+  let maximumPhaseRecords := runtimeConfiguration.phaseLimits.foldl
+    (fun maximum limit => Nat.max maximum limit.maxRecords) 1
+  {
+  structural := {
+    maxPlanBytes := 1024 * 1024
+    maxNestingDepth := 256
+    maxCollectionItems := 10000
+    maxOperatorCount := 100000
+  }
+  execution := {
+    maxActions := 1
+    maxFaults := 1
+    maxPhaseAttempts := runtimeConfiguration.phaseLimits.foldl
+      (fun maximum limit => Nat.max maximum limit.maxAttempts) 1
+    maxPhaseDurationMilliseconds := runtimeConfiguration.phaseLimits.foldl
+      (fun maximum limit => Nat.max maximum limit.durationMilliseconds) 1
+    maxTotalDurationMilliseconds := runtimeConfiguration.phaseLimits.foldl
+      (fun total limit => total + limit.durationMilliseconds) 0
+  }
+  evidence := {
+    maxRecords := Nat.max contract.limits.maxEvidenceRecords maximumPhaseRecords
+    maxBytes := contract.limits.maxInputBytes
+    maxSources := Nat.max contract.observation.profile.sources.length 1
+  }
+  evaluation := {
+    maxExpressionDepth := contract.limits.maxExpressionDepth
+    maxNatural := contract.limits.maxNatural
+    maxWork := contract.limits.maxEvaluationWork
+  }
+  output := {
+    maxDiagnosticBytes := contract.limits.maxDiagnosticBytes
+    maxResultBytes := contract.limits.maxResultBytes
+  }
+}
+
+private def compilerContract : DefinitionBinding :=
+  syntheticBinding (DefinitionId.of "umpire.compiler.portable-test-plan.v1")
+    "umpire-compiler-portable-test-plan/v1"
+
+private def lowerPortableTestPlan
+    (experiment : ExperimentSpec)
+    (runtimeConfiguration : RuntimeConfiguration)
+    (contract : Contract) : Except NonPortableError PortableTestPlan := do
+  let execution ← portableExecutionProgram experiment runtimeConfiguration contract
+  pure {
+    planId := DefinitionId.of (experiment.plan.queryDefinitionId.value ++ ".portable-test-plan")
+    modelCompiled := {
+      test := contract.test
+      query := contract.query
+      experiment := experiment.artifactBinding
+      runtimeConfig := runtimeConfiguration.artifactBinding
+      properties := contract.properties.map Property.definition
+      compilerContract
+      sources := contract.provenance
+    }
+    execution
+    verification := {
+      evidence := contract.observation.profile
+      observation := contract.observation
+      traceProjection := .renameExactLink contract.implementationLink
+      properties := contract.properties
+    }
+    limits := portablePlanLimits contract runtimeConfiguration
+    knownGaps := contract.knownGaps
+    externalObligations := []
+  }
+
+private def requiredObligationFrom
+    (plan : PortableTestPlan)
+    (failure : NonPortableError) : ExternalVerificationObligation := {
+  definition := syntheticBinding
+    (DefinitionId.of (plan.planId.value ++ ".external-obligation.1"))
+    ("umpire-portable-required-obligation/v1:" ++ failure.construct)
+  kind := .required
+  source := failure.source
+  statement := "A separately trusted verifier must check " ++ failure.construct ++ "."
+}
+
 private def normalRuntimeConfiguration : RuntimeConfiguration :=
   Temporal.System.Execution.Nexus.runtimeConfigurationFor
     Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
@@ -690,6 +978,37 @@ def duplicateContract : Except NonPortableError Contract :=
     Temporal.System.Nexus.Observation.DuplicateDelivery.checkedPlan
     Temporal.System.Execution.Nexus.duplicateDeliveryObservationProgramDefinition
 
+/-- The ordinary caller-closure checked Test compiled into the shared PortableTestPlan vocabulary. -/
+def normalPortablePlan : Except NonPortableError PortableTestPlan := do
+  let contract ← normalContract
+  lowerPortableTestPlan
+    Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
+    normalRuntimeConfiguration
+    contract
+
+/-- The duplicate-delivery negative control compiled into the same PortableTestPlan vocabulary. -/
+def duplicatePortablePlan : Except NonPortableError PortableTestPlan := do
+  let contract ← duplicateContract
+  lowerPortableTestPlan
+    Temporal.Tool.RunEvaluation.Protocol.expectedDuplicateDeliveryExperiment
+    duplicateRuntimeConfiguration
+    contract
+
+/-- A compiler fixture proving that an unsupported check remains a required external obligation. -/
+def requiredObligationPortablePlan : Except NonPortableError PortableTestPlan := do
+  let plan ← normalPortablePlan
+  let source : SourceLocation := {
+    path := "Temporal/Tool/PortableEvaluationContractTests.lean"
+    line := 1
+    column := 1
+    provenance := "lean-model"
+  }
+  let failure ← match lowerObservationExpression
+      (DefinitionId.of "umpire.test.unsupported-portable-check") source (.boolean true) with
+    | .error failure => pure failure
+    | .ok _ => nonPortable plan.planId source "expected-unsupported-check"
+  pure { plan with externalObligations := [requiredObligationFrom plan failure] }
+
 /-- Canonical ProtoJSON bytes for the ordinary checked caller-closure Test. -/
 def normalContractProtoJSON : Except NonPortableError String :=
   normalContract.map canonicalProtoJSON
@@ -697,5 +1016,17 @@ def normalContractProtoJSON : Except NonPortableError String :=
 /-- Canonical ProtoJSON bytes for the checked duplicate-delivery negative control. -/
 def duplicateContractProtoJSON : Except NonPortableError String :=
   duplicateContract.map canonicalProtoJSON
+
+/-- Canonical ProtoJSON for the ordinary model-compiled PortableTestPlan preimage. -/
+def normalPortablePlanProtoJSON : Except NonPortableError String :=
+  normalPortablePlan.map canonicalPortableTestPlanProtoJSON
+
+/-- Canonical ProtoJSON for the duplicate-delivery model-compiled PortableTestPlan preimage. -/
+def duplicatePortablePlanProtoJSON : Except NonPortableError String :=
+  duplicatePortablePlan.map canonicalPortableTestPlanProtoJSON
+
+/-- Canonical ProtoJSON retaining one unsupported check as a required obligation. -/
+def requiredObligationPortablePlanProtoJSON : Except NonPortableError String :=
+  requiredObligationPortablePlan.map canonicalPortableTestPlanProtoJSON
 
 end Temporal.Tool.PortableEvaluationContract

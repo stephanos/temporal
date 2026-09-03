@@ -84,6 +84,104 @@ private def duplicateBytesExact : Bool :=
 example : duplicateBytesExact = true := by
   native_decide
 
+private theorem normalPortablePlan_isSome : normalPortablePlan.toOption.isSome = true := by
+  native_decide
+
+private def normalPlan : PortableTestPlan :=
+  normalPortablePlan.toOption.get normalPortablePlan_isSome
+
+private theorem duplicatePortablePlan_isSome : duplicatePortablePlan.toOption.isSome = true := by
+  native_decide
+
+private def duplicatePlan : PortableTestPlan :=
+  duplicatePortablePlan.toOption.get duplicatePortablePlan_isSome
+
+private theorem requiredObligationPortablePlan_isSome :
+    requiredObligationPortablePlan.toOption.isSome = true := by
+  native_decide
+
+private def obligationPlan : PortableTestPlan :=
+  requiredObligationPortablePlan.toOption.get requiredObligationPortablePlan_isSome
+
+example :
+    normalPlan.modelCompiled.experiment =
+      Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact.artifactBinding ∧
+    normalPlan.modelCompiled.runtimeConfig =
+      (Temporal.System.Execution.Nexus.runtimeConfigurationFor
+        Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact).artifactBinding ∧
+    normalPlan.modelCompiled.query = normalPlan.execution.query ∧
+    normalPlan.verification.properties = normal.properties := by
+  native_decide
+
+example :
+    normalPlan.execution.requestedActions.length = 1 ∧
+    normalPlan.execution.modelOutcomes.length = 1 ∧
+    normalPlan.execution.resultingStates.length = 1 ∧
+    normalPlan.execution.occurrences.length = 1 ∧
+    duplicatePlan.execution.selectedChoices.length = 1 ∧
+    duplicatePlan.execution.requestedFaults.length = 1 := by
+  native_decide
+
+private def requiredObligationRetained : Bool :=
+  match obligationPlan.externalObligations with
+  | [obligation] =>
+      obligation.kind == .required &&
+        obligation.source.path == "Temporal/Tool/PortableEvaluationContractTests.lean"
+  | _ => false
+
+example :
+    normalPlan.modelCompiled.compilerContract.definitionId =
+      DefinitionId.of "umpire.compiler.portable-test-plan.v1" ∧
+    normalPlan.externalObligations.isEmpty = true ∧
+    requiredObligationRetained = true := by
+  native_decide
+
+private def portablePlanBindingMutation : PortableTestPlan := {
+  normalPlan with
+  execution := {
+    normalPlan.execution with
+    query := {
+      normalPlan.execution.query with
+      behaviorFingerprint := behaviorFingerprintOf "mutation.portable-plan.query"
+    }
+  }
+}
+
+private def portablePlanSourceMutation : PortableTestPlan := {
+  normalPlan with
+  modelCompiled := {
+    normalPlan.modelCompiled with
+    sources := [{ path := "Mutation.lean", line := 1, column := 1, provenance := "mutation" }]
+  }
+}
+
+private def portablePlanObligationMutation : PortableTestPlan := {
+  normalPlan with externalObligations := obligationPlan.externalObligations
+}
+
+example :
+    [portablePlanBindingMutation, portablePlanSourceMutation, portablePlanObligationMutation].all
+      (fun mutated =>
+        canonicalPortableTestPlanProtoJSON mutated !=
+          canonicalPortableTestPlanProtoJSON normalPlan) = true := by
+  native_decide
+
+private def normalPortablePlanBytesExact : Bool :=
+  match normalPortablePlanProtoJSON with
+  | .ok bytes => bytes == canonicalPortableTestPlanProtoJSON normalPlan
+  | .error _ => false
+
+example : normalPortablePlanBytesExact = true := by
+  native_decide
+
+private def duplicatePortablePlanBytesExact : Bool :=
+  match duplicatePortablePlanProtoJSON with
+  | .ok bytes => bytes == canonicalPortableTestPlanProtoJSON duplicatePlan
+  | .error _ => false
+
+example : duplicatePortablePlanBytesExact = true := by
+  native_decide
+
 example : canonicalProtoJSON normal != canonicalProtoJSON duplicate := by
   native_decide
 
@@ -513,8 +611,14 @@ def main (args : List String) : IO UInt32 := do
         pure Temporal.Tool.PortableEvaluationContractTests.anyOperatorContractProtoJSON
     | ["operator-branches"] =>
         pure (.ok Temporal.Tool.PortableEvaluationContractTests.operatorBranchOracleJSON)
+    | ["portable-test-plan", "normal"] =>
+        pure Temporal.Tool.PortableEvaluationContract.normalPortablePlanProtoJSON
+    | ["portable-test-plan", "duplicate-delivery"] =>
+        pure Temporal.Tool.PortableEvaluationContract.duplicatePortablePlanProtoJSON
+    | ["portable-test-plan", "required-obligation"] =>
+        pure Temporal.Tool.PortableEvaluationContract.requiredObligationPortablePlanProtoJSON
     | _ =>
-        IO.eprintln "expected normal, duplicate-delivery, any-operator, or operator-branches"
+        IO.eprintln "expected a contract, oracle, or portable-test-plan fixture"
         return 2
   match contract with
   | .ok encoded =>

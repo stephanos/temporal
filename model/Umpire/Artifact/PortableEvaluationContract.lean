@@ -280,6 +280,218 @@ structure Contract where
   provenance : List SourceLocation
   deriving BEq, Repr
 
+/-- The closed comparison operators available to portable setup preconditions. -/
+inductive PreconditionOperator where
+  | equals
+  | notEquals
+  deriving BEq, DecidableEq, Repr
+
+/-- One literal or declared role used by a portable setup precondition. -/
+inductive ExecutionOperand where
+  | literal (value : ModelValue)
+  | role (definition : DefinitionBinding)
+  | runtimeBindingSlot (definition : DefinitionBinding)
+  deriving BEq, Repr
+
+/-- One typed equality or inequality required before portable execution. -/
+structure ExecutionPrecondition where
+  definition : DefinitionBinding
+  operator : PreconditionOperator
+  left : ExecutionOperand
+  right : ExecutionOperand
+  deriving BEq, Repr
+
+/-- One checked role and the model value selected for it. -/
+structure PortableRoleBinding where
+  role : DefinitionBinding
+  value : ModelValue
+  deriving BEq, Repr
+
+/-- One role intentionally left symbolic in the portable plan. -/
+structure PortableSymbolicRole where
+  definition : DefinitionBinding
+  kind : PortableDefinitionKind
+  deriving BEq, Repr
+
+/-- One runtime-filled value slot declared by the model compiler. -/
+structure RuntimeBindingSlot where
+  definition : DefinitionBinding
+  valueKind : ObservationValueType
+  deriving BEq, Repr
+
+/-- One exact occurrence in the selected linear extension. -/
+structure PortablePlannedOccurrence where
+  definition : DefinitionBinding
+  actionDefinitionId : DefinitionId
+  position : Nat
+  authoredDefinitionId : DefinitionId
+  deriving BEq, Repr
+
+/-- Expected model observations at one selected transition. -/
+structure PortableExecutionCheckpoint where
+  transition : Nat
+  observations : List ModelValue
+  deriving BEq, Repr
+
+/-- Runtime bounds for one of the five closed execution phases. -/
+structure PortableExecutionPhaseLimit where
+  phase : Umpire.ExecutionPhase
+  durationMilliseconds : Nat
+  maxAttempts : Nat
+  maxRecords : Nat
+  maxBytes : Nat
+  deriving BEq, Repr
+
+/-- One participant program and its exact protocol and capability bindings. -/
+structure PortableParticipantBinding where
+  participant : DefinitionBinding
+  protocol : DefinitionBinding
+  protocolVersion : Nat
+  program : DefinitionBinding
+  capabilities : List DefinitionBinding
+  deriving BEq, Repr
+
+/-- Runtime bindings for the portable evidence profile, Observation, and mapping. -/
+structure PortableObservationConfig where
+  profile : DefinitionBinding
+  program : DefinitionBinding
+  mapping : DefinitionBinding
+  deriving BEq, Repr
+
+/-- The fixed runtime program selected by one model-compiled plan. -/
+structure PortableRuntimeProgram where
+  authorityProfile : DefinitionBinding
+  config : DefinitionBinding
+  participantBindings : List PortableParticipantBinding
+  observationConfig : PortableObservationConfig
+  phaseLimits : List PortableExecutionPhaseLimit
+  termination : DefinitionBinding
+  cleanup : DefinitionBinding
+  authorityRequiredCapabilities : List DefinitionBinding
+  deriving BEq, Repr
+
+/-- The complete selected execution program, without environment coordinates or credentials. -/
+structure PortableExecutionProgram where
+  setup : DefinitionBinding
+  query : DefinitionBinding
+  behavior : DefinitionBinding
+  target : DefinitionBinding
+  kernel : DefinitionBinding
+  roleBindings : List PortableRoleBinding
+  symbolicRoles : List PortableSymbolicRole
+  runtimeBindingSlots : List RuntimeBindingSlot
+  preconditions : List ExecutionPrecondition
+  initialState : ModelValue
+  requestedActions : List ModelValue
+  modelOutcomes : List ModelValue
+  resultingStates : List ModelValue
+  occurrences : List PortablePlannedOccurrence
+  selectedChoices : List ModelValue
+  selectedVariants : List ModelValue
+  requestedFaults : List ModelValue
+  capabilityRequirements : List DefinitionBinding
+  checkpoints : List PortableExecutionCheckpoint
+  runtime : PortableRuntimeProgram
+  deriving BEq, Repr
+
+/-- The two explicit trace projections admitted by the portable evaluator. -/
+inductive TraceProjection where
+  | directPlanTrace
+  | renameExactLink (link : RenameExactLink)
+  deriving BEq, Repr
+
+/-- The exact finite verification program bundled with one portable execution. -/
+structure PortableVerificationProgram where
+  evidence : EvidenceProfile
+  observation : ObservationProgram
+  traceProjection : TraceProjection
+  properties : List Property
+  deriving BEq, Repr
+
+/-- Structural resource limits for decoding one portable plan. -/
+structure StructuralLimits where
+  maxPlanBytes : Nat
+  maxNestingDepth : Nat
+  maxCollectionItems : Nat
+  maxOperatorCount : Nat
+  deriving BEq, Repr
+
+/-- Resource limits for one bounded execution. -/
+structure ExecutionLimits where
+  maxActions : Nat
+  maxFaults : Nat
+  maxPhaseAttempts : Nat
+  maxPhaseDurationMilliseconds : Nat
+  maxTotalDurationMilliseconds : Nat
+  deriving BEq, Repr
+
+/-- Resource limits for the collected Evidence. -/
+structure EvidenceLimits where
+  maxRecords : Nat
+  maxBytes : Nat
+  maxSources : Nat
+  deriving BEq, Repr
+
+/-- Resource limits for portable Observation and Property evaluation. -/
+structure PortableEvaluationLimits where
+  maxExpressionDepth : Nat
+  maxNatural : Nat
+  maxWork : Nat
+  deriving BEq, Repr
+
+/-- Resource limits for diagnostics and the complete typed result. -/
+structure OutputLimits where
+  maxDiagnosticBytes : Nat
+  maxResultBytes : Nat
+  deriving BEq, Repr
+
+/-- Independent resource ceilings for every portable plan stage. -/
+structure PortableTestPlanLimits where
+  structural : StructuralLimits
+  execution : ExecutionLimits
+  evidence : EvidenceLimits
+  evaluation : PortableEvaluationLimits
+  output : OutputLimits
+  deriving BEq, Repr
+
+/-- Whether an external verifier is required for complete model-bound success. -/
+inductive ExternalVerificationObligationKind where
+  | required
+  | advisory
+  deriving BEq, DecidableEq, Repr
+
+/-- One unsupported check retained for a separately trusted verifier. -/
+structure ExternalVerificationObligation where
+  definition : DefinitionBinding
+  kind : ExternalVerificationObligationKind
+  source : SourceLocation
+  statement : String
+  deriving BEq, Repr
+
+/-- The exact independently verifiable identity of a model compiler output. -/
+structure ModelCompiledPlanProvenance where
+  test : DefinitionBinding
+  query : DefinitionBinding
+  experiment : Umpire.ArtifactBinding
+  runtimeConfig : Umpire.ArtifactBinding
+  properties : List DefinitionBinding
+  compilerContract : DefinitionBinding
+  sources : List SourceLocation
+  deriving BEq, Repr
+
+/-- One model-compiled instance of the caller-neutral PortableTestPlan protobuf. -/
+structure PortableTestPlan where
+  versionMajor : Nat := 1
+  versionMinor : Nat := 0
+  planId : DefinitionId
+  modelCompiled : ModelCompiledPlanProvenance
+  execution : PortableExecutionProgram
+  verification : PortableVerificationProgram
+  limits : PortableTestPlanLimits
+  knownGaps : List KnownGap
+  externalObligations : List ExternalVerificationObligation
+  deriving BEq, Repr
+
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
 private def array (items : List String) : String :=
@@ -520,5 +732,200 @@ def canonicalProtoJSON (contract : Contract) : String :=
       optionalField "properties" contract.properties (array ∘ List.map propertyJson) ++
       optionalField "knownGaps" contract.knownGaps (array ∘ List.map knownGapJson) ++
       optionalField "provenance" contract.provenance (array ∘ List.map sourceJson) ++ "}"
+
+private def PortableDefinitionKind.portableProtoName : PortableDefinitionKind → String
+  | .setup => "PORTABLE_DEFINITION_KIND_SETUP"
+  | .state => "PORTABLE_DEFINITION_KIND_STATE"
+  | .action => "PORTABLE_DEFINITION_KIND_ACTION"
+  | .outcome => "PORTABLE_DEFINITION_KIND_OUTCOME"
+  | .observation => "PORTABLE_DEFINITION_KIND_OBSERVATION"
+  | .relation => "PORTABLE_DEFINITION_KIND_RELATION"
+  | .capability => "PORTABLE_DEFINITION_KIND_CAPABILITY"
+
+private def portableModelValueJson (value : ModelValue) : String :=
+  "{\"definition\":" ++ definitionBindingJson value.definition ++
+    ",\"kind\":" ++ quote value.kind.portableProtoName ++
+    ",\"value\":" ++ valueJson value.value ++ "}"
+
+private def PreconditionOperator.protoName : PreconditionOperator → String
+  | .equals => "PRECONDITION_OPERATOR_EQUALS"
+  | .notEquals => "PRECONDITION_OPERATOR_NOT_EQUALS"
+
+private def executionOperandJson : ExecutionOperand → String
+  | .literal value => "{\"literal\":" ++ portableModelValueJson value ++ "}"
+  | .role definition => "{\"role\":" ++ definitionBindingJson definition ++ "}"
+  | .runtimeBindingSlot definition =>
+      "{\"runtimeBindingSlot\":" ++ definitionBindingJson definition ++ "}"
+
+private def executionPreconditionJson (precondition : ExecutionPrecondition) : String :=
+  "{\"definition\":" ++ definitionBindingJson precondition.definition ++
+    ",\"operator\":" ++ quote precondition.operator.protoName ++
+    ",\"left\":" ++ executionOperandJson precondition.left ++
+    ",\"right\":" ++ executionOperandJson precondition.right ++ "}"
+
+private def portableRoleBindingJson (binding : PortableRoleBinding) : String :=
+  "{\"role\":" ++ definitionBindingJson binding.role ++
+    ",\"value\":" ++ portableModelValueJson binding.value ++ "}"
+
+private def portableSymbolicRoleJson (role : PortableSymbolicRole) : String :=
+  "{\"definition\":" ++ definitionBindingJson role.definition ++
+    ",\"kind\":" ++ quote role.kind.portableProtoName ++ "}"
+
+private def portableValueKindName : ObservationValueType → String
+  | .text => "PORTABLE_VALUE_KIND_TEXT"
+  | .natural => "PORTABLE_VALUE_KIND_NATURAL"
+  | .boolean => "PORTABLE_VALUE_KIND_BOOLEAN"
+
+private def runtimeBindingSlotJson (slot : RuntimeBindingSlot) : String :=
+  "{\"definition\":" ++ definitionBindingJson slot.definition ++
+    ",\"valueKind\":" ++ quote (portableValueKindName slot.valueKind) ++ "}"
+
+private def plannedOccurrenceJson (occurrence : PortablePlannedOccurrence) : String :=
+  "{\"definition\":" ++ definitionBindingJson occurrence.definition ++
+    ",\"actionDefinitionId\":" ++ quote occurrence.actionDefinitionId.value ++
+    ",\"position\":" ++ quote (toString occurrence.position) ++
+    ",\"authoredDefinitionId\":" ++ quote occurrence.authoredDefinitionId.value ++ "}"
+
+private def executionCheckpointJson (checkpoint : PortableExecutionCheckpoint) : String :=
+  "{\"transition\":" ++ quote (toString checkpoint.transition) ++
+    optionalField "observations" checkpoint.observations
+      (array ∘ List.map portableModelValueJson) ++ "}"
+
+private def executionPhaseProtoName : Umpire.ExecutionPhase → String
+  | .preparation => "EXECUTION_PHASE_PREPARATION"
+  | .realization => "EXECUTION_PHASE_REALIZATION"
+  | .observation => "EXECUTION_PHASE_OBSERVATION"
+  | .isolation => "EXECUTION_PHASE_ISOLATION"
+  | .cleanup => "EXECUTION_PHASE_CLEANUP"
+
+private def executionPhaseLimitJson (limit : PortableExecutionPhaseLimit) : String :=
+  "{\"phase\":" ++ quote (executionPhaseProtoName limit.phase) ++
+    ",\"durationMilliseconds\":" ++ quote (toString limit.durationMilliseconds) ++
+    ",\"maxAttempts\":" ++ quote (toString limit.maxAttempts) ++
+    ",\"maxRecords\":" ++ quote (toString limit.maxRecords) ++
+    ",\"maxBytes\":" ++ quote (toString limit.maxBytes) ++ "}"
+
+private def participantBindingJson (participant : PortableParticipantBinding) : String :=
+  "{\"participant\":" ++ definitionBindingJson participant.participant ++
+    ",\"protocol\":" ++ definitionBindingJson participant.protocol ++
+    ",\"protocolVersion\":" ++ quote (toString participant.protocolVersion) ++
+    ",\"program\":" ++ definitionBindingJson participant.program ++
+    optionalField "capabilities" participant.capabilities
+      (array ∘ List.map definitionBindingJson) ++ "}"
+
+private def observationConfigJson (config : PortableObservationConfig) : String :=
+  "{\"profile\":" ++ definitionBindingJson config.profile ++
+    ",\"program\":" ++ definitionBindingJson config.program ++
+    ",\"mapping\":" ++ definitionBindingJson config.mapping ++ "}"
+
+private def runtimeProgramJson (runtime : PortableRuntimeProgram) : String :=
+  "{\"authorityProfile\":" ++ definitionBindingJson runtime.authorityProfile ++
+    ",\"config\":" ++ definitionBindingJson runtime.config ++
+    optionalField "participantBindings" runtime.participantBindings
+      (array ∘ List.map participantBindingJson) ++
+    ",\"observationConfig\":" ++ observationConfigJson runtime.observationConfig ++
+    optionalField "phaseLimits" runtime.phaseLimits (array ∘ List.map executionPhaseLimitJson) ++
+    ",\"termination\":{\"definition\":" ++ definitionBindingJson runtime.termination ++ "}" ++
+    ",\"cleanup\":{\"definition\":" ++ definitionBindingJson runtime.cleanup ++ "}" ++
+    optionalField "authorityRequiredCapabilities" runtime.authorityRequiredCapabilities
+      (array ∘ List.map definitionBindingJson) ++ "}"
+
+private def executionProgramJson (execution : PortableExecutionProgram) : String :=
+  "{\"setup\":" ++ definitionBindingJson execution.setup ++
+    ",\"query\":" ++ definitionBindingJson execution.query ++
+    ",\"behavior\":" ++ definitionBindingJson execution.behavior ++
+    ",\"target\":" ++ definitionBindingJson execution.target ++
+    ",\"kernel\":" ++ definitionBindingJson execution.kernel ++
+    optionalField "roleBindings" execution.roleBindings (array ∘ List.map portableRoleBindingJson) ++
+    optionalField "symbolicRoles" execution.symbolicRoles (array ∘ List.map portableSymbolicRoleJson) ++
+    optionalField "runtimeBindingSlots" execution.runtimeBindingSlots
+      (array ∘ List.map runtimeBindingSlotJson) ++
+    optionalField "preconditions" execution.preconditions
+      (array ∘ List.map executionPreconditionJson) ++
+    ",\"initialState\":" ++ portableModelValueJson execution.initialState ++
+    optionalField "requestedActions" execution.requestedActions
+      (array ∘ List.map portableModelValueJson) ++
+    optionalField "modelOutcomes" execution.modelOutcomes
+      (array ∘ List.map portableModelValueJson) ++
+    optionalField "resultingStates" execution.resultingStates
+      (array ∘ List.map portableModelValueJson) ++
+    optionalField "occurrences" execution.occurrences (array ∘ List.map plannedOccurrenceJson) ++
+    optionalField "selectedChoices" execution.selectedChoices
+      (array ∘ List.map portableModelValueJson) ++
+    optionalField "selectedVariants" execution.selectedVariants
+      (array ∘ List.map portableModelValueJson) ++
+    optionalField "requestedFaults" execution.requestedFaults
+      (array ∘ List.map portableModelValueJson) ++
+    optionalField "capabilityRequirements" execution.capabilityRequirements
+      (array ∘ List.map definitionBindingJson) ++
+    optionalField "checkpoints" execution.checkpoints (array ∘ List.map executionCheckpointJson) ++
+    ",\"runtime\":" ++ runtimeProgramJson execution.runtime ++ "}"
+
+private def traceProjectionJson : TraceProjection → String
+  | .directPlanTrace => "\"directPlanTrace\":{}"
+  | .renameExactLink link => "\"renameExactLink\":" ++ implementationLinkJson link
+
+private def verificationProgramJson (verification : PortableVerificationProgram) : String :=
+  "{\"evidence\":" ++ evidenceProfileJson verification.evidence ++
+    ",\"observation\":" ++ observationJson verification.observation ++
+    "," ++ traceProjectionJson verification.traceProjection ++
+    optionalField "properties" verification.properties (array ∘ List.map propertyJson) ++
+    ",\"decision\":{\"kind\":\"DECISION_POLICY_KIND_STRICT_V1\"}}"
+
+private def planLimitsJson (limits : PortableTestPlanLimits) : String :=
+  "{\"structural\":{\"maxPlanBytes\":" ++ quote (toString limits.structural.maxPlanBytes) ++
+    ",\"maxNestingDepth\":" ++ quote (toString limits.structural.maxNestingDepth) ++
+    ",\"maxCollectionItems\":" ++ quote (toString limits.structural.maxCollectionItems) ++
+    ",\"maxOperatorCount\":" ++ quote (toString limits.structural.maxOperatorCount) ++ "}" ++
+    ",\"execution\":{\"maxActions\":" ++ quote (toString limits.execution.maxActions) ++
+    ",\"maxFaults\":" ++ quote (toString limits.execution.maxFaults) ++
+    ",\"maxPhaseAttempts\":" ++ quote (toString limits.execution.maxPhaseAttempts) ++
+    ",\"maxPhaseDurationMilliseconds\":" ++
+      quote (toString limits.execution.maxPhaseDurationMilliseconds) ++
+    ",\"maxTotalDurationMilliseconds\":" ++
+      quote (toString limits.execution.maxTotalDurationMilliseconds) ++ "}" ++
+    ",\"evidence\":{\"maxRecords\":" ++ quote (toString limits.evidence.maxRecords) ++
+    ",\"maxBytes\":" ++ quote (toString limits.evidence.maxBytes) ++
+    ",\"maxSources\":" ++ quote (toString limits.evidence.maxSources) ++ "}" ++
+    ",\"evaluation\":{\"maxExpressionDepth\":" ++
+      quote (toString limits.evaluation.maxExpressionDepth) ++
+    ",\"maxNatural\":" ++ quote (toString limits.evaluation.maxNatural) ++
+    ",\"maxWork\":" ++ quote (toString limits.evaluation.maxWork) ++ "}" ++
+    ",\"output\":{\"maxDiagnosticBytes\":" ++ quote (toString limits.output.maxDiagnosticBytes) ++
+    ",\"maxResultBytes\":" ++ quote (toString limits.output.maxResultBytes) ++ "}}"
+
+private def ExternalVerificationObligationKind.protoName :
+    ExternalVerificationObligationKind → String
+  | .required => "EXTERNAL_VERIFICATION_OBLIGATION_KIND_REQUIRED"
+  | .advisory => "EXTERNAL_VERIFICATION_OBLIGATION_KIND_ADVISORY"
+
+private def externalObligationJson (obligation : ExternalVerificationObligation) : String :=
+  "{\"definition\":" ++ definitionBindingJson obligation.definition ++
+    ",\"kind\":" ++ quote obligation.kind.protoName ++
+    ",\"source\":" ++ sourceJson obligation.source ++
+    ",\"statement\":" ++ quote obligation.statement ++ "}"
+
+private def modelCompiledJson (model : ModelCompiledPlanProvenance) : String :=
+  "{\"test\":" ++ definitionBindingJson model.test ++
+    ",\"query\":" ++ definitionBindingJson model.query ++
+    ",\"experiment\":" ++ artifactBindingJson model.experiment ++
+    ",\"runtimeConfig\":" ++ artifactBindingJson model.runtimeConfig ++
+    optionalField "properties" model.properties (array ∘ List.map definitionBindingJson) ++
+    ",\"compilerContract\":" ++ definitionBindingJson model.compilerContract ++
+    optionalField "sources" model.sources (array ∘ List.map sourceJson) ++ "}"
+
+/-- Render deterministic ProtoJSON for the shared PortableTestPlan packer and checksum admission. -/
+def canonicalPortableTestPlanProtoJSON (plan : PortableTestPlan) : String :=
+  Umpire.Json.prettyBytes <|
+    "{\"version\":{\"major\":" ++ toString plan.versionMajor ++
+      (if plan.versionMinor == 0 then "" else ",\"minor\":" ++ toString plan.versionMinor) ++ "}" ++
+      ",\"planId\":" ++ quote plan.planId.value ++
+      ",\"modelCompiled\":" ++ modelCompiledJson plan.modelCompiled ++
+      ",\"execution\":" ++ executionProgramJson plan.execution ++
+      ",\"verification\":" ++ verificationProgramJson plan.verification ++
+      ",\"limits\":" ++ planLimitsJson plan.limits ++
+      optionalField "knownGaps" plan.knownGaps (array ∘ List.map knownGapJson) ++
+      optionalField "externalObligations" plan.externalObligations
+        (array ∘ List.map externalObligationJson) ++ "}"
 
 end Umpire.Artifact.PortableEvaluationContract

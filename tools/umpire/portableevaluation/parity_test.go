@@ -21,6 +21,7 @@ import (
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/evaluationcontract"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
+	"go.temporal.io/server/tools/umpire/testplan"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -98,6 +99,7 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 		})
 	}
 	generateLeanRunBranchOracles(t, repositoryRoot, normalEvidence)
+	generateLeanPortablePlans(t, repositoryRoot)
 	command := exec.Command(
 		"mise", "exec", "--", "lake", "env", "lean", "--run",
 		"Temporal/Tool/PortableEvaluationContractTests.lean", "operator-branches",
@@ -108,6 +110,28 @@ func TestGeneratePortableEvaluationParityFixtures(t *testing.T) {
 	require.NoError(t, os.WriteFile(
 		filepath.Join(*parityFixtureOutput, "operator-branches.json"), branches, 0o644,
 	))
+}
+
+func generateLeanPortablePlans(t testing.TB, repositoryRoot string) {
+	t.Helper()
+	for _, name := range []string{"normal", "duplicate-delivery", "required-obligation"} {
+		command := exec.Command(
+			"mise", "exec", "--", "lake", "env", "lean", "--run",
+			"Temporal/Tool/PortableEvaluationContractTests.lean", "portable-test-plan", name,
+		)
+		command.Dir = filepath.Join(repositoryRoot, "model")
+		protoJSON, err := command.Output()
+		require.NoError(t, err)
+		plan := new(umpirespb.PortableTestPlan)
+		require.NoError(t, protojson.Unmarshal(protoJSON, plan))
+		plan, err = testplan.Seal(plan)
+		require.NoError(t, err)
+		encoded, err := proto.MarshalOptions{Deterministic: true}.Marshal(plan)
+		require.NoError(t, err)
+		root := filepath.Join(*parityFixtureOutput, "portable-test-plan-v1", name)
+		require.NoError(t, os.MkdirAll(root, 0o755))
+		require.NoError(t, os.WriteFile(filepath.Join(root, "plan.pb"), encoded, 0o644))
+	}
 }
 
 func generateLeanRunBranchOracles(
@@ -518,6 +542,214 @@ func TestPortableEvaluatorMatchesLeanRunEvaluationFixtures(t *testing.T) {
 			requireLeanRunEvaluationParity(t, contract, result, leanEvidence, leanResult)
 		})
 	}
+}
+
+func TestLeanGeneratedPortablePlansUseSharedAdmissionAndRetainExactBindings(t *testing.T) {
+	tests := []struct {
+		name        string
+		contract    string
+		obligations int
+	}{
+		{name: "normal", contract: "normal"},
+		{name: "duplicate-delivery", contract: "duplicate-delivery"},
+		{name: "required-obligation", contract: "normal", obligations: 1},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			encoded, err := os.ReadFile(filepath.Join(
+				"testdata", "portable-test-plan-v1", test.name, "plan.pb",
+			))
+			require.NoError(t, err)
+			plan := new(umpirespb.PortableTestPlan)
+			require.NoError(t, proto.Unmarshal(encoded, plan))
+			admitted, err := testplan.Admit(plan)
+			require.NoError(t, err)
+			contract, _ := loadParityFixture(t, test.contract)
+
+			protorequire.ProtoEqual(t, contract.GetQuery(), plan.GetModelCompiled().GetQuery())
+			protorequire.ProtoEqual(t, contract.GetObservation().GetProfile(), plan.GetVerification().GetEvidence())
+			protorequire.ProtoEqual(t, contract.GetObservation(), plan.GetVerification().GetObservation())
+			protorequire.ProtoEqual(t, contract.GetImplementationLink(), plan.GetVerification().GetRenameExactLink())
+			require.Len(t, plan.GetVerification().GetProperties(), len(contract.GetProperties()))
+			for index, property := range contract.GetProperties() {
+				protorequire.ProtoEqual(t, property, plan.GetVerification().GetProperties()[index])
+			}
+			require.Len(t, plan.GetExecution().GetRequestedActions(), 1)
+			require.Len(t, plan.GetExecution().GetModelOutcomes(), 1)
+			require.Len(t, plan.GetExecution().GetResultingStates(), 1)
+			require.Len(t, plan.GetExecution().GetOccurrences(), 1)
+			require.Len(t, plan.GetExternalObligations(), test.obligations)
+
+			verified := testplan.ModelProvenanceBinding{
+				PlanChecksum: admitted.Checksum(), ModelCompiled: proto.CloneOf(plan.GetModelCompiled()),
+			}
+			authorized, err := testplan.Authorize(
+				context.Background(), admitted,
+				func(context.Context, testplan.ModelProvenanceBinding) (testplan.ModelProvenanceBinding, error) {
+					return verified, nil
+				},
+			)
+			require.NoError(t, err)
+			result, err := authorized.ScopeResult(successfulPortablePlanResult())
+			require.NoError(t, err)
+			require.Equal(t, umpirespb.CLAIM_SCOPE_MODEL_BOUND, result.GetClaimScope())
+			if test.obligations == 0 {
+				require.Equal(t, umpirespb.EXECUTION_DECISION_PASS, result.GetDecision())
+			} else {
+				require.Equal(t, umpirespb.EXECUTION_DECISION_INCONCLUSIVE, result.GetDecision())
+				require.Equal(t, umpirespb.EXTERNAL_VERIFICATION_OBLIGATION_KIND_REQUIRED,
+					result.GetUnresolvedExternalObligations()[0].GetKind())
+			}
+		})
+	}
+
+	t.Run("external plans remain plan local", func(t *testing.T) {
+		plan := loadLeanPortablePlan(t, "normal")
+		plan.Provenance = &umpirespb.PortableTestPlan_External{External: &umpirespb.ExternalPlanProvenance{
+			Sources: []*umpirespb.SourceLocation{proto.CloneOf(plan.GetModelCompiled().GetSources()[0])},
+		}}
+		plan, err := testplan.Seal(plan)
+		require.NoError(t, err)
+		admitted, err := testplan.Admit(plan)
+		require.NoError(t, err)
+		authorized, err := testplan.Authorize(context.Background(), admitted, nil)
+		require.NoError(t, err)
+		result, err := authorized.ScopeResult(successfulPortablePlanResult())
+		require.NoError(t, err)
+		require.Equal(t, umpirespb.PROVENANCE_OUTCOME_EXTERNAL, result.GetProvenanceOutcome())
+		require.Equal(t, umpirespb.CLAIM_SCOPE_PLAN_LOCAL, result.GetClaimScope())
+		require.Equal(t, umpirespb.EXECUTION_DECISION_PASS, result.GetDecision())
+	})
+}
+
+func TestLeanGeneratedPortablePlanRejectsChecksumBindingSourceAndLimitMutations(t *testing.T) {
+	plan := loadLeanPortablePlan(t, "normal")
+	original, err := testplan.Admit(plan)
+	require.NoError(t, err)
+	trusted := testplan.ModelProvenanceBinding{
+		PlanChecksum: original.Checksum(), ModelCompiled: proto.CloneOf(plan.GetModelCompiled()),
+	}
+
+	t.Run("checksum", func(t *testing.T) {
+		mutated := proto.CloneOf(plan)
+		mutated.PlanChecksum[0] ^= 0xff
+		_, err := testplan.Admit(mutated)
+		requirePlanAdmissionCode(t, err, testplan.ErrorChecksum)
+	})
+	t.Run("crossed binding", func(t *testing.T) {
+		mutated := proto.CloneOf(plan)
+		mutated.Execution.Query.BehaviorFingerprint =
+			"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+		_, err := testplan.Seal(mutated)
+		requirePlanAdmissionCode(t, err, testplan.ErrorBinding)
+	})
+	for _, test := range []struct {
+		name   string
+		mutate func(*umpirespb.PortableTestPlan)
+	}{
+		{
+			name: "source",
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetModelCompiled().Sources[0].Path = "Mutation.lean"
+			},
+		},
+		{
+			name: "compiler binding",
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetModelCompiled().CompilerContract.BehaviorFingerprint =
+					"sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			},
+		},
+		{
+			name: "obligation",
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				required := loadLeanPortablePlan(t, "required-obligation").GetExternalObligations()
+				require.Len(t, required, 1)
+				plan.ExternalObligations = []*umpirespb.ExternalVerificationObligation{
+					proto.CloneOf(required[0]),
+				}
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			mutated := proto.CloneOf(plan)
+			test.mutate(mutated)
+			mutated, err := testplan.Seal(mutated)
+			require.NoError(t, err)
+			admitted, err := testplan.Admit(mutated)
+			require.NoError(t, err)
+			_, err = testplan.Authorize(
+				context.Background(), admitted,
+				func(context.Context, testplan.ModelProvenanceBinding) (testplan.ModelProvenanceBinding, error) {
+					return trusted, nil
+				},
+			)
+			requirePlanAdmissionCode(t, err, testplan.ErrorProvenance)
+		})
+	}
+	t.Run("action N plus one", func(t *testing.T) {
+		mutated := proto.CloneOf(plan)
+		mutated.Execution.RequestedActions = append(
+			mutated.Execution.RequestedActions,
+			proto.CloneOf(mutated.Execution.RequestedActions[0]),
+		)
+		_, err := testplan.Seal(mutated)
+		requirePlanAdmissionCode(t, err, testplan.ErrorLimit)
+	})
+	t.Run("mandatory result N and N plus one", func(t *testing.T) {
+		atLimit := proto.CloneOf(plan)
+		atLimit.GetLimits().GetOutput().MaxDiagnosticBytes = 256
+		atLimit, err = testplan.Seal(atLimit)
+		require.NoError(t, err)
+		admitted, err := testplan.Admit(atLimit)
+		require.NoError(t, err)
+		for atLimit.GetLimits().GetOutput().GetMaxResultBytes() != int64(admitted.MandatoryResultBytes()) {
+			atLimit.GetLimits().GetOutput().MaxResultBytes = int64(admitted.MandatoryResultBytes())
+			atLimit, err = testplan.Seal(atLimit)
+			require.NoError(t, err)
+			admitted, err = testplan.Admit(atLimit)
+			require.NoError(t, err)
+		}
+		require.Equal(t, atLimit.GetLimits().GetOutput().GetMaxResultBytes(),
+			int64(admitted.MandatoryResultBytes()))
+
+		beyondLimit := proto.CloneOf(atLimit)
+		beyondLimit.GetLimits().GetOutput().MaxResultBytes--
+		_, err = testplan.Seal(beyondLimit)
+		requirePlanAdmissionCode(t, err, testplan.ErrorLimit)
+	})
+}
+
+func loadLeanPortablePlan(t testing.TB, name string) *umpirespb.PortableTestPlan {
+	t.Helper()
+	encoded, err := os.ReadFile(filepath.Join(
+		"testdata", "portable-test-plan-v1", name, "plan.pb",
+	))
+	require.NoError(t, err)
+	plan := new(umpirespb.PortableTestPlan)
+	require.NoError(t, proto.Unmarshal(encoded, plan))
+	return plan
+}
+
+func successfulPortablePlanResult() *umpirespb.ExecutionResult {
+	return &umpirespb.ExecutionResult{
+		ToolingStatus:     umpirespb.EXECUTION_TOOLING_STATUS_SUCCEEDED,
+		OperationalStatus: umpirespb.EXECUTION_OPERATIONAL_STATUS_SUCCEEDED,
+		Observation:       &umpirespb.ObservationEvaluationResult{Status: umpirespb.OBSERVATION_STATUS_ACCEPTED},
+		TraceProjection:   &umpirespb.TraceProjectionResult{Status: umpirespb.TRACE_PROJECTION_STATUS_APPLIED},
+		SemanticStatus:    umpirespb.EXECUTION_EVALUATION_STATUS_SATISFIED,
+		CleanupStatus:     umpirespb.EXECUTION_CLEANUP_STATUS_COMPLETE,
+		Decision:          umpirespb.EXECUTION_DECISION_PASS,
+		Work:              &umpirespb.EvaluationWork{},
+	}
+}
+
+func requirePlanAdmissionCode(t testing.TB, err error, want testplan.ErrorCode) {
+	t.Helper()
+	require.Error(t, err)
+	got, ok := testplan.CodeOf(err)
+	require.True(t, ok)
+	require.Equal(t, want, got)
 }
 
 func TestLeanParityContractsCoverV1OperatorVocabulary(t *testing.T) {
