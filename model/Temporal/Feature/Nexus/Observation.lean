@@ -152,7 +152,10 @@ private theorem checkedPlanResult_isSome : checkedPlanResult.toOption.isSome = t
   native_decide
 
 def checkedPlan : CheckedObservationPlan :=
-  checkedPlanResult.toOption.get checkedPlanResult_isSome
+  checkedObservation
+    (ObservationCheckContext.ofTarget target [Profile.declaration])
+    mappingDeclaration
+    checkedPlanResult_isSome
 
 /-- Typed offline output; no raw evidence is retained in any field. -/
 structure OfflineObservation where

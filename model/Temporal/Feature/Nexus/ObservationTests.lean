@@ -106,6 +106,10 @@ private def evidenceLinkShape (evidenceLink : EvidenceLink) : EvidenceLinkShape 
   meaningDigest := evidenceLink.meaningDigest
 }
 
+/-- Checked Observation authoring returns the typed checker's complete canonical plan. -/
+example : checkedPlan = checkedPlanResult.toOption.get (by native_decide) := by
+  native_decide
+
 /-- The checked mapping admits exactly the target-owned BasicLifecycle vocabulary. -/
 example : checkedPlanResult.isOk = true ∧ checkedPlan.meanings = [
     { definitionId := cancelActionId, kind := .action,

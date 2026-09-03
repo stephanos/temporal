@@ -123,7 +123,9 @@ point, then follow this simple-first reading order:
 5. [`Nexus.Observation`](Temporal/Feature/Nexus/Observation.lean) is the offline evidence boundary
    for the ordinary lifecycle. It owns the sole synthetic BasicLifecycle profile, its checked
    mapping, and the composition from a complete typed evidence bundle through Observation Evaluation,
-   independent Property evaluation, and strict Query aggregation.
+   independent Property evaluation, and strict Query aggregation. Its learner-facing `checkedPlan`
+   uses `checkedObservation` with an explicit success proof, while `checkedPlanResult` retains the
+   raw typed diagnostic path.
 6. [`Temporal.System.Nexus.Core`](Temporal/System/Nexus/Core.lean) independently describes the
    minimum pure mechanism states and transitions for dispatch, cancellation recording, and
    completion recording.
