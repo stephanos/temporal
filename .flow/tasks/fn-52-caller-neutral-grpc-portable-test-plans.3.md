@@ -40,9 +40,16 @@ Implement the external versus model-compiled provenance seam and make result aut
 - [ ] Focused tests pass.
 
 ## Done summary
-TBD
+Implemented host-verified portable-plan authority: external plans remain plan-local, model plans require exact independently verified provenance, plan-owned result scope cannot be forged by producers, and unresolved required model obligations downgrade success to inconclusive. Updated the committed roadmap progress to 3 of 6 tasks complete with task 4 next.
 
+Baseline: repository-wide Go and integration Quick commands were inherited red because downstream executorgrpc/integration work does not exist yet and the local Darwin cgo toolchain cannot find stddef.h; make proto, the Lean contract build, make lint-model, and make umpire-check-regression were green. Literal make lint-code initially exhausted disk and, after remediation, exposed the repository's inherited 1,379-finding backlog; changed-package read-only lint is green with zero issues.
+
+Environment remediation: `go clean -cache` was used twice to recover space exhausted by repository-wide Go analysis.
+
+Verification note: the post-change aggregate regression's portable-evaluation path passed, then its whole-repository promotion snapshot raced with concurrent Flow file creation; the failed promotion sub-check and the remaining vocabulary sub-check both passed immediately when run against stable state. The global plan-index check is currently blocked by those concurrently authored, not-yet-registered fn-53 through fn-58 records; fn-52 validation is green with zero warnings.
+
+stage: impl-review - ran [2026-09-03T19:12Z..2026-09-03T19:15:13Z] (model: gpt-5.6-sol)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b00d2903af6c0189ac5d5a16e5c756b02b64fa7c
+- Tests: make proto, cd model && mise exec -- lake build Temporal.Tool.PortableEvaluationContractTests, CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/testplan/... ./tools/umpire/executor/..., make lint-model, make umpire-check-regression (portable-evaluation path green; promotion repository-status snapshot raced with concurrent Flow writes), make umpire-check-promotion, make umpire-check-legacy-vocabulary, make lint-code (inherited red: 1379 repository findings; no task-file findings), CGO_ENABLED=0 .bin/golangci-lint-v2.13.1 run --verbose --build-tags disable_grpc_modules,,test_dep, --timeout 10m --fix=false --new-from-rev=c6617d70468d81eb7d9a1cc9155c2120f4c9fb1c --config=.github/.golangci.yml ./tools/umpire/testplan/... ./tools/umpire/executor/..., make umpire-check-plan-index (concurrent red: unregistered fn-53 through fn-58 records), flowctl validate --spec fn-52-caller-neutral-grpc-portable-test-plans --json, git diff --check
 - PRs:
