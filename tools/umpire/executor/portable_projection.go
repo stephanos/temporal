@@ -9,6 +9,7 @@ import (
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	"go.temporal.io/server/tools/umpire/runner"
+	"google.golang.org/protobuf/proto"
 )
 
 func projectPortableExecution(plan *umpirespb.PortableTestPlan) (artifact.AdmittedSet, error) {
@@ -409,7 +410,11 @@ func portableModelBindingsMatch(plan *umpirespb.PortableTestPlan, input artifact
 	return protoBindingMatches(model.GetExperiment(), experiment) && protoBindingMatches(model.GetRuntimeConfig(), runtime)
 }
 
-func portableInputBindings(input artifact.AdmittedSet, requiredCapabilities []string) (runnerBindingResult, error) {
+func portableInputBindings(
+	input artifact.AdmittedSet,
+	runtimeBindingSlots []*umpirespb.RuntimeBindingSlot,
+	requiredCapabilities []string,
+) (runnerBindingResult, error) {
 	executable, ok := input.Executable()
 	if !ok {
 		return runnerBindingResult{}, errors.New("portable projection did not produce an executable set")
@@ -428,9 +433,18 @@ func portableInputBindings(input artifact.AdmittedSet, requiredCapabilities []st
 			RuntimeConfigurationArtifactChecksum:     configuration.ArtifactChecksum,
 			RuntimeConfigurationBehaviorFingerprint:  configuration.BehaviorFingerprint,
 			AuthorityRequiredCapabilityDefinitionIDs: slices.Clone(requiredCapabilities),
+			RuntimeBindingSlots:                      cloneRuntimeBindingSlots(runtimeBindingSlots),
 		},
 		experiment: experimentBinding, runtime: artifactv2.RuntimeConfigurationArtifactBinding(configuration),
 	}, nil
+}
+
+func cloneRuntimeBindingSlots(slots []*umpirespb.RuntimeBindingSlot) []*umpirespb.RuntimeBindingSlot {
+	cloned := make([]*umpirespb.RuntimeBindingSlot, len(slots))
+	for index, slot := range slots {
+		cloned[index] = proto.CloneOf(slot)
+	}
+	return cloned
 }
 
 type runnerBindingResult struct {
