@@ -28,6 +28,29 @@ private def escapingProbeValue : String :=
 private def escapingProbeJson : String :=
   Lean.Json.compress (Lean.Json.mkObj [("value", .str escapingProbeValue)])
 
+private def canonicalJsonProbe : CanonicalJson :=
+  .object [
+    ("second", .array [
+      .null,
+      CanonicalJson.ofOption CanonicalJson.string (some escapingProbeValue),
+      .natural 18446744073709551616
+    ]),
+    ("first", CanonicalJson.ofOption CanonicalJson.string none)
+  ]
+
+/-! Ordered typed JSON renders exact compact, pretty, and persisted forms. -/
+example : canonicalJsonProbe.compact =
+      "{\"second\":[null,\"\\u0000\\u0001\\u0008\\u0009\\n\\u000b\\u000c\\r\\u001f\\\"\\\\λ" ++
+        String.ofList [Char.ofNat 0x2028, Char.ofNat 0x2029] ++ "\"," ++
+        "18446744073709551616],\"first\":null}" ∧
+    canonicalJsonProbe.pretty =
+      "{\n  \"second\": [\n    null,\n    " ++
+        "\"\\u0000\\u0001\\b\\t\\n\\u000b\\f\\r\\u001f\\\"\\\\λ\\u2028\\u2029\",\n    " ++
+        "18446744073709551616\n  ],\n  \"first\": null\n}" ∧
+    canonicalJsonProbe.prettyBytes = canonicalJsonProbe.pretty ++ "\n" ∧
+    !(canonicalJsonProbe.prettyBytes).endsWith "\n\n" := by
+  native_decide
+
 /-! The vertical Artifact facade retains exactly the two current v2 format families. -/
 example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧
     compiledArtifact.plan.formatVersion = "umpire-drive-plan/v2" := by
