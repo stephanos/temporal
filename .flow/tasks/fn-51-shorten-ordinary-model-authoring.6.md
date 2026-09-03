@@ -30,9 +30,8 @@ Update public convenience guidance and run complete identity/quality gates (R5, 
 - [ ] Focused and aggregate builds, exact regression, import/trust checks, `make lint-model`, and `make lint-code` pass with no identity or byte drift.
 
 ## Done summary
-TBD
-
+Documented all ten ordinary authoring constructors as inert additive shorthand over existing records and checker authority. The repository-wide audit found no unexplained eligible raw call sites; retained literals are equivalence/representation witnesses, negative or mutation inputs, runtime/compiler/generated values, explicit non-default records, or non-target record types. Full focused, aggregate, regression, trust, index, and lint gates were verified.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f5a79965a2003d2a994cd4732b4648a65f2fdd74
+- Tests: cd model && mise exec -- lake build Umpire.CoreTests Umpire.Query.Tests Umpire.Space.Tests.Compilation Umpire.Space.Tests.Determinism Umpire.Space.Tests.Intent Umpire.Space.Tests.Metadata Umpire.Space.Tests.Validation Umpire.ImplementationLink.Tests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, make umpire-check-regression, make lint-model, make lint-code (inherited 1,379-issue baseline), constructor facade import/trust probe, make umpire-check-plan-index, git diff --check
 - PRs:
