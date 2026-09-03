@@ -40,7 +40,7 @@ private def configurationDraft : RuntimeConfiguration := {
     programBehaviorFingerprint := fingerprint
     capabilityDefinitionIds := [id "umpire.runtime.capability.program-test"]
   }]
-  knownGaps := []
+  knownGaps := KnownGapSet.empty
   provenance := {
     sourceDefinitionIds := [id "temporal.runtime-configuration.test"]
     sourceLocations := [{
