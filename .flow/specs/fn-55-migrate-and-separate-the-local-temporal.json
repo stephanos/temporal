@@ -1,0 +1,124 @@
+{
+  "branch_name": "fn-55-separate-the-local-temporal-authority",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T19:12:30.301575Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-53-extract-local-isolation-collection"
+  ],
+  "id": "fn-55-migrate-and-separate-the-local-temporal",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-03T19:47:26.610770Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "b598640d8c7f19dafeb501a3a90d3ebbe29d05e15ae09764f1a5d1c8260ec7d2",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f70f60845c0adf09842a1796e516c872",
+            "classification": "introduced",
+            "findingId": "finding-f70f60845c0adf09842a1796e516c872",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b00d2903af6c0189ac5d5a16e5c756b02b64fa7c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 194639,
+      "output_sha256": "6e38062ff263607652a52102d46d3fb698a3bb8e533899a69a24552cf13fb2f2",
+      "reservation_id": "95725f09e22f452389c4656633892116",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T19:29:09.632573Z",
+      "tool_calls": 12,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "e1044c09d7c65d3244aaf3eec84d94ac67f766044c02fd731b44b881e35edb71",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4b1d47178e4a1140654cabb605d18af104c65168",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 303,
+      "output_sha256": "32f3837bc3b0c447f16fdb4c0bea10928f227e29d5181c56083470e68b038cd4",
+      "reservation_id": "9264e66bb7f94fd686cf28d7bb122ccc",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T19:47:26.607241Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-55-migrate-and-separate-the-local-temporal.md",
+  "status": "open",
+  "title": "Migrate and separate the local Temporal authority",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-03T19:47:26.611229Z"
+}

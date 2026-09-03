@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-6-plan-simplify-lean-api-generator-output",
     "fn-7-migrate-lean-model-descriptor-generator",
-    "fn-8-umpire-temporal-dynamic-config"
+    "fn-8-umpire-temporal-dynamic-config",
+    "fn-56-split-lean-api-generator-planning-from"
   ],
   "id": "fn-15-standalone-api-and-config-input-catalogs",
   "impl_review_rounds": {},
@@ -195,5 +196,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-26T08:36:17.862241Z"
+  "updated_at": "2026-09-03T19:24:37.540894Z"
 }

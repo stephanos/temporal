@@ -1,0 +1,149 @@
+{
+  "branch_name": "fn-54-decompose-the-observation-evaluator",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T19:12:29.783508Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-57-partition-the-observation-authoring"
+  ],
+  "id": "fn-54-decompose-the-observation-evaluator",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-03T19:35:56.495550Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "6fabc6c135d5bba5d011880a1ee000c1a0c81dd4db2efd37728054e1bcc0966f",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f1225b2f523dc138152e4c0f5d23dcad",
+            "classification": "introduced",
+            "findingId": "finding-f1225b2f523dc138152e4c0f5d23dcad",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e3dfba79c68eed7c11694f4fd74bc1d5",
+            "classification": "introduced",
+            "findingId": "finding-e3dfba79c68eed7c11694f4fd74bc1d5",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b00d2903af6c0189ac5d5a16e5c756b02b64fa7c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 405200,
+      "output_sha256": "2fc913e1cb638751c39b3e4879c8b688099f3a4dc71559c266c98f2cbd0d863f",
+      "reservation_id": "9a950d44567e4be8a28226644c57f560",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T19:34:55.624220Z",
+      "tool_calls": 20,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "adcddc975fa7205a9c63edca348af9ef8714e9852f8c8710939092c678e82a37",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f1225b2f523dc138152e4c0f5d23dcad",
+            "classification": "introduced",
+            "findingId": "finding-f1225b2f523dc138152e4c0f5d23dcad",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e3dfba79c68eed7c11694f4fd74bc1d5",
+            "classification": "introduced",
+            "findingId": "finding-e3dfba79c68eed7c11694f4fd74bc1d5",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b00d2903af6c0189ac5d5a16e5c756b02b64fa7c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 248,
+      "output_sha256": "d4d355b4f2bcc214db4e1dba25e72e48f528256b9d07b11c4a00420deb59d0f3",
+      "reservation_id": "7618502c30644adfac4fdfb0e5c35593",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T19:35:56.490684Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-54-decompose-the-observation-evaluator.md",
+  "status": "open",
+  "title": "Decompose the Observation evaluator behind its facade",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-03T19:35:56.496278Z"
+}
