@@ -51,6 +51,103 @@ example : [
   ].map (fun result => result.toOption) = [none, none, none, none, none] := by
   native_decide
 
+/--
+error: Unknown constant `Umpire.KnownGapSet.mk`
+-/
+#guard_msgs in
+#check Umpire.KnownGapSet.mk
+
+private def knownGapError? {α : Type} : Except KnownGapError α → Option KnownGapError
+  | .ok _ => none
+  | .error problem => some problem
+
+example : (KnownGapSet.checkCanonical
+    [capabilityGap, inputGap, interpretationGap, claimGap]).toOption.map KnownGapSet.toList =
+    some [capabilityGap, inputGap, interpretationGap, claimGap] := by
+  native_decide
+
+example : [
+    knownGapError? (KnownGapSet.checkCanonical [{ capabilityGap with code := id "" }]),
+    knownGapError? (KnownGapSet.checkCanonical [{ capabilityGap with code := id "gap" }])
+  ] = [
+    some { kind := .invalidCode, code := id "", subject := none },
+    some { kind := .invalidCode, code := id "gap", subject := none }
+  ] := by
+  native_decide
+
+example : knownGapError?
+    (KnownGapSet.checkCanonical [{ inputGap with subject := some (id "subject") }]) =
+    some { kind := .invalidSubject, code := inputGap.code, subject := some (id "subject") } := by
+  native_decide
+
+example : knownGapError? (KnownGapSet.checkCanonical [capabilityGap, capabilityGap]) =
+    some { kind := .duplicate, code := capabilityGap.code, subject := none } := by
+  native_decide
+
+example : knownGapError? (KnownGapSet.checkCanonical [
+      { inputGap with detail := some "first" },
+      { inputGap with detail := some "second" }
+    ]) = some { kind := .conflictingDetail, code := inputGap.code, subject := inputGap.subject } := by
+  native_decide
+
+example : knownGapError? (KnownGapSet.checkCanonical [inputGap, capabilityGap]) =
+    some { kind := .noncanonicalOrder, code := inputGap.code, subject := inputGap.subject } := by
+  native_decide
+
+example : KnownGapSet.empty.toList = [] ∧
+    (KnownGapSet.checkCanonical []).toOption.map KnownGapSet.toList = some [] := by
+  native_decide
+
+example : (KnownGapSet.ofUnordered
+    [claimGap, inputGap, capabilityGap, interpretationGap]).toOption.map KnownGapSet.toList =
+    some [capabilityGap, inputGap, interpretationGap, claimGap] := by
+  native_decide
+
+example : [
+    knownGapError? (KnownGapSet.ofUnordered [{ capabilityGap with code := id "gap" }]),
+    knownGapError? (KnownGapSet.ofUnordered
+      [{ inputGap with subject := some (id "subject") }])
+  ] = [
+    some { kind := .invalidCode, code := id "gap", subject := none },
+    some { kind := .invalidSubject, code := inputGap.code, subject := some (id "subject") }
+  ] := by
+  native_decide
+
+example : knownGapError? (KnownGapSet.ofUnordered [capabilityGap, capabilityGap]) =
+    some { kind := .duplicate, code := capabilityGap.code, subject := none } := by
+  native_decide
+
+example : knownGapError? (KnownGapSet.ofUnordered [
+      { inputGap with detail := some "second" },
+      { inputGap with detail := some "first" }
+    ]) = some { kind := .conflictingDetail, code := inputGap.code, subject := inputGap.subject } := by
+  native_decide
+
+private def checkedGaps (gaps : List KnownGap) : KnownGapSet :=
+  (KnownGapSet.ofUnordered gaps).toOption.getD KnownGapSet.empty
+
+example : (KnownGapSet.union
+    (checkedGaps [inputGap, capabilityGap])
+    (checkedGaps [interpretationGap, inputGap])).toOption.map KnownGapSet.toList =
+    some [capabilityGap, inputGap, interpretationGap] := by
+  native_decide
+
+example : knownGapError? (KnownGapSet.union
+    (checkedGaps [{ inputGap with detail := some "first" }])
+    (checkedGaps [{ inputGap with detail := some "second" }])) =
+    some { kind := .conflictingDetail, code := inputGap.code, subject := inputGap.subject } := by
+  native_decide
+
+example : let gaps := checkedGaps [inputGap, capabilityGap]
+    [
+      (KnownGapSet.union KnownGapSet.empty gaps).toOption.map KnownGapSet.toList,
+      (KnownGapSet.union gaps KnownGapSet.empty).toOption.map KnownGapSet.toList
+    ] = [
+      some [capabilityGap, inputGap],
+      some [capabilityGap, inputGap]
+    ] := by
+  native_decide
+
 example : canonicalKnownGapJson inputGap =
     "{\"kind\":\"input\",\"code\":\"umpire.known-gap.runtime-evidence\"," ++
       "\"subject\":\"umpire.target.fixture\"," ++
