@@ -14,7 +14,8 @@ import (
 
 func projectPortableExecution(plan *umpirespb.PortableTestPlan) (artifact.AdmittedSet, error) {
 	execution := plan.GetExecution()
-	provenance := portableExperimentProvenance(plan)
+	projection := execution.GetArtifactProjection()
+	provenance := portableArtifactProvenance(projection.GetExperimentProvenance())
 	experiment, err := artifactv2.SealExperiment(artifactv2.Experiment{
 		FormatVersion:            artifactv2.ExperimentFormat,
 		QueryBehaviorFingerprint: execution.GetQuery().GetBehaviorFingerprint(),
@@ -42,26 +43,38 @@ func projectPortableExecution(plan *umpirespb.PortableTestPlan) (artifact.Admitt
 			CapabilityRequirementDefinitionIDs: portableDefinitionIDs(execution.GetCapabilityRequirements()),
 			ExpandedLimits: artifactv2.Limits{
 				Behavior: artifactv2.BehaviorLimits{
-					Transitions:     artifactv2.Limit{Value: artifactv2.NaturalFromUint64(1), Unit: "semantic-transitions"},
-					SelectedActions: artifactv2.Limit{Value: artifactv2.NaturalFromUint64(1), Unit: "selected-actions"},
+					Transitions: artifactv2.Limit{
+						Value: artifactv2.NaturalFromUint64(uint64(projection.GetExpandedLimits().GetMaxSemanticTransitions())),
+						Unit:  "semantic-transitions",
+					},
+					SelectedActions: artifactv2.Limit{
+						Value: artifactv2.NaturalFromUint64(uint64(projection.GetExpandedLimits().GetMaxSelectedActions())),
+						Unit:  "selected-actions",
+					},
 				},
 				Search: artifactv2.Limit{
-					Value: artifactv2.NaturalFromUint64(uint64(plan.GetLimits().GetEvaluation().GetMaxWork())),
+					Value: artifactv2.NaturalFromUint64(uint64(projection.GetExpandedLimits().GetMaxCandidateEvaluations())),
 					Unit:  "candidate-evaluations",
 				},
 			},
 			Checkpoints:     portableCheckpoints(execution.GetCheckpoints()),
-			SelectionReason: "behavior-selection",
+			SelectionReason: portablePlanSelectionReason(projection.GetSelectionReason()),
 			Explored: artifactv2.ExploredCounts{
-				Setups: artifactv2.NaturalFromUint64(1), Traces: artifactv2.NaturalFromUint64(1),
-				Transitions: artifactv2.NaturalFromUint64(1), PropertyEvaluations: artifactv2.NaturalFromUint64(1),
+				Setups:      artifactv2.NaturalFromUint64(uint64(projection.GetExplored().GetSetups())),
+				Traces:      artifactv2.NaturalFromUint64(uint64(projection.GetExplored().GetTraces())),
+				Transitions: artifactv2.NaturalFromUint64(uint64(projection.GetExplored().GetTransitions())),
+				PropertyEvaluations: artifactv2.NaturalFromUint64(
+					uint64(projection.GetExplored().GetPropertyEvaluations()),
+				),
 			},
-			KnownGaps:  portableKnownGaps(plan.GetKnownGaps()),
+			KnownGaps:  portableKnownGaps(projection.GetExperimentKnownGaps()),
 			Provenance: provenance,
 		},
-		Properties:                          portableProperties(plan.GetVerification().GetProperties()),
-		ObservationRequirementDefinitionIDs: portableObservationRequirements(plan.GetVerification()),
-		Provenance:                          provenance,
+		Properties: portableProperties(plan.GetVerification().GetProperties()),
+		ObservationRequirementDefinitionIDs: slices.Clone(
+			projection.GetExperimentObservationRequirementDefinitionIds(),
+		),
+		Provenance: provenance,
 	})
 	if err != nil {
 		return artifact.AdmittedSet{}, err
@@ -71,7 +84,7 @@ func projectPortableExecution(plan *umpirespb.PortableTestPlan) (artifact.Admitt
 		return artifact.AdmittedSet{}, err
 	}
 	runtime := execution.GetRuntime()
-	runtimeProvenance := portableRuntimeProvenance(plan)
+	runtimeProvenance := portableArtifactProvenance(projection.GetRuntimeProvenance())
 	configuration, err := artifactv2.SealRuntimeConfiguration(artifactv2.RuntimeConfiguration{
 		FormatVersion:             artifactv2.RuntimeConfigurationFormat,
 		ConfigurationDefinitionID: runtime.GetConfig().GetDefinitionId(),
@@ -85,15 +98,15 @@ func projectPortableExecution(plan *umpirespb.PortableTestPlan) (artifact.Admitt
 		},
 		PhaseLimits: portablePhaseLimits(runtime.GetPhaseLimits()),
 		Observation: artifactv2.ObservationConfiguration{
-			ProfileDefinitionID:        runtime.GetObservationConfig().GetProfile().GetDefinitionId(),
-			ProfileBehaviorFingerprint: runtime.GetObservationConfig().GetProfile().GetBehaviorFingerprint(),
-			ProgramDefinitionID:        runtime.GetObservationConfig().GetProgram().GetDefinitionId(),
-			ProgramBehaviorFingerprint: runtime.GetObservationConfig().GetProgram().GetBehaviorFingerprint(),
-			MappingDefinitionID:        runtime.GetObservationConfig().GetMapping().GetDefinitionId(),
-			MappingBehaviorFingerprint: runtime.GetObservationConfig().GetMapping().GetBehaviorFingerprint(),
+			ProfileDefinitionID:        projection.GetRuntimeObservationConfig().GetProfile().GetDefinitionId(),
+			ProfileBehaviorFingerprint: projection.GetRuntimeObservationConfig().GetProfile().GetBehaviorFingerprint(),
+			ProgramDefinitionID:        projection.GetRuntimeObservationConfig().GetProgram().GetDefinitionId(),
+			ProgramBehaviorFingerprint: projection.GetRuntimeObservationConfig().GetProgram().GetBehaviorFingerprint(),
+			MappingDefinitionID:        projection.GetRuntimeObservationConfig().GetMapping().GetDefinitionId(),
+			MappingBehaviorFingerprint: projection.GetRuntimeObservationConfig().GetMapping().GetBehaviorFingerprint(),
 		},
 		ParticipantBindings: portableParticipants(runtime.GetParticipantBindings()),
-		KnownGaps:           []artifactv2.KnownGap{},
+		KnownGaps:           portableKnownGaps(projection.GetRuntimeKnownGaps()),
 		Provenance:          runtimeProvenance,
 	})
 	if err != nil {
@@ -251,15 +264,6 @@ func portableProperties(values []*umpirespb.Property) []artifactv2.Property {
 	return result
 }
 
-func portableObservationRequirements(verification *umpirespb.VerificationProgram) []string {
-	values := make([]string, 0, len(verification.GetObservation().GetEmits()))
-	for _, emit := range verification.GetObservation().GetEmits() {
-		values = append(values, emit.GetOutputDefinition().GetDefinitionId())
-	}
-	slices.Sort(values)
-	return slices.Compact(values)
-}
-
 func portableDefinitionIDs(values []*umpirespb.DefinitionBinding) []string {
 	result := make([]string, len(values))
 	for index, value := range values {
@@ -348,49 +352,31 @@ func portableKnownGapKind(kind umpirespb.KnownGapKind) string {
 	}
 }
 
-func portableExperimentProvenance(plan *umpirespb.PortableTestPlan) artifactv2.Provenance {
-	execution := plan.GetExecution()
-	ids := []string{
-		execution.GetBehavior().GetDefinitionId(), execution.GetKernel().GetDefinitionId(),
-		execution.GetQuery().GetDefinitionId(), execution.GetTarget().GetDefinitionId(),
+func portablePlanSelectionReason(reason umpirespb.PlanSelectionReason) string {
+	switch reason {
+	case umpirespb.PLAN_SELECTION_REASON_SATISFYING_WITNESS:
+		return "satisfying-witness"
+	case umpirespb.PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE:
+		return "violating-counterexample"
+	case umpirespb.PLAN_SELECTION_REASON_BEHAVIOR_SELECTION:
+		return "behavior-selection"
+	default:
+		return ""
 	}
-	for _, property := range plan.GetVerification().GetProperties() {
-		ids = append(ids, property.GetDefinition().GetDefinitionId())
-	}
-	slices.Sort(ids)
-	return artifactv2.Provenance{SourceDefinitionIDs: slices.Compact(ids), SourceLocations: portableSourceLocations(plan)}
 }
 
-func portableRuntimeProvenance(plan *umpirespb.PortableTestPlan) artifactv2.Provenance {
-	runtime := plan.GetExecution().GetRuntime()
-	ids := []string{
-		runtime.GetAuthorityProfile().GetDefinitionId(), runtime.GetConfig().GetDefinitionId(),
-		runtime.GetObservationConfig().GetProfile().GetDefinitionId(),
-		runtime.GetObservationConfig().GetProgram().GetDefinitionId(),
-		runtime.GetObservationConfig().GetMapping().GetDefinitionId(),
-	}
-	for _, participant := range runtime.GetParticipantBindings() {
-		ids = append(ids, participant.GetProgram().GetDefinitionId())
-	}
-	slices.Sort(ids)
-	return artifactv2.Provenance{SourceDefinitionIDs: slices.Compact(ids), SourceLocations: portableSourceLocations(plan)}
-}
-
-func portableSourceLocations(plan *umpirespb.PortableTestPlan) []artifactv2.SourceLocation {
-	var values []*umpirespb.SourceLocation
-	if plan.GetExternal() != nil {
-		values = plan.GetExternal().GetSources()
-	} else if plan.GetModelCompiled() != nil {
-		values = plan.GetModelCompiled().GetSources()
-	}
-	result := make([]artifactv2.SourceLocation, len(values))
-	for index, value := range values {
+func portableArtifactProvenance(provenance *umpirespb.PlanArtifactProvenance) artifactv2.Provenance {
+	locations := provenance.GetSourceLocations()
+	result := make([]artifactv2.SourceLocation, len(locations))
+	for index, value := range locations {
 		result[index] = artifactv2.SourceLocation{
 			Path: value.GetPath(), Line: artifactv2.NaturalFromUint64(uint64(value.GetLine())),
 			Column: artifactv2.NaturalFromUint64(uint64(value.GetColumn())), Provenance: value.GetProvenance(),
 		}
 	}
-	return result
+	return artifactv2.Provenance{
+		SourceDefinitionIDs: slices.Clone(provenance.GetSourceDefinitionIds()), SourceLocations: result,
+	}
 }
 
 func portableModelBindingsMatch(plan *umpirespb.PortableTestPlan, input artifact.AdmittedSet) bool {

@@ -599,6 +599,154 @@ func (this *RuntimeProgram) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type PlanSearchLimits to the protobuf v3 wire format
+func (val *PlanSearchLimits) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type PlanSearchLimits from the protobuf v3 wire format
+func (val *PlanSearchLimits) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *PlanSearchLimits) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two PlanSearchLimits values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *PlanSearchLimits) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *PlanSearchLimits
+	switch t := that.(type) {
+	case *PlanSearchLimits:
+		that1 = t
+	case PlanSearchLimits:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type PlanExploredCounts to the protobuf v3 wire format
+func (val *PlanExploredCounts) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type PlanExploredCounts from the protobuf v3 wire format
+func (val *PlanExploredCounts) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *PlanExploredCounts) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two PlanExploredCounts values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *PlanExploredCounts) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *PlanExploredCounts
+	switch t := that.(type) {
+	case *PlanExploredCounts:
+		that1 = t
+	case PlanExploredCounts:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type PlanArtifactProvenance to the protobuf v3 wire format
+func (val *PlanArtifactProvenance) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type PlanArtifactProvenance from the protobuf v3 wire format
+func (val *PlanArtifactProvenance) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *PlanArtifactProvenance) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two PlanArtifactProvenance values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *PlanArtifactProvenance) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *PlanArtifactProvenance
+	switch t := that.(type) {
+	case *PlanArtifactProvenance:
+		that1 = t
+	case PlanArtifactProvenance:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type PlanArtifactProjection to the protobuf v3 wire format
+func (val *PlanArtifactProjection) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type PlanArtifactProjection from the protobuf v3 wire format
+func (val *PlanArtifactProjection) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *PlanArtifactProjection) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two PlanArtifactProjection values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *PlanArtifactProjection) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *PlanArtifactProjection
+	switch t := that.(type) {
+	case *PlanArtifactProjection:
+		that1 = t
+	case PlanArtifactProjection:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type ExecutionProgram to the protobuf v3 wire format
 func (val *ExecutionProgram) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -1242,6 +1390,26 @@ func ExternalVerificationObligationKindFromString(s string) (ExternalVerificatio
 		return ExternalVerificationObligationKind(v), nil
 	}
 	return ExternalVerificationObligationKind(0), fmt.Errorf("%s is not a valid ExternalVerificationObligationKind", s)
+}
+
+var (
+	PlanSelectionReason_shorthandValue = map[string]int32{
+		"Unspecified":             0,
+		"SatisfyingWitness":       1,
+		"ViolatingCounterexample": 2,
+		"BehaviorSelection":       3,
+	}
+)
+
+// PlanSelectionReasonFromString parses a PlanSelectionReason value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to PlanSelectionReason
+func PlanSelectionReasonFromString(s string) (PlanSelectionReason, error) {
+	if v, ok := PlanSelectionReason_value[s]; ok {
+		return PlanSelectionReason(v), nil
+	} else if v, ok := PlanSelectionReason_shorthandValue[s]; ok {
+		return PlanSelectionReason(v), nil
+	}
+	return PlanSelectionReason(0), fmt.Errorf("%s is not a valid PlanSelectionReason", s)
 }
 
 var (

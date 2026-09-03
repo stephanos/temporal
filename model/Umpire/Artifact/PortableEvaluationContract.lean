@@ -370,6 +370,47 @@ structure PortableRuntimeProgram where
   authorityRequiredCapabilities : List DefinitionBinding
   deriving BEq, Repr
 
+/-- The closed reason the model selected the projected Drive Plan. -/
+inductive PlanSelectionReason where
+  | satisfyingWitness
+  | violatingCounterexample
+  | behaviorSelection
+  deriving BEq, Repr
+
+/-- Exact expanded planning limits needed to reconstruct the selected Drive Plan. -/
+structure PlanSearchLimits where
+  maxSemanticTransitions : Nat
+  maxSelectedActions : Nat
+  maxCandidateEvaluations : Nat
+  deriving BEq, Repr
+
+/-- Exact planning counts needed to reconstruct the selected Drive Plan. -/
+structure PlanExploredCounts where
+  setups : Nat
+  traces : Nat
+  transitions : Nat
+  propertyEvaluations : Nat
+  deriving BEq, Repr
+
+/-- Exact source identity of one projected model artifact. -/
+structure PlanArtifactProvenance where
+  sourceDefinitionIds : List DefinitionId
+  sourceLocations : List SourceLocation
+  deriving BEq, Repr
+
+/-- Typed identity-bearing fields retained solely to reconstruct the exact executable artifacts. -/
+structure PlanArtifactProjection where
+  expandedLimits : PlanSearchLimits
+  selectionReason : PlanSelectionReason
+  explored : PlanExploredCounts
+  experimentKnownGaps : List KnownGap
+  experimentProvenance : PlanArtifactProvenance
+  runtimeKnownGaps : List KnownGap
+  runtimeProvenance : PlanArtifactProvenance
+  experimentObservationRequirementDefinitionIds : List DefinitionId
+  runtimeObservationConfig : PortableObservationConfig
+  deriving BEq, Repr
+
 /-- The complete selected execution program, without environment coordinates or credentials. -/
 structure PortableExecutionProgram where
   setup : DefinitionBinding
@@ -392,6 +433,7 @@ structure PortableExecutionProgram where
   capabilityRequirements : List DefinitionBinding
   checkpoints : List PortableExecutionCheckpoint
   runtime : PortableRuntimeProgram
+  artifactProjection : PlanArtifactProjection
   deriving BEq, Repr
 
 /-- The two explicit trace projections admitted by the portable evaluator. -/
@@ -830,6 +872,38 @@ private def runtimeProgramJson (runtime : PortableRuntimeProgram) : String :=
     optionalField "authorityRequiredCapabilities" runtime.authorityRequiredCapabilities
       (array ∘ List.map definitionBindingJson) ++ "}"
 
+private def PlanSelectionReason.protoName : PlanSelectionReason → String
+  | .satisfyingWitness => "PLAN_SELECTION_REASON_SATISFYING_WITNESS"
+  | .violatingCounterexample => "PLAN_SELECTION_REASON_VIOLATING_COUNTEREXAMPLE"
+  | .behaviorSelection => "PLAN_SELECTION_REASON_BEHAVIOR_SELECTION"
+
+private def artifactProvenanceJson (provenance : PlanArtifactProvenance) : String :=
+  let ids := provenance.sourceDefinitionIds.map (quote ∘ DefinitionId.value)
+  "{\"sourceDefinitionIds\":" ++ array ids ++
+    ",\"sourceLocations\":" ++ array (provenance.sourceLocations.map sourceJson) ++ "}"
+
+private def artifactProjectionJson (projection : PlanArtifactProjection) : String :=
+  "{\"expandedLimits\":{\"maxSemanticTransitions\":" ++
+      quote (toString projection.expandedLimits.maxSemanticTransitions) ++
+    ",\"maxSelectedActions\":" ++ quote (toString projection.expandedLimits.maxSelectedActions) ++
+    ",\"maxCandidateEvaluations\":" ++
+      quote (toString projection.expandedLimits.maxCandidateEvaluations) ++ "}" ++
+    ",\"selectionReason\":" ++ quote projection.selectionReason.protoName ++
+    ",\"explored\":{\"setups\":" ++ quote (toString projection.explored.setups) ++
+    ",\"traces\":" ++ quote (toString projection.explored.traces) ++
+    ",\"transitions\":" ++ quote (toString projection.explored.transitions) ++
+    ",\"propertyEvaluations\":" ++ quote (toString projection.explored.propertyEvaluations) ++ "}" ++
+    optionalField "experimentKnownGaps" projection.experimentKnownGaps
+      (array ∘ List.map knownGapJson) ++
+    ",\"experimentProvenance\":" ++ artifactProvenanceJson projection.experimentProvenance ++
+    optionalField "runtimeKnownGaps" projection.runtimeKnownGaps
+      (array ∘ List.map knownGapJson) ++
+    ",\"runtimeProvenance\":" ++ artifactProvenanceJson projection.runtimeProvenance ++
+    optionalField "experimentObservationRequirementDefinitionIds"
+      projection.experimentObservationRequirementDefinitionIds
+      (array ∘ List.map (quote ∘ DefinitionId.value)) ++
+    ",\"runtimeObservationConfig\":" ++ observationConfigJson projection.runtimeObservationConfig ++ "}"
+
 private def executionProgramJson (execution : PortableExecutionProgram) : String :=
   "{\"setup\":" ++ definitionBindingJson execution.setup ++
     ",\"query\":" ++ definitionBindingJson execution.query ++
@@ -859,7 +933,8 @@ private def executionProgramJson (execution : PortableExecutionProgram) : String
     optionalField "capabilityRequirements" execution.capabilityRequirements
       (array ∘ List.map definitionBindingJson) ++
     optionalField "checkpoints" execution.checkpoints (array ∘ List.map executionCheckpointJson) ++
-    ",\"runtime\":" ++ runtimeProgramJson execution.runtime ++ "}"
+    ",\"runtime\":" ++ runtimeProgramJson execution.runtime ++
+    ",\"artifactProjection\":" ++ artifactProjectionJson execution.artifactProjection ++ "}"
 
 private def traceProjectionJson : TraceProjection → String
   | .directPlanTrace => "\"directPlanTrace\":{}"
