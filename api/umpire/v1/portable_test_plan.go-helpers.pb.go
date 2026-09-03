@@ -118,6 +118,43 @@ func (this *SymbolicRole) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type PortableModelValue to the protobuf v3 wire format
+func (val *PortableModelValue) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type PortableModelValue from the protobuf v3 wire format
+func (val *PortableModelValue) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *PortableModelValue) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two PortableModelValue values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *PortableModelValue) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *PortableModelValue
+	switch t := that.(type) {
+	case *PortableModelValue:
+		that1 = t
+	case PortableModelValue:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type RoleBinding to the protobuf v3 wire format
 func (val *RoleBinding) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -1106,6 +1143,7 @@ var (
 	PreconditionOperator_shorthandValue = map[string]int32{
 		"Unspecified": 0,
 		"Equals":      1,
+		"NotEquals":   2,
 	}
 )
 
@@ -1138,6 +1176,35 @@ func PortableValueKindFromString(s string) (PortableValueKind, error) {
 		return PortableValueKind(v), nil
 	}
 	return PortableValueKind(0), fmt.Errorf("%s is not a valid PortableValueKind", s)
+}
+
+var (
+	PortableDefinitionKind_shorthandValue = map[string]int32{
+		"Unspecified": 0,
+		"Setup":       1,
+		"State":       2,
+		"Action":      3,
+		"Outcome":     4,
+		"Observation": 5,
+		"Relation":    6,
+		"Capability":  7,
+		"Provider":    8,
+		"Law":         9,
+		"Connector":   10,
+		"Target":      11,
+		"Kernel":      12,
+	}
+)
+
+// PortableDefinitionKindFromString parses a PortableDefinitionKind value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to PortableDefinitionKind
+func PortableDefinitionKindFromString(s string) (PortableDefinitionKind, error) {
+	if v, ok := PortableDefinitionKind_value[s]; ok {
+		return PortableDefinitionKind(v), nil
+	} else if v, ok := PortableDefinitionKind_shorthandValue[s]; ok {
+		return PortableDefinitionKind(v), nil
+	}
+	return PortableDefinitionKind(0), fmt.Errorf("%s is not a valid PortableDefinitionKind", s)
 }
 
 var (
