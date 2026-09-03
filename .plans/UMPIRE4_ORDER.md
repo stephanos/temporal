@@ -16,9 +16,9 @@ complete production platform. In particular:
 - Lean remains the single source of behavioral meaning.
 - The same deterministic `ExperimentSpec` is usable locally, in CI, and through a disposable
   self-hosted cluster boundary.
-- Lean compiles one closed per-test evaluation contract ahead of time, allowing a resident Go
-  executor to make a bounded local canary decision without Lean; production deployment is not part
-  of the prototype.
+- Lean compiles closed per-Test evaluation contracts and model-bound portable plans ahead of time,
+  allowing a resident Go executor to make bounded local decisions without Lean; production
+  deployment is not part of the prototype.
 - One preprogrammed SDK participant resolves late-bound Nexus identifiers during execution.
 - Evidence conclusions use causal or source-local ordering rather than synchronized clocks, proven
   with deliberately skewed timestamps.
@@ -36,17 +36,20 @@ not additional hard dependencies.
 **Depends on:** the completed fn-19 runner, fn-20 Run Evaluation, and fn-28 portable evaluator and
 resident executor proof.
 
-**Scope:** define one closed, fully typed `PortableTestPlan` protobuf containing the bounded
-execution and verification programs for one exact Test; admit external plans as plan-local and
-model-compiled plans as model-bound only after independent provenance validation; execute both
-through one unary gRPC method over the existing bounded runner, Evidence closure, and portable
-evaluator. Lean is the first compiler into this format, not its exclusive author.
+**Scope:** define one internal, closed, fully typed `PortableTestPlan` protobuf containing the
+bounded execution and verification programs for one exact plan; admit external plans as plan-local
+and model-compiled plans as model-bound only after independent provenance validation; execute both
+through one direct unary gRPC method over the existing bounded runner, Evidence closure, and
+portable evaluator. Lean is the first model compiler into this format, not its exclusive author.
 
-Preserve fn-28's protobuf file descriptor, generated message types, HTTP endpoint, request envelope,
-fixtures, and historical results byte-for-byte. The successor remains single-flight and bounded,
-with no plan store, scheduler, fleet manager, automatic retry, environment selection, production
-authorization, recovery, publication, or release policy. It becomes the required protocol seam for
-the deferred fn-29 production canary.
+Preserve fn-28's legacy protobuf file descriptor, generated message types, HTTP contract, request
+envelope, checked fixtures, and historical acceptance byte-for-byte and operational. Version one
+supports the current runner cardinality and remains single-flight and bounded, with no plan store,
+scheduler, fleet manager, automatic retry, environment selection, production authorization,
+recovery, publication, or release policy. A generated client must prove external plan-local and
+validated model-bound behavior against disposable local execution. This internal experimental
+interface becomes the required downstream seam for deferred fn-29; production canary consumption
+does not gate fn-52.
 
 ## Complete P3 — Exploration and regression lifecycle
 
