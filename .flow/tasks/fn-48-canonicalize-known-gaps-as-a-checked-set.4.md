@@ -38,6 +38,7 @@ Baseline: green via handoff (verified at f936174c by fn-48-canonicalize-known-ga
 Verification environment: the canonical Go gate initially hit the inherited Lean-bundled Clang header lookup failure, then passed unchanged after selecting Apple Clang and a physical macOS `TMPDIR`.
 
 stage: impl-review - ran (Codex SHIP; 0 findings) (model: gpt-5.6-sol)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 7f13929201e6c1bd27740f385f665ce7f6fb53b6
 - Tests: cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Artifact.Tests.Codecs Umpire.Artifact.Tests.Runtime Umpire.Artifact.Tests.Evidence Umpire.Artifact.Tests.Result Temporal.Tool.RunEvaluationTests, cd model && mise exec -- lake build Temporal.Tool.RunEvaluationMutationTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, CC=/usr/bin/clang TMPDIR=/private/tmp/umpire-fn48-task4.dGjGxZ go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/runevaluation, make umpire-check-regression, make lint-model
