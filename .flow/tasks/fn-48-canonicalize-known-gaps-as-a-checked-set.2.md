@@ -29,9 +29,14 @@ Move shared Lean Artifact types, encoders, and set checks onto the checked bound
 - [ ] Valid planning Artifact bytes and checksums are unchanged.
 - [ ] Focused Lean planning/set tests and Go artifactv2 tests pass.
 ## Done summary
-TBD
+Migrated planning `DrivePlan` artifacts to carry opaque checked `KnownGapSet` values, projected canonical rows only at encoding/list boundaries, removed redundant Lean set validation, and retained Go persisted-input rejection coverage. Canonical artifact bytes/checksums, aggregate builds, regression checks, and focused Lean/Go tests remain unchanged and pass.
 
+baseline: focused gates green via handoff (verified at 34cabcc9 by fn-48-canonicalize-known-gaps-as-a-checked-set.1); `make lint-code` red pre-edit with the approved 1,379 inherited findings. Final `make lint-code` reproduced the exact category counts with zero findings in the task-touched Go file; its unrelated auto-fix side effect was restored.
+
+verification environment: the exact Go gate passed after selecting `/usr/bin/clang` and a physical macOS `TMPDIR`, avoiding the inherited Lean-bundled Clang header lookup and `/var` symlink mismatch.
+
+stage: impl-review - ran [2026-09-03T06:26:32Z..2026-09-03T06:31:59Z] (Codex SHIP after one NEEDS_WORK fix loop)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 82c97e4bd98d0cbf234d35871c591acafd18082c, f9556add4cfd06f82b041c2ea976465b5821c6dc
+- Tests: cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Planning.Tests.Artifacts Umpire.Artifact.Tests.Set, cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Artifact.Tests.Codecs Umpire.Artifact.Tests.Runtime Umpire.Artifact.Tests.Evidence Umpire.Artifact.Tests.Result Temporal.Tool.RunEvaluationTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/runevaluation, make umpire-check-regression, make lint-model, make lint-code (waived inherited failure: exact 1,379 baseline findings; zero findings in tools/umpire/internal/artifactv2/artifact_test.go)
 - PRs:
