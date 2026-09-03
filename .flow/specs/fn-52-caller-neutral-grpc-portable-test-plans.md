@@ -15,6 +15,8 @@ The new contract makes the submitted plan authoritative for its exact execution 
 
 Affected stakeholders are developers producing plans in Lean or other languages, maintainers of the Go executor and model compiler, and operators feeding pinned plans to canaries. There is no direct end-user interface. Production authorization, target selection, fencing, recovery, and publication remain owned by fn-29.
 
+Version one is an internal experimental contract rather than a public compatibility promise. Fn-52 is complete when a generic generated gRPC client proves both external plan-local and validated model-bound behavior against disposable local execution. Production canary consumption is a downstream fn-29 concern and does not gate fn-52 completion.
+
 ## Architecture & Data Models
 <!-- scope: technical -->
 
@@ -36,39 +38,93 @@ flowchart LR
 
 - format version, plan identity, deterministic checksum, and provenance;
 - a typed execution program containing setup, participants, symbolic/runtime bindings, preconditions, ordered actions, requested faults, checkpoints, termination, and cleanup obligations;
-- a typed verification program containing admitted Evidence sources and fields, correlation and causal/source-local ordering, explicit source closure, trace construction, an optional Implementation Link, Property clauses, and decision policy;
-- independent execution, evidence, evaluation, cleanup, byte, collection, depth, operator, work, result, and duration Limits;
+- a typed verification program containing admitted Evidence sources and fields, correlation and causal/source-local ordering, explicit source closure, trace construction, an explicit trace projection, Property clauses, and the fixed version-one decision policy;
+- fresh nested structural, execution, Evidence, evaluation, and output Limits;
 - Known Gaps and external verification obligations.
 
 The plan contains no opaque serialized sub-artifacts, arbitrary executable, callback, shell command, regex engine, registry lookup, target endpoint, credential, trust anchor, environment selector, or extension hook. Runtime-specific identifiers are resolved only through declared typed binding slots by the executor's configured adapter. The plan cannot broaden the adapter's capabilities or repository hard maxima.
 
-The version-one execution and verification vocabularies are finite. Execution reuses the complete `ExperimentSpec`/`DrivePlan` meanings already exercised by the bounded runner. Verification reuses the fn-28 Evidence, Observation, trace, Implementation Link, Property, closure, and decision operators. An absent Implementation Link means clauses evaluate the observed plan trace directly and can produce only plan-local conformance. Adding or changing an operator requires a new compatible minor revision or incompatible major version according to protobuf compatibility rules; unknown behavior-affecting fields, enums, and operators fail closed.
+The version-one execution and verification vocabularies are finite. The execution schema retains the complete typed `ExperimentSpec`/`DrivePlan` and `RuntimeConfiguration` meanings already exercised by the bounded runner. Its list-shaped fields preserve those meanings, while version-one admission supports exactly the runner's current executable subset: one participant binding, one ordered occurrence and requested action, zero or one requested fault, and the fixed `preparation`, `realization`, `observation`, `isolation`, and `cleanup` phases. A later additive revision may support broader cardinalities; version one rejects rather than ignores them.
+
+Verification reuses the fn-28 Evidence, Observation, trace, Implementation Link, Property, closure, and decision operators. `VerificationProgram.trace_projection` is a required oneof with exactly two variants: `direct_plan_trace` declares that Property clauses use the observed trace unchanged, while `rename_exact_link` applies the existing exact model-value mapping first. These are not separate evaluators: both follow `Evidence -> observed trace -> trace projection -> Property evaluation`, with direct projection acting as the identity operation. The explicit choice distinguishes an intentional direct check from an accidentally omitted link. Adding or changing an operator requires a new compatible minor revision or incompatible major version according to protobuf compatibility rules; unknown behavior-affecting fields, enums, and operators fail closed.
 
 Provenance has two closed variants:
 
 - `external`: the plan is authoritative only for its own plan-local execution and verification;
-- `model_compiled`: the plan carries exact Test, Query, ExperimentSpec, Property, Definition ID, Behavior Fingerprint, compiler-contract, and source bindings required to correlate it with one checked model input.
+- `model_compiled`: the plan carries exact Test, Query, ExperimentSpec, RuntimeConfiguration, Property, Definition ID, Behavior Fingerprint, compiler-contract, and source bindings required to correlate it with one checked model input.
 
-The language used by a caller never determines authority. Model-bound scope requires the executor host's independently configured provenance verifier to validate the model-compiled bindings and trusted source; the plan cannot provide its own trust anchor. Missing, invalid, expired, unsupported, or crossed model provenance rejects the model-bound request before runtime I/O and is never silently downgraded. An external plan needs no model provenance and receives an explicit `plan_local` result scope.
+The protocol does not define a digital signature, key identifier, issuer, embedded trust proof, or caller-supplied validity claim. The language used by a caller never determines authority. For a model-compiled plan, the executor host's independently configured provenance verifier receives the admitted plan checksum and exact model/compiler bindings and compares them with trusted host configuration, including any host-owned validity window. Fn-29 additionally pins the expected plan checksum. Missing, invalid, expired, unsupported, or crossed trusted configuration rejects the model-bound request before runtime I/O and is never silently downgraded. An external plan needs no model provenance and receives an explicit `plan_local` result scope.
 
 Lean lowering produces the same typed plan that other clients may construct. Every portable check is distilled into the verification program. A check outside the finite vocabulary becomes an explicit external verification obligation. An obligation marked required prevents a complete model-bound result until a separately trusted verification receipt is joined above this interface; it does not claim that the executor performed the check. Plan-local evaluation remains limited to the bundled portable clauses and always reports unresolved obligations and Known Gaps.
 
-Decoded protobuf values, rather than raw gRPC wire encodings, are the canonical identity seam. Admission recursively rejects unknown fields and enum values, validates all cross-bindings and Limits, clears the checksum and provenance-attestation fields, deterministically serializes the remaining value, and computes the plan checksum in a versioned domain. Semantically identical encodings from different conforming gRPC implementations therefore produce one identity; noncanonical field ordering on the transport is not an error.
+Decoded protobuf values, rather than raw gRPC wire encodings, are the canonical identity seam. Admission recursively rejects unknown fields and enum values, validates all cross-bindings and Limits, clears only `plan_checksum`, deterministically serializes the remaining value, and computes the checksum in the `umpire.portable-test-plan/v1` domain. All declared provenance bindings participate in this checksum. Semantically identical encodings from different conforming gRPC implementations therefore produce one identity; noncanonical field ordering on the transport is not an error.
 
-The successor plan vocabulary lives in its own protobuf file, and the new service definition imports that file. The legacy fn-28 message file is not extended or regenerated with additional declarations, so its file descriptor, generated message types, request envelope, and checked fixtures remain byte-identical. Package-level descriptor sets may add the new files without rewriting the legacy file descriptor.
+`PortableTestPlanLimits` separates five independently enforced groups:
+
+- structural admission: plan bytes, nesting depth, collection size, and operator count;
+- execution: action/fault counts, phase attempts, per-phase duration, and total duration;
+- Evidence: record and byte counts plus source closure;
+- evaluation: expression depth, natural range, and charged work;
+- output: diagnostic and complete result bytes.
+
+The successor plan vocabulary lives in its own protobuf file, and the new service definition imports that file. The new file may import and reuse stable fn-28 leaf messages such as `DefinitionBinding`, `ModelValue`, and Evidence/Property vocabulary, but it does not add to or regenerate declarations in the legacy fn-28 message file. Its file descriptor, generated message types, request envelope, and checked fixtures remain byte-identical. Package-level descriptor sets may add the new files without rewriting the legacy file descriptor.
 
 ## API Contracts
 <!-- scope: technical -->
 
-The conventional Umpire `v1` protobuf package adds a separate service definition with one deep interface:
+The conventional Umpire `v1` protobuf package adds a separate service definition with one direct interface and no request or response wrapper:
 
-```text
-UmpireExecutor.Execute(PortableTestPlan) -> ExecutionResult
+```proto
+service UmpireExecutor {
+  rpc Execute(PortableTestPlan) returns (ExecutionResult);
+}
 ```
 
-The unary operation does not expose plan storage, listing, mutation, scheduling, environment selection, retries, or arbitrary evaluation. The server assigns a fresh run identity only after admission. One executor remains single-flight and retains fn-28's `idle`, `active`, and permanently `poisoned` reuse semantics.
+The plan's top-level shape is:
 
-`ExecutionResult` contains the plan checksum, run identity, validated provenance outcome, claim scope (`plan_local` or `model_bound`), independent tooling/operational/Observation/Implementation-Link/Property/cleanup statuses, pass/fail/inconclusive decision, Evidence Links, work charges, Known Gaps, unresolved external verification obligations, and bounded diagnostics. A decision applies only to the exact admitted plan and Evidence. It never implies model consistency, exhaustive coverage, compiler correctness, release eligibility, or authorization to deploy.
+```proto
+message PortableTestPlan {
+  FormatVersion version = 1;
+  string plan_id = 2;
+  bytes plan_checksum = 3;
+  oneof provenance {
+    ExternalPlanProvenance external = 4;
+    ModelCompiledPlanProvenance model_compiled = 5;
+  }
+  ExecutionProgram execution = 6;
+  VerificationProgram verification = 7;
+  PortableTestPlanLimits limits = 8;
+  repeated KnownGap known_gaps = 9;
+  repeated ExternalVerificationObligation external_obligations = 10;
+}
+```
+
+`ExecutionProgram` groups the exact query, behavior, target, kernel, role, symbolic-value, precondition, planned-trace, choice, variant, fault, capability, checkpoint, runtime-profile, participant-protocol, termination, and cleanup bindings. `RuntimeProgram` holds the authority-profile identity, participant/program binding, required capabilities, observation-configuration binding, and the five ordered phase Limits. The protobuf contains values and bindings only; the adapter owns all live runtime construction.
+
+`VerificationProgram` has this closed outline:
+
+```proto
+message VerificationProgram {
+  EvidenceProfile evidence = 1;
+  ObservationProgram observation = 2;
+  oneof trace_projection {
+    DirectPlanTrace direct_plan_trace = 3;
+    RenameExactLink rename_exact_link = 4;
+  }
+  repeated Property properties = 5;
+  DecisionPolicy decision = 6;
+}
+```
+
+`DirectPlanTrace` is an explicit empty marker, not an omitted field. `DecisionPolicy` has one supported version-one value and no caller-tunable pass/fail rules. `ExternalVerificationObligation` carries a stable definition identity, required-or-advisory classification, source, and bounded human-readable statement; it contains no callback or verifier location.
+
+`ModelCompiledPlanProvenance` contains the exact Test and Query `DefinitionBinding`s, ExperimentSpec and RuntimeConfiguration `ArtifactBinding`s, the sorted Property bindings, compiler-contract binding, and canonical source locations. `ExternalPlanProvenance` contains only canonical authoring source locations. Neither message contains cryptographic material or trust configuration.
+
+`ExecutionResult` contains the plan checksum, fresh run identity, provenance outcome (`external` or `model_verified`), claim scope (`plan_local` or `model_bound`), independent tooling/operational/Observation/trace-projection/Property/cleanup statuses, pass/fail/inconclusive decision, Evidence Links, work charges, Known Gaps, unresolved external verification obligations, and bounded diagnostics. Invalid model provenance never appears as a successful result outcome because it rejects before execution. `TraceProjectionResult` reports `direct` for identity projection or the existing applied/invalid/unknown/conflict/unsupported outcomes for exact rename projection without changing the legacy `ImplementationLinkStatus` enum.
+
+The unary operation does not expose plan storage, listing, mutation, scheduling, environment selection, retries, arbitrary evaluation, or per-call options. The server assigns a fresh run identity only after structural and provenance admission. One executor remains single-flight and retains fn-28's `idle`, `active`, and permanently `poisoned` reuse semantics.
+
+A decision applies only to the exact admitted plan and Evidence. It never implies model consistency, exhaustive coverage, compiler correctness, release eligibility, or authorization to deploy.
 
 Admission deterministically constructs and sizes the minimum result envelope before runtime I/O. That envelope includes every mandatory plan-derived field, all Known Gaps and external obligations, the non-success status/decision skeleton, and one result-byte-limit diagnostic. A plan whose `max_result_bytes` cannot contain that envelope is rejected. Variable runtime Evidence Links, applications, clause results, work charges, and diagnostics are charged against the remaining result budget before append. If the next complete semantic result would exceed the budget, construction atomically discards partial semantic success, returns the reserved typed `inconclusive` result with the result-byte Limit diagnostic, and never truncates an accepted Evidence Link or returns a transport/internal error for ordinary Limit exhaustion.
 
@@ -88,13 +144,15 @@ The fn-28 HTTP endpoint, request envelope, fixture bytes, and results remain unc
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
-- Empty plans, zero/unknown versions, unspecified oneofs, duplicate IDs, invalid order graphs, unresolved bindings, crossed execution/verification identities, invalid checksums, unknown fields/enums/operators, nonpositive Limits, arithmetic overflow, and values beyond hard maxima fail before runtime I/O.
+- Empty plans, zero/unknown versions, unspecified provenance or trace-projection oneofs, duplicate IDs, invalid order graphs, unresolved bindings, crossed execution/verification identities, invalid checksums, unknown fields/enums/operators, nonpositive Limits, arithmetic overflow, and values beyond hard maxima fail before runtime I/O.
+- Version one rejects a second participant, second ordered occurrence/action, second requested fault, missing/reordered execution phase, or any execution collection the current runner cannot execute completely. Schema breadth never implies runtime support.
+- Direct trace projection preserves the observed trace and Evidence Links exactly. Rename projection must map every used value exactly once; missing, duplicate, contradictory, or cross-target mappings cannot fall back to direct evaluation.
 - Execution and verification must be closed over the same exact plan identity. Evidence from another plan, run, source, binding, or post-closure record cannot satisfy a clause.
 - Missing, ambiguous, conflicting, causally unrelated, unsupported, or unclosed Evidence cannot produce `pass`; trustworthy closed violations alone produce `fail`; every other admitted non-success is `inconclusive`.
-- External authors cannot label a plan model-bound, forge compiler provenance, supply a trust anchor, or convert plan-local conformance into a Behavior Model or Claim Assessment result.
+- External authors cannot label a plan model-bound or convert plan-local conformance into a Behavior Model or Claim Assessment result. Model-bound scope comes only from an exact host-configured match of checksum and model/compiler bindings; the protocol accepts no signature, key, issuer, trust anchor, or caller-supplied expiry.
 - Model-compiled plans with unsupported checks retain explicit external obligations. A required unresolved obligation prevents complete model-bound success; no obligation may be silently dropped during lowering or admission.
 - Environment coordinates, credentials, authorization, and secrets never enter the plan, checksum diagnostics, or result. Adapters fill only contract-declared runtime slots and cannot change the modeled action or verification program.
-- Exact Limit N is admitted and N+1 fails at the responsible pre-I/O or typed runtime stage. Work is charged before execution/evaluation. Request, result, diagnostic, collection, nesting, action, fault, Evidence, and duration ceilings remain independent.
+- Exact Limit N is admitted and N+1 fails at the responsible pre-I/O or typed runtime stage. Structural, execution, Evidence, evaluation, and output budgets remain independent and are never substituted for one another. Work is charged before execution/evaluation.
 - A result-byte Limit smaller than the mandatory result envelope rejects before I/O. Runtime N+1 output uses the reserved typed incomplete result atomically; it never truncates Evidence Links, leaks partial success, or becomes a fabricated transport failure.
 - A 10x burst does not create a queue or parallel mutation: one request runs and overlapping calls receive `RESOURCE_EXHAUSTED` before runtime I/O. Fleet scheduling and horizontal scaling are separate modules outside this spec.
 - A process crash or disconnected caller after dispatch may lose the response. Owned resources remain bounded by cleanup and server timeouts; callers must not automatically retry an unknown outcome. Durable recovery is delegated to fn-29.
@@ -136,6 +194,8 @@ Task fn-52-caller-neutral-grpc-portable-test-plans.2 proves that one externally 
 - No arbitrary code, dynamic plugins, registry-selected operators, remote checker invocation, or generic workflow language.
 - No plan repository, list/get/update methods, queue, scheduler, fleet manager, streaming protocol, persistent result store, or automatic retry.
 - No production credentials, target selection, approval, fencing, recovery, publication, rollout, remediation, rollback, or release authorization; fn-29 owns those concerns.
+- No public API or compatibility commitment for the internal experimental version-one service.
+- No requirement that fn-29 production canary work complete before the local caller-neutral contract is accepted.
 - No removal, migration, or semantic reinterpretation of fn-28 HTTP requests or artifacts.
 - No claim that external plan conformance is Behavior Model validity, and no model-bound success without independently validated provenance and complete required verification.
 - No requirement that every Lean proof be portable; nonportable obligations remain explicit and are verified above this interface.
@@ -146,14 +206,18 @@ Task fn-52-caller-neutral-grpc-portable-test-plans.2 proves that one externally 
 ### Motivation
 <!-- scope: business -->
 
-One typed plan is the smallest understandable contract for feeding a canary both instructions and checks. Caller neutrality matters because gRPC and protobuf should define the interface, while Lean remains a valuable producer and verifier rather than a mandatory runtime or exclusive plan author.
+One typed plan is the smallest understandable contract for feeding a canary both instructions and checks. Caller neutrality matters because gRPC and protobuf should define the interface, while Lean remains a valuable producer and verifier rather than a mandatory runtime or exclusive plan author. The first milestone is an internal generated-client proof over disposable local execution; production authorization remains a separate downstream decision.
 
 ### Implementation Tradeoffs
 <!-- scope: technical -->
 
 Create a new successor spec instead of rewriting fn-28 because fn-28's completed HTTP proof and fixtures are useful compatibility evidence. Keep the protocol reusable rather than placing it in fn-29, where production-only authorization and recovery would contaminate the interface. Reject a gRPC wrapper around the old byte envelope because opaque JSON artifacts would preserve the current ambiguity and would not permit genuine non-Lean authoring.
 
-Unary buffering trades streaming scalability for atomic admission and simpler crash semantics; hard size and duration bounds make that acceptable for one canary Test. Retaining single-flight execution rejects burst load rather than adding scheduler complexity. A closed operator vocabulary limits expressiveness but keeps non-Lean plans safe, portable, deterministic, and testable. Model provenance validation adds one host seam, but prevents an untrusted caller from elevating plan-local results; trust configuration remains outside the semantic plan and canary-specific trust remains in fn-29.
+Unary buffering trades streaming scalability for atomic admission and simpler crash semantics; hard size and duration bounds make that acceptable for one canary Test. Retaining single-flight execution rejects burst load rather than adding scheduler complexity. A closed operator vocabulary limits expressiveness but keeps non-Lean plans safe, portable, deterministic, and testable.
+
+Retaining the complete list-shaped execution model preserves the existing artifact meaning, while strict version-one cardinalities avoid pretending the current runner supports broader orchestration. An explicit direct-or-rename trace projection avoids redundant identity mappings without turning a missing link into implicit semantics. Fresh nested Limit messages keep new plan admission understandable without changing fn-28's `EvaluationLimits` contract.
+
+Model provenance validation adds one narrow host seam instead of a new cryptographic protocol. Exact checksum and compiler/model binding comparison is sufficient for the internal executor and fn-29's pinned-plan handoff; host-owned validity and trust configuration stay outside the semantic plan.
 
 ## References
 
@@ -178,3 +242,11 @@ Unary buffering trades streaming scalability for atomic admission and simpler cr
 | R8 | Preserve the fn-28 compatibility surface | fn-52-caller-neutral-grpc-portable-test-plans.2, fn-52-caller-neutral-grpc-portable-test-plans.6 | — |
 | R9 | Make fn-29 consume pinned Lean plans through gRPC | fn-52-caller-neutral-grpc-portable-test-plans.6 | — |
 | R10 | Prove and document the complete interface | fn-52-caller-neutral-grpc-portable-test-plans.1, fn-52-caller-neutral-grpc-portable-test-plans.2, fn-52-caller-neutral-grpc-portable-test-plans.3, fn-52-caller-neutral-grpc-portable-test-plans.4, fn-52-caller-neutral-grpc-portable-test-plans.5, fn-52-caller-neutral-grpc-portable-test-plans.6 | — |
+
+## Resolved via Codebase
+
+- The existing checked runner currently admits exactly one target, one requested action, one occurrence, one participant, zero or one fault, and five fixed execution phases (`tools/umpire/runtime/request.go:46`, `tools/umpire/runtime/request.go:54`, `tools/umpire/runtime/request.go:61`, `tools/umpire/runtime/request.go:69`, `tools/umpire/runtime/request.go:115`, `tools/umpire/runtime/request.go:177`).
+- Fn-28 already implements one Observation-to-Implementation-Link-to-Property pipeline; direct projection belongs as an identity projection inside that evaluator rather than as a second evaluator (`tools/umpire/portableevaluation/evaluator.go:100`, `tools/umpire/portableevaluation/evaluator.go:110`, `tools/umpire/portableevaluation/evaluator.go:120`).
+- The current exact-rename validator requires a link and forbids identical source and destination targets, so successor direct mode needs its own explicit marker/result rather than a fabricated identity rename (`tools/umpire/evaluationcontract/validate.go:563`, `tools/umpire/evaluationcontract/validate.go:583`).
+- Runtime endpoints, credentials, and live construction already sit behind the adapter and fixed local authority rather than in the semantic request (`tools/umpire/runner/runner.go:83`, `tools/umpire/temporal/local/profile.go:30`).
+- The legacy Umpire protobuf already owns `EvaluationContract`, `EvaluationResult`, `ExecuteRequest`, and `ExecuteResponse`; successor declarations can reuse stable leaf vocabulary from a separate file without changing those declarations (`proto/internal/temporal/server/api/umpire/v1/message.proto:328`, `proto/internal/temporal/server/api/umpire/v1/message.proto:569`, `proto/internal/temporal/server/api/umpire/v1/message.proto:593`).
