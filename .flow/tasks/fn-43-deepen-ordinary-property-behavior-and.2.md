@@ -49,6 +49,8 @@ cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests 
 Added proof-taking Property/Behavior checked facades, narrow semantic constructors, and shared identity-primitive adapters, then migrated the Switch Property/Behavior happy paths without changing typed diagnostics, fingerprints, or artifact bytes. Focused builds, repository lint, the public trust audit, and independent Codex review are green.
 
 stage: impl-review - ran (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+
 ## Evidence
 - Commits: 19159cb404530c9e025a6edc7215e22244f80ee7
 - Tests: baseline: green (cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Examples.Switch), TDD RED: cd model && mise exec -- lake build Umpire.Examples.SwitchTests (missing checked facades and semantic constructors; exit 1), cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Examples.Switch, cd model && mise exec -- lake build Umpire.Examples.SwitchTests, make lint-model, cd model && mise exec -- lake env lean ../.flow/tmp/Fn43Task2Trust.lean (public axiom inventory; no compiler-trust or custom axioms), git diff --check 64099bd40e2eb49c4b4e52b171be0fcfd144ad84..HEAD
