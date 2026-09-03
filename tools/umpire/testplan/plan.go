@@ -113,6 +113,9 @@ func mandatoryResult(plan *umpirespb.PortableTestPlan) *umpirespb.ExecutionResul
 	if plan.GetExternal() != nil {
 		result.ProvenanceOutcome = umpirespb.PROVENANCE_OUTCOME_EXTERNAL
 		result.ClaimScope = umpirespb.CLAIM_SCOPE_PLAN_LOCAL
+	} else if plan.GetModelCompiled() != nil {
+		result.ProvenanceOutcome = umpirespb.PROVENANCE_OUTCOME_MODEL_VERIFIED
+		result.ClaimScope = umpirespb.CLAIM_SCOPE_MODEL_BOUND
 	}
 	return result
 }

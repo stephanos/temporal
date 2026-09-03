@@ -338,31 +338,19 @@ func (v *validator) validateExecutionBindings(execution *umpirespb.ExecutionProg
 }
 
 func (v *validator) validateExecutionRoles(execution *umpirespb.ExecutionProgram) error {
-	if len(execution.GetRoleBindings()) != 1 || len(execution.GetSymbolicRoles()) != 1 ||
-		len(execution.GetRuntimeBindingSlots()) == 0 || len(execution.GetPreconditions()) == 0 {
-		return admissionError(ErrorMalformedValue, "$.execution", "roles, runtime slots, and preconditions are required")
-	}
-	role := execution.GetRoleBindings()[0]
-	if role == nil {
-		return admissionError(ErrorMalformedValue, "$.execution.roleBindings[0]", "role binding is required")
-	}
-	if err := v.validateBinding(role.GetRole(), "$.execution.roleBindings[0].role"); err != nil {
+	roleIDs, err := v.validateRoleBindings(execution.GetRoleBindings())
+	if err != nil {
 		return err
 	}
-	if err := v.validateModelValue(role.GetValue(), "$.execution.roleBindings[0].value"); err != nil {
+	if err := v.validateSymbolicRoles(execution.GetSymbolicRoles(), roleIDs); err != nil {
 		return err
-	}
-	symbolic := execution.GetSymbolicRoles()[0]
-	if symbolic == nil || symbolic.GetValueKind() == umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED {
-		return admissionError(ErrorMalformedValue, "$.execution.symbolicRoles[0]", "symbolic role is malformed")
-	}
-	if err := v.validateBinding(symbolic.GetDefinition(), "$.execution.symbolicRoles[0].definition"); err != nil {
-		return err
-	}
-	if !proto.Equal(role.GetRole(), symbolic.GetDefinition()) {
-		return admissionError(ErrorBinding, "$.execution.roleBindings[0].role", "role is crossed with its symbolic declaration")
 	}
 	if err := v.validateBindingSlots(execution.GetRuntimeBindingSlots()); err != nil {
+		return err
+	}
+	if err := requireSortedUnique(execution.GetPreconditions(), func(precondition *umpirespb.ExecutionPrecondition) string {
+		return bindingKey(precondition.GetDefinition())
+	}, "$.execution.preconditions"); err != nil {
 		return err
 	}
 	for index, precondition := range execution.GetPreconditions() {
@@ -373,8 +361,52 @@ func (v *validator) validateExecutionRoles(execution *umpirespb.ExecutionProgram
 	return nil
 }
 
+func (v *validator) validateRoleBindings(bindings []*umpirespb.RoleBinding) (map[string]struct{}, error) {
+	seen := make(map[string]struct{}, len(bindings))
+	for index, role := range bindings {
+		path := fmt.Sprintf("$.execution.roleBindings[%d]", index)
+		if role == nil {
+			return nil, admissionError(ErrorMalformedValue, path, "role binding is required")
+		}
+		if err := v.validateBinding(role.GetRole(), path+".role"); err != nil {
+			return nil, err
+		}
+		if err := v.validatePortableModelValue(role.GetValue(), umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED, path+".value"); err != nil {
+			return nil, err
+		}
+		id := role.GetRole().GetDefinitionId()
+		if _, duplicate := seen[id]; duplicate {
+			return nil, admissionError(ErrorDuplicate, path+".role", "duplicate bound role")
+		}
+		seen[id] = struct{}{}
+	}
+	return seen, nil
+}
+
+func (v *validator) validateSymbolicRoles(roles []*umpirespb.SymbolicRole, bound map[string]struct{}) error {
+	seen := make(map[string]struct{}, len(roles))
+	for index, role := range roles {
+		path := fmt.Sprintf("$.execution.symbolicRoles[%d]", index)
+		if role == nil || role.GetKind() == umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED {
+			return admissionError(ErrorMalformedValue, path, "symbolic role is malformed")
+		}
+		if err := v.validateBinding(role.GetDefinition(), path+".definition"); err != nil {
+			return err
+		}
+		id := role.GetDefinition().GetDefinitionId()
+		if _, duplicate := seen[id]; duplicate {
+			return admissionError(ErrorDuplicate, path, "duplicate symbolic role")
+		}
+		if _, duplicate := bound[id]; duplicate {
+			return admissionError(ErrorDuplicate, path, "role is both bound and symbolic")
+		}
+		seen[id] = struct{}{}
+	}
+	return nil
+}
+
 func (v *validator) validateExecutionTrace(execution *umpirespb.ExecutionProgram) error {
-	if err := v.validateModelValue(execution.GetInitialState(), "$.execution.initialState"); err != nil {
+	if err := v.validatePortableModelValue(execution.GetInitialState(), umpirespb.PORTABLE_DEFINITION_KIND_STATE, "$.execution.initialState"); err != nil {
 		return err
 	}
 	if len(execution.GetRequestedActions()) != 1 || int64(len(execution.GetRequestedActions())) > v.limits.GetExecution().GetMaxActions() {
@@ -383,25 +415,23 @@ func (v *validator) validateExecutionTrace(execution *umpirespb.ExecutionProgram
 	if len(execution.GetModelOutcomes()) != 1 || len(execution.GetResultingStates()) != 1 || len(execution.GetOccurrences()) != 1 {
 		return admissionError(ErrorLimit, "$.execution", "version one requires one outcome, resulting state, and occurrence")
 	}
-	if len(execution.GetSelectedChoices()) == 0 || len(execution.GetSelectedVariants()) == 0 {
-		return admissionError(ErrorMalformedValue, "$.execution", "selected choices and variants are required")
-	}
 	if int64(len(execution.GetRequestedFaults())) > v.limits.GetExecution().GetMaxFaults() {
 		return admissionError(ErrorLimit, "$.execution.requestedFaults", "fault count exceeds the declared limit")
 	}
 	collections := []struct {
-		name   string
-		values []*umpirespb.ModelValue
+		name         string
+		values       []*umpirespb.PortableModelValue
+		expectedKind umpirespb.PortableDefinitionKind
 	}{
-		{"requestedActions", execution.GetRequestedActions()},
-		{"modelOutcomes", execution.GetModelOutcomes()},
-		{"resultingStates", execution.GetResultingStates()},
-		{"selectedChoices", execution.GetSelectedChoices()},
-		{"selectedVariants", execution.GetSelectedVariants()},
-		{"requestedFaults", execution.GetRequestedFaults()},
+		{"requestedActions", execution.GetRequestedActions(), umpirespb.PORTABLE_DEFINITION_KIND_ACTION},
+		{"modelOutcomes", execution.GetModelOutcomes(), umpirespb.PORTABLE_DEFINITION_KIND_OUTCOME},
+		{"resultingStates", execution.GetResultingStates(), umpirespb.PORTABLE_DEFINITION_KIND_STATE},
+		{"selectedChoices", execution.GetSelectedChoices(), umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED},
+		{"selectedVariants", execution.GetSelectedVariants(), umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED},
+		{"requestedFaults", execution.GetRequestedFaults(), umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED},
 	}
 	for _, collection := range collections {
-		if err := v.validateModelValues(collection.values, "$.execution."+collection.name); err != nil {
+		if err := v.validatePortableModelValues(collection.values, collection.expectedKind, "$.execution."+collection.name); err != nil {
 			return err
 		}
 	}
@@ -420,15 +450,17 @@ func (v *validator) validateExecutionTrace(execution *umpirespb.ExecutionProgram
 }
 
 func (v *validator) validateCheckpoints(checkpoints []*umpirespb.ExecutionCheckpoint) error {
-	if len(checkpoints) == 0 {
-		return admissionError(ErrorMalformedValue, "$.execution.checkpoints", "at least one checkpoint is required")
+	if len(checkpoints) != len(v.plan.GetExecution().GetOccurrences()) {
+		return admissionError(ErrorLimit, "$.execution.checkpoints", "checkpoint count must equal the trace transition count")
 	}
 	for index, checkpoint := range checkpoints {
 		path := fmt.Sprintf("$.execution.checkpoints[%d]", index)
 		if checkpoint == nil || checkpoint.GetTransition() != int64(index+1) {
 			return admissionError(ErrorOrdering, path, "checkpoint order is invalid")
 		}
-		if err := v.validateModelValues(checkpoint.GetObservations(), path+".observations"); err != nil {
+		if err := v.validatePortableModelValues(
+			checkpoint.GetObservations(), umpirespb.PORTABLE_DEFINITION_KIND_OBSERVATION, path+".observations",
+		); err != nil {
 			return err
 		}
 	}
@@ -455,39 +487,93 @@ func (v *validator) validateBindingSlots(slots []*umpirespb.RuntimeBindingSlot) 
 }
 
 func (v *validator) validatePrecondition(precondition *umpirespb.ExecutionPrecondition, path string) error {
-	if precondition == nil || precondition.GetOperator() != umpirespb.PRECONDITION_OPERATOR_EQUALS {
-		return admissionError(ErrorUnsupportedOperator, path, "version one supports only equals")
+	if precondition == nil ||
+		(precondition.GetOperator() != umpirespb.PRECONDITION_OPERATOR_EQUALS &&
+			precondition.GetOperator() != umpirespb.PRECONDITION_OPERATOR_NOT_EQUALS) {
+		return admissionError(ErrorUnsupportedOperator, path, "version one supports equals and not-equals")
 	}
 	v.operators++
 	if err := v.validateBinding(precondition.GetDefinition(), path+".definition"); err != nil {
 		return err
 	}
-	if err := v.validateExecutionOperand(precondition.GetLeft(), path+".left"); err != nil {
+	left, err := v.validateExecutionOperand(precondition.GetLeft(), path+".left")
+	if err != nil {
 		return err
 	}
-	return v.validateExecutionOperand(precondition.GetRight(), path+".right")
+	right, err := v.validateExecutionOperand(precondition.GetRight(), path+".right")
+	if err != nil {
+		return err
+	}
+	if !compatibleOperandTypes(left, right) {
+		return admissionError(ErrorBinding, path, "precondition operands have crossed types")
+	}
+	return nil
 }
 
-func (v *validator) validateExecutionOperand(operand *umpirespb.ExecutionOperand, path string) error {
+type operandType struct {
+	definition umpirespb.PortableDefinitionKind
+	scalar     umpirespb.PortableValueKind
+}
+
+func (v *validator) validateExecutionOperand(operand *umpirespb.ExecutionOperand, path string) (operandType, error) {
 	if operand == nil {
-		return admissionError(ErrorUnsupportedOperator, path, "operand is required")
+		return operandType{}, admissionError(ErrorUnsupportedOperator, path, "operand is required")
 	}
 	switch value := operand.GetOperand().(type) {
 	case *umpirespb.ExecutionOperand_Literal:
-		return v.validateModelValue(value.Literal, path+".literal")
-	case *umpirespb.ExecutionOperand_Binding:
-		if err := v.validateBinding(value.Binding, path+".binding"); err != nil {
-			return err
+		if err := v.validatePortableModelValue(value.Literal, umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED, path+".literal"); err != nil {
+			return operandType{}, err
 		}
-		for _, slot := range v.plan.GetExecution().GetRuntimeBindingSlots() {
-			if proto.Equal(value.Binding, slot.GetDefinition()) {
-				return nil
+		return operandType{definition: value.Literal.GetKind(), scalar: portableScalarKind(value.Literal.GetValue())}, nil
+	case *umpirespb.ExecutionOperand_Role:
+		if err := v.validateBinding(value.Role, path+".role"); err != nil {
+			return operandType{}, err
+		}
+		for _, role := range v.plan.GetExecution().GetRoleBindings() {
+			if proto.Equal(value.Role, role.GetRole()) {
+				return operandType{
+					definition: role.GetValue().GetKind(),
+					scalar:     portableScalarKind(role.GetValue().GetValue()),
+				}, nil
 			}
 		}
-		return admissionError(ErrorBinding, path+".binding", "operand is crossed with the declared runtime binding slots")
+		for _, role := range v.plan.GetExecution().GetSymbolicRoles() {
+			if proto.Equal(value.Role, role.GetDefinition()) {
+				return operandType{definition: role.GetKind()}, nil
+			}
+		}
+		return operandType{}, admissionError(ErrorBinding, path+".role", "operand is crossed with the declared roles")
+	case *umpirespb.ExecutionOperand_RuntimeBindingSlot:
+		if err := v.validateBinding(value.RuntimeBindingSlot, path+".runtimeBindingSlot"); err != nil {
+			return operandType{}, err
+		}
+		for _, slot := range v.plan.GetExecution().GetRuntimeBindingSlots() {
+			if proto.Equal(value.RuntimeBindingSlot, slot.GetDefinition()) {
+				return operandType{scalar: slot.GetValueKind()}, nil
+			}
+		}
+		return operandType{}, admissionError(ErrorBinding, path+".runtimeBindingSlot", "operand is crossed with the declared runtime binding slots")
 	default:
-		return admissionError(ErrorUnsupportedOperator, path, "operand kind is required")
+		return operandType{}, admissionError(ErrorUnsupportedOperator, path, "operand kind is required")
 	}
+}
+
+func compatibleOperandTypes(left, right operandType) bool {
+	compared := false
+	if left.definition != umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED &&
+		right.definition != umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED {
+		compared = true
+		if left.definition != right.definition {
+			return false
+		}
+	}
+	if left.scalar != umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED && right.scalar != umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED {
+		compared = true
+		if left.scalar != right.scalar {
+			return false
+		}
+	}
+	return compared
 }
 
 func (v *validator) validateRuntime(runtime *umpirespb.RuntimeProgram) error {
@@ -525,7 +611,11 @@ func (v *validator) validateRuntimeBindings(runtime *umpirespb.RuntimeProgram) e
 			return err
 		}
 	}
-	return nil
+	return v.validateBindingCollection(
+		runtime.GetAuthorityRequiredCapabilities(),
+		"$.execution.runtime.authorityRequiredCapabilities",
+		false,
+	)
 }
 
 func (v *validator) validateParticipant(participant *umpirespb.PortableParticipantBinding) error {
@@ -546,13 +636,7 @@ func (v *validator) validateParticipant(participant *umpirespb.PortableParticipa
 			return err
 		}
 	}
-	if err := v.validateBindingCollection(participant.GetCapabilities(), path+".capabilities", true); err != nil {
-		return err
-	}
-	if !equalBindings(participant.GetCapabilities(), v.plan.GetExecution().GetCapabilityRequirements()) {
-		return admissionError(ErrorBinding, path+".capabilities", "participant capabilities are crossed with execution requirements")
-	}
-	return nil
+	return v.validateBindingCollection(participant.GetCapabilities(), path+".capabilities", true)
 }
 
 func (v *validator) validateObservationConfig(observation *umpirespb.PortableObservationConfig) error {
@@ -947,80 +1031,132 @@ func (v *validator) validateObservation(observation *umpirespb.ObservationProgra
 	}, path+".emits"); err != nil {
 		return err
 	}
-	seen := make(map[string]struct{}, len(observation.GetEmits()))
-	coordinates := make(map[string]struct{}, len(observation.GetEmits()))
-	for index, emit := range observation.GetEmits() {
-		emitPath := fmt.Sprintf("%s.emits[%d]", path, index)
-		if emit == nil || !validDefinitionID(emit.GetDefinitionId()) || !validDefinitionID(emit.GetSourceKindDefinitionId()) ||
-			emit.GetOutputKind() == umpirespb.DEFINITION_KIND_UNSPECIFIED || emit.GetCoordinate() == nil {
-			return admissionError(ErrorMalformedValue, emitPath, "Emit is malformed")
-		}
-		if !v.isDeclaredEvidenceKind(emit.GetSourceKindDefinitionId()) {
-			return admissionError(ErrorBinding, emitPath+".sourceKindDefinitionId", "Emit source kind is not declared")
-		}
-		seen[emit.GetDefinitionId()] = struct{}{}
-		if err := validateCoordinate(emit.GetCoordinate(), emitPath+".coordinate"); err != nil {
-			return err
-		}
-		coordinate := coordinateKey(emit.GetCoordinate())
-		if _, duplicate := coordinates[coordinate]; duplicate {
-			return admissionError(ErrorDuplicate, emitPath+".coordinate", "duplicate emitted coordinate")
-		}
-		coordinates[coordinate] = struct{}{}
-		if err := v.validateBinding(emit.GetOutputDefinition(), emitPath+".outputDefinition"); err != nil {
-			return err
-		}
-		if err := v.validateObservationExpression(emit.GetCondition(), emitPath+".condition", 1); err != nil {
-			return err
-		}
-		if err := v.validateObservationExpression(emit.GetValue(), emitPath+".value", 1); err != nil {
-			return err
-		}
+	seen, err := v.validateEmits(observation.GetEmits(), path+".emits")
+	if err != nil {
+		return err
 	}
 	return validateEmitOrdering(observation.GetOrdering(), seen, path+".ordering")
 }
 
-func (v *validator) validateObservationExpression(expression *umpirespb.ObservationExpression, path string, depth int64) error {
+func (v *validator) validateEmits(emits []*umpirespb.Emit, path string) (map[string]struct{}, error) {
+	seen := make(map[string]struct{}, len(emits))
+	coordinates := make(map[string]struct{}, len(emits))
+	for index, emit := range emits {
+		emitPath := fmt.Sprintf("%s[%d]", path, index)
+		if err := v.validateEmit(emit, emitPath, coordinates); err != nil {
+			return nil, err
+		}
+		seen[emit.GetDefinitionId()] = struct{}{}
+	}
+	return seen, nil
+}
+
+func (v *validator) validateEmit(emit *umpirespb.Emit, path string, coordinates map[string]struct{}) error {
+	if emit == nil || !validDefinitionID(emit.GetDefinitionId()) || !validDefinitionID(emit.GetSourceKindDefinitionId()) ||
+		emit.GetOutputKind() == umpirespb.DEFINITION_KIND_UNSPECIFIED || emit.GetCoordinate() == nil {
+		return admissionError(ErrorMalformedValue, path, "Emit is malformed")
+	}
+	if !v.isDeclaredEvidenceKind(emit.GetSourceKindDefinitionId()) {
+		return admissionError(ErrorBinding, path+".sourceKindDefinitionId", "Emit source kind is not declared")
+	}
+	if err := validateCoordinate(emit.GetCoordinate(), path+".coordinate"); err != nil {
+		return err
+	}
+	coordinate := coordinateKey(emit.GetCoordinate())
+	if _, duplicate := coordinates[coordinate]; duplicate {
+		return admissionError(ErrorDuplicate, path+".coordinate", "duplicate emitted coordinate")
+	}
+	coordinates[coordinate] = struct{}{}
+	if err := v.validateBinding(emit.GetOutputDefinition(), path+".outputDefinition"); err != nil {
+		return err
+	}
+	conditionKind, err := v.validateObservationExpression(emit.GetCondition(), path+".condition", 1)
+	if err != nil {
+		return err
+	}
+	if conditionKind != umpirespb.PORTABLE_VALUE_KIND_BOOLEAN {
+		return admissionError(ErrorBinding, path+".condition", "Emit condition is not Boolean")
+	}
+	valueKind, err := v.validateObservationExpression(emit.GetValue(), path+".value", 1)
+	if err != nil {
+		return err
+	}
+	return v.validateEmitType(emit, valueKind, path)
+}
+
+func (v *validator) validateObservationExpression(
+	expression *umpirespb.ObservationExpression,
+	path string,
+	depth int64,
+) (umpirespb.PortableValueKind, error) {
 	if expression == nil || depth > v.limits.GetEvaluation().GetMaxExpressionDepth() {
-		return admissionError(ErrorLimit, path, "Observation expression exceeds its depth Limit")
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+			admissionError(ErrorLimit, path, "Observation expression exceeds its depth Limit")
 	}
 	v.operators++
 	switch operator := expression.GetOperator().(type) {
 	case *umpirespb.ObservationExpression_LiteralText:
 		if operator.LiteralText == nil {
-			return admissionError(ErrorMalformedValue, path, "literal text is required")
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+				admissionError(ErrorMalformedValue, path, "literal text is required")
 		}
+		return umpirespb.PORTABLE_VALUE_KIND_TEXT, nil
 	case *umpirespb.ObservationExpression_LiteralNatural:
 		if operator.LiteralNatural == nil || !v.validBoundedNatural(operator.LiteralNatural.GetValue()) {
-			return admissionError(ErrorMalformedValue, path, "literal natural is malformed")
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+				admissionError(ErrorMalformedValue, path, "literal natural is malformed")
 		}
+		return umpirespb.PORTABLE_VALUE_KIND_NATURAL, nil
 	case *umpirespb.ObservationExpression_Field:
 		if operator.Field == nil || !validDefinitionID(operator.Field.GetKindDefinitionId()) || !validDefinitionID(operator.Field.GetFieldDefinitionId()) {
-			return admissionError(ErrorBinding, path, "Evidence field reference is malformed")
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+				admissionError(ErrorBinding, path, "Evidence field reference is malformed")
 		}
-		if !v.isDeclaredEvidenceField(operator.Field) {
-			return admissionError(ErrorBinding, path, "Evidence field reference is crossed with the declared profile")
+		kind := v.declaredEvidenceFieldKind(operator.Field)
+		if kind == umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED {
+			return kind, admissionError(ErrorBinding, path, "Evidence field reference is crossed with the declared profile")
 		}
+		return kind, nil
 	case *umpirespb.ObservationExpression_NaturalRenderV1:
-		return v.validateObservationExpression(operator.NaturalRenderV1.GetOperand(), path+".naturalRenderV1", depth+1)
-	case *umpirespb.ObservationExpression_Present:
-		return v.validateObservationExpression(operator.Present.GetOperand(), path+".present", depth+1)
-	case *umpirespb.ObservationExpression_Equals:
-		if err := v.validateObservationExpression(operator.Equals.GetLeft(), path+".equals.left", depth+1); err != nil {
-			return err
+		kind, err := v.validateObservationExpression(operator.NaturalRenderV1.GetOperand(), path+".naturalRenderV1", depth+1)
+		if err != nil {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, err
 		}
-		return v.validateObservationExpression(operator.Equals.GetRight(), path+".equals.right", depth+1)
+		if kind != umpirespb.PORTABLE_VALUE_KIND_NATURAL {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+				admissionError(ErrorBinding, path, "natural-render operand is not Natural")
+		}
+		return umpirespb.PORTABLE_VALUE_KIND_TEXT, nil
+	case *umpirespb.ObservationExpression_Present:
+		if _, err := v.validateObservationExpression(operator.Present.GetOperand(), path+".present", depth+1); err != nil {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, err
+		}
+		return umpirespb.PORTABLE_VALUE_KIND_BOOLEAN, nil
+	case *umpirespb.ObservationExpression_Equals:
+		left, err := v.validateObservationExpression(operator.Equals.GetLeft(), path+".equals.left", depth+1)
+		if err != nil {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, err
+		}
+		right, err := v.validateObservationExpression(operator.Equals.GetRight(), path+".equals.right", depth+1)
+		if err != nil {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, err
+		}
+		if left != right {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+				admissionError(ErrorBinding, path, "equals operands have crossed scalar kinds")
+		}
+		return umpirespb.PORTABLE_VALUE_KIND_BOOLEAN, nil
 	case *umpirespb.ObservationExpression_All:
-		return v.validateExpressionList(operator.All.GetOperands(), path+".all", depth+1)
+		return v.validateBooleanExpressionList(operator.All.GetOperands(), path+".all", depth+1)
 	case *umpirespb.ObservationExpression_Any:
-		return v.validateExpressionList(operator.Any.GetOperands(), path+".any", depth+1)
+		return v.validateBooleanExpressionList(operator.Any.GetOperands(), path+".any", depth+1)
 	default:
-		return admissionError(ErrorUnsupportedOperator, path, "Observation operator is required")
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+			admissionError(ErrorUnsupportedOperator, path, "Observation operator is required")
 	}
-	return nil
 }
 
-func (v *validator) isDeclaredEvidenceField(reference *umpirespb.EvidenceFieldReference) bool {
+func (v *validator) declaredEvidenceFieldKind(reference *umpirespb.EvidenceFieldReference) umpirespb.PortableValueKind {
 	profile := v.plan.GetVerification().GetEvidence()
 	for _, kind := range profile.GetKinds() {
 		if kind.GetKindDefinitionId() != reference.GetKindDefinitionId() {
@@ -1028,11 +1164,14 @@ func (v *validator) isDeclaredEvidenceField(reference *umpirespb.EvidenceFieldRe
 		}
 		for _, field := range kind.GetFields() {
 			if field.GetFieldDefinitionId() == reference.GetFieldDefinitionId() {
-				return true
+				if field.GetDisposition() != umpirespb.FIELD_DISPOSITION_KIND_RETAIN {
+					return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
+				}
+				return portableEvidenceValueKind(field.GetValueKind())
 			}
 		}
 	}
-	return false
+	return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
 }
 
 func (v *validator) isDeclaredEvidenceKind(kindID string) bool {
@@ -1042,6 +1181,24 @@ func (v *validator) isDeclaredEvidenceKind(kindID string) bool {
 		}
 	}
 	return false
+}
+
+func (v *validator) validateEmitType(emit *umpirespb.Emit, scalar umpirespb.PortableValueKind, path string) error {
+	wantDefinition := traceDefinitionKind(emit.GetCoordinate().GetField())
+	if wantDefinition == umpirespb.DEFINITION_KIND_UNSPECIFIED || emit.GetOutputKind() != wantDefinition {
+		return admissionError(ErrorBinding, path+".outputKind", "Emit output kind is crossed with its coordinate")
+	}
+	wantScalar := v.coordinateValueKind(emit.GetCoordinate(), emit.GetOutputDefinition())
+	if v.plan.GetVerification().GetRenameExactLink() != nil {
+		wantScalar = v.renameValueKind(emit.GetCoordinate().GetField(), emit.GetOutputDefinition(), false)
+	}
+	if wantScalar == umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED {
+		return admissionError(ErrorBinding, path+".outputDefinition", "Emit output is crossed with the projected trace")
+	}
+	if scalar != wantScalar {
+		return admissionError(ErrorBinding, path+".value", "Emit value has a crossed scalar kind")
+	}
+	return nil
 }
 
 func validateEmitOrdering(ordering []*umpirespb.EmitOrdering, emitIDs map[string]struct{}, path string) error {
@@ -1101,16 +1258,26 @@ func hasEmitOrderingCycle(ordering []*umpirespb.EmitOrdering, emitIDs map[string
 	return visited != len(emitIDs)
 }
 
-func (v *validator) validateExpressionList(expressions []*umpirespb.ObservationExpression, path string, depth int64) error {
+func (v *validator) validateBooleanExpressionList(
+	expressions []*umpirespb.ObservationExpression,
+	path string,
+	depth int64,
+) (umpirespb.PortableValueKind, error) {
 	if len(expressions) == 0 {
-		return admissionError(ErrorUnsupportedOperator, path, "operator operands are required")
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+			admissionError(ErrorUnsupportedOperator, path, "operator operands are required")
 	}
 	for index, expression := range expressions {
-		if err := v.validateObservationExpression(expression, fmt.Sprintf("%s[%d]", path, index), depth); err != nil {
-			return err
+		kind, err := v.validateObservationExpression(expression, fmt.Sprintf("%s[%d]", path, index), depth)
+		if err != nil {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED, err
+		}
+		if kind != umpirespb.PORTABLE_VALUE_KIND_BOOLEAN {
+			return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED,
+				admissionError(ErrorBinding, fmt.Sprintf("%s[%d]", path, index), "Boolean operand is required")
 		}
 	}
-	return nil
+	return umpirespb.PORTABLE_VALUE_KIND_BOOLEAN, nil
 }
 
 func (v *validator) validatePattern(pattern *umpirespb.Pattern, path string) error {
@@ -1120,8 +1287,12 @@ func (v *validator) validatePattern(pattern *umpirespb.Pattern, path string) err
 	if err := v.validateBinding(pattern.GetDefinition(), path+".definition"); err != nil {
 		return err
 	}
-	if v.plan.GetVerification().GetDirectPlanTrace() != nil && !v.isDirectTraceBinding(pattern.GetField(), pattern.GetDefinition()) {
-		return admissionError(ErrorBinding, path+".definition", "Property pattern is crossed with the direct execution trace")
+	scalar := v.traceValueKind(pattern.GetField(), pattern.GetDefinition())
+	if v.plan.GetVerification().GetRenameExactLink() != nil {
+		scalar = v.renameValueKind(pattern.GetField(), pattern.GetDefinition(), true)
+	}
+	if scalar == umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED {
+		return admissionError(ErrorBinding, path+".definition", "Property pattern is crossed with the projected execution trace")
 	}
 	v.operators++
 	switch operator := pattern.GetOperator().(type) {
@@ -1129,9 +1300,15 @@ func (v *validator) validatePattern(pattern *umpirespb.Pattern, path string) err
 		if operator.EqualsText == nil {
 			return admissionError(ErrorUnsupportedOperator, path, "equals-text operand is required")
 		}
+		if scalar != umpirespb.PORTABLE_VALUE_KIND_TEXT {
+			return admissionError(ErrorBinding, path, "equals-text requires a Text trace value")
+		}
 	case *umpirespb.Pattern_NaturalAtMost:
 		if operator.NaturalAtMost == nil || !v.validBoundedNatural(operator.NaturalAtMost.GetBound()) {
 			return admissionError(ErrorMalformedValue, path, "natural bound is malformed")
+		}
+		if scalar != umpirespb.PORTABLE_VALUE_KIND_NATURAL {
+			return admissionError(ErrorBinding, path, "natural-at-most requires a Natural trace value")
 		}
 	default:
 		return admissionError(ErrorUnsupportedOperator, path, "Property pattern operator is required")
@@ -1139,12 +1316,15 @@ func (v *validator) validatePattern(pattern *umpirespb.Pattern, path string) err
 	return nil
 }
 
-func (v *validator) isDirectTraceBinding(field umpirespb.TraceField, binding *umpirespb.DefinitionBinding) bool {
+func (v *validator) traceValueKind(
+	field umpirespb.TraceField,
+	binding *umpirespb.DefinitionBinding,
+) umpirespb.PortableValueKind {
 	execution := v.plan.GetExecution()
-	var values []*umpirespb.ModelValue
+	var values []*umpirespb.PortableModelValue
 	switch field {
 	case umpirespb.TRACE_FIELD_INITIAL_STATE, umpirespb.TRACE_FIELD_PRIOR_STATE:
-		values = []*umpirespb.ModelValue{execution.GetInitialState()}
+		values = []*umpirespb.PortableModelValue{execution.GetInitialState()}
 	case umpirespb.TRACE_FIELD_SELECTED_ACTION:
 		values = execution.GetRequestedActions()
 	case umpirespb.TRACE_FIELD_MODEL_OUTCOME:
@@ -1156,14 +1336,93 @@ func (v *validator) isDirectTraceBinding(field umpirespb.TraceField, binding *um
 			values = append(values, checkpoint.GetObservations()...)
 		}
 	default:
-		return false
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
 	}
 	for _, value := range values {
 		if proto.Equal(value.GetDefinition(), binding) {
-			return true
+			return portableScalarKind(value.GetValue())
 		}
 	}
-	return false
+	return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
+}
+
+func (v *validator) coordinateValueKind(
+	coordinate *umpirespb.ModelCoordinate,
+	binding *umpirespb.DefinitionBinding,
+) umpirespb.PortableValueKind {
+	execution := v.plan.GetExecution()
+	step := int(coordinate.GetStep())
+	position := int(coordinate.GetPosition())
+	var value *umpirespb.PortableModelValue
+	switch coordinate.GetField() {
+	case umpirespb.TRACE_FIELD_INITIAL_STATE:
+		value = execution.GetInitialState()
+	case umpirespb.TRACE_FIELD_PRIOR_STATE:
+		if step == 1 {
+			value = execution.GetInitialState()
+		} else if step > 1 && step-2 < len(execution.GetResultingStates()) {
+			value = execution.GetResultingStates()[step-2]
+		}
+	case umpirespb.TRACE_FIELD_SELECTED_ACTION:
+		if step > 0 && step <= len(execution.GetRequestedActions()) {
+			value = execution.GetRequestedActions()[step-1]
+		}
+	case umpirespb.TRACE_FIELD_MODEL_OUTCOME:
+		if step > 0 && step <= len(execution.GetModelOutcomes()) {
+			value = execution.GetModelOutcomes()[step-1]
+		}
+	case umpirespb.TRACE_FIELD_RESULTING_STATE:
+		if step > 0 && step <= len(execution.GetResultingStates()) {
+			value = execution.GetResultingStates()[step-1]
+		}
+	case umpirespb.TRACE_FIELD_OBSERVATION:
+		if step > 0 && step <= len(execution.GetCheckpoints()) {
+			observations := execution.GetCheckpoints()[step-1].GetObservations()
+			if position > 0 && position <= len(observations) {
+				value = observations[position-1]
+			}
+		}
+	default:
+	}
+	if value != nil && proto.Equal(value.GetDefinition(), binding) {
+		return portableScalarKind(value.GetValue())
+	}
+	return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
+}
+
+func (v *validator) renameValueKind(
+	field umpirespb.TraceField,
+	binding *umpirespb.DefinitionBinding,
+	destination bool,
+) umpirespb.PortableValueKind {
+	wantKind := traceDefinitionKind(field)
+	for _, entry := range v.plan.GetVerification().GetRenameExactLink().GetEntries() {
+		value := entry.GetSource()
+		if destination {
+			value = entry.GetDestination()
+		}
+		if value.GetKind() == wantKind && proto.Equal(value.GetDefinition(), binding) {
+			return portableScalarKind(value.GetValue())
+		}
+	}
+	return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
+}
+
+func traceDefinitionKind(field umpirespb.TraceField) umpirespb.DefinitionKind {
+	switch field {
+	case umpirespb.TRACE_FIELD_INITIAL_STATE,
+		umpirespb.TRACE_FIELD_PRIOR_STATE,
+		umpirespb.TRACE_FIELD_RESULTING_STATE:
+		return umpirespb.DEFINITION_KIND_STATE
+	case umpirespb.TRACE_FIELD_SELECTED_ACTION:
+		return umpirespb.DEFINITION_KIND_ACTION
+	case umpirespb.TRACE_FIELD_MODEL_OUTCOME:
+		return umpirespb.DEFINITION_KIND_OUTCOME
+	case umpirespb.TRACE_FIELD_OBSERVATION:
+		return umpirespb.DEFINITION_KIND_OBSERVATION
+	default:
+		return umpirespb.DEFINITION_KIND_UNSPECIFIED
+	}
 }
 
 func (v *validator) validateRenameLink(link *umpirespb.RenameExactLink) error {
@@ -1209,7 +1468,7 @@ func (v *validator) validateRenameEntries(entries []*umpirespb.RenameExactEntry,
 		if entry == nil {
 			return admissionError(ErrorMalformedValue, entryPath, "rename entry is required")
 		}
-		if err := v.validateModelValue(entry.GetSource(), entryPath+".source"); err != nil {
+		if err := v.validateLegacyModelValue(entry.GetSource(), entryPath+".source"); err != nil {
 			return err
 		}
 		source := modelValueKey(entry.GetSource())
@@ -1217,7 +1476,7 @@ func (v *validator) validateRenameEntries(entries []*umpirespb.RenameExactEntry,
 			return admissionError(ErrorDuplicate, entryPath+".source", "rename source has duplicate or contradictory mappings")
 		}
 		sources[source] = struct{}{}
-		if err := v.validateModelValue(entry.GetDestination(), entryPath+".destination"); err != nil {
+		if err := v.validateLegacyModelValue(entry.GetDestination(), entryPath+".destination"); err != nil {
 			return err
 		}
 	}
@@ -1250,17 +1509,19 @@ func (v *validator) validateDefinitionRenameEntries(entries []*umpirespb.Definit
 }
 
 func (v *validator) validateKnownGaps() error {
-	seen := make(map[string]struct{}, len(v.plan.GetKnownGaps()))
-	for index, gap := range v.plan.GetKnownGaps() {
+	gaps := v.plan.GetKnownGaps()
+	if err := requireSortedUnique(gaps, knownGapKey, "$.knownGaps"); err != nil {
+		return err
+	}
+	for index, gap := range gaps {
 		path := fmt.Sprintf("$.knownGaps[%d]", index)
 		if gap == nil || gap.GetKind() == umpirespb.KNOWN_GAP_KIND_UNSPECIFIED || !validDefinitionID(gap.GetCode()) ||
 			len(gap.GetDetail()) > artifact.MaximumDiagnosticBytes {
 			return admissionError(ErrorMalformedValue, path, "Known Gap is malformed")
 		}
-		if _, duplicate := seen[gap.GetCode()]; duplicate {
-			return admissionError(ErrorDuplicate, path, "duplicate Known Gap")
+		if gap.GetSubject() != "" && !validDefinitionID(gap.GetSubject()) {
+			return admissionError(ErrorMalformedValue, path+".subject", "Known Gap subject is malformed")
 		}
-		seen[gap.GetCode()] = struct{}{}
 	}
 	return nil
 }
@@ -1317,11 +1578,15 @@ func (v *validator) validateBindingCollection(bindings []*umpirespb.DefinitionBi
 	return nil
 }
 
-func (v *validator) validateModelValues(values []*umpirespb.ModelValue, path string) error {
+func (v *validator) validatePortableModelValues(
+	values []*umpirespb.PortableModelValue,
+	expectedKind umpirespb.PortableDefinitionKind,
+	path string,
+) error {
 	seen := make(map[string]struct{}, len(values))
 	for index, value := range values {
 		valuePath := fmt.Sprintf("%s[%d]", path, index)
-		if err := v.validateModelValue(value, valuePath); err != nil {
+		if err := v.validatePortableModelValue(value, expectedKind, valuePath); err != nil {
 			return err
 		}
 		id := value.GetDefinition().GetDefinitionId()
@@ -1333,27 +1598,77 @@ func (v *validator) validateModelValues(values []*umpirespb.ModelValue, path str
 	return nil
 }
 
-func (v *validator) validateModelValue(value *umpirespb.ModelValue, path string) error {
+func (v *validator) validatePortableModelValue(
+	value *umpirespb.PortableModelValue,
+	expectedKind umpirespb.PortableDefinitionKind,
+	path string,
+) error {
+	if value == nil || value.GetKind() == umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED || value.GetValue() == nil {
+		return admissionError(ErrorMalformedValue, path, "portable model value is malformed")
+	}
+	if err := v.validateBinding(value.GetDefinition(), path+".definition"); err != nil {
+		return err
+	}
+	if expectedKind != umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED && value.GetKind() != expectedKind {
+		return admissionError(ErrorBinding, path+".kind", "portable model value has a crossed definition kind")
+	}
+	return v.validateScalarValue(value.GetValue(), path+".value")
+}
+
+func (v *validator) validateLegacyModelValue(value *umpirespb.ModelValue, path string) error {
 	if value == nil || value.GetKind() == umpirespb.DEFINITION_KIND_UNSPECIFIED || value.GetValue() == nil {
 		return admissionError(ErrorMalformedValue, path, "model value is malformed")
 	}
 	if err := v.validateBinding(value.GetDefinition(), path+".definition"); err != nil {
 		return err
 	}
-	switch scalar := value.GetValue().GetValue().(type) {
+	return v.validateScalarValue(value.GetValue(), path+".value")
+}
+
+func (v *validator) validateScalarValue(value *umpirespb.Value, path string) error {
+	switch scalar := value.GetValue().(type) {
 	case *umpirespb.Value_Text:
 		if len(scalar.Text) > artifact.MaximumDiagnosticBytes {
-			return admissionError(ErrorByteLimit, path+".value.text", "text value exceeds its byte maximum")
+			return admissionError(ErrorByteLimit, path+".text", "text value exceeds its byte maximum")
 		}
 	case *umpirespb.Value_Natural:
 		if !v.validBoundedNatural(scalar.Natural) {
-			return admissionError(ErrorMalformedValue, path+".value.natural", "natural is malformed or out of range")
+			return admissionError(ErrorMalformedValue, path+".natural", "natural is malformed or out of range")
 		}
 	case *umpirespb.Value_BoolValue:
 	default:
 		return admissionError(ErrorMalformedValue, path+".value", "scalar value kind is required")
 	}
 	return nil
+}
+
+func portableScalarKind(value *umpirespb.Value) umpirespb.PortableValueKind {
+	if value == nil {
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
+	}
+	switch value.GetValue().(type) {
+	case *umpirespb.Value_Text:
+		return umpirespb.PORTABLE_VALUE_KIND_TEXT
+	case *umpirespb.Value_Natural:
+		return umpirespb.PORTABLE_VALUE_KIND_NATURAL
+	case *umpirespb.Value_BoolValue:
+		return umpirespb.PORTABLE_VALUE_KIND_BOOLEAN
+	default:
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
+	}
+}
+
+func portableEvidenceValueKind(kind umpirespb.ValueKind) umpirespb.PortableValueKind {
+	switch kind {
+	case umpirespb.VALUE_KIND_TEXT:
+		return umpirespb.PORTABLE_VALUE_KIND_TEXT
+	case umpirespb.VALUE_KIND_NATURAL:
+		return umpirespb.PORTABLE_VALUE_KIND_NATURAL
+	case umpirespb.VALUE_KIND_BOOLEAN:
+		return umpirespb.PORTABLE_VALUE_KIND_BOOLEAN
+	default:
+		return umpirespb.PORTABLE_VALUE_KIND_UNSPECIFIED
+	}
 }
 
 func (v *validator) validBoundedNatural(value string) bool {
@@ -1402,6 +1717,13 @@ func locationKey(location *umpirespb.SourceLocation) string {
 		return ""
 	}
 	return fmt.Sprintf("%s\x00%020d\x00%020d\x00%s", location.GetPath(), location.GetLine(), location.GetColumn(), location.GetProvenance())
+}
+
+func knownGapKey(gap *umpirespb.KnownGap) string {
+	if gap == nil {
+		return ""
+	}
+	return fmt.Sprintf("%010d\x00%s\x00%s\x00%s", gap.GetKind(), gap.GetCode(), gap.GetSubject(), gap.GetDetail())
 }
 
 func equalBindings(left, right []*umpirespb.DefinitionBinding) bool {

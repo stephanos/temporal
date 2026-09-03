@@ -34,6 +34,22 @@ func TestPortablePlanSchemaHasNoOpaqueDocuments(t *testing.T) {
 		"temporal.server.api.umpire.v1.ExecutionResult.plan_checksum",
 		"temporal.server.api.umpire.v1.PortableTestPlan.plan_checksum",
 	}, byteFields)
+	roleKinds := umpirespb.PORTABLE_DEFINITION_KIND_UNSPECIFIED.Descriptor().Values()
+	for _, name := range []protoreflect.Name{
+		"PORTABLE_DEFINITION_KIND_STATE",
+		"PORTABLE_DEFINITION_KIND_ACTION",
+		"PORTABLE_DEFINITION_KIND_OUTCOME",
+		"PORTABLE_DEFINITION_KIND_OBSERVATION",
+		"PORTABLE_DEFINITION_KIND_RELATION",
+		"PORTABLE_DEFINITION_KIND_CAPABILITY",
+		"PORTABLE_DEFINITION_KIND_PROVIDER",
+		"PORTABLE_DEFINITION_KIND_LAW",
+		"PORTABLE_DEFINITION_KIND_CONNECTOR",
+		"PORTABLE_DEFINITION_KIND_TARGET",
+		"PORTABLE_DEFINITION_KIND_KERNEL",
+	} {
+		require.NotNil(t, roleKinds.ByName(name), name)
+	}
 }
 
 func TestSealAndAdmitCallerNeutralPlan(t *testing.T) {
@@ -45,6 +61,14 @@ func TestSealAndAdmitCallerNeutralPlan(t *testing.T) {
 	modelCompiled.Provenance = &umpirespb.PortableTestPlan_ModelCompiled{
 		ModelCompiled: testModelProvenance(),
 	}
+	modelCompiled.GetExecution().SymbolicRoles = nil
+	modelCompiled.GetExecution().RuntimeBindingSlots = nil
+	modelCompiled.GetExecution().SelectedChoices = nil
+	modelCompiled.GetExecution().SelectedVariants = nil
+	modelCompiled.GetExecution().GetPreconditions()[0].Left = &umpirespb.ExecutionOperand{
+		Operand: &umpirespb.ExecutionOperand_Role{Role: proto.CloneOf(modelCompiled.GetExecution().GetRoleBindings()[0].GetRole())},
+	}
+	modelCompiled.GetExecution().GetPreconditions()[0].Right.GetLiteral().Kind = umpirespb.PORTABLE_DEFINITION_KIND_STATE
 	sealedModel, err := Seal(modelCompiled)
 	require.NoError(t, err)
 
@@ -168,24 +192,52 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 			},
 		},
 		{
-			name: "crossed symbolic role", code: ErrorBinding,
+			name: "crossed initial state kind", code: ErrorBinding,
 			mutate: func(plan *umpirespb.PortableTestPlan) {
-				plan.GetExecution().GetRoleBindings()[0].Role = testBinding("umpire.role.crossed")
+				plan.GetExecution().GetInitialState().Kind = umpirespb.PORTABLE_DEFINITION_KIND_ACTION
+			},
+		},
+		{
+			name: "role both bound and symbolic", code: ErrorDuplicate,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetExecution().GetRoleBindings()[0].Role = proto.CloneOf(
+					plan.GetExecution().GetSymbolicRoles()[0].GetDefinition(),
+				)
 			},
 		},
 		{
 			name: "crossed runtime slot", code: ErrorBinding,
 			mutate: func(plan *umpirespb.PortableTestPlan) {
 				plan.GetExecution().GetPreconditions()[0].Left = &umpirespb.ExecutionOperand{
-					Operand: &umpirespb.ExecutionOperand_Binding{Binding: testBinding("umpire.runtime-slot.crossed")},
+					Operand: &umpirespb.ExecutionOperand_RuntimeBindingSlot{RuntimeBindingSlot: testBinding("umpire.runtime-slot.crossed")},
 				}
 			},
 		},
 		{
-			name: "crossed participant capability", code: ErrorBinding,
+			name: "crossed runtime slot scalar kind", code: ErrorBinding,
 			mutate: func(plan *umpirespb.PortableTestPlan) {
-				plan.GetExecution().GetRuntime().GetParticipantBindings()[0].Capabilities =
-					[]*umpirespb.DefinitionBinding{testBinding("umpire.capability.crossed")}
+				plan.GetExecution().GetRuntimeBindingSlots()[0].ValueKind = umpirespb.PORTABLE_VALUE_KIND_NATURAL
+			},
+		},
+		{
+			name: "crossed bound role scalar kind", code: ErrorBinding,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				role := plan.GetExecution().GetRoleBindings()[0]
+				role.GetValue().Value = &umpirespb.Value{Value: &umpirespb.Value_BoolValue{BoolValue: true}}
+				precondition := plan.GetExecution().GetPreconditions()[0]
+				precondition.Left = &umpirespb.ExecutionOperand{
+					Operand: &umpirespb.ExecutionOperand_Role{Role: proto.CloneOf(role.GetRole())},
+				}
+				precondition.GetRight().GetLiteral().Kind = role.GetValue().GetKind()
+			},
+		},
+		{
+			name: "duplicate participant capability", code: ErrorDuplicate,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				capability := plan.GetExecution().GetRuntime().GetParticipantBindings()[0].GetCapabilities()[0]
+				plan.GetExecution().GetRuntime().GetParticipantBindings()[0].Capabilities = []*umpirespb.DefinitionBinding{
+					capability, proto.CloneOf(capability),
+				}
 			},
 		},
 		{
@@ -203,6 +255,28 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 			mutate: func(plan *umpirespb.PortableTestPlan) {
 				plan.GetVerification().GetObservation().GetEmits()[0].SourceKindDefinitionId =
 					"umpire.evidence.kind.crossed"
+			},
+		},
+		{
+			name: "crossed emit condition scalar kind", code: ErrorBinding,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetVerification().GetObservation().GetEmits()[0].Condition = &umpirespb.ObservationExpression{
+					Operator: &umpirespb.ObservationExpression_LiteralText{LiteralText: &umpirespb.LiteralText{Value: "true"}},
+				}
+			},
+		},
+		{
+			name: "crossed emit value scalar kind", code: ErrorBinding,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetVerification().GetObservation().GetEmits()[0].Value = &umpirespb.ObservationExpression{
+					Operator: &umpirespb.ObservationExpression_LiteralNatural{LiteralNatural: &umpirespb.LiteralNatural{Value: "1"}},
+				}
+			},
+		},
+		{
+			name: "crossed emit semantic kind", code: ErrorBinding,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetVerification().GetObservation().GetEmits()[0].OutputKind = umpirespb.DEFINITION_KIND_STATE
 			},
 		},
 		{
@@ -236,8 +310,16 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 				observation := plan.GetVerification().GetObservation()
 				second := proto.CloneOf(observation.GetEmits()[0])
 				second.DefinitionId = "umpire.emit.second"
+				second.OutputDefinition = testBinding("umpire.observation.second")
 				second.Coordinate.Position = 2
 				observation.Emits = append(observation.Emits, second)
+				plan.GetExecution().GetCheckpoints()[0].Observations = append(
+					plan.GetExecution().GetCheckpoints()[0].Observations,
+					&umpirespb.PortableModelValue{
+						Definition: testBinding("umpire.observation.second"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_OBSERVATION,
+						Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "observed"}},
+					},
+				)
 				observation.Ordering = []*umpirespb.EmitOrdering{
 					{PredecessorEmitDefinitionId: "umpire.emit.basic", SuccessorEmitDefinitionId: "umpire.emit.second"},
 					{PredecessorEmitDefinitionId: "umpire.emit.second", SuccessorEmitDefinitionId: "umpire.emit.basic"},
@@ -253,8 +335,17 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 						Source:            &umpirespb.SourceLocation{Path: "rename.proto", Line: 1, Column: 1, Provenance: "fixture"},
 						SourceTarget:      testBinding("umpire.target.source"),
 						DestinationTarget: testBinding("umpire.target.destination"),
-						Entries:           []*umpirespb.RenameExactEntry{nil},
-						ApplicationLimit:  &umpirespb.Limit{Value: 1, Unit: "semantic-transitions"},
+						Entries: []*umpirespb.RenameExactEntry{nil, {
+							Source: &umpirespb.ModelValue{
+								Definition: testBinding("umpire.observation.expected"), Kind: umpirespb.DEFINITION_KIND_OBSERVATION,
+								Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "observed"}},
+							},
+							Destination: &umpirespb.ModelValue{
+								Definition: testBinding("umpire.observation.destination"), Kind: umpirespb.DEFINITION_KIND_OBSERVATION,
+								Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "observed"}},
+							},
+						}},
+						ApplicationLimit: &umpirespb.Limit{Value: 1, Unit: "semantic-transitions"},
 					},
 				}
 			},
@@ -267,15 +358,51 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 			},
 		},
 		{
-			name: "missing selected choice", code: ErrorMalformedValue,
+			name: "crossed Property scalar kind", code: ErrorBinding,
 			mutate: func(plan *umpirespb.PortableTestPlan) {
-				plan.GetExecution().SelectedChoices = nil
+				plan.GetVerification().GetProperties()[0].GetClauses()[0].GetPerStepImplies().GetTrigger().Operator =
+					&umpirespb.Pattern_NaturalAtMost{NaturalAtMost: &umpirespb.NaturalAtMost{Bound: "1"}}
 			},
 		},
 		{
-			name: "missing selected variant", code: ErrorMalformedValue,
+			name: "second checkpoint", code: ErrorLimit,
 			mutate: func(plan *umpirespb.PortableTestPlan) {
-				plan.GetExecution().SelectedVariants = nil
+				checkpoint := proto.CloneOf(plan.GetExecution().GetCheckpoints()[0])
+				checkpoint.Transition = 2
+				plan.GetExecution().Checkpoints = append(plan.GetExecution().Checkpoints, checkpoint)
+			},
+		},
+		{
+			name: "duplicate precondition", code: ErrorDuplicate,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetExecution().Preconditions = append(
+					plan.GetExecution().Preconditions,
+					proto.CloneOf(plan.GetExecution().GetPreconditions()[0]),
+				)
+			},
+		},
+		{
+			name: "unordered preconditions", code: ErrorOrdering,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				first := plan.GetExecution().GetPreconditions()[0]
+				first.Definition = testBinding("umpire.precondition.zed")
+				second := proto.CloneOf(first)
+				second.Definition = testBinding("umpire.precondition.alpha")
+				plan.GetExecution().Preconditions = append(plan.GetExecution().Preconditions, second)
+			},
+		},
+		{
+			name: "malformed Known Gap subject", code: ErrorMalformedValue,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetKnownGaps()[0].Subject = "not a definition id"
+			},
+		},
+		{
+			name: "unordered Known Gaps", code: ErrorOrdering,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.KnownGaps = append(plan.KnownGaps, &umpirespb.KnownGap{
+					Kind: umpirespb.KNOWN_GAP_KIND_INPUT, Code: "umpire.gap.input",
+				})
 			},
 		},
 		{
@@ -306,11 +433,11 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 		{
 			name: "second fault", code: ErrorLimit,
 			mutate: func(plan *umpirespb.PortableTestPlan) {
-				fault := &umpirespb.ModelValue{
-					Definition: testBinding("umpire.fault.basic"), Kind: umpirespb.DEFINITION_KIND_ACTION,
+				fault := &umpirespb.PortableModelValue{
+					Definition: testBinding("umpire.fault.basic"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_RELATION,
 					Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "fault"}},
 				}
-				plan.GetExecution().RequestedFaults = []*umpirespb.ModelValue{fault, proto.CloneOf(fault)}
+				plan.GetExecution().RequestedFaults = []*umpirespb.PortableModelValue{fault, proto.CloneOf(fault)}
 			},
 		},
 	}
@@ -329,6 +456,16 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 	sealed.PlanId = "umpire.plan.external.mutated"
 	_, err = Admit(sealed)
 	requirePlanError(t, err, ErrorChecksum)
+}
+
+func TestAdmissionUsesCompleteKnownGapIdentity(t *testing.T) {
+	plan := testPlan()
+	plan.KnownGaps = append(plan.KnownGaps, &umpirespb.KnownGap{
+		Kind: umpirespb.KNOWN_GAP_KIND_CLAIM, Code: "umpire.gap.external-fixture",
+		Subject: "umpire.plan.zzz", Detail: "second scoped gap",
+	})
+	_, err := Seal(plan)
+	require.NoError(t, err)
 }
 
 func TestAdmissionEnforcesIndependentLimitBoundaries(t *testing.T) {
@@ -409,22 +546,29 @@ func TestAdmissionRejectsDeclaredContentAndResultNPlusOne(t *testing.T) {
 	_, err = Seal(plan)
 	requirePlanError(t, err, ErrorLimit)
 
-	resultPlan := testPlan()
-	resultPlan.GetLimits().GetOutput().MaxDiagnosticBytes = 256
-	sealed, err := Seal(resultPlan)
-	require.NoError(t, err)
-	admitted, err := Admit(sealed)
-	require.NoError(t, err)
-	for resultPlan.GetLimits().GetOutput().GetMaxResultBytes() != int64(admitted.MandatoryResultBytes()) {
-		resultPlan.GetLimits().GetOutput().MaxResultBytes = int64(admitted.MandatoryResultBytes())
-		sealed, err = Seal(resultPlan)
-		require.NoError(t, err)
-		admitted, err = Admit(sealed)
-		require.NoError(t, err)
+	for _, testCase := range []struct {
+		name       string
+		provenance func(*umpirespb.PortableTestPlan)
+		outcome    umpirespb.ProvenanceOutcome
+		scope      umpirespb.ClaimScope
+	}{
+		{
+			name: "external", provenance: func(*umpirespb.PortableTestPlan) {},
+			outcome: umpirespb.PROVENANCE_OUTCOME_EXTERNAL, scope: umpirespb.CLAIM_SCOPE_PLAN_LOCAL,
+		},
+		{
+			name: "model compiled", provenance: func(plan *umpirespb.PortableTestPlan) {
+				plan.Provenance = &umpirespb.PortableTestPlan_ModelCompiled{ModelCompiled: testModelProvenance()}
+			},
+			outcome: umpirespb.PROVENANCE_OUTCOME_MODEL_VERIFIED, scope: umpirespb.CLAIM_SCOPE_MODEL_BOUND,
+		},
+	} {
+		t.Run(testCase.name+" mandatory result", func(t *testing.T) {
+			resultPlan := testPlan()
+			testCase.provenance(resultPlan)
+			requireExactMandatoryResultLimit(t, resultPlan, testCase.outcome, testCase.scope)
+		})
 	}
-	resultPlan.GetLimits().GetOutput().MaxResultBytes--
-	_, err = Seal(resultPlan)
-	requirePlanError(t, err, ErrorLimit)
 
 	diagnosticPlan := testPlan()
 	diagnosticBytes := int64(proto.Size(mandatoryResult(diagnosticPlan).GetDiagnostics()[0]))
@@ -482,6 +626,33 @@ func TestAdmissionUsesExactDeclaredStructuralBounds(t *testing.T) {
 	unsupportedPhaseBytes := proto.CloneOf(plan)
 	unsupportedPhaseBytes.GetExecution().GetRuntime().GetPhaseLimits()[0].MaxBytes++
 	_, err = Seal(unsupportedPhaseBytes)
+	requirePlanError(t, err, ErrorLimit)
+}
+
+func requireExactMandatoryResultLimit(
+	t *testing.T,
+	plan *umpirespb.PortableTestPlan,
+	outcome umpirespb.ProvenanceOutcome,
+	scope umpirespb.ClaimScope,
+) {
+	t.Helper()
+	plan.GetLimits().GetOutput().MaxDiagnosticBytes = 256
+	sealed, err := Seal(plan)
+	require.NoError(t, err)
+	admitted, err := Admit(sealed)
+	require.NoError(t, err)
+	for plan.GetLimits().GetOutput().GetMaxResultBytes() != int64(admitted.MandatoryResultBytes()) {
+		plan.GetLimits().GetOutput().MaxResultBytes = int64(admitted.MandatoryResultBytes())
+		sealed, err = Seal(plan)
+		require.NoError(t, err)
+		admitted, err = Admit(sealed)
+		require.NoError(t, err)
+	}
+	reserved := mandatoryResult(sealed)
+	require.Equal(t, outcome, reserved.GetProvenanceOutcome())
+	require.Equal(t, scope, reserved.GetClaimScope())
+	plan.GetLimits().GetOutput().MaxResultBytes--
+	_, err = Seal(plan)
 	requirePlanError(t, err, ErrorLimit)
 }
 
@@ -575,43 +746,43 @@ func testExecutionProgram() *umpirespb.ExecutionProgram {
 		Kernel:   testBinding("umpire.kernel.basic"),
 		RoleBindings: []*umpirespb.RoleBinding{{
 			Role: testBinding("umpire.role.basic"),
-			Value: &umpirespb.ModelValue{
-				Definition: testBinding("umpire.binding.basic"), Kind: umpirespb.DEFINITION_KIND_SETUP,
+			Value: &umpirespb.PortableModelValue{
+				Definition: testBinding("umpire.binding.basic"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_STATE,
 				Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "participant"}},
 			},
 		}},
 		SymbolicRoles: []*umpirespb.SymbolicRole{{
-			Definition: testBinding("umpire.role.basic"), ValueKind: umpirespb.PORTABLE_VALUE_KIND_TEXT,
+			Definition: testBinding("umpire.role.symbolic"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_STATE,
 		}},
 		RuntimeBindingSlots: []*umpirespb.RuntimeBindingSlot{{
 			Definition: testBinding("umpire.runtime-slot.workflow"), ValueKind: umpirespb.PORTABLE_VALUE_KIND_TEXT,
 		}},
 		Preconditions: []*umpirespb.ExecutionPrecondition{{
 			Definition: testBinding("umpire.precondition.basic"), Operator: umpirespb.PRECONDITION_OPERATOR_EQUALS,
-			Left: &umpirespb.ExecutionOperand{Operand: &umpirespb.ExecutionOperand_Binding{
-				Binding: testBinding("umpire.runtime-slot.workflow"),
+			Left: &umpirespb.ExecutionOperand{Operand: &umpirespb.ExecutionOperand_RuntimeBindingSlot{
+				RuntimeBindingSlot: testBinding("umpire.runtime-slot.workflow"),
 			}},
 			Right: &umpirespb.ExecutionOperand{Operand: &umpirespb.ExecutionOperand_Literal{
-				Literal: &umpirespb.ModelValue{
-					Definition: testBinding("umpire.workflow.expected"), Kind: umpirespb.DEFINITION_KIND_SETUP,
+				Literal: &umpirespb.PortableModelValue{
+					Definition: testBinding("umpire.workflow.expected"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_SETUP,
 					Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "fixture"}},
 				},
 			}},
 		}},
-		InitialState: &umpirespb.ModelValue{
-			Definition: testBinding("umpire.state.initial"), Kind: umpirespb.DEFINITION_KIND_STATE,
+		InitialState: &umpirespb.PortableModelValue{
+			Definition: testBinding("umpire.state.initial"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_STATE,
 			Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "initial"}},
 		},
-		RequestedActions: []*umpirespb.ModelValue{{
-			Definition: testBinding("umpire.action.basic"), Kind: umpirespb.DEFINITION_KIND_ACTION,
+		RequestedActions: []*umpirespb.PortableModelValue{{
+			Definition: testBinding("umpire.action.basic"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_ACTION,
 			Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "run"}},
 		}},
-		ModelOutcomes: []*umpirespb.ModelValue{{
-			Definition: testBinding("umpire.outcome.basic"), Kind: umpirespb.DEFINITION_KIND_OUTCOME,
+		ModelOutcomes: []*umpirespb.PortableModelValue{{
+			Definition: testBinding("umpire.outcome.basic"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_OUTCOME,
 			Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "done"}},
 		}},
-		ResultingStates: []*umpirespb.ModelValue{{
-			Definition: testBinding("umpire.state.done"), Kind: umpirespb.DEFINITION_KIND_STATE,
+		ResultingStates: []*umpirespb.PortableModelValue{{
+			Definition: testBinding("umpire.state.done"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_STATE,
 			Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "done"}},
 		}},
 		Occurrences: []*umpirespb.PlannedOccurrence{{
@@ -620,19 +791,19 @@ func testExecutionProgram() *umpirespb.ExecutionProgram {
 			Position:             1,
 			AuthoredDefinitionId: "umpire.occurrence.basic",
 		}},
-		SelectedChoices: []*umpirespb.ModelValue{{
-			Definition: testBinding("umpire.choice.basic"), Kind: umpirespb.DEFINITION_KIND_SETUP,
+		SelectedChoices: []*umpirespb.PortableModelValue{{
+			Definition: testBinding("umpire.choice.basic"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_RELATION,
 			Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "choice"}},
 		}},
-		SelectedVariants: []*umpirespb.ModelValue{{
-			Definition: testBinding("umpire.variant.basic"), Kind: umpirespb.DEFINITION_KIND_SETUP,
+		SelectedVariants: []*umpirespb.PortableModelValue{{
+			Definition: testBinding("umpire.variant.basic"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_RELATION,
 			Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "variant"}},
 		}},
-		CapabilityRequirements: []*umpirespb.DefinitionBinding{testBinding("umpire.capability.basic")},
+		CapabilityRequirements: []*umpirespb.DefinitionBinding{testBinding("umpire.capability.semantic")},
 		Checkpoints: []*umpirespb.ExecutionCheckpoint{{
 			Transition: 1,
-			Observations: []*umpirespb.ModelValue{{
-				Definition: testBinding("umpire.observation.expected"), Kind: umpirespb.DEFINITION_KIND_OBSERVATION,
+			Observations: []*umpirespb.PortableModelValue{{
+				Definition: testBinding("umpire.observation.expected"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_OBSERVATION,
 				Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "observed"}},
 			}},
 		}},
@@ -643,7 +814,7 @@ func testExecutionProgram() *umpirespb.ExecutionProgram {
 				Participant: testBinding("umpire.participant.basic"),
 				Protocol:    testBinding("umpire.protocol.basic"), ProtocolVersion: 2,
 				Program:      testBinding("umpire.program.basic"),
-				Capabilities: []*umpirespb.DefinitionBinding{testBinding("umpire.capability.basic")},
+				Capabilities: []*umpirespb.DefinitionBinding{testBinding("umpire.capability.participant")},
 			}},
 			ObservationConfig: &umpirespb.PortableObservationConfig{
 				Profile: testBinding("umpire.evidence-profile.basic"),
@@ -653,6 +824,9 @@ func testExecutionProgram() *umpirespb.ExecutionProgram {
 			PhaseLimits: testPhaseLimits(),
 			Termination: &umpirespb.TerminationObligation{Definition: testBinding("umpire.termination.basic")},
 			Cleanup:     &umpirespb.CleanupObligation{Definition: testBinding("umpire.cleanup.basic")},
+			AuthorityRequiredCapabilities: []*umpirespb.DefinitionBinding{
+				testBinding("umpire.capability.authority"),
+			},
 		},
 	}
 }
