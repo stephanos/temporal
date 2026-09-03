@@ -48,6 +48,7 @@ cd model && mise exec -- lake build UmpireTests
 Added Core-owned Definition ID canonicalization, deterministic duplicate selection and structural validation, source-path display, and representation-preserving trace/transition helpers with semantic equations and focused tests. The aggregate Umpire test gate, model lint, public axiom audit, and independent Codex review are green.
 
 stage: impl-review - ran (SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 375484986e4b1fb457230a3518a8ba2d47ad45ad
 - Tests: baseline: green (cd model && mise exec -- lake build UmpireTests), TDD RED: cd model && mise exec -- lake build Umpire.CoreTests (unknown requested Core declarations; exit 1), cd model && mise exec -- lake build Umpire.CoreTests, cd model && mise exec -- lake build UmpireTests, make lint-model, cd model && mise exec -- lake env lean ../.flow/tmp/Fn43Task1Trust.lean (public axiom inventory; no compiler-trust dependencies), git diff --check
