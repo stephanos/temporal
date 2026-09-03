@@ -18,35 +18,24 @@ private def metadata
     (canonicalBehavior : String) : DefinitionMetadata :=
   Temporal.Shared.definitionMetadata definitionId kind source canonicalBehavior
 
-def scheduledState : ModelValue := { definitionId := operationStateId, value := "scheduled" }
-def startedState : ModelValue := { definitionId := operationStateId, value := "started" }
-def canceledState : ModelValue := { definitionId := operationStateId, value := "canceled" }
-def succeededState : ModelValue := { definitionId := operationStateId, value := "succeeded" }
+def scheduledState : ModelValue := ModelValue.named operationStateId "scheduled"
+def startedState : ModelValue := ModelValue.named operationStateId "started"
+def canceledState : ModelValue := ModelValue.named operationStateId "canceled"
+def succeededState : ModelValue := ModelValue.named operationStateId "succeeded"
 
-def startAction : ModelValue := { definitionId := startActionId, value := "start" }
-def cancelAction : ModelValue := { definitionId := cancelActionId, value := "cancel" }
+def startAction : ModelValue := ModelValue.named startActionId "start"
+def cancelAction : ModelValue := ModelValue.named cancelActionId "cancel"
 
 /-- Successful completion is handler-reported lifecycle progress, not a caller command. -/
-def reportSuccessAction : ModelValue := {
-  definitionId := reportSuccessActionId
-  value := "handler-reports-success"
-}
+def reportSuccessAction : ModelValue :=
+  ModelValue.named reportSuccessActionId "handler-reports-success"
 
-def startedOutcome : ModelValue := { definitionId := transitionOutcomeId, value := "started" }
-def canceledOutcome : ModelValue := { definitionId := transitionOutcomeId, value := "canceled" }
-def succeededOutcome : ModelValue := { definitionId := transitionOutcomeId, value := "succeeded" }
-def startedObservation : ModelValue := {
-  definitionId := lifecycleObservationId
-  value := "started"
-}
-def canceledObservation : ModelValue := {
-  definitionId := lifecycleObservationId
-  value := "canceled"
-}
-def succeededObservation : ModelValue := {
-  definitionId := lifecycleObservationId
-  value := "succeeded"
-}
+def startedOutcome : ModelValue := ModelValue.named transitionOutcomeId "started"
+def canceledOutcome : ModelValue := ModelValue.named transitionOutcomeId "canceled"
+def succeededOutcome : ModelValue := ModelValue.named transitionOutcomeId "succeeded"
+def startedObservation : ModelValue := ModelValue.named lifecycleObservationId "started"
+def canceledObservation : ModelValue := ModelValue.named lifecycleObservationId "canceled"
+def succeededObservation : ModelValue := ModelValue.named lifecycleObservationId "succeeded"
 
 def scheduledSetup : List RoleBinding := [{ role := operationRoleId, value := scheduledState }]
 def startedSetup : List RoleBinding := [{ role := operationRoleId, value := startedState }]
@@ -240,8 +229,8 @@ def finiteMachine : FiniteMachine
     · by_cases started : setup = startedSetup
       · subst setup
         simp [initialStates, initialState?, scheduledSetup, startedSetup,
-          scheduledState, startedState] at member
-        simp [member, scheduledState, startedState, canceledState, succeededState]
+          scheduledState, startedState, ModelValue.named] at member
+        simp [member, scheduledState, startedState, canceledState, succeededState, ModelValue.named]
       · simp [initialStates, initialState?, scheduled, started] at member
   transitionSourceCoverage := by
     intro state action result member
@@ -252,11 +241,12 @@ def finiteMachine : FiniteMachine
       · by_cases canceled : state = canceledState
         · subst state
           simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-            step, scheduledState, startedState, canceledState] at member
+            step, scheduledState, startedState, canceledState, ModelValue.named] at member
         · by_cases succeeded : state = succeededState
           · subst state
             simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-              step, scheduledState, startedState, canceledState, succeededState] at member
+              step, scheduledState, startedState, canceledState, succeededState,
+                ModelValue.named] at member
           · simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
               step, scheduled, started, canceled, succeeded] at member
   actionCoverage := by
@@ -285,7 +275,7 @@ def finiteMachine : FiniteMachine
     · exact ⟨startedState, canceledResult, by
         change canceledResult ∈ stepResults startedState cancelAction
         simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-          step, scheduledState, startedState, startAction, cancelAction]⟩
+          step, scheduledState, startedState, startAction, cancelAction, ModelValue.named]⟩
     · exact ⟨scheduledState, startedResult, by
         change startedResult ∈ stepResults scheduledState startAction
         simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
@@ -294,7 +284,7 @@ def finiteMachine : FiniteMachine
         change succeededResult ∈ stepResults startedState reportSuccessAction
         simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
           step, scheduledState, startedState, startAction, cancelAction,
-          reportSuccessAction]⟩
+          reportSuccessAction, ModelValue.named]⟩
 }
 
 def authoritativeInitial (setup : List RoleBinding) (state : ModelValue) : Prop :=
@@ -436,14 +426,14 @@ theorem target_started_cancel_authoritative :
     target.kernel.authoritativeStep startedState cancelAction canceledResult := by
   change canceledResult ∈ stepResults startedState cancelAction
   simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
-    step, scheduledState, startedState, startAction, cancelAction]
+    step, scheduledState, startedState, startAction, cancelAction, ModelValue.named]
 
 theorem target_started_reportSuccess_authoritative :
     target.kernel.authoritativeStep startedState reportSuccessAction succeededResult := by
   change succeededResult ∈ stepResults startedState reportSuccessAction
   simp [stepResults, stepResult?, lifecycleState?, lifecycleEvent?, transitionResult?,
     step, scheduledState, startedState, startAction, cancelAction,
-    reportSuccessAction]
+    reportSuccessAction, ModelValue.named]
 
 def limits : QueryLimits := {
   behavior := {
