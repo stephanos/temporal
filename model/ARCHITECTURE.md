@@ -157,12 +157,12 @@ seams, not replacements for the existing Umpire and Temporal consumer facades.
 Canonical Definition ID ordering, duplicate selection, syntax validation, and source-path display
 belong to `Umpire.Core`; Property, Behavior, Query, and Observation translate those structural
 results into their own typed diagnostics. The still narrower
-`Umpire.Shared.DefinitionGraph` module is imported only by the Behavior and Observation language
-implementations. It owns deterministic graph mechanics but no domain error or validation-stage
-policy. It has no import in the `Umpire.Shared` facade and no explicit entry in the public `Umpire`
-umbrella; ordinary consumers use the language facades instead of importing it directly. Ordered
-JSON construction is a separate codec-owner dependency in `Umpire.Json`; ordinary model authors
-do not need it.
+`Umpire.Shared.DefinitionGraph` module is imported, among production modules, only by the Behavior
+and Observation language implementations; focused tests may import it directly. It owns
+deterministic graph mechanics but no domain error or validation-stage policy. It has no import in
+the `Umpire.Shared` facade and no explicit entry in the public `Umpire` umbrella; ordinary
+consumers use the language facades instead of importing it directly. Ordered JSON construction is
+a separate codec-owner dependency in `Umpire.Json`; ordinary model authors do not need it.
 
 `make lint-model` checks the complete first-party module graph transitively. Its model-specific
 `ModelLint.ImportGraph` policy uses the reusable pure `Tools.LeanImportGraph` traversal and
