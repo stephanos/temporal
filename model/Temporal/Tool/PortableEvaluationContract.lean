@@ -568,18 +568,22 @@ private def portableKnownGap (gap : Umpire.KnownGap) :
   detail := gap.detail.getD ""
 }
 
-private def gapLe
-    (left right : Umpire.Artifact.PortableEvaluationContract.KnownGap) : Bool :=
-  let rank : PortableKnownGapKind → Nat
-    | .capabilityContract => 1
-    | .input => 2
-    | .interpretation => 3
-    | .claim => 4
-  decide (rank left.kind < rank right.kind) ||
-    (left.kind == right.kind && decide (left.code < right.code)) ||
-    (left.kind == right.kind && left.code == right.code && decide (left.subject < right.subject)) ||
-    (left.kind == right.kind && left.code == right.code && left.subject == right.subject &&
-      decide (left.detail ≤ right.detail))
+namespace Internal
+
+/-- Lower phase-owned Known Gaps only after composing them through the checked semantic boundary. -/
+def lowerKnownGaps
+    (sourceDefinitionId : DefinitionId)
+    (source : SourceLocation)
+    (left right : KnownGapSet) :
+    Except NonPortableError (List Umpire.Artifact.PortableEvaluationContract.KnownGap) := do
+  let gaps ← (KnownGapSet.union left right).mapError fun _ => {
+    sourceDefinitionId
+    source
+    construct := "known-gaps.conflict"
+  }
+  pure (gaps.toList.map portableKnownGap)
+
+end Internal
 
 private def fallbackSource : SourceLocation := {
   path := "Temporal/Tool/PortableEvaluationContract.lean"
@@ -624,8 +628,8 @@ private def lowerCheckedTest
     definitionId := experiment.plan.queryDefinitionId
     behaviorFingerprint := experiment.plan.queryBehaviorFingerprint
   }
-  let knownGaps := (experiment.plan.knownGaps.toList ++ runtimeConfiguration.knownGaps.toList)
-    |>.map portableKnownGap |>.mergeSort gapLe |>.eraseDups
+  let knownGaps ← Internal.lowerKnownGaps experiment.plan.queryDefinitionId source
+    experiment.plan.knownGaps runtimeConfiguration.knownGaps
   let definitionSources :=
     (Temporal.System.Nexus.CallerClosure.target.definitions ++
       Temporal.Feature.Nexus.Experimental.CallerClosure.target.definitions).map (·.source)
