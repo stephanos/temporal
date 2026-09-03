@@ -605,7 +605,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-43-deepen-ordinary-property-behavior-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Deepen ordinary Property, Behavior, and Query authoring",
   "tracker": {
     "baseHashFlow": null,
@@ -618,5 +618,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T05:08:07.614033Z"
+  "updated_at": "2026-09-03T16:30:59.549104Z"
 }

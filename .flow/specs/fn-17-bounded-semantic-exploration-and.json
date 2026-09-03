@@ -1052,7 +1052,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-17-bounded-semantic-exploration-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Bounded semantic exploration and coverage",
   "tracker": {
     "baseHashFlow": null,
@@ -1065,5 +1065,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-02T21:51:52.639383Z"
+  "updated_at": "2026-09-03T16:30:57.777180Z"
 }

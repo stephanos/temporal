@@ -1647,7 +1647,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-28-portable-evaluation-contract-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Portable evaluation contract and disposable-cluster qualification",
   "tracker": {
     "baseHashFlow": null,
@@ -1660,5 +1660,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-02T07:48:14.301712Z"
+  "updated_at": "2026-09-03T16:30:58.477012Z"
 }
