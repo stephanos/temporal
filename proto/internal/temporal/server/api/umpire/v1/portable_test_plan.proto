@@ -1,0 +1,333 @@
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+import "temporal/server/api/umpire/v1/message.proto";
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+
+// The successor plan keeps a closed interpreter vocabulary in one file.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum ExecutionPhase {
+  EXECUTION_PHASE_UNSPECIFIED = 0;
+  EXECUTION_PHASE_PREPARATION = 1;
+  EXECUTION_PHASE_REALIZATION = 2;
+  EXECUTION_PHASE_OBSERVATION = 3;
+  EXECUTION_PHASE_ISOLATION = 4;
+  EXECUTION_PHASE_CLEANUP = 5;
+}
+
+enum PreconditionOperator {
+  PRECONDITION_OPERATOR_UNSPECIFIED = 0;
+  PRECONDITION_OPERATOR_EQUALS = 1;
+}
+
+enum PortableValueKind {
+  PORTABLE_VALUE_KIND_UNSPECIFIED = 0;
+  PORTABLE_VALUE_KIND_TEXT = 1;
+  PORTABLE_VALUE_KIND_NATURAL = 2;
+  PORTABLE_VALUE_KIND_BOOLEAN = 3;
+}
+
+enum DecisionPolicyKind {
+  DECISION_POLICY_KIND_UNSPECIFIED = 0;
+  DECISION_POLICY_KIND_STRICT_V1 = 1;
+}
+
+enum ExternalVerificationObligationKind {
+  EXTERNAL_VERIFICATION_OBLIGATION_KIND_UNSPECIFIED = 0;
+  EXTERNAL_VERIFICATION_OBLIGATION_KIND_REQUIRED = 1;
+  EXTERNAL_VERIFICATION_OBLIGATION_KIND_ADVISORY = 2;
+}
+
+enum ProvenanceOutcome {
+  PROVENANCE_OUTCOME_UNSPECIFIED = 0;
+  PROVENANCE_OUTCOME_EXTERNAL = 1;
+  PROVENANCE_OUTCOME_MODEL_VERIFIED = 2;
+}
+
+enum ClaimScope {
+  CLAIM_SCOPE_UNSPECIFIED = 0;
+  CLAIM_SCOPE_PLAN_LOCAL = 1;
+  CLAIM_SCOPE_MODEL_BOUND = 2;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ExecutionToolingStatus {
+  EXECUTION_TOOLING_STATUS_UNSPECIFIED = 0;
+  EXECUTION_TOOLING_STATUS_SUCCEEDED = 1;
+  EXECUTION_TOOLING_STATUS_INVALID_PLAN = 2;
+  EXECUTION_TOOLING_STATUS_BUSY = 3;
+  EXECUTION_TOOLING_STATUS_POISONED = 4;
+  EXECUTION_TOOLING_STATUS_CANCELED = 5;
+  EXECUTION_TOOLING_STATUS_INTERNAL_ERROR = 6;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ExecutionOperationalStatus {
+  EXECUTION_OPERATIONAL_STATUS_UNSPECIFIED = 0;
+  EXECUTION_OPERATIONAL_STATUS_SUCCEEDED = 1;
+  EXECUTION_OPERATIONAL_STATUS_INCOMPLETE = 2;
+  EXECUTION_OPERATIONAL_STATUS_FAILED = 3;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ExecutionEvaluationStatus {
+  EXECUTION_EVALUATION_STATUS_UNSPECIFIED = 0;
+  EXECUTION_EVALUATION_STATUS_SATISFIED = 1;
+  EXECUTION_EVALUATION_STATUS_VIOLATED = 2;
+  EXECUTION_EVALUATION_STATUS_INCOMPLETE = 3;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ExecutionCleanupStatus {
+  EXECUTION_CLEANUP_STATUS_UNSPECIFIED = 0;
+  EXECUTION_CLEANUP_STATUS_COMPLETE = 1;
+  EXECUTION_CLEANUP_STATUS_INCOMPLETE = 2;
+  EXECUTION_CLEANUP_STATUS_FAILED = 3;
+}
+
+enum ExecutionDecision {
+  EXECUTION_DECISION_UNSPECIFIED = 0;
+  EXECUTION_DECISION_PASS = 1;
+  EXECUTION_DECISION_FAIL = 2;
+  EXECUTION_DECISION_INCONCLUSIVE = 3;
+}
+
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum TraceProjectionStatus {
+  TRACE_PROJECTION_STATUS_UNSPECIFIED = 0;
+  TRACE_PROJECTION_STATUS_NOT_EVALUATED = 1;
+  TRACE_PROJECTION_STATUS_DIRECT = 2;
+  TRACE_PROJECTION_STATUS_APPLIED = 3;
+  TRACE_PROJECTION_STATUS_INVALID = 4;
+  TRACE_PROJECTION_STATUS_UNKNOWN = 5;
+  TRACE_PROJECTION_STATUS_CONFLICT = 6;
+  TRACE_PROJECTION_STATUS_UNSUPPORTED = 7;
+}
+
+message ExternalPlanProvenance {
+  repeated SourceLocation sources = 1;
+}
+
+message ModelCompiledPlanProvenance {
+  DefinitionBinding test = 1;
+  DefinitionBinding query = 2;
+  ArtifactBinding experiment = 3;
+  ArtifactBinding runtime_config = 4;
+  repeated DefinitionBinding properties = 5;
+  DefinitionBinding compiler_contract = 6;
+  repeated SourceLocation sources = 7;
+}
+
+message SymbolicRole {
+  DefinitionBinding definition = 1;
+  PortableValueKind value_kind = 2;
+}
+
+message RoleBinding {
+  DefinitionBinding role = 1;
+  ModelValue value = 2;
+}
+
+message RuntimeBindingSlot {
+  DefinitionBinding definition = 1;
+  PortableValueKind value_kind = 2;
+}
+
+message ExecutionOperand {
+  oneof operand {
+    ModelValue literal = 1;
+    DefinitionBinding binding = 2;
+  }
+}
+
+message ExecutionPrecondition {
+  DefinitionBinding definition = 1;
+  PreconditionOperator operator = 2;
+  ExecutionOperand left = 3;
+  ExecutionOperand right = 4;
+}
+
+message PlannedOccurrence {
+  DefinitionBinding definition = 1;
+  string action_definition_id = 2;
+  int64 position = 3;
+  string authored_definition_id = 4;
+}
+
+message ExecutionCheckpoint {
+  int64 transition = 1;
+  repeated ModelValue observations = 2;
+}
+
+message ExecutionPhaseLimit {
+  ExecutionPhase phase = 1;
+  int64 duration_milliseconds = 2;
+  int64 max_attempts = 3;
+  int64 max_records = 4;
+  int64 max_bytes = 5;
+}
+
+message PortableParticipantBinding {
+  DefinitionBinding participant = 1;
+  DefinitionBinding protocol = 2;
+  int64 protocol_version = 3;
+  DefinitionBinding program = 4;
+  repeated DefinitionBinding capabilities = 5;
+}
+
+message PortableObservationConfig {
+  DefinitionBinding profile = 1;
+  DefinitionBinding program = 2;
+  DefinitionBinding mapping = 3;
+}
+
+message TerminationObligation {
+  DefinitionBinding definition = 1;
+}
+
+message CleanupObligation {
+  DefinitionBinding definition = 1;
+}
+
+message RuntimeProgram {
+  DefinitionBinding authority_profile = 1;
+  DefinitionBinding config = 2;
+  repeated PortableParticipantBinding participant_bindings = 3;
+  PortableObservationConfig observation_config = 4;
+  repeated ExecutionPhaseLimit phase_limits = 5;
+  TerminationObligation termination = 6;
+  CleanupObligation cleanup = 7;
+}
+
+message ExecutionProgram {
+  DefinitionBinding setup = 1;
+  DefinitionBinding query = 2;
+  DefinitionBinding behavior = 3;
+  DefinitionBinding target = 4;
+  DefinitionBinding kernel = 5;
+  repeated RoleBinding role_bindings = 6;
+  repeated SymbolicRole symbolic_roles = 7;
+  repeated RuntimeBindingSlot runtime_binding_slots = 8;
+  repeated ExecutionPrecondition preconditions = 9;
+  ModelValue initial_state = 10;
+  repeated ModelValue requested_actions = 11;
+  repeated ModelValue model_outcomes = 12;
+  repeated ModelValue resulting_states = 13;
+  repeated PlannedOccurrence occurrences = 14;
+  repeated ModelValue selected_choices = 15;
+  repeated ModelValue selected_variants = 16;
+  repeated ModelValue requested_faults = 17;
+  repeated DefinitionBinding capability_requirements = 18;
+  repeated ExecutionCheckpoint checkpoints = 19;
+  RuntimeProgram runtime = 20;
+}
+
+message DirectPlanTrace {}
+
+message DecisionPolicy {
+  DecisionPolicyKind kind = 1;
+}
+
+message VerificationProgram {
+  EvidenceProfile evidence = 1;
+  ObservationProgram observation = 2;
+  oneof trace_projection {
+    DirectPlanTrace direct_plan_trace = 3;
+    RenameExactLink rename_exact_link = 4;
+  }
+  repeated Property properties = 5;
+  DecisionPolicy decision = 6;
+}
+
+message StructuralLimits {
+  int64 max_plan_bytes = 1;
+  int64 max_nesting_depth = 2;
+  int64 max_collection_items = 3;
+  int64 max_operator_count = 4;
+}
+
+message ExecutionLimits {
+  int64 max_actions = 1;
+  int64 max_faults = 2;
+  int64 max_phase_attempts = 3;
+  int64 max_phase_duration_milliseconds = 4;
+  int64 max_total_duration_milliseconds = 5;
+}
+
+message EvidenceLimits {
+  int64 max_records = 1;
+  int64 max_bytes = 2;
+  int64 max_sources = 3;
+}
+
+message PortableEvaluationLimits {
+  int64 max_expression_depth = 1;
+  string max_natural = 2;
+  int64 max_work = 3;
+}
+
+message OutputLimits {
+  int64 max_diagnostic_bytes = 1;
+  int64 max_result_bytes = 2;
+}
+
+message PortableTestPlanLimits {
+  StructuralLimits structural = 1;
+  ExecutionLimits execution = 2;
+  EvidenceLimits evidence = 3;
+  PortableEvaluationLimits evaluation = 4;
+  OutputLimits output = 5;
+}
+
+message ExternalVerificationObligation {
+  DefinitionBinding definition = 1;
+  ExternalVerificationObligationKind kind = 2;
+  SourceLocation source = 3;
+  string statement = 4;
+}
+
+// PortableTestPlan contains one bounded execution and its closed verification program.
+message PortableTestPlan {
+  FormatVersion version = 1;
+  string plan_id = 2;
+  bytes plan_checksum = 3;
+  oneof provenance {
+    ExternalPlanProvenance external = 4;
+    ModelCompiledPlanProvenance model_compiled = 5;
+  }
+  ExecutionProgram execution = 6;
+  VerificationProgram verification = 7;
+  PortableTestPlanLimits limits = 8;
+  repeated KnownGap known_gaps = 9;
+  repeated ExternalVerificationObligation external_obligations = 10;
+}
+
+message TraceProjectionResult {
+  TraceProjectionStatus status = 1;
+  ModelTrace trace = 2;
+  repeated RenameExactApplication applications = 3;
+  repeated Diagnostic diagnostics = 4;
+}
+
+message ExecutionResult {
+  FormatVersion version = 1;
+  bytes plan_checksum = 2;
+  string run_identity = 3;
+  ProvenanceOutcome provenance_outcome = 4;
+  ClaimScope claim_scope = 5;
+  ExecutionToolingStatus tooling_status = 6;
+  ExecutionOperationalStatus operational_status = 7;
+  ObservationEvaluationResult observation = 8;
+  TraceProjectionResult trace_projection = 9;
+  repeated PropertyResult properties = 10;
+  ExecutionEvaluationStatus semantic_status = 11;
+  ExecutionCleanupStatus cleanup_status = 12;
+  ExecutionDecision decision = 13;
+  EvaluationWork work = 14;
+  repeated EvidenceLink evidence_links = 15;
+  repeated KnownGap known_gaps = 16;
+  repeated ExternalVerificationObligation unresolved_external_obligations = 17;
+  repeated Diagnostic diagnostics = 18;
+}

@@ -1409,7 +1409,7 @@ lint-api: $(API_LINTER) $(API_BINPB)
 
 lint-protos: $(BUF) $(INTERNAL_BINPB) $(CHASM_BINPB)
 	@printf $(COLOR) "Linting proto definitions..."
-	@$(BUF) lint $(INTERNAL_BINPB)
+	@$(BUF) lint --config $(PROTO_ROOT)/internal/buf.yaml $(INTERNAL_BINPB)
 	@$(BUF) lint --config chasm/lib/buf.yaml $(CHASM_BINPB)
 
 fmt: fmt-gofix fmt-imports fmt-protos fmt-yaml
