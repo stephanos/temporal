@@ -34,6 +34,7 @@ RuntimeConfiguration, ExperimentRun, and RawEvidence now carry checked KnownGapS
 Baseline: green via handoff (verified at f9556add by fn-48-canonicalize-known-gaps-as-a-checked-set.2). The pre- and post-edit make lint-code runs matched exactly at 1,379 inherited unrelated findings (errcheck 220, exhaustive 5, forbidigo 211, govet 5, revive 798, staticcheck 136, testifylint 4); the unrelated monitor_test.go auto-fix was restored both times. The Go gate required selecting Apple clang and the physical TMPDIR path to correct ambient toolchain/path resolution; the canonical command then passed unchanged.
 
 stage: impl-review - ran [2026-09-03T07:07:12Z..2026-09-03T07:09:44Z] (Codex SHIP; 0 findings)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: f936174c61eb11ee451f76d1bfacf1cb2e4190ef
 - Tests: cd model && mise exec -- lake build Umpire.Planning.Tests.KnownGaps Umpire.Artifact.Tests.Codecs Umpire.Artifact.Tests.Runtime Umpire.Artifact.Tests.Evidence Umpire.Artifact.Tests.Result Temporal.Tool.RunEvaluationTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/runevaluation, make umpire-check-regression, make lint-model, make lint-code (waived: exact inherited 1,379 findings; auto-fix restored)
