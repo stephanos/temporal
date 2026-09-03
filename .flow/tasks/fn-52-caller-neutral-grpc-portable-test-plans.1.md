@@ -37,9 +37,11 @@ Define the normative authority and claim-scope vocabulary required by R1 before 
 - [ ] Model lint and regression gates pass.
 
 ## Done summary
-TBD
+Defined Portable Plan authority, Plan-local Conformance, Validated Model Provenance, Model-bound Scope, and External Verification Obligations with stable rules SEM-11 through SEM-15. Reconciled admitted Portable Plans with Execution, Run Evaluation, and Local Canary Decision vocabulary; kept external plans outside Behavior Model authority; and made Lean the first model compiler without making it the exclusive plan author. Aligned fn-52 and the roadmap around generated-client disposable-local proof while leaving production canary consumption to fn-29.
 
+stage: impl-review - ran [2026-09-03T17:32:48Z..2026-09-03T17:43:32Z] (model: gpt-5.6-sol)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0502b1b120f0cac710c366ca6753f4291ead4015, 5ed70183a16ae65ba464d2b81d33572fe1b099cb
+- Tests: make lint-model, make umpire-check-regression, flowctl validate --spec fn-52-caller-neutral-grpc-portable-test-plans --json, make umpire-check-plan-index, stable rule-ID audit: 82 unique IDs, no duplicates, git diff --check
 - PRs:
