@@ -531,7 +531,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-49-centralize-observation-field-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Centralize Observation field and structural contracts",
   "tracker": {
     "baseHashFlow": null,
@@ -544,5 +544,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T12:33:58.190814Z"
+  "updated_at": "2026-09-03T16:31:01.299703Z"
 }

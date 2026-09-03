@@ -372,9 +372,9 @@
     {
       "id": "fn-17-bounded-semantic-exploration-and",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "p3",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": [
@@ -449,7 +449,7 @@
       "scope": "umpire-roadmap",
       "disposition": "completed-prerequisite",
       "phase": "p1",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": [
@@ -556,9 +556,9 @@
     {
       "id": "fn-28-portable-evaluation-contract-and",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "p2",
-      "status": "open",
+      "status": "done",
       "ready": true,
       "completionReview": "ship",
       "specDependencies": [
@@ -743,7 +743,7 @@
       "scope": "umpire-roadmap",
       "disposition": "completed-prerequisite",
       "phase": "p3",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": []
@@ -765,7 +765,7 @@
       "scope": "umpire-support",
       "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": []
@@ -775,7 +775,7 @@
       "scope": "umpire-support",
       "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": [
@@ -788,7 +788,7 @@
       "scope": "umpire-support",
       "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": []
@@ -796,9 +796,9 @@
     {
       "id": "fn-45-index-and-reconcile-umpire-plan",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": []
@@ -818,9 +818,9 @@
     {
       "id": "fn-47-generate-umpire-semantic-outcome-and",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": [
@@ -832,7 +832,7 @@
       "scope": "umpire-support",
       "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": []
@@ -842,7 +842,7 @@
       "scope": "umpire-support",
       "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": []
@@ -850,9 +850,9 @@
     {
       "id": "fn-5-umpire-discovery-promotion-and-artifact",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "p3",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": [
@@ -871,7 +871,7 @@
       "scope": "umpire-support",
       "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "ship",
       "specDependencies": [
@@ -881,11 +881,11 @@
     {
       "id": "fn-51-shorten-ordinary-model-authoring",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": []
     },
     {

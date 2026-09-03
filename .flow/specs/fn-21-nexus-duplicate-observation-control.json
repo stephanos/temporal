@@ -876,7 +876,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-21-nexus-duplicate-observation-control.md",
-  "status": "open",
+  "status": "done",
   "title": "Nexus duplicate observation control",
   "tracker": {
     "baseHashFlow": null,
@@ -889,5 +889,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T10:37:05.687136Z"
+  "updated_at": "2026-09-03T16:30:58.123277Z"
 }

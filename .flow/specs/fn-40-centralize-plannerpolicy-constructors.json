@@ -267,7 +267,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-40-centralize-plannerpolicy-constructors.md",
-  "status": "open",
+  "status": "done",
   "title": "Centralize PlannerPolicy constructors and default seed",
   "tracker": {
     "baseHashFlow": null,
@@ -280,5 +280,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T00:02:53.839027Z"
+  "updated_at": "2026-09-03T16:30:58.836354Z"
 }

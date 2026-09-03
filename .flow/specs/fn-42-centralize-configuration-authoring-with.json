@@ -416,7 +416,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-42-centralize-configuration-authoring-with.md",
-  "status": "open",
+  "status": "done",
   "title": "Centralize configuration authoring with ConfigUseSpec",
   "tracker": {
     "baseHashFlow": null,
@@ -429,5 +429,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T07:14:07.667656Z"
+  "updated_at": "2026-09-03T16:30:59.187816Z"
 }
