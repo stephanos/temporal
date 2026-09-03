@@ -777,7 +777,7 @@
       "phase": "support",
       "status": "open",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-38-consolidate-layered-model-helpers",
         "fn-41-finitemachine-target-authoring"
