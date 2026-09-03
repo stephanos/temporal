@@ -316,39 +316,40 @@ def witness : ImplementationLinkWitness declaration Temporal.System.Nexus.target
     Temporal.Feature.Nexus.Lifecycle.target := {
   index := implementationLinkWitnessIndex declaration Temporal.System.Nexus.target
     Temporal.Feature.Nexus.Lifecycle.target
-  mapSetup
-  mapState
-  mapAction
-  mapOutcome
-  mapObservation
-  initialForward := by
-    intro setup state admitted
-    change Temporal.System.Nexus.authoritativeInitial setup state at admitted
-    rcases Temporal.System.Nexus.authoritativeInitial_cases setup state admitted with
-      ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
-    · simpa only [mapSetup_queued, mapState_queued] using
-        Temporal.Feature.Nexus.Lifecycle.target_scheduled_initial_authoritative
-    · simpa only [mapSetup_running, mapState_running] using
-        Temporal.Feature.Nexus.Lifecycle.target_started_initial_authoritative
-  stepForward := by
-    intro state action result admitted
-    change Temporal.System.Nexus.authoritativeStep state action result at admitted
-    rcases Temporal.System.Nexus.authoritativeStep_cases state action result admitted with
-      ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
-    · simpa only [mapState_queued, mapAction_dispatch, Temporal.System.Nexus.dispatchedResult,
-        mapOutcome_dispatched, mapState_running, List.map_cons, mapObservation_running,
-        List.map_nil, Temporal.Feature.Nexus.Lifecycle.startedResult] using
-        Temporal.Feature.Nexus.Lifecycle.target_scheduled_start_authoritative
-    · simpa only [mapState_running, mapAction_recordCancellation,
-        Temporal.System.Nexus.cancellationRecordedResult, mapOutcome_cancellationRecorded,
-        mapState_cancellationRecorded, List.map_cons, mapObservation_cancellationRecorded,
-        List.map_nil, Temporal.Feature.Nexus.Lifecycle.canceledResult] using
-        Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative
-    · simpa only [mapState_running, mapAction_recordCompletion,
-        Temporal.System.Nexus.completionRecordedResult, mapOutcome_completionRecorded,
-        mapState_completionRecorded, List.map_cons, mapObservation_completionRecorded,
-        List.map_nil, Temporal.Feature.Nexus.Lifecycle.succeededResult] using
-        Temporal.Feature.Nexus.Lifecycle.target_started_reportSuccess_authoritative
+  forwardSimulation := {
+    morphism := { mapSetup, mapState, mapAction, mapOutcome, mapObservation }
+    initialForward := by
+      intro setup state admitted
+      change Temporal.System.Nexus.authoritativeInitial setup state at admitted
+      rcases Temporal.System.Nexus.authoritativeInitial_cases setup state admitted with
+        ⟨rfl, rfl⟩ | ⟨rfl, rfl⟩
+      · simpa only [mapSetup_queued, mapState_queued] using
+          Temporal.Feature.Nexus.Lifecycle.target_scheduled_initial_authoritative
+      · simpa only [mapSetup_running, mapState_running] using
+          Temporal.Feature.Nexus.Lifecycle.target_started_initial_authoritative
+    stepForward := by
+      intro state action result admitted
+      change Temporal.System.Nexus.authoritativeStep state action result at admitted
+      rcases Temporal.System.Nexus.authoritativeStep_cases state action result admitted with
+        ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩ | ⟨rfl, rfl, rfl⟩
+      · simpa only [KernelMorphism.mapTransitionResult, TransitionResult.map,
+          mapState_queued, mapAction_dispatch, Temporal.System.Nexus.dispatchedResult,
+          mapOutcome_dispatched, mapState_running, List.map_cons, mapObservation_running,
+          List.map_nil, Temporal.Feature.Nexus.Lifecycle.startedResult] using
+          Temporal.Feature.Nexus.Lifecycle.target_scheduled_start_authoritative
+      · simpa only [KernelMorphism.mapTransitionResult, TransitionResult.map,
+          mapState_running, mapAction_recordCancellation,
+          Temporal.System.Nexus.cancellationRecordedResult, mapOutcome_cancellationRecorded,
+          mapState_cancellationRecorded, List.map_cons, mapObservation_cancellationRecorded,
+          List.map_nil, Temporal.Feature.Nexus.Lifecycle.canceledResult] using
+          Temporal.Feature.Nexus.Lifecycle.target_started_cancel_authoritative
+      · simpa only [KernelMorphism.mapTransitionResult, TransitionResult.map,
+          mapState_running, mapAction_recordCompletion,
+          Temporal.System.Nexus.completionRecordedResult, mapOutcome_completionRecorded,
+          mapState_completionRecorded, List.map_cons, mapObservation_completionRecorded,
+          List.map_nil, Temporal.Feature.Nexus.Lifecycle.succeededResult] using
+          Temporal.Feature.Nexus.Lifecycle.target_started_reportSuccess_authoritative
+  }
   requiredCoverage
 }
 
@@ -631,35 +632,33 @@ def witness : ImplementationLinkWitness declaration
   index := implementationLinkWitnessIndex declaration
     Temporal.System.Nexus.CallerClosure.target
     Temporal.Feature.Nexus.Experimental.CallerClosure.target
-  mapSetup
-  mapState
-  mapAction
-  mapOutcome
-  mapObservation
-  initialForward := by
-    intro setup state admitted
-    change Temporal.System.Nexus.CallerClosure.authoritativeInitial setup state at admitted
-    rcases admitted with ⟨rfl, rfl⟩
-    change Temporal.Feature.Nexus.Experimental.CallerClosure.authoritativeInitial
-      Temporal.Feature.Nexus.Experimental.CallerClosure.clashSetup
-      Temporal.Feature.Nexus.Experimental.CallerClosure.clashState
-    exact ⟨rfl, rfl,
-      Temporal.Feature.Nexus.Experimental.AutoClose.wClash_reachable .upgrade⟩
-  stepForward := by
-    intro state action result admitted
-    change Temporal.System.Nexus.CallerClosure.authoritativeStep state action result at admitted
-    rcases admitted with ⟨rfl, rfl, rfl⟩
-    change Temporal.Feature.Nexus.Experimental.CallerClosure.authoritativeStep
-      Temporal.Feature.Nexus.Experimental.CallerClosure.clashState
-      Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction
-      Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseResult
-    exact ⟨rfl, rfl, rfl,
-      Temporal.Feature.Nexus.Experimental.AutoClose.upgrade_honors_delivery
-        Temporal.Feature.Nexus.Experimental.AutoClose.wClash,
-      Temporal.Feature.Nexus.Experimental.AutoClose.upgrade_preserves_uniqueness
-        Temporal.Feature.Nexus.Experimental.AutoClose.wClash
-        (Temporal.Feature.Nexus.Experimental.AutoClose.wClash_reachable .upgrade),
-      Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipReconciledProof⟩
+  forwardSimulation := {
+    morphism := { mapSetup, mapState, mapAction, mapOutcome, mapObservation }
+    initialForward := by
+      intro setup state admitted
+      change Temporal.System.Nexus.CallerClosure.authoritativeInitial setup state at admitted
+      rcases admitted with ⟨rfl, rfl⟩
+      change Temporal.Feature.Nexus.Experimental.CallerClosure.authoritativeInitial
+        Temporal.Feature.Nexus.Experimental.CallerClosure.clashSetup
+        Temporal.Feature.Nexus.Experimental.CallerClosure.clashState
+      exact ⟨rfl, rfl,
+        Temporal.Feature.Nexus.Experimental.AutoClose.wClash_reachable .upgrade⟩
+    stepForward := by
+      intro state action result admitted
+      change Temporal.System.Nexus.CallerClosure.authoritativeStep state action result at admitted
+      rcases admitted with ⟨rfl, rfl, rfl⟩
+      change Temporal.Feature.Nexus.Experimental.CallerClosure.authoritativeStep
+        Temporal.Feature.Nexus.Experimental.CallerClosure.clashState
+        Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction
+        Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseResult
+      exact ⟨rfl, rfl, rfl,
+        Temporal.Feature.Nexus.Experimental.AutoClose.upgrade_honors_delivery
+          Temporal.Feature.Nexus.Experimental.AutoClose.wClash,
+        Temporal.Feature.Nexus.Experimental.AutoClose.upgrade_preserves_uniqueness
+          Temporal.Feature.Nexus.Experimental.AutoClose.wClash
+          (Temporal.Feature.Nexus.Experimental.AutoClose.wClash_reachable .upgrade),
+        Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipReconciledProof⟩
+  }
   requiredCoverage
 }
 
