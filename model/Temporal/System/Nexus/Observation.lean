@@ -30,27 +30,109 @@ def controlReceiptKind : DefinitionId := definitionId "umpire.evidence.kind.cont
 def historyKind : DefinitionId := definitionId "umpire.evidence.kind.workflow-history-event"
 def participantKind : DefinitionId := definitionId "umpire.evidence.kind.participant-command"
 
-def actionField : DefinitionId := definitionId "umpire.evidence.field.action-definition-id"
-def attemptField : DefinitionId := definitionId "umpire.evidence.field.attempt"
-def occurrenceField : DefinitionId := definitionId "umpire.evidence.field.occurrence-definition-id"
-def statusField : DefinitionId := definitionId "umpire.evidence.field.status"
-def eventIdField : DefinitionId := definitionId "umpire.evidence.field.event-id"
-def eventTypeField : DefinitionId := definitionId "umpire.evidence.field.event-type"
-def operationCorrelationField : DefinitionId :=
-  definitionId "umpire.evidence.field.operation-correlation-id"
-def runCorrelationField : DefinitionId := definitionId "umpire.evidence.field.run-correlation-id"
-def workflowCorrelationField : DefinitionId :=
-  definitionId "umpire.evidence.field.workflow-correlation-id"
-def cancellationCountField : DefinitionId :=
-  definitionId "umpire.evidence.field.cancellation-callback-count"
-def commandKindField : DefinitionId := definitionId "umpire.evidence.field.command-kind"
-def endpointIdentityField : DefinitionId := definitionId "umpire.evidence.field.endpoint-identity"
-def errorCodeField : DefinitionId := definitionId "umpire.evidence.field.error-code"
-def namespaceIdentityField : DefinitionId :=
-  definitionId "umpire.evidence.field.namespace-identity"
-def openHandleCountField : DefinitionId := definitionId "umpire.evidence.field.open-handle-count"
-def taskQueueIdentityField : DefinitionId :=
-  definitionId "umpire.evidence.field.task-queue-identity"
+private def fieldSpec
+    (kind : DefinitionId)
+    (field : String)
+    (valueType : ObservationValueType) : ObservationFieldSpec := {
+  kind
+  field := definitionId field
+  valueType
+}
+
+def cleanupCommandKindFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.command-kind" .text
+def cleanupEndpointIdentityFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.endpoint-identity" .text
+def cleanupErrorCodeFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.error-code" .text
+def cleanupNamespaceIdentityFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.namespace-identity" .text
+def cleanupOpenHandleCountFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.open-handle-count" .natural
+def cleanupOperationCorrelationFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.operation-correlation-id" .text
+def cleanupRunCorrelationFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.run-correlation-id" .text
+def cleanupStatusFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.status" .text
+def cleanupTaskQueueIdentityFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.task-queue-identity" .text
+def cleanupWorkflowCorrelationFieldSpec : ObservationFieldSpec :=
+  fieldSpec cleanupKind "umpire.evidence.field.workflow-correlation-id" .text
+
+def commandKindField : DefinitionId := cleanupCommandKindFieldSpec.field
+def endpointIdentityField : DefinitionId := cleanupEndpointIdentityFieldSpec.field
+def errorCodeField : DefinitionId := cleanupErrorCodeFieldSpec.field
+def namespaceIdentityField : DefinitionId := cleanupNamespaceIdentityFieldSpec.field
+def openHandleCountField : DefinitionId := cleanupOpenHandleCountFieldSpec.field
+def operationCorrelationField : DefinitionId := cleanupOperationCorrelationFieldSpec.field
+def runCorrelationField : DefinitionId := cleanupRunCorrelationFieldSpec.field
+def statusField : DefinitionId := cleanupStatusFieldSpec.field
+def taskQueueIdentityField : DefinitionId := cleanupTaskQueueIdentityFieldSpec.field
+def workflowCorrelationField : DefinitionId := cleanupWorkflowCorrelationFieldSpec.field
+
+def controlReceiptActionFieldSpec : ObservationFieldSpec :=
+  fieldSpec controlReceiptKind "umpire.evidence.field.action-definition-id" .text
+def controlReceiptAttemptFieldSpec : ObservationFieldSpec :=
+  fieldSpec controlReceiptKind "umpire.evidence.field.attempt" .natural
+def controlReceiptOccurrenceFieldSpec : ObservationFieldSpec :=
+  fieldSpec controlReceiptKind "umpire.evidence.field.occurrence-definition-id" .text
+def controlReceiptStatusFieldSpec : ObservationFieldSpec := {
+  cleanupStatusFieldSpec with kind := controlReceiptKind
+}
+
+def actionField : DefinitionId := controlReceiptActionFieldSpec.field
+def attemptField : DefinitionId := controlReceiptAttemptFieldSpec.field
+def occurrenceField : DefinitionId := controlReceiptOccurrenceFieldSpec.field
+
+def historyEventIdFieldSpec : ObservationFieldSpec :=
+  fieldSpec historyKind "umpire.evidence.field.event-id" .natural
+def historyEventTypeFieldSpec : ObservationFieldSpec :=
+  fieldSpec historyKind "umpire.evidence.field.event-type" .text
+def historyOperationCorrelationFieldSpec : ObservationFieldSpec := {
+  cleanupOperationCorrelationFieldSpec with kind := historyKind
+}
+def historyRunCorrelationFieldSpec : ObservationFieldSpec := {
+  cleanupRunCorrelationFieldSpec with kind := historyKind
+}
+def historyWorkflowCorrelationFieldSpec : ObservationFieldSpec := {
+  cleanupWorkflowCorrelationFieldSpec with kind := historyKind
+}
+
+def eventIdField : DefinitionId := historyEventIdFieldSpec.field
+def eventTypeField : DefinitionId := historyEventTypeFieldSpec.field
+
+def participantCancellationCountFieldSpec : ObservationFieldSpec :=
+  fieldSpec participantKind "umpire.evidence.field.cancellation-callback-count" .natural
+def participantCommandKindFieldSpec : ObservationFieldSpec := {
+  cleanupCommandKindFieldSpec with kind := participantKind
+}
+def participantEndpointIdentityFieldSpec : ObservationFieldSpec := {
+  cleanupEndpointIdentityFieldSpec with kind := participantKind
+}
+def participantErrorCodeFieldSpec : ObservationFieldSpec := {
+  cleanupErrorCodeFieldSpec with kind := participantKind
+}
+def participantNamespaceIdentityFieldSpec : ObservationFieldSpec := {
+  cleanupNamespaceIdentityFieldSpec with kind := participantKind
+}
+def participantOperationCorrelationFieldSpec : ObservationFieldSpec := {
+  cleanupOperationCorrelationFieldSpec with kind := participantKind
+}
+def participantRunCorrelationFieldSpec : ObservationFieldSpec := {
+  cleanupRunCorrelationFieldSpec with kind := participantKind
+}
+def participantStatusFieldSpec : ObservationFieldSpec := {
+  cleanupStatusFieldSpec with kind := participantKind
+}
+def participantTaskQueueIdentityFieldSpec : ObservationFieldSpec := {
+  cleanupTaskQueueIdentityFieldSpec with kind := participantKind
+}
+def participantWorkflowCorrelationFieldSpec : ObservationFieldSpec := {
+  cleanupWorkflowCorrelationFieldSpec with kind := participantKind
+}
+
+def cancellationCountField : DefinitionId := participantCancellationCountFieldSpec.field
 def endpointDigestPolicyId : DefinitionId :=
   definitionId "temporal.system.nexus.caller-closure.digest.endpoint"
 
@@ -59,41 +141,41 @@ def declaration : EvidenceProfileDeclaration := {
   source
   kinds := [
     { id := cleanupKind, fields := [
-        { id := commandKindField, valueType := .text },
-        { id := endpointIdentityField, valueType := .text },
-        { id := errorCodeField, valueType := .text },
-        { id := namespaceIdentityField, valueType := .text },
-        { id := openHandleCountField, valueType := .natural },
-        { id := operationCorrelationField, valueType := .text },
-        { id := runCorrelationField, valueType := .text },
-        { id := statusField, valueType := .text },
-        { id := taskQueueIdentityField, valueType := .text },
-        { id := workflowCorrelationField, valueType := .text }
+        cleanupCommandKindFieldSpec.declaration,
+        cleanupEndpointIdentityFieldSpec.declaration,
+        cleanupErrorCodeFieldSpec.declaration,
+        cleanupNamespaceIdentityFieldSpec.declaration,
+        cleanupOpenHandleCountFieldSpec.declaration,
+        cleanupOperationCorrelationFieldSpec.declaration,
+        cleanupRunCorrelationFieldSpec.declaration,
+        cleanupStatusFieldSpec.declaration,
+        cleanupTaskQueueIdentityFieldSpec.declaration,
+        cleanupWorkflowCorrelationFieldSpec.declaration
       ] },
     { id := controlReceiptKind, fields := [
-        { id := actionField, valueType := .text },
-        { id := attemptField, valueType := .natural },
-        { id := occurrenceField, valueType := .text },
-        { id := statusField, valueType := .text }
+        controlReceiptActionFieldSpec.declaration,
+        controlReceiptAttemptFieldSpec.declaration,
+        controlReceiptOccurrenceFieldSpec.declaration,
+        controlReceiptStatusFieldSpec.declaration
       ] },
     { id := historyKind, fields := [
-        { id := eventIdField, valueType := .natural },
-        { id := eventTypeField, valueType := .text },
-        { id := operationCorrelationField, valueType := .text },
-        { id := runCorrelationField, valueType := .text },
-        { id := workflowCorrelationField, valueType := .text }
+        historyEventIdFieldSpec.declaration,
+        historyEventTypeFieldSpec.declaration,
+        historyOperationCorrelationFieldSpec.declaration,
+        historyRunCorrelationFieldSpec.declaration,
+        historyWorkflowCorrelationFieldSpec.declaration
       ] },
     { id := participantKind, fields := [
-        { id := cancellationCountField, valueType := .natural },
-        { id := commandKindField, valueType := .text },
-        { id := endpointIdentityField, valueType := .text },
-        { id := errorCodeField, valueType := .text },
-        { id := namespaceIdentityField, valueType := .text },
-        { id := operationCorrelationField, valueType := .text },
-        { id := runCorrelationField, valueType := .text },
-        { id := statusField, valueType := .text },
-        { id := taskQueueIdentityField, valueType := .text },
-        { id := workflowCorrelationField, valueType := .text }
+        participantCancellationCountFieldSpec.declaration,
+        participantCommandKindFieldSpec.declaration,
+        participantEndpointIdentityFieldSpec.declaration,
+        participantErrorCodeFieldSpec.declaration,
+        participantNamespaceIdentityFieldSpec.declaration,
+        participantOperationCorrelationFieldSpec.declaration,
+        participantRunCorrelationFieldSpec.declaration,
+        participantStatusFieldSpec.declaration,
+        participantTaskQueueIdentityFieldSpec.declaration,
+        participantWorkflowCorrelationFieldSpec.declaration
       ] }
   ]
 }
@@ -116,18 +198,18 @@ def ownershipRuleId : DefinitionId :=
 
 end Mapping
 
-private def field (kind field : DefinitionId) : ObservationExpression :=
-  .field { kind, field }
+private def field (fieldSpec : ObservationFieldSpec) : ObservationExpression :=
+  fieldSpec.expression
 
 private def equalsText
-    (kind fieldId : DefinitionId)
+    (fieldSpec : ObservationFieldSpec)
     (value : String) : ObservationExpression :=
-  .equals (field kind fieldId) (.text value)
+  .equals (field fieldSpec) (.text value)
 
 private def equalsNatural
-    (kind fieldId : DefinitionId)
+    (fieldSpec : ObservationFieldSpec)
     (value : Nat) : ObservationExpression :=
-  .equals (field kind fieldId) (.natural value)
+  .equals (field fieldSpec) (.natural value)
 
 private def portableCondition (condition : ObservationExpression) :
     Option ObservationExpressionAuthoring :=
@@ -159,39 +241,39 @@ def mappingDeclaration : ObservationMappingDeclaration := {
       id := Mapping.stateRuleId
       output := stateId
       outputKind := .state
-      value := .portable (field Profile.historyKind Profile.eventTypeField)
+      value := .portable (field Profile.historyEventTypeFieldSpec)
       condition := portableCondition (.or
-        (equalsText Profile.historyKind Profile.eventTypeField
+        (equalsText Profile.historyEventTypeFieldSpec
           "temporal.history.WorkflowExecutionStarted")
-        (equalsText Profile.historyKind Profile.eventTypeField
+        (equalsText Profile.historyEventTypeFieldSpec
           "temporal.history.WorkflowExecutionCanceled"))
     },
     constantRule Mapping.actionRuleId actionId .action forceCloseAction.value
       (.and
-        (equalsText Profile.controlReceiptKind Profile.actionField
+        (equalsText Profile.controlReceiptActionFieldSpec
           "workflow.action.force-close")
         (.and
-          (equalsNatural Profile.controlReceiptKind Profile.attemptField 1)
-          (equalsText Profile.controlReceiptKind Profile.statusField "accepted"))),
+          (equalsNatural Profile.controlReceiptAttemptFieldSpec 1)
+          (equalsText Profile.controlReceiptStatusFieldSpec "accepted"))),
     constantRule Mapping.outcomeRuleId outcomeId .outcome cancellationUpgradedOutcome.value
-      (equalsText Profile.historyKind Profile.eventTypeField
+      (equalsText Profile.historyEventTypeFieldSpec
         "temporal.history.WorkflowExecutionCanceled"),
     constantRule Mapping.deliveryRuleId deliveryObservationId .observation
       deliveryObservation.value
-      (equalsText Profile.historyKind Profile.eventTypeField
+      (equalsText Profile.historyEventTypeFieldSpec
         "temporal.history.WorkflowExecutionCanceled"),
     {
       id := Mapping.cancellationCountRuleId
       output := cancellationCountObservationId
       outputKind := .observation
       value := .portable (.normalize { name := "natural.render", version := 1 }
-        (field Profile.participantKind Profile.cancellationCountField))
+        (field Profile.participantCancellationCountFieldSpec))
       condition := portableCondition
-        (equalsNatural Profile.participantKind Profile.cancellationCountField 1)
+        (equalsNatural Profile.participantCancellationCountFieldSpec 1)
     },
     constantRule Mapping.ownershipRuleId ownershipObservationId .observation
       ownershipObservation.value
-      (equalsText Profile.historyKind Profile.eventTypeField
+      (equalsText Profile.historyEventTypeFieldSpec
         "temporal.history.WorkflowExecutionCanceled")
   ]
   ordering := [
@@ -208,64 +290,41 @@ def mappingDeclaration : ObservationMappingDeclaration := {
     { kind := Profile.participantKind }
   ]
   dispositions := [
-    { field := { kind := Profile.cleanupKind, field := Profile.commandKindField },
-      disposition := .retain },
-    { field := { kind := Profile.cleanupKind, field := Profile.endpointIdentityField },
-      disposition := .hash (some Profile.endpointDigestPolicyId) },
-    { field := { kind := Profile.cleanupKind, field := Profile.errorCodeField },
-      disposition := .retain },
-    { field := { kind := Profile.cleanupKind, field := Profile.namespaceIdentityField },
-      disposition := .hash (some Profile.endpointDigestPolicyId) },
-    { field := { kind := Profile.cleanupKind, field := Profile.openHandleCountField },
-      disposition := .retain },
-    { field := { kind := Profile.cleanupKind, field := Profile.operationCorrelationField },
-      disposition := .retain },
-    { field := { kind := Profile.cleanupKind, field := Profile.runCorrelationField },
-      disposition := .retain },
-    { field := { kind := Profile.cleanupKind, field := Profile.statusField },
-      disposition := .retain },
-    { field := { kind := Profile.cleanupKind, field := Profile.taskQueueIdentityField },
-      disposition := .hash (some Profile.endpointDigestPolicyId) },
-    { field := { kind := Profile.cleanupKind, field := Profile.workflowCorrelationField },
-      disposition := .retain },
-    { field := { kind := Profile.controlReceiptKind, field := Profile.actionField },
-      disposition := .retain },
-    { field := { kind := Profile.controlReceiptKind, field := Profile.attemptField },
-      disposition := .retain },
-    { field := { kind := Profile.controlReceiptKind, field := Profile.occurrenceField },
-      disposition := .retain },
-    { field := { kind := Profile.controlReceiptKind, field := Profile.statusField },
-      disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.eventIdField },
-      disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.eventTypeField },
-      disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.operationCorrelationField },
-      disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.runCorrelationField },
-      disposition := .retain },
-    { field := { kind := Profile.historyKind, field := Profile.workflowCorrelationField },
-      disposition := .retain },
-    { field := { kind := Profile.participantKind, field := Profile.cancellationCountField },
-      disposition := .retain },
-    { field := { kind := Profile.participantKind, field := Profile.commandKindField },
-      disposition := .retain },
-    { field := { kind := Profile.participantKind, field := Profile.endpointIdentityField },
-      disposition := .hash (some Profile.endpointDigestPolicyId) },
-    { field := { kind := Profile.participantKind, field := Profile.errorCodeField },
-      disposition := .retain },
-    { field := { kind := Profile.participantKind, field := Profile.namespaceIdentityField },
-      disposition := .hash (some Profile.endpointDigestPolicyId) },
-    { field := { kind := Profile.participantKind, field := Profile.operationCorrelationField },
-      disposition := .retain },
-    { field := { kind := Profile.participantKind, field := Profile.runCorrelationField },
-      disposition := .retain },
-    { field := { kind := Profile.participantKind, field := Profile.statusField },
-      disposition := .retain },
-    { field := { kind := Profile.participantKind, field := Profile.taskQueueIdentityField },
-      disposition := .hash (some Profile.endpointDigestPolicyId) },
-    { field := { kind := Profile.participantKind, field := Profile.workflowCorrelationField },
-      disposition := .retain }
+    Profile.cleanupCommandKindFieldSpec.disposition .retain,
+    Profile.cleanupEndpointIdentityFieldSpec.disposition
+      (.hash (some Profile.endpointDigestPolicyId)),
+    Profile.cleanupErrorCodeFieldSpec.disposition .retain,
+    Profile.cleanupNamespaceIdentityFieldSpec.disposition
+      (.hash (some Profile.endpointDigestPolicyId)),
+    Profile.cleanupOpenHandleCountFieldSpec.disposition .retain,
+    Profile.cleanupOperationCorrelationFieldSpec.disposition .retain,
+    Profile.cleanupRunCorrelationFieldSpec.disposition .retain,
+    Profile.cleanupStatusFieldSpec.disposition .retain,
+    Profile.cleanupTaskQueueIdentityFieldSpec.disposition
+      (.hash (some Profile.endpointDigestPolicyId)),
+    Profile.cleanupWorkflowCorrelationFieldSpec.disposition .retain,
+    Profile.controlReceiptActionFieldSpec.disposition .retain,
+    Profile.controlReceiptAttemptFieldSpec.disposition .retain,
+    Profile.controlReceiptOccurrenceFieldSpec.disposition .retain,
+    Profile.controlReceiptStatusFieldSpec.disposition .retain,
+    Profile.historyEventIdFieldSpec.disposition .retain,
+    Profile.historyEventTypeFieldSpec.disposition .retain,
+    Profile.historyOperationCorrelationFieldSpec.disposition .retain,
+    Profile.historyRunCorrelationFieldSpec.disposition .retain,
+    Profile.historyWorkflowCorrelationFieldSpec.disposition .retain,
+    Profile.participantCancellationCountFieldSpec.disposition .retain,
+    Profile.participantCommandKindFieldSpec.disposition .retain,
+    Profile.participantEndpointIdentityFieldSpec.disposition
+      (.hash (some Profile.endpointDigestPolicyId)),
+    Profile.participantErrorCodeFieldSpec.disposition .retain,
+    Profile.participantNamespaceIdentityFieldSpec.disposition
+      (.hash (some Profile.endpointDigestPolicyId)),
+    Profile.participantOperationCorrelationFieldSpec.disposition .retain,
+    Profile.participantRunCorrelationFieldSpec.disposition .retain,
+    Profile.participantStatusFieldSpec.disposition .retain,
+    Profile.participantTaskQueueIdentityFieldSpec.disposition
+      (.hash (some Profile.endpointDigestPolicyId)),
+    Profile.participantWorkflowCorrelationFieldSpec.disposition .retain
   ]
   evidenceBound := { value := 4096, unit := .evidenceRecords }
   documentation := "Closed four-source Nexus caller-closure evidence to one System trace."
@@ -330,38 +389,103 @@ def cancellationCountField :=
 def endpointDigestPolicyId :=
   Temporal.System.Nexus.Observation.Profile.endpointDigestPolicyId
 
-def faultDefinitionField : DefinitionId :=
-  definitionId "umpire.evidence.field.fault-definition-id"
-def faultReceiptField : DefinitionId :=
-  definitionId "umpire.evidence.field.fault-receipt-definition-id"
-def capabilityDefinitionField : DefinitionId :=
-  definitionId "umpire.evidence.field.capability-definition-id"
+def actionFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.controlReceiptActionFieldSpec
+def attemptFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.controlReceiptAttemptFieldSpec
+def occurrenceFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.controlReceiptOccurrenceFieldSpec
+def controlReceiptStatusFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.controlReceiptStatusFieldSpec
+def eventTypeFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.historyEventTypeFieldSpec
+def cancellationCountFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.participantCancellationCountFieldSpec
+def participantOperationCorrelationFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.participantOperationCorrelationFieldSpec
+def participantRunCorrelationFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.participantRunCorrelationFieldSpec
+def participantWorkflowCorrelationFieldSpec : ObservationFieldSpec :=
+  Temporal.System.Nexus.Observation.Profile.participantWorkflowCorrelationFieldSpec
+
+def controlReceiptFaultDefinitionFieldSpec : ObservationFieldSpec := {
+  kind := controlReceiptKind
+  field := definitionId "umpire.evidence.field.fault-definition-id"
+  valueType := .text
+}
+def controlReceiptFaultReceiptFieldSpec : ObservationFieldSpec := {
+  kind := controlReceiptKind
+  field := definitionId "umpire.evidence.field.fault-receipt-definition-id"
+  valueType := .text
+}
+def controlReceiptCapabilityDefinitionFieldSpec : ObservationFieldSpec := {
+  kind := controlReceiptKind
+  field := definitionId "umpire.evidence.field.capability-definition-id"
+  valueType := .text
+}
+def controlReceiptOperationCorrelationFieldSpec : ObservationFieldSpec := {
+  kind := controlReceiptKind
+  field := operationCorrelationField
+  valueType := .text
+}
+def participantFaultDefinitionFieldSpec : ObservationFieldSpec := {
+  controlReceiptFaultDefinitionFieldSpec with kind := participantKind
+}
+def participantFaultReceiptFieldSpec : ObservationFieldSpec := {
+  controlReceiptFaultReceiptFieldSpec with kind := participantKind
+}
+def participantCapabilityDefinitionFieldSpec : ObservationFieldSpec := {
+  controlReceiptCapabilityDefinitionFieldSpec with kind := participantKind
+}
+def participantSyntheticContributionCountFieldSpec : ObservationFieldSpec := {
+  kind := participantKind
+  field := definitionId "umpire.evidence.field.synthetic-contribution-count"
+  valueType := .natural
+}
+def participantSyntheticMarkerFieldSpec : ObservationFieldSpec := {
+  kind := participantKind
+  field := definitionId "umpire.evidence.field.synthetic-contribution-marker"
+  valueType := .text
+}
+def participantCancellationRequestedCountFieldSpec : ObservationFieldSpec := {
+  kind := participantKind
+  field := definitionId "umpire.evidence.field.cancellation-requested-count"
+  valueType := .natural
+}
+def participantCancellationCompletedCountFieldSpec : ObservationFieldSpec := {
+  kind := participantKind
+  field := definitionId "umpire.evidence.field.cancellation-completed-count"
+  valueType := .natural
+}
+
+def faultDefinitionField : DefinitionId := controlReceiptFaultDefinitionFieldSpec.field
+def faultReceiptField : DefinitionId := controlReceiptFaultReceiptFieldSpec.field
+def capabilityDefinitionField : DefinitionId := controlReceiptCapabilityDefinitionFieldSpec.field
 def syntheticContributionCountField : DefinitionId :=
-  definitionId "umpire.evidence.field.synthetic-contribution-count"
-def syntheticMarkerField : DefinitionId :=
-  definitionId "umpire.evidence.field.synthetic-contribution-marker"
+  participantSyntheticContributionCountFieldSpec.field
+def syntheticMarkerField : DefinitionId := participantSyntheticMarkerFieldSpec.field
 def cancellationRequestedCountField : DefinitionId :=
-  definitionId "umpire.evidence.field.cancellation-requested-count"
+  participantCancellationRequestedCountFieldSpec.field
 def cancellationCompletedCountField : DefinitionId :=
-  definitionId "umpire.evidence.field.cancellation-completed-count"
+  participantCancellationCompletedCountFieldSpec.field
 
 private def extendKind (kind : EvidenceKindDeclaration) : EvidenceKindDeclaration :=
   if kind.id == controlReceiptKind then {
     kind with fields := kind.fields ++ [
-      { id := faultDefinitionField, valueType := .text },
-      { id := faultReceiptField, valueType := .text },
-      { id := capabilityDefinitionField, valueType := .text },
-      { id := operationCorrelationField, valueType := .text }
+      controlReceiptFaultDefinitionFieldSpec.declaration,
+      controlReceiptFaultReceiptFieldSpec.declaration,
+      controlReceiptCapabilityDefinitionFieldSpec.declaration,
+      controlReceiptOperationCorrelationFieldSpec.declaration
     ]
   } else if kind.id == participantKind then {
     kind with fields := kind.fields ++ [
-      { id := faultDefinitionField, valueType := .text },
-      { id := faultReceiptField, valueType := .text },
-      { id := capabilityDefinitionField, valueType := .text },
-      { id := syntheticContributionCountField, valueType := .natural },
-      { id := syntheticMarkerField, valueType := .text },
-      { id := cancellationRequestedCountField, valueType := .natural },
-      { id := cancellationCompletedCountField, valueType := .natural }
+      participantFaultDefinitionFieldSpec.declaration,
+      participantFaultReceiptFieldSpec.declaration,
+      participantCapabilityDefinitionFieldSpec.declaration,
+      participantSyntheticContributionCountFieldSpec.declaration,
+      participantSyntheticMarkerFieldSpec.declaration,
+      participantCancellationRequestedCountFieldSpec.declaration,
+      participantCancellationCompletedCountFieldSpec.declaration
     ]
   } else kind
 
@@ -392,18 +516,18 @@ def ownershipRuleId : DefinitionId :=
 
 end Mapping
 
-private def profileField (kind fieldId : DefinitionId) : ObservationExpression :=
-  .field { kind, field := fieldId }
+private def profileField (fieldSpec : ObservationFieldSpec) : ObservationExpression :=
+  fieldSpec.expression
 
 private def profileEqualsText
-    (kind fieldId : DefinitionId)
+    (fieldSpec : ObservationFieldSpec)
     (value : String) : ObservationExpression :=
-  .equals (profileField kind fieldId) (.text value)
+  .equals (profileField fieldSpec) (.text value)
 
 private def profileEqualsNatural
-    (kind fieldId : DefinitionId)
+    (fieldSpec : ObservationFieldSpec)
     (value : Nat) : ObservationExpression :=
-  .equals (profileField kind fieldId) (.natural value)
+  .equals (profileField fieldSpec) (.natural value)
 
 private def allConditions : List ObservationExpression → ObservationExpression
   | [] => .boolean true
@@ -426,40 +550,40 @@ def stateRule : ObservationRule := {
   id := Mapping.stateRuleId
   output := stateId
   outputKind := .state
-  value := .portable (profileField Profile.historyKind Profile.eventTypeField)
+  value := .portable (profileField Profile.eventTypeFieldSpec)
   condition := some (.portable (.or
-    (profileEqualsText Profile.historyKind Profile.eventTypeField
+    (profileEqualsText Profile.eventTypeFieldSpec
       "temporal.history.WorkflowExecutionStarted")
-    (profileEqualsText Profile.historyKind Profile.eventTypeField
+    (profileEqualsText Profile.eventTypeFieldSpec
       "temporal.history.WorkflowExecutionCanceled")))
 }
 
 def actionRule : ObservationRule :=
   faultConstantRule Mapping.actionRuleId actionId .action forceCloseAction.value <|
     allConditions [
-      profileEqualsText Profile.controlReceiptKind Profile.actionField
+      profileEqualsText Profile.actionFieldSpec
         "workflow.action.force-close",
-      profileEqualsNatural Profile.controlReceiptKind Profile.attemptField 1,
-      profileEqualsText Profile.controlReceiptKind Profile.occurrenceField
+      profileEqualsNatural Profile.attemptFieldSpec 1,
+      profileEqualsText Profile.occurrenceFieldSpec
         forceCloseOccurrenceId.value,
-      profileEqualsText Profile.controlReceiptKind Profile.statusField "accepted",
-      profileEqualsText Profile.controlReceiptKind Profile.faultDefinitionField
+      profileEqualsText Profile.controlReceiptStatusFieldSpec "accepted",
+      profileEqualsText Profile.controlReceiptFaultDefinitionFieldSpec
         faultDefinitionId.value,
-      profileEqualsText Profile.controlReceiptKind Profile.faultReceiptField faultReceiptId.value,
-      profileEqualsText Profile.controlReceiptKind Profile.capabilityDefinitionField
+      profileEqualsText Profile.controlReceiptFaultReceiptFieldSpec faultReceiptId.value,
+      profileEqualsText Profile.controlReceiptCapabilityDefinitionFieldSpec
         cancellationCapabilityId.value
     ]
 
 def outcomeRule : ObservationRule :=
   faultConstantRule Mapping.outcomeRuleId outcomeId .outcome
     cancellationUpgradedOutcome.value
-    (profileEqualsText Profile.historyKind Profile.eventTypeField
+    (profileEqualsText Profile.eventTypeFieldSpec
       "temporal.history.WorkflowExecutionCanceled")
 
 def deliveryRule : ObservationRule :=
   faultConstantRule Mapping.deliveryRuleId deliveryObservationId .observation
     deliveryObservation.value
-    (profileEqualsText Profile.historyKind Profile.eventTypeField
+    (profileEqualsText Profile.eventTypeFieldSpec
       "temporal.history.WorkflowExecutionCanceled")
 
 def semanticCountRule : ObservationRule := {
@@ -468,83 +592,41 @@ def semanticCountRule : ObservationRule := {
   outputKind := .observation
   value := .portable (.text (toString semanticCancellationCount))
   condition := some (.portable <| allConditions [
-    profileEqualsNatural Profile.participantKind Profile.cancellationCountField
+    profileEqualsNatural Profile.cancellationCountFieldSpec
       mechanicalCallbackCount,
-    profileEqualsNatural Profile.participantKind Profile.syntheticContributionCountField
+    profileEqualsNatural Profile.participantSyntheticContributionCountFieldSpec
       syntheticContributionCount,
-    profileEqualsText Profile.participantKind Profile.syntheticMarkerField injectedMarker,
-    profileEqualsNatural Profile.participantKind Profile.cancellationRequestedCountField 1,
-    profileEqualsNatural Profile.participantKind Profile.cancellationCompletedCountField 1,
-    profileEqualsText Profile.participantKind Profile.faultDefinitionField faultDefinitionId.value,
-    profileEqualsText Profile.participantKind Profile.faultReceiptField faultReceiptId.value,
-    profileEqualsText Profile.participantKind Profile.capabilityDefinitionField
+    profileEqualsText Profile.participantSyntheticMarkerFieldSpec injectedMarker,
+    profileEqualsNatural Profile.participantCancellationRequestedCountFieldSpec 1,
+    profileEqualsNatural Profile.participantCancellationCompletedCountFieldSpec 1,
+    profileEqualsText Profile.participantFaultDefinitionFieldSpec faultDefinitionId.value,
+    profileEqualsText Profile.participantFaultReceiptFieldSpec faultReceiptId.value,
+    profileEqualsText Profile.participantCapabilityDefinitionFieldSpec
       cancellationCapabilityId.value,
-    .present (profileField Profile.participantKind Profile.operationCorrelationField),
-    .present (profileField Profile.participantKind Profile.runCorrelationField),
-    .present (profileField Profile.participantKind Profile.workflowCorrelationField)
+    .present (profileField Profile.participantOperationCorrelationFieldSpec),
+    .present (profileField Profile.participantRunCorrelationFieldSpec),
+    .present (profileField Profile.participantWorkflowCorrelationFieldSpec)
   ])
 }
 
 def ownershipRule : ObservationRule :=
   faultConstantRule Mapping.ownershipRuleId ownershipObservationId .observation
     ownershipObservation.value
-    (profileEqualsText Profile.historyKind Profile.eventTypeField
+    (profileEqualsText Profile.eventTypeFieldSpec
       "temporal.history.WorkflowExecutionCanceled")
 
 private def additionalDispositions : List FieldDispositionDeclaration := [
-  {
-    field := { kind := Profile.controlReceiptKind, field := Profile.faultDefinitionField }
-    disposition := .retain
-  },
-  {
-    field := { kind := Profile.controlReceiptKind, field := Profile.faultReceiptField }
-    disposition := .retain
-  },
-  {
-    field := { kind := Profile.controlReceiptKind, field := Profile.capabilityDefinitionField }
-    disposition := .retain
-  },
-  {
-    field := { kind := Profile.controlReceiptKind, field := Profile.operationCorrelationField }
-    disposition := .retain
-  },
-  {
-    field := {
-      kind := Profile.participantKind
-      field := Profile.syntheticContributionCountField
-    }
-    disposition := .retain
-  },
-  {
-    field := { kind := Profile.participantKind, field := Profile.syntheticMarkerField }
-    disposition := .retain
-  },
-  {
-    field := { kind := Profile.participantKind, field := Profile.faultDefinitionField }
-    disposition := .retain
-  },
-  {
-    field := { kind := Profile.participantKind, field := Profile.faultReceiptField }
-    disposition := .retain
-  },
-  {
-    field := { kind := Profile.participantKind, field := Profile.capabilityDefinitionField }
-    disposition := .retain
-  },
-  {
-    field := {
-      kind := Profile.participantKind
-      field := Profile.cancellationRequestedCountField
-    }
-    disposition := .retain
-  },
-  {
-    field := {
-      kind := Profile.participantKind
-      field := Profile.cancellationCompletedCountField
-    }
-    disposition := .retain
-  }
+  Profile.controlReceiptFaultDefinitionFieldSpec.disposition .retain,
+  Profile.controlReceiptFaultReceiptFieldSpec.disposition .retain,
+  Profile.controlReceiptCapabilityDefinitionFieldSpec.disposition .retain,
+  Profile.controlReceiptOperationCorrelationFieldSpec.disposition .retain,
+  Profile.participantSyntheticContributionCountFieldSpec.disposition .retain,
+  Profile.participantSyntheticMarkerFieldSpec.disposition .retain,
+  Profile.participantFaultDefinitionFieldSpec.disposition .retain,
+  Profile.participantFaultReceiptFieldSpec.disposition .retain,
+  Profile.participantCapabilityDefinitionFieldSpec.disposition .retain,
+  Profile.participantCancellationRequestedCountFieldSpec.disposition .retain,
+  Profile.participantCancellationCompletedCountFieldSpec.disposition .retain
 ]
 
 def mappingDeclaration : ObservationMappingDeclaration := {
