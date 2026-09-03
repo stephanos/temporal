@@ -7,15 +7,15 @@ satisfies: [R1, R3, R7]
 Complete the checked-authoring surface for Query and Observation, then migrate the ordinary Nexus walkthrough and the remaining Switch Query path. This task depends on the Property/Behavior facades because Nexus composes all three ordinary languages.
 
 **Size:** M
-**Files:** `model/Umpire/Query/Language.lean`, `model/Umpire/Query/Tests/Validation.lean`, `model/Umpire/Observation/Language.lean`, `model/Umpire/Observation/Tests/Compilation.lean`, `model/Umpire/Examples/Switch.lean`, `model/Temporal/Feature/Nexus/Operations.lean`
-**Touches:** [model/Umpire/Query/Language.lean, model/Umpire/Query/Tests/Validation.lean, model/Umpire/Observation/Language.lean, model/Umpire/Observation/Tests/Compilation.lean, model/Umpire/Examples/Switch.lean, model/Temporal/Feature/Nexus/Operations.lean]
+**Files:** `model/Umpire/Query/Language.lean`, `model/Umpire/Query/Tests/Validation.lean`, `model/Umpire/Observation/Language.lean`, `model/Umpire/Observation/Tests/Compilation.lean`, `model/Umpire/Examples/Switch.lean`, `model/Temporal/Feature/Nexus/Operations/Internal.lean`, `model/Temporal/Feature/Nexus/Operations/AsyncStart.lean`, `model/Temporal/Feature/Nexus/Operations/Cancellation.lean`, `model/Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean`
+**Touches:** [model/Umpire/Query/Language.lean, model/Umpire/Query/Tests/Validation.lean, model/Umpire/Observation/Language.lean, model/Umpire/Observation/Tests/Compilation.lean, model/Umpire/Examples/Switch.lean, model/Temporal/Feature/Nexus/Operations/Internal.lean, model/Temporal/Feature/Nexus/Operations/AsyncStart.lean, model/Temporal/Feature/Nexus/Operations/Cancellation.lean, model/Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean]
 
 ### Approach
 - Add documented `checkedQuery` and `checkedObservation` facades with explicit proofs; keep raw typed checkers authoritative.
 - Keep Query's dependent target re-ascription/materialization inside its language boundary so ordinary callers receive the correctly indexed checked query directly.
 - Replace Query/Observation-local Definition ID and source-path plumbing with Task 1 primitives while retaining local error adapters.
 - Add exact adapter-level Query fixtures for blank/malformed IDs, duplicate witness selection, source fallback, offending values, and related-ID ordering; preserve the existing Observation failure matrix.
-- Migrate all three Nexus operation walkthroughs and the remaining Switch Query path away from `toOption.get`; preserve diagnostic result values that existing tests intentionally inspect.
+- Migrate the three split Nexus operation walkthrough owners and the remaining Switch Query path away from `toOption.get`; preserve the Nexus facade explanation and diagnostic result values that existing tests intentionally inspect.
 - Preserve the Nexus module explanation and every “Property, not Behavior” teaching comment while shrinking the surrounding literals.
 
 ### Investigation targets
