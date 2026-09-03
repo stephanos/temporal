@@ -32,9 +32,8 @@ Add the inert field handle and direct projection/negative contract tests (R1).
 - [ ] Observation compilation, check, and import tests pass.
 
 ## Done summary
-TBD
-
+Added an inert ObservationFieldSpec that projects the exact existing declaration, reference, field expression, and explicitly selected disposition records. Added public import checks, projection equality proofs, and checker-owned negative contracts covering identities, references, types, dispositions, and digest policy.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0137c73585f8793941037f3bf32d842b24b8d0a3
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Observation.Tests.Check Umpire.Observation.ImportTests, cd model && mise exec -- lake build Umpire.Observation.Tests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests, make lint-model
 - PRs:
