@@ -8,10 +8,7 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-38-consolidate-layered-model-helpers",
-    "fn-40-centralize-plannerpolicy-constructors",
-    "fn-41-finitemachine-target-authoring",
-    "fn-44-seal-observation-traces-and-centralize",
-    "fn-50-migrate-system-callerclosure-to"
+    "fn-41-finitemachine-target-authoring"
   ],
   "id": "fn-43-deepen-ordinary-property-behavior-and",
   "impl_review_rounds": {},
@@ -181,5 +178,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-30T16:08:49.429059Z"
+  "updated_at": "2026-09-03T00:23:36.000000Z"
 }
