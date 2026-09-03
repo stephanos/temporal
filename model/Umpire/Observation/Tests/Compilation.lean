@@ -7,6 +7,30 @@ namespace Umpire.ObservationTests
 
 open Umpire
 
+def projectedNameField : ObservationFieldSpec := {
+  kind := eventKind
+  field := nameField
+  valueType := .text
+}
+
+def projectedHashedField : ObservationFieldSpec := {
+  kind := eventKind
+  field := hashedField
+  valueType := .text
+}
+
+/-- Field specifications reproduce the existing inert authoring records exactly. -/
+example :
+    (projectedNameField.declaration,
+      projectedNameField.reference,
+      projectedNameField.expression,
+      projectedNameField.disposition .retain) =
+    ({ id := nameField, valueType := .text },
+      { kind := eventKind, field := nameField },
+      .field { kind := eventKind, field := nameField },
+      { field := { kind := eventKind, field := nameField }, disposition := .retain }) := by
+  rfl
+
 def checkedBasePlan : CheckedObservationPlan :=
   checkedObservation context baseDeclaration (by native_decide)
 
@@ -140,6 +164,76 @@ def duplicateFieldContext : ObservationCheckContext := {
     }]
   }]
 }
+
+def contextWithProjectedNameDeclaration
+    (declaration : EvidenceFieldDeclaration) : ObservationCheckContext := {
+  context with profiles := [{
+    evidenceProfile with kinds := evidenceProfile.kinds.map fun kind => {
+      kind with fields := kind.fields.map fun field =>
+        if field.id == nameField then declaration else field
+    }
+  }]
+}
+
+def contextWithProjectedFields
+    (fields : List EvidenceFieldDeclaration) : ObservationCheckContext := {
+  context with profiles := [{
+    evidenceProfile with kinds := [{ id := eventKind, fields }]
+  }]
+}
+
+def projectedFieldFailures : List (Option ObservationErrorKind) := [
+  errorKindOf (checkObservation
+    (contextWithProjectedNameDeclaration { projectedNameField with field := id "" }.declaration)
+    baseDeclaration),
+  errorKindOf (checkObservation
+    (contextWithProjectedNameDeclaration { projectedNameField with field := id "field" }.declaration)
+    baseDeclaration),
+  errorKindOf (checkObservation
+    (contextWithProjectedFields [projectedNameField.declaration, projectedNameField.declaration])
+    baseDeclaration),
+  errorKindOf (checkObservation context (withSingleRuleExpression (.portable
+    { projectedNameField with kind := id "test.kind.unknown" }.expression))),
+  errorKindOf (checkObservation context (withSingleRuleExpression (.portable
+    { projectedNameField with field := id "test.field.unknown" }.expression))),
+  errorKindOf (checkObservation
+    (contextWithProjectedNameDeclaration { projectedNameField with valueType := .boolean }.declaration)
+    baseDeclaration),
+  errorKindOf (checkObservation context {
+    baseDeclaration with
+    rules := [{ initialRule with value := .portable projectedNameField.expression }]
+    ordering := []
+    dispositions := baseDeclaration.dispositions.filter fun disposition =>
+      disposition.field != projectedNameField.reference
+  }),
+  errorKindOf (checkObservation context {
+    baseDeclaration with dispositions := baseDeclaration.dispositions ++
+      [projectedNameField.disposition .retain]
+  }),
+  errorKindOf (checkObservation context {
+    baseDeclaration with
+    digestPolicies := []
+    dispositions := baseDeclaration.dispositions.map fun declaration =>
+      if declaration.field == projectedHashedField.reference then
+        projectedHashedField.disposition (.hash (some digestPolicyId))
+      else
+        declaration
+  })
+]
+
+/-- Field projections leave identity, type, disposition, and digest failures to the checker. -/
+example : projectedFieldFailures = [
+  some .emptyDefinitionId,
+  some .invalidDefinitionId,
+  some .duplicateDefinitionId,
+  some .unknownEvidenceKind,
+  some .unknownEvidenceField,
+  some .typeMismatch,
+  some .missingDisposition,
+  some .duplicateDisposition,
+  some .missingDigestPolicy
+] := by
+  native_decide
 
 def structuralFailures : List (Option ObservationErrorKind) := [
   errorKindOf (checkObservation emptyProfileContext { baseDeclaration with profile := id "" }),

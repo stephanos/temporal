@@ -3,6 +3,11 @@ import Umpire.Observation
 /-! Focused import contract for Observation authoring, checking, and evaluation. -/
 
 #check Umpire.ObservationMappingDeclaration
+#check Umpire.ObservationFieldSpec
+#check Umpire.ObservationFieldSpec.declaration
+#check Umpire.ObservationFieldSpec.reference
+#check Umpire.ObservationFieldSpec.expression
+#check Umpire.ObservationFieldSpec.disposition
 #check Umpire.CheckedObservationPlan
 #check Umpire.EvidenceBound
 #check Umpire.ObservationStatus
