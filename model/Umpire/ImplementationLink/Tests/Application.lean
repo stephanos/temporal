@@ -210,10 +210,8 @@ def capabilityReference : ImplementationSemanticReference :=
   (implementationSemanticReference? Umpire.Examples.Switch.target
     Umpire.Examples.Switch.switchCapabilityId .capability).get (by native_decide)
 
-def capabilityMapping : ImplementationSemanticMapping := {
-  source := capabilityReference
-  destination := capabilityReference
-}
+def capabilityMapping : ImplementationSemanticMapping :=
+  .forward capabilityReference capabilityReference
 
 def linkDeclaration : ImplementationLinkDeclaration
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue
@@ -222,29 +220,24 @@ def linkDeclaration : ImplementationLinkDeclaration
   source
   sourceTarget := .ofTarget Umpire.Examples.Switch.target
   destinationTarget := .ofTarget Umpire.Examples.Switch.target
-  setupMappings := [{
-    source := Umpire.Examples.Switch.switchSetup
-    destination := Umpire.Examples.Switch.switchSetup
-  }]
-  stateMappings := [
-    { source := Umpire.Examples.Switch.offState, destination := Umpire.Examples.Switch.offState },
-    { source := Umpire.Examples.Switch.onState, destination := Umpire.Examples.Switch.onState }
+  setupMappings := [
+    .forward Umpire.Examples.Switch.switchSetup Umpire.Examples.Switch.switchSetup
   ]
-  actionMappings := [{
-    source := Umpire.Examples.Switch.flipAction
-    destination := Umpire.Examples.Switch.flipAction
-  }]
+  stateMappings := [
+    .forward Umpire.Examples.Switch.offState Umpire.Examples.Switch.offState,
+    .forward Umpire.Examples.Switch.onState Umpire.Examples.Switch.onState
+  ]
+  actionMappings := [
+    .forward Umpire.Examples.Switch.flipAction Umpire.Examples.Switch.flipAction
+  ]
   outcomeMappings := [
-    { source := Umpire.Examples.Switch.appliedOutcome,
-      destination := Umpire.Examples.Switch.appliedOutcome },
-    { source := Umpire.Examples.Switch.deferredOutcome,
-      destination := Umpire.Examples.Switch.deferredOutcome }
+    .forward Umpire.Examples.Switch.appliedOutcome Umpire.Examples.Switch.appliedOutcome,
+    .forward Umpire.Examples.Switch.deferredOutcome Umpire.Examples.Switch.deferredOutcome
   ]
   observationMappings := [
-    { source := Umpire.Examples.Switch.powerOffObservation,
-      destination := Umpire.Examples.Switch.powerOffObservation },
-    { source := Umpire.Examples.Switch.powerOnObservation,
-      destination := Umpire.Examples.Switch.powerOnObservation }
+    .forward Umpire.Examples.Switch.powerOffObservation
+      Umpire.Examples.Switch.powerOffObservation,
+    .forward Umpire.Examples.Switch.powerOnObservation Umpire.Examples.Switch.powerOnObservation
   ]
   relationMappings := []
   capabilityMappings := [capabilityMapping]
@@ -258,27 +251,30 @@ theorem linkCoverage : ImplementationLinkRequiredCoverage linkDeclaration
     intro value admitted
     change value = Umpire.Examples.Switch.switchSetup at admitted
     subst value
-    simp [linkDeclaration]
+    simp [linkDeclaration, ImplementationValueMapping.forward]
   state := by
     intro value admitted
     change value = Umpire.Examples.Switch.offState ∨
       value = Umpire.Examples.Switch.onState at admitted
-    rcases admitted with rfl | rfl <;> simp [linkDeclaration]
+    rcases admitted with rfl | rfl <;>
+      simp [linkDeclaration, ImplementationValueMapping.forward]
   action := by
     intro value admitted
     change value = Umpire.Examples.Switch.flipAction at admitted
     subst value
-    simp [linkDeclaration]
+    simp [linkDeclaration, ImplementationValueMapping.forward]
   outcome := by
     intro value admitted
     change value = Umpire.Examples.Switch.appliedOutcome ∨
       value = Umpire.Examples.Switch.deferredOutcome at admitted
-    rcases admitted with rfl | rfl <;> simp [linkDeclaration]
+    rcases admitted with rfl | rfl <;>
+      simp [linkDeclaration, ImplementationValueMapping.forward]
   observation := by
     intro value admitted
     change value = Umpire.Examples.Switch.powerOffObservation ∨
       value = Umpire.Examples.Switch.powerOnObservation at admitted
-    rcases admitted with rfl | rfl <;> simp [linkDeclaration]
+    rcases admitted with rfl | rfl <;>
+      simp [linkDeclaration, ImplementationValueMapping.forward]
   relation := by native_decide
   capability := by native_decide
 }
@@ -330,10 +326,8 @@ def observedEvidence : EvidenceBundle := {
 def observedTranslationDeclaration : ObservedTraceTranslationDeclaration := {
   id := id "test.implementation-link.switch-observed-translation"
   source
-  observationMappings := linkDeclaration.observationMappings ++ [{
-    source := observedPowerOffObservation
-    destination := observedPowerOffObservation
-  }]
+  observationMappings := linkDeclaration.observationMappings ++
+    [.forward observedPowerOffObservation observedPowerOffObservation]
 }
 
 def checkedObservedTranslationResult :=

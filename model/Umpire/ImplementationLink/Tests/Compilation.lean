@@ -7,6 +7,17 @@ namespace Umpire.ImplementationLinkTests
 open Umpire
 open Umpire.TargetTests
 
+/-- Forward value construction is exactly the explicit source-destination record. -/
+example : ImplementationValueMapping.forward false true =
+    ({ source := false, destination := true } : ImplementationValueMapping Bool Bool) := by
+  rfl
+
+/-- Forward semantic construction is exactly the explicit source-destination record. -/
+example : ImplementationSemanticMapping.forward relationReference primaryCapabilityReference =
+    ({ source := relationReference, destination := primaryCapabilityReference } :
+      ImplementationSemanticMapping) := by
+  rfl
+
 /-- Complete declarations with exact witnesses check to one canonical identity. -/
 example : checkedIdentityOf baseDeclaration baseWitness =
     checkedIdentityOf reorderedDeclaration reorderedWitness := by
