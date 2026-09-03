@@ -418,10 +418,8 @@ def propertyDeclaration : PropertyDeclaration := {
   requires := [switchCapabilityId]
   clauses := [
     .transitionContract (id "switch.property.clause.flip-turns-on")
-      { field := .selectedAction, reference := flipActionId,
-        constraint := .equals flipAction.value }
-      { field := .resultingState, reference := powerStateId,
-        constraint := .equals onState.value }
+      (PropertyPattern.exact .selectedAction flipActionId flipAction.value)
+      (PropertyPattern.exact .resultingState powerStateId onState.value)
   ]
   documentation := "A selected flip has an outcome that turns the switch on."
 }
@@ -433,16 +431,13 @@ private theorem propertyResult_isSome : propertyResult.toOption.isSome = true :=
   native_decide
 
 def flipProperty : CheckedProperty :=
-  propertyResult.toOption.get propertyResult_isSome
+  checkedProperty (PropertyCheckContext.ofTarget target) (.portable propertyDeclaration)
+    propertyResult_isSome
 
 def switchRole : ResourceRole := { id := switchRoleId, valueKind := .state }
 
-def setupConstraint : SetupConstraint := {
-  id := id "switch.setup.subject-is-off"
-  relation := .equal
-  left := .role switchRoleId
-  right := .value offState
-}
+def setupConstraint : SetupConstraint :=
+  SetupConstraint.roleEquals (id "switch.setup.subject-is-off") switchRoleId offState
 
 def exploratoryBehaviorDeclaration : BehaviorDeclaration := {
   id := exploratoryBehaviorId
@@ -456,12 +451,13 @@ def exploratoryBehaviorDeclaration : BehaviorDeclaration := {
   documentation := "Explore the finite switch outcomes for one selected flip."
 }
 
-def exactActionBehaviorDeclaration : BehaviorDeclaration := {
-  exploratoryBehaviorDeclaration with
-  id := exactActionBehaviorId
-  actionsExactly := some [flipActionId]
-  documentation := "Select one flip while leaving its outcome to the switch model."
-}
+def exactActionBehaviorDeclaration : BehaviorDeclaration :=
+  BehaviorDeclaration.exactlyOneAction exactActionBehaviorId source
+    { id := id "switch.occurrence.flip", action := flipActionId }
+    (requires := [switchCapabilityId])
+    (roles := [switchRole])
+    (setup := [setupConstraint])
+    (documentation := "Select one flip while leaving its outcome to the switch model.")
 
 def exactTrace : AuthoredExactTrace := {
   setup := switchSetup
@@ -502,39 +498,22 @@ private theorem exactTraceBehaviorResult_isSome :
     exactTraceBehaviorResult.toOption.isSome = true := by native_decide
 
 def exploratoryBehavior : CheckedBehavior :=
-  exploratoryBehaviorResult.toOption.get exploratoryBehaviorResult_isSome
+  checkedBehavior (.ofTarget target) exploratoryBehaviorDeclaration
+    exploratoryBehaviorResult_isSome
 
 def exactActionBehavior : CheckedBehavior :=
-  exactActionBehaviorResult.toOption.get exactActionBehaviorResult_isSome
+  checkedBehavior (.ofTarget target) exactActionBehaviorDeclaration
+    exactActionBehaviorResult_isSome
 
 def exactTraceBehavior : CheckedBehavior :=
-  exactTraceBehaviorResult.toOption.get exactTraceBehaviorResult_isSome
+  checkedBehavior (.ofTarget target) exactTraceBehaviorDeclaration
+    exactTraceBehaviorResult_isSome
 
-def appliedTrace : BehaviorTrace := {
-  setup := switchSetup
-  trace := {
-    initialState := offState
-    steps := [{
-      selectedAction := flipAction
-      modelOutcome := appliedOutcome
-      resultingState := onState
-      observations := appliedResult.observations
-    }]
-  }
-}
+def appliedTrace : BehaviorTrace :=
+  BehaviorTrace.singleStep switchSetup offState flipAction appliedResult
 
-def deferredTrace : BehaviorTrace := {
-  setup := switchSetup
-  trace := {
-    initialState := offState
-    steps := [{
-      selectedAction := flipAction
-      modelOutcome := deferredOutcome
-      resultingState := offState
-      observations := deferredResult.observations
-    }]
-  }
-}
+def deferredTrace : BehaviorTrace :=
+  BehaviorTrace.singleStep switchSetup offState flipAction deferredResult
 
 def limits : QueryLimits := {
   behavior := {
