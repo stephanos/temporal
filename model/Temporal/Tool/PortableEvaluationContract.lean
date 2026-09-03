@@ -624,7 +624,7 @@ private def lowerCheckedTest
     definitionId := experiment.plan.queryDefinitionId
     behaviorFingerprint := experiment.plan.queryBehaviorFingerprint
   }
-  let knownGaps := (experiment.plan.knownGaps ++ runtimeConfiguration.knownGaps)
+  let knownGaps := (experiment.plan.knownGaps.toList ++ runtimeConfiguration.knownGaps)
     |>.map portableKnownGap |>.mergeSort gapLe |>.eraseDups
   let definitionSources :=
     (Temporal.System.Nexus.CallerClosure.target.definitions ++
