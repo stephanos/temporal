@@ -6,6 +6,92 @@ namespace Umpire.QueryTests
 
 open Umpire
 
+def checkedFixtureQuery : CheckedQuery (fun _ => True) :=
+  checkedQuery target (declaration (.verify checkedProperty) exhaustivePolicy)
+    (by native_decide)
+
+/-- Checked Query authoring re-ascribes the dependent target at the language boundary. -/
+example : checkedFixtureQuery.target = target := by
+  rfl
+
+#guard_msgs (error, substring := true) in
+def queryWithoutValidityProof : CheckedQuery (fun _ => True) :=
+  checkedQuery target (declaration (.verify checkedProperty) exhaustivePolicy)
+
+private def queryErrorOf
+    (result : Except QueryError (CheckedQuery (fun _ => True))) : Option QueryError :=
+  match result with
+  | .error failure => some failure
+  | .ok _ => none
+
+private def queryErrorJsonOf
+    (result : Except QueryError (CheckedQuery (fun _ => True))) : Option String :=
+  queryErrorOf result |>.map canonicalQueryErrorJson
+
+def alphaProperty : CheckedProperty := {
+  checkedProperty with id := id "query.property.alpha"
+}
+
+def zetaProperty : CheckedProperty := {
+  checkedProperty with id := id "query.property.zeta"
+}
+
+def exactAdapterFailures : List (Option QueryError) := [
+  queryErrorOf (checkQuery context {
+    declaration (.witness checkedProperty) with id := id "", source := { path := "" }
+  }),
+  queryErrorOf (checkQuery context {
+    declaration (.witness checkedProperty) with id := id "query"
+  }),
+  queryErrorOf (checkQuery context (declaration
+    (.select [zetaProperty, alphaProperty, zetaProperty, alphaProperty]))),
+  queryErrorOf (checkQuery context {
+    declaration (.witness checkedProperty) with target := id "zeta.target.mismatch"
+  })
+]
+
+/-- Shared identity adapters retain Query's exact payloads and deterministic duplicate witness. -/
+example : exactAdapterFailures = [
+  some {
+    kind := .emptyDefinitionId
+    definitionId := id "umpire.query.anonymous"
+    sourcePath := "<unknown>"
+    offendingValue := "<empty>"
+    relatedDefinitionIds := []
+  },
+  some {
+    kind := .invalidDefinitionId
+    definitionId := id "query"
+    sourcePath := "Umpire/Query/Tests.lean"
+    offendingValue := "query"
+    relatedDefinitionIds := [id "query"]
+  },
+  some {
+    kind := .duplicateProperty
+    definitionId := id "query.declaration.fixture"
+    sourcePath := "Umpire/Query/Tests.lean"
+    offendingValue := "query.property.alpha"
+    relatedDefinitionIds := [id "query.property.alpha"]
+  },
+  some {
+    kind := .targetMismatch
+    definitionId := id "query.declaration.fixture"
+    sourcePath := "Umpire/Query/Tests.lean"
+    offendingValue := "zeta.target.mismatch != query.target.fixture"
+    relatedDefinitionIds := [id "query.target.fixture", id "zeta.target.mismatch"]
+  }
+] := by
+  native_decide
+
+/-- Canonical Query diagnostics retain field order and canonical related-ID order. -/
+example : queryErrorJsonOf (checkQuery context {
+    declaration (.witness checkedProperty) with target := id "zeta.target.mismatch"
+  }) = some ("{\"kind\":\"target-mismatch\",\"definitionId\":" ++
+    "\"query.declaration.fixture\",\"sourcePath\":\"Umpire/Query/Tests.lean\"," ++
+    "\"offendingValue\":\"zeta.target.mismatch != query.target.fixture\"," ++
+    "\"relatedDefinitionIds\":[\"query.target.fixture\",\"zeta.target.mismatch\"]}") := by
+  native_decide
+
 def invalidLimits : QueryLimits := {
   limits with behavior := {
     limits.behavior with transitions := { value := 0, unit := .semanticTransitions }

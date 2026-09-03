@@ -203,15 +203,14 @@ structure CheckedQueryTarget (LawStatement : LawDefinition → Prop) where
 /-- Derive Query's finite-completeness view from the checked Target without introducing another
 finite-domain authority. Planning-unavailable targets remain valid Query targets. -/
 def CheckedQueryTarget.ofTarget
-    (target : QueryTarget LawStatement) : CheckedQueryTarget LawStatement :=
-  match target.planning with
-  | .unavailable => { target }
-  | .available capability =>
-    let roleAssignments := target.resolvedSetups
-    let actions := capability.actions
-    {
-      target
-      completeness := some {
+    (target : QueryTarget LawStatement) : CheckedQueryTarget LawStatement := {
+  target
+  completeness := match target.planning with
+    | .unavailable => none
+    | .available capability =>
+      let roleAssignments := target.resolvedSetups
+      let actions := capability.actions
+      some {
         roleAssignments
         actions
         roleDomainFingerprint := roleDomainFingerprintOf
@@ -226,7 +225,7 @@ def CheckedQueryTarget.ofTarget
         actionSound := capability.actionSound
         actionComplete := capability.actionComplete
       }
-    }
+}
 
 inductive QueryTargetAvailability (LawStatement : LawDefinition → Prop) where
   | checked (target : CheckedQueryTarget LawStatement)
@@ -315,17 +314,8 @@ private def quote (value : String) : String := Lean.Json.compress (.str value)
 private def array (items : List String) : String :=
   "[" ++ String.intercalate "," items ++ "]"
 
-private def idLe (left right : DefinitionId) : Bool :=
-  decide (left.value ≤ right.value)
-
 private def propertyLe (left right : CheckedProperty) : Bool :=
   decide (left.id.value ≤ right.id.value)
-
-private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
-  ids.mergeSort idLe |>.eraseDups
-
-private def sourcePath (source : SourceLocation) : String :=
-  if source.path == "" then "<unknown>" else source.path
 
 private def queryError
     (kind : QueryErrorKind)
@@ -337,18 +327,13 @@ private def queryError
     DefinitionId.of "umpire.query.anonymous"
   else
     owner.id
-  sourcePath := sourcePath owner.source
+  sourcePath := owner.source.displayPath
   offendingValue
-  relatedDefinitionIds := canonicalIds relatedDefinitionIds
+  relatedDefinitionIds := DefinitionId.canonicalSet relatedDefinitionIds
 }
 
 private def requirementIds (missing : List CompletenessRequirement) : List DefinitionId :=
   missing.map fun requirement => DefinitionId.of ("umpire.query." ++ requirement.name)
-
-private def firstDuplicateProperty : List CheckedProperty → Option CheckedProperty
-  | first :: second :: rest =>
-      if first.id == second.id then some first else firstDuplicateProperty (second :: rest)
-  | _ => none
 
 private def firstDuplicate [BEq α] : List α → Option α
   | first :: second :: rest =>
@@ -375,12 +360,12 @@ private def validateFiniteDomains
       | none => pure ()
 
 private def validateDefinitionId (declaration : QueryDeclaration) : Except QueryError Unit :=
-  if declaration.id.value == "" then
-    .error (queryError .emptyDefinitionId declaration "<empty>")
-  else if !declaration.id.isNamespaced then
-    .error (queryError .invalidDefinitionId declaration declaration.id.value [declaration.id])
-  else
-    .ok ()
+  match declaration.id.validate with
+  | .error .empty =>
+      .error (queryError .emptyDefinitionId declaration "<empty>")
+  | .error .malformed =>
+      .error (queryError .invalidDefinitionId declaration declaration.id.value [declaration.id])
+  | .ok () => .ok ()
 
 private def validateProperties
     (declaration : QueryDeclaration)
@@ -388,9 +373,9 @@ private def validateProperties
   let properties := declaration.form.properties.mergeSort propertyLe
   if properties.isEmpty then
     throw (queryError .missingProperty declaration "properties")
-  match firstDuplicateProperty properties with
+  match DefinitionId.firstDuplicate (properties.map CheckedProperty.id) with
   | some duplicate =>
-      throw (queryError .duplicateProperty declaration duplicate.id.value [duplicate.id])
+      throw (queryError .duplicateProperty declaration duplicate.value [duplicate])
   | none => pure ()
   for capability in declaration.behavior.requires ++ properties.flatMap CheckedProperty.requires do
     if !target.requiredCapabilities.contains capability then
@@ -422,7 +407,7 @@ private def validateStrategy (declaration : QueryDeclaration) : Except QueryErro
   | _, _ => .ok ()
 
 private def targetComposition (target : QueryTarget LawStatement) : List DefinitionId :=
-  canonicalIds (target.requiredCapabilities ++
+  DefinitionId.canonicalSet (target.requiredCapabilities ++
     target.providers.map CapabilityProvider.id ++
     target.connectors.map CapabilityConnector.id)
 
@@ -521,7 +506,8 @@ def canonicalQueryErrorJson (error : QueryError) : String :=
     ",\"sourcePath\":" ++ quote error.sourcePath ++
     ",\"offendingValue\":" ++ quote error.offendingValue ++
     ",\"relatedDefinitionIds\":" ++
-      stringListJson (canonicalIds error.relatedDefinitionIds |>.map DefinitionId.value) ++ "}"
+      stringListJson (DefinitionId.canonicalSet error.relatedDefinitionIds |>.map
+        DefinitionId.value) ++ "}"
 
 /-- Freeze every meaning-bearing input and reject invalid exhaustive or exact-trace queries before
 the planner backend can be initialized. -/
@@ -568,6 +554,21 @@ def checkQuery
     documentation := declaration.documentation
     canonicalMetadata := semantic
     behaviorFingerprint := behaviorFingerprintOf semantic
+  }
+
+/-- Produce a checked Query directly from an explicit proof that the typed checker succeeds.
+Target re-ascription stays inside this boundary so dependent planner APIs see the selected Target.
+Use `checkQuery` when an invalid declaration's typed diagnostic is needed. -/
+def checkedQuery
+    (target : QueryTarget LawStatement)
+    (declaration : QueryDeclaration)
+    (valid : (checkQuery (.ofTarget target) declaration).toOption.isSome = true) :
+    CheckedQuery LawStatement :=
+  let checked := (checkQuery (.ofTarget target) declaration).toOption.get valid
+  {
+    checked with
+    target
+    completeness := (CheckedQueryTarget.ofTarget target).completeness
   }
 
 end Umpire
