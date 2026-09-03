@@ -6,17 +6,14 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-28-portable-evaluation-contract-and",
-    "fn-19-bounded-local-temporal-execution-and",
-    "fn-20-local-execution-semantic-conformance"
-  ],
+  "depends_on_epics": [],
   "id": "fn-52-caller-neutral-grpc-portable-test-plans",
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-09-02T17:09:22.333950Z",
+  "ready": true,
   "review_attempts": [
     {
       "artifact_sha256": "16a14ad84f56e919b6175d3f47e6d305d0b2d1f6cea2ad272c0ef7e1936440f2",
@@ -147,5 +144,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-02T17:09:22.334588Z"
+  "updated_at": "2026-09-03T16:53:46.342486Z"
 }
