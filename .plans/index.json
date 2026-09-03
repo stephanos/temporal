@@ -780,10 +780,7 @@
       "completionReview": "unknown",
       "specDependencies": [
         "fn-38-consolidate-layered-model-helpers",
-        "fn-40-centralize-plannerpolicy-constructors",
-        "fn-41-finitemachine-target-authoring",
-        "fn-44-seal-observation-traces-and-centralize",
-        "fn-50-migrate-system-callerclosure-to"
+        "fn-41-finitemachine-target-authoring"
       ]
     },
     {
