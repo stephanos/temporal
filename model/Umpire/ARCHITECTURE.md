@@ -583,12 +583,12 @@ The retained boundary is exactly embedded `umpire-drive-plan/v2` plus persisted
 Limits, Known Gaps, operational status, Observation Evaluation, Evidence Links, Implementation Link
 status, Property verdicts, Run Evaluation, and cleanup status distinct.
 
-Lean Planning, Runtime, Evidence, and Result records carry checked `KnownGapSet` values and project
-their ordered rows only at codec or protocol boundaries. The persisted representation remains the
-unchanged raw JSON array. Go therefore admits every such array independently: it validates kinds,
-namespaced identifiers, canonical order, uniqueness, and subject-detail consistency, then verifies
-the checker response projections and exact Known Gap union without trusting Lean's opaque in-memory
-value.
+Lean Planning, Runtime, Evidence, and Result records carry checked `KnownGapSet` values and expose
+their ordered rows only as a read-only projection at explicit codec, protocol, or semantic-adapter
+boundaries. The persisted representation remains the unchanged raw JSON array. Go therefore admits
+every such array independently: it validates kinds, namespaced identifiers, canonical order,
+uniqueness, and subject-detail consistency, then verifies the checker response projections and exact
+Known Gap union without trusting Lean's opaque in-memory value.
 
 `Umpire.Artifact.PortableEvaluationContract` is a focused build-time module outside the ordinary
 `Umpire.Artifact` facade. It defines the inert version-one contract vocabulary and its canonical

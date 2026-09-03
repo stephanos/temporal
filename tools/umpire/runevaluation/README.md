@@ -12,8 +12,8 @@ use `KnownGapSet.ofUnordered` to normalize order before checking, but invalid id
 duplicates, and conflicting details still fail. Protocol and decoder paths instead use
 `KnownGapSet.checkCanonical`; an externally supplied list must already have canonical order and is
 never repaired. Once admitted, Lean semantic stages carry only checked sets, compose phase-owned
-gaps with `KnownGapSet.union`, and project rows with `KnownGapSet.toList` only when writing the wire
-response.
+gaps with `KnownGapSet.union`, and use `KnownGapSet.toList` only for a read-only projection at an
+explicit protocol or semantic-adapter boundary, including when writing the wire response.
 
 The Go controller cannot receive or trust that opaque in-memory value. Its `artifactv2` boundary
 independently validates every persisted raw Known Gap array, including identifiers, canonical order,
