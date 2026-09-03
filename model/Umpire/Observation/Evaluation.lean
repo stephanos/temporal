@@ -442,6 +442,12 @@ inductive StructuralFinding where
       (actual : Option Nat)
   | closureByteCountMissing (source : Option DefinitionId) (kind : DefinitionId)
   | missingRequiredKind (kind : DefinitionId)
+  | inconsistentOrderingSupport
+      (ruleId : DefinitionId)
+      (expected actual : List EvidenceOrderingFact)
+  | inconsistentClosureSupport
+      (ruleId : DefinitionId)
+      (expected actual : List EvidenceClosureFact)
   deriving BEq, DecidableEq, Repr
 
 structure ClosureExpectation where
@@ -452,11 +458,26 @@ structure ClosureExpectation where
   recordCount : Nat
   deriving BEq, DecidableEq, Repr
 
+structure StructuralLinkSupport where
+  ruleId : DefinitionId
+  evidenceIdentities : List DefinitionId
+  orderingSupport : List EvidenceOrderingFact
+  closureSupport : List EvidenceClosureFact
+  deriving BEq, DecidableEq, Repr
+
+structure NormalizedStructuralLinkSupport where
+  ruleId : DefinitionId
+  evidenceIdentities : List DefinitionId
+  facts : List EvidenceOrderingFact
+  closures : List EvidenceClosureFact
+  deriving BEq, DecidableEq, Repr
+
 structure StructuralAnalysis where
   facts : List EvidenceOrderingFact
   closures : List EvidenceClosureFact
   originMode : StructuralOriginMode
   closureExpectations : List ClosureExpectation
+  links : List NormalizedStructuralLinkSupport
   findings : List StructuralFinding
   deriving BEq, DecidableEq, Repr
 
@@ -657,12 +678,54 @@ private def sourceClosureFindings
       findings := findings ++ [.missingRequiredKind kind]
   pure findings
 
+private def normalizeLinkSupport
+    (originMode : StructuralOriginMode)
+    (sharedFacts : List EvidenceOrderingFact)
+    (sharedClosures : List EvidenceClosureFact)
+    (support : StructuralLinkSupport) :
+    NormalizedStructuralLinkSupport × List StructuralFinding :=
+  let facts := match originMode with
+    | .globalSequence => support.orderingSupport.mergeSort factByRecordLe
+    | .sourceSequence | .mixed => support.orderingSupport.mergeSort factBySequenceLe
+  let expectedFacts := match originMode with
+    | .globalSequence =>
+        (sharedFacts.filter fun fact => support.evidenceIdentities.contains fact.recordId).mergeSort
+          factByRecordLe
+    | .sourceSequence | .mixed => sharedFacts
+  let orderingConsistent := match originMode with
+    | .globalSequence =>
+        canonicalIds (facts.map EvidenceOrderingFact.recordId) ==
+            canonicalIds support.evidenceIdentities &&
+          facts.all fun fact => sharedFacts.contains fact
+    | .sourceSequence | .mixed => facts == expectedFacts
+  let closures := support.closureSupport.mergeSort closureLe
+  let findings :=
+    (if orderingConsistent then [] else
+      [.inconsistentOrderingSupport support.ruleId expectedFacts facts]) ++
+    (if closures == sharedClosures then [] else
+      [.inconsistentClosureSupport support.ruleId sharedClosures closures])
+  ({
+    ruleId := support.ruleId
+    evidenceIdentities := support.evidenceIdentities
+    facts
+    closures
+  }, findings)
+
 def analyzeStructure
-    (suppliedFacts : List EvidenceOrderingFact)
-    (suppliedClosures : List EvidenceClosureFact)
-    (requiredKinds : List DefinitionId := []) : StructuralAnalysis :=
+    (directFacts : List EvidenceOrderingFact)
+    (directClosures : List EvidenceClosureFact)
+    (requiredKinds : List DefinitionId := [])
+    (linkSupport : List StructuralLinkSupport := []) : StructuralAnalysis :=
+  let suppliedFacts := if linkSupport.isEmpty then directFacts
+    else linkSupport.flatMap StructuralLinkSupport.orderingSupport
+  let suppliedClosures := if linkSupport.isEmpty then directClosures
+    else linkSupport.flatMap StructuralLinkSupport.closureSupport
   let factsById := suppliedFacts.mergeSort factByRecordLe
   let (facts, identityFindings) := canonicalFacts factsById
+  let identityFindings := if linkSupport.isEmpty then identityFindings else
+    identityFindings.filter fun finding => match finding with
+      | .duplicateIdentity _ true => true
+      | _ => false
   let facts := facts.mergeSort factBySequenceLe
   let originMode := if facts.isEmpty then .globalSequence
     else if facts.all fun fact => fact.origin.isSome then .sourceSequence
@@ -674,17 +737,27 @@ def analyzeStructure
     | .mixed => [.mixedOrigins (facts.map EvidenceOrderingFact.recordId)]
   let sortedClosures := suppliedClosures.mergeSort closureLe
   let (closures, duplicateClosureFindings) := canonicalClosures sortedClosures
+  let duplicateClosureFindings := if linkSupport.isEmpty then duplicateClosureFindings else
+    duplicateClosureFindings.filter fun finding => match finding with
+      | .duplicateClosure _ _ true => true
+      | _ => false
   let closureExpectations := closureExpectations originMode facts
   let closureFindings := match originMode with
     | .globalSequence => globalClosureFindings requiredKinds closures closureExpectations
     | .sourceSequence => sourceClosureFindings requiredKinds closures closureExpectations
     | .mixed => []
+  let normalizedLinks := linkSupport.map fun support =>
+    normalizeLinkSupport originMode facts closures support
+  let links := normalizedLinks.map Prod.fst
+  let linkFindings := normalizedLinks.flatMap Prod.snd
   {
     facts
     closures
     originMode
     closureExpectations
-    findings := identityFindings ++ orderingFindings ++ duplicateClosureFindings ++ closureFindings
+    links
+    findings := identityFindings ++ orderingFindings ++ duplicateClosureFindings ++ closureFindings ++
+      linkFindings
   }
 
 end Observation.Internal
