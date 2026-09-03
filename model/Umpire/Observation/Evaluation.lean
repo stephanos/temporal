@@ -393,12 +393,6 @@ private def closureLe (left right : EvidenceClosureFact) : Bool :=
   | none, some _ => true
   | some _, none => false
 
-private def firstDuplicateClosure : List EvidenceClosureFact → Option EvidenceClosureFact
-  | first :: second :: rest =>
-      if first.source == second.source && first.kind == second.kind then some first
-      else firstDuplicateClosure (second :: rest)
-  | _ => none
-
 namespace Observation.Internal
 
 inductive StructuralOriginMode where
@@ -443,6 +437,11 @@ inductive StructuralFinding where
   | inconsistentClosureSupport
       (ruleId : DefinitionId)
       (expected actual : List EvidenceClosureFact)
+  | duplicateClosureSupport
+      (ruleId : DefinitionId)
+      (source : Option DefinitionId)
+      (kind : DefinitionId)
+      (conflicting : Bool)
   deriving BEq, DecidableEq, Repr
 
 structure ClosureExpectation where
@@ -694,10 +693,16 @@ private def normalizeLinkSupport
             canonicalIds support.evidenceIdentities &&
           facts.all fun fact => sharedFacts.contains fact
     | .sourceSequence | .mixed => facts == expectedFacts
-  let closures := support.closureSupport.mergeSort closureLe
+  let sortedClosures := support.closureSupport.mergeSort closureLe
+  let (closures, duplicateClosureFindings) := canonicalClosures sortedClosures
+  let duplicateClosureFindings := duplicateClosureFindings.filterMap fun finding => match finding with
+    | .duplicateClosure source kind conflicting =>
+        some (.duplicateClosureSupport support.ruleId source kind conflicting)
+    | _ => none
   let findings :=
     (if orderingConsistent then [] else
       [.inconsistentOrderingSupport support.ruleId expectedFacts facts]) ++
+    duplicateClosureFindings ++
     (if closures == sharedClosures then [] else
       [.inconsistentClosureSupport support.ruleId sharedClosures closures])
   ({
@@ -1731,14 +1736,12 @@ private def validateAcceptedClosures
     Observation.Internal.NormalizedStructuralLinkSupport.closures |>.getD []
   if firstClosures.isEmpty || !trace.sourceClosed then
     throw { kind := .missingClosureSupport, planId := trace.mappingId }
-  match firstDuplicateClosure firstClosures with
-  | some duplicate => throw {
-      kind := .missingClosureSupport
-      planId := trace.mappingId
-      relatedDefinitionIds := [duplicate.kind]
-    }
-  | none => pure ()
   match analysis.findings.findSome? fun finding => match finding with
+    | .duplicateClosureSupport ruleId _ _ _ => some {
+        kind := .missingClosureSupport
+        planId := trace.mappingId
+        relatedDefinitionIds := [ruleId]
+      }
     | .inconsistentClosureSupport ruleId _ _ => some {
         kind := .missingClosureSupport
         planId := trace.mappingId

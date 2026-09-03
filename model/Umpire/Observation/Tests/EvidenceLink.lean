@@ -345,6 +345,23 @@ example :
       some (.missingOrderSupport, [first.ruleId]) := by
   native_decide
 
+/-- Per-link duplicate closure support names its rule while cross-link copies remain valid. -/
+example :
+    let first := completeFirstEvidenceLink
+    let duplicate := first.closureSupport.head?.get (by native_decide)
+    let links := {
+      first with closureSupport := duplicate :: first.closureSupport
+    } :: completeUncheckedEvidenceBackedTrace.evidenceLinks.tail
+    let withinLink := validateEvidenceBackedTrace <| rehashEvidenceBackedTrace {
+      completeUncheckedEvidenceBackedTrace with evidenceLinks := links
+    }
+    (match withinLink with
+      | .ok _ => none
+      | .error failure => some (failure.kind, failure.relatedDefinitionIds),
+      (validateEvidenceBackedTrace completeUncheckedEvidenceBackedTrace).toOption.isSome) =
+      (some (.missingClosureSupport, [first.ruleId]), true) := by
+  native_decide
+
 example :
     let first := multiSourceTrace.evidenceLinks.head?.get (by native_decide)
     let links := { first with closureSupport := first.closureSupport.tail } ::
