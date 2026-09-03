@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-51-shorten-ordinary-model-authoring",
   "impl_review_rounds": {
-    "fn-51-shorten-ordinary-model-authoring.1": 0
+    "fn-51-shorten-ordinary-model-authoring.1": 0,
+    "fn-51-shorten-ordinary-model-authoring.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -166,10 +167,100 @@
       "timestamp": "2026-09-03T12:54:55.284068Z",
       "tool_calls": 7,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "af6cce7cdfe5bd010950c108f74a8555ce53b80c5872416b2db13c899e20f71f",
+      "backend": "codex",
+      "base_sha": "a6f2c847505671609f0b4af2c4f0abbfc2336331",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8ad1c23672b4a567effc5044314a14df",
+            "classification": "introduced",
+            "findingId": "finding-8ad1c23672b4a567effc5044314a14df",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "13c72d683fb49d6e1a6cf59a226f7df6b3e552ba",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 388289,
+      "output_sha256": "10ee9877cd9e6f85d8b5ffb33709065d428b7c71627883185333b8edde98bdb5",
+      "reservation_id": "4bd96313dabc4dda9538f847a48dcae5",
+      "round_consumed": true,
+      "scope": "impl:fn-51-shorten-ordinary-model-authoring.2",
+      "superseded_by": null,
+      "task": "fn-51-shorten-ordinary-model-authoring.2",
+      "timestamp": "2026-09-03T13:26:01.537591Z",
+      "tool_calls": 27,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ffcad0ed041228b3518689cabda8b34483dd4137ffc6fd63d932defa4d0d112f",
+      "backend": "codex",
+      "base_sha": "a6f2c847505671609f0b4af2c4f0abbfc2336331",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8ad1c23672b4a567effc5044314a14df",
+            "classification": "introduced",
+            "findingId": "finding-8ad1c23672b4a567effc5044314a14df",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "37c3f08119999be627816c52153f473216ec4255",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 643,
+      "output_sha256": "76d92c678d7665e0539991ce9203e0b4951a1407028aea214ff30b9d000ddf01",
+      "reservation_id": "4e509854768743cdad16993081f9508e",
+      "round_consumed": true,
+      "scope": "impl:fn-51-shorten-ordinary-model-authoring.2",
+      "superseded_by": null,
+      "task": "fn-51-shorten-ordinary-model-authoring.2",
+      "timestamp": "2026-09-03T13:27:51.653223Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-51-shorten-ordinary-model-authoring.1": 1,
+    "impl:fn-51-shorten-ordinary-model-authoring.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -177,6 +268,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-51-shorten-ordinary-model-authoring.1": 0,
+    "impl:fn-51-shorten-ordinary-model-authoring.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-51-shorten-ordinary-model-authoring.md",
@@ -193,5 +285,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T12:54:55.290982Z"
+  "updated_at": "2026-09-03T13:27:51.658476Z"
 }
