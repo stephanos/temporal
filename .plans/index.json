@@ -835,10 +835,7 @@
       "status": "open",
       "ready": false,
       "completionReview": "unknown",
-      "specDependencies": [
-        "fn-43-deepen-ordinary-property-behavior-and",
-        "fn-47-generate-umpire-semantic-outcome-and"
-      ]
+      "specDependencies": []
     },
     {
       "id": "fn-49-centralize-observation-field-and",
