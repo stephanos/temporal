@@ -10,6 +10,9 @@ open Umpire.Examples.Switch
 open Umpire.Artifact.Tests.Runtime
 open Umpire.Artifact.Tests.Evidence
 
+#check (EvidenceArtifact.knownGaps : EvidenceArtifact → KnownGapSet)
+#check (ResultArtifact.knownGaps : ResultArtifact → KnownGapSet)
+
 private def id (value : String) : DefinitionId := DefinitionId.of value
 
 private def fingerprint (value : String) : BehaviorFingerprint :=
@@ -129,7 +132,7 @@ private def evidenceDraft : EvidenceArtifact := {
     digestPolicyDefinitionId := none
   }]
   diagnostics := []
-  knownGaps := []
+  knownGaps := KnownGapSet.empty
   provenance := {
     sourceDefinitionIds := [id "switch.evidence.interpreted"]
     sourceLocations := [{
@@ -225,7 +228,7 @@ private def resultDraft : ResultArtifact := {
       unit := compiledArtifact.plan.expandedLimits.search.unit.name
     } }
   ]
-  knownGaps := []
+  knownGaps := KnownGapSet.empty
   cleanupStatus := experimentRun.cleanup.status.name
   evaluationOutcomeChecksum := none
   provenance := {

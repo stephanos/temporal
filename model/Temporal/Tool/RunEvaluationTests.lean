@@ -585,20 +585,39 @@ private def closedFailedRequest : Request := { request with
     historyFact 0 "temporal.history.WorkflowExecutionStarted", participantFact]
 }
 
-private def knownGapJson : Lean.Json := array [object [
+private def knownGapRow : Lean.Json := object [
   ("kind", text "input"), ("code", text "umpire.gap.fixture"),
   ("subject", text "temporal.gap.run-subject"), ("detail", text "run detail")
-]]
+]
+
+private def knownGapJson : Lean.Json := array [knownGapRow]
 
 private def rawKnownGapJson : Lean.Json := array [object [
   ("kind", text "claim"), ("code", text "umpire.gap.raw-fixture"),
   ("subject", text "temporal.gap.raw-subject"), ("detail", text "raw detail")
 ]]
 
+private def conflictingKnownGapJson : Lean.Json := array [object [
+  ("kind", text "input"), ("code", text "umpire.gap.fixture"),
+  ("subject", text "temporal.gap.run-subject"), ("detail", text "conflicting detail")
+]]
+
 private def gapRequest : Request := {
   request with
   runKnownGaps := knownGapJson
   rawEvidenceKnownGaps := rawKnownGapJson
+}
+
+private def duplicateGapRequest : Request := {
+  request with
+  runKnownGaps := knownGapJson
+  rawEvidenceKnownGaps := knownGapJson
+}
+
+private def conflictingGapRequest : Request := {
+  request with
+  runKnownGaps := knownGapJson
+  rawEvidenceKnownGaps := conflictingKnownGapJson
 }
 
 private def rejectedField (candidate : Request) : Option String :=
@@ -609,6 +628,8 @@ private def rejectedField (candidate : Request) : Option String :=
 private def extraFieldResponse := responseOf extraFieldRequest
 private def crossedTypeResponse := responseOf crossedTypeRequest
 private def gapResponse := responseOf gapRequest
+private def duplicateGapResponse? :=
+  (Temporal.Tool.RunEvaluation.evaluateRequest duplicateGapRequest).toOption
 private def notAttemptedResponse? :=
   (Temporal.Tool.RunEvaluation.evaluateRequest notAttemptedRequest).toOption
 private def closedFailedResponse? :=
@@ -668,6 +689,22 @@ example : incompleteProjection crossedTypeResponse && incompleteProjection confl
 /-! Upstream Known Gaps force unknown semantics without a Property verdict or outcome checksum. -/
 example : gapResponse.observationEvaluationStatus = "unknown" &&
     incompleteProjection gapResponse && !jsonArrayEmpty gapResponse.resultKnownGaps := by native_decide
+
+/-! Exact cross-phase Known Gap overlap collapses before Observation and Result projection. -/
+example : duplicateGapResponse?.any fun candidate =>
+    candidate.resultKnownGaps == array [
+      knownGapRow,
+      object [
+        ("kind", text "interpretation"),
+        ("code", text "umpire.observation.known-gap"),
+        ("subject", text "temporal.system.nexus.caller-closure.mapping"),
+        ("detail", .null)
+      ]
+    ] := by
+  native_decide
+
+/-! Conflicting cross-phase Known Gaps fail before any partial Result can be projected. -/
+example : rejectedField conflictingGapRequest = some "knownGaps" := by native_decide
 
 /-! Observation admission is lossy while Result aggregation carries every Known Gap field exactly. -/
 example : gapResponse.diagnostics == array [object [
