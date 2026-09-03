@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-03T19:24:40.520245Z",
+  "depends_on": [
+    "fn-56-split-lean-api-generator-planning-from.1"
+  ],
+  "id": "fn-56-split-lean-api-generator-planning-from.2",
+  "priority": null,
+  "spec": "fn-56-split-lean-api-generator-planning-from",
+  "spec_path": ".flow/tasks/fn-56-split-lean-api-generator-planning-from.2.md",
+  "status": "todo",
+  "title": "Make rendering a pure validated-plan consumer",
+  "updated_at": "2026-09-03T19:24:40.520245Z"
+}

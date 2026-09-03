@@ -1,0 +1,131 @@
+{
+  "branch_name": "fn-57-partition-the-observation-authoring",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-03T19:12:31.337248Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-57-partition-the-observation-authoring",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-03T19:36:14.183848Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "dbcca7b6e112f5122a8f664a4bf09d17145719ea3ad2409b0308248a3064b021",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ddaa05ddd20ea9e092311397401d4fdc",
+            "classification": "introduced",
+            "findingId": "finding-ddaa05ddd20ea9e092311397401d4fdc",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b00d2903af6c0189ac5d5a16e5c756b02b64fa7c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 765448,
+      "output_sha256": "9f20ef09ee560784bc210dadf320bf69dc6410739bfda48f2096309ec0e38b8a",
+      "reservation_id": "d6878125d89a4126a9a5ff38074ccebf",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T19:34:39.830288Z",
+      "tool_calls": 48,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6ef84c24ab1a51118ecb4d92819494e72d676f05ab2b2f433f6b86b364fb5f6a",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-ddaa05ddd20ea9e092311397401d4fdc",
+            "classification": "introduced",
+            "findingId": "finding-ddaa05ddd20ea9e092311397401d4fdc",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "b00d2903af6c0189ac5d5a16e5c756b02b64fa7c",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 251,
+      "output_sha256": "24c1c54c53dc05c61ecfb82cea427f7763d619c22f9d8f751615a7a8394f4eaa",
+      "reservation_id": "7ee824f23b7a4fe2ba366c6fe471f5eb",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T19:36:14.179056Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 2,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-57-partition-the-observation-authoring.md",
+  "status": "open",
+  "title": "Partition the Observation authoring language",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-03T19:36:14.184556Z"
+}

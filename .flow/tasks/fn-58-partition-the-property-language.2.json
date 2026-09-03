@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-03T19:30:03.047445Z",
+  "depends_on": [
+    "fn-58-partition-the-property-language.1"
+  ],
+  "id": "fn-58-partition-the-property-language.2",
+  "priority": null,
+  "spec": "fn-58-partition-the-property-language",
+  "spec_path": ".flow/tasks/fn-58-partition-the-property-language.2.md",
+  "status": "todo",
+  "title": "Extract typed Property checking and narrow Language",
+  "updated_at": "2026-09-03T19:30:03.047445Z"
+}
