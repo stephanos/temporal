@@ -21,15 +21,6 @@ def operationRole : ResourceRole := { id := operationRoleId, valueKind := .state
 
 namespace Internal
 
-def operationIs
-    (constraintId : DefinitionId)
-    (state : ModelValue) : SetupConstraint := {
-  id := constraintId
-  relation := .equal
-  left := .role operationRoleId
-  right := .value state
-}
-
 def checkBehaviorDeclaration
     (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior :=
   checkBehavior (.ofTarget target) declaration

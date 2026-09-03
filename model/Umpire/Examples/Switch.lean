@@ -561,20 +561,20 @@ private theorem exactActionQueryResult_isSome :
 private theorem exactTraceQueryResult_isSome :
     exactTraceQueryResult.toOption.isSome = true := by native_decide
 
-private def materializeQuery (checked : CheckedQuery LawStatement) : CheckedQuery LawStatement := {
-  checked with
-  target
-  completeness := (CheckedQueryTarget.ofTarget target).completeness
-}
+def exploratoryQuery : CheckedQuery LawStatement :=
+  checkedQuery target
+    (queryDeclaration exploratoryQueryId (.select [flipProperty]) exploratoryBehavior)
+    exploratoryQueryResult_isSome
 
-def exploratoryQuery : CheckedQuery LawStatement := materializeQuery
-  (exploratoryQueryResult.toOption.get exploratoryQueryResult_isSome)
+def exactActionQuery : CheckedQuery LawStatement :=
+  checkedQuery target
+    (queryDeclaration exactActionQueryId (.witness flipProperty) exactActionBehavior)
+    exactActionQueryResult_isSome
 
-def exactActionQuery : CheckedQuery LawStatement := materializeQuery
-  (exactActionQueryResult.toOption.get exactActionQueryResult_isSome)
-
-def exactTraceQuery : CheckedQuery LawStatement := materializeQuery
-  (exactTraceQueryResult.toOption.get exactTraceQueryResult_isSome)
+def exactTraceQuery : CheckedQuery LawStatement :=
+  checkedQuery target
+    (queryDeclaration exactTraceQueryId (.witness flipProperty) exactTraceBehavior)
+    exactTraceQueryResult_isSome
 
 theorem stepResults_length_le_two (state action : ModelValue) :
     (stepResults state action).length ≤ 2 := by
@@ -593,13 +593,13 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
   IncrementalPlannerKernel.ofCheckedQuery? exactActionQuery
     (by
       intro evidence evidenceEq
-      simp [exactActionQuery, materializeQuery, CheckedQueryTarget.ofTarget, target,
+      simp [exactActionQuery, checkedQuery, CheckedQueryTarget.ofTarget, target,
         checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition] at evidenceEq
       cases Option.some.inj evidenceEq
       simp [finitePlanning])
     (by
       intro _ _ setup
-      simp only [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+      simp only [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
         AuthoredTarget.make, targetDefinition,
         transitionKernel, initialStates]
       split <;> simp)
@@ -609,19 +609,19 @@ private def incrementalKernel? : Option (IncrementalPlannerKernel exactActionQue
       · subst action
         by_cases selectedOff : state = offState
         · subst state
-          simpa [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+          simpa [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
             AuthoredTarget.make, targetDefinition,
             transitionKernel, stepResults] using appliedResult_ordered
         · by_cases selectedOn : state = onState
           · subst state
-            simpa [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+            simpa [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
               AuthoredTarget.make, targetDefinition,
               transitionKernel, stepResults, onState_ne_offState] using
               appliedFromOnResult_ordered
-          · simp [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+          · simp [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
               AuthoredTarget.make, targetDefinition,
               transitionKernel, stepResults, selectedOff, selectedOn]
-      · simp [exactActionQuery, materializeQuery, target, checkedTarget, targetAuthoring,
+      · simp [exactActionQuery, checkedQuery, target, checkedTarget, targetAuthoring,
           AuthoredTarget.make, targetDefinition,
           transitionKernel, stepResults, selectedAction])
 

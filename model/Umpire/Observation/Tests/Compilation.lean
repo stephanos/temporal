@@ -7,6 +7,18 @@ namespace Umpire.ObservationTests
 
 open Umpire
 
+def checkedBasePlan : CheckedObservationPlan :=
+  checkedObservation context baseDeclaration (by native_decide)
+
+/-- Checked Observation authoring returns the typed checker's complete canonical plan. -/
+example : checkedBasePlan =
+    (checkObservation context baseDeclaration).toOption.get (by native_decide) := by
+  native_decide
+
+#guard_msgs (error, substring := true) in
+def observationWithoutValidityProof : CheckedObservationPlan :=
+  checkedObservation context baseDeclaration
+
 def reorderedInitialRule : ObservationRule := {
   initialRule with
   condition := some (.portable (.and

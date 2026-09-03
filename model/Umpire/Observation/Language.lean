@@ -180,9 +180,6 @@ private def meaningKeyLe
   decide (left.1.value < right.1.value) ||
     (left.1 == right.1 && decide (left.2.name ≤ right.2.name))
 
-private def canonicalProviderIds (ids : List DefinitionId) : List DefinitionId :=
-  ids.mergeSort (fun left right => decide (left.value ≤ right.value)) |>.eraseDups
-
 private def resolvedTargetMeanings
     (target : CheckedTarget LawStatement Setup State Action Outcome Observation) :
     List MeaningProvision :=
@@ -202,10 +199,11 @@ private def resolvedTargetMeanings
             item.meaning.canonicalBehavior == first.meaning.canonicalBehavior then
           [first.meaning]
         else
-          let providers := canonicalProviderIds (candidates.map ProvidedObservationMeaning.provider)
+          let providers := DefinitionId.canonicalSet
+            (candidates.map ProvidedObservationMeaning.provider)
           match reconciliations.find? fun reconciliation =>
               reconciliation.definitionId == key.1 && reconciliation.kind == key.2 &&
-                canonicalProviderIds reconciliation.providers == providers with
+                DefinitionId.canonicalSet reconciliation.providers == providers with
           | some reconciliation => [{
               definitionId := reconciliation.definitionId
               kind := reconciliation.kind
@@ -446,15 +444,9 @@ private def meaningLe (left right : MeaningProvision) : Bool :=
   decide (left.definitionId.value < right.definitionId.value) ||
     (left.definitionId == right.definitionId && decide (left.kind.name ≤ right.kind.name))
 
-private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
-  ids.mergeSort idLe |>.eraseDups
-
 private def canonicalFieldRefs
     (references : List EvidenceFieldReference) : List EvidenceFieldReference :=
   references.mergeSort fieldRefLe |>.eraseDups
-
-private def sourcePath (source : SourceLocation) : String :=
-  if source.path == "" then "<unknown>" else source.path
 
 private def sourceJson (source : SourceLocation) : String :=
   "{\"path\":" ++ quote source.path ++
@@ -472,15 +464,10 @@ private def error
     DefinitionId.of "umpire.observation.anonymous"
   else
     declaration.id
-  sourcePath := sourcePath declaration.source
+  sourcePath := declaration.source.displayPath
   offendingValue
-  relatedDefinitionIds := canonicalIds relatedDefinitionIds
+  relatedDefinitionIds := DefinitionId.canonicalSet relatedDefinitionIds
 }
-
-private def firstDuplicateId : List DefinitionId → Option DefinitionId
-  | first :: second :: rest =>
-      if first == second then some first else firstDuplicateId (second :: rest)
-  | _ => none
 
 private def firstDuplicateFieldRef : List EvidenceFieldReference → Option EvidenceFieldReference
   | first :: second :: rest =>
@@ -495,17 +482,17 @@ private def firstDuplicateOrder : List ObservationOrdering → Option Observatio
 private def requireDefinitionId
     (declaration : ObservationMappingDeclaration)
     (definitionId : DefinitionId) : Except ObservationError Unit :=
-  if definitionId.value == "" then
-    throw (error .emptyDefinitionId declaration "<empty>" [definitionId])
-  else if !definitionId.isNamespaced then
-    throw (error .invalidDefinitionId declaration definitionId.value [definitionId])
-  else
-    pure ()
+  match definitionId.validate with
+  | .error .empty =>
+      throw (error .emptyDefinitionId declaration "<empty>" [definitionId])
+  | .error .malformed =>
+      throw (error .invalidDefinitionId declaration definitionId.value [definitionId])
+  | .ok () => pure ()
 
 private def requireUniqueIds
     (declaration : ObservationMappingDeclaration)
     (ids : List DefinitionId) : Except ObservationError Unit :=
-  match firstDuplicateId (ids.mergeSort idLe) with
+  match DefinitionId.firstDuplicate ids with
   | some duplicate => throw (error .duplicateDefinitionId declaration duplicate.value [duplicate])
   | none => pure ()
 
@@ -675,7 +662,8 @@ def canonicalObservationErrorJson (observationError : ObservationError) : String
     ",\"sourcePath\":" ++ quote observationError.sourcePath ++
     ",\"offendingValue\":" ++ quote observationError.offendingValue ++
     ",\"relatedDefinitionIds\":" ++
-      array (canonicalIds observationError.relatedDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++
+      array (DefinitionId.canonicalSet observationError.relatedDefinitionIds |>.map
+        (quote ∘ DefinitionId.value)) ++
     "}"
 
 private def validateProfiles
@@ -896,7 +884,8 @@ private def validateBindingReferences
     (declaration : ObservationMappingDeclaration) : Except ObservationError Unit := do
   let bindingIds := declaration.bindings.map ObservationBinding.id
   for binding in declaration.bindings do
-    for dependency in canonicalIds (authoredExpressionBindingReferences binding.expression) do
+    for dependency in DefinitionId.canonicalSet
+        (authoredExpressionBindingReferences binding.expression) do
       if !bindingIds.contains dependency then
         throw (error .incompatibleBinding declaration dependency.value [binding.id, dependency])
 
@@ -949,7 +938,7 @@ private def compileRules
     (declaration : ObservationMappingDeclaration)
     (profile : EvidenceProfileDeclaration)
     (bindings : List CheckedObservationBinding) : Except ObservationError (List CheckedObservationRule) := do
-  match firstDuplicateId (declaration.rules.map ObservationRule.output |>.mergeSort idLe) with
+  match DefinitionId.firstDuplicate (declaration.rules.map ObservationRule.output) with
   | some duplicate => throw (error .overlappingOutputs declaration duplicate.value [duplicate])
   | none => pure ()
   let mut checked := []
@@ -1021,7 +1010,7 @@ private def validateClosures
     (declaration : ObservationMappingDeclaration)
     (profile : EvidenceProfileDeclaration) : Except ObservationError (List EvidenceClosureDeclaration) := do
   let kinds := declaration.closures.map EvidenceClosureDeclaration.kind
-  match firstDuplicateId (kinds.mergeSort idLe) with
+  match DefinitionId.firstDuplicate kinds with
   | some duplicate => throw (error .duplicateClosure declaration duplicate.value [duplicate])
   | none => pure ()
   for closure in declaration.closures do
@@ -1075,5 +1064,14 @@ def checkObservation
     behaviorFingerprint := behaviorFingerprintOf semantic
   }
   pure { checked with canonicalMetadata := canonicalObservationPlanJson checked }
+
+/-- Produce a checked Observation plan directly from an explicit proof that the typed checker
+succeeds. Use `checkObservation` when an invalid mapping's typed diagnostic is needed. -/
+def checkedObservation
+    (context : ObservationCheckContext)
+    (declaration : ObservationMappingDeclaration)
+    (valid : (checkObservation context declaration).toOption.isSome = true) :
+    CheckedObservationPlan :=
+  (checkObservation context declaration).toOption.get valid
 
 end Umpire
