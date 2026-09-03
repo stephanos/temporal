@@ -34,7 +34,7 @@ def selectedArtifactIsInspectable : Bool :=
       spec.plan.expandedLimits == limits &&
       spec.plan.selectionReason == .satisfyingWitness &&
       spec.plan.checkpoints.length == 1 &&
-      spec.plan.knownGaps == canonicalPlannerKnownGaps &&
+      spec.plan.knownGaps.toList == canonicalPlannerKnownGaps.toList &&
       spec.properties.map PortableProperty.definitionId == [property.id]
 
 /-! A selected trace is compiled into an inspectable plan that separates requests from outcomes. -/
@@ -86,6 +86,9 @@ private theorem witnessSpec_isSome : witnessSpec.isSome = true := by
 
 private def checksumSpec : ExperimentSpec :=
   witnessSpec.get witnessSpec_isSome
+
+/-! Planning Artifacts expose only checked Known Gaps. -/
+#check (DrivePlan.knownGaps : DrivePlan → KnownGapSet)
 
 private def optionalKnownGap (subject : Option DefinitionId) (detail : Option String) : KnownGap := {
   kind := .input
@@ -179,7 +182,7 @@ private def drivePlanContentMutations (plan : DrivePlan) : List DrivePlan := [
   { plan with checkpoints := [] },
   { plan with selectionReason := .behaviorSelection },
   { plan with explored := { plan.explored with transitions := plan.explored.transitions + 1 } },
-  { plan with knownGaps := [] },
+  { plan with knownGaps := KnownGapSet.empty },
   { plan with provenance := { plan.provenance with sourceDefinitionIds := [] } },
   { plan with provenance := { plan.provenance with sourceLocations := [] } }
 ]
@@ -189,19 +192,25 @@ private def firstPlannerKnownGap : KnownGap := {
   code := id "umpire.known-gap.execution-evidence"
 }
 
+private def checkedKnownGaps (gaps : List KnownGap) : KnownGapSet :=
+  (KnownGapSet.ofUnordered gaps).toOption.getD KnownGapSet.empty
+
 private def remainingPlannerKnownGaps : List KnownGap :=
-  canonicalPlannerKnownGaps.drop 1
+  canonicalPlannerKnownGaps.toList.drop 1
 
 private def knownGapRowMutations (plan : DrivePlan) : List DrivePlan := [
-  { plan with knownGaps :=
-      { firstPlannerKnownGap with kind := .capabilityContract } :: remainingPlannerKnownGaps },
-  { plan with knownGaps :=
-      { firstPlannerKnownGap with code := id "umpire.known-gap.changed" } ::
-        remainingPlannerKnownGaps },
-  { plan with knownGaps :=
-      { firstPlannerKnownGap with subject := some mutationId } :: remainingPlannerKnownGaps },
-  { plan with knownGaps :=
-      { firstPlannerKnownGap with detail := some "changed" } :: remainingPlannerKnownGaps }
+  { plan with knownGaps := (checkedKnownGaps
+      (({ firstPlannerKnownGap with kind := .capabilityContract } : KnownGap) ::
+        remainingPlannerKnownGaps)) },
+  { plan with knownGaps := (checkedKnownGaps
+      (({ firstPlannerKnownGap with code := id "umpire.known-gap.changed" } : KnownGap) ::
+        remainingPlannerKnownGaps)) },
+  { plan with knownGaps := (checkedKnownGaps
+      (({ firstPlannerKnownGap with subject := some mutationId } : KnownGap) ::
+        remainingPlannerKnownGaps)) },
+  { plan with knownGaps := (checkedKnownGaps
+      (({ firstPlannerKnownGap with detail := some "changed" } : KnownGap) ::
+        remainingPlannerKnownGaps)) }
 ]
 
 private def experimentSpecContentMutations (spec : ExperimentSpec) : List ExperimentSpec := [

@@ -63,7 +63,7 @@ structure DrivePlan where
   checkpoints : List ObservationCheckpoint
   selectionReason : SelectionReason
   explored : ExploredCounts
-  knownGaps : List KnownGap
+  knownGaps : KnownGapSet
   provenance : ArtifactProvenance
   deriving BEq, DecidableEq, Repr
 
@@ -159,15 +159,16 @@ def plannerRuntimeTransportOrderKnownGap : KnownGap :=
 def plannerPromotionKnownGap : KnownGap :=
   { kind := .claim, code := DefinitionId.of "umpire.known-gap.promotion" }
 
-def canonicalPlannerKnownGaps : List KnownGap := [
-  plannerExecutionEvidenceKnownGap,
-  plannerArtifactMigrationsKnownGap,
-  plannerArtifactReadingKnownGap,
-  plannerEvidenceEvaluationKnownGap,
-  plannerRuntimeSchedulerOrderKnownGap,
-  plannerRuntimeStorageOrderKnownGap,
-  plannerRuntimeTransportOrderKnownGap,
-  plannerPromotionKnownGap
-]
+def canonicalPlannerKnownGaps : KnownGapSet :=
+  (KnownGapSet.ofUnordered [
+    plannerExecutionEvidenceKnownGap,
+    plannerArtifactMigrationsKnownGap,
+    plannerArtifactReadingKnownGap,
+    plannerEvidenceEvaluationKnownGap,
+    plannerRuntimeSchedulerOrderKnownGap,
+    plannerRuntimeStorageOrderKnownGap,
+    plannerRuntimeTransportOrderKnownGap,
+    plannerPromotionKnownGap
+  ]).toOption.getD KnownGapSet.empty
 
 end Umpire
