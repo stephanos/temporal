@@ -1,4 +1,5 @@
 import Umpire.Query
+import Umpire.Json
 
 /-! Result metadata shared by artifact construction and the Planning implementation. -/
 
@@ -104,13 +105,18 @@ def validateKnownGaps (gaps : List KnownGap) : Except KnownGapError Unit := do
   | some problem => throw problem
   | none => pure ()
 
-private def quote (value : String) : String := Lean.Json.compress (.str value)
+/-- Construct the owner-defined Known Gap fields as an ordered typed JSON value. -/
+def KnownGap.canonicalJsonValue (gap : KnownGap) : CanonicalJson :=
+  .object [
+    ("kind", .string gap.kind.name),
+    ("code", .string gap.code.value),
+    ("subject", CanonicalJson.ofOption (fun subject => .string subject.value) gap.subject),
+    ("detail", CanonicalJson.ofOption CanonicalJson.string gap.detail)
+  ]
 
+/-- Render one Known Gap with its stable field order and explicit null optionals. -/
 def canonicalKnownGapJson (gap : KnownGap) : String :=
-  "{\"kind\":" ++ quote gap.kind.name ++
-    ",\"code\":" ++ quote gap.code.value ++
-    ",\"subject\":" ++ (gap.subject.map (quote ∘ DefinitionId.value) |>.getD "null") ++
-    ",\"detail\":" ++ (gap.detail.map quote |>.getD "null") ++ "}"
+  gap.canonicalJsonValue.compact
 
 structure ExploredCounts where
   setups : Nat := 0

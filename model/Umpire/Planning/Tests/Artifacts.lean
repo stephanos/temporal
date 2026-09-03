@@ -87,6 +87,49 @@ private theorem witnessSpec_isSome : witnessSpec.isSome = true := by
 private def checksumSpec : ExperimentSpec :=
   witnessSpec.get witnessSpec_isSome
 
+private def optionalKnownGap (subject : Option DefinitionId) (detail : Option String) : KnownGap := {
+  kind := .input
+  code := id "planner.known-gap.optional"
+  subject
+  detail
+}
+
+/-! Known Gap subject and detail preserve independent absent and present encodings. -/
+example : [
+    canonicalKnownGapJson (optionalKnownGap none none),
+    canonicalKnownGapJson (optionalKnownGap (some targetId) none),
+    canonicalKnownGapJson (optionalKnownGap none (some "line\n\"quoted\"")),
+    canonicalKnownGapJson (optionalKnownGap (some targetId) (some "complete"))
+  ] = [
+    "{\"kind\":\"input\",\"code\":\"planner.known-gap.optional\"," ++
+      "\"subject\":null,\"detail\":null}",
+    "{\"kind\":\"input\",\"code\":\"planner.known-gap.optional\"," ++
+      "\"subject\":\"planner.target.fixture\",\"detail\":null}",
+    "{\"kind\":\"input\",\"code\":\"planner.known-gap.optional\"," ++
+      "\"subject\":null,\"detail\":\"line\\n\\\"quoted\\\"\"}",
+    "{\"kind\":\"input\",\"code\":\"planner.known-gap.optional\"," ++
+      "\"subject\":\"planner.target.fixture\",\"detail\":\"complete\"}"
+  ] := by
+  native_decide
+
+private def authoredDefinitionIdLine (plan : DrivePlan) : Option String :=
+  (canonicalDrivePlanJson plan).splitOn "\n" |>.find? fun line =>
+    line.contains "\"authoredDefinitionId\""
+
+/-! Planned occurrences preserve exact absent and present authored Definition ID fields. -/
+example :
+    let present := checksumSpec.plan
+    let absent := {
+      present with
+      linearExtension := present.linearExtension.map fun occurrence =>
+        { occurrence with authoredDefinitionId := none }
+    }
+    [authoredDefinitionIdLine present, authoredDefinitionIdLine absent] = [
+      some "      \"authoredDefinitionId\": \"planner.occurrence.request\"",
+      some "      \"authoredDefinitionId\": null"
+    ] ∧ absent.expectedArtifactChecksum != present.artifactChecksum := by
+  native_decide
+
 private def mutationId : DefinitionId :=
   id "planner.mutation.value"
 

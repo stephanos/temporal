@@ -1,6 +1,45 @@
 import Lean.Data.Json
 
-namespace Umpire.Json
+namespace Umpire
+
+/-!
+Ordered canonical JSON construction and rendering.
+
+`CanonicalJson` represents only JSON that can be rendered without parsing or validation. Objects
+retain their caller-supplied field order, and string values and field names use Lean's JSON escaping.
+The compatibility formatters remain available in `Umpire.Json` for callers that already own compact
+canonical JSON strings.
+-/
+
+/-- A typed JSON value whose object fields retain their supplied order. -/
+inductive CanonicalJson where
+  | null
+  | string (value : String)
+  | natural (value : Nat)
+  | array (items : List CanonicalJson)
+  | object (fields : List (String × CanonicalJson))
+
+namespace CanonicalJson
+
+/-- Encode an optional value with JSON null when it is absent. -/
+def ofOption (encode : α → CanonicalJson) : Option α → CanonicalJson
+  | some value => encode value
+  | none => .null
+
+/-- Render a typed JSON value compactly while preserving object field order. -/
+partial def compact : CanonicalJson → String
+  | .null => "null"
+  | .string value => Lean.Json.compress (.str value)
+  | .natural value => toString value
+  | .array items =>
+      "[" ++ String.intercalate "," (items.map compact) ++ "]"
+  | .object fields =>
+      "{" ++ String.intercalate "," (fields.map fun (name, value) =>
+        Lean.Json.compress (.str name) ++ ":" ++ compact value) ++ "}"
+
+end CanonicalJson
+
+namespace Json
 
 private def indentation (depth : Nat) : String :=
   String.ofList (List.replicate (depth * 2) ' ')
@@ -74,4 +113,18 @@ def semanticallyEqual (left right : String) : Bool :=
   | .ok left, .ok right => left == right
   | _, _ => false
 
-end Umpire.Json
+end Json
+
+namespace CanonicalJson
+
+/-- Render a typed JSON value with stable two-space indentation. -/
+def pretty (value : CanonicalJson) : String :=
+  Json.pretty value.compact
+
+/-- Render a typed JSON value as stable pretty bytes with exactly one terminal LF. -/
+def prettyBytes (value : CanonicalJson) : String :=
+  Json.prettyBytes value.compact
+
+end CanonicalJson
+
+end Umpire

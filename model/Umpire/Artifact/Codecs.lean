@@ -1,18 +1,9 @@
-import Lean.Data.Json
 import Umpire.Artifact.Types
 import Umpire.Json
 
 namespace Umpire
 
 /-! Canonical v2 bytes and Artifact Checksum derivation for the retained planning Artifacts. -/
-
-private def quote (value : String) : String := Lean.Json.compress (.str value)
-
-private def array (items : List String) : String :=
-  "[" ++ String.intercalate "," items ++ "]"
-
-private def idLe (left right : DefinitionId) : Bool :=
-  decide (left.value ≤ right.value)
 
 private def valueLe (left right : ModelValue) : Bool :=
   decide (left.definitionId.value < right.definitionId.value) ||
@@ -32,152 +23,196 @@ private def sourceLe (left right : SourceLocation) : Bool :=
 private def propertyLe (left right : PortableProperty) : Bool :=
   decide (left.definitionId.value ≤ right.definitionId.value)
 
-private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
-  ids.mergeSort idLe |>.eraseDups
+private def valueJson (value : ModelValue) : CanonicalJson :=
+  .object [
+    ("definitionId", .string value.definitionId.value),
+    ("value", .string value.value)
+  ]
 
-private def valueJson (value : ModelValue) : String :=
-  "{\"definitionId\":" ++ quote value.definitionId.value ++
-    ",\"value\":" ++ quote value.value ++ "}"
+private def roleJson (role : ResourceRole) : CanonicalJson :=
+  .object [
+    ("definitionId", .string role.id.value),
+    ("valueKind", .string role.valueKind.name)
+  ]
 
-private def roleJson (role : ResourceRole) : String :=
-  "{\"definitionId\":" ++ quote role.id.value ++
-    ",\"valueKind\":" ++ quote role.valueKind.name ++ "}"
+private def bindingJson (binding : RoleBinding) : CanonicalJson :=
+  .object [
+    ("roleDefinitionId", .string binding.role.value),
+    ("value", valueJson binding.value)
+  ]
 
-private def bindingJson (binding : RoleBinding) : String :=
-  "{\"roleDefinitionId\":" ++ quote binding.role.value ++
-    ",\"value\":" ++ valueJson binding.value ++ "}"
-
-private def operandJson : SetupOperand → String
+private def operandJson : SetupOperand → CanonicalJson
   | .role identity =>
-      "{\"kind\":\"role\",\"definitionId\":" ++ quote identity.value ++ "}"
+      .object [
+        ("kind", .string "role"),
+        ("definitionId", .string identity.value)
+      ]
   | .value value =>
-      "{\"kind\":\"value\",\"value\":" ++ valueJson value ++ "}"
+      .object [
+        ("kind", .string "value"),
+        ("value", valueJson value)
+      ]
 
-private def preconditionJson (constraint : SetupConstraint) : String :=
-  "{\"definitionId\":" ++ quote constraint.id.value ++
-    ",\"relation\":" ++ quote constraint.relation.name ++
-    ",\"left\":" ++ operandJson constraint.left ++
-    ",\"right\":" ++ operandJson constraint.right ++ "}"
+private def preconditionJson (constraint : SetupConstraint) : CanonicalJson :=
+  .object [
+    ("definitionId", .string constraint.id.value),
+    ("relation", .string constraint.relation.name),
+    ("left", operandJson constraint.left),
+    ("right", operandJson constraint.right)
+  ]
 
-private def limitJson (bound : Limit) : String :=
-  "{\"value\":" ++ toString bound.value ++
-    ",\"unit\":" ++ quote bound.unit.name ++ "}"
+private def limitJson (bound : Limit) : CanonicalJson :=
+  .object [
+    ("value", .natural bound.value),
+    ("unit", .string bound.unit.name)
+  ]
 
-private def limitsJson (limits : QueryLimits) : String :=
-  "{\"behavior\":{\"transitions\":" ++ limitJson limits.behavior.transitions ++
-    ",\"selectedActions\":" ++ limitJson limits.behavior.selectedActions ++ "}" ++
-    ",\"search\":{\"value\":" ++ toString limits.search.value ++
-    ",\"unit\":" ++ quote limits.search.unit.name ++ "}}"
+private def limitsJson (limits : QueryLimits) : CanonicalJson :=
+  .object [
+    ("behavior", .object [
+      ("transitions", limitJson limits.behavior.transitions),
+      ("selectedActions", limitJson limits.behavior.selectedActions)
+    ]),
+    ("search", .object [
+      ("value", .natural limits.search.value),
+      ("unit", .string limits.search.unit.name)
+    ])
+  ]
 
-private def exploredJson (explored : ExploredCounts) : String :=
-  "{\"setups\":" ++ toString explored.setups ++
-    ",\"traces\":" ++ toString explored.traces ++
-    ",\"transitions\":" ++ toString explored.transitions ++
-    ",\"propertyEvaluations\":" ++ toString explored.propertyEvaluations ++ "}"
+private def exploredJson (explored : ExploredCounts) : CanonicalJson :=
+  .object [
+    ("setups", .natural explored.setups),
+    ("traces", .natural explored.traces),
+    ("transitions", .natural explored.transitions),
+    ("propertyEvaluations", .natural explored.propertyEvaluations)
+  ]
 
-private def checkpointJson (checkpoint : ObservationCheckpoint) : String :=
-  "{\"transition\":" ++ toString checkpoint.transition ++
-    ",\"observations\":" ++ array (checkpoint.observations.map valueJson) ++ "}"
+private def checkpointJson (checkpoint : ObservationCheckpoint) : CanonicalJson :=
+  .object [
+    ("transition", .natural checkpoint.transition),
+    ("observations", .array (checkpoint.observations.map valueJson))
+  ]
 
-private def plannedOccurrenceJson (occurrence : PlannedOccurrence) : String :=
-  "{\"definitionId\":" ++ quote occurrence.definitionId.value ++
-    ",\"actionDefinitionId\":" ++ quote occurrence.actionDefinitionId.value ++
-    ",\"position\":" ++ toString occurrence.position ++
-    ",\"authoredDefinitionId\":" ++
-      (occurrence.authoredDefinitionId.map (quote ∘ DefinitionId.value) |>.getD "null") ++ "}"
+private def plannedOccurrenceJson (occurrence : PlannedOccurrence) : CanonicalJson :=
+  .object [
+    ("definitionId", .string occurrence.definitionId.value),
+    ("actionDefinitionId", .string occurrence.actionDefinitionId.value),
+    ("position", .natural occurrence.position),
+    ("authoredDefinitionId", CanonicalJson.ofOption
+      (fun authoredDefinitionId => .string authoredDefinitionId.value)
+      occurrence.authoredDefinitionId)
+  ]
 
-private def sourceJson (source : SourceLocation) : String :=
-  "{\"path\":" ++ quote source.path ++
-    ",\"line\":" ++ toString source.line ++
-    ",\"column\":" ++ toString source.column ++
-    ",\"provenance\":" ++ quote source.provenance ++ "}"
+private def sourceJson (source : SourceLocation) : CanonicalJson :=
+  .object [
+    ("path", .string source.path),
+    ("line", .natural source.line),
+    ("column", .natural source.column),
+    ("provenance", .string source.provenance)
+  ]
+
+private def artifactProvenanceJson (provenance : ArtifactProvenance) : CanonicalJson :=
+  .object [
+    ("sourceDefinitionIds", .array (DefinitionId.canonicalSet provenance.sourceDefinitionIds |>.map
+      fun definitionId => .string definitionId.value)),
+    ("sourceLocations", .array
+      (provenance.sourceLocations.mergeSort sourceLe |>.eraseDups |>.map sourceJson))
+  ]
 
 /-- Encode one ArtifactProvenance with the canonical v2 field and collection order. -/
 def ArtifactProvenance.canonicalJson (provenance : ArtifactProvenance) : String :=
-  "{\"sourceDefinitionIds\":" ++
-      array (canonicalIds provenance.sourceDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++
-    ",\"sourceLocations\":" ++
-      array (provenance.sourceLocations.mergeSort sourceLe |>.eraseDups |>.map sourceJson) ++ "}"
+  (artifactProvenanceJson provenance).compact
 
-private def propertyJson (property : PortableProperty) : String :=
-  "{\"definitionId\":" ++ quote property.definitionId.value ++
-    ",\"behaviorFingerprint\":" ++ quote property.behaviorFingerprint.render ++
-    ",\"requirementDefinitionIds\":" ++
-      array (canonicalIds property.requirementDefinitionIds |>.map (quote ∘ DefinitionId.value)) ++ "}"
+private def propertyJson (property : PortableProperty) : CanonicalJson :=
+  .object [
+    ("definitionId", .string property.definitionId.value),
+    ("behaviorFingerprint", .string property.behaviorFingerprint.render),
+    ("requirementDefinitionIds", .array
+      (DefinitionId.canonicalSet property.requirementDefinitionIds |>.map fun definitionId =>
+        .string definitionId.value))
+  ]
 
-private def drivePlanContentJson (plan : DrivePlan) : String :=
-  "{\"formatVersion\":" ++ quote plan.formatVersion ++
-    ",\"queryDefinitionId\":" ++ quote plan.queryDefinitionId.value ++
-    ",\"queryBehaviorFingerprint\":" ++ quote plan.queryBehaviorFingerprint.render ++
-    ",\"behaviorDefinitionId\":" ++ quote plan.behaviorDefinitionId.value ++
-    ",\"behaviorFingerprint\":" ++ quote plan.behaviorFingerprint.render ++
-    ",\"targetDefinitionId\":" ++ quote plan.targetDefinitionId.value ++
-    ",\"targetBehaviorFingerprint\":" ++ quote plan.targetBehaviorFingerprint.render ++
-    ",\"kernelDefinitionId\":" ++ quote plan.kernelDefinitionId.value ++
-    ",\"kernelBehaviorFingerprint\":" ++ quote plan.kernelBehaviorFingerprint.render ++
-    ",\"bindings\":" ++ array (plan.bindings.mergeSort bindingLe |>.map bindingJson) ++
-    ",\"symbolicRoles\":" ++ array (plan.symbolicRoles.map roleJson) ++
-    ",\"modelPreconditions\":" ++ array (plan.modelPreconditions.map preconditionJson) ++
-    ",\"initialState\":" ++ valueJson plan.initialState ++
-    ",\"requestedActions\":" ++ array (plan.requestedActions.map valueJson) ++
-    ",\"modelOutcomes\":" ++ array (plan.modelOutcomes.map valueJson) ++
-    ",\"resultingStates\":" ++ array (plan.resultingStates.map valueJson) ++
-    ",\"linearExtension\":" ++ array (plan.linearExtension.map plannedOccurrenceJson) ++
-    ",\"selectedChoices\":" ++ array (plan.selectedChoices.map valueJson) ++
-    ",\"selectedVariants\":" ++ array (plan.selectedVariants.map valueJson) ++
-    ",\"requestedFaults\":" ++ array (plan.requestedFaults.map valueJson) ++
-    ",\"capabilityRequirementDefinitionIds\":" ++
-      array (canonicalIds plan.capabilityRequirementDefinitionIds |>.map
-        (quote ∘ DefinitionId.value)) ++
-    ",\"expandedLimits\":" ++ limitsJson plan.expandedLimits ++
-    ",\"checkpoints\":" ++ array (plan.checkpoints.map checkpointJson) ++
-    ",\"selectionReason\":" ++ quote plan.selectionReason.name ++
-    ",\"explored\":" ++ exploredJson plan.explored ++
-    ",\"knownGaps\":" ++ array (plan.knownGaps.map canonicalKnownGapJson) ++
-    ",\"provenance\":" ++ plan.provenance.canonicalJson ++ "}"
+private def drivePlanContentFields (plan : DrivePlan) : List (String × CanonicalJson) := [
+  ("formatVersion", .string plan.formatVersion),
+  ("queryDefinitionId", .string plan.queryDefinitionId.value),
+  ("queryBehaviorFingerprint", .string plan.queryBehaviorFingerprint.render),
+  ("behaviorDefinitionId", .string plan.behaviorDefinitionId.value),
+  ("behaviorFingerprint", .string plan.behaviorFingerprint.render),
+  ("targetDefinitionId", .string plan.targetDefinitionId.value),
+  ("targetBehaviorFingerprint", .string plan.targetBehaviorFingerprint.render),
+  ("kernelDefinitionId", .string plan.kernelDefinitionId.value),
+  ("kernelBehaviorFingerprint", .string plan.kernelBehaviorFingerprint.render),
+  ("bindings", .array (plan.bindings.mergeSort bindingLe |>.map bindingJson)),
+  ("symbolicRoles", .array (plan.symbolicRoles.map roleJson)),
+  ("modelPreconditions", .array (plan.modelPreconditions.map preconditionJson)),
+  ("initialState", valueJson plan.initialState),
+  ("requestedActions", .array (plan.requestedActions.map valueJson)),
+  ("modelOutcomes", .array (plan.modelOutcomes.map valueJson)),
+  ("resultingStates", .array (plan.resultingStates.map valueJson)),
+  ("linearExtension", .array (plan.linearExtension.map plannedOccurrenceJson)),
+  ("selectedChoices", .array (plan.selectedChoices.map valueJson)),
+  ("selectedVariants", .array (plan.selectedVariants.map valueJson)),
+  ("requestedFaults", .array (plan.requestedFaults.map valueJson)),
+  ("capabilityRequirementDefinitionIds", .array
+    (DefinitionId.canonicalSet plan.capabilityRequirementDefinitionIds |>.map fun definitionId =>
+      .string definitionId.value)),
+  ("expandedLimits", limitsJson plan.expandedLimits),
+  ("checkpoints", .array (plan.checkpoints.map checkpointJson)),
+  ("selectionReason", .string plan.selectionReason.name),
+  ("explored", exploredJson plan.explored),
+  ("knownGaps", .array (plan.knownGaps.map KnownGap.canonicalJsonValue)),
+  ("provenance", artifactProvenanceJson plan.provenance)
+]
+
+private def drivePlanContentJson (plan : DrivePlan) : CanonicalJson :=
+  .object (drivePlanContentFields plan)
 
 def DrivePlan.expectedArtifactChecksum (plan : DrivePlan) : ArtifactChecksum :=
-  drivePlanChecksumOf (Json.prettyBytes (drivePlanContentJson plan))
+  drivePlanChecksumOf (drivePlanContentJson plan).prettyBytes
 
 def DrivePlan.hasValidArtifactChecksum (plan : DrivePlan) : Bool :=
   plan.artifactChecksum == plan.expectedArtifactChecksum
 
-private def sealedDrivePlanJson (plan : DrivePlan) : String :=
-  let content := drivePlanContentJson plan
-  (content.dropEnd 1).toString ++
-    ",\"artifactChecksum\":" ++ quote plan.artifactChecksum.render ++ "}"
+private def sealedDrivePlanJson (plan : DrivePlan) : CanonicalJson :=
+  .object (drivePlanContentFields plan ++ [
+    ("artifactChecksum", .string plan.artifactChecksum.render)
+  ])
 
 def canonicalDrivePlanJson (plan : DrivePlan) : String :=
-  Json.pretty (sealedDrivePlanJson plan)
+  (sealedDrivePlanJson plan).pretty
 
 def canonicalDrivePlanBytes (plan : DrivePlan) : String :=
-  canonicalDrivePlanJson plan ++ "\n"
+  (sealedDrivePlanJson plan).prettyBytes
 
-private def experimentSpecContentJson (spec : ExperimentSpec) : String :=
-    "{\"formatVersion\":" ++ quote spec.formatVersion ++
-    ",\"queryBehaviorFingerprint\":" ++ quote spec.queryBehaviorFingerprint.render ++
-    ",\"plan\":" ++ sealedDrivePlanJson spec.plan ++
-    ",\"properties\":" ++ array (spec.properties.mergeSort propertyLe |>.map propertyJson) ++
-    ",\"observationRequirementDefinitionIds\":" ++
-      array (canonicalIds spec.observationRequirementDefinitionIds |>.map
-        (quote ∘ DefinitionId.value)) ++
-    ",\"provenance\":" ++ spec.provenance.canonicalJson ++ "}"
+private def experimentSpecContentFields (spec : ExperimentSpec) : List (String × CanonicalJson) := [
+  ("formatVersion", .string spec.formatVersion),
+  ("queryBehaviorFingerprint", .string spec.queryBehaviorFingerprint.render),
+  ("plan", sealedDrivePlanJson spec.plan),
+  ("properties", .array (spec.properties.mergeSort propertyLe |>.map propertyJson)),
+  ("observationRequirementDefinitionIds", .array
+    (DefinitionId.canonicalSet spec.observationRequirementDefinitionIds |>.map fun definitionId =>
+      .string definitionId.value)),
+  ("provenance", artifactProvenanceJson spec.provenance)
+]
+
+private def experimentSpecContentJson (spec : ExperimentSpec) : CanonicalJson :=
+  .object (experimentSpecContentFields spec)
 
 def ExperimentSpec.expectedArtifactChecksum (spec : ExperimentSpec) : ArtifactChecksum :=
-  experimentSpecChecksumOf (Json.prettyBytes (experimentSpecContentJson spec))
+  experimentSpecChecksumOf (experimentSpecContentJson spec).prettyBytes
 
 def ExperimentSpec.hasValidArtifactChecksum (spec : ExperimentSpec) : Bool :=
   spec.artifactChecksum == spec.expectedArtifactChecksum
 
-private def sealedExperimentSpecJson (spec : ExperimentSpec) : String :=
-  let content := experimentSpecContentJson spec
-  (content.dropEnd 1).toString ++
-    ",\"artifactChecksum\":" ++ quote spec.artifactChecksum.render ++ "}"
+private def sealedExperimentSpecJson (spec : ExperimentSpec) : CanonicalJson :=
+  .object (experimentSpecContentFields spec ++ [
+    ("artifactChecksum", .string spec.artifactChecksum.render)
+  ])
 
 def canonicalExperimentSpecJson (spec : ExperimentSpec) : String :=
-  Json.pretty (sealedExperimentSpecJson spec)
+  (sealedExperimentSpecJson spec).pretty
 
 def canonicalExperimentSpecBytes (spec : ExperimentSpec) : String :=
-  canonicalExperimentSpecJson spec ++ "\n"
+  (sealedExperimentSpecJson spec).prettyBytes
 
 end Umpire
