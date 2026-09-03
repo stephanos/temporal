@@ -188,6 +188,83 @@ func TestDecodeExperimentVerifiesNestedAndOuterChecksumsIndependently(t *testing
 	}
 }
 
+func TestDecodeExperimentRejectsInvalidPersistedKnownGaps(t *testing.T) {
+	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
+	cases := map[string]struct {
+		mutate func(*Experiment)
+		reseal bool
+		want   string
+	}{
+		"malformed": {
+			mutate: func(document *Experiment) {
+				invalid := "unnamespaced"
+				document.Plan.KnownGaps[0].Subject = &invalid
+			},
+			reseal: true,
+			want:   "known gap subject",
+		},
+		"reordered": {
+			mutate: func(document *Experiment) {
+				document.Plan.KnownGaps[0], document.Plan.KnownGaps[1] =
+					document.Plan.KnownGaps[1], document.Plan.KnownGaps[0]
+			},
+			reseal: true,
+			want:   "known gaps are not in canonical order",
+		},
+		"duplicate": {
+			mutate: func(document *Experiment) {
+				gaps := document.Plan.KnownGaps
+				document.Plan.KnownGaps = append([]KnownGap{gaps[0], gaps[0]}, gaps[1:]...)
+			},
+			reseal: true,
+			want:   "duplicate or conflicting known gap",
+		},
+		"conflicting": {
+			mutate: func(document *Experiment) {
+				gaps := document.Plan.KnownGaps
+				conflicting := gaps[0]
+				detail := "changed"
+				conflicting.Detail = &detail
+				document.Plan.KnownGaps = append([]KnownGap{gaps[0], conflicting}, gaps[1:]...)
+			},
+			reseal: true,
+			want:   "duplicate or conflicting known gap",
+		},
+		"stale": {
+			mutate: func(document *Experiment) {
+				document.QueryBehaviorFingerprint =
+					"sha256:0000000000000000000000000000000000000000000000000000000000000000"
+			},
+			reseal: true,
+			want:   "query behavior fingerprint differs from nested plan",
+		},
+		"checksum inconsistent": {
+			mutate: func(document *Experiment) {
+				detail := "changed"
+				document.Plan.KnownGaps[0].Detail = &detail
+			},
+			want: "nested plan artifact checksum mismatch",
+		},
+	}
+
+	for name, test := range cases {
+		t.Run(name, func(t *testing.T) {
+			document, err := DecodeExperiment(canonical)
+			require.NoError(t, err)
+			test.mutate(&document)
+			if test.reseal {
+				document, err = SealExperiment(document)
+				require.NoError(t, err)
+			}
+			encoded, err := CanonicalExperimentBytes(document)
+			require.NoError(t, err)
+
+			_, err = DecodeExperiment(encoded)
+			require.ErrorContains(t, err, test.want)
+		})
+	}
+}
+
 func TestExperimentV2HooksPreserveDecodeExperimentContract(t *testing.T) {
 	canonical := readRepositoryFile(t, "model/Umpire/Examples/testdata/switch-experiment-spec.json")
 	document, err := DecodeExperiment(canonical)
