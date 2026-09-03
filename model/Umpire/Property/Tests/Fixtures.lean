@@ -144,10 +144,8 @@ def portableProperty : PropertyDeclaration := {
 
 def authoredProperty : PropertyAuthoring := .portable portableProperty
 
-def value (definitionId : DefinitionId) (payload : String) : ModelValue := {
-  definitionId
-  value := payload
-}
+def value (definitionId : DefinitionId) (payload : String) : ModelValue :=
+  ModelValue.named definitionId payload
 
 def positiveTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
   initialState := value pendingCount "0"

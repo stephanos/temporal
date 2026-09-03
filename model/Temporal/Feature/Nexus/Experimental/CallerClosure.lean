@@ -166,42 +166,24 @@ private def configRepr (config : Config) : String :=
   "  callerOpen := " ++ toString config.callerOpen ++ ",\n" ++
   "  slack := " ++ toString config.slack ++ " }"
 
-def clashState : ModelValue := {
-  definitionId := configStateId
-  value := configRepr wClash
-}
+def clashState : ModelValue := ModelValue.named configStateId (configRepr wClash)
 
 def closedConfig : Config := autoClose .upgrade wClash
 
-def closedState : ModelValue := {
-  definitionId := configStateId
-  value := configRepr closedConfig
-}
+def closedState : ModelValue := ModelValue.named configStateId (configRepr closedConfig)
 
-def forceCloseAction : ModelValue := {
-  definitionId := forceCloseActionId
-  value := "force-close"
-}
+def forceCloseAction : ModelValue := ModelValue.named forceCloseActionId "force-close"
 
-def upgradedOutcome : ModelValue := {
-  definitionId := upgradedOutcomeId
-  value := "upgrade"
-}
+def upgradedOutcome : ModelValue := ModelValue.named upgradedOutcomeId "upgrade"
 
-def deliveredObservation : ModelValue := {
-  definitionId := deliveredObservationId
-  value := toString (delivers closedConfig)
-}
+def deliveredObservation : ModelValue :=
+  ModelValue.named deliveredObservationId (toString (delivers closedConfig))
 
-def cancellationCountObservation : ModelValue := {
-  definitionId := cancellationCountObservationId
-  value := toString closedConfig.cancels.length
-}
+def cancellationCountObservation : ModelValue :=
+  ModelValue.named cancellationCountObservationId (toString closedConfig.cancels.length)
 
-def ownershipObservation : ModelValue := {
-  definitionId := ownershipRelationId
-  value := toString (decide (CallerOwnsOperation wClash closedConfig))
-}
+def ownershipObservation : ModelValue :=
+  ModelValue.named ownershipRelationId (toString (decide (CallerOwnsOperation wClash closedConfig)))
 
 def clashSetup : List RoleBinding := [{ role := operationRoleId, value := clashState }]
 

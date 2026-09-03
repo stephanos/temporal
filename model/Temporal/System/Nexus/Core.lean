@@ -89,49 +89,28 @@ private def metadata
   canonicalBehavior
 }
 
-def queuedState : ModelValue := { definitionId := operationStateId, value := "queued" }
-def runningState : ModelValue := { definitionId := operationStateId, value := "running" }
-def cancellationRecordedState : ModelValue := {
-  definitionId := operationStateId
-  value := "cancellation-recorded"
-}
-def completionRecordedState : ModelValue := {
-  definitionId := operationStateId
-  value := "completion-recorded"
-}
+def queuedState : ModelValue := ModelValue.named operationStateId "queued"
+def runningState : ModelValue := ModelValue.named operationStateId "running"
+def cancellationRecordedState : ModelValue := ModelValue.named operationStateId "cancellation-recorded"
+def completionRecordedState : ModelValue := ModelValue.named operationStateId "completion-recorded"
 
-def dispatchAction : ModelValue := { definitionId := dispatchActionId, value := "dispatch" }
-def recordCancellationAction : ModelValue := {
-  definitionId := recordCancellationActionId
-  value := "record-cancellation"
-}
-def recordCompletionAction : ModelValue := {
-  definitionId := recordCompletionActionId
-  value := "record-completion"
-}
+def dispatchAction : ModelValue := ModelValue.named dispatchActionId "dispatch"
+def recordCancellationAction : ModelValue :=
+  ModelValue.named recordCancellationActionId "record-cancellation"
+def recordCompletionAction : ModelValue :=
+  ModelValue.named recordCompletionActionId "record-completion"
 
-def dispatchedOutcome : ModelValue := { definitionId := transitionOutcomeId, value := "running" }
-def cancellationRecordedOutcome : ModelValue := {
-  definitionId := transitionOutcomeId
-  value := "cancellation-recorded"
-}
-def completionRecordedOutcome : ModelValue := {
-  definitionId := transitionOutcomeId
-  value := "completion-recorded"
-}
+def dispatchedOutcome : ModelValue := ModelValue.named transitionOutcomeId "running"
+def cancellationRecordedOutcome : ModelValue :=
+  ModelValue.named transitionOutcomeId "cancellation-recorded"
+def completionRecordedOutcome : ModelValue :=
+  ModelValue.named transitionOutcomeId "completion-recorded"
 
-def runningObservation : ModelValue := {
-  definitionId := lifecycleObservationId
-  value := "running"
-}
-def cancellationRecordedObservation : ModelValue := {
-  definitionId := lifecycleObservationId
-  value := "cancellation-recorded"
-}
-def completionRecordedObservation : ModelValue := {
-  definitionId := lifecycleObservationId
-  value := "completion-recorded"
-}
+def runningObservation : ModelValue := ModelValue.named lifecycleObservationId "running"
+def cancellationRecordedObservation : ModelValue :=
+  ModelValue.named lifecycleObservationId "cancellation-recorded"
+def completionRecordedObservation : ModelValue :=
+  ModelValue.named lifecycleObservationId "completion-recorded"
 
 def queuedSetup : ExecutionSetup := .queued
 def runningSetup : ExecutionSetup := .running
@@ -355,12 +334,12 @@ def finiteMachine : FiniteMachine
         change cancellationRecordedResult ∈
           stepResults runningState recordCancellationAction
         simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
-          queuedState, runningState, dispatchAction, recordCancellationAction]⟩
+          queuedState, runningState, dispatchAction, recordCancellationAction, ModelValue.named]⟩
     · exact ⟨runningState, completionRecordedResult, by
         change completionRecordedResult ∈ stepResults runningState recordCompletionAction
         simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
           queuedState, runningState, dispatchAction, recordCancellationAction,
-          recordCompletionAction]⟩
+          recordCompletionAction, ModelValue.named]⟩
 }
 
 def authoritativeInitial (setup : ExecutionSetup) (state : ModelValue) : Prop :=
@@ -579,13 +558,14 @@ theorem target_running_cancellation_authoritative :
       cancellationRecordedResult := by
   change cancellationRecordedResult ∈ stepResults runningState recordCancellationAction
   simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
-    queuedState, runningState, dispatchAction, recordCancellationAction]
+    queuedState, runningState, dispatchAction, recordCancellationAction, ModelValue.named]
 
 theorem target_running_completion_authoritative :
     target.kernel.authoritativeStep runningState recordCompletionAction
       completionRecordedResult := by
   change completionRecordedResult ∈ stepResults runningState recordCompletionAction
   simp [stepResults, stepResult?, executionState?, executionEvent?, transitionResult?, step,
-    queuedState, runningState, dispatchAction, recordCancellationAction, recordCompletionAction]
+    queuedState, runningState, dispatchAction, recordCancellationAction, recordCompletionAction,
+      ModelValue.named]
 
 end Temporal.System.Nexus

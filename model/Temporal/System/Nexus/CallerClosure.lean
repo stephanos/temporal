@@ -45,25 +45,16 @@ def ownershipObservationId : DefinitionId :=
   id "temporal.system.nexus.caller-closure.observation.ownership"
 def operationRoleId : DefinitionId := id "temporal.system.nexus.caller-closure.role.operation"
 
-def openState : ModelValue := {
-  definitionId := stateId
-  value := "temporal.history.WorkflowExecutionStarted"
-}
-def closedState : ModelValue := {
-  definitionId := stateId
-  value := "temporal.history.WorkflowExecutionCanceled"
-}
-def forceCloseAction : ModelValue := { definitionId := actionId, value := "force-close" }
-def cancellationUpgradedOutcome : ModelValue := {
-  definitionId := outcomeId
-  value := "upgrade"
-}
-def deliveryObservation : ModelValue := { definitionId := deliveryObservationId, value := "true" }
-def cancellationCountObservation : ModelValue := {
-  definitionId := cancellationCountObservationId
-  value := "1"
-}
-def ownershipObservation : ModelValue := { definitionId := ownershipObservationId, value := "true" }
+def openState : ModelValue :=
+  ModelValue.named stateId "temporal.history.WorkflowExecutionStarted"
+def closedState : ModelValue :=
+  ModelValue.named stateId "temporal.history.WorkflowExecutionCanceled"
+def forceCloseAction : ModelValue := ModelValue.named actionId "force-close"
+def cancellationUpgradedOutcome : ModelValue := ModelValue.named outcomeId "upgrade"
+def deliveryObservation : ModelValue := ModelValue.named deliveryObservationId "true"
+def cancellationCountObservation : ModelValue :=
+  ModelValue.named cancellationCountObservationId "1"
+def ownershipObservation : ModelValue := ModelValue.named ownershipObservationId "true"
 
 def setup : List RoleBinding := [{ role := operationRoleId, value := openState }]
 

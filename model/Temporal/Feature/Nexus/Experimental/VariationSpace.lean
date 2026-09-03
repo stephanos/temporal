@@ -261,22 +261,20 @@ def batchResult : Except VariationSpacePreparationError (List ExperimentSpec) :=
 
 def canonicalAssignments : List (List ModelValue) := [
   [
-    { definitionId := completionFaultAxisId, value := completionBaselineChoiceId.value },
-    { definitionId := startFaultAxisId, value := startBaselineChoiceId.value }
+    ModelValue.named completionFaultAxisId completionBaselineChoiceId.value,
+    ModelValue.named startFaultAxisId startBaselineChoiceId.value
   ],
   [
-    { definitionId := completionFaultAxisId, value := completionBaselineChoiceId.value },
-    { definitionId := startFaultAxisId, value := startDelayChoiceId.value }
+    ModelValue.named completionFaultAxisId completionBaselineChoiceId.value,
+    ModelValue.named startFaultAxisId startDelayChoiceId.value
   ],
   [
-    { definitionId := completionFaultAxisId,
-      value := completionHandlerFailureChoiceId.value },
-    { definitionId := startFaultAxisId, value := startBaselineChoiceId.value }
+    ModelValue.named completionFaultAxisId completionHandlerFailureChoiceId.value,
+    ModelValue.named startFaultAxisId startBaselineChoiceId.value
   ],
   [
-    { definitionId := completionFaultAxisId,
-      value := completionHandlerFailureChoiceId.value },
-    { definitionId := startFaultAxisId, value := startDelayChoiceId.value }
+    ModelValue.named completionFaultAxisId completionHandlerFailureChoiceId.value,
+    ModelValue.named startFaultAxisId startDelayChoiceId.value
   ]
 ]
 

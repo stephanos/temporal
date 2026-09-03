@@ -289,15 +289,14 @@ def completeEvidence : EvidenceBundle := {
 }
 
 def expectedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
-  initialState := { definitionId := operationState, value := "ready" }
+  initialState := ModelValue.named operationState "ready"
   steps := [{
-    selectedAction := { definitionId := startAction, value := "start" }
-    modelOutcome := { definitionId := successOutcome, value := "ok" }
-    resultingState := { definitionId := completedState, value := "done" }
+    selectedAction := ModelValue.named startAction "start"
+    modelOutcome := ModelValue.named successOutcome "ok"
+    resultingState := ModelValue.named completedState "done"
     observations := [
-      { definitionId := contributionObservation, value := "contributed" },
-      { definitionId := digestObservation,
-        value := "synthetic.digest/v1:3006720707513255331" }
+      ModelValue.named contributionObservation "contributed",
+      ModelValue.named digestObservation "synthetic.digest/v1:3006720707513255331"
     ]
   }]
 }

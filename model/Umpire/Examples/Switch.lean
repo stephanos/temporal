@@ -54,13 +54,13 @@ private def metadata
     (canonicalBehavior : String) : DefinitionMetadata :=
   Shared.definitionMetadata definitionId kind source 1 canonicalBehavior ""
 
-def offState : ModelValue := { definitionId := powerStateId, value := "off" }
-def onState : ModelValue := { definitionId := powerStateId, value := "on" }
-def flipAction : ModelValue := { definitionId := flipActionId, value := "flip" }
-def appliedOutcome : ModelValue := { definitionId := appliedOutcomeId, value := "applied" }
-def deferredOutcome : ModelValue := { definitionId := deferredOutcomeId, value := "deferred" }
-def powerOffObservation : ModelValue := { definitionId := powerObservationId, value := "off" }
-def powerOnObservation : ModelValue := { definitionId := powerObservationId, value := "on" }
+def offState : ModelValue := ModelValue.named powerStateId "off"
+def onState : ModelValue := ModelValue.named powerStateId "on"
+def flipAction : ModelValue := ModelValue.named flipActionId "flip"
+def appliedOutcome : ModelValue := ModelValue.named appliedOutcomeId "applied"
+def deferredOutcome : ModelValue := ModelValue.named deferredOutcomeId "deferred"
+def powerOffObservation : ModelValue := ModelValue.named powerObservationId "off"
+def powerOnObservation : ModelValue := ModelValue.named powerObservationId "on"
 
 theorem offState_ne_onState : offState ≠ onState := by
   decide
@@ -158,11 +158,11 @@ theorem stepResults_sound
   · subst action
     by_cases selectedOff : state = offState
     · subst state
-      simp [stepResults, authoritativeStep, offState, onState] at member ⊢
+      simp [stepResults, authoritativeStep, offState, onState, ModelValue.named] at member ⊢
       exact member
     · by_cases selectedOn : state = onState
       · subst state
-        simp [stepResults, authoritativeStep, offState, onState] at member ⊢
+        simp [stepResults, authoritativeStep, offState, onState, ModelValue.named] at member ⊢
         exact member
       · simp [stepResults, selectedOff, selectedOn] at member
   · simp [stepResults, selectedAction] at member
@@ -174,8 +174,8 @@ theorem stepResults_complete
     result ∈ stepResults state action := by
   rcases admitted with ⟨rfl, admitted⟩
   rcases admitted with ⟨rfl, admitted⟩ | ⟨rfl, admitted⟩
-  · rcases admitted with rfl | rfl <;> simp [stepResults, offState]
-  · rcases admitted with rfl | rfl <;> simp [stepResults, offState, onState]
+  · rcases admitted with rfl | rfl <;> simp [stepResults, offState, ModelValue.named]
+  · rcases admitted with rfl | rfl <;> simp [stepResults, offState, onState, ModelValue.named]
 
 def transitionKernel : TransitionKernel
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {

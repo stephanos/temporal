@@ -171,10 +171,8 @@ def uniquenessProperty : PropertyDeclaration := {
     }]
 }
 
-def modelValue (definitionId : DefinitionId) (value : String) : ModelValue := {
-  definitionId
-  value
-}
+def modelValue (definitionId : DefinitionId) (value : String) : ModelValue :=
+  ModelValue.named definitionId value
 
 def evaluateUniqueness
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
