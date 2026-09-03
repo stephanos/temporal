@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-51-shorten-ordinary-model-authoring",
   "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-09-03T16:30:32.268274Z",
+  "completion_reviewed_at": "2026-09-03T16:39:52.179860Z",
   "created_at": "2026-08-30T16:08:50.634510Z",
   "default_impl": null,
   "default_review": null,
@@ -424,6 +424,50 @@
       "timestamp": "2026-09-03T16:30:44.656880Z",
       "tool_calls": 18,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7848ef174f030177cdeaa249cd536100d1c0e1b00e24a429d1c3cf4fcaf77e81",
+      "backend": "codex",
+      "base_sha": "7d777dbdc8930d36a453bd3ed515e7d0a0ede77d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-0bc24ad631a6df6ce3f4461372641dc6",
+            "classification": "introduced",
+            "findingId": "finding-0bc24ad631a6df6ce3f4461372641dc6",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "b13037978646b53350c3a79c395ed74dd156c597",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 2645,
+      "output_sha256": "58e3edb940c4b5b026fec71f421052b8340f121b345685f1595014851fc68097",
+      "reservation_id": "dd646f4b99e54788a21f7580504eb951",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-03T16:39:52.172025Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -433,7 +477,7 @@
     "impl:fn-51-shorten-ordinary-model-authoring.4": 1,
     "impl:fn-51-shorten-ordinary-model-authoring.5": 1,
     "plan": 1,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -460,5 +504,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T16:31:02.000519Z"
+  "updated_at": "2026-09-03T16:39:52.180610Z"
 }
