@@ -29,9 +29,8 @@ Isolate the common sequence, causality, ordering-support, and closure calculatio
 - [ ] The extraction exposes no new public validation language or generic graph framework.
 - [ ] Structural edge-case tests include a 10× evidence fixture, and code inspection confirms one analysis invocation with no added full traversal before caller migration continues.
 ## Done summary
-TBD
-
+Added one internal Observation structural analysis that canonicalizes ordering and closure facts, derives reusable closure expectations and stage-ordered identity-rich findings, and retains normalized per-link support with rule identity for accepted-boundary consistency checks. Direct tests cover empty, single-source, multi-source, cycle, mixed-origin, closure-count, link-local missing/reordered support, and 10x evidence inputs without routing production callers yet.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5c049a45ddc4c31c5235bacc790b686c2c94dd22, 654cd054755d2ed8f90104aa5cb8cd1f3a0af88e
+- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests.Evaluation, cd model && mise exec -- lake build Umpire.Observation, cd model && mise exec -- lake build Umpire.Observation.Tests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model, make lint-code (exact inherited 1,379-finding baseline)
 - PRs:
