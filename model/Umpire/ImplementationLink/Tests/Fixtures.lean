@@ -161,20 +161,14 @@ def secondaryCapabilityReference : ImplementationSemanticReference :=
   (implementationSemanticReference? checkedSourceTarget (id "test.capability.secondary")
     .capability).get (by native_decide)
 
-def relationMapping : ImplementationSemanticMapping := {
-  source := relationReference
-  destination := relationReference
-}
+def relationMapping : ImplementationSemanticMapping :=
+  .forward relationReference relationReference
 
-def primaryCapabilityMapping : ImplementationSemanticMapping := {
-  source := primaryCapabilityReference
-  destination := primaryCapabilityReference
-}
+def primaryCapabilityMapping : ImplementationSemanticMapping :=
+  .forward primaryCapabilityReference primaryCapabilityReference
 
-def secondaryCapabilityMapping : ImplementationSemanticMapping := {
-  source := secondaryCapabilityReference
-  destination := secondaryCapabilityReference
-}
+def secondaryCapabilityMapping : ImplementationSemanticMapping :=
+  .forward secondaryCapabilityReference secondaryCapabilityReference
 
 def baseDeclaration :
     ImplementationLinkDeclaration Unit Bool Bool Bool Bool Unit Bool Bool Bool Bool := {
@@ -182,22 +176,22 @@ def baseDeclaration :
   source := source "Test/ImplementationLink.lean"
   sourceTarget := .ofTarget checkedSourceTarget
   destinationTarget := .ofTarget checkedDestinationTarget
-  setupMappings := [{ source := (), destination := () }]
+  setupMappings := [.forward () ()]
   stateMappings := [
-    { source := false, destination := false },
-    { source := true, destination := true }
+    .forward false false,
+    .forward true true
   ]
   actionMappings := [
-    { source := false, destination := false },
-    { source := true, destination := true }
+    .forward false false,
+    .forward true true
   ]
   outcomeMappings := [
-    { source := false, destination := false },
-    { source := true, destination := true }
+    .forward false false,
+    .forward true true
   ]
   observationMappings := [
-    { source := false, destination := false },
-    { source := true, destination := true }
+    .forward false false,
+    .forward true true
   ]
   relationMappings := [relationMapping]
   capabilityMappings := [primaryCapabilityMapping, secondaryCapabilityMapping]
@@ -208,11 +202,16 @@ def baseDeclaration :
 theorem baseCoverage : ImplementationLinkRequiredCoverage baseDeclaration checkedSourceTarget
     (fun value => value) (fun value => value) (fun value => value)
     (fun value => value) (fun value => value) := {
-  setup := by intro value _; cases value; simp [baseDeclaration]
-  state := by intro value _; cases value <;> simp [baseDeclaration]
-  action := by intro value _; cases value <;> simp [baseDeclaration]
-  outcome := by intro value _; cases value <;> simp [baseDeclaration]
-  observation := by intro value _; cases value <;> simp [baseDeclaration]
+  setup := by
+    intro value _; cases value; simp [baseDeclaration, ImplementationValueMapping.forward]
+  state := by
+    intro value _; cases value <;> simp [baseDeclaration, ImplementationValueMapping.forward]
+  action := by
+    intro value _; cases value <;> simp [baseDeclaration, ImplementationValueMapping.forward]
+  outcome := by
+    intro value _; cases value <;> simp [baseDeclaration, ImplementationValueMapping.forward]
+  observation := by
+    intro value _; cases value <;> simp [baseDeclaration, ImplementationValueMapping.forward]
   relation := by native_decide
   capability := by native_decide
 }
@@ -269,11 +268,21 @@ def reorderedDeclaration :
 theorem reorderedCoverage : ImplementationLinkRequiredCoverage reorderedDeclaration checkedSourceTarget
     (fun value => value) (fun value => value) (fun value => value)
     (fun value => value) (fun value => value) := {
-  setup := by intro value _; cases value; simp [reorderedDeclaration, baseDeclaration]
-  state := by intro value _; cases value <;> simp [reorderedDeclaration, baseDeclaration]
-  action := by intro value _; cases value <;> simp [reorderedDeclaration, baseDeclaration]
-  outcome := by intro value _; cases value <;> simp [reorderedDeclaration, baseDeclaration]
-  observation := by intro value _; cases value <;> simp [reorderedDeclaration, baseDeclaration]
+  setup := by
+    intro value _; cases value
+    simp [reorderedDeclaration, baseDeclaration, ImplementationValueMapping.forward]
+  state := by
+    intro value _; cases value <;>
+      simp [reorderedDeclaration, baseDeclaration, ImplementationValueMapping.forward]
+  action := by
+    intro value _; cases value <;>
+      simp [reorderedDeclaration, baseDeclaration, ImplementationValueMapping.forward]
+  outcome := by
+    intro value _; cases value <;>
+      simp [reorderedDeclaration, baseDeclaration, ImplementationValueMapping.forward]
+  observation := by
+    intro value _; cases value <;>
+      simp [reorderedDeclaration, baseDeclaration, ImplementationValueMapping.forward]
   relation := by native_decide
   capability := by native_decide
 }

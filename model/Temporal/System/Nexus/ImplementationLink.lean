@@ -136,10 +136,8 @@ def destinationCapabilityReference : ImplementationSemanticReference :=
   (implementationSemanticReference? Temporal.Feature.Nexus.Lifecycle.target
     Temporal.Feature.Nexus.Lifecycle.lifecycleCapabilityId .capability).get (by native_decide)
 
-def lifecycleCapabilityMapping : ImplementationSemanticMapping := {
-  source := sourceCapabilityReference
-  destination := destinationCapabilityReference
-}
+def lifecycleCapabilityMapping : ImplementationSemanticMapping :=
+  .forward sourceCapabilityReference destinationCapabilityReference
 
 def declaration : ImplementationLinkDeclaration
     Temporal.System.Nexus.ExecutionSetup ModelValue ModelValue ModelValue ModelValue
@@ -149,44 +147,44 @@ def declaration : ImplementationLinkDeclaration
   sourceTarget := .ofTarget Temporal.System.Nexus.target
   destinationTarget := .ofTarget Temporal.Feature.Nexus.Lifecycle.target
   setupMappings := [
-    { source := Temporal.System.Nexus.queuedSetup,
-      destination := Temporal.Feature.Nexus.Lifecycle.scheduledSetup },
-    { source := Temporal.System.Nexus.runningSetup,
-      destination := Temporal.Feature.Nexus.Lifecycle.startedSetup }
+    .forward Temporal.System.Nexus.queuedSetup
+      Temporal.Feature.Nexus.Lifecycle.scheduledSetup,
+    .forward Temporal.System.Nexus.runningSetup
+      Temporal.Feature.Nexus.Lifecycle.startedSetup
   ]
   stateMappings := [
-    { source := Temporal.System.Nexus.queuedState,
-      destination := Temporal.Feature.Nexus.Lifecycle.scheduledState },
-    { source := Temporal.System.Nexus.runningState,
-      destination := Temporal.Feature.Nexus.Lifecycle.startedState },
-    { source := Temporal.System.Nexus.cancellationRecordedState,
-      destination := Temporal.Feature.Nexus.Lifecycle.canceledState },
-    { source := Temporal.System.Nexus.completionRecordedState,
-      destination := Temporal.Feature.Nexus.Lifecycle.succeededState }
+    .forward Temporal.System.Nexus.queuedState
+      Temporal.Feature.Nexus.Lifecycle.scheduledState,
+    .forward Temporal.System.Nexus.runningState
+      Temporal.Feature.Nexus.Lifecycle.startedState,
+    .forward Temporal.System.Nexus.cancellationRecordedState
+      Temporal.Feature.Nexus.Lifecycle.canceledState,
+    .forward Temporal.System.Nexus.completionRecordedState
+      Temporal.Feature.Nexus.Lifecycle.succeededState
   ]
   actionMappings := [
-    { source := Temporal.System.Nexus.dispatchAction,
-      destination := Temporal.Feature.Nexus.Lifecycle.startAction },
-    { source := Temporal.System.Nexus.recordCancellationAction,
-      destination := Temporal.Feature.Nexus.Lifecycle.cancelAction },
-    { source := Temporal.System.Nexus.recordCompletionAction,
-      destination := Temporal.Feature.Nexus.Lifecycle.reportSuccessAction }
+    .forward Temporal.System.Nexus.dispatchAction
+      Temporal.Feature.Nexus.Lifecycle.startAction,
+    .forward Temporal.System.Nexus.recordCancellationAction
+      Temporal.Feature.Nexus.Lifecycle.cancelAction,
+    .forward Temporal.System.Nexus.recordCompletionAction
+      Temporal.Feature.Nexus.Lifecycle.reportSuccessAction
   ]
   outcomeMappings := [
-    { source := Temporal.System.Nexus.dispatchedOutcome,
-      destination := Temporal.Feature.Nexus.Lifecycle.startedOutcome },
-    { source := Temporal.System.Nexus.cancellationRecordedOutcome,
-      destination := Temporal.Feature.Nexus.Lifecycle.canceledOutcome },
-    { source := Temporal.System.Nexus.completionRecordedOutcome,
-      destination := Temporal.Feature.Nexus.Lifecycle.succeededOutcome }
+    .forward Temporal.System.Nexus.dispatchedOutcome
+      Temporal.Feature.Nexus.Lifecycle.startedOutcome,
+    .forward Temporal.System.Nexus.cancellationRecordedOutcome
+      Temporal.Feature.Nexus.Lifecycle.canceledOutcome,
+    .forward Temporal.System.Nexus.completionRecordedOutcome
+      Temporal.Feature.Nexus.Lifecycle.succeededOutcome
   ]
   observationMappings := [
-    { source := Temporal.System.Nexus.runningObservation,
-      destination := Temporal.Feature.Nexus.Lifecycle.startedObservation },
-    { source := Temporal.System.Nexus.cancellationRecordedObservation,
-      destination := Temporal.Feature.Nexus.Lifecycle.canceledObservation },
-    { source := Temporal.System.Nexus.completionRecordedObservation,
-      destination := Temporal.Feature.Nexus.Lifecycle.succeededObservation }
+    .forward Temporal.System.Nexus.runningObservation
+      Temporal.Feature.Nexus.Lifecycle.startedObservation,
+    .forward Temporal.System.Nexus.cancellationRecordedObservation
+      Temporal.Feature.Nexus.Lifecycle.canceledObservation,
+    .forward Temporal.System.Nexus.completionRecordedObservation
+      Temporal.Feature.Nexus.Lifecycle.succeededObservation
   ]
   relationMappings := []
   capabilityMappings := [lifecycleCapabilityMapping]
@@ -495,20 +493,14 @@ def destinationOwnershipCapabilityReference : ImplementationSemanticReference :=
     Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipCapabilityId
     .capability).get (by native_decide)
 
-def capabilityMapping : ImplementationSemanticMapping := {
-  source := sourceCapabilityReference
-  destination := destinationCapabilityReference
-}
+def capabilityMapping : ImplementationSemanticMapping :=
+  .forward sourceCapabilityReference destinationCapabilityReference
 
-def lifecycleCapabilityMapping : ImplementationSemanticMapping := {
-  source := sourceLifecycleCapabilityReference
-  destination := destinationLifecycleCapabilityReference
-}
+def lifecycleCapabilityMapping : ImplementationSemanticMapping :=
+  .forward sourceLifecycleCapabilityReference destinationLifecycleCapabilityReference
 
-def ownershipCapabilityMapping : ImplementationSemanticMapping := {
-  source := sourceOwnershipCapabilityReference
-  destination := destinationOwnershipCapabilityReference
-}
+def ownershipCapabilityMapping : ImplementationSemanticMapping :=
+  .forward sourceOwnershipCapabilityReference destinationOwnershipCapabilityReference
 
 def declaration : ImplementationLinkDeclaration
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue
@@ -517,32 +509,31 @@ def declaration : ImplementationLinkDeclaration
   source
   sourceTarget := .ofTarget Temporal.System.Nexus.CallerClosure.target
   destinationTarget := .ofTarget Temporal.Feature.Nexus.Experimental.CallerClosure.target
-  setupMappings := [{
-    source := Temporal.System.Nexus.CallerClosure.setup
-    destination := Temporal.Feature.Nexus.Experimental.CallerClosure.clashSetup
-  }]
-  stateMappings := [
-    { source := Temporal.System.Nexus.CallerClosure.openState,
-      destination := Temporal.Feature.Nexus.Experimental.CallerClosure.clashState },
-    { source := Temporal.System.Nexus.CallerClosure.closedState,
-      destination := Temporal.Feature.Nexus.Experimental.CallerClosure.closedState }
+  setupMappings := [
+    .forward Temporal.System.Nexus.CallerClosure.setup
+      Temporal.Feature.Nexus.Experimental.CallerClosure.clashSetup
   ]
-  actionMappings := [{
-    source := Temporal.System.Nexus.CallerClosure.forceCloseAction
-    destination := Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction
-  }]
-  outcomeMappings := [{
-    source := Temporal.System.Nexus.CallerClosure.cancellationUpgradedOutcome
-    destination := Temporal.Feature.Nexus.Experimental.CallerClosure.upgradedOutcome
-  }]
+  stateMappings := [
+    .forward Temporal.System.Nexus.CallerClosure.openState
+      Temporal.Feature.Nexus.Experimental.CallerClosure.clashState,
+    .forward Temporal.System.Nexus.CallerClosure.closedState
+      Temporal.Feature.Nexus.Experimental.CallerClosure.closedState
+  ]
+  actionMappings := [
+    .forward Temporal.System.Nexus.CallerClosure.forceCloseAction
+      Temporal.Feature.Nexus.Experimental.CallerClosure.forceCloseAction
+  ]
+  outcomeMappings := [
+    .forward Temporal.System.Nexus.CallerClosure.cancellationUpgradedOutcome
+      Temporal.Feature.Nexus.Experimental.CallerClosure.upgradedOutcome
+  ]
   observationMappings := [
-    { source := Temporal.System.Nexus.CallerClosure.deliveryObservation,
-      destination := Temporal.Feature.Nexus.Experimental.CallerClosure.deliveredObservation },
-    { source := Temporal.System.Nexus.CallerClosure.cancellationCountObservation,
-      destination :=
-        Temporal.Feature.Nexus.Experimental.CallerClosure.cancellationCountObservation },
-    { source := Temporal.System.Nexus.CallerClosure.ownershipObservation,
-      destination := Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipObservation }
+    .forward Temporal.System.Nexus.CallerClosure.deliveryObservation
+      Temporal.Feature.Nexus.Experimental.CallerClosure.deliveredObservation,
+    .forward Temporal.System.Nexus.CallerClosure.cancellationCountObservation
+      Temporal.Feature.Nexus.Experimental.CallerClosure.cancellationCountObservation,
+    .forward Temporal.System.Nexus.CallerClosure.ownershipObservation
+      Temporal.Feature.Nexus.Experimental.CallerClosure.ownershipObservation
   ]
   relationMappings := []
   capabilityMappings := [
@@ -562,7 +553,7 @@ theorem requiredCoverage : ImplementationLinkRequiredCoverage declaration
     intro value admitted
     change value = Temporal.System.Nexus.CallerClosure.setup at admitted
     subst value
-    simp [declaration, mapSetup]
+    simp [declaration, mapSetup, ImplementationValueMapping.forward]
   state := by
     intro value admitted
     change value = Temporal.System.Nexus.CallerClosure.openState ∨
@@ -584,12 +575,12 @@ theorem requiredCoverage : ImplementationLinkRequiredCoverage declaration
     intro value admitted
     change value = Temporal.System.Nexus.CallerClosure.forceCloseAction at admitted
     subst value
-    simp [declaration, mapAction]
+    simp [declaration, mapAction, ImplementationValueMapping.forward]
   outcome := by
     intro value admitted
     change value = Temporal.System.Nexus.CallerClosure.cancellationUpgradedOutcome at admitted
     subst value
-    simp [declaration, mapOutcome]
+    simp [declaration, mapOutcome, ImplementationValueMapping.forward]
   observation := by
     intro value admitted
     change value = Temporal.System.Nexus.CallerClosure.deliveryObservation ∨
@@ -688,10 +679,8 @@ def observedDeclaration : ObservedTraceTranslationDeclaration := {
   id := observedImplementationLinkId
   source
   observationMappings :=
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.declaration.observationMappings ++ [{
-    source := sourceCancellationCountTwo
-    destination := destinationCancellationCountTwo
-  }]
+    Temporal.System.Nexus.ImplementationLink.CallerClosure.declaration.observationMappings ++
+      [.forward sourceCancellationCountTwo destinationCancellationCountTwo]
   documentation :=
     "Checked count-one and count-two translation without a Target-authority assertion."
 }
