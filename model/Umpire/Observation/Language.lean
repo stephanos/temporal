@@ -61,6 +61,26 @@ structure EvidenceFieldReference where
   field : DefinitionId
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- One inert typed field handle shared by explicit Observation authoring records. -/
+structure ObservationFieldSpec where
+  kind : DefinitionId
+  field : DefinitionId
+  valueType : ObservationValueType
+  deriving BEq, DecidableEq, Repr
+
+/-- Project the field declaration used by an explicit evidence profile. -/
+def ObservationFieldSpec.declaration (fieldSpec : ObservationFieldSpec) :
+    EvidenceFieldDeclaration := {
+  id := fieldSpec.field
+  valueType := fieldSpec.valueType
+}
+
+/-- Project the field reference used by expressions and dispositions. -/
+def ObservationFieldSpec.reference (fieldSpec : ObservationFieldSpec) : EvidenceFieldReference := {
+  kind := fieldSpec.kind
+  field := fieldSpec.field
+}
+
 structure ObservationOperator where
   name : String
   version : Nat
@@ -89,6 +109,10 @@ inductive ObservationExpression where
   | digestToken (policy : DefinitionId) (operand : ObservationExpression)
   deriving BEq, DecidableEq, Repr
 
+/-- Project the existing closed field expression without adding authoring semantics. -/
+def ObservationFieldSpec.expression (fieldSpec : ObservationFieldSpec) : ObservationExpression :=
+  .field fieldSpec.reference
+
 /-- Inert authoring envelope that makes forbidden expression forms available for typed rejection. -/
 inductive ObservationExpressionAuthoring where
   | portable (expression : ObservationExpression)
@@ -116,6 +140,14 @@ structure FieldDispositionDeclaration where
   field : EvidenceFieldReference
   disposition : FieldDisposition
   deriving BEq, DecidableEq, Repr
+
+/-- Project a disposition declaration chosen explicitly by the Observation author. -/
+def ObservationFieldSpec.disposition
+    (fieldSpec : ObservationFieldSpec)
+    (disposition : FieldDisposition) : FieldDispositionDeclaration := {
+  field := fieldSpec.reference
+  disposition
+}
 
 structure ObservationBinding where
   id : DefinitionId
