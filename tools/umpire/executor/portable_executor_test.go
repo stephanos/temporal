@@ -24,7 +24,7 @@ import (
 )
 
 func TestPrepareLeanGeneratedModelPlansRetainExactArtifactBindings(t *testing.T) {
-	for _, name := range []string{"normal", "duplicate-delivery"} {
+	for _, name := range []string{"normal", "duplicate-delivery", "required-obligation"} {
 		t.Run(name, func(t *testing.T) {
 			encoded, err := os.ReadFile(filepath.Join(
 				"..", "portableevaluation", "testdata", "portable-test-plan-v1", name, "plan.pb",
@@ -32,20 +32,22 @@ func TestPrepareLeanGeneratedModelPlansRetainExactArtifactBindings(t *testing.T)
 			require.NoError(t, err)
 			plan := new(umpirespb.PortableTestPlan)
 			require.NoError(t, proto.Unmarshal(encoded, plan))
-			request := fixtureRequest(t, name)
-			wantInput, err := artifact.AdmitSet([]artifact.SetMember{
-				{Path: "artifacts/experiment.json", Encoded: request.GetInput().GetExperiment()},
-				{Path: "artifacts/runtime-configuration.json", Encoded: request.GetInput().GetRuntimeConfig()},
-			})
-			require.NoError(t, err)
-			gotInput, err := projectPortableExecution(plan)
-			require.NoError(t, err)
-			wantExecutable, ok := wantInput.Executable()
-			require.True(t, ok)
-			gotExecutable, ok := gotInput.Executable()
-			require.True(t, ok)
-			require.Equal(t, wantExecutable.Experiment(), gotExecutable.Experiment())
-			require.Equal(t, wantExecutable.RuntimeConfiguration(), gotExecutable.RuntimeConfiguration())
+			if name != "required-obligation" {
+				request := fixtureRequest(t, name)
+				wantInput, err := artifact.AdmitSet([]artifact.SetMember{
+					{Path: "artifacts/experiment.json", Encoded: request.GetInput().GetExperiment()},
+					{Path: "artifacts/runtime-configuration.json", Encoded: request.GetInput().GetRuntimeConfig()},
+				})
+				require.NoError(t, err)
+				gotInput, err := projectPortableExecution(plan)
+				require.NoError(t, err)
+				wantExecutable, ok := wantInput.Executable()
+				require.True(t, ok)
+				gotExecutable, ok := gotInput.Executable()
+				require.True(t, ok)
+				require.Equal(t, wantExecutable.Experiment(), gotExecutable.Experiment())
+				require.Equal(t, wantExecutable.RuntimeConfiguration(), gotExecutable.RuntimeConfiguration())
+			}
 
 			prepared, err := preparePortableExecution(
 				context.Background(), plan,

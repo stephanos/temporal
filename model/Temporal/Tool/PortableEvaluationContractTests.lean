@@ -124,18 +124,26 @@ example :
 
 private def requiredObligationRetained : Bool :=
   match obligationPlan.externalObligations with
-  | [first, second, third] =>
-      first.kind == .required && second.kind == .required && third.kind == .required &&
-        first.definition != second.definition && second.definition != third.definition &&
-        first.source == Temporal.System.Nexus.Observation.mappingDeclaration.source &&
-        second.source == Temporal.System.Nexus.Observation.mappingDeclaration.source &&
-        third.source == Temporal.System.Nexus.Observation.mappingDeclaration.source
+  | [first, second, third, fourth, fifth, sixth, seventh] =>
+      [first, second, third, fourth, fifth, sixth, seventh].all (fun obligation =>
+        obligation.kind == .required) &&
+        [first.definition, second.definition, third.definition, fourth.definition,
+          fifth.definition, sixth.definition, seventh.definition].eraseDups.length == 7 &&
+        first.source == Temporal.Feature.Nexus.Experimental.CallerClosure.propertyDeclaration.source &&
+        second.source == Temporal.Feature.Nexus.Experimental.CallerClosure.propertyDeclaration.source &&
+        third.source == Temporal.Feature.Nexus.Experimental.CallerClosure.propertyDeclaration.source &&
+        fourth.source == Temporal.Feature.Nexus.Experimental.CallerClosure.propertyDeclaration.source &&
+        fifth.source == Temporal.System.Nexus.Observation.mappingDeclaration.source &&
+        sixth.source == Temporal.System.Nexus.Observation.mappingDeclaration.source &&
+        seventh.source == Temporal.System.Nexus.Observation.mappingDeclaration.source
   | _ => false
 
 example :
     normalPlan.modelCompiled.compilerContract.definitionId =
       DefinitionId.of "umpire.compiler.portable-test-plan.v1" ∧
     normalPlan.externalObligations.isEmpty = true ∧
+    obligationPlan.verification.properties.head?.map (fun property => property.clauses) =
+      normalPlan.verification.properties.head?.map (fun property => property.clauses) ∧
     requiredObligationRetained = true := by
   native_decide
 
