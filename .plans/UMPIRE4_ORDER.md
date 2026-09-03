@@ -51,6 +51,9 @@ validated model-bound behavior against disposable local execution. This internal
 interface becomes the required downstream seam for deferred fn-29; production canary consumption
 does not gate fn-52.
 
+**Progress:** 3 of 6 tasks complete; next is task 4, adapting the existing runner and evaluator to
+execute typed plans.
+
 ## Complete P3 — Exploration and regression lifecycle
 
 ### 2. fn-33 — Run model exploration campaigns with umpire-fuzz

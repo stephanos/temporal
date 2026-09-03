@@ -117,7 +117,7 @@ func validatePlan(plan *umpirespb.PortableTestPlan, checksumOptional bool) error
 				"mandatory diagnostic has %d bytes; limit is %d", diagnosticBytes,
 				validator.limits.GetOutput().GetMaxDiagnosticBytes())
 		}
-		mandatoryBytes := int64(proto.Size(mandatory))
+		mandatoryBytes := int64(mandatoryResultBytes(plan))
 		if mandatoryBytes > validator.limits.GetOutput().GetMaxResultBytes() {
 			return admissionError(ErrorLimit, "$.limits.output.maxResultBytes",
 				"mandatory result has %d bytes; limit is %d", mandatoryBytes,

@@ -20,6 +20,8 @@ const (
 	ErrorLimit               ErrorCode = "limit"
 	ErrorBinding             ErrorCode = "binding"
 	ErrorChecksum            ErrorCode = "checksum"
+	ErrorProvenance          ErrorCode = "provenance"
+	ErrorResultAuthority     ErrorCode = "result-authority"
 )
 
 // AdmissionError reports a fail-closed portable plan admission failure.

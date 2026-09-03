@@ -2,6 +2,7 @@ package testplan
 
 import (
 	"bytes"
+	"context"
 	"slices"
 	"testing"
 
@@ -549,6 +550,7 @@ func TestAdmissionRejectsDeclaredContentAndResultNPlusOne(t *testing.T) {
 	for _, testCase := range []struct {
 		name       string
 		provenance func(*umpirespb.PortableTestPlan)
+		verifier   ModelProvenanceVerifier
 		outcome    umpirespb.ProvenanceOutcome
 		scope      umpirespb.ClaimScope
 	}{
@@ -560,13 +562,14 @@ func TestAdmissionRejectsDeclaredContentAndResultNPlusOne(t *testing.T) {
 			name: "model compiled", provenance: func(plan *umpirespb.PortableTestPlan) {
 				plan.Provenance = &umpirespb.PortableTestPlan_ModelCompiled{ModelCompiled: testModelProvenance()}
 			},
-			outcome: umpirespb.PROVENANCE_OUTCOME_MODEL_VERIFIED, scope: umpirespb.CLAIM_SCOPE_MODEL_BOUND,
+			verifier: acceptExactModelProvenance,
+			outcome:  umpirespb.PROVENANCE_OUTCOME_MODEL_VERIFIED, scope: umpirespb.CLAIM_SCOPE_MODEL_BOUND,
 		},
 	} {
 		t.Run(testCase.name+" mandatory result", func(t *testing.T) {
 			resultPlan := testPlan()
 			testCase.provenance(resultPlan)
-			requireExactMandatoryResultLimit(t, resultPlan, testCase.outcome, testCase.scope)
+			requireExactMandatoryResultLimit(t, resultPlan, testCase.verifier, testCase.outcome, testCase.scope)
 		})
 	}
 
@@ -632,6 +635,7 @@ func TestAdmissionUsesExactDeclaredStructuralBounds(t *testing.T) {
 func requireExactMandatoryResultLimit(
 	t *testing.T,
 	plan *umpirespb.PortableTestPlan,
+	verifier ModelProvenanceVerifier,
 	outcome umpirespb.ProvenanceOutcome,
 	scope umpirespb.ClaimScope,
 ) {
@@ -648,9 +652,12 @@ func requireExactMandatoryResultLimit(
 		admitted, err = Admit(sealed)
 		require.NoError(t, err)
 	}
-	reserved := mandatoryResult(sealed)
+	authorized, err := Authorize(context.Background(), admitted, verifier)
+	require.NoError(t, err)
+	reserved := authorized.ResultLimitExceeded()
 	require.Equal(t, outcome, reserved.GetProvenanceOutcome())
 	require.Equal(t, scope, reserved.GetClaimScope())
+	require.Equal(t, admitted.MandatoryResultBytes(), proto.Size(reserved))
 	plan.GetLimits().GetOutput().MaxResultBytes--
 	_, err = Seal(plan)
 	requirePlanError(t, err, ErrorLimit)
