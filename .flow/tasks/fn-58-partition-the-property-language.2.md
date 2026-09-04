@@ -44,9 +44,12 @@ Move typed errors, capability and check contexts, resolved and checked contracts
 - [ ] `cd model && mise exec -- lake build Umpire.Property.Language Umpire.Property.Check Umpire.Property.Tests Umpire.Examples.SwitchTests` passes.
 
 ## Done summary
-TBD
+Extracted typed Property checking and canonicalization into `Umpire.Property.Check` behind the unchanged facade, leaving `Language` with inert authoring vocabulary and preserving the downward import chain. Added exact typed/rendered diagnostic coverage plus fingerprint ordering, presentation-neutrality, and semantic-sensitivity coverage; all focused and aggregate gates passed, with the approved Go-lint baseline and waiver unchanged.
 
+Concurrent unrelated commits landed after the task commit, so evidence intentionally identifies only task commit `100227529c03f0c17c2faddd4164034af4508ceb`.
+
+stage: impl-review - ran (model: gpt-5.6-sol, verdict: SHIP, receipt: /tmp/impl-review-receipt-fn-58-partition-the-property-language.2.json)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 100227529c03f0c17c2faddd4164034af4508ceb
+- Tests: baseline: green via handoff (verified at d425b6b3 by fn-58-partition-the-property-language.1), cd model && mise exec -- lake build Umpire.Property.Language Umpire.Property.Check Umpire.Property.Tests Umpire.Examples.SwitchTests, cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Property.ImportTests Umpire.Observation.Tests.Verdict, cd model && mise exec -- lake build UmpireTests Temporal TemporalModelTests TemporalExperimentalTests, make umpire-build-model, make umpire-check-regression, make lint-model, make lint-code GOLANGCI_LINT_FIX=false (approved inherited exact 1,381 findings), GOLANGCI_LINT_BASE_REV=fbbaf5ae65f7371df0171cd36f57b5bd104eb2d9 make lint-code GOLANGCI_LINT_FIX=false (0 golangci findings; unchanged tools/umpire/runtime/errors.go:60 errortype finding waived), checker and Language-prefix byte-identity comparisons against fbbaf5ae65f7371df0171cd36f57b5bd104eb2d9 (0 diff), git diff --check
 - PRs:
