@@ -635,6 +635,11 @@ def sendHello : Temporal.API.Proto.Method SendHelloRequest SendHelloResponse :=
   { fullName := "temporal.server.api.testservice.v1.TestService.SendHello", clientStreaming := false, serverStreaming := false, deprecated := false }
 end Temporal.Server.Api.Testservice.V1.TestService
 
+namespace Temporal.Server.Api.Umpire.V1.UmpireExecutor
+def execute : Temporal.API.Proto.Method PortableTestPlan ExecutionResult :=
+  { fullName := "temporal.server.api.umpire.v1.UmpireExecutor.Execute", clientStreaming := false, serverStreaming := false, deprecated := false }
+end Temporal.Server.Api.Umpire.V1.UmpireExecutor
+
 namespace Temporal.Server.Chasm.Lib.Activity.Proto.V1.ActivityService
 def startActivityExecution : Temporal.API.Proto.Method StartActivityExecutionRequest StartActivityExecutionResponse :=
   { fullName := "temporal.server.chasm.lib.activity.proto.v1.ActivityService.StartActivityExecution", clientStreaming := false, serverStreaming := false, deprecated := false }
