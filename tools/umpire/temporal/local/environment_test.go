@@ -5,111 +5,39 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"reflect"
 	"slices"
 	"strings"
-	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/sdk/client"
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 )
 
-func TestFactoryHasNoCallerSelectedAuthorityInput(t *testing.T) {
-	constructor := reflect.TypeOf(NewFactory)
-	require.Equal(t, 0, constructor.NumIn())
-	require.Equal(t, 1, constructor.NumOut())
-}
-
-func TestRealFactoriesOwnDistinctLoopbackEnvironments(t *testing.T) {
-	requests := []umpireruntime.CheckedRunRequest{
-		testRequest(t, "umpire.local.environment.one"),
-		testRequest(t, "umpire.local.environment.two"),
-	}
-	type started struct {
-		environment Environment
-		receipt     umpireruntime.Receipt
-	}
-	startedEnvironments := make([]started, len(requests))
-	var group sync.WaitGroup
-	for index := range requests {
-		group.Add(1)
-		go func() {
-			defer group.Done()
-			command, ok := requests[index].Command(umpireruntime.CommandPrepare)
-			require.True(t, ok)
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			defer cancel()
-			runtimeEnvironment, receipt := NewFactory().Prepare(ctx, requests[index], command)
-			require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
-			environment, ok := AsEnvironment(runtimeEnvironment)
-			require.True(t, ok)
-			startedEnvironments[index] = started{environment: environment, receipt: receipt}
-		}()
-	}
-	group.Wait()
-	t.Cleanup(func() {
-		for index, startedEnvironment := range startedEnvironments {
-			if startedEnvironment.environment == nil {
-				continue
-			}
-			command, ok := requests[index].Command(umpireruntime.CommandCleanup)
-			require.True(t, ok)
-			ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-			receipt := startedEnvironment.environment.Cleanup(ctx, command)
-			cancel()
-			require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
-		}
-	})
-
-	first := startedEnvironments[0].environment.Identities()
-	second := startedEnvironments[1].environment.Identities()
-	require.NotEqual(t, first.Namespace, second.Namespace)
-	require.NotEqual(t, first.Endpoint, second.Endpoint)
-	require.NotEqual(t, first.TaskQueue, second.TaskQueue)
-	for _, identity := range []string{
-		first.Namespace, first.Endpoint, first.TaskQueue,
-		second.Namespace, second.Endpoint, second.TaskQueue,
-	} {
-		require.Regexp(t, `^sha256:[0-9a-f]{64}$`, identity)
-	}
-	require.NotNil(t, startedEnvironments[0].environment.Client())
-	require.NotNil(t, startedEnvironments[1].environment.Client())
-	require.NotEqual(t,
-		startedEnvironments[0].environment.Client(),
-		startedEnvironments[1].environment.Client(),
-	)
-
-	for index, startedEnvironment := range startedEnvironments {
-		command, ok := requests[index].Command(umpireruntime.CommandRealize)
-		require.True(t, ok)
-		options, ok := startedEnvironment.environment.WorkflowOptions(command)
-		require.True(t, ok)
-		require.NotEmpty(t, options.ID)
-		require.NotEmpty(t, options.TaskQueue)
-		require.NotNil(t, options.RetryPolicy)
-		require.EqualValues(t, 1, options.RetryPolicy.MaximumAttempts)
-	}
-}
-
 func TestFactoryCancellationDoesNotStartAuthority(t *testing.T) {
 	request := testRequest(t, "umpire.local.environment.canceled")
 	command, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
-	starter := &recordingStarter{}
-	factory := newFactory(starter)
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	environment, receipt := factory.Prepare(ctx, request, command)
-	require.Nil(t, environment)
-	require.Equal(t, umpireruntime.ReceiptCanceled, receipt.Status())
-	require.Equal(t, 0, starter.calls)
-	require.Equal(t, "umpire.runtime.code.canceled", errorCode(receipt))
+	for _, test := range []struct {
+		name string
+		ctx  context.Context
+	}{
+		{name: "nil"},
+		{name: "canceled", ctx: ctx},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			starter := &recordingStarter{}
+			environment, receipt := newFactory(starter).Prepare(test.ctx, request, command)
+			require.Nil(t, environment)
+			require.Equal(t, umpireruntime.ReceiptCanceled, receipt.Status())
+			require.Equal(t, 0, starter.calls)
+			require.Equal(t, "umpire.runtime.code.canceled", errorCode(receipt))
+		})
+	}
 }
 
 func TestFactorySanitizesPartialStartupFailures(t *testing.T) {
@@ -117,7 +45,7 @@ func TestFactorySanitizesPartialStartupFailures(t *testing.T) {
 	command, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
 	backend := &recordingAuthority{
-		resources: []ownedResource{{kind: ownedServer}},
+		resources: []ownedResource{{kind: ownedEnvironment}},
 		clientErr: errors.New("secret endpoint and credential"),
 	}
 	factory := newFactory(&recordingStarter{authority: backend})
@@ -127,6 +55,7 @@ func TestFactorySanitizesPartialStartupFailures(t *testing.T) {
 	require.Equal(t, "umpire.runtime.code.failed", errorCode(receipt))
 	require.NotContains(t, receiptText(receipt), "secret")
 	require.NotContains(t, receiptText(receipt), "credential")
+	require.Equal(t, 1, backend.connectCalls)
 	environment, ok := AsEnvironment(runtimeEnvironment)
 	require.True(t, ok)
 
@@ -134,7 +63,7 @@ func TestFactorySanitizesPartialStartupFailures(t *testing.T) {
 	require.True(t, ok)
 	cleanupReceipt := environment.Cleanup(context.Background(), cleanupCommand)
 	require.Equal(t, umpireruntime.ReceiptAccepted, cleanupReceipt.Status())
-	require.Equal(t, []string{"server"}, backend.releaseOrder)
+	require.Equal(t, []string{"environment"}, backend.releaseOrder)
 }
 
 func TestEnvironmentReceiptsUsePortableEvidenceKinds(t *testing.T) {
@@ -261,5 +190,3 @@ func receiptText(receipt umpireruntime.Receipt) string {
 	slices.Sort(values)
 	return strings.Join(values, "\n")
 }
-
-var _ client.Client

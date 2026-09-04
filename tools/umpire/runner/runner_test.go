@@ -114,17 +114,35 @@ func TestRunClassifiesAdapterPreflightAsNotStarted(t *testing.T) {
 
 func TestRunClassifiesParticipantConstructionAsNotStarted(t *testing.T) {
 	input := admitCallerClosureSet(t)
+	adapter := &participantFailureAdapter{Binding: testNexusBinding(t)}
 
 	_, err := runner.Run(
 		context.Background(),
 		input,
 		expectedCallerClosureInput,
 		"umpire.generated.runner.participant-classification-1",
-		participantFailureAdapter{Binding: nexus.Binding{}},
+		adapter,
 	)
 
 	require.Error(t, err)
 	requireExecutionOccurred(t, err, false)
+	require.Equal(t, 1, adapter.participantCalls)
+}
+
+func TestRunRejectsIncompleteAdapterBeforeParticipantConstruction(t *testing.T) {
+	adapter := &participantFailureAdapter{}
+
+	_, err := runner.Run(
+		context.Background(),
+		admitCallerClosureSet(t),
+		expectedCallerClosureInput,
+		"umpire.generated.runner.incomplete-adapter-1",
+		adapter,
+	)
+
+	require.ErrorContains(t, err, "umpire runner adapter is incomplete")
+	requireExecutionOccurred(t, err, false)
+	require.Equal(t, 0, adapter.participantCalls)
 }
 
 func TestRunRejectsLimitNPlusOneBeforeAdapterConstruction(t *testing.T) {
@@ -207,16 +225,18 @@ func TestRunResolvesAndEnforcesDeclaredRuntimeBindingSlotsBeforeDispatch(t *test
 	}}
 
 	for _, test := range []struct {
-		name             string
-		value            *umpirespb.Value
-		wantParticipants int
+		name                    string
+		value                   *umpirespb.Value
+		wantParticipants        int
+		wantEnvironmentAccesses int
 	}{
 		{
 			name: "satisfied precondition",
 			value: &umpirespb.Value{Value: &umpirespb.Value_Text{
 				Text: "fixture",
 			}},
-			wantParticipants: 1,
+			wantParticipants:        1,
+			wantEnvironmentAccesses: 1,
 		},
 		{
 			name:  "unmet precondition",
@@ -228,7 +248,7 @@ func TestRunResolvesAndEnforcesDeclaredRuntimeBindingSlotsBeforeDispatch(t *test
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			adapter := &runtimeBindingAdapter{value: test.value}
+			adapter := &runtimeBindingAdapter{Binding: testNexusBinding(t), value: test.value}
 
 			_, err := runner.Run(
 				context.Background(), input, binding,
@@ -241,7 +261,7 @@ func TestRunResolvesAndEnforcesDeclaredRuntimeBindingSlotsBeforeDispatch(t *test
 				require.ErrorContains(t, err, "participant construction failed")
 			}
 			require.Equal(t, test.wantParticipants, adapter.participantCalls)
-			require.Equal(t, 0, adapter.environmentCalls)
+			require.Equal(t, test.wantEnvironmentAccesses, adapter.environmentCalls)
 			requireExecutionOccurred(t, err, false)
 		})
 	}
@@ -257,7 +277,7 @@ func TestRunRequiresRuntimeBindingResolverBeforeDispatch(t *testing.T) {
 		},
 		ValueKind: umpirespb.PORTABLE_VALUE_KIND_TEXT,
 	}}
-	adapter := participantFailureAdapter{Binding: nexus.Binding{}}
+	adapter := &participantFailureAdapter{}
 
 	_, err := runner.Run(
 		context.Background(), input, binding,
@@ -316,6 +336,7 @@ type authorityLeakAdapter struct {
 
 type participantFailureAdapter struct {
 	nexus.Binding
+	participantCalls int
 }
 
 type runtimeBindingAdapter struct {
@@ -343,13 +364,31 @@ func (a *runtimeBindingAdapter) NewParticipant(
 
 func (a *runtimeBindingAdapter) EnvironmentFactory() umpireruntime.EnvironmentFactory {
 	a.environmentCalls++
-	return nil
+	return a.Binding.EnvironmentFactory()
 }
 
-func (participantFailureAdapter) NewParticipant(
+func (a *participantFailureAdapter) NewParticipant(
 	umpireruntime.CheckedRunRequest,
 ) (umpireruntime.Participant, error) {
+	a.participantCalls++
 	return nil, errors.New("participant construction failed")
+}
+
+type testEnvironmentFactory struct{}
+
+func (*testEnvironmentFactory) Prepare(
+	context.Context,
+	umpireruntime.CheckedRunRequest,
+	umpireruntime.Command,
+) (umpireruntime.Environment, umpireruntime.Receipt) {
+	panic("test environment factory must not prepare an environment")
+}
+
+func testNexusBinding(t *testing.T) nexus.Binding {
+	t.Helper()
+	binding, err := nexus.NewBinding(&testEnvironmentFactory{})
+	require.NoError(t, err)
+	return binding
 }
 
 func requireExecutionOccurred(t *testing.T, err error, want bool) {

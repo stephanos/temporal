@@ -17,7 +17,6 @@ import (
 	"go.temporal.io/sdk/client"
 	sdktemporal "go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
-	"go.temporal.io/server/temporaltest"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 )
 
@@ -74,12 +73,6 @@ type Environment interface {
 	RecordOperationCount(umpireruntime.Command, string, uint64) error
 	RecordControlCount(umpireruntime.Command, string, uint64) error
 	CloseIsolationInputs(umpireruntime.Command) error
-}
-
-// NewFactory returns the sole closed local authority factory. It deliberately
-// accepts no options so a caller cannot select or reuse a Temporal authority.
-func NewFactory() umpireruntime.EnvironmentFactory {
-	return newFactory(temporalStarter{})
 }
 
 // AsEnvironment narrows the generic runtime environment to this vertical adapter.
@@ -503,8 +496,8 @@ func (e *environment) recordOwnedResourcesAfter(
 		e.live[kind] = resource
 		resources = append(resources, resource)
 	}
-	// The returned environment itself is owned even when temporaltest has already
-	// unwound every partial server resource.
+	// The returned environment wrapper is Umpire-owned even when the authority
+	// reports no resource marker.
 	if _, exists := e.live[umpireruntime.ResourceEnvironment]; !exists {
 		resource, err := umpireruntime.NewResource(
 			umpireruntime.ResourceEnvironment,
@@ -752,46 +745,10 @@ func sortResources(resources []umpireruntime.Resource) {
 	})
 }
 
-type authorityStarter interface {
-	Start(context.Context) (temporalAuthority, error)
-}
-
-type temporalAuthority interface {
-	Connect(context.Context) error
-	SDKClient() client.Client
-	StartWorker(context.Context, string, string, WorkerRegistration) error
-	Stop(context.Context) error
-	OwnedResources() []ownedResource
-	Namespace() string
-	Endpoint() string
-}
-
-type ownedResourceKind string
-
-const (
-	ownedWorker ownedResourceKind = "worker"
-	ownedClient ownedResourceKind = "client"
-	ownedServer ownedResourceKind = "server"
-)
-
-type ownedResource struct {
-	kind ownedResourceKind
-}
-
-func ownedKinds(resources []ownedResource) map[ownedResourceKind]struct{} {
-	kinds := make(map[ownedResourceKind]struct{}, len(resources))
-	for _, resource := range resources {
-		kinds[resource.kind] = struct{}{}
-	}
-	return kinds
-}
-
 func runtimeResourceKind(kind ownedResourceKind) umpireruntime.ResourceKind {
 	switch kind {
 	case ownedWorker:
 		return umpireruntime.ResourceWorker
-	case ownedClient:
-		return umpireruntime.ResourceConnection
 	default:
 		return umpireruntime.ResourceEnvironment
 	}
@@ -801,86 +758,10 @@ func ownedKindForResource(kind umpireruntime.ResourceKind) ownedResourceKind {
 	switch kind {
 	case umpireruntime.ResourceWorker:
 		return ownedWorker
-	case umpireruntime.ResourceConnection:
-		return ownedClient
 	default:
-		return ownedServer
+		return ownedEnvironment
 	}
 }
-
-type temporalStarter struct{}
-
-func (temporalStarter) Start(ctx context.Context) (temporalAuthority, error) {
-	server, err := temporaltest.NewServerWithContext(ctx, temporaltest.WithFrontendHTTP())
-	if server == nil {
-		return nil, err
-	}
-	authority := &temporalTestAuthority{server: server, namespace: server.GetDefaultNamespace()}
-	for _, resource := range server.OwnedResources() {
-		if resource.Kind == temporaltest.LifecycleResourceServer {
-			authority.endpoint = server.GetFrontendHostPort()
-			break
-		}
-	}
-	return authority, err
-}
-
-type temporalTestAuthority struct {
-	server    *temporaltest.TestServer
-	client    client.Client
-	namespace string
-	endpoint  string
-}
-
-func (a *temporalTestAuthority) Connect(ctx context.Context) error {
-	connected, err := a.server.GetDefaultClientWithContext(ctx)
-	a.client = connected
-	return err
-}
-
-func (a *temporalTestAuthority) SDKClient() client.Client { return a.client }
-
-func (a *temporalTestAuthority) StartWorker(
-	ctx context.Context,
-	taskQueue string,
-	identity string,
-	registration WorkerRegistration,
-) error {
-	_, err := a.server.NewWorkerWithOptionsContext(
-		ctx,
-		taskQueue,
-		registration.Register,
-		worker.Options{
-			Identity:          identity,
-			WorkerStopTimeout: umpireruntime.CanonicalPhaseLimits()[4].Duration(),
-		},
-	)
-	return err
-}
-
-func (a *temporalTestAuthority) Stop(ctx context.Context) error {
-	return a.server.StopContext(ctx)
-}
-
-func (a *temporalTestAuthority) OwnedResources() []ownedResource {
-	owned := a.server.OwnedResources()
-	resources := make([]ownedResource, 0, len(owned))
-	for _, resource := range owned {
-		switch resource.Kind {
-		case temporaltest.LifecycleResourceWorker:
-			resources = append(resources, ownedResource{kind: ownedWorker})
-		case temporaltest.LifecycleResourceClient:
-			resources = append(resources, ownedResource{kind: ownedClient})
-		case temporaltest.LifecycleResourceServer:
-			resources = append(resources, ownedResource{kind: ownedServer})
-		}
-	}
-	return resources
-}
-
-func (a *temporalTestAuthority) Namespace() string { return a.namespace }
-func (a *temporalTestAuthority) Endpoint() string  { return a.endpoint }
 
 var _ umpireruntime.EnvironmentFactory = (*factory)(nil)
 var _ Environment = (*environment)(nil)
-var _ temporalAuthority = (*temporalTestAuthority)(nil)

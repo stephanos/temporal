@@ -88,6 +88,72 @@ func TestAttachedFactoryRejectsAuthorityDriftBeforeResourceAcquisition(t *testin
 	}
 }
 
+func TestDistinctAttachedFactoriesPrepareConcurrentlyWithSeparateBindings(t *testing.T) {
+	type prepared struct {
+		environment Environment
+		receipt     umpireruntime.Receipt
+	}
+	requests := []umpireruntime.CheckedRunRequest{
+		testRequest(t, "umpire.attached.concurrent.one"),
+		testRequest(t, "umpire.attached.concurrent.two"),
+	}
+	clients := []*recordingAttachedClient{{}, {}}
+	namespaces := []string{"attached-namespace-one", "attached-namespace-two"}
+	endpoints := []string{"127.0.0.1:7233", "127.0.0.1:7234"}
+	factories := make([]umpireruntime.EnvironmentFactory, len(requests))
+	for index := range factories {
+		factory, err := newAttachedFactory(&recordingAttachedAuthority{
+			client: clients[index], namespace: namespaces[index], endpoint: endpoints[index],
+		}, (&recordingAttachedWorkerFactory{}).newWorker)
+		require.NoError(t, err)
+		factories[index] = factory
+	}
+	commands := make([]umpireruntime.Command, len(requests))
+	for index, request := range requests {
+		var ok bool
+		commands[index], ok = request.Command(umpireruntime.CommandPrepare)
+		require.True(t, ok)
+	}
+
+	results := make([]prepared, len(requests))
+	start := make(chan struct{})
+	var group sync.WaitGroup
+	for index := range requests {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			<-start
+			runtimeEnvironment, receipt := factories[index].Prepare(
+				context.Background(), requests[index], commands[index],
+			)
+			environment, _ := AsEnvironment(runtimeEnvironment)
+			results[index] = prepared{environment: environment, receipt: receipt}
+		}()
+	}
+	close(start)
+	group.Wait()
+
+	for index, result := range results {
+		require.NotNil(t, result.environment)
+		require.Equal(t, umpireruntime.ReceiptAccepted, result.receipt.Status())
+		require.Equal(t, []umpireruntime.ResourceKind{
+			umpireruntime.ResourceEnvironment,
+		}, resourceKinds(result.receipt.AcquiredResources()))
+		require.Same(t, clients[index], result.environment.Client())
+		cleanup, ok := requests[index].Command(umpireruntime.CommandCleanup)
+		require.True(t, ok)
+		closed := result.environment.Cleanup(context.Background(), cleanup)
+		require.Equal(t, umpireruntime.ReceiptAccepted, closed.Status())
+		require.Equal(t, "0", receiptField(closed, umpireruntime.EvidenceFieldOpenHandleCount))
+		require.Equal(t, 0, clients[index].closeCalls)
+	}
+	first := results[0].environment.Identities()
+	second := results[1].environment.Identities()
+	require.NotEqual(t, first.Namespace, second.Namespace)
+	require.NotEqual(t, first.Endpoint, second.Endpoint)
+	require.NotEqual(t, first.TaskQueue, second.TaskQueue)
+}
+
 func TestAttachedFactoryOwnsOnlyFreshRunWorkers(t *testing.T) {
 	borrowedClient := &recordingAttachedClient{}
 	authority := &recordingAttachedAuthority{
@@ -283,6 +349,67 @@ func TestAttachedWorkerStartCancellationReturnsBeforeBlockedStartAndCleansEventu
 	require.Equal(t, 1, workers.workers[0].closedCount())
 }
 
+func TestAttachedWorkerFailuresRetainOnlyAcquiredResources(t *testing.T) {
+	tests := []struct {
+		name         string
+		workers      *recordingAttachedWorkerFactory
+		wantAcquired []umpireruntime.ResourceKind
+		wantReleased []umpireruntime.ResourceKind
+	}{
+		{
+			name:         "worker factory failure",
+			workers:      &recordingAttachedWorkerFactory{newWorkerErr: errors.New("private worker factory failure")},
+			wantAcquired: []umpireruntime.ResourceKind{},
+			wantReleased: []umpireruntime.ResourceKind{umpireruntime.ResourceEnvironment},
+		},
+		{
+			name:         "nil worker",
+			workers:      &recordingAttachedWorkerFactory{returnNil: true},
+			wantAcquired: []umpireruntime.ResourceKind{},
+			wantReleased: []umpireruntime.ResourceKind{umpireruntime.ResourceEnvironment},
+		},
+		{
+			name:         "worker start failure",
+			workers:      &recordingAttachedWorkerFactory{startErr: errors.New("private worker start failure")},
+			wantAcquired: []umpireruntime.ResourceKind{umpireruntime.ResourceWorker},
+			wantReleased: []umpireruntime.ResourceKind{
+				umpireruntime.ResourceEnvironment,
+				umpireruntime.ResourceWorker,
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			borrowedClient := &recordingAttachedClient{}
+			factory, err := newAttachedFactory(&recordingAttachedAuthority{
+				client: borrowedClient, namespace: "attached-namespace", endpoint: "127.0.0.1:7233",
+			}, test.workers.newWorker)
+			require.NoError(t, err)
+			request := testRequest(t, "umpire.attached.worker-failure."+strings.ReplaceAll(test.name, " ", "-"))
+			prepare, ok := request.Command(umpireruntime.CommandPrepare)
+			require.True(t, ok)
+			runtimeEnvironment, preparation := factory.Prepare(context.Background(), request, prepare)
+			require.Equal(t, umpireruntime.ReceiptAccepted, preparation.Status())
+			environment, ok := AsEnvironment(runtimeEnvironment)
+			require.True(t, ok)
+
+			started := environment.StartWorker(context.Background(), prepare, noopRegistration{})
+			require.Equal(t, umpireruntime.ReceiptFailed, started.Status())
+			require.Equal(t, test.wantAcquired, resourceKinds(started.AcquiredResources()))
+			require.NotContains(t, receiptText(started), "private")
+
+			cleanup, ok := request.Command(umpireruntime.CommandCleanup)
+			require.True(t, ok)
+			closed := environment.Cleanup(context.Background(), cleanup)
+			require.Equal(t, umpireruntime.ReceiptAccepted, closed.Status())
+			require.Equal(t, test.wantReleased, resourceKinds(closed.ReleasedResources()))
+			require.Equal(t, "0", receiptField(closed, umpireruntime.EvidenceFieldOpenHandleCount))
+			require.Equal(t, 0, borrowedClient.closeCalls)
+		})
+	}
+}
+
 func TestAttachedWorkerStopCancellationReturnsBeforeBlockedStopAndClosesOnce(t *testing.T) {
 	stopEntered := make(chan struct{})
 	stopRelease := make(chan struct{})
@@ -437,6 +564,9 @@ func (c *isolationAttachedClient) ListWorkflow(
 
 type recordingAttachedWorkerFactory struct {
 	calls        int
+	newWorkerErr error
+	returnNil    bool
+	startErr     error
 	stopErrors   []error
 	workers      []*recordingAttachedWorker
 	startBlock   <-chan struct{}
@@ -451,9 +581,15 @@ func (f *recordingAttachedWorkerFactory) newWorker(
 	options worker.Options,
 ) (attachedWorker, error) {
 	f.calls++
+	if f.newWorkerErr != nil {
+		return nil, f.newWorkerErr
+	}
+	if f.returnNil {
+		return nil, nil
+	}
 	owned := &recordingAttachedWorker{
 		client: sdkClient, taskQueue: taskQueue, identity: options.Identity,
-		stopErrors: append([]error{}, f.stopErrors...), startBlock: f.startBlock,
+		startErr: f.startErr, stopErrors: append([]error{}, f.stopErrors...), startBlock: f.startBlock,
 		startEntered: f.startEntered, stopBlock: f.stopBlock, stopEntered: f.stopEntered,
 	}
 	f.workers = append(f.workers, owned)
@@ -467,6 +603,7 @@ type recordingAttachedWorker struct {
 	taskQueue    string
 	identity     string
 	startCalls   int
+	startErr     error
 	stopCalls    int
 	closed       int
 	stopErrors   []error
@@ -479,6 +616,7 @@ type recordingAttachedWorker struct {
 func (w *recordingAttachedWorker) Start() error {
 	w.mu.Lock()
 	w.startCalls++
+	startErr := w.startErr
 	startEntered := w.startEntered
 	startBlock := w.startBlock
 	w.mu.Unlock()
@@ -488,7 +626,7 @@ func (w *recordingAttachedWorker) Start() error {
 	if startBlock != nil {
 		<-startBlock
 	}
-	return nil
+	return startErr
 }
 
 func (w *recordingAttachedWorker) Stop() error {

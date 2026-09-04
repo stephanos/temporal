@@ -35,6 +35,10 @@ func TestNewBindingRetainsOnlyTheSuppliedEnvironmentFactory(t *testing.T) {
 	require.Same(t, factory, binding.EnvironmentFactory())
 }
 
+func TestZeroBindingHasNoEnvironmentFactory(t *testing.T) {
+	require.Nil(t, (Binding{}).EnvironmentFactory())
+}
+
 type bindingEnvironmentFactory struct{}
 
 type bindingEnvironmentFactoryMap map[string]string
