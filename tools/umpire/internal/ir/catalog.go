@@ -157,11 +157,12 @@ func NewCatalog(source *descriptorpb.FileDescriptorSet) (*Catalog, error) {
 	if err != nil {
 		return nil, invalid(Malformed, "catalog", "invalid descriptor graph")
 	}
-	intrinsic := umpirespb.InstructionOutcomeStatus(0).Descriptor()
-	if supplied, err := files.FindDescriptorByName(intrinsic.FullName()); err == nil {
-		enumeration, ok := supplied.(protoreflect.EnumDescriptor)
-		if !ok || !proto.Equal(protodesc.ToEnumDescriptorProto(enumeration), protodesc.ToEnumDescriptorProto(intrinsic)) {
-			return nil, invalid(TypeMismatch, "catalog", "conflicting intrinsic outcome status definition")
+	for _, intrinsic := range intrinsicEnums() {
+		if supplied, err := files.FindDescriptorByName(intrinsic.FullName()); err == nil {
+			enumeration, ok := supplied.(protoreflect.EnumDescriptor)
+			if !ok || !proto.Equal(protodesc.ToEnumDescriptorProto(enumeration), protodesc.ToEnumDescriptorProto(intrinsic)) {
+				return nil, invalid(TypeMismatch, "catalog", "conflicting intrinsic enum definition")
+			}
 		}
 	}
 	slices.SortFunc(snapshot.File, func(a, b *descriptorpb.FileDescriptorProto) int { return strings.Compare(a.GetName(), b.GetName()) })
@@ -225,4 +226,8 @@ func CheckSurface(source proto.Message, limits Limits) error {
 	}
 	b := budget{limits: limits}
 	return inspectSurface(source.ProtoReflect(), &b, "$")
+}
+
+func intrinsicEnums() []protoreflect.EnumDescriptor {
+	return []protoreflect.EnumDescriptor{umpirespb.InstructionOutcomeStatus(0).Descriptor(), umpirespb.RunEventKind(0).Descriptor()}
 }

@@ -48,6 +48,8 @@ structure RunEvent where
   causalSourceIds : List String := []
   outcome : Option InstructionOutcome := none
   observations : List ObservationValue := []
+  /-- Establishes execution incompleteness before this event's horizon processing. -/
+  executionIncomplete : Bool := false
   deriving BEq, Repr
 
 /-- Why execution stopped producing ordinary Program events. -/
@@ -130,6 +132,8 @@ structure Run where
   cleanup : CleanupOutcome
   verdict : Verdict
   diagnostics : List RunDiagnostic := []
+  /-- First event whose failed Monitor callback did not commit its staged evaluation. -/
+  evaluationFailureSequence : Option Nat := none
   deriving BEq, Repr
 
 end Umpire.Case

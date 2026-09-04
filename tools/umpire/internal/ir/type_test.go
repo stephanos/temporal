@@ -216,3 +216,11 @@ func TestIntrinsicOutcomeStatusWithoutHostSchema(t *testing.T) {
 	}
 	require.Error(t, catalog.CheckLiteral(&umpirespb.Value{Value: &umpirespb.Value_EnumValue{EnumValue: &umpirespb.EnumValue{Number: 99}}}, typ, DefaultLimits()))
 }
+
+func TestIntrinsicRunEventKind(t *testing.T) {
+	catalog, err := NewCatalog(&descriptorpb.FileDescriptorSet{})
+	require.NoError(t, err)
+	typ, err := catalog.BindType(&umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{Type: &umpirespb.SingularType_Enumeration{Enumeration: &umpirespb.NamedType{ProtobufType: "temporal.server.api.umpire.v1.RunEventKind"}}}}})
+	require.NoError(t, err)
+	require.Equal(t, umpirespb.RunEventKind(0).Descriptor(), typ.Enum())
+}

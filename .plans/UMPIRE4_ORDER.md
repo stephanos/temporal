@@ -63,22 +63,9 @@ The validated implementation waves are:
 10. `fn-64.10` — add the six-class conformance corpus and reconcile normative docs, generated
    artifacts, and regression gates.
 
-### 2. fn-60 — Deepen authored Lean canonical JSON construction
+### 2. fn-62 — Make ordinary Temporal model authoring approachable
 
-**Depends on:** no open spec dependency; excludes the completed `Umpire.Property` partition.
-
-**Scope:** make `Umpire.Json` the single typed construction and exact-rendering interface for Core
-Limit JSON and the handwritten Target, Behavior, Query, Space, Exploration, Observation, and
-Implementation Link formatters. Preserve public interfaces, validation and diagnostic precedence,
-field and element order, escaping and newline policy, canonical metadata, Artifact bytes, Behavior
-Fingerprints, imports, trust inventories, performance characteristics, and existing comments. Do
-not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
-changes, drift verification, or CI work.
-
-### 3. fn-62 — Make ordinary Temporal model authoring approachable
-
-**Depends on:** completed fn-58's frozen Property facade and fn-60's canonical-JSON cleanup across the
-overlapping handwritten Lean surfaces.
+**Depends on:** completed fn-58's frozen Property facade; no open spec dependency.
 
 **Scope:** reduce the Lean-specific ceremony required to author an ordinary finite Target, checked
 Property, Behavior, Query, plan, and Observation while preserving Umpire's existing languages and
@@ -91,6 +78,56 @@ for reviewed source/Known Gap deltas, trust inventories, failure boundaries, and
 Do not add another authoring language, infer providers or Model Outcomes, hide checker-success
 evidence, redesign the expert `TransitionKernel` or Experimental fault-space paths, or add broad
 generated-API drift and CI coverage.
+
+### 3. fn-65 — Design and prototype approachable Nexus2 feature authoring
+
+**Depends on:** no open spec dependency. Coordinate overlapping Umpire authoring changes with
+fn-60 and fn-62; this is a separate experiment, not a replacement for fn-62.
+
+**Planning status:** proposed design; review the authoring interface before finalizing the prototype
+implementation plan. See the [fn-65 spec](../.flow/specs/fn-65-design-and-prototype-approachable.md)
+and [Nexus2 design](../model/Temporal/Feature/Nexus2/DESIGN.md).
+
+**Scope:** prototype ordinary feature authoring under `model/Temporal/Feature/Nexus2`, beginning
+with the current Nexus lifecycle and then a separate cancellation/completion race. Compare typed
+transition records and focused syntax over the existing checked Target, Property, Behavior, and
+Query interfaces. Make possible outcomes, stable identities, Query forms, and typed Limits explicit
+while removing routine proof and encoding work from feature authors. Extend the Property language
+with typed conditions, named cases, trigger-time exceptions, and bounded coverage/conflict analysis;
+all applicable obligations hold together, without priority-based overrides. Evaluate state/transition
+extension, source-located diagnostics, checker performance, trust dependencies, and developer
+comprehension. Preserve the established Nexus model and existing semantic authority.
+
+**Deferred:** caller closure, general temporal expressions, System/Evidence integration, live
+execution, and a generated product-owner reading view until the initial authoring prototype works.
+
+### 4. fn-66 — Remove unused Umpire tooling after runtime and authoring cutovers
+
+**Depends on:** fn-64 and fn-62 complete.
+
+**Scope:** inventory every remaining `tools/umpire` package and command against retained runtime,
+Producer, authoring, generation, regression, and downstream consumers; remove proven unused code,
+exclusively owned tests/fixtures, and obsolete direct build, workflow, and documentation references.
+Extend fn-64's deletion accounting and preserve concrete retained contracts. Older-generation and
+general artifact support are eligible where no retained consumer remains; ambiguous ownership must
+be resolved before deletion. This follow-up does not repeat fn-64.8/.10 or depend on fn-60.
+
+**Task:** `fn-66.1` — inventory retained consumers and remove unused Umpire tooling.
+
+### 5. fn-60 — Deepen authored Lean canonical JSON construction
+
+**Depends on:** no open spec dependency; excludes the completed `Umpire.Property` partition.
+
+**Priority:** optional internal maintenance after the authoring work. Retain this cleanup because
+fn-62 does not consolidate serialization; it is not a prerequisite for fn-62.
+
+**Scope:** make `Umpire.Json` the single typed construction and exact-rendering interface for Core
+Limit JSON and the handwritten Target, Behavior, Query, Space, Exploration, Observation, and
+Implementation Link formatters. Preserve public interfaces, validation and diagnostic precedence,
+field and element order, escaping and newline policy, canonical metadata, Artifact bytes, Behavior
+Fingerprints, imports, trust inventories, performance characteristics, and existing comments. Do
+not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
+changes, drift verification, or CI work.
 
 ## Downstream work after the Case Runtime
 
@@ -188,7 +225,10 @@ fn-64.13 -> {fn-64.5, fn-64.6}
 {fn-64.4, fn-64.13} -> fn-64.9
 {fn-64.4, fn-64.5, fn-64.6, fn-64.9} -> fn-64.7 -> fn-64.8 -> fn-64.10
 
-fn-60 -> fn-62
+fn-58 (completed) -> fn-62
+{fn-64, fn-62} -> fn-66
+fn-60 (optional maintenance; no dependency on or from fn-62)
+fn-65 (independent Nexus2 authoring experiment)
 
 {fn-5, fn-64} -> fn-22
 {fn-48, fn-64} -> fn-26

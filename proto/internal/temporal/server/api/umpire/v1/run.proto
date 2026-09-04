@@ -50,6 +50,9 @@ message RunEvent {
   repeated string causal_source_ids = 6;
   InstructionOutcome outcome = 7;
   repeated ObservationValue observations = 8;
+  // Set before evaluation of the first event establishing execution incompleteness.
+  // Incompleteness remains effective for every later event.
+  bool execution_incomplete = 9;
 }
 
 enum RunDisposition {
@@ -134,4 +137,7 @@ message Run {
   CleanupOutcome cleanup = 6;
   Verdict verdict = 7;
   repeated RunDiagnostic diagnostics = 8;
+  // First event whose Monitor callback failed; its staged evaluation did not commit.
+  // Recorded after the callback, without changing the appended event.
+  RunEventSequence evaluation_failure_sequence = 9;
 }
