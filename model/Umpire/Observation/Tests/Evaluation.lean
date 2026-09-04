@@ -1,3 +1,4 @@
+import Umpire.Observation.Evaluation.Raw
 import Umpire.Observation.Tests.Structure
 
 /-! Pure evaluation behavior and exact R2/R4 status boundaries. -/
@@ -240,6 +241,82 @@ example : observationEvaluationFailureCases = [
   (.conflict, some .contradictoryBinding),
   (.conflict, some .contradictoryOrder),
   (.conflict, some .misdirectedFaultReceipt)
+] := by
+  native_decide
+
+def rawKnownGapCode : DefinitionId := id "test.evidence.gap.raw"
+def rawKnownGapRelated : DefinitionId := id "test.evidence.gap.raw-related"
+
+def rawFailurePrecedenceCases : List ObservationResult := [
+  evaluateFixture {
+    completeEvidence with
+    records := completeEvidence.records ++ [
+      { stepEvidence with id := secondStepEvidenceId, sequence := 3 },
+      { stepEvidence with id := id "test.evidence.record.step-3", sequence := 4 }
+    ]
+    sourceClosed := false
+    knownGaps := [{ code := rawKnownGapCode, relatedDefinitionIds := [rawKnownGapRelated] }]
+    profile := id "test.evidence.profile.other"
+  },
+  evaluateFixture {
+    completeEvidence with
+    sourceClosed := false
+    knownGaps := [{ code := rawKnownGapCode, relatedDefinitionIds := [rawKnownGapRelated] }]
+    records := []
+    profile := id "test.evidence.profile.other"
+  },
+  evaluateFixture {
+    completeEvidence with
+    knownGaps := [{ code := rawKnownGapCode, relatedDefinitionIds := [rawKnownGapRelated] }]
+    records := []
+    profile := id "test.evidence.profile.other"
+  },
+  evaluateFixture {
+    completeEvidence with records := [], profile := id "test.evidence.profile.other"
+  },
+  evaluateFixture {
+    completeEvidence with
+    profile := id "test.evidence.profile.other"
+    records := [initialEvidence, { stepEvidence with sequence := 3 }]
+    closures := [{ kind := eventKind, lastSequence := 3 }]
+  },
+  evaluateFixture {
+    completeEvidence with
+    records := [initialEvidence, {
+      stepEvidence with
+      sequence := 3
+      bindingFacts := [{ binding := id "test.binding.unknown", value := .text "unresolved" }]
+    }]
+    closures := [{ kind := eventKind, lastSequence := 3 }]
+  }
+]
+
+/-! Combined-invalid bundles pin the complete raw first-failure diagnostic and expose no partial
+unchecked trace through the public result. -/
+example : rawFailurePrecedenceCases.map (fun result => (result.diagnostic?, acceptedOf result)) = [
+  (some {
+    kind := .evidenceBoundExhausted
+    planId := evaluationDeclaration.id
+    limit := some { value := 3, unit := .evidenceRecords }
+    observedCount := some 4
+  }, none),
+  (some { kind := .missingClosure, planId := evaluationDeclaration.id }, none),
+  (some {
+    kind := .knownGap
+    planId := evaluationDeclaration.id
+    relatedDefinitionIds := [rawKnownGapCode, rawKnownGapRelated]
+  }, none),
+  (some { kind := .emptyEvidence, planId := evaluationDeclaration.id }, none),
+  (some {
+    kind := .profileMismatch
+    planId := evaluationDeclaration.id
+    relatedDefinitionIds := [id "test.evidence.profile.other"]
+  }, none),
+  (some {
+    kind := .sequenceGap
+    planId := evaluationDeclaration.id
+    relatedDefinitionIds := [stepEvidenceId]
+  }, none)
 ] := by
   native_decide
 
