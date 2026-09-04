@@ -42,9 +42,11 @@ Move the remaining live Run Evaluation normal and negative-control proofs from `
 
 
 ## Done summary
-TBD
+Moved the live Run Evaluation normal and duplicate-delivery proofs under `tests/` on the shared TestEnv-backed attached factory, while retaining fake-backed package-local operational and command coverage. Focused unit, race, exact tagged integration, aggregate regression, formatting, and scoped lint gates pass; global lint matches the inherited 1,378-finding baseline, and the parent-wide `^TestUmpire` gate remains red only in unchanged Umpire2/Umpire3 tests that execute before this task's new tests.
 
+stage: impl-review - ran [2026-09-04T03:11:12Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9521431bad43606e14d4d4669d7d6e54d4c82247, a9d06446f7e38bebb070713fc72f24037f6e90bb
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... (pass, post-review), go test -race -count=1 -tags test_dep ./tools/umpire/temporal/local/... (pass, post-review), TMPDIR=<physical> CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/runevaluation/... (pass), TMPDIR=<physical> CC=<Apple clang> SDKROOT=<macOS SDK> go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire.*RunEvaluation' (pass), TMPDIR=<physical> CC=<Apple clang> SDKROOT=<macOS SDK> go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire' (inherited red: unchanged earlier-ordered Umpire2/Umpire3 failures; exact task subset passes), TMPDIR=<physical> CC=<Apple clang> SDKROOT=<macOS SDK> make umpire-check-regression (pass: 270 jobs), CC=<Apple clang> SDKROOT=<macOS SDK> make fmt-imports (pass), CC=<Apple clang> SDKROOT=<macOS SDK> make lint-code (inherited red: exact 1378-issue baseline), CC=<Apple clang> SDKROOT=<macOS SDK> .bin/golangci-lint-v2.13.1 run --build-tags 'disable_grpc_modules,test_dep,integration' --timeout 10m --fix=false --new-from-rev=718fb9d365f0f873ff468189af2e8d98b047f83c --config=.github/.golangci.yml ./tools/umpire/runevaluation/... ./tests/... (pass: 0 issues), git diff --check (pass)
 - PRs:
