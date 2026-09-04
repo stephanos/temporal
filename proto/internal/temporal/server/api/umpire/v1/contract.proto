@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+import "temporal/server/api/umpire/v1/run.proto";
+import "temporal/server/api/umpire/v1/value.proto";
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+
+// The Contract keeps related messages and enums together as one closed interpreter vocabulary.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum ContractRuleKind {
+  CONTRACT_RULE_KIND_UNSPECIFIED = 0;
+  CONTRACT_RULE_KIND_SAFETY = 1;
+  CONTRACT_RULE_KIND_BOUNDED_LIVENESS = 2;
+}
+
+enum ContractTerminalState {
+  CONTRACT_TERMINAL_STATE_UNSPECIFIED = 0;
+  CONTRACT_TERMINAL_STATE_SATISFIED = 1;
+  CONTRACT_TERMINAL_STATE_VIOLATED = 2;
+}
+
+message ContractState {
+  string state_id = 1;
+  ContractTerminalState terminal = 2;
+}
+
+enum ContractSupport {
+  CONTRACT_SUPPORT_UNSPECIFIED = 0;
+  CONTRACT_SUPPORT_NONE = 1;
+  CONTRACT_SUPPORT_MATCHING_EVENT = 2;
+}
+
+// ContractTransition is evaluated in declaration order for its source state and event kind.
+message ContractTransition {
+  string transition_id = 1;
+  string source_state = 2;
+  string target_state = 3;
+  RunEventKinds event_kinds = 4;
+  ValueExpression predicate = 5;
+  ContractSupport support = 6;
+}
+
+// ContractHorizon closes bounded liveness only at a recorded timeout or Run-closure coordinate.
+message ContractHorizon {
+  int64 elapsed_milliseconds = 1;
+  string violation_state_id = 2;
+}
+
+// ContractRule is one finite deterministic safety or bounded-liveness monitor machine.
+message ContractRule {
+  string rule_id = 1;
+  ContractRuleKind kind = 2;
+  string initial_state = 3;
+  repeated ContractState states = 4;
+  repeated ContractTransition transitions = 5;
+  ContractHorizon horizon = 6;
+}
+
+message ContractLimits {
+  int64 max_rules = 1;
+  int64 max_states = 2;
+  int64 max_transitions = 3;
+  int64 max_expression_depth = 4;
+  int64 max_work_per_event = 5;
+  int64 max_total_work = 6;
+}
+
+// Contract contains only closed deterministic monitor machines over declared Run Observations.
+message Contract {
+  string contract_id = 1;
+  repeated ContractRule rules = 2;
+  ContractLimits limits = 3;
+}
