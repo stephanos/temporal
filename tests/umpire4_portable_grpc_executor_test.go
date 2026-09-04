@@ -224,11 +224,7 @@ func startPortableGRPCExecutor(
 	t.Helper()
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	server := grpc.NewServer(
-		grpc.MaxRecvMsgSize(int(testplan.MaximumPlanBytes)),
-		grpc.MaxSendMsgSize(int(testplan.MaximumResultBytes)),
-	)
-	umpirespb.RegisterUmpireExecutorServer(server, executorgrpc.New(resident))
+	server := executorgrpc.New(resident)
 	serveDone := make(chan error, 1)
 	go func() { serveDone <- server.Serve(listener) }()
 	t.Cleanup(func() {
