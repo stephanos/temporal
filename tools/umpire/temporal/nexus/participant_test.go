@@ -3,7 +3,6 @@ package nexus
 import (
 	"context"
 	"errors"
-	"fmt"
 	"testing"
 	"time"
 
@@ -14,90 +13,9 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
-	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 	"go.temporal.io/server/tools/umpire/temporal/local"
 )
-
-func TestLiveParticipantRealizesOneForceCloseAndClosesOperationalSources(t *testing.T) {
-	input := admitCallerClosureSet(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 135*time.Second)
-	defer cancel()
-
-	output, err := runner.Run(
-		ctx, input, callerClosureInputBinding(),
-		"umpire.local.caller-closure.live-force-close", Binding{},
-	)
-	require.NoError(t, err)
-	run := output.ExperimentRun()
-	require.Len(t, run.ControlAttempts, 1)
-	require.Equal(t, "accepted", run.ControlAttempts[0].Status)
-	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
-
-	eventCounts := map[string]int{}
-	cancellationCallbacks := []string{}
-	for _, fact := range output.RawEvidence().Facts {
-		for _, field := range fact.Fields {
-			switch field.FieldDefinitionID {
-			case umpireruntime.EvidenceFieldEventType:
-				value, ok := field.Value.(string)
-				require.True(t, ok)
-				eventCounts[value]++
-			case umpireruntime.EvidenceFieldCancellationCallbackCount:
-				cancellationCallbacks = append(cancellationCallbacks, fmt.Sprint(field.Value))
-			}
-		}
-	}
-	require.Equal(t, "succeeded", run.OperationalStatus)
-	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationScheduled"])
-	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationStarted"])
-	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequested"])
-	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequestCompleted"])
-	require.Equal(t, 1, eventCounts["temporal.history.WorkflowExecutionCanceled"])
-	require.Equal(t, []string{"1"}, cancellationCallbacks)
-	require.Empty(t, rawEvidenceFactsWithField(
-		output.RawEvidence(),
-		umpireruntime.EvidenceFieldSyntheticContributionMarker,
-	))
-}
-
-func TestLiveFaultedParticipantCompletesOneCancellationBeforeOneDuplicateObservation(t *testing.T) {
-	input := admitCallerClosureDuplicateDeliverySet(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 135*time.Second)
-	defer cancel()
-
-	output, err := runner.Run(
-		ctx, input, callerClosureDuplicateDeliveryInputBinding(),
-		"umpire.local.caller-closure.live-duplicate-delivery", Binding{},
-	)
-	require.NoError(t, err)
-	run := output.ExperimentRun()
-	require.Equal(t, "succeeded", run.OperationalStatus)
-	require.Len(t, run.ControlAttempts, 1)
-	require.Equal(t, "accepted", run.ControlAttempts[0].Status)
-	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
-
-	eventCounts := map[string]int{}
-	for _, fact := range output.RawEvidence().Facts {
-		for _, field := range fact.Fields {
-			if field.FieldDefinitionID != umpireruntime.EvidenceFieldEventType {
-				continue
-			}
-			value, ok := field.Value.(string)
-			require.True(t, ok)
-			eventCounts[value]++
-		}
-	}
-	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequested"])
-	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequestCompleted"])
-	synthetic := rawEvidenceFactsWithField(
-		output.RawEvidence(),
-		umpireruntime.EvidenceFieldSyntheticContributionMarker,
-	)
-	require.Len(t, synthetic, 1)
-	require.Equal(t, umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
-		synthetic[0].KindDefinitionID)
-}
 
 func TestParticipantAdmitsOnlyTheExactCheckedRequest(t *testing.T) {
 	_, err := NewParticipant(umpireruntime.CheckedRunRequest{})

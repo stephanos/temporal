@@ -1,22 +1,24 @@
-package nexus_test
+//go:build test_dep && integration
+
+package tests
 
 import (
+	"bytes"
 	"context"
 	"errors"
-	"os"
+	"fmt"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
-	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 	"go.temporal.io/server/tools/umpire/temporal/nexus"
 )
 
-func TestCallerClosurePathTraversesEveryStageExactlyOnce(t *testing.T) {
+func TestUmpireCallerClosurePathTraversesEveryStageExactlyOnce(t *testing.T) {
 	calls := []string{}
 	output := callerClosurePathOutput(t, "succeeded", "complete")
 	path := callerClosurePath{
@@ -50,7 +52,7 @@ func TestCallerClosurePathTraversesEveryStageExactlyOnce(t *testing.T) {
 	require.NotNil(t, outcome.evaluation)
 }
 
-func TestCallerClosurePathRejectsPreflightBeforeRunnerIO(t *testing.T) {
+func TestUmpireCallerClosurePathRejectsPreflightBeforeRunnerIO(t *testing.T) {
 	preflightFailure := errors.New("preflight failed")
 	for _, testCase := range []struct {
 		name         string
@@ -94,7 +96,7 @@ func TestCallerClosurePathRejectsPreflightBeforeRunnerIO(t *testing.T) {
 	}
 }
 
-func TestCallerClosurePathRetainsIndependentOutcomes(t *testing.T) {
+func TestUmpireCallerClosurePathRetainsIndependentOutcomes(t *testing.T) {
 	runnerFailure := errors.New("runner unavailable")
 	evaluationFailure := errors.New("checker unavailable")
 	for _, testCase := range []struct {
@@ -410,28 +412,30 @@ const (
 func callerClosureBoundedProofOutcomes(
 	ctx context.Context,
 	t *testing.T,
+	binding nexus.Binding,
 	success callerClosurePathOutcome,
 ) []callerClosurePathOutcome {
 	t.Helper()
 	return []callerClosurePathOutcome{
 		success,
-		callerClosureDuplicateDeliveryOutcome(ctx, t),
-		callerClosureControlledOutcome(ctx, t, callerClosureCanceledRealization),
-		callerClosureControlledOutcome(ctx, t, callerClosureTimedOutObservation),
-		callerClosureLimitNPlusOneOutcome(ctx, t),
-		callerClosureControlledOutcome(ctx, t, callerClosureFailedCleanup),
+		callerClosureDuplicateDeliveryOutcome(ctx, t, binding),
+		callerClosureControlledOutcome(ctx, t, binding, callerClosureCanceledRealization),
+		callerClosureControlledOutcome(ctx, t, binding, callerClosureTimedOutObservation),
+		callerClosureLimitNPlusOneOutcome(ctx, t, binding),
+		callerClosureControlledOutcome(ctx, t, binding, callerClosureFailedCleanup),
 	}
 }
 
 func callerClosureControlledOutcome(
 	ctx context.Context,
 	t *testing.T,
+	binding nexus.Binding,
 	phase callerClosureControlledPhase,
 ) callerClosurePathOutcome {
 	t.Helper()
 	runIdentity := "umpire.ci.caller-closure." + string(phase) + "-1"
 	path := newCallerClosurePath(t, runIdentity, callerClosureControlledAdapter{
-		t: t, phase: phase,
+		Binding: binding, t: t, phase: phase,
 	})
 	return runCallerClosurePath(ctx, path)
 }
@@ -439,6 +443,7 @@ func callerClosureControlledOutcome(
 func callerClosureDuplicateDeliveryOutcome(
 	ctx context.Context,
 	t *testing.T,
+	binding nexus.Binding,
 ) callerClosurePathOutcome {
 	t.Helper()
 	input := admitCallerClosureInputAt(t, "caller-closure-duplicate-delivery-input-set")
@@ -450,7 +455,7 @@ func callerClosureDuplicateDeliveryOutcome(
 		},
 		run: func(ctx context.Context, admitted artifact.AdmittedSet) (umpireruntime.Output, error) {
 			return runner.Run(
-				ctx, admitted, callerClosureDuplicateDeliveryBinding(), runIdentity, nexus.Binding{},
+				ctx, admitted, callerClosureDuplicateDeliveryBinding(), runIdentity, binding,
 			)
 		},
 		evaluate: func(ctx context.Context, admitted artifact.AdmittedSet) (callerClosureEvaluation, error) {
@@ -462,19 +467,7 @@ func callerClosureDuplicateDeliveryOutcome(
 
 func admitCallerClosureInputAt(t *testing.T, name string) artifact.AdmittedSet {
 	t.Helper()
-	files := make(map[string][]byte, 3)
-	for _, relative := range []string{
-		"manifest.json",
-		"artifacts/experiment.json",
-		"artifacts/runtime-configuration.json",
-	} {
-		encoded, err := os.ReadFile(filepath.Join("testdata", name, filepath.FromSlash(relative)))
-		require.NoError(t, err)
-		files[relative] = encoded
-	}
-	admitted, err := artifact.AdmitSetFiles(files)
-	require.NoError(t, err)
-	return admitted
+	return loadUmpireCallerClosureInputSet(t, name)
 }
 
 func callerClosureDuplicateDeliveryBinding() runner.InputBinding {
@@ -495,6 +488,7 @@ func callerClosureDuplicateDeliveryBinding() runner.InputBinding {
 }
 
 type callerClosureControlledAdapter struct {
+	nexus.Binding
 	t     *testing.T
 	phase callerClosureControlledPhase
 }
@@ -503,17 +497,13 @@ func (adapter callerClosureControlledAdapter) CheckRequest(
 	admitted artifact.AdmittedSet,
 	runIdentity string,
 ) (umpireruntime.CheckedRunRequest, error) {
-	return (nexus.Binding{}).CheckRequest(admitted, runIdentity)
-}
-
-func (callerClosureControlledAdapter) EnvironmentFactory() umpireruntime.EnvironmentFactory {
-	return (nexus.Binding{}).EnvironmentFactory()
+	return adapter.Binding.CheckRequest(admitted, runIdentity)
 }
 
 func (adapter callerClosureControlledAdapter) NewParticipant(
 	request umpireruntime.CheckedRunRequest,
 ) (umpireruntime.Participant, error) {
-	participant, err := (nexus.Binding{}).NewParticipant(request)
+	participant, err := adapter.Binding.NewParticipant(request)
 	if err != nil {
 		return nil, err
 	}
@@ -522,11 +512,11 @@ func (adapter callerClosureControlledAdapter) NewParticipant(
 	}, nil
 }
 
-func (callerClosureControlledAdapter) ValidateOutput(
+func (adapter callerClosureControlledAdapter) ValidateOutput(
 	request umpireruntime.CheckedRunRequest,
 	output umpireruntime.Output,
 ) error {
-	return (nexus.Binding{}).ValidateOutput(request, output)
+	return adapter.Binding.ValidateOutput(request, output)
 }
 
 type callerClosureControlledParticipant struct {
@@ -604,10 +594,70 @@ func callerClosureReceiptWithStatus(
 	return controlled
 }
 
+type callerClosureResult struct {
+	FormatVersion               string                         `json:"formatVersion"`
+	RunIdentity                 string                         `json:"runIdentity"`
+	BehaviorFingerprint         string                         `json:"behaviorFingerprint"`
+	Experiment                  any                            `json:"experiment"`
+	RuntimeConfiguration        any                            `json:"runtimeConfiguration"`
+	Run                         any                            `json:"run"`
+	RawEvidence                 any                            `json:"rawEvidence"`
+	Evidence                    any                            `json:"evidence"`
+	OperationalStatus           string                         `json:"operationalStatus"`
+	ObservationEvaluationStatus string                         `json:"observationEvaluationStatus"`
+	ImplementationLink          any                            `json:"implementationLink"`
+	ImplementationLinkStatus    string                         `json:"implementationLinkStatus"`
+	PropertyVerdicts            []callerClosurePropertyVerdict `json:"propertyVerdicts"`
+	QuerySummary                callerClosureQuerySummary      `json:"querySummary"`
+	SemanticStatus              string                         `json:"semanticStatus"`
+	Limits                      any                            `json:"limits"`
+	KnownGaps                   any                            `json:"knownGaps"`
+	CleanupStatus               string                         `json:"cleanupStatus"`
+}
+
+type callerClosurePropertyVerdict struct {
+	QueryDefinitionID           string                       `json:"queryDefinitionId"`
+	PropertyDefinitionID        string                       `json:"propertyDefinitionId"`
+	PropertyBehaviorFingerprint string                       `json:"propertyBehaviorFingerprint"`
+	TraceID                     any                          `json:"traceId"`
+	Status                      string                       `json:"status"`
+	QueryLimits                 any                          `json:"queryLimits"`
+	EvidenceLimit               any                          `json:"evidenceLimit"`
+	ProvenanceDefinitionIDs     []string                     `json:"provenanceDefinitionIds"`
+	Clauses                     []callerClosureClauseVerdict `json:"clauses"`
+	Diagnostic                  any                          `json:"diagnostic"`
+}
+
+type callerClosureClauseVerdict struct {
+	PropertyDefinitionID    string   `json:"propertyDefinitionId"`
+	ClauseDefinitionID      string   `json:"clauseDefinitionId"`
+	Status                  string   `json:"status"`
+	Coordinates             any      `json:"coordinates"`
+	QueryLimits             any      `json:"queryLimits"`
+	PropertyLimit           any      `json:"propertyLimit"`
+	EvidenceLimit           any      `json:"evidenceLimit"`
+	ProvenanceDefinitionIDs []string `json:"provenanceDefinitionIds"`
+	EvidenceLinks           any      `json:"evidenceLinks"`
+}
+
+type callerClosureQuerySummary struct {
+	QueryDefinitionID               string                         `json:"queryDefinitionId"`
+	Status                          string                         `json:"status"`
+	QueryLimits                     any                            `json:"queryLimits"`
+	RequiredPropertyDefinitionIDs   []string                       `json:"requiredPropertyDefinitionIds"`
+	PropertyVerdicts                []callerClosurePropertyVerdict `json:"propertyVerdicts"`
+	MissingPropertyDefinitionIDs    []string                       `json:"missingPropertyDefinitionIds"`
+	DuplicatePropertyDefinitionIDs  []string                       `json:"duplicatePropertyDefinitionIds"`
+	UnexpectedPropertyDefinitionIDs []string                       `json:"unexpectedPropertyDefinitionIds"`
+	DivergentPropertyDefinitionIDs  []string                       `json:"divergentPropertyDefinitionIds"`
+	WrongQueryResultDefinitionIDs   []string                       `json:"wrongQueryResultDefinitionIds"`
+	TraceIDs                        []string                       `json:"traceIds"`
+}
+
 func requireCallerClosureEqualResultMeaning(
 	t *testing.T,
-	local artifactv2.Result,
-	ci artifactv2.Result,
+	local callerClosureResult,
+	ci callerClosureResult,
 ) {
 	t.Helper()
 	require.Equal(t, local.FormatVersion, ci.FormatVersion)
@@ -642,8 +692,8 @@ func requireCallerClosureEqualResultMeaning(
 
 func requireCallerClosureDistinctResultTransport(
 	t *testing.T,
-	local artifactv2.Result,
-	ci artifactv2.Result,
+	local callerClosureResult,
+	ci callerClosureResult,
 ) {
 	t.Helper()
 	require.NotEqual(t, local.RunIdentity, ci.RunIdentity)
@@ -661,8 +711,8 @@ func requireCallerClosureDistinctResultTransport(
 
 func requireCallerClosureEqualPropertyVerdicts(
 	t *testing.T,
-	local []artifactv2.PropertyVerdict,
-	ci []artifactv2.PropertyVerdict,
+	local []callerClosurePropertyVerdict,
+	ci []callerClosurePropertyVerdict,
 ) {
 	t.Helper()
 	require.Len(t, ci, len(local))
@@ -697,10 +747,11 @@ func requireCallerClosureEqualPropertyVerdicts(
 func callerClosureLimitNPlusOneOutcome(
 	ctx context.Context,
 	t *testing.T,
+	binding nexus.Binding,
 ) callerClosurePathOutcome {
 	t.Helper()
 	path := newCallerClosurePath(
-		t, "umpire.ci.caller-closure.limit-n-plus-one-1", nexus.Binding{},
+		t, "umpire.ci.caller-closure.limit-n-plus-one-1", binding,
 	)
 	input, err := path.admit()
 	require.NoError(t, err)
@@ -708,9 +759,11 @@ func callerClosureLimitNPlusOneOutcome(
 	require.True(t, ok)
 	configuration := executable.RuntimeConfiguration()
 	require.Len(t, configuration.PhaseLimits, 5)
-	configuration.PhaseLimits[2].MaxRecords = artifactv2.NaturalFromUint64(3585)
-	configuration, err = artifactv2.SealRuntimeConfiguration(configuration)
-	require.NoError(t, err)
+	configuration.PhaseLimits[2].MaxRecords = "3585"
+	configuration.ArtifactChecksum = ""
+	configuration.ArtifactChecksum = umpireTestArtifactChecksum(
+		t, "umpire.runtime-configuration/v2", configuration,
+	)
 	experiment, err := artifact.EncodeExperimentV2(executable.Experiment())
 	require.NoError(t, err)
 	encodedConfiguration, err := artifact.EncodeRuntimeConfigurationV2(configuration)
@@ -726,7 +779,7 @@ func callerClosureLimitNPlusOneOutcome(
 	return runCallerClosurePath(ctx, path)
 }
 
-func TestCallerClosureEvaluationPreservesSemanticNonSuccess(t *testing.T) {
+func TestUmpireCallerClosureEvaluationPreservesSemanticNonSuccess(t *testing.T) {
 	output := callerClosurePathOutput(t, "succeeded", "complete")
 	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
 	defer cancel()
@@ -746,7 +799,6 @@ func callerClosurePathOutput(
 	cleanupStatus string,
 ) umpireruntime.Output {
 	t.Helper()
-	root := "testdata/caller-closure-duplicate-delivery-run-set"
 	files := make(map[string][]byte, 5)
 	for _, relative := range []string{
 		"manifest.json",
@@ -755,9 +807,9 @@ func callerClosurePathOutput(
 		"artifacts/experiment-run.json",
 		"artifacts/raw-evidence.json",
 	} {
-		encoded, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(relative)))
-		require.NoError(t, err)
-		files[relative] = encoded
+		files[relative] = loadUmpireCallerClosureArtifact(
+			t, "caller-closure-duplicate-delivery-run-set", relative,
+		)
 	}
 	admitted, err := artifact.AdmitSetFiles(files)
 	require.NoError(t, err)
@@ -767,4 +819,378 @@ func callerClosurePathOutput(
 	run.OperationalStatus = operationalStatus
 	run.Cleanup.Status = cleanupStatus
 	return umpireruntime.NewOutput(admitted, run, execution.RawEvidence())
+}
+
+func TestUmpireCallerClosureReturnsAndPublishesOneExactOperationalSet(t *testing.T) {
+	env, factory := newUmpireTestEnvironment(t)
+	binding := newUmpireNexusBinding(t, factory)
+	input := loadUmpireCallerClosureInputSet(t, "caller-closure-input-set")
+	ctx, cancel := context.WithTimeout(env.Context(), 135*time.Second)
+	defer cancel()
+
+	output, err := runner.Run(
+		ctx,
+		input,
+		callerClosureInputBinding,
+		"umpire.local.caller-closure.integration-1",
+		binding,
+	)
+	require.NoError(t, err)
+	run := output.ExperimentRun()
+	rawEvidence := output.RawEvidence()
+	require.Equal(t, "succeeded", run.OperationalStatus)
+	require.Equal(t, "closed", rawEvidence.CaptureStatus)
+	require.Equal(t, []string{
+		umpireruntime.EvidenceSourceCleanup,
+		umpireruntime.EvidenceSourceControlReceipt,
+		umpireruntime.EvidenceSourceHistory,
+		umpireruntime.EvidenceSourceParticipantOutput,
+	}, callerClosureSourceDefinitionIDs(output))
+	for _, source := range rawEvidence.Sources {
+		require.Equal(t, "closed", source.Status)
+	}
+	require.Len(t, run.ControlAttempts, 1)
+	require.Equal(t, "accepted", run.ControlAttempts[0].Status)
+	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
+	require.Empty(t, run.KnownGaps)
+	require.Empty(t, rawEvidence.KnownGaps)
+	receipt := callerClosureRawFactsByKind(output, "umpire.evidence.kind.control-receipt")
+	require.Len(t, receipt, 1)
+	require.Equal(t, []string{
+		"umpire.evidence.field.action-definition-id",
+		"umpire.evidence.field.attempt",
+		"umpire.evidence.field.occurrence-definition-id",
+		"umpire.evidence.field.status",
+	}, receipt[0].fieldDefinitionIDs)
+
+	runBytes, err := artifact.EncodeExperimentRunV2(run)
+	require.NoError(t, err)
+	rawEvidenceBytes, err := artifact.EncodeRawEvidenceV2(rawEvidence)
+	require.NoError(t, err)
+	for _, encoded := range [][]byte{runBytes, rawEvidenceBytes} {
+		require.True(t, bytes.HasSuffix(encoded, []byte("\n")))
+		require.False(t, bytes.HasSuffix(encoded, []byte("\n\n")))
+		require.Contains(t, string(encoded), "\n  \"")
+	}
+
+	executable, ok := input.Executable()
+	require.True(t, ok)
+	expected, err := executable.AdmitExecution(run, rawEvidence)
+	require.NoError(t, err)
+	require.Equal(t, expected.Identity(), output.AdmittedSet().Identity())
+	require.Equal(t, expected.ManifestBytes(), output.AdmittedSet().ManifestBytes())
+
+	destinationRoot, err := filepath.EvalSymlinks(t.TempDir())
+	require.NoError(t, err)
+	destination, err := artifact.PublishSet(destinationRoot, output.AdmittedSet())
+	require.NoError(t, err)
+	reopened, err := artifact.LoadSet(destination)
+	require.NoError(t, err)
+	require.Equal(t, output.AdmittedSet().Identity(), reopened.Identity())
+	require.Equal(t, output.AdmittedSet().Checksum(), reopened.Checksum())
+	require.Equal(t, output.AdmittedSet().ManifestSHA256(), reopened.ManifestSHA256())
+	require.Equal(t, output.AdmittedSet().ManifestBytes(), reopened.ManifestBytes())
+	requireNoNexusEndpoints(t, env.Context(), env.OperatorClient())
+}
+
+func TestUmpireFaultedCallerClosureReturnsClosedFaultRealizationEvidence(t *testing.T) {
+	env, factory := newUmpireTestEnvironment(t)
+	binding := newUmpireNexusBinding(t, factory)
+	input := loadUmpireCallerClosureInputSet(t, "caller-closure-duplicate-delivery-input-set")
+	ctx, cancel := context.WithTimeout(env.Context(), 135*time.Second)
+	defer cancel()
+
+	output, err := runner.Run(
+		ctx,
+		input,
+		callerClosureDuplicateDeliveryBinding(),
+		"umpire.local.caller-closure.duplicate-delivery.integration-1",
+		binding,
+	)
+	require.NoError(t, err)
+	run := output.ExperimentRun()
+	rawEvidence := output.RawEvidence()
+	require.Equal(t, "succeeded", run.OperationalStatus)
+	require.Equal(t, "closed", rawEvidence.CaptureStatus)
+	require.Equal(t, []string{
+		umpireruntime.EvidenceSourceCleanup,
+		umpireruntime.EvidenceSourceControlReceipt,
+		umpireruntime.EvidenceSourceHistory,
+		umpireruntime.EvidenceSourceParticipantOutput,
+	}, callerClosureSourceDefinitionIDs(output))
+	for index, source := range rawEvidence.Sources {
+		require.Equal(t, "closed", source.Status)
+		require.Equal(t, source.SourceDefinitionID, run.SourceClosures[index].SourceDefinitionID)
+		require.Equal(t, source.FactCount, run.SourceClosures[index].RecordCount)
+		require.Equal(t, source.ByteCount, run.SourceClosures[index].ByteCount)
+	}
+	require.Len(t, run.ControlAttempts, 1)
+	require.Equal(t, "accepted", run.ControlAttempts[0].Status)
+	require.NotNil(t, run.ControlAttempts[0].ReceiptFactDefinitionID)
+	require.Equal(t, "workflow-nexus.occurrence.force-close", run.ControlAttempts[0].OccurrenceDefinitionID)
+	require.Equal(t, "workflow.action.force-close", run.ControlAttempts[0].ActionDefinitionID)
+	require.EqualValues(t, "1", run.ControlAttempts[0].Attempt)
+	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
+	require.Empty(t, run.KnownGaps)
+	require.Empty(t, rawEvidence.KnownGaps)
+	executable, ok := input.Executable()
+	require.True(t, ok)
+	require.Len(t, executable.Experiment().Plan.RequestedFaults, 1)
+	require.Equal(t, "temporal.nexus.caller-closure.fault.duplicate-delivery-observation",
+		executable.Experiment().Plan.RequestedFaults[0].DefinitionID)
+	require.Equal(t, "workflow-nexus.occurrence.force-close",
+		executable.Experiment().Plan.RequestedFaults[0].Value)
+
+	synthetic := callerClosureRawFactsWithField(
+		output,
+		umpireruntime.EvidenceFieldSyntheticContributionMarker,
+	)
+	require.Len(t, synthetic, 1)
+	require.Equal(t, umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
+		synthetic[0].kindDefinitionID)
+	require.Equal(t, []string{
+		umpireruntime.EvidenceFieldCancellationCallbackCount,
+		umpireruntime.EvidenceFieldCancellationCompletedCount,
+		umpireruntime.EvidenceFieldCancellationRequestedCount,
+		umpireruntime.EvidenceFieldCapabilityDefinitionID,
+		umpireruntime.EvidenceFieldCommandKind,
+		umpireruntime.EvidenceFieldFaultDefinitionID,
+		umpireruntime.EvidenceFieldFaultReceiptDefinitionID,
+		umpireruntime.EvidenceFieldOperationCorrelationID,
+		umpireruntime.EvidenceFieldRunCorrelationID,
+		umpireruntime.EvidenceFieldStatus,
+		umpireruntime.EvidenceFieldSyntheticContributionCount,
+		umpireruntime.EvidenceFieldSyntheticContributionMarker,
+		umpireruntime.EvidenceFieldWorkflowCorrelationID,
+	}, synthetic[0].fieldDefinitionIDs)
+	require.Equal(t, "1", callerClosureRawFactFieldValue(t, synthetic[0],
+		umpireruntime.EvidenceFieldSyntheticContributionCount))
+	require.Equal(t, "temporal.nexus.caller-closure.marker.injected-duplicate-delivery-observation",
+		callerClosureRawFactFieldValue(t, synthetic[0],
+			umpireruntime.EvidenceFieldSyntheticContributionMarker))
+	require.Equal(t, "temporal.nexus.caller-closure.fault.duplicate-delivery-observation",
+		callerClosureRawFactFieldValue(t, synthetic[0], umpireruntime.EvidenceFieldFaultDefinitionID))
+	require.Equal(t, "temporal.nexus.caller-closure.fault-receipt.duplicate-delivery-observation",
+		callerClosureRawFactFieldValue(t, synthetic[0], umpireruntime.EvidenceFieldFaultReceiptDefinitionID))
+	require.Equal(t, "nexus.capability.cancellation", callerClosureRawFactFieldValue(
+		t, synthetic[0], umpireruntime.EvidenceFieldCapabilityDefinitionID))
+	require.Equal(t, "1", callerClosureRawFactFieldValue(
+		t, synthetic[0], umpireruntime.EvidenceFieldCancellationRequestedCount))
+	require.Equal(t, "1", callerClosureRawFactFieldValue(
+		t, synthetic[0], umpireruntime.EvidenceFieldCancellationCompletedCount))
+	receipt := callerClosureRawFactsByKind(output, "umpire.evidence.kind.control-receipt")
+	require.Len(t, receipt, 1)
+	require.Equal(t, []string{
+		"umpire.evidence.field.action-definition-id",
+		"umpire.evidence.field.attempt",
+		umpireruntime.EvidenceFieldCapabilityDefinitionID,
+		umpireruntime.EvidenceFieldFaultDefinitionID,
+		umpireruntime.EvidenceFieldFaultReceiptDefinitionID,
+		"umpire.evidence.field.occurrence-definition-id",
+		umpireruntime.EvidenceFieldOperationCorrelationID,
+		"umpire.evidence.field.status",
+	}, receipt[0].fieldDefinitionIDs)
+	for _, definitionID := range []string{
+		umpireruntime.EvidenceFieldCapabilityDefinitionID,
+		umpireruntime.EvidenceFieldFaultDefinitionID,
+		umpireruntime.EvidenceFieldFaultReceiptDefinitionID,
+		umpireruntime.EvidenceFieldOperationCorrelationID,
+	} {
+		require.Equal(t, callerClosureRawFactFieldValue(t, synthetic[0], definitionID),
+			callerClosureRawFactFieldValue(t, receipt[0], definitionID))
+	}
+
+	callback := callerClosureRawFactsWithField(
+		output,
+		umpireruntime.EvidenceFieldCancellationCallbackCount,
+	)
+	require.Len(t, callback, 2)
+	require.Equal(t, "1", callerClosureRawFactFieldValue(t, synthetic[0],
+		umpireruntime.EvidenceFieldCancellationCallbackCount))
+	require.Equal(t, []string{callback[0].factDefinitionID}, synthetic[0].causalFactDefinitionIDs)
+	requested := callerClosureHistoryEventFact(
+		t, output, "temporal.history.NexusOperationCancelRequested",
+	)
+	completed := callerClosureHistoryEventFact(
+		t, output, "temporal.history.NexusOperationCancelRequestCompleted",
+	)
+	require.Equal(t, []string{requested.factDefinitionID}, completed.causalFactDefinitionIDs)
+	for _, definitionID := range []string{
+		umpireruntime.EvidenceFieldOperationCorrelationID,
+		umpireruntime.EvidenceFieldRunCorrelationID,
+		umpireruntime.EvidenceFieldWorkflowCorrelationID,
+	} {
+		expected := callerClosureRawFactFieldValue(t, synthetic[0], definitionID)
+		require.NotEmpty(t, expected)
+		for _, fact := range []callerClosureRawFact{callback[0], requested, completed} {
+			require.Equal(t, expected, callerClosureRawFactFieldValue(t, fact, definitionID))
+		}
+	}
+	requireNoNexusEndpoints(t, env.Context(), env.OperatorClient())
+}
+
+func TestUmpireCallerClosureParticipantRealizesOneForceClose(t *testing.T) {
+	env, factory := newUmpireTestEnvironment(t)
+	binding := newUmpireNexusBinding(t, factory)
+	input := loadUmpireCallerClosureInputSet(t, "caller-closure-input-set")
+	ctx, cancel := context.WithTimeout(env.Context(), 135*time.Second)
+	defer cancel()
+
+	output, err := runner.Run(
+		ctx, input, callerClosureInputBinding,
+		"umpire.local.caller-closure.live-force-close", binding,
+	)
+	require.NoError(t, err)
+	run := output.ExperimentRun()
+	require.Len(t, run.ControlAttempts, 1)
+	require.Equal(t, "accepted", run.ControlAttempts[0].Status)
+	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
+
+	eventCounts := map[string]int{}
+	for _, fact := range callerClosureRawFactsWithField(output, umpireruntime.EvidenceFieldEventType) {
+		eventCounts[callerClosureRawFactFieldValue(t, fact, umpireruntime.EvidenceFieldEventType)]++
+	}
+	cancellationCallbacks := callerClosureRawFactsWithField(
+		output, umpireruntime.EvidenceFieldCancellationCallbackCount,
+	)
+	require.Equal(t, "succeeded", run.OperationalStatus)
+	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationScheduled"])
+	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationStarted"])
+	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequested"])
+	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequestCompleted"])
+	require.Equal(t, 1, eventCounts["temporal.history.WorkflowExecutionCanceled"])
+	require.Len(t, cancellationCallbacks, 1)
+	require.Equal(t, "1", callerClosureRawFactFieldValue(
+		t, cancellationCallbacks[0], umpireruntime.EvidenceFieldCancellationCallbackCount,
+	))
+	require.Empty(t, callerClosureRawFactsWithField(
+		output,
+		umpireruntime.EvidenceFieldSyntheticContributionMarker,
+	))
+	requireNoNexusEndpoints(t, env.Context(), env.OperatorClient())
+}
+
+func TestUmpireFaultedCallerClosureParticipantCompletesOneDuplicateObservation(t *testing.T) {
+	env, factory := newUmpireTestEnvironment(t)
+	binding := newUmpireNexusBinding(t, factory)
+	input := loadUmpireCallerClosureInputSet(t, "caller-closure-duplicate-delivery-input-set")
+	ctx, cancel := context.WithTimeout(env.Context(), 135*time.Second)
+	defer cancel()
+
+	output, err := runner.Run(
+		ctx, input, callerClosureDuplicateDeliveryBinding(),
+		"umpire.local.caller-closure.live-duplicate-delivery", binding,
+	)
+	require.NoError(t, err)
+	run := output.ExperimentRun()
+	require.Equal(t, "succeeded", run.OperationalStatus)
+	require.Len(t, run.ControlAttempts, 1)
+	require.Equal(t, "accepted", run.ControlAttempts[0].Status)
+	require.EqualValues(t, "0", run.Cleanup.OpenHandleCount)
+
+	eventCounts := map[string]int{}
+	for _, fact := range callerClosureRawFactsWithField(output, umpireruntime.EvidenceFieldEventType) {
+		eventCounts[callerClosureRawFactFieldValue(t, fact, umpireruntime.EvidenceFieldEventType)]++
+	}
+	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequested"])
+	require.Equal(t, 1, eventCounts["temporal.history.NexusOperationCancelRequestCompleted"])
+	synthetic := callerClosureRawFactsWithField(
+		output,
+		umpireruntime.EvidenceFieldSyntheticContributionMarker,
+	)
+	require.Len(t, synthetic, 1)
+	require.Equal(t, umpireruntime.EvidenceKindParticipantCommandSyntheticDuplicate,
+		synthetic[0].kindDefinitionID)
+	requireNoNexusEndpoints(t, env.Context(), env.OperatorClient())
+}
+
+type callerClosureRawFact struct {
+	factDefinitionID        string
+	kindDefinitionID        string
+	causalFactDefinitionIDs []string
+	fieldDefinitionIDs      []string
+	fields                  map[string]any
+}
+
+func callerClosureSourceDefinitionIDs(output umpireruntime.Output) []string {
+	sources := output.RawEvidence().Sources
+	result := make([]string, len(sources))
+	for index, source := range sources {
+		result[index] = source.SourceDefinitionID
+	}
+	return result
+}
+
+func callerClosureRawFactsByKind(
+	output umpireruntime.Output,
+	kindDefinitionID string,
+) []callerClosureRawFact {
+	result := []callerClosureRawFact{}
+	for _, fact := range callerClosureRawFacts(output) {
+		if fact.kindDefinitionID == kindDefinitionID {
+			result = append(result, fact)
+		}
+	}
+	return result
+}
+
+func callerClosureRawFactsWithField(
+	output umpireruntime.Output,
+	fieldDefinitionID string,
+) []callerClosureRawFact {
+	result := []callerClosureRawFact{}
+	for _, fact := range callerClosureRawFacts(output) {
+		if _, ok := fact.fields[fieldDefinitionID]; ok {
+			result = append(result, fact)
+		}
+	}
+	return result
+}
+
+func callerClosureRawFacts(output umpireruntime.Output) []callerClosureRawFact {
+	facts := output.RawEvidence().Facts
+	result := make([]callerClosureRawFact, 0, len(facts))
+	for _, fact := range facts {
+		fields := make(map[string]any, len(fact.Fields))
+		fieldDefinitionIDs := make([]string, len(fact.Fields))
+		for index, field := range fact.Fields {
+			fields[field.FieldDefinitionID] = field.Value
+			fieldDefinitionIDs[index] = field.FieldDefinitionID
+		}
+		result = append(result, callerClosureRawFact{
+			factDefinitionID:        fact.FactDefinitionID,
+			kindDefinitionID:        fact.KindDefinitionID,
+			causalFactDefinitionIDs: fact.CausalFactDefinitionIDs,
+			fieldDefinitionIDs:      fieldDefinitionIDs,
+			fields:                  fields,
+		})
+	}
+	return result
+}
+
+func callerClosureRawFactFieldValue(
+	t *testing.T,
+	fact callerClosureRawFact,
+	definitionID string,
+) string {
+	t.Helper()
+	value, ok := fact.fields[definitionID]
+	require.True(t, ok, "raw evidence field is missing: %s", definitionID)
+	return fmt.Sprint(value)
+}
+
+func callerClosureHistoryEventFact(
+	t *testing.T,
+	output umpireruntime.Output,
+	eventDefinitionID string,
+) callerClosureRawFact {
+	t.Helper()
+	var result []callerClosureRawFact
+	for _, fact := range callerClosureRawFactsWithField(output, umpireruntime.EvidenceFieldEventType) {
+		if callerClosureRawFactFieldValue(t, fact, umpireruntime.EvidenceFieldEventType) == eventDefinitionID {
+			result = append(result, fact)
+		}
+	}
+	require.Len(t, result, 1)
+	return result[0]
 }
