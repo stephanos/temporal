@@ -1163,7 +1163,8 @@ umpire-check-live-tests:
 		printf 'Full live suite introduced no Umpire4 or unclassified failures.\n'
 
 umpire-check-regression: umpire-check-regression-views umpire-check-generated-go-test umpire-check-portable-evaluation-fixtures umpire-check-promotion umpire-check-legacy-vocabulary umpire-check-live-tests
-	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...
+	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...
 	@set -eu; \
 		old_namespace='Temporal''[.](Experiment|Umpire)'; \
 		old_path='Temporal/''(Experiment|Umpire)'; \
