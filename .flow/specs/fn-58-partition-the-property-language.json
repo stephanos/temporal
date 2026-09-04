@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-58-partition-the-property-language",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-04T16:45:56.863804Z",
   "created_at": "2026-09-03T19:12:31.874850Z",
   "default_impl": null,
   "default_review": null,
@@ -143,6 +143,36 @@
       "timestamp": "2026-09-04T16:20:40.863428Z",
       "tool_calls": 13,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cce2138b444d72d0949a665099fb9adf12ca0cc357593930222bc6396f0089eb",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "673c74743d6979359f4da91bb347b6281d41eec0",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 294845,
+      "output_sha256": "14e9376f52fd7174d57adb20418ac8a308bd71bae25c7677cb01bb2be1ebd959",
+      "reservation_id": "cb770eff02fe4e5bbefdbe537faa4fda",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-04T16:45:56.854791Z",
+      "tool_calls": 23,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -150,11 +180,12 @@
     "impl:fn-58-partition-the-property-language.2": 1,
     "impl:fn-58-partition-the-property-language.3": 1,
     "plan": 2,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-58-partition-the-property-language.1": 0,
     "impl:fn-58-partition-the-property-language.2": 0,
     "impl:fn-58-partition-the-property-language.3": 0,
@@ -174,5 +205,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T16:20:40.872185Z"
+  "updated_at": "2026-09-04T16:45:56.867136Z"
 }
