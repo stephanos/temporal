@@ -9,6 +9,6 @@
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.1.md",
   "status": "todo",
-  "title": "Admit replay bundles and normalize violation signatures",
-  "updated_at": "2026-08-27T19:37:22.523469Z"
+  "title": "Admit the Case-native replay subject and semantic violation key",
+  "updated_at": "2026-09-04T18:37:19.622657Z"
 }

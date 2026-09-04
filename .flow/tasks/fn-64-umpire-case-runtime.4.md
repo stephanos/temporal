@@ -4,14 +4,14 @@ satisfies: [R4, R5, R9]
 # fn-64-umpire-case-runtime.4 Implement generic DAG scheduling and Run recording
 
 ## Description
-Implement the portable scheduling and data plane for R4. This task stops at deterministic
+Implement the private portable scheduling and data plane for R4. This task stops at deterministic
 entrypoint execution, typed requests/outcomes/Slots, projections, and append-only Run recording;
 Task 9 owns termination, cleanup, facade completion, and repeated-Run race guarantees.
 
 **Size:** M
 **Files:** scheduler, typed stores, request/projection, recorder, and fake-Host tests under
-`tools/umpire/execution/**`
-**Touches:** [tools/umpire/execution/**]
+`tools/umpire/internal/execution/**`
+**Touches:** [tools/umpire/internal/execution/**]
 
 ## Approach
 - Schedule bounded nodes by entrypoint activation and dependencies with stable activation,
@@ -50,8 +50,10 @@ Projection and ordering semantics remain portable execution concerns.
 - [ ] Exact duplicate source events deduplicate; conflicting duplicates, missing Slots, post-close
   events, recorder/invariant/limit failure become incomplete with stable diagnostics.
 - [ ] The Monitor barrier is synchronous with append and exposes no scheduling/evidence mutation.
-- [ ] Execution imports neither verification nor a Temporal Host implementation.
-- [ ] `go test -race -count=1 -tags test_dep ./tools/umpire/execution/...` passes.
+- [ ] Execution imports neither verification, the root facade, nor a Temporal Host implementation.
+- [ ] No package outside `tools/umpire` can import or assemble the internal scheduler, recorder,
+  Slot store, or Executor.
+- [ ] `go test -race -count=1 -tags test_dep ./tools/umpire/internal/execution/...` passes.
 
 ## Done summary
 TBD

@@ -1,18 +1,20 @@
 ---
-satisfies: [R10]
+satisfies: [R2, R4, R10]
 ---
 # fn-64-umpire-case-runtime.10 Reconcile Umpire documentation, artifacts, and regression gates
 
 ## Description
 Finish R10 after code removal by updating normative/current documentation, regenerating
-owner-managed artifacts, and making the complete Case Runtime suite the regression boundary.
+owner-managed artifacts, installing the small public-facade conformance corpus, and making the
+complete Case Runtime suite the regression boundary.
 
 **Size:** M
 **Files:** `.plans/UMPIRE4_*`, `tools/umpire/CONTEXT.md`, Umpire/model package READMEs and
 architecture docs, Makefile/regression tests/workflow command surface, generated regression and
 inventory artifacts
 **Touches:** [.plans/UMPIRE4_*, tools/umpire/**/*.md, tools/umpire/CONTEXT.md, model/**/*.md,
-model/SEMANTIC_INVENTORY.md, tools/umpire/regression/**, Makefile, .github/workflows/umpire.yml]
+model/SEMANTIC_INVENTORY.md, tools/umpire/testdata/**, tools/umpire/regression/**, Makefile,
+.github/workflows/umpire.yml]
 
 ## Approach
 - Update the normative specification using stable rule IDs: add/retire, never renumber. Reconcile
@@ -20,8 +22,23 @@ model/SEMANTIC_INVENTORY.md, tools/umpire/regression/**, Makefile, .github/workf
 - Mark genuinely historical references superseded; active docs/help/targets describe only the new
   vocabulary and architecture.
 - Regenerate regression views and semantic inventory only through their owning generators.
+- Add exactly six facade-level conformance classes: satisfied, violated, inconclusive, static
+  preparation rejection, cleanup failure after proved violation, and cross-Run isolation. Keep
+  concurrency, cancellation, descriptor/path grammar, fuzzing, cardinality, and lifecycle tests
+  focused rather than converting them to goldens.
+- Compare deterministic Lean-produced Case/Contract fixtures byte-for-byte. Compare intentional
+  Run-time values only through a closed named stable projection, validate excluded dynamic fields
+  structurally, and prohibit generic normalization. Source expected results from Lean or fixed
+  hand-authored tables that never invoke the Go runtime under test.
+- Generate a complete validated fixture tree under a temporary root and diff it against the
+  checkout. Keep promotion a separate reviewed action; ordinary Go tests invoke neither Lean nor a
+  fixture rewrite.
 - Make the existing regression workflow select every new IR/execution/verification/server/worker/
-  integration layer and compare the complete failure-identity set.
+  integration layer, run the complete `-run '^TestUmpire'` selector, and compare the complete
+  inherited failure-identity set.
+- Add structural guards for the two-call root facade and internal execution imports, and ensure
+  fn-5's scenario-neutral checked-promotion types and validation build without caller-closure
+  imports.
 - Preserve focused generator checks; do not add broad Lean API drift enforcement or new GitHub
   Actions coverage.
 
@@ -50,8 +67,19 @@ new workflow coverage are explicitly declined.
   only under an explicit superseded marker.
 - [ ] All managed views and semantic inventory are regenerated through their owners with focused
   checks passing.
+- [ ] The six-class facade corpus uses independent expected results, exact deterministic bytes or a
+  closed named stable projection, structurally validates dynamic fields, and has no generic ignore
+  or normalization mechanism.
+- [ ] Fixture verification writes a complete temporary tree before diffing; interruption cannot
+  partially update the checkout, promotion is separate, and ordinary Go tests invoke neither Lean
+  nor rewrite mode.
 - [ ] `make umpire-check-regression` selects the complete migrated suite and fails on additions or
-  deletions in the inherited failure-identity set.
+  deletions in the inherited failure-identity set; the live tagged selector remains
+  `-run '^TestUmpire'`.
+- [ ] Structural tests reject public scheduler/recorder/Slot/Monitor-factory construction, imports
+  of `tools/umpire/internal/execution` by external packages, and drift from the two-call root facade.
+- [ ] The migration ledger is complete, and fn-5's generic promotion seam remains buildable without
+  caller-closure imports.
 - [ ] No broad generated-Lean API drift gate or new GitHub Actions coverage is added.
 - [ ] Focused generation/unit/integration commands, `make umpire-build-model`,
   `make umpire-check-regression`, `make fmt-imports`, and `make lint-code` pass.

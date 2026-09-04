@@ -11,6 +11,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.12.md",
   "status": "todo",
-  "title": "Prove schema compatibility and aggregate regression closure",
-  "updated_at": "2026-08-27T19:07:29.555697Z"
+  "title": "Prove schema and aggregate regression closure",
+  "updated_at": "2026-09-04T18:37:25.222146Z"
 }

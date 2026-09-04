@@ -11,6 +11,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.11.md",
   "status": "todo",
-  "title": "Run adversarial authority, containment, and security matrices",
-  "updated_at": "2026-08-27T19:07:29.193689Z"
+  "title": "Run adversarial authority and containment matrices",
+  "updated_at": "2026-09-04T18:37:24.892884Z"
 }

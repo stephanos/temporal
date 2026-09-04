@@ -5,8 +5,8 @@ satisfies: [R6, R9]
 
 ## Description
 Implement the controller/server half of the Temporal Host (R6): authorized dynamic unary protobuf
-transport and Nexus completion behind execution's Host interface. Composite Host wiring belongs to
-Task 7 so this task stays disjoint from the worker task.
+transport and Nexus completion behind the root facade's public Host adapter contract. Composite Host
+wiring belongs to Task 7 so this task stays disjoint from the worker task.
 
 **Size:** M
 **Files:** `tools/umpire/temporal/server/**`, server package documentation and focused tests

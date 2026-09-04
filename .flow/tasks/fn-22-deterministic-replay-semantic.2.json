@@ -11,6 +11,6 @@
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.2.md",
   "status": "todo",
-  "title": "Classify concrete reruns and SDK diagnostic replay",
-  "updated_at": "2026-08-27T19:37:22.860751Z"
+  "title": "Classify fresh Case Runtime reruns",
+  "updated_at": "2026-09-04T18:37:19.952538Z"
 }
