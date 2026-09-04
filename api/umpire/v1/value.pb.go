@@ -569,6 +569,50 @@ func (x *SourceLocation) GetProvenance() string {
 	return ""
 }
 
+type OptionalString struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Value         string                 `protobuf:"bytes,1,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OptionalString) Reset() {
+	*x = OptionalString{}
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OptionalString) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OptionalString) ProtoMessage() {}
+
+func (x *OptionalString) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OptionalString.ProtoReflect.Descriptor instead.
+func (*OptionalString) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *OptionalString) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
 type EnumValue struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Number        int32                  `protobuf:"varint,1,opt,name=number,proto3" json:"number,omitempty"`
@@ -578,7 +622,7 @@ type EnumValue struct {
 
 func (x *EnumValue) Reset() {
 	*x = EnumValue{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[2]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -590,7 +634,7 @@ func (x *EnumValue) String() string {
 func (*EnumValue) ProtoMessage() {}
 
 func (x *EnumValue) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[2]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -603,7 +647,7 @@ func (x *EnumValue) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EnumValue.ProtoReflect.Descriptor instead.
 func (*EnumValue) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *EnumValue) GetNumber() int32 {
@@ -622,7 +666,7 @@ type ValueList struct {
 
 func (x *ValueList) Reset() {
 	*x = ValueList{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[3]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -634,7 +678,7 @@ func (x *ValueList) String() string {
 func (*ValueList) ProtoMessage() {}
 
 func (x *ValueList) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[3]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -647,7 +691,7 @@ func (x *ValueList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValueList.ProtoReflect.Descriptor instead.
 func (*ValueList) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{3}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ValueList) GetValues() []*Value {
@@ -667,7 +711,7 @@ type ValueMapEntry struct {
 
 func (x *ValueMapEntry) Reset() {
 	*x = ValueMapEntry{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[4]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -679,7 +723,7 @@ func (x *ValueMapEntry) String() string {
 func (*ValueMapEntry) ProtoMessage() {}
 
 func (x *ValueMapEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[4]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -692,7 +736,7 @@ func (x *ValueMapEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValueMapEntry.ProtoReflect.Descriptor instead.
 func (*ValueMapEntry) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ValueMapEntry) GetKey() *Value {
@@ -733,7 +777,7 @@ type Value struct {
 
 func (x *Value) Reset() {
 	*x = Value{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[5]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -745,7 +789,7 @@ func (x *Value) String() string {
 func (*Value) ProtoMessage() {}
 
 func (x *Value) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[5]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -758,7 +802,7 @@ func (x *Value) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Value.ProtoReflect.Descriptor instead.
 func (*Value) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *Value) GetValue() isValue_Value {
@@ -948,7 +992,7 @@ type ValueMap struct {
 
 func (x *ValueMap) Reset() {
 	*x = ValueMap{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[6]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -960,7 +1004,7 @@ func (x *ValueMap) String() string {
 func (*ValueMap) ProtoMessage() {}
 
 func (x *ValueMap) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[6]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -973,7 +1017,7 @@ func (x *ValueMap) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValueMap.ProtoReflect.Descriptor instead.
 func (*ValueMap) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ValueMap) GetEntries() []*ValueMapEntry {
@@ -992,7 +1036,7 @@ type ScalarType struct {
 
 func (x *ScalarType) Reset() {
 	*x = ScalarType{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[7]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1004,7 +1048,7 @@ func (x *ScalarType) String() string {
 func (*ScalarType) ProtoMessage() {}
 
 func (x *ScalarType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[7]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1017,7 +1061,7 @@ func (x *ScalarType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ScalarType.ProtoReflect.Descriptor instead.
 func (*ScalarType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ScalarType) GetKind() ScalarKind {
@@ -1036,7 +1080,7 @@ type NamedType struct {
 
 func (x *NamedType) Reset() {
 	*x = NamedType{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[8]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1048,7 +1092,7 @@ func (x *NamedType) String() string {
 func (*NamedType) ProtoMessage() {}
 
 func (x *NamedType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[8]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1061,7 +1105,7 @@ func (x *NamedType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NamedType.ProtoReflect.Descriptor instead.
 func (*NamedType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *NamedType) GetProtobufType() string {
@@ -1079,7 +1123,7 @@ type AnyType struct {
 
 func (x *AnyType) Reset() {
 	*x = AnyType{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[9]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1091,7 +1135,7 @@ func (x *AnyType) String() string {
 func (*AnyType) ProtoMessage() {}
 
 func (x *AnyType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[9]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1104,7 +1148,7 @@ func (x *AnyType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnyType.ProtoReflect.Descriptor instead.
 func (*AnyType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{10}
 }
 
 type OpaqueCapabilityType struct {
@@ -1115,7 +1159,7 @@ type OpaqueCapabilityType struct {
 
 func (x *OpaqueCapabilityType) Reset() {
 	*x = OpaqueCapabilityType{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[10]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1127,7 +1171,7 @@ func (x *OpaqueCapabilityType) String() string {
 func (*OpaqueCapabilityType) ProtoMessage() {}
 
 func (x *OpaqueCapabilityType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[10]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1140,7 +1184,7 @@ func (x *OpaqueCapabilityType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OpaqueCapabilityType.ProtoReflect.Descriptor instead.
 func (*OpaqueCapabilityType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{10}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{11}
 }
 
 // SingularType is a closed union of values that can occupy one protobuf or private Slot position.
@@ -1160,7 +1204,7 @@ type SingularType struct {
 
 func (x *SingularType) Reset() {
 	*x = SingularType{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[11]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1172,7 +1216,7 @@ func (x *SingularType) String() string {
 func (*SingularType) ProtoMessage() {}
 
 func (x *SingularType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[11]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1185,7 +1229,7 @@ func (x *SingularType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SingularType.ProtoReflect.Descriptor instead.
 func (*SingularType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *SingularType) GetType() isSingularType_Type {
@@ -1283,7 +1327,7 @@ type RepeatedType struct {
 
 func (x *RepeatedType) Reset() {
 	*x = RepeatedType{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[12]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1295,7 +1339,7 @@ func (x *RepeatedType) String() string {
 func (*RepeatedType) ProtoMessage() {}
 
 func (x *RepeatedType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[12]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1308,7 +1352,7 @@ func (x *RepeatedType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepeatedType.ProtoReflect.Descriptor instead.
 func (*RepeatedType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *RepeatedType) GetElement() *SingularType {
@@ -1328,7 +1372,7 @@ type MapType struct {
 
 func (x *MapType) Reset() {
 	*x = MapType{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[13]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1340,7 +1384,7 @@ func (x *MapType) String() string {
 func (*MapType) ProtoMessage() {}
 
 func (x *MapType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[13]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1353,7 +1397,7 @@ func (x *MapType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapType.ProtoReflect.Descriptor instead.
 func (*MapType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *MapType) GetKey() *ScalarType {
@@ -1385,7 +1429,7 @@ type ValueType struct {
 
 func (x *ValueType) Reset() {
 	*x = ValueType{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[14]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1397,7 +1441,7 @@ func (x *ValueType) String() string {
 func (*ValueType) ProtoMessage() {}
 
 func (x *ValueType) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[14]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1410,7 +1454,7 @@ func (x *ValueType) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValueType.ProtoReflect.Descriptor instead.
 func (*ValueType) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{14}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *ValueType) GetShape() isValueType_Shape {
@@ -1477,7 +1521,7 @@ type RepeatedWildcard struct {
 
 func (x *RepeatedWildcard) Reset() {
 	*x = RepeatedWildcard{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[15]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1489,7 +1533,7 @@ func (x *RepeatedWildcard) String() string {
 func (*RepeatedWildcard) ProtoMessage() {}
 
 func (x *RepeatedWildcard) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[15]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1502,7 +1546,7 @@ func (x *RepeatedWildcard) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RepeatedWildcard.ProtoReflect.Descriptor instead.
 func (*RepeatedWildcard) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{15}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{16}
 }
 
 type MapKeySelector struct {
@@ -1514,7 +1558,7 @@ type MapKeySelector struct {
 
 func (x *MapKeySelector) Reset() {
 	*x = MapKeySelector{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[16]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1526,7 +1570,7 @@ func (x *MapKeySelector) String() string {
 func (*MapKeySelector) ProtoMessage() {}
 
 func (x *MapKeySelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[16]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1539,7 +1583,7 @@ func (x *MapKeySelector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MapKeySelector.ProtoReflect.Descriptor instead.
 func (*MapKeySelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{16}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *MapKeySelector) GetKey() *Value {
@@ -1557,7 +1601,7 @@ type PresenceSelector struct {
 
 func (x *PresenceSelector) Reset() {
 	*x = PresenceSelector{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[17]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1569,7 +1613,7 @@ func (x *PresenceSelector) String() string {
 func (*PresenceSelector) ProtoMessage() {}
 
 func (x *PresenceSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[17]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1582,7 +1626,7 @@ func (x *PresenceSelector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PresenceSelector.ProtoReflect.Descriptor instead.
 func (*PresenceSelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{17}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{18}
 }
 
 type OneofSelector struct {
@@ -1594,7 +1638,7 @@ type OneofSelector struct {
 
 func (x *OneofSelector) Reset() {
 	*x = OneofSelector{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[18]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1606,7 +1650,7 @@ func (x *OneofSelector) String() string {
 func (*OneofSelector) ProtoMessage() {}
 
 func (x *OneofSelector) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[18]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1619,7 +1663,7 @@ func (x *OneofSelector) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OneofSelector.ProtoReflect.Descriptor instead.
 func (*OneofSelector) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{18}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *OneofSelector) GetSelectedField() string {
@@ -1646,7 +1690,7 @@ type FieldPathSegment struct {
 
 func (x *FieldPathSegment) Reset() {
 	*x = FieldPathSegment{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[19]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1658,7 +1702,7 @@ func (x *FieldPathSegment) String() string {
 func (*FieldPathSegment) ProtoMessage() {}
 
 func (x *FieldPathSegment) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[19]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1671,7 +1715,7 @@ func (x *FieldPathSegment) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FieldPathSegment.ProtoReflect.Descriptor instead.
 func (*FieldPathSegment) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{19}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *FieldPathSegment) GetField() string {
@@ -1761,7 +1805,7 @@ type FieldPath struct {
 
 func (x *FieldPath) Reset() {
 	*x = FieldPath{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[20]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1773,7 +1817,7 @@ func (x *FieldPath) String() string {
 func (*FieldPath) ProtoMessage() {}
 
 func (x *FieldPath) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[20]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1786,7 +1830,7 @@ func (x *FieldPath) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FieldPath.ProtoReflect.Descriptor instead.
 func (*FieldPath) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{20}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *FieldPath) GetSegments() []*FieldPathSegment {
@@ -1806,7 +1850,7 @@ type InstructionReference struct {
 
 func (x *InstructionReference) Reset() {
 	*x = InstructionReference{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[21]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1818,7 +1862,7 @@ func (x *InstructionReference) String() string {
 func (*InstructionReference) ProtoMessage() {}
 
 func (x *InstructionReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[21]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1831,7 +1875,7 @@ func (x *InstructionReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionReference.ProtoReflect.Descriptor instead.
 func (*InstructionReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{21}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *InstructionReference) GetEntrypointId() string {
@@ -1857,7 +1901,7 @@ type SlotReference struct {
 
 func (x *SlotReference) Reset() {
 	*x = SlotReference{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[22]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1869,7 +1913,7 @@ func (x *SlotReference) String() string {
 func (*SlotReference) ProtoMessage() {}
 
 func (x *SlotReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[22]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1882,7 +1926,7 @@ func (x *SlotReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SlotReference.ProtoReflect.Descriptor instead.
 func (*SlotReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{22}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *SlotReference) GetSlotId() string {
@@ -1902,7 +1946,7 @@ type OutcomeFieldSchema struct {
 
 func (x *OutcomeFieldSchema) Reset() {
 	*x = OutcomeFieldSchema{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[23]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1914,7 +1958,7 @@ func (x *OutcomeFieldSchema) String() string {
 func (*OutcomeFieldSchema) ProtoMessage() {}
 
 func (x *OutcomeFieldSchema) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[23]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1927,7 +1971,7 @@ func (x *OutcomeFieldSchema) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use OutcomeFieldSchema.ProtoReflect.Descriptor instead.
 func (*OutcomeFieldSchema) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{23}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *OutcomeFieldSchema) GetField() InstructionOutcomeField {
@@ -1953,7 +1997,7 @@ type InstructionOutcomeSchema struct {
 
 func (x *InstructionOutcomeSchema) Reset() {
 	*x = InstructionOutcomeSchema{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[24]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1965,7 +2009,7 @@ func (x *InstructionOutcomeSchema) String() string {
 func (*InstructionOutcomeSchema) ProtoMessage() {}
 
 func (x *InstructionOutcomeSchema) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[24]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1978,7 +2022,7 @@ func (x *InstructionOutcomeSchema) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionOutcomeSchema.ProtoReflect.Descriptor instead.
 func (*InstructionOutcomeSchema) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{24}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *InstructionOutcomeSchema) GetFields() []*OutcomeFieldSchema {
@@ -1998,7 +2042,7 @@ type InstructionOutcomeReference struct {
 
 func (x *InstructionOutcomeReference) Reset() {
 	*x = InstructionOutcomeReference{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[25]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2010,7 +2054,7 @@ func (x *InstructionOutcomeReference) String() string {
 func (*InstructionOutcomeReference) ProtoMessage() {}
 
 func (x *InstructionOutcomeReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[25]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2023,7 +2067,7 @@ func (x *InstructionOutcomeReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionOutcomeReference.ProtoReflect.Descriptor instead.
 func (*InstructionOutcomeReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{25}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *InstructionOutcomeReference) GetInstruction() *InstructionReference {
@@ -2049,7 +2093,7 @@ type ObservationReference struct {
 
 func (x *ObservationReference) Reset() {
 	*x = ObservationReference{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[26]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2061,7 +2105,7 @@ func (x *ObservationReference) String() string {
 func (*ObservationReference) ProtoMessage() {}
 
 func (x *ObservationReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[26]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2074,12 +2118,56 @@ func (x *ObservationReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ObservationReference.ProtoReflect.Descriptor instead.
 func (*ObservationReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{26}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ObservationReference) GetObservationId() string {
 	if x != nil {
 		return x.ObservationId
+	}
+	return ""
+}
+
+type CaptureReference struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CaptureId     string                 `protobuf:"bytes,1,opt,name=capture_id,json=captureId,proto3" json:"capture_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CaptureReference) Reset() {
+	*x = CaptureReference{}
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[28]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CaptureReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CaptureReference) ProtoMessage() {}
+
+func (x *CaptureReference) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[28]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CaptureReference.ProtoReflect.Descriptor instead.
+func (*CaptureReference) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{28}
+}
+
+func (x *CaptureReference) GetCaptureId() string {
+	if x != nil {
+		return x.CaptureId
 	}
 	return ""
 }
@@ -2093,7 +2181,7 @@ type RunEventFieldReference struct {
 
 func (x *RunEventFieldReference) Reset() {
 	*x = RunEventFieldReference{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[27]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2105,7 +2193,7 @@ func (x *RunEventFieldReference) String() string {
 func (*RunEventFieldReference) ProtoMessage() {}
 
 func (x *RunEventFieldReference) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[27]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2118,7 +2206,7 @@ func (x *RunEventFieldReference) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunEventFieldReference.ProtoReflect.Descriptor instead.
 func (*RunEventFieldReference) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{27}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *RunEventFieldReference) GetField() RunEventField {
@@ -2138,7 +2226,7 @@ type PathExpression struct {
 
 func (x *PathExpression) Reset() {
 	*x = PathExpression{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[28]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2150,7 +2238,7 @@ func (x *PathExpression) String() string {
 func (*PathExpression) ProtoMessage() {}
 
 func (x *PathExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[28]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2163,7 +2251,7 @@ func (x *PathExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PathExpression.ProtoReflect.Descriptor instead.
 func (*PathExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{28}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *PathExpression) GetSource() *ValueExpression {
@@ -2189,7 +2277,7 @@ type PresentExpression struct {
 
 func (x *PresentExpression) Reset() {
 	*x = PresentExpression{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[29]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2201,7 +2289,7 @@ func (x *PresentExpression) String() string {
 func (*PresentExpression) ProtoMessage() {}
 
 func (x *PresentExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[29]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2214,7 +2302,7 @@ func (x *PresentExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PresentExpression.ProtoReflect.Descriptor instead.
 func (*PresentExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{29}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *PresentExpression) GetOperand() *ValueExpression {
@@ -2234,7 +2322,7 @@ type EqualsExpression struct {
 
 func (x *EqualsExpression) Reset() {
 	*x = EqualsExpression{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[30]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2246,7 +2334,7 @@ func (x *EqualsExpression) String() string {
 func (*EqualsExpression) ProtoMessage() {}
 
 func (x *EqualsExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[30]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2259,7 +2347,7 @@ func (x *EqualsExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EqualsExpression.ProtoReflect.Descriptor instead.
 func (*EqualsExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{30}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *EqualsExpression) GetLeft() *ValueExpression {
@@ -2287,7 +2375,7 @@ type CompareExpression struct {
 
 func (x *CompareExpression) Reset() {
 	*x = CompareExpression{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[31]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2299,7 +2387,7 @@ func (x *CompareExpression) String() string {
 func (*CompareExpression) ProtoMessage() {}
 
 func (x *CompareExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[31]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2312,7 +2400,7 @@ func (x *CompareExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompareExpression.ProtoReflect.Descriptor instead.
 func (*CompareExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{31}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *CompareExpression) GetOperator() ComparisonOperator {
@@ -2345,7 +2433,7 @@ type NotExpression struct {
 
 func (x *NotExpression) Reset() {
 	*x = NotExpression{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[32]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2357,7 +2445,7 @@ func (x *NotExpression) String() string {
 func (*NotExpression) ProtoMessage() {}
 
 func (x *NotExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[32]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2370,7 +2458,7 @@ func (x *NotExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NotExpression.ProtoReflect.Descriptor instead.
 func (*NotExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{32}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *NotExpression) GetOperand() *ValueExpression {
@@ -2389,7 +2477,7 @@ type AllExpression struct {
 
 func (x *AllExpression) Reset() {
 	*x = AllExpression{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[33]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2401,7 +2489,7 @@ func (x *AllExpression) String() string {
 func (*AllExpression) ProtoMessage() {}
 
 func (x *AllExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[33]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2414,7 +2502,7 @@ func (x *AllExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AllExpression.ProtoReflect.Descriptor instead.
 func (*AllExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{33}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *AllExpression) GetOperands() []*ValueExpression {
@@ -2433,7 +2521,7 @@ type AnyExpression struct {
 
 func (x *AnyExpression) Reset() {
 	*x = AnyExpression{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[34]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2445,7 +2533,7 @@ func (x *AnyExpression) String() string {
 func (*AnyExpression) ProtoMessage() {}
 
 func (x *AnyExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[34]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2458,7 +2546,7 @@ func (x *AnyExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AnyExpression.ProtoReflect.Descriptor instead.
 func (*AnyExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{34}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *AnyExpression) GetOperands() []*ValueExpression {
@@ -2485,6 +2573,7 @@ type ValueExpression struct {
 	//	*ValueExpression_Negation
 	//	*ValueExpression_All
 	//	*ValueExpression_Any
+	//	*ValueExpression_Capture
 	Expression    isValueExpression_Expression `protobuf_oneof:"expression"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -2492,7 +2581,7 @@ type ValueExpression struct {
 
 func (x *ValueExpression) Reset() {
 	*x = ValueExpression{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[35]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2504,7 +2593,7 @@ func (x *ValueExpression) String() string {
 func (*ValueExpression) ProtoMessage() {}
 
 func (x *ValueExpression) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[35]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2517,7 +2606,7 @@ func (x *ValueExpression) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ValueExpression.ProtoReflect.Descriptor instead.
 func (*ValueExpression) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{35}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *ValueExpression) GetExpression() isValueExpression_Expression {
@@ -2635,6 +2724,15 @@ func (x *ValueExpression) GetAny() *AnyExpression {
 	return nil
 }
 
+func (x *ValueExpression) GetCapture() *CaptureReference {
+	if x != nil {
+		if x, ok := x.Expression.(*ValueExpression_Capture); ok {
+			return x.Capture
+		}
+	}
+	return nil
+}
+
 type isValueExpression_Expression interface {
 	isValueExpression_Expression()
 }
@@ -2687,6 +2785,10 @@ type ValueExpression_Any struct {
 	Any *AnyExpression `protobuf:"bytes,12,opt,name=any,proto3,oneof"`
 }
 
+type ValueExpression_Capture struct {
+	Capture *CaptureReference `protobuf:"bytes,13,opt,name=capture,proto3,oneof"`
+}
+
 func (*ValueExpression_Literal) isValueExpression_Expression() {}
 
 func (*ValueExpression_Slot) isValueExpression_Expression() {}
@@ -2711,6 +2813,8 @@ func (*ValueExpression_All) isValueExpression_Expression() {}
 
 func (*ValueExpression_Any) isValueExpression_Expression() {}
 
+func (*ValueExpression_Capture) isValueExpression_Expression() {}
+
 type SlotSchema struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SlotId        string                 `protobuf:"bytes,1,opt,name=slot_id,json=slotId,proto3" json:"slot_id,omitempty"`
@@ -2722,7 +2826,7 @@ type SlotSchema struct {
 
 func (x *SlotSchema) Reset() {
 	*x = SlotSchema{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[36]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2734,7 +2838,7 @@ func (x *SlotSchema) String() string {
 func (*SlotSchema) ProtoMessage() {}
 
 func (x *SlotSchema) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[36]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2747,7 +2851,7 @@ func (x *SlotSchema) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SlotSchema.ProtoReflect.Descriptor instead.
 func (*SlotSchema) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{36}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *SlotSchema) GetSlotId() string {
@@ -2781,7 +2885,7 @@ type ObservationSchema struct {
 
 func (x *ObservationSchema) Reset() {
 	*x = ObservationSchema{}
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[37]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2793,7 +2897,7 @@ func (x *ObservationSchema) String() string {
 func (*ObservationSchema) ProtoMessage() {}
 
 func (x *ObservationSchema) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[37]
+	mi := &file_temporal_server_api_umpire_v1_value_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2806,7 +2910,7 @@ func (x *ObservationSchema) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ObservationSchema.ProtoReflect.Descriptor instead.
 func (*ObservationSchema) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{37}
+	return file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *ObservationSchema) GetObservationId() string {
@@ -2837,7 +2941,9 @@ const file_temporal_server_api_umpire_v1_value_proto_rawDesc = "" +
 	"\x06column\x18\x03 \x01(\x03R\x06column\x12\x1e\n" +
 	"\n" +
 	"provenance\x18\x04 \x01(\tR\n" +
-	"provenance\"#\n" +
+	"provenance\"&\n" +
+	"\x0eOptionalString\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\tR\x05value\"#\n" +
 	"\tEnumValue\x12\x16\n" +
 	"\x06number\x18\x01 \x01(\x05R\x06number\"I\n" +
 	"\tValueList\x12<\n" +
@@ -2919,7 +3025,10 @@ const file_temporal_server_api_umpire_v1_value_proto_rawDesc = "" +
 	"\vinstruction\x18\x01 \x01(\v23.temporal.server.api.umpire.v1.InstructionReferenceR\vinstruction\x12L\n" +
 	"\x05field\x18\x02 \x01(\x0e26.temporal.server.api.umpire.v1.InstructionOutcomeFieldR\x05field\"=\n" +
 	"\x14ObservationReference\x12%\n" +
-	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\"\\\n" +
+	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\"1\n" +
+	"\x10CaptureReference\x12\x1d\n" +
+	"\n" +
+	"capture_id\x18\x01 \x01(\tR\tcaptureId\"\\\n" +
 	"\x16RunEventFieldReference\x12B\n" +
 	"\x05field\x18\x01 \x01(\x0e2,.temporal.server.api.umpire.v1.RunEventFieldR\x05field\"\x96\x01\n" +
 	"\x0ePathExpression\x12F\n" +
@@ -2939,7 +3048,7 @@ const file_temporal_server_api_umpire_v1_value_proto_rawDesc = "" +
 	"\rAllExpression\x12J\n" +
 	"\boperands\x18\x01 \x03(\v2..temporal.server.api.umpire.v1.ValueExpressionR\boperands\"[\n" +
 	"\rAnyExpression\x12J\n" +
-	"\boperands\x18\x01 \x03(\v2..temporal.server.api.umpire.v1.ValueExpressionR\boperands\"\xa8\a\n" +
+	"\boperands\x18\x01 \x03(\v2..temporal.server.api.umpire.v1.ValueExpressionR\boperands\"\xf5\a\n" +
 	"\x0fValueExpression\x12@\n" +
 	"\aliteral\x18\x01 \x01(\v2$.temporal.server.api.umpire.v1.ValueH\x00R\aliteral\x12B\n" +
 	"\x04slot\x18\x02 \x01(\v2,.temporal.server.api.umpire.v1.SlotReferenceH\x00R\x04slot\x12V\n" +
@@ -2953,7 +3062,8 @@ const file_temporal_server_api_umpire_v1_value_proto_rawDesc = "" +
 	"\bnegation\x18\n" +
 	" \x01(\v2,.temporal.server.api.umpire.v1.NotExpressionH\x00R\bnegation\x12@\n" +
 	"\x03all\x18\v \x01(\v2,.temporal.server.api.umpire.v1.AllExpressionH\x00R\x03all\x12@\n" +
-	"\x03any\x18\f \x01(\v2,.temporal.server.api.umpire.v1.AnyExpressionH\x00R\x03anyB\f\n" +
+	"\x03any\x18\f \x01(\v2,.temporal.server.api.umpire.v1.AnyExpressionH\x00R\x03any\x12K\n" +
+	"\acapture\x18\r \x01(\v2/.temporal.server.api.umpire.v1.CaptureReferenceH\x00R\acaptureB\f\n" +
 	"\n" +
 	"expression\"\xa0\x01\n" +
 	"\n" +
@@ -3025,7 +3135,7 @@ func file_temporal_server_api_umpire_v1_value_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_umpire_v1_value_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_temporal_server_api_umpire_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 38)
+var file_temporal_server_api_umpire_v1_value_proto_msgTypes = make([]protoimpl.MessageInfo, 40)
 var file_temporal_server_api_umpire_v1_value_proto_goTypes = []any{
 	(ScalarKind)(0),                     // 0: temporal.server.api.umpire.v1.ScalarKind
 	(InstructionOutcomeField)(0),        // 1: temporal.server.api.umpire.v1.InstructionOutcomeField
@@ -3034,108 +3144,111 @@ var file_temporal_server_api_umpire_v1_value_proto_goTypes = []any{
 	(SlotKind)(0),                       // 4: temporal.server.api.umpire.v1.SlotKind
 	(*FormatVersion)(nil),               // 5: temporal.server.api.umpire.v1.FormatVersion
 	(*SourceLocation)(nil),              // 6: temporal.server.api.umpire.v1.SourceLocation
-	(*EnumValue)(nil),                   // 7: temporal.server.api.umpire.v1.EnumValue
-	(*ValueList)(nil),                   // 8: temporal.server.api.umpire.v1.ValueList
-	(*ValueMapEntry)(nil),               // 9: temporal.server.api.umpire.v1.ValueMapEntry
-	(*Value)(nil),                       // 10: temporal.server.api.umpire.v1.Value
-	(*ValueMap)(nil),                    // 11: temporal.server.api.umpire.v1.ValueMap
-	(*ScalarType)(nil),                  // 12: temporal.server.api.umpire.v1.ScalarType
-	(*NamedType)(nil),                   // 13: temporal.server.api.umpire.v1.NamedType
-	(*AnyType)(nil),                     // 14: temporal.server.api.umpire.v1.AnyType
-	(*OpaqueCapabilityType)(nil),        // 15: temporal.server.api.umpire.v1.OpaqueCapabilityType
-	(*SingularType)(nil),                // 16: temporal.server.api.umpire.v1.SingularType
-	(*RepeatedType)(nil),                // 17: temporal.server.api.umpire.v1.RepeatedType
-	(*MapType)(nil),                     // 18: temporal.server.api.umpire.v1.MapType
-	(*ValueType)(nil),                   // 19: temporal.server.api.umpire.v1.ValueType
-	(*RepeatedWildcard)(nil),            // 20: temporal.server.api.umpire.v1.RepeatedWildcard
-	(*MapKeySelector)(nil),              // 21: temporal.server.api.umpire.v1.MapKeySelector
-	(*PresenceSelector)(nil),            // 22: temporal.server.api.umpire.v1.PresenceSelector
-	(*OneofSelector)(nil),               // 23: temporal.server.api.umpire.v1.OneofSelector
-	(*FieldPathSegment)(nil),            // 24: temporal.server.api.umpire.v1.FieldPathSegment
-	(*FieldPath)(nil),                   // 25: temporal.server.api.umpire.v1.FieldPath
-	(*InstructionReference)(nil),        // 26: temporal.server.api.umpire.v1.InstructionReference
-	(*SlotReference)(nil),               // 27: temporal.server.api.umpire.v1.SlotReference
-	(*OutcomeFieldSchema)(nil),          // 28: temporal.server.api.umpire.v1.OutcomeFieldSchema
-	(*InstructionOutcomeSchema)(nil),    // 29: temporal.server.api.umpire.v1.InstructionOutcomeSchema
-	(*InstructionOutcomeReference)(nil), // 30: temporal.server.api.umpire.v1.InstructionOutcomeReference
-	(*ObservationReference)(nil),        // 31: temporal.server.api.umpire.v1.ObservationReference
-	(*RunEventFieldReference)(nil),      // 32: temporal.server.api.umpire.v1.RunEventFieldReference
-	(*PathExpression)(nil),              // 33: temporal.server.api.umpire.v1.PathExpression
-	(*PresentExpression)(nil),           // 34: temporal.server.api.umpire.v1.PresentExpression
-	(*EqualsExpression)(nil),            // 35: temporal.server.api.umpire.v1.EqualsExpression
-	(*CompareExpression)(nil),           // 36: temporal.server.api.umpire.v1.CompareExpression
-	(*NotExpression)(nil),               // 37: temporal.server.api.umpire.v1.NotExpression
-	(*AllExpression)(nil),               // 38: temporal.server.api.umpire.v1.AllExpression
-	(*AnyExpression)(nil),               // 39: temporal.server.api.umpire.v1.AnyExpression
-	(*ValueExpression)(nil),             // 40: temporal.server.api.umpire.v1.ValueExpression
-	(*SlotSchema)(nil),                  // 41: temporal.server.api.umpire.v1.SlotSchema
-	(*ObservationSchema)(nil),           // 42: temporal.server.api.umpire.v1.ObservationSchema
-	(*anypb.Any)(nil),                   // 43: google.protobuf.Any
+	(*OptionalString)(nil),              // 7: temporal.server.api.umpire.v1.OptionalString
+	(*EnumValue)(nil),                   // 8: temporal.server.api.umpire.v1.EnumValue
+	(*ValueList)(nil),                   // 9: temporal.server.api.umpire.v1.ValueList
+	(*ValueMapEntry)(nil),               // 10: temporal.server.api.umpire.v1.ValueMapEntry
+	(*Value)(nil),                       // 11: temporal.server.api.umpire.v1.Value
+	(*ValueMap)(nil),                    // 12: temporal.server.api.umpire.v1.ValueMap
+	(*ScalarType)(nil),                  // 13: temporal.server.api.umpire.v1.ScalarType
+	(*NamedType)(nil),                   // 14: temporal.server.api.umpire.v1.NamedType
+	(*AnyType)(nil),                     // 15: temporal.server.api.umpire.v1.AnyType
+	(*OpaqueCapabilityType)(nil),        // 16: temporal.server.api.umpire.v1.OpaqueCapabilityType
+	(*SingularType)(nil),                // 17: temporal.server.api.umpire.v1.SingularType
+	(*RepeatedType)(nil),                // 18: temporal.server.api.umpire.v1.RepeatedType
+	(*MapType)(nil),                     // 19: temporal.server.api.umpire.v1.MapType
+	(*ValueType)(nil),                   // 20: temporal.server.api.umpire.v1.ValueType
+	(*RepeatedWildcard)(nil),            // 21: temporal.server.api.umpire.v1.RepeatedWildcard
+	(*MapKeySelector)(nil),              // 22: temporal.server.api.umpire.v1.MapKeySelector
+	(*PresenceSelector)(nil),            // 23: temporal.server.api.umpire.v1.PresenceSelector
+	(*OneofSelector)(nil),               // 24: temporal.server.api.umpire.v1.OneofSelector
+	(*FieldPathSegment)(nil),            // 25: temporal.server.api.umpire.v1.FieldPathSegment
+	(*FieldPath)(nil),                   // 26: temporal.server.api.umpire.v1.FieldPath
+	(*InstructionReference)(nil),        // 27: temporal.server.api.umpire.v1.InstructionReference
+	(*SlotReference)(nil),               // 28: temporal.server.api.umpire.v1.SlotReference
+	(*OutcomeFieldSchema)(nil),          // 29: temporal.server.api.umpire.v1.OutcomeFieldSchema
+	(*InstructionOutcomeSchema)(nil),    // 30: temporal.server.api.umpire.v1.InstructionOutcomeSchema
+	(*InstructionOutcomeReference)(nil), // 31: temporal.server.api.umpire.v1.InstructionOutcomeReference
+	(*ObservationReference)(nil),        // 32: temporal.server.api.umpire.v1.ObservationReference
+	(*CaptureReference)(nil),            // 33: temporal.server.api.umpire.v1.CaptureReference
+	(*RunEventFieldReference)(nil),      // 34: temporal.server.api.umpire.v1.RunEventFieldReference
+	(*PathExpression)(nil),              // 35: temporal.server.api.umpire.v1.PathExpression
+	(*PresentExpression)(nil),           // 36: temporal.server.api.umpire.v1.PresentExpression
+	(*EqualsExpression)(nil),            // 37: temporal.server.api.umpire.v1.EqualsExpression
+	(*CompareExpression)(nil),           // 38: temporal.server.api.umpire.v1.CompareExpression
+	(*NotExpression)(nil),               // 39: temporal.server.api.umpire.v1.NotExpression
+	(*AllExpression)(nil),               // 40: temporal.server.api.umpire.v1.AllExpression
+	(*AnyExpression)(nil),               // 41: temporal.server.api.umpire.v1.AnyExpression
+	(*ValueExpression)(nil),             // 42: temporal.server.api.umpire.v1.ValueExpression
+	(*SlotSchema)(nil),                  // 43: temporal.server.api.umpire.v1.SlotSchema
+	(*ObservationSchema)(nil),           // 44: temporal.server.api.umpire.v1.ObservationSchema
+	(*anypb.Any)(nil),                   // 45: google.protobuf.Any
 }
 var file_temporal_server_api_umpire_v1_value_proto_depIdxs = []int32{
-	10, // 0: temporal.server.api.umpire.v1.ValueList.values:type_name -> temporal.server.api.umpire.v1.Value
-	10, // 1: temporal.server.api.umpire.v1.ValueMapEntry.key:type_name -> temporal.server.api.umpire.v1.Value
-	10, // 2: temporal.server.api.umpire.v1.ValueMapEntry.value:type_name -> temporal.server.api.umpire.v1.Value
-	7,  // 3: temporal.server.api.umpire.v1.Value.enum_value:type_name -> temporal.server.api.umpire.v1.EnumValue
-	43, // 4: temporal.server.api.umpire.v1.Value.message_value:type_name -> google.protobuf.Any
-	8,  // 5: temporal.server.api.umpire.v1.Value.list_value:type_name -> temporal.server.api.umpire.v1.ValueList
-	11, // 6: temporal.server.api.umpire.v1.Value.map_value:type_name -> temporal.server.api.umpire.v1.ValueMap
-	9,  // 7: temporal.server.api.umpire.v1.ValueMap.entries:type_name -> temporal.server.api.umpire.v1.ValueMapEntry
+	11, // 0: temporal.server.api.umpire.v1.ValueList.values:type_name -> temporal.server.api.umpire.v1.Value
+	11, // 1: temporal.server.api.umpire.v1.ValueMapEntry.key:type_name -> temporal.server.api.umpire.v1.Value
+	11, // 2: temporal.server.api.umpire.v1.ValueMapEntry.value:type_name -> temporal.server.api.umpire.v1.Value
+	8,  // 3: temporal.server.api.umpire.v1.Value.enum_value:type_name -> temporal.server.api.umpire.v1.EnumValue
+	45, // 4: temporal.server.api.umpire.v1.Value.message_value:type_name -> google.protobuf.Any
+	9,  // 5: temporal.server.api.umpire.v1.Value.list_value:type_name -> temporal.server.api.umpire.v1.ValueList
+	12, // 6: temporal.server.api.umpire.v1.Value.map_value:type_name -> temporal.server.api.umpire.v1.ValueMap
+	10, // 7: temporal.server.api.umpire.v1.ValueMap.entries:type_name -> temporal.server.api.umpire.v1.ValueMapEntry
 	0,  // 8: temporal.server.api.umpire.v1.ScalarType.kind:type_name -> temporal.server.api.umpire.v1.ScalarKind
-	12, // 9: temporal.server.api.umpire.v1.SingularType.scalar:type_name -> temporal.server.api.umpire.v1.ScalarType
-	13, // 10: temporal.server.api.umpire.v1.SingularType.enumeration:type_name -> temporal.server.api.umpire.v1.NamedType
-	13, // 11: temporal.server.api.umpire.v1.SingularType.message:type_name -> temporal.server.api.umpire.v1.NamedType
-	14, // 12: temporal.server.api.umpire.v1.SingularType.any:type_name -> temporal.server.api.umpire.v1.AnyType
-	15, // 13: temporal.server.api.umpire.v1.SingularType.opaque_capability:type_name -> temporal.server.api.umpire.v1.OpaqueCapabilityType
-	16, // 14: temporal.server.api.umpire.v1.RepeatedType.element:type_name -> temporal.server.api.umpire.v1.SingularType
-	12, // 15: temporal.server.api.umpire.v1.MapType.key:type_name -> temporal.server.api.umpire.v1.ScalarType
-	16, // 16: temporal.server.api.umpire.v1.MapType.value:type_name -> temporal.server.api.umpire.v1.SingularType
-	16, // 17: temporal.server.api.umpire.v1.ValueType.singular:type_name -> temporal.server.api.umpire.v1.SingularType
-	17, // 18: temporal.server.api.umpire.v1.ValueType.repeated:type_name -> temporal.server.api.umpire.v1.RepeatedType
-	18, // 19: temporal.server.api.umpire.v1.ValueType.map:type_name -> temporal.server.api.umpire.v1.MapType
-	10, // 20: temporal.server.api.umpire.v1.MapKeySelector.key:type_name -> temporal.server.api.umpire.v1.Value
-	20, // 21: temporal.server.api.umpire.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.umpire.v1.RepeatedWildcard
-	21, // 22: temporal.server.api.umpire.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.umpire.v1.MapKeySelector
-	22, // 23: temporal.server.api.umpire.v1.FieldPathSegment.presence:type_name -> temporal.server.api.umpire.v1.PresenceSelector
-	23, // 24: temporal.server.api.umpire.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.umpire.v1.OneofSelector
-	24, // 25: temporal.server.api.umpire.v1.FieldPath.segments:type_name -> temporal.server.api.umpire.v1.FieldPathSegment
+	13, // 9: temporal.server.api.umpire.v1.SingularType.scalar:type_name -> temporal.server.api.umpire.v1.ScalarType
+	14, // 10: temporal.server.api.umpire.v1.SingularType.enumeration:type_name -> temporal.server.api.umpire.v1.NamedType
+	14, // 11: temporal.server.api.umpire.v1.SingularType.message:type_name -> temporal.server.api.umpire.v1.NamedType
+	15, // 12: temporal.server.api.umpire.v1.SingularType.any:type_name -> temporal.server.api.umpire.v1.AnyType
+	16, // 13: temporal.server.api.umpire.v1.SingularType.opaque_capability:type_name -> temporal.server.api.umpire.v1.OpaqueCapabilityType
+	17, // 14: temporal.server.api.umpire.v1.RepeatedType.element:type_name -> temporal.server.api.umpire.v1.SingularType
+	13, // 15: temporal.server.api.umpire.v1.MapType.key:type_name -> temporal.server.api.umpire.v1.ScalarType
+	17, // 16: temporal.server.api.umpire.v1.MapType.value:type_name -> temporal.server.api.umpire.v1.SingularType
+	17, // 17: temporal.server.api.umpire.v1.ValueType.singular:type_name -> temporal.server.api.umpire.v1.SingularType
+	18, // 18: temporal.server.api.umpire.v1.ValueType.repeated:type_name -> temporal.server.api.umpire.v1.RepeatedType
+	19, // 19: temporal.server.api.umpire.v1.ValueType.map:type_name -> temporal.server.api.umpire.v1.MapType
+	11, // 20: temporal.server.api.umpire.v1.MapKeySelector.key:type_name -> temporal.server.api.umpire.v1.Value
+	21, // 21: temporal.server.api.umpire.v1.FieldPathSegment.repeated:type_name -> temporal.server.api.umpire.v1.RepeatedWildcard
+	22, // 22: temporal.server.api.umpire.v1.FieldPathSegment.map_key:type_name -> temporal.server.api.umpire.v1.MapKeySelector
+	23, // 23: temporal.server.api.umpire.v1.FieldPathSegment.presence:type_name -> temporal.server.api.umpire.v1.PresenceSelector
+	24, // 24: temporal.server.api.umpire.v1.FieldPathSegment.oneof:type_name -> temporal.server.api.umpire.v1.OneofSelector
+	25, // 25: temporal.server.api.umpire.v1.FieldPath.segments:type_name -> temporal.server.api.umpire.v1.FieldPathSegment
 	1,  // 26: temporal.server.api.umpire.v1.OutcomeFieldSchema.field:type_name -> temporal.server.api.umpire.v1.InstructionOutcomeField
-	19, // 27: temporal.server.api.umpire.v1.OutcomeFieldSchema.type:type_name -> temporal.server.api.umpire.v1.ValueType
-	28, // 28: temporal.server.api.umpire.v1.InstructionOutcomeSchema.fields:type_name -> temporal.server.api.umpire.v1.OutcomeFieldSchema
-	26, // 29: temporal.server.api.umpire.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.umpire.v1.InstructionReference
+	20, // 27: temporal.server.api.umpire.v1.OutcomeFieldSchema.type:type_name -> temporal.server.api.umpire.v1.ValueType
+	29, // 28: temporal.server.api.umpire.v1.InstructionOutcomeSchema.fields:type_name -> temporal.server.api.umpire.v1.OutcomeFieldSchema
+	27, // 29: temporal.server.api.umpire.v1.InstructionOutcomeReference.instruction:type_name -> temporal.server.api.umpire.v1.InstructionReference
 	1,  // 30: temporal.server.api.umpire.v1.InstructionOutcomeReference.field:type_name -> temporal.server.api.umpire.v1.InstructionOutcomeField
 	2,  // 31: temporal.server.api.umpire.v1.RunEventFieldReference.field:type_name -> temporal.server.api.umpire.v1.RunEventField
-	40, // 32: temporal.server.api.umpire.v1.PathExpression.source:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	25, // 33: temporal.server.api.umpire.v1.PathExpression.path:type_name -> temporal.server.api.umpire.v1.FieldPath
-	40, // 34: temporal.server.api.umpire.v1.PresentExpression.operand:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	40, // 35: temporal.server.api.umpire.v1.EqualsExpression.left:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	40, // 36: temporal.server.api.umpire.v1.EqualsExpression.right:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	42, // 32: temporal.server.api.umpire.v1.PathExpression.source:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	26, // 33: temporal.server.api.umpire.v1.PathExpression.path:type_name -> temporal.server.api.umpire.v1.FieldPath
+	42, // 34: temporal.server.api.umpire.v1.PresentExpression.operand:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	42, // 35: temporal.server.api.umpire.v1.EqualsExpression.left:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	42, // 36: temporal.server.api.umpire.v1.EqualsExpression.right:type_name -> temporal.server.api.umpire.v1.ValueExpression
 	3,  // 37: temporal.server.api.umpire.v1.CompareExpression.operator:type_name -> temporal.server.api.umpire.v1.ComparisonOperator
-	40, // 38: temporal.server.api.umpire.v1.CompareExpression.left:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	40, // 39: temporal.server.api.umpire.v1.CompareExpression.right:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	40, // 40: temporal.server.api.umpire.v1.NotExpression.operand:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	40, // 41: temporal.server.api.umpire.v1.AllExpression.operands:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	40, // 42: temporal.server.api.umpire.v1.AnyExpression.operands:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	10, // 43: temporal.server.api.umpire.v1.ValueExpression.literal:type_name -> temporal.server.api.umpire.v1.Value
-	27, // 44: temporal.server.api.umpire.v1.ValueExpression.slot:type_name -> temporal.server.api.umpire.v1.SlotReference
-	30, // 45: temporal.server.api.umpire.v1.ValueExpression.outcome:type_name -> temporal.server.api.umpire.v1.InstructionOutcomeReference
-	31, // 46: temporal.server.api.umpire.v1.ValueExpression.observation:type_name -> temporal.server.api.umpire.v1.ObservationReference
-	32, // 47: temporal.server.api.umpire.v1.ValueExpression.run_event:type_name -> temporal.server.api.umpire.v1.RunEventFieldReference
-	33, // 48: temporal.server.api.umpire.v1.ValueExpression.path:type_name -> temporal.server.api.umpire.v1.PathExpression
-	34, // 49: temporal.server.api.umpire.v1.ValueExpression.present:type_name -> temporal.server.api.umpire.v1.PresentExpression
-	35, // 50: temporal.server.api.umpire.v1.ValueExpression.equals:type_name -> temporal.server.api.umpire.v1.EqualsExpression
-	36, // 51: temporal.server.api.umpire.v1.ValueExpression.compare:type_name -> temporal.server.api.umpire.v1.CompareExpression
-	37, // 52: temporal.server.api.umpire.v1.ValueExpression.negation:type_name -> temporal.server.api.umpire.v1.NotExpression
-	38, // 53: temporal.server.api.umpire.v1.ValueExpression.all:type_name -> temporal.server.api.umpire.v1.AllExpression
-	39, // 54: temporal.server.api.umpire.v1.ValueExpression.any:type_name -> temporal.server.api.umpire.v1.AnyExpression
-	19, // 55: temporal.server.api.umpire.v1.SlotSchema.type:type_name -> temporal.server.api.umpire.v1.ValueType
-	4,  // 56: temporal.server.api.umpire.v1.SlotSchema.kind:type_name -> temporal.server.api.umpire.v1.SlotKind
-	19, // 57: temporal.server.api.umpire.v1.ObservationSchema.type:type_name -> temporal.server.api.umpire.v1.ValueType
-	58, // [58:58] is the sub-list for method output_type
-	58, // [58:58] is the sub-list for method input_type
-	58, // [58:58] is the sub-list for extension type_name
-	58, // [58:58] is the sub-list for extension extendee
-	0,  // [0:58] is the sub-list for field type_name
+	42, // 38: temporal.server.api.umpire.v1.CompareExpression.left:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	42, // 39: temporal.server.api.umpire.v1.CompareExpression.right:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	42, // 40: temporal.server.api.umpire.v1.NotExpression.operand:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	42, // 41: temporal.server.api.umpire.v1.AllExpression.operands:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	42, // 42: temporal.server.api.umpire.v1.AnyExpression.operands:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	11, // 43: temporal.server.api.umpire.v1.ValueExpression.literal:type_name -> temporal.server.api.umpire.v1.Value
+	28, // 44: temporal.server.api.umpire.v1.ValueExpression.slot:type_name -> temporal.server.api.umpire.v1.SlotReference
+	31, // 45: temporal.server.api.umpire.v1.ValueExpression.outcome:type_name -> temporal.server.api.umpire.v1.InstructionOutcomeReference
+	32, // 46: temporal.server.api.umpire.v1.ValueExpression.observation:type_name -> temporal.server.api.umpire.v1.ObservationReference
+	34, // 47: temporal.server.api.umpire.v1.ValueExpression.run_event:type_name -> temporal.server.api.umpire.v1.RunEventFieldReference
+	35, // 48: temporal.server.api.umpire.v1.ValueExpression.path:type_name -> temporal.server.api.umpire.v1.PathExpression
+	36, // 49: temporal.server.api.umpire.v1.ValueExpression.present:type_name -> temporal.server.api.umpire.v1.PresentExpression
+	37, // 50: temporal.server.api.umpire.v1.ValueExpression.equals:type_name -> temporal.server.api.umpire.v1.EqualsExpression
+	38, // 51: temporal.server.api.umpire.v1.ValueExpression.compare:type_name -> temporal.server.api.umpire.v1.CompareExpression
+	39, // 52: temporal.server.api.umpire.v1.ValueExpression.negation:type_name -> temporal.server.api.umpire.v1.NotExpression
+	40, // 53: temporal.server.api.umpire.v1.ValueExpression.all:type_name -> temporal.server.api.umpire.v1.AllExpression
+	41, // 54: temporal.server.api.umpire.v1.ValueExpression.any:type_name -> temporal.server.api.umpire.v1.AnyExpression
+	33, // 55: temporal.server.api.umpire.v1.ValueExpression.capture:type_name -> temporal.server.api.umpire.v1.CaptureReference
+	20, // 56: temporal.server.api.umpire.v1.SlotSchema.type:type_name -> temporal.server.api.umpire.v1.ValueType
+	4,  // 57: temporal.server.api.umpire.v1.SlotSchema.kind:type_name -> temporal.server.api.umpire.v1.SlotKind
+	20, // 58: temporal.server.api.umpire.v1.ObservationSchema.type:type_name -> temporal.server.api.umpire.v1.ValueType
+	59, // [59:59] is the sub-list for method output_type
+	59, // [59:59] is the sub-list for method input_type
+	59, // [59:59] is the sub-list for extension type_name
+	59, // [59:59] is the sub-list for extension extendee
+	0,  // [0:59] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_value_proto_init() }
@@ -3143,7 +3256,7 @@ func file_temporal_server_api_umpire_v1_value_proto_init() {
 	if File_temporal_server_api_umpire_v1_value_proto != nil {
 		return
 	}
-	file_temporal_server_api_umpire_v1_value_proto_msgTypes[5].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_value_proto_msgTypes[6].OneofWrappers = []any{
 		(*Value_Text)(nil),
 		(*Value_Natural)(nil),
 		(*Value_BoolValue)(nil),
@@ -3156,25 +3269,25 @@ func file_temporal_server_api_umpire_v1_value_proto_init() {
 		(*Value_ListValue)(nil),
 		(*Value_MapValue)(nil),
 	}
-	file_temporal_server_api_umpire_v1_value_proto_msgTypes[11].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_value_proto_msgTypes[12].OneofWrappers = []any{
 		(*SingularType_Scalar)(nil),
 		(*SingularType_Enumeration)(nil),
 		(*SingularType_Message)(nil),
 		(*SingularType_Any)(nil),
 		(*SingularType_OpaqueCapability)(nil),
 	}
-	file_temporal_server_api_umpire_v1_value_proto_msgTypes[14].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_value_proto_msgTypes[15].OneofWrappers = []any{
 		(*ValueType_Singular)(nil),
 		(*ValueType_Repeated)(nil),
 		(*ValueType_Map)(nil),
 	}
-	file_temporal_server_api_umpire_v1_value_proto_msgTypes[19].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_value_proto_msgTypes[20].OneofWrappers = []any{
 		(*FieldPathSegment_Repeated)(nil),
 		(*FieldPathSegment_MapKey)(nil),
 		(*FieldPathSegment_Presence)(nil),
 		(*FieldPathSegment_Oneof)(nil),
 	}
-	file_temporal_server_api_umpire_v1_value_proto_msgTypes[35].OneofWrappers = []any{
+	file_temporal_server_api_umpire_v1_value_proto_msgTypes[37].OneofWrappers = []any{
 		(*ValueExpression_Literal)(nil),
 		(*ValueExpression_Slot)(nil),
 		(*ValueExpression_Outcome)(nil),
@@ -3187,6 +3300,7 @@ func file_temporal_server_api_umpire_v1_value_proto_init() {
 		(*ValueExpression_Negation)(nil),
 		(*ValueExpression_All)(nil),
 		(*ValueExpression_Any)(nil),
+		(*ValueExpression_Capture)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -3194,7 +3308,7 @@ func file_temporal_server_api_umpire_v1_value_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_value_proto_rawDesc), len(file_temporal_server_api_umpire_v1_value_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   38,
+			NumMessages:   40,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
