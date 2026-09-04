@@ -16,7 +16,9 @@ wiring belongs to Task 7 so this task stays disjoint from the server task.
 - Register stable generic workflow and Nexus service entrypoints that select prepared Program
   entrypoints through Host-owned symbolic bindings.
 - Interpret workflow nodes only through replay-safe SDK APIs; implement `StartNexusOperation`,
-  `Await`, and `Finish` without direct server clients or verification events.
+  `Await`, and `Finish` without direct server clients or verification events. Scheduling, outcomes,
+  and ordinary Slots are replay-local to an activation. Use the activation reservations and
+  cancellation semantics defined in the spec; do not add per-instruction controller gating.
 - Keep `RespondNexus` and Nexus service registration in worker lifecycle. Store callback URL,
   headers, and token behind an opaque Run/activation capability Slot; expose only readiness and
   authorized completion consumption.
@@ -44,10 +46,17 @@ Contracts consume authoritative server-side observations collected by controller
   controller/context mismatch during preparation.
 - [ ] Workflow execution remains deterministic/replay-safe and opens no direct server or arbitrary
   network client.
-- [ ] Async response stores completion authority opaquely; expressions/projections cannot obtain URL,
-  headers, or token, and crossed/conflicting/late publications are rejected and scrubbed.
+- [ ] Async response stores completion authority opaquely; expressions/projections cannot obtain
+  URL, headers, or token from that private Slot. This does not restrict ordinary fields returned by
+  an authorized RPC. Crossed/conflicting/late bridge publications reject.
 - [ ] Worker startup/activation/shared-worker failure affects only dependent Runs and yields bounded
   incomplete closure without leaking another Run's state.
+- [ ] SDK tests exercise Stop racing an already-reserved activation and its next command: commands
+  before cancellation takes effect count as in-flight work, cancellation/drain stays bounded, and
+  no new activation reservation is admitted after Stop. Delayed reserved delivery and replay use
+  stable activation identity; unreserved/closed-session delivery cannot start a new DAG.
+- [ ] Late publications after Run return use bounded Host diagnostics without changing the returned
+  Run/Verdict or another Run.
 - [ ] No SDK-side evidence channel is introduced, and Nexus remains part of worker lifecycle.
 - [ ] `go test -race -count=1 -tags test_dep ./tools/umpire/temporal/worker/...` passes.
 

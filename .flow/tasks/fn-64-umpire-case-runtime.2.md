@@ -1,81 +1,73 @@
 ---
-satisfies: [R1, R2, R6, R7, R9]
+satisfies: [R1, R6]
 ---
-# fn-64-umpire-case-runtime.2 Build typed IR admission and immutable preparation
+# fn-64-umpire-case-runtime.2 Compile shared typed IR and descriptor paths
 
 ## Description
-Implement shared typed IR binding and exhaustive pre-I/O Case admission (R1, R2), including the
-Profile, public Host, internal MonitorFactory, effect-handle, and opaque capability contracts used
-by later tasks. Establish the root preparation facade while keeping execution machinery private.
-This is the early proof point because it validates arbitrary protobuf methods and payload paths
-without executing them.
+Build the reusable, immutable typed IR binder consumed by Program admission and Contract admission.
+This is the foundational portion of the former preparation task; full Case admission and the root
+facade are assigned to tasks 11–13, with no requirement removed.
 
 **Size:** M
-**Files:** `tools/umpire/internal/{ir,execution}/**`, public Profile/Host contracts, top-level static
-preparation skeleton, and focused tests
-**Touches:** [tools/umpire/internal/ir/**, tools/umpire/internal/execution/**, tools/umpire/*.go]
+**Files:** `tools/umpire/internal/ir/{catalog,type,path,expression}.go` and focused tests
+**Touches:** [tools/umpire/internal/ir/**]
 
 ## Approach
-- Reuse the existing clone-and-validate shape, replacing PortableTestPlan vocabulary rather than
-  layering over it.
-- Compile descriptor/path accessors, entrypoint DAG indexes, Slot/result dataflow, capability
-  checks, bounds, and stable Profile/catalog identities into immutable prepared data.
-- Restrict dependencies to an entrypoint; validate explicit Host-driven activation bindings for
-  workflow and Nexus-handler graphs.
-- Admit scalar/message/WKT fields through descriptors, defined enum values, optional/oneof
-  presence, repeated fan-out, literal map keys, and whole typed `Any` Slot copies; reject unpacked
-  `Any` traversal and unsupported constructs.
-- Keep `PrepareCase(case, profile)` static and prepare the Contract's immutable default evaluator.
-  Define root `Run(ctx, host)` preflight so it validates the live Host and creates a fresh internal
-  Monitor before Run creation; Monitor construction failure is an internal invariant with no I/O.
-- Define public Profile/Host/effect-handle types in the root package and a root-owned translation to
-  the private execution driver. Internal execution imports neither the root nor Temporal, and the
-  root imports no concrete Host implementation.
-- Make completion authority an opaque Host capability type that ordinary expressions and
-  projections cannot inspect; define non-blocking Host-owned effect handles for wait/cancel/drain.
+- Snapshot and validate a descriptor catalog without I/O; bind arbitrary unary methods and preserve
+  exact immutable catalog identity. Reject unresolved, duplicate/conflicting and streaming methods.
+- Compile scalar, enum, message, WKT and whole-Any types and literals with exact cardinality, canonical
+  numeric representation/ranges, defined enum values, and bounded nested payload validation.
+- Compile descriptor paths once. Ordinary segments name protobuf fields; a oneof selector names the
+  oneof group in `field` and its selected member in `selected_field`. A presence selector yields a
+  boolean. Optional/oneof/message traversal and literal map-key lookup retain possible absence;
+  repeated wildcards retain fan-out, while whole repeated/map leaves retain collection cardinality.
+  Whole typed Any copies are admitted; unpacked Any traversal and opaque capability inspection reject.
+- Bind the closed expression vocabulary using a caller-supplied typed reference/presence environment.
+  Program and Contract graph/dataflow analysis belong to their respective admission tasks. Do not
+  infer reference availability from a declared type alone or conflate absent values with zero values.
+- Keep all catalog/type/path/expression state immutable. Errors carry stable categories and bounded
+  paths; shared work/depth/fan-out accounting must reject overflow and malformed nested inputs.
 
 ## Investigation targets
 **Required** (read before coding):
-- `tools/umpire/testplan/validate.go:63-100` — exhaustive pre-I/O validation pattern
-- `tools/umpire/testplan/plan.go:18-79` — immutable clone/checksum precedent
-- `tools/umpire/executor/portable_projection.go` — legacy schema projection and identity assumptions
-- `proto/internal/temporal/server/api/umpire/v1/portable_test_plan.proto` — current bounds and typed
-  value inputs
-- `.flow/memory/bug/runtime-errors/interface-nil-checks-must-cover-every-2026-09-04.md` — complete
-  typed-nil reflection cases
-
-**Optional** (reference as needed):
-- `.flow/memory/bug/integration/portable-execution-boundaries-must-2026-09-03.md` —
-  pre-dispatch/invariant boundary regressions
-
-## Key context
-Preparation may compute stable catalog/Profile identity but must not add response/payload digests.
-Profile credentials and availability remain runtime concerns behind the prepared authority identity.
+- `proto/internal/temporal/server/api/umpire/v1/value.proto:28` — exact scalar and expression vocabulary
+- `proto/internal/temporal/server/api/umpire/v1/program.proto:63` — assignments and response projections
+- `tools/umpire/testplan/validate.go:63` — pre-I/O validation and bounded proto surface inspection
+- `tools/umpire/testplan/plan.go:49` — immutable admitted clone precedent
+- `tools/umpire/cmd/umpire-gen-lean-api/model.go:109` — established descriptor construction
+- `.flow/memory/bug/integration/portable-schemas-must-preserve-source-2026-09-03.md` — source type/cardinality preservation
 
 ## Acceptance
-- [ ] Table-driven admission tests cover every schema/version/ID/DAG/bound/dataflow/context/capability
-  failure and prove zero Host I/O on rejection.
-- [ ] Descriptor tests bind multiple unrelated unary methods and cover nested fields,
-  optional/oneof presence, repeated `[*]`, literal map keys, WKT fields, enum rejection, `Any`,
-  cardinality, and type mismatch.
-- [ ] Instruction-outcome references permit explicit guards over success, protocol non-success, SDK
-  failure, and bounded timeout without exposing undeclared payloads.
-- [ ] Prepared data is immutable and reusable; Profile typed nil fails preparation, while Host typed
-  nil or identity mismatch and internal MonitorFactory typed nil/failure fail before Run creation or
-  I/O.
-- [ ] The public surface exposes `PrepareCase` and `PreparedCase.Run(ctx, host)` without scheduler,
-  recorder, Slot, Executor, or Monitor-factory construction APIs.
-- [ ] Dependency tests prove the root-owned Host-to-driver adapter introduces no root/internal/
-  Temporal import cycle.
-- [ ] Effect handles expose bounded wait/cancel without requiring Executor-owned goroutine wrappers;
-  opaque capability Slots permit readiness/consumption but reject inspection and projection.
-- [ ] `go test -count=1 -tags test_dep ./tools/umpire/internal/ir/...
-  ./tools/umpire/internal/execution/... ./tools/umpire/...` passes.
+- [ ] Tests bind multiple unrelated unary methods and reject missing, conflicting, malformed and
+  streaming descriptors; mutation of source descriptor data cannot change the compiled catalog.
+- [ ] Table-driven type/literal tests cover every scalar kind, canonical numeric limits, named enums,
+  messages/WKTs, whole typed Any, repeated/map cardinality, unknown fields and crossed types.
+- [ ] Path tests cover nested fields, presence/oneof selection, repeated `[*]`, literal map keys,
+  whole collection leaves, WKT fields and possible absence; unknown selectors, illegal Any traversal,
+  capability inspection, type/cardinality mismatch and fan-out overflow reject deterministically.
+- [ ] Expression tests cover every variant, reference types, explicit presence facts, operator/type
+  mismatch, unavailable unguarded references, nil/unknown nodes, depth/work bounds and overflow.
+  Admission callers own graph-specific availability and capture single-assignment proofs.
+- [ ] `go test -count=1 -tags test_dep ./tools/umpire/internal/ir/...` and applicable format/lint gates
+  pass. Tests use fixed descriptor fixtures and expected types, without Lean or target I/O.
 
 ## Done summary
-TBD
+Implemented the immutable internal IR catalog, exact types/literals, compiled descriptor paths, and closed expression binder. Contextual numeric source types, explicit presence facts, catalog ownership, malformed unions, unknown fields, collection bounds, and pre-decode work/depth accounting reject invalid inputs without target I/O.
 
+Catalog tests cover unrelated unary methods, malformed/duplicate/unresolved descriptors, streaming rejection and source mutation. Type/path/expression tables cover every scalar and expression variant, enums/messages/WKT/Any, cardinality, optional/oneof/map/wildcard paths, immutable accessors and concurrent reuse. Focused red/green regressions fixed ambiguous numeric inference, crossed presence sources, payload collection ceilings, and pre-decode work checks including proto2 groups and packed scalars. Existing legacy clone/surface checks and generator descriptor construction informed the new module; their artifact-specific implementations were not reusable.
+
+Baseline: green; owned broad Umpire Go and scoped no-fix lint checks passed before edits. Final focused unit verification, race tests, make fmt-imports, and scoped make lint-code passed. The repository's inherited main-based lint backlog remains outside this task. Logs: .flow/tmp/fn64-task2-baseline{,-lint}.log, fn64-task2-{verify,race-final,format-final,lint-final}.log. Focused commands do not mint full-suite receipts.
+
+Original task 2 was split across tasks 2/11/12/13 while retaining all R1–R10 coverage. Fresh plan review SHIP: /tmp/plan-review-receipt-fn-64-umpire-case-runtime.json. Program/policy and reservation admission, Contract capture analysis, and root composition remain assigned to later tasks; this task adds no runtime evaluator or public Run stub.
+
+No commits authored: changes and receipts remain staged for the user. Review round one returned NEEDS_WORK because the installed wrapper supplied an empty commit range. The conductor-approved task-local launcher overrides only snapshot capture and uses an immutable git write-tree object; normal read-only review, artifact hashing, retry caps, and verdict persistence remain intact. The corrected review returned SHIP; the reviewer could not run tests inside its read-only sandbox, so the owned green gates provide execution evidence.
+
+Reviewed staged tree: fb6a1f31183460d9bd9b63d88fa46248d4ca573f (not a commit); actual HEAD: 54042ae673e80c6c290ecc7ff74ac55304792d6b. Snapshot metadata: .flow/tmp/fn64-task2-review-snapshot.json. Review logs: .flow/tmp/fn64-task2-review{,-staged}.log. Receipt: /tmp/impl-review-receipt-fn-64-umpire-case-runtime.2.json. The final code matches the reviewed tree.
+
+stage: plan-review - ran (model:gpt-5.6-sol)
+stage: impl-review - ran; configured codex:gpt-5.6-sol:high, terminal SHIP after correcting staged-tree scope
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: baseline: green; broad Umpire Go and scoped no-fix lint passed before implementation, CGO_ENABLED=0 TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp go test -count=1 -tags test_dep ./tools/umpire/..., CGO_ENABLED=0 TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp go test -count=1 -tags test_dep ./tools/umpire/internal/ir/..., CC=/usr/bin/clang TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp go test -race -count=1 -tags test_dep ./tools/umpire/internal/ir/..., CC=/usr/bin/clang TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp make fmt-imports, CC=/usr/bin/clang TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp make lint-code GOLANGCI_LINT_BASE_REV=4c4e26ebdb15100387107f5d03daf5ce5fc01111 GOLANGCI_LINT_FIX=false, git diff --quiet fb6a1f31183460d9bd9b63d88fa46248d4ca573f -- tools/umpire/internal/ir
 - PRs:

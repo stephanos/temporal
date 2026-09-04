@@ -13033,6 +13033,11 @@ structure ActivationBinding where
   binding : ActivationBinding.Binding
   deriving Repr
 
+structure ActivationReservation where
+  entrypointId : String
+  count : Int
+  deriving Repr
+
 structure EvidenceFieldReference where
   kindDefinitionId : String
   fieldDefinitionId : String
@@ -13499,6 +13504,7 @@ structure InstructionNode where
   instruction : Option Instruction
   outcome : Option InstructionOutcomeSchema
   bounds : Option InstructionBounds
+  activationReservations : List ActivationReservation
   deriving Repr
 
 structure CleanupGraph where

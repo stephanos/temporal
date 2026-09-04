@@ -18,7 +18,9 @@ model/SEMANTIC_INVENTORY.md, tools/umpire/testdata/**, tools/umpire/regression/*
 
 ## Approach
 - Update the normative specification using stable rule IDs: add/retire, never renumber. Reconcile
-  component, CLI, model, package, and glossary documentation with the public boundaries.
+  component, CLI, model, package, and glossary documentation with the public boundaries, bounded
+  rule captures, expiry-before-transition semantics, activation-level cancellation, and immutable
+  closed Runs. Describe private Slot opacity without implying general response secrecy.
 - Mark genuinely historical references superseded; active docs/help/targets describe only the new
   vocabulary and architecture.
 - Regenerate regression views and semantic inventory only through their owning generators.

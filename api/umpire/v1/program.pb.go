@@ -1634,21 +1634,75 @@ func (*Instruction_Finish) isInstruction_Instruction() {}
 
 func (*Instruction_RespondNexus) isInstruction_Instruction() {}
 
-type InstructionNode struct {
-	state         protoimpl.MessageState    `protogen:"open.v1"`
-	InstructionId string                    `protobuf:"bytes,1,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
-	Dependencies  []*InstructionReference   `protobuf:"bytes,2,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
-	Guard         *ValueExpression          `protobuf:"bytes,3,opt,name=guard,proto3" json:"guard,omitempty"`
-	Instruction   *Instruction              `protobuf:"bytes,4,opt,name=instruction,proto3" json:"instruction,omitempty"`
-	Outcome       *InstructionOutcomeSchema `protobuf:"bytes,5,opt,name=outcome,proto3" json:"outcome,omitempty"`
-	Bounds        *InstructionBounds        `protobuf:"bytes,6,opt,name=bounds,proto3" json:"bounds,omitempty"`
+// ActivationReservation bounds worker activation authority reserved before a controller effect.
+type ActivationReservation struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	EntrypointId  string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
+	Count         int64                  `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *ActivationReservation) Reset() {
+	*x = ActivationReservation{}
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ActivationReservation) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ActivationReservation) ProtoMessage() {}
+
+func (x *ActivationReservation) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ActivationReservation.ProtoReflect.Descriptor instead.
+func (*ActivationReservation) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *ActivationReservation) GetEntrypointId() string {
+	if x != nil {
+		return x.EntrypointId
+	}
+	return ""
+}
+
+func (x *ActivationReservation) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
+}
+
+type InstructionNode struct {
+	state                  protoimpl.MessageState    `protogen:"open.v1"`
+	InstructionId          string                    `protobuf:"bytes,1,opt,name=instruction_id,json=instructionId,proto3" json:"instruction_id,omitempty"`
+	Dependencies           []*InstructionReference   `protobuf:"bytes,2,rep,name=dependencies,proto3" json:"dependencies,omitempty"`
+	Guard                  *ValueExpression          `protobuf:"bytes,3,opt,name=guard,proto3" json:"guard,omitempty"`
+	Instruction            *Instruction              `protobuf:"bytes,4,opt,name=instruction,proto3" json:"instruction,omitempty"`
+	Outcome                *InstructionOutcomeSchema `protobuf:"bytes,5,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	Bounds                 *InstructionBounds        `protobuf:"bytes,6,opt,name=bounds,proto3" json:"bounds,omitempty"`
+	ActivationReservations []*ActivationReservation  `protobuf:"bytes,7,rep,name=activation_reservations,json=activationReservations,proto3" json:"activation_reservations,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
 func (x *InstructionNode) Reset() {
 	*x = InstructionNode{}
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[19]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1660,7 +1714,7 @@ func (x *InstructionNode) String() string {
 func (*InstructionNode) ProtoMessage() {}
 
 func (x *InstructionNode) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[19]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1673,7 +1727,7 @@ func (x *InstructionNode) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionNode.ProtoReflect.Descriptor instead.
 func (*InstructionNode) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{19}
+	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *InstructionNode) GetInstructionId() string {
@@ -1718,6 +1772,13 @@ func (x *InstructionNode) GetBounds() *InstructionBounds {
 	return nil
 }
 
+func (x *InstructionNode) GetActivationReservations() []*ActivationReservation {
+	if x != nil {
+		return x.ActivationReservations
+	}
+	return nil
+}
+
 // Entrypoint contains one Host-activated, context-local acyclic instruction graph.
 type Entrypoint struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1731,7 +1792,7 @@ type Entrypoint struct {
 
 func (x *Entrypoint) Reset() {
 	*x = Entrypoint{}
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[20]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1743,7 +1804,7 @@ func (x *Entrypoint) String() string {
 func (*Entrypoint) ProtoMessage() {}
 
 func (x *Entrypoint) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[20]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1756,7 +1817,7 @@ func (x *Entrypoint) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Entrypoint.ProtoReflect.Descriptor instead.
 func (*Entrypoint) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{20}
+	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *Entrypoint) GetEntrypointId() string {
@@ -1800,7 +1861,7 @@ type CleanupGraph struct {
 
 func (x *CleanupGraph) Reset() {
 	*x = CleanupGraph{}
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[21]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1812,7 +1873,7 @@ func (x *CleanupGraph) String() string {
 func (*CleanupGraph) ProtoMessage() {}
 
 func (x *CleanupGraph) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[21]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1825,7 +1886,7 @@ func (x *CleanupGraph) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CleanupGraph.ProtoReflect.Descriptor instead.
 func (*CleanupGraph) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{21}
+	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *CleanupGraph) GetEntrypointId() string {
@@ -1869,7 +1930,7 @@ type ProgramLimits struct {
 
 func (x *ProgramLimits) Reset() {
 	*x = ProgramLimits{}
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[22]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1881,7 +1942,7 @@ func (x *ProgramLimits) String() string {
 func (*ProgramLimits) ProtoMessage() {}
 
 func (x *ProgramLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[22]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1894,7 +1955,7 @@ func (x *ProgramLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProgramLimits.ProtoReflect.Descriptor instead.
 func (*ProgramLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{22}
+	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *ProgramLimits) GetMaxEntrypoints() int64 {
@@ -1997,7 +2058,7 @@ type Program struct {
 
 func (x *Program) Reset() {
 	*x = Program{}
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[23]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2009,7 +2070,7 @@ func (x *Program) String() string {
 func (*Program) ProtoMessage() {}
 
 func (x *Program) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[23]
+	mi := &file_temporal_server_api_umpire_v1_program_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2022,7 +2083,7 @@ func (x *Program) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Program.ProtoReflect.Descriptor instead.
 func (*Program) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{23}
+	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *Program) GetProgramId() string {
@@ -2159,14 +2220,18 @@ const file_temporal_server_api_umpire_v1_program_proto_rawDesc = "" +
 	"\rawait_outcome\x18\x05 \x01(\v2$.temporal.server.api.umpire.v1.AwaitH\x00R\fawaitOutcome\x12?\n" +
 	"\x06finish\x18\x06 \x01(\v2%.temporal.server.api.umpire.v1.FinishH\x00R\x06finish\x12R\n" +
 	"\rrespond_nexus\x18\a \x01(\v2+.temporal.server.api.umpire.v1.RespondNexusH\x00R\frespondNexusB\r\n" +
-	"\vinstruction\"\xc2\x03\n" +
+	"\vinstruction\"R\n" +
+	"\x15ActivationReservation\x12#\n" +
+	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12\x14\n" +
+	"\x05count\x18\x02 \x01(\x03R\x05count\"\xb1\x04\n" +
 	"\x0fInstructionNode\x12%\n" +
 	"\x0einstruction_id\x18\x01 \x01(\tR\rinstructionId\x12W\n" +
 	"\fdependencies\x18\x02 \x03(\v23.temporal.server.api.umpire.v1.InstructionReferenceR\fdependencies\x12D\n" +
 	"\x05guard\x18\x03 \x01(\v2..temporal.server.api.umpire.v1.ValueExpressionR\x05guard\x12L\n" +
 	"\vinstruction\x18\x04 \x01(\v2*.temporal.server.api.umpire.v1.InstructionR\vinstruction\x12Q\n" +
 	"\aoutcome\x18\x05 \x01(\v27.temporal.server.api.umpire.v1.InstructionOutcomeSchemaR\aoutcome\x12H\n" +
-	"\x06bounds\x18\x06 \x01(\v20.temporal.server.api.umpire.v1.InstructionBoundsR\x06bounds\"\x95\x02\n" +
+	"\x06bounds\x18\x06 \x01(\v20.temporal.server.api.umpire.v1.InstructionBoundsR\x06bounds\x12m\n" +
+	"\x17activation_reservations\x18\a \x03(\v24.temporal.server.api.umpire.v1.ActivationReservationR\x16activationReservations\"\x95\x02\n" +
 	"\n" +
 	"Entrypoint\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12J\n" +
@@ -2244,7 +2309,7 @@ func file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_umpire_v1_program_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
-var file_temporal_server_api_umpire_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_temporal_server_api_umpire_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_temporal_server_api_umpire_v1_program_proto_goTypes = []any{
 	(SymbolicRoleKind)(0),            // 0: temporal.server.api.umpire.v1.SymbolicRoleKind
 	(EntrypointContext)(0),           // 1: temporal.server.api.umpire.v1.EntrypointContext
@@ -2270,18 +2335,19 @@ var file_temporal_server_api_umpire_v1_program_proto_goTypes = []any{
 	(*Finish)(nil),                   // 21: temporal.server.api.umpire.v1.Finish
 	(*RespondNexus)(nil),             // 22: temporal.server.api.umpire.v1.RespondNexus
 	(*Instruction)(nil),              // 23: temporal.server.api.umpire.v1.Instruction
-	(*InstructionNode)(nil),          // 24: temporal.server.api.umpire.v1.InstructionNode
-	(*Entrypoint)(nil),               // 25: temporal.server.api.umpire.v1.Entrypoint
-	(*CleanupGraph)(nil),             // 26: temporal.server.api.umpire.v1.CleanupGraph
-	(*ProgramLimits)(nil),            // 27: temporal.server.api.umpire.v1.ProgramLimits
-	(*Program)(nil),                  // 28: temporal.server.api.umpire.v1.Program
-	(*FieldPath)(nil),                // 29: temporal.server.api.umpire.v1.FieldPath
-	(*ValueExpression)(nil),          // 30: temporal.server.api.umpire.v1.ValueExpression
-	(*Value)(nil),                    // 31: temporal.server.api.umpire.v1.Value
-	(*InstructionReference)(nil),     // 32: temporal.server.api.umpire.v1.InstructionReference
-	(*InstructionOutcomeSchema)(nil), // 33: temporal.server.api.umpire.v1.InstructionOutcomeSchema
-	(*SlotSchema)(nil),               // 34: temporal.server.api.umpire.v1.SlotSchema
-	(*ObservationSchema)(nil),        // 35: temporal.server.api.umpire.v1.ObservationSchema
+	(*ActivationReservation)(nil),    // 24: temporal.server.api.umpire.v1.ActivationReservation
+	(*InstructionNode)(nil),          // 25: temporal.server.api.umpire.v1.InstructionNode
+	(*Entrypoint)(nil),               // 26: temporal.server.api.umpire.v1.Entrypoint
+	(*CleanupGraph)(nil),             // 27: temporal.server.api.umpire.v1.CleanupGraph
+	(*ProgramLimits)(nil),            // 28: temporal.server.api.umpire.v1.ProgramLimits
+	(*Program)(nil),                  // 29: temporal.server.api.umpire.v1.Program
+	(*FieldPath)(nil),                // 30: temporal.server.api.umpire.v1.FieldPath
+	(*ValueExpression)(nil),          // 31: temporal.server.api.umpire.v1.ValueExpression
+	(*Value)(nil),                    // 32: temporal.server.api.umpire.v1.Value
+	(*InstructionReference)(nil),     // 33: temporal.server.api.umpire.v1.InstructionReference
+	(*InstructionOutcomeSchema)(nil), // 34: temporal.server.api.umpire.v1.InstructionOutcomeSchema
+	(*SlotSchema)(nil),               // 35: temporal.server.api.umpire.v1.SlotSchema
+	(*ObservationSchema)(nil),        // 36: temporal.server.api.umpire.v1.ObservationSchema
 }
 var file_temporal_server_api_umpire_v1_program_proto_depIdxs = []int32{
 	0,  // 0: temporal.server.api.umpire.v1.ProgramRole.kind:type_name -> temporal.server.api.umpire.v1.SymbolicRoleKind
@@ -2289,21 +2355,21 @@ var file_temporal_server_api_umpire_v1_program_proto_depIdxs = []int32{
 	7,  // 2: temporal.server.api.umpire.v1.ActivationBinding.workflow:type_name -> temporal.server.api.umpire.v1.WorkflowActivation
 	8,  // 3: temporal.server.api.umpire.v1.ActivationBinding.activity:type_name -> temporal.server.api.umpire.v1.ActivityActivation
 	9,  // 4: temporal.server.api.umpire.v1.ActivationBinding.nexus_handler:type_name -> temporal.server.api.umpire.v1.NexusHandlerActivation
-	29, // 5: temporal.server.api.umpire.v1.RequestAssignment.target:type_name -> temporal.server.api.umpire.v1.FieldPath
-	30, // 6: temporal.server.api.umpire.v1.RequestAssignment.value:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	29, // 7: temporal.server.api.umpire.v1.ResponseProjection.source:type_name -> temporal.server.api.umpire.v1.FieldPath
+	30, // 5: temporal.server.api.umpire.v1.RequestAssignment.target:type_name -> temporal.server.api.umpire.v1.FieldPath
+	31, // 6: temporal.server.api.umpire.v1.RequestAssignment.value:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	30, // 7: temporal.server.api.umpire.v1.ResponseProjection.source:type_name -> temporal.server.api.umpire.v1.FieldPath
 	2,  // 8: temporal.server.api.umpire.v1.ResponseProjection.cardinality:type_name -> temporal.server.api.umpire.v1.ProjectionCardinality
 	12, // 9: temporal.server.api.umpire.v1.ResponseProjection.sinks:type_name -> temporal.server.api.umpire.v1.ProjectionSink
 	3,  // 10: temporal.server.api.umpire.v1.InstructionOutcome.status:type_name -> temporal.server.api.umpire.v1.InstructionOutcomeStatus
-	31, // 11: temporal.server.api.umpire.v1.InstructionOutcome.value:type_name -> temporal.server.api.umpire.v1.Value
+	32, // 11: temporal.server.api.umpire.v1.InstructionOutcome.value:type_name -> temporal.server.api.umpire.v1.Value
 	11, // 12: temporal.server.api.umpire.v1.InvokeRPC.request_assignments:type_name -> temporal.server.api.umpire.v1.RequestAssignment
 	13, // 13: temporal.server.api.umpire.v1.InvokeRPC.response_projections:type_name -> temporal.server.api.umpire.v1.ResponseProjection
-	30, // 14: temporal.server.api.umpire.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	30, // 15: temporal.server.api.umpire.v1.StartNexusOperation.input:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	32, // 16: temporal.server.api.umpire.v1.Await.instruction:type_name -> temporal.server.api.umpire.v1.InstructionReference
-	30, // 17: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	31, // 14: temporal.server.api.umpire.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	31, // 15: temporal.server.api.umpire.v1.StartNexusOperation.input:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	33, // 16: temporal.server.api.umpire.v1.Await.instruction:type_name -> temporal.server.api.umpire.v1.InstructionReference
+	31, // 17: temporal.server.api.umpire.v1.Finish.result:type_name -> temporal.server.api.umpire.v1.ValueExpression
 	4,  // 18: temporal.server.api.umpire.v1.RespondNexus.kind:type_name -> temporal.server.api.umpire.v1.NexusResponseKind
-	30, // 19: temporal.server.api.umpire.v1.RespondNexus.result:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	31, // 19: temporal.server.api.umpire.v1.RespondNexus.result:type_name -> temporal.server.api.umpire.v1.ValueExpression
 	16, // 20: temporal.server.api.umpire.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.umpire.v1.InvokeRPC
 	17, // 21: temporal.server.api.umpire.v1.Instruction.await_slot:type_name -> temporal.server.api.umpire.v1.AwaitSlot
 	18, // 22: temporal.server.api.umpire.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.umpire.v1.CompleteNexusOperation
@@ -2311,27 +2377,28 @@ var file_temporal_server_api_umpire_v1_program_proto_depIdxs = []int32{
 	20, // 24: temporal.server.api.umpire.v1.Instruction.await_outcome:type_name -> temporal.server.api.umpire.v1.Await
 	21, // 25: temporal.server.api.umpire.v1.Instruction.finish:type_name -> temporal.server.api.umpire.v1.Finish
 	22, // 26: temporal.server.api.umpire.v1.Instruction.respond_nexus:type_name -> temporal.server.api.umpire.v1.RespondNexus
-	32, // 27: temporal.server.api.umpire.v1.InstructionNode.dependencies:type_name -> temporal.server.api.umpire.v1.InstructionReference
-	30, // 28: temporal.server.api.umpire.v1.InstructionNode.guard:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	33, // 27: temporal.server.api.umpire.v1.InstructionNode.dependencies:type_name -> temporal.server.api.umpire.v1.InstructionReference
+	31, // 28: temporal.server.api.umpire.v1.InstructionNode.guard:type_name -> temporal.server.api.umpire.v1.ValueExpression
 	23, // 29: temporal.server.api.umpire.v1.InstructionNode.instruction:type_name -> temporal.server.api.umpire.v1.Instruction
-	33, // 30: temporal.server.api.umpire.v1.InstructionNode.outcome:type_name -> temporal.server.api.umpire.v1.InstructionOutcomeSchema
+	34, // 30: temporal.server.api.umpire.v1.InstructionNode.outcome:type_name -> temporal.server.api.umpire.v1.InstructionOutcomeSchema
 	15, // 31: temporal.server.api.umpire.v1.InstructionNode.bounds:type_name -> temporal.server.api.umpire.v1.InstructionBounds
-	1,  // 32: temporal.server.api.umpire.v1.Entrypoint.context:type_name -> temporal.server.api.umpire.v1.EntrypointContext
-	10, // 33: temporal.server.api.umpire.v1.Entrypoint.activation:type_name -> temporal.server.api.umpire.v1.ActivationBinding
-	24, // 34: temporal.server.api.umpire.v1.Entrypoint.nodes:type_name -> temporal.server.api.umpire.v1.InstructionNode
-	1,  // 35: temporal.server.api.umpire.v1.CleanupGraph.context:type_name -> temporal.server.api.umpire.v1.EntrypointContext
-	24, // 36: temporal.server.api.umpire.v1.CleanupGraph.nodes:type_name -> temporal.server.api.umpire.v1.InstructionNode
-	5,  // 37: temporal.server.api.umpire.v1.Program.roles:type_name -> temporal.server.api.umpire.v1.ProgramRole
-	34, // 38: temporal.server.api.umpire.v1.Program.slots:type_name -> temporal.server.api.umpire.v1.SlotSchema
-	35, // 39: temporal.server.api.umpire.v1.Program.observations:type_name -> temporal.server.api.umpire.v1.ObservationSchema
-	25, // 40: temporal.server.api.umpire.v1.Program.entrypoints:type_name -> temporal.server.api.umpire.v1.Entrypoint
-	26, // 41: temporal.server.api.umpire.v1.Program.cleanup:type_name -> temporal.server.api.umpire.v1.CleanupGraph
-	27, // 42: temporal.server.api.umpire.v1.Program.limits:type_name -> temporal.server.api.umpire.v1.ProgramLimits
-	43, // [43:43] is the sub-list for method output_type
-	43, // [43:43] is the sub-list for method input_type
-	43, // [43:43] is the sub-list for extension type_name
-	43, // [43:43] is the sub-list for extension extendee
-	0,  // [0:43] is the sub-list for field type_name
+	24, // 32: temporal.server.api.umpire.v1.InstructionNode.activation_reservations:type_name -> temporal.server.api.umpire.v1.ActivationReservation
+	1,  // 33: temporal.server.api.umpire.v1.Entrypoint.context:type_name -> temporal.server.api.umpire.v1.EntrypointContext
+	10, // 34: temporal.server.api.umpire.v1.Entrypoint.activation:type_name -> temporal.server.api.umpire.v1.ActivationBinding
+	25, // 35: temporal.server.api.umpire.v1.Entrypoint.nodes:type_name -> temporal.server.api.umpire.v1.InstructionNode
+	1,  // 36: temporal.server.api.umpire.v1.CleanupGraph.context:type_name -> temporal.server.api.umpire.v1.EntrypointContext
+	25, // 37: temporal.server.api.umpire.v1.CleanupGraph.nodes:type_name -> temporal.server.api.umpire.v1.InstructionNode
+	5,  // 38: temporal.server.api.umpire.v1.Program.roles:type_name -> temporal.server.api.umpire.v1.ProgramRole
+	35, // 39: temporal.server.api.umpire.v1.Program.slots:type_name -> temporal.server.api.umpire.v1.SlotSchema
+	36, // 40: temporal.server.api.umpire.v1.Program.observations:type_name -> temporal.server.api.umpire.v1.ObservationSchema
+	26, // 41: temporal.server.api.umpire.v1.Program.entrypoints:type_name -> temporal.server.api.umpire.v1.Entrypoint
+	27, // 42: temporal.server.api.umpire.v1.Program.cleanup:type_name -> temporal.server.api.umpire.v1.CleanupGraph
+	28, // 43: temporal.server.api.umpire.v1.Program.limits:type_name -> temporal.server.api.umpire.v1.ProgramLimits
+	44, // [44:44] is the sub-list for method output_type
+	44, // [44:44] is the sub-list for method input_type
+	44, // [44:44] is the sub-list for extension type_name
+	44, // [44:44] is the sub-list for extension extendee
+	0,  // [0:44] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_program_proto_init() }
@@ -2365,7 +2432,7 @@ func file_temporal_server_api_umpire_v1_program_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_program_proto_rawDesc), len(file_temporal_server_api_umpire_v1_program_proto_rawDesc)),
 			NumEnums:      5,
-			NumMessages:   24,
+			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

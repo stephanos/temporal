@@ -88,6 +88,26 @@ Every Program entrypoint is a separate bounded DAG. Dependency edges cannot cros
 Host activates controller entrypoints directly and worker entrypoints through explicit symbolic
 workflow/handler bindings, attaching a stable Run and activation identity. Cross-context transfer
 uses target-visible effects or the private Run-scoped Slot bridge, never a hidden graph edge.
+Controller nodes are Executor dispatch units; a worker entrypoint activation is one Host-owned
+in-flight effect with replay-local scheduling, outcomes, and Slots. Its bounded activation authority
+is reserved through the dispatch barrier before the controller effect that can trigger it. Stop
+prevents new controller dispatches and activation reservations, then cancels existing handles.
+An already-reserved activation may receive work or issue SDK commands until cancellation takes
+effect; no synchronous per-worker-instruction stop is promised. Delayed delivery remains part of
+that in-flight effect. Unreserved or closed-session activations reject without starting a new DAG.
+
+Each ordinary controller instruction declares its reservations as a bounded list of worker
+entrypoint/count pairs. Admission rejects nonpositive counts, duplicate targets, wrong contexts,
+cleanup reservations, and worst-case totals that exceed the global activation limit when scaled by
+dispatch-attempt bounds. Hosts allocate fresh Run-local reservation identities before dispatch;
+neither arbitrary RPC names nor request payloads imply reservation behavior.
+
+In v1 each controller entrypoint activates once per Run; reservation targets are workflow or
+Nexus-handler entrypoints, while Activity targets reject. The total activation bound includes those
+controller activations plus the maximum reservation total under both per-node and global attempt
+caps. Reservation handles support identity, consumption and cancellation; unreserved or closed
+delivery rejects before worker interpretation. Contract preparation/factories receive only an
+immutable Program Observation/bounds view, never mutable scheduler or Slot state.
 
 Slots are immutable single-assignment operational values. Observations are declared typed Run Event
 fields visible to Contracts. Raw payloads and ordinary Slots are not evidence unless explicitly
@@ -152,13 +172,35 @@ whole `Any` value may be copied from a Slot.
 Execution and the shared typed IR build the request, apply response projections, assign Slots, and
 append Observations. The Temporal server Host receives a prepared method plus a constructed request
 and returns only the raw typed response and protocol status; it never reaches into Executor state.
+Capability opacity applies to private bridge values. Profile authorization for an RPC also permits
+its declared response projections, including callback fields returned by `PollNexusTaskQueue`.
+This is ordinary response data, not a way to inspect the private Slot. Host-injected credentials
+remain outside the IR. No special method denylist, payload redaction, or secret-tracking machinery
+is required by this clarification.
 
 Contracts are finite deterministic machines with ordered typed transitions, safety or
 bounded-liveness kind, terminal states, explicit horizons, and supporting Run Event references.
-Unmatched events self-loop. Run Events record Executor-supplied monotonic elapsed time, and explicit
-instruction-timeout and Run-closure events carry the coordinate at which a time horizon is checked.
-Contracts never arm an invisible timer or use target timestamps. Live and offline evaluation consume
-the same recorded coordinates and use the same transition and closure functions.
+Each rule may declare typed, single-assignment scalar captures of Observations, including bounded
+text/bytes and enums, for cross-event comparisons. A matching transition reads the pre-transition
+capture state, then atomically assigns declared captures and changes state. Captures retain their
+source Run Event references, are isolated per rule and Run, and are available to subsequent
+predicates only through declared capture references. Preparation checks types, definite assignment
+(or explicit presence guards), single assignment on every reachable path, and count/byte/work
+ceilings. Captures cannot read Slots or capabilities; dynamic collections and arbitrary history
+queries are outside v1. The Nexus Contract captures a scheduled event ID and compares later
+`scheduled_event_id` Observations against it.
+
+Unmatched events self-loop. Before transitions for every recorded Run Event, pending liveness
+rules expire when the Executor-supplied elapsed coordinate is greater than or equal to their
+Run-relative deadline. A witness is eligible only strictly before that deadline. Timeout and
+closure events use this same ordering; Contracts never arm an invisible timer or use target
+timestamps. Expiry therefore becomes observable on the first subsequent recorded event, not
+necessarily exactly at the deadline. Completed execution closing before a pending deadline yields
+an inconclusive Verdict without waiting or inventing a violation. Once execution/evaluation is
+incomplete, elapsed time alone cannot establish a new absence-based violation; pending rules remain
+inconclusive, while an already proved violation is retained. The event establishing incompleteness
+records that status before horizon processing. Live and offline evaluation consume the same
+recorded events, failure status, captures, and closure rules.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -170,10 +212,12 @@ the same recorded coordinates and use the same transition and closure functions.
   rotation is allowed behind the same authority; a different declared identity requires preparation.
 - Identical duplicate source IDs with identical canonical event content are deduplicated. Reusing a
   source ID for different content is an execution invariant violation and makes the Run incomplete.
-- Monitor observation is a dispatch barrier. Once Stop is returned, no ordinary node can cross that
-  barrier; already in-flight effects are cancelled and drained within declared bounds.
-- A safety violation always stops ordinary execution. A bounded-liveness rule cannot fail before
-  its horizon; when its horizon closes without a witness it becomes violated.
+- Monitor observation is a dispatch barrier for controller nodes and worker activation reservations.
+  Once Stop is returned, neither can cross it; already in-flight effects, including reserved worker
+  activations, are cancelled and drained within declared bounds. SDK commands may race cancellation
+  inside those activations and remain subject to cleanup.
+- A safety violation always stops new ordinary dispatch. Pending bounded liveness expires before
+  processing an event at or beyond its deadline; incomplete observation cannot prove absence.
 - Cleanup uses a fresh bounded context, cannot be suppressed by Monitor decisions, and has an
   outcome independent from Run disposition and Verdict. Drain expiry and uncooperative effects are
   diagnosed without blocking Run closure indefinitely.
@@ -189,6 +233,10 @@ the same recorded coordinates and use the same transition and closure functions.
 - Private Slot-bridge publications carry an opaque Run/activation capability whose callback URL,
   headers, and token cannot be read by expressions or projected. They are isolated across concurrent
   Runs, reject conflicting or post-close writes, and are discarded at session closure.
+- Closed Runs and Verdicts are immutable. Post-close arrivals, including quarantined effect
+  completion and Slot publication, are rejected and sent to bounded Host diagnostics keyed by Run
+  identity. They cannot change returned data or another Run; late handle completion still releases
+  its Host quarantine capacity. Failures accepted before closure follow terminal precedence.
 - Shared worker failure marks only Runs whose required activation/capability failed as incomplete;
   unaffected Runs remain isolated.
 - Per-Run state and work are bounded. Preparation indexes descriptors, paths, scheduling, and
@@ -201,6 +249,7 @@ The terminal precedence is fixed:
 | Ordinary/monitor outcome | Run disposition | Cleanup/Host close | Verdict |
 | --- | --- | --- | --- |
 | all instructions and rules complete | `completed` | succeeded | `satisfied` |
+| ordinary execution closes before a pending liveness deadline | `completed` | any recorded outcome | `inconclusive` |
 | target/protocol non-success accepted by the Contract | `completed` | any recorded outcome | Contract result |
 | safety or closed-horizon liveness violation | `stopped_by_monitor` | any recorded outcome | `violated` |
 | execution/recorder/invariant failure before violation | `incomplete` | any recorded outcome | `inconclusive` |
@@ -234,23 +283,28 @@ caller-closure candidate, command, and binding are removed.
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** The versioned Umpire API represents a standalone Case as one bounded Program plus one Contract, with symbolic roles, typed values/paths/outcomes, declared Slots/Observations, context-tagged entrypoint DAGs, cleanup, limits, Run data, and Verdict data; Go and Lean generated types agree. Errors: unsupported versions or instruction variants, duplicate/invalid IDs, cross-entrypoint dependencies, cycles, and limit overflow are rejected before I/O.
+- **R1:** The versioned Umpire API represents a standalone Case as one bounded Program plus one Contract, with symbolic roles, typed values/paths/outcomes, declared Slots/Observations and bounded rule captures, context-tagged entrypoint DAGs, cleanup, limits, Run data, and Verdict data; Go and Lean generated types agree. Errors: unsupported versions or instruction variants, duplicate/invalid IDs, cross-entrypoint dependencies, cycles, and limit overflow are rejected before I/O.
 - **R2:** `PrepareCase` performs all static validation once from Case plus Profile, prepares the Contract's default evaluator, and returns an immutable, concurrency-safe PreparedCase bound to exact non-secret Profile/catalog identities; the public `Run(ctx, host)` preflight validates the live Host before internal execution creates fresh state and one Contract Monitor. Errors: nil/typed-nil Profile values fail preparation; nil/typed-nil or mismatched Host values and internal Monitor-instantiation failure fail Run preflight; missing capabilities, unauthorized methods, type/dataflow/path/presence/oneof/cardinality mismatches, and profile/catalog changes cause no Run or target effects. The scheduler, recorder, Slots, and Monitor factory are not publicly constructible or importable.
-- **R3:** Generic Contract evaluation produces identical transitions, supporting-event references, and Verdicts live and offline; it stops synchronously on the first safety violation and delays bounded-liveness failure until its declared horizon. Every callback accepts an Executor-bounded context and returns on cancellation. Errors: malformed/non-deterministic machines, invalid predicates, unknown Observations, excessive states/work, callback error, and cooperative timeout are rejected or yield incomplete/inconclusive exactly as their phase requires; an internal test fake that ignores cancellation violates the Monitor contract and has no bounded-closure guarantee.
-- **R4:** The internal Executor interprets entrypoint-local bounded DAGs generically, constructs typed requests and applies projections, exposes typed instruction outcomes to guards, maintains immutable Slots, appends ordered Run Events with monotonic elapsed coordinates, and applies the declared precedence table without importing verification or Temporal implementations. Errors: missing unguarded Slots, conflicting duplicate source IDs, recorder/invariant/global-limit failures, and post-close events make the Run incomplete; exact at-least-once duplicates are deduplicated. External callers cannot import or assemble this machinery.
-- **R5:** Any proven safety violation creates an unconditional dispatch barrier, cancels and boundedly drains Host-owned effect handles, then runs unsuppressible cleanup with a fresh bounded context. Errors: stop/dispatch races cannot start an extra effect; drain expiry quarantines unterminated handles under the Profile ceiling; cleanup/Host-close failure follows the precedence table; a Host method that ignores its own context is diagnosed as a Host-contract violation and has no bounded-closure guarantee.
-- **R6:** The Temporal server runtime dynamically invokes every Host-authorized unary protobuf RPC by accepting a prepared method/request and returning raw typed response plus protocol status; execution owns request construction, Slot/Observation projections, and stable `EmitEach`. The server runtime also owns controller-side Nexus completion without exposing credentials to the IR. Errors: unknown/streaming/unauthorized methods, unsupported `Any` traversal, unknown enum values, malformed assignments, fan-out/size limits, and endpoint/transport failure follow the preparation-versus-Run failure boundary.
-- **R7:** The Temporal worker runtime generically interprets the approved workflow and Nexus-handler instructions using SDK clients/APIs only, with Nexus registration inside worker lifecycle and a private Run-scoped opaque capability Slot. Errors: controller opcodes in SDK contexts reject at preparation; worker registration/activation failure, crossed Run capabilities, conflicting/late publication, capability inspection/projection, and shared-worker shutdown produce isolated rejection or incomplete Runs where applicable.
-- **R8:** Lean first compiles an orthogonal `GetSystemInfo` Case with an empty request, typed `server_version` projection, different Contract topology, and the exact authorized WorkflowService descriptor; it prepares through the public Go API with zero Host I/O and requires no instruction or runtime branch. Lean also compiles a reproducible async Nexus-success Case that starts a workflow, starts a Nexus operation, transfers opaque completion authority, completes it asynchronously, reads bounded history through `InvokeRPC`, and reaches its Contract Verdict solely from declared authoritative server-history Observations. Errors: unsupported model constructs fail compilation explicitly; generated Case/type mismatch fails preparation; missing worker/endpoint/history or timeout produces the declared outcome or an incomplete Run, never scenario-specific Go verification.
+- **R3:** Generic Contract evaluation produces identical transitions, supporting-event references, and Verdicts live and offline; it stops synchronously on the first safety violation, checks expiry before every event transition with an exclusive witness deadline, and applies the declared early-closure/incomplete rules. Typed single-assignment rule captures support cross-event correlation with retained evidence references. Every callback accepts an Executor-bounded context and returns on cancellation. Errors: malformed/non-deterministic machines, invalid predicates, unknown Observations, excessive states/work, callback error, and cooperative timeout are rejected or yield incomplete/inconclusive exactly as their phase requires; an internal test fake that ignores cancellation violates the Monitor contract and has no bounded-closure guarantee.
+- **R4:** The internal Executor schedules controller DAGs and bounded worker activation effects; worker interpreters own replay-local DAG state. Execution constructs typed requests and applies projections, exposes typed instruction outcomes to guards, maintains immutable Slots, appends ordered Run Events with monotonic elapsed coordinates, and applies the declared precedence table without importing verification or Temporal implementations. Errors: missing unguarded Slots, conflicting duplicate source IDs, and recorder/invariant/global-limit failures accepted before closure make the Run incomplete; post-close arrivals go to bounded Host diagnostics without mutating the closed Run or Verdict; exact at-least-once duplicates are deduplicated. External callers cannot import or assemble this machinery.
+- **R5:** Any proven safety violation creates an unconditional dispatch barrier for controller nodes and worker activation reservations, cancels and boundedly drains Host-owned effect handles, then runs unsuppressible cleanup with a fresh bounded context. Errors: stop/dispatch races cannot admit a new controller effect or worker activation reservation; SDK commands inside already-reserved activations may race cancellation and are treated as in-flight work; drain expiry quarantines unterminated handles under the Profile ceiling; cleanup/Host-close failure follows the precedence table; a Host method that ignores its own context is diagnosed as a Host-contract violation and has no bounded-closure guarantee.
+- **R6:** The Temporal server runtime dynamically invokes every Host-authorized unary protobuf RPC by accepting a prepared method/request and returning raw typed response plus protocol status; execution owns request construction, Slot/Observation projections, and stable `EmitEach`. The server runtime also owns controller-side Nexus completion without exposing Host-injected credentials or private capability values to the IR. Method authorization permits declared response projections; bridge opacity is not a general response-secrecy guarantee and requires no additional filtering machinery. Errors: unknown/streaming/unauthorized methods, unsupported `Any` traversal, unknown enum values, malformed assignments, fan-out/size limits, and endpoint/transport failure follow the preparation-versus-Run failure boundary.
+- **R7:** The Temporal worker runtime generically interprets the approved workflow and Nexus-handler instructions using SDK clients/APIs only, with Nexus registration inside worker lifecycle, activation-level cancellation, replay-local DAG state, and a private Run-scoped opaque capability Slot. Errors: controller opcodes in SDK contexts reject at preparation; worker registration/activation failure, crossed Run capabilities, conflicting/late publication, capability inspection/projection, and shared-worker shutdown produce isolated rejection or incomplete Runs where applicable.
+- **R8:** Lean first compiles an orthogonal `GetSystemInfo` Case with an empty request, typed `server_version` projection, different Contract topology, and the exact authorized WorkflowService descriptor; it prepares through the public Go API with zero Host I/O and requires no instruction or runtime branch. Lean also compiles a reproducible async Nexus-success Case that starts a workflow, starts a Nexus operation, transfers opaque completion authority, completes it asynchronously, reads bounded history through `InvokeRPC`, and reaches its Contract Verdict solely from declared authoritative server-history Observations with captured event-ID correlations; matching and mismatched correlations are tested. Errors: unsupported model constructs fail compilation explicitly; generated Case/type mismatch fails preparation; missing worker/endpoint/history or timeout produces the declared outcome or an incomplete Run, never scenario-specific Go verification.
 - **R9:** One PreparedCase safely drives repeated sequential and concurrent Runs with fresh per-Run state and shared permitted Host resources. Errors: Run/activation/Slot/Event identity collisions, cross-Run data leakage, capability loss, Profile quarantine exhaustion, and concurrent worker failure are detected under race-enabled tests and cannot mutate another Run.
 - **R10:** The repository cuts over to one active Case Runtime: legacy `PortableTestPlan` service/execution, property-specific portable evaluation, Run Evaluation checker, scenario-specific Temporal Nexus adapter, and caller-closure model/fixtures/tests are removed; normative specifications, package docs, commands, and regression gates describe and exercise only the new path. A blocking migration ledger accounts for every deleted top-level Test/Fuzz and inherited failure identity. The six-class independent-oracle conformance corpus uses exact deterministic bytes or named stable projections, regenerates into a complete temporary tree, and cannot invoke Lean or rewrite expectations from ordinary Go tests. The full `^TestUmpire` selector, inherited failure policy, root-surface/import guards, and scenario-neutral fn-5 promotion primitives remain enforced. Errors: no compatibility reader or replacement public network/CLI service, generic normalizer, broad generated-Lean API drift enforcement, or new GitHub Actions coverage is added; historical references may remain only when explicitly marked superseded.
 
 ## Early proof point
 
-Task 2 validates the core approach by binding arbitrary protobuf methods and typed payload paths,
-checking Program dataflow and Host authority without target I/O, and producing a reusable
-prepared representation. If it fails, re-evaluate the shared IR and Host-profile boundary before
-continuing with runtime tasks.
+Task 2 first proves arbitrary protobuf method/type/path binding. Tasks 11 and 12 prove immutable
+Program/policy and Contract admission; task 3 supplies the actual evaluator. Task 13 then proves
+public PrepareCase composition without Host I/O. Failure at any of these boundaries requires
+re-evaluating that shared IR/Host boundary before downstream execution work.
+
+The preparation split does not add a temporary public Run implementation. Task 13 tests private
+preflight and the public preparation facade; task 9 exports PreparedCase.Run with real scheduling,
+cleanup and terminal precedence. Internal execution owns root-independent policy/driver contracts;
+the root translates the public Profile and Host into those contracts.
 
 ## Boundaries
 <!-- scope: business -->
@@ -298,17 +352,23 @@ retaining their resident-executor or broad-consolidation assumptions. Later repl
 canary, release-evidence, and exploration specs must be replanned around PreparedCase, Run, and
 Verdict.
 
+Activation-level cancellation keeps workflow interpretation replay-safe with a small Host
+interface. Bounded captures supply the required history correlations. RPC response authority stays
+with the existing Profile method policy. Event-driven expiry preserves deterministic replay, with
+detection delayed until the next recorded event. Closed-result immutability keeps late resource
+cleanup in the Host.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | Versioned standalone Case IR and generated types | Task 1, Task 2 | — |
-| R2 | One-time admission, immutable preparation, and root facade | Task 2, Task 9, Task 10 | — |
-| R3 | Deterministic live/offline Contract evaluation | Task 3 | — |
-| R4 | Internal generic DAG scheduling, Slots, outcomes, and Runs | Task 4, Task 10 | — |
+| R1 | Versioned standalone Case IR and generated types | Task 1, Task 2, Task 11 | — |
+| R2 | One-time admission, immutable preparation, and root facade | Task 11, Task 12, Task 13, Task 9, Task 10 | — |
+| R3 | Deterministic live/offline Contract evaluation | Task 12, Task 3 | — |
+| R4 | Internal generic DAG scheduling, Slots, outcomes, and Runs | Task 11, Task 4, Task 10 | — |
 | R5 | Safety barrier, effect drain, and cleanup | Task 3, Task 4, Task 9 | — |
-| R6 | Authorized arbitrary unary RPC server runtime | Task 2, Task 5 | — |
-| R7 | SDK-only worker and Nexus handler runtime | Task 2, Task 6 | — |
+| R6 | Authorized arbitrary unary RPC server runtime | Task 2, Task 11, Task 13, Task 5 | — |
+| R7 | SDK-only worker and Nexus handler runtime | Task 11, Task 13, Task 6 | — |
 | R8 | Lean-produced async Nexus integration | Task 7 | — |
-| R9 | Safe prepare-once/run-many reuse | Task 2, Task 4, Task 5, Task 6, Task 7, Task 9 | — |
+| R9 | Safe prepare-once/run-many reuse | Task 11, Task 13, Task 4, Task 5, Task 6, Task 7, Task 9 | — |
 | R10 | Hard cutover, documentation, and regression gates | Task 1, Task 8, Task 10 | — |
