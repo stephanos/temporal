@@ -40,7 +40,8 @@ Expand facade checks across Language, Check, Trace, and Evaluation; document the
 - [ ] Architecture docs describe internal ownership and continue directing ordinary authors to `Umpire.Property` without rewriting unchanged semantics.
 - [ ] No consumer source change, generated output, artifact byte/checksum, warning, import-boundary, comment, theorem, or trust drift is introduced.
 - [ ] `cd model && mise exec -- lake build Umpire.Property.ImportTests UmpireTests Temporal TemporalModelTests TemporalExperimentalTests` passes.
-- [ ] `make umpire-build-model`, `make umpire-check-regression`, `make lint-model`, and `make lint-code` pass.
+- [ ] `make umpire-build-model`, `make umpire-check-regression`, and `make lint-model` pass.
+- [ ] `make lint-code GOLANGCI_LINT_FIX=false` is run without exceeding the approved inherited exact 1,381-finding baseline, task-diff-scoped golangci reports zero findings, and the unchanged `tools/umpire/runtime/errors.go:60` errortype finding remains isolated.
 
 ## Done summary
 TBD
