@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-57-partition-the-observation-authoring",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-04T11:26:24.047130Z",
   "created_at": "2026-09-03T19:12:31.337248Z",
   "default_impl": null,
   "default_review": null,
@@ -217,6 +217,36 @@
       "timestamp": "2026-09-04T11:06:39.175903Z",
       "tool_calls": 35,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "5c8483562201039142d8f2b5b85726557c1a5a0a83ff5ff7e671ed084abfc762",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "5c6b2cc8aedd532cd021add0ee262996ae9713a1",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1865652,
+      "output_sha256": "ddb7ffbc993003f6f3d44dcd86f7de5b36c8c577ad6a064bdfe4efd77d0d2be1",
+      "reservation_id": "5aaeb427026f4d8b98c4def36e5d670e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-04T11:26:24.023363Z",
+      "tool_calls": 16,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -224,11 +254,12 @@
     "impl:fn-57-partition-the-observation-authoring.2": 1,
     "impl:fn-57-partition-the-observation-authoring.3": 1,
     "plan": 3,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-57-partition-the-observation-authoring.1": 0,
     "impl:fn-57-partition-the-observation-authoring.2": 0,
     "impl:fn-57-partition-the-observation-authoring.3": 0,
@@ -248,5 +279,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T11:09:13.108484Z"
+  "updated_at": "2026-09-04T11:26:24.058553Z"
 }
