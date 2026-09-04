@@ -1,11 +1,33 @@
 {
   "branch_name": "fn-63-consolidate-umpire-go-tests-into-golden",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-04T15:43:03.086471Z",
-  "depends_on_epics": [],
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-61-simplify-the-umpire-go-execution-surface"
+  ],
   "id": "fn-63-consolidate-umpire-go-tests-into-golden",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 1,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "008ba9e8eefd42159ea1fa195c72d2ee": {
+      "artifact_sha256": "43408c4538b4778d896f0c6e9694692b970700fc57a887c30ce07d27447bc202",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
   "spec_path": ".flow/specs/fn-63-consolidate-umpire-go-tests-into-golden.md",
   "status": "open",
   "title": "Consolidate Umpire Go tests into golden scenarios",
@@ -20,5 +42,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T15:43:03.088547Z"
+  "updated_at": "2026-09-04T15:44:13.382652Z"
 }
