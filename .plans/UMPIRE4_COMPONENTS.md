@@ -576,11 +576,11 @@ Claim Assessment is not.** The ordinary CI test executes the byte-identical cano
 `ExperimentSpec` through the same explicitly attached runner and Run Evaluation authority:
 
 ```sh
-mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireCallerClosurePortability$'
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'
 ```
 
 `make umpire-check-regression` is the aggregate repository gate and invokes package-local
-fake-backed tests with `test_dep`, generator byte comparison, and the same live test with
+fake-backed tests with `test_dep`, generator byte comparison, and the complete live suite with
 `test_dep integration`. The proof requires equal Artifact Checksum and Behavior Fingerprints, then
 compares stable typed semantic meaning across operational, Observation Evaluation, Implementation
 Link, Property and clause, Limit, Known Gap, and cleanup outcomes. Fresh executions may have
