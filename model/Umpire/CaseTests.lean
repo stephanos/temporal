@@ -1,4 +1,5 @@
 import Umpire.Case
+import Umpire.Json
 
 namespace Umpire.CaseTests
 
@@ -137,5 +138,26 @@ private def sourceShapedCase : Case := {
   [(.interpretation, true), (.claim, false)]
 #guard sourceShapedCase.program.slots.map (fun slot => slot.type) ==
   [stringType, historyType, ValueType.singular SingularType.opaqueCapability]
+
+private def reservation : ActivationReservation := { entrypointId := "workflow", count := 3 }
+
+private def encodeReservation (value : ActivationReservation) : String :=
+  Umpire.CanonicalJson.compact (.object [
+    ("entrypointId", .string value.entrypointId), ("count", .string (toString value.count))])
+
+private def decodeReservation (text : String) : Except String ActivationReservation := do
+  let json ← Lean.Json.parse text
+  let entrypointId ← json.getObjValAs? String "entrypointId"
+  let countText ← json.getObjValAs? String "count"
+  let some count := countText.toNat? | throw "invalid reservation count"
+  return { entrypointId, count }
+
+#guard encodeReservation reservation == "{\"entrypointId\":\"workflow\",\"count\":\"3\"}"
+#guard match decodeReservation (encodeReservation reservation) with
+  | .ok actual => actual == reservation
+  | .error _ => false
+#guard match decodeReservation "{\"entrypointId\":\"workflow\",\"count\":\"-1\"}" with
+  | .ok _ => false
+  | .error _ => true
 
 end Umpire.CaseTests

@@ -11,6 +11,6 @@
   "spec": "fn-64-umpire-case-runtime",
   "spec_path": ".flow/tasks/fn-64-umpire-case-runtime.2.md",
   "status": "todo",
-  "title": "Build typed IR admission and immutable preparation",
-  "updated_at": "2026-09-04T19:17:11.631297Z"
+  "title": "Compile shared typed IR and descriptor paths",
+  "updated_at": "2026-09-04T20:11:35.356960Z"
 }

@@ -22,7 +22,9 @@ Task 9 owns termination, cleanup, facade completion, and repeated-Run race guara
   Slots, recorder failure, invariants, and global-limit breach as execution failures.
 - Assign the central observation sequence and recorded monotonic elapsed coordinate. Deduplicate
   identical source events and reject conflicting source-ID reuse.
-- Add the synchronized Monitor observation barrier primitive without implementing abort/cleanup.
+- Add the synchronized Monitor observation barrier for controller dispatch and worker activation
+  reservations without implementing abort/cleanup. Worker activations are Host-owned in-flight
+  effects with replay-local DAG state, not centrally scheduled SDK instructions.
 
 ## Investigation targets
 **Required** (read before coding):
@@ -47,8 +49,11 @@ Projection and ordering semantics remain portable execution concerns.
   deterministic fan-out.
 - [ ] Run Events contain stable source/causal coordinates, central sequence, and recorded monotonic
   elapsed values for instruction timeout and closure facts.
-- [ ] Exact duplicate source events deduplicate; conflicting duplicates, missing Slots, post-close
-  events, recorder/invariant/limit failure become incomplete with stable diagnostics.
+- [ ] Exact duplicate source events deduplicate; conflicting duplicates, missing Slots, and
+  recorder/invariant/limit failures accepted before closure become incomplete with stable
+  diagnostics. Post-close events go to bounded Host diagnostics without changing Run/Verdict.
+- [ ] Failure status is recorded before horizon processing for the event that establishes
+  incompleteness, so live/offline evaluation cannot infer absence from failed observation.
 - [ ] The Monitor barrier is synchronous with append and exposes no scheduling/evidence mutation.
 - [ ] Execution imports neither verification, the root facade, nor a Temporal Host implementation.
 - [ ] No package outside `tools/umpire` can import or assemble the internal scheduler, recorder,

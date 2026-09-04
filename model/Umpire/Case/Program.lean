@@ -178,6 +178,12 @@ inductive Instruction where
   | respondNexus (instruction : RespondNexus)
   deriving BEq, Repr
 
+/-- Worker activation authority reserved before one controller effect is dispatched. -/
+structure ActivationReservation where
+  entrypointId : String
+  count : Nat
+  deriving BEq, DecidableEq, Repr
+
 /-- One instruction and its context-local dependencies, guard, outcome schema, and bounds. -/
 structure InstructionNode where
   instructionId : String
@@ -186,6 +192,7 @@ structure InstructionNode where
   instruction : Instruction
   outcome : InstructionOutcomeSchema
   bounds : InstructionBounds
+  activationReservations : List ActivationReservation := []
   deriving BEq, Repr
 
 /-- One Host-activated, context-local acyclic instruction graph. -/

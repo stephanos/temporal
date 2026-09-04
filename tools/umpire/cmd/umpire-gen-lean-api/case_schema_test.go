@@ -303,3 +303,16 @@ func fieldPath(fields ...string) *umpirespb.FieldPath {
 	}
 	return path
 }
+
+func TestActivationReservationSchemaRoundTrip(t *testing.T) {
+	input := `{"instructionId":"start","activationReservations":[{"entrypointId":"workflow","count":"3"},{"entrypointId":"handler","count":"2"}]}`
+	var node umpirespb.InstructionNode
+	require.NoError(t, protojson.Unmarshal([]byte(input), &node))
+	wire, err := proto.Marshal(&node)
+	require.NoError(t, err)
+	var decoded umpirespb.InstructionNode
+	require.NoError(t, proto.Unmarshal(wire, &decoded))
+	output, err := protojson.Marshal(&decoded)
+	require.NoError(t, err)
+	require.JSONEq(t, input, string(output))
+}

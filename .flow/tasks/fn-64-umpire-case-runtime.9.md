@@ -15,14 +15,19 @@ isolation.
 **Touches:** [tools/umpire/internal/execution/**, tools/umpire/*.go, tools/umpire/README.md]
 
 ## Approach
-- Expose only `PreparedCase.Run(ctx, host)`. Validate live Host identity before Run creation, then
+- Add the working public `PreparedCase.Run(ctx, host)` method to task 13's prepared facade and reuse
+  its private preflight. Validate live Host identity before Run creation, then
   construct a fresh Host session, stores, recorder, and Monitor from the prepared Contract per Run;
   internal factory failure is a pre-Run invariant with no target effects.
-- Make Monitor observation the synchronized dispatch barrier. Pass an Executor-bounded context to
+- Make Monitor observation the synchronized barrier for controller dispatch and worker activation
+  reservations. Already-reserved activations remain in flight, including delayed delivery and SDK
+  commands racing cancellation. Pass an Executor-bounded context to
   every callback and require cancellation cooperation without wrapping callbacks in goroutines.
 - Cancel Host-owned handles and boundedly drain accepted late outcomes. Quarantine unterminated
   handles behind the Profile ceiling without Executor-owned goroutine leaks.
 - Run unsuppressible cleanup with a fresh bounded context and implement the spec precedence table.
+- Route post-close arrivals to bounded Host diagnostics; keep returned Run/Verdict immutable and
+  release quarantine capacity when a late handle finishes.
 - Stress one immutable PreparedCase across sequential and concurrent Runs.
 
 ## Investigation targets
@@ -30,7 +35,8 @@ isolation.
 - `tools/umpire/executor/portable_executor.go:115-180` — legacy lifecycle orchestration
 - `tools/umpire/runner/runner.go` — current cancellation/bounds shape
 - `tools/umpire/executor/portable_executor_test.go` — current preflight tests
-- `.plans/UMPIRE_CASE_RUNTIME_DESIGN.md:284-390` — corrected Host/Monitor/precedence contract
+- `.plans/UMPIRE_CASE_RUNTIME_DESIGN.md` — Executor, Host, and Monitor boundary; Run and Verdict;
+  Abort and cleanup semantics
 - `.flow/memory/bug/integration/portable-execution-boundaries-must-2026-09-03.md` —
   cancellation/invariant lessons
 
@@ -47,15 +53,18 @@ Monitor that violates those contracts.
 - [ ] The root API is exactly `PreparedCase.Run(ctx, host)`; preflight rejects nil/typed-nil/
   mismatched Host and internal MonitorFactory failure before Run creation or I/O and creates fresh
   authoritative Monitor/state for every accepted Run.
-- [ ] Race tests prove Stop prevents new ordinary dispatch, cancels handles, records bounded late
-  outcomes, and cannot suppress fresh-context cleanup.
+- [ ] Race tests prove Stop prevents new controller dispatch and activation reservations, cancels
+  existing handles, records bounded pre-close late outcomes, and cannot suppress fresh-context
+  cleanup. Coordinate with Task 6 SDK tests for commands racing activation cancellation.
+- [ ] Quarantined completion and Slot publication after return leave serialized Run/Verdict
+  snapshots unchanged, emit bounded Host diagnostics, and release completed quarantine capacity.
 - [ ] Conforming Monitor timeout/cancellation returns incomplete/inconclusive unless a violation was
   proved; a finite late-returning Monitor that ignores cancellation proves Executor does not
   manufacture a timeout/goroutine and reports the contract violation only after return.
 - [ ] Drain expiry quarantines the handle under a global ceiling; ceiling exhaustion and Host
   context violation have stable diagnostics and no unbounded Executor goroutines.
 - [ ] Every terminal-precedence row is table-tested, including cleanup/Host-close independence and
-  violation dominance.
+  violation dominance and completed early closure with pending liveness yielding inconclusive.
 - [ ] One PreparedCase drives many sequential/concurrent Runs without Slot/Event/Monitor/Host-session
   leakage under the race detector.
 - [ ] `go test -race -count=1 -tags test_dep ./tools/umpire/internal/execution/...

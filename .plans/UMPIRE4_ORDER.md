@@ -46,18 +46,21 @@ controller, or replay/audit digest is included.
 The validated implementation waves are:
 
 1. `fn-64.1` — define the versioned Umpire Case IR.
-2. `fn-64.2` — implement typed admission, immutable preparation, and the root facade over internal
-   execution contracts.
-3. In parallel: `fn-64.3` — deterministic Contract evaluation; `fn-64.5` — Temporal server Host;
-   `fn-64.6` — Temporal worker Host.
-4. `fn-64.4` — internal generic DAG scheduling, typed dataflow, and Run recording.
-5. `fn-64.9` — complete root `Run`, unconditional abort, cleanup, terminal precedence, and reusable
+2. `fn-64.2` — compile the shared typed IR, descriptor catalog, literals, paths, and expressions.
+3. `fn-64.11` — admit Programs and static Host policy, define private execution contracts, and add
+   explicit bounded controller-side activation reservations.
+4. `fn-64.12` — compile static Contract and capture admission.
+5. `fn-64.3` — implement deterministic Contract evaluation.
+6. Parallel candidates: `fn-64.13` — compose public `PrepareCase`, Profile/Host adapters and private
+   preflight; `fn-64.4` — internal generic DAG scheduling, typed dataflow, and Run recording.
+7. After `fn-64.13`: `fn-64.5` — Temporal server Host; `fn-64.6` — Temporal worker Host. After
+   `fn-64.4` and `fn-64.13`: `fn-64.9` — complete root `Run`, abort, cleanup, terminal precedence, and reusable
    PreparedCase Runs.
-6. `fn-64.7` — compile/prepare the orthogonal `GetSystemInfo` Case, then compose the Host and
+8. `fn-64.7` — compile/prepare the orthogonal `GetSystemInfo` Case, then compose the Host and
    compile/execute the async Nexus Case without runtime specialization.
-7. `fn-64.8` — account for the legacy test surface, preserve fn-5's generic promotion primitives,
+9. `fn-64.8` — account for the legacy test surface, preserve fn-5's generic promotion primitives,
    and remove the legacy Umpire execution path.
-8. `fn-64.10` — add the six-class conformance corpus and reconcile normative docs, generated
+10. `fn-64.10` — add the six-class conformance corpus and reconcile normative docs, generated
    artifacts, and regression gates.
 
 ### 2. fn-60 — Deepen authored Lean canonical JSON construction
@@ -179,9 +182,10 @@ Umpire.
 The current dependency shape is:
 
 ```text
-fn-64.1 -> fn-64.2
-fn-64.2 -> {fn-64.3, fn-64.5, fn-64.6}
-fn-64.3 -> fn-64.4 -> fn-64.9
+fn-64.1 -> fn-64.2 -> fn-64.11 -> fn-64.12 -> fn-64.3
+{fn-64.3, fn-64.11} -> {fn-64.13, fn-64.4}
+fn-64.13 -> {fn-64.5, fn-64.6}
+{fn-64.4, fn-64.13} -> fn-64.9
 {fn-64.4, fn-64.5, fn-64.6, fn-64.9} -> fn-64.7 -> fn-64.8 -> fn-64.10
 
 fn-60 -> fn-62
