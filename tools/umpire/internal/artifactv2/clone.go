@@ -65,7 +65,8 @@ func CopyExperimentRun(document ExperimentRun) ExperimentRun {
 	return copied
 }
 
-// CopyRawEvidence returns RawEvidence with independent mutable storage.
+// CopyRawEvidence returns schema-valid RawEvidence with independent mutable storage.
+// RawEvidence field values are admitted immutable scalars; unsupported composites remain aliased.
 func CopyRawEvidence(document RawEvidence) RawEvidence {
 	copied := document
 	copied.Sources = slices.Clone(document.Sources)
