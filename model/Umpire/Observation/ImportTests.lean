@@ -19,15 +19,49 @@ import Umpire.Observation
 #check Umpire.checkObservation
 #check Umpire.checkedObservation
 #check Umpire.EvidenceBound
+#check Umpire.EvidenceValue.text
+#check Umpire.EvidenceValue.valueType
+#check Umpire.EvidenceValue.render
+#check Umpire.EvidenceBundle
+#check Umpire.EvidenceBundle.profile
 #check Umpire.ObservationStatus
 #check Umpire.ObservationFailureKind
+#check Umpire.ObservationFailureKind.status
 #check Umpire.ObservationDiagnostic
+#check Umpire.ObservationDiagnostic.status
 #check Umpire.ModelCoordinate
 #check Umpire.EvidenceLink
+#check Umpire.EvidenceLink.coordinate
+#check Umpire.UncheckedEvidenceBackedTrace
+#synth BEq Umpire.EvidenceBundle
+#synth DecidableEq Umpire.EvidenceBundle
+#synth Repr Umpire.EvidenceBundle
+#synth BEq Umpire.ObservationDiagnostic
+#synth DecidableEq Umpire.ObservationDiagnostic
+#synth Repr Umpire.ObservationDiagnostic
 #check Umpire.EvidenceBackedTrace
 #synth BEq Umpire.EvidenceBackedTrace
 #synth DecidableEq Umpire.EvidenceBackedTrace
 #synth Repr Umpire.EvidenceBackedTrace
+
+private def representativeEvidenceBundle : Umpire.EvidenceBundle := {
+  profile := Umpire.DefinitionId.of "test.evidence.profile"
+  profileVersion := 1
+  records := []
+  closures := []
+}
+
+example : representativeEvidenceBundle.sourceClosed = true := rfl
+example : Umpire.EvidenceValue.render (.boolean true) = "true" := rfl
+
+private def representativeDiagnostic : Umpire.ObservationDiagnostic := {
+  kind := .emptyEvidence
+  planId := Umpire.DefinitionId.of "test.observation.plan"
+}
+
+example : (Umpire.ObservationResult.unknown representativeDiagnostic).status = .unknown := rfl
+example : (Umpire.ObservationResult.unknown representativeDiagnostic).diagnostic? =
+    some representativeDiagnostic := rfl
 
 /--
 error: Unknown constant `Umpire.EvidenceBackedTrace.mk`

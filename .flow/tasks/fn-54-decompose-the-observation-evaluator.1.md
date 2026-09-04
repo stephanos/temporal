@@ -41,6 +41,7 @@ Move the inert raw Evidence, diagnostic, support, Evidence Link, and unchecked-c
 - [ ] Public import checks pin representative contract construction, equality/rendering instances, result classification, and inaccessible accepted construction.
 - [ ] Existing comments/docstrings are preserved and the new module has an accurate module docstring.
 - [ ] `cd model && mise exec -- lake build Umpire.Observation.ImportTests Umpire.SemanticInventory.KnownGaps` passes.
+- [ ] The inherited `make lint-code GOLANGCI_LINT_FIX=false` baseline does not exceed 1,381 findings, and a run scoped to this task's base commit reports zero findings.
 
 ## Done summary
 TBD
