@@ -157,19 +157,28 @@ func (this *Case) Equal(that interface{}) bool {
 
 var (
 	CaseDefinitionKind_shorthandValue = map[string]int32{
-		"Unspecified": 0,
-		"Setup":       1,
-		"State":       2,
-		"Action":      3,
-		"Outcome":     4,
-		"Observation": 5,
-		"Relation":    6,
-		"Capability":  7,
-		"Property":    8,
-		"Query":       9,
-		"Behavior":    10,
-		"Target":      11,
-		"Compiler":    12,
+		"Unspecified":     0,
+		"Setup":           1,
+		"State":           2,
+		"Action":          3,
+		"Outcome":         4,
+		"Observation":     5,
+		"Relation":        6,
+		"Capability":      7,
+		"Property":        8,
+		"Query":           9,
+		"Behavior":        10,
+		"Target":          11,
+		"Compiler":        12,
+		"Provider":        13,
+		"Law":             14,
+		"Connector":       15,
+		"Kernel":          16,
+		"ExperimentSpace": 17,
+		"VariationAxis":   18,
+		"Choice":          19,
+		"Fault":           20,
+		"CoverageGoal":    21,
 	}
 )
 
@@ -182,4 +191,25 @@ func CaseDefinitionKindFromString(s string) (CaseDefinitionKind, error) {
 		return CaseDefinitionKind(v), nil
 	}
 	return CaseDefinitionKind(0), fmt.Errorf("%s is not a valid CaseDefinitionKind", s)
+}
+
+var (
+	CaseKnownGapKind_shorthandValue = map[string]int32{
+		"Unspecified":        0,
+		"CapabilityContract": 1,
+		"Input":              2,
+		"Interpretation":     3,
+		"Claim":              4,
+	}
+)
+
+// CaseKnownGapKindFromString parses a CaseKnownGapKind value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to CaseKnownGapKind
+func CaseKnownGapKindFromString(s string) (CaseKnownGapKind, error) {
+	if v, ok := CaseKnownGapKind_value[s]; ok {
+		return CaseKnownGapKind(v), nil
+	} else if v, ok := CaseKnownGapKind_shorthandValue[s]; ok {
+		return CaseKnownGapKind(v), nil
+	}
+	return CaseKnownGapKind(0), fmt.Errorf("%s is not a valid CaseKnownGapKind", s)
 }

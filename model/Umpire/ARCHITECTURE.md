@@ -89,7 +89,9 @@ A Case pairs one bounded Program with one deterministic Contract. Programs conta
 roles, context-local entrypoint DAGs, immutable Slots, declared Observations, typed outcomes and
 guards, an always-run cleanup graph, and explicit limits. Contracts consume only recorded Run
 Events and declared Observations; their ordered finite-state transitions cite supporting monotonic
-event coordinates in the resulting Verdict.
+event coordinates in the resulting Verdict. Rule-local, typed scalar captures retain one declared
+Observation for bounded cross-event comparison and are single-assignment by construction-time
+validation.
 
 The closed `ValueType` constructors preserve singular, repeated, and map cardinality. Instructions
 and transition expressions are closed unions rather than callback or extension points. Endpoint

@@ -186,8 +186,10 @@ message Entrypoint {
 
 // CleanupGraph is always attempted after ordinary execution with an independent bound.
 message CleanupGraph {
-  EntrypointContext context = 1;
-  repeated InstructionNode nodes = 2;
+  // The identity is used by cleanup-local InstructionReferences and Run coordinates.
+  string entrypoint_id = 1;
+  EntrypointContext context = 2;
+  repeated InstructionNode nodes = 3;
 }
 
 message ProgramLimits {

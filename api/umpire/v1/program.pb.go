@@ -1789,9 +1789,11 @@ func (x *Entrypoint) GetNodes() []*InstructionNode {
 
 // CleanupGraph is always attempted after ordinary execution with an independent bound.
 type CleanupGraph struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Context       EntrypointContext      `protobuf:"varint,1,opt,name=context,proto3,enum=temporal.server.api.umpire.v1.EntrypointContext" json:"context,omitempty"`
-	Nodes         []*InstructionNode     `protobuf:"bytes,2,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// The identity is used by cleanup-local InstructionReferences and Run coordinates.
+	EntrypointId  string             `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
+	Context       EntrypointContext  `protobuf:"varint,2,opt,name=context,proto3,enum=temporal.server.api.umpire.v1.EntrypointContext" json:"context,omitempty"`
+	Nodes         []*InstructionNode `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1824,6 +1826,13 @@ func (x *CleanupGraph) ProtoReflect() protoreflect.Message {
 // Deprecated: Use CleanupGraph.ProtoReflect.Descriptor instead.
 func (*CleanupGraph) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_umpire_v1_program_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *CleanupGraph) GetEntrypointId() string {
+	if x != nil {
+		return x.EntrypointId
+	}
+	return ""
 }
 
 func (x *CleanupGraph) GetContext() EntrypointContext {
@@ -2165,10 +2174,11 @@ const file_temporal_server_api_umpire_v1_program_proto_rawDesc = "" +
 	"\n" +
 	"activation\x18\x03 \x01(\v20.temporal.server.api.umpire.v1.ActivationBindingR\n" +
 	"activation\x12D\n" +
-	"\x05nodes\x18\x04 \x03(\v2..temporal.server.api.umpire.v1.InstructionNodeR\x05nodes\"\xa0\x01\n" +
-	"\fCleanupGraph\x12J\n" +
-	"\acontext\x18\x01 \x01(\x0e20.temporal.server.api.umpire.v1.EntrypointContextR\acontext\x12D\n" +
-	"\x05nodes\x18\x02 \x03(\v2..temporal.server.api.umpire.v1.InstructionNodeR\x05nodes\"\xaa\x04\n" +
+	"\x05nodes\x18\x04 \x03(\v2..temporal.server.api.umpire.v1.InstructionNodeR\x05nodes\"\xc5\x01\n" +
+	"\fCleanupGraph\x12#\n" +
+	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12J\n" +
+	"\acontext\x18\x02 \x01(\x0e20.temporal.server.api.umpire.v1.EntrypointContextR\acontext\x12D\n" +
+	"\x05nodes\x18\x03 \x03(\v2..temporal.server.api.umpire.v1.InstructionNodeR\x05nodes\"\xaa\x04\n" +
 	"\rProgramLimits\x12'\n" +
 	"\x0fmax_entrypoints\x18\x01 \x01(\x03R\x0emaxEntrypoints\x12\x1b\n" +
 	"\tmax_nodes\x18\x02 \x01(\x03R\bmaxNodes\x12\x1b\n" +

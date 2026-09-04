@@ -44,6 +44,117 @@ func (this *ContractState) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ContractCaptureType to the protobuf v3 wire format
+func (val *ContractCaptureType) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractCaptureType from the protobuf v3 wire format
+func (val *ContractCaptureType) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractCaptureType) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractCaptureType values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractCaptureType) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractCaptureType
+	switch t := that.(type) {
+	case *ContractCaptureType:
+		that1 = t
+	case ContractCaptureType:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractCaptureSchema to the protobuf v3 wire format
+func (val *ContractCaptureSchema) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractCaptureSchema from the protobuf v3 wire format
+func (val *ContractCaptureSchema) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractCaptureSchema) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractCaptureSchema values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractCaptureSchema) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractCaptureSchema
+	switch t := that.(type) {
+	case *ContractCaptureSchema:
+		that1 = t
+	case ContractCaptureSchema:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ContractCaptureAssignment to the protobuf v3 wire format
+func (val *ContractCaptureAssignment) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ContractCaptureAssignment from the protobuf v3 wire format
+func (val *ContractCaptureAssignment) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ContractCaptureAssignment) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ContractCaptureAssignment values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ContractCaptureAssignment) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ContractCaptureAssignment
+	switch t := that.(type) {
+	case *ContractCaptureAssignment:
+		that1 = t
+	case ContractCaptureAssignment:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type ContractTransition to the protobuf v3 wire format
 func (val *ContractTransition) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -251,8 +362,9 @@ func ContractRuleKindFromString(s string) (ContractRuleKind, error) {
 var (
 	ContractTerminalState_shorthandValue = map[string]int32{
 		"Unspecified": 0,
-		"Satisfied":   1,
-		"Violated":    2,
+		"Nonterminal": 1,
+		"Satisfied":   2,
+		"Violated":    3,
 	}
 )
 

@@ -28,19 +28,28 @@ const (
 type CaseDefinitionKind int32
 
 const (
-	CASE_DEFINITION_KIND_UNSPECIFIED CaseDefinitionKind = 0
-	CASE_DEFINITION_KIND_SETUP       CaseDefinitionKind = 1
-	CASE_DEFINITION_KIND_STATE       CaseDefinitionKind = 2
-	CASE_DEFINITION_KIND_ACTION      CaseDefinitionKind = 3
-	CASE_DEFINITION_KIND_OUTCOME     CaseDefinitionKind = 4
-	CASE_DEFINITION_KIND_OBSERVATION CaseDefinitionKind = 5
-	CASE_DEFINITION_KIND_RELATION    CaseDefinitionKind = 6
-	CASE_DEFINITION_KIND_CAPABILITY  CaseDefinitionKind = 7
-	CASE_DEFINITION_KIND_PROPERTY    CaseDefinitionKind = 8
-	CASE_DEFINITION_KIND_QUERY       CaseDefinitionKind = 9
-	CASE_DEFINITION_KIND_BEHAVIOR    CaseDefinitionKind = 10
-	CASE_DEFINITION_KIND_TARGET      CaseDefinitionKind = 11
-	CASE_DEFINITION_KIND_COMPILER    CaseDefinitionKind = 12
+	CASE_DEFINITION_KIND_UNSPECIFIED      CaseDefinitionKind = 0
+	CASE_DEFINITION_KIND_SETUP            CaseDefinitionKind = 1
+	CASE_DEFINITION_KIND_STATE            CaseDefinitionKind = 2
+	CASE_DEFINITION_KIND_ACTION           CaseDefinitionKind = 3
+	CASE_DEFINITION_KIND_OUTCOME          CaseDefinitionKind = 4
+	CASE_DEFINITION_KIND_OBSERVATION      CaseDefinitionKind = 5
+	CASE_DEFINITION_KIND_RELATION         CaseDefinitionKind = 6
+	CASE_DEFINITION_KIND_CAPABILITY       CaseDefinitionKind = 7
+	CASE_DEFINITION_KIND_PROPERTY         CaseDefinitionKind = 8
+	CASE_DEFINITION_KIND_QUERY            CaseDefinitionKind = 9
+	CASE_DEFINITION_KIND_BEHAVIOR         CaseDefinitionKind = 10
+	CASE_DEFINITION_KIND_TARGET           CaseDefinitionKind = 11
+	CASE_DEFINITION_KIND_COMPILER         CaseDefinitionKind = 12
+	CASE_DEFINITION_KIND_PROVIDER         CaseDefinitionKind = 13
+	CASE_DEFINITION_KIND_LAW              CaseDefinitionKind = 14
+	CASE_DEFINITION_KIND_CONNECTOR        CaseDefinitionKind = 15
+	CASE_DEFINITION_KIND_KERNEL           CaseDefinitionKind = 16
+	CASE_DEFINITION_KIND_EXPERIMENT_SPACE CaseDefinitionKind = 17
+	CASE_DEFINITION_KIND_VARIATION_AXIS   CaseDefinitionKind = 18
+	CASE_DEFINITION_KIND_CHOICE           CaseDefinitionKind = 19
+	CASE_DEFINITION_KIND_FAULT            CaseDefinitionKind = 20
+	CASE_DEFINITION_KIND_COVERAGE_GOAL    CaseDefinitionKind = 21
 )
 
 // Enum value maps for CaseDefinitionKind.
@@ -59,21 +68,39 @@ var (
 		10: "CASE_DEFINITION_KIND_BEHAVIOR",
 		11: "CASE_DEFINITION_KIND_TARGET",
 		12: "CASE_DEFINITION_KIND_COMPILER",
+		13: "CASE_DEFINITION_KIND_PROVIDER",
+		14: "CASE_DEFINITION_KIND_LAW",
+		15: "CASE_DEFINITION_KIND_CONNECTOR",
+		16: "CASE_DEFINITION_KIND_KERNEL",
+		17: "CASE_DEFINITION_KIND_EXPERIMENT_SPACE",
+		18: "CASE_DEFINITION_KIND_VARIATION_AXIS",
+		19: "CASE_DEFINITION_KIND_CHOICE",
+		20: "CASE_DEFINITION_KIND_FAULT",
+		21: "CASE_DEFINITION_KIND_COVERAGE_GOAL",
 	}
 	CaseDefinitionKind_value = map[string]int32{
-		"CASE_DEFINITION_KIND_UNSPECIFIED": 0,
-		"CASE_DEFINITION_KIND_SETUP":       1,
-		"CASE_DEFINITION_KIND_STATE":       2,
-		"CASE_DEFINITION_KIND_ACTION":      3,
-		"CASE_DEFINITION_KIND_OUTCOME":     4,
-		"CASE_DEFINITION_KIND_OBSERVATION": 5,
-		"CASE_DEFINITION_KIND_RELATION":    6,
-		"CASE_DEFINITION_KIND_CAPABILITY":  7,
-		"CASE_DEFINITION_KIND_PROPERTY":    8,
-		"CASE_DEFINITION_KIND_QUERY":       9,
-		"CASE_DEFINITION_KIND_BEHAVIOR":    10,
-		"CASE_DEFINITION_KIND_TARGET":      11,
-		"CASE_DEFINITION_KIND_COMPILER":    12,
+		"CASE_DEFINITION_KIND_UNSPECIFIED":      0,
+		"CASE_DEFINITION_KIND_SETUP":            1,
+		"CASE_DEFINITION_KIND_STATE":            2,
+		"CASE_DEFINITION_KIND_ACTION":           3,
+		"CASE_DEFINITION_KIND_OUTCOME":          4,
+		"CASE_DEFINITION_KIND_OBSERVATION":      5,
+		"CASE_DEFINITION_KIND_RELATION":         6,
+		"CASE_DEFINITION_KIND_CAPABILITY":       7,
+		"CASE_DEFINITION_KIND_PROPERTY":         8,
+		"CASE_DEFINITION_KIND_QUERY":            9,
+		"CASE_DEFINITION_KIND_BEHAVIOR":         10,
+		"CASE_DEFINITION_KIND_TARGET":           11,
+		"CASE_DEFINITION_KIND_COMPILER":         12,
+		"CASE_DEFINITION_KIND_PROVIDER":         13,
+		"CASE_DEFINITION_KIND_LAW":              14,
+		"CASE_DEFINITION_KIND_CONNECTOR":        15,
+		"CASE_DEFINITION_KIND_KERNEL":           16,
+		"CASE_DEFINITION_KIND_EXPERIMENT_SPACE": 17,
+		"CASE_DEFINITION_KIND_VARIATION_AXIS":   18,
+		"CASE_DEFINITION_KIND_CHOICE":           19,
+		"CASE_DEFINITION_KIND_FAULT":            20,
+		"CASE_DEFINITION_KIND_COVERAGE_GOAL":    21,
 	}
 )
 
@@ -113,6 +140,26 @@ func (x CaseDefinitionKind) String() string {
 		return "Target"
 	case CASE_DEFINITION_KIND_COMPILER:
 		return "Compiler"
+	case CASE_DEFINITION_KIND_PROVIDER:
+		return "Provider"
+	case CASE_DEFINITION_KIND_LAW:
+		return "Law"
+	case CASE_DEFINITION_KIND_CONNECTOR:
+		return "Connector"
+	case CASE_DEFINITION_KIND_KERNEL:
+		return "Kernel"
+	case CASE_DEFINITION_KIND_EXPERIMENT_SPACE:
+		return "ExperimentSpace"
+	case CASE_DEFINITION_KIND_VARIATION_AXIS:
+		return "VariationAxis"
+	case CASE_DEFINITION_KIND_CHOICE:
+		return "Choice"
+	case CASE_DEFINITION_KIND_FAULT:
+		return "Fault"
+	case CASE_DEFINITION_KIND_COVERAGE_GOAL:
+		return "CoverageGoal"
+
+		// Enum value maps for CaseKnownGapKind.
 	default:
 		return strconv.Itoa(int(x))
 	}
@@ -133,6 +180,74 @@ func (x CaseDefinitionKind) Number() protoreflect.EnumNumber {
 
 func (CaseDefinitionKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_umpire_v1_case_proto_rawDescGZIP(), []int{0}
+}
+
+type CaseKnownGapKind int32
+
+const (
+	CASE_KNOWN_GAP_KIND_UNSPECIFIED         CaseKnownGapKind = 0
+	CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT CaseKnownGapKind = 1
+	CASE_KNOWN_GAP_KIND_INPUT               CaseKnownGapKind = 2
+	CASE_KNOWN_GAP_KIND_INTERPRETATION      CaseKnownGapKind = 3
+	CASE_KNOWN_GAP_KIND_CLAIM               CaseKnownGapKind = 4
+)
+
+var (
+	CaseKnownGapKind_name = map[int32]string{
+		0: "CASE_KNOWN_GAP_KIND_UNSPECIFIED",
+		1: "CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT",
+		2: "CASE_KNOWN_GAP_KIND_INPUT",
+		3: "CASE_KNOWN_GAP_KIND_INTERPRETATION",
+		4: "CASE_KNOWN_GAP_KIND_CLAIM",
+	}
+	CaseKnownGapKind_value = map[string]int32{
+		"CASE_KNOWN_GAP_KIND_UNSPECIFIED":         0,
+		"CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT": 1,
+		"CASE_KNOWN_GAP_KIND_INPUT":               2,
+		"CASE_KNOWN_GAP_KIND_INTERPRETATION":      3,
+		"CASE_KNOWN_GAP_KIND_CLAIM":               4,
+	}
+)
+
+func (x CaseKnownGapKind) Enum() *CaseKnownGapKind {
+	p := new(CaseKnownGapKind)
+	*p = x
+	return p
+}
+
+func (x CaseKnownGapKind) String() string {
+	switch x {
+	case CASE_KNOWN_GAP_KIND_UNSPECIFIED:
+		return "Unspecified"
+	case CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT:
+		return "CapabilityContract"
+	case CASE_KNOWN_GAP_KIND_INPUT:
+		return "Input"
+	case CASE_KNOWN_GAP_KIND_INTERPRETATION:
+		return "Interpretation"
+	case CASE_KNOWN_GAP_KIND_CLAIM:
+		return "Claim"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (CaseKnownGapKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_umpire_v1_case_proto_enumTypes[1].Descriptor()
+}
+
+func (CaseKnownGapKind) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_umpire_v1_case_proto_enumTypes[1]
+}
+
+func (x CaseKnownGapKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use CaseKnownGapKind.Descriptor instead.
+func (CaseKnownGapKind) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_case_proto_rawDescGZIP(), []int{1}
 }
 
 type CaseDefinitionBinding struct {
@@ -197,9 +312,10 @@ func (x *CaseDefinitionBinding) GetKind() CaseDefinitionKind {
 
 type CaseKnownGap struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
-	Subject       string                 `protobuf:"bytes,2,opt,name=subject,proto3" json:"subject,omitempty"`
-	Detail        string                 `protobuf:"bytes,3,opt,name=detail,proto3" json:"detail,omitempty"`
+	Kind          CaseKnownGapKind       `protobuf:"varint,1,opt,name=kind,proto3,enum=temporal.server.api.umpire.v1.CaseKnownGapKind" json:"kind,omitempty"`
+	Code          string                 `protobuf:"bytes,2,opt,name=code,proto3" json:"code,omitempty"`
+	Subject       *OptionalString        `protobuf:"bytes,3,opt,name=subject,proto3" json:"subject,omitempty"`
+	Detail        *OptionalString        `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -234,6 +350,13 @@ func (*CaseKnownGap) Descriptor() ([]byte, []int) {
 	return file_temporal_server_api_umpire_v1_case_proto_rawDescGZIP(), []int{1}
 }
 
+func (x *CaseKnownGap) GetKind() CaseKnownGapKind {
+	if x != nil {
+		return x.Kind
+	}
+	return CASE_KNOWN_GAP_KIND_UNSPECIFIED
+}
+
 func (x *CaseKnownGap) GetCode() string {
 	if x != nil {
 		return x.Code
@@ -241,18 +364,18 @@ func (x *CaseKnownGap) GetCode() string {
 	return ""
 }
 
-func (x *CaseKnownGap) GetSubject() string {
+func (x *CaseKnownGap) GetSubject() *OptionalString {
 	if x != nil {
 		return x.Subject
 	}
-	return ""
+	return nil
 }
 
-func (x *CaseKnownGap) GetDetail() string {
+func (x *CaseKnownGap) GetDetail() *OptionalString {
 	if x != nil {
 		return x.Detail
 	}
-	return ""
+	return nil
 }
 
 type CaseMetadata struct {
@@ -416,11 +539,12 @@ const file_temporal_server_api_umpire_v1_case_proto_rawDesc = "" +
 	"\x15CaseDefinitionBinding\x12#\n" +
 	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x121\n" +
 	"\x14behavior_fingerprint\x18\x02 \x01(\tR\x13behaviorFingerprint\x12E\n" +
-	"\x04kind\x18\x03 \x01(\x0e21.temporal.server.api.umpire.v1.CaseDefinitionKindR\x04kind\"T\n" +
-	"\fCaseKnownGap\x12\x12\n" +
-	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
-	"\asubject\x18\x02 \x01(\tR\asubject\x12\x16\n" +
-	"\x06detail\x18\x03 \x01(\tR\x06detail\"\xc7\x02\n" +
+	"\x04kind\x18\x03 \x01(\x0e21.temporal.server.api.umpire.v1.CaseDefinitionKindR\x04kind\"\xf7\x01\n" +
+	"\fCaseKnownGap\x12C\n" +
+	"\x04kind\x18\x01 \x01(\x0e2/.temporal.server.api.umpire.v1.CaseKnownGapKindR\x04kind\x12\x12\n" +
+	"\x04code\x18\x02 \x01(\tR\x04code\x12G\n" +
+	"\asubject\x18\x03 \x01(\v2-.temporal.server.api.umpire.v1.OptionalStringR\asubject\x12E\n" +
+	"\x06detail\x18\x04 \x01(\v2-.temporal.server.api.umpire.v1.OptionalStringR\x06detail\"\xc7\x02\n" +
 	"\fCaseMetadata\x12\x1f\n" +
 	"\vproducer_id\x18\x01 \x01(\tR\n" +
 	"producerId\x12)\n" +
@@ -434,7 +558,7 @@ const file_temporal_server_api_umpire_v1_case_proto_rawDesc = "" +
 	"\acase_id\x18\x02 \x01(\tR\x06caseId\x12G\n" +
 	"\bmetadata\x18\x03 \x01(\v2+.temporal.server.api.umpire.v1.CaseMetadataR\bmetadata\x12@\n" +
 	"\aprogram\x18\x04 \x01(\v2&.temporal.server.api.umpire.v1.ProgramR\aprogram\x12C\n" +
-	"\bcontract\x18\x05 \x01(\v2'.temporal.server.api.umpire.v1.ContractR\bcontract*\xd5\x03\n" +
+	"\bcontract\x18\x05 \x01(\v2'.temporal.server.api.umpire.v1.ContractR\bcontract*\x98\x06\n" +
 	"\x12CaseDefinitionKind\x12$\n" +
 	" CASE_DEFINITION_KIND_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aCASE_DEFINITION_KIND_SETUP\x10\x01\x12\x1e\n" +
@@ -449,7 +573,22 @@ const file_temporal_server_api_umpire_v1_case_proto_rawDesc = "" +
 	"\x1dCASE_DEFINITION_KIND_BEHAVIOR\x10\n" +
 	"\x12\x1f\n" +
 	"\x1bCASE_DEFINITION_KIND_TARGET\x10\v\x12!\n" +
-	"\x1dCASE_DEFINITION_KIND_COMPILER\x10\fB,Z*go.temporal.io/server/api/umpire/v1;umpireb\x06proto3"
+	"\x1dCASE_DEFINITION_KIND_COMPILER\x10\f\x12!\n" +
+	"\x1dCASE_DEFINITION_KIND_PROVIDER\x10\r\x12\x1c\n" +
+	"\x18CASE_DEFINITION_KIND_LAW\x10\x0e\x12\"\n" +
+	"\x1eCASE_DEFINITION_KIND_CONNECTOR\x10\x0f\x12\x1f\n" +
+	"\x1bCASE_DEFINITION_KIND_KERNEL\x10\x10\x12)\n" +
+	"%CASE_DEFINITION_KIND_EXPERIMENT_SPACE\x10\x11\x12'\n" +
+	"#CASE_DEFINITION_KIND_VARIATION_AXIS\x10\x12\x12\x1f\n" +
+	"\x1bCASE_DEFINITION_KIND_CHOICE\x10\x13\x12\x1e\n" +
+	"\x1aCASE_DEFINITION_KIND_FAULT\x10\x14\x12&\n" +
+	"\"CASE_DEFINITION_KIND_COVERAGE_GOAL\x10\x15*\xca\x01\n" +
+	"\x10CaseKnownGapKind\x12#\n" +
+	"\x1fCASE_KNOWN_GAP_KIND_UNSPECIFIED\x10\x00\x12+\n" +
+	"'CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT\x10\x01\x12\x1d\n" +
+	"\x19CASE_KNOWN_GAP_KIND_INPUT\x10\x02\x12&\n" +
+	"\"CASE_KNOWN_GAP_KIND_INTERPRETATION\x10\x03\x12\x1d\n" +
+	"\x19CASE_KNOWN_GAP_KIND_CLAIM\x10\x04B,Z*go.temporal.io/server/api/umpire/v1;umpireb\x06proto3"
 
 var (
 	file_temporal_server_api_umpire_v1_case_proto_rawDescOnce sync.Once
@@ -463,33 +602,38 @@ func file_temporal_server_api_umpire_v1_case_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_umpire_v1_case_proto_rawDescData
 }
 
-var file_temporal_server_api_umpire_v1_case_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_temporal_server_api_umpire_v1_case_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
 var file_temporal_server_api_umpire_v1_case_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_temporal_server_api_umpire_v1_case_proto_goTypes = []any{
 	(CaseDefinitionKind)(0),       // 0: temporal.server.api.umpire.v1.CaseDefinitionKind
-	(*CaseDefinitionBinding)(nil), // 1: temporal.server.api.umpire.v1.CaseDefinitionBinding
-	(*CaseKnownGap)(nil),          // 2: temporal.server.api.umpire.v1.CaseKnownGap
-	(*CaseMetadata)(nil),          // 3: temporal.server.api.umpire.v1.CaseMetadata
-	(*Case)(nil),                  // 4: temporal.server.api.umpire.v1.Case
-	(*SourceLocation)(nil),        // 5: temporal.server.api.umpire.v1.SourceLocation
-	(*FormatVersion)(nil),         // 6: temporal.server.api.umpire.v1.FormatVersion
-	(*Program)(nil),               // 7: temporal.server.api.umpire.v1.Program
-	(*Contract)(nil),              // 8: temporal.server.api.umpire.v1.Contract
+	(CaseKnownGapKind)(0),         // 1: temporal.server.api.umpire.v1.CaseKnownGapKind
+	(*CaseDefinitionBinding)(nil), // 2: temporal.server.api.umpire.v1.CaseDefinitionBinding
+	(*CaseKnownGap)(nil),          // 3: temporal.server.api.umpire.v1.CaseKnownGap
+	(*CaseMetadata)(nil),          // 4: temporal.server.api.umpire.v1.CaseMetadata
+	(*Case)(nil),                  // 5: temporal.server.api.umpire.v1.Case
+	(*OptionalString)(nil),        // 6: temporal.server.api.umpire.v1.OptionalString
+	(*SourceLocation)(nil),        // 7: temporal.server.api.umpire.v1.SourceLocation
+	(*FormatVersion)(nil),         // 8: temporal.server.api.umpire.v1.FormatVersion
+	(*Program)(nil),               // 9: temporal.server.api.umpire.v1.Program
+	(*Contract)(nil),              // 10: temporal.server.api.umpire.v1.Contract
 }
 var file_temporal_server_api_umpire_v1_case_proto_depIdxs = []int32{
-	0, // 0: temporal.server.api.umpire.v1.CaseDefinitionBinding.kind:type_name -> temporal.server.api.umpire.v1.CaseDefinitionKind
-	1, // 1: temporal.server.api.umpire.v1.CaseMetadata.definitions:type_name -> temporal.server.api.umpire.v1.CaseDefinitionBinding
-	5, // 2: temporal.server.api.umpire.v1.CaseMetadata.sources:type_name -> temporal.server.api.umpire.v1.SourceLocation
-	2, // 3: temporal.server.api.umpire.v1.CaseMetadata.known_gaps:type_name -> temporal.server.api.umpire.v1.CaseKnownGap
-	6, // 4: temporal.server.api.umpire.v1.Case.version:type_name -> temporal.server.api.umpire.v1.FormatVersion
-	3, // 5: temporal.server.api.umpire.v1.Case.metadata:type_name -> temporal.server.api.umpire.v1.CaseMetadata
-	7, // 6: temporal.server.api.umpire.v1.Case.program:type_name -> temporal.server.api.umpire.v1.Program
-	8, // 7: temporal.server.api.umpire.v1.Case.contract:type_name -> temporal.server.api.umpire.v1.Contract
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	0,  // 0: temporal.server.api.umpire.v1.CaseDefinitionBinding.kind:type_name -> temporal.server.api.umpire.v1.CaseDefinitionKind
+	1,  // 1: temporal.server.api.umpire.v1.CaseKnownGap.kind:type_name -> temporal.server.api.umpire.v1.CaseKnownGapKind
+	6,  // 2: temporal.server.api.umpire.v1.CaseKnownGap.subject:type_name -> temporal.server.api.umpire.v1.OptionalString
+	6,  // 3: temporal.server.api.umpire.v1.CaseKnownGap.detail:type_name -> temporal.server.api.umpire.v1.OptionalString
+	2,  // 4: temporal.server.api.umpire.v1.CaseMetadata.definitions:type_name -> temporal.server.api.umpire.v1.CaseDefinitionBinding
+	7,  // 5: temporal.server.api.umpire.v1.CaseMetadata.sources:type_name -> temporal.server.api.umpire.v1.SourceLocation
+	3,  // 6: temporal.server.api.umpire.v1.CaseMetadata.known_gaps:type_name -> temporal.server.api.umpire.v1.CaseKnownGap
+	8,  // 7: temporal.server.api.umpire.v1.Case.version:type_name -> temporal.server.api.umpire.v1.FormatVersion
+	4,  // 8: temporal.server.api.umpire.v1.Case.metadata:type_name -> temporal.server.api.umpire.v1.CaseMetadata
+	9,  // 9: temporal.server.api.umpire.v1.Case.program:type_name -> temporal.server.api.umpire.v1.Program
+	10, // 10: temporal.server.api.umpire.v1.Case.contract:type_name -> temporal.server.api.umpire.v1.Contract
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_case_proto_init() }
@@ -505,7 +649,7 @@ func file_temporal_server_api_umpire_v1_case_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_case_proto_rawDesc), len(file_temporal_server_api_umpire_v1_case_proto_rawDesc)),
-			NumEnums:      1,
+			NumEnums:      2,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,

@@ -28,6 +28,24 @@ structure ContractState where
   terminal : ContractTerminalState := .nonterminal
   deriving BEq, DecidableEq, Repr
 
+/-- The closed scalar subset a Contract may retain across Run Events. -/
+inductive ContractCaptureType where
+  | scalar (kind : ScalarKind)
+  | enumeration (protobufType : String)
+  deriving BEq, DecidableEq, Repr
+
+/-- One typed, rule-local, single-assignment capture declaration. -/
+structure ContractCaptureSchema where
+  captureId : String
+  type : ContractCaptureType
+  deriving BEq, DecidableEq, Repr
+
+/-- An atomic assignment from one declared Observation to one capture. -/
+structure ContractCaptureAssignment where
+  captureId : String
+  observation : ObservationReference
+  deriving BEq, DecidableEq, Repr
+
 /-- Which Run Event coordinate supports a taken transition. -/
 inductive ContractSupport where
   | none
@@ -42,6 +60,7 @@ structure ContractTransition where
   eventKinds : List RunEventKind
   predicate : ValueExpression
   support : ContractSupport := .none
+  captureAssignments : List ContractCaptureAssignment := []
   deriving BEq, Repr
 
 /-- A bounded-liveness deadline and the violation state entered when it closes. -/
@@ -58,6 +77,7 @@ structure ContractRule where
   states : List ContractState
   transitions : List ContractTransition
   horizon : Option ContractHorizon := none
+  captures : List ContractCaptureSchema := []
   deriving BEq, Repr
 
 /-- Static ceilings for Contract validation and event-by-event evaluation. -/
@@ -68,6 +88,8 @@ structure ContractLimits where
   maxExpressionDepth : Nat
   maxWorkPerEvent : Nat
   maxTotalWork : Nat
+  maxCaptures : Nat
+  maxCaptureBytes : Nat
   deriving BEq, DecidableEq, Repr
 
 /-- Closed deterministic monitor machines over declared Run Observations. -/

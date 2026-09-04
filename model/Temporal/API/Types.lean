@@ -1534,7 +1534,28 @@ def caseDefinitionKindQuery : CaseDefinitionKind := { number := 9 }
 def caseDefinitionKindBehavior : CaseDefinitionKind := { number := 10 }
 def caseDefinitionKindTarget : CaseDefinitionKind := { number := 11 }
 def caseDefinitionKindCompiler : CaseDefinitionKind := { number := 12 }
+def caseDefinitionKindProvider : CaseDefinitionKind := { number := 13 }
+def caseDefinitionKindLaw : CaseDefinitionKind := { number := 14 }
+def caseDefinitionKindConnector : CaseDefinitionKind := { number := 15 }
+def caseDefinitionKindKernel : CaseDefinitionKind := { number := 16 }
+def caseDefinitionKindExperimentSpace : CaseDefinitionKind := { number := 17 }
+def caseDefinitionKindVariationAxis : CaseDefinitionKind := { number := 18 }
+def caseDefinitionKindChoice : CaseDefinitionKind := { number := 19 }
+def caseDefinitionKindFault : CaseDefinitionKind := { number := 20 }
+def caseDefinitionKindCoverageGoal : CaseDefinitionKind := { number := 21 }
 end CaseDefinitionKind
+
+structure CaseKnownGapKind where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace CaseKnownGapKind
+def caseKnownGapKindUnspecified : CaseKnownGapKind := { number := 0 }
+def caseKnownGapKindCapabilityContract : CaseKnownGapKind := { number := 1 }
+def caseKnownGapKindInput : CaseKnownGapKind := { number := 2 }
+def caseKnownGapKindInterpretation : CaseKnownGapKind := { number := 3 }
+def caseKnownGapKindClaim : CaseKnownGapKind := { number := 4 }
+end CaseKnownGapKind
 
 structure ClaimScope where
   number : Int
@@ -1595,8 +1616,9 @@ structure ContractTerminalState where
 
 namespace ContractTerminalState
 def contractTerminalStateUnspecified : ContractTerminalState := { number := 0 }
-def contractTerminalStateSatisfied : ContractTerminalState := { number := 1 }
-def contractTerminalStateViolated : ContractTerminalState := { number := 2 }
+def contractTerminalStateNonterminal : ContractTerminalState := { number := 1 }
+def contractTerminalStateSatisfied : ContractTerminalState := { number := 2 }
+def contractTerminalStateViolated : ContractTerminalState := { number := 3 }
 end ContractTerminalState
 
 structure CorrelationSlotKind where
@@ -13061,6 +13083,10 @@ structure Present where
   operand : Option Temporal.API.Proto.MessageRef
   deriving Repr
 
+structure CaptureReference where
+  captureId : String
+  deriving Repr
+
 structure EnumValue where
   number : Int
   deriving Repr
@@ -13198,6 +13224,7 @@ inductive ValueExpression.Expression where
   | negation (value : Temporal.API.Proto.MessageRef)
   | all (value : Temporal.API.Proto.MessageRef)
   | any (value : Temporal.API.Proto.MessageRef)
+  | capture (value : CaptureReference)
   deriving Repr
 
 structure ValueExpression where
@@ -13237,10 +13264,15 @@ structure CaseDefinitionBinding where
   kind : CaseDefinitionKind
   deriving Repr
 
+structure OptionalString where
+  value : String
+  deriving Repr
+
 structure CaseKnownGap where
+  kind : CaseKnownGapKind
   code : String
-  subject : String
-  detail : String
+  subject : Option OptionalString
+  detail : Option OptionalString
   deriving Repr
 
 structure SourceLocation where
@@ -13265,6 +13297,31 @@ structure ContractLimits where
   maxExpressionDepth : Int
   maxWorkPerEvent : Int
   maxTotalWork : Int
+  maxCaptures : Int
+  maxCaptureBytes : Int
+  deriving Repr
+
+structure NamedType where
+  protobufType : String
+  deriving Repr
+
+structure ScalarType where
+  kind : ScalarKind
+  deriving Repr
+
+inductive ContractCaptureType.Type where
+  | notSet
+  | scalar (value : ScalarType)
+  | enumeration (value : NamedType)
+  deriving Repr
+
+structure ContractCaptureType where
+  type : ContractCaptureType.Type
+  deriving Repr
+
+structure ContractCaptureSchema where
+  captureId : String
+  type : Option ContractCaptureType
   deriving Repr
 
 structure ContractHorizon where
@@ -13275,6 +13332,11 @@ structure ContractHorizon where
 structure ContractState where
   stateId : String
   terminal : ContractTerminalState
+  deriving Repr
+
+structure ContractCaptureAssignment where
+  captureId : String
+  observation : Option ObservationReference
   deriving Repr
 
 structure RunEventKinds where
@@ -13288,6 +13350,7 @@ structure ContractTransition where
   eventKinds : Option RunEventKinds
   predicate : Option ValueExpression
   support : ContractSupport
+  captureAssignments : List ContractCaptureAssignment
   deriving Repr
 
 structure ContractRule where
@@ -13297,6 +13360,7 @@ structure ContractRule where
   states : List ContractState
   transitions : List ContractTransition
   horizon : Option ContractHorizon
+  captures : List ContractCaptureSchema
   deriving Repr
 
 structure Contract where
@@ -13382,14 +13446,6 @@ structure InstructionBounds where
   maxResponseBytes : Int
   deriving Repr
 
-structure ScalarType where
-  kind : ScalarKind
-  deriving Repr
-
-structure NamedType where
-  protobufType : String
-  deriving Repr
-
 structure OpaqueCapabilityType where
   unit : Unit := ()
   deriving Repr
@@ -13446,6 +13502,7 @@ structure InstructionNode where
   deriving Repr
 
 structure CleanupGraph where
+  entrypointId : String
   context : EntrypointContext
   nodes : List InstructionNode
   deriving Repr
@@ -14119,12 +14176,16 @@ structure RuleVerdict where
   supportingEventSequences : List Int
   deriving Repr
 
+structure RunEventSequence where
+  value : Int
+  deriving Repr
+
 structure RunDiagnostic where
   diagnosticId : String
   kind : RunDiagnosticKind
   code : String
   detail : String
-  supportingEventSequence : Int
+  supportingEventSequence : Option RunEventSequence
   deriving Repr
 
 structure RunCoordinates where

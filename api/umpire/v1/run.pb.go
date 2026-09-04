@@ -798,20 +798,64 @@ func (x *CleanupOutcome) GetDiagnosticIds() []string {
 	return nil
 }
 
+type RunEventSequence struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Value         int64                  `protobuf:"varint,1,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RunEventSequence) Reset() {
+	*x = RunEventSequence{}
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RunEventSequence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RunEventSequence) ProtoMessage() {}
+
+func (x *RunEventSequence) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RunEventSequence.ProtoReflect.Descriptor instead.
+func (*RunEventSequence) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *RunEventSequence) GetValue() int64 {
+	if x != nil {
+		return x.Value
+	}
+	return 0
+}
+
 type RunDiagnostic struct {
 	state                   protoimpl.MessageState `protogen:"open.v1"`
 	DiagnosticId            string                 `protobuf:"bytes,1,opt,name=diagnostic_id,json=diagnosticId,proto3" json:"diagnostic_id,omitempty"`
 	Kind                    RunDiagnosticKind      `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.umpire.v1.RunDiagnosticKind" json:"kind,omitempty"`
 	Code                    string                 `protobuf:"bytes,3,opt,name=code,proto3" json:"code,omitempty"`
 	Detail                  string                 `protobuf:"bytes,4,opt,name=detail,proto3" json:"detail,omitempty"`
-	SupportingEventSequence int64                  `protobuf:"varint,5,opt,name=supporting_event_sequence,json=supportingEventSequence,proto3" json:"supporting_event_sequence,omitempty"`
+	SupportingEventSequence *RunEventSequence      `protobuf:"bytes,5,opt,name=supporting_event_sequence,json=supportingEventSequence,proto3" json:"supporting_event_sequence,omitempty"`
 	unknownFields           protoimpl.UnknownFields
 	sizeCache               protoimpl.SizeCache
 }
 
 func (x *RunDiagnostic) Reset() {
 	*x = RunDiagnostic{}
-	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[5]
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -823,7 +867,7 @@ func (x *RunDiagnostic) String() string {
 func (*RunDiagnostic) ProtoMessage() {}
 
 func (x *RunDiagnostic) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[5]
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -836,7 +880,7 @@ func (x *RunDiagnostic) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RunDiagnostic.ProtoReflect.Descriptor instead.
 func (*RunDiagnostic) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *RunDiagnostic) GetDiagnosticId() string {
@@ -867,11 +911,11 @@ func (x *RunDiagnostic) GetDetail() string {
 	return ""
 }
 
-func (x *RunDiagnostic) GetSupportingEventSequence() int64 {
+func (x *RunDiagnostic) GetSupportingEventSequence() *RunEventSequence {
 	if x != nil {
 		return x.SupportingEventSequence
 	}
-	return 0
+	return nil
 }
 
 type RuleVerdict struct {
@@ -886,7 +930,7 @@ type RuleVerdict struct {
 
 func (x *RuleVerdict) Reset() {
 	*x = RuleVerdict{}
-	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[6]
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -898,7 +942,7 @@ func (x *RuleVerdict) String() string {
 func (*RuleVerdict) ProtoMessage() {}
 
 func (x *RuleVerdict) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[6]
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -911,7 +955,7 @@ func (x *RuleVerdict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RuleVerdict.ProtoReflect.Descriptor instead.
 func (*RuleVerdict) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *RuleVerdict) GetRuleId() string {
@@ -953,7 +997,7 @@ type Verdict struct {
 
 func (x *Verdict) Reset() {
 	*x = Verdict{}
-	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[7]
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -965,7 +1009,7 @@ func (x *Verdict) String() string {
 func (*Verdict) ProtoMessage() {}
 
 func (x *Verdict) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[7]
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -978,7 +1022,7 @@ func (x *Verdict) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Verdict.ProtoReflect.Descriptor instead.
 func (*Verdict) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Verdict) GetKind() VerdictKind {
@@ -1019,7 +1063,7 @@ type Run struct {
 
 func (x *Run) Reset() {
 	*x = Run{}
-	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[8]
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1031,7 +1075,7 @@ func (x *Run) String() string {
 func (*Run) ProtoMessage() {}
 
 func (x *Run) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[8]
+	mi := &file_temporal_server_api_umpire_v1_run_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1044,7 +1088,7 @@ func (x *Run) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Run.ProtoReflect.Descriptor instead.
 func (*Run) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *Run) GetRunId() string {
@@ -1130,13 +1174,15 @@ const file_temporal_server_api_umpire_v1_run_proto_rawDesc = "" +
 	"\fobservations\x18\b \x03(\v2/.temporal.server.api.umpire.v1.ObservationValueR\fobservations\"\x80\x01\n" +
 	"\x0eCleanupOutcome\x12G\n" +
 	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.umpire.v1.RunCleanupStatusR\x06status\x12%\n" +
-	"\x0ediagnostic_ids\x18\x02 \x03(\tR\rdiagnosticIds\"\xe2\x01\n" +
+	"\x0ediagnostic_ids\x18\x02 \x03(\tR\rdiagnosticIds\"(\n" +
+	"\x10RunEventSequence\x12\x14\n" +
+	"\x05value\x18\x01 \x01(\x03R\x05value\"\x93\x02\n" +
 	"\rRunDiagnostic\x12#\n" +
 	"\rdiagnostic_id\x18\x01 \x01(\tR\fdiagnosticId\x12D\n" +
 	"\x04kind\x18\x02 \x01(\x0e20.temporal.server.api.umpire.v1.RunDiagnosticKindR\x04kind\x12\x12\n" +
 	"\x04code\x18\x03 \x01(\tR\x04code\x12\x16\n" +
-	"\x06detail\x18\x04 \x01(\tR\x06detail\x12:\n" +
-	"\x19supporting_event_sequence\x18\x05 \x01(\x03R\x17supportingEventSequence\"\xd4\x01\n" +
+	"\x06detail\x18\x04 \x01(\tR\x06detail\x12k\n" +
+	"\x19supporting_event_sequence\x18\x05 \x01(\v2/.temporal.server.api.umpire.v1.RunEventSequenceR\x17supportingEventSequence\"\xd4\x01\n" +
 	"\vRuleVerdict\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12B\n" +
 	"\x04kind\x18\x02 \x01(\x0e2..temporal.server.api.umpire.v1.RuleVerdictKindR\x04kind\x12*\n" +
@@ -1213,7 +1259,7 @@ func file_temporal_server_api_umpire_v1_run_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_umpire_v1_run_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_temporal_server_api_umpire_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_temporal_server_api_umpire_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_temporal_server_api_umpire_v1_run_proto_goTypes = []any{
 	(RunEventKind)(0),          // 0: temporal.server.api.umpire.v1.RunEventKind
 	(RunDisposition)(0),        // 1: temporal.server.api.umpire.v1.RunDisposition
@@ -1226,35 +1272,37 @@ var file_temporal_server_api_umpire_v1_run_proto_goTypes = []any{
 	(*ObservationValue)(nil),   // 8: temporal.server.api.umpire.v1.ObservationValue
 	(*RunEvent)(nil),           // 9: temporal.server.api.umpire.v1.RunEvent
 	(*CleanupOutcome)(nil),     // 10: temporal.server.api.umpire.v1.CleanupOutcome
-	(*RunDiagnostic)(nil),      // 11: temporal.server.api.umpire.v1.RunDiagnostic
-	(*RuleVerdict)(nil),        // 12: temporal.server.api.umpire.v1.RuleVerdict
-	(*Verdict)(nil),            // 13: temporal.server.api.umpire.v1.Verdict
-	(*Run)(nil),                // 14: temporal.server.api.umpire.v1.Run
-	(*Value)(nil),              // 15: temporal.server.api.umpire.v1.Value
-	(*InstructionOutcome)(nil), // 16: temporal.server.api.umpire.v1.InstructionOutcome
+	(*RunEventSequence)(nil),   // 11: temporal.server.api.umpire.v1.RunEventSequence
+	(*RunDiagnostic)(nil),      // 12: temporal.server.api.umpire.v1.RunDiagnostic
+	(*RuleVerdict)(nil),        // 13: temporal.server.api.umpire.v1.RuleVerdict
+	(*Verdict)(nil),            // 14: temporal.server.api.umpire.v1.Verdict
+	(*Run)(nil),                // 15: temporal.server.api.umpire.v1.Run
+	(*Value)(nil),              // 16: temporal.server.api.umpire.v1.Value
+	(*InstructionOutcome)(nil), // 17: temporal.server.api.umpire.v1.InstructionOutcome
 }
 var file_temporal_server_api_umpire_v1_run_proto_depIdxs = []int32{
 	0,  // 0: temporal.server.api.umpire.v1.RunEventKinds.kinds:type_name -> temporal.server.api.umpire.v1.RunEventKind
-	15, // 1: temporal.server.api.umpire.v1.ObservationValue.value:type_name -> temporal.server.api.umpire.v1.Value
+	16, // 1: temporal.server.api.umpire.v1.ObservationValue.value:type_name -> temporal.server.api.umpire.v1.Value
 	0,  // 2: temporal.server.api.umpire.v1.RunEvent.kind:type_name -> temporal.server.api.umpire.v1.RunEventKind
 	7,  // 3: temporal.server.api.umpire.v1.RunEvent.coordinates:type_name -> temporal.server.api.umpire.v1.RunCoordinates
-	16, // 4: temporal.server.api.umpire.v1.RunEvent.outcome:type_name -> temporal.server.api.umpire.v1.InstructionOutcome
+	17, // 4: temporal.server.api.umpire.v1.RunEvent.outcome:type_name -> temporal.server.api.umpire.v1.InstructionOutcome
 	8,  // 5: temporal.server.api.umpire.v1.RunEvent.observations:type_name -> temporal.server.api.umpire.v1.ObservationValue
 	2,  // 6: temporal.server.api.umpire.v1.CleanupOutcome.status:type_name -> temporal.server.api.umpire.v1.RunCleanupStatus
 	3,  // 7: temporal.server.api.umpire.v1.RunDiagnostic.kind:type_name -> temporal.server.api.umpire.v1.RunDiagnosticKind
-	4,  // 8: temporal.server.api.umpire.v1.RuleVerdict.kind:type_name -> temporal.server.api.umpire.v1.RuleVerdictKind
-	5,  // 9: temporal.server.api.umpire.v1.Verdict.kind:type_name -> temporal.server.api.umpire.v1.VerdictKind
-	12, // 10: temporal.server.api.umpire.v1.Verdict.rules:type_name -> temporal.server.api.umpire.v1.RuleVerdict
-	9,  // 11: temporal.server.api.umpire.v1.Run.events:type_name -> temporal.server.api.umpire.v1.RunEvent
-	1,  // 12: temporal.server.api.umpire.v1.Run.disposition:type_name -> temporal.server.api.umpire.v1.RunDisposition
-	10, // 13: temporal.server.api.umpire.v1.Run.cleanup:type_name -> temporal.server.api.umpire.v1.CleanupOutcome
-	13, // 14: temporal.server.api.umpire.v1.Run.verdict:type_name -> temporal.server.api.umpire.v1.Verdict
-	11, // 15: temporal.server.api.umpire.v1.Run.diagnostics:type_name -> temporal.server.api.umpire.v1.RunDiagnostic
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	11, // 8: temporal.server.api.umpire.v1.RunDiagnostic.supporting_event_sequence:type_name -> temporal.server.api.umpire.v1.RunEventSequence
+	4,  // 9: temporal.server.api.umpire.v1.RuleVerdict.kind:type_name -> temporal.server.api.umpire.v1.RuleVerdictKind
+	5,  // 10: temporal.server.api.umpire.v1.Verdict.kind:type_name -> temporal.server.api.umpire.v1.VerdictKind
+	13, // 11: temporal.server.api.umpire.v1.Verdict.rules:type_name -> temporal.server.api.umpire.v1.RuleVerdict
+	9,  // 12: temporal.server.api.umpire.v1.Run.events:type_name -> temporal.server.api.umpire.v1.RunEvent
+	1,  // 13: temporal.server.api.umpire.v1.Run.disposition:type_name -> temporal.server.api.umpire.v1.RunDisposition
+	10, // 14: temporal.server.api.umpire.v1.Run.cleanup:type_name -> temporal.server.api.umpire.v1.CleanupOutcome
+	14, // 15: temporal.server.api.umpire.v1.Run.verdict:type_name -> temporal.server.api.umpire.v1.Verdict
+	12, // 16: temporal.server.api.umpire.v1.Run.diagnostics:type_name -> temporal.server.api.umpire.v1.RunDiagnostic
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_run_proto_init() }
@@ -1270,7 +1318,7 @@ func file_temporal_server_api_umpire_v1_run_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_run_proto_rawDesc), len(file_temporal_server_api_umpire_v1_run_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

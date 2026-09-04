@@ -88,21 +88,24 @@ type ContractTerminalState int32
 
 const (
 	CONTRACT_TERMINAL_STATE_UNSPECIFIED ContractTerminalState = 0
-	CONTRACT_TERMINAL_STATE_SATISFIED   ContractTerminalState = 1
-	CONTRACT_TERMINAL_STATE_VIOLATED    ContractTerminalState = 2
+	CONTRACT_TERMINAL_STATE_NONTERMINAL ContractTerminalState = 1
+	CONTRACT_TERMINAL_STATE_SATISFIED   ContractTerminalState = 2
+	CONTRACT_TERMINAL_STATE_VIOLATED    ContractTerminalState = 3
 )
 
 // Enum value maps for ContractTerminalState.
 var (
 	ContractTerminalState_name = map[int32]string{
 		0: "CONTRACT_TERMINAL_STATE_UNSPECIFIED",
-		1: "CONTRACT_TERMINAL_STATE_SATISFIED",
-		2: "CONTRACT_TERMINAL_STATE_VIOLATED",
+		1: "CONTRACT_TERMINAL_STATE_NONTERMINAL",
+		2: "CONTRACT_TERMINAL_STATE_SATISFIED",
+		3: "CONTRACT_TERMINAL_STATE_VIOLATED",
 	}
 	ContractTerminalState_value = map[string]int32{
 		"CONTRACT_TERMINAL_STATE_UNSPECIFIED": 0,
-		"CONTRACT_TERMINAL_STATE_SATISFIED":   1,
-		"CONTRACT_TERMINAL_STATE_VIOLATED":    2,
+		"CONTRACT_TERMINAL_STATE_NONTERMINAL": 1,
+		"CONTRACT_TERMINAL_STATE_SATISFIED":   2,
+		"CONTRACT_TERMINAL_STATE_VIOLATED":    3,
 	}
 )
 
@@ -116,6 +119,8 @@ func (x ContractTerminalState) String() string {
 	switch x {
 	case CONTRACT_TERMINAL_STATE_UNSPECIFIED:
 		return "Unspecified"
+	case CONTRACT_TERMINAL_STATE_NONTERMINAL:
+		return "Nonterminal"
 	case CONTRACT_TERMINAL_STATE_SATISFIED:
 		return "Satisfied"
 	case CONTRACT_TERMINAL_STATE_VIOLATED:
@@ -254,22 +259,210 @@ func (x *ContractState) GetTerminal() ContractTerminalState {
 	return CONTRACT_TERMINAL_STATE_UNSPECIFIED
 }
 
-// ContractTransition is evaluated in declaration order for its source state and event kind.
-type ContractTransition struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	TransitionId  string                 `protobuf:"bytes,1,opt,name=transition_id,json=transitionId,proto3" json:"transition_id,omitempty"`
-	SourceState   string                 `protobuf:"bytes,2,opt,name=source_state,json=sourceState,proto3" json:"source_state,omitempty"`
-	TargetState   string                 `protobuf:"bytes,3,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
-	EventKinds    *RunEventKinds         `protobuf:"bytes,4,opt,name=event_kinds,json=eventKinds,proto3" json:"event_kinds,omitempty"`
-	Predicate     *ValueExpression       `protobuf:"bytes,5,opt,name=predicate,proto3" json:"predicate,omitempty"`
-	Support       ContractSupport        `protobuf:"varint,6,opt,name=support,proto3,enum=temporal.server.api.umpire.v1.ContractSupport" json:"support,omitempty"`
+// ContractCaptureType is the closed scalar subset retained across Run Events.
+type ContractCaptureType struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Types that are valid to be assigned to Type:
+	//
+	//	*ContractCaptureType_Scalar
+	//	*ContractCaptureType_Enumeration
+	Type          isContractCaptureType_Type `protobuf_oneof:"type"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
+func (x *ContractCaptureType) Reset() {
+	*x = ContractCaptureType{}
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractCaptureType) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractCaptureType) ProtoMessage() {}
+
+func (x *ContractCaptureType) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractCaptureType.ProtoReflect.Descriptor instead.
+func (*ContractCaptureType) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ContractCaptureType) GetType() isContractCaptureType_Type {
+	if x != nil {
+		return x.Type
+	}
+	return nil
+}
+
+func (x *ContractCaptureType) GetScalar() *ScalarType {
+	if x != nil {
+		if x, ok := x.Type.(*ContractCaptureType_Scalar); ok {
+			return x.Scalar
+		}
+	}
+	return nil
+}
+
+func (x *ContractCaptureType) GetEnumeration() *NamedType {
+	if x != nil {
+		if x, ok := x.Type.(*ContractCaptureType_Enumeration); ok {
+			return x.Enumeration
+		}
+	}
+	return nil
+}
+
+type isContractCaptureType_Type interface {
+	isContractCaptureType_Type()
+}
+
+type ContractCaptureType_Scalar struct {
+	Scalar *ScalarType `protobuf:"bytes,1,opt,name=scalar,proto3,oneof"`
+}
+
+type ContractCaptureType_Enumeration struct {
+	Enumeration *NamedType `protobuf:"bytes,2,opt,name=enumeration,proto3,oneof"`
+}
+
+func (*ContractCaptureType_Scalar) isContractCaptureType_Type() {}
+
+func (*ContractCaptureType_Enumeration) isContractCaptureType_Type() {}
+
+type ContractCaptureSchema struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CaptureId     string                 `protobuf:"bytes,1,opt,name=capture_id,json=captureId,proto3" json:"capture_id,omitempty"`
+	Type          *ContractCaptureType   `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractCaptureSchema) Reset() {
+	*x = ContractCaptureSchema{}
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractCaptureSchema) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractCaptureSchema) ProtoMessage() {}
+
+func (x *ContractCaptureSchema) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractCaptureSchema.ProtoReflect.Descriptor instead.
+func (*ContractCaptureSchema) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ContractCaptureSchema) GetCaptureId() string {
+	if x != nil {
+		return x.CaptureId
+	}
+	return ""
+}
+
+func (x *ContractCaptureSchema) GetType() *ContractCaptureType {
+	if x != nil {
+		return x.Type
+	}
+	return nil
+}
+
+type ContractCaptureAssignment struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CaptureId     string                 `protobuf:"bytes,1,opt,name=capture_id,json=captureId,proto3" json:"capture_id,omitempty"`
+	Observation   *ObservationReference  `protobuf:"bytes,2,opt,name=observation,proto3" json:"observation,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ContractCaptureAssignment) Reset() {
+	*x = ContractCaptureAssignment{}
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ContractCaptureAssignment) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ContractCaptureAssignment) ProtoMessage() {}
+
+func (x *ContractCaptureAssignment) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ContractCaptureAssignment.ProtoReflect.Descriptor instead.
+func (*ContractCaptureAssignment) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ContractCaptureAssignment) GetCaptureId() string {
+	if x != nil {
+		return x.CaptureId
+	}
+	return ""
+}
+
+func (x *ContractCaptureAssignment) GetObservation() *ObservationReference {
+	if x != nil {
+		return x.Observation
+	}
+	return nil
+}
+
+// ContractTransition is evaluated in declaration order for its source state and event kind.
+type ContractTransition struct {
+	state              protoimpl.MessageState       `protogen:"open.v1"`
+	TransitionId       string                       `protobuf:"bytes,1,opt,name=transition_id,json=transitionId,proto3" json:"transition_id,omitempty"`
+	SourceState        string                       `protobuf:"bytes,2,opt,name=source_state,json=sourceState,proto3" json:"source_state,omitempty"`
+	TargetState        string                       `protobuf:"bytes,3,opt,name=target_state,json=targetState,proto3" json:"target_state,omitempty"`
+	EventKinds         *RunEventKinds               `protobuf:"bytes,4,opt,name=event_kinds,json=eventKinds,proto3" json:"event_kinds,omitempty"`
+	Predicate          *ValueExpression             `protobuf:"bytes,5,opt,name=predicate,proto3" json:"predicate,omitempty"`
+	Support            ContractSupport              `protobuf:"varint,6,opt,name=support,proto3,enum=temporal.server.api.umpire.v1.ContractSupport" json:"support,omitempty"`
+	CaptureAssignments []*ContractCaptureAssignment `protobuf:"bytes,7,rep,name=capture_assignments,json=captureAssignments,proto3" json:"capture_assignments,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
+}
+
 func (x *ContractTransition) Reset() {
 	*x = ContractTransition{}
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[1]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -281,7 +474,7 @@ func (x *ContractTransition) String() string {
 func (*ContractTransition) ProtoMessage() {}
 
 func (x *ContractTransition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[1]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -294,7 +487,7 @@ func (x *ContractTransition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractTransition.ProtoReflect.Descriptor instead.
 func (*ContractTransition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{1}
+	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ContractTransition) GetTransitionId() string {
@@ -339,6 +532,13 @@ func (x *ContractTransition) GetSupport() ContractSupport {
 	return CONTRACT_SUPPORT_UNSPECIFIED
 }
 
+func (x *ContractTransition) GetCaptureAssignments() []*ContractCaptureAssignment {
+	if x != nil {
+		return x.CaptureAssignments
+	}
+	return nil
+}
+
 // ContractHorizon closes bounded liveness only at a recorded timeout or Run-closure coordinate.
 type ContractHorizon struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
@@ -350,7 +550,7 @@ type ContractHorizon struct {
 
 func (x *ContractHorizon) Reset() {
 	*x = ContractHorizon{}
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[2]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -362,7 +562,7 @@ func (x *ContractHorizon) String() string {
 func (*ContractHorizon) ProtoMessage() {}
 
 func (x *ContractHorizon) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[2]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -375,7 +575,7 @@ func (x *ContractHorizon) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractHorizon.ProtoReflect.Descriptor instead.
 func (*ContractHorizon) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ContractHorizon) GetElapsedMilliseconds() int64 {
@@ -394,20 +594,21 @@ func (x *ContractHorizon) GetViolationStateId() string {
 
 // ContractRule is one finite deterministic safety or bounded-liveness monitor machine.
 type ContractRule struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RuleId        string                 `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	Kind          ContractRuleKind       `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.umpire.v1.ContractRuleKind" json:"kind,omitempty"`
-	InitialState  string                 `protobuf:"bytes,3,opt,name=initial_state,json=initialState,proto3" json:"initial_state,omitempty"`
-	States        []*ContractState       `protobuf:"bytes,4,rep,name=states,proto3" json:"states,omitempty"`
-	Transitions   []*ContractTransition  `protobuf:"bytes,5,rep,name=transitions,proto3" json:"transitions,omitempty"`
-	Horizon       *ContractHorizon       `protobuf:"bytes,6,opt,name=horizon,proto3" json:"horizon,omitempty"`
+	state         protoimpl.MessageState   `protogen:"open.v1"`
+	RuleId        string                   `protobuf:"bytes,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	Kind          ContractRuleKind         `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.umpire.v1.ContractRuleKind" json:"kind,omitempty"`
+	InitialState  string                   `protobuf:"bytes,3,opt,name=initial_state,json=initialState,proto3" json:"initial_state,omitempty"`
+	States        []*ContractState         `protobuf:"bytes,4,rep,name=states,proto3" json:"states,omitempty"`
+	Transitions   []*ContractTransition    `protobuf:"bytes,5,rep,name=transitions,proto3" json:"transitions,omitempty"`
+	Horizon       *ContractHorizon         `protobuf:"bytes,6,opt,name=horizon,proto3" json:"horizon,omitempty"`
+	Captures      []*ContractCaptureSchema `protobuf:"bytes,7,rep,name=captures,proto3" json:"captures,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ContractRule) Reset() {
 	*x = ContractRule{}
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[3]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -419,7 +620,7 @@ func (x *ContractRule) String() string {
 func (*ContractRule) ProtoMessage() {}
 
 func (x *ContractRule) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[3]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -432,7 +633,7 @@ func (x *ContractRule) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractRule.ProtoReflect.Descriptor instead.
 func (*ContractRule) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{3}
+	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *ContractRule) GetRuleId() string {
@@ -477,6 +678,13 @@ func (x *ContractRule) GetHorizon() *ContractHorizon {
 	return nil
 }
 
+func (x *ContractRule) GetCaptures() []*ContractCaptureSchema {
+	if x != nil {
+		return x.Captures
+	}
+	return nil
+}
+
 type ContractLimits struct {
 	state              protoimpl.MessageState `protogen:"open.v1"`
 	MaxRules           int64                  `protobuf:"varint,1,opt,name=max_rules,json=maxRules,proto3" json:"max_rules,omitempty"`
@@ -485,13 +693,15 @@ type ContractLimits struct {
 	MaxExpressionDepth int64                  `protobuf:"varint,4,opt,name=max_expression_depth,json=maxExpressionDepth,proto3" json:"max_expression_depth,omitempty"`
 	MaxWorkPerEvent    int64                  `protobuf:"varint,5,opt,name=max_work_per_event,json=maxWorkPerEvent,proto3" json:"max_work_per_event,omitempty"`
 	MaxTotalWork       int64                  `protobuf:"varint,6,opt,name=max_total_work,json=maxTotalWork,proto3" json:"max_total_work,omitempty"`
+	MaxCaptures        int64                  `protobuf:"varint,7,opt,name=max_captures,json=maxCaptures,proto3" json:"max_captures,omitempty"`
+	MaxCaptureBytes    int64                  `protobuf:"varint,8,opt,name=max_capture_bytes,json=maxCaptureBytes,proto3" json:"max_capture_bytes,omitempty"`
 	unknownFields      protoimpl.UnknownFields
 	sizeCache          protoimpl.SizeCache
 }
 
 func (x *ContractLimits) Reset() {
 	*x = ContractLimits{}
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[4]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -503,7 +713,7 @@ func (x *ContractLimits) String() string {
 func (*ContractLimits) ProtoMessage() {}
 
 func (x *ContractLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[4]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -516,7 +726,7 @@ func (x *ContractLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ContractLimits.ProtoReflect.Descriptor instead.
 func (*ContractLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *ContractLimits) GetMaxRules() int64 {
@@ -561,6 +771,20 @@ func (x *ContractLimits) GetMaxTotalWork() int64 {
 	return 0
 }
 
+func (x *ContractLimits) GetMaxCaptures() int64 {
+	if x != nil {
+		return x.MaxCaptures
+	}
+	return 0
+}
+
+func (x *ContractLimits) GetMaxCaptureBytes() int64 {
+	if x != nil {
+		return x.MaxCaptureBytes
+	}
+	return 0
+}
+
 // Contract contains only closed deterministic monitor machines over declared Run Observations.
 type Contract struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -573,7 +797,7 @@ type Contract struct {
 
 func (x *Contract) Reset() {
 	*x = Contract{}
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[5]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -585,7 +809,7 @@ func (x *Contract) String() string {
 func (*Contract) ProtoMessage() {}
 
 func (x *Contract) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[5]
+	mi := &file_temporal_server_api_umpire_v1_contract_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -598,7 +822,7 @@ func (x *Contract) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Contract.ProtoReflect.Descriptor instead.
 func (*Contract) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Contract) GetContractId() string {
@@ -629,7 +853,19 @@ const file_temporal_server_api_umpire_v1_contract_proto_rawDesc = "" +
 	",temporal/server/api/umpire/v1/contract.proto\x12\x1dtemporal.server.api.umpire.v1\x1a'temporal/server/api/umpire/v1/run.proto\x1a)temporal/server/api/umpire/v1/value.proto\"|\n" +
 	"\rContractState\x12\x19\n" +
 	"\bstate_id\x18\x01 \x01(\tR\astateId\x12P\n" +
-	"\bterminal\x18\x02 \x01(\x0e24.temporal.server.api.umpire.v1.ContractTerminalStateR\bterminal\"\xe6\x02\n" +
+	"\bterminal\x18\x02 \x01(\x0e24.temporal.server.api.umpire.v1.ContractTerminalStateR\bterminal\"\xb0\x01\n" +
+	"\x13ContractCaptureType\x12C\n" +
+	"\x06scalar\x18\x01 \x01(\v2).temporal.server.api.umpire.v1.ScalarTypeH\x00R\x06scalar\x12L\n" +
+	"\venumeration\x18\x02 \x01(\v2(.temporal.server.api.umpire.v1.NamedTypeH\x00R\venumerationB\x06\n" +
+	"\x04type\"~\n" +
+	"\x15ContractCaptureSchema\x12\x1d\n" +
+	"\n" +
+	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12F\n" +
+	"\x04type\x18\x02 \x01(\v22.temporal.server.api.umpire.v1.ContractCaptureTypeR\x04type\"\x91\x01\n" +
+	"\x19ContractCaptureAssignment\x12\x1d\n" +
+	"\n" +
+	"capture_id\x18\x01 \x01(\tR\tcaptureId\x12U\n" +
+	"\vobservation\x18\x02 \x01(\v23.temporal.server.api.umpire.v1.ObservationReferenceR\vobservation\"\xd1\x03\n" +
 	"\x12ContractTransition\x12#\n" +
 	"\rtransition_id\x18\x01 \x01(\tR\ftransitionId\x12!\n" +
 	"\fsource_state\x18\x02 \x01(\tR\vsourceState\x12!\n" +
@@ -637,17 +873,19 @@ const file_temporal_server_api_umpire_v1_contract_proto_rawDesc = "" +
 	"\vevent_kinds\x18\x04 \x01(\v2,.temporal.server.api.umpire.v1.RunEventKindsR\n" +
 	"eventKinds\x12L\n" +
 	"\tpredicate\x18\x05 \x01(\v2..temporal.server.api.umpire.v1.ValueExpressionR\tpredicate\x12H\n" +
-	"\asupport\x18\x06 \x01(\x0e2..temporal.server.api.umpire.v1.ContractSupportR\asupport\"r\n" +
+	"\asupport\x18\x06 \x01(\x0e2..temporal.server.api.umpire.v1.ContractSupportR\asupport\x12i\n" +
+	"\x13capture_assignments\x18\a \x03(\v28.temporal.server.api.umpire.v1.ContractCaptureAssignmentR\x12captureAssignments\"r\n" +
 	"\x0fContractHorizon\x121\n" +
 	"\x14elapsed_milliseconds\x18\x01 \x01(\x03R\x13elapsedMilliseconds\x12,\n" +
-	"\x12violation_state_id\x18\x02 \x01(\tR\x10violationStateId\"\xf6\x02\n" +
+	"\x12violation_state_id\x18\x02 \x01(\tR\x10violationStateId\"\xc8\x03\n" +
 	"\fContractRule\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12C\n" +
 	"\x04kind\x18\x02 \x01(\x0e2/.temporal.server.api.umpire.v1.ContractRuleKindR\x04kind\x12#\n" +
 	"\rinitial_state\x18\x03 \x01(\tR\finitialState\x12D\n" +
 	"\x06states\x18\x04 \x03(\v2,.temporal.server.api.umpire.v1.ContractStateR\x06states\x12S\n" +
 	"\vtransitions\x18\x05 \x03(\v21.temporal.server.api.umpire.v1.ContractTransitionR\vtransitions\x12H\n" +
-	"\ahorizon\x18\x06 \x01(\v2..temporal.server.api.umpire.v1.ContractHorizonR\ahorizon\"\xfa\x01\n" +
+	"\ahorizon\x18\x06 \x01(\v2..temporal.server.api.umpire.v1.ContractHorizonR\ahorizon\x12P\n" +
+	"\bcaptures\x18\a \x03(\v24.temporal.server.api.umpire.v1.ContractCaptureSchemaR\bcaptures\"\xc9\x02\n" +
 	"\x0eContractLimits\x12\x1b\n" +
 	"\tmax_rules\x18\x01 \x01(\x03R\bmaxRules\x12\x1d\n" +
 	"\n" +
@@ -655,7 +893,9 @@ const file_temporal_server_api_umpire_v1_contract_proto_rawDesc = "" +
 	"\x0fmax_transitions\x18\x03 \x01(\x03R\x0emaxTransitions\x120\n" +
 	"\x14max_expression_depth\x18\x04 \x01(\x03R\x12maxExpressionDepth\x12+\n" +
 	"\x12max_work_per_event\x18\x05 \x01(\x03R\x0fmaxWorkPerEvent\x12$\n" +
-	"\x0emax_total_work\x18\x06 \x01(\x03R\fmaxTotalWork\"\xb5\x01\n" +
+	"\x0emax_total_work\x18\x06 \x01(\x03R\fmaxTotalWork\x12!\n" +
+	"\fmax_captures\x18\a \x01(\x03R\vmaxCaptures\x12*\n" +
+	"\x11max_capture_bytes\x18\b \x01(\x03R\x0fmaxCaptureBytes\"\xb5\x01\n" +
 	"\bContract\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\tR\n" +
 	"contractId\x12A\n" +
@@ -664,11 +904,12 @@ const file_temporal_server_api_umpire_v1_contract_proto_rawDesc = "" +
 	"\x10ContractRuleKind\x12\"\n" +
 	"\x1eCONTRACT_RULE_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19CONTRACT_RULE_KIND_SAFETY\x10\x01\x12'\n" +
-	"#CONTRACT_RULE_KIND_BOUNDED_LIVENESS\x10\x02*\x8d\x01\n" +
+	"#CONTRACT_RULE_KIND_BOUNDED_LIVENESS\x10\x02*\xb6\x01\n" +
 	"\x15ContractTerminalState\x12'\n" +
-	"#CONTRACT_TERMINAL_STATE_UNSPECIFIED\x10\x00\x12%\n" +
-	"!CONTRACT_TERMINAL_STATE_SATISFIED\x10\x01\x12$\n" +
-	" CONTRACT_TERMINAL_STATE_VIOLATED\x10\x02*s\n" +
+	"#CONTRACT_TERMINAL_STATE_UNSPECIFIED\x10\x00\x12'\n" +
+	"#CONTRACT_TERMINAL_STATE_NONTERMINAL\x10\x01\x12%\n" +
+	"!CONTRACT_TERMINAL_STATE_SATISFIED\x10\x02\x12$\n" +
+	" CONTRACT_TERMINAL_STATE_VIOLATED\x10\x03*s\n" +
 	"\x0fContractSupport\x12 \n" +
 	"\x1cCONTRACT_SUPPORT_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15CONTRACT_SUPPORT_NONE\x10\x01\x12#\n" +
@@ -687,36 +928,48 @@ func file_temporal_server_api_umpire_v1_contract_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_umpire_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_umpire_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_temporal_server_api_umpire_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_temporal_server_api_umpire_v1_contract_proto_goTypes = []any{
-	(ContractRuleKind)(0),      // 0: temporal.server.api.umpire.v1.ContractRuleKind
-	(ContractTerminalState)(0), // 1: temporal.server.api.umpire.v1.ContractTerminalState
-	(ContractSupport)(0),       // 2: temporal.server.api.umpire.v1.ContractSupport
-	(*ContractState)(nil),      // 3: temporal.server.api.umpire.v1.ContractState
-	(*ContractTransition)(nil), // 4: temporal.server.api.umpire.v1.ContractTransition
-	(*ContractHorizon)(nil),    // 5: temporal.server.api.umpire.v1.ContractHorizon
-	(*ContractRule)(nil),       // 6: temporal.server.api.umpire.v1.ContractRule
-	(*ContractLimits)(nil),     // 7: temporal.server.api.umpire.v1.ContractLimits
-	(*Contract)(nil),           // 8: temporal.server.api.umpire.v1.Contract
-	(*RunEventKinds)(nil),      // 9: temporal.server.api.umpire.v1.RunEventKinds
-	(*ValueExpression)(nil),    // 10: temporal.server.api.umpire.v1.ValueExpression
+	(ContractRuleKind)(0),             // 0: temporal.server.api.umpire.v1.ContractRuleKind
+	(ContractTerminalState)(0),        // 1: temporal.server.api.umpire.v1.ContractTerminalState
+	(ContractSupport)(0),              // 2: temporal.server.api.umpire.v1.ContractSupport
+	(*ContractState)(nil),             // 3: temporal.server.api.umpire.v1.ContractState
+	(*ContractCaptureType)(nil),       // 4: temporal.server.api.umpire.v1.ContractCaptureType
+	(*ContractCaptureSchema)(nil),     // 5: temporal.server.api.umpire.v1.ContractCaptureSchema
+	(*ContractCaptureAssignment)(nil), // 6: temporal.server.api.umpire.v1.ContractCaptureAssignment
+	(*ContractTransition)(nil),        // 7: temporal.server.api.umpire.v1.ContractTransition
+	(*ContractHorizon)(nil),           // 8: temporal.server.api.umpire.v1.ContractHorizon
+	(*ContractRule)(nil),              // 9: temporal.server.api.umpire.v1.ContractRule
+	(*ContractLimits)(nil),            // 10: temporal.server.api.umpire.v1.ContractLimits
+	(*Contract)(nil),                  // 11: temporal.server.api.umpire.v1.Contract
+	(*ScalarType)(nil),                // 12: temporal.server.api.umpire.v1.ScalarType
+	(*NamedType)(nil),                 // 13: temporal.server.api.umpire.v1.NamedType
+	(*ObservationReference)(nil),      // 14: temporal.server.api.umpire.v1.ObservationReference
+	(*RunEventKinds)(nil),             // 15: temporal.server.api.umpire.v1.RunEventKinds
+	(*ValueExpression)(nil),           // 16: temporal.server.api.umpire.v1.ValueExpression
 }
 var file_temporal_server_api_umpire_v1_contract_proto_depIdxs = []int32{
 	1,  // 0: temporal.server.api.umpire.v1.ContractState.terminal:type_name -> temporal.server.api.umpire.v1.ContractTerminalState
-	9,  // 1: temporal.server.api.umpire.v1.ContractTransition.event_kinds:type_name -> temporal.server.api.umpire.v1.RunEventKinds
-	10, // 2: temporal.server.api.umpire.v1.ContractTransition.predicate:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	2,  // 3: temporal.server.api.umpire.v1.ContractTransition.support:type_name -> temporal.server.api.umpire.v1.ContractSupport
-	0,  // 4: temporal.server.api.umpire.v1.ContractRule.kind:type_name -> temporal.server.api.umpire.v1.ContractRuleKind
-	3,  // 5: temporal.server.api.umpire.v1.ContractRule.states:type_name -> temporal.server.api.umpire.v1.ContractState
-	4,  // 6: temporal.server.api.umpire.v1.ContractRule.transitions:type_name -> temporal.server.api.umpire.v1.ContractTransition
-	5,  // 7: temporal.server.api.umpire.v1.ContractRule.horizon:type_name -> temporal.server.api.umpire.v1.ContractHorizon
-	6,  // 8: temporal.server.api.umpire.v1.Contract.rules:type_name -> temporal.server.api.umpire.v1.ContractRule
-	7,  // 9: temporal.server.api.umpire.v1.Contract.limits:type_name -> temporal.server.api.umpire.v1.ContractLimits
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	12, // 1: temporal.server.api.umpire.v1.ContractCaptureType.scalar:type_name -> temporal.server.api.umpire.v1.ScalarType
+	13, // 2: temporal.server.api.umpire.v1.ContractCaptureType.enumeration:type_name -> temporal.server.api.umpire.v1.NamedType
+	4,  // 3: temporal.server.api.umpire.v1.ContractCaptureSchema.type:type_name -> temporal.server.api.umpire.v1.ContractCaptureType
+	14, // 4: temporal.server.api.umpire.v1.ContractCaptureAssignment.observation:type_name -> temporal.server.api.umpire.v1.ObservationReference
+	15, // 5: temporal.server.api.umpire.v1.ContractTransition.event_kinds:type_name -> temporal.server.api.umpire.v1.RunEventKinds
+	16, // 6: temporal.server.api.umpire.v1.ContractTransition.predicate:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	2,  // 7: temporal.server.api.umpire.v1.ContractTransition.support:type_name -> temporal.server.api.umpire.v1.ContractSupport
+	6,  // 8: temporal.server.api.umpire.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.umpire.v1.ContractCaptureAssignment
+	0,  // 9: temporal.server.api.umpire.v1.ContractRule.kind:type_name -> temporal.server.api.umpire.v1.ContractRuleKind
+	3,  // 10: temporal.server.api.umpire.v1.ContractRule.states:type_name -> temporal.server.api.umpire.v1.ContractState
+	7,  // 11: temporal.server.api.umpire.v1.ContractRule.transitions:type_name -> temporal.server.api.umpire.v1.ContractTransition
+	8,  // 12: temporal.server.api.umpire.v1.ContractRule.horizon:type_name -> temporal.server.api.umpire.v1.ContractHorizon
+	5,  // 13: temporal.server.api.umpire.v1.ContractRule.captures:type_name -> temporal.server.api.umpire.v1.ContractCaptureSchema
+	9,  // 14: temporal.server.api.umpire.v1.Contract.rules:type_name -> temporal.server.api.umpire.v1.ContractRule
+	10, // 15: temporal.server.api.umpire.v1.Contract.limits:type_name -> temporal.server.api.umpire.v1.ContractLimits
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_contract_proto_init() }
@@ -726,13 +979,17 @@ func file_temporal_server_api_umpire_v1_contract_proto_init() {
 	}
 	file_temporal_server_api_umpire_v1_run_proto_init()
 	file_temporal_server_api_umpire_v1_value_proto_init()
+	file_temporal_server_api_umpire_v1_contract_proto_msgTypes[1].OneofWrappers = []any{
+		(*ContractCaptureType_Scalar)(nil),
+		(*ContractCaptureType_Enumeration)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_umpire_v1_contract_proto_rawDesc), len(file_temporal_server_api_umpire_v1_contract_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   6,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
