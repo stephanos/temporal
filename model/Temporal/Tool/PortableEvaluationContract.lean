@@ -937,9 +937,9 @@ private def portableRuntimeProgram
       "umpire-portable-termination-complete/v1"
     cleanup := syntheticBinding (DefinitionId.of "umpire.execution.cleanup.complete")
       "umpire-portable-cleanup-complete/v1"
-    authorityRequiredCapabilities := ←
-      runtimeConfiguration.authorityProfile.requiredCapabilityDefinitionIds.mapM
-        (portableCapabilityBinding owner source link)
+    authorityRequiredCapabilities :=
+      Temporal.System.Execution.ephemeralLocalProfile.requiredCapabilities.map fun capability =>
+        syntheticBinding capability ("umpire-portable-authority-capability/v1:" ++ capability.value)
   }
 
 private def portablePlanSelectionReason : Umpire.SelectionReason → PlanSelectionReason

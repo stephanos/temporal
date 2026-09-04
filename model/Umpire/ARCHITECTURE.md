@@ -737,6 +737,16 @@ Overlap returns typed `busy` before runtime I/O; uncertain cleanup permanently p
 instance. Its HTTP adapter is a bounded deterministic protobuf `POST /umpire/v1/execute` endpoint,
 not gRPC, and adds no semantic or environment-selection surface.
 
+The successor interface is one fully typed, caller-neutral `PortableTestPlan` containing both the
+bounded execution and verification programs. Lean is its first model compiler, not its exclusive
+author: an external protobuf client can establish only `plan_local` conformance, while a
+`model_compiled` plan receives `model_bound` scope only after exact host-owned provenance
+validation. The generated unary `UmpireExecutor.Execute` gRPC method is a thin adapter over the
+same deep resident executor. It returns canonical status for failures before a result exists and
+preserves admitted operational, Evidence, semantic, Limit, and cleanup outcomes in the typed
+`ExecutionResult`. It adds no plan store, queue, scheduler, retry, fleet, environment selector, or
+credential surface. Fn-28's HTTP descriptor, bytes, types, and behavior remain unchanged.
+
 The tagged `testcore.NewEnv` proof keeps one disposable self-hosted cluster and one executor alive
 for the pre-generated normal and duplicate-delivery contracts. It observes a local pass and a
 trustworthy uniqueness-only fail with fresh run resources while the runtime `PATH` contains no Go,
@@ -745,11 +755,19 @@ typed traces, Evidence Links, independent statuses, Properties, Limits, Known Ga
 local decision; executor run IDs, workflow IDs, task queues, per-run Nexus endpoint names,
 correlations, transport Evidence IDs, and timestamps remain dynamic.
 
+The companion tagged gRPC proof keeps one generated client and resident in-process server alive on
+that cluster. It consumes checked-in Lean plans and a derived external plan without any runtime
+toolchain, independently evaluates normal pass and trustworthy fail, and exercises ten-call
+single-flight admission, malformed/crossed/forged input, exact bounds, cancellation and deadline
+cleanup, poison, no retry, and fresh run isolation. Fn-29's protected controller will pin and
+provenance-validate one Lean plan before using this ingress; its public Temporal gRPC target,
+production authority, fencing, recovery, and publication remain downstream and separate.
+
 This is only a local decision for the admitted Test. It is not whole-model validity, exhaustive
 coverage, compiler correctness, cross-Test consistency, release eligibility, or Claim Assessment,
 and it adds no fleet scheduling, leases, persistence, crash recovery, or production deployment. See
 the [Portable Evaluation guide](../../tools/umpire/portableevaluation/README.md) for the exact
-schema, operators, Limits, fixture workflow, executor/HTTP contract, and test commands.
+schema, operators, Limits, fixture workflow, executor HTTP/gRPC contracts, and test commands.
 
 ## Expert reference example
 

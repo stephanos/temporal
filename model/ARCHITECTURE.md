@@ -388,6 +388,16 @@ typed `busy`, and uncertain cleanup poisons reuse. A thin bounded HTTP protobuf 
 `POST /umpire/v1/execute`; it is not gRPC and has no environment selector, credential, executable,
 or semantic override.
 
+The caller-neutral successor compiles the same checked Test into one fully typed
+`PortableTestPlan`, including both execution and verification, while permitting other protobuf
+clients to author external plans. A generated unary `UmpireExecutor.Execute` gRPC call feeds one
+resident Go executor. External provenance can establish only plan-local conformance;
+model-compiled provenance becomes model-bound only after an exact host-owned checksum and compiler
+binding match. Pre-result failures use canonical gRPC statuses, while admitted operational,
+Evidence, evaluation, and cleanup outcomes remain typed. The process remains single-flight,
+finishes bounded cleanup after client cancellation, never retries automatically, and permanently
+poisons reuse after uncertain cleanup. The fn-28 HTTP contract and bytes remain unchanged.
+
 The checked cross-altitude path adds a separate stage after accepted Observation Evaluation:
 
 ```text
@@ -522,6 +532,8 @@ go test -count=1 -tags test_dep \
   ./tools/umpire/executorhttp/...
 go test -count=1 -tags 'test_dep integration' ./tests \
   -run '^TestUmpirePortableCanaryExecutor$'
+go test -count=1 -tags 'test_dep integration' ./tests \
+  -run '^TestUmpirePortableGRPCExecutor$'
 ```
 
 Fixture generation runs Lean before the test and records deterministic contract protobufs plus
@@ -532,7 +544,10 @@ uniqueness-only fail for the duplicate-delivery control, fresh per-run identitie
 complete cleanup. Stable semantic fields are compared independently of runtime run IDs, workflow
 IDs, task queues, per-run Nexus endpoint names, correlations, Evidence IDs, and timestamps. See the
 [Portable Evaluation guide](../tools/umpire/portableevaluation/README.md) for the schema, operator
-table, Limits, HTTP wire contract, and explicit exclusions.
+table, Limits, HTTP and gRPC contracts, and explicit exclusions. The gRPC proof uses the same
+disposable-cluster framework and a real generated client against one resident server; it consumes
+checked-in Lean plans without a Lean runtime, derives an external plan-local variant, and covers
+overlap, cancellation/deadline cleanup, poison, crossed/forged inputs, and fresh isolation.
 
 ## Learning path and reference models
 

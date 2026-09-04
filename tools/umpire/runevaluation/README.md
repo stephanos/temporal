@@ -21,12 +21,16 @@ duplicates, and conflicting subject details. After the checker runs, Go independ
 projected Evidence and Result and verifies that the Result contains exactly the canonical union of
 run, RawEvidence, and Observation gaps. Any mismatch fails before publication.
 
-The resident Portable Evaluation path reuses the same checked semantic stages but has a different
-boundary. Lean compiles one exact Test, Observation, Implementation Link, and Properties ahead of
-time into deterministic `EvaluationContract` protobuf bytes. A resident Go executor then admits the
-contract plus the exact two-member executable input, performs bounded execution and explicit source
-closure, and evaluates locally without launching this checker or any Lean process. Its bounded HTTP
-adapter is protobuf over `POST /umpire/v1/execute`, not gRPC. See the
+The fn-28 resident Portable Evaluation path reuses the same checked semantic stages but has a
+different boundary. Lean compiles one exact Test, Observation, Implementation Link, and Properties
+ahead of time into deterministic `EvaluationContract` protobuf bytes. A resident Go executor then
+admits the contract plus the exact two-member executable input, performs bounded execution and
+explicit source closure, and evaluates locally without launching this checker or any Lean process.
+Its bounded HTTP adapter remains protobuf over `POST /umpire/v1/execute`, not gRPC. The caller-neutral
+successor instead carries execution and verification together in `PortableTestPlan` and exposes the
+generated unary `UmpireExecutor.Execute` gRPC method. External authors receive plan-local scope;
+Lean-generated plans receive model-bound scope only after independent host provenance validation.
+Both interfaces preserve this offline command unchanged. See the
 [Portable Evaluation guide](../portableevaluation/README.md) for the exact schema, operator table,
 Limits, fixture/drift workflow, status mapping, stable-versus-dynamic fields, and tagged
 `testcore.NewEnv` proof.

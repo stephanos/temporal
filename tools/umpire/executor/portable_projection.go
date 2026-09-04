@@ -94,7 +94,7 @@ func projectPortableExecution(plan *umpirespb.PortableTestPlan) (artifact.Admitt
 			DefinitionID:                    runtime.GetAuthorityProfile().GetDefinitionId(),
 			Version:                         artifactv2.NaturalFromUint64(2),
 			BehaviorFingerprint:             runtime.GetAuthorityProfile().GetBehaviorFingerprint(),
-			RequiredCapabilityDefinitionIDs: portableDefinitionIDs(runtime.GetAuthorityRequiredCapabilities()),
+			RequiredCapabilityDefinitionIDs: portableArtifactAuthorityCapabilities(execution),
 		},
 		PhaseLimits: portablePhaseLimits(runtime.GetPhaseLimits()),
 		Observation: artifactv2.ObservationConfiguration{
@@ -268,6 +268,21 @@ func portableDefinitionIDs(values []*umpirespb.DefinitionBinding) []string {
 	result := make([]string, len(values))
 	for index, value := range values {
 		result[index] = value.GetDefinitionId()
+	}
+	return result
+}
+
+func portableArtifactAuthorityCapabilities(execution *umpirespb.ExecutionProgram) []string {
+	// Fn-18 artifacts carry semantic requirements; adapter-profile prerequisites remain on the executable plan.
+	requirements := make(map[string]struct{}, len(execution.GetCapabilityRequirements()))
+	for _, capability := range execution.GetCapabilityRequirements() {
+		requirements[capability.GetDefinitionId()] = struct{}{}
+	}
+	result := []string{}
+	for _, capability := range execution.GetRuntime().GetAuthorityRequiredCapabilities() {
+		if _, semantic := requirements[capability.GetDefinitionId()]; semantic {
+			result = append(result, capability.GetDefinitionId())
+		}
 	}
 	return result
 }
