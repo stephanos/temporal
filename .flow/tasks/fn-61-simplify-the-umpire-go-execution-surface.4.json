@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T15:32:59.849484Z",
+  "depends_on": [
+    "fn-61-simplify-the-umpire-go-execution-surface.3"
+  ],
+  "id": "fn-61-simplify-the-umpire-go-execution-surface.4",
+  "priority": null,
+  "spec": "fn-61-simplify-the-umpire-go-execution-surface",
+  "spec_path": ".flow/tasks/fn-61-simplify-the-umpire-go-execution-surface.4.md",
+  "status": "todo",
+  "title": "Unify runtime contracts and the execution state machine",
+  "updated_at": "2026-09-04T15:32:59.849484Z"
+}
