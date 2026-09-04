@@ -27,7 +27,41 @@ def fingerprintOf
   check.toOption.map CheckedProperty.behaviorFingerprint
 
 example : canonicalOf (checkProperty context authoredProperty) =
-    canonicalOf (checkProperty reorderedContext (.portable reorderedProperty)) := by
+      canonicalOf (checkProperty reorderedContext (.portable reorderedProperty)) ∧
+    fingerprintOf (checkProperty context authoredProperty) =
+      fingerprintOf (checkProperty reorderedContext (.portable reorderedProperty)) := by
+  native_decide
+
+def changedSourceProperty : PropertyDeclaration := {
+  portableProperty with
+  source := { source with line := source.line + 1 }
+}
+
+def changedDocumentationProperty : PropertyDeclaration := {
+  portableProperty with
+  documentation := "Updated Property documentation."
+}
+
+example : [
+    fingerprintOf (checkProperty context (.portable changedSourceProperty)),
+    fingerprintOf (checkProperty context (.portable changedDocumentationProperty))
+  ] = [
+    fingerprintOf (checkProperty context authoredProperty),
+    fingerprintOf (checkProperty context authoredProperty)
+  ] := by
+  native_decide
+
+def changedCapabilityContext : PropertyCheckContext := {
+  context with
+  providers := context.providers.map fun capability =>
+    if capability.id == cancellationCapability then
+      { capability with canonicalBehavior := "test-cancellation/v2" }
+    else
+      capability
+}
+
+example : fingerprintOf (checkProperty context authoredProperty) ≠
+    fingerprintOf (checkProperty changedCapabilityContext authoredProperty) := by
   native_decide
 
 def changedConstructor : PropertyDeclaration := {

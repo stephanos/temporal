@@ -1,4 +1,4 @@
-import Umpire.Property.Language
+import Umpire.Property.Check
 
 /-! Property-specific Model Trace coordinate adaptation and capability-limited projection. -/
 
