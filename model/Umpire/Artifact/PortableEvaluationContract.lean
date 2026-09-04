@@ -1,6 +1,6 @@
 import Umpire.Artifact.Runtime
 import Umpire.Json
-import Umpire.Observation.Language
+import Umpire.Observation.Declaration
 
 /-!
 The portable Evaluation Contract is a closed data vocabulary shared with the protobuf boundary.
