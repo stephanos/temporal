@@ -14,7 +14,8 @@
     "fn-37-hard-cut-umpire-vocabulary-and-current",
     "fn-47-generate-umpire-semantic-outcome-and",
     "fn-40-centralize-plannerpolicy-constructors",
-    "fn-61-simplify-the-umpire-go-execution-surface"
+    "fn-61-simplify-the-umpire-go-execution-surface",
+    "fn-64-umpire-case-runtime"
   ],
   "id": "fn-33-run-serial-bounded-semantic-exploration",
   "impl_review_rounds": {},
@@ -741,5 +742,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T15:32:56.061944Z"
+  "updated_at": "2026-09-04T17:37:14.930394Z"
 }

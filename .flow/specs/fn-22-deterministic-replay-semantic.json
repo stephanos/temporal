@@ -15,7 +15,8 @@
     "fn-21-nexus-duplicate-observation-control",
     "fn-32-add-umpire-refinement-and-the-first",
     "fn-37-hard-cut-umpire-vocabulary-and-current",
-    "fn-61-simplify-the-umpire-go-execution-surface"
+    "fn-61-simplify-the-umpire-go-execution-surface",
+    "fn-64-umpire-case-runtime"
   ],
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {},
@@ -271,5 +272,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T15:32:55.368367Z"
+  "updated_at": "2026-09-04T17:37:13.872963Z"
 }
