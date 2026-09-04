@@ -30,6 +30,7 @@ Focused imports are available when a consumer needs a smaller surface:
 | `Umpire.Exploration` | Checked finite-universe selection, pinned precedence, and process-local one-candidate sequencing. |
 | `Umpire.Observation` | Checked Evidence mappings, Observation Evaluation, Evidence Links, dispositions, Property verdicts, and strict aggregation. |
 | `Umpire.ImplementationLink` | Checked forward correspondence between independently authored semantic Targets. |
+| `Umpire.Case` | Temporal-independent Case, Program, Contract, Run, value, and Verdict data shared with the portable runtime. |
 
 `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Property.Check`,
 `Umpire.Property.Trace`, `Umpire.Property.Evaluation`, `Umpire.Behavior.Language`,
@@ -79,6 +80,22 @@ authoritative path when a caller needs the typed error for invalid input. Their 
 only remove `Except` extraction (and Query's dependent Target re-ascription) after the caller
 supplies an explicit proof that the same checker succeeded. They do not hide a `native_decide`
 default, change validation, or add a runtime recovery path.
+
+## Case Runtime IR
+
+`Umpire.Case` is the Temporal-independent semantic mirror of the versioned protobuf Case contract;
+its supporting types live under the `Umpire.Case` namespace (for example, `Umpire.Case.Program`).
+A Case pairs one bounded Program with one deterministic Contract. Programs contain symbolic Host
+roles, context-local entrypoint DAGs, immutable Slots, declared Observations, typed outcomes and
+guards, an always-run cleanup graph, and explicit limits. Contracts consume only recorded Run
+Events and declared Observations; their ordered finite-state transitions cite supporting monotonic
+event coordinates in the resulting Verdict.
+
+The closed `ValueType` constructors preserve singular, repeated, and map cardinality. Instructions
+and transition expressions are closed unions rather than callback or extension points. Endpoint
+coordinates, clients, credentials, and opaque Host capability values are deliberately absent from
+the Case data. `Temporal.API.Types` remains the generator-owned descriptor projection used at the
+wire boundary; the `Umpire.Case.*` modules are the generic authored IR.
 
 ## Core and Target APIs
 

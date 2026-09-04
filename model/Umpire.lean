@@ -12,3 +12,4 @@ import Umpire.Exploration
 import Umpire.Observation
 import Umpire.ImplementationLink
 import Umpire.SemanticInventory
+import Umpire.Case

@@ -1,0 +1,274 @@
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+import "google/protobuf/any.proto";
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+
+// FormatVersion identifies one incompatible contract vocabulary and its additive revision.
+message FormatVersion {
+  int32 major = 1;
+  int32 minor = 2;
+}
+
+message SourceLocation {
+  string path = 1;
+  int64 line = 2;
+  int64 column = 3;
+  string provenance = 4;
+}
+
+// The value vocabulary keeps related messages and enums together as one closed interpreter surface.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum ScalarKind {
+  SCALAR_KIND_UNSPECIFIED = 0;
+  SCALAR_KIND_TEXT = 1;
+  SCALAR_KIND_NATURAL = 2;
+  SCALAR_KIND_BOOLEAN = 3;
+  SCALAR_KIND_BYTES = 4;
+  SCALAR_KIND_INT32 = 5;
+  SCALAR_KIND_INT64 = 6;
+  SCALAR_KIND_UINT32 = 7;
+  SCALAR_KIND_UINT64 = 8;
+  SCALAR_KIND_SINT32 = 9;
+  SCALAR_KIND_SINT64 = 10;
+  SCALAR_KIND_FIXED32 = 11;
+  SCALAR_KIND_FIXED64 = 12;
+  SCALAR_KIND_SFIXED32 = 13;
+  SCALAR_KIND_SFIXED64 = 14;
+  SCALAR_KIND_FLOAT = 15;
+  SCALAR_KIND_DOUBLE = 16;
+}
+
+message EnumValue {
+  int32 number = 1;
+}
+
+message ValueList {
+  repeated Value values = 1;
+}
+
+message ValueMapEntry {
+  Value key = 1;
+  Value value = 2;
+}
+
+// Value is a tagged interpreter value. Naturals use canonical unsigned base-10 text.
+// Signed and unsigned protobuf integers also use canonical base-10 text.
+message Value {
+  oneof value {
+    string text = 1;
+    string natural = 2;
+    bool bool_value = 3;
+    bytes bytes_value = 4;
+    string signed_integer = 5;
+    string unsigned_integer = 6;
+    double floating_point = 7;
+    EnumValue enum_value = 8;
+    // (-- api-linter: core::0146::any=disabled
+    //     aip.dev/not-precedent: Whole typed Any values are an explicit closed IR capability. --)
+    google.protobuf.Any message_value = 9;
+    ValueList list_value = 10;
+    ValueMap map_value = 11;
+  }
+}
+
+message ValueMap {
+  repeated ValueMapEntry entries = 1;
+}
+
+message ScalarType {
+  ScalarKind kind = 1;
+}
+
+message NamedType {
+  string protobuf_type = 1;
+}
+
+message AnyType {}
+
+message OpaqueCapabilityType {}
+
+// SingularType is a closed union of values that can occupy one protobuf or private Slot position.
+message SingularType {
+  oneof type {
+    ScalarType scalar = 1;
+    NamedType enumeration = 2;
+    NamedType message = 3;
+    AnyType any = 4;
+    OpaqueCapabilityType opaque_capability = 5;
+  }
+}
+
+message RepeatedType {
+  SingularType element = 1;
+}
+
+message MapType {
+  ScalarType key = 1;
+  SingularType value = 2;
+}
+
+// ValueType preserves cardinality in its closed shape instead of reconstructing it from limits.
+message ValueType {
+  oneof shape {
+    SingularType singular = 1;
+    RepeatedType repeated = 2;
+    MapType map = 3;
+  }
+}
+
+message RepeatedWildcard {}
+
+message MapKeySelector {
+  Value key = 1;
+}
+
+message PresenceSelector {}
+
+message OneofSelector {
+  string selected_field = 1;
+}
+
+// FieldPathSegment selects one descriptor-checked protobuf field and optional closed traversal.
+message FieldPathSegment {
+  string field = 1;
+  oneof selector {
+    RepeatedWildcard repeated = 2;
+    MapKeySelector map_key = 3;
+    PresenceSelector presence = 4;
+    OneofSelector oneof = 5;
+  }
+}
+
+message FieldPath {
+  repeated FieldPathSegment segments = 1;
+}
+
+message InstructionReference {
+  string entrypoint_id = 1;
+  string instruction_id = 2;
+}
+
+message SlotReference {
+  string slot_id = 1;
+}
+
+enum InstructionOutcomeField {
+  INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED = 0;
+  INSTRUCTION_OUTCOME_FIELD_STATUS = 1;
+  INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE = 2;
+  INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE = 3;
+  INSTRUCTION_OUTCOME_FIELD_DETAIL = 4;
+  INSTRUCTION_OUTCOME_FIELD_VALUE = 5;
+}
+
+message OutcomeFieldSchema {
+  InstructionOutcomeField field = 1;
+  ValueType type = 2;
+}
+
+message InstructionOutcomeSchema {
+  repeated OutcomeFieldSchema fields = 1;
+}
+
+message InstructionOutcomeReference {
+  InstructionReference instruction = 1;
+  InstructionOutcomeField field = 2;
+}
+
+message ObservationReference {
+  string observation_id = 1;
+}
+
+enum RunEventField {
+  RUN_EVENT_FIELD_UNSPECIFIED = 0;
+  RUN_EVENT_FIELD_SEQUENCE = 1;
+  RUN_EVENT_FIELD_ELAPSED_MILLISECONDS = 2;
+  RUN_EVENT_FIELD_KIND = 3;
+  RUN_EVENT_FIELD_ENTRYPOINT_ID = 4;
+  RUN_EVENT_FIELD_ACTIVATION_ID = 5;
+  RUN_EVENT_FIELD_INSTRUCTION_ID = 6;
+  RUN_EVENT_FIELD_ATTEMPT = 7;
+  RUN_EVENT_FIELD_SOURCE_ID = 8;
+}
+
+message RunEventFieldReference {
+  RunEventField field = 1;
+}
+
+message PathExpression {
+  ValueExpression source = 1;
+  FieldPath path = 2;
+}
+
+message PresentExpression {
+  ValueExpression operand = 1;
+}
+
+message EqualsExpression {
+  ValueExpression left = 1;
+  ValueExpression right = 2;
+}
+
+enum ComparisonOperator {
+  COMPARISON_OPERATOR_UNSPECIFIED = 0;
+  COMPARISON_OPERATOR_LESS_THAN = 1;
+  COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL = 2;
+  COMPARISON_OPERATOR_GREATER_THAN = 3;
+  COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL = 4;
+}
+
+message CompareExpression {
+  ComparisonOperator operator = 1;
+  ValueExpression left = 2;
+  ValueExpression right = 3;
+}
+
+message NotExpression {
+  ValueExpression operand = 1;
+}
+
+message AllExpression {
+  repeated ValueExpression operands = 1;
+}
+
+message AnyExpression {
+  repeated ValueExpression operands = 1;
+}
+
+// ValueExpression is the closed typed expression vocabulary shared by Program guards and Contracts.
+message ValueExpression {
+  oneof expression {
+    Value literal = 1;
+    SlotReference slot = 2;
+    InstructionOutcomeReference outcome = 3;
+    ObservationReference observation = 4;
+    RunEventFieldReference run_event = 5;
+    PathExpression path = 6;
+    PresentExpression present = 7;
+    EqualsExpression equals = 8;
+    CompareExpression compare = 9;
+    NotExpression negation = 10;
+    AllExpression all = 11;
+    AnyExpression any = 12;
+  }
+}
+
+enum SlotKind {
+  SLOT_KIND_UNSPECIFIED = 0;
+  SLOT_KIND_VALUE = 1;
+  SLOT_KIND_OPAQUE_CAPABILITY = 2;
+}
+
+message SlotSchema {
+  string slot_id = 1;
+  ValueType type = 2;
+  SlotKind kind = 3;
+}
+
+message ObservationSchema {
+  string observation_id = 1;
+  ValueType type = 2;
+}

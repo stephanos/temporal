@@ -7,43 +7,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-// Marshal an object of type FormatVersion to the protobuf v3 wire format
-func (val *FormatVersion) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type FormatVersion from the protobuf v3 wire format
-func (val *FormatVersion) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *FormatVersion) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two FormatVersion values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *FormatVersion) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *FormatVersion
-	switch t := that.(type) {
-	case *FormatVersion:
-		that1 = t
-	case FormatVersion:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
 // Marshal an object of type DefinitionBinding to the protobuf v3 wire format
 func (val *DefinitionBinding) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -118,43 +81,6 @@ func (this *ArtifactBinding) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
-// Marshal an object of type SourceLocation to the protobuf v3 wire format
-func (val *SourceLocation) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type SourceLocation from the protobuf v3 wire format
-func (val *SourceLocation) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *SourceLocation) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two SourceLocation values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *SourceLocation) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *SourceLocation
-	switch t := that.(type) {
-	case *SourceLocation:
-		that1 = t
-	case SourceLocation:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
 // Marshal an object of type KnownGap to the protobuf v3 wire format
 func (val *KnownGap) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -184,43 +110,6 @@ func (this *KnownGap) Equal(that interface{}) bool {
 	case *KnownGap:
 		that1 = t
 	case KnownGap:
-		that1 = &t
-	default:
-		return false
-	}
-
-	return proto.Equal(this, that1)
-}
-
-// Marshal an object of type Value to the protobuf v3 wire format
-func (val *Value) Marshal() ([]byte, error) {
-	return proto.Marshal(val)
-}
-
-// Unmarshal an object of type Value from the protobuf v3 wire format
-func (val *Value) Unmarshal(buf []byte) error {
-	return proto.Unmarshal(buf, val)
-}
-
-// Size returns the size of the object, in bytes, once serialized
-func (val *Value) Size() int {
-	return proto.Size(val)
-}
-
-// Equal returns whether two Value values are equivalent by recursively
-// comparing the message's fields.
-// For more information see the documentation for
-// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
-func (this *Value) Equal(that interface{}) bool {
-	if that == nil {
-		return this == nil
-	}
-
-	var that1 *Value
-	switch t := that.(type) {
-	case *Value:
-		that1 = t
-	case Value:
 		that1 = &t
 	default:
 		return false

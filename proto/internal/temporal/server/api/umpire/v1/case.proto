@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+import "temporal/server/api/umpire/v1/contract.proto";
+import "temporal/server/api/umpire/v1/program.proto";
+import "temporal/server/api/umpire/v1/value.proto";
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+
+// The Case keeps related messages and enums together as one versioned interpreter vocabulary.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum CaseDefinitionKind {
+  CASE_DEFINITION_KIND_UNSPECIFIED = 0;
+  CASE_DEFINITION_KIND_SETUP = 1;
+  CASE_DEFINITION_KIND_STATE = 2;
+  CASE_DEFINITION_KIND_ACTION = 3;
+  CASE_DEFINITION_KIND_OUTCOME = 4;
+  CASE_DEFINITION_KIND_OBSERVATION = 5;
+  CASE_DEFINITION_KIND_RELATION = 6;
+  CASE_DEFINITION_KIND_CAPABILITY = 7;
+  CASE_DEFINITION_KIND_PROPERTY = 8;
+  CASE_DEFINITION_KIND_QUERY = 9;
+  CASE_DEFINITION_KIND_BEHAVIOR = 10;
+  CASE_DEFINITION_KIND_TARGET = 11;
+  CASE_DEFINITION_KIND_COMPILER = 12;
+}
+
+message CaseDefinitionBinding {
+  string definition_id = 1;
+  string behavior_fingerprint = 2;
+  CaseDefinitionKind kind = 3;
+}
+
+message CaseKnownGap {
+  string code = 1;
+  string subject = 2;
+  string detail = 3;
+}
+
+message CaseMetadata {
+  string producer_id = 1;
+  string producer_version = 2;
+  repeated CaseDefinitionBinding definitions = 3;
+  repeated SourceLocation sources = 4;
+  repeated CaseKnownGap known_gaps = 5;
+}
+
+// Case is the versioned standalone pairing of exactly one bounded Program and one Contract.
+message Case {
+  FormatVersion version = 1;
+  string case_id = 2;
+  CaseMetadata metadata = 3;
+  Program program = 4;
+  Contract contract = 5;
+}

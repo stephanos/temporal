@@ -2,13 +2,9 @@ syntax = "proto3";
 
 package temporal.server.api.umpire.v1;
 
-option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+import "temporal/server/api/umpire/v1/value.proto";
 
-// FormatVersion identifies one incompatible contract vocabulary and its additive revision.
-message FormatVersion {
-  int32 major = 1;
-  int32 minor = 2;
-}
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
 
 // DefinitionBinding binds portable data to one exact model definition.
 message DefinitionBinding {
@@ -22,13 +18,6 @@ message ArtifactBinding {
   string artifact_checksum = 2;
   string behavior_fingerprint = 3;
   string provenance_checksum = 4;
-}
-
-message SourceLocation {
-  string path = 1;
-  int64 line = 2;
-  int64 column = 3;
-  string provenance = 4;
 }
 
 // The contract keeps related messages and enums together as one closed interpreter vocabulary.
@@ -53,15 +42,6 @@ enum ValueKind {
   VALUE_KIND_TEXT = 1;
   VALUE_KIND_NATURAL = 2;
   VALUE_KIND_BOOLEAN = 3;
-}
-
-// Value is a tagged interpreter value. Naturals use canonical unsigned base-10 text.
-message Value {
-  oneof value {
-    string text = 1;
-    string natural = 2;
-    bool bool_value = 3;
-  }
 }
 
 enum DefinitionKind {

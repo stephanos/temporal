@@ -36,3 +36,8 @@ import Umpire
 #check Umpire.compileBatch
 #check Umpire.ObservationMappingDeclaration
 #check Umpire.CheckedObservationPlan
+#check Umpire.Case
+#check Umpire.Case.Program
+#check Umpire.Case.Contract
+#check Umpire.Case.Run
+#check Umpire.Case.ValueType

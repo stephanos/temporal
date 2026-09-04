@@ -1,0 +1,217 @@
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+import "temporal/server/api/umpire/v1/value.proto";
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+
+// The Program keeps related messages and enums together as one closed interpreter vocabulary.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum SymbolicRoleKind {
+  SYMBOLIC_ROLE_KIND_UNSPECIFIED = 0;
+  SYMBOLIC_ROLE_KIND_ENDPOINT = 1;
+  SYMBOLIC_ROLE_KIND_WORKER = 2;
+  SYMBOLIC_ROLE_KIND_TASK_QUEUE = 3;
+  SYMBOLIC_ROLE_KIND_PARTICIPANT = 4;
+}
+
+message ProgramRole {
+  string role_id = 1;
+  SymbolicRoleKind kind = 2;
+}
+
+enum EntrypointContext {
+  ENTRYPOINT_CONTEXT_UNSPECIFIED = 0;
+  ENTRYPOINT_CONTEXT_CONTROLLER = 1;
+  ENTRYPOINT_CONTEXT_WORKFLOW = 2;
+  ENTRYPOINT_CONTEXT_ACTIVITY = 3;
+  ENTRYPOINT_CONTEXT_NEXUS_HANDLER = 4;
+}
+
+message ControllerActivation {}
+
+message WorkflowActivation {
+  string workflow_type = 1;
+  string worker_role_id = 2;
+  string task_queue_role_id = 3;
+}
+
+message ActivityActivation {
+  string activity_type = 1;
+  string worker_role_id = 2;
+  string task_queue_role_id = 3;
+}
+
+message NexusHandlerActivation {
+  string service = 1;
+  string operation = 2;
+  string worker_role_id = 3;
+  string task_queue_role_id = 4;
+}
+
+// ActivationBinding declares how a Host activates one context-local entrypoint.
+message ActivationBinding {
+  oneof binding {
+    ControllerActivation controller = 1;
+    WorkflowActivation workflow = 2;
+    ActivityActivation activity = 3;
+    NexusHandlerActivation nexus_handler = 4;
+  }
+}
+
+message RequestAssignment {
+  FieldPath target = 1;
+  ValueExpression value = 2;
+}
+
+enum ProjectionCardinality {
+  PROJECTION_CARDINALITY_UNSPECIFIED = 0;
+  PROJECTION_CARDINALITY_ONE = 1;
+  PROJECTION_CARDINALITY_EMIT_EACH = 2;
+}
+
+message ProjectionSink {
+  oneof sink {
+    string slot_id = 1;
+    string observation_id = 2;
+  }
+}
+
+message ResponseProjection {
+  FieldPath source = 1;
+  ProjectionCardinality cardinality = 2;
+  repeated ProjectionSink sinks = 3;
+}
+
+// Umpire instruction outcome Status is normative terminology rather than lifecycle state.
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum InstructionOutcomeStatus {
+  INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED = 0;
+  INSTRUCTION_OUTCOME_STATUS_SUCCEEDED = 1;
+  INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS = 2;
+  INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE = 3;
+  INSTRUCTION_OUTCOME_STATUS_TIMED_OUT = 4;
+  INSTRUCTION_OUTCOME_STATUS_CANCELED = 5;
+}
+
+message InstructionOutcome {
+  InstructionOutcomeStatus status = 1;
+  string protocol_code = 2;
+  string sdk_failure_code = 3;
+  string detail = 4;
+  Value value = 5;
+}
+
+message InstructionBounds {
+  int64 timeout_milliseconds = 1;
+  int64 max_attempts = 2;
+  int64 max_emitted_events = 3;
+  int64 max_response_bytes = 4;
+}
+
+message InvokeRPC {
+  string endpoint_role_id = 1;
+  string method = 2;
+  repeated RequestAssignment request_assignments = 3;
+  repeated ResponseProjection response_projections = 4;
+}
+
+message AwaitSlot {
+  string slot_id = 1;
+}
+
+message CompleteNexusOperation {
+  string capability_slot_id = 1;
+  ValueExpression result = 2;
+}
+
+message StartNexusOperation {
+  string endpoint_role_id = 1;
+  string service = 2;
+  string operation = 3;
+  ValueExpression input = 4;
+}
+
+message Await {
+  InstructionReference instruction = 1;
+}
+
+message Finish {
+  ValueExpression result = 1;
+}
+
+enum NexusResponseKind {
+  NEXUS_RESPONSE_KIND_UNSPECIFIED = 0;
+  NEXUS_RESPONSE_KIND_SYNCHRONOUS = 1;
+  NEXUS_RESPONSE_KIND_ASYNCHRONOUS = 2;
+  NEXUS_RESPONSE_KIND_ERROR = 3;
+}
+
+message RespondNexus {
+  NexusResponseKind kind = 1;
+  ValueExpression result = 2;
+  string capability_slot_id = 3;
+}
+
+// Instruction is the complete version-one instruction table.
+message Instruction {
+  oneof instruction {
+    InvokeRPC invoke_rpc = 1;
+    AwaitSlot await_slot = 2;
+    CompleteNexusOperation complete_nexus_operation = 3;
+    StartNexusOperation start_nexus_operation = 4;
+    Await await_outcome = 5;
+    Finish finish = 6;
+    RespondNexus respond_nexus = 7;
+  }
+}
+
+message InstructionNode {
+  string instruction_id = 1;
+  repeated InstructionReference dependencies = 2;
+  ValueExpression guard = 3;
+  Instruction instruction = 4;
+  InstructionOutcomeSchema outcome = 5;
+  InstructionBounds bounds = 6;
+}
+
+// Entrypoint contains one Host-activated, context-local acyclic instruction graph.
+message Entrypoint {
+  string entrypoint_id = 1;
+  EntrypointContext context = 2;
+  ActivationBinding activation = 3;
+  repeated InstructionNode nodes = 4;
+}
+
+// CleanupGraph is always attempted after ordinary execution with an independent bound.
+message CleanupGraph {
+  EntrypointContext context = 1;
+  repeated InstructionNode nodes = 2;
+}
+
+message ProgramLimits {
+  int64 max_entrypoints = 1;
+  int64 max_nodes = 2;
+  int64 max_edges = 3;
+  int64 max_activations = 4;
+  int64 max_attempts = 5;
+  int64 max_run_events = 6;
+  int64 max_expression_depth = 7;
+  int64 max_path_fanout = 8;
+  int64 max_request_bytes = 9;
+  int64 max_response_bytes = 10;
+  int64 max_total_duration_milliseconds = 11;
+  int64 max_cleanup_duration_milliseconds = 12;
+}
+
+// Program is a bounded collection of context-local DAGs and one always-run cleanup graph.
+message Program {
+  string program_id = 1;
+  repeated ProgramRole roles = 2;
+  repeated SlotSchema slots = 3;
+  repeated ObservationSchema observations = 4;
+  repeated Entrypoint entrypoints = 5;
+  CleanupGraph cleanup = 6;
+  ProgramLimits limits = 7;
+}

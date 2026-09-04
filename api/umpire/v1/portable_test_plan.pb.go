@@ -3634,7 +3634,7 @@ var File_temporal_server_api_umpire_v1_portable_test_plan_proto protoreflect.Fil
 
 const file_temporal_server_api_umpire_v1_portable_test_plan_proto_rawDesc = "" +
 	"\n" +
-	"6temporal/server/api/umpire/v1/portable_test_plan.proto\x12\x1dtemporal.server.api.umpire.v1\x1a+temporal/server/api/umpire/v1/message.proto\"a\n" +
+	"6temporal/server/api/umpire/v1/portable_test_plan.proto\x12\x1dtemporal.server.api.umpire.v1\x1a+temporal/server/api/umpire/v1/message.proto\x1a)temporal/server/api/umpire/v1/value.proto\"a\n" +
 	"\x16ExternalPlanProvenance\x12G\n" +
 	"\asources\x18\x01 \x03(\v2-.temporal.server.api.umpire.v1.SourceLocationR\asources\"\xcc\x04\n" +
 	"\x1bModelCompiledPlanProvenance\x12D\n" +
@@ -4176,6 +4176,7 @@ func file_temporal_server_api_umpire_v1_portable_test_plan_proto_init() {
 		return
 	}
 	file_temporal_server_api_umpire_v1_message_proto_init()
+	file_temporal_server_api_umpire_v1_value_proto_init()
 	file_temporal_server_api_umpire_v1_portable_test_plan_proto_msgTypes[6].OneofWrappers = []any{
 		(*ExecutionOperand_Literal)(nil),
 		(*ExecutionOperand_Role)(nil),
