@@ -9,6 +9,7 @@ problem_type: integration
 symptoms: Lean-shaped DrivePlans were rejected or admitted with crossed semantic and scalar types
 root_cause: The successor schema was designed from a synthetic fixture instead of retaining each source artifact meaning
 resolution_type: fix
+last_updated: "2026-09-04"
 ---
 
 ## Problem
@@ -22,3 +23,17 @@ Keep semantic definition kinds separate from scalar value kinds in `proto/intern
 
 ## Prevention
 For protocol successors, derive every field type and collection cardinality from the existing typed source artifacts before designing fixtures. Include at least one representative source-shaped fixture plus crossed semantic/scalar mutations in the first admission test pass.
+
+## Update 2026-09-04
+
+## Problem
+Portable Umpire schemas repeatedly lost source meaning when a synthetic fixture drove the wire shape: semantic definition kinds were omitted, presence-bearing values became scalars, graph-local identities disappeared, and invalid enum sentinels were reused as valid runtime states. These losses make distinct checked inputs serialize identically or force executors to invent conventions.
+
+## What Didn't Work
+A happy-path fixture covered the immediate example but not the complete closed source vocabulary, absent-versus-empty values, multi-node references, or every semantic state shared by protobuf and Lean.
+
+## Solution
+Keep semantic kinds separate from scalar kinds, preserve exact source collections and presence, give every referenceable graph a stable identity, and model every valid state explicitly in both protobuf and authored Lean. The Case IR tests in `tools/umpire/cmd/umpire-gen-lean-api/case_schema_test.go` now use source-shaped definitions, crossed oneofs, optional metadata, cleanup references, diagnostic presence, and bounded typed captures; `model/Umpire/CaseTests.lean` mirrors the same closed vocabulary.
+
+## Prevention
+Before freezing a protocol successor, inventory the complete source enums, optional fields, identity-bearing references, and bounded runtime state. Make the first regression fixture representative rather than minimal, then add crossed-type and absent/present round trips for each closed union.
