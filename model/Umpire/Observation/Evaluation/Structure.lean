@@ -10,9 +10,6 @@ namespace Umpire
 private def idLe (left right : DefinitionId) : Bool :=
   decide (left.value ≤ right.value)
 
-private def canonicalIds (ids : List DefinitionId) : List DefinitionId :=
-  ids.mergeSort idLe |>.eraseDups
-
 private def closureLe (left right : EvidenceClosureFact) : Bool :=
   match left.source, right.source with
   | some leftSource, some rightSource =>
@@ -184,7 +181,8 @@ private def globalSequenceFindings
 private def sourceSequenceFindings
     (facts : List EvidenceOrderingFact) : List StructuralFinding := Id.run do
   let mut findings := []
-  let sources := canonicalIds <| facts.filterMap fun fact => fact.origin.map EvidenceOrigin.source
+  let sources := DefinitionId.canonicalSet <|
+    facts.filterMap fun fact => fact.origin.map EvidenceOrigin.source
   for source in sources do
     let sourceFacts := facts.filter fun fact =>
       fact.origin.any fun origin => origin.source == source
@@ -320,8 +318,8 @@ private def normalizeLinkSupport
   let orderingConsistent := match originMode with
     | .globalSequence =>
         facts.length == support.evidenceIdentities.length &&
-          canonicalIds (facts.map EvidenceOrderingFact.recordId) ==
-            canonicalIds support.evidenceIdentities &&
+          DefinitionId.canonicalSet (facts.map EvidenceOrderingFact.recordId) ==
+            DefinitionId.canonicalSet support.evidenceIdentities &&
           facts.all fun fact => sharedFacts.contains fact
     | .sourceSequence | .mixed => facts == expectedFacts
   let sortedClosures := support.closureSupport.mergeSort closureLe
