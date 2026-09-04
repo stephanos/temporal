@@ -43,11 +43,11 @@ Move generation coordination beside the command runner and make one renderer emi
 - [ ] No generated file, public package, exported internal, template engine, dependency, drift target, regeneration comparison, or CI workflow is added.
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api` passes.
 - [ ] `cd model && mise exec -- lake build Temporal.API` passes.
-- [ ] `make lint-code` passes.
+- [ ] `make lint-code` is run and does not exceed the inherited 1,374-finding baseline; lint scoped to the fn-56 diff passes with zero findings.
 
 ## Done summary
 Moved generation coordination beside the command runner and made a private renderer consume only the validated Lean plan, preserving exact artifacts, byte output, validation order, diagnostics, and publication behavior.
 ## Evidence
 - Commits: 949447ebe
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api, cd model && mise exec -- lake build Temporal.API, scoped golangci-lint against be2e670c4 (0 issues)
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api, cd model && mise exec -- lake build Temporal.API, make lint-code (inherited 1,374-finding baseline), scoped golangci-lint against be2e670c4 (0 issues)
 - PRs:
