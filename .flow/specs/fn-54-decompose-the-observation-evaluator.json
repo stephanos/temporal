@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-54-decompose-the-observation-evaluator",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-04T14:17:17.635045Z",
   "created_at": "2026-09-03T19:12:29.783508Z",
   "default_impl": null,
   "default_review": null,
@@ -363,6 +363,36 @@
       "task": "fn-54-decompose-the-observation-evaluator.4",
       "timestamp": "2026-09-04T13:51:57.887563Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a8bbdeecb241e8504c79a1c75d04e9abd5b1e82af709c955ace038ceb7d27383",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "f454aa283231e757918397f3f906151280f4e224",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 671854,
+      "output_sha256": "a71b5a1f234b4d428c934137ebd14985833ac6896ddcaa7f2c043d22599dac2d",
+      "reservation_id": "b4707de0c8b14161aff2b70657cf88c1",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-04T14:17:17.621516Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -371,11 +401,12 @@
     "impl:fn-54-decompose-the-observation-evaluator.3": 1,
     "impl:fn-54-decompose-the-observation-evaluator.4": 1,
     "plan": 2,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-54-decompose-the-observation-evaluator.1": 0,
     "impl:fn-54-decompose-the-observation-evaluator.2": 0,
     "impl:fn-54-decompose-the-observation-evaluator.3": 0,
@@ -396,5 +427,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T13:51:57.893776Z"
+  "updated_at": "2026-09-04T14:17:17.640618Z"
 }
