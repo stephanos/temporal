@@ -31,5 +31,7 @@ jobs:
           sha256: "cff4832ded79af2951e800bddcb5a22acac58630d765a2d062c1180680a0bb35"
           working_directory: model
           cache: false
-      - name: Run the ordinary Umpire test
-        run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/nexus/... -run '^TestHermeticCIPortability$'
+      - name: Run package-local Umpire tests
+        run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...
+      - name: Run the relocated Umpire test
+        run: mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireCallerClosurePortability$'

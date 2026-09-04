@@ -1,16 +1,16 @@
 # Umpire local execution
 
-The current executable slice is an ordinary generated Go test. There is no `umpire-local-run`,
-`umpire-run-local`, `umpire-run-tests`, or Make execution wrapper.
+The current executable slice is a tagged generated Go integration test under `tests/`. There is no
+`umpire-local-run`, `umpire-run-local`, `umpire-run-tests`, or Make execution wrapper.
 
 From the repository root, regenerate and run the first checked test with:
 
 ```sh
 go run ./tools/umpire/cmd/umpire-gen-tests-go \
   tools/umpire/temporal/nexus/testdata/caller-closure-input-set/manifest.json \
-  --output tools/umpire/temporal/nexus
-go test -count=1 ./tools/umpire/temporal/nexus/... \
-  -run '^TestHermeticCIPortability$'
+  --output tests
+go test -count=1 -tags 'test_dep integration' ./tests \
+  -run '^TestUmpireCallerClosurePortability$'
 ```
 
 `umpire-gen-tests-go` is generation-only. It strictly admits the complete two-member Artifact set,
@@ -30,14 +30,17 @@ setup, action, order, observation, termination, or cleanup intent.
 The ordinary pinned CI command is:
 
 ```sh
-mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/nexus/... -run '^TestHermeticCIPortability$'
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireCallerClosurePortability$'
 ```
 
 `make umpire-check-regression` is the aggregate repository gate and invokes that same generated Go
 test. Both commands consume the byte-identical canonical v2 `ExperimentSpec` used by the local path,
 check its format, Artifact Checksum, Definition IDs, and Behavior Fingerprints before runtime IO,
-and compose the invocation-owned loopback runner with the shared Run Evaluation authority. The CI
-workflow supplies orchestration only; it does not construct or reinterpret semantic declarations.
+and compose the runner with an explicitly supplied factory from `local.NewAttachedFactory`. TestEnv
+owns the Temporal cluster and SDK client. Umpire owns the per-run environment wrapper, SDK worker,
+Nexus endpoints, workflows, and run resources, and cleans them before TestEnv cleanup. The CI
+workflow supplies orchestration only; it does not construct or reinterpret semantic declarations,
+and production Umpire code does not import `tests/testcore`.
 
 The portability proof compares stable typed semantic meaning: operational, Observation Evaluation,
 Implementation Link, Property and clause, Limit, Known Gap, and cleanup outcomes. Fresh local and CI
@@ -64,8 +67,9 @@ admitted four-member set:
 
 The runner does not read or normalize bytes, publish Artifacts, select an environment, map evidence,
 or evaluate a Property. `tools/umpire/runtime` owns the domain-neutral five-phase engine;
-`tools/umpire/temporal/local` owns the sole invocation-local loopback authority; and
-`tools/umpire/temporal/nexus` owns the exact System-derived caller-closure binding.
+`tools/umpire/temporal/local` adapts an explicit borrowed authority and owns only the per-run wrapper
+and worker; and `tools/umpire/temporal/nexus` owns the exact System-derived caller-closure binding.
+The Nexus binding has no zero-option authority path: callers must provide the explicit factory.
 
 The profile has these fixed phase budgets; callers cannot override them:
 
