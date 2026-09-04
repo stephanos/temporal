@@ -50,9 +50,14 @@ Schema-valid inputs and outputs must be byte- and value-identical, and invalid a
 - [ ] Focused tests, aggregate Umpire regression/live tests, formatting, and code lint complete with no task-scoped regressions.
 
 ## Done summary
-TBD
+Artifact admission projections and runtime Output now delegate artifact-model ownership to the shared artifactv2 root copy operations, while set-member and manifest byte copying remains local. Caller-boundary tests cover constructor and repeated-access isolation, nil/empty/zero preservation, admitted Raw Evidence scalars, unsupported composites outside the contract, and exact retained encoded bytes.
 
+Baseline: the exact focused Go command was inherited-red on the macOS /var symlink temp path and passed with a physical workspace TMPDIR; make umpire-check-regression and make fmt-imports passed. make lint-code was inherited-red before and after the change only on user-owned tools/umpire1/monitor_test.go (undefined v1), with zero task-scoped findings.
+
+Concurrent HEAD exception: implementation evidence is scoped to 6c570c606; later conductor-owned commit 7b51e5ffe is preserved unchanged and excluded.
+
+stage: impl-review - ran [2026-09-04T18:02:26Z..2026-09-04T18:04:48Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6c570c6068da641cafa606a448c7accc0cfc7034
+- Tests: baseline: red (go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/artifact ./tools/umpire/runtime failed pre-edit on inherited macOS /var symlink temp path); green with physical workspace TMPDIR, TMPDIR=<physical-workspace-temp> go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/artifact ./tools/umpire/runtime, make umpire-check-regression, make fmt-imports, make lint-code (inherited red before and after: tools/umpire1/monitor_test.go undefined v1; zero task-scoped findings), impl-review codex: SHIP, 0 findings
 - PRs:
