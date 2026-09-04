@@ -1140,10 +1140,34 @@ umpire-check-legacy-vocabulary:
 	@printf $(COLOR) "Check active Umpire vocabulary..."
 	@mise exec -- go run ./tools/umpire/cmd/umpire-check-legacy-vocabulary
 
-umpire-check-regression: umpire-check-regression-views umpire-check-generated-go-test umpire-check-portable-evaluation-fixtures umpire-check-promotion umpire-check-legacy-vocabulary
+umpire-check-live-tests:
+	@set -eu; \
+		temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
+		status=0; \
+		mise exec -- go test -count=1 -tags 'test_dep integration' \
+			./tests -run '^TestUmpire' > "$$temporary" 2>&1 || status=$$?; \
+		cat "$$temporary"; \
+		if [ "$$status" -eq 0 ]; then exit 0; fi; \
+		actual=$$(sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$$temporary" | LC_ALL=C sort); \
+		expected=$$(printf '%s\n' \
+			'TestUmpire2TestSuite' \
+			'TestUmpire2TestSuite/TestPlanAndDriveKitchenSinkNexusOperation' \
+			'TestUmpire2TestSuite/TestPlanAndDriveNexusOperationCHASM' \
+			'TestUmpire2TestSuite/TestProbeNexusDegraded' \
+			'TestUmpire2TestSuite/TestProbeNexusExploration' \
+			'TestUmpire2TestSuite/TestProbeNexusFlagged' \
+			'TestUmpire2TestSuite/TestProbeNexusRandomized' \
+			'TestUmpire2TestSuite/TestProbeNexusResilience' \
+			'TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram' | LC_ALL=C sort); \
+		if [ "$$actual" != "$$expected" ]; then \
+			printf 'Expected inherited Umpire failures:\n%s\nObserved Umpire failures:\n%s\n' "$$expected" "$$actual"; \
+			exit "$$status"; \
+		fi; \
+		printf 'Full live suite introduced no failures beyond the recorded Umpire2/Umpire3 baseline.\n'
+
+umpire-check-regression: umpire-check-regression-views umpire-check-generated-go-test umpire-check-portable-evaluation-fixtures umpire-check-promotion umpire-check-legacy-vocabulary umpire-check-live-tests
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...
-	@mise exec -- go test -count=1 -tags 'test_dep integration' \
-		./tests -run '^TestUmpireCallerClosurePortability$$'
 	@set -eu; \
 		old_namespace='Temporal''[.](Experiment|Umpire)'; \
 		old_path='Temporal/''(Experiment|Umpire)'; \
@@ -1360,7 +1384,7 @@ umpire3-clean:
 	@printf $(COLOR) "Remove resolved Umpire3 tool caches..."
 	@sh $(UMPIRE3_ROOT)/clean.sh
 
-.PHONY: umpire-build-model umpire-check-plan-index umpire-check-artifact umpire-check-artifact-set umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-check-promotion umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-tests umpire-gen-regression-views umpire-gen-portable-evaluation-fixtures umpire-check-portable-evaluation-fixtures umpire-check-regression-views umpire-check-generated-go-test umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-legacy-vocabulary umpire-check-regression
+.PHONY: umpire-build-model umpire-check-plan-index umpire-check-artifact umpire-check-artifact-set umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-check-promotion umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-tests umpire-gen-regression-views umpire-gen-portable-evaluation-fixtures umpire-check-portable-evaluation-fixtures umpire-check-regression-views umpire-check-generated-go-test umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-legacy-vocabulary umpire-check-live-tests umpire-check-regression
 
 .PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-build-temporal-results umpire3-build-veil umpire3-export-veil-bindings umpire3-check-veil-bindings umpire3-record-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root umpire3-clean
 
