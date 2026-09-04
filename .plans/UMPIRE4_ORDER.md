@@ -31,22 +31,11 @@ not additional hard dependencies.
 
 ## Refactoring and cleanup queue (non-prototype-gating)
 
-These specs preserve public behavior while decomposing the remaining implementation hotspots. They
-build on completed cleanup work rather than reopening its semantics. The remaining cleanup specs may
-proceed independently, subject to refreshing shared architecture-document anchors before their
-final documentation tasks.
+This spec preserves public behavior while decomposing the remaining implementation hotspot. It
+builds on completed cleanup work rather than reopening its semantics and must refresh shared
+architecture-document anchors in its final documentation task.
 
-### 1. fn-54 — Decompose the Observation evaluator behind its facade
-
-**Depends on:** completed fn-57, so evaluator children consume the final narrow Declaration and
-Compiler imports.
-
-**Scope:** partition Evaluation contracts, the existing structural analyzer, raw Evidence
-evaluation, and opaque accepted-trace admission behind the unchanged Evaluation and Observation
-facades. Preserve root names, exact first-diagnostic precedence, normalized finding order, accepted
-values, Evidence Links, fingerprints, artifacts, and the hard accepted-trace construction seam.
-
-### 2. fn-58 — Partition the Property language implementation
+### 1. fn-58 — Partition the Property language implementation
 
 **Depends on:** completed ordinary Property authoring and Model Coordinate cleanup.
 
@@ -55,16 +44,9 @@ trace projection, and clause evaluation into an acyclic internal module chain be
 `Umpire.Property` facade. Preserve all Property errors, canonical identity, Limits, clause meaning,
 agreement theorems, fingerprints, trace semantics, and trust inventories.
 
-The cleanup dependency shape is:
-
-```text
-completed fn-57 -> fn-54
-fn-58 (independent)
-```
-
 ## Complete P3 — Exploration and regression lifecycle
 
-### 3. fn-33 — Run model exploration campaigns with umpire-fuzz
+### 2. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 **Depends on:** completed fn-40's ordinary PlannerPolicy surface.
 
@@ -74,7 +56,7 @@ coverage and exhaustion honestly.
 
 **Deferred:** concurrency, leases, crash-safe campaign state, and resume.
 
-### 4. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### 3. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
 **Depends on:** fn-5's checked review-only promotion source.
 
@@ -95,7 +77,6 @@ The remaining dependency shape is:
 ```text
 completed fn-40 -> fn-33
 completed fn-5 -> fn-22
-completed fn-57 -> fn-54
 ```
 
 Completed fn-48 may later feed deferred fn-26, fn-29, and fn-30 without pulling them into the

@@ -414,7 +414,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-54-decompose-the-observation-evaluator.md",
-  "status": "open",
+  "status": "done",
   "title": "Decompose the Observation evaluator behind its facade",
   "tracker": {
     "baseHashFlow": null,
@@ -427,5 +427,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T14:17:17.640618Z"
+  "updated_at": "2026-09-04T14:25:53.086774Z"
 }
