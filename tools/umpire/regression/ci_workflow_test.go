@@ -151,10 +151,6 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 			"TestEnv owns the Temporal cluster and SDK client",
 			"local.NewAttachedFactory",
 		},
-		".plans/UMPIRE4_ORDER.md": {
-			"local.NewAttachedFactory",
-			"`TestEnv` owns cluster/client lifecycle",
-		},
 	} {
 		documentation, err := os.ReadFile(filepath.Join(repositoryRoot, path))
 		require.NoError(t, err)

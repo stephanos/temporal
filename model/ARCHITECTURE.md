@@ -158,7 +158,7 @@ Canonical Definition ID ordering, duplicate selection, syntax validation, and so
 belong to `Umpire.Core`; Property, Behavior, Query, and Observation translate those structural
 results into their own typed diagnostics. The still narrower
 `Umpire.Shared.DefinitionGraph` module is imported, among production modules, only by the Behavior
-and Observation language implementations; focused tests may import it directly. It owns
+language implementation and `Umpire.Observation.Compiler`; focused tests may import it directly. It owns
 deterministic graph mechanics but no domain error or validation-stage policy. It has no import in
 the `Umpire.Shared` facade and no explicit entry in the public `Umpire` umbrella; ordinary
 consumers use the language facades instead of importing it directly. Ordered JSON construction is
@@ -438,10 +438,15 @@ layer's failure into another's status; other profiles and non-local paths remain
   Portable Evaluation compiler creates the closed model-derived contract ahead of runtime.
 - `Temporal.API` and `Temporal.DynamicConfig` remain generated structures outside the
   Feature/System semantic layers.
+- `Umpire.Observation.Declaration` owns inert Observation vocabulary and field projections;
+  `Umpire.Observation.Compiler` owns DefinitionGraph-backed checking, typed diagnostics,
+  checked-plan contracts, and canonical plan construction. `Umpire.Observation.Language` keeps the
+  stable authoring and explicit-proof seam, and ordinary authors use `Umpire.Observation`.
 - `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
-  `Umpire.Query.Language`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`,
-  `Umpire.ImplementationLink.Language`, `Umpire.ImplementationLink.Application`, and
-  `Umpire.Planning.Engine` implement public facades and should not normally be imported directly.
+  `Umpire.Query.Language`, `Umpire.Observation.Declaration`, `Umpire.Observation.Compiler`,
+  `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`, `Umpire.ImplementationLink.Language`,
+  `Umpire.ImplementationLink.Application`, and `Umpire.Planning.Engine` implement public facades and
+  should not normally be imported directly.
 
 DrivePlan and ExperimentSpec are pure model products. They do not claim that Temporal was started,
 actions were executed, or runtime Evidence was collected. Runtime, Evidence, and Result modules

@@ -35,8 +35,9 @@ Focused imports are available when a consumer needs a smaller surface:
 `Umpire.Query.Language`, `Umpire.Space.Language`, `Umpire.Space.Intent`,
 `Umpire.Space.Metadata`, `Umpire.Space.Compiler`, `Umpire.Exploration.Language`,
 `Umpire.Exploration.Candidate`, `Umpire.Exploration.Selection`, `Umpire.Exploration.Guided`,
-`Umpire.Exploration.Engine`, `Umpire.Exploration.Session`, `Umpire.Observation.Language`,
-`Umpire.Observation.Evaluation`, `Umpire.ImplementationLink.Language`,
+`Umpire.Exploration.Engine`, `Umpire.Exploration.Session`, `Umpire.Observation.Declaration`,
+`Umpire.Observation.Compiler`, `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`,
+`Umpire.ImplementationLink.Language`,
 `Umpire.ImplementationLink.Application`, and `Umpire.Planning.Engine` implement their public
 facades and should not normally be imported directly. `Umpire.Shared.DefinitionGraph` is likewise
 an internal support module rather than a consumer facade.
@@ -109,7 +110,7 @@ inferring, registering, or canonicalizing either field. Raw record construction 
 and the checker that consumes the value remains the semantic authority.
 
 `SourceLocation.displayPath` supplies the stable source-path fallback used by the authoring
-languages. Behavior and Observation additionally import the internal
+languages. Behavior and `Umpire.Observation.Compiler` additionally import the internal
 `Umpire.Shared.DefinitionGraph` module to share deterministic node, edge, order, and cycle analysis.
 That module returns structural findings only: each language still consumes them at its own
 validation stages and constructs its own typed diagnostic and historical cycle witness. It is not
@@ -254,6 +255,12 @@ to Evidence-backed Model Traces. Import the complete public surface with:
 ```lean
 import Umpire.Observation
 ```
+
+Ordinary authors stay on this facade. `Umpire.Observation.Declaration` internally owns the inert
+authored vocabulary and field projections. `Umpire.Observation.Compiler` owns DefinitionGraph-backed
+checking, Target-meaning resolution, typed errors, checked-plan contracts, and canonical plan
+construction. `Umpire.Observation.Language` aggregates those modules and retains the explicit-proof
+convenience; the child modules are contributor seams rather than alternative authoring surfaces.
 
 Define each typed Evidence field once as an `ObservationFieldSpec`. This inert value is the one
 field projection authority: it owns the Evidence kind identity, field identity, and
