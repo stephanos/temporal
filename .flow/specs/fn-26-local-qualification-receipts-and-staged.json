@@ -12,7 +12,8 @@
     "fn-20-local-execution-semantic-conformance",
     "fn-37-hard-cut-umpire-vocabulary-and-current",
     "fn-47-generate-umpire-semantic-outcome-and",
-    "fn-48-canonicalize-known-gaps-as-a-checked-set"
+    "fn-48-canonicalize-known-gaps-as-a-checked-set",
+    "fn-64-umpire-case-runtime"
   ],
   "id": "fn-26-local-qualification-receipts-and-staged",
   "impl_review_rounds": {},
@@ -315,5 +316,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T10:37:48.325853Z"
+  "updated_at": "2026-09-04T17:37:14.236542Z"
 }

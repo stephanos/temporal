@@ -1,49 +1,56 @@
-# Umpire 4 prototype order
+# Umpire 4 delivery order
 
 ## Goal
 
-Build a minimal but capable vertical slice that demonstrates the possibilities in
-`UMPIRE4_VISION.md` with one model and two concrete Nexus examples:
+Build and hard-cut over to the standalone, data-driven Umpire Case Runtime specified by
+`fn-64-umpire-case-runtime` and `.plans/UMPIRE_CASE_RUNTIME_DESIGN.md`. The first complete proof is
+one Lean-produced async Nexus-success Case; caller closure and the scenario-specific
+`PortableTestPlan` path are not part of the replacement.
 
-1. **Normal caller closure:** a known deterministic regression executes through a preprogrammed SDK
-   participant and satisfies its property.
-2. **Duplicate-delivery control:** the same model plus one authored fault produces an accepted
-   uniqueness violation, which is replayed, reduced, and proposed as a permanent regression.
+The runtime proves these boundaries:
 
-The prototype should prove the architecture can support the full vision without first building the
-complete production platform. In particular:
+- Umpire's versioned `Case` contains one bounded `Program` and one deterministic `Contract`; Lean is
+  one Producer, not a runtime dependency.
+- `PrepareCase(case, profile)` performs static validation once and returns an immutable
+  `PreparedCase` that can drive isolated sequential or concurrent Runs.
+- Execution and verification are independent modules joined by a narrow Monitor callback. A safety
+  violation unconditionally stops ordinary execution; bounded liveness fails only when its recorded
+  horizon closes.
+- The Temporal Host separates server and worker authority. The server side can invoke any authorized
+  unary protobuf RPC dynamically; the worker side uses only replay-safe SDK clients and APIs.
+- Typed assignments and projections use bounded protobuf payload paths such as `foo.bar.baz`.
+  Scenario behavior and checks remain data in the Case rather than new Go adapters.
+- The initial Contract consumes only declared authoritative server-history Observations. Runtime
+  timestamps, UUIDs, and other randomized payload data do not require response digests.
 
-- Lean remains the single source of behavioral meaning.
-- The same deterministic `ExperimentSpec` is usable locally, in CI, and through a disposable
-  self-hosted cluster boundary.
-- Lean compiles closed per-Test evaluation contracts and model-bound portable plans ahead of time,
-  allowing a resident Go executor to make bounded local decisions without Lean; production
-  deployment is not part of the prototype.
-- One preprogrammed SDK participant resolves late-bound Nexus identifiers during execution.
-- Evidence conclusions use causal or source-local ordering rather than synchronized clocks, proven
-  with deliberately skewed timestamps.
-- The existing authored variation space and first-class fault support guided exploration that
-  prioritizes an uncovered Model Coordinate and retains an Exact Replay and reviewed proposal.
+The numbered execution queue contains only open retained work. Numbering expresses delivery
+priority; explicit dependencies are shown below.
 
-The numbered execution queue contains only open retained work. Each spec keeps the reduced scope
-below and depends only on retained or completed prerequisites; numbering expresses delivery priority,
-not additional hard dependencies.
+## Active execution queue
 
-## Refactoring and cleanup queue (non-prototype-gating)
+### 1. fn-64 — Umpire Case Runtime
 
-These specs preserve public behavior while deepening remaining implementation hotspots. They build
-on completed cleanup work rather than reopening its semantics. The canonical-JSON cleanup refreshes
-shared architecture-document anchors and excludes the completed `Umpire.Property` partition. The Go
-artifact-copy cleanup is independent and changes no user-facing documentation. The ordinary Temporal
-model-authoring work starts after completed fn-58 and fn-60 so it consumes the frozen Property facade
-and follows the canonical-JSON changes on its overlapping Target, Query, Observation, and Artifact
-surfaces. It settles the checked
-authoring and model-owned Known Gap contract before the Go execution-surface simplification starts.
-That Go work also starts after fn-59 and becomes the execution boundary consumed by the remaining P3
-work. The Go test-suite consolidation starts after fn-61 has settled that boundary; it does not gate
-P3 and may run alongside the remaining prototype work.
+**Depends on:** no open spec dependency.
 
-### 1. fn-59 — Centralize Umpire artifact copies
+**Scope:** define the public Case IR and standalone Go preparation, execution, verification, and
+Temporal Host APIs; compile and run the async Nexus Case; then remove the legacy
+`PortableTestPlan`, property-specific checker, Run Evaluation, scenario Nexus adapter, and
+caller-closure path. No compatibility reader, replacement executor service, streaming RPC support,
+production canary controller, or replay/audit digest is included.
+
+The validated implementation waves are:
+
+1. `fn-64.1` — define the versioned Umpire Case IR.
+2. `fn-64.2` — implement typed admission and immutable preparation.
+3. In parallel: `fn-64.3` — deterministic Contract evaluation; `fn-64.5` — Temporal server Host;
+   `fn-64.6` — Temporal worker Host.
+4. `fn-64.4` — generic DAG scheduling, typed dataflow, and Run recording.
+5. `fn-64.9` — unconditional abort, cleanup, terminal precedence, and reusable PreparedCase Runs.
+6. `fn-64.7` — compose the Host and compile/execute the async Nexus Case.
+7. `fn-64.8` — remove the legacy Umpire execution path.
+8. `fn-64.10` — reconcile normative docs, generated artifacts, and regression gates.
+
+### 2. fn-59 — Centralize Umpire artifact copies
 
 **Depends on:** completed fn-52 artifact admission and runtime contracts; no open spec dependency.
 
@@ -54,7 +61,7 @@ admitted Raw Evidence scalar values, original encoded bytes, checksums, diagnost
 and existing comments. Do not add validation, generic copying for invalid dynamic values, schema or
 generated-output changes, or user-facing documentation.
 
-### 2. fn-60 — Deepen authored Lean canonical JSON construction
+### 3. fn-60 — Deepen authored Lean canonical JSON construction
 
 **Depends on:** no open spec dependency; excludes the completed `Umpire.Property` partition.
 
@@ -66,7 +73,7 @@ Fingerprints, imports, trust inventories, performance characteristics, and exist
 not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
 changes, drift verification, or CI work.
 
-### 3. fn-62 — Make ordinary Temporal model authoring approachable
+### 4. fn-62 — Make ordinary Temporal model authoring approachable
 
 **Depends on:** completed fn-58's frozen Property facade and fn-60's canonical-JSON cleanup across the
 overlapping handwritten Lean surfaces.
@@ -83,64 +90,32 @@ Do not add another authoring language, infer providers or Model Outcomes, hide c
 evidence, redesign the expert `TransitionKernel` or Experimental fault-space paths, or add broad
 generated-API drift and CI coverage.
 
-### 4. fn-61 — Simplify the Umpire Go execution surface
+## Downstream work after the Case Runtime
 
-**Depends on:** completed fn-52 caller-neutral gRPC portable plans, fn-59, fn-60, and fn-62's settled
-authoring and model-owned Known Gap contract.
+The existing fn-22, fn-26, fn-29, and fn-33 specifications predate the hard cutover. They depend on
+fn-64 but must be replanned around `PreparedCase`, `Run`, and `Verdict` before implementation; they
+must not retain a dependency on the superseded `PortableTestPlan` execution model.
 
-**Scope:** expose one root resident executor that accepts a caller-owned attached Temporal authority
-and the existing model-provenance verifier, executes a protobuf `PortableTestPlan`, and returns an
-`ExecutionResult` directly or through the generated gRPC service. Migrate generated and handwritten
-end-to-end callers to that facade; internalize generated bindings, runtime contracts, the execution
-state machine, Temporal/Nexus participants, Evidence closure, and portable evaluation; remove the
-legacy HTTP and non-portable resident executor paths. Preserve exact admission, provenance,
-runtime-slot, single-flight, cancellation, cleanup-poisoning, eventual Evidence closure, evaluation,
-result-limit, and direct/gRPC status behavior. Keep the offline Run Evaluation capability distinct,
-and do not change protobuf or Lean output, trust policy, concurrency, or cluster ownership.
+### fn-33 — Run model exploration campaigns with umpire-fuzz
 
-**Deferred:** production deployment, executor fleets, queues, autoscaling, multi-run concurrency,
-environment selection, credential distribution, and new transports.
-
-### 5. fn-63 — Consolidate Umpire Go tests into golden scenarios
-
-**Depends on:** fn-61's completed resident execution facade and final package/test ownership; no P3
-spec depends on this cleanup.
-
-**Scope:** establish the post-fn-61 test baseline and a closed internal test-only scenario harness,
-then replace duplicated setup-heavy portable execution/evaluation, Run Evaluation/Nexus, and whole-
-Artifact acceptance matrices with a compact set of independently authoritative input/output
-goldens. Reuse existing Lean-owned outputs, canonical Artifact fixtures, admitted-set manifests,
-and temporary-root regeneration/diff gates. Preserve focused grammar and fuzzing, Limit and
-cardinality, checksum and closure, diagnostic-precedence, process and protocol, cancellation,
-single-flight and poisoning, Temporal lifecycle and concurrency, and generator-structure tests.
-Reduce handwritten Go test lines and top-level tests/fuzzers by at least 15% from the post-fn-61
-baseline while preserving public behavior, exact Artifact identity, failure categories, the complete
-tagged `TestUmpire` live selector, production dependencies, and existing comments. Do not add a
-snapshot framework, generic field normalizer, runtime Lean dependency, production test hook, schema
-or generated-protocol change, broad generated API drift verification, or new CI workflow coverage.
-
-## Complete P3 — Exploration and regression lifecycle
-
-### 6. fn-33 — Run model exploration campaigns with umpire-fuzz
-
-**Depends on:** completed fn-40's ordinary PlannerPolicy surface and fn-61's simplified execution
-boundary.
+**Depends on:** completed fn-40's ordinary PlannerPolicy surface and fn-64, followed by replan.
 
 **Scope:** a serial bounded `umpire-fuzz run` command that asks the Lean-owned exploration layer for
-candidates, executes them through the simplified resident executor and retained offline Run
-Evaluation path, and reports semantic coverage and exhaustion honestly.
+candidates, prepares each Case through the standalone API, executes it to a `Run` and `Verdict`, and
+reports semantic coverage and exhaustion honestly. The replan must replace its old resident-executor
+and Run Evaluation assumptions.
 
 **Deferred:** concurrency, leases, crash-safe campaign state, and resume.
 
-### 7. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
-**Depends on:** fn-5's checked review-only promotion source and fn-61's simplified execution
-boundary.
+**Depends on:** fn-5's checked review-only promotion source and fn-64, followed by replan.
 
-**Scope:** consume the fn-21 violation, reproduce it exactly, and try every applicable authored
-reduction in fixed order while preserving the same violation. The exact control may be irreducible;
-its diagnostic EvidenceCore must still omit one labeled non-responsible evidence fact without
-rewriting admitted evidence artifacts. Semantic replay remains distinct from concrete rerun.
+**Scope:** consume the fn-21 violation through the Case Runtime's `Run` and `Verdict`, reproduce it
+exactly, and try every applicable authored reduction in fixed order while preserving the same
+violation. The exact control may be irreducible; its diagnostic EvidenceCore must still omit one
+labeled non-responsible evidence fact without rewriting admitted evidence artifacts. Semantic
+replay remains distinct from concrete rerun.
 
 Reduction continues until every remaining applicable authored edit conclusively fails to preserve
 the violation. Only a complete `minimized` or `irreducible` result may feed one checked review-only
@@ -149,48 +124,67 @@ Lean regression proposal.
 **Deferred:** SDK history replay, generic reducers, campaign orchestration, and automatic regression
 installation.
 
-The remaining dependency shape is:
+### fn-26 — Local qualification receipts and staged profiles
+
+**Depends on:** fn-64 and its retained policy/evidence prerequisites, followed by replan.
+
+**Scope:** retain the qualification and Claim Assessment intent, but bind receipts to the new Case,
+Run, and Verdict identities rather than the removed Run Evaluation result.
+
+### fn-29 — Bounded production canary execution and Claim Assessment
+
+**Depends on:** fn-64 and its retained canary prerequisites, followed by replan.
+
+**Scope:** prepare and validate a Case once, then execute that immutable PreparedCase repeatedly
+under separately owned canary orchestration. The replan must preserve the server/worker Host split
+and must not move canary policy, credentials, leases, or recovery into Umpire.
+
+The current dependency shape is:
 
 ```text
-completed fn-58 + fn-60 -> fn-62
-completed fn-52 + fn-59 + fn-60 + fn-62 -> fn-61
-fn-61 -> fn-63 (cleanup; does not gate P3)
-completed fn-40 + fn-61 -> fn-33
-completed fn-5 + fn-61 -> fn-22
+fn-64.1 -> fn-64.2
+fn-64.2 -> {fn-64.3, fn-64.5, fn-64.6}
+fn-64.3 -> fn-64.4 -> fn-64.9
+{fn-64.4, fn-64.5, fn-64.6, fn-64.9} -> fn-64.7 -> fn-64.8 -> fn-64.10
+
+fn-60 -> fn-62
+fn-59 (independent)
+
+fn-64 -> replan {fn-22, fn-26, fn-29, fn-33}
 ```
 
-Completed fn-48 may later feed deferred fn-26, fn-29, and fn-30 without pulling them into the
-prototype queue.
+Completed fn-48 may still feed fn-26 and fn-29 during their replans. Fn-30 remains later release
+governance work.
 
-## Prototype verification gate
+## Case Runtime verification gate
 
-The local, ordinary-CI, and portable self-hosted gate is satisfied. Deterministic per-test contracts
-preserve the normal artifact hash, format identity, and Behavior Fingerprint across environments;
-the tagged disposable-cluster proof covers bounded no-Lean evaluation, explicit Evidence closure,
-normal pass, expected uniqueness-only fail, fresh run isolation, resident reuse, and cleanup. The
-decision remains local to one exact contract; whole-model validity, cross-test claims, fleet control,
-production deployment, release eligibility, and Claim Assessment remain outside this gate. P3 is
-unblocked. Dependency edits must pass `flowctl validate --all --json`, and retained tasks must not
-depend on deferred work.
+Fn-64 closes only when the async Nexus Case passes through the public standalone APIs, one prepared
+Case supports isolated repeated Runs, live and offline Contract evaluation agree, server and worker
+authority remain separate, safety-stop and cleanup precedence are race-tested, and the legacy path
+is gone. The focused unit, race, integration, model-build, regression, import-format, and lint gates
+listed in the fn-64 spec must pass. Dependency edits must pass `flowctl validate --all --json`.
 
-## Removed from the prototype queue
+The former portable self-hosted prototype gate was satisfied for the now-superseded
+`PortableTestPlan` architecture. It remains historical evidence only and does not unblock downstream
+work against the new runtime.
+
+## Removed from the current queue
 
 ### Close as superseded
 
 - **fn-14 — Milestone A pilot baseline and Lean-first usability decision.** Its own architecture
   reconciliation marks it as historical and prohibits using it as a roadmap gate.
+- **fn-61 — Simplify the Umpire Go execution surface.** It deepens the discarded
+  `PortableTestPlan` resident-executor boundary; fn-64 replaces that boundary instead.
+- **fn-63 — Consolidate Umpire Go tests into golden scenarios.** Its ownership and baselines depend
+  on fn-61 and the legacy runtime, so any useful consolidation must be reconsidered after fn-64.
 
-### Defer until the vertical slice demonstrates value
+### Defer until the Case Runtime demonstrates value
 
 - **fn-15 — Standalone API and config input catalogs.** Platform completeness, not prototype proof.
 - **fn-23 — Veil toolchain compatibility and adoption gate.** Optional checker investigation.
 - **fn-24 — Lean-native verification receipts and canonical replay.** Receipt/profile platform;
-  existing bounded checking is sufficient for the prototype.
+  the Case Runtime's bounded checking is sufficient for its first proof.
 - **fn-25 — Optional CallerClosure Veil binding and canonical replay.** Second verification backend.
-- **fn-26 — Local Evaluation Receipts and staged profile contract.** Policy infrastructure after
-  a useful local `Result` exists.
-- **fn-29 — Bounded production canary execution and Claim Assessment.** Starts only after fn-52 and
-  fn-61 plus a demonstrated vertical slice; the prototype retains only a no-Lean local decision
-  over one portable per-test contract.
 - **fn-30 — Release evidence graph and manual authorization.** Release governance after real
   Claim Assessment evidence exists.
