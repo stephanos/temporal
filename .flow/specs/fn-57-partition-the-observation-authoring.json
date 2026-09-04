@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-57-partition-the-observation-authoring",
   "impl_review_rounds": {
-    "fn-57-partition-the-observation-authoring.1": 0
+    "fn-57-partition-the-observation-authoring.1": 0,
+    "fn-57-partition-the-observation-authoring.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -134,10 +135,47 @@
       "timestamp": "2026-09-04T10:14:52.900743Z",
       "tool_calls": 12,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "d463b951396fdcc126c7d2fac3ceb920a5829fa154c2a1c42b6a0df6abc9b81a",
+      "backend": "codex",
+      "base_sha": "4a04bb0ae1cc31b11fd37d9fc04586166c38517d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "bd4609a3425e758f6bac67f74dc19f19e80c728e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 300434,
+      "output_sha256": "55e7400c773823a9b3a15d4f8998d89e2390f06d78e32bfc445ff9b1aaede254",
+      "reservation_id": "38968230c09c4c0686eb12d62c05ba7a",
+      "round_consumed": true,
+      "scope": "impl:fn-57-partition-the-observation-authoring.2",
+      "superseded_by": null,
+      "task": "fn-57-partition-the-observation-authoring.2",
+      "timestamp": "2026-09-04T10:23:52.301829Z",
+      "tool_calls": 15,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-57-partition-the-observation-authoring.1": 1,
+    "impl:fn-57-partition-the-observation-authoring.2": 1,
     "plan": 2,
     "plan#completion": 0
   },
@@ -145,6 +183,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-57-partition-the-observation-authoring.1": 0,
+    "impl:fn-57-partition-the-observation-authoring.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-57-partition-the-observation-authoring.md",
@@ -161,5 +200,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T10:14:52.908363Z"
+  "updated_at": "2026-09-04T10:23:52.312247Z"
 }
