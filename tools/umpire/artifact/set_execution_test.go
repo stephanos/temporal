@@ -2,6 +2,7 @@ package artifact
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,6 +12,8 @@ import (
 )
 
 func TestExecutableSetAdmitExecutionReusesExactInputBytes(t *testing.T) {
+	runBytes := readExecutionFixture(t, "experiment-run-v2.json")
+	rawEvidenceBytes := readExecutionFixture(t, "raw-evidence-v2.json")
 	members := []SetMember{
 		{Path: artifactSetPaths[0], Encoded: readExecutionFixture(t, "switch-experiment-v2.json")},
 		{Path: artifactSetPaths[1], Encoded: readExecutionFixture(t, "runtime-configuration-v2.json")},
@@ -21,12 +24,44 @@ func TestExecutableSetAdmitExecutionReusesExactInputBytes(t *testing.T) {
 	executable, ok := admitted.Executable()
 	require.True(t, ok)
 
-	run, err := DecodeExperimentRunV2(readExecutionFixture(t, "experiment-run-v2.json"))
+	run, err := DecodeExperimentRunV2(runBytes)
 	require.NoError(t, err)
-	rawEvidence, err := DecodeRawEvidenceV2(readExecutionFixture(t, "raw-evidence-v2.json"))
+	rawEvidence, err := DecodeRawEvidenceV2(rawEvidenceBytes)
 	require.NoError(t, err)
 	execution, err := executable.AdmitExecution(run, rawEvidence)
 	require.NoError(t, err)
+	executionProjection, ok := execution.Execution()
+	require.True(t, ok)
+
+	run.PhaseOutcomes[0].Phase = "mutated"
+	*run.PhaseOutcomes[0].StartedAtUnixMillis = "0"
+	rawEvidence.Sources[0].Status = "mutated"
+	rawEvidence.Facts[3].CausalFactDefinitionIDs[0] = "mutated"
+	rawEvidence.Facts[1].Fields[0].FieldDefinitionID = "mutated"
+
+	retainedRunBytes, err := EncodeExperimentRunV2(executionProjection.ExperimentRun())
+	require.NoError(t, err)
+	require.Equal(t, runBytes, retainedRunBytes)
+	retainedRawEvidenceBytes, err := EncodeRawEvidenceV2(executionProjection.RawEvidence())
+	require.NoError(t, err)
+	require.Equal(t, rawEvidenceBytes, retainedRawEvidenceBytes)
+
+	returnedRun := executionProjection.ExperimentRun()
+	returnedRawEvidence := executionProjection.RawEvidence()
+	returnedRun.PhaseOutcomes[0].Phase = "mutated"
+	*returnedRun.PhaseOutcomes[0].StartedAtUnixMillis = "0"
+	returnedRawEvidence.Sources[0].Status = "mutated"
+	returnedRawEvidence.Facts[3].CausalFactDefinitionIDs[0] = "mutated"
+	returnedRawEvidence.Facts[1].Fields[0].FieldDefinitionID = "mutated"
+
+	againRunBytes, err := EncodeExperimentRunV2(executionProjection.ExperimentRun())
+	require.NoError(t, err)
+	require.Equal(t, runBytes, againRunBytes)
+	againRawEvidence := executionProjection.RawEvidence()
+	againRawEvidenceBytes, err := EncodeRawEvidenceV2(againRawEvidence)
+	require.NoError(t, err)
+	require.Equal(t, rawEvidenceBytes, againRawEvidenceBytes)
+	requireRawEvidenceScalarDomain(t, againRawEvidence)
 
 	require.Len(t, execution.members, 4)
 	require.Equal(t, []string{
@@ -40,6 +75,32 @@ func TestExecutableSetAdmitExecutionReusesExactInputBytes(t *testing.T) {
 	require.True(t, bytes.Equal(original[0].Encoded, admitted.members[0].Encoded))
 	require.True(t, bytes.Equal(original[1].Encoded, admitted.members[1].Encoded))
 	require.Nil(t, execution.executable)
+}
+
+func requireRawEvidenceScalarDomain(t *testing.T, rawEvidence artifactv2.RawEvidence) {
+	t.Helper()
+
+	var sawNil, sawBoolean, sawNumber, sawString bool
+	for _, fact := range rawEvidence.Facts {
+		for _, field := range fact.Fields {
+			switch field.Value.(type) {
+			case nil:
+				sawNil = true
+			case bool:
+				sawBoolean = true
+			case json.Number:
+				sawNumber = true
+			case string:
+				sawString = true
+			default:
+				require.Failf(t, "unexpected Raw Evidence field value", "%T", field.Value)
+			}
+		}
+	}
+	require.True(t, sawNil)
+	require.True(t, sawBoolean)
+	require.True(t, sawNumber)
+	require.True(t, sawString)
 }
 
 func TestExecutionSetAdmitEvaluationReusesExactInputBytes(t *testing.T) {
