@@ -114,6 +114,6 @@ Task `.1` proves that one shared test-only loader can drive the surviving reside
 | R1 | Closed test-only golden scenario harness | `.1` | — |
 | R2 | Behavior-oriented success, failure, inconclusive, obligation, and pre-I/O rejection scenarios | `.1`, `.2`, `.3`, `.4` | — |
 | R3 | Specialized invariant coverage retained | `.2`, `.3`, `.4`, `.5` | — |
-| R4 | Independent oracle provenance and non-mutating regeneration | `.1`, `.4`, `.5` | — |
+| R4 | Independent oracle provenance and non-mutating regeneration | `.1`, `.3`, `.4`, `.5` | — |
 | R5 | Measurable suite-size and complexity reduction | `.1`, `.2`, `.3`, `.4`, `.5` | — |
 | R6 | Existing gates and production contracts preserved | `.2`, `.3`, `.4`, `.5` | — |

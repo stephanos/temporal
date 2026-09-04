@@ -4,7 +4,18 @@ import Umpire.Property
 
 namespace Umpire.PropertyImportTests
 
-#check Umpire.PropertyDeclaration
+#check (Umpire.PropertyDeclaration : Type)
+#check (Umpire.checkProperty :
+  Umpire.PropertyCheckContext → Umpire.PropertyAuthoring →
+    Except Umpire.PropertyError Umpire.CheckedProperty)
+#check (Umpire.CheckedProperty.traceView :
+  Umpire.CheckedProperty →
+    Umpire.ModelTrace Umpire.ModelValue Umpire.ModelValue Umpire.ModelValue Umpire.ModelValue →
+      Umpire.PropertyTraceView)
+#check (Umpire.evaluateProperty :
+  Umpire.CheckedProperty →
+    Umpire.ModelTrace Umpire.ModelValue Umpire.ModelValue Umpire.ModelValue Umpire.ModelValue →
+      Umpire.PropertyEvaluation)
 
 #guard_msgs (error, substring := true) in
 #check Umpire.BehaviorDeclaration

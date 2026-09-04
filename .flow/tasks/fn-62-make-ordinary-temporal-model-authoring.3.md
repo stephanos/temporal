@@ -12,7 +12,7 @@ Implement R1, R4, and R5 with narrow family-scoped identity/source helpers, name
 
 ### Approach
 - Extend the thin `Temporal.Shared` layer at `model/Temporal/Shared.lean:7-21` only for identity/source helpers with multiple Temporal model consumers.
-- Keep dot-separated ID suffixes and definition kinds author-visible; centralize family prefixes and source capture without deriving identity from declaration order or instances.
+- Make the helper statically own the Temporal family root and explicit kind segment; authors provide the stable suffix, so a wrong family prefix is unrepresentable through this path. Raw `DefinitionId` remains syntax-checked exactly as today.
 - Extend existing semantic patterns such as `PropertyPattern.exact` and `PropertyClause.transitionContract` in `model/Umpire/Property/Language.lean:43-106`; return existing clauses and keep Action/state/outcome/observation choices explicit.
 - Add a named constructor over the existing typed fields in `model/Umpire/Query/Language.lean:30-86`; preserve `QueryLimits` representation and canonical serialization.
 - Retain the raw `DefinitionId`, `SourceLocation`, Property-clause, and `QueryLimits` construction paths for advanced and invalid tests.
@@ -20,7 +20,7 @@ Implement R1, R4, and R5 with narrow family-scoped identity/source helpers, name
 ### Investigation targets
 **Required** (read before coding):
 - `model/Temporal/Shared.lean:7-21` — existing narrow Temporal helper layer.
-- `model/Umpire/Core.lean:9-56` — Definition ID syntax and canonical identity.
+- `model/Umpire/Core.lean:9-56` — syntax-only raw Definition ID validation.
 - `model/Umpire/Property/Language.lean:43-106` — existing transition patterns and clauses.
 - `model/Umpire/Query/Language.lean:30-86` — typed per-stage Limits and positional helper.
 - `model/Umpire/Query/Tests/Validation.lean` — Limit and identity diagnostic patterns.
@@ -30,12 +30,11 @@ Implement R1, R4, and R5 with narrow family-scoped identity/source helpers, name
 - `.flow/specs/fn-58-partition-the-property-language.md:17-34` — frozen Property facade and ownership boundary.
 
 ### Acceptance
-- [ ] Family prefixes, definition kinds, stable suffixes, transition patterns, and source locations remain explicit at helper call sites.
-- [ ] Invalid syntax/kind/duplicates/crossed references and invalid transition clauses fail through owning checkers at the closest declaration location.
+- [ ] The helper owns the family root and explicit kind segment; authors still provide stable suffixes, transition patterns, and source locations at call sites.
+- [ ] A wrong family prefix cannot be supplied through the helper; malformed resulting IDs, duplicates, and crossed references recognized by existing language checkers retain their current typed errors and closest source.
 - [ ] Query authoring names each independent stage Limit and unit; zero/invalid values retain exact typed diagnostics.
 - [ ] Helper-produced clauses and Limits retain exact canonical metadata and Behavior Fingerprints for equivalent values.
-- [ ] No global registry, ambient instance, order-based identity, inferred outcome, or hidden default is added.
-
+- [ ] No new dynamic family-prefix validator, global registry, ambient instance, order-based identity, inferred outcome, or hidden default is added.
 ## Acceptance
 - [ ] R1, R4, R5, and R8 are satisfied for reusable identity, source, transition, and Limit primitives.
 - [ ] `cd model && mise exec -- lake build Umpire.CoreTests Umpire.Property.Tests Umpire.Query.Tests` passes.

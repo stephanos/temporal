@@ -22,7 +22,7 @@ Deepen the existing `FiniteMachine` adapter for R1, R2, and R8, then migrate the
 - `model/Umpire/Target/FiniteMachine.lean:7-110` — ordinary finite adapter and required proofs.
 - `model/Umpire/Target/Language.lean:157-234` — explicit composition and checked Target assembly.
 - `model/Temporal/Feature/Nexus/Lifecycle/Target.lean:198-403` — repeated ordinary authoring surface to reduce.
-- `model/Umpire/Target/Tests/FiniteMachine.lean` — generic positive and invalid finite-machine patterns.
+- `model/Umpire/Target/Tests/FiniteMachine.lean:84-142` — proof-obligation and typed encoding-collision boundaries.
 - `model/Temporal/Feature/Nexus/Lifecycle/TargetTests.lean` — migrated Target regressions.
 
 **Optional** (reference as needed):
@@ -30,15 +30,14 @@ Deepen the existing `FiniteMachine` adapter for R1, R2, and R8, then migrate the
 - `.flow/specs/fn-51-shorten-ordinary-model-authoring.md:68-85` — prior simplification and intentional residual literals.
 
 ### Key context
-AUT-08 requires authors to supply the semantic domains, encoders, enumerators, and proof evidence. The helper may organize and reuse those inputs, not infer or omit them.
+AUT-08 requires authors to supply the semantic domains, encoders, enumerators, and proof evidence. Missing coverage/executability evidence prevents `FiniteMachine` construction and is tested as a failed proposition or elaboration obligation, not a `checkTarget` error. The helper may organize and reuse those inputs, not infer or omit them.
 
 ### Acceptance
 - [ ] Nexus lifecycle Target is authored from the deepened finite adapter without direct ordinary construction of expert kernel/completeness internals.
 - [ ] Every state, Action, Model Outcome, encoder, enumerator, coverage/executability proof, provider, connector, and metadata choice remains explicit.
-- [ ] Generic negative tests cover incomplete/out-of-domain enumeration, non-executable Actions, and missing/conflicting capability composition with existing typed diagnostics.
+- [ ] Generic negative tests prove incomplete domain closure and unreachable advertised Actions leave unsatisfied Lean obligations; separate raw Target tests retain typed diagnostics for colliding encodings, missing capabilities, and unresolved provider conflicts.
 - [ ] Existing lifecycle IDs, canonical metadata, Behavior Fingerprint, transition relation, completeness, imports, and comments are preserved.
-- [ ] Focused Target and Nexus lifecycle Lake targets pass with `-tags test_dep` where applicable.
-
+- [ ] Focused Target and Nexus lifecycle Lake targets pass.
 ## Acceptance
 - [ ] R1, R2, and R8 are satisfied for finite Target authoring.
 - [ ] `cd model && mise exec -- lake build Umpire.TargetTests Umpire.Target.ImportTests Temporal.Feature.Nexus.LifecycleTests` passes.

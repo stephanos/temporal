@@ -36,8 +36,13 @@ on completed cleanup work rather than reopening its semantics. The Lean Property
 canonical-JSON cleanup both refresh shared architecture-document anchors; if they run concurrently,
 fn-60's final documentation task follows fn-58's final documentation task. Their production file
 surfaces remain disjoint because fn-60 excludes `Umpire.Property`. The Go artifact-copy cleanup is
-independent and changes no user-facing documentation. The Go execution-surface simplification starts
-only after fn-59 and fn-60, and becomes the execution boundary consumed by the remaining P3 work.
+independent and changes no user-facing documentation. The ordinary Temporal model-authoring work
+starts after fn-58 and fn-60 so it consumes the frozen Property facade and follows the canonical-JSON
+changes on its overlapping Target, Query, Observation, and Artifact surfaces. It settles the checked
+authoring and model-owned Known Gap contract before the Go execution-surface simplification starts.
+That Go work also starts after fn-59 and becomes the execution boundary consumed by the remaining P3
+work. The Go test-suite consolidation starts after fn-61 has settled that boundary; it does not gate
+P3 and may run alongside the remaining prototype work.
 
 ### 1. fn-58 — Partition the Property language implementation
 
@@ -72,9 +77,27 @@ Fingerprints, imports, trust inventories, performance characteristics, and exist
 not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
 changes, drift verification, or CI work.
 
-### 4. fn-61 — Simplify the Umpire Go execution surface
+### 4. fn-62 — Make ordinary Temporal model authoring approachable
 
-**Depends on:** completed fn-52 caller-neutral gRPC portable plans, fn-59, and fn-60.
+**Depends on:** fn-58's frozen Property facade and fn-60's canonical-JSON cleanup across the
+overlapping handwritten Lean surfaces.
+
+**Scope:** reduce the Lean-specific ceremony required to author an ordinary finite Target, checked
+Property, Behavior, Query, plan, and Observation while preserving Umpire's existing languages and
+checker authority. Deepen `FiniteMachine` and finite planner-kernel adapters; add explicit
+family-rooted identities, source locations, named Query Limits, transition-contract helpers, typed
+Observation builders, and optional model-owned Known Gaps; migrate the ordinary Nexus lifecycle and
+operation walkthroughs; and add one checked newcomer example. Preserve explicit semantic choices,
+public imports, Definition IDs, Behavior Fingerprints, deterministic plans, artifact identity except
+for reviewed source/Known Gap deltas, trust inventories, failure boundaries, and existing comments.
+Do not add another authoring language, infer providers or Model Outcomes, hide checker-success
+evidence, redesign the expert `TransitionKernel` or Experimental fault-space paths, or add broad
+generated-API drift and CI coverage.
+
+### 5. fn-61 — Simplify the Umpire Go execution surface
+
+**Depends on:** completed fn-52 caller-neutral gRPC portable plans, fn-59, fn-60, and fn-62's settled
+authoring and model-owned Known Gap contract.
 
 **Scope:** expose one root resident executor that accepts a caller-owned attached Temporal authority
 and the existing model-provenance verifier, executes a protobuf `PortableTestPlan`, and returns an
@@ -89,9 +112,27 @@ and do not change protobuf or Lean output, trust policy, concurrency, or cluster
 **Deferred:** production deployment, executor fleets, queues, autoscaling, multi-run concurrency,
 environment selection, credential distribution, and new transports.
 
+### 6. fn-63 — Consolidate Umpire Go tests into golden scenarios
+
+**Depends on:** fn-61's completed resident execution facade and final package/test ownership; no P3
+spec depends on this cleanup.
+
+**Scope:** establish the post-fn-61 test baseline and a closed internal test-only scenario harness,
+then replace duplicated setup-heavy portable execution/evaluation, Run Evaluation/Nexus, and whole-
+Artifact acceptance matrices with a compact set of independently authoritative input/output
+goldens. Reuse existing Lean-owned outputs, canonical Artifact fixtures, admitted-set manifests,
+and temporary-root regeneration/diff gates. Preserve focused grammar and fuzzing, Limit and
+cardinality, checksum and closure, diagnostic-precedence, process and protocol, cancellation,
+single-flight and poisoning, Temporal lifecycle and concurrency, and generator-structure tests.
+Reduce handwritten Go test lines and top-level tests/fuzzers by at least 15% from the post-fn-61
+baseline while preserving public behavior, exact Artifact identity, failure categories, the complete
+tagged `TestUmpire` live selector, production dependencies, and existing comments. Do not add a
+snapshot framework, generic field normalizer, runtime Lean dependency, production test hook, schema
+or generated-protocol change, broad generated API drift verification, or new CI workflow coverage.
+
 ## Complete P3 — Exploration and regression lifecycle
 
-### 5. fn-33 — Run model exploration campaigns with umpire-fuzz
+### 7. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 **Depends on:** completed fn-40's ordinary PlannerPolicy surface and fn-61's simplified execution
 boundary.
@@ -102,7 +143,7 @@ Evaluation path, and reports semantic coverage and exhaustion honestly.
 
 **Deferred:** concurrency, leases, crash-safe campaign state, and resume.
 
-### 6. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### 8. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
 **Depends on:** fn-5's checked review-only promotion source and fn-61's simplified execution
 boundary.
@@ -122,7 +163,9 @@ installation.
 The remaining dependency shape is:
 
 ```text
-completed fn-52 + fn-59 + fn-60 -> fn-61
+fn-58 + fn-60 -> fn-62
+completed fn-52 + fn-59 + fn-60 + fn-62 -> fn-61
+fn-61 -> fn-63 (cleanup; does not gate P3)
 completed fn-40 + fn-61 -> fn-33
 completed fn-5 + fn-61 -> fn-22
 ```

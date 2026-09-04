@@ -15,7 +15,8 @@ Establish the post-`fn-61` baseline and prove the shared test-only scenario seam
 - Extract one internal test-only loader/runner around the existing normal and duplicate-delivery fixture families; drive the surviving resident executor facade and normal admission path instead of rebuilding internal adapters.
 - Keep the format closed: scenario identity, input members, independently authoritative expected output, typed expected status/error, provenance, and fixed exact/stable comparison mode.
 - Compare deterministic Artifacts byte-for-byte. For runtime-assigned values, name the stable semantic projection and validate dynamic fields structurally; do not implement an arbitrary ignore/normalization facility.
-- Add focused loader tests for incomplete, malformed, unexpected, or independently invalid fixtures, immutable parallel consumption, and path-scoped diagnostics.
+- Add focused loader tests for missing, unreadable, malformed, duplicate, unsupported-version, incomplete, and unexpectedly extra fixture members plus independently invalid expected outputs. Every case identifies the scenario/path and proves the execution callback was not invoked.
+- Keep fixture values immutable under parallel use; mutation cases operate on test-local copies.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -27,14 +28,13 @@ Establish the post-`fn-61` baseline and prove the shared test-only scenario seam
 
 **Optional** (reference as needed):
 - `tools/umpire/portableevaluation/README.md:193-242` — stable/dynamic comparison and runtime constraints
-
 ## Acceptance
 - [ ] The task completion evidence records the exact post-`fn-61` handwritten test-line and top-level test/fuzz baseline with repeatable commands.
 - [ ] One internal test-only harness loads the existing normal and duplicate-delivery families and drives the supported facade/admission path without restoring a removed package or exporting a production helper.
-- [ ] The two proof scenarios match independently generated expected outputs and preserve exact typed outcomes, Artifact identities, and diagnostic categories.
-- [ ] Deterministic outputs are byte-exact; dynamic fields are structurally validated with an explicit stable projection and no generic ignore list.
+- [ ] Missing, unreadable, malformed, duplicate, unsupported-version, incomplete, unexpectedly extra, and independently invalid expected fixtures fail with scenario/path context before the execution callback is invoked.
+- [ ] The proof scenarios match independently generated expected outputs and preserve exact typed outcomes, Artifact identities, and diagnostic categories.
+- [ ] Deterministic outputs are byte-exact; dynamic fields are structurally validated with an explicit stable projection and no generic ignore list; parallel scenarios cannot mutate shared fixtures.
 - [ ] Ordinary focused tests pass with `go test -count=1 -tags test_dep` and invoke neither Lean nor a rewrite path.
-
 ## Done summary
 TBD
 
