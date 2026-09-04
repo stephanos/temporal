@@ -35,11 +35,11 @@ Add the thin gRPC adapter over the deep executor, qualify it against a disposabl
 - [ ] Ten-call overlap dispatches once and returns bounded pre-I/O failures for the rest; poison and deadline behavior are deterministic.
 - [ ] Fn-28 HTTP tests and bytes remain unchanged and passing.
 - [ ] Architecture, operator, runtime, and canary-handoff docs describe both interfaces and claim scopes without stale Lean-only assertions.
-- [ ] `make proto`, focused unit/integration tests, `make lint-model`, `make umpire-check-regression`, and `make lint-code` pass.
+- [ ] `make proto`, focused unit/integration tests, `make lint-model`, and `make umpire-check-regression` pass; `make lint-code` is run globally and either passes or matches the recorded pre-change baseline while non-mutating task-scoped lint reports zero findings.
 
 ## Acceptance
 - [ ] R4 gRPC behavior, R8 compatibility, R9 canary handoff, and R10 documentation/tests are complete.
-- [ ] All focused and aggregate commands pass.
+- [ ] All focused commands pass; aggregate commands pass or a repository-wide lint failure is proven baseline-equivalent with zero task-local findings.
 - [ ] Existing comments are preserved.
 
 ## Done summary

@@ -1556,6 +1556,9 @@ func (v *validator) validateRenameLink(link *umpirespb.RenameExactLink) error {
 			return err
 		}
 	}
+	if !proto.Equal(link.GetDestinationTarget(), v.plan.GetExecution().GetTarget()) {
+		return admissionError(ErrorBinding, path+".destinationTarget", "exact rename destination target is crossed with execution target")
+	}
 	if proto.Equal(link.GetSourceTarget(), link.GetDestinationTarget()) || len(link.GetEntries()) == 0 {
 		return admissionError(ErrorBinding, path, "exact rename targets and entries are required")
 	}

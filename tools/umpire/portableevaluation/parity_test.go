@@ -657,6 +657,13 @@ func TestLeanGeneratedPortablePlanRejectsChecksumBindingSourceAndLimitMutations(
 		_, err := testplan.Seal(mutated)
 		requirePlanAdmissionCode(t, err, testplan.ErrorBinding)
 	})
+	t.Run("crossed rename destination target", func(t *testing.T) {
+		mutated := proto.CloneOf(plan)
+		mutated.GetVerification().GetRenameExactLink().GetDestinationTarget().DefinitionId =
+			"umpire.target.crossed"
+		_, err := testplan.Seal(mutated)
+		requirePlanAdmissionCode(t, err, testplan.ErrorBinding)
+	})
 	for _, test := range []struct {
 		name   string
 		mutate func(*umpirespb.PortableTestPlan)
