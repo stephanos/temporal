@@ -36,7 +36,8 @@ on completed cleanup work rather than reopening its semantics. The Lean Property
 canonical-JSON cleanup both refresh shared architecture-document anchors; if they run concurrently,
 fn-60's final documentation task follows fn-58's final documentation task. Their production file
 surfaces remain disjoint because fn-60 excludes `Umpire.Property`. The Go artifact-copy cleanup is
-independent and changes no user-facing documentation.
+independent and changes no user-facing documentation. The Go execution-surface simplification starts
+only after fn-59 and fn-60, and becomes the execution boundary consumed by the remaining P3 work.
 
 ### 1. fn-58 — Partition the Property language implementation
 
@@ -71,21 +72,40 @@ Fingerprints, imports, trust inventories, performance characteristics, and exist
 not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
 changes, drift verification, or CI work.
 
+### 4. fn-61 — Simplify the Umpire Go execution surface
+
+**Depends on:** completed fn-52 caller-neutral gRPC portable plans, fn-59, and fn-60.
+
+**Scope:** expose one root resident executor that accepts a caller-owned attached Temporal authority
+and the existing model-provenance verifier, executes a protobuf `PortableTestPlan`, and returns an
+`ExecutionResult` directly or through the generated gRPC service. Migrate generated and handwritten
+end-to-end callers to that facade; internalize generated bindings, runtime contracts, the execution
+state machine, Temporal/Nexus participants, Evidence closure, and portable evaluation; remove the
+legacy HTTP and non-portable resident executor paths. Preserve exact admission, provenance,
+runtime-slot, single-flight, cancellation, cleanup-poisoning, eventual Evidence closure, evaluation,
+result-limit, and direct/gRPC status behavior. Keep the offline Run Evaluation capability distinct,
+and do not change protobuf or Lean output, trust policy, concurrency, or cluster ownership.
+
+**Deferred:** production deployment, executor fleets, queues, autoscaling, multi-run concurrency,
+environment selection, credential distribution, and new transports.
+
 ## Complete P3 — Exploration and regression lifecycle
 
-### 4. fn-33 — Run model exploration campaigns with umpire-fuzz
+### 5. fn-33 — Run model exploration campaigns with umpire-fuzz
 
-**Depends on:** completed fn-40's ordinary PlannerPolicy surface.
+**Depends on:** completed fn-40's ordinary PlannerPolicy surface and fn-61's simplified execution
+boundary.
 
 **Scope:** a serial bounded `umpire-fuzz run` command that asks the Lean-owned exploration layer for
-candidates, executes them through the existing runner/Run Evaluation path, and reports semantic
-coverage and exhaustion honestly.
+candidates, executes them through the simplified resident executor and retained offline Run
+Evaluation path, and reports semantic coverage and exhaustion honestly.
 
 **Deferred:** concurrency, leases, crash-safe campaign state, and resume.
 
-### 5. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### 6. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
-**Depends on:** fn-5's checked review-only promotion source.
+**Depends on:** fn-5's checked review-only promotion source and fn-61's simplified execution
+boundary.
 
 **Scope:** consume the fn-21 violation, reproduce it exactly, and try every applicable authored
 reduction in fixed order while preserving the same violation. The exact control may be irreducible;
@@ -102,8 +122,9 @@ installation.
 The remaining dependency shape is:
 
 ```text
-completed fn-40 -> fn-33
-completed fn-5 -> fn-22
+completed fn-52 + fn-59 + fn-60 -> fn-61
+completed fn-40 + fn-61 -> fn-33
+completed fn-5 + fn-61 -> fn-22
 ```
 
 Completed fn-48 may later feed deferred fn-26, fn-29, and fn-30 without pulling them into the
@@ -137,7 +158,7 @@ depend on deferred work.
 - **fn-26 — Local Evaluation Receipts and staged profile contract.** Policy infrastructure after
   a useful local `Result` exists.
 - **fn-29 — Bounded production canary execution and Claim Assessment.** Starts only after fn-52 and
-  a demonstrated vertical slice; the prototype retains only a no-Lean local decision over one
-  portable per-test contract.
+  fn-61 plus a demonstrated vertical slice; the prototype retains only a no-Lean local decision
+  over one portable per-test contract.
 - **fn-30 — Release evidence graph and manual authorization.** Release governance after real
   Claim Assessment evidence exists.

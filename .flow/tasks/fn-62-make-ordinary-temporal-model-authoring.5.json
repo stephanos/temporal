@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T15:41:09.327624Z",
+  "depends_on": [
+    "fn-62-make-ordinary-temporal-model-authoring.3"
+  ],
+  "id": "fn-62-make-ordinary-temporal-model-authoring.5",
+  "priority": null,
+  "spec": "fn-62-make-ordinary-temporal-model-authoring",
+  "spec_path": ".flow/tasks/fn-62-make-ordinary-temporal-model-authoring.5.md",
+  "status": "todo",
+  "title": "Deepen typed Observation authoring",
+  "updated_at": "2026-09-04T15:41:09.327624Z"
+}
