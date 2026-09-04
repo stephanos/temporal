@@ -1,0 +1,131 @@
+{
+  "branch_name": "fn-59-centralize-umpire-artifact-copies",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T15:15:12.866788Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [],
+  "id": "fn-59-centralize-umpire-artifact-copies",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-04T15:21:11.480144Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "789038f01a76cde5ed71fb86d0f057300b927309baa6a60d7c02cae5133df5c7",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e80fcf25176f4e5106c3bad346d2d912",
+            "classification": "introduced",
+            "findingId": "finding-e80fcf25176f4e5106c3bad346d2d912",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d425b6b39019375f6bf70d2d8f2e43c84edea188",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 197692,
+      "output_sha256": "a79ea31921d6238bfaa421afb63380d5e8360dcea797b315ca99f80325845cdf",
+      "reservation_id": "bfce09ee42a740cea5ab00bc331af2e2",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-04T15:18:24.441233Z",
+      "tool_calls": 9,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "9629caf2c3c045a58a8643e6bf1a927137c33c7148d2e5a39f533f0fb9d790a5",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-e80fcf25176f4e5106c3bad346d2d912",
+            "classification": "introduced",
+            "findingId": "finding-e80fcf25176f4e5106c3bad346d2d912",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "fbbaf5ae65f7371df0171cd36f57b5bd104eb2d9",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 259,
+      "output_sha256": "a9a02917fce54273dd757140888e4e3c28ddf2108c70e456e9fa0513cd079d5d",
+      "reservation_id": "5b0a78b9c72445929378d8bb116205c5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-04T15:21:11.477037Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-59-centralize-umpire-artifact-copies.md",
+  "status": "open",
+  "title": "Centralize Umpire artifact copies",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T15:21:11.480616Z"
+}
