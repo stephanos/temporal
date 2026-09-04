@@ -332,11 +332,11 @@ func (a *attachedTemporalAuthority) Stop(ctx context.Context) error {
 			if a.stopAttempt == attempt {
 				a.stopAttempt = nil
 			}
-			close(attempt.done)
-			a.mu.Unlock()
 			if release {
 				a.releaseLease()
 			}
+			close(attempt.done)
+			a.mu.Unlock()
 		}()
 	}
 	attempt := a.stopAttempt
