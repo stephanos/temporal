@@ -62,7 +62,7 @@ message ContractTransition {
   repeated ContractCaptureAssignment capture_assignments = 7;
 }
 
-// ContractHorizon closes bounded liveness only at a recorded timeout or Run-closure coordinate.
+// ContractHorizon checks expiry at every recorded event's elapsed coordinate before transitions.
 message ContractHorizon {
   int64 elapsed_milliseconds = 1;
   string violation_state_id = 2;
