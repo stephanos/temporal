@@ -32,28 +32,18 @@ not additional hard dependencies.
 ## Refactoring and cleanup queue (non-prototype-gating)
 
 These specs preserve public behavior while deepening remaining implementation hotspots. They build
-on completed cleanup work rather than reopening its semantics. The Lean Property partition and
-canonical-JSON cleanup both refresh shared architecture-document anchors; if they run concurrently,
-fn-60's final documentation task follows fn-58's final documentation task. Their production file
-surfaces remain disjoint because fn-60 excludes `Umpire.Property`. The Go artifact-copy cleanup is
-independent and changes no user-facing documentation. The ordinary Temporal model-authoring work
-starts after fn-58 and fn-60 so it consumes the frozen Property facade and follows the canonical-JSON
-changes on its overlapping Target, Query, Observation, and Artifact surfaces. It settles the checked
+on completed cleanup work rather than reopening its semantics. The canonical-JSON cleanup refreshes
+shared architecture-document anchors and excludes the completed `Umpire.Property` partition. The Go
+artifact-copy cleanup is independent and changes no user-facing documentation. The ordinary Temporal
+model-authoring work starts after completed fn-58 and fn-60 so it consumes the frozen Property facade
+and follows the canonical-JSON changes on its overlapping Target, Query, Observation, and Artifact
+surfaces. It settles the checked
 authoring and model-owned Known Gap contract before the Go execution-surface simplification starts.
 That Go work also starts after fn-59 and becomes the execution boundary consumed by the remaining P3
 work. The Go test-suite consolidation starts after fn-61 has settled that boundary; it does not gate
 P3 and may run alongside the remaining prototype work.
 
-### 1. fn-58 — Partition the Property language implementation
-
-**Depends on:** completed ordinary Property authoring and Model Coordinate cleanup.
-
-**Scope:** separate authoring vocabulary, typed checking and canonicalization, capability-limited
-trace projection, and clause evaluation into an acyclic internal module chain behind the unchanged
-`Umpire.Property` facade. Preserve all Property errors, canonical identity, Limits, clause meaning,
-agreement theorems, fingerprints, trace semantics, and trust inventories.
-
-### 2. fn-59 — Centralize Umpire artifact copies
+### 1. fn-59 — Centralize Umpire artifact copies
 
 **Depends on:** completed fn-52 artifact admission and runtime contracts; no open spec dependency.
 
@@ -64,10 +54,9 @@ admitted Raw Evidence scalar values, original encoded bytes, checksums, diagnost
 and existing comments. Do not add validation, generic copying for invalid dynamic values, schema or
 generated-output changes, or user-facing documentation.
 
-### 3. fn-60 — Deepen authored Lean canonical JSON construction
+### 2. fn-60 — Deepen authored Lean canonical JSON construction
 
-**Depends on:** no open spec dependency; excludes `Umpire.Property` while fn-58 is active. Sequence
-fn-60.7 after fn-58.3 only when both documentation tasks are in flight.
+**Depends on:** no open spec dependency; excludes the completed `Umpire.Property` partition.
 
 **Scope:** make `Umpire.Json` the single typed construction and exact-rendering interface for Core
 Limit JSON and the handwritten Target, Behavior, Query, Space, Exploration, Observation, and
@@ -77,9 +66,9 @@ Fingerprints, imports, trust inventories, performance characteristics, and exist
 not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
 changes, drift verification, or CI work.
 
-### 4. fn-62 — Make ordinary Temporal model authoring approachable
+### 3. fn-62 — Make ordinary Temporal model authoring approachable
 
-**Depends on:** fn-58's frozen Property facade and fn-60's canonical-JSON cleanup across the
+**Depends on:** completed fn-58's frozen Property facade and fn-60's canonical-JSON cleanup across the
 overlapping handwritten Lean surfaces.
 
 **Scope:** reduce the Lean-specific ceremony required to author an ordinary finite Target, checked
@@ -94,7 +83,7 @@ Do not add another authoring language, infer providers or Model Outcomes, hide c
 evidence, redesign the expert `TransitionKernel` or Experimental fault-space paths, or add broad
 generated-API drift and CI coverage.
 
-### 5. fn-61 — Simplify the Umpire Go execution surface
+### 4. fn-61 — Simplify the Umpire Go execution surface
 
 **Depends on:** completed fn-52 caller-neutral gRPC portable plans, fn-59, fn-60, and fn-62's settled
 authoring and model-owned Known Gap contract.
@@ -112,7 +101,7 @@ and do not change protobuf or Lean output, trust policy, concurrency, or cluster
 **Deferred:** production deployment, executor fleets, queues, autoscaling, multi-run concurrency,
 environment selection, credential distribution, and new transports.
 
-### 6. fn-63 — Consolidate Umpire Go tests into golden scenarios
+### 5. fn-63 — Consolidate Umpire Go tests into golden scenarios
 
 **Depends on:** fn-61's completed resident execution facade and final package/test ownership; no P3
 spec depends on this cleanup.
@@ -132,7 +121,7 @@ or generated-protocol change, broad generated API drift verification, or new CI 
 
 ## Complete P3 — Exploration and regression lifecycle
 
-### 7. fn-33 — Run model exploration campaigns with umpire-fuzz
+### 6. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 **Depends on:** completed fn-40's ordinary PlannerPolicy surface and fn-61's simplified execution
 boundary.
@@ -143,7 +132,7 @@ Evaluation path, and reports semantic coverage and exhaustion honestly.
 
 **Deferred:** concurrency, leases, crash-safe campaign state, and resume.
 
-### 8. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### 7. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
 **Depends on:** fn-5's checked review-only promotion source and fn-61's simplified execution
 boundary.
@@ -163,7 +152,7 @@ installation.
 The remaining dependency shape is:
 
 ```text
-fn-58 + fn-60 -> fn-62
+completed fn-58 + fn-60 -> fn-62
 completed fn-52 + fn-59 + fn-60 + fn-62 -> fn-61
 fn-61 -> fn-63 (cleanup; does not gate P3)
 completed fn-40 + fn-61 -> fn-33
