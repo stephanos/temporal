@@ -42,9 +42,11 @@ Reconcile runtime, architecture, generator, Makefile, and CI descriptions with T
 
 
 ## Done summary
-TBD
+Reconciled Umpire ownership and execution-boundary documentation, pinned the relocated generated source with a deterministic byte-diff gate, and added AST/workflow guardrails against restoring legacy authority or hidden TestEnv coupling. Make and CI now run the complete tagged `^TestUmpire` live suite and accept only the exact recorded Umpire2/Umpire3 failure identities; the aggregate gate and 270 model jobs pass, global lint remains exact-baseline inherited red at 1,374 findings, and task-scoped lint reports zero findings.
 
+stage: impl-review - ran [2026-09-04T07:43:22Z..2026-09-04T07:55:12Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6d9df614713bdf3a530d1fd24ace9f314e1b36f1, 65a015b25b956cb7ce6b07f49dcecf03c36aeaf2, 77628e5564ec235bff6431828e53a928a6725f72
+- Tests: baseline: focused and race green; INHERITED_RED: go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire' reproduced the exact nine Umpire2/Umpire3 failure identities; make fmt-imports green; INHERITED_RED: make lint-code reported 1,374 repository findings, GATE_SKIPPED:unittest:green-receipt f546aefa, TMPDIR=/private/tmp CC=/usr/bin/clang CXX=/usr/bin/clang++ go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/..., TMPDIR=/private/tmp CC=/usr/bin/clang CXX=/usr/bin/clang++ go test -race -count=1 -tags test_dep ./tools/umpire/temporal/local/..., make umpire-check-generated-go-test, go test -count=1 -tags test_dep ./tools/umpire/regression/..., go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire' (run by umpire-check-live-tests; exact inherited Umpire2/Umpire3 failure set accepted, zero Umpire4 failures), make umpire-check-regression (run with physical TMPDIR and Apple clang; green receipt 77628e55; 270 model jobs green), make fmt-imports, INHERITED_RED: make lint-code (exact pre-change 1,374 repository findings; known unrelated formatter side effect restored), .bin/golangci-lint-v2.13.1 run --build-tags 'disable_grpc_modules,test_dep,integration' --timeout 10m --fix=false --new-from-rev=be2fe95a4358ecc49df86536856bbbf38b9e74dd --config=.github/.golangci.yml ./tools/umpire/regression/... (0 issues), Codex impl-review /tmp/impl-review-receipt-fn-55-migrate-and-separate-the-local-temporal.4.json: SHIP, 0 findings
 - PRs:
