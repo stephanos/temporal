@@ -3,6 +3,7 @@ package executorgrpc
 import (
 	"context"
 	"errors"
+	"net"
 	"strings"
 	"testing"
 
@@ -11,7 +12,9 @@ import (
 	"go.temporal.io/server/common/testing/protorequire"
 	"go.temporal.io/server/tools/umpire/executor"
 	"go.temporal.io/server/tools/umpire/testplan"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 )
 
@@ -25,7 +28,7 @@ func TestServerDelegatesOnePlanAndPreservesTypedResult(t *testing.T) {
 		Decision:          umpirespb.EXECUTION_DECISION_INCONCLUSIVE,
 	}
 	var calls int
-	server := New(executorFunc(func(
+	server := newService(executorFunc(func(
 		_ context.Context,
 		got *umpirespb.PortableTestPlan,
 	) (*umpirespb.ExecutionResult, error) {
@@ -69,7 +72,7 @@ func TestServerMapsPreResultFailuresToCanonicalStatuses(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			server := New(executorFunc(func(
+			server := newService(executorFunc(func(
 				context.Context,
 				*umpirespb.PortableTestPlan,
 			) (*umpirespb.ExecutionResult, error) {
@@ -130,7 +133,7 @@ func TestServerBoundsTransportValuesWithoutDispatchOrFabricatedResults(t *testin
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			result, err := New(test.resident).Execute(context.Background(), test.plan)
+			result, err := newService(test.resident).Execute(context.Background(), test.plan)
 
 			require.Nil(t, result)
 			if test.name == "oversized plan" {
@@ -140,6 +143,41 @@ func TestServerBoundsTransportValuesWithoutDispatchOrFabricatedResults(t *testin
 			}
 		})
 	}
+}
+
+func TestNewEnforcesPlanLimitAtTransportIngress(t *testing.T) {
+	var calls int
+	server := New(executorFunc(func(
+		context.Context,
+		*umpirespb.PortableTestPlan,
+	) (*umpirespb.ExecutionResult, error) {
+		calls++
+		return nil, nil
+	}))
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	require.NoError(t, err)
+	serveDone := make(chan error, 1)
+	go func() { serveDone <- server.Serve(listener) }()
+	t.Cleanup(func() {
+		server.Stop()
+		serveErr := <-serveDone
+		require.True(t, serveErr == nil || errors.Is(serveErr, grpc.ErrServerStopped))
+	})
+	connection, err := grpc.NewClient(
+		listener.Addr().String(),
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(2*int(testplan.MaximumPlanBytes))),
+	)
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, connection.Close()) })
+
+	result, err := umpirespb.NewUmpireExecutorClient(connection).Execute(context.Background(), &umpirespb.PortableTestPlan{
+		PlanId: strings.Repeat("x", int(testplan.MaximumPlanBytes)+1),
+	})
+
+	require.Nil(t, result)
+	require.Equal(t, codes.ResourceExhausted, status.Code(err))
+	require.Equal(t, 0, calls)
 }
 
 type executorFunc func(

@@ -496,6 +496,11 @@ func (v *validator) validateRoleBindings(bindings []*umpirespb.RoleBinding) (map
 		}
 		seen[id] = struct{}{}
 	}
+	if err := requireSortedUnique(bindings, func(role *umpirespb.RoleBinding) string {
+		return bindingKey(role.GetRole())
+	}, "$.execution.roleBindings"); err != nil {
+		return nil, err
+	}
 	return seen, nil
 }
 
@@ -518,7 +523,9 @@ func (v *validator) validateSymbolicRoles(roles []*umpirespb.SymbolicRole, bound
 		}
 		seen[id] = struct{}{}
 	}
-	return nil
+	return requireSortedUnique(roles, func(role *umpirespb.SymbolicRole) string {
+		return bindingKey(role.GetDefinition())
+	}, "$.execution.symbolicRoles")
 }
 
 func (v *validator) validateExecutionTrace(execution *umpirespb.ExecutionProgram) error {
@@ -599,7 +606,9 @@ func (v *validator) validateBindingSlots(slots []*umpirespb.RuntimeBindingSlot) 
 		}
 		seen[id] = struct{}{}
 	}
-	return nil
+	return requireSortedUnique(slots, func(slot *umpirespb.RuntimeBindingSlot) string {
+		return bindingKey(slot.GetDefinition())
+	}, "$.execution.runtimeBindingSlots")
 }
 
 func (v *validator) validatePrecondition(precondition *umpirespb.ExecutionPrecondition, path string) error {

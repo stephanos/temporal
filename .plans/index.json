@@ -349,6 +349,7 @@
       "ready": false,
       "completionReview": "unknown",
       "specDependencies": [
+        "fn-56-split-lean-api-generator-planning-from",
         "fn-6-plan-simplify-lean-api-generator-output",
         "fn-7-migrate-lean-model-descriptor-generator",
         "fn-8-umpire-temporal-dynamic-config"
@@ -895,6 +896,70 @@
       "phase": "verification",
       "status": "open",
       "ready": true,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-53-extract-local-isolation-collection",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-54-decompose-the-observation-evaluator",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-57-partition-the-observation-authoring"
+      ]
+    },
+    {
+      "id": "fn-55-migrate-and-separate-the-local-temporal",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-53-extract-local-isolation-collection"
+      ]
+    },
+    {
+      "id": "fn-56-split-lean-api-generator-planning-from",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-57-partition-the-observation-authoring",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-58-partition-the-property-language",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
       "completionReview": "unknown",
       "specDependencies": []
     },
