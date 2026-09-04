@@ -7,11 +7,11 @@ satisfies: [R4, R5, R6]
 Delete the superseded HTTP resident executor and its `ExecuteRequest`/`ExecuteResponse` implementation, then make portable evaluation an internal stage of the sole facade (R4). Preserve the evaluator rather than rewriting its proven semantics.
 
 **Size:** M
-**Files:** `tools/umpire/executorhttp/**`, `tools/umpire/executor/executor.go`, `tools/umpire/executor/executor_test.go`, `tools/umpire/evaluationcontract/**`, `tools/umpire/portableevaluation/**`, `tests/umpire4_portable_executor_test.go`
-**Touches:** [tools/umpire/executorhttp/**, tools/umpire/executor/executor.go, tools/umpire/executor/executor_test.go, tools/umpire/evaluationcontract/**, tools/umpire/portableevaluation/**, tests/umpire4_portable_executor_test.go]
+**Files:** `tools/umpire/executorhttp/**`, `tools/umpire/executor/executor.go`, `tools/umpire/executor/executor_test.go`, `tools/umpire/evaluationcontract/**`, `tools/umpire/portableevaluation/**`
+**Touches:** [tools/umpire/executorhttp/**, tools/umpire/executor/executor.go, tools/umpire/executor/executor_test.go, tools/umpire/evaluationcontract/**, tools/umpire/portableevaluation/**]
 
 ### Approach
-- Remove the HTTP handler, legacy resident executor, duplicate gate, and repository-level HTTP integration test; do not add a redirect or compatibility server.
+- Remove the HTTP handler, legacy resident executor, and duplicate gate after Task `.2` has migrated the repository integration test; do not add a redirect or compatibility server.
 - Retain one execution gate in the root facade and one evaluator path from authorized portable plan plus closed Evidence to `ExecutionResult`.
 - Internalize evaluation-contract packing/admission and interpreter machinery still needed to preserve semantic parity; delete legacy-only public entry points, requests, status conversion, tests, and limits.
 - Keep generated legacy proto messages unchanged and inert so this task does not trigger schema or generated-source churn.
