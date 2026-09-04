@@ -207,6 +207,37 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 			},
 		},
 		{
+			name: "unordered role bindings", code: ErrorOrdering,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetExecution().RoleBindings = append(plan.GetExecution().GetRoleBindings(), &umpirespb.RoleBinding{
+					Role: testBinding("umpire.role.aaa"),
+					Value: &umpirespb.PortableModelValue{
+						Definition: testBinding("umpire.binding.aaa"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_STATE,
+						Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "participant"}},
+					},
+				})
+			},
+		},
+		{
+			name: "unordered symbolic roles", code: ErrorOrdering,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetExecution().SymbolicRoles = append(plan.GetExecution().GetSymbolicRoles(), &umpirespb.SymbolicRole{
+					Definition: testBinding("umpire.role.aaa"), Kind: umpirespb.PORTABLE_DEFINITION_KIND_STATE,
+				})
+			},
+		},
+		{
+			name: "unordered runtime binding slots", code: ErrorOrdering,
+			mutate: func(plan *umpirespb.PortableTestPlan) {
+				plan.GetExecution().RuntimeBindingSlots = append(
+					plan.GetExecution().GetRuntimeBindingSlots(),
+					&umpirespb.RuntimeBindingSlot{
+						Definition: testBinding("umpire.runtime-slot.aaa"), ValueKind: umpirespb.PORTABLE_VALUE_KIND_TEXT,
+					},
+				)
+			},
+		},
+		{
 			name: "crossed runtime slot", code: ErrorBinding,
 			mutate: func(plan *umpirespb.PortableTestPlan) {
 				plan.GetExecution().GetPreconditions()[0].Left = &umpirespb.ExecutionOperand{

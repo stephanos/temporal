@@ -151,8 +151,9 @@ or crossed model provenance fails before runtime I/O and is never downgraded.
 
 `tools/umpire/executorgrpc` implements only the generated unary
 `UmpireExecutor.Execute(PortableTestPlan) -> ExecutionResult` method over one resident
-`executor.PortableExecutor`. It preserves typed results after admission. Failures that prevent a
-result use canonical gRPC status: malformed/crossed input is `INVALID_ARGUMENT`, unsupported
+`executor.PortableExecutor`. Its server constructor enforces the plan and result byte limits at the
+gRPC transport boundary, and the handler preserves typed results after admission. Failures that
+prevent a result use canonical gRPC status: malformed/crossed input is `INVALID_ARGUMENT`, unsupported
 behavior or provenance and poisoned reuse are `FAILED_PRECONDITION`, hard bounds and overlap are
 `RESOURCE_EXHAUSTED`, caller cancellation and deadline retain their corresponding statuses, and
 server invariants are `INTERNAL`. The server queues and retries nothing. One admitted call runs at

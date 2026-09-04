@@ -107,34 +107,9 @@ fn-56 -> deferred fn-15
 fn-58 (independent)
 ```
 
-## Caller-neutral portable execution successor (non-prototype-gating)
-
-### 7. fn-52 — Caller-neutral gRPC portable test plans
-
-**Depends on:** the completed fn-19 runner, fn-20 Run Evaluation, and fn-28 portable evaluator and
-resident executor proof.
-
-**Scope:** define one internal, closed, fully typed `PortableTestPlan` protobuf containing the
-bounded execution and verification programs for one exact plan; admit external plans as plan-local
-and model-compiled plans as model-bound only after independent provenance validation; execute both
-through one direct unary gRPC method over the existing bounded runner, Evidence closure, and
-portable evaluator. Lean is the first model compiler into this format, not its exclusive author.
-
-Preserve fn-28's legacy protobuf file descriptor, generated message types, HTTP contract, request
-envelope, checked fixtures, and historical acceptance byte-for-byte and operational. Version one
-supports the current runner cardinality and remains single-flight and bounded, with no plan store,
-scheduler, fleet manager, automatic retry, environment selection, production authorization,
-recovery, publication, or release policy. A generated client must prove external plan-local and
-validated model-bound behavior against disposable local execution. This internal experimental
-interface becomes the required downstream seam for deferred fn-29; production canary consumption
-does not gate fn-52.
-
-**Progress:** 3 of 6 tasks complete; next is task 4, adapting the existing runner and evaluator to
-execute typed plans.
-
 ## Complete P3 — Exploration and regression lifecycle
 
-### 8. fn-33 — Run model exploration campaigns with umpire-fuzz
+### 7. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 **Depends on:** completed fn-40's ordinary PlannerPolicy surface.
 
@@ -144,7 +119,7 @@ coverage and exhaustion honestly.
 
 **Deferred:** concurrency, leases, crash-safe campaign state, and resume.
 
-### 9. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### 8. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
 **Depends on:** fn-5's checked review-only promotion source.
 
@@ -163,7 +138,6 @@ installation.
 The remaining dependency shape is:
 
 ```text
-completed fn-28 -> fn-52 -> deferred fn-29
 completed fn-40 -> fn-33
 completed fn-5 -> fn-22
 fn-53 -> fn-55
