@@ -14,7 +14,8 @@
     "fn-28-portable-evaluation-contract-and",
     "fn-48-canonicalize-known-gaps-as-a-checked-set",
     "fn-52-caller-neutral-grpc-portable-test-plans",
-    "fn-61-simplify-the-umpire-go-execution-surface"
+    "fn-61-simplify-the-umpire-go-execution-surface",
+    "fn-64-umpire-case-runtime"
   ],
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {},
@@ -165,5 +166,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T15:32:55.718386Z"
+  "updated_at": "2026-09-04T17:37:14.583275Z"
 }
