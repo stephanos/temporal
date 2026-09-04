@@ -253,6 +253,285 @@ def redactedCleartextMutation : UncheckedEvidenceBackedTrace := {
   }] ++ literalUncheckedEvidenceBackedTrace.evidenceLinks.tail
 }
 
+private def rehashAcceptedEnvelope
+    (trace : UncheckedEvidenceBackedTrace) : UncheckedEvidenceBackedTrace := {
+  trace with
+  traceId := (behaviorFingerprintOf <|
+    trace.mappingDigest ++ ":" ++ reprStr trace.evidenceIdentities ++ ":" ++
+      reprStr trace.recordSupport ++ ":" ++ reprStr trace.trace ++ ":" ++
+      reprStr trace.evidenceLinks).render
+}
+
+private def updateFirstEvidenceLink
+    (trace : UncheckedEvidenceBackedTrace)
+    (update : EvidenceLink → EvidenceLink) : UncheckedEvidenceBackedTrace :=
+  match trace.evidenceLinks with
+  | [] => trace
+  | first :: rest => { trace with evidenceLinks := update first :: rest }
+
+private def updateFirstRecordSupport
+    (trace : UncheckedEvidenceBackedTrace)
+    (update : EvidenceRecordSupport → EvidenceRecordSupport) : UncheckedEvidenceBackedTrace :=
+  match trace.recordSupport with
+  | [] => trace
+  | first :: rest => { trace with recordSupport := update first :: rest }
+
+private def admissionDiagnostic?
+    (trace : UncheckedEvidenceBackedTrace) : Option ObservationDiagnostic :=
+  match validateEvidenceBackedTrace trace with
+  | .ok _ => none
+  | .error diagnostic => some diagnostic
+
+def noncanonicalPlanIdentityMutation : UncheckedEvidenceBackedTrace := {
+  literalUncheckedEvidenceBackedTrace with
+  checkedPlan := {
+    literalUncheckedEvidenceBackedTrace.checkedPlan with
+    canonicalMetadata := literalUncheckedEvidenceBackedTrace.checkedPlan.canonicalMetadata ++ "/forged"
+  }
+}
+
+def admissionBoundPlan : CheckedObservationPlan :=
+  (checkObservation evaluationContext {
+    evaluationDeclaration with evidenceBound := { value := 1, unit := .evidenceRecords }
+  }).toOption.get (by native_decide)
+
+def boundOverflowAdmissionMutation : UncheckedEvidenceBackedTrace :=
+  let links := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun evidenceLink => {
+    evidenceLink with
+    mappingDigest := admissionBoundPlan.behaviorFingerprint.render
+    appliedBound := admissionBoundPlan.evidenceBound
+  }
+  rehashAcceptedEnvelope {
+    literalUncheckedEvidenceBackedTrace with
+    checkedPlan := admissionBoundPlan
+    mappingDigest := admissionBoundPlan.behaviorFingerprint.render
+    appliedBound := admissionBoundPlan.evidenceBound
+    evidenceLinks := links
+  }
+
+def linkMetadataMutations : List UncheckedEvidenceBackedTrace := [
+  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with mappingId := id "test.mapping.forged"
+  },
+  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with mappingVersion := link.mappingVersion + 1
+  },
+  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with mappingDigest := link.mappingDigest ++ "/forged"
+  },
+  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with profileId := id "test.evidence.profile.forged"
+  },
+  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with profileVersion := link.profileVersion + 1
+  },
+  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with appliedBound := { value := link.appliedBound.value + 1, unit := .evidenceRecords }
+  },
+  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with evidenceIdentities := []
+  },
+  updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with meaningDigest := link.meaningDigest ++ "/forged"
+  }
+]
+
+def unconsumedIdentityMutation : UncheckedEvidenceBackedTrace := {
+  literalUncheckedEvidenceBackedTrace with
+  evidenceIdentities := literalUncheckedEvidenceBackedTrace.evidenceIdentities ++
+    [id "test.evidence.record.unconsumed"]
+}
+
+def duplicateOrderingSupportMutation : UncheckedEvidenceBackedTrace :=
+  rehashAcceptedEnvelope <| updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with orderingSupport := link.orderingSupport.head?.toList ++ link.orderingSupport
+  }
+
+def duplicateClosureSupportMutation : UncheckedEvidenceBackedTrace :=
+  rehashAcceptedEnvelope <| updateFirstEvidenceLink literalUncheckedEvidenceBackedTrace fun link => {
+    link with closureSupport := link.closureSupport.head?.toList ++ link.closureSupport
+  }
+
+def malformedRecordSupportMutation : UncheckedEvidenceBackedTrace :=
+  rehashAcceptedEnvelope <| updateFirstRecordSupport literalUncheckedEvidenceBackedTrace fun support => {
+    support with fields := support.fields.head?.toList ++ support.fields
+  }
+
+def recordSupportMutations : List UncheckedEvidenceBackedTrace := [
+  {
+    literalUncheckedEvidenceBackedTrace with
+    recordSupport := literalUncheckedEvidenceBackedTrace.recordSupport.tail
+  },
+  rehashAcceptedEnvelope <| updateFirstRecordSupport literalUncheckedEvidenceBackedTrace fun support => {
+    support with origin := some { source := id "test.evidence.source.forged", ordinal := 0 }
+  },
+  malformedRecordSupportMutation,
+  rehashAcceptedEnvelope <| updateFirstRecordSupport literalUncheckedEvidenceBackedTrace fun support => {
+    support with fields := match support.fields with
+      | [] => []
+      | first :: rest => { first with valueType := .natural } :: rest
+  },
+  rehashAcceptedEnvelope <| updateFirstRecordSupport literalUncheckedEvidenceBackedTrace fun support => {
+    support with fields := match support.fields with
+      | [] => []
+      | first :: rest => { first with evidence := .raw "forged" } :: rest
+  },
+  rehashAcceptedEnvelope <| updateFirstRecordSupport literalUncheckedEvidenceBackedTrace fun support => {
+    support with fields := support.fields.tail
+  }
+]
+
+def digestPolicyAdmissionMutation : UncheckedEvidenceBackedTrace :=
+  rehashAcceptedEnvelope {
+    literalUncheckedEvidenceBackedTrace with
+    evidenceLinks := literalUncheckedEvidenceBackedTrace.evidenceLinks.map fun link =>
+      if link.ruleId == digestRule.id then {
+        link with appliedDispositions := link.appliedDispositions.map fun applied =>
+          if applied.field.field == hashedField then {
+            applied with evidence := .digestToken (id "test.digest.forged") "forged"
+          } else applied
+      } else link
+  }
+
+def expressionAdmissionMutation : UncheckedEvidenceBackedTrace :=
+  rehashAcceptedEnvelope {
+    literalUncheckedEvidenceBackedTrace with trace := {
+      literalUncheckedEvidenceBackedTrace.trace with initialState := {
+        literalUncheckedEvidenceBackedTrace.trace.initialState with value := "tampered"
+      }
+    }
+  }
+
+def traceIdentityMutation : UncheckedEvidenceBackedTrace := {
+  literalUncheckedEvidenceBackedTrace with
+  traceId := literalUncheckedEvidenceBackedTrace.traceId ++ "/forged"
+}
+
+/-- Every accepted-envelope mutation fails with its complete admission diagnostic and no trace. -/
+example :
+    ([noncanonicalPlanIdentityMutation, boundOverflowAdmissionMutation,
+        missingCoordinateMutation] ++ linkMetadataMutations ++ [
+        unconsumedIdentityMutation,
+        duplicateOrderingSupportMutation,
+        duplicateClosureSupportMutation
+      ] ++ recordSupportMutations ++ [
+        redactedCleartextMutation,
+        digestPolicyAdmissionMutation,
+        expressionAdmissionMutation,
+        traceIdentityMutation
+      ]).map admissionDiagnostic? = [
+      some { kind := .inconsistentEvidenceLink, planId := evaluationDeclaration.id },
+      some {
+        kind := .evidenceBoundExhausted
+        planId := evaluationDeclaration.id
+        limit := some { value := 1, unit := .evidenceRecords }
+        observedCount := some 2
+      },
+      some { kind := .absentModelCoordinate, planId := evaluationDeclaration.id },
+    ] ++ List.replicate 8 (some {
+        kind := .inconsistentEvidenceLink
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialRule.id]
+      }) ++ [
+      some { kind := .unconsumedReference, planId := evaluationDeclaration.id },
+      some {
+        kind := .missingOrderSupport
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialRule.id]
+      },
+      some {
+        kind := .missingClosureSupport
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [eventKind]
+      },
+      some { kind := .unconsumedReference, planId := evaluationDeclaration.id },
+      some {
+        kind := .missingOrderSupport
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialEvidenceId]
+      },
+      some {
+        kind := .contradictoryFact
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialEvidenceId]
+      },
+      some {
+        kind := .normalizationFailure
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialEvidenceId, nameField]
+      },
+      some {
+        kind := .inconsistentEvidenceLink
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialEvidenceId, nameField]
+      },
+      some {
+        kind := .inconsistentEvidenceLink
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialRule.id, nameField]
+      },
+      some {
+        kind := .redactedValueLeakage
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialRule.id, secretField]
+      },
+      some {
+        kind := .digestPolicyMismatch
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [digestRule.id, hashedField, id "test.digest.forged"]
+      },
+      some {
+        kind := .inconsistentEvidenceLink
+        planId := evaluationDeclaration.id
+        relatedDefinitionIds := [initialRule.id]
+      },
+      some { kind := .inconsistentEvidenceLink, planId := evaluationDeclaration.id }
+    ] := by
+  native_decide
+
+/-- Competing envelope failures retain plan, bound, coordinate, structural, and field precedence. -/
+example : [
+    admissionDiagnostic? {
+      noncanonicalPlanIdentityMutation with
+      evidenceLinks := noncanonicalPlanIdentityMutation.evidenceLinks.tail
+    },
+    admissionDiagnostic? {
+      boundOverflowAdmissionMutation with
+      evidenceLinks := boundOverflowAdmissionMutation.evidenceLinks.tail
+    },
+    admissionDiagnostic? <| updateFirstEvidenceLink missingCoordinateMutation fun link => {
+      link with mappingVersion := link.mappingVersion + 1
+    },
+    admissionDiagnostic? {
+      duplicateOrderingSupportMutation with
+      recordSupport := malformedRecordSupportMutation.recordSupport
+    },
+    admissionDiagnostic? {
+      malformedRecordSupportMutation with
+      traceId := traceIdentityMutation.traceId
+    }
+  ] = [
+    some { kind := .inconsistentEvidenceLink, planId := evaluationDeclaration.id },
+    some {
+      kind := .evidenceBoundExhausted
+      planId := evaluationDeclaration.id
+      limit := some { value := 1, unit := .evidenceRecords }
+      observedCount := some 2
+    },
+    some { kind := .absentModelCoordinate, planId := evaluationDeclaration.id },
+    some {
+      kind := .missingOrderSupport
+      planId := evaluationDeclaration.id
+      relatedDefinitionIds := [initialRule.id]
+    },
+    some {
+      kind := .contradictoryFact
+      planId := evaluationDeclaration.id
+      relatedDefinitionIds := [initialEvidenceId]
+    }
+  ] := by
+  native_decide
+
 /-- Missing, duplicate, shifted, unordered, and cleartext-tainted wrappers fail at named boundaries. -/
 example : [
     diagnosticKindOf (validateEvidenceBackedTrace missingCoordinateMutation),

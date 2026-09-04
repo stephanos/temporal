@@ -33,6 +33,9 @@ import Umpire.Observation
 #check Umpire.EvidenceLink
 #check Umpire.EvidenceLink.coordinate
 #check Umpire.UncheckedEvidenceBackedTrace
+#synth BEq Umpire.UncheckedEvidenceBackedTrace
+#synth DecidableEq Umpire.UncheckedEvidenceBackedTrace
+#synth Repr Umpire.UncheckedEvidenceBackedTrace
 #synth BEq Umpire.EvidenceBundle
 #synth DecidableEq Umpire.EvidenceBundle
 #synth Repr Umpire.EvidenceBundle
@@ -40,6 +43,22 @@ import Umpire.Observation
 #synth DecidableEq Umpire.ObservationDiagnostic
 #synth Repr Umpire.ObservationDiagnostic
 #check Umpire.EvidenceBackedTrace
+#check Umpire.EvidenceBackedTrace.traceId
+#check Umpire.EvidenceBackedTrace.checkedPlan
+#check Umpire.EvidenceBackedTrace.mappingId
+#check Umpire.EvidenceBackedTrace.mappingVersion
+#check Umpire.EvidenceBackedTrace.mappingDigest
+#check Umpire.EvidenceBackedTrace.source
+#check Umpire.EvidenceBackedTrace.profileId
+#check Umpire.EvidenceBackedTrace.profileVersion
+#check Umpire.EvidenceBackedTrace.sourceClosed
+#check Umpire.EvidenceBackedTrace.vocabulary
+#check Umpire.EvidenceBackedTrace.dispositions
+#check Umpire.EvidenceBackedTrace.appliedBound
+#check Umpire.EvidenceBackedTrace.evidenceIdentities
+#check Umpire.EvidenceBackedTrace.recordSupport
+#check Umpire.EvidenceBackedTrace.trace
+#check Umpire.EvidenceBackedTrace.evidenceLinks
 #synth BEq Umpire.EvidenceBackedTrace
 #synth DecidableEq Umpire.EvidenceBackedTrace
 #synth Repr Umpire.EvidenceBackedTrace
@@ -79,6 +98,16 @@ def replaceAcceptedTraceId
 }
 
 #check Umpire.ObservationResult
+#check Umpire.ObservationResult.accepted
+#check Umpire.ObservationResult.unknown
+#check Umpire.ObservationResult.conflict
+#check Umpire.ObservationResult.unsupported
+#check Umpire.ObservationResult.status
+#check Umpire.ObservationResult.diagnostic?
+#synth BEq Umpire.ObservationResult
+#synth DecidableEq Umpire.ObservationResult
+#synth Repr Umpire.ObservationResult
+#check Umpire.validateEvidenceBackedTrace
 #check Umpire.evaluateEvidence
 #check Umpire.SemanticPropertyVerdict
 #check Umpire.evaluateObservationProperty
