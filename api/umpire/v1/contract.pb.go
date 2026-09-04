@@ -539,7 +539,7 @@ func (x *ContractTransition) GetCaptureAssignments() []*ContractCaptureAssignmen
 	return nil
 }
 
-// ContractHorizon closes bounded liveness only at a recorded timeout or Run-closure coordinate.
+// ContractHorizon checks expiry at every recorded event's elapsed coordinate before transitions.
 type ContractHorizon struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	ElapsedMilliseconds int64                  `protobuf:"varint,1,opt,name=elapsed_milliseconds,json=elapsedMilliseconds,proto3" json:"elapsed_milliseconds,omitempty"`
