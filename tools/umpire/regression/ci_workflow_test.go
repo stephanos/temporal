@@ -116,20 +116,9 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 	normalizedDryRun := strings.Join(strings.Fields(strings.ReplaceAll(string(dryRun), "\\\n", " ")), " ")
 	require.Equal(t, 1, strings.Count(normalizedDryRun, packageLocalTestCommand))
 	require.Equal(t, 1, strings.Count(normalizedDryRun, liveTestCommand))
-	for _, inheritedFailure := range []string{
-		"TestUmpire2TestSuite",
-		"TestUmpire2TestSuite/TestPlanAndDriveKitchenSinkNexusOperation",
-		"TestUmpire2TestSuite/TestPlanAndDriveNexusOperationCHASM",
-		"TestUmpire2TestSuite/TestProbeNexusDegraded",
-		"TestUmpire2TestSuite/TestProbeNexusExploration",
-		"TestUmpire2TestSuite/TestProbeNexusFlagged",
-		"TestUmpire2TestSuite/TestProbeNexusRandomized",
-		"TestUmpire2TestSuite/TestProbeNexusResilience",
-		"TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram",
-	} {
-		require.Equal(t, 1, strings.Count(normalizedDryRun, "'"+inheritedFailure+"'"))
-	}
-	require.Contains(t, normalizedDryRun, "Full live suite introduced no failures beyond the recorded Umpire2/Umpire3 baseline.")
+	require.NotContains(t, normalizedDryRun, "Expected inherited Umpire failures:")
+	require.Contains(t, normalizedDryRun, "Observed non-Umpire2/Umpire3 failures:")
+	require.Contains(t, normalizedDryRun, "Full live suite introduced no Umpire4 or unclassified failures.")
 	require.Contains(t, normalizedDryRun, "--output \"$temporary/tests\"")
 	require.Contains(t, normalizedDryRun, "diff -u "+generatedGoTestPath)
 }
