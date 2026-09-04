@@ -66,6 +66,10 @@ make lint-model
 make lint-code GOLANGCI_LINT_FIX=false
 ```
 
+The accepted pre-edit Go lint baseline is 1,381 findings across the existing branch. Verification
+must not exceed that global count, and `make lint-code GOLANGCI_LINT_FIX=false` with
+`GOLANGCI_LINT_BASE_REV` set to this task's base commit must report zero diff-scoped findings.
+
 ## Acceptance Criteria
 <!-- scope: both -->
 
