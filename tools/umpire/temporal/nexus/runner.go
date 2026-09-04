@@ -1,15 +1,28 @@
 package nexus
 
 import (
+	"errors"
+	"reflect"
+
 	"go.temporal.io/server/tools/umpire/artifact"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
 	"go.temporal.io/server/tools/umpire/temporal/local"
 )
 
 // Binding is the sole current System-owned authority/program adapter available
-// to the generated local runner. Its zero value is complete and accepts no
-// endpoint, namespace, credential, executable, or semantic override.
-type Binding struct{}
+// to the generated local runner. Explicit construction supplies its Temporal
+// authority without accepting a semantic override.
+type Binding struct {
+	factory umpireruntime.EnvironmentFactory
+}
+
+// NewBinding binds the caller-supplied Temporal environment factory.
+func NewBinding(factory umpireruntime.EnvironmentFactory) (Binding, error) {
+	if isNilEnvironmentFactory(factory) {
+		return Binding{}, errors.New("nexus binding requires an environment factory")
+	}
+	return Binding{factory: factory}, nil
+}
 
 // CheckRequest constructs the exact model-owned caller-closure program and
 // binds it to the already-admitted two-member input before any runtime IO.
@@ -20,9 +33,21 @@ func (Binding) CheckRequest(
 	return CheckRequest(admitted, runIdentity)
 }
 
-// EnvironmentFactory returns the invocation-owned loopback authority.
-func (Binding) EnvironmentFactory() umpireruntime.EnvironmentFactory {
+// EnvironmentFactory returns the supplied authority. The fallback remains only
+// while callers migrate to NewBinding.
+func (b Binding) EnvironmentFactory() umpireruntime.EnvironmentFactory {
+	if !isNilEnvironmentFactory(b.factory) {
+		return b.factory
+	}
 	return local.NewFactory()
+}
+
+func isNilEnvironmentFactory(factory umpireruntime.EnvironmentFactory) bool {
+	if factory == nil {
+		return true
+	}
+	value := reflect.ValueOf(factory)
+	return value.Kind() == reflect.Pointer && value.IsNil()
 }
 
 // NewParticipant constructs the one checked SDK participant.

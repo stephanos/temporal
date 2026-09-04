@@ -19,7 +19,6 @@ import (
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/sdk/client"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
-	"go.temporal.io/server/tests/testcore"
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/executor"
 	"go.temporal.io/server/tools/umpire/executorhttp"
@@ -30,16 +29,10 @@ import (
 )
 
 func TestUmpirePortableCanaryExecutor(t *testing.T) {
-	env := testcore.NewEnv(t, testcore.WithInMemorySQLitePersistence())
+	env, attachedFactory := newUmpireTestEnvironment(t)
 	noToolchainPath := t.TempDir()
 	t.Setenv("PATH", noToolchainPath)
 
-	attachedFactory, err := local.NewAttachedFactory(testEnvAuthority{
-		client:    env.SdkClient(),
-		namespace: env.Namespace().String(),
-		endpoint:  env.FrontendGRPCAddress(),
-	})
-	require.NoError(t, err)
 	factory := &recordingEnvironmentFactory{delegate: attachedFactory}
 	adapter := &recordingNexusAdapter{factory: factory}
 	server := httptest.NewServer(executorhttp.New(executor.New(adapter)))
@@ -113,7 +106,7 @@ func TestUmpirePortableCanaryExecutor(t *testing.T) {
 
 	workerEndpoints := make([]string, 0, len(adapter.requests))
 	for _, request := range adapter.requests {
-		_, err = env.SdkClient().DescribeWorkflowExecution(
+		_, err := env.SdkClient().DescribeWorkflowExecution(
 			env.Context(), workflowCorrelation(t, request), "",
 		)
 		require.NoError(t, err, "the resident executor must use the disposable NewEnv cluster")
@@ -123,7 +116,7 @@ func TestUmpirePortableCanaryExecutor(t *testing.T) {
 	}
 	require.NotEqual(t, workerEndpoints[0], workerEndpoints[1])
 	for _, tool := range []string{"go", "lake", "lean", "make", "mise", "sh"} {
-		_, err = exec.LookPath(tool)
+		_, err := exec.LookPath(tool)
 		require.Error(t, err, "the tagged runtime must not have a toolchain executable available")
 	}
 	require.Equal(t, noToolchainPath, os.Getenv("PATH"))
@@ -297,16 +290,6 @@ func workflowCorrelation(t *testing.T, request umpireruntime.CheckedRunRequest) 
 	require.FailNow(t, "checked request has no workflow correlation")
 	return ""
 }
-
-type testEnvAuthority struct {
-	client    client.Client
-	namespace string
-	endpoint  string
-}
-
-func (a testEnvAuthority) SDKClient() client.Client { return a.client }
-func (a testEnvAuthority) Namespace() string        { return a.namespace }
-func (a testEnvAuthority) Endpoint() string         { return a.endpoint }
 
 func executePortableFixture(
 	t *testing.T,

@@ -13,9 +13,10 @@ import (
 )
 
 func TestRenderGeneratedRunnerTestMatchesTheCheckedInOrdinaryGoTest(t *testing.T) {
-	packageRoot := filepath.Join("..", "..", "temporal", "nexus")
+	fixtureRoot := filepath.Join("..", "..", "temporal", "nexus")
+	packageRoot := filepath.Join("..", "..", "..", "..", "tests")
 	manifestPath := filepath.Join(
-		packageRoot,
+		fixtureRoot,
 		"testdata",
 		"caller-closure-input-set",
 		"manifest.json",
@@ -25,16 +26,17 @@ func TestRenderGeneratedRunnerTestMatchesTheCheckedInOrdinaryGoTest(t *testing.T
 
 	generated, err := renderGeneratedTest(input)
 	require.NoError(t, err)
-	require.Contains(t, string(generated), "context.WithTimeout(context.Background(), 315*time.Second)")
+	require.Contains(t, string(generated), "context.WithTimeout(env.Context(), 315*time.Second)")
 	want, err := os.ReadFile(filepath.Join(packageRoot, generatedTestFileName))
 	require.NoError(t, err)
 	require.Equal(t, want, generated)
 }
 
 func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.T) {
-	packageRoot := filepath.Join("..", "..", "temporal", "nexus")
+	fixtureRoot := filepath.Join("..", "..", "temporal", "nexus")
+	packageRoot := filepath.Join("..", "..", "..", "..", "tests")
 	manifestPath := filepath.Join(
-		packageRoot,
+		fixtureRoot,
 		"testdata",
 		"caller-closure-input-set",
 		"manifest.json",
@@ -45,7 +47,13 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 	generated, err := renderGeneratedTest(input)
 	require.NoError(t, err)
 	encoded := string(generated)
-	require.Contains(t, encoded, "func TestHermeticCIPortability(t *testing.T)")
+	require.Contains(t, encoded, "//go:build test_dep && integration")
+	require.Contains(t, encoded, "package tests")
+	require.Contains(t, encoded, "func TestUmpireCallerClosurePortability(t *testing.T)")
+	require.Contains(t, encoded, `loadUmpireCallerClosureInputSet(t, "caller-closure-input-set")`)
+	require.Contains(t, encoded, "newUmpireNexusBinding(t, factory)")
+	require.Contains(t, encoded, `filepath.Abs("..")`)
+	require.NotContains(t, encoded, "go:embed")
 	require.Contains(t, encoded, "runevaluation.CheckSubject")
 	require.Contains(t, encoded, "ExperimentSHA256:")
 	require.Contains(t, encoded, `"sha256:528c23e7807ee9833af65baeb32a8ec2d38ffacc1fae829600692d3d3eb93fd1"`)
@@ -68,7 +76,7 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 			"TestGeneratedWorkflowNexusQueryExactActionCallerClosureExecutesLocally",
 			function.Name.Name,
 		)
-		if function.Name.Name == "TestHermeticCIPortability" {
+		if function.Name.Name == "TestUmpireCallerClosurePortability" {
 			portabilityTest = function
 		}
 		if function.Name.Name == "runCallerClosurePath" {
@@ -172,9 +180,13 @@ func TestRenderGeneratedRunnerTestPinsHermeticSubjectBeforeRuntimeIO(t *testing.
 }
 
 func TestRunRegeneratesOnlyTheDeterministicGoTest(t *testing.T) {
-	packageRoot := filepath.Join(hostTempDir(t), "nexus")
-	fixtureRoot := filepath.Join(packageRoot, "testdata", "caller-closure-input-set")
+	root := hostTempDir(t)
+	packageRoot := filepath.Join(root, "tests")
+	fixtureRoot := filepath.Join(
+		root, "tools", "umpire", "temporal", "nexus", "testdata", "caller-closure-input-set",
+	)
 	copyInputSet(t, fixtureRoot)
+	require.NoError(t, os.MkdirAll(packageRoot, 0o755))
 	manifestPath := filepath.Join(fixtureRoot, "manifest.json")
 
 	require.NoError(t, run([]string{manifestPath, "--output", packageRoot}))
@@ -187,35 +199,8 @@ func TestRunRegeneratesOnlyTheDeterministicGoTest(t *testing.T) {
 
 	entries, err := os.ReadDir(packageRoot)
 	require.NoError(t, err)
-	require.Len(t, entries, 2)
+	require.Len(t, entries, 1)
 	require.Equal(t, generatedTestFileName, entries[0].Name())
-	require.Equal(t, "testdata", entries[1].Name())
-}
-
-func TestRenderGeneratedRunnerTestQuotesWhitespaceInEmbedPaths(t *testing.T) {
-	packageRoot := filepath.Join(hostTempDir(t), "nexus")
-	fixtureRoot := filepath.Join(packageRoot, "fixture with space")
-	copyInputSet(t, fixtureRoot)
-	input, err := loadGenerationInput(filepath.Join(fixtureRoot, "manifest.json"), packageRoot)
-	require.NoError(t, err)
-
-	generated, err := renderGeneratedTest(input)
-	require.NoError(t, err)
-	require.Contains(t, string(generated), `//go:embed "fixture with space/manifest.json"`)
-}
-
-func TestValidateEmbedRootRejectsPatternMetacharactersAndControls(t *testing.T) {
-	for _, embedRoot := range []string{
-		"fixture*",
-		"fixture?",
-		"fixture[one]",
-		`fixture\one`,
-		"fixture\nnext",
-	} {
-		t.Run(strings.ReplaceAll(embedRoot, "/", "-"), func(t *testing.T) {
-			require.ErrorContains(t, validateEmbedRoot(embedRoot), "unsafe generated test fixture path")
-		})
-	}
 }
 
 func hostTempDir(t *testing.T) string {

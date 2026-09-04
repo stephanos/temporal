@@ -17,12 +17,10 @@ import (
 	"github.com/stretchr/testify/require"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/common/testing/await"
-	"go.temporal.io/server/tests/testcore"
 	"go.temporal.io/server/tools/umpire/artifact"
 	"go.temporal.io/server/tools/umpire/executor"
 	"go.temporal.io/server/tools/umpire/executorgrpc"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
-	"go.temporal.io/server/tools/umpire/temporal/local"
 	"go.temporal.io/server/tools/umpire/temporal/nexus"
 	"go.temporal.io/server/tools/umpire/testplan"
 	"google.golang.org/grpc"
@@ -33,17 +31,13 @@ import (
 )
 
 func TestUmpirePortableGRPCExecutor(t *testing.T) {
-	env := testcore.NewEnv(t, testcore.WithInMemorySQLitePersistence())
+	env, attachedFactory := newUmpireTestEnvironment(t)
 	noToolchainPath := t.TempDir()
 	t.Setenv("PATH", noToolchainPath)
 
 	normal := loadPortableGRPCPlan(t, "normal")
 	duplicate := loadPortableGRPCPlan(t, "duplicate-delivery")
 	external := externalPortableGRPCPlan(t, normal)
-	attachedFactory, err := local.NewAttachedFactory(testEnvAuthority{
-		client: env.SdkClient(), namespace: env.Namespace().String(), endpoint: env.FrontendGRPCAddress(),
-	})
-	require.NoError(t, err)
 	factory := &recordingEnvironmentFactory{delegate: attachedFactory}
 	adapter := &portableGRPCTestAdapter{factory: factory}
 	resident := &portableGRPCCompletionExecutor{
