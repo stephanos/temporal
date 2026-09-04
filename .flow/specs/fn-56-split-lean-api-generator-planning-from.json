@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-56-split-lean-api-generator-planning-from",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-04T10:02:05.143595Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-04T10:05:28.655458Z",
   "created_at": "2026-09-03T19:12:30.816198Z",
   "default_impl": null,
   "default_review": null,
@@ -242,13 +242,57 @@
       "timestamp": "2026-09-04T10:02:05.119661Z",
       "tool_calls": 22,
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "62a7dc7d519f795158d3daa970165459fc8b4b69da99ca568ae1caa1ff820dba",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-754bc58d66f51af0b8131401a5f06160",
+            "classification": "introduced",
+            "findingId": "finding-754bc58d66f51af0b8131401a5f06160",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "65067cfcbc14d39e57758b2632959280198112a9",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 3856,
+      "output_sha256": "0901d99fdb889ccf043c6635c13bdd3c8bf1b65391fb7fb8aeeb9a949b06eb30",
+      "reservation_id": "fe3978097fe943f78192885e209dc9b7",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-04T10:05:28.649228Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-56-split-lean-api-generator-planning-from.1": 1,
     "impl:fn-56-split-lean-api-generator-planning-from.2": 1,
     "plan": 2,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -272,5 +316,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T10:02:37.143138Z"
+  "updated_at": "2026-09-04T10:05:28.656360Z"
 }
