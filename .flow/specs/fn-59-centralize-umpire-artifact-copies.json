@@ -247,7 +247,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-59-centralize-umpire-artifact-copies.md",
-  "status": "open",
+  "status": "done",
   "title": "Centralize Umpire artifact copies",
   "tracker": {
     "baseHashFlow": null,
@@ -260,5 +260,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T18:34:17.673291Z"
+  "updated_at": "2026-09-04T18:35:22.761243Z"
 }
