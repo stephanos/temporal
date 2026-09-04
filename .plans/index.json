@@ -946,11 +946,11 @@
     {
       "id": "fn-57-partition-the-observation-authoring",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": []
     },
     {
