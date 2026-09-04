@@ -1,0 +1,46 @@
+{
+  "branch_name": "fn-62-make-ordinary-temporal-model-authoring",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T15:41:08.406204Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-58-partition-the-property-language"
+  ],
+  "id": "fn-62-make-ordinary-temporal-model-authoring",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "f4c38ac186c94a25a4b0a6659e9c7968": {
+      "artifact_sha256": "ad71bd62926f73e7f0e56ef890d57059a0d9b9fb0d1b84e0b86b0906268e8e65",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
+  "spec_path": ".flow/specs/fn-62-make-ordinary-temporal-model-authoring.md",
+  "status": "open",
+  "title": "Make ordinary Temporal model authoring approachable",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T15:42:17.403825Z"
+}
