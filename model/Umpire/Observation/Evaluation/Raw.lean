@@ -906,4 +906,3 @@ def evaluateUnchecked
 end Observation.Internal
 
 end Umpire
-
