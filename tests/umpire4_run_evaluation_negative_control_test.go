@@ -109,8 +109,8 @@ func requirePairedLiveNexusNegativeControl(t *testing.T, repositoryRoot string) 
 	adapter := newUmpireNexusBinding(t, factory)
 
 	normal := runLiveNexusControl(
-		t,
 		env.Context(),
+		t,
 		repositoryRoot,
 		normalInput,
 		callerClosureInputBinding,
@@ -120,8 +120,8 @@ func requirePairedLiveNexusNegativeControl(t *testing.T, repositoryRoot string) 
 		adapter,
 	)
 	faulted := runLiveNexusControl(
-		t,
 		env.Context(),
+		t,
 		repositoryRoot,
 		faultedInput,
 		callerClosureDuplicateDeliveryBinding(),
@@ -192,8 +192,8 @@ func requireCrossedLiveBindingsFailBeforeExecution(
 }
 
 func runLiveNexusControl(
-	t *testing.T,
 	baseContext context.Context,
+	t *testing.T,
 	repositoryRoot string,
 	input artifact.AdmittedSet,
 	binding runner.InputBinding,
@@ -401,6 +401,7 @@ func requireLiveNegativeControlResult(
 			requestedIndexes = append(requestedIndexes, index)
 		case "temporal.history.NexusOperationCancelRequestCompleted":
 			completedIndexes = append(completedIndexes, index)
+		default:
 		}
 		if _, ok := naturalFields[index][umpireruntime.EvidenceFieldCancellationCallbackCount]; ok && fact.KindDefinitionID == umpireruntime.EvidenceKindParticipantCommand {
 			callbackIndexes = append(callbackIndexes, index)
