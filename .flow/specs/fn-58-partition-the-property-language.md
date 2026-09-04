@@ -60,8 +60,13 @@ cd model && mise exec -- lake build UmpireTests Temporal TemporalModelTests Temp
 make umpire-build-model
 make umpire-check-regression
 make lint-model
-make lint-code
+make lint-code GOLANGCI_LINT_FIX=false
 ```
+
+The accepted pre-edit Go lint baseline is 1,381 findings across the existing branch. Verification
+must not exceed that global count, and `make lint-code GOLANGCI_LINT_FIX=false` with
+`GOLANGCI_LINT_BASE_REV` set to each task's base commit must report zero diff-scoped findings. The
+unchanged `tools/umpire/runtime/errors.go:60` errortype finding remains explicitly waived.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -69,7 +74,7 @@ make lint-code
 - **R1:** Language, Check, Trace, and Evaluation compile as one acyclic downward internal module chain, while `import Umpire.Property` exposes every existing public declaration with unchanged names and types and continues excluding Behavior and Query authoring declarations. Errors: a missing facade symbol, newly exposed language, direct or transitive Temporal dependency, consumer migration to a child module, package-gate drift, or import cycle fails completion; there is no runtime error surface.
 - **R2:** Property checking retains exact validation order, typed error fields and rendering, capability view, Limit resolution, canonical metadata, source behavior, and Behavior Fingerprint. Errors: every existing Property error kind retains its kind, owner, source path, offending value, related identities, and precedence for malformed or duplicate IDs, unknown or wrong-kind references, missing or unknown capabilities, duplicate profiles, invalid clauses, fields or units, missing named Limits, and missing logical time; failure returns no partial checked property.
 - **R3:** Capability filtering, coordinate compatibility, logical-time fail-closed behavior, all clause meanings, executable/denotational agreement, trace spans, evaluated Limits, and semantic provenance remain unchanged. Errors and boundaries: hidden values, empty matches or triggers, missing, malformed, or regressing logical time, same-position and strict ordering, inclusive bounded windows, and zero-distance eventuality retain current results and evidence; no partial semantic success is introduced.
-- **R4:** Existing comments and docstrings move intact, architecture documentation describes the internal ownership while preserving public guidance, and focused plus aggregate builds, regression, lint, facade, artifact, and trust checks pass. Errors: lost comment, changed theorem statement or axiom inventory, generated or artifact byte drift, warning, import-boundary violation, stale documentation, new DSL or dependency, or lint failure blocks completion.
+- **R4:** Existing comments and docstrings move intact, architecture documentation describes the internal ownership while preserving public guidance, and focused plus aggregate builds, regression, lint, facade, artifact, and trust checks pass. Errors: lost comment, changed theorem statement or axiom inventory, generated or artifact byte drift, warning, import-boundary violation, stale documentation, new DSL or dependency, a new lint finding, or an increase above the approved inherited exact 1,381-finding Go-lint baseline blocks completion; task-diff-scoped Go lint must report zero findings.
 
 ## Early proof point
 
