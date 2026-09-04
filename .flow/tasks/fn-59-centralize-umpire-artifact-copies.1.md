@@ -48,9 +48,12 @@ This is a pure value-copy seam over schema-valid artifacts, not validation or no
 - [ ] Focused tests, formatting, and code-lint verification complete with no task-scoped regressions.
 
 ## Done summary
-TBD
+Added four root-oriented artifact document copy operations backed by private type-aware helpers, preserving nilness, ordering, scalar values, and independent storage across the complete mutable Experiment/plan, RuntimeConfiguration, ExperimentRun, RawEvidence, provenance, and Known Gap graph. Direct two-way mutation tests cover every R2 descendant family and admitted Raw Evidence scalar type; full tests, aggregate regression, formatting, scoped vet, and scoped lint passed, while repository `make lint-code` remains inherited-red only on preserved user-owned `tools/umpire1/monitor_test.go` and reports zero task-scoped findings.
 
+Baseline exceptions: the initial focused Quick command encountered the inherited macOS `/var` symlink temp-path issue and passed with a physical TMPDIR; the pre-edit repository lint baseline contained 1,374 existing findings. Gate receipts were non-warrantable because unrelated user/concurrent changes kept the worktree dirty; those paths were preserved and excluded from the task commit.
+
+stage: impl-review - ran [2026-09-04T17:28:46Z..2026-09-04T17:30:47Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fdc81036b4fe8c7754a5af436a96c713c326ee8d
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2, go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2 ./tools/umpire/artifact ./tools/umpire/runtime, make umpire-check-regression, make fmt-imports, make lint-code (inherited red: preserved user-owned tools/umpire1/monitor_test.go has undefined v1; zero task-scoped findings), baseline: red (initial focused Quick command hit inherited macOS /var symlink temp-path failure; passed after physical TMPDIR remediation), baseline: red (make lint-code reported 1374 pre-existing findings before task edits), gate receipts unavailable: preserved unrelated dirty-tree paths made receipts non-warrantable
 - PRs:
