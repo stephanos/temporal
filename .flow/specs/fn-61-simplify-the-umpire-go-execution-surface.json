@@ -1,0 +1,48 @@
+{
+  "branch_name": "fn-61-simplify-the-umpire-go-execution-surface",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-04T15:32:46.513388Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-52-caller-neutral-grpc-portable-test-plans",
+    "fn-59-centralize-umpire-artifact-copies",
+    "fn-60-deepen-authored-lean-canonical-json"
+  ],
+  "id": "fn-61-simplify-the-umpire-go-execution-surface",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "80e480ced8de4b189add4dc24b152799": {
+      "artifact_sha256": "df049bb9f9cbed352862a26a1e469cc3a2e1f21046beaedb2d9f29296916b675",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
+  "spec_path": ".flow/specs/fn-61-simplify-the-umpire-go-execution-surface.md",
+  "status": "open",
+  "title": "Simplify the Umpire Go execution surface",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T15:33:49.642276Z"
+}

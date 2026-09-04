@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T15:32:59.849414Z",
+  "depends_on": [
+    "fn-61-simplify-the-umpire-go-execution-surface.1"
+  ],
+  "id": "fn-61-simplify-the-umpire-go-execution-surface.2",
+  "priority": null,
+  "spec": "fn-61-simplify-the-umpire-go-execution-surface",
+  "spec_path": ".flow/tasks/fn-61-simplify-the-umpire-go-execution-surface.2.md",
+  "status": "todo",
+  "title": "Migrate generated and end-to-end callers to portable plans",
+  "updated_at": "2026-09-04T15:32:59.849414Z"
+}

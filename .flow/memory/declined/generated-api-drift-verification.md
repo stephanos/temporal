@@ -13,3 +13,5 @@ The generator is intentionally generation-only for now. Its focused and golden t
 - 2026-08-25 — Requested the next C5 Go-test/documentation projection spec; generated Lean API drift verification and GitHub Actions coverage remain out of scope.
 - 2026-08-26 — Requested a code vocabulary rewire; generated API drift verification, CI coverage, and generated-file changes remain out of scope.
 - 2026-08-26 — Chose a hard vocabulary cutover. Generated API drift verification and new CI coverage remain declined, but existing checked-in regression views and fixtures must be regenerated when the v2 artifact schema replaces v1; this supersedes the prior generated-file exclusion.
+- 2026-09-04 — Planned a general Lean `model/` cleanup; generated Lean API/proto/generator drift verification and CI coverage remain out of scope.
+- 2026-09-04 — Planned model/Temporal authoring-experience improvements; broad generated Lean API drift verification and CI coverage remain declined and outside scope.

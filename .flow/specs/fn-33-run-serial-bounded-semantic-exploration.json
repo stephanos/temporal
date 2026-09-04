@@ -13,7 +13,8 @@
     "fn-20-local-execution-semantic-conformance",
     "fn-37-hard-cut-umpire-vocabulary-and-current",
     "fn-47-generate-umpire-semantic-outcome-and",
-    "fn-40-centralize-plannerpolicy-constructors"
+    "fn-40-centralize-plannerpolicy-constructors",
+    "fn-61-simplify-the-umpire-go-execution-surface"
   ],
   "id": "fn-33-run-serial-bounded-semantic-exploration",
   "impl_review_rounds": {},
@@ -740,5 +741,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T11:12:31.101197Z"
+  "updated_at": "2026-09-04T15:32:56.061944Z"
 }

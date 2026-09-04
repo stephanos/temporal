@@ -31,9 +31,12 @@ not additional hard dependencies.
 
 ## Refactoring and cleanup queue (non-prototype-gating)
 
-This spec preserves public behavior while decomposing the remaining implementation hotspot. It
-builds on completed cleanup work rather than reopening its semantics and must refresh shared
-architecture-document anchors in its final documentation task.
+These specs preserve public behavior while deepening remaining implementation hotspots. They build
+on completed cleanup work rather than reopening its semantics. The Lean Property partition and
+canonical-JSON cleanup both refresh shared architecture-document anchors; if they run concurrently,
+fn-60's final documentation task follows fn-58's final documentation task. Their production file
+surfaces remain disjoint because fn-60 excludes `Umpire.Property`. The Go artifact-copy cleanup is
+independent and changes no user-facing documentation.
 
 ### 1. fn-58 — Partition the Property language implementation
 
@@ -44,9 +47,33 @@ trace projection, and clause evaluation into an acyclic internal module chain be
 `Umpire.Property` facade. Preserve all Property errors, canonical identity, Limits, clause meaning,
 agreement theorems, fingerprints, trace semantics, and trust inventories.
 
+### 2. fn-59 — Centralize Umpire artifact copies
+
+**Depends on:** completed fn-52 artifact admission and runtime contracts; no open spec dependency.
+
+**Scope:** make the internal artifact-model package the single defensive-copy authority for the
+schema-valid artifact graph, then migrate artifact admission and runtime output to that small
+root-oriented interface. Preserve copy-on-input and copy-on-output isolation, nil and empty values,
+admitted Raw Evidence scalar values, original encoded bytes, checksums, diagnostics, public APIs,
+and existing comments. Do not add validation, generic copying for invalid dynamic values, schema or
+generated-output changes, or user-facing documentation.
+
+### 3. fn-60 — Deepen authored Lean canonical JSON construction
+
+**Depends on:** no open spec dependency; excludes `Umpire.Property` while fn-58 is active. Sequence
+fn-60.7 after fn-58.3 only when both documentation tasks are in flight.
+
+**Scope:** make `Umpire.Json` the single typed construction and exact-rendering interface for Core
+Limit JSON and the handwritten Target, Behavior, Query, Space, Exploration, Observation, and
+Implementation Link formatters. Preserve public interfaces, validation and diagnostic precedence,
+field and element order, escaping and newline policy, canonical metadata, Artifact bytes, Behavior
+Fingerprints, imports, trust inventories, performance characteristics, and existing comments. Do
+not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
+changes, drift verification, or CI work.
+
 ## Complete P3 — Exploration and regression lifecycle
 
-### 2. fn-33 — Run model exploration campaigns with umpire-fuzz
+### 4. fn-33 — Run model exploration campaigns with umpire-fuzz
 
 **Depends on:** completed fn-40's ordinary PlannerPolicy surface.
 
@@ -56,7 +83,7 @@ coverage and exhaustion honestly.
 
 **Deferred:** concurrency, leases, crash-safe campaign state, and resume.
 
-### 3. fn-22 — Deterministic replay, model minimization, and reviewed promotion
+### 5. fn-22 — Deterministic replay, model minimization, and reviewed promotion
 
 **Depends on:** fn-5's checked review-only promotion source.
 

@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-58-partition-the-property-language",
   "impl_review_rounds": {
-    "fn-58-partition-the-property-language.1": 0
+    "fn-58-partition-the-property-language.1": 0,
+    "fn-58-partition-the-property-language.2": 1
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -88,8 +89,18 @@
     "plan": 2,
     "plan#completion": 1
   },
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "impl:fn-58-partition-the-property-language.2": 1
+  },
+  "review_reservations": {
+    "529894d5fb3044688ee5bf59fcffa015": {
+      "artifact_sha256": "9e85ec5ae8fd745cdc4adccd7afd9afc8e1ea1ad7015ce0990f2087443f9816e",
+      "counter_scope": "impl:fn-58-partition-the-property-language.2",
+      "epoch": 0,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "review_transport_failures": {
     "impl:fn-58-partition-the-property-language.1": 0,
     "plan": 0
@@ -108,5 +119,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T15:00:08.261233Z"
+  "updated_at": "2026-09-04T15:33:14.970709Z"
 }
