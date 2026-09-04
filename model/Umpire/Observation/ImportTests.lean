@@ -8,7 +8,16 @@ import Umpire.Observation
 #check Umpire.ObservationFieldSpec.reference
 #check Umpire.ObservationFieldSpec.expression
 #check Umpire.ObservationFieldSpec.disposition
+#check Umpire.ObservationCheckContext
+#check Umpire.ObservationCheckContext.ofTarget
+#check Umpire.ObservationErrorKind
+#check Umpire.ObservationError
+#check Umpire.CheckedObservationExpression
 #check Umpire.CheckedObservationPlan
+#check Umpire.canonicalObservationPlanJson
+#check Umpire.canonicalObservationErrorJson
+#check Umpire.checkObservation
+#check Umpire.checkedObservation
 #check Umpire.EvidenceBound
 #check Umpire.ObservationStatus
 #check Umpire.ObservationFailureKind
