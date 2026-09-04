@@ -163,12 +163,17 @@ func runChecked(
 			errors.New("umpire runner requires an adapter"), false,
 		)
 	}
+	factory := adapter.EnvironmentFactory()
+	if factory == nil {
+		return umpireruntime.Output{}, classifyRunFailure(
+			errors.New("umpire runner adapter is incomplete"), false,
+		)
+	}
 	participant, err := adapter.NewParticipant(request)
 	if err != nil {
 		return umpireruntime.Output{}, classifyRunFailure(err, false)
 	}
-	factory := adapter.EnvironmentFactory()
-	if factory == nil || participant == nil {
+	if participant == nil {
 		return umpireruntime.Output{}, classifyRunFailure(
 			errors.New("umpire runner adapter is incomplete"), false,
 		)

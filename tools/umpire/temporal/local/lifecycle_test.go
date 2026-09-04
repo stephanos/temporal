@@ -20,8 +20,7 @@ func TestCleanupIsBoundedOrderedAndIdempotent(t *testing.T) {
 	backend := &recordingAuthority{
 		resources: []ownedResource{
 			{kind: ownedWorker},
-			{kind: ownedClient},
-			{kind: ownedServer},
+			{kind: ownedEnvironment},
 		},
 	}
 	factory := newFactory(&recordingStarter{authority: backend})
@@ -36,8 +35,8 @@ func TestCleanupIsBoundedOrderedAndIdempotent(t *testing.T) {
 	second := environment.Cleanup(context.Background(), cleanupCommand)
 	require.Equal(t, umpireruntime.ReceiptAccepted, first.Status())
 	require.Equal(t, umpireruntime.ReceiptAccepted, second.Status())
-	require.Equal(t, []string{"worker", "client", "server"}, backend.releaseOrder)
-	require.Len(t, first.ReleasedResources(), 3)
+	require.Equal(t, []string{"worker", "environment"}, backend.releaseOrder)
+	require.Len(t, first.ReleasedResources(), 2)
 	require.Empty(t, second.ReleasedResources())
 }
 
@@ -46,7 +45,7 @@ func TestCleanupFailureRetainsOwnershipAndReturnsOnlyClosedCode(t *testing.T) {
 	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
 	backend := &recordingAuthority{
-		resources: []ownedResource{{kind: ownedServer}},
+		resources: []ownedResource{{kind: ownedEnvironment}},
 		stopErr:   errors.New("raw shutdown failure with /tmp/private-path"),
 	}
 	factory := newFactory(&recordingStarter{authority: backend})
@@ -68,7 +67,7 @@ func TestCanceledCleanupRetainsOwnershipAndCanBeRetried(t *testing.T) {
 	request := testRequest(t, "umpire.local.environment.cleanup-canceled")
 	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
-	backend := &recordingAuthority{resources: []ownedResource{{kind: ownedServer}}}
+	backend := &recordingAuthority{resources: []ownedResource{{kind: ownedEnvironment}}}
 	factory := newFactory(&recordingStarter{authority: backend})
 	runtimeEnvironment, receipt := factory.Prepare(context.Background(), request, prepareCommand)
 	require.Equal(t, umpireruntime.ReceiptAccepted, receipt.Status())
@@ -87,12 +86,12 @@ func TestCanceledCleanupRetainsOwnershipAndCanBeRetried(t *testing.T) {
 	require.Equal(t, umpireruntime.ReceiptCanceled, canceledReceipt.Status())
 	require.Equal(t, "umpire.runtime.code.canceled", errorCode(canceledReceipt))
 	require.Equal(t, umpireruntime.EvidenceSourceCleanup, receiptSource(canceledReceipt))
-	require.Equal(t, "3", receiptField(canceledReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
+	require.Equal(t, "2", receiptField(canceledReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
 	require.Empty(t, backend.releaseOrder)
 
 	retriedReceipt := environment.Cleanup(context.Background(), cleanupCommand)
 	require.Equal(t, umpireruntime.ReceiptAccepted, retriedReceipt.Status())
-	require.Equal(t, []string{"worker", "client", "server"}, backend.releaseOrder)
+	require.Equal(t, []string{"worker", "environment"}, backend.releaseOrder)
 	require.Equal(t, "0", receiptField(retriedReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
 }
 
@@ -100,7 +99,7 @@ func TestLifecycleFactsHaveDistinctOperationIdentities(t *testing.T) {
 	request := testRequest(t, "umpire.local.environment.fact-identities")
 	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
-	backend := &recordingAuthority{resources: []ownedResource{{kind: ownedServer}}}
+	backend := &recordingAuthority{resources: []ownedResource{{kind: ownedEnvironment}}}
 	runtimeEnvironment, preparationReceipt := newFactory(
 		&recordingStarter{authority: backend},
 	).Prepare(context.Background(), request, prepareCommand)
@@ -159,7 +158,7 @@ func TestIsolationRequiresOneClosedOperationAndControlCollection(t *testing.T) {
 			prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
 			require.True(t, ok)
 			backend := &recordingAuthority{
-				resources:               []ownedResource{{kind: ownedServer}},
+				resources:               []ownedResource{{kind: ownedEnvironment}},
 				isolationExecutionCount: test.executionCount,
 			}
 			runtimeEnvironment, receipt := newFactory(
@@ -201,7 +200,7 @@ func TestCleanupDeadlineReturnsTimeoutCompatibleReceipt(t *testing.T) {
 	request := testRequest(t, "umpire.local.environment.cleanup-deadline")
 	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
-	backend := &recordingAuthority{resources: []ownedResource{{kind: ownedServer}}}
+	backend := &recordingAuthority{resources: []ownedResource{{kind: ownedEnvironment}}}
 	runtimeEnvironment, receipt := newFactory(
 		&recordingStarter{authority: backend},
 	).Prepare(context.Background(), request, prepareCommand)
@@ -217,7 +216,7 @@ func TestCleanupDeadlineReturnsTimeoutCompatibleReceipt(t *testing.T) {
 	require.Equal(t, umpireruntime.ReceiptCanceled, cleanupReceipt.Status())
 	require.Equal(t, "umpire.runtime.code.timed-out", errorCode(cleanupReceipt))
 	require.Equal(t, umpireruntime.EvidenceSourceCleanup, receiptSource(cleanupReceipt))
-	require.Equal(t, "2", receiptField(cleanupReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
+	require.Equal(t, "1", receiptField(cleanupReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
 	require.Empty(t, backend.releaseOrder)
 }
 
@@ -226,7 +225,7 @@ func TestCleanupDeadlineReachedDuringStopReturnsTimeoutCompatibleReceipt(t *test
 	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
 	backend := &recordingAuthority{
-		resources: []ownedResource{{kind: ownedServer}},
+		resources: []ownedResource{{kind: ownedEnvironment}},
 		stopFunc: func(ctx context.Context) error {
 			<-ctx.Done()
 			return ctx.Err()
@@ -246,7 +245,7 @@ func TestCleanupDeadlineReachedDuringStopReturnsTimeoutCompatibleReceipt(t *test
 	cleanupReceipt := environment.Cleanup(deadline, cleanupCommand)
 	require.Equal(t, umpireruntime.ReceiptCanceled, cleanupReceipt.Status())
 	require.Equal(t, "umpire.runtime.code.timed-out", errorCode(cleanupReceipt))
-	require.Equal(t, "2", receiptField(cleanupReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
+	require.Equal(t, "1", receiptField(cleanupReceipt, umpireruntime.EvidenceFieldOpenHandleCount))
 	require.Empty(t, cleanupReceipt.ReleasedResources())
 }
 
@@ -255,7 +254,7 @@ func TestConcreteCleanupFailureDominatesExpiredDeadline(t *testing.T) {
 	prepareCommand, ok := request.Command(umpireruntime.CommandPrepare)
 	require.True(t, ok)
 	backend := &recordingAuthority{
-		resources: []ownedResource{{kind: ownedServer}},
+		resources: []ownedResource{{kind: ownedEnvironment}},
 		stopFunc: func(ctx context.Context) error {
 			<-ctx.Done()
 			return errors.Join(ctx.Err(), errors.New("private concrete cleanup failure"))
@@ -326,6 +325,7 @@ type recordingAuthority struct {
 	resources               []ownedResource
 	client                  client.Client
 	clientErr               error
+	connectCalls            int
 	workerErr               error
 	stopErr                 error
 	stopFunc                func(context.Context) error
@@ -353,13 +353,8 @@ func (a *recordingAuthority) isolationProbe(string) executionIsolationProbe {
 }
 
 func (a *recordingAuthority) Connect(context.Context) error {
-	if a.clientErr != nil {
-		return a.clientErr
-	}
-	if !containsOwnedKind(a.resources, ownedClient) {
-		a.resources = append(a.resources, ownedResource{kind: ownedClient})
-	}
-	return nil
+	a.connectCalls++
+	return a.clientErr
 }
 
 func (a *recordingAuthority) SDKClient() client.Client { return a.client }
@@ -390,7 +385,7 @@ func (a *recordingAuthority) Stop(ctx context.Context) error {
 	if a.stopErr != nil {
 		return a.stopErr
 	}
-	for _, kind := range []ownedResourceKind{ownedWorker, ownedClient, ownedServer} {
+	for _, kind := range []ownedResourceKind{ownedWorker, ownedEnvironment} {
 		if containsOwnedKind(a.resources, kind) {
 			a.releaseOrder = append(a.releaseOrder, string(kind))
 		}
