@@ -48,9 +48,10 @@ Move the opaque accepted trace, its private constructor, Observation results, pr
 - [ ] `make lint-code GOLANGCI_LINT_FIX=false` is run without exceeding the approved inherited exact 1,381-finding baseline, task-diff-scoped golangci reports zero findings, and the unchanged `tools/umpire/runtime/errors.go:60` errortype finding remains isolated.
 
 ## Done summary
-TBD
+Extracted accepted-trace construction, result types, provenance helpers, and admission validation into `Evaluation.Admission` behind the unchanged facade, with exact facade and accepted-envelope mutation coverage. Verification passed under the approved lint contract: global Go lint remains exactly 1,381 inherited findings, while task-diff golangci reports zero findings apart from the explicitly waived unchanged errortype tail.
 
+stage: impl-review - ran [2026-09-04T13:40:06Z..2026-09-04T13:51:57Z]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f4cde03346b236177994b591597c06d5a12990d1, c4ada4e03ba947af0c48f3400670684d41db75d7, 0347d70d0f76fd6770dd3b7c568f09ded9ecdc10
+- Tests: baseline: green via handoff (green (verified at 425d18bd by fn-54-decompose-the-observation-evaluator.3)), make lint-model (baseline: passed), make lint-code GOLANGCI_LINT_FIX=false (baseline: approved inherited exact 1,381 findings), cd model && mise exec -- lake build Umpire.Observation.Tests.EvidenceLink Umpire.Observation.Tests.Mutations Umpire.Observation.Tests.Disposition Umpire.Observation.ImportTests, cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.ImportTests Umpire.ImplementationLink.Tests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.ImplementationLink.Tests UmpireTests TemporalModelTests, make umpire-build-model, make umpire-check-regression, make lint-model, make lint-code GOLANGCI_LINT_FIX=false (approved inherited exact 1,381 findings), GOLANGCI_LINT_BASE_REV=fff9b97592e0d14040c03893d21eb4e2db50318f make lint-code GOLANGCI_LINT_FIX=false (golangci: 0 issues; unchanged tools/umpire/runtime/errors.go:60 errortype finding waived), git diff --check
 - PRs:
