@@ -12,6 +12,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.6.md",
   "status": "todo",
-  "title": "Add canary provenance and EvaluationReceipt v5 codecs",
-  "updated_at": "2026-08-27T19:07:31.603548Z"
+  "title": "Add secret-free canary provenance and receipt bindings",
+  "updated_at": "2026-09-04T18:37:27.203203Z"
 }

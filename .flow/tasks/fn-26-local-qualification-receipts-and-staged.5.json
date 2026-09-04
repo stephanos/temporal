@@ -11,6 +11,6 @@
   "spec": "fn-26-local-qualification-receipts-and-staged",
   "spec_path": ".flow/tasks/fn-26-local-qualification-receipts-and-staged.5.md",
   "status": "todo",
-  "title": "Expose the exact local Claim Assessment CLI and root Make target",
-  "updated_at": "2026-08-27T19:07:20.193268Z"
+  "title": "Expose the exact local assessment command",
+  "updated_at": "2026-09-04T18:37:23.574475Z"
 }

@@ -11,6 +11,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.9.md",
   "status": "todo",
-  "title": "Reuse remote recovery/progress and add the protected canary workflow",
-  "updated_at": "2026-08-27T19:07:32.654692Z"
+  "title": "Add lost-iteration recovery and protected workflow",
+  "updated_at": "2026-09-04T18:37:28.192155Z"
 }

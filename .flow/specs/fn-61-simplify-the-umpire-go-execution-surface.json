@@ -6,12 +6,7 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [
-    "fn-52-caller-neutral-grpc-portable-test-plans",
-    "fn-59-centralize-umpire-artifact-copies",
-    "fn-60-deepen-authored-lean-canonical-json",
-    "fn-62-make-ordinary-temporal-model-authoring"
-  ],
+  "depends_on_epics": [],
   "id": "fn-61-simplify-the-umpire-go-execution-surface",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -164,5 +159,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T15:41:32.120582Z"
+  "updated_at": "2026-09-04T18:38:03.291817Z"
 }

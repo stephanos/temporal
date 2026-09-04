@@ -11,6 +11,6 @@
   "spec": "fn-26-local-qualification-receipts-and-staged",
   "spec_path": ".flow/tasks/fn-26-local-qualification-receipts-and-staged.4.md",
   "status": "todo",
-  "title": "Implement offline local Claim Assessment from admitted Results",
-  "updated_at": "2026-08-27T19:07:19.870970Z"
+  "title": "Implement offline local Claim Assessment",
+  "updated_at": "2026-09-04T18:37:23.247908Z"
 }

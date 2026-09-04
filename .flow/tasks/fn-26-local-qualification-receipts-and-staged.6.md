@@ -1,15 +1,18 @@
 ---
 satisfies: [R1, R4, R5, R7, R8]
 ---
-# fn-26-local-qualification-receipts-and-staged.6 Prove Claim Assessment isolation and document the staged contract
 
+# fn-26-local-qualification-receipts-and-staged.6 Prove assessment isolation and document the contract
 ## Description
-Complete independent Evaluation Profile, source admission, decision, status, reason, Limit, Known Gap, Artifact Checksum, Behavior Fingerprint, Evaluation Receipt, set closure, protocol, CLI, cancellation, and publication mutation matrices. Run aggregate Lean/Go/regression checks and document the exact environment-scoped local claim, optional verification Evidence, and separation from Run Evaluation. Preserve existing comments while rewording replaced Umpire vocabulary.
+Complete Profile, subject, receipt, status, reason, multiplicity, Limit, Known Gap, protocol, cancellation, and publication mutation matrices. Document the exact local claim, non-self-authentication, and separation between fn-64 verification and offline Claim Assessment.
+
+**Size:** M
+**Touches:** `model/Umpire/EvaluationTests.lean`, `tools/umpire/evaluation/**`, `docs/**`, `.plans/UMPIRE4_COMPONENTS.md`
 
 ## Acceptance
-- [ ] Every N/N+1, crossing, status, cleanup, Evidence, fingerprint, checksum, and protocol mutation fails at the intended boundary.
-- [ ] The same valid input is deterministic and idempotent and all focused/aggregate checks pass.
-- [ ] Docs claim only environment-scoped local assessment and exclude pilot, CI, remote, canary, production, release, and implicit authority.
+- [ ] Crossed, N/N+1, multiple-Profile, idempotency, cleanup, evidence, identity, and output cases fail at the intended boundary.
+- [ ] Focused and aggregate Lean/Go/regression, formatting, and lint gates pass with `-tags test_dep` for Go tests.
+- [ ] Existing comments remain accurate and docs exclude CI, remote, canary, production, release, and implicit authority.
 
 ## Done summary
 TBD

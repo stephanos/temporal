@@ -7,11 +7,6 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-18-versioned-umpire-artifact-boundary",
-    "fn-19-bounded-local-temporal-execution-and",
-    "fn-20-local-execution-semantic-conformance",
-    "fn-37-hard-cut-umpire-vocabulary-and-current",
-    "fn-47-generate-umpire-semantic-outcome-and",
     "fn-48-canonicalize-known-gaps-as-a-checked-set",
     "fn-64-umpire-case-runtime"
   ],
@@ -316,5 +311,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T17:37:14.236542Z"
+  "updated_at": "2026-09-04T18:37:57.634750Z"
 }

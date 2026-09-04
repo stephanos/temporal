@@ -1,21 +1,23 @@
 ---
-satisfies: [R5, R9]
+satisfies: [R2, R5, R9]
 ---
 # fn-64-umpire-case-runtime.9 Complete abort, cleanup, and reusable PreparedCase execution
 
 ## Description
-Complete R5 and R9 on top of the scheduler: public PreparedCase execution, per-Run Monitor creation,
+Complete R5 and R9 on top of the scheduler: root-facade PreparedCase execution, authoritative per-Run
+Contract Monitor creation,
 unconditional stop, Host-effect drain/quarantine, cleanup, terminal precedence, and repeated-Run
 isolation.
 
 **Size:** M
-**Files:** termination/facade/reuse implementation and race tests under `tools/umpire/execution/**`,
-`tools/umpire/{prepare,prepared_case}.go`, public/execution package documentation
-**Touches:** [tools/umpire/execution/**, tools/umpire/*.go, tools/umpire/README.md]
+**Files:** termination/facade/reuse implementation and race tests under `tools/umpire/internal/execution/**`,
+`tools/umpire/{prepare,prepared_case}.go`, root/internal package documentation
+**Touches:** [tools/umpire/internal/execution/**, tools/umpire/*.go, tools/umpire/README.md]
 
 ## Approach
-- Validate live Host identity and MonitorFactory typed nil before Run creation; construct fresh Host
-  session, stores, recorder, and Monitor per Run.
+- Expose only `PreparedCase.Run(ctx, host)`. Validate live Host identity before Run creation, then
+  construct a fresh Host session, stores, recorder, and Monitor from the prepared Contract per Run;
+  internal factory failure is a pre-Run invariant with no target effects.
 - Make Monitor observation the synchronized dispatch barrier. Pass an Executor-bounded context to
   every callback and require cancellation cooperation without wrapping callbacks in goroutines.
 - Cancel Host-owned handles and boundedly drain accepted late outcomes. Quarantine unterminated
@@ -37,13 +39,14 @@ isolation.
   cases
 
 ## Key context
-A conforming Host returns effect handles within context, and a conforming Monitor returns when its
-callback context is cancelled. Umpire cannot guarantee closure for a Host method or caller-supplied
+A conforming Host returns effect handles within context, and the internal Monitor returns when its
+callback context is cancelled. Umpire cannot guarantee closure for a Host method or internal test
 Monitor that violates those contracts.
 
 ## Acceptance
-- [ ] Run preflight rejects nil/typed-nil/mismatched Host and MonitorFactory before Run creation or
-  I/O and creates fresh Monitor/state for every accepted Run.
+- [ ] The root API is exactly `PreparedCase.Run(ctx, host)`; preflight rejects nil/typed-nil/
+  mismatched Host and internal MonitorFactory failure before Run creation or I/O and creates fresh
+  authoritative Monitor/state for every accepted Run.
 - [ ] Race tests prove Stop prevents new ordinary dispatch, cancels handles, records bounded late
   outcomes, and cannot suppress fresh-context cleanup.
 - [ ] Conforming Monitor timeout/cancellation returns incomplete/inconclusive unless a violation was
@@ -55,7 +58,8 @@ Monitor that violates those contracts.
   violation dominance.
 - [ ] One PreparedCase drives many sequential/concurrent Runs without Slot/Event/Monitor/Host-session
   leakage under the race detector.
-- [ ] `go test -race -count=1 -tags test_dep ./tools/umpire/execution/... ./tools/umpire/...` passes.
+- [ ] `go test -race -count=1 -tags test_dep ./tools/umpire/internal/execution/...
+  ./tools/umpire/...` passes.
 
 ## Done summary
 TBD

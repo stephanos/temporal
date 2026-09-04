@@ -1,22 +1,18 @@
 ---
 satisfies: [R1, R2]
 ---
-# fn-22-deterministic-replay-semantic.1 Admit replay bundles and normalize violation signatures
 
+# fn-22-deterministic-replay-semantic.1 Admit the Case-native replay subject and semantic violation key
 ## Description
-### Umpire4 reconciliation (normative)
-
-The replay bundle must name and bind three non-interchangeable classes: canonical semantic replay, concrete complete-ExperimentSpec rerun, and Temporal SDK history replay. Only canonical semantic replay can establish a semantic violation or support promotion; SDK history replay is diagnostic compatibility evidence.
-
-The legacy implementation detail below is retained for context but is subordinate to this reconciliation.
-
-Create the deep `tools/umpire/replay` entry boundary over fn-18's existing decoder/validator. Define an in-memory checked ReplayBundle for the exact fn-21 six-member set and the spec's exact canonical ViolationSignature Generated View over admitted accepted Results. Recompute all member/set identities and require the closed succeeded/accepted/violated, single-Property caller-closure binding before returning either value. Implement the closed evidence-role table, opaque-value equality classes, field-by-field derivation Generated View, ordering, and canonical identity formula while excluding only the enumerated plan/runtime transport facts. Keep this a Generated View over existing semantic authority, with no new wire type or evaluator. Add independent fixture/mutation tests for every included and excluded field and preserve existing comments.
+Define strict replay admission over canonical Case, exact preparation Profile/catalog identity, and one closed matching Run/Verdict. Derive the semantic violation key from Case/Contract identity, violated terminal state, responsible clause, and supporting Observation roles while excluding fresh Run transport values.
 
 **Size:** M
-**Files:** `tools/umpire/replay/bundle.go`, `tools/umpire/replay/signature.go`, `tools/umpire/replay/bundle_test.go`, `tools/umpire/replay/signature_test.go`
-**Touches:** [tools/umpire/replay/bundle.go, tools/umpire/replay/signature.go, tools/umpire/replay/bundle_test.go, tools/umpire/replay/signature_test.go]
+**Touches:** `tools/umpire/replay/subject.go`, `tools/umpire/replay/subject_test.go`
+
 ## Acceptance
-ReplayBundle admission accepts only the exact complete fn-21 accepted-violation set and rejects crossed, stale, partial, unsupported, identity-invalid, status-invalid, or multi-Property inputs before execution. ViolationSignature implements the spec's exact ordered Generated View, role table, equality-class normalization, and field-by-field oracle; every required semantic/causal mutation changes or invalidates it, every explicitly excluded transport mutation does not, and no caller can supply or override it. No fn-18 schema or persisted artifact family is added.
+- [ ] Crossed, stale, noncanonical, incomplete, satisfied, duplicate, and N+1 inputs fail before target effects.
+- [ ] Equivalent per-Run identities and timestamps do not change the semantic key; any semantic binding change does.
+- [ ] No persisted replay bundle, audit digest, trust store, or compatibility reader is introduced.
 
 ## Done summary
 TBD

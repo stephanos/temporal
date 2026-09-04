@@ -6,7 +6,7 @@ satisfies: [R3, R5]
 ## Description
 Create the generic verification module and per-Run Evaluator (R3), independent of Temporal and
 property-specific operators. Keep live monitoring and offline evaluation on one prepared transition
-implementation and execution's MonitorFactory contract.
+implementation and the internal execution MonitorFactory contract.
 
 **Size:** M
 **Files:** `tools/umpire/verification/**`, verification package documentation and focused tests
@@ -15,7 +15,8 @@ implementation and execution's MonitorFactory contract.
 ## Approach
 - Prepare finite ordered transition machines, typed predicates, event-kind indexes, terminal
   states, supporting-event references, and explicit safety/liveness horizons.
-- Implement the execution MonitorFactory contract so every Run receives fresh state.
+- Implement the internal execution MonitorFactory contract so every Run receives fresh state; it is
+  the only production Monitor factory and is bound by `PrepareCase`.
 - Evaluate time horizons only from recorded Executor monotonic coordinates on explicit timeout and
   Run-closure events; never arm an invisible timer or use target timestamps.
 - Preserve the useful live/offline distinction from legacy Run Evaluation while deleting all
@@ -46,6 +47,7 @@ same first matching transition, bad prefix, and closure result in both modes.
   error/timeout yields incomplete/inconclusive unless violation is already proved.
 - [ ] Event-kind indexing stays within declared per-event work bounds without changing ordered
   semantics.
+- [ ] No public API permits replacing the prepared Case's Contract Monitor.
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/verification/...` passes.
 
 ## Done summary

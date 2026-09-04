@@ -11,6 +11,6 @@
   "spec": "fn-22-deterministic-replay-semantic",
   "spec_path": ".flow/tasks/fn-22-deterministic-replay-semantic.3.md",
   "status": "todo",
-  "title": "Compile typed reduction candidates through checked authority",
-  "updated_at": "2026-08-27T19:37:23.349753Z"
+  "title": "Compile ordered semantic reductions into complete Cases",
+  "updated_at": "2026-09-04T18:37:20.281978Z"
 }

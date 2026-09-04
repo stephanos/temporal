@@ -1,31 +1,18 @@
 ---
 satisfies: [R2, R6]
 ---
-# fn-33-run-serial-bounded-semantic-exploration.6 Enforce the one-active-candidate coordinator boundary
 
+# fn-33-run-serial-bounded-semantic-exploration.6 Enforce the serial process-local coordinator boundary
 ## Description
-Make the serial process-local coordinator invariant explicit and testable before runner integration.
+Model process-local idle, preparing, running, observing, and finished states with one transition at a time. Bound candidate count, aggregate Case bytes/static work, Run time/work, event references, and report bytes; define stop/crash handling without durable recovery.
 
 **Size:** M
-**Files:** `tools/umpire/campaign/session.go`, `tools/umpire/campaign/session_test.go`
-**Touches:** [tools/umpire/campaign/session.go, tools/umpire/campaign/session_test.go]
-
-### Approach
-- Model only `idle`, `candidate-active`, and `finished` process-local states with one allowed transition at a time.
-- Reject another `next` while a candidate is active and reject observation before cleanup plus Result admission are complete.
-- Discard the session on interruption and return the corresponding terminal tooling outcome.
-- Add API-shape guards for one process-local session and no persisted coordinator format.
-
-### Investigation targets
-**Required** (read before coding):
-- Task `.1` bridge states and bindings.
-- Existing fn-19 cleanup lifecycle.
-- Parent spec `Boundaries`.
+**Touches:** `tools/umpire/campaign/session.go`, `tools/umpire/campaign/session_test.go`
 
 ## Acceptance
-- [ ] The coordinator permits only one active candidate and one admitted Result transition.
-- [ ] Invalid ordering and interruption fail closed without semantic coverage credit.
-- [ ] Focused state-machine and API-shape tests pass with no persisted format.
+- [ ] Invalid ordering, concurrent work, duplicate result, and N+1 state fail closed.
+- [ ] SIGINT performs bounded cleanup when possible; process loss records no fabricated Verdict or coverage.
+- [ ] API-shape tests prove no lease, checkpoint, resume, adaptive selection, or persisted campaign format.
 
 ## Done summary
 TBD

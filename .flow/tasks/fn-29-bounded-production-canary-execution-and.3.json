@@ -11,6 +11,6 @@
   "spec": "fn-29-bounded-production-canary-execution-and",
   "spec_path": ".flow/tasks/fn-29-bounded-production-canary-execution-and.3.md",
   "status": "todo",
-  "title": "Implement protected canary authority and exact-scope preflight",
-  "updated_at": "2026-08-27T19:07:30.616181Z"
+  "title": "Implement protected authority and exact-scope preflight",
+  "updated_at": "2026-09-04T18:37:26.212938Z"
 }

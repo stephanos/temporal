@@ -11,6 +11,6 @@
   "spec": "fn-26-local-qualification-receipts-and-staged",
   "spec_path": ".flow/tasks/fn-26-local-qualification-receipts-and-staged.6.md",
   "status": "todo",
-  "title": "Prove Claim Assessment isolation and document the staged contract",
-  "updated_at": "2026-08-27T19:07:20.564160Z"
+  "title": "Prove assessment isolation and document the contract",
+  "updated_at": "2026-09-04T18:37:23.903748Z"
 }
