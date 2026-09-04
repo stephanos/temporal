@@ -283,7 +283,7 @@ func portableExecutionProgram(contract *umpirespb.EvaluationContract) *umpirespb
 		Setup:               testBinding("test.setup.portable"),
 		Query:               proto.CloneOf(contract.GetQuery()),
 		Behavior:            testBinding("test.behavior.portable"),
-		Target:              proto.CloneOf(contract.GetImplementationLink().GetSourceTarget()),
+		Target:              proto.CloneOf(contract.GetImplementationLink().GetDestinationTarget()),
 		Kernel:              testBinding("test.kernel.portable"),
 		RoleBindings:        []*umpirespb.RoleBinding{},
 		SymbolicRoles:       []*umpirespb.SymbolicRole{},
