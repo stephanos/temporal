@@ -43,6 +43,9 @@ type attachedBinding struct {
 	namespace string
 	endpoint  string
 	workers   attachedWorkerFactory
+
+	mu     sync.Mutex
+	active bool
 }
 
 func newAttachedFactory(
@@ -97,6 +100,25 @@ func (b *attachedBinding) validate(ctx context.Context) error {
 	return nil
 }
 
+func (b *attachedBinding) claim(ctx context.Context) error {
+	if err := b.validate(ctx); err != nil {
+		return err
+	}
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if b.active {
+		return errors.New("attached Temporal authority already has an active run")
+	}
+	b.active = true
+	return nil
+}
+
+func (b *attachedBinding) release() {
+	b.mu.Lock()
+	b.active = false
+	b.mu.Unlock()
+}
+
 func sameClient(left client.Client, right client.Client) bool {
 	if isNilInterface(left) || isNilInterface(right) {
 		return isNilInterface(left) && isNilInterface(right)
@@ -128,7 +150,7 @@ func (s attachedStarter) Start(ctx context.Context) (temporalAuthority, error) {
 	if s.binding == nil {
 		return nil, errors.New("attached Temporal authority is incomplete")
 	}
-	if err := s.binding.validate(ctx); err != nil {
+	if err := s.binding.claim(ctx); err != nil {
 		return nil, err
 	}
 	return &attachedTemporalAuthority{binding: s.binding}, nil
@@ -143,6 +165,7 @@ type attachedTemporalAuthority struct {
 	startErr    error
 	stopAttempt *attachedStopAttempt
 	closed      bool
+	release     sync.Once
 }
 
 type attachedStopAttempt struct {
@@ -284,6 +307,7 @@ func (a *attachedTemporalAuthority) Stop(ctx context.Context) error {
 	if a.worker == nil {
 		a.closed = true
 		a.mu.Unlock()
+		a.releaseLease()
 		return nil
 	}
 	if a.stopAttempt == nil {
@@ -297,17 +321,22 @@ func (a *attachedTemporalAuthority) Stop(ctx context.Context) error {
 			// live until a started worker has actually stopped.
 			<-startDone
 			err := owned.Stop()
+			release := false
 			a.mu.Lock()
 			attempt.err = err
 			if err == nil {
 				a.worker = nil
 				a.closed = true
+				release = true
 			}
 			if a.stopAttempt == attempt {
 				a.stopAttempt = nil
 			}
 			close(attempt.done)
 			a.mu.Unlock()
+			if release {
+				a.releaseLease()
+			}
 		}()
 	}
 	attempt := a.stopAttempt
@@ -322,6 +351,10 @@ func (a *attachedTemporalAuthority) Stop(ctx context.Context) error {
 		}
 		return attempt.err
 	}
+}
+
+func (a *attachedTemporalAuthority) releaseLease() {
+	a.release.Do(a.binding.release)
 }
 
 func (a *attachedTemporalAuthority) OwnedResources() []ownedResource {
