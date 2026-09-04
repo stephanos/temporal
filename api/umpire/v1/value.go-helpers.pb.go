@@ -81,6 +81,43 @@ func (this *SourceLocation) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type OptionalString to the protobuf v3 wire format
+func (val *OptionalString) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type OptionalString from the protobuf v3 wire format
+func (val *OptionalString) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *OptionalString) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two OptionalString values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *OptionalString) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *OptionalString
+	switch t := that.(type) {
+	case *OptionalString:
+		that1 = t
+	case OptionalString:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type EnumValue to the protobuf v3 wire format
 func (val *EnumValue) Marshal() ([]byte, error) {
 	return proto.Marshal(val)
@@ -998,6 +1035,43 @@ func (this *ObservationReference) Equal(that interface{}) bool {
 	case *ObservationReference:
 		that1 = t
 	case ObservationReference:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type CaptureReference to the protobuf v3 wire format
+func (val *CaptureReference) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type CaptureReference from the protobuf v3 wire format
+func (val *CaptureReference) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *CaptureReference) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two CaptureReference values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *CaptureReference) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *CaptureReference
+	switch t := that.(type) {
+	case *CaptureReference:
+		that1 = t
+	case CaptureReference:
 		that1 = &t
 	default:
 		return false

@@ -17,13 +17,32 @@ enum ContractRuleKind {
 
 enum ContractTerminalState {
   CONTRACT_TERMINAL_STATE_UNSPECIFIED = 0;
-  CONTRACT_TERMINAL_STATE_SATISFIED = 1;
-  CONTRACT_TERMINAL_STATE_VIOLATED = 2;
+  CONTRACT_TERMINAL_STATE_NONTERMINAL = 1;
+  CONTRACT_TERMINAL_STATE_SATISFIED = 2;
+  CONTRACT_TERMINAL_STATE_VIOLATED = 3;
 }
 
 message ContractState {
   string state_id = 1;
   ContractTerminalState terminal = 2;
+}
+
+// ContractCaptureType is the closed scalar subset retained across Run Events.
+message ContractCaptureType {
+  oneof type {
+    ScalarType scalar = 1;
+    NamedType enumeration = 2;
+  }
+}
+
+message ContractCaptureSchema {
+  string capture_id = 1;
+  ContractCaptureType type = 2;
+}
+
+message ContractCaptureAssignment {
+  string capture_id = 1;
+  ObservationReference observation = 2;
 }
 
 enum ContractSupport {
@@ -40,6 +59,7 @@ message ContractTransition {
   RunEventKinds event_kinds = 4;
   ValueExpression predicate = 5;
   ContractSupport support = 6;
+  repeated ContractCaptureAssignment capture_assignments = 7;
 }
 
 // ContractHorizon closes bounded liveness only at a recorded timeout or Run-closure coordinate.
@@ -56,6 +76,7 @@ message ContractRule {
   repeated ContractState states = 4;
   repeated ContractTransition transitions = 5;
   ContractHorizon horizon = 6;
+  repeated ContractCaptureSchema captures = 7;
 }
 
 message ContractLimits {
@@ -65,6 +86,8 @@ message ContractLimits {
   int64 max_expression_depth = 4;
   int64 max_work_per_event = 5;
   int64 max_total_work = 6;
+  int64 max_captures = 7;
+  int64 max_capture_bytes = 8;
 }
 
 // Contract contains only closed deterministic monitor machines over declared Run Observations.

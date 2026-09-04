@@ -19,6 +19,10 @@ message SourceLocation {
   string provenance = 4;
 }
 
+message OptionalString {
+  string value = 1;
+}
+
 // The value vocabulary keeps related messages and enums together as one closed interpreter surface.
 // (-- api-linter: core::0191::file-layout=disabled --)
 enum ScalarKind {
@@ -182,6 +186,10 @@ message ObservationReference {
   string observation_id = 1;
 }
 
+message CaptureReference {
+  string capture_id = 1;
+}
+
 enum RunEventField {
   RUN_EVENT_FIELD_UNSPECIFIED = 0;
   RUN_EVENT_FIELD_SEQUENCE = 1;
@@ -253,6 +261,7 @@ message ValueExpression {
     NotExpression negation = 10;
     AllExpression all = 11;
     AnyExpression any = 12;
+    CaptureReference capture = 13;
   }
 }
 

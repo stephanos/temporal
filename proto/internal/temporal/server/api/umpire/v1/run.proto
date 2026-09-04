@@ -84,12 +84,16 @@ enum RunDiagnosticKind {
   RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT = 7;
 }
 
+message RunEventSequence {
+  int64 value = 1;
+}
+
 message RunDiagnostic {
   string diagnostic_id = 1;
   RunDiagnosticKind kind = 2;
   string code = 3;
   string detail = 4;
-  int64 supporting_event_sequence = 5;
+  RunEventSequence supporting_event_sequence = 5;
 }
 
 enum RuleVerdictKind {
