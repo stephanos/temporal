@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-59-centralize-umpire-artifact-copies",
   "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-09-04T18:20:08.440255Z",
+  "completion_reviewed_at": "2026-09-04T18:34:17.672596Z",
   "created_at": "2026-09-04T15:15:12.866788Z",
   "default_impl": null,
   "default_review": null,
@@ -195,13 +195,48 @@
       "timestamp": "2026-09-04T18:20:08.429527Z",
       "tool_calls": 10,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8d03871e564060d7e75c13da401dc8e47e0b89f07cbbf4e9c714436cdc12802d",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "9a65a7b239dae71f5702d198ce353666667486e7",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 5130,
+      "output_sha256": "a451947961b382aaf0118c58ca8a4f4f13500c907944f55b679bcdedd1c44805",
+      "reservation_id": "00920617e566422b9a68ba0be71111cb",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-04T18:34:17.666861Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-59-centralize-umpire-artifact-copies.1": 1,
     "impl:fn-59-centralize-umpire-artifact-copies.2": 1,
     "plan": 1,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -225,5 +260,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T18:20:08.444176Z"
+  "updated_at": "2026-09-04T18:34:17.673291Z"
 }
