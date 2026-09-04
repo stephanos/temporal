@@ -924,11 +924,11 @@
     {
       "id": "fn-55-migrate-and-separate-the-local-temporal",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": [
         "fn-53-extract-local-isolation-collection"
       ]
