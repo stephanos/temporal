@@ -19,9 +19,10 @@ import (
 )
 
 const (
-	packageLocalTestCommand  = "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/..."
-	relocatedLiveTestCommand = "mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireCallerClosurePortability$'"
-	generatedGoTestPath      = "tests/umpire4_caller_closure_generated_test.go"
+	packageLocalTestCommand = "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/..."
+	liveTestCommand         = "mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'"
+	liveTestTargetCommand   = "make umpire-check-live-tests"
+	generatedGoTestPath     = "tests/umpire4_caller_closure_generated_test.go"
 )
 
 type ciWorkflow struct {
@@ -102,7 +103,7 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 						},
 					},
 					{Name: "Run package-local Umpire tests", Run: packageLocalTestCommand},
-					{Name: "Run the relocated Umpire test", Run: relocatedLiveTestCommand},
+					{Name: "Run the live Umpire tests", Run: liveTestTargetCommand},
 				},
 			},
 		},
@@ -114,7 +115,21 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 	require.NoError(t, err)
 	normalizedDryRun := strings.Join(strings.Fields(strings.ReplaceAll(string(dryRun), "\\\n", " ")), " ")
 	require.Equal(t, 1, strings.Count(normalizedDryRun, packageLocalTestCommand))
-	require.Equal(t, 1, strings.Count(normalizedDryRun, relocatedLiveTestCommand))
+	require.Equal(t, 1, strings.Count(normalizedDryRun, liveTestCommand))
+	for _, inheritedFailure := range []string{
+		"TestUmpire2TestSuite",
+		"TestUmpire2TestSuite/TestPlanAndDriveKitchenSinkNexusOperation",
+		"TestUmpire2TestSuite/TestPlanAndDriveNexusOperationCHASM",
+		"TestUmpire2TestSuite/TestProbeNexusDegraded",
+		"TestUmpire2TestSuite/TestProbeNexusExploration",
+		"TestUmpire2TestSuite/TestProbeNexusFlagged",
+		"TestUmpire2TestSuite/TestProbeNexusRandomized",
+		"TestUmpire2TestSuite/TestProbeNexusResilience",
+		"TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram",
+	} {
+		require.Equal(t, 1, strings.Count(normalizedDryRun, "'"+inheritedFailure+"'"))
+	}
+	require.Contains(t, normalizedDryRun, "Full live suite introduced no failures beyond the recorded Umpire2/Umpire3 baseline.")
 	require.Contains(t, normalizedDryRun, "--output \"$temporary/tests\"")
 	require.Contains(t, normalizedDryRun, "diff -u "+generatedGoTestPath)
 }
@@ -125,7 +140,7 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 
 	for path, expected := range map[string][]string{
 		"tools/umpire/runtime/README.md": {
-			relocatedLiveTestCommand,
+			liveTestCommand,
 			"--output tests",
 			"TestEnv owns the Temporal cluster and SDK client",
 			"Umpire owns the per-run environment wrapper, SDK worker, Nexus endpoints, workflows, and run resources",
@@ -142,7 +157,7 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 			"Umpire owns only resources created for one run",
 		},
 		".plans/UMPIRE4_COMPONENTS.md": {
-			relocatedLiveTestCommand,
+			liveTestCommand,
 			generatedGoTestPath,
 			"TestEnv owns the Temporal cluster and SDK client",
 			"local.NewAttachedFactory",

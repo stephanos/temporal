@@ -30,11 +30,11 @@ setup, action, order, observation, termination, or cleanup intent.
 The ordinary pinned CI command is:
 
 ```sh
-mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireCallerClosurePortability$'
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'
 ```
 
-`make umpire-check-regression` is the aggregate repository gate and invokes that same generated Go
-test. Both commands consume the byte-identical canonical v2 `ExperimentSpec` used by the local path,
+`make umpire-check-regression` is the aggregate repository gate and invokes the complete live Umpire
+suite. Both commands consume the byte-identical canonical v2 `ExperimentSpec` used by the local path,
 check its format, Artifact Checksum, Definition IDs, and Behavior Fingerprints before runtime IO,
 and compose the runner with an explicitly supplied factory from `local.NewAttachedFactory`. TestEnv
 owns the Temporal cluster and SDK client. Umpire owns the per-run environment wrapper, SDK worker,
