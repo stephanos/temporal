@@ -303,7 +303,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-56-split-lean-api-generator-planning-from.md",
-  "status": "open",
+  "status": "done",
   "title": "Split Lean API generator planning from rendering",
   "tracker": {
     "baseHashFlow": null,
@@ -316,5 +316,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T10:05:28.656360Z"
+  "updated_at": "2026-09-04T10:07:03.760304Z"
 }
