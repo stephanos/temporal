@@ -2,7 +2,6 @@ package execution
 
 import (
 	"maps"
-	"slices"
 
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/internal/ir"
@@ -89,11 +88,7 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 			return err
 		}
 	case Await:
-		reference := n.source.Instruction.GetAwaitOutcome().GetInstruction()
-		dependency, exists := g.index[reference.GetInstructionId()]
-		if !exists || reference.GetEntrypointId() != g.id || !n.ancestors[dependency] {
-			return invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
-		}
+		return bindAwait(g, n)
 	case Finish:
 		if n.source.Instruction.GetFinish() == nil {
 			return invalid(ir.Malformed, nodePath(g, n), "nil Finish")
@@ -102,6 +97,17 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 		return a.bindNexusResponse(g, i, n)
 	default:
 		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
+	}
+	return nil
+}
+func bindAwait(g *graph, n *node) error {
+	reference := n.source.Instruction.GetAwaitOutcome().GetInstruction()
+	dependency, exists := g.index[reference.GetInstructionId()]
+	if !exists || reference.GetEntrypointId() != g.id || !n.ancestors[dependency] {
+		return invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
+	}
+	if instructionOpcode(g.nodes[dependency].source.Instruction) != StartNexusOperation {
+		return invalid(ir.TypeMismatch, nodePath(g, n), "Await requires StartNexusOperation")
 	}
 	return nil
 }
@@ -126,7 +132,7 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 	if err := a.role(rpc.EndpointRoleId, umpirespb.SYMBOLIC_ROLE_KIND_ENDPOINT); err != nil {
 		return err
 	}
-	if !slices.Contains(a.allowed[rpc.EndpointRoleId].Methods, rpc.Method) {
+	if !a.methods[rpc.EndpointRoleId][rpc.Method] {
 		return invalid(ir.Unsupported, nodePath(g, n), "unauthorized RPC method")
 	}
 	method, err := a.prepared.catalog.Method(rpc.Method)

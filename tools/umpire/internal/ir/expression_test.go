@@ -221,6 +221,13 @@ func TestGuardedExpressionExactPathAndSharedBudget(t *testing.T) {
 	_, value, err := c.BindGuardedExpression(present(project("a")), project("a"), &textType, scope, DefaultLimits())
 	require.NoError(t, err)
 	require.False(t, value.MayBeAbsent())
+	measured := DefaultLimits()
+	measured.Work = value.BindingWork()
+	_, _, err = c.BindGuardedExpression(present(project("a")), project("a"), &textType, scope, measured)
+	require.NoError(t, err)
+	measured.Work--
+	_, _, err = c.BindGuardedExpression(present(project("a")), project("a"), &textType, scope, measured)
+	require.Error(t, err)
 	_, _, err = c.BindGuardedExpression(present(project("b")), project("a"), &textType, scope, DefaultLimits())
 	require.Error(t, err)
 	scope = map[Reference]Binding{{Kind: SlotReference, ID: "a"}: {Type: textType, Available: true}}

@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-65-design-and-prototype-approachable",
+  "created_at": "2026-09-04T21:54:09.121055Z",
+  "depends_on_epics": [],
+  "id": "fn-65-design-and-prototype-approachable",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-65-design-and-prototype-approachable.md",
+  "status": "open",
+  "title": "Design and prototype approachable Nexus2 feature authoring",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-04T21:54:09.123333Z"
+}

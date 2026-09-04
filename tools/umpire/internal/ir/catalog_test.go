@@ -93,9 +93,13 @@ func TestCatalogRejectsMalformedDescriptorGraphs(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestCatalogRejectsConflictingIntrinsicStatus(t *testing.T) {
-	source := catalogFixture()
-	source.File = append(source.File, &descriptorpb.FileDescriptorProto{Name: proto.String("conflict.proto"), Package: proto.String("temporal.server.api.umpire.v1"), Syntax: proto.String("proto3"), EnumType: []*descriptorpb.EnumDescriptorProto{{Name: proto.String("InstructionOutcomeStatus"), Value: []*descriptorpb.EnumValueDescriptorProto{{Name: proto.String("WRONG"), Number: proto.Int32(0)}}}}})
-	_, err := NewCatalog(source)
-	require.Error(t, err)
+func TestCatalogRejectsConflictingIntrinsicEnums(t *testing.T) {
+	for _, name := range []string{"InstructionOutcomeStatus", "RunEventKind"} {
+		t.Run(name, func(t *testing.T) {
+			source := catalogFixture()
+			source.File = append(source.File, &descriptorpb.FileDescriptorProto{Name: proto.String("conflict.proto"), Package: proto.String("temporal.server.api.umpire.v1"), Syntax: proto.String("proto3"), EnumType: []*descriptorpb.EnumDescriptorProto{{Name: proto.String(name), Value: []*descriptorpb.EnumValueDescriptorProto{{Name: proto.String("WRONG"), Number: proto.Int32(0)}}}}})
+			_, err := NewCatalog(source)
+			require.Error(t, err)
+		})
+	}
 }

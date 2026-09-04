@@ -500,3 +500,29 @@ func TestWholeRequestAssignments(t *testing.T) {
 	_, err = Prepare(c, catalog, p)
 	require.Error(t, err)
 }
+
+func TestAwaitRequiresNexusStart(t *testing.T) {
+	for _, target := range []string{"start", "await", "finish"} {
+		t.Run(target, func(t *testing.T) {
+			c, catalog, p := capabilityFixture(t)
+			g := c.Program.Entrypoints[1]
+			n := rpcNode("second_await")
+			n.Dependencies = []*umpirespb.InstructionReference{{EntrypointId: "workflow", InstructionId: target}}
+			n.Instruction = &umpirespb.Instruction{Instruction: &umpirespb.Instruction_AwaitOutcome{AwaitOutcome: &umpirespb.Await{Instruction: proto.CloneOf(n.Dependencies[0])}}}
+			g.Nodes = append([]*umpirespb.InstructionNode{n}, g.Nodes...)
+			_, err := Prepare(c, catalog, p)
+			if target == "start" {
+				require.NoError(t, err)
+			} else {
+				require.ErrorContains(t, err, "StartNexusOperation")
+			}
+		})
+	}
+}
+
+func TestEndpointMethodPolicyRejectsDuplicates(t *testing.T) {
+	c, catalog, p := fixture(t)
+	p.Roles[0].Methods = append(p.Roles[0].Methods, p.Roles[0].Methods[0])
+	_, err := Prepare(c, catalog, p)
+	require.ErrorContains(t, err, "duplicate method")
+}

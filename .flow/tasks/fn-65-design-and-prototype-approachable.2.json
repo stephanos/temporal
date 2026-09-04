@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T21:54:51.699709Z",
+  "depends_on": [
+    "fn-65-design-and-prototype-approachable.1"
+  ],
+  "id": "fn-65-design-and-prototype-approachable.2",
+  "priority": null,
+  "spec": "fn-65-design-and-prototype-approachable",
+  "spec_path": ".flow/tasks/fn-65-design-and-prototype-approachable.2.md",
+  "status": "todo",
+  "title": "Compare interfaces and draft the concrete Nexus2 design",
+  "updated_at": "2026-09-04T21:54:51.699709Z"
+}

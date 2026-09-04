@@ -111,10 +111,13 @@ func (c *Catalog) bindSingular(singular *umpirespb.SingularType, result *Type) e
 	case *umpirespb.SingularType_Enumeration:
 		var descriptor protoreflect.Descriptor
 		var err error
-		intrinsic := umpirespb.InstructionOutcomeStatus(0).Descriptor()
-		if value.Enumeration.GetProtobufType() == string(intrinsic.FullName()) {
-			descriptor = intrinsic
-		} else {
+		for _, intrinsic := range intrinsicEnums() {
+			if value.Enumeration.GetProtobufType() == string(intrinsic.FullName()) {
+				descriptor = intrinsic
+				break
+			}
+		}
+		if descriptor == nil {
 			descriptor, err = c.files.FindDescriptorByName(protoreflect.FullName(value.Enumeration.GetProtobufType()))
 		}
 		if err != nil {
