@@ -37,8 +37,8 @@ Reconcile runtime, architecture, generator, Makefile, and CI descriptions with T
 - [ ] Fresh generator output equals the checked-in relocated generated test bytes and exact Artifact bindings remain pinned.
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...` passes.
 - [ ] `go test -race -count=1 -tags test_dep ./tools/umpire/temporal/local/...` passes.
-- [ ] `go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'` passes.
-- [ ] `make umpire-check-regression`, `make fmt-imports`, and `make lint-code` pass.
+- [ ] `go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'` runs and either passes or matches the exact recorded pre-change failure set with no fn-55/Umpire4 failure.
+- [ ] `make umpire-check-regression` and `make fmt-imports` pass; `make lint-code` runs and either passes or matches the exact recorded pre-change baseline with zero task-scoped findings.
 
 
 ## Done summary

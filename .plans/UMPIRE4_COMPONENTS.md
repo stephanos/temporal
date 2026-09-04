@@ -26,7 +26,7 @@ implementation was found.
 | C2 config importer | Partial | The initialized production registry, typed generated settings, identities, and Go-produced resolution fixtures are built. Product classifications currently cover selected Callback and Matching uses; no standalone explain/check surface exists. |
 | C3 Lean authoring DSL | Partial | Checked targets, Properties, Behaviors, Queries, and finite authored Spaces are built, including canonical axes/choices, request-only faults, seek-only coverage goals, and checked metadata. Fn-5 catalog/list/explain aggregation and usability evidence remain. |
 | C4 ExperimentSpec compiler | Partial | Pure planning and `umpire-gen-tests` retain canonical `umpire-experiment/v2` artifacts for one selected trace or an atomic bounded Space batch. Strict persisted admission, RuntimeConfiguration, exact sets, immutable publication, and paired local consumers are built. Lean also compiles the exact normal and duplicate-delivery Tests into closed version-one protobuf Evaluation Contracts; broader Test/profile compilation remains. |
-| C5 Go/docs generator | Partial | One stable caller-closure regression has deterministic checked-in Go and Markdown Generated Views, and one generation-only Go seam emits an ordinary digest-bound local execution test; broader catalog and promotion surfaces remain. |
+| C5 Go/docs generator | Partial | One stable caller-closure regression has deterministic checked-in Go and Markdown Generated Views, and one generation-only Go seam emits a digest-bound TestEnv integration test under `tests/`; broader catalog and promotion surfaces remain. |
 | C6 execution runtime | Partial | Paired exact admitted normal and duplicate-delivery caller-closure sets run through the same domain-neutral bounded runner. One single-flight resident executor also reuses a borrowed `testcore.NewEnv` cluster, waits for explicit source closure, and poisons reuse after uncertain cleanup. Additional profiles and fleet control remain downstream. |
 | C7 Evidence/Run Evaluation | One paired bounded local slice | The fixed caller-closure checker and the no-Lean Go interpreter both preserve checked Observation Evaluation, Implementation Link, unchanged Property authorities, independent detailed statuses, and fail-closed Limits/closure. The resident path returns conservative per-Test `pass`/`fail`/`inconclusive`; other profiles and non-local evaluation remain open. |
 | C8 exploration | Partial | Deterministic finite exhaustive/shortest-style planning is built. The named coverage-guided policy only seed-rotates enumeration; it does not consume coverage state. Broader campaign exploration exists separately. |
@@ -334,7 +334,7 @@ make umpire-check-regression-views
 make umpire-check-regression
 go run ./tools/umpire/cmd/umpire-gen-tests-go \
   tools/umpire/temporal/nexus/testdata/caller-closure-input-set/manifest.json \
-  --output tools/umpire/temporal/nexus
+  --output tests
 ```
 
 The regression-view generation target publishes both outputs transactionally. The focused check regenerates them
@@ -346,8 +346,8 @@ procedure.
 
 The generation-only `umpire-gen-tests-go` seam separately admits the exact System-composed two-member
 caller-closure set and deterministically renders
-`tools/umpire/temporal/nexus/caller_closure_runner_generated_test.go`. That ordinary test retains
-literal set/member digest binding and calls `tools/umpire/runner` directly. It does not reconstruct
+`tests/umpire4_caller_closure_generated_test.go`. That tagged integration test retains literal
+set/member digest binding and calls `tools/umpire/runner` directly. It does not reconstruct
 behavioral intent, publish output, or evaluate semantic meaning.
 
 The model-view path remains a Generated View-only pilot. The separate operational Generated View now
@@ -380,17 +380,20 @@ ExperimentSpec + Environment -> ExperimentRun + raw evidence
 Current public execution surface:
 
 ```text
-go test ./tools/umpire/temporal/nexus/... -run <generated-test>
+go test -tags 'test_dep integration' ./tests -run <generated-test>
 POST /umpire/v1/execute -> tools/umpire/executorhttp -> resident executor
+UmpireExecutor.Execute -> tools/umpire/executorgrpc -> resident executor
 ```
 
 The runtime owns preparation, bounded action realization, evidence capture, control receipts,
 source closure, cleanup, and isolation. The runner returns admitted output in memory and does not
-publish. The tagged proof adds a caller-owned `testcore.NewEnv` authority through the attached local
-adapter; Umpire borrows its client/namespace and owns only fresh per-run resources. HTTP is bounded
-deterministic protobuf rather than gRPC and exposes no profile, environment, credential, retry, or
-semantic selector. There is no fleet scheduler, lease service, persistent queue, recovery
-controller, production deployment, or ambient authority.
+publish. The tagged proofs create `testcore.NewEnv` under `tests/` and pass an explicit
+`local.NewAttachedFactory` to the adapter. TestEnv owns the Temporal cluster and SDK client. Umpire
+owns the per-run environment wrapper, SDK worker, Nexus endpoints, workflows, and run resources,
+and cleans them before TestEnv cleanup. Both transports carry bounded deterministic protobuf and
+expose no profile, environment, credential, retry, or semantic selector. There is no fleet
+scheduler, lease service, persistent queue, recovery controller, production deployment, or ambient
+authority.
 
 ### C7. Evidence interpretation and Run Evaluation
 
@@ -570,31 +573,32 @@ assessed release claims without erasing environment-specific trust and Known Gap
 
 **Status: bounded hermetic CI and disposable-cluster portability are implemented; current-model
 Claim Assessment is not.** The ordinary CI test executes the byte-identical canonical v2
-`ExperimentSpec` from the local path through the same invocation-owned loopback runner and Run
-Evaluation authority:
+`ExperimentSpec` through the same explicitly attached runner and Run Evaluation authority:
 
 ```sh
-mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/nexus/... -run '^TestHermeticCIPortability$'
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireCallerClosurePortability$'
 ```
 
-`make umpire-check-regression` is the aggregate repository gate and invokes the same test. The proof
-requires equal Artifact Checksum and Behavior Fingerprints, then compares stable typed semantic
-meaning across operational, Observation Evaluation, Implementation Link, Property and clause,
-Limit, Known Gap, and cleanup outcomes. Fresh executions may have different runtime-scoped
-transport identities; workflow YAML cannot construct semantic declarations or reinterpret Evidence.
-Evaluation Profiles, Evaluation Receipts, provenance schemas, new artifact-set versions, Claim
-Assessment, remote, canary, and release work are excluded from this bounded hermetic proof.
+`make umpire-check-regression` is the aggregate repository gate and invokes package-local
+fake-backed tests with `test_dep`, generator byte comparison, and the same live test with
+`test_dep integration`. The proof requires equal Artifact Checksum and Behavior Fingerprints, then
+compares stable typed semantic meaning across operational, Observation Evaluation, Implementation
+Link, Property and clause, Limit, Known Gap, and cleanup outcomes. Fresh executions may have
+different runtime-scoped transport identities; workflow YAML cannot construct semantic declarations
+or reinterpret Evidence. Evaluation Profiles, Evaluation Receipts, provenance schemas, new
+artifact-set versions, Claim Assessment, remote, canary, and release work are excluded from this
+bounded hermetic proof.
 
 The completed self-hosted proof compiles the exact normal and duplicate-delivery semantic contracts
 ahead of time, then uses only their deterministic protobuf bytes at runtime:
 
 ```sh
 go test -count=1 -tags 'test_dep integration' ./tests \
-  -run '^TestUmpirePortableCanaryExecutor$'
+  -run '^TestUmpirePortable(Canary|GRPC)Executor$'
 ```
 
-One tagged test creates a disposable `testcore.NewEnv` cluster, attaches its existing SDK client and
-namespace to the local adapter, and keeps one resident executor plus bounded HTTP protobuf handler
+Each tagged test creates a disposable `testcore.NewEnv` cluster, attaches its existing SDK client and
+namespace to the local adapter, and keeps one resident executor plus a bounded HTTP or gRPC handler
 alive across both contracts. The normal Test returns local `pass`; the duplicate-delivery control
 returns a trustworthy `fail` with only uniqueness violated. Each run has fresh runtime identities,
 task queue, Nexus endpoint, and correlations, closes every contract-required Evidence source, and
@@ -605,9 +609,9 @@ uncertain cleanup poisons executor reuse.
 
 This is a local per-Test decision, not a whole-world/model claim or deployment qualification. It
 adds no fleet scheduler, lease, persistent queue, crash recovery, production deployment, release
-eligibility, or Claim Assessment. The bounded adapter uses `POST /umpire/v1/execute` with
-deterministic protobuf request/response bodies; it is not gRPC and has no operational control-plane
-surface.
+eligibility, or Claim Assessment. The bounded adapters use either `POST /umpire/v1/execute` or the
+generated unary `UmpireExecutor.Execute` method with deterministic protobuf request/response bodies;
+neither has an operational control-plane surface.
 
 The Go Umpire trees also contain older environment profiles, guarded canary controls, Claim
 Assessment models, and release evidence. Those separate paths do not turn the portable executor

@@ -127,14 +127,16 @@ fn-19 execution, invokes the root command twice, reopens the six-member output, 
 checks cleanup/source closure and the API/history-backed caller-closure Property:
 
 ```sh
-TMPDIR=/private/tmp go test -count=1 -tags test_dep \
-  -run '^TestBoundedLiveCallerClosureEvaluation$' \
-  ./tools/umpire/runevaluation
+TMPDIR=/private/tmp go test -count=1 -tags 'test_dep integration' ./tests \
+  -run '^TestUmpireCallerClosureRunEvaluation$'
 ```
 
-This proves one invocation-owned loopback caller-closure scenario. It does not provide replay,
-minimization, promotion, formal-checker integration, remote/staging/canary execution, CI
-qualification, release eligibility, or Claim Assessment.
+The test creates `testcore.NewEnv`, passes its borrowed client, namespace, and frontend address
+through `local.NewAttachedFactory`, and completes Umpire cleanup before TestEnv cleanup. TestEnv owns
+the cluster and SDK client; Umpire owns only its per-run wrapper, SDK worker, Nexus endpoint,
+workflow, Evidence, and cleanup lifecycle. This proves one attached caller-closure scenario. It does
+not provide replay, minimization, promotion, formal-checker integration, remote/staging/canary
+execution, CI qualification, release eligibility, or Claim Assessment.
 
 ## Paired normal and negative live controls
 
@@ -143,9 +145,8 @@ live input. It then sends the exact normal and duplicate-delivery inputs through
 runner, root Run Evaluation command, immutable publication, and reopen checks:
 
 ```sh
-TMPDIR=/private/tmp go test -count=1 -tags test_dep \
-  ./tools/umpire/runevaluation \
-  -run '^TestBoundedLiveNexusNegativeControl$'
+TMPDIR=/private/tmp go test -count=1 -tags 'test_dep integration' ./tests \
+  -run '^TestUmpireDuplicateDeliveryRunEvaluation$'
 ```
 
 The normal control is operational `succeeded`, Observation Evaluation `accepted`, Implementation
@@ -178,6 +179,8 @@ the semantic non-success from a generic Make failure:
 sh -c 'output_root=$(mktemp -d /private/tmp/umpire-local-results.XXXXXX); trap "rm -rf $output_root" EXIT; status=0; umpire-local-run-evaluation --set tools/umpire/temporal/nexus/testdata/caller-closure-duplicate-delivery-run-set --output-root "$output_root" || status=$?; test "$status" -eq 2'
 ```
 
-The pair remains one invocation-owned loopback profile. Replay, minimization, promotion, generic
-fault infrastructure, additional profiles, formal-checker integration, remote/staging/canary
-execution, CI qualification, release eligibility, and Claim Assessment remain outside it.
+The pair remains one explicitly attached TestEnv profile. Package-local Run Evaluation tests use
+fakes and require only the `test_dep` tag; the live proofs reside under `tests/` and additionally
+require `integration`. Replay, minimization, promotion, generic fault infrastructure, additional
+profiles, formal-checker integration, remote/staging/canary execution, CI qualification, release
+eligibility, and Claim Assessment remain outside it.
