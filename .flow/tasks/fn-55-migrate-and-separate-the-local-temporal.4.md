@@ -37,12 +37,12 @@ Reconcile runtime, architecture, generator, Makefile, and CI descriptions with T
 - [ ] Fresh generator output equals the checked-in relocated generated test bytes and exact Artifact bindings remain pinned.
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...` passes.
 - [ ] `go test -race -count=1 -tags test_dep ./tools/umpire/temporal/local/...` passes.
-- [ ] `go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'` runs and either passes or matches the exact recorded pre-change failure set with no fn-55/Umpire4 failure.
+- [ ] `go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'` runs and either passes or reports only inherited Umpire2/Umpire3 identities, with no fn-55/Umpire4 or unclassified failure.
 - [ ] `make umpire-check-regression` and `make fmt-imports` pass; `make lint-code` runs and either passes or matches the exact recorded pre-change baseline with zero task-scoped findings.
 
 
 ## Done summary
-Reconciled Umpire ownership and execution-boundary documentation, pinned the relocated generated source with a deterministic byte-diff gate, and added AST/workflow guardrails against restoring legacy authority or hidden TestEnv coupling. Make and CI now run the complete tagged `^TestUmpire` live suite and accept only the exact recorded Umpire2/Umpire3 failure identities; the aggregate gate and 270 model jobs pass, global lint remains exact-baseline inherited red at 1,374 findings, and task-scoped lint reports zero findings.
+Reconciled Umpire ownership and execution-boundary documentation, pinned the relocated generated source with a deterministic byte-diff gate, and added AST/workflow guardrails against restoring legacy authority or hidden TestEnv coupling. Make and CI run the complete tagged `^TestUmpire` live suite, classify Umpire2/Umpire3 failures as inherited, and reject every Umpire4 or unclassified failure; the aggregate gate and 270 model jobs pass, global lint remains exact-baseline inherited red at 1,374 findings, and task-scoped lint reports zero findings.
 
 stage: impl-review - ran [2026-09-04T07:43:22Z..2026-09-04T07:55:12Z]
 stage: plan-sync - skipped(config: planSync.enabled != true)
