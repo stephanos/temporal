@@ -198,6 +198,7 @@ structure Entrypoint where
 
 /-- The always-run cleanup DAG and the context in which the Host activates it. -/
 structure CleanupGraph where
+  entrypointId : String
   context : EntrypointContext
   nodes : List InstructionNode
   deriving BEq, Repr

@@ -38,6 +38,14 @@ inductive ScalarKind where
   | double
   deriving BEq, DecidableEq, Repr
 
+/-- The closed categories of source-model incompleteness retained in a Case. -/
+inductive CaseKnownGapKind where
+  | capabilityContract
+  | input
+  | interpretation
+  | claim
+  deriving BEq, DecidableEq, Repr
+
 /-- One typed protobuf message value retained without interpreting its fields. -/
 structure MessageValue where
   typeUrl : String
@@ -136,6 +144,11 @@ structure ObservationReference where
   observationId : String
   deriving BEq, DecidableEq, Repr
 
+/-- A rule-local reference to one declared single-assignment Contract capture. -/
+structure CaptureReference where
+  captureId : String
+  deriving BEq, DecidableEq, Repr
+
 /-- The generic Run Event metadata available to Contract predicates. -/
 inductive RunEventField where
   | sequence
@@ -154,6 +167,7 @@ inductive ValueExpression where
   | slot (reference : SlotReference)
   | outcome (reference : InstructionOutcomeReference)
   | observation (reference : ObservationReference)
+  | capture (reference : CaptureReference)
   | runEvent (field : RunEventField)
   | path (source : ValueExpression) (path : FieldPath)
   | present (operand : ValueExpression)

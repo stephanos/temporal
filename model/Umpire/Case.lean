@@ -23,6 +23,15 @@ inductive CaseDefinitionKind where
   | behavior
   | target
   | compiler
+  | provider
+  | law
+  | connector
+  | kernel
+  | experimentSpace
+  | variationAxis
+  | choice
+  | fault
+  | coverageGoal
   deriving BEq, DecidableEq, Repr
 
 /-- One source Definition ID and the behavior fingerprint used for this Case. -/
@@ -34,9 +43,10 @@ structure CaseDefinitionBinding where
 
 /-- One explicit coverage or portability gap retained by the compiler. -/
 structure CaseKnownGap where
+  kind : CaseKnownGapKind
   code : String
-  subject : String
-  detail : String
+  subject : Option String := none
+  detail : Option String := none
   deriving BEq, DecidableEq, Repr
 
 /-- Compiler and source provenance for one Case artifact. -/
