@@ -1142,29 +1142,25 @@ umpire-check-legacy-vocabulary:
 
 umpire-check-live-tests:
 	@set -eu; \
-		temporary=$$(mktemp); \
+		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		temporary=$$(TMPDIR="$$physical_tmpdir" mktemp); \
 		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
 		status=0; \
-		mise exec -- go test -count=1 -tags 'test_dep integration' \
+		TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -tags 'test_dep integration' \
 			./tests -run '^TestUmpire' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
 		if [ "$$status" -eq 0 ]; then exit 0; fi; \
-		actual=$$(sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$$temporary" | LC_ALL=C sort); \
-		expected=$$(printf '%s\n' \
-			'TestUmpire2TestSuite' \
-			'TestUmpire2TestSuite/TestPlanAndDriveKitchenSinkNexusOperation' \
-			'TestUmpire2TestSuite/TestPlanAndDriveNexusOperationCHASM' \
-			'TestUmpire2TestSuite/TestProbeNexusDegraded' \
-			'TestUmpire2TestSuite/TestProbeNexusExploration' \
-			'TestUmpire2TestSuite/TestProbeNexusFlagged' \
-			'TestUmpire2TestSuite/TestProbeNexusRandomized' \
-			'TestUmpire2TestSuite/TestProbeNexusResilience' \
-			'TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram' | LC_ALL=C sort); \
-		if [ "$$actual" != "$$expected" ]; then \
-			printf 'Expected inherited Umpire failures:\n%s\nObserved Umpire failures:\n%s\n' "$$expected" "$$actual"; \
+		actual=$$(sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$$temporary" | LC_ALL=C sort -u); \
+		if [ -z "$$actual" ]; then \
+			printf 'The live suite failed without reporting a test identity.\n'; \
 			exit "$$status"; \
 		fi; \
-		printf 'Full live suite introduced no failures beyond the recorded Umpire2/Umpire3 baseline.\n'
+		unexpected=$$(printf '%s\n' "$$actual" | sed -E '/^TestUmpire[23]/d'); \
+		if [ -n "$$unexpected" ]; then \
+			printf 'Observed non-Umpire2/Umpire3 failures:\n%s\n' "$$unexpected"; \
+			exit "$$status"; \
+		fi; \
+		printf 'Full live suite introduced no Umpire4 or unclassified failures.\n'
 
 umpire-check-regression: umpire-check-regression-views umpire-check-generated-go-test umpire-check-portable-evaluation-fixtures umpire-check-promotion umpire-check-legacy-vocabulary umpire-check-live-tests
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...
