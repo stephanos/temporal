@@ -656,6 +656,9 @@ type RunEvent struct {
 	CausalSourceIds     []string               `protobuf:"bytes,6,rep,name=causal_source_ids,json=causalSourceIds,proto3" json:"causal_source_ids,omitempty"`
 	Outcome             *InstructionOutcome    `protobuf:"bytes,7,opt,name=outcome,proto3" json:"outcome,omitempty"`
 	Observations        []*ObservationValue    `protobuf:"bytes,8,rep,name=observations,proto3" json:"observations,omitempty"`
+	// Set before evaluation of the first event establishing execution incompleteness.
+	// Incompleteness remains effective for every later event.
+	ExecutionIncomplete bool `protobuf:"varint,9,opt,name=execution_incomplete,json=executionIncomplete,proto3" json:"execution_incomplete,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -744,6 +747,13 @@ func (x *RunEvent) GetObservations() []*ObservationValue {
 		return x.Observations
 	}
 	return nil
+}
+
+func (x *RunEvent) GetExecutionIncomplete() bool {
+	if x != nil {
+		return x.ExecutionIncomplete
+	}
+	return false
 }
 
 type CleanupOutcome struct {
@@ -1048,17 +1058,20 @@ func (x *Verdict) GetSupportingEventSequences() []int64 {
 
 // Run is the authoritative append-only record of one attempted Program execution.
 type Run struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RunId         string                 `protobuf:"bytes,1,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
-	CaseId        string                 `protobuf:"bytes,2,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
-	ProgramId     string                 `protobuf:"bytes,3,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty"`
-	Events        []*RunEvent            `protobuf:"bytes,4,rep,name=events,proto3" json:"events,omitempty"`
-	Disposition   RunDisposition         `protobuf:"varint,5,opt,name=disposition,proto3,enum=temporal.server.api.umpire.v1.RunDisposition" json:"disposition,omitempty"`
-	Cleanup       *CleanupOutcome        `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
-	Verdict       *Verdict               `protobuf:"bytes,7,opt,name=verdict,proto3" json:"verdict,omitempty"`
-	Diagnostics   []*RunDiagnostic       `protobuf:"bytes,8,rep,name=diagnostics,proto3" json:"diagnostics,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	RunId       string                 `protobuf:"bytes,1,opt,name=run_id,json=runId,proto3" json:"run_id,omitempty"`
+	CaseId      string                 `protobuf:"bytes,2,opt,name=case_id,json=caseId,proto3" json:"case_id,omitempty"`
+	ProgramId   string                 `protobuf:"bytes,3,opt,name=program_id,json=programId,proto3" json:"program_id,omitempty"`
+	Events      []*RunEvent            `protobuf:"bytes,4,rep,name=events,proto3" json:"events,omitempty"`
+	Disposition RunDisposition         `protobuf:"varint,5,opt,name=disposition,proto3,enum=temporal.server.api.umpire.v1.RunDisposition" json:"disposition,omitempty"`
+	Cleanup     *CleanupOutcome        `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
+	Verdict     *Verdict               `protobuf:"bytes,7,opt,name=verdict,proto3" json:"verdict,omitempty"`
+	Diagnostics []*RunDiagnostic       `protobuf:"bytes,8,rep,name=diagnostics,proto3" json:"diagnostics,omitempty"`
+	// First event whose Monitor callback failed; its staged evaluation did not commit.
+	// Recorded after the callback, without changing the appended event.
+	EvaluationFailureSequence *RunEventSequence `protobuf:"bytes,9,opt,name=evaluation_failure_sequence,json=evaluationFailureSequence,proto3" json:"evaluation_failure_sequence,omitempty"`
+	unknownFields             protoimpl.UnknownFields
+	sizeCache                 protoimpl.SizeCache
 }
 
 func (x *Run) Reset() {
@@ -1147,6 +1160,13 @@ func (x *Run) GetDiagnostics() []*RunDiagnostic {
 	return nil
 }
 
+func (x *Run) GetEvaluationFailureSequence() *RunEventSequence {
+	if x != nil {
+		return x.EvaluationFailureSequence
+	}
+	return nil
+}
+
 var File_temporal_server_api_umpire_v1_run_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_umpire_v1_run_proto_rawDesc = "" +
@@ -1162,7 +1182,7 @@ const file_temporal_server_api_umpire_v1_run_proto_rawDesc = "" +
 	"\remitted_index\x18\x05 \x01(\x03R\femittedIndex\"u\n" +
 	"\x10ObservationValue\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12:\n" +
-	"\x05value\x18\x02 \x01(\v2$.temporal.server.api.umpire.v1.ValueR\x05value\"\xd6\x03\n" +
+	"\x05value\x18\x02 \x01(\v2$.temporal.server.api.umpire.v1.ValueR\x05value\"\x89\x04\n" +
 	"\bRunEvent\x12\x1a\n" +
 	"\bsequence\x18\x01 \x01(\x03R\bsequence\x121\n" +
 	"\x14elapsed_milliseconds\x18\x02 \x01(\x03R\x13elapsedMilliseconds\x12?\n" +
@@ -1171,7 +1191,8 @@ const file_temporal_server_api_umpire_v1_run_proto_rawDesc = "" +
 	"\tsource_id\x18\x05 \x01(\tR\bsourceId\x12*\n" +
 	"\x11causal_source_ids\x18\x06 \x03(\tR\x0fcausalSourceIds\x12K\n" +
 	"\aoutcome\x18\a \x01(\v21.temporal.server.api.umpire.v1.InstructionOutcomeR\aoutcome\x12S\n" +
-	"\fobservations\x18\b \x03(\v2/.temporal.server.api.umpire.v1.ObservationValueR\fobservations\"\x80\x01\n" +
+	"\fobservations\x18\b \x03(\v2/.temporal.server.api.umpire.v1.ObservationValueR\fobservations\x121\n" +
+	"\x14execution_incomplete\x18\t \x01(\bR\x13executionIncomplete\"\x80\x01\n" +
 	"\x0eCleanupOutcome\x12G\n" +
 	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.umpire.v1.RunCleanupStatusR\x06status\x12%\n" +
 	"\x0ediagnostic_ids\x18\x02 \x03(\tR\rdiagnosticIds\"(\n" +
@@ -1191,7 +1212,7 @@ const file_temporal_server_api_umpire_v1_run_proto_rawDesc = "" +
 	"\aVerdict\x12>\n" +
 	"\x04kind\x18\x01 \x01(\x0e2*.temporal.server.api.umpire.v1.VerdictKindR\x04kind\x12@\n" +
 	"\x05rules\x18\x02 \x03(\v2*.temporal.server.api.umpire.v1.RuleVerdictR\x05rules\x12<\n" +
-	"\x1asupporting_event_sequences\x18\x03 \x03(\x03R\x18supportingEventSequences\"\xc1\x03\n" +
+	"\x1asupporting_event_sequences\x18\x03 \x03(\x03R\x18supportingEventSequences\"\xb2\x04\n" +
 	"\x03Run\x12\x15\n" +
 	"\x06run_id\x18\x01 \x01(\tR\x05runId\x12\x17\n" +
 	"\acase_id\x18\x02 \x01(\tR\x06caseId\x12\x1d\n" +
@@ -1201,7 +1222,8 @@ const file_temporal_server_api_umpire_v1_run_proto_rawDesc = "" +
 	"\vdisposition\x18\x05 \x01(\x0e2-.temporal.server.api.umpire.v1.RunDispositionR\vdisposition\x12G\n" +
 	"\acleanup\x18\x06 \x01(\v2-.temporal.server.api.umpire.v1.CleanupOutcomeR\acleanup\x12@\n" +
 	"\averdict\x18\a \x01(\v2&.temporal.server.api.umpire.v1.VerdictR\averdict\x12N\n" +
-	"\vdiagnostics\x18\b \x03(\v2,.temporal.server.api.umpire.v1.RunDiagnosticR\vdiagnostics*\x9d\x03\n" +
+	"\vdiagnostics\x18\b \x03(\v2,.temporal.server.api.umpire.v1.RunDiagnosticR\vdiagnostics\x12o\n" +
+	"\x1bevaluation_failure_sequence\x18\t \x01(\v2/.temporal.server.api.umpire.v1.RunEventSequenceR\x19evaluationFailureSequence*\x9d\x03\n" +
 	"\fRunEventKind\x12\x1e\n" +
 	"\x1aRUN_EVENT_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19RUN_EVENT_KIND_RUN_OPENED\x10\x01\x12$\n" +
@@ -1298,11 +1320,12 @@ var file_temporal_server_api_umpire_v1_run_proto_depIdxs = []int32{
 	10, // 14: temporal.server.api.umpire.v1.Run.cleanup:type_name -> temporal.server.api.umpire.v1.CleanupOutcome
 	14, // 15: temporal.server.api.umpire.v1.Run.verdict:type_name -> temporal.server.api.umpire.v1.Verdict
 	12, // 16: temporal.server.api.umpire.v1.Run.diagnostics:type_name -> temporal.server.api.umpire.v1.RunDiagnostic
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	11, // 17: temporal.server.api.umpire.v1.Run.evaluation_failure_sequence:type_name -> temporal.server.api.umpire.v1.RunEventSequence
+	18, // [18:18] is the sub-list for method output_type
+	18, // [18:18] is the sub-list for method input_type
+	18, // [18:18] is the sub-list for extension type_name
+	18, // [18:18] is the sub-list for extension extendee
+	0,  // [0:18] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_run_proto_init() }

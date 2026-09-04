@@ -160,4 +160,24 @@ private def decodeReservation (text : String) : Except String ActivationReservat
   | .ok _ => false
   | .error _ => true
 
+private def incompleteRun : Run := {
+  runId := "run"
+  caseId := "case"
+  programId := "program"
+  events := [{
+    sequence := 1
+    elapsedMilliseconds := 0
+    kind := .runOpened
+    coordinates := {}
+    executionIncomplete := true
+  }]
+  disposition := .incomplete
+  cleanup := { status := .succeeded }
+  verdict := { kind := .inconclusive, rules := [] }
+  evaluationFailureSequence := some 1
+}
+
+#guard incompleteRun.events.head?.map (·.executionIncomplete) == some true
+#guard incompleteRun.evaluationFailureSequence == some 1
+
 end Umpire.CaseTests

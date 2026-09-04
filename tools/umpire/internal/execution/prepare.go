@@ -17,6 +17,7 @@ type admission struct {
 	prepared     *PreparedProgram
 	roles        map[string]umpirespb.SymbolicRoleKind
 	allowed      map[string]RolePolicy
+	methods      map[string]map[string]bool
 	capabilities map[Opcode]bool
 	observations map[string]ir.Type
 	writers      map[string]slotWriter
@@ -72,7 +73,7 @@ func Prepare(source *umpirespb.Case, catalog *ir.Catalog, policy Policy) (*Prepa
 		return nil, err
 	}
 	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}}
-	a := &admission{prepared: prepared, roles: map[string]umpirespb.SymbolicRoleKind{}, allowed: map[string]RolePolicy{}, capabilities: map[Opcode]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
+	a := &admission{prepared: prepared, roles: map[string]umpirespb.SymbolicRoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, capabilities: map[Opcode]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
 	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations} {
 		if err := check(); err != nil {
 			return nil, err
@@ -167,6 +168,7 @@ func (a *admission) bindRolePolicy(role RolePolicy) (RolePolicy, error) {
 		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
 	}
 	role.Methods = slices.Clone(role.Methods)
+	methods := make(map[string]bool, len(role.Methods))
 	for _, method := range role.Methods {
 		if len(method) > 256 {
 			return RolePolicy{}, invalid(ir.LimitExceeded, "policy.methods", "method identity ceiling exceeded")
@@ -174,11 +176,16 @@ func (a *admission) bindRolePolicy(role RolePolicy) (RolePolicy, error) {
 		if err := a.charge(1); err != nil {
 			return RolePolicy{}, err
 		}
+		if methods[method] {
+			return RolePolicy{}, invalid(ir.Malformed, "policy.methods", "duplicate method")
+		}
+		methods[method] = true
 		if _, err := a.prepared.catalog.Method(method); err != nil {
 			return RolePolicy{}, err
 		}
 	}
 	a.allowed[role.ID] = role
+	a.methods[role.ID] = methods
 	return role, nil
 }
 func (a *admission) bindSchemas() error {

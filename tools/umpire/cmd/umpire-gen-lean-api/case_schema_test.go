@@ -184,7 +184,9 @@ func TestRunSchemaRoundTripsDiagnosticSupportPresence(t *testing.T) {
 	t.Parallel()
 
 	input := &umpirespb.Run{
-		RunId: "run-1",
+		RunId:                     "run-1",
+		Events:                    []*umpirespb.RunEvent{{Sequence: 7, Kind: umpirespb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, ExecutionIncomplete: true}},
+		EvaluationFailureSequence: &umpirespb.RunEventSequence{Value: 7},
 		Diagnostics: []*umpirespb.RunDiagnostic{
 			{DiagnosticId: "without-support", Kind: umpirespb.RUN_DIAGNOSTIC_KIND_EXECUTION},
 			{
