@@ -223,8 +223,8 @@
     "impl:fn-57-partition-the-observation-authoring.1": 1,
     "impl:fn-57-partition-the-observation-authoring.2": 1,
     "impl:fn-57-partition-the-observation-authoring.3": 1,
-    "plan": 2,
-    "plan#completion": 0
+    "plan": 3,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -248,5 +248,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T11:06:39.221418Z"
+  "updated_at": "2026-09-04T11:09:13.108484Z"
 }
