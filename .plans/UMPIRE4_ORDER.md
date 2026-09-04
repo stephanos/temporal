@@ -41,13 +41,13 @@ architecture-document anchors before their final documentation tasks.
 **Depends on:** completed fn-53, because both modify the local environment implementation.
 
 **Scope:** retire the deprecated owned test-server authority, `local.NewFactory`, and the zero-value
-Nexus fallback. Require explicit composition with the existing `local.NewAttachedFactory`; every
-live Umpire Nexus, generated-portability, portable-executor, and Run Evaluation proof moves under
-`tests/` and binds to `testcore.TestEnv`, while package-local tests use fakes and start no server.
-`TestEnv` owns cluster/client lifecycle; Umpire owns and reports only its per-run wrapper, worker,
-endpoints, workflows, and run resources. No Umpire source may depend on the deprecated harness, no
-production source may import `tests/testcore`, and no fallback or ambient authority registry is
-allowed.
+Nexus fallback. Explicit composition with `local.NewAttachedFactory` is the only supported live
+authority path; every live Umpire Nexus, generated-portability, portable-executor, and Run
+Evaluation proof lives under `tests/` and binds to `testcore.TestEnv`, while package-local tests use
+fakes and start no server. `TestEnv` owns cluster/client lifecycle; Umpire owns and reports only its
+per-run wrapper, worker, endpoints, workflows, and run resources. No Umpire source may depend on the
+deprecated harness, no production source may import `tests/testcore`, and no fallback or ambient
+authority registry is allowed.
 
 ### 2. fn-56 — Split Lean API generator planning from rendering
 
