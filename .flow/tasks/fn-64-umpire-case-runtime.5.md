@@ -46,8 +46,9 @@ permits roles/method patterns and owns all endpoint addresses and transport secr
   the correct preparation/runtime boundary.
 - [ ] Non-OK statuses and transport failures remain typed instruction outcomes; execution tests own
   Slot/Observation/EmitEach assertions.
-- [ ] Credentials and injected metadata are absent from Case, returned payload data, Run Events, and
-  diagnostics.
+- [ ] Host-injected credentials and transport metadata are not added to Case, returned payload
+  data, Run Events, or diagnostics. Declared projections of authorized RPC responses are ordinary
+  data, including callback fields; no special polling restriction or response redaction is added.
 - [ ] Nexus completion consumes only the opaque capability; success/failure/timeout and quarantine
   are bounded and controller-only.
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/temporal/server/...` passes.

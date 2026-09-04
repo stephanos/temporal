@@ -1,7 +1,5 @@
 package runtime
 
-import "errors"
-
 // PreflightErrorKind is one closed, deterministic request-rejection category.
 type PreflightErrorKind string
 
@@ -56,8 +54,8 @@ func (e *PreflightError) Subject() string {
 }
 
 func (e *PreflightError) Is(target error) bool {
-	var other *PreflightError
-	return errors.As(target, &other) && e != nil && other != nil && e.kind == other.kind
+	other, ok := target.(*PreflightError)
+	return ok && e != nil && other != nil && e.kind == other.kind
 }
 
 func preflightError(kind PreflightErrorKind, subject string) error {
