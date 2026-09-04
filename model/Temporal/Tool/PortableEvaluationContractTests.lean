@@ -122,6 +122,15 @@ example :
     duplicatePlan.execution.requestedFaults.length = 1 := by
   native_decide
 
+example :
+    normalPlan.execution.runtime.authorityRequiredCapabilities.map
+      (fun capability => capability.definitionId) =
+        Temporal.System.Execution.ephemeralLocalProfile.requiredCapabilities ∧
+    duplicatePlan.execution.runtime.authorityRequiredCapabilities.map
+      (fun capability => capability.definitionId) =
+        Temporal.System.Execution.ephemeralLocalProfile.requiredCapabilities := by
+  native_decide
+
 private def requiredObligationRetained : Bool :=
   match obligationPlan.externalObligations with
   | [first, second, third, fourth, fifth, sixth, seventh] =>

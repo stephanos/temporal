@@ -1,5 +1,5 @@
 
-Cworkflow-nexus.query.exact-action-caller-closure.portable-test-plan ªåb§YXﬁ-©∞úE≥á≠“Éy]·–'&4œ^_…]ÉvL2‰1
+Cworkflow-nexus.query.exact-action-caller-closure.portable-test-plan «O• yÈgÉåFM√\⁄àW…ø•yÏÉÈ2–2Ê4
 Å
 6workflow-nexus.query.exact-action-caller-closure.setupGsha256:e09096b6a3a8d167fd1c476c4ac58ee2d68893a3207e2cd25e9d0b77e2ca0928{
 0workflow-nexus.query.exact-action-caller-closureGsha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458afo
@@ -58,7 +58,7 @@ w
 ,nexus.observation.pending-cancellation-countGsha256:00bb09bcebc13b60fc130474aed7d15a9e9d075573cac4857b0913592d0013861}
 q
 &workflow-nexus.relation.owns-operationGsha256:af6e066ea2651ec7a140729a3f77ca395e1912c3c914247a1649a85e55410164
-true¢…
+true¢À
 s
 (temporal.runtime-profile.ephemeral-localGsha256:dd92f1ee14df101f2ea4abb4439f4722de8c061292a4fdd6b6476c7ca7e09b31~
 3temporal.nexus.runtime-configuration.caller-closureGsha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67•
@@ -76,7 +76,10 @@ w
 p
 %umpire.execution.termination.completeGsha256:372ad4b96f0913f09b91874406756befe453b272b2f90f12c3a7118f7538309b:n
 l
-!umpire.execution.cleanup.completeGsha256:2163b74a5d619c57e9c6fd2c32345fce323e6901d7176ce24a4680982770bbb2™⁄
+!umpire.execution.cleanup.completeGsha256:2163b74a5d619c57e9c6fd2c32345fce323e6901d7176ce24a4680982770bbb2BÉ
+8umpire.runtime.capability.complete-workflow-history-readGsha256:5f4d9c3c4a89dae46fe51da6a0ba644208a4cc1b9c43226a1729b71f31706ecfB
+4umpire.runtime.capability.ephemeral-server-lifecycleGsha256:776727e884c58ad4c874d2c8b887839aae7976ecf983317ded41c624c0692e2aBy
+.umpire.runtime.capability.sdk-worker-lifecycleGsha256:acd64716302466b6fb1e7ea1660f6c9b1e49af1be77c42ef3a89c8ff17d07fe0™⁄
  "'#umpire.known-gap.execution-evidence"($umpire.known-gap.artifact-migrations"%!umpire.known-gap.artifact-reading"($umpire.known-gap.evidence-evaluation",(umpire.known-gap.runtime-scheduler-order"*&umpire.known-gap.runtime-storage-order",(umpire.known-gap.runtime-transport-order"umpire.known-gap.promotion*ñ
 $workflow-nexus.behavior.exact-action
 $workflow-nexus.kernel.caller-closure
