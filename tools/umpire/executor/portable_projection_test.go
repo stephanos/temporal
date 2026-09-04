@@ -13,6 +13,10 @@ const portableProjectionDigest = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 
 func TestProjectPortableExecutionProducesTheExistingRunnerInput(t *testing.T) {
 	plan := portableProjectionPlan()
+	plan.GetExecution().GetRuntime().AuthorityRequiredCapabilities = append(
+		plan.GetExecution().GetRuntime().GetAuthorityRequiredCapabilities(),
+		portableProjectionBinding("test.capability.adapter-only"),
+	)
 
 	input, err := projectPortableExecution(plan)
 
