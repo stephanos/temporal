@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+package temporal.server.api.umpire.v1;
+
+import "temporal/server/api/umpire/v1/program.proto";
+import "temporal/server/api/umpire/v1/value.proto";
+
+option go_package = "go.temporal.io/server/api/umpire/v1;umpire";
+
+// The Run keeps related messages and enums together as one closed interpreter vocabulary.
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum RunEventKind {
+  RUN_EVENT_KIND_UNSPECIFIED = 0;
+  RUN_EVENT_KIND_RUN_OPENED = 1;
+  RUN_EVENT_KIND_ACTIVATION_OPENED = 2;
+  RUN_EVENT_KIND_INSTRUCTION_STARTED = 3;
+  RUN_EVENT_KIND_INSTRUCTION_COMPLETED = 4;
+  RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT = 5;
+  RUN_EVENT_KIND_ACTIVATION_CLOSED = 6;
+  RUN_EVENT_KIND_CLEANUP_STARTED = 7;
+  RUN_EVENT_KIND_CLEANUP_COMPLETED = 8;
+  RUN_EVENT_KIND_RUN_CLOSED = 9;
+  RUN_EVENT_KIND_DIAGNOSTIC = 10;
+}
+
+message RunEventKinds {
+  repeated RunEventKind kinds = 1;
+}
+
+message RunCoordinates {
+  string entrypoint_id = 1;
+  string activation_id = 2;
+  string instruction_id = 3;
+  int64 attempt = 4;
+  int64 emitted_index = 5;
+}
+
+message ObservationValue {
+  string observation_id = 1;
+  Value value = 2;
+}
+
+// RunEvent is an immutable fact at one Executor-recorded monotonic coordinate.
+message RunEvent {
+  int64 sequence = 1;
+  int64 elapsed_milliseconds = 2;
+  RunEventKind kind = 3;
+  RunCoordinates coordinates = 4;
+  string source_id = 5;
+  repeated string causal_source_ids = 6;
+  InstructionOutcome outcome = 7;
+  repeated ObservationValue observations = 8;
+}
+
+enum RunDisposition {
+  RUN_DISPOSITION_UNSPECIFIED = 0;
+  RUN_DISPOSITION_COMPLETED = 1;
+  RUN_DISPOSITION_STOPPED_BY_MONITOR = 2;
+  RUN_DISPOSITION_INCOMPLETE = 3;
+}
+
+// Umpire cleanup Status is normative terminology rather than lifecycle state.
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum RunCleanupStatus {
+  RUN_CLEANUP_STATUS_UNSPECIFIED = 0;
+  RUN_CLEANUP_STATUS_SUCCEEDED = 1;
+  RUN_CLEANUP_STATUS_FAILED = 2;
+  RUN_CLEANUP_STATUS_TIMED_OUT = 3;
+}
+
+message CleanupOutcome {
+  RunCleanupStatus status = 1;
+  repeated string diagnostic_ids = 2;
+}
+
+enum RunDiagnosticKind {
+  RUN_DIAGNOSTIC_KIND_UNSPECIFIED = 0;
+  RUN_DIAGNOSTIC_KIND_EXECUTION = 1;
+  RUN_DIAGNOSTIC_KIND_MONITOR = 2;
+  RUN_DIAGNOSTIC_KIND_RECORDER = 3;
+  RUN_DIAGNOSTIC_KIND_INVARIANT = 4;
+  RUN_DIAGNOSTIC_KIND_LIMIT = 5;
+  RUN_DIAGNOSTIC_KIND_HOST_CONTRACT = 6;
+  RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT = 7;
+}
+
+message RunDiagnostic {
+  string diagnostic_id = 1;
+  RunDiagnosticKind kind = 2;
+  string code = 3;
+  string detail = 4;
+  int64 supporting_event_sequence = 5;
+}
+
+enum RuleVerdictKind {
+  RULE_VERDICT_KIND_UNSPECIFIED = 0;
+  RULE_VERDICT_KIND_PENDING = 1;
+  RULE_VERDICT_KIND_SATISFIED = 2;
+  RULE_VERDICT_KIND_VIOLATED = 3;
+  RULE_VERDICT_KIND_INCONCLUSIVE = 4;
+}
+
+message RuleVerdict {
+  string rule_id = 1;
+  RuleVerdictKind kind = 2;
+  string terminal_state_id = 3;
+  repeated int64 supporting_event_sequences = 4;
+}
+
+enum VerdictKind {
+  VERDICT_KIND_UNSPECIFIED = 0;
+  VERDICT_KIND_SATISFIED = 1;
+  VERDICT_KIND_VIOLATED = 2;
+  VERDICT_KIND_INCONCLUSIVE = 3;
+}
+
+message Verdict {
+  VerdictKind kind = 1;
+  repeated RuleVerdict rules = 2;
+  repeated int64 supporting_event_sequences = 3;
+}
+
+// Run is the authoritative append-only record of one attempted Program execution.
+message Run {
+  string run_id = 1;
+  string case_id = 2;
+  string program_id = 3;
+  repeated RunEvent events = 4;
+  RunDisposition disposition = 5;
+  CleanupOutcome cleanup = 6;
+  Verdict verdict = 7;
+  repeated RunDiagnostic diagnostics = 8;
+}
