@@ -160,7 +160,7 @@ func (s ExecutableSet) Experiment() artifactv2.Experiment {
 	if s.admitted.executable == nil {
 		return artifactv2.Experiment{}
 	}
-	return cloneExperiment(s.admitted.executable.experiment)
+	return artifactv2.CopyExperiment(s.admitted.executable.experiment)
 }
 
 // RuntimeConfiguration returns an immutable copy of the admitted RuntimeConfiguration value.
@@ -168,7 +168,7 @@ func (s ExecutableSet) RuntimeConfiguration() artifactv2.RuntimeConfiguration {
 	if s.admitted.executable == nil {
 		return artifactv2.RuntimeConfiguration{}
 	}
-	return cloneRuntimeConfiguration(s.admitted.executable.runtimeConfiguration)
+	return artifactv2.CopyRuntimeConfiguration(s.admitted.executable.runtimeConfiguration)
 }
 
 // AdmitExecution extends this exact executable snapshot with typed Run and RawEvidence values.
@@ -230,7 +230,7 @@ func (s ExecutionSet) Experiment() artifactv2.Experiment {
 	if s.admitted.execution == nil {
 		return artifactv2.Experiment{}
 	}
-	return cloneExperiment(s.admitted.execution.experiment)
+	return artifactv2.CopyExperiment(s.admitted.execution.experiment)
 }
 
 // RuntimeConfiguration returns an immutable copy of the admitted RuntimeConfiguration value.
@@ -238,7 +238,7 @@ func (s ExecutionSet) RuntimeConfiguration() artifactv2.RuntimeConfiguration {
 	if s.admitted.execution == nil {
 		return artifactv2.RuntimeConfiguration{}
 	}
-	return cloneRuntimeConfiguration(s.admitted.execution.runtimeConfiguration)
+	return artifactv2.CopyRuntimeConfiguration(s.admitted.execution.runtimeConfiguration)
 }
 
 // ExperimentRun returns an immutable copy of the admitted ExperimentRun value.
@@ -246,7 +246,7 @@ func (s ExecutionSet) ExperimentRun() artifactv2.ExperimentRun {
 	if s.admitted.execution == nil {
 		return artifactv2.ExperimentRun{}
 	}
-	return cloneExperimentRun(s.admitted.execution.run)
+	return artifactv2.CopyExperimentRun(s.admitted.execution.run)
 }
 
 // RawEvidence returns an immutable copy of the admitted RawEvidence value.
@@ -254,7 +254,7 @@ func (s ExecutionSet) RawEvidence() artifactv2.RawEvidence {
 	if s.admitted.execution == nil {
 		return artifactv2.RawEvidence{}
 	}
-	return cloneRawEvidence(s.admitted.execution.rawEvidence)
+	return artifactv2.CopyRawEvidence(s.admitted.execution.rawEvidence)
 }
 
 // AdmitEvaluation extends this exact execution snapshot with typed Evidence and Result values.
@@ -588,8 +588,8 @@ func buildAdmittedSet(
 	}
 	if len(members) == 2 {
 		admitted.executable = &admittedExecutableValues{
-			experiment:           cloneExperiment(experiment),
-			runtimeConfiguration: cloneRuntimeConfiguration(runtimeConfiguration),
+			experiment:           artifactv2.CopyExperiment(experiment),
+			runtimeConfiguration: artifactv2.CopyRuntimeConfiguration(runtimeConfiguration),
 		}
 	}
 	return admitted, nil
@@ -704,8 +704,8 @@ func cloneAdmittedSet(admitted AdmittedSet) AdmittedSet {
 	cloned.manifestBytes = slices.Clone(admitted.manifestBytes)
 	if admitted.executable != nil {
 		cloned.executable = &admittedExecutableValues{
-			experiment:           cloneExperiment(admitted.executable.experiment),
-			runtimeConfiguration: cloneRuntimeConfiguration(admitted.executable.runtimeConfiguration),
+			experiment:           artifactv2.CopyExperiment(admitted.executable.experiment),
+			runtimeConfiguration: artifactv2.CopyRuntimeConfiguration(admitted.executable.runtimeConfiguration),
 		}
 	}
 	if admitted.execution != nil {
@@ -726,167 +726,9 @@ func newAdmittedExecutionValues(
 	rawEvidence artifactv2.RawEvidence,
 ) *admittedExecutionValues {
 	return &admittedExecutionValues{
-		experiment:           cloneExperiment(experiment),
-		runtimeConfiguration: cloneRuntimeConfiguration(runtimeConfiguration),
-		run:                  cloneExperimentRun(run),
-		rawEvidence:          cloneRawEvidence(rawEvidence),
+		experiment:           artifactv2.CopyExperiment(experiment),
+		runtimeConfiguration: artifactv2.CopyRuntimeConfiguration(runtimeConfiguration),
+		run:                  artifactv2.CopyExperimentRun(run),
+		rawEvidence:          artifactv2.CopyRawEvidence(rawEvidence),
 	}
-}
-
-func cloneExperiment(document artifactv2.Experiment) artifactv2.Experiment {
-	cloned := document
-	cloned.Properties = slices.Clone(document.Properties)
-	for index := range cloned.Properties {
-		cloned.Properties[index].RequirementDefinitionIDs = slices.Clone(
-			document.Properties[index].RequirementDefinitionIDs,
-		)
-	}
-	cloned.ObservationRequirementDefinitionIDs = slices.Clone(
-		document.ObservationRequirementDefinitionIDs,
-	)
-	cloned.Provenance = cloneProvenance(document.Provenance)
-	cloned.Plan = cloneDrivePlan(document.Plan)
-	return cloned
-}
-
-func cloneDrivePlan(plan artifactv2.DrivePlan) artifactv2.DrivePlan {
-	cloned := plan
-	cloned.Bindings = slices.Clone(plan.Bindings)
-	cloned.SymbolicRoles = slices.Clone(plan.SymbolicRoles)
-	cloned.ModelPreconditions = slices.Clone(plan.ModelPreconditions)
-	for index := range cloned.ModelPreconditions {
-		cloned.ModelPreconditions[index].Left.Value = cloneModelValuePointer(
-			plan.ModelPreconditions[index].Left.Value,
-		)
-		cloned.ModelPreconditions[index].Right.Value = cloneModelValuePointer(
-			plan.ModelPreconditions[index].Right.Value,
-		)
-	}
-	cloned.RequestedActions = slices.Clone(plan.RequestedActions)
-	cloned.ModelOutcomes = slices.Clone(plan.ModelOutcomes)
-	cloned.ResultingStates = slices.Clone(plan.ResultingStates)
-	cloned.LinearExtension = slices.Clone(plan.LinearExtension)
-	for index := range cloned.LinearExtension {
-		cloned.LinearExtension[index].AuthoredDefinitionID = cloneStringPointer(
-			plan.LinearExtension[index].AuthoredDefinitionID,
-		)
-	}
-	cloned.SelectedChoices = slices.Clone(plan.SelectedChoices)
-	cloned.SelectedVariants = slices.Clone(plan.SelectedVariants)
-	cloned.RequestedFaults = slices.Clone(plan.RequestedFaults)
-	cloned.CapabilityRequirementDefinitionIDs = slices.Clone(
-		plan.CapabilityRequirementDefinitionIDs,
-	)
-	cloned.Checkpoints = slices.Clone(plan.Checkpoints)
-	for index := range cloned.Checkpoints {
-		cloned.Checkpoints[index].Observations = slices.Clone(
-			plan.Checkpoints[index].Observations,
-		)
-	}
-	cloned.KnownGaps = cloneKnownGaps(plan.KnownGaps)
-	cloned.Provenance = cloneProvenance(plan.Provenance)
-	return cloned
-}
-
-func cloneRuntimeConfiguration(
-	document artifactv2.RuntimeConfiguration,
-) artifactv2.RuntimeConfiguration {
-	cloned := document
-	cloned.AuthorityProfile.RequiredCapabilityDefinitionIDs = slices.Clone(
-		document.AuthorityProfile.RequiredCapabilityDefinitionIDs,
-	)
-	cloned.PhaseLimits = slices.Clone(document.PhaseLimits)
-	cloned.ParticipantBindings = slices.Clone(
-		document.ParticipantBindings,
-	)
-	for index := range cloned.ParticipantBindings {
-		cloned.ParticipantBindings[index].CapabilityDefinitionIDs = slices.Clone(
-			document.ParticipantBindings[index].CapabilityDefinitionIDs,
-		)
-	}
-	cloned.KnownGaps = cloneKnownGaps(document.KnownGaps)
-	cloned.Provenance = cloneProvenance(document.Provenance)
-	return cloned
-}
-
-func cloneExperimentRun(run artifactv2.ExperimentRun) artifactv2.ExperimentRun {
-	cloned := run
-	cloned.PhaseOutcomes = slices.Clone(run.PhaseOutcomes)
-	for index := range cloned.PhaseOutcomes {
-		cloned.PhaseOutcomes[index].StartedAtUnixMillis = cloneNaturalPointer(
-			run.PhaseOutcomes[index].StartedAtUnixMillis,
-		)
-		cloned.PhaseOutcomes[index].FinishedAtUnixMillis = cloneNaturalPointer(
-			run.PhaseOutcomes[index].FinishedAtUnixMillis,
-		)
-		cloned.PhaseOutcomes[index].Code = cloneStringPointer(run.PhaseOutcomes[index].Code)
-	}
-	cloned.ControlAttempts = slices.Clone(run.ControlAttempts)
-	for index := range cloned.ControlAttempts {
-		cloned.ControlAttempts[index].ReceiptFactDefinitionID = cloneStringPointer(
-			run.ControlAttempts[index].ReceiptFactDefinitionID,
-		)
-		cloned.ControlAttempts[index].Code = cloneStringPointer(run.ControlAttempts[index].Code)
-	}
-	cloned.SourceClosures = slices.Clone(run.SourceClosures)
-	cloned.Cleanup.Code = cloneStringPointer(run.Cleanup.Code)
-	cloned.Limits = slices.Clone(run.Limits)
-	cloned.KnownGaps = cloneKnownGaps(run.KnownGaps)
-	cloned.Provenance = cloneProvenance(run.Provenance)
-	return cloned
-}
-
-func cloneRawEvidence(document artifactv2.RawEvidence) artifactv2.RawEvidence {
-	cloned := document
-	cloned.Sources = slices.Clone(document.Sources)
-	cloned.Facts = slices.Clone(document.Facts)
-	for index := range cloned.Facts {
-		cloned.Facts[index].CausalFactDefinitionIDs = slices.Clone(
-			document.Facts[index].CausalFactDefinitionIDs,
-		)
-		cloned.Facts[index].Fields = slices.Clone(document.Facts[index].Fields)
-	}
-	cloned.KnownGaps = cloneKnownGaps(document.KnownGaps)
-	cloned.Provenance = cloneProvenance(document.Provenance)
-	return cloned
-}
-
-func cloneProvenance(provenance artifactv2.Provenance) artifactv2.Provenance {
-	return artifactv2.Provenance{
-		SourceDefinitionIDs: slices.Clone(provenance.SourceDefinitionIDs),
-		SourceLocations:     slices.Clone(provenance.SourceLocations),
-	}
-}
-
-func cloneKnownGaps(gaps []artifactv2.KnownGap) []artifactv2.KnownGap {
-	cloned := slices.Clone(gaps)
-	for index := range cloned {
-		cloned[index].Subject = cloneStringPointer(gaps[index].Subject)
-		cloned[index].Detail = cloneStringPointer(gaps[index].Detail)
-	}
-	return cloned
-}
-
-func cloneModelValuePointer(value *artifactv2.ModelValue) *artifactv2.ModelValue {
-	if value == nil {
-		return nil
-	}
-	cloned := *value
-	return &cloned
-}
-
-func cloneNaturalPointer(value *artifactv2.Natural) *artifactv2.Natural {
-	if value == nil {
-		return nil
-	}
-	cloned := *value
-	return &cloned
-}
-
-func cloneStringPointer(value *string) *string {
-	if value == nil {
-		return nil
-	}
-	cloned := *value
-	return &cloned
 }
