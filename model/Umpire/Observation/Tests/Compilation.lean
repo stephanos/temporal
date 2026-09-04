@@ -1,4 +1,4 @@
-import Umpire.Observation.Declaration
+import Umpire.Observation.Compiler
 import Umpire.Observation.Tests.Fixtures
 import Umpire.Target.Tests.Fixtures
 

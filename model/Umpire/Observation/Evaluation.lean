@@ -1,4 +1,4 @@
-import Umpire.Observation.Language
+import Umpire.Observation.Compiler
 import Umpire.SemanticInventory.Types
 
 /-!
