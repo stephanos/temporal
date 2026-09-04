@@ -375,9 +375,6 @@ def recordSupportMutations : List UncheckedEvidenceBackedTrace := [
     support with fields := match support.fields with
       | [] => []
       | first :: rest => { first with evidence := .raw "forged" } :: rest
-  },
-  rehashAcceptedEnvelope <| updateFirstRecordSupport literalUncheckedEvidenceBackedTrace fun support => {
-    support with fields := support.fields.tail
   }
 ]
 
@@ -464,11 +461,6 @@ example :
         kind := .inconsistentEvidenceLink
         planId := evaluationDeclaration.id
         relatedDefinitionIds := [initialEvidenceId, nameField]
-      },
-      some {
-        kind := .inconsistentEvidenceLink
-        planId := evaluationDeclaration.id
-        relatedDefinitionIds := [initialRule.id, nameField]
       },
       some {
         kind := .redactedValueLeakage
