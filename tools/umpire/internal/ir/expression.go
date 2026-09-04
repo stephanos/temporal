@@ -45,17 +45,19 @@ const (
 )
 
 type Expression struct {
-	operator   Operator
-	typ        Type
-	literal    *umpirespb.Value
-	reference  Reference
-	children   []*Expression
-	path       *Path
-	comparison umpirespb.ComparisonOperator
-	absent     bool
-	key        string
+	bindingWork int64
+	operator    Operator
+	typ         Type
+	literal     *umpirespb.Value
+	reference   Reference
+	children    []*Expression
+	path        *Path
+	comparison  umpirespb.ComparisonOperator
+	absent      bool
+	key         string
 }
 
+func (e *Expression) BindingWork() int64                       { return e.bindingWork }
 func (e *Expression) Operator() Operator                       { return e.operator }
 func (e *Expression) Type() Type                               { return e.typ }
 func (e *Expression) Literal() *umpirespb.Value                { return proto.CloneOf(e.literal) }
@@ -85,12 +87,35 @@ func (c *Catalog) BindExpression(source *umpirespb.ValueExpression, expected *Ty
 	if err := inspectSurface(source.ProtoReflect(), &binder.budget, "expression"); err != nil {
 		return nil, err
 	}
-	return binder.bind(source, expected, nil, false, 1)
+	result, err := binder.bind(source, expected, nil, false, 1)
+	if err == nil {
+		result.bindingWork = binder.budget.work
+	}
+	return result, err
 }
 
 // BindGuardedExpression compiles an instruction input under the facts implied by its guard.
 // Both expressions share the same budget; the guard must be valid before its facts are used.
 func (c *Catalog) BindGuardedExpression(guard, source *umpirespb.ValueExpression, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
+	var conditions []Condition
+	if guard != nil {
+		conditions = []Condition{{Expression: guard, Matches: true}}
+	}
+	return c.bindConditionedExpression(conditions, source, expected, scope, limits)
+}
+
+type Condition struct {
+	Expression *umpirespb.ValueExpression
+	Matches    bool
+}
+
+// BindConditionedExpression preserves each authored expression's depth while sharing guard facts and work.
+func (c *Catalog) BindConditionedExpression(conditions []Condition, source *umpirespb.ValueExpression, expected *Type, scope map[Reference]Binding, limits Limits) (*Expression, error) {
+	_, value, err := c.bindConditionedExpression(conditions, source, expected, scope, limits)
+	return value, err
+}
+
+func (c *Catalog) bindConditionedExpression(conditions []Condition, source *umpirespb.ValueExpression, expected *Type, scope map[Reference]Binding, limits Limits) (boundGuard, boundValue *Expression, err error) {
 	if err := limits.validate(); err != nil {
 		return nil, nil, err
 	}
@@ -102,26 +127,34 @@ func (c *Catalog) BindGuardedExpression(guard, source *umpirespb.ValueExpression
 	}
 	binder := compiler{catalog: c, scope: scope, budget: budget{limits: limits}}
 	var compiledGuard *Expression
-	var facts map[string]bool
-	if guard != nil {
+	facts := map[string]bool{}
+	for _, condition := range conditions {
+		guard := condition.Expression
 		if err := inspectSurface(guard.ProtoReflect(), &binder.budget, "guard"); err != nil {
 			return nil, nil, err
 		}
 		boolean := c.scalarType(umpirespb.SCALAR_KIND_BOOLEAN)
 		var err error
-		compiledGuard, err = binder.bind(guard, &boolean, nil, false, 1)
+		compiledGuard, err = binder.bind(guard, &boolean, facts, false, 1)
 		if err != nil {
 			return nil, nil, err
 		}
-		facts, err = binder.presenceFacts(compiledGuard, true)
+		learned, err := binder.presenceFacts(compiledGuard, condition.Matches)
 		if err != nil {
 			return nil, nil, err
 		}
+		if err := binder.budget.charge(1, int64(len(learned)), 0, "expression.presence"); err != nil {
+			return nil, nil, err
+		}
+		maps.Copy(facts, learned)
 	}
 	if err := inspectSurface(source.ProtoReflect(), &binder.budget, "expression"); err != nil {
 		return nil, nil, err
 	}
 	compiled, err := binder.bind(source, expected, facts, false, 1)
+	if err == nil {
+		compiled.bindingWork = binder.budget.work
+	}
 	return compiledGuard, compiled, err
 }
 

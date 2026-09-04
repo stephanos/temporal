@@ -14211,6 +14211,7 @@ structure RunEvent where
   causalSourceIds : List String
   outcome : Option InstructionOutcome
   observations : List ObservationValue
+  executionIncomplete : Bool
   deriving Repr
 
 structure Verdict where
@@ -14228,6 +14229,7 @@ structure Run where
   cleanup : Option CleanupOutcome
   verdict : Option Verdict
   diagnostics : List RunDiagnostic
+  evaluationFailureSequence : Option RunEventSequence
   deriving Repr
 
 end Temporal.Server.Api.Umpire.V1
