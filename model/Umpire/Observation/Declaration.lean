@@ -4,7 +4,7 @@ import Umpire.Core
 Inert authored Observation vocabulary for mapping typed evidence into Model Values.
 
 These declarations intentionally perform no checking, normalization, registration, or default
-selection. `Umpire.Observation.Language` owns the checker boundary that interprets them.
+selection. `Umpire.Observation.Compiler` owns the checker boundary that interprets them.
 -/
 
 namespace Umpire
