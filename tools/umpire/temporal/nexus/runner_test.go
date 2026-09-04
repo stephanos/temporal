@@ -10,11 +10,20 @@ import (
 
 func TestNewBindingRejectsAnIncompleteEnvironmentFactory(t *testing.T) {
 	var typedNil *bindingEnvironmentFactory
-	for _, factory := range []umpireruntime.EnvironmentFactory{nil, typedNil} {
-		binding, err := NewBinding(factory)
+	for name, factory := range map[string]umpireruntime.EnvironmentFactory{
+		"nil interface": nil,
+		"pointer":       typedNil,
+		"map":           bindingEnvironmentFactoryMap(nil),
+		"slice":         bindingEnvironmentFactorySlice(nil),
+		"function":      bindingEnvironmentFactoryFunc(nil),
+		"channel":       bindingEnvironmentFactoryChan(nil),
+	} {
+		t.Run(name, func(t *testing.T) {
+			binding, err := NewBinding(factory)
 
-		require.EqualError(t, err, "nexus binding requires an environment factory")
-		require.Equal(t, Binding{}, binding)
+			require.EqualError(t, err, "nexus binding requires an environment factory")
+			require.Equal(t, Binding{}, binding)
+		})
 	}
 }
 
@@ -28,7 +37,47 @@ func TestNewBindingRetainsOnlyTheSuppliedEnvironmentFactory(t *testing.T) {
 
 type bindingEnvironmentFactory struct{}
 
+type bindingEnvironmentFactoryMap map[string]string
+
+type bindingEnvironmentFactorySlice []string
+
+type bindingEnvironmentFactoryFunc func()
+
+type bindingEnvironmentFactoryChan chan struct{}
+
 func (*bindingEnvironmentFactory) Prepare(
+	context.Context,
+	umpireruntime.CheckedRunRequest,
+	umpireruntime.Command,
+) (umpireruntime.Environment, umpireruntime.Receipt) {
+	panic("the constructor must not prepare an environment")
+}
+
+func (bindingEnvironmentFactoryMap) Prepare(
+	context.Context,
+	umpireruntime.CheckedRunRequest,
+	umpireruntime.Command,
+) (umpireruntime.Environment, umpireruntime.Receipt) {
+	panic("the constructor must not prepare an environment")
+}
+
+func (bindingEnvironmentFactorySlice) Prepare(
+	context.Context,
+	umpireruntime.CheckedRunRequest,
+	umpireruntime.Command,
+) (umpireruntime.Environment, umpireruntime.Receipt) {
+	panic("the constructor must not prepare an environment")
+}
+
+func (bindingEnvironmentFactoryFunc) Prepare(
+	context.Context,
+	umpireruntime.CheckedRunRequest,
+	umpireruntime.Command,
+) (umpireruntime.Environment, umpireruntime.Receipt) {
+	panic("the constructor must not prepare an environment")
+}
+
+func (bindingEnvironmentFactoryChan) Prepare(
 	context.Context,
 	umpireruntime.CheckedRunRequest,
 	umpireruntime.Command,
