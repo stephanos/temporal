@@ -478,7 +478,8 @@
         "fn-21-nexus-duplicate-observation-control",
         "fn-32-add-umpire-refinement-and-the-first",
         "fn-37-hard-cut-umpire-vocabulary-and-current",
-        "fn-5-umpire-discovery-promotion-and-artifact"
+        "fn-5-umpire-discovery-promotion-and-artifact",
+        "fn-61-simplify-the-umpire-go-execution-surface"
       ]
     },
     {
@@ -584,7 +585,8 @@
         "fn-26-local-qualification-receipts-and-staged",
         "fn-28-portable-evaluation-contract-and",
         "fn-48-canonicalize-known-gaps-as-a-checked-set",
-        "fn-52-caller-neutral-grpc-portable-test-plans"
+        "fn-52-caller-neutral-grpc-portable-test-plans",
+        "fn-61-simplify-the-umpire-go-execution-surface"
       ]
     },
     {
@@ -656,7 +658,8 @@
         "fn-20-local-execution-semantic-conformance",
         "fn-37-hard-cut-umpire-vocabulary-and-current",
         "fn-40-centralize-plannerpolicy-constructors",
-        "fn-47-generate-umpire-semantic-outcome-and"
+        "fn-47-generate-umpire-semantic-outcome-and",
+        "fn-61-simplify-the-umpire-go-execution-surface"
       ]
     },
     {
@@ -892,9 +895,9 @@
     {
       "id": "fn-52-caller-neutral-grpc-portable-test-plans",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "verification",
-      "status": "open",
+      "status": "done",
       "ready": true,
       "completionReview": "ship",
       "specDependencies": []
@@ -956,6 +959,16 @@
     {
       "id": "fn-58-partition-the-property-language",
       "scope": "umpire-support",
+      "disposition": "completed-prerequisite",
+      "phase": "support",
+      "status": "done",
+      "ready": false,
+      "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-59-centralize-umpire-artifact-copies",
+      "scope": "umpire-support",
       "disposition": "retained",
       "phase": "support",
       "status": "open",
@@ -972,6 +985,56 @@
       "ready": false,
       "completionReview": "ship",
       "specDependencies": []
+    },
+    {
+      "id": "fn-60-deepen-authored-lean-canonical-json",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-61-simplify-the-umpire-go-execution-surface",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p3",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-52-caller-neutral-grpc-portable-test-plans",
+        "fn-59-centralize-umpire-artifact-copies",
+        "fn-60-deepen-authored-lean-canonical-json",
+        "fn-62-make-ordinary-temporal-model-authoring"
+      ]
+    },
+    {
+      "id": "fn-62-make-ordinary-temporal-model-authoring",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-58-partition-the-property-language",
+        "fn-60-deepen-authored-lean-canonical-json"
+      ]
+    },
+    {
+      "id": "fn-63-consolidate-umpire-go-tests-into-golden",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": [
+        "fn-61-simplify-the-umpire-go-execution-surface"
+      ]
     },
     {
       "id": "fn-7-migrate-lean-model-descriptor-generator",

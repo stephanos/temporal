@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-52-caller-neutral-grpc-portable-test-plans",
     "fn-59-centralize-umpire-artifact-copies",
-    "fn-60-deepen-authored-lean-canonical-json"
+    "fn-60-deepen-authored-lean-canonical-json",
+    "fn-62-make-ordinary-temporal-model-authoring"
   ],
   "id": "fn-61-simplify-the-umpire-go-execution-surface",
   "impl_review_rounds": {},
