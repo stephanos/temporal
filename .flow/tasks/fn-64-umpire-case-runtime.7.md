@@ -31,6 +31,8 @@ model/Umpire/ARCHITECTURE.md]
   complete through the Host capability, and retrieve bounded history with execution-owned
   `EmitEach` projection.
 - Make Contract observations only from declared authoritative history fields and correlations.
+  Lower typed rule captures to retain the scheduled event ID and compare later scheduled-event
+  references against it; never hardcode runtime IDs or correlate by event kind alone.
 
 ## Investigation targets
 **Required** (read before coding):
@@ -59,9 +61,13 @@ async-Nexus lifecycle checker.
 - [ ] Unsupported lowering fails deterministically; crossed-kind or descriptor mutations fail
   preparation before I/O.
 - [ ] The composite Host preserves server/worker package boundaries and uses opaque completion
-  authority without exposing its URL, headers, or token.
+  authority without exposing its private Slot contents. Authorized RPC response fields retain
+  ordinary projection semantics.
 - [ ] Integration performs start workflow → SDK Nexus start/await → async response → controller
   completion → bounded history retrieval → workflow finish.
+- [ ] Matching history IDs satisfy the intended correlation; a completed event pointing to a
+  different scheduled event cannot satisfy it. Captures/support references and deadline boundary
+  results agree live and offline without scenario-specific Go logic.
 - [ ] Verdict evidence is only declared server-history Observations, and one PreparedCase drives
   isolated sequential/concurrent Runs including non-success and timeout cases.
 - [ ] `make umpire-build-model` and `go test -count=1 -tags 'test_dep integration' ./tests -run
