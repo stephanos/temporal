@@ -442,7 +442,11 @@ layer's failure into another's status; other profiles and non-local paths remain
   `Umpire.Observation.Compiler` owns DefinitionGraph-backed checking, typed diagnostics,
   checked-plan contracts, and canonical plan construction. `Umpire.Observation.Language` keeps the
   stable authoring and explicit-proof seam, and ordinary authors use `Umpire.Observation`.
-- `Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
+- `Umpire.Property.Language`, `Umpire.Property.Check`, `Umpire.Property.Trace`, and
+  `Umpire.Property.Evaluation` respectively own authoring vocabulary, typed checking and
+  canonicalization, capability-limited trace projection, and clause evaluation behind the
+  `Umpire.Property` facade. Ordinary authors import the facade rather than these internal modules.
+- `Umpire.Target.Language`, `Umpire.Behavior.Language`,
   `Umpire.Query.Language`, `Umpire.Observation.Declaration`, `Umpire.Observation.Compiler`,
   `Umpire.Observation.Language`, `Umpire.Observation.Evaluation`, `Umpire.ImplementationLink.Language`,
   `Umpire.ImplementationLink.Application`, and `Umpire.Planning.Engine` implement public facades and

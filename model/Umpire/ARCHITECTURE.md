@@ -31,7 +31,8 @@ Focused imports are available when a consumer needs a smaller surface:
 | `Umpire.Observation` | Checked Evidence mappings, Observation Evaluation, Evidence Links, dispositions, Property verdicts, and strict aggregation. |
 | `Umpire.ImplementationLink` | Checked forward correspondence between independently authored semantic Targets. |
 
-`Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Behavior.Language`,
+`Umpire.Target.Language`, `Umpire.Property.Language`, `Umpire.Property.Check`,
+`Umpire.Property.Trace`, `Umpire.Property.Evaluation`, `Umpire.Behavior.Language`,
 `Umpire.Query.Language`, `Umpire.Space.Language`, `Umpire.Space.Intent`,
 `Umpire.Space.Metadata`, `Umpire.Space.Compiler`, `Umpire.Exploration.Language`,
 `Umpire.Exploration.Candidate`, `Umpire.Exploration.Selection`, `Umpire.Exploration.Guided`,
@@ -164,6 +165,12 @@ canonical projection; compiler-only occurrence spans never enter it.
 ## Property API
 
 `Umpire.Property` describes portable claims over capability-limited semantic traces.
+
+Its internal modules form a downward implementation chain. `Umpire.Property.Language` owns the
+authoring vocabulary, `Umpire.Property.Check` owns typed checking and canonicalization,
+`Umpire.Property.Trace` owns capability-limited trace projection, and
+`Umpire.Property.Evaluation` owns clause semantics and evaluation results. Ordinary authors should
+reach all four through `Umpire.Property` rather than importing them directly.
 
 The main authoring types are:
 
