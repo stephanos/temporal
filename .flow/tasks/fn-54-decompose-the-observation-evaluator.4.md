@@ -44,7 +44,8 @@ Move the opaque accepted trace, its private constructor, Observation results, pr
 - [ ] Existing accepted traces, Evidence Links, fingerprints, artifact and persisted bytes, comments, trust dependencies, and traversal counts remain unchanged.
 - [ ] `cd model && mise exec -- lake build Umpire.Observation.Tests.EvidenceLink Umpire.Observation.Tests.Mutations Umpire.Observation.Tests.Disposition Umpire.Observation.ImportTests` passes.
 - [ ] `cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.ImplementationLink.Tests UmpireTests TemporalModelTests` passes.
-- [ ] `make umpire-build-model`, `make umpire-check-regression`, `make lint-model`, and `make lint-code GOLANGCI_LINT_FIX=false` pass.
+- [ ] `make umpire-build-model`, `make umpire-check-regression`, and `make lint-model` pass.
+- [ ] `make lint-code GOLANGCI_LINT_FIX=false` is run without exceeding the approved inherited exact 1,381-finding baseline, task-diff-scoped golangci reports zero findings, and the unchanged `tools/umpire/runtime/errors.go:60` errortype finding remains isolated.
 
 ## Done summary
 TBD

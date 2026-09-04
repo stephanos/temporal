@@ -279,8 +279,8 @@
     "impl:fn-54-decompose-the-observation-evaluator.1": 1,
     "impl:fn-54-decompose-the-observation-evaluator.2": 1,
     "impl:fn-54-decompose-the-observation-evaluator.3": 1,
-    "plan": 1,
-    "plan#completion": 0
+    "plan": 2,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -304,5 +304,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T13:09:56.555094Z"
+  "updated_at": "2026-09-04T13:27:34.202839Z"
 }
