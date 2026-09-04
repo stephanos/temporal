@@ -46,9 +46,8 @@ Move generation coordination beside the command runner and make one renderer emi
 - [ ] `make lint-code` passes.
 
 ## Done summary
-TBD
-
+Moved generation coordination beside the command runner and made a private renderer consume only the validated Lean plan, preserving exact artifacts, byte output, validation order, diagnostics, and publication behavior.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 949447ebe
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api, cd model && mise exec -- lake build Temporal.API, scoped golangci-lint against be2e670c4 (0 issues)
 - PRs:
