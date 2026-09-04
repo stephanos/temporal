@@ -46,9 +46,11 @@ After every live caller supplies an attached factory, delete the deprecated conc
 
 
 ## Done summary
-TBD
+Removed the deprecated local test-server authority and Nexus fallback, extracted the unchanged private authority contracts plus Umpire-owned environment/worker algebra, and made the runner reject a missing factory before participant construction. Deterministic fake matrices now cover the required preparation, authority, worker, cleanup, drift, retry, and concurrency cases; focused unit/race and 270-job aggregate regression gates pass, while the parent integration and global lint gates remain inherited red only with no Umpire4 failure and zero task-scoped lint findings.
 
+stage: impl-review - ran [2026-09-04T07:00:55Z]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f546aefa3bd2a18437ed9a0bac79c3cc8a25ec92
+- Tests: baseline: green via handoff (verified at abf00193 by fn-55-migrate-and-separate-the-local-temporal.2); make fmt-imports baseline passed; INHERITED_RED: make lint-code baseline (1,378 repository findings), TMPDIR=$(pwd -P)/.flow/tmp/go-tmp CC=$(xcrun --find clang) SDKROOT=$(xcrun --show-sdk-path) go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/..., TMPDIR=$(pwd -P)/.flow/tmp/go-tmp CC=$(xcrun --find clang) SDKROOT=$(xcrun --show-sdk-path) go test -race -count=1 -tags test_dep ./tools/umpire/temporal/local/..., INHERITED_RED: TMPDIR=$(pwd -P)/.flow/tmp/go-tmp CC=$(xcrun --find clang) SDKROOT=$(xcrun --show-sdk-path) go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire' (only unchanged Umpire3 participant build-path and Umpire2 probe/coverage failures; no Umpire4 failure), TMPDIR=$(pwd -P)/.flow/tmp/go-tmp CC=$(xcrun --find clang) SDKROOT=$(xcrun --show-sdk-path) make umpire-check-regression, make fmt-imports, INHERITED_RED: TMPDIR=$(pwd -P)/.flow/tmp/go-tmp CC=$(xcrun --find clang) SDKROOT=$(xcrun --show-sdk-path) make lint-code (1,374 repository findings versus 1,378 pre-edit baseline; unrelated auto-edit restored), TMPDIR=$(pwd -P)/.flow/tmp/go-tmp CC=$(xcrun --find clang) SDKROOT=$(xcrun --show-sdk-path) .bin/golangci-lint-v2.13.1 run --build-tags 'disable_grpc_modules,test_dep,integration' --timeout 10m --fix=false --new-from-rev=abf00193c84403508a9f86c7932f7d917074e512 --config=.github/.golangci.yml ./tools/umpire/runner/... ./tools/umpire/temporal/local/... ./tools/umpire/temporal/nexus/... (0 issues), git diff --check, Codex impl-review /tmp/impl-review-receipt-fn-55-migrate-and-separate-the-local-temporal.3.json: SHIP
 - PRs:
