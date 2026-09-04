@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-59-centralize-umpire-artifact-copies",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-04T18:20:08.440255Z",
   "created_at": "2026-09-04T15:15:12.866788Z",
   "default_impl": null,
   "default_review": null,
@@ -165,17 +165,48 @@
       "timestamp": "2026-09-04T18:04:48.635988Z",
       "tool_calls": 9,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "9c9bcac4456e75a85f7b38e9c54a25a403cdffe2b09b3c26cc80956a7a71f139",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ac605d3998231a7b1a60f98b727f8b9c7f6470de",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 336638,
+      "output_sha256": "595b687f045486dc13676a0281fc8ca834bfd743dcafdcf117a3b0d4b1b77411",
+      "reservation_id": "743a7fb7561e4fe5af1053fa8209c60e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-04T18:20:08.429527Z",
+      "tool_calls": 10,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-59-centralize-umpire-artifact-copies.1": 1,
     "impl:fn-59-centralize-umpire-artifact-copies.2": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-59-centralize-umpire-artifact-copies.1": 0,
     "impl:fn-59-centralize-umpire-artifact-copies.2": 0,
     "plan": 0
@@ -194,5 +225,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T18:04:48.644301Z"
+  "updated_at": "2026-09-04T18:20:08.444176Z"
 }
