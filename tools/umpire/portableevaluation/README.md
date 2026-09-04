@@ -1,12 +1,14 @@
 # Portable Evaluation
 
 Portable Evaluation lets one precompiled Umpire Test execute and reach a local decision in a Go
-process that has no Lean runtime. Lean remains the only semantic compiler: it selects the checked
-Test and lowers its Observation, Implementation Link, Properties, Limits, Known Gaps, Definition
-IDs, and Behavior Fingerprints ahead of time. Go validates and deterministically packs that closed
-value, then the resident executor admits, runs, closes, and interprets only the supplied contract.
+process that has no Lean runtime. The fn-28 `EvaluationContract` and HTTP interface remain the
+historical/current compatibility path: Lean is their only semantic compiler. The successor
+`PortableTestPlan` and generated unary gRPC interface are caller-neutral. Lean is the first model
+compiler into that closed typed plan, while any conforming protobuf client may author an external
+plan whose authority is explicitly limited to plan-local conformance. In both paths Go admits,
+runs, closes, and independently evaluates only the supplied contract.
 
-The protobuf schema is
+The legacy protobuf schema is
 [`proto/internal/temporal/server/api/umpire/v1/message.proto`](../../../proto/internal/temporal/server/api/umpire/v1/message.proto).
 It generates the conventional `go.temporal.io/server/api/umpire/v1` package. The schema is inert
 transport data; neither generated Go nor the interpreter selects model meaning.
@@ -106,7 +108,7 @@ It never treats a wall-clock quiet period as closure. A deadline before closure,
 missing closure, or Evidence added after closure is `inconclusive`, never `pass` or an invented
 violation.
 
-## Resident executor and HTTP adapter
+## Legacy resident executor and HTTP adapter
 
 The transport-independent seam is:
 
@@ -136,6 +138,39 @@ or redispatched after a possibly started Test.
 
 The adapter exposes no executable path, model/profile selector, environment endpoint, credential,
 retry policy, semantic override, or deployment control.
+
+## Caller-neutral plan and gRPC executor
+
+The successor schema is
+[`proto/internal/temporal/server/api/umpire/v1/portable_test_plan.proto`](../../../proto/internal/temporal/server/api/umpire/v1/portable_test_plan.proto).
+It carries the complete bounded execution and verification programs in one `PortableTestPlan`.
+External plans need no Lean or host provenance verifier and produce only `plan_local` results.
+Lean-generated `model_compiled` plans use the same message and produce `model_bound` results only
+after the executor host matches the exact checksum and model/compiler provenance. Missing, forged,
+or crossed model provenance fails before runtime I/O and is never downgraded.
+
+`tools/umpire/executorgrpc` implements only the generated unary
+`UmpireExecutor.Execute(PortableTestPlan) -> ExecutionResult` method over one resident
+`executor.PortableExecutor`. It preserves typed results after admission. Failures that prevent a
+result use canonical gRPC status: malformed/crossed input is `INVALID_ARGUMENT`, unsupported
+behavior or provenance and poisoned reuse are `FAILED_PRECONDITION`, hard bounds and overlap are
+`RESOURCE_EXHAUSTED`, caller cancellation and deadline retain their corresponding statuses, and
+server invariants are `INTERNAL`. The server queues and retries nothing. One admitted call runs at
+a time; cleanup completes after client cancellation, uncertain cleanup poisons the resident
+executor, and each reusable call receives fresh run resources.
+
+The tagged `TestUmpirePortableGRPCExecutor` proof uses one disposable `testcore.NewEnv` cluster, one
+resident in-process gRPC server, and a real generated client. It consumes the checked-in
+Lean-generated plans plus a derived external-author variant after the test removes all toolchain
+executables from `PATH`. The Go executor independently runs and evaluates normal pass and
+trustworthy negative-fail outcomes, closure/crossed controls, ten-call overlap, cancellation and
+deadline cleanup, poison, malformed/forged provenance, exact bounds, and fresh-run isolation. It
+does not launch Lean, a shell, or a nested `go test` for any verification.
+
+Fn-29 owns the production handoff. Its protected controller pins and provenance-validates one
+Lean-generated plan before calling this Umpire gRPC interface. The separate public Temporal gRPC
+connection remains the runtime adapter's downstream target; production credentials, target
+selection, fencing, recovery, publication, and retry policy do not enter this reusable executor.
 
 ## Local decision
 
@@ -171,6 +206,8 @@ The normal, duplicate-delivery, and complete-operator fixtures under `testdata/`
 before runtime tests. Fixture generation invokes Lean to compile canonical ProtoJSON, uses the Go
 packer to produce `contract.pb`, and records Raw Evidence plus Lean Run Evaluation oracles. The
 checked-in protobuf bytes are the runtime artifacts; ProtoJSON is only the build-time handoff.
+The `portable-test-plan-v1` subtree additionally contains the sealed normal, duplicate-delivery,
+and required-obligation plans consumed directly by the caller-neutral Go executor.
 
 Generate fixtures deliberately:
 
@@ -195,6 +232,8 @@ go test -count=1 -tags test_dep \
   ./tools/umpire/executorhttp/...
 go test -count=1 -tags 'test_dep integration' ./tests \
   -run '^TestUmpirePortableCanaryExecutor$'
+go test -count=1 -tags 'test_dep integration' ./tests \
+  -run '^TestUmpirePortableGRPCExecutor$'
 ```
 
 The tagged test creates one disposable `testcore.NewEnv` cluster, borrows its SDK client and
