@@ -333,9 +333,9 @@ func (a *attachedTemporalAuthority) OwnedResources() []ownedResource {
 	if a.closed {
 		return []ownedResource{}
 	}
-	// Existing accounting maps this marker to the per-run environment wrapper;
-	// it never represents or stops the borrowed Temporal server.
-	resources := []ownedResource{{kind: ownedServer}}
+	// This marker is the per-run environment wrapper; it never represents or
+	// stops the borrowed Temporal cluster or client.
+	resources := []ownedResource{{kind: ownedEnvironment}}
 	if a.worker != nil {
 		resources = append(resources, ownedResource{kind: ownedWorker})
 	}
@@ -383,5 +383,4 @@ func (w *sdkAttachedWorker) Stop() error {
 	return nil
 }
 
-var _ AttachedAuthority = (*temporalTestAuthority)(nil)
 var _ temporalAuthority = (*attachedTemporalAuthority)(nil)

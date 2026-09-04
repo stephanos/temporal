@@ -6,7 +6,6 @@ import (
 
 	"go.temporal.io/server/tools/umpire/artifact"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
-	"go.temporal.io/server/tools/umpire/temporal/local"
 )
 
 // Binding is the sole current System-owned authority/program adapter available
@@ -33,13 +32,9 @@ func (Binding) CheckRequest(
 	return CheckRequest(admitted, runIdentity)
 }
 
-// EnvironmentFactory returns the supplied authority. The fallback remains only
-// while callers migrate to NewBinding.
+// EnvironmentFactory returns the supplied authority.
 func (b Binding) EnvironmentFactory() umpireruntime.EnvironmentFactory {
-	if !isNilEnvironmentFactory(b.factory) {
-		return b.factory
-	}
-	return local.NewFactory()
+	return b.factory
 }
 
 func isNilEnvironmentFactory(factory umpireruntime.EnvironmentFactory) bool {
