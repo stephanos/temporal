@@ -21,6 +21,10 @@ private def propertyErrorOf : Except PropertyError CheckedProperty → Option Pr
   | .ok _ => none
   | .error error => some error
 
+private def propertyErrorJsonOf : Except PropertyError CheckedProperty → Option String
+  | .ok _ => none
+  | .error error => some (canonicalPropertyErrorJson error)
+
 private def behaviorErrorOf : Except BehaviorError CheckedBehavior → Option BehaviorError
   | .ok _ => none
   | .error error => some error
@@ -158,6 +162,27 @@ example : [
       offendingValue := "switch.capability.a"
       relatedDefinitionIds := [DefinitionId.of "switch.capability.a"]
     }
+  ] := by
+  native_decide
+
+example : [
+    propertyErrorJsonOf (checkProperty (PropertyCheckContext.ofTarget target) (.portable {
+      propertyDeclaration with
+      id := DefinitionId.of ""
+      source := { source with path := "" }
+    })),
+    propertyErrorJsonOf (checkProperty (PropertyCheckContext.ofTarget target) (.portable {
+      propertyDeclaration with
+      id := DefinitionId.of "property"
+      source := { source with path := "" }
+    }))
+  ] = [
+    some ("{\"kind\":\"empty-definition-id\",\"definitionId\":" ++
+      "\"umpire.property.anonymous\",\"sourcePath\":\"<unknown>\"," ++
+      "\"offendingValue\":\"<empty>\",\"relatedDefinitionIds\":[\"\"]}"),
+    some ("{\"kind\":\"invalid-definition-id\",\"definitionId\":\"property\"," ++
+      "\"sourcePath\":\"<unknown>\",\"offendingValue\":\"property\"," ++
+      "\"relatedDefinitionIds\":[\"property\"]}")
   ] := by
   native_decide
 
