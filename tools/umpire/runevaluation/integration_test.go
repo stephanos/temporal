@@ -328,3 +328,22 @@ func runRealCheckerOutput(
 	err = command.Run()
 	return stdout.Bytes(), stderr.Bytes(), err
 }
+
+func clauseDefinitionIDs(clauses []artifactv2.SemanticClauseVerdict) []string {
+	result := make([]string, len(clauses))
+	for index, clause := range clauses {
+		result[index] = clause.ClauseDefinitionID
+	}
+	return result
+}
+
+func propertyEvidenceDefinitionIDs(clauses []artifactv2.SemanticClauseVerdict) []string {
+	var result []string
+	for _, clause := range clauses {
+		for _, link := range clause.EvidenceLinks {
+			result = append(result, link.EvidenceDefinitionIDs...)
+		}
+	}
+	slices.Sort(result)
+	return slices.Compact(result)
+}

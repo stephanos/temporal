@@ -1,4 +1,6 @@
-package runevaluation
+//go:build test_dep && integration
+
+package tests
 
 import (
 	"bytes"
@@ -14,28 +16,11 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/umpire/artifact"
-	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 	"go.temporal.io/server/tools/umpire/runner"
 	umpireruntime "go.temporal.io/server/tools/umpire/runtime"
-	"go.temporal.io/server/tools/umpire/temporal/nexus"
 )
 
 const liveCallerClosureRunIdentity = "umpire.local.caller-closure.live-evaluation-1"
-
-var liveCallerClosureBinding = runner.InputBinding{
-	ArtifactSetIdentity:                     "umpire.artifact-set.ed3605976ba999ec8e166d4309247e2b711fee18f4a421cfb8c6dc037344f1a2",
-	ArtifactSetChecksum:                     "sha256:074356889cda0296b13152f87e57d7b980d76125329a9014ceb5321c3f5bda7b",
-	ManifestSHA256:                          "sha256:f381da231395b8fec738837535a8bb8da0dd227a08e3d60bf9c2bda620c46b14",
-	ExperimentArtifactChecksum:              "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
-	ExperimentBehaviorFingerprint:           "sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af",
-	RuntimeConfigurationArtifactChecksum:    "sha256:21b4f7d0db2f68f939df901c2c5d146b1be3e45e55ad6cc171445fda5f29c1d5",
-	RuntimeConfigurationBehaviorFingerprint: "sha256:7c4c35a8031d07ff55ef5e83b90c64e63cbc6b196642c379ed75b5fc461f3a67",
-	AuthorityRequiredCapabilityDefinitionIDs: []string{
-		"umpire.runtime.capability.complete-workflow-history-read",
-		"umpire.runtime.capability.ephemeral-server-lifecycle",
-		"umpire.runtime.capability.sdk-worker-lifecycle",
-	},
-}
 
 type liveEvaluationSummary struct {
 	FormatVersion               string `json:"formatVersion"`
@@ -51,26 +36,42 @@ type liveEvaluationSummary struct {
 	Destination                 string `json:"destination"`
 }
 
-func TestBoundedLiveCallerClosureEvaluation(t *testing.T) {
-	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
+type liveImplementationTarget struct {
+	definitionID        string
+	kind                string
+	behaviorFingerprint string
+}
+
+type liveSemanticSnapshot struct {
+	resultArtifactChecksum      string
+	resultBehaviorFingerprint   string
+	propertyDefinitionID        string
+	propertyBehaviorFingerprint string
+	implementationDestination   liveImplementationTarget
+}
+
+func TestUmpireCallerClosureRunEvaluation(t *testing.T) {
+	repositoryRoot, err := filepath.Abs("..")
 	require.NoError(t, err)
 	requireCorruptionAndAmbiguityControls(t, repositoryRoot)
 
 	input := liveCallerClosureInput(t)
-	ctx, cancel := context.WithTimeout(context.Background(), 135*time.Second)
+	env, factory := newUmpireTestEnvironment(t)
+	binding := newUmpireNexusBinding(t, factory)
+	ctx, cancel := context.WithTimeout(env.Context(), 135*time.Second)
 	defer cancel()
 	operational, err := runner.Run(
 		ctx,
 		input,
-		liveCallerClosureBinding,
+		callerClosureInputBinding,
 		liveCallerClosureRunIdentity,
-		nexus.Binding{},
+		binding,
 	)
 	require.NoError(t, err)
-	requireLiveOperationalClosure(t, operational.ExperimentRun(), operational.RawEvidence())
+	requireLiveOperationalClosure(t, operational)
 
 	executionRoot := filepath.Join(t.TempDir(), "execution")
-	writeExecutionSet(t, executionRoot, operational.AdmittedSet())
+	writeRunEvaluationExecutionSet(t, executionRoot, operational.AdmittedSet())
 	outputRoot := t.TempDir()
 	firstBytes := runLiveEvaluationCommand(t, repositoryRoot, executionRoot, outputRoot)
 	secondBytes := runLiveEvaluationCommand(t, repositoryRoot, executionRoot, outputRoot)
@@ -95,16 +96,10 @@ func TestBoundedLiveCallerClosureEvaluation(t *testing.T) {
 
 	evidenceBytes, err := os.ReadFile(filepath.Join(summary.Destination, "artifacts", "evidence.json"))
 	require.NoError(t, err)
-	evidence, err := artifact.DecodeEvidenceV2(evidenceBytes)
-	require.NoError(t, err)
 	resultBytes, err := os.ReadFile(filepath.Join(summary.Destination, "artifacts", "result.json"))
 	require.NoError(t, err)
-	result, err := artifact.DecodeResultV2(resultBytes)
-	require.NoError(t, err)
-	require.Equal(t, summary.EvidenceArtifactChecksum, evidence.ArtifactChecksum)
-	require.Equal(t, summary.ResultArtifactChecksum, result.ArtifactChecksum)
-	require.Equal(t, summary.EvaluationOutcomeChecksum, *result.EvaluationOutcomeChecksum)
-	requireLiveSemanticResult(t, operational.ExperimentRun(), operational.RawEvidence(), evidence, result)
+	requireLiveSemanticResult(t, operational, evidenceBytes, resultBytes, summary)
+	requireNoNexusEndpoints(t, env.Context(), env.OperatorClient())
 }
 
 func requireCorruptionAndAmbiguityControls(t *testing.T, repositoryRoot string) {
@@ -140,40 +135,58 @@ func runBoundedCommand(t *testing.T, directory string, name string, arguments ..
 
 func liveCallerClosureInput(t *testing.T) artifact.AdmittedSet {
 	t.Helper()
-	root := filepath.Join("..", "temporal", "nexus", "testdata", "caller-closure-input-set")
-	files := make(map[string][]byte, 3)
-	for _, path := range []string{
-		"manifest.json",
-		"artifacts/experiment.json",
-		"artifacts/runtime-configuration.json",
-	} {
-		encoded, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(path)))
-		require.NoError(t, err)
-		files[path] = encoded
-	}
-	input, err := artifact.AdmitSetFiles(files)
+	return loadUmpireCallerClosureInputSet(t, "caller-closure-input-set")
+}
+
+func writeRunEvaluationExecutionSet(t *testing.T, root string, admitted artifact.AdmittedSet) {
+	t.Helper()
+	execution, ok := admitted.Execution()
+	require.True(t, ok)
+	experiment, err := artifact.EncodeExperimentV2(execution.Experiment())
 	require.NoError(t, err)
-	return input
+	configuration, err := artifact.EncodeRuntimeConfigurationV2(execution.RuntimeConfiguration())
+	require.NoError(t, err)
+	run, err := artifact.EncodeExperimentRunV2(execution.ExperimentRun())
+	require.NoError(t, err)
+	rawEvidence, err := artifact.EncodeRawEvidenceV2(execution.RawEvidence())
+	require.NoError(t, err)
+	files := map[string][]byte{
+		"manifest.json":                        admitted.ManifestBytes(),
+		"artifacts/experiment.json":            experiment,
+		"artifacts/runtime-configuration.json": configuration,
+		"artifacts/experiment-run.json":        run,
+		"artifacts/raw-evidence.json":          rawEvidence,
+	}
+	for path, encoded := range files {
+		absolute := filepath.Join(root, filepath.FromSlash(path))
+		require.NoError(t, os.MkdirAll(filepath.Dir(absolute), 0o700))
+		require.NoError(t, os.WriteFile(absolute, encoded, 0o600))
+	}
 }
 
 func requireLiveOperationalClosure(
 	t *testing.T,
-	run artifactv2.ExperimentRun,
-	rawEvidence artifactv2.RawEvidence,
+	operational umpireruntime.Output,
 ) {
 	t.Helper()
+	run := operational.ExperimentRun()
+	rawEvidence := operational.RawEvidence()
 	require.Equal(t, "succeeded", run.OperationalStatus)
 	require.Equal(t, "complete", run.Cleanup.Status)
 	require.True(t, run.Cleanup.OpenHandleCount.IsZero())
 	require.Equal(t, "closed", rawEvidence.CaptureStatus)
 	require.Empty(t, run.KnownGaps)
 	require.Empty(t, rawEvidence.KnownGaps)
+	sourceDefinitionIDs := make([]string, len(run.SourceClosures))
+	for index, closure := range run.SourceClosures {
+		sourceDefinitionIDs[index] = closure.SourceDefinitionID
+	}
 	require.Equal(t, []string{
 		umpireruntime.EvidenceSourceCleanup,
 		umpireruntime.EvidenceSourceControlReceipt,
 		umpireruntime.EvidenceSourceHistory,
 		umpireruntime.EvidenceSourceParticipantOutput,
-	}, sourceDefinitionIDsFromClosures(run.SourceClosures))
+	}, sourceDefinitionIDs)
 	for index, source := range rawEvidence.Sources {
 		require.Equal(t, run.SourceClosures[index].SourceDefinitionID, source.SourceDefinitionID)
 		require.Equal(t, "closed", run.SourceClosures[index].Status)
@@ -181,14 +194,6 @@ func requireLiveOperationalClosure(
 		require.Equal(t, run.SourceClosures[index].RecordCount, source.FactCount)
 		require.Equal(t, run.SourceClosures[index].ByteCount, source.ByteCount)
 	}
-}
-
-func sourceDefinitionIDsFromClosures(closures []artifactv2.SourceClosure) []string {
-	result := make([]string, len(closures))
-	for index, closure := range closures {
-		result[index] = closure.SourceDefinitionID
-	}
-	return result
 }
 
 func runLiveEvaluationCommand(
@@ -246,26 +251,42 @@ func requireLiveEvaluationMembers(t *testing.T, executionRoot string, destinatio
 
 func requireLiveSemanticResult(
 	t *testing.T,
-	run artifactv2.ExperimentRun,
-	rawEvidence artifactv2.RawEvidence,
-	evidence artifactv2.Evidence,
-	result artifactv2.Result,
-) {
+	operational umpireruntime.Output,
+	evidenceBytes []byte,
+	resultBytes []byte,
+	summary liveEvaluationSummary,
+) liveSemanticSnapshot {
 	t.Helper()
+	run := operational.ExperimentRun()
+	rawEvidence := operational.RawEvidence()
+	evidence, err := artifact.DecodeEvidenceV2(evidenceBytes)
+	require.NoError(t, err)
+	result, err := artifact.DecodeResultV2(resultBytes)
+	require.NoError(t, err)
+	require.Equal(t, summary.EvidenceArtifactChecksum, evidence.ArtifactChecksum)
+	require.Equal(t, summary.ResultArtifactChecksum, result.ArtifactChecksum)
+	require.Equal(t, summary.EvaluationOutcomeChecksum, *result.EvaluationOutcomeChecksum)
 	require.Equal(t, "accepted", evidence.ObservationEvaluationStatus)
 	require.NotNil(t, evidence.EvidenceBackedModelTrace)
 	require.True(t, evidence.EvidenceBackedModelTrace.SourceClosed)
 	require.Empty(t, evidence.Diagnostics)
 	require.Empty(t, evidence.KnownGaps)
-	require.Equal(t, artifactv2.ExperimentRunArtifactBinding(run), evidence.Run)
-	require.Equal(t, artifactv2.RawEvidenceArtifactBinding(rawEvidence), evidence.RawEvidence)
+	require.Equal(t, rawEvidence.Run, evidence.Run)
+	require.Equal(t, run.FormatVersion, evidence.Run.FormatVersion)
+	require.Equal(t, run.ArtifactChecksum, evidence.Run.ArtifactChecksum)
+	require.Equal(t, run.BehaviorFingerprint, evidence.Run.BehaviorFingerprint)
+	require.Equal(t, run.ProvenanceChecksum, evidence.Run.ProvenanceChecksum)
+	require.Equal(t, rawEvidence.FormatVersion, evidence.RawEvidence.FormatVersion)
+	require.Equal(t, rawEvidence.ArtifactChecksum, evidence.RawEvidence.ArtifactChecksum)
+	require.Equal(t, rawEvidence.BehaviorFingerprint, evidence.RawEvidence.BehaviorFingerprint)
+	require.Equal(t, rawEvidence.ProvenanceChecksum, evidence.RawEvidence.ProvenanceChecksum)
 	require.Equal(t, "succeeded", result.OperationalStatus)
 	require.Equal(t, "accepted", result.ObservationEvaluationStatus)
 	require.Equal(t, "applied", result.ImplementationLinkStatus)
 	require.Equal(t, "satisfied", result.SemanticStatus)
 	require.Equal(t, "complete", result.CleanupStatus)
-	require.Equal(t, artifactv2.ExperimentRunArtifactBinding(run), result.Run)
-	require.Equal(t, artifactv2.RawEvidenceArtifactBinding(rawEvidence), result.RawEvidence)
+	require.Equal(t, evidence.Run, result.Run)
+	require.Equal(t, evidence.RawEvidence, result.RawEvidence)
 	require.Empty(t, result.KnownGaps)
 	require.Equal(t, "temporal.system.nexus.caller-closure.implementation-link",
 		result.ImplementationLink.DefinitionID)
@@ -276,11 +297,15 @@ func requireLiveSemanticResult(
 	require.Equal(t, "workflow-nexus.property.caller-closure", verdict.PropertyDefinitionID)
 	require.Equal(t, "satisfied", verdict.Status)
 	require.Nil(t, verdict.Diagnostic)
+	clauseDefinitionIDs := make([]string, len(verdict.Clauses))
+	for index, clause := range verdict.Clauses {
+		clauseDefinitionIDs[index] = clause.ClauseDefinitionID
+	}
 	require.Equal(t, []string{
 		"workflow-nexus.property.clause.delivery",
 		"workflow-nexus.property.clause.ownership",
 		"workflow-nexus.property.clause.uniqueness",
-	}, clauseDefinitionIDs(verdict.Clauses))
+	}, clauseDefinitionIDs)
 	for _, clause := range verdict.Clauses {
 		require.Equal(t, "satisfied", clause.Status)
 		require.NotEmpty(t, clause.EvidenceLinks)
@@ -292,79 +317,69 @@ func requireLiveSemanticResult(
 	require.Empty(t, result.QuerySummary.DivergentPropertyDefinitionIDs)
 	require.Empty(t, result.QuerySummary.WrongQueryResultDefinitionIDs)
 
-	cleanupFact, controlFact, terminalHistoryFact, participantFact := liveEvidenceFacts(t, rawEvidence)
-	require.Contains(t, evidence.EvidenceBackedModelTrace.EvidenceDefinitionIDs, cleanupFact)
-	propertyEvidence := propertyEvidenceDefinitionIDs(verdict.Clauses)
-	require.Contains(t, propertyEvidence, controlFact)
-	require.Contains(t, propertyEvidence, terminalHistoryFact)
-	require.Contains(t, propertyEvidence, participantFact)
-	require.NotContains(t, propertyEvidence, cleanupFact)
-}
-
-func clauseDefinitionIDs(clauses []artifactv2.SemanticClauseVerdict) []string {
-	result := make([]string, len(clauses))
-	for index, clause := range clauses {
-		result[index] = clause.ClauseDefinitionID
-	}
-	return result
-}
-
-func liveEvidenceFacts(
-	t *testing.T,
-	rawEvidence artifactv2.RawEvidence,
-) (cleanup string, control string, terminalHistory string, participant string) {
-	t.Helper()
+	var cleanupFact string
+	var controlFact string
+	var terminalHistoryFact string
+	var participantFact string
 	for _, fact := range rawEvidence.Facts {
+		var hasOpenHandleCount bool
+		var hasCancellationCallbackCount bool
+		var eventType string
+		for _, field := range fact.Fields {
+			switch field.FieldDefinitionID {
+			case umpireruntime.EvidenceFieldOpenHandleCount:
+				hasOpenHandleCount = true
+			case umpireruntime.EvidenceFieldCancellationCallbackCount:
+				hasCancellationCallbackCount = true
+			case umpireruntime.EvidenceFieldEventType:
+				eventType, _ = field.Value.(string)
+			}
+		}
 		switch fact.SourceDefinitionID {
 		case umpireruntime.EvidenceSourceCleanup:
-			if rawEvidenceFactHasField(fact, umpireruntime.EvidenceFieldOpenHandleCount) {
-				cleanup = fact.FactDefinitionID
+			if hasOpenHandleCount {
+				cleanupFact = fact.FactDefinitionID
 			}
 		case umpireruntime.EvidenceSourceControlReceipt:
-			control = fact.FactDefinitionID
+			controlFact = fact.FactDefinitionID
 		case umpireruntime.EvidenceSourceParticipantOutput:
-			if rawEvidenceFactHasField(fact, umpireruntime.EvidenceFieldCancellationCallbackCount) {
-				participant = fact.FactDefinitionID
+			if hasCancellationCallbackCount {
+				participantFact = fact.FactDefinitionID
 			}
 		case umpireruntime.EvidenceSourceHistory:
-			if rawEvidenceStringField(fact, umpireruntime.EvidenceFieldEventType) ==
-				"temporal.history.WorkflowExecutionCanceled" {
-				terminalHistory = fact.FactDefinitionID
+			if eventType == "temporal.history.WorkflowExecutionCanceled" {
+				terminalHistoryFact = fact.FactDefinitionID
 			}
 		default:
 			require.Failf(t, "unexpected evidence source", "source=%q", fact.SourceDefinitionID)
 		}
 	}
-	require.NotEmpty(t, cleanup)
-	require.NotEmpty(t, control)
-	require.NotEmpty(t, terminalHistory)
-	require.NotEmpty(t, participant)
-	return cleanup, control, terminalHistory, participant
-}
-
-func rawEvidenceFactHasField(fact artifactv2.RawEvidenceFact, definitionID string) bool {
-	return slices.ContainsFunc(fact.Fields, func(field artifactv2.RawEvidenceField) bool {
-		return field.FieldDefinitionID == definitionID
-	})
-}
-
-func rawEvidenceStringField(fact artifactv2.RawEvidenceFact, definitionID string) string {
-	for _, field := range fact.Fields {
-		if field.FieldDefinitionID == definitionID {
-			value, _ := field.Value.(string)
-			return value
-		}
-	}
-	return ""
-}
-
-func propertyEvidenceDefinitionIDs(clauses []artifactv2.SemanticClauseVerdict) []string {
-	var result []string
-	for _, clause := range clauses {
+	require.NotEmpty(t, cleanupFact)
+	require.NotEmpty(t, controlFact)
+	require.NotEmpty(t, terminalHistoryFact)
+	require.NotEmpty(t, participantFact)
+	require.Contains(t, evidence.EvidenceBackedModelTrace.EvidenceDefinitionIDs, cleanupFact)
+	var propertyEvidence []string
+	for _, clause := range verdict.Clauses {
 		for _, link := range clause.EvidenceLinks {
-			result = append(result, link.EvidenceDefinitionIDs...)
+			propertyEvidence = append(propertyEvidence, link.EvidenceDefinitionIDs...)
 		}
 	}
-	slices.Sort(result)
-	return slices.Compact(result)
+	slices.Sort(propertyEvidence)
+	propertyEvidence = slices.Compact(propertyEvidence)
+	require.Contains(t, propertyEvidence, controlFact)
+	require.Contains(t, propertyEvidence, terminalHistoryFact)
+	require.Contains(t, propertyEvidence, participantFact)
+	require.NotContains(t, propertyEvidence, cleanupFact)
+	return liveSemanticSnapshot{
+		resultArtifactChecksum:      result.ArtifactChecksum,
+		resultBehaviorFingerprint:   result.BehaviorFingerprint,
+		propertyDefinitionID:        verdict.PropertyDefinitionID,
+		propertyBehaviorFingerprint: verdict.PropertyBehaviorFingerprint,
+		implementationDestination: liveImplementationTarget{
+			definitionID:        result.ImplementationLink.DestinationTarget.DefinitionID,
+			kind:                result.ImplementationLink.DestinationTarget.Kind,
+			behaviorFingerprint: result.ImplementationLink.DestinationTarget.BehaviorFingerprint,
+		},
+	}
 }
