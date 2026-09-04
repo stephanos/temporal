@@ -333,6 +333,7 @@ func requireLiveSemanticResult(
 				hasCancellationCallbackCount = true
 			case umpireruntime.EvidenceFieldEventType:
 				eventType, _ = field.Value.(string)
+			default:
 			}
 		}
 		switch fact.SourceDefinitionID {
