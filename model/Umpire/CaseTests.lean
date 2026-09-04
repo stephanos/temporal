@@ -7,12 +7,12 @@ open Umpire.Case
 private def stringType : ValueType := .singular (.scalar .text)
 
 private def historyType : ValueType :=
-  .repeated (.message "temporal.api.history.v1.HistoryEvent")
+  .repeated (.message "example.api.history.v1.HistoryEvent")
 
 private def naturalType : ValueType := .singular (.scalar .natural)
 
 private def sourceShapedProgram : Program := {
-  programId := "nexus.async-success.program"
+  programId := "example.async-success.program"
   roles := []
   slots := [
     ({ slotId := "workflow-id", type := stringType } : SlotSchema),
@@ -22,7 +22,7 @@ private def sourceShapedProgram : Program := {
        kind := SlotKind.opaqueCapability } : SlotSchema)
   ]
   observations := [
-    { observationId := "history-event-type", type := .singular (.enumeration "temporal.api.enums.v1.EventType") },
+    { observationId := "history-event-type", type := .singular (.enumeration "example.api.enums.v1.EventType") },
     { observationId := "scheduled-event-id", type := naturalType }
   ]
   entrypoints := []
@@ -44,7 +44,7 @@ private def sourceShapedProgram : Program := {
 }
 
 private def sourceShapedContract : Contract := {
-  contractId := "nexus.async-success.contract"
+  contractId := "example.async-success.contract"
   rules := [{
     ruleId := "workflow-completes"
     kind := .boundedLiveness
@@ -95,31 +95,31 @@ private def sourceShapedContract : Contract := {
 
 private def sourceShapedCase : Case := {
   version := { major := 1, minor := 0 }
-  caseId := "nexus.async-success"
+  caseId := "example.async-success"
   metadata := {
-    producerId := "lean.temporal.nexus"
+    producerId := "lean.example"
     definitions := [
-      ({ definitionId := "temporal.nexus.target", behaviorFingerprint := "target/v1",
+      ({ definitionId := "example.target", behaviorFingerprint := "target/v1",
          kind := .target } : CaseDefinitionBinding),
-      ({ definitionId := "temporal.nexus.provider", behaviorFingerprint := "provider/v1",
+      ({ definitionId := "example.provider", behaviorFingerprint := "provider/v1",
          kind := .provider } : CaseDefinitionBinding),
-      ({ definitionId := "temporal.nexus.law", behaviorFingerprint := "law/v1",
+      ({ definitionId := "example.law", behaviorFingerprint := "law/v1",
          kind := .law } : CaseDefinitionBinding),
-      ({ definitionId := "temporal.nexus.connector", behaviorFingerprint := "connector/v1",
+      ({ definitionId := "example.connector", behaviorFingerprint := "connector/v1",
          kind := .connector } : CaseDefinitionBinding),
-      ({ definitionId := "temporal.nexus.kernel", behaviorFingerprint := "kernel/v1",
+      ({ definitionId := "example.kernel", behaviorFingerprint := "kernel/v1",
          kind := .kernel } : CaseDefinitionBinding)
     ]
     sources := [{
-      path := "Temporal/Feature/Nexus/Operations.lean"
+      path := "Example/Feature/Operations.lean"
       line := 42
       column := 7
       provenance := "checked-model"
     }]
     knownGaps := [
-      ({ kind := .interpretation, code := "temporal.nexus.gap" } : CaseKnownGap),
-      ({ kind := .claim, code := "temporal.nexus.gap",
-         subject := some "temporal.nexus.target", detail := some "claim remains local" } : CaseKnownGap)
+      ({ kind := .interpretation, code := "example.gap" } : CaseKnownGap),
+      ({ kind := .claim, code := "example.gap",
+         subject := some "example.target", detail := some "claim remains local" } : CaseKnownGap)
     ]
   }
   program := sourceShapedProgram
