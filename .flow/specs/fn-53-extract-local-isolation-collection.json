@@ -164,7 +164,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-53-extract-local-isolation-collection.md",
-  "status": "open",
+  "status": "done",
   "title": "Extract local isolation collection state machine",
   "tracker": {
     "baseHashFlow": null,
@@ -177,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T01:37:58.388862Z"
+  "updated_at": "2026-09-04T01:42:33.893312Z"
 }

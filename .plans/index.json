@@ -902,9 +902,9 @@
     {
       "id": "fn-53-extract-local-isolation-collection",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
       "completionReview": "unknown",
       "specDependencies": []
