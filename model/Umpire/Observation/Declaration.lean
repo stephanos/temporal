@@ -9,7 +9,7 @@ selection. `Umpire.Observation.Compiler` owns the checker boundary that interpre
 
 namespace Umpire
 
-/-! Inert definitions and checked plans for mapping typed evidence into Model Values. -/
+/-! Inert definitions for mapping typed evidence into Model Values. -/
 
 inductive ObservationValueType where
   | text
