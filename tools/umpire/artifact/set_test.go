@@ -106,6 +106,8 @@ func TestArtifactSetAdmitsOnlyThreeExactClosures(t *testing.T) {
 
 func TestArtifactSetExecutableProjectionIsExactAndImmutable(t *testing.T) {
 	members := artifactSetFixtureMembers(t)
+	wantExperimentBytes := bytes.Clone(members[0].Encoded)
+	wantRuntimeConfigurationBytes := bytes.Clone(members[1].Encoded)
 	admitted, err := artifact.AdmitSet(members[:2])
 	require.NoError(t, err)
 
@@ -116,16 +118,18 @@ func TestArtifactSetExecutableProjectionIsExactAndImmutable(t *testing.T) {
 	require.NoError(t, err)
 	wantRuntimeConfiguration, err := artifact.DecodeRuntimeConfigurationV2(members[1].Encoded)
 	require.NoError(t, err)
+	members[0].Encoded[0] = '['
+	members[1].Encoded[0] = '['
 	require.Equal(t, wantExperiment, executable.Experiment())
 	require.Equal(t, wantRuntimeConfiguration, executable.RuntimeConfiguration())
 	encodedExperiment, err := artifact.EncodeExperimentV2(executable.Experiment())
 	require.NoError(t, err)
-	require.Equal(t, members[0].Encoded, encodedExperiment)
+	require.Equal(t, wantExperimentBytes, encodedExperiment)
 	encodedRuntimeConfiguration, err := artifact.EncodeRuntimeConfigurationV2(
 		executable.RuntimeConfiguration(),
 	)
 	require.NoError(t, err)
-	require.Equal(t, members[1].Encoded, encodedRuntimeConfiguration)
+	require.Equal(t, wantRuntimeConfigurationBytes, encodedRuntimeConfiguration)
 
 	experiment := executable.Experiment()
 	runtimeConfiguration := executable.RuntimeConfiguration()
@@ -142,7 +146,7 @@ func TestArtifactSetExecutableProjectionIsExactAndImmutable(t *testing.T) {
 	require.NotEqual(t, runtimeConfiguration, again.RuntimeConfiguration())
 	require.Equal(t, admitted.Identity(), again.AdmittedSet().Identity())
 
-	executionSet, err := artifact.AdmitSet(members[:4])
+	executionSet, err := artifact.AdmitSet(artifactSetFixtureMembers(t)[:4])
 	require.NoError(t, err)
 	_, ok = executionSet.Executable()
 	require.False(t, ok)

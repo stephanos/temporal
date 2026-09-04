@@ -1,6 +1,7 @@
 package runtime_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -90,6 +91,102 @@ func TestCheckRequestAcceptsOneImmutableExactInput(t *testing.T) {
 	require.Equal(t, fixture.program.DefinitionID(), command.ProgramDefinitionID())
 	require.Equal(t, fixture.program.Occurrence().DefinitionID(), command.OccurrenceDefinitionID())
 	require.Equal(t, umpireruntime.PhaseIsolation, request.IsolationCommand().Phase())
+}
+
+func TestOutputCopiesSchemaValidRunAndRawEvidence(t *testing.T) {
+	run := outputTestRun(t)
+	rawEvidence := outputTestRawEvidence(t)
+	output := umpireruntime.NewOutput(artifact.AdmittedSet{}, run, rawEvidence)
+
+	run.PhaseOutcomes[0].Phase = "changed"
+	*run.PhaseOutcomes[0].StartedAtUnixMillis = "3"
+	*run.ControlAttempts[0].ReceiptFactDefinitionID = "changed"
+	run.SourceClosures[0].RecordCount = "2"
+	run.Cleanup.Status = "changed"
+	run.Limits[0].MaxAttempts = "2"
+	*run.KnownGaps[0].Detail = "changed"
+	run.Provenance.SourceDefinitionIDs[0] = "changed"
+	rawEvidence.Sources[0].Status = "partial"
+	rawEvidence.Facts[3].CausalFactDefinitionIDs[0] = "changed"
+	rawEvidence.Facts[0].Fields[0].FieldDefinitionID = "changed"
+	*rawEvidence.KnownGaps[0].Subject = "changed"
+	rawEvidence.Provenance.SourceLocations[0].Path = "changed"
+
+	require.Equal(t, outputTestRun(t), output.ExperimentRun())
+	require.Equal(t, outputTestRawEvidence(t), output.RawEvidence())
+
+	returnedRun := output.ExperimentRun()
+	returnedRawEvidence := output.RawEvidence()
+	returnedRun.PhaseOutcomes[0].Phase = "changed"
+	*returnedRun.PhaseOutcomes[0].FinishedAtUnixMillis = "4"
+	*returnedRun.ControlAttempts[0].ReceiptFactDefinitionID = "changed"
+	returnedRun.SourceClosures[0].RecordCount = "2"
+	returnedRun.Cleanup.Status = "changed"
+	returnedRun.Limits[0].MaxAttempts = "2"
+	*returnedRun.KnownGaps[0].Subject = "changed"
+	returnedRun.Provenance.SourceLocations[0].Path = "changed"
+	returnedRawEvidence.Sources[0].Status = "partial"
+	returnedRawEvidence.Facts[3].CausalFactDefinitionIDs[0] = "changed"
+	returnedRawEvidence.Facts[0].Fields[0].FieldDefinitionID = "changed"
+	*returnedRawEvidence.KnownGaps[0].Detail = "changed"
+	returnedRawEvidence.Provenance.SourceDefinitionIDs[0] = "changed"
+
+	require.Equal(t, outputTestRun(t), output.ExperimentRun())
+	require.Equal(t, outputTestRawEvidence(t), output.RawEvidence())
+	require.Equal(t, []any{false, nil, json.Number("1"), "complete"}, outputRawEvidenceValues(output))
+}
+
+func TestOutputPreservesZeroAndEmptyArtifactValues(t *testing.T) {
+	tests := []struct {
+		name        string
+		run         artifactv2.ExperimentRun
+		rawEvidence artifactv2.RawEvidence
+	}{
+		{name: "zero values"},
+		{
+			name: "empty collections",
+			run: artifactv2.ExperimentRun{
+				PhaseOutcomes:   []artifactv2.PhaseOutcome{},
+				ControlAttempts: []artifactv2.ControlAttempt{},
+				SourceClosures:  []artifactv2.SourceClosure{},
+				Limits:          []artifactv2.PhaseLimit{},
+				KnownGaps:       []artifactv2.KnownGap{},
+				Provenance: artifactv2.Provenance{
+					SourceDefinitionIDs: []string{},
+					SourceLocations:     []artifactv2.SourceLocation{},
+				},
+			},
+			rawEvidence: artifactv2.RawEvidence{
+				Sources:   []artifactv2.RawEvidenceSource{},
+				Facts:     []artifactv2.RawEvidenceFact{},
+				KnownGaps: []artifactv2.KnownGap{},
+				Provenance: artifactv2.Provenance{
+					SourceDefinitionIDs: []string{},
+					SourceLocations:     []artifactv2.SourceLocation{},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			output := umpireruntime.NewOutput(artifact.AdmittedSet{}, test.run, test.rawEvidence)
+			require.Equal(t, test.run, output.ExperimentRun())
+			require.Equal(t, test.rawEvidence, output.RawEvidence())
+		})
+	}
+}
+
+func TestOutputLeavesUnsupportedRawEvidenceValuesOutsideCopyContract(t *testing.T) {
+	value := map[string][]string{"unsupported": {"original"}}
+	rawEvidence := artifactv2.RawEvidence{Facts: []artifactv2.RawEvidenceFact{{
+		Fields: []artifactv2.RawEvidenceField{{Value: value}},
+	}}}
+	output := umpireruntime.NewOutput(artifact.AdmittedSet{}, artifactv2.ExperimentRun{}, rawEvidence)
+
+	value["unsupported"][0] = "changed"
+	returned := output.RawEvidence().Facts[0].Fields[0].Value.(map[string][]string)
+	require.Equal(t, "changed", returned["unsupported"][0])
 }
 
 func TestDuplicateDeliveryInputSetIsCanonicalAndPreflightClosed(t *testing.T) {
@@ -865,6 +962,46 @@ func newCheckedFixture(t *testing.T) checkedFixture {
 		runtimeConfiguration: runtimeConfiguration,
 		program:              program,
 		authority:            authority,
+	}
+}
+
+func outputTestRun(t *testing.T) artifactv2.ExperimentRun {
+	t.Helper()
+	run, err := artifact.DecodeExperimentRunV2(readFixture(t, "ExperimentRunV2.json"))
+	require.NoError(t, err)
+	subject := "switch.run.known-gap"
+	detail := "retained run gap"
+	run.KnownGaps = []artifactv2.KnownGap{{
+		Kind: "input", Code: "switch.gap.run", Subject: &subject, Detail: &detail,
+	}}
+	run, err = artifactv2.SealExperimentRun(run)
+	require.NoError(t, err)
+	require.NoError(t, artifactv2.ValidateExperimentRun(run))
+	return run
+}
+
+func outputTestRawEvidence(t *testing.T) artifactv2.RawEvidence {
+	t.Helper()
+	rawEvidence, err := artifact.DecodeRawEvidenceV2(readFixture(t, "RawEvidenceV2.json"))
+	require.NoError(t, err)
+	subject := "switch.raw-evidence.known-gap"
+	detail := "retained Raw Evidence gap"
+	rawEvidence.KnownGaps = []artifactv2.KnownGap{{
+		Kind: "interpretation", Code: "switch.gap.raw-evidence", Subject: &subject, Detail: &detail,
+	}}
+	rawEvidence, err = artifactv2.SealRawEvidence(rawEvidence)
+	require.NoError(t, err)
+	require.NoError(t, artifactv2.ValidateRawEvidence(rawEvidence))
+	return rawEvidence
+}
+
+func outputRawEvidenceValues(output umpireruntime.Output) []any {
+	rawEvidence := output.RawEvidence()
+	return []any{
+		rawEvidence.Facts[4].Fields[0].Value,
+		rawEvidence.Facts[5].Fields[1].Value,
+		rawEvidence.Facts[1].Fields[1].Value,
+		rawEvidence.Facts[0].Fields[0].Value,
 	}
 }
 
