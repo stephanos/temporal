@@ -51,7 +51,7 @@ Implement one M-sized extraction: place the private collection module and its fo
 
 ```bash
 go test -tags test_dep ./tools/umpire/temporal/local
-make lint-code
+make lint-code # run globally and compare any inherited failures with the pre-change baseline
 ```
 
 ## Acceptance Criteria
@@ -60,7 +60,7 @@ make lint-code
 - **R2:** Record and close transitions retain exact command/correlation checks, error strings, mutation-before-error ordering, duplicate handling, post-close rejection, and permanent invalidation. Errors: wrong command, wrong correlation, duplicate operation record, duplicate control record, duplicate close, and every mutation after close are covered explicitly.
 - **R3:** The one-shot pre-probe decision preserves the exact failed/canceled/ready partition and precedence: prior invalidation, repeated decision, and counts above one fail before any cancellation condition is considered; only in the absence of a failure do missing records, zero counts, and missing closure cancel; one recorded operation and one recorded control in a closed valid collection is ready. Errors: invalid-plus-incomplete, count-above-one-plus-open, and count-above-one-plus-missing-input combinations all fail rather than cancel.
 - **R4:** Context handling, isolation-command validation, probe execution, and receipt construction remain in the environment with unchanged precedence, statuses, codes, facts, correlations, and diagnostics. Errors: nil or canceled context, unsupported isolation command, missing probe, probe failure, and cross-run or crossed-correlation inputs preserve current outcomes.
-- **R5:** Focused table-driven tests exercise the module interface, and environment-level regressions prove every R4 precedence path with probe-call counts, decision-consumption behavior, and exact receipt status, code, facts, and correlations; the existing local lifecycle and attached-authority tests continue to pass, and live ownership documentation remains accurate without an edit unless implementation ownership changes. Errors: any uncovered R4 path, race-prone synchronization change, or documentation drift fails verification rather than being accepted as cleanup.
+- **R5:** Focused table-driven tests exercise the module interface, and environment-level regressions prove every R4 precedence path with probe-call counts, decision-consumption behavior, and exact receipt status, code, facts, and correlations; the existing local lifecycle and attached-authority tests continue to pass, and live ownership documentation remains accurate without an edit unless implementation ownership changes. The aggregate lint command always runs; a pre-existing repository-wide failure is acceptable only when it matches the exact recorded pre-change baseline and task-scoped lint reports zero findings. Errors: any uncovered R4 path, race-prone synchronization change, documentation drift, unclassified lint difference, or task-local lint finding fails verification rather than being accepted as cleanup.
 
 ## Early proof point
 

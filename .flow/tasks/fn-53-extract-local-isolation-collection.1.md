@@ -43,7 +43,7 @@ Extract the existing collection and pre-probe decision logic into one private co
 - [ ] Existing lifecycle and attached-authority behavior remains unchanged.
 - [ ] Existing comments are preserved, and `tools/umpire/runtime/README.md` is confirmed accurate or updated only if the ownership statement became false.
 - [ ] `go test -tags test_dep ./tools/umpire/temporal/local` passes.
-- [ ] `make fmt-imports` and `make lint-code` pass.
+- [ ] `make fmt-imports` passes; `make lint-code` runs globally and either passes or matches the exact pre-change baseline with zero task-scoped lint findings.
 ## Done summary
 TBD
 

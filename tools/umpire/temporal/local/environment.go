@@ -154,33 +154,19 @@ type environment struct {
 	authority temporalAuthority
 	client    client.Client
 
-	runIdentity          string
-	workflowCorrelation  string
-	operationCorrelation string
-	taskQueue            string
-	workerIdentity       string
-	identities           Identities
+	runIdentity         string
+	workflowCorrelation string
+	taskQueue           string
+	workerIdentity      string
+	identities          Identities
 
 	mu            sync.Mutex
 	live          map[umpireruntime.ResourceKind]umpireruntime.Resource
 	workerStarted bool
 
-	prepareCommand   umpireruntime.Command
-	realizeCommand   umpireruntime.Command
-	observeCommand   umpireruntime.Command
 	isolationCommand umpireruntime.Command
 	isolation        isolationCollection
 	executionProbe   executionIsolationProbe
-}
-
-type isolationCollection struct {
-	operationRecorded bool
-	operationCount    uint64
-	controlRecorded   bool
-	controlCount      uint64
-	inputsClosed      bool
-	invalid           bool
-	isolationCalled   bool
 }
 
 type executionIsolationProbe interface {
@@ -228,22 +214,29 @@ func newEnvironment(
 		runIdentity: request.RunIdentity(),
 		live:        make(map[umpireruntime.ResourceKind]umpireruntime.Resource),
 	}
-	environment.prepareCommand, _ = request.Command(umpireruntime.CommandPrepare)
-	environment.realizeCommand, _ = request.Command(umpireruntime.CommandRealize)
-	environment.observeCommand, _ = request.Command(umpireruntime.CommandObserve)
+	prepareCommand, _ := request.Command(umpireruntime.CommandPrepare)
+	realizeCommand, _ := request.Command(umpireruntime.CommandRealize)
+	observeCommand, _ := request.Command(umpireruntime.CommandObserve)
 	environment.isolationCommand = request.IsolationCommand()
+	var operationCorrelation string
 	for _, correlation := range request.Correlations() {
 		switch correlation.Kind() {
 		case umpireruntime.CorrelationWorkflow:
 			environment.workflowCorrelation = correlation.Identity()
 		case umpireruntime.CorrelationOperation:
-			environment.operationCorrelation = correlation.Identity()
+			operationCorrelation = correlation.Identity()
 		case umpireruntime.CorrelationTaskQueue:
 			environment.taskQueue = correlation.Identity()
 		case umpireruntime.CorrelationWorker:
 			environment.workerIdentity = correlation.Identity()
 		}
 	}
+	environment.isolation = newIsolationCollection(
+		prepareCommand,
+		realizeCommand,
+		observeCommand,
+		operationCorrelation,
+	)
 	if provider, ok := authority.(interface {
 		isolationProbe(string) executionIsolationProbe
 	}); ok {
@@ -379,14 +372,7 @@ func (e *environment) RecordOperationCount(
 ) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if command != e.prepareCommand || operationIdentity != e.operationCorrelation ||
-		e.isolation.operationRecorded || e.isolation.inputsClosed {
-		e.isolation.invalid = true
-		return errors.New("unsupported isolation operation record")
-	}
-	e.isolation.operationRecorded = true
-	e.isolation.operationCount = count
-	return nil
+	return e.isolation.recordOperationCount(command, operationIdentity, count)
 }
 
 // RecordControlCount retains the bounded actual force-close control count
@@ -398,14 +384,7 @@ func (e *environment) RecordControlCount(
 ) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if command != e.realizeCommand || operationIdentity != e.operationCorrelation ||
-		e.isolation.controlRecorded || e.isolation.inputsClosed {
-		e.isolation.invalid = true
-		return errors.New("unsupported isolation control record")
-	}
-	e.isolation.controlRecorded = true
-	e.isolation.controlCount = count
-	return nil
+	return e.isolation.recordControlCount(command, operationIdentity, count)
 }
 
 // CloseIsolationInputs seals the invocation-owned count collection after the
@@ -413,12 +392,7 @@ func (e *environment) RecordControlCount(
 func (e *environment) CloseIsolationInputs(command umpireruntime.Command) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	if command != e.observeCommand || e.isolation.inputsClosed {
-		e.isolation.invalid = true
-		return errors.New("unsupported isolation collection close")
-	}
-	e.isolation.inputsClosed = true
-	return nil
+	return e.isolation.closeInputs(command)
 }
 
 func (e *environment) Isolate(
@@ -436,19 +410,18 @@ func (e *environment) Isolate(
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptUnsupported,
 			runtimeCodeUnsupported, nil, nil, e.identities)
 	}
-	if e.isolation.isolationCalled {
-		e.isolation.invalid = true
-	}
-	e.isolation.isolationCalled = true
-	if e.isolation.invalid || e.isolation.operationCount > 1 || e.isolation.controlCount > 1 {
+	decision := e.isolation.decision()
+	if decision == isolationDecisionFailed {
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptFailed,
 			runtimeCodeFailed, nil, nil, e.identities)
 	}
-	if !e.isolation.operationRecorded || e.isolation.operationCount != 1 ||
-		!e.isolation.controlRecorded || e.isolation.controlCount != 1 ||
-		!e.isolation.inputsClosed {
+	if decision == isolationDecisionCanceled {
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptCanceled,
 			runtimeCodeCanceled, nil, nil, e.identities)
+	}
+	if decision != isolationDecisionReady {
+		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptFailed,
+			runtimeCodeFailed, nil, nil, e.identities)
 	}
 	if e.executionProbe == nil {
 		return lifecycleReceipt(command, lifecycleFactIsolation, umpireruntime.ReceiptCanceled,
