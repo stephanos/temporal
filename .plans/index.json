@@ -265,6 +265,17 @@
       ],
       "supersededBy": null,
       "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_CASE_RUNTIME_DESIGN.md",
+      "lifecycle": "active",
+      "authority": "architecture",
+      "authorityParents": [
+        ".plans/UMPIRE4_ORDER.md",
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
     }
   ],
   "flowSpecs": [
@@ -479,7 +490,8 @@
         "fn-32-add-umpire-refinement-and-the-first",
         "fn-37-hard-cut-umpire-vocabulary-and-current",
         "fn-5-umpire-discovery-promotion-and-artifact",
-        "fn-61-simplify-the-umpire-go-execution-surface"
+        "fn-61-simplify-the-umpire-go-execution-surface",
+        "fn-64-umpire-case-runtime"
       ]
     },
     {
@@ -538,7 +550,8 @@
         "fn-20-local-execution-semantic-conformance",
         "fn-37-hard-cut-umpire-vocabulary-and-current",
         "fn-47-generate-umpire-semantic-outcome-and",
-        "fn-48-canonicalize-known-gaps-as-a-checked-set"
+        "fn-48-canonicalize-known-gaps-as-a-checked-set",
+        "fn-64-umpire-case-runtime"
       ]
     },
     {
@@ -586,7 +599,8 @@
         "fn-28-portable-evaluation-contract-and",
         "fn-48-canonicalize-known-gaps-as-a-checked-set",
         "fn-52-caller-neutral-grpc-portable-test-plans",
-        "fn-61-simplify-the-umpire-go-execution-surface"
+        "fn-61-simplify-the-umpire-go-execution-surface",
+        "fn-64-umpire-case-runtime"
       ]
     },
     {
@@ -659,7 +673,8 @@
         "fn-37-hard-cut-umpire-vocabulary-and-current",
         "fn-40-centralize-plannerpolicy-constructors",
         "fn-47-generate-umpire-semantic-outcome-and",
-        "fn-61-simplify-the-umpire-go-execution-surface"
+        "fn-61-simplify-the-umpire-go-execution-surface",
+        "fn-64-umpire-case-runtime"
       ]
     },
     {
@@ -969,11 +984,11 @@
     {
       "id": "fn-59-centralize-umpire-artifact-copies",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "completed-prerequisite",
       "phase": "support",
-      "status": "open",
+      "status": "done",
       "ready": false,
-      "completionReview": "unknown",
+      "completionReview": "ship",
       "specDependencies": []
     },
     {
@@ -999,7 +1014,7 @@
     {
       "id": "fn-61-simplify-the-umpire-go-execution-surface",
       "scope": "umpire-roadmap",
-      "disposition": "retained",
+      "disposition": "superseded",
       "phase": "p3",
       "status": "open",
       "ready": false,
@@ -1027,7 +1042,7 @@
     {
       "id": "fn-63-consolidate-umpire-go-tests-into-golden",
       "scope": "umpire-support",
-      "disposition": "retained",
+      "disposition": "superseded",
       "phase": "support",
       "status": "open",
       "ready": false,
@@ -1035,6 +1050,16 @@
       "specDependencies": [
         "fn-61-simplify-the-umpire-go-execution-surface"
       ]
+    },
+    {
+      "id": "fn-64-umpire-case-runtime",
+      "scope": "umpire-roadmap",
+      "disposition": "retained",
+      "phase": "p2",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
+      "specDependencies": []
     },
     {
       "id": "fn-7-migrate-lean-model-descriptor-generator",
