@@ -96,7 +96,7 @@ validation.
 The closed `ValueType` constructors preserve singular, repeated, and map cardinality. Instructions
 and transition expressions are closed unions rather than callback or extension points. Endpoint
 coordinates, clients, credentials, and opaque Host capability values are deliberately absent from
-the Case data. `Temporal.API.Types` remains the generator-owned descriptor projection used at the
+the Case data. The generated API types remain the generator-owned descriptor projection used at the
 wire boundary; the `Umpire.Case.*` modules are the generic authored IR.
 
 ## Core and Target APIs
