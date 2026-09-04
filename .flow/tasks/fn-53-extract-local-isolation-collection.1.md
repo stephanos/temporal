@@ -45,9 +45,13 @@ Extract the existing collection and pre-probe decision logic into one private co
 - [ ] `go test -tags test_dep ./tools/umpire/temporal/local` passes.
 - [ ] `make fmt-imports` passes; `make lint-code` runs globally and either passes or matches the exact pre-change baseline with zero task-scoped lint findings.
 ## Done summary
-TBD
+Extracted the local isolation collection into a private concrete state machine while preserving environment synchronization, probe orchestration, receipts, diagnostics, and fail-closed precedence. Added table-driven transition, decision, and environment orchestration coverage; the local package, import formatting, and task-scoped lint pass.
 
+Baseline: the exact Go command is inherited-red under the Lean clang selected by the shell and passes with Apple clang; global lint remains exactly baseline-equivalent at 1,379 inherited findings with zero task-scoped findings.
+
+stage: impl-review - ran [2026-09-04T01:36Z..2026-09-04T01:37:58Z] (model: gpt-5.6-sol)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 83ee536a13ca64a0225a433b9fd38683de0bfb48
+- Tests: baseline: red (go test -tags test_dep ./tools/umpire/temporal/local failed pre-edit: Lean clang/cgo cannot find stddef.h); green with Apple clang, baseline: red (make lint-code failed pre-edit with 1379 inherited findings), CC=Apple-clang SDKROOT=macOS-sdk go test -count=1 -tags test_dep ./tools/umpire/temporal/local, make fmt-imports (passed with inherited .flow/tmp scratch artifacts temporarily excluded and restored), CC=Apple-clang SDKROOT=macOS-sdk .bin/golangci-lint-v2.13.1 run --build-tags disable_grpc_modules,test_dep --timeout 10m --fix=false --new-from-rev=508a2c6a40a8e3571549f80c54829975b8b2d3f1 --config=.github/.golangci.yml ./tools/umpire/temporal/local/..., make lint-code (baseline-equivalent inherited red: 1379 findings; task-scoped lint 0 issues), git diff --check
 - PRs:

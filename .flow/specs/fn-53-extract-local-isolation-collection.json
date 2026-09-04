@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-53-extract-local-isolation-collection",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-53-extract-local-isolation-collection.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -118,15 +120,47 @@
       "task": null,
       "timestamp": "2026-09-03T18:55:32.000851Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "38243467b10494a55abfc727a36c351d1f28b7e80a94ced8f0737aec512b8ef7",
+      "backend": "codex",
+      "base_sha": "508a2c6a40a8e3571549f80c54829975b8b2d3f1",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "83ee536a13ca64a0225a433b9fd38683de0bfb48",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 145876,
+      "output_sha256": "7ee2990bc00245828d0783168ae323b1ff343aaf0dd53a8af2ab628a00b0698b",
+      "reservation_id": "287aa7ef091042339b84b557143e012f",
+      "round_consumed": true,
+      "scope": "impl:fn-53-extract-local-isolation-collection.1",
+      "superseded_by": null,
+      "task": "fn-53-extract-local-isolation-collection.1",
+      "timestamp": "2026-09-04T01:37:58.381381Z",
+      "tool_calls": 7,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-53-extract-local-isolation-collection.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-53-extract-local-isolation-collection.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-53-extract-local-isolation-collection.md",
@@ -143,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-03T18:55:32.003667Z"
+  "updated_at": "2026-09-04T01:37:58.388862Z"
 }
