@@ -33,5 +33,5 @@ jobs:
           cache: false
       - name: Run package-local Umpire tests
         run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...
-      - name: Run the relocated Umpire test
-        run: mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireCallerClosurePortability$'
+      - name: Run the live Umpire tests
+        run: make umpire-check-live-tests
