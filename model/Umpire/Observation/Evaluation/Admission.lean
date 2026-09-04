@@ -570,17 +570,6 @@ def validateEvidenceBackedTrace
     for applied in evidenceLink.appliedDispositions do
       validateAppliedDisposition trace evidenceLink applied
     validateCheckedProvenance trace evidenceLink
-  for evidenceLink in trace.evidenceLinks do
-    for applied in evidenceLink.appliedDispositions do
-      if !(trace.recordSupport.any fun support =>
-          evidenceLink.evidenceIdentities.contains support.recordId &&
-            support.kind == applied.field.kind &&
-            support.fields.any fun field => field.field == applied.field.field) then
-        throw {
-          kind := .inconsistentEvidenceLink
-          planId := trace.mappingId
-          relatedDefinitionIds := [evidenceLink.ruleId, applied.field.field]
-        }
   if trace.traceId != Observation.Internal.evidenceBackedTraceId trace.mappingDigest
       trace.evidenceIdentities
       trace.recordSupport trace.trace trace.evidenceLinks then
