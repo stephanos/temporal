@@ -1,4 +1,5 @@
 import Umpire.Observation.Tests.Compilation
+import Umpire.Observation.Tests.Structure
 import Umpire.Observation.Tests.Evaluation
 import Umpire.Observation.Tests.EvidenceLink
 import Umpire.Observation.Tests.Disposition
