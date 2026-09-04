@@ -156,11 +156,12 @@ values remain part of the model rather than prose duplicated by the helpers.
 
 Below the walkthroughs, `Umpire.Core` owns canonical Definition ID ordering, duplicate selection,
 syntax validation, and source-path fallback. Property, Behavior, Query, and Observation remain the
-owners of their diagnostic types and error precedence. Among production modules, only Behavior and
-Observation import the internal `Umpire.Shared.DefinitionGraph` analysis; focused tests may import
-it directly. It supplies deterministic node, edge, order, and cycle evidence, while each language
-decides when to consume it and which historical cycle witness to report. Ordinary authors import
-the language facades, not the graph module.
+owners of their diagnostic types and error precedence. Among production modules, only Behavior's
+language implementation and `Umpire.Observation.Compiler` import the internal
+`Umpire.Shared.DefinitionGraph` analysis; focused tests may import it directly. It supplies
+deterministic node, edge, order, and cycle evidence, while each language decides when to consume it
+and which historical cycle witness to report. Ordinary authors import the language facades, not the
+graph module.
 
 `Temporal/Feature/` owns product-visible behavior, `Temporal/System/` owns configuration and other
 mechanisms, and `Temporal/Tool/Inspect.lean` owns the inspector registry. The ordinary
