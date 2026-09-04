@@ -167,7 +167,7 @@ go test -count=1 -tags test_dep ./tools/umpire/testplan/... ./tools/umpire/execu
 go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpirePortableGRPCExecutor$'
 make lint-model
 make umpire-check-regression
-make lint-code
+make lint-code # run globally and compare any inherited failures with the pre-change baseline
 ```
 
 ## Acceptance Criteria
@@ -182,7 +182,7 @@ make lint-code
 - **R7:** Lean deterministically lowers checked Tests into `PortableTestPlan`, preserving exact ExperimentSpec and model bindings for existing identity consumers, and proves parity between Lean and Go for every portable operator and decision branch. Unsupported Lean checks become explicit external obligations rather than silently disappearing. Errors: changed model meaning, changed retained ExperimentSpec identity, approximate lowering, missing obligations, or unsupported checks contributing to local/model-bound success fails completion.
 - **R8:** Fn-28's legacy protobuf file descriptor, generated message types, HTTP contract, checked fixtures, and historical acceptance remain byte-identical and operational while the new gRPC plan and service live in separate protobuf files as a versioned successor interface. Errors: extending the legacy message file, rewriting fn-28 history, accepting old envelopes as new plans, compatibility aliases, fixture drift, or removal of the HTTP proof fails completion.
 - **R9:** This protocol is the required downstream seam for fn-29, which will feed its canary a pinned, provenance-validated Lean-generated `PortableTestPlan` through gRPC while retaining its closed workflow entry, public-Temporal-gRPC runtime profile, production authorization, fencing, cleanup, recovery, and publication ownership. Fn-52 documents and preserves that boundary but does not implement or prove production canary consumption. Errors: arbitrary production plan selection, caller semantic overrides, confusing executor ingress with Temporal target access, or moving canary policy/credentials into reusable Umpire fails completion.
-- **R10:** Focused schema, admission, authority, execution, parity, gRPC, integration, mutation, compatibility, and documentation checks prove external authorship, trusted model compilation, exact N/N+1 bounds, status/scope separation, and generated-client disposable-local execution. Errors: generated-code drift, stale architecture claims, missing non-Lean fixture coverage, or omitted aggregate lint/regression commands fails completion.
+- **R10:** Focused schema, admission, authority, execution, parity, gRPC, integration, mutation, compatibility, and documentation checks prove external authorship, trusted model compilation, exact N/N+1 bounds, status/scope separation, and generated-client disposable-local execution. Aggregate lint and regression commands are always run; a pre-existing repository-wide lint failure is acceptable only when it matches the recorded pre-change baseline and a non-mutating task-scoped lint reports zero findings. Errors: generated-code drift, stale architecture claims, missing non-Lean fixture coverage, omitted aggregate commands, an unclassified aggregate-lint difference, or a task-local lint finding fails completion.
 
 ## Early proof point
 

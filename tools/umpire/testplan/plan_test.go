@@ -335,7 +335,7 @@ func TestAdmissionRejectsStructuralAndAuthorityMutations(t *testing.T) {
 						Definition:        testBinding("umpire.rename.basic"),
 						Source:            &umpirespb.SourceLocation{Path: "rename.proto", Line: 1, Column: 1, Provenance: "fixture"},
 						SourceTarget:      testBinding("umpire.target.source"),
-						DestinationTarget: testBinding("umpire.target.destination"),
+						DestinationTarget: proto.CloneOf(plan.GetExecution().GetTarget()),
 						Entries: []*umpirespb.RenameExactEntry{nil, {
 							Source: &umpirespb.ModelValue{
 								Definition: testBinding("umpire.observation.expected"), Kind: umpirespb.DEFINITION_KIND_OBSERVATION,
