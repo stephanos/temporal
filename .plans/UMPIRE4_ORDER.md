@@ -50,18 +50,7 @@ The validated implementation waves are:
 7. `fn-64.8` — remove the legacy Umpire execution path.
 8. `fn-64.10` — reconcile normative docs, generated artifacts, and regression gates.
 
-### 2. fn-59 — Centralize Umpire artifact copies
-
-**Depends on:** completed fn-52 artifact admission and runtime contracts; no open spec dependency.
-
-**Scope:** make the internal artifact-model package the single defensive-copy authority for the
-schema-valid artifact graph, then migrate artifact admission and runtime output to that small
-root-oriented interface. Preserve copy-on-input and copy-on-output isolation, nil and empty values,
-admitted Raw Evidence scalar values, original encoded bytes, checksums, diagnostics, public APIs,
-and existing comments. Do not add validation, generic copying for invalid dynamic values, schema or
-generated-output changes, or user-facing documentation.
-
-### 3. fn-60 — Deepen authored Lean canonical JSON construction
+### 2. fn-60 — Deepen authored Lean canonical JSON construction
 
 **Depends on:** no open spec dependency; excludes the completed `Umpire.Property` partition.
 
@@ -73,7 +62,7 @@ Fingerprints, imports, trust inventories, performance characteristics, and exist
 not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
 changes, drift verification, or CI work.
 
-### 4. fn-62 — Make ordinary Temporal model authoring approachable
+### 3. fn-62 — Make ordinary Temporal model authoring approachable
 
 **Depends on:** completed fn-58's frozen Property facade and fn-60's canonical-JSON cleanup across the
 overlapping handwritten Lean surfaces.
@@ -148,7 +137,6 @@ fn-64.3 -> fn-64.4 -> fn-64.9
 {fn-64.4, fn-64.5, fn-64.6, fn-64.9} -> fn-64.7 -> fn-64.8 -> fn-64.10
 
 fn-60 -> fn-62
-fn-59 (independent)
 
 fn-64 -> replan {fn-22, fn-26, fn-29, fn-33}
 ```
