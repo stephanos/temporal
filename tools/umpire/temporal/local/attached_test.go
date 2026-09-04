@@ -154,6 +154,84 @@ func TestDistinctAttachedFactoriesPrepareConcurrentlyWithSeparateBindings(t *tes
 	require.NotEqual(t, first.TaskQueue, second.TaskQueue)
 }
 
+func TestAttachedFactoryRejectsConcurrentPreparationUntilCleanup(t *testing.T) {
+	type prepared struct {
+		environment umpireruntime.Environment
+		receipt     umpireruntime.Receipt
+	}
+	borrowedClient := &recordingAttachedClient{}
+	workers := &recordingAttachedWorkerFactory{}
+	factory, err := newAttachedFactory(&recordingAttachedAuthority{
+		client: borrowedClient, namespace: "attached-namespace", endpoint: "127.0.0.1:7233",
+	}, workers.newWorker)
+	require.NoError(t, err)
+	requests := []umpireruntime.CheckedRunRequest{
+		testRequest(t, "umpire.attached.same-factory.one"),
+		testRequest(t, "umpire.attached.same-factory.two"),
+	}
+	commands := make([]umpireruntime.Command, len(requests))
+	for index, request := range requests {
+		var ok bool
+		commands[index], ok = request.Command(umpireruntime.CommandPrepare)
+		require.True(t, ok)
+	}
+
+	results := make([]prepared, len(requests))
+	start := make(chan struct{})
+	var group sync.WaitGroup
+	for index := range requests {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			<-start
+			results[index].environment, results[index].receipt = factory.Prepare(
+				context.Background(), requests[index], commands[index],
+			)
+		}()
+	}
+	close(start)
+	group.Wait()
+
+	accepted := -1
+	for index, result := range results {
+		switch result.receipt.Status() {
+		case umpireruntime.ReceiptAccepted:
+			require.Equal(t, -1, accepted)
+			accepted = index
+			require.NotNil(t, result.environment)
+		case umpireruntime.ReceiptFailed:
+			require.Nil(t, result.environment)
+			require.Empty(t, result.receipt.AcquiredResources())
+		default:
+			require.FailNow(t, "unexpected preparation status", result.receipt.Status())
+		}
+	}
+	require.NotEqual(t, -1, accepted)
+
+	environment, ok := AsEnvironment(results[accepted].environment)
+	require.True(t, ok)
+	cleanup, ok := requests[accepted].Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	require.Equal(t, umpireruntime.ReceiptAccepted,
+		environment.Cleanup(context.Background(), cleanup).Status())
+
+	nextRequest := testRequest(t, "umpire.attached.same-factory.after-cleanup")
+	nextPrepare, ok := nextRequest.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	nextRuntimeEnvironment, nextReceipt := factory.Prepare(
+		context.Background(), nextRequest, nextPrepare,
+	)
+	require.Equal(t, umpireruntime.ReceiptAccepted, nextReceipt.Status())
+	nextEnvironment, ok := AsEnvironment(nextRuntimeEnvironment)
+	require.True(t, ok)
+	nextCleanup, ok := nextRequest.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	require.Equal(t, umpireruntime.ReceiptAccepted,
+		nextEnvironment.Cleanup(context.Background(), nextCleanup).Status())
+	require.Equal(t, 0, workers.calls)
+	require.Equal(t, 0, borrowedClient.closeCalls)
+}
+
 func TestAttachedFactoryOwnsOnlyFreshRunWorkers(t *testing.T) {
 	borrowedClient := &recordingAttachedClient{}
 	authority := &recordingAttachedAuthority{
