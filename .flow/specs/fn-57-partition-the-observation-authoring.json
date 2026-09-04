@@ -266,7 +266,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-57-partition-the-observation-authoring.md",
-  "status": "open",
+  "status": "done",
   "title": "Partition the Observation authoring language",
   "tracker": {
     "baseHashFlow": null,
@@ -279,5 +279,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T11:26:24.058553Z"
+  "updated_at": "2026-09-04T11:29:49.482574Z"
 }
