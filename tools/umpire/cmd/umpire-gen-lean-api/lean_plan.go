@@ -47,6 +47,7 @@ type leanEnumValuePlan struct {
 	Projection    enumValueProjection
 	Name          string
 	QualifiedName leanName
+	Number        int32
 }
 
 type leanEnumPlan struct {
@@ -80,11 +81,15 @@ type leanMessagePlan struct {
 }
 
 type leanMethodPlan struct {
-	Projection    methodProjection
-	Name          string
-	QualifiedName leanName
-	InputType     leanType
-	OutputType    leanType
+	Projection      methodProjection
+	Name            string
+	QualifiedName   leanName
+	InputType       leanType
+	OutputType      leanType
+	FullName        string
+	ClientStreaming bool
+	ServerStreaming bool
+	Deprecated      bool
 }
 
 type leanServicePlan struct {
@@ -461,6 +466,7 @@ func planEnum(projection enumProjection, packageName, name leanName) (leanEnumPl
 			Projection:    value,
 			Name:          allocated[value.FullName],
 			QualifiedName: appendLeanName(name, allocated[value.FullName]),
+			Number:        value.Number,
 		})
 	}
 	return result, nil
@@ -700,9 +706,15 @@ func planService(
 			return leanServicePlan{}, fmt.Errorf("plan method %q output: %w", method.FullName, typeErr)
 		}
 		result.Methods = append(result.Methods, leanMethodPlan{
-			Projection: method, Name: methodNames[method.FullName],
-			QualifiedName: appendLeanName(name, methodNames[method.FullName]),
-			InputType:     inputType, OutputType: outputType,
+			Projection:      method,
+			Name:            methodNames[method.FullName],
+			QualifiedName:   appendLeanName(name, methodNames[method.FullName]),
+			InputType:       inputType,
+			OutputType:      outputType,
+			FullName:        method.FullName,
+			ClientStreaming: method.ClientStreaming,
+			ServerStreaming: method.ServerStreaming,
+			Deprecated:      method.Deprecated,
 		})
 	}
 	return result, nil
@@ -976,27 +988,6 @@ func validateLeanType(value leanType) error {
 		return validateLeanType(value.Arguments[1])
 	default:
 		return fmt.Errorf("unknown type constructor %d", value.Kind)
-	}
-}
-
-func renderLeanType(value leanType) string {
-	switch value.Kind {
-	case leanTypeNamed:
-		return value.Name
-	case leanTypeOption, leanTypeList:
-		argument := renderLeanType(value.Arguments[0])
-		if value.Arguments[0].Kind != leanTypeNamed {
-			argument = "(" + argument + ")"
-		}
-		constructor := "Option "
-		if value.Kind == leanTypeList {
-			constructor = "List "
-		}
-		return constructor + argument
-	case leanTypeProduct:
-		return renderLeanType(value.Arguments[0]) + " × " + renderLeanType(value.Arguments[1])
-	default:
-		return ""
 	}
 }
 
