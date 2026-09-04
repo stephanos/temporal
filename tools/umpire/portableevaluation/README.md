@@ -237,14 +237,14 @@ go test -count=1 -tags 'test_dep integration' ./tests \
   -run '^TestUmpirePortableGRPCExecutor$'
 ```
 
-The tagged test creates one disposable `testcore.NewEnv` cluster, borrows its SDK client and
-namespace through `local.NewAttachedFactory`, and keeps one resident executor and HTTP server alive.
-It runs the pre-generated normal and duplicate-delivery contracts sequentially with fresh run
-isolation, observing `pass` and the trustworthy uniqueness-only `fail`. It also proves crossed
-input rejection and cleanup of every per-run worker and Nexus endpoint. After test compilation it
-replaces `PATH` with an empty directory, proving runtime evaluation does not invoke Lean, `lake`,
-`mise`, Make, a shell, or a nested Go test. `testcore.NewEnv` retains ownership of the borrowed
-cluster and client; Umpire owns only resources created for one run.
+Each tagged test creates one disposable `testcore.NewEnv` cluster, borrows its SDK client and
+namespace through `local.NewAttachedFactory`, and keeps one resident executor behind its HTTP or
+gRPC transport alive. The tests run the pre-generated normal and duplicate-delivery contracts
+sequentially with fresh run isolation, observing `pass` and the trustworthy uniqueness-only `fail`.
+They also prove crossed-input rejection and cleanup of every per-run worker and Nexus endpoint.
+After test compilation they replace `PATH` with an empty directory, proving runtime evaluation does
+not invoke Lean, `lake`, `mise`, Make, a shell, or a nested Go test. `testcore.NewEnv` retains
+ownership of the borrowed cluster and client; Umpire owns only resources created for one run.
 
 This proof is not fleet scheduling, a lease service, persistence, crash recovery, production
 deployment, automatic promotion, release eligibility, or Claim Assessment. Those remain separate
