@@ -23,28 +23,20 @@ const (
 		"-/"
 )
 
-func generateArtifacts(configuration generationConfig, projection projection) (map[string][]byte, error) {
-	plan, err := buildLeanPlan(projection, configuration)
-	if err != nil {
-		return nil, err
+func renderArtifacts(plan leanPlan) map[string][]byte {
+	return map[string][]byte{
+		plan.ProtoModule.Path: renderProto(plan),
+		plan.TypesModule.Path: renderTypes(plan),
+		plan.APIModule.Path:   renderAPI(plan),
 	}
-	artifacts := map[string][]byte{
-		configuration.Layout.ProtoPath: renderProto(configuration.Layout),
-		configuration.Layout.TypesPath: renderTypes(plan),
-		configuration.Layout.APIPath:   renderAPI(plan, configuration.Layout),
-	}
-	if err := validateArtifactMap(configuration.Layout, artifacts); err != nil {
-		return nil, err
-	}
-	return artifacts, nil
 }
 
-func renderProto(layout outputLayout) []byte {
+func renderProto(plan leanPlan) []byte {
 	var generated strings.Builder
 	writeGeneratedHeader(&generated)
 	writeModuleDoc(&generated, apiProtoModuleDoc)
 	generated.WriteString("set_option linter.missingDocs false\n")
-	fmt.Fprintf(&generated, "\nnamespace %s.API.Proto\n\n", layout.RootModule)
+	fmt.Fprintf(&generated, "\nnamespace %s\n\n", plan.supportNamespace)
 	generated.WriteString(`structure Bytes where
   digest : String
   size : Nat
@@ -63,7 +55,7 @@ structure Method (Request Response : Type) where
   deriving DecidableEq, Repr
 
 `)
-	fmt.Fprintf(&generated, "end %s.API.Proto\n", layout.RootModule)
+	fmt.Fprintf(&generated, "end %s\n", plan.supportNamespace)
 	return []byte(generated.String())
 }
 
@@ -78,7 +70,7 @@ func renderTypes(plan leanPlan) []byte {
 			fmt.Fprintf(&generated, "namespace %s\n", enum.RelativeName)
 			for _, value := range enum.Values {
 				fmt.Fprintf(&generated, "def %s : %s := { number := %d }\n",
-					value.Name, enum.RelativeName, value.Projection.Number)
+					value.Name, enum.RelativeName, value.Number)
 			}
 			fmt.Fprintf(&generated, "end %s\n\n", enum.RelativeName)
 		}
@@ -105,21 +97,41 @@ func renderTypes(plan leanPlan) []byte {
 	return []byte(strings.TrimRight(generated.String(), "\n") + "\n")
 }
 
-func renderAPI(plan leanPlan, layout outputLayout) []byte {
+func renderAPI(plan leanPlan) []byte {
 	var generated strings.Builder
 	writeModuleHeader(&generated, plan.APIModule, apiFacadeModuleDoc)
 	for _, service := range plan.Services {
 		fmt.Fprintf(&generated, "namespace %s\n", service.Name.String())
 		for _, method := range service.Methods {
-			fmt.Fprintf(&generated, "def %s : %s.API.Proto.Method %s %s :=\n",
-				method.Name, layout.RootModule, renderLeanType(method.InputType), renderLeanType(method.OutputType))
+			fmt.Fprintf(&generated, "def %s : %s.Method %s %s :=\n",
+				method.Name, plan.supportNamespace, renderLeanType(method.InputType), renderLeanType(method.OutputType))
 			fmt.Fprintf(&generated, "  { fullName := %q, clientStreaming := %t, serverStreaming := %t, deprecated := %t }\n",
-				method.Projection.FullName, method.Projection.ClientStreaming,
-				method.Projection.ServerStreaming, method.Projection.Deprecated)
+				method.FullName, method.ClientStreaming, method.ServerStreaming, method.Deprecated)
 		}
 		fmt.Fprintf(&generated, "end %s\n\n", service.Name.String())
 	}
 	return []byte(strings.TrimRight(generated.String(), "\n") + "\n")
+}
+
+func renderLeanType(value leanType) string {
+	switch value.Kind {
+	case leanTypeNamed:
+		return value.Name
+	case leanTypeOption, leanTypeList:
+		argument := renderLeanType(value.Arguments[0])
+		if value.Arguments[0].Kind != leanTypeNamed {
+			argument = "(" + argument + ")"
+		}
+		constructor := "Option "
+		if value.Kind == leanTypeList {
+			constructor = "List "
+		}
+		return constructor + argument
+	case leanTypeProduct:
+		return renderLeanType(value.Arguments[0]) + " × " + renderLeanType(value.Arguments[1])
+	default:
+		return ""
+	}
 }
 
 func writeGeneratedHeader(generated *strings.Builder) {

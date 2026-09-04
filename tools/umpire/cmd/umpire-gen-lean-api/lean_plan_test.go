@@ -527,9 +527,14 @@ func TestLeanPlanNormalizesCompositeFieldsAndStreamingMethods(t *testing.T) {
 	require.Equal(t, leanType{Kind: leanTypeOption, Arguments: []leanType{namedLeanType("String")}},
 		plan.fields["fixture.v1.Request.note"].Type)
 	require.Equal(t, leanMethodPlan{
-		Projection: document.Services[0].Methods[0], Name: "exchange",
-		QualifiedName: leanName{"Fixture", "V1", "Stream", "exchange"},
-		InputType:     namedLeanType("Request"), OutputType: namedLeanType("Request"),
+		Projection:      document.Services[0].Methods[0],
+		Name:            "exchange",
+		QualifiedName:   leanName{"Fixture", "V1", "Stream", "exchange"},
+		InputType:       namedLeanType("Request"),
+		OutputType:      namedLeanType("Request"),
+		FullName:        "fixture.v1.Stream.Exchange",
+		ClientStreaming: true,
+		ServerStreaming: true,
 	}, plan.Services[0].Methods[0])
 }
 

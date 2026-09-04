@@ -47,6 +47,18 @@ func run(configuration generationConfig) error {
 	return publishArtifacts(outputRoot, configuration.Layout, artifacts)
 }
 
+func generateArtifacts(configuration generationConfig, projection projection) (map[string][]byte, error) {
+	plan, err := buildLeanPlan(projection, configuration)
+	if err != nil {
+		return nil, err
+	}
+	artifacts := renderArtifacts(plan)
+	if err := validateArtifactMap(configuration.Layout, artifacts); err != nil {
+		return nil, err
+	}
+	return artifacts, nil
+}
+
 func publishArtifacts(outputRoot string, layout outputLayout, artifacts map[string][]byte) error {
 	return publishArtifactsWith(outputRoot, layout, artifacts, artifactio.Publish)
 }

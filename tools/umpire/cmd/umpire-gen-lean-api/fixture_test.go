@@ -37,6 +37,31 @@ func TestBasicFixture(t *testing.T) {
 	require.Equal(t, readTree(t, expectedRoot), actual)
 }
 
+func TestRenderArtifactsUsesOnlyPlannedValues(t *testing.T) {
+	document, err := buildProjection(basicDescriptorSet(t))
+	require.NoError(t, err)
+	plan, err := buildLeanPlan(document, fixtureTestConfiguration)
+	require.NoError(t, err)
+	for namespaceIndex := range plan.Namespaces {
+		for enumIndex := range plan.Namespaces[namespaceIndex].Enums {
+			for valueIndex := range plan.Namespaces[namespaceIndex].Enums[enumIndex].Values {
+				plan.Namespaces[namespaceIndex].Enums[enumIndex].Values[valueIndex].Projection.Number++
+			}
+		}
+	}
+	for serviceIndex := range plan.Services {
+		for methodIndex := range plan.Services[serviceIndex].Methods {
+			plan.Services[serviceIndex].Methods[methodIndex].Projection = methodProjection{
+				FullName:        "changed",
+				ClientStreaming: true,
+				ServerStreaming: true,
+			}
+		}
+	}
+
+	require.Equal(t, readTree(t, filepath.Join("testdata", "basic", "expected")), renderArtifacts(plan))
+}
+
 func readTree(t *testing.T, root string) map[string][]byte {
 	t.Helper()
 	result := make(map[string][]byte)
