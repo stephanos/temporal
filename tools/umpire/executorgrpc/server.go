@@ -8,6 +8,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/executor"
 	"go.temporal.io/server/tools/umpire/testplan"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
@@ -23,8 +24,17 @@ type server struct {
 	resident Executor
 }
 
-// New returns the generated unary gRPC service for one resident executor.
-func New(resident Executor) umpirespb.UmpireExecutorServer {
+// New returns a bounded gRPC server hosting the generated unary service for one resident executor.
+func New(resident Executor) *grpc.Server {
+	grpcServer := grpc.NewServer(
+		grpc.MaxRecvMsgSize(int(testplan.MaximumPlanBytes)),
+		grpc.MaxSendMsgSize(int(testplan.MaximumResultBytes)),
+	)
+	umpirespb.RegisterUmpireExecutorServer(grpcServer, newService(resident))
+	return grpcServer
+}
+
+func newService(resident Executor) umpirespb.UmpireExecutorServer {
 	return &server{resident: resident}
 }
 
