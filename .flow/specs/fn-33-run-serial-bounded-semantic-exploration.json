@@ -7,14 +7,7 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-17-bounded-semantic-exploration-and",
-    "fn-18-versioned-umpire-artifact-boundary",
-    "fn-19-bounded-local-temporal-execution-and",
-    "fn-20-local-execution-semantic-conformance",
-    "fn-37-hard-cut-umpire-vocabulary-and-current",
-    "fn-47-generate-umpire-semantic-outcome-and",
     "fn-40-centralize-plannerpolicy-constructors",
-    "fn-61-simplify-the-umpire-go-execution-surface",
     "fn-64-umpire-case-runtime"
   ],
   "id": "fn-33-run-serial-bounded-semantic-exploration",
@@ -742,5 +735,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T17:37:14.930394Z"
+  "updated_at": "2026-09-04T18:38:01.960144Z"
 }

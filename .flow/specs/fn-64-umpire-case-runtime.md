@@ -1,4 +1,5 @@
 # Umpire Case Runtime
+> HTML render lens (local): `.flow/artifacts/fn-64-umpire-case-runtime/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Overview
 
@@ -14,7 +15,7 @@ implementation and hard cutover of that design.
 ## Quick commands
 
 ```bash
-go test -count=1 -tags test_dep ./tools/umpire/execution/... ./tools/umpire/verification/...
+go test -count=1 -tags test_dep ./tools/umpire/internal/execution/... ./tools/umpire/verification/...
 go test -count=1 -tags test_dep ./tools/umpire/temporal/server/... ./tools/umpire/temporal/worker/...
 go test -count=1 -tags 'test_dep integration' ./tests -run TestUmpireAsyncNexusCase
 make umpire-build-model
@@ -50,23 +51,29 @@ flowchart LR
     Case --> Prepare[PrepareCase]
     Profile[Host Profile] --> Prepare
     Prepare --> Prepared[PreparedCase]
-    Prepared --> Executor
-    Host[Temporal Host] --> Executor
+    Prepared --> Facade[PreparedCase.Run]
+    Host[Host adapter] --> Facade
+    Facade --> Executor[Internal Executor]
     Executor --> Run[Run Events]
     Run --> Monitor[Contract Monitor]
     Monitor --> Verdict
 ```
 
-The public Umpire namespace owns versioned Case, Program, Contract, Run, and Verdict types. The Go
-facade composes two deep portable modules:
+The public Umpire namespace owns versioned Case, Program, Contract, Run, and Verdict types. The root
+Go package owns the public Profile, Host, and effect-handle adapter contract and composes two deep
+portable modules:
 
-- execution owns admission, entrypoint-local DAG scheduling, typed outcomes and Slots, Run
+- internal execution owns admission, entrypoint-local DAG scheduling, typed outcomes and Slots, Run
   recording, typed request construction and response projection, Monitor calls,
   abort/drain/cleanup, and immutable PreparedCase reuse;
 - verification owns deterministic Contract-machine preparation and live/offline evaluation.
 
-Execution depends only on narrow Host and Monitor contracts. Verification implements Monitor but is
-not imported by execution. A standalone caller may supply another Host or Monitor without using
+Internal execution imports neither verification, the root facade, nor Temporal. Verification
+implements the internal Monitor contract. The root facade translates its public Host adapter to the
+private execution driver and composes execution with verification; Temporal packages implement the
+public Host contract and are never imported by the root. Normal callers therefore use the root
+facade and public data only, while Go's `internal` boundary prevents them from assembling schedulers,
+recorders, Slots, or Monitor factories. A standalone caller may supply another Host without using
 Lean or Temporal.
 
 The Temporal Host is split by authority:
@@ -91,23 +98,31 @@ the producing attempt and element index. Literal map lookup never introduces map
 ## API Contracts
 <!-- scope: technical -->
 
-The public Go facade exposes `PrepareCase(case, profile)`, which performs static work only and
-returns either a concurrency-safe PreparedCase or an admission error. Prepared execution uses
-`PreparedCase.Run(ctx, host, monitorFactory)`: it validates live Host identity and all nil-capable
-Host/factory values before Run creation, then creates fresh bindings, Host session, Slot store,
-recorder, and Monitor. The prepared Contract supplies the default immutable factory, and every
-factory creates a fresh Monitor per Run. The Host may share long-lived channels and workers.
+The complete normal-path Go API is:
+
+```go
+prepared, err := umpire.PrepareCase(case, profile)
+run, verdict, err := prepared.Run(ctx, host)
+```
+
+`PrepareCase` performs static work only, prepares the Contract evaluator, and returns either a
+concurrency-safe PreparedCase or an admission error. `Run` validates the live Host identity and all
+nil-capable Host values, then creates fresh bindings, Host session, Slot store, recorder, and one
+Monitor from the prepared Contract before Run creation. Failure to instantiate that already-prepared
+Monitor is an internal pre-Run invariant failure with no Run or target effects. The Host may share
+long-lived channels and workers.
 
 PreparedCase execution returns a structured Run and Verdict after Run creation; operational and
 target failures are represented there rather than collapsed into an admission error. A Host or
 descriptor/profile mismatch detected before Run creation remains an error with no target effects.
 
-The execution MonitorFactory binds to the prepared Program view without I/O and creates one Monitor
-per Run. The Monitor receives each immutable Run Event synchronously after append, returns only
-Continue or Stop, and returns a Verdict at closure. It cannot mutate scheduling, evidence, or
+The internal execution MonitorFactory binds to the prepared Program view without I/O and creates one
+Monitor per Run. The Monitor receives each immutable Run Event synchronously after append, returns
+only Continue or Stop, and returns a Verdict at closure. It cannot mutate scheduling, evidence, or
 cleanup. Every Monitor method accepts an Executor-bounded context and must return when it is
 cancelled; Executor does not wrap callbacks in goroutines to manufacture timeouts. The verification
-Evaluator supplies the default factory, but execution does not depend on that implementation.
+Evaluator supplies the only production factory; internal fakes exercise execution failure paths.
+There is no public arbitrary-Monitor substitution that could bypass the Case's Contract.
 
 The initial Program instruction capabilities are:
 
@@ -168,9 +183,9 @@ the same recorded coordinates and use the same transition and closure functions.
   and drain operate on that handle; a non-terminating effect is quarantined behind a Profile-wide
   ceiling after drain expiry. Executor never creates an unbounded goroutine around a synchronous
   Host call, and bounded closure is not promised for a Host method that violates its context contract.
-- Conforming Monitor callbacks return on context cancellation. Callback error or cooperative timeout
-  stops ordinary work and starts cleanup; bounded closure is not promised for a caller-supplied
-  Monitor that violates its context contract.
+- Monitor callbacks return on context cancellation. Callback error or cooperative timeout stops
+  ordinary work and starts cleanup; an internal test fake that ignores cancellation violates the
+  Monitor contract and has no bounded-closure guarantee.
 - Private Slot-bridge publications carry an opaque Run/activation capability whose callback URL,
   headers, and token cannot be read by expressions or projected. They are isolated across concurrent
   Runs, reject conflicting or post-close writes, and are discarded at session closure.
@@ -193,19 +208,42 @@ The terminal precedence is fixed:
 | drain expiry after a proved violation | `stopped_by_monitor` | any recorded outcome | `violated` |
 | cleanup or Host close fails after ordinary outcome is fixed | unchanged | failed with diagnostics | unchanged |
 
+## Conformance and cutover evidence
+<!-- scope: technical -->
+
+The public facade has a small closed conformance corpus with exactly six proof classes: satisfied,
+violated, inconclusive, static preparation rejection, cleanup failure after a proved violation, and
+cross-Run isolation. Concurrency, cancellation, descriptor/path grammar, fuzzing, cardinality, and
+resource-lifecycle invariants remain focused tests rather than static goldens.
+
+Deterministic Lean-produced Case and Contract fixtures compare exact bytes. Run-assigned identities,
+elapsed coordinates, and other intentional runtime values compare through a closed named stable
+projection and receive separate structural validation; no generic normalizer or ignore facility is
+allowed. Expected results come from Lean or fixed hand-authored oracle tables that do not invoke the
+Go runtime under test. Ordinary Go tests neither invoke Lean nor rewrite expectations. Fixture
+generation writes and validates a complete temporary tree before diffing the checkout, so interruption
+cannot partially update checked-in fixtures; promotion is a separate reviewed action.
+
+Before deletion, a reviewed migration ledger accounts for every removed top-level legacy Test/Fuzz
+and inherited failure identity as `preserved`, `replaced`, or `intentionally-retired`, with the new
+owner/replacement and a retirement reason where applicable. Any unaccounted row blocks cutover. The
+complete live integration selector remains `-run '^TestUmpire'`. Scenario-neutral fn-5 checked-
+promotion types and validation must remain buildable without caller-closure imports after the fixed
+caller-closure candidate, command, and binding are removed.
+
 ## Acceptance Criteria
 <!-- scope: both -->
 
 - **R1:** The versioned Umpire API represents a standalone Case as one bounded Program plus one Contract, with symbolic roles, typed values/paths/outcomes, declared Slots/Observations, context-tagged entrypoint DAGs, cleanup, limits, Run data, and Verdict data; Go and Lean generated types agree. Errors: unsupported versions or instruction variants, duplicate/invalid IDs, cross-entrypoint dependencies, cycles, and limit overflow are rejected before I/O.
-- **R2:** `PrepareCase` performs all static validation once from Case plus Profile and returns an immutable, concurrency-safe PreparedCase bound to exact non-secret Profile/catalog identities; each `Run` preflight validates the live Host and immutable MonitorFactory before creating fresh state. Errors: nil/typed-nil Profile values fail preparation; nil/typed-nil or mismatched Host/factory values fail Run preflight; missing capabilities, unauthorized methods, type/dataflow/path/presence/oneof/cardinality mismatches, and profile/catalog changes cause no Run or target effects.
-- **R3:** Generic Contract evaluation produces identical transitions, supporting-event references, and Verdicts live and offline; it stops synchronously on the first safety violation and delays bounded-liveness failure until its declared horizon. Every callback accepts an Executor-bounded context and returns on cancellation. Errors: malformed/non-deterministic machines, invalid predicates, unknown Observations, excessive states/work, callback error, and cooperative timeout are rejected or yield incomplete/inconclusive exactly as their phase requires; a caller-supplied callback that ignores cancellation violates the Monitor contract and has no bounded-closure guarantee.
-- **R4:** The Executor interprets entrypoint-local bounded DAGs generically, constructs typed requests and applies projections, exposes typed instruction outcomes to guards, maintains immutable Slots, appends ordered Run Events with monotonic elapsed coordinates, and applies the declared precedence table without importing verification or Temporal implementations. Errors: missing unguarded Slots, conflicting duplicate source IDs, recorder/invariant/global-limit failures, and post-close events make the Run incomplete; exact at-least-once duplicates are deduplicated.
+- **R2:** `PrepareCase` performs all static validation once from Case plus Profile, prepares the Contract's default evaluator, and returns an immutable, concurrency-safe PreparedCase bound to exact non-secret Profile/catalog identities; the public `Run(ctx, host)` preflight validates the live Host before internal execution creates fresh state and one Contract Monitor. Errors: nil/typed-nil Profile values fail preparation; nil/typed-nil or mismatched Host values and internal Monitor-instantiation failure fail Run preflight; missing capabilities, unauthorized methods, type/dataflow/path/presence/oneof/cardinality mismatches, and profile/catalog changes cause no Run or target effects. The scheduler, recorder, Slots, and Monitor factory are not publicly constructible or importable.
+- **R3:** Generic Contract evaluation produces identical transitions, supporting-event references, and Verdicts live and offline; it stops synchronously on the first safety violation and delays bounded-liveness failure until its declared horizon. Every callback accepts an Executor-bounded context and returns on cancellation. Errors: malformed/non-deterministic machines, invalid predicates, unknown Observations, excessive states/work, callback error, and cooperative timeout are rejected or yield incomplete/inconclusive exactly as their phase requires; an internal test fake that ignores cancellation violates the Monitor contract and has no bounded-closure guarantee.
+- **R4:** The internal Executor interprets entrypoint-local bounded DAGs generically, constructs typed requests and applies projections, exposes typed instruction outcomes to guards, maintains immutable Slots, appends ordered Run Events with monotonic elapsed coordinates, and applies the declared precedence table without importing verification or Temporal implementations. Errors: missing unguarded Slots, conflicting duplicate source IDs, recorder/invariant/global-limit failures, and post-close events make the Run incomplete; exact at-least-once duplicates are deduplicated. External callers cannot import or assemble this machinery.
 - **R5:** Any proven safety violation creates an unconditional dispatch barrier, cancels and boundedly drains Host-owned effect handles, then runs unsuppressible cleanup with a fresh bounded context. Errors: stop/dispatch races cannot start an extra effect; drain expiry quarantines unterminated handles under the Profile ceiling; cleanup/Host-close failure follows the precedence table; a Host method that ignores its own context is diagnosed as a Host-contract violation and has no bounded-closure guarantee.
 - **R6:** The Temporal server runtime dynamically invokes every Host-authorized unary protobuf RPC by accepting a prepared method/request and returning raw typed response plus protocol status; execution owns request construction, Slot/Observation projections, and stable `EmitEach`. The server runtime also owns controller-side Nexus completion without exposing credentials to the IR. Errors: unknown/streaming/unauthorized methods, unsupported `Any` traversal, unknown enum values, malformed assignments, fan-out/size limits, and endpoint/transport failure follow the preparation-versus-Run failure boundary.
 - **R7:** The Temporal worker runtime generically interprets the approved workflow and Nexus-handler instructions using SDK clients/APIs only, with Nexus registration inside worker lifecycle and a private Run-scoped opaque capability Slot. Errors: controller opcodes in SDK contexts reject at preparation; worker registration/activation failure, crossed Run capabilities, conflicting/late publication, capability inspection/projection, and shared-worker shutdown produce isolated rejection or incomplete Runs where applicable.
-- **R8:** Lean compiles a reproducible async Nexus-success Case that prepares through the public Go API, starts a workflow, starts a Nexus operation, transfers opaque completion authority, completes it asynchronously, reads bounded history through `InvokeRPC`, and reaches its Contract Verdict solely from declared authoritative server-history Observations. Errors: unsupported model constructs fail compilation explicitly; generated Case/type mismatch fails preparation; missing worker/endpoint/history or timeout produces the declared outcome or an incomplete Run, never scenario-specific Go verification.
+- **R8:** Lean first compiles an orthogonal `GetSystemInfo` Case with an empty request, typed `server_version` projection, different Contract topology, and the exact authorized WorkflowService descriptor; it prepares through the public Go API with zero Host I/O and requires no instruction or runtime branch. Lean also compiles a reproducible async Nexus-success Case that starts a workflow, starts a Nexus operation, transfers opaque completion authority, completes it asynchronously, reads bounded history through `InvokeRPC`, and reaches its Contract Verdict solely from declared authoritative server-history Observations. Errors: unsupported model constructs fail compilation explicitly; generated Case/type mismatch fails preparation; missing worker/endpoint/history or timeout produces the declared outcome or an incomplete Run, never scenario-specific Go verification.
 - **R9:** One PreparedCase safely drives repeated sequential and concurrent Runs with fresh per-Run state and shared permitted Host resources. Errors: Run/activation/Slot/Event identity collisions, cross-Run data leakage, capability loss, Profile quarantine exhaustion, and concurrent worker failure are detected under race-enabled tests and cannot mutate another Run.
-- **R10:** The repository cuts over to one active Case Runtime: legacy `PortableTestPlan` service/execution, property-specific portable evaluation, Run Evaluation checker, scenario-specific Temporal Nexus adapter, and caller-closure model/fixtures/tests are removed; normative specifications, package docs, commands, and regression gates describe and exercise only the new path. Errors: no compatibility reader or replacement public network/CLI service is added; historical references may remain only when explicitly marked superseded; broad generated-Lean API drift enforcement and new GitHub Actions coverage remain excluded.
+- **R10:** The repository cuts over to one active Case Runtime: legacy `PortableTestPlan` service/execution, property-specific portable evaluation, Run Evaluation checker, scenario-specific Temporal Nexus adapter, and caller-closure model/fixtures/tests are removed; normative specifications, package docs, commands, and regression gates describe and exercise only the new path. A blocking migration ledger accounts for every deleted top-level Test/Fuzz and inherited failure identity. The six-class independent-oracle conformance corpus uses exact deterministic bytes or named stable projections, regenerates into a complete temporary tree, and cannot invoke Lean or rewrite expectations from ordinary Go tests. The full `^TestUmpire` selector, inherited failure policy, root-surface/import guards, and scenario-neutral fn-5 promotion primitives remain enforced. Errors: no compatibility reader or replacement public network/CLI service, generic normalizer, broad generated-Lean API drift enforcement, or new GitHub Actions coverage is added; historical references may remain only when explicitly marked superseded.
 
 ## Early proof point
 
@@ -225,14 +263,20 @@ continuing with runtime tasks.
 - No durable Run recovery, replay/audit digests, protocol signatures, or trust-store machinery.
 - No cross-process private Slot transport or additional activity/SDK instructions without a concrete
   Case.
+- No public Monitor replacement API; alternate Host adapters are the external execution extension
+  seam, while Contract evaluation remains authoritative.
+- No broad conversion of focused unit, fuzz, concurrency, cancellation, or lifecycle tests into
+  golden fixtures.
 - No broad generated-Lean API drift gate or new GitHub Actions coverage; see the recorded decline in
   `.flow/memory/declined/generated-api-drift-verification.md`.
 
 ## Decision Context
 <!-- scope: both — conditionally substructured -->
 
-Umpire remains the umbrella and public vocabulary; execution and verification are independent deep
-modules rather than new Playbook/Rulebook products. The runtime interprets typed data rather than a
+Umpire remains the umbrella and public vocabulary; internal execution and verification are deep
+modules behind a small root facade rather than new Playbook/Rulebook products. Alternate Hosts are
+the external extension seam, while the prepared Contract's Monitor is authoritative and cannot be
+replaced by a caller. The runtime interprets typed data rather than a
 Kitchensink-style expanding action dispatcher, which keeps scenario and property semantics in the
 Producer's Case. Dynamic RPC is server-only because workflow code must remain replay-safe and use
 SDK APIs. Server-side Temporal history is the initial verification authority, avoiding a second
@@ -248,20 +292,23 @@ Run/activation capability and destroyed at closure.
 The legacy public executor RPC is removed without replacement because the requested standalone
 boundary is an importable Go API, not another transport. `fn-61-simplify-the-umpire-go-execution-surface`
 and `fn-63-consolidate-umpire-go-tests-into-golden` target the discarded PortableTestPlan path and
-are superseded rather than dependencies. Later replay, qualification, canary, release-evidence, and
-exploration specs must be replanned around PreparedCase, Run, and Verdict.
+are superseded rather than dependencies. Fn-64 retains fn-61's shallow-call-site goal through the
+root facade and fn-63's useful fixture discipline through a small independent-oracle corpus, without
+retaining their resident-executor or broad-consolidation assumptions. Later replay, qualification,
+canary, release-evidence, and exploration specs must be replanned around PreparedCase, Run, and
+Verdict.
 
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
 | R1 | Versioned standalone Case IR and generated types | Task 1, Task 2 | — |
-| R2 | One-time admission and immutable preparation | Task 2 | — |
+| R2 | One-time admission, immutable preparation, and root facade | Task 2, Task 9, Task 10 | — |
 | R3 | Deterministic live/offline Contract evaluation | Task 3 | — |
-| R4 | Generic DAG scheduling, Slots, outcomes, and Runs | Task 4 | — |
-| R5 | Safety barrier, effect drain, and cleanup | Task 9 | — |
+| R4 | Internal generic DAG scheduling, Slots, outcomes, and Runs | Task 4, Task 10 | — |
+| R5 | Safety barrier, effect drain, and cleanup | Task 3, Task 4, Task 9 | — |
 | R6 | Authorized arbitrary unary RPC server runtime | Task 2, Task 5 | — |
 | R7 | SDK-only worker and Nexus handler runtime | Task 2, Task 6 | — |
 | R8 | Lean-produced async Nexus integration | Task 7 | — |
-| R9 | Safe prepare-once/run-many reuse | Task 2, Task 5, Task 6, Task 7, Task 9 | — |
+| R9 | Safe prepare-once/run-many reuse | Task 2, Task 4, Task 5, Task 6, Task 7, Task 9 | — |
 | R10 | Hard cutover, documentation, and regression gates | Task 1, Task 8, Task 10 | — |

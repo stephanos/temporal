@@ -4,9 +4,9 @@ satisfies: [R8, R9]
 # fn-64-umpire-case-runtime.7 Compile and execute the async Nexus Case
 
 ## Description
-Implement the first complete Lean Producer output and integration proof (R8, R9): compose the
-server/worker Host, run async Nexus success through one prepared Case, and verify bounded server
-history.
+Prove the Producer/runtime seam with two unrelated Cases (R8, R9): compile and prepare a small
+`GetSystemInfo` Case without target I/O, then compose the server/worker Host, run async Nexus success
+through one prepared Case, and verify bounded server history.
 
 **Size:** M
 **Files:** generic Case compiler modules under `model/Umpire/`, Temporal Nexus Case lowering/fixtures
@@ -20,6 +20,9 @@ model/Umpire/ARCHITECTURE.md]
 ## Approach
 - Lower the selected checked Lean model into the public Case schema, including
   controller/workflow/handler entrypoints and deterministic Contract machines.
+- First compile an orthogonal `GetSystemInfo` Case with an empty request, a typed `server_version`
+  projection, a different Contract topology, and the exact authorized WorkflowService descriptor;
+  prepare it through the public Go API without calling `Run`.
 - Fail unsupported checked constructs explicitly; never emit a weakened Contract or reconstruct
   identity from runtime limits.
 - Compose server and worker packages at the root Temporal Host without weakening their import or
@@ -50,6 +53,9 @@ async-Nexus lifecycle checker.
 ## Acceptance
 - [ ] Lean emits a reproducible Case whose identities, typed values, paths, limits, and monitor
   obligations survive Go preparation exactly.
+- [ ] The `GetSystemInfo` Case compiles and prepares with zero Host I/O, and its different method,
+  projection, and Contract shape require no new instruction or special execution/verification/
+  Temporal branch.
 - [ ] Unsupported lowering fails deterministically; crossed-kind or descriptor mutations fail
   preparation before I/O.
 - [ ] The composite Host preserves server/worker package boundaries and uses opaque completion

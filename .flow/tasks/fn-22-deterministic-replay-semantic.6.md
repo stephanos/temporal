@@ -1,17 +1,18 @@
 ---
 satisfies: [R3, R4, R5, R6, R7]
 ---
-# fn-22-deterministic-replay-semantic.6 Prove the exact Nexus replay and irreducibility path
 
+# fn-22-deterministic-replay-semantic.6 Prove the Case-native negative control and evidence core
 ## Description
-Compose replay, candidate compilation, minimization, evidence-core analysis, and promotion gating for the exact fn-21 local negative control. Run two baseline attempts, prove the same uniqueness-only ViolationSignature, test the fault-removal candidate through the existing normal path and obtain accepted satisfied, reject sole-action removal, exhaust the remaining exact edits, and report deterministic irreducible or minimized completion. Verify the twelve-execution/25-minute ceilings, fresh environment/output identities, full cleanup, stable semantic comparison, and that promotion is reachable only after complete reproducibility/minimization.
+Recompile the fn-21 duplicate-observation control into one generic fn-64 Case with no scenario-specific Go path. Prove two matching violated Runs, complete reduction or irreducibility, and a diagnostic EvidenceCore that omits one labeled non-responsible Observation while leaving the source Run/Verdict unchanged.
 
-**Size:** M
-**Files:** `tools/umpire/replay/nexus_integration_test.go`, `model/Temporal/Feature/Nexus/CallerClosureReplayIntegrationTests.lean`
-**Touches:** [tools/umpire/replay/nexus_integration_test.go, model/Temporal/Feature/Nexus/CallerClosureReplayIntegrationTests.lean]
+**Size:** L
+**Touches:** `model/Temporal/Feature/Nexus/Experimental/**`, `tools/umpire/replay/integration_test.go`, `tests/umpire_replay_test.go`
 
 ## Acceptance
-The bounded live/focused proof starts from one admitted fn-21 six-member set, reproduces the uniqueness-only violation twice, conclusively rejects fault removal because it is accepted satisfied, rejects removing the required action, reports configuration non-applicable, completes within all Limits, and produces a deterministic closed EvidenceCore and promotion-ready expected-trace lineage. Perturbing any attempt into another signature, non-accepted status, incomplete cleanup, or Limit exhaustion blocks proposal eligibility with the exact classification.
+- [ ] The negative Case uses only public Program instructions, Contract machines, and Temporal Host capabilities.
+- [ ] Repeated Runs preserve the semantic violation key and are isolated.
+- [ ] EvidenceCore omission is proved without rewriting events, Run, Verdict, or Contract.
 
 ## Done summary
 TBD
