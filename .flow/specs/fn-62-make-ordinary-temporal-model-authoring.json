@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-58-partition-the-property-language"
+    "fn-58-partition-the-property-language",
+    "fn-60-deepen-authored-lean-canonical-json"
   ],
   "id": "fn-62-make-ordinary-temporal-model-authoring",
   "impl_review_rounds": {},
