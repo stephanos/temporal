@@ -539,6 +539,20 @@ func TestAttachedWorkerStopCancellationReturnsBeforeBlockedStopAndClosesOnce(t *
 	require.Equal(t, umpireruntime.ReceiptAccepted, closed.Status())
 	require.Equal(t, "0", receiptField(closed, umpireruntime.EvidenceFieldOpenHandleCount))
 	require.Equal(t, 1, workers.workers[0].stopCount())
+
+	nextRequest := testRequest(t, "umpire.attached.stop-canceled.after-cleanup")
+	nextPrepare, ok := nextRequest.Command(umpireruntime.CommandPrepare)
+	require.True(t, ok)
+	nextRuntimeEnvironment, nextPreparation := factory.Prepare(
+		context.Background(), nextRequest, nextPrepare,
+	)
+	require.Equal(t, umpireruntime.ReceiptAccepted, nextPreparation.Status())
+	nextEnvironment, ok := AsEnvironment(nextRuntimeEnvironment)
+	require.True(t, ok)
+	nextCleanup, ok := nextRequest.Command(umpireruntime.CommandCleanup)
+	require.True(t, ok)
+	require.Equal(t, umpireruntime.ReceiptAccepted,
+		nextEnvironment.Cleanup(context.Background(), nextCleanup).Status())
 }
 
 func TestAttachedCleanupFailureRetainsOwnershipUntilClosed(t *testing.T) {
