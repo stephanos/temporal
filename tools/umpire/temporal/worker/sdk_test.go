@@ -3,9 +3,11 @@ package worker
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"strings"
 	"testing"
+	"time"
 	"unicode/utf8"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
@@ -22,44 +24,53 @@ import (
 	sdkworker "go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 	umpirespb "go.temporal.io/server/api/umpire/v1"
+	"go.temporal.io/server/tools/umpire"
 	"go.temporal.io/server/tools/umpire/temporal/internal/delivery"
 )
 
 func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, umpirespb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
-	host, definition := runtimeTestHost(t, prepared)
-	host.options.namespace = "default-test-namespace"
-	host.options.client = &recordingClient{}
-	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
-	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
+	for _, valueOutcome := range []bool{false, true} {
+		t.Run(fmt.Sprintf("value=%t", valueOutcome), func(t *testing.T) {
+			prepared := preparedRuntimeFixture(t, umpirespb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, func(program *umpirespb.Program) {
+				if valueOutcome {
+					program.Entrypoints[1].Nodes[2].Outcome = runtimeValueOutcomeSchema()
+				}
+			})
+			host, definition := runtimeTestHost(t, prepared)
+			host.options.namespace = "default-test-namespace"
+			host.options.client = &recordingClient{}
+			binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
+			session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
 
-	var suite testsuite.WorkflowTestSuite
-	environment := suite.NewTestWorkflowEnvironment()
-	environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
-	environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
-	environment.SetHeader(request.GetHeader())
-	operation := nexus.NewOperationReference[*umpirespb.Value, *umpirespb.Value]("operation")
-	environment.OnNexusOperation(
-		"service",
-		operation,
-		&umpirespb.Value{Value: &umpirespb.Value_Text{Text: "request"}},
-		mock.Anything,
-	).Return(&nexus.HandlerStartOperationResultSync[*umpirespb.Value]{Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "done"}}}, nil)
-	environment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
-	environment.ExecuteWorkflow("workflow-type", "untouched", 42, []byte("arguments"))
-	require.NoError(t, environment.GetWorkflowError())
-	var result umpirespb.Value
-	require.NoError(t, environment.GetWorkflowResult(&result))
-	require.Equal(t, "done", result.GetText())
-	environment.AssertNexusOperationCalled(t, "service", "operation", &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "request"}}, mock.Anything)
-	workflowReservation := reservationForEntrypoint(t, session, "workflow")
-	workflowResult, err := workflowReservation.Wait(t.Context())
-	require.NoError(t, err)
-	require.Equal(t, umpirespb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, workflowResult.Outcome.GetStatus())
-	handlerResult, err := reservationForEntrypoint(t, session, "handler").Wait(t.Context())
-	require.NoError(t, err)
-	require.Equal(t, umpirespb.INSTRUCTION_OUTCOME_STATUS_CANCELED, handlerResult.Outcome.GetStatus())
-	require.Len(t, session.workflowAdmissions, 1)
+			var suite testsuite.WorkflowTestSuite
+			environment := suite.NewTestWorkflowEnvironment()
+			environment.SetWorkerOptions(sdkworker.Options{Interceptors: []interceptor.WorkerInterceptor{&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}}})
+			environment.SetStartWorkflowOptions(client.StartWorkflowOptions{ID: binding.WorkflowID, TaskQueue: binding.TaskQueue})
+			environment.SetHeader(request.GetHeader())
+			operation := nexus.NewOperationReference[*umpirespb.Value, *umpirespb.Value]("operation")
+			environment.OnNexusOperation(
+				"service",
+				operation,
+				&umpirespb.Value{Value: &umpirespb.Value_Text{Text: "request"}},
+				mock.Anything,
+			).Return(&nexus.HandlerStartOperationResultSync[*umpirespb.Value]{Value: &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "done"}}}, nil)
+			environment.RegisterDynamicWorkflow(host.dynamicWorkflow, workflow.DynamicRegisterOptions{})
+			environment.ExecuteWorkflow("workflow-type", "untouched", 42, []byte("arguments"))
+			require.NoError(t, environment.GetWorkflowError())
+			var result umpirespb.Value
+			require.NoError(t, environment.GetWorkflowResult(&result))
+			require.Equal(t, "done", result.GetText())
+			environment.AssertNexusOperationCalled(t, "service", "operation", &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "request"}}, mock.Anything)
+			workflowReservation := reservationForEntrypoint(t, session, "workflow")
+			workflowResult, err := workflowReservation.Wait(t.Context())
+			require.NoError(t, err)
+			require.Equal(t, umpirespb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, workflowResult.Outcome.GetStatus())
+			handlerResult, err := reservationForEntrypoint(t, session, "handler").Wait(t.Context())
+			require.NoError(t, err)
+			require.Equal(t, umpirespb.INSTRUCTION_OUTCOME_STATUS_CANCELED, handlerResult.Outcome.GetStatus())
+			require.Len(t, session.workflowAdmissions, 1)
+		})
+	}
 }
 
 func TestSDKWorkflowReplayerCompletesAnUnfinishedAdmission(t *testing.T) {
@@ -106,35 +117,43 @@ func TestSDKDynamicWorkflowRejectsForeignWorkflowTypeBeforeAdmission(t *testing.
 }
 
 func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, umpirespb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
-	host, definition := runtimeTestHost(t, prepared)
-	session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
-	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
-	require.NoError(t, err)
-	header, value, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "request"}})
-	require.NoError(t, err)
+	for _, valueOutcome := range []bool{false, true} {
+		t.Run(fmt.Sprintf("value=%t", valueOutcome), func(t *testing.T) {
+			prepared := preparedRuntimeFixture(t, umpirespb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, func(program *umpirespb.Program) {
+				if valueOutcome {
+					program.Entrypoints[2].Nodes[0].Outcome = runtimeValueOutcomeSchema()
+				}
+			})
+			host, definition := runtimeTestHost(t, prepared)
+			session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
+			workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
+			require.NoError(t, err)
+			header, value, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "request"}})
+			require.NoError(t, err)
 
-	operation := &genericNexusOperation{queue: "task-queue", service: "service", operation: "operation"}
-	service := nexus.NewService("service")
-	require.NoError(t, service.Register(operation))
-	registry := nexus.NewServiceRegistry()
-	require.NoError(t, registry.Register(service))
-	handler, err := registry.NewHandler()
-	require.NoError(t, err)
-	terminal := &registeredNexusTerminal{handler: handler, service: "service", operation: "operation"}
-	inbound := (&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}).InterceptNexusOperation(t.Context(), terminal)
-	input := interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "request-id"}}
-	result, err := inbound.StartOperation(t.Context(), input)
-	require.NoError(t, err)
-	require.Equal(t, "accepted", result.(*nexus.HandlerStartOperationResultSync[*umpirespb.Value]).Value.GetText())
-	_, err = reservationForEntrypoint(t, session, "handler").Wait(t.Context())
-	require.NoError(t, err)
-	replay, err := inbound.StartOperation(t.Context(), input)
-	require.NoError(t, err)
-	require.Equal(t, "accepted", replay.(*nexus.HandlerStartOperationResultSync[*umpirespb.Value]).Value.GetText())
-	require.Len(t, session.nexusAdmissions, 1)
-	_, err = inbound.StartOperation(t.Context(), interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "crossed"}})
-	require.Error(t, err)
+			operation := &genericNexusOperation{queue: "task-queue", service: "service", operation: "operation"}
+			service := nexus.NewService("service")
+			require.NoError(t, service.Register(operation))
+			registry := nexus.NewServiceRegistry()
+			require.NoError(t, registry.Register(service))
+			handler, err := registry.NewHandler()
+			require.NoError(t, err)
+			terminal := &registeredNexusTerminal{handler: handler, service: "service", operation: "operation"}
+			inbound := (&sdkWorkerInterceptor{host: host, queue: "task-queue", registration: definition.registrations[0]}).InterceptNexusOperation(t.Context(), terminal)
+			input := interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "request-id"}}
+			result, err := inbound.StartOperation(t.Context(), input)
+			require.NoError(t, err)
+			require.Equal(t, "accepted", result.(*nexus.HandlerStartOperationResultSync[*umpirespb.Value]).Value.GetText())
+			_, err = reservationForEntrypoint(t, session, "handler").Wait(t.Context())
+			require.NoError(t, err)
+			replay, err := inbound.StartOperation(t.Context(), input)
+			require.NoError(t, err)
+			require.Equal(t, "accepted", replay.(*nexus.HandlerStartOperationResultSync[*umpirespb.Value]).Value.GetText())
+			require.Len(t, session.nexusAdmissions, 1)
+			_, err = inbound.StartOperation(t.Context(), interceptor.NexusStartOperationInput{Input: value, Options: nexus.StartOperationOptions{Header: header, RequestID: "crossed"}})
+			require.Error(t, err)
+		})
+	}
 }
 
 func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testing.T) {
@@ -334,4 +353,57 @@ func (s *registeredNexusPayloadSerializer) Deserialize(_ *nexus.Content, value a
 
 func (*registeredNexusPayloadSerializer) Serialize(any) (*nexus.Content, error) {
 	return nil, ErrInvalid
+}
+
+func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
+	for _, tc := range []struct {
+		name                     string
+		start, await, completion time.Duration
+		status                   umpirespb.InstructionOutcomeStatus
+	}{
+		{"await expires first", 10 * time.Second, time.Second, 5 * time.Second, umpirespb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
+		{"start expires first", time.Second, 10 * time.Second, 5 * time.Second, umpirespb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
+		{"completion before await", 10 * time.Second, 5 * time.Second, time.Second, umpirespb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			prepared := preparedRuntimeFixture(t, umpirespb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, func(program *umpirespb.Program) {
+				program.Entrypoints[1].Nodes[0].Bounds.TimeoutMilliseconds = tc.start.Milliseconds()
+				program.Entrypoints[1].Nodes[1].Bounds.TimeoutMilliseconds = tc.await.Milliseconds()
+			})
+			_, definition := runtimeTestHost(t, prepared)
+			var suite testsuite.WorkflowTestSuite
+			environment := suite.NewTestWorkflowEnvironment()
+			operation := nexus.NewOperationReference[*umpirespb.Value, *umpirespb.Value]("operation")
+			environment.OnNexusOperation("service", operation, mock.Anything, mock.Anything).Return(&nexus.HandlerStartOperationResultAsync{OperationToken: "token"}, nil)
+			require.NoError(t, environment.RegisterNexusAsyncOperationCompletion("service", "operation", "token", &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "done"}}, nil, tc.completion))
+			environment.ExecuteWorkflow(func(ctx workflow.Context) (int32, error) {
+				entry := definition.entries["workflow"].plan
+				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, values: newActivationValues(entry.ID(), entry.RuntimeWorkLimit()), futures: make(map[string]workflow.NexusOperationFuture)}
+				start, err := instructionAt(entry, 0)
+				if err != nil {
+					return 0, err
+				}
+				if err := i.startNexus(start, &umpirespb.Value{Value: &umpirespb.Value_Text{Text: "request"}}); err != nil {
+					return 0, err
+				}
+				await, err := instructionAt(entry, 1)
+				if err != nil {
+					return 0, err
+				}
+				before := workflow.Now(ctx)
+				if err := i.awaitNexus(await); err != nil {
+					return 0, err
+				}
+				expected := min(tc.start, tc.await, tc.completion)
+				if elapsed := workflow.Now(ctx).Sub(before); elapsed != expected {
+					return 0, fmt.Errorf("await elapsed %s, want %s", elapsed, expected)
+				}
+				return i.values.lookup(umpire.ValueReference{Kind: umpire.OutcomeReference, Entrypoint: "workflow", ID: "await", Field: int32(umpirespb.INSTRUCTION_OUTCOME_FIELD_STATUS)}).GetEnumValue().GetNumber(), nil
+			})
+			require.NoError(t, environment.GetWorkflowError())
+			var status int32
+			require.NoError(t, environment.GetWorkflowResult(&status))
+			require.EqualValues(t, tc.status, status)
+		})
+	}
 }
