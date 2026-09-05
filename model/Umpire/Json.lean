@@ -14,10 +14,12 @@ canonical JSON strings.
 /-- A typed JSON value whose object fields retain their supplied order. -/
 inductive CanonicalJson where
   | null
+  | boolean (value : Bool)
   | string (value : String)
   | natural (value : Nat)
   | array (items : List CanonicalJson)
   | object (fields : List (String × CanonicalJson))
+  deriving Inhabited
 
 namespace CanonicalJson
 
@@ -29,6 +31,7 @@ def ofOption (encode : α → CanonicalJson) : Option α → CanonicalJson
 /-- Render a typed JSON value compactly while preserving object field order. -/
 partial def compact : CanonicalJson → String
   | .null => "null"
+  | .boolean value => if value then "true" else "false"
   | .string value => Lean.Json.compress (.str value)
   | .natural value => toString value
   | .array items =>

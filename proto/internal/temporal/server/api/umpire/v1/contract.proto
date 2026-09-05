@@ -27,11 +27,12 @@ message ContractState {
   ContractTerminalState terminal = 2;
 }
 
-// ContractCaptureType is the closed scalar subset retained across Run Events.
+// ContractCaptureType is the closed scalar, enum, and message set retained across Run Events.
 message ContractCaptureType {
   oneof type {
     ScalarType scalar = 1;
     NamedType enumeration = 2;
+    NamedType message = 3;
   }
 }
 

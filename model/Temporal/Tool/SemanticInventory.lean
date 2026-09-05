@@ -70,21 +70,21 @@ def projectionSentinels : List ProjectionSentinelDescriptor := [
   ImplementationLinkStatus.notEvaluatedProjectionSentinel
 ]
 
-/-- The non-semantic request and Raw Evidence input carrying arbitrary validated Known Gaps. -/
-def requestRawKnownGapInputCatalogRow : KnownGapCatalogDescriptor := {
+/-- The non-semantic Case input carrying arbitrary validated Known Gaps. -/
+def caseKnownGapInputCatalogRow : KnownGapCatalogDescriptor := {
   id := "umpire.semantic-inventory.known-gap-source.17-request-raw-known-gap-input"
-  owner := "Temporal.Tool.RunEvaluation"
+  owner := "Umpire.Case"
   lineage := .carried
   scope := .production
   shape := .admittedKnownGapInput
-  source := "umpire.run-evaluation.request-and-raw-known-gap-input"
+  source := "umpire.case.known-gap-input"
   fieldMapping := none
-  description := "Validated request and Raw Evidence Known Gaps before stage-specific projection."
+  description := "Validated Case Known Gaps before stage-specific projection."
 }
 
 /-- The complete canonical Known Gap catalog assembled from its owner-published descriptors. -/
 def knownGapCatalog : List KnownGapCatalogDescriptor :=
-  Umpire.SemanticInventory.knownGapCatalog requestRawKnownGapInputCatalogRow
+  Umpire.SemanticInventory.knownGapCatalog caseKnownGapInputCatalogRow
 
 /-- The repository's complete typed semantic inventory. -/
 def currentInventory : Inventory := {
@@ -160,7 +160,7 @@ def validate (inventory : Inventory) : Except InventoryError Inventory := do
   unless projectionSentinelsAreValid canonical.projectionSentinels canonical.outcomeFamilies do
     throw { kind := .invalidProjectionSentinel, detail := "catalog or owning family drift" }
   match Umpire.SemanticInventory.validateKnownGapCatalog
-      requestRawKnownGapInputCatalogRow canonical.knownGaps with
+      caseKnownGapInputCatalogRow canonical.knownGaps with
   | .error failure =>
       throw {
         kind := .invalidKnownGapCatalog

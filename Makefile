@@ -118,16 +118,16 @@ UMPIRE3_UPDATE_PROOF_MANIFEST := $(UMPIRE3_ROOT)/protocol/internal/generated/tes
 UMPIRE3_EXPORT_COMMAND := $(UMPIRE3_DEV_COMMAND) export
 UMPIRE3_API_COMMAND := $(UMPIRE3_DEV_COMMAND) api
 UMPIRE_GEN_LEAN_API_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
-UMPIRE_GEN_TESTS_COMMAND := mise exec -- lake exe umpire-gen-tests
 UMPIRE_GEN_REGRESSION_VIEWS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-regression-views
+UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance
 UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
 UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-proto-descriptors
 UMPIRE_ARTIFACT_COMMAND := mise exec -- go run ./tools/umpire/cmd/umpire-artifact
 UMPIRE_REGRESSION_INSPECTOR := temporal-model-inspect
+UMPIRE_CASE_RUNTIME_RENDERER := temporal-case-runtime
 _UMPIRE_SEMANTIC_INVENTORY_DOCUMENT ?= model/SEMANTIC_INVENTORY.md
 _UMPIRE_SEMANTIC_INVENTORY_RENDERER ?= cd model && $(LEAN_LAKE) -q exe temporal-model-semantic-inventory
 UMPIRE_REGRESSION_FIXTURES := \
-	workflow-nexus.query.exact-action-caller-closure:Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json \
 	switch.query.exact-action:Umpire/Examples/testdata/switch-experiment-spec.json
 UMPIRE_GEN_LEAN_API_ARGS = \
 	--descriptor $(UMPIRE_PUBLIC_BINPB) \
@@ -1006,25 +1006,6 @@ umpire-check-artifact-set:
 	@test -n "$(SET)" || { echo "SET is required" >&2; exit 2; }
 	@$(UMPIRE_ARTIFACT_COMMAND) check-set --set "$(SET)"
 
-umpire-check-local-run-evaluation:
-	@test -n "$(SET)" || { echo "SET is required" >&2; exit 2; }
-	@test -n "$(OUTPUT_ROOT)" || { echo "OUTPUT_ROOT is required" >&2; exit 2; }
-	@test -d "$(SET)" || { echo "SET must be a directory" >&2; exit 2; }
-	@test -d "$(OUTPUT_ROOT)" || { echo "OUTPUT_ROOT must be a directory" >&2; exit 2; }
-	@set -eu; installation=$$(mktemp -d); \
-		trap 'rm -rf "$$installation"' EXIT; \
-		cd model && $(LEAN_LAKE) build temporal-run-evaluation-checker >/dev/null; \
-		cd ..; \
-		cp "model/.lake/build/bin/temporal-run-evaluation-checker" \
-			"$$installation/temporal-run-evaluation-checker"; \
-		chmod 0700 "$$installation/temporal-run-evaluation-checker"; \
-		checker_sha=$$(shasum -a 256 "$$installation/temporal-run-evaluation-checker" | awk '{print $$1}'); \
-		go build -ldflags "-X go.temporal.io/server/tools/umpire/runevaluation.installedCheckerSHA256=sha256:$$checker_sha" \
-			-o "$$installation/umpire-local-run-evaluation" \
-			./tools/umpire/cmd/umpire-local-run-evaluation; \
-		"$$installation/umpire-local-run-evaluation" \
-			--set "$(SET)" --output-root "$(OUTPUT_ROOT)"
-
 umpire-inspect:
 	@test -n "$(SCENARIO)" || (echo "SCENARIO is required" >&2; exit 1)
 	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) "$(SCENARIO)"
@@ -1035,11 +1016,6 @@ umpire-list-nexus:
 umpire-explain-nexus:
 	@test -n "$(QUERY)" || (echo "QUERY is required" >&2; exit 1)
 	@cd model && $(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) explain "$(QUERY)"
-
-umpire-check-promotion:
-	@printf $(COLOR) "Check fixed Umpire promotion proposal..."
-	@cd model && $(LEAN_LAKE) build temporal-model-promote temporal-model-promote-tests >/dev/null
-	@cd model && $(LEAN_LAKE) exe temporal-model-promote-tests
 
 umpire-gen-lean-api: PROTOC = mise exec -- protoc
 umpire-gen-lean-api: $(UMPIRE_PUBLIC_BINPB) $(API_BINPB) $(INTERNAL_BINPB) $(CHASM_BINPB)
@@ -1060,26 +1036,9 @@ $(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMP
 umpire-gen-lean-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR)
 	@go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api -run '^TestBasicFixture$$' -rewrite
 
-umpire-gen-tests:
-	@printf $(COLOR) "Generate complete model-selected Umpire tests..."
-	@cd model && $(UMPIRE_GEN_TESTS_COMMAND) $(ARGS)
-
 umpire-gen-regression-views:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
 	@$(UMPIRE_GEN_REGRESSION_VIEWS_COMMAND) --repository-root . --output-root .
-
-umpire-gen-portable-evaluation-fixtures:
-	@go test -count=1 -tags test_dep ./tools/umpire/portableevaluation \
-		-run '^TestGeneratePortableEvaluationParityFixtures$$' \
-		-args -parity-fixture-output="$(CURDIR)/tools/umpire/portableevaluation/testdata"
-
-umpire-check-portable-evaluation-fixtures:
-	@set -eu; temporary=$$(mktemp -d); \
-		trap 'rm -rf "$$temporary"' EXIT; \
-		go test -count=1 -tags test_dep ./tools/umpire/portableevaluation \
-			-run '^TestGeneratePortableEvaluationParityFixtures$$' \
-			-args -parity-fixture-output="$$temporary"; \
-		diff -ru tools/umpire/portableevaluation/testdata "$$temporary"
 
 umpire-check-regression-views:
 	@printf $(COLOR) "Check generated Umpire regression views..."
@@ -1088,28 +1047,34 @@ umpire-check-regression-views:
 		temporary=$$(mktemp -d "$$temporary_root/umpire-regression.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		$(UMPIRE_GEN_REGRESSION_VIEWS_COMMAND) --repository-root . --output-root "$$temporary"; \
-		diff -u tools/umpire/regression/catalog_generated_test.go \
-			"$$temporary/tools/umpire/regression/catalog_generated_test.go"; \
-		diff -u model/Temporal/Tool/Generated/Regressions.md \
-			"$$temporary/model/Temporal/Tool/Generated/Regressions.md"; \
 		diff -u tools/umpire/regression/switch_generated_view_test.go \
 			"$$temporary/tools/umpire/regression/switch_generated_view_test.go"; \
 		diff -u model/Umpire/Examples/Generated/Switch.md \
-			"$$temporary/model/Umpire/Examples/Generated/Switch.md"
+			"$$temporary/model/Umpire/Examples/Generated/Switch.md"; \
+		test ! -e model/Temporal/Tool/Generated/Regressions.md; \
+		test ! -e "$$temporary/model/Temporal/Tool/Generated/Regressions.md"
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
 			./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression
 
-umpire-check-generated-go-test:
+umpire-gen-case-runtime-conformance:
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_CASE_RUNTIME_RENDERER) >/dev/null
+	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
+
+umpire-check-case-runtime-conformance:
+	@printf $(COLOR) "Check generated Umpire Case Runtime conformance fixtures..."
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_CASE_RUNTIME_RENDERER)
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		temporary=$$(mktemp -d "$$temporary_root/umpire-generated-go.XXXXXX"); \
-		trap 'rm -rf "$$temporary"' EXIT; \
-		mkdir "$$temporary/tests"; \
-		mise exec -- go run ./tools/umpire/cmd/umpire-gen-tests-go \
-			tools/umpire/temporal/nexus/testdata/caller-closure-input-set/manifest.json \
-			--output "$$temporary/tests"; \
-		diff -u tests/umpire4_caller_closure_generated_test.go \
-			"$$temporary/tests/umpire4_caller_closure_generated_test.go"
+		temporary=$$(mktemp -d "$$temporary_root/umpire-case-runtime-conformance.XXXXXX"); \
+		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
+		$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root "$$temporary"; \
+		diff -ru tools/umpire/testdata/case-runtime-conformance \
+			"$$temporary/tools/umpire/testdata/case-runtime-conformance"
+	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
+			./tools/umpire/cmd/umpire-gen-case-runtime-conformance; \
+		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
+			./tools/umpire -run '^TestCaseRuntimePublicFacadeConformance$$'
 
 umpire-gen-semantic-inventory:
 	@set -eu; \
@@ -1144,27 +1109,38 @@ umpire-check-live-tests:
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(TMPDIR="$$physical_tmpdir" mktemp); \
-		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
+		expected=$$(TMPDIR="$$physical_tmpdir" mktemp); \
+		actual=$$(TMPDIR="$$physical_tmpdir" mktemp); \
+		trap 'rm -f "$$temporary" "$$expected" "$$actual"' EXIT HUP INT TERM; \
 		status=0; \
 		TMPDIR="$$physical_tmpdir" mise exec -- go test -count=1 -tags 'test_dep integration' \
 			./tests -run '^TestUmpire' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
-		if [ "$$status" -eq 0 ]; then exit 0; fi; \
-		actual=$$(sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$$temporary" | LC_ALL=C sort -u); \
-		if [ -z "$$actual" ]; then \
+		sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$$temporary" | LC_ALL=C sort -u > "$$actual"; \
+		printf '%s\n' \
+			'TestUmpire2TestSuite' \
+			'TestUmpire2TestSuite/TestPlanAndDriveKitchenSinkNexusOperation' \
+			'TestUmpire2TestSuite/TestPlanAndDriveNexusOperationCHASM' \
+			'TestUmpire2TestSuite/TestProbeNexusDegraded' \
+			'TestUmpire2TestSuite/TestProbeNexusExploration' \
+			'TestUmpire2TestSuite/TestProbeNexusFlagged' \
+			'TestUmpire2TestSuite/TestProbeNexusRandomized' \
+			'TestUmpire2TestSuite/TestProbeNexusResilience' \
+			'TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram' \
+			| LC_ALL=C sort -u > "$$expected"; \
+		if [ "$$status" -ne 0 ] && [ ! -s "$$actual" ]; then \
 			printf 'The live suite failed without reporting a test identity.\n'; \
 			exit "$$status"; \
 		fi; \
-		unexpected=$$(printf '%s\n' "$$actual" | sed -E '/^TestUmpire[23]/d'); \
-		if [ -n "$$unexpected" ]; then \
-			printf 'Observed non-Umpire2/Umpire3 failures:\n%s\n' "$$unexpected"; \
-			exit "$$status"; \
+		if ! diff -u "$$expected" "$$actual"; then \
+			printf 'Live Umpire failure identities differ from the inherited exact set.\n'; \
+			exit 1; \
 		fi; \
-		printf 'Full live suite introduced no Umpire4 or unclassified failures.\n'
+		printf 'Live Umpire failure identities match the inherited exact set.\n'
 
-umpire-check-regression: umpire-check-regression-views umpire-check-generated-go-test umpire-check-portable-evaluation-fixtures umpire-check-promotion umpire-check-legacy-vocabulary umpire-check-live-tests
+umpire-check-regression: umpire-check-regression-views umpire-check-case-runtime-conformance umpire-check-semantic-inventory umpire-check-legacy-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/...
+		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/...
 	@set -eu; \
 		old_namespace='Temporal''[.](Experiment|Umpire)'; \
 		old_path='Temporal/''(Experiment|Umpire)'; \
@@ -1233,8 +1209,7 @@ umpire-check-regression: umpire-check-regression-views umpire-check-generated-go
 			echo "Umpire Planning facade does not expose its package" >&2; \
 			exit 1; \
 		}
-	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests $(UMPIRE_REGRESSION_INSPECTOR)
-	@cd model && $(LEAN_LAKE) exe umpire-gen-tests-tests
+	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_CASE_RUNTIME_RENDERER)
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \
@@ -1242,9 +1217,9 @@ umpire-check-regression: umpire-check-regression-views umpire-check-generated-go
 		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) list > "$$temporary/list-second.json"; \
 		cmp -s "$$temporary/list-first.json" "$$temporary/list-second.json"; \
 		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) explain \
-			workflow-nexus.query.exact-action-caller-closure > "$$temporary/explain-first.json"; \
+			temporal.nexus.basic-lifecycle.query.async-start > "$$temporary/explain-first.json"; \
 		$(LEAN_LAKE) exe $(UMPIRE_REGRESSION_INSPECTOR) explain \
-			workflow-nexus.query.exact-action-caller-closure > "$$temporary/explain-second.json"; \
+			temporal.nexus.basic-lifecycle.query.async-start > "$$temporary/explain-second.json"; \
 		cmp -s "$$temporary/explain-first.json" "$$temporary/explain-second.json"; \
 		for scenario_fixture in $(UMPIRE_REGRESSION_FIXTURES); do \
 			scenario=$${scenario_fixture%%:*}; \
@@ -1381,7 +1356,7 @@ umpire3-clean:
 	@printf $(COLOR) "Remove resolved Umpire3 tool caches..."
 	@sh $(UMPIRE3_ROOT)/clean.sh
 
-.PHONY: umpire-build-model umpire-check-plan-index umpire-check-artifact umpire-check-artifact-set umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-check-promotion umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-tests umpire-gen-regression-views umpire-gen-portable-evaluation-fixtures umpire-check-portable-evaluation-fixtures umpire-check-regression-views umpire-check-generated-go-test umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-legacy-vocabulary umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-build-model umpire-check-plan-index umpire-check-artifact umpire-check-artifact-set umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-regression-views umpire-check-regression-views umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-legacy-vocabulary umpire-check-live-tests umpire-check-regression
 
 .PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-build-temporal-results umpire3-build-veil umpire3-export-veil-bindings umpire3-check-veil-bindings umpire3-record-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root umpire3-clean
 

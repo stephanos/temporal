@@ -16,6 +16,9 @@ import (
 
 func TestRunGenerationInspectsOnceAndPublishesTheCompleteSetDeterministically(t *testing.T) {
 	configuration, entry, encoded, dependencies := newGenerationFixture(t)
+	retired := filepath.Join(configuration.OutputRoot, filepath.FromSlash(retiredCallerClosureReportPath))
+	require.NoError(t, os.MkdirAll(filepath.Dir(retired), 0o700))
+	require.NoError(t, os.WriteFile(retired, []byte("stale generated view\n"), 0o600))
 	var inspections atomic.Int32
 	dependencies.Inspect = func(modelRoot, identity string) (inspectorOutput, error) {
 		inspections.Add(1)
@@ -43,6 +46,7 @@ func TestRunGenerationInspectsOnceAndPublishesTheCompleteSetDeterministically(t 
 	first := readGeneratedSet(t, configuration.OutputRoot, entry)
 	require.EqualValues(t, 1, inspections.Load())
 	require.EqualValues(t, 1, publications.Load())
+	require.NoFileExists(t, retired)
 
 	require.NoError(t, runGeneration(configuration, []manifestEntry{entry}, dependencies))
 	require.Equal(t, first, readGeneratedSet(t, configuration.OutputRoot, entry))
@@ -449,7 +453,7 @@ func newGenerationFixture(
 	outputRoot := t.TempDir()
 	modelRoot := filepath.Join(repositoryRoot, "model")
 	writeLeanSource(t, modelRoot, "One.lean")
-	entry := syntheticEntry(callerClosureIdentity)
+	entry := syntheticEntry(syntheticIdentity)
 	encoded := syntheticExperiment(t, syntheticOptions{})
 	fixture := decodeGenerationFixture(t, encoded)
 	writeGenerationFixture(t, repositoryRoot, entry.FixturePath, fixture)

@@ -1,6 +1,7 @@
 package ir
 
 import (
+	"math/bits"
 	"slices"
 	"strconv"
 	"strings"
@@ -69,6 +70,11 @@ func (r *runtimeExpression) selectBranch(value *umpirespb.Value, descriptor prot
 			return []*umpirespb.Value{boolValue(false)}, nil
 		}
 		return []*umpirespb.Value{nil}, nil
+	}
+	if r.copyWork {
+		if err := r.charge(int64(proto.Size(value))); err != nil {
+			return nil, err
+		}
 	}
 	message, err := decodeMessage(value, descriptor)
 	if err != nil {
@@ -161,35 +167,27 @@ func (r *runtimeExpression) fieldValue(v protoreflect.Value, field protoreflect.
 		return &umpirespb.Value{Value: &umpirespb.Value_ListValue{ListValue: &umpirespb.ValueList{Values: values}}}, nil
 	}
 	if field.IsMap() {
-		items := v.Map()
-		if err := r.charge(int64(items.Len())); err != nil {
-			return nil, err
-		}
-		entries := make([]*umpirespb.ValueMapEntry, 0, items.Len())
-		var resultErr error
-		items.Range(func(k protoreflect.MapKey, v protoreflect.Value) bool {
-			key, err := r.scalarValue(k.Value(), field.MapKey())
-			if err != nil {
-				resultErr = err
-				return false
-			}
-			value, err := r.scalarValue(v, field.MapValue())
-			if err != nil {
-				resultErr = err
-				return false
-			}
-			entries = append(entries, &umpirespb.ValueMapEntry{Key: key, Value: value})
-			return true
-		})
-		if resultErr != nil {
-			return nil, resultErr
-		}
-		sortMapEntries(entries)
-		return &umpirespb.Value{Value: &umpirespb.Value_MapValue{MapValue: &umpirespb.ValueMap{Entries: entries}}}, nil
+		return r.mapValue(v, field)
 	}
 	return r.scalarValue(v, field)
 }
 func (r *runtimeExpression) scalarValue(v protoreflect.Value, field protoreflect.FieldDescriptor) (*umpirespb.Value, error) {
+	if r.copyWork {
+		work := int64(1)
+		switch field.Kind() {
+		case protoreflect.StringKind:
+			work += int64(len(v.String()))
+		case protoreflect.BytesKind:
+			work += int64(len(v.Bytes()))
+		case protoreflect.MessageKind, protoreflect.GroupKind:
+			work += 2 * int64(proto.Size(v.Message().Interface()))
+		default:
+		}
+		if err := r.charge(work); err != nil {
+			return nil, err
+		}
+	}
+
 	switch field.Kind() {
 	case protoreflect.BoolKind:
 		return boolValue(v.Bool()), nil
@@ -222,5 +220,53 @@ func (r *runtimeExpression) scalarValue(v protoreflect.Value, field protoreflect
 }
 
 func sortMapEntries(entries []*umpirespb.ValueMapEntry) {
-	slices.SortFunc(entries, func(a, b *umpirespb.ValueMapEntry) int { return strings.Compare(a.Key.String(), b.Key.String()) })
+	type keyedEntry struct {
+		key   string
+		value *umpirespb.ValueMapEntry
+	}
+	keyed := make([]keyedEntry, len(entries))
+	for i, entry := range entries {
+		keyed[i] = keyedEntry{entry.Key.String(), entry}
+	}
+	slices.SortFunc(keyed, func(a, b keyedEntry) int { return strings.Compare(a.key, b.key) })
+	for i, entry := range keyed {
+		entries[i] = entry.value
+	}
+}
+
+func (r *runtimeExpression) mapValue(v protoreflect.Value, field protoreflect.FieldDescriptor) (*umpirespb.Value, error) {
+	items := v.Map()
+	if err := r.charge(int64(items.Len())); err != nil {
+		return nil, err
+	}
+	entries := make([]*umpirespb.ValueMapEntry, 0, items.Len())
+	var resultErr error
+	items.Range(func(k protoreflect.MapKey, v protoreflect.Value) bool {
+		key, err := r.scalarValue(k.Value(), field.MapKey())
+		if err != nil {
+			resultErr = err
+			return false
+		}
+		value, err := r.scalarValue(v, field.MapValue())
+		if err != nil {
+			resultErr = err
+			return false
+		}
+		entries = append(entries, &umpirespb.ValueMapEntry{Key: key, Value: value})
+		return true
+	})
+	if resultErr != nil {
+		return nil, resultErr
+	}
+	if r.copyWork {
+		var size int64
+		for _, entry := range entries {
+			size += int64(proto.Size(entry.Key)) + 1
+		}
+		if err := r.charge(size * 8 * int64(bits.Len(uint(len(entries)))+1)); err != nil {
+			return nil, err
+		}
+	}
+	sortMapEntries(entries)
+	return &umpirespb.Value{Value: &umpirespb.Value_MapValue{MapValue: &umpirespb.ValueMap{Entries: entries}}}, nil
 }
