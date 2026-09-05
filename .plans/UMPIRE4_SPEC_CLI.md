@@ -1,5 +1,9 @@
 # CLI
 
+Status: superseded historical command design. Current Case Runtime commands and ownership are
+documented in [`UMPIRE4_COMPONENTS.md`](UMPIRE4_COMPONENTS.md) and the repository `Makefile`; the
+legacy commands below are retained only as design history and MUST NOT be restored.
+
 These actions assume that an executable Lean model already exists under `model/`. The primary users
 are feature engineers who want ordinary tests and fuzzing, and operators who want to reuse the same
 model-defined behavior in environment-specific tools. Model authoring is a separate workflow.

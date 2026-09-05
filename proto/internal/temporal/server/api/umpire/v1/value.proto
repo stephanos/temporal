@@ -200,6 +200,7 @@ enum RunEventField {
   RUN_EVENT_FIELD_INSTRUCTION_ID = 6;
   RUN_EVENT_FIELD_ATTEMPT = 7;
   RUN_EVENT_FIELD_SOURCE_ID = 8;
+  RUN_EVENT_FIELD_RUN_ID = 9;
 }
 
 message RunEventFieldReference {

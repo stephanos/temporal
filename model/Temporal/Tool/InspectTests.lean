@@ -1,11 +1,9 @@
-import Temporal.Feature.Nexus.Experimental.CallerClosureTests
 import Temporal.Tool.Inspect
 import Temporal.Tool.NexusDiscovery
 
 namespace Temporal.Tool.InspectTests
 
 open _root_.Umpire
-open Temporal.Feature.Nexus.Experimental.CallerClosure
 open Temporal.Tool.Inspect
 
 example : runCli ["list"] = {
@@ -59,7 +57,8 @@ example : invalidExplanationSelectors.map (fun selector => runCli ["explain", se
     } := by
   native_decide
 
-example : [runCli ["explain"], runCli ["explain", exactActionQueryId.value, "extra"]] =
+example : [runCli ["explain"], runCli ["explain",
+    Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value, "extra"]] =
     List.replicate 2 {
       status := 1
       stdout := ""
@@ -70,28 +69,13 @@ example : [runCli ["explain"], runCli ["explain", exactActionQueryId.value, "ext
   native_decide
 
 example : runDiscoveryExplain (Temporal.Tool.NexusDiscovery.checkInventory [])
-    exactActionQueryId.value = {
+    Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value = {
       status := 1
       stdout := ""
       stderr :=
         "{\"kind\":\"invalid-nexus-discovery\",\"subject\":\"temporal.nexus.discovery\"," ++
           "\"context\":\"membership-drift\"}\n"
     } := by
-  native_decide
-
-def expectedStdout : String := canonicalExperimentSpecBytes compiledArtifact
-
-example : runCli [exactActionQueryId.value] = {
-    status := 0
-    stdout := expectedStdout
-    stderr := ""
-  } := by
-  native_decide
-
-def repeatedOutput : List String :=
-  (List.range 2).map fun _ => (runCli [exactActionQueryId.value]).stdout
-
-example : repeatedOutput = List.replicate 2 expectedStdout := by
   native_decide
 
 def expectedSwitchStdout : String :=
@@ -142,20 +126,6 @@ example : runCli [] = {
     stderr :=
       "{\"kind\":\"invalid-arguments\",\"subject\":\"inspect\"," ++
         "\"context\":\"expected exactly one scenario identity\"}\n"
-  } := by
-  native_decide
-
-def invalidCompositionScenario : Scenario := {
-  id := "workflow-nexus.query.invalid-composition"
-  result := .error (.declaration
-    Temporal.Feature.Nexus.Experimental.CallerClosureTests.missingConnectorError)
-}
-
-example : runInspector [invalidCompositionScenario] [invalidCompositionScenario.id] = {
-    status := 1
-    stdout := ""
-    stderr := canonicalDefinitionErrorJson
-      Temporal.Feature.Nexus.Experimental.CallerClosureTests.missingConnectorError ++ "\n"
   } := by
   native_decide
 

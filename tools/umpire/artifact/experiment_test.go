@@ -24,10 +24,6 @@ func TestExperimentV2CanonicalFixturesRoundTrip(t *testing.T) {
 			fixture:       "tools/umpire/artifact/testdata/switch-experiment-v2.json",
 			authoritative: "model/Umpire/Artifact/Tests/Fixtures/SwitchExperimentSpecV2.json",
 		},
-		{
-			fixture:       "tools/umpire/artifact/testdata/nexus-caller-closure-experiment-v2.json",
-			authoritative: "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
-		},
 	} {
 		t.Run(filepath.Base(test.fixture), func(t *testing.T) {
 			encoded := readExperimentV2Fixture(t, test.fixture)
@@ -60,12 +56,6 @@ func TestExperimentV2ChecksumsUseExactPrettyPreimages(t *testing.T) {
 			fixture:            "tools/umpire/artifact/testdata/switch-experiment-v2.json",
 			planChecksum:       "sha256:a695f9f6cc79ba49a721d1764519e2167b5fe66278666238c6da862b1a33b835",
 			experimentChecksum: "sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd",
-		},
-		{
-			name:               "Nexus caller closure",
-			fixture:            "tools/umpire/artifact/testdata/nexus-caller-closure-experiment-v2.json",
-			planChecksum:       "sha256:328a90c67ca91a885a31b1e146d36af09a73cba7f729eab69a6028041a8b0bb8",
-			experimentChecksum: "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

@@ -128,7 +128,6 @@ def defaultPolicy : Policy := {
   closedClassifierNamespaces := #[`Temporal.ImplementationLinkTests],
   implementationLinkConsumers := #[`Temporal.System.Nexus.ImplementationLink],
   verifyConsumers := #[
-    `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests,
     `Temporal.Tool.VerifyVeil,
     `TemporalVeilTests,
     `TemporalVerify

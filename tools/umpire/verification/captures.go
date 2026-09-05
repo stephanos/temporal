@@ -27,8 +27,10 @@ func (a *admission) bindCaptures(m *machine) error {
 			typ = scalarType(value.Scalar.GetKind())
 		case *umpirespb.ContractCaptureType_Enumeration:
 			typ = &umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{Type: &umpirespb.SingularType_Enumeration{Enumeration: value.Enumeration}}}}
+		case *umpirespb.ContractCaptureType_Message:
+			typ = &umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{Type: &umpirespb.SingularType_Message{Message: value.Message}}}}
 		default:
-			return invalid(ir.Malformed, "capture scalar or enum type required")
+			return invalid(ir.Malformed, "capture scalar, enum, or message type required")
 		}
 		bound, err := a.catalog.BindType(typ)
 		if err != nil {

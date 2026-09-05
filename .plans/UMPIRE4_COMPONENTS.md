@@ -1,7 +1,58 @@
 # Umpire components and historical delivery inventory
 
-Inventory snapshot: reconciled 2026-09-02 against the current `model/` tree, its generators, and
-the existing Go Umpire implementations. The component boundaries were originally extracted from the
+Status: the Case Runtime component map below is current. The delivery inventory beginning at
+“Superseded historical inventory” records the removed pre-cutover architecture and is not an
+implementation recommendation.
+
+## Current Case Runtime component map
+
+```text
+Producer ──▶ Case { Program, Contract }
+                 │
+                 ▼
+       PrepareCase(case, Profile)
+                 │
+          immutable PreparedCase
+                 │
+                 ▼
+        PreparedCase.Run(ctx, Host)
+                 │
+          ┌──────┴──────┐
+          ▼             ▼
+ internal Executor   Contract Evaluator
+          │             │
+          └──────┬──────┘
+                 ▼
+      immutable Run + Verdict
+```
+
+The root Go facade owns `Profile`, `Host`, `PreparedCase`, `PrepareCase`, and
+`PreparedCase.Run`. `tools/umpire/internal/execution` owns scheduling, recording, effects, private
+Slots, and cleanup. `tools/umpire/verification` owns static Contract preparation, fresh Run-local
+Monitors, bounded captures, expiry-before-transition semantics, and offline evaluation.
+
+Temporal Host authority is split by execution context. `tools/umpire/temporal/server` supplies the
+authorized descriptor catalog and transports prepared unary method/request pairs, returning raw
+typed responses and protocol status. Internal execution constructs requests and applies response
+projections to Slots and Observations. `tools/umpire/temporal/worker` owns SDK workflow, activity,
+Nexus-handler execution, reserved activation delivery, and activation-level cancellation.
+`tools/umpire/temporal` composes those Host capabilities without interpreting Case semantics.
+
+Lean under `model/Umpire/Case` owns the reusable IR and compiler; `model/Temporal/CaseRuntime.lean`
+is the first Producer. Deterministic Case fixtures are owned by
+`umpire-gen-case-runtime-conformance`; its check generates and validates a complete temporary tree
+before diffing, while promotion is a separate reviewed target. The regression boundary includes
+the six facade classes, the full package-local suite, the exact `^TestUmpire` live selector and exact
+inherited failure identities, Lean model builds, generated views, and semantic inventory.
+
+## Superseded historical inventory
+
+Everything below this heading is a historical snapshot of the architecture removed by fn-64. Its
+commands, package paths, artifacts, and runtime terminology are explicitly superseded by the Case
+Runtime map above.
+
+Inventory snapshot: reconciled 2026-09-02 against the then-current `model/` tree, its generators, and
+the then-existing Go Umpire implementations. The component boundaries were originally extracted from the
 [Inspect Umpire Branch](https://chatgpt.com/share/6a8b71cb-74e4-83e8-947a-c2f6d595fefc)
 design conversation. This remains an architectural inventory, not an approved implementation plan.
 [`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md) owns normative rules,

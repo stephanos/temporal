@@ -8,17 +8,11 @@ import Temporal.System
 import Temporal.System.Callback.ConfigurationTests
 import Temporal.System.Configuration.Tests
 import Temporal.System.ConfigurationIntegrationTests
-import Temporal.System.Execution.LocalProfileTests
-import Temporal.System.Execution.NexusTests
 import Temporal.System.Matching.ConfigurationTests
 import Temporal.System.Nexus.ImplementationLinkTests
-import Temporal.System.Nexus.ObservationFaultTests
-import Temporal.Tool.RunEvaluationMutationTests
+import Temporal.CaseRuntimeTests
 
 namespace TemporalModelTests
-
-example : Temporal.System.Execution.ephemeralLocalProfile.reference.version = 2 := by
-  native_decide
 
 def compatibilityFamilies : List String :=
   Temporal.Feature.Nexus.LifecycleTests.compatibilityTargetAuthors ++

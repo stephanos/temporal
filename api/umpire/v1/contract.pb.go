@@ -259,13 +259,14 @@ func (x *ContractState) GetTerminal() ContractTerminalState {
 	return CONTRACT_TERMINAL_STATE_UNSPECIFIED
 }
 
-// ContractCaptureType is the closed scalar subset retained across Run Events.
+// ContractCaptureType is the closed scalar, enum, and message set retained across Run Events.
 type ContractCaptureType struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Type:
 	//
 	//	*ContractCaptureType_Scalar
 	//	*ContractCaptureType_Enumeration
+	//	*ContractCaptureType_Message
 	Type          isContractCaptureType_Type `protobuf_oneof:"type"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -326,6 +327,15 @@ func (x *ContractCaptureType) GetEnumeration() *NamedType {
 	return nil
 }
 
+func (x *ContractCaptureType) GetMessage() *NamedType {
+	if x != nil {
+		if x, ok := x.Type.(*ContractCaptureType_Message); ok {
+			return x.Message
+		}
+	}
+	return nil
+}
+
 type isContractCaptureType_Type interface {
 	isContractCaptureType_Type()
 }
@@ -338,9 +348,15 @@ type ContractCaptureType_Enumeration struct {
 	Enumeration *NamedType `protobuf:"bytes,2,opt,name=enumeration,proto3,oneof"`
 }
 
+type ContractCaptureType_Message struct {
+	Message *NamedType `protobuf:"bytes,3,opt,name=message,proto3,oneof"`
+}
+
 func (*ContractCaptureType_Scalar) isContractCaptureType_Type() {}
 
 func (*ContractCaptureType_Enumeration) isContractCaptureType_Type() {}
+
+func (*ContractCaptureType_Message) isContractCaptureType_Type() {}
 
 type ContractCaptureSchema struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -853,10 +869,11 @@ const file_temporal_server_api_umpire_v1_contract_proto_rawDesc = "" +
 	",temporal/server/api/umpire/v1/contract.proto\x12\x1dtemporal.server.api.umpire.v1\x1a'temporal/server/api/umpire/v1/run.proto\x1a)temporal/server/api/umpire/v1/value.proto\"|\n" +
 	"\rContractState\x12\x19\n" +
 	"\bstate_id\x18\x01 \x01(\tR\astateId\x12P\n" +
-	"\bterminal\x18\x02 \x01(\x0e24.temporal.server.api.umpire.v1.ContractTerminalStateR\bterminal\"\xb0\x01\n" +
+	"\bterminal\x18\x02 \x01(\x0e24.temporal.server.api.umpire.v1.ContractTerminalStateR\bterminal\"\xf6\x01\n" +
 	"\x13ContractCaptureType\x12C\n" +
 	"\x06scalar\x18\x01 \x01(\v2).temporal.server.api.umpire.v1.ScalarTypeH\x00R\x06scalar\x12L\n" +
-	"\venumeration\x18\x02 \x01(\v2(.temporal.server.api.umpire.v1.NamedTypeH\x00R\venumerationB\x06\n" +
+	"\venumeration\x18\x02 \x01(\v2(.temporal.server.api.umpire.v1.NamedTypeH\x00R\venumeration\x12D\n" +
+	"\amessage\x18\x03 \x01(\v2(.temporal.server.api.umpire.v1.NamedTypeH\x00R\amessageB\x06\n" +
 	"\x04type\"~\n" +
 	"\x15ContractCaptureSchema\x12\x1d\n" +
 	"\n" +
@@ -952,24 +969,25 @@ var file_temporal_server_api_umpire_v1_contract_proto_depIdxs = []int32{
 	1,  // 0: temporal.server.api.umpire.v1.ContractState.terminal:type_name -> temporal.server.api.umpire.v1.ContractTerminalState
 	12, // 1: temporal.server.api.umpire.v1.ContractCaptureType.scalar:type_name -> temporal.server.api.umpire.v1.ScalarType
 	13, // 2: temporal.server.api.umpire.v1.ContractCaptureType.enumeration:type_name -> temporal.server.api.umpire.v1.NamedType
-	4,  // 3: temporal.server.api.umpire.v1.ContractCaptureSchema.type:type_name -> temporal.server.api.umpire.v1.ContractCaptureType
-	14, // 4: temporal.server.api.umpire.v1.ContractCaptureAssignment.observation:type_name -> temporal.server.api.umpire.v1.ObservationReference
-	15, // 5: temporal.server.api.umpire.v1.ContractTransition.event_kinds:type_name -> temporal.server.api.umpire.v1.RunEventKinds
-	16, // 6: temporal.server.api.umpire.v1.ContractTransition.predicate:type_name -> temporal.server.api.umpire.v1.ValueExpression
-	2,  // 7: temporal.server.api.umpire.v1.ContractTransition.support:type_name -> temporal.server.api.umpire.v1.ContractSupport
-	6,  // 8: temporal.server.api.umpire.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.umpire.v1.ContractCaptureAssignment
-	0,  // 9: temporal.server.api.umpire.v1.ContractRule.kind:type_name -> temporal.server.api.umpire.v1.ContractRuleKind
-	3,  // 10: temporal.server.api.umpire.v1.ContractRule.states:type_name -> temporal.server.api.umpire.v1.ContractState
-	7,  // 11: temporal.server.api.umpire.v1.ContractRule.transitions:type_name -> temporal.server.api.umpire.v1.ContractTransition
-	8,  // 12: temporal.server.api.umpire.v1.ContractRule.horizon:type_name -> temporal.server.api.umpire.v1.ContractHorizon
-	5,  // 13: temporal.server.api.umpire.v1.ContractRule.captures:type_name -> temporal.server.api.umpire.v1.ContractCaptureSchema
-	9,  // 14: temporal.server.api.umpire.v1.Contract.rules:type_name -> temporal.server.api.umpire.v1.ContractRule
-	10, // 15: temporal.server.api.umpire.v1.Contract.limits:type_name -> temporal.server.api.umpire.v1.ContractLimits
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	13, // 3: temporal.server.api.umpire.v1.ContractCaptureType.message:type_name -> temporal.server.api.umpire.v1.NamedType
+	4,  // 4: temporal.server.api.umpire.v1.ContractCaptureSchema.type:type_name -> temporal.server.api.umpire.v1.ContractCaptureType
+	14, // 5: temporal.server.api.umpire.v1.ContractCaptureAssignment.observation:type_name -> temporal.server.api.umpire.v1.ObservationReference
+	15, // 6: temporal.server.api.umpire.v1.ContractTransition.event_kinds:type_name -> temporal.server.api.umpire.v1.RunEventKinds
+	16, // 7: temporal.server.api.umpire.v1.ContractTransition.predicate:type_name -> temporal.server.api.umpire.v1.ValueExpression
+	2,  // 8: temporal.server.api.umpire.v1.ContractTransition.support:type_name -> temporal.server.api.umpire.v1.ContractSupport
+	6,  // 9: temporal.server.api.umpire.v1.ContractTransition.capture_assignments:type_name -> temporal.server.api.umpire.v1.ContractCaptureAssignment
+	0,  // 10: temporal.server.api.umpire.v1.ContractRule.kind:type_name -> temporal.server.api.umpire.v1.ContractRuleKind
+	3,  // 11: temporal.server.api.umpire.v1.ContractRule.states:type_name -> temporal.server.api.umpire.v1.ContractState
+	7,  // 12: temporal.server.api.umpire.v1.ContractRule.transitions:type_name -> temporal.server.api.umpire.v1.ContractTransition
+	8,  // 13: temporal.server.api.umpire.v1.ContractRule.horizon:type_name -> temporal.server.api.umpire.v1.ContractHorizon
+	5,  // 14: temporal.server.api.umpire.v1.ContractRule.captures:type_name -> temporal.server.api.umpire.v1.ContractCaptureSchema
+	9,  // 15: temporal.server.api.umpire.v1.Contract.rules:type_name -> temporal.server.api.umpire.v1.ContractRule
+	10, // 16: temporal.server.api.umpire.v1.Contract.limits:type_name -> temporal.server.api.umpire.v1.ContractLimits
+	17, // [17:17] is the sub-list for method output_type
+	17, // [17:17] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_umpire_v1_contract_proto_init() }
@@ -982,6 +1000,7 @@ func file_temporal_server_api_umpire_v1_contract_proto_init() {
 	file_temporal_server_api_umpire_v1_contract_proto_msgTypes[1].OneofWrappers = []any{
 		(*ContractCaptureType_Scalar)(nil),
 		(*ContractCaptureType_Enumeration)(nil),
+		(*ContractCaptureType_Message)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

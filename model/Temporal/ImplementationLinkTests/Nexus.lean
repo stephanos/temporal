@@ -1,6 +1,5 @@
 import Temporal.Feature.Nexus.Operations
 import Temporal.System.Nexus.ImplementationLink
-import Temporal.System.Nexus.ObservationFaultTests
 
 /-!
 Composed checks for the ordinary Nexus lifecycle. Synthetic Evidence exists only to establish the
@@ -579,91 +578,5 @@ example :
       missingCoordinateResult.implementationLinkDiagnostic?.isNone ∧
       missingCoordinateResult.evaluated?.isNone := by
   native_decide
-
-theorem callerClosureCheckedLinkRetainsCanonicalCorrespondence :
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checkedResult.isOk = true ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.hasCanonicalIdentity = true ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.sourceTarget.id =
-      Temporal.System.Nexus.CallerClosure.target.id ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.sourceTarget.source =
-      Temporal.System.Nexus.CallerClosure.target.source ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.destinationTarget.id =
-      Temporal.Feature.Nexus.Experimental.CallerClosure.target.id ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.destinationTarget.source =
-      Temporal.Feature.Nexus.Experimental.CallerClosure.target.source ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.declaration.capabilityMappings = [
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.capabilityMapping,
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.lifecycleCapabilityMapping,
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.ownershipCapabilityMapping
-    ] ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.sourceTarget.behaviorFingerprint.render =
-      "sha256:6729e790d336a96173ffd0ebe0b2b2d2406e6c5444596924f0c06c4ba9652bf8" ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.destinationTarget.behaviorFingerprint.render =
-      "sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd" ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.behaviorFingerprint.render =
-      "sha256:96b55d0e5a782099f66479c6ced603c08c8046b565f89435b5b2a54848aed777" := by
-  native_decide
-
-namespace DuplicateDelivery
-
-open Temporal.System.Nexus.ImplementationLink.CallerClosure.DuplicateDelivery
-
-def strictApplication := applyImplementationLink
-  Temporal.System.Nexus.ImplementationLink.CallerClosure.checked
-  Temporal.System.Nexus.CallerClosure.setup
-  Temporal.System.Nexus.ObservationFaultTests.completeTrace
-
-def observedApplication := applyObservedTraceTranslation checkedObservedTranslation
-  Temporal.System.Nexus.CallerClosure.setup
-  Temporal.System.Nexus.ObservationFaultTests.completeTrace
-
-def translatedTrace :=
-  observedApplication.translated?.map TranslatedObservedTrace.trace
-
-def propertyEvaluation := translatedTrace.map <|
-  evaluateProperty Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosureProperty
-
-/-- The strict conformance path stays closed while the checked observed path carries no authority. -/
-example :
-    strictApplication.status = .invalid ∧
-    strictApplication.diagnostic?.map ImplementationLinkDiagnostic.kind =
-      some .nonAuthoritativeSourceStep ∧
-    observedApplication.status = .applied ∧
-    observedApplication.translated?.map (fun translation =>
-      (translation.hasAuthorityClaim,
-        translation.evidenceLinks.length,
-        translation.evidenceLinks.all fun evidenceLink =>
-          evidenceLink.implementationLinkId == observedImplementationLinkId &&
-            evidenceLink.implementationLinkBehaviorFingerprint ==
-              checkedObservedTranslation.behaviorFingerprint)) =
-      some (false, 7, true) := by
-  native_decide
-
-/-- The unchanged Feature Property isolates the count-two uniqueness violation. -/
-example : propertyEvaluation.map (fun evaluation =>
-    (evaluation.propertyId,
-      evaluation.satisfied,
-      evaluation.clauses.map fun clause => (clause.clauseId, clause.satisfied))) = some (
-    Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosurePropertyId,
-    false,
-    [
-      (DefinitionId.of "workflow-nexus.property.clause.delivery", true),
-      (DefinitionId.of "workflow-nexus.property.clause.ownership", true),
-      (DefinitionId.of "workflow-nexus.property.clause.uniqueness", false)
-    ]) := by
-  native_decide
-
-example :
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.hasCanonicalIdentity = true ∧
-    Temporal.System.Nexus.ImplementationLink.CallerClosure.checked.declaration.id =
-      Temporal.System.Nexus.ImplementationLink.CallerClosure.implementationLinkId ∧
-    checkedObservedTranslation.hasCanonicalIdentity = true ∧
-    checkedObservedTranslation.declaration.observationMappings.contains {
-      source := sourceCancellationCountTwo
-      destination := destinationCancellationCountTwo
-    } := by
-  native_decide
-
-end DuplicateDelivery
 
 end Temporal.ImplementationLinkTests.Nexus
