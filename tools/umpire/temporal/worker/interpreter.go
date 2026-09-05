@@ -66,7 +66,7 @@ func (i *workflowInterpreter) execute(instruction umpire.InstructionPlan, input 
 	case umpire.Await:
 		return nil, false, i.awaitNexus(instruction)
 	case umpire.Finish:
-		outcome := &umpirespb.InstructionOutcome{Status: umpirespb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
+		outcome := terminalOutcome(instruction, input)
 		if err := validateAndStore(context.Background(), i.values, instruction, outcome); err != nil {
 			return nil, false, err
 		}
@@ -106,12 +106,34 @@ func (i *workflowInterpreter) awaitNexus(instruction umpire.InstructionPlan) err
 		return ErrInvalid
 	}
 	var result umpirespb.Value
-	err := future.Get(i.ctx, &result)
+	ready := future.IsReady()
+	var err error
+	if !ready {
+		ready, err = workflow.AwaitWithTimeout(i.ctx, time.Duration(instruction.Source().GetBounds().GetTimeoutMilliseconds())*time.Millisecond, future.IsReady)
+	}
+	if err == nil {
+		if ready {
+			err = future.Get(i.ctx, &result)
+		} else {
+			err = context.DeadlineExceeded
+		}
+	}
 	outcome := outcomeForError(err)
 	if err == nil {
 		outcome.Value = &result
 	}
 	return validateAndStore(context.Background(), i.values, instruction, outcome)
+}
+
+func terminalOutcome(instruction umpire.InstructionPlan, input *umpirespb.Value) *umpirespb.InstructionOutcome {
+	outcome := &umpirespb.InstructionOutcome{Status: umpirespb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
+	for _, field := range instruction.Source().GetOutcome().GetFields() {
+		if field.GetField() == umpirespb.INSTRUCTION_OUTCOME_FIELD_VALUE {
+			outcome.Value = proto.CloneOf(input)
+			break
+		}
+	}
+	return outcome
 }
 
 func outcomeForError(err error) *umpirespb.InstructionOutcome {
@@ -181,7 +203,7 @@ func (s *Session) interpretNexus(ctx context.Context, activation delivery.Activa
 			return 0, nil, "", ErrInvalid
 		}
 		response := instruction.Source().GetInstruction().GetRespondNexus()
-		if err := validateAndStore(ctx, values, instruction, &umpirespb.InstructionOutcome{Status: umpirespb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}); err != nil {
+		if err := validateAndStore(ctx, values, instruction, terminalOutcome(instruction, input)); err != nil {
 			return 0, nil, "", err
 		}
 		return s.respondNexus(ctx, activation, response, input, options)

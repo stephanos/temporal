@@ -89,9 +89,12 @@ new workflow coverage are explicitly declined.
   pre-task baseline. The inherited repository lint backlog remains unchanged and is reported without
   being claimed green.
 ## Done summary
-TBD
+Reconciled Umpire's normative and current documentation, generated views, semantic inventory, six-class public-facade corpus, transactional fixture ownership, exact regression selectors, structural boundaries, and active delivery order with the Case Runtime and server/worker authority split. The model-routing block now activates all four tiers as `gpt-6-astra at medium`.
 
+The literal lint gate retains the inherited 1,311-finding baseline exactly by total and category, with zero task-owned findings; no green lint claim is made for that repository backlog. This worker created no commit; HEAD advanced externally to `b0862eace5aa7922a46d3333ee3d839d46f4845a` while the task was active.
+
+stage: impl-review - ran [2026-09-05T13:39:24Z..2026-09-05T14:05:55Z] (NEEDS_WORK -> SHIP; final fresh review `gpt-6-astra` at `medium`)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: b0862eace5aa7922a46d3333ee3d839d46f4845a
+- Tests: go test -count=1 -tags test_dep ./tools/umpire/internal/execution/... ./tools/umpire/verification/..., go test -count=1 -tags test_dep ./tools/umpire/temporal/server/... ./tools/umpire/temporal/worker/..., go test -count=1 -tags 'test_dep integration' ./tests -run TestUmpireAsyncNexusCase, go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tools/umpire -run 'TestRunGeneration|TestCaseRuntimePublicFacadeConformance', go test -count=1 -tags test_dep ./tools/umpire/regression -run '^(TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim|TestUmpireSourcesCannotRegainLegacyTemporalAuthority|TestCaseRuntimeFacadeAndExecutionImportBoundary|TestMigrationLedgerAndGenericPromotionRemainClosed)$', make umpire-gen-regression-views, make umpire-gen-semantic-inventory, make umpire-check-case-runtime-conformance, make umpire-check-legacy-vocabulary, make umpire-build-model, make umpire-check-regression, make fmt-imports, make lint-code (executed; inherited 1,311-finding baseline unchanged by total and category; zero task-owned findings)
 - PRs:

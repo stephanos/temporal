@@ -1,298 +1,155 @@
 # Umpire 4 delivery order
 
-Status: current after the Case Runtime cutover. Entries explicitly labeled superseded or deferred
-are historical scheduling context, not runtime recommendations.
+Status: current. The numbered queue contains only retained open work. Entries explicitly marked
+historical, superseded, or deferred are planning context and are not runtime recommendations.
 
 ## Goal
 
-Build and hard-cut over to the standalone, data-driven Umpire Case Runtime specified by
-`fn-64-umpire-case-runtime` and `.plans/UMPIRE_CASE_RUNTIME_DESIGN.md`. The first complete proof is
-one Lean-produced async Nexus-success Case; caller closure and the scenario-specific
-`PortableTestPlan` path are not part of the replacement.
+Build on the completed Case Runtime with approachable model authoring, one separate Nexus2
+authoring experiment, and removal of tooling that no retained consumer needs. Keep semantic
+authority in Lean and generic execution in Go without reopening the retired scenario-specific
+runtime.
 
-The runtime proves these boundaries:
+## Completed foundation
 
-- Umpire's versioned `Case` contains one bounded `Program` and one deterministic `Contract`; Lean is
-  one Producer, not a runtime dependency.
-- `PrepareCase(case, profile)` performs static validation once and returns an immutable
-  `PreparedCase`; normal execution is the single root call `PreparedCase.Run(ctx, host)`, which can
-  drive isolated sequential or concurrent Runs.
-- Execution and Monitor composition are internal deep modules. The prepared Contract supplies the
-  authoritative verifier; alternate Hosts, not arbitrary Monitors, are the public extension seam. A
-  safety violation unconditionally stops ordinary execution; bounded liveness fails only when its
-  recorded horizon closes.
-- The Temporal Host separates server and worker authority. The server side can invoke any authorized
-  unary protobuf RPC dynamically; the worker side uses only replay-safe SDK clients and APIs.
-- Typed assignments and projections use bounded protobuf payload paths such as `foo.bar.baz`.
-  Scenario behavior and checks remain data in the Case rather than new Go adapters.
-- The initial Contract consumes only declared authoritative server-history Observations. Runtime
-  timestamps, UUIDs, and other randomized payload data do not require response digests.
+[Fn-64](../.flow/specs/fn-64-umpire-case-runtime.md) delivered the two-call Case Runtime, the
+Lean-produced async Nexus proof, the reviewed
+[legacy removal ledger](../.flow/artifacts/fn-64-umpire-case-runtime/task8-migration-ledger.md), and
+the independent six-class facade corpus with the full regression gate. That work is a completed
+foundation for the open queue, not an active delivery step.
 
-The numbered execution queue contains only open retained work. Numbering expresses delivery
-priority; explicit dependencies are shown below.
+## Current boundaries
+
+- A versioned `Case` contains one bounded `Program` and one deterministic `Contract`; Lean is a
+  Producer and is not a runtime dependency.
+- The public execution sequence is `PrepareCase(case, profile)` followed by
+  `PreparedCase.Run(ctx, host)`. Prepared Cases support isolated sequential and concurrent Runs.
+- Scheduling, recording, Slot storage, Monitor construction, typed request construction, and
+  response projection remain internal execution responsibilities.
+- Temporal server authority supplies authorized descriptors and transports prepared unary calls.
+  Temporal worker authority owns SDK workflow, activity, Nexus-handler, reservation, and
+  activation-cancellation behavior.
+- Contracts consume declared typed Run Observations. Private Slots do not become evidence, and
+  randomized runtime identities do not require response digests.
+- New scenarios and properties remain Case data. They must not add scenario-specific Go adapters,
+  public Monitor selection, or a replacement resident executor service.
+- Downstream specs rewritten for the Case Runtime require a fresh plan review. A review of an older
+  execution architecture does not approve a rewritten plan.
 
 ## Active execution queue
 
-### 1. fn-64 — Umpire Case Runtime
+### 1. fn-62 — Make ordinary Temporal model authoring approachable
 
-**Depends on:** no open spec dependency.
+**Depends on:** completed fn-58; no open spec dependency.
 
-**Scope:** define the public Case IR and standalone Go preparation, execution, verification, and
-Temporal Host APIs behind a two-call root facade; compile and prepare an orthogonal `GetSystemInfo`
-Case, then compile and run the async Nexus Case; preserve fn-5's generic checked-promotion seam and
-remove the legacy `PortableTestPlan`, property-specific checker, Run Evaluation, scenario Nexus
-adapter, and caller-closure path through an explicit migration ledger. Add only a six-class
-independent-oracle facade corpus, not broad test consolidation. No public Monitor replacement,
-compatibility reader, replacement executor service, streaming RPC support, production canary
-controller, or replay/audit digest is included.
+**Deliver:** reduce Lean ceremony for ordinary finite Targets, checked Properties, Behaviors,
+Queries, plans, and Observations while preserving the existing languages and checker authority.
+Deepen the finite machine and planner adapters, make identities, sources, Limits, transition
+contracts, Observation builders, and optional Known Gaps explicit, and migrate the ordinary Nexus
+walkthroughs plus one newcomer example.
 
-The validated implementation waves are:
+**Keep:** explicit semantic choices, stable Definition IDs and Behavior Fingerprints, deterministic
+plans, public imports, trust inventories, and existing failure boundaries. Do not add another
+authoring language or redesign expert and Experimental paths.
 
-1. `fn-64.1` — define the versioned Umpire Case IR.
-2. `fn-64.2` — compile the shared typed IR, descriptor catalog, literals, paths, and expressions.
-3. `fn-64.11` — admit Programs and static Host policy, define private execution contracts, and add
-   explicit bounded controller-side activation reservations.
-4. `fn-64.12` — compile static Contract and capture admission.
-5. `fn-64.3` — implement deterministic Contract evaluation.
-6. Parallel candidates: `fn-64.13` — compose public `PrepareCase`, Profile/Host adapters and private
-   preflight; `fn-64.14` — typed request construction and projection data plane; `fn-64.15` —
-   append-only recorder and Monitor barrier. After `fn-64.14` and `fn-64.15`, `fn-64.4` integrates
-   both into internal generic DAG scheduling and activation reservations.
-7. After `fn-64.13`: `fn-64.5` — Temporal server Host. Worker prerequisites are `fn-64.16` —
-   shared prepared worker values, `fn-64.17` — carrier policy/topology admission, and then
-   `fn-64.18` — bounded Host delivery routing. After `fn-64.16` and `fn-64.18`, `fn-64.6`
-   implements the Temporal worker Host. After
-   `fn-64.4` and `fn-64.13`: `fn-64.9` — complete root `Run`, abort, cleanup, terminal precedence, and reusable
-   PreparedCase Runs.
-8. `fn-64.7` — compile/prepare the orthogonal `GetSystemInfo` Case, then compose the Host and
-   compile/execute the async Nexus Case without runtime specialization.
-9. `fn-64.8` — account for the legacy test surface, preserve fn-5's generic promotion primitives,
-   and remove the legacy Umpire execution path.
-10. `fn-64.10` — add the six-class conformance corpus and reconcile normative docs, generated
-   artifacts, and regression gates.
+[Open fn-62 spec](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md)
 
-### 2. fn-62 — Make ordinary Temporal model authoring approachable
+### 2. fn-65 — Design and prototype approachable Nexus2 feature authoring
 
-**Depends on:** completed fn-58's frozen Property facade; no open spec dependency.
+**Depends on:** no open spec dependency. Coordinate overlapping authoring changes with fn-62;
+fn-65 remains a separate experiment rather than a replacement.
 
-**Scope:** reduce the Lean-specific ceremony required to author an ordinary finite Target, checked
-Property, Behavior, Query, plan, and Observation while preserving Umpire's existing languages and
-checker authority. Deepen `FiniteMachine` and finite planner-kernel adapters; add explicit
-family-rooted identities, source locations, named Query Limits, transition-contract helpers, typed
-Observation builders, and optional model-owned Known Gaps; migrate the ordinary Nexus lifecycle and
-operation walkthroughs; and add one checked newcomer example. Preserve explicit semantic choices,
-public imports, Definition IDs, Behavior Fingerprints, deterministic plans, artifact identity except
-for reviewed source/Known Gap deltas, trust inventories, failure boundaries, and existing comments.
-Do not add another authoring language, infer providers or Model Outcomes, hide checker-success
-evidence, redesign the expert `TransitionKernel` or Experimental fault-space paths, or add broad
-generated-API drift and CI coverage.
+**Deliver:** prototype ordinary feature authoring under `model/Temporal/Feature/Nexus2`, starting
+with the current Nexus lifecycle and a separate cancellation/completion race. Compare typed
+transition records and focused syntax over the checked Target, Property, Behavior, and Query
+interfaces. Keep outcomes, identities, Query forms, typed Limits, diagnostics, and coverage or
+conflict analysis explicit.
 
-### 3. fn-65 — Design and prototype approachable Nexus2 feature authoring
+**Defer from this prototype:** caller closure, general temporal expressions, System/Evidence
+integration, live execution, and a generated product-owner view.
 
-**Depends on:** no open spec dependency. Coordinate overlapping Umpire authoring changes with
-fn-60 and fn-62; this is a separate experiment, not a replacement for fn-62.
+[Open fn-65 spec](../.flow/specs/fn-65-design-and-prototype-approachable.md) ·
+[Nexus2 design](../model/Temporal/Feature/Nexus2/DESIGN.md)
 
-**Planning status:** proposed design; review the authoring interface before finalizing the prototype
-implementation plan. See the [fn-65 spec](../.flow/specs/fn-65-design-and-prototype-approachable.md)
-and [Nexus2 design](../model/Temporal/Feature/Nexus2/DESIGN.md).
+### 3. fn-66 — Remove unused Umpire tooling after the cutovers
 
-**Scope:** prototype ordinary feature authoring under `model/Temporal/Feature/Nexus2`, beginning
-with the current Nexus lifecycle and then a separate cancellation/completion race. Compare typed
-transition records and focused syntax over the existing checked Target, Property, Behavior, and
-Query interfaces. Make possible outcomes, stable identities, Query forms, and typed Limits explicit
-while removing routine proof and encoding work from feature authors. Extend the Property language
-with typed conditions, named cases, trigger-time exceptions, and bounded coverage/conflict analysis;
-all applicable obligations hold together, without priority-based overrides. Evaluate state/transition
-extension, source-located diagnostics, checker performance, trust dependencies, and developer
-comprehension. Preserve the established Nexus model and existing semantic authority.
+**Depends on:** fn-62 only. Fn-64 is completed foundation and is not an open dependency.
 
-**Deferred:** caller closure, general temporal expressions, System/Evidence integration, live
-execution, and a generated product-owner reading view until the initial authoring prototype works.
+**Deliver:** inventory remaining `tools/umpire` packages and commands against retained runtime,
+Producer, authoring, generation, regression, and downstream consumers. Remove only proven-unused
+code, exclusively owned tests and fixtures, and obsolete build, workflow, and documentation
+references. Resolve ambiguous ownership before deletion and preserve concrete retained contracts.
 
-### 4. fn-66 — Remove unused Umpire tooling after runtime and authoring cutovers
+**Boundary:** extend the deletion accounting without repeating fn-64 cleanup. This work does not
+depend on fn-60.
 
-**Depends on:** fn-64 and fn-62 complete.
+[Open fn-66 spec](../.flow/specs/fn-66-remove-unused-umpire-tooling-after.md)
 
-**Scope:** inventory every remaining `tools/umpire` package and command against retained runtime,
-Producer, authoring, generation, regression, and downstream consumers; remove proven unused code,
-exclusively owned tests/fixtures, and obsolete direct build, workflow, and documentation references.
-Extend fn-64's deletion accounting and preserve concrete retained contracts. Older-generation and
-general artifact support are eligible where no retained consumer remains; ambiguous ownership must
-be resolved before deletion. This follow-up does not repeat fn-64.8/.10 or depend on fn-60.
-
-**Task:** `fn-66.1` — inventory retained consumers and remove unused Umpire tooling.
-
-### 5. fn-60 — Deepen authored Lean canonical JSON construction
+### 4. fn-60 — Deepen handwritten Lean canonical JSON construction
 
 **Depends on:** no open spec dependency; excludes the completed `Umpire.Property` partition.
 
-**Priority:** optional internal maintenance after the authoring work. Retain this cleanup because
-fn-62 does not consolidate serialization; it is not a prerequisite for fn-62.
+**Priority:** optional and distinct from fn-62 and fn-66. It is not a prerequisite for either.
 
-**Scope:** make `Umpire.Json` the single typed construction and exact-rendering interface for Core
-Limit JSON and the handwritten Target, Behavior, Query, Space, Exploration, Observation, and
-Implementation Link formatters. Preserve public interfaces, validation and diagnostic precedence,
-field and element order, escaping and newline policy, canonical metadata, Artifact bytes, Behavior
-Fingerprints, imports, trust inventories, performance characteristics, and existing comments. Do
-not add parsing, validation hardening, alternate compatibility helpers, generated Lean or protocol
-changes, drift verification, or CI work.
+**Deliver:** make `Umpire.Json` the single typed construction and exact-rendering interface for
+handwritten Core Limit JSON and the handwritten Target, Behavior, Query, Space, Exploration,
+Observation, and Implementation Link formatters. Preserve exact bytes, ordering, escaping,
+newlines, metadata, fingerprints, imports, trust inventories, performance, and comments.
 
-## Downstream work after the Case Runtime
+**Boundary:** this is handwritten canonical JSON construction and is unrelated to generated
+protobuf encoding. Do not add parsing, protocol changes, generated Lean work, drift gates, or CI.
 
-Draft replans for fn-22, fn-26, fn-29, and fn-33 now use `Case`, `PreparedCase`, `Run`, and
-`Verdict`. Their dependency graphs no longer reach the superseded `PortableTestPlan`, Run
-Evaluation, resident-executor, or caller-closure execution model. These drafts are not
-implementation-ready until they pass a fresh plan review against fn-64; any older `SHIP` receipt
-predates the Case Runtime replan and is not evidence for the rewritten plan.
+[Open fn-60 spec](../.flow/specs/fn-60-deepen-authored-lean-canonical-json.md)
 
-Current planning state:
-
-| Spec | State | Next planning action |
-| --- | --- | --- |
-| fn-33 | Case Runtime draft; structurally valid | Review the full-Case bridge, serial coordinator, lost-iteration handling, and bounded 10x behavior. |
-| fn-22 | `MAJOR_RETHINK` from Case Runtime review | Separate candidate identity from violation equivalence, move the negative-Case proof before reduction, add explicit offline semantic replay, and preserve a Case-native fn-5 promotion seam across fn-64 deletion. |
-| fn-26 | Case Runtime draft; structurally valid | Review exact offline Case/Profile/Host/Run/Verdict admission, receipt multiplicity, and idempotent publication. |
-| fn-29 | Case Runtime draft; structurally valid | Review only after fn-26's receipt boundary is stable; verify external canary ownership, lost Runs, and reconcile-without-redispatch. |
-
-### fn-33 — Run model exploration campaigns with umpire-fuzz
-
-**Depends on:** completed fn-40's ordinary PlannerPolicy surface and fn-64.
-
-**Planning status:** draft replan; fresh Case Runtime plan review required.
-
-**Scope:** a serial bounded `umpire-fuzz run` command that asks the Lean-owned exploration layer for
-candidates, prepares each Case through the standalone API, executes it to a `Run` and `Verdict`, and
-reports semantic coverage and exhaustion honestly. Each bridge candidate is a whole canonical Case;
-preparation rejection, inconclusive work, cleanup uncertainty, and lost iterations receive no
-coverage.
-
-**Deferred:** concurrency, leases, crash-safe campaign state, and resume.
-
-### fn-22 — Deterministic replay, model minimization, and reviewed promotion
-
-**Depends on:** fn-5's checked review-only promotion source and fn-64.
-
-**Planning status:** blocked on redesign after `MAJOR_RETHINK`; do not implement the current task
-graph.
-
-**Scope:** consume the fn-21 violation through the Case Runtime's `Run` and `Verdict`, reproduce it
-exactly, and try every applicable authored reduction in fixed order while preserving the same
-violation. The exact control may be irreducible; its diagnostic EvidenceCore must still omit one
-labeled non-responsible evidence fact without rewriting admitted evidence artifacts. Semantic
-replay remains distinct from concrete rerun.
-
-“Same violation” must use a Contract-relative equivalence signature, not canonical Case identity.
-Each reduction candidate retains its own exact Case/Program identity and checked lineage, while the
-equivalence signature binds the unchanged Contract, Profile/catalog, violated terminal state,
-responsible clause, and canonical supporting-Observation relation. Intentionally reducible Program
-coordinates are excluded from that signature.
-
-Fn-22's first executable gate is the Case-native negative control: compile the replacement Case,
-evaluate the original closed Run offline, and reproduce the violation in two fresh Runs before
-building the reducer or command. The review-only promotion task follows completed minimization; it
-cannot run in parallel with the reduction-result contract.
-
-Fn-64 may remove the caller-closure scenario binding, fixtures, and runtime, but its cutover must
-leave fn-5's scenario-neutral checked-promotion primitives buildable. Fn-22 later supplies a new
-Case-native expected-behavior anchor; it must not restore the deleted caller-closure model or import.
-
-Reduction continues until every remaining applicable authored edit conclusively fails to preserve
-the violation. Only a complete `minimized` or `irreducible` result may feed one checked review-only
-Lean regression proposal.
-
-**Deferred:** SDK history replay, generic reducers, campaign orchestration, and automatic regression
-installation.
-
-### fn-26 — Local qualification receipts and staged profiles
-
-**Depends on:** completed fn-48 Known Gap policy and fn-64.
-
-**Planning status:** draft replan; fresh Case Runtime plan review required.
-
-**Scope:** retain the qualification and Claim Assessment intent, but bind receipts to the new Case,
-preparation Profile/catalog, live Host, Run, and Verdict identities. Assessment is offline and never
-creates or replays a Run.
-
-### fn-29 — Bounded production canary execution and Claim Assessment
-
-**Depends on:** fn-26, completed fn-48, and fn-64.
-
-**Planning status:** draft replan; review after fn-26's receipt and publication contracts ship.
-
-**Scope:** prepare and validate a Case once, then execute that immutable PreparedCase through bounded
-serial Runs under separately owned canary orchestration. Preserve the server/worker Host split; keep
-canary policy, credentials, leases, lost-iteration recovery, reconciliation, and publication outside
-Umpire.
-
-The current dependency shape is:
+## Current dependency graph
 
 ```text
-fn-64.1 -> fn-64.2 -> fn-64.11 -> fn-64.12 -> fn-64.3
-{fn-64.3, fn-64.11} -> {fn-64.13, fn-64.14, fn-64.15}
-{fn-64.14, fn-64.15} -> fn-64.4
-fn-64.13 -> fn-64.5
-{fn-64.13, fn-64.14} -> fn-64.16
-{fn-64.11, fn-64.13} -> fn-64.17 -> fn-64.18
-{fn-64.16, fn-64.18} -> fn-64.6
-{fn-64.4, fn-64.13} -> fn-64.9
-{fn-64.4, fn-64.5, fn-64.6, fn-64.9} -> fn-64.7 -> fn-64.8 -> fn-64.10
+fn-58 (completed) -> fn-62 -> fn-66
+fn-65 (independent Nexus2 authoring experiment; coordinate with fn-62)
+fn-60 (optional handwritten JSON maintenance; no dependency on or from fn-62/fn-66)
 
-fn-58 (completed) -> fn-62
-{fn-64, fn-62} -> fn-66
-fn-60 (optional maintenance; no dependency on or from fn-62)
-fn-65 (independent Nexus2 authoring experiment)
-
-{fn-5, fn-64} -> fn-22
-{fn-48, fn-64} -> fn-26
-{fn-40, fn-64} -> fn-33
-{fn-26, fn-48, fn-64} -> fn-29
+fn-40 (completed) + fn-64 (completed) -> fn-33
+fn-5  (completed) + fn-64 (completed) -> fn-22
+fn-48 (completed) + fn-64 (completed) -> fn-26 -> fn-29
 ```
 
-Fn-30 remains later release-governance work.
+## Downstream Case Runtime planning
 
-## Case Runtime verification gate
+These specs use `Case`, `PreparedCase`, `Run`, and `Verdict`. Each needs a fresh Case Runtime plan
+review before implementation. Fn-22 remains blocked on redesign, and fn-26 must establish its
+receipt and publication boundary before fn-29 is reviewed.
 
-Fn-64 closes only when the async Nexus Case passes through the public standalone APIs, one prepared
-Case supports isolated repeated Runs through `PreparedCase.Run(ctx, host)`, and the orthogonal
-`GetSystemInfo` Case compiles and prepares without Host I/O or runtime specialization. Live and
-offline Contract evaluation must agree; server and worker authority remain separate; safety-stop
-and cleanup precedence are race-tested; and the legacy path is gone only after the migration ledger
-accounts for every deleted top-level Test/Fuzz and inherited failure identity. The six facade proof
-classes must use independent expected results, exact bytes or named stable projections, and
-interruption-safe temporary-tree generation. The full tagged live selector remains
-`-run '^TestUmpire'`. The focused unit, race, integration, model-build, regression, import-format,
-and lint gates listed in the fn-64 spec must pass. Dependency edits must pass
-`flowctl validate --all --json`.
+| Spec | Dependency | Status | Next action |
+| --- | --- | --- | --- |
+| [fn-33](../.flow/specs/fn-33-run-serial-bounded-semantic-exploration.md) | Completed fn-40 and fn-64 | Structurally valid draft | Review whole-Case candidates, the serial coordinator, lost iterations, semantic coverage, and bounded 10x behavior. |
+| [fn-22](../.flow/specs/fn-22-deterministic-replay-semantic.md) | Completed fn-5 and fn-64 | **MAJOR_RETHINK; do not implement** | Separate candidate identity from violation equivalence, prove the negative Case before reduction, add explicit offline semantic replay, and retain the Case-native checked-promotion seam. |
+| [fn-26](../.flow/specs/fn-26-local-qualification-receipts-and-staged.md) | Completed fn-48 and fn-64 | Structurally valid draft | Review exact offline Case/Profile/Host/Run/Verdict admission, receipt multiplicity, idempotent publication, and the rule that assessment never creates or replays a Run. |
+| [fn-29](../.flow/specs/fn-29-bounded-production-canary-execution-and.md) | fn-26; completed fn-48 and fn-64 | Draft waiting for fn-26 | After fn-26 ships, review external canary policy and credentials, serial Runs, leases, lost Runs, reconciliation without redispatch, and publication. |
 
-The former portable self-hosted prototype gate was satisfied for the now-superseded
-`PortableTestPlan` architecture. It remains historical evidence only and does not unblock downstream
-work against the new runtime.
+Fn-33 remains a bounded serial exploration bridge. Fn-22 must use Contract-relative violation
+equivalence and preserve exact candidate identities. Fn-29 keeps canary policy, credentials,
+leases, recovery, reconciliation, and publication outside Umpire.
 
-Fn-64's deletion gate must also prove that the scenario-neutral fn-5 checked-promotion primitives
-still build without caller-closure imports. This preserves a valid downstream seam without retaining
-the old scenario, runtime, fixtures, or compatibility path.
+## Removed from the active queue
 
-## Removed from the current queue
+The following entries are explicitly historical and superseded. Flow has no cancelled child-task
+state, so their old tracker tasks may remain `todo`; that representation does not make them active.
 
-### Tombstoned as superseded
+| Spec | Historical reason |
+| --- | --- |
+| [fn-14](../.flow/specs/fn-14-milestone-a-pilot-baseline-and-lean.md) | Milestone A pilot baseline; its own architecture reconciliation marks it historical and forbids using it as a roadmap gate. |
+| [fn-61](../.flow/specs/fn-61-simplify-the-umpire-go-execution-surface.md) | Superseded by fn-64 after the `PortableTestPlan` resident-executor boundary was discarded. |
+| [fn-63](../.flow/specs/fn-63-consolidate-umpire-go-tests-into-golden.md) | Superseded; any broader test consolidation requires a new Case Runtime proposal and independent-oracle design. |
 
-Flow currently has no superseded/cancelled child-task state. These specs therefore remain open and
-intentionally unready with historical `todo` tasks; that tracker representation is not an
-implementation queue.
+## Deferred work
 
-- **fn-14 — Milestone A pilot baseline and Lean-first usability decision.** Its own architecture
-  reconciliation marks it as historical and prohibits using it as a roadmap gate.
-- **fn-61 — Simplify the Umpire Go execution surface.** Its spec is tombstoned and its dependencies
-  removed because fn-64 replaces the discarded `PortableTestPlan` resident-executor boundary.
-- **fn-63 — Consolidate Umpire Go tests into golden scenarios.** Its spec is tombstoned and its
-  dependencies removed; any useful consolidation requires a new Case Runtime proposal after fn-64.
+These retained specs are explicitly deferred scheduling context, not prerequisites for the active
+queue.
 
-### Defer until the Case Runtime demonstrates value
-
-- **fn-15 — Standalone API and config input catalogs.** Platform completeness, not prototype proof.
-- **fn-23 — Veil toolchain compatibility and adoption gate.** Optional checker investigation.
-- **fn-24 — Lean-native verification receipts and canonical replay.** Receipt/profile platform;
-  the Case Runtime's bounded checking is sufficient for its first proof.
-- **fn-25 — Optional CallerClosure Veil binding and canonical replay.** Second verification backend.
-- **fn-30 — Release evidence graph and manual authorization.** Release governance after real
-  Claim Assessment evidence exists.
+| Spec | Defer until / reason |
+| --- | --- |
+| [fn-15](../.flow/specs/fn-15-standalone-api-and-config-input-catalogs.md) | Platform completeness is needed beyond the first proven model family. |
+| [fn-23](../.flow/specs/fn-23-veil-toolchain-compatibility-and.md) | Optional checker adoption becomes valuable. |
+| [fn-24](../.flow/specs/fn-24-lean-native-verification-receipts-and.md) | A receipt/profile platform is justified; current bounded Contract checking is sufficient. |
+| [fn-25](../.flow/specs/fn-25-optional-callerclosure-veil-binding-and.md) | A second verification backend is justified; caller closure remains historical. |
+| [fn-30](../.flow/specs/fn-30-release-evidence-graph-and-manual.md) | Real Claim Assessment evidence exists for later release governance. |

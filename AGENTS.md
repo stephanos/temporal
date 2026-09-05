@@ -121,9 +121,8 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 <!-- flow-next:model-routing:start -->
 ## Model routing
 
-<!-- Scaffolded by /flow-next:setup as an EXAMPLE to edit. Every routing line
-     below is commented out, so nothing is routed until you uncomment one.
-     These are your preferences to fill in - never detected facts. flow-next
+<!-- Scaffolded by /flow-next:setup as an EXAMPLE to edit. The active routing lines
+     below record explicit user preferences rather than detected facts. flow-next
      does not know which models your account serves and never writes one here. -->
 
 <!-- Grammar: <tier>: <model> or <tier>: <model> at <effort>
@@ -133,13 +132,17 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 <!-- reviewer: <model> - anything grading work someone else
      produced. Prefer a different family than the writer: a same-family review
      is not an independent verdict. Advice, not enforcement. -->
+reviewer: gpt-6-astra at medium
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
      implements. -->
+implementer: gpt-6-astra at medium
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
+fast scout: gpt-6-astra at medium
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
+thinking scout: gpt-6-astra at medium
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session

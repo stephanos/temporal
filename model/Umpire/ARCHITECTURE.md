@@ -30,7 +30,7 @@ Focused public imports are available by responsibility:
 | `Umpire.Artifact` | Retained model-planning and offline-analysis artifact codecs. |
 | `Umpire.Json` | Ordered JSON construction for codec owners. |
 | `Umpire.Case` | Case, Program, Contract, Run, typed value, and Verdict data. |
-| `Umpire.Case.Compiler` | Checked Producer input and deterministic Case lowering. |
+| `Umpire.Case.Compiler` | Producer assembly and deterministic Case lowering. |
 
 Implementation modules remain behind these facades. Reusable Umpire modules cannot import the
 domain-specific Temporal modules; the complete import graph is enforced by `make lint-model`.
@@ -119,10 +119,11 @@ operational and cleanup failures.
 
 ## Case compiler
 
-`Umpire.Case.Compiler.compile` accepts complete checked Producer data and either returns one Case or
-a source-bound lowering error. Lowering validates stable bindings, Program and Contract closure,
-types, paths, instruction contexts, limits, Known Gaps, and provenance. Unsupported input is rejected
-instead of omitted.
+`Umpire.Case.Compiler.compile` assembles Producer data into a Case and lowers declared properties
+into Contract monitors, returning a source-bound lowering error for unsupported property constructs
+instead of omitting them. It does not statically validate the assembled Program. Go `PrepareCase`
+owns static admission, including stable bindings, Program and Contract closure, types, paths,
+instruction contexts, limits, Known Gaps, and provenance, before Host I/O.
 
 The compiler is deterministic. `Umpire.Case.ProtoJSON.canonical` emits the canonical Case bytes used
 at the Go boundary. Temporal-specific producer declarations live outside Umpire.
