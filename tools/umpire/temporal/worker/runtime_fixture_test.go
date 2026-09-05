@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
-func preparedRuntimeFixture(t *testing.T, responseKind umpirespb.NexusResponseKind) *execution.PreparedProgram {
+func preparedRuntimeFixture(t *testing.T, responseKind umpirespb.NexusResponseKind, modify ...func(*umpirespb.Program)) *execution.PreparedProgram {
 	t.Helper()
 	file := workflowservice.File_temporal_api_workflowservice_v1_service_proto
 	catalog, err := ir.NewCatalog(descriptorClosure(file))
@@ -66,6 +66,9 @@ func preparedRuntimeFixture(t *testing.T, responseKind umpirespb.NexusResponseKi
 	if responseKind == umpirespb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
 		program.Slots = []*umpirespb.SlotSchema{{SlotId: "capability", Kind: umpirespb.SLOT_KIND_OPAQUE_CAPABILITY, Type: &umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{Type: &umpirespb.SingularType_OpaqueCapability{OpaqueCapability: &umpirespb.OpaqueCapabilityType{}}}}}}}
 		respond.Instruction.GetRespondNexus().CapabilitySlotId = "capability"
+	}
+	for _, apply := range modify {
+		apply(program)
 	}
 	prepared, err := execution.Prepare(&umpirespb.Case{Version: &umpirespb.FormatVersion{Major: 1}, CaseId: "case", Program: program, Contract: &umpirespb.Contract{ContractId: "contract"}}, catalog, policy)
 	require.NoError(t, err)
