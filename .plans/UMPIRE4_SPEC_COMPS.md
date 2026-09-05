@@ -1,6 +1,9 @@
 # Umpire4 deep-module architecture
 
-Status: approved architecture specification for the present and intended Umpire4 system.
+Status: superseded historical architecture. Case Runtime boundaries are normative in
+[`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md) and summarized in
+[`UMPIRE4_COMPONENTS.md`](UMPIRE4_COMPONENTS.md); the legacy interfaces below are retained only as
+design history and MUST NOT be used as current implementation guidance.
 
 This document defines the module structure, interfaces, dependency direction, artifact seams, and
 development priorities for Umpire4. It refines the component inventory in

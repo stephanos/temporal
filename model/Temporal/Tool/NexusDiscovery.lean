@@ -1,5 +1,4 @@
 import Lean.Data.Json
-import Temporal.Feature.Nexus.Experimental.CallerClosure
 import Temporal.Feature.Nexus.Operations.AsyncStart
 import Temporal.Feature.Nexus.Operations.Cancellation
 import Temporal.Feature.Nexus.Operations.SuccessfulCompletion
@@ -7,7 +6,7 @@ import Temporal.Feature.Nexus.Operations.SuccessfulCompletion
 /-!
 # Closed Nexus discovery inventory
 
-This module projects four existing checked Nexus examples into one deterministic inventory. Its
+This module projects three existing checked Nexus examples into one deterministic inventory. Its
 private entry constructor ensures callers can observe only rows whose declaration ownership,
 planned Artifact lineage, exact membership, and canonical order were validated together.
 The canonical list projection exposes compact summaries of those checked bindings.
@@ -81,7 +80,7 @@ structure NexusDiscoveryEntry where
   plan : NexusDiscoveryPlan
   deriving BEq, DecidableEq, Repr
 
-/-- The validated four-row inventory in canonical query-identity order. -/
+/-- The validated three-row inventory in canonical query-identity order. -/
 structure NexusDiscoveryInventory where
   private mk ::
   entries : List NexusDiscoveryEntry
@@ -185,12 +184,7 @@ private def expectedCandidates : List NexusDiscoveryCandidate := [
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.behavior
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact,
-  candidateOf
-    Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosureProperty
-    Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionBehavior
-    Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQuery
-    (some Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact)
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact
 ]
 
 private def candidateLe (left right : NexusDiscoveryCandidate) : Bool :=

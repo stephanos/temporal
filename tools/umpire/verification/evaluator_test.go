@@ -10,6 +10,7 @@ import (
 	umpirespb "go.temporal.io/server/api/umpire/v1"
 	"go.temporal.io/server/tools/umpire/internal/execution"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 func event(sequence, elapsed int64, kind umpirespb.RunEventKind) *umpirespb.RunEvent {
@@ -124,6 +125,68 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 			offline, err := p.Evaluate(context.Background(), run)
 			require.NoError(t, err)
 			require.True(t, proto.Equal(live, offline))
+		})
+	}
+}
+
+func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
+	c, catalog, view, ceiling := fixture(t, 64)
+	c.Limits.MaxCaptureBytes = 72
+	rule := c.Rules[0]
+	rule.Captures = []*umpirespb.ContractCaptureSchema{{CaptureId: "saved-message", Type: &umpirespb.ContractCaptureType{Type: &umpirespb.ContractCaptureType_Message{Message: &umpirespb.NamedType{ProtobufType: "example.Empty"}}}}}
+	rule.Transitions[0] = transition("save", "start", "good", present(observation("message")))
+	rule.Transitions[0].CaptureAssignments = []*umpirespb.ContractCaptureAssignment{{CaptureId: "saved-message", Observation: &umpirespb.ObservationReference{ObservationId: "message"}}}
+
+	tooSmall := proto.CloneOf(c)
+	tooSmall.Limits.MaxCaptureBytes--
+	_, err := Prepare(tooSmall, catalog, view, ceiling)
+	require.Error(t, err)
+	wrongDescriptor := proto.CloneOf(c)
+	wrongDescriptor.Rules[0].Captures[0].Type.GetMessage().ProtobufType = "example.Missing"
+	_, err = Prepare(wrongDescriptor, catalog, view, ceiling)
+	require.Error(t, err)
+
+	prepared, err := Prepare(c, catalog, view, ceiling)
+	require.NoError(t, err)
+	monitor, err := prepared.New(t.Context(), view)
+	require.NoError(t, err)
+	evaluator := monitor.(*Evaluator)
+	_, err = evaluator.Observe(t.Context(), event(1, 0, umpirespb.RUN_EVENT_KIND_RUN_OPENED))
+	require.NoError(t, err)
+	value := &umpirespb.Value{Value: &umpirespb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
+	observed := event(2, 1, umpirespb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+	observed.Observations = []*umpirespb.ObservationValue{{ObservationId: "message", Value: value}}
+	_, err = evaluator.Observe(t.Context(), observed)
+	require.NoError(t, err)
+	require.Equal(t, int64(proto.Size(value))+8, evaluator.captureBytes)
+	value.GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
+	require.Equal(t, "type.googleapis.com/example.Empty", evaluator.rules[0].captures["saved-message"].value.GetMessageValue().GetTypeUrl())
+
+	for _, test := range []struct {
+		name   string
+		mutate func(*Evaluator, *umpirespb.Value)
+	}{
+		{name: "descriptor", mutate: func(_ *Evaluator, value *umpirespb.Value) {
+			value.GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
+		}},
+		{name: "retained byte ceiling", mutate: func(evaluator *Evaluator, value *umpirespb.Value) {
+			evaluator.captureBytes = c.Limits.MaxCaptureBytes - int64(proto.Size(value)) - 7
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			monitor, err := prepared.New(t.Context(), view)
+			require.NoError(t, err)
+			evaluator := monitor.(*Evaluator)
+			_, err = evaluator.Observe(t.Context(), event(1, 0, umpirespb.RUN_EVENT_KIND_RUN_OPENED))
+			require.NoError(t, err)
+			candidate := &umpirespb.Value{Value: &umpirespb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
+			test.mutate(evaluator, candidate)
+			observed := event(2, 1, umpirespb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+			observed.Observations = []*umpirespb.ObservationValue{{ObservationId: "message", Value: candidate}}
+			_, err = evaluator.Observe(t.Context(), observed)
+			require.Error(t, err)
+			require.Empty(t, evaluator.rules[0].captures)
+			require.Empty(t, evaluator.trace)
 		})
 	}
 }

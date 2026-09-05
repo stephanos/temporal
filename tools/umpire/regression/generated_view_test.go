@@ -14,20 +14,18 @@ func TestRequireGeneratedViewIsIndependentOfWorkingDirectory(t *testing.T) {
 
 	RequireGeneratedView(t, Reference{
 		FormatVersion: "umpire-experiment/v2",
-		Identity:      "workflow-nexus.query.exact-action-caller-closure",
-		FixturePath:   "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
+		Identity:      "switch.query.exact-action",
+		FixturePath:   "model/Umpire/Examples/testdata/switch-experiment-spec.json",
 		Sources: []string{
-			"Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
+			"Umpire/Examples/Switch.lean",
 		},
 		Properties: []string{
-			"workflow-nexus.property.caller-closure",
+			"switch.property.flip-turns-on",
 		},
 		ObservationRequirements: []string{
-			"nexus.observation.cancellation-delivered",
-			"nexus.observation.pending-cancellation-count",
-			"workflow-nexus.relation.owns-operation",
+			"switch.observation.power",
 		},
-		ArtifactChecksum: "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
+		ArtifactChecksum: "sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd",
 	})
 }
 

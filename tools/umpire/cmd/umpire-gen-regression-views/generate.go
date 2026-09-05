@@ -16,7 +16,10 @@ import (
 	"go.temporal.io/server/tools/common/artifactio"
 )
 
-const inspectorExecutable = "temporal-model-inspect"
+const (
+	inspectorExecutable            = "temporal-model-inspect"
+	retiredCallerClosureReportPath = "model/Temporal/Tool/Generated/Regressions.md"
+)
 
 type generationConfig struct {
 	RepositoryRoot string
@@ -33,6 +36,7 @@ type generationDependencies struct {
 	ReadFile func(string) ([]byte, error)
 	Render   func([]generatedViewRecord) (map[string][]byte, error)
 	Publish  func(artifactio.Set, string, map[string][]byte, func(string) error) error
+	Remove   func(string) error
 }
 
 func Run(arguments []string) error {
@@ -90,6 +94,7 @@ func defaultGenerationDependencies() generationDependencies {
 		) error {
 			return set.Publish(root, artifacts, validate)
 		},
+		Remove: artifactio.Remove,
 	}
 }
 
@@ -175,6 +180,9 @@ func runGeneration(
 	if err := dependencies.Publish(set, outputRoot, artifacts, validateCandidate); err != nil {
 		return fmt.Errorf("publish regression generated views: %w", err)
 	}
+	if err := removeRetiredGeneratedView(outputRoot, retiredCallerClosureReportPath, dependencies.Remove); err != nil {
+		return fmt.Errorf("retire obsolete regression generated view: %w", err)
+	}
 	return nil
 }
 
@@ -188,9 +196,39 @@ func validateGenerationDependencies(dependencies generationDependencies) error {
 		return errors.New("regression generated view renderer is required")
 	case dependencies.Publish == nil:
 		return errors.New("regression generated view publisher is required")
+	case dependencies.Remove == nil:
+		return errors.New("regression generated view remover is required")
 	default:
 		return nil
 	}
+}
+
+func removeRetiredGeneratedView(root, relative string, remove func(string) error) error {
+	if err := validateRepositoryPath(relative); err != nil {
+		return err
+	}
+	resolvedRoot, err := filepath.EvalSymlinks(root)
+	if err != nil {
+		return err
+	}
+	target := filepath.Join(root, filepath.FromSlash(relative))
+	if _, err := os.Lstat(target); errors.Is(err, os.ErrNotExist) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+	resolvedParent, err := filepath.EvalSymlinks(filepath.Dir(target))
+	if err != nil {
+		return err
+	}
+	contained, err := pathIsWithin(resolvedRoot, resolvedParent)
+	if err != nil {
+		return err
+	}
+	if !contained {
+		return fmt.Errorf("retired generated view %q escapes the output root", relative)
+	}
+	return remove(target)
 }
 
 func inspectExperiment(modelRoot, identity string) (inspectorOutput, error) {

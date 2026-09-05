@@ -1,6 +1,6 @@
 # Umpire
 
-Umpire describes portable, bounded interactions with a target system and determines whether their recorded outcomes satisfy declared properties.
+Umpire describes versioned, bounded interactions with a target system and determines whether their recorded outcomes satisfy declared properties.
 
 ## Definition
 

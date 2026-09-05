@@ -13,3 +13,5 @@ import Umpire.Observation
 import Umpire.ImplementationLink
 import Umpire.SemanticInventory
 import Umpire.Case
+import Umpire.Case.Compiler
+import Umpire.Case.ProtoJSON

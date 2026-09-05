@@ -19,11 +19,24 @@ import (
 )
 
 const (
-	packageLocalTestCommand = "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/local/... ./tools/umpire/runner/... ./tools/umpire/temporal/nexus/... ./tools/umpire/runevaluation/... ./tools/umpire/cmd/umpire-gen-tests-go/..."
-	liveTestCommand         = "mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'"
-	liveTestTargetCommand   = "make umpire-check-live-tests"
-	generatedGoTestPath     = "tests/umpire4_caller_closure_generated_test.go"
+	packageLocalTestCommand  = "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/..."
+	liveTestCommand          = "mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpire'"
+	liveTestTargetCommand    = "make umpire-check-live-tests"
+	conformanceTargetCommand = "./tools/umpire/cmd/umpire-gen-case-runtime-conformance"
+	retiredGeneratedTestPath = "tests/umpire4_caller_closure_generated_test.go"
 )
+
+var inheritedLiveFailures = []string{
+	"TestUmpire2TestSuite",
+	"TestUmpire2TestSuite/TestPlanAndDriveKitchenSinkNexusOperation",
+	"TestUmpire2TestSuite/TestPlanAndDriveNexusOperationCHASM",
+	"TestUmpire2TestSuite/TestProbeNexusDegraded",
+	"TestUmpire2TestSuite/TestProbeNexusExploration",
+	"TestUmpire2TestSuite/TestProbeNexusFlagged",
+	"TestUmpire2TestSuite/TestProbeNexusRandomized",
+	"TestUmpire2TestSuite/TestProbeNexusResilience",
+	"TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram",
+}
 
 type ciWorkflow struct {
 	Name        string                       `yaml:"name"`
@@ -116,11 +129,13 @@ func TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs(t *testing.T) {
 	normalizedDryRun := strings.Join(strings.Fields(strings.ReplaceAll(string(dryRun), "\\\n", " ")), " ")
 	require.Equal(t, 1, strings.Count(normalizedDryRun, packageLocalTestCommand))
 	require.Equal(t, 1, strings.Count(normalizedDryRun, liveTestCommand))
-	require.NotContains(t, normalizedDryRun, "Expected inherited Umpire failures:")
-	require.Contains(t, normalizedDryRun, "Observed non-Umpire2/Umpire3 failures:")
-	require.Contains(t, normalizedDryRun, "Full live suite introduced no Umpire4 or unclassified failures.")
-	require.Contains(t, normalizedDryRun, "--output \"$temporary/tests\"")
-	require.Contains(t, normalizedDryRun, "diff -u "+generatedGoTestPath)
+	require.Contains(t, normalizedDryRun, conformanceTargetCommand)
+	for _, identity := range inheritedLiveFailures {
+		require.Contains(t, normalizedDryRun, identity)
+	}
+	require.Contains(t, normalizedDryRun, "Live Umpire failure identities differ from the inherited exact set.")
+	require.Contains(t, normalizedDryRun, "Live Umpire failure identities match the inherited exact set.")
+	require.NotContains(t, normalizedDryRun, retiredGeneratedTestPath)
 }
 
 func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T) {
@@ -128,28 +143,41 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 	require.NoError(t, err)
 
 	for path, expected := range map[string][]string{
-		"tools/umpire/runtime/README.md": {
-			liveTestCommand,
-			"--output tests",
-			"TestEnv owns the Temporal cluster and SDK client",
-			"Umpire owns the per-run environment wrapper, SDK worker, Nexus endpoints, workflows, and run resources",
-			"local.NewAttachedFactory",
+		"tools/umpire/CONTEXT.md": {
+			"A coherent pairing of one Program and one Contract",
+			"Immutable, single-assignment typed operational data",
+			"applies a Contract to a Program and its Run",
 		},
-		"tools/umpire/runevaluation/README.md": {
-			"TestUmpireCallerClosureRunEvaluation",
-			"TestUmpireDuplicateDeliveryRunEvaluation",
-			"testcore.NewEnv",
-			"local.NewAttachedFactory",
+		"tools/umpire/temporal/README.md": {
+			"The composite adds no Case or scenario interpretation",
+			"`Open` creates the server Session first",
+			"NewWorkflowServiceCatalog",
 		},
-		"tools/umpire/portableevaluation/README.md": {
-			"`testcore.NewEnv` retains ownership of the borrowed cluster and client",
-			"Umpire owns only resources created for one run",
+		"tools/umpire/internal/execution/README.md": {
+			"Raw payloads and Slots are not evidence",
+			"`Run` owns actual Host/bridge closure",
+			"private `scheduler`",
 		},
-		".plans/UMPIRE4_COMPONENTS.md": {
-			liveTestCommand,
-			generatedGoTestPath,
-			"TestEnv owns the Temporal cluster and SDK client",
-			"local.NewAttachedFactory",
+		"tools/umpire/verification/README.md": {
+			"`Observe` processes an appended event synchronously",
+			"a PreparedContract supports concurrent independent Runs",
+		},
+		".plans/UMPIRE_CASE_RUNTIME_DESIGN.md": {
+			"No Nexus lifecycle checker or callback-closure adapter is implemented in Go",
+			"The root facade owns the public Profile",
+		},
+		"model/README.md": {
+			"PrepareCase(case, Profile)",
+			"Temporal authority remains split",
+			"complete twelve-file tree under one physical temporary root",
+		},
+		"model/ARCHITECTURE.md": {
+			"Scheduling, recording, effect ownership, private Slot storage, and Monitor factories are internal",
+			"checks horizon expiry before every transition",
+		},
+		"model/Umpire/ARCHITECTURE.md": {
+			"Case, Program, Contract, and Run vocabularies are finite, versioned, and bounded",
+			"Promotion remains generic and review-only",
 		},
 	} {
 		documentation, err := os.ReadFile(filepath.Join(repositoryRoot, path))
@@ -162,20 +190,6 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 		}
 	}
 
-	for _, path := range []string{
-		"tools/umpire/runtime/README.md",
-		".plans/UMPIRE4_COMPONENTS.md",
-	} {
-		documentation, err := os.ReadFile(filepath.Join(repositoryRoot, path))
-		require.NoError(t, err)
-		normalizedText := strings.Join(strings.Fields(string(documentation)), " ")
-
-		require.Contains(t, normalizedText, "make umpire-check-regression")
-		require.Contains(t, normalizedText, "byte-identical canonical v2 `ExperimentSpec`")
-		require.Contains(t, normalizedText, "stable typed semantic meaning")
-		require.Contains(t, normalizedText, "runtime-scoped transport identities")
-		require.Contains(t, normalizedText, "Evaluation Profiles, Evaluation Receipts, provenance schemas, new artifact-set versions, Claim Assessment, remote, canary, and release work are excluded")
-	}
 }
 
 func TestUmpireSourcesCannotRegainLegacyTemporalAuthority(t *testing.T) {
@@ -215,7 +229,6 @@ func TestUmpireSourcesCannotRegainLegacyTemporalAuthority(t *testing.T) {
 			}
 			relative = filepath.ToSlash(relative)
 
-			localAliases := make(map[string]struct{})
 			for _, imported := range parsed.Imports {
 				importPath, err := strconv.Unquote(imported.Path.Value)
 				if err != nil {
@@ -228,39 +241,9 @@ func TestUmpireSourcesCannotRegainLegacyTemporalAuthority(t *testing.T) {
 					if strings.HasPrefix(relative, "tools/umpire/") && !strings.HasSuffix(relative, "_test.go") {
 						violations = append(violations, relative+": production Umpire imports tests/testcore")
 					}
-				case "go.temporal.io/server/tools/umpire/temporal/local":
-					alias := "local"
-					if imported.Name != nil {
-						alias = imported.Name.Name
-					}
-					if alias == "." {
-						violations = append(violations, relative+": dot-imports the local authority package")
-					} else if alias != "_" {
-						localAliases[alias] = struct{}{}
-					}
 				default:
 				}
 			}
-
-			localPackage := filepath.Dir(relative) == "tools/umpire/temporal/local"
-			ast.Inspect(parsed, func(node ast.Node) bool {
-				switch value := node.(type) {
-				case *ast.FuncDecl:
-					if localPackage && value.Name.Name == "New"+"Factory" {
-						violations = append(violations, relative+": declares deprecated local.NewFactory")
-					}
-				case *ast.SelectorExpr:
-					identifier, ok := value.X.(*ast.Ident)
-					if !ok || value.Sel.Name != "New"+"Factory" {
-						return true
-					}
-					if _, ok := localAliases[identifier.Name]; ok {
-						violations = append(violations, relative+": calls deprecated local.NewFactory")
-					}
-				default:
-				}
-				return true
-			})
 			return nil
 		})
 		require.NoError(t, err)
@@ -274,9 +257,217 @@ func TestGeneratedUmpireTestHasOnlyTheRelocatedDestination(t *testing.T) {
 	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
 	require.NoError(t, err)
 
-	require.FileExists(t, filepath.Join(repositoryRoot, filepath.FromSlash(generatedGoTestPath)))
+	require.NoFileExists(t, filepath.Join(repositoryRoot, filepath.FromSlash(retiredGeneratedTestPath)))
 	require.NoFileExists(t, filepath.Join(
 		repositoryRoot,
-		"tools", "umpire", "temporal", "nexus", filepath.Base(generatedGoTestPath),
+		"tools", "umpire", "temporal", "nexus", filepath.Base(retiredGeneratedTestPath),
 	))
+}
+
+func TestCaseRuntimeFacadeAndExecutionImportBoundary(t *testing.T) {
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	require.NoError(t, err)
+
+	root := filepath.Join(repositoryRoot, "tools", "umpire")
+	forbiddenDeclarations := map[string]bool{
+		"Scheduler": true, "Recorder": true, "Slot": true, "MonitorFactory": true,
+		"NewScheduler": true, "NewRecorder": true, "NewSlot": true, "NewMonitorFactory": true,
+	}
+	facadeCalls := map[string]bool{"PrepareCase": false, "PreparedCase.Run": false}
+	var preparedCaseExports []string
+	var runtimeBoundaryCalls []string
+	var violations []string
+	entries, err := os.ReadDir(root)
+	require.NoError(t, err)
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".go" || strings.HasSuffix(entry.Name(), "_test.go") {
+			continue
+		}
+		path := filepath.Join(root, entry.Name())
+		parsed, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
+		require.NoError(t, err)
+		for _, declaration := range parsed.Decls {
+			switch declaration := declaration.(type) {
+			case *ast.GenDecl:
+				for _, spec := range declaration.Specs {
+					if named, ok := spec.(*ast.TypeSpec); ok && named.Name.IsExported() {
+						if forbiddenDeclarations[named.Name.Name] {
+							violations = append(violations, entry.Name()+": public "+named.Name.Name)
+						}
+						if exportedTypeExposesInternalExecution(named) {
+							violations = append(violations, entry.Name()+": "+named.Name.Name+" exposes internal execution construction")
+						}
+					}
+				}
+			case *ast.FuncDecl:
+				if declaration.Name.IsExported() && forbiddenDeclarations[declaration.Name.Name] {
+					violations = append(violations, entry.Name()+": public "+declaration.Name.Name)
+				}
+				if declaration.Recv == nil && declaration.Name.Name == "PrepareCase" {
+					facadeCalls["PrepareCase"] = true
+				}
+				if receiverTypeName(declaration.Recv) == "PreparedCase" && declaration.Name.Name == "Run" {
+					facadeCalls["PreparedCase.Run"] = true
+				}
+				if receiverTypeName(declaration.Recv) == "PreparedCase" && declaration.Name.IsExported() {
+					preparedCaseExports = append(preparedCaseExports, "PreparedCase."+declaration.Name.Name)
+				}
+				if declaration.Name.IsExported() && signatureExposesInternalExecution(declaration.Type) {
+					violations = append(violations, entry.Name()+": "+declaration.Name.Name+" exposes internal execution construction")
+				}
+				if declaration.Name.IsExported() && signatureMentionsRuntimeBoundary(declaration) {
+					name := declaration.Name.Name
+					if receiver := receiverTypeName(declaration.Recv); receiver != "" {
+						name = receiver + "." + name
+					}
+					runtimeBoundaryCalls = append(runtimeBoundaryCalls, name)
+				}
+			default:
+				continue
+			}
+		}
+	}
+	require.Empty(t, violations)
+	require.Equal(t, map[string]bool{"PrepareCase": true, "PreparedCase.Run": true}, facadeCalls)
+	slices.Sort(preparedCaseExports)
+	require.Equal(t, []string{"PreparedCase.Identity", "PreparedCase.Run", "PreparedCase.Snapshot"}, preparedCaseExports)
+	slices.Sort(runtimeBoundaryCalls)
+	require.Equal(t, []string{"PrepareCase", "PreparedCase.Run"}, runtimeBoundaryCalls)
+
+	conformanceSource, err := os.ReadFile(filepath.Join(root, "conformance_test.go"))
+	require.NoError(t, err)
+	require.NotContains(t, string(conformanceSource), "os/"+"exec")
+	require.NotContains(t, string(conformanceSource), "-"+"rewrite")
+	require.NotContains(t, string(conformanceSource), "lake "+"build")
+
+	err = filepath.WalkDir(root, func(path string, entry fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if entry.IsDir() || filepath.Ext(path) != ".go" || strings.HasSuffix(path, "_test.go") {
+			return nil
+		}
+		relative, err := filepath.Rel(root, path)
+		if err != nil {
+			return err
+		}
+		relative = filepath.ToSlash(relative)
+		if !strings.Contains(relative, "/") || strings.HasPrefix(relative, "internal/execution/") || strings.HasPrefix(relative, "verification/") {
+			return nil
+		}
+		parsed, err := parser.ParseFile(token.NewFileSet(), path, nil, parser.ImportsOnly)
+		if err != nil {
+			return err
+		}
+		for _, imported := range parsed.Imports {
+			importPath, err := strconv.Unquote(imported.Path.Value)
+			if err != nil {
+				return err
+			}
+			if importPath == "go.temporal.io/server/tools/umpire/internal/execution" {
+				violations = append(violations, relative+": imports internal execution")
+			}
+		}
+		return nil
+	})
+	require.NoError(t, err)
+	slices.Sort(violations)
+	require.Empty(t, violations)
+}
+
+func TestMigrationLedgerAndGenericPromotionRemainClosed(t *testing.T) {
+	repositoryRoot, err := filepath.Abs(filepath.Join("..", "..", ".."))
+	require.NoError(t, err)
+
+	ledger, err := os.ReadFile(filepath.Join(repositoryRoot, ".flow", "artifacts", "fn-64-umpire-case-runtime", "task8-migration-ledger.md"))
+	require.NoError(t, err)
+	ledgerText := string(ledger)
+	for _, fragment := range []string{
+		"Manifest count: `179`.",
+		"All 307 deleted top-level Go Test/Fuzz entry points have a status",
+		"All 10 inherited failure identities are preserved and named exactly.",
+		"Official read-only ledger review verdict is `SHIP`.",
+		"| 3 | `codex:gpt-5.6-sol:high` | SHIP |",
+	} {
+		require.Contains(t, ledgerText, fragment)
+	}
+
+	promotion, err := os.ReadFile(filepath.Join(repositoryRoot, "model", "Umpire", "Promotion.lean"))
+	require.NoError(t, err)
+	promotionTests, err := os.ReadFile(filepath.Join(repositoryRoot, "model", "Umpire", "PromotionTests.lean"))
+	require.NoError(t, err)
+	combined := string(promotion) + string(promotionTests)
+	require.NotContains(t, combined, "Caller"+"Closure")
+	require.NotContains(t, combined, "Temporal"+".System")
+	require.Contains(t, string(promotion), "import Umpire.Planning.Engine")
+}
+
+func receiverTypeName(receiver *ast.FieldList) string {
+	if receiver == nil || len(receiver.List) != 1 {
+		return ""
+	}
+	typeExpression := receiver.List[0].Type
+	if pointer, ok := typeExpression.(*ast.StarExpr); ok {
+		typeExpression = pointer.X
+	}
+	if named, ok := typeExpression.(*ast.Ident); ok {
+		return named.Name
+	}
+	return ""
+}
+
+func signatureMentionsRuntimeBoundary(declaration *ast.FuncDecl) bool {
+	mentionsBoundary := false
+	isTopLevel := declaration.Recv == nil
+	for _, fields := range []*ast.FieldList{declaration.Type.Params, declaration.Type.Results} {
+		if fields == nil {
+			continue
+		}
+		ast.Inspect(fields, func(node ast.Node) bool {
+			switch expression := node.(type) {
+			case *ast.Ident:
+				mentionsBoundary = mentionsBoundary || expression.Name == "Profile" ||
+					expression.Name == "PreparedCase" || expression.Name == "Host"
+			case *ast.SelectorExpr:
+				mentionsBoundary = mentionsBoundary || expression.Sel.Name == "Run" ||
+					expression.Sel.Name == "Verdict" || isTopLevel && expression.Sel.Name == "Case"
+			default:
+				return !mentionsBoundary
+			}
+			return !mentionsBoundary
+		})
+	}
+	return mentionsBoundary
+}
+
+func exportedTypeExposesInternalExecution(named *ast.TypeSpec) bool {
+	if structure, ok := named.Type.(*ast.StructType); ok && !named.Assign.IsValid() {
+		for _, field := range structure.Fields.List {
+			if len(field.Names) != 0 && field.Names[0].IsExported() && expressionExposesInternalExecution(field.Type) {
+				return true
+			}
+		}
+		return false
+	}
+	return expressionExposesInternalExecution(named.Type)
+}
+
+func signatureExposesInternalExecution(function *ast.FuncType) bool {
+	return expressionExposesInternalExecution(function.Params) || expressionExposesInternalExecution(function.Results)
+}
+
+func expressionExposesInternalExecution(node ast.Node) bool {
+	exposed := false
+	ast.Inspect(node, func(node ast.Node) bool {
+		selector, ok := node.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+		packageName, ok := selector.X.(*ast.Ident)
+		exposed = exposed || ok && packageName.Name == "execution" && map[string]bool{
+			"Scheduler": true, "Recorder": true, "Slot": true, "MonitorFactory": true,
+		}[selector.Sel.Name]
+		return !exposed
+	})
+	return exposed
 }

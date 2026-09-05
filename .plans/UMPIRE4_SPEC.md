@@ -16,12 +16,12 @@ consistently. Capitalized terms have Umpire-specific meanings. Exact Lean names 
 ## How Umpire works
 
 Umpire models expected behavior. A Query asks a bounded question about that behavior, and planning
-searches for an answer. When planning selects a Model Trace, it packages an Execution Plan for the
-trace with its Properties and Limits as a Test Plan. Execution attempts either a Test Plan or an
-admitted Portable Plan against Temporal. Run Evaluation uses the resulting Evidence to check the
-selected Test or the exact verification program authorized by an external Portable Plan. For
-example, a Nexus Property can require that closing a Workflow cancels its running Nexus operation
-at most once.
+searches for an answer. A Producer lowers checked behavior into a versioned Case containing one
+bounded Program and one deterministic Contract. `PrepareCase` validates that Case against an
+immutable Profile without target I/O. A prepared Case can then run repeatedly through an authorized
+Host; every attempt produces one append-only Run and one Verdict. For example, a Contract can
+require that a declared Nexus history Observation reaches a correlated completion within a bounded
+horizon.
 
 ## How the model is organized
 
@@ -34,7 +34,7 @@ at most once.
 - **Generated Data.** Machine-produced descriptions of API and configuration fields and types. This
   data describes what information exists, not how it affects behavior.
 - **Definition ID.** A stable dot-separated ID for a Model Definition, such as
-  `workflow-nexus.property.caller-closure`. Umpire checks that an ID refers to the expected kind of
+  `switch.query.exact-action`. Umpire checks that an ID refers to the expected kind of
   definition. Reordering declarations or editing documentation does not change it.
 - **Behavior Fingerprint.** A value computed from the behavior-affecting parts of a Model Definition.
   It changes with behavior, but not with documentation, source location, or source order.
@@ -43,24 +43,26 @@ at most once.
 - **Implementation Link.** Lean code that explicitly connects product behavior in
   `Temporal.Feature` to corresponding implementation behavior in `Temporal.System` without merging
   their descriptions.
-- **Portable Plan (`PortableTestPlan`).** A caller-neutral, closed contract for one bounded
-  execution and its finite verification program. It may be external or model-compiled. An external
-  instance is not a Test selected from the Behavior Model.
-- **Plan Authority.** The authority of one admitted Portable Plan to state its exact bounded
-  execution and verification program. It does not define product or implementation behavior in the
-  Behavior Model.
-- **Plan-local Conformance.** A result scope limited to evaluating whether the Evidence from one
-  exact admitted Portable Plan execution satisfies that plan's verification clauses. It does not
-  establish that those clauses are Model Definitions or `Umpire.Property` declarations.
-- **Validated Model Provenance.** An independently verified binding from a model-compiled
-  Portable Plan to its exact checked Test, model inputs, compiler contract, and trusted source.
-  Data carried by the plan alone is not Validated Model Provenance.
-- **Model-bound Scope.** A result scope that attributes the conclusion for one exact Test and its
-  Evidence to the named Behavior Model bindings established by Validated Model Provenance. It does
-  not imply model consistency, exhaustive coverage, compiler correctness, or a Claim Assessment.
-- **External Verification Obligation.** A verification requirement that is not represented by the
-  finite portable verification vocabulary and therefore remains explicit for a separately trusted
-  verifier above the portable executor interface.
+- **Producer.** A compiler or conforming client that creates a versioned Case. Lean is the first
+  Producer, but the Case format and Go runtime do not depend on Lean.
+- **Case.** Exactly one Program and one Contract, with version, provenance, stable definition
+  bindings, and Known Gaps.
+- **Program.** A bounded acyclic graph of typed instructions in controller, workflow, activity, or
+  Nexus-handler entrypoints.
+- **Contract.** A finite set of deterministic safety and bounded-liveness monitor machines over Run
+  Events and declared Observations.
+- **Profile.** An immutable authorization snapshot containing a descriptor Catalog, symbolic role
+  policy, capabilities, and independent Program and Contract ceilings.
+- **Host.** The environment-owned implementation of authorized side effects. Server and worker
+  capabilities remain separate even when composed behind one Host.
+- **Prepared Case.** The immutable result of static Case, Program, Contract, descriptor, and Profile
+  admission. It contains no live client, credential, worker, or Run state.
+- **Run Event.** One immutable, monotonically sequenced fact appended by the Executor.
+- **Slot.** Private immutable single-assignment execution data. Slot opacity does not make declared
+  response projections secret; only declared Observations enter Contract evidence.
+- **Observation.** A declared typed value attached to a Run Event and available to the Contract.
+- **Verdict.** The Evaluator's satisfied, violated, or inconclusive conclusion with rule states and
+  supporting Run Event sequences.
 
 ### Where things live
 
@@ -76,7 +78,7 @@ at most once.
 ### Purpose and scope
 
 - **SCP-01 — Temporal-driven scope.** Umpire MUST include only capabilities required by a concrete
-  Temporal use case in modeling, Regression, Exploration, Run Evaluation, or verification.
+  Temporal use case in modeling, Regression, Exploration, Case execution, or verification.
 - **SCP-02 — Reusable core.** Reusable `Umpire` code MUST NOT contain Temporal-specific names,
   dependencies, or fixtures.
 - **SCP-03 — Lean Behavior Model.** All Behavior Model code MUST be written in Lean and live under
@@ -96,36 +98,27 @@ at most once.
 - **SEM-08 — Explicit Implementation Link.** A dedicated Implementation Link MUST connect
   `Temporal.Feature` product behavior to `Temporal.System` implementation behavior. Declaration
   order and implicit selection MUST NOT create that connection.
-- **SEM-10 — Portable interpreter seam.** Lean MUST compile a selected checked Test into its
-  Portable Evaluation Contract. The contract and its fixed-version interpreter MUST NOT add,
-  select, override, or retrieve behavior independently of that checked model input.
-- **SEM-11 — Portable plan authority.** An admitted Portable Plan MUST be authoritative for the
-  exact bounded execution and verification performed for that plan. Any conforming client MAY
-  author a Portable Plan, but a non-Lean plan MUST NOT be treated as a Model Definition or as an
-  `Umpire.Property`, `Umpire.Behavior`, or `Umpire.Query` declaration, and neither the plan nor its
-  runtime MAY add or override Behavior Model behavior.
-- **SEM-12 — Plan-local claim scope.** A successfully admitted external Portable Plan MUST
-  produce only Plan-local Conformance. Plan-local Conformance MUST NOT be represented as Behavior
-  Model validity, Model-bound Scope, or a Claim Assessment, and runtime code MUST NOT invent omitted
-  verification clauses or model semantics.
-- **SEM-13 — Independently validated model scope.** Model-bound Scope MUST require the executor
-  host's independently configured verifier to establish Validated Model Provenance for the exact
-  checked Test, Query, `Umpire.ExperimentSpec`, Properties, Definition IDs, Behavior Fingerprints,
-  compiler contract, and trusted source. The submitted plan MUST NOT provide its own trust anchor.
-  Missing, invalid, expired, unsupported, or crossed provenance for a model-bound request MUST
-  reject before runtime I/O and MUST NOT produce Model-bound Scope or silently downgrade to
-  Plan-local Conformance.
-- **SEM-14 — Explicit external obligations.** Every verification requirement not represented by the
-  finite portable vocabulary MUST remain an explicit External Verification Obligation; lowering,
-  admission, and runtime interpretation MUST NOT silently omit it. A required unresolved obligation
-  MUST prevent complete model-bound success until a separately trusted verification receipt is
-  joined above the portable executor interface. Plan-local Conformance MUST use only bundled
-  portable clauses, report every unresolved obligation, and MUST NOT claim that the executor
-  performed an external obligation.
-- **SEM-15 — Lean portable plan compilation.** The Lean model toolchain MUST compile selected
-  checked Tests and their `Umpire.ExperimentSpec` values into model-compiled Portable Plans. Lean is
-  the first model compiler into this format, but it MUST NOT be the exclusive Portable Plan author;
-  any conforming client MAY author an external Portable Plan under SEM-11 and SEM-12.
+- **SEM-10 — Retired: portable interpreter seam.** Superseded by SEM-16 through SEM-18. The deleted
+  portable interpreter is historical and MUST NOT be restored as an execution recommendation.
+- **SEM-11 — Retired: portable plan authority.** Superseded by SEM-16. The deleted portable plan
+  format has no runtime authority.
+- **SEM-12 — Retired: plan-local claim scope.** Superseded by SEM-17 and SEM-18.
+- **SEM-13 — Retired: independently validated model scope.** Superseded by Case provenance and
+  Profile admission under SEM-16 and ART-09.
+- **SEM-14 — Retired: external portable obligations.** Superseded by explicit Case Known Gaps and
+  the closed Contract vocabulary under SEM-17.
+- **SEM-15 — Retired: Lean portable plan compilation.** Superseded by Lean Case production under
+  SEM-18.
+- **SEM-16 — Case authority.** One admitted Case MUST be authoritative for its exact bounded Program
+  and Contract. Runtime code MUST NOT add scenario behavior, verification clauses, implicit retry,
+  or undeclared evidence.
+- **SEM-17 — Evaluator authority.** The prepared Contract MUST supply the Monitor used during
+  execution and MUST use the same transition semantics for offline evaluation. Expiry is evaluated
+  before transitions at every event, bounded captures are rule-local and Run-local, and a proven
+  violation MUST remain authoritative despite later cleanup or operational failure.
+- **SEM-18 — Producer neutrality.** Lean MUST produce deterministic Cases for model-owned behavior,
+  but any conforming client MAY author a Case. A non-Lean Case is not thereby a Behavior Model
+  declaration or a claim about any other Case.
 
 ### Enforced module boundaries
 
@@ -136,14 +129,24 @@ at most once.
   for the verification consumers listed in MOD-05.
 - **MOD-05 — Verification isolation.** First-party (repository-owned) Lean modules MUST NOT directly
   or transitively import `Temporal.Verify.*` or `Umpire.Verify.Veil` unless they are one of these
-  opt-in consumers: `TemporalVerify`, `TemporalVeilTests`, `Temporal.Tool.VerifyVeil`, or
-  `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests`.
+  opt-in consumers: `TemporalVerify`, `TemporalVeilTests`, or `Temporal.Tool.VerifyVeil`.
 - **MOD-09 — `Shared` independence.** `Shared.*` MUST NOT directly or transitively import `Umpire.*`
   or `Temporal.*`.
 - **MOD-10 — `Temporal.System` isolation.** `Temporal.System.*` MUST NOT directly or transitively
   import `Temporal.Feature.*`. The only exception is `Temporal.System.Nexus.ImplementationLink`.
 - **MOD-11 — Executable enforcement.** `make lint-model` MUST enforce MOD-01, MOD-03, MOD-05,
   MOD-09, and MOD-10 across the complete first-party Lean import graph.
+- **MOD-12 — Public Go facade.** The public execution sequence MUST be exactly
+  `PrepareCase(case, profile)` followed by `PreparedCase.Run(ctx, host)`. Scheduler, Recorder, Slot
+  storage, and Monitor-factory construction MUST remain internal.
+- **MOD-13 — Temporal authority split.** `tools/umpire/temporal/server` MUST supply the authorized
+  descriptor catalog and transport prepared unary method/request pairs, returning raw typed
+  responses and protocol status. `tools/umpire/temporal/worker` MUST own SDK workflow, activity, and
+  Nexus-handler execution plus reserved activation delivery. Neither side may assume the other's
+  authority; internal execution owns request construction and response projection.
+- **MOD-14 — Internal execution boundary.** Production packages outside the root facade and
+  verification package MUST NOT import `tools/umpire/internal/execution`; Host adapters depend on
+  the root facade.
 
 ### Module design
 
@@ -212,7 +215,7 @@ at most once.
 - **AUT-04 — Stable IDs.** Every public Model Definition MUST have a stable, dot-separated Definition
   ID that is checked against the expected definition kind. Source order and documentation MUST NOT
   affect it.
-- **AUT-05 — Portable data.** Anything used in portable planning, Artifacts, promotion, or
+- **AUT-05 — Cross-language data.** Anything used in planning, Artifacts, promotion, or
   cross-language Execution MUST be serializable data that Lean can interpret. It MUST NOT depend on
   in-process callbacks.
 - **AUT-06 — Explicit composition.** Competing providers MUST be selected explicitly, and
@@ -246,19 +249,15 @@ at most once.
   and Limits as a Test Plan.
 - **Artifact.** Immutable, versioned, inspectable data exchanged across components, languages, and
   processes. Artifacts cannot define model behavior.
-- **Portable Evaluation Contract.** A versioned, closed, per-Test Artifact that Lean derives from
-  one selected checked Test, its Observation, Implementation Link, Properties, Limits, Known Gaps,
-  Definition IDs, and Behavior Fingerprints for interpretation without a Lean runtime. It is
-  portable model-derived data, not another authoring language or behavioral authority.
+- **Case Artifact.** Canonical ProtoJSON for one Case. It is deterministic Producer output and is
+  admitted before any Host I/O.
 - **Artifact Checksum.** A reproducible checksum over all Artifact content in canonical order,
   excluding the checksum field itself. It identifies one exact Artifact; it is not a Definition ID
   or Behavior Fingerprint.
 - **Generated View.** A deterministic representation of an Artifact, such as a Go test or
   documentation. It is bound to the source Artifact Checksum and cannot define behavior.
-- **Execution Plan (`Umpire.DrivePlan`).** Generated instructions for attempting a selected Model
-  Trace. It is not Evidence that Execution occurred.
-- **Test Plan (`Umpire.ExperimentSpec`).** A portable Artifact containing an Execution Plan and all
-  other data needed to attempt one bounded Test. It describes the intended Test, not what happened.
+- **Planning Artifact (`Umpire.ExperimentSpec`).** Model-planning data retained for scenario-neutral
+  catalog and reviewed-promotion use. It is not accepted by the Case Runtime.
 
 ### Planning and Limit rules
 
@@ -283,95 +282,103 @@ at most once.
 - **ART-02 — Model binding.** Artifacts MUST carry Definition IDs, Behavior Fingerprints, their own
   Artifact Checksums, source information, Known Gaps, and enough compatibility data for stale readers
   to reject them.
-- **ART-03 — Portable Test Plan.** `Umpire.ExperimentSpec` MUST contain complete,
-  environment-independent instructions for one bounded Test. It MUST NOT claim that any requested
-  Action, fault, Model Outcome, or observation occurred.
+- **ART-03 — Retired: executable Test Plan.** `Umpire.ExperimentSpec` is no longer a runtime input;
+  ART-09 defines the replacement Case Artifact.
 - **ART-04 — Safe format changes.** Readers MUST reject unknown major versions and unknown fields
   that could affect behavior. Changing the meaning of old data requires a named, deterministic
   migration.
-- **ART-05 — Same experiment.** Local, CI, staging, black-box, and canary Execution MUST all use the
-  same Test Plan. Environment-specific copies MUST NOT change modeled behavior.
-- **ART-06 — Complete traces.** An executable trace MUST include its model setup, participant
-  programs, references whose concrete IDs are resolved at runtime, Actions, faults, ordering,
-  observations, termination, and cleanup obligations.
+- **ART-05 — Retired: same Test Plan.** Superseded by immutable prepared Case identity under ART-10.
+- **ART-06 — Retired: executable trace closure.** Superseded by complete Program admission under
+  ART-09 and immutable Run closure under EVD-15.
 - **ART-07 — Generated Views.** The same source Artifact MUST always produce the same Generated View.
   Generated Go tests and documentation MUST be bound to their source Artifact Checksums and MUST NOT
   be editable sources of model behavior.
-- **ART-08 — Closed portable evaluation.** A Portable Evaluation Contract MUST use a versioned,
-  finite operator vocabulary, be closed over one exact Test, carry its source bindings and Limits,
-  and contain no callback, executable, environment selector, registry lookup, or extension hook.
-  Admission MUST reject unknown major versions, fields, enum values, operators, crossed bindings,
-  and noncanonical bytes before runtime I/O.
+- **ART-08 — Retired: closed portable evaluation.** Superseded by the Case Contract under ART-09
+  and SEM-17.
+- **ART-09 — Closed Case format.** A Case MUST contain exactly one versioned Program and one
+  Contract, stable IDs and provenance, explicit Known Gaps, typed roles, paths, Slots,
+  Observations, independent limits, and no callback, client, credential, endpoint, or executable.
+  Unknown versions, fields, enum values, instructions, paths, types, crossed references, or
+  out-of-policy resources MUST reject before Host I/O.
+- **ART-10 — Immutable preparation.** `PrepareCase` MUST snapshot all admitted Case, Catalog,
+  Profile, Program, and Contract data. A Prepared Case MUST be safe for isolated sequential and
+  concurrent Runs and MUST expose no mutation path into prepared state.
+- **ART-11 — Deterministic Case fixtures.** Lean-produced Case data MUST compare byte-for-byte.
+  Runtime values MAY be compared through a named closed projection only when every excluded dynamic
+  field is validated structurally. Generic normalization or ignore lists are forbidden.
+- **ART-12 — Transactional fixture ownership.** Fixture generation MUST build and validate the
+  complete managed tree under a temporary root before comparison or publication. Verification and
+  reviewed promotion MUST be separate actions; ordinary tests MUST invoke neither Lean nor rewrite
+  fixtures.
 
-## Execution, Evidence, and Run Evaluation
+## Case execution and verification
 
-### Execution and Evidence concepts
+### Runtime concepts
 
-- **Execution.** A bounded attempt to run a Test Plan or an admitted Portable Plan in an
-  environment. It records what happened but does not decide whether a Property or portable
-  verification clause passed.
-- **Run.** The record of one Execution in one environment, including attempts to perform Actions and
-  apply faults, receipts, Evidence, failures, and cleanup.
-- **Fault Request.** A request to apply a fault at a specific point in a Model Trace. It does not
-  prove that the fault occurred.
-- **Execution Receipt.** Runtime Evidence confirming that a requested Action or fault occurred. It
-  is tied to that request; planning or sending the request is not an Execution Receipt.
-- **Evidence.** Logs, traces, responses, records, and receipts collected during a Run. Umpire checks
-  their source, identity, order, and completeness before using them to establish Model Facts.
-- **Evidence Link.** An auditable record of why Umpire accepted a Model Fact, including its mapping,
-  Evidence records, bindings, ordering facts, and completeness checks.
-- **Observation (`Umpire.Observation`).** The Lean authoring language for rules that translate raw
-  Evidence into Model Facts while retaining source, order, completeness, conflict information, and
-  Evidence Links.
-- **Observation Evaluation.** The stage that applies an Observation to raw Evidence and produces
-  Model Facts and Evidence Links.
-- **Run Evaluation.** The process that uses Observation Evaluation to construct a Model Trace,
-  applies the admitted trace projection including any required Implementation Link, and evaluates
-  its Properties or portable verification clauses. It decides what a Run proves but does not
-  perform Execution.
-- **Stage Status.** The status of one stage, such as planning, Execution, Observation Evaluation,
-  Property checking, or verification. It says nothing about another stage unless a rule explicitly
-  connects them.
-- **Result.** The complete interpreted report for a Run. It keeps operational, Observation
-  Evaluation, Implementation Link, Property, and cleanup statuses separate and records Known Gaps
-  independently.
-- **Local Canary Decision.** A `pass`, `fail`, or `inconclusive` decision about only the exact Test
-  or external Portable Plan and Evidence named by one Portable Evaluation Contract or admitted
-  Portable Plan. For an external Portable Plan it supports only Plan-local Conformance. It is
-  neither a Claim Assessment nor a statement about model consistency, exhaustive coverage,
-  compiler correctness, release eligibility, or any other Test or plan.
+- **Execution.** One bounded attempt to interpret a prepared Program through an authorized Host.
+- **Run.** The authoritative append-only record of one attempted Program execution, including
+  declared Observations, independent cleanup status, diagnostics, and its immutable Verdict copy.
+- **Executor.** The internal generic interpreter that schedules a Program, owns Slot state and
+  effect handles, records Run Events, and performs bounded cleanup.
+- **Evaluator.** The verification component that creates one fresh Monitor per Run or evaluates a
+  closed Run offline using the same Contract transition semantics.
+- **Monitor.** One private Run-local Contract state machine. It returns Continue or Stop but cannot
+  dispatch work or mutate a Run.
+- **Run disposition.** `completed`, `stopped_by_monitor`, or `incomplete`; it is independent of the
+  cleanup status and Verdict.
+- **Cleanup status.** `succeeded`, `failed`, or `timed_out`; cleanup failure never erases a proved
+  violation.
 
-### Execution and Evidence rules
+### Runtime rules
 
-- **EVD-01 — Thin runtime.** Runtime and CLI code MUST do no more than fill in environment-specific
-  values and execute admitted Artifacts or Portable Plans. Model-bound execution MUST use
-  model-produced data with Validated Model Provenance; external Portable Plans can produce only
-  Plan-local Conformance. Runtime and CLI code MUST NOT independently decide Temporal product
+- **EVD-01 — Thin runtime.** Runtime and CLI code MUST only prepare Cases, bind authorized Host
+  capabilities, and execute admitted Programs. It MUST NOT independently decide scenario or product
   behavior.
-- **EVD-02 — Separate Run Evaluation.** Execution MUST report what happened. Observation Evaluation,
-  trace projection including any required Implementation Link, and Property or portable-clause
-  evaluation MUST be separate steps that determine what the Evidence proves.
-- **EVD-03 — Checked Evidence.** Before a Property uses raw Evidence, Umpire MUST normalize it;
-  validate its source and identity; order it causally; check for missing records; and translate it
-  into Model Facts.
+- **EVD-02 — Retired: separate legacy Run Evaluation.** Superseded by the authoritative Contract
+  Evaluator under SEM-17 and EVD-12.
+- **EVD-03 — Retired: legacy Evidence normalization.** The Case Contract consumes only immutable
+  Run Events and declared typed Observations under EVD-12.
 - **EVD-04 — Fail closed.** Missing, ambiguous, conflicting, outdated, unsupported, or causally
   unrelated Evidence MUST NOT establish success or absence.
 - **EVD-05 — Independent statuses.** Authoring, planning, Execution, Observation Evaluation,
   Implementation Link application, Property evaluation, and verification MUST report separate Stage
   Status values. A status for one stage MUST NOT imply the status of another.
-- **EVD-06 — Execution Receipts.** A requested Action or fault MUST NOT count as having occurred
-  without an Execution Receipt linked to the intended point in the Model Trace.
+- **EVD-06 — Retired: legacy Execution Receipts.** Run Event source identity, causal references,
+  outcome, and declared Observations replace the retired receipt scheme.
 - **EVD-07 — Distributed ordering.** Conclusions about model behavior MUST rely only on
   model-declared order, causal relationships, or record order within one source. They MUST NOT rely
   on synchronized wall clocks.
-- **EVD-08 — Complete lifecycle.** Every Run MUST retain Action and fault attempts, actual outcomes,
-  Evidence, Known Gaps, divergence, infrastructure failures, and cleanup results.
-- **EVD-09 — Evidence Links.** Every accepted Model Fact MUST retain an Evidence Link to its mapping,
-  Evidence records, bindings, ordering facts, and completeness checks.
-- **EVD-10 — Strict portable interpretation.** A portable interpreter MUST evaluate only its
-  admitted contract's versioned operators, in canonical order, under precharged work and structural
-  Limits. Unknown, missing, conflicting, noncanonical, out-of-range, or unsupported semantics MUST
-  NOT produce a Local Canary Decision of `pass`.
+- **EVD-08 — Complete lifecycle.** Every Run MUST retain attempted instructions, actual generic
+  outcomes, declared Observations, diagnostics, disposition, cleanup status, and Verdict.
+- **EVD-09 — Retired: legacy Evidence Links.** Contract support is represented by exact supporting
+  Run Event sequences under EVD-13.
+- **EVD-10 — Retired: strict portable interpretation.** Superseded by Contract rules EVD-12 through
+  EVD-14.
+- **EVD-11 — Generic scheduling.** The Executor MUST dispatch only admitted instruction/context
+  pairs, honor dependencies and guards, enforce each bound, preserve single-assignment Slots, and
+  add no scenario-specific branch.
+- **EVD-12 — Deterministic evaluation.** Monitor transitions MUST process appended events
+  synchronously in order, apply expiry before transitions on every event kind, charge declared work
+  and capture limits, and fail closed on missing, ambiguous, conflicting, or unsupported values.
+- **EVD-13 — Exact support.** Every rule conclusion MUST retain its terminal state and exact
+  supporting Run Event sequences. Contracts MUST inspect declared Observations and event fields,
+  never private Slots or arbitrary raw payloads.
+- **EVD-14 — Safety stop and cleanup.** A proved safety violation MUST stop new controller dispatch
+  and activation reservations, cancel and drain owned work within bounds, and then execute cleanup
+  through a fresh bounded context. Cleanup remains independent from the Verdict.
+- **EVD-15 — Immutable closure.** After `Run` returns, late completions, quarantine release, Host
+  diagnostics, caller mutation, and another Run MUST NOT change either returned Run or Verdict.
+- **EVD-16 — Activation cancellation.** Cancellation MUST address reserved activation handles and
+  already-started SDK commands at activation scope, including delivery that races Stop.
+- **EVD-17 — Server/worker composition.** Server Hosts MAY transport only authorized prepared unary
+  method/request pairs and return their raw typed response and protocol status. Internal execution
+  MUST construct requests, apply declared response projections, assign Slots, and emit Observations.
+  Worker Hosts MUST use Temporal SDK APIs for workflow, activity, and Nexus-handler entrypoints.
+  Runtime Cases never supply credentials or transport metadata.
+- **EVD-18 — Facade conformance.** Regression MUST exercise exactly the satisfied, violated,
+  inconclusive, static-preparation-rejection, cleanup-failure-after-proved-violation, and
+  cross-Run-isolation facade classes while leaving focused concurrency, cancellation, path,
+  cardinality, fuzz, and lifecycle tests independent.
 
 ## Exploration, replay, and promotion
 
@@ -439,6 +446,9 @@ at most once.
 - **CLI-03 — Inspectability.** User-facing tools SHOULD provide consistent commands to list and
   explain named Properties, Scenarios, Tests, Explorations, verification checks, Artifacts, and
   Results.
+- **CLI-04 — Case Runtime command scope.** Case fixture commands MAY build Lean Producer tools and
+  atomically promote reviewed deterministic fixtures. Ordinary execution exposes no replacement
+  resident service, scenario-specific adapter, or public Monitor selector.
 - **QLF-01 — Environment settings.** Environment profiles MAY provide endpoints, credentials,
   namespaces, permissions, resources, and adapters, provided they do not change modeled behavior.
 - **QLF-02 — Environment controls.** Each non-local environment MUST explicitly own its authorization
@@ -446,8 +456,9 @@ at most once.
   and limits on possible impact.
 - **QLF-03 — Complete claims.** Every Claim Assessment MUST expose its environment, Evidence policy,
   Limits, Assurance Method, Known Gaps, cleanup outcome, and Behavior Fingerprints.
-- **QLF-04 — Per-Test local decisions.** A Local Canary Decision MUST be `pass` only when the exact
-  Run is operationally successful and closed, Observation Evaluation is accepted, its
-  Implementation Link is applied, every required Property is satisfied, and cleanup is complete.
-  It MUST be `fail` only for a trustworthy closed Property violation, and `inconclusive` for every
-  operational, closure, tooling, unknown, conflict, unsupported, or cleanup failure.
+- **QLF-04 — Retired: per-Test local decisions.** The legacy Local Canary `pass`, `fail`, and
+  `inconclusive` decision rule is superseded by the separate Case Runtime statuses under QLF-05.
+- **QLF-05 — Per-Run decisions.** A Case Runtime decision MUST retain Run disposition, cleanup
+  status, and Verdict separately. A satisfied Verdict does not hide operational or cleanup failure;
+  a proved violated Verdict remains violated after later cleanup failure; every unresolved Contract
+  rule closes inconclusive.

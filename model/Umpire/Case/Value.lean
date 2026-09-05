@@ -149,7 +149,7 @@ structure CaptureReference where
   captureId : String
   deriving BEq, DecidableEq, Repr
 
-/-- The generic Run Event metadata available to Contract predicates. -/
+/-- The generic Run coordinate and Event metadata available to expressions. -/
 inductive RunEventField where
   | sequence
   | elapsedMilliseconds
@@ -159,6 +159,7 @@ inductive RunEventField where
   | instructionId
   | attempt
   | sourceId
+  | runId
   deriving BEq, DecidableEq, Repr
 
 /-- Closed typed expressions shared by Program guards and Contract transition predicates. -/

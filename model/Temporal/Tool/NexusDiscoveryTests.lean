@@ -26,12 +26,7 @@ private def candidates : List NexusDiscoveryCandidate := [
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.behavior
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact,
-  candidateOf
-    Temporal.Feature.Nexus.Experimental.CallerClosure.callerClosureProperty
-    Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionBehavior
-    Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQuery
-    (some Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact)
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact
 ]
 
 private def errorKind
@@ -51,10 +46,7 @@ example : inventory.entries.map (fun entry =>
       "temporal.nexus.basic-lifecycle.query.cancellation"),
     ("temporal.nexus.basic-lifecycle.property.successful-completion",
       "temporal.nexus.basic-lifecycle.behavior.successful-completion",
-      "temporal.nexus.basic-lifecycle.query.successful-completion"),
-    ("workflow-nexus.property.caller-closure",
-      "workflow-nexus.behavior.exact-action",
-      "workflow-nexus.query.exact-action-caller-closure")
+      "temporal.nexus.basic-lifecycle.query.successful-completion")
   ] := by
   native_decide
 
@@ -121,22 +113,7 @@ private def expectedListBytes : String :=
   "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
   "\"behaviorFingerprint\":\"sha256:78a5d778be582cf6f581bf465d5790d3f9c45575157d96e3ab20502d9637b160\"}," ++
   "\"experimentSpec\":{\"formatVersion\":\"umpire-experiment/v2\"," ++
-  "\"artifactChecksum\":\"sha256:ef6168a550983456bc05ac599bf1de05b0f85ba2439eb606b46363bfbc5ef98f\"}}," ++
-  "{\"queryDefinitionId\":\"workflow-nexus.query.exact-action-caller-closure\"," ++
-  "\"property\":{\"definitionId\":\"workflow-nexus.property.caller-closure\"," ++
-  "\"kind\":\"property\",\"source\":{\"path\":\"Temporal/Feature/Nexus/Experimental/CallerClosure.lean\"," ++
-  "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
-  "\"behaviorFingerprint\":\"sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f\"}," ++
-  "\"behavior\":{\"definitionId\":\"workflow-nexus.behavior.exact-action\"," ++
-  "\"kind\":\"behavior\",\"source\":{\"path\":\"Temporal/Feature/Nexus/Experimental/CallerClosure.lean\"," ++
-  "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
-  "\"behaviorFingerprint\":\"sha256:322893fbbe0a80ca186aa1f10268df45966bda212db37c725ea71fd75903b703\"}," ++
-  "\"query\":{\"definitionId\":\"workflow-nexus.query.exact-action-caller-closure\"," ++
-  "\"kind\":\"query\",\"source\":{\"path\":\"Temporal/Feature/Nexus/Experimental/CallerClosure.lean\"," ++
-  "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
-  "\"behaviorFingerprint\":\"sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af\"}," ++
-  "\"experimentSpec\":{\"formatVersion\":\"umpire-experiment/v2\"," ++
-  "\"artifactChecksum\":\"sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8\"}}]}\n"
+  "\"artifactChecksum\":\"sha256:ef6168a550983456bc05ac599bf1de05b0f85ba2439eb606b46363bfbc5ef98f\"}}]}\n"
 
 example : inventory.canonicalListBytes = expectedListBytes ∧
     reordered.toOption.map NexusDiscoveryInventory.canonicalListBytes =
@@ -206,26 +183,7 @@ private def expectedLineageJson : List String := [
     "\"provenanceSources\":[{\"path\":\"Temporal/Feature/Nexus/Lifecycle.lean\"," ++
       "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}," ++
       "{\"path\":\"Temporal/Feature/Nexus/Operations.lean\",\"line\":1,\"column\":1," ++
-      "\"provenance\":\"lean-model\"}]}",
-  "{\"formatVersion\":\"umpire-experiment/v2\"," ++
-    "\"artifactChecksum\":\"sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8\"," ++
-    "\"queryDefinitionId\":\"workflow-nexus.query.exact-action-caller-closure\"," ++
-    "\"queryBehaviorFingerprint\":\"sha256:d393ae60847c8524f3a57de6769478f95fd4a6a90a0fefcad6af118206d458af\"," ++
-    "\"behaviorDefinitionId\":\"workflow-nexus.behavior.exact-action\"," ++
-    "\"behaviorFingerprint\":\"sha256:322893fbbe0a80ca186aa1f10268df45966bda212db37c725ea71fd75903b703\"," ++
-    "\"targetDefinitionId\":\"workflow-nexus.target.caller-closure\"," ++
-    "\"targetBehaviorFingerprint\":\"sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd\"," ++
-    "\"kernelDefinitionId\":\"workflow-nexus.kernel.caller-closure\"," ++
-    "\"kernelBehaviorFingerprint\":\"sha256:22e49d60fb38ec52fd44f09549f28329d169605168dd6dc828f43941445faacd\"," ++
-    "\"properties\":[{\"definitionId\":\"workflow-nexus.property.caller-closure\"," ++
-      "\"behaviorFingerprint\":\"sha256:b7a6e89d79e40dad31a7f96c281a05ca8af74996fbc2f8a6f302b379d609192f\"}]," ++
-    "\"provenanceDefinitionIds\":[\"workflow-nexus.behavior.exact-action\"," ++
-      "\"workflow-nexus.kernel.caller-closure\",\"workflow-nexus.property.caller-closure\"," ++
-      "\"workflow-nexus.query.exact-action-caller-closure\"," ++
-      "\"workflow-nexus.target.caller-closure\"]," ++
-    "\"provenanceSources\":[{" ++
-      "\"path\":\"Temporal/Feature/Nexus/Experimental/CallerClosure.lean\"," ++
-      "\"line\":1,\"column\":1,\"provenance\":\"lean-model\"}]}"
+      "\"provenance\":\"lean-model\"}]}"
 ]
 
 private def expectedExplanationBytes : List String :=
