@@ -1,7 +1,8 @@
 # Umpire semantic model and authoring languages
 
-Status: architecture contract for the domain-neutral Lean library under `model/Umpire` and its
-Temporal adapters under `model/Temporal`.
+Status: superseded historical semantic-language design. The reusable planning language remains as
+implemented, but the execution and evaluation interfaces below were replaced by the Case Runtime.
+Current rules live in [`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md).
 
 The module seams, author roles, import rules, and optional-verification placement are governed by
 [`UMPIRE4_SPEC_MODEL_ARCH.md`](UMPIRE4_SPEC_MODEL_ARCH.md). This document owns the semantic

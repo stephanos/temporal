@@ -28,10 +28,11 @@ structure ContractState where
   terminal : ContractTerminalState := .nonterminal
   deriving BEq, DecidableEq, Repr
 
-/-- The closed scalar subset a Contract may retain across Run Events. -/
+/-- The closed scalar, enum, and message set a Contract may retain across Run Events. -/
 inductive ContractCaptureType where
   | scalar (kind : ScalarKind)
   | enumeration (protobufType : String)
+  | message (protobufType : String)
   deriving BEq, DecidableEq, Repr
 
 /-- One typed, rule-local, single-assignment capture declaration. -/

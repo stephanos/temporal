@@ -2,4 +2,3 @@
 *.jpg filter=lfs diff=lfs merge=lfs -text
 tools/gomad3/*.patch -whitespace
 tools/gomad3/**/*.patch -whitespace
-tools/umpire/portableevaluation/testdata/**/*.pb -diff -merge -text

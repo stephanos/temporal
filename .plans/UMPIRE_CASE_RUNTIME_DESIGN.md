@@ -1,9 +1,10 @@
 # Umpire Case Runtime design
 
-Status: approved design, pending implementation planning
+Status: implemented by `fn-64-umpire-case-runtime`; retained as the detailed rationale for the
+normative rules in [`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md).
 
-This document defines the replacement for the current `PortableTestPlan`, portable-evaluation, and
-caller-closure execution path. The replacement keeps Umpire as the umbrella while separating the
+This document defined the replacement for the now-superseded `PortableTestPlan`, portable-evaluation,
+and caller-closure execution path. The Case Runtime keeps Umpire as the umbrella while separating the
 portable instruction language, execution, verification, and Temporal-specific runtimes into deep,
 independently testable modules.
 
@@ -474,6 +475,35 @@ private execution log for verification.
 
 Nexus handlers belong here because they share registration, routing, and lifecycle with workers.
 `RespondNexus` may return a synchronous result, asynchronous operation information, or an error.
+
+### Reserved worker delivery
+
+The normative delivery contract is specified in the fn-64 spec's **Reserved activation delivery**
+section. Profile policy explicitly authorizes carrier methods and supported reservation shapes;
+ordinary unary authorization alone is insufficient. Generic preparation contains no Temporal RPC
+names. It freezes the reservation-to-workflow/SDK-source topology, including deterministic handler
+ordinals and guard-independent potential source counts.
+
+The initial Temporal carrier is StartWorkflowExecution with one workflow reservation and its
+declared handler reservations. The Host may clone the execution-constructed request and inject a
+bounded reserved routing header, but cannot rewrite authored application fields. Header collisions,
+binding mismatches and transmitted-size excess reject before the call. This explicit metadata
+exception carries existing reservation authority, never infers new activations from RPC names.
+Other authorized unary methods remain supported without reservations.
+
+Workflow and Nexus interceptors validate exact routes, pin actual execution/request identities,
+consume once and reuse immutable admitted data for replay. They do not use arrival-order matching
+or consult changing Host state at each SDK opcode. Failed triggers, cancellation and terminal parent
+workflows retire unconsumed routes; unused reservation release is not activation-success evidence.
+Actual unfinished work retains ownership through bounded drain/quarantine. Shared registries must
+be compatible and completely registered before worker startup. Late arrivals cannot mutate closed
+Runs. Route identifiers are not callback secrets; authorized response fields remain ordinary data,
+including echoed headers, without new redaction rules.
+
+Worker values use the shared prepared outcome validator and work accounting. StartNexusOperation
+has no VALUE outcome because it returns an SDK future; Await owns the operation result. Finish and
+RespondNexus retain their evaluated-result semantics. No binding-expression language, payload
+envelope, second validator or SDK-side verification stream is introduced.
 
 ### Private Slot bridge
 

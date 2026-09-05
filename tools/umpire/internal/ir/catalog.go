@@ -2,8 +2,11 @@
 package ir
 
 import (
+	"cmp"
+	"context"
 	"crypto/sha256"
 	"fmt"
+	"math/bits"
 	"reflect"
 	"slices"
 	"strings"
@@ -55,11 +58,21 @@ func (l Limits) validate() error {
 }
 
 type budget struct {
+	ctx         context.Context
 	limits      Limits
 	work, bytes int64
 }
 
 func (b *budget) charge(depth, work, bytes int64, path string) error {
+	if b.ctx != nil {
+		if err := b.ctx.Err(); err != nil {
+			return err
+		}
+		if bytes > b.limits.Work-work {
+			return invalid(LimitExceeded, path, "runtime work ceiling exceeded")
+		}
+		work += bytes
+	}
 	if depth > b.limits.Depth || work < 0 || bytes < 0 || work > b.limits.Work-b.work || bytes > b.limits.Bytes-b.bytes {
 		return invalid(LimitExceeded, path, "depth, work, or byte ceiling exceeded")
 	}
@@ -78,28 +91,47 @@ func inspect(message protoreflect.Message, depth int64, b *budget, path string) 
 	if len(message.GetUnknown()) != 0 {
 		return invalid(Unknown, path, "unknown protobuf fields")
 	}
+
+	if b.ctx == nil {
+		var result error
+		message.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
+			result = inspectField(field, value, depth, b, path+"."+string(field.Name()))
+			return result == nil
+		})
+		return result
+	}
+	type entry struct {
+		field protoreflect.FieldDescriptor
+		value protoreflect.Value
+	}
+	var entries []entry
 	var result error
 	message.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
-		result = inspectField(field, value, depth, b, path+"."+string(field.Name()))
-		return result == nil
+		result = b.charge(depth, 1, 0, path)
+		if result != nil {
+			return false
+		}
+		entries = append(entries, entry{field: field, value: value})
+		return true
 	})
-	return result
+	if result != nil {
+		return result
+	}
+	if err := b.charge(depth, int64(len(entries))*int64(bits.Len(uint(len(entries)))+1), 0, path); err != nil {
+		return err
+	}
+	slices.SortFunc(entries, func(a, b entry) int { return cmp.Compare(a.field.Number(), b.field.Number()) })
+	for _, entry := range entries {
+		if err := inspectField(entry.field, entry.value, depth, b, path+"."+string(entry.field.Name())); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func inspectField(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {
 	if field.IsMap() {
-		if int64(value.Map().Len()) > b.limits.Fanout {
-			return invalid(LimitExceeded, path, "map collection ceiling exceeded")
-		}
-		var result error
-		value.Map().Range(func(key protoreflect.MapKey, item protoreflect.Value) bool {
-			result = inspectValue(field.MapKey(), key.Value(), depth, b, path)
-			if result == nil {
-				result = inspectValue(field.MapValue(), item, depth, b, path)
-			}
-			return result == nil
-		})
-		return result
+		return inspectMap(field, value, depth, b, path)
 	}
 	if field.IsList() {
 		if int64(value.List().Len()) > b.limits.Fanout {
@@ -230,4 +262,78 @@ func CheckSurface(source proto.Message, limits Limits) error {
 
 func intrinsicEnums() []protoreflect.EnumDescriptor {
 	return []protoreflect.EnumDescriptor{umpirespb.InstructionOutcomeStatus(0).Descriptor(), umpirespb.RunEventKind(0).Descriptor()}
+}
+
+func inspectMap(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {
+	if int64(value.Map().Len()) > b.limits.Fanout {
+		return invalid(LimitExceeded, path, "map collection ceiling exceeded")
+	}
+
+	if b.ctx == nil {
+		var result error
+		value.Map().Range(func(key protoreflect.MapKey, item protoreflect.Value) bool {
+			result = inspectValue(field.MapKey(), key.Value(), depth, b, path)
+			if result == nil {
+				result = inspectValue(field.MapValue(), item, depth, b, path)
+			}
+			return result == nil
+		})
+		return result
+	}
+	items := value.Map()
+	if err := b.charge(depth, int64(items.Len()), 0, path); err != nil {
+		return err
+	}
+	keys := make([]protoreflect.MapKey, 0, items.Len())
+	var orderingWork int64
+	var orderingExceeded bool
+	items.Range(func(key protoreflect.MapKey, _ protoreflect.Value) bool {
+		keys = append(keys, key)
+		keyBytes := int64(32)
+		if field.MapKey().Kind() == protoreflect.StringKind {
+			keyBytes = int64(len(key.String())) + 1
+		}
+		factor := 8 * int64(bits.Len(uint(items.Len()))+1)
+		if keyBytes > (b.limits.Work-orderingWork)/factor {
+			orderingExceeded = true
+		} else if !orderingExceeded {
+			orderingWork += keyBytes * factor
+		}
+		return true
+	})
+	if orderingExceeded {
+		return invalid(LimitExceeded, path, "runtime work ceiling exceeded")
+	}
+	if err := b.charge(depth, orderingWork, 0, path); err != nil {
+		return err
+	}
+	slices.SortFunc(keys, func(a, b protoreflect.MapKey) int { return compareMapKeys(field.MapKey().Kind(), a, b) })
+	for _, key := range keys {
+		if err := inspectValue(field.MapKey(), key.Value(), depth, b, path); err != nil {
+			return err
+		}
+		if err := inspectValue(field.MapValue(), items.Get(key), depth, b, path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func compareMapKeys(kind protoreflect.Kind, a, b protoreflect.MapKey) int {
+	switch kind {
+	case protoreflect.BoolKind:
+		if a.Bool() == b.Bool() {
+			return 0
+		}
+		if a.Bool() {
+			return 1
+		}
+		return -1
+	case protoreflect.StringKind:
+		return strings.Compare(a.String(), b.String())
+	case protoreflect.Int32Kind, protoreflect.Int64Kind, protoreflect.Sint32Kind, protoreflect.Sint64Kind, protoreflect.Sfixed32Kind, protoreflect.Sfixed64Kind:
+		return cmp.Compare(a.Int(), b.Int())
+	default:
+		return cmp.Compare(a.Uint(), b.Uint())
+	}
 }

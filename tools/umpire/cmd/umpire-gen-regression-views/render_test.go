@@ -17,6 +17,8 @@ import (
 	"go.temporal.io/server/tools/umpire/internal/artifactv2"
 )
 
+const syntheticIdentity = "synthetic.query"
+
 func TestProductionManifestIsClosedAndMechanical(t *testing.T) {
 	expected := []manifestEntry{
 		{
@@ -24,12 +26,6 @@ func TestProductionManifestIsClosedAndMechanical(t *testing.T) {
 			FixturePath:        "model/Umpire/Examples/testdata/switch-experiment-spec.json",
 			GoOutputPath:       "tools/umpire/regression/switch_generated_view_test.go",
 			MarkdownOutputPath: "model/Umpire/Examples/Generated/Switch.md",
-		},
-		{
-			Identity:           callerClosureIdentity,
-			FixturePath:        "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
-			GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
-			MarkdownOutputPath: "model/Temporal/Tool/Generated/Regressions.md",
 		},
 	}
 	require.Equal(t, expected, productionManifest())
@@ -39,36 +35,34 @@ func TestProductionManifestIsClosedAndMechanical(t *testing.T) {
 
 func TestProductionFixtureCarriesCanonicalMetadata(t *testing.T) {
 	repositoryRoot := testRepositoryRoot(t)
-	entry := productionManifest()[1]
+	entry := productionManifest()[0]
 	encoded, err := os.ReadFile(filepath.Join(repositoryRoot, filepath.FromSlash(entry.FixturePath)))
 	require.NoError(t, err)
 
 	view, err := extractGeneratedView(entry, encoded, filepath.Join(repositoryRoot, "model"))
 	require.NoError(t, err)
 	require.Equal(t, generatedViewRecord{
-		Identity:           callerClosureIdentity,
+		Identity:           switchIdentity,
 		Format:             supportedExperimentFormat,
 		FixturePath:        entry.FixturePath,
 		GoOutputPath:       entry.GoOutputPath,
 		MarkdownOutputPath: entry.MarkdownOutputPath,
-		TestName:           "TestWorkflowNexusQueryExactActionCallerClosure",
+		TestName:           "TestSwitchQueryExactAction",
 		Sources: []sourceView{{
-			CanonicalPath:  "Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
-			RepositoryPath: "model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
+			CanonicalPath:  "Umpire/Examples/Switch.lean",
+			RepositoryPath: "model/Umpire/Examples/Switch.lean",
 		}},
 		Properties: []string{
-			"workflow-nexus.property.caller-closure",
+			"switch.property.flip-turns-on",
 		},
 		ObservationRequirements: []string{
-			"nexus.observation.cancellation-delivered",
-			"nexus.observation.pending-cancellation-count",
-			"workflow-nexus.relation.owns-operation",
+			"switch.observation.power",
 		},
-		ArtifactChecksum: "sha256:dde2fb35891dcc0020dbedf301805feda1b5136ec8622dd67fdc47a3d00fb1a8",
+		ArtifactChecksum: "sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd",
 	}, view)
 }
 
-func TestProductionGeneratedViewSetOwnsExactlyFourCompleteOutputs(t *testing.T) {
+func TestProductionGeneratedViewSetOwnsExactlyTwoCompleteOutputs(t *testing.T) {
 	repositoryRoot := testRepositoryRoot(t)
 	records := make([]generatedViewRecord, 0, len(productionManifest()))
 	for _, entry := range productionManifest() {
@@ -82,12 +76,10 @@ func TestProductionGeneratedViewSetOwnsExactlyFourCompleteOutputs(t *testing.T) 
 	artifacts, err := renderGeneratedViews(records)
 	require.NoError(t, err)
 	require.Equal(t, []string{
-		"model/Temporal/Tool/Generated/Regressions.md",
 		"model/Umpire/Examples/Generated/Switch.md",
-		"tools/umpire/regression/catalog_generated_test.go",
 		"tools/umpire/regression/switch_generated_view_test.go",
 	}, managedArtifactPaths(productionManifest()))
-	require.Len(t, artifacts, 4)
+	require.Len(t, artifacts, 2)
 	require.NoError(t, validateGeneratedArtifacts(productionManifest(), records, artifacts))
 
 	missing := cloneArtifacts(artifacts)
@@ -99,11 +91,6 @@ func TestProductionGeneratedViewSetOwnsExactlyFourCompleteOutputs(t *testing.T) 
 	stale := cloneArtifacts(artifacts)
 	stale[records[0].MarkdownOutputPath] = []byte("stale\n")
 	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, stale))
-	partial := map[string][]byte{
-		records[0].GoOutputPath:       artifacts[records[0].GoOutputPath],
-		records[0].MarkdownOutputPath: artifacts[records[0].MarkdownOutputPath],
-	}
-	require.Error(t, validateGeneratedArtifacts(productionManifest(), records, partial))
 }
 
 func TestGeneratedViewRejectsInvalidExperimentMetadata(t *testing.T) {
@@ -137,7 +124,7 @@ func TestGeneratedViewRejectsInvalidExperimentMetadata(t *testing.T) {
 	}
 	for name, test := range cases {
 		t.Run(name, func(t *testing.T) {
-			_, err := extractGeneratedView(syntheticEntry(callerClosureIdentity), test.encoded, modelRoot)
+			_, err := extractGeneratedView(syntheticEntry(syntheticIdentity), test.encoded, modelRoot)
 			require.ErrorContains(t, err, test.want)
 		})
 	}
@@ -176,7 +163,7 @@ func TestGeneratedViewRejectsContradictoryJSONObjectKeys(t *testing.T) {
 	for _, test := range cases {
 		t.Run(test.name, func(t *testing.T) {
 			_, err := extractGeneratedView(
-				syntheticEntry(callerClosureIdentity),
+				syntheticEntry(syntheticIdentity),
 				[]byte(test.encoded),
 				modelRoot,
 			)
@@ -201,7 +188,7 @@ func TestGeneratedViewRejectsProvenanceSymlinkEscapeAndWrongKind(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			_, err := extractGeneratedView(
-				syntheticEntry(callerClosureIdentity),
+				syntheticEntry(syntheticIdentity),
 				syntheticExperiment(t, syntheticOptions{sources: []string{test.source}}),
 				modelRoot,
 			)
@@ -324,7 +311,7 @@ func TestRenderingIsDeterministic(t *testing.T) {
 		properties:   []string{"property.two", "property.one"},
 		requirements: []string{"observation.two", "observation.one"},
 	})
-	entry := syntheticEntry(callerClosureIdentity)
+	entry := syntheticEntry(syntheticIdentity)
 	first, err := extractGeneratedView(entry, firstJSON, modelRoot)
 	require.NoError(t, err)
 
@@ -367,7 +354,7 @@ func syntheticExperiment(t *testing.T, options syntheticOptions) []byte {
 		options.format = supportedExperimentFormat
 	}
 	if options.identity == "" {
-		options.identity = callerClosureIdentity
+		options.identity = syntheticIdentity
 	}
 	if options.sources == nil {
 		options.sources = []string{"One.lean"}
@@ -447,15 +434,15 @@ func syntheticEntry(identity string) manifestEntry {
 
 func syntheticGeneratedView() generatedViewRecord {
 	return generatedViewRecord{
-		Identity:           callerClosureIdentity,
+		Identity:           syntheticIdentity,
 		Format:             supportedExperimentFormat,
 		FixturePath:        "model/fixture.json",
 		GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
 		MarkdownOutputPath: "model/Generated.md",
-		TestName:           "TestWorkflowNexusQueryExactActionCallerClosure",
+		TestName:           "TestSyntheticQuery",
 		Sources: []sourceView{{
-			CanonicalPath:  "Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
-			RepositoryPath: "model/Temporal/Feature/Nexus/Experimental/CallerClosure.lean",
+			CanonicalPath:  "One.lean",
+			RepositoryPath: "model/One.lean",
 		}},
 		Properties:              []string{"property.one"},
 		ObservationRequirements: []string{"observation.one"},

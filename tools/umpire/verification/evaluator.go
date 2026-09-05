@@ -103,12 +103,12 @@ func (e *Evaluator) Observe(ctx context.Context, event *umpirespb.RunEvent) (exe
 		return e.fail(event.GetSequence(), err)
 	}
 	incomplete := e.incomplete || event.ExecutionIncomplete
-	if e.violated {
+	if e.violated || incomplete {
 		e.sawClosure = event.Kind == umpirespb.RUN_EVENT_KIND_RUN_CLOSED
 		e.sequence = event.Sequence
 		e.elapsed = event.ElapsedMilliseconds
 		e.incomplete = incomplete
-		return execution.Stop, nil
+		return e.decision(), nil
 	}
 	work := e.prepared.workPerEvent
 	if work > e.prepared.source.Limits.MaxTotalWork-e.totalWork {

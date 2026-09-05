@@ -63,29 +63,31 @@ Generated documentation is changed through its owner. Broad generated-Lean drift
 new workflow coverage are explicitly declined.
 
 ## Acceptance
-- [ ] Normative rules, component diagrams, package READMEs, model/compiler docs, command help, and
+- Normative rules, component diagrams, package READMEs, model/compiler docs, command help, and
   glossary agree on the new vocabulary and server/worker authority split.
-- [ ] Active docs/help/targets contain no legacy runtime recommendation; historical names remain
+- Active docs/help/targets contain no legacy runtime recommendation; historical names remain
   only under an explicit superseded marker.
-- [ ] All managed views and semantic inventory are regenerated through their owners with focused
+- All managed views and semantic inventory are regenerated through their owners with focused
   checks passing.
-- [ ] The six-class facade corpus uses independent expected results, exact deterministic bytes or a
+- The six-class facade corpus uses independent expected results, exact deterministic bytes or a
   closed named stable projection, structurally validates dynamic fields, and has no generic ignore
   or normalization mechanism.
-- [ ] Fixture verification writes a complete temporary tree before diffing; interruption cannot
+- Fixture verification writes a complete temporary tree before diffing; interruption cannot
   partially update the checkout, promotion is separate, and ordinary Go tests invoke neither Lean
   nor rewrite mode.
-- [ ] `make umpire-check-regression` selects the complete migrated suite and fails on additions or
+- `make umpire-check-regression` selects the complete migrated suite and fails on additions or
   deletions in the inherited failure-identity set; the live tagged selector remains
   `-run '^TestUmpire'`.
-- [ ] Structural tests reject public scheduler/recorder/Slot/Monitor-factory construction, imports
+- Structural tests reject public scheduler/recorder/Slot/Monitor-factory construction, imports
   of `tools/umpire/internal/execution` by external packages, and drift from the two-call root facade.
-- [ ] The migration ledger is complete, and fn-5's generic promotion seam remains buildable without
+- The migration ledger is complete, and fn-5's generic promotion seam remains buildable without
   caller-closure imports.
-- [ ] No broad generated-Lean API drift gate or new GitHub Actions coverage is added.
-- [ ] Focused generation/unit/integration commands, `make umpire-build-model`,
-  `make umpire-check-regression`, `make fmt-imports`, and `make lint-code` pass.
-
+- No broad generated-Lean API drift gate or new GitHub Actions coverage is added.
+- Focused generation/unit/integration commands, `make umpire-build-model`,
+  `make umpire-check-regression`, and `make fmt-imports` pass; literal `make lint-code` is executed,
+  task-owned files are lint-clean, and the finding set adds zero findings relative to the recorded
+  pre-task baseline. The inherited repository lint backlog remains unchanged and is reported without
+  being claimed green.
 ## Done summary
 TBD
 

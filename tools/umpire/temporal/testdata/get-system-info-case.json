@@ -1,0 +1,187 @@
+{
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "caseId": "temporal.case.get-system-info",
+  "metadata": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "definitions": [
+      {
+        "definitionId": "temporal.workflow-service",
+        "behaviorFingerprint": "temporal-workflow-service/v1",
+        "kind": "CASE_DEFINITION_KIND_TARGET"
+      },
+      {
+        "definitionId": "temporal.case.get-system-info.property.server-version",
+        "behaviorFingerprint": "temporal-case-get-system-info-property/v1",
+        "kind": "CASE_DEFINITION_KIND_PROPERTY"
+      }
+    ],
+    "sources": [
+      {
+        "path": "Temporal/CaseRuntime.lean",
+        "line": "1",
+        "column": "1",
+        "provenance": "checked-model"
+      }
+    ],
+    "knownGaps": []
+  },
+  "program": {
+    "programId": "temporal.case.get-system-info.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "SYMBOLIC_ROLE_KIND_ENDPOINT"
+      }
+    ],
+    "slots": [],
+    "observations": [
+      {
+        "observationId": "server-version",
+        "type": {
+          "singular": {
+            "scalar": {
+              "kind": "SCALAR_KIND_TEXT"
+            }
+          }
+        }
+      }
+    ],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "context": "ENTRYPOINT_CONTEXT_CONTROLLER",
+        "activation": {
+          "controller": {}
+        },
+        "nodes": [
+          {
+            "instructionId": "get-system-info",
+            "dependencies": [],
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo",
+                "requestAssignments": [],
+                "responseProjections": [
+                  {
+                    "source": {
+                      "segments": [
+                        {
+                          "field": "server_version"
+                        }
+                      ]
+                    },
+                    "cardinality": "PROJECTION_CARDINALITY_ONE",
+                    "sinks": [
+                      {
+                        "observationId": "server-version"
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            "outcome": {
+              "fields": [
+                {
+                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                  "type": {
+                    "singular": {
+                      "enumeration": {
+                        "protobufType": "temporal.server.api.umpire.v1.InstructionOutcomeStatus"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "bounds": {
+              "timeoutMilliseconds": "5000",
+              "maxAttempts": "1",
+              "maxEmittedEvents": "8",
+              "maxResponseBytes": "4096"
+            },
+            "activationReservations": []
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup",
+      "context": "ENTRYPOINT_CONTEXT_CONTROLLER",
+      "nodes": []
+    },
+    "limits": {
+      "maxEntrypoints": "4",
+      "maxNodes": "16",
+      "maxEdges": "24",
+      "maxActivations": "8",
+      "maxAttempts": "16",
+      "maxRunEvents": "256",
+      "maxExpressionDepth": "12",
+      "maxPathFanout": "32",
+      "maxRequestBytes": "32768",
+      "maxResponseBytes": "4096",
+      "maxTotalDurationMilliseconds": "30000",
+      "maxCleanupDurationMilliseconds": "5000"
+    }
+  },
+  "contract": {
+    "contractId": "temporal.case.get-system-info.contract",
+    "rules": [
+      {
+        "ruleId": "server-version-present",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialState": "pending",
+        "states": [
+          {
+            "stateId": "pending",
+            "terminal": "CONTRACT_TERMINAL_STATE_NONTERMINAL"
+          },
+          {
+            "stateId": "satisfied",
+            "terminal": "CONTRACT_TERMINAL_STATE_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "observe-server-version",
+            "sourceState": "pending",
+            "targetState": "satisfied",
+            "eventKinds": {
+              "kinds": [
+                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+              ]
+            },
+            "predicate": {
+              "present": {
+                "operand": {
+                  "observation": {
+                    "observationId": "server-version"
+                  }
+                }
+              }
+            },
+            "support": "CONTRACT_SUPPORT_MATCHING_EVENT",
+            "captureAssignments": []
+          }
+        ],
+        "captures": []
+      }
+    ],
+    "limits": {
+      "maxRules": "4",
+      "maxStates": "16",
+      "maxTransitions": "16",
+      "maxExpressionDepth": "12",
+      "maxWorkPerEvent": "100000",
+      "maxTotalWork": "1000000000",
+      "maxCaptures": "4",
+      "maxCaptureBytes": "8192"
+    }
+  }
+}

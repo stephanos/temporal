@@ -202,6 +202,95 @@ inconclusive, while an already proved violation is retained. The event establish
 records that status before horizon processing. Live and offline evaluation consume the same
 recorded events, failure status, captures, and closure rules.
 
+### Prepared worker values
+
+Worker adapters reuse a small prepared value interface that owns opcode-aware outcome validation,
+declared-field lookup, immutable snapshots and precharged expression/copy work. Controller outcome
+staging delegates to the same implementation. Adapters do not obtain mutable compiler internals or
+rebind types, paths or expressions. Each SDK activation owns its replay-local lookup state; the
+shared value operations are deterministic and do not acquire controller-store locks, perform I/O or
+schedule goroutines. False guards create no outcome. Failed producers retain their typed status,
+while guarded reads of absent result values remain absent.
+
+`StartNexusOperation` schedules an SDK future and has no `VALUE` outcome. Preparation rejects a
+declared `VALUE` on that opcode. `Await` owns the target result; `Finish` and `RespondNexus` retain
+their evaluated-result semantics. An asynchronous response is not the eventual operation result.
+Success with a required but missing value, undeclared payloads, protocol fields in
+worker outcomes, malformed values and size/work exhaustion retain the shared failure semantics.
+
+### Reserved activation delivery
+
+Reservations authorize delivery; they cannot be matched by arrival order or by coincidental equality
+of authored request values. Profile carrier policy is declarative: it lists authorized reservation
+carrier methods and their supported activation context/cardinality shape. Preparation freezes and
+validates this policy, including duplicate/subset/aggregate bounds, without Temporal RPC names in
+the generic runtime. A method being authorized for ordinary unary calls does not authorize it as a
+reservation carrier. Unsupported carrier methods or reservation shapes reject during preparation.
+
+The initial Temporal carrier is `WorkflowService/StartWorkflowExecution`, with exactly one declared
+workflow activation per call and the explicitly declared Nexus-handler reservations it may trigger.
+Multiple workflows in one Run use multiple controller nodes. This concrete Host restriction does not
+remove general reservation counts from the IR or require other Hosts to use the same carrier shape.
+Unreserved authorized unary calls retain their generic transport behavior. Signal-with-start and
+multi-operation carriers require their own concrete use case and are not implemented here.
+
+Preparation assigns every potential `StartNexusOperation` node in a reserved workflow to exactly one
+explicitly reserved handler with matching service/operation. Handler ordinals follow prepared node
+order, never delivery order; repeated workflow reservations in other carrier policies include the
+workflow ordinal in that ordering. Duplicate matching handler bindings, missing targets and counts
+that do not cover the potential source nodes exactly reject. Guards may leave reservations unused;
+they do not alter the assignment. Role/endpoint/physical-queue compatibility is checked by Host
+binding before worker startup or target calls, without rewriting authored namespace, workflow type,
+workflow ID, taskqueue or payload fields.
+
+The composite Host binds a fresh route bundle to the exact controller coordinate and returned
+reservation identities before accepting the triggering effect. It clones the constructed request
+and adds a versioned, bounded reserved workflow header. Any authored occurrence of that reserved
+key rejects, even when equal. The final transmitted request, including the header, must fit the
+instruction and Profile request limits. This is an explicit Host delivery-metadata exception to
+execution-owned request construction; it does not permit semantic request rewriting or reservation
+inference from RPC names. The server transport remains responsible only for the resulting unary
+call and raw typed result.
+
+The route binds the Umpire Run, controller origin, reservation identity/ordinal, prepared entrypoint,
+and Host binding to the requested namespace/workflow ID/queue. First admitted delivery pins the
+Temporal workflow Run ID. The eventual start response must agree with that pin. Missing, malformed,
+oversized, unknown-version, crossed, stale or conflicting routes reject before SDK commands or
+capability publication. A valid delivery consumes its reservation once. Replay and matching
+redelivery reuse the immutable admitted activation and cannot consume another reservation. Changing
+Host state is not consulted at each workflow opcode; immutable admission data remains retained until
+the accepted SDK execution and its replay/drain obligations end. Process-restart recovery remains
+out of scope.
+
+The SDK outbound Nexus interceptor propagates the preassigned handler route through the Nexus header,
+without changing the full typed Umpire value payload. Nexus request identity pins retry/redelivery;
+a conflicting request cannot consume an existing handler route. Header decoding and Host admission
+stay outside the context-local instruction interpreter. Routing identifiers are non-secret Host
+metadata, never callback credentials or completion authority. The Host adds no route facts to Run
+Events or diagnostics. Authorized RPC response fields remain ordinary data, including echoed
+headers; no additional response redaction or provenance tracking is introduced.
+
+Reservation lifecycle distinguishes reserved, admitted, terminal and canceled authority. Cancellation
+atomically prevents unadmitted delivery and requests SDK cancellation for admitted executions using
+the exact pinned Temporal Run ID. It never cancels a foreign execution by workflow ID alone. Every
+accepted handle remains owned through cancellation, drain and quarantine. Pre-acceptance trigger
+rejection retires the associated unconsumed routes. A non-success, canceled or uncertain trigger
+result revokes remaining unconsumed routes and boundedly cancels admitted work; it cannot prove that
+the remote effect did not occur. Guards false before controller admission create no reservations.
+
+When a workflow becomes terminal, remaining unconsumed handler reservations are released. This is
+reported only as reservation release, not proof that an SDK operation ran or did not run. Delayed
+delivery then rejects. Reservations never consumed may complete their handle lifecycle without an
+activation success claim; failures of admitted required activations still make the owning Run
+incomplete. Terminal transitions and resource release are idempotent. Late failures and publications
+remain bounded Host diagnostics and cannot mutate closed Run/Verdict data.
+
+Shared workers register their complete workflow/Nexus signature before starting. Reuse requires a
+compatible registration and physical-queue binding; incompatible registries must not poll the same
+queue or modify an already-started worker. Shared-worker fatal errors affect dependent sessions;
+unrelated workers/Runs remain usable. Registry, route, session and quarantine capacity are bounded
+under Host policy, and capacity held by actual unfinished work is released only when it finishes.
+
 ## Edge Cases & Constraints
 <!-- scope: technical -->
 
@@ -301,6 +390,18 @@ Program/policy and Contract admission; task 3 supplies the actual evaluator. Tas
 public PrepareCase composition without Host I/O. Failure at any of these boundaries requires
 re-evaluating that shared IR/Host boundary before downstream execution work.
 
+Tasks 16–18 close the worker prerequisites before task 6: shared prepared outcome/value semantics,
+declarative carrier/topology admission, and bounded Host reservation delivery. Task 18 first proves
+two identical concurrent Runs with reversed deliveries using fake activation handles; task 6 then
+proves the same ownership through real SDK interception and replay. Failure reopens the delivery
+contract before composing the live async Case.
+
+Execution is then proved at three boundaries: task 14 builds typed requests and projects responses
+without Host I/O; task 15 proves append/Monitor/admission serialization with injected operations;
+task 4 integrates both in controller DAG scheduling and reservation races against a fake Host.
+Task 9 retains complete termination, cleanup, bounded drain/quarantine and public Run reuse. This
+delivery split does not change execution semantics or remove the integrated scheduler proof.
+
 The preparation split does not add a temporary public Run implementation. Task 13 tests private
 preflight and the public preparation facade; task 9 exports PreparedCase.Run with real scheduling,
 cleanup and terminal precedence. Internal execution owns root-independent policy/driver contracts;
@@ -363,12 +464,12 @@ cleanup in the Host.
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
 | R1 | Versioned standalone Case IR and generated types | Task 1, Task 2, Task 11 | — |
-| R2 | One-time admission, immutable preparation, and root facade | Task 11, Task 12, Task 13, Task 9, Task 10 | — |
-| R3 | Deterministic live/offline Contract evaluation | Task 12, Task 3 | — |
-| R4 | Internal generic DAG scheduling, Slots, outcomes, and Runs | Task 11, Task 4, Task 10 | — |
-| R5 | Safety barrier, effect drain, and cleanup | Task 3, Task 4, Task 9 | — |
-| R6 | Authorized arbitrary unary RPC server runtime | Task 2, Task 11, Task 13, Task 5 | — |
-| R7 | SDK-only worker and Nexus handler runtime | Task 11, Task 13, Task 6 | — |
+| R2 | One-time admission, immutable preparation, and root facade | Task 11, Task 12, Task 13, Task 16, Task 17, Task 9, Task 10 | — |
+| R3 | Deterministic live/offline Contract evaluation | Task 12, Task 3, Task 15 | — |
+| R4 | Internal generic DAG scheduling, Slots, outcomes, and Runs | Task 11, Task 14, Task 15, Task 4, Task 16, Task 10 | — |
+| R5 | Safety barrier, effect drain, and cleanup | Task 3, Task 15, Task 4, Task 17, Task 18, Task 9 | — |
+| R6 | Authorized arbitrary unary RPC server runtime | Task 2, Task 11, Task 13, Task 5, Task 18 | — |
+| R7 | SDK-only worker and Nexus handler runtime | Task 11, Task 13, Task 16, Task 17, Task 18, Task 6 | — |
 | R8 | Lean-produced async Nexus integration | Task 7 | — |
-| R9 | Safe prepare-once/run-many reuse | Task 11, Task 13, Task 4, Task 5, Task 6, Task 7, Task 9 | — |
+| R9 | Safe prepare-once/run-many reuse | Task 11, Task 13, Task 14, Task 15, Task 4, Task 5, Task 16, Task 17, Task 18, Task 6, Task 7, Task 9 | — |
 | R10 | Hard cutover, documentation, and regression gates | Task 1, Task 8, Task 10 | — |

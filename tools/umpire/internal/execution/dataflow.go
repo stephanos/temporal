@@ -194,8 +194,8 @@ func (a *admission) bindOutcomes(g *graph, n *node) error {
 			expected = scalarSchema(umpirespb.SCALAR_KIND_TEXT)
 		case umpirespb.INSTRUCTION_OUTCOME_FIELD_VALUE:
 			// RPC payloads are available only through declared response projections.
-			if g.context == umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER || typ.Opaque() {
-				return invalid(ir.Unsupported, nodePath(g, n), "only SDK outcomes may declare a nonopaque value")
+			if g.context == umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER || typ.Opaque() || n.opcode == StartNexusOperation {
+				return invalid(ir.Unsupported, nodePath(g, n), "VALUE requires an SDK result, not a controller outcome, opaque capability or StartNexusOperation handle")
 			}
 		default:
 			return invalid(ir.Unknown, nodePath(g, n), "unknown outcome field")
@@ -377,12 +377,17 @@ func (a *admission) bindDataflow() error {
 	if err != nil {
 		return err
 	}
+	a.runID, err = a.prepared.catalog.BindType(scalarSchema(umpirespb.SCALAR_KIND_TEXT))
+	if err != nil {
+		return err
+	}
 	for _, g := range a.prepared.graphs {
 		for _, index := range g.order {
 			if err := a.bindNodeDataflow(g, g.nodes[index], boolean); err != nil {
 				return err
 			}
 		}
+		g.runtimeWork = runtimeWorkLimit(g, a.prepared.source.Limits)
 	}
 	return nil
 }
@@ -405,16 +410,23 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		return err
 	}
 	a.successScope(g, n, n.guard, scope)
-	bind := func(value *umpirespb.ValueExpression, expected *ir.Type) (*ir.Expression, error) {
+	bindIn := func(expressionScope map[ir.Reference]ir.Binding, value *umpirespb.ValueExpression, expected *ir.Type) (*ir.Expression, error) {
 		if err := a.charge(int64(proto.Size(n.source.Guard)) + int64(proto.Size(value)) + 1); err != nil {
 			return nil, err
 		}
-		_, expression, err := a.prepared.catalog.BindGuardedExpression(n.source.Guard, value, expected, scope, a.expressionLimits())
+		_, expression, err := a.prepared.catalog.BindGuardedExpression(n.source.Guard, value, expected, expressionScope, a.expressionLimits())
 		return expression, err
+	}
+	bind := func(value *umpirespb.ValueExpression, expected *ir.Type) (*ir.Expression, error) {
+		return bindIn(scope, value, expected)
 	}
 	switch n.opcode {
 	case InvokeRPC:
-		err = a.bindAssignments(g, n, bind)
+		inputScope := maps.Clone(scope)
+		inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(umpirespb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
+		err = a.bindAssignments(g, n, func(value *umpirespb.ValueExpression, expected *ir.Type) (*ir.Expression, error) {
+			return bindIn(inputScope, value, expected)
+		})
 	case AwaitSlot:
 		if _, exists := a.writers[n.source.Instruction.GetAwaitSlot().SlotId]; !exists {
 			return invalid(ir.Unavailable, nodePath(g, n), "awaited Slot has no writer")
@@ -465,7 +477,7 @@ func (a *admission) bindAssignments(g *graph, n *node, bind func(*umpirespb.Valu
 			if err := a.charge(int64(len(previous.target.Steps())+len(target.Steps())) + 1); err != nil {
 				return err
 			}
-			if pathsConflict(previous.target, target) {
+			if previous.target.Conflicts(target) {
 				return invalid(ir.Malformed, nodePath(g, n), "request assignments overlap")
 			}
 		}
@@ -478,20 +490,4 @@ func (a *admission) bindAssignments(g *graph, n *node, bind func(*umpirespb.Valu
 	}
 
 	return nil
-}
-func pathsConflict(left, right *ir.Path) bool {
-	a, b := left.Steps(), right.Steps()
-	for i := 0; i < min(len(a), len(b)); i++ {
-		if a[i].Field != b[i].Field {
-			group := a[i].Field.ContainingOneof()
-			return group != nil && group == b[i].Field.ContainingOneof()
-		}
-		if a[i].Selector == ir.MapKey && b[i].Selector == ir.MapKey && !proto.Equal(a[i].Key, b[i].Key) {
-			return false
-		}
-		if a[i].Selector != b[i].Selector && a[i].Selector != ir.Oneof && b[i].Selector != ir.Oneof {
-			return true
-		}
-	}
-	return true
 }

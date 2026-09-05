@@ -250,7 +250,7 @@ func expressionReference(source *umpirespb.ValueExpression) (Reference, error) {
 		}
 	case *umpirespb.ValueExpression_RunEvent:
 		result = Reference{Kind: EventReference, Field: int32(value.RunEvent.GetField())}
-		if result.Field <= 0 || result.Field > int32(umpirespb.RUN_EVENT_FIELD_SOURCE_ID) {
+		if result.Field <= 0 || result.Field > int32(umpirespb.RUN_EVENT_FIELD_RUN_ID) {
 			return Reference{}, invalid(Malformed, "expression", "invalid Run Event reference")
 		}
 	default:

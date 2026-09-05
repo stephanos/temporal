@@ -1,3 +1,4 @@
+import Batteries.Tactic.Lint
 import Umpire.Case.Value
 
 /-!
@@ -64,6 +65,9 @@ inductive ActivationBinding where
   | activity (activation : ActivityActivation)
   | nexusHandler (activation : NexusHandlerActivation)
   deriving BEq, Repr
+
+-- The empty controller payload makes Lean's generated injectivity theorem already irreducible.
+attribute [nolint simpNF] ActivationBinding.controller.injEq
 
 /-- One typed expression assigned to a descriptor-resolved request path. -/
 structure RequestAssignment where

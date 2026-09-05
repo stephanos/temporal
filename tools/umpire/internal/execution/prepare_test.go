@@ -15,10 +15,10 @@ import (
 
 func fixture(t *testing.T) (*umpirespb.Case, *ir.Catalog, Policy) {
 	t.Helper()
-	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("admission.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Payload"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("text"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}, {Name: proto.String("items"), Number: proto.Int32(2), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()}}}}, Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Service"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Call"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload")}}}}}}})
+	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("admission.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Payload"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("text"), Number: proto.Int32(1), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum()}, {Name: proto.String("items"), Number: proto.Int32(2), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum()}}}}, Service: []*descriptorpb.ServiceDescriptorProto{{Name: proto.String("Service"), Method: []*descriptorpb.MethodDescriptorProto{{Name: proto.String("Call"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload")}, {Name: proto.String("Stream"), InputType: proto.String(".example.Payload"), OutputType: proto.String(".example.Payload"), ServerStreaming: proto.Bool(true)}}}}}}})
 	require.NoError(t, err)
 	limits := &umpirespb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
-	policy := Policy{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []RolePolicy{{ID: "endpoint", Kind: umpirespb.SYMBOLIC_ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}}, {ID: "worker", Kind: umpirespb.SYMBOLIC_ROLE_KIND_WORKER}, {ID: "queue", Kind: umpirespb.SYMBOLIC_ROLE_KIND_TASK_QUEUE}}, Capabilities: []Opcode{InvokeRPC, AwaitSlot, CompleteNexusOperation, StartNexusOperation, Await, Finish, RespondNexus}, Limits: proto.CloneOf(limits)}
+	policy := Policy{Identity: "host", CatalogIdentity: catalog.Identity(), Roles: []RolePolicy{{ID: "endpoint", Kind: umpirespb.SYMBOLIC_ROLE_KIND_ENDPOINT, Methods: []string{"/example.Service/Call"}, ReservationCarriers: []ReservationCarrierPolicy{{Method: "/example.Service/Call", Shapes: []ReservationCarrierShape{{Context: umpirespb.ENTRYPOINT_CONTEXT_WORKFLOW, MaximumCount: 32}, {Context: umpirespb.ENTRYPOINT_CONTEXT_NEXUS_HANDLER, MaximumCount: 32}}}}}, {ID: "worker", Kind: umpirespb.SYMBOLIC_ROLE_KIND_WORKER}, {ID: "queue", Kind: umpirespb.SYMBOLIC_ROLE_KIND_TASK_QUEUE}}, Capabilities: []Opcode{InvokeRPC, AwaitSlot, CompleteNexusOperation, StartNexusOperation, Await, Finish, RespondNexus}, Limits: proto.CloneOf(limits)}
 	source := &umpirespb.Case{Version: &umpirespb.FormatVersion{Major: 1}, CaseId: "case", Program: &umpirespb.Program{ProgramId: "program", Roles: []*umpirespb.ProgramRole{{RoleId: "endpoint", Kind: umpirespb.SYMBOLIC_ROLE_KIND_ENDPOINT}}, Entrypoints: []*umpirespb.Entrypoint{{EntrypointId: "controller", Context: umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER, Activation: &umpirespb.ActivationBinding{Binding: &umpirespb.ActivationBinding_Controller{Controller: &umpirespb.ControllerActivation{}}}, Nodes: []*umpirespb.InstructionNode{rpcNode("call")}}}, Cleanup: &umpirespb.CleanupGraph{EntrypointId: "cleanup", Context: umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER}, Limits: limits}, Contract: &umpirespb.Contract{ContractId: "contract"}}
 	return source, catalog, policy
 }
@@ -42,6 +42,9 @@ func present(value *umpirespb.ValueExpression) *umpirespb.ValueExpression {
 }
 func succeeded(entry, node string) *umpirespb.ValueExpression {
 	return &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Equals{Equals: &umpirespb.EqualsExpression{Left: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Outcome{Outcome: &umpirespb.InstructionOutcomeReference{Instruction: &umpirespb.InstructionReference{EntrypointId: entry, InstructionId: node}, Field: umpirespb.INSTRUCTION_OUTCOME_FIELD_STATUS}}}, Right: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Literal{Literal: &umpirespb.Value{Value: &umpirespb.Value_EnumValue{EnumValue: &umpirespb.EnumValue{Number: 1}}}}}}}}
+}
+func runIDExpression() *umpirespb.ValueExpression {
+	return &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_RunEvent{RunEvent: &umpirespb.RunEventFieldReference{Field: umpirespb.RUN_EVENT_FIELD_RUN_ID}}}
 }
 func addWorker(source *umpirespb.Case) {
 	source.Program.Roles = append(source.Program.Roles, &umpirespb.ProgramRole{RoleId: "worker", Kind: umpirespb.SYMBOLIC_ROLE_KIND_WORKER}, &umpirespb.ProgramRole{RoleId: "queue", Kind: umpirespb.SYMBOLIC_ROLE_KIND_TASK_QUEUE})
@@ -112,6 +115,52 @@ func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 	_, err := Prepare(nil, catalog, p)
 	require.Error(t, err)
 	_, err = Prepare(c, nil, p)
+	require.Error(t, err)
+}
+
+func TestRunIDIntrinsicIsOnlyAvailableToProgramInputs(t *testing.T) {
+	c, catalog, policy := fixture(t)
+	node := c.Program.Entrypoints[0].Nodes[0]
+	node.Instruction.GetInvokeRpc().RequestAssignments = []*umpirespb.RequestAssignment{{
+		Target: field("text"), Value: runIDExpression(),
+	}}
+	prepared, err := Prepare(c, catalog, policy)
+	require.NoError(t, err)
+	for _, runID := range []string{"run-one", "run-two"} {
+		store, err := newValueStore(prepared, runID)
+		require.NoError(t, err)
+		values, err := store.activate("controller", "activation")
+		require.NoError(t, err)
+		request, enabled, _, err := values.request(t.Context(), Coordinate{
+			RunID: runID, EntrypointID: "controller", ActivationID: "activation",
+			InstructionID: "call", Attempt: 1,
+		}, prepared.graphs[0].runtimeWork)
+		require.NoError(t, err)
+		require.True(t, enabled)
+		field := request.ProtoReflect().Descriptor().Fields().ByName("text")
+		require.Equal(t, runID, request.ProtoReflect().Get(field).String())
+	}
+
+	node.Instruction.GetInvokeRpc().RequestAssignments[0].Value.GetRunEvent().Field = umpirespb.RUN_EVENT_FIELD_SEQUENCE
+	_, err = Prepare(c, catalog, policy)
+	require.Error(t, err)
+
+	c, catalog, policy = fixture(t)
+	c.Program.Entrypoints[0].Nodes[0].Guard = present(runIDExpression())
+	_, err = Prepare(c, catalog, policy)
+	require.Error(t, err)
+
+	c, catalog, policy = fixture(t)
+	addWorker(c)
+	c.Program.Entrypoints[1].Nodes = []*umpirespb.InstructionNode{{
+		InstructionId: "finish",
+		Instruction: &umpirespb.Instruction{Instruction: &umpirespb.Instruction_Finish{Finish: &umpirespb.Finish{
+			Result: runIDExpression(),
+		}}},
+		Outcome: statusSchema(),
+		Bounds:  &umpirespb.InstructionBounds{TimeoutMilliseconds: 1000, MaxAttempts: 1, MaxEmittedEvents: 1, MaxResponseBytes: 4096},
+	}}
+	_, err = Prepare(c, catalog, policy)
 	require.Error(t, err)
 }
 

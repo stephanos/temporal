@@ -1,5 +1,8 @@
 # Umpire 4 delivery order
 
+Status: current after the Case Runtime cutover. Entries explicitly labeled superseded or deferred
+are historical scheduling context, not runtime recommendations.
+
 ## Goal
 
 Build and hard-cut over to the standalone, data-driven Umpire Case Runtime specified by
@@ -52,8 +55,13 @@ The validated implementation waves are:
 4. `fn-64.12` — compile static Contract and capture admission.
 5. `fn-64.3` — implement deterministic Contract evaluation.
 6. Parallel candidates: `fn-64.13` — compose public `PrepareCase`, Profile/Host adapters and private
-   preflight; `fn-64.4` — internal generic DAG scheduling, typed dataflow, and Run recording.
-7. After `fn-64.13`: `fn-64.5` — Temporal server Host; `fn-64.6` — Temporal worker Host. After
+   preflight; `fn-64.14` — typed request construction and projection data plane; `fn-64.15` —
+   append-only recorder and Monitor barrier. After `fn-64.14` and `fn-64.15`, `fn-64.4` integrates
+   both into internal generic DAG scheduling and activation reservations.
+7. After `fn-64.13`: `fn-64.5` — Temporal server Host. Worker prerequisites are `fn-64.16` —
+   shared prepared worker values, `fn-64.17` — carrier policy/topology admission, and then
+   `fn-64.18` — bounded Host delivery routing. After `fn-64.16` and `fn-64.18`, `fn-64.6`
+   implements the Temporal worker Host. After
    `fn-64.4` and `fn-64.13`: `fn-64.9` — complete root `Run`, abort, cleanup, terminal precedence, and reusable
    PreparedCase Runs.
 8. `fn-64.7` — compile/prepare the orthogonal `GetSystemInfo` Case, then compose the Host and
@@ -220,8 +228,12 @@ The current dependency shape is:
 
 ```text
 fn-64.1 -> fn-64.2 -> fn-64.11 -> fn-64.12 -> fn-64.3
-{fn-64.3, fn-64.11} -> {fn-64.13, fn-64.4}
-fn-64.13 -> {fn-64.5, fn-64.6}
+{fn-64.3, fn-64.11} -> {fn-64.13, fn-64.14, fn-64.15}
+{fn-64.14, fn-64.15} -> fn-64.4
+fn-64.13 -> fn-64.5
+{fn-64.13, fn-64.14} -> fn-64.16
+{fn-64.11, fn-64.13} -> fn-64.17 -> fn-64.18
+{fn-64.16, fn-64.18} -> fn-64.6
 {fn-64.4, fn-64.13} -> fn-64.9
 {fn-64.4, fn-64.5, fn-64.6, fn-64.9} -> fn-64.7 -> fn-64.8 -> fn-64.10
 

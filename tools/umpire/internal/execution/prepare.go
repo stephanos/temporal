@@ -18,8 +18,10 @@ type admission struct {
 	roles        map[string]umpirespb.SymbolicRoleKind
 	allowed      map[string]RolePolicy
 	methods      map[string]map[string]bool
+	carriers     map[string]map[string]ReservationCarrierPolicy
 	capabilities map[Opcode]bool
 	observations map[string]ir.Type
+	runID        ir.Type
 	writers      map[string]slotWriter
 	graphIndex   map[string]*graph
 	work         int64
@@ -72,9 +74,9 @@ func Prepare(source *umpirespb.Case, catalog *ir.Catalog, policy Policy) (*Prepa
 	if err := validateMetadata(source.Metadata); err != nil {
 		return nil, err
 	}
-	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}}
-	a := &admission{prepared: prepared, roles: map[string]umpirespb.SymbolicRoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, capabilities: map[Opcode]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
-	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations} {
+	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]ReservationCarrierPlan{}}
+	a := &admission{prepared: prepared, roles: map[string]umpirespb.SymbolicRoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, capabilities: map[Opcode]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
+	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
 		}
@@ -142,7 +144,7 @@ func (a *admission) bindPolicy(policy Policy) error {
 	snapshot.Roles = slices.Clone(policy.Roles)
 	snapshot.Capabilities = slices.Clone(policy.Capabilities)
 	for i, role := range snapshot.Roles {
-		bound, err := a.bindRolePolicy(role)
+		bound, err := a.bindRolePolicy(role, policy.Limits)
 		if err != nil {
 			return err
 		}
@@ -157,17 +159,16 @@ func (a *admission) bindPolicy(policy Policy) error {
 	a.prepared.policy = snapshot
 	return nil
 }
-func (a *admission) bindRolePolicy(role RolePolicy) (RolePolicy, error) {
+func (a *admission) bindRolePolicy(role RolePolicy, limits *umpirespb.ProgramLimits) (RolePolicy, error) {
 	if !validID(role.ID) || role.Kind < umpirespb.SYMBOLIC_ROLE_KIND_ENDPOINT || role.Kind > umpirespb.SYMBOLIC_ROLE_KIND_PARTICIPANT {
 		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid role")
 	}
 	if _, exists := a.allowed[role.ID]; exists {
 		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "duplicate role")
 	}
-	if len(role.Methods) > 10000 || role.Kind != umpirespb.SYMBOLIC_ROLE_KIND_ENDPOINT && len(role.Methods) > 0 {
+	if len(role.Methods) > 10000 || len(role.ReservationCarriers) > 10000 || role.Kind != umpirespb.SYMBOLIC_ROLE_KIND_ENDPOINT && (len(role.Methods) > 0 || len(role.ReservationCarriers) > 0) {
 		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
 	}
-	role.Methods = slices.Clone(role.Methods)
 	methods := make(map[string]bool, len(role.Methods))
 	for _, method := range role.Methods {
 		if len(method) > 256 {
@@ -184,9 +185,67 @@ func (a *admission) bindRolePolicy(role RolePolicy) (RolePolicy, error) {
 			return RolePolicy{}, err
 		}
 	}
-	a.allowed[role.ID] = role
+	carriers := make(map[string]ReservationCarrierPolicy, len(role.ReservationCarriers))
+	for _, carrier := range role.ReservationCarriers {
+		if err := a.bindCarrierPolicy(carrier, methods, limits, carriers); err != nil {
+			return RolePolicy{}, err
+		}
+	}
+	bound := role
+	bound.Methods = slices.Clone(role.Methods)
+	bound.ReservationCarriers = make([]ReservationCarrierPolicy, len(role.ReservationCarriers))
+	for i, carrier := range role.ReservationCarriers {
+		bound.ReservationCarriers[i] = carrier
+		bound.ReservationCarriers[i].Shapes = slices.Clone(carrier.Shapes)
+	}
+	a.allowed[role.ID] = bound
 	a.methods[role.ID] = methods
-	return role, nil
+	a.carriers[role.ID] = carriers
+	return bound, nil
+}
+
+func (a *admission) bindCarrierPolicy(carrier ReservationCarrierPolicy, methods map[string]bool, limits *umpirespb.ProgramLimits, carriers map[string]ReservationCarrierPolicy) error {
+	if !methods[carrier.Method] {
+		return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method requires ordinary authorization on the same endpoint")
+	}
+	if _, exists := carriers[carrier.Method]; exists {
+		return invalid(ir.Malformed, "policy.reservation_carriers", "duplicate carrier method")
+	}
+	method, err := a.prepared.catalog.Method(carrier.Method)
+	if err != nil {
+		return err
+	}
+	if method.IsStreamingClient() || method.IsStreamingServer() {
+		return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method must be unary")
+	}
+	if len(carrier.Shapes) == 0 || len(carrier.Shapes) > 2 {
+		return invalid(ir.Malformed, "policy.reservation_carriers", "carrier shape is empty or oversized")
+	}
+	seen := map[umpirespb.EntrypointContext]bool{}
+	var total int64
+	for _, shape := range carrier.Shapes {
+		if shape.Context != umpirespb.ENTRYPOINT_CONTEXT_WORKFLOW && shape.Context != umpirespb.ENTRYPOINT_CONTEXT_NEXUS_HANDLER {
+			return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier shape has an unsupported activation context")
+		}
+		if seen[shape.Context] {
+			return invalid(ir.Malformed, "policy.reservation_carriers", "duplicate carrier activation context")
+		}
+		seen[shape.Context] = true
+		if shape.MaximumCount <= 0 || shape.MaximumCount > limits.MaxActivations-total {
+			return invalid(ir.LimitExceeded, "policy.reservation_carriers", "carrier cardinality exceeds the activation ceiling")
+		}
+		total += shape.MaximumCount
+		if err := a.charge(1); err != nil {
+			return err
+		}
+	}
+	if err := a.charge(1); err != nil {
+		return err
+	}
+	bound := carrier
+	bound.Shapes = slices.Clone(carrier.Shapes)
+	carriers[carrier.Method] = bound
+	return nil
 }
 func (a *admission) bindSchemas() error {
 	p := a.prepared.source

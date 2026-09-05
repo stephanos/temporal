@@ -140,18 +140,18 @@ private def testOrdinaryNexusFacadeIsolation : IO Unit := do
     #[
       moduleRecord `Temporal.Feature.Nexus #[`Temporal.Feature.Nexus.Operations],
       moduleRecord `Temporal.Feature.Nexus.Operations #[
-        `Temporal.Feature.Nexus.Experimental.CallerClosure
+        `Temporal.Feature.Nexus.Experimental.VariationSpace
       ],
-      moduleRecord `Temporal.Feature.Nexus.Experimental.CallerClosure
+      moduleRecord `Temporal.Feature.Nexus.Experimental.VariationSpace
     ]
     .nexusExperimentalIsolation
     #[
       `Temporal.Feature.Nexus,
       `Temporal.Feature.Nexus.Operations,
-      `Temporal.Feature.Nexus.Experimental.CallerClosure
+      `Temporal.Feature.Nexus.Experimental.VariationSpace
     ]
   let explicitExperimentalImports := #[
-    moduleRecord `Temporal.Feature.Nexus.Experimental.CallerClosure #[
+    moduleRecord `Temporal.Feature.Nexus.Experimental.VariationSpace #[
       `Temporal.Feature.Nexus.Experimental.AutoClose
     ],
     moduleRecord `Temporal.Feature.Nexus.Experimental.AutoClose
@@ -322,10 +322,7 @@ private def testExactVerifyExceptions : IO Unit := do
       moduleRecord verifyDestinations[1]!
     ]
     requireEqual s!"exact verification consumer {consumer}" (check defaultPolicy modules) #[]
-  for nearMiss in #[
-    `Temporal.Feature.Nexus.Experimental.CallerClosure.VeilTests.Extra,
-    `Temporal.Tool.VerifyVeil.Extra
-  ] do
+  for nearMiss in #[`Temporal.Tool.VerifyVeil.Extra] do
     let modules := #[moduleRecord nearMiss #[`Umpire.Verify.Veil.Core],
       moduleRecord `Umpire.Verify.Veil.Core]
     let violations := check defaultPolicy modules

@@ -7,8 +7,7 @@ import (
 )
 
 const (
-	callerClosureIdentity = "workflow-nexus.query.exact-action-caller-closure"
-	switchIdentity        = "switch.query.exact-action"
+	switchIdentity = "switch.query.exact-action"
 )
 
 type manifestEntry struct {
@@ -25,12 +24,6 @@ func productionManifest() []manifestEntry {
 			FixturePath:        "model/Umpire/Examples/testdata/switch-experiment-spec.json",
 			GoOutputPath:       "tools/umpire/regression/switch_generated_view_test.go",
 			MarkdownOutputPath: "model/Umpire/Examples/Generated/Switch.md",
-		},
-		{
-			Identity:           callerClosureIdentity,
-			FixturePath:        "model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
-			GoOutputPath:       "tools/umpire/regression/catalog_generated_test.go",
-			MarkdownOutputPath: "model/Temporal/Tool/Generated/Regressions.md",
 		},
 	}
 }

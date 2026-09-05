@@ -18,6 +18,9 @@ tests/umpire4_testenv_test.go, model/README.md, model/ARCHITECTURE.md,
 model/Umpire/ARCHITECTURE.md]
 
 ## Approach
+- Compose the task18 carrier/ledger with task6 SDK admission and task5 server transport. Configure
+  the declarative StartWorkflowExecution carrier policy, inject only reserved delivery headers,
+  and retain the standard full Umpire Value payload convention.
 - Lower the selected checked Lean model into the public Case schema, including
   controller/workflow/handler entrypoints and deterministic Contract machines.
 - First compile an orthogonal `GetSystemInfo` Case with an empty request, a typed `server_version`
@@ -53,6 +56,9 @@ Lean owns scenario/property semantics. Go may interpret only the general IR; it 
 async-Nexus lifecycle checker.
 
 ## Acceptance
+- [ ] The real start/header/Nexus-delivery path matches exact reservation identities across repeated
+  and concurrent Runs; reversed arrivals, failed starts and cancellation never consume another Run's
+  route. The transmitted request obeys limits after Host metadata injection.
 - [ ] Lean emits a reproducible Case whose identities, typed values, paths, limits, and monitor
   obligations survive Go preparation exactly.
 - [ ] The `GetSystemInfo` Case compiles and prepares with zero Host I/O, and its different method,
@@ -74,9 +80,16 @@ async-Nexus lifecycle checker.
   TestUmpireAsyncNexusCase` pass.
 
 ## Done summary
-TBD
+Implemented generic Lean Case compilation/ProtoJSON plus reproducible GetSystemInfo and async Nexus artifacts, and composed the Temporal server/worker Host through the generic Umpire runtime. The async Case now authors per-Run workflow/request identity through a closed Program-input intrinsic, preserves scheduled/completed field pairing with an exact-descriptor bounded HistoryEvent capture, and keeps verdict support limited to declared history Observations.
 
+Fixed all four first-round review findings: unique request identity, aligned scheduled-event correlation, fresh bounded retryable carrier finalization including Drain, and post-expansion callback metadata sizing. The additive schema scope includes authoritative protobuf/generated Go, the exact Lean mirror/generated API, restricted admission/runtime resolution, and descriptor/byte/ownership tests.
+
+Validation passed: protobuf and Lean API generation, full Lean model build, byte-identical artifact regeneration, focused normal and race Go suites, sequential/concurrent exact-artifact reuse plus non-success/timeout/cross-correlation cases, the real SDK integration, import formatting, scoped no-fix golangci-lint, and scoped errortype. The repo-wide regression vocabulary scan remains inherited red at the pre-existing literal validation message in tools/umpire/internal/ir/catalog.go:214; the first broad lint retry also surfaced inherited baseline findings, while the task-owned patch lint reported zero issues.
+
+Official codex:gpt-5.6-sol:high review round 2 returned SHIP with every prior finding fixed and no new blocking findings. Receipt: /tmp/impl-review-receipt-fn-64-umpire-case-runtime.7.json.
+
+stage: impl-review - ran [round 1 NEEDS_WORK..round 2 SHIP]
 ## Evidence
 - Commits:
-- Tests:
+- Tests: make proto, make umpire-gen-lean-api, make umpire-build-model, cd model && lake env lean --run Temporal/Tool/CaseRuntime.lean async-nexus && lake env lean --run Temporal/Tool/CaseRuntime.lean get-system-info (byte-identical fixture comparison), CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/internal/ir ./tools/umpire/internal/execution ./tools/umpire/verification ./tools/umpire/temporal/..., TMPDIR=$PWD/.flow/tmp/fn64-task7-race-tmp CGO_ENABLED=1 CC=/usr/bin/clang go test -race -count=1 -tags test_dep ./tools/umpire/internal/execution ./tools/umpire/verification ./tools/umpire/temporal ./tools/umpire/temporal/server, CGO_ENABLED=0 go test -count=1 -tags test_dep ./tools/umpire/temporal -run '^TestLean(AsyncNexusPreparedCaseReuseAndCorrelation|CasesDecodeAndGetSystemInfoPreparesWithoutHostIO)$', CGO_ENABLED=0 go test -count=1 -tags 'test_dep integration' ./tests -run TestUmpireAsyncNexusCase, make fmt-imports, TMPDIR=$PWD/.flow/tmp/fn64-task7-lint-tmp CGO_ENABLED=0 .bin/golangci-lint-v2.13.1 run --verbose --build-tags 'disable_grpc_modules,test_dep' --timeout 10m --fix=false --new-from-patch=.flow/tmp/fn64-task7-owned.patch --config=.github/.golangci.yml ./tools/umpire/..., TMPDIR=$PWD/.flow/tmp/fn64-task7-lint-tmp CGO_ENABLED=0 go vet -tags 'disable_grpc_modules,test_dep' -vettool=.bin/errortype -style-check=false ./tools/umpire/internal/execution ./tools/umpire/internal/ir ./tools/umpire/verification ./tools/umpire/temporal/...
 - PRs:

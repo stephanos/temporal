@@ -99,6 +99,46 @@ func TestLegacyVocabularyCommandAllowsOrdinaryEnglishAndExcludedHistory(t *testi
 	require.Empty(t, output)
 }
 
+func TestLegacyVocabularyCommandAllowsOnlyCaseBoundsAndCatalogQualifiedLiteral(t *testing.T) {
+	t.Parallel()
+
+	for _, test := range []struct {
+		name    string
+		path    string
+		content string
+	}{
+		{name: "Case encoder", path: "model/Umpire/Case/ProtoJSON.lean", content: "def key := \"" + "bou" + "nds\"\n"},
+		{name: "Temporal Case", path: "tools/umpire/temporal/testdata/get-system-info-case.json", content: "{\"" + "bou" + "nds\":{}}\n"},
+		{name: "conformance Case", path: "tools/umpire/testdata/case-runtime-conformance/satisfied/case.json", content: "{\"" + "bou" + "nds\":{}}\n"},
+		{name: "catalog validation literal", path: "tools/umpire/internal/ir/catalog.go", content: "package ir\nconst suffix = \"." + "qualified\"\n"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			repositoryRoot := t.TempDir()
+			writeFixture(t, repositoryRoot, test.path, test.content)
+			output, err := legacyVocabularyCommand(t, repositoryRoot).CombinedOutput()
+			require.NoError(t, err, string(output))
+			require.Empty(t, output)
+		})
+	}
+
+	for _, test := range []struct {
+		name    string
+		path    string
+		content string
+	}{
+		{name: "bounds outside Case schema", path: "tools/umpire/fixture.json", content: "{\"" + "bou" + "nds\":{}}\n"},
+		{name: "qualified outside validation", path: "tools/umpire/fixture.go", content: "package umpire\nconst suffix = \"." + "qualified\"\n"},
+	} {
+		t.Run("reject "+test.name, func(t *testing.T) {
+			repositoryRoot := t.TempDir()
+			writeFixture(t, repositoryRoot, test.path, test.content)
+			output, err := legacyVocabularyCommand(t, repositoryRoot).CombinedOutput()
+			require.Error(t, err)
+			require.Contains(t, string(output), filepath.ToSlash(test.path))
+		})
+	}
+}
+
 func legacyVocabularyCommand(t *testing.T, repositoryRoot string) *exec.Cmd {
 	t.Helper()
 

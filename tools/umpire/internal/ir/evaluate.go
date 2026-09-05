@@ -13,7 +13,16 @@ import (
 // Evaluate reads already type-checked immutable values. A nil resolved value denotes absence.
 // The returned value is independent of the resolver and prepared expression.
 func (e *Expression) Evaluate(ctx context.Context, resolve func(Reference) *umpirespb.Value, limit int64) (*umpirespb.Value, int64, error) {
-	r := runtimeExpression{ctx: ctx, resolve: resolve, limit: limit}
+	return e.evaluate(ctx, resolve, limit, false)
+}
+
+// EvaluateExecution shares Evaluate's semantics and charges intermediate ownership copies.
+// Evaluate retains the accounting units used by already-admitted Contract work bounds.
+func (e *Expression) EvaluateExecution(ctx context.Context, resolve func(Reference) *umpirespb.Value, limit int64) (*umpirespb.Value, int64, error) {
+	return e.evaluate(ctx, resolve, limit, true)
+}
+func (e *Expression) evaluate(ctx context.Context, resolve func(Reference) *umpirespb.Value, limit int64, copies bool) (*umpirespb.Value, int64, error) {
+	r := runtimeExpression{ctx: ctx, resolve: resolve, limit: limit, copyWork: copies}
 	if ctx == nil || resolve == nil || e == nil || limit <= 0 {
 		return nil, 0, invalid(Malformed, "expression", "context, expression, resolver and positive work required")
 	}
@@ -22,7 +31,7 @@ func (e *Expression) Evaluate(ctx context.Context, resolve func(Reference) *umpi
 		err = invalid(Unavailable, "expression", "unguarded absent value")
 	}
 	if err == nil {
-		if _, scalar := v.GetValue().(*umpirespb.Value_BoolValue); !scalar {
+		if _, scalar := v.GetValue().(*umpirespb.Value_BoolValue); !scalar || copies {
 			err = r.charge(int64(proto.Size(v)))
 		}
 	}
@@ -33,6 +42,7 @@ func (e *Expression) Evaluate(ctx context.Context, resolve func(Reference) *umpi
 }
 
 type runtimeExpression struct {
+	copyWork    bool
 	ctx         context.Context
 	resolve     func(Reference) *umpirespb.Value
 	limit, work int64
@@ -194,6 +204,11 @@ func (r *runtimeExpression) equal(a, b *umpirespb.Value, typ Type) (bool, error)
 		return r.equalMap(a, b, typ)
 	}
 	if typ.message != nil {
+		if r.copyWork {
+			if err := r.charge(2 * (int64(proto.Size(a)) + int64(proto.Size(b)))); err != nil {
+				return false, err
+			}
+		}
 		x, err := decodeMessage(a, typ.message)
 		if err != nil {
 			return false, err
@@ -221,9 +236,19 @@ func (r *runtimeExpression) equalMap(a, b *umpirespb.Value, typ Type) (bool, err
 		if err := r.ctx.Err(); err != nil {
 			return false, err
 		}
+		if r.copyWork {
+			if err := r.charge(8*int64(proto.Size(entry.Key)) + 1); err != nil {
+				return false, err
+			}
+		}
 		indexed[entry.Key.String()] = entry.Value
 	}
 	for _, entry := range x {
+		if r.copyWork {
+			if err := r.charge(8*int64(proto.Size(entry.Key)) + 1); err != nil {
+				return false, err
+			}
+		}
 		other := indexed[entry.Key.String()]
 		if other == nil {
 			return false, nil

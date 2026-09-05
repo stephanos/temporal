@@ -328,6 +328,9 @@ func buildRetiredRules() []tokenRule {
 
 func allowedNegativeFixture(relativePath, token string) bool {
 	allowed := map[string]map[string]bool{
+		"model/Umpire/Case/ProtoJSON.lean": {
+			`"bounds"`: true,
+		},
 		"tools/umpire/cmd/umpire-gen-regression-views/render_test.go": {
 			"umpire-experiment/" + "v1": true,
 		},
@@ -335,6 +338,27 @@ func allowedNegativeFixture(relativePath, token string) bool {
 			"umpire-experiment/" + "v1": true,
 			"semantic" + "Identity":     true,
 		},
+		"tools/umpire/internal/ir/catalog.go": {
+			"." + "qualified": true,
+		},
+		"tools/umpire/temporal/testdata/async-nexus-case.json": {
+			`"bounds"`: true,
+		},
+		"tools/umpire/temporal/testdata/get-system-info-case.json": {
+			`"bounds"`: true,
+		},
+	}
+	for _, class := range []string{
+		"cleanup-failure-after-proved-violation",
+		"cross-run-isolation",
+		"inconclusive",
+		"satisfied",
+		"static-preparation-rejection",
+		"violated",
+	} {
+		allowed[filepath.ToSlash(filepath.Join(
+			"tools/umpire/testdata/case-runtime-conformance", class, "case.json",
+		))] = map[string]bool{`"bounds"`: true}
 	}
 	return allowed[relativePath][token]
 }

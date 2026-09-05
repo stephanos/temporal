@@ -16,7 +16,6 @@ func TestDecodeExperimentAcceptsCanonicalSwitchAndNexusV2(t *testing.T) {
 		"model/Umpire/Artifact/Tests/Fixtures/SwitchExperimentSpecV2.json",
 		"model/Umpire/Examples/Fixtures/SwitchCompiledArtifact.json",
 		"model/Umpire/Examples/testdata/switch-experiment-spec.json",
-		"model/Temporal/Feature/Nexus/Experimental/testdata/nexus-caller-closure-experiment-spec.json",
 		"model/Temporal/Feature/Nexus/Fixtures/OperationsAsyncStartArtifact.json",
 		"model/Temporal/Feature/Nexus/Fixtures/OperationsCancellationArtifact.json",
 		"model/Temporal/Feature/Nexus/Fixtures/OperationsSuccessfulCompletionArtifact.json",

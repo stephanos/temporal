@@ -1,5 +1,4 @@
 import Lean.Data.Json
-import Temporal.Feature.Nexus.Experimental.CallerClosure
 import Temporal.Feature.Nexus.Operations
 import Temporal.Tool.NexusDiscovery
 import Umpire.Examples.Switch
@@ -78,9 +77,6 @@ private def plannedScenario
 }
 
 def productionRegistry : ScenarioRegistry := [{
-  id := Temporal.Feature.Nexus.Experimental.CallerClosure.exactActionQueryId.value
-  result := .ok Temporal.Feature.Nexus.Experimental.CallerClosure.compiledArtifact
-}, {
   id := _root_.Umpire.Examples.Switch.exactActionQueryId.value
   result := .ok _root_.Umpire.Examples.Switch.compiledArtifact
 }, plannedScenario Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value

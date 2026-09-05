@@ -25,6 +25,7 @@ type PathStep struct {
 }
 
 type Path struct {
+	source         Type
 	steps          []PathStep
 	typ            Type
 	absent, fanout bool
@@ -67,7 +68,7 @@ func (c *Catalog) BindPath(source Type, path *umpirespb.FieldPath, limits Limits
 	if err := inspectSurface(path.ProtoReflect(), &b, "path"); err != nil {
 		return nil, err
 	}
-	result := &Path{typ: source, limit: limits.Fanout}
+	result := &Path{source: source, typ: source, limit: limits.Fanout}
 	current := source
 	for i, segment := range path.Segments {
 		if err := b.charge(int64(i)+1, 1, 0, "path"); err != nil {
@@ -225,4 +226,21 @@ func scalarKind(kind protoreflect.Kind) umpirespb.ScalarKind {
 	default:
 		return umpirespb.SCALAR_KIND_UNSPECIFIED
 	}
+}
+
+func (p *Path) Conflicts(right *Path) bool {
+	a, b := p.steps, right.steps
+	for i := 0; i < min(len(a), len(b)); i++ {
+		if a[i].Field != b[i].Field {
+			group := a[i].Field.ContainingOneof()
+			return group != nil && group == b[i].Field.ContainingOneof()
+		}
+		if a[i].Selector == MapKey && b[i].Selector == MapKey && !proto.Equal(a[i].Key, b[i].Key) {
+			return false
+		}
+		if a[i].Selector != b[i].Selector && a[i].Selector != Oneof && b[i].Selector != Oneof {
+			return true
+		}
+	}
+	return true
 }

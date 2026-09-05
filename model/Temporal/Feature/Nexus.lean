@@ -16,8 +16,7 @@ This is the single ordinary Nexus entry import. Read the model in this order:
    authored System mechanism and its correspondence with this Feature model.
 
 The Lifecycle and Operations facades document their focused implementation modules. Advanced
-AutoClose and caller-closure material remains opt-in through explicit
-`Temporal.Feature.Nexus.Experimental.AutoClose` and
-`Temporal.Feature.Nexus.Experimental.CallerClosure` imports; this ordinary facade does not import
+AutoClose material remains opt-in through an explicit
+`Temporal.Feature.Nexus.Experimental.AutoClose` import; this ordinary facade does not import
 Experimental modules.
 -/

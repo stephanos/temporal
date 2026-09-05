@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-04T23:28:20.549104Z",
+  "depends_on": [
+    "fn-64-umpire-case-runtime.2",
+    "fn-64-umpire-case-runtime.3",
+    "fn-64-umpire-case-runtime.11"
+  ],
+  "id": "fn-64-umpire-case-runtime.14",
+  "priority": null,
+  "spec": "fn-64-umpire-case-runtime",
+  "spec_path": ".flow/tasks/fn-64-umpire-case-runtime.14.md",
+  "status": "todo",
+  "title": "Implement typed request and projection data plane",
+  "updated_at": "2026-09-05T00:05:44.835648Z"
+}

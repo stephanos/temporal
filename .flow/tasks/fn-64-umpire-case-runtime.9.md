@@ -71,9 +71,12 @@ Monitor that violates those contracts.
   ./tools/umpire/...` passes.
 
 ## Done summary
-TBD
+Implemented reusable `PreparedCase.Run` execution with preflight identity/factory validation, fresh per-Run Monitor/session/value/recording state, synchronized abort settlement, phase-aware cancellation, bounded drain/quarantine, unsuppressible cleanup, terminal precedence, and immutable returned snapshots. Added focused lifecycle, deadline, diagnostics, terminal-table, and stateful sequential/concurrent reuse race coverage; no Temporal worker/server source was changed.
 
+Validation passed with repeated focused normal/race tests, the exact full Umpire race acceptance suite using the physical repository TMPDIR and Clang, `make fmt-imports`, and scoped no-fix `make lint-code` including errortype.
+
+stage: impl-review - ran [2026-09-05T07:50:09Z..2026-09-05T08:10:33Z]
 ## Evidence
 - Commits:
-- Tests:
+- Tests: baseline: green, TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp CGO_ENABLED=0 go test -count=10 -tags test_dep -timeout 90s ./tools/umpire/internal/execution ./tools/umpire, TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp CGO_ENABLED=1 CC=/usr/bin/clang go test -race -count=10 -tags test_dep -timeout 180s ./tools/umpire/internal/execution ./tools/umpire, TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp CGO_ENABLED=1 CC=/usr/bin/clang go test -race -count=1 -tags test_dep ./tools/umpire/internal/execution/... ./tools/umpire/..., make fmt-imports, TMPDIR=/Users/stephan/Workspace/temporal/umpire/.flow/tmp/go-test-tmp CGO_ENABLED=1 CC=/usr/bin/clang make lint-code GOLANGCI_LINT_BASE_REV=4c4e26ebdb15100387107f5d03daf5ce5fc01111 GOLANGCI_LINT_FIX=false, impl-review codex:gpt-5.6-sol:high SHIP (round 4; reviewed staged tree f54ca8dd60d570ba43d78e636d7fcc63df26bfca; receipt /tmp/impl-review-receipt-fn-64-umpire-case-runtime.9.json)
 - PRs:

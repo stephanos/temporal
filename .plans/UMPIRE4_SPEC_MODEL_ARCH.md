@@ -1,8 +1,9 @@
 # UMPIRe4 model architecture
 
-Status: guiding architecture contract for the Lean model under `model/`. This document defines the
-intended module seams, authoring experience, and optional verification structure. It describes the
-target architecture; implementation status remains in [UMPIRE4_COMPONENTS.md](UMPIRE4_COMPONENTS.md).
+Status: superseded historical Lean architecture. Current Case Runtime ownership is normative in
+[`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md) and summarized in
+[`UMPIRE4_COMPONENTS.md`](UMPIRE4_COMPONENTS.md). The legacy execution and evaluation material
+below is retained only as design history.
 
 This document refines [UMPIRE4_DSL.md](UMPIRE4_DSL.md), especially its package-architecture and
 optional-Veil sections. Family ownership of a Veil binding means semantic ownership by the family;

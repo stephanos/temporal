@@ -21,7 +21,7 @@ func fixture(t *testing.T, responseBytes ...int64) (*umpirespb.Contract, *ir.Cat
 	if len(responseBytes) > 0 {
 		limits.MaxResponseBytes = responseBytes[0]
 	}
-	source := &umpirespb.Case{Version: &umpirespb.FormatVersion{Major: 1}, CaseId: "case", Contract: &umpirespb.Contract{ContractId: "contract"}, Program: &umpirespb.Program{ProgramId: "program", Limits: limits, Observations: []*umpirespb.ObservationSchema{{ObservationId: "id", Type: scalar(umpirespb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(umpirespb.SCALAR_KIND_TEXT)}}, Entrypoints: []*umpirespb.Entrypoint{{EntrypointId: "controller", Context: umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER, Activation: &umpirespb.ActivationBinding{Binding: &umpirespb.ActivationBinding_Controller{Controller: &umpirespb.ControllerActivation{}}}}}, Cleanup: &umpirespb.CleanupGraph{EntrypointId: "cleanup", Context: umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER}}}
+	source := &umpirespb.Case{Version: &umpirespb.FormatVersion{Major: 1}, CaseId: "case", Contract: &umpirespb.Contract{ContractId: "contract"}, Program: &umpirespb.Program{ProgramId: "program", Limits: limits, Observations: []*umpirespb.ObservationSchema{{ObservationId: "id", Type: scalar(umpirespb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(umpirespb.SCALAR_KIND_TEXT)}, {ObservationId: "message", Type: messageType("example.Empty")}}, Entrypoints: []*umpirespb.Entrypoint{{EntrypointId: "controller", Context: umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER, Activation: &umpirespb.ActivationBinding{Binding: &umpirespb.ActivationBinding_Controller{Controller: &umpirespb.ControllerActivation{}}}}}, Cleanup: &umpirespb.CleanupGraph{EntrypointId: "cleanup", Context: umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER}}}
 	prepared, err := execution.Prepare(source, catalog, execution.Policy{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
 	ceiling := &umpirespb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
@@ -30,6 +30,9 @@ func fixture(t *testing.T, responseBytes ...int64) (*umpirespb.Contract, *ir.Cat
 }
 func scalar(kind umpirespb.ScalarKind) *umpirespb.ValueType {
 	return &umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{Type: &umpirespb.SingularType_Scalar{Scalar: &umpirespb.ScalarType{Kind: kind}}}}}
+}
+func messageType(name string) *umpirespb.ValueType {
+	return &umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{Type: &umpirespb.SingularType_Message{Message: &umpirespb.NamedType{ProtobufType: name}}}}}
 }
 func boolean(value bool) *umpirespb.ValueExpression {
 	return &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Literal{Literal: &umpirespb.Value{Value: &umpirespb.Value_BoolValue{BoolValue: value}}}}
@@ -161,6 +164,9 @@ func TestPrepareRejectsMalformedContracts(t *testing.T) {
 		},
 		"outcome forbidden": func(c *umpirespb.Contract) {
 			c.Rules[0].Transitions[0].Predicate = present(&umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Outcome{Outcome: &umpirespb.InstructionOutcomeReference{Instruction: &umpirespb.InstructionReference{EntrypointId: "controller", InstructionId: "call"}, Field: umpirespb.INSTRUCTION_OUTCOME_FIELD_VALUE}}})
+		},
+		"Run ID intrinsic forbidden": func(c *umpirespb.Contract) {
+			c.Rules[0].Transitions[0].Predicate = present(&umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_RunEvent{RunEvent: &umpirespb.RunEventFieldReference{Field: umpirespb.RUN_EVENT_FIELD_RUN_ID}}})
 		},
 		"nil predicate":        func(c *umpirespb.Contract) { c.Rules[0].Transitions[0].Predicate = nil },
 		"nonboolean predicate": func(c *umpirespb.Contract) { c.Rules[0].Transitions[0].Predicate = observation("text") },

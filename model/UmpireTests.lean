@@ -19,6 +19,7 @@ import Umpire.Artifact.Tests.Goldens
 import Umpire.Artifact.Tests.Set
 import Umpire.ExecutionHandoffTests
 import Umpire.CaseTests
+import Umpire.Case.CompilerTests
 import Umpire.Tests.MigrationCompatibility
 import Umpire.Observation.Tests
 import Umpire.Observation.Tests.Mutations
