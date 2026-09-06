@@ -38,7 +38,7 @@ projections to Slots and Observations. `tests/testcore/testpilot/worker` owns SD
 Nexus-handler execution, reserved activation delivery, and activation-level cancellation.
 `tests/testcore/testpilot` composes those Driver capabilities without interpreting Case semantics.
 
-Lean under `model/Umpire/Case` owns the reusable IR and compiler; `model/Temporal/CaseRuntime.lean`
+Lean under `model/Umpire/Case` owns the reusable IR and compiler; `model/Temporal/Testpilot.lean`
 is the first Producer. Deterministic Case fixtures are owned by
 `umpire-gen-case-runtime-conformance`; its check generates and validates a complete temporary tree
 before diffing, while promotion is a separate reviewed target. The regression boundary includes

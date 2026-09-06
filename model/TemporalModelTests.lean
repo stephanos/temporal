@@ -4,6 +4,7 @@ import Temporal.Feature.Nexus.LifecycleTests
 import Temporal.Feature.Nexus.ObservationTests
 import Temporal.Feature.Nexus.OperationsTests
 import Temporal.Feature.Nexus2.Tests
+import Temporal.Feature.Nexus3.Tests
 import Temporal.Feature.Nexus2.AuthoringTests
 import Temporal.ImplementationLinkTests.Nexus
 import Temporal.SharedTests
@@ -13,7 +14,7 @@ import Temporal.System.Configuration.Tests
 import Temporal.System.ConfigurationIntegrationTests
 import Temporal.System.Matching.ConfigurationTests
 import Temporal.System.Nexus.ImplementationLinkTests
-import Temporal.CaseRuntimeTests
+import Temporal.TestpilotTests
 
 namespace TemporalModelTests
 

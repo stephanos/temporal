@@ -123,7 +123,7 @@ UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND := mise exec -- go run -tags test_de
 UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog
 UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-proto-descriptors
 UMPIRE_REGRESSION_INSPECTOR := temporal-model-inspect
-UMPIRE_CASE_RUNTIME_RENDERER := temporal-case-runtime
+UMPIRE_TESTPILOT_RENDERER := temporal-testpilot
 _UMPIRE_SEMANTIC_INVENTORY_DOCUMENT ?= model/SEMANTIC_INVENTORY.md
 _UMPIRE_SEMANTIC_INVENTORY_RENDERER ?= cd model && $(LEAN_LAKE) -q exe temporal-model-semantic-inventory
 UMPIRE_REGRESSION_FIXTURES := \
@@ -1048,12 +1048,12 @@ umpire-check-regression-views:
 			./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression
 
 umpire-gen-case-runtime-conformance:
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_CASE_RUNTIME_RENDERER) >/dev/null
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
 
 umpire-check-case-runtime-conformance:
-	@printf $(COLOR) "Check generated Umpire Case Runtime conformance fixtures..."
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_CASE_RUNTIME_RENDERER)
+	@printf $(COLOR) "Check generated Umpire Testpilot conformance fixtures..."
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER)
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(mktemp -d "$$temporary_root/umpire-case-runtime-conformance.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
@@ -1199,7 +1199,7 @@ umpire-check-regression: umpire-check-regression-views umpire-check-case-runtime
 			echo "Umpire Planning facade does not expose its package" >&2; \
 			exit 1; \
 		}
-	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_CASE_RUNTIME_RENDERER)
+	@cd model && $(LEAN_LAKE) build Temporal UmpireTests TemporalModelTests TemporalExperimentalTests +Umpire.PromotionTests $(UMPIRE_REGRESSION_INSPECTOR) $(UMPIRE_TESTPILOT_RENDERER)
 	@set -eu; temporary=$$(mktemp -d); \
 		trap 'rm -rf "$$temporary"' EXIT; \
 		cd model; \

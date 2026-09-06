@@ -32,12 +32,12 @@ and one deterministic Contract. Programs contain typed acyclic instruction graph
 contain safety and bounded-liveness monitor machines over Run Events and declared Observations.
 
 `Umpire.Case.Compiler` lowers checked Producer inputs and rejects unsupported constructs.
-`Temporal.CaseRuntime` supplies Temporal-owned Cases, including the unrelated `GetSystemInfo` and
-async Nexus examples and the six public-facade conformance fixtures. `Temporal.Tool.CaseRuntime`
+`Temporal.Testpilot` supplies Temporal-owned Cases, including the unrelated `GetSystemInfo` and
+async Nexus examples and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot`
 renders canonical ProtoJSON. Lean is the first Producer, while the Case format and Go runtime remain
 independent of Lean.
 
-Case Runtime terms have precise boundaries:
+Testpilot terms have precise boundaries:
 
 - Slots are immutable, single-assignment private execution state. They are not recorded
   automatically.
@@ -152,7 +152,7 @@ make umpire-gen-regression-views
 make umpire-check-regression-views
 ```
 
-The Case Runtime conformance tree is also owner-managed:
+The Testpilot conformance tree is also owner-managed:
 
 ```sh
 make umpire-check-case-runtime-conformance
