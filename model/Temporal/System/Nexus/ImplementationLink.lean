@@ -374,11 +374,13 @@ structure EvaluatedFeatureProperty where
 inductive FeaturePropertyResult where
   | observationFailure (diagnostic : ObservationDiagnostic)
   | implementationLinkFailure (diagnostic : ImplementationLinkDiagnostic)
+  | propertyFailure (diagnostic : PropertyError)
   | evaluated (result : EvaluatedFeatureProperty)
 
 def FeaturePropertyResult.layer : FeaturePropertyResult → FeaturePropertyLayer
   | .observationFailure _ => .observation
   | .implementationLinkFailure _ => .implementationLink
+  | .propertyFailure _ => .property
   | .evaluated _ => .property
 
 def FeaturePropertyResult.observationDiagnostic? :
@@ -396,6 +398,11 @@ def FeaturePropertyResult.evaluated? :
   | .evaluated result => some result
   | _ => none
 
+def FeaturePropertyResult.propertyDiagnostic? :
+    FeaturePropertyResult → Option PropertyError
+  | .propertyFailure diagnostic => some diagnostic
+  | _ => none
+
 /-- Compose an upstream Observation result through the checked Nexus Implementation Link. Property
 evaluation runs only after the source trace is re-admitted and translated successfully. -/
 def evaluateFeatureProperty
@@ -407,10 +414,10 @@ def evaluateFeatureProperty
       .observationFailure diagnostic
   | .accepted trace =>
       match applyImplementationLink checked sourceSetup trace with
-      | .applied application => .evaluated {
-          application
-          evaluation := evaluateProperty property application.trace
-        }
+      | .applied application =>
+          match evaluatePropertyOnTrace property application.trace with
+          | .ok evaluation => .evaluated { application, evaluation }
+          | .error diagnostic => .propertyFailure diagnostic
       | .invalid diagnostic
       | .unknown diagnostic
       | .conflict diagnostic

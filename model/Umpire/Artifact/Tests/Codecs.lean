@@ -86,4 +86,75 @@ example : compiledArtifact.hasValidArtifactChecksum ∧
       "sha256:a695f9f6cc79ba49a721d1764519e2167b5fe66278666238c6da862b1a33b835" := by
   native_decide
 
+private def guardedPropertyDeclaration : PropertyDeclaration := {
+  propertyDeclaration with
+  id := DefinitionId.of "switch.property.guarded-flip"
+  version := 2
+  clauses := [.sameStepCases {
+    id := DefinitionId.of "switch.property.guarded-flip.group"
+    source
+    guard := .atom {
+      field := .selectedAction
+      reference := flipActionId
+      constraint := .equals (.text flipAction.value)
+    }
+    cases := [{
+      id := DefinitionId.of "switch.property.guarded-flip.off"
+      source
+      guard := .atom {
+        field := .priorState
+        reference := powerStateId
+        constraint := .equals (.text offState.value)
+      }
+      clauses := [{
+        id := DefinitionId.of "switch.property.guarded-flip.off.result"
+        source
+        expectation := .atom {
+          field := .resultingState
+          reference := powerStateId
+          constraint := .equals (.text onState.value)
+        }
+      }]
+    }]
+  }]
+}
+
+private def guardedArtifactPair? : Option (CheckedProperty × ExperimentSpec × ExperimentSpec) := do
+  let property ← (checkProperty (PropertyCheckContext.ofTarget target)
+    (.portable guardedPropertyDeclaration)).toOption
+  let declaration (properties : List CheckedProperty) : QueryDeclaration := {
+    id := DefinitionId.of "switch.query.guarded-artifact"
+    source
+    target := target.id
+    form := .select properties
+    behavior := exploratoryBehavior
+    limits
+    policy := shortestPolicy
+  }
+  let first ← (checkQuery queryContext (declaration [property, flipProperty])).toOption
+  let reordered ← (checkQuery queryContext (declaration [flipProperty, property])).toOption
+  pure (
+    property,
+    artifactOfSelection first appliedTrace .behaviorSelection {},
+    artifactOfSelection reordered appliedTrace .behaviorSelection {})
+
+/- Guarded Property data crosses the v2 Artifact boundary only through its exact semantic
+fingerprint and requirements; source order cannot alter the sealed bytes. -/
+#guard guardedArtifactPair?.map (fun (property, first, reordered) =>
+    property.version == 2 &&
+    first.hasValidArtifactChecksum && first.plan.hasValidArtifactChecksum &&
+    first.queryBehaviorFingerprint == first.plan.queryBehaviorFingerprint &&
+    first.queryBehaviorFingerprint != compiledArtifact.queryBehaviorFingerprint &&
+    first.properties == [{
+      definitionId := flipProperty.id
+      behaviorFingerprint := flipProperty.behaviorFingerprint
+      requirementDefinitionIds := flipProperty.requires
+    }, {
+      definitionId := property.id
+      behaviorFingerprint := property.behaviorFingerprint
+      requirementDefinitionIds := property.requires
+    }] &&
+    canonicalExperimentSpecBytes first == canonicalExperimentSpecBytes reordered &&
+    !(canonicalExperimentSpecBytes first).contains "same-step-cases") == some true
+
 end Umpire.Artifact.Tests.Codecs

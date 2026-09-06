@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-05T15:54:18.623028Z",
+  "depends_on": [
+    "fn-65-design-and-prototype-approachable.18"
+  ],
+  "id": "fn-65-design-and-prototype-approachable.19",
+  "priority": null,
+  "spec": "fn-65-design-and-prototype-approachable",
+  "spec_path": ".flow/tasks/fn-65-design-and-prototype-approachable.19.md",
+  "status": "todo",
+  "title": "Consolidate prototype regressions, walkthrough and fn-62 evidence mapping",
+  "updated_at": "2026-09-05T15:54:18.623028Z"
+}

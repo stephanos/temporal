@@ -159,6 +159,12 @@ func TestExperimentV2RejectsOneAtATimeMutations(t *testing.T) {
 				"{\n  \"formatVersion\":", "{\n  \"unknown\": true,\n  \"formatVersion\":"),
 			code: artifact.ErrorUnknownField,
 		},
+		"unknown Property semantic body": {
+			encoded: replaceExperimentV2Once(t, canonical,
+				"      \"definitionId\": \"switch.property.flip-turns-on\",\n      \"behaviorFingerprint\":",
+				"      \"definitionId\": \"switch.property.flip-turns-on\",\n      \"guard\": {\"kind\": \"future\"},\n      \"behaviorFingerprint\":"),
+			code: artifact.ErrorUnknownField,
+		},
 		"compact JSON": {
 			encoded: compact.Bytes(),
 			code:    artifact.ErrorNoncanonical,

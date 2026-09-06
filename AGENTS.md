@@ -132,17 +132,17 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
 <!-- reviewer: <model> - anything grading work someone else
      produced. Prefer a different family than the writer: a same-family review
      is not an independent verdict. Advice, not enforcement. -->
-reviewer: gpt-6-astra at medium
+reviewer: gpt-5.6-sol at medium
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
      implements. -->
-implementer: gpt-6-astra at medium
+implementer: gpt-5.6-sol at medium
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
-fast scout: gpt-6-astra at medium
+fast scout: gpt-5.6-luna at low
 <!-- thinking scout: <model> - analysis that degrades badly on a
      fast tier. -->
-thinking scout: gpt-6-astra at medium
+thinking scout: gpt-5.6-sol at medium
 
 <!-- Unset is the default and the doctrine: planning, capture, interview,
      requirement analysis, every verdict, and the worker run on the session

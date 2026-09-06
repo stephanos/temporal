@@ -5,7 +5,12 @@ import Umpire.Behavior
 namespace Umpire.BehaviorImportTests
 
 #check Umpire.BehaviorDeclaration
+#check Umpire.ExactSequenceSpec
+#check Umpire.ExactSequenceSpec.checked
+#check Umpire.BehaviorAuthoringDiagnostic
+#check Umpire.canonicalBehaviorAuthoringDiagnosticJson
 #check Umpire.BehaviorCheckContext.ofTarget
+#check Umpire.RoleBinding
 
 #guard_msgs (error, substring := true) in
 #check Umpire.PropertyDeclaration

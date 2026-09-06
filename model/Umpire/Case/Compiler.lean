@@ -1,8 +1,10 @@
 import Umpire.Case
 
 /-!
-Checked Case compilation keeps source-property specialization in Lean while producing only the
-closed Program and Contract vocabulary consumed by runtime Hosts.
+Checked Case compilation consumes `ContractLowering` values produced before this boundary and
+produces only the closed Program and Contract vocabulary consumed by runtime Hosts. This module has
+no checked-Property-to-lowering producer and does not recognize `PropertyClause`; a future producer
+must reject unsupported guarded forms before constructing `Input` rather than relying on `compile`.
 -/
 
 namespace Umpire.Case.Compiler

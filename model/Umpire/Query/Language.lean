@@ -279,6 +279,7 @@ inductive QueryErrorKind where
   | missingFiniteCompleteness
   | targetKernelMismatch
   | duplicateFiniteDomain
+  | propertyEvaluationFailure
   deriving BEq, DecidableEq, Ord, Repr
 
 def QueryErrorKind.name : QueryErrorKind → String
@@ -294,6 +295,7 @@ def QueryErrorKind.name : QueryErrorKind → String
   | .missingFiniteCompleteness => "missing-finite-completeness"
   | .targetKernelMismatch => "target-kernel-mismatch"
   | .duplicateFiniteDomain => "duplicate-finite-domain"
+  | .propertyEvaluationFailure => "property-evaluation-failure"
 
 structure QueryError where
   kind : QueryErrorKind

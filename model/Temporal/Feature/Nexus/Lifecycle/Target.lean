@@ -382,22 +382,16 @@ def finitePlanning : FinitePlanningCapability transitionKernel.authoritativeStep
   rfl
 
 def targetDefinition : TargetDefinition
-    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue := {
-  id := targetId
-  source
-  definitions
-  requiredCapabilities := [lifecycleCapabilityId]
-  resolvedSetups := roleAssignments
-  kernel := finiteMachine.kernelAvailability
-}
+    (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
+  finiteMachine.targetDefinition targetId source definitions [lifecycleCapabilityId]
 
 def targetComposition : TargetComposition LawStatement :=
   TargetComposition.empty |>.provide lifecycleProvider
 
 def targetAuthoring : AuthoredTarget LawStatement
     (List RoleBinding) ModelValue ModelValue ModelValue ModelValue :=
-  AuthoredTarget.make targetDefinition targetComposition
-    (.available transitionKernel rfl finitePlanning)
+  finiteMachine.authoredTarget targetId source definitions [lifecycleCapabilityId]
+    targetComposition []
 
 /-- Re-ascribe the source kernel after composition so its proof relation remains reducible. -/
 def target : QueryTarget LawStatement := checkedTarget targetAuthoring

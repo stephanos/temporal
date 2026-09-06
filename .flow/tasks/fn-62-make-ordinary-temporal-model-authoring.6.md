@@ -1,42 +1,38 @@
 ---
-satisfies: [R1, R7, R8]
+satisfies: [R7]
 ---
-# fn-62-make-ordinary-temporal-model-authoring.6 Carry model-owned Known Gaps to the checked planning boundary
+# fn-62-make-ordinary-temporal-model-authoring.6 Attach checked authored Known Gaps below the planning boundary
 
 ## Description
-Implement R1, R7, and R8 by placing optional checked model-owned Known Gaps at the narrowest established authoring boundary and carrying every declared gap deterministically through checked Query and planning values. Expose the checked rows for downstream Case/Contract compilation; fn-64 owns propagation beyond this authoring boundary.
+Separate existing Known Gap vocabulary from its Query-dependent owner and attach an explicit default-empty checked set to authored/checked Queries. `.8` owns phase composition and publication.
 
 **Size:** M
-**Files:** `model/Umpire/Query/Language.lean`, `model/Umpire/Artifact/Planning.lean`, `model/Umpire/Planning/Tests/KnownGaps.lean`
-**Touches:** [model/Umpire/Query/Language.lean, model/Umpire/Artifact/Planning.lean, model/Umpire/Planning/Tests/KnownGaps.lean]
+**Files:** existing Planning types/KnownGap tests, lower KnownGap owner, Query language/authoring/facades and affected literal consumers
+**Touches:** [model/Umpire/KnownGap.lean, model/Umpire/Planning/Types.lean, model/Umpire/Planning/Tests/KnownGaps.lean, model/Umpire/Query.lean, model/Umpire/Query/**, model/Umpire/Planning/VisibilityTests.lean, model/Umpire/Space/Compiler.lean, model/Umpire/Space/Tests/**, model/Umpire/Promotion.lean, model/Umpire/PromotionTests.lean, model/Umpire/Tests/MigrationCompatibility.lean, model/Temporal/Feature/Nexus/Operations/**]
 
-### Approach
-- Trace the existing `KnownGap`, `KnownGapSet`, checked Query, and canonical planning path; place optional authored gaps on the narrowest Query-owned seam that remains visible to downstream compilation without becoming behavior.
-- Reuse `KnownGapSet.ofUnordered`, `checkCanonical`, `union`, and `toList` in `model/Umpire/Planning/Types.lean:8-148`; do not add another gap vocabulary, required-gap inference, category-specific binding scheme, or mutable registry.
-- Define an explicit empty set as no authored gaps. Carry each declared row exactly once, union it deterministically with phase-owned gaps, and preserve its kind, code, optional subject, detail, source identity, and cardinality.
-- Add one generic model-authored gap fixture that reaches the checked planning boundary and is available to a downstream Case compiler; do not invent unsupported Temporal behavior solely to populate it.
-- Keep unknown wire categories in the strict decoder boundary and existing `KnownGapError` precedence for malformed identifiers, duplicates, conflicting details, and noncanonical external order.
+## Approach
+- Move the unchanged `KnownGap`, `KnownGapSet`, errors, and set operations below Query, breaking `Planning.Types -> Query` ownership without adding dependencies back into Planning.
+- Preserve existing public namespaces/re-exports and validation semantics. Audit all importers and direct Query constructions before attaching data.
+- Add checked authored gaps with explicit empty default; keep them out of behavioral semantic JSON/fingerprints. Wire the existing Query constructor path, including migrated operations, without creating required-gap inference.
+- Name the field `authoredKnownGaps : KnownGapSet := KnownGapSet.empty` on QueryDeclaration, CheckedQuery and QuerySpec. QuerySpec.declaration and checkQuery copy it unchanged. Explicitly copy it in Space.Compiler.queryDeclaration from space.baseQuery and Promotion.checkPromotedQuery from baseQuery; inventory every other reconstruction/recheck path. Preserve record-update materializers and prove they retain the set.
+- Keep malformed/duplicate/conflicting/noncanonical row checks in the existing set checker. Exact extraction regression precedes new Query attachment tests.
 
-### Investigation targets
-**Required** (read before coding):
-- `model/Umpire/Planning/Types.lean:8-148` — exact optional row schema, error vocabulary, and canonical set operations.
-- `model/Umpire/Artifact/Planning.lean:300-350` — planning artifact construction and current phase-owned gap injection.
-- Fn-64 task `.1` and `.7` — the downstream Case/Contract representation and Lean Producer boundary that consume checked authored gaps after cutover.
+## Investigation targets
+**Required:**
+- `model/Umpire/Planning/Types.lean:8` — current vocabulary and cycle.
+- `model/Umpire/Planning/Tests/KnownGaps.lean:64` — set contracts.
+- `model/Umpire/Query/Language.lean:257` — declaration and checked values.
+- `model/Umpire/Query/Authoring.lean` — existing constructor.
+- `model/Umpire/Planning/VisibilityTests.lean` — compatibility imports.
 
-**Optional** (reference as needed):
-- `model/Umpire/Planning/Tests/KnownGaps.lean` — deterministic planner-gap regressions.
-- `.flow/memory/bug/integration/portable-model-plans-need-exact-2026-09-03.md:16-25` — exact artifact and explicit-obligation constraint.
-
-### Acceptance
-- [ ] Model authors can optionally declare capability/input/interpretation/claim gaps as checked existing Known Gap rows; `KnownGapSet.empty` remains a valid explicit declaration of no gaps.
-- [ ] Every declared gap reaches checked Query and planning values exactly once alongside deterministic phase-owned unions and remains available to downstream Case/Contract compilation.
-- [ ] Malformed codes/subjects, duplicates, conflicting details, and noncanonical external order retain existing `KnownGapError` failures; unknown wire categories retain strict decoder rejection.
-- [ ] No checker claims it can infer an omitted real-world limitation or category-specific binding not represented by `KnownGap`; truthful completeness remains the author's responsibility.
-- [ ] A declared gap never establishes success or changes model behavior; propagation into Run/Verdict and qualification records remains owned by fn-64 and its downstream consumers.
 ## Acceptance
-- [ ] R1, R7, and R8 are satisfied with one optional checked Known Gap vocabulary and no inferred required-gap mechanism.
-- [ ] `cd model && mise exec -- lake build Umpire.Planning.Tests` passes.
-- [ ] Existing planning fixtures show no unexplained Known Gap identity or ordering delta.
+- [ ] Existing Known Gap type/error/set contracts and public imports survive the extraction unchanged; no import cycle or extra validation pass appears.
+- [ ] Both authored and checked Query values retain the checked authored set; empty remains explicit and valid; all literal/constructor consumers compile.
+- [ ] Nonempty authored gaps survive Space-derived Queries, promoted Queries, constructor lowering/checkQuery and target materialization exactly. Tests must compare the full set; compilation with a default-empty field cannot detect attachment loss.
+- [ ] Malformed code/subject, duplicates, conflicting detail and noncanonical order retain exact errors; empty and nonempty Query examples preserve behavior/fingerprint and default-empty canonical bytes.
+- [ ] `cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Planning.Tests Temporal.Feature.Nexus.OperationsTests` passes; import/axiom/lint checks show no new issues. `.8` is required before publication support is complete.
+- [ ] Structural complexity audit compares moved set algorithms byte-for-byte/semantically to baseline and verifies Query attachment copies the checked set without revalidation or traversal; preserve the existing set complexity rather than claiming it is linear.
+
 ## Done summary
 TBD
 

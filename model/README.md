@@ -63,6 +63,12 @@ The `temporal-model-inspect` executable exposes the retained checked catalog and
 planning artifacts. Generated Views remain navigation and test wrappers around that planning data;
 they do not execute a Case or determine a Verdict.
 
+The experimental [Nexus2 authoring prototype](Temporal/Feature/Nexus2/README.md) demonstrates the
+ordinary finite route, guarded Properties, bounded case analysis, and constructor/frontend
+measurements. It does not migrate the established Nexus declarations, author Observations or Known
+Gaps, or claim live execution. Its [evidence inventory](Temporal/Feature/Nexus2/EVIDENCE.md) records
+those boundaries against the deferred ordinary-authoring requirements.
+
 ## Runtime ownership
 
 The Go runtime is the consumer of canonical Case data:

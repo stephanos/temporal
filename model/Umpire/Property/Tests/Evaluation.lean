@@ -44,11 +44,11 @@ example :
 
 /-- The reusable theorem applies to positive, negative, and boundary fixtures without a
 constructor-specific proof escape hatch. -/
-example (clause : ResolvedPropertyClause) :
-    ∀ view : PropertyTraceView,
-      evaluatePropertyClause clause view = true ↔ clause.denote view := by
-  intro view
-  exact evaluatePropertyClause_agrees clause view
+example
+    (property : CheckedProperty)
+    (input : CheckedPropertyEvaluationInput property)
+    (clause : { clause // clause ∈ property.clauses }) :=
+  evaluatePropertyClause_agrees property input clause
 
 def hiddenReference : PropertyDeclaration := {
   portableProperty with

@@ -46,6 +46,107 @@ def satisfiedRunEvaluation := checkRunEvaluation satisfiedObservationPlan satisf
   Umpire.Examples.Switch.switchSetup Umpire.Examples.Switch.exploratoryQuery
   [Umpire.Examples.Switch.flipProperty]
 
+def guardedSwitchPropertyDeclaration : PropertyDeclaration := {
+  Umpire.Examples.Switch.propertyDeclaration with
+  id := DefinitionId.of "test.run-evaluation.property.guarded"
+  version := 2
+  clauses := [.sameStepCases {
+    id := DefinitionId.of "test.run-evaluation.property.guarded.group"
+    source := Umpire.Examples.Switch.source
+    guard := .atom {
+      field := .selectedAction
+      reference := Umpire.Examples.Switch.flipActionId
+      constraint := .equals (.text "flip")
+    }
+    cases := [{
+      id := DefinitionId.of "test.run-evaluation.property.guarded.case"
+      source := Umpire.Examples.Switch.source
+      guard := .atom {
+        field := .priorState
+        reference := Umpire.Examples.Switch.powerStateId
+        constraint := .equals (.text "off")
+      }
+      clauses := [{
+        id := DefinitionId.of "test.run-evaluation.property.guarded.case.state"
+        source := Umpire.Examples.Switch.source
+        expectation := .atom {
+          field := .resultingState
+          reference := Umpire.Examples.Switch.powerStateId
+          constraint := .equals (.text "on")
+        }
+      }]
+    }]
+    complete := true
+    exclusive := true
+  }]
+}
+
+def guardedTemporalSwitchPropertyDeclaration : PropertyDeclaration := {
+  Umpire.Examples.Switch.propertyDeclaration with
+  id := DefinitionId.of "test.run-evaluation.property.guarded-temporal"
+  version := 2
+  clauses := [.guardedEventuallyWithin
+    (DefinitionId.of "test.run-evaluation.property.guarded-temporal.clause")
+    Umpire.Examples.Switch.source
+    (.atom {
+      field := .selectedAction
+      reference := Umpire.Examples.Switch.flipActionId
+      constraint := .equals (.text "flip")
+    }) none
+    {
+      field := .selectedAction
+      reference := Umpire.Examples.Switch.flipActionId
+      constraint := .present
+    }
+    {
+      field := .modelOutcome
+      reference := Umpire.Examples.Switch.appliedOutcomeId
+      constraint := .present
+    }
+    (.exact { value := 0, unit := .semanticTransitions })]
+}
+
+private def guardedRunEvaluationResult : Option
+    (StrictQueryStatus × SemanticVerdictStatus × Option SemanticVerdictFailureKind) := do
+  let property ← (checkProperty
+    (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
+    (.portable guardedSwitchPropertyDeclaration)).toOption
+  let query := {
+    Umpire.Examples.Switch.exploratoryQuery with form := .select [property]
+  }
+  let evaluation := checkRunEvaluation observationPlan repeatedEvidence checkedLink
+    Umpire.Examples.Switch.switchSetup query [property]
+  let verdict ← evaluation.querySummary.verdicts.head?
+  pure (evaluation.querySummary.status, verdict.status,
+    verdict.diagnostic.map SemanticVerdictDiagnostic.kind)
+
+/- Checked guarded Properties cannot pass through translated Observation success. -/
+#guard guardedRunEvaluationResult ==
+  some (.incomplete, .unsupported, some .unsupportedPropertyClause)
+
+private def guardedTemporalRunEvaluationResult : Option
+    (StrictQueryStatus × SemanticVerdictStatus ×
+      Option (SemanticVerdictFailureKind × List DefinitionId)) := do
+  let property ← (checkProperty
+    (PropertyCheckContext.ofTarget Umpire.Examples.Switch.target)
+    (.portable guardedTemporalSwitchPropertyDeclaration)).toOption
+  let query := {
+    Umpire.Examples.Switch.exploratoryQuery with form := .select [property]
+  }
+  let evaluation := checkRunEvaluation observationPlan repeatedEvidence checkedLink
+    Umpire.Examples.Switch.switchSetup query [property]
+  let verdict ← evaluation.querySummary.verdicts.head?
+  pure (evaluation.querySummary.status, verdict.status,
+    verdict.diagnostic.map fun diagnostic =>
+      (diagnostic.kind, diagnostic.relatedDefinitionIds))
+
+/- Translated Observation cannot emit success after dropping a temporal trigger guard. -/
+#guard guardedTemporalRunEvaluationResult == some (
+  .incomplete,
+  .unsupported,
+  some (.unsupportedPropertyClause,
+    [DefinitionId.of "test.run-evaluation.property.guarded-temporal.clause"]))
+
 /-- Accepted Observation reaches the translated Feature trace and preserves a violated verdict. -/
 example :
     (repeatedRunEvaluation.observation.status,
@@ -59,8 +160,8 @@ example :
 
 /-- Accepted composition preserves every clause result from the unchanged Feature evaluator. -/
 example :
-    let expected := evaluateProperty Umpire.Examples.Switch.flipProperty
-      Umpire.Examples.Switch.appliedTrace.trace
+    let expected := (evaluatePropertyOnTrace Umpire.Examples.Switch.flipProperty
+      Umpire.Examples.Switch.appliedTrace.trace).toOption.get (by native_decide)
     (satisfiedRunEvaluation.querySummary.status,
       satisfiedRunEvaluation.querySummary.verdicts.map fun verdict =>
         (verdict.status, verdict.clauses.map fun clause =>

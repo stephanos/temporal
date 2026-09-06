@@ -51,6 +51,16 @@ example : [
   ] := by
   native_decide
 
+example : [
+    canonicalOf (checkProperty context (.portable changedSourceProperty)),
+    canonicalOf (checkProperty context (.portable changedDocumentationProperty))
+  ].all fun changed => changed.isSome && changed != canonicalOf (checkProperty context authoredProperty) := by
+  native_decide
+
+/- The legacy semantic identity remains an exact compatibility boundary. -/
+#guard (fingerprintOf (checkProperty context authoredProperty)).map BehaviorFingerprint.render ==
+  some "sha256:794c1e7bcade5616a8a5964d1e3e0e332f12bb4bf4ac1a653eddde0ba5426f8e"
+
 def changedCapabilityContext : PropertyCheckContext := {
   context with
   providers := context.providers.map fun capability =>
@@ -109,5 +119,31 @@ example : fingerprintOf (checkProperty context authoredProperty) ≠
 example : fingerprintOf (checkProperty context authoredProperty) ≠
     fingerprintOf (checkProperty context (.portable changedBound)) := by
   native_decide
+
+def unsupportedMajorProperty : PropertyDeclaration := {
+  portableProperty with
+  version := 3
+}
+
+def unsupportedMajorWithInvalidBody : PropertyDeclaration := {
+  unsupportedMajorProperty with
+  clauses := [cancelIsUnique, cancelIsUnique]
+}
+
+/- Unknown Property majors fail before an old reader can accept their clauses as version one. -/
+#guard match checkProperty context (.portable unsupportedMajorProperty) with
+  | .error error =>
+      error.kind == .unsupportedPropertyVersion &&
+      error.definitionId == portableProperty.id &&
+      error.sourcePath == portableProperty.source.displayPath &&
+      error.offendingValue == "supported versions are 1 and 2, found 3" &&
+      error.relatedDefinitionIds == [portableProperty.id]
+  | .ok _ => false
+
+/- Version classification precedes an unknown major's body without changing supported-version
+diagnostic order. -/
+#guard match checkProperty context (.portable unsupportedMajorWithInvalidBody) with
+  | .error error => error.kind == .unsupportedPropertyVersion
+  | .ok _ => false
 
 end Umpire.PropertyTests

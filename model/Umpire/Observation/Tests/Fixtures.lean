@@ -57,19 +57,17 @@ def roleFieldSpec : ObservationFieldSpec := {
 }
 def roleField : DefinitionId := roleFieldSpec.field
 
-def evidenceProfile : EvidenceProfileDeclaration := {
+def evidenceProfileSpec : ObservationProfileSpec := {
   id := profileId
   source
   kinds := [{
     id := eventKind
-    fields := [
-      nameFieldSpec.declaration,
-      secretFieldSpec.declaration,
-      hashedFieldSpec.declaration,
-      rejectedFieldSpec.declaration
-    ]
+    fields := [nameFieldSpec, secretFieldSpec, hashedFieldSpec, rejectedFieldSpec]
   }]
 }
+
+def evidenceProfile : EvidenceProfileDeclaration :=
+  evidenceProfileSpec.declaration
 
 def digestPolicyId : DefinitionId := id "test.digest.synthetic"
 
@@ -113,7 +111,7 @@ def digestRule : ObservationRule := {
   value := .portable (.digestToken digestPolicyId hashedFieldSpec.expression)
 }
 
-def baseDeclaration : ObservationMappingDeclaration := {
+def baseSpec : ObservationMappingSpec := {
   id := id "test.mapping.lifecycle"
   source
   profile := profileId
@@ -126,13 +124,16 @@ def baseDeclaration : ObservationMappingDeclaration := {
   ]
   closures := [{ kind := eventKind }]
   dispositions := [
-    nameFieldSpec.disposition .retain,
-    secretFieldSpec.disposition .redact,
-    hashedFieldSpec.disposition (.hash (some digestPolicyId)),
-    rejectedFieldSpec.disposition .reject
+    (nameFieldSpec, .retain),
+    (secretFieldSpec, .redact),
+    (hashedFieldSpec, .hash (some digestPolicyId)),
+    (rejectedFieldSpec, .reject)
   ]
   evidenceBound := { value := 10, unit := .evidenceRecords }
 }
+
+def baseDeclaration : ObservationMappingDeclaration :=
+  baseSpec.declaration
 
 def context : ObservationCheckContext := {
   definitions := [
@@ -168,8 +169,8 @@ def planIdentityOf
 def stepCondition : ObservationExpressionAuthoring :=
   .portable (.equals roleFieldSpec.expression (.text "step"))
 
-def evaluationDeclaration : ObservationMappingDeclaration := {
-  baseDeclaration with
+def evaluationSpec : ObservationMappingSpec := {
+  baseSpec with
   id := id "test.mapping.observation-evaluation"
   rules := [
     { initialRule with condition := some (.portable
@@ -205,11 +206,14 @@ def evaluationDeclaration : ObservationMappingDeclaration := {
     { before := id "test.rule.step-state", after := contributionRule.id },
     { before := contributionRule.id, after := digestRule.id }
   ]
-  dispositions := baseDeclaration.dispositions ++ [
-    roleFieldSpec.disposition .retain
+  dispositions := baseSpec.dispositions ++ [
+    (roleFieldSpec, .retain)
   ]
   evidenceBound := { value := 3, unit := .evidenceRecords }
 }
+
+def evaluationDeclaration : ObservationMappingDeclaration :=
+  evaluationSpec.declaration
 
 def evaluationContext : ObservationCheckContext := {
   context with
@@ -435,6 +439,57 @@ def repeatedProperty : CheckedProperty :=
 def logicalTimeProperty : CheckedProperty :=
   (checkProperty verdictPropertyContext (.portable logicalTimePropertyDeclaration))
     |>.toOption.get (by native_decide)
+
+def guardedPropertyDeclaration : PropertyDeclaration := {
+  satisfiedPropertyDeclaration with
+  id := id "test.property.observation.guarded"
+  version := 2
+  clauses := [.sameStepCases {
+    id := id "test.property.observation.guarded.group"
+    source
+    guard := .atom {
+      field := .selectedAction
+      reference := startAction
+      constraint := .equals (.text "start")
+    }
+    cases := [{
+      id := id "test.property.observation.guarded.case"
+      source
+      guard := .atom {
+        field := .priorState
+        reference := operationState
+        constraint := .equals (.text "ready")
+      }
+      clauses := [{
+        id := id "test.property.observation.guarded.case.state"
+        source
+        expectation := .atom {
+          field := .resultingState
+          reference := completedState
+          constraint := .equals (.text "done")
+        }
+      }]
+    }]
+    complete := true
+    exclusive := true
+  }]
+}
+
+def guardedTemporalPropertyDeclaration : PropertyDeclaration := {
+  satisfiedPropertyDeclaration with
+  id := id "test.property.observation.guarded-temporal"
+  version := 2
+  clauses := [.guardedEventuallyWithin
+    (id "test.property.observation.guarded-temporal.clause") source
+    (.atom {
+      field := .selectedAction
+      reference := startAction
+      constraint := .equals (.text "start")
+    }) none
+    (verdictPattern .selectedAction startAction)
+    (verdictPattern .modelOutcome successOutcome)
+    (.exact { value := 0, unit := .semanticTransitions })]
+}
 
 def checkedQueryTemplate : CheckedQuery Umpire.Examples.Switch.LawStatement :=
   Umpire.Examples.Switch.exploratoryQuery

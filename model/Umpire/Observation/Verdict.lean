@@ -65,6 +65,8 @@ inductive SemanticVerdictFailureKind where
   | ambiguousVocabulary
   | digestMismatch
   | missingLogicalTime
+  | propertyEvaluationFailure (kind : PropertyErrorKind)
+  | unsupportedPropertyClause
   deriving BEq, DecidableEq, Ord, Repr
 
 structure SemanticVerdictDiagnostic where
@@ -222,6 +224,9 @@ private def propertyUsesLogicalTime (property : CheckedProperty) : Bool :=
     | .ordered _ _ _ unit => unit == .logicalTime
     | .eventuallyWithin _ _ _ limit | .quiescentWithin _ _ _ limit =>
         limit.unit == .logicalTime
+    | .sameStepCases _ => false
+    | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+        guarded.limit.unit == .logicalTime
     | _ => false
 
 private def validLogicalTimeSteps
@@ -291,6 +296,9 @@ private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
   | .ordered _ before after _ => [before, after]
   | .eventuallyWithin _ trigger response _ => [trigger, response]
   | .quiescentWithin _ trigger forbidden _ => [trigger, forbidden]
+  | .sameStepCases _ => []
+  | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+      [guarded.trigger, guarded.response]
 
 private def relevantEvidenceLinks
     (trace : EvidenceBackedTrace)
@@ -324,23 +332,31 @@ private def resolvedVerdict
     (query : CheckedQuery LawStatement)
     (property : CheckedProperty)
     (trace : EvidenceBackedTrace) : SemanticPropertyVerdict :=
-  let evaluation := evaluateProperty property trace.trace
-  let clauses := property.clauses.filterMap fun clause =>
-    (evaluation.clauses.find? fun result => result.clauseId == clause.id).map fun result =>
-      clauseVerdict query trace clause result
-  {
-    queryId := query.id
-    propertyId := property.id
-    propertyDigest := property.behaviorFingerprint.render
-    traceId := some trace.traceId
-    status := if evaluation.satisfied then .satisfied else .violated
-    queryLimits := query.limits
-    evidenceBound := some trace.appliedBound
-    provenance := canonicalIds
-      (query.id :: property.id :: trace.mappingId :: property.requires ++
-        clauses.flatMap SemanticClauseVerdict.provenance)
-    clauses
-  }
+  match checkPropertyEvaluationInput property trace.trace with
+  | .error error =>
+      failureVerdict query property .unsupported {
+        kind := .propertyEvaluationFailure error.kind
+        relatedDefinitionIds :=
+          property.unsupportedObservationClauseIds ++ error.relatedDefinitionIds
+      } (some trace.traceId) (some trace.appliedBound)
+  | .ok input =>
+      let evaluation := evaluateProperty property input
+      let clauses := property.clauses.filterMap fun clause =>
+        (evaluation.clauses.find? fun result => result.clauseId == clause.id).map fun result =>
+          clauseVerdict query trace clause result
+      {
+        queryId := query.id
+        propertyId := property.id
+        propertyDigest := property.behaviorFingerprint.render
+        traceId := some trace.traceId
+        status := if evaluation.satisfied then .satisfied else .violated
+        queryLimits := query.limits
+        evidenceBound := some trace.appliedBound
+        provenance := canonicalIds
+          (query.id :: property.id :: trace.mappingId :: property.requires ++
+            clauses.flatMap SemanticClauseVerdict.provenance)
+        clauses
+      }
 
 /-- Validate every Property-owned prerequisite over one admitted trace before invoking the
 unchanged Property evaluator. -/
@@ -361,6 +377,11 @@ def evaluateObservationProperty
             failureVerdict query property .unsupported {
               kind := .missingCapability
               relatedDefinitionIds := missingCapabilities
+            } (some trace.traceId) (some trace.appliedBound)
+          else if property.hasUnsupportedObservationClauses then
+            failureVerdict query property .unsupported {
+              kind := .unsupportedPropertyClause
+              relatedDefinitionIds := property.unsupportedObservationClauseIds
             } (some trace.traceId) (some trace.appliedBound)
           else if !property.hasRequiredLogicalTime trace.trace then
             failureVerdict query property .unknown {

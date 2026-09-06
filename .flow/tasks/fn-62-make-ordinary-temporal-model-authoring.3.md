@@ -1,49 +1,45 @@
 ---
-satisfies: [R1, R4, R5, R8]
+satisfies: [R4]
 ---
-# fn-62-make-ordinary-temporal-model-authoring.3 Add explicit identity source Limit and transition primitives
+# fn-62-make-ordinary-temporal-model-authoring.3 Specialize Temporal identities and source contracts
 
 ## Description
-Implement R1, R4, and R5 with narrow family-scoped identity/source helpers, named Query Limit construction, and common transition-result constructors. Preserve explicit stable values and checker authority while removing copy/paste and positional ambiguity.
+Add only the Temporal-owned specialization left uncovered by fn-65. Reuse generic identities, sources, and named Limit constructors rather than rebuilding them.
 
 **Size:** M
-**Files:** `model/Temporal/Shared.lean`, `model/Umpire/Property/Language.lean`, `model/Umpire/Property/Tests/Validation.lean`, `model/Umpire/Query/Language.lean`, `model/Umpire/Query/Tests/Validation.lean`
-**Touches:** [model/Temporal/Shared.lean, model/Umpire/Property/Language.lean, model/Umpire/Property/Tests/Validation.lean, model/Umpire/Query/Language.lean, model/Umpire/Query/Tests/Validation.lean]
+**Files:** `model/Temporal/Shared.lean`, `model/Temporal/Feature/Nexus/Operations/Internal.lean`, Temporal shared public tests and aggregate root as needed
+**Touches:** [model/Temporal/Shared.lean, model/Temporal/SharedTests.lean, model/Temporal/Feature/Nexus/Operations/Internal.lean, model/TemporalModelTests.lean]
 
-### Approach
-- Extend the thin `Temporal.Shared` layer at `model/Temporal/Shared.lean:7-21` only for identity/source helpers with multiple Temporal model consumers.
-- Make the helper statically own the Temporal family root and explicit kind segment; authors provide the stable suffix, so a wrong family prefix is unrepresentable through this path. Raw `DefinitionId` remains syntax-checked exactly as today.
-- Extend existing semantic patterns such as `PropertyPattern.exact` and `PropertyClause.transitionContract` in `model/Umpire/Property/Language.lean:43-106`; return existing clauses and keep Action/state/outcome/observation choices explicit.
-- Add a named constructor over the existing typed fields in `model/Umpire/Query/Language.lean:30-86`; preserve `QueryLimits` representation and canonical serialization.
-- Retain the raw `DefinitionId`, `SourceLocation`, Property-clause, and `QueryLimits` construction paths for advanced and invalid tests.
+## Approach
+- Add a narrow constructor fixing the `temporal` root and accepting explicit semantic family, kind, and suffix, returning existing `DefinitionFamily`/`DefinitionId` values.
+- Reuse `Temporal.Shared.sourceLocation` and `QueryLimitSpec`; keep source locations explicit and stable for migrated declarations. Do not introduce a macro or implicit identity selection.
+- Test equivalent raw/helper identities, declaration/source-order independence, and the inability to replace the owned root. Raw ID syntax remains unchanged; checked reference errors belong to languages.
+- Prepare the ordinary Nexus shared identity inputs without migrating the three operation bodies (owned by `.4`).
 
-### Investigation targets
-**Required** (read before coding):
-- `model/Temporal/Shared.lean:7-21` — existing narrow Temporal helper layer.
-- `model/Umpire/Core.lean:9-56` — syntax-only raw Definition ID validation.
-- `model/Umpire/Property/Language.lean:43-106` — existing transition patterns and clauses.
-- `model/Umpire/Query/Language.lean:30-86` — typed per-stage Limits and positional helper.
-- `model/Umpire/Query/Tests/Validation.lean` — Limit and identity diagnostic patterns.
+## Investigation targets
+**Required:**
+- `model/Temporal/Shared.lean:7` — existing ID and source helpers.
+- `model/Umpire/Target/Authoring.lean:7` — generic family implementation.
+- `model/Umpire/Query/Authoring.lean:9` — existing `QueryLimitSpec`.
+- `model/Temporal/Feature/Nexus/Operations/Internal.lean` — existing shared operation identity/source inputs.
 
-**Optional** (reference as needed):
-- `model/Umpire/Query/Tests/Identity.lean` — stable query identity regressions.
-- `.flow/specs/fn-58-partition-the-property-language.md:17-34` — frozen Property facade and ownership boundary.
-
-### Acceptance
-- [ ] The helper owns the family root and explicit kind segment; authors still provide stable suffixes, transition patterns, and source locations at call sites.
-- [ ] A wrong family prefix cannot be supplied through the helper; malformed resulting IDs, duplicates, and crossed references recognized by existing language checkers retain their current typed errors and closest source.
-- [ ] Query authoring names each independent stage Limit and unit; zero/invalid values retain exact typed diagnostics.
-- [ ] Helper-produced clauses and Limits retain exact canonical metadata and Behavior Fingerprints for equivalent values.
-- [ ] No new dynamic family-prefix validator, global registry, ambient instance, order-based identity, inferred outcome, or hidden default is added.
 ## Acceptance
-- [ ] R1, R4, R5, and R8 are satisfied for reusable identity, source, transition, and Limit primitives.
-- [ ] `cd model && mise exec -- lake build Umpire.CoreTests Umpire.Property.Tests Umpire.Query.Tests` passes.
-- [ ] Equivalent helper-produced declarations retain exact canonical identity and no hidden compiler-trust path is introduced.
+- [ ] Helper-generated IDs equal existing raw IDs and cannot change the fixed root; suffixes/kinds remain explicit.
+- [ ] Source-location and ordering tests preserve identity/fingerprint meaning; malformed raw IDs remain rejected by existing syntax checking.
+- [ ] Compiled specimens exercise duplicate/crossed-reference and invalid/zero/wrong-unit Limits through existing language checkers, preserving IDs and source diagnostics.
+- [ ] Public Temporal tests are wired into `TemporalModelTests`; focused new root and `Temporal.Feature.Nexus.OperationsTests` build, with applicable lint checks.
+- [ ] Structural cost inventory shows only explicit ID string construction and source/Limit assembly, with no registry or repeated declaration scan; quantify added work for 1×/10× independent declarations separately from unchanged checker work.
 
 ## Done summary
-TBD
+Added the Temporal-owned `definitionFamily` constructor with a fixed `temporal` root, prepared ordinary Nexus family and named Query Limit inputs, and preserved the existing operations source and query semantics. Public compiled tests cover raw/helper equivalence, root ownership, source/order-independent fingerprints, typed malformed/duplicate/crossed-reference and Limit diagnostics, trust, and the structural 1×/10× cost inventory.
 
+Verification: the new Shared root, existing Operations root, and Temporal aggregate build passed; `make lint-model` passed 258 jobs. Go lint retained the inherited exit 2 with exactly 1,316 sorted diagnostic headers, byte-identical to the established baseline at SHA-256 `aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077`. The official staged-overlay review returned SHIP with zero findings, and reviewed source blobs equal the final staged source blobs.
+
+No commit was created under the user's standing commit policy; HEAD remains `7774fdc7ac751ac959816c9829516ce54af57194` and all cumulative changes remain staged.
+
+stage: impl-review - ran [2026-09-06T02:59:34Z..2026-09-06T03:02:25.394573Z] (SHIP; actual model codex:gpt-5.6-sol:medium; receipt /tmp/impl-review-receipt-fn-62-make-ordinary-temporal-model-authoring.3.json)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: baseline: cd model && mise exec -- lake build Temporal.SharedTests Temporal.Feature.Nexus.OperationsTests (expected red: task-required Temporal.SharedTests.lean absent; existing OperationsTests completed; /tmp/fn62-task3-baseline.log), baseline: cd model && mise exec -- lake build Temporal.Feature.Nexus.OperationsTests (green; 46 jobs; /tmp/fn62-task3-baseline-operations.log), TDD red: cd model && mise exec -- lake build Temporal.SharedTests (expected failure: Temporal.Shared.definitionFamily, Operations.Internal.family, and Operations.Internal.queryLimitSpec absent; /tmp/fn62-task3-red-sharedtests.log), cd model && mise exec -- lake build Temporal.SharedTests Temporal.Feature.Nexus.OperationsTests TemporalModelTests (green; 138 jobs; /tmp/fn62-task3-final-focused.log), cd model && mise exec -- lake build Temporal.SharedTests (green; trust audit: definitionFamily/Internal.family use only propext; queryLimitSpec has no axioms; /tmp/fn62-task3-final-trust.log), make lint-model (green; 258 jobs; /tmp/fn62-task3-final-lint-model.log), make lint-code GOLANGCI_LINT_FIX=false (inherited exit 2; exactly 1316 sorted diagnostic headers; normalized SHA-256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077; byte-identical baseline; /tmp/fn62-task3-final-lint-code.log), git diff --cached --check -- task-owned paths (green), impl-review codex:gpt-5.6-sol:medium (SHIP; zero findings; /tmp/impl-review-receipt-fn-62-make-ordinary-temporal-model-authoring.3.json), reviewed source blob equality (review tree 6b5728d31e8c7b1995000994a887d4231ba7d0ba equals final staged owned blobs)
 - PRs:

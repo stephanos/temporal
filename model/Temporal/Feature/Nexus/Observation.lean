@@ -57,20 +57,19 @@ def observationField : DefinitionId := observationFieldSpec.field
 def rejectedField : DefinitionId := rejectedFieldSpec.field
 
 /-- The sole synthetic Temporal profile admitted by this Observation mapping. -/
-def declaration : EvidenceProfileDeclaration := {
+def spec : ObservationProfileSpec := {
   id
   source
   kinds := [{
     id := lifecycleKind
-    fields := [
-      stateFieldSpec.declaration,
-      actionFieldSpec.declaration,
-      outcomeFieldSpec.declaration,
-      observationFieldSpec.declaration,
-      rejectedFieldSpec.declaration
-    ]
+    fields := [stateFieldSpec, actionFieldSpec, outcomeFieldSpec, observationFieldSpec,
+      rejectedFieldSpec]
   }]
 }
+
+/-- Existing profile declaration projected from the ordinary typed profile input. -/
+def declaration : EvidenceProfileDeclaration :=
+  spec.declaration
 
 end Profile
 
@@ -109,15 +108,16 @@ private def rule
     (ruleId output : DefinitionId)
     (outputKind : DefinitionKind)
     (fieldSpec : ObservationFieldSpec)
-    (condition : ObservationExpression) : ObservationRule := {
+    (condition : ObservationExpression) : ObservationRuleSpec := {
   id := ruleId
   output
   outputKind
-  value := .portable (field fieldSpec)
+  field := fieldSpec
   condition := some (.portable condition)
 }
 
-private def mappingDeclaration : ObservationMappingDeclaration := {
+/-- Explicit typed mapping input for the synthetic Basic Lifecycle Evidence. -/
+def Mapping.spec : ObservationMappingSpec := {
   id := Mapping.id
   source
   profile := Profile.id
@@ -125,21 +125,21 @@ private def mappingDeclaration : ObservationMappingDeclaration := {
     rule Mapping.stateRuleId operationStateId .state Profile.stateFieldSpec
       (equalsAny Profile.stateFieldSpec [
         scheduledState.value, startedState.value, canceledState.value, succeededState.value
-      ]),
+      ]) |>.declaration,
     rule Mapping.startRuleId startActionId .action Profile.actionFieldSpec
-      (equalsText Profile.actionFieldSpec startAction.value),
+      (equalsText Profile.actionFieldSpec startAction.value) |>.declaration,
     rule Mapping.cancelRuleId cancelActionId .action Profile.actionFieldSpec
-      (equalsText Profile.actionFieldSpec cancelAction.value),
+      (equalsText Profile.actionFieldSpec cancelAction.value) |>.declaration,
     rule Mapping.succeedRuleId reportSuccessActionId .action Profile.actionFieldSpec
-      (equalsText Profile.actionFieldSpec reportSuccessAction.value),
+      (equalsText Profile.actionFieldSpec reportSuccessAction.value) |>.declaration,
     rule Mapping.outcomeRuleId transitionOutcomeId .outcome Profile.outcomeFieldSpec
       (equalsAny Profile.outcomeFieldSpec [
         startedOutcome.value, canceledOutcome.value, succeededOutcome.value
-      ]),
+      ]) |>.declaration,
     rule Mapping.observationRuleId lifecycleObservationId .observation Profile.observationFieldSpec
       (equalsAny Profile.observationFieldSpec [
         startedObservation.value, canceledObservation.value, succeededObservation.value
-      ])
+      ]) |>.declaration
   ]
   ordering := [
     { before := Mapping.startRuleId, after := Mapping.cancelRuleId },
@@ -150,26 +150,29 @@ private def mappingDeclaration : ObservationMappingDeclaration := {
   ]
   closures := [{ kind := Profile.lifecycleKind }]
   dispositions := [
-    Profile.stateFieldSpec.disposition .retain,
-    Profile.actionFieldSpec.disposition .retain,
-    Profile.outcomeFieldSpec.disposition .retain,
-    Profile.observationFieldSpec.disposition .retain,
-    Profile.rejectedFieldSpec.disposition .reject
+    (Profile.stateFieldSpec, .retain),
+    (Profile.actionFieldSpec, .retain),
+    (Profile.outcomeFieldSpec, .retain),
+    (Profile.observationFieldSpec, .retain),
+    (Profile.rejectedFieldSpec, .reject)
   ]
   evidenceBound := { value := 2, unit := .evidenceRecords }
   documentation := "Synthetic scheduled-to-terminal evidence for the ordinary Nexus lifecycle."
 }
 
+/-- Existing mapping declaration projected without changing checker authority. -/
+def Mapping.declaration : ObservationMappingDeclaration :=
+  Mapping.spec.declaration
+
 def checkedPlanResult : Except ObservationError CheckedObservationPlan :=
-  checkObservation (ObservationCheckContext.ofTarget target [Profile.declaration]) mappingDeclaration
+  Mapping.spec.check (ObservationCheckContext.ofTarget target [Profile.declaration])
 
 private theorem checkedPlanResult_isSome : checkedPlanResult.toOption.isSome = true := by
   native_decide
 
 def checkedPlan : CheckedObservationPlan :=
-  checkedObservation
+  Mapping.spec.checked
     (ObservationCheckContext.ofTarget target [Profile.declaration])
-    mappingDeclaration
     checkedPlanResult_isSome
 
 /-- Typed offline output; no raw evidence is retained in any field. -/

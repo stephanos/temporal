@@ -1,124 +1,101 @@
-# Make ordinary Temporal model authoring approachable
+# Complete ordinary Temporal model authoring after the Nexus2 prototype
 
-## Overview
-
-Reduce the Lean-specific ceremony required to author ordinary Temporal models while preserving Umpire's explicit semantics, checked declarations, stable identities, and single public authoring path. The work deepens the existing Target, Property, Behavior, Query, Observation, and Planning modules instead of introducing a new DSL or hiding model decisions.
+> HTML render lens: open local `.flow/artifacts/fn-62-make-ordinary-temporal-model-authoring/spec.html` — regenerable; markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Goal & Context
 
-The primary user is a Temporal engineer who knows general programming and basic Lean but should not need dependent-type, elaborator, or Umpire-internal expertise. Today the ordinary Nexus walkthrough still exposes repeated record assembly, dependent equality plumbing, copied identity/source data, positional Limits, repeated raw/check/proof declarations, and verbose Observation mappings. A successful authoring path reads like the Temporal behavior it describes, reports invalid declarations at their relevant source, and remains explicit about every state, Action, Model Outcome, Capability Contract, provider, Limit, fault, Known Gap, and unsupported case.
+Complete only the ordinary-authoring requirements left uncovered by fn-65. The intended author is a Temporal engineer with basic Lean knowledge. The resulting established Nexus journey must expose semantic choices while hiding repeated structural assembly and representation transport. Operators and end users receive no intended runtime or configuration change.
 
-End users and operators receive no intended runtime, configuration, deployment, or product-behavior change. Their protection is compatibility: existing model meaning, generated execution, and fail-closed evaluation remain stable except where this spec intentionally makes source provenance or author-declared Known Gaps more accurate.
+Fn-65 completed all 19 tasks and passed whole-spec completion review. Its evidence comparison establishes R3 as covered, R1/R2/R4/R5/R8/R9 as partial, and R6/R7 as uncovered. This residual plan replaces the seven never-executed task descriptions; task `.2` is repurposed for established Lifecycle migration, and `.8` separates Known Gap propagation from checked authoring. Implementation requires a fresh plan review. Completed fn-58 and fn-65 remain provenance dependencies.
 
 ## Architecture & Data Models
 
-The existing public languages and checked representations remain authoritative. New convenience is limited to deep constructors and adapters that produce the existing inert declarations or checked values.
+Deepen existing public owners and consume the constructor interfaces delivered by fn-65. Ordinary production finite Targets retain author-supplied domains, encoders, enumerators, closure evidence, and Action-executability evidence through `FiniteMachine`. The separate Nexus2 finite-table experiment retains its recorded prototype boundary.
 
-```mermaid
-flowchart LR
-    A[Explicit author inputs] --> F[FiniteMachine and language declarations]
-    F --> C[Existing checkTarget/checkProperty/checkBehavior/checkQuery/checkObservation]
-    C --> M[Checked Target and declarations]
-    M --> P[Planning]
-    M --> O[Observation evaluation]
-    P --> R[Versioned artifacts]
-    O --> R
-```
+Property, Behavior, Query, and Observation remain separate languages with their existing raw checkers and explicit proof-taking checked constructors. Temporal owns its family-root specialization; generic Umpire code contains no Temporal names. Existing checked planner-kernel derivation is reused unchanged.
 
-Ordinary complete finite Targets continue through `Umpire.FiniteMachine`; expert independently specified relations continue through `Umpire.TransitionKernel`. Property, Behavior, Query, and Observation remain separate languages. Explicit provider and connector selection remains in Target composition. Model Outcomes remain Target-owned. Known Gaps become explicit checked model data that is composed with phase-owned gaps and carried to artifacts without becoming behavior.
+Move the existing checked Known Gap vocabulary below Query without changing its data or validation contract. Queries carry an explicit default-empty authored set. Checked composition combines authored and phase-owned sets before artifact publication and makes the exact rows available to Case compilation. Gaps remain non-behavioral data.
 
 ## API Contracts
 
-- Finite Target authoring groups routine assembly behind semantic constructors, but authors still supply ordered domains, encoders, enumerators, coverage evidence, Action executability evidence, providers, connectors, and metadata required by `Umpire.FiniteMachine` and `Umpire.checkTarget`.
-- Finite planner-kernel derivation consumes an already checked finite Target or Query and hides representation equality transport. Missing finite completeness remains an explicit failure/absence; the adapter never invents enumeration or outcomes.
-- Identity helpers statically own a Temporal family root and explicit kind segment while authors provide the stable semantic suffix. A wrong family prefix is therefore unrepresentable through the helper; raw `DefinitionId` values remain available with their existing syntax and language-owned reference checks. Source helpers capture the author-facing declaration location. Neither source order nor type-class search chooses identity or behavior.
-- Named Query Limit construction exposes each stage and unit while producing the existing `QueryLimits` data and canonical serialization.
-- Property/Behavior/Query helpers construct the existing declarations and delegate to the existing raw checkers. `checkedProperty`, `checkedBehavior`, and `checkedQuery` continue to require explicit evidence that those checkers succeed; no helper silently invokes `native_decide` or bypasses typed diagnostics.
-- Transition-contract helpers produce existing Property clauses from explicit Action, resulting-state, Model Outcome, and observation patterns. They do not infer outcomes or create another Property language.
-- Observation helpers produce existing profiles, rules, mappings, dispositions, ordering, and Evidence bounds. They preserve explicit field identity and fail-closed Evidence handling.
-- Model-owned Known Gaps use the existing checked `KnownGap`/`KnownGapSet` vocabulary, remain optional non-behavioral declarations, and compose deterministically with phase-owned gaps through checked Queries and planning. They remain available to downstream Case/Contract consumers; fn-64 owns their propagation through the Case Runtime cutover. An explicit empty set means the author declared no gaps; the checker does not infer an omitted real-world limitation.
-- Existing lower-level constructors and raw checkers remain supported for advanced or invalid-declaration tests.
+- `FiniteMachine.targetDefinition(machine, id, source, definitions, requiredCapabilities)` returns the existing TargetDefinition, deriving only its setup/kernel fields from the machine. `FiniteMachine.authoredTarget(machine, id, source, definitions, requiredCapabilities, composition, occurrences)` returns AuthoredTarget by adding the existing authoredPlanning capability. The existing FiniteMachine record remains the sole author-evidence input, including all five domains/encoders, both enumerators and all eight closure/executability proofs. The constructors remove hand-built TargetDefinition and dependent planning transport; they do not derive author evidence. Final `checkTarget` remains separate.
+- A Temporal-owned family helper fixes the `temporal` root and explicit kind while authors provide stable family/suffix components. It returns existing identity contracts; raw IDs retain syntax-only validation until the owning language checks references.
+- Reuse `DefinitionFamily`, `QueryLimitSpec`, `PropertySpec`, `ExactSequenceSpec`, `QuerySpec`, and transition-result constructors. Existing `.checked` seams retain explicit checker-success evidence. No wrapper inserts native proof evaluation or infers outcomes, providers, references, or Limits.
+- Observation constructors produce existing inert profiles, rules, mappings, dispositions, ordering, closures, and Evidence bounds from explicit typed fields. `checkObservation` remains authoritative, and checked extraction retains its proof argument.
+- `KnownGap` and `KnownGapSet` keep their current row schema and error precedence, with compatible public re-exports. The authored Query set defaults to checked empty and is excluded from behavior fingerprints. An author may declare no gaps; truthful omission is not inferable by a checker.
+- Authored/phase composition preserves every row field and canonical order, includes exact overlaps once, and reports conflicting details through an explicit `KnownGapError` result before publication. It never substitutes empty data, drops a row, or silently omits an artifact. Default-empty authoring preserves existing bytes.
+- `composePlanningKnownGaps(query) : Except KnownGapError KnownGapSet` unions phase and authored gaps. `plan(query, kernel) : Except KnownGapError PlannerRun` performs that composition before traversal, even when search would select no artifact. Private finishing consumes the already checked union and stays total; `artifactOfSelection(query, trace, reason, explored) : Except KnownGapError ExperimentSpec` uses the same composition contract for direct callers. Query evaluation failures remain `PlanningOutcome.invalid QueryError` inside a successful PlannerRun, distinct from the outer metadata error.
+- `PlanningRequestError` has exactly `knownGap KnownGapError` and `artifactIntent ArtifactIntentError` cases. `planWithArtifactIntent` returns `Except PlanningRequestError PlannerRun`, preserving intent-first precedence. Space and Promotion retain their existing outer result types and add a `knownGapCheckFailed` error kind carrying the complete underlying gap error. Finite kernel derivation, bounded candidate traversal and case analysis signatures remain unchanged.
+- Every Query-preserving derivation copies `authoredKnownGaps`, including constructor declaration lowering, Space lowering and Promotion rechecking. Record updates preserve it automatically, with regression coverage; a default field value is not a substitute for copying attachments from a base Query.
+- Expose an exact checked conversion to the existing Case compiler input. Runtime Run/Verdict propagation is already owned by the Case Runtime and is not redesigned here.
 
 ## Edge Cases & Constraints
 
-- Missing finite-domain coverage or Action-executability evidence makes `FiniteMachine` construction fail as a Lean proof/elaboration obligation and never reaches `checkTarget`. Colliding canonical encodings and invalid raw incomplete-kernel declarations continue to fail through existing typed Target diagnostics. Missing providers, conflicting providers without connectors, and duplicate or crossed references continue to fail at their owning checker.
-- Helper-produced failures retain the existing typed error kind, offending Definition ID, canonical related-ID order, and the closest author-facing source location; helper layers must not collapse diagnostics into generic errors.
-- Existing public imports, Definition IDs, Behavior Fingerprints, canonical metadata, deterministic plans, and artifact bytes remain unchanged for behavior-neutral migrations. Intentional source-location corrections and newly authored Known Gaps may change source-bearing artifact checksums and their checked golden fixtures, but never Behavior Fingerprints by themselves.
-- Declaration order and Lean instance search never select providers, connectors, outcomes, behavior, or Limits.
-- The changes remain pure Lean, portable serializable data, and deterministic checking. No callbacks, registries, runtime I/O, credentials, concurrency state, new third-party dependencies, axioms, `sorry`, or `admit` are introduced.
-- At ten times the current declaration volume, helpers add no asymptotically stronger traversal, duplicate normalization pass, global registry, or runtime work. Compile-time ergonomics must not weaken validation to improve elaboration speed.
-- The Property-facing task starts only after the facade partition in `fn-58-partition-the-property-language` is complete and targets its frozen public facade rather than internal modules.
+Preserve established Nexus public imports, explicit providers, IDs, Behavior Fingerprints, metadata, deterministic traces/plans, artifact bytes, warning/trust inventory, and diagnostic precedence. Avoid source relocation during migrations. Any intentional source correction or newly authored gap must name its exact provenance/gap-bearing byte and checksum delta; neither changes Behavior Fingerprints or modeled outcomes.
+
+Missing finite proofs fail elaboration before checking. Invalid raw declarations continue to fail at their existing typed boundary, retaining offending and related IDs and relevant source coordinates. Unsatisfiable Behavior and Limit Reached retain their responsible status and cannot establish success. Missing, ambiguous, conflicting, unsupported, or causally unrelated Evidence remains fail-closed.
+
+Helpers remain pure deterministic Lean construction, with no registry, callback, runtime I/O, new dependency, global instance selection, or stronger asymptotic traversal at ten times declaration volume. Preserve existing comments. No `sorry`, `admit`, custom axiom, or additional compiler-trust dependency may enter load-bearing declarations; audit transitive trust against the explicitly approved boundary, not merely existing syntax. Preserve explicit author proof arguments even where kernel synthesis is difficult.
+
+Complexity evidence is a structural audit of added work, not elapsed-time assertions: finite Target and identity/Observation/Query constructors add only record assembly or one pass over their explicit input, with no nested rescan or repeated normalization/checking. Known Gap extraction retains the existing set algorithms; composition calls existing checked union once per planning request (or direct artifact-construction request), without rechecking it per row or search candidate. Tasks `.1`, `.3`, `.5`, `.6`, `.8` record called functions, input sizes and traversal counts; `.7` checks those inventories together. For 10× independent declarations, wrapper-only work must scale by at most the same linear factor, while any unchanged baseline checker/set complexity is disclosed separately. No cached or unequal-work timing substitutes for this audit.
 
 ## Approach
 
-1. Deepen ordinary finite Target assembly while retaining every explicit proof and semantic input, and prove the seam by migrating the Nexus lifecycle Target.
-2. Move finite planner-kernel derivation behind the checked finite boundary so ordinary Temporal code no longer carries dependent equality or large `simp` proofs.
-3. Add explicit Temporal-family identity/source helpers, named Query Limits, and conservative transition-result constructors without deriving meaning from source order.
-4. Centralize the repeated checked Property/Behavior/Query journey and migrate the three ordinary Nexus operations.
-5. Add typed Observation profile/rule/mapping constructors and migrate the ordinary Nexus Observation declaration with exact negative-case coverage.
-6. Add checked model-owned Known Gap declarations and deterministic end-to-end propagation through planning and artifacts.
-7. Publish a compiled ordinary-authoring walkthrough and update public module/architecture documentation and compatibility gates.
+1. Deepen the proof-carrying finite assembly interface and establish failed-construction evidence.
+2. Specialize Temporal identities and migrate the established Lifecycle using explicit author evidence.
+3. Migrate all three established Nexus operations through existing constructors and planner derivation.
+4. Add typed Observation composition and migrate the established Observation declaration.
+5. Separate Known Gap vocabulary ownership and checked Query attachment from checked downstream composition.
+6. Publish the compiled established Nexus reader path and verify exact compatibility, public imports, trust, and final gates.
+
+## Acceptance Criteria
+
+- **R1:** A compiled public-facade walkthrough completes the established Nexus Target, Property, Behavior, Query, plan, and Observation journey, including authored Known Gaps, with explicit semantic choices and no internal, Experimental, runtime, or verification imports. Errors: representative malformed ID/reference, missing finite proof, invalid raw Target/transition, and invalid Observation specimens execute at their established elaboration or typed-checker boundary.
+- **R2:** The ordinary proof-carrying finite interface removes repeated structural assembly while retaining author-supplied ordered domains, encoders, enumerators, closure/executability proofs, explicit providers/connectors, metadata, and `checkTarget`; established Lifecycle uses it. Errors: actual missing-proof constructions fail elaboration; colliding encodings, invalid raw incomplete kernels, missing capabilities, and unresolved competing providers retain typed diagnostics.
+- **R4:** Established declarations use Temporal-rooted explicit-kind identities, stable author suffixes and source locations, and existing named per-stage Query Limits. Errors: helper callers cannot substitute a foreign root; malformed resulting/raw IDs, duplicate/crossed references, and invalid/zero/wrong-unit Limits retain owning-checker errors. Source order and instance search choose no identity or behavior.
+- **R5:** The three established Nexus operations use existing Property/Behavior/Query and transition-result constructors with materially less repeated assembly, unchanged checker authority, explicit success evidence, and Target-owned outcomes. Errors: invalid clauses, missing capabilities, unsatisfiable Behavior, Target mismatch, invalid Limits, and omitted proof arguments remain visible; no helper introduces hidden native evaluation or a second production language.
+- **R6:** Typed readable Observation profile/rule/mapping construction and the migrated Nexus Observation retain explicit field identities, dispositions, ordering, closures, provider reconciliation, sources, and Evidence bounds. Errors: missing/unknown or wrongly typed fields, duplicate mappings/dispositions, absent dispositions, provider conflicts, invalid ordering/closure, over-limit Evidence, and missing/ambiguous/conflicting Evidence retain fail-closed results and diagnostic precedence.
+- **R7:** Optional checked model-owned Known Gaps compose deterministically with phase gaps through checked Queries, planning, and artifacts and are available as exact downstream Case rows without affecting behavior. Empty authored sets preserve existing bytes; exact overlap appears once. Errors: malformed code/subject, duplicates, conflicting detail, and noncanonical external order retain `KnownGapError`; unknown wire categories reject; cross-set conflict is visible before publication. Gaps cannot establish success, silently disappear, or imply that omitted limitations were detected.
+- **R8:** Migrated established Lifecycle, operations, and Observation preserve public imports, provider selection, IDs, fingerprints, metadata, selected traces/plans, artifacts, and failure precedence. Only specifically recorded source-provenance or authored-gap deltas are allowed. Errors: unexplained identity, byte, ordering, outcome, trust, warning, or diagnostic drift blocks completion.
+- **R9:** Public documentation and a concise compiled quickstart cover ordinary versus expert finite authoring, raw/check/checked values, stable IDs, explicit composition, Target-owned outcomes, typed Limits, Observation, Known Gaps, and established reader order. Nexus2 remains clearly experimental. Focused and aggregate builds, regression, import checks, axiom audit, and model lint pass. Errors: stale/unchecked examples, facade leaks, new unapproved trust, placeholders, new warnings, or new lint diagnostics block completion; only verified inherited output may use the repository's existing baseline policy.
 
 ## Quick commands
 
 ```bash
 cd model && mise exec -- lake build Umpire.TargetTests Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Query.Tests Umpire.Observation.Tests Umpire.Planning.Tests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus.ObservationTests
-make lint-model
 ```
 
-## Acceptance Criteria
-
-- **R1:** A checked ordinary-authoring walkthrough lets a developer with basic Lean knowledge define a complete finite Target, Property, Behavior, Query, plan, and Observation using documented public facades, with semantic choices visible in the authored code and no imports of internal, Experimental, runtime, or verification modules. Errors: the walkthrough includes representative malformed ID/reference, unsatisfied finite proof obligation, invalid raw Target/transition, and invalid Observation cases at their established elaboration or raw typed-checker boundary; Markdown alone is not test evidence.
-- **R2:** Ordinary finite Target authoring removes repeated structural assembly while retaining explicit ordered domains, encoders, enumerators, coverage and executability evidence, provider/connector selection, metadata, and final `checkTarget` validation. Errors: missing domain-closure or Action-executability evidence remains a Lean proof/elaboration failure; colliding encodings and invalid raw incomplete-kernel declarations retain typed Target diagnostics; missing capabilities and unresolved competing providers retain their established typed checker failures.
-- **R3:** An ordinary checked finite Target or Query can obtain its incremental planner kernel without author-written dependent equality transport, representation-specific unfolding, or a cleanup proof over Target internals. Errors: missing finite completeness or incompatible Target identity is reported explicitly and never falls back to an inferred or partial kernel.
-- **R4:** Ordinary declarations use a statically family-rooted, explicit-kind identity helper plus author-provided stable suffixes, author-facing source locations, and named per-stage Query Limits while producing the existing `DefinitionId`, `SourceLocation`, and `QueryLimits` contracts. Errors: a wrong family prefix is unrepresentable through the helper; malformed resulting IDs, duplicate IDs, crossed references recognized by a language checker, and zero/invalid Limits retain their established typed errors at the relevant declaration; raw IDs keep existing syntax-only validation, and source order and instance search have no effect.
-- **R5:** The common Property→Behavior→Query workflow and transition-result contracts require materially less repeated ceremony across the three ordinary Nexus operations while still producing the existing declarations, calling the existing raw checkers, requiring explicit checker-success evidence for checked values, and leaving Model Outcomes Target-owned. Errors: invalid clauses, missing capabilities, unsatisfiable Behavior, Target mismatch, invalid Limits, and omitted success evidence remain visible at their existing checker or elaboration boundary; no helper performs hidden native evaluation.
-- **R6:** Ordinary Observation authoring uses typed, readable profile/rule/mapping helpers while keeping field identities, dispositions, ordering, closures, provider reconciliation, and Evidence bounds explicit and source-located. Errors: missing/unknown fields, type mismatches, duplicate mappings, absent dispositions, conflicting providers, invalid ordering/closure, over-limit Evidence, and missing/ambiguous/conflicting Evidence fail closed with existing diagnostic precedence.
-- **R7:** Authors can optionally declare checked model-owned Known Gaps for unsupported capabilities, inputs, interpretations, and claims; an explicit empty set represents no authored gaps, and every authored gap composes deterministically with phase-owned gaps through checked Queries and planning without affecting model behavior. The checked rows remain available to downstream Case/Contract compilation, whose Run/Verdict and qualification propagation belongs to fn-64 and its consumers. Errors: malformed codes or subjects, duplicate rows, conflicting details for the same kind/code/subject, and noncanonical external order retain existing `KnownGapError` failures before runtime I/O; unknown wire categories remain a decoder error; a declared gap can never establish success or silently disappear, while truthful omission is an authoring responsibility rather than an inferable checker error.
-- **R8:** Migrated Nexus Lifecycle, operation, and Observation declarations preserve public imports, explicit provider selection, Definition IDs, Behavior Fingerprints, canonical metadata, deterministic selected traces/plans, and artifact bytes except for reviewed source-location and Known-Gap deltas named by this spec. Errors: any unexplained identity, byte, ordering, trust, warning, or diagnostic-precedence drift blocks completion.
-- **R9:** Public module docs and a concise quickstart explain the ordinary-versus-expert boundary, raw-versus-checked workflow, stable IDs, explicit composition, Target-owned outcomes, typed Limits, Observation, Known Gaps, and the checked example reader order; focused Lake builds, aggregate model regressions, import-boundary checks, axiom audits, and `make lint-model` pass. Errors: stale snippets, unchecked examples presented as evidence, facade leaks, new axioms/compiler trust, `sorry`/`admit`, warnings, or lint failures block completion.
-
-## Early proof point
-
-Task `.1` validates the core approach by expressing the existing Nexus lifecycle Target through a smaller semantic `FiniteMachine` interface while preserving its checked identity and exact behavior. If that migration cannot reduce author-facing assembly without hiding an AUT-08 input or changing canonical meaning, re-evaluate the helper boundary before continuing with `.2` through `.7`.
+The final task runs aggregate model roots, `make umpire-build-model`, `make umpire-check-regression`, `make lint-model`, and `make lint-code GOLANGCI_LINT_FIX=false` serially. Go tests use `-tags test_dep`; full regression uses a physical canonical temporary directory. Focused task gates precede the one final broad gate sequence.
 
 ## Boundaries
 
-- No new Behavior, Property, Query, Scenario, Observation, Target, or macro language and no replacement intermediate representation.
-- No change to the expert `TransitionKernel` path beyond documentation that identifies when it is appropriate.
-- No redesign of Experimental fault/variation-space authoring; a future focused readability pass may reuse the APIs established here.
-- No new module-impact command or dependency on the optional `fn-46` impact index.
-- No broad generated Lean API/protobuf drift verification or new CI workflow; that policy-level scope remains declined.
-- No Temporal runtime, Go execution, CLI, configuration, deployment, environment, Evidence collection, claim, or product behavior change.
+No new authoring DSL, generic proof synthesizer, production adoption of prototype syntax or derived author evidence, redesign of the expert TransitionKernel path, Experimental authoring redesign, System integration, Evidence collection, runtime/Go/CLI behavior, credentials, configuration, deployment, or claim-assessment changes. No new global registry, required-gap inference, or extra Known Gap vocabulary. Broad generated API drift verification and new CI workflows remain declined; existing focused regeneration and compatibility checks remain applicable.
 
 ## Decision Context
 
-The plan follows Umpire's existing deep-module direction: preserve explicit inert inputs and checker authority, but hide representation transport and repeated assembly. A single umbrella `operation` DSL was rejected as another authoring language under AUT-07. Inferring IDs, providers, outcomes, or Limits was rejected because it would trade visible boilerplate for hidden semantics. Automatically selecting `native_decide` was rejected because trust is an explicit authoring decision. Reusing the existing finite adapter, checked declaration facades, and Known Gap vocabulary is smaller and safer than adding parallel representations.
+The user explicitly deferred fn-62, prototyped fn-65, and requested retaining only uncovered requirements. R3 is therefore removed from this residual acceptance inventory without renumbering later IDs: fn-65 provides `IncrementalPlannerKernel.ofCheckedQuery` and executable identity/completeness failures. Migration consumes that capability rather than rebuilding it.
 
-The primary complexity trade-off is a few narrow constructors and adapters in exchange for substantially simpler consumers. Runtime performance and scalability remain unchanged because all convenience is compile-time construction over existing data. Compile-time work must retain current asymptotic behavior. Security and trust improve through source-local typed failures and explicit selection; no executable callback or ambient registry is added.
+R2/R4/R5 retain only the author-evidence, Temporal-family, and established-migration contracts not proved by the separate prototype. Fn-65's successful frontend `Except` values do not constitute automatically kernel-checked constants. Its narrow AUT-07/AUT-08 exceptions remain bounded to the experiment; this plan uses existing proof-taking constructors and ordinary production rules rather than broadening those exceptions.
 
-The five coding questions raised during gap analysis are resolved as follows: ordinary means the `FiniteMachine` route; all behavior-neutral migrations preserve exact semantic identity; stable suffixes remain explicit while helpers statically own the family root and kind segment; Known Gaps are optional checked non-behavioral data carried end-to-end and cannot detect an author's truthful omission; and Property changes wait for and consume the public facade delivered by `fn-58-partition-the-property-language`.
+Known Gap extraction is behavior-neutral ownership work; authored attachment and conflict-reporting composition are explicit new semantics. Keeping those contracts separate avoids hiding validation changes in a move. Preserve source-shaped rows, default-empty bytes, complete source-linked diagnostics, and exact migration artifacts as established by project memory. Do not use unequal-work timing or cached 10x fixtures as scaling evidence.
 
-Open questions: none at the requirement level. Task-level investigation may choose the narrowest owning module and exact constructor names, but may not reopen the contracts above.
+## Early proof point
 
-## References
-
-- Umpire 4 rules AUT-01 through AUT-08, SEM-04 through SEM-09, MOD-06 through MOD-08, PLN-01, ART-01 through ART-08, and EVD-03 through EVD-05.
-- Lean Authoring Guidelines sections 2, 4, 5, and 6.
-- Completed ordinary-authoring foundations `fn-31`, `fn-38`, `fn-39`, `fn-41`, `fn-42`, `fn-43`, `fn-50`, `fn-51`, and `fn-57`.
-- Property facade partition `fn-58-partition-the-property-language`.
-- Project memory on behavior-neutral refactors, exact portable artifacts, source-shaped portable schemas, execution-boundary failures, and full integration-gate selection.
+Task `.1` demonstrates smaller finite assembly while preserving explicit proof failure and checkTarget admission. Task `.2` then proves exact established Lifecycle migration. If either fails to reduce ceremony without hiding author inputs or changing meaning, revisit that constructor seam before operation migration.
 
 ## Requirement coverage
 
-| Req | Description | Task(s) | Gap justification |
-|-----|-------------|---------|-------------------|
-| R1 | Checked public-facade ordinary journey | `.1`, `.3`–`.7` | — |
-| R2 | Explicit but compact finite Target authoring | `.1` | — |
-| R3 | Checked finite planner-kernel derivation | `.2` | — |
-| R4 | Stable identities, source locations, named Limits | `.3` | — |
-| R5 | Property/Behavior/Query authoring and transition contracts | `.4` | — |
-| R6 | Typed Observation authoring | `.5` | — |
-| R7 | Model-owned Known Gap authoring and propagation | `.6` | — |
-| R8 | Nexus and compatibility preservation | `.1`–`.7` | — |
-| R9 | Checked tutorial, docs, trust, imports, and gates | `.7` | — |
+| Req | Residual contract | Tasks |
+| --- | --- | --- |
+| R1 | Compiled established journey through Observation and gaps | `.2`, `.4`, `.5`, `.7` |
+| R2 | Explicit finite author evidence and Lifecycle | `.1`, `.2` |
+| R4 | Temporal identities, sources, named Limits | `.3`, `.4` |
+| R5 | Existing constructor operation migration | `.4` |
+| R6 | Observation helpers and migration | `.5` |
+| R7 | Checked authored gaps and deterministic propagation | `.6`, `.8` |
+| R8 | Exact established compatibility | `.2`, `.4`, `.5`, `.8`, `.7` |
+| R9 | Public guide, trust, imports, final gates | `.7` |
+
+## References
+
+Completed fn-58 and fn-65; fn-65's Nexus2 evidence inventory and completion review; Umpire AUT-01–AUT-08, SEM-04–SEM-09, MOD-06–MOD-08, PLN-01, ART-01/ART-02/ART-04/ART-09–ART-12, EVD-04/EVD-05; Lean Authoring Guidelines; project memory on behavior-neutral refactors, source-shaped schemas, exact artifacts, nested diagnostics, and fair authoring comparisons.

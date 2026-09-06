@@ -6,3 +6,4 @@ import Umpire.Target.Tests.FiniteMachine
 import Umpire.Target.Tests.KernelSoundness
 import Umpire.Target.Tests.MutationCoverage
 import Umpire.Target.Tests.Validation
+import Umpire.Target.Tests.FiniteTable

@@ -36,42 +36,38 @@ foundation for the open queue, not an active delivery step.
 - Downstream specs rewritten for the Case Runtime require a fresh plan review. A review of an older
   execution architecture does not approve a rewritten plan.
 
+## Completed authoring prototype
+
+[Fn-65](../.flow/specs/fn-65-design-and-prototype-approachable.md) completed all 19 tasks and passed
+whole-spec completion review. Nexus2 demonstrates finite Target authoring, constructor/frontend
+comparison, baseline equivalence, the cancellation/completion race, and bounded guarded-case
+coverage and conflict analysis. It remains a separate prototype with explicit adoption boundaries.
+
+The [requirement comparison](../model/Temporal/Feature/Nexus2/EVIDENCE.md) establishes fn-62 R3
+as covered; R1/R2/R4/R5/R8/R9 are partial, and R6/R7 are uncovered. Established Nexus migration,
+Observation authoring, and model-owned Known Gaps were not delivered by the prototype.
+
 ## Active execution queue
 
-### 1. fn-62 — Make ordinary Temporal model authoring approachable
+### 1. fn-62 — Retain only requirements uncovered by the Nexus2 prototype
 
-**Depends on:** completed fn-58; no open spec dependency.
+**Depends on:** completed fn-65 and fn-58. The eight-task residual plan passed fresh plan review.
 
-**Deliver:** reduce Lean ceremony for ordinary finite Targets, checked Properties, Behaviors,
-Queries, plans, and Observations while preserving the existing languages and checker authority.
-Deepen the finite machine and planner adapters, make identities, sources, Limits, transition
-contracts, Observation builders, and optional Known Gaps explicit, and migrate the ordinary Nexus
-walkthroughs plus one newcomer example.
+**Next action:** implement the reviewed residual graph, starting with explicit finite Target
+assembly and Temporal identity specialization. Reuse the covered planner adapter. The old planner
+task now owns established Lifecycle migration; separate tasks own checked gap attachment and
+downstream composition.
 
-**Keep:** explicit semantic choices, stable Definition IDs and Behavior Fingerprints, deterministic
-plans, public imports, trust inventories, and existing failure boundaries. Do not add another
-authoring language or redesign expert and Experimental paths.
+**Retain:** typed Observation helpers, checked model-owned Known Gap propagation, migration of
+established Nexus models, and the exact remaining proof, identity, checked-declaration, tutorial,
+and compatibility contracts identified by the comparison.
 
-[Open fn-62 spec](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md)
+**Keep:** explicit semantics, checker authority, public imports, stable identities, exact
+behavior-neutral artifacts, trust inventories, and existing failure boundaries.
 
-### 2. fn-65 — Design and prototype approachable Nexus2 feature authoring
+[Deferred fn-62 spec](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md)
 
-**Depends on:** no open spec dependency. Coordinate overlapping authoring changes with fn-62;
-fn-65 remains a separate experiment rather than a replacement.
-
-**Deliver:** prototype ordinary feature authoring under `model/Temporal/Feature/Nexus2`, starting
-with the current Nexus lifecycle and a separate cancellation/completion race. Compare typed
-transition records and focused syntax over the checked Target, Property, Behavior, and Query
-interfaces. Keep outcomes, identities, Query forms, typed Limits, diagnostics, and coverage or
-conflict analysis explicit.
-
-**Defer from this prototype:** caller closure, general temporal expressions, System/Evidence
-integration, live execution, and a generated product-owner view.
-
-[Open fn-65 spec](../.flow/specs/fn-65-design-and-prototype-approachable.md) ·
-[Nexus2 design](../model/Temporal/Feature/Nexus2/DESIGN.md)
-
-### 3. fn-66 — Remove unused Umpire tooling after the cutovers
+### 2. fn-66 — Remove unused Umpire tooling after the cutovers
 
 **Depends on:** fn-62 only. Fn-64 is completed foundation and is not an open dependency.
 
@@ -85,7 +81,7 @@ depend on fn-60.
 
 [Open fn-66 spec](../.flow/specs/fn-66-remove-unused-umpire-tooling-after.md)
 
-### 4. fn-60 — Deepen handwritten Lean canonical JSON construction
+### 3. fn-60 — Deepen handwritten Lean canonical JSON construction
 
 **Depends on:** no open spec dependency; excludes the completed `Umpire.Property` partition.
 
@@ -104,8 +100,8 @@ protobuf encoding. Do not add parsing, protocol changes, generated Lean work, dr
 ## Current dependency graph
 
 ```text
-fn-58 (completed) -> fn-62 -> fn-66
-fn-65 (independent Nexus2 authoring experiment; coordinate with fn-62)
+fn-65 (completed) -> fn-62 (retain uncovered requirements) -> fn-66
+fn-58 (completed) -> fn-62
 fn-60 (optional handwritten JSON maintenance; no dependency on or from fn-62/fn-66)
 
 fn-40 (completed) + fn-64 (completed) -> fn-33
