@@ -1,6 +1,6 @@
 # Umpire 4 delivery order
 
-Build on the completed Case Runtime and model authoring cutovers. Flow owns task status;
+Build on the completed Testpilot and model authoring cutovers. Flow owns task status;
 this document records delivery order. Architecture and terminology live in the
 [Umpire 4 specification](UMPIRE4_SPEC.md).
 
@@ -20,22 +20,9 @@ Execute the three tasks in order:
 Keep the demonstration minimal: one Property, one Behavior, one Query, and no cancellation or new
 DSL. Model changes must affect the generated Case or reject explicitly.
 
-### 2. fn-60 — Deepen handwritten Lean canonical JSON construction
-
-[Plan](../.flow/specs/fn-60-deepen-authored-lean-canonical-json.md). **Optional maintenance**, with
-no open dependency; it does not gate downstream delivery.
-
-Consolidate handwritten Core Limit, Target, Behavior, Query, Space, Exploration, Observation, and
-Implementation Link formatters behind `Umpire.Json`. Preserve exact bytes, metadata, fingerprints,
-interfaces, imports, trust, performance, and comments. Exclude `Umpire.Property`, generated protobuf
-encoding, parsing, protocol changes, drift gates, and CI work.
-
-Refresh the plan against the completed cutovers before execution, including existing boolean
-support and focused per-task verification.
-
 ## Downstream delivery
 
-Each spec needs a fresh Case Runtime plan review before implementation. Prior reviews of the
+Each spec needs a fresh Testpilot plan review before implementation. Prior reviews of the
 retired execution architecture do not approve the rewritten plans. Completed dependencies do not
 block replanning or execution.
 
@@ -58,8 +45,8 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   removed the former Umpire protocol/runtime owners.
 - [fn-66](../.flow/specs/fn-66-remove-unused-umpire-tooling-after.md): removed the unused public
   Artifact package and CLI plus orphaned internal codecs; retained the narrow Experiment reader,
-  Case Runtime, generators, regression gates, and downstream contracts.
-- [fn-64](../.flow/specs/fn-64-umpire-case-runtime.md): Case Runtime, Lean-produced Nexus proof,
+  Testpilot, generators, regression gates, and downstream contracts.
+- [fn-64](../.flow/specs/fn-64-umpire-case-runtime.md): Testpilot, Lean-produced Nexus proof,
   independent six-class facade corpus, and full regression gate.
 - [fn-65](../.flow/specs/fn-65-design-and-prototype-approachable.md): separate Nexus2 authoring
   prototype. Its [requirement comparison](../model/Temporal/Feature/Nexus2/EVIDENCE.md) covered fn-62 R3.
@@ -76,6 +63,7 @@ These entries are outside the delivery queue and are not prerequisites for it.
 
 | Deferred spec | Revisit when |
 | --- | --- |
+| [fn-60](../.flow/specs/fn-60-deepen-authored-lean-canonical-json.md) | Optional handwritten canonical JSON consolidation becomes worth prioritizing; it has no downstream dependency. |
 | [fn-15](../.flow/specs/fn-15-standalone-api-and-config-input-catalogs.md) | Platform completeness is needed beyond the proven model family. |
 | [fn-23](../.flow/specs/fn-23-veil-toolchain-compatibility-and.md) | Optional checker adoption becomes valuable. |
 | [fn-24](../.flow/specs/fn-24-lean-native-verification-receipts-and.md) | A verification receipt/profile platform is justified. |
@@ -86,4 +74,4 @@ These entries are outside the delivery queue and are not prerequisites for it.
 [fn-61](../.flow/specs/fn-61-simplify-the-umpire-go-execution-surface.md) and
 [fn-63](../.flow/specs/fn-63-consolidate-umpire-go-tests-into-golden.md) are superseded by fn-64.
 Any remaining `todo` children do not reactivate them. Broader test consolidation needs a new
-Case Runtime proposal with an independent oracle.
+Testpilot proposal with an independent oracle.

@@ -1,6 +1,6 @@
 # Testpilot
 
-Testpilot owns the reusable, bounded Case runtime. Callers decode or construct a
+Testpilot runs behavior through Temporal and Workers using bounded Cases. Callers decode or construct a
 `testpilot/v1` Case, prepare it against an immutable `Profile`, then execute the
 returned `PreparedCase` through a caller-owned `Driver`.
 

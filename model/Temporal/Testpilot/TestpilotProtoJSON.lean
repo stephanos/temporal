@@ -9,7 +9,7 @@ opaque `MessageRef` values. This module lowers the typed Umpire producer model d
 refined Testpilot JSON shape without using the former Umpire protobuf representation.
 -/
 
-namespace Temporal.CaseRuntime.TestpilotProtoJSON
+namespace Temporal.Testpilot.TestpilotProtoJSON
 
 open Umpire
 open Umpire.Case
@@ -454,4 +454,4 @@ def canonical (item : Case) : Except String String := do
     ("contract", ← contract item.contract)
   ]).prettyBytes
 
-end Temporal.CaseRuntime.TestpilotProtoJSON
+end Temporal.Testpilot.TestpilotProtoJSON

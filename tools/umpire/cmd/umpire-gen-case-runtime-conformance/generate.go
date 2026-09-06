@@ -19,7 +19,7 @@ import (
 const (
 	fixtureRoot           = "common/testing/testpilot/testdata/case-runtime-conformance"
 	functionalFixtureRoot = "tests/testcore/testpilot/testdata"
-	rendererExecutable    = "temporal-case-runtime"
+	rendererExecutable    = "temporal-testpilot"
 )
 
 type generationMode string
@@ -122,10 +122,10 @@ func parseGenerationConfig(arguments []string) (generationConfig, error) {
 	flags.StringVar(&configuration.OutputRoot, "output-root", configuration.OutputRoot, "repository-shaped root receiving the complete fixture tree")
 	flags.Var((*generationModeValue)(&configuration.Mode), "mode", "generation mode: conformance or functional")
 	if err := flags.Parse(arguments); err != nil {
-		return generationConfig{}, fmt.Errorf("parse Case Runtime conformance generation arguments: %w", err)
+		return generationConfig{}, fmt.Errorf("parse Testpilot conformance generation arguments: %w", err)
 	}
 	if flags.NArg() != 0 {
-		return generationConfig{}, errors.New("unexpected positional arguments for Case Runtime conformance generation")
+		return generationConfig{}, errors.New("unexpected positional arguments for Testpilot conformance generation")
 	}
 	if strings.TrimSpace(configuration.RepositoryRoot) == "" || strings.TrimSpace(configuration.OutputRoot) == "" {
 		return generationConfig{}, errors.New("repository root and output root are required")
@@ -213,7 +213,7 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 		return validateArtifacts(entries, candidate)
 	}
 	if err := dependencies.Publish(set, outputRoot, artifacts, validate); err != nil {
-		return fmt.Errorf("publish Case Runtime conformance fixtures: %w", err)
+		return fmt.Errorf("publish Testpilot conformance fixtures: %w", err)
 	}
 	return nil
 }
@@ -346,7 +346,7 @@ func validateManifest(entries []manifestEntry) error {
 			return errors.New("conformance manifest entries require class, renderer argument and Case ID")
 		}
 		if _, duplicate := classes[entry.Class]; duplicate {
-			return fmt.Errorf("duplicate Case Runtime conformance class %q", entry.Class)
+			return fmt.Errorf("duplicate Testpilot conformance class %q", entry.Class)
 		}
 		classes[entry.Class] = struct{}{}
 		if entry.Expected.Class != entry.Class {

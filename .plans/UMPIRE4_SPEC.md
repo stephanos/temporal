@@ -68,8 +68,9 @@ horizon.
 
 - **`Umpire`.** Reusable Lean tools for authoring and checking models and producing plans. It
   contains no Temporal-specific behavior.
-- **`Testpilot`.** The shared Go protocol and runtime that admits and executes Cases through a
-  caller-owned Driver and evaluates their Contracts.
+- **`Testpilot`.** The canonical name for running behavior through Temporal and Workers. Its shared
+  Go protocol and runtime admit and execute Cases through a caller-owned Driver and evaluate their
+  Contracts. `Temporal.Testpilot` supplies the Lean Producers.
 - **`Temporal.Feature`.** Product behavior visible to users and SDKs, independent of the current
   implementation.
 - **`Temporal.System`.** Behavior of the current Temporal implementation, configuration, and
@@ -259,7 +260,7 @@ horizon.
 - **Generated View.** A deterministic representation of an Artifact, such as a Go test or
   documentation. It is bound to the source Artifact Checksum and cannot define behavior.
 - **Planning Artifact (`Umpire.ExperimentSpec`).** Model-planning data retained for scenario-neutral
-  catalog and reviewed-promotion use. It is not accepted by the Case Runtime.
+  catalog and reviewed-promotion use. It is not accepted by Testpilot.
 
 ### Planning and Limit rules
 
@@ -448,7 +449,7 @@ horizon.
 - **CLI-03 — Inspectability.** User-facing tools SHOULD provide consistent commands to list and
   explain named Properties, Scenarios, Tests, Explorations, verification checks, Artifacts, and
   Results.
-- **CLI-04 — Case Runtime command scope.** Case fixture commands MAY build Lean Producer tools and
+- **CLI-04 — Testpilot command scope.** Case fixture commands MAY build Lean Producer tools and
   atomically promote reviewed deterministic fixtures. Ordinary execution exposes no replacement
   resident service, scenario-specific adapter, or public Monitor selector.
 - **QLF-01 — Environment settings.** Environment profiles MAY provide endpoints, credentials,
@@ -459,8 +460,8 @@ horizon.
 - **QLF-03 — Complete claims.** Every Claim Assessment MUST expose its environment, Evidence policy,
   Limits, Assurance Method, Known Gaps, cleanup outcome, and Behavior Fingerprints.
 - **QLF-04 — Retired: per-Test local decisions.** The legacy Local Canary `pass`, `fail`, and
-  `inconclusive` decision rule is superseded by the separate Case Runtime statuses under QLF-05.
-- **QLF-05 — Per-Run decisions.** A Case Runtime decision MUST retain Run disposition, cleanup
+  `inconclusive` decision rule is superseded by the separate Testpilot statuses under QLF-05.
+- **QLF-05 — Per-Run decisions.** A Testpilot decision MUST retain Run disposition, cleanup
   status, and Verdict separately. A satisfied Verdict does not hide operational or cleanup failure;
   a proved violated Verdict remains violated after later cleanup failure; every unresolved Contract
   rule closes inconclusive.

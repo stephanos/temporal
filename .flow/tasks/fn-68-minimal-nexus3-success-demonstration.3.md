@@ -29,7 +29,7 @@ Finish the demonstration with the existing fixture renderer, transactional fixtu
 - .flow/memory/declined/generated-api-drift-verification.md — no broad drift/CI expansion
 
 ### Quick commands
-`cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests temporal-case-runtime`
+`cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests temporal-testpilot`
 `mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tests/testcore/testpilot/...`
 `mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'`
 Fixture drift gate: `make umpire-check-case-runtime-conformance`.

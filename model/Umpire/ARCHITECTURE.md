@@ -95,7 +95,7 @@ The module performs no runtime reproduction, reduction, replay, publication, or 
 source template imports only generic Umpire modules and cannot receive caller-selected imports or a
 namespace. The focused `Umpire.PromotionTests` build protects that boundary.
 
-## Case Runtime IR
+## Testpilot IR
 
 The `Umpire.Case` facade exposes a closed data vocabulary:
 
