@@ -1,6 +1,7 @@
 # Umpire tooling cleanup inventory
 
-This ledger freezes the post-fn-64/fn-62 Umpire tooling tree before fn-66 deletes anything. It
+This ledger freezes the post-fn-64/fn-62 Umpire tooling tree before fn-66 deletes anything and
+records the later fn-69 Testpilot ownership closure. It
 extends the accounting in the immutable fn-64 migration ledger; it does not revise that historical
 record. Every package and command found by `go list -tags test_dep ./tools/umpire/...` is classified
 below. A removal decision requires repository-wide consumer evidence, rather than absence of a Go
@@ -24,32 +25,34 @@ import alone.
 
 ## Current package and command ownership
 
-The frozen inventory contains 21 Go packages, including seven `main` packages. After the two
-approved removals, `go list -tags test_dep ./tools/umpire/...` reports 19 retained packages,
-including six `main` packages. There are no unclassified rows.
+The frozen inventory contains 21 Go packages, including seven `main` packages. After fn-66 and the
+fn-69 extraction, `go list -tags test_dep ./tools/umpire/...` reports 10 retained authoring,
+Producer, regression, and vocabulary packages, including six `main` packages. The Case protocol and
+runtime now contribute four packages under `common/testing/testpilot`, and the functional Driver
+contributes four under `tests/testcore/testpilot`. There are no unclassified rows.
 
 | Package | Decision | Concrete consumer or removal evidence |
 | --- | --- | --- |
-| `tools/umpire` | retained | Public `PrepareCase` / `PreparedCase.Run` facade used by `tests/umpire4_async_nexus_case_test.go`, conformance tests, and Temporal Host tests; required by UMPIRE4 MOD-12. |
+| `tools/umpire` | removed by fn-69 | The public runtime facade moved to `common/testing/testpilot`; Umpire retains only authoring, Producer, regression, and vocabulary packages. |
 | `tools/umpire/artifact` | remove in .2 | Its only Go importers are `cmd/umpire-artifact` and its own tests. Repository search outside those roots finds only the Make wrappers and one active compatibility-document row. No script, workflow, generator, manifest, or retained runtime imports it. |
-| `tools/umpire/caseartifact` | retained | Decodes and packs Lean-produced Cases for `cmd/umpire-gen-case-runtime-conformance`, root conformance tests, `tools/umpire/temporal/artifact_test.go`, and the async Nexus integration test. |
+| `tools/umpire/caseartifact` | removed by fn-69 | Canonical decoding and packing are owned by the public `common/testing/testpilot` boundary. |
 | `tools/umpire/cmd/umpire-artifact` | remove in .2 | Only `UMPIRE_ARTIFACT_COMMAND`, `umpire-check-artifact`, `umpire-check-artifact-set`, and the matching `.PHONY` entries call it. No workflow or script calls the command directly. It has no replacement CLI. |
-| `tools/umpire/cmd/umpire-check-legacy-vocabulary` | retained | `make umpire-check-legacy-vocabulary`, the aggregate regression target, and `vocabulary/legacy_gate_test.go` exercise the real command. |
+| `tools/umpire/cmd/umpire-check-retired-vocabulary` | retained | `make umpire-check-retired-vocabulary`, the aggregate regression target, and `vocabulary/retired_vocabulary_test.go` exercise the real command. |
 | `tools/umpire/cmd/umpire-export-proto-descriptors` | retained | `UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND` builds `proto/umpire-public.binpb`; its test builds and invokes the real binary and checks nonzero status and stderr. |
 | `tools/umpire/cmd/umpire-gen-case-runtime-conformance` | retained | Make generation/check targets build `temporal-case-runtime`, invoke this command, compare the entire managed fixture tree, and run facade conformance. |
 | `tools/umpire/cmd/umpire-gen-lean-api` | retained | `make umpire-gen-lean-api`, `model/README.md`, and the checked-in `model/Temporal/API*.lean` outputs depend on it. Its fixture target rewrites only the owned basic fixture. |
 | `tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog` | retained | `make umpire-gen-lean-dynamic-config-catalog`, `model/README.md`, and `model/Temporal/DynamicConfig*.lean` depend on it; project tests cover helper-process stdout/stderr failures. |
 | `tools/umpire/cmd/umpire-gen-regression-views` | retained | Make generation/check targets, the single-entry production manifest, Switch Go/Markdown outputs, and generator tests consume it. |
 | `tools/umpire/internal/artifactv2` | retained after trim in .3 | Its independent retained consumers are `cmd/umpire-gen-regression-views/generated_view.go` and `regression/generated_view.go`. The complete Experiment reader closure below remains; the four orphan source files and clone test authorized below are removed. |
-| `tools/umpire/internal/execution` | retained | The public facade and verification package import it; it owns admitted scheduling, recording, values, cleanup, and Run construction under MOD-12/MOD-14. |
-| `tools/umpire/internal/ir` | retained | Imported throughout internal execution, verification, facade Profile/Host code, and retained temporal tests; it owns Case Program and Contract IR. |
-| `tools/umpire/internal/legacyvocabulary` | retained | Implementation of the retained vocabulary command and aggregate regression gate. |
+| `tools/umpire/internal/execution` | removed by fn-69 | Its complete owner moved to `common/testing/testpilot/internal/execution`. |
+| `tools/umpire/internal/ir` | removed by fn-69 | Its complete owner moved to `common/testing/testpilot/internal/ir`. |
+| `tools/umpire/internal/retiredvocabulary` | retained | Implementation of the retained vocabulary command and aggregate regression gate. |
 | `tools/umpire/regression` | retained | Owns checked-in generated-view verification and `ci_workflow_test.go`, including Make wiring and fn-64 ledger/generic-promotion assertions. |
-| `tools/umpire/temporal` | retained | Composes server and worker Hosts for conformance and `TestUmpireAsyncNexusCase`; it is the retained environment Host boundary. |
-| `tools/umpire/temporal/internal/delivery` | retained | Imported by the temporal composite Host and worker implementation; owns activation carrier, codec, and delivery ledger. |
-| `tools/umpire/temporal/server` | retained | Imported by `temporal/host.go`; supplies descriptor Catalog and authorized unary transport under MOD-13. |
-| `tools/umpire/temporal/worker` | retained | Imported by `temporal/host.go`; owns SDK workflow/activity/Nexus execution and reservations under MOD-13. |
-| `tools/umpire/verification` | retained | Imported by `PrepareCase`; constructs and evaluates the authoritative Contract Monitor, with direct retained tests. |
+| `tools/umpire/temporal` | removed by fn-69 | The functional Driver moved to `tests/testcore/testpilot`, retaining separate server and worker authority. |
+| `tools/umpire/temporal/internal/delivery` | removed by fn-69 | Delivery moved with the functional Driver to `tests/testcore/testpilot/internal/delivery`. |
+| `tools/umpire/temporal/server` | removed by fn-69 | Server transport moved to `tests/testcore/testpilot/server`. |
+| `tools/umpire/temporal/worker` | removed by fn-69 | SDK execution moved to `tests/testcore/testpilot/worker`. |
+| `tools/umpire/verification` | removed by fn-69 | Contract preparation and evaluation moved to `common/testing/testpilot/internal/verification`. |
 | `tools/umpire/vocabulary` | retained test package | Its external test runs the real vocabulary command and protects the active terminology gate. |
 
 `tools/planindex` and `make umpire-check-plan-index` are adjacent tooling, outside the
@@ -220,7 +223,7 @@ The conformance classes are `satisfied`, `violated`, `inconclusive`,
 - `cmd/umpire-gen-regression-views/generate_test.go` preserves inspector stdout/stderr/exit
   contradictions, and `regression/ci_workflow_test.go` executes `make -n
   umpire-check-regression` to protect aggregate wiring.
-- `vocabulary/legacy_gate_test.go` invokes the actual vocabulary command. The aggregate regression
+- `vocabulary/retired_vocabulary_test.go` invokes the actual vocabulary command. The aggregate regression
   target preserves the complete tagged package selector and exact inherited live-test identities.
 - The retiring CLI's process-like `run` checks are the eight named `main_test.go` entries above;
   those exit/stdout/stderr contracts intentionally retire with the command and are not replaced by

@@ -10,7 +10,7 @@ Expose a thin local replay/minimize/propose command over the deep library contro
 **Touches:** `tools/umpire/cmd/umpire-replay/**`, `Makefile`
 
 ## Acceptance
-- [ ] The CLI exposes no arbitrary Host, checker, executable, semantic edit, or compatibility option.
+- [ ] The CLI exposes no arbitrary Driver, checker, executable, semantic edit, or compatibility option.
 - [ ] Output, exit statuses, cancellation, reporting failure, and publication ambiguity are canonical and bounded.
 - [ ] Reporting or proposal failure never installs a regression or reruns target effects.
 

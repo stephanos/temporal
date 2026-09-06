@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-06T16:54:33.355133Z",
+  "depends_on": [
+    "fn-69-extract-testpilot-from-umpire.2"
+  ],
+  "id": "fn-69-extract-testpilot-from-umpire.3",
+  "priority": null,
+  "spec": "fn-69-extract-testpilot-from-umpire",
+  "spec_path": ".flow/tasks/fn-69-extract-testpilot-from-umpire.3.md",
+  "status": "todo",
+  "title": "Extract the private Testpilot execution core",
+  "updated_at": "2026-09-06T16:54:33.355133Z"
+}

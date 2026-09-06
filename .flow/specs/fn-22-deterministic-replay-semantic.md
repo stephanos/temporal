@@ -18,7 +18,7 @@ flowchart LR
   A --> K[Semantic violation key]
   A --> R[Fresh concrete reruns]
   R --> M[Lean-authored reduction candidates]
-  M --> P[PrepareCase + fresh Run]
+  M --> P[testpilot.Prepare + fresh Run]
   P --> K
   M --> E[Diagnostic evidence core]
   M --> Q[fn-5 review-only proposal]
@@ -26,7 +26,7 @@ flowchart LR
 
 `tools/umpire/replay` is a deep orchestration module with a small `Open`, `Minimize`, and `Report` surface. It admits exact public Case Runtime values, prepares and runs candidates through the public facade, applies fixed bounds, and keeps transport details private. Lean owns every semantic reduction edit and compiles every candidate Case; Go never edits a Case, Contract, Run, or event stream.
 
-The replay subject is a strict aggregate of canonical Case bytes, the exact non-secret Host Profile/catalog identities used for preparation, and one closed Run/Verdict pair. It is not a new Umpire artifact family, durable Run-recovery record, audit digest, trust store, or compatibility bundle.
+The replay subject is a strict aggregate of canonical Case bytes, the exact non-secret Driver Profile/catalog identities used for preparation, and one closed Run/Verdict pair. It is not a new Umpire artifact family, durable Run-recovery record, audit digest, trust store, or compatibility bundle.
 
 ## Contracts
 
@@ -50,7 +50,7 @@ Only `minimized` or `irreducible` completion may invoke fn-5 to emit one checked
 
 The first vertical slice uses fixed limits: at most eight semantic edits, twelve fresh Runs, one active Run, 25 minutes wall time, bounded Case/event/report bytes, and bounded progress output. Limits are checked before preparation or dispatch where possible. Cancellation stops new work and lets the active Run follow fn-64 abort/drain/cleanup semantics.
 
-Input drift, crossed identities, duplicate members, noncanonical values, stale Profile/catalog identity, or an original non-violated Verdict rejects before rerun. Target non-success remains a Run outcome. Monitor, cleanup, or Host failure follows fn-64 precedence and cannot turn an inconclusive attempt into reproduction. Proposal or report publication failure never installs a regression and never causes an automatic rerun.
+Input drift, crossed identities, duplicate members, noncanonical values, stale Profile/catalog identity, or an original non-violated Verdict rejects before rerun. Target non-success remains a Run outcome. Monitor, cleanup, or Driver failure follows fn-64 precedence and cannot turn an inconclusive attempt into reproduction. Proposal or report publication failure never installs a regression and never causes an automatic rerun.
 
 ## Acceptance Criteria
 
@@ -67,11 +67,11 @@ Input drift, crossed identities, duplicate members, noncanonical values, stale P
 
 ## Early proof point
 
-Before reducer or CLI work, compile the fn-21 negative control into a generic Case, run it twice through `PrepareCase`/`PreparedCase.Run`, and prove the same Case-native semantic violation key. If that cannot be expressed without scenario-specific Go behavior, stop and revise the Producer/Case boundary rather than adding an adapter.
+Before reducer or CLI work, compile the fn-21 negative control into a generic Case, run it twice through `testpilot.Prepare`/`PreparedCase.Run`, and prove the same Case-native semantic violation key. If that cannot be expressed without scenario-specific Go behavior, stop and revise the Producer/Case boundary rather than adding an adapter.
 
 ## Boundaries
 
-No generic reducer language, concurrent campaign, durable resume, SDK history replay, automatic regression installation, alternate Host protocol, or change to fn-64 execution semantics. Existing comments are preserved when implementation later replaces legacy vocabulary.
+No generic reducer language, concurrent campaign, durable resume, SDK history replay, automatic regression installation, alternate Driver protocol, or change to fn-64 execution semantics. Existing comments are preserved when implementation later replaces retired vocabulary.
 
 ## Requirement coverage
 
