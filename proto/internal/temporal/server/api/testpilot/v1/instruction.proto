@@ -1,0 +1,82 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/expression.proto";
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+message RequestAssignment { FieldPath target = 1; ProgramExpression value = 2; }
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum ProjectionKind {
+  PROJECTION_KIND_UNSPECIFIED = 0;
+  PROJECTION_KIND_ONE = 1;
+  PROJECTION_KIND_EMIT_EACH = 2;
+}
+message ProjectionTarget {
+  oneof target {
+    string slot_id = 1;
+    string observation_id = 2;
+  }
+}
+message ResponseProjection {
+  FieldPath source = 1;
+  ProjectionKind kind = 2;
+  repeated ProjectionTarget targets = 3;
+}
+
+message InstructionLimits {
+  int64 timeout_milliseconds = 1;
+  int64 max_attempts = 2;
+  int64 max_emitted_events = 3;
+  int64 max_response_bytes = 4;
+}
+message InvokeRPC {
+  string endpoint_role_id = 1;
+  string method = 2;
+  repeated RequestAssignment request_assignments = 3;
+  repeated ResponseProjection response_projections = 4;
+}
+message AwaitSlot { string slot_id = 1; }
+message CompleteNexusOperation { string capability_slot_id = 1; ProgramExpression result = 2; }
+message StartNexusOperation {
+  string endpoint_role_id = 1;
+  string service = 2;
+  string operation = 3;
+  ProgramExpression input = 4;
+}
+message AwaitInstruction { InstructionRef instruction = 1; }
+message Finish { ProgramExpression result = 1; }
+enum NexusResponseKind {
+  NEXUS_RESPONSE_KIND_UNSPECIFIED = 0;
+  NEXUS_RESPONSE_KIND_SYNCHRONOUS = 1;
+  NEXUS_RESPONSE_KIND_ASYNCHRONOUS = 2;
+  NEXUS_RESPONSE_KIND_ERROR = 3;
+}
+message RespondNexus {
+  NexusResponseKind kind = 1;
+  ProgramExpression result = 2;
+  string capability_slot_id = 3;
+}
+
+// Instruction is the complete version-one instruction table.
+message Instruction {
+  oneof instruction {
+    InvokeRPC invoke_rpc = 1;
+    AwaitSlot await_slot = 2;
+    CompleteNexusOperation complete_nexus_operation = 3;
+    StartNexusOperation start_nexus_operation = 4;
+    AwaitInstruction await_outcome = 5;
+    Finish finish = 6;
+    RespondNexus respond_nexus = 7;
+  }
+}
+
+message ActivationReservationDefinition { string entrypoint_id = 1; int64 count = 2; }
+message InstructionDefinition {
+  string instruction_id = 1;
+  repeated InstructionRef dependencies = 2;
+  ProgramExpression guard = 3;
+  Instruction instruction = 4;
+  InstructionOutcomeDefinition outcome = 5;
+  InstructionLimits limits = 6;
+  repeated ActivationReservationDefinition activation_reservations = 7;
+}

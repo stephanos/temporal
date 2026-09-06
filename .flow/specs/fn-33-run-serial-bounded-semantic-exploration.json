@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-40-centralize-plannerpolicy-constructors",
-    "fn-64-umpire-case-runtime"
+    "fn-64-umpire-case-runtime",
+    "fn-69-extract-testpilot-from-umpire"
   ],
   "id": "fn-33-run-serial-bounded-semantic-exploration",
   "impl_review_rounds": {},
@@ -735,5 +736,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T18:38:01.960144Z"
+  "updated_at": "2026-09-06T16:54:46.401853Z"
 }

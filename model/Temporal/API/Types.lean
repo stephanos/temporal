@@ -1503,48 +1503,18 @@ end BuildId.State
 
 end Temporal.Server.Api.Persistence.V1
 
-namespace Temporal.Server.Api.Umpire.V1
+namespace Temporal.Server.Api.Testpilot.V1
 
-structure CaseDefinitionKind where
+structure CleanupStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace CaseDefinitionKind
-def caseDefinitionKindUnspecified : CaseDefinitionKind := { number := 0 }
-def caseDefinitionKindSetup : CaseDefinitionKind := { number := 1 }
-def caseDefinitionKindState : CaseDefinitionKind := { number := 2 }
-def caseDefinitionKindAction : CaseDefinitionKind := { number := 3 }
-def caseDefinitionKindOutcome : CaseDefinitionKind := { number := 4 }
-def caseDefinitionKindObservation : CaseDefinitionKind := { number := 5 }
-def caseDefinitionKindRelation : CaseDefinitionKind := { number := 6 }
-def caseDefinitionKindCapability : CaseDefinitionKind := { number := 7 }
-def caseDefinitionKindProperty : CaseDefinitionKind := { number := 8 }
-def caseDefinitionKindQuery : CaseDefinitionKind := { number := 9 }
-def caseDefinitionKindBehavior : CaseDefinitionKind := { number := 10 }
-def caseDefinitionKindTarget : CaseDefinitionKind := { number := 11 }
-def caseDefinitionKindCompiler : CaseDefinitionKind := { number := 12 }
-def caseDefinitionKindProvider : CaseDefinitionKind := { number := 13 }
-def caseDefinitionKindLaw : CaseDefinitionKind := { number := 14 }
-def caseDefinitionKindConnector : CaseDefinitionKind := { number := 15 }
-def caseDefinitionKindKernel : CaseDefinitionKind := { number := 16 }
-def caseDefinitionKindExperimentSpace : CaseDefinitionKind := { number := 17 }
-def caseDefinitionKindVariationAxis : CaseDefinitionKind := { number := 18 }
-def caseDefinitionKindChoice : CaseDefinitionKind := { number := 19 }
-def caseDefinitionKindFault : CaseDefinitionKind := { number := 20 }
-def caseDefinitionKindCoverageGoal : CaseDefinitionKind := { number := 21 }
-end CaseDefinitionKind
-
-structure CaseKnownGapKind where
-  number : Int
-  deriving DecidableEq, Repr
-
-namespace CaseKnownGapKind
-def caseKnownGapKindUnspecified : CaseKnownGapKind := { number := 0 }
-def caseKnownGapKindCapabilityContract : CaseKnownGapKind := { number := 1 }
-def caseKnownGapKindInput : CaseKnownGapKind := { number := 2 }
-def caseKnownGapKindInterpretation : CaseKnownGapKind := { number := 3 }
-def caseKnownGapKindClaim : CaseKnownGapKind := { number := 4 }
-end CaseKnownGapKind
+namespace CleanupStatus
+def cleanupStatusUnspecified : CleanupStatus := { number := 0 }
+def cleanupStatusSucceeded : CleanupStatus := { number := 1 }
+def cleanupStatusFailed : CleanupStatus := { number := 2 }
+def cleanupStatusTimedOut : CleanupStatus := { number := 3 }
+end CleanupStatus
 
 structure ComparisonOperator where
   number : Int
@@ -1568,38 +1538,38 @@ def contractRuleKindSafety : ContractRuleKind := { number := 1 }
 def contractRuleKindBoundedLiveness : ContractRuleKind := { number := 2 }
 end ContractRuleKind
 
-structure ContractSupport where
+structure ContractStateStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace ContractSupport
-def contractSupportUnspecified : ContractSupport := { number := 0 }
-def contractSupportNone : ContractSupport := { number := 1 }
-def contractSupportMatchingEvent : ContractSupport := { number := 2 }
-end ContractSupport
+namespace ContractStateStatus
+def contractStateStatusUnspecified : ContractStateStatus := { number := 0 }
+def contractStateStatusNonterminal : ContractStateStatus := { number := 1 }
+def contractStateStatusSatisfied : ContractStateStatus := { number := 2 }
+def contractStateStatusViolated : ContractStateStatus := { number := 3 }
+end ContractStateStatus
 
-structure ContractTerminalState where
+structure ContractSupportKind where
   number : Int
   deriving DecidableEq, Repr
 
-namespace ContractTerminalState
-def contractTerminalStateUnspecified : ContractTerminalState := { number := 0 }
-def contractTerminalStateNonterminal : ContractTerminalState := { number := 1 }
-def contractTerminalStateSatisfied : ContractTerminalState := { number := 2 }
-def contractTerminalStateViolated : ContractTerminalState := { number := 3 }
-end ContractTerminalState
+namespace ContractSupportKind
+def contractSupportKindUnspecified : ContractSupportKind := { number := 0 }
+def contractSupportKindNone : ContractSupportKind := { number := 1 }
+def contractSupportKindMatchingEvent : ContractSupportKind := { number := 2 }
+end ContractSupportKind
 
-structure EntrypointContext where
+structure EntrypointKind where
   number : Int
   deriving DecidableEq, Repr
 
-namespace EntrypointContext
-def entrypointContextUnspecified : EntrypointContext := { number := 0 }
-def entrypointContextController : EntrypointContext := { number := 1 }
-def entrypointContextWorkflow : EntrypointContext := { number := 2 }
-def entrypointContextActivity : EntrypointContext := { number := 3 }
-def entrypointContextNexusHandler : EntrypointContext := { number := 4 }
-end EntrypointContext
+namespace EntrypointKind
+def entrypointKindUnspecified : EntrypointKind := { number := 0 }
+def entrypointKindController : EntrypointKind := { number := 1 }
+def entrypointKindWorkflow : EntrypointKind := { number := 2 }
+def entrypointKindActivity : EntrypointKind := { number := 3 }
+def entrypointKindNexusHandler : EntrypointKind := { number := 4 }
+end EntrypointKind
 
 structure InstructionOutcomeField where
   number : Int
@@ -1638,38 +1608,39 @@ def nexusResponseKindAsynchronous : NexusResponseKind := { number := 2 }
 def nexusResponseKindError : NexusResponseKind := { number := 3 }
 end NexusResponseKind
 
-structure ProjectionCardinality where
+structure ProjectionKind where
   number : Int
   deriving DecidableEq, Repr
 
-namespace ProjectionCardinality
-def projectionCardinalityUnspecified : ProjectionCardinality := { number := 0 }
-def projectionCardinalityOne : ProjectionCardinality := { number := 1 }
-def projectionCardinalityEmitEach : ProjectionCardinality := { number := 2 }
-end ProjectionCardinality
+namespace ProjectionKind
+def projectionKindUnspecified : ProjectionKind := { number := 0 }
+def projectionKindOne : ProjectionKind := { number := 1 }
+def projectionKindEmitEach : ProjectionKind := { number := 2 }
+end ProjectionKind
 
-structure RuleVerdictKind where
+structure RoleKind where
   number : Int
   deriving DecidableEq, Repr
 
-namespace RuleVerdictKind
-def ruleVerdictKindUnspecified : RuleVerdictKind := { number := 0 }
-def ruleVerdictKindPending : RuleVerdictKind := { number := 1 }
-def ruleVerdictKindSatisfied : RuleVerdictKind := { number := 2 }
-def ruleVerdictKindViolated : RuleVerdictKind := { number := 3 }
-def ruleVerdictKindInconclusive : RuleVerdictKind := { number := 4 }
-end RuleVerdictKind
+namespace RoleKind
+def roleKindUnspecified : RoleKind := { number := 0 }
+def roleKindEndpoint : RoleKind := { number := 1 }
+def roleKindWorker : RoleKind := { number := 2 }
+def roleKindTaskQueue : RoleKind := { number := 3 }
+def roleKindParticipant : RoleKind := { number := 4 }
+end RoleKind
 
-structure RunCleanupStatus where
+structure RuleVerdictStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace RunCleanupStatus
-def runCleanupStatusUnspecified : RunCleanupStatus := { number := 0 }
-def runCleanupStatusSucceeded : RunCleanupStatus := { number := 1 }
-def runCleanupStatusFailed : RunCleanupStatus := { number := 2 }
-def runCleanupStatusTimedOut : RunCleanupStatus := { number := 3 }
-end RunCleanupStatus
+namespace RuleVerdictStatus
+def ruleVerdictStatusUnspecified : RuleVerdictStatus := { number := 0 }
+def ruleVerdictStatusPending : RuleVerdictStatus := { number := 1 }
+def ruleVerdictStatusSatisfied : RuleVerdictStatus := { number := 2 }
+def ruleVerdictStatusViolated : RuleVerdictStatus := { number := 3 }
+def ruleVerdictStatusInconclusive : RuleVerdictStatus := { number := 4 }
+end RuleVerdictStatus
 
 structure RunDiagnosticKind where
   number : Int
@@ -1682,20 +1653,9 @@ def runDiagnosticKindMonitor : RunDiagnosticKind := { number := 2 }
 def runDiagnosticKindRecorder : RunDiagnosticKind := { number := 3 }
 def runDiagnosticKindInvariant : RunDiagnosticKind := { number := 4 }
 def runDiagnosticKindLimit : RunDiagnosticKind := { number := 5 }
-def runDiagnosticKindHostContract : RunDiagnosticKind := { number := 6 }
+def runDiagnosticKindDriverContract : RunDiagnosticKind := { number := 6 }
 def runDiagnosticKindPostCloseEvent : RunDiagnosticKind := { number := 7 }
 end RunDiagnosticKind
-
-structure RunDisposition where
-  number : Int
-  deriving DecidableEq, Repr
-
-namespace RunDisposition
-def runDispositionUnspecified : RunDisposition := { number := 0 }
-def runDispositionCompleted : RunDisposition := { number := 1 }
-def runDispositionStoppedByMonitor : RunDisposition := { number := 2 }
-def runDispositionIncomplete : RunDisposition := { number := 3 }
-end RunDisposition
 
 structure RunEventField where
   number : Int
@@ -1732,6 +1692,17 @@ def runEventKindRunClosed : RunEventKind := { number := 9 }
 def runEventKindDiagnostic : RunEventKind := { number := 10 }
 end RunEventKind
 
+structure RunStatus where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace RunStatus
+def runStatusUnspecified : RunStatus := { number := 0 }
+def runStatusCompleted : RunStatus := { number := 1 }
+def runStatusStoppedByMonitor : RunStatus := { number := 2 }
+def runStatusIncomplete : RunStatus := { number := 3 }
+end RunStatus
+
 structure ScalarKind where
   number : Int
   deriving DecidableEq, Repr
@@ -1756,40 +1727,18 @@ def scalarKindFloat : ScalarKind := { number := 15 }
 def scalarKindDouble : ScalarKind := { number := 16 }
 end ScalarKind
 
-structure SlotKind where
+structure VerdictStatus where
   number : Int
   deriving DecidableEq, Repr
 
-namespace SlotKind
-def slotKindUnspecified : SlotKind := { number := 0 }
-def slotKindValue : SlotKind := { number := 1 }
-def slotKindOpaqueCapability : SlotKind := { number := 2 }
-end SlotKind
+namespace VerdictStatus
+def verdictStatusUnspecified : VerdictStatus := { number := 0 }
+def verdictStatusSatisfied : VerdictStatus := { number := 1 }
+def verdictStatusViolated : VerdictStatus := { number := 2 }
+def verdictStatusInconclusive : VerdictStatus := { number := 3 }
+end VerdictStatus
 
-structure SymbolicRoleKind where
-  number : Int
-  deriving DecidableEq, Repr
-
-namespace SymbolicRoleKind
-def symbolicRoleKindUnspecified : SymbolicRoleKind := { number := 0 }
-def symbolicRoleKindEndpoint : SymbolicRoleKind := { number := 1 }
-def symbolicRoleKindWorker : SymbolicRoleKind := { number := 2 }
-def symbolicRoleKindTaskQueue : SymbolicRoleKind := { number := 3 }
-def symbolicRoleKindParticipant : SymbolicRoleKind := { number := 4 }
-end SymbolicRoleKind
-
-structure VerdictKind where
-  number : Int
-  deriving DecidableEq, Repr
-
-namespace VerdictKind
-def verdictKindUnspecified : VerdictKind := { number := 0 }
-def verdictKindSatisfied : VerdictKind := { number := 1 }
-def verdictKindViolated : VerdictKind := { number := 2 }
-def verdictKindInconclusive : VerdictKind := { number := 3 }
-end VerdictKind
-
-end Temporal.Server.Api.Umpire.V1
+end Temporal.Server.Api.Testpilot.V1
 
 namespace Temporal.Server.Chasm.Lib.Activity.Proto.V1
 
@@ -12495,6 +12444,624 @@ structure ClientPartitionCounts where
 
 end Temporal.Server.Api.Taskqueue.V1
 
+namespace Temporal.Server.Api.Testpilot.V1
+
+structure ActivationReservationDefinition where
+  entrypointId : String
+  count : Int
+  deriving Repr
+
+structure ActivityActivation where
+  activityType : String
+  workerRoleId : String
+  taskQueueRoleId : String
+  deriving Repr
+
+structure AnyType where
+  unit : Unit := ()
+  deriving Repr
+
+structure InstructionRef where
+  entrypointId : String
+  instructionId : String
+  deriving Repr
+
+structure AwaitInstruction where
+  instruction : Option InstructionRef
+  deriving Repr
+
+structure AwaitSlot where
+  slotId : String
+  deriving Repr
+
+structure CaptureRef where
+  captureId : String
+  deriving Repr
+
+structure CaseProvenance where
+  producerId : String
+  producerVersion : String
+  producerData : Temporal.API.Proto.Bytes
+  deriving Repr
+
+structure ContractLimits where
+  maxRules : Int
+  maxStates : Int
+  maxTransitions : Int
+  maxExpressionDepth : Int
+  maxWorkPerEvent : Int
+  maxTotalWork : Int
+  maxCaptures : Int
+  maxCaptureBytes : Int
+  deriving Repr
+
+structure NamedType where
+  protobufType : String
+  deriving Repr
+
+structure ScalarType where
+  kind : ScalarKind
+  deriving Repr
+
+inductive ContractCaptureType.Type where
+  | notSet
+  | scalar (value : ScalarType)
+  | enumeration (value : NamedType)
+  | message (value : NamedType)
+  deriving Repr
+
+structure ContractCaptureType where
+  type : ContractCaptureType.Type
+  deriving Repr
+
+structure ContractCaptureDefinition where
+  captureId : String
+  type : Option ContractCaptureType
+  deriving Repr
+
+structure ContractHorizonDefinition where
+  elapsedMilliseconds : Int
+  violationStateId : String
+  deriving Repr
+
+structure ContractStateDefinition where
+  stateId : String
+  status : ContractStateStatus
+  deriving Repr
+
+structure EnumValue where
+  number : Int
+  deriving Repr
+
+inductive Value.Value where
+  | notSet
+  | text (value : String)
+  | natural (value : String)
+  | boolValue (value : Bool)
+  | bytesValue (value : Temporal.API.Proto.Bytes)
+  | signedInteger (value : String)
+  | unsignedInteger (value : String)
+  | floatingPoint (value : Float)
+  | enumValue (value : EnumValue)
+  | messageValue (value : Google.Protobuf.Any)
+  | listValue (value : Temporal.API.Proto.MessageRef)
+  | mapValue (value : Temporal.API.Proto.MessageRef)
+  deriving Repr
+
+structure Value where
+  value : Value.Value
+  deriving Repr
+
+structure ValueList where
+  values : List Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ValueMap where
+  entries : List Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ValueMapEntry where
+  key : Option Temporal.API.Proto.MessageRef
+  value : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure MapKeySelector where
+  key : Option Value
+  deriving Repr
+
+structure OneofSelector where
+  selectedField : String
+  deriving Repr
+
+structure PresenceSelector where
+  unit : Unit := ()
+  deriving Repr
+
+structure RepeatedWildcard where
+  unit : Unit := ()
+  deriving Repr
+
+inductive FieldPathSegment.Selector where
+  | notSet
+  | repeated (value : RepeatedWildcard)
+  | mapKey (value : MapKeySelector)
+  | presence (value : PresenceSelector)
+  | oneof (value : OneofSelector)
+  deriving Repr
+
+structure FieldPathSegment where
+  field : String
+  selector : FieldPathSegment.Selector
+  deriving Repr
+
+structure FieldPath where
+  segments : List FieldPathSegment
+  deriving Repr
+
+structure ObservationRef where
+  observationId : String
+  deriving Repr
+
+structure RunEventFieldRef where
+  field : RunEventField
+  deriving Repr
+
+structure ContractAllExpression where
+  operands : List Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ContractAnyExpression where
+  operands : List Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ContractCompareExpression where
+  operator : ComparisonOperator
+  left : Option Temporal.API.Proto.MessageRef
+  right : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ContractEqualsExpression where
+  left : Option Temporal.API.Proto.MessageRef
+  right : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+inductive ContractExpression.Expression where
+  | notSet
+  | literal (value : Value)
+  | observation (value : ObservationRef)
+  | runEvent (value : RunEventFieldRef)
+  | path (value : Temporal.API.Proto.MessageRef)
+  | present (value : Temporal.API.Proto.MessageRef)
+  | equals (value : Temporal.API.Proto.MessageRef)
+  | compare (value : Temporal.API.Proto.MessageRef)
+  | negation (value : Temporal.API.Proto.MessageRef)
+  | all (value : Temporal.API.Proto.MessageRef)
+  | any (value : Temporal.API.Proto.MessageRef)
+  | capture (value : CaptureRef)
+  deriving Repr
+
+structure ContractExpression where
+  expression : ContractExpression.Expression
+  deriving Repr
+
+structure ContractNotExpression where
+  operand : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ContractPathExpression where
+  source : Option Temporal.API.Proto.MessageRef
+  path : Option FieldPath
+  deriving Repr
+
+structure ContractPresentExpression where
+  operand : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ContractCaptureAssignment where
+  captureId : String
+  observation : Option ObservationRef
+  deriving Repr
+
+structure RunEventFilter where
+  kinds : List RunEventKind
+  deriving Repr
+
+structure ContractTransitionDefinition where
+  transitionId : String
+  sourceStateId : String
+  targetStateId : String
+  eventFilter : Option RunEventFilter
+  predicate : Option ContractExpression
+  supportKind : ContractSupportKind
+  captureAssignments : List ContractCaptureAssignment
+  deriving Repr
+
+structure ContractRuleDefinition where
+  ruleId : String
+  kind : ContractRuleKind
+  initialStateId : String
+  states : List ContractStateDefinition
+  transitions : List ContractTransitionDefinition
+  horizon : Option ContractHorizonDefinition
+  captures : List ContractCaptureDefinition
+  deriving Repr
+
+structure Contract where
+  contractId : String
+  rules : List ContractRuleDefinition
+  limits : Option ContractLimits
+  deriving Repr
+
+structure FormatVersion where
+  major : Int
+  minor : Int
+  deriving Repr
+
+structure InstructionOutcomeRef where
+  instruction : Option InstructionRef
+  field : InstructionOutcomeField
+  deriving Repr
+
+structure RunRef where
+  unit : Unit := ()
+  deriving Repr
+
+structure SlotRef where
+  slotId : String
+  deriving Repr
+
+structure ProgramAllExpression where
+  operands : List Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ProgramAnyExpression where
+  operands : List Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ProgramCompareExpression where
+  operator : ComparisonOperator
+  left : Option Temporal.API.Proto.MessageRef
+  right : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ProgramEqualsExpression where
+  left : Option Temporal.API.Proto.MessageRef
+  right : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+inductive ProgramExpression.Expression where
+  | notSet
+  | literal (value : Value)
+  | slot (value : SlotRef)
+  | outcome (value : InstructionOutcomeRef)
+  | run (value : RunRef)
+  | path (value : Temporal.API.Proto.MessageRef)
+  | present (value : Temporal.API.Proto.MessageRef)
+  | equals (value : Temporal.API.Proto.MessageRef)
+  | compare (value : Temporal.API.Proto.MessageRef)
+  | negation (value : Temporal.API.Proto.MessageRef)
+  | all (value : Temporal.API.Proto.MessageRef)
+  | any (value : Temporal.API.Proto.MessageRef)
+  deriving Repr
+
+structure ProgramExpression where
+  expression : ProgramExpression.Expression
+  deriving Repr
+
+structure ProgramNotExpression where
+  operand : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure ProgramPathExpression where
+  source : Option Temporal.API.Proto.MessageRef
+  path : Option FieldPath
+  deriving Repr
+
+structure ProgramPresentExpression where
+  operand : Option Temporal.API.Proto.MessageRef
+  deriving Repr
+
+structure CompleteNexusOperation where
+  capabilitySlotId : String
+  result : Option ProgramExpression
+  deriving Repr
+
+structure Finish where
+  result : Option ProgramExpression
+  deriving Repr
+
+structure RequestAssignment where
+  target : Option FieldPath
+  value : Option ProgramExpression
+  deriving Repr
+
+inductive ProjectionTarget.Target where
+  | notSet
+  | slotId (value : String)
+  | observationId (value : String)
+  deriving Repr
+
+structure ProjectionTarget where
+  target : ProjectionTarget.Target
+  deriving Repr
+
+structure ResponseProjection where
+  source : Option FieldPath
+  kind : ProjectionKind
+  targets : List ProjectionTarget
+  deriving Repr
+
+structure InvokeRPC where
+  endpointRoleId : String
+  method : String
+  requestAssignments : List RequestAssignment
+  responseProjections : List ResponseProjection
+  deriving Repr
+
+structure RespondNexus where
+  kind : NexusResponseKind
+  result : Option ProgramExpression
+  capabilitySlotId : String
+  deriving Repr
+
+structure StartNexusOperation where
+  endpointRoleId : String
+  service : String
+  operation : String
+  input : Option ProgramExpression
+  deriving Repr
+
+inductive Instruction.Instruction where
+  | notSet
+  | invokeRpc (value : InvokeRPC)
+  | awaitSlot (value : AwaitSlot)
+  | completeNexusOperation (value : CompleteNexusOperation)
+  | startNexusOperation (value : StartNexusOperation)
+  | awaitOutcome (value : AwaitInstruction)
+  | finish (value : Finish)
+  | respondNexus (value : RespondNexus)
+  deriving Repr
+
+structure Instruction where
+  instruction : Instruction.Instruction
+  deriving Repr
+
+structure InstructionLimits where
+  timeoutMilliseconds : Int
+  maxAttempts : Int
+  maxEmittedEvents : Int
+  maxResponseBytes : Int
+  deriving Repr
+
+structure OpaqueCapabilityType where
+  unit : Unit := ()
+  deriving Repr
+
+inductive SingularType.Type where
+  | notSet
+  | scalar (value : ScalarType)
+  | enumeration (value : NamedType)
+  | message (value : NamedType)
+  | any (value : AnyType)
+  | opaqueCapability (value : OpaqueCapabilityType)
+  deriving Repr
+
+structure SingularType where
+  type : SingularType.Type
+  deriving Repr
+
+structure MapType where
+  key : Option ScalarType
+  value : Option SingularType
+  deriving Repr
+
+structure RepeatedType where
+  element : Option SingularType
+  deriving Repr
+
+inductive ValueType.Shape where
+  | notSet
+  | singular (value : SingularType)
+  | repeated (value : RepeatedType)
+  | map (value : MapType)
+  deriving Repr
+
+structure ValueType where
+  shape : ValueType.Shape
+  deriving Repr
+
+structure OutcomeFieldDefinition where
+  field : InstructionOutcomeField
+  type : Option ValueType
+  deriving Repr
+
+structure InstructionOutcomeDefinition where
+  fields : List OutcomeFieldDefinition
+  deriving Repr
+
+structure InstructionDefinition where
+  instructionId : String
+  dependencies : List InstructionRef
+  guard : Option ProgramExpression
+  instruction : Option Instruction
+  outcome : Option InstructionOutcomeDefinition
+  limits : Option InstructionLimits
+  activationReservations : List ActivationReservationDefinition
+  deriving Repr
+
+structure CleanupDefinition where
+  entrypointId : String
+  instructions : List InstructionDefinition
+  deriving Repr
+
+structure ControllerActivation where
+  unit : Unit := ()
+  deriving Repr
+
+structure NexusHandlerActivation where
+  service : String
+  operation : String
+  workerRoleId : String
+  taskQueueRoleId : String
+  deriving Repr
+
+structure WorkflowActivation where
+  workflowType : String
+  workerRoleId : String
+  taskQueueRoleId : String
+  deriving Repr
+
+inductive EntrypointDefinition.Activation where
+  | notSet
+  | controller (value : ControllerActivation)
+  | workflow (value : WorkflowActivation)
+  | activity (value : ActivityActivation)
+  | nexusHandler (value : NexusHandlerActivation)
+  deriving Repr
+
+structure EntrypointDefinition where
+  entrypointId : String
+  instructions : List InstructionDefinition
+  activation : EntrypointDefinition.Activation
+  deriving Repr
+
+structure ObservationDefinition where
+  observationId : String
+  type : Option ValueType
+  deriving Repr
+
+structure ProgramLimits where
+  maxEntrypoints : Int
+  maxNodes : Int
+  maxEdges : Int
+  maxActivations : Int
+  maxAttempts : Int
+  maxRunEvents : Int
+  maxExpressionDepth : Int
+  maxPathFanout : Int
+  maxRequestBytes : Int
+  maxResponseBytes : Int
+  maxTotalDurationMilliseconds : Int
+  maxCleanupDurationMilliseconds : Int
+  deriving Repr
+
+structure RoleDefinition where
+  roleId : String
+  kind : RoleKind
+  deriving Repr
+
+inductive SlotDefinition.Content where
+  | notSet
+  | value (value : ValueType)
+  | opaqueCapability (value : OpaqueCapabilityType)
+  deriving Repr
+
+structure SlotDefinition where
+  slotId : String
+  content : SlotDefinition.Content
+  deriving Repr
+
+structure Program where
+  programId : String
+  roles : List RoleDefinition
+  slots : List SlotDefinition
+  observations : List ObservationDefinition
+  entrypoints : List EntrypointDefinition
+  cleanup : Option CleanupDefinition
+  limits : Option ProgramLimits
+  deriving Repr
+
+structure Case where
+  version : Option FormatVersion
+  caseId : String
+  provenance : Option CaseProvenance
+  program : Option Program
+  contract : Option Contract
+  deriving Repr
+
+structure CleanupOutcome where
+  status : CleanupStatus
+  diagnosticIds : List String
+  deriving Repr
+
+structure InstructionOutcome where
+  status : InstructionOutcomeStatus
+  protocolCode : String
+  sdkFailureCode : String
+  detail : String
+  value : Option Value
+  deriving Repr
+
+structure ObservationResult where
+  observationId : String
+  value : Option Value
+  deriving Repr
+
+structure RuleVerdict where
+  ruleId : String
+  status : RuleVerdictStatus
+  terminalStateId : String
+  supportingEventSequences : List Int
+  deriving Repr
+
+inductive RunDiagnostic.Support where
+  | notSet
+  | supportingEventSequence (value : Int)
+  deriving Repr
+
+structure RunDiagnostic where
+  diagnosticId : String
+  kind : RunDiagnosticKind
+  code : String
+  detail : String
+  support : RunDiagnostic.Support
+  deriving Repr
+
+structure RunEventCoordinates where
+  entrypointId : String
+  activationId : String
+  instructionId : String
+  attempt : Int
+  emittedIndex : Int
+  deriving Repr
+
+structure RunEvent where
+  sequence : Int
+  elapsedMilliseconds : Int
+  kind : RunEventKind
+  coordinates : Option RunEventCoordinates
+  sourceId : String
+  causalSourceIds : List String
+  outcome : Option InstructionOutcome
+  observations : List ObservationResult
+  executionIncomplete : Bool
+  deriving Repr
+
+structure Verdict where
+  status : VerdictStatus
+  rules : List RuleVerdict
+  supportingEventSequences : List Int
+  deriving Repr
+
+inductive Run.EvaluationFailure where
+  | notSet
+  | evaluationFailureSequence (value : Int)
+  deriving Repr
+
+structure Run where
+  runId : String
+  caseId : String
+  programId : String
+  events : List RunEvent
+  status : RunStatus
+  cleanup : Option CleanupOutcome
+  verdict : Option Verdict
+  diagnostics : List RunDiagnostic
+  evaluationFailure : Run.EvaluationFailure
+  deriving Repr
+
+end Temporal.Server.Api.Testpilot.V1
+
 namespace Temporal.Server.Api.Testservice.V1
 
 structure SendHelloRequest where
@@ -12569,592 +13136,6 @@ structure Task where
   deriving Repr
 
 end Temporal.Server.Api.Token.V1
-
-namespace Temporal.Server.Api.Umpire.V1
-
-structure ActivityActivation where
-  activityType : String
-  workerRoleId : String
-  taskQueueRoleId : String
-  deriving Repr
-
-structure ControllerActivation where
-  unit : Unit := ()
-  deriving Repr
-
-structure NexusHandlerActivation where
-  service : String
-  operation : String
-  workerRoleId : String
-  taskQueueRoleId : String
-  deriving Repr
-
-structure WorkflowActivation where
-  workflowType : String
-  workerRoleId : String
-  taskQueueRoleId : String
-  deriving Repr
-
-inductive ActivationBinding.Binding where
-  | notSet
-  | controller (value : ControllerActivation)
-  | workflow (value : WorkflowActivation)
-  | activity (value : ActivityActivation)
-  | nexusHandler (value : NexusHandlerActivation)
-  deriving Repr
-
-structure ActivationBinding where
-  binding : ActivationBinding.Binding
-  deriving Repr
-
-structure ActivationReservation where
-  entrypointId : String
-  count : Int
-  deriving Repr
-
-structure CaptureReference where
-  captureId : String
-  deriving Repr
-
-structure EnumValue where
-  number : Int
-  deriving Repr
-
-inductive Value.Value where
-  | notSet
-  | text (value : String)
-  | natural (value : String)
-  | boolValue (value : Bool)
-  | bytesValue (value : Temporal.API.Proto.Bytes)
-  | signedInteger (value : String)
-  | unsignedInteger (value : String)
-  | floatingPoint (value : Float)
-  | enumValue (value : EnumValue)
-  | messageValue (value : Google.Protobuf.Any)
-  | listValue (value : Temporal.API.Proto.MessageRef)
-  | mapValue (value : Temporal.API.Proto.MessageRef)
-  deriving Repr
-
-structure Value where
-  value : Value.Value
-  deriving Repr
-
-structure ValueList where
-  values : List Temporal.API.Proto.MessageRef
-  deriving Repr
-
-structure ValueMap where
-  entries : List Temporal.API.Proto.MessageRef
-  deriving Repr
-
-structure ValueMapEntry where
-  key : Option Temporal.API.Proto.MessageRef
-  value : Option Temporal.API.Proto.MessageRef
-  deriving Repr
-
-structure MapKeySelector where
-  key : Option Value
-  deriving Repr
-
-structure OneofSelector where
-  selectedField : String
-  deriving Repr
-
-structure PresenceSelector where
-  unit : Unit := ()
-  deriving Repr
-
-structure RepeatedWildcard where
-  unit : Unit := ()
-  deriving Repr
-
-inductive FieldPathSegment.Selector where
-  | notSet
-  | repeated (value : RepeatedWildcard)
-  | mapKey (value : MapKeySelector)
-  | presence (value : PresenceSelector)
-  | oneof (value : OneofSelector)
-  deriving Repr
-
-structure FieldPathSegment where
-  field : String
-  selector : FieldPathSegment.Selector
-  deriving Repr
-
-structure FieldPath where
-  segments : List FieldPathSegment
-  deriving Repr
-
-structure InstructionReference where
-  entrypointId : String
-  instructionId : String
-  deriving Repr
-
-structure InstructionOutcomeReference where
-  instruction : Option InstructionReference
-  field : InstructionOutcomeField
-  deriving Repr
-
-structure ObservationReference where
-  observationId : String
-  deriving Repr
-
-structure RunEventFieldReference where
-  field : RunEventField
-  deriving Repr
-
-structure SlotReference where
-  slotId : String
-  deriving Repr
-
-structure AllExpression where
-  operands : List Temporal.API.Proto.MessageRef
-  deriving Repr
-
-structure AnyExpression where
-  operands : List Temporal.API.Proto.MessageRef
-  deriving Repr
-
-structure CompareExpression where
-  operator : ComparisonOperator
-  left : Option Temporal.API.Proto.MessageRef
-  right : Option Temporal.API.Proto.MessageRef
-  deriving Repr
-
-structure EqualsExpression where
-  left : Option Temporal.API.Proto.MessageRef
-  right : Option Temporal.API.Proto.MessageRef
-  deriving Repr
-
-structure NotExpression where
-  operand : Option Temporal.API.Proto.MessageRef
-  deriving Repr
-
-structure PathExpression where
-  source : Option Temporal.API.Proto.MessageRef
-  path : Option FieldPath
-  deriving Repr
-
-structure PresentExpression where
-  operand : Option Temporal.API.Proto.MessageRef
-  deriving Repr
-
-inductive ValueExpression.Expression where
-  | notSet
-  | literal (value : Value)
-  | slot (value : SlotReference)
-  | outcome (value : InstructionOutcomeReference)
-  | observation (value : ObservationReference)
-  | runEvent (value : RunEventFieldReference)
-  | path (value : Temporal.API.Proto.MessageRef)
-  | present (value : Temporal.API.Proto.MessageRef)
-  | equals (value : Temporal.API.Proto.MessageRef)
-  | compare (value : Temporal.API.Proto.MessageRef)
-  | negation (value : Temporal.API.Proto.MessageRef)
-  | all (value : Temporal.API.Proto.MessageRef)
-  | any (value : Temporal.API.Proto.MessageRef)
-  | capture (value : CaptureReference)
-  deriving Repr
-
-structure ValueExpression where
-  expression : ValueExpression.Expression
-  deriving Repr
-
-structure AnyType where
-  unit : Unit := ()
-  deriving Repr
-
-structure Await where
-  instruction : Option InstructionReference
-  deriving Repr
-
-structure AwaitSlot where
-  slotId : String
-  deriving Repr
-
-structure CaseDefinitionBinding where
-  definitionId : String
-  behaviorFingerprint : String
-  kind : CaseDefinitionKind
-  deriving Repr
-
-structure OptionalString where
-  value : String
-  deriving Repr
-
-structure CaseKnownGap where
-  kind : CaseKnownGapKind
-  code : String
-  subject : Option OptionalString
-  detail : Option OptionalString
-  deriving Repr
-
-structure SourceLocation where
-  path : String
-  line : Int
-  column : Int
-  provenance : String
-  deriving Repr
-
-structure CaseMetadata where
-  producerId : String
-  producerVersion : String
-  definitions : List CaseDefinitionBinding
-  sources : List SourceLocation
-  knownGaps : List CaseKnownGap
-  deriving Repr
-
-structure ContractLimits where
-  maxRules : Int
-  maxStates : Int
-  maxTransitions : Int
-  maxExpressionDepth : Int
-  maxWorkPerEvent : Int
-  maxTotalWork : Int
-  maxCaptures : Int
-  maxCaptureBytes : Int
-  deriving Repr
-
-structure NamedType where
-  protobufType : String
-  deriving Repr
-
-structure ScalarType where
-  kind : ScalarKind
-  deriving Repr
-
-inductive ContractCaptureType.Type where
-  | notSet
-  | scalar (value : ScalarType)
-  | enumeration (value : NamedType)
-  | message (value : NamedType)
-  deriving Repr
-
-structure ContractCaptureType where
-  type : ContractCaptureType.Type
-  deriving Repr
-
-structure ContractCaptureSchema where
-  captureId : String
-  type : Option ContractCaptureType
-  deriving Repr
-
-structure ContractHorizon where
-  elapsedMilliseconds : Int
-  violationStateId : String
-  deriving Repr
-
-structure ContractState where
-  stateId : String
-  terminal : ContractTerminalState
-  deriving Repr
-
-structure ContractCaptureAssignment where
-  captureId : String
-  observation : Option ObservationReference
-  deriving Repr
-
-structure RunEventKinds where
-  kinds : List RunEventKind
-  deriving Repr
-
-structure ContractTransition where
-  transitionId : String
-  sourceState : String
-  targetState : String
-  eventKinds : Option RunEventKinds
-  predicate : Option ValueExpression
-  support : ContractSupport
-  captureAssignments : List ContractCaptureAssignment
-  deriving Repr
-
-structure ContractRule where
-  ruleId : String
-  kind : ContractRuleKind
-  initialState : String
-  states : List ContractState
-  transitions : List ContractTransition
-  horizon : Option ContractHorizon
-  captures : List ContractCaptureSchema
-  deriving Repr
-
-structure Contract where
-  contractId : String
-  rules : List ContractRule
-  limits : Option ContractLimits
-  deriving Repr
-
-structure FormatVersion where
-  major : Int
-  minor : Int
-  deriving Repr
-
-structure CompleteNexusOperation where
-  capabilitySlotId : String
-  result : Option ValueExpression
-  deriving Repr
-
-structure Finish where
-  result : Option ValueExpression
-  deriving Repr
-
-structure RequestAssignment where
-  target : Option FieldPath
-  value : Option ValueExpression
-  deriving Repr
-
-inductive ProjectionSink.Sink where
-  | notSet
-  | slotId (value : String)
-  | observationId (value : String)
-  deriving Repr
-
-structure ProjectionSink where
-  sink : ProjectionSink.Sink
-  deriving Repr
-
-structure ResponseProjection where
-  source : Option FieldPath
-  cardinality : ProjectionCardinality
-  sinks : List ProjectionSink
-  deriving Repr
-
-structure InvokeRPC where
-  endpointRoleId : String
-  method : String
-  requestAssignments : List RequestAssignment
-  responseProjections : List ResponseProjection
-  deriving Repr
-
-structure RespondNexus where
-  kind : NexusResponseKind
-  result : Option ValueExpression
-  capabilitySlotId : String
-  deriving Repr
-
-structure StartNexusOperation where
-  endpointRoleId : String
-  service : String
-  operation : String
-  input : Option ValueExpression
-  deriving Repr
-
-inductive Instruction.Instruction where
-  | notSet
-  | invokeRpc (value : InvokeRPC)
-  | awaitSlot (value : AwaitSlot)
-  | completeNexusOperation (value : CompleteNexusOperation)
-  | startNexusOperation (value : StartNexusOperation)
-  | awaitOutcome (value : Await)
-  | finish (value : Finish)
-  | respondNexus (value : RespondNexus)
-  deriving Repr
-
-structure Instruction where
-  instruction : Instruction.Instruction
-  deriving Repr
-
-structure InstructionBounds where
-  timeoutMilliseconds : Int
-  maxAttempts : Int
-  maxEmittedEvents : Int
-  maxResponseBytes : Int
-  deriving Repr
-
-structure OpaqueCapabilityType where
-  unit : Unit := ()
-  deriving Repr
-
-inductive SingularType.Type where
-  | notSet
-  | scalar (value : ScalarType)
-  | enumeration (value : NamedType)
-  | message (value : NamedType)
-  | any (value : AnyType)
-  | opaqueCapability (value : OpaqueCapabilityType)
-  deriving Repr
-
-structure SingularType where
-  type : SingularType.Type
-  deriving Repr
-
-structure MapType where
-  key : Option ScalarType
-  value : Option SingularType
-  deriving Repr
-
-structure RepeatedType where
-  element : Option SingularType
-  deriving Repr
-
-inductive ValueType.Shape where
-  | notSet
-  | singular (value : SingularType)
-  | repeated (value : RepeatedType)
-  | map (value : MapType)
-  deriving Repr
-
-structure ValueType where
-  shape : ValueType.Shape
-  deriving Repr
-
-structure OutcomeFieldSchema where
-  field : InstructionOutcomeField
-  type : Option ValueType
-  deriving Repr
-
-structure InstructionOutcomeSchema where
-  fields : List OutcomeFieldSchema
-  deriving Repr
-
-structure InstructionNode where
-  instructionId : String
-  dependencies : List InstructionReference
-  guard : Option ValueExpression
-  instruction : Option Instruction
-  outcome : Option InstructionOutcomeSchema
-  bounds : Option InstructionBounds
-  activationReservations : List ActivationReservation
-  deriving Repr
-
-structure CleanupGraph where
-  entrypointId : String
-  context : EntrypointContext
-  nodes : List InstructionNode
-  deriving Repr
-
-structure Entrypoint where
-  entrypointId : String
-  context : EntrypointContext
-  activation : Option ActivationBinding
-  nodes : List InstructionNode
-  deriving Repr
-
-structure ObservationSchema where
-  observationId : String
-  type : Option ValueType
-  deriving Repr
-
-structure ProgramLimits where
-  maxEntrypoints : Int
-  maxNodes : Int
-  maxEdges : Int
-  maxActivations : Int
-  maxAttempts : Int
-  maxRunEvents : Int
-  maxExpressionDepth : Int
-  maxPathFanout : Int
-  maxRequestBytes : Int
-  maxResponseBytes : Int
-  maxTotalDurationMilliseconds : Int
-  maxCleanupDurationMilliseconds : Int
-  deriving Repr
-
-structure ProgramRole where
-  roleId : String
-  kind : SymbolicRoleKind
-  deriving Repr
-
-structure SlotSchema where
-  slotId : String
-  type : Option ValueType
-  kind : SlotKind
-  deriving Repr
-
-structure Program where
-  programId : String
-  roles : List ProgramRole
-  slots : List SlotSchema
-  observations : List ObservationSchema
-  entrypoints : List Entrypoint
-  cleanup : Option CleanupGraph
-  limits : Option ProgramLimits
-  deriving Repr
-
-structure Case where
-  version : Option FormatVersion
-  caseId : String
-  metadata : Option CaseMetadata
-  program : Option Program
-  contract : Option Contract
-  deriving Repr
-
-structure CleanupOutcome where
-  status : RunCleanupStatus
-  diagnosticIds : List String
-  deriving Repr
-
-structure InstructionOutcome where
-  status : InstructionOutcomeStatus
-  protocolCode : String
-  sdkFailureCode : String
-  detail : String
-  value : Option Value
-  deriving Repr
-
-structure ObservationValue where
-  observationId : String
-  value : Option Value
-  deriving Repr
-
-structure RuleVerdict where
-  ruleId : String
-  kind : RuleVerdictKind
-  terminalStateId : String
-  supportingEventSequences : List Int
-  deriving Repr
-
-structure RunEventSequence where
-  value : Int
-  deriving Repr
-
-structure RunDiagnostic where
-  diagnosticId : String
-  kind : RunDiagnosticKind
-  code : String
-  detail : String
-  supportingEventSequence : Option RunEventSequence
-  deriving Repr
-
-structure RunCoordinates where
-  entrypointId : String
-  activationId : String
-  instructionId : String
-  attempt : Int
-  emittedIndex : Int
-  deriving Repr
-
-structure RunEvent where
-  sequence : Int
-  elapsedMilliseconds : Int
-  kind : RunEventKind
-  coordinates : Option RunCoordinates
-  sourceId : String
-  causalSourceIds : List String
-  outcome : Option InstructionOutcome
-  observations : List ObservationValue
-  executionIncomplete : Bool
-  deriving Repr
-
-structure Verdict where
-  kind : VerdictKind
-  rules : List RuleVerdict
-  supportingEventSequences : List Int
-  deriving Repr
-
-structure Run where
-  runId : String
-  caseId : String
-  programId : String
-  events : List RunEvent
-  disposition : RunDisposition
-  cleanup : Option CleanupOutcome
-  verdict : Option Verdict
-  diagnostics : List RunDiagnostic
-  evaluationFailureSequence : Option RunEventSequence
-  deriving Repr
-
-end Temporal.Server.Api.Umpire.V1
 
 namespace Temporal.Server.Api.Visibilityservice.V1
 

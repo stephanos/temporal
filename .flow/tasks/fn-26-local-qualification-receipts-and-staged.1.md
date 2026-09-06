@@ -11,7 +11,7 @@ Define the Temporal-free Evaluation Profile contract and one Temporal-owned `loc
 
 ## Acceptance
 - [ ] Empty, duplicate, contradictory, unknown, stale, and N+1 inputs fail deterministically.
-- [ ] No endpoint, credential, path, Host, execution authority, or Temporal value enters reusable Umpire.
+- [ ] No endpoint, credential, path, Driver, execution authority, or Temporal value enters reusable Umpire.
 - [ ] Same Profile bytes yield the same identity; a different Profile remains an independent assessment.
 
 ## Done summary

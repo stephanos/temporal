@@ -11,7 +11,7 @@ Expose one thin offline local-assessment command and root Make target accepting 
 
 ## Acceptance
 - [ ] Arguments, summary/error schema, exit statuses, cancellation, and reporting are closed and deterministic.
-- [ ] No execution, Host, endpoint, credential, arbitrary checker, policy definition, retry, or network option exists.
+- [ ] No execution, Driver, endpoint, credential, arbitrary checker, policy definition, retry, or network option exists.
 - [ ] Publication is contained, lock-guarded, idempotent for identical bytes, and never partial.
 
 ## Done summary

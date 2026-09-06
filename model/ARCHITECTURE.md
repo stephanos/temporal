@@ -99,7 +99,7 @@ without adding a scenario opcode. The six conformance Cases cover the root Go fa
 violated, inconclusive, static-rejection, cleanup-failure, and cross-Run classes.
 
 `Temporal.Tool.CaseRuntime` is a build-time renderer only. Coordinates, credentials, clients,
-workers, capabilities, and live IDs remain Host inputs.
+workers, capabilities, and live IDs remain Driver inputs.
 
 ## Go runtime boundary
 
@@ -109,10 +109,10 @@ The corresponding Go architecture is deliberately small:
 Case + immutable Profile
         │
         ▼
-PrepareCase ──▶ PreparedCase
+testpilot.Prepare ──▶ PreparedCase
                     │
                     ▼
-             Run(ctx, Host)
+             Run(ctx, Driver)
                     │
         ┌───────────┴───────────┐
         ▼                       ▼
@@ -123,17 +123,17 @@ PrepareCase ──▶ PreparedCase
              closed Run + Verdict
 ```
 
-The root `tools/umpire` package owns the Profile/Host contract and the two calls. Scheduling,
-recording, effect ownership, private Slot storage, and Monitor factories are internal. Static
-preparation performs no Host I/O; a Prepared Case snapshots admitted inputs and supports independent
+`common/testing/testpilot` owns the Case protocol, Profile/Driver contract, and the two calls.
+Scheduling, recording, effect ownership, private Slot storage, and Monitor factories are internal.
+Static preparation performs no Driver I/O; a Prepared Case snapshots admitted inputs and supports independent
 sequential and concurrent Runs.
 
-Temporal server and worker authority do not overlap. The server Host supplies the authorized
+Temporal server and worker authority do not overlap. The server Driver supplies the authorized
 descriptor catalog, transports prepared unary method/request pairs, and returns raw typed responses
 and protocol status. Internal execution constructs requests and applies declared response
-projections to private Slots and Run Observations. The worker Host uses Temporal SDK APIs for
+projections to private Slots and Run Observations. The worker Driver uses Temporal SDK APIs for
 workflow, activity, and Nexus-handler execution, owns reservation delivery, and cancels at
-activation scope. The composite Host joins these capabilities without interpreting the Program or
+activation scope. The composite Driver joins these capabilities without interpreting the Program or
 Contract.
 
 The Executor appends monotonic immutable Run Events. Each event has a unique source identity and
@@ -145,7 +145,7 @@ Private Slots never become evidence automatically.
 Stop prevents new controller dispatch and activation reservation, then cancellation, bounded drain,
 and cleanup proceed through owned handles and a fresh cleanup context. Disposition, cleanup status,
 and Verdict remain independent; a proved violation is not erased by cleanup failure. After closure,
-late completion and Host diagnostics cannot mutate returned data.
+late completion and Driver diagnostics cannot mutate returned data.
 
 ## Artifact ownership and tests
 

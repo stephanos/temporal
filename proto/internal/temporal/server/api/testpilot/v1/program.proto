@@ -1,0 +1,84 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/instruction.proto";
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum RoleKind {
+  ROLE_KIND_UNSPECIFIED = 0;
+  ROLE_KIND_ENDPOINT = 1;
+  ROLE_KIND_WORKER = 2;
+  ROLE_KIND_TASK_QUEUE = 3;
+  ROLE_KIND_PARTICIPANT = 4;
+}
+enum EntrypointKind {
+  ENTRYPOINT_KIND_UNSPECIFIED = 0;
+  ENTRYPOINT_KIND_CONTROLLER = 1;
+  ENTRYPOINT_KIND_WORKFLOW = 2;
+  ENTRYPOINT_KIND_ACTIVITY = 3;
+  ENTRYPOINT_KIND_NEXUS_HANDLER = 4;
+}
+message RoleDefinition { string role_id = 1; RoleKind kind = 2; }
+message ControllerActivation {}
+message WorkflowActivation {
+  string workflow_type = 1;
+  string worker_role_id = 2;
+  string task_queue_role_id = 3;
+}
+message ActivityActivation {
+  string activity_type = 1;
+  string worker_role_id = 2;
+  string task_queue_role_id = 3;
+}
+message NexusHandlerActivation {
+  string service = 1;
+  string operation = 2;
+  string worker_role_id = 3;
+  string task_queue_role_id = 4;
+}
+
+// EntrypointDefinition contains one Driver-activated, context-local acyclic instruction graph.
+message EntrypointDefinition {
+  string entrypoint_id = 1;
+  oneof activation {
+    ControllerActivation controller = 2;
+    WorkflowActivation workflow = 3;
+    ActivityActivation activity = 4;
+    NexusHandlerActivation nexus_handler = 5;
+  }
+  repeated InstructionDefinition instructions = 6;
+}
+
+// CleanupDefinition is always attempted after ordinary execution with an independent bound.
+message CleanupDefinition {
+  // The identity is used by cleanup-local InstructionRefs and Run coordinates.
+  string entrypoint_id = 1;
+  repeated InstructionDefinition instructions = 2;
+}
+
+message ProgramLimits {
+  int64 max_entrypoints = 1;
+  int64 max_nodes = 2;
+  int64 max_edges = 3;
+  int64 max_activations = 4;
+  int64 max_attempts = 5;
+  int64 max_run_events = 6;
+  int64 max_expression_depth = 7;
+  int64 max_path_fanout = 8;
+  int64 max_request_bytes = 9;
+  int64 max_response_bytes = 10;
+  int64 max_total_duration_milliseconds = 11;
+  int64 max_cleanup_duration_milliseconds = 12;
+}
+
+// Program is a bounded collection of context-local DAGs and one always-run cleanup graph.
+message Program {
+  string program_id = 1;
+  repeated RoleDefinition roles = 2;
+  repeated SlotDefinition slots = 3;
+  repeated ObservationDefinition observations = 4;
+  repeated EntrypointDefinition entrypoints = 5;
+  CleanupDefinition cleanup = 6;
+  ProgramLimits limits = 7;
+}

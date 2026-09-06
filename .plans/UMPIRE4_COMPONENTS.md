@@ -1,21 +1,21 @@
 # Umpire components and historical delivery inventory
 
-Status: the Case Runtime component map below is current. The delivery inventory beginning at
+Status: the Testpilot runtime component map below is current. The delivery inventory beginning at
 “Superseded historical inventory” records the removed pre-cutover architecture and is not an
 implementation recommendation.
 
-## Current Case Runtime component map
+## Current Testpilot runtime component map
 
 ```text
 Producer ──▶ Case { Program, Contract }
                  │
                  ▼
-       PrepareCase(case, Profile)
+       testpilot.Prepare(case, Profile)
                  │
           immutable PreparedCase
                  │
                  ▼
-        PreparedCase.Run(ctx, Host)
+       PreparedCase.Run(ctx, Driver)
                  │
           ┌──────┴──────┐
           ▼             ▼
@@ -26,23 +26,23 @@ Producer ──▶ Case { Program, Contract }
       immutable Run + Verdict
 ```
 
-The root Go facade owns `Profile`, `Host`, `PreparedCase`, `PrepareCase`, and
-`PreparedCase.Run`. `tools/umpire/internal/execution` owns scheduling, recording, effects, private
-Slots, and cleanup. `tools/umpire/verification` owns static Contract preparation, fresh Run-local
+`common/testing/testpilot` owns the Case protocol, `Profile`, `Driver`, `PreparedCase`, `Prepare`,
+and `PreparedCase.Run`. Its private execution package owns scheduling, recording, effects, private
+Slots, and cleanup. Its private verification package owns static Contract preparation, fresh Run-local
 Monitors, bounded captures, expiry-before-transition semantics, and offline evaluation.
 
-Temporal Host authority is split by execution context. `tools/umpire/temporal/server` supplies the
+Temporal Driver authority is split by execution context. `tests/testcore/testpilot/server` supplies the
 authorized descriptor catalog and transports prepared unary method/request pairs, returning raw
 typed responses and protocol status. Internal execution constructs requests and applies response
-projections to Slots and Observations. `tools/umpire/temporal/worker` owns SDK workflow, activity,
+projections to Slots and Observations. `tests/testcore/testpilot/worker` owns SDK workflow, activity,
 Nexus-handler execution, reserved activation delivery, and activation-level cancellation.
-`tools/umpire/temporal` composes those Host capabilities without interpreting Case semantics.
+`tests/testcore/testpilot` composes those Driver capabilities without interpreting Case semantics.
 
 Lean under `model/Umpire/Case` owns the reusable IR and compiler; `model/Temporal/CaseRuntime.lean`
 is the first Producer. Deterministic Case fixtures are owned by
 `umpire-gen-case-runtime-conformance`; its check generates and validates a complete temporary tree
 before diffing, while promotion is a separate reviewed target. The regression boundary includes
-the six facade classes, the full package-local suite, the exact `^TestUmpire` live selector and exact
+the six facade classes, the full package-local suite, the exact live selector and exact
 inherited failure identities, Lean model builds, generated views, and semantic inventory.
 
 ## Superseded historical inventory

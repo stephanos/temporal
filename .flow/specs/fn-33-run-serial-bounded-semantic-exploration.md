@@ -2,7 +2,7 @@
 
 ## Umpire4 Case Runtime reconciliation
 
-This spec drives fn-64 exclusively through `PrepareCase` and `PreparedCase.Run`. It removes every dependency on resident executors, `PortableTestPlan`, Run Evaluation, caller closure, and scenario-specific Go bindings.
+This spec drives fn-64 exclusively through `testpilot.Prepare` and `PreparedCase.Run`. It removes every dependency on resident executors, `PortableTestPlan`, Run Evaluation, caller closure, and scenario-specific Go bindings.
 
 ## Intent
 
@@ -14,7 +14,7 @@ Prove that the Lean-owned exploration layer can choose a bounded sequence of com
 flowchart LR
   S[Lean Space + PlannerPolicy] --> B[One-candidate bridge]
   B --> C[Canonical Case]
-  C --> P[PrepareCase]
+  C --> P[testpilot.Prepare]
   P --> R[One fresh Run]
   R --> V[Closed Verdict]
   V --> B
@@ -23,7 +23,7 @@ flowchart LR
 
 Lean owns candidate order, candidate identity, semantic coverage, the requested uncovered coordinate, and finite exhaustion. Each `next` response contains one whole canonical Case plus an opaque checked candidate/lineage identity; Go never parameterizes a Case family or interprets model coordinates. Duplicate, stale, or crossed candidate identities reject before preparation.
 
-Go owns framing, the fixed Host Profile, static and runtime Limit accounting, process lifecycle, `PrepareCase`, one active `Run`, cleanup observation, and terminal reporting. It may cache only the current process-local campaign state. Prepared Cases are not shared between different candidate identities.
+Go owns framing, the fixed Driver Profile, static and runtime Limit accounting, process lifecycle, `testpilot.Prepare`, one active `Run`, cleanup observation, and terminal reporting. It may cache only the current process-local campaign state. Prepared Cases are not shared between different candidate identities.
 
 ## Contracts
 

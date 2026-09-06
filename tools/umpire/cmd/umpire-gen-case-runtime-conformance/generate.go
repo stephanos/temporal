@@ -12,18 +12,27 @@ import (
 	"slices"
 	"strings"
 
+	"go.temporal.io/server/common/testing/testpilot"
 	"go.temporal.io/server/tools/common/artifactio"
-	"go.temporal.io/server/tools/umpire/caseartifact"
 )
 
 const (
-	fixtureRoot        = "tools/umpire/testdata/case-runtime-conformance"
-	rendererExecutable = "temporal-case-runtime"
+	fixtureRoot           = "common/testing/testpilot/testdata/case-runtime-conformance"
+	functionalFixtureRoot = "tests/testcore/testpilot/testdata"
+	rendererExecutable    = "temporal-case-runtime"
+)
+
+type generationMode string
+
+const (
+	generationModeConformance generationMode = "conformance"
+	generationModeFunctional  generationMode = "functional"
 )
 
 type generationConfig struct {
 	RepositoryRoot string
 	OutputRoot     string
+	Mode           generationMode
 }
 
 type stableRuleProjection struct {
@@ -74,6 +83,12 @@ type manifestEntry struct {
 	Expected    expectedResult
 }
 
+type functionalEntry struct {
+	RendererArg string
+	CaseID      string
+	Filename    string
+}
+
 type rendererOutput struct {
 	Stdout []byte
 	Stderr []byte
@@ -89,15 +104,23 @@ func Run(arguments []string) error {
 	if err != nil {
 		return err
 	}
-	return runGeneration(configuration, productionManifest(), defaultGenerationDependencies())
+	switch configuration.Mode {
+	case generationModeConformance:
+		return runGeneration(configuration, productionManifest(), defaultGenerationDependencies())
+	case generationModeFunctional:
+		return runFunctionalGeneration(configuration, functionalManifest(), defaultGenerationDependencies())
+	default:
+		return fmt.Errorf("unknown generation mode %q", configuration.Mode)
+	}
 }
 
 func parseGenerationConfig(arguments []string) (generationConfig, error) {
-	configuration := generationConfig{RepositoryRoot: ".", OutputRoot: "."}
+	configuration := generationConfig{RepositoryRoot: ".", OutputRoot: ".", Mode: generationModeConformance}
 	flags := flag.NewFlagSet("umpire-gen-case-runtime-conformance", flag.ContinueOnError)
 	flags.SetOutput(io.Discard)
 	flags.StringVar(&configuration.RepositoryRoot, "repository-root", configuration.RepositoryRoot, "repository root containing the built Case renderer")
 	flags.StringVar(&configuration.OutputRoot, "output-root", configuration.OutputRoot, "repository-shaped root receiving the complete fixture tree")
+	flags.Var((*generationModeValue)(&configuration.Mode), "mode", "generation mode: conformance or functional")
 	if err := flags.Parse(arguments); err != nil {
 		return generationConfig{}, fmt.Errorf("parse Case Runtime conformance generation arguments: %w", err)
 	}
@@ -107,7 +130,21 @@ func parseGenerationConfig(arguments []string) (generationConfig, error) {
 	if strings.TrimSpace(configuration.RepositoryRoot) == "" || strings.TrimSpace(configuration.OutputRoot) == "" {
 		return generationConfig{}, errors.New("repository root and output root are required")
 	}
+	if configuration.Mode != generationModeConformance && configuration.Mode != generationModeFunctional {
+		return generationConfig{}, fmt.Errorf("unknown generation mode %q", configuration.Mode)
+	}
 	return configuration, nil
+}
+
+type generationModeValue generationMode
+
+func (value *generationModeValue) String() string {
+	return string(*value)
+}
+
+func (value *generationModeValue) Set(encoded string) error {
+	*value = generationModeValue(encoded)
+	return nil
 }
 
 func defaultGenerationDependencies() generationDependencies {
@@ -138,14 +175,14 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 		if err != nil {
 			return err
 		}
-		decoded, err := caseartifact.DecodeProtoJSON(encoded)
+		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 		if err != nil {
 			return fmt.Errorf("decode %q Case fixture: %w", entry.Class, err)
 		}
 		if decoded.GetCaseId() != entry.CaseID {
 			return fmt.Errorf("decode %q Case fixture: got Case ID %q, want %q", entry.Class, decoded.GetCaseId(), entry.CaseID)
 		}
-		if _, err := caseartifact.Pack(encoded); err != nil {
+		if _, err := testpilot.PackCaseProtoJSON(encoded); err != nil {
 			return fmt.Errorf("pack %q Case fixture: %w", entry.Class, err)
 		}
 		expected, err := marshalExpected(entry.Expected)
@@ -179,6 +216,95 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 		return fmt.Errorf("publish Case Runtime conformance fixtures: %w", err)
 	}
 	return nil
+}
+
+func runFunctionalGeneration(configuration generationConfig, entries []functionalEntry, dependencies generationDependencies) error {
+	if dependencies.Render == nil || dependencies.Publish == nil {
+		return errors.New("missing Case renderer or fixture publisher")
+	}
+	if len(entries) != 2 {
+		return fmt.Errorf("functional fixture manifest has %d entries, want exactly 2", len(entries))
+	}
+	repositoryRoot, err := filepath.Abs(configuration.RepositoryRoot)
+	if err != nil {
+		return fmt.Errorf("resolve repository root: %w", err)
+	}
+	modelRoot := filepath.Join(repositoryRoot, "model")
+	artifacts := make(map[string][]byte, len(entries))
+	for _, entry := range entries {
+		output, renderErr := dependencies.Render(modelRoot, entry.RendererArg)
+		encoded, err := requireRendererArtifact(entry.Filename, output, renderErr)
+		if err != nil {
+			return err
+		}
+		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
+		if err != nil {
+			return fmt.Errorf("decode %q Testpilot Case fixture: %w", entry.Filename, err)
+		}
+		if decoded.GetCaseId() != entry.CaseID {
+			return fmt.Errorf("decode %q Testpilot Case fixture: got Case ID %q, want %q", entry.Filename, decoded.GetCaseId(), entry.CaseID)
+		}
+		if _, err := testpilot.PackCaseProtoJSON(encoded); err != nil {
+			return fmt.Errorf("pack %q Testpilot Case fixture: %w", entry.Filename, err)
+		}
+		artifacts[functionalCasePath(entry)] = slices.Clone(encoded)
+	}
+	paths := make([]string, 0, len(entries))
+	for _, entry := range entries {
+		paths = append(paths, functionalCasePath(entry))
+	}
+	slices.Sort(paths)
+	if err := validateFunctionalArtifacts(entries, artifacts); err != nil {
+		return err
+	}
+	outputRoot, err := filepath.Abs(configuration.OutputRoot)
+	if err != nil {
+		return fmt.Errorf("resolve fixture output root: %w", err)
+	}
+	set := artifactio.Set{Roots: []string{functionalFixtureRoot}, Paths: slices.Clone(paths)}
+	validate := func(candidateRoot string) error {
+		candidate := make(map[string][]byte, len(paths))
+		for _, relative := range paths {
+			encoded, err := os.ReadFile(filepath.Join(candidateRoot, filepath.FromSlash(relative)))
+			if err != nil {
+				return fmt.Errorf("read staged fixture %q: %w", relative, err)
+			}
+			candidate[relative] = encoded
+		}
+		return validateFunctionalArtifacts(entries, candidate)
+	}
+	if err := dependencies.Publish(set, outputRoot, artifacts, validate); err != nil {
+		return fmt.Errorf("publish functional Testpilot Case fixtures: %w", err)
+	}
+	return nil
+}
+
+func validateFunctionalArtifacts(entries []functionalEntry, artifacts map[string][]byte) error {
+	if len(artifacts) != len(entries) {
+		return fmt.Errorf("functional fixture set has %d files, want %d", len(artifacts), len(entries))
+	}
+	for _, entry := range entries {
+		encoded, ok := artifacts[functionalCasePath(entry)]
+		if !ok {
+			return fmt.Errorf("missing functional Case fixture %q", entry.Filename)
+		}
+		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
+		if err != nil || decoded.GetCaseId() != entry.CaseID {
+			return fmt.Errorf("invalid functional Case fixture %q", entry.Filename)
+		}
+	}
+	return nil
+}
+
+func functionalCasePath(entry functionalEntry) string {
+	return filepath.ToSlash(filepath.Join(functionalFixtureRoot, entry.Filename))
+}
+
+func functionalManifest() []functionalEntry {
+	return []functionalEntry{
+		{RendererArg: "get-system-info", CaseID: "temporal.case.get-system-info", Filename: "get-system-info-case.json"},
+		{RendererArg: "async-nexus", CaseID: "temporal.case.async-nexus-success", Filename: "async-nexus-case.json"},
+	}
 }
 
 func renderLeanCase(modelRoot, argument string) (rendererOutput, error) {
@@ -240,7 +366,7 @@ func validateArtifacts(entries []manifestEntry, artifacts map[string][]byte) err
 		if !ok {
 			return fmt.Errorf("missing Case fixture for %q", entry.Class)
 		}
-		decoded, err := caseartifact.DecodeProtoJSON(encoded)
+		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 		if err != nil || decoded.GetCaseId() != entry.CaseID {
 			return fmt.Errorf("invalid Case fixture for %q", entry.Class)
 		}

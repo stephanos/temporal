@@ -112,24 +112,24 @@ Lean or another Producer
       Case { Program, Contract }
         │
         ▼
-PrepareCase(case, Profile) ──▶ immutable PreparedCase
+testpilot.Prepare(case, Profile) ──▶ immutable PreparedCase
         │
         ▼
-PreparedCase.Run(ctx, Host) ──▶ immutable Run + Verdict
+PreparedCase.Run(ctx, Driver) ──▶ immutable Run + Verdict
 ```
 
-The root `tools/umpire` package owns the public Profile, Host, and two-call facade.
-`tools/umpire/internal/execution` owns scheduling, recording, effect lifecycle, private Slot state,
-and bounded cleanup. `tools/umpire/verification` owns Contract preparation, fresh Run-local
-Monitors, and offline evaluation.
+`common/testing/testpilot` owns the Case protocol and public Profile, Driver, and two-call facade.
+Its private execution package owns scheduling, recording, effect lifecycle, private Slot state,
+and bounded cleanup. Its private verification package owns Contract preparation, fresh Run-local
+Monitors, and offline evaluation. Umpire remains the Lean authoring and Producer owner.
 
 Temporal authority remains split:
 
-- `tools/umpire/temporal/server` supplies the authorized descriptor catalog and transports prepared
+- `tests/testcore/testpilot/server` supplies the authorized descriptor catalog and transports prepared
   unary method/request pairs, returning raw typed responses and protocol status.
-- `tools/umpire/temporal/worker` owns SDK workflow, activity, and Nexus-handler interpretation,
+- `tests/testcore/testpilot/worker` owns SDK workflow, activity, and Nexus-handler interpretation,
   reserved activation delivery, and activation-level cancellation.
-- `tools/umpire/temporal` composes server and worker Hosts without interpreting scenario or Contract
+- `tests/testcore/testpilot` composes server and worker Drivers without interpreting scenario or Contract
   semantics.
 
 Internal execution constructs typed requests and applies declared response projections to private

@@ -1,6 +1,6 @@
 # Umpire
 
-Umpire describes versioned, bounded interactions with a target system and determines whether their recorded outcomes satisfy declared properties.
+Umpire authors and produces versioned, bounded Cases. Testpilot executes those Cases and determines whether their recorded outcomes satisfy declared properties.
 
 ## Definition
 
@@ -20,14 +20,14 @@ _Avoid_: Plan, Playbook, script
 A set of safety and bounded-liveness properties evaluated against a Program and its Run.
 _Avoid_: Rulebook, checks, oracle specification
 
-## Execution
+## Testpilot execution
 
-**Host**:
+**Driver**:
 The boundary that binds a Program's symbolic roles to a target environment and performs its primitive interactions.
-_Avoid_: Adapter, driver, harness
+_Avoid_: Host, harness
 
 **Executor**:
-The Umpire component that interprets a Program through a Host and produces a Run.
+The private Testpilot component that interprets a Program through a Driver and produces a Run.
 _Avoid_: Runner, engine, player
 
 **Run**:
@@ -47,10 +47,10 @@ _Avoid_: Variable, evidence
 A declared typed field on a Run Event that a Contract is allowed to inspect.
 _Avoid_: Raw payload, Slot, log entry
 
-## Verification
+## Testpilot verification
 
 **Evaluator**:
-The Umpire component that applies a Contract to a Program and its Run, either incrementally or after the Run closes.
+The private Testpilot component that applies a Contract to a Program and its Run, either incrementally or after the Run closes.
 _Avoid_: Verifier, Oracle, Referee
 
 **Verdict**:

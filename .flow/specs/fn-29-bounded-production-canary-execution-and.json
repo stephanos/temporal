@@ -9,7 +9,8 @@
   "depends_on_epics": [
     "fn-26-local-qualification-receipts-and-staged",
     "fn-48-canonicalize-known-gaps-as-a-checked-set",
-    "fn-64-umpire-case-runtime"
+    "fn-64-umpire-case-runtime",
+    "fn-69-extract-testpilot-from-umpire"
   ],
   "id": "fn-29-bounded-production-canary-execution-and",
   "impl_review_rounds": {},
@@ -160,5 +161,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T18:37:59.630824Z"
+  "updated_at": "2026-09-06T16:54:45.695905Z"
 }

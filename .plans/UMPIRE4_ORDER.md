@@ -6,39 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### 1. fn-66 — Remove unused Umpire tooling
-
-[Plan](../.flow/specs/fn-66-remove-unused-umpire-tooling-after.md) reviewed **SHIP**.
-Its fn-62 dependency and fn-64 foundation are complete.
-
-Execute the three tasks in order:
-
-1. Inventory every remaining `tools/umpire` package and command, its consumers, and candidate tests
-   and fixtures. Resolve ambiguous ownership before deletion.
-2. Retire the unused public artifact package and CLI, their exclusive tests and fixtures, and
-   obsolete build and documentation references.
-3. Trim orphaned internal codecs while preserving the complete Experiment reader and retained
-   runtime, Producer, authoring, generation, regression, and downstream contracts.
-
-Extend the [fn-64 deletion ledger](../.flow/artifacts/fn-64-umpire-case-runtime/task8-migration-ledger.md)
-without repeating that cutover. Fn-60 is not a dependency.
-
-### 2. fn-69 — Extract Testpilot from Umpire
-
-[Spec](../.flow/specs/fn-69-extract-testpilot-from-umpire.md). Deliver after fn-66 and before
-fn-68; it builds on the completed fn-64 Case Runtime.
-
-Move reusable Case admission, Program execution, recording, and Contract evaluation into
-`common/testing/testpilot`. Put the functional-cluster Driver in `tests/testcore/testpilot`, retain
-the server/worker authority split, and keep the Driver seam reusable by a later canary.
-
-Move the Case protobuf sources to `proto/internal/temporal/server/api/testpilot/v1`, the protobuf
-namespace to `temporal.server.testpilot.v1`, and generated Go code to `api/testpilot/v1`. Preserve message and
-enum numbers, field shapes, serialized data, admission and execution behavior, failure precedence,
-bounds, concurrency, cleanup, and comments. Remove the former Umpire-owned proto and runtime after
-all active consumers migrate; do not leave aliases or a permanent forwarding facade.
-
-### 3. fn-68 — Minimal Nexus3 success demonstration
+### 1. fn-68 — Minimal Nexus3 success demonstration
 
 [Plan](../.flow/specs/fn-68-minimal-nexus3-success-demonstration.md) reviewed **SHIP**.
 Deliver after fn-69; its fn-62 and fn-64 dependencies are complete.
@@ -52,10 +20,10 @@ Execute the three tasks in order:
 Keep the demonstration minimal: one Property, one Behavior, one Query, and no cancellation or new
 DSL. Model changes must affect the generated Case or reject explicitly.
 
-### 4. fn-60 — Deepen handwritten Lean canonical JSON construction
+### 2. fn-60 — Deepen handwritten Lean canonical JSON construction
 
 [Plan](../.flow/specs/fn-60-deepen-authored-lean-canonical-json.md). **Optional maintenance**, with
-no open dependency; it does not gate fn-66 or downstream delivery.
+no open dependency; it does not gate downstream delivery.
 
 Consolidate handwritten Core Limit, Target, Behavior, Query, Space, Exploration, Observation, and
 Implementation Link formatters behind `Umpire.Json`. Preserve exact bytes, metadata, fingerprints,
@@ -73,17 +41,24 @@ block replanning or execution.
 
 | Spec | Dependencies | Next action |
 | --- | --- | --- |
-| [fn-33 — Bounded exploration](../.flow/specs/fn-33-run-serial-bounded-semantic-exploration.md) | fn-40 and fn-64 complete | Review whole-Case candidates, serial coordination, lost iterations, semantic coverage, and bounded 10x behavior. |
-| [fn-22 — Replay and reduction](../.flow/specs/fn-22-deterministic-replay-semantic.md) | fn-5 and fn-64 complete | Resolve **MAJOR_RETHINK** before implementation: separate exact candidate identity from Contract-relative violation equivalence, prove the negative Case before reduction, and retain explicit offline semantic replay and checked promotion. |
-| [fn-26 — Qualification receipts](../.flow/specs/fn-26-local-qualification-receipts-and-staged.md) | fn-48 and fn-64 complete | Review offline Case/Profile/Host/Run/Verdict admission, receipt multiplicity, and idempotent publication. Assessment must never create or replay a Run. |
-| [fn-29 — Production canary](../.flow/specs/fn-29-bounded-production-canary-execution-and.md) | **fn-26**; fn-48 and fn-64 complete | After fn-26 ships, review external policy and credentials, serial Runs, leases, lost Runs, reconciliation without redispatch, and publication. |
+| [fn-33 — Bounded exploration](../.flow/specs/fn-33-run-serial-bounded-semantic-exploration.md) | fn-40, fn-64, and fn-69 | Review whole-Case candidates, serial coordination through Testpilot, lost iterations, semantic coverage, and bounded 10x behavior. |
+| [fn-22 — Replay and reduction](../.flow/specs/fn-22-deterministic-replay-semantic.md) | fn-5, fn-64, and fn-69 | Resolve **MAJOR_RETHINK** before implementation: separate exact candidate identity from Contract-relative violation equivalence, prove the negative Case before reduction, and retain explicit offline semantic replay and checked promotion. |
+| [fn-26 — Qualification receipts](../.flow/specs/fn-26-local-qualification-receipts-and-staged.md) | fn-48, fn-64, and fn-69 | Review offline Testpilot Case/Profile/Run/Verdict admission, receipt multiplicity, and idempotent publication. Assessment must never create or replay a Run. |
+| [fn-29 — Production canary](../.flow/specs/fn-29-bounded-production-canary-execution-and.md) | **fn-26**; fn-48, fn-64, and fn-69 | After fn-26 ships, review external policy and credentials, serial Testpilot Runs, leases, lost Runs, reconciliation without redispatch, and publication. |
 
-All runtime work retains `PrepareCase(case, profile)` → `PreparedCase.Run(ctx, host)` and the
+All runtime work uses `testpilot.Prepare(case, profile)` → `PreparedCase.Run(ctx, driver)` and the
 server/worker authority split. New scenarios remain Case data; canary policy, credentials,
-leases, recovery, and publication stay outside Umpire.
+leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Completed cutovers
 
+- [fn-69](../.flow/specs/fn-69-extract-testpilot-from-umpire.md): moved the Case protocol and
+  reusable runtime to `common/testing/testpilot`, moved the functional Driver to
+  `tests/testcore/testpilot`, refined the Testpilot protobuf model, migrated all consumers, and
+  removed the former Umpire protocol/runtime owners.
+- [fn-66](../.flow/specs/fn-66-remove-unused-umpire-tooling-after.md): removed the unused public
+  Artifact package and CLI plus orphaned internal codecs; retained the narrow Experiment reader,
+  Case Runtime, generators, regression gates, and downstream contracts.
 - [fn-64](../.flow/specs/fn-64-umpire-case-runtime.md): Case Runtime, Lean-produced Nexus proof,
   independent six-class facade corpus, and full regression gate.
 - [fn-65](../.flow/specs/fn-65-design-and-prototype-approachable.md): separate Nexus2 authoring
@@ -92,7 +67,7 @@ leases, recovery, and publication stay outside Umpire.
   authoring requirements, including Observation construction and model-owned Known Gaps;
   [compatibility evidence](../model/Temporal/Feature/Nexus/EVIDENCE.md).
 
-All three passed whole-spec completion review. Nexus2 remains a prototype with explicit adoption
+All five passed whole-spec completion review. Nexus2 remains a prototype with explicit adoption
 boundaries.
 
 ## Deferred and superseded

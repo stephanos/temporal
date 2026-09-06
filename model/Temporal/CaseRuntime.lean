@@ -31,7 +31,7 @@ private def textType : ValueType := .singular (.scalar .text)
 private def historyEventType : ValueType :=
   .singular (.message "temporal.api.history.v1.HistoryEvent")
 private def statusType : ValueType :=
-  .singular (.enumeration "temporal.server.api.umpire.v1.InstructionOutcomeStatus")
+  .singular (.enumeration "temporal.server.api.testpilot.v1.InstructionOutcomeStatus")
 private def statusOutcome : InstructionOutcomeSchema :=
   { fields := [{ field := .status, type := statusType }] }
 private def textOutcome : InstructionOutcomeSchema :=

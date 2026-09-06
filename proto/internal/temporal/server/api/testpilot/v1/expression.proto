@@ -1,0 +1,94 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// (-- api-linter: core::0191::file-layout=disabled --)
+enum InstructionOutcomeField {
+  INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED = 0;
+  INSTRUCTION_OUTCOME_FIELD_STATUS = 1;
+  INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE = 2;
+  INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE = 3;
+  INSTRUCTION_OUTCOME_FIELD_DETAIL = 4;
+  INSTRUCTION_OUTCOME_FIELD_VALUE = 5;
+}
+enum ComparisonOperator {
+  COMPARISON_OPERATOR_UNSPECIFIED = 0;
+  COMPARISON_OPERATOR_LESS_THAN = 1;
+  COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL = 2;
+  COMPARISON_OPERATOR_GREATER_THAN = 3;
+  COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL = 4;
+}
+
+message InstructionRef { string entrypoint_id = 1; string instruction_id = 2; }
+message SlotRef { string slot_id = 1; }
+message InstructionOutcomeRef { InstructionRef instruction = 1; InstructionOutcomeField field = 2; }
+message OutcomeFieldDefinition { InstructionOutcomeField field = 1; ValueType type = 2; }
+message InstructionOutcomeDefinition { repeated OutcomeFieldDefinition fields = 1; }
+message ObservationRef { string observation_id = 1; }
+message CaptureRef { string capture_id = 1; }
+message RunRef {}
+
+enum RunEventField {
+  RUN_EVENT_FIELD_UNSPECIFIED = 0;
+  RUN_EVENT_FIELD_SEQUENCE = 1;
+  RUN_EVENT_FIELD_ELAPSED_MILLISECONDS = 2;
+  RUN_EVENT_FIELD_KIND = 3;
+  RUN_EVENT_FIELD_ENTRYPOINT_ID = 4;
+  RUN_EVENT_FIELD_ACTIVATION_ID = 5;
+  RUN_EVENT_FIELD_INSTRUCTION_ID = 6;
+  RUN_EVENT_FIELD_ATTEMPT = 7;
+  RUN_EVENT_FIELD_SOURCE_ID = 8;
+  RUN_EVENT_FIELD_RUN_ID = 9;
+}
+message RunEventFieldRef { RunEventField field = 1; }
+
+message ProgramPathExpression { ProgramExpression source = 1; FieldPath path = 2; }
+message ProgramPresentExpression { ProgramExpression operand = 1; }
+message ProgramEqualsExpression { ProgramExpression left = 1; ProgramExpression right = 2; }
+message ProgramCompareExpression { ComparisonOperator operator = 1; ProgramExpression left = 2; ProgramExpression right = 3; }
+message ProgramNotExpression { ProgramExpression operand = 1; }
+message ProgramAllExpression { repeated ProgramExpression operands = 1; }
+message ProgramAnyExpression { repeated ProgramExpression operands = 1; }
+
+// ProgramExpression is the closed expression vocabulary for instruction inputs and guards.
+message ProgramExpression {
+  oneof expression {
+    Value literal = 1;
+    SlotRef slot = 2;
+    InstructionOutcomeRef outcome = 3;
+    RunRef run = 4;
+    ProgramPathExpression path = 5;
+    ProgramPresentExpression present = 6;
+    ProgramEqualsExpression equals = 7;
+    ProgramCompareExpression compare = 8;
+    ProgramNotExpression negation = 9;
+    ProgramAllExpression all = 10;
+    ProgramAnyExpression any = 11;
+  }
+}
+
+message ContractPathExpression { ContractExpression source = 1; FieldPath path = 2; }
+message ContractPresentExpression { ContractExpression operand = 1; }
+message ContractEqualsExpression { ContractExpression left = 1; ContractExpression right = 2; }
+message ContractCompareExpression { ComparisonOperator operator = 1; ContractExpression left = 2; ContractExpression right = 3; }
+message ContractNotExpression { ContractExpression operand = 1; }
+message ContractAllExpression { repeated ContractExpression operands = 1; }
+message ContractAnyExpression { repeated ContractExpression operands = 1; }
+
+// ContractExpression is the closed expression vocabulary for Run Event predicates.
+message ContractExpression {
+  oneof expression {
+    Value literal = 1;
+    ObservationRef observation = 2;
+    RunEventFieldRef run_event = 3;
+    ContractPathExpression path = 4;
+    ContractPresentExpression present = 5;
+    ContractEqualsExpression equals = 6;
+    ContractCompareExpression compare = 7;
+    ContractNotExpression negation = 8;
+    ContractAllExpression all = 9;
+    ContractAnyExpression any = 10;
+    CaptureRef capture = 11;
+  }
+}

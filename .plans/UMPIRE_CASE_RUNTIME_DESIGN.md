@@ -1,5 +1,11 @@
 # Umpire Case Runtime design
 
+Status: historical design record. The runtime described below was extracted to Testpilot by fn-69;
+its old package and Host names remain here only to preserve the rationale and compatibility baseline.
+Current ownership is `common/testing/testpilot` for the protocol, public `Prepare` / `PreparedCase.Run`
+facade, private execution, and private verification, with the functional Driver under
+`tests/testcore/testpilot`. Umpire retains Lean authoring, Case production, and generator commands.
+
 Status: implemented by `fn-64-umpire-case-runtime`; retained as the detailed rationale for the
 normative rules in [`UMPIRE4_SPEC.md`](UMPIRE4_SPEC.md).
 
