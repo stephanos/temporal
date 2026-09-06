@@ -20,6 +20,16 @@ inductive PropertyErrorKind where
   | unitMismatch
   | invalidClause
   | missingLogicalTimeSource
+  | emptyBooleanGroup
+  | typeMismatch
+  | invalidPredicateContext
+  | missingPredicateInput
+  | unsupportedPredicateInput
+  | invalidPredicatePayload
+  | unsupportedPropertyVersion
+  | emptyCaseGroup
+  | emptyCase
+  | unsupportedGuardedTemporal
   deriving BEq, DecidableEq, Ord, Repr
 
 def PropertyErrorKind.name : PropertyErrorKind → String
@@ -36,11 +46,22 @@ def PropertyErrorKind.name : PropertyErrorKind → String
   | .unitMismatch => "unit-mismatch"
   | .invalidClause => "invalid-clause"
   | .missingLogicalTimeSource => "missing-logical-time-source"
+  | .emptyBooleanGroup => "empty-boolean-group"
+  | .typeMismatch => "type-mismatch"
+  | .invalidPredicateContext => "invalid-predicate-context"
+  | .missingPredicateInput => "missing-predicate-input"
+  | .unsupportedPredicateInput => "unsupported-predicate-input"
+  | .invalidPredicatePayload => "invalid-predicate-payload"
+  | .unsupportedPropertyVersion => "unsupported-property-version"
+  | .emptyCaseGroup => "empty-case-group"
+  | .emptyCase => "empty-case"
+  | .unsupportedGuardedTemporal => "unsupported-guarded-temporal"
 
 structure PropertyError where
   kind : PropertyErrorKind
   definitionId : DefinitionId
   sourcePath : String
+  sourceLocation : Option SourceLocation := none
   offendingValue : String
   relatedDefinitionIds : List DefinitionId
   deriving BEq, DecidableEq, Repr
@@ -63,6 +84,62 @@ structure PropertyCheckContext where
   providers : List PropertyCapability
   meanings : List (DefinitionId × MeaningProvision)
   limitProfiles : List PropertyLimitProfile := []
+  deriving BEq, DecidableEq, Repr
+
+/-- A Boolean predicate whose references, capabilities, field context, and typed literals passed
+Property admission. Its representation is hidden so evaluation cannot bypass that boundary. -/
+structure CheckedPropertyPredicate (context : PropertyPredicateContext) where
+  private ownerId : DefinitionId
+  private source : SourceLocation
+  private predicate : PropertyPredicate
+  private access : PropertyCapabilityView
+  deriving BEq, DecidableEq, Repr
+
+structure ResolvedPropertyException where
+  id : DefinitionId
+  source : SourceLocation
+  condition : CheckedPropertyPredicate .guard
+  deriving BEq, DecidableEq, Repr
+
+structure ResolvedPropertySameStepClause where
+  id : DefinitionId
+  source : SourceLocation
+  expectation : CheckedPropertyPredicate .expectation
+  deriving BEq, DecidableEq, Repr
+
+/-- One admitted bounded clause whose applicability is fixed at each matching trigger step. -/
+structure ResolvedGuardedTemporalClause where
+  id : DefinitionId
+  source : SourceLocation
+  parentId : DefinitionId
+  caseId : Option DefinitionId
+  guard : CheckedPropertyPredicate .guard
+  exception : Option ResolvedPropertyException
+  caseGuard : Option (CheckedPropertyPredicate .guard) := none
+  caseException : Option ResolvedPropertyException := none
+  forbidden : Bool := false
+  trigger : PropertyPattern
+  response : PropertyPattern
+  limit : Limit
+  deriving BEq, DecidableEq, Repr
+
+structure ResolvedPropertyCase where
+  id : DefinitionId
+  source : SourceLocation
+  guard : CheckedPropertyPredicate .guard
+  exception : Option ResolvedPropertyException
+  clauses : List ResolvedPropertySameStepClause
+  temporalClauses : List ResolvedGuardedTemporalClause
+  deriving BEq, DecidableEq, Repr
+
+structure ResolvedPropertyCaseGroup where
+  id : DefinitionId
+  source : SourceLocation
+  guard : CheckedPropertyPredicate .guard
+  exception : Option ResolvedPropertyException
+  cases : List ResolvedPropertyCase
+  complete : Bool
+  exclusive : Bool
   deriving BEq, DecidableEq, Repr
 
 def PropertyCheckContext.ofTarget
@@ -93,6 +170,9 @@ inductive ResolvedPropertyClause where
       (id : DefinitionId)
       (trigger forbidden : PropertyPattern)
       (limit : Limit)
+  | sameStepCases (group : ResolvedPropertyCaseGroup)
+  | guardedEventuallyWithin (clause : ResolvedGuardedTemporalClause)
+  | guardedQuiescentWithin (clause : ResolvedGuardedTemporalClause)
   deriving BEq, DecidableEq, Repr
 
 def ResolvedPropertyClause.id : ResolvedPropertyClause → DefinitionId
@@ -103,6 +183,9 @@ def ResolvedPropertyClause.id : ResolvedPropertyClause → DefinitionId
   | .ordered id _ _ _
   | .eventuallyWithin id _ _ _
   | .quiescentWithin id _ _ _ => id
+  | .sameStepCases group => group.id
+  | .guardedEventuallyWithin clause
+  | .guardedQuiescentWithin clause => clause.id
 
 structure CheckedProperty where
   id : DefinitionId
@@ -115,6 +198,91 @@ structure CheckedProperty where
   canonicalMetadata : String
   behaviorFingerprint : BehaviorFingerprint
   deriving BEq, DecidableEq, Repr
+
+/-- Whether this checked Property contains the guarded same-step form introduced in version 2. -/
+def CheckedProperty.hasSameStepCases (property : CheckedProperty) : Bool :=
+  property.clauses.any fun clause => match clause with
+    | .sameStepCases _ => true
+    | _ => false
+
+/-- Stable parent IDs for guarded forms that a downstream consumer may reject with provenance. -/
+def CheckedProperty.sameStepCaseIds (property : CheckedProperty) : List DefinitionId :=
+  property.clauses.filterMap fun clause => match clause with
+    | .sameStepCases group => some group.id
+    | _ => none
+
+/-- Whether this checked Property contains a trigger-frozen bounded guarded clause. -/
+def CheckedProperty.hasGuardedTemporalClauses (property : CheckedProperty) : Bool :=
+  property.clauses.any fun clause => match clause with
+    | .guardedEventuallyWithin _ | .guardedQuiescentWithin _ => true
+    | _ => false
+
+/-- Stable clause IDs for trigger-frozen bounded guarded forms. -/
+def CheckedProperty.guardedTemporalClauseIds (property : CheckedProperty) : List DefinitionId :=
+  property.clauses.filterMap fun clause => match clause with
+    | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded => some guarded.id
+    | _ => none
+
+/-- Stable IDs for every guarded clause admitted by Property version two. -/
+def CheckedProperty.guardedClauseIds (property : CheckedProperty) : List DefinitionId :=
+  property.sameStepCaseIds ++ property.guardedTemporalClauseIds
+
+/-- Whether an Observation consumer must reject a checked clause it cannot preserve. -/
+def CheckedProperty.hasUnsupportedObservationClauses (property : CheckedProperty) : Bool :=
+  property.hasSameStepCases || property.hasGuardedTemporalClauses
+
+/-- Stable IDs retained when Observation rejects unsupported checked Property semantics. -/
+def CheckedProperty.unsupportedObservationClauseIds
+    (property : CheckedProperty) : List DefinitionId :=
+  property.guardedClauseIds
+
+/-- Property identity used for predicate validation diagnostics. -/
+def CheckedPropertyPredicate.definitionId
+    (predicate : CheckedPropertyPredicate context) : DefinitionId :=
+  predicate.ownerId
+
+/-- Property source used for predicate validation diagnostics. -/
+def CheckedPropertyPredicate.sourceLocation
+    (predicate : CheckedPropertyPredicate context) : SourceLocation :=
+  predicate.source
+
+/-- Same-step context fixed by predicate admission. -/
+def CheckedPropertyPredicate.contextKind
+    (_predicate : CheckedPropertyPredicate context) : PropertyPredicateContext :=
+  context
+
+/-- Return the admitted pure predicate data for semantic interpretation. -/
+def CheckedPropertyPredicate.expression
+    (predicate : CheckedPropertyPredicate context) : PropertyPredicate :=
+  predicate.predicate
+
+/-- A complete same-step input checked against every atom before Boolean evaluation begins. The
+predicate index prevents reuse of an input checked for another predicate in the same context. -/
+structure CheckedPropertyPredicateInput
+    {context : PropertyPredicateContext}
+    (predicate : CheckedPropertyPredicate context) where
+  private input : PropertyPredicateInput
+  deriving Repr
+
+/-- Same-step context fixed by input validation. -/
+def CheckedPropertyPredicateInput.contextKind
+    {context : PropertyPredicateContext}
+    {predicate : CheckedPropertyPredicate context}
+    (_input : CheckedPropertyPredicateInput predicate) : PropertyPredicateContext :=
+  context
+
+/-- Project the complete values of one field from a validated same-step input. -/
+def CheckedPropertyPredicateInput.valuesAt
+    {context : PropertyPredicateContext}
+    {predicate : CheckedPropertyPredicate context}
+    (input : CheckedPropertyPredicateInput predicate)
+    (field : PropertyPredicateField) : List ModelValue :=
+  match field with
+  | .priorState => input.input.priorState.toList
+  | .selectedAction => input.input.selectedAction.toList
+  | .resultingState => input.input.resultingState.toList
+  | .modelOutcome => input.input.modelOutcome.toList
+  | .expectationFact => input.input.facts.getD []
 
 private def capabilityLe (left right : PropertyCapability) : Bool :=
   decide (left.id.value < right.id.value) ||
@@ -130,6 +298,13 @@ private def clauseLe (left right : ResolvedPropertyClause) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
 private def authoredClauseLe (left right : PropertyClause) : Bool :=
+  decide (left.id.value ≤ right.id.value)
+
+private def caseLe (left right : ResolvedPropertyCase) : Bool :=
+  decide (left.id.value ≤ right.id.value)
+
+private def sameStepClauseLe
+    (left right : ResolvedPropertySameStepClause) : Bool :=
   decide (left.id.value ≤ right.id.value)
 
 private def profileLe (left right : PropertyLimitProfile) : Bool :=
@@ -158,6 +333,22 @@ private def propertyError
   relatedDefinitionIds := DefinitionId.canonicalSet relatedDefinitionIds
 }
 
+private def nestedPropertyError
+    (kind : PropertyErrorKind)
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (offendingValue : String)
+    (relatedDefinitionIds : List DefinitionId := []) : PropertyError :=
+  { propertyError kind owner source offendingValue relatedDefinitionIds with
+    sourceLocation := some source }
+
+private def withNestedSource
+    (source : SourceLocation)
+    (result : Except PropertyError α) : Except PropertyError α :=
+  match result with
+  | .ok value => .ok value
+  | .error error => .error { error with sourceLocation := some source }
+
 private def requireDefinitionId
     (owner : DefinitionId)
     (source : SourceLocation)
@@ -177,6 +368,28 @@ private def requireUniqueIds
   | some duplicate =>
       .error (propertyError .duplicateDefinitionId owner source duplicate.value [duplicate])
   | none => .ok ()
+
+private def firstNestedDuplicate?
+    (seen : List DefinitionId) :
+    List (DefinitionId × SourceLocation) → Option (DefinitionId × SourceLocation)
+  | [] => none
+  | entry :: rest =>
+      if seen.contains entry.1 then some entry
+      else firstNestedDuplicate? (entry.1 :: seen) rest
+
+private def requireUniqueNestedIds
+    (owner : DefinitionId)
+    (entries : List (DefinitionId × SourceLocation)) : Except PropertyError Unit :=
+  match firstNestedDuplicate? [] entries with
+  | some (duplicate, source) =>
+      .error (nestedPropertyError .duplicateDefinitionId owner source duplicate.value [duplicate])
+  | none => .ok ()
+
+private def requireNestedDefinitionId
+    (owner : DefinitionId)
+    (source : SourceLocation)
+    (id : DefinitionId) : Except PropertyError Unit :=
+  withNestedSource source (requireDefinitionId owner source id)
 
 private def findDefinition
     (context : PropertyCheckContext)
@@ -229,6 +442,166 @@ private def validatePattern
       meaning.definitionId == pattern.reference && meaning.kind == expectedKind) then
     throw (propertyError .undeclaredReference owner.id owner.source
       pattern.reference.value [pattern.reference])
+
+private def predicateTraceField : PropertyPredicateField → PropertyTraceField
+  | .priorState => .priorState
+  | .selectedAction => .selectedAction
+  | .resultingState => .resultingState
+  | .modelOutcome => .modelOutcome
+  | .expectationFact => .observation
+
+private def validateAtomConstraint
+    (owner : PropertyDeclaration)
+    (atom : PropertyAtom) : Except PropertyError Unit := do
+  match atom.constraint with
+  | .present | .equals _ => pure ()
+  | .oneOf [] =>
+      throw (propertyError .emptyBooleanGroup owner.id owner.source
+        (atom.field.name ++ " one-of") [atom.reference])
+  | .oneOf (first :: rest) =>
+      if !(rest.all fun value => value.type == first.type) then
+        throw (propertyError .typeMismatch owner.id owner.source
+          (atom.field.name ++ " one-of: expected " ++ first.type.name ++ " literals")
+          [atom.reference])
+
+private def validatePropertyPredicate
+    (context : PropertyCheckContext)
+    (owner : PropertyDeclaration)
+    (access : PropertyCapabilityView)
+    (contextKind : PropertyPredicateContext) :
+    PropertyPredicate → Except PropertyError Unit
+  | .atom atom => do
+      if !contextKind.allows atom.field then
+        throw (propertyError .invalidPredicateContext owner.id owner.source
+          (contextKind.name ++ ": " ++ atom.field.name) [atom.reference])
+      validatePattern context owner access {
+        field := predicateTraceField atom.field
+        reference := atom.reference
+      }
+      validateAtomConstraint owner atom
+  | .all [] =>
+      throw (propertyError .emptyBooleanGroup owner.id owner.source "all")
+  | .any [] =>
+      throw (propertyError .emptyBooleanGroup owner.id owner.source "any")
+  | .all items | .any items =>
+      for item in items do
+        validatePropertyPredicate context owner access contextKind item
+  | .not item =>
+      validatePropertyPredicate context owner access contextKind item
+
+private def resolvePropertyPredicate
+    (context : PropertyCheckContext)
+    (owner : PropertyDeclaration)
+    (access : PropertyCapabilityView)
+    (source : SourceLocation)
+    (contextKind : PropertyPredicateContext)
+    (predicate : PropertyPredicate) :
+    Except PropertyError (CheckedPropertyPredicate contextKind) := do
+  withNestedSource source <|
+    validatePropertyPredicate context { owner with source } access contextKind predicate
+  pure { ownerId := owner.id, source, predicate, access }
+
+/-- Check every Boolean child against one explicit same-step context before it can be evaluated. -/
+def checkPropertyPredicate
+    (context : PropertyCheckContext)
+    (owner : PropertyDeclaration)
+    (contextKind : PropertyPredicateContext)
+    (predicate : PropertyPredicate) :
+    Except PropertyError (CheckedPropertyPredicate contextKind) := do
+  requireDefinitionId owner.id owner.source owner.id
+  let access ← buildCapabilityView context owner
+  resolvePropertyPredicate context owner access owner.source contextKind predicate
+
+/-- Produce a checked Boolean predicate from an explicit kernel-checked admission proof. -/
+def checkedPropertyPredicate
+    (context : PropertyCheckContext)
+    (owner : PropertyDeclaration)
+    (contextKind : PropertyPredicateContext)
+    (predicate : PropertyPredicate)
+    (valid : (checkPropertyPredicate context owner contextKind predicate).toOption.isSome = true) :
+    CheckedPropertyPredicate contextKind :=
+  (checkPropertyPredicate context owner contextKind predicate).toOption.get valid
+
+private def predicateAtoms : PropertyPredicate → List PropertyAtom
+  | .atom atom => [atom]
+  | .all items | .any items => items.flatMap predicateAtoms
+  | .not item => predicateAtoms item
+
+private def inputValues?
+    (input : PropertyPredicateInput)
+    (field : PropertyPredicateField) : Option (List ModelValue) :=
+  match field with
+  | .priorState => input.priorState.map fun value => [value]
+  | .selectedAction => input.selectedAction.map fun value => [value]
+  | .resultingState => input.resultingState.map fun value => [value]
+  | .modelOutcome => input.modelOutcome.map fun value => [value]
+  | .expectationFact => input.facts
+
+private def literalAcceptsPayload (literal : PropertyLiteral) (payload : String) : Bool :=
+  match literal with
+  | .text _ => true
+  | .natural _ => payload.toNat?.isSome
+  | .boolean _ => payload == "true" || payload == "false"
+
+private def constraintAcceptsPayload
+    (constraint : PropertyAtomConstraint)
+    (payload : String) : Bool :=
+  match constraint with
+  | .present => true
+  | .equals literal => literalAcceptsPayload literal payload
+  | .oneOf [] => false
+  | .oneOf (first :: _) => literalAcceptsPayload first payload
+
+private def validatePredicateInputValue
+    (predicate : CheckedPropertyPredicate contextKind)
+    (atom : PropertyAtom)
+    (value : ModelValue) : Except PropertyError Unit := do
+  let expectedKind := atom.field.definitionKind
+  if !(predicate.access.meanings.any fun meaning =>
+      meaning.definitionId == value.definitionId && meaning.kind == expectedKind) then
+    throw (nestedPropertyError .unsupportedPredicateInput predicate.ownerId predicate.source
+      (atom.field.name ++ ": " ++ value.definitionId.value) [value.definitionId])
+  if value.definitionId == atom.reference &&
+      !constraintAcceptsPayload atom.constraint value.value then
+    throw (nestedPropertyError .invalidPredicatePayload predicate.ownerId predicate.source
+      (atom.reference.value ++ ": " ++ value.value) [atom.reference])
+
+private def validatePredicateInputAtom
+    (predicate : CheckedPropertyPredicate contextKind)
+    (input : PropertyPredicateInput)
+    (atom : PropertyAtom) : Except PropertyError Unit := do
+  let values ← match inputValues? input atom.field with
+    | some values => pure values
+    | none =>
+        throw (nestedPropertyError .missingPredicateInput predicate.ownerId predicate.source
+          atom.field.name [atom.reference])
+  if atom.field == .expectationFact then
+    for value in values.filter fun value => value.definitionId == atom.reference do
+      validatePredicateInputValue predicate atom value
+  else
+    for value in values do
+      validatePredicateInputValue predicate atom value
+
+/-- Validate all actual same-step slots used by a checked predicate before any `all`, `any`, or
+`not` result can short-circuit or invert an unknown value. -/
+def checkPropertyPredicateInput
+    (predicate : CheckedPropertyPredicate contextKind)
+    (input : PropertyPredicateInput) :
+    Except PropertyError (CheckedPropertyPredicateInput predicate) := do
+  if input.context != contextKind then
+    throw (nestedPropertyError .invalidPredicateContext predicate.ownerId predicate.source
+      ("expected " ++ contextKind.name ++ ", found " ++ input.context.name))
+  for atom in predicateAtoms predicate.predicate do
+    validatePredicateInputAtom predicate input atom
+  pure { input }
+
+/-- Produce a complete checked predicate input from an explicit kernel-checked validation proof. -/
+def checkedPropertyPredicateInput
+    (predicate : CheckedPropertyPredicate contextKind)
+    (input : PropertyPredicateInput)
+    (valid : (checkPropertyPredicateInput predicate input).toOption.isSome = true) :
+    CheckedPropertyPredicateInput predicate :=
+  (checkPropertyPredicateInput predicate input).toOption.get valid
 
 private def validateLogicalTime
     (context : PropertyCheckContext)
@@ -335,6 +708,171 @@ private def checkClause
       let limit ← resolveLimit context owner authoredBound
       requirePositionUnit owner access limit.unit [trigger, forbidden]
       pure (.quiescentWithin id trigger forbidden limit)
+  | .sameStepCases group =>
+      requireNestedDefinitionId owner.id group.source group.id
+      if group.cases.isEmpty then
+        throw (nestedPropertyError .emptyCaseGroup owner.id group.source group.id.value [group.id])
+      requireUniqueNestedIds owner.id (group.cases.map fun item => (item.id, item.source))
+      let parentGuard ← resolvePropertyPredicate context owner access group.source .guard group.guard
+      let parentException ← match group.exception with
+        | none => pure none
+        | some exception => do
+            requireNestedDefinitionId owner.id exception.source exception.id
+            let condition ← resolvePropertyPredicate context owner access exception.source .guard
+              exception.condition
+            pure (some {
+              id := exception.id
+              source := exception.source
+              condition
+            })
+      let nestedIds := [(group.id, group.source)] ++
+        group.exception.toList.map (fun exception => (exception.id, exception.source)) ++
+        group.cases.flatMap fun item =>
+          (item.id, item.source) :: item.exception.toList.map
+            (fun exception => (exception.id, exception.source))
+      requireUniqueNestedIds owner.id nestedIds
+      let mut cases := []
+      for item in group.cases do
+        requireNestedDefinitionId owner.id item.source item.id
+        if item.clauses.isEmpty && item.temporalClauses.isEmpty then
+          throw (nestedPropertyError .emptyCase owner.id item.source item.id.value
+            [group.id, item.id])
+        requireUniqueNestedIds owner.id
+          (item.clauses.map (fun clause => (clause.id, clause.source)) ++
+            item.temporalClauses.map fun clause => (clause.id, clause.source))
+        let itemGuard ← resolvePropertyPredicate context owner access item.source .guard item.guard
+        let itemException ← match item.exception with
+          | none => pure none
+          | some exception => do
+              requireNestedDefinitionId owner.id exception.source exception.id
+              let condition ← resolvePropertyPredicate context owner access exception.source .guard
+                exception.condition
+              pure (some {
+                id := exception.id
+                source := exception.source
+                condition
+              })
+        let mut clauses := []
+        for clause in item.clauses do
+          requireNestedDefinitionId owner.id clause.source clause.id
+          let checkedExpectation ←
+            resolvePropertyPredicate context owner access clause.source .expectation clause.expectation
+          clauses := clauses ++ [{
+            id := clause.id
+            source := clause.source
+            expectation := checkedExpectation
+          }]
+        let mut temporalClauses := []
+        for clause in item.temporalClauses do
+          requireNestedDefinitionId owner.id clause.source clause.id
+          let (forbidden, trigger, response, authoredBound) := match clause with
+            | .eventuallyWithin _ _ trigger response limit => (false, trigger, response, limit)
+            | .quiescentWithin _ _ trigger response limit => (true, trigger, response, limit)
+          withNestedSource clause.source <| validatePattern context
+            { owner with source := clause.source } access trigger
+          withNestedSource clause.source <| validatePattern context
+            { owner with source := clause.source } access response
+          withNestedSource clause.source <| requireField
+            { owner with source := clause.source } clause.id trigger.field
+            [.priorState, .selectedAction, .resultingState, .modelOutcome, .observation, .relation]
+          let limit ← withNestedSource clause.source <| resolveLimit context
+            { owner with source := clause.source } authoredBound
+          withNestedSource clause.source <| requirePositionUnit
+            { owner with source := clause.source } access limit.unit [trigger, response]
+          temporalClauses := temporalClauses ++ [{
+            id := clause.id
+            source := clause.source
+            parentId := group.id
+            caseId := some item.id
+            guard := parentGuard
+            exception := parentException
+            caseGuard := some itemGuard
+            caseException := itemException
+            forbidden
+            trigger
+            response
+            limit
+          }]
+        cases := cases ++ [{
+          id := item.id
+          source := item.source
+          guard := itemGuard
+          exception := itemException
+          clauses := clauses.mergeSort sameStepClauseLe
+          temporalClauses := temporalClauses.mergeSort fun left right =>
+            decide (left.id.value ≤ right.id.value)
+        }]
+      pure (.sameStepCases {
+        id := group.id
+        source := group.source
+        guard := parentGuard
+        exception := parentException
+        cases := cases.mergeSort caseLe
+        complete := group.complete
+        exclusive := group.exclusive
+      })
+  | .guardedEventuallyWithin id source guard exception trigger response authoredBound =>
+      requireNestedDefinitionId owner.id source id
+      requireUniqueNestedIds owner.id
+        ((id, source) :: exception.toList.map fun item => (item.id, item.source))
+      let checkedGuard ← resolvePropertyPredicate context owner access source .guard guard
+      let checkedException ← match exception with
+      | none => pure none
+      | some exception =>
+          requireNestedDefinitionId owner.id exception.source exception.id
+          let condition ← resolvePropertyPredicate context owner access exception.source .guard
+            exception.condition
+          pure (some { id := exception.id, source := exception.source, condition })
+      withNestedSource source <| validatePattern context { owner with source } access trigger
+      withNestedSource source <| validatePattern context { owner with source } access response
+      withNestedSource source <| requireField { owner with source } id trigger.field
+        [.priorState, .selectedAction, .resultingState, .modelOutcome, .observation, .relation]
+      let limit ← withNestedSource source <| resolveLimit context { owner with source } authoredBound
+      withNestedSource source <| requirePositionUnit { owner with source } access limit.unit
+        [trigger, response]
+      pure (.guardedEventuallyWithin {
+        id
+        source
+        parentId := owner.id
+        caseId := none
+        guard := checkedGuard
+        exception := checkedException
+        forbidden := false
+        trigger
+        response
+        limit
+      })
+  | .guardedQuiescentWithin id source guard exception trigger forbidden authoredBound =>
+      requireNestedDefinitionId owner.id source id
+      requireUniqueNestedIds owner.id
+        ((id, source) :: exception.toList.map fun item => (item.id, item.source))
+      let checkedGuard ← resolvePropertyPredicate context owner access source .guard guard
+      let checkedException ← match exception with
+      | none => pure none
+      | some exception =>
+          requireNestedDefinitionId owner.id exception.source exception.id
+          let condition ← resolvePropertyPredicate context owner access exception.source .guard
+            exception.condition
+          pure (some { id := exception.id, source := exception.source, condition })
+      withNestedSource source <| validatePattern context { owner with source } access trigger
+      withNestedSource source <| validatePattern context { owner with source } access forbidden
+      withNestedSource source <| requireField { owner with source } id trigger.field
+        [.priorState, .selectedAction, .resultingState, .modelOutcome, .observation, .relation]
+      let limit ← withNestedSource source <| resolveLimit context { owner with source } authoredBound
+      withNestedSource source <| requirePositionUnit { owner with source } access limit.unit
+        [trigger, forbidden]
+      pure (.guardedQuiescentWithin {
+        id
+        source
+        parentId := owner.id
+        caseId := none
+        guard := checkedGuard
+        exception := checkedException
+        forbidden := true
+        trigger
+        response := forbidden
+        limit
+      })
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
 
@@ -363,6 +901,71 @@ private def patternJson (pattern : PropertyPattern) : String :=
   "{\"field\":" ++ quote pattern.field.name ++
     ",\"reference\":" ++ quote pattern.reference.value ++
     ",\"constraint\":" ++ constraintJson pattern.constraint ++ "}"
+
+private def literalJson : PropertyLiteral → String
+  | .text value => "{\"type\":\"text\",\"value\":" ++ quote value ++ "}"
+  | .natural value => "{\"type\":\"natural\",\"value\":" ++ toString value ++ "}"
+  | .boolean value => "{\"type\":\"boolean\",\"value\":" ++ toString value ++ "}"
+
+private def atomConstraintJson : PropertyAtomConstraint → String
+  | .present => "{\"kind\":\"present\"}"
+  | .equals value => "{\"kind\":\"equals\",\"value\":" ++ literalJson value ++ "}"
+  | .oneOf values => "{\"kind\":\"one-of\",\"values\":" ++
+      array (values.map literalJson) ++ "}"
+
+private def predicateJson : PropertyPredicate → String
+  | .atom atom =>
+      "{\"kind\":\"atom\",\"field\":" ++ quote atom.field.name ++
+        ",\"reference\":" ++ quote atom.reference.value ++
+        ",\"constraint\":" ++ atomConstraintJson atom.constraint ++ "}"
+  | .all items => "{\"kind\":\"all\",\"items\":" ++ array (items.map predicateJson) ++ "}"
+  | .any items => "{\"kind\":\"any\",\"items\":" ++ array (items.map predicateJson) ++ "}"
+  | .not item => "{\"kind\":\"not\",\"item\":" ++ predicateJson item ++ "}"
+
+private def exceptionJson (exception : ResolvedPropertyException) : String :=
+  "{\"id\":" ++ quote exception.id.value ++
+    ",\"condition\":" ++ predicateJson exception.condition.expression ++ "}"
+
+private def sameStepClauseJson (clause : ResolvedPropertySameStepClause) : String :=
+  "{\"id\":" ++ quote clause.id.value ++
+    ",\"expectation\":" ++ predicateJson clause.expectation.expression ++ "}"
+
+private def caseTemporalClauseJson (clause : ResolvedGuardedTemporalClause) : String :=
+  "{\"id\":" ++ quote clause.id.value ++
+    ",\"kind\":" ++ quote (if clause.forbidden then
+      "guarded-quiescent-within" else "guarded-eventually-within") ++
+    ",\"trigger\":" ++ patternJson clause.trigger ++
+    ",\"response\":" ++ patternJson clause.response ++
+    ",\"limit\":" ++ canonicalLimitJson clause.limit ++ "}"
+
+private def caseJson (item : ResolvedPropertyCase) : String :=
+  let temporalClauses := if item.temporalClauses.isEmpty then "" else
+    ",\"temporalClauses\":" ++ array (item.temporalClauses.map caseTemporalClauseJson)
+  "{\"id\":" ++ quote item.id.value ++
+    ",\"guard\":" ++ predicateJson item.guard.expression ++
+    ",\"exception\":" ++ (item.exception.map exceptionJson).getD "null" ++
+    ",\"clauses\":" ++ array (item.clauses.map sameStepClauseJson) ++
+    temporalClauses ++ "}"
+
+private def caseGroupJson (group : ResolvedPropertyCaseGroup) : String :=
+  "{\"id\":" ++ quote group.id.value ++
+    ",\"kind\":\"same-step-cases\",\"guard\":" ++ predicateJson group.guard.expression ++
+    ",\"exception\":" ++ (group.exception.map exceptionJson).getD "null" ++
+    ",\"complete\":" ++ toString group.complete ++
+    ",\"exclusive\":" ++ toString group.exclusive ++
+    ",\"cases\":" ++ array (group.cases.map caseJson) ++ "}"
+
+private def guardedTemporalJson
+    (kind : String)
+    (responseName : String)
+    (clause : ResolvedGuardedTemporalClause) : String :=
+  "{\"id\":" ++ quote clause.id.value ++
+    ",\"kind\":" ++ quote kind ++
+    ",\"guard\":" ++ predicateJson clause.guard.expression ++
+    ",\"exception\":" ++ (clause.exception.map exceptionJson).getD "null" ++
+    ",\"trigger\":" ++ patternJson clause.trigger ++
+    ",\"" ++ responseName ++ "\":" ++ patternJson clause.response ++
+    ",\"limit\":" ++ canonicalLimitJson clause.limit ++ "}"
 
 private def clauseJson : ResolvedPropertyClause → String
   | .stateInvariant id state =>
@@ -395,6 +998,11 @@ private def clauseJson : ResolvedPropertyClause → String
         ",\"kind\":\"quiescent-within\",\"trigger\":" ++ patternJson trigger ++
         ",\"forbidden\":" ++ patternJson forbidden ++
         ",\"limit\":" ++ canonicalLimitJson limit ++ "}"
+  | .sameStepCases group => caseGroupJson group
+  | .guardedEventuallyWithin clause =>
+      guardedTemporalJson "guarded-eventually-within" "response" clause
+  | .guardedQuiescentWithin clause =>
+      guardedTemporalJson "guarded-quiescent-within" "forbidden" clause
 
 private def capabilityJson (capability : PropertyCapability) : String :=
   "{\"id\":" ++ quote capability.id.value ++
@@ -433,6 +1041,7 @@ def canonicalPropertyErrorJson (error : PropertyError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
     ",\"definitionId\":" ++ quote error.definitionId.value ++
     ",\"sourcePath\":" ++ quote error.sourcePath ++
+    (error.sourceLocation.map (fun source => ",\"source\":" ++ sourceJson source)).getD "" ++
     ",\"offendingValue\":" ++ quote error.offendingValue ++
     ",\"relatedDefinitionIds\":" ++
       array (DefinitionId.canonicalSet error.relatedDefinitionIds |>.map
@@ -447,10 +1056,22 @@ def checkProperty
     | .opaque id source =>
         throw (propertyError .opaqueDeclaration id source id.value [id])
   requireDefinitionId declaration.id declaration.source declaration.id
+  if declaration.version != 1 && declaration.version != 2 then
+    throw (propertyError .unsupportedPropertyVersion declaration.id declaration.source
+      ("supported versions are 1 and 2, found " ++ toString declaration.version)
+      [declaration.id])
   requireUniqueIds declaration.id declaration.source
     (declaration.clauses.map PropertyClause.id)
   requireUniqueIds declaration.id declaration.source
     (context.limitProfiles.map PropertyLimitProfile.id)
+  let hasVersionTwoForm := declaration.clauses.any fun clause => match clause with
+    | .sameStepCases _ | .guardedEventuallyWithin _ _ _ _ _ _ _
+    | .guardedQuiescentWithin _ _ _ _ _ _ _ => true
+    | _ => false
+  if hasVersionTwoForm && declaration.version != 2 then
+    throw (propertyError .unsupportedPropertyVersion declaration.id declaration.source
+      ("guarded forms require version 2, found " ++ toString declaration.version)
+      [declaration.id])
   let access ← buildCapabilityView context declaration
   validateLogicalTime context declaration access
   let mut clauses := []

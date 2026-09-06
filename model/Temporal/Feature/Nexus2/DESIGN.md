@@ -1,6 +1,6 @@
 # Nexus2 authoring design
 
-Status: proposed design for discussion; examples below describe a candidate interface and are not compiled Lean. The user selected the current lifecycle followed by a cancellation/completion race. Prototype code will live under `model/Temporal/Feature/Nexus2`.
+Status: authorized prototype design under the user's delegated design/replanning authority. Examples below describe a candidate interface and are not compiled Lean; no final grammar or usability result is claimed. The user selected the current lifecycle followed by a cancellation/completion race. Prototype code will live under `model/Temporal/Feature/Nexus2`.
 
 Tracking: [fn-65 — Nexus2 authoring](../../../../.flow/specs/fn-65-design-and-prototype-approachable.md).
 
@@ -287,11 +287,28 @@ Run focused Lake tests, the owning aggregate test roots, `make lint-model`, appl
 
 For human evaluation, use reading, transition extension, requirement editing, and error repair tasks. Measure semantic correctness, assistance, and recovery time before source length. Check whether a participant can explain why cancellation can lose, why a passing conditional rule might not have been exercised, what an exception leaves unspecified, and why two applicable requirements cannot be resolved by their declaration order.
 
-## Constraints and decisions to review
+## Recorded decisions and remaining boundaries
 
-The user chose the lifecycle-then-race scope and requested guarded cases, explicit exceptions, and conflict handling in the design. The recommended design choices are explicit finite transition alternatives, named typed references, conjunctive applicable requirements, separate existing languages, source-aware checking, and ordinary authors free of routine proof work.
+The user instructed: “defer fn-62, prototype fn-65, then retain only fn-62’s uncovered requirements.” The user's standing delegation of necessary design and replanning decisions authorizes the recommendations below for this experiment. This records a delegated design decision, not a line-by-line human grammar review or a human usability study. Implementation task planning follows this decision record; it does not establish that the examples already compile.
 
-This is a separate Nexus2 experiment from fn-62. That plan's requirements to retain author-written success evidence and exclude new syntax are not silently revised here. The proposed syntax preserves AUT-07's existing public semantic languages and lowers to their checked data, including the explicitly designed extension of `Umpire.Property` for guarded cases. This extension is semantic work, not behavior-neutral helper cleanup. AUT-08's finite adapter must not acquire a macro language; syntax stays in a separate frontend. Any implementation that needs an exception to the authoritative Umpire rules must identify it concretely before proceeding.
+| Decision | Authorized prototype choice | Boundary still to establish |
+| --- | --- | --- |
+| Finite authoring | Explicit typed catalogs, stable keys, whole next states, and explicit transition alternatives; derive enumerators and mechanical evidence from that data | Reject invalid catalogs/tables and demonstrate a state/transition edit without feature proof or support-code editing |
+| Model scope | Preserve the existing baseline through an explicit identity mapping, then add the separate request/abstract-resolution race | No late-event policy, fairness, runtime delivery, or complete cancellation protocol is inferred |
+| Requirements | Extend the existing `Umpire.Property` owner with typed Boolean guards, named cases and exceptions; conjoin obligations and evaluate applicability at the trigger | Preserve legacy semantics and encoding, update proofs and affected consumers, reject unsupported operators |
+| Analysis | Finite, scoped coverage and conflict analysis with reachable contexts and bounded evidence | Separate violation, contradiction, dead end, unexercised guard, modeled incompatibility, and Limit Reached |
+| Interface | Constructor admission first, followed by a focused frontend comparison over the same checked declarations | Select one default authoring surface only after actual compilation, diagnostics, trust and editor measurements; unmeasured observations stay labeled |
+
+### Concrete rule exceptions for this experiment
+
+[GOV-02, AUT-07, and AUT-08](../../../../.plans/UMPIRE4_SPEC.md) remain authoritative. Under the human's standing delegation, the following narrow exceptions are accepted for the fn-65 prototype; they do not rewrite those rules or authorize a repository-wide migration.
+
+- **AUT-08 evidence responsibility:** the rule says authors MUST provide ordered domains, encoders, enumerators, domain-closure evidence, and Action-executability evidence. Requiring ordinary authors to provide only finite catalogs/tables while generic constructors supply enumerators and proofs changes that authoring responsibility. The prototype permits those mechanical obligations to be discharged by reusable kernel-checked constructors over validated author data. The resulting `FiniteMachine` still carries every required witness, produces `AuthoredTarget`, and passes `checkTarget`. Capability laws remain real obligations, and a rejected table cannot produce a checked Target. This is not permission to omit evidence or manufacture success.
+- **AUT-07 syntax path:** a focused wrapper accepting Property/Behavior/Query declarations may constitute another way to define behavior even if it lowers to existing types. Lowering alone does not demonstrate compliance. The prototype permits an isolated comparison frontend, with examples/fixtures in Nexus2 and reusable syntax outside the low-level finite adapter. Existing pure language owners retain validation and evaluation authority; no independent behavioral interpreter or second production authoring path is authorized. Choosing a production frontend or broader adoption requires a recorded reconciliation with AUT-07 after comparison evidence exists.
+
+AUT-08's prohibition on a macro language inside `FiniteMachine` remains intact. Generic finite construction belongs behind `Umpire.Target`; Property semantics belong in `Umpire.Property`; syntax is only a frontend importing the owners. The guarded-case extension is deliberate semantic work, not behavior-neutral helper cleanup. There is no exception to the no-hidden-native-trust boundary: native diagnostics cannot discharge proof obligations, and the current `checkedTarget` default cannot be silently reused. If kernel admission proves impractical, report measured cost and retain the successful-branch constructor route or record an explicit further decision before changing trust.
+
+[fn-62](../../../../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md) remains deferred until the fn-65 prototype is evaluated. Its author-written success-evidence and no-new-syntax constraints are not imposed on this separate experiment and are not globally removed. Reconcile its requirements against actual fn-65 evidence afterward, retaining only uncovered requirements; do not mark requirements covered from this design alone.
 
 The key implementation uncertainties are kernel-checked validation performance, the cost and diagnostic precision of bounded case/conflict analysis, and how much editor tooling the focused syntax requires. The first prototype should resolve those before expanding to caller closure, multiple entities, arbitrary temporal formulas, interruptible progress obligations, System links, Evidence mappings, or live execution.
 

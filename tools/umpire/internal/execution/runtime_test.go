@@ -37,6 +37,7 @@ type runtimeSession struct {
 	quarantineErr error
 	closed        int
 	closeErr      error
+	closeTimeout  bool
 }
 
 func (s *runtimeSession) InvokeRPC(_ context.Context, c Coordinate, _ string, _ protoreflect.MethodDescriptor, _ proto.Message) (EffectHandle, error) {
@@ -64,10 +65,14 @@ func (s *runtimeSession) Quarantine(_ context.Context, handle EffectHandle) erro
 	}()
 	return nil
 }
-func (s *runtimeSession) Close(context.Context) error {
+func (s *runtimeSession) Close(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.closed++
+	if s.closeTimeout {
+		<-ctx.Done()
+		return ctx.Err()
+	}
 	return s.closeErr
 }
 func (s *runtimeSession) Diagnose(_ context.Context, _ string, diagnostic *umpirespb.RunDiagnostic) error {
@@ -300,32 +305,39 @@ func TestRunConformingMonitorCancellationIsInconclusive(t *testing.T) {
 
 func TestRunTerminalPrecedence(t *testing.T) {
 	for _, test := range []struct {
-		name            string
-		ordinaryErr     error
-		stop            bool
-		closeKind       umpirespb.VerdictKind
-		cleanupErr      error
-		hostCloseErr    error
-		wantDisposition umpirespb.RunDisposition
-		wantCleanup     umpirespb.RunCleanupStatus
-		wantVerdict     umpirespb.VerdictKind
+		name             string
+		ordinaryErr      error
+		stop             bool
+		closeKind        umpirespb.VerdictKind
+		cleanupErr       error
+		hostCloseErr     error
+		hostCloseTimeout bool
+		wantDisposition  umpirespb.RunDisposition
+		wantCleanup      umpirespb.RunCleanupStatus
+		wantVerdict      umpirespb.VerdictKind
 	}{
 		{name: "complete", wantDisposition: umpirespb.RUN_DISPOSITION_COMPLETED, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_SUCCEEDED, wantVerdict: umpirespb.VERDICT_KIND_SATISFIED},
 		{name: "early liveness closure", closeKind: umpirespb.VERDICT_KIND_INCONCLUSIVE, wantDisposition: umpirespb.RUN_DISPOSITION_COMPLETED, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_SUCCEEDED, wantVerdict: umpirespb.VERDICT_KIND_INCONCLUSIVE},
 		{name: "execution failure", ordinaryErr: errors.New("effect failed"), wantDisposition: umpirespb.RUN_DISPOSITION_INCOMPLETE, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_SUCCEEDED, wantVerdict: umpirespb.VERDICT_KIND_INCONCLUSIVE},
+		{name: "close error preserves success", hostCloseErr: errors.New("close failed"), wantDisposition: umpirespb.RUN_DISPOSITION_COMPLETED, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_FAILED, wantVerdict: umpirespb.VERDICT_KIND_SATISFIED},
+		{name: "close timeout preserves success", hostCloseTimeout: true, wantDisposition: umpirespb.RUN_DISPOSITION_COMPLETED, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_FAILED, wantVerdict: umpirespb.VERDICT_KIND_SATISFIED},
+		{name: "close error preserves violation", stop: true, hostCloseErr: errors.New("close failed"), wantDisposition: umpirespb.RUN_DISPOSITION_STOPPED_BY_MONITOR, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_FAILED, wantVerdict: umpirespb.VERDICT_KIND_VIOLATED},
+		{name: "close timeout preserves violation", stop: true, hostCloseTimeout: true, wantDisposition: umpirespb.RUN_DISPOSITION_STOPPED_BY_MONITOR, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_FAILED, wantVerdict: umpirespb.VERDICT_KIND_VIOLATED},
 		{name: "violation dominates cleanup and close", stop: true, cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: umpirespb.RUN_DISPOSITION_STOPPED_BY_MONITOR, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_FAILED, wantVerdict: umpirespb.VERDICT_KIND_VIOLATED},
 		{name: "cleanup and close do not replace success", cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: umpirespb.RUN_DISPOSITION_COMPLETED, wantCleanup: umpirespb.RUN_CLEANUP_STATUS_FAILED, wantVerdict: umpirespb.VERDICT_KIND_SATISFIED},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
+			c.Program.Limits.MaxCleanupDurationMilliseconds = 100
 			c.Program.Cleanup.Nodes = []*umpirespb.InstructionNode{rpcNode("cleanup")}
+			c.Program.Cleanup.Nodes[0].Bounds.TimeoutMilliseconds = 100
 			prepared, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			ordinary := newRuntimeEffect(effectResponse(prepared, "ordinary"), true)
 			ordinary.waitErr = test.ordinaryErr
 			cleanup := newRuntimeEffect(effectResponse(prepared, "cleanup"), true)
 			cleanup.waitErr = test.cleanupErr
-			session := &runtimeSession{effects: map[string]*runtimeEffect{"call": ordinary, "cleanup": cleanup}, closeErr: test.hostCloseErr}
+			session := &runtimeSession{effects: map[string]*runtimeEffect{"call": ordinary, "cleanup": cleanup}, closeErr: test.hostCloseErr, closeTimeout: test.hostCloseTimeout}
 			monitor := &runtimeMonitor{closeKind: test.closeKind}
 			if test.stop {
 				monitor.stopSource = "scheduler.g0.n0.a1.completed"
@@ -335,6 +347,19 @@ func TestRunTerminalPrecedence(t *testing.T) {
 			require.Equal(t, test.wantDisposition, run.GetDisposition())
 			require.Equal(t, test.wantCleanup, run.GetCleanup().GetStatus())
 			require.Equal(t, test.wantVerdict, verdict.GetKind())
+			require.True(t, proto.Equal(verdict, run.GetVerdict()))
+			var cleanupDiagnosticIDs []string
+			var cleanupDiagnosticCodes []string
+			for _, diagnostic := range run.GetDiagnostics() {
+				if diagnostic.GetCode() == "cleanup_failed" || diagnostic.GetCode() == "host_close_failed" {
+					cleanupDiagnosticIDs = append(cleanupDiagnosticIDs, diagnostic.GetDiagnosticId())
+					cleanupDiagnosticCodes = append(cleanupDiagnosticCodes, diagnostic.GetCode())
+				}
+			}
+			require.Equal(t, cleanupDiagnosticIDs, run.GetCleanup().GetDiagnosticIds())
+			if test.hostCloseErr != nil || test.hostCloseTimeout {
+				require.Contains(t, cleanupDiagnosticCodes, "host_close_failed")
+			}
 		})
 	}
 }

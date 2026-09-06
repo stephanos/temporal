@@ -1,53 +1,51 @@
 ---
 satisfies: [R1, R4, R5, R8]
 ---
-# fn-62-make-ordinary-temporal-model-authoring.4 Simplify the ordinary Property Behavior Query journey
+# fn-62-make-ordinary-temporal-model-authoring.4 Migrate established Nexus operation constructors and planning
 
 ## Description
-After task `.3` and `fn-58` freeze the reusable facade, satisfy R1, R4, R5, and R8 by centralizing repeated checked declaration composition and migrating the three ordinary Nexus operations.
+Migrate AsyncStart, SuccessfulCompletion, and Cancellation through fn-65's existing constructor APIs and checked planner adapter. Consume `.2`'s Lifecycle and `.3`'s shared identities.
 
 **Size:** M
-**Files:** `model/Temporal/Feature/Nexus/Operations/Internal.lean`, `model/Temporal/Feature/Nexus/Operations/AsyncStart.lean`, `model/Temporal/Feature/Nexus/Operations/Cancellation.lean`, `model/Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean`, `model/Temporal/Feature/Nexus/OperationsTests.lean`
-**Touches:** [model/Temporal/Feature/Nexus/Operations/Internal.lean, model/Temporal/Feature/Nexus/Operations/AsyncStart.lean, model/Temporal/Feature/Nexus/Operations/Cancellation.lean, model/Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean, model/Temporal/Feature/Nexus/OperationsTests.lean]
+**Files:** established Nexus `Operations` declarations, planning and tests
+**Touches:** [model/Temporal/Feature/Nexus/Operations/**, model/Temporal/Feature/Nexus/Operations.lean]
 
-### Approach
-- Consume only the public Property facade delivered by `fn-58-partition-the-property-language` and the primitives from task `.3`; do not couple helpers to checker internals.
-- Reuse `BehaviorDeclaration.exactlyOneAction`, setup helpers, and Target context adapters in `model/Umpire/Behavior/Language.lean:76-205` rather than wrapping Behavior in a new representation.
-- Deepen `model/Temporal/Feature/Nexus/Operations/Internal.lean:17-39` to centralize family IDs, author source, and the mechanical raw-check/result/query sequence while keeping raw results and explicit checker-success proofs available.
-- Use the named Limits and transition-result constructors from task `.3`; keep every Action, state, outcome, observation, capability, and Limit explicit.
-- Migrate the repeated shapes in AsyncStart, Cancellation, and SuccessfulCompletion; preserve wrong-Action/wrong-outcome examples and every existing comment.
+## Approach
+- Use `PropertySpec`, `transitionResultClauses`, `ExactSequenceSpec`, `QuerySpec`, and `QueryLimitSpec`, retaining author-supplied `.checked` evidence and existing raw error results.
+- Replace local dependent planner transport with `IncrementalPlannerKernel.ofCheckedQuery`; preserve explicit mismatch/absence handling instead of assuming success.
+- Keep existing public operation declarations and comments. Use no prototype frontend or new generic wrapper. Preserve source data unless an exact correction is recorded.
+- Compare all three operation identities, complete metadata/fingerprints, selected traces, planning outcomes and exact artifacts with pre-migration baselines.
+- Use explicit kernel proofs or existing approved proof evidence. Failed fn-65 kernel synthesis is not permission for a new native fallback; audit each migrated checked declaration's transitive dependencies.
 
-### Investigation targets
-**Required** (read before coding):
-- `model/Temporal/Feature/Nexus/Operations/Internal.lean:17-39` — shared operation source/query mechanics.
-- `model/Umpire/Property/Check.lean:450-486` — sole raw checker and proof-taking extraction contract.
-- `model/Umpire/Behavior/Language.lean:76-205` — existing ordinary Behavior helpers and Target context.
-- `model/Umpire/Query/Language.lean:523-583` — raw and proof-taking Query boundary.
-- `model/Temporal/Feature/Nexus/Operations/AsyncStart.lean:17-103` — representative repeated operation journey.
-
-**Optional** (reference as needed):
-- `model/Temporal/Feature/Nexus/Operations/Cancellation.lean:18-103` — second repeated operation.
-- `model/Temporal/Feature/Nexus/Operations/SuccessfulCompletion.lean:17-103` — third repeated operation.
-
-### Key context
-AUT-07 prohibits an umbrella operation DSL. Helpers must construct the existing Property, Behavior, and Query languages and call their existing checkers. The author remains responsible for explicit checker-success evidence; the library must not choose `native_decide`.
-
-### Acceptance
-- [ ] The three operation modules use shared explicit Action→state/outcome/observation, family-ID, source, named-Limit, and raw-check/query mechanics.
-- [ ] Each operation retains readable Property, Behavior, and Query declarations plus directly inspectable raw typed results.
-- [ ] Checked extraction still requires explicit proof, and omitted proof remains an elaboration error.
-- [ ] Invalid clauses, missing capabilities, unsatisfiable Behavior, Target mismatch, and invalid Limits retain exact diagnostics and precedence.
-- [ ] Existing operation IDs, fingerprints, intended/wrong traces, deterministic plans, artifacts, public imports, and comments remain exact.
+## Investigation targets
+**Required:**
+- `model/Temporal/Feature/Nexus/Operations/Internal.lean` — repeated inputs.
+- `model/Temporal/Feature/Nexus/Operations/Planning.lean` — transport to remove.
+- `model/Temporal/Feature/Nexus/Operations/PlanningTests.lean:17` — exact operation artifacts.
+- `model/Umpire/Property/Authoring.lean:64` — proof-taking constructor.
+- `model/Umpire/Behavior/Authoring.lean:54` — sequence checker seam.
+- `model/Umpire/Query/Authoring.lean` — named Limits and checked Query.
+- `model/Umpire/Planning/Engine.lean:347` — covered adapter.
 
 ## Acceptance
-- [ ] R1, R4, R5, and R8 are satisfied without creating a fourth authoring language.
-- [ ] `cd model && mise exec -- lake build Temporal.Feature.Nexus.OperationsTests` passes.
-- [ ] Raw invalid-declaration APIs remain directly testable and no hidden compiler-trust path is introduced.
+- [ ] All three operations use existing constructors with less repeated assembly and explicit checker-success arguments; no new planner adapter or frontend is added.
+- [ ] Exact identity, source, metadata, fingerprint, selected trace, outcome, and artifact checks match baseline except specifically named source corrections.
+- [ ] Invalid clauses/capabilities, contradiction, Target mismatch, invalid Limits, and omitted proof evidence retain their existing failure boundary; missing finite completeness remains explicit.
+- [ ] `cd model && mise exec -- lake build Temporal.Feature.Nexus.OperationsTests Umpire.Planning.Tests` passes; trust and lint checks show no new issues.
 
 ## Done summary
-TBD
+Migrated AsyncStart, Cancellation, and SuccessfulCompletion through the established PropertySpec, transition-result, ExactSequenceSpec, QuerySpec, QueryLimitSpec, and checked-query planner APIs. Each operation retains its public declarations and raw checker/admission results, supplies explicit checked evidence, and preserves exact identities, source, metadata, fingerprints, traces, outcomes, artifacts, and compatibility entry points; executable tests cover invalid clauses/capabilities, contradiction, Target mismatch, invalid Limits, omitted proofs, and missing completeness.
 
+The checked-query adapter remains unchanged. A reusable Engine theorem proves successful extraction from its explicit Target, completeness, finite-domain, and canonical-order premises; all three operations call `IncrementalPlannerKernel.ofCheckedQuery` directly. Constructor work is record assembly plus one transition-clause map and the existing checker/admission passes, with no new nested scan, frontend, adapter, registry, I/O, dependency, or Observation/Known-Gap migration.
+
+Verification: the focused 68-job build and `make lint-model` passed. The trust audit reports only kernel axioms for the Engine theorem and the exact historical Nexus native baseline for checked declarations; all three possible `incrementalKernelResult_isSome` native axiom names are absent. Go lint retained inherited exit 2 with exactly 1,316 sorted diagnostic headers, byte-identical to the approved baseline at SHA-256 `aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077`. The official staged-overlay review returned SHIP with zero findings; review tree and frozen pre-receipt staged tree are both `0dbc3b8614889317a2682f90ddebe2d1ed481b11`, and frozen source blobs match after gates, review, and receipt staging.
+
+No commit was created under the user's standing commit policy; HEAD remains `7774fdc7ac751ac959816c9829516ce54af57194` and all cumulative and unrelated work remains preserved.
+
+stage: impl-review - ran [2026-09-06T03:55:41Z..2026-09-06T04:00:13Z] (SHIP; actual model codex:gpt-5.6-sol:medium; receipt /tmp/impl-review-receipt-fn-62-make-ordinary-temporal-model-authoring.4.json)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+stage: tracker-sync - skipped(config: tracker.enabled != true; inactive confirmed)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: baseline: cd model && mise exec -- lake build Temporal.Feature.Nexus.OperationsTests Umpire.Planning.Tests (green; 68 jobs; /tmp/fn62-task4-baseline.log), cd model && mise exec -- lake build Temporal.Feature.Nexus.OperationsTests Umpire.Planning.Tests (green; 68 jobs; /tmp/fn62-task4-final-focused.log), trust audit via PlanningTests #print axioms (Engine ofCheckedQuery_isSome uses only propext/Classical.choice/Quot.sound; operation checked values retain exact historical step_result_exposed/target and property/behavior/query result native axioms; all three incrementalKernelResult_isSome native axiom names absent; /tmp/fn62-task4-final-focused.log), make lint-model (green; 258 jobs; /tmp/fn62-task4-final-lint-model.log), make lint-code GOLANGCI_LINT_FIX=false (inherited exit 2; exactly 1316 sorted diagnostic headers; normalized SHA-256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077; byte-identical to /tmp/fn62-task2-final-lint-code.headers; /tmp/fn62-task4-final-lint-code.log), git diff --cached --check -- task-owned paths (green), flowctl gate classify --base 7774fdc7ac751ac959816c9829516ce54af57194 (FULL; cumulative unmatched .plans/UMPIRE4_ORDER.md); gate receipt non-blocking unavailable because unrelated staged work makes receipt unwarrantable, impl-review codex:gpt-5.6-sol:medium (SHIP; zero findings; /tmp/impl-review-receipt-fn-62-make-ordinary-temporal-model-authoring.4.json), reviewed staged tree 0dbc3b8614889317a2682f90ddebe2d1ed481b11 equals frozen pre-receipt staged tree; owned source blobs equal after gates, review, and receipt staging, tracker inactive confirmed (.flow/config.json tracker.enabled=false); plan-sync skipped (.flow/config.json planSync.enabled=false)
 - PRs:

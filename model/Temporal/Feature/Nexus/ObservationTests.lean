@@ -106,6 +106,104 @@ private def evidenceLinkShape (evidenceLink : EvidenceLink) : EvidenceLinkShape 
   meaningDigest := evidenceLink.meaningDigest
 }
 
+private def rawProfileDeclaration : EvidenceProfileDeclaration := {
+  id := Profile.id
+  source := Temporal.Feature.Nexus.Observation.source
+  kinds := [{
+    id := Profile.lifecycleKind
+    fields := [
+      { id := Profile.stateField, valueType := .text },
+      { id := Profile.actionField, valueType := .text },
+      { id := Profile.outcomeField, valueType := .text },
+      { id := Profile.observationField, valueType := .text },
+      { id := Profile.rejectedField, valueType := .text }
+    ]
+  }]
+}
+
+private def rawRule
+    (ruleId output : DefinitionId)
+    (outputKind : DefinitionKind)
+    (fieldId : DefinitionId)
+    (condition : ObservationExpression) : ObservationRule := {
+  id := ruleId
+  output
+  outputKind
+  value := .portable (.field { kind := Profile.lifecycleKind, field := fieldId })
+  condition := some (.portable condition)
+}
+
+private def rawEqualsText (fieldId : DefinitionId) (value : String) : ObservationExpression :=
+  .equals (.field { kind := Profile.lifecycleKind, field := fieldId }) (.text value)
+
+private def rawEqualsAny (fieldId : DefinitionId) : List String → ObservationExpression
+  | [] => .boolean false
+  | value :: values =>
+      values.foldl (fun condition candidate =>
+        .or condition (rawEqualsText fieldId candidate)) (rawEqualsText fieldId value)
+
+private def rawMappingDeclaration : ObservationMappingDeclaration := {
+  id := Mapping.id
+  source := Temporal.Feature.Nexus.Observation.source
+  profile := Profile.id
+  rules := [
+    rawRule Mapping.stateRuleId operationStateId .state Profile.stateField
+      (rawEqualsAny Profile.stateField [
+        scheduledState.value, startedState.value, canceledState.value, succeededState.value
+      ]),
+    rawRule Mapping.startRuleId startActionId .action Profile.actionField
+      (rawEqualsText Profile.actionField startAction.value),
+    rawRule Mapping.cancelRuleId cancelActionId .action Profile.actionField
+      (rawEqualsText Profile.actionField cancelAction.value),
+    rawRule Mapping.succeedRuleId reportSuccessActionId .action Profile.actionField
+      (rawEqualsText Profile.actionField reportSuccessAction.value),
+    rawRule Mapping.outcomeRuleId transitionOutcomeId .outcome Profile.outcomeField
+      (rawEqualsAny Profile.outcomeField [
+        startedOutcome.value, canceledOutcome.value, succeededOutcome.value
+      ]),
+    rawRule Mapping.observationRuleId lifecycleObservationId .observation Profile.observationField
+      (rawEqualsAny Profile.observationField [
+        startedObservation.value, canceledObservation.value, succeededObservation.value
+      ])
+  ]
+  ordering := [
+    { before := Mapping.startRuleId, after := Mapping.cancelRuleId },
+    { before := Mapping.cancelRuleId, after := Mapping.succeedRuleId },
+    { before := Mapping.succeedRuleId, after := Mapping.outcomeRuleId },
+    { before := Mapping.outcomeRuleId, after := Mapping.stateRuleId },
+    { before := Mapping.stateRuleId, after := Mapping.observationRuleId }
+  ]
+  closures := [{ kind := Profile.lifecycleKind }]
+  dispositions := [
+    { field := { kind := Profile.lifecycleKind, field := Profile.stateField },
+      disposition := .retain },
+    { field := { kind := Profile.lifecycleKind, field := Profile.actionField },
+      disposition := .retain },
+    { field := { kind := Profile.lifecycleKind, field := Profile.outcomeField },
+      disposition := .retain },
+    { field := { kind := Profile.lifecycleKind, field := Profile.observationField },
+      disposition := .retain },
+    { field := { kind := Profile.lifecycleKind, field := Profile.rejectedField },
+      disposition := .reject }
+  ]
+  evidenceBound := { value := 2, unit := .evidenceRecords }
+  documentation := "Synthetic scheduled-to-terminal evidence for the ordinary Nexus lifecycle."
+}
+
+private def rawCheckedPlanResult : Except ObservationError CheckedObservationPlan :=
+  checkObservation
+    (ObservationCheckContext.ofTarget target [rawProfileDeclaration]) rawMappingDeclaration
+
+/-- Typed construction reproduces the established raw profile, mapping, and checked plan exactly. -/
+example : Profile.spec.declaration = rawProfileDeclaration := by
+  native_decide
+
+example : Mapping.spec.declaration = rawMappingDeclaration := by
+  native_decide
+
+example : checkedPlan = rawCheckedPlanResult.toOption.get (by native_decide) := by
+  native_decide
+
 /-- Checked Observation authoring returns the typed checker's complete canonical plan. -/
 example : checkedPlan = checkedPlanResult.toOption.get (by native_decide) := by
   native_decide
@@ -360,5 +458,14 @@ example : [
     (.unknown, some .sequenceGap, [.unknown], .incomplete)
   ] := by
   native_decide
+
+#print axioms Profile.spec
+#print axioms Profile.declaration
+#print axioms Mapping.spec
+#print axioms Mapping.declaration
+#print axioms rawMappingDeclaration
+#print axioms checkedPlanResult
+#print axioms rawCheckedPlanResult
+#print axioms checkedPlan
 
 end Temporal.Feature.Nexus.ObservationTests

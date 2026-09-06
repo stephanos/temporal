@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-64-umpire-case-runtime",
-  "completion_review_status": "needs_work",
-  "completion_reviewed_at": "2026-09-05T14:17:14.413318Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-05T15:02:01.022503Z",
   "created_at": "2026-09-04T17:37:03.394079Z",
   "default_impl": null,
   "default_review": null,
@@ -21,6 +21,7 @@
     "fn-64-umpire-case-runtime.18": 0,
     "fn-64-umpire-case-runtime.19": 0,
     "fn-64-umpire-case-runtime.2": 0,
+    "fn-64-umpire-case-runtime.20": 0,
     "fn-64-umpire-case-runtime.3": 0,
     "fn-64-umpire-case-runtime.4": 0,
     "fn-64-umpire-case-runtime.5": 0,
@@ -30,7 +31,7 @@
     "fn-64-umpire-case-runtime.9": 0
   },
   "next_task": 1,
-  "plan_review_rounds": 2,
+  "plan_review_rounds": 0,
   "plan_review_status": "ship",
   "plan_reviewed_at": "2026-09-05T02:25:08.449345Z",
   "review_attempts": [
@@ -3446,6 +3447,228 @@
       "timestamp": "2026-09-05T14:33:09.861567Z",
       "tool_calls": 0,
       "verdict": null
+    },
+    {
+      "artifact_sha256": "a7c9c7bf11042a5ea14f70a116ebd435fcb6225f364c51b58652a429d6dc2a8c",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6abb7f082acfcf7411d411d9e620d7fb",
+            "classification": "introduced",
+            "findingId": "finding-6abb7f082acfcf7411d411d9e620d7fb",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-67137ccd4fbfea613f0ad964a42a4630",
+            "classification": "introduced",
+            "findingId": "finding-67137ccd4fbfea613f0ad964a42a4630",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-e4ab25c2d74cda1c65e8e30d28cddcf8",
+            "classification": "introduced",
+            "findingId": "finding-e4ab25c2d74cda1c65e8e30d28cddcf8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-590aa062d6f3bb573cc1345d32efa66a",
+            "classification": "introduced",
+            "findingId": "finding-590aa062d6f3bb573cc1345d32efa66a",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-435e4874d56afe9c33566ba6c8f19435",
+            "classification": "introduced",
+            "findingId": "finding-435e4874d56afe9c33566ba6c8f19435",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-f9bdade40d10d1e17ff614fddf6b2211",
+            "classification": "introduced",
+            "findingId": "finding-f9bdade40d10d1e17ff614fddf6b2211",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-8770ce1f9f92058b0235930e4b51b97a",
+            "classification": "introduced",
+            "findingId": "finding-8770ce1f9f92058b0235930e4b51b97a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b0862eace5aa7922a46d3333ee3d839d46f4845a",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 391410,
+      "output_sha256": "9060dbff8786077daaa9935d711322dffc16a6889a95397f74a43e4e56280199",
+      "reservation_id": "6c794f90edd54536b4841eb81dbff412",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-05T14:44:26.389465Z",
+      "tool_calls": 18,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "85724ce86f67c7b7ec4a53eaa61b163a9eb8c64a9b8c14ecbe7d5f768720e157",
+      "backend": "codex",
+      "base_sha": "ed17d358925ebf4a0a10ef0c5d1c9a29ad469dbd",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b22a20a09ea3a031fadd72ed00383f5bb6cc12a1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 79895,
+      "output_sha256": "db6019163b520f9631569abb7a9523dab1e12346aa0d97e793a07a57b0bcd30c",
+      "reservation_id": "6935600fb7c145d38aefaefdd8ca1893",
+      "round_consumed": true,
+      "scope": "impl:fn-64-umpire-case-runtime.20",
+      "superseded_by": null,
+      "task": "fn-64-umpire-case-runtime.20",
+      "timestamp": "2026-09-05T14:54:52.553464Z",
+      "tool_calls": 5,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "05a93bee40b84d0489bdde80806da485d21a5b2980947c461c16d58708ce845a",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6abb7f082acfcf7411d411d9e620d7fb",
+            "classification": "introduced",
+            "findingId": "finding-6abb7f082acfcf7411d411d9e620d7fb",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-67137ccd4fbfea613f0ad964a42a4630",
+            "classification": "introduced",
+            "findingId": "finding-67137ccd4fbfea613f0ad964a42a4630",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e4ab25c2d74cda1c65e8e30d28cddcf8",
+            "classification": "introduced",
+            "findingId": "finding-e4ab25c2d74cda1c65e8e30d28cddcf8",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-590aa062d6f3bb573cc1345d32efa66a",
+            "classification": "introduced",
+            "findingId": "finding-590aa062d6f3bb573cc1345d32efa66a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-435e4874d56afe9c33566ba6c8f19435",
+            "classification": "introduced",
+            "findingId": "finding-435e4874d56afe9c33566ba6c8f19435",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-f9bdade40d10d1e17ff614fddf6b2211",
+            "classification": "introduced",
+            "findingId": "finding-f9bdade40d10d1e17ff614fddf6b2211",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-8770ce1f9f92058b0235930e4b51b97a",
+            "classification": "introduced",
+            "findingId": "finding-8770ce1f9f92058b0235930e4b51b97a",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ead4e7df24bd48c9b9cd55e0ee8857d8f9ffd663",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 436135,
+      "output_sha256": "88d123b95373e53a2d9e338e2cc59be10b423dd5442445f9499dacd5a35217d5",
+      "reservation_id": "aa929a564070456d9641505c6cf99458",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-05T15:02:01.004096Z",
+      "tool_calls": 12,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -3461,6 +3684,7 @@
     "impl:fn-64-umpire-case-runtime.18": 2,
     "impl:fn-64-umpire-case-runtime.19": 1,
     "impl:fn-64-umpire-case-runtime.2": 1,
+    "impl:fn-64-umpire-case-runtime.20": 1,
     "impl:fn-64-umpire-case-runtime.3": 1,
     "impl:fn-64-umpire-case-runtime.4": 1,
     "impl:fn-64-umpire-case-runtime.5": 1,
@@ -3469,22 +3693,12 @@
     "impl:fn-64-umpire-case-runtime.8": 1,
     "impl:fn-64-umpire-case-runtime.9": 2,
     "plan": 5,
-    "plan#completion": 0
+    "plan#completion": 1
   },
-  "review_pending_rounds": {
-    "plan": 1
-  },
-  "review_reservations": {
-    "6c794f90edd54536b4841eb81dbff412": {
-      "artifact_sha256": "a7c9c7bf11042a5ea14f70a116ebd435fcb6225f364c51b58652a429d6dc2a8c",
-      "counter_scope": "plan",
-      "epoch": 0,
-      "forced": false,
-      "review_type": "completion"
-    }
-  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
   "review_transport_failures": {
-    "completion": 1,
+    "completion": 0,
     "impl:fn-64-umpire-case-runtime.1": 0,
     "impl:fn-64-umpire-case-runtime.10": 0,
     "impl:fn-64-umpire-case-runtime.11": 0,
@@ -3497,6 +3711,7 @@
     "impl:fn-64-umpire-case-runtime.18": 0,
     "impl:fn-64-umpire-case-runtime.19": 0,
     "impl:fn-64-umpire-case-runtime.2": 0,
+    "impl:fn-64-umpire-case-runtime.20": 0,
     "impl:fn-64-umpire-case-runtime.3": 0,
     "impl:fn-64-umpire-case-runtime.4": 0,
     "impl:fn-64-umpire-case-runtime.5": 0,
@@ -3507,7 +3722,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-64-umpire-case-runtime.md",
-  "status": "open",
+  "status": "done",
   "title": "Umpire Case Runtime",
   "tracker": {
     "baseHashFlow": null,
@@ -3520,5 +3735,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-05T14:39:53.798484Z"
+  "updated_at": "2026-09-05T15:22:01.539021Z"
 }

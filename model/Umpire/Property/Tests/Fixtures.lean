@@ -172,9 +172,9 @@ def positiveTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
 def evaluationOf
     (declaration : PropertyDeclaration)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
-    Option PropertyEvaluation :=
-  (checkProperty context (.portable declaration)).toOption.map fun property =>
-    evaluateProperty property trace
+  Option PropertyEvaluation :=
+  (checkProperty context (.portable declaration)).toOption.bind fun property =>
+    (evaluatePropertyOnTrace property trace).toOption
 
 def errorKindOf
     (result : Except PropertyError CheckedProperty) : Option PropertyErrorKind :=

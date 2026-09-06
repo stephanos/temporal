@@ -167,6 +167,304 @@ def IncrementalPlannerKernel.ofCheckedQuery?
         step := stepOrdered evidence evidenceEq
       })
 
+inductive FinitePlannerAdmissionErrorKind where
+  | targetMismatch
+  | missingFiniteCompleteness
+  | noncanonicalActionOrder
+  | noncanonicalInitialOrder
+  | noncanonicalStepOrder
+  deriving BEq, DecidableEq, Repr
+
+/-- Planner-kernel admission failures identify the selected Target and the offending finite rows. -/
+structure FinitePlannerAdmissionError where
+  kind : FinitePlannerAdmissionErrorKind
+  expectedTarget : DefinitionId
+  actualTarget : DefinitionId
+  relatedDefinitionIds : List DefinitionId := []
+  deriving BEq, DecidableEq, Repr
+
+private def modelValueLe (left right : ModelValue) : Bool :=
+  decide (modelValueOrderKey left ≤ modelValueOrderKey right)
+
+private def transitionResultLe
+    (left right : TransitionResult ModelValue ModelValue ModelValue) : Bool :=
+  decide (transitionResultOrderKey left ≤ transitionResultOrderKey right)
+
+private theorem modelValueLe_trans (a b c : ModelValue) :
+    modelValueLe a b → modelValueLe b c → modelValueLe a c := by
+  simp only [modelValueLe, decide_eq_true_eq]
+  exact fun ab bc => String.le_trans ab bc
+
+private theorem modelValueLe_total (a b : ModelValue) :
+    modelValueLe a b || modelValueLe b a := by
+  simp only [modelValueLe, Bool.or_eq_true, decide_eq_true_eq]
+  exact String.le_total _ _
+
+private theorem transitionResultLe_trans
+    (a b c : TransitionResult ModelValue ModelValue ModelValue) :
+    transitionResultLe a b → transitionResultLe b c → transitionResultLe a c := by
+  simp only [transitionResultLe, decide_eq_true_eq]
+  exact fun ab bc => String.le_trans ab bc
+
+private theorem transitionResultLe_total
+    (a b : TransitionResult ModelValue ModelValue ModelValue) :
+    transitionResultLe a b || transitionResultLe b a := by
+  simp only [transitionResultLe, Bool.or_eq_true, decide_eq_true_eq]
+  exact String.le_total _ _
+
+private theorem modelValueBeqSelf (value : ModelValue) : (value == value) = true := by
+  cases value with
+  | mk definitionId text =>
+    cases definitionId with
+    | mk id =>
+      change (id == id && text == text) = true
+      simp only [beq_self_eq_true, Bool.and_self]
+
+private theorem modelValueListBeqSelf (values : List ModelValue) :
+    (values == values) = true := by
+  induction values with
+  | nil => rfl
+  | cons head tail ih =>
+    change (head == head && tail == tail) = true
+    rw [modelValueBeqSelf, ih]
+    rfl
+
+private theorem transitionResultBeqSelf
+    (result : TransitionResult ModelValue ModelValue ModelValue) :
+    (result == result) = true := by
+  cases result with
+  | mk outcome state observations =>
+    change (outcome == outcome && (state == state && observations == observations)) = true
+    rw [modelValueBeqSelf, modelValueBeqSelf, modelValueListBeqSelf]
+    rfl
+
+private theorem transitionResultListBeqSelf
+    (results : List (TransitionResult ModelValue ModelValue ModelValue)) :
+    (results == results) = true := by
+  induction results with
+  | nil => rfl
+  | cons head tail ih =>
+    change (head == head && tail == tail) = true
+    rw [transitionResultBeqSelf, ih]
+    rfl
+
+/-- Derive the indexed kernel with Definition-ID ordering owned by Planning. The separate adapter
+is required because finite completeness does not constrain arbitrary out-of-domain selectors. -/
+private def IncrementalPlannerKernel.ofCanonicalFinite
+    (evidence : FiniteCompletenessEvidence LawStatement target) :
+    IncrementalPlannerKernel target :=
+  let actions := evidence.actions.mergeSort modelValueLe
+  {
+  actionLimit := actions.length
+  actionAt := fun index => actions[index]?
+  initialLimit := fun setup => (target.kernel.initialStates setup).length
+  initialAt := fun setup index =>
+    (target.kernel.initialStates setup |>.mergeSort modelValueLe)[index]?
+  stepLimit := fun state action => (target.kernel.steps state action).length
+  stepAt := fun state action index =>
+    (target.kernel.steps state action |>.mergeSort transitionResultLe)[index]?
+  actionSound := by
+    intro index action _ emitted
+    apply evidence.actionSound action
+    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
+    have member : action ∈ evidence.actions.mergeSort modelValueLe := by
+      rw [List.mem_iff_getElem]
+      exact ⟨index, inBounds, selected⟩
+    simpa [List.mem_iff_getElem] using List.mem_mergeSort.mp member
+  actionComplete := by
+    intro state action result admitted
+    have member : action ∈ evidence.actions.mergeSort modelValueLe :=
+      List.mem_mergeSort.mpr (evidence.actionComplete state action result admitted)
+    rw [List.mem_iff_getElem] at member
+    rcases member with ⟨index, inBounds, selected⟩
+    exact ⟨index, inBounds, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
+  initialSound := by
+    intro setup index state _ emitted
+    apply target.kernel.initialSound
+    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
+    have member : state ∈ (target.kernel.initialStates setup |>.mergeSort modelValueLe) := by
+      rw [List.mem_iff_getElem]
+      exact ⟨index, inBounds, selected⟩
+    exact List.mem_mergeSort.mp member
+  initialComplete := by
+    intro setup state admitted
+    have member : state ∈ (target.kernel.initialStates setup |>.mergeSort modelValueLe) :=
+      List.mem_mergeSort.mpr (target.kernel.initialComplete setup state admitted)
+    rw [List.mem_iff_getElem] at member
+    rcases member with ⟨index, inBounds, selected⟩
+    have originalBound : index < (target.kernel.initialStates setup).length := by
+      simpa using inBounds
+    exact ⟨index, originalBound, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
+  stepSound := by
+    intro state action index result _ emitted
+    apply target.kernel.stepSound
+    rcases List.getElem?_eq_some_iff.mp emitted with ⟨inBounds, selected⟩
+    have member : result ∈
+        (target.kernel.steps state action |>.mergeSort transitionResultLe) := by
+      rw [List.mem_iff_getElem]
+      exact ⟨index, inBounds, selected⟩
+    exact List.mem_mergeSort.mp member
+  stepComplete := by
+    intro state action result admitted
+    have member : result ∈
+        (target.kernel.steps state action |>.mergeSort transitionResultLe) :=
+      List.mem_mergeSort.mpr (target.kernel.stepComplete state action result admitted)
+    rw [List.mem_iff_getElem] at member
+    rcases member with ⟨index, inBounds, selected⟩
+    have originalBound : index < (target.kernel.steps state action).length := by
+      simpa using inBounds
+    exact ⟨index, originalBound, List.getElem?_eq_some_iff.mpr ⟨inBounds, selected⟩⟩
+  actionOrdered := by
+    intro first second left right earlier emittedLeft emittedRight
+    rcases List.getElem?_eq_some_iff.mp emittedLeft with ⟨firstBound, selectedLeft⟩
+    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
+    have ordered := List.pairwise_iff_getElem.mp
+      (List.pairwise_mergeSort modelValueLe_trans modelValueLe_total evidence.actions)
+      first second firstBound secondBound earlier
+    simpa [actions, modelValueLe, selectedLeft, selectedRight] using ordered
+  initialOrdered := by
+    intro setup first second left right earlier emittedLeft emittedRight
+    rcases List.getElem?_eq_some_iff.mp emittedLeft with ⟨firstBound, selectedLeft⟩
+    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
+    have ordered := List.pairwise_iff_getElem.mp
+      (List.pairwise_mergeSort modelValueLe_trans modelValueLe_total
+        (target.kernel.initialStates setup))
+      first second firstBound secondBound earlier
+    simpa [modelValueLe, selectedLeft, selectedRight] using ordered
+  stepOrdered := by
+    intro state action first second left right earlier emittedLeft emittedRight
+    rcases List.getElem?_eq_some_iff.mp emittedLeft with ⟨firstBound, selectedLeft⟩
+    rcases List.getElem?_eq_some_iff.mp emittedRight with ⟨secondBound, selectedRight⟩
+    have ordered := List.pairwise_iff_getElem.mp
+      (List.pairwise_mergeSort transitionResultLe_trans transitionResultLe_total
+        (target.kernel.steps state action))
+      first second firstBound secondBound earlier
+    simpa [transitionResultLe, selectedLeft, selectedRight] using ordered
+}
+
+private def finiteOrderError?
+    (query : CheckedQuery LawStatement)
+    (evidence : FiniteCompletenessEvidence LawStatement query.target) :
+    Option FinitePlannerAdmissionError :=
+  let targetId := query.target.id
+  if evidence.actions.mergeSort modelValueLe != evidence.actions then
+    some { kind := .noncanonicalActionOrder, expectedTarget := targetId, actualTarget := targetId }
+  else
+    match query.target.kernel.behaviorDomain with
+    | .missing | .incomplete _ => some {
+        kind := .missingFiniteCompleteness
+        expectedTarget := targetId
+        actualTarget := targetId
+      }
+    | .complete domain =>
+        match domain.setups.find? fun setup =>
+            (query.target.kernel.initialStates setup |>.mergeSort modelValueLe) !=
+              query.target.kernel.initialStates setup with
+        | some setup => some {
+            kind := .noncanonicalInitialOrder
+            expectedTarget := targetId
+            actualTarget := targetId
+            relatedDefinitionIds := setup.map RoleBinding.role
+          }
+        | none =>
+            let pairs := domain.states.flatMap fun state => domain.actions.map fun action =>
+              (state, action)
+            match pairs.find? fun pair =>
+                (query.target.kernel.steps pair.1 pair.2 |>.mergeSort transitionResultLe) !=
+                  query.target.kernel.steps pair.1 pair.2 with
+            | some (state, action) => some {
+                kind := .noncanonicalStepOrder
+                expectedTarget := targetId
+                actualTarget := targetId
+                relatedDefinitionIds := [state.definitionId, action.definitionId]
+              }
+            | none => none
+
+/-- Admit the planner view from one checked Query, rejecting identity, completeness, or order drift. -/
+def IncrementalPlannerKernel.ofCheckedQuery
+    (expectedTarget : DefinitionId)
+    (query : CheckedQuery LawStatement) :
+    Except FinitePlannerAdmissionError (IncrementalPlannerKernel query.target) :=
+  if expectedTarget != query.target.id then
+    .error {
+      kind := .targetMismatch
+      expectedTarget
+      actualTarget := query.target.id
+      relatedDefinitionIds := [expectedTarget, query.target.id]
+    }
+  else
+    match query.completeness with
+    | none => .error {
+        kind := .missingFiniteCompleteness
+        expectedTarget
+        actualTarget := query.target.id
+        relatedDefinitionIds := [query.target.id, query.target.kernel.metadata.id]
+      }
+    | some evidence =>
+        match finiteOrderError? query evidence with
+        | some error => .error error
+        | none => .ok (.ofCanonicalFinite evidence)
+
+/-- Prove checked-query planner admission from the same explicit finite-order evidence consumed by
+the admission checker. This keeps successful extraction kernel-checked while the `Except` result
+continues to expose target, completeness, and canonical-order failures to ordinary callers. -/
+theorem IncrementalPlannerKernel.ofCheckedQuery_isSome
+    (expectedTarget : DefinitionId)
+    (query : CheckedQuery LawStatement)
+    (evidence : FiniteCompletenessEvidence LawStatement query.target)
+    (targetMatches : (expectedTarget != query.target.id) = false)
+    (completeness : query.completeness = some evidence)
+    (behaviorDomainComplete : ∃ domain,
+      query.target.kernel.behaviorDomain = .complete domain)
+    (actionCanonical : evidence.actions.mergeSort (fun left right =>
+      decide (modelValueOrderKey left ≤ modelValueOrderKey right)) = evidence.actions)
+    (initialCanonical : ∀ setup,
+      (query.target.kernel.initialStates setup).mergeSort (fun left right =>
+        decide (modelValueOrderKey left ≤ modelValueOrderKey right)) =
+      query.target.kernel.initialStates setup)
+    (stepCanonical : ∀ state action,
+      (query.target.kernel.steps state action).mergeSort (fun left right =>
+        decide (transitionResultOrderKey left ≤ transitionResultOrderKey right)) =
+      query.target.kernel.steps state action) :
+    (IncrementalPlannerKernel.ofCheckedQuery expectedTarget query).toOption.isSome = true := by
+  rcases behaviorDomainComplete with ⟨domain, behaviorDomain⟩
+  change evidence.actions.mergeSort modelValueLe = evidence.actions at actionCanonical
+  change ∀ setup, (query.target.kernel.initialStates setup).mergeSort modelValueLe =
+    query.target.kernel.initialStates setup at initialCanonical
+  change ∀ state action, (query.target.kernel.steps state action).mergeSort transitionResultLe =
+    query.target.kernel.steps state action at stepCanonical
+  have actionCanonicalBool :
+      (evidence.actions.mergeSort modelValueLe != evidence.actions) = false := by
+    rw [actionCanonical]
+    change (!(evidence.actions == evidence.actions)) = false
+    rw [modelValueListBeqSelf]
+    rfl
+  have initialCanonicalBool : ∀ setup,
+      ((query.target.kernel.initialStates setup).mergeSort modelValueLe !=
+        query.target.kernel.initialStates setup) = false := by
+    intro setup
+    rw [initialCanonical]
+    change (!(query.target.kernel.initialStates setup ==
+      query.target.kernel.initialStates setup)) = false
+    rw [modelValueListBeqSelf]
+    rfl
+  have stepCanonicalBool : ∀ state action,
+      ((query.target.kernel.steps state action).mergeSort transitionResultLe !=
+        query.target.kernel.steps state action) = false := by
+    intro state action
+    rw [stepCanonical]
+    change (!(query.target.kernel.steps state action ==
+      query.target.kernel.steps state action)) = false
+    rw [transitionResultListBeqSelf]
+    rfl
+  have findFalse : ∀ {α : Type} (items : List α),
+      items.find? (fun _ => false) = none := by
+    intro α items
+    induction items <;> simp_all
+  simp [IncrementalPlannerKernel.ofCheckedQuery, targetMatches, completeness, finiteOrderError?,
+    behaviorDomain, actionCanonicalBool, initialCanonicalBool, stepCanonicalBool, findFalse]
+  rfl
+
 private structure PlannerCursor where
   trace : BehaviorTrace
   nextAction : Nat := 0
@@ -314,12 +612,32 @@ private def planningMetadata
   }
 }
 
-private inductive PlanningTermination where
-  | found (trace : BehaviorTrace) (reason : SelectionReason)
+inductive BoundedTraversalTermination where
+  | stopped (trace : BehaviorTrace) (reason : SelectionReason)
   | complete (behaviorAdmitted : Bool)
   | limitReached
   | invalid (error : QueryError)
   deriving BEq, DecidableEq, Repr
+
+def BoundedTraversalTermination.name : BoundedTraversalTermination → String
+  | .stopped _ _ => "stopped"
+  | .complete true => "exhaustive"
+  | .complete false => "unsatisfiable"
+  | .limitReached => "limit-reached"
+  | .invalid _ => "invalid"
+
+/-- One admitted-candidate fold decision. The traversal owns candidate order and continuation;
+consumers can retain only the semantic state their analysis needs. -/
+inductive BoundedTraversalStep (State : Type) where
+  | continue (state : State)
+  | stop (state : State) (trace : BehaviorTrace) (reason : SelectionReason)
+
+/-- Bounded traversal evidence shared by planning and finite semantic analyses. -/
+structure BoundedTraversalResult (State : Type) where
+  state : State
+  termination : BoundedTraversalTermination
+  metadata : PlanningMetadata
+  instrumentation : PlannerInstrumentation
 
 /-- The planner-private result finalizer enforces the query's claim strength. A backend completion
 signal establishes completeness only for a finite exhaustive query that admitted at least one
@@ -327,13 +645,13 @@ behavior trace, and an empty behavior always wins over every attempted terminal 
 private def finalizePlanning
     (query : CheckedQuery LawStatement)
     (explored : ExploredCounts)
-    (termination : PlanningTermination) : PlanningResult :=
+    (termination : BoundedTraversalTermination) : PlanningResult :=
   let (outcome, established) :=
     if query.behavior.isUnsatisfiable then
       (PlanningOutcome.unsatisfiable, false)
     else
       match termination with
-      | .found trace reason => (.found trace reason, false)
+      | .stopped trace reason => (.found trace reason, false)
       | .limitReached => (.limitReached, false)
       | .invalid error => (.invalid error, false)
       | .complete false => (.unsatisfiable, false)
@@ -516,26 +834,39 @@ private def purePlannerBackend
 
 private def evaluatesToSelection
     (query : CheckedQuery LawStatement)
-    (candidate : BehaviorTrace) : Option SelectionReason :=
+    (candidate : BehaviorTrace) : Except QueryError (Option SelectionReason) := do
+  let evaluate (property : CheckedProperty) : Except QueryError PropertyEvaluation := do
+    match checkPropertyEvaluationInput property candidate.trace with
+    | .ok input => pure (evaluateProperty property input)
+    | .error error =>
+        throw {
+          kind := .propertyEvaluationFailure
+          definitionId := query.id
+          sourcePath := error.sourcePath
+          offendingValue := error.kind.name ++ ":" ++ error.offendingValue
+          relatedDefinitionIds := DefinitionId.canonicalSet
+            (property.id :: property.guardedClauseIds ++ error.relatedDefinitionIds)
+        }
   match query.form with
   | .verify property =>
-      if (evaluateProperty property candidate.trace).satisfied then
-        none
+      if (← evaluate property).satisfied then
+        pure none
       else
-        some .violatingCounterexample
+        pure (some .violatingCounterexample)
   | .witness property =>
-      if (evaluateProperty property candidate.trace).satisfied then
-        some .satisfyingWitness
+      if (← evaluate property).satisfied then
+        pure (some .satisfyingWitness)
       else
-        none
+        pure none
   | .counterexample property =>
-      if (evaluateProperty property candidate.trace).satisfied then
-        none
+      if (← evaluate property).satisfied then
+        pure none
       else
-        some .violatingCounterexample
+        pure (some .violatingCounterexample)
   | .select properties =>
-      let _ := properties.map fun property => evaluateProperty property candidate.trace
-      some .behaviorSelection
+      for property in properties do
+        let _ ← evaluate property
+      pure (some .behaviorSelection)
 
 private def noteCandidate
     (candidate : BehaviorTrace)
@@ -572,52 +903,91 @@ private def finish
     (query : CheckedQuery LawStatement)
     (explored : ExploredCounts)
     (instrumentation : PlannerInstrumentation)
-    (termination : PlanningTermination) : PlannerRun :=
+    (termination : BoundedTraversalTermination) : PlannerRun :=
   let result := finalizePlanning query explored termination
   let artifact := match termination with
-    | .found trace reason => some (artifactOfSelection query trace reason explored)
+    | .stopped trace reason => some (artifactOfSelection query trace reason explored)
     | _ => none
   { result, artifact, instrumentation }
 
-private def planLoop
+private def traversalMetadata
+    (query : CheckedQuery LawStatement)
+    (explored : ExploredCounts)
+    (termination : BoundedTraversalTermination) : PlanningMetadata :=
+  let established := match termination with
+    | .complete true => query.policy.strategy == .exhaustive && query.completeness.isSome
+    | _ => false
+  planningMetadata query explored established
+
+private def traversalResult
+    (query : CheckedQuery LawStatement)
+    (state : State)
+    (termination : BoundedTraversalTermination)
+    (explored : ExploredCounts)
+    (instrumentation : PlannerInstrumentation) : BoundedTraversalResult State := {
+  state
+  termination
+  metadata := traversalMetadata query explored termination
+  instrumentation
+}
+
+private def traverseLoop
     (query : CheckedQuery LawStatement)
     (backend : PlannerBackend Unit PurePlannerState BehaviorTrace)
-    (state : PurePlannerState)
+    (cursor : PurePlannerState)
+    (consumerState : State)
+    (visit : State → BehaviorTrace → Except QueryError (BoundedTraversalStep State))
     (remaining : Nat)
     (behaviorAdmitted : Bool)
     (explored : ExploredCounts)
-    (instrumentation : PlannerInstrumentation) : PlannerRun :=
+    (instrumentation : PlannerInstrumentation) : BoundedTraversalResult State :=
   match remaining with
-  | 0 => finish query explored instrumentation .limitReached
+  | 0 => traversalResult query consumerState .limitReached explored instrumentation
   | remaining + 1 =>
-      match backend.pull () state with
+      match backend.pull () cursor with
       | .complete =>
-          finish query explored
+          traversalResult query consumerState (.complete behaviorAdmitted) explored
             { instrumentation with backendPulls := instrumentation.backendPulls + 1 }
-            (.complete behaviorAdmitted)
       | .yield candidate next =>
           let explored := noteCandidate candidate explored
           let instrumentation := notePull candidate next instrumentation
           if query.behavior.admits candidate then
             let explored := notePropertyEvaluations query explored
-            match evaluatesToSelection query candidate with
-            | some reason =>
-                finish query explored instrumentation (.found candidate reason)
-            | none =>
-                planLoop query backend next remaining true explored instrumentation
+            match visit consumerState candidate with
+            | .error error =>
+                traversalResult query consumerState (.invalid error) explored instrumentation
+            | .ok (.stop state trace reason) =>
+                traversalResult query state (.stopped trace reason) explored instrumentation
+            | .ok (.continue state) =>
+                traverseLoop query backend next state visit remaining true explored instrumentation
           else
-            planLoop query backend next remaining behaviorAdmitted explored instrumentation
+            traverseLoop query backend next consumerState visit remaining behaviorAdmitted explored
+              instrumentation
 termination_by remaining
+
+/-- Fold admitted traces through the planner's bounded candidate stream. The private cursor and
+backend stay hidden; candidate order, Behavior filtering, accounting, and completion are shared. -/
+def traverseBoundedCandidates
+    (query : CheckedQuery LawStatement)
+    (kernel : IncrementalPlannerKernel query.target)
+    (initial : State)
+    (visit : State → BehaviorTrace → Except QueryError (BoundedTraversalStep State)) :
+    BoundedTraversalResult State :=
+  if query.behavior.isUnsatisfiable then
+    traversalResult query initial (.complete false) {} {}
+  else
+    let backend := purePlannerBackend query kernel
+    traverseLoop query backend (backend.start ()) initial visit query.limits.search.value false {} {}
 
 /-- Plan a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
 def plan
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target) : PlannerRun :=
-  if query.behavior.isUnsatisfiable then
-    finish query {} {} (.complete false)
-  else
-    let backend := purePlannerBackend query kernel
-    planLoop query backend (backend.start ()) query.limits.search.value false {} {}
+  let traversed := traverseBoundedCandidates query kernel () fun _ candidate => do
+    match ← evaluatesToSelection query candidate with
+    | some reason => pure (.stop () candidate reason)
+    | none => pure (.continue ())
+  finish query traversed.metadata.explored traversed.instrumentation traversed.termination
 
 /--
 Plan through the unchanged target kernel, then project checked Artifact intent if one is selected.

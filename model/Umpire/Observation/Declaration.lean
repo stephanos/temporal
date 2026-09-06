@@ -77,6 +77,35 @@ def ObservationFieldSpec.reference (fieldSpec : ObservationFieldSpec) : Evidence
   field := fieldSpec.field
 }
 
+/-- One explicitly named evidence kind and its ordered typed fields. -/
+structure ObservationKindSpec where
+  id : DefinitionId
+  fields : List ObservationFieldSpec
+  deriving BEq, DecidableEq, Repr
+
+/-- Project one existing evidence-kind declaration without checking or normalization. -/
+def ObservationKindSpec.declaration (spec : ObservationKindSpec) : EvidenceKindDeclaration := {
+  id := spec.id
+  fields := spec.fields.map ObservationFieldSpec.declaration
+}
+
+/-- Inert typed input for an explicit evidence profile. -/
+structure ObservationProfileSpec where
+  id : DefinitionId
+  source : SourceLocation
+  version : Nat := 1
+  kinds : List ObservationKindSpec
+  deriving BEq, DecidableEq, Repr
+
+/-- Project the existing profile declaration, preserving author order and source. -/
+def ObservationProfileSpec.declaration (spec : ObservationProfileSpec) :
+    EvidenceProfileDeclaration := {
+  id := spec.id
+  source := spec.source
+  version := spec.version
+  kinds := spec.kinds.map ObservationKindSpec.declaration
+}
+
 structure ObservationOperator where
   name : String
   version : Nat
@@ -159,6 +188,24 @@ structure ObservationRule where
   condition : Option ObservationExpressionAuthoring := none
   deriving BEq, DecidableEq, Repr
 
+/-- Inert direct-field rule input with an explicit semantic output and condition. -/
+structure ObservationRuleSpec where
+  id : DefinitionId
+  output : DefinitionId
+  outputKind : DefinitionKind
+  field : ObservationFieldSpec
+  condition : Option ObservationExpressionAuthoring := none
+  deriving BEq, DecidableEq, Repr
+
+/-- Project a direct typed field rule into the existing closed rule vocabulary. -/
+def ObservationRuleSpec.declaration (spec : ObservationRuleSpec) : ObservationRule := {
+  id := spec.id
+  output := spec.output
+  outputKind := spec.outputKind
+  value := .portable spec.field.expression
+  condition := spec.condition
+}
+
 structure ObservationOrdering where
   before : DefinitionId
   after : DefinitionId
@@ -183,5 +230,39 @@ structure ObservationMappingDeclaration where
   evidenceBound : EvidenceBound
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
+
+/-- Inert typed input for one explicit Observation mapping. -/
+structure ObservationMappingSpec where
+  id : DefinitionId
+  source : SourceLocation
+  version : Nat := 1
+  profile : DefinitionId
+  digestPolicies : List DigestPolicyDeclaration := []
+  bindings : List ObservationBinding := []
+  rules : List ObservationRule
+  ordering : List ObservationOrdering := []
+  closures : List EvidenceClosureDeclaration
+  dispositions : List (ObservationFieldSpec × FieldDisposition)
+  evidenceBound : EvidenceBound
+  documentation : String := ""
+  deriving BEq, DecidableEq, Repr
+
+/-- Project the existing mapping declaration with one pass over explicit disposition choices. -/
+def ObservationMappingSpec.declaration (spec : ObservationMappingSpec) :
+    ObservationMappingDeclaration := {
+  id := spec.id
+  source := spec.source
+  version := spec.version
+  profile := spec.profile
+  digestPolicies := spec.digestPolicies
+  bindings := spec.bindings
+  rules := spec.rules
+  ordering := spec.ordering
+  closures := spec.closures
+  dispositions := spec.dispositions.map fun (field, disposition) =>
+    field.disposition disposition
+  evidenceBound := spec.evidenceBound
+  documentation := spec.documentation
+}
 
 end Umpire

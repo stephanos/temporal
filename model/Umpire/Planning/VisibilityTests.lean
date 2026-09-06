@@ -5,6 +5,16 @@ import Umpire.Planning
 namespace Umpire.PlanningVisibilityTests
 
 #check IncrementalPlannerKernel.ofCheckedQuery?
+#check IncrementalPlannerKernel.ofCheckedQuery
+#check FinitePlannerAdmissionError
+#check FinitePlannerAdmissionErrorKind
+#check traverseBoundedCandidates
+#check analyzeCases
+#check CaseAnalysisResult
+#check JointCompatibilityStatus
+#check JointConflictEvidence
+#check JointModelIncompatibility
+#check JointUnsupportedFormulaClass
 
 /-! Importing Planning does not expose its private completion finalizer. -/
 /--
