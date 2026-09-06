@@ -81,7 +81,7 @@ No Query currently has an executable Case producer: the authored Target and Quer
 yet have checker-success evidence. The mappings below specify the intended seam and rejection
 requirements; they are not executable support declarations.
 
-`Temporal.CaseRuntime.asyncNexusCase` is a useful example of setup, asynchronous handler response,
+`Temporal.Testpilot.asyncNexusCase` is a useful example of setup, asynchronous handler response,
 completion capability, and history correlation. It has independently authored Program/Contract
 meaning; returning it under a Nexus3 Query ID would not establish Nexus3 lowering correctness.
 `Umpire.Case.Compiler.compile` accepts an already-built Program and lowered monitors; it does
