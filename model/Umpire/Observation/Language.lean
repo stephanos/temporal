@@ -18,4 +18,17 @@ def checkedObservation
     CheckedObservationPlan :=
   (checkObservation context declaration).toOption.get valid
 
+/-- Admit a constructor-authored mapping only through the existing Observation checker. -/
+def ObservationMappingSpec.check
+    (spec : ObservationMappingSpec)
+    (context : ObservationCheckContext) : Except ObservationError CheckedObservationPlan :=
+  checkObservation context spec.declaration
+
+/-- Produce the checked mapping after the kernel verifies that the existing checker succeeds. -/
+def ObservationMappingSpec.checked
+    (spec : ObservationMappingSpec)
+    (context : ObservationCheckContext)
+    (valid : (spec.check context).toOption.isSome = true) : CheckedObservationPlan :=
+  checkedObservation context spec.declaration valid
+
 end Umpire

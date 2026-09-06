@@ -20,6 +20,41 @@ def projectedHashedField : ObservationFieldSpec := {
   valueType := .text
 }
 
+def projectedProfileSpec : ObservationProfileSpec := {
+  id := profileId
+  source
+  kinds := [{
+    id := eventKind
+    fields := [nameFieldSpec, secretFieldSpec, hashedFieldSpec, rejectedFieldSpec]
+  }]
+}
+
+def projectedInitialRuleSpec : ObservationRuleSpec := {
+  id := initialRule.id
+  output := operationState
+  outputKind := .state
+  field := nameFieldSpec
+  condition := initialRule.condition
+}
+
+def projectedMappingSpec : ObservationMappingSpec := {
+  id := baseDeclaration.id
+  source
+  profile := profileId
+  digestPolicies := [digestPolicy]
+  bindings := [normalizedName]
+  rules := [initialRule, contributionRule, digestRule]
+  ordering := baseDeclaration.ordering
+  closures := [{ kind := eventKind }]
+  dispositions := [
+    (nameFieldSpec, .retain),
+    (secretFieldSpec, .redact),
+    (hashedFieldSpec, .hash (some digestPolicyId)),
+    (rejectedFieldSpec, .reject)
+  ]
+  evidenceBound := { value := 10, unit := .evidenceRecords }
+}
+
 /-- Field specifications reproduce the existing inert authoring records exactly. -/
 example :
     (projectedNameField.declaration,
@@ -31,6 +66,29 @@ example :
       .field { kind := eventKind, field := nameField },
       { field := { kind := eventKind, field := nameField }, disposition := .retain }) := by
   rfl
+
+/-- Profile, rule, and mapping specifications project exact existing declaration values. -/
+example :
+    projectedProfileSpec.declaration = evidenceProfile ∧
+    projectedInitialRuleSpec.declaration = {
+      initialRule with value := .portable nameFieldSpec.expression
+    } ∧
+    projectedMappingSpec.declaration = baseDeclaration := by
+  exact ⟨rfl, rfl, rfl⟩
+
+def checkedProjectedPlan : CheckedObservationPlan :=
+  projectedMappingSpec.checked context (by native_decide)
+
+/-- Specification checking and checked extraction delegate to the existing checker exactly once. -/
+example :
+    projectedMappingSpec.check context = checkObservation context baseDeclaration ∧
+    checkedProjectedPlan =
+      (checkObservation context baseDeclaration).toOption.get (by native_decide) := by
+  exact ⟨rfl, rfl⟩
+
+#guard_msgs (error, substring := true) in
+def projectedMappingWithoutValidityProof : CheckedObservationPlan :=
+  projectedMappingSpec.checked context
 
 def checkedBasePlan : CheckedObservationPlan :=
   checkedObservation context baseDeclaration (by native_decide)
@@ -87,8 +145,8 @@ def connectedContext : Option ObservationCheckContext :=
   (composeTarget Umpire.TargetTests.testTarget).toOption.map fun target =>
     ObservationCheckContext.ofTarget target [evidenceProfile]
 
-def reconciledMapping : ObservationMappingDeclaration := {
-  baseDeclaration with
+def reconciledMappingSpec : ObservationMappingSpec := {
+  baseSpec with
   id := id "test.mapping.reconciled"
   digestPolicies := []
   bindings := []
@@ -102,6 +160,9 @@ def reconciledMapping : ObservationMappingDeclaration := {
   dispositions := []
 }
 
+def reconciledMapping : ObservationMappingDeclaration :=
+  reconciledMappingSpec.declaration
+
 def reconciledMeaningDigest : Option String := do
   let checkContext ← connectedContext
   let plan ← (checkObservation checkContext reconciledMapping).toOption
@@ -110,6 +171,17 @@ def reconciledMeaningDigest : Option String := do
 
 /-- Connected target meanings compile under the connector's reconciled semantic identity. -/
 example : reconciledMeaningDigest = some "test-shared-connector/reconciled-v1" := by
+  native_decide
+
+def providerResolutionFailures :
+    Option DefinitionErrorKind × Option ObservationErrorKind :=
+  (Umpire.TargetTests.errorOf (composeTarget Umpire.TargetTests.conflictingTarget)
+      |>.map DefinitionError.kind,
+    errorKindOf (checkObservation { context with meanings := [] } reconciledMapping))
+
+/-- Conflicting providers fail before Observation construction; unresolved meaning stays fail-closed. -/
+example : providerResolutionFailures =
+    (some .conflictingProviders, some .unknownSemanticDeclaration) := by
   native_decide
 
 /-- Every consumed field has one checked disposition in the canonical plan. -/
@@ -452,5 +524,50 @@ example : structuralFailures = [
   some .missingDigestPolicy
 ] := by
   native_decide
+
+/-! Structural cost inventory for the inert helper layer:
+
+`ObservationKindSpec.declaration` calls `List.map` once over its explicit field collection.
+`ObservationProfileSpec.declaration` calls `List.map` once over its explicit kind collection and
+then the kind helper once per kind. `ObservationRuleSpec.declaration` calls
+`ObservationFieldSpec.expression` and performs record assembly without a collection traversal.
+`ObservationMappingSpec.declaration` calls `List.map` once over explicit disposition choices and
+otherwise performs record assembly. `ObservationMappingSpec.check` and `.checked` each delegate to
+one `checkObservation` call; neither normalizes, rescans, nor duplicates checker work. The
+independent 1×/10× specimens below therefore add exactly one copy of that wrapper work per input;
+the unchanged checker complexity is outside this construction inventory. -/
+
+def oneIndependentObservationConstruction :
+    List (EvidenceProfileDeclaration × ObservationRule × ObservationMappingDeclaration) := [
+  (projectedProfileSpec.declaration, projectedInitialRuleSpec.declaration,
+    projectedMappingSpec.declaration)
+]
+
+def tenIndependentObservationConstructions :
+    List (EvidenceProfileDeclaration × ObservationRule × ObservationMappingDeclaration) :=
+  (List.range 10).map fun index =>
+    let suffix := toString index
+    let profile := {
+      projectedProfileSpec with id := id ("test.evidence.profile.scale-" ++ suffix)
+    }
+    let rule := {
+      projectedInitialRuleSpec with id := id ("test.rule.scale-" ++ suffix)
+    }
+    let mapping := {
+      projectedMappingSpec with id := id ("test.mapping.scale-" ++ suffix)
+    }
+    (profile.declaration, rule.declaration, mapping.declaration)
+
+example : oneIndependentObservationConstruction.length = 1 ∧
+    tenIndependentObservationConstructions.length = 10 := by
+  native_decide
+
+#print axioms ObservationKindSpec.declaration
+#print axioms ObservationProfileSpec.declaration
+#print axioms ObservationRuleSpec.declaration
+#print axioms ObservationMappingSpec.declaration
+#print axioms ObservationMappingSpec.check
+#print axioms checkedObservation
+#print axioms ObservationMappingSpec.checked
 
 end Umpire.ObservationTests

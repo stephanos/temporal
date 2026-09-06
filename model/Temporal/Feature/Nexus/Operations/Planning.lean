@@ -1,10 +1,10 @@
 import Temporal.Feature.Nexus.Operations.Internal
 
 /-!
-# Shared deterministic Nexus operation planning
+# Shared deterministic Nexus operation planning imports
 
-This lower seam adapts the checked lifecycle target to the incremental planner. Operation-specific
-runs stay beside their Property, Behavior, and Query in the three walkthrough modules.
+Operation-specific modules derive their planner kernels directly from their checked Queries through
+`IncrementalPlannerKernel.ofCheckedQuery`. This module retains the established lower import seam.
 -/
 
 namespace Temporal.Feature.Nexus.Operations
@@ -12,34 +12,32 @@ namespace Temporal.Feature.Nexus.Operations
 open Umpire
 open Temporal.Feature.Nexus.Lifecycle
 
-private def finiteEvidence? : Option (FiniteCompletenessEvidence LawStatement target) :=
-  (CheckedQueryTarget.ofTarget target).completeness
+namespace Internal
 
-private def incrementalKernel? : Option (IncrementalPlannerKernel target) :=
-  match evidenceEq : finiteEvidence? with
-  | none => none
-  | some evidence =>
-      some <| IncrementalPlannerKernel.ofFinite evidence {
-        action := by
-          simp [finiteEvidence?, CheckedQueryTarget.ofTarget, target, checkedTarget,
-            targetAuthoring, AuthoredTarget.make, targetDefinition] at evidenceEq
-          cases Option.some.inj evidenceEq
-          simp [finitePlanning, actionDomain]
-          decide
-        initial := by
-          intro setup
-          simp [target, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
-            transitionKernel, initialStates]
-        step := by
-          intro state action
-          simp [target, checkedTarget, targetAuthoring, AuthoredTarget.make, targetDefinition,
-            transitionKernel, stepResults]
-      }
+theorem lifecycleBehaviorDomainComplete :
+    ∃ domain, finiteMachine.kernel.behaviorDomain = .complete domain := by
+  simp [FiniteMachine.kernel]
 
-private theorem incrementalKernel?_isSome : incrementalKernel?.isSome = true := by
-  rfl
+theorem lifecycleActionDomainCanonical :
+    actionDomain.mergeSort (fun left right =>
+      decide (modelValueOrderKey left ≤ modelValueOrderKey right)) = actionDomain := by
+  apply List.mergeSort_of_pairwise
+  decide
 
-def incrementalKernel : IncrementalPlannerKernel target :=
-  incrementalKernel?.get incrementalKernel?_isSome
+theorem lifecycleInitialStatesCanonical (setup : List RoleBinding) :
+    (initialState? setup).toList.mergeSort (fun left right =>
+      decide (modelValueOrderKey left ≤ modelValueOrderKey right)) =
+      (initialState? setup).toList := by
+  cases initialState? setup <;> simp only [Option.toList, List.mergeSort_nil,
+    List.mergeSort_singleton]
+
+theorem lifecycleStepResultsCanonical (state action : ModelValue) :
+    (stepResult? state action).toList.mergeSort (fun left right =>
+      decide (transitionResultOrderKey left ≤ transitionResultOrderKey right)) =
+      (stepResult? state action).toList := by
+  cases stepResult? state action <;> simp only [Option.toList, List.mergeSort_nil,
+    List.mergeSort_singleton]
+
+end Internal
 
 end Temporal.Feature.Nexus.Operations

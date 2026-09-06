@@ -29,6 +29,9 @@ private def clausePatterns : ResolvedPropertyClause → List PropertyPattern
   | .ordered _ before after _ => [before, after]
   | .eventuallyWithin _ trigger response _ => [trigger, response]
   | .quiescentWithin _ trigger forbidden _ => [trigger, forbidden]
+  | .sameStepCases _ => []
+  | .guardedEventuallyWithin guarded | .guardedQuiescentWithin guarded =>
+      [guarded.trigger, guarded.response]
 
 private def relevantEvidenceLinks
     (destinationTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
@@ -111,31 +114,42 @@ private def translatedPropertyVerdict
       if expected != property then
         unresolvedPropertyVerdict query property .unsupported .queryPropertyMismatch
           [query.id, property.id] (some sourceTrace.traceId) (some sourceTrace.appliedBound)
+      else if property.hasUnsupportedObservationClauses then
+        unresolvedPropertyVerdict query property .unsupported .unsupportedPropertyClause
+          property.unsupportedObservationClauseIds
+          (some sourceTrace.traceId) (some sourceTrace.appliedBound)
       else if !property.hasRequiredLogicalTime destinationTrace then
         unresolvedPropertyVerdict query property .unknown .missingLogicalTime
           property.access.logicalTimeSource.toList
           (some sourceTrace.traceId) (some sourceTrace.appliedBound)
       else
-        let evaluation := evaluateProperty property destinationTrace
-        let clauses := property.clauses.filterMap fun clause =>
-          (evaluation.clauses.find? fun result => result.clauseId == clause.id).map fun result =>
-            translatedClauseVerdict query sourceTrace destinationTrace implementationEvidenceLinks
-              clause result
-        {
-          queryId := query.id
-          propertyId := property.id
-          propertyDigest := property.behaviorFingerprint.render
-          traceId := some sourceTrace.traceId
-          status := if evaluation.satisfied then .satisfied else .violated
-          queryLimits := query.limits
-          evidenceBound := some sourceTrace.appliedBound
-          provenance := canonicalIds
-            ([query.id, property.id, sourceTrace.mappingId] ++
-              (implementationEvidenceLinks.head?.map
-                ImplementationLinkEvidenceLink.implementationLinkId).toList ++ property.requires ++
-              clauses.flatMap SemanticClauseVerdict.provenance)
-          clauses
-        }
+        match checkPropertyEvaluationInput property destinationTrace with
+        | .error error =>
+            unresolvedPropertyVerdict query property .unsupported
+              (.propertyEvaluationFailure error.kind)
+              (property.unsupportedObservationClauseIds ++ error.relatedDefinitionIds)
+              (some sourceTrace.traceId) (some sourceTrace.appliedBound)
+        | .ok input =>
+            let evaluation := evaluateProperty property input
+            let clauses := property.clauses.filterMap fun clause =>
+              (evaluation.clauses.find? fun result => result.clauseId == clause.id).map fun result =>
+                translatedClauseVerdict query sourceTrace destinationTrace
+                  implementationEvidenceLinks clause result
+            {
+              queryId := query.id
+              propertyId := property.id
+              propertyDigest := property.behaviorFingerprint.render
+              traceId := some sourceTrace.traceId
+              status := if evaluation.satisfied then .satisfied else .violated
+              queryLimits := query.limits
+              evidenceBound := some sourceTrace.appliedBound
+              provenance := canonicalIds
+                ([query.id, property.id, sourceTrace.mappingId] ++
+                  (implementationEvidenceLinks.head?.map
+                    ImplementationLinkEvidenceLink.implementationLinkId).toList ++
+                  property.requires ++ clauses.flatMap SemanticClauseVerdict.provenance)
+              clauses
+            }
 
 private def implementationLinkFailureVerdict
     (query : CheckedQuery DestinationLawStatement)

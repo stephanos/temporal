@@ -3,6 +3,8 @@ import Umpire.Target
 /-! Focused import contract for target authoring and checked composition. -/
 
 #check Umpire.TargetDeclaration
+#check Umpire.DefinitionFamily
+#check Umpire.DefinitionFamily.id
 #check Umpire.TargetDefinition
 #check Umpire.FiniteMachine
 #check Umpire.FiniteMachine.initialStateCoverage
@@ -11,6 +13,20 @@ import Umpire.Target
 #check Umpire.FiniteMachine.kernelAvailability
 #check Umpire.FiniteMachine.planning
 #check Umpire.FiniteMachine.authoredPlanning
+#check Umpire.FiniteMachine.targetDefinition
+#check Umpire.FiniteMachine.authoredTarget
+#check Umpire.FiniteTargetDefinition
+#check Umpire.FiniteTargetAdmissionError
+#check Umpire.ValidatedFiniteTable.machine
+#check Umpire.ValidatedFiniteTable.authoredTarget
+#check Umpire.FiniteTable.checkTarget
+#check Umpire.FiniteModelIdentity
+#check Umpire.FiniteModelSetupBinding
+#check Umpire.ValidatedFiniteModel
+#check Umpire.FiniteTable.validateModel
+#check Umpire.ValidatedFiniteModel.stateValue
+#check Umpire.ValidatedFiniteModel.setupValue
+#check Umpire.FiniteTable.checkModelTarget
 #check Umpire.TargetComposition
 #check Umpire.TargetComposition.empty
 #check Umpire.TargetComposition.provide

@@ -1,0 +1,451 @@
+import Umpire.Property.Tests.Fixtures
+
+/-! Trigger-frozen guarded bounded Property admission, evaluation, provenance, and agreement. -/
+
+namespace Umpire.PropertyTests
+
+open Umpire
+
+private def guardAtom
+    (field : PropertyPredicateField)
+    (reference : DefinitionId)
+    (literal : PropertyLiteral) : PropertyPredicate :=
+  .atom { field, reference, constraint := .equals literal }
+
+private def requestGuard : PropertyPredicate :=
+  .all [
+    guardAtom .priorState pendingCount (.natural 0),
+    guardAtom .selectedAction requestCancel (.text "request")
+  ]
+
+private def pendingOne : PropertyPredicate :=
+  guardAtom .priorState pendingCount (.natural 1)
+
+private def temporalException : PropertyException := {
+  id := id "test.property.guarded-temporal.exception.pending"
+  source
+  condition := pendingOne
+}
+
+private def parentException : PropertyException := {
+  id := id "test.property.guarded-temporal.exception.parent"
+  source
+  condition := guardAtom .priorState pendingCount (.natural 2)
+}
+
+private def caseException : PropertyException := {
+  id := id "test.property.guarded-temporal.exception.case"
+  source
+  condition := pendingOne
+}
+
+private def guardedEventually
+    (exception : Option PropertyException := none)
+    (limit : PropertyLimit := .exact { value := 1, unit := .semanticTransitions }) :
+    PropertyClause :=
+  .guardedEventuallyWithin (id "test.property.guarded-temporal.eventually") source
+    requestGuard exception
+    (pattern .observation cancelRequested)
+    (pattern .observation cancelDelivered)
+    limit
+
+private def guardedQuiescent
+    (exception : Option PropertyException := none) : PropertyClause :=
+  .guardedQuiescentWithin (id "test.property.guarded-temporal.quiescent") source
+    requestGuard exception
+    (pattern .observation cancelRequested)
+    (pattern .observation cancelDelivered)
+    (.exact { value := 1, unit := .semanticTransitions })
+
+private def declaration
+    (clauses : List PropertyClause := [guardedEventually]) : PropertyDeclaration := {
+  portableProperty with
+  id := id "test.property.guarded-temporal"
+  version := 2
+  clauses
+}
+
+private def caseTemporalGroup
+    (parentException? : Option PropertyException := none)
+    (caseException? : Option PropertyException := none)
+    (caseId : DefinitionId := id "test.property.guarded-temporal.case")
+    (clauseId : DefinitionId := id "test.property.guarded-temporal.case.eventually") :
+    PropertyClause :=
+  .sameStepCases {
+    id := id "test.property.guarded-temporal.group"
+    source
+    guard := guardAtom .selectedAction requestCancel (.text "request")
+    exception := parentException?
+    cases := [{
+      id := caseId
+      source
+      guard := guardAtom .priorState pendingCount (.natural 0)
+      exception := caseException?
+      clauses := []
+      temporalClauses := [.eventuallyWithin clauseId source
+        (pattern .observation cancelRequested)
+        (pattern .observation cancelDelivered)
+        (.exact { value := 1, unit := .semanticTransitions })]
+    }]
+  }
+
+private def trace
+    (initial : Nat)
+    (firstObservations secondObservations : List ModelValue)
+    (afterFirst : Nat := 1) : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
+  initialState := value pendingCount (toString initial)
+  steps := [
+    {
+      selectedAction := value requestCancel "request"
+      modelOutcome := value deliveredOutcome "delivered"
+      resultingState := value pendingCount (toString afterFirst)
+      observations := firstObservations
+    },
+    {
+      selectedAction := value tick "tick"
+      modelOutcome := value deliveredOutcome "delivered"
+      resultingState := value pendingCount (toString afterFirst)
+      observations := secondObservations
+    }
+  ]
+}
+
+private def trigger := value cancelRequested "request-1"
+private def response := value cancelDelivered "request-1"
+
+private def checked? (authored : PropertyDeclaration := declaration) : Option CheckedProperty :=
+  (checkProperty context (.portable authored)).toOption
+
+private def fingerprintOf
+    (authored : PropertyDeclaration := declaration) : Option BehaviorFingerprint :=
+  (checked? authored).map CheckedProperty.behaviorFingerprint
+
+private def satisfied?
+    (authored : PropertyDeclaration)
+    (modelTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue) : Option Bool := do
+  let property ← checked? authored
+  let result ← (evaluatePropertyOnTrace property modelTrace).toOption
+  pure result.satisfied
+
+/- Guarded bounded forms are admitted only as version-two checked Property data. -/
+#guard (checked?).map (fun property =>
+    (property.version, property.clauses.map ResolvedPropertyClause.id,
+      property.canonicalMetadata.contains "guarded-eventually-within")) ==
+  some (2, [id "test.property.guarded-temporal.eventually"], true)
+
+/- Named cases retain their parent/case shape while using a legacy single-pattern response. -/
+#guard (checked? (declaration [caseTemporalGroup])).map (fun property =>
+    (property.canonicalMetadata.contains "same-step-cases",
+      property.canonicalMetadata.contains "guarded-eventually-within")) ==
+  some (true, true)
+
+/- The two guarded temporal kinds remain canonically and behaviorally distinguishable. -/
+#guard (do
+    let eventually ← checked? (declaration [guardedEventually])
+    let quiescent ← checked? (declaration [guardedQuiescent])
+    pure (
+      eventually.behaviorFingerprint != quiescent.behaviorFingerprint,
+      eventually.canonicalMetadata.contains "guarded-eventually-within",
+      quiescent.canonicalMetadata.contains "guarded-quiescent-within")) ==
+  some (true, true, true)
+
+private def changedBoundDeclaration :=
+  declaration [guardedEventually (limit := .exact {
+    value := 2
+    unit := .semanticTransitions
+  })]
+
+private def changedTriggerDeclaration :=
+  declaration [.guardedEventuallyWithin
+    (id "test.property.guarded-temporal.eventually") source requestGuard none
+    (pattern .observation cancelDelivered)
+    (pattern .observation cancelRequested)
+    (.exact { value := 1, unit := .semanticTransitions })]
+
+private def changedExceptionDeclaration :=
+  declaration [guardedEventually (some temporalException)]
+
+/- Guards, exceptions, references, kinds, and resolved bounds remain semantic identity inputs. -/
+#guard [
+    changedBoundDeclaration,
+    changedTriggerDeclaration,
+    changedExceptionDeclaration,
+    declaration [guardedQuiescent]
+  ].all fun authored => fingerprintOf declaration != fingerprintOf authored
+
+private def changedSourceDeclaration : PropertyDeclaration := {
+  declaration with source := { source with line := source.line + 1 }
+}
+
+private def changedDocumentationDeclaration : PropertyDeclaration := {
+  declaration with documentation := "Updated guarded temporal documentation."
+}
+
+private def changedClauseSourceDeclaration :=
+  declaration [.guardedEventuallyWithin
+    (id "test.property.guarded-temporal.eventually")
+    { source with line := source.line + 1 }
+    requestGuard none
+    (pattern .observation cancelRequested)
+    (pattern .observation cancelDelivered)
+    (.exact { value := 1, unit := .semanticTransitions })]
+
+#guard [
+    changedSourceDeclaration,
+    changedDocumentationDeclaration,
+    changedClauseSourceDeclaration
+  ].all fun authored =>
+  fingerprintOf declaration == fingerprintOf authored
+
+/- The response is inclusive at the trigger, permitted one transition later, and required. -/
+#guard [
+    trace 0 [trigger, response] [],
+    trace 0 [trigger] [response],
+    trace 0 [trigger] []
+  ].map (satisfied? declaration) == [some true, some true, some false]
+
+/- A zero bound preserves its unit and excludes a response on the following transition. -/
+private def zeroBoundDeclaration :=
+  declaration [guardedEventually (limit := .exact {
+    value := 0
+    unit := .semanticTransitions
+  })]
+
+private def zeroBoundResult : Option (Bool × Option Limit) := do
+  let property ← checked? zeroBoundDeclaration
+  let evaluation ← (evaluatePropertyOnTrace property (trace 0 [trigger] [response])).toOption
+  let clause ← evaluation.clauses.head?
+  pure (evaluation.satisfied, clause.evaluatedLimit)
+
+#guard zeroBoundResult == some (false, some { value := 0, unit := .semanticTransitions })
+
+private def twoTriggerTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
+  initialState := value pendingCount "0"
+  steps := [
+    {
+      selectedAction := value requestCancel "request"
+      modelOutcome := value deliveredOutcome "delivered"
+      resultingState := value pendingCount "0"
+      observations := [trigger]
+    },
+    {
+      selectedAction := value requestCancel "request"
+      modelOutcome := value deliveredOutcome "delivered"
+      resultingState := value pendingCount "0"
+      observations := [trigger, response]
+    }
+  ]
+}
+
+/- Every applicable trigger creates an obligation; a later passing trigger cannot hide an earlier failure. -/
+#guard satisfied? zeroBoundDeclaration twoTriggerTrace == some false
+
+private def namedBoundResult : Option (Bool × Option Limit) := do
+  let authored := declaration [guardedEventually (limit :=
+    .named cancelBudget.id .observationPositions)]
+  let property ← checked? authored
+  let evaluation ← (evaluatePropertyOnTrace property (trace 0 [trigger] [response])).toOption
+  let clause ← evaluation.clauses.head?
+  pure (evaluation.satisfied, clause.evaluatedLimit)
+
+/- Named limits retain the resolved value and original coordinate unit in the result. -/
+#guard namedBoundResult == some (true, some cancelBudget.limit)
+
+private def wrongNamedUnit :=
+  declaration [guardedEventually (limit :=
+    .named cancelBudget.id .semanticTransitions)]
+
+/- A named bound cannot be silently reinterpreted in another coordinate unit. -/
+#guard (match checkProperty context (.portable wrongNamedUnit) with
+  | .error error => some (error.kind, error.sourceLocation)
+  | .ok _ => none) == some (.unitMismatch, some source)
+
+/- Exception truth is frozen at the triggering step; later state change cannot erase the work. -/
+#guard [
+    satisfied? (declaration [guardedEventually (some temporalException)])
+      (trace 1 [trigger] []),
+    satisfied? (declaration [guardedEventually (some temporalException)])
+      (trace 0 [trigger] [])
+  ] == [some true, some false]
+
+/- Parent and case exceptions are independently frozen where the temporal trigger occurs. -/
+#guard [
+    satisfied? (declaration [caseTemporalGroup (some {
+      parentException with condition := guardAtom .priorState pendingCount (.natural 0)
+    })]) (trace 0 [trigger] []),
+    satisfied? (declaration [caseTemporalGroup none (some {
+      caseException with condition := guardAtom .priorState pendingCount (.natural 0)
+    })]) (trace 0 [trigger] []),
+    satisfied? (declaration [caseTemporalGroup (some parentException) (some caseException)])
+      (trace 0 [trigger] []),
+    satisfied? (declaration [caseTemporalGroup (some parentException) (some caseException)])
+      (trace 0 [trigger] [] (afterFirst := 2))
+  ] == [some true, some true, some false, some false]
+
+private def parentExcludedTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
+  initialState := value pendingCount "0"
+  steps := [{
+    selectedAction := value tick "tick"
+    modelOutcome := value deliveredOutcome "delivered"
+    resultingState := value pendingCount "1"
+    observations := [trigger]
+  }]
+}
+
+/- A false parent guard and a true named exception independently exclude the bounded clause. -/
+#guard [
+    satisfied? declaration parentExcludedTrace,
+    satisfied? (declaration [guardedEventually (some temporalException)])
+      (trace 1 [trigger] [])
+  ] == [some true, some true]
+
+/- Excluding the temporal clause supplies no replacement and cannot waive an independent clause. -/
+#guard satisfied?
+    (declaration [cancelIsUnique, guardedEventually (some temporalException)])
+    (trace 1 [trigger] [] (afterFirst := 2)) == some false
+
+/- Source order cannot choose between an excluded clause and an independent failing invariant. -/
+#guard [
+    [cancelIsUnique, guardedEventually (some temporalException)],
+    [guardedEventually (some temporalException), cancelIsUnique]
+  ].map (fun clauses =>
+    satisfied? (declaration clauses) (trace 1 [trigger] [] (afterFirst := 2))) ==
+  [some false, some false]
+
+private def overlappingTemporalCases :=
+  declaration [
+    .sameStepCases {
+      id := id "test.property.guarded-temporal.overlap"
+      source
+      guard := requestGuard
+      cases := [
+        {
+          id := id "test.property.guarded-temporal.case.passing"
+          source
+          guard := guardAtom .priorState pendingCount (.natural 0)
+          clauses := []
+          temporalClauses := [.eventuallyWithin
+            (id "test.property.guarded-temporal.case.passing.eventually") source
+            (pattern .observation cancelRequested)
+            (pattern .observation cancelDelivered)
+            (.exact { value := 1, unit := .semanticTransitions })]
+        },
+        {
+          id := id "test.property.guarded-temporal.case.failing"
+          source
+          guard := guardAtom .priorState pendingCount (.natural 0)
+          clauses := []
+          temporalClauses := [.quiescentWithin
+            (id "test.property.guarded-temporal.case.failing.quiescent") source
+            (pattern .observation cancelRequested)
+            (pattern .observation cancelDelivered)
+            (.exact { value := 1, unit := .semanticTransitions })]
+        }
+      ]
+    }
+  ]
+
+/- Applicable sibling temporal cases are conjoined rather than selected by source order. -/
+#guard satisfied? overlappingTemporalCases (trace 0 [trigger, response] []) == some false
+
+/- Guarded quiescence uses the same frozen trigger applicability and inclusive bound. -/
+#guard [
+    satisfied? (declaration [guardedQuiescent]) (trace 0 [trigger] []),
+    satisfied? (declaration [guardedQuiescent]) (trace 0 [trigger, response] []),
+    satisfied? (declaration [guardedQuiescent (some temporalException)])
+      (trace 1 [trigger, response] [])
+  ] == [some true, some false, some true]
+
+private def unknownPriorTrace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
+  initialState := value hiddenObservation "0"
+  steps := [{
+    selectedAction := value requestCancel "request"
+    modelOutcome := value deliveredOutcome "delivered"
+    resultingState := value pendingCount "1"
+    observations := [trigger]
+  }]
+}
+
+private def unknownThroughNegation :=
+  declaration [.guardedEventuallyWithin
+    (id "test.property.guarded-temporal.unknown-negation") source
+    (.not pendingOne) none
+    (pattern .observation cancelRequested)
+    (pattern .observation cancelDelivered)
+    (.exact { value := 1, unit := .semanticTransitions })]
+
+private def evaluationError? : Option (PropertyErrorKind × Option SourceLocation) := do
+  let property ← checked? unknownThroughNegation
+  match evaluatePropertyOnTrace property unknownPriorTrace with
+  | .ok _ => none
+  | .error error => some (error.kind, error.sourceLocation)
+
+/- Negation cannot turn an unavailable trigger input into applicable truth. -/
+#guard evaluationError? == some (.missingPredicateInput, some source)
+
+private def invalidFutureGuard :=
+  declaration [.guardedEventuallyWithin
+    (id "test.property.guarded-temporal.future-guard") source
+    (guardAtom .resultingState pendingCount (.natural 1)) none
+    (pattern .observation cancelRequested)
+    (pattern .observation cancelDelivered)
+    (.exact { value := 1, unit := .semanticTransitions })]
+
+/- Initial guards cannot inspect the result whose later response they govern. -/
+#guard (match checkProperty context (.portable invalidFutureGuard) with
+  | .error error => some (error.kind, error.sourceLocation)
+  | .ok _ => none) == some (.invalidPredicateContext, some source)
+
+#guard_msgs (error, substring := true) in
+#check PropertyClause.guardedEventuallyUntil
+
+#guard_msgs (error, substring := true) in
+def compoundTemporalResponse : PropertyClause :=
+  .guardedEventuallyWithin (id "test.property.guarded-temporal.compound") source
+    requestGuard none
+    (pattern .observation cancelRequested)
+    (.all [guardAtom .resultingState pendingCount (.natural 1)])
+    (.exact { value := 1, unit := .semanticTransitions })
+
+private def failedTemporalIdentity : Option PropertyClauseIdentity := do
+  let property ← checked? (declaration [guardedEventually (some temporalException)])
+  let evaluation ← (evaluatePropertyOnTrace property (trace 0 [trigger] [])).toOption
+  let result ← evaluation.clauses.head?
+  result.failedObligations.head?
+
+/- A failed pending obligation retains its Property, exception, clause, and source identities. -/
+#guard failedTemporalIdentity.map (fun failure =>
+    (failure.parentId, failure.caseId, failure.clauseId, failure.source,
+      failure.relatedDefinitionIds)) == some (
+    (declaration).id,
+    none,
+    id "test.property.guarded-temporal.eventually",
+    source,
+    [temporalException.id])
+
+private def failedCaseTemporalIdentity : Option PropertyClauseIdentity := do
+  let property ← checked? (declaration [caseTemporalGroup
+    (some parentException) (some caseException)])
+  let evaluation ← (evaluatePropertyOnTrace property (trace 0 [trigger] [])).toOption
+  let result ← evaluation.clauses.head?
+  result.failedObligations.head?
+
+/- A case temporal failure retains both applicability exceptions and every qualified identity. -/
+#guard failedCaseTemporalIdentity.map (fun failure =>
+    (failure.parentId, failure.caseId, failure.clauseId, failure.source,
+      failure.evaluatedLimit, failure.relatedDefinitionIds)) == some (
+    id "test.property.guarded-temporal.group",
+    some (id "test.property.guarded-temporal.case"),
+    id "test.property.guarded-temporal.case.eventually",
+    source,
+    some { value := 1, unit := .semanticTransitions },
+    [parentException.id, caseException.id])
+
+example (property : CheckedProperty) (input : CheckedPropertyEvaluationInput property) :
+    (evaluateProperty property input).satisfied = true ↔ property.denote input :=
+  evaluateProperty_agrees property input
+
+#print axioms Umpire.evaluatePropertyClause_agrees
+#print axioms Umpire.evaluateProperty_agrees
+
+end Umpire.PropertyTests

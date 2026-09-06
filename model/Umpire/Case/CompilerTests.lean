@@ -86,11 +86,22 @@ private def input : Input := {
 private def unsupported := ContractLowering.unsupported
   property source "property.temporal-unbounded"
 
+private def unsupportedGuardedTemporal := ContractLowering.unsupported
+  property source "property.guarded-eventually-within"
+
 #guard match compile { input with properties := [unsupported] } with
   | .error failure =>
       failure.sourceDefinitionId == property.definitionId &&
       failure.source == source &&
       failure.construct == "property.temporal-unbounded"
+  | .ok _ => false
+
+/- The current lowering boundary preserves a guarded temporal rejection as checked source data. -/
+#guard match compile { input with properties := [unsupportedGuardedTemporal] } with
+  | .error failure =>
+      failure.sourceDefinitionId == property.definitionId &&
+      failure.source == source &&
+      failure.construct == "property.guarded-eventually-within"
   | .ok _ => false
 
 end Umpire.Case.CompilerTests

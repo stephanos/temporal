@@ -9,6 +9,6 @@
   "spec": "fn-62-make-ordinary-temporal-model-authoring",
   "spec_path": ".flow/tasks/fn-62-make-ordinary-temporal-model-authoring.3.md",
   "status": "todo",
-  "title": "Add explicit identity source Limit and transition primitives",
-  "updated_at": "2026-09-04T15:58:24.145296Z"
+  "title": "Specialize Temporal identities and source contracts",
+  "updated_at": "2026-09-06T02:27:58.316433Z"
 }
