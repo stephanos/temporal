@@ -79,7 +79,10 @@ func Run(
 	}
 	cancelClose()
 	if closeErr != nil {
-		scheduler.recorder.report(umpirespb.RUN_DIAGNOSTIC_KIND_HOST_CONTRACT, "host_close_failed", closeErr)
+		cleanup.Status = umpirespb.RUN_CLEANUP_STATUS_FAILED
+		if id := scheduler.recorder.report(umpirespb.RUN_DIAGNOSTIC_KIND_HOST_CONTRACT, "host_close_failed", closeErr); id != "" {
+			cleanup.DiagnosticIds = append(cleanup.DiagnosticIds, id)
+		}
 	}
 	cancelRun()
 	scheduler.beginClose()

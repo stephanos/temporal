@@ -1,45 +1,35 @@
 ---
 satisfies: [R1, R6, R8]
 ---
-# fn-62-make-ordinary-temporal-model-authoring.5 Deepen typed Observation authoring
+# fn-62-make-ordinary-temporal-model-authoring.5 Deepen typed Observation construction and migrate Nexus
 
 ## Description
-Satisfy R1, R6, and R8 with typed constructors for repeated Observation profiles, rules, and mappings, then migrate the ordinary Nexus Observation while preserving the recently partitioned declaration/compiler boundary.
+Complete the uncovered Observation authoring stage using the current inert declaration owner and migrate its established Nexus consumer after `.2`/`.3`.
 
 **Size:** M
-**Files:** `model/Umpire/Observation/Declaration.lean`, `model/Umpire/Observation/Language.lean`, `model/Umpire/Observation/Tests/Check.lean`, `model/Temporal/Feature/Nexus/Observation.lean`, `model/Temporal/Feature/Nexus/ObservationTests.lean`
-**Touches:** [model/Umpire/Observation/Declaration.lean, model/Umpire/Observation/Language.lean, model/Umpire/Observation/Tests/Check.lean, model/Temporal/Feature/Nexus/Observation.lean, model/Temporal/Feature/Nexus/ObservationTests.lean]
+**Files:** `model/Umpire/Observation/Declaration.lean`, Observation tests/imports, established Nexus Observation declaration/tests
+**Touches:** [model/Umpire/Observation/Declaration.lean, model/Umpire/Observation/ImportTests.lean, model/Umpire/Observation/Tests/**, model/Temporal/Feature/Nexus/Observation.lean, model/Temporal/Feature/Nexus/ObservationTests.lean]
 
-### Approach
-- Build on the completed `fn-57` split: inert constructors belong with Declaration/Language and all validation remains in the single compiler/checker.
-- Generalize only repeated semantic shapes already visible in `model/Temporal/Feature/Nexus/Observation.lean:95-161`; helpers return existing profile, rule, mapping, and disposition data.
-- Keep source field identity, expected kind, explicit disposition, causal/order relation, provider reconciliation, Evidence bound, and closure visible at call sites.
-- Preserve raw `checkObservation` and proof-taking `checkedObservation`; add representative invalid/missing/conflicting Evidence tests rather than a success-only fixture.
-- Retain all existing comments and exact checker diagnostic precedence.
+## Approach
+- Compose typed profile/rule/mapping constructors from existing `ObservationFieldSpec` leaves. Keep fields, output kinds, dispositions, providers, order, closures, and limits explicit.
+- Delegate validation to `checkObservation`; checked construction continues to require proof. Add no parallel validation or interpretation language.
+- Migrate the established declaration and compare exact raw/helper checked values, fingerprint, accepted facts, Evidence links, order/closure support and sources.
+- Extend existing compile/evaluation matrices to cover helper-produced declarations; preserve full diagnostic precedence, not just error presence.
 
-### Investigation targets
-**Required** (read before coding):
-- `model/Umpire/Observation/Declaration.lean` — inert authored vocabulary after fn-57.
-- `model/Umpire/Observation/Language.lean:1-25` — public proof-taking authoring facade.
-- `model/Temporal/Feature/Nexus/Observation.lean:95-161` — repeated ordinary mapping surface.
-- `model/Umpire/Observation/Tests/Check.lean` — typed diagnostic patterns.
-- `model/Umpire/Observation/Tests/Structure.lean` — ordering/closure failure patterns.
-
-**Optional** (reference as needed):
-- `.flow/specs/fn-57-partition-the-observation-authoring.md:17-50` — preserved ownership and checker contracts.
-- `model/Temporal/Feature/Nexus/ObservationTests.lean` — current facade regressions.
-
-### Acceptance
-- [ ] Ordinary mapping code expresses typed fields, dispositions, ordering, providers/connectors, closures, and Evidence bounds without manual string-comparison boilerplate.
-- [ ] Helpers produce only existing inert Observation data and do not validate, normalize, register, or default semantics.
-- [ ] Invalid field/kind/reference, duplicates, missing dispositions, provider conflicts, invalid order/closure, over-limit input, and missing/ambiguous/conflicting Evidence fail closed with exact diagnostics.
-- [ ] Existing Observation identity, fingerprint, canonical plan, accepted facts, Evidence Links, public imports, and comments remain exact except reviewed source-location corrections.
-- [ ] Focused generic and Nexus Observation tests pass.
+## Investigation targets
+**Required:**
+- `model/Umpire/Observation/Declaration.lean:60` — typed leaf projections.
+- `model/Umpire/Observation/Language.lean:12` — checked proof seam.
+- `model/Umpire/Observation/Tests/Compilation.lean:186` — declaration rejection matrix.
+- `model/Temporal/Feature/Nexus/Observation.lean` — migration.
+- `model/Temporal/Feature/Nexus/ObservationTests.lean:113` — exact identity and Evidence tests.
 
 ## Acceptance
-- [ ] R1, R6, and R8 are satisfied through the existing Observation language/checker.
-- [ ] `cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.ImportTests Temporal.Feature.Nexus.ObservationTests` passes.
-- [ ] No callback, recursive authoring form, default disposition, or alternate checked-plan constructor is introduced.
+- [ ] Inert constructors and migrated Nexus preserve exact checked mapping meaning, field identities, fingerprint, sources and public imports.
+- [ ] Compile failures cover missing/unknown/wrong-type fields, duplicate mappings/dispositions, absent dispositions, conflicting/unresolved providers, wrong output kind, contradictory/cyclic order, missing/duplicate closures, and invalid bounds.
+- [ ] Evaluation failures cover over-limit, missing/ambiguous/conflicting Evidence, profile mismatch, rejected fields, and causal/order/closure failures, with unchanged facts/links and diagnostic precedence.
+- [ ] `cd model && mise exec -- lake build Umpire.Observation.Tests Temporal.Feature.Nexus.ObservationTests` passes; public import, trust and lint checks pass with no new issues.
+- [ ] Structural cost inventory names helper callees and traversals: at most one construction pass per explicit input collection, no nested rescan, normalization, or duplicate checkObservation pass; 10× independent declarations adds at most 10× wrapper work.
 
 ## Done summary
 TBD

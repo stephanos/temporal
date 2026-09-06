@@ -3,7 +3,10 @@ import Temporal.Feature.Nexus.Experimental.ExplorationTests
 import Temporal.Feature.Nexus.LifecycleTests
 import Temporal.Feature.Nexus.ObservationTests
 import Temporal.Feature.Nexus.OperationsTests
+import Temporal.Feature.Nexus2.Tests
+import Temporal.Feature.Nexus2.AuthoringTests
 import Temporal.ImplementationLinkTests.Nexus
+import Temporal.SharedTests
 import Temporal.System
 import Temporal.System.Callback.ConfigurationTests
 import Temporal.System.Configuration.Tests

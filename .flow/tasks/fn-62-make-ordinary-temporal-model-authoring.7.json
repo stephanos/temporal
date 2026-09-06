@@ -9,13 +9,14 @@
     "fn-62-make-ordinary-temporal-model-authoring.3",
     "fn-62-make-ordinary-temporal-model-authoring.4",
     "fn-62-make-ordinary-temporal-model-authoring.5",
-    "fn-62-make-ordinary-temporal-model-authoring.6"
+    "fn-62-make-ordinary-temporal-model-authoring.6",
+    "fn-62-make-ordinary-temporal-model-authoring.8"
   ],
   "id": "fn-62-make-ordinary-temporal-model-authoring.7",
   "priority": null,
   "spec": "fn-62-make-ordinary-temporal-model-authoring",
   "spec_path": ".flow/tasks/fn-62-make-ordinary-temporal-model-authoring.7.md",
   "status": "todo",
-  "title": "Publish and verify the checked ordinary-authoring walkthrough",
-  "updated_at": "2026-09-04T15:41:09.327684Z"
+  "title": "Publish and verify the complete established authoring journey",
+  "updated_at": "2026-09-06T02:27:59.751489Z"
 }

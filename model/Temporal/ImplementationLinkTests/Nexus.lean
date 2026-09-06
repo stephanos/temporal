@@ -366,12 +366,12 @@ example : [
     cancellationResult.evaluated?.map EvaluatedFeatureProperty.evaluation,
     successfulCompletionResult.evaluated?.map EvaluatedFeatureProperty.evaluation
   ] = [
-    some (evaluateProperty Temporal.Feature.Nexus.Operations.AsyncStart.property
-      Temporal.Feature.Nexus.Operations.AsyncStart.intendedTrace.trace),
-    some (evaluateProperty Temporal.Feature.Nexus.Operations.Cancellation.property
-      Temporal.Feature.Nexus.Operations.Cancellation.intendedTrace.trace),
-    some (evaluateProperty Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
-      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.intendedTrace.trace)
+    (evaluatePropertyOnTrace Temporal.Feature.Nexus.Operations.AsyncStart.property
+      Temporal.Feature.Nexus.Operations.AsyncStart.intendedTrace.trace).toOption,
+    (evaluatePropertyOnTrace Temporal.Feature.Nexus.Operations.Cancellation.property
+      Temporal.Feature.Nexus.Operations.Cancellation.intendedTrace.trace).toOption,
+    (evaluatePropertyOnTrace Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
+      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.intendedTrace.trace).toOption
   ] ∧ [
     startResult.evaluated?.map (fun result => result.evaluation.satisfied),
     cancellationResult.evaluated?.map (fun result => result.evaluation.satisfied),

@@ -37,8 +37,10 @@ theorem queryJsonRemainsCanonical :
   native_decide
 
 theorem propertySeparatesExpectedOutcome :
-    (evaluateProperty property intendedTrace.trace).satisfied = true ∧
-    (evaluateProperty property wrongOutcomeTrace.trace).satisfied = false := by
+    (evaluatePropertyOnTrace property intendedTrace.trace).toOption.map
+        PropertyEvaluation.satisfied = some true ∧
+    (evaluatePropertyOnTrace property wrongOutcomeTrace.trace).toOption.map
+        PropertyEvaluation.satisfied = some false := by
   native_decide
 
 theorem behaviorSeparatesSelectedAction : behavior.admits intendedTrace = true ∧

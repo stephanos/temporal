@@ -53,6 +53,20 @@ The finite-machine adapter is the ordinary route for fully enumerable Targets. D
 `TransitionKernel` construction remains the expert route when authoritative propositions are
 specified independently. Both routes converge before Property, Behavior, or Query checking.
 
+`FiniteTable` keeps ordered typed catalogs, setup alternatives, transition alternatives, Model
+Outcomes, and Model Facts explicit, then validates domain closure before constructing the ordinary
+finite Target. `DefinitionFamily`, `PropertySpec`, `ExactSequenceSpec`, `QuerySpec`, and
+`QueryLimitSpec` reduce repeated structure while delegating to the existing language-owned checkers.
+Their `checked` operations require explicit proof of checker success; the ordinary `check`
+operations return the existing typed `Except` results.
+
+Version-two Property data adds typed Boolean predicates, same-step case groups, and guarded bounded
+temporal clauses. Boolean composition is limited to `atom`, `all`, `any`, `not`, and `oneOf` over
+the field contexts admitted by the Property checker. Every applicable obligation is conjoined.
+Exceptions are trigger-time applicability conditions and do not select a winning case or retract a
+pending temporal obligation. Case analysis reports coverage, overlap, logical conflict, modeled
+incompatibility, exhaustive completion, and limit exhaustion as separate bounded results.
+
 All public declarations carry stable Definition IDs, source locations, and behavior fingerprints.
 Limits are stage-specific. Exhaustion and limit-reached outcomes remain distinct, and a planning
 artifact never proves that runtime work occurred.

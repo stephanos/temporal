@@ -1,5 +1,6 @@
 import Temporal.Feature.Nexus.Lifecycle
 import Temporal.Shared
+import Umpire.Query.Authoring
 
 /-! Shared declaration mechanics behind the ordinary Nexus operation walkthroughs. -/
 
@@ -12,6 +13,30 @@ namespace Internal
 
 def id (value : String) : DefinitionId := Temporal.Shared.definitionId value
 
+def family : DefinitionFamily :=
+  Temporal.Shared.definitionFamily "nexus.basic-lifecycle"
+
+/-- The ordinary operation bound names each existing Query stage and converts once by record
+assembly. Source construction likewise delegates once to `Temporal.Shared.sourceLocation`; neither
+path scans declarations or invokes a checker. -/
+def queryLimitSpec : QueryLimitSpec := {
+  transitions := 1
+  selectedActions := 1
+  candidateEvaluations := 8
+}
+
+/-- Preserve the established observation-clause identities while reusing the shared transition
+result constructor. The shared constructor names the fact clause with a `fact` suffix, whereas
+these declarations predate it and publish `observation` in their canonical metadata. -/
+def operationTransitionResultClauses
+    (propertyKey : String)
+    (action state outcome fact : ModelValue) : List PropertyClause :=
+  (transitionResultClauses family propertyKey action state outcome fact).map fun clause =>
+    match clause with
+    | .inputOutput _ input output =>
+        .inputOutput (family.id "property" (propertyKey ++ ".observation")) input output
+    | clause => clause
+
 end Internal
 
 def source : SourceLocation :=
@@ -20,10 +45,6 @@ def source : SourceLocation :=
 def operationRole : ResourceRole := { id := operationRoleId, valueKind := .state }
 
 namespace Internal
-
-def checkBehaviorDeclaration
-    (declaration : BehaviorDeclaration) : Except BehaviorError CheckedBehavior :=
-  checkBehavior (.ofTarget target) declaration
 
 def queryDeclaration
     (queryId : DefinitionId)
@@ -34,7 +55,21 @@ def queryDeclaration
   target := target.id
   form := .witness property
   behavior
-  limits
+  limits := queryLimitSpec.toQueryLimits
+  policy
+}
+
+def querySpec
+    (key : String)
+    (property : CheckedProperty)
+    (behavior : CheckedBehavior) : QuerySpec := {
+  family
+  key
+  source
+  target := target.id
+  form := .witness property
+  behavior
+  limits := queryLimitSpec
   policy
 }
 

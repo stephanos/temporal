@@ -15,6 +15,30 @@ def violatedVerdict : SemanticPropertyVerdict :=
   evaluateObservationProperty (verdictQuery [violatedProperty]) violatedProperty
     completeEvidenceBackedTrace
 
+/- Guarded clauses are rejected before Observation can emit a semantic success. -/
+#guard
+  (checkProperty verdictPropertyContext (.portable guardedPropertyDeclaration)).toOption.map
+    (fun property =>
+      let verdict := evaluateObservationProperty (verdictQuery [property]) property
+        completeEvidenceBackedTrace
+      (verdict.status, verdict.clauses.isEmpty,
+        verdict.diagnostic.map fun diagnostic =>
+          (diagnostic.kind, diagnostic.relatedDefinitionIds))) ==
+    some (.unsupported, true, some (.unsupportedPropertyClause,
+      [id "test.property.observation.guarded.group"]))
+
+/- Guarded temporal clauses are also rejected before Observation can omit their trigger guard. -/
+#guard
+  (checkProperty verdictPropertyContext (.portable guardedTemporalPropertyDeclaration)).toOption.map
+    (fun property =>
+      let verdict := evaluateObservationProperty (verdictQuery [property]) property
+        completeEvidenceBackedTrace
+      (verdict.status, verdict.clauses.isEmpty,
+        verdict.diagnostic.map fun diagnostic =>
+          (diagnostic.kind, diagnostic.relatedDefinitionIds))) ==
+    some (.unsupported, true, some (.unsupportedPropertyClause,
+      [id "test.property.observation.guarded-temporal.clause"]))
+
 /-- Supported evaluation preserves the existing Property evaluator's Boolean result. -/
 example : (satisfiedVerdict.status, violatedVerdict.status) =
     (.satisfied, .violated) := by

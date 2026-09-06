@@ -147,6 +147,11 @@ def ModelValue.named (definitionId : DefinitionId) (value : String) : ModelValue
   value
 }
 
+structure RoleBinding where
+  role : DefinitionId
+  value : ModelValue
+  deriving BEq, DecidableEq, Ord, Repr
+
 structure ModelTraceStep (State Action Outcome Observation : Type) where
   selectedAction : Action
   modelOutcome : Outcome
