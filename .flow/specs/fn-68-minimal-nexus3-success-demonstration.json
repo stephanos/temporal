@@ -1,0 +1,135 @@
+{
+  "branch_name": "fn-68-minimal-nexus3-success-demonstration",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-06T16:09:13.376480Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-62-make-ordinary-temporal-model-authoring",
+    "fn-64-umpire-case-runtime",
+    "fn-69-extract-testpilot-from-umpire"
+  ],
+  "id": "fn-68-minimal-nexus3-success-demonstration",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-06T16:18:55.269056Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "dcb5da65038759097bcf4d7e46286fd92f79ce741e845447d48d81da8d27ca1a",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-853910713b4707c26a65b1c8c34a0577",
+            "classification": "introduced",
+            "findingId": "finding-853910713b4707c26a65b1c8c34a0577",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a7a94d70c643fdc92bca1fabfccebc05eacfe44b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 420157,
+      "output_sha256": "144dd30eb251a2a9e638f0feff2b2203aecd73de67f0ec3cf99dce06647e6736",
+      "reservation_id": "8d9235a560094b518bf75f4f89ae7ada",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-06T16:17:53.677564Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "a236409c4ab78f0687dba8e0945a9130beaa6686a6bd0ff7280a17c1a8267022",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-853910713b4707c26a65b1c8c34a0577",
+            "classification": "introduced",
+            "findingId": "finding-853910713b4707c26a65b1c8c34a0577",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a7a94d70c643fdc92bca1fabfccebc05eacfe44b",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 83,
+      "output_sha256": "40d2d19134681e086a006dfc0c8bb45ef809e3140d67088c1eab2d9a33648691",
+      "reservation_id": "d674d9f23d0640c485a9a21f06ff2df8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-06T16:18:55.266197Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
+  "spec_path": ".flow/specs/fn-68-minimal-nexus3-success-demonstration.md",
+  "status": "open",
+  "title": "Minimal Nexus3 success demonstration",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-06T16:28:33.673542Z"
+}

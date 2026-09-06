@@ -1,5 +1,5 @@
 /-!
-# Nexus — user-facing authoring draft
+# Nexus3 — user-facing authoring draft
 
 Proposed syntax for discussion; this file does not compile and is not imported by the model.
 The declarations below describe the desired authoring surface, not an implemented Umpire API.
@@ -16,13 +16,13 @@ first draft. Model transitions are not RPCs or evidence that Temporal performed 
 Read from top to bottom: vocabulary → allowed behavior → requirements → scenarios → questions.
 
 * A State describes where the operation is now.
-* An Action describes an event that can change that state.
+* An Action either requests a change or waits for an observed change.
 * The model defines which transitions and outcomes are possible.
 * A Property states a requirement to check against those possibilities.
 * A Behavior restricts the traces considered for one scenario.
 * A Query asks for an example or checks a requirement within explicit limits.
 
-A trace is an initial state followed by state-changing steps, for example:
+A trace is an initial state followed by steps with an Action and a result, for example:
 `scheduled → started → succeeded`. Actions explain why each arrow occurs.
 Properties do not repair or filter the model's transitions to make requirements pass.
 
@@ -34,12 +34,13 @@ Their comments describe intended meaning; no parser, checker, or Case compiler f
 exists yet. In particular, `+` and `→` in a transition row are visual separators here, not Lean
 addition or a function type. `/-- ... -/` introduces documentation; `/- ... -/` is a block comment.
 
-Executing this description against Temporal would require lowering it into a Case Program and
-Contract, including declared runtime Observations. This draft has no such connection yet.
+IDs derive from the feature namespace, declaration kind, and name. `Integration.md` specifies
+the convention and proposed Case boundary. Model admission, the syntax below, and integration
+remain design work; there is no parallel identity registry to maintain.
 -/
 
--- A namespace groups related names: outside it, `State` would be referred to as `Nexus.State`.
-namespace Nexus
+-- A namespace groups related names; the full type name is `Temporal.Feature.Nexus3.State`.
+namespace Temporal.Feature.Nexus3
 
 /-- An `inductive` declaration introduces a type with exactly the listed alternatives.
 This model follows one operation, so a single state value is enough; it has no IDs or collection
@@ -57,52 +58,77 @@ inductive State where
   /-- Terminal result: the operation completed successfully. -/
   | succeeded
 
-/-- Actions include both requests and modeled environment events. They are not a list of RPCs
-the test controller can invoke. Separating an Action from its result lets one Action admit
-multiple outcomes without allowing a test to choose which outcome the system produces. -/
+/-- Actions distinguish a command from a wait for evidence. Waiting does not cause completion.
+Separating an Action from its result lets one Action admit multiple outcomes without allowing
+a test to choose which outcome the system produces. The command/wait classification is checked
+in `Integration.md`; it is not inferred from these names. -/
 inductive Action where
-  /-- Represents asynchronous acknowledgment, rather than initial scheduling. -/
-  | start
-  /-- Represents successful handler completion before any cancellation request in this model. -/
-  | reportSuccess
+  /-- Wait for asynchronous acknowledgment after scheduling the operation. -/
+  | awaitStart
+  /-- Wait for successful handler completion before cancellation in this model. -/
+  | awaitSuccess
   /-- Asks for cancellation without promising which terminal result will follow. -/
   | requestCancel
-  /-- Abstracts resolution of the cancellation/completion race into one progress step. -/
-  | resolve
+  /-- Wait for cancellation or successful completion; neither result is chosen by the wait. -/
+  | awaitResolution
+
+/-- An outcome says what happened on a step, independently of the state it leaves behind.
+Later extensions can distinguish, for example, accepted and rejected requests with the same
+destination state. This draft includes only the outcomes listed here. -/
+inductive Outcome where
+  | acknowledged
+  | cancellationRequested
+  | operationCanceled
+  | completed
+
+/-- A Model Fact is information exposed by a transition to Properties. It is not runtime
+Evidence; the integration must establish it from correlated Observations before using it. -/
+inductive Fact where
+  | terminal
 
 /-
-`on lifecycle` below refers to this model. Its explicit `id` is intended to provide a stable
-identity independent of the Lean declaration name; automatic identity derivation for the other
-declarations is still an authoring-interface decision.
+`on lifecycle` below refers to this model. Its derived ID is `temporal.nexus3.model.lifecycle`.
+Likewise, `cancellationResolves` gets `temporal.nexus3.property.cancellationResolves`. IDs survive
+builds, comment edits, and declaration reordering. Renaming a declaration changes its ID; add
+an explicit `id` override to that declaration only when an existing artifact must keep its key.
 
 The state and Action declarations supply the complete vocabulary, including terminal states
 with no outgoing rows. `initial` requires every scenario to begin at `scheduled`.
-Reaching `started` requires an explicit `start` step, including in cancellation scenarios.
+Reaching `started` requires an explicit `awaitStart` step, including in cancellation scenarios.
 
-`terminal` identifies final results. A future checker must check consistency with the transition
-table rather than silently remove a row that contradicts this declaration.
+`terminal` identifies final states. Model admission must reject any outgoing transition from
+them, rather than silently removing a contradictory row. This is a structural requirement on
+the transition relation, checked once during admission, not an extra trace Property or Query.
 -/
 model lifecycle
-  id "temporal.nexus-draft.lifecycle"
+  role operation
   states State
   actions Action
+  outcomes Outcome
+  facts Fact
   initial [scheduled]
   terminal [canceled, succeeded]
 
-  -- Read `before + action → after` as one permitted step, not an instruction to execute it.
+  -- Read `before + action → result` as one permitted step, not an instruction to execute it.
   -- `oneOf` lists alternatives, not priorities or a random distribution; both must be considered.
+  -- Each result has a state and outcome; omitted facts mean the empty set, not inferred facts.
   transitions
-    scheduled       + start         → started
-    started         + reportSuccess → succeeded
-    started         + requestCancel → cancelRequested
-    cancelRequested + resolve       → oneOf [canceled, succeeded]
+    start: scheduled + awaitStart → { state := started, outcome := acknowledged }
+    success: started + awaitSuccess →
+      { state := succeeded, outcome := completed, facts := [terminal] }
+    request: started + requestCancel →
+      { state := cancelRequested, outcome := cancellationRequested }
+    resolution: cancelRequested + awaitResolution → oneOf [
+      { state := canceled, outcome := operationCanceled, facts := [terminal] },
+      { state := succeeded, outcome := completed, facts := [terminal] }
+    ]
 
 /-
-Each row lists all allowed results; absent pairs have no transition. In this draft each result
-reports its destination state as its Model Outcome. `resolve` represents environment progress:
-the model chooses among its alternatives, and a scenario cannot force cancellation to win.
+Each row lists all allowed results; absent pairs have no transition. Model Outcomes are now
+separate from destination states, and every alternative supplies a complete result.
+`awaitResolution` permits either terminal result; a scenario cannot force cancellation to win.
 
-For example, there is no `scheduled + reportSuccess` row. This omits synchronous completion
+For example, there is no `scheduled + awaitSuccess` row. This omits synchronous completion
 from the draft; it does not claim that real Nexus operations cannot complete synchronously.
 Likewise, the absence of late-event rows says nothing about whether a real server ignores or
 rejects a late event. Those behaviors need explicit modeling before they can be checked.
@@ -113,32 +139,37 @@ cancellation. `when` selects the triggering step, and `resultingState` reads tha
 output. A transition directly to `canceled` would violate this particular request/response model.
 A trace with no request satisfies this conditional requirement without exercising it. -/
 property cancellationIsARequest on lifecycle
+  for operation
   when action requestCancel
-  require resultingState cancelRequested
+  require requestState: resultingState cancelRequested
 
 /-- A bounded progress requirement: a request must be followed by either terminal result within
-one additional model transition. The intended existing temporal semantics also allow a response
+one additional transition of that same operation. The intended existing temporal semantics allow a response
 on the triggering step; our request row does not produce one, so resolution needs the next step.
 This is a bound in model steps, not seconds. The Behavior below explicitly includes progress.
+`for operation` binds the trigger and response to one operation; other operations do not consume
+its bound. This scoped counting is a proposed extension, not existing Nexus2 functionality.
 A trace ending immediately after the request cannot demonstrate the required response. -/
 property cancellationResolves on lifecycle
+  for operation
   when action requestCancel
-  require eventually state oneOf [canceled, succeeded]
-    within 1 semantic_transition
+  require terminalResponse: eventually fact terminal
+    within 1 operation_transition
 
-/-- A structural requirement on the transition relation: terminal states have no outgoing rows.
-This proposed spelling needs a defined checking path; none of the Queries below checks this
-Property. Merely writing a Property is not evidence that verification has run or passed. -/
-property terminalIsFinal on lifecycle
-  require no transition from [canceled, succeeded]
+/-- A reusable condition for witness Queries. It inspects the final state of this operation,
+not whether a controller instruction returned successfully. Merely declaring a Property does
+not run it; the Queries below explicitly select it. -/
+property successfulResult on lifecycle
+  for operation
+  require successState: finalState succeeded
 
 /-- A Behavior selects model traces, not runtime instructions. `exactly` fixes the selected
-Action sequence and its length. In `completion: reportSuccess`, the name before `:` labels this
+Action sequence and its length. In `completion: awaitSuccess`, the name before `:` labels this
 occurrence, while the name after `:` identifies the Action. Labels distinguish occurrences if
 the same Action is later allowed more than once in a scenario. -/
 behavior successfulCompletion on lifecycle
-  starts scheduled
-  actions exactly [start: start, completion: reportSuccess]
+  operation starts scheduled
+  actions exactly [start: awaitStart, completion: awaitSuccess]
 
 /-- This scenario admits two traces:
 `scheduled → started → cancelRequested → canceled` and
@@ -147,8 +178,8 @@ The requests are the same in both traces; the model supplies the resolution alte
 Completion before the request and a request with no later resolution are outside this Behavior.
 Claims checked only here therefore do not cover every possible cancellation interleaving. -/
 behavior cancellationRace on lifecycle
-  starts scheduled
-  actions exactly [start: start, request: requestCancel, resolution: resolve]
+  operation starts scheduled
+  actions exactly [start: awaitStart, request: requestCancel, resolution: awaitResolution]
 
 /-
 Queries share these explicit model-search bounds. Exhaustive verification must report
@@ -169,10 +200,10 @@ limits shortTrace
 
 /-- A witness Query asks whether at least one admitted trace ends successfully. Its expected
 witness is `scheduled → started → succeeded`. Finding one establishes possibility, not that
-every trace succeeds. `witness finalState ...` is proposed shorthand whose lowering remains
-to be designed; this draft does not add a second Property evaluator. -/
+every trace succeeds. `witness successfulResult` refers to the named Property above, so Queries
+reuse the Property language rather than introducing their own predicate evaluator. -/
 query completion on lifecycle
-  witness finalState succeeded
+  witness successfulResult
   in successfulCompletion
   limits shortTrace
 
@@ -202,8 +233,8 @@ probability or frequency for either outcome, and is not evidence of a real Tempo
 All expected results in these comments remain expectations until the draft is implemented and
 the corresponding checked Queries actually run. -/
 query completionCanWin on lifecycle
-  witness finalState succeeded
+  witness successfulResult
   in cancellationRace
   limits shortTrace
 
-end Nexus
+end Temporal.Feature.Nexus3

@@ -198,27 +198,24 @@ These artifacts are the seams between components:
 | Regression/space | Named regressions and exploration spaces over Lean semantics | Checked `Property`, `Behavior`, `Query`, and Space values exist, with reusable Switch and Temporal examples; there is no persisted regression catalog. |
 | ExperimentSpec | Environment-independent executable specification with a drive plan, properties, requirements, Limits, Known Gaps, provenance, and Behavior Fingerprints | `umpire-experiment/v2` is the sole byte-identical planning Artifact emitted by planning and `umpire-gen-tests`; its nested plan is exactly `umpire-drive-plan/v2`. Generated regression views retain a narrow strict Go reader for its canonical bytes, checksums, and closure. Runtime bindings belong to the separate historical `umpire-runtime-configuration/v2` contract. |
 | Portable Evaluation Contract | Closed per-Test Observation, Implementation Link, Property, binding, Limit, Known Gap, and provenance data for interpretation without Lean | The version-one schema is generated from `proto/internal/temporal/server/api/umpire/v1/message.proto`. Lean emits canonical ProtoJSON for the normal and duplicate-delivery checked Tests; Go structurally packs and admits deterministic protobuf bytes. The contract is not another semantic authority or a member of the persisted v2 JSON set. |
-| ExperimentRun | One realized execution binding an `ExperimentSpec` to an environment, seed, controls, receipts, and cleanup outcome | The v2 model contract remains as historical implementation evidence. Its public Go codec, fixtures, and caller workflow are retired; an unreferenced internal codec remains pending the separate orphan trim. |
-| Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | The v2 model contract remains as historical implementation evidence. Its public Go codec, fixtures, and caller workflow are retired; an unreferenced internal codec remains pending the separate orphan trim. |
-| Semantic evidence | Lean-defined interpretation of raw facts | The v2 model transport remains as historical implementation evidence. Its public Go codec, fixtures, and caller workflow are retired; an unreferenced internal codec remains pending the separate orphan trim. |
-| Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | The v2 model transport remains as historical implementation evidence. Its public Go codec, fixtures, and caller workflow are retired; an unreferenced internal codec remains pending the separate orphan trim. |
+| ExperimentRun | One realized execution binding an `ExperimentSpec` to an environment, seed, controls, receipts, and cleanup outcome | The v2 Lean model contract remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
+| Raw evidence | Typed implementation facts, receipts, Known Gaps, source positions, and causal references | The v2 Lean model contract remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
+| Semantic evidence | Lean-defined interpretation of raw facts | The v2 Lean model transport remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
+| Result | Accepted, violated, unknown, conflict, or unsupported Run Evaluation outcomes | The v2 Lean model transport remains as historical implementation evidence. Its Go codecs, fixtures, and caller workflow are retired. |
 | Replay bundle | ExperimentSpec, ExperimentRun, evidence, result, Limits, and provenance | Campaign/replay artifacts exist in the Go Umpire baselines; they do not accept `umpire-experiment/v2`. |
 | Veil binding | Source-bound correspondence between an explicit canonical first-order view and family-authored Veil declarations | Umpire3 exports `umpire3/veil-binding/v1` with declaration mappings, source/view digests, backend revision, semantic relation, and trust data. The current model has no corresponding checker view or binding. |
 | Verification receipt | Checker target, Limits, trust mode, proof/counterexample, and provenance | Umpire3 has checker receipts and release evidence. The current `model/` produces `PlannerRun` results, not a verification receipt. |
 
 The retained Go boundary is the strict `umpire-experiment/v2` reader used by generated regression
-views. The public multi-family admission, complete-set publication, and command surfaces are
-retired. Internal runtime, evidence, result, and clone code remains present until the separate
-orphan trim; its presence does not establish a retained workflow.
+views. The public multi-family admission, complete-set publication, command, and orphaned internal
+runtime, evidence, result, and clone surfaces are retired. Their Lean model contracts remain
+historical implementation evidence rather than supported Go transport APIs.
 
-Exact executable, execution, and evaluation closures contain two, four, and six members
-respectively. Their manifest and members preserve every Limit and Known Gap and reject incompatible
-references or stale checksums. `PublishSet` validates and privately stages a complete set, then
-installs one immutable manifest-digest directory with a single rename; readers observe absence or a
-fully revalidated set. Read-only checks never call publication. This baseline supersedes fn-37's
-compact spelling in place. Compact/alternate whitespace, other families, schema migrations, generic
-envelopes, platform orchestration, and mutating artifact-management commands have no normalization,
-alias, or fallback here.
+The retired Go transport represented executable, execution, and evaluation closures as two, four,
+and six members respectively, with atomic complete-set publication. Those contracts remain
+historical implementation evidence; there is no live Go set reader, publisher, normalization,
+alias, or migration surface. The retained Experiment reader continues to reject noncanonical bytes,
+unknown fields, unsupported majors, and stale checksums.
 
 ## 3. Components
 

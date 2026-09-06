@@ -23,7 +23,36 @@ Execute the three tasks in order:
 Extend the [fn-64 deletion ledger](../.flow/artifacts/fn-64-umpire-case-runtime/task8-migration-ledger.md)
 without repeating that cutover. Fn-60 is not a dependency.
 
-### 2. fn-60 — Deepen handwritten Lean canonical JSON construction
+### 2. fn-69 — Extract Testpilot from Umpire
+
+[Spec](../.flow/specs/fn-69-extract-testpilot-from-umpire.md). Deliver after fn-66 and before
+fn-68; it builds on the completed fn-64 Case Runtime.
+
+Move reusable Case admission, Program execution, recording, and Contract evaluation into
+`common/testing/testpilot`. Put the functional-cluster Driver in `tests/testcore/testpilot`, retain
+the server/worker authority split, and keep the Driver seam reusable by a later canary.
+
+Move the Case protobuf sources to `proto/internal/temporal/server/api/testpilot/v1`, the protobuf
+namespace to `temporal.server.testpilot.v1`, and generated Go code to `api/testpilot/v1`. Preserve message and
+enum numbers, field shapes, serialized data, admission and execution behavior, failure precedence,
+bounds, concurrency, cleanup, and comments. Remove the former Umpire-owned proto and runtime after
+all active consumers migrate; do not leave aliases or a permanent forwarding facade.
+
+### 3. fn-68 — Minimal Nexus3 success demonstration
+
+[Plan](../.flow/specs/fn-68-minimal-nexus3-success-demonstration.md) reviewed **SHIP**.
+Deliver after fn-69; its fn-62 and fn-64 dependencies are complete.
+
+Execute the three tasks in order:
+
+1. Compile the success-only model, keeping `Nexus3/Nexus.lean` within 250 lines.
+2. Lower its checked Query and witness into a Case, with integration in separate Nexus3 modules.
+3. Generate the fixture and pass the existing live Temporal test for scheduled → started → succeeded.
+
+Keep the demonstration minimal: one Property, one Behavior, one Query, and no cancellation or new
+DSL. Model changes must affect the generated Case or reject explicitly.
+
+### 4. fn-60 — Deepen handwritten Lean canonical JSON construction
 
 [Plan](../.flow/specs/fn-60-deepen-authored-lean-canonical-json.md). **Optional maintenance**, with
 no open dependency; it does not gate fn-66 or downstream delivery.

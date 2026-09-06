@@ -24,8 +24,9 @@ import alone.
 
 ## Current package and command ownership
 
-The inventory contains 21 Go packages, including seven `main` packages. There are no unclassified
-rows.
+The frozen inventory contains 21 Go packages, including seven `main` packages. After the two
+approved removals, `go list -tags test_dep ./tools/umpire/...` reports 19 retained packages,
+including six `main` packages. There are no unclassified rows.
 
 | Package | Decision | Concrete consumer or removal evidence |
 | --- | --- | --- |
@@ -39,7 +40,7 @@ rows.
 | `tools/umpire/cmd/umpire-gen-lean-api` | retained | `make umpire-gen-lean-api`, `model/README.md`, and the checked-in `model/Temporal/API*.lean` outputs depend on it. Its fixture target rewrites only the owned basic fixture. |
 | `tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog` | retained | `make umpire-gen-lean-dynamic-config-catalog`, `model/README.md`, and `model/Temporal/DynamicConfig*.lean` depend on it; project tests cover helper-process stdout/stderr failures. |
 | `tools/umpire/cmd/umpire-gen-regression-views` | retained | Make generation/check targets, the single-entry production manifest, Switch Go/Markdown outputs, and generator tests consume it. |
-| `tools/umpire/internal/artifactv2` | retained after trim in .3 | The public artifact package currently imports it, but the independent retained consumers are `cmd/umpire-gen-regression-views/generated_view.go` and `regression/generated_view.go`. Keep the complete Experiment reader closure below; remove only the four orphan source files and clone test authorized below. |
+| `tools/umpire/internal/artifactv2` | retained after trim in .3 | Its independent retained consumers are `cmd/umpire-gen-regression-views/generated_view.go` and `regression/generated_view.go`. The complete Experiment reader closure below remains; the four orphan source files and clone test authorized below are removed. |
 | `tools/umpire/internal/execution` | retained | The public facade and verification package import it; it owns admitted scheduling, recording, values, cleanup, and Run construction under MOD-12/MOD-14. |
 | `tools/umpire/internal/ir` | retained | Imported throughout internal execution, verification, facade Profile/Host code, and retained temporal tests; it owns Case Program and Contract IR. |
 | `tools/umpire/internal/legacyvocabulary` | retained | Implementation of the retained vocabulary command and aggregate regression gate. |
@@ -76,7 +77,7 @@ Public implementation files:
 - `tools/umpire/artifact/set.go`
 - `tools/umpire/cmd/umpire-artifact/main.go`
 
-Task .3 may remove these paths only after a fresh post-.2 reference check confirms the same closure:
+Task .3 removed these paths after a fresh post-.2 reference check confirmed the same closure:
 
 - `tools/umpire/internal/artifactv2/runtime.go`
 - `tools/umpire/internal/artifactv2/evidence.go`
@@ -239,11 +240,54 @@ The subtraction was re-derived from exact `../tools/...` path prefixes:
 The two headers in retained `internal/artifactv2/artifact.go` remain. Any additional new, changed,
 or missing header fails the final gate even if the total is smaller.
 
+## Final task evidence
+
+- The post-.2 symbol and import scan found zero live consumers of declarations in `runtime.go`,
+  `evidence.go`, `result.go`, or `clone.go`, and zero live consumers of the clone test. The two live
+  consumers of the retained package use only the complete Experiment reader closure recorded above.
+- The focused baseline and post-trim command both exited 0:
+  `go test -count=1 -tags test_dep ./tools/umpire/internal/artifactv2
+  ./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression`.
+- The direct complete Go selector exited 1 before reaching all packages because the host C
+  toolchain could not find `stddef.h`. The same complete tagged selector executed by the physical
+  `TMPDIR` aggregate regression target passed all 19 retained packages, including the retained
+  artifact reader and both consumers.
+- `make umpire-build-model` exited 0. Physical-canonical-`TMPDIR`
+  `make umpire-check-regression` exited 0; its generated-view, Case conformance, semantic inventory,
+  vocabulary, complete tagged package, and live-test checks all ran, and the exact inherited live
+  failure-identity set matched.
+- The first `make lint-model` observation exited 2 after concurrent external draft edits introduced
+  noncanonical model sources. After their owner preserved those drafts as noncompiled design
+  artifacts, the final-tree rerun exited 0 without weakening the owned-source selector.
+- The final-tree `make lint-code GOLANGCI_LINT_FIX=false` exited 2 with 1,272 diagnostics and raw
+  sorted-header SHA-256 `f53910724a8830c9fc2a58e67a3d3569e5710b8bd4242ecfc54307d9b09e439f`.
+  Exactly 1,270 raw headers match the approved final file byte-for-byte. The other two are the same
+  `fmt.Errorf` calls and replacements at `catalog.go:33` and `catalog.go:39`, where Revive selected
+  its overlapping `use-errors-new` identity instead of the frozen `unnecessary-format` identity.
+  Canonicalizing only those two proven label/message aliases produces 1,272 byte-identical expected
+  and actual headers with SHA-256
+  `6af8054b95719a1cfbaeab137e49dfdc0b654272867910850f5f7c7f65f6b136`. A diagnostic experiment that
+  globally disabled `use-errors-new` changed unrelated identities and was discarded; the final
+  source and lint configuration preserve the frozen rules.
+- The retained Switch source, generated Go view, generated Markdown view, Case conformance tree,
+  Lean API set, dynamic-config set, and semantic inventory remained byte-identical through the
+  aggregate checks. Retained source and comments in `artifact.go`, `natural.go`, and
+  `artifact_test.go` were not edited.
+- Completion review found and removed two remaining prospective claims in
+  `.plans/UMPIRE4_SPEC_COMPS.md`: exact Artifact/set checking as an intended command and the public
+  `tools/umpire/artifact/` entry in the recommended Go tree. This documentation-only correction
+  aligns both sections with the already recorded retired surface and does not change executable
+  code or prior gate evidence.
+- Removing unreachable codecs introduces no allocation, concurrency, crash, security, or runtime
+  work. A 10x increase in retained reader, generator, Case Runtime, or live-test load therefore
+  follows the unchanged implementations and cost bounds exercised by the retained gates.
+
 ## Reconciliation
 
 - Realized removal: .2 removed 51 files, 92 Tests, 1 Fuzz target, and 27 fixtures; .3 owns 5 files
   and 5 Tests. The total is 56 files, 97 Tests, 1 Fuzz target, and 27 fixtures.
 - Every current package and command has a concrete retained consumer or an evidence-backed removal
   decision. Every fixture origin/reference and every candidate top-level test is accounted for.
-- Repository searches found no additional unused package, command, helper, fixture, or active
-  reference in scope. There is no scope conflict to revise before .2.
+- The post-.2 symbol and import closure found no retained consumer of the four internal codecs or
+  clone helpers. Repository searches found no additional unused package, command, helper, fixture,
+  or active reference in scope. There was no scope conflict requiring revision before .3.

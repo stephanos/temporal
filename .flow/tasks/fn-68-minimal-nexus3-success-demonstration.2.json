@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-06T16:11:35.253551Z",
+  "depends_on": [
+    "fn-68-minimal-nexus3-success-demonstration.1"
+  ],
+  "id": "fn-68-minimal-nexus3-success-demonstration.2",
+  "priority": null,
+  "spec": "fn-68-minimal-nexus3-success-demonstration",
+  "spec_path": ".flow/tasks/fn-68-minimal-nexus3-success-demonstration.2.md",
+  "status": "todo",
+  "title": "Lower the checked success witness into a Case",
+  "updated_at": "2026-09-06T16:11:35.253551Z"
+}
