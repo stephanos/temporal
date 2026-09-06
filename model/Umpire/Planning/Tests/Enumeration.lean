@@ -48,16 +48,16 @@ The cursor instrumentation catches eager full-space production: a two-candidate 
 high-branching step pulls the root and one child, retains no pending candidates, and cannot
 materialize siblings or upgrade the exhausted prefix into completeness.
 -/
-example :
+#guard
     let planned := run 64 (.counterexample property) .shortest 2 17 false
-    (planned.result.outcome.name, planned.result.metadata.completeness.established,
-      planned.instrumentation.generatedCandidates,
-      planned.instrumentation.retainedPendingCandidates,
-      planned.instrumentation.peakActiveFrontierDepth,
-      planned.instrumentation.stepKernelPulls,
-      planned.result.metadata.explored.transitions) =
-    ("limit-reached", false, 2, 0, 2, 1, 1) := by
-  native_decide
+    planned.toOption.map (fun run =>
+    (run.result.outcome.name, run.result.metadata.completeness.established,
+      run.instrumentation.generatedCandidates,
+      run.instrumentation.retainedPendingCandidates,
+      run.instrumentation.peakActiveFrontierDepth,
+      run.instrumentation.stepKernelPulls,
+      run.result.metadata.explored.transitions)) ==
+    some ("limit-reached", false, 2, 0, 2, 1, 1)
 
 /-! The shared traversal preserves admitted candidate order and exhaustive completion without
 exposing its cursor representation. Ordinary planning still stops at the first selected trace. -/
@@ -70,8 +70,8 @@ exposing its cursor representation. Ordinary planning still stops at the first s
       traversed.termination.name,
       traversed.metadata.completeness.established,
       traversed.metadata.explored.traces,
-      planned.result.outcome.name,
-      planned.result.metadata.explored.traces) ==
-    ([1, 1, 1], "exhaustive", true, 4, "found", 2)
+      planned.toOption.map fun run =>
+        (run.result.outcome.name, run.result.metadata.explored.traces)) ==
+    ([1, 1, 1], "exhaustive", true, 4, some ("found", 2))
 
 end Umpire.PlanningTests

@@ -133,10 +133,14 @@ private def guardedArtifactPair? : Option (CheckedProperty × ExperimentSpec × 
   }
   let first ← (checkQuery queryContext (declaration [property, flipProperty])).toOption
   let reordered ← (checkQuery queryContext (declaration [flipProperty, property])).toOption
+  let firstArtifact ←
+    (artifactOfSelection first appliedTrace .behaviorSelection {}).toOption
+  let reorderedArtifact ←
+    (artifactOfSelection reordered appliedTrace .behaviorSelection {}).toOption
   pure (
     property,
-    artifactOfSelection first appliedTrace .behaviorSelection {},
-    artifactOfSelection reordered appliedTrace .behaviorSelection {})
+    firstArtifact,
+    reorderedArtifact)
 
 /- Guarded Property data crosses the v2 Artifact boundary only through its exact semantic
 fingerprint and requirements; source order cannot alter the sealed bytes. -/

@@ -103,9 +103,9 @@ private def constructorRunNames : Option (String × String × String) := do
   let startKernel ← (IncrementalPlannerKernel.ofCheckedQuery checked.target.id checked.start.query).toOption
   let cancelKernel ← (IncrementalPlannerKernel.ofCheckedQuery checked.target.id checked.cancel.query).toOption
   let successKernel ← (IncrementalPlannerKernel.ofCheckedQuery checked.target.id checked.success.query).toOption
-  pure ((plan checked.start.query startKernel).result.outcome.name,
-    (plan checked.cancel.query cancelKernel).result.outcome.name,
-    (plan checked.success.query successKernel).result.outcome.name)
+  let startRun ← (plan checked.start.query startKernel).toOption
+  let cancelRun ← (plan checked.cancel.query cancelKernel).toOption
+  let successRun ← (plan checked.success.query successKernel).toOption; pure (startRun.result.outcome.name, cancelRun.result.outcome.name, successRun.result.outcome.name)
 
 #guard constructorRunNames == some ("found", "found", "found")
 
@@ -634,8 +634,8 @@ private def frontendGuardedQueryOutcome : Option (String × String) := do
   let (_, _, constructor) ← guardedAdmission
   let frontendKernel ← IncrementalPlannerKernel.ofCheckedQuery frontend.target.id frontend |>.toOption
   let constructorKernel ← IncrementalPlannerKernel.ofCheckedQuery constructor.target.id constructor |>.toOption
-  pure ((plan frontend frontendKernel).result.outcome.name,
-    (plan constructor constructorKernel).result.outcome.name)
+  let frontendRun ← (plan frontend frontendKernel).toOption
+  let constructorRun ← (plan constructor constructorKernel).toOption; pure (frontendRun.result.outcome.name, constructorRun.result.outcome.name)
 
 #guard frontendGuardedQueryOutcome == some ("found", "found")
 
@@ -1078,9 +1078,9 @@ private def frontendBaselineTraces : Option (PlanningOutcome × PlanningOutcome 
     frontend.cancelQuery |>.toOption
   let successKernel ← IncrementalPlannerKernel.ofCheckedQuery constructor.target.id
     frontend.successQuery |>.toOption
-  pure ((plan frontend.startQuery startKernel).result.outcome,
-    (plan frontend.cancelQuery cancelKernel).result.outcome,
-    (plan frontend.successQuery successKernel).result.outcome)
+  let startRun ← (plan frontend.startQuery startKernel).toOption
+  let cancelRun ← (plan frontend.cancelQuery cancelKernel).toOption
+  let successRun ← (plan frontend.successQuery successKernel).toOption; pure (startRun.result.outcome, cancelRun.result.outcome, successRun.result.outcome)
 
 private def constructorBaselineTraces : Option
     (PlanningOutcome × PlanningOutcome × PlanningOutcome) := do
@@ -1091,9 +1091,9 @@ private def constructorBaselineTraces : Option
     constructor.cancel.query |>.toOption
   let successKernel ← IncrementalPlannerKernel.ofCheckedQuery constructor.target.id
     constructor.success.query |>.toOption
-  pure ((plan constructor.start.query startKernel).result.outcome,
-    (plan constructor.cancel.query cancelKernel).result.outcome,
-    (plan constructor.success.query successKernel).result.outcome)
+  let startRun ← (plan constructor.start.query startKernel).toOption
+  let cancelRun ← (plan constructor.cancel.query cancelKernel).toOption
+  let successRun ← (plan constructor.success.query successKernel).toOption; pure (startRun.result.outcome, cancelRun.result.outcome, successRun.result.outcome)
 
 #guard frontendBaselineTraces == constructorBaselineTraces
 

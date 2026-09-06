@@ -15,6 +15,9 @@ namespace Umpire.PlanningVisibilityTests
 #check JointConflictEvidence
 #check JointModelIncompatibility
 #check JointUnsupportedFormulaClass
+#check composePlanningKnownGaps
+#check artifactOfSelection
+#check plan
 
 /-! Importing Planning does not expose its private completion finalizer. -/
 /--

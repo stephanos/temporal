@@ -629,19 +629,30 @@ theorem exploratoryQuery_target : exploratoryQuery.target = target := by rfl
 theorem exactActionQuery_target : exactActionQuery.target = target := by rfl
 theorem exactTraceQuery_target : exactTraceQuery.target = target := by rfl
 
-def exploratoryRun : PlannerRun :=
+def exploratoryRun : Except KnownGapError PlannerRun :=
   plan exploratoryQuery incrementalKernel
 
-def exactActionRun : PlannerRun :=
+def exactActionRunResult : Except KnownGapError PlannerRun :=
   plan exactActionQuery incrementalKernel
 
-def exactTraceRun : PlannerRun :=
+def exactTraceRun : Except KnownGapError PlannerRun :=
   plan exactTraceQuery incrementalKernel
 
-def artifact : Option ExperimentSpec := exactActionRun.artifact
+def artifact : Option ExperimentSpec := exactActionRunResult.toOption.bind PlannerRun.artifact
 
 private theorem artifact_isSome : artifact.isSome = true := by
   native_decide
+
+private theorem exactActionRunResult_isSome : exactActionRunResult.toOption.isSome = true := by
+  cases selected : exactActionRunResult with
+  | error error =>
+      have artifactExists := artifact_isSome
+      simp [artifact, selected] at artifactExists
+      contradiction
+  | ok run => rfl
+
+def exactActionRun : PlannerRun :=
+  exactActionRunResult.toOption.get exactActionRunResult_isSome
 
 def compiledArtifact : ExperimentSpec := artifact.get artifact_isSome
 
