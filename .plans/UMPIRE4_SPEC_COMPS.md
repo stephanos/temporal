@@ -638,25 +638,14 @@ one caller do not justify a new seam.
 
 ### 9.2 Artifact transport
 
-`tools/umpire/artifact` is one deep module with an interface shaped like:
+The public Go Artifact admission and publication module has been retired after its callers were
+removed. Generated regression views retain only the strict Experiment reader in
+`tools/umpire/internal/artifactv2`; it validates canonical Experiment bytes, checksums, and closure
+without interpreting Property clauses. Other internal artifact codecs remain present until the
+separate orphan trim rechecks their post-retirement symbol closure.
 
-```text
-Decode<Family>V2(bytes) → inert checked document
-AdmitSet / AdmitSetManifest / AdmitSetFiles(bytes) → exact closed Artifact set
-PublishSet(root, admitted set) → immutable manifest-digest directory
-LoadSet(directory) → complete revalidated Artifact set
-```
-
-It owns bounded strict JSON admission, exact sole-v2 dispatch, cross-document Definition ID,
-Behavior Fingerprint, Artifact/provenance checksum and reference validation, complete-set closure,
-and immutable atomic publication. Publication privately stages and revalidates the complete set,
-installs it with one rename, and cleans abandoned private staging directories under its lock;
-readers therefore see absence or one complete revalidated set. It does not migrate, plan, execute,
-evaluate Properties, perform Observation Evaluation or Run Evaluation, interpret Evidence, or
-repair invalid meaning.
-
-`tools/common/artifactio` remains the lower-level filesystem implementation for safe file and set
-publication.
+`tools/common/artifactio` remains the lower-level filesystem implementation used by other safe
+file and set publication workflows.
 
 ### 9.3 Runtime and learning modules
 
@@ -794,7 +783,6 @@ tools/umpire/
 
 | Command | Owner | Responsibility |
 | --- | --- | --- |
-| `umpire-artifact check` / `check-set` | Go Artifact admission | Read-only exact-byte admission of one named retained family or one complete fixed-closure set; success is silent and publication is never a side effect. |
 | `umpire-check-model` | Go verification adapter plus Lean `Temporal.Tool.CheckModel` | Run model-declared per-commit, nightly, or named checks and assemble an honest verification receipt. |
 | `umpire-gen-tests` | Lean `Temporal.Tool.GenerateTests` executable | List, explain, and compile named regressions, test sets, or selected batches into canonical JSON manifests and complete traces. |
 | `umpire-gen-tests-go` | Go Generated View module | Convert admitted manifests into readable deterministic Go tests. |
