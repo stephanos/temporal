@@ -1,0 +1,132 @@
+{
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "caseId": "temporal.case.conformance.satisfied",
+  "provenance": {
+    "producerId": "temporal.case.compiler",
+    "producerVersion": "1",
+    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC53b3JrZmxvdy1zZXJ2aWNlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtd29ya2Zsb3ctc2VydmljZS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwuY2FzZS5jb25mb3JtYW5jZS5zYXRpc2ZpZWQucHJvcGVydHkiLAogICAgICAiYmVoYXZpb3JGaW5nZXJwcmludCI6ICJ0ZW1wb3JhbC5jYXNlLmNvbmZvcm1hbmNlLnNhdGlzZmllZC9wcm9wZXJ0eS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1BST1BFUlRZIgogICAgfQogIF0sCiAgInNvdXJjZXMiOiBbCiAgICB7CiAgICAgICJwYXRoIjogIlRlbXBvcmFsL0Nhc2VSdW50aW1lLmxlYW4iLAogICAgICAibGluZSI6ICIxIiwKICAgICAgImNvbHVtbiI6ICIxIiwKICAgICAgInByb3ZlbmFuY2UiOiAiY2hlY2tlZC1tb2RlbCIKICAgIH0KICBdLAogICJrbm93bkdhcHMiOiBbXQp9Cg=="
+  },
+  "program": {
+    "programId": "temporal.case.conformance.satisfied.program",
+    "roles": [
+      {
+        "roleId": "temporal.workflow-service",
+        "kind": "ROLE_KIND_ENDPOINT"
+      }
+    ],
+    "slots": [],
+    "observations": [],
+    "entrypoints": [
+      {
+        "entrypointId": "controller",
+        "controller": {},
+        "instructions": [
+          {
+            "instructionId": "execute",
+            "dependencies": [],
+            "instruction": {
+              "invokeRpc": {
+                "endpointRoleId": "temporal.workflow-service",
+                "method": "/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo",
+                "requestAssignments": [],
+                "responseProjections": []
+              }
+            },
+            "outcome": {
+              "fields": [
+                {
+                  "field": "INSTRUCTION_OUTCOME_FIELD_STATUS",
+                  "type": {
+                    "singular": {
+                      "enumeration": {
+                        "protobufType": "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"
+                      }
+                    }
+                  }
+                }
+              ]
+            },
+            "limits": {
+              "timeoutMilliseconds": "5000",
+              "maxAttempts": "1",
+              "maxEmittedEvents": "8",
+              "maxResponseBytes": "4096"
+            },
+            "activationReservations": []
+          }
+        ]
+      }
+    ],
+    "cleanup": {
+      "entrypointId": "cleanup",
+      "instructions": []
+    },
+    "limits": {
+      "maxEntrypoints": "4",
+      "maxNodes": "16",
+      "maxEdges": "24",
+      "maxActivations": "8",
+      "maxAttempts": "16",
+      "maxRunEvents": "256",
+      "maxExpressionDepth": "12",
+      "maxPathFanout": "32",
+      "maxRequestBytes": "32768",
+      "maxResponseBytes": "4096",
+      "maxTotalDurationMilliseconds": "30000",
+      "maxCleanupDurationMilliseconds": "5000"
+    }
+  },
+  "contract": {
+    "contractId": "temporal.case.conformance.satisfied.contract",
+    "rules": [
+      {
+        "ruleId": "result",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
+        "initialStateId": "pending",
+        "states": [
+          {
+            "stateId": "pending",
+            "status": "CONTRACT_STATE_STATUS_NONTERMINAL"
+          },
+          {
+            "stateId": "terminal",
+            "status": "CONTRACT_STATE_STATUS_SATISFIED"
+          }
+        ],
+        "transitions": [
+          {
+            "transitionId": "complete",
+            "sourceStateId": "pending",
+            "targetStateId": "terminal",
+            "eventFilter": {
+              "kinds": [
+                "RUN_EVENT_KIND_INSTRUCTION_COMPLETED"
+              ]
+            },
+            "predicate": {
+              "literal": {
+                "boolValue": true
+              }
+            },
+            "supportKind": "CONTRACT_SUPPORT_KIND_MATCHING_EVENT",
+            "captureAssignments": []
+          }
+        ],
+        "captures": []
+      }
+    ],
+    "limits": {
+      "maxRules": "4",
+      "maxStates": "16",
+      "maxTransitions": "16",
+      "maxExpressionDepth": "12",
+      "maxWorkPerEvent": "100000",
+      "maxTotalWork": "1000000000",
+      "maxCaptures": "4",
+      "maxCaptureBytes": "8192"
+    }
+  }
+}

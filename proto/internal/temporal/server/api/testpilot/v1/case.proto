@@ -1,0 +1,22 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/contract.proto";
+import "temporal/server/api/testpilot/v1/program.proto";
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// CaseProvenance keeps producer-owned metadata opaque to Testpilot.
+message CaseProvenance {
+  string producer_id = 1;
+  string producer_version = 2;
+  bytes producer_data = 3;
+}
+
+// Case is the versioned standalone pairing of exactly one bounded Program and one Contract.
+message Case {
+  FormatVersion version = 1;
+  string case_id = 2;
+  CaseProvenance provenance = 3;
+  Program program = 4;
+  Contract contract = 5;
+}

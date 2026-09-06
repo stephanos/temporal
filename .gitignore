@@ -20,6 +20,10 @@ testdata/
 !/tools/umpire/testdata/**
 !/tools/umpire/**/testdata/
 !/tools/umpire/**/testdata/**
+!/common/testing/testpilot/testdata/
+!/common/testing/testpilot/testdata/**
+!/tests/testcore/testpilot/testdata/
+!/tests/testcore/testpilot/testdata/**
 !/tools/umpire3/testdata/
 !/tools/umpire3/testdata/**
 !/tools/umpire3/**/testdata/

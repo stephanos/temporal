@@ -10,7 +10,7 @@ Recompile the fn-21 duplicate-observation control into one generic fn-64 Case wi
 **Touches:** `model/Temporal/Feature/Nexus/Experimental/**`, `tools/umpire/replay/integration_test.go`, `tests/umpire_replay_test.go`
 
 ## Acceptance
-- [ ] The negative Case uses only public Program instructions, Contract machines, and Temporal Host capabilities.
+- [ ] The negative Case uses only public Program instructions, Contract machines, and Temporal Driver capabilities.
 - [ ] Repeated Runs preserve the semantic violation key and are isolated.
 - [ ] EvidenceCore omission is proved without rewriting events, Run, Verdict, or Contract.
 
