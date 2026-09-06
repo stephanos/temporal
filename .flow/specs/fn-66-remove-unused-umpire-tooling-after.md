@@ -61,7 +61,11 @@ the change removes unreachable workflows without adding execution work.
 
 Keep the full live-test selector and exact inherited failure-identity set. Repository lint compares
 against the frozen baseline minus only diagnostic headers belonging to ledger-approved deleted
-files. Record the expected subtraction and resulting digest before checking; any added or
+files. Preserve raw lint output, then canonicalize only Revive's `unnecessary-format` and
+`use-errors-new` reports for the same `fmt.Errorf` call location and replacement; Revive enables
+both overlapping rules and may emit either identity. Require the same row count and byte-exact
+headers after that narrow canonicalization. Record the expected subtraction and resulting digest
+before checking; any added or
 unexplained changed/missing diagnostic fails verification. A smaller diagnostic count is not
 sufficient evidence. Capture actual terminal exit codes.
 

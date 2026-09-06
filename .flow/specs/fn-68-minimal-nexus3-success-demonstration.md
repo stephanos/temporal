@@ -1,0 +1,88 @@
+# Minimal Nexus3 success demonstration
+
+## Goal & Context
+
+Prove that the readable Nexus3 authoring surface can become functioning Lean and produce a Case that executes against Temporal. Implement exactly one operation: scheduled → started → succeeded. The audience is the engineer evaluating authoring usability; no product, deployment, or operational platform changes are needed.
+
+The existing drafts remain the broader design reference. The executable demonstration contains only the success model, one Property, one exact Behavior, and one witness Query. Completing it establishes this slice, not full Nexus3 or cancellation support.
+
+## Architecture & Data Models
+
+Use ordinary typed Lean declarations with existing finite-target and Property/Behavior/Query checkers. Keep the feature-facing file at most 250 physical lines including its relevant teaching comments; put mechanical construction helpers and integration in separate Nexus3 modules. Do not build the proposed block-syntax parser. Capture declaration names with Lean's existing name facility; derive IDs rather than repeat them in a registry.
+
+The checked Target starts only at scheduled, with awaitStart and awaitSuccess leading to distinct acknowledged/completed outcomes and the corresponding states. Express successfulResult with the existing transition-contract vocabulary on awaitSuccess; the exact two-step Behavior ensures that occurrence is exercised and is the final step. Plan the witness before lowering it.
+
+The success-only Producer consumes the checked Query, its checked meaning, and selected witness. Reuse the existing async Nexus physical Program mechanics, but derive Case provenance and the acceptance monitor from those inputs. The existing async Case entry point delegates to this Producer. No independently authored copy of the same success requirement remains active.
+
+```mermaid
+flowchart LR
+  N[Small Nexus3 model] --> Q[Checked Query and witness]
+  Q --> I[Nexus3 integration]
+  I --> C[Existing Case compiler]
+  C --> R[PrepareCase and Run]
+```
+
+## API Contracts
+
+- Expose one Case-production result for completion, returning the existing typed lowering error on unsupported or inconsistent input; no partial Case.
+- Support only this exact witness form, two-action trace, and checked success Property. Inspect semantic fields, not only IDs or display names. Capture their checked fingerprints in Case metadata.
+- IDs use `temporal.nexus3.<kind>.<relative-declaration-name>` by default. Nested identities use named owners/occurrences, never source order. An explicit override replaces only that declaration's key; a rename otherwise changes identity. Reject malformed or duplicate effective IDs through existing admission boundaries.
+- Retain the existing async-nexus renderer selector, Case wire format, Profile/Host, and test fixture location. Do not add a demo CLI or runtime instruction.
+- Physical setup schedules the operation; waits recognize correlated history events. A fixture may cause asynchronous handler completion, but only recorded history establishes the modeled result.
+
+## Edge Cases & Constraints
+
+The monitor must correlate scheduled, started, and completed history for the same workflow/run and operation using the existing scheduled-event/request references. Missing, duplicate-only, or foreign-operation evidence never satisfies the Contract. Execution deadlines remain operational bounds: do not turn a model transition count into milliseconds or add a stronger temporal Property; unresolved evidence closes inconclusive.
+
+Cancellation, operation-scoped liveness, and other Query/Property forms are unsupported by this Producer and reject before Case publication or Host I/O. Keep those examples as inert design documentation. Known Gaps disclose this slice's limitations without waiving its success requirement.
+
+Fixture generation owns the existing two Temporal example fixtures separately from the fixed six conformance classes. Reuse the current fixture tool and transactional publisher with a separate example manifest/root; build and validate the complete owned tree before comparison or publication. Ordinary Go tests consume checked-in bytes and never invoke Lean. No broad API drift verification or CI changes.
+
+## Acceptance Criteria
+
+- **R1:** The compact executable authoring file builds, all existing language checks succeed, and planning finds exactly scheduled → started → succeeded through awaitStart/awaitSuccess. Helpers remain separate and reuse existing semantic owners. Errors: an undeclared result, an outgoing terminal row, an impossible Behavior, or a missing success step cannot publish a successful witness; no placeholder proofs or unchecked extraction fallback.
+- **R2:** Actual declaration names supply derived IDs automatically, with an optional per-declaration override and no hand-maintained registry or duplicated name strings. Test the exact completion Property/Behavior/Query IDs, rename versus override behavior, reorder/comment stability, and same-ID semantic fingerprint changes. Errors: invalid overrides and effective-ID collisions reject at admission.
+- **R3:** The Producer lowers checked success semantics into the current Program/Contract format, with source IDs/fingerprints bound to its inputs. Changing/removing a success transition or changing its Property under the same IDs changes the output meaning or rejects; returning the existing constant Case is insufficient. Errors: wrong Target/trace, absent witness, altered unsupported Property/Action/form, or cancellation produces a typed error and no Case. Missing/foreign evidence cannot satisfy the generated monitor; model-step bounds are never converted into runtime timeouts.
+- **R4:** The existing async-nexus fixture is generated deterministically from Nexus3 and the existing renderer delegates to the new Producer. Repeated generation yields identical bytes; the example fixture tree is compared/published transactionally and the six conformance classes are unchanged. Errors: renderer/decoder failure, stale bytes, or incomplete generated trees fail without publishing partial output; ordinary tests perform no generation.
+- **R5:** The existing live async Nexus test uses that fixture through PrepareCase and the real local Temporal Host. It returns completed disposition, satisfied Verdict, and successful cleanup, supported by the three correctly correlated history events. Missing or foreign terminal evidence fails a focused offline monitor test. Preserve the focused live test as a required pass, not an allowed inherited failure; update the existing demo documentation with exact support and commands. No error surface beyond the admission/evidence/runtime failures named above.
+
+## Boundaries
+
+No cancellation implementation, retries, multi-operation composition, scoped-step monitor, general DSL/parser, universal Property compiler, new runtime opcode, ID registry, new executable, new artifact format, deployment, broad cleanup, benchmarks, or CI expansion. No migrations of the original Nexus/Nexus2 models.
+
+## Decision Context
+
+- Three sequential tasks: executable authoring, checked lowering, then existing fixture/live-test integration. Avoid a framework project around a single demonstration.
+- Prefer ordinary constructors plus the pinned Lean declaration-name facility over a new five-block grammar.
+- Keep integration co-located in Nexus3 as explicitly requested, with imports flowing Integration → Nexus only; do not relax import lint or make the pure model import runtime bindings.
+- Preserve the complete Markdown drafts while creating the narrower executable Lean modules alongside them.
+- fn-67 supplies design provenance; completed fn-62 and fn-64 supply authoring and runtime dependencies. Independent fn-66 cleanup is not a blocker.
+- Broad generated API drift verification and CI expansion remain outside this demonstration, consistent with the existing declined-scope decision.
+
+## Quick commands
+
+```sh
+(cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests temporal-case-runtime)
+mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireAsyncNexusCase$'
+```
+
+The Go commands run from the repository root. Task acceptance records fixture generation/check commands using the existing tool. Final verification also runs the existing model and lint gates, with unrelated failures reported separately.
+
+## Early proof point
+
+Task 1 must produce the exact checked witness from the compact authoring file before runtime extraction begins. If ordinary constructors cannot keep that file readable within the size bound, simplify the authoring seam before Task 2; do not expand into a parser framework.
+
+## Requirement coverage
+
+| Req | Task(s) | Gap justification |
+| --- | --- | --- |
+| R1 | fn-68-minimal-nexus3-success-demonstration.1 | — |
+| R2 | fn-68-minimal-nexus3-success-demonstration.1 | — |
+| R3 | fn-68-minimal-nexus3-success-demonstration.2 | — |
+| R4 | fn-68-minimal-nexus3-success-demonstration.3 | — |
+| R5 | fn-68-minimal-nexus3-success-demonstration.3 | — |
+
+## References
+
+UMPIRE4 checked authoring, closed Case, and evidence contracts; Lean Authoring Guidelines; fn-67 design decisions; completed fn-62 authoring and fn-64 Case Runtime work. Concrete source anchors and commands belong to the child tasks.
