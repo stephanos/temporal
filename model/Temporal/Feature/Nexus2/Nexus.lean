@@ -76,8 +76,8 @@ identity independent of the Lean declaration name; automatic identity derivation
 declarations is still an authoring-interface decision.
 
 The state and Action declarations supply the complete vocabulary, including terminal states
-with no outgoing rows. `initial` permits either starting point; a Behavior chooses one of them.
-Starting at `started` intentionally abstracts away the earlier scheduling and acknowledgment.
+with no outgoing rows. `initial` requires every scenario to begin at `scheduled`.
+Reaching `started` requires an explicit `start` step, including in cancellation scenarios.
 
 `terminal` identifies final results. A future checker must check consistency with the transition
 table rather than silently remove a row that contradicts this declaration.
@@ -86,7 +86,7 @@ model lifecycle
   id "temporal.nexus-draft.lifecycle"
   states State
   actions Action
-  initial [scheduled, started]
+  initial [scheduled]
   terminal [canceled, succeeded]
 
   -- Read `before + action → after` as one permitted step, not an instruction to execute it.
@@ -141,13 +141,14 @@ behavior successfulCompletion on lifecycle
   actions exactly [start: start, completion: reportSuccess]
 
 /-- This scenario admits two traces:
-`started → cancelRequested → canceled` and `started → cancelRequested → succeeded`.
+`scheduled → started → cancelRequested → canceled` and
+`scheduled → started → cancelRequested → succeeded`.
 The requests are the same in both traces; the model supplies the resolution alternatives.
 Completion before the request and a request with no later resolution are outside this Behavior.
 Claims checked only here therefore do not cover every possible cancellation interleaving. -/
 behavior cancellationRace on lifecycle
-  starts started
-  actions exactly [request: requestCancel, resolution: resolve]
+  starts scheduled
+  actions exactly [start: start, request: requestCancel, resolution: resolve]
 
 /-
 Queries share these explicit model-search bounds. Exhaustive verification must report
@@ -157,12 +158,13 @@ its progress property does not claim fairness or promise a wall-clock completion
 The three limits bound different quantities. Transitions bound trace steps; selected Actions
 bound Action occurrences; candidate evaluations bound search work. They coincide in some small
 examples, but are not interchangeable. The initial state is not itself a transition.
+The cancellation scenario needs three steps; successful completion still needs only two.
 The search budget of 32 is a proposed budget, not a measured guarantee of exhaustive coverage.
 -/
 
 limits shortTrace
-  transitions 2
-  selected_actions 2
+  transitions 3
+  selected_actions 3
   candidate_evaluations 32
 
 /-- A witness Query asks whether at least one admitted trace ends successfully. Its expected
@@ -175,7 +177,8 @@ query completion on lifecycle
   limits shortTrace
 
 /-- Verification asks whether every trace admitted by this scenario satisfies the Property.
-Both race outcomes should satisfy request safety because the first step is nonterminal in both.
+Both race outcomes should satisfy request safety because the request step leaves both traces
+in `cancelRequested`.
 An exhaustive claim is valid only if the search actually covers the entire bounded space.
 An impossible scenario must report unsatisfiable, not a passing verification result. -/
 query cancellationSafety on lifecycle
@@ -185,7 +188,7 @@ query cancellationSafety on lifecycle
   search exhaustive
 
 /-- Both terminal alternatives satisfy progress; cancellation need not win for this to pass.
-The question is deliberately conditional on the two-step scenario. It does not establish that
+The question is deliberately conditional on the three-step scenario. It does not establish that
 the environment always schedules resolution, or that a live operation completes by a deadline. -/
 query cancellationProgress on lifecycle
   verify cancellationResolves
