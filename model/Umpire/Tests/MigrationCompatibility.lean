@@ -249,7 +249,7 @@ private theorem earlyKernel?_isSome : earlyKernel?.isSome = true := by
 private def earlyKernel : IncrementalPlannerKernel earlyQuery.target :=
   earlyKernel?.get earlyKernel?_isSome
 
-private def earlyRun : PlannerRun := plan earlyQuery earlyKernel
+private def earlyRun : Except KnownGapError PlannerRun := plan earlyQuery earlyKernel
 
 private def relocatedQueryResult : Except QueryError (CheckedQuery LawStatement) :=
   checkQuery (.ofTarget relocatedTarget) exactActionDeclaration
@@ -314,21 +314,21 @@ private theorem relocatedKernel?_isSome : relocatedKernel?.isSome = true := by
 private def relocatedKernel : IncrementalPlannerKernel relocatedQuery.target :=
   relocatedKernel?.get relocatedKernel?_isSome
 
-private def relocatedRun : PlannerRun := plan relocatedQuery relocatedKernel
+private def relocatedRun : Except KnownGapError PlannerRun := plan relocatedQuery relocatedKernel
 
 private def expectedSwitchArtifactJson : String :=
   include_str "../Examples/Fixtures/SwitchCompiledArtifact.json"
 
 /-! Planning both layouts preserves the committed canonical artifact bytes. -/
 example : [
-    earlyRun.artifact.map canonicalExperimentSpecBytes,
-    relocatedRun.artifact.map canonicalExperimentSpecBytes
+    earlyRun.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes),
+    relocatedRun.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes)
   ] = [some expectedSwitchArtifactJson, some expectedSwitchArtifactJson] := by
   native_decide
 
 /-! The expert route preserves the exact planner result as well as the golden Artifact bytes. -/
-example : earlyRun.result = exactActionRun.result ∧
-    relocatedRun.result = exactActionRun.result := by
+example : earlyRun.toOption.map PlannerRun.result = some exactActionRun.result ∧
+    relocatedRun.toOption.map PlannerRun.result = some exactActionRun.result := by
   native_decide
 
 private def wrongKindDefinition : TargetDefinition

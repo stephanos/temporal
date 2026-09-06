@@ -272,12 +272,19 @@ private def artifactProvenance (query : CheckedQuery LawStatement) : ArtifactPro
       |>.mergeSort sourceLe |>.eraseDups
 }
 
-/-- Artifact construction is a single deep seam over a selected, kernel-produced trace. -/
-def artifactOfSelection
+/-- Compose checked authored and phase-owned Known Gaps before planning or publication. -/
+def composePlanningKnownGaps
+    (query : CheckedQuery LawStatement) : Except KnownGapError KnownGapSet :=
+  KnownGapSet.union query.authoredKnownGaps canonicalPlannerKnownGaps
+
+namespace ArtifactPlanning.Internal
+
+def artifactOfSelectionWithKnownGaps
     (query : CheckedQuery LawStatement)
     (trace : BehaviorTrace)
     (reason : SelectionReason)
-    (explored : ExploredCounts) : ExperimentSpec :=
+    (explored : ExploredCounts)
+    (knownGaps : KnownGapSet) : ExperimentSpec :=
   let actions := trace.trace.steps.map fun step => step.selectedAction
   let outcomes := trace.trace.steps.map fun step => step.modelOutcome
   let states := trace.trace.steps.map fun step => step.resultingState
@@ -320,7 +327,7 @@ def artifactOfSelection
     checkpoints
     selectionReason := reason
     explored
-    knownGaps := canonicalPlannerKnownGaps
+    knownGaps
     provenance
   }
   let plan := {
@@ -343,5 +350,17 @@ def artifactOfSelection
     specWithoutChecksum with
     artifactChecksum := specWithoutChecksum.expectedArtifactChecksum
   }
+
+end ArtifactPlanning.Internal
+
+/-- Artifact construction checks Known Gap composition before publishing a selected trace. -/
+def artifactOfSelection
+    (query : CheckedQuery LawStatement)
+    (trace : BehaviorTrace)
+    (reason : SelectionReason)
+    (explored : ExploredCounts) : Except KnownGapError ExperimentSpec := do
+  let knownGaps ← composePlanningKnownGaps query
+  pure (ArtifactPlanning.Internal.artifactOfSelectionWithKnownGaps
+    query trace reason explored knownGaps)
 
 end Umpire

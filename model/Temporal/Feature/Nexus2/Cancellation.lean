@@ -216,6 +216,7 @@ inductive BaselineAdmissionError where
   | invalidBehavior (error : BehaviorError)
   | invalidQuery (error : QueryError)
   | invalidPlanner (error : FinitePlannerAdmissionError)
+  | invalidKnownGap (error : KnownGapError)
 
 structure CheckedOperation where
   property : CheckedProperty
@@ -244,7 +245,8 @@ private def checkOperation
     |>.mapError BaselineAdmissionError.invalidQuery
   let kernel ← IncrementalPlannerKernel.ofCheckedQuery target.id query
     |>.mapError BaselineAdmissionError.invalidPlanner
-  pure { property, behavior, query, run := plan query kernel }
+  let run ← plan query kernel |>.mapError BaselineAdmissionError.invalidKnownGap
+  pure { property, behavior, query, run }
 
 /-- All three journeys proceed only through successful Target and declaration admission branches. -/
 def checkBaseline : Except BaselineAdmissionError CheckedBaseline := do

@@ -61,8 +61,8 @@ private def seededSelection (seed : Nat) : Option (List ModelValue) :=
     policy := { strategy := .seeded, seed, tieBreak := .definitionId }
     behaviorFingerprint := behaviorFingerprintOf ("exploration/seeded-query/" ++ toString seed)
   }
-  (plan query Umpire.Examples.Switch.incrementalKernel).artifact.map
-    (fun spec => spec.plan.modelOutcomes)
+  (plan query Umpire.Examples.Switch.incrementalKernel).toOption.bind fun run =>
+    run.artifact.map (fun spec => spec.plan.modelOutcomes)
 
 /-! The renamed Query strategy and the two Exploration policies expose distinct canonical names. -/
 example : [

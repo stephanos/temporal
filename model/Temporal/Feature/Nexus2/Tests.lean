@@ -301,9 +301,9 @@ theorem exactBoundedTracesMatchEstablished :
         planSemantics baseline.cancel.run,
         planSemantics baseline.success.run)) ==
     some (
-      planSemantics Temporal.Feature.Nexus.Operations.AsyncStart.run,
-      planSemantics Temporal.Feature.Nexus.Operations.Cancellation.run,
-      planSemantics Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run)) = true := by
+      Temporal.Feature.Nexus.Operations.AsyncStart.run.toOption.bind planSemantics,
+      Temporal.Feature.Nexus.Operations.Cancellation.run.toOption.bind planSemantics,
+      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.toOption.bind planSemantics)) = true := by
   native_decide
 
 theorem declarationsAdmitAndRunWithExplicitInputs :
@@ -466,7 +466,8 @@ private def unsatisfiablePlannerStatus : Option (BehaviorSpaceStatus × String) 
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration baseline.cancel.property behavior)).toOption
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
-  pure (behavior.spaceStatus, (plan query kernel).result.outcome.name)
+  let run ← (plan query kernel).toOption
+  pure (behavior.spaceStatus, run.result.outcome.name)
 
 theorem unsatisfiableScenarioRemainsPlannerStatus :
     unsatisfiablePlannerStatus = some (.unsatisfiable, "unsatisfiable") := by
@@ -550,7 +551,8 @@ private def guardedPlannerOutcome
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
-  let outcome := (plan query kernel).result.outcome
+  let run ← (plan query kernel).toOption
+  let outcome := run.result.outcome
   pure (outcome.name, match outcome with
     | .invalid error => some error.kind
     | _ => none)
@@ -605,7 +607,8 @@ private def guardedTemporalPlannerOutcome
   let query ← (checkQuery (.ofTarget baseline.target)
     (Cancel.queryDeclaration property baseline.cancel.behavior)).toOption
   let kernel ← (IncrementalPlannerKernel.ofCheckedQuery baseline.target.id query).toOption
-  let outcome := (plan query kernel).result.outcome
+  let run ← (plan query kernel).toOption
+  let outcome := run.result.outcome
   pure (outcome.name, match outcome with
     | .invalid error => some error.kind
     | _ => none)

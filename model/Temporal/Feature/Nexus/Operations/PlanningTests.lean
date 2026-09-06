@@ -62,6 +62,13 @@ theorem queriesRetainCanonicalMetadata : [
   ] := by
   native_decide
 
+theorem operationQueriesRetainExplicitEmptyAuthoredKnownGaps : [
+    AsyncStart.query.authoredKnownGaps.toList,
+    Cancellation.query.authoredKnownGaps.toList,
+    SuccessfulCompletion.query.authoredKnownGaps.toList
+  ] = [[], [], []] := by
+  native_decide
+
 theorem constructorDeclarationsRetainPublishedIdentities : [
     (AsyncStart.propertyDeclaration.id,
       AsyncStart.propertyDeclaration.clauses.map PropertyClause.id,
@@ -260,10 +267,10 @@ theorem queryIdentitiesAndFingerprintsRemainShared :
 
 /-! Golden artifacts preserve canonical bytes for every ordinary lifecycle consumer. -/
 theorem artifactsRetainCanonicalBytes : [
-    AsyncStart.run.artifact.map canonicalExperimentSpecBytes,
-    Cancellation.run.artifact.map canonicalExperimentSpecBytes,
-    SuccessfulCompletion.run.artifact.map
-      canonicalExperimentSpecBytes
+    AsyncStart.run.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes),
+    Cancellation.run.toOption.bind (fun run => run.artifact.map canonicalExperimentSpecBytes),
+    SuccessfulCompletion.run.toOption.bind (fun run => run.artifact.map
+      canonicalExperimentSpecBytes)
   ] = [
     some expectedAsyncStartArtifactJson,
     some expectedCancellationArtifactJson,

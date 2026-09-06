@@ -1,4 +1,5 @@
 import Umpire.Case.Compiler
+import Umpire.Artifact.Types
 
 namespace Umpire.Case.CompilerTests
 
@@ -73,6 +74,50 @@ private def input : Input := {
   properties := [.monitor property rule]
   contractLimits
 }
+
+private def planningGaps : KnownGapSet :=
+  (KnownGapSet.checkCanonical [
+    { kind := .capabilityContract, code := DefinitionId.of "example.gap.capability" },
+    {
+      kind := .input
+      code := DefinitionId.of "example.gap.input"
+      subject := some (DefinitionId.of "example.target")
+    },
+    {
+      kind := .interpretation
+      code := DefinitionId.of "example.gap.interpretation"
+      detail := some "Interpretation remains model-owned."
+    },
+    {
+      kind := .claim
+      code := DefinitionId.of "example.gap.claim"
+      subject := some (DefinitionId.of "example.property")
+      detail := some "Claim requires runtime evidence."
+    }
+  ]).toOption.get (by native_decide)
+
+private def inputWithPlanningGaps : Input := {
+  input with knownGaps := planningGaps.toCaseKnownGaps
+}
+
+/-! The single checked conversion pass retains every row field in the compiled Case. -/
+#guard match compile inputWithPlanningGaps with
+  | .ok output => output.metadata.knownGaps == [
+      { kind := .capabilityContract, code := "example.gap.capability" },
+      { kind := .input, code := "example.gap.input", subject := some "example.target" },
+      {
+        kind := .interpretation
+        code := "example.gap.interpretation"
+        detail := some "Interpretation remains model-owned."
+      },
+      {
+        kind := .claim
+        code := "example.gap.claim"
+        subject := some "example.property"
+        detail := some "Claim requires runtime evidence."
+      }
+    ]
+  | .error _ => false
 
 #guard match compile input with
   | .ok output =>

@@ -5,29 +5,41 @@ namespace Temporal.Tool.NexusDiscoveryTests
 open _root_.Umpire
 open Temporal.Tool.NexusDiscovery
 
-private def first : NexusDiscoveryCandidate :=
-  candidateOf
+private def firstResult : Except KnownGapError NexusDiscoveryCandidate := do
+  let run ← Temporal.Feature.Nexus.Operations.AsyncStart.run
+  pure <| candidateOf
     Temporal.Feature.Nexus.Operations.AsyncStart.property
     Temporal.Feature.Nexus.Operations.AsyncStart.behavior
     Temporal.Feature.Nexus.Operations.AsyncStart.query
-    Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact
+    run.artifact
 
-private def second : NexusDiscoveryCandidate :=
-  candidateOf
+private def first : NexusDiscoveryCandidate :=
+  firstResult.toOption.get (by native_decide)
+
+private def secondResult : Except KnownGapError NexusDiscoveryCandidate := do
+  let run ← Temporal.Feature.Nexus.Operations.Cancellation.run
+  pure <| candidateOf
     Temporal.Feature.Nexus.Operations.Cancellation.property
     Temporal.Feature.Nexus.Operations.Cancellation.behavior
     Temporal.Feature.Nexus.Operations.Cancellation.query
-    Temporal.Feature.Nexus.Operations.Cancellation.run.artifact
+    run.artifact
 
-private def candidates : List NexusDiscoveryCandidate := [
-  first,
-  second,
-  candidateOf
+private def second : NexusDiscoveryCandidate :=
+  secondResult.toOption.get (by native_decide)
+
+private def candidatesResult : Except KnownGapError (List NexusDiscoveryCandidate) := do
+  let successfulCompletion ← Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run
+  pure [first, second, candidateOf
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.behavior
     Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact
-]
+    successfulCompletion.artifact]
+
+private def candidates : List NexusDiscoveryCandidate :=
+  candidatesResult.toOption.get (by native_decide)
+
+private def inventoryValue : NexusDiscoveryInventory :=
+  inventory.toOption.get (by native_decide)
 
 private def errorKind
     (result : Except NexusDiscoveryError NexusDiscoveryInventory) :
@@ -36,7 +48,7 @@ private def errorKind
   | .error failure => some failure.kind
   | .ok _ => none
 
-example : inventory.entries.map (fun entry =>
+example : inventoryValue.entries.map (fun entry =>
     (entry.property.id.value, entry.behavior.id.value, entry.query.id.value)) = [
     ("temporal.nexus.basic-lifecycle.property.async-start",
       "temporal.nexus.basic-lifecycle.behavior.async-start",
@@ -50,7 +62,7 @@ example : inventory.entries.map (fun entry =>
   ] := by
   native_decide
 
-example : inventory.entries.all fun entry =>
+example : inventoryValue.entries.all fun entry =>
     !entry.property.source.path.trimAscii.isEmpty &&
       !entry.behavior.source.path.trimAscii.isEmpty &&
       !entry.query.source.path.trimAscii.isEmpty &&
@@ -62,9 +74,9 @@ example : inventory.entries.all fun entry =>
 private def reordered : Except NexusDiscoveryError NexusDiscoveryInventory :=
   checkInventory candidates.reverse
 
-example : reordered.toOption = some inventory ∧
+example : reordered.toOption = some inventoryValue ∧
     reordered.toOption.map NexusDiscoveryInventory.canonicalBindingBytes =
-      some inventory.canonicalBindingBytes := by
+      some inventoryValue.canonicalBindingBytes := by
   native_decide
 
 private def expectedListBytes : String :=
@@ -115,7 +127,7 @@ private def expectedListBytes : String :=
   "\"experimentSpec\":{\"formatVersion\":\"umpire-experiment/v2\"," ++
   "\"artifactChecksum\":\"sha256:ef6168a550983456bc05ac599bf1de05b0f85ba2439eb606b46363bfbc5ef98f\"}}]}\n"
 
-example : inventory.canonicalListBytes = expectedListBytes ∧
+example : inventoryValue.canonicalListBytes = expectedListBytes ∧
     reordered.toOption.map NexusDiscoveryInventory.canonicalListBytes =
       some expectedListBytes := by
   native_decide
@@ -187,12 +199,12 @@ private def expectedLineageJson : List String := [
 ]
 
 private def expectedExplanationBytes : List String :=
-  (inventory.entries.zip expectedLineageJson).map fun (entry, lineage) =>
+  (inventoryValue.entries.zip expectedLineageJson).map fun (entry, lineage) =>
     "{\"formatVersion\":\"umpire-nexus-explanation/v1\",\"summary\":" ++
       entry.canonicalSummaryJson ++ ",\"lineage\":" ++ lineage ++ "}\n"
 
-example : inventory.entries.map (fun entry =>
-    (inventory.findEntry? entry.query.id.value).map
+example : inventoryValue.entries.map (fun entry =>
+    (inventoryValue.findEntry? entry.query.id.value).map
       NexusDiscoveryEntry.canonicalExplanationBytes) =
     expectedExplanationBytes.map some := by
   native_decide

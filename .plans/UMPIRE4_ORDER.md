@@ -47,29 +47,24 @@ The [requirement comparison](../model/Temporal/Feature/Nexus2/EVIDENCE.md) estab
 as covered; R1/R2/R4/R5/R8/R9 are partial, and R6/R7 are uncovered. Established Nexus migration,
 Observation authoring, and model-owned Known Gaps were not delivered by the prototype.
 
+## Completed established authoring
+
+[Fn-62](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md) completed all eight residual
+tasks and passed renewed whole-spec completion review after the quality corrections. Established
+Nexus now uses explicit finite Target assembly, Temporal identity specialization, constructor-backed
+operations, typed Observation construction, and checked model-owned Known Gap propagation through
+planning and Case inputs. The compiled public-facade journey and
+[compatibility evidence](../model/Temporal/Feature/Nexus/EVIDENCE.md) cover the retained proof,
+identity, diagnostic, artifact, trust, and structural-cost contracts.
+
 ## Active execution queue
 
-### 1. fn-62 — Retain only requirements uncovered by the Nexus2 prototype
+### 1. fn-66 — Remove unused Umpire tooling after the cutovers
 
-**Depends on:** completed fn-65 and fn-58. The eight-task residual plan passed fresh plan review.
+**Depends on:** completed fn-62. Fn-64 is completed foundation.
 
-**Next action:** implement the reviewed residual graph, starting with explicit finite Target
-assembly and Temporal identity specialization. Reuse the covered planner adapter. The old planner
-task now owns established Lifecycle migration; separate tasks own checked gap attachment and
-downstream composition.
-
-**Retain:** typed Observation helpers, checked model-owned Known Gap propagation, migration of
-established Nexus models, and the exact remaining proof, identity, checked-declaration, tutorial,
-and compatibility contracts identified by the comparison.
-
-**Keep:** explicit semantics, checker authority, public imports, stable identities, exact
-behavior-neutral artifacts, trust inventories, and existing failure boundaries.
-
-[Deferred fn-62 spec](../.flow/specs/fn-62-make-ordinary-temporal-model-authoring.md)
-
-### 2. fn-66 — Remove unused Umpire tooling after the cutovers
-
-**Depends on:** fn-62 only. Fn-64 is completed foundation and is not an open dependency.
+**Next action:** refine the post-cutover consumer inventory and deletion tasks, pass a fresh plan
+review, then execute the reviewed removal plan.
 
 **Deliver:** inventory remaining `tools/umpire` packages and commands against retained runtime,
 Producer, authoring, generation, regression, and downstream consumers. Remove only proven-unused
@@ -81,7 +76,7 @@ depend on fn-60.
 
 [Open fn-66 spec](../.flow/specs/fn-66-remove-unused-umpire-tooling-after.md)
 
-### 3. fn-60 — Deepen handwritten Lean canonical JSON construction
+### 2. fn-60 — Deepen handwritten Lean canonical JSON construction
 
 **Depends on:** no open spec dependency; excludes the completed `Umpire.Property` partition.
 
@@ -100,8 +95,7 @@ protobuf encoding. Do not add parsing, protocol changes, generated Lean work, dr
 ## Current dependency graph
 
 ```text
-fn-65 (completed) -> fn-62 (retain uncovered requirements) -> fn-66
-fn-58 (completed) -> fn-62
+fn-65 (completed) + fn-58 (completed) -> fn-62 (completed) -> fn-66
 fn-60 (optional handwritten JSON maintenance; no dependency on or from fn-62/fn-66)
 
 fn-40 (completed) + fn-64 (completed) -> fn-33

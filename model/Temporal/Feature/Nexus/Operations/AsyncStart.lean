@@ -98,41 +98,19 @@ def incrementalKernelResult :
 
 private theorem incrementalKernelResult_isSome :
     incrementalKernelResult.toOption.isSome = true := by
-  have completenessIsSome :
-      (CheckedQueryTarget.ofTarget target).completeness.isSome = true := by
-    rfl
-  let evidence := (CheckedQueryTarget.ofTarget target).completeness.get completenessIsSome
-  have targetBneSelf : (target.id != target.id) = false := by
-    cases target.id with
-    | mk value =>
-      change (value != value) = false
-      exact bne_self_eq_false value
-  apply IncrementalPlannerKernel.ofCheckedQuery_isSome target.id query evidence
-  · simpa [query_target] using targetBneSelf
-  · rw [show query.completeness = (CheckedQueryTarget.ofTarget target).completeness from rfl]
-    exact (Option.some_get completenessIsSome).symm
-  · change ∃ domain, finiteMachine.kernel.behaviorDomain = .complete domain
-    exact Internal.lifecycleBehaviorDomainComplete
-  · change actionDomain.mergeSort (fun left right =>
-      decide (modelValueOrderKey left ≤ modelValueOrderKey right)) = actionDomain
-    exact Internal.lifecycleActionDomainCanonical
-  · intro setup
-    change (initialState? setup).toList.mergeSort (fun left right =>
-      decide (modelValueOrderKey left ≤ modelValueOrderKey right)) = (initialState? setup).toList
-    exact Internal.lifecycleInitialStatesCanonical setup
-  · intro state action
-    change (stepResult? state action).toList.mergeSort (fun left right =>
-      decide (transitionResultOrderKey left ≤ transitionResultOrderKey right)) =
-      (stepResult? state action).toList
-    exact Internal.lifecycleStepResultsCanonical state action
+  have completenessIsSome : query.completeness.isSome = true := by rfl
+  let evidence := query.completeness.get completenessIsSome
+  apply lifecycleIncrementalKernelResult_isSome query query_target evidence
+  · exact (Option.some_get completenessIsSome).symm
+  · rfl
 
 def incrementalKernel : IncrementalPlannerKernel query.target :=
   incrementalKernelResult.toOption.get incrementalKernelResult_isSome
 
-def run : PlannerRun :=
+def run : Except KnownGapError PlannerRun :=
   plan query incrementalKernel
 
-def repeatedRun : PlannerRun :=
+def repeatedRun : Except KnownGapError PlannerRun :=
   plan query incrementalKernel
 
 end AsyncStart

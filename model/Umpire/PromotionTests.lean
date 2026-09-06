@@ -72,12 +72,40 @@ private def errorKindOf
   | .ok _ => none
   | .error error => some error.kind
 
+private def errorOf
+    (result : Except PromotionError CompiledPromotionSource) : Option PromotionError :=
+  match result with
+  | .ok _ => none
+  | .error error => some error
+
 private def compileWith
     (anchor : PromotionBaseAnchor := baseAnchor)
     (spec : PromotionSourceSpec := sourceSpec)
     (expectation : PromotionSourceExpectation := sourceExpectation) :
     Except PromotionError CompiledPromotionSource :=
   compilePromotionSource exactActionQuery incrementalKernel anchor spec expectation
+
+private def conflictingGap : KnownGap := {
+  plannerExecutionEvidenceKnownGap with detail := some "conflicting authored detail"
+}
+
+private def conflictingGaps : KnownGapSet :=
+  (KnownGapSet.checkCanonical [conflictingGap]).toOption.get (by native_decide)
+
+/-! Promotion retains the complete typed gap failure before anchored-run comparison. -/
+example :
+    errorOf (compilePromotionSource { exactActionQuery with authoredKnownGaps := conflictingGaps }
+      incrementalKernel baseAnchor sourceSpec sourceExpectation) = some {
+        kind := .knownGapCheckFailed
+        subject := exactActionQuery.id
+        detail := KnownGapErrorKind.conflictingDetail.name
+        knownGapError := some {
+          kind := .conflictingDetail
+          code := plannerExecutionEvidenceKnownGap.code
+          subject := plannerExecutionEvidenceKnownGap.subject
+        }
+      } := by
+  native_decide
 
 /-!
 The target-owned trace contains one delivered observation. A runtime-observed duplicate may report
@@ -124,24 +152,31 @@ private def nonFoundQuery : CheckedQuery LawStatement := {
   behaviorFingerprint := behaviorFingerprintOf "switch-promotion-unsatisfiable-query/v1"
 }
 
-private def nonFoundRun : PlannerRun :=
+private def nonFoundRun : Except KnownGapError PlannerRun :=
   plan nonFoundQuery incrementalKernel
 
-private def nonFoundAnchor : PromotionBaseAnchor := {
-  queryDefinitionId := nonFoundQuery.id
-  queryBehaviorFingerprint := nonFoundQuery.behaviorFingerprint
-  queryCanonicalMetadata := nonFoundQuery.canonicalMetadata
-  behaviorDefinitionId := nonFoundQuery.behavior.id
-  behaviorFingerprint := nonFoundQuery.behavior.behaviorFingerprint
-  targetDefinitionId := nonFoundQuery.target.id
-  targetBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
-  kernelDefinitionId := nonFoundQuery.target.kernel.metadata.id
-  kernelBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
-  plannerRun := nonFoundRun
-  experimentSpec := compiledArtifact
-  expectedTrace := targetOwnedCountOneTrace
-  selectionReason := .satisfyingWitness
-}
+private def nonFoundAnchor : Option PromotionBaseAnchor := do
+  let plannerRun ← nonFoundRun.toOption
+  pure {
+    queryDefinitionId := nonFoundQuery.id
+    queryBehaviorFingerprint := nonFoundQuery.behaviorFingerprint
+    queryCanonicalMetadata := nonFoundQuery.canonicalMetadata
+    behaviorDefinitionId := nonFoundQuery.behavior.id
+    behaviorFingerprint := nonFoundQuery.behavior.behaviorFingerprint
+    targetDefinitionId := nonFoundQuery.target.id
+    targetBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
+    kernelDefinitionId := nonFoundQuery.target.kernel.metadata.id
+    kernelBehaviorFingerprint := nonFoundQuery.target.behaviorFingerprint
+    plannerRun
+    experimentSpec := compiledArtifact
+    expectedTrace := targetOwnedCountOneTrace
+    selectionReason := .satisfyingWitness
+  }
+
+private def nonFoundPromotionErrorKind : Option PromotionErrorKind := do
+  let anchor ← nonFoundAnchor
+  errorKindOf (compilePromotionSource nonFoundQuery incrementalKernel anchor
+    sourceSpec sourceExpectation)
 
 /-! Every meaning-bearing base or source mutation fails before a partial source is returned. -/
 example :
@@ -220,8 +255,7 @@ example :
 
 /-! A non-found base result cannot be reclassified as a promotable source. -/
 example :
-    errorKindOf (compilePromotionSource nonFoundQuery incrementalKernel nonFoundAnchor
-      sourceSpec sourceExpectation) = some .nonFoundResult := by
+    nonFoundPromotionErrorKind = some .nonFoundResult := by
   native_decide
 
 private def fixturePromotedQueryResult :=
@@ -234,11 +268,31 @@ private theorem fixturePromotedQueryResult_isSome :
 private def fixturePromotedQuery :=
   fixturePromotedQueryResult.toOption.get fixturePromotedQueryResult_isSome
 
+private def authoredGap : KnownGap := {
+  kind := .claim
+  code := DefinitionId.of "umpire.promotion.known-gap.authored"
+  subject := some exactActionQuery.id
+  detail := some "The promoted Query retains this authored limitation."
+}
+
+private def authoredGaps : KnownGapSet :=
+  (KnownGapSet.checkCanonical [authoredGap]).toOption.get (by native_decide)
+
+private def promotedWithAuthoredGapsResult :=
+  checkPromotedQuery { exactActionQuery with authoredKnownGaps := authoredGaps }
+    targetOwnedCountOneTrace sourceSpec.promotedBehaviorDefinitionId
+    sourceSpec.promotedQueryDefinitionId sourceSpec.sourceLocation
+
 /-! The clean-elaborated source binds a typed base Query to the exact trace and fresh identities. -/
 example :
     fixturePromotedQuery.id = sourceSpec.promotedQueryDefinitionId ∧
       fixturePromotedQuery.behavior.id = sourceSpec.promotedBehaviorDefinitionId ∧
       fixturePromotedQuery.behavior.traceExactly = some targetOwnedCountOneTrace := by
+  native_decide
+
+/-! Promotion rechecking retains the complete nonempty authored set from its base Query. -/
+example : promotedWithAuthoredGapsResult.toOption.map (fun query =>
+    query.authoredKnownGaps.toList) = some authoredGaps.toList := by
   native_decide
 
 /--
