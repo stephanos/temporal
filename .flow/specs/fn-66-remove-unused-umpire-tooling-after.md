@@ -1,5 +1,7 @@
 # Remove unused Umpire tooling after runtime and authoring cutovers
 
+> HTML render lens: open local `.flow/artifacts/fn-66-remove-unused-umpire-tooling-after/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 
 Fn-64 and fn-62 are complete, and fn-65's separate authoring prototype is also complete. Remove

@@ -40,9 +40,12 @@ Use `go list -tags test_dep ./tools/umpire/...` and test-name inventory alongsid
 - [ ] Focused baseline passes, and any additional unused item or scope conflict is resolved through a concrete task adjustment before .2 starts.
 
 ## Done summary
-TBD
+Created the frozen Umpire tooling cleanup ledger with concrete ownership for all 21 packages and seven commands, individual accounting for 97 Tests, one Fuzz target, and 27 fixtures, the retained Experiment reader closure, generated identities, process checks, and exact lint subtraction. The focused baseline passed with a physical canonical TMPDIR; no source, generated output, or fn-64 ledger changed.
 
+Verification limitation: `flowctl gate classify --base ff9ea9827157255068a87086630651a43cc01060` reported `FULL: unmatched: .plans/UMPIRE4_ORDER.md` for root-owned Markdown. The sole task-owned overlay is `tools/umpire/CLEANUP_INVENTORY.md`, so full gates were not repeated; task .3 owns them.
+
+stage: impl-review - ran [2026-09-06T15:21Z..2026-09-06T15:26:35Z] (NEEDS_WORK fixture-owner correction -> SHIP)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: TMPDIR=<physical /private/tmp/fn66-task1.*> go test -count=1 -tags test_dep ./tools/umpire/artifact ./tools/umpire/cmd/umpire-artifact ./tools/umpire/internal/artifactv2, go list -tags test_dep ./tools/umpire/..., inventory reconciliation: 21 packages, 7 commands, 97 Test, 1 Fuzz, 27 fixtures, GATE_SKIPPED:unittest:task-owned-doc-only - sole task overlay is tools/umpire/CLEANUP_INVENTORY.md; flowctl classify saw unrelated root-owned .plans/UMPIRE4_ORDER.md and full gates belong to .3
 - PRs:

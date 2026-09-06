@@ -10,7 +10,9 @@
     "fn-62-make-ordinary-temporal-model-authoring"
   ],
   "id": "fn-66-remove-unused-umpire-tooling-after",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-66-remove-unused-umpire-tooling-after.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -45,15 +47,106 @@
       "timestamp": "2026-09-06T06:59:52.800370Z",
       "tool_calls": 12,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2e8ecefe3df17fc88a212f9cf2ed1b9803abbcefe7a8ba67b4df337ee0e1b427",
+      "backend": "codex",
+      "base_sha": "cfd213f2f73071400632cd4b8b5dfae300943e5a",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3cba636bc847040edfbf8ca96903a6ec",
+            "classification": "introduced",
+            "findingId": "finding-3cba636bc847040edfbf8ca96903a6ec",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "388fcfd91e7c95235cbe4ff8a0e9d8193643488c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 445437,
+      "output_sha256": "f0e2c61c63fc26ac119347ab7e84e8c9c39728b1f1728143d8ef5febd7b79393",
+      "reservation_id": "24304a7697534a97ab3386a1f2d68ed7",
+      "round_consumed": true,
+      "scope": "impl:fn-66-remove-unused-umpire-tooling-after.1",
+      "superseded_by": null,
+      "task": "fn-66-remove-unused-umpire-tooling-after.1",
+      "timestamp": "2026-09-06T15:25:16.821023Z",
+      "tool_calls": 19,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "750ce48ca2bdeb1ada12e9a5c75683c5e80015afc6b60d1cd94d67edd0ca7a5e",
+      "backend": "codex",
+      "base_sha": "cfd213f2f73071400632cd4b8b5dfae300943e5a",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3cba636bc847040edfbf8ca96903a6ec",
+            "classification": "introduced",
+            "findingId": "finding-3cba636bc847040edfbf8ca96903a6ec",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "17e769ec754d7a8eb6ece71486e816f2f69c0bc3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 821,
+      "output_sha256": "5c13cf5860c673f8295a44f85c2d0585d9cd46540a99722dc361e41db1728bcb",
+      "reservation_id": "5dee63e89518415f9610c219cacec856",
+      "round_consumed": true,
+      "scope": "impl:fn-66-remove-unused-umpire-tooling-after.1",
+      "superseded_by": null,
+      "task": "fn-66-remove-unused-umpire-tooling-after.1",
+      "timestamp": "2026-09-06T15:26:35.097583Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-66-remove-unused-umpire-tooling-after.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-66-remove-unused-umpire-tooling-after.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-66-remove-unused-umpire-tooling-after.md",
@@ -70,5 +163,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-06T06:59:52.829474Z"
+  "updated_at": "2026-09-06T15:26:35.100983Z"
 }
