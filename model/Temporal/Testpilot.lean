@@ -1,11 +1,11 @@
 import Umpire.Case.Compiler
 
 /-!
-Temporal Case producers lower checked scenario choices into the generic Case compiler input. Runtime
+Testpilot producers lower checked scenario choices into the generic Case compiler input. Runtime
 coordinates, clients, credentials, and callback authority remain Host-owned.
 -/
 
-namespace Temporal.CaseRuntime
+namespace Temporal.Testpilot
 
 open Umpire
 open Umpire.Case
@@ -20,7 +20,7 @@ def startWorkflowMethod := "/temporal.api.workflowservice.v1.WorkflowService/Sta
 def getHistoryMethod := "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
 
 private def source : SourceLocation := {
-  path := "Temporal/CaseRuntime.lean", line := 1, column := 1, provenance := "checked-model"
+  path := "Temporal/Testpilot.lean", line := 1, column := 1, provenance := "checked-model"
 }
 
 private def binding (id fingerprint : String) (kind : CaseDefinitionKind) :
@@ -503,4 +503,4 @@ def conformanceStaticRejectionCase : Except LoweringError Case :=
     let invalidRules := output.contract.rules.map fun rule => { rule with initialState := "missing" }
     { output with contract := { output.contract with rules := invalidRules } }
 
-end Temporal.CaseRuntime
+end Temporal.Testpilot

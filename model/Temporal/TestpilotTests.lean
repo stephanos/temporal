@@ -1,18 +1,18 @@
-import Temporal.CaseRuntime
+import Temporal.Testpilot
 
-namespace Temporal.CaseRuntimeTests
+namespace Temporal.TestpilotTests
 
 open Umpire.Case
 
-#guard match Temporal.CaseRuntime.getSystemInfoCase with
+#guard match Temporal.Testpilot.getSystemInfoCase with
   | .ok output =>
       match output.program.entrypoints, output.contract.rules with
       | [entrypoint], [rule] =>
           match entrypoint.nodes with
           | [node] =>
               node.instruction == Instruction.invokeRPC {
-                endpointRoleId := Temporal.CaseRuntime.workflowServiceRole
-                method := Temporal.CaseRuntime.getSystemInfoMethod
+                endpointRoleId := Temporal.Testpilot.workflowServiceRole
+                method := Temporal.Testpilot.getSystemInfoMethod
                 requestAssignments := []
                 responseProjections := [{
                   source := { segments := [{ field := "server_version" }] }
@@ -24,7 +24,7 @@ open Umpire.Case
       | _, _ => false
   | .error _ => false
 
-#guard match Temporal.CaseRuntime.asyncNexusCase with
+#guard match Temporal.Testpilot.asyncNexusCase with
   | .ok output =>
       output.program.entrypoints.map (·.context) == [.controller, .workflow, .nexusHandler] &&
       match output.contract.rules with
@@ -38,4 +38,4 @@ open Umpire.Case
       | _ => false
   | .error _ => false
 
-end Temporal.CaseRuntimeTests
+end Temporal.TestpilotTests

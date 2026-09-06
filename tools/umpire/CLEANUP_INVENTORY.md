@@ -39,7 +39,7 @@ contributes four under `tests/testcore/testpilot`. There are no unclassified row
 | `tools/umpire/cmd/umpire-artifact` | remove in .2 | Only `UMPIRE_ARTIFACT_COMMAND`, `umpire-check-artifact`, `umpire-check-artifact-set`, and the matching `.PHONY` entries call it. No workflow or script calls the command directly. It has no replacement CLI. |
 | `tools/umpire/cmd/umpire-check-retired-vocabulary` | retained | `make umpire-check-retired-vocabulary`, the aggregate regression target, and `vocabulary/retired_vocabulary_test.go` exercise the real command. |
 | `tools/umpire/cmd/umpire-export-proto-descriptors` | retained | `UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND` builds `proto/umpire-public.binpb`; its test builds and invokes the real binary and checks nonzero status and stderr. |
-| `tools/umpire/cmd/umpire-gen-case-runtime-conformance` | retained | Make generation/check targets build `temporal-case-runtime`, invoke this command, compare the entire managed fixture tree, and run facade conformance. |
+| `tools/umpire/cmd/umpire-gen-case-runtime-conformance` | retained | Make generation/check targets build `temporal-testpilot`, invoke this command, compare the entire managed fixture tree, and run facade conformance. |
 | `tools/umpire/cmd/umpire-gen-lean-api` | retained | `make umpire-gen-lean-api`, `model/README.md`, and the checked-in `model/Temporal/API*.lean` outputs depend on it. Its fixture target rewrites only the owned basic fixture. |
 | `tools/umpire/cmd/umpire-gen-lean-dynamic-config-catalog` | retained | `make umpire-gen-lean-dynamic-config-catalog`, `model/README.md`, and `model/Temporal/DynamicConfig*.lean` depend on it; project tests cover helper-process stdout/stderr failures. |
 | `tools/umpire/cmd/umpire-gen-regression-views` | retained | Make generation/check targets, the single-entry production manifest, Switch Go/Markdown outputs, and generator tests consume it. |
@@ -200,7 +200,7 @@ regenerate in this documentation-only task.
 | Switch Experiment `switch.query.exact-action`, artifact checksum `sha256:ac3fde668a79ff0433106e28f8ec9579a36f9f7d0ab09845d01b563289b560fd` | source `model/Umpire/Examples/testdata/switch-experiment-spec.json`: `55f0961e02761ed6ec3718ef6d22fa4284e70e729dba7f21fabb0a3e8798bac0` |
 | Switch generated Go view | `8a23cdc22e53a2a9d2860522d3f1353898336f5758830ffb32d42948125300a5` |
 | Switch generated Markdown view | `33608f42fccedfe34309a429506778f0272eeec8acd2a136b8310c8936e46747` |
-| Case Runtime conformance tree, six named classes / 12 files | SHA-256 of its sorted `sha256sum` manifest: `7809b6829822c097dccb76a07e4abdba233f3a552cb553c5ab019ca1888dddb9` |
+| Testpilot conformance tree, six named classes / 12 files | SHA-256 of its sorted `sha256sum` manifest: `7809b6829822c097dccb76a07e4abdba233f3a552cb553c5ab019ca1888dddb9` |
 | Lean API output set (`API.lean`, `API/Proto.lean`, `API/Types.lean`) | SHA-256 of sorted manifest: `613a888529b061c095c9da5ae9301154297ecd1a6459108d8c5f5b0c06551d4e` |
 | Dynamic-config output set (`DynamicConfig.lean`, `Settings.lean`, `Types.lean`) | SHA-256 of sorted manifest: `9f114f949e39464e61fe5993e5fe7599a9e96b78f0701c37a4cc02f05b11e970` |
 | Semantic inventory `model/SEMANTIC_INVENTORY.md` | `e534439582339a330d32562f5c796a2a9736a7db200786653902d0c97c204d25` |
@@ -282,7 +282,7 @@ or missing header fails the final gate even if the total is smaller.
   aligns both sections with the already recorded retired surface and does not change executable
   code or prior gate evidence.
 - Removing unreachable codecs introduces no allocation, concurrency, crash, security, or runtime
-  work. A 10x increase in retained reader, generator, Case Runtime, or live-test load therefore
+  work. A 10x increase in retained reader, generator, Testpilot, or live-test load therefore
   follows the unchanged implementations and cost bounds exercised by the retained gates.
 
 ## Reconciliation

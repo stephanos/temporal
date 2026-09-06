@@ -23,4 +23,4 @@ HTTP and HTTPS callback URLs continue through the server package's validation.
 
 `NewWorkflowServiceCatalog` freezes the public WorkflowService descriptor closure used by Lean Case
 artifacts and Go preparation. The retained fixtures in `testdata` are canonical ProtoJSON generated
-from `Temporal.CaseRuntime`; `testpilot.DecodeCaseProtoJSON` is the strict wire-boundary decoder.
+from `Temporal.Testpilot`; `testpilot.DecodeCaseProtoJSON` is the strict wire-boundary decoder.

@@ -1,5 +1,5 @@
 name = "temporal-model"
-defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "TemporalExperimentalTests", "temporal-model-inspect", "temporal-case-runtime"]
+defaultTargets = ["Shared", "Temporal", "Umpire", "UmpireTests", "TemporalModelTests", "TemporalExperimentalTests", "temporal-model-inspect", "temporal-testpilot"]
 builtinLint = true
 lintDriver = "modelLint"
 
@@ -50,8 +50,8 @@ name = "temporal-model-semantic-inventory-make-tests"
 root = "Temporal.Tool.SemanticInventoryMakeTestsMain"
 
 [[lean_exe]]
-name = "temporal-case-runtime"
-root = "Temporal.Tool.CaseRuntime"
+name = "temporal-testpilot"
+root = "Temporal.Tool.Testpilot"
 
 [[lean_exe]]
 name = "modelLint"
