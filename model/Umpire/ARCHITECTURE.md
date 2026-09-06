@@ -148,26 +148,26 @@ operational and cleanup failures.
 
 `Umpire.Case.Compiler.compile` assembles Producer data into a Case and lowers declared properties
 into Contract monitors, returning a source-bound lowering error for unsupported property constructs
-instead of omitting them. It does not statically validate the assembled Program. Go `PrepareCase`
+instead of omitting them. It does not statically validate the assembled Program. Testpilot's `Prepare`
 owns static admission, including stable bindings, Program and Contract closure, types, paths,
-instruction contexts, limits, Known Gaps, and provenance, before Host I/O.
+instruction contexts, limits, Known Gaps, and provenance, before Driver I/O.
 
 The compiler is deterministic. `Umpire.Case.ProtoJSON.canonical` emits the canonical Case bytes used
 at the Go boundary. Temporal-specific producer declarations live outside Umpire.
 
 ## Runtime handoff
 
-The Lean package stops at canonical Case data. It does not open a Host, schedule instructions,
-create workers, collect runtime credentials, or choose a Monitor. The Go root facade performs:
+The Lean package stops at canonical Case data. It does not open a Driver, schedule instructions,
+create workers, collect runtime credentials, or choose a Monitor. Testpilot performs:
 
 ```text
-PrepareCase(case, profile)
-PreparedCase.Run(ctx, host)
+testpilot.Prepare(case, profile)
+PreparedCase.Run(ctx, driver)
 ```
 
-Static preparation snapshots the admitted Case and Profile without Host I/O. The prepared Contract
+Static preparation snapshots the admitted Case and Profile without Driver I/O. The prepared Contract
 creates the private Run-local Monitor. The internal Executor owns scheduling, recording, Slots,
-effect handles, cancellation, and cleanup. Alternate Hosts are the environment extension seam.
+effect handles, cancellation, and cleanup. Alternate Drivers are the environment extension seam.
 
 ## Artifact and generated-view boundaries
 

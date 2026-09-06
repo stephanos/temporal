@@ -1,0 +1,77 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/expression.proto";
+import "temporal/server/api/testpilot/v1/run.proto";
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// Contract lifecycle enums use the public Testpilot Status vocabulary.
+// (-- api-linter: core::0191::file-layout=disabled
+//     core::0216::synonyms=disabled --)
+enum ContractRuleKind {
+  CONTRACT_RULE_KIND_UNSPECIFIED = 0;
+  CONTRACT_RULE_KIND_SAFETY = 1;
+  CONTRACT_RULE_KIND_BOUNDED_LIVENESS = 2;
+}
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum ContractStateStatus {
+  CONTRACT_STATE_STATUS_UNSPECIFIED = 0;
+  CONTRACT_STATE_STATUS_NONTERMINAL = 1;
+  CONTRACT_STATE_STATUS_SATISFIED = 2;
+  CONTRACT_STATE_STATUS_VIOLATED = 3;
+}
+message ContractStateDefinition { string state_id = 1; ContractStateStatus status = 2; }
+message ContractCaptureType {
+  oneof type {
+    ScalarType scalar = 1;
+    NamedType enumeration = 2;
+    NamedType message = 3;
+  }
+}
+message ContractCaptureDefinition { string capture_id = 1; ContractCaptureType type = 2; }
+message ContractCaptureAssignment { string capture_id = 1; ObservationRef observation = 2; }
+enum ContractSupportKind {
+  CONTRACT_SUPPORT_KIND_UNSPECIFIED = 0;
+  CONTRACT_SUPPORT_KIND_NONE = 1;
+  CONTRACT_SUPPORT_KIND_MATCHING_EVENT = 2;
+}
+
+// ContractTransitionDefinition is evaluated in declaration order for its source state and event kind.
+message ContractTransitionDefinition {
+  string transition_id = 1;
+  string source_state_id = 2;
+  string target_state_id = 3;
+  RunEventFilter event_filter = 4;
+  ContractExpression predicate = 5;
+  ContractSupportKind support_kind = 6;
+  repeated ContractCaptureAssignment capture_assignments = 7;
+}
+message ContractHorizonDefinition { int64 elapsed_milliseconds = 1; string violation_state_id = 2; }
+
+// ContractRuleDefinition is one finite deterministic safety or bounded-liveness monitor machine.
+message ContractRuleDefinition {
+  string rule_id = 1;
+  ContractRuleKind kind = 2;
+  string initial_state_id = 3;
+  repeated ContractStateDefinition states = 4;
+  repeated ContractTransitionDefinition transitions = 5;
+  ContractHorizonDefinition horizon = 6;
+  repeated ContractCaptureDefinition captures = 7;
+}
+message ContractLimits {
+  int64 max_rules = 1;
+  int64 max_states = 2;
+  int64 max_transitions = 3;
+  int64 max_expression_depth = 4;
+  int64 max_work_per_event = 5;
+  int64 max_total_work = 6;
+  int64 max_captures = 7;
+  int64 max_capture_bytes = 8;
+}
+
+// Contract contains only closed deterministic monitor machines over declared Run Observations.
+message Contract {
+  string contract_id = 1;
+  repeated ContractRuleDefinition rules = 2;
+  ContractLimits limits = 3;
+}

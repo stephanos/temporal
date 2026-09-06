@@ -17,9 +17,9 @@ consistently. Capitalized terms have Umpire-specific meanings. Exact Lean names 
 
 Umpire models expected behavior. A Query asks a bounded question about that behavior, and planning
 searches for an answer. A Producer lowers checked behavior into a versioned Case containing one
-bounded Program and one deterministic Contract. `PrepareCase` validates that Case against an
-immutable Profile without target I/O. A prepared Case can then run repeatedly through an authorized
-Host; every attempt produces one append-only Run and one Verdict. For example, a Contract can
+bounded Program and one deterministic Contract. Testpilot's `Prepare` validates that Case against
+an immutable Profile without target I/O. A prepared Case can then run repeatedly through an authorized
+Driver; every attempt produces one append-only Run and one Verdict. For example, a Contract can
 require that a declared Nexus history Observation reaches a correlated completion within a bounded
 horizon.
 
@@ -53,8 +53,8 @@ horizon.
   Events and declared Observations.
 - **Profile.** An immutable authorization snapshot containing a descriptor Catalog, symbolic role
   policy, capabilities, and independent Program and Contract ceilings.
-- **Host.** The environment-owned implementation of authorized side effects. Server and worker
-  capabilities remain separate even when composed behind one Host.
+- **Driver.** The environment-owned implementation of authorized side effects. Server and worker
+  capabilities remain separate even when composed behind one Driver.
 - **Prepared Case.** The immutable result of static Case, Program, Contract, descriptor, and Profile
   admission. It contains no live client, credential, worker, or Run state.
 - **Run Event.** One immutable, monotonically sequenced fact appended by the Executor.
@@ -68,6 +68,8 @@ horizon.
 
 - **`Umpire`.** Reusable Lean tools for authoring and checking models and producing plans. It
   contains no Temporal-specific behavior.
+- **`Testpilot`.** The shared Go protocol and runtime that admits and executes Cases through a
+  caller-owned Driver and evaluates their Contracts.
 - **`Temporal.Feature`.** Product behavior visible to users and SDKs, independent of the current
   implementation.
 - **`Temporal.System`.** Behavior of the current Temporal implementation, configuration, and
@@ -136,17 +138,17 @@ horizon.
   import `Temporal.Feature.*`. The only exception is `Temporal.System.Nexus.ImplementationLink`.
 - **MOD-11 — Executable enforcement.** `make lint-model` MUST enforce MOD-01, MOD-03, MOD-05,
   MOD-09, and MOD-10 across the complete first-party Lean import graph.
-- **MOD-12 — Public Go facade.** The public execution sequence MUST be exactly
-  `PrepareCase(case, profile)` followed by `PreparedCase.Run(ctx, host)`. Scheduler, Recorder, Slot
+- **MOD-12 — Public Testpilot facade.** The public execution sequence MUST be exactly
+  `testpilot.Prepare(case, profile)` followed by `PreparedCase.Run(ctx, driver)`. Scheduler, Recorder, Slot
   storage, and Monitor-factory construction MUST remain internal.
-- **MOD-13 — Temporal authority split.** `tools/umpire/temporal/server` MUST supply the authorized
+- **MOD-13 — Temporal authority split.** `tests/testcore/testpilot/server` MUST supply the authorized
   descriptor catalog and transport prepared unary method/request pairs, returning raw typed
-  responses and protocol status. `tools/umpire/temporal/worker` MUST own SDK workflow, activity, and
+  responses and protocol status. `tests/testcore/testpilot/worker` MUST own SDK workflow, activity, and
   Nexus-handler execution plus reserved activation delivery. Neither side may assume the other's
   authority; internal execution owns request construction and response projection.
-- **MOD-14 — Internal execution boundary.** Production packages outside the root facade and
-  verification package MUST NOT import `tools/umpire/internal/execution`; Host adapters depend on
-  the root facade.
+- **MOD-14 — Internal execution boundary.** Production packages outside Testpilot and its private
+  verification package MUST NOT import `common/testing/testpilot/internal/execution`; Driver adapters
+  depend only on the public Testpilot facade.
 
 ### Module design
 
@@ -250,7 +252,7 @@ horizon.
 - **Artifact.** Immutable, versioned, inspectable data exchanged across components, languages, and
   processes. Artifacts cannot define model behavior.
 - **Case Artifact.** Canonical ProtoJSON for one Case. It is deterministic Producer output and is
-  admitted before any Host I/O.
+  admitted before any Driver I/O.
 - **Artifact Checksum.** A reproducible checksum over all Artifact content in canonical order,
   excluding the checksum field itself. It identifies one exact Artifact; it is not a Definition ID
   or Behavior Fingerprint.
@@ -299,8 +301,8 @@ horizon.
   Contract, stable IDs and provenance, explicit Known Gaps, typed roles, paths, Slots,
   Observations, independent limits, and no callback, client, credential, endpoint, or executable.
   Unknown versions, fields, enum values, instructions, paths, types, crossed references, or
-  out-of-policy resources MUST reject before Host I/O.
-- **ART-10 — Immutable preparation.** `PrepareCase` MUST snapshot all admitted Case, Catalog,
+  out-of-policy resources MUST reject before Driver I/O.
+- **ART-10 — Immutable preparation.** `testpilot.Prepare` MUST snapshot all admitted Case, Catalog,
   Profile, Program, and Contract data. A Prepared Case MUST be safe for isolated sequential and
   concurrent Runs and MUST expose no mutation path into prepared state.
 - **ART-11 — Deterministic Case fixtures.** Lean-produced Case data MUST compare byte-for-byte.
@@ -315,7 +317,7 @@ horizon.
 
 ### Runtime concepts
 
-- **Execution.** One bounded attempt to interpret a prepared Program through an authorized Host.
+- **Execution.** One bounded attempt to interpret a prepared Program through an authorized Driver.
 - **Run.** The authoritative append-only record of one attempted Program execution, including
   declared Observations, independent cleanup status, diagnostics, and its immutable Verdict copy.
 - **Executor.** The internal generic interpreter that schedules a Program, owns Slot state and
@@ -331,7 +333,7 @@ horizon.
 
 ### Runtime rules
 
-- **EVD-01 — Thin runtime.** Runtime and CLI code MUST only prepare Cases, bind authorized Host
+- **EVD-01 — Thin runtime.** Runtime and CLI code MUST only prepare Cases, bind authorized Driver
   capabilities, and execute admitted Programs. It MUST NOT independently decide scenario or product
   behavior.
 - **EVD-02 — Retired: separate legacy Run Evaluation.** Superseded by the authoritative Contract
@@ -366,14 +368,14 @@ horizon.
 - **EVD-14 — Safety stop and cleanup.** A proved safety violation MUST stop new controller dispatch
   and activation reservations, cancel and drain owned work within bounds, and then execute cleanup
   through a fresh bounded context. Cleanup remains independent from the Verdict.
-- **EVD-15 — Immutable closure.** After `Run` returns, late completions, quarantine release, Host
+- **EVD-15 — Immutable closure.** After `Run` returns, late completions, quarantine release, Driver
   diagnostics, caller mutation, and another Run MUST NOT change either returned Run or Verdict.
 - **EVD-16 — Activation cancellation.** Cancellation MUST address reserved activation handles and
   already-started SDK commands at activation scope, including delivery that races Stop.
-- **EVD-17 — Server/worker composition.** Server Hosts MAY transport only authorized prepared unary
+- **EVD-17 — Server/worker composition.** Server Drivers MAY transport only authorized prepared unary
   method/request pairs and return their raw typed response and protocol status. Internal execution
   MUST construct requests, apply declared response projections, assign Slots, and emit Observations.
-  Worker Hosts MUST use Temporal SDK APIs for workflow, activity, and Nexus-handler entrypoints.
+  Worker Drivers MUST use Temporal SDK APIs for workflow, activity, and Nexus-handler entrypoints.
   Runtime Cases never supply credentials or transport metadata.
 - **EVD-18 — Facade conformance.** Regression MUST exercise exactly the satisfied, violated,
   inconclusive, static-preparation-rejection, cleanup-failure-after-proved-violation, and

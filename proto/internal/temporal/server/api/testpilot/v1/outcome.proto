@@ -1,0 +1,24 @@
+syntax = "proto3";
+package temporal.server.api.testpilot.v1;
+import "temporal/server/api/testpilot/v1/value.proto";
+option go_package = "go.temporal.io/server/api/testpilot/v1;testpilot";
+
+// Instruction outcome Status is normative Testpilot terminology.
+// (-- api-linter: core::0191::file-layout=disabled
+//     core::0216::synonyms=disabled --)
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum InstructionOutcomeStatus {
+  INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED = 0;
+  INSTRUCTION_OUTCOME_STATUS_SUCCEEDED = 1;
+  INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS = 2;
+  INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE = 3;
+  INSTRUCTION_OUTCOME_STATUS_TIMED_OUT = 4;
+  INSTRUCTION_OUTCOME_STATUS_CANCELED = 5;
+}
+message InstructionOutcome {
+  InstructionOutcomeStatus status = 1;
+  string protocol_code = 2;
+  string sdk_failure_code = 3;
+  string detail = 4;
+  Value value = 5;
+}

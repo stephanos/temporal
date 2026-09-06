@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	umpirespb "go.temporal.io/server/api/umpire/v1"
+	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/protorequire"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -12,170 +12,37 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 )
 
-func TestCaseSchemaRoundTripsSourceShapedValues(t *testing.T) {
+func TestCaseSchemaRoundTripsRefinedValues(t *testing.T) {
 	t.Parallel()
 
-	input := &umpirespb.Case{
-		Version: &umpirespb.FormatVersion{Major: 1},
-		CaseId:  "nexus.async-success",
-		Metadata: &umpirespb.CaseMetadata{
-			ProducerId: "lean.temporal.nexus",
-			Definitions: []*umpirespb.CaseDefinitionBinding{
-				{DefinitionId: "temporal.nexus.target", BehaviorFingerprint: "target/v1", Kind: umpirespb.CASE_DEFINITION_KIND_TARGET},
-				{DefinitionId: "temporal.nexus.provider", BehaviorFingerprint: "provider/v1", Kind: umpirespb.CASE_DEFINITION_KIND_PROVIDER},
-				{DefinitionId: "temporal.nexus.law", BehaviorFingerprint: "law/v1", Kind: umpirespb.CASE_DEFINITION_KIND_LAW},
-				{DefinitionId: "temporal.nexus.connector", BehaviorFingerprint: "connector/v1", Kind: umpirespb.CASE_DEFINITION_KIND_CONNECTOR},
-				{DefinitionId: "temporal.nexus.kernel", BehaviorFingerprint: "kernel/v1", Kind: umpirespb.CASE_DEFINITION_KIND_KERNEL},
-			},
-			Sources: []*umpirespb.SourceLocation{{
-				Path:       "Temporal/Feature/Nexus/Operations.lean",
-				Line:       42,
-				Column:     7,
-				Provenance: "checked-model",
-			}},
-			KnownGaps: []*umpirespb.CaseKnownGap{
-				{Kind: umpirespb.CASE_KNOWN_GAP_KIND_INTERPRETATION, Code: "temporal.nexus.gap"},
-				{
-					Kind:    umpirespb.CASE_KNOWN_GAP_KIND_CLAIM,
-					Code:    "temporal.nexus.gap",
-					Subject: &umpirespb.OptionalString{Value: "temporal.nexus.target"},
-					Detail:  &umpirespb.OptionalString{Value: "claim remains local"},
-				},
-			},
-		},
-		Program: &umpirespb.Program{
+	input := &testpilotpb.Case{
+		Version:    &testpilotpb.FormatVersion{Major: 1},
+		CaseId:     "nexus.async-success",
+		Provenance: &testpilotpb.CaseProvenance{ProducerId: "lean.temporal.nexus", ProducerVersion: "1", ProducerData: []byte("definitions")},
+		Program: &testpilotpb.Program{
 			ProgramId: "nexus.async-success.program",
-			Roles: []*umpirespb.ProgramRole{
-				{RoleId: "frontend", Kind: umpirespb.SYMBOLIC_ROLE_KIND_ENDPOINT},
-				{RoleId: "nexus-worker", Kind: umpirespb.SYMBOLIC_ROLE_KIND_WORKER},
+			Roles:     []*testpilotpb.RoleDefinition{{RoleId: "frontend", Kind: testpilotpb.ROLE_KIND_ENDPOINT}},
+			Slots: []*testpilotpb.SlotDefinition{
+				{SlotId: "workflow-id", Content: &testpilotpb.SlotDefinition_Value{Value: testpilotSingularScalarType(testpilotpb.SCALAR_KIND_TEXT)}},
+				{SlotId: "completion-authority", Content: &testpilotpb.SlotDefinition_OpaqueCapability{OpaqueCapability: &testpilotpb.OpaqueCapabilityType{}}},
 			},
-			Slots: []*umpirespb.SlotSchema{
-				{SlotId: "workflow-id", Type: singularScalarType(umpirespb.SCALAR_KIND_TEXT)},
-				{SlotId: "history-events", Type: repeatedMessageType("temporal.api.history.v1.HistoryEvent")},
-				{SlotId: "completion-authority", Type: opaqueCapabilityType(), Kind: umpirespb.SLOT_KIND_OPAQUE_CAPABILITY},
-			},
-			Observations: []*umpirespb.ObservationSchema{
-				{
-					ObservationId: "history-event-type",
-					Type:          singularEnumType("temporal.api.enums.v1.EventType"),
-				},
-				{ObservationId: "scheduled-event-id", Type: singularScalarType(umpirespb.SCALAR_KIND_NATURAL)},
-			},
-			Entrypoints: []*umpirespb.Entrypoint{{
+			Entrypoints: []*testpilotpb.EntrypointDefinition{{
 				EntrypointId: "controller",
-				Context:      umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER,
-				Activation: &umpirespb.ActivationBinding{Binding: &umpirespb.ActivationBinding_Controller{
-					Controller: &umpirespb.ControllerActivation{},
-				}},
-				Nodes: []*umpirespb.InstructionNode{{
-					InstructionId: "start-workflow",
-					Instruction: &umpirespb.Instruction{Instruction: &umpirespb.Instruction_InvokeRpc{InvokeRpc: &umpirespb.InvokeRPC{
-						EndpointRoleId: "frontend",
-						Method:         "temporal.api.workflowservice.v1.WorkflowService.StartWorkflowExecution",
-						RequestAssignments: []*umpirespb.RequestAssignment{{
-							Target: fieldPath("workflow_id"),
-							Value: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Literal{Literal: &umpirespb.Value{
-								Value: &umpirespb.Value_Text{Text: "umpire-run"},
-							}}},
-						}},
-					}}},
-				}},
+				Activation:   &testpilotpb.EntrypointDefinition_Controller{Controller: &testpilotpb.ControllerActivation{}},
 			}},
-			Cleanup: &umpirespb.CleanupGraph{
-				EntrypointId: "cleanup",
-				Context:      umpirespb.ENTRYPOINT_CONTEXT_CONTROLLER,
-				Nodes: []*umpirespb.InstructionNode{
-					{
-						InstructionId: "release",
-						Instruction: &umpirespb.Instruction{Instruction: &umpirespb.Instruction_AwaitSlot{AwaitSlot: &umpirespb.AwaitSlot{
-							SlotId: "completion-authority",
-						}}},
-					},
-					{
-						InstructionId: "confirm-release",
-						Dependencies: []*umpirespb.InstructionReference{{
-							EntrypointId:  "cleanup",
-							InstructionId: "release",
-						}},
-						Guard: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Outcome{Outcome: &umpirespb.InstructionOutcomeReference{
-							Instruction: &umpirespb.InstructionReference{EntrypointId: "cleanup", InstructionId: "release"},
-							Field:       umpirespb.INSTRUCTION_OUTCOME_FIELD_STATUS,
-						}}},
-						Instruction: &umpirespb.Instruction{Instruction: &umpirespb.Instruction_AwaitSlot{AwaitSlot: &umpirespb.AwaitSlot{
-							SlotId: "workflow-id",
-						}}},
-					},
-				},
-			},
-			Limits: &umpirespb.ProgramLimits{MaxEntrypoints: 4, MaxNodes: 32, MaxRunEvents: 256},
 		},
-		Contract: &umpirespb.Contract{
-			ContractId: "nexus.async-success.contract",
-			Rules: []*umpirespb.ContractRule{{
-				RuleId:       "workflow-completes",
-				Kind:         umpirespb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS,
-				InitialState: "pending",
-				Captures: []*umpirespb.ContractCaptureSchema{{
-					CaptureId: "scheduled-event-id",
-					Type: &umpirespb.ContractCaptureType{Type: &umpirespb.ContractCaptureType_Scalar{Scalar: &umpirespb.ScalarType{
-						Kind: umpirespb.SCALAR_KIND_NATURAL,
-					}}},
-				}},
-				States: []*umpirespb.ContractState{
-					{StateId: "pending", Terminal: umpirespb.CONTRACT_TERMINAL_STATE_NONTERMINAL},
-					{StateId: "scheduled", Terminal: umpirespb.CONTRACT_TERMINAL_STATE_NONTERMINAL},
-					{StateId: "satisfied", Terminal: umpirespb.CONTRACT_TERMINAL_STATE_SATISFIED},
-					{StateId: "violated", Terminal: umpirespb.CONTRACT_TERMINAL_STATE_VIOLATED},
-				},
-				Transitions: []*umpirespb.ContractTransition{
-					{
-						TransitionId: "capture-scheduled-event",
-						SourceState:  "pending",
-						TargetState:  "scheduled",
-						Predicate: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Present{Present: &umpirespb.PresentExpression{
-							Operand: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Observation{Observation: &umpirespb.ObservationReference{
-								ObservationId: "scheduled-event-id",
-							}}},
-						}}},
-						CaptureAssignments: []*umpirespb.ContractCaptureAssignment{{
-							CaptureId: "scheduled-event-id",
-							Observation: &umpirespb.ObservationReference{
-								ObservationId: "scheduled-event-id",
-							},
-						}},
-					},
-					{
-						TransitionId: "observe-completion",
-						SourceState:  "scheduled",
-						TargetState:  "satisfied",
-						Predicate: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Equals{Equals: &umpirespb.EqualsExpression{
-							Left: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Capture{Capture: &umpirespb.CaptureReference{
-								CaptureId: "scheduled-event-id",
-							}}},
-							Right: &umpirespb.ValueExpression{Expression: &umpirespb.ValueExpression_Observation{Observation: &umpirespb.ObservationReference{
-								ObservationId: "scheduled-event-id",
-							}}},
-						}}},
-						Support: umpirespb.CONTRACT_SUPPORT_MATCHING_EVENT,
-					},
-				},
-				Horizon: &umpirespb.ContractHorizon{ElapsedMilliseconds: 30_000, ViolationStateId: "violated"},
-			}},
-			Limits: &umpirespb.ContractLimits{
-				MaxRules: 8, MaxStates: 32, MaxTransitions: 64, MaxCaptures: 8, MaxCaptureBytes: 4_096,
-			},
-		},
+		Contract: &testpilotpb.Contract{ContractId: "nexus.async-success.contract"},
 	}
 
 	wire, err := proto.Marshal(input)
 	require.NoError(t, err)
-	var wireOutput umpirespb.Case
+	var wireOutput testpilotpb.Case
 	require.NoError(t, proto.Unmarshal(wire, &wireOutput))
 	protorequire.ProtoEqual(t, input, &wireOutput)
 
 	jsonValue, err := protojson.Marshal(input)
 	require.NoError(t, err)
-	var jsonOutput umpirespb.Case
+	var jsonOutput testpilotpb.Case
 	require.NoError(t, protojson.Unmarshal(jsonValue, &jsonOutput))
 	protorequire.ProtoEqual(t, input, &jsonOutput)
 }
@@ -183,29 +50,29 @@ func TestCaseSchemaRoundTripsSourceShapedValues(t *testing.T) {
 func TestRunSchemaRoundTripsDiagnosticSupportPresence(t *testing.T) {
 	t.Parallel()
 
-	input := &umpirespb.Run{
-		RunId:                     "run-1",
-		Events:                    []*umpirespb.RunEvent{{Sequence: 7, Kind: umpirespb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, ExecutionIncomplete: true}},
-		EvaluationFailureSequence: &umpirespb.RunEventSequence{Value: 7},
-		Diagnostics: []*umpirespb.RunDiagnostic{
-			{DiagnosticId: "without-support", Kind: umpirespb.RUN_DIAGNOSTIC_KIND_EXECUTION},
+	input := &testpilotpb.Run{
+		RunId:             "run-1",
+		Events:            []*testpilotpb.RunEvent{{Sequence: 7, Kind: testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, ExecutionIncomplete: true}},
+		EvaluationFailure: &testpilotpb.Run_EvaluationFailureSequence{EvaluationFailureSequence: 7},
+		Diagnostics: []*testpilotpb.RunDiagnostic{
+			{DiagnosticId: "without-support", Kind: testpilotpb.RUN_DIAGNOSTIC_KIND_EXECUTION},
 			{
-				DiagnosticId:            "with-support",
-				Kind:                    umpirespb.RUN_DIAGNOSTIC_KIND_MONITOR,
-				SupportingEventSequence: &umpirespb.RunEventSequence{Value: 7},
+				DiagnosticId: "with-support",
+				Kind:         testpilotpb.RUN_DIAGNOSTIC_KIND_MONITOR,
+				Support:      &testpilotpb.RunDiagnostic_SupportingEventSequence{SupportingEventSequence: 7},
 			},
 		},
 	}
 
 	wire, err := proto.Marshal(input)
 	require.NoError(t, err)
-	var wireOutput umpirespb.Run
+	var wireOutput testpilotpb.Run
 	require.NoError(t, proto.Unmarshal(wire, &wireOutput))
 	protorequire.ProtoEqual(t, input, &wireOutput)
 
 	jsonValue, err := protojson.Marshal(input)
 	require.NoError(t, err)
-	var jsonOutput umpirespb.Run
+	var jsonOutput testpilotpb.Run
 	require.NoError(t, protojson.Unmarshal(jsonValue, &jsonOutput))
 	protorequire.ProtoEqual(t, input, &jsonOutput)
 }
@@ -218,19 +85,19 @@ func TestCaseSchemaProtoJSONRejectsCrossedClosedUnions(t *testing.T) {
 		input  string
 		target proto.Message
 	}{
-		{name: "value kind", input: `{"text":"value","boolValue":true}`, target: new(umpirespb.Value)},
+		{name: "value kind", input: `{"text":"value","boolValue":true}`, target: new(testpilotpb.Value)},
 		{
 			name: "cardinality",
 			input: `{"singular":{"scalar":{"kind":"SCALAR_KIND_TEXT"}},` +
 				`"repeated":{"element":{"scalar":{"kind":"SCALAR_KIND_TEXT"}}}}`,
-			target: new(umpirespb.ValueType),
+			target: new(testpilotpb.ValueType),
 		},
-		{name: "instruction", input: `{"invokeRpc":{},"awaitSlot":{}}`, target: new(umpirespb.Instruction)},
+		{name: "instruction", input: `{"invokeRpc":{},"awaitSlot":{}}`, target: new(testpilotpb.Instruction)},
 		{
 			name: "capture type",
 			input: `{"scalar":{"kind":"SCALAR_KIND_NATURAL"},` +
 				`"enumeration":{"protobufType":"temporal.api.enums.v1.EventType"}}`,
-			target: new(umpirespb.ContractCaptureType),
+			target: new(testpilotpb.ContractCaptureType),
 		},
 	}
 	for _, test := range tests {
@@ -241,7 +108,7 @@ func TestCaseSchemaProtoJSONRejectsCrossedClosedUnions(t *testing.T) {
 	}
 }
 
-func TestCaseSchemaExcludesConcreteHostAuthorityFields(t *testing.T) {
+func TestCaseSchemaExcludesConcreteDriverAuthorityFields(t *testing.T) {
 	t.Parallel()
 
 	forbidden := map[protoreflect.Name]struct{}{
@@ -255,11 +122,14 @@ func TestCaseSchemaExcludesConcreteHostAuthorityFields(t *testing.T) {
 		"token":        {},
 	}
 	for _, path := range []string{
-		"temporal/server/api/umpire/v1/value.proto",
-		"temporal/server/api/umpire/v1/program.proto",
-		"temporal/server/api/umpire/v1/contract.proto",
-		"temporal/server/api/umpire/v1/run.proto",
-		"temporal/server/api/umpire/v1/case.proto",
+		"temporal/server/api/testpilot/v1/value.proto",
+		"temporal/server/api/testpilot/v1/expression.proto",
+		"temporal/server/api/testpilot/v1/instruction.proto",
+		"temporal/server/api/testpilot/v1/program.proto",
+		"temporal/server/api/testpilot/v1/outcome.proto",
+		"temporal/server/api/testpilot/v1/contract.proto",
+		"temporal/server/api/testpilot/v1/run.proto",
+		"temporal/server/api/testpilot/v1/case.proto",
 	} {
 		file, err := protoregistry.GlobalFiles.FindFileByPath(path)
 		require.NoError(t, err)
@@ -268,51 +138,25 @@ func TestCaseSchemaExcludesConcreteHostAuthorityFields(t *testing.T) {
 			fields := messages.Get(messageIndex).Fields()
 			for fieldIndex := range fields.Len() {
 				_, found := forbidden[fields.Get(fieldIndex).Name()]
-				require.False(t, found, "%s contains concrete Host authority field %q", path, fields.Get(fieldIndex).Name())
+				require.False(t, found, "%s contains concrete Driver authority field %q", path, fields.Get(fieldIndex).Name())
 			}
 		}
 	}
 }
 
-func singularScalarType(kind umpirespb.ScalarKind) *umpirespb.ValueType {
-	return &umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{
-		Type: &umpirespb.SingularType_Scalar{Scalar: &umpirespb.ScalarType{Kind: kind}},
+func testpilotSingularScalarType(kind testpilotpb.ScalarKind) *testpilotpb.ValueType {
+	return &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{
+		Type: &testpilotpb.SingularType_Scalar{Scalar: &testpilotpb.ScalarType{Kind: kind}},
 	}}}
-}
-
-func singularEnumType(protobufType string) *umpirespb.ValueType {
-	return &umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{
-		Type: &umpirespb.SingularType_Enumeration{Enumeration: &umpirespb.NamedType{ProtobufType: protobufType}},
-	}}}
-}
-
-func repeatedMessageType(protobufType string) *umpirespb.ValueType {
-	return &umpirespb.ValueType{Shape: &umpirespb.ValueType_Repeated{Repeated: &umpirespb.RepeatedType{Element: &umpirespb.SingularType{
-		Type: &umpirespb.SingularType_Message{Message: &umpirespb.NamedType{ProtobufType: protobufType}},
-	}}}}
-}
-
-func opaqueCapabilityType() *umpirespb.ValueType {
-	return &umpirespb.ValueType{Shape: &umpirespb.ValueType_Singular{Singular: &umpirespb.SingularType{
-		Type: &umpirespb.SingularType_OpaqueCapability{OpaqueCapability: &umpirespb.OpaqueCapabilityType{}},
-	}}}
-}
-
-func fieldPath(fields ...string) *umpirespb.FieldPath {
-	path := &umpirespb.FieldPath{Segments: make([]*umpirespb.FieldPathSegment, 0, len(fields))}
-	for _, field := range fields {
-		path.Segments = append(path.Segments, &umpirespb.FieldPathSegment{Field: field})
-	}
-	return path
 }
 
 func TestActivationReservationSchemaRoundTrip(t *testing.T) {
 	input := `{"instructionId":"start","activationReservations":[{"entrypointId":"workflow","count":"3"},{"entrypointId":"handler","count":"2"}]}`
-	var node umpirespb.InstructionNode
+	var node testpilotpb.InstructionDefinition
 	require.NoError(t, protojson.Unmarshal([]byte(input), &node))
 	wire, err := proto.Marshal(&node)
 	require.NoError(t, err)
-	var decoded umpirespb.InstructionNode
+	var decoded testpilotpb.InstructionDefinition
 	require.NoError(t, proto.Unmarshal(wire, &decoded))
 	output, err := protojson.Marshal(&decoded)
 	require.NoError(t, err)

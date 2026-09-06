@@ -19,7 +19,7 @@ flowchart LR
   N[Small Nexus3 model] --> Q[Checked Query and witness]
   Q --> I[Nexus3 integration]
   I --> C[Existing Case compiler]
-  C --> R[PrepareCase and Run]
+  C --> R[Testpilot Prepare and Run]
 ```
 
 ## API Contracts
@@ -27,14 +27,14 @@ flowchart LR
 - Expose one Case-production result for completion, returning the existing typed lowering error on unsupported or inconsistent input; no partial Case.
 - Support only this exact witness form, two-action trace, and checked success Property. Inspect semantic fields, not only IDs or display names. Capture their checked fingerprints in Case metadata.
 - IDs use `temporal.nexus3.<kind>.<relative-declaration-name>` by default. Nested identities use named owners/occurrences, never source order. An explicit override replaces only that declaration's key; a rename otherwise changes identity. Reject malformed or duplicate effective IDs through existing admission boundaries.
-- Retain the existing async-nexus renderer selector, Case wire format, Profile/Host, and test fixture location. Do not add a demo CLI or runtime instruction.
+- Retain the existing async-nexus renderer selector, Testpilot Case wire format, Profile/Driver, and test fixture location. Do not add a demo CLI or runtime instruction.
 - Physical setup schedules the operation; waits recognize correlated history events. A fixture may cause asynchronous handler completion, but only recorded history establishes the modeled result.
 
 ## Edge Cases & Constraints
 
 The monitor must correlate scheduled, started, and completed history for the same workflow/run and operation using the existing scheduled-event/request references. Missing, duplicate-only, or foreign-operation evidence never satisfies the Contract. Execution deadlines remain operational bounds: do not turn a model transition count into milliseconds or add a stronger temporal Property; unresolved evidence closes inconclusive.
 
-Cancellation, operation-scoped liveness, and other Query/Property forms are unsupported by this Producer and reject before Case publication or Host I/O. Keep those examples as inert design documentation. Known Gaps disclose this slice's limitations without waiving its success requirement.
+Cancellation, operation-scoped liveness, and other Query/Property forms are unsupported by this Producer and reject before Case publication or Driver I/O. Keep those examples as inert design documentation. Known Gaps disclose this slice's limitations without waiving its success requirement.
 
 Fixture generation owns the existing two Temporal example fixtures separately from the fixed six conformance classes. Reuse the current fixture tool and transactional publisher with a separate example manifest/root; build and validate the complete owned tree before comparison or publication. Ordinary Go tests consume checked-in bytes and never invoke Lean. No broad API drift verification or CI changes.
 
@@ -44,7 +44,7 @@ Fixture generation owns the existing two Temporal example fixtures separately fr
 - **R2:** Actual declaration names supply derived IDs automatically, with an optional per-declaration override and no hand-maintained registry or duplicated name strings. Test the exact completion Property/Behavior/Query IDs, rename versus override behavior, reorder/comment stability, and same-ID semantic fingerprint changes. Errors: invalid overrides and effective-ID collisions reject at admission.
 - **R3:** The Producer lowers checked success semantics into the current Program/Contract format, with source IDs/fingerprints bound to its inputs. Changing/removing a success transition or changing its Property under the same IDs changes the output meaning or rejects; returning the existing constant Case is insufficient. Errors: wrong Target/trace, absent witness, altered unsupported Property/Action/form, or cancellation produces a typed error and no Case. Missing/foreign evidence cannot satisfy the generated monitor; model-step bounds are never converted into runtime timeouts.
 - **R4:** The existing async-nexus fixture is generated deterministically from Nexus3 and the existing renderer delegates to the new Producer. Repeated generation yields identical bytes; the example fixture tree is compared/published transactionally and the six conformance classes are unchanged. Errors: renderer/decoder failure, stale bytes, or incomplete generated trees fail without publishing partial output; ordinary tests perform no generation.
-- **R5:** The existing live async Nexus test uses that fixture through PrepareCase and the real local Temporal Host. It returns completed disposition, satisfied Verdict, and successful cleanup, supported by the three correctly correlated history events. Missing or foreign terminal evidence fails a focused offline monitor test. Preserve the focused live test as a required pass, not an allowed inherited failure; update the existing demo documentation with exact support and commands. No error surface beyond the admission/evidence/runtime failures named above.
+- **R5:** The existing live async Nexus test uses that fixture through Testpilot and the real local Temporal Driver. It returns completed disposition, satisfied Verdict, and successful cleanup, supported by the three correctly correlated history events. Missing or foreign terminal evidence fails a focused offline monitor test. Preserve the focused live test as a required pass, not an allowed inherited failure; update the existing demo documentation with exact support and commands. No error surface beyond the admission/evidence/runtime failures named above.
 
 ## Boundaries
 
@@ -63,8 +63,8 @@ No cancellation implementation, retries, multi-operation composition, scoped-ste
 
 ```sh
 (cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests temporal-case-runtime)
-mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal
-mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestUmpireAsyncNexusCase$'
+mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot/...
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'
 ```
 
 The Go commands run from the repository root. Task acceptance records fixture generation/check commands using the existing tool. Final verification also runs the existing model and lint gates, with unrelated failures reported separately.

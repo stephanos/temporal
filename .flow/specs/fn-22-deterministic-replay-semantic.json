@@ -8,7 +8,8 @@
   "default_sync": null,
   "depends_on_epics": [
     "fn-5-umpire-discovery-promotion-and-artifact",
-    "fn-64-umpire-case-runtime"
+    "fn-64-umpire-case-runtime",
+    "fn-69-extract-testpilot-from-umpire"
   ],
   "id": "fn-22-deterministic-replay-semantic",
   "impl_review_rounds": {},
@@ -381,5 +382,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T18:46:42.799036Z"
+  "updated_at": "2026-09-06T16:54:46.055696Z"
 }
