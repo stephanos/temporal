@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-06T06:51:56.313044Z",
+  "depends_on": [
+    "fn-66-remove-unused-umpire-tooling-after.1"
+  ],
+  "id": "fn-66-remove-unused-umpire-tooling-after.2",
+  "priority": null,
+  "spec": "fn-66-remove-unused-umpire-tooling-after",
+  "spec_path": ".flow/tasks/fn-66-remove-unused-umpire-tooling-after.2.md",
+  "status": "todo",
+  "title": "Retire the unused public artifact package and CLI",
+  "updated_at": "2026-09-06T06:51:56.313044Z"
+}

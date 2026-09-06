@@ -589,6 +589,12 @@ structure PlannerRun where
   instrumentation : PlannerInstrumentation
   deriving BEq, DecidableEq, Repr
 
+/-- Typed failures that can reject a complete planning and Artifact-intent request. -/
+inductive PlanningRequestError where
+  | knownGap (error : KnownGapError)
+  | artifactIntent (error : ArtifactIntentError)
+  deriving BEq, DecidableEq, Repr
+
 private instance : Inhabited (PlannerPull State Candidate) := ⟨.complete⟩
 
 private def evidenceFingerprints
@@ -903,10 +909,13 @@ private def finish
     (query : CheckedQuery LawStatement)
     (explored : ExploredCounts)
     (instrumentation : PlannerInstrumentation)
-    (termination : BoundedTraversalTermination) : PlannerRun :=
+    (termination : BoundedTraversalTermination)
+    (knownGaps : KnownGapSet) : PlannerRun :=
   let result := finalizePlanning query explored termination
   let artifact := match termination with
-    | .stopped trace reason => some (artifactOfSelection query trace reason explored)
+    | .stopped trace reason =>
+        some (ArtifactPlanning.Internal.artifactOfSelectionWithKnownGaps
+          query trace reason explored knownGaps)
     | _ => none
   { result, artifact, instrumentation }
 
@@ -982,12 +991,14 @@ def traverseBoundedCandidates
 /-- Plan a checked Query without invoking runtime, readers, evidence, or promotion behavior. -/
 def plan
     (query : CheckedQuery LawStatement)
-    (kernel : IncrementalPlannerKernel query.target) : PlannerRun :=
+    (kernel : IncrementalPlannerKernel query.target) : Except KnownGapError PlannerRun := do
+  let knownGaps ← composePlanningKnownGaps query
   let traversed := traverseBoundedCandidates query kernel () fun _ candidate => do
     match ← evaluatesToSelection query candidate with
     | some reason => pure (.stop () candidate reason)
     | none => pure (.continue ())
-  finish query traversed.metadata.explored traversed.instrumentation traversed.termination
+  pure (finish query traversed.metadata.explored traversed.instrumentation traversed.termination
+    knownGaps)
 
 /--
 Plan through the unchanged target kernel, then project checked Artifact intent if one is selected.
@@ -995,12 +1006,13 @@ Plan through the unchanged target kernel, then project checked Artifact intent i
 def planWithArtifactIntent
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target)
-    (intent : ArtifactIntent) : Except ArtifactIntentError PlannerRun := do
-  intent.validateFor query
-  let run := plan query kernel
+    (intent : ArtifactIntent) : Except PlanningRequestError PlannerRun := do
+  intent.validateFor query |>.mapError PlanningRequestError.artifactIntent
+  let run ← plan query kernel |>.mapError PlanningRequestError.knownGap
   let artifact ← match run.artifact with
     | none => pure none
-    | some spec => some <$> spec.withArtifactIntent query intent
+    | some spec => some <$> (spec.withArtifactIntent query intent |>.mapError
+        PlanningRequestError.artifactIntent)
   pure { run with artifact }
 
 end Umpire

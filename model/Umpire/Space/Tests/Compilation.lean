@@ -25,6 +25,44 @@ private theorem loweredResult_isSome : loweredResult.toOption.isSome = true := b
 
 private def lowered := loweredResult.toOption.get loweredResult_isSome
 
+private def authoredGap : KnownGap := {
+  kind := .claim
+  code := id "space.test.known-gap.authored"
+  subject := some checked.baseQuery.id
+  detail := some "The derived Space Query retains this authored limitation."
+}
+
+private def authoredGaps : KnownGapSet :=
+  (KnownGapSet.checkCanonical [authoredGap]).toOption.get (by native_decide)
+
+private def baseQueryWithAuthoredGaps := {
+  checked.baseQuery with authoredKnownGaps := authoredGaps
+}
+
+private def checkedWithAuthoredGapsResult :=
+  checkExperimentSpace (.ofQuery baseQueryWithAuthoredGaps) declaration
+
+private def checkedWithAuthoredGaps :=
+  checkedWithAuthoredGapsResult.toOption.get (by native_decide)
+
+private def conflictingGap : KnownGap := {
+  plannerExecutionEvidenceKnownGap with detail := some "conflicting authored detail"
+}
+
+private def conflictingGaps : KnownGapSet :=
+  (KnownGapSet.checkCanonical [conflictingGap]).toOption.get (by native_decide)
+
+private def checkedWithConflictingGapsResult :=
+  checkExperimentSpace (.ofQuery {
+    checked.baseQuery with authoredKnownGaps := conflictingGaps
+  }) declaration
+
+private def checkedWithConflictingGaps :=
+  checkedWithConflictingGapsResult.toOption.get (by native_decide)
+
+private def loweredWithAuthoredGapsResult :=
+  lowerSpacePoint checkedWithAuthoredGaps validAssignment
+
 private theorem except_eq_ok_get
     (result : Except ε α)
     (isSome : result.toOption.isSome = true) :
@@ -36,6 +74,10 @@ private theorem except_eq_ok_get
 private theorem checkedResultEq : checkedResult = .ok checked :=
   except_eq_ok_get checkedResult (by native_decide)
 
+private theorem checkedWithConflictingGapsResultEq :
+    checkedWithConflictingGapsResult = .ok checkedWithConflictingGaps :=
+  except_eq_ok_get checkedWithConflictingGapsResult (by native_decide)
+
 private theorem checkedTargetEq :
     checked.baseQuery.target = Umpire.Examples.Switch.target := by
   exact congrArg (fun query => query.target)
@@ -44,6 +86,11 @@ private theorem checkedTargetEq :
 private def baseKernel : IncrementalPlannerKernel checked.baseQuery.target :=
   Eq.mpr (congrArg IncrementalPlannerKernel checkedTargetEq)
     Umpire.Examples.Switch.incrementalKernel
+
+private def conflictingBaseKernel :
+    IncrementalPlannerKernel checkedWithConflictingGaps.baseQuery.target :=
+  Eq.mpr (congrArg IncrementalPlannerKernel (congrArg (fun query => query.target)
+    (checkExperimentSpace_baseQuery checkedWithConflictingGapsResultEq))) baseKernel
 
 private def transportedKernel : IncrementalPlannerKernel lowered.query.target :=
   Eq.mpr (congrArg IncrementalPlannerKernel lowered.targetEq)
@@ -54,6 +101,9 @@ private def transportedRun :=
 
 private def batchResult :=
   compileBatch checked baseKernel
+
+private def conflictingBatchResult :=
+  compileBatch checkedWithConflictingGaps conflictingBaseKernel
 
 private def compileErrorOf
     (result : Except SpaceCompilationError α) : Option SpaceCompilationError :=
@@ -71,6 +121,20 @@ example : loweredResult.toOption.map (fun point =>
       point.query.behavior.id != checked.baseQuery.behavior.id &&
       point.query.target.id == checked.baseQuery.target.id &&
       point.intent.selectedChoices == canonicalValidAssignment) = some true := by
+  native_decide
+
+/-! Space-derived Queries retain the complete nonempty authored set from their base Query. -/
+example : loweredWithAuthoredGapsResult.toOption.map (fun point =>
+    point.query.authoredKnownGaps.toList) = some authoredGaps.toList := by
+  native_decide
+
+/-! Space compilation retains the complete typed Known Gap failure from ordinary planning. -/
+example : (compileErrorOf conflictingBatchResult).map (fun error =>
+    (error.kind, error.knownGapError)) = some (.knownGapCheckFailed, some {
+      kind := .conflictingDetail
+      code := plannerExecutionEvidenceKnownGap.code
+      subject := plannerExecutionEvidenceKnownGap.subject
+    }) := by
   native_decide
 
 /-! Derived Behavior and Query identities reject every collision with visible definitions. -/
@@ -148,27 +212,29 @@ example :
     first.map SpaceCompilationError.pointId = second.map SpaceCompilationError.pointId := by
   native_decide
 
-private def verifiedPlannerRun : PlannerRun :=
+private def verifiedPlannerRun : Except KnownGapError PlannerRun :=
   Umpire.PlanningTests.run 2 (.verify Umpire.PlanningTests.property) .exhaustive
 
 private def verifiedPointRejection :=
-  SpaceCompiler.Internal.appendPlannerRun checked lowered.id
-    [Umpire.Examples.Switch.compiledArtifact] verifiedPlannerRun
+  verifiedPlannerRun.toOption.map fun run =>
+    SpaceCompiler.Internal.appendPlannerRun checked lowered.id
+      [Umpire.Examples.Switch.compiledArtifact] run
 
 /-!
 A verified point with no Artifact rejects the canonical point and never returns its existing prefix.
 -/
 example :
-    (verifiedPointRejection.toOption,
-      (compileErrorOf verifiedPointRejection).map fun error => (error.kind, error.pointId)) =
-    (none, some (.verifiedWithoutArtifact, lowered.id)) := by
+    verifiedPointRejection.map (fun rejection =>
+      (rejection.toOption,
+        (compileErrorOf rejection).map fun error => (error.kind, error.pointId))) =
+    some (none, some (.verifiedWithoutArtifact, lowered.id)) := by
   native_decide
 
-private def exhaustedPlannerRun : PlannerRun :=
+private def exhaustedPlannerRun : Except KnownGapError PlannerRun :=
   Umpire.PlanningTests.run 64 (.counterexample Umpire.PlanningTests.property)
     .shortest 1 17 false
 
-private def absentPlannerRun : PlannerRun :=
+private def absentPlannerRun : Except KnownGapError PlannerRun :=
   Umpire.PlanningTests.run 0 (.counterexample Umpire.PlanningTests.property) .exhaustive
 
 private def staticallyUnsatisfiableBehavior : CheckedBehavior := {
@@ -177,18 +243,21 @@ private def staticallyUnsatisfiableBehavior : CheckedBehavior := {
   behaviorFingerprint := behaviorFingerprintOf "space-compiler-test/unsatisfiable"
 }
 
-private def unsatisfiablePlannerRun : PlannerRun :=
+private def unsatisfiablePlannerRun : Except KnownGapError PlannerRun :=
   Umpire.PlanningTests.run 0 (.verify Umpire.PlanningTests.property) .exhaustive
     10 17 true staticallyUnsatisfiableBehavior
 
-private def rejectedPlannerKind (run : PlannerRun) :
+private def rejectedPlannerKind (result : Except KnownGapError PlannerRun) :
     Option (SpaceCompilationErrorKind × DefinitionId) :=
-  let rejected := SpaceCompiler.Internal.appendPlannerRun checked lowered.id
-    [Umpire.Examples.Switch.compiledArtifact] run
-  if rejected.toOption.isSome then
-    none
-  else
-    (compileErrorOf rejected).map fun error => (error.kind, error.pointId)
+  match result with
+  | .error _ => none
+  | .ok run =>
+      let rejected := SpaceCompiler.Internal.appendPlannerRun checked lowered.id
+        [Umpire.Examples.Switch.compiledArtifact] run
+      if rejected.toOption.isSome then
+        none
+      else
+        (compileErrorOf rejected).map fun error => (error.kind, error.pointId)
 
 /-! Every non-artifact planner termination rejects the canonical point with no partial list. -/
 example : [
@@ -202,20 +271,19 @@ example : [
   ] := by
   native_decide
 
-private def foundPlannerRun : PlannerRun :=
+private def foundPlannerRun : Except KnownGapError PlannerRun :=
   Umpire.PlanningTests.run 2 (.witness Umpire.PlanningTests.property) .shortest
 
-private def foundPlannerSpec : ExperimentSpec :=
-  foundPlannerRun.artifact.get (by native_decide)
-
 private def duplicateSpecRejection :=
-  SpaceCompiler.Internal.appendPlannerRun checked lowered.id [foundPlannerSpec] foundPlannerRun
+  foundPlannerRun.toOption.bind fun run =>
+    run.artifact.map fun spec =>
+      SpaceCompiler.Internal.appendPlannerRun checked lowered.id [spec] run
 
 /-! Duplicate final ExperimentSpec identity rejects the point without returning the prior spec. -/
 example :
-    (duplicateSpecRejection.toOption,
-      compileErrorKindOf duplicateSpecRejection) =
-    (none, some .duplicateExperimentSpecIdentity) := by
+    duplicateSpecRejection.map (fun rejection =>
+      (rejection.toOption, compileErrorKindOf rejection)) =
+    some (none, some .duplicateExperimentSpecIdentity) := by
   native_decide
 
 private def duplicatePointRejection :=

@@ -17,3 +17,4 @@ The generator is intentionally generation-only for now. Its focused and golden t
 - 2026-09-04 — Planned model/Temporal authoring-experience improvements; broad generated Lean API drift verification and CI coverage remain declined and outside scope.
 - 2026-09-04 — Planned `tools/umpire` test-suite consolidation; existing focused generator goldens remain, while broad generated Lean API drift verification and new CI coverage stay excluded.
 - 2026-09-04 — Planned the Umpire Case Runtime redesign; focused IR generation and regeneration checks remain in scope, while broad generated Lean API drift verification and new GitHub Actions coverage stay excluded.
+- 2026-09-06 — Planned removal of unused Umpire tooling after the runtime and authoring cutovers; preserve existing generator checks and remove only obsolete references, without adding broad generated Lean API drift verification or CI coverage.

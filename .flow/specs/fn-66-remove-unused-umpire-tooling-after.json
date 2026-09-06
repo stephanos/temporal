@@ -1,13 +1,61 @@
 {
   "branch_name": "fn-66-remove-unused-umpire-tooling-after",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-04T22:52:46.029821Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-62-make-ordinary-temporal-model-authoring"
   ],
   "id": "fn-66-remove-unused-umpire-tooling-after",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-06T06:59:52.820533Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "ed37e1d4e68f84b84b534a624363dbe939f5310a0ea46ee2e9cc7b2e4be112bf",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8f40772ebb8e56fac4d068c9990b3c1827f8a05f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 944780,
+      "output_sha256": "fa680c15869ef1364288031bea2f27eb7df8b0715f039bf254288c29750248d5",
+      "reservation_id": "c4a2e55c627340a0922d633413766cc8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-06T06:59:52.800370Z",
+      "tool_calls": 12,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-66-remove-unused-umpire-tooling-after.md",
   "status": "open",
   "title": "Remove unused Umpire tooling after runtime and authoring cutovers",
@@ -22,5 +70,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-06T02:14:08.367836Z"
+  "updated_at": "2026-09-06T06:59:52.829474Z"
 }

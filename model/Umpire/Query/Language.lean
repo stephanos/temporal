@@ -1,5 +1,6 @@
 import Umpire.Property
 import Umpire.Behavior
+import Umpire.KnownGap
 
 /-! Implementation behind the `Umpire.Query` public facade. -/
 
@@ -263,6 +264,7 @@ structure QueryDeclaration where
   behavior : CheckedBehavior
   limits : QueryLimits
   policy : PlannerPolicy
+  authoredKnownGaps : KnownGapSet := KnownGapSet.empty
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
 
@@ -316,6 +318,7 @@ structure CheckedQuery (LawStatement : LawDefinition → Prop) where
   target : QueryTarget LawStatement
   limits : QueryLimits
   policy : PlannerPolicy
+  authoredKnownGaps : KnownGapSet := KnownGapSet.empty
   targetComposition : List DefinitionId
   completeness : Option (FiniteCompletenessEvidence LawStatement target)
   documentation : String
@@ -562,6 +565,7 @@ def checkQuery
     target
     limits := declaration.limits
     policy := declaration.policy
+    authoredKnownGaps := declaration.authoredKnownGaps
     targetComposition := composition
     completeness
     documentation := declaration.documentation

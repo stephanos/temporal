@@ -44,7 +44,7 @@ private theorem checkedIntentResult_isSome : checkedIntentResult.toOption.isSome
 private def checkedIntent : ArtifactIntent :=
   checkedIntentResult.toOption.get checkedIntentResult_isSome
 
-private def projectedRunResult : Except ArtifactIntentError PlannerRun :=
+private def projectedRunResult : Except PlanningRequestError PlannerRun :=
   planWithArtifactIntent Umpire.Examples.Switch.exactActionQuery
     Umpire.Examples.Switch.incrementalKernel checkedIntent
 
@@ -56,6 +56,12 @@ private def intentErrorKindOf
   match result with
   | .ok _ => none
   | .error error => some error.kind
+
+private def requestErrorOf
+    (result : Except PlanningRequestError α) : Option PlanningRequestError :=
+  match result with
+  | .ok _ => none
+  | .error error => some error
 
 /-! Distinct role selections preserve repeated semantic values in the projected variant array. -/
 example :
@@ -69,6 +75,26 @@ example :
       Umpire.Examples.Switch.offState,
       Umpire.Examples.Switch.offState
     ] := by
+  native_decide
+
+/-! Intent validation retains precedence over a simultaneous Known Gap composition conflict. -/
+example :
+    let conflict := {
+      plannerExecutionEvidenceKnownGap with detail := some "conflicting authored detail"
+    }
+    let gaps := (KnownGapSet.checkCanonical [conflict]).toOption.get (by native_decide)
+    let query := {
+      Umpire.Examples.Switch.exactActionQuery with authoredKnownGaps := gaps
+    }
+    let staleIntent := {
+      checkedIntent with queryDefinitionId := id "switch.query.stale"
+    }
+    requestErrorOf (planWithArtifactIntent query Umpire.Examples.Switch.incrementalKernel
+      staleIntent) = some (.artifactIntent {
+        kind := .identityDrift
+        definitionId := staleIntent.queryDefinitionId
+        relatedDefinitionIds := [query.id]
+      }) := by
   native_decide
 
 /-! Checked intent populates the reserved arrays and unions selected fault capabilities. -/
@@ -199,8 +225,12 @@ example :
         ordinary.plan with kernelDefinitionId := id "switch.kernel.stale"
       }
     }
-    intentErrorKindOf (planWithArtifactIntent drifted Umpire.Examples.Switch.incrementalKernel
-      checkedIntent) = some .identityDrift &&
+    requestErrorOf (planWithArtifactIntent drifted Umpire.Examples.Switch.incrementalKernel
+      checkedIntent) = some (.artifactIntent {
+        kind := .identityDrift
+        definitionId := checkedIntent.queryDefinitionId
+        relatedDefinitionIds := [drifted.id]
+      }) &&
       intentErrorKindOf (driftedArtifact.withArtifactIntent
         Umpire.Examples.Switch.exactActionQuery checkedIntent) = some .identityDrift := by
   native_decide

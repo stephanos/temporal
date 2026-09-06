@@ -166,6 +166,16 @@ example : emptyMachine.kernelAvailability = .checked emptyMachine.kernel := rfl
 
 example : emptyMachine.planning.actions = [] := rfl
 
+/-- Emitting an undeclared initial state leaves an unsatisfiable closure obligation. -/
+example : ¬ (∀ state : Bool, state ∈ [true] → state ∈ [false]) := by
+  simp
+
+/-- Advertising an unreachable action leaves an unsatisfiable executable-action obligation. -/
+example : ¬ (∀ action : Bool, action ∈ [true] →
+    ∃ (_state : Bool) (result : TransitionResult Bool Bool Bool),
+      result ∈ ([] : List (TransitionResult Bool Bool Bool))) := by
+  simp
+
 #guard_msgs (error, substring := true) in
 def missingInitialStateCoverage : FiniteMachine Unit Bool Bool Bool Bool := {
   metadata := machine.metadata

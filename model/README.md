@@ -63,11 +63,43 @@ The `temporal-model-inspect` executable exposes the retained checked catalog and
 planning artifacts. Generated Views remain navigation and test wrappers around that planning data;
 they do not execute a Case or determine a Verdict.
 
+### Ordinary Nexus authoring
+
+`Temporal.Feature.Nexus` is the compiled established walkthrough. Read
+`Lifecycle.Semantics`, `Lifecycle.Target`, the three `Operations` modules, and `Observation` in that
+order. The finite `Lifecycle.finiteMachine` is the ordinary Target seam: authors still provide the
+ordered domains, encoders, enumerators, closure proofs, and Action-executability proof, while
+`targetDefinition` and `authoredTarget` remove repeated record and planning transport. Authors who
+need an independently specified authoritative relation can use the expert `TransitionKernel` path.
+
+Property, Behavior, Query, and Observation inputs remain ordinary values. Call each language's
+`check` operation to inspect its typed `Except` error, then supply explicit checker-success evidence
+to its `checked` operation. Stable `DefinitionId` suffixes, source locations, providers/connectors,
+Target-owned outcomes, and stage-specific `QueryLimitSpec` values are authored choices; declaration
+order and instance search choose none of them. Planning returns `Except KnownGapError PlannerRun`.
+An optional checked `authoredKnownGaps` set is composed with phase gaps before search or artifact
+publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply
+that an omitted limitation was detected.
+
+Lean syntax used by the walkthrough:
+
+- `:=` defines a value; `{ base with field := value }` makes a record update.
+- `.case` selects an inferred enum or structure constructor.
+- `Except Error Value` is either `.error error` or `.ok value`; `do` and `←` stop on the first error.
+- `by` starts a proof, and the explicit proof argument to `checked` is the raw/check/checked seam.
+- `#guard_msgs` compiles an expected elaboration failure; `#print axioms` reports transitive trust.
+
+`Temporal.Feature.NexusTests` compiles this facade-only path, including an authored gap reaching a
+real selected artifact, Observation evaluation, malformed identity/reference, missing proof,
+incomplete Target, invalid transition, and invalid Observation specimens. The exact compatibility,
+trust, and cost inventory is in [the established evidence record](Temporal/Feature/Nexus/EVIDENCE.md).
+
 The experimental [Nexus2 authoring prototype](Temporal/Feature/Nexus2/README.md) demonstrates the
 ordinary finite route, guarded Properties, bounded case analysis, and constructor/frontend
-measurements. It does not migrate the established Nexus declarations, author Observations or Known
-Gaps, or claim live execution. Its [evidence inventory](Temporal/Feature/Nexus2/EVIDENCE.md) records
-those boundaries against the deferred ordinary-authoring requirements.
+measurements under its narrow prototype exceptions. It is a separate `temporal.nexus2.*` model,
+not the established migration or a production authoring rule. Editor responsiveness, cold/repeated
+elaboration, human readability, product-owner usability, and broader syntax approval remain
+unmeasured. Its [evidence inventory](Temporal/Feature/Nexus2/EVIDENCE.md) records those boundaries.
 
 ## Runtime ownership
 

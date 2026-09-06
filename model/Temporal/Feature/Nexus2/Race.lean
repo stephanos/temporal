@@ -380,6 +380,7 @@ inductive RaceAdmissionError where
   | invalidBehavior (error : BehaviorError)
   | invalidQuery (error : QueryError)
   | invalidPlanner (error : FinitePlannerAdmissionError)
+  | invalidKnownGap (error : KnownGapError)
 
 structure CheckedQuestion where
   property : CheckedProperty
@@ -425,7 +426,8 @@ private def checkQuestion
     |>.mapError RaceAdmissionError.invalidQuery
   let kernel ← IncrementalPlannerKernel.ofCheckedQuery target.id query
     |>.mapError RaceAdmissionError.invalidPlanner
-  pure { property, behavior, query, run := plan query kernel }
+  let run ← plan query kernel |>.mapError RaceAdmissionError.invalidKnownGap
+  pure { property, behavior, query, run }
 
 /-- Admit the race and its separate bounded questions only through successful checked branches. -/
 def checkRace : Except RaceAdmissionError CheckedRace := do

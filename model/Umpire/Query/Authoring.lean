@@ -25,6 +25,7 @@ structure QuerySpec where
   behavior : CheckedBehavior
   limits : QueryLimitSpec
   policy : PlannerPolicy
+  authoredKnownGaps : KnownGapSet := KnownGapSet.empty
   documentation : String := ""
 
 def QuerySpec.declaration (spec : QuerySpec) : QueryDeclaration := {
@@ -35,6 +36,7 @@ def QuerySpec.declaration (spec : QuerySpec) : QueryDeclaration := {
   behavior := spec.behavior
   limits := spec.limits.toQueryLimits
   policy := spec.policy
+  authoredKnownGaps := spec.authoredKnownGaps
   documentation := spec.documentation
 }
 

@@ -6,8 +6,87 @@ namespace Umpire.PlanningTests
 
 open Umpire
 
+#check (composePlanningKnownGaps :
+  CheckedQuery (fun _ => True) → Except KnownGapError KnownGapSet)
+#check (artifactOfSelection : CheckedQuery (fun _ => True) → BehaviorTrace → SelectionReason →
+  ExploredCounts → Except KnownGapError ExperimentSpec)
+#check (plan : (query : CheckedQuery (fun _ => True)) →
+  IncrementalPlannerKernel query.target → Except KnownGapError PlannerRun)
+#check (planWithArtifactIntent : (query : CheckedQuery (fun _ => True)) →
+  IncrementalPlannerKernel query.target → ArtifactIntent →
+    Except PlanningRequestError PlannerRun)
+
+private def authoredPlanningGap : KnownGap := {
+  kind := .capabilityContract
+  code := id "planner.known-gap.authored"
+  subject := some targetId
+  detail := some "The authored model does not provide this capability."
+}
+
+private def authoredPlanningGaps : KnownGapSet :=
+  (KnownGapSet.checkCanonical [authoredPlanningGap]).toOption.get (by native_decide)
+
+private def queryWithKnownGaps (gaps : KnownGapSet) : CheckedQuery (fun _ => True) := {
+  checkedQuery 2 (.witness property) .shortest with authoredKnownGaps := gaps
+}
+
+private def conflictingPhaseGap : KnownGap := {
+  plannerExecutionEvidenceKnownGap with
+  detail := some "Authored detail conflicts with the phase-owned row."
+}
+
+private def conflictingPhaseGaps : KnownGapSet :=
+  (KnownGapSet.checkCanonical [conflictingPhaseGap]).toOption.get (by native_decide)
+
+private def exactPhaseOverlap : KnownGapSet :=
+  (KnownGapSet.checkCanonical [plannerExecutionEvidenceKnownGap]).toOption.get (by native_decide)
+
+private def knownGapErrorOf
+    (result : Except KnownGapError α) : Option KnownGapError :=
+  match result with
+  | .ok _ => none
+  | .error error => some error
+
+/-! Authored and phase-owned gaps compose once into exact canonical rows. -/
+example :
+    (composePlanningKnownGaps (queryWithKnownGaps KnownGapSet.empty)).toOption.map
+        KnownGapSet.toList = some canonicalPlannerKnownGaps.toList ∧
+      (composePlanningKnownGaps (queryWithKnownGaps authoredPlanningGaps)).toOption.map
+        KnownGapSet.toList = some (authoredPlanningGap :: canonicalPlannerKnownGaps.toList) ∧
+      (composePlanningKnownGaps (queryWithKnownGaps exactPhaseOverlap)).toOption.map
+        KnownGapSet.toList = some canonicalPlannerKnownGaps.toList := by
+  native_decide
+
+/-! Cross-set detail conflicts remain exact outer errors before any search result is produced. -/
+example :
+    let query := queryWithKnownGaps conflictingPhaseGaps
+    let unsatisfiable := {
+      query with behavior := { query.behavior with spaceStatus := .unsatisfiable }
+    }
+    let noSelection := { query with form := .verify property }
+    [knownGapErrorOf (plan unsatisfiable (incrementalKernel 2)),
+      knownGapErrorOf (plan noSelection (incrementalKernel 2))] = [
+      some {
+        kind := .conflictingDetail
+        code := plannerExecutionEvidenceKnownGap.code
+        subject := plannerExecutionEvidenceKnownGap.subject
+      },
+      some {
+        kind := .conflictingDetail
+        code := plannerExecutionEvidenceKnownGap.code
+        subject := plannerExecutionEvidenceKnownGap.subject
+      }
+    ] := by
+  native_decide
+
 def witnessSpec (seed : Nat := 17) : Option ExperimentSpec :=
-  (run 2 (.witness property) .shortest 10 seed false).artifact
+  (run 2 (.witness property) .shortest 10 seed false).toOption.bind PlannerRun.artifact
+
+private def authoredWitnessRun : Except KnownGapError PlannerRun :=
+  plan (queryWithKnownGaps authoredPlanningGaps) (incrementalKernel 2)
+
+private def authoredWitnessSpec : Option ExperimentSpec :=
+  authoredWitnessRun.toOption.bind PlannerRun.artifact
 
 def incidentalWitnessSpec : Option ExperimentSpec :=
   let query := checkedQuery 2 (.witness property) .shortest 10 17 false
@@ -17,7 +96,7 @@ def incidentalWitnessSpec : Option ExperimentSpec :=
     behavior := { query.behavior with documentation := "changed behavior documentation" }
     form := .witness { property with documentation := "changed property documentation" }
   }
-  (plan incidental (incrementalKernel 2)).artifact
+  (plan incidental (incrementalKernel 2)).toOption.bind PlannerRun.artifact
 
 def selectedArtifactIsInspectable : Bool :=
   match witnessSpec with
@@ -41,6 +120,30 @@ def selectedArtifactIsInspectable : Bool :=
 example : selectedArtifactIsInspectable := by
   native_decide
 
+/-! Authored gaps change only the checked gap rows and their enclosing checksums. -/
+example :
+    let ordinary := witnessSpec
+    let authored := authoredWitnessSpec
+    authoredWitnessRun.toOption.map PlannerRun.result =
+        (run 2 (.witness property) .shortest).toOption.map PlannerRun.result ∧
+      authored.map (fun spec => spec.plan.knownGaps.toList) =
+        some (authoredPlanningGap :: canonicalPlannerKnownGaps.toList) ∧
+      authored.map (fun spec => spec.artifactChecksum) !=
+        ordinary.map (fun spec => spec.artifactChecksum) ∧
+      (do
+        let ordinary ← ordinary
+        let authored ← authored
+        pure {
+          authored with
+          artifactChecksum := ordinary.artifactChecksum
+          plan := {
+            authored.plan with
+            artifactChecksum := ordinary.plan.artifactChecksum
+            knownGaps := ordinary.plan.knownGaps
+          }
+        }) = ordinary := by
+  native_decide
+
 def optionalBehavior : CheckedBehavior := {
   behavior with
   requiredOccurrences := []
@@ -49,9 +152,10 @@ def optionalBehavior : CheckedBehavior := {
 
 /-! The linear extension contains every selected action, including optional occurrences. -/
 example :
-    ((run 2 (.select [property]) .shortest 10 17 false optionalBehavior).artifact.map fun spec =>
+    ((run 2 (.select [property]) .shortest 10 17 false optionalBehavior).toOption.bind
+      (fun run => run.artifact.map fun spec =>
       (spec.plan.linearExtension.length,
-        spec.plan.linearExtension.map PlannedOccurrence.actionDefinitionId)) =
+        spec.plan.linearExtension.map PlannedOccurrence.actionDefinitionId))) =
       some (1, [request]) := by
   native_decide
 

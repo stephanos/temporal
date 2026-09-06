@@ -13,6 +13,7 @@ inductive InspectionFailure where
   | behavior (error : BehaviorError)
   | query (error : QueryError)
   | planning (subject : String)
+  | knownGap (error : KnownGapError)
   deriving BEq, DecidableEq, Repr
 
 structure Scenario where
@@ -40,6 +41,7 @@ private def failureJson : InspectionFailure → String
   | .behavior error => canonicalBehaviorErrorJson error ++ "\n"
   | .query error => canonicalQueryErrorJson error ++ "\n"
   | .planning subject => diagnostic "planning-failure" subject "no portable artifact"
+  | .knownGap error => diagnostic "known-gap-check-failed" error.code.value error.kind.name
 
 private def failed (failure : InspectionFailure) : InspectorResult :=
   { status := 1, stdout := "", stderr := failureJson failure }
@@ -69,22 +71,24 @@ def runInspector (registry : ScenarioRegistry) (args : List String) : InspectorR
 
 private def plannedScenario
     (id : String)
-    (artifact : Option ExperimentSpec) : Scenario := {
+    (run : Except KnownGapError PlannerRun) : Scenario := {
   id
-  result := match artifact with
-    | some spec => .ok spec
-    | none => .error (.planning id)
+  result := match run with
+    | .error error => .error (.knownGap error)
+    | .ok run => match run.artifact with
+      | some spec => .ok spec
+      | none => .error (.planning id)
 }
 
 def productionRegistry : ScenarioRegistry := [{
   id := _root_.Umpire.Examples.Switch.exactActionQueryId.value
   result := .ok _root_.Umpire.Examples.Switch.compiledArtifact
 }, plannedScenario Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value
-    Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact,
+    Temporal.Feature.Nexus.Operations.AsyncStart.run,
   plannedScenario Temporal.Feature.Nexus.Operations.Cancellation.query.id.value
-    Temporal.Feature.Nexus.Operations.Cancellation.run.artifact,
+    Temporal.Feature.Nexus.Operations.Cancellation.run,
   plannedScenario Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact]
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run]
 
 private def invalidDiscovery
     (failure : Temporal.Tool.NexusDiscovery.NexusDiscoveryError) : InspectorResult := {
@@ -127,9 +131,9 @@ def runDiscoveryExplain
 
 def runCli (args : List String) : InspectorResult :=
   match args with
-  | ["list"] => runDiscoveryList (.ok Temporal.Tool.NexusDiscovery.inventory)
+  | ["list"] => runDiscoveryList Temporal.Tool.NexusDiscovery.inventory
   | ["explain", queryId] =>
-      runDiscoveryExplain (.ok Temporal.Tool.NexusDiscovery.inventory) queryId
+      runDiscoveryExplain Temporal.Tool.NexusDiscovery.inventory queryId
   | "explain" :: _ => {
       status := 1
       stdout := ""

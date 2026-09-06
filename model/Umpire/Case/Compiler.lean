@@ -1,4 +1,5 @@
 import Umpire.Case
+import Umpire.KnownGap
 
 /-!
 Checked Case compilation consumes `ContractLowering` values produced before this boundary and
@@ -6,6 +7,26 @@ produces only the closed Program and Contract vocabulary consumed by runtime Hos
 no checked-Property-to-lowering producer and does not recognize `PropertyClause`; a future producer
 must reject unsupported guarded forms before constructing `Input` rather than relying on `compile`.
 -/
+
+namespace Umpire
+
+/-- Convert one checked planning Known Gap to the exact Case row vocabulary. -/
+def KnownGap.toCaseKnownGap (gap : KnownGap) : Case.CaseKnownGap := {
+  kind := match gap.kind with
+    | .capabilityContract => .capabilityContract
+    | .input => .input
+    | .interpretation => .interpretation
+    | .claim => .claim
+  code := gap.code.value
+  subject := gap.subject.map DefinitionId.value
+  detail := gap.detail
+}
+
+/-- Convert checked planning Known Gaps to exact Case rows in one order-preserving pass. -/
+def KnownGapSet.toCaseKnownGaps (gaps : KnownGapSet) : List Case.CaseKnownGap :=
+  gaps.toList.map KnownGap.toCaseKnownGap
+
+end Umpire
 
 namespace Umpire.Case.Compiler
 

@@ -96,6 +96,7 @@ inductive NexusDiscoveryErrorKind where
   | missingSource
   | missingPlan
   | planIdentityDrift
+  | knownGapCheckFailed
   deriving BEq, DecidableEq, Repr
 
 /-- Stable diagnostic label for one inventory-admission failure kind. -/
@@ -108,11 +109,13 @@ def NexusDiscoveryErrorKind.name : NexusDiscoveryErrorKind → String
   | .missingSource => "missing-source"
   | .missingPlan => "missing-plan"
   | .planIdentityDrift => "plan-identity-drift"
+  | .knownGapCheckFailed => "known-gap-check-failed"
 
 /-- One structural inventory-admission failure. -/
 structure NexusDiscoveryError where
   kind : NexusDiscoveryErrorKind
   queryId : DefinitionId
+  knownGapError : Option KnownGapError := none
   deriving BEq, DecidableEq, Repr
 
 private def declaration
@@ -169,23 +172,37 @@ def candidateOf
   plan := plan.map planLineage
 }
 
-private def expectedCandidates : List NexusDiscoveryCandidate := [
-  candidateOf
-    Temporal.Feature.Nexus.Operations.AsyncStart.property
-    Temporal.Feature.Nexus.Operations.AsyncStart.behavior
-    Temporal.Feature.Nexus.Operations.AsyncStart.query
-    Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact,
-  candidateOf
-    Temporal.Feature.Nexus.Operations.Cancellation.property
-    Temporal.Feature.Nexus.Operations.Cancellation.behavior
-    Temporal.Feature.Nexus.Operations.Cancellation.query
-    Temporal.Feature.Nexus.Operations.Cancellation.run.artifact,
-  candidateOf
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.behavior
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact
-]
+private def expectedCandidates : Except NexusDiscoveryError (List NexusDiscoveryCandidate) := do
+  let asyncStart ← Temporal.Feature.Nexus.Operations.AsyncStart.run.mapError fun error => {
+    kind := .knownGapCheckFailed
+    queryId := Temporal.Feature.Nexus.Operations.AsyncStart.query.id
+    knownGapError := some error
+  }
+  let cancellation ← Temporal.Feature.Nexus.Operations.Cancellation.run.mapError fun error => {
+    kind := .knownGapCheckFailed
+    queryId := Temporal.Feature.Nexus.Operations.Cancellation.query.id
+    knownGapError := some error
+  }
+  let successfulCompletion ←
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.mapError fun error => {
+      kind := .knownGapCheckFailed
+      queryId := Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id
+      knownGapError := some error
+    }
+  pure [
+    candidateOf
+      Temporal.Feature.Nexus.Operations.AsyncStart.property
+      Temporal.Feature.Nexus.Operations.AsyncStart.behavior
+      Temporal.Feature.Nexus.Operations.AsyncStart.query asyncStart.artifact,
+    candidateOf
+      Temporal.Feature.Nexus.Operations.Cancellation.property
+      Temporal.Feature.Nexus.Operations.Cancellation.behavior
+      Temporal.Feature.Nexus.Operations.Cancellation.query cancellation.artifact,
+    candidateOf
+      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.property
+      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.behavior
+      Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query successfulCompletion.artifact
+  ]
 
 private def candidateLe (left right : NexusDiscoveryCandidate) : Bool :=
   decide (left.query.id.value ≤ right.query.id.value)
@@ -266,7 +283,8 @@ private def validateCandidate
   pure ⟨candidate.property, candidate.behavior, candidate.query, plan⟩
 
 /-- Validate exact membership and return entries in canonical query-identity order. -/
-def checkInventory
+private def checkInventoryAgainst
+    (expected : List NexusDiscoveryCandidate)
     (candidates : List NexusDiscoveryCandidate) :
     Except NexusDiscoveryError NexusDiscoveryInventory := do
   let canonical := canonicalCandidates candidates
@@ -280,11 +298,18 @@ def checkInventory
     let queryId := canonical.head?.map (fun candidate => candidate.query.id)
       |>.getD (DefinitionId.of "temporal.nexus.discovery")
     throw { kind := .duplicateDeclaration, queryId }
-  if canonical != canonicalCandidates expectedCandidates then
+  if canonical != canonicalCandidates expected then
     let queryId := canonical.head?.map (fun candidate => candidate.query.id)
       |>.getD (DefinitionId.of "temporal.nexus.discovery")
     throw { kind := .membershipDrift, queryId }
   pure ⟨entries⟩
+
+/-- Validate candidates against the checked, planned closed inventory. -/
+def checkInventory
+    (candidates : List NexusDiscoveryCandidate) :
+    Except NexusDiscoveryError NexusDiscoveryInventory := do
+  let expected ← expectedCandidates
+  checkInventoryAgainst expected candidates
 
 private def frame (value : String) : String :=
   toString value.length ++ ":" ++ value
@@ -409,14 +434,9 @@ def NexusDiscoveryInventory.canonicalListJson (inventory : NexusDiscoveryInvento
 def NexusDiscoveryInventory.canonicalListBytes (inventory : NexusDiscoveryInventory) : String :=
   inventory.canonicalListJson ++ "\n"
 
-private def inventoryResult : Except NexusDiscoveryError NexusDiscoveryInventory :=
-  checkInventory expectedCandidates
-
-private theorem inventoryResult_isSome : inventoryResult.toOption.isSome = true := by
-  native_decide
-
 /-- The sole validated input for retained Nexus discovery projections. -/
-def inventory : NexusDiscoveryInventory :=
-  inventoryResult.toOption.get inventoryResult_isSome
+def inventory : Except NexusDiscoveryError NexusDiscoveryInventory := do
+  let candidates ← expectedCandidates
+  checkInventoryAgainst candidates candidates
 
 end Temporal.Tool.NexusDiscovery

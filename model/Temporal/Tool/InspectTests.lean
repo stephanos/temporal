@@ -6,9 +6,12 @@ namespace Temporal.Tool.InspectTests
 open _root_.Umpire
 open Temporal.Tool.Inspect
 
+private def inventoryValue : Temporal.Tool.NexusDiscovery.NexusDiscoveryInventory :=
+  Temporal.Tool.NexusDiscovery.inventory.toOption.get (by native_decide)
+
 example : runCli ["list"] = {
     status := 0
-    stdout := Temporal.Tool.NexusDiscovery.inventory.canonicalListBytes
+    stdout := inventoryValue.canonicalListBytes
     stderr := ""
   } := by
   native_decide
@@ -23,11 +26,11 @@ example : runDiscoveryList (Temporal.Tool.NexusDiscovery.checkInventory []) = {
   native_decide
 
 def explanationResults : List InspectorResult :=
-  Temporal.Tool.NexusDiscovery.inventory.entries.map fun entry =>
+  inventoryValue.entries.map fun entry =>
     runCli ["explain", entry.query.id.value]
 
 def expectedExplanationResults : List InspectorResult :=
-  Temporal.Tool.NexusDiscovery.inventory.entries.map fun entry => {
+  inventoryValue.entries.map fun entry => {
     status := 0
     stdout := entry.canonicalExplanationBytes
     stderr := ""
@@ -96,11 +99,11 @@ example : repeatedSwitchOutput = List.replicate 2 expectedSwitchStdout := by
 
 def operationScenarios : List (String × Option ExperimentSpec) := [
   (Temporal.Feature.Nexus.Operations.AsyncStart.query.id.value,
-    Temporal.Feature.Nexus.Operations.AsyncStart.run.artifact),
+    Temporal.Feature.Nexus.Operations.AsyncStart.run.toOption.bind PlannerRun.artifact),
   (Temporal.Feature.Nexus.Operations.Cancellation.query.id.value,
-    Temporal.Feature.Nexus.Operations.Cancellation.run.artifact),
+    Temporal.Feature.Nexus.Operations.Cancellation.run.toOption.bind PlannerRun.artifact),
   (Temporal.Feature.Nexus.Operations.SuccessfulCompletion.query.id.value,
-    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.artifact)
+    Temporal.Feature.Nexus.Operations.SuccessfulCompletion.run.toOption.bind PlannerRun.artifact)
 ]
 
 /-! Every ordinary Nexus Artifact producer is available through the authoritative inspector. -/

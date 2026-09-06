@@ -37,14 +37,17 @@ theorem behaviorSeparatesSelectedAction : behavior.admits intendedTrace = true �
     behavior.admits wrongActionTrace = false := by
   native_decide
 
-theorem planningRunIsDeterministic : run.result.outcome.name = "found" ∧ run = repeatedRun := by
+theorem planningRunIsDeterministic :
+    run.toOption.map (fun planned => planned.result.outcome.name) = some "found" ∧
+      (run.toOption == repeatedRun.toOption) = true := by
   native_decide
 
-theorem artifactRetainsExpectedPlanShape : run.artifact.map (fun artifact =>
+theorem artifactRetainsExpectedPlanShape : run.toOption.bind (fun planned =>
+  planned.artifact.map (fun artifact =>
     (artifact.plan.requestedActions,
       artifact.plan.modelOutcomes,
       artifact.plan.resultingStates,
-      artifact.plan.checkpoints.map ObservationCheckpoint.observations)) =
+      artifact.plan.checkpoints.map ObservationCheckpoint.observations))) =
     some ([reportSuccessAction], [succeededOutcome], [succeededState], [[succeededObservation]]) := by
   native_decide
 

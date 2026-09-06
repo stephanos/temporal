@@ -15,6 +15,7 @@ inductive SpaceCompilationErrorKind where
   | behaviorCheckFailed
   | queryCheckFailed
   | intentCheckFailed
+  | knownGapCheckFailed
   | duplicatePointIdentity
   | plannerInvalid
   | unsatisfiable
@@ -34,6 +35,7 @@ def SpaceCompilationErrorKind.name : SpaceCompilationErrorKind → String
   | .behaviorCheckFailed => "behavior-check-failed"
   | .queryCheckFailed => "query-check-failed"
   | .intentCheckFailed => "intent-check-failed"
+  | .knownGapCheckFailed => "known-gap-check-failed"
   | .duplicatePointIdentity => "duplicate-point-identity"
   | .plannerInvalid => "planner-invalid"
   | .unsatisfiable => "unsatisfiable"
@@ -48,6 +50,7 @@ structure SpaceCompilationError where
   sourcePath : String
   offendingValue : String
   relatedDefinitionIds : List DefinitionId
+  knownGapError : Option KnownGapError := none
   deriving BEq, DecidableEq, Repr
 
 /-- One exact assignment lowered through Behavior, Query, and Artifact-intent checking. -/
@@ -100,6 +103,15 @@ private def compilationError
   sourcePath := if space.source.path == "" then "<unknown>" else space.source.path
   offendingValue
   relatedDefinitionIds := canonicalIds relatedDefinitionIds
+}
+
+private def knownGapCompilationError
+    (space : CheckedExperimentSpace LawStatement)
+    (pointId : DefinitionId)
+    (error : KnownGapError) : SpaceCompilationError := {
+  compilationError space .knownGapCheckFailed pointId error.kind.name
+    (error.code :: error.subject.toList) with
+  knownGapError := some error
 }
 
 def canonicalSpaceCompilationErrorJson (error : SpaceCompilationError) : String :=
@@ -255,6 +267,7 @@ private def queryDeclaration
     behavior
     limits := base.limits
     policy := base.policy
+    authoredKnownGaps := base.authoredKnownGaps
     documentation := base.documentation
   }
 
@@ -359,8 +372,10 @@ private def planPoint
     Eq.mpr (congrArg IncrementalPlannerKernel point.targetEq) kernel
   match planWithArtifactIntent point.query pointKernel point.intent with
     | .ok run => pure run
-    | .error error => throw (compilationError space .intentCheckFailed point.id error.kind.name
-        error.relatedDefinitionIds)
+    | .error (.knownGap error) => throw (knownGapCompilationError space point.id error)
+    | .error (.artifactIntent error) =>
+        throw (compilationError space .intentCheckFailed point.id error.kind.name
+          error.relatedDefinitionIds)
 
 namespace SpaceCompiler.Internal
 

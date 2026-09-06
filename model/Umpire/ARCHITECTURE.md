@@ -53,6 +53,13 @@ The finite-machine adapter is the ordinary route for fully enumerable Targets. D
 `TransitionKernel` construction remains the expert route when authoritative propositions are
 specified independently. Both routes converge before Property, Behavior, or Query checking.
 
+`FiniteMachine.targetDefinition` and `FiniteMachine.authoredTarget` assemble the ordinary finite
+Target without deriving its evidence. The author still owns every ordered domain, encoder,
+enumerator, closure proof, Action-executability proof, provider, connector, source, and stable ID.
+`checkTarget` remains the semantic admission boundary. Property, Behavior, Query, and Observation
+constructors follow the same raw input → typed `check` result → explicitly proof-backed `checked`
+shape; no constructor infers Target outcomes or checker success.
+
 `FiniteTable` keeps ordered typed catalogs, setup alternatives, transition alternatives, Model
 Outcomes, and Model Facts explicit, then validates domain closure before constructing the ordinary
 finite Target. `DefinitionFamily`, `PropertySpec`, `ExactSequenceSpec`, `QuerySpec`, and
@@ -70,6 +77,12 @@ incompatibility, exhaustive completion, and limit exhaustion as separate bounded
 All public declarations carry stable Definition IDs, source locations, and behavior fingerprints.
 Limits are stage-specific. Exhaustion and limit-reached outcomes remain distinct, and a planning
 artifact never proves that runtime work occurred.
+
+Checked Queries may carry a default-empty `KnownGapSet`. Planning composes authored and phase-owned
+sets once before traversal and returns a typed conflict before artifact publication. Known Gaps are
+nonbehavioral: they are excluded from Query behavior fingerprints, cannot establish success, and do
+not imply that absent limitations were discovered. Case lowering copies the exact composed rows;
+runtime interpretation remains outside the semantic authoring path.
 
 ## Promotion API
 
