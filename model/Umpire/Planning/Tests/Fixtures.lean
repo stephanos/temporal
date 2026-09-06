@@ -346,7 +346,7 @@ def run
     (budget : Nat := 10)
     (seed : Nat := 17)
     (withCompleteness : Bool := true)
-    (selectedBehavior : CheckedBehavior := behavior) : PlannerRun :=
+    (selectedBehavior : CheckedBehavior := behavior) : Except KnownGapError PlannerRun :=
   plan (checkedQuery width form strategy budget seed withCompleteness selectedBehavior)
     (incrementalKernel width)
 

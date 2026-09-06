@@ -16,6 +16,11 @@ open Umpire
 #check QueryAuthoringInput.ofSpec
 #check QueryAuthoringInput.check
 #check QueryAuthoringInput.check?
+#check KnownGap
+#check KnownGapSet
+#check KnownGapSet.empty
+#check KnownGapSet.checkCanonical
+#check KnownGapError
 
 /-! Case analysis remains owned by Planning and does not create a Query-to-Planning cycle. -/
 /--

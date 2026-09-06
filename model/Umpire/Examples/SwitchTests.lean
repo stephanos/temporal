@@ -282,10 +282,10 @@ example : exactTraceBehavior.admits appliedTrace &&
   native_decide
 
 example : [
-    exploratoryRun.result.outcome.name,
-    exactActionRun.result.outcome.name,
-    exactTraceRun.result.outcome.name
-  ] = ["found", "found", "found"] := by
+    exploratoryRun.toOption.map (fun run => run.result.outcome.name),
+    some exactActionRun.result.outcome.name,
+    exactTraceRun.toOption.map (fun run => run.result.outcome.name)
+  ] = [some "found", some "found", some "found"] := by
   native_decide
 
 example : compiledArtifact.formatVersion = "umpire-experiment/v2" ∧

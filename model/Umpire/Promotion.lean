@@ -26,6 +26,7 @@ inductive PromotionErrorKind where
   | promotedQueryInvalid
   | sourceBytesDrift
   | sourceDigestDrift
+  | knownGapCheckFailed
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- A structured, source-free diagnostic from promotion compilation. -/
@@ -33,6 +34,7 @@ structure PromotionError where
   kind : PromotionErrorKind
   subject : DefinitionId
   detail : String
+  knownGapError : Option KnownGapError := none
   deriving BEq, DecidableEq, Repr
 
 /-- Immutable anchors for the exact base Query planning result accepted for promotion. -/
@@ -97,6 +99,13 @@ private def promotionError
   kind
   subject
   detail
+}
+
+private def promotionKnownGapError
+    (subject : DefinitionId)
+    (error : KnownGapError) : PromotionError := {
+  promotionError .knownGapCheckFailed subject error.kind.name with
+  knownGapError := some error
 }
 
 private def quote (value : String) : String := Lean.Json.compress (.str value)
@@ -244,6 +253,7 @@ def checkPromotedQuery
     behavior
     limits := baseQuery.limits
     policy := baseQuery.policy
+    authoredKnownGaps := baseQuery.authoredKnownGaps
     documentation := "Checked exact-trace Regression proposed from " ++ baseQuery.id.value ++ "."
   }
   match checkQuery (.ofTarget baseQuery.target) queryDeclaration with
@@ -295,7 +305,7 @@ def compilePromotionSource
     Except PromotionError CompiledPromotionSource := do
   validateSourceSpec baseQuery spec
   validateBaseAnchor baseQuery anchor
-  let replanned := plan baseQuery kernel
+  let replanned ← plan baseQuery kernel |>.mapError (promotionKnownGapError baseQuery.id)
   if replanned != anchor.plannerRun then
     throw (promotionError .plannerRunDrift baseQuery.id
       "recomputed PlannerRun does not match the fixed base run")
