@@ -598,26 +598,23 @@ runtime bindings when they do not change semantic meaning.
 
 ### 8.2 Artifact requirements
 
-The retained implemented boundary is exactly embedded `umpire-drive-plan/v2` plus persisted
-`umpire-experiment/v2`, `umpire-runtime-configuration/v2`, `umpire-experiment-run/v2`,
-`umpire-raw-evidence/v2`, `umpire-evidence/v2`, and `umpire-result/v2`. Each document carries its
-exact format version, Behavior Fingerprint, Artifact Checksum, relevant provenance, Limits, and
-Known Gaps. Operational documents additionally preserve authority/profile bindings, source closure,
-cleanup, and failure status without converting them into a semantic conclusion.
+The retained implemented cross-language boundary is exactly embedded `umpire-drive-plan/v2` plus
+persisted `umpire-experiment/v2`, read narrowly by generated regression views. The Lean
+`umpire-runtime-configuration/v2`, `umpire-experiment-run/v2`, `umpire-raw-evidence/v2`,
+`umpire-evidence/v2`, and `umpire-result/v2` model contracts remain as historical implementation
+evidence; their Go codecs, fixtures, and caller workflows are retired.
 
-Canonical bytes are fixed-order UTF-8 JSON with two-space indentation, stable escaping and
-canonical natural numbers, no trailing spaces, and exactly one terminal LF. Each Artifact Checksum
-hashes `domain + "\n" + preimage`; `preimage` is that document's exact deterministic-pretty bytes
-with only its own `artifactChecksum` omitted and one terminal LF. Behavior Fingerprints identify
-checked meaning rather than file content, and provenance checksums independently bind exact
-provenance.
+The retained Experiment bytes are fixed-order UTF-8 JSON with two-space indentation, stable
+escaping and canonical natural numbers, no trailing spaces, and exactly one terminal LF. Its
+Artifact Checksum hashes `domain + "\n" + preimage`; `preimage` is the exact deterministic-pretty
+document with only `artifactChecksum` omitted and one terminal LF. Behavior Fingerprints identify
+checked meaning rather than file content, and the retained closure binds provenance independently.
 
-Readers reject unknown versions, wrong families, unknown fields, duplicate or case-colliding keys,
-stale digests, incompatible references, incomplete sets, unsafe paths, noncanonical bytes, and
-values exceeding declared admission Limits. Exact executable, execution, and evaluation closures
-contain two, four, and six members respectively. Compact or alternate-whitespace input has no
-normalization, alias, fallback, or migration. Named post-v2 migrations, other Artifact families,
-generic envelopes, and platform orchestration remain deferred.
+The retained Experiment reader rejects unknown versions, wrong families, unknown fields, duplicate
+or case-colliding keys, stale digests, noncanonical bytes, and values exceeding its declared
+admission Limits. Compact or alternate-whitespace input has no normalization, alias, fallback, or
+migration. The retired Go multi-family and complete-set readers have no compatibility surface;
+their historical Lean contracts do not imply a live transport API.
 
 ## 9. Go modules
 
@@ -641,8 +638,8 @@ one caller do not justify a new seam.
 The public Go Artifact admission and publication module has been retired after its callers were
 removed. Generated regression views retain only the strict Experiment reader in
 `tools/umpire/internal/artifactv2`; it validates canonical Experiment bytes, checksums, and closure
-without interpreting Property clauses. Other internal artifact codecs remain present until the
-separate orphan trim rechecks their post-retirement symbol closure.
+without interpreting Property clauses. Its orphaned runtime, evidence, result, and clone codecs
+have been removed after their post-retirement symbol closure was empty.
 
 `tools/common/artifactio` remains the lower-level filesystem implementation used by other safe
 file and set publication workflows.
@@ -739,7 +736,6 @@ Canary is intentionally absent from this directory.
 
 Commands remain thin compositions over modules. The intended user operations include:
 
-- checking one exact Artifact or one complete Artifact set without publishing it;
 - checking model-declared verification profiles;
 - listing and explaining declarations;
 - generating canonical test manifests and specifications;
@@ -757,7 +753,6 @@ executable without changing module ownership.
 
 ```text
 tools/umpire/
-├── artifact/
 ├── generatedview/
 ├── runner/
 ├── participant/
@@ -801,12 +796,11 @@ recovery, cleanup, rate and concurrency limits, audit, trusted artifact channels
 control. It therefore belongs in a standalone deep module.
 
 ```text
-tools/umpire
-├── artifact
-├── runner
-├── participant
-├── runevaluation
-└── evaluation
+Umpire Case Runtime
+├── Case / Profile / Host
+├── PrepareCase
+├── PreparedCase.Run
+└── Run / Verdict
           ▲
           │ consumes stable interfaces
           │
@@ -841,8 +835,8 @@ tools/canary/
 Its external interface is:
 
 ```text
-Umpire ArtifactSet
-+ production profile
+trusted canonical Case
++ fixed Profile and authorized Host
 + signed approval
 + production authority
           │
@@ -851,11 +845,11 @@ Umpire ArtifactSet
           │
           ▼
 Canary audit/recovery record
-+ Umpire Evaluation Receipt
++ fn-26 Claim Assessment receipt
 ```
 
-Canary is independently owned and executable while consuming stable Umpire artifacts and
-libraries. Umpire never imports `tools/canary` and contains no canary-specific approval, policy,
+Canary is independently owned and executable while consuming stable Umpire Case Runtime values and
+interfaces. Umpire never imports `tools/canary` and contains no canary-specific approval, policy,
 credential, recovery, or release concepts.
 
 ## 11. Dependency rules
@@ -959,12 +953,13 @@ Retire the shallow Search facade as Query and Exploration take ownership. Split 
 configuration from its mechanism only when the new observation or execution work benefits from the
 seam. Split CallerClosure after the target interface removes its boilerplate.
 
-### Priority 3: retain the established Artifact transport
+### Priority 3: retain the established Artifact semantics
 
-- Keep strict bounded sole-v2 admission and exact two-, four-, and six-member set validation.
-- Keep the frozen RuntimeConfiguration, ExperimentRun, RawEvidence, Evidence, and Result schemas.
-- Keep immutable atomic publication and private staging cleanup; defer post-v2 migrations, coverage,
-  verification, Claim Assessment, generic envelopes, and platform recovery to their owning slices.
+- Keep the narrow strict `umpire-experiment/v2` reader used by Generated Views.
+- Keep the frozen Lean RuntimeConfiguration, ExperimentRun, RawEvidence, Evidence, and Result model
+  contracts as historical implementation evidence without restoring their retired Go codecs.
+- Defer post-v2 migrations, coverage, verification, Claim Assessment, generic envelopes, and
+  platform recovery to their owning slices.
 
 Runtime must not grow around ad hoc structs or an unversioned JSON contract.
 
@@ -1010,7 +1005,7 @@ Claim Assessment consumes admitted artifacts and acquires no authority by itself
 ### Priority 7: build standalone production canary
 
 - Create `tools/canary` as an independent module and executable.
-- Consume stable Umpire artifacts, runner, Run Evaluation, and Claim Assessment interfaces.
+- Consume `PrepareCase`, `PreparedCase.Run`, Run/Verdict, and fn-26 Claim Assessment interfaces.
 - Own signed approval, production policy, trusted artifact acquisition, isolation, leases, fencing,
   recovery, cleanup, audit, rate limits, concurrency, and blast radius.
 - Keep canary-specific types and claims out of Umpire.

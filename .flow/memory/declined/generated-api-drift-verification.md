@@ -6,6 +6,7 @@ The generator is intentionally generation-only for now. Its focused and golden t
 
 ## Prior requests
 
+- 2026-09-06 — Requested an absolutely minimal Nexus3-to-CaseRuntime demonstration plan; focused Case fixture generation remains in scope, while broad generated Lean API drift verification and CI expansion remain excluded.
 - 2026-08-30 — Approved a narrow repository-local drift check for the generated Umpire semantic outcome and Known Gap inventory; broad generated Lean API drift verification and GitHub Actions coverage remain declined.
 - 2026-08-24 — While simplifying the Lean API generator, explicitly excluded drift verification and all CI workflow work.
 - 2026-08-24 — Requested planning the Umpire Temporal dynamic-config design, then confirmed `make umpire-check-dynamic-config` and all CI workflow changes remain excluded.
