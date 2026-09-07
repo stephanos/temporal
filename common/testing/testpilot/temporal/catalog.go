@@ -1,4 +1,4 @@
-package temporaltestpilot
+package temporal
 
 import (
 	"go.temporal.io/api/workflowservice/v1"

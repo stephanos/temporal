@@ -8,8 +8,8 @@ import (
 
 	"github.com/nexus-rpc/sdk-go/nexus"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/temporaltestpilot/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
 )
 

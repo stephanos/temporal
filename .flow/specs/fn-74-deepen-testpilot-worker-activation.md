@@ -12,7 +12,7 @@ This implements architecture-review finding 5 after fn-72-extract-the-reusable-t
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-**Dependency:** fn-72-extract-the-reusable-temporal-testpilot must establish `common/testing/temporaltestpilot` (Go package `temporaltestpilot`) with its composed server/worker Driver and private delivery implementation. This spec consumes that location; it does not perform the relocation. No dependency on fn-71-standalone-lean-testpilot-protocol's Lean protocol extraction, fn-73-explicit-environment-binding-for's environment binding, canary implementation, or model-to-Case lowering is needed.
+**Dependency:** fn-72-extract-the-reusable-temporal-testpilot must establish `common/testing/testpilot/temporal` (Go package `temporal`) with its composed server/worker Driver and private delivery implementation. This spec consumes that location; it does not perform the relocation. No dependency on fn-71-standalone-lean-testpilot-protocol's Lean protocol extraction, fn-73-explicit-environment-binding-for's environment binding, canary implementation, or model-to-Case lowering is needed.
 
 **Ownership decision:** place the new activation module inside the reusable Temporal Driver's private implementation, accessible to its worker adapter and unit tests. It depends on public Testpilot prepared plans and protocol value types. It must not import Testpilot's inaccessible internal packages. Workflow and Nexus-handler execution are two concrete paths in the same adapter, not evidence for a new public adapter framework. Therefore no public activation API is added. Existing public low-level plan methods remain compatible.
 

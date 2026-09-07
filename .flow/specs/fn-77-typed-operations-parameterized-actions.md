@@ -6,8 +6,8 @@
 Status: implementation specification; task breakdown, review, and implementation remain future work.
 
 [UMPIRE4_SPEC](../../.plans/UMPIRE4_SPEC.md) remains normative. This complements
-[typed temporal authoring and scoped monitoring](../../.plans/UMPIRE_DSL_EVOLUTION_SPEC.md):
-this spec owns operation/value/field semantics; that spec owns temporal obligations and evidence admission.
+[fn-78 typed temporal authoring and checked scoped monitoring](fn-78-typed-temporal-authoring-and-checked.md):
+this spec owns operation/value/field semantics; fn-78 owns temporal obligations and evidence admission.
 
 
 `Nexus3/Nexus.lean` describes lifecycle Actions and
@@ -291,5 +291,5 @@ renaming string paths or moving handwritten assertions into a new adapter does n
 
 Generated API declarations provide structural fidelity; independently authored model Properties define behavior. This lets developers describe field relationships directly while integration supplies checked construction, observation, and correspondence. Finite domains keep exploration claims precise without limiting schema access to summary values. Reuse the existing checked Property language and shared Driver instead of adding a second evaluator or handwritten API schemas.
 
-The operation/value stages can start independently. Concrete integration consumes fn-71/fn-72; temporal qualification consumes DSL D3/D4. These are stage dependencies, not prerequisites for starting this spec, fn-73, or the first canary. The original standalone specification is migrated here at the user’s request; its .plans entry becomes a reference to this canonical spec.
+The operation/value stages can start independently. Concrete integration consumes fn-71/fn-72; temporal qualification consumes fn-78 D3/D4. These are stage dependencies, not prerequisites for starting this spec or fn-73. fn-78 is the canonical owner of typed temporal authoring and scoped monitoring and is ordered before the first canary.
 

@@ -7,7 +7,7 @@ to this package.
 
 Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownership, environment
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite
-Driver and its implementation-focused tests live in `common/testing/temporaltestpilot`.
+Driver and its implementation-focused tests live in `common/testing/testpilot/temporal`.
 
 The async Nexus fixture is one canonical Case 1.1 artifact with symbolic resource declarations.
 Fixture tests prepare its unchanged bytes against two physical Profiles, confirm distinct binding

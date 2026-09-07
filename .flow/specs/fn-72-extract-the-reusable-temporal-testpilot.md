@@ -5,14 +5,14 @@
 ## Overview
 
 Relocate the existing composite Temporal Testpilot Driver from the functional-test tree into the
-shared `common/testing/temporaltestpilot` package. Preserve its complete API, lifecycle, delivery,
+shared `common/testing/testpilot/temporal` package. Preserve its complete API, lifecycle, delivery,
 authority, and error contracts while keeping generated fixtures, cluster provisioning, and live
 test policy in `tests/`.
 
 ## Quick commands
 
 ```bash
-mise exec -- go test -count=1 -tags test_dep ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot
+mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/temporal/... ./tests/testcore/testpilot
 mise exec -- go test -count=1 -tags test_dep ./tools/umpire/regression -run 'Test(TestpilotOwnsCaseProtocolAndRuntime|UmpireCIWorkflowRunsSeparatedUnitAndLiveProofs)'
 make umpire-check-live-tests
 ```
@@ -29,7 +29,7 @@ C is independently implementable in the first architecture wave. fn-73-explicit-
 ## Architecture & Data Models
 <!-- scope: technical -->
 
-The destination is `common/testing/temporaltestpilot`, with Go package name `temporaltestpilot`. This location is an architectural decision: it is a reusable sibling of `common/testing/testpilot`, follows the repository's existing `common/testing` convention, and lies outside the generic runtime's Go `internal` import boundary. It does not introduce a Go module or third-party dependency.
+The destination is `common/testing/testpilot/temporal`, with Go package name `temporal`. This location is an architectural decision: it is a reusable sibling of `common/testing/testpilot`, follows the repository's existing `common/testing` convention, and lies outside the generic runtime's Go `internal` import boundary. It does not introduce a Go module or third-party dependency.
 
 The destination owns the composite Driver, WorkflowService descriptor Catalog helpers, and the existing `server`, `worker`, and `internal/delivery` children. Server and worker remain peers composed by the parent. The private delivery ledger, carrier codec, ownership records, and cancellation state remain private to this Driver tree. Server does not import worker, worker does not import server, and delivery does not import either adapter. The generic Testpilot facade remains independent of the Temporal Driver.
 
@@ -68,7 +68,7 @@ Align the normative MOD-13 owner locations in the Umpire 4 specification to the 
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** The composite Driver, descriptor Catalog helpers, server, worker, and private delivery implementation exist only under `common/testing/temporaltestpilot`; former runtime implementation imports are removed from active consumers. Implementation-focused unit tests move with their owners; test fixtures and provisioning remain under `tests/`. Errors: build/import failures or a remaining production dependency on the former implementation fail acceptance; no new runtime error surface.
+- **R1:** The composite Driver, descriptor Catalog helpers, server, worker, and private delivery implementation exist only under `common/testing/testpilot/temporal`; former runtime implementation imports are removed from active consumers. Implementation-focused unit tests move with their owners; test fixtures and provisioning remain under `tests/`. Errors: build/import failures or a remaining production dependency on the former implementation fail acceptance; no new runtime error surface.
 - **R2:** An external-package consumer compiles against the shared composite Driver and public Catalog helpers, and interface conformance to Testpilot `Profile` and `Driver` is checked. Existing exported contracts and configuration/client ownership remain unchanged except import paths and the parent package name. Errors: existing invalid configuration and nil/context rejection cases retain their categories and behavior; extraction introduces no string-parsing error API or new configuration requirement.
 - **R3:** Executable dependency checks cover the new Driver tree and prevent its production dependency closure from reaching repository `tests/`, Umpire generators, or canary orchestration; direct Driver imports of generic Testpilot private packages are forbidden while ordinary transitive reach through the public facade remains valid. Checks also preserve server/worker/delivery authority direction and generic-runtime independence. Add negative test inputs proving forbidden edges are rejected. Errors: forbidden direct or transitive dependencies and unreadable/unparseable inspected source fail the gate, rather than silently omitting coverage.
 - **R4:** Focused tests demonstrate preserved lifecycle and ownership through construction/open failure cleanup, shared versus conflicting worker registrations, controller/worker dispatch separation, cancellation before and during admission, cancellation retries, bounded Close, quarantine retention until actual completion, and cross-Run delivery isolation. Reuse the existing corresponding tests and add coverage only for a relocation-exposed gap. Errors: setup, close, cancellation, transport, and capacity failures retain their existing outcomes and do not leak successfully created resources or admit foreign work.

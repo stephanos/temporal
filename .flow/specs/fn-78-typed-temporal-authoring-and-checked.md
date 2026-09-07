@@ -1,8 +1,8 @@
 # Typed temporal authoring and checked scoped monitoring
 
-Status: implementation specification; no implementation or production migration is claimed.
-This standalone spec is ordered in [UMPIRE4_ORDER.md](UMPIRE4_ORDER.md). It creates no Flow-Next
-spec or task. [UMPIRE4_SPEC.md](UMPIRE4_SPEC.md) remains the normative authority.
+Status: implementation specification; task breakdown, review, and implementation remain future work.
+[UMPIRE4_SPEC](../../.plans/UMPIRE4_SPEC.md) remains the normative authority. Delivery order is
+recorded in [UMPIRE4_ORDER](../../.plans/UMPIRE4_ORDER.md).
 
 ## Problem and outcome
 
@@ -18,14 +18,14 @@ Property/Behavior/Query separation; this is not a replacement modeling framework
 
 ## Baseline and evidence
 
-The [DSL experiment](UMPIRE_DSL_EXPERIMENT.md) provides bounded executable evidence: 449,376
+The [DSL experiment](../../.plans/UMPIRE_DSL_EXPERIMENT.md) provides bounded executable evidence: 449,376
 monitor/reference comparisons, 1,340 evidence variants, and 3,510 comparisons against the checked
 Umpire `eventuallyWithin` evaluator. Its Veil probe established a representation seam only;
 full-checker compatibility and symbolic proofs were not established. Experimental syntax and
 synthetic evidence are design references, not production contracts or a general compiler proof.
 
 Re-anchor implementation on the current checkout. The fn-68 success Producer has since completed:
-[`Nexus3/Testpilot.lean`](../model/Temporal/Feature/Nexus3/Testpilot.lean) checks the completion
+[`Nexus3/Testpilot.lean`](../../model/Temporal/Feature/Nexus3/Testpilot.lean) checks the completion
 Query/witness before producing its Case. Preserve that working success path and its rejection
 tests. Older draft statements that no Nexus3 Producer exists are not the baseline for this spec.
 The generic Case compiler assembles supplied lowerings; scoped cancellation lowering still needs
@@ -204,12 +204,12 @@ cannot replace them or strengthen claims into exhaustive implementation correctn
 | D4 — Shared scoped lowering | Obligation semantics and proofs, exact portable lowering, required generic cancellation/Contract support, and online/offline parity. | D3; production integration consumes fn-71's standalone protocol and fn-72's shared Driver. |
 | D5 — Temporal surface and qualification | Final typed temporal forms, complete authored cancellation example, deterministic Cases, and live Driver demonstration. | D1/D2/D4. Constructor-level experiments can inform D3/D4 earlier. |
 
-This is an independent architecture track, not a prerequisite for fn-73 or the first fn-70 canary.
-Do not absorb environment binding, shared Driver extraction, activation refactoring, or semantic
-inventory work. Coordinate overlapping APIs with fn-74/75/76 and use their delivered contracts.
+This work follows fn-73 and is a prerequisite for fn-70. Do not absorb environment binding,
+shared Driver extraction, activation refactoring, or semantic inventory work. Coordinate overlapping
+APIs with fn-74/75/76 and use their delivered contracts.
 Keep the completed fn-68 success demonstration available throughout the migration.
 
-[Typed operations and field-level Properties](../.flow/specs/fn-77-typed-operations-parameterized-actions.md) separately owns typed
+[Typed operations and field-level Properties](fn-77-typed-operations-parameterized-actions.md) separately owns typed
 API/SDK references, parameterized Action/outcome values, and field/capture expressions. D1/D2 and
 label-only semantics remain independent; parameterized D3/D4/D5 variants consume that spec's O1/O2
 contracts. Its O3 owns field-value lowering while D4 owns scoped temporal lowering. Reuse those
@@ -218,17 +218,15 @@ request representations here.
 
 ## Acceptance criteria
 
-| ID | Required evidence |
-| --- | --- |
-| A1 | D1 distinguishes impossible, nonempty-unexercised, satisfied witness, verified, counterexample, unresolved prefix, and work exhaustion. Test exact work-budget boundaries and counterexample discovery before exhaustion. Record scope and policy; no vacuous or incomplete green result. |
-| A2 | D2 forms lower to the existing checked declarations with equal fingerprints. Positive/negative tests distinguish ordering from adjacency, exactness from permitted interleaving, and model-impossible occurrences. Existing exact regression fixtures remain unchanged. |
-| A3 | Submission alone emits no cancellation-confirmed step. Both terminal resolutions remain admissible. Duplicate/noise evidence stutters; missing parents remain pending; conflicting, wrong-operation, unsupported, cyclic, and invalid-step evidence reject without new emissions. Each emission retains its exact causal support. |
-| A4 | Scoped obligations cover bounds zero/one/larger, response at trigger/deadline/too late, multiple independent triggers, one response discharging matching obligations, two interleaved operations, and counted self-loops. Invalid model traces reject before evaluation. Closed traces and runtime prefixes have their declared different outcomes. |
-| A5 | Checked semantic and compiler relationships connect existing Property meaning, scoped projection, obligation execution, and the actual portable Contract. Incremental and whole-stream evaluation agree, including chunk boundaries inside partial evidence. Inclusive semantic deadlines remain correct under runtime expiry ordering. Unsupported requested forms reject the whole Case. |
-| A6 | Compile-failure tests reject wrong contexts, keys, clocks, references, and unsupported temporal forms at the author expression. Typed and temporal forms have identical canonical meaning. A transition or property edit changes one semantic authority and generated consumers, without handwritten duplicate monitor behavior. |
-| A7 | A checked Nexus cancellation Query produces a deterministic admitted Case using the existing public Prepare/Run facade and authorized Driver. A local integration Run recognizes either permitted resolution without forcing a selected model outcome. Controlled negative/incomplete evidence fixtures distinguish violation from inconclusive and preserve proof after cleanup failure. |
-| A8 | Repeated and concurrent Runs have isolated captures/projection state and immutable results. Buffer/work/capture exhaustion fails closed; a stopped or lost execution never supplies a semantic deadline or automatic retry. Existing success, rejection, cross-language, identity, and lifecycle regressions pass. |
-| A9 | Compatibility tests retain unchanged bytes/IDs/fingerprints, reject stale or unsupported encodings, and verify any explicit migration. Trust audits, affected builds/lints, generated staleness checks, and scoped functional tests pass with their command evidence recorded. |
+- **R1:** D1 distinguishes impossible, nonempty-unexercised, satisfied witness, verified, counterexample, unresolved prefix, and work exhaustion. Test exact work-budget boundaries and counterexample discovery before exhaustion. Record scope and policy; no vacuous or incomplete green result.
+- **R2:** D2 forms lower to the existing checked declarations with equal fingerprints. Positive and negative tests distinguish ordering from adjacency, exactness from permitted interleaving, and model-impossible occurrences. Existing exact regression fixtures remain unchanged.
+- **R3:** Submission alone emits no cancellation-confirmed step. Both terminal resolutions remain admissible. Duplicate or irrelevant evidence stutters; missing parents remain pending; conflicting, wrong-operation, unsupported, cyclic, and invalid-step evidence reject without new emissions. Each emission retains its exact causal support.
+- **R4:** Scoped obligations cover bounds zero, one, and larger; response at trigger, deadline, and too late; multiple independent triggers; one response discharging matching obligations; two interleaved operations; and counted self-loops. Invalid model traces reject before evaluation. Closed traces and runtime prefixes have their declared different outcomes.
+- **R5:** Checked semantic and compiler relationships connect existing Property meaning, scoped projection, obligation execution, and the actual portable Contract. Incremental and whole-stream evaluation agree, including chunk boundaries inside partial evidence. Inclusive semantic deadlines remain correct under runtime expiry ordering. Unsupported requested forms reject the whole Case.
+- **R6:** Compile-failure tests reject wrong contexts, keys, clocks, references, and unsupported temporal forms at the author expression. Typed and temporal forms have identical canonical meaning. A transition or property edit changes one semantic authority and generated consumers, without handwritten duplicate monitor behavior.
+- **R7:** A checked Nexus cancellation Query produces a deterministic admitted Case using the existing public Prepare/Run facade and authorized Driver. A local integration Run recognizes either permitted resolution without forcing a selected model outcome. Controlled negative and incomplete evidence fixtures distinguish violation from inconclusive and preserve proof after cleanup failure.
+- **R8:** Repeated and concurrent Runs have isolated captures and projection state plus immutable results. Buffer, work, and capture exhaustion fail closed; a stopped or lost execution never supplies a semantic deadline or automatic retry. Existing success, rejection, cross-language, identity, and lifecycle regressions pass.
+- **R9:** Compatibility tests retain unchanged bytes, IDs, and fingerprints; reject stale or unsupported encodings; and verify any explicit migration. Trust audits, affected builds and lints, generated staleness checks, and scoped functional tests pass with their command evidence recorded.
 
 ## Verification and operational limits
 

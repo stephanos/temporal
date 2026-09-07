@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/common/testing/temporaltestpilot/internal/delivery"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 )
 
 func TestProductionPackageBuildsForExternalConsumer(t *testing.T) {

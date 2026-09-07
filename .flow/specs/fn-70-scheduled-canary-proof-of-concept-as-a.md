@@ -34,6 +34,8 @@ Nexus3 checked Query / Property / selected witness
 
 Consume the explicit environment-binding contract delivered by `fn-73-explicit-environment-binding-for`. Request construction and worker activation must use that same immutable binding mechanism, with isolated per-measurement resources and unchanged checked Query/Property and Contract meaning. Canary selects and supplies supported bindings; it does not introduce a competing binding representation, patch Case JSON, or rewrite prepared requests. Cross-environment integration remains an acceptance test here; shared binding implementation and its wire/Producer changes belong to the prerequisite.
 
+Consume the checked Query, Property, obligation, and evidence-projection contracts delivered by `fn-78-typed-temporal-authoring-and-checked`. Canary schedules and reports the resulting Case; it does not define another temporal language, evaluator, or Nexus-specific assertion path.
+
 ## API Contracts
 <!-- scope: technical -->
 
@@ -59,7 +61,7 @@ Model violation and inconclusive results are measurements, not retryable Activit
 - Dependency failure: scheduling and target execution may use the same local cluster for the demonstration. A cluster outage can prevent measurement creation. Status inspection must expose last scheduled/started/completed observations and freshness separately from Verdict. Unreachable or stale status is never healthy. This is inspection by an external operator/client, not a claim that an unavailable cluster can report its own outage.
 - Resource portability: reuse the same exact Case bytes across two distinct namespace/task-queue bindings. Binding changes alter the prepared/Driver binding identity, but not the source artifact, checked success requirement, Contract, provenance, or correlation interpretation. Unsupported bindings fail explicitly.
 - Shutdown: stop new owned scheduling when requested and drain/close worker-owned resources within configured bounds. Do not clean unrelated workflows or queues. Preserve independent cleanup and Verdict outcomes.
-- Schema evolution: consume the Testpilot protocol and fn-68 Producer as evolved by the binding prerequisite and its standalone Lean protocol dependency. This spec owns no protocol extraction, expression-language redesign or binding wire change.
+- Schema evolution: consume the Testpilot protocol and fn-68 Producer as evolved by the binding and typed temporal authoring prerequisites. This spec owns no protocol extraction, expression-language redesign, temporal semantics, evidence projection, or binding wire change.
 
 ## Acceptance Criteria
 <!-- scope: both -->
@@ -84,12 +86,12 @@ No production deployment, customer traffic, release qualification, protected Git
 <!-- scope: both -->
 
 - User requested `tools/canary` as a second Lean-model consumer, with a very small manually selected scenario set, repeated starts once per minute, and a Temporal Workflow for each check.
-- Reuse fn-68's checked success lowering and live proof rather than create competing integration work. This spec depends on fn-68, `fn-72-extract-the-reusable-temporal-testpilot` and `fn-73-explicit-environment-binding-for`; re-anchor on their final interfaces, artifact identities and metadata policy before implementation.
+- Reuse fn-68's checked success lowering and live proof rather than create competing integration work. This spec depends on fn-68, `fn-72-extract-the-reusable-temporal-testpilot`, `fn-73-explicit-environment-binding-for`, and `fn-78-typed-temporal-authoring-and-checked`; re-anchor on their final interfaces, artifact identities, semantic contracts, and metadata policy before implementation.
 - Temporal Schedules are preferred over a local ticker because scheduling is part of the requested demonstration and remains inspectable/durable. Fresh scheduled Workflows are preferred over an endless per-check workflow because each measurement has an independent orchestration record and fixed start cadence.
 - Execute the Case within an Activity to keep runtime I/O out of Workflow replay. Keep the same Driver in tests and canary; consumer differences belong in orchestration, bindings and reporting.
 - Prefer the smallest complete success slice. Add a second scenario only through a later request; a new generic framework is not the acceptance test.
 - The prototype intentionally differs from fn-29's manual-only production controller. Neither spec supersedes the other; do not inherit production gates or claim production readiness from this demonstration.
-- Model-to-Case continuity is owned by fn-68, shared Driver placement by `fn-72-extract-the-reusable-temporal-testpilot`, and environment binding by `fn-73-explicit-environment-binding-for`. The standalone Lean protocol is a transitive prerequisite through binding. Activation-interface deepening and Lean Target/inventory refactors do not block this proof unless an evidenced integration requirement changes that decision.
+- Model-to-Case continuity is owned by fn-68, shared Driver placement by `fn-72-extract-the-reusable-temporal-testpilot`, environment binding by `fn-73-explicit-environment-binding-for`, and scoped temporal semantics and evidence projection by `fn-78-typed-temporal-authoring-and-checked`. The standalone Lean protocol is a transitive prerequisite through binding. Activation-interface deepening and Lean Target/inventory refactors do not block this proof unless an evidenced integration requirement changes that decision.
 
 ## Early proof point
 
@@ -106,7 +108,8 @@ Task planning must choose focused commands after the shared package path is sett
 - `fn-68-minimal-nexus3-success-demonstration` — checked lowering and existing fixture/live integration.
 - `fn-72-extract-the-reusable-temporal-testpilot` — reusable Temporal Driver extraction.
 - `fn-73-explicit-environment-binding-for` — explicit shared environment binding.
+- `fn-78-typed-temporal-authoring-and-checked` — typed temporal semantics, lowering, and evidence projection.
 - `fn-29-bounded-production-canary-execution-and` — separate production qualification scope.
-- `common/testing/temporaltestpilot/README.md`, `tests/testcore/testpilot/README.md`, and `common/testing/testpilot/README.md` — existing runtime and fixture boundaries.
+- `common/testing/testpilot/temporal/README.md`, `tests/testcore/testpilot/README.md`, and `common/testing/testpilot/README.md` — existing runtime and fixture boundaries.
 - `tests/testpilot_async_nexus_case_test.go` — existing live consumer to preserve.
 - Temporal Go schedule documentation: https://github.com/temporalio/documentation/blob/main/docs/develop/go/workflows/schedules.mdx. Verify details against the repository's pinned SDK during implementation.

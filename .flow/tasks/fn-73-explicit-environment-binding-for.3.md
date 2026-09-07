@@ -7,8 +7,8 @@ satisfies: [R3, R4, R7]
 Expose the minimal copied prepared-role facade and extend the public Driver contract with binding identity and static Validate (R3, R4). Migrate every implementation and test double while pinning the pre-Open order.
 
 **Size:** M
-**Files:** `common/testing/testpilot/{driver,prepare,prepared_case}.go`, all generic Driver test doubles, and the composite/server/worker Driver implementations and tests under `common/testing/temporaltestpilot`
-**Touches:** [common/testing/testpilot/driver.go, common/testing/testpilot/prepare.go, common/testing/testpilot/prepared_case.go, common/testing/testpilot/*_test.go, common/testing/temporaltestpilot/driver.go, common/testing/temporaltestpilot/driver_test.go, common/testing/temporaltestpilot/server/driver.go, common/testing/temporaltestpilot/server/driver_test.go, common/testing/temporaltestpilot/worker/driver.go, common/testing/temporaltestpilot/worker/*_test.go, tests/testcore/testpilot/artifact_test.go]
+**Files:** `common/testing/testpilot/{driver,prepare,prepared_case}.go`, all generic Driver test doubles, and the composite/server/worker Driver implementations and tests under `common/testing/testpilot/temporal`
+**Touches:** [common/testing/testpilot/driver.go, common/testing/testpilot/prepare.go, common/testing/testpilot/prepared_case.go, common/testing/testpilot/*_test.go, common/testing/testpilot/temporal/driver.go, common/testing/testpilot/temporal/driver_test.go, common/testing/testpilot/temporal/server/driver.go, common/testing/testpilot/temporal/server/driver_test.go, common/testing/testpilot/temporal/worker/driver.go, common/testing/testpilot/temporal/worker/*_test.go, tests/testcore/testpilot/artifact_test.go]
 
 ### Approach
 - Add copied PreparedProgram role access containing logical IDs, kinds, symbolic binding IDs and resolved values while keeping resolved request assignments private.
@@ -22,9 +22,9 @@ Expose the minimal copied prepared-role facade and extend the public Driver cont
 - `common/testing/testpilot/driver.go:68-147,199-204` — public prepared facade and Driver interface
 - `common/testing/testpilot/prepare.go:23-64` — identity creation and preflight
 - `common/testing/testpilot/prepare_test.go:30-121` — typed-nil, mutation and identity tests
-- `common/testing/temporaltestpilot/driver.go:74-109,378-379` — composite implementation and interface assertion
-- `common/testing/temporaltestpilot/server/driver.go` — server Driver implementation
-- `common/testing/temporaltestpilot/worker/driver.go` — worker Driver implementation
+- `common/testing/testpilot/temporal/driver.go:74-109,378-379` — composite implementation and interface assertion
+- `common/testing/testpilot/temporal/server/driver.go` — server Driver implementation
+- `common/testing/testpilot/temporal/worker/driver.go` — worker Driver implementation
 
 **Optional** (reference as needed):
 - `tests/testcore/testpilot/artifact_test.go:387-405` — fixture Driver
@@ -42,5 +42,5 @@ Identity mismatch must skip Validate. Validate failure returns no Run or Verdict
 Added copied prepared-role access, binding fingerprints to Driver identity, mandatory static Validate, and preflight ordering from context through identity and validation before monitor creation and Open. Migrated all in-scope Drivers and test doubles, added ordering/immutability/failure regressions, and made zero-value PreparedProgram snapshots nil-safe. Independent implementation review returned SHIP after fixing empty-facade panics in server and worker Validate. Plan sync was skipped because `planSync.enabled` is false.
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/... ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot/..., gofmt -d on task-changed files, git diff --check, implementation review SHIP: /tmp/impl-review-receipt-fn-73-explicit-environment-binding-for.3.json
+- Tests: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/... ./common/testing/testpilot/temporal/... ./tests/testcore/testpilot/..., gofmt -d on task-changed files, git diff --check, implementation review SHIP: /tmp/impl-review-receipt-fn-73-explicit-environment-binding-for.3.json
 - PRs:

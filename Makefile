@@ -1163,7 +1163,7 @@ umpire-check-live-tests:
 
 umpire-check-regression: umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
-		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot/...
+		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
 	@set -eu; \
 		old_namespace='Temporal''[.](Experiment|Umpire)'; \
 		old_path='Temporal/''(Experiment|Umpire)'; \

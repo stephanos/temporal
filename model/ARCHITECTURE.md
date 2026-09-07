@@ -152,7 +152,7 @@ projections to private Slots and Run Observations. The worker Driver uses Tempor
 workflow, activity, and Nexus-handler execution, owns reservation delivery, and cancels at
 activation scope. The composite Driver joins these capabilities without interpreting the Program or
 Contract. The composite and its `server` and `worker` packages live under
-`common/testing/temporaltestpilot`.
+`common/testing/testpilot/temporal`.
 
 `Prepare` snapshots and resolves Case 1.1 bindings without target I/O. A Prepared Case retains the
 unchanged symbolic source and private resolved instruction and role data, and its identity includes

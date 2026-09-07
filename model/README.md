@@ -142,11 +142,11 @@ assembly, and Go `testpilot.Prepare` owns Case admission.
 
 Temporal authority remains split:
 
-- `common/testing/temporaltestpilot/server` supplies the authorized descriptor catalog and transports prepared
+- `common/testing/testpilot/temporal/server` supplies the authorized descriptor catalog and transports prepared
   unary method/request pairs, returning raw typed responses and protocol status.
-- `common/testing/temporaltestpilot/worker` owns SDK workflow, activity, and Nexus-handler interpretation,
+- `common/testing/testpilot/temporal/worker` owns SDK workflow, activity, and Nexus-handler interpretation,
   reserved activation delivery, and activation-level cancellation.
-- `common/testing/temporaltestpilot` composes server and worker Drivers without interpreting scenario or Contract
+- `common/testing/testpilot/temporal` composes server and worker Drivers without interpreting scenario or Contract
   semantics.
 
 Internal execution constructs typed requests and applies declared response projections to private
