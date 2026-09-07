@@ -237,6 +237,14 @@ func runFunctionalGeneration(configuration generationConfig, entries []functiona
 		if err != nil {
 			return err
 		}
+		repeatedOutput, repeatedRenderErr := dependencies.Render(modelRoot, entry.RendererArg)
+		repeated, err := requireRendererArtifact(entry.Filename, repeatedOutput, repeatedRenderErr)
+		if err != nil {
+			return err
+		}
+		if !bytes.Equal(encoded, repeated) {
+			return fmt.Errorf("render %q Testpilot Case fixture: non-deterministic bytes", entry.Filename)
+		}
 		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 		if err != nil {
 			return fmt.Errorf("decode %q Testpilot Case fixture: %w", entry.Filename, err)

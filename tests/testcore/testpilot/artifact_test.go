@@ -2,6 +2,7 @@ package testpilot
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -98,6 +99,51 @@ func asyncNexusProfile(catalog *testpilot.Catalog, source *testpilotpb.Case) tes
 	}
 }
 
+type caseDefinitionBinding struct {
+	DefinitionID        string `json:"definitionId"`
+	BehaviorFingerprint string `json:"behaviorFingerprint"`
+	Kind                string `json:"kind"`
+}
+
+type caseKnownGap struct {
+	Code string `json:"code"`
+}
+
+func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
+	source := loadLeanCase(t, "async-nexus")
+	catalog, err := NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+	_, err = testpilot.Prepare(source, asyncNexusProfile(catalog, source))
+	require.NoError(t, err)
+	require.Equal(t, "temporal.nexus3.testpilot", source.GetProvenance().GetProducerId())
+	require.Equal(t, "1", source.GetProvenance().GetProducerVersion())
+
+	var provenance struct {
+		Definitions []caseDefinitionBinding `json:"definitions"`
+		KnownGaps   []caseKnownGap          `json:"knownGaps"`
+	}
+	require.NoError(t, json.Unmarshal(source.GetProvenance().GetProducerData(), &provenance))
+	require.Equal(t, []string{
+		"temporal.nexus3.target.lifecycle",
+		"temporal.nexus3.behavior.successfulCompletion",
+		"temporal.nexus3.query.completion",
+		"temporal.nexus3.property.successfulResult",
+	}, definitionIDs(provenance.Definitions))
+	require.Equal(t, []string{
+		"CASE_DEFINITION_KIND_TARGET",
+		"CASE_DEFINITION_KIND_BEHAVIOR",
+		"CASE_DEFINITION_KIND_QUERY",
+		"CASE_DEFINITION_KIND_PROPERTY",
+	}, definitionKinds(provenance.Definitions))
+	for _, definition := range provenance.Definitions {
+		require.Regexp(t, `^sha256:[0-9a-f]{64}$`, definition.BehaviorFingerprint)
+	}
+	require.Equal(t, []string{
+		"temporal.nexus3.known-gap.cancellation",
+		"temporal.nexus3.known-gap.operation-scoped-progress",
+	}, knownGapCodes(provenance.KnownGaps))
+}
+
 func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
 	catalog, err := NewWorkflowServiceCatalog()
@@ -150,6 +196,48 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 			require.True(t, hasOutcome(actual, "start-workflow", test.status))
 		})
 	}
+
+	for _, test := range []struct {
+		name string
+		mode artifactMode
+	}{
+		{name: "missing completion", mode: artifactMissingCompletion},
+		{name: "foreign completion", mode: artifactForeignCompletion},
+		{name: "duplicate and unrelated events", mode: artifactDuplicateOnly},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			driver := &artifactDriver{identity: prepared.Identity(), mode: test.mode}
+			actual, verdict, err := prepared.Run(t.Context(), driver)
+			require.NoError(t, err)
+			require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, actual.GetStatus())
+			require.Equal(t, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
+			require.Less(t, len(verdict.GetSupportingEventSequences()), 3)
+		})
+	}
+}
+
+func definitionIDs(definitions []caseDefinitionBinding) []string {
+	result := make([]string, len(definitions))
+	for index, definition := range definitions {
+		result[index] = definition.DefinitionID
+	}
+	return result
+}
+
+func definitionKinds(definitions []caseDefinitionBinding) []string {
+	result := make([]string, len(definitions))
+	for index, definition := range definitions {
+		result[index] = definition.Kind
+	}
+	return result
+}
+
+func knownGapCodes(knownGaps []caseKnownGap) []string {
+	result := make([]string, len(knownGaps))
+	for index, knownGap := range knownGaps {
+		result[index] = knownGap.Code
+	}
+	return result
 }
 
 func requireHistoryEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64) {
@@ -179,6 +267,9 @@ const (
 	artifactSuccess artifactMode = iota
 	artifactNonSuccess
 	artifactTimeout
+	artifactMissingCompletion
+	artifactForeignCompletion
+	artifactDuplicateOnly
 )
 
 type artifactRunResult struct {
@@ -262,7 +353,7 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		if typed.GetNamespace() != "default" || typed.GetExecution().GetWorkflowId() != s.runID {
 			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, ErrInvalid)
 		}
-		result = succeededResult(artifactHistoryResponse(s.runID, s.ordinal))
+		result = succeededResult(artifactHistoryResponse(s.runID, s.ordinal, s.mode))
 	default:
 		return nil, ErrInvalid
 	}
@@ -348,8 +439,8 @@ func succeededResult(response proto.Message) testpilot.EffectResult {
 	}
 }
 
-func artifactHistoryResponse(requestID string, scheduledID int64) *workflowservice.GetWorkflowExecutionHistoryResponse {
-	return &workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: []*historypb.HistoryEvent{
+func artifactHistoryResponse(requestID string, scheduledID int64, mode artifactMode) *workflowservice.GetWorkflowExecutionHistoryResponse {
+	events := []*historypb.HistoryEvent{
 		{
 			EventId: scheduledID, EventType: enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED,
 			Attributes: &historypb.HistoryEvent_NexusOperationScheduledEventAttributes{NexusOperationScheduledEventAttributes: &historypb.NexusOperationScheduledEventAttributes{RequestId: requestID}},
@@ -362,7 +453,23 @@ func artifactHistoryResponse(requestID string, scheduledID int64) *workflowservi
 			EventId: scheduledID + 2, EventType: enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED,
 			Attributes: &historypb.HistoryEvent_NexusOperationCompletedEventAttributes{NexusOperationCompletedEventAttributes: &historypb.NexusOperationCompletedEventAttributes{ScheduledEventId: scheduledID, RequestId: requestID}},
 		},
-	}}}
+	}
+	switch mode {
+	case artifactMissingCompletion:
+		events = events[:2]
+	case artifactForeignCompletion:
+		events[2].GetNexusOperationCompletedEventAttributes().ScheduledEventId = scheduledID + 100
+		events[2].GetNexusOperationCompletedEventAttributes().RequestId = "foreign-request"
+	case artifactDuplicateOnly:
+		duplicateStarted := proto.CloneOf(events[1])
+		duplicateStarted.EventId = scheduledID + 2
+		events[2].EventId = scheduledID + 3
+		events[2].GetNexusOperationCompletedEventAttributes().ScheduledEventId = scheduledID + 100
+		events[2].GetNexusOperationCompletedEventAttributes().RequestId = "foreign-request"
+		events = []*historypb.HistoryEvent{events[0], events[1], duplicateStarted, events[2]}
+	default:
+	}
+	return &workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: events}}
 }
 
 func loadLeanCase(t testing.TB, name string) *testpilotpb.Case {
