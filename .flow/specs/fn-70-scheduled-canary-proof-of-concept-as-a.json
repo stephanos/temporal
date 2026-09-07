@@ -4,7 +4,8 @@
   "depends_on_epics": [
     "fn-68-minimal-nexus3-success-demonstration",
     "fn-72-extract-the-reusable-temporal-testpilot",
-    "fn-73-explicit-environment-binding-for"
+    "fn-73-explicit-environment-binding-for",
+    "fn-78-typed-temporal-authoring-and-checked"
   ],
   "id": "fn-70-scheduled-canary-proof-of-concept-as-a",
   "next_task": 1,
@@ -24,5 +25,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-07T10:27:50.637867Z"
+  "updated_at": "2026-09-07T15:10:01.235116Z"
 }

@@ -43,12 +43,12 @@ full Driver identity, calls the no-I/O `Validate` hook, creates the Monitor, and
 `Open`. The symbolic Temporal Driver derives worker and request resources from the same prepared
 roles and accepts no legacy resource fallback.
 
-Temporal Driver authority is split by execution context. `common/testing/temporaltestpilot/server` supplies the
+Temporal Driver authority is split by execution context. `common/testing/testpilot/temporal/server` supplies the
 authorized descriptor catalog and transports prepared unary method/request pairs, returning raw
 typed responses and protocol status. Internal execution constructs requests and applies response
-projections to Slots and Observations. `common/testing/temporaltestpilot/worker` owns SDK workflow, activity,
+projections to Slots and Observations. `common/testing/testpilot/temporal/worker` owns SDK workflow, activity,
 Nexus-handler execution, reserved activation delivery, and activation-level cancellation.
-`common/testing/temporaltestpilot` composes those Driver capabilities without interpreting Case semantics.
+`common/testing/testpilot/temporal` composes those Driver capabilities without interpreting Case semantics.
 Transport targets, credentials, SDK clients, callback authority, and lifecycle configuration remain
 environment-owned Driver inputs in both resource modes.
 

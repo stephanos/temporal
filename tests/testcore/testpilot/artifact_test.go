@@ -17,8 +17,8 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/temporaltestpilot"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -135,7 +135,7 @@ func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 	require.NotEqual(t, getSystemInfo.GetProgram().GetProgramId(), asyncNexus.GetProgram().GetProgramId())
 	require.NotEqual(t, getSystemInfo.GetContract().GetRules()[0].GetRuleId(), asyncNexus.GetContract().GetRules()[0].GetRuleId())
 
-	catalog, err := temporaltestpilot.NewWorkflowServiceCatalog()
+	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	profile := &countingProfile{spec: testpilot.ProfileSpec{
 		Identity: "get-system-info-profile",
@@ -231,7 +231,7 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
 		historyAssignments[0].GetValue().GetEnvironment().GetBindingId())
 
-	catalog, err := temporaltestpilot.NewWorkflowServiceCatalog()
+	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 
 	firstProfile := AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
@@ -266,9 +266,9 @@ func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *t
 		testpilot.EnvironmentBinding{ID: "temporal.other.namespace", Value: "namespace-a"})
 	inconsistent, err := testpilot.Prepare(inconsistentSource, inconsistentProfile)
 	require.NoError(t, err)
-	driver, err := temporaltestpilot.New(temporaltestpilot.Options{
+	driver, err := temporal.New(temporal.Options{
 		Profile: inconsistentProfile,
-		ServerEndpoints: map[string]temporaltestpilot.Endpoint{
+		ServerEndpoints: map[string]temporal.Endpoint{
 			"temporal.workflow-service": {Target: "127.0.0.1:1", Credentials: insecure.NewCredentials()},
 		},
 		SDKClient: &artifactClient{}, WorkerRoleID: "temporal.worker",
@@ -295,7 +295,7 @@ type caseKnownGap struct {
 
 func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
-	catalog, err := temporaltestpilot.NewWorkflowServiceCatalog()
+	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	_, err = testpilot.Prepare(source, asyncNexusProfile(catalog, source))
 	require.NoError(t, err)
@@ -330,7 +330,7 @@ func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 
 func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
-	catalog, err := temporaltestpilot.NewWorkflowServiceCatalog()
+	catalog, err := temporal.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	profile := asyncNexusProfile(catalog, source)
 	prepared, err := testpilot.Prepare(source, profile)
@@ -476,7 +476,7 @@ func (h *artifactDriver) Validate(context.Context, testpilot.PreparedProgram) er
 
 func (h *artifactDriver) Open(_ context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
 	if program.Snapshot().GetProgramId() != "temporal.case.async-nexus.program" {
-		return nil, temporaltestpilot.ErrInvalid
+		return nil, temporal.ErrInvalid
 	}
 	ordinal := h.opens.Add(1)
 	bridge := &artifactBridge{ready: make(chan struct{}), capability: &struct{}{}}
@@ -505,13 +505,13 @@ func (s *artifactSession) Reserve(_ context.Context, request testpilot.Reservati
 
 func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
 	if method == nil {
-		return nil, temporaltestpilot.ErrInvalid
+		return nil, temporal.ErrInvalid
 	}
 	var result testpilot.EffectResult
 	switch coordinate.InstructionID {
 	case "start-workflow":
 		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.StartWorkflowExecution" {
-			return nil, temporaltestpilot.ErrInvalid
+			return nil, temporal.ErrInvalid
 		}
 		var typed workflowservice.StartWorkflowExecutionRequest
 		if err := decodeArtifactRequest(request, &typed); err != nil {
@@ -520,7 +520,7 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		if typed.GetNamespace() != asyncNexusArtifactNamespace ||
 			typed.GetTaskQueue().GetName() != asyncNexusArtifactTaskQueue ||
 			typed.GetWorkflowId() != s.runID || typed.GetRequestId() != s.runID {
-			return nil, fmt.Errorf("invalid start request for run %q: %w", s.runID, temporaltestpilot.ErrInvalid)
+			return nil, fmt.Errorf("invalid start request for run %q: %w", s.runID, temporal.ErrInvalid)
 		}
 		switch s.mode {
 		case artifactNonSuccess:
@@ -532,18 +532,18 @@ func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coor
 		}
 	case "history":
 		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistory" {
-			return nil, temporaltestpilot.ErrInvalid
+			return nil, temporal.ErrInvalid
 		}
 		var typed workflowservice.GetWorkflowExecutionHistoryRequest
 		if err := decodeArtifactRequest(request, &typed); err != nil {
 			return nil, fmt.Errorf("decode history request: %w", err)
 		}
 		if typed.GetNamespace() != asyncNexusArtifactNamespace || typed.GetExecution().GetWorkflowId() != s.runID {
-			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, temporaltestpilot.ErrInvalid)
+			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, temporal.ErrInvalid)
 		}
 		result = succeededResult(artifactHistoryResponse(s.runID, s.ordinal, s.mode))
 	default:
-		return nil, temporaltestpilot.ErrInvalid
+		return nil, temporal.ErrInvalid
 	}
 	return &artifactEffect{result: result}, nil
 }
@@ -615,7 +615,7 @@ func (b *artifactBridge) Await(ctx context.Context, _ string) error {
 }
 func (b *artifactBridge) Consume(context.Context, string) (testpilot.OpaqueCapability, error) {
 	if !b.consumed.CompareAndSwap(false, true) {
-		return nil, temporaltestpilot.ErrInvalid
+		return nil, temporal.ErrInvalid
 	}
 	return b.capability, nil
 }

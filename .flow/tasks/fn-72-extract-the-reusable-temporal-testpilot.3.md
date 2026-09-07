@@ -27,7 +27,7 @@ Replace the old path-based architecture check with direct and transitive depende
 - `tools/umpire/regression/ci_workflow_test.go:140-182` — executable documentation assertion style.
 - `go.mod` — module boundary used by `go list`.
 ## Acceptance
-- [ ] Executable checks scan `common/testing/temporaltestpilot` and reject direct or transitive production/test dependencies on repository `tests/`, Umpire generators, and canary orchestration.
+- [ ] Executable checks scan `common/testing/testpilot/temporal` and reject direct or transitive production/test dependencies on repository `tests/`, Umpire generators, and canary orchestration.
 - [ ] Direct Driver imports of generic Testpilot private packages are rejected, while their expected transitive presence through the public facade is admitted.
 - [ ] The generic Testpilot package remains independently checked against Temporal Driver imports.
 - [ ] Server-to-worker, worker-to-server, and delivery-to-either-adapter edges are rejected at the new paths.

@@ -8,7 +8,7 @@ Update the active normative, architecture and package documentation for the ship
 
 **Size:** M
 **Files:** active Umpire/model/package READMEs and architecture documents, Nexus3 integration note, `.plans/UMPIRE4_ORDER.md`, `Makefile`
-**Touches:** [.plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_ORDER.md, model/ARCHITECTURE.md, model/README.md, model/Umpire/ARCHITECTURE.md, model/Temporal/Feature/Nexus3/Integration.md, common/testing/testpilot/README.md, common/testing/temporaltestpilot/**/README.md, tests/testcore/testpilot/README.md, Makefile]
+**Touches:** [.plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_COMPONENTS.md, .plans/UMPIRE4_ORDER.md, model/ARCHITECTURE.md, model/README.md, model/Umpire/ARCHITECTURE.md, model/Temporal/Feature/Nexus3/Integration.md, common/testing/testpilot/README.md, common/testing/testpilot/temporal/**/README.md, tests/testcore/testpilot/README.md, Makefile]
 
 ### Approach
 - Document symbolic Case declarations, physical Profile ownership, immutable Prepare resolution, binding identity and Validate-before-Open ordering in active architecture material.
@@ -26,7 +26,7 @@ Update the active normative, architecture and package documentation for the ship
 - `common/testing/testpilot/README.md:3-11` — Prepare/Run facade
 
 **Optional** (reference as needed):
-- `common/testing/temporaltestpilot/README.md` and subpackage READMEs — shared Driver ownership
+- `common/testing/testpilot/temporal/README.md` and subpackage READMEs — shared Driver ownership
 - `model/Temporal/Feature/Nexus3/Integration.md:40-94` — integration boundary
 
 ### Key context

@@ -1,5 +1,5 @@
-// Package temporaltestpilot composes controller transports and SDK workers behind one Testpilot Driver.
-package temporaltestpilot
+// Package temporal composes controller transports and SDK workers behind one Testpilot Driver.
+package temporal
 
 import (
 	"context"
@@ -12,10 +12,10 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/temporaltestpilot/internal/delivery"
-	"go.temporal.io/server/common/testing/temporaltestpilot/server"
-	workerhost "go.temporal.io/server/common/testing/temporaltestpilot/worker"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
+	"go.temporal.io/server/common/testing/testpilot/temporal/server"
+	workerhost "go.temporal.io/server/common/testing/testpilot/temporal/worker"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
