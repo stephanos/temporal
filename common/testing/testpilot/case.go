@@ -3,16 +3,16 @@ package testpilot
 import (
 	"errors"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
-func DecodeCaseProtoJSON(encoded []byte) (*testpilotpb.Case, error) {
+func DecodeCaseProtoJSON(encoded []byte) (*testpilotspb.Case, error) {
 	if len(encoded) == 0 {
 		return nil, errors.New("case ProtoJSON is required")
 	}
-	decoded := new(testpilotpb.Case)
+	decoded := new(testpilotspb.Case)
 	if err := (protojson.UnmarshalOptions{DiscardUnknown: false}).Unmarshal(encoded, decoded); err != nil {
 		return nil, err
 	}

@@ -5,14 +5,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func TestRuntimeSnapshotDeterministicFailureOrder(t *testing.T) {
 	for _, source := range []proto.Message{
-		&testpilotpb.InstructionOutcome{Status: 999, Detail: "detail", Value: &testpilotpb.Value{Value: &testpilotpb.Value_Text{Text: "value"}}},
+		&testpilotspb.InstructionOutcome{Status: 999, Detail: "detail", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "value"}}},
 		&structpb.Struct{Fields: map[string]*structpb.Value{"z": {Kind: &structpb.Value_NullValue{NullValue: 999}}, "a": {Kind: &structpb.Value_StringValue{StringValue: "value"}}}},
 	} {
 		for _, limit := range []int64{1, 5, 20, 40, 100, 1000} {

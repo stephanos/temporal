@@ -31,10 +31,13 @@ Add the independent cross-language proof that a Producer can import only Testpil
 - [ ] Empty/non-UTF-8 provenance and resolved `Any` bytes round-trip exactly without Umpire interpretation.
 - [ ] Malformed wire data and invalid descriptor/bounds/identity/scope inputs retain explicit Go rejection coverage.
 ## Done summary
-TBD
+Added a producer-neutral synthetic Testpilot Case using only the public Authoring and ProtoJSON APIs, with deterministic transactional fixture ownership and strict no-I/O Go admission. Focused coverage preserves empty and non-UTF-8 provenance plus resolved Any bytes exactly, and rejects malformed wire, unknown descriptors, invalid bounds, invalid identities, and unbound scope at the Go boundary; ordinary Go tests only consume the checked fixture.
 
+The pre-edit and post-edit Lean, import-graph, transactional conformance, scoped Go, and model-lint gates passed. The accepted `make lint-code GOLANGCI_LINT_FIX=false` baseline from task `.5` was reused because it contains 1361 unrelated inherited findings.
+
+stage: impl-review - ran (codex:gpt-5.6-sol:medium, SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: cd model && mise exec -- lake build Testpilot TestpilotTests UmpireTests TemporalModelTests temporal-testpilot, cd model && mise exec -- lake exe modelLintTests, TMPDIR=/private/tmp CGO_ENABLED=0 make umpire-check-case-runtime-conformance, TMPDIR=/private/tmp CGO_ENABLED=0 mise exec -- go test -p=1 -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tests/testcore/testpilot/..., make lint-model, BASELINE_REUSED: make lint-code GOLANGCI_LINT_FIX=false - accepted inherited 1361 findings from fn-71-standalone-lean-testpilot-protocol.5, IMPL_REVIEW: codex:gpt-5.6-sol:medium SHIP (/tmp/fn71-task6-impl-review.json)
 - PRs:
-

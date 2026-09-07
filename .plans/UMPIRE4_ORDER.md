@@ -6,26 +6,18 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### 1. First architecture wave — fn-71 and fn-72
-
-These specs have no hard prerequisites and can proceed together. Coordinate changes to Producer
-imports, functional consumers, and path-based gates; neither spec owns Nexus3 lowering.
-
-| Spec | Deliver |
-| --- | --- |
-| [fn-71 — Standalone Lean Testpilot protocol](../.flow/specs/fn-71-standalone-lean-testpilot-protocol.md) | Independent `Testpilot.*` types, context-safe expressions, one current codec, and producer-owned Umpire provenance. |
-| [fn-72 — Shared Temporal Driver](../.flow/specs/fn-72-extract-the-reusable-temporal-testpilot.md) | Move the existing Driver to `common/testing/temporaltestpilot`, preserve server/worker/delivery ownership, and migrate functional consumers without changing behavior. |
-
-### 2. fn-73 — Explicit environment binding
+### 1. fn-73 — Explicit environment binding
 
 [Spec](../.flow/specs/fn-73-explicit-environment-binding-for.md).
 Deliver after **fn-68, fn-71, and fn-72**.
 
 Own the shared symbolic resource-binding contract, its protocol/preparation changes, and static
 Driver validation. Prove that the same checked Nexus3 Case runs against two environment bindings
-without request rewriting or changed Contract meaning. Preserve legacy literal-only Case behavior.
+without request rewriting, changed Case bytes, or changed Contract meaning. Preserve legacy
+literal-only Case 1.0 behavior while Case 1.1 resolves Profile-owned physical resources and carries
+the binding snapshot in Prepared Case and Driver identity.
 
-### 3. fn-70 — Scheduled canary proof of concept
+### 2. fn-70 — Scheduled canary proof of concept
 
 [Spec](../.flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md).
 Deliver after **fn-68, fn-72, and fn-73**; fn-71 is a transitive prerequisite through fn-73.
@@ -33,7 +25,8 @@ Deliver after **fn-68, fn-72, and fn-73**; fn-71 is a transitive prerequisite th
 Implement the second consumer under `tools/canary`: manual check selection, a fresh scheduled
 Workflow each minute, Activity-owned Testpilot execution, bounded results, and isolated repeated
 measurements. Consume the Driver and binding interfaces delivered above; do not repeat their
-implementation work. Retain the cross-consumer and two-environment integration proof.
+implementation work. Retain the cross-consumer proof; fn-73 already owns the live proof that one
+Case byte sequence runs against two environment bindings.
 
 This is a local/development prototype. It does not depend on fn-26 or fn-29 and does not authorize
 production deployment or replace fn-29's separately scoped production-canary design.
@@ -45,7 +38,7 @@ without adding dependencies solely because files overlap.
 
 | Spec | Dependencies | Deliver |
 | --- | --- | --- |
-| [fn-74 — Activation semantics and preparation diagnostics](../.flow/specs/fn-74-deepen-testpilot-worker-activation.md) | fn-72 | Private activation-state ownership and public preparation diagnostics; preserve SDK scheduling and the controller execution boundary. |
+| [fn-74 — Activation semantics and preparation diagnostics](../.flow/specs/fn-74-deepen-testpilot-worker-activation.md) | fn-72 | Private activation-state ownership and public preparation diagnostics, including later error classification; preserve SDK scheduling and the controller execution boundary. |
 | [fn-75 — Lean Target semantic seam](../.flow/specs/fn-75-separate-lean-target-semantics-from.md) | None | Separate checked Target semantics from authoring/elaboration machinery while preserving checked construction, fingerprints, and proof trust. |
 | [fn-76 — Semantic inventory dependency direction](../.flow/specs/fn-76-make-lean-semantic-inventory-consume.md) | None | Make inventory consume semantic outcome and Known Gap contracts; preserve generated inventory and semantic results. |
 
@@ -110,6 +103,12 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Completed cutovers
 
+- [fn-71](../.flow/specs/fn-71-standalone-lean-testpilot-protocol.md): established independent
+  `Testpilot.*` types, context-safe expressions, one current codec, and producer-owned Umpire
+  provenance.
+- [fn-72](../.flow/specs/fn-72-extract-the-reusable-temporal-testpilot.md): moved the reusable
+  Temporal Driver to `common/testing/temporaltestpilot`, preserved server/worker/delivery ownership,
+  and retained functional fixtures and provisioning under `tests/`.
 - [fn-68](../.flow/specs/fn-68-minimal-nexus3-success-demonstration.md): proved the approachable
   five-block Nexus3 success model through checked lowering, deterministic fixture generation,
   offline evidence rejection, and the existing real Temporal Driver test.
@@ -128,8 +127,8 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
   authoring requirements, including Observation construction and model-owned Known Gaps;
   [compatibility evidence](../model/Temporal/Feature/Nexus/EVIDENCE.md).
 
-All six passed whole-spec completion review. Nexus2 remains a prototype with explicit adoption
-boundaries.
+Whole-spec completion-review status is tracked in Flow and is not implied by placement in this
+list. Nexus2 remains a prototype with explicit adoption boundaries.
 
 ## Deferred and superseded
 

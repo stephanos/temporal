@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
 )
@@ -14,12 +14,12 @@ import (
 func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Limits.MaxPathFanout = 2
-	c.Program.Observations = []*testpilotpb.ObservationDefinition{{ObservationId: "item", Type: scalar(testpilotpb.SCALAR_KIND_TEXT)}}
+	c.Program.Observations = []*testpilotspb.ObservationDefinition{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	n := c.Program.Entrypoints[0].Instructions[0]
 	n.Limits.MaxEmittedEvents = 2
 	path := field("items")
-	path.Segments[0].Selector = &testpilotpb.FieldPathSegment_Repeated{Repeated: &testpilotpb.RepeatedWildcard{}}
-	n.Instruction.GetInvokeRpc().ResponseProjections = []*testpilotpb.ResponseProjection{{Source: path, Kind: testpilotpb.PROJECTION_KIND_EMIT_EACH, Targets: []*testpilotpb.ProjectionTarget{{Target: &testpilotpb.ProjectionTarget_ObservationId{ObservationId: "item"}}}}}
+	path.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
+	n.Instruction.GetInvokeRpc().ResponseProjections = []*testpilotspb.ResponseProjection{{Source: path, Kind: testpilotspb.PROJECTION_KIND_EMIT_EACH, Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_ObservationId{ObservationId: "item"}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -31,7 +31,7 @@ func TestProjectionStagesOrderedElementsAndRejectsLimitsAtomically(t *testing.T)
 	list := response.Mutable(response.Descriptor().Fields().ByName("items")).List()
 	list.Append(protoreflect.ValueOfString("b"))
 	list.Append(protoreflect.ValueOfString("a"))
-	raw := EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
+	raw := EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
 	batch, work, err := values.stage(context.Background(), coord, raw, values.workLimit())
 	require.NoError(t, err)
 	require.Len(t, batch.facts, 2)

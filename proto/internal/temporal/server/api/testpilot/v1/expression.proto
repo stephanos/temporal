@@ -65,6 +65,7 @@ message ProgramExpression {
     ProgramNotExpression negation = 9;
     ProgramAllExpression all = 10;
     ProgramAnyExpression any = 11;
+    EnvironmentRef environment = 12;
   }
 }
 
@@ -92,3 +93,5 @@ message ContractExpression {
     CaptureRef capture = 11;
   }
 }
+
+message EnvironmentRef { string binding_id = 1; }

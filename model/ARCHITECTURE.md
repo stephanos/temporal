@@ -10,7 +10,8 @@ structure, handwritten Temporal behavior, and the first Case Producer. The norma
 | Import | Responsibility |
 | --- | --- |
 | `Shared` | Neutral transition and trace-replay primitives. |
-| `Umpire` | Temporal-independent modeling, planning, promotion, and Case IR/compiler APIs. |
+| `Testpilot` | Generated Testpilot protocol, producer-neutral authoring, and ProtoJSON policy. |
+| `Umpire` | Temporal-independent modeling, planning, promotion, and Testpilot provenance. |
 | `Temporal` | Generated Temporal structure, handwritten semantics, and Temporal Case production. |
 
 Most consumers start with `import Umpire` or `import Temporal`. Focused imports should follow the
@@ -24,10 +25,9 @@ Umpire.Core ──▶ Target ──▶ Property / Behavior / Query ──▶ Pla
                     ├────▶ Observation / ImplementationLink
                     └────▶ Space / Exploration / Promotion
 
-Umpire.Case ──▶ Umpire.Case.Compiler
-                         │
-                         ▼
-               Temporal.Testpilot
+Testpilot.Protocol ──▶ Testpilot.Authoring ──▶ Temporal.Testpilot
+         │                       ▲                       ▲
+         └────▶ Testpilot.ProtoJSON          Umpire provenance
 
 Temporal.API ───────────────────────────┐
 Temporal.DynamicConfig ────────────────┤
@@ -70,15 +70,19 @@ The retained semantic APIs keep these responsibilities separate:
 Planning artifacts and Generated Views remain useful model outputs. They are not inputs to Testpilot
 and do not establish that a runtime action occurred.
 
-## Testpilot IR and Producer
+## Testpilot protocol and Producers
 
-`Umpire.Case` owns the closed version-one data model:
+The checked-in `.proto` closure rooted at
+`proto/internal/temporal/server/api/testpilot/v1/case.proto` is the sole Case wire schema.
+`Testpilot.Protocol` exposes the generated Lean declarations, and `Testpilot.Authoring` constructs
+those generated values through context-safe helpers:
 
 ```text
 Case
-├── version, identity, provenance, definitions, Known Gaps
+├── version, identity, opaque producer provenance
 ├── Program
 │   ├── symbolic roles
+│   ├── Case 1.1 symbolic environment declarations and direct resource references
 │   ├── typed private Slots and declared Observations
 │   ├── controller / workflow / activity / Nexus-handler DAGs
 │   ├── cleanup graph
@@ -90,8 +94,12 @@ Case
     └── independent work and storage limits
 ```
 
-`Umpire.Case.Compiler` checks producer inputs and lowers them into this IR. It rejects unsupported
-instructions, contexts, types, paths, references, and limits instead of emitting an approximation.
+`Umpire.Case` retains only Umpire's producer-specific definitions, fingerprints, sources, and Known
+Gaps and encodes them into opaque provenance bytes. It does not own a parallel Program, Contract,
+Run, or field serializer. Producers validate their semantic inputs and use `Testpilot.Authoring`.
+Umpire-backed Producers use `Umpire.Case.Compiler` for source-bound rule validation, exact opaque
+provenance, and final assembly from generated values. `Testpilot.ProtoJSON` delegates canonical
+encoding to `Protobuf.Json`.
 
 `Temporal.Testpilot` is the first Producer. Its `GetSystemInfo` Case proves that the IR is not tied
 to Nexus. Its async Nexus Case uses controller RPCs plus SDK workflow and Nexus-handler entrypoints
@@ -100,6 +108,14 @@ violated, inconclusive, static-rejection, cleanup-failure, and cross-Run classes
 
 `Temporal.Tool.Testpilot` is a build-time renderer only. Coordinates, credentials, clients,
 workers, capabilities, and live IDs remain Driver inputs.
+
+Literal-only Programs use Case 1.0. A binding-bearing Program uses Case 1.1 and declares a closed
+set of symbolic text IDs for namespaces, task queues, and named Nexus endpoints. These declarations
+express resource relationships, not physical values; an endpoint role or binding ID is not a network
+address. The immutable Profile supplies physical values, while transport targets, credentials,
+callback authority, SDK clients, and lifecycle configuration remain environment-owned Driver inputs.
+Changing a Profile binding therefore changes prepared/Driver binding identity, not the source Case,
+its Contract, Behavior Fingerprints, or opaque producer provenance.
 
 ## Go runtime boundary
 
@@ -123,7 +139,8 @@ testpilot.Prepare ──▶ PreparedCase
              closed Run + Verdict
 ```
 
-`common/testing/testpilot` owns the Case protocol, Profile/Driver contract, and the two calls.
+The Testpilot `.proto` files own the Case protocol. `common/testing/testpilot` owns the
+Profile/Driver contract and the two Go calls.
 Scheduling, recording, effect ownership, private Slot storage, and Monitor factories are internal.
 Static preparation performs no Driver I/O; a Prepared Case snapshots admitted inputs and supports independent
 sequential and concurrent Runs.
@@ -134,7 +151,16 @@ and protocol status. Internal execution constructs requests and applies declared
 projections to private Slots and Run Observations. The worker Driver uses Temporal SDK APIs for
 workflow, activity, and Nexus-handler execution, owns reservation delivery, and cancels at
 activation scope. The composite Driver joins these capabilities without interpreting the Program or
-Contract.
+Contract. The composite and its `server` and `worker` packages live under
+`common/testing/temporaltestpilot`.
+
+`Prepare` snapshots and resolves Case 1.1 bindings without target I/O. A Prepared Case retains the
+unchanged symbolic source and private resolved instruction and role data, and its identity includes
+the complete Profile binding fingerprint. `Run` compares that identity, invokes the Driver's no-I/O
+`Validate` hook, creates the Contract Monitor, and then calls `Open`. The shared Temporal Driver has
+an explicit symbolic mode that derives request carriers, worker namespaces, task queues, and Nexus
+routes from those prepared bindings, and an explicit legacy mode for literal-only Case 1.0 Programs.
+The modes cannot be mixed and legacy resource maps never fill missing symbolic bindings.
 
 The Executor appends monotonic immutable Run Events. Each event has a unique source identity and
 causal references to prior sources. The Evaluator observes the appended copy synchronously and uses

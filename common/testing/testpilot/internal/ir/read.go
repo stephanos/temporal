@@ -3,7 +3,7 @@ package ir
 import (
 	"context"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -11,7 +11,7 @@ import (
 
 // Read retains absent wildcard branches: any absent element makes the value absent, while
 // an explicit presence selector returns one aligned boolean for every element.
-func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*testpilotpb.Value, int64, error) {
+func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*testpilotspb.Value, int64, error) {
 	b, err := runtimeBudget(ctx, limits)
 	if err != nil {
 		return nil, 0, err
@@ -24,12 +24,12 @@ func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*
 		return nil, b.work, err
 	}
 	r := runtimeExpression{ctx: ctx, limit: limits.Work - b.work, copyWork: true}
-	var values []*testpilotpb.Value
+	var values []*testpilotspb.Value
 	if len(p.steps) == 0 {
 		if err = r.charge(2*int64(proto.Size(snapshot)) + 1); err == nil {
 			var wire []byte
 			wire, err = proto.MarshalOptions{Deterministic: true}.Marshal(snapshot)
-			values = []*testpilotpb.Value{{Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(p.source.message.FullName()), Value: wire}}}}
+			values = []*testpilotspb.Value{{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/" + string(p.source.message.FullName()), Value: wire}}}}
 		}
 	} else {
 		values, err = r.readBranches(snapshot.ProtoReflect(), p, 0, make([]int64, len(p.steps)), min(p.limit, limits.Fanout))
@@ -43,9 +43,9 @@ func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*
 			return nil, work, nil
 		}
 	}
-	var result *testpilotpb.Value
+	var result *testpilotspb.Value
 	if p.fanout {
-		result = &testpilotpb.Value{Value: &testpilotpb.Value_ListValue{ListValue: &testpilotpb.ValueList{Values: values}}}
+		result = &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: values}}}
 	} else if len(values) > 0 {
 		result = values[0]
 	}
@@ -54,7 +54,7 @@ func (p *Path) Read(ctx context.Context, source proto.Message, limits Limits) (*
 	}
 	return result, b.work + r.work, nil
 }
-func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, index int, counts []int64, fanout int64) ([]*testpilotpb.Value, error) {
+func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, index int, counts []int64, fanout int64) ([]*testpilotspb.Value, error) {
 	if err := r.charge(1); err != nil {
 		return nil, err
 	}
@@ -62,14 +62,14 @@ func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, 
 	if index == len(p.steps)-1 {
 		if message == nil {
 			if step.Selector == Presence {
-				return []*testpilotpb.Value{boolValue(false)}, nil
+				return []*testpilotspb.Value{boolValue(false)}, nil
 			}
-			return []*testpilotpb.Value{nil}, nil
+			return []*testpilotspb.Value{nil}, nil
 		}
 		remaining := fanout - counts[index]
 		values, err := r.selectField(message, step, remaining)
 		if values == nil && err == nil {
-			values = []*testpilotpb.Value{nil}
+			values = []*testpilotspb.Value{nil}
 		}
 		if int64(len(values)) > remaining {
 			return nil, invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
@@ -85,7 +85,7 @@ func (r *runtimeExpression) readBranches(message protoreflect.Message, p *Path, 
 		return nil, invalid(LimitExceeded, "path", "fan-out ceiling exceeded")
 	}
 	counts[index] += int64(len(children))
-	var result []*testpilotpb.Value
+	var result []*testpilotspb.Value
 	for _, child := range children {
 		values, err := r.readBranches(child, p, index+1, counts, fanout)
 		if err != nil {

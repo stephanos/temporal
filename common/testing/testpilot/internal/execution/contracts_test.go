@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 )
 
 type factoryFunction func(context.Context, ProgramView) (Monitor, error)
@@ -32,11 +32,11 @@ func (*factoryPointer) New(context.Context, ProgramView) (Monitor, error) { retu
 
 type testMonitor struct{}
 
-func (*testMonitor) Observe(context.Context, *testpilotpb.RunEvent) (Decision, error) {
+func (*testMonitor) Observe(context.Context, *testpilotspb.RunEvent) (Decision, error) {
 	return Continue, nil
 }
-func (*testMonitor) Close(context.Context, *testpilotpb.Run) (*testpilotpb.Verdict, error) {
-	return &testpilotpb.Verdict{}, nil
+func (*testMonitor) Close(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, error) {
+	return &testpilotspb.Verdict{}, nil
 }
 func TestMonitorFactoryRejectsEveryNilCapableForm(t *testing.T) {
 	c, catalog, p := fixture(t)

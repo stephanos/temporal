@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
@@ -31,10 +31,10 @@ func TestRawProjectionPreservesWildcardAbsenceAndBudgets(t *testing.T) {
 			source := dynamicpb.NewMessage(typ.Message())
 			require.NoError(t, proto.Unmarshal(tc.wire, source))
 			path := fieldPath("items", "optional_text")
-			path.Segments[0].Selector = &testpilotpb.FieldPathSegment_Repeated{Repeated: &testpilotpb.RepeatedWildcard{}}
+			path.Segments[0].Selector = &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}
 			for _, presence := range []bool{false, true} {
 				if presence {
-					path.Segments[1].Selector = &testpilotpb.FieldPathSegment_Presence{Presence: &testpilotpb.PresenceSelector{}}
+					path.Segments[1].Selector = &testpilotspb.FieldPathSegment_Presence{Presence: &testpilotspb.PresenceSelector{}}
 				}
 				p, err := c.BindPath(typ, path, DefaultLimits())
 				require.NoError(t, err)
@@ -131,13 +131,13 @@ func TestValueRuntimeCancellationAndMalformedInputs(t *testing.T) {
 		require.Error(t, err)
 		require.Nil(t, result)
 	}
-	textType := boundType(t, c, scalar(testpilotpb.SCALAR_KIND_TEXT))
-	for _, value := range []*testpilotpb.Value{nil, {}, {Value: (*testpilotpb.Value_Text)(nil)}, {Value: &testpilotpb.Value_Text{Text: string([]byte{0xff})}}} {
+	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
+	for _, value := range []*testpilotspb.Value{nil, {}, {Value: (*testpilotspb.Value_Text)(nil)}, {Value: &testpilotspb.Value_Text{Text: string([]byte{0xff})}}} {
 		result, _, err := SnapshotValue(context.Background(), value, textType, DefaultLimits())
 		require.Error(t, err)
 		require.Nil(t, result)
 	}
-	opaque := boundType(t, c, &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotpb.OpaqueCapabilityType{}}}}})
+	opaque := boundType(t, c, &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}}}})
 	_, _, err = SnapshotValue(context.Background(), text("secret"), opaque, DefaultLimits())
 	require.Error(t, err)
 }
@@ -145,11 +145,11 @@ func TestValueRuntimeCancellationAndMalformedInputs(t *testing.T) {
 func TestExecutionExpressionAccountsNestedCopies(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
-	source := &testpilotpb.Value{Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x12, 5, 0x12, 3, 0x0a, 1, 'x'}}}}
-	path := &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Path{Path: &testpilotpb.ProgramPathExpression{Source: slot("input"), Path: fieldPath("child", "child", "text")}}}
+	source := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{0x12, 5, 0x12, 3, 0x0a, 1, 'x'}}}}
+	path := &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: slot("input"), Path: fieldPath("child", "child", "text")}}}
 	e, err := c.BindConditionedExpression([]Condition{{Expression: present(path), Matches: true}}, path, nil, map[Reference]Binding{{Kind: SlotReference, ID: "input"}: {Type: typ, Available: true}}, DefaultLimits())
 	require.NoError(t, err)
-	resolve := func(Reference) *testpilotpb.Value { return source }
+	resolve := func(Reference) *testpilotspb.Value { return source }
 	legacy, oldWork, err := e.Evaluate(context.Background(), resolve, 100000)
 	require.NoError(t, err)
 	value, work, err := e.EvaluateExecution(context.Background(), resolve, 100000)

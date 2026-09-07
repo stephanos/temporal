@@ -5,25 +5,30 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"unicode/utf8"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type admission struct {
-	prepared     *PreparedProgram
-	roles        map[string]testpilotpb.RoleKind
-	allowed      map[string]RolePolicy
-	methods      map[string]map[string]bool
-	carriers     map[string]map[string]ReservationCarrierPolicy
-	capabilities map[Opcode]bool
-	observations map[string]ir.Type
-	runID        ir.Type
-	writers      map[string]slotWriter
-	graphIndex   map[string]*graph
-	work         int64
+	prepared               *PreparedProgram
+	roles                  map[string]testpilotspb.RoleKind
+	allowed                map[string]RolePolicy
+	methods                map[string]map[string]bool
+	carriers               map[string]map[string]ReservationCarrierPolicy
+	capabilities           map[Opcode]bool
+	bindingsRequired       bool
+	environment            map[string]string
+	environmentDefinitions map[string]bool
+	environmentUsed        map[string]bool
+	observations           map[string]ir.Type
+	runID                  ir.Type
+	writers                map[string]slotWriter
+	graphIndex             map[string]*graph
+	work                   int64
 }
 
 func invalid(category ir.ErrorCategory, path, detail string) error {
@@ -54,14 +59,14 @@ func (a *admission) charge(count int64) error {
 }
 
 // Prepare performs static admission only; Contract semantics are admitted by verification.
-func Prepare(source *testpilotpb.Case, catalog *ir.Catalog, policy Policy) (*PreparedProgram, error) {
+func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Policy) (*PreparedProgram, error) {
 	if catalog == nil {
 		return nil, invalid(ir.Malformed, "catalog", "catalog is required")
 	}
 	if err := ir.CheckSurface(source, ir.DefaultLimits()); err != nil {
 		return nil, err
 	}
-	if source.Version == nil || source.Version.Major != 1 || source.Version.Minor != 0 {
+	if source.Version == nil || source.Version.Major != 1 || (source.Version.Minor != 0 && source.Version.Minor != 1) {
 		return nil, invalid(ir.Unsupported, "version", "unsupported Case version")
 	}
 	if !validID(source.CaseId) || source.Program == nil || source.Contract == nil || !validID(source.Contract.ContractId) {
@@ -73,16 +78,66 @@ func Prepare(source *testpilotpb.Case, catalog *ir.Catalog, policy Policy) (*Pre
 	if err := validateProvenance(source.Provenance); err != nil {
 		return nil, err
 	}
-	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]ReservationCarrierPlan{}}
-	a := &admission{prepared: prepared, roles: map[string]testpilotpb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, capabilities: map[Opcode]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
+	hasBindingFields := len(source.Program.Environment) > 0 || programHasEnvironmentReference(source.Program)
+	for _, role := range source.Program.Roles {
+		hasBindingFields = hasBindingFields || role.GetNamespaceBindingId() != "" || role.GetResourceBindingId() != ""
+	}
+	if source.Version.Minor == 0 && hasBindingFields {
+		return nil, invalid(ir.Unsupported, "version", "Case 1.0 cannot contain environment bindings")
+	}
+	if source.Version.Minor == 1 && !hasBindingFields {
+		return nil, invalid(ir.Malformed, "environment", "Case 1.1 requires environment bindings")
+	}
+	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
+	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, capabilities: map[Opcode]bool{}, bindingsRequired: source.Version.Minor == 1, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
 	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
 		}
 	}
+	if source.Version.Minor == 1 {
+		for id := range a.environmentDefinitions {
+			if !a.environmentUsed[id] {
+				return nil, invalid(ir.Malformed, "environment", "environment definition is unused")
+			}
+		}
+	}
 	return prepared, nil
 }
-func validateProvenance(provenance *testpilotpb.CaseProvenance) error {
+
+func programHasEnvironmentReference(program *testpilotspb.Program) bool {
+	var visit func(protoreflect.Message) bool
+	visit = func(message protoreflect.Message) bool {
+		if message.Descriptor().FullName() == "temporal.server.api.testpilot.v1.ProgramExpression" {
+			oneof := message.Descriptor().Oneofs().ByName("expression")
+			if field := message.WhichOneof(oneof); field != nil && field.Name() == "environment" {
+				return true
+			}
+		}
+		found := false
+		message.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
+			if field.IsMap() {
+				if field.MapValue().Kind() == protoreflect.MessageKind {
+					value.Map().Range(func(_ protoreflect.MapKey, item protoreflect.Value) bool {
+						found = found || visit(item.Message())
+						return !found
+					})
+				}
+			} else if field.IsList() && field.Kind() == protoreflect.MessageKind {
+				list := value.List()
+				for i := 0; i < list.Len() && !found; i++ {
+					found = visit(list.Get(i).Message())
+				}
+			} else if field.Kind() == protoreflect.MessageKind {
+				found = visit(value.Message())
+			}
+			return !found
+		})
+		return found
+	}
+	return visit(program.ProtoReflect())
+}
+func validateProvenance(provenance *testpilotspb.CaseProvenance) error {
 	if provenance == nil {
 		return nil
 	}
@@ -91,7 +146,7 @@ func validateProvenance(provenance *testpilotpb.CaseProvenance) error {
 	}
 	return nil
 }
-func checkLimits(limits, ceiling *testpilotpb.ProgramLimits) error {
+func checkLimits(limits, ceiling *testpilotspb.ProgramLimits) error {
 	if limits == nil || ceiling == nil {
 		return invalid(ir.Malformed, "limits", "limits are required")
 	}
@@ -118,13 +173,35 @@ func (a *admission) bindPolicy(policy Policy) error {
 	if err := checkLimits(a.prepared.source.Limits, policy.Limits); err != nil {
 		return err
 	}
-	if len(policy.Roles) > 10000 || len(policy.Capabilities) > 7 {
+	if len(policy.Roles) > 10000 || len(policy.Capabilities) > 7 || len(policy.EnvironmentBindings) > 10000 {
 		return invalid(ir.LimitExceeded, "policy", "policy collection ceiling exceeded")
+	}
+	var environmentBytes int64
+	for _, binding := range policy.EnvironmentBindings {
+		if !validID(binding.ID) {
+			return invalid(ir.Malformed, "policy.environment_bindings", "invalid environment binding identity")
+		}
+		if binding.Value == "" || !utf8.ValidString(binding.Value) {
+			return invalid(ir.Malformed, "policy.environment_bindings", "invalid environment binding value")
+		}
+		if _, exists := a.environment[binding.ID]; exists {
+			return invalid(ir.Malformed, "policy.environment_bindings", "duplicate environment binding")
+		}
+		bindingBytes := int64(len(binding.ID) + len(binding.Value))
+		if bindingBytes > policy.Limits.MaxRequestBytes-environmentBytes {
+			return invalid(ir.LimitExceeded, "policy.environment_bindings", "environment binding byte ceiling exceeded")
+		}
+		if err := a.charge(1); err != nil {
+			return err
+		}
+		environmentBytes += bindingBytes
+		a.environment[binding.ID] = binding.Value
 	}
 	snapshot := policy
 	snapshot.Limits = proto.CloneOf(policy.Limits)
 	snapshot.Roles = slices.Clone(policy.Roles)
 	snapshot.Capabilities = slices.Clone(policy.Capabilities)
+	snapshot.EnvironmentBindings = slices.Clone(policy.EnvironmentBindings)
 	for i, role := range snapshot.Roles {
 		bound, err := a.bindRolePolicy(role, policy.Limits)
 		if err != nil {
@@ -139,16 +216,17 @@ func (a *admission) bindPolicy(policy Policy) error {
 		a.capabilities[capability] = true
 	}
 	a.prepared.policy = snapshot
+	a.prepared.environmentFingerprint = policy.EnvironmentFingerprint
 	return nil
 }
-func (a *admission) bindRolePolicy(role RolePolicy, limits *testpilotpb.ProgramLimits) (RolePolicy, error) {
-	if !validID(role.ID) || role.Kind < testpilotpb.ROLE_KIND_ENDPOINT || role.Kind > testpilotpb.ROLE_KIND_PARTICIPANT {
+func (a *admission) bindRolePolicy(role RolePolicy, limits *testpilotspb.ProgramLimits) (RolePolicy, error) {
+	if !validID(role.ID) || role.Kind < testpilotspb.ROLE_KIND_ENDPOINT || role.Kind > testpilotspb.ROLE_KIND_PARTICIPANT {
 		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid role")
 	}
 	if _, exists := a.allowed[role.ID]; exists {
 		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "duplicate role")
 	}
-	if len(role.Methods) > 10000 || len(role.ReservationCarriers) > 10000 || role.Kind != testpilotpb.ROLE_KIND_ENDPOINT && (len(role.Methods) > 0 || len(role.ReservationCarriers) > 0) {
+	if len(role.Methods) > 10000 || len(role.ReservationCarriers) > 10000 || role.Kind != testpilotspb.ROLE_KIND_ENDPOINT && (len(role.Methods) > 0 || len(role.ReservationCarriers) > 0) {
 		return RolePolicy{}, invalid(ir.Malformed, "policy.roles", "invalid endpoint methods")
 	}
 	methods := make(map[string]bool, len(role.Methods))
@@ -186,7 +264,7 @@ func (a *admission) bindRolePolicy(role RolePolicy, limits *testpilotpb.ProgramL
 	return bound, nil
 }
 
-func (a *admission) bindCarrierPolicy(carrier ReservationCarrierPolicy, methods map[string]bool, limits *testpilotpb.ProgramLimits, carriers map[string]ReservationCarrierPolicy) error {
+func (a *admission) bindCarrierPolicy(carrier ReservationCarrierPolicy, methods map[string]bool, limits *testpilotspb.ProgramLimits, carriers map[string]ReservationCarrierPolicy) error {
 	if !methods[carrier.Method] {
 		return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier method requires ordinary authorization on the same endpoint")
 	}
@@ -203,10 +281,10 @@ func (a *admission) bindCarrierPolicy(carrier ReservationCarrierPolicy, methods 
 	if len(carrier.Shapes) == 0 || len(carrier.Shapes) > 2 {
 		return invalid(ir.Malformed, "policy.reservation_carriers", "carrier shape is empty or oversized")
 	}
-	seen := map[testpilotpb.EntrypointKind]bool{}
+	seen := map[testpilotspb.EntrypointKind]bool{}
 	var total int64
 	for _, shape := range carrier.Shapes {
-		if shape.Context != testpilotpb.ENTRYPOINT_KIND_WORKFLOW && shape.Context != testpilotpb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if shape.Context != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && shape.Context != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			return invalid(ir.Unsupported, "policy.reservation_carriers", "carrier shape has an unsupported activation context")
 		}
 		if seen[shape.Context] {
@@ -234,11 +312,35 @@ func (a *admission) bindSchemas() error {
 	if !validID(p.ProgramId) {
 		return invalid(ir.Malformed, "program", "invalid Program identity")
 	}
+	if len(p.Environment) > 10000 {
+		return invalid(ir.LimitExceeded, "environment", "environment definition collection ceiling exceeded")
+	}
+	var environmentBytes int64
+	for _, definition := range p.Environment {
+		if definition == nil || !validID(definition.BindingId) || a.environmentDefinitions[definition.BindingId] {
+			return invalid(ir.Malformed, "environment", "invalid or duplicate environment definition")
+		}
+		value, ok := a.environment[definition.BindingId]
+		if !ok {
+			return invalid(ir.Unknown, "environment", "environment binding is not supplied by the Profile")
+		}
+		bytes := int64(len(definition.BindingId) + len(value))
+		if bytes > p.Limits.MaxRequestBytes-environmentBytes {
+			return invalid(ir.LimitExceeded, "environment", "resolved environment byte ceiling exceeded")
+		}
+		environmentBytes += bytes
+		a.environmentDefinitions[definition.BindingId] = true
+	}
 	for _, role := range p.Roles {
 		if !validID(role.GetRoleId()) || a.roles[role.GetRoleId()] != 0 || role.GetKind() == 0 || a.allowed[role.GetRoleId()].Kind != role.GetKind() {
 			return invalid(ir.Malformed, "roles", "invalid, duplicate or unauthorized role")
 		}
 		a.roles[role.RoleId] = role.Kind
+		resolved, err := a.bindRole(role)
+		if err != nil {
+			return err
+		}
+		a.prepared.roles[role.RoleId] = resolved
 	}
 	for _, slot := range p.Slots {
 		if !validID(slot.GetSlotId()) {
@@ -247,12 +349,12 @@ func (a *admission) bindSchemas() error {
 		if _, exists := a.prepared.slots[slot.SlotId]; exists {
 			return invalid(ir.Malformed, "slots", "duplicate Slot")
 		}
-		var schema *testpilotpb.ValueType
+		var schema *testpilotspb.ValueType
 		switch slot.Content.(type) {
-		case *testpilotpb.SlotDefinition_Value:
+		case *testpilotspb.SlotDefinition_Value:
 			schema = slot.GetValue()
-		case *testpilotpb.SlotDefinition_OpaqueCapability:
-			schema = &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotpb.OpaqueCapabilityType{}}}}}
+		case *testpilotspb.SlotDefinition_OpaqueCapability:
+			schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}}}}
 		default:
 			return invalid(ir.Malformed, "slots", "Slot content is required")
 		}
@@ -282,7 +384,63 @@ func (a *admission) bindSchemas() error {
 	}
 	return nil
 }
-func (a *admission) role(id string, kind testpilotpb.RoleKind) error {
+
+func (a *admission) bindRole(role *testpilotspb.RoleDefinition) (resolvedRole, error) {
+	result := resolvedRole{ID: role.RoleId, Kind: role.Kind, NamespaceBindingID: role.NamespaceBindingId, ResourceBindingID: role.ResourceBindingId}
+	switch role.Kind {
+	case testpilotspb.ROLE_KIND_ENDPOINT:
+		if role.NamespaceBindingId != "" {
+			return resolvedRole{}, invalid(ir.Unsupported, "roles", "endpoint role cannot bind a namespace")
+		}
+	case testpilotspb.ROLE_KIND_WORKER:
+		if role.ResourceBindingId != "" {
+			return resolvedRole{}, invalid(ir.Unsupported, "roles", "worker role cannot bind a resource")
+		}
+		if a.bindingsRequired && role.NamespaceBindingId == "" {
+			return resolvedRole{}, invalid(ir.Unsupported, "roles", "worker role requires a namespace binding")
+		}
+	case testpilotspb.ROLE_KIND_TASK_QUEUE:
+		if a.bindingsRequired && (role.NamespaceBindingId == "" || role.ResourceBindingId == "") {
+			return resolvedRole{}, invalid(ir.Unsupported, "roles", "task-queue role requires namespace and resource bindings")
+		}
+	case testpilotspb.ROLE_KIND_PARTICIPANT:
+		if role.NamespaceBindingId != "" || role.ResourceBindingId != "" {
+			return resolvedRole{}, invalid(ir.Unsupported, "roles", "participant role cannot bind resources")
+		}
+	default:
+		return resolvedRole{}, invalid(ir.Malformed, "roles", "unknown role kind")
+	}
+	var err error
+	if role.NamespaceBindingId != "" {
+		result.Namespace, err = a.resolveEnvironment(role.NamespaceBindingId)
+		if err != nil {
+			return resolvedRole{}, err
+		}
+	}
+	if role.ResourceBindingId != "" {
+		result.Resource, err = a.resolveEnvironment(role.ResourceBindingId)
+		if err != nil {
+			return resolvedRole{}, err
+		}
+	}
+	return result, nil
+}
+
+func (a *admission) resolveEnvironment(id string) (string, error) {
+	if !validID(id) {
+		return "", invalid(ir.Malformed, "environment", "invalid environment reference")
+	}
+	if !a.environmentDefinitions[id] {
+		return "", invalid(ir.Unknown, "environment", "environment reference is not declared")
+	}
+	value, ok := a.environment[id]
+	if !ok {
+		return "", invalid(ir.Unknown, "environment", "environment binding is not supplied by the Profile")
+	}
+	a.environmentUsed[id] = true
+	return value, nil
+}
+func (a *admission) role(id string, kind testpilotspb.RoleKind) error {
 	if a.roles[id] != kind {
 		return invalid(ir.Unknown, "role", "role is missing or has the wrong kind")
 	}
@@ -294,25 +452,25 @@ func (a *admission) bindActivation(g *graph) error {
 		return invalid(ir.Malformed, g.id, "activation binding is required")
 	}
 	var worker, queue, name, operation string
-	var expected testpilotpb.EntrypointKind
+	var expected testpilotspb.EntrypointKind
 	switch binding := b.Activation.(type) {
-	case *testpilotpb.EntrypointDefinition_Controller:
-		expected = testpilotpb.ENTRYPOINT_KIND_CONTROLLER
+	case *testpilotspb.EntrypointDefinition_Controller:
+		expected = testpilotspb.ENTRYPOINT_KIND_CONTROLLER
 		if binding.Controller == nil {
 			return invalid(ir.Malformed, g.id, "nil activation")
 		}
-	case *testpilotpb.EntrypointDefinition_Workflow:
-		expected = testpilotpb.ENTRYPOINT_KIND_WORKFLOW
+	case *testpilotspb.EntrypointDefinition_Workflow:
+		expected = testpilotspb.ENTRYPOINT_KIND_WORKFLOW
 		worker = binding.Workflow.GetWorkerRoleId()
 		queue = binding.Workflow.GetTaskQueueRoleId()
 		name = binding.Workflow.GetWorkflowType()
-	case *testpilotpb.EntrypointDefinition_Activity:
-		expected = testpilotpb.ENTRYPOINT_KIND_ACTIVITY
+	case *testpilotspb.EntrypointDefinition_Activity:
+		expected = testpilotspb.ENTRYPOINT_KIND_ACTIVITY
 		worker = binding.Activity.GetWorkerRoleId()
 		queue = binding.Activity.GetTaskQueueRoleId()
 		name = binding.Activity.GetActivityType()
-	case *testpilotpb.EntrypointDefinition_NexusHandler:
-		expected = testpilotpb.ENTRYPOINT_KIND_NEXUS_HANDLER
+	case *testpilotspb.EntrypointDefinition_NexusHandler:
+		expected = testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
 		worker = binding.NexusHandler.GetWorkerRoleId()
 		queue = binding.NexusHandler.GetTaskQueueRoleId()
 		name = binding.NexusHandler.GetService()
@@ -324,14 +482,14 @@ func (a *admission) bindActivation(g *graph) error {
 		return invalid(ir.Unsupported, g.id, "unknown activation")
 	}
 	g.context = expected
-	if expected != testpilotpb.ENTRYPOINT_KIND_CONTROLLER {
+	if expected != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
 		if !validID(name) {
 			return invalid(ir.Malformed, g.id, "invalid activation name")
 		}
-		if err := a.role(worker, testpilotpb.ROLE_KIND_WORKER); err != nil {
+		if err := a.role(worker, testpilotspb.ROLE_KIND_WORKER); err != nil {
 			return err
 		}
-		return a.role(queue, testpilotpb.ROLE_KIND_TASK_QUEUE)
+		return a.role(queue, testpilotspb.ROLE_KIND_TASK_QUEUE)
 	}
 	return nil
 }
@@ -353,7 +511,7 @@ func (a *admission) bindGraphs() error {
 		}
 	}
 	cleanup := p.Cleanup
-	if err := a.addGraph(&graph{id: cleanup.EntrypointId, context: testpilotpb.ENTRYPOINT_KIND_CONTROLLER, cleanup: true}, cleanup.Instructions); err != nil {
+	if err := a.addGraph(&graph{id: cleanup.EntrypointId, context: testpilotspb.ENTRYPOINT_KIND_CONTROLLER, cleanup: true}, cleanup.Instructions); err != nil {
 		return err
 	}
 	var nodes, edges int64
@@ -368,7 +526,7 @@ func (a *admission) bindGraphs() error {
 	}
 	return nil
 }
-func (a *admission) addGraph(g *graph, sources []*testpilotpb.InstructionDefinition) error {
+func (a *admission) addGraph(g *graph, sources []*testpilotspb.InstructionDefinition) error {
 	if !validID(g.id) || a.graphIndex[g.id] != nil {
 		return invalid(ir.Malformed, "entrypoints", "invalid or duplicate entrypoint identity")
 	}
@@ -383,7 +541,7 @@ func (a *admission) addGraph(g *graph, sources []*testpilotpb.InstructionDefinit
 			return invalid(ir.Malformed, g.id, "duplicate instruction identity")
 		}
 		g.index[source.InstructionId] = i
-		g.nodes = append(g.nodes, &node{source: source, outcomes: map[testpilotpb.InstructionOutcomeField]ir.Type{}, ancestors: map[int]bool{}})
+		g.nodes = append(g.nodes, &node{source: source, outcomes: map[testpilotspb.InstructionOutcomeField]ir.Type{}, ancestors: map[int]bool{}})
 	}
 	return a.orderGraph(g)
 }
@@ -445,7 +603,7 @@ func (a *admission) bindReservations() error {
 	var controllers int64
 	limit := a.prepared.source.Limits.MaxActivations
 	for _, g := range a.prepared.graphs {
-		if !g.cleanup && g.context == testpilotpb.ENTRYPOINT_KIND_CONTROLLER {
+		if !g.cleanup && g.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
 			controllers++
 		}
 		for _, n := range g.nodes {
@@ -481,11 +639,11 @@ func (a *admission) reservationCount(g *graph, n *node) (int64, error) {
 	var count int64
 	seen := map[string]bool{}
 	for _, reservation := range n.source.ActivationReservations {
-		if g.cleanup || g.context != testpilotpb.ENTRYPOINT_KIND_CONTROLLER {
+		if g.cleanup || g.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
 			return 0, invalid(ir.Unsupported, g.id, "only ordinary controller nodes may reserve activations")
 		}
 		target := a.graphIndex[reservation.GetEntrypointId()]
-		if target == nil || target.cleanup || target.context != testpilotpb.ENTRYPOINT_KIND_WORKFLOW && target.context != testpilotpb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if target == nil || target.cleanup || target.context != testpilotspb.ENTRYPOINT_KIND_WORKFLOW && target.context != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			return 0, invalid(ir.TypeMismatch, g.id, "reservation requires a bound workflow or Nexus-handler entrypoint")
 		}
 		if seen[target.id] || reservation.GetCount() <= 0 {
@@ -502,8 +660,8 @@ func (a *admission) reservationCount(g *graph, n *node) (int64, error) {
 }
 func messageType(catalog *ir.Catalog, descriptor protoreflect.MessageDescriptor) (ir.Type, error) {
 	if descriptor.FullName() == "google.protobuf.Any" {
-		return catalog.BindType(&testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Any{Any: &testpilotpb.AnyType{}}}}})
+		return catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}}}})
 	}
-	return catalog.BindType(&testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Message{Message: &testpilotpb.NamedType{ProtobufType: string(descriptor.FullName())}}}}})
+	return catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: string(descriptor.FullName())}}}}})
 }
 func nodePath(g *graph, n *node) string { return fmt.Sprintf("%s.%s", g.id, n.source.InstructionId) }

@@ -18,8 +18,6 @@ import Umpire.Artifact.Tests.Result
 import Umpire.Artifact.Tests.Goldens
 import Umpire.Artifact.Tests.Set
 import Umpire.ExecutionHandoffTests
-import Umpire.CaseTests
-import Umpire.Case.CompilerTests
 import Umpire.Tests.MigrationCompatibility
 import Umpire.Observation.Tests
 import Umpire.Observation.Tests.Mutations
@@ -37,6 +35,7 @@ import Umpire.Exploration.Tests.Guided
 import Umpire.Exploration.Tests.Engine
 import Umpire.Exploration.Tests.Pinned
 import Umpire.Exploration.Tests.Session
+import Umpire.Case.CompilerTests
 
 namespace UmpireTests
 

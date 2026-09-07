@@ -6,7 +6,7 @@ import (
 	"math/bits"
 	"sync"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 )
 
@@ -19,34 +19,34 @@ type valueStore struct {
 	attempts    int64
 	activations map[string]*activationValues
 	controllers map[string]bool
-	slots       map[string]*testpilotpb.Value
+	slots       map[string]*testpilotspb.Value
 }
 type activationValues struct {
 	store    *valueStore
 	graph    *graph
 	id       string
-	slots    map[string]*testpilotpb.Value
+	slots    map[string]*testpilotspb.Value
 	outcomes map[Coordinate]*valueBatch
 	latest   map[string]*valueBatch
 }
 type valueBatch struct {
 	owner      *activationValues
 	coordinate Coordinate
-	outcome    *testpilotpb.InstructionOutcome
-	fields     map[testpilotpb.InstructionOutcomeField]*testpilotpb.Value
-	writes     map[string]*testpilotpb.Value
+	outcome    *testpilotspb.InstructionOutcome
+	fields     map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value
+	writes     map[string]*testpilotspb.Value
 	facts      []projectionFact
 }
 type projectionFact struct {
 	projection, index int64
-	observations      []*testpilotpb.ObservationResult
+	observations      []*testpilotspb.ObservationResult
 }
 
 func newValueStore(program *PreparedProgram, runID string) (*valueStore, error) {
 	if program == nil || !validID(runID) {
 		return nil, invalid(ir.Malformed, "values", "prepared Program and Run identity required")
 	}
-	return &valueStore{program: program, runID: runID, changed: make(chan struct{}), activations: map[string]*activationValues{}, controllers: map[string]bool{}, slots: map[string]*testpilotpb.Value{}}, nil
+	return &valueStore{program: program, runID: runID, changed: make(chan struct{}), activations: map[string]*activationValues{}, controllers: map[string]bool{}, slots: map[string]*testpilotspb.Value{}}, nil
 }
 func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) {
 	s.mu.Lock()
@@ -70,11 +70,11 @@ func (s *valueStore) activate(entrypoint, id string) (*activationValues, error) 
 	if selected == nil {
 		return nil, invalid(ir.Unknown, "values", "unknown entrypoint")
 	}
-	if selected.context == testpilotpb.ENTRYPOINT_KIND_CONTROLLER && s.controllers[entrypoint] {
+	if selected.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER && s.controllers[entrypoint] {
 		return nil, invalid(ir.Malformed, "values", "controller already activated")
 	}
-	a := &activationValues{store: s, graph: selected, id: id, slots: map[string]*testpilotpb.Value{}, outcomes: map[Coordinate]*valueBatch{}, latest: map[string]*valueBatch{}}
-	if selected.context == testpilotpb.ENTRYPOINT_KIND_CONTROLLER {
+	a := &activationValues{store: s, graph: selected, id: id, slots: map[string]*testpilotspb.Value{}, outcomes: map[Coordinate]*valueBatch{}, latest: map[string]*valueBatch{}}
+	if selected.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
 		a.slots = s.slots
 		s.controllers[entrypoint] = true
 	}
@@ -153,7 +153,7 @@ func (a *activationValues) commit(ctx context.Context, batch *valueBatch) error 
 // Runtime work scales with admitted operations and payload bounds, independently of binding work.
 // Each operation may validate, encode/decode and copy values at every admitted path depth.
 func (a *activationValues) workLimit() int64 { return a.graph.runtimeWork }
-func runtimeWorkLimit(g *graph, limits *testpilotpb.ProgramLimits) int64 {
+func runtimeWorkLimit(g *graph, limits *testpilotspb.ProgramLimits) int64 {
 	operations := int64(1)
 	for _, n := range g.nodes {
 		operations += int64(len(n.assignments)+len(n.outcomes)+1) + expressionNodes(n.guard) + expressionNodes(n.input)
@@ -198,7 +198,7 @@ type valueWork struct {
 func (a *activationValues) newWork(ctx context.Context, limit int64) (*valueWork, error) {
 	return newValueWork(ctx, a.store.program.source.Limits, a.workLimit(), limit)
 }
-func newValueWork(ctx context.Context, p *testpilotpb.ProgramLimits, ceiling, limit int64) (*valueWork, error) {
+func newValueWork(ctx context.Context, p *testpilotspb.ProgramLimits, ceiling, limit int64) (*valueWork, error) {
 	if ctx == nil || limit <= 0 || limit > ceiling {
 		return nil, invalid(ir.LimitExceeded, "values", "invalid runtime work ceiling")
 	}
@@ -223,22 +223,22 @@ func (w *valueWork) charge(count int64) error {
 	w.work += count
 	return nil
 }
-func (w *valueWork) copy(value *testpilotpb.Value, typ ir.Type) (*testpilotpb.Value, error) {
+func (w *valueWork) copy(value *testpilotspb.Value, typ ir.Type) (*testpilotspb.Value, error) {
 	snapshot, work, err := ir.SnapshotValue(w.ctx, value, typ, w.remaining(w.limits.Bytes))
 	w.work += work
 	return snapshot, err
 }
-func (a *activationValues) evaluate(w *valueWork, e *ir.Expression) (*testpilotpb.Value, error) {
+func (a *activationValues) evaluate(w *valueWork, e *ir.Expression) (*testpilotspb.Value, error) {
 	s := a.store
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.sealed {
 		return nil, invalid(ir.Unavailable, "values", "store sealed")
 	}
-	value, work, err := e.EvaluateExecution(w.ctx, func(ref ir.Reference) *testpilotpb.Value {
+	value, work, err := e.EvaluateExecution(w.ctx, func(ref ir.Reference) *testpilotspb.Value {
 		switch ref.Kind {
 		case ir.EventReference:
-			if ref.Field == int32(testpilotpb.RUN_EVENT_FIELD_RUN_ID) {
+			if ref.Field == int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID) {
 				return textValue(s.runID)
 			}
 		case ir.SlotReference:
@@ -246,7 +246,7 @@ func (a *activationValues) evaluate(w *valueWork, e *ir.Expression) (*testpilotp
 		case ir.OutcomeReference:
 			if ref.Entrypoint == a.graph.id {
 				if batch := a.latest[ref.ID]; batch != nil {
-					return batch.fields[testpilotpb.InstructionOutcomeField(ref.Field)]
+					return batch.fields[testpilotspb.InstructionOutcomeField(ref.Field)]
 				}
 			}
 		default:

@@ -13,7 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/api/workflowservice/v1"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
@@ -111,8 +111,8 @@ func TestCaseRuntimePublicFacadeConformance(t *testing.T) {
 }
 
 type facadeRunResult struct {
-	run     *testpilotpb.Run
-	verdict *testpilotpb.Verdict
+	run     *testpilotspb.Run
+	verdict *testpilotspb.Verdict
 	err     error
 }
 
@@ -135,7 +135,7 @@ func runFacadeCase(t *testing.T, prepared *testpilot.PreparedCase, driver testpi
 	return collected
 }
 
-func loadFacadeCase(t testing.TB, class string) *testpilotpb.Case {
+func loadFacadeCase(t testing.TB, class string) *testpilotspb.Case {
 	t.Helper()
 	encoded, err := os.ReadFile(filepath.Join(facadeCorpusRoot, class, "case.json"))
 	require.NoError(t, err)
@@ -155,7 +155,7 @@ func loadFacadeExpected(t testing.TB, class string) facadeExpectedResult {
 	return expected
 }
 
-func facadeProfile(t testing.TB, source *testpilotpb.Case) testpilot.ProfileSpec {
+func facadeProfile(t testing.TB, source *testpilotspb.Case) testpilot.ProfileSpec {
 	t.Helper()
 	catalog, err := testpilot.NewCatalog(facadeDescriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
@@ -163,7 +163,7 @@ func facadeProfile(t testing.TB, source *testpilotpb.Case) testpilot.ProfileSpec
 		Identity: "facade-conformance",
 		Catalog:  catalog,
 		Roles: []testpilot.RolePolicy{{
-			ID: "temporal.workflow-service", Kind: testpilotpb.ROLE_KIND_ENDPOINT,
+			ID: "temporal.workflow-service", Kind: testpilotspb.ROLE_KIND_ENDPOINT,
 			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
 		}},
 		Capabilities:   []testpilot.Capability{testpilot.InvokeRPC},
@@ -202,6 +202,7 @@ type facadeDriver struct {
 func (h *facadeDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
 	return h.identity, nil
 }
+func (h *facadeDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
 func (h *facadeDriver) Open(_ context.Context, runID string, _ testpilot.PreparedProgram) (testpilot.Session, error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -244,11 +245,11 @@ func (s *facadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordi
 		response.Set(field, protoreflect.ValueOfString("facade-conformance"))
 	}
 	return facadeEffect{result: testpilot.EffectResult{
-		Outcome:  &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
+		Outcome:  &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
 		Response: response,
 	}}, nil
 }
-func (*facadeSession) CompleteNexusOperation(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, *testpilotpb.Value) (testpilot.EffectHandle, error) {
+func (*facadeSession) CompleteNexusOperation(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, *testpilotspb.Value) (testpilot.EffectHandle, error) {
 	return nil, errors.New("facade conformance Cases do not complete Nexus operations")
 }
 func (*facadeSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
@@ -263,7 +264,9 @@ func (s *facadeSession) Close(context.Context) error {
 	s.closed = true
 	return nil
 }
-func (*facadeSession) Diagnose(context.Context, string, *testpilotpb.RunDiagnostic) error { return nil }
+func (*facadeSession) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
+	return nil
+}
 
 type facadeEffect struct{ result testpilot.EffectResult }
 
@@ -271,7 +274,7 @@ func (e facadeEffect) Wait(context.Context) (testpilot.EffectResult, error) { re
 func (facadeEffect) Cancel(context.Context) error                           { return nil }
 func (facadeEffect) Drain(context.Context) error                            { return nil }
 
-func projectFacadeRun(run *testpilotpb.Run) facadeStableRunProjection {
+func projectFacadeRun(run *testpilotspb.Run) facadeStableRunProjection {
 	events := make([]facadeStableEventProjection, 0, len(run.GetEvents()))
 	for _, event := range run.GetEvents() {
 		events = append(events, facadeStableEventProjection{
@@ -308,7 +311,7 @@ func projectFacadeRun(run *testpilotpb.Run) facadeStableRunProjection {
 	}
 }
 
-func validateFacadeDynamicFields(t testing.TB, run *testpilotpb.Run) {
+func validateFacadeDynamicFields(t testing.TB, run *testpilotspb.Run) {
 	t.Helper()
 	require.True(t, strings.HasPrefix(run.GetRunId(), "testpilot.run."))
 	_, err := uuid.Parse(strings.TrimPrefix(run.GetRunId(), "testpilot.run."))
@@ -371,119 +374,119 @@ func mapKeys(values map[string]struct{}) []string {
 	return keys
 }
 
-func eventKindName(kind testpilotpb.RunEventKind) string {
+func eventKindName(kind testpilotspb.RunEventKind) string {
 	switch kind {
-	case testpilotpb.RUN_EVENT_KIND_RUN_OPENED:
+	case testpilotspb.RUN_EVENT_KIND_RUN_OPENED:
 		return "RUN_OPENED"
-	case testpilotpb.RUN_EVENT_KIND_ACTIVATION_OPENED:
+	case testpilotspb.RUN_EVENT_KIND_ACTIVATION_OPENED:
 		return "ACTIVATION_OPENED"
-	case testpilotpb.RUN_EVENT_KIND_INSTRUCTION_STARTED:
+	case testpilotspb.RUN_EVENT_KIND_INSTRUCTION_STARTED:
 		return "INSTRUCTION_STARTED"
-	case testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED:
+	case testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED:
 		return "INSTRUCTION_COMPLETED"
-	case testpilotpb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT:
+	case testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT:
 		return "INSTRUCTION_TIMED_OUT"
-	case testpilotpb.RUN_EVENT_KIND_ACTIVATION_CLOSED:
+	case testpilotspb.RUN_EVENT_KIND_ACTIVATION_CLOSED:
 		return "ACTIVATION_CLOSED"
-	case testpilotpb.RUN_EVENT_KIND_CLEANUP_STARTED:
+	case testpilotspb.RUN_EVENT_KIND_CLEANUP_STARTED:
 		return "CLEANUP_STARTED"
-	case testpilotpb.RUN_EVENT_KIND_CLEANUP_COMPLETED:
+	case testpilotspb.RUN_EVENT_KIND_CLEANUP_COMPLETED:
 		return "CLEANUP_COMPLETED"
-	case testpilotpb.RUN_EVENT_KIND_RUN_CLOSED:
+	case testpilotspb.RUN_EVENT_KIND_RUN_CLOSED:
 		return "RUN_CLOSED"
-	case testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC:
+	case testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC:
 		return "DIAGNOSTIC"
 	default:
 		return "UNSPECIFIED"
 	}
 }
 
-func dispositionName(value testpilotpb.RunStatus) string {
+func dispositionName(value testpilotspb.RunStatus) string {
 	switch value {
-	case testpilotpb.RUN_STATUS_COMPLETED:
+	case testpilotspb.RUN_STATUS_COMPLETED:
 		return "COMPLETED"
-	case testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR:
+	case testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR:
 		return "STOPPED_BY_MONITOR"
-	case testpilotpb.RUN_STATUS_INCOMPLETE:
+	case testpilotspb.RUN_STATUS_INCOMPLETE:
 		return "INCOMPLETE"
 	default:
 		return "UNSPECIFIED"
 	}
 }
 
-func cleanupStatusName(value testpilotpb.CleanupStatus) string {
+func cleanupStatusName(value testpilotspb.CleanupStatus) string {
 	switch value {
-	case testpilotpb.CLEANUP_STATUS_SUCCEEDED:
+	case testpilotspb.CLEANUP_STATUS_SUCCEEDED:
 		return "SUCCEEDED"
-	case testpilotpb.CLEANUP_STATUS_FAILED:
+	case testpilotspb.CLEANUP_STATUS_FAILED:
 		return "FAILED"
-	case testpilotpb.CLEANUP_STATUS_TIMED_OUT:
+	case testpilotspb.CLEANUP_STATUS_TIMED_OUT:
 		return "TIMED_OUT"
 	default:
 		return "UNSPECIFIED"
 	}
 }
 
-func diagnosticKindName(value testpilotpb.RunDiagnosticKind) string {
+func diagnosticKindName(value testpilotspb.RunDiagnosticKind) string {
 	switch value {
-	case testpilotpb.RUN_DIAGNOSTIC_KIND_EXECUTION:
+	case testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION:
 		return "EXECUTION"
-	case testpilotpb.RUN_DIAGNOSTIC_KIND_MONITOR:
+	case testpilotspb.RUN_DIAGNOSTIC_KIND_MONITOR:
 		return "MONITOR"
-	case testpilotpb.RUN_DIAGNOSTIC_KIND_RECORDER:
+	case testpilotspb.RUN_DIAGNOSTIC_KIND_RECORDER:
 		return "RECORDER"
-	case testpilotpb.RUN_DIAGNOSTIC_KIND_INVARIANT:
+	case testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT:
 		return "INVARIANT"
-	case testpilotpb.RUN_DIAGNOSTIC_KIND_LIMIT:
+	case testpilotspb.RUN_DIAGNOSTIC_KIND_LIMIT:
 		return "LIMIT"
-	case testpilotpb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT:
+	case testpilotspb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT:
 		return "HOST_CONTRACT"
-	case testpilotpb.RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT:
+	case testpilotspb.RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT:
 		return "POST_CLOSE_EVENT"
 	default:
 		return "UNSPECIFIED"
 	}
 }
 
-func verdictName(value testpilotpb.VerdictStatus) string {
+func verdictName(value testpilotspb.VerdictStatus) string {
 	switch value {
-	case testpilotpb.VERDICT_STATUS_SATISFIED:
+	case testpilotspb.VERDICT_STATUS_SATISFIED:
 		return "SATISFIED"
-	case testpilotpb.VERDICT_STATUS_VIOLATED:
+	case testpilotspb.VERDICT_STATUS_VIOLATED:
 		return "VIOLATED"
-	case testpilotpb.VERDICT_STATUS_INCONCLUSIVE:
+	case testpilotspb.VERDICT_STATUS_INCONCLUSIVE:
 		return "INCONCLUSIVE"
 	default:
 		return "UNSPECIFIED"
 	}
 }
 
-func ruleVerdictName(value testpilotpb.RuleVerdictStatus) string {
+func ruleVerdictName(value testpilotspb.RuleVerdictStatus) string {
 	switch value {
-	case testpilotpb.RULE_VERDICT_STATUS_PENDING:
+	case testpilotspb.RULE_VERDICT_STATUS_PENDING:
 		return "PENDING"
-	case testpilotpb.RULE_VERDICT_STATUS_SATISFIED:
+	case testpilotspb.RULE_VERDICT_STATUS_SATISFIED:
 		return "SATISFIED"
-	case testpilotpb.RULE_VERDICT_STATUS_VIOLATED:
+	case testpilotspb.RULE_VERDICT_STATUS_VIOLATED:
 		return "VIOLATED"
-	case testpilotpb.RULE_VERDICT_STATUS_INCONCLUSIVE:
+	case testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE:
 		return "INCONCLUSIVE"
 	default:
 		return "UNSPECIFIED"
 	}
 }
 
-func outcomeStatusName(value testpilotpb.InstructionOutcomeStatus) string {
+func outcomeStatusName(value testpilotspb.InstructionOutcomeStatus) string {
 	switch value {
-	case testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED:
+	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED:
 		return "SUCCEEDED"
-	case testpilotpb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS:
+	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS:
 		return "PROTOCOL_NON_SUCCESS"
-	case testpilotpb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE:
+	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE:
 		return "SDK_FAILURE"
-	case testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT:
+	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT:
 		return "TIMED_OUT"
-	case testpilotpb.INSTRUCTION_OUTCOME_STATUS_CANCELED:
+	case testpilotspb.INSTRUCTION_OUTCOME_STATUS_CANCELED:
 		return "CANCELED"
 	default:
 		return ""

@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -18,9 +18,9 @@ import (
 func dataFixture(t *testing.T) (*PreparedProgram, *activationValues, Coordinate) {
 	t.Helper()
 	c, catalog, policy := fixture(t)
-	c.Program.Slots = []*testpilotpb.SlotDefinition{valueSlot("text", scalar(testpilotpb.SCALAR_KIND_TEXT))}
-	c.Program.Observations = []*testpilotpb.ObservationDefinition{{ObservationId: "text", Type: scalar(testpilotpb.SCALAR_KIND_TEXT)}}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections = []*testpilotpb.ResponseProjection{{Source: field("text"), Kind: testpilotpb.PROJECTION_KIND_ONE, Targets: []*testpilotpb.ProjectionTarget{{Target: &testpilotpb.ProjectionTarget_SlotId{SlotId: "text"}}, {Target: &testpilotpb.ProjectionTarget_ObservationId{ObservationId: "text"}}}}}
+	c.Program.Slots = []*testpilotspb.SlotDefinition{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
+	c.Program.Observations = []*testpilotspb.ObservationDefinition{{ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections = []*testpilotspb.ResponseProjection{{Source: field("text"), Kind: testpilotspb.PROJECTION_KIND_ONE, Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_SlotId{SlotId: "text"}}, {Target: &testpilotspb.ProjectionTarget_ObservationId{ObservationId: "text"}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -32,7 +32,7 @@ func dataFixture(t *testing.T) (*PreparedProgram, *activationValues, Coordinate)
 func effectResponse(p *PreparedProgram, text string) EffectResult {
 	response := dynamicpb.NewMessage(p.graphs[0].nodes[0].method.Output())
 	response.Set(response.Descriptor().Fields().ByName("text"), protoreflect.ValueOfString(text))
-	return EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
+	return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}, Response: response}
 }
 func TestValuesStageAtomicallyAndOwnSnapshots(t *testing.T) {
 	p, values, coord := dataFixture(t)
@@ -42,10 +42,10 @@ func TestValuesStageAtomicallyAndOwnSnapshots(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, values.slots)
 	raw.Response.ProtoReflect().Set(raw.Response.ProtoReflect().Descriptor().Fields().ByName("text"), protoreflect.ValueOfString("changed"))
-	raw.Outcome.Status = testpilotpb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS
+	raw.Outcome.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS
 	require.NoError(t, values.commit(ctx, batch))
 	require.Equal(t, "first", values.slots["text"].GetText())
-	require.Equal(t, testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, batch.outcome.Status)
+	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, batch.outcome.Status)
 	require.Equal(t, "first", batch.facts[0].observations[0].Value.GetText())
 	require.Error(t, values.commit(ctx, batch))
 	_, other, _ := dataFixture(t)
@@ -62,8 +62,8 @@ func TestValuesRejectWrongOwnershipAndUnprojectedPayload(t *testing.T) {
 	for _, mutate := range []func(*Coordinate, *EffectResult){
 		func(c *Coordinate, _ *EffectResult) { c.RunID = "other" }, func(c *Coordinate, _ *EffectResult) { c.ActivationID = "other" }, func(c *Coordinate, _ *EffectResult) { c.Attempt = 2 },
 		func(_ *Coordinate, r *EffectResult) {
-			r.Outcome.Value = &testpilotpb.Value{Value: &testpilotpb.Value_Text{Text: "secret"}}
-		}, func(_ *Coordinate, r *EffectResult) { r.Response = &testpilotpb.InstructionOutcome{} },
+			r.Outcome.Value = &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "secret"}}
+		}, func(_ *Coordinate, r *EffectResult) { r.Response = &testpilotspb.InstructionOutcome{} },
 	} {
 		c := coord
 		r := effectResponse(p, "first")
@@ -77,7 +77,7 @@ func TestValuesRejectWrongOwnershipAndUnprojectedPayload(t *testing.T) {
 func TestRequestReadsGuardedSlotsWithoutRebinding(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	node := c.Program.Entrypoints[0].Instructions[0]
-	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotpb.RequestAssignment{{Target: field("text"), Value: &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Literal{Literal: &testpilotpb.Value{Value: &testpilotpb.Value_Text{Text: "request"}}}}}}
+	node.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}}}}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -111,12 +111,12 @@ func TestValuesSealRejectsFreshBatchAndReads(t *testing.T) {
 
 func TestValuesGuardedMissingSlotsAndActivationIsolation(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	c.Program.Slots = []*testpilotpb.SlotDefinition{valueSlot("text", scalar(testpilotpb.SCALAR_KIND_TEXT))}
-	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections = []*testpilotpb.ResponseProjection{{Source: field("text"), Kind: testpilotpb.PROJECTION_KIND_ONE, Targets: []*testpilotpb.ProjectionTarget{{Target: &testpilotpb.ProjectionTarget_SlotId{SlotId: "text"}}}}}
+	c.Program.Slots = []*testpilotspb.SlotDefinition{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
+	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().ResponseProjections = []*testpilotspb.ResponseProjection{{Source: field("text"), Kind: testpilotspb.PROJECTION_KIND_ONE, Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_SlotId{SlotId: "text"}}}}}
 	consumer := rpcNode("consumer")
-	consumer.Dependencies = []*testpilotpb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}}
+	consumer.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}}
 	consumer.Guard = present(slot("text"))
-	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotpb.RequestAssignment{{Target: field("text"), Value: slot("text")}}
+	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: slot("text")}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
 	addWorker(c)
 	p, err := Prepare(c, catalog, policy)
@@ -200,10 +200,12 @@ func TestValuesConcurrentRunIsolationAndSeal(t *testing.T) {
 func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 	p, values, coord := dataFixture(t)
 	ctx := context.Background()
-	for _, mutate := range []func(*testpilotpb.InstructionOutcome){
-		func(o *testpilotpb.InstructionOutcome) { o.Status = 999 }, func(o *testpilotpb.InstructionOutcome) { o.Status = testpilotpb.INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED },
-		func(o *testpilotpb.InstructionOutcome) { o.ProtoReflect().SetUnknown([]byte{0x80, 6, 1}) }, func(o *testpilotpb.InstructionOutcome) { o.Detail = strings.Repeat("x", 5000) },
-		func(o *testpilotpb.InstructionOutcome) { o.SdkFailureCode = "worker" },
+	for _, mutate := range []func(*testpilotspb.InstructionOutcome){
+		func(o *testpilotspb.InstructionOutcome) { o.Status = 999 }, func(o *testpilotspb.InstructionOutcome) {
+			o.Status = testpilotspb.INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED
+		},
+		func(o *testpilotspb.InstructionOutcome) { o.ProtoReflect().SetUnknown([]byte{0x80, 6, 1}) }, func(o *testpilotspb.InstructionOutcome) { o.Detail = strings.Repeat("x", 5000) },
+		func(o *testpilotspb.InstructionOutcome) { o.SdkFailureCode = "worker" },
 	} {
 		raw := effectResponse(p, "ready")
 		mutate(raw.Outcome)
@@ -212,7 +214,7 @@ func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 		require.Nil(t, batch)
 	}
 	p.graphs[0].nodes[0].source.Limits.MaxAttempts = 2
-	raw := EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "first"}}
+	raw := EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "first"}}
 	first, _, err := values.stage(ctx, coord, raw, values.workLimit())
 	require.NoError(t, err)
 	require.NoError(t, values.commit(ctx, first))
@@ -232,9 +234,9 @@ func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	addWorker(c)
 	node := rpcNode("finish")
-	node.Instruction = &testpilotpb.Instruction{Instruction: &testpilotpb.Instruction_Finish{Finish: &testpilotpb.Finish{Result: textLiteral("done")}}}
-	node.Outcome.Fields = append(node.Outcome.Fields, &testpilotpb.OutcomeFieldDefinition{Field: testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotpb.SCALAR_KIND_TEXT)})
-	c.Program.Entrypoints[1].Instructions = []*testpilotpb.InstructionDefinition{node}
+	node.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}
+	node.Outcome.Fields = append(node.Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
+	c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionDefinition{node}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -244,14 +246,14 @@ func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 	b, err := store.activate("workflow", "b")
 	require.NoError(t, err)
 	coord := Coordinate{RunID: "run", EntrypointID: "workflow", ActivationID: "a", InstructionID: "finish", Attempt: 1}
-	raw := EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")}}
+	raw := EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")}}
 	batch, _, err := a.stage(context.Background(), coord, raw, a.workLimit())
 	require.NoError(t, err)
 	require.NoError(t, a.commit(context.Background(), batch))
-	raw.Outcome.Value.Value = &testpilotpb.Value_Text{Text: "changed"}
-	require.Equal(t, "owned", a.latest["finish"].fields[testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetText())
+	raw.Outcome.Value.Value = &testpilotspb.Value_Text{Text: "changed"}
+	require.Equal(t, "owned", a.latest["finish"].fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetText())
 	require.Empty(t, b.latest)
-	for _, value := range []*testpilotpb.Value{nil, {Value: &testpilotpb.Value_BoolValue{BoolValue: true}}} {
+	for _, value := range []*testpilotspb.Value{nil, {Value: &testpilotspb.Value_BoolValue{BoolValue: true}}} {
 		coord.ActivationID = "b"
 		raw.Outcome.Value = value
 		_, _, err = b.stage(context.Background(), coord, raw, b.workLimit())
@@ -262,11 +264,11 @@ func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 
 func TestWideExpressionBudgetAndCeilingOverflow(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	operands := make([]*testpilotpb.ProgramExpression, 128)
+	operands := make([]*testpilotspb.ProgramExpression, 128)
 	for i := range operands {
-		operands[i] = &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Literal{Literal: &testpilotpb.Value{Value: &testpilotpb.Value_BoolValue{BoolValue: true}}}}
+		operands[i] = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}}
 	}
-	c.Program.Entrypoints[0].Instructions[0].Guard = &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_All{All: &testpilotpb.ProgramAllExpression{Operands: operands}}}
+	c.Program.Entrypoints[0].Instructions[0].Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_All{All: &testpilotspb.ProgramAllExpression{Operands: operands}}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")

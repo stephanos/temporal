@@ -4,7 +4,7 @@ import (
 	"maps"
 	"strconv"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -21,14 +21,14 @@ func (a *admission) bindCaptures(m *machine) error {
 		if _, ok := m.captures[capture.CaptureId]; ok {
 			return invalid(ir.Malformed, "duplicate capture identity")
 		}
-		var typ *testpilotpb.ValueType
+		var typ *testpilotspb.ValueType
 		switch value := capture.Type.GetType().(type) {
-		case *testpilotpb.ContractCaptureType_Scalar:
+		case *testpilotspb.ContractCaptureType_Scalar:
 			typ = scalarType(value.Scalar.GetKind())
-		case *testpilotpb.ContractCaptureType_Enumeration:
-			typ = &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Enumeration{Enumeration: value.Enumeration}}}}
-		case *testpilotpb.ContractCaptureType_Message:
-			typ = &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Message{Message: value.Message}}}}
+		case *testpilotspb.ContractCaptureType_Enumeration:
+			typ = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: value.Enumeration}}}}
+		case *testpilotspb.ContractCaptureType_Message:
+			typ = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: value.Message}}}}
 		default:
 			return invalid(ir.Malformed, "capture scalar, enum, or message type required")
 		}
@@ -59,7 +59,7 @@ func (a *admission) scopeFor(m *machine, assigned []byte, allAvailable bool) map
 	}
 	return scope
 }
-func (a *admission) checkAssignments(m *machine, tr *testpilotpb.ContractTransitionDefinition) error {
+func (a *admission) checkAssignments(m *machine, tr *testpilotspb.ContractTransitionDefinition) error {
 	seen := map[string]bool{}
 	for _, assignment := range tr.CaptureAssignments {
 		if err := a.charge(1); err != nil {
@@ -74,7 +74,7 @@ func (a *admission) checkAssignments(m *machine, tr *testpilotpb.ContractTransit
 		if !m.captureTypes[index].Equal(observation.Type) {
 			return invalid(ir.TypeMismatch, "capture and Observation types differ")
 		}
-		if tr.SupportKind != testpilotpb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT {
+		if tr.SupportKind != testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT {
 			return invalid(ir.Malformed, "capture assignment must retain its supporting event")
 		}
 	}
@@ -93,13 +93,13 @@ func (a *admission) analyzeCaptures(m *machine) error {
 	queue := []configuration{{state: m.initial, assigned: make([]byte, len(m.captures))}}
 	seen := map[string]bool{strconv.Itoa(m.initial) + ":" + string(queue[0].assigned): true}
 	for next := 0; next < len(queue); next++ {
-		for kind := testpilotpb.RUN_EVENT_KIND_RUN_OPENED; kind <= testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC; kind++ {
+		for kind := testpilotspb.RUN_EVENT_KIND_RUN_OPENED; kind <= testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC; kind++ {
 			successors, err := a.analyzeEvent(m, queue[next], kind)
 			if err != nil {
 				return err
 			}
 			for _, successor := range successors {
-				if m.source.States[successor.state].Status != testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL {
+				if m.source.States[successor.state].Status != testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL {
 					continue
 				}
 				if err := a.charge(int64(len(successor.assigned)) + 1); err != nil {
@@ -115,7 +115,7 @@ func (a *admission) analyzeCaptures(m *machine) error {
 	}
 	return nil
 }
-func (a *admission) analyzeEvent(m *machine, current configuration, kind testpilotpb.RunEventKind) ([]configuration, error) {
+func (a *admission) analyzeEvent(m *machine, current configuration, kind testpilotspb.RunEventKind) ([]configuration, error) {
 	if err := a.charge(int64(len(m.captures)) + 1); err != nil {
 		return nil, err
 	}
@@ -170,7 +170,7 @@ func (a *admission) refinePaths(e *ir.Expression, paths []map[ir.Reference]bool)
 	}
 	return matching, remaining, nil
 }
-func (a *admission) assignCaptures(m *machine, current configuration, tr *testpilotpb.ContractTransitionDefinition, prior []ir.Condition, scope map[ir.Reference]ir.Binding) (configuration, error) {
+func (a *admission) assignCaptures(m *machine, current configuration, tr *testpilotspb.ContractTransitionDefinition, prior []ir.Condition, scope map[ir.Reference]ir.Binding) (configuration, error) {
 	if err := a.charge(int64(len(current.assigned)) + int64(len(prior)) + 1); err != nil {
 		return configuration{}, err
 	}
@@ -184,7 +184,7 @@ func (a *admission) assignCaptures(m *machine, current configuration, tr *testpi
 		if next.assigned[index] != 0 {
 			return configuration{}, invalid(ir.Malformed, "capture may be assigned more than once on a reachable path")
 		}
-		value := &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Observation{Observation: assignment.Observation}}
+		value := &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Observation{Observation: assignment.Observation}}
 		if _, err := a.bind(matching, value, &m.captureTypes[index], scope); err != nil {
 			return configuration{}, err
 		}
@@ -355,7 +355,7 @@ func (a *admission) transitionWork(m *machine, indexes []int) (int64, error) {
 }
 
 func (a *admission) valueBytes(typ ir.Type) int64 {
-	if typ.Cardinality() == ir.Singular && (typ.Enum() != nil || typ.Scalar() == testpilotpb.SCALAR_KIND_BOOLEAN || typ.Scalar() >= testpilotpb.SCALAR_KIND_INT32 && typ.Scalar() <= testpilotpb.SCALAR_KIND_DOUBLE) {
+	if typ.Cardinality() == ir.Singular && (typ.Enum() != nil || typ.Scalar() == testpilotspb.SCALAR_KIND_BOOLEAN || typ.Scalar() >= testpilotspb.SCALAR_KIND_INT32 && typ.Scalar() <= testpilotspb.SCALAR_KIND_DOUBLE) {
 		return 32
 	}
 	return a.prepared.program.Limits().MaxResponseBytes

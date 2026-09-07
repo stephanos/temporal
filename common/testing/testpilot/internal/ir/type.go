@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/encoding/protowire"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -22,25 +22,25 @@ const (
 )
 
 type Type struct {
-	schema      *testpilotpb.ValueType
+	schema      *testpilotspb.ValueType
 	catalog     *Catalog
 	cardinality Cardinality
-	scalar      testpilotpb.ScalarKind
+	scalar      testpilotspb.ScalarKind
 	message     protoreflect.MessageDescriptor
 	enumeration protoreflect.EnumDescriptor
 	opaque      bool
 	any         bool
-	key         testpilotpb.ScalarKind
+	key         testpilotspb.ScalarKind
 }
 
-func (t Type) Schema() *testpilotpb.ValueType          { return proto.CloneOf(t.schema) }
+func (t Type) Schema() *testpilotspb.ValueType         { return proto.CloneOf(t.schema) }
 func (t Type) Cardinality() Cardinality                { return t.cardinality }
-func (t Type) Scalar() testpilotpb.ScalarKind          { return t.scalar }
+func (t Type) Scalar() testpilotspb.ScalarKind         { return t.scalar }
 func (t Type) Message() protoreflect.MessageDescriptor { return t.message }
 func (t Type) Enum() protoreflect.EnumDescriptor       { return t.enumeration }
 func (t Type) Opaque() bool                            { return t.opaque }
 func (t Type) Any() bool                               { return t.any }
-func (t Type) MapKey() testpilotpb.ScalarKind          { return t.key }
+func (t Type) MapKey() testpilotspb.ScalarKind         { return t.key }
 func (t Type) Equal(other Type) bool {
 	return t.schema != nil && other.schema != nil && proto.Equal(t.schema, other.schema) && t.catalog.identity == other.catalog.identity
 }
@@ -49,19 +49,19 @@ func (t Type) Element() Type {
 		return t
 	}
 	result := t
-	var singular *testpilotpb.SingularType
+	var singular *testpilotspb.SingularType
 	if t.cardinality == Repeated {
 		singular = t.schema.GetRepeated().GetElement()
 	} else {
 		singular = t.schema.GetMap().GetValue()
 	}
-	result.schema = &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: proto.CloneOf(singular)}}
+	result.schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: proto.CloneOf(singular)}}
 	result.cardinality = Singular
-	result.key = testpilotpb.SCALAR_KIND_UNSPECIFIED
+	result.key = testpilotspb.SCALAR_KIND_UNSPECIFIED
 	return result
 }
 
-func (c *Catalog) BindType(schema *testpilotpb.ValueType) (Type, error) {
+func (c *Catalog) BindType(schema *testpilotspb.ValueType) (Type, error) {
 	if schema == nil || missing(schema.Shape) {
 		return Type{}, invalid(Malformed, "type", "type is required")
 	}
@@ -70,15 +70,15 @@ func (c *Catalog) BindType(schema *testpilotpb.ValueType) (Type, error) {
 		return Type{}, err
 	}
 	result := Type{schema: proto.CloneOf(schema), catalog: c}
-	var singular *testpilotpb.SingularType
+	var singular *testpilotspb.SingularType
 	switch shape := schema.Shape.(type) {
-	case *testpilotpb.ValueType_Singular:
+	case *testpilotspb.ValueType_Singular:
 		result.cardinality = Singular
 		singular = shape.Singular
-	case *testpilotpb.ValueType_Repeated:
+	case *testpilotspb.ValueType_Repeated:
 		result.cardinality = Repeated
 		singular = shape.Repeated.GetElement()
-	case *testpilotpb.ValueType_Map:
+	case *testpilotspb.ValueType_Map:
 		result.cardinality = Map
 		singular = shape.Map.GetValue()
 		result.key = shape.Map.GetKey().GetKind()
@@ -101,14 +101,14 @@ func (c *Catalog) BindType(schema *testpilotpb.ValueType) (Type, error) {
 	return result, nil
 }
 
-func (c *Catalog) bindSingular(singular *testpilotpb.SingularType, result *Type) error {
+func (c *Catalog) bindSingular(singular *testpilotspb.SingularType, result *Type) error {
 	switch value := singular.Type.(type) {
-	case *testpilotpb.SingularType_Scalar:
+	case *testpilotspb.SingularType_Scalar:
 		result.scalar = value.Scalar.GetKind()
-		if result.scalar < testpilotpb.SCALAR_KIND_TEXT || result.scalar > testpilotpb.SCALAR_KIND_DOUBLE {
+		if result.scalar < testpilotspb.SCALAR_KIND_TEXT || result.scalar > testpilotspb.SCALAR_KIND_DOUBLE {
 			return invalid(Unknown, "type", "unknown scalar kind")
 		}
-	case *testpilotpb.SingularType_Enumeration:
+	case *testpilotspb.SingularType_Enumeration:
 		var descriptor protoreflect.Descriptor
 		var err error
 		for _, intrinsic := range intrinsicEnums() {
@@ -128,7 +128,7 @@ func (c *Catalog) bindSingular(singular *testpilotpb.SingularType, result *Type)
 		if !ok {
 			return invalid(TypeMismatch, "type", "expected enumeration descriptor")
 		}
-	case *testpilotpb.SingularType_Message:
+	case *testpilotspb.SingularType_Message:
 		descriptor, err := c.files.FindDescriptorByName(protoreflect.FullName(value.Message.GetProtobufType()))
 		if err != nil {
 			return invalid(Unknown, "type", "unknown message")
@@ -141,9 +141,9 @@ func (c *Catalog) bindSingular(singular *testpilotpb.SingularType, result *Type)
 		if result.message.FullName() == "google.protobuf.Any" {
 			return invalid(TypeMismatch, "type", "Any requires the explicit Any type")
 		}
-	case *testpilotpb.SingularType_Any:
+	case *testpilotspb.SingularType_Any:
 		result.any = true
-	case *testpilotpb.SingularType_OpaqueCapability:
+	case *testpilotspb.SingularType_OpaqueCapability:
 		result.opaque = true
 	default:
 		return invalid(Malformed, "type", "missing singular type variant")
@@ -151,23 +151,23 @@ func (c *Catalog) bindSingular(singular *testpilotpb.SingularType, result *Type)
 	return nil
 }
 
-func mapKeyKind(kind testpilotpb.ScalarKind) bool {
+func mapKeyKind(kind testpilotspb.ScalarKind) bool {
 	switch kind {
-	case testpilotpb.SCALAR_KIND_TEXT, testpilotpb.SCALAR_KIND_BOOLEAN,
-		testpilotpb.SCALAR_KIND_INT32, testpilotpb.SCALAR_KIND_INT64, testpilotpb.SCALAR_KIND_UINT32, testpilotpb.SCALAR_KIND_UINT64,
-		testpilotpb.SCALAR_KIND_SINT32, testpilotpb.SCALAR_KIND_SINT64, testpilotpb.SCALAR_KIND_FIXED32, testpilotpb.SCALAR_KIND_FIXED64,
-		testpilotpb.SCALAR_KIND_SFIXED32, testpilotpb.SCALAR_KIND_SFIXED64:
+	case testpilotspb.SCALAR_KIND_TEXT, testpilotspb.SCALAR_KIND_BOOLEAN,
+		testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64,
+		testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64,
+		testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64:
 		return true
 	default:
 		return false
 	}
 }
 
-func (c *Catalog) scalarType(kind testpilotpb.ScalarKind) Type {
-	return Type{catalog: c, cardinality: Singular, scalar: kind, schema: &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Scalar{Scalar: &testpilotpb.ScalarType{Kind: kind}}}}}}
+func (c *Catalog) scalarType(kind testpilotspb.ScalarKind) Type {
+	return Type{catalog: c, cardinality: Singular, scalar: kind, schema: &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}}
 }
 
-func (c *Catalog) CheckLiteral(value *testpilotpb.Value, typ Type, limits Limits) error {
+func (c *Catalog) CheckLiteral(value *testpilotspb.Value, typ Type, limits Limits) error {
 	if err := limits.validate(); err != nil {
 		return err
 	}
@@ -184,7 +184,7 @@ func (c *Catalog) CheckLiteral(value *testpilotpb.Value, typ Type, limits Limits
 	return c.checkLiteral(value, typ, &b, 1)
 }
 
-func (c *Catalog) checkLiteral(value *testpilotpb.Value, typ Type, b *budget, depth int64) error {
+func (c *Catalog) checkLiteral(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
 	if value == nil || missing(value.Value) || typ.schema == nil {
 		return invalid(Malformed, "literal", "missing literal or type")
 	}
@@ -213,8 +213,8 @@ func literalMismatch() error {
 	return invalid(TypeMismatch, "literal", "literal does not match its declared type")
 }
 
-func (c *Catalog) checkList(value *testpilotpb.Value, typ Type, b *budget, depth int64) error {
-	list, ok := value.Value.(*testpilotpb.Value_ListValue)
+func (c *Catalog) checkList(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
+	list, ok := value.Value.(*testpilotspb.Value_ListValue)
 	if !ok || list.ListValue == nil {
 		return literalMismatch()
 	}
@@ -229,8 +229,8 @@ func (c *Catalog) checkList(value *testpilotpb.Value, typ Type, b *budget, depth
 	return nil
 }
 
-func (c *Catalog) checkMap(value *testpilotpb.Value, typ Type, b *budget, depth int64) error {
-	entries, ok := value.Value.(*testpilotpb.Value_MapValue)
+func (c *Catalog) checkMap(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
+	entries, ok := value.Value.(*testpilotspb.Value_MapValue)
 	if !ok || entries.MapValue == nil {
 		return literalMismatch()
 	}
@@ -257,8 +257,8 @@ func (c *Catalog) checkMap(value *testpilotpb.Value, typ Type, b *budget, depth 
 	return nil
 }
 
-func checkEnum(value *testpilotpb.Value, typ Type) error {
-	item, ok := value.Value.(*testpilotpb.Value_EnumValue)
+func checkEnum(value *testpilotspb.Value, typ Type) error {
+	item, ok := value.Value.(*testpilotspb.Value_EnumValue)
 	if !ok || item.EnumValue == nil {
 		return literalMismatch()
 	}
@@ -268,8 +268,8 @@ func checkEnum(value *testpilotpb.Value, typ Type) error {
 	return nil
 }
 
-func (c *Catalog) checkMessage(value *testpilotpb.Value, typ Type, b *budget, depth int64) error {
-	item, ok := value.Value.(*testpilotpb.Value_MessageValue)
+func (c *Catalog) checkMessage(value *testpilotspb.Value, typ Type, b *budget, depth int64) error {
+	item, ok := value.Value.(*testpilotspb.Value_MessageValue)
 	if !ok || item.MessageValue == nil {
 		return literalMismatch()
 	}
@@ -294,34 +294,34 @@ func (c *Catalog) checkMessage(value *testpilotpb.Value, typ Type, b *budget, de
 	return inspect(message.ProtoReflect(), depth+1, b, "literal.message")
 }
 
-func checkScalar(value *testpilotpb.Value, kind testpilotpb.ScalarKind) error {
+func checkScalar(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error {
 	switch kind {
-	case testpilotpb.SCALAR_KIND_TEXT:
-		item, ok := value.Value.(*testpilotpb.Value_Text)
+	case testpilotspb.SCALAR_KIND_TEXT:
+		item, ok := value.Value.(*testpilotspb.Value_Text)
 		if !ok || !utf8.ValidString(item.Text) {
 			return literalMismatch()
 		}
-	case testpilotpb.SCALAR_KIND_BYTES:
-		if _, ok := value.Value.(*testpilotpb.Value_BytesValue); !ok {
+	case testpilotspb.SCALAR_KIND_BYTES:
+		if _, ok := value.Value.(*testpilotspb.Value_BytesValue); !ok {
 			return literalMismatch()
 		}
-	case testpilotpb.SCALAR_KIND_BOOLEAN:
-		if _, ok := value.Value.(*testpilotpb.Value_BoolValue); !ok {
+	case testpilotspb.SCALAR_KIND_BOOLEAN:
+		if _, ok := value.Value.(*testpilotspb.Value_BoolValue); !ok {
 			return literalMismatch()
 		}
-	case testpilotpb.SCALAR_KIND_NATURAL:
-		item, ok := value.Value.(*testpilotpb.Value_Natural)
+	case testpilotspb.SCALAR_KIND_NATURAL:
+		item, ok := value.Value.(*testpilotspb.Value_Natural)
 		if !ok || !canonicalUnsigned(item.Natural) {
 			return literalMismatch()
 		}
-	case testpilotpb.SCALAR_KIND_INT32, testpilotpb.SCALAR_KIND_INT64, testpilotpb.SCALAR_KIND_SINT32, testpilotpb.SCALAR_KIND_SINT64, testpilotpb.SCALAR_KIND_SFIXED32, testpilotpb.SCALAR_KIND_SFIXED64, testpilotpb.SCALAR_KIND_UINT32, testpilotpb.SCALAR_KIND_UINT64, testpilotpb.SCALAR_KIND_FIXED32, testpilotpb.SCALAR_KIND_FIXED64:
+	case testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64, testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64:
 		return checkInteger(value, kind)
-	case testpilotpb.SCALAR_KIND_FLOAT, testpilotpb.SCALAR_KIND_DOUBLE:
-		item, ok := value.Value.(*testpilotpb.Value_FloatingPoint)
+	case testpilotspb.SCALAR_KIND_FLOAT, testpilotspb.SCALAR_KIND_DOUBLE:
+		item, ok := value.Value.(*testpilotspb.Value_FloatingPoint)
 		if !ok {
 			return literalMismatch()
 		}
-		if kind == testpilotpb.SCALAR_KIND_FLOAT && !math.IsInf(item.FloatingPoint, 0) && math.Abs(item.FloatingPoint) > math.MaxFloat32 {
+		if kind == testpilotspb.SCALAR_KIND_FLOAT && !math.IsInf(item.FloatingPoint, 0) && math.Abs(item.FloatingPoint) > math.MaxFloat32 {
 			return literalMismatch()
 		}
 	default:
@@ -330,28 +330,28 @@ func checkScalar(value *testpilotpb.Value, kind testpilotpb.ScalarKind) error {
 	return nil
 }
 
-func checkInteger(value *testpilotpb.Value, kind testpilotpb.ScalarKind) error {
+func checkInteger(value *testpilotspb.Value, kind testpilotspb.ScalarKind) error {
 	switch kind {
-	case testpilotpb.SCALAR_KIND_INT32, testpilotpb.SCALAR_KIND_INT64, testpilotpb.SCALAR_KIND_SINT32, testpilotpb.SCALAR_KIND_SINT64, testpilotpb.SCALAR_KIND_SFIXED32, testpilotpb.SCALAR_KIND_SFIXED64:
-		item, ok := value.Value.(*testpilotpb.Value_SignedInteger)
+	case testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64, testpilotspb.SCALAR_KIND_SFIXED32, testpilotspb.SCALAR_KIND_SFIXED64:
+		item, ok := value.Value.(*testpilotspb.Value_SignedInteger)
 		if !ok {
 			return literalMismatch()
 		}
 		bits := 64
-		if kind == testpilotpb.SCALAR_KIND_INT32 || kind == testpilotpb.SCALAR_KIND_SINT32 || kind == testpilotpb.SCALAR_KIND_SFIXED32 {
+		if kind == testpilotspb.SCALAR_KIND_INT32 || kind == testpilotspb.SCALAR_KIND_SINT32 || kind == testpilotspb.SCALAR_KIND_SFIXED32 {
 			bits = 32
 		}
 		parsed, err := strconv.ParseInt(item.SignedInteger, 10, bits)
 		if err != nil || strconv.FormatInt(parsed, 10) != item.SignedInteger {
 			return literalMismatch()
 		}
-	case testpilotpb.SCALAR_KIND_UINT32, testpilotpb.SCALAR_KIND_UINT64, testpilotpb.SCALAR_KIND_FIXED32, testpilotpb.SCALAR_KIND_FIXED64:
-		item, ok := value.Value.(*testpilotpb.Value_UnsignedInteger)
+	case testpilotspb.SCALAR_KIND_UINT32, testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64:
+		item, ok := value.Value.(*testpilotspb.Value_UnsignedInteger)
 		if !ok {
 			return literalMismatch()
 		}
 		bits := 64
-		if kind == testpilotpb.SCALAR_KIND_UINT32 || kind == testpilotpb.SCALAR_KIND_FIXED32 {
+		if kind == testpilotspb.SCALAR_KIND_UINT32 || kind == testpilotspb.SCALAR_KIND_FIXED32 {
 			bits = 32
 		}
 		parsed, err := strconv.ParseUint(item.UnsignedInteger, 10, bits)

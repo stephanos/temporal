@@ -175,6 +175,14 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 		if err != nil {
 			return err
 		}
+		repeatedOutput, repeatedRenderErr := dependencies.Render(modelRoot, entry.RendererArg)
+		repeated, err := requireRendererArtifact(entry.Class, repeatedOutput, repeatedRenderErr)
+		if err != nil {
+			return err
+		}
+		if !bytes.Equal(encoded, repeated) {
+			return fmt.Errorf("render %q Testpilot Case fixture: non-deterministic bytes", entry.Class)
+		}
 		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 		if err != nil {
 			return fmt.Errorf("decode %q Case fixture: %w", entry.Class, err)
@@ -222,8 +230,8 @@ func runFunctionalGeneration(configuration generationConfig, entries []functiona
 	if dependencies.Render == nil || dependencies.Publish == nil {
 		return errors.New("missing Case renderer or fixture publisher")
 	}
-	if len(entries) != 2 {
-		return fmt.Errorf("functional fixture manifest has %d entries, want exactly 2", len(entries))
+	if len(entries) != 3 {
+		return fmt.Errorf("functional fixture manifest has %d entries, want exactly 3", len(entries))
 	}
 	repositoryRoot, err := filepath.Abs(configuration.RepositoryRoot)
 	if err != nil {
@@ -312,6 +320,7 @@ func functionalManifest() []functionalEntry {
 	return []functionalEntry{
 		{RendererArg: "get-system-info", CaseID: "temporal.case.get-system-info", Filename: "get-system-info-case.json"},
 		{RendererArg: "async-nexus", CaseID: "temporal.case.async-nexus-success", Filename: "async-nexus-case.json"},
+		{RendererArg: "synthetic", CaseID: "testpilot.synthetic.case", Filename: "synthetic-case.json"},
 	}
 }
 

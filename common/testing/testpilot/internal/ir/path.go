@@ -3,7 +3,7 @@ package ir
 import (
 	"slices"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -21,7 +21,7 @@ const (
 type PathStep struct {
 	Field    protoreflect.FieldDescriptor
 	Selector Selector
-	Key      *testpilotpb.Value
+	Key      *testpilotspb.Value
 }
 
 type Path struct {
@@ -51,7 +51,7 @@ func (p *Path) CheckFanout(current, count int64) (int64, error) {
 	return current * count, nil
 }
 
-func (c *Catalog) BindPath(source Type, path *testpilotpb.FieldPath, limits Limits) (*Path, error) {
+func (c *Catalog) BindPath(source Type, path *testpilotspb.FieldPath, limits Limits) (*Path, error) {
 	if err := limits.validate(); err != nil {
 		return nil, err
 	}
@@ -96,14 +96,14 @@ func (c *Catalog) BindPath(source Type, path *testpilotpb.FieldPath, limits Limi
 		if current.cardinality != Singular {
 			return nil, invalid(TypeMismatch, "path", "fan-out cannot produce nested collections")
 		}
-		current.schema = &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Repeated{Repeated: &testpilotpb.RepeatedType{Element: proto.CloneOf(current.schema.GetSingular())}}}
+		current.schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Repeated{Repeated: &testpilotspb.RepeatedType{Element: proto.CloneOf(current.schema.GetSingular())}}}
 		current.cardinality = Repeated
 	}
 	result.typ = current
 	return result, nil
 }
 
-func (c *Catalog) bindStep(current Type, segment *testpilotpb.FieldPathSegment, final bool, b *budget) (PathStep, Type, error) {
+func (c *Catalog) bindStep(current Type, segment *testpilotspb.FieldPathSegment, final bool, b *budget) (PathStep, Type, error) {
 	if segment == nil || (segment.Selector != nil && missing(segment.Selector)) {
 		return PathStep{}, Type{}, invalid(Malformed, "path", "nil path segment")
 	}
@@ -112,7 +112,7 @@ func (c *Catalog) bindStep(current Type, segment *testpilotpb.FieldPathSegment, 
 	}
 	var field protoreflect.FieldDescriptor
 	step := PathStep{}
-	if selected, ok := segment.Selector.(*testpilotpb.FieldPathSegment_Oneof); ok {
+	if selected, ok := segment.Selector.(*testpilotspb.FieldPathSegment_Oneof); ok {
 		group := current.message.Oneofs().ByName(protoreflect.Name(segment.Field))
 		if group == nil || selected.Oneof == nil {
 			return PathStep{}, Type{}, invalid(Unknown, "path", "unknown oneof group")
@@ -129,14 +129,14 @@ func (c *Catalog) bindStep(current Type, segment *testpilotpb.FieldPathSegment, 
 	next := c.fieldType(field)
 	switch selection := segment.Selector.(type) {
 	case nil:
-	case *testpilotpb.FieldPathSegment_Oneof:
-	case *testpilotpb.FieldPathSegment_Repeated:
+	case *testpilotspb.FieldPathSegment_Oneof:
+	case *testpilotspb.FieldPathSegment_Repeated:
 		if !field.IsList() {
 			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "wildcard requires a repeated field")
 		}
 		step.Selector = Wildcard
 		next = next.Element()
-	case *testpilotpb.FieldPathSegment_MapKey:
+	case *testpilotspb.FieldPathSegment_MapKey:
 		if !field.IsMap() || selection.MapKey == nil {
 			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "map-key selector requires a map")
 		}
@@ -146,12 +146,12 @@ func (c *Catalog) bindStep(current Type, segment *testpilotpb.FieldPathSegment, 
 		step.Selector = MapKey
 		step.Key = proto.CloneOf(selection.MapKey.Key)
 		next = next.Element()
-	case *testpilotpb.FieldPathSegment_Presence:
+	case *testpilotspb.FieldPathSegment_Presence:
 		if !field.HasPresence() || !final {
 			return PathStep{}, Type{}, invalid(TypeMismatch, "path", "presence requires a final presence-bearing field")
 		}
 		step.Selector = Presence
-		next = c.scalarType(testpilotpb.SCALAR_KIND_BOOLEAN)
+		next = c.scalarType(testpilotspb.SCALAR_KIND_BOOLEAN)
 	default:
 		return PathStep{}, Type{}, invalid(Unsupported, "path", "unknown selector")
 	}
@@ -167,64 +167,64 @@ func (c *Catalog) fieldType(field protoreflect.FieldDescriptor) Type {
 		value := c.fieldType(field.MapValue())
 		value.cardinality = Map
 		value.key = scalarKind(field.MapKey().Kind())
-		value.schema = &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Map{Map: &testpilotpb.MapType{Key: &testpilotpb.ScalarType{Kind: value.key}, Value: value.schema.GetSingular()}}}
+		value.schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Map{Map: &testpilotspb.MapType{Key: &testpilotspb.ScalarType{Kind: value.key}, Value: value.schema.GetSingular()}}}
 		return value
 	}
 	result := c.scalarType(scalarKind(field.Kind()))
 	if field.Enum() != nil {
 		result.enumeration = field.Enum()
-		result.schema.GetSingular().Type = &testpilotpb.SingularType_Enumeration{Enumeration: &testpilotpb.NamedType{ProtobufType: string(field.Enum().FullName())}}
+		result.schema.GetSingular().Type = &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: string(field.Enum().FullName())}}
 	}
 	if field.Message() != nil {
 		if field.Message().FullName() == "google.protobuf.Any" {
 			result.any = true
-			result.schema.GetSingular().Type = &testpilotpb.SingularType_Any{Any: &testpilotpb.AnyType{}}
+			result.schema.GetSingular().Type = &testpilotspb.SingularType_Any{Any: &testpilotspb.AnyType{}}
 		} else {
 			result.message = field.Message()
-			result.schema.GetSingular().Type = &testpilotpb.SingularType_Message{Message: &testpilotpb.NamedType{ProtobufType: string(field.Message().FullName())}}
+			result.schema.GetSingular().Type = &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: string(field.Message().FullName())}}
 		}
 	}
 	if field.IsList() {
 		result.cardinality = Repeated
-		result.schema = &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Repeated{Repeated: &testpilotpb.RepeatedType{Element: result.schema.GetSingular()}}}
+		result.schema = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Repeated{Repeated: &testpilotspb.RepeatedType{Element: result.schema.GetSingular()}}}
 	}
 	return result
 }
 
-func scalarKind(kind protoreflect.Kind) testpilotpb.ScalarKind {
+func scalarKind(kind protoreflect.Kind) testpilotspb.ScalarKind {
 	switch kind {
 	case protoreflect.StringKind:
-		return testpilotpb.SCALAR_KIND_TEXT
+		return testpilotspb.SCALAR_KIND_TEXT
 	case protoreflect.BoolKind:
-		return testpilotpb.SCALAR_KIND_BOOLEAN
+		return testpilotspb.SCALAR_KIND_BOOLEAN
 	case protoreflect.BytesKind:
-		return testpilotpb.SCALAR_KIND_BYTES
+		return testpilotspb.SCALAR_KIND_BYTES
 	case protoreflect.Int32Kind:
-		return testpilotpb.SCALAR_KIND_INT32
+		return testpilotspb.SCALAR_KIND_INT32
 	case protoreflect.Int64Kind:
-		return testpilotpb.SCALAR_KIND_INT64
+		return testpilotspb.SCALAR_KIND_INT64
 	case protoreflect.Uint32Kind:
-		return testpilotpb.SCALAR_KIND_UINT32
+		return testpilotspb.SCALAR_KIND_UINT32
 	case protoreflect.Uint64Kind:
-		return testpilotpb.SCALAR_KIND_UINT64
+		return testpilotspb.SCALAR_KIND_UINT64
 	case protoreflect.Sint32Kind:
-		return testpilotpb.SCALAR_KIND_SINT32
+		return testpilotspb.SCALAR_KIND_SINT32
 	case protoreflect.Sint64Kind:
-		return testpilotpb.SCALAR_KIND_SINT64
+		return testpilotspb.SCALAR_KIND_SINT64
 	case protoreflect.Fixed32Kind:
-		return testpilotpb.SCALAR_KIND_FIXED32
+		return testpilotspb.SCALAR_KIND_FIXED32
 	case protoreflect.Fixed64Kind:
-		return testpilotpb.SCALAR_KIND_FIXED64
+		return testpilotspb.SCALAR_KIND_FIXED64
 	case protoreflect.Sfixed32Kind:
-		return testpilotpb.SCALAR_KIND_SFIXED32
+		return testpilotspb.SCALAR_KIND_SFIXED32
 	case protoreflect.Sfixed64Kind:
-		return testpilotpb.SCALAR_KIND_SFIXED64
+		return testpilotspb.SCALAR_KIND_SFIXED64
 	case protoreflect.FloatKind:
-		return testpilotpb.SCALAR_KIND_FLOAT
+		return testpilotspb.SCALAR_KIND_FLOAT
 	case protoreflect.DoubleKind:
-		return testpilotpb.SCALAR_KIND_DOUBLE
+		return testpilotspb.SCALAR_KIND_DOUBLE
 	default:
-		return testpilotpb.SCALAR_KIND_UNSPECIFIED
+		return testpilotspb.SCALAR_KIND_UNSPECIFIED
 	}
 }
 

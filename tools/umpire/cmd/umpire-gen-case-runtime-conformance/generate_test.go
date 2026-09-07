@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/tools/common/artifactio"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -18,7 +18,7 @@ func TestRunGenerationPublishesExactlySixCompleteClasses(t *testing.T) {
 	entries := productionManifest()
 	rendered := make(map[string][]byte, len(entries))
 	for _, entry := range entries {
-		encoded, err := protojson.Marshal(&testpilotpb.Case{CaseId: entry.CaseID})
+		encoded, err := protojson.Marshal(&testpilotspb.Case{CaseId: entry.CaseID})
 		require.NoError(t, err)
 		rendered[entry.RendererArg] = encoded
 	}
@@ -55,7 +55,7 @@ func TestRunFunctionalGenerationPublishesOnlyCanonicalTestpilotCases(t *testing.
 	entries := functionalManifest()
 	rendered := make(map[string][]byte, len(entries))
 	for _, entry := range entries {
-		encoded, err := protojson.Marshal(&testpilotpb.Case{CaseId: entry.CaseID})
+		encoded, err := protojson.Marshal(&testpilotspb.Case{CaseId: entry.CaseID})
 		require.NoError(t, err)
 		rendered[entry.RendererArg] = encoded
 	}
@@ -74,7 +74,7 @@ func TestRunFunctionalGenerationPublishesOnlyCanonicalTestpilotCases(t *testing.
 	require.ErrorIs(t, err, os.ErrNotExist)
 	files, err := os.ReadDir(filepath.Join(configuration.OutputRoot, filepath.FromSlash(functionalFixtureRoot)))
 	require.NoError(t, err)
-	require.Len(t, files, 2)
+	require.Len(t, files, 3)
 	for _, entry := range entries {
 		encoded, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(functionalCasePath(entry))))
 		require.NoError(t, err)
@@ -96,7 +96,7 @@ func TestRunFunctionalGenerationPreservesPublishedSetWhenPublicationFails(t *tes
 	entries := functionalManifest()
 	rendered := make(map[string][]byte, len(entries))
 	for _, entry := range entries {
-		encoded, err := protojson.Marshal(&testpilotpb.Case{CaseId: entry.CaseID})
+		encoded, err := protojson.Marshal(&testpilotspb.Case{CaseId: entry.CaseID})
 		require.NoError(t, err)
 		rendered[entry.RendererArg] = encoded
 		path := filepath.Join(configuration.OutputRoot, filepath.FromSlash(functionalCasePath(entry)))
@@ -124,7 +124,7 @@ func TestRunFunctionalGenerationRejectsIncompleteOrNondeterministicRenderingBefo
 	entries := functionalManifest()
 	encodedByArgument := make(map[string][]byte, len(entries))
 	for _, entry := range entries {
-		encoded, err := protojson.Marshal(&testpilotpb.Case{CaseId: entry.CaseID})
+		encoded, err := protojson.Marshal(&testpilotspb.Case{CaseId: entry.CaseID})
 		require.NoError(t, err)
 		encodedByArgument[entry.RendererArg] = encoded
 	}
@@ -177,13 +177,13 @@ func TestValidateFunctionalArtifactsRejectsStaleFile(t *testing.T) {
 	entries := functionalManifest()
 	artifacts := make(map[string][]byte, len(entries)+1)
 	for _, entry := range entries {
-		encoded, err := protojson.Marshal(&testpilotpb.Case{CaseId: entry.CaseID})
+		encoded, err := protojson.Marshal(&testpilotspb.Case{CaseId: entry.CaseID})
 		require.NoError(t, err)
 		artifacts[functionalCasePath(entry)] = encoded
 	}
 	artifacts[filepath.ToSlash(filepath.Join(functionalFixtureRoot, "stale.json"))] = []byte("stale")
 
-	require.ErrorContains(t, validateFunctionalArtifacts(entries, artifacts), "has 3 files, want 2")
+	require.ErrorContains(t, validateFunctionalArtifacts(entries, artifacts), "has 4 files, want 3")
 }
 
 func TestRunGenerationRejectsIncompleteManifestAndRendererFailureBeforePublication(t *testing.T) {
@@ -214,4 +214,36 @@ func TestRunGenerationRejectsIncompleteManifestAndRendererFailureBeforePublicati
 			require.False(t, published)
 		})
 	}
+}
+
+func TestRunGenerationRejectsNondeterministicRenderingBeforePublication(t *testing.T) {
+	entries := productionManifest()
+	encodedByArgument := make(map[string][]byte, len(entries))
+	for _, entry := range entries {
+		encoded, err := protojson.Marshal(&testpilotspb.Case{CaseId: entry.CaseID})
+		require.NoError(t, err)
+		encodedByArgument[entry.RendererArg] = encoded
+	}
+	calls := make(map[string]int)
+	published := false
+	err := runGeneration(
+		generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()},
+		entries,
+		generationDependencies{
+			Render: func(_ string, argument string) (rendererOutput, error) {
+				calls[argument]++
+				encoded := slices.Clone(encodedByArgument[argument])
+				if calls[argument]%2 == 0 {
+					encoded = append(encoded, '\n')
+				}
+				return rendererOutput{Stdout: encoded}, nil
+			},
+			Publish: func(artifactio.Set, string, map[string][]byte, func(string) error) error {
+				published = true
+				return nil
+			},
+		},
+	)
+	require.ErrorContains(t, err, "non-deterministic bytes")
+	require.False(t, published)
 }

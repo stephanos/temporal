@@ -1,5 +1,6 @@
 import Temporal.Testpilot
 import Temporal.Feature.Nexus3.Testpilot
+import Testpilot.Examples.Synthetic
 import Testpilot.ProtoJSON
 
 private def renderTestpilot
@@ -12,10 +13,16 @@ private def renderTestpilot
       | .error failure => throw (IO.userError (toString failure))
   | .error failure => throw (IO.userError (reprStr failure))
 
+private def renderSynthetic : IO Unit := do
+  match ← Testpilot.Examples.Synthetic.canonical with
+  | .ok encoded => IO.print encoded
+  | .error failure => throw (IO.userError (toString failure))
+
 def main (arguments : List String) : IO Unit :=
   match arguments with
   | ["get-system-info"] => renderTestpilot Temporal.Testpilot.getSystemInfoCase
   | ["async-nexus"] => renderTestpilot Temporal.Feature.Nexus3.Testpilot.completionCase
+  | ["synthetic"] => renderSynthetic
   | ["conformance-satisfied"] => renderTestpilot Temporal.Testpilot.conformanceSatisfiedCase
   | ["conformance-violated"] => renderTestpilot Temporal.Testpilot.conformanceViolatedCase
   | ["conformance-inconclusive"] => renderTestpilot Temporal.Testpilot.conformanceInconclusiveCase

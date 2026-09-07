@@ -7,48 +7,48 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func event(sequence, elapsed int64, kind testpilotpb.RunEventKind) *testpilotpb.RunEvent {
-	return &testpilotpb.RunEvent{Sequence: sequence, ElapsedMilliseconds: elapsed, Kind: kind, SourceId: fmt.Sprint(sequence)}
+func event(sequence, elapsed int64, kind testpilotspb.RunEventKind) *testpilotspb.RunEvent {
+	return &testpilotspb.RunEvent{Sequence: sequence, ElapsedMilliseconds: elapsed, Kind: kind, SourceId: fmt.Sprint(sequence)}
 }
 func TestEvaluatorHorizonsAndReplay(t *testing.T) {
 	for _, tc := range []struct {
 		name       string
 		witness    int64
 		incomplete bool
-		kind       testpilotpb.RunEventKind
-		want       testpilotpb.VerdictStatus
+		kind       testpilotspb.RunEventKind
+		want       testpilotspb.VerdictStatus
 		stop       int64
 	}{
-		{"before", 4999, false, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotpb.VERDICT_STATUS_SATISFIED, 0},
-		{"at", 5000, false, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotpb.VERDICT_STATUS_VIOLATED, 2},
-		{"late", 6000, false, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotpb.VERDICT_STATUS_VIOLATED, 2},
-		{"timeout", 5000, false, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT, testpilotpb.VERDICT_STATUS_VIOLATED, 2},
-		{"closure", 5000, false, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED, testpilotpb.VERDICT_STATUS_VIOLATED, 2},
-		{"early", 4000, false, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, 0},
-		{"incomplete", 6000, true, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, 0},
+		{"before", 4999, false, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.VERDICT_STATUS_SATISFIED, 0},
+		{"at", 5000, false, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.VERDICT_STATUS_VIOLATED, 2},
+		{"late", 6000, false, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.VERDICT_STATUS_VIOLATED, 2},
+		{"timeout", 5000, false, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT, testpilotspb.VERDICT_STATUS_VIOLATED, 2},
+		{"closure", 5000, false, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, testpilotspb.VERDICT_STATUS_VIOLATED, 2},
+		{"early", 4000, false, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, 0},
+		{"incomplete", 6000, true, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, 0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
-			c.Rules[0].Kind = testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Horizon = &testpilotpb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			c.Rules[0].Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
 			p, err := Prepare(c, cat, view, limits)
 			require.NoError(t, err)
-			run := &testpilotpb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Status: testpilotpb.RUN_STATUS_COMPLETED, Events: []*testpilotpb.RunEvent{event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED), event(2, tc.witness, tc.kind)}}
+			run := &testpilotspb.Run{RunId: "run", CaseId: "case", ProgramId: "program", Status: testpilotspb.RUN_STATUS_COMPLETED, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), event(2, tc.witness, tc.kind)}}
 			run.Events[1].ExecutionIncomplete = tc.incomplete
 			if tc.incomplete {
-				run.Status = testpilotpb.RUN_STATUS_INCOMPLETE
+				run.Status = testpilotspb.RUN_STATUS_INCOMPLETE
 			}
 			if tc.stop > 0 {
-				run.Status = testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR
+				run.Status = testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR
 			}
-			if tc.kind != testpilotpb.RUN_EVENT_KIND_RUN_CLOSED {
-				run.Events = append(run.Events, event(3, 7000, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED))
+			if tc.kind != testpilotspb.RUN_EVENT_KIND_RUN_CLOSED {
+				run.Events = append(run.Events, event(3, 7000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
 			}
 			monitor, err := execution.NewMonitor(context.Background(), p, view)
 			require.NoError(t, err)
@@ -80,17 +80,17 @@ func TestEvaluatorHorizonsAndReplay(t *testing.T) {
 	}
 }
 
-func observed(sequence, elapsed, id int64) *testpilotpb.RunEvent {
-	e := event(sequence, elapsed, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
-	e.Observations = []*testpilotpb.ObservationResult{{ObservationId: "id", Value: &testpilotpb.Value{Value: &testpilotpb.Value_SignedInteger{SignedInteger: fmt.Sprint(id)}}}}
+func observed(sequence, elapsed, id int64) *testpilotspb.RunEvent {
+	e := event(sequence, elapsed, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+	e.Observations = []*testpilotspb.ObservationResult{{ObservationId: "id", Value: &testpilotspb.Value{Value: &testpilotspb.Value_SignedInteger{SignedInteger: fmt.Sprint(id)}}}}
 	return e
 }
 func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 	c, cat, view, limits := fixture(t, 16<<20)
 	r := c.Rules[0]
 	addCapture(r)
-	r.States = append(r.States, &testpilotpb.ContractStateDefinition{StateId: "saved", Status: testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL})
-	r.Transitions = []*testpilotpb.ContractTransitionDefinition{transition("save", "start", "saved", present(observation("id"))), transition("match", "saved", "bad", all(present(observation("id")), equal(observation("id"), capture("saved")))), transition("shadowed", "saved", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
+	r.States = append(r.States, &testpilotspb.ContractStateDefinition{StateId: "saved", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL})
+	r.Transitions = []*testpilotspb.ContractTransitionDefinition{transition("save", "start", "saved", present(observation("id"))), transition("match", "saved", "bad", all(present(observation("id")), equal(observation("id"), capture("saved")))), transition("shadowed", "saved", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
 	assign(r.Transitions[0])
 	p, err := Prepare(c, cat, view, limits)
 	require.NoError(t, err)
@@ -103,7 +103,7 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 			monitor, err := p.New(context.Background(), view)
 			require.NoError(t, err)
 			e := monitor.(*Evaluator)
-			run := &testpilotpb.Run{RunId: "run", ProgramId: "program", Status: testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR, Events: []*testpilotpb.RunEvent{event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, id), observed(3, 2000, id+1), observed(4, 3000, id), event(5, 4000, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED)}}
+			run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Status: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, id), observed(3, 2000, id+1), observed(4, 3000, id), event(5, 4000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}}
 			for i, v := range run.Events {
 				d, err := e.Observe(context.Background(), v)
 				require.NoError(t, err)
@@ -116,9 +116,9 @@ func TestEvaluatorCaptureCorrelationAndStop(t *testing.T) {
 			require.Equal(t, []transitionTrace{{2, "rule", "save", "start", "saved"}, {4, "rule", "match", "saved", "bad"}}, e.trace)
 			require.Equal(t, int64(2), e.rules[0].captures["saved"].sequence)
 			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedInteger())
-			run.Events[1].Observations[0].Value.GetValue().(*testpilotpb.Value_SignedInteger).SignedInteger = "999"
+			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedInteger).SignedInteger = "999"
 			require.Equal(t, fmt.Sprint(id), e.rules[0].captures["saved"].value.GetSignedInteger())
-			run.Events[1].Observations[0].Value.GetValue().(*testpilotpb.Value_SignedInteger).SignedInteger = fmt.Sprint(id)
+			run.Events[1].Observations[0].Value.GetValue().(*testpilotspb.Value_SignedInteger).SignedInteger = fmt.Sprint(id)
 			live, err := e.Close(context.Background(), run)
 			require.NoError(t, err)
 			require.Equal(t, []int64{2, 4}, live.SupportingEventSequences)
@@ -133,9 +133,9 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 	c, catalog, view, ceiling := fixture(t, 64)
 	c.Limits.MaxCaptureBytes = 72
 	rule := c.Rules[0]
-	rule.Captures = []*testpilotpb.ContractCaptureDefinition{{CaptureId: "saved-message", Type: &testpilotpb.ContractCaptureType{Type: &testpilotpb.ContractCaptureType_Message{Message: &testpilotpb.NamedType{ProtobufType: "example.Empty"}}}}}
+	rule.Captures = []*testpilotspb.ContractCaptureDefinition{{CaptureId: "saved-message", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Message{Message: &testpilotspb.NamedType{ProtobufType: "example.Empty"}}}}}
 	rule.Transitions[0] = transition("save", "start", "good", present(observation("message")))
-	rule.Transitions[0].CaptureAssignments = []*testpilotpb.ContractCaptureAssignment{{CaptureId: "saved-message", Observation: &testpilotpb.ObservationRef{ObservationId: "message"}}}
+	rule.Transitions[0].CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved-message", Observation: &testpilotspb.ObservationRef{ObservationId: "message"}}}
 
 	tooSmall := proto.CloneOf(c)
 	tooSmall.Limits.MaxCaptureBytes--
@@ -151,11 +151,11 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 	monitor, err := prepared.New(t.Context(), view)
 	require.NoError(t, err)
 	evaluator := monitor.(*Evaluator)
-	_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED))
+	_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
-	value := &testpilotpb.Value{Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
-	observed := event(2, 1, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
-	observed.Observations = []*testpilotpb.ObservationResult{{ObservationId: "message", Value: value}}
+	value := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
+	observed := event(2, 1, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+	observed.Observations = []*testpilotspb.ObservationResult{{ObservationId: "message", Value: value}}
 	_, err = evaluator.Observe(t.Context(), observed)
 	require.NoError(t, err)
 	require.Equal(t, int64(proto.Size(value))+8, evaluator.captureBytes)
@@ -164,12 +164,12 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 
 	for _, test := range []struct {
 		name   string
-		mutate func(*Evaluator, *testpilotpb.Value)
+		mutate func(*Evaluator, *testpilotspb.Value)
 	}{
-		{name: "descriptor", mutate: func(_ *Evaluator, value *testpilotpb.Value) {
+		{name: "descriptor", mutate: func(_ *Evaluator, value *testpilotspb.Value) {
 			value.GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
 		}},
-		{name: "retained byte ceiling", mutate: func(evaluator *Evaluator, value *testpilotpb.Value) {
+		{name: "retained byte ceiling", mutate: func(evaluator *Evaluator, value *testpilotspb.Value) {
 			evaluator.captureBytes = c.Limits.MaxCaptureBytes - int64(proto.Size(value)) - 7
 		}},
 	} {
@@ -177,12 +177,12 @@ func TestEvaluatorMessageCaptureDescriptorBoundsAndOwnership(t *testing.T) {
 			monitor, err := prepared.New(t.Context(), view)
 			require.NoError(t, err)
 			evaluator := monitor.(*Evaluator)
-			_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED))
+			_, err = evaluator.Observe(t.Context(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
-			candidate := &testpilotpb.Value{Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
+			candidate := &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}
 			test.mutate(evaluator, candidate)
-			observed := event(2, 1, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
-			observed.Observations = []*testpilotpb.ObservationResult{{ObservationId: "message", Value: candidate}}
+			observed := event(2, 1, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED)
+			observed.Observations = []*testpilotspb.ObservationResult{{ObservationId: "message", Value: candidate}}
 			_, err = evaluator.Observe(t.Context(), observed)
 			require.Error(t, err)
 			require.Empty(t, evaluator.rules[0].captures)
@@ -196,15 +196,15 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 		t.Run(fmt.Sprint(priorViolation), func(t *testing.T) {
 			c, cat, view, limits := fixture(t)
 			r := c.Rules[0]
-			r.Kind = testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			r.Horizon = &testpilotpb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+			r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			r.Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
 			r.Transitions[0].TargetStateId = "bad"
 			p, err := Prepare(c, cat, view, limits)
 			require.NoError(t, err)
 			monitor, err := p.New(context.Background(), view)
 			require.NoError(t, err)
 			e := monitor.(*Evaluator)
-			run := &testpilotpb.Run{RunId: "run", ProgramId: "program", Status: testpilotpb.RUN_STATUS_INCOMPLETE, Events: []*testpilotpb.RunEvent{event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED)}}
+			run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Status: testpilotspb.RUN_STATUS_INCOMPLETE, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED)}}
 			_, err = e.Observe(context.Background(), run.Events[0])
 			require.NoError(t, err)
 			if priorViolation {
@@ -215,18 +215,18 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 				require.Equal(t, execution.Stop, d)
 			}
 			sequence := int64(len(run.Events) + 1)
-			failed := event(sequence, 5000, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT)
+			failed := event(sequence, 5000, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT)
 			ctx, cancel := context.WithCancel(context.Background())
 			cancel()
 			_, err = e.Observe(ctx, failed)
 			require.ErrorIs(t, err, context.Canceled)
-			run.Events = append(run.Events, failed, event(sequence+1, 7000, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED))
-			run.EvaluationFailure = &testpilotpb.Run_EvaluationFailureSequence{EvaluationFailureSequence: sequence}
+			run.Events = append(run.Events, failed, event(sequence+1, 7000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
+			run.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: sequence}
 			live, err := e.Close(context.Background(), run)
 			require.NoError(t, err)
-			want := testpilotpb.VERDICT_STATUS_INCONCLUSIVE
+			want := testpilotspb.VERDICT_STATUS_INCONCLUSIVE
 			if priorViolation {
-				want = testpilotpb.VERDICT_STATUS_VIOLATED
+				want = testpilotspb.VERDICT_STATUS_VIOLATED
 			}
 			require.Equal(t, want, live.Status)
 			replay, offline, err := p.evaluate(context.Background(), run)
@@ -235,7 +235,7 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 			require.Equal(t, e.trace, replay.trace)
 			for _, bad := range []int64{0, sequence + 2} {
 				invalidRun := proto.CloneOf(run)
-				invalidRun.EvaluationFailure = &testpilotpb.Run_EvaluationFailureSequence{EvaluationFailureSequence: bad}
+				invalidRun.EvaluationFailure = &testpilotspb.Run_EvaluationFailureSequence{EvaluationFailureSequence: bad}
 				_, err := p.Evaluate(context.Background(), invalidRun)
 				require.Error(t, err)
 			}
@@ -246,19 +246,19 @@ func TestEvaluatorFailurePrefixAndAtomicity(t *testing.T) {
 func TestEvaluatorRuntimeBoundsAndMalformedEvents(t *testing.T) {
 	for _, tc := range []struct {
 		name   string
-		mutate func(*testpilotpb.RunEvent)
+		mutate func(*testpilotspb.RunEvent)
 	}{
-		{"sequence", func(e *testpilotpb.RunEvent) { e.Sequence = 3 }},
-		{"elapsed", func(e *testpilotpb.RunEvent) { e.ElapsedMilliseconds = -1 }},
-		{"unknown observation", func(e *testpilotpb.RunEvent) { e.Observations[0].ObservationId = "private-slot" }},
-		{"wrong type", func(e *testpilotpb.RunEvent) {
-			e.Observations[0].Value = &testpilotpb.Value{Value: &testpilotpb.Value_Text{Text: "not an int"}}
+		{"sequence", func(e *testpilotspb.RunEvent) { e.Sequence = 3 }},
+		{"elapsed", func(e *testpilotspb.RunEvent) { e.ElapsedMilliseconds = -1 }},
+		{"unknown observation", func(e *testpilotspb.RunEvent) { e.Observations[0].ObservationId = "private-slot" }},
+		{"wrong type", func(e *testpilotspb.RunEvent) {
+			e.Observations[0].Value = &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "not an int"}}
 		}},
-		{"duplicate observation", func(e *testpilotpb.RunEvent) {
+		{"duplicate observation", func(e *testpilotspb.RunEvent) {
 			e.Observations = append(e.Observations, proto.CloneOf(e.Observations[0]))
 		}},
-		{"bytes", func(e *testpilotpb.RunEvent) {
-			e.Observations[0] = &testpilotpb.ObservationResult{ObservationId: "text", Value: &testpilotpb.Value{Value: &testpilotpb.Value_Text{Text: string(make([]byte, 4097))}}}
+		{"bytes", func(e *testpilotspb.RunEvent) {
+			e.Observations[0] = &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: string(make([]byte, 4097))}}}
 		}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -268,14 +268,14 @@ func TestEvaluatorRuntimeBoundsAndMalformedEvents(t *testing.T) {
 			m, err := p.New(context.Background(), view)
 			require.NoError(t, err)
 			e := m.(*Evaluator)
-			_, err = e.Observe(context.Background(), event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED))
+			_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 			require.NoError(t, err)
 			bad := observed(2, 1000, 7)
 			tc.mutate(bad)
 			_, err = e.Observe(context.Background(), bad)
 			require.Error(t, err)
 			require.Empty(t, e.trace)
-			require.Equal(t, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, e.verdict(testpilotpb.RUN_STATUS_INCOMPLETE).Status)
+			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, e.verdict(testpilotspb.RUN_STATUS_INCOMPLETE).Status)
 		})
 	}
 }
@@ -302,12 +302,12 @@ func TestEvaluatorEventCommitIsAtomicAcrossRules(t *testing.T) {
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
-	_, err = e.Observe(context.Background(), event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED))
+	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	base, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	ctx := &cancelOnCheck{Context: base, cancel: cancel, remaining: 5}
-	_, err = e.Observe(ctx, event(2, 1000, testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED))
+	_, err = e.Observe(ctx, event(2, 1000, testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED))
 	require.ErrorIs(t, err, context.Canceled)
 	require.Empty(t, e.trace)
 	for _, state := range e.rules {
@@ -319,16 +319,16 @@ func TestEvaluatorEventCommitIsAtomicAcrossRules(t *testing.T) {
 func TestEvaluatorIncompleteCannotAcceptLateWitness(t *testing.T) {
 	c, cat, view, limits := fixture(t)
 	r := c.Rules[0]
-	r.Kind = testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-	r.Horizon = &testpilotpb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
+	r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+	r.Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 5000, ViolationStateId: "bad"}
 	p, err := Prepare(c, cat, view, limits)
 	require.NoError(t, err)
-	incomplete := event(2, 4000, testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC)
+	incomplete := event(2, 4000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC)
 	incomplete.ExecutionIncomplete = true
-	run := &testpilotpb.Run{RunId: "run", ProgramId: "program", Status: testpilotpb.RUN_STATUS_INCOMPLETE, Events: []*testpilotpb.RunEvent{event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED), incomplete, observed(3, 6000, 7), event(4, 7000, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED)}}
+	run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Status: testpilotspb.RUN_STATUS_INCOMPLETE, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), incomplete, observed(3, 6000, 7), event(4, 7000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}}
 	e, verdict, err := p.evaluate(context.Background(), run)
 	require.NoError(t, err)
-	require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_INCONCLUSIVE, verdict.Rules[0].Status)
+	require.Equal(t, testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE, verdict.Rules[0].Status)
 	require.Empty(t, e.trace)
 }
 func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
@@ -339,7 +339,7 @@ func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
 	assign(first.Transitions[0])
 	second := proto.CloneOf(first)
 	second.RuleId = "other"
-	second.Captures[0].Type.GetScalar().Kind = testpilotpb.SCALAR_KIND_TEXT
+	second.Captures[0].Type.GetScalar().Kind = testpilotspb.SCALAR_KIND_TEXT
 	second.Transitions[0].Predicate = present(observation("text"))
 	second.Transitions[0].CaptureAssignments[0].Observation.ObservationId = "text"
 	c.Rules = append(c.Rules, second)
@@ -347,10 +347,10 @@ func TestEvaluatorCaptureNamesAreRuleLocal(t *testing.T) {
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
-	_, err = e.Observe(context.Background(), event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED))
+	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	values := observed(2, 1000, 7)
-	values.Observations = append(values.Observations, &testpilotpb.ObservationResult{ObservationId: "text", Value: &testpilotpb.Value{Value: &testpilotpb.Value_Text{Text: "distinct"}}})
+	values.Observations = append(values.Observations, &testpilotspb.ObservationResult{ObservationId: "text", Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "distinct"}}})
 	_, err = e.Observe(context.Background(), values)
 	require.NoError(t, err)
 	require.Equal(t, "7", e.rules[0].captures["saved"].value.GetSignedInteger())
@@ -363,13 +363,13 @@ func TestEvaluatorEventCountBound(t *testing.T) {
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
-	_, err = e.Observe(context.Background(), event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED))
+	_, err = e.Observe(context.Background(), event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED))
 	require.NoError(t, err)
 	for i := int64(2); i <= view.Limits().MaxRunEvents; i++ {
-		_, err = e.Observe(context.Background(), event(i, i, testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC))
+		_, err = e.Observe(context.Background(), event(i, i, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC))
 		require.NoError(t, err)
 	}
-	_, err = e.Observe(context.Background(), event(view.Limits().MaxRunEvents+1, 1000, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED))
+	_, err = e.Observe(context.Background(), event(view.Limits().MaxRunEvents+1, 1000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
 	require.Error(t, err)
 	require.Empty(t, e.trace)
 }
@@ -381,7 +381,7 @@ func TestEvaluatorCancellationAfterCommitPreservesProof(t *testing.T) {
 	require.NoError(t, err)
 	e, err := p.newEvaluator(context.Background(), view)
 	require.NoError(t, err)
-	run := &testpilotpb.Run{RunId: "run", ProgramId: "program", Status: testpilotpb.RUN_STATUS_INCOMPLETE, Events: []*testpilotpb.RunEvent{event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, 7), event(3, 2000, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED)}}
+	run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Status: testpilotspb.RUN_STATUS_INCOMPLETE, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, 7), event(3, 2000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED)}}
 	_, err = e.Observe(context.Background(), run.Events[0])
 	require.NoError(t, err)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -394,7 +394,7 @@ func TestEvaluatorCancellationAfterCommitPreservesProof(t *testing.T) {
 	require.NoError(t, err)
 	live, err := e.Close(ctx, run)
 	require.ErrorIs(t, err, context.Canceled)
-	require.Equal(t, testpilotpb.VERDICT_STATUS_VIOLATED, live.Status)
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, live.Status)
 	replay, offline, err := p.evaluate(context.Background(), run)
 	require.NoError(t, err)
 	require.True(t, proto.Equal(live, offline))
@@ -413,11 +413,11 @@ func TestEvaluatorCloseCancellationAndTerminalState(t *testing.T) {
 				require.NoError(t, err)
 				e, err := p.newEvaluator(context.Background(), view)
 				require.NoError(t, err)
-				run := &testpilotpb.Run{RunId: "run", ProgramId: "program", Status: testpilotpb.RUN_STATUS_INCOMPLETE, Events: []*testpilotpb.RunEvent{event(1, 0, testpilotpb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, 7)}}
+				run := &testpilotspb.Run{RunId: "run", ProgramId: "program", Status: testpilotspb.RUN_STATUS_INCOMPLETE, Events: []*testpilotspb.RunEvent{event(1, 0, testpilotspb.RUN_EVENT_KIND_RUN_OPENED), observed(2, 1000, 7)}}
 				for i := int64(3); i < 128; i++ {
-					run.Events = append(run.Events, event(i, 2000, testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC))
+					run.Events = append(run.Events, event(i, 2000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC))
 				}
-				run.Events = append(run.Events, event(128, 3000, testpilotpb.RUN_EVENT_KIND_RUN_CLOSED))
+				run.Events = append(run.Events, event(128, 3000, testpilotspb.RUN_EVENT_KIND_RUN_CLOSED))
 				for _, v := range run.Events {
 					_, err = e.Observe(context.Background(), v)
 					require.NoError(t, err)
@@ -427,9 +427,9 @@ func TestEvaluatorCloseCancellationAndTerminalState(t *testing.T) {
 				ctx := &cancelOnCheck{Context: base, cancel: cancel, remaining: check}
 				verdict, err := e.Close(ctx, run)
 				require.ErrorIs(t, err, context.Canceled)
-				want := testpilotpb.VERDICT_STATUS_INCONCLUSIVE
+				want := testpilotspb.VERDICT_STATUS_INCONCLUSIVE
 				if violated {
-					want = testpilotpb.VERDICT_STATUS_VIOLATED
+					want = testpilotspb.VERDICT_STATUS_VIOLATED
 				}
 				require.Equal(t, want, verdict.Status)
 				require.Equal(t, []int64{2}, verdict.SupportingEventSequences)
@@ -439,7 +439,7 @@ func TestEvaluatorCloseCancellationAndTerminalState(t *testing.T) {
 				require.Equal(t, e.trace, replay.trace)
 				_, err = e.Close(context.Background(), run)
 				require.Error(t, err)
-				_, err = e.Observe(context.Background(), event(129, 4000, testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC))
+				_, err = e.Observe(context.Background(), event(129, 4000, testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC))
 				require.Error(t, err)
 			})
 		}

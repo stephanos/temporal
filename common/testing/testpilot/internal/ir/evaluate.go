@@ -6,22 +6,22 @@ import (
 	"math"
 	"strconv"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 )
 
 // Evaluate reads already type-checked immutable values. A nil resolved value denotes absence.
 // The returned value is independent of the resolver and prepared expression.
-func (e *Expression) Evaluate(ctx context.Context, resolve func(Reference) *testpilotpb.Value, limit int64) (*testpilotpb.Value, int64, error) {
+func (e *Expression) Evaluate(ctx context.Context, resolve func(Reference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, int64, error) {
 	return e.evaluate(ctx, resolve, limit, false)
 }
 
 // EvaluateExecution shares Evaluate's semantics and charges intermediate ownership copies.
 // Evaluate retains the accounting units used by already-admitted Contract work bounds.
-func (e *Expression) EvaluateExecution(ctx context.Context, resolve func(Reference) *testpilotpb.Value, limit int64) (*testpilotpb.Value, int64, error) {
+func (e *Expression) EvaluateExecution(ctx context.Context, resolve func(Reference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, int64, error) {
 	return e.evaluate(ctx, resolve, limit, true)
 }
-func (e *Expression) evaluate(ctx context.Context, resolve func(Reference) *testpilotpb.Value, limit int64, copies bool) (*testpilotpb.Value, int64, error) {
+func (e *Expression) evaluate(ctx context.Context, resolve func(Reference) *testpilotspb.Value, limit int64, copies bool) (*testpilotspb.Value, int64, error) {
 	r := runtimeExpression{ctx: ctx, resolve: resolve, limit: limit, copyWork: copies}
 	if ctx == nil || resolve == nil || e == nil || limit <= 0 {
 		return nil, 0, invalid(Malformed, "expression", "context, expression, resolver and positive work required")
@@ -31,7 +31,7 @@ func (e *Expression) evaluate(ctx context.Context, resolve func(Reference) *test
 		err = invalid(Unavailable, "expression", "unguarded absent value")
 	}
 	if err == nil {
-		if _, scalar := v.GetValue().(*testpilotpb.Value_BoolValue); !scalar || copies {
+		if _, scalar := v.GetValue().(*testpilotspb.Value_BoolValue); !scalar || copies {
 			err = r.charge(int64(proto.Size(v)))
 		}
 	}
@@ -44,7 +44,7 @@ func (e *Expression) evaluate(ctx context.Context, resolve func(Reference) *test
 type runtimeExpression struct {
 	copyWork    bool
 	ctx         context.Context
-	resolve     func(Reference) *testpilotpb.Value
+	resolve     func(Reference) *testpilotspb.Value
 	limit, work int64
 }
 
@@ -58,10 +58,10 @@ func (r *runtimeExpression) charge(n int64) error {
 	r.work += n
 	return nil
 }
-func boolValue(v bool) *testpilotpb.Value {
-	return &testpilotpb.Value{Value: &testpilotpb.Value_BoolValue{BoolValue: v}}
+func boolValue(v bool) *testpilotspb.Value {
+	return &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: v}}
 }
-func (r *runtimeExpression) eval(e *Expression) (*testpilotpb.Value, error) {
+func (r *runtimeExpression) eval(e *Expression) (*testpilotspb.Value, error) {
 	if err := r.charge(1); err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (r *runtimeExpression) eval(e *Expression) (*testpilotpb.Value, error) {
 		return nil, invalid(Unsupported, "expression", "unknown prepared operator")
 	}
 }
-func (r *runtimeExpression) binary(e *Expression) (*testpilotpb.Value, error) {
+func (r *runtimeExpression) binary(e *Expression) (*testpilotspb.Value, error) {
 	a, err := r.eval(e.children[0])
 	if err != nil {
 		return nil, err
@@ -139,43 +139,43 @@ func (r *runtimeExpression) binary(e *Expression) (*testpilotpb.Value, error) {
 		return boolValue(false), nil
 	}
 	switch e.comparison {
-	case testpilotpb.COMPARISON_OPERATOR_LESS_THAN:
+	case testpilotspb.COMPARISON_OPERATOR_LESS_THAN:
 		return boolValue(ordering < 0), nil
-	case testpilotpb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL:
+	case testpilotspb.COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL:
 		return boolValue(ordering <= 0), nil
-	case testpilotpb.COMPARISON_OPERATOR_GREATER_THAN:
+	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN:
 		return boolValue(ordering > 0), nil
-	case testpilotpb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
+	case testpilotspb.COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL:
 		return boolValue(ordering >= 0), nil
 	default:
 		return nil, invalid(Unsupported, "expression", "unknown comparison")
 	}
 }
-func compareValues(a, b *testpilotpb.Value, typ Type) (int, bool, error) {
+func compareValues(a, b *testpilotspb.Value, typ Type) (int, bool, error) {
 	switch v := a.Value.(type) {
-	case *testpilotpb.Value_Natural:
+	case *testpilotspb.Value_Natural:
 		other := b.GetNatural()
 		if len(v.Natural) != len(other) {
 			return cmp.Compare(len(v.Natural), len(other)), false, nil
 		}
 		return cmp.Compare(v.Natural, other), false, nil
-	case *testpilotpb.Value_SignedInteger:
+	case *testpilotspb.Value_SignedInteger:
 		x, err := strconv.ParseInt(v.SignedInteger, 10, 64)
 		if err != nil {
 			return 0, false, err
 		}
 		y, err := strconv.ParseInt(b.GetSignedInteger(), 10, 64)
 		return cmp.Compare(x, y), false, err
-	case *testpilotpb.Value_UnsignedInteger:
+	case *testpilotspb.Value_UnsignedInteger:
 		x, err := strconv.ParseUint(v.UnsignedInteger, 10, 64)
 		if err != nil {
 			return 0, false, err
 		}
 		y, err := strconv.ParseUint(b.GetUnsignedInteger(), 10, 64)
 		return cmp.Compare(x, y), false, err
-	case *testpilotpb.Value_FloatingPoint:
+	case *testpilotspb.Value_FloatingPoint:
 		x, y := v.FloatingPoint, b.GetFloatingPoint()
-		if typ.scalar == testpilotpb.SCALAR_KIND_FLOAT {
+		if typ.scalar == testpilotspb.SCALAR_KIND_FLOAT {
 			x, y = float64(float32(x)), float64(float32(y))
 		}
 		return cmp.Compare(x, y), math.IsNaN(x) || math.IsNaN(y), nil
@@ -183,7 +183,7 @@ func compareValues(a, b *testpilotpb.Value, typ Type) (int, bool, error) {
 		return 0, false, invalid(TypeMismatch, "expression", "ordered scalar required")
 	}
 }
-func (r *runtimeExpression) equal(a, b *testpilotpb.Value, typ Type) (bool, error) {
+func (r *runtimeExpression) equal(a, b *testpilotspb.Value, typ Type) (bool, error) {
 	if err := r.ctx.Err(); err != nil {
 		return false, err
 	}
@@ -219,19 +219,19 @@ func (r *runtimeExpression) equal(a, b *testpilotpb.Value, typ Type) (bool, erro
 		}
 		return proto.Equal(x.Interface(), y.Interface()), nil
 	}
-	if typ.scalar == testpilotpb.SCALAR_KIND_FLOAT {
+	if typ.scalar == testpilotspb.SCALAR_KIND_FLOAT {
 		x, y := float32(a.GetFloatingPoint()), float32(b.GetFloatingPoint())
 		return x == y || math.IsNaN(float64(x)) && math.IsNaN(float64(y)), nil
 	}
 	return proto.Equal(a, b), nil
 }
 
-func (r *runtimeExpression) equalMap(a, b *testpilotpb.Value, typ Type) (bool, error) {
+func (r *runtimeExpression) equalMap(a, b *testpilotspb.Value, typ Type) (bool, error) {
 	x, y := a.GetMapValue().GetEntries(), b.GetMapValue().GetEntries()
 	if len(x) != len(y) {
 		return false, nil
 	}
-	indexed := make(map[string]*testpilotpb.Value, len(y))
+	indexed := make(map[string]*testpilotspb.Value, len(y))
 	for _, entry := range y {
 		if err := r.ctx.Err(); err != nil {
 			return false, err

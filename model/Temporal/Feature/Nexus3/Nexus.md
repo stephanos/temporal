@@ -35,8 +35,9 @@ transition row are visual separators, not Lean addition or a function type. `/--
 documentation; `/- ... -/` is a block comment.
 
 IDs derive from the feature namespace, declaration kind, and name. `Integration.md` specifies
-the convention and proposed Case boundary. Model admission, the syntax below, and integration
-remain design work; there is no parallel identity registry to maintain.
+the convention and Case boundary. Broader cancellation model admission, the proposed forms below,
+and cancellation Case integration remain design work; there is no parallel identity registry to
+maintain.
 -/
 
 -- A namespace groups related names; the full type name is `Temporal.Feature.Nexus3.State`.

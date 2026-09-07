@@ -19,7 +19,12 @@ enum EntrypointKind {
   ENTRYPOINT_KIND_ACTIVITY = 3;
   ENTRYPOINT_KIND_NEXUS_HANDLER = 4;
 }
-message RoleDefinition { string role_id = 1; RoleKind kind = 2; }
+message RoleDefinition {
+  string role_id = 1;
+  RoleKind kind = 2;
+  string namespace_binding_id = 3;
+  string resource_binding_id = 4;
+}
 message ControllerActivation {}
 message WorkflowActivation {
   string workflow_type = 1;
@@ -81,4 +86,7 @@ message Program {
   repeated EntrypointDefinition entrypoints = 5;
   CleanupDefinition cleanup = 6;
   ProgramLimits limits = 7;
+  repeated EnvironmentDefinition environment = 8;
 }
+
+message EnvironmentDefinition { string binding_id = 1; }

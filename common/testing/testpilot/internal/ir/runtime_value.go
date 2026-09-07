@@ -4,7 +4,7 @@ import (
 	"context"
 	"math"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -27,7 +27,7 @@ func runtimeBudget(ctx context.Context, limits Limits) (*budget, error) {
 }
 
 // SnapshotValue validates before copying; work includes traversal, payload decoding and ownership.
-func SnapshotValue(ctx context.Context, value *testpilotpb.Value, typ Type, limits Limits) (*testpilotpb.Value, int64, error) {
+func SnapshotValue(ctx context.Context, value *testpilotspb.Value, typ Type, limits Limits) (*testpilotspb.Value, int64, error) {
 	b, err := runtimeBudget(ctx, limits)
 	if err != nil {
 		return nil, 0, err
@@ -44,7 +44,7 @@ func SnapshotValue(ctx context.Context, value *testpilotpb.Value, typ Type, limi
 	}
 	return proto.CloneOf(value), b.work, nil
 }
-func validateValue(value *testpilotpb.Value, typ Type, b *budget) error {
+func validateValue(value *testpilotspb.Value, typ Type, b *budget) error {
 	if value == nil || typ.catalog == nil || typ.opaque {
 		return invalid(TypeMismatch, "value", "ordinary typed value required")
 	}

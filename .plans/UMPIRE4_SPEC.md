@@ -45,18 +45,21 @@ horizon.
   their descriptions.
 - **Producer.** A compiler or conforming client that creates a versioned Case. Lean is the first
   Producer, but the Case format and Go runtime do not depend on Lean.
-- **Case.** Exactly one Program and one Contract, with version, provenance, stable definition
-  bindings, and Known Gaps.
+- **Case.** Exactly one Program and one Contract, with version, stable identity, and generic opaque
+  provenance. Umpire Producers retain stable definition bindings and Known Gaps inside their
+  producer-owned provenance bytes.
 - **Program.** A bounded acyclic graph of typed instructions in controller, workflow, activity, or
   Nexus-handler entrypoints.
 - **Contract.** A finite set of deterministic safety and bounded-liveness monitor machines over Run
   Events and declared Observations.
-- **Profile.** An immutable authorization snapshot containing a descriptor Catalog, symbolic role
-  policy, capabilities, and independent Program and Contract ceilings.
+- **Profile.** An immutable authorization and environment snapshot containing a descriptor Catalog,
+  symbolic role policy, physical environment bindings, capabilities, and independent Program and
+  Contract ceilings. A binding authorizes no capability by itself.
 - **Driver.** The environment-owned implementation of authorized side effects. Server and worker
   capabilities remain separate even when composed behind one Driver.
 - **Prepared Case.** The immutable result of static Case, Program, Contract, descriptor, and Profile
-  admission. It contains no live client, credential, worker, or Run state.
+  admission. Symbolic resources are resolved from the snapshotted Profile, while its source Case
+  remains symbolic. It contains no live client, credential, worker, or Run state.
 - **Run Event.** One immutable, monotonically sequenced fact appended by the Executor.
 - **Slot.** Private immutable single-assignment execution data. Slot opacity does not make declared
   response projections secret; only declared Observations enter Contract evidence.
@@ -69,7 +72,9 @@ horizon.
 - **`Umpire`.** Reusable Lean tools for authoring and checking models and producing plans. It
   contains no Temporal-specific behavior.
 - **`Testpilot`.** The canonical name for running behavior through Temporal and Workers. The
-  Testpilot protobuf schema is the wire authority; `Testpilot.Protocol` exposes its generated Lean
+  Testpilot protobuf closure rooted at
+  `proto/internal/temporal/server/api/testpilot/v1/case.proto` is the wire authority;
+  `Testpilot.Protocol` exposes its generated Lean
   declarations, `Testpilot.Authoring` constructs them through a context-safe producer-neutral API,
   and `Testpilot.ProtoJSON` owns the single library-backed serialization policy. The shared Go
   runtime admits and executes Cases through a caller-owned Driver and evaluates their Contracts.
@@ -145,9 +150,9 @@ horizon.
 - **MOD-12 — Public Testpilot facade.** The public execution sequence MUST be exactly
   `testpilot.Prepare(case, profile)` followed by `PreparedCase.Run(ctx, driver)`. Scheduler, Recorder, Slot
   storage, and Monitor-factory construction MUST remain internal.
-- **MOD-13 — Temporal authority split.** `tests/testcore/testpilot/server` MUST supply the authorized
+- **MOD-13 — Temporal authority split.** `common/testing/temporaltestpilot/server` MUST supply the authorized
   descriptor catalog and transport prepared unary method/request pairs, returning raw typed
-  responses and protocol status. `tests/testcore/testpilot/worker` MUST own SDK workflow, activity, and
+  responses and protocol status. `common/testing/temporaltestpilot/worker` MUST own SDK workflow, activity, and
   Nexus-handler execution plus reserved activation delivery. Neither side may assume the other's
   authority; internal execution owns request construction and response projection.
 - **MOD-14 — Internal execution boundary.** Production packages outside Testpilot and its private
@@ -302,8 +307,9 @@ horizon.
 - **ART-08 — Retired: closed portable evaluation.** Superseded by the Case Contract under ART-09
   and SEM-17.
 - **ART-09 — Closed Case format.** A Case MUST contain exactly one versioned Program and one
-  Contract, stable IDs and provenance, explicit Known Gaps, typed roles, paths, Slots,
-  Observations, independent limits, and no callback, client, credential, endpoint, or executable.
+  Contract, stable IDs, generic opaque provenance, typed roles, paths, Slots, Observations,
+  independent limits, and no callback, client, credential, endpoint, or executable. Umpire
+  Producers MUST retain their explicit Known Gaps in producer-owned provenance bytes.
   Unknown versions, fields, enum values, instructions, paths, types, crossed references, or
   out-of-policy resources MUST reject before Driver I/O.
 - **ART-10 — Immutable preparation.** `testpilot.Prepare` MUST snapshot all admitted Case, Catalog,
@@ -316,6 +322,17 @@ horizon.
   complete managed tree under a temporary root before comparison or publication. Verification and
   reviewed promotion MUST be separate actions; ordinary tests MUST invoke neither Lean nor rewrite
   fixtures.
+- **ART-13 — Explicit environment binding.** A Case 1.0 Program MUST be literal-only and MUST reject
+  binding declarations or references. A Case 1.1 Program MUST declare a nonempty closed graph of
+  symbolic text bindings. The Case owns only symbolic IDs and references; the Profile owns their
+  physical namespace, task-queue, and named Nexus endpoint values. Symbolic endpoint IDs are not
+  transport addresses. Credentials, gRPC targets, callback authorities, SDK clients, and lifecycle
+  configuration remain Driver inputs.
+- **ART-14 — Binding identity.** Preparation and Driver identity MUST include the same deterministic
+  fingerprint of the complete immutable Profile binding snapshot. Reordering equal bindings MUST
+  preserve the fingerprint; changing any binding, including one unused by the Case, MUST change it.
+  Environment rebinding MUST NOT change source Case bytes, Behavior Fingerprints, Contract bytes, or
+  producer provenance meaning.
 
 ## Case execution and verification
 
@@ -385,6 +402,12 @@ horizon.
   inconclusive, static-preparation-rejection, cleanup-failure-after-proved-violation, and
   cross-Run-isolation facade classes while leaving focused concurrency, cancellation, path,
   cardinality, fuzz, and lifecycle tests independent.
+- **EVD-19 — Static Driver validation.** After complete Driver identity agreement and before Monitor
+  creation or `Driver.Open`, `PreparedCase.Run` MUST call the Driver's no-I/O validation hook over
+  immutable prepared metadata. Validation failure MUST create no Session, Run, Verdict, worker
+  registration, or target effect. Symbolic Temporal validation MUST compare binding references, not
+  merely their currently resolved text. Legacy literal-only and symbolic binding modes MUST remain
+  explicit, and a Driver MUST NOT mix them or use legacy values as symbolic fallbacks.
 
 ## Exploration, replay, and promotion
 

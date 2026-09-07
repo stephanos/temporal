@@ -5,7 +5,7 @@ import (
 	"errors"
 	"time"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 )
 
@@ -16,7 +16,7 @@ func Run(
 	monitor Monitor,
 	runID string,
 	caseID string,
-) (*testpilotpb.Run, *testpilotpb.Verdict, error) {
+) (*testpilotspb.Run, *testpilotspb.Verdict, error) {
 	if isNil(ctx) || program == nil || isNil(driver) || isNil(monitor) || !validID(runID) || !validID(caseID) {
 		return nil, nil, invalid(ir.Malformed, "execution", "context, prepared Program, Driver, Monitor and Run identity required")
 	}
@@ -59,15 +59,15 @@ func Run(
 	}
 	disposition := scheduler.recorder.terminalDisposition(ordinaryErr)
 
-	cleanup := &testpilotpb.CleanupOutcome{Status: testpilotpb.CLEANUP_STATUS_SUCCEEDED}
+	cleanup := &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED}
 	cleanupStart := scheduler.ownedCount()
 	cleanupCtx, cancelCleanup := freshContext(limits.GetMaxCleanupDurationMilliseconds())
 	cleanupErr := scheduler.executeCleanup(cleanupCtx)
 	cleanupSettleErr := scheduler.settle(cleanupCtx, scheduler.outstandingSince(cleanupStart), true, cleanupErr != nil)
 	cancelCleanup()
 	if cleanupErr = errors.Join(cleanupErr, cleanupSettleErr); cleanupErr != nil {
-		cleanup.Status = testpilotpb.CLEANUP_STATUS_FAILED
-		if id := scheduler.recorder.report(testpilotpb.RUN_DIAGNOSTIC_KIND_EXECUTION, "cleanup_failed", cleanupErr); id != "" {
+		cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED
+		if id := scheduler.recorder.report(testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION, "cleanup_failed", cleanupErr); id != "" {
 			cleanup.DiagnosticIds = append(cleanup.DiagnosticIds, id)
 		}
 	}
@@ -79,8 +79,8 @@ func Run(
 	}
 	cancelClose()
 	if closeErr != nil {
-		cleanup.Status = testpilotpb.CLEANUP_STATUS_FAILED
-		if id := scheduler.recorder.report(testpilotpb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT, "driver_close_failed", closeErr); id != "" {
+		cleanup.Status = testpilotspb.CLEANUP_STATUS_FAILED
+		if id := scheduler.recorder.report(testpilotspb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT, "driver_close_failed", closeErr); id != "" {
 			cleanup.DiagnosticIds = append(cleanup.DiagnosticIds, id)
 		}
 	}

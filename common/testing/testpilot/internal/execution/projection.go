@@ -3,7 +3,7 @@ package execution
 import (
 	"context"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -17,7 +17,7 @@ func (a *activationValues) stage(ctx context.Context, c Coordinate, result Effec
 	if err != nil {
 		return nil, 0, err
 	}
-	batch := &valueBatch{owner: a, coordinate: c, writes: map[string]*testpilotpb.Value{}, fields: map[testpilotpb.InstructionOutcomeField]*testpilotpb.Value{}}
+	batch := &valueBatch{owner: a, coordinate: c, writes: map[string]*testpilotspb.Value{}, fields: map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value{}}
 	snapshot, err := validateOutcome(w, a.graph.context, n, result.Outcome)
 	if err != nil {
 		return nil, w.work, err
@@ -30,7 +30,7 @@ func (a *activationValues) stage(ctx context.Context, c Coordinate, result Effec
 		return finishBatch(w, batch)
 	}
 	if isNil(result.Response) {
-		if batch.outcome.Status == testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
+		if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
 			return nil, w.work, invalid(ir.Unavailable, "projection", "successful RPC has no response")
 		}
 		return finishBatch(w, batch)
@@ -40,7 +40,7 @@ func (a *activationValues) stage(ctx context.Context, c Coordinate, result Effec
 	if err != nil {
 		return nil, w.work, err
 	}
-	if batch.outcome.Status == testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
+	if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
 		for i, p := range n.projections {
 			value, work, err := p.path.Read(ctx, response, w.remaining(n.source.Limits.MaxResponseBytes))
 			w.work += work
@@ -57,8 +57,8 @@ func (a *activationValues) stage(ctx context.Context, c Coordinate, result Effec
 	}
 	return finishBatch(w, batch)
 }
-func validateOutcome(w *valueWork, entryContext testpilotpb.EntrypointKind, n *node, outcome *testpilotpb.InstructionOutcome) (*OutcomeSnapshot, error) {
-	if outcome == nil || outcome.Status == testpilotpb.INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED {
+func validateOutcome(w *valueWork, entryContext testpilotspb.EntrypointKind, n *node, outcome *testpilotspb.InstructionOutcome) (*OutcomeSnapshot, error) {
+	if outcome == nil || outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_UNSPECIFIED {
 		return nil, invalid(ir.Malformed, "outcome", "typed outcome status required")
 	}
 	snapshot, work, err := ir.SnapshotMessage(w.ctx, outcome, outcome.ProtoReflect().Descriptor(), w.remaining(w.limits.Bytes))
@@ -69,20 +69,20 @@ func validateOutcome(w *valueWork, entryContext testpilotpb.EntrypointKind, n *n
 	if err = w.charge(int64(proto.Size(snapshot)) + 1); err != nil {
 		return nil, err
 	}
-	frozen := &testpilotpb.InstructionOutcome{}
+	frozen := &testpilotspb.InstructionOutcome{}
 	proto.Merge(frozen, snapshot)
-	if entryContext == testpilotpb.ENTRYPOINT_KIND_CONTROLLER {
-		if frozen.SdkFailureCode != "" || frozen.Status == testpilotpb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE {
+	if entryContext == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+		if frozen.SdkFailureCode != "" || frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE {
 			return nil, invalid(ir.TypeMismatch, "outcome", "SDK outcome in controller")
 		}
-	} else if frozen.ProtocolCode != "" || frozen.Status == testpilotpb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS {
+	} else if frozen.ProtocolCode != "" || frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS {
 		return nil, invalid(ir.TypeMismatch, "outcome", "protocol outcome in worker")
 	}
-	valueType, hasValue := n.outcomes[testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE]
+	valueType, hasValue := n.outcomes[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE]
 	if frozen.Value != nil && !hasValue {
 		return nil, invalid(ir.Unsupported, "outcome", "undeclared payload")
 	}
-	if hasValue && frozen.Status == testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED && frozen.Value == nil {
+	if hasValue && frozen.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED && frozen.Value == nil {
 		return nil, invalid(ir.Unavailable, "outcome", "successful outcome lacks required value")
 	}
 	if frozen.Value != nil {
@@ -91,7 +91,7 @@ func validateOutcome(w *valueWork, entryContext testpilotpb.EntrypointKind, n *n
 			return nil, err
 		}
 	}
-	result := &OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotpb.InstructionOutcomeField]*testpilotpb.Value, len(n.outcomes))}
+	result := &OutcomeSnapshot{Outcome: frozen, Fields: make(map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value, len(n.outcomes))}
 	for _, declaration := range n.source.Outcome.Fields {
 		field := declaration.Field
 		typ := n.outcomes[field]
@@ -108,13 +108,13 @@ func validateOutcome(w *valueWork, entryContext testpilotpb.EntrypointKind, n *n
 	}
 	return result, nil
 }
-func textValue(text string) *testpilotpb.Value {
-	return &testpilotpb.Value{Value: &testpilotpb.Value_Text{Text: text}}
+func textValue(text string) *testpilotspb.Value {
+	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: text}}
 }
-func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBatch, p projection, index int64, value *testpilotpb.Value) error {
-	values := []*testpilotpb.Value{value}
+func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBatch, p projection, index int64, value *testpilotspb.Value) error {
+	values := []*testpilotspb.Value{value}
 	typ := p.path.Type()
-	if p.cardinality == testpilotpb.PROJECTION_KIND_EMIT_EACH {
+	if p.cardinality == testpilotspb.PROJECTION_KIND_EMIT_EACH {
 		values = value.GetListValue().GetValues()
 		typ = typ.Element()
 	}
@@ -129,13 +129,13 @@ func (a *activationValues) stageProjection(w *valueWork, n *node, batch *valueBa
 				return err
 			}
 			switch target := sink.Target.(type) {
-			case *testpilotpb.ProjectionTarget_SlotId:
+			case *testpilotspb.ProjectionTarget_SlotId:
 				if _, exists := batch.writes[target.SlotId]; exists {
 					return invalid(ir.Malformed, "projection", "duplicate staged Slot")
 				}
 				batch.writes[target.SlotId] = copied
-			case *testpilotpb.ProjectionTarget_ObservationId:
-				fact.observations = append(fact.observations, &testpilotpb.ObservationResult{ObservationId: target.ObservationId, Value: copied})
+			case *testpilotspb.ProjectionTarget_ObservationId:
+				fact.observations = append(fact.observations, &testpilotspb.ObservationResult{ObservationId: target.ObservationId, Value: copied})
 			default:
 				return invalid(ir.Unsupported, "projection", "unknown sink")
 			}
@@ -157,18 +157,18 @@ func finishBatch(w *valueWork, batch *valueBatch) (*valueBatch, int64, error) {
 	return batch, w.work, nil
 }
 
-func outcomeField(outcome *testpilotpb.InstructionOutcome, field testpilotpb.InstructionOutcomeField) (*testpilotpb.Value, error) {
-	var value *testpilotpb.Value
+func outcomeField(outcome *testpilotspb.InstructionOutcome, field testpilotspb.InstructionOutcomeField) (*testpilotspb.Value, error) {
+	var value *testpilotspb.Value
 	switch field {
-	case testpilotpb.INSTRUCTION_OUTCOME_FIELD_STATUS:
-		value = &testpilotpb.Value{Value: &testpilotpb.Value_EnumValue{EnumValue: &testpilotpb.EnumValue{Number: int32(outcome.Status)}}}
-	case testpilotpb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE:
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS:
+		value = &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(outcome.Status)}}}
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE:
 		value = textValue(outcome.ProtocolCode)
-	case testpilotpb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE:
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE:
 		value = textValue(outcome.SdkFailureCode)
-	case testpilotpb.INSTRUCTION_OUTCOME_FIELD_DETAIL:
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL:
 		value = textValue(outcome.Detail)
-	case testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE:
+	case testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE:
 		value = outcome.Value
 	default:
 		return nil, invalid(ir.Unknown, "outcome", "unknown field")

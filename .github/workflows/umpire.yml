@@ -32,6 +32,6 @@ jobs:
           working_directory: model
           cache: false
       - name: Run package-local Testpilot and Umpire Producer tests
-        run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
+        run: mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot/...
       - name: Run the live Umpire tests
         run: make umpire-check-live-tests

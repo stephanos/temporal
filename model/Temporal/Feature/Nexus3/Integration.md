@@ -1,9 +1,9 @@
 /-!
 # Nexus3 Case integration draft
 
-Proposed binding syntax, not a working Producer. Read `Nexus.md` first. This file keeps identity
-conventions, execution choices, and evidence interpretation out of the feature-facing model.
-Both files are design specimens; neither implements a compiler or checker.
+Proposed binding syntax. Read `Nexus.md` first. This file keeps identity conventions, execution
+choices, and evidence interpretation out of the feature-facing model. Both Markdown files remain
+design specimens; the checked success-only completion Producer lives in `Testpilot.lean`.
 
 ## Admission and identity
 
@@ -36,6 +36,12 @@ Authors provide no identity or version input for these declarations. Generated
 `DefinitionMetadata` retains Umpire's format version `1` because Target admission and artifact
 provenance consume that core field; `Temporal.Shared.definitionMetadata` supplies it outside the
 Nexus3 syntax.
+
+The produced Testpilot Case has a separate wire version. The checked completion selection emits one
+Case 1.1 Program whose symbolic namespace, task-queue, and Nexus endpoint IDs are stable resource
+references, not physical names or transport addresses. Preparing those exact Case bytes against a
+Profile resolves environment-owned values without changing the checked definitions, Behavior
+Fingerprints, Contract, or Umpire provenance.
 
 ## Commands, waits, and observation correlation
 
@@ -81,15 +87,20 @@ proof that the model's one-step requirement was violated.
 
 ## Current support and reuse
 
-No Query currently has an executable Case producer: the authored Target and Queries do not
-yet have checker-success evidence. The mappings below specify the intended seam and rejection
-requirements; they are not executable support declarations.
+The successful-completion Query has checked mapping and lowering through `produceCompletionCase`
+and `completionCase`. Cancellation Queries remain unsupported until the Program can retain and
+address the matching operation handle. The mappings below state that executable boundary and its
+rejection requirements.
 
 `Temporal.Testpilot.asyncNexusCase` is a useful example of setup, asynchronous handler response,
 completion capability, and history correlation. It has independently authored Program/Contract
 meaning; returning it under a Nexus3 Query ID would not establish Nexus3 lowering correctness.
-`Umpire.Case.Compiler.compile` accepts an already-built Program and lowered monitors; it does
-not compile a Nexus3 Property. Reuse it only after the new Producer has checked those mappings.
+The Nexus3 Producer validates the checked mapping and lowers generated Program and Contract values.
+`Umpire.Case.Compiler.compile` then validates the source-bound rule rows, preserves unsupported
+construct errors, attaches exact Umpire provenance, and performs final generated Case assembly.
+The generated fixture is prepared and run in the live integration test against two distinct
+namespace, task-queue, and Nexus endpoint bindings. Both environments retain the same symbolic Case
+and satisfied Contract meaning; only their Profile binding fingerprints and Driver identities differ.
 
 Nexus2's finite admission and typed authoring helpers are candidates for reuse. Its baseline
 allows a started setup and immediate cancellation; its race starts already running. Neither
@@ -134,7 +145,6 @@ integration lifecycleCases on lifecycle
     require checkedKnownGaps
 
   unsupported
-    allQueries          => draftHasNoCheckedProducer
     cancellationSafety  => operationCancellationInstructionUnavailable
     completionCanWin    => operationCancellationInstructionUnavailable
     cancellationProgress => operationCancellationInstructionUnavailable, operationStepMonitorNotLowered

@@ -27,17 +27,29 @@ Each owner validates its complete candidate output before replacing managed file
 
 ## Case production
 
-`Umpire.Case` is the reusable, Temporal-independent IR. A Case contains exactly one bounded Program
-and one deterministic Contract. Programs contain typed acyclic instruction graphs; Contracts
-contain safety and bounded-liveness monitor machines over Run Events and declared Observations.
+The checked-in Testpilot `.proto` closure is the sole Case schema. `Testpilot.Protocol` exposes its
+generated Lean declarations, `Testpilot.Authoring` constructs generated Cases through context-safe
+helpers, and `Testpilot.ProtoJSON` delegates the one canonical codec policy to `Protobuf.Json`.
+`Umpire.Case` retains only Umpire-owned definitions, fingerprints, sources, and Known Gaps for
+opaque producer provenance.
 
-`Umpire.Case.Compiler` lowers checked Producer inputs and rejects unsupported constructs.
 `Temporal.Feature.Nexus3.Testpilot` lowers the checked success-only Nexus3 completion Query and
 witness into the async Nexus example. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo`
-example and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` renders canonical
-ProtoJSON. The broader Nexus3 Markdown sketches remain design material rather than executable
+example and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` forwards rendering
+to `Testpilot.ProtoJSON`. The broader Nexus3 Markdown sketches remain design material rather than executable
 coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
 Lean.
+
+Umpire-backed Producers lower checked semantics into generated values and pass them to
+`Umpire.Case.Compiler` for source-bound property validation, exact opaque provenance, and final
+generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
+directly.
+
+Literal-only Programs remain Case 1.0. Case 1.1 adds a nonempty closed graph of symbolic text
+resources. Producers declare stable namespace, task-queue, and named Nexus endpoint binding IDs;
+they do not embed the physical resource names. These IDs are resource references, not transport
+addresses. Rebinding an unchanged Case does not change its canonical bytes, Contract, Behavior
+Fingerprints, or opaque producer provenance.
 
 Testpilot terms have precise boundaries:
 
@@ -120,22 +132,33 @@ testpilot.Prepare(case, Profile) ──▶ immutable PreparedCase
 PreparedCase.Run(ctx, Driver) ──▶ immutable Run + Verdict
 ```
 
-`common/testing/testpilot` owns the Case protocol and public Profile, Driver, and two-call facade.
+The Testpilot `.proto` files own the Case protocol. `common/testing/testpilot` owns the public
+Profile, Driver, and two-call facade.
 Its private execution package owns scheduling, recording, effect lifecycle, private Slot state,
 and bounded cleanup. Its private verification package owns Contract preparation, fresh Run-local
-Monitors, and offline evaluation. Umpire remains the Lean authoring and Producer owner.
+Monitors, and offline evaluation. Umpire owns its semantic model and opaque provenance payload;
+each Lean Producer owns its checked lowering, the shared compiler completes Umpire-backed Case
+assembly, and Go `testpilot.Prepare` owns Case admission.
 
 Temporal authority remains split:
 
-- `tests/testcore/testpilot/server` supplies the authorized descriptor catalog and transports prepared
+- `common/testing/temporaltestpilot/server` supplies the authorized descriptor catalog and transports prepared
   unary method/request pairs, returning raw typed responses and protocol status.
-- `tests/testcore/testpilot/worker` owns SDK workflow, activity, and Nexus-handler interpretation,
+- `common/testing/temporaltestpilot/worker` owns SDK workflow, activity, and Nexus-handler interpretation,
   reserved activation delivery, and activation-level cancellation.
-- `tests/testcore/testpilot` composes server and worker Drivers without interpreting scenario or Contract
+- `common/testing/temporaltestpilot` composes server and worker Drivers without interpreting scenario or Contract
   semantics.
 
 Internal execution constructs typed requests and applies declared response projections to private
 Slots and Run Observations.
+
+`Prepare` snapshots Profile-owned physical binding values and resolves private prepared request and
+role data without Driver I/O. Prepared/Driver identity includes a deterministic fingerprint over the
+complete binding snapshot. `Run` checks that identity, calls the Driver's static no-I/O `Validate`,
+creates the Monitor, and only then calls `Open`. The shared Temporal Driver uses prepared resources in
+symbolic Case 1.1 mode; its separate legacy mode accepts literal-only Case 1.0 resources. Transport
+targets, credentials, callback authority, SDK clients, and lifecycle configuration remain physical
+Driver inputs in both modes.
 
 ## Generated artifacts
 
@@ -162,6 +185,11 @@ make umpire-gen-case-runtime-conformance  # separate reviewed promotion
 model/.lake/build/bin/temporal-testpilot async-nexus
 mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'
 ```
+
+The live Nexus3 selector prepares the same canonical Case bytes against two Profiles, runs both
+environments concurrently, verifies namespace isolation and correlated endpoint history, and obtains
+the same satisfied Contract result. Its binding fingerprints and Driver identities differ because
+their physical resources differ.
 
 The check builds the Lean renderer, creates and validates both the complete twelve-file conformance
 tree and the two-file `tests/testcore/testpilot/testdata` example tree under one physical temporary

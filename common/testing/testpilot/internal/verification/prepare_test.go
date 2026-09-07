@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -13,56 +13,56 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func fixture(t *testing.T, responseBytes ...int64) (*testpilotpb.Contract, *ir.Catalog, execution.ProgramView, *testpilotpb.ContractLimits) {
+func fixture(t *testing.T, responseBytes ...int64) (*testpilotspb.Contract, *ir.Catalog, execution.ProgramView, *testpilotspb.ContractLimits) {
 	t.Helper()
 	catalog, err := ir.NewCatalog(&descriptorpb.FileDescriptorSet{File: []*descriptorpb.FileDescriptorProto{{Name: proto.String("contract.proto"), Package: proto.String("example"), Syntax: proto.String("proto3"), MessageType: []*descriptorpb.DescriptorProto{{Name: proto.String("Empty"), Field: []*descriptorpb.FieldDescriptorProto{{Name: proto.String("items"), Number: proto.Int32(1), Label: descriptorpb.FieldDescriptorProto_LABEL_REPEATED.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum()}}}}}}})
 	require.NoError(t, err)
-	limits := &testpilotpb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
+	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
 	if len(responseBytes) > 0 {
 		limits.MaxResponseBytes = responseBytes[0]
 	}
-	source := &testpilotpb.Case{Version: &testpilotpb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotpb.Contract{ContractId: "contract"}, Program: &testpilotpb.Program{ProgramId: "program", Limits: limits, Observations: []*testpilotpb.ObservationDefinition{{ObservationId: "id", Type: scalar(testpilotpb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(testpilotpb.SCALAR_KIND_TEXT)}, {ObservationId: "message", Type: messageType("example.Empty")}}, Entrypoints: []*testpilotpb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotpb.EntrypointDefinition_Controller{Controller: &testpilotpb.ControllerActivation{}}}}, Cleanup: &testpilotpb.CleanupDefinition{EntrypointId: "cleanup"}}}
+	source := &testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Contract: &testpilotspb.Contract{ContractId: "contract"}, Program: &testpilotspb.Program{ProgramId: "program", Limits: limits, Observations: []*testpilotspb.ObservationDefinition{{ObservationId: "id", Type: scalar(testpilotspb.SCALAR_KIND_INT64)}, {ObservationId: "text", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}, {ObservationId: "message", Type: messageType("example.Empty")}}, Entrypoints: []*testpilotspb.EntrypointDefinition{{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}}}, Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"}}}
 	prepared, err := execution.Prepare(source, catalog, execution.Policy{Identity: "host", CatalogIdentity: catalog.Identity(), Limits: proto.CloneOf(limits)})
 	require.NoError(t, err)
-	ceiling := &testpilotpb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
-	contract := &testpilotpb.Contract{ContractId: "contract", Limits: proto.CloneOf(ceiling), Rules: []*testpilotpb.ContractRuleDefinition{{RuleId: "rule", Kind: testpilotpb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotpb.ContractStateDefinition{{StateId: "start", Status: testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL}, {StateId: "good", Status: testpilotpb.CONTRACT_STATE_STATUS_SATISFIED}, {StateId: "bad", Status: testpilotpb.CONTRACT_STATE_STATUS_VIOLATED}}, Transitions: []*testpilotpb.ContractTransitionDefinition{transition("first", "start", "good", boolean(true))}}}}
+	ceiling := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
+	contract := &testpilotspb.Contract{ContractId: "contract", Limits: proto.CloneOf(ceiling), Rules: []*testpilotspb.ContractRuleDefinition{{RuleId: "rule", Kind: testpilotspb.CONTRACT_RULE_KIND_SAFETY, InitialStateId: "start", States: []*testpilotspb.ContractStateDefinition{{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL}, {StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED}, {StateId: "bad", Status: testpilotspb.CONTRACT_STATE_STATUS_VIOLATED}}, Transitions: []*testpilotspb.ContractTransitionDefinition{transition("first", "start", "good", boolean(true))}}}}
 	return contract, catalog, prepared.View(), ceiling
 }
-func scalar(kind testpilotpb.ScalarKind) *testpilotpb.ValueType {
-	return &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Scalar{Scalar: &testpilotpb.ScalarType{Kind: kind}}}}}
+func scalar(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
+	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}
 }
-func messageType(name string) *testpilotpb.ValueType {
-	return &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Message{Message: &testpilotpb.NamedType{ProtobufType: name}}}}}
+func messageType(name string) *testpilotspb.ValueType {
+	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Message{Message: &testpilotspb.NamedType{ProtobufType: name}}}}}
 }
-func boolean(value bool) *testpilotpb.ContractExpression {
-	return &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Literal{Literal: &testpilotpb.Value{Value: &testpilotpb.Value_BoolValue{BoolValue: value}}}}
+func boolean(value bool) *testpilotspb.ContractExpression {
+	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: value}}}}
 }
-func observation(id string) *testpilotpb.ContractExpression {
-	return &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Observation{Observation: &testpilotpb.ObservationRef{ObservationId: id}}}
+func observation(id string) *testpilotspb.ContractExpression {
+	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Observation{Observation: &testpilotspb.ObservationRef{ObservationId: id}}}
 }
-func capture(id string) *testpilotpb.ContractExpression {
-	return &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Capture{Capture: &testpilotpb.CaptureRef{CaptureId: id}}}
+func capture(id string) *testpilotspb.ContractExpression {
+	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Capture{Capture: &testpilotspb.CaptureRef{CaptureId: id}}}
 }
-func present(value *testpilotpb.ContractExpression) *testpilotpb.ContractExpression {
-	return &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Present{Present: &testpilotpb.ContractPresentExpression{Operand: value}}}
+func present(value *testpilotspb.ContractExpression) *testpilotspb.ContractExpression {
+	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Present{Present: &testpilotspb.ContractPresentExpression{Operand: value}}}
 }
-func all(values ...*testpilotpb.ContractExpression) *testpilotpb.ContractExpression {
-	return &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_All{All: &testpilotpb.ContractAllExpression{Operands: values}}}
+func all(values ...*testpilotspb.ContractExpression) *testpilotspb.ContractExpression {
+	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_All{All: &testpilotspb.ContractAllExpression{Operands: values}}}
 }
-func not(value *testpilotpb.ContractExpression) *testpilotpb.ContractExpression {
-	return &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Negation{Negation: &testpilotpb.ContractNotExpression{Operand: value}}}
+func not(value *testpilotspb.ContractExpression) *testpilotspb.ContractExpression {
+	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Negation{Negation: &testpilotspb.ContractNotExpression{Operand: value}}}
 }
-func equal(left, right *testpilotpb.ContractExpression) *testpilotpb.ContractExpression {
-	return &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Equals{Equals: &testpilotpb.ContractEqualsExpression{Left: left, Right: right}}}
+func equal(left, right *testpilotspb.ContractExpression) *testpilotspb.ContractExpression {
+	return &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Equals{Equals: &testpilotspb.ContractEqualsExpression{Left: left, Right: right}}}
 }
-func transition(id, from, to string, predicate *testpilotpb.ContractExpression) *testpilotpb.ContractTransitionDefinition {
-	return &testpilotpb.ContractTransitionDefinition{TransitionId: id, SourceStateId: from, TargetStateId: to, Predicate: predicate, EventFilter: &testpilotpb.RunEventFilter{Kinds: []testpilotpb.RunEventKind{testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotpb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}
+func transition(id, from, to string, predicate *testpilotspb.ContractExpression) *testpilotspb.ContractTransitionDefinition {
+	return &testpilotspb.ContractTransitionDefinition{TransitionId: id, SourceStateId: from, TargetStateId: to, Predicate: predicate, EventFilter: &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED}}, SupportKind: testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT}
 }
-func addCapture(rule *testpilotpb.ContractRuleDefinition) {
-	rule.Captures = []*testpilotpb.ContractCaptureDefinition{{CaptureId: "saved", Type: &testpilotpb.ContractCaptureType{Type: &testpilotpb.ContractCaptureType_Scalar{Scalar: &testpilotpb.ScalarType{Kind: testpilotpb.SCALAR_KIND_INT64}}}}}
+func addCapture(rule *testpilotspb.ContractRuleDefinition) {
+	rule.Captures = []*testpilotspb.ContractCaptureDefinition{{CaptureId: "saved", Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}}}
 }
-func assign(tr *testpilotpb.ContractTransitionDefinition) {
-	tr.CaptureAssignments = []*testpilotpb.ContractCaptureAssignment{{CaptureId: "saved", Observation: &testpilotpb.ObservationRef{ObservationId: "id"}}}
+func assign(tr *testpilotspb.ContractTransitionDefinition) {
+	tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: "saved", Observation: &testpilotspb.ObservationRef{ObservationId: "id"}}}
 }
 
 func TestPrepareMachinesAndOrder(t *testing.T) {
@@ -72,46 +72,46 @@ func TestPrepareMachinesAndOrder(t *testing.T) {
 			r := c.Rules[0]
 			r.Transitions = append(r.Transitions, transition("second", "start", "bad", boolean(true)))
 			if live {
-				r.Kind = testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-				r.Horizon = &testpilotpb.ContractHorizonDefinition{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}
+				r.Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+				r.Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1000, ViolationStateId: "bad"}
 			}
 			prepared, err := Prepare(c, catalog, view, policy)
 			require.NoError(t, err)
-			require.Equal(t, []int{0, 1}, prepared.rules[0].outgoing[0][testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED])
+			require.Equal(t, []int{0, 1}, prepared.rules[0].outgoing[0][testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED])
 		})
 	}
 }
 func TestPrepareCapturePaths(t *testing.T) {
 	for _, test := range []struct {
 		name      string
-		mutate    func(*testpilotpb.ContractRuleDefinition)
+		mutate    func(*testpilotspb.ContractRuleDefinition)
 		wantError bool
 	}{
-		{"correlation", func(r *testpilotpb.ContractRuleDefinition) {}, false},
-		{"missing observation guard", func(r *testpilotpb.ContractRuleDefinition) { r.Transitions[0].Predicate = boolean(true) }, true},
-		{"pretransition read", func(r *testpilotpb.ContractRuleDefinition) {
+		{"correlation", func(r *testpilotspb.ContractRuleDefinition) {}, false},
+		{"missing observation guard", func(r *testpilotspb.ContractRuleDefinition) { r.Transitions[0].Predicate = boolean(true) }, true},
+		{"pretransition read", func(r *testpilotspb.ContractRuleDefinition) {
 			r.Transitions[0].Predicate = all(present(observation("id")), equal(capture("saved"), observation("id")))
 		}, true},
-		{"mismatched capture", func(r *testpilotpb.ContractRuleDefinition) {
-			r.Captures[0].Type.GetScalar().Kind = testpilotpb.SCALAR_KIND_TEXT
+		{"mismatched capture", func(r *testpilotspb.ContractRuleDefinition) {
+			r.Captures[0].Type.GetScalar().Kind = testpilotspb.SCALAR_KIND_TEXT
 		}, true},
-		{"support required", func(r *testpilotpb.ContractRuleDefinition) {
-			r.Transitions[0].SupportKind = testpilotpb.CONTRACT_SUPPORT_KIND_NONE
+		{"support required", func(r *testpilotspb.ContractRuleDefinition) {
+			r.Transitions[0].SupportKind = testpilotspb.CONTRACT_SUPPORT_KIND_NONE
 		}, true},
-		{"unsafe cycle", func(r *testpilotpb.ContractRuleDefinition) { r.Transitions[0].TargetStateId = "start" }, true},
-		{"safe cycle", func(r *testpilotpb.ContractRuleDefinition) {
+		{"unsafe cycle", func(r *testpilotspb.ContractRuleDefinition) { r.Transitions[0].TargetStateId = "start" }, true},
+		{"safe cycle", func(r *testpilotspb.ContractRuleDefinition) {
 			r.Transitions[0].TargetStateId = "start"
 			r.Transitions[0].Predicate = all(not(present(capture("saved"))), present(observation("id")))
 		}, false},
-		{"branch merge", func(r *testpilotpb.ContractRuleDefinition) {
+		{"branch merge", func(r *testpilotspb.ContractRuleDefinition) {
 			r.Transitions = append(r.Transitions, transition("branch", "start", "middle", boolean(true)))
 		}, true},
-		{"guarded merge", func(r *testpilotpb.ContractRuleDefinition) {
+		{"guarded merge", func(r *testpilotspb.ContractRuleDefinition) {
 			r.Transitions = append(r.Transitions, transition("branch", "start", "middle", boolean(true)))
 			r.Transitions[1].Predicate = all(present(capture("saved")), r.Transitions[1].Predicate)
 		}, false},
-		{"repeated assignment", func(r *testpilotpb.ContractRuleDefinition) { assign(r.Transitions[1]) }, true},
-		{"duplicate atomic assignment", func(r *testpilotpb.ContractRuleDefinition) {
+		{"repeated assignment", func(r *testpilotspb.ContractRuleDefinition) { assign(r.Transitions[1]) }, true},
+		{"duplicate atomic assignment", func(r *testpilotspb.ContractRuleDefinition) {
 			r.Transitions[0].CaptureAssignments = append(r.Transitions[0].CaptureAssignments, proto.CloneOf(r.Transitions[0].CaptureAssignments[0]))
 		}, true},
 	} {
@@ -119,8 +119,8 @@ func TestPrepareCapturePaths(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
 			r := c.Rules[0]
 			addCapture(r)
-			r.States = append(r.States, &testpilotpb.ContractStateDefinition{StateId: "middle", Status: testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL})
-			r.Transitions = []*testpilotpb.ContractTransitionDefinition{transition("save", "start", "middle", present(observation("id"))), transition("compare", "middle", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
+			r.States = append(r.States, &testpilotspb.ContractStateDefinition{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL})
+			r.Transitions = []*testpilotspb.ContractTransitionDefinition{transition("save", "start", "middle", present(observation("id"))), transition("compare", "middle", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
 			assign(r.Transitions[0])
 			test.mutate(r)
 			_, err := Prepare(c, catalog, view, policy)
@@ -134,52 +134,52 @@ func TestPrepareCapturePaths(t *testing.T) {
 }
 
 func TestPrepareRejectsMalformedContracts(t *testing.T) {
-	for name, mutate := range map[string]func(*testpilotpb.Contract){
-		"duplicate rule": func(c *testpilotpb.Contract) { c.Rules = append(c.Rules, proto.CloneOf(c.Rules[0])) },
-		"missing states": func(c *testpilotpb.Contract) { c.Rules[0].States = nil },
-		"duplicate state": func(c *testpilotpb.Contract) {
+	for name, mutate := range map[string]func(*testpilotspb.Contract){
+		"duplicate rule": func(c *testpilotspb.Contract) { c.Rules = append(c.Rules, proto.CloneOf(c.Rules[0])) },
+		"missing states": func(c *testpilotspb.Contract) { c.Rules[0].States = nil },
+		"duplicate state": func(c *testpilotspb.Contract) {
 			c.Rules[0].States = append(c.Rules[0].States, proto.CloneOf(c.Rules[0].States[0]))
 		},
-		"duplicate transition": func(c *testpilotpb.Contract) {
+		"duplicate transition": func(c *testpilotspb.Contract) {
 			c.Rules[0].Transitions = append(c.Rules[0].Transitions, proto.CloneOf(c.Rules[0].Transitions[0]))
 		},
-		"missing transitions":  func(c *testpilotpb.Contract) { c.Rules[0].Transitions = nil },
-		"missing initial":      func(c *testpilotpb.Contract) { c.Rules[0].InitialStateId = "missing" },
-		"terminal initial":     func(c *testpilotpb.Contract) { c.Rules[0].InitialStateId = "bad" },
-		"missing target":       func(c *testpilotpb.Contract) { c.Rules[0].Transitions[0].TargetStateId = "missing" },
-		"terminal source":      func(c *testpilotpb.Contract) { c.Rules[0].Transitions[0].SourceStateId = "good" },
-		"unspecified terminal": func(c *testpilotpb.Contract) { c.Rules[0].States[0].Status = 0 },
-		"unknown kind":         func(c *testpilotpb.Contract) { c.Rules[0].Kind = 99 },
-		"missing horizon":      func(c *testpilotpb.Contract) { c.Rules[0].Kind = testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS },
-		"wrong expiry target": func(c *testpilotpb.Contract) {
-			c.Rules[0].Kind = testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Horizon = &testpilotpb.ContractHorizonDefinition{ElapsedMilliseconds: 1, ViolationStateId: "good"}
+		"missing transitions":  func(c *testpilotspb.Contract) { c.Rules[0].Transitions = nil },
+		"missing initial":      func(c *testpilotspb.Contract) { c.Rules[0].InitialStateId = "missing" },
+		"terminal initial":     func(c *testpilotspb.Contract) { c.Rules[0].InitialStateId = "bad" },
+		"missing target":       func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].TargetStateId = "missing" },
+		"terminal source":      func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].SourceStateId = "good" },
+		"unspecified terminal": func(c *testpilotspb.Contract) { c.Rules[0].States[0].Status = 0 },
+		"unknown kind":         func(c *testpilotspb.Contract) { c.Rules[0].Kind = 99 },
+		"missing horizon":      func(c *testpilotspb.Contract) { c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS },
+		"wrong expiry target": func(c *testpilotspb.Contract) {
+			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			c.Rules[0].Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1, ViolationStateId: "good"}
 		},
-		"negative horizon": func(c *testpilotpb.Contract) {
-			c.Rules[0].Kind = testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
-			c.Rules[0].Horizon = &testpilotpb.ContractHorizonDefinition{ElapsedMilliseconds: -1, ViolationStateId: "bad"}
+		"negative horizon": func(c *testpilotspb.Contract) {
+			c.Rules[0].Kind = testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS
+			c.Rules[0].Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: -1, ViolationStateId: "bad"}
 		},
-		"safety horizon": func(c *testpilotpb.Contract) {
-			c.Rules[0].Horizon = &testpilotpb.ContractHorizonDefinition{ElapsedMilliseconds: 1, ViolationStateId: "bad"}
+		"safety horizon": func(c *testpilotspb.Contract) {
+			c.Rules[0].Horizon = &testpilotspb.ContractHorizonDefinition{ElapsedMilliseconds: 1, ViolationStateId: "bad"}
 		},
-		"unknown observation": func(c *testpilotpb.Contract) { c.Rules[0].Transitions[0].Predicate = present(observation("missing")) },
-		"Run ID intrinsic forbidden": func(c *testpilotpb.Contract) {
-			c.Rules[0].Transitions[0].Predicate = present(&testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_RunEvent{RunEvent: &testpilotpb.RunEventFieldRef{Field: testpilotpb.RUN_EVENT_FIELD_RUN_ID}}})
+		"unknown observation": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = present(observation("missing")) },
+		"Run ID intrinsic forbidden": func(c *testpilotspb.Contract) {
+			c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_RunEvent{RunEvent: &testpilotspb.RunEventFieldRef{Field: testpilotspb.RUN_EVENT_FIELD_RUN_ID}}})
 		},
-		"nil predicate":        func(c *testpilotpb.Contract) { c.Rules[0].Transitions[0].Predicate = nil },
-		"nonboolean predicate": func(c *testpilotpb.Contract) { c.Rules[0].Transitions[0].Predicate = observation("text") },
-		"unknown expression": func(c *testpilotpb.Contract) {
+		"nil predicate":        func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = nil },
+		"nonboolean predicate": func(c *testpilotspb.Contract) { c.Rules[0].Transitions[0].Predicate = observation("text") },
+		"unknown expression": func(c *testpilotspb.Contract) {
 			c.Rules[0].Transitions[0].Predicate.ProtoReflect().SetUnknown([]byte{0x80, 0x06, 1})
 		},
-		"unknown event": func(c *testpilotpb.Contract) {
-			c.Rules[0].Transitions[0].EventFilter.Kinds = []testpilotpb.RunEventKind{99}
+		"unknown event": func(c *testpilotspb.Contract) {
+			c.Rules[0].Transitions[0].EventFilter.Kinds = []testpilotspb.RunEventKind{99}
 		},
-		"duplicate event": func(c *testpilotpb.Contract) {
+		"duplicate event": func(c *testpilotspb.Contract) {
 			tr := c.Rules[0].Transitions[0]
 			tr.EventFilter.Kinds = append(tr.EventFilter.Kinds, tr.EventFilter.Kinds[0])
 		},
-		"nil state":   func(c *testpilotpb.Contract) { c.Rules[0].States[0] = nil },
-		"nil capture": func(c *testpilotpb.Contract) { c.Rules[0].Captures = []*testpilotpb.ContractCaptureDefinition{nil} },
+		"nil state":   func(c *testpilotspb.Contract) { c.Rules[0].States[0] = nil },
+		"nil capture": func(c *testpilotspb.Contract) { c.Rules[0].Captures = []*testpilotspb.ContractCaptureDefinition{nil} },
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
@@ -201,16 +201,16 @@ func TestPrepareBoundsAndImmutableIndexes(t *testing.T) {
 	observations[0].ID = "mutated"
 	require.Equal(t, snapshot, prepared.Snapshot())
 	require.Equal(t, "id", prepared.ProgramView().Observations()[0].ID)
-	for name, mutate := range map[string]func(*testpilotpb.Contract){
-		"state count":   func(c *testpilotpb.Contract) { c.Limits.MaxStates = 2 },
-		"capture bytes": func(c *testpilotpb.Contract) { addCapture(c.Rules[0]); c.Limits.MaxCaptureBytes = 1 },
-		"depth": func(c *testpilotpb.Contract) {
+	for name, mutate := range map[string]func(*testpilotspb.Contract){
+		"state count":   func(c *testpilotspb.Contract) { c.Limits.MaxStates = 2 },
+		"capture bytes": func(c *testpilotspb.Contract) { addCapture(c.Rules[0]); c.Limits.MaxCaptureBytes = 1 },
+		"depth": func(c *testpilotspb.Contract) {
 			c.Limits.MaxExpressionDepth = 1
 			c.Rules[0].Transitions[0].Predicate = not(not(boolean(true)))
 		},
-		"event work": func(c *testpilotpb.Contract) { c.Limits.MaxWorkPerEvent = 1 },
-		"total work": func(c *testpilotpb.Contract) { c.Limits.MaxTotalWork = 1 },
-		"overflow":   func(c *testpilotpb.Contract) { c.Limits.MaxTotalWork = 1<<63 - 1 },
+		"event work": func(c *testpilotspb.Contract) { c.Limits.MaxWorkPerEvent = 1 },
+		"total work": func(c *testpilotspb.Contract) { c.Limits.MaxTotalWork = 1 },
+		"overflow":   func(c *testpilotspb.Contract) { c.Limits.MaxTotalWork = 1<<63 - 1 },
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
@@ -226,14 +226,14 @@ func TestPrepareBoundsAndImmutableIndexes(t *testing.T) {
 func TestOrderedPresenceAndContradictions(t *testing.T) {
 	for _, test := range []struct {
 		name       string
-		predicates []*testpilotpb.ContractExpression
+		predicates []*testpilotspb.ContractExpression
 		targets    []string
 		wantError  bool
 	}{
-		{"preceding false presence", []*testpilotpb.ContractExpression{not(present(observation("id"))), equal(observation("id"), observation("id"))}, []string{"bad", "good"}, false},
-		{"contradictory observation presence", []*testpilotpb.ContractExpression{all(present(observation("id")), not(present(observation("id"))))}, []string{"start"}, false},
-		{"contradictory capture presence", []*testpilotpb.ContractExpression{all(present(capture("saved")), not(present(capture("saved"))), present(observation("id")))}, []string{"start"}, false},
-		{"unknown match retains following", []*testpilotpb.ContractExpression{all(boolean(true), present(observation("text"))), present(observation("id"))}, []string{"good", "start"}, true},
+		{"preceding false presence", []*testpilotspb.ContractExpression{not(present(observation("id"))), equal(observation("id"), observation("id"))}, []string{"bad", "good"}, false},
+		{"contradictory observation presence", []*testpilotspb.ContractExpression{all(present(observation("id")), not(present(observation("id"))))}, []string{"start"}, false},
+		{"contradictory capture presence", []*testpilotspb.ContractExpression{all(present(capture("saved")), not(present(capture("saved"))), present(observation("id")))}, []string{"start"}, false},
+		{"unknown match retains following", []*testpilotspb.ContractExpression{all(boolean(true), present(observation("text"))), present(observation("id"))}, []string{"good", "start"}, true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, view, policy := fixture(t)
@@ -261,12 +261,12 @@ func TestCaptureAlternativesAndUnreachableAssignment(t *testing.T) {
 	c, catalog, view, policy := fixture(t)
 	r := c.Rules[0]
 	addCapture(r)
-	r.Transitions = []*testpilotpb.ContractTransitionDefinition{transition("left", "start", "good", all(present(observation("id")), present(observation("text")))), transition("right", "start", "good", present(observation("id")))}
+	r.Transitions = []*testpilotspb.ContractTransitionDefinition{transition("left", "start", "good", all(present(observation("id")), present(observation("text")))), transition("right", "start", "good", present(observation("id")))}
 	assign(r.Transitions[0])
 	assign(r.Transitions[1])
 	_, err := Prepare(c, catalog, view, policy)
 	require.NoError(t, err)
-	r.Transitions = append([]*testpilotpb.ContractTransitionDefinition{transition("always", "start", "good", boolean(true))}, transition("unreachable", "start", "start", present(observation("id"))))
+	r.Transitions = append([]*testpilotspb.ContractTransitionDefinition{transition("always", "start", "good", boolean(true))}, transition("unreachable", "start", "start", present(observation("id"))))
 	assign(r.Transitions[1])
 	_, err = Prepare(c, catalog, view, policy)
 	require.NoError(t, err)
@@ -276,9 +276,9 @@ func TestAdmissionExplorationCeiling(t *testing.T) {
 	r := c.Rules[0]
 	for i := 0; i < 8; i++ {
 		id := string(rune('a' + i))
-		r.Captures = append(r.Captures, &testpilotpb.ContractCaptureDefinition{CaptureId: id, Type: &testpilotpb.ContractCaptureType{Type: &testpilotpb.ContractCaptureType_Scalar{Scalar: &testpilotpb.ScalarType{Kind: testpilotpb.SCALAR_KIND_INT64}}}})
+		r.Captures = append(r.Captures, &testpilotspb.ContractCaptureDefinition{CaptureId: id, Type: &testpilotspb.ContractCaptureType{Type: &testpilotspb.ContractCaptureType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_INT64}}}})
 		tr := transition(id, "start", "start", all(not(present(capture(id))), present(observation("id"))))
-		tr.CaptureAssignments = []*testpilotpb.ContractCaptureAssignment{{CaptureId: id, Observation: &testpilotpb.ObservationRef{ObservationId: "id"}}}
+		tr.CaptureAssignments = []*testpilotspb.ContractCaptureAssignment{{CaptureId: id, Observation: &testpilotspb.ObservationRef{ObservationId: "id"}}}
 		r.Transitions = append(r.Transitions, tr)
 	}
 	r.Transitions = r.Transitions[1:]
@@ -299,8 +299,8 @@ func TestCaptureCostsUseValueTypes(t *testing.T) {
 			c, catalog, view, policy := fixture(t, 16<<20)
 			r := c.Rules[0]
 			addCapture(r)
-			r.States = append(r.States, &testpilotpb.ContractStateDefinition{StateId: "middle", Status: testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL})
-			r.Transitions = []*testpilotpb.ContractTransitionDefinition{transition("save", "start", "middle", present(observation("id"))), transition("compare", "middle", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
+			r.States = append(r.States, &testpilotspb.ContractStateDefinition{StateId: "middle", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL})
+			r.Transitions = []*testpilotspb.ContractTransitionDefinition{transition("save", "start", "middle", present(observation("id"))), transition("compare", "middle", "good", all(present(observation("id")), equal(observation("id"), capture("saved"))))}
 			assign(r.Transitions[0])
 			c.Limits.MaxWorkPerEvent = 128
 			c.Limits.MaxCaptureBytes = 40
@@ -350,8 +350,8 @@ func TestAuthoredDepthAndSeparateAdmissionWork(t *testing.T) {
 
 func TestPreparedProjectionUsesProgramFanout(t *testing.T) {
 	c, catalog, view, policy := fixture(t)
-	source := &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Literal{Literal: &testpilotpb.Value{Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}}}
-	c.Rules[0].Transitions[0].Predicate = present(&testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Path{Path: &testpilotpb.ContractPathExpression{Source: source, Path: &testpilotpb.FieldPath{Segments: []*testpilotpb.FieldPathSegment{{Field: "items", Selector: &testpilotpb.FieldPathSegment_Repeated{Repeated: &testpilotpb.RepeatedWildcard{}}}}}}}})
+	source := &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/example.Empty"}}}}}
+	c.Rules[0].Transitions[0].Predicate = present(&testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Path{Path: &testpilotspb.ContractPathExpression{Source: source, Path: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}}}})
 	prepared, err := Prepare(c, catalog, view, policy)
 	require.NoError(t, err)
 	path := prepared.rules[0].transitions[0].Children()[0].Path()
