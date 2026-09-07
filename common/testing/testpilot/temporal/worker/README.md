@@ -4,9 +4,7 @@ This package owns the SDK-worker half of the Temporal Testpilot Driver. A `Drive
 queue registrations alive across Runs, while each `Session` owns its prepared entrypoints,
 reservation-delivery ledger, completion bridge, failure state, and bounded diagnostics.
 
-At construction, a Profile with environment bindings selects symbolic mode and requires empty legacy
-namespace, task-queue, and Nexus endpoint options. A Profile without bindings selects legacy mode and
-supports only literal Case 1.0 resources. In symbolic mode, `Validate` compares the prepared binding
+At construction, the Driver freezes the Profile binding snapshot. `Validate` compares the prepared binding
 IDs for StartWorkflow, GetHistory, and StartNexus carriers before any registry or target effect;
 equal resolved strings reached through different IDs still reject. `Open` derives the physical
 namespace, queues, and named Nexus routes from the validated prepared roles. The SDK client and

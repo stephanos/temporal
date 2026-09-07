@@ -19,6 +19,16 @@ func preparedRuntimeFixture(t *testing.T, responseKind testpilotspb.NexusRespons
 	return preparedRuntimeFixtureWithProfile(t, responseKind, nil, modify...)
 }
 
+func preparedRuntimeFixtureForNamespace(t *testing.T, namespace string, responseKind testpilotspb.NexusResponseKind, modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
+	return preparedRuntimeFixtureWithProfile(t, responseKind, func(profile *testpilot.ProfileSpec) {
+		for index := range profile.EnvironmentBindings {
+			if profile.EnvironmentBindings[index].ID == "namespace" {
+				profile.EnvironmentBindings[index].Value = namespace
+			}
+		}
+	}, modify...)
+}
+
 func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.NexusResponseKind, modifyProfile func(*testpilot.ProfileSpec), modify ...func(*testpilotspb.Program)) testpilot.PreparedProgram {
 	t.Helper()
 	file := workflowservice.File_temporal_api_workflowservice_v1_service_proto
@@ -33,17 +43,24 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 			{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{method}, ReservationCarriers: []testpilot.ReservationCarrierPolicy{{Method: method, Shapes: []testpilot.ReservationCarrierShape{{Context: testpilotspb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 8}, {Context: testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 8}}}}},
 			{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
 			{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
+			{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 		},
-		Capabilities:  []testpilot.Capability{testpilot.InvokeRPC, testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus},
+		Capabilities: []testpilot.Capability{testpilot.InvokeRPC, testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus},
+		EnvironmentBindings: []testpilot.EnvironmentBinding{
+			{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}, {ID: "nexus-endpoint", Value: "endpoint"},
+		},
 		ProgramLimits: proto.CloneOf(limits), ContractLimits: contractLimits,
 	}
 	status := runtimeStatusSchema()
 	controller := &testpilotspb.InstructionDefinition{
-		InstructionId: "call", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{EndpointRoleId: "endpoint", Method: method}}},
+		InstructionId: "call", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{EndpointRoleId: "endpoint", Method: method, RequestAssignments: []*testpilotspb.RequestAssignment{
+			{Target: runtimeField("namespace"), Value: runtimeEnvironment("namespace")},
+			{Target: runtimeField("task_queue", "name"), Value: runtimeEnvironment("task-queue")},
+		}}}},
 		Outcome: proto.CloneOf(status), Limits: runtimeBounds(), ActivationReservations: []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}, {EntrypointId: "handler", Count: 1}},
 	}
 	start := &testpilotspb.InstructionDefinition{
-		InstructionId: "start", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "endpoint", Service: "service", Operation: "operation", Input: runtimeText("request")}}},
+		InstructionId: "start", Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_StartNexusOperation{StartNexusOperation: &testpilotspb.StartNexusOperation{EndpointRoleId: "nexus-endpoint", Service: "service", Operation: "operation", Input: runtimeText("request")}}},
 		Outcome: proto.CloneOf(status), Limits: runtimeBounds(),
 	}
 	await := &testpilotspb.InstructionDefinition{
@@ -62,7 +79,14 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 		Outcome: proto.CloneOf(status), Limits: runtimeBounds(),
 	}
 	program := &testpilotspb.Program{
-		ProgramId: "program", Roles: []*testpilotspb.RoleDefinition{{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT}, {RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}},
+		ProgramId: "program",
+		Environment: []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "task-queue"}, {BindingId: "nexus-endpoint"}},
+		Roles: []*testpilotspb.RoleDefinition{
+			{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
+			{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
+			{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "task-queue"},
+			{RoleId: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, ResourceBindingId: "nexus-endpoint"},
+		},
 		Entrypoints: []*testpilotspb.EntrypointDefinition{
 			{EntrypointId: "controller", Activation: &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}}, Instructions: []*testpilotspb.InstructionDefinition{controller}},
 			{EntrypointId: "workflow", Activation: &testpilotspb.EntrypointDefinition_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "workflow-type", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}, Instructions: []*testpilotspb.InstructionDefinition{start, await, finish}},
@@ -101,11 +125,7 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 			}},
 		}},
 	}
-	version := &testpilotspb.FormatVersion{Major: 1}
-	if len(program.GetEnvironment()) != 0 {
-		version.Minor = 1
-	}
-	prepared, err := testpilot.Prepare(&testpilotspb.Case{Version: version, CaseId: "case", Program: program, Contract: contract}, profile)
+	prepared, err := testpilot.Prepare(&testpilotspb.Case{Version: &testpilotspb.FormatVersion{Major: 1}, CaseId: "case", Program: program, Contract: contract}, profile)
 	require.NoError(t, err)
 	driver := &programCaptureDriver{identity: prepared.Identity()}
 	_, _, err = prepared.Run(t.Context(), driver)
@@ -156,6 +176,18 @@ func runtimeBounds() *testpilotspb.InstructionLimits {
 
 func runtimeText(value string) *testpilotspb.ProgramExpression {
 	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: value}}}}
+}
+
+func runtimeEnvironment(id string) *testpilotspb.ProgramExpression {
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Environment{Environment: &testpilotspb.EnvironmentRef{BindingId: id}}}
+}
+
+func runtimeField(fields ...string) *testpilotspb.FieldPath {
+	path := &testpilotspb.FieldPath{Segments: make([]*testpilotspb.FieldPathSegment, len(fields))}
+	for index, field := range fields {
+		path.Segments[index] = &testpilotspb.FieldPathSegment{Field: field}
+	}
+	return path
 }
 
 func runtimeSucceeded(entrypoint, instruction string) *testpilotspb.ProgramExpression {

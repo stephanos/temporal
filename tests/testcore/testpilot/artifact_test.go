@@ -42,9 +42,10 @@ func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
 			{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
 			{ID: "task.queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 		},
-		Capabilities:   []testpilot.Capability{testpilot.Finish},
-		ProgramLimits:  proto.CloneOf(source.GetProgram().GetLimits()),
-		ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
+		EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task.queue", Value: "task-queue"}},
+		Capabilities:        []testpilot.Capability{testpilot.Finish},
+		ProgramLimits:       proto.CloneOf(source.GetProgram().GetLimits()),
+		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
 	}
 	prepared, err := testpilot.Prepare(source, profile)
 	require.NoError(t, err)
@@ -85,9 +86,10 @@ func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
 			{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
 			{ID: "task.queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 		},
-		Capabilities:   []testpilot.Capability{testpilot.Finish},
-		ProgramLimits:  proto.CloneOf(source.GetProgram().GetLimits()),
-		ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
+		EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task.queue", Value: "task-queue"}},
+		Capabilities:        []testpilot.Capability{testpilot.Finish},
+		ProgramLimits:       proto.CloneOf(source.GetProgram().GetLimits()),
+		ContractLimits:      proto.CloneOf(source.GetContract().GetLimits()),
 	}
 
 	for _, test := range []struct {
@@ -202,7 +204,7 @@ func (d *validatingArtifactDriver) Open(ctx context.Context, runID string, progr
 func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
 	require.Equal(t, int32(1), source.GetVersion().GetMajor())
-	require.Equal(t, int32(1), source.GetVersion().GetMinor())
+	require.Equal(t, int32(0), source.GetVersion().GetMinor())
 	require.Equal(t, []string{
 		AsyncNexusWorkerNamespaceBindingID,
 		AsyncNexusTaskQueueBindingID,

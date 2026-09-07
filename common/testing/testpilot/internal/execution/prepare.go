@@ -66,7 +66,7 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Policy) (*Pr
 	if err := ir.CheckSurface(source, ir.DefaultLimits()); err != nil {
 		return nil, err
 	}
-	if source.Version == nil || source.Version.Major != 1 || (source.Version.Minor != 0 && source.Version.Minor != 1) {
+	if source.Version == nil || source.Version.Major != 1 || source.Version.Minor != 0 {
 		return nil, invalid(ir.Unsupported, "version", "unsupported Case version")
 	}
 	if !validID(source.CaseId) || source.Program == nil || source.Contract == nil || !validID(source.Contract.ContractId) {
@@ -78,64 +78,19 @@ func Prepare(source *testpilotspb.Case, catalog *ir.Catalog, policy Policy) (*Pr
 	if err := validateProvenance(source.Provenance); err != nil {
 		return nil, err
 	}
-	hasBindingFields := len(source.Program.Environment) > 0 || programHasEnvironmentReference(source.Program)
-	for _, role := range source.Program.Roles {
-		hasBindingFields = hasBindingFields || role.GetNamespaceBindingId() != "" || role.GetResourceBindingId() != ""
-	}
-	if source.Version.Minor == 0 && hasBindingFields {
-		return nil, invalid(ir.Unsupported, "version", "Case 1.0 cannot contain environment bindings")
-	}
-	if source.Version.Minor == 1 && !hasBindingFields {
-		return nil, invalid(ir.Malformed, "environment", "Case 1.1 requires environment bindings")
-	}
 	prepared := &PreparedProgram{source: proto.CloneOf(source.Program), catalog: catalog, slots: map[string]ir.Type{}, carriers: map[carrierCoordinate]ReservationCarrierPlan{}, roles: map[string]resolvedRole{}}
-	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, capabilities: map[Opcode]bool{}, bindingsRequired: source.Version.Minor == 1, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
+	a := &admission{prepared: prepared, roles: map[string]testpilotspb.RoleKind{}, allowed: map[string]RolePolicy{}, methods: map[string]map[string]bool{}, carriers: map[string]map[string]ReservationCarrierPolicy{}, capabilities: map[Opcode]bool{}, bindingsRequired: true, environment: map[string]string{}, environmentDefinitions: map[string]bool{}, environmentUsed: map[string]bool{}, observations: map[string]ir.Type{}, writers: map[string]slotWriter{}, graphIndex: map[string]*graph{}}
 	for _, check := range []func() error{func() error { return a.bindPolicy(policy) }, a.bindSchemas, a.bindGraphs, a.bindInstructions, a.bindDataflow, a.bindReservations, a.bindReservationCarriers} {
 		if err := check(); err != nil {
 			return nil, err
 		}
 	}
-	if source.Version.Minor == 1 {
-		for id := range a.environmentDefinitions {
-			if !a.environmentUsed[id] {
-				return nil, invalid(ir.Malformed, "environment", "environment definition is unused")
-			}
+	for id := range a.environmentDefinitions {
+		if !a.environmentUsed[id] {
+			return nil, invalid(ir.Malformed, "environment", "environment definition is unused")
 		}
 	}
 	return prepared, nil
-}
-
-func programHasEnvironmentReference(program *testpilotspb.Program) bool {
-	var visit func(protoreflect.Message) bool
-	visit = func(message protoreflect.Message) bool {
-		if message.Descriptor().FullName() == "temporal.server.api.testpilot.v1.ProgramExpression" {
-			oneof := message.Descriptor().Oneofs().ByName("expression")
-			if field := message.WhichOneof(oneof); field != nil && field.Name() == "environment" {
-				return true
-			}
-		}
-		found := false
-		message.Range(func(field protoreflect.FieldDescriptor, value protoreflect.Value) bool {
-			if field.IsMap() {
-				if field.MapValue().Kind() == protoreflect.MessageKind {
-					value.Map().Range(func(_ protoreflect.MapKey, item protoreflect.Value) bool {
-						found = found || visit(item.Message())
-						return !found
-					})
-				}
-			} else if field.IsList() && field.Kind() == protoreflect.MessageKind {
-				list := value.List()
-				for i := 0; i < list.Len() && !found; i++ {
-					found = visit(list.Get(i).Message())
-				}
-			} else if field.Kind() == protoreflect.MessageKind {
-				found = visit(value.Message())
-			}
-			return !found
-		})
-		return found
-	}
-	return visit(program.ProtoReflect())
 }
 func validateProvenance(provenance *testpilotspb.CaseProvenance) error {
 	if provenance == nil {
