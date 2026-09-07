@@ -124,6 +124,15 @@ UMPIRE_GEN_LEAN_DYNAMIC_CONFIG_CATALOG_COMMAND := mise exec -- go run -tags test
 UMPIRE_EXPORT_PROTO_DESCRIPTORS_COMMAND := mise exec -- go run -tags test_dep ./tools/umpire/cmd/umpire-export-proto-descriptors
 UMPIRE_REGRESSION_INSPECTOR := temporal-model-inspect
 UMPIRE_TESTPILOT_RENDERER := temporal-testpilot
+TESTPILOT_PROTOCOL_PROTOS := \
+	proto/internal/temporal/server/api/testpilot/v1/case.proto \
+	proto/internal/temporal/server/api/testpilot/v1/contract.proto \
+	proto/internal/temporal/server/api/testpilot/v1/expression.proto \
+	proto/internal/temporal/server/api/testpilot/v1/instruction.proto \
+	proto/internal/temporal/server/api/testpilot/v1/outcome.proto \
+	proto/internal/temporal/server/api/testpilot/v1/program.proto \
+	proto/internal/temporal/server/api/testpilot/v1/run.proto \
+	proto/internal/temporal/server/api/testpilot/v1/value.proto
 _UMPIRE_SEMANTIC_INVENTORY_DOCUMENT ?= model/SEMANTIC_INVENTORY.md
 _UMPIRE_SEMANTIC_INVENTORY_RENDERER ?= cd model && $(LEAN_LAKE) -q exe temporal-model-semantic-inventory
 UMPIRE_REGRESSION_FIXTURES := \
@@ -1068,7 +1077,27 @@ umpire-check-case-runtime-conformance:
 		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
 			./tools/umpire/cmd/umpire-gen-case-runtime-conformance; \
 		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
-			./common/testing/testpilot -run '^TestCaseRuntimePublicFacadeConformance$$'
+		./common/testing/testpilot -run '^TestCaseRuntimePublicFacadeConformance$$'
+
+umpire-check-testpilot-protocol: $(TESTPILOT_PROTOCOL_PROTOS)
+	@printf $(COLOR) "Check generated Lean Testpilot protocol..."
+	@set -eu; protoc=$$(mise exec -- which protoc); \
+		test "$$($$protoc --version)" = "libprotoc 29.5"; \
+		cd model; \
+		PROTOC="$$protoc" $(LEAN_LAKE) env lean Testpilot/Protocol.lean; \
+		PROTOC="$$protoc" $(LEAN_LAKE) build Testpilot TestpilotTests
+
+umpire-check-testpilot-authoring:
+	@printf $(COLOR) "Check Lean Testpilot authoring and ProtoJSON..."
+	@set -eu; temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
+		cd model; \
+		$(LEAN_LAKE) build Testpilot TestpilotTests testpilotProtoJSONFixture; \
+		$(LEAN_LAKE) exe testpilotProtoJSONFixture > "$$temporary"; \
+		cd ..; \
+		TESTPILOT_LEAN_AUTHORING_CASE="$$temporary" \
+			mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot \
+			-run '^TestLeanAuthoringProtoJSONStrictDecode$$'
 
 umpire-gen-semantic-inventory:
 	@set -eu; \
