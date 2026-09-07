@@ -1,4 +1,4 @@
-# Temporal worker Driver
+# Temporal SDK worker Driver
 
 This package owns the SDK-worker half of the Temporal Testpilot Driver. A `Driver` keeps compatible
 queue registrations alive across Runs, while each `Session` owns its prepared entrypoints,

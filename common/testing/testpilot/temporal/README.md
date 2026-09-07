@@ -1,26 +1,26 @@
 # Temporal Testpilot Driver
 
 This package composes the controller transport in `server` with the SDK activation runtime in
-`worker`. `New` freezes one Profile, keeps transport addresses and credentials in Driver
+`sdkworker`. `New` freezes one Profile, keeps transport addresses and credentials in Driver
 configuration, and delegates each operation to the package that owns its authority. The composite
 adds no Case or scenario interpretation.
 
 The Driver has two explicit resource modes. Symbolic mode accepts a Profile with environment
 bindings and rejects legacy namespace, task-queue, and Nexus endpoint maps; `Validate` and `Open`
-derive request carriers and worker resources from the immutable prepared roles. Legacy mode accepts
+derive request carriers and SDK worker resources from the immutable prepared roles. Legacy mode accepts
 only literal Case 1.0 Programs and requires the existing physical resource options. The modes cannot
 be mixed, and legacy options never fill a missing symbolic binding. `WorkerRoleID`, transport
 connections, SDK clients, callback authority, HTTP clients, credentials, and lifecycle timeouts
 remain explicit environment-owned inputs in both modes.
 
 After Testpilot has checked the complete Driver identity, it calls the composite no-I/O `Validate`
-hook before Monitor creation and `Open`. `Open` creates the server Session first, then opens a worker
+hook before Monitor creation and `Open`. `Open` creates the server Session first, then opens an SDK worker
 Session only when the prepared Program contains workflow, activity, or Nexus-handler entrypoints. The server Session supplies the private
-capability bridge and completion-capability factory. The worker Session owns reservations and SDK
+capability bridge and completion-capability factory. The SDK worker Session owns reservations and SDK
 routes; the server Session owns RPC effects and opaque Nexus completion claims. Composite Close and
 quarantine preserve that split.
 
-Reserved `StartWorkflowExecution` calls pass through a worker `Carrier` before server dispatch. The
+Reserved `StartWorkflowExecution` calls pass through an SDK worker `Carrier` before server dispatch. The
 Carrier validates the prepared reservation topology and physical workflow binding, injects only the
 reserved delivery header, checks the final request size, and pins the returned Temporal Run ID.
 Calls without a declared carrier retain ordinary RPC request and response behavior.

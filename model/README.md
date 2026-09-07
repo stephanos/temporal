@@ -146,7 +146,7 @@ Temporal authority remains split:
   unary method/request pairs, returning raw typed responses and protocol status.
 - `common/testing/testpilot/temporal/worker` owns SDK workflow, activity, and Nexus-handler interpretation,
   reserved activation delivery, and activation-level cancellation.
-- `common/testing/testpilot/temporal` composes server and worker Drivers without interpreting scenario or Contract
+- `common/testing/testpilot/temporal` composes server and SDK worker Drivers without interpreting scenario or Contract
   semantics.
 
 Internal execution constructs typed requests and applies declared response projections to private
