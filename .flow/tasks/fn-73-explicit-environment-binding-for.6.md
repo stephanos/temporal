@@ -21,8 +21,8 @@ Extend the live async Nexus regression to run the exact same decoded Case fixtur
 - `tests/testpilot_async_nexus_case_test.go:26-117` — current one-environment live proof
 - `tests/testpilot_testenv_test.go:11-14` — shared functional environment setup
 - `tests/testcore/testpilot/testdata/async-nexus-case.json` — exact shared Case artifact
-- `common/testing/temporaltestpilot/driver.go` — symbolic Driver construction from task 4
-- `common/testing/temporaltestpilot/worker/interpreter.go:79-95` — Nexus route use
+- `common/testing/testpilot/temporal/driver.go` — symbolic Driver construction from task 4
+- `common/testing/testpilot/temporal/worker/interpreter.go:79-95` — Nexus route use
 
 **Optional** (reference as needed):
 - `tests/testcore/testpilot/artifact_test.go` — offline assertions to mirror

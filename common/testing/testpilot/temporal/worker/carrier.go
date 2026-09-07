@@ -6,8 +6,8 @@ import (
 
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/temporaltestpilot/internal/delivery"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
