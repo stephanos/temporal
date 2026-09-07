@@ -2,10 +2,11 @@
 package execution
 
 import (
+	"cmp"
 	"context"
 	"slices"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -25,7 +26,7 @@ const (
 
 type RolePolicy struct {
 	ID                  string
-	Kind                testpilotpb.RoleKind
+	Kind                testpilotspb.RoleKind
 	Methods             []string
 	ReservationCarriers []ReservationCarrierPolicy
 }
@@ -36,17 +37,24 @@ type ReservationCarrierPolicy struct {
 }
 
 type ReservationCarrierShape struct {
-	Context      testpilotpb.EntrypointKind
+	Context      testpilotspb.EntrypointKind
 	MaximumCount int64
 }
 
 // Policy is a static Driver snapshot. Prepare freezes its collections and resource ceilings.
 type Policy struct {
-	Identity        string
-	CatalogIdentity string
-	Roles           []RolePolicy
-	Capabilities    []Opcode
-	Limits          *testpilotpb.ProgramLimits
+	Identity               string
+	CatalogIdentity        string
+	Roles                  []RolePolicy
+	Capabilities           []Opcode
+	EnvironmentBindings    []EnvironmentBinding
+	EnvironmentFingerprint string
+	Limits                 *testpilotspb.ProgramLimits
+}
+
+type EnvironmentBinding struct {
+	ID    string
+	Value string
 }
 
 type Observation struct {
@@ -58,29 +66,58 @@ type Observation struct {
 type ProgramView struct {
 	programID, catalogIdentity string
 	observations               []Observation
-	limits                     *testpilotpb.ProgramLimits
+	limits                     *testpilotspb.ProgramLimits
 	maximumActivations         int64
 }
 
-func (v ProgramView) ProgramID() string                  { return v.programID }
-func (v ProgramView) CatalogIdentity() string            { return v.catalogIdentity }
-func (v ProgramView) Observations() []Observation        { return slices.Clone(v.observations) }
-func (v ProgramView) Limits() *testpilotpb.ProgramLimits { return proto.CloneOf(v.limits) }
-func (v ProgramView) MaximumActivations() int64          { return v.maximumActivations }
+func (v ProgramView) ProgramID() string                   { return v.programID }
+func (v ProgramView) CatalogIdentity() string             { return v.catalogIdentity }
+func (v ProgramView) Observations() []Observation         { return slices.Clone(v.observations) }
+func (v ProgramView) Limits() *testpilotspb.ProgramLimits { return proto.CloneOf(v.limits) }
+func (v ProgramView) MaximumActivations() int64           { return v.maximumActivations }
 
 type PreparedProgram struct {
-	source   *testpilotpb.Program
-	catalog  *ir.Catalog
-	policy   Policy
-	view     ProgramView
-	graphs   []*graph
-	slots    map[string]ir.Type
-	carriers map[carrierCoordinate]ReservationCarrierPlan
+	source                 *testpilotspb.Program
+	catalog                *ir.Catalog
+	policy                 Policy
+	view                   ProgramView
+	graphs                 []*graph
+	slots                  map[string]ir.Type
+	carriers               map[carrierCoordinate]ReservationCarrierPlan
+	roles                  map[string]resolvedRole
+	environmentFingerprint string
 }
 
-func (p *PreparedProgram) Snapshot() *testpilotpb.Program { return proto.CloneOf(p.source) }
-func (p *PreparedProgram) View() ProgramView              { return p.view }
-func (p *PreparedProgram) PolicyIdentity() string         { return p.policy.Identity }
+type resolvedRole struct {
+	ID                 string
+	Kind               testpilotspb.RoleKind
+	NamespaceBindingID string
+	Namespace          string
+	ResourceBindingID  string
+	Resource           string
+}
+
+type PreparedRole struct {
+	ID                 string
+	Kind               testpilotspb.RoleKind
+	NamespaceBindingID string
+	Namespace          string
+	ResourceBindingID  string
+	Resource           string
+}
+
+func (p *PreparedProgram) Snapshot() *testpilotspb.Program { return proto.CloneOf(p.source) }
+func (p *PreparedProgram) View() ProgramView               { return p.view }
+func (p *PreparedProgram) PolicyIdentity() string          { return p.policy.Identity }
+
+func (p *PreparedProgram) Roles() []PreparedRole {
+	result := make([]PreparedRole, 0, len(p.roles))
+	for _, role := range p.roles {
+		result = append(result, PreparedRole(role))
+	}
+	slices.SortFunc(result, func(a, b PreparedRole) int { return cmp.Compare(a.ID, b.ID) })
+	return result
+}
 
 type carrierCoordinate struct{ entrypointID, instructionID string }
 
@@ -93,7 +130,7 @@ type ReservationCarrierPlan struct {
 
 type ReservationTopology struct {
 	EntrypointID string
-	Context      testpilotpb.EntrypointKind
+	Context      testpilotspb.EntrypointKind
 	Count        int64
 }
 
@@ -118,33 +155,34 @@ func (p *PreparedProgram) ReservationCarrier(entrypointID, instructionID string)
 type graph struct {
 	runtimeWork int64
 	id          string
-	context     testpilotpb.EntrypointKind
+	context     testpilotspb.EntrypointKind
 	cleanup     bool
-	activation  *testpilotpb.EntrypointDefinition
+	activation  *testpilotspb.EntrypointDefinition
 	nodes       []*node
 	index       map[string]int
 	order       []int
 }
 type node struct {
-	source                   *testpilotpb.InstructionDefinition
+	source                   *testpilotspb.InstructionDefinition
 	opcode                   Opcode
 	dependencies, successors []int
 	ancestors                map[int]bool
 	guard                    *ir.Expression
-	outcomes                 map[testpilotpb.InstructionOutcomeField]ir.Type
+	outcomes                 map[testpilotspb.InstructionOutcomeField]ir.Type
 	method                   protoreflect.MethodDescriptor
 	assignments              []assignment
 	projections              []projection
 	input                    *ir.Expression
 }
 type assignment struct {
-	target *ir.Path
-	value  *ir.Expression
+	target               *ir.Path
+	value                *ir.Expression
+	environmentBindingID string
 }
 type projection struct {
 	path        *ir.Path
-	cardinality testpilotpb.ProjectionKind
-	sinks       []*testpilotpb.ProjectionTarget
+	cardinality testpilotspb.ProjectionKind
+	sinks       []*testpilotspb.ProjectionTarget
 }
 type slotWriter struct {
 	graph    *graph
@@ -152,8 +190,8 @@ type slotWriter struct {
 	optional bool
 }
 
-func hardLimits() *testpilotpb.ProgramLimits {
-	return &testpilotpb.ProgramLimits{MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000, MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000, MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20, MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000}
+func hardLimits() *testpilotspb.ProgramLimits {
+	return &testpilotspb.ProgramLimits{MaxEntrypoints: 10000, MaxNodes: 10000, MaxEdges: 100000, MaxActivations: 100000, MaxAttempts: 100000, MaxRunEvents: 100000, MaxExpressionDepth: 64, MaxPathFanout: 10000, MaxRequestBytes: 16 << 20, MaxResponseBytes: 16 << 20, MaxTotalDurationMilliseconds: 86400000, MaxCleanupDurationMilliseconds: 86400000}
 }
 
 // EntrypointPlan gives worker adapters the already-compiled DAG; activation never rebinds it.
@@ -171,8 +209,8 @@ type AssignmentPlan struct {
 }
 type ProjectionPlan struct {
 	Source      *ir.Path
-	Cardinality testpilotpb.ProjectionKind
-	Sinks       []*testpilotpb.ProjectionTarget
+	Cardinality testpilotspb.ProjectionKind
+	Sinks       []*testpilotspb.ProjectionTarget
 }
 
 func (p *PreparedProgram) Entrypoints() []EntrypointPlan {
@@ -184,9 +222,9 @@ func (p *PreparedProgram) Entrypoints() []EntrypointPlan {
 	}
 	return result
 }
-func (p EntrypointPlan) ID() string                          { return p.graph.id }
-func (p EntrypointPlan) Context() testpilotpb.EntrypointKind { return p.graph.context }
-func (p EntrypointPlan) Activation() *testpilotpb.EntrypointDefinition {
+func (p EntrypointPlan) ID() string                           { return p.graph.id }
+func (p EntrypointPlan) Context() testpilotspb.EntrypointKind { return p.graph.context }
+func (p EntrypointPlan) Activation() *testpilotspb.EntrypointDefinition {
 	return proto.CloneOf(p.graph.activation)
 }
 func (p EntrypointPlan) Order() []int { return slices.Clone(p.graph.order) }
@@ -197,7 +235,7 @@ func (p EntrypointPlan) Instructions() []InstructionPlan {
 	}
 	return result
 }
-func (p InstructionPlan) Source() *testpilotpb.InstructionDefinition {
+func (p InstructionPlan) Source() *testpilotspb.InstructionDefinition {
 	return proto.CloneOf(p.node.source)
 }
 func (p InstructionPlan) Opcode() Opcode                        { return p.node.opcode }
@@ -215,7 +253,7 @@ func (p InstructionPlan) Assignments() []AssignmentPlan {
 func (p InstructionPlan) Projections() []ProjectionPlan {
 	result := make([]ProjectionPlan, len(p.node.projections))
 	for i, projection := range p.node.projections {
-		sinks := make([]*testpilotpb.ProjectionTarget, len(projection.sinks))
+		sinks := make([]*testpilotspb.ProjectionTarget, len(projection.sinks))
 		for j, sink := range projection.sinks {
 			sinks[j] = proto.CloneOf(sink)
 		}
@@ -226,19 +264,19 @@ func (p InstructionPlan) Projections() []ProjectionPlan {
 
 // OutcomeSnapshot transfers independent outcome and declared-field values to one activation.
 type OutcomeSnapshot struct {
-	Outcome *testpilotpb.InstructionOutcome
-	Fields  map[testpilotpb.InstructionOutcomeField]*testpilotpb.Value
+	Outcome *testpilotspb.InstructionOutcome
+	Fields  map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value
 }
 
 func (p EntrypointPlan) RuntimeWorkLimit() int64 { return p.graph.runtimeWork }
-func (p InstructionPlan) OutcomeType(field testpilotpb.InstructionOutcomeField) (*testpilotpb.ValueType, bool) {
+func (p InstructionPlan) OutcomeType(field testpilotspb.InstructionOutcomeField) (*testpilotspb.ValueType, bool) {
 	typ, ok := p.node.outcomes[field]
 	if !ok {
 		return nil, false
 	}
 	return typ.Schema(), true
 }
-func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilotpb.InstructionOutcome, limit int64) (*OutcomeSnapshot, int64, error) {
+func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilotspb.InstructionOutcome, limit int64) (*OutcomeSnapshot, int64, error) {
 	w, err := newValueWork(ctx, p.entry.program.source.Limits, p.entry.RuntimeWorkLimit(), limit)
 	if err != nil {
 		return nil, 0, err
@@ -255,7 +293,7 @@ func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilot
 
 // EvaluateInput reads activation-local validated values; nil means absent. The lookup must be
 // deterministic, bounded and must not mutate its values during evaluation or perform SDK calls.
-func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Reference) *testpilotpb.Value, limit int64) (*testpilotpb.Value, bool, int64, error) {
+func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Reference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, bool, int64, error) {
 	w, err := newValueWork(ctx, p.entry.program.source.Limits, p.entry.RuntimeWorkLimit(), limit)
 	if err != nil {
 		return nil, false, 0, err
@@ -266,7 +304,7 @@ func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Refer
 	if p.node.opcode == InvokeRPC {
 		return nil, false, 0, invalid(ir.TypeMismatch, "values", "RPC requires request construction")
 	}
-	evaluate := func(e *ir.Expression) (*testpilotpb.Value, error) {
+	evaluate := func(e *ir.Expression) (*testpilotspb.Value, error) {
 		value, work, err := e.EvaluateExecution(ctx, lookup, w.limits.Work-w.work)
 		w.work += work
 		return value, err
@@ -280,7 +318,7 @@ func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ir.Refer
 			return nil, false, w.work, nil
 		}
 	}
-	var value *testpilotpb.Value
+	var value *testpilotspb.Value
 	if p.node.input != nil {
 		value, err = evaluate(p.node.input)
 		if err != nil {

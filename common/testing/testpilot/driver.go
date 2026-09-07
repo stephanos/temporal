@@ -4,14 +4,14 @@ import (
 	"context"
 	"errors"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-type DriverIdentity struct{ Profile, Catalog string }
+type DriverIdentity struct{ Profile, Catalog, Bindings string }
 
 type Coordinate struct {
 	RunID, EntrypointID, ActivationID, InstructionID string
@@ -37,7 +37,7 @@ type ReservationRequest struct {
 type OpaqueCapability interface{}
 
 type EffectResult struct {
-	Outcome  *testpilotpb.InstructionOutcome
+	Outcome  *testpilotspb.InstructionOutcome
 	Response proto.Message
 }
 
@@ -68,6 +68,15 @@ type CapabilityBridge interface {
 // PreparedProgram exposes immutable compiled inputs to adapters, without scheduling or Slot state.
 type PreparedProgram struct{ program *execution.PreparedProgram }
 
+type PreparedRole struct {
+	ID                 string
+	Kind               testpilotspb.RoleKind
+	NamespaceBindingID string
+	Namespace          string
+	ResourceBindingID  string
+	Resource           string
+}
+
 type EntrypointPlan struct{ plan execution.EntrypointPlan }
 type InstructionPlan struct{ plan execution.InstructionPlan }
 
@@ -86,18 +95,18 @@ type ValueReference struct {
 
 type Expression struct{ expression *ir.Expression }
 
-func (e *Expression) Evaluate(ctx context.Context, resolve func(ValueReference) *testpilotpb.Value, limit int64) (*testpilotpb.Value, int64, error) {
+func (e *Expression) Evaluate(ctx context.Context, resolve func(ValueReference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, int64, error) {
 	if e == nil || e.expression == nil || resolve == nil {
 		return nil, 0, errors.New("context, expression, resolver and positive work required")
 	}
-	return e.expression.Evaluate(ctx, func(reference ir.Reference) *testpilotpb.Value {
+	return e.expression.Evaluate(ctx, func(reference ir.Reference) *testpilotspb.Value {
 		return resolve(ValueReference{Kind: ReferenceKind(reference.Kind), Entrypoint: reference.Entrypoint, ID: reference.ID, Field: reference.Field})
 	}, limit)
 }
 
 type OutcomeSnapshot struct {
-	Outcome *testpilotpb.InstructionOutcome
-	Fields  map[testpilotpb.InstructionOutcomeField]*testpilotpb.Value
+	Outcome *testpilotspb.InstructionOutcome
+	Fields  map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value
 }
 
 type ReservationCarrierPlan struct {
@@ -109,7 +118,7 @@ type ReservationCarrierPlan struct {
 
 type ReservationTopology struct {
 	EntrypointID string
-	Context      testpilotpb.EntrypointKind
+	Context      testpilotspb.EntrypointKind
 	Count        int64
 }
 
@@ -121,7 +130,25 @@ type ReservationRoute struct {
 	HandlerOrdinal       int64
 }
 
-func (p PreparedProgram) Snapshot() *testpilotpb.Program { return p.program.Snapshot() }
+func (p PreparedProgram) Snapshot() *testpilotspb.Program {
+	if p.program == nil {
+		return nil
+	}
+	return p.program.Snapshot()
+}
+
+func (p PreparedProgram) Roles() []PreparedRole {
+	roles := p.program.Roles()
+	result := make([]PreparedRole, len(roles))
+	for i, role := range roles {
+		result[i] = PreparedRole{
+			ID: role.ID, Kind: role.Kind,
+			NamespaceBindingID: role.NamespaceBindingID, Namespace: role.Namespace,
+			ResourceBindingID: role.ResourceBindingID, Resource: role.Resource,
+		}
+	}
+	return result
+}
 
 func (p PreparedProgram) Entrypoints() []EntrypointPlan {
 	plans := p.program.Entrypoints()
@@ -147,9 +174,9 @@ func (p PreparedProgram) ReservationCarrier(entrypointID, instructionID string) 
 	return result, true
 }
 
-func (p EntrypointPlan) ID() string                          { return p.plan.ID() }
-func (p EntrypointPlan) Context() testpilotpb.EntrypointKind { return p.plan.Context() }
-func (p EntrypointPlan) Activation() *testpilotpb.EntrypointDefinition {
+func (p EntrypointPlan) ID() string                           { return p.plan.ID() }
+func (p EntrypointPlan) Context() testpilotspb.EntrypointKind { return p.plan.Context() }
+func (p EntrypointPlan) Activation() *testpilotspb.EntrypointDefinition {
 	return p.plan.Activation()
 }
 func (p EntrypointPlan) Order() []int { return p.plan.Order() }
@@ -163,9 +190,9 @@ func (p EntrypointPlan) Instructions() []InstructionPlan {
 }
 func (p EntrypointPlan) RuntimeWorkLimit() int64 { return p.plan.RuntimeWorkLimit() }
 
-func (p InstructionPlan) Source() *testpilotpb.InstructionDefinition { return p.plan.Source() }
-func (p InstructionPlan) Opcode() Capability                         { return Capability(p.plan.Opcode()) }
-func (p InstructionPlan) Dependencies() []int                        { return p.plan.Dependencies() }
+func (p InstructionPlan) Source() *testpilotspb.InstructionDefinition { return p.plan.Source() }
+func (p InstructionPlan) Opcode() Capability                          { return Capability(p.plan.Opcode()) }
+func (p InstructionPlan) Dependencies() []int                         { return p.plan.Dependencies() }
 func (p InstructionPlan) Guard() *Expression {
 	if expression := p.plan.Guard(); expression != nil {
 		return &Expression{expression: expression}
@@ -173,23 +200,23 @@ func (p InstructionPlan) Guard() *Expression {
 	return nil
 }
 func (p InstructionPlan) Method() protoreflect.MethodDescriptor { return p.plan.Method() }
-func (p InstructionPlan) OutcomeType(field testpilotpb.InstructionOutcomeField) (*testpilotpb.ValueType, bool) {
+func (p InstructionPlan) OutcomeType(field testpilotspb.InstructionOutcomeField) (*testpilotspb.ValueType, bool) {
 	return p.plan.OutcomeType(field)
 }
-func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ValueReference) *testpilotpb.Value, limit int64) (*testpilotpb.Value, bool, int64, error) {
+func (p InstructionPlan) EvaluateInput(ctx context.Context, lookup func(ValueReference) *testpilotspb.Value, limit int64) (*testpilotspb.Value, bool, int64, error) {
 	if lookup == nil {
 		return p.plan.EvaluateInput(ctx, nil, limit)
 	}
-	return p.plan.EvaluateInput(ctx, func(reference ir.Reference) *testpilotpb.Value {
+	return p.plan.EvaluateInput(ctx, func(reference ir.Reference) *testpilotspb.Value {
 		return lookup(ValueReference{Kind: ReferenceKind(reference.Kind), Entrypoint: reference.Entrypoint, ID: reference.ID, Field: reference.Field})
 	}, limit)
 }
-func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilotpb.InstructionOutcome, limit int64) (*OutcomeSnapshot, int64, error) {
+func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilotspb.InstructionOutcome, limit int64) (*OutcomeSnapshot, int64, error) {
 	snapshot, work, err := p.plan.ValidateOutcome(ctx, outcome, limit)
 	if err != nil {
 		return nil, work, err
 	}
-	fields := make(map[testpilotpb.InstructionOutcomeField]*testpilotpb.Value, len(snapshot.Fields))
+	fields := make(map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value, len(snapshot.Fields))
 	for field, value := range snapshot.Fields {
 		fields[field] = proto.CloneOf(value)
 	}
@@ -200,25 +227,30 @@ func (p InstructionPlan) ValidateOutcome(ctx context.Context, outcome *testpilot
 // honor caller bounds. Shared clients and workers stay Driver-owned across logical Run sessions.
 type Driver interface {
 	Identity(context.Context) (DriverIdentity, error)
+	Validate(context.Context, PreparedProgram) error
 	Open(context.Context, string, PreparedProgram) (Session, error)
 }
 
 type Session interface {
 	Reserve(context.Context, ReservationRequest) ([]ReservationHandle, error)
 	InvokeRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message) (EffectHandle, error)
-	CompleteNexusOperation(context.Context, Coordinate, OpaqueCapability, *testpilotpb.Value) (EffectHandle, error)
+	CompleteNexusOperation(context.Context, Coordinate, OpaqueCapability, *testpilotspb.Value) (EffectHandle, error)
 	Bridge(context.Context) (CapabilityBridge, error)
 	Quarantine(context.Context, EffectHandle) error
 	Close(context.Context) error
 	// Diagnose remains usable after Close, is bounded by Driver policy, and cannot mutate returned data.
-	Diagnose(context.Context, string, *testpilotpb.RunDiagnostic) error
+	Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error
 }
 
 type driverAdapter struct{ driver Driver }
 
 func (d driverAdapter) Identity(ctx context.Context) (execution.DriverIdentity, error) {
 	identity, err := d.driver.Identity(ctx)
-	return execution.DriverIdentity{Profile: identity.Profile, Catalog: identity.Catalog}, err
+	return execution.DriverIdentity{Profile: identity.Profile, Catalog: identity.Catalog, Bindings: identity.Bindings}, err
+}
+
+func (d driverAdapter) Validate(ctx context.Context, program *execution.PreparedProgram) error {
+	return d.driver.Validate(ctx, PreparedProgram{program: program})
 }
 
 func (d driverAdapter) Open(ctx context.Context, runID string, program *execution.PreparedProgram) (execution.Session, error) {
@@ -254,7 +286,7 @@ func (s sessionAdapter) InvokeRPC(ctx context.Context, coordinate execution.Coor
 	return adaptEffect(handle, err)
 }
 
-func (s sessionAdapter) CompleteNexusOperation(ctx context.Context, coordinate execution.Coordinate, capability execution.OpaqueCapability, value *testpilotpb.Value) (execution.EffectHandle, error) {
+func (s sessionAdapter) CompleteNexusOperation(ctx context.Context, coordinate execution.Coordinate, capability execution.OpaqueCapability, value *testpilotspb.Value) (execution.EffectHandle, error) {
 	handle, err := s.session.CompleteNexusOperation(ctx, publicCoordinate(coordinate), capability, value)
 	return adaptEffect(handle, err)
 }
@@ -282,7 +314,7 @@ func (s sessionAdapter) Quarantine(ctx context.Context, handle execution.EffectH
 }
 
 func (s sessionAdapter) Close(ctx context.Context) error { return s.session.Close(ctx) }
-func (s sessionAdapter) Diagnose(ctx context.Context, runID string, diagnostic *testpilotpb.RunDiagnostic) error {
+func (s sessionAdapter) Diagnose(ctx context.Context, runID string, diagnostic *testpilotspb.RunDiagnostic) error {
 	return s.session.Diagnose(ctx, runID, diagnostic)
 }
 

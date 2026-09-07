@@ -36,10 +36,14 @@ Finish the cutover by removing parallel handwritten protocol and serializer owne
 - [ ] Historical/generated/out-of-scope artifacts remain untouched unless an owned generator legitimately changes their output.
 - [ ] Focused and full specified gates are recorded with no new proof placeholders or trust dependencies; introduced failures are fixed and inherited failures have concrete baseline evidence.
 ## Done summary
-TBD
+Retired the remaining parallel handwritten Testpilot protocol and serializer ownership. Umpire compatibility surfaces are now generated-type aliases or a direct `Testpilot.ProtoJSON` forwarder with colocated equivalence coverage and explicit removal points. `Umpire.Case.Compiler` retains the required source-bound validation, unsupported-lowering diagnostics, exact provenance, and final Case assembly over generated protocol values; it introduces no parallel wire representation. Active documentation assigns schema, authoring, codec, provenance, producer lowering, compiler assembly, and Go admission to their final owners.
 
+Focused compatibility/compiler/producer, full model, generation/fixture drift, import-graph, scoped Go, and model lint gates passed. The final quality pass restored the generated-value compiler seam required by R6, added focused generated assembly and exact-error coverage, documented the public authoring/codec policies, declared both Make targets phony, and corrected stale ownership descriptions. `make lint-code GOLANGCI_LINT_FIX=false` was attempted twice after implementation but the host temp volume exhausted during Go package loading before source diagnostics; the accepted pre-existing baseline remains 1361 unrelated findings, recorded in `/tmp/fn71-baseline-lint-code.log` and `/tmp/fn71-task4-baseline-lint-code.log`.
+
+stage: impl-review - ran (codex:gpt-5.6-sol:medium, SHIP)
+stage: quality-audit - fixed compiler-removal correctness finding and all standards findings
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests:
+- Tests: (cd model && mise exec -- lake build Umpire.Case.CompilerTests Temporal.Feature.Nexus3.Tests Temporal.TestpilotTests TestpilotTests temporal-testpilot), TMPDIR=/private/tmp CGO_ENABLED=0 make umpire-check-case-runtime-conformance, TMPDIR=/private/tmp CGO_ENABLED=0 mise exec -- go test -p=1 -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tests/testcore/testpilot/..., (cd model && mise exec -- lake build Testpilot TestpilotTests UmpireTests TemporalModelTests temporal-testpilot), (cd model && mise exec -- lake exe modelLintTests), make lint-model, INHERITED_RED: make lint-code GOLANGCI_LINT_FIX=false - accepted baseline has 1361 unrelated findings; two task-7 attempts stopped during package loading on host temp-volume exhaustion before source diagnostics, impl-review: SHIP (codex:gpt-5.6-sol:medium; /tmp/fn71-task7-impl-review.json)
 - PRs:
-

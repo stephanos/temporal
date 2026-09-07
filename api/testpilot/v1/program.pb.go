@@ -163,11 +163,13 @@ func (EntrypointKind) EnumDescriptor() ([]byte, []int) {
 }
 
 type RoleDefinition struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	RoleId        string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
-	Kind          RoleKind               `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RoleKind" json:"kind,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	RoleId             string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	Kind               RoleKind               `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.RoleKind" json:"kind,omitempty"`
+	NamespaceBindingId string                 `protobuf:"bytes,3,opt,name=namespace_binding_id,json=namespaceBindingId,proto3" json:"namespace_binding_id,omitempty"`
+	ResourceBindingId  string                 `protobuf:"bytes,4,opt,name=resource_binding_id,json=resourceBindingId,proto3" json:"resource_binding_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *RoleDefinition) Reset() {
@@ -212,6 +214,20 @@ func (x *RoleDefinition) GetKind() RoleKind {
 		return x.Kind
 	}
 	return ROLE_KIND_UNSPECIFIED
+}
+
+func (x *RoleDefinition) GetNamespaceBindingId() string {
+	if x != nil {
+		return x.NamespaceBindingId
+	}
+	return ""
+}
+
+func (x *RoleDefinition) GetResourceBindingId() string {
+	if x != nil {
+		return x.ResourceBindingId
+	}
+	return ""
 }
 
 type ControllerActivation struct {
@@ -765,6 +781,7 @@ type Program struct {
 	Entrypoints   []*EntrypointDefinition  `protobuf:"bytes,5,rep,name=entrypoints,proto3" json:"entrypoints,omitempty"`
 	Cleanup       *CleanupDefinition       `protobuf:"bytes,6,opt,name=cleanup,proto3" json:"cleanup,omitempty"`
 	Limits        *ProgramLimits           `protobuf:"bytes,7,opt,name=limits,proto3" json:"limits,omitempty"`
+	Environment   []*EnvironmentDefinition `protobuf:"bytes,8,rep,name=environment,proto3" json:"environment,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -848,14 +865,67 @@ func (x *Program) GetLimits() *ProgramLimits {
 	return nil
 }
 
+func (x *Program) GetEnvironment() []*EnvironmentDefinition {
+	if x != nil {
+		return x.Environment
+	}
+	return nil
+}
+
+type EnvironmentDefinition struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BindingId     string                 `protobuf:"bytes,1,opt,name=binding_id,json=bindingId,proto3" json:"binding_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnvironmentDefinition) Reset() {
+	*x = EnvironmentDefinition{}
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnvironmentDefinition) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnvironmentDefinition) ProtoMessage() {}
+
+func (x *EnvironmentDefinition) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_program_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnvironmentDefinition.ProtoReflect.Descriptor instead.
+func (*EnvironmentDefinition) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *EnvironmentDefinition) GetBindingId() string {
+	if x != nil {
+		return x.BindingId
+	}
+	return ""
+}
+
 var File_temporal_server_api_testpilot_v1_program_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\n" +
-	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"i\n" +
+	".temporal/server/api/testpilot/v1/program.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xcb\x01\n" +
 	"\x0eRoleDefinition\x12\x17\n" +
 	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12>\n" +
-	"\x04kind\x18\x02 \x01(\x0e2*.temporal.server.api.testpilot.v1.RoleKindR\x04kind\"\x16\n" +
+	"\x04kind\x18\x02 \x01(\x0e2*.temporal.server.api.testpilot.v1.RoleKindR\x04kind\x120\n" +
+	"\x14namespace_binding_id\x18\x03 \x01(\tR\x12namespaceBindingId\x12.\n" +
+	"\x13resource_binding_id\x18\x04 \x01(\tR\x11resourceBindingId\"\x16\n" +
 	"\x14ControllerActivation\"\x8c\x01\n" +
 	"\x12WorkflowActivation\x12#\n" +
 	"\rworkflow_type\x18\x01 \x01(\tR\fworkflowType\x12$\n" +
@@ -897,7 +967,7 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\x12max_response_bytes\x18\n" +
 	" \x01(\x03R\x10maxResponseBytes\x12E\n" +
 	"\x1fmax_total_duration_milliseconds\x18\v \x01(\x03R\x1cmaxTotalDurationMilliseconds\x12I\n" +
-	"!max_cleanup_duration_milliseconds\x18\f \x01(\x03R\x1emaxCleanupDurationMilliseconds\"\x87\x04\n" +
+	"!max_cleanup_duration_milliseconds\x18\f \x01(\x03R\x1emaxCleanupDurationMilliseconds\"\xe2\x04\n" +
 	"\aProgram\x12\x1d\n" +
 	"\n" +
 	"program_id\x18\x01 \x01(\tR\tprogramId\x12F\n" +
@@ -906,7 +976,11 @@ const file_temporal_server_api_testpilot_v1_program_proto_rawDesc = "" +
 	"\fobservations\x18\x04 \x03(\v27.temporal.server.api.testpilot.v1.ObservationDefinitionR\fobservations\x12X\n" +
 	"\ventrypoints\x18\x05 \x03(\v26.temporal.server.api.testpilot.v1.EntrypointDefinitionR\ventrypoints\x12M\n" +
 	"\acleanup\x18\x06 \x01(\v23.temporal.server.api.testpilot.v1.CleanupDefinitionR\acleanup\x12G\n" +
-	"\x06limits\x18\a \x01(\v2/.temporal.server.api.testpilot.v1.ProgramLimitsR\x06limits*\x88\x01\n" +
+	"\x06limits\x18\a \x01(\v2/.temporal.server.api.testpilot.v1.ProgramLimitsR\x06limits\x12Y\n" +
+	"\venvironment\x18\b \x03(\v27.temporal.server.api.testpilot.v1.EnvironmentDefinitionR\venvironment\"6\n" +
+	"\x15EnvironmentDefinition\x12\x1d\n" +
+	"\n" +
+	"binding_id\x18\x01 \x01(\tR\tbindingId*\x88\x01\n" +
 	"\bRoleKind\x12\x19\n" +
 	"\x15ROLE_KIND_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12ROLE_KIND_ENDPOINT\x10\x01\x12\x14\n" +
@@ -933,7 +1007,7 @@ func file_temporal_server_api_testpilot_v1_program_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_program_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_temporal_server_api_testpilot_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_temporal_server_api_testpilot_v1_program_proto_msgTypes = make([]protoimpl.MessageInfo, 10)
 var file_temporal_server_api_testpilot_v1_program_proto_goTypes = []any{
 	(RoleKind)(0),                  // 0: temporal.server.api.testpilot.v1.RoleKind
 	(EntrypointKind)(0),            // 1: temporal.server.api.testpilot.v1.EntrypointKind
@@ -946,9 +1020,10 @@ var file_temporal_server_api_testpilot_v1_program_proto_goTypes = []any{
 	(*CleanupDefinition)(nil),      // 8: temporal.server.api.testpilot.v1.CleanupDefinition
 	(*ProgramLimits)(nil),          // 9: temporal.server.api.testpilot.v1.ProgramLimits
 	(*Program)(nil),                // 10: temporal.server.api.testpilot.v1.Program
-	(*InstructionDefinition)(nil),  // 11: temporal.server.api.testpilot.v1.InstructionDefinition
-	(*SlotDefinition)(nil),         // 12: temporal.server.api.testpilot.v1.SlotDefinition
-	(*ObservationDefinition)(nil),  // 13: temporal.server.api.testpilot.v1.ObservationDefinition
+	(*EnvironmentDefinition)(nil),  // 11: temporal.server.api.testpilot.v1.EnvironmentDefinition
+	(*InstructionDefinition)(nil),  // 12: temporal.server.api.testpilot.v1.InstructionDefinition
+	(*SlotDefinition)(nil),         // 13: temporal.server.api.testpilot.v1.SlotDefinition
+	(*ObservationDefinition)(nil),  // 14: temporal.server.api.testpilot.v1.ObservationDefinition
 }
 var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
 	0,  // 0: temporal.server.api.testpilot.v1.RoleDefinition.kind:type_name -> temporal.server.api.testpilot.v1.RoleKind
@@ -956,19 +1031,20 @@ var file_temporal_server_api_testpilot_v1_program_proto_depIdxs = []int32{
 	4,  // 2: temporal.server.api.testpilot.v1.EntrypointDefinition.workflow:type_name -> temporal.server.api.testpilot.v1.WorkflowActivation
 	5,  // 3: temporal.server.api.testpilot.v1.EntrypointDefinition.activity:type_name -> temporal.server.api.testpilot.v1.ActivityActivation
 	6,  // 4: temporal.server.api.testpilot.v1.EntrypointDefinition.nexus_handler:type_name -> temporal.server.api.testpilot.v1.NexusHandlerActivation
-	11, // 5: temporal.server.api.testpilot.v1.EntrypointDefinition.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionDefinition
-	11, // 6: temporal.server.api.testpilot.v1.CleanupDefinition.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionDefinition
+	12, // 5: temporal.server.api.testpilot.v1.EntrypointDefinition.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionDefinition
+	12, // 6: temporal.server.api.testpilot.v1.CleanupDefinition.instructions:type_name -> temporal.server.api.testpilot.v1.InstructionDefinition
 	2,  // 7: temporal.server.api.testpilot.v1.Program.roles:type_name -> temporal.server.api.testpilot.v1.RoleDefinition
-	12, // 8: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.SlotDefinition
-	13, // 9: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.ObservationDefinition
+	13, // 8: temporal.server.api.testpilot.v1.Program.slots:type_name -> temporal.server.api.testpilot.v1.SlotDefinition
+	14, // 9: temporal.server.api.testpilot.v1.Program.observations:type_name -> temporal.server.api.testpilot.v1.ObservationDefinition
 	7,  // 10: temporal.server.api.testpilot.v1.Program.entrypoints:type_name -> temporal.server.api.testpilot.v1.EntrypointDefinition
 	8,  // 11: temporal.server.api.testpilot.v1.Program.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupDefinition
 	9,  // 12: temporal.server.api.testpilot.v1.Program.limits:type_name -> temporal.server.api.testpilot.v1.ProgramLimits
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	11, // 13: temporal.server.api.testpilot.v1.Program.environment:type_name -> temporal.server.api.testpilot.v1.EnvironmentDefinition
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_program_proto_init() }
@@ -990,7 +1066,7 @@ func file_temporal_server_api_testpilot_v1_program_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_program_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_program_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   9,
+			NumMessages:   10,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

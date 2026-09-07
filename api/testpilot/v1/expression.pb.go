@@ -1031,6 +1031,7 @@ type ProgramExpression struct {
 	//	*ProgramExpression_Negation
 	//	*ProgramExpression_All
 	//	*ProgramExpression_Any
+	//	*ProgramExpression_Environment
 	Expression    isProgramExpression_Expression `protobuf_oneof:"expression"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1172,6 +1173,15 @@ func (x *ProgramExpression) GetAny() *ProgramAnyExpression {
 	return nil
 }
 
+func (x *ProgramExpression) GetEnvironment() *EnvironmentRef {
+	if x != nil {
+		if x, ok := x.Expression.(*ProgramExpression_Environment); ok {
+			return x.Environment
+		}
+	}
+	return nil
+}
+
 type isProgramExpression_Expression interface {
 	isProgramExpression_Expression()
 }
@@ -1220,6 +1230,10 @@ type ProgramExpression_Any struct {
 	Any *ProgramAnyExpression `protobuf:"bytes,11,opt,name=any,proto3,oneof"`
 }
 
+type ProgramExpression_Environment struct {
+	Environment *EnvironmentRef `protobuf:"bytes,12,opt,name=environment,proto3,oneof"`
+}
+
 func (*ProgramExpression_Literal) isProgramExpression_Expression() {}
 
 func (*ProgramExpression_Slot) isProgramExpression_Expression() {}
@@ -1241,6 +1255,8 @@ func (*ProgramExpression_Negation) isProgramExpression_Expression() {}
 func (*ProgramExpression_All) isProgramExpression_Expression() {}
 
 func (*ProgramExpression_Any) isProgramExpression_Expression() {}
+
+func (*ProgramExpression_Environment) isProgramExpression_Expression() {}
 
 type ContractPathExpression struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1809,6 +1825,50 @@ func (*ContractExpression_Any) isContractExpression_Expression() {}
 
 func (*ContractExpression_Capture) isContractExpression_Expression() {}
 
+type EnvironmentRef struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	BindingId     string                 `protobuf:"bytes,1,opt,name=binding_id,json=bindingId,proto3" json:"binding_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *EnvironmentRef) Reset() {
+	*x = EnvironmentRef{}
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *EnvironmentRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EnvironmentRef) ProtoMessage() {}
+
+func (x *EnvironmentRef) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use EnvironmentRef.ProtoReflect.Descriptor instead.
+func (*EnvironmentRef) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *EnvironmentRef) GetBindingId() string {
+	if x != nil {
+		return x.BindingId
+	}
+	return ""
+}
+
 var File_temporal_server_api_testpilot_v1_expression_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
@@ -1853,7 +1913,7 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x14ProgramAllExpression\x12O\n" +
 	"\boperands\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\boperands\"g\n" +
 	"\x14ProgramAnyExpression\x12O\n" +
-	"\boperands\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\boperands\"\xfc\x06\n" +
+	"\boperands\x18\x01 \x03(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\boperands\"\xd2\a\n" +
 	"\x11ProgramExpression\x12C\n" +
 	"\aliteral\x18\x01 \x01(\v2'.temporal.server.api.testpilot.v1.ValueH\x00R\aliteral\x12?\n" +
 	"\x04slot\x18\x02 \x01(\v2).temporal.server.api.testpilot.v1.SlotRefH\x00R\x04slot\x12S\n" +
@@ -1866,7 +1926,8 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\bnegation\x18\t \x01(\v26.temporal.server.api.testpilot.v1.ProgramNotExpressionH\x00R\bnegation\x12J\n" +
 	"\x03all\x18\n" +
 	" \x01(\v26.temporal.server.api.testpilot.v1.ProgramAllExpressionH\x00R\x03all\x12J\n" +
-	"\x03any\x18\v \x01(\v26.temporal.server.api.testpilot.v1.ProgramAnyExpressionH\x00R\x03anyB\f\n" +
+	"\x03any\x18\v \x01(\v26.temporal.server.api.testpilot.v1.ProgramAnyExpressionH\x00R\x03any\x12T\n" +
+	"\venvironment\x18\f \x01(\v20.temporal.server.api.testpilot.v1.EnvironmentRefH\x00R\venvironmentB\f\n" +
 	"\n" +
 	"expression\"\xa7\x01\n" +
 	"\x16ContractPathExpression\x12L\n" +
@@ -1901,7 +1962,10 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	" \x01(\v27.temporal.server.api.testpilot.v1.ContractAnyExpressionH\x00R\x03any\x12H\n" +
 	"\acapture\x18\v \x01(\v2,.temporal.server.api.testpilot.v1.CaptureRefH\x00R\acaptureB\f\n" +
 	"\n" +
-	"expression*\x92\x02\n" +
+	"expression\"/\n" +
+	"\x0eEnvironmentRef\x12\x1d\n" +
+	"\n" +
+	"binding_id\x18\x01 \x01(\tR\tbindingId*\x92\x02\n" +
 	"\x17InstructionOutcomeField\x12)\n" +
 	"%INSTRUCTION_OUTCOME_FIELD_UNSPECIFIED\x10\x00\x12$\n" +
 	" INSTRUCTION_OUTCOME_FIELD_STATUS\x10\x01\x12+\n" +
@@ -1940,7 +2004,7 @@ func file_temporal_server_api_testpilot_v1_expression_proto_rawDescGZIP() []byte
 }
 
 var file_temporal_server_api_testpilot_v1_expression_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_temporal_server_api_testpilot_v1_expression_proto_msgTypes = make([]protoimpl.MessageInfo, 26)
 var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(InstructionOutcomeField)(0),         // 0: temporal.server.api.testpilot.v1.InstructionOutcomeField
 	(ComparisonOperator)(0),              // 1: temporal.server.api.testpilot.v1.ComparisonOperator
@@ -1970,19 +2034,20 @@ var file_temporal_server_api_testpilot_v1_expression_proto_goTypes = []any{
 	(*ContractAllExpression)(nil),        // 25: temporal.server.api.testpilot.v1.ContractAllExpression
 	(*ContractAnyExpression)(nil),        // 26: temporal.server.api.testpilot.v1.ContractAnyExpression
 	(*ContractExpression)(nil),           // 27: temporal.server.api.testpilot.v1.ContractExpression
-	(*ValueType)(nil),                    // 28: temporal.server.api.testpilot.v1.ValueType
-	(*FieldPath)(nil),                    // 29: temporal.server.api.testpilot.v1.FieldPath
-	(*Value)(nil),                        // 30: temporal.server.api.testpilot.v1.Value
+	(*EnvironmentRef)(nil),               // 28: temporal.server.api.testpilot.v1.EnvironmentRef
+	(*ValueType)(nil),                    // 29: temporal.server.api.testpilot.v1.ValueType
+	(*FieldPath)(nil),                    // 30: temporal.server.api.testpilot.v1.FieldPath
+	(*Value)(nil),                        // 31: temporal.server.api.testpilot.v1.Value
 }
 var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	3,  // 0: temporal.server.api.testpilot.v1.InstructionOutcomeRef.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionRef
 	0,  // 1: temporal.server.api.testpilot.v1.InstructionOutcomeRef.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
 	0,  // 2: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.field:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeField
-	28, // 3: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.type:type_name -> temporal.server.api.testpilot.v1.ValueType
+	29, // 3: temporal.server.api.testpilot.v1.OutcomeFieldDefinition.type:type_name -> temporal.server.api.testpilot.v1.ValueType
 	6,  // 4: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition.fields:type_name -> temporal.server.api.testpilot.v1.OutcomeFieldDefinition
 	2,  // 5: temporal.server.api.testpilot.v1.RunEventFieldRef.field:type_name -> temporal.server.api.testpilot.v1.RunEventField
 	19, // 6: temporal.server.api.testpilot.v1.ProgramPathExpression.source:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	29, // 7: temporal.server.api.testpilot.v1.ProgramPathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	30, // 7: temporal.server.api.testpilot.v1.ProgramPathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
 	19, // 8: temporal.server.api.testpilot.v1.ProgramPresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
 	19, // 9: temporal.server.api.testpilot.v1.ProgramEqualsExpression.left:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
 	19, // 10: temporal.server.api.testpilot.v1.ProgramEqualsExpression.right:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
@@ -1992,7 +2057,7 @@ var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	19, // 14: temporal.server.api.testpilot.v1.ProgramNotExpression.operand:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
 	19, // 15: temporal.server.api.testpilot.v1.ProgramAllExpression.operands:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
 	19, // 16: temporal.server.api.testpilot.v1.ProgramAnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	30, // 17: temporal.server.api.testpilot.v1.ProgramExpression.literal:type_name -> temporal.server.api.testpilot.v1.Value
+	31, // 17: temporal.server.api.testpilot.v1.ProgramExpression.literal:type_name -> temporal.server.api.testpilot.v1.Value
 	4,  // 18: temporal.server.api.testpilot.v1.ProgramExpression.slot:type_name -> temporal.server.api.testpilot.v1.SlotRef
 	5,  // 19: temporal.server.api.testpilot.v1.ProgramExpression.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeRef
 	10, // 20: temporal.server.api.testpilot.v1.ProgramExpression.run:type_name -> temporal.server.api.testpilot.v1.RunRef
@@ -2003,33 +2068,34 @@ var file_temporal_server_api_testpilot_v1_expression_proto_depIdxs = []int32{
 	16, // 25: temporal.server.api.testpilot.v1.ProgramExpression.negation:type_name -> temporal.server.api.testpilot.v1.ProgramNotExpression
 	17, // 26: temporal.server.api.testpilot.v1.ProgramExpression.all:type_name -> temporal.server.api.testpilot.v1.ProgramAllExpression
 	18, // 27: temporal.server.api.testpilot.v1.ProgramExpression.any:type_name -> temporal.server.api.testpilot.v1.ProgramAnyExpression
-	27, // 28: temporal.server.api.testpilot.v1.ContractPathExpression.source:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	29, // 29: temporal.server.api.testpilot.v1.ContractPathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	27, // 30: temporal.server.api.testpilot.v1.ContractPresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 31: temporal.server.api.testpilot.v1.ContractEqualsExpression.left:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 32: temporal.server.api.testpilot.v1.ContractEqualsExpression.right:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	1,  // 33: temporal.server.api.testpilot.v1.ContractCompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
-	27, // 34: temporal.server.api.testpilot.v1.ContractCompareExpression.left:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 35: temporal.server.api.testpilot.v1.ContractCompareExpression.right:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 36: temporal.server.api.testpilot.v1.ContractNotExpression.operand:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 37: temporal.server.api.testpilot.v1.ContractAllExpression.operands:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	27, // 38: temporal.server.api.testpilot.v1.ContractAnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.ContractExpression
-	30, // 39: temporal.server.api.testpilot.v1.ContractExpression.literal:type_name -> temporal.server.api.testpilot.v1.Value
-	8,  // 40: temporal.server.api.testpilot.v1.ContractExpression.observation:type_name -> temporal.server.api.testpilot.v1.ObservationRef
-	11, // 41: temporal.server.api.testpilot.v1.ContractExpression.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventFieldRef
-	20, // 42: temporal.server.api.testpilot.v1.ContractExpression.path:type_name -> temporal.server.api.testpilot.v1.ContractPathExpression
-	21, // 43: temporal.server.api.testpilot.v1.ContractExpression.present:type_name -> temporal.server.api.testpilot.v1.ContractPresentExpression
-	22, // 44: temporal.server.api.testpilot.v1.ContractExpression.equals:type_name -> temporal.server.api.testpilot.v1.ContractEqualsExpression
-	23, // 45: temporal.server.api.testpilot.v1.ContractExpression.compare:type_name -> temporal.server.api.testpilot.v1.ContractCompareExpression
-	24, // 46: temporal.server.api.testpilot.v1.ContractExpression.negation:type_name -> temporal.server.api.testpilot.v1.ContractNotExpression
-	25, // 47: temporal.server.api.testpilot.v1.ContractExpression.all:type_name -> temporal.server.api.testpilot.v1.ContractAllExpression
-	26, // 48: temporal.server.api.testpilot.v1.ContractExpression.any:type_name -> temporal.server.api.testpilot.v1.ContractAnyExpression
-	9,  // 49: temporal.server.api.testpilot.v1.ContractExpression.capture:type_name -> temporal.server.api.testpilot.v1.CaptureRef
-	50, // [50:50] is the sub-list for method output_type
-	50, // [50:50] is the sub-list for method input_type
-	50, // [50:50] is the sub-list for extension type_name
-	50, // [50:50] is the sub-list for extension extendee
-	0,  // [0:50] is the sub-list for field type_name
+	28, // 28: temporal.server.api.testpilot.v1.ProgramExpression.environment:type_name -> temporal.server.api.testpilot.v1.EnvironmentRef
+	27, // 29: temporal.server.api.testpilot.v1.ContractPathExpression.source:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	30, // 30: temporal.server.api.testpilot.v1.ContractPathExpression.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	27, // 31: temporal.server.api.testpilot.v1.ContractPresentExpression.operand:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	27, // 32: temporal.server.api.testpilot.v1.ContractEqualsExpression.left:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	27, // 33: temporal.server.api.testpilot.v1.ContractEqualsExpression.right:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	1,  // 34: temporal.server.api.testpilot.v1.ContractCompareExpression.operator:type_name -> temporal.server.api.testpilot.v1.ComparisonOperator
+	27, // 35: temporal.server.api.testpilot.v1.ContractCompareExpression.left:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	27, // 36: temporal.server.api.testpilot.v1.ContractCompareExpression.right:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	27, // 37: temporal.server.api.testpilot.v1.ContractNotExpression.operand:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	27, // 38: temporal.server.api.testpilot.v1.ContractAllExpression.operands:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	27, // 39: temporal.server.api.testpilot.v1.ContractAnyExpression.operands:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	31, // 40: temporal.server.api.testpilot.v1.ContractExpression.literal:type_name -> temporal.server.api.testpilot.v1.Value
+	8,  // 41: temporal.server.api.testpilot.v1.ContractExpression.observation:type_name -> temporal.server.api.testpilot.v1.ObservationRef
+	11, // 42: temporal.server.api.testpilot.v1.ContractExpression.run_event:type_name -> temporal.server.api.testpilot.v1.RunEventFieldRef
+	20, // 43: temporal.server.api.testpilot.v1.ContractExpression.path:type_name -> temporal.server.api.testpilot.v1.ContractPathExpression
+	21, // 44: temporal.server.api.testpilot.v1.ContractExpression.present:type_name -> temporal.server.api.testpilot.v1.ContractPresentExpression
+	22, // 45: temporal.server.api.testpilot.v1.ContractExpression.equals:type_name -> temporal.server.api.testpilot.v1.ContractEqualsExpression
+	23, // 46: temporal.server.api.testpilot.v1.ContractExpression.compare:type_name -> temporal.server.api.testpilot.v1.ContractCompareExpression
+	24, // 47: temporal.server.api.testpilot.v1.ContractExpression.negation:type_name -> temporal.server.api.testpilot.v1.ContractNotExpression
+	25, // 48: temporal.server.api.testpilot.v1.ContractExpression.all:type_name -> temporal.server.api.testpilot.v1.ContractAllExpression
+	26, // 49: temporal.server.api.testpilot.v1.ContractExpression.any:type_name -> temporal.server.api.testpilot.v1.ContractAnyExpression
+	9,  // 50: temporal.server.api.testpilot.v1.ContractExpression.capture:type_name -> temporal.server.api.testpilot.v1.CaptureRef
+	51, // [51:51] is the sub-list for method output_type
+	51, // [51:51] is the sub-list for method input_type
+	51, // [51:51] is the sub-list for extension type_name
+	51, // [51:51] is the sub-list for extension extendee
+	0,  // [0:51] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_expression_proto_init() }
@@ -2050,6 +2116,7 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 		(*ProgramExpression_Negation)(nil),
 		(*ProgramExpression_All)(nil),
 		(*ProgramExpression_Any)(nil),
+		(*ProgramExpression_Environment)(nil),
 	}
 	file_temporal_server_api_testpilot_v1_expression_proto_msgTypes[24].OneofWrappers = []any{
 		(*ContractExpression_Literal)(nil),
@@ -2070,7 +2137,7 @@ func file_temporal_server_api_testpilot_v1_expression_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_expression_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   25,
+			NumMessages:   26,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

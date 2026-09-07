@@ -3,48 +3,48 @@ package execution
 import (
 	"maps"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
 
-func instructionOpcode(instruction *testpilotpb.Instruction) Opcode {
+func instructionOpcode(instruction *testpilotspb.Instruction) Opcode {
 	if instruction == nil || isNil(instruction.Instruction) {
 		return 0
 	}
 	switch instruction.Instruction.(type) {
-	case *testpilotpb.Instruction_InvokeRpc:
+	case *testpilotspb.Instruction_InvokeRpc:
 		return InvokeRPC
-	case *testpilotpb.Instruction_AwaitSlot:
+	case *testpilotspb.Instruction_AwaitSlot:
 		return AwaitSlot
-	case *testpilotpb.Instruction_CompleteNexusOperation:
+	case *testpilotspb.Instruction_CompleteNexusOperation:
 		return CompleteNexusOperation
-	case *testpilotpb.Instruction_StartNexusOperation:
+	case *testpilotspb.Instruction_StartNexusOperation:
 		return StartNexusOperation
-	case *testpilotpb.Instruction_AwaitOutcome:
+	case *testpilotspb.Instruction_AwaitOutcome:
 		return Await
-	case *testpilotpb.Instruction_Finish:
+	case *testpilotspb.Instruction_Finish:
 		return Finish
-	case *testpilotpb.Instruction_RespondNexus:
+	case *testpilotspb.Instruction_RespondNexus:
 		return RespondNexus
 	default:
 		return 0
 	}
 }
-func opcodeContext(opcode Opcode) testpilotpb.EntrypointKind {
+func opcodeContext(opcode Opcode) testpilotspb.EntrypointKind {
 	switch opcode {
 	case InvokeRPC, AwaitSlot, CompleteNexusOperation:
-		return testpilotpb.ENTRYPOINT_KIND_CONTROLLER
+		return testpilotspb.ENTRYPOINT_KIND_CONTROLLER
 	case StartNexusOperation, Await, Finish:
-		return testpilotpb.ENTRYPOINT_KIND_WORKFLOW
+		return testpilotspb.ENTRYPOINT_KIND_WORKFLOW
 	case RespondNexus:
-		return testpilotpb.ENTRYPOINT_KIND_NEXUS_HANDLER
+		return testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
 	default:
-		return testpilotpb.ENTRYPOINT_KIND_UNSPECIFIED
+		return testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED
 	}
 }
-func scalarSchema(kind testpilotpb.ScalarKind) *testpilotpb.ValueType {
-	return &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Scalar{Scalar: &testpilotpb.ScalarType{Kind: kind}}}}}
+func scalarSchema(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
+	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}
 }
 func (a *admission) bindInstructions() error {
 	for _, g := range a.prepared.graphs {
@@ -84,7 +84,7 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 		if start == nil || !validID(start.Service) || !validID(start.Operation) {
 			return invalid(ir.Malformed, nodePath(g, n), "invalid Nexus start")
 		}
-		if err := a.role(start.EndpointRoleId, testpilotpb.ROLE_KIND_ENDPOINT); err != nil {
+		if err := a.role(start.EndpointRoleId, testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
 			return err
 		}
 	case Await:
@@ -129,7 +129,7 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 	if rpc == nil {
 		return invalid(ir.Malformed, nodePath(g, n), "nil RPC")
 	}
-	if err := a.role(rpc.EndpointRoleId, testpilotpb.ROLE_KIND_ENDPOINT); err != nil {
+	if err := a.role(rpc.EndpointRoleId, testpilotspb.ROLE_KIND_ENDPOINT); err != nil {
 		return err
 	}
 	if !a.methods[rpc.EndpointRoleId][rpc.Method] {
@@ -144,10 +144,10 @@ func (a *admission) bindRPC(g *graph, i int, n *node) error {
 }
 func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
 	response := n.source.Instruction.GetRespondNexus()
-	if response == nil || response.Kind < testpilotpb.NEXUS_RESPONSE_KIND_SYNCHRONOUS || response.Kind > testpilotpb.NEXUS_RESPONSE_KIND_ERROR {
+	if response == nil || response.Kind < testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS || response.Kind > testpilotspb.NEXUS_RESPONSE_KIND_ERROR {
 		return invalid(ir.Malformed, nodePath(g, n), "invalid Nexus response")
 	}
-	if response.Kind == testpilotpb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
+	if response.Kind == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
 		typ, exists := a.prepared.slots[response.CapabilitySlotId]
 		if !exists || !typ.Opaque() {
 			return invalid(ir.TypeMismatch, nodePath(g, n), "async response requires a capability Slot")
@@ -176,25 +176,25 @@ func (a *admission) bindOutcomes(g *graph, n *node) error {
 		if err != nil {
 			return err
 		}
-		var expected *testpilotpb.ValueType
+		var expected *testpilotspb.ValueType
 		switch field.Field {
-		case testpilotpb.INSTRUCTION_OUTCOME_FIELD_STATUS:
-			expected = &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Enumeration{Enumeration: &testpilotpb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}
-		case testpilotpb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE:
+		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS:
+			expected = &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: "temporal.server.api.testpilot.v1.InstructionOutcomeStatus"}}}}}
+		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE:
 			if n.opcode != InvokeRPC && n.opcode != CompleteNexusOperation {
 				return invalid(ir.Unsupported, nodePath(g, n), "protocol code requires a controller protocol effect")
 			}
-			expected = scalarSchema(testpilotpb.SCALAR_KIND_TEXT)
-		case testpilotpb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE:
-			if g.context == testpilotpb.ENTRYPOINT_KIND_CONTROLLER {
+			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
+		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_SDK_FAILURE_CODE:
+			if g.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
 				return invalid(ir.Unsupported, nodePath(g, n), "SDK failure code requires an SDK instruction")
 			}
-			expected = scalarSchema(testpilotpb.SCALAR_KIND_TEXT)
-		case testpilotpb.INSTRUCTION_OUTCOME_FIELD_DETAIL:
-			expected = scalarSchema(testpilotpb.SCALAR_KIND_TEXT)
-		case testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE:
+			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
+		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL:
+			expected = scalarSchema(testpilotspb.SCALAR_KIND_TEXT)
+		case testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE:
 			// RPC payloads are available only through declared response projections.
-			if g.context == testpilotpb.ENTRYPOINT_KIND_CONTROLLER || typ.Opaque() || n.opcode == StartNexusOperation {
+			if g.context == testpilotspb.ENTRYPOINT_KIND_CONTROLLER || typ.Opaque() || n.opcode == StartNexusOperation {
 				return invalid(ir.Unsupported, nodePath(g, n), "VALUE requires an SDK result, not a controller outcome, opaque capability or StartNexusOperation handle")
 			}
 		default:
@@ -232,8 +232,8 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 		typ := path.Type()
 		count := int64(1)
 		switch source.Kind {
-		case testpilotpb.PROJECTION_KIND_ONE:
-		case testpilotpb.PROJECTION_KIND_EMIT_EACH:
+		case testpilotspb.PROJECTION_KIND_ONE:
+		case testpilotspb.PROJECTION_KIND_EMIT_EACH:
 			if typ.Cardinality() != ir.Repeated {
 				return invalid(ir.TypeMismatch, nodePath(g, n), "EmitEach requires repeated values")
 			}
@@ -256,7 +256,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 	}
 	return nil
 }
-func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *testpilotpb.ResponseProjection, path *ir.Path, typ ir.Type, seen map[string]bool) (bool, error) {
+func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *testpilotspb.ResponseProjection, path *ir.Path, typ ir.Type, seen map[string]bool) (bool, error) {
 	emits := false
 	for _, sink := range source.Targets {
 		if sink == nil || isNil(sink.Target) {
@@ -266,16 +266,16 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 		var exists bool
 		var key string
 		switch destination := sink.Target.(type) {
-		case *testpilotpb.ProjectionTarget_SlotId:
+		case *testpilotspb.ProjectionTarget_SlotId:
 			key = "slot:" + destination.SlotId
 			target, exists = a.prepared.slots[destination.SlotId]
-			if source.Kind == testpilotpb.PROJECTION_KIND_EMIT_EACH {
+			if source.Kind == testpilotspb.PROJECTION_KIND_EMIT_EACH {
 				return false, invalid(ir.Unsupported, nodePath(g, n), "EmitEach cannot repeatedly assign an immutable Slot")
 			}
 			if err := a.addWriter(destination.SlotId, slotWriter{graph: g, node: index, optional: path.MayBeAbsent()}); err != nil {
 				return false, err
 			}
-		case *testpilotpb.ProjectionTarget_ObservationId:
+		case *testpilotspb.ProjectionTarget_ObservationId:
 			key = "observation:" + destination.ObservationId
 			target, exists = a.observations[destination.ObservationId]
 			emits = true
@@ -297,7 +297,7 @@ func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 	scope := map[ir.Reference]ir.Binding{}
 	for id, typ := range a.prepared.slots {
 		if writer, exists := a.writers[id]; exists && !typ.Opaque() && writer.graph != g &&
-			(writer.graph.context != testpilotpb.ENTRYPOINT_KIND_CONTROLLER || g.context != testpilotpb.ENTRYPOINT_KIND_CONTROLLER) {
+			(writer.graph.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER || g.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER) {
 			continue
 		}
 		scope[ir.Reference{Kind: ir.SlotReference, ID: id}] = ir.Binding{Type: typ}
@@ -305,7 +305,7 @@ func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 	for index := range n.ancestors {
 		previous := g.nodes[index]
 		for field, typ := range previous.outcomes {
-			scope[ir.Reference{Kind: ir.OutcomeReference, Entrypoint: g.id, ID: previous.source.InstructionId, Field: int32(field)}] = ir.Binding{Type: typ, Available: previous.source.Guard == nil && field != testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE}
+			scope[ir.Reference{Kind: ir.OutcomeReference, Entrypoint: g.id, ID: previous.source.InstructionId, Field: int32(field)}] = ir.Binding{Type: typ, Available: previous.source.Guard == nil && field != testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE}
 		}
 	}
 	return scope
@@ -333,7 +333,7 @@ func (a *admission) successScope(g *graph, n *node, guard *ir.Expression, scope 
 			binding.Available = true
 			scope[reference] = binding
 		}
-		reference := ir.Reference{Kind: ir.OutcomeReference, Entrypoint: g.id, ID: id, Field: int32(testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE)}
+		reference := ir.Reference{Kind: ir.OutcomeReference, Entrypoint: g.id, ID: id, Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)}
 		if binding, exists := scope[reference]; exists {
 			binding.Available = true
 			scope[reference] = binding
@@ -351,7 +351,7 @@ func successFacts(expression *ir.Expression) map[string]bool {
 		for i := range 2 {
 			reference := children[i].Reference()
 			literal := children[1-i].Literal()
-			if reference.Kind == ir.OutcomeReference && reference.Field == int32(testpilotpb.INSTRUCTION_OUTCOME_FIELD_STATUS) && literal.GetEnumValue() != nil && literal.GetEnumValue().Number == int32(testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED) {
+			if reference.Kind == ir.OutcomeReference && reference.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) && literal.GetEnumValue() != nil && literal.GetEnumValue().Number == int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED) {
 				result[reference.ID] = true
 			}
 		}
@@ -373,11 +373,11 @@ func successFacts(expression *ir.Expression) map[string]bool {
 	return result
 }
 func (a *admission) bindDataflow() error {
-	boolean, err := a.prepared.catalog.BindType(scalarSchema(testpilotpb.SCALAR_KIND_BOOLEAN))
+	boolean, err := a.prepared.catalog.BindType(scalarSchema(testpilotspb.SCALAR_KIND_BOOLEAN))
 	if err != nil {
 		return err
 	}
-	a.runID, err = a.prepared.catalog.BindType(scalarSchema(testpilotpb.SCALAR_KIND_TEXT))
+	a.runID, err = a.prepared.catalog.BindType(scalarSchema(testpilotspb.SCALAR_KIND_TEXT))
 	if err != nil {
 		return err
 	}
@@ -410,21 +410,21 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		return err
 	}
 	a.successScope(g, n, n.guard, scope)
-	bindIn := func(expressionScope map[ir.Reference]ir.Binding, value *testpilotpb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
+	bindIn := func(expressionScope map[ir.Reference]ir.Binding, value *testpilotspb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
 		if err := a.charge(int64(proto.Size(n.source.Guard)) + int64(proto.Size(value)) + 1); err != nil {
 			return nil, err
 		}
 		_, expression, err := a.prepared.catalog.BindGuardedExpression(n.source.Guard, value, expected, expressionScope, a.expressionLimits())
 		return expression, err
 	}
-	bind := func(value *testpilotpb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
+	bind := func(value *testpilotspb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
 		return bindIn(scope, value, expected)
 	}
 	switch n.opcode {
 	case InvokeRPC:
 		inputScope := maps.Clone(scope)
-		inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(testpilotpb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
-		err = a.bindAssignments(g, n, func(value *testpilotpb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
+		inputScope[ir.Reference{Kind: ir.EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID)}] = ir.Binding{Type: a.runID, Available: true}
+		err = a.bindAssignments(g, n, func(value *testpilotspb.ProgramExpression, expected *ir.Type) (*ir.Expression, error) {
 			return bindIn(inputScope, value, expected)
 		})
 	case AwaitSlot:
@@ -452,7 +452,7 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 	}
 	return nil
 }
-func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotpb.ProgramExpression, *ir.Type) (*ir.Expression, error)) error {
+func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotspb.ProgramExpression, *ir.Type) (*ir.Expression, error)) error {
 	input, err := messageType(a.prepared.catalog, n.method.Input())
 	if err != nil {
 		return err
@@ -482,11 +482,24 @@ func (a *admission) bindAssignments(g *graph, n *node, bind func(*testpilotpb.Pr
 			}
 		}
 		typ := target.Type()
-		value, err := bind(source.Value, &typ)
+		var environmentBindingID string
+		valueSource := source.Value
+		if reference, ok := source.Value.GetExpression().(*testpilotspb.ProgramExpression_Environment); ok {
+			if reference.Environment == nil || typ.Cardinality() != ir.Singular || typ.Scalar() != testpilotspb.SCALAR_KIND_TEXT {
+				return invalid(ir.TypeMismatch, nodePath(g, n), "environment reference requires a singular text destination")
+			}
+			environmentBindingID = reference.Environment.BindingId
+			resolved, err := a.resolveEnvironment(environmentBindingID)
+			if err != nil {
+				return err
+			}
+			valueSource = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: resolved}}}}
+		}
+		value, err := bind(valueSource, &typ)
 		if err != nil {
 			return err
 		}
-		n.assignments = append(n.assignments, assignment{target: target, value: value})
+		n.assignments = append(n.assignments, assignment{target: target, value: value, environmentBindingID: environmentBindingID})
 	}
 
 	return nil

@@ -11,7 +11,7 @@ import (
 	"slices"
 	"strings"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -261,7 +261,7 @@ func CheckSurface(source proto.Message, limits Limits) error {
 }
 
 func intrinsicEnums() []protoreflect.EnumDescriptor {
-	return []protoreflect.EnumDescriptor{testpilotpb.InstructionOutcomeStatus(0).Descriptor(), testpilotpb.RunEventKind(0).Descriptor()}
+	return []protoreflect.EnumDescriptor{testpilotspb.InstructionOutcomeStatus(0).Descriptor(), testpilotspb.RunEventKind(0).Descriptor()}
 }
 
 func inspectMap(field protoreflect.FieldDescriptor, value protoreflect.Value, depth int64, b *budget, path string) error {

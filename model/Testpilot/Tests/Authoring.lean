@@ -52,7 +52,7 @@ private def programExpressions : Array ProgramExpression :=
   let literal := ProgramExpr.literal (Value.boolean true)
   let slot := ProgramExpr.slot "slot"
   let outcome := ProgramExpr.outcome instructionRef .INSTRUCTION_OUTCOME_FIELD_VALUE
-  #[literal, slot, outcome, ProgramExpr.run,
+  #[literal, slot, outcome, ProgramExpr.run, ProgramExpr.environment "namespace",
     ProgramExpr.path slot requestPath,
     ProgramExpr.present outcome,
     ProgramExpr.equals literal slot,
@@ -77,6 +77,14 @@ private def contractExpressions : Array ContractExpression :=
 
 private def instructionLimits := Program.instructionLimits 1000 2 3 4096
 private def assignment := Program.requestAssignment requestPath (ProgramExpr.literal (Value.text "x"))
+private def environmentAssignment := Program.environmentAssignment requestPath "namespace"
+private def environmentAssignmentUsesBinding : Bool :=
+  match environmentAssignment.value with
+  | some value =>
+    match value.expression with
+    | some (.environment reference) => reference.binding_id == "namespace"
+    | _ => false
+  | _ => false
 private def projection := Program.responseProjection responsePath .PROJECTION_KIND_ONE
   #[Program.slotTarget "slot", Program.observationTarget "observed"]
 
@@ -100,7 +108,10 @@ private def node := Program.node "start" instructions[0]!
   (reservations := #[Program.reservation "workflow" 1])
 
 private def program : temporal.server.api.testpilot.v1.Program := Program.make "program"
-  #[Program.role "endpoint" .ROLE_KIND_ENDPOINT]
+  #[Program.role "endpoint" .ROLE_KIND_ENDPOINT (resourceBindingId := "nexus.endpoint"),
+    Program.role "worker" .ROLE_KIND_WORKER (namespaceBindingId := "namespace"),
+    Program.role "queue" .ROLE_KIND_TASK_QUEUE
+      (namespaceBindingId := "namespace") (resourceBindingId := "task.queue")]
   #[Program.valueSlot "slot" textType, Program.capabilitySlot "capability"]
   #[Program.observation "observed" textType]
   #[Program.controller "controller" #[node],
@@ -109,6 +120,8 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make "
     Program.nexusHandler "handler" "service" "operation" "worker" "queue" #[node]]
   (Program.cleanup "cleanup" #[node])
   (Program.limits 4 16 16 8 4 64 16 8 4096 4096 10000 1000)
+  (environment := #[Program.environment "namespace", Program.environment "task.queue",
+    Program.environment "nexus.endpoint"])
 
 private def transition := Monitor.transition "take" "start" "done"
   #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
@@ -147,10 +160,14 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard values.size == 11
 #guard types.size == 7
 #guard paths.size == 5
-#guard programExpressions.size == 11
+#guard programExpressions.size == 12
+#guard environmentAssignmentUsesBinding
 #guard contractExpressions.size == 11
 #guard instructions.size == 7
 #guard program.entrypoints.size == 4
+#guard program.environment.size == 3
+#guard program.roles[1]!.namespace_binding_id == "namespace"
+#guard program.roles[2]!.resource_binding_id == "task.queue"
 #guard contract.rules.size == 2
 #guard run.events.size == 1
 

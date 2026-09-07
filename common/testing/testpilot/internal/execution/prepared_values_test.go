@@ -6,14 +6,14 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
 
 func TestPreparedStartRejectsValue(t *testing.T) {
 	c, catalog, policy := capabilityFixture(t)
-	c.Program.Entrypoints[1].Instructions[0].Outcome.Fields = append(c.Program.Entrypoints[1].Instructions[0].Outcome.Fields, &testpilotpb.OutcomeFieldDefinition{Field: testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotpb.SCALAR_KIND_TEXT)})
+	c.Program.Entrypoints[1].Instructions[0].Outcome.Fields = append(c.Program.Entrypoints[1].Instructions[0].Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
 	_, err := Prepare(c, catalog, policy)
 	require.ErrorContains(t, err, "StartNexusOperation")
 }
@@ -22,7 +22,7 @@ func TestPreparedOutcomeParity(t *testing.T) {
 	c, catalog, policy := capabilityFixture(t)
 	for _, entry := range c.Program.Entrypoints {
 		for _, node := range entry.Instructions {
-			node.Outcome.Fields = append(node.Outcome.Fields, &testpilotpb.OutcomeFieldDefinition{Field: testpilotpb.INSTRUCTION_OUTCOME_FIELD_DETAIL, Type: scalar(testpilotpb.SCALAR_KIND_TEXT)})
+			node.Outcome.Fields = append(node.Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_DETAIL, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
 		}
 	}
 	p, err := Prepare(c, catalog, policy)
@@ -36,14 +36,14 @@ func TestPreparedOutcomeParity(t *testing.T) {
 		a, err := store.activate(entry.ID(), "activation")
 		require.NoError(t, err)
 		coord := Coordinate{RunID: "run", EntrypointID: entry.ID(), ActivationID: "activation", InstructionID: plan.Source().InstructionId, Attempt: 1}
-		for name, raw := range map[string]*testpilotpb.InstructionOutcome{
-			"success":    {Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Detail: "detail"},
-			"value":      {Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")},
-			"wrong type": {Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotpb.Value{Value: &testpilotpb.Value_BoolValue{BoolValue: true}}},
-			"malformed":  {Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotpb.Value{}},
-			"oversized":  {Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue(strings.Repeat("x", 5000))},
-			"protocol":   {Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "denied"},
-			"sdk":        {Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, SdkFailureCode: "failed"},
+		for name, raw := range map[string]*testpilotspb.InstructionOutcome{
+			"success":    {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Detail: "detail"},
+			"value":      {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue("owned")},
+			"wrong type": {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}},
+			"malformed":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{}},
+			"oversized":  {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: textValue(strings.Repeat("x", 5000))},
+			"protocol":   {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, ProtocolCode: "denied"},
+			"sdk":        {Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE, SdkFailureCode: "failed"},
 			"unknown":    {Status: 999}, "missing": nil,
 		} {
 			t.Run(entry.ID()+"/"+coord.InstructionID+"/"+name, func(t *testing.T) {
@@ -90,8 +90,8 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 	for _, text := range []string{"first", "second", "third", "fourth"} {
 		t.Run(text, func(t *testing.T) {
 			t.Parallel()
-			fields := map[int32]*testpilotpb.Value{int32(testpilotpb.INSTRUCTION_OUTCOME_FIELD_STATUS): {Value: &testpilotpb.Value_EnumValue{EnumValue: &testpilotpb.EnumValue{Number: int32(testpilotpb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE)}}}}
-			lookup := func(ref ir.Reference) *testpilotpb.Value {
+			fields := map[int32]*testpilotspb.Value{int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS): {Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SDK_FAILURE)}}}}
+			lookup := func(ref ir.Reference) *testpilotspb.Value {
 				require.Equal(t, "workflow", ref.Entrypoint)
 				require.Equal(t, "await", ref.ID)
 				return fields[ref.Field]
@@ -100,16 +100,16 @@ func TestPreparedInputActivationIsolation(t *testing.T) {
 			require.NoError(t, err)
 			require.False(t, enabled)
 			require.Nil(t, value)
-			fields[int32(testpilotpb.INSTRUCTION_OUTCOME_FIELD_STATUS)].GetEnumValue().Number = int32(testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)
+			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)].GetEnumValue().Number = int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, entry.RuntimeWorkLimit())
 			require.Error(t, err)
-			fields[int32(testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE)] = textValue(text)
+			fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)] = textValue(text)
 			value, enabled, work, err := plan.EvaluateInput(context.Background(), lookup, entry.RuntimeWorkLimit())
 			require.NoError(t, err)
 			require.True(t, enabled)
 			require.Equal(t, text, value.GetText())
-			value.Value = &testpilotpb.Value_Text{Text: "changed"}
-			require.Equal(t, text, fields[int32(testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE)].GetText())
+			value.Value = &testpilotspb.Value_Text{Text: "changed"}
+			require.Equal(t, text, fields[int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)].GetText())
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, work)
 			require.NoError(t, err)
 			_, _, _, err = plan.EvaluateInput(context.Background(), lookup, work-1)
@@ -123,7 +123,7 @@ func TestPreparedTerminalResultsAndDeclaredTypes(t *testing.T) {
 	c, catalog, policy := capabilityFixture(t)
 	for _, pair := range []struct{ entry, node int }{{1, 2}, {2, 0}} {
 		n := c.Program.Entrypoints[pair.entry].Instructions[pair.node]
-		n.Outcome.Fields = append(n.Outcome.Fields, &testpilotpb.OutcomeFieldDefinition{Field: testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotpb.SCALAR_KIND_TEXT)})
+		n.Outcome.Fields = append(n.Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})
 	}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -133,31 +133,31 @@ func TestPreparedTerminalResultsAndDeclaredTypes(t *testing.T) {
 	}{{1, 2, "done"}, {2, 0, "accepted"}} {
 		entry := p.Entrypoints()[pair.entry]
 		n := entry.Instructions()[pair.node]
-		typ, ok := n.OutcomeType(testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE)
+		typ, ok := n.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 		require.True(t, ok)
-		require.True(t, proto.Equal(scalar(testpilotpb.SCALAR_KIND_TEXT), typ))
+		require.True(t, proto.Equal(scalar(testpilotspb.SCALAR_KIND_TEXT), typ))
 		typ.Shape = nil
-		typ, ok = n.OutcomeType(testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE)
+		typ, ok = n.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)
 		require.True(t, ok)
 		require.NotNil(t, typ.Shape)
-		typ, ok = n.OutcomeType(testpilotpb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)
+		typ, ok = n.OutcomeType(testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)
 		require.False(t, ok)
 		require.Nil(t, typ)
-		value, enabled, _, err := n.EvaluateInput(context.Background(), func(ref ir.Reference) *testpilotpb.Value {
-			if ref.Field == int32(testpilotpb.INSTRUCTION_OUTCOME_FIELD_STATUS) {
-				return &testpilotpb.Value{Value: &testpilotpb.Value_EnumValue{EnumValue: &testpilotpb.EnumValue{Number: int32(testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}
+		value, enabled, _, err := n.EvaluateInput(context.Background(), func(ref ir.Reference) *testpilotspb.Value {
+			if ref.Field == int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS) {
+				return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED)}}}
 			}
 			return textValue("done")
 		}, entry.RuntimeWorkLimit())
 		require.NoError(t, err)
 		require.True(t, enabled)
 		require.Equal(t, pair.want, value.GetText())
-		raw := &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: value}
+		raw := &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: value}
 		snapshot, _, err := n.ValidateOutcome(context.Background(), raw, entry.RuntimeWorkLimit())
 		require.NoError(t, err)
-		raw.Value.Value = &testpilotpb.Value_Text{Text: "changed"}
+		raw.Value.Value = &testpilotspb.Value_Text{Text: "changed"}
 		require.Equal(t, pair.want, snapshot.Outcome.Value.GetText())
-		snapshot.Outcome.Value.Value = &testpilotpb.Value_Text{Text: "changed again"}
-		require.Equal(t, pair.want, snapshot.Fields[testpilotpb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetText())
+		snapshot.Outcome.Value.Value = &testpilotspb.Value_Text{Text: "changed again"}
+		require.Equal(t, pair.want, snapshot.Fields[testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE].GetText())
 	}
 }

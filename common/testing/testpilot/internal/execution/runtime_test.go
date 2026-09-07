@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/await"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -21,6 +21,7 @@ type runtimeDriver struct {
 }
 
 func (d *runtimeDriver) Identity(context.Context) (DriverIdentity, error) { return d.identity, nil }
+func (d *runtimeDriver) Validate(context.Context, *PreparedProgram) error { return nil }
 func (d *runtimeDriver) Open(context.Context, string, *PreparedProgram) (Session, error) {
 	return d.session, nil
 }
@@ -32,7 +33,7 @@ type runtimeSession struct {
 	invokeErr     map[string]error
 	invocations   []string
 	quarantined   []EffectHandle
-	diagnostics   []*testpilotpb.RunDiagnostic
+	diagnostics   []*testpilotspb.RunDiagnostic
 	quarantine    int
 	quarantineErr error
 	closed        int
@@ -61,7 +62,7 @@ func (s *runtimeSession) Quarantine(_ context.Context, handle EffectHandle) erro
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		s.quarantine--
-		s.diagnostics = append(s.diagnostics, &testpilotpb.RunDiagnostic{Kind: testpilotpb.RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT, Code: "quarantine_completed"})
+		s.diagnostics = append(s.diagnostics, &testpilotspb.RunDiagnostic{Kind: testpilotspb.RUN_DIAGNOSTIC_KIND_POST_CLOSE_EVENT, Code: "quarantine_completed"})
 	}()
 	return nil
 }
@@ -75,7 +76,7 @@ func (s *runtimeSession) Close(ctx context.Context) error {
 	}
 	return s.closeErr
 }
-func (s *runtimeSession) Diagnose(_ context.Context, _ string, diagnostic *testpilotpb.RunDiagnostic) error {
+func (s *runtimeSession) Diagnose(_ context.Context, _ string, diagnostic *testpilotspb.RunDiagnostic) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.diagnostics = append(s.diagnostics, proto.CloneOf(diagnostic))
@@ -143,26 +144,26 @@ type runtimeMonitor struct {
 	Monitor
 	stopSource string
 	violated   bool
-	closeKind  testpilotpb.VerdictStatus
+	closeKind  testpilotspb.VerdictStatus
 	closeErr   error
 }
 
-func (m *runtimeMonitor) Observe(_ context.Context, event *testpilotpb.RunEvent) (Decision, error) {
+func (m *runtimeMonitor) Observe(_ context.Context, event *testpilotspb.RunEvent) (Decision, error) {
 	if event.GetSourceId() == m.stopSource {
 		m.violated = true
 		return Stop, nil
 	}
 	return Continue, nil
 }
-func (m *runtimeMonitor) Close(context.Context, *testpilotpb.Run) (*testpilotpb.Verdict, error) {
+func (m *runtimeMonitor) Close(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, error) {
 	if m.violated {
-		return &testpilotpb.Verdict{Status: testpilotpb.VERDICT_STATUS_VIOLATED}, m.closeErr
+		return &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_VIOLATED}, m.closeErr
 	}
 	kind := m.closeKind
-	if kind == testpilotpb.VERDICT_STATUS_UNSPECIFIED {
-		kind = testpilotpb.VERDICT_STATUS_SATISFIED
+	if kind == testpilotspb.VERDICT_STATUS_UNSPECIFIED {
+		kind = testpilotspb.VERDICT_STATUS_SATISFIED
 	}
-	return &testpilotpb.Verdict{Status: kind}, m.closeErr
+	return &testpilotspb.Verdict{Status: kind}, m.closeErr
 }
 
 func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
@@ -172,11 +173,11 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	late := rpcNode("late")
 	quarantine := rpcNode("quarantine")
 	after := rpcNode("after")
-	after.Dependencies = []*testpilotpb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}}
+	after.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, late, quarantine, after)
 	cleanupNode := rpcNode("cleanup")
 	cleanupNode.Limits.TimeoutMilliseconds = 10
-	c.Program.Cleanup.Instructions = []*testpilotpb.InstructionDefinition{cleanupNode}
+	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{cleanupNode}
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	complete := newRuntimeEffect(effectResponse(prepared, "complete"), true)
@@ -193,9 +194,9 @@ func TestRunStopDrainsQuarantinesAndCannotSuppressFreshCleanup(t *testing.T) {
 	run, verdict, err := Run(t.Context(), prepared, driver, &runtimeMonitor{stopSource: "scheduler.g0.n0.a1.completed"}, "run", c.CaseId)
 
 	require.NoError(t, err)
-	require.Equal(t, testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR, run.GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
-	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
+	require.Equal(t, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, run.GetStatus())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
+	require.Equal(t, testpilotspb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 	require.NotContains(t, session.invocations, "after")
 	require.Contains(t, session.invocations, "cleanup")
 	require.Contains(t, eventSources(run), "scheduler.g0.n1.a1.completed")
@@ -233,15 +234,15 @@ type deadlineMonitor struct {
 	release chan struct{}
 }
 
-func (m *deadlineMonitor) Observe(context.Context, *testpilotpb.RunEvent) (Decision, error) {
+func (m *deadlineMonitor) Observe(context.Context, *testpilotspb.RunEvent) (Decision, error) {
 	return Continue, nil
 }
 
-func (m *deadlineMonitor) Close(ctx context.Context, _ *testpilotpb.Run) (*testpilotpb.Verdict, error) {
+func (m *deadlineMonitor) Close(ctx context.Context, _ *testpilotspb.Run) (*testpilotspb.Verdict, error) {
 	<-ctx.Done()
 	close(m.expired)
 	<-m.release
-	return &testpilotpb.Verdict{Status: testpilotpb.VERDICT_STATUS_SATISFIED}, nil
+	return &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_SATISFIED}, nil
 }
 
 func TestRunWaitsForLateMonitorAndThenReportsDeadlineViolation(t *testing.T) {
@@ -253,15 +254,15 @@ func TestRunWaitsForLateMonitorAndThenReportsDeadlineViolation(t *testing.T) {
 	monitor := &deadlineMonitor{expired: make(chan struct{}), release: make(chan struct{})}
 	session := &runtimeSession{}
 	done := make(chan struct {
-		run     *testpilotpb.Run
-		verdict *testpilotpb.Verdict
+		run     *testpilotspb.Run
+		verdict *testpilotspb.Verdict
 		err     error
 	}, 1)
 	go func() {
 		run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: session}, monitor, "run", c.CaseId)
 		done <- struct {
-			run     *testpilotpb.Run
-			verdict *testpilotpb.Verdict
+			run     *testpilotspb.Run
+			verdict *testpilotspb.Verdict
 			err     error
 		}{run: run, verdict: verdict, err: err}
 	}()
@@ -274,20 +275,20 @@ func TestRunWaitsForLateMonitorAndThenReportsDeadlineViolation(t *testing.T) {
 	close(monitor.release)
 	result := <-done
 	require.NoError(t, result.err)
-	require.Equal(t, testpilotpb.RUN_STATUS_INCOMPLETE, result.run.GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, result.verdict.GetStatus())
+	require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, result.run.GetStatus())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, result.verdict.GetStatus())
 	require.Contains(t, diagnosticCodes(result.run), "close_failed")
 }
 
 type canceledMonitor struct{ Monitor }
 
-func (*canceledMonitor) Observe(context.Context, *testpilotpb.RunEvent) (Decision, error) {
+func (*canceledMonitor) Observe(context.Context, *testpilotspb.RunEvent) (Decision, error) {
 	return Continue, nil
 }
 
-func (*canceledMonitor) Close(ctx context.Context, _ *testpilotpb.Run) (*testpilotpb.Verdict, error) {
+func (*canceledMonitor) Close(ctx context.Context, _ *testpilotspb.Run) (*testpilotspb.Verdict, error) {
 	<-ctx.Done()
-	return &testpilotpb.Verdict{Status: testpilotpb.VERDICT_STATUS_INCONCLUSIVE}, ctx.Err()
+	return &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_INCONCLUSIVE}, ctx.Err()
 }
 
 func TestRunConformingMonitorCancellationIsInconclusive(t *testing.T) {
@@ -298,8 +299,8 @@ func TestRunConformingMonitorCancellationIsInconclusive(t *testing.T) {
 	require.NoError(t, err)
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: &runtimeSession{}}, &canceledMonitor{}, "run", c.CaseId)
 	require.NoError(t, err)
-	require.Equal(t, testpilotpb.RUN_STATUS_INCOMPLETE, run.GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
+	require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, run.GetStatus())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 	require.Contains(t, diagnosticCodes(run), "close_failed")
 }
 
@@ -308,28 +309,28 @@ func TestRunTerminalPrecedence(t *testing.T) {
 		name             string
 		ordinaryErr      error
 		stop             bool
-		closeKind        testpilotpb.VerdictStatus
+		closeKind        testpilotspb.VerdictStatus
 		cleanupErr       error
 		hostCloseErr     error
 		hostCloseTimeout bool
-		wantDisposition  testpilotpb.RunStatus
-		wantCleanup      testpilotpb.CleanupStatus
-		wantVerdict      testpilotpb.VerdictStatus
+		wantDisposition  testpilotspb.RunStatus
+		wantCleanup      testpilotspb.CleanupStatus
+		wantVerdict      testpilotspb.VerdictStatus
 	}{
-		{name: "complete", wantDisposition: testpilotpb.RUN_STATUS_COMPLETED, wantCleanup: testpilotpb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotpb.VERDICT_STATUS_SATISFIED},
-		{name: "early liveness closure", closeKind: testpilotpb.VERDICT_STATUS_INCONCLUSIVE, wantDisposition: testpilotpb.RUN_STATUS_COMPLETED, wantCleanup: testpilotpb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotpb.VERDICT_STATUS_INCONCLUSIVE},
-		{name: "execution failure", ordinaryErr: errors.New("effect failed"), wantDisposition: testpilotpb.RUN_STATUS_INCOMPLETE, wantCleanup: testpilotpb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotpb.VERDICT_STATUS_INCONCLUSIVE},
-		{name: "close error preserves success", hostCloseErr: errors.New("close failed"), wantDisposition: testpilotpb.RUN_STATUS_COMPLETED, wantCleanup: testpilotpb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotpb.VERDICT_STATUS_SATISFIED},
-		{name: "close timeout preserves success", hostCloseTimeout: true, wantDisposition: testpilotpb.RUN_STATUS_COMPLETED, wantCleanup: testpilotpb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotpb.VERDICT_STATUS_SATISFIED},
-		{name: "close error preserves violation", stop: true, hostCloseErr: errors.New("close failed"), wantDisposition: testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotpb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotpb.VERDICT_STATUS_VIOLATED},
-		{name: "close timeout preserves violation", stop: true, hostCloseTimeout: true, wantDisposition: testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotpb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotpb.VERDICT_STATUS_VIOLATED},
-		{name: "violation dominates cleanup and close", stop: true, cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotpb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotpb.VERDICT_STATUS_VIOLATED},
-		{name: "cleanup and close do not replace success", cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: testpilotpb.RUN_STATUS_COMPLETED, wantCleanup: testpilotpb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotpb.VERDICT_STATUS_SATISFIED},
+		{name: "complete", wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
+		{name: "early liveness closure", closeKind: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
+		{name: "execution failure", ordinaryErr: errors.New("effect failed"), wantDisposition: testpilotspb.RUN_STATUS_INCOMPLETE, wantCleanup: testpilotspb.CLEANUP_STATUS_SUCCEEDED, wantVerdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE},
+		{name: "close error preserves success", hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
+		{name: "close timeout preserves success", hostCloseTimeout: true, wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
+		{name: "close error preserves violation", stop: true, hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
+		{name: "close timeout preserves violation", stop: true, hostCloseTimeout: true, wantDisposition: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
+		{name: "violation dominates cleanup and close", stop: true, cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_VIOLATED},
+		{name: "cleanup and close do not replace success", cleanupErr: errors.New("cleanup failed"), hostCloseErr: errors.New("close failed"), wantDisposition: testpilotspb.RUN_STATUS_COMPLETED, wantCleanup: testpilotspb.CLEANUP_STATUS_FAILED, wantVerdict: testpilotspb.VERDICT_STATUS_SATISFIED},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			c.Program.Limits.MaxCleanupDurationMilliseconds = 100
-			c.Program.Cleanup.Instructions = []*testpilotpb.InstructionDefinition{rpcNode("cleanup")}
+			c.Program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{rpcNode("cleanup")}
 			c.Program.Cleanup.Instructions[0].Limits.TimeoutMilliseconds = 100
 			prepared, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
@@ -369,7 +370,7 @@ func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 	c.Program.Limits.MaxCleanupDurationMilliseconds = 10
 	cleanupNode := rpcNode("cleanup")
 	cleanupNode.Limits.TimeoutMilliseconds = 10
-	c.Program.Cleanup.Instructions = []*testpilotpb.InstructionDefinition{cleanupNode}
+	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{cleanupNode}
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	session := &runtimeSession{effects: map[string]*runtimeEffect{
@@ -380,9 +381,9 @@ func TestRunCleanupDeadlineDoesNotReplaceOrdinarySuccess(t *testing.T) {
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: session}, &runtimeMonitor{}, "run", c.CaseId)
 
 	require.NoError(t, err)
-	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
-	require.Equal(t, testpilotpb.CLEANUP_STATUS_FAILED, run.GetCleanup().GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+	require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotspb.CLEANUP_STATUS_FAILED, run.GetCleanup().GetStatus())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	require.Contains(t, diagnosticCodes(run), "cleanup_failed")
 }
 
@@ -404,12 +405,12 @@ func TestRunBoundsHostContextViolationAndQuarantineCapacityFailure(t *testing.T)
 	monitor := &runtimeMonitor{stopSource: "scheduler.g0.n0.a1.completed"}
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: session}, monitor, "run", c.CaseId)
 	require.NoError(t, err)
-	require.Equal(t, testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR, run.GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
+	require.Equal(t, testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR, run.GetStatus())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_VIOLATED, verdict.GetStatus())
 	require.Subset(t, diagnosticCodes(run), []string{"effect_cancel_context_violated", "quarantine_failed"})
 }
 
-func diagnosticCodes(run *testpilotpb.Run) []string {
+func diagnosticCodes(run *testpilotspb.Run) []string {
 	codes := make([]string, 0, len(run.GetDiagnostics()))
 	for _, diagnostic := range run.GetDiagnostics() {
 		codes = append(codes, diagnostic.GetCode())
@@ -417,7 +418,7 @@ func diagnosticCodes(run *testpilotpb.Run) []string {
 	return codes
 }
 
-func eventSources(run *testpilotpb.Run) []string {
+func eventSources(run *testpilotspb.Run) []string {
 	sources := make([]string, 0, len(run.GetEvents()))
 	for _, event := range run.GetEvents() {
 		sources = append(sources, event.GetSourceId())

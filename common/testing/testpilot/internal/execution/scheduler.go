@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
@@ -86,7 +86,7 @@ func (s *scheduler) retain(handles []EffectHandle) {
 	}
 }
 func (s *scheduler) fail(code string, err error) error {
-	return s.recorder.fail(testpilotpb.RUN_DIAGNOSTIC_KIND_EXECUTION, code, err)
+	return s.recorder.fail(testpilotspb.RUN_DIAGNOSTIC_KIND_EXECUTION, code, err)
 }
 
 // execute leaves accepted handles and buffered completions owned when Stop transfers control to cleanup.
@@ -98,7 +98,7 @@ func (s *scheduler) execute(ctx context.Context) error {
 	}
 	s.started = true
 	s.mu.Unlock()
-	decision, err := s.recorder.publish(ctx, []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_RUN_OPENED, SourceId: "scheduler.open"}}, nil)
+	decision, err := s.recorder.publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_RUN_OPENED, SourceId: "scheduler.open"}}, nil)
 	if err != nil || decision == Stop {
 		return err
 	}
@@ -142,8 +142,8 @@ func (s *scheduler) executeCleanup(ctx context.Context) (result error) {
 		return err
 	}
 	activation := &scheduledActivation{values: values, cleanup: true, remaining: make([]int, len(g.nodes)), completed: make([]string, len(g.nodes)), pending: len(g.nodes)}
-	coordinates := &testpilotpb.RunEventCoordinates{EntrypointId: g.id, ActivationId: values.id}
-	_, err = s.recorder.publishCleanup(ctx, []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_CLEANUP_STARTED, SourceId: "scheduler.cleanup.open", Coordinates: coordinates}}, nil)
+	coordinates := &testpilotspb.RunEventCoordinates{EntrypointId: g.id, ActivationId: values.id}
+	_, err = s.recorder.publishCleanup(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_CLEANUP_STARTED, SourceId: "scheduler.cleanup.open", Coordinates: coordinates}}, nil)
 	if err != nil {
 		return err
 	}
@@ -154,7 +154,7 @@ func (s *scheduler) executeCleanup(ctx context.Context) (result error) {
 				causes = append(causes, source)
 			}
 		}
-		_, err := s.recorder.publishCleanup(ctx, []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_CLEANUP_COMPLETED, SourceId: "scheduler.cleanup.close", CausalSourceIds: causes, Coordinates: coordinates}}, nil)
+		_, err := s.recorder.publishCleanup(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_CLEANUP_COMPLETED, SourceId: "scheduler.cleanup.close", CausalSourceIds: causes, Coordinates: coordinates}}, nil)
 		result = errors.Join(result, err)
 	}()
 	ready := make([]scheduledNode, 0, len(g.nodes))
@@ -254,7 +254,7 @@ func (s *scheduler) cancelOwned(ctx context.Context, handles []EffectHandle) err
 		}
 		if err != nil {
 			result = errors.Join(result, err)
-			s.recorder.report(testpilotpb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT, code, err)
+			s.recorder.report(testpilotspb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT, code, err)
 		}
 	}
 	return result
@@ -267,7 +267,7 @@ func (s *scheduler) drainOwned(ctx context.Context, handles []EffectHandle) erro
 		if drainErr == nil && ctx.Err() != nil {
 			drainErr = ctx.Err()
 			result = errors.Join(result, drainErr)
-			s.recorder.report(testpilotpb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT, "effect_drain_context_violated", drainErr)
+			s.recorder.report(testpilotspb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT, "effect_drain_context_violated", drainErr)
 		}
 		if drainErr != nil {
 			result = errors.Join(result, s.quarantine(handle, drainErr))
@@ -284,10 +284,10 @@ func (s *scheduler) quarantine(handle EffectHandle, drainErr error) error {
 		err = ctx.Err()
 	}
 	if err != nil {
-		s.recorder.report(testpilotpb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT, "quarantine_failed", err)
+		s.recorder.report(testpilotspb.RUN_DIAGNOSTIC_KIND_DRIVER_CONTRACT, "quarantine_failed", err)
 		return err
 	}
-	s.recorder.report(testpilotpb.RUN_DIAGNOSTIC_KIND_LIMIT, "effect_quarantined", drainErr)
+	s.recorder.report(testpilotspb.RUN_DIAGNOSTIC_KIND_LIMIT, "effect_quarantined", drainErr)
 	return nil
 }
 
@@ -384,7 +384,7 @@ func (s *scheduler) openControllers(ctx context.Context) ([]scheduledNode, Decis
 	var decision Decision
 	var ready []scheduledNode
 	for ordinal, g := range s.values.program.graphs {
-		if g.cleanup || g.context != testpilotpb.ENTRYPOINT_KIND_CONTROLLER {
+		if g.cleanup || g.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
 			continue
 		}
 		values, err := s.values.activate(g.id, fmt.Sprintf("controller.%d", ordinal))
@@ -392,7 +392,7 @@ func (s *scheduler) openControllers(ctx context.Context) ([]scheduledNode, Decis
 			return nil, Stop, s.fail("activation_failed", err)
 		}
 		a := &scheduledActivation{values: values, ordinal: ordinal, remaining: make([]int, len(g.nodes)), completed: make([]string, len(g.nodes)), pending: len(g.nodes)}
-		decision, err = s.recorder.publish(ctx, []*testpilotpb.RunEvent{s.activationEvent(a, false)}, nil)
+		decision, err = s.recorder.publish(ctx, []*testpilotspb.RunEvent{s.activationEvent(a, false)}, nil)
 		if err != nil || decision == Stop {
 			return nil, decision, err
 		}
@@ -403,7 +403,7 @@ func (s *scheduler) openControllers(ctx context.Context) ([]scheduledNode, Decis
 			}
 		}
 		if a.pending == 0 {
-			decision, err = s.recorder.publish(ctx, []*testpilotpb.RunEvent{s.activationEvent(a, true)}, nil)
+			decision, err = s.recorder.publish(ctx, []*testpilotspb.RunEvent{s.activationEvent(a, true)}, nil)
 			if err != nil || decision == Stop {
 				return nil, decision, err
 			}
@@ -443,12 +443,12 @@ func (s *scheduler) acceptCompletion(ctx context.Context, completion schedulerCo
 	}
 	return s.completeNode(ctx, *completion.node, s.nodeSource(*completion.node)+".completed")
 }
-func (s *scheduler) activationEvent(a *scheduledActivation, closed bool) *testpilotpb.RunEvent {
-	kind := testpilotpb.RUN_EVENT_KIND_ACTIVATION_OPENED
+func (s *scheduler) activationEvent(a *scheduledActivation, closed bool) *testpilotspb.RunEvent {
+	kind := testpilotspb.RUN_EVENT_KIND_ACTIVATION_OPENED
 	source := fmt.Sprintf("scheduler.g%d.open", a.ordinal)
 	causes := []string{"scheduler.open"}
 	if closed {
-		kind = testpilotpb.RUN_EVENT_KIND_ACTIVATION_CLOSED
+		kind = testpilotspb.RUN_EVENT_KIND_ACTIVATION_CLOSED
 		source = fmt.Sprintf("scheduler.g%d.close", a.ordinal)
 		causes = []string{fmt.Sprintf("scheduler.g%d.open", a.ordinal)}
 		for _, id := range a.completed {
@@ -457,7 +457,7 @@ func (s *scheduler) activationEvent(a *scheduledActivation, closed bool) *testpi
 			}
 		}
 	}
-	return &testpilotpb.RunEvent{Kind: kind, SourceId: source, CausalSourceIds: causes, Coordinates: &testpilotpb.RunEventCoordinates{EntrypointId: a.values.graph.id, ActivationId: a.values.id}}
+	return &testpilotspb.RunEvent{Kind: kind, SourceId: source, CausalSourceIds: causes, Coordinates: &testpilotspb.RunEventCoordinates{EntrypointId: a.values.graph.id, ActivationId: a.values.id}}
 }
 func (s *scheduler) nodeSource(task scheduledNode) string {
 	if task.activation.cleanup {
@@ -468,8 +468,8 @@ func (s *scheduler) nodeSource(task scheduledNode) string {
 func (s *scheduler) coordinate(task scheduledNode) Coordinate {
 	return Coordinate{RunID: s.values.runID, EntrypointID: task.activation.values.graph.id, ActivationID: task.activation.values.id, InstructionID: task.activation.values.graph.nodes[task.index].source.InstructionId, Attempt: 1}
 }
-func eventCoordinates(c Coordinate) *testpilotpb.RunEventCoordinates {
-	return &testpilotpb.RunEventCoordinates{EntrypointId: c.EntrypointID, ActivationId: c.ActivationID, InstructionId: c.InstructionID, Attempt: c.Attempt}
+func eventCoordinates(c Coordinate) *testpilotspb.RunEventCoordinates {
+	return &testpilotspb.RunEventCoordinates{EntrypointId: c.EntrypointID, ActivationId: c.ActivationID, InstructionId: c.InstructionID, Attempt: c.Attempt}
 }
 func (s *scheduler) completeNode(ctx context.Context, task scheduledNode, source string) ([]scheduledNode, Decision, error) {
 	a := task.activation
@@ -486,7 +486,7 @@ func (s *scheduler) completeNode(ctx context.Context, task scheduledNode, source
 		if a.cleanup {
 			return ready, Continue, nil
 		}
-		d, err := s.recorder.publish(ctx, []*testpilotpb.RunEvent{s.activationEvent(a, true)}, nil)
+		d, err := s.recorder.publish(ctx, []*testpilotspb.RunEvent{s.activationEvent(a, true)}, nil)
 		return ready, d, err
 	}
 	return ready, Continue, nil
@@ -542,10 +542,10 @@ func (s *scheduler) publishInstructionStart(ctx context.Context, task scheduledN
 	if cleanup {
 		publish = s.recorder.publishCleanup
 	}
-	return publish(ctx, []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_INSTRUCTION_STARTED, SourceId: s.nodeSource(task) + ".started", Coordinates: eventCoordinates(coordinate), CausalSourceIds: causes}}, nil)
+	return publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_STARTED, SourceId: s.nodeSource(task) + ".started", Coordinates: eventCoordinates(coordinate), CausalSourceIds: causes}}, nil)
 }
 
-func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotpb.Value, cleanup bool) (EffectHandle, []scheduledReservation, SlotBridge, error) {
+func (s *scheduler) admitDispatch(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value, cleanup bool) (EffectHandle, []scheduledReservation, SlotBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
 	var effect EffectHandle
 	var reservations []scheduledReservation
@@ -593,18 +593,18 @@ func (s *scheduler) startWaits(ctx, operationCtx context.Context, cancel context
 		defer cancel()
 		result, err := s.waitNode(operationCtx, task, effect, bridge)
 		if errors.Is(err, context.DeadlineExceeded) && ctx.Err() == nil {
-			result = EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}
+			result = EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}}
 			err = nil
 		}
 		s.deliverCompletion(schedulerCompletion{node: &task, result: result, err: err, cleanup: cleanup})
 	}()
 }
-func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto.Message, *testpilotpb.Value, bool, error) {
+func (s *scheduler) prepareInput(ctx context.Context, task scheduledNode) (proto.Message, *testpilotspb.Value, bool, error) {
 	a := task.activation.values
 	n := a.graph.nodes[task.index]
 	c := s.coordinate(task)
 	var request proto.Message
-	var input *testpilotpb.Value
+	var input *testpilotspb.Value
 	if n.opcode == InvokeRPC {
 		var enabled bool
 		var err error
@@ -684,7 +684,7 @@ func (s *scheduler) validateReservations(task scheduledNode, declarationIndex in
 	}
 	return reservations, nil
 }
-func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotpb.Value) (EffectHandle, SlotBridge, error) {
+func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, request proto.Message, input *testpilotspb.Value) (EffectHandle, SlotBridge, error) {
 	n := task.activation.values.graph.nodes[task.index]
 	c := s.coordinate(task)
 	var effect EffectHandle
@@ -733,7 +733,7 @@ func (s *scheduler) waitNode(ctx context.Context, task scheduledNode, effect Eff
 			err = a.awaitSlot(ctx, slot)
 		}
 		if err == nil {
-			result.Outcome = &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
+			result.Outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
 		}
 	} else {
 		result, err = effect.Wait(ctx)
@@ -751,14 +751,14 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 	if completion.reservation != nil {
 		reservation := completion.reservation
 		id := reservation.identity
-		if completion.result.Outcome == nil || completion.result.Outcome.Status != testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED || !isNil(completion.result.Response) || completion.result.Outcome.Value != nil {
+		if completion.result.Outcome == nil || completion.result.Outcome.Status != testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED || !isNil(completion.result.Response) || completion.result.Outcome.Value != nil {
 			return Stop, s.recorder.completionFailure(ctx, "activation_failed", invalid(ir.Malformed, "reservation", "required activation failed or returned unexpected payload"))
 		}
 		publish := s.recorder.publish
 		if completion.cleanup {
 			publish = s.recorder.publishCleanup
 		}
-		return publish(ctx, []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: reservation.source, CausalSourceIds: []string{reservation.cause}, Coordinates: eventCoordinates(id.Origin), Outcome: completion.result.Outcome}}, nil)
+		return publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: reservation.source, CausalSourceIds: []string{reservation.cause}, Coordinates: eventCoordinates(id.Origin), Outcome: completion.result.Outcome}}, nil)
 	}
 	task := *completion.node
 	a := task.activation.values
@@ -770,15 +770,15 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		return Stop, s.recorder.completionFailure(ctx, "outcome_failed", err)
 	}
 	source := s.nodeSource(task)
-	kind := testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED
-	if batch.outcome.Status == testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT {
-		kind = testpilotpb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT
+	kind := testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED
+	if batch.outcome.Status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT {
+		kind = testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT
 	}
-	facts := []*testpilotpb.RunEvent{{Kind: kind, SourceId: source + ".completed", Coordinates: eventCoordinates(batch.coordinate), CausalSourceIds: []string{source + ".started"}, Outcome: batch.outcome}}
+	facts := []*testpilotspb.RunEvent{{Kind: kind, SourceId: source + ".completed", Coordinates: eventCoordinates(batch.coordinate), CausalSourceIds: []string{source + ".started"}, Outcome: batch.outcome}}
 	for _, projection := range batch.facts {
 		coordinate := eventCoordinates(batch.coordinate)
 		coordinate.EmittedIndex = projection.index
-		facts = append(facts, &testpilotpb.RunEvent{Kind: testpilotpb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, SourceId: fmt.Sprintf("%s.p%d.i%d", source, projection.projection, projection.index), Coordinates: coordinate, CausalSourceIds: []string{source + ".completed"}, Observations: projection.observations})
+		facts = append(facts, &testpilotspb.RunEvent{Kind: testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED, SourceId: fmt.Sprintf("%s.p%d.i%d", source, projection.projection, projection.index), Coordinates: coordinate, CausalSourceIds: []string{source + ".completed"}, Observations: projection.observations})
 	}
 	if completion.cleanup {
 		return s.recorder.publishCleanup(ctx, facts, func() error { return a.commit(ctx, batch) })

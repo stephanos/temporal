@@ -6,7 +6,7 @@ import (
 	"errors"
 	"reflect"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/verification"
 	"google.golang.org/protobuf/proto"
@@ -14,21 +14,26 @@ import (
 
 // PreparedCase owns immutable admission products, never a live Profile or Driver.
 type PreparedCase struct {
-	source   *testpilotpb.Case
+	source   *testpilotspb.Case
 	program  *execution.PreparedProgram
 	factory  execution.MonitorFactory
 	identity DriverIdentity
 }
 
-func Prepare(source *testpilotpb.Case, profile Profile) (*PreparedCase, error) {
+func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) {
 	if isNil(profile) {
 		return nil, errors.New("Profile is required")
 	}
-	spec := profile.Snapshot()
+	spec := profile.Snapshot().Snapshot()
 	if spec.Catalog == nil || spec.Catalog.catalog == nil {
 		return nil, errors.New("Profile catalog is required")
 	}
+	fingerprint, err := spec.BindingFingerprint()
+	if err != nil {
+		return nil, err
+	}
 	policy := spec.policy()
+	policy.EnvironmentFingerprint = fingerprint
 	program, err := execution.Prepare(source, spec.Catalog.catalog, policy)
 	if err != nil {
 		return nil, err
@@ -37,11 +42,11 @@ func Prepare(source *testpilotpb.Case, profile Profile) (*PreparedCase, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &PreparedCase{source: proto.CloneOf(source), program: program, factory: contract, identity: DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity}}, nil
+	return &PreparedCase{source: proto.CloneOf(source), program: program, factory: contract, identity: DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity, Bindings: fingerprint}}, nil
 }
 
-func (p *PreparedCase) Snapshot() *testpilotpb.Case { return proto.CloneOf(p.source) }
-func (p *PreparedCase) Identity() DriverIdentity    { return p.identity }
+func (p *PreparedCase) Snapshot() *testpilotspb.Case { return proto.CloneOf(p.source) }
+func (p *PreparedCase) Identity() DriverIdentity     { return p.identity }
 
 func (p *PreparedCase) preflight(ctx context.Context, driver Driver) (execution.Driver, execution.Monitor, error) {
 	if p == nil || p.program == nil || isNil(ctx) || isNil(driver) || isNil(p.factory) {
@@ -55,7 +60,10 @@ func (p *PreparedCase) preflight(ctx context.Context, driver Driver) (execution.
 		return nil, nil, err
 	}
 	if identity != p.identity {
-		return nil, nil, errors.New("Driver Profile or catalog identity changed")
+		return nil, nil, errors.New("Driver Profile, catalog or binding identity changed")
+	}
+	if err := driver.Validate(ctx, PreparedProgram{program: p.program}); err != nil {
+		return nil, nil, err
 	}
 	monitor, err := execution.NewMonitor(ctx, p.factory, p.program.View())
 	if err != nil {

@@ -2,81 +2,53 @@ import Temporal.Testpilot.GetSystemInfo
 
 namespace Temporal.Testpilot
 
-open Umpire
-open Umpire.Case
-open Umpire.Case.Compiler
 open CaseSupport
+open Testpilot.Authoring
+open temporal.server.api.testpilot.v1
 
 private def conformanceProperty (caseId : String) :=
   binding (caseId ++ ".property") (caseId ++ "/property/v1") .property
 
 private def conformanceRule
-    (terminal : ContractTerminalState)
-    (matchesEvent : Bool) : ContractRule := {
-  ruleId := "result"
-  kind := .safety
-  initialState := "pending"
-  states := [
-    { stateId := "pending" },
-    { stateId := "terminal", terminal }
-  ]
-  transitions := [{
-    transitionId := "complete"
-    sourceState := "pending"
-    targetState := "terminal"
-    eventKinds := [.instructionCompleted]
-    predicate := boolean matchesEvent
-    support := .matchingEvent
-  }]
-}
+    (terminal : ContractStateStatus)
+    (matchesEvent : Bool) : ContractRuleDefinition :=
+  Monitor.rule "result" .CONTRACT_RULE_KIND_SAFETY "pending"
+    #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Monitor.state "terminal" terminal]
+    #[Monitor.transition "complete" "pending" "terminal"
+      #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
+      (ContractExpr.literal (Value.boolean matchesEvent))
+      .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
 
-private def conformanceNode (instructionId : String) : InstructionNode := {
-  instructionId
-  dependencies := []
-  instruction := .invokeRPC {
-    endpointRoleId := workflowServiceRole
-    method := getSystemInfoMethod
-    requestAssignments := []
-    responseProjections := []
-  }
-  outcome := statusOutcome
-  bounds := bounds
-}
+private def conformanceNode (instructionId : String) : InstructionDefinition :=
+  Program.node instructionId (Program.invokeRPC workflowServiceRole getSystemInfoMethod)
+    bounds (outcome := some statusOutcome)
 
-private def conformanceProgram (caseId : String) (cleanupFailure : Bool) : Program := {
-  programId := caseId ++ ".program"
-  roles := [{ roleId := workflowServiceRole, kind := .endpoint }]
-  slots := []
-  observations := []
-  entrypoints := [{
-    entrypointId := "controller"
-    context := .controller
-    activation := .controller
-    nodes := [conformanceNode "execute"]
-  }]
-  cleanup := {
-    entrypointId := "cleanup"
-    context := .controller
-    nodes := if cleanupFailure then [conformanceNode "fail-cleanup"] else []
-  }
-  limits := programLimits
-}
+private def conformanceProgram (caseId : String) (cleanupFailure : Bool) : Program :=
+  Program.make (caseId ++ ".program")
+    #[Program.role workflowServiceRole .ROLE_KIND_ENDPOINT]
+    #[] #[]
+    #[Program.controller "controller" #[conformanceNode "execute"]]
+    (Program.cleanup "cleanup"
+      (if cleanupFailure then #[conformanceNode "fail-cleanup"] else #[]))
+    programLimits
 
 private def conformanceCase
     (caseId : String)
-    (terminal : ContractTerminalState)
+    (terminal : ContractStateStatus)
     (matchesEvent : Bool)
-    (cleanupFailure := false) : Except LoweringError temporal.server.api.testpilot.v1.Case :=
+    (cleanupFailure := false) : Except Umpire.Case.Compiler.LoweringError Case :=
   let property := conformanceProperty caseId
-  compile {
+  let definitions := [
+    binding "temporal.workflow-service" "temporal-workflow-service/v1" .target,
+    property
+  ]
+  Umpire.Case.Compiler.compile {
     version := { major := 1 }
     caseId
     producerId := "temporal.case.compiler"
     producerVersion := "1"
-    definitions := [
-      binding "temporal.workflow-service" "temporal-workflow-service/v1" .target,
-      property
-    ]
+    definitions
     sources := [source]
     knownGaps := []
     program := conformanceProgram caseId cleanupFailure
@@ -86,25 +58,27 @@ private def conformanceCase
   }
 
 /-- Deterministic public-facade fixtures kept small enough for exact cross-language comparison. -/
-def conformanceSatisfiedCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
-  conformanceCase "temporal.case.conformance.satisfied" .satisfied true
+def conformanceSatisfiedCase : Except Umpire.Case.Compiler.LoweringError Case :=
+  conformanceCase "temporal.case.conformance.satisfied" .CONTRACT_STATE_STATUS_SATISFIED true
 
-def conformanceViolatedCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
-  conformanceCase "temporal.case.conformance.violated" .violated true
+def conformanceViolatedCase : Except Umpire.Case.Compiler.LoweringError Case :=
+  conformanceCase "temporal.case.conformance.violated" .CONTRACT_STATE_STATUS_VIOLATED true
 
-def conformanceInconclusiveCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
-  conformanceCase "temporal.case.conformance.inconclusive" .satisfied false
+def conformanceInconclusiveCase : Except Umpire.Case.Compiler.LoweringError Case :=
+  conformanceCase "temporal.case.conformance.inconclusive" .CONTRACT_STATE_STATUS_SATISFIED false
 
-def conformanceCleanupFailureCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
-  conformanceCase "temporal.case.conformance.cleanup-failure" .violated true true
+def conformanceCleanupFailureCase : Except Umpire.Case.Compiler.LoweringError Case :=
+  conformanceCase "temporal.case.conformance.cleanup-failure" .CONTRACT_STATE_STATUS_VIOLATED true true
 
-def conformanceCrossRunIsolationCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
-  conformanceCase "temporal.case.conformance.cross-run-isolation" .satisfied true
+def conformanceCrossRunIsolationCase : Except Umpire.Case.Compiler.LoweringError Case :=
+  conformanceCase "temporal.case.conformance.cross-run-isolation" .CONTRACT_STATE_STATUS_SATISFIED true
 
-def conformanceStaticRejectionCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
-  (conformanceCase "temporal.case.conformance.static-rejection" .satisfied true).map fun output =>
+def conformanceStaticRejectionCase : Except Umpire.Case.Compiler.LoweringError Case :=
+  (conformanceCase "temporal.case.conformance.static-rejection"
+    .CONTRACT_STATE_STATUS_SATISFIED true).map fun output =>
     let invalidContract := output.contract.map fun contract =>
-      { contract with rules := contract.rules.map fun rule => { rule with initial_state_id := "missing" } }
+      { contract with rules := contract.rules.map fun rule =>
+          { rule with initial_state_id := "missing" } }
     { output with contract := invalidContract }
 
 end Temporal.Testpilot

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-07T11:33:37.537639Z",
+  "depends_on": [
+    "fn-73-explicit-environment-binding-for.4"
+  ],
+  "id": "fn-73-explicit-environment-binding-for.5",
+  "priority": 5,
+  "spec": "fn-73-explicit-environment-binding-for",
+  "spec_path": ".flow/tasks/fn-73-explicit-environment-binding-for.5.md",
+  "status": "todo",
+  "title": "Migrate the checked Nexus3 Case and owned fixture",
+  "updated_at": "2026-09-07T11:33:37.537639Z"
+}
