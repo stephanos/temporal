@@ -1,13 +1,23 @@
 import Umpire.Case.Contract
+import Umpire.Core
 
 /-!
-The versioned standalone Umpire Case envelope.
+Umpire-owned provenance for generated Testpilot Cases.
 
-A Case pairs exactly one bounded Program with one Contract and retains the source definitions and
-behavior fingerprints that produced the executable artifact.
+The protobuf schema owns the Case, Program, and Contract structures. Umpire retains only its
+producer-specific definitions, fingerprints, sources, and Known Gaps before encoding them into
+opaque Testpilot provenance bytes.
 -/
 
 namespace Umpire.Case
+
+/-- The closed categories of source-model incompleteness retained in Umpire provenance. -/
+inductive CaseKnownGapKind where
+  | capabilityContract
+  | input
+  | interpretation
+  | claim
+  deriving BEq, DecidableEq, Repr
 
 /-- The source definition classes retained in Case provenance. -/
 inductive CaseDefinitionKind where
@@ -62,13 +72,10 @@ end Umpire.Case
 
 namespace Umpire
 
-/-- A versioned standalone pairing of exactly one bounded Program and one Contract. -/
-structure Case where
-  version : Case.FormatVersion
-  caseId : String
-  metadata : Case.CaseMetadata
-  program : Case.Program
-  contract : Case.Contract
-  deriving BEq, Repr
+/-- Compatibility name for the generated Testpilot Case.
+
+Remove this alias when downstream imports use the generated protocol namespace directly.
+-/
+abbrev Case := temporal.server.api.testpilot.v1.Case
 
 end Umpire

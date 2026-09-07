@@ -4,7 +4,15 @@ public import Testpilot.Protocol
 
 public section
 
-/-! Stable, producer-neutral constructors for the generated Testpilot protocol. -/
+/-!
+Stable, producer-neutral constructors for the generated Testpilot protocol.
+
+Every helper returns the generated protobuf value directly. This module performs structural
+assembly only: it preserves caller order, keeps Program and Contract expression contexts disjoint,
+and accepts the generated fixed-width numeric field types. Go `testpilot.Prepare` owns semantic,
+closure, version, and resource-limit admission. Callers should use named arguments for high-arity
+limit records where positional meaning would otherwise be unclear.
+-/
 
 namespace Testpilot.Authoring
 
@@ -12,9 +20,12 @@ open temporal.server.api.testpilot.v1
 
 namespace Value
 
+/-! Constructors for generated scalar, collection, enum, and message values. -/
+
 def text (value : String) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.text value) }
 
+/-- Encode a natural as the protocol's canonical decimal string representation. -/
 def natural (value : Nat) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.natural value.repr) }
 
@@ -24,9 +35,11 @@ def boolean (value : Bool) : temporal.server.api.testpilot.v1.Value :=
 def bytes (value : ByteArray) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.bytes_value value) }
 
+/-- Encode a signed integer as the protocol's canonical decimal string representation. -/
 def signedInteger (value : Int) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.signed_integer value.repr) }
 
+/-- Encode an unsigned integer as the protocol's canonical decimal string representation. -/
 def unsignedInteger (value : Nat) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.unsigned_integer value.repr) }
 
@@ -36,6 +49,7 @@ def floatingPoint (value : Float) : temporal.server.api.testpilot.v1.Value :=
 def enumeration (number : Int32) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.enum_value { number }) }
 
+/-- Embed an already packed protobuf message value. -/
 def messageValue (value : google.protobuf.Any) : temporal.server.api.testpilot.v1.Value :=
   { value := some (.message_value value) }
 
@@ -52,6 +66,8 @@ def map (entries : Array (temporal.server.api.testpilot.v1.Value ×
 end Value
 
 namespace Types
+
+/-! Constructors for generated Testpilot value schemas. -/
 
 def scalar (kind : ScalarKind) : SingularType :=
   { type := some (.scalar { kind }) }
@@ -79,17 +95,21 @@ end Types
 
 namespace Path
 
+/-! Constructors for generated field paths and selectors. -/
+
 def field (name : String) : FieldPathSegment := { field := name }
 
 def repeated (name : String) : FieldPathSegment :=
   { field := name, selector := some (.repeated {}) }
 
+/-- Select the map entry whose key equals the supplied generated value. -/
 def mapKey (name : String) (key : temporal.server.api.testpilot.v1.Value) : FieldPathSegment :=
   { field := name, selector := some (.map_key { key := some key }) }
 
 def presence (name : String) : FieldPathSegment :=
   { field := name, selector := some (.presence {}) }
 
+/-- Select a oneof only when its active field has the supplied protobuf field name. -/
 def oneofSelector (name selectedField : String) : FieldPathSegment :=
   { field := name, selector := some (.oneof { selected_field := selectedField }) }
 
@@ -98,6 +118,8 @@ def make (segments : Array FieldPathSegment) : FieldPath := { segments }
 end Path
 
 namespace Ref
+
+/-! Constructors for generated instruction, Slot, Observation, and capture references. -/
 
 def instruction (entrypointId instructionId : String) : InstructionRef :=
   { entrypoint_id := entrypointId, instruction_id := instructionId }
@@ -117,6 +139,8 @@ end Ref
 
 namespace ProgramExpr
 
+/-! Program-only expressions over Slots, instruction outcomes, environment, and the current Run. -/
+
 def literal (value : temporal.server.api.testpilot.v1.Value) : ProgramExpression :=
   { expression := some (.literal value) }
 
@@ -126,6 +150,11 @@ def slot (slotId : String) : ProgramExpression :=
 def outcome (instruction : InstructionRef) (field : InstructionOutcomeField) : ProgramExpression :=
   { expression := some (.outcome (Ref.outcome instruction field)) }
 
+/-- Refer to one symbolic text resource supplied by the execution environment. -/
+def environment (bindingId : String) : ProgramExpression :=
+  { expression := some (.environment { binding_id := bindingId }) }
+
+/-- Refer to the current Run from a Program expression. -/
 def run : ProgramExpression := { expression := some (.run {}) }
 
 def path (source : ProgramExpression) (path : FieldPath) : ProgramExpression :=
@@ -153,12 +182,15 @@ end ProgramExpr
 
 namespace ContractExpr
 
+/-! Contract-only expressions over Observations, captures, and the current Run Event. -/
+
 def literal (value : temporal.server.api.testpilot.v1.Value) : ContractExpression :=
   { expression := some (.literal value) }
 
 def observation (observationId : String) : ContractExpression :=
   { expression := some (.observation (Ref.observation observationId)) }
 
+/-- Read one declared field from the Run Event currently offered to a monitor. -/
 def runEvent (field : RunEventField) : ContractExpression :=
   { expression := some (.run_event { field }) }
 
@@ -190,8 +222,16 @@ end ContractExpr
 
 namespace Program
 
-def role (roleId : String) (kind : RoleKind) : RoleDefinition :=
-  { role_id := roleId, kind }
+/-! Constructors for bounded generated Program declarations. Array order is preserved. -/
+
+/-- Declare one symbolic text resource required by the Program. -/
+def environment (bindingId : String) : EnvironmentDefinition := { binding_id := bindingId }
+
+/-- Declare one logical role and its optional symbolic namespace and resource references. -/
+def role (roleId : String) (kind : RoleKind) (namespaceBindingId : String := "")
+    (resourceBindingId : String := "") : RoleDefinition :=
+  { role_id := roleId, kind, namespace_binding_id := namespaceBindingId,
+    resource_binding_id := resourceBindingId }
 
 def valueSlot (slotId : String) (type : ValueType) : SlotDefinition :=
   { slot_id := slotId, content := some (.value type) }
@@ -205,6 +245,10 @@ def observation (observationId : String) (type : ValueType) : ObservationDefinit
 def requestAssignment (target : FieldPath) (value : ProgramExpression) : RequestAssignment :=
   { target := some target, value := some value }
 
+/-- Assign one symbolic environment resource directly to a singular text request field. -/
+def environmentAssignment (target : FieldPath) (bindingId : String) : RequestAssignment :=
+  requestAssignment target (ProgramExpr.environment bindingId)
+
 def slotTarget (slotId : String) : ProjectionTarget :=
   { target := some (.slot_id slotId) }
 
@@ -215,6 +259,7 @@ def responseProjection (source : FieldPath) (kind : ProjectionKind)
     (targets : Array ProjectionTarget) : ResponseProjection :=
   { source := some source, kind, targets }
 
+/-- Attach the four fixed-width resource bounds enforced for one instruction. -/
 def instructionLimits (timeoutMilliseconds maxAttempts maxEmittedEvents maxResponseBytes : Int64) :
     InstructionLimits :=
   { timeout_milliseconds := timeoutMilliseconds, max_attempts := maxAttempts,
@@ -257,6 +302,7 @@ def outcome (fields : Array OutcomeFieldDefinition) : InstructionOutcomeDefiniti
 def reservation (entrypointId : String) (count : Int64) : ActivationReservationDefinition :=
   { entrypoint_id := entrypointId, count }
 
+/-- Define one instruction node with its explicit dependencies, guard, outcome, and reservations. -/
 def node (instructionId : String) (instruction : Instruction) (limits : InstructionLimits)
     (dependencies : Array InstructionRef := #[]) (guard : Option ProgramExpression := none)
     (outcome : Option InstructionOutcomeDefinition := none)
@@ -289,6 +335,7 @@ def nexusHandler (entrypointId serviceName operationName workerRoleId taskQueueR
 def cleanup (entrypointId : String) (instructions : Array InstructionDefinition) : CleanupDefinition :=
   { entrypoint_id := entrypointId, instructions }
 
+/-- Construct Program-wide bounds; callers should name arguments where the positions are unclear. -/
 def limits (maxEntrypoints maxNodes maxEdges maxActivations maxAttempts maxRunEvents
     maxExpressionDepth maxPathFanout maxRequestBytes maxResponseBytes
     maxTotalDurationMilliseconds maxCleanupDurationMilliseconds : Int64) : ProgramLimits :=
@@ -300,16 +347,20 @@ def limits (maxEntrypoints maxNodes maxEdges maxActivations maxAttempts maxRunEv
     max_total_duration_milliseconds := maxTotalDurationMilliseconds,
     max_cleanup_duration_milliseconds := maxCleanupDurationMilliseconds }
 
+/-- Assemble a generated Program while preserving every supplied declaration order. -/
 def make (programId : String) (roles : Array RoleDefinition) (slots : Array SlotDefinition)
     (observations : Array ObservationDefinition) (entrypoints : Array EntrypointDefinition)
-    (cleanup : CleanupDefinition) (limits : ProgramLimits) :
+    (cleanup : CleanupDefinition) (limits : ProgramLimits)
+    (environment : Array EnvironmentDefinition := #[]) :
     temporal.server.api.testpilot.v1.Program :=
   { program_id := programId, roles, slots, observations, entrypoints,
-    cleanup := some cleanup, limits := some limits }
+    cleanup := some cleanup, limits := some limits, environment }
 
 end Program
 
 namespace Monitor
+
+/-! Constructors for generated Contract monitor machines and their bounds. -/
 
 def scalarCapture (kind : ScalarKind) : ContractCaptureType :=
   { type := some (.scalar { kind }) }
@@ -329,6 +380,7 @@ def captureAssignment (captureId observationId : String) : ContractCaptureAssign
 def state (stateId : String) (status : ContractStateStatus) : ContractStateDefinition :=
   { state_id := stateId, status }
 
+/-- Define one transition, including its event filter, predicate, support, and capture updates. -/
 def transition (transitionId sourceStateId targetStateId : String)
     (eventKinds : Array RunEventKind) (predicate : ContractExpression)
     (support : ContractSupportKind := .CONTRACT_SUPPORT_KIND_NONE)
@@ -337,10 +389,12 @@ def transition (transitionId sourceStateId targetStateId : String)
     target_state_id := targetStateId, event_filter := some { kinds := eventKinds },
     predicate := some predicate, support_kind := support, capture_assignments := assignments }
 
+/-- Set the elapsed-time deadline and state entered when a bounded obligation expires. -/
 def horizon (elapsedMilliseconds : Int64) (violationStateId : String) :
     ContractHorizonDefinition :=
   { elapsed_milliseconds := elapsedMilliseconds, violation_state_id := violationStateId }
 
+/-- Assemble one deterministic rule while preserving state and transition order. -/
 def rule (ruleId : String) (kind : ContractRuleKind) (initialStateId : String)
     (states : Array ContractStateDefinition) (transitions : Array ContractTransitionDefinition)
     (horizon : Option ContractHorizonDefinition := none)
@@ -348,6 +402,7 @@ def rule (ruleId : String) (kind : ContractRuleKind) (initialStateId : String)
   { rule_id := ruleId, kind, initial_state_id := initialStateId, states, transitions,
     horizon, captures }
 
+/-- Construct Contract-wide bounds; callers should name arguments where the positions are unclear. -/
 def limits (maxRules maxStates maxTransitions maxExpressionDepth maxWorkPerEvent maxTotalWork
     maxCaptures maxCaptureBytes : Int64) : ContractLimits :=
   { max_rules := maxRules, max_states := maxStates, max_transitions := maxTransitions,
@@ -355,6 +410,7 @@ def limits (maxRules maxStates maxTransitions maxExpressionDepth maxWorkPerEvent
     max_total_work := maxTotalWork, max_captures := maxCaptures,
     max_capture_bytes := maxCaptureBytes }
 
+/-- Assemble a generated Contract while preserving rule order. -/
 def contract (contractId : String) (rules : Array ContractRuleDefinition)
     (limits : ContractLimits) : Contract :=
   { contract_id := contractId, rules, limits := some limits }
@@ -363,6 +419,9 @@ end Monitor
 
 namespace Run
 
+/-! Constructors for immutable generated runtime evidence. -/
+
+/-- Identify the instruction attempt and emission position responsible for one Run Event. -/
 def coordinates (entrypointId activationId instructionId : String) (attempt emittedIndex : Int64) :
     RunEventCoordinates :=
   { entrypoint_id := entrypointId, activation_id := activationId,
@@ -376,6 +435,7 @@ def outcome (status : InstructionOutcomeStatus) (protocolCode sdkFailureCode det
     (value : Option temporal.server.api.testpilot.v1.Value := none) : InstructionOutcome :=
   { status, protocol_code := protocolCode, sdk_failure_code := sdkFailureCode, detail, value }
 
+/-- Assemble one sequenced Run Event with optional outcome, observations, and causal sources. -/
 def event (sequence elapsedMilliseconds : Int64) (kind : RunEventKind)
     (coordinates : RunEventCoordinates) (sourceId : String)
     (causalSourceIds : Array String := #[]) (outcome : Option InstructionOutcome := none)
@@ -392,6 +452,7 @@ def diagnostic (diagnosticId : String) (kind : RunDiagnosticKind) (code detail :
   { diagnostic_id := diagnosticId, kind, code, detail,
     support := supportingEventSequence.map (.supporting_event_sequence ·) }
 
+/-- Assemble a closed generated Run and embedded Verdict from already collected evidence. -/
 def make (runId caseId programId : String) (events : Array RunEvent) (status : RunStatus)
     (cleanup : CleanupOutcome) (verdict : Verdict) (diagnostics : Array RunDiagnostic := #[])
     (evaluationFailureSequence : Option Int64 := none) : temporal.server.api.testpilot.v1.Run :=
@@ -403,11 +464,15 @@ end Run
 
 namespace Verdict
 
+/-! Constructors for generated per-rule and aggregate Verdict data. -/
+
+/-- Record the terminal status and exact supporting events for one Contract rule. -/
 def rule (ruleId : String) (status : RuleVerdictStatus) (terminalStateId : String := "")
     (supportingEventSequences : Array Int64 := #[]) : RuleVerdict :=
   { rule_id := ruleId, status, terminal_state_id := terminalStateId,
     supporting_event_sequences := supportingEventSequences }
 
+/-- Assemble an aggregate Verdict while preserving per-rule and supporting-event order. -/
 def make (status : VerdictStatus) (rules : Array RuleVerdict)
     (supportingEventSequences : Array Int64 := #[]) :
     temporal.server.api.testpilot.v1.Verdict :=
@@ -415,10 +480,12 @@ def make (status : VerdictStatus) (rules : Array RuleVerdict)
 
 end Verdict
 
+/-- Attach producer identity and opaque producer-owned bytes to a generated Case. -/
 def provenance (producerId producerVersion : String) (producerData : ByteArray := ByteArray.empty) :
     CaseProvenance :=
   { producer_id := producerId, producer_version := producerVersion, producer_data := producerData }
 
+/-- Assemble one generated Case from its version, identity, Program, Contract, and provenance. -/
 def case (major : Int32) (caseId : String)
     (program : temporal.server.api.testpilot.v1.Program)
     (contract : temporal.server.api.testpilot.v1.Contract)

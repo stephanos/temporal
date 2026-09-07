@@ -29,8 +29,8 @@ Focused public imports are available by responsibility:
 | `Umpire.Promotion` | Exact review-only source compilation from an unchanged planned Query. |
 | `Umpire.Artifact` | Retained model-planning and offline-analysis artifact codecs. |
 | `Umpire.Json` | Ordered JSON construction for codec owners. |
-| `Umpire.Case` | Case, Program, Contract, Run, typed value, and Verdict data. |
-| `Umpire.Case.Compiler` | Producer assembly and deterministic Case lowering. |
+| `Umpire.Case` | Umpire provenance and temporary aliases for generated Testpilot protocol types. |
+| `Umpire.Case.Compiler` | Generated Case assembly, source-bound producer diagnostics, and Umpire provenance. |
 
 Implementation modules remain behind these facades. Reusable Umpire modules cannot import the
 domain-specific Temporal modules; the complete import graph is enforced by `make lint-model`.
@@ -95,21 +95,23 @@ The module performs no runtime reproduction, reduction, replay, publication, or 
 source template imports only generic Umpire modules and cannot receive caller-selected imports or a
 namespace. The focused `Umpire.PromotionTests` build protects that boundary.
 
-## Testpilot IR
+## Testpilot protocol and Umpire provenance
 
-The `Umpire.Case` facade exposes a closed data vocabulary:
+The checked-in `.proto` closure rooted at
+`proto/internal/temporal/server/api/testpilot/v1/case.proto` owns the closed wire vocabulary.
+`Testpilot.Protocol` exposes its generated Lean declarations, including Case, Program, Contract,
+Run, values, paths, expressions, instructions, monitors, and Verdict data. Producers construct
+those generated values through the context-safe `Testpilot.Authoring` facade.
 
-- `Value`, `ValueType`, `ValueExpression`, and `FieldPath` describe typed data and bounded access;
-- `Program` contains roles, private Slot schemas, Observation schemas, typed entrypoint DAGs,
-  cleanup, and limits;
-- `Contract` contains deterministic safety and bounded-liveness rules, bounded captures, horizons,
-  and work limits;
-- `Run` contains immutable sequenced Run Events, disposition, cleanup status, diagnostics, and an
-  embedded Verdict;
-- `Case` binds one Program and one Contract to version, provenance, definitions, and Known Gaps.
+`Umpire.Case` owns only Umpire-specific definition bindings, Behavior Fingerprints, sources, and
+Known Gaps. `Umpire.Case.Provenance` encodes that data into opaque `producerData`; Testpilot and Go
+do not interpret its contents. Temporary `Umpire.Case` type aliases delegate directly to the
+generated declarations and are removed when downstream imports use `Testpilot.Protocol` directly.
+The compatibility codec delegates directly to `Testpilot.ProtoJSON` and is covered by an
+equivalent-output regression under `Testpilot.Tests` until its callers migrate.
 
-The reusable IR contains no Temporal method name, client, credential, worker, callback, endpoint,
-filesystem access, executable hook, or runtime registry.
+The generated protocol contains no client, credential, worker, callback, endpoint, filesystem
+access, executable hook, or runtime registry.
 
 ### Slots and Observations
 
@@ -144,16 +146,20 @@ and per Run. A transition may cite the matching event as support; Verdicts retai
 event sequences. Pending rules close inconclusive. A proved violation has precedence over later
 operational and cleanup failures.
 
-## Case compiler
+## Case production
 
-`Umpire.Case.Compiler.compile` assembles Producer data into a Case and lowers declared properties
-into Contract monitors, returning a source-bound lowering error for unsupported property constructs
-instead of omitting them. It does not statically validate the assembled Program. Testpilot's `Prepare`
-owns static admission, including stable bindings, Program and Contract closure, types, paths,
-instruction contexts, limits, Known Gaps, and provenance, before Driver I/O.
+Each Lean Producer owns its checked semantic lowering into generated protocol values through
+`Testpilot.Authoring`. Umpire-backed Producers pass those values to `Umpire.Case.Compiler`, which
+validates source-bound property rows, preserves typed unsupported-lowering errors, converts Known
+Gaps in order, attaches exact opaque provenance, and performs final generated Case assembly. Its
+input contains generated protocol values and introduces no parallel wire representation. A
+Testpilot-only synthetic Producer can assemble a generated Case directly.
 
-The compiler is deterministic. `Umpire.Case.ProtoJSON.canonical` emits the canonical Case bytes used
-at the Go boundary. Temporal-specific producer declarations live outside Umpire.
+`Testpilot.ProtoJSON.canonical` delegates canonical Case encoding to `Protobuf.Json`;
+`Umpire.Case.ProtoJSON.canonical` is only a temporary forwarding compatibility name. Testpilot's
+`Prepare` owns static admission, including Program and Contract closure, types, paths, instruction
+contexts, limits, identity, scope, and environment policy, before Driver I/O. Temporal-specific
+Producer declarations live outside Umpire.
 
 ## Runtime handoff
 
@@ -168,6 +174,15 @@ PreparedCase.Run(ctx, driver)
 Static preparation snapshots the admitted Case and Profile without Driver I/O. The prepared Contract
 creates the private Run-local Monitor. The internal Executor owns scheduling, recording, Slots,
 effect handles, cancellation, and cleanup. Alternate Drivers are the environment extension seam.
+
+Case 1.0 remains the literal-only compatibility format. Case 1.1 declares symbolic text resources;
+their IDs identify namespace, task-queue, and named Nexus endpoint relationships but contain no
+physical names or transport addresses. The Profile owns physical binding values. `Prepare` resolves
+them into immutable private prepared data and includes the complete binding fingerprint in Prepared
+Case identity while preserving the source Case bytes. `Run` checks the Driver's matching identity,
+calls its no-I/O `Validate` hook before Monitor creation, and calls `Open` only after validation.
+This environment identity does not alter Behavior Fingerprints, Contract meaning, or producer-owned
+provenance.
 
 ## Artifact and generated-view boundaries
 
@@ -185,11 +200,13 @@ normalization or ignored-field registry.
 
 - Reusable Umpire code is Temporal-independent.
 - Public semantic declarations are checked before planning or Case lowering.
-- Case, Program, Contract, and Run vocabularies are finite, versioned, and bounded.
+- The generated Testpilot Case, Program, Contract, and Run vocabularies are finite, versioned, and
+  bounded by their `.proto` schema.
 - A Program contains no clients, credentials, callbacks, or arbitrary executable code.
 - A Contract is the sole authority for live and offline Verdict semantics.
 - Slots are private execution state; Observations are the declared evidence surface.
 - Preparation is static and immutable; one Prepared Case supports isolated concurrent Runs.
+- Literal Case 1.0 and symbolic Case 1.1 resource modes are explicit and cannot be mixed.
 - Run disposition, cleanup status, and Verdict remain independent.
 - Generated data and views cannot create behavior.
 - Promotion remains generic and review-only.

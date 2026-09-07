@@ -6,54 +6,54 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/types/known/anypb"
 )
 
-func literal(value *testpilotpb.Value) *testpilotpb.ProgramExpression {
-	return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Literal{Literal: value}}
+func literal(value *testpilotspb.Value) *testpilotspb.ProgramExpression {
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: value}}
 }
-func slot(id string) *testpilotpb.ProgramExpression {
-	return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Slot{Slot: &testpilotpb.SlotRef{SlotId: id}}}
+func slot(id string) *testpilotspb.ProgramExpression {
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Slot{Slot: &testpilotspb.SlotRef{SlotId: id}}}
 }
-func present(value *testpilotpb.ProgramExpression) *testpilotpb.ProgramExpression {
-	return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Present{Present: &testpilotpb.ProgramPresentExpression{Operand: value}}}
+func present(value *testpilotspb.ProgramExpression) *testpilotspb.ProgramExpression {
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Present{Present: &testpilotspb.ProgramPresentExpression{Operand: value}}}
 }
-func equal(left, right *testpilotpb.ProgramExpression) *testpilotpb.ProgramExpression {
-	return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Equals{Equals: &testpilotpb.ProgramEqualsExpression{Left: left, Right: right}}}
+func equal(left, right *testpilotspb.ProgramExpression) *testpilotspb.ProgramExpression {
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Equals{Equals: &testpilotspb.ProgramEqualsExpression{Left: left, Right: right}}}
 }
-func negate(value *testpilotpb.ProgramExpression) *testpilotpb.ProgramExpression {
-	return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Negation{Negation: &testpilotpb.ProgramNotExpression{Operand: value}}}
+func negate(value *testpilotspb.ProgramExpression) *testpilotspb.ProgramExpression {
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Negation{Negation: &testpilotspb.ProgramNotExpression{Operand: value}}}
 }
-func all(values ...*testpilotpb.ProgramExpression) *testpilotpb.ProgramExpression {
-	return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_All{All: &testpilotpb.ProgramAllExpression{Operands: values}}}
+func all(values ...*testpilotspb.ProgramExpression) *testpilotspb.ProgramExpression {
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_All{All: &testpilotspb.ProgramAllExpression{Operands: values}}}
 }
-func anyOf(values ...*testpilotpb.ProgramExpression) *testpilotpb.ProgramExpression {
-	return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Any{Any: &testpilotpb.ProgramAnyExpression{Operands: values}}}
+func anyOf(values ...*testpilotspb.ProgramExpression) *testpilotspb.ProgramExpression {
+	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Any{Any: &testpilotspb.ProgramAnyExpression{Operands: values}}}
 }
 
 func TestExpressionsBindClosedVocabularyAndExplicitPresence(t *testing.T) {
 	c := fixtureCatalog(t)
-	textType := boundType(t, c, scalar(testpilotpb.SCALAR_KIND_TEXT))
-	boolType := boundType(t, c, scalar(testpilotpb.SCALAR_KIND_BOOLEAN))
-	intType := boundType(t, c, scalar(testpilotpb.SCALAR_KIND_INT64))
+	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
+	boolType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_BOOLEAN))
+	intType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_INT64))
 	scope := map[Reference]Binding{
 		{Kind: SlotReference, ID: "s"}:        {Type: textType},
 		{Kind: ObservationReference, ID: "o"}: {Type: textType, Available: true},
 		{Kind: CaptureReference, ID: "c"}:     {Type: textType, Available: true},
-		{Kind: OutcomeReference, Entrypoint: "main", ID: "call", Field: int32(testpilotpb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)}: {Type: textType, Available: true},
-		{Kind: EventReference, Field: int32(testpilotpb.RUN_EVENT_FIELD_SEQUENCE)}:                                                  {Type: intType, Available: true},
+		{Kind: OutcomeReference, Entrypoint: "main", ID: "call", Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE)}: {Type: textType, Available: true},
+		{Kind: EventReference, Field: int32(testpilotspb.RUN_EVENT_FIELD_SEQUENCE)}:                                                  {Type: intType, Available: true},
 		{Kind: SlotReference, ID: "message"}: {Type: boundType(t, c, named("fixture.Payload", false)), Available: true},
 		{Kind: SlotReference, ID: "i"}:       {Type: intType, Available: true},
 	}
-	for name, expression := range map[string]*testpilotpb.ProgramExpression{
+	for name, expression := range map[string]*testpilotspb.ProgramExpression{
 		"literal":  literal(text("x")),
 		"slot":     all(present(slot("s")), equal(slot("s"), literal(text("x")))),
-		"outcome":  {Expression: &testpilotpb.ProgramExpression_Outcome{Outcome: &testpilotpb.InstructionOutcomeRef{Instruction: &testpilotpb.InstructionRef{EntrypointId: "main", InstructionId: "call"}, Field: testpilotpb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE}}},
-		"path":     {Expression: &testpilotpb.ProgramExpression_Path{Path: &testpilotpb.ProgramPathExpression{Source: slot("message"), Path: fieldPath("text")}}},
+		"outcome":  {Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionRef{EntrypointId: "main", InstructionId: "call"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_PROTOCOL_CODE}}},
+		"path":     {Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: slot("message"), Path: fieldPath("text")}}},
 		"present":  present(slot("s")),
 		"equality": equal(literal(text("x")), literal(text("y"))),
-		"compare":  {Expression: &testpilotpb.ProgramExpression_Compare{Compare: &testpilotpb.ProgramCompareExpression{Operator: testpilotpb.COMPARISON_OPERATOR_LESS_THAN, Left: slot("i"), Right: literal(signed("2"))}}},
+		"compare":  {Expression: &testpilotspb.ProgramExpression_Compare{Compare: &testpilotspb.ProgramCompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_LESS_THAN, Left: slot("i"), Right: literal(signed("2"))}}},
 		"not":      negate(literal(boolean(true))),
 		"all":      all(literal(boolean(true)), literal(boolean(false))),
 		"any":      anyOf(negate(present(slot("s"))), equal(slot("s"), literal(text("x")))),
@@ -78,14 +78,14 @@ func TestExpressionsBindClosedVocabularyAndExplicitPresence(t *testing.T) {
 
 func TestExpressionsRejectMalformedTypesAndResourceOverflow(t *testing.T) {
 	c := fixtureCatalog(t)
-	boolType := boundType(t, c, scalar(testpilotpb.SCALAR_KIND_BOOLEAN))
-	for name, expression := range map[string]*testpilotpb.ProgramExpression{
-		"nil": nil, "empty": {}, "typed nil": {Expression: (*testpilotpb.ProgramExpression_All)(nil)},
+	boolType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_BOOLEAN))
+	for name, expression := range map[string]*testpilotspb.ProgramExpression{
+		"nil": nil, "empty": {}, "typed nil": {Expression: (*testpilotspb.ProgramExpression_All)(nil)},
 		"nil operand": negate(nil), "unknown ref": slot("missing"), "undeclared presence": present(slot("missing")),
 		"crossed equality": equal(literal(text("x")), literal(boolean(true))),
 		"non bool":         all(literal(text("x"))),
-		"bad comparison":   {Expression: &testpilotpb.ProgramExpression_Compare{Compare: &testpilotpb.ProgramCompareExpression{Operator: testpilotpb.COMPARISON_OPERATOR_UNSPECIFIED, Left: literal(signed("1")), Right: literal(signed("2"))}}},
-		"unordered":        {Expression: &testpilotpb.ProgramExpression_Compare{Compare: &testpilotpb.ProgramCompareExpression{Operator: testpilotpb.COMPARISON_OPERATOR_LESS_THAN, Left: literal(boolean(true)), Right: literal(boolean(false))}}},
+		"bad comparison":   {Expression: &testpilotspb.ProgramExpression_Compare{Compare: &testpilotspb.ProgramCompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_UNSPECIFIED, Left: literal(signed("1")), Right: literal(signed("2"))}}},
+		"unordered":        {Expression: &testpilotspb.ProgramExpression_Compare{Compare: &testpilotspb.ProgramCompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_LESS_THAN, Left: literal(boolean(true)), Right: literal(boolean(false))}}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			require.NotPanics(t, func() { _, err := c.BindExpression(expression, nil, nil, DefaultLimits()); require.Error(t, err) })
@@ -107,7 +107,7 @@ func TestExpressionsRejectMalformedTypesAndResourceOverflow(t *testing.T) {
 	limits.Work = math.MaxInt64
 	_, err = c.BindExpression(literal(boolean(true)), &boolType, nil, limits)
 	require.Error(t, err)
-	opaqueSchema := &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotpb.OpaqueCapabilityType{}}}}}
+	opaqueSchema := &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_OpaqueCapability{OpaqueCapability: &testpilotspb.OpaqueCapabilityType{}}}}}
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "capability"}: {Type: boundType(t, c, opaqueSchema), Available: true}}
 	_, err = c.BindExpression(present(slot("capability")), nil, scope, DefaultLimits())
 	require.Error(t, err)
@@ -115,14 +115,14 @@ func TestExpressionsRejectMalformedTypesAndResourceOverflow(t *testing.T) {
 
 func TestExpressionsRequireNumericSourceTypes(t *testing.T) {
 	c := fixtureCatalog(t)
-	for _, value := range []*testpilotpb.Value{signed("1"), unsigned("1"), {Value: &testpilotpb.Value_FloatingPoint{FloatingPoint: 1}}} {
+	for _, value := range []*testpilotspb.Value{signed("1"), unsigned("1"), {Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 1}}} {
 		_, err := c.BindExpression(literal(value), nil, nil, DefaultLimits())
 		require.Error(t, err)
-		expression := &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Compare{Compare: &testpilotpb.ProgramCompareExpression{Operator: testpilotpb.COMPARISON_OPERATOR_LESS_THAN, Left: literal(value), Right: literal(value)}}}
+		expression := &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Compare{Compare: &testpilotspb.ProgramCompareExpression{Operator: testpilotspb.COMPARISON_OPERATOR_LESS_THAN, Left: literal(value), Right: literal(value)}}}
 		_, err = c.BindExpression(expression, nil, nil, DefaultLimits())
 		require.Error(t, err)
 	}
-	typ := boundType(t, c, scalar(testpilotpb.SCALAR_KIND_SINT32))
+	typ := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_SINT32))
 	_, err := c.BindExpression(literal(signed("1")), &typ, nil, DefaultLimits())
 	require.NoError(t, err)
 }
@@ -131,15 +131,15 @@ func TestExpressionPresenceFactsStayOnTheirSource(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "m"}: {Type: typ, Available: true}}
-	projected := func(source *testpilotpb.ProgramExpression) *testpilotpb.ProgramExpression {
-		return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Path{Path: &testpilotpb.ProgramPathExpression{Source: source, Path: fieldPath("child", "text")}}}
+	projected := func(source *testpilotspb.ProgramExpression) *testpilotspb.ProgramExpression {
+		return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: source, Path: fieldPath("child", "text")}}}
 	}
 	_, err := c.BindExpression(all(present(projected(slot("m"))), equal(projected(slot("m")), literal(text("x")))), nil, scope, DefaultLimits())
 	require.NoError(t, err)
 	_, err = c.BindExpression(anyOf(present(projected(slot("m"))), equal(projected(slot("m")), literal(text("x")))), nil, scope, DefaultLimits())
 	require.Error(t, err)
-	payload := func(wire []byte) *testpilotpb.ProgramExpression {
-		return literal(&testpilotpb.Value{Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: wire}}})
+	payload := func(wire []byte) *testpilotspb.ProgramExpression {
+		return literal(&testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: wire}}})
 	}
 	_, err = c.BindExpression(all(present(projected(payload([]byte{0x12, 3, 0x0a, 1, 'x'}))), equal(projected(payload(nil)), literal(text("x")))), nil, nil, DefaultLimits())
 	require.Error(t, err)
@@ -158,7 +158,7 @@ func TestCompiledExpressionsRemainImmutableDuringConcurrentReuse(t *testing.T) {
 	children := expression.Children()
 	children[0] = nil
 	copied := expression.Children()[0].Literal()
-	copied.Value = &testpilotpb.Value_BoolValue{BoolValue: false}
+	copied.Value = &testpilotspb.Value_BoolValue{BoolValue: false}
 	for i := 0; i < 8; i++ {
 		t.Run(fmt.Sprint(i), func(t *testing.T) {
 			t.Parallel()
@@ -177,25 +177,25 @@ func TestCompiledExpressionsRemainImmutableDuringConcurrentReuse(t *testing.T) {
 func TestGuardedExpressionUsesOnlyImpliedPresence(t *testing.T) {
 	catalog, err := NewCatalog(catalogFixture())
 	require.NoError(t, err)
-	textType, err := catalog.BindType(&testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Scalar{Scalar: &testpilotpb.ScalarType{Kind: testpilotpb.SCALAR_KIND_TEXT}}}}})
+	textType, err := catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_TEXT}}}}})
 	require.NoError(t, err)
-	slot := func(id string) *testpilotpb.ProgramExpression {
-		return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Slot{Slot: &testpilotpb.SlotRef{SlotId: id}}}
+	slot := func(id string) *testpilotspb.ProgramExpression {
+		return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Slot{Slot: &testpilotspb.SlotRef{SlotId: id}}}
 	}
-	present := func(id string) *testpilotpb.ProgramExpression {
-		return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Present{Present: &testpilotpb.ProgramPresentExpression{Operand: slot(id)}}}
+	present := func(id string) *testpilotspb.ProgramExpression {
+		return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Present{Present: &testpilotspb.ProgramPresentExpression{Operand: slot(id)}}}
 	}
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "a"}: {Type: textType}, {Kind: SlotReference, ID: "b"}: {Type: textType}}
 	for _, test := range []struct {
 		name  string
-		guard *testpilotpb.ProgramExpression
+		guard *testpilotspb.ProgramExpression
 		good  bool
 	}{
 		{"present", present("a"), true},
 		{"wrong source", present("b"), false},
-		{"false branch", &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Negation{Negation: &testpilotpb.ProgramNotExpression{Operand: present("a")}}}, false},
-		{"non implying any", &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Any{Any: &testpilotpb.ProgramAnyExpression{Operands: []*testpilotpb.ProgramExpression{present("a"), present("b")}}}}, false},
-		{"unavailable guard", &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Equals{Equals: &testpilotpb.ProgramEqualsExpression{Left: slot("a"), Right: slot("b")}}}, false},
+		{"false branch", &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Negation{Negation: &testpilotspb.ProgramNotExpression{Operand: present("a")}}}, false},
+		{"non implying any", &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Any{Any: &testpilotspb.ProgramAnyExpression{Operands: []*testpilotspb.ProgramExpression{present("a"), present("b")}}}}, false},
+		{"unavailable guard", &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Equals{Equals: &testpilotspb.ProgramEqualsExpression{Left: slot("a"), Right: slot("b")}}}, false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			_, _, err := catalog.BindGuardedExpression(test.guard, slot("a"), &textType, scope, DefaultLimits())
@@ -211,10 +211,10 @@ func TestGuardedExpressionUsesOnlyImpliedPresence(t *testing.T) {
 func TestGuardedExpressionExactPathAndSharedBudget(t *testing.T) {
 	c := fixtureCatalog(t)
 	message := boundType(t, c, named("fixture.Payload", false))
-	textType := boundType(t, c, scalar(testpilotpb.SCALAR_KIND_TEXT))
+	textType := boundType(t, c, scalar(testpilotspb.SCALAR_KIND_TEXT))
 	scope := map[Reference]Binding{{Kind: SlotReference, ID: "a"}: {Type: message, Available: true}, {Kind: SlotReference, ID: "b"}: {Type: message, Available: true}}
-	project := func(id string) *testpilotpb.ProgramExpression {
-		return &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Path{Path: &testpilotpb.ProgramPathExpression{Source: slot(id), Path: fieldPath("optional_text")}}}
+	project := func(id string) *testpilotspb.ProgramExpression {
+		return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Path{Path: &testpilotspb.ProgramPathExpression{Source: slot(id), Path: fieldPath("optional_text")}}}
 	}
 	_, value, err := c.BindGuardedExpression(present(project("a")), project("a"), &textType, scope, DefaultLimits())
 	require.NoError(t, err)

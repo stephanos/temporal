@@ -1,13 +1,249 @@
 {
   "branch_name": "fn-72-extract-the-reusable-temporal-testpilot",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-07T11:06:39.928722Z",
   "created_at": "2026-09-07T00:56:22.968575Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-72-extract-the-reusable-temporal-testpilot",
+  "impl_review_rounds": {
+    "fn-72-extract-the-reusable-temporal-testpilot.1": 2
+  },
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-07T09:23:03.446291Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "b4471a7af8d9b840d84699a1df65d780e083672abc8c6f68e6f20cdd2dfe94d9",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6b1aa148bafd8bd315b122d182deac04",
+            "classification": "introduced",
+            "findingId": "finding-6b1aa148bafd8bd315b122d182deac04",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2e750844dd9f7dc3ba8d71d411eb053a326af69a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 209966,
+      "output_sha256": "f7dce99e2e098ecc311b0b9d5486a49c04ce81532b1a04b63e055574c979ae3e",
+      "reservation_id": "c52ee30c38844c938e7a945b3f940ca5",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-07T09:20:49.613876Z",
+      "tool_calls": 12,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "6c0410f7214665a6f486ef6e7947720ef504ca75a157769f1e752028c4cbf842",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6b1aa148bafd8bd315b122d182deac04",
+            "classification": "introduced",
+            "findingId": "finding-6b1aa148bafd8bd315b122d182deac04",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2e750844dd9f7dc3ba8d71d411eb053a326af69a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 499,
+      "output_sha256": "0a1715aa8b7b0cb21ebbd62868ff19bb1f6a8a9b92c2a9ffa685132003399eb5",
+      "reservation_id": "718afb39bf3846daa4a8c3bda67259c4",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-07T09:23:03.441893Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2f8fa127e590b08aa26d783fac83f69c404a4693b42b4e252e06031489a521ff",
+      "backend": "codex",
+      "base_sha": "2e750844dd9f7dc3ba8d71d411eb053a326af69a",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-94eb186099b0c43a0c5144719ccfb2e4",
+            "classification": "introduced",
+            "findingId": "finding-94eb186099b0c43a0c5144719ccfb2e4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2e750844dd9f7dc3ba8d71d411eb053a326af69a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 93198,
+      "output_sha256": "3c9bcb3735b118edc2b34ac73d0d954fc228c168efa5567b1d22247672dc36f7",
+      "reservation_id": "1e79724d9f0d40b6a176042439e80fba",
+      "round_consumed": true,
+      "scope": "impl:fn-72-extract-the-reusable-temporal-testpilot.1",
+      "superseded_by": null,
+      "task": "fn-72-extract-the-reusable-temporal-testpilot.1",
+      "timestamp": "2026-09-07T09:43:26.998011Z",
+      "tool_calls": 3,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "28e0293545bf5fd9e0203531638d197b4a01dde218a1d13ae9a77f6aa82e47c8",
+      "backend": "codex",
+      "base_sha": "04b35a173d1f5181e69709269f83cbfef44c9a55",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c297dd36397a4e413df4fb0326796e55",
+            "classification": "introduced",
+            "findingId": "finding-c297dd36397a4e413df4fb0326796e55",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2e750844dd9f7dc3ba8d71d411eb053a326af69a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 178084,
+      "output_sha256": "c16cff0d1eb8fa8f84bd0d2b9aa9ccc5f3de4941f4ce2dab4c5c957b93d5efd3",
+      "reservation_id": "f4cd4a34c7734851b4960790868b585d",
+      "round_consumed": true,
+      "scope": "impl:fn-72-extract-the-reusable-temporal-testpilot.1",
+      "superseded_by": null,
+      "task": "fn-72-extract-the-reusable-temporal-testpilot.1",
+      "timestamp": "2026-09-07T09:48:21.062880Z",
+      "tool_calls": 4,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8ccfde2c1e04d06de9c813ea1a6c539040908c6ba27d3f55a3b1ba0f71d2211e",
+      "backend": "codex",
+      "base_sha": "7dc4d5cc7a3a4d574ecf00da5a364d84408ff8e0",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2ac891d4720a6a199ad1a220854244136840c9ba",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 5705,
+      "output_sha256": "db8e60c909dd795a3baea96662978002564c780fb70f2b570f6c4e1ad69698e6",
+      "reservation_id": "31ba32a7f0c64d5a886168715f34e8cc",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-07T11:06:39.923961Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "impl:fn-72-extract-the-reusable-temporal-testpilot.1": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-72-extract-the-reusable-temporal-testpilot.md",
-  "status": "open",
+  "status": "done",
   "title": "Extract the reusable Temporal Testpilot Driver",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +256,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-07T01:00:14.621242Z"
+  "updated_at": "2026-09-07T11:49:36.430091Z"
 }

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -17,11 +17,11 @@ func TestRequestWritesPreservePresenceAndOwnership(t *testing.T) {
 	c := fixtureCatalog(t)
 	typ := boundType(t, c, named("fixture.Payload", false))
 	lookup := fieldPath("labels")
-	lookup.Segments[0].Selector = &testpilotpb.FieldPathSegment_MapKey{MapKey: &testpilotpb.MapKeySelector{Key: text("zero")}}
+	lookup.Segments[0].Selector = &testpilotspb.FieldPathSegment_MapKey{MapKey: &testpilotspb.MapKeySelector{Key: text("zero")}}
 	var writes []Write
 	for _, tc := range []struct {
-		path  *testpilotpb.FieldPath
-		value *testpilotpb.Value
+		path  *testpilotspb.FieldPath
+		value *testpilotspb.Value
 	}{
 		{fieldPath("child", "optional_text"), text("")}, {fieldPath("success"), text("")}, {lookup, signed("0")},
 	} {
@@ -46,7 +46,7 @@ func TestRequestWritesPreservePresenceAndOwnership(t *testing.T) {
 	exact.Bytes--
 	_, _, err = BuildRequest(context.Background(), typ.Message(), writes, exact)
 	require.Error(t, err)
-	writes[0].Value.Value = &testpilotpb.Value_Text{Text: "changed"}
+	writes[0].Value.Value = &testpilotspb.Value_Text{Text: "changed"}
 	again, err := proto.MarshalOptions{Deterministic: true}.Marshal(request)
 	require.NoError(t, err)
 	require.Equal(t, wire, again)
@@ -57,7 +57,7 @@ func TestRequestRejectsCrossedValuesAndConflictingWrites(t *testing.T) {
 	typ := boundType(t, c, named("fixture.Payload", false))
 	p, err := c.BindPath(typ, fieldPath("failure"), DefaultLimits())
 	require.NoError(t, err)
-	for _, v := range []*testpilotpb.Value{nil, text("0"), signed("9223372036854775808"), signed("01")} {
+	for _, v := range []*testpilotspb.Value{nil, text("0"), signed("9223372036854775808"), signed("01")} {
 		got, _, err := BuildRequest(context.Background(), typ.Message(), []Write{{Path: p, Value: v}}, DefaultLimits())
 		require.Error(t, err)
 		require.Nil(t, got)
@@ -83,16 +83,16 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 	require.NoError(t, err)
 	typ := boundType(t, c, named("fixture.Numbers", false))
 	for i, tc := range []struct {
-		value, bad *testpilotpb.Value
+		value, bad *testpilotspb.Value
 		want       any
 	}{
 		{signed("-2147483648"), signed("2147483648"), int32(-2147483648)}, {signed("-2147483648"), signed("2147483648"), int32(-2147483648)}, {signed("-2147483648"), signed("2147483648"), int32(-2147483648)},
 		{signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)}, {signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)}, {signed("-9223372036854775808"), signed("9223372036854775808"), int64(-9223372036854775808)},
 		{unsigned("4294967295"), unsigned("4294967296"), uint32(4294967295)}, {unsigned("4294967295"), unsigned("4294967296"), uint32(4294967295)},
 		{unsigned("18446744073709551615"), unsigned("18446744073709551616"), uint64(18446744073709551615)}, {unsigned("18446744073709551615"), unsigned("18446744073709551616"), uint64(18446744073709551615)},
-		{&testpilotpb.Value{Value: &testpilotpb.Value_FloatingPoint{FloatingPoint: 0.1}}, &testpilotpb.Value{Value: &testpilotpb.Value_FloatingPoint{FloatingPoint: math.MaxFloat64}}, float32(0.1)},
-		{&testpilotpb.Value{Value: &testpilotpb.Value_FloatingPoint{FloatingPoint: 0.1}}, text("0.1"), float64(0.1)},
-		{&testpilotpb.Value{Value: &testpilotpb.Value_BytesValue{BytesValue: []byte{1, 2}}}, text("bytes"), []byte{1, 2}}, {boolean(true), signed("1"), true},
+		{&testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 0.1}}, &testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: math.MaxFloat64}}, float32(0.1)},
+		{&testpilotspb.Value{Value: &testpilotspb.Value_FloatingPoint{FloatingPoint: 0.1}}, text("0.1"), float64(0.1)},
+		{&testpilotspb.Value{Value: &testpilotspb.Value_BytesValue{BytesValue: []byte{1, 2}}}, text("bytes"), []byte{1, 2}}, {boolean(true), signed("1"), true},
 	} {
 		t.Run(fmt.Sprint(kinds[i]), func(t *testing.T) {
 			path, err := c.BindPath(typ, fieldPath(fmt.Sprintf("field%d", i)), DefaultLimits())
@@ -114,12 +114,12 @@ func TestRequestNumericWidthsAndCollections(t *testing.T) {
 	}
 	payload := boundType(t, c, named("fixture.Payload", false))
 	for _, tc := range []struct {
-		path  *testpilotpb.FieldPath
-		value *testpilotpb.Value
+		path  *testpilotspb.FieldPath
+		value *testpilotspb.Value
 	}{
-		{fieldPath("items"), &testpilotpb.Value{Value: &testpilotpb.Value_ListValue{ListValue: &testpilotpb.ValueList{Values: []*testpilotpb.Value{{Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'b'}}}}, {Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'a'}}}}}}}}},
-		{fieldPath("labels"), &testpilotpb.Value{Value: &testpilotpb.Value_MapValue{MapValue: &testpilotpb.ValueMap{Entries: []*testpilotpb.ValueMapEntry{{Key: text("z"), Value: signed("0")}, {Key: text("a"), Value: signed("1")}}}}}},
-		{fieldPath("payload"), &testpilotpb.Value{Value: &testpilotpb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/custom.Bytes", Value: []byte{1, 2, 3}}}}},
+		{fieldPath("items"), &testpilotspb.Value{Value: &testpilotspb.Value_ListValue{ListValue: &testpilotspb.ValueList{Values: []*testpilotspb.Value{{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'b'}}}}, {Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/fixture.Payload", Value: []byte{10, 1, 'a'}}}}}}}}},
+		{fieldPath("labels"), &testpilotspb.Value{Value: &testpilotspb.Value_MapValue{MapValue: &testpilotspb.ValueMap{Entries: []*testpilotspb.ValueMapEntry{{Key: text("z"), Value: signed("0")}, {Key: text("a"), Value: signed("1")}}}}}},
+		{fieldPath("payload"), &testpilotspb.Value{Value: &testpilotspb.Value_MessageValue{MessageValue: &anypb.Any{TypeUrl: "type.googleapis.com/custom.Bytes", Value: []byte{1, 2, 3}}}}},
 	} {
 		path, err := c.BindPath(payload, tc.path, DefaultLimits())
 		require.NoError(t, err)

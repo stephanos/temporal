@@ -1,5 +1,22 @@
 # Extract the reusable Temporal Testpilot Driver
 
+> HTML render lens: [.flow/artifacts/fn-72-extract-the-reusable-temporal-testpilot/spec.html](../artifacts/fn-72-extract-the-reusable-temporal-testpilot/spec.html) — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
+## Overview
+
+Relocate the existing composite Temporal Testpilot Driver from the functional-test tree into the
+shared `common/testing/temporaltestpilot` package. Preserve its complete API, lifecycle, delivery,
+authority, and error contracts while keeping generated fixtures, cluster provisioning, and live
+test policy in `tests/`.
+
+## Quick commands
+
+```bash
+mise exec -- go test -count=1 -tags test_dep ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot
+mise exec -- go test -count=1 -tags test_dep ./tools/umpire/regression -run 'Test(TestpilotOwnsCaseProtocolAndRuntime|UmpireCIWorkflowRunsSeparatedUnitAndLiveProofs)'
+make umpire-check-live-tests
+```
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -16,7 +33,7 @@ The destination is `common/testing/temporaltestpilot`, with Go package name `tem
 
 The destination owns the composite Driver, WorkflowService descriptor Catalog helpers, and the existing `server`, `worker`, and `internal/delivery` children. Server and worker remain peers composed by the parent. The private delivery ledger, carrier codec, ownership records, and cancellation state remain private to this Driver tree. Server does not import worker, worker does not import server, and delivery does not import either adapter. The generic Testpilot facade remains independent of the Temporal Driver.
 
-Production Driver code depends on the public Testpilot facade, its wire API, Temporal API and SDK packages, existing transport dependencies, and its own private packages. Its production dependency closure must not reach repository `tests/`, Umpire generators, canary orchestration, or the generic Testpilot runtime's private IR, execution, or verification packages. There is no embedding or runtime loading of retained Case fixtures in the shared Driver.
+Production Driver code depends on the public Testpilot facade, its wire API, Temporal API and SDK packages, existing transport dependencies, and its own private packages. Its production dependency closure must not reach repository `tests/`, Umpire generators, or canary orchestration. Driver packages must not directly import the generic Testpilot runtime's private IR, execution, or verification packages; those remain implementation details reached only through the public facade. There is no embedding or runtime loading of retained Case fixtures in the shared Driver.
 
 Move implementation-focused unit tests with their owners so they can still exercise private delivery and SDK lifecycle behavior. Retained Lean-generated functional fixtures remain in `tests/testcore/testpilot/testdata`, along with fixture admission/reuse tests that import the shared Driver's public Catalog helpers. Cluster startup, namespace and Nexus endpoint provisioning, SDK client creation, environment-specific configuration, assertions, and resource cleanup registration remain under `tests/`. Do not duplicate generated fixtures or move their generator ownership merely to accommodate the extraction.
 
@@ -53,7 +70,7 @@ Align the normative MOD-13 owner locations in the Umpire 4 specification to the 
 
 - **R1:** The composite Driver, descriptor Catalog helpers, server, worker, and private delivery implementation exist only under `common/testing/temporaltestpilot`; former runtime implementation imports are removed from active consumers. Implementation-focused unit tests move with their owners; test fixtures and provisioning remain under `tests/`. Errors: build/import failures or a remaining production dependency on the former implementation fail acceptance; no new runtime error surface.
 - **R2:** An external-package consumer compiles against the shared composite Driver and public Catalog helpers, and interface conformance to Testpilot `Profile` and `Driver` is checked. Existing exported contracts and configuration/client ownership remain unchanged except import paths and the parent package name. Errors: existing invalid configuration and nil/context rejection cases retain their categories and behavior; extraction introduces no string-parsing error API or new configuration requirement.
-- **R3:** Executable dependency checks cover the new Driver tree and prevent its production dependency closure from reaching repository `tests/`, Umpire generators, canary orchestration, or generic Testpilot private packages; checks also preserve server/worker/delivery authority direction and generic-runtime independence. Add negative test inputs proving forbidden edges are rejected. Errors: forbidden direct or transitive dependencies and unreadable/unparseable inspected source fail the gate, rather than silently omitting coverage.
+- **R3:** Executable dependency checks cover the new Driver tree and prevent its production dependency closure from reaching repository `tests/`, Umpire generators, or canary orchestration; direct Driver imports of generic Testpilot private packages are forbidden while ordinary transitive reach through the public facade remains valid. Checks also preserve server/worker/delivery authority direction and generic-runtime independence. Add negative test inputs proving forbidden edges are rejected. Errors: forbidden direct or transitive dependencies and unreadable/unparseable inspected source fail the gate, rather than silently omitting coverage.
 - **R4:** Focused tests demonstrate preserved lifecycle and ownership through construction/open failure cleanup, shared versus conflicting worker registrations, controller/worker dispatch separation, cancellation before and during admission, cancellation retries, bounded Close, quarantine retention until actual completion, and cross-Run delivery isolation. Reuse the existing corresponding tests and add coverage only for a relocation-exposed gap. Errors: setup, close, cancellation, transport, and capacity failures retain their existing outcomes and do not leak successfully created resources or admit foreign work.
 - **R5:** Existing carrier and completion-capability tests pass from the shared location, including request preservation, foreign physical binding rejection, header collisions and size limits, replay/late completion, system callback validation, and late diagnostics. Errors: malformed or crossed delivery, untrusted callback authority, rejected triggers, and completion after closure remain rejected or quarantined as currently specified, without mutating a closed Run or its Verdict.
 - **R6:** Existing fixture admission and prepared-Case reuse/correlation tests remain under the test tree and consume the shared public Driver helpers. Canonical retained fixture bytes and their generator destination remain unchanged by C. Errors: static rejection still occurs before Driver I/O, correlation failures do not establish success, and missing or invalid fixtures fail tests; tests do not invoke Lean or rewrite fixtures.
@@ -80,3 +97,32 @@ A sibling package under `common/testing` makes the reuse intent clear while pres
 A coordinated move preserves the already-tested deep delivery module and server/worker authority split. It incurs import and path-gate churn but adds no runtime layer, allocation, network call, concurrency, or authorization surface. Keeping fixtures and provisioning in the test tree avoids coupling the reusable Driver to Lean production and functional-cluster setup. Keeping current binding and activation behavior limits this change to ownership, making later B and D changes easier to review independently.
 
 The contract is grounded in the approved Umpire architecture review's reusable-Driver finding and Umpire 4's MOD-08, MOD-12 through MOD-14, ART-10, EVD-14 through EVD-17, and QLF-05 rules. Existing SDK, transport, delivery, fixture, and live tests supply regression evidence; no broader canary-readiness or model-refinement claim follows from a successful extraction.
+
+## Early proof point
+
+Task fn-72-extract-the-reusable-temporal-testpilot.1 proves that the complete Driver tree can move
+under `common/testing` without weakening Go `internal` visibility or changing its focused tests. If
+that atomic relocation fails, re-evaluate the destination boundary before migrating consumers or
+rewriting ownership gates.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Sole shared implementation ownership and retained test-only fixture tree | fn-72-extract-the-reusable-temporal-testpilot.1, fn-72-extract-the-reusable-temporal-testpilot.2 | — |
+| R2 | Public API and interface compatibility from an external consumer | fn-72-extract-the-reusable-temporal-testpilot.2 | — |
+| R3 | Direct and transitive dependency-direction enforcement | fn-72-extract-the-reusable-temporal-testpilot.3 | — |
+| R4 | Composite lifecycle, cancellation, quarantine, and isolation preservation | fn-72-extract-the-reusable-temporal-testpilot.1 | — |
+| R5 | Carrier and completion-capability behavior preservation | fn-72-extract-the-reusable-temporal-testpilot.1 | — |
+| R6 | Retained fixture admission, reuse, and correlation | fn-72-extract-the-reusable-temporal-testpilot.2 | — |
+| R7 | Live async Nexus consumer on the shared Driver | fn-72-extract-the-reusable-temporal-testpilot.2 | — |
+| R8 | Normative ownership, active docs, and package-selection alignment | fn-72-extract-the-reusable-temporal-testpilot.3, fn-72-extract-the-reusable-temporal-testpilot.4 | — |
+| R9 | Focused, aggregate, lint, and separately reported live verification | fn-72-extract-the-reusable-temporal-testpilot.4 | — |
+
+## References
+
+- `.plans/UMPIRE4_ORDER.md` — first architecture wave and downstream sequencing.
+- `.plans/UMPIRE4_SPEC.md` — MOD-12 through MOD-14 ownership contracts.
+- `.flow/memory/bug/integration/moved-conformance-tests-must-not-import-2026-09-06.md` — generic runtime dependency direction.
+- `.flow/memory/bug/integration/full-integration-gates-must-select-the-2026-09-04.md` — complete package and live-test selection.
+- `.flow/memory/bug/integration/behavior-neutral-refactors-must-not-2026-09-04.md` — relocation compatibility discipline.
