@@ -115,8 +115,7 @@ func TestNewRejectsProfileLimitsBeforeRetainedStateAllocation(t *testing.T) {
 	limits.MaxRunEvents = 100001
 	_, err = New(Options{
 		Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: limits},
-		Client:  &recordingClient{}, Namespace: "namespace", WorkerRoleID: "worker",
-		TaskQueues: []RoleBinding{{RoleID: "queue", Value: "task-queue"}},
+		Client:  &recordingClient{}, WorkerRoleID: "worker",
 	})
 	require.ErrorIs(t, err, ErrInvalid)
 }
@@ -250,9 +249,17 @@ func runtimeTestDriver(t *testing.T, prepared testpilot.PreparedProgram) (*Drive
 	t.Helper()
 	host := &Driver{
 		mu: newContextMutex(), sessions: make(map[string]*Session),
-		options: hostOptions{namespace: "namespace", workerRoleID: "worker", taskQueues: map[string]string{"queue": "task-queue"}, endpoints: map[string]string{"endpoint": "endpoint"}, maximum: 16, diagnostics: 16, requestBytes: 64 << 10, now: time.Now},
+		options: hostOptions{
+			profile: testpilot.ProfileSpec{Roles: []testpilot.RolePolicy{
+				{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{startWorkflowMethod}},
+				{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
+				{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
+				{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
+			}},
+			workerRoleID: "worker", maximum: 16, diagnostics: 16, requestBytes: 64 << 10, now: time.Now,
+		},
 	}
-	definition, err := host.prepareDefinitionPlans(prepared.Snapshot(), prepared.Entrypoints())
+	definition, err := host.prepareDefinitionResources(prepared.Snapshot(), prepared.Entrypoints(), prepared.Roles())
 	require.NoError(t, err)
 	return host, definition
 }

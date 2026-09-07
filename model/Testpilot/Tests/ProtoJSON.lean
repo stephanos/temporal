@@ -73,7 +73,7 @@ private def bindingProgram : temporal.server.api.testpilot.v1.Program := Program
     Program.environment "nexus.endpoint"])
 
 def representativeCase : Case := Testpilot.Authoring.case 1 "binding-case" bindingProgram contract
-  (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128])) (minor := 1)
+  (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128]))
 
 private def unknownAnyCase : Case :=
   let expression := ProgramExpr.literal (Value.messageValue {
@@ -115,7 +115,7 @@ private def tests : IO Unit := do
   let first ← render representativeCase
   let second ← render representativeCase
   assert (first == second) "equal Cases did not render deterministically"
-  assert (first.contains "\"version\":{\"major\":1,\"minor\":1}") "Case 1.1 was dropped"
+  assert (first.contains "\"version\":{\"major\":1}") "Case 1.0 was dropped"
   assert (first.contains "\"environment\":{}") "present empty environment reference was dropped"
   assert (first.contains "\"environment\":[{\"bindingId\":\"namespace\"},{\"bindingId\":\"task.queue\"},{\"bindingId\":\"nexus.endpoint\"}]")
     "environment definitions changed order"
@@ -137,7 +137,7 @@ private def tests : IO Unit := do
   let literalSecond ← render literalCase
   assert (literalFirst == literalSecond) "literal Case 1.0 encoding changed nondeterministically"
   assert (literalFirst.contains "\"version\":{\"major\":1}") "literal Case 1.0 version changed"
-  assert (!literalFirst.contains "bindingId") "literal Case 1.0 gained binding fields"
+  assert (!literalFirst.contains "bindingId") "resource-free Case 1.0 gained binding fields"
   assert (literalFirst.contains "\"run\":{}") "Program Run identity was dropped"
   assert (literalFirst.contains "AP8=") "expression bytes were not rendered"
   match ← Testpilot.ProtoJSON.canonical unknownAnyCase with

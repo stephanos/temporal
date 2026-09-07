@@ -121,7 +121,7 @@ func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 	for _, mode := range []string{"exact", "partial", "error", "nil", "duplicate-id", "duplicate-ordinal", "crossed", "effect-error"} {
 		t.Run(mode, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
-			addWorker(c)
+			addWorker(c, &policy)
 			c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 2}}
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
@@ -388,7 +388,7 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 				c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, rpcNode("extra"))
 			}
 			if mode == "worker-error" {
-				addWorker(c)
+				addWorker(c, &policy)
 				c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 			}
 			p, err := Prepare(c, catalog, policy)
@@ -495,7 +495,7 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 }
 func TestSchedulerStopPreventsTriggerAndReservations(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	addWorker(c)
+	addWorker(c, &policy)
 	c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)

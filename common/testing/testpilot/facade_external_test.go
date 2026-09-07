@@ -85,7 +85,6 @@ func TestExternalDriverExecutesBoundedCase(t *testing.T) {
 
 func TestExternalDriverReceivesCopiedPreparedRoles(t *testing.T) {
 	source, profile := proofFixture(t)
-	source.Version.Minor = 1
 	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
 	source.Program.Roles = []*testpilotspb.RoleDefinition{
 		{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},

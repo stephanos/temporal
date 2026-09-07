@@ -22,18 +22,10 @@ var (
 
 const defaultCleanupTimeout = 5 * time.Second
 
-type RoleBinding struct {
-	RoleID string
-	Value  string
-}
-
 type Options struct {
 	Profile           testpilot.ProfileSpec
 	Client            client.Client
-	Namespace         string
 	WorkerRoleID      string
-	TaskQueues        []RoleBinding
-	Endpoints         []RoleBinding
 	WorkerStopTimeout time.Duration
 	SessionOptions    func(context.Context, string) (SessionOptions, error)
 }

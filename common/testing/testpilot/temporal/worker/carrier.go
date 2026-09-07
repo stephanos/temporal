@@ -71,11 +71,7 @@ func (s *Session) validCarrierBinding(plan testpilot.ReservationCarrierPlan, bin
 		workflowEntrypoint = reservation.EntrypointID
 	}
 	entry, exists := s.definition.entries[workflowEntrypoint]
-	namespace := s.host.options.namespace
-	if s.host.options.symbolic {
-		namespace = entry.namespace
-	}
-	return exists && entry.plan.Context() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW && namespace == binding.Namespace && entry.workflowType == binding.WorkflowType && entry.queue == binding.TaskQueue
+	return exists && entry.plan.Context() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW && entry.namespace == binding.Namespace && entry.workflowType == binding.WorkflowType && entry.queue == binding.TaskQueue
 }
 
 func (c *Carrier) Handles() []testpilot.EffectHandle {

@@ -118,7 +118,7 @@ func TestValuesGuardedMissingSlotsAndActivationIsolation(t *testing.T) {
 	consumer.Guard = present(slot("text"))
 	consumer.Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: slot("text")}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, consumer)
-	addWorker(c)
+	addWorker(c, &policy)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	store, err := newValueStore(p, "run")
@@ -232,7 +232,7 @@ func TestOutcomeValidationAndIndependentAttemptSnapshots(t *testing.T) {
 
 func TestWorkerOutcomeValuesRemainActivationLocal(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	addWorker(c)
+	addWorker(c, &policy)
 	node := rpcNode("finish")
 	node.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{Result: textLiteral("done")}}}
 	node.Outcome.Fields = append(node.Outcome.Fields, &testpilotspb.OutcomeFieldDefinition{Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE, Type: scalar(testpilotspb.SCALAR_KIND_TEXT)})

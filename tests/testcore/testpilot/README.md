@@ -9,7 +9,7 @@ Cluster provisioning, namespace and Nexus endpoint creation, SDK client ownershi
 configuration, assertions, and cleanup registration remain under `tests/`. The reusable composite
 Driver and its implementation-focused tests live in `common/testing/testpilot/temporal`.
 
-The async Nexus fixture is one canonical Case 1.1 artifact with symbolic resource declarations.
+The async Nexus fixture is one canonical Case 1.0 artifact with symbolic resource declarations.
 Fixture tests prepare its unchanged bytes against two physical Profiles, confirm distinct binding
 identities, and reject missing or inconsistent references before dispatch. The tagged live test adds
 two isolated namespaces, queues, and named Nexus routes and verifies both Runs satisfy the same

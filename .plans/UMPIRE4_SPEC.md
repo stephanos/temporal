@@ -322,9 +322,9 @@ horizon.
   complete managed tree under a temporary root before comparison or publication. Verification and
   reviewed promotion MUST be separate actions; ordinary tests MUST invoke neither Lean nor rewrite
   fixtures.
-- **ART-13 — Explicit environment binding.** A Case 1.0 Program MUST be literal-only and MUST reject
-  binding declarations or references. A Case 1.1 Program MUST declare a nonempty closed graph of
-  symbolic text bindings. The Case owns only symbolic IDs and references; the Profile owns their
+- **ART-13 — Explicit environment binding.** Exact Case 1.0 is the only admitted and generated
+  format. A resource-free Program MAY have an empty environment; every Program that uses a physical
+  resource MUST declare a complete closed graph of symbolic text bindings. The Case owns only symbolic IDs and references; the Profile owns their
   physical namespace, task-queue, and named Nexus endpoint values. Symbolic endpoint IDs are not
   transport addresses. Credentials, gRPC targets, callback authorities, SDK clients, and lifecycle
   configuration remain Driver inputs.
@@ -405,9 +405,9 @@ horizon.
 - **EVD-19 — Static Driver validation.** After complete Driver identity agreement and before Monitor
   creation or `Driver.Open`, `PreparedCase.Run` MUST call the Driver's no-I/O validation hook over
   immutable prepared metadata. Validation failure MUST create no Session, Run, Verdict, worker
-  registration, or target effect. Symbolic Temporal validation MUST compare binding references, not
-  merely their currently resolved text. Legacy literal-only and symbolic binding modes MUST remain
-  explicit, and a Driver MUST NOT mix them or use legacy values as symbolic fallbacks.
+  registration, or target effect. Temporal validation MUST compare binding references, not merely
+  their currently resolved text. The Driver MUST obtain physical resource names solely from the
+  immutable Profile binding snapshot.
 
 ## Exploration, replay, and promotion
 
