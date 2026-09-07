@@ -1,0 +1,28 @@
+{
+  "branch_name": "fn-73-explicit-environment-binding-for",
+  "created_at": "2026-09-07T00:58:20.528595Z",
+  "depends_on_epics": [
+    "fn-71-standalone-lean-testpilot-protocol",
+    "fn-72-extract-the-reusable-temporal-testpilot",
+    "fn-68-minimal-nexus3-success-demonstration"
+  ],
+  "id": "fn-73-explicit-environment-binding-for",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-73-explicit-environment-binding-for.md",
+  "status": "open",
+  "title": "Explicit environment binding for Testpilot Cases",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-07T01:00:17.741930Z"
+}

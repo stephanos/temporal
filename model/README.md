@@ -32,10 +32,12 @@ and one deterministic Contract. Programs contain typed acyclic instruction graph
 contain safety and bounded-liveness monitor machines over Run Events and declared Observations.
 
 `Umpire.Case.Compiler` lowers checked Producer inputs and rejects unsupported constructs.
-`Temporal.Testpilot` supplies Temporal-owned Cases, including the unrelated `GetSystemInfo` and
-async Nexus examples and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot`
-renders canonical ProtoJSON. Lean is the first Producer, while the Case format and Go runtime remain
-independent of Lean.
+`Temporal.Feature.Nexus3.Testpilot` lowers the checked success-only Nexus3 completion Query and
+witness into the async Nexus example. `Temporal.Testpilot` supplies the unrelated `GetSystemInfo`
+example and the six public-facade conformance fixtures. `Temporal.Tool.Testpilot` renders canonical
+ProtoJSON. The broader Nexus3 Markdown sketches remain design material rather than executable
+coverage. Lean is the first Producer, while the Case format and Go runtime remain independent of
+Lean.
 
 Testpilot terms have precise boundaries:
 
@@ -152,17 +154,20 @@ make umpire-gen-regression-views
 make umpire-check-regression-views
 ```
 
-The Testpilot conformance tree is also owner-managed:
+The Testpilot conformance and example trees are independently owner-managed by the same tool:
 
 ```sh
 make umpire-check-case-runtime-conformance
 make umpire-gen-case-runtime-conformance  # separate reviewed promotion
+model/.lake/build/bin/temporal-testpilot async-nexus
+mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$'
 ```
 
-The check builds the Lean renderer, creates and validates the complete twelve-file tree under one
-physical temporary root, and recursively diffs it against the checkout. The promotion target is a
-separate action. Ordinary Go tests only read checked-in fixtures; they invoke neither Lean nor a
-rewrite mode.
+The check builds the Lean renderer, creates and validates both the complete twelve-file conformance
+tree and the two-file `tests/testcore/testpilot/testdata` example tree under one physical temporary
+root, and recursively diffs each independently owned root against the checkout. The promotion target
+is a separate action. Ordinary Go tests only read checked-in fixtures; they invoke neither Lean nor
+a rewrite mode.
 
 The corpus contains exactly these facade proof classes:
 
