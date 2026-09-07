@@ -79,7 +79,7 @@ func TestPrepareCompilesDeterministicReservationCarrierTopology(t *testing.T) {
 
 func TestPrepareExposesWorkflowOnlyCarrierReservations(t *testing.T) {
 	source, catalog, policy := fixture(t)
-	addWorker(source)
+	addWorker(source, &policy)
 	source.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 	prepared, err := Prepare(source, catalog, policy)
 	require.NoError(t, err)

@@ -15,17 +15,13 @@ var (
 
 	_ func(temporal.Options) (*temporal.Driver, error) = temporal.New
 	_ temporal.Endpoint                                = temporal.Endpoint{}
-	_ temporal.RoleBinding                             = temporal.RoleBinding{}
 	_                                                  = temporal.Options{
 		Profile:               testpilot.ProfileSpec{},
 		ServerEndpoints:       map[string]temporal.Endpoint{"workflow-service": {}},
 		SystemCallbackBaseURL: "http://127.0.0.1",
 		HTTPClient:            nil,
 		SDKClient:             nil,
-		Namespace:             "default",
 		WorkerRoleID:          "worker",
-		TaskQueues:            []temporal.RoleBinding{{RoleID: "task-queue", Value: "queue"}},
-		NexusEndpoints:        []temporal.RoleBinding{{RoleID: "nexus-endpoint", Value: "endpoint"}},
 		WorkerStopTimeout:     time.Second,
 	}
 )

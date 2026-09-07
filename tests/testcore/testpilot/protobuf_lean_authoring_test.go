@@ -33,7 +33,7 @@ func TestLeanAuthoringProtoJSONStrictDecode(t *testing.T) {
 	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
 	require.Equal(t, "binding-case", decoded.GetCaseId())
-	require.Equal(t, int32(1), decoded.GetVersion().GetMinor())
+	require.Equal(t, int32(0), decoded.GetVersion().GetMinor())
 	require.Equal(t, []byte{0, 255, 128}, decoded.GetProvenance().GetProducerData())
 	require.Equal(t, int64(9223372036854775807), decoded.GetProgram().GetLimits().GetMaxAttempts())
 

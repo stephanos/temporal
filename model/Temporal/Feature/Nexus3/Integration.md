@@ -38,7 +38,7 @@ provenance consume that core field; `Temporal.Shared.definitionMetadata` supplie
 Nexus3 syntax.
 
 The produced Testpilot Case has a separate wire version. The checked completion selection emits one
-Case 1.1 Program whose symbolic namespace, task-queue, and Nexus endpoint IDs are stable resource
+Case 1.0 Program whose symbolic namespace, task-queue, and Nexus endpoint IDs are stable resource
 references, not physical names or transport addresses. Preparing those exact Case bytes against a
 Profile resolves environment-owned values without changing the checked definitions, Behavior
 Fingerprints, Contract, or Umpire provenance.

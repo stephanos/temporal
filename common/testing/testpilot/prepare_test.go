@@ -103,7 +103,6 @@ func TestPrepareOwnsMutableInputs(t *testing.T) {
 
 func TestPrepareFingerprintsCanonicalEnvironmentSnapshot(t *testing.T) {
 	source, profile := facadeFixture(t)
-	source.Version.Minor = 1
 	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "alpha"}, {BindingId: "beta"}}
 	source.Program.Roles = []*testpilotspb.RoleDefinition{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "alpha"}, {RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "alpha", ResourceBindingId: "beta"}}
 	profile.Roles = []RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, {ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE}}
@@ -183,7 +182,6 @@ func TestPrepareRejectsMalformedEnvironmentSnapshots(t *testing.T) {
 
 func TestConcurrentPreparationsOwnEnvironmentSnapshots(t *testing.T) {
 	source, base := facadeFixture(t)
-	source.Version.Minor = 1
 	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}}
 	source.Program.Roles = []*testpilotspb.RoleDefinition{{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}}
 	base.Roles = []RolePolicy{{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}}

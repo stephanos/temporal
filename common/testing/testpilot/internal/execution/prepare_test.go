@@ -54,14 +54,15 @@ func succeeded(entry, node string) *testpilotspb.ProgramExpression {
 func runIDExpression() *testpilotspb.ProgramExpression {
 	return &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Run{Run: &testpilotspb.RunRef{}}}
 }
-func addWorker(source *testpilotspb.Case) {
-	source.Program.Roles = append(source.Program.Roles, &testpilotspb.RoleDefinition{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, &testpilotspb.RoleDefinition{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
+func addWorker(source *testpilotspb.Case, policy *Policy) {
+	source.Program.Environment = append(source.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "namespace"}, &testpilotspb.EnvironmentDefinition{BindingId: "queue"})
+	policy.EnvironmentBindings = append(policy.EnvironmentBindings, EnvironmentBinding{ID: "namespace", Value: "namespace"}, EnvironmentBinding{ID: "queue", Value: "queue"})
+	source.Program.Roles = append(source.Program.Roles, &testpilotspb.RoleDefinition{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"}, &testpilotspb.RoleDefinition{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
 	source.Program.Entrypoints = append(source.Program.Entrypoints, &testpilotspb.EntrypointDefinition{EntrypointId: "workflow", Activation: &testpilotspb.EntrypointDefinition_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}})
 }
 func TestPrepareRejectsStructuralAndPolicyErrors(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Case, *Policy){
 		"version":          func(c *testpilotspb.Case, _ *Policy) { c.Version.Major = 2 },
-		"minor":            func(c *testpilotspb.Case, _ *Policy) { c.Version.Minor = 1 },
 		"case id":          func(c *testpilotspb.Case, _ *Policy) { c.CaseId = " bad" },
 		"missing contract": func(c *testpilotspb.Case, _ *Policy) { c.Contract = nil },
 		"unknown field":    func(c *testpilotspb.Case, _ *Policy) { c.Program.ProtoReflect().SetUnknown([]byte{0x80, 0x06, 1}) },
@@ -160,7 +161,7 @@ func TestRunIDIntrinsicIsOnlyAvailableToProgramInputs(t *testing.T) {
 	require.Error(t, err)
 
 	c, catalog, policy = fixture(t)
-	addWorker(c)
+	addWorker(c, &policy)
 	c.Program.Entrypoints[1].Instructions = []*testpilotspb.InstructionDefinition{{
 		InstructionId: "finish",
 		Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_Finish{Finish: &testpilotspb.Finish{
@@ -183,7 +184,7 @@ func TestReservationAdmissionBoundsLocalAndGlobalAttempts(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			c, catalog, p := fixture(t)
-			addWorker(c)
+			addWorker(c, &p)
 			node := c.Program.Entrypoints[0].Instructions[0]
 			node.Limits.MaxAttempts = test.local
 			c.Program.Limits.MaxAttempts = test.global
@@ -283,7 +284,7 @@ func TestReservationTargetsAndExactCombinedBound(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, p := fixture(t)
-			addWorker(c)
+			addWorker(c, &p)
 			c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 			mutate(c)
 			_, err := Prepare(c, catalog, p)
@@ -291,7 +292,7 @@ func TestReservationTargetsAndExactCombinedBound(t *testing.T) {
 		})
 	}
 	c, catalog, p := fixture(t)
-	addWorker(c)
+	addWorker(c, &p)
 	first := c.Program.Entrypoints[0].Instructions[0]
 	first.Limits.MaxAttempts = 2
 	first.ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 5}}
@@ -325,7 +326,6 @@ func environment(id string) *testpilotspb.ProgramExpression {
 
 func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 	c, catalog, policy := fixture(t)
-	c.Version.Minor = 1
 	c.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
 	c.Program.Roles = append(c.Program.Roles,
 		&testpilotspb.RoleDefinition{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
@@ -365,46 +365,37 @@ func TestPrepareResolvesClosedEnvironmentGraph(t *testing.T) {
 
 func TestPrepareEnvironmentVersionAndClosure(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Case, *Policy){
-		"unsupported negative minor": func(c *testpilotspb.Case, _ *Policy) { c.Version.Minor = -1 },
-		"unsupported 1.2":            func(c *testpilotspb.Case, _ *Policy) { c.Version.Minor = 2 },
-		"1.0 definition": func(c *testpilotspb.Case, _ *Policy) {
-			c.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "binding"}}
-		},
-		"1.0 role reference": func(c *testpilotspb.Case, _ *Policy) { c.Program.Roles[0].ResourceBindingId = "binding" },
-		"1.0 empty expression reference": func(c *testpilotspb.Case, _ *Policy) {
-			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("")}}
-		},
-		"1.1 literal only": func(c *testpilotspb.Case, _ *Policy) { c.Version.Minor = 1 },
-		"1.1 duplicate definition": func(c *testpilotspb.Case, p *Policy) {
+		"unsupported 1.1": func(c *testpilotspb.Case, _ *Policy) { c.Version.Minor = 1 },
+		"duplicate definition": func(c *testpilotspb.Case, p *Policy) {
 			configureEnvironmentCase(c, p)
 			c.Program.Environment = append(c.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "binding"})
 		},
-		"1.1 unused definition": func(c *testpilotspb.Case, p *Policy) {
+		"unused definition": func(c *testpilotspb.Case, p *Policy) {
 			configureEnvironmentCase(c, p)
 			c.Program.Environment = append(c.Program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "unused"})
 			p.EnvironmentBindings = append(p.EnvironmentBindings, EnvironmentBinding{ID: "unused", Value: "value"})
 		},
-		"1.1 undeclared reference": func(c *testpilotspb.Case, p *Policy) {
+		"undeclared reference": func(c *testpilotspb.Case, p *Policy) {
 			configureEnvironmentCase(c, p)
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Value = environment("missing")
 		},
-		"1.1 missing profile value": func(c *testpilotspb.Case, p *Policy) {
+		"missing profile value": func(c *testpilotspb.Case, p *Policy) {
 			configureEnvironmentCase(c, p)
 			p.EnvironmentBindings = nil
 		},
-		"1.1 nested reference": func(c *testpilotspb.Case, p *Policy) {
+		"nested reference": func(c *testpilotspb.Case, p *Policy) {
 			configureEnvironmentCase(c, p)
 			c.Program.Entrypoints[0].Instructions[0].Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Equals{Equals: &testpilotspb.ProgramEqualsExpression{Left: environment("binding"), Right: textLiteral("value")}}}
 		},
-		"1.1 non-text destination": func(c *testpilotspb.Case, p *Policy) {
+		"non-text destination": func(c *testpilotspb.Case, p *Policy) {
 			configureEnvironmentCase(c, p)
 			c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments[0].Target = field("items")
 		},
-		"1.1 resolved byte overflow": func(c *testpilotspb.Case, p *Policy) {
+		"resolved byte overflow": func(c *testpilotspb.Case, p *Policy) {
 			configureEnvironmentCase(c, p)
 			c.Program.Limits.MaxRequestBytes = 8
 		},
-		"1.1 incompatible endpoint namespace": func(c *testpilotspb.Case, p *Policy) {
+		"incompatible endpoint namespace": func(c *testpilotspb.Case, p *Policy) {
 			configureEnvironmentCase(c, p)
 			c.Program.Roles[0].NamespaceBindingId = "binding"
 		},
@@ -468,7 +459,6 @@ func TestPrepareRejectsMalformedEnvironmentPolicy(t *testing.T) {
 }
 
 func configureEnvironmentCase(c *testpilotspb.Case, policy *Policy) {
-	c.Version.Minor = 1
 	c.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "binding"}}
 	policy.EnvironmentBindings = []EnvironmentBinding{{ID: "binding", Value: "value"}}
 	c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: environment("binding")}}
@@ -566,7 +556,7 @@ func TestInstructionContextMatrix(t *testing.T) {
 func capabilityFixture(t *testing.T) (*testpilotspb.Case, *ir.Catalog, Policy) {
 	t.Helper()
 	c, catalog, p := fixture(t)
-	addWorker(c)
+	addWorker(c, &p)
 	c.Program.Slots = []*testpilotspb.SlotDefinition{capabilitySlot("capability")}
 	wait := rpcNode("ready")
 	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "capability"}}}
@@ -669,7 +659,7 @@ func TestSlotOwnersAndConcurrentPreparedViews(t *testing.T) {
 	c.Program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{proto.CloneOf(other.Instructions[0])}
 	_, err = Prepare(c, catalog, p)
 	require.NoError(t, err)
-	addWorker(c)
+	addWorker(c, &p)
 	worker := c.Program.Entrypoints[len(c.Program.Entrypoints)-1]
 	finish := rpcNode("finish")
 	finish.Guard = present(slot("value"))
@@ -706,19 +696,19 @@ func TestPrepareBoundsSurfaceBeforeCloning(t *testing.T) {
 }
 
 func TestStructuralCountsAndProjectionFanout(t *testing.T) {
-	for name, mutate := range map[string]func(*testpilotspb.Case){
-		"entrypoint count": func(c *testpilotspb.Case) { addWorker(c); c.Program.Limits.MaxEntrypoints = 1 },
-		"node count": func(c *testpilotspb.Case) {
+	for name, mutate := range map[string]func(*testpilotspb.Case, *Policy){
+		"entrypoint count": func(c *testpilotspb.Case, p *Policy) { addWorker(c, p); c.Program.Limits.MaxEntrypoints = 1 },
+		"node count": func(c *testpilotspb.Case, _ *Policy) {
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, rpcNode("other"))
 			c.Program.Limits.MaxNodes = 1
 		},
-		"edge count": func(c *testpilotspb.Case) {
+		"edge count": func(c *testpilotspb.Case, _ *Policy) {
 			last := rpcNode("last")
 			last.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}, {EntrypointId: "controller", InstructionId: "other"}}
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, rpcNode("other"), last)
 			c.Program.Limits.MaxEdges = 1
 		},
-		"controller activation count": func(c *testpilotspb.Case) {
+		"controller activation count": func(c *testpilotspb.Case, _ *Policy) {
 			other := proto.CloneOf(c.Program.Entrypoints[0])
 			other.EntrypointId = "other"
 			c.Program.Entrypoints = append(c.Program.Entrypoints, other)
@@ -727,7 +717,7 @@ func TestStructuralCountsAndProjectionFanout(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			c, catalog, p := fixture(t)
-			mutate(c)
+			mutate(c, &p)
 			_, err := Prepare(c, catalog, p)
 			require.Error(t, err)
 		})

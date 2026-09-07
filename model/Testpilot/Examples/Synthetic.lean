@@ -21,8 +21,9 @@ private def formatVersion : google.protobuf.Any := {
 
 private def program : temporal.server.api.testpilot.v1.Program := Program.make
   "testpilot.synthetic.program"
-  #[Program.role "worker" .ROLE_KIND_WORKER,
-    Program.role "task.queue" .ROLE_KIND_TASK_QUEUE]
+  #[Program.role "worker" .ROLE_KIND_WORKER (namespaceBindingId := "namespace"),
+    Program.role "task.queue" .ROLE_KIND_TASK_QUEUE
+      (namespaceBindingId := "namespace") (resourceBindingId := "task.queue")]
   #[]
   #[]
   #[Program.workflow "workflow" "SyntheticWorkflow" "worker" "task.queue"
@@ -33,6 +34,7 @@ private def program : temporal.server.api.testpilot.v1.Program := Program.make
           "temporal.server.api.testpilot.v1.FormatVersion"))]))]]
   (Program.cleanup "cleanup" #[])
   (Program.limits 1 1 1 1 1 8 8 4 1024 1024 1000 1000)
+  (environment := #[Program.environment "namespace", Program.environment "task.queue"])
 
 private def contract : Contract := Monitor.contract "testpilot.synthetic.contract" #[
   Monitor.rule "completion" .CONTRACT_RULE_KIND_SAFETY "open"

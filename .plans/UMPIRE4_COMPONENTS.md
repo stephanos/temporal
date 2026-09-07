@@ -34,14 +34,13 @@ constructs them, and `Testpilot.ProtoJSON` delegates encoding to `Protobuf.Json`
 Slots, and cleanup. Its private verification package owns static Contract preparation, fresh Run-local
 Monitors, bounded captures, expiry-before-transition semantics, and offline evaluation.
 
-Literal-only Case 1.0 Programs retain the explicit legacy Driver resource mode. Case 1.1 Programs
-declare symbolic namespace, task-queue, and named Nexus endpoint IDs; those IDs are not physical
+Exact Case 1.0 is the sole format. Resource-bearing Programs declare symbolic namespace, task-queue,
+and named Nexus endpoint IDs; resource-free Programs may have an empty environment. Those IDs are not physical
 names or transport addresses. `Prepare` snapshots the Profile-owned physical values, resolves private
 prepared inputs, and adds the complete binding fingerprint to Prepared Case identity without changing
 the symbolic source Case, Contract, Behavior Fingerprints, or producer provenance. `Run` compares the
 full Driver identity, calls the no-I/O `Validate` hook, creates the Monitor, and only then calls
-`Open`. The symbolic Temporal Driver derives worker and request resources from the same prepared
-roles and accepts no legacy resource fallback.
+`Open`. The Temporal Driver derives worker and request resources from the same prepared roles.
 
 Temporal Driver authority is split by execution context. `common/testing/testpilot/temporal/server` supplies the
 authorized descriptor catalog and transports prepared unary method/request pairs, returning raw
