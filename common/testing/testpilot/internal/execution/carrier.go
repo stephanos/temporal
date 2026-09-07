@@ -1,7 +1,7 @@
 package execution
 
 import (
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 )
 
@@ -33,11 +33,11 @@ func (a *admission) bindReservationCarriers() error {
 }
 
 func (a *admission) checkCarrierShape(controller *graph, node *node, carrier ReservationCarrierPolicy) error {
-	maximum := make(map[testpilotpb.EntrypointKind]int64, len(carrier.Shapes))
+	maximum := make(map[testpilotspb.EntrypointKind]int64, len(carrier.Shapes))
 	for _, shape := range carrier.Shapes {
 		maximum[shape.Context] = shape.MaximumCount
 	}
-	counts := map[testpilotpb.EntrypointKind]int64{}
+	counts := map[testpilotspb.EntrypointKind]int64{}
 	for _, reservation := range node.source.ActivationReservations {
 		target := a.graphIndex[reservation.EntrypointId]
 		if target == nil {
@@ -62,7 +62,7 @@ func (a *admission) compileCarrierTopology(controller *graph, node *node) (Reser
 	handlerOrdinals := make(map[string]int64, len(handlers))
 	for _, reservation := range node.source.ActivationReservations {
 		workflow := a.graphIndex[reservation.EntrypointId]
-		if workflow.context != testpilotpb.ENTRYPOINT_KIND_WORKFLOW {
+		if workflow.context != testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
 			continue
 		}
 		if err := a.appendWorkflowRoutes(controller, node, workflow, reservation.Count, handlerIndex, handlerOrdinals, &plan); err != nil {
@@ -100,7 +100,7 @@ func (a *admission) carrierReservations(controller *graph, node *node) ([]Reserv
 		}
 		target := a.graphIndex[reservation.EntrypointId]
 		reservations = append(reservations, ReservationTopology{EntrypointID: target.id, Context: target.context, Count: reservation.Count})
-		if target.context == testpilotpb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+		if target.context == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 			if err := a.charge(1); err != nil {
 				return nil, nil, nil, err
 			}

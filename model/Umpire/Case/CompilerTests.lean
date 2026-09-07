@@ -1,37 +1,12 @@
 import Umpire.Case.Compiler
-import Umpire.Artifact.Types
 
 namespace Umpire.Case.CompilerTests
 
 open Umpire
 open Umpire.Case
 open Umpire.Case.Compiler
-
-private def limits : ProgramLimits := {
-  maxEntrypoints := 1
-  maxNodes := 1
-  maxEdges := 1
-  maxActivations := 1
-  maxAttempts := 1
-  maxRunEvents := 16
-  maxExpressionDepth := 4
-  maxPathFanout := 1
-  maxRequestBytes := 1024
-  maxResponseBytes := 1024
-  maxTotalDurationMilliseconds := 1000
-  maxCleanupDurationMilliseconds := 100
-}
-
-private def contractLimits : ContractLimits := {
-  maxRules := 1
-  maxStates := 2
-  maxTransitions := 1
-  maxExpressionDepth := 4
-  maxWorkPerEvent := 4
-  maxTotalWork := 64
-  maxCaptures := 1
-  maxCaptureBytes := 64
-}
+open Testpilot.Authoring
+open temporal.server.api.testpilot.v1
 
 private def property : CaseDefinitionBinding := {
   definitionId := "example.property"
@@ -46,13 +21,16 @@ private def source : SourceLocation := {
   provenance := "checked-model"
 }
 
-private def rule : ContractRule := {
-  ruleId := "example.rule"
-  kind := .safety
-  initialState := "satisfied"
-  states := [{ stateId := "satisfied", terminal := .satisfied }]
-  transitions := []
-}
+private def rule (id : String := "example.rule") : ContractRuleDefinition :=
+  Monitor.rule id .CONTRACT_RULE_KIND_SAFETY "satisfied"
+    #[Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED] #[]
+
+private def program : Program :=
+  Program.make "example.program" #[] #[] #[] #[] (Program.cleanup "cleanup" #[])
+    (Program.limits 1 1 1 1 1 16 4 1 1024 1024 1000 100)
+
+private def contractLimits : ContractLimits :=
+  Monitor.limits 2 2 1 4 4 64 1 64
 
 private def input : Input := {
   version := { major := 1 }
@@ -61,40 +39,10 @@ private def input : Input := {
   definitions := [property]
   sources := [source]
   knownGaps := []
-  program := {
-    programId := "example.program"
-    roles := []
-    slots := []
-    observations := []
-    entrypoints := []
-    cleanup := { entrypointId := "cleanup", context := .controller, nodes := [] }
-    limits
-  }
+  program
   contractId := "example.contract"
   properties := [.monitor property rule]
   contractLimits
-}
-
-private def numericNode
-    (result : ValueExpression := .literal (.natural 0))
-    (bounds : InstructionBounds := {
-      timeoutMilliseconds := 1
-      maxAttempts := 1
-      maxEmittedEvents := 1
-    })
-    (reservations : List ActivationReservation := []) : InstructionNode := {
-  instructionId := "numeric"
-  dependencies := []
-  instruction := .finish { result }
-  outcome := { fields := [] }
-  bounds
-  activationReservations := reservations
-}
-
-private def withCleanupNode (source : Input) (node : InstructionNode) : Input := {
-  source with program := {
-    source.program with cleanup := { source.program.cleanup with nodes := [node] }
-  }
 }
 
 private def planningGaps : KnownGapSet :=
@@ -169,72 +117,30 @@ private def expectedProducerData := String.intercalate "\n" [
   | .ok output => output.provenance.map (·.producer_data) == some expectedProducerData.toUTF8
   | .error _ => false
 
-#guard match compile input with
+#guard match compile { input with
+    version := { major := 1, minor := 2 }
+    properties := [.monitor property (rule "first"), .monitor property (rule "second")]
+  } with
   | .ok output =>
       output.case_id == input.caseId &&
-      output.version.map (fun version => (version.major, version.minor)) == some (1, 0) &&
-      output.program.map (·.program_id) == some input.program.programId &&
-      output.contract.map (fun contract => contract.rules.map (·.rule_id)) == some #[rule.ruleId] &&
+      output.version.map (fun version => (version.major, version.minor)) == some (1, 2) &&
+      output.program.map (·.program_id) == some input.program.program_id &&
+      output.contract.map (fun contract => contract.rules.map (·.rule_id)) ==
+        some #["first", "second"] &&
       (output.contract.bind (·.limits) |>.map (·.max_rules)) ==
-        some input.contractLimits.maxRules.toInt64
+        some input.contractLimits.max_rules
   | .error _ => false
 
-private def maxInt32 : Nat := 2147483647
-private def maxInt64 : Nat := 9223372036854775807
-
-private def maxInstructionBounds : InstructionBounds := {
-  timeoutMilliseconds := maxInt64
-  maxAttempts := 1
-  maxEmittedEvents := 1
-}
-
-private def boundaryInput : Input :=
-  let withNode := withCleanupNode input (numericNode
-    (.literal (.enumValue 2147483647)) maxInstructionBounds
-    [{ entrypointId := "worker", count := maxInt64 }])
-  { withNode with
-    version := { major := maxInt32, minor := maxInt32 }
-    program := { withNode.program with limits := {
-      withNode.program.limits with maxEntrypoints := maxInt64 } }
-    properties := [.monitor property { rule with
-      horizon := some { elapsedMilliseconds := maxInt64, violationStateId := "satisfied" } }]
-    contractLimits := { contractLimits with maxRules := maxInt64 }
-  }
-
-private def rejectsAs (construct : String)
-    (result : Except LoweringError temporal.server.api.testpilot.v1.Case) : Bool :=
+private def rejectsAs (sourceDefinitionId : String) (expectedSource : SourceLocation)
+    (construct : String) (result : Except LoweringError temporal.server.api.testpilot.v1.Case) : Bool :=
   match result with
-  | .error failure => failure.construct == construct
+  | .error failure =>
+      failure.sourceDefinitionId == sourceDefinitionId && failure.source == expectedSource &&
+        failure.construct == construct
   | .ok _ => false
 
-private def minEnumInput : Input :=
-  withCleanupNode input (numericNode (.literal (.enumValue (-2147483648))))
-
-/-! Every protobuf numeric boundary is checked before the public authoring call can narrow it. -/
-#guard [
-  (compile boundaryInput).isOk,
-  (compile minEnumInput).isOk,
-  rejectsAs "case.version-range" (compile { input with version := { major := maxInt32 + 1 } }),
-  rejectsAs "program.enum-range" (compile (withCleanupNode input
-    (numericNode (.literal (.enumValue 2147483648))))),
-  rejectsAs "program.enum-range" (compile (withCleanupNode input
-    (numericNode (.literal (.enumValue (-2147483649)))))),
-  rejectsAs "program.instruction-limits-range" (compile (withCleanupNode input
-    (numericNode (bounds := { maxInstructionBounds with timeoutMilliseconds := maxInt64 + 1 })))),
-  rejectsAs "program.activation-reservation-range" (compile (withCleanupNode input
-    (numericNode (reservations := [{ entrypointId := "worker", count := maxInt64 + 1 }])))),
-  rejectsAs "program.limits-range" (compile {
-    input with program := { input.program with limits := {
-      input.program.limits with maxEntrypoints := maxInt64 + 1 } }
-  }),
-  rejectsAs "property.horizon-range" (compile { input with properties := [
-    .monitor property { rule with
-      horizon := some { elapsedMilliseconds := maxInt64 + 1, violationStateId := "satisfied" } }
-  ] }),
-  rejectsAs "contract.limits-range" (compile {
-    input with contractLimits := { contractLimits with maxRules := maxInt64 + 1 }
-  })
-].all id
+#guard rejectsAs property.definitionId { path := "" } "property.definition-kind"
+  (compile { input with properties := [.monitor { property with kind := .query } rule] })
 
 private def unsupported := ContractLowering.unsupported
   property source "property.temporal-unbounded"
@@ -242,19 +148,11 @@ private def unsupported := ContractLowering.unsupported
 private def unsupportedGuardedTemporal := ContractLowering.unsupported
   property source "property.guarded-eventually-within"
 
-#guard match compile { input with properties := [unsupported] } with
-  | .error failure =>
-      failure.sourceDefinitionId == property.definitionId &&
-      failure.source == source &&
-      failure.construct == "property.temporal-unbounded"
-  | .ok _ => false
+#guard rejectsAs property.definitionId source "property.temporal-unbounded"
+  (compile { input with properties := [unsupported] })
 
 /- The current lowering boundary preserves a guarded temporal rejection as checked source data. -/
-#guard match compile { input with properties := [unsupportedGuardedTemporal] } with
-  | .error failure =>
-      failure.sourceDefinitionId == property.definitionId &&
-      failure.source == source &&
-      failure.construct == "property.guarded-eventually-within"
-  | .ok _ => false
+#guard rejectsAs property.definitionId source "property.guarded-eventually-within"
+  (compile { input with properties := [unsupportedGuardedTemporal] })
 
 end Umpire.Case.CompilerTests

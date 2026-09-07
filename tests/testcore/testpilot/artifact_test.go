@@ -15,11 +15,119 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/sdk/client"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
+	"go.temporal.io/server/common/testing/temporaltestpilot"
 	"go.temporal.io/server/common/testing/testpilot"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
+
+func TestSyntheticCaseStrictDecodeAndNoIOAdmission(t *testing.T) {
+	encoded, err := os.ReadFile(filepath.Join("testdata", "synthetic-case.json"))
+	require.NoError(t, err)
+	source, err := testpilot.DecodeCaseProtoJSON(encoded)
+	require.NoError(t, err)
+
+	catalog, err := testpilot.NewCatalog(descriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto))
+	require.NoError(t, err)
+	profile := testpilot.ProfileSpec{
+		Identity: "synthetic-no-io",
+		Catalog:  catalog,
+		Roles: []testpilot.RolePolicy{
+			{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
+			{ID: "task.queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
+		},
+		Capabilities:   []testpilot.Capability{testpilot.Finish},
+		ProgramLimits:  proto.CloneOf(source.GetProgram().GetLimits()),
+		ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
+	}
+	prepared, err := testpilot.Prepare(source, profile)
+	require.NoError(t, err)
+	require.True(t, proto.Equal(source, prepared.Snapshot()))
+	for _, role := range profile.Roles {
+		require.Empty(t, role.Methods)
+		require.Empty(t, role.ReservationCarriers)
+	}
+
+	message := syntheticResult(source).GetMessageValue()
+	require.Equal(t, "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion", message.GetTypeUrl())
+	require.Equal(t, []byte{8, 1, 16, 2}, message.GetValue())
+	require.Equal(t, []byte{0, 255, 128}, source.GetProvenance().GetProducerData())
+
+	wire, err := testpilot.PackCaseProtoJSON(encoded)
+	require.NoError(t, err)
+	roundTrip := new(testpilotspb.Case)
+	require.NoError(t, proto.Unmarshal(wire, roundTrip))
+	require.True(t, proto.Equal(source, roundTrip))
+
+	empty := proto.CloneOf(source)
+	empty.Provenance.ProducerData = nil
+	emptyJSON, err := protojson.Marshal(empty)
+	require.NoError(t, err)
+	emptyRoundTrip, err := testpilot.DecodeCaseProtoJSON(emptyJSON)
+	require.NoError(t, err)
+	require.Empty(t, emptyRoundTrip.GetProvenance().GetProducerData())
+}
+
+func TestSyntheticCaseGoAdmissionRejectsRawInvalidInputs(t *testing.T) {
+	source := loadLeanCase(t, "synthetic")
+	catalog, err := testpilot.NewCatalog(descriptorClosure(testpilotspb.File_temporal_server_api_testpilot_v1_case_proto))
+	require.NoError(t, err)
+	profile := testpilot.ProfileSpec{
+		Identity: "synthetic-no-io",
+		Catalog:  catalog,
+		Roles: []testpilot.RolePolicy{
+			{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
+			{ID: "task.queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
+		},
+		Capabilities:   []testpilot.Capability{testpilot.Finish},
+		ProgramLimits:  proto.CloneOf(source.GetProgram().GetLimits()),
+		ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
+	}
+
+	for _, test := range []struct {
+		name   string
+		want   string
+		mutate func(*testpilotspb.Case)
+	}{
+		{name: "malformed message wire", want: "invalid wire tag", mutate: func(candidate *testpilotspb.Case) {
+			syntheticResult(candidate).GetMessageValue().Value = []byte{0xff}
+		}},
+		{name: "unknown descriptor", want: "unknown message", mutate: func(candidate *testpilotspb.Case) {
+			syntheticResult(candidate).GetMessageValue().TypeUrl = "type.googleapis.com/example.Missing"
+		}},
+		{name: "invalid bounds", want: "limit is outside the positive Driver ceiling", mutate: func(candidate *testpilotspb.Case) {
+			candidate.Program.Limits.MaxNodes = 0
+		}},
+		{name: "invalid identity", want: "invalid Program identity", mutate: func(candidate *testpilotspb.Case) {
+			candidate.Program.ProgramId = "invalid/program"
+		}},
+		{name: "unbound scope", want: "reference is not declared in this environment", mutate: func(candidate *testpilotspb.Case) {
+			candidate.Contract.Rules[0].Transitions[0].Predicate = &testpilotspb.ContractExpression{
+				Expression: &testpilotspb.ContractExpression_Observation{
+					Observation: &testpilotspb.ObservationRef{ObservationId: "missing"},
+				},
+			}
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			candidate := proto.CloneOf(source)
+			test.mutate(candidate)
+			_, err := testpilot.Prepare(candidate, profile)
+			require.ErrorContains(t, err, test.want)
+		})
+	}
+}
+
+func syntheticResult(source *testpilotspb.Case) *testpilotspb.Value {
+	return source.GetProgram().GetEntrypoints()[0].GetInstructions()[0].GetInstruction().
+		GetFinish().GetResult().GetLiteral()
+}
 
 func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 	getSystemInfo := loadLeanCase(t, "get-system-info")
@@ -27,14 +135,14 @@ func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 	require.NotEqual(t, getSystemInfo.GetProgram().GetProgramId(), asyncNexus.GetProgram().GetProgramId())
 	require.NotEqual(t, getSystemInfo.GetContract().GetRules()[0].GetRuleId(), asyncNexus.GetContract().GetRules()[0].GetRuleId())
 
-	catalog, err := NewWorkflowServiceCatalog()
+	catalog, err := temporaltestpilot.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	profile := &countingProfile{spec: testpilot.ProfileSpec{
 		Identity: "get-system-info-profile",
 		Catalog:  catalog,
 		Roles: []testpilot.RolePolicy{{
 			ID:      getSystemInfo.GetProgram().GetRoles()[0].GetRoleId(),
-			Kind:    testpilotpb.ROLE_KIND_ENDPOINT,
+			Kind:    testpilotspb.ROLE_KIND_ENDPOINT,
 			Methods: []string{"/temporal.api.workflowservice.v1.WorkflowService/GetSystemInfo"},
 		}},
 		Capabilities:   []testpilot.Capability{testpilot.InvokeRPC},
@@ -51,11 +159,11 @@ func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, proto.Equal(asyncNexus, asyncPrepared.Snapshot()))
 
-	for _, mutate := range []func(*testpilotpb.Case){
-		func(candidate *testpilotpb.Case) {
-			candidate.Program.Roles[0].Kind = testpilotpb.ROLE_KIND_WORKER
+	for _, mutate := range []func(*testpilotspb.Case){
+		func(candidate *testpilotspb.Case) {
+			candidate.Program.Roles[0].Kind = testpilotspb.ROLE_KIND_WORKER
 		},
-		func(candidate *testpilotpb.Case) {
+		func(candidate *testpilotspb.Case) {
 			candidate.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc().Method =
 				"/temporal.api.workflowservice.v1.WorkflowService/Missing"
 		},
@@ -67,36 +175,112 @@ func TestLeanCasesDecodeAndGetSystemInfoPreparesWithoutDriverIO(t *testing.T) {
 	}
 }
 
-func asyncNexusProfile(catalog *testpilot.Catalog, source *testpilotpb.Case) testpilot.ProfileSpec {
-	return testpilot.ProfileSpec{
-		Identity: "async-nexus-profile",
-		Catalog:  catalog,
-		Roles: []testpilot.RolePolicy{
-			{
-				ID: "temporal.workflow-service", Kind: testpilotpb.ROLE_KIND_ENDPOINT,
-				Methods: []string{
-					"/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
-					"/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory",
-				},
-				ReservationCarriers: []testpilot.ReservationCarrierPolicy{{
-					Method: "/temporal.api.workflowservice.v1.WorkflowService/StartWorkflowExecution",
-					Shapes: []testpilot.ReservationCarrierShape{
-						{Context: testpilotpb.ENTRYPOINT_KIND_WORKFLOW, MaximumCount: 1},
-						{Context: testpilotpb.ENTRYPOINT_KIND_NEXUS_HANDLER, MaximumCount: 1},
-					},
-				}},
-			},
-			{ID: "temporal.worker", Kind: testpilotpb.ROLE_KIND_WORKER},
-			{ID: "temporal.task-queue", Kind: testpilotpb.ROLE_KIND_TASK_QUEUE},
-			{ID: "temporal.nexus-endpoint", Kind: testpilotpb.ROLE_KIND_ENDPOINT},
-		},
-		Capabilities: []testpilot.Capability{
-			testpilot.InvokeRPC, testpilot.AwaitSlot, testpilot.CompleteNexusOperation,
-			testpilot.StartNexusOperation, testpilot.Await, testpilot.Finish, testpilot.RespondNexus,
-		},
-		ProgramLimits:  proto.CloneOf(source.GetProgram().GetLimits()),
-		ContractLimits: proto.CloneOf(source.GetContract().GetLimits()),
+func asyncNexusProfile(catalog *testpilot.Catalog, source *testpilotspb.Case) testpilot.ProfileSpec {
+	return AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
+		Namespace: asyncNexusArtifactNamespace, TaskQueue: asyncNexusArtifactTaskQueue,
+		NexusEndpoint: "nexus-endpoint",
+	})
+}
+
+const (
+	asyncNexusArtifactNamespace = "namespace"
+	asyncNexusArtifactTaskQueue = "task-queue"
+)
+
+type artifactClient struct{ client.Client }
+
+type validatingArtifactDriver struct {
+	testpilot.Driver
+	opens int
+}
+
+func (d *validatingArtifactDriver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
+	d.opens++
+	return d.Driver.Open(ctx, runID, program)
+}
+
+func TestLeanAsyncNexusBindingsPrepareAcrossProfilesAndRejectBeforeDispatch(t *testing.T) {
+	source := loadLeanCase(t, "async-nexus")
+	require.Equal(t, int32(1), source.GetVersion().GetMajor())
+	require.Equal(t, int32(1), source.GetVersion().GetMinor())
+	require.Equal(t, []string{
+		AsyncNexusWorkerNamespaceBindingID,
+		AsyncNexusTaskQueueBindingID,
+		AsyncNexusEndpointBindingID,
+	}, []string{
+		source.GetProgram().GetEnvironment()[0].GetBindingId(),
+		source.GetProgram().GetEnvironment()[1].GetBindingId(),
+		source.GetProgram().GetEnvironment()[2].GetBindingId(),
+	})
+	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
+		source.GetProgram().GetRoles()[1].GetNamespaceBindingId())
+	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
+		source.GetProgram().GetRoles()[2].GetNamespaceBindingId())
+	require.Equal(t, AsyncNexusTaskQueueBindingID,
+		source.GetProgram().GetRoles()[2].GetResourceBindingId())
+	require.Equal(t, AsyncNexusEndpointBindingID,
+		source.GetProgram().GetRoles()[3].GetResourceBindingId())
+	startAssignments := source.GetProgram().GetEntrypoints()[0].GetInstructions()[0].
+		GetInstruction().GetInvokeRpc().GetRequestAssignments()
+	historyAssignments := source.GetProgram().GetEntrypoints()[0].GetInstructions()[3].
+		GetInstruction().GetInvokeRpc().GetRequestAssignments()
+	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
+		startAssignments[0].GetValue().GetEnvironment().GetBindingId())
+	require.Equal(t, AsyncNexusTaskQueueBindingID,
+		startAssignments[3].GetValue().GetEnvironment().GetBindingId())
+	require.Equal(t, AsyncNexusWorkerNamespaceBindingID,
+		historyAssignments[0].GetValue().GetEnvironment().GetBindingId())
+
+	catalog, err := temporaltestpilot.NewWorkflowServiceCatalog()
+	require.NoError(t, err)
+
+	firstProfile := AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
+		Namespace: "namespace-a", TaskQueue: "task-queue-a", NexusEndpoint: "nexus-endpoint-a",
+	})
+	secondProfile := AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
+		Namespace: "namespace-b", TaskQueue: "task-queue-b", NexusEndpoint: "nexus-endpoint-b",
+	})
+	first, err := testpilot.Prepare(source, firstProfile)
+	require.NoError(t, err)
+	second, err := testpilot.Prepare(source, secondProfile)
+	require.NoError(t, err)
+	require.NotEqual(t, first.Identity().Bindings, second.Identity().Bindings)
+	require.True(t, proto.Equal(first.Snapshot(), second.Snapshot()))
+
+	missing := firstProfile.Snapshot()
+	missing.EnvironmentBindings = missing.EnvironmentBindings[:2]
+	rejected, err := testpilot.Prepare(source, missing)
+	require.Error(t, err)
+	require.Nil(t, rejected)
+
+	inconsistentSource := proto.CloneOf(source)
+	inconsistentSource.Program.Environment = append(inconsistentSource.Program.Environment,
+		&testpilotspb.EnvironmentDefinition{BindingId: "temporal.other.namespace"})
+	for _, role := range inconsistentSource.Program.Roles {
+		if role.GetRoleId() == "temporal.task-queue" {
+			role.NamespaceBindingId = "temporal.other.namespace"
+		}
 	}
+	inconsistentProfile := firstProfile.Snapshot()
+	inconsistentProfile.EnvironmentBindings = append(inconsistentProfile.EnvironmentBindings,
+		testpilot.EnvironmentBinding{ID: "temporal.other.namespace", Value: "namespace-a"})
+	inconsistent, err := testpilot.Prepare(inconsistentSource, inconsistentProfile)
+	require.NoError(t, err)
+	driver, err := temporaltestpilot.New(temporaltestpilot.Options{
+		Profile: inconsistentProfile,
+		ServerEndpoints: map[string]temporaltestpilot.Endpoint{
+			"temporal.workflow-service": {Target: "127.0.0.1:1", Credentials: insecure.NewCredentials()},
+		},
+		SDKClient: &artifactClient{}, WorkerRoleID: "temporal.worker",
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, driver.Close(context.Background())) })
+	validating := &validatingArtifactDriver{Driver: driver}
+	run, verdict, err := inconsistent.Run(t.Context(), validating)
+	require.Error(t, err)
+	require.Nil(t, run)
+	require.Nil(t, verdict)
+	require.Zero(t, validating.opens)
 }
 
 type caseDefinitionBinding struct {
@@ -111,7 +295,7 @@ type caseKnownGap struct {
 
 func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
-	catalog, err := NewWorkflowServiceCatalog()
+	catalog, err := temporaltestpilot.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	_, err = testpilot.Prepare(source, asyncNexusProfile(catalog, source))
 	require.NoError(t, err)
@@ -146,7 +330,7 @@ func TestLeanAsyncNexusCasePreparesWithCheckedNexus3Provenance(t *testing.T) {
 
 func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	source := loadLeanCase(t, "async-nexus")
-	catalog, err := NewWorkflowServiceCatalog()
+	catalog, err := temporaltestpilot.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	profile := asyncNexusProfile(catalog, source)
 	prepared, err := testpilot.Prepare(source, profile)
@@ -170,8 +354,8 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	identities := make(map[string]struct{}, 6)
 	for result := range results {
 		require.NoError(t, result.err)
-		require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, result.run.GetStatus())
-		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
+		require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, result.run.GetStatus())
+		require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, result.verdict.GetStatus())
 		require.NotContains(t, identities, result.run.GetRunId())
 		identities[result.run.GetRunId()] = struct{}{}
 		require.Len(t, result.verdict.GetSupportingEventSequences(), 3)
@@ -182,17 +366,17 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 	for _, test := range []struct {
 		name   string
 		mode   artifactMode
-		status testpilotpb.InstructionOutcomeStatus
+		status testpilotspb.InstructionOutcomeStatus
 	}{
-		{name: "protocol non-success", mode: artifactNonSuccess, status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS},
-		{name: "timeout", mode: artifactTimeout, status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
+		{name: "protocol non-success", mode: artifactNonSuccess, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS},
+		{name: "timeout", mode: artifactTimeout, status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			driver := &artifactDriver{identity: prepared.Identity(), mode: test.mode}
 			actual, verdict, err := prepared.Run(t.Context(), driver)
 			require.NoError(t, err)
-			require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, actual.GetStatus())
-			require.Equal(t, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
+			require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, actual.GetStatus())
+			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 			require.True(t, hasOutcome(actual, "start-workflow", test.status))
 		})
 	}
@@ -209,8 +393,8 @@ func TestLeanAsyncNexusPreparedCaseReuseAndCorrelation(t *testing.T) {
 			driver := &artifactDriver{identity: prepared.Identity(), mode: test.mode}
 			actual, verdict, err := prepared.Run(t.Context(), driver)
 			require.NoError(t, err)
-			require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, actual.GetStatus())
-			require.Equal(t, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
+			require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, actual.GetStatus())
+			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 			require.Less(t, len(verdict.GetSupportingEventSequences()), 3)
 		})
 	}
@@ -240,7 +424,7 @@ func knownGapCodes(knownGaps []caseKnownGap) []string {
 	return result
 }
 
-func requireHistoryEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64) {
+func requireHistoryEvidence(t testing.TB, run *testpilotspb.Run, sequences []int64) {
 	t.Helper()
 	for _, sequence := range sequences {
 		require.Positive(t, sequence)
@@ -252,7 +436,7 @@ func requireHistoryEvidence(t testing.TB, run *testpilotpb.Run, sequences []int6
 	}
 }
 
-func hasOutcome(run *testpilotpb.Run, instruction string, status testpilotpb.InstructionOutcomeStatus) bool {
+func hasOutcome(run *testpilotspb.Run, instruction string, status testpilotspb.InstructionOutcomeStatus) bool {
 	for _, event := range run.GetEvents() {
 		if event.GetCoordinates().GetInstructionId() == instruction && event.GetOutcome().GetStatus() == status {
 			return true
@@ -273,8 +457,8 @@ const (
 )
 
 type artifactRunResult struct {
-	run     *testpilotpb.Run
-	verdict *testpilotpb.Verdict
+	run     *testpilotspb.Run
+	verdict *testpilotspb.Verdict
 	err     error
 }
 
@@ -288,9 +472,11 @@ func (h *artifactDriver) Identity(context.Context) (testpilot.DriverIdentity, er
 	return h.identity, nil
 }
 
+func (h *artifactDriver) Validate(context.Context, testpilot.PreparedProgram) error { return nil }
+
 func (h *artifactDriver) Open(_ context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
 	if program.Snapshot().GetProgramId() != "temporal.case.async-nexus.program" {
-		return nil, ErrInvalid
+		return nil, temporaltestpilot.ErrInvalid
 	}
 	ordinal := h.opens.Add(1)
 	bridge := &artifactBridge{ready: make(chan struct{}), capability: &struct{}{}}
@@ -319,43 +505,45 @@ func (s *artifactSession) Reserve(_ context.Context, request testpilot.Reservati
 
 func (s *artifactSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordinate, _ string, method protoreflect.MethodDescriptor, request proto.Message) (testpilot.EffectHandle, error) {
 	if method == nil {
-		return nil, ErrInvalid
+		return nil, temporaltestpilot.ErrInvalid
 	}
 	var result testpilot.EffectResult
 	switch coordinate.InstructionID {
 	case "start-workflow":
 		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.StartWorkflowExecution" {
-			return nil, ErrInvalid
+			return nil, temporaltestpilot.ErrInvalid
 		}
 		var typed workflowservice.StartWorkflowExecutionRequest
 		if err := decodeArtifactRequest(request, &typed); err != nil {
 			return nil, fmt.Errorf("decode start request: %w", err)
 		}
-		if typed.GetWorkflowId() != s.runID || typed.GetRequestId() != s.runID {
-			return nil, fmt.Errorf("invalid start request for run %q: %w", s.runID, ErrInvalid)
+		if typed.GetNamespace() != asyncNexusArtifactNamespace ||
+			typed.GetTaskQueue().GetName() != asyncNexusArtifactTaskQueue ||
+			typed.GetWorkflowId() != s.runID || typed.GetRequestId() != s.runID {
+			return nil, fmt.Errorf("invalid start request for run %q: %w", s.runID, temporaltestpilot.ErrInvalid)
 		}
 		switch s.mode {
 		case artifactNonSuccess:
-			result.Outcome = &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS}
+			result.Outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS}
 		case artifactTimeout:
-			result.Outcome = &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}
+			result.Outcome = &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT}
 		default:
 			result = succeededResult(&workflowservice.StartWorkflowExecutionResponse{RunId: s.runID})
 		}
 	case "history":
 		if string(method.FullName()) != "temporal.api.workflowservice.v1.WorkflowService.GetWorkflowExecutionHistory" {
-			return nil, ErrInvalid
+			return nil, temporaltestpilot.ErrInvalid
 		}
 		var typed workflowservice.GetWorkflowExecutionHistoryRequest
 		if err := decodeArtifactRequest(request, &typed); err != nil {
 			return nil, fmt.Errorf("decode history request: %w", err)
 		}
-		if typed.GetNamespace() != "default" || typed.GetExecution().GetWorkflowId() != s.runID {
-			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, ErrInvalid)
+		if typed.GetNamespace() != asyncNexusArtifactNamespace || typed.GetExecution().GetWorkflowId() != s.runID {
+			return nil, fmt.Errorf("invalid history request for run %q: %w", s.runID, temporaltestpilot.ErrInvalid)
 		}
 		result = succeededResult(artifactHistoryResponse(s.runID, s.ordinal, s.mode))
 	default:
-		return nil, ErrInvalid
+		return nil, temporaltestpilot.ErrInvalid
 	}
 	return &artifactEffect{result: result}, nil
 }
@@ -368,7 +556,7 @@ func decodeArtifactRequest(source, target proto.Message) error {
 	return proto.Unmarshal(wire, target)
 }
 
-func (s *artifactSession) CompleteNexusOperation(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, *testpilotpb.Value) (testpilot.EffectHandle, error) {
+func (s *artifactSession) CompleteNexusOperation(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, *testpilotspb.Value) (testpilot.EffectHandle, error) {
 	return &artifactEffect{result: succeededResult(nil)}, nil
 }
 
@@ -378,7 +566,7 @@ func (s *artifactSession) Bridge(context.Context) (testpilot.CapabilityBridge, e
 
 func (*artifactSession) Quarantine(context.Context, testpilot.EffectHandle) error { return nil }
 func (*artifactSession) Close(context.Context) error                              { return nil }
-func (*artifactSession) Diagnose(context.Context, string, *testpilotpb.RunDiagnostic) error {
+func (*artifactSession) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
 	return nil
 }
 
@@ -427,14 +615,14 @@ func (b *artifactBridge) Await(ctx context.Context, _ string) error {
 }
 func (b *artifactBridge) Consume(context.Context, string) (testpilot.OpaqueCapability, error) {
 	if !b.consumed.CompareAndSwap(false, true) {
-		return nil, ErrInvalid
+		return nil, temporaltestpilot.ErrInvalid
 	}
 	return b.capability, nil
 }
 
 func succeededResult(response proto.Message) testpilot.EffectResult {
 	return testpilot.EffectResult{
-		Outcome:  &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
+		Outcome:  &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED},
 		Response: response,
 	}
 }
@@ -472,13 +660,32 @@ func artifactHistoryResponse(requestID string, scheduledID int64, mode artifactM
 	return &workflowservice.GetWorkflowExecutionHistoryResponse{History: &historypb.History{Events: events}}
 }
 
-func loadLeanCase(t testing.TB, name string) *testpilotpb.Case {
+func loadLeanCase(t testing.TB, name string) *testpilotspb.Case {
 	t.Helper()
 	encoded, err := os.ReadFile(filepath.Join("testdata", name+"-case.json"))
 	require.NoError(t, err)
 	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 	require.NoError(t, err)
 	return decoded
+}
+
+func descriptorClosure(root protoreflect.FileDescriptor) *descriptorpb.FileDescriptorSet {
+	seen := make(map[string]struct{})
+	result := &descriptorpb.FileDescriptorSet{}
+	var add func(protoreflect.FileDescriptor)
+	add = func(file protoreflect.FileDescriptor) {
+		if _, exists := seen[file.Path()]; exists {
+			return
+		}
+		seen[file.Path()] = struct{}{}
+		imports := file.Imports()
+		for index := 0; index < imports.Len(); index++ {
+			add(imports.Get(index))
+		}
+		result.File = append(result.File, protodesc.ToFileDescriptorProto(file))
+	}
+	add(root)
+	return result
 }
 
 type countingProfile struct {

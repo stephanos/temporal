@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 )
@@ -16,7 +16,7 @@ import (
 type schedulerHost struct {
 	Session
 	bridge   SlotBridge
-	complete func(context.Context, Coordinate, OpaqueCapability, *testpilotpb.Value) (EffectHandle, error)
+	complete func(context.Context, Coordinate, OpaqueCapability, *testpilotspb.Value) (EffectHandle, error)
 	invoke   func(context.Context, Coordinate, proto.Message) (EffectHandle, error)
 	reserve  func(context.Context, ReservationRequest) ([]ReservationHandle, error)
 }
@@ -27,7 +27,9 @@ func (h *schedulerHost) InvokeRPC(ctx context.Context, c Coordinate, _ string, _
 func (h *schedulerHost) Reserve(ctx context.Context, r ReservationRequest) ([]ReservationHandle, error) {
 	return h.reserve(ctx, r)
 }
-func (*schedulerHost) Diagnose(context.Context, string, *testpilotpb.RunDiagnostic) error { return nil }
+func (*schedulerHost) Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error {
+	return nil
+}
 
 type schedulerEffect struct {
 	EffectHandle
@@ -38,10 +40,10 @@ func (h *schedulerEffect) Wait(ctx context.Context) (EffectResult, error) { retu
 
 type schedulerMonitor struct {
 	Monitor
-	observe func(*testpilotpb.RunEvent) Decision
+	observe func(*testpilotspb.RunEvent) Decision
 }
 
-func (m schedulerMonitor) Observe(_ context.Context, e *testpilotpb.RunEvent) (Decision, error) {
+func (m schedulerMonitor) Observe(_ context.Context, e *testpilotspb.RunEvent) (Decision, error) {
 	if m.observe != nil {
 		return m.observe(e), nil
 	}
@@ -58,7 +60,7 @@ func TestSchedulerProjectsActualValues(t *testing.T) {
 	require.NoError(t, s.execute(context.Background()))
 	require.Equal(t, "kept", s.values.slots["text"].GetText())
 	require.Len(t, s.outstanding(), 1)
-	require.Equal(t, testpilotpb.RUN_EVENT_KIND_ACTIVATION_CLOSED, s.recorder.run.Events[len(s.recorder.run.Events)-1].Kind)
+	require.Equal(t, testpilotspb.RUN_EVENT_KIND_ACTIVATION_CLOSED, s.recorder.run.Events[len(s.recorder.run.Events)-1].Kind)
 	require.Error(t, s.execute(context.Background()))
 }
 
@@ -68,10 +70,10 @@ func TestSchedulerDependencyConcurrencyGuardsAndIsolation(t *testing.T) {
 	first.Limits.MaxAttempts = 3
 	second := rpcNode("second")
 	skipped := rpcNode("skipped")
-	skipped.Guard = &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Literal{Literal: &testpilotpb.Value{Value: &testpilotpb.Value_BoolValue{BoolValue: false}}}}
+	skipped.Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: false}}}}
 	consumer := rpcNode("consumer")
-	consumer.Dependencies = []*testpilotpb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}, {EntrypointId: "controller", InstructionId: "skipped"}}
-	consumer.Guard = &testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Negation{Negation: &testpilotpb.ProgramNotExpression{Operand: present(&testpilotpb.ProgramExpression{Expression: &testpilotpb.ProgramExpression_Outcome{Outcome: &testpilotpb.InstructionOutcomeRef{Instruction: &testpilotpb.InstructionRef{EntrypointId: "controller", InstructionId: "skipped"}, Field: testpilotpb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})}}}
+	consumer.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}, {EntrypointId: "controller", InstructionId: "skipped"}}
+	consumer.Guard = &testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Negation{Negation: &testpilotspb.ProgramNotExpression{Operand: present(&testpilotspb.ProgramExpression{Expression: &testpilotspb.ProgramExpression_Outcome{Outcome: &testpilotspb.InstructionOutcomeRef{Instruction: &testpilotspb.InstructionRef{EntrypointId: "controller", InstructionId: "skipped"}, Field: testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS}}})}}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, second, skipped, consumer)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -120,7 +122,7 @@ func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 		t.Run(mode, func(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			addWorker(c)
-			c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotpb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 2}}
+			c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 2}}
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
 			accepted := []EffectHandle{}
@@ -130,7 +132,7 @@ func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 				result := []ReservationHandle{}
 				for i := int64(0); i < 2; i++ {
 					h := &schedulerReservation{identity: ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, Ordinal: i, ID: fmt.Sprintf("reservation.%d", i)}, activation: Coordinate{RunID: r.Origin.RunID, EntrypointID: r.EntrypointID, ActivationID: fmt.Sprintf("actual-worker.%d", i)}, schedulerEffect: schedulerEffect{wait: func(context.Context) (EffectResult, error) {
-						return EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+						return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
 					}}}
 					if i == 1 {
 						switch mode {
@@ -171,7 +173,7 @@ func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, 1, calls)
 				for _, event := range s.recorder.run.Events {
-					if event.Kind == testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC {
+					if event.Kind == testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC {
 						require.Equal(t, "controller.0", event.Coordinates.ActivationId)
 						require.Equal(t, []string{"scheduler.g0.n0.a1.started"}, event.CausalSourceIds)
 					}
@@ -191,12 +193,12 @@ func TestSchedulerReservationsRetainEveryHandle(t *testing.T) {
 }
 
 func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
-	for _, status := range []testpilotpb.InstructionOutcomeStatus{testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, testpilotpb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS} {
+	for _, status := range []testpilotspb.InstructionOutcomeStatus{testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT, testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS} {
 		t.Run(status.String(), func(t *testing.T) {
 			c, catalog, policy := fixture(t)
 			c.Program.Entrypoints[0].Instructions[0].Limits.MaxAttempts = 3
 			branch := rpcNode("branch")
-			branch.Dependencies = []*testpilotpb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}}
+			branch.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "call"}}
 			branch.Guard = succeeded("controller", "call")
 			branch.Guard.GetEquals().Right.GetLiteral().GetEnumValue().Number = int32(status)
 			c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, branch)
@@ -209,10 +211,10 @@ func TestSchedulerTimeoutAndProtocolBranches(t *testing.T) {
 					if c.InstructionID == "branch" {
 						return effectResponse(p, "ok"), nil
 					}
-					if status == testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT {
+					if status == testpilotspb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT {
 						return EffectResult{}, context.DeadlineExceeded
 					}
-					return EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: status, ProtocolCode: "unavailable"}}, nil
+					return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: status, ProtocolCode: "unavailable"}}, nil
 				}}, nil
 			}}
 			s, err := newScheduler(p, "run", "case", host, schedulerMonitor{}, time.Now)
@@ -238,7 +240,7 @@ func TestSchedulerStopDuringAcceptanceRetainsBeforePublication(t *testing.T) {
 		<-release
 		return handle, nil
 	}}
-	s, err := newScheduler(p, "run", "case", host, schedulerMonitor{observe: func(e *testpilotpb.RunEvent) Decision {
+	s, err := newScheduler(p, "run", "case", host, schedulerMonitor{observe: func(e *testpilotspb.RunEvent) Decision {
 		if e.SourceId == "external.stop" {
 			return Stop
 		}
@@ -252,7 +254,7 @@ func TestSchedulerStopDuringAcceptanceRetainsBeforePublication(t *testing.T) {
 	<-accepted
 	stopped := make(chan struct{})
 	go func() {
-		_, err := s.recorder.publish(ctx, []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: "external.stop"}}, nil)
+		_, err := s.recorder.publish(ctx, []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: "external.stop"}}, nil)
 		if err != nil {
 			panic(err)
 		}
@@ -268,19 +270,19 @@ func TestSchedulerStopDuringAcceptanceRetainsBeforePublication(t *testing.T) {
 	s.waits.Wait()
 }
 
-func (m schedulerMonitor) Close(context.Context, *testpilotpb.Run) (*testpilotpb.Verdict, error) {
-	return &testpilotpb.Verdict{Status: testpilotpb.VERDICT_STATUS_SATISFIED}, nil
+func (m schedulerMonitor) Close(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, error) {
+	return &testpilotspb.Verdict{Status: testpilotspb.VERDICT_STATUS_SATISFIED}, nil
 }
 func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	c.Program.Limits.MaxPathFanout = 3
-	c.Program.Slots = []*testpilotpb.SlotDefinition{valueSlot("text", scalar(testpilotpb.SCALAR_KIND_TEXT))}
-	c.Program.Observations = []*testpilotpb.ObservationDefinition{{ObservationId: "item", Type: scalar(testpilotpb.SCALAR_KIND_TEXT)}}
+	c.Program.Slots = []*testpilotspb.SlotDefinition{valueSlot("text", scalar(testpilotspb.SCALAR_KIND_TEXT))}
+	c.Program.Observations = []*testpilotspb.ObservationDefinition{{ObservationId: "item", Type: scalar(testpilotspb.SCALAR_KIND_TEXT)}}
 	rpc := c.Program.Entrypoints[0].Instructions[0].Instruction.GetInvokeRpc()
-	rpc.RequestAssignments = []*testpilotpb.RequestAssignment{{Target: field("text"), Value: textLiteral("constructed")}}
-	rpc.ResponseProjections = []*testpilotpb.ResponseProjection{{Source: field("text"), Kind: testpilotpb.PROJECTION_KIND_ONE, Targets: []*testpilotpb.ProjectionTarget{{Target: &testpilotpb.ProjectionTarget_SlotId{SlotId: "text"}}}}, {Source: &testpilotpb.FieldPath{Segments: []*testpilotpb.FieldPathSegment{{Field: "items", Selector: &testpilotpb.FieldPathSegment_Repeated{Repeated: &testpilotpb.RepeatedWildcard{}}}}}, Kind: testpilotpb.PROJECTION_KIND_EMIT_EACH, Targets: []*testpilotpb.ProjectionTarget{{Target: &testpilotpb.ProjectionTarget_ObservationId{ObservationId: "item"}}}}}
+	rpc.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: field("text"), Value: textLiteral("constructed")}}
+	rpc.ResponseProjections = []*testpilotspb.ResponseProjection{{Source: field("text"), Kind: testpilotspb.PROJECTION_KIND_ONE, Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_SlotId{SlotId: "text"}}}}, {Source: &testpilotspb.FieldPath{Segments: []*testpilotspb.FieldPathSegment{{Field: "items", Selector: &testpilotspb.FieldPathSegment_Repeated{Repeated: &testpilotspb.RepeatedWildcard{}}}}}, Kind: testpilotspb.PROJECTION_KIND_EMIT_EACH, Targets: []*testpilotspb.ProjectionTarget{{Target: &testpilotspb.ProjectionTarget_ObservationId{ObservationId: "item"}}}}}
 	wait := rpcNode("wait")
-	wait.Instruction = &testpilotpb.Instruction{Instruction: &testpilotpb.Instruction_AwaitSlot{AwaitSlot: &testpilotpb.AwaitSlot{SlotId: "text"}}}
+	wait.Instruction = &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_AwaitSlot{AwaitSlot: &testpilotspb.AwaitSlot{SlotId: "text"}}}
 	c.Program.Entrypoints[0].Instructions = append(c.Program.Entrypoints[0].Instructions, wait)
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
@@ -314,10 +316,10 @@ func TestSchedulerRequestsSlotsFanoutAndClosure(t *testing.T) {
 	}
 	require.Equal(t, []int64{0, 1, 2}, indexes)
 	require.Equal(t, []string{"a", "b", "c"}, observations)
-	run, _, err := s.recorder.close(context.Background(), testpilotpb.RUN_STATUS_COMPLETED, &testpilotpb.CleanupOutcome{Status: testpilotpb.CLEANUP_STATUS_SUCCEEDED})
+	run, _, err := s.recorder.close(context.Background(), testpilotspb.RUN_STATUS_COMPLETED, &testpilotspb.CleanupOutcome{Status: testpilotspb.CLEANUP_STATUS_SUCCEEDED})
 	require.NoError(t, err)
 	snapshot := proto.CloneOf(run)
-	_, err = s.recorder.publish(context.Background(), []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: "late"}}, nil)
+	_, err = s.recorder.publish(context.Background(), []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC, SourceId: "late"}}, nil)
 	require.Error(t, err)
 	require.True(t, proto.Equal(snapshot, run))
 	require.True(t, s.values.sealed)
@@ -339,7 +341,7 @@ type boundedPublishMonitor struct {
 	canceled chan struct{}
 }
 
-func (m *boundedPublishMonitor) Observe(ctx context.Context, event *testpilotpb.RunEvent) (Decision, error) {
+func (m *boundedPublishMonitor) Observe(ctx context.Context, event *testpilotspb.RunEvent) (Decision, error) {
 	if event.GetSourceId() == "scheduler.g0.n0.a1.completed" {
 		<-ctx.Done()
 		close(m.canceled)
@@ -358,7 +360,7 @@ func TestSchedulerBoundsBufferedCompletionPublication(t *testing.T) {
 			s, err := newScheduler(prepared, "run", c.CaseId, &schedulerHost{}, monitor, time.Now)
 			require.NoError(t, err)
 			s.lateTimeout = 10 * time.Millisecond
-			_, err = s.recorder.publish(t.Context(), []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_RUN_OPENED, SourceId: "scheduler.open"}}, nil)
+			_, err = s.recorder.publish(t.Context(), []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_RUN_OPENED, SourceId: "scheduler.open"}}, nil)
 			require.NoError(t, err)
 			values, err := s.values.activate("controller", "controller.0")
 			require.NoError(t, err)
@@ -387,7 +389,7 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 			}
 			if mode == "worker-error" {
 				addWorker(c)
-				c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotpb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
+				c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 			}
 			p, err := Prepare(c, catalog, policy)
 			require.NoError(t, err)
@@ -407,7 +409,7 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 				s.recorder.maxEvents = 3
 			}
 			if mode == "conflict" {
-				_, err = s.recorder.publish(context.Background(), []*testpilotpb.RunEvent{{Kind: testpilotpb.RUN_EVENT_KIND_RUN_OPENED, SourceId: "scheduler.open", ExecutionIncomplete: true}}, nil)
+				_, err = s.recorder.publish(context.Background(), []*testpilotspb.RunEvent{{Kind: testpilotspb.RUN_EVENT_KIND_RUN_OPENED, SourceId: "scheduler.open", ExecutionIncomplete: true}}, nil)
 				require.NoError(t, err)
 			}
 			require.Error(t, s.execute(context.Background()))
@@ -419,7 +421,7 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 }
 
 func (h *schedulerHost) Bridge(context.Context) (SlotBridge, error) { return h.bridge, nil }
-func (h *schedulerHost) CompleteNexusOperation(ctx context.Context, c Coordinate, capability OpaqueCapability, input *testpilotpb.Value) (EffectHandle, error) {
+func (h *schedulerHost) CompleteNexusOperation(ctx context.Context, c Coordinate, capability OpaqueCapability, input *testpilotspb.Value) (EffectHandle, error) {
 	return h.complete(ctx, c, capability, input)
 }
 
@@ -458,7 +460,7 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 			}
 			h.reserve = func(_ context.Context, r ReservationRequest) ([]ReservationHandle, error) {
 				return []ReservationHandle{&schedulerReservation{identity: ReservationIdentity{Origin: r.Origin, EntrypointID: r.EntrypointID, ID: r.EntrypointID}, schedulerEffect: schedulerEffect{wait: func(context.Context) (EffectResult, error) {
-					return EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+					return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
 				}}}}, nil
 			}
 			h.invoke = func(context.Context, Coordinate, proto.Message) (EffectHandle, error) {
@@ -466,13 +468,13 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 				return &schedulerEffect{wait: func(context.Context) (EffectResult, error) { return effectResponse(p, "ok"), nil }}, nil
 			}
 			completed := false
-			h.complete = func(_ context.Context, c Coordinate, got OpaqueCapability, input *testpilotpb.Value) (EffectHandle, error) {
+			h.complete = func(_ context.Context, c Coordinate, got OpaqueCapability, input *testpilotspb.Value) (EffectHandle, error) {
 				require.Equal(t, capability, got)
 				require.Equal(t, "done", input.GetText())
 				require.Equal(t, "complete", c.InstructionID)
 				completed = true
 				return &schedulerEffect{wait: func(context.Context) (EffectResult, error) {
-					return EffectResult{Outcome: &testpilotpb.InstructionOutcome{Status: testpilotpb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
+					return EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}, nil
 				}}, nil
 			}
 			s, err := newScheduler(p, "run", "case", h, schedulerMonitor{}, time.Now)
@@ -494,14 +496,14 @@ func TestSchedulerOpaqueReadinessAndCompletion(t *testing.T) {
 func TestSchedulerStopPreventsTriggerAndReservations(t *testing.T) {
 	c, catalog, policy := fixture(t)
 	addWorker(c)
-	c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotpb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
+	c.Program.Entrypoints[0].Instructions[0].ActivationReservations = []*testpilotspb.ActivationReservationDefinition{{EntrypointId: "workflow", Count: 1}}
 	p, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	h := &schedulerHost{invoke: func(context.Context, Coordinate, proto.Message) (EffectHandle, error) { panic("effect crossed Stop") }, reserve: func(context.Context, ReservationRequest) ([]ReservationHandle, error) {
 		panic("reservation crossed Stop")
 	}}
-	s, err := newScheduler(p, "run", "case", h, schedulerMonitor{observe: func(e *testpilotpb.RunEvent) Decision {
-		if e.Kind == testpilotpb.RUN_EVENT_KIND_INSTRUCTION_STARTED {
+	s, err := newScheduler(p, "run", "case", h, schedulerMonitor{observe: func(e *testpilotspb.RunEvent) Decision {
+		if e.Kind == testpilotspb.RUN_EVENT_KIND_INSTRUCTION_STARTED {
 			return Stop
 		}
 		return Continue

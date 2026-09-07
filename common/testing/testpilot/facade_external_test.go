@@ -8,22 +8,30 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 type proofDriver struct {
-	identity testpilot.DriverIdentity
-	openErr  error
-	closeErr error
-	opened   int
-	closed   int
+	identity  testpilot.DriverIdentity
+	openErr   error
+	closeErr  error
+	program   testpilot.PreparedProgram
+	validated int
+	opened    int
+	closed    int
 }
 
 func (d *proofDriver) Identity(context.Context) (testpilot.DriverIdentity, error) {
 	return d.identity, nil
+}
+
+func (d *proofDriver) Validate(_ context.Context, program testpilot.PreparedProgram) error {
+	d.program = program
+	d.validated++
+	return nil
 }
 
 func (d *proofDriver) Open(context.Context, string, testpilot.PreparedProgram) (testpilot.Session, error) {
@@ -52,9 +60,9 @@ func TestExternalDriverCleanupFailurePreservesVerdict(t *testing.T) {
 	driver := &proofDriver{identity: prepared.Identity(), closeErr: errors.New("cleanup unavailable")}
 	run, verdict, err := prepared.Run(t.Context(), driver)
 	require.NoError(t, err)
-	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
-	require.Equal(t, testpilotpb.CLEANUP_STATUS_FAILED, run.GetCleanup().GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+	require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotspb.CLEANUP_STATUS_FAILED, run.GetCleanup().GetStatus())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	require.Equal(t, 1, driver.closed)
 }
 
@@ -68,10 +76,39 @@ func TestExternalDriverExecutesBoundedCase(t *testing.T) {
 	driver := &proofDriver{identity: prepared.Identity()}
 	run, verdict, err := prepared.Run(t.Context(), driver)
 	require.NoError(t, err)
-	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
-	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+	require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotspb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+	require.Equal(t, 1, driver.validated)
 	require.Equal(t, 1, driver.opened)
 	require.Equal(t, 1, driver.closed)
+}
+
+func TestExternalDriverReceivesCopiedPreparedRoles(t *testing.T) {
+	source, profile := proofFixture(t)
+	source.Version.Minor = 1
+	source.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
+	source.Program.Roles = []*testpilotspb.RoleDefinition{
+		{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
+		{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"},
+	}
+	profile.Roles = []testpilot.RolePolicy{
+		{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER},
+		{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
+	}
+	profile.EnvironmentBindings = []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace-a"}, {ID: "queue", Value: "queue-a"}}
+	prepared, err := testpilot.Prepare(source, profile)
+	require.NoError(t, err)
+	driver := &proofDriver{identity: prepared.Identity()}
+
+	_, _, err = prepared.Run(t.Context(), driver)
+	require.NoError(t, err)
+	require.Equal(t, []testpilot.PreparedRole{
+		{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingID: "namespace", Namespace: "namespace-a", ResourceBindingID: "queue", Resource: "queue-a"},
+		{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingID: "namespace", Namespace: "namespace-a"},
+	}, driver.program.Roles())
+	roles := driver.program.Roles()
+	roles[0].Namespace = "changed"
+	require.Equal(t, "namespace-a", driver.program.Roles()[0].Namespace)
 }
 
 func TestExternalDriverFailureDoesNotRequireCleanup(t *testing.T) {
@@ -100,42 +137,42 @@ func TestPublicPackageDependencyBoundary(t *testing.T) {
 	}
 }
 
-func proofFixture(t testing.TB) (*testpilotpb.Case, testpilot.ProfileSpec) {
+func proofFixture(t testing.TB) (*testpilotspb.Case, testpilot.ProfileSpec) {
 	t.Helper()
 	catalog, err := testpilot.NewCatalog(&descriptorpb.FileDescriptorSet{})
 	require.NoError(t, err)
-	programLimits := &testpilotpb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
-	contractLimits := &testpilotpb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
-	source := &testpilotpb.Case{
-		Version: &testpilotpb.FormatVersion{Major: 1},
+	programLimits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
+	contractLimits := &testpilotspb.ContractLimits{MaxRules: 16, MaxStates: 32, MaxTransitions: 64, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
+	source := &testpilotspb.Case{
+		Version: &testpilotspb.FormatVersion{Major: 1},
 		CaseId:  "case",
-		Program: &testpilotpb.Program{
+		Program: &testpilotspb.Program{
 			ProgramId: "program",
-			Entrypoints: []*testpilotpb.EntrypointDefinition{{
+			Entrypoints: []*testpilotspb.EntrypointDefinition{{
 				EntrypointId: "controller",
-				Activation:   &testpilotpb.EntrypointDefinition_Controller{Controller: &testpilotpb.ControllerActivation{}},
+				Activation:   &testpilotspb.EntrypointDefinition_Controller{Controller: &testpilotspb.ControllerActivation{}},
 			}},
-			Cleanup: &testpilotpb.CleanupDefinition{EntrypointId: "cleanup"},
+			Cleanup: &testpilotspb.CleanupDefinition{EntrypointId: "cleanup"},
 			Limits:  programLimits,
 		},
-		Contract: &testpilotpb.Contract{
+		Contract: &testpilotspb.Contract{
 			ContractId: "contract",
 			Limits:     proto.CloneOf(contractLimits),
-			Rules: []*testpilotpb.ContractRuleDefinition{{
+			Rules: []*testpilotspb.ContractRuleDefinition{{
 				RuleId:         "safety",
-				Kind:           testpilotpb.CONTRACT_RULE_KIND_SAFETY,
+				Kind:           testpilotspb.CONTRACT_RULE_KIND_SAFETY,
 				InitialStateId: "start",
-				States: []*testpilotpb.ContractStateDefinition{
-					{StateId: "start", Status: testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL},
-					{StateId: "good", Status: testpilotpb.CONTRACT_STATE_STATUS_SATISFIED},
+				States: []*testpilotspb.ContractStateDefinition{
+					{StateId: "start", Status: testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL},
+					{StateId: "good", Status: testpilotspb.CONTRACT_STATE_STATUS_SATISFIED},
 				},
-				Transitions: []*testpilotpb.ContractTransitionDefinition{{
+				Transitions: []*testpilotspb.ContractTransitionDefinition{{
 					TransitionId:  "complete",
 					SourceStateId: "start",
 					TargetStateId: "good",
-					EventFilter:   &testpilotpb.RunEventFilter{Kinds: []testpilotpb.RunEventKind{testpilotpb.RUN_EVENT_KIND_RUN_CLOSED}},
-					Predicate:     &testpilotpb.ContractExpression{Expression: &testpilotpb.ContractExpression_Literal{Literal: &testpilotpb.Value{Value: &testpilotpb.Value_BoolValue{BoolValue: true}}}},
-					SupportKind:   testpilotpb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
+					EventFilter:   &testpilotspb.RunEventFilter{Kinds: []testpilotspb.RunEventKind{testpilotspb.RUN_EVENT_KIND_RUN_CLOSED}},
+					Predicate:     &testpilotspb.ContractExpression{Expression: &testpilotspb.ContractExpression_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}}},
+					SupportKind:   testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
 				}},
 			}},
 		},

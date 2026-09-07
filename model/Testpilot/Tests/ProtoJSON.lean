@@ -36,7 +36,7 @@ private def contractExpr := ContractExpr.any #[
   ContractExpr.literal (Value.boolean false)
 ]
 
-private def program : temporal.server.api.testpilot.v1.Program := Program.make "program"
+private def literalProgram : temporal.server.api.testpilot.v1.Program := Program.make "program"
   #[Program.role "endpoint" .ROLE_KIND_ENDPOINT]
   #[Program.valueSlot "slot" (Types.singular (Types.scalar .SCALAR_KIND_TEXT))]
   #[Program.observation "result" (Types.singular Types.any)]
@@ -58,8 +58,22 @@ private def contract : Contract := Monitor.contract "contract" #[
       "temporal.server.api.testpilot.v1.FormatVersion")])
 ] (Monitor.limits 1 3 1 16 32 64 1 1024)
 
-def representativeCase : Case := Testpilot.Authoring.case 1 "case" program contract
+def literalCase : Case := Testpilot.Authoring.case 1 "case" literalProgram contract
   (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128]))
+
+private def bindingProgram : temporal.server.api.testpilot.v1.Program := Program.make "program"
+  #[Program.role "endpoint" .ROLE_KIND_ENDPOINT (resourceBindingId := "nexus.endpoint"),
+    Program.role "worker" .ROLE_KIND_WORKER (namespaceBindingId := "namespace"),
+    Program.role "queue" .ROLE_KIND_TASK_QUEUE
+      (namespaceBindingId := "namespace") (resourceBindingId := "task.queue")]
+  #[] #[] #[Program.controller "controller" #[Program.node "finish"
+    (Program.finish (ProgramExpr.environment "")) instructionLimits]]
+  (Program.cleanup "cleanup" #[]) limits
+  (environment := #[Program.environment "namespace", Program.environment "task.queue",
+    Program.environment "nexus.endpoint"])
+
+def representativeCase : Case := Testpilot.Authoring.case 1 "binding-case" bindingProgram contract
+  (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128])) (minor := 1)
 
 private def unknownAnyCase : Case :=
   let expression := ProgramExpr.literal (Value.messageValue {
@@ -101,7 +115,12 @@ private def tests : IO Unit := do
   let first ← render representativeCase
   let second ← render representativeCase
   assert (first == second) "equal Cases did not render deterministically"
-  assert (first.contains "\"run\":{}") "Program Run identity was dropped"
+  assert (first.contains "\"version\":{\"major\":1,\"minor\":1}") "Case 1.1 was dropped"
+  assert (first.contains "\"environment\":{}") "present empty environment reference was dropped"
+  assert (first.contains "\"environment\":[{\"bindingId\":\"namespace\"},{\"bindingId\":\"task.queue\"},{\"bindingId\":\"nexus.endpoint\"}]")
+    "environment definitions changed order"
+  assert (first.contains "\"namespaceBindingId\":\"namespace\"") "namespace binding was dropped"
+  assert (first.contains "\"resourceBindingId\":\"task.queue\"") "resource binding was dropped"
   assert (first.contains "\"runEvent\":{\"field\":\"RUN_EVENT_FIELD_RUN_ID\"}")
     "Contract Run Event identity was dropped"
   assert (first.contains "\"maxAttempts\":\"9223372036854775807\"")
@@ -109,12 +128,18 @@ private def tests : IO Unit := do
   assert (first.contains "\"elapsedMilliseconds\":\"9223372036854775807\"")
     "monitor horizon was dropped"
   assert (first.contains "AP+A") "opaque non-UTF-8 provenance bytes were not rendered"
-  assert (first.contains "AP8=") "expression bytes were not rendered"
   assert (first.contains "\"floatingPoint\":1.5") "floating value was dropped"
   assert (first.contains "\"enumValue\":{\"number\":1}") "enum value was dropped"
   assert (first.contains "\"boolValue\":false") "present false oneof value was dropped"
   assert (first.contains "\"@type\":\"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion\"")
     "resolved Any was dropped"
+  let literalFirst ← render literalCase
+  let literalSecond ← render literalCase
+  assert (literalFirst == literalSecond) "literal Case 1.0 encoding changed nondeterministically"
+  assert (literalFirst.contains "\"version\":{\"major\":1}") "literal Case 1.0 version changed"
+  assert (!literalFirst.contains "bindingId") "literal Case 1.0 gained binding fields"
+  assert (literalFirst.contains "\"run\":{}") "Program Run identity was dropped"
+  assert (literalFirst.contains "AP8=") "expression bytes were not rendered"
   match ← Testpilot.ProtoJSON.canonical unknownAnyCase with
   | .error (.protobuf (.unresolvedType _)) => pure ()
   | _ => throw (IO.userError "unknown Any type did not return unresolvedType")

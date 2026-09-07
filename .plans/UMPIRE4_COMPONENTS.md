@@ -26,20 +26,35 @@ Producer ──▶ Case { Program, Contract }
       immutable Run + Verdict
 ```
 
-`common/testing/testpilot` owns the Case protocol, `Profile`, `Driver`, `PreparedCase`, `Prepare`,
-and `PreparedCase.Run`. Its private execution package owns scheduling, recording, effects, private
+The `.proto` closure rooted at `proto/internal/temporal/server/api/testpilot/v1/case.proto` owns the
+Case wire schema. `Testpilot.Protocol` exposes generated Lean declarations, `Testpilot.Authoring`
+constructs them, and `Testpilot.ProtoJSON` delegates encoding to `Protobuf.Json`.
+`common/testing/testpilot` owns `Profile`, `Driver`, `PreparedCase`, `Prepare`, and
+`PreparedCase.Run`. Its private execution package owns scheduling, recording, effects, private
 Slots, and cleanup. Its private verification package owns static Contract preparation, fresh Run-local
 Monitors, bounded captures, expiry-before-transition semantics, and offline evaluation.
 
-Temporal Driver authority is split by execution context. `tests/testcore/testpilot/server` supplies the
+Literal-only Case 1.0 Programs retain the explicit legacy Driver resource mode. Case 1.1 Programs
+declare symbolic namespace, task-queue, and named Nexus endpoint IDs; those IDs are not physical
+names or transport addresses. `Prepare` snapshots the Profile-owned physical values, resolves private
+prepared inputs, and adds the complete binding fingerprint to Prepared Case identity without changing
+the symbolic source Case, Contract, Behavior Fingerprints, or producer provenance. `Run` compares the
+full Driver identity, calls the no-I/O `Validate` hook, creates the Monitor, and only then calls
+`Open`. The symbolic Temporal Driver derives worker and request resources from the same prepared
+roles and accepts no legacy resource fallback.
+
+Temporal Driver authority is split by execution context. `common/testing/temporaltestpilot/server` supplies the
 authorized descriptor catalog and transports prepared unary method/request pairs, returning raw
 typed responses and protocol status. Internal execution constructs requests and applies response
-projections to Slots and Observations. `tests/testcore/testpilot/worker` owns SDK workflow, activity,
+projections to Slots and Observations. `common/testing/temporaltestpilot/worker` owns SDK workflow, activity,
 Nexus-handler execution, reserved activation delivery, and activation-level cancellation.
-`tests/testcore/testpilot` composes those Driver capabilities without interpreting Case semantics.
+`common/testing/temporaltestpilot` composes those Driver capabilities without interpreting Case semantics.
+Transport targets, credentials, SDK clients, callback authority, and lifecycle configuration remain
+environment-owned Driver inputs in both resource modes.
 
-Lean under `model/Umpire/Case` owns the reusable IR and compiler; `model/Temporal/Testpilot.lean`
-is the first Producer. Deterministic Case fixtures are owned by
+Lean under `model/Umpire/Case` owns only Umpire-specific opaque provenance; producers construct the
+generated protocol through `Testpilot.Authoring`. `model/Temporal/Testpilot.lean` is the first
+Umpire-aware Producer. Deterministic Case fixtures are owned by
 `umpire-gen-case-runtime-conformance`; its check generates and validates a complete temporary tree
 before diffing, while promotion is a separate reviewed target. The regression boundary includes
 the six facade classes, the full package-local suite, the exact live selector and exact

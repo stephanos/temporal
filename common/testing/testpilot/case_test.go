@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	"google.golang.org/protobuf/proto"
 )
@@ -24,7 +24,7 @@ func TestCaseProtoJSONIsStrictAndPacksDeterministically(t *testing.T) {
 	second, err := testpilot.PackCaseProtoJSON([]byte("{\n  \"version\": {\"major\": 1},\n  \"caseId\": \"case\"\n}"))
 	require.NoError(t, err)
 	require.Equal(t, first, second)
-	unpacked := new(testpilotpb.Case)
+	unpacked := new(testpilotspb.Case)
 	require.NoError(t, proto.Unmarshal(first, unpacked))
 	require.Equal(t, "case", unpacked.GetCaseId())
 }

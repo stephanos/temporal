@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
@@ -14,7 +14,7 @@ import (
 // Evaluator owns one Run's state. Callbacks are synchronous and must not overlap.
 // PreparedContract can create independent Evaluators concurrently.
 type Evaluator struct {
-	result                                                   *testpilotpb.Verdict
+	result                                                   *testpilotspb.Verdict
 	satisfied                                                int
 	prepared                                                 *PreparedContract
 	rules                                                    []ruleState
@@ -25,7 +25,7 @@ type Evaluator struct {
 	failureSequence                                          int64
 }
 type capturedValue struct {
-	value    *testpilotpb.Value
+	value    *testpilotspb.Value
 	sequence int64
 }
 type ruleState struct {
@@ -64,10 +64,10 @@ func (p *PreparedContract) newEvaluator(ctx context.Context, view execution.Prog
 			return nil, invalid(ir.TypeMismatch, "Program observations differ")
 		}
 	}
-	e := &Evaluator{prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotpb.Verdict{Rules: make([]*testpilotpb.RuleVerdict, len(p.rules))}}
+	e := &Evaluator{prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
 	for i, m := range p.rules {
 		e.rules[i] = ruleState{state: m.initial, captures: map[string]capturedValue{}}
-		e.result.Rules[i] = &testpilotpb.RuleVerdict{RuleId: m.source.RuleId, Status: testpilotpb.RULE_VERDICT_STATUS_INCONCLUSIVE}
+		e.result.Rules[i] = &testpilotspb.RuleVerdict{RuleId: m.source.RuleId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE}
 	}
 	return e, nil
 }
@@ -85,7 +85,7 @@ func (e *Evaluator) decision() execution.Decision {
 	}
 	return execution.Continue
 }
-func (e *Evaluator) Observe(ctx context.Context, event *testpilotpb.RunEvent) (execution.Decision, error) {
+func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (execution.Decision, error) {
 	if e.closed || e.sawClosure {
 		return e.decision(), invalid(ir.Malformed, "event after evaluator closure")
 	}
@@ -104,7 +104,7 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotpb.RunEvent) (e
 	}
 	incomplete := e.incomplete || event.ExecutionIncomplete
 	if e.violated || incomplete {
-		e.sawClosure = event.Kind == testpilotpb.RUN_EVENT_KIND_RUN_CLOSED
+		e.sawClosure = event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED
 		e.sequence = event.Sequence
 		e.elapsed = event.ElapsedMilliseconds
 		e.incomplete = incomplete
@@ -142,27 +142,27 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotpb.RunEvent) (e
 	e.captureCount += count
 	e.captureBytes += bytes
 	e.totalWork += work
-	e.sawClosure = event.Kind == testpilotpb.RUN_EVENT_KIND_RUN_CLOSED
+	e.sawClosure = event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED
 	e.sequence = event.Sequence
 	e.elapsed = event.ElapsedMilliseconds
 	e.incomplete = incomplete
 	return e.decision(), nil
 }
-func (e *Evaluator) checkEvent(event *testpilotpb.RunEvent) (map[string]*testpilotpb.Value, error) {
+func (e *Evaluator) checkEvent(event *testpilotspb.RunEvent) (map[string]*testpilotspb.Value, error) {
 	limits := e.prepared.program.Limits()
 	if event == nil || event.Sequence != e.sequence+1 || event.Sequence > limits.MaxRunEvents || event.ElapsedMilliseconds < e.elapsed || event.ElapsedMilliseconds < 0 {
 		return nil, invalid(ir.Malformed, "invalid event sequence or elapsed coordinate")
 	}
-	if e.sequence == 0 && (event.Kind != testpilotpb.RUN_EVENT_KIND_RUN_OPENED || event.ElapsedMilliseconds != 0) {
+	if e.sequence == 0 && (event.Kind != testpilotspb.RUN_EVENT_KIND_RUN_OPENED || event.ElapsedMilliseconds != 0) {
 		return nil, invalid(ir.Malformed, "Run must open at elapsed zero")
 	}
-	if event.Kind < testpilotpb.RUN_EVENT_KIND_RUN_OPENED || event.Kind > testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC || (e.sequence > 0 && event.Kind == testpilotpb.RUN_EVENT_KIND_RUN_OPENED) {
+	if event.Kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || event.Kind > testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC || (e.sequence > 0 && event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_OPENED) {
 		return nil, invalid(ir.Malformed, "invalid lifecycle event")
 	}
 	if err := ir.CheckSurface(event, ir.DefaultLimits()); err != nil {
 		return nil, err
 	}
-	values := make(map[string]*testpilotpb.Value, len(event.Observations))
+	values := make(map[string]*testpilotspb.Value, len(event.Observations))
 	if len(event.Observations) > len(e.prepared.observations) {
 		return nil, invalid(ir.LimitExceeded, "observation count exceeded")
 	}
@@ -184,7 +184,7 @@ func (e *Evaluator) checkEvent(event *testpilotpb.RunEvent) (map[string]*testpil
 
 type eventEvaluation struct{ count, bytes, work int64 }
 
-func (e *Evaluator) changes(ctx context.Context, event *testpilotpb.RunEvent, observations map[string]*testpilotpb.Value, incomplete bool) (staged []ruleChange, captureCount int64, captureBytes int64, resultErr error) {
+func (e *Evaluator) changes(ctx context.Context, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, incomplete bool) (staged []ruleChange, captureCount int64, captureBytes int64, resultErr error) {
 	var changes []ruleChange
 	cost := &eventEvaluation{}
 	for i := range e.prepared.rules {
@@ -201,9 +201,9 @@ func (e *Evaluator) changes(ctx context.Context, event *testpilotpb.RunEvent, ob
 	}
 	return changes, cost.count, cost.bytes, nil
 }
-func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotpb.RunEvent, observations map[string]*testpilotpb.Value, incomplete bool, cost *eventEvaluation) (*ruleChange, error) {
+func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, incomplete bool, cost *eventEvaluation) (*ruleChange, error) {
 	m, state := e.prepared.rules[i], e.rules[i]
-	if m.source.States[state.state].Status != testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL {
+	if m.source.States[state.state].Status != testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL {
 		return nil, nil
 	}
 	if err := ctx.Err(); err != nil {
@@ -216,14 +216,14 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotpb.Ru
 		}
 		return &ruleChange{rule: i, state: m.states[m.source.Horizon.ViolationStateId], support: true, trace: transitionTrace{event.Sequence, m.source.RuleId, "", m.source.States[state.state].StateId, m.source.Horizon.ViolationStateId}}, nil
 	}
-	resolve := func(ref ir.Reference) *testpilotpb.Value {
+	resolve := func(ref ir.Reference) *testpilotspb.Value {
 		switch ref.Kind {
 		case ir.ObservationReference:
 			return observations[ref.ID]
 		case ir.CaptureReference:
 			return state.captures[ref.ID].value
 		case ir.EventReference:
-			return eventValue(event, testpilotpb.RunEventField(ref.Field))
+			return eventValue(event, testpilotspb.RunEventField(ref.Field))
 		default:
 			return nil
 		}
@@ -242,11 +242,11 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotpb.Ru
 		if err != nil {
 			return nil, err
 		}
-		return &ruleChange{rule: i, state: m.states[tr.TargetStateId], captures: captures, support: tr.SupportKind == testpilotpb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT, trace: transitionTrace{event.Sequence, m.source.RuleId, tr.TransitionId, tr.SourceStateId, tr.TargetStateId}}, nil
+		return &ruleChange{rule: i, state: m.states[tr.TargetStateId], captures: captures, support: tr.SupportKind == testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT, trace: transitionTrace{event.Sequence, m.source.RuleId, tr.TransitionId, tr.SourceStateId, tr.TargetStateId}}, nil
 	}
 	return nil, nil
 }
-func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotpb.ContractTransitionDefinition, event *testpilotpb.RunEvent, observations map[string]*testpilotpb.Value, cost *eventEvaluation) (map[string]capturedValue, error) {
+func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotspb.ContractTransitionDefinition, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, cost *eventEvaluation) (map[string]capturedValue, error) {
 	captures := map[string]capturedValue{}
 	for _, assignment := range tr.CaptureAssignments {
 		value := observations[assignment.Observation.ObservationId]
@@ -267,37 +267,37 @@ func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotpb.ContractTrans
 	}
 	return captures, nil
 }
-func eventValue(event *testpilotpb.RunEvent, field testpilotpb.RunEventField) *testpilotpb.Value {
+func eventValue(event *testpilotspb.RunEvent, field testpilotspb.RunEventField) *testpilotspb.Value {
 	var text string
 	var number int64
 	switch field {
-	case testpilotpb.RUN_EVENT_FIELD_SEQUENCE:
+	case testpilotspb.RUN_EVENT_FIELD_SEQUENCE:
 		number = event.Sequence
-	case testpilotpb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS:
+	case testpilotspb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS:
 		number = event.ElapsedMilliseconds
-	case testpilotpb.RUN_EVENT_FIELD_ATTEMPT:
+	case testpilotspb.RUN_EVENT_FIELD_ATTEMPT:
 		number = event.Coordinates.GetAttempt()
-	case testpilotpb.RUN_EVENT_FIELD_KIND:
-		return &testpilotpb.Value{Value: &testpilotpb.Value_EnumValue{EnumValue: &testpilotpb.EnumValue{Number: int32(event.Kind)}}}
-	case testpilotpb.RUN_EVENT_FIELD_ENTRYPOINT_ID:
+	case testpilotspb.RUN_EVENT_FIELD_KIND:
+		return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(event.Kind)}}}
+	case testpilotspb.RUN_EVENT_FIELD_ENTRYPOINT_ID:
 		text = event.Coordinates.GetEntrypointId()
-	case testpilotpb.RUN_EVENT_FIELD_ACTIVATION_ID:
+	case testpilotspb.RUN_EVENT_FIELD_ACTIVATION_ID:
 		text = event.Coordinates.GetActivationId()
-	case testpilotpb.RUN_EVENT_FIELD_INSTRUCTION_ID:
+	case testpilotspb.RUN_EVENT_FIELD_INSTRUCTION_ID:
 		text = event.Coordinates.GetInstructionId()
-	case testpilotpb.RUN_EVENT_FIELD_SOURCE_ID:
+	case testpilotspb.RUN_EVENT_FIELD_SOURCE_ID:
 		text = event.SourceId
 	default:
 		return nil
 	}
-	if field == testpilotpb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotpb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS || field == testpilotpb.RUN_EVENT_FIELD_ATTEMPT {
-		return &testpilotpb.Value{Value: &testpilotpb.Value_SignedInteger{SignedInteger: strconv.FormatInt(number, 10)}}
+	if field == testpilotspb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotspb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS || field == testpilotspb.RUN_EVENT_FIELD_ATTEMPT {
+		return &testpilotspb.Value{Value: &testpilotspb.Value_SignedInteger{SignedInteger: strconv.FormatInt(number, 10)}}
 	}
-	return &testpilotpb.Value{Value: &testpilotpb.Value_Text{Text: text}}
+	return &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: text}}
 }
 
 // Close transfers the frozen result once, including on failure; subsequent callbacks are rejected.
-func (e *Evaluator) Close(ctx context.Context, run *testpilotpb.Run) (*testpilotpb.Verdict, error) {
+func (e *Evaluator) Close(ctx context.Context, run *testpilotspb.Run) (*testpilotspb.Verdict, error) {
 	if e.closed {
 		return nil, invalid(ir.Malformed, "evaluator already closed")
 	}
@@ -322,17 +322,17 @@ func (e *Evaluator) Close(ctx context.Context, run *testpilotpb.Run) (*testpilot
 	e.rules = nil
 	return result, err
 }
-func (e *Evaluator) checkClosure(ctx context.Context, run *testpilotpb.Run) error {
+func (e *Evaluator) checkClosure(ctx context.Context, run *testpilotspb.Run) error {
 	if run == nil || run.RunId == "" || run.ProgramId != e.prepared.program.ProgramID() || len(run.Events) == 0 {
 		return invalid(ir.Malformed, "closed Run identity and events required")
 	}
-	if run.Status < testpilotpb.RUN_STATUS_COMPLETED || run.Status > testpilotpb.RUN_STATUS_INCOMPLETE {
+	if run.Status < testpilotspb.RUN_STATUS_COMPLETED || run.Status > testpilotspb.RUN_STATUS_INCOMPLETE {
 		return invalid(ir.Malformed, "closed Run disposition required")
 	}
 	if int64(len(run.Events)) > e.prepared.program.Limits().MaxRunEvents {
 		return invalid(ir.LimitExceeded, "Run event count exceeded")
 	}
-	if run.Events[len(run.Events)-1].GetKind() != testpilotpb.RUN_EVENT_KIND_RUN_CLOSED {
+	if run.Events[len(run.Events)-1].GetKind() != testpilotspb.RUN_EVENT_KIND_RUN_CLOSED {
 		return invalid(ir.Malformed, "Run closure event required")
 	}
 	if err := checkRunOrder(ctx, run.Events); err != nil {
@@ -340,7 +340,7 @@ func (e *Evaluator) checkClosure(ctx context.Context, run *testpilotpb.Run) erro
 	}
 	return e.checkDisposition(run)
 }
-func (e *Evaluator) checkDisposition(run *testpilotpb.Run) error {
+func (e *Evaluator) checkDisposition(run *testpilotspb.Run) error {
 	failure := run.EvaluationFailure
 	failureSequence := run.GetEvaluationFailureSequence()
 	if failure != nil && (failureSequence <= 0 || failureSequence > int64(len(run.Events)) || run.Events[failureSequence-1].GetSequence() != failureSequence) {
@@ -352,10 +352,10 @@ func (e *Evaluator) checkDisposition(run *testpilotpb.Run) error {
 	if e.failureSequence > 0 && (failure == nil || failureSequence != e.failureSequence) {
 		return invalid(ir.Malformed, "Monitor failure coordinate missing or inconsistent")
 	}
-	if run.Status == testpilotpb.RUN_STATUS_COMPLETED && (e.incomplete || failure != nil || e.violated) {
+	if run.Status == testpilotspb.RUN_STATUS_COMPLETED && (e.incomplete || failure != nil || e.violated) {
 		return invalid(ir.Malformed, "completed disposition conflicts with incompleteness")
 	}
-	if run.Status == testpilotpb.RUN_STATUS_STOPPED_BY_MONITOR && !e.violated {
+	if run.Status == testpilotspb.RUN_STATUS_STOPPED_BY_MONITOR && !e.violated {
 		return invalid(ir.Malformed, "monitor stop without proved violation")
 	}
 	return nil
@@ -364,34 +364,34 @@ func (e *Evaluator) recordTerminal(change ruleChange) {
 	terminal := e.prepared.rules[change.rule].source.States[change.state]
 	result := e.result.Rules[change.rule]
 	switch terminal.Status {
-	case testpilotpb.CONTRACT_STATE_STATUS_VIOLATED:
-		result.Status = testpilotpb.RULE_VERDICT_STATUS_VIOLATED
+	case testpilotspb.CONTRACT_STATE_STATUS_VIOLATED:
+		result.Status = testpilotspb.RULE_VERDICT_STATUS_VIOLATED
 		result.TerminalStateId = terminal.StateId
 		e.violated = true
-	case testpilotpb.CONTRACT_STATE_STATUS_SATISFIED:
-		result.Status = testpilotpb.RULE_VERDICT_STATUS_SATISFIED
+	case testpilotspb.CONTRACT_STATE_STATUS_SATISFIED:
+		result.Status = testpilotspb.RULE_VERDICT_STATUS_SATISFIED
 		result.TerminalStateId = terminal.StateId
 		e.satisfied++
 	default:
 	}
 }
-func (e *Evaluator) verdict(disposition testpilotpb.RunStatus) *testpilotpb.Verdict {
-	e.result.Status = testpilotpb.VERDICT_STATUS_INCONCLUSIVE
-	if !e.incomplete && disposition == testpilotpb.RUN_STATUS_COMPLETED && e.satisfied == len(e.prepared.rules) {
-		e.result.Status = testpilotpb.VERDICT_STATUS_SATISFIED
+func (e *Evaluator) verdict(disposition testpilotspb.RunStatus) *testpilotspb.Verdict {
+	e.result.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
+	if !e.incomplete && disposition == testpilotspb.RUN_STATUS_COMPLETED && e.satisfied == len(e.prepared.rules) {
+		e.result.Status = testpilotspb.VERDICT_STATUS_SATISFIED
 	}
 	if e.violated {
-		e.result.Status = testpilotpb.VERDICT_STATUS_VIOLATED
+		e.result.Status = testpilotspb.VERDICT_STATUS_VIOLATED
 	}
 	return e.result
 }
 
 // Evaluate replays the recorded prefix through the same per-Run machine used by live callbacks.
-func (p *PreparedContract) Evaluate(ctx context.Context, run *testpilotpb.Run) (*testpilotpb.Verdict, error) {
+func (p *PreparedContract) Evaluate(ctx context.Context, run *testpilotspb.Run) (*testpilotspb.Verdict, error) {
 	_, verdict, err := p.evaluate(ctx, run)
 	return verdict, err
 }
-func (p *PreparedContract) evaluate(ctx context.Context, run *testpilotpb.Run) (*Evaluator, *testpilotpb.Verdict, error) {
+func (p *PreparedContract) evaluate(ctx context.Context, run *testpilotspb.Run) (*Evaluator, *testpilotspb.Verdict, error) {
 	if p == nil {
 		return nil, nil, invalid(ir.Malformed, "prepared Contract required")
 	}
@@ -400,12 +400,12 @@ func (p *PreparedContract) evaluate(ctx context.Context, run *testpilotpb.Run) (
 		return nil, nil, err
 	}
 	if run == nil {
-		return e, e.verdict(testpilotpb.RUN_STATUS_INCOMPLETE), invalid(ir.Malformed, "Run required")
+		return e, e.verdict(testpilotspb.RUN_STATUS_INCOMPLETE), invalid(ir.Malformed, "Run required")
 	}
 	failure := run.EvaluationFailure
 	failureSequence := run.GetEvaluationFailureSequence()
 	if failure != nil && (failureSequence <= 0 || failureSequence > int64(len(run.Events))) {
-		return e, e.verdict(testpilotpb.RUN_STATUS_INCOMPLETE), invalid(ir.Malformed, "invalid evaluation failure sequence")
+		return e, e.verdict(testpilotspb.RUN_STATUS_INCOMPLETE), invalid(ir.Malformed, "invalid evaluation failure sequence")
 	}
 	for _, event := range run.Events {
 		if failure != nil && event.GetSequence() >= failureSequence {
@@ -422,7 +422,7 @@ func (p *PreparedContract) evaluate(ctx context.Context, run *testpilotpb.Run) (
 	return e, verdict, err
 }
 
-func checkRunOrder(ctx context.Context, events []*testpilotpb.RunEvent) error {
+func checkRunOrder(ctx context.Context, events []*testpilotspb.RunEvent) error {
 	var elapsed int64
 	for i, event := range events {
 		if err := ctx.Err(); err != nil {
@@ -431,10 +431,10 @@ func checkRunOrder(ctx context.Context, events []*testpilotpb.RunEvent) error {
 		if event == nil || event.Sequence != int64(i+1) || event.ElapsedMilliseconds < elapsed {
 			return invalid(ir.Malformed, "invalid Run event ordering")
 		}
-		if i == 0 && (event.Kind != testpilotpb.RUN_EVENT_KIND_RUN_OPENED || event.ElapsedMilliseconds != 0) {
+		if i == 0 && (event.Kind != testpilotspb.RUN_EVENT_KIND_RUN_OPENED || event.ElapsedMilliseconds != 0) {
 			return invalid(ir.Malformed, "invalid Run opening")
 		}
-		if i > 0 && event.Kind == testpilotpb.RUN_EVENT_KIND_RUN_OPENED || i < len(events)-1 && event.Kind == testpilotpb.RUN_EVENT_KIND_RUN_CLOSED {
+		if i > 0 && event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_OPENED || i < len(events)-1 && event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED {
 			return invalid(ir.Malformed, "invalid Run lifecycle")
 		}
 		elapsed = event.ElapsedMilliseconds

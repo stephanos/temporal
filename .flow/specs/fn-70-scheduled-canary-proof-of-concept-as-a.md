@@ -57,7 +57,7 @@ Model violation and inconclusive results are measurements, not retryable Activit
 - Cancellation/cleanup: cancellation reaches Testpilot's bounded cleanup path when the worker is alive. Give the Activity enough time for execution plus cleanup and the Workflow enough time for the Activity terminal result. Target workflows/resources need finite server-enforced lifetimes as a backstop when the Activity worker disappears. A timeout is not evidence that all effects stopped; schedule Skip alone cannot establish resource isolation.
 - Shared process: reuse immutable prepared Cases and driver registrations, but each measurement has distinct Run identity, Slots, captures, capabilities and resource ownership. A late result cannot mutate another measurement. Cap worker concurrency explicitly for the small configured selection; a 10x tick/load increase cannot create an unbounded dispatch queue or retained-output growth.
 - Dependency failure: scheduling and target execution may use the same local cluster for the demonstration. A cluster outage can prevent measurement creation. Status inspection must expose last scheduled/started/completed observations and freshness separately from Verdict. Unreachable or stale status is never healthy. This is inspection by an external operator/client, not a claim that an unavailable cluster can report its own outage.
-- Resource portability: test two distinct namespace/task-queue bindings. Binding changes may alter resource-specific artifact bytes and Profile identity, but must not change the checked success requirement or correlation interpretation. Unsupported bindings fail explicitly.
+- Resource portability: reuse the same exact Case bytes across two distinct namespace/task-queue bindings. Binding changes alter the prepared/Driver binding identity, but not the source artifact, checked success requirement, Contract, provenance, or correlation interpretation. Unsupported bindings fail explicitly.
 - Shutdown: stop new owned scheduling when requested and drain/close worker-owned resources within configured bounds. Do not clean unrelated workflows or queues. Preserve independent cleanup and Verdict outcomes.
 - Schema evolution: consume the Testpilot protocol and fn-68 Producer as evolved by the binding prerequisite and its standalone Lean protocol dependency. This spec owns no protocol extraction, expression-language redesign or binding wire change.
 
@@ -107,7 +107,6 @@ Task planning must choose focused commands after the shared package path is sett
 - `fn-72-extract-the-reusable-temporal-testpilot` — reusable Temporal Driver extraction.
 - `fn-73-explicit-environment-binding-for` — explicit shared environment binding.
 - `fn-29-bounded-production-canary-execution-and` — separate production qualification scope.
-- `tests/testcore/testpilot/README.md` and `common/testing/testpilot/README.md` — existing runtime boundaries.
+- `common/testing/temporaltestpilot/README.md`, `tests/testcore/testpilot/README.md`, and `common/testing/testpilot/README.md` — existing runtime and fixture boundaries.
 - `tests/testpilot_async_nexus_case_test.go` — existing live consumer to preserve.
 - Temporal Go schedule documentation: https://github.com/temporalio/documentation/blob/main/docs/develop/go/workflows/schedules.mdx. Verify details against the repository's pinned SDK during implementation.
-

@@ -4,7 +4,7 @@ import (
 	"context"
 	"reflect"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
@@ -20,8 +20,8 @@ const (
 // Monitor callbacks receive independent event/Run snapshots. Every callback must return when
 // its Executor-bounded context is canceled; execution never manufactures a goroutine timeout.
 type Monitor interface {
-	Observe(context.Context, *testpilotpb.RunEvent) (Decision, error)
-	Close(context.Context, *testpilotpb.Run) (*testpilotpb.Verdict, error)
+	Observe(context.Context, *testpilotspb.RunEvent) (Decision, error)
+	Close(context.Context, *testpilotspb.Run) (*testpilotspb.Verdict, error)
 }
 
 // MonitorFactory creates fresh evaluation state before Run creation or target effects.
@@ -50,7 +50,7 @@ func NewMonitor(ctx context.Context, factory MonitorFactory, view ProgramView) (
 	return monitor, nil
 }
 
-type DriverIdentity struct{ Profile, Catalog string }
+type DriverIdentity struct{ Profile, Catalog, Bindings string }
 type Coordinate struct {
 	RunID, EntrypointID, ActivationID, InstructionID string
 	Attempt                                          int64
@@ -73,7 +73,7 @@ type ReservationRequest struct {
 // OpaqueCapability values are Driver-owned and never passed to expression or projection code.
 type OpaqueCapability interface{}
 type EffectResult struct {
-	Outcome  *testpilotpb.InstructionOutcome
+	Outcome  *testpilotspb.InstructionOutcome
 	Response proto.Message
 }
 
@@ -106,17 +106,18 @@ type SlotBridge interface {
 // Session methods must honor caller bounds; the Executor never wraps them in goroutines.
 type Driver interface {
 	Identity(context.Context) (DriverIdentity, error)
+	Validate(context.Context, *PreparedProgram) error
 	Open(context.Context, string, *PreparedProgram) (Session, error)
 }
 type Session interface {
 	Reserve(context.Context, ReservationRequest) ([]ReservationHandle, error)
 	InvokeRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message) (EffectHandle, error)
-	CompleteNexusOperation(context.Context, Coordinate, OpaqueCapability, *testpilotpb.Value) (EffectHandle, error)
+	CompleteNexusOperation(context.Context, Coordinate, OpaqueCapability, *testpilotspb.Value) (EffectHandle, error)
 	Bridge(context.Context) (SlotBridge, error)
 	Quarantine(context.Context, EffectHandle) error
 	Close(context.Context) error
 	// Diagnose remains usable after Close, is bounded by Driver policy, and cannot mutate returned data.
-	Diagnose(context.Context, string, *testpilotpb.RunDiagnostic) error
+	Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error
 }
 
 func isNil(value any) bool {

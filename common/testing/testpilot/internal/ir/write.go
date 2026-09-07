@@ -4,7 +4,7 @@ import (
 	"context"
 	"strconv"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/dynamicpb"
@@ -12,7 +12,7 @@ import (
 
 type Write struct {
 	Path  *Path
-	Value *testpilotpb.Value
+	Value *testpilotspb.Value
 }
 
 // BuildRequest never publishes the partially constructed request on failure.
@@ -47,7 +47,7 @@ func BuildRequest(ctx context.Context, descriptor protoreflect.MessageDescriptor
 	}
 	return message, b.work, nil
 }
-func writePath(message *dynamicpb.Message, path *Path, value *testpilotpb.Value, b *budget) error {
+func writePath(message *dynamicpb.Message, path *Path, value *testpilotspb.Value, b *budget) error {
 	if len(path.steps) == 0 {
 		replacement, err := decodeMessage(value, message.Descriptor())
 		if err != nil {
@@ -83,7 +83,7 @@ func writePath(message *dynamicpb.Message, path *Path, value *testpilotpb.Value,
 	}
 	return nil
 }
-func writeField(message protoreflect.Message, step PathStep, value *testpilotpb.Value) error {
+func writeField(message protoreflect.Message, step PathStep, value *testpilotspb.Value) error {
 	field := step.Field
 	if step.Selector == MapKey {
 		key, err := mapKey(step.Key, field.MapKey())
@@ -130,7 +130,7 @@ func writeField(message protoreflect.Message, step PathStep, value *testpilotpb.
 	message.Set(field, item)
 	return nil
 }
-func writeScalar(value *testpilotpb.Value, field protoreflect.FieldDescriptor) (protoreflect.Value, error) {
+func writeScalar(value *testpilotspb.Value, field protoreflect.FieldDescriptor) (protoreflect.Value, error) {
 	switch field.Kind() {
 	case protoreflect.BoolKind:
 		return protoreflect.ValueOfBool(value.GetBoolValue()), nil

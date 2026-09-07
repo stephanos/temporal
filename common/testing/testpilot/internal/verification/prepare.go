@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"slices"
 
-	testpilotpb "go.temporal.io/server/api/testpilot/v1"
+	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
 )
 
 type PreparedContract struct {
-	source       *testpilotpb.Contract
+	source       *testpilotspb.Contract
 	catalog      *ir.Catalog
 	observations map[string]ir.Type
 	program      execution.ProgramView
@@ -20,13 +20,13 @@ type PreparedContract struct {
 	workPerEvent int64
 }
 type machine struct {
-	source       *testpilotpb.ContractRuleDefinition
+	source       *testpilotspb.ContractRuleDefinition
 	initial      int
 	states       map[string]int
 	captures     map[string]int
 	captureTypes []ir.Type
 	transitions  []*ir.Expression
-	outgoing     []map[testpilotpb.RunEventKind][]int
+	outgoing     []map[testpilotspb.RunEventKind][]int
 }
 type admission struct {
 	prepared                                    *PreparedContract
@@ -38,7 +38,7 @@ type admission struct {
 	states, transitions, captures, captureBytes int64
 }
 
-func (p *PreparedContract) Snapshot() *testpilotpb.Contract    { return proto.CloneOf(p.source) }
+func (p *PreparedContract) Snapshot() *testpilotspb.Contract   { return proto.CloneOf(p.source) }
 func (p *PreparedContract) ProgramView() execution.ProgramView { return p.program }
 func invalid(category ir.ErrorCategory, detail string) error {
 	return &ir.Error{Category: category, Path: "contract", Detail: detail}
@@ -54,10 +54,10 @@ func validID(id string) bool {
 	}
 	return true
 }
-func hardLimits() *testpilotpb.ContractLimits {
-	return &testpilotpb.ContractLimits{MaxRules: 10000, MaxStates: 10000, MaxTransitions: 10000, MaxExpressionDepth: 64, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000000, MaxCaptures: 10000, MaxCaptureBytes: 16 << 20}
+func hardLimits() *testpilotspb.ContractLimits {
+	return &testpilotspb.ContractLimits{MaxRules: 10000, MaxStates: 10000, MaxTransitions: 10000, MaxExpressionDepth: 64, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000000, MaxCaptures: 10000, MaxCaptureBytes: 16 << 20}
 }
-func checkLimits(limits, ceiling *testpilotpb.ContractLimits) error {
+func checkLimits(limits, ceiling *testpilotspb.ContractLimits) error {
 	if limits == nil || ceiling == nil {
 		return invalid(ir.Malformed, "Contract limits and Driver ceilings are required")
 	}
@@ -84,7 +84,7 @@ func add(total *int64, value, ceiling int64) error {
 func (a *admission) charge(value int64) error { return add(&a.work, value, ir.DefaultLimits().Work) }
 
 // Prepare admits static machines; each evaluator will own fresh state and capture values.
-func Prepare(source *testpilotpb.Contract, catalog *ir.Catalog, program execution.ProgramView, ceiling *testpilotpb.ContractLimits) (*PreparedContract, error) {
+func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program execution.ProgramView, ceiling *testpilotspb.ContractLimits) (*PreparedContract, error) {
 	if catalog == nil || program.ProgramID() == "" || program.CatalogIdentity() != catalog.Identity() {
 		return nil, invalid(ir.Malformed, "prepared Program and matching catalog are required")
 	}
@@ -111,7 +111,7 @@ func Prepare(source *testpilotpb.Contract, catalog *ir.Catalog, program executio
 	a.limits.Depth = source.Limits.MaxExpressionDepth
 	a.limits.Fanout = program.Limits().MaxPathFanout
 	var err error
-	a.boolean, err = catalog.BindType(scalarType(testpilotpb.SCALAR_KIND_BOOLEAN))
+	a.boolean, err = catalog.BindType(scalarType(testpilotspb.SCALAR_KIND_BOOLEAN))
 	if err != nil {
 		return nil, err
 	}
@@ -135,10 +135,10 @@ func Prepare(source *testpilotpb.Contract, catalog *ir.Catalog, program executio
 	}
 	return p, nil
 }
-func scalarType(kind testpilotpb.ScalarKind) *testpilotpb.ValueType {
-	return &testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Scalar{Scalar: &testpilotpb.ScalarType{Kind: kind}}}}}
+func scalarType(kind testpilotspb.ScalarKind) *testpilotspb.ValueType {
+	return &testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Scalar{Scalar: &testpilotspb.ScalarType{Kind: kind}}}}}
 }
-func (a *admission) bindMachine(rule *testpilotpb.ContractRuleDefinition) (*machine, error) {
+func (a *admission) bindMachine(rule *testpilotspb.ContractRuleDefinition) (*machine, error) {
 	limits := a.prepared.source.Limits
 	if err := add(&a.states, int64(len(rule.States)), limits.MaxStates); err != nil {
 		return nil, err
@@ -149,10 +149,10 @@ func (a *admission) bindMachine(rule *testpilotpb.ContractRuleDefinition) (*mach
 	if len(rule.States) == 0 || len(rule.Transitions) == 0 {
 		return nil, invalid(ir.Malformed, "states and transitions are required")
 	}
-	if rule.Kind != testpilotpb.CONTRACT_RULE_KIND_SAFETY && rule.Kind != testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
+	if rule.Kind != testpilotspb.CONTRACT_RULE_KIND_SAFETY && rule.Kind != testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
 		return nil, invalid(ir.Unknown, "unsupported rule kind")
 	}
-	m := &machine{source: rule, states: map[string]int{}, captures: map[string]int{}, outgoing: make([]map[testpilotpb.RunEventKind][]int, len(rule.States))}
+	m := &machine{source: rule, states: map[string]int{}, captures: map[string]int{}, outgoing: make([]map[testpilotspb.RunEventKind][]int, len(rule.States))}
 	if err := a.bindStates(m); err != nil {
 		return nil, err
 	}
@@ -172,7 +172,7 @@ func (a *admission) bindMachine(rule *testpilotpb.ContractRuleDefinition) (*mach
 	return m, nil
 }
 
-func (a *admission) bind(conditions []ir.Condition, value *testpilotpb.ContractExpression, expected *ir.Type, scope map[ir.Reference]ir.Binding) (*ir.Expression, error) {
+func (a *admission) bind(conditions []ir.Condition, value *testpilotspb.ContractExpression, expected *ir.Type, scope map[ir.Reference]ir.Binding) (*ir.Expression, error) {
 	limits := a.limits
 	limits.Work = min(limits.Work, ir.DefaultLimits().Work-a.work)
 	bound, err := a.catalog.BindConditionedExpression(conditions, value, expected, scope, limits)
@@ -189,17 +189,17 @@ func (a *admission) bindScope() error {
 	for _, observation := range a.prepared.program.Observations() {
 		a.scope[ir.Reference{Kind: ir.ObservationReference, ID: observation.ID}] = ir.Binding{Type: observation.Type}
 	}
-	for field := testpilotpb.RUN_EVENT_FIELD_SEQUENCE; field <= testpilotpb.RUN_EVENT_FIELD_SOURCE_ID; field++ {
-		kind := testpilotpb.SCALAR_KIND_TEXT
-		if field == testpilotpb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotpb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS || field == testpilotpb.RUN_EVENT_FIELD_ATTEMPT {
-			kind = testpilotpb.SCALAR_KIND_INT64
+	for field := testpilotspb.RUN_EVENT_FIELD_SEQUENCE; field <= testpilotspb.RUN_EVENT_FIELD_SOURCE_ID; field++ {
+		kind := testpilotspb.SCALAR_KIND_TEXT
+		if field == testpilotspb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotspb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS || field == testpilotspb.RUN_EVENT_FIELD_ATTEMPT {
+			kind = testpilotspb.SCALAR_KIND_INT64
 		}
 		typ, bindErr := a.catalog.BindType(scalarType(kind))
 		if bindErr != nil {
 			return bindErr
 		}
-		if field == testpilotpb.RUN_EVENT_FIELD_KIND {
-			typ, bindErr = a.catalog.BindType(&testpilotpb.ValueType{Shape: &testpilotpb.ValueType_Singular{Singular: &testpilotpb.SingularType{Type: &testpilotpb.SingularType_Enumeration{Enumeration: &testpilotpb.NamedType{ProtobufType: string(testpilotpb.RunEventKind(0).Descriptor().FullName())}}}}})
+		if field == testpilotspb.RUN_EVENT_FIELD_KIND {
+			typ, bindErr = a.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: string(testpilotspb.RunEventKind(0).Descriptor().FullName())}}}}})
 			if bindErr != nil {
 				return bindErr
 			}
@@ -218,23 +218,23 @@ func (a *admission) bindStates(m *machine) error {
 		if _, exists := m.states[state.StateId]; exists {
 			return invalid(ir.Malformed, "duplicate state")
 		}
-		if state.Status < testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL || state.Status > testpilotpb.CONTRACT_STATE_STATUS_VIOLATED {
+		if state.Status < testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL || state.Status > testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
 			return invalid(ir.Unknown, "invalid terminal state kind")
 		}
 		m.states[state.StateId] = i
-		m.outgoing[i] = map[testpilotpb.RunEventKind][]int{}
+		m.outgoing[i] = map[testpilotspb.RunEventKind][]int{}
 	}
 	initial, ok := m.states[rule.InitialStateId]
 	if !ok {
 		return invalid(ir.Unknown, "initial state is not declared")
 	}
 	m.initial = initial
-	if rule.States[initial].Status != testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL {
+	if rule.States[initial].Status != testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL {
 		return invalid(ir.Malformed, "initial state must be nonterminal")
 	}
-	if rule.Kind == testpilotpb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
+	if rule.Kind == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
 		target, exists := m.states[rule.Horizon.GetViolationStateId()]
-		if rule.Horizon.GetElapsedMilliseconds() <= 0 || !exists || rule.States[target].Status != testpilotpb.CONTRACT_STATE_STATUS_VIOLATED {
+		if rule.Horizon.GetElapsedMilliseconds() <= 0 || !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
 			return invalid(ir.Malformed, "liveness requires positive horizon and violated target")
 		}
 	} else if rule.Horizon != nil {
@@ -256,17 +256,17 @@ func (a *admission) bindTransitions(m *machine, scope map[ir.Reference]ir.Bindin
 			return invalid(ir.Malformed, "invalid, duplicate, or undeclared transition identity/state")
 		}
 		seen[tr.TransitionId] = true
-		if rule.States[from].Status != testpilotpb.CONTRACT_STATE_STATUS_NONTERMINAL {
+		if rule.States[from].Status != testpilotspb.CONTRACT_STATE_STATUS_NONTERMINAL {
 			return invalid(ir.Malformed, "terminal states cannot have outgoing transitions")
 		}
-		if tr.SupportKind != testpilotpb.CONTRACT_SUPPORT_KIND_NONE && tr.SupportKind != testpilotpb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT {
+		if tr.SupportKind != testpilotspb.CONTRACT_SUPPORT_KIND_NONE && tr.SupportKind != testpilotspb.CONTRACT_SUPPORT_KIND_MATCHING_EVENT {
 			return invalid(ir.Unknown, "invalid supporting event policy")
 		}
 		if len(tr.EventFilter.GetKinds()) == 0 {
 			return invalid(ir.Malformed, "transition event kinds required")
 		}
 		for _, kind := range tr.EventFilter.Kinds {
-			if kind < testpilotpb.RUN_EVENT_KIND_RUN_OPENED || kind > testpilotpb.RUN_EVENT_KIND_DIAGNOSTIC || slices.Contains(m.outgoing[from][kind], i) {
+			if kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || kind > testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC || slices.Contains(m.outgoing[from][kind], i) {
 				return invalid(ir.Unknown, "invalid or duplicate event kind")
 			}
 			m.outgoing[from][kind] = append(m.outgoing[from][kind], i)
