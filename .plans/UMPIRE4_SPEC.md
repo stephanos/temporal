@@ -150,9 +150,9 @@ horizon.
 - **MOD-12 — Public Testpilot facade.** The public execution sequence MUST be exactly
   `testpilot.Prepare(case, profile)` followed by `PreparedCase.Run(ctx, driver)`. Scheduler, Recorder, Slot
   storage, and Monitor-factory construction MUST remain internal.
-- **MOD-13 — Temporal authority split.** `common/testing/temporaltestpilot/server` MUST supply the authorized
+- **MOD-13 — Temporal authority split.** `common/testing/testpilot/temporal/server` MUST supply the authorized
   descriptor catalog and transport prepared unary method/request pairs, returning raw typed
-  responses and protocol status. `common/testing/temporaltestpilot/worker` MUST own SDK workflow, activity, and
+  responses and protocol status. `common/testing/testpilot/temporal/worker` MUST own SDK workflow, activity, and
   Nexus-handler execution plus reserved activation delivery. Neither side may assume the other's
   authority; internal execution owns request construction and response projection.
 - **MOD-14 — Internal execution boundary.** Production packages outside Testpilot and its private

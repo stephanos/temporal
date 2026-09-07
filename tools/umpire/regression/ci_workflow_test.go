@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	packageLocalTestCommand  = "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot/..."
+	packageLocalTestCommand  = "mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/..."
 	liveTestCommand          = "mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^(TestUmpire|TestTestpilotAsyncNexusCase)'"
 	liveTestTargetCommand    = "make umpire-check-live-tests"
 	conformanceTargetCommand = "./tools/umpire/cmd/umpire-gen-case-runtime-conformance"
@@ -159,7 +159,7 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 			"fixture admission and prepared-Case reuse tests",
 			"Cluster provisioning",
 		},
-		"common/testing/temporaltestpilot/README.md": {
+		"common/testing/testpilot/temporal/README.md": {
 			"The composite adds no Case or scenario interpretation",
 			"`Open` creates the server Session first",
 			"NewWorkflowServiceCatalog",
@@ -175,7 +175,7 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 		},
 		".plans/UMPIRE_CASE_RUNTIME_DESIGN.md": {
 			"Current ownership is `common/testing/testpilot`",
-			"Temporal Driver under `common/testing/temporaltestpilot`",
+			"Temporal Driver under `common/testing/testpilot/temporal`",
 		},
 		"model/README.md": {
 			"testpilot.Prepare(case, Profile)",
@@ -185,7 +185,7 @@ func TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim(t *testing.T)
 		"model/ARCHITECTURE.md": {
 			"The Testpilot `.proto` files own the Case protocol",
 			"`common/testing/testpilot` owns the Profile/Driver contract",
-			"`common/testing/temporaltestpilot`",
+			"`common/testing/testpilot/temporal`",
 			"checks horizon expiry before every transition",
 		},
 		"model/Umpire/ARCHITECTURE.md": {
@@ -332,45 +332,45 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 	}{
 		{
 			name:     "shared Driver imports repository tests",
-			relative: "common/testing/temporaltestpilot/driver.go",
-			source:   "package temporaltestpilot\nimport _ \"go.temporal.io/server/tests/testcore\"\n",
-			want:     "common/testing/temporaltestpilot/driver.go: imports forbidden dependency go.temporal.io/server/tests/testcore",
+			relative: "common/testing/testpilot/temporal/driver.go",
+			source:   "package temporal\nimport _ \"go.temporal.io/server/tests/testcore\"\n",
+			want:     "common/testing/testpilot/temporal/driver.go: imports forbidden dependency go.temporal.io/server/tests/testcore",
 		},
 		{
 			name:     "shared Driver imports Umpire generator",
-			relative: "common/testing/temporaltestpilot/driver.go",
-			source:   "package temporaltestpilot\nimport _ \"go.temporal.io/server/tools/umpire/cmd/umpire-gen-regression-views\"\n",
-			want:     "common/testing/temporaltestpilot/driver.go: imports forbidden dependency go.temporal.io/server/tools/umpire/cmd/umpire-gen-regression-views",
+			relative: "common/testing/testpilot/temporal/driver.go",
+			source:   "package temporal\nimport _ \"go.temporal.io/server/tools/umpire/cmd/umpire-gen-regression-views\"\n",
+			want:     "common/testing/testpilot/temporal/driver.go: imports forbidden dependency go.temporal.io/server/tools/umpire/cmd/umpire-gen-regression-views",
 		},
 		{
 			name:     "shared Driver imports canary orchestration",
-			relative: "common/testing/temporaltestpilot/driver.go",
-			source:   "package temporaltestpilot\nimport _ \"go.temporal.io/server/tools/canary\"\n",
-			want:     "common/testing/temporaltestpilot/driver.go: imports forbidden dependency go.temporal.io/server/tools/canary",
+			relative: "common/testing/testpilot/temporal/driver.go",
+			source:   "package temporal\nimport _ \"go.temporal.io/server/tools/canary\"\n",
+			want:     "common/testing/testpilot/temporal/driver.go: imports forbidden dependency go.temporal.io/server/tools/canary",
 		},
 		{
 			name:     "shared Driver imports private IR",
-			relative: "common/testing/temporaltestpilot/driver.go",
-			source:   "package temporaltestpilot\nimport _ \"go.temporal.io/server/common/testing/testpilot/internal/ir\"\n",
-			want:     "common/testing/temporaltestpilot/driver.go: imports generic Testpilot private package go.temporal.io/server/common/testing/testpilot/internal/ir",
+			relative: "common/testing/testpilot/temporal/driver.go",
+			source:   "package temporal\nimport _ \"go.temporal.io/server/common/testing/testpilot/internal/ir\"\n",
+			want:     "common/testing/testpilot/temporal/driver.go: imports generic Testpilot private package go.temporal.io/server/common/testing/testpilot/internal/ir",
 		},
 		{
 			name:     "shared Driver imports private execution",
-			relative: "common/testing/temporaltestpilot/driver.go",
-			source:   "package temporaltestpilot\nimport _ \"go.temporal.io/server/common/testing/testpilot/internal/execution\"\n",
-			want:     "common/testing/temporaltestpilot/driver.go: imports generic Testpilot private package go.temporal.io/server/common/testing/testpilot/internal/execution",
+			relative: "common/testing/testpilot/temporal/driver.go",
+			source:   "package temporal\nimport _ \"go.temporal.io/server/common/testing/testpilot/internal/execution\"\n",
+			want:     "common/testing/testpilot/temporal/driver.go: imports generic Testpilot private package go.temporal.io/server/common/testing/testpilot/internal/execution",
 		},
 		{
 			name:     "shared Driver imports private verification",
-			relative: "common/testing/temporaltestpilot/driver.go",
-			source:   "package temporaltestpilot\nimport _ \"go.temporal.io/server/common/testing/testpilot/internal/verification\"\n",
-			want:     "common/testing/temporaltestpilot/driver.go: imports generic Testpilot private package go.temporal.io/server/common/testing/testpilot/internal/verification",
+			relative: "common/testing/testpilot/temporal/driver.go",
+			source:   "package temporal\nimport _ \"go.temporal.io/server/common/testing/testpilot/internal/verification\"\n",
+			want:     "common/testing/testpilot/temporal/driver.go: imports generic Testpilot private package go.temporal.io/server/common/testing/testpilot/internal/verification",
 		},
 		{
 			name:     "generic Testpilot imports Temporal Driver",
 			relative: "common/testing/testpilot/driver.go",
-			source:   "package testpilot\nimport _ \"go.temporal.io/server/common/testing/temporaltestpilot\"\n",
-			want:     "common/testing/testpilot/driver.go: imports Temporal Driver go.temporal.io/server/common/testing/temporaltestpilot",
+			source:   "package testpilot\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal\"\n",
+			want:     "common/testing/testpilot/driver.go: imports Temporal Driver go.temporal.io/server/common/testing/testpilot/temporal",
 		},
 		{
 			name:     "generic Testpilot imports repository tests",
@@ -392,27 +392,27 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 		},
 		{
 			name:     "server imports worker",
-			relative: "common/testing/temporaltestpilot/server/driver.go",
-			source:   "package server\nimport _ \"go.temporal.io/server/common/testing/temporaltestpilot/worker\"\n",
-			want:     "common/testing/temporaltestpilot/server/driver.go: crosses adapter authority through go.temporal.io/server/common/testing/temporaltestpilot/worker",
+			relative: "common/testing/testpilot/temporal/server/driver.go",
+			source:   "package server\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal/worker\"\n",
+			want:     "common/testing/testpilot/temporal/server/driver.go: crosses adapter authority through go.temporal.io/server/common/testing/testpilot/temporal/worker",
 		},
 		{
 			name:     "worker imports server",
-			relative: "common/testing/temporaltestpilot/worker/driver.go",
-			source:   "package worker\nimport _ \"go.temporal.io/server/common/testing/temporaltestpilot/server\"\n",
-			want:     "common/testing/temporaltestpilot/worker/driver.go: crosses adapter authority through go.temporal.io/server/common/testing/temporaltestpilot/server",
+			relative: "common/testing/testpilot/temporal/worker/driver.go",
+			source:   "package worker\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal/server\"\n",
+			want:     "common/testing/testpilot/temporal/worker/driver.go: crosses adapter authority through go.temporal.io/server/common/testing/testpilot/temporal/server",
 		},
 		{
 			name:     "delivery imports server",
-			relative: "common/testing/temporaltestpilot/internal/delivery/ledger.go",
-			source:   "package delivery\nimport _ \"go.temporal.io/server/common/testing/temporaltestpilot/server\"\n",
-			want:     "common/testing/temporaltestpilot/internal/delivery/ledger.go: crosses adapter authority through go.temporal.io/server/common/testing/temporaltestpilot/server",
+			relative: "common/testing/testpilot/temporal/internal/delivery/ledger.go",
+			source:   "package delivery\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal/server\"\n",
+			want:     "common/testing/testpilot/temporal/internal/delivery/ledger.go: crosses adapter authority through go.temporal.io/server/common/testing/testpilot/temporal/server",
 		},
 		{
 			name:     "delivery imports worker",
-			relative: "common/testing/temporaltestpilot/internal/delivery/ledger.go",
-			source:   "package delivery\nimport _ \"go.temporal.io/server/common/testing/temporaltestpilot/worker\"\n",
-			want:     "common/testing/temporaltestpilot/internal/delivery/ledger.go: crosses adapter authority through go.temporal.io/server/common/testing/temporaltestpilot/worker",
+			relative: "common/testing/testpilot/temporal/internal/delivery/ledger.go",
+			source:   "package delivery\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal/worker\"\n",
+			want:     "common/testing/testpilot/temporal/internal/delivery/ledger.go: crosses adapter authority through go.temporal.io/server/common/testing/testpilot/temporal/worker",
 		},
 		{
 			name:     "closure reaches repository tests",
@@ -431,15 +431,15 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 		},
 		{
 			name:      "malformed source",
-			relative:  "common/testing/temporaltestpilot/driver.go",
-			source:    "package temporaltestpilot\nimport (\n",
-			wantError: "parse common/testing/temporaltestpilot/driver.go",
+			relative:  "common/testing/testpilot/temporal/driver.go",
+			source:    "package temporal\nimport (\n",
+			wantError: "parse common/testing/testpilot/temporal/driver.go",
 		},
 		{
 			name:       "unreadable source",
-			relative:   "common/testing/temporaltestpilot/driver.go",
+			relative:   "common/testing/testpilot/temporal/driver.go",
 			unreadable: true,
-			wantError:  "inspect common/testing/temporaltestpilot/driver.go",
+			wantError:  "inspect common/testing/testpilot/temporal/driver.go",
 		},
 	}
 
@@ -448,9 +448,9 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 			repositoryRoot := t.TempDir()
 			for _, relative := range []string{
 				"common/testing/testpilot",
-				"common/testing/temporaltestpilot/server",
-				"common/testing/temporaltestpilot/worker",
-				"common/testing/temporaltestpilot/internal/delivery",
+				"common/testing/testpilot/temporal/server",
+				"common/testing/testpilot/temporal/worker",
+				"common/testing/testpilot/temporal/internal/delivery",
 			} {
 				require.NoError(t, os.MkdirAll(filepath.Join(repositoryRoot, filepath.FromSlash(relative)), 0o755))
 			}
@@ -479,7 +479,7 @@ type testpilotDependency struct {
 }
 
 func listTestpilotDependencies(ctx context.Context, repositoryRoot string) ([]testpilotDependency, error) {
-	command := exec.CommandContext(ctx, "go", "list", "-tags", "test_dep", "-deps", "-test", "-json", "./common/testing/temporaltestpilot/...")
+	command := exec.CommandContext(ctx, "go", "list", "-tags", "test_dep", "-deps", "-test", "-json", "./common/testing/testpilot/temporal/...")
 	command.Dir = repositoryRoot
 	output, err := command.CombinedOutput()
 	if err != nil {
@@ -501,7 +501,7 @@ func listTestpilotDependencies(ctx context.Context, repositoryRoot string) ([]te
 func checkTestpilotDependencyBoundary(repositoryRoot string, dependencies []testpilotDependency) ([]string, error) {
 	const (
 		genericRoot = "common/testing/testpilot"
-		driverRoot  = "common/testing/temporaltestpilot"
+		driverRoot  = "common/testing/testpilot/temporal"
 		moduleRoot  = "go.temporal.io/server/"
 	)
 	var violations []string
@@ -511,7 +511,13 @@ func checkTestpilotDependencyBoundary(repositoryRoot string, dependencies []test
 			if walkErr != nil {
 				return walkErr
 			}
-			if entry.IsDir() || filepath.Ext(path) != ".go" {
+			if entry.IsDir() {
+				if relativeRoot == genericRoot && path == filepath.Join(repositoryRoot, filepath.FromSlash(driverRoot)) {
+					return filepath.SkipDir
+				}
+				return nil
+			}
+			if filepath.Ext(path) != ".go" {
 				return nil
 			}
 			relative, err := filepath.Rel(repositoryRoot, path)

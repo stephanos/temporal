@@ -13,5 +13,5 @@ private prepared resources, and includes the complete binding fingerprint in Pre
 `PreparedCase.Run` checks the Driver identity, calls `Driver.Validate` without target I/O, creates the
 Monitor, and only then opens a per-Run `Session`. Validation failure produces no Session, Run, Verdict,
 or effect. Scheduling, recording, expression admission, and Contract evaluation stay private to this
-package. The reusable Temporal Driver lives in `common/testing/temporaltestpilot`; functional
+package. The reusable Temporal Driver lives in `common/testing/testpilot/temporal`; functional
 fixtures and provisioning remain under `tests/`. Drivers cannot replace the prepared Contract evaluator.

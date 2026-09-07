@@ -99,7 +99,7 @@ func scopedPaths(repositoryRoot string) ([]string, error) {
 	for _, root := range []string{
 		"tools/umpire",
 		"common/testing/testpilot",
-		"common/testing/temporaltestpilot",
+		"common/testing/testpilot/temporal",
 		"tests/testcore/testpilot",
 		"api/testpilot",
 		"proto/internal/temporal/server/api/testpilot",
