@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-75-separate-lean-target-semantics-from",
+  "created_at": "2026-09-07T00:59:06.559245Z",
+  "depends_on_epics": [],
+  "id": "fn-75-separate-lean-target-semantics-from",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-75-separate-lean-target-semantics-from.md",
+  "status": "open",
+  "title": "Separate Lean Target semantics from authoring machinery",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-07T01:00:15.669511Z"
+}

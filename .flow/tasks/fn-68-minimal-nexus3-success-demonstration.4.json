@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-06T23:25:23.675150Z",
+  "depends_on": [
+    "fn-68-minimal-nexus3-success-demonstration.1"
+  ],
+  "id": "fn-68-minimal-nexus3-success-demonstration.4",
+  "priority": null,
+  "spec": "fn-68-minimal-nexus3-success-demonstration",
+  "spec_path": ".flow/tasks/fn-68-minimal-nexus3-success-demonstration.4.md",
+  "status": "todo",
+  "title": "Derive Nexus3 metadata from authored declarations",
+  "updated_at": "2026-09-06T23:26:59.724777Z"
+}

@@ -1050,6 +1050,7 @@ umpire-check-regression-views:
 umpire-gen-case-runtime-conformance:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
+	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root . --mode functional
 
 umpire-check-case-runtime-conformance:
 	@printf $(COLOR) "Check generated Umpire Testpilot conformance fixtures..."
@@ -1058,8 +1059,11 @@ umpire-check-case-runtime-conformance:
 		temporary=$$(mktemp -d "$$temporary_root/umpire-case-runtime-conformance.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
 		$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root "$$temporary"; \
+		$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root "$$temporary" --mode functional; \
 		diff -ru common/testing/testpilot/testdata/case-runtime-conformance \
-			"$$temporary/common/testing/testpilot/testdata/case-runtime-conformance"
+			"$$temporary/common/testing/testpilot/testdata/case-runtime-conformance"; \
+		diff -ru tests/testcore/testpilot/testdata \
+			"$$temporary/tests/testcore/testpilot/testdata"
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" go test -count=1 -tags test_dep \
 			./tools/umpire/cmd/umpire-gen-case-runtime-conformance; \
