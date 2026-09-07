@@ -47,7 +47,7 @@ func TestDriverSymbolicModeDerivesResourcesAndRejectsBindingIdentityMismatchBefo
 	require.NoError(t, err)
 	require.Equal(t, "namespace", definition.entries["workflow"].namespace)
 	require.Equal(t, "task-queue", definition.entries["workflow"].queue)
-	require.Equal(t, "nexus-endpoint", definition.endpoints["nexus-endpoint"])
+	require.Equal(t, "endpoint", definition.endpoints["nexus-endpoint"])
 }
 
 func TestDriverSymbolicModeComparesRequestBindingIDsRatherThanResolvedText(t *testing.T) {
@@ -131,32 +131,13 @@ func TestDriverSymbolicModeRejectsUnsupportedEndpointResources(t *testing.T) {
 	}
 }
 
-func TestNewSeparatesSymbolicAndLegacyPhysicalModes(t *testing.T) {
+func TestNewFreezesSymbolicProfile(t *testing.T) {
 	catalog, err := testpilot.NewCatalog(descriptorClosure(workflowservice.File_temporal_api_workflowservice_v1_service_proto))
 	require.NoError(t, err)
 	limits := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS).Snapshot().GetLimits()
-	base := Options{Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: limits}, Client: &recordingClient{}, WorkerRoleID: "worker"}
-
-	_, err = New(base)
-	require.ErrorIs(t, err, ErrInvalid)
-	base.Namespace = "namespace"
-	_, err = New(base)
-	require.ErrorIs(t, err, ErrInvalid)
-	base.TaskQueues = []RoleBinding{{RoleID: "queue", Value: "task-queue"}}
+	base := Options{Profile: testpilot.ProfileSpec{Identity: "profile", Catalog: catalog, ProgramLimits: limits, EnvironmentBindings: []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}}}, Client: &recordingClient{}, WorkerRoleID: "worker"}
 	host, err := New(base)
 	require.NoError(t, err)
-	require.False(t, host.options.symbolic)
-	require.ErrorIs(t, host.Validate(t.Context(), preparedSymbolicRuntimeFixture(t)), ErrInvalid)
-
-	base.Profile.EnvironmentBindings = []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}}
-	_, err = New(base)
-	require.ErrorIs(t, err, ErrInvalid)
-	base.Namespace = ""
-	base.TaskQueues = nil
-	host, err = New(base)
-	require.NoError(t, err)
-	require.True(t, host.options.symbolic)
-	require.ErrorIs(t, host.Validate(t.Context(), preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)), ErrInvalid)
 	base.Profile.EnvironmentBindings[0].Value = "mutated"
 	require.Equal(t, "namespace", host.options.profile.EnvironmentBindings[0].Value)
 }
@@ -176,38 +157,11 @@ func preparedSymbolicRuntimeFixture(t *testing.T, modifiers ...any) testpilot.Pr
 		}
 	}
 	configureProgram := func(program *testpilotspb.Program) {
-		program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "task-queue"}, {BindingId: "nexus-endpoint"}}
-		for _, role := range program.Roles {
-			switch role.GetRoleId() {
-			case "worker":
-				role.NamespaceBindingId = "namespace"
-			case "queue":
-				role.NamespaceBindingId = "namespace"
-				role.ResourceBindingId = "task-queue"
-			default:
-				continue
-			}
-		}
-		program.Roles = append(program.Roles, &testpilotspb.RoleDefinition{RoleId: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, ResourceBindingId: "nexus-endpoint"})
-		controller := program.Entrypoints[0].Instructions[0]
-		controller.GetInstruction().GetInvokeRpc().RequestAssignments = []*testpilotspb.RequestAssignment{
-			{Target: symbolicFieldPath("namespace"), Value: symbolicEnvironment("namespace")},
-			{Target: symbolicFieldPath("task_queue", "name"), Value: symbolicEnvironment("task-queue")},
-		}
-		for _, entrypoint := range program.Entrypoints {
-			for _, instruction := range entrypoint.Instructions {
-				if start := instruction.GetInstruction().GetStartNexusOperation(); start != nil {
-					start.EndpointRoleId = "nexus-endpoint"
-				}
-			}
-		}
 		for _, modify := range programModifiers {
 			modify(program)
 		}
 	}
 	configureProfile := func(profile *testpilot.ProfileSpec) {
-		profile.EnvironmentBindings = []testpilot.EnvironmentBinding{{ID: "namespace", Value: "namespace"}, {ID: "task-queue", Value: "task-queue"}, {ID: "nexus-endpoint", Value: "nexus-endpoint"}}
-		profile.Roles = append(profile.Roles, testpilot.RolePolicy{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT})
 		for _, modify := range profileModifiers {
 			modify(profile)
 		}

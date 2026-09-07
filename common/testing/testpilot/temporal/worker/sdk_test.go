@@ -31,13 +31,12 @@ import (
 func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testing.T) {
 	for _, valueOutcome := range []bool{false, true} {
 		t.Run(fmt.Sprintf("value=%t", valueOutcome), func(t *testing.T) {
-			prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, func(program *testpilotspb.Program) {
+			prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, func(program *testpilotspb.Program) {
 				if valueOutcome {
 					program.Entrypoints[1].Instructions[2].Outcome = runtimeValueOutcomeSchema()
 				}
 			})
 			host, definition := runtimeTestDriver(t, prepared)
-			host.options.namespace = "default-test-namespace"
 			host.options.client = &recordingClient{}
 			binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 			session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
@@ -74,9 +73,8 @@ func TestSDKWorkflowInterpretsStartAwaitAndFinishWithArbitraryArguments(t *testi
 }
 
 func TestSDKWorkflowReplayerCompletesAnUnfinishedAdmission(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "ReplayNamespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
 	host, definition := runtimeTestDriver(t, prepared)
-	host.options.namespace = "ReplayNamespace"
 	host.options.client = &recordingClient{}
 	binding := WorkflowBinding{Namespace: "ReplayNamespace", WorkflowID: "replay-workflow", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "replay-run", binding, SessionOptions{Bridge: newTestBridge()})
@@ -157,9 +155,8 @@ func TestSDKNexusInboundRoutesRedeliveryThroughLedger(t *testing.T) {
 }
 
 func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
 	host, definition := runtimeTestDriver(t, prepared)
-	host.options.namespace = "default-test-namespace"
 	host.options.client = &recordingClient{}
 	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	session, _, request := runtimeTestSessionWithBinding(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()})
@@ -201,9 +198,8 @@ func TestSDKAdmittedWorkflowUsesCachedDispatchWhenStopRacesNextCommand(t *testin
 }
 
 func TestSDKFailedTriggerRejectsWorkflowBeforeExecution(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
 	host, definition := runtimeTestDriver(t, prepared)
-	host.options.namespace = "default-test-namespace"
 	binding := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "default-test-workflow-id", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	_, _, request := runtimeTestSessionWithDisposition(t, host, definition, prepared, "run", "default-test-run-id", binding, SessionOptions{Bridge: newTestBridge()}, delivery.TriggerNonSuccess)
 
@@ -218,9 +214,8 @@ func TestSDKFailedTriggerRejectsWorkflowBeforeExecution(t *testing.T) {
 }
 
 func TestSDKConcurrentRunsAdmitReorderedWorkflowDelivery(t *testing.T) {
-	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	prepared := preparedRuntimeFixtureForNamespace(t, "default-test-namespace", testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
 	host, definition := runtimeTestDriver(t, prepared)
-	host.options.namespace = "default-test-namespace"
 	host.options.client = &recordingClient{}
 	bindingA := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow-a", WorkflowType: "workflow-type", TaskQueue: "task-queue"}
 	bindingB := WorkflowBinding{Namespace: "default-test-namespace", WorkflowID: "workflow-b", WorkflowType: "workflow-type", TaskQueue: "task-queue"}

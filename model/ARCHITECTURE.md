@@ -82,7 +82,7 @@ Case
 ├── version, identity, opaque producer provenance
 ├── Program
 │   ├── symbolic roles
-│   ├── Case 1.1 symbolic environment declarations and direct resource references
+│   ├── Case 1.0 symbolic environment declarations and direct resource references
 │   ├── typed private Slots and declared Observations
 │   ├── controller / workflow / activity / Nexus-handler DAGs
 │   ├── cleanup graph
@@ -109,8 +109,8 @@ violated, inconclusive, static-rejection, cleanup-failure, and cross-Run classes
 `Temporal.Tool.Testpilot` is a build-time renderer only. Coordinates, credentials, clients,
 workers, capabilities, and live IDs remain Driver inputs.
 
-Literal-only Programs use Case 1.0. A binding-bearing Program uses Case 1.1 and declares a closed
-set of symbolic text IDs for namespaces, task queues, and named Nexus endpoints. These declarations
+Exact Case 1.0 is the only admitted format. A resource-bearing Program declares a complete closed
+set of symbolic text IDs for namespaces, task queues, and named Nexus endpoints; a resource-free Program may have an empty environment. These declarations
 express resource relationships, not physical values; an endpoint role or binding ID is not a network
 address. The immutable Profile supplies physical values, while transport targets, credentials,
 callback authority, SDK clients, and lifecycle configuration remain environment-owned Driver inputs.
@@ -154,13 +154,12 @@ activation scope. The composite Driver joins these capabilities without interpre
 Contract. The composite and its `server` and `worker` packages live under
 `common/testing/testpilot/temporal`.
 
-`Prepare` snapshots and resolves Case 1.1 bindings without target I/O. A Prepared Case retains the
+`Prepare` snapshots and resolves Case 1.0 bindings without target I/O. A Prepared Case retains the
 unchanged symbolic source and private resolved instruction and role data, and its identity includes
 the complete Profile binding fingerprint. `Run` compares that identity, invokes the Driver's no-I/O
 `Validate` hook, creates the Contract Monitor, and then calls `Open`. The shared Temporal Driver has
-an explicit symbolic mode that derives request carriers, worker namespaces, task queues, and Nexus
-routes from those prepared bindings, and an explicit legacy mode for literal-only Case 1.0 Programs.
-The modes cannot be mixed and legacy resource maps never fill missing symbolic bindings.
+request carriers, worker namespaces, task queues, and Nexus routes solely from those prepared
+bindings.
 
 The Executor appends monotonic immutable Run Events. Each event has a unique source identity and
 causal references to prior sources. The Evaluator observes the appended copy synchronously and uses

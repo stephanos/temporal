@@ -175,8 +175,8 @@ Static preparation snapshots the admitted Case and Profile without Driver I/O. T
 creates the private Run-local Monitor. The internal Executor owns scheduling, recording, Slots,
 effect handles, cancellation, and cleanup. Alternate Drivers are the environment extension seam.
 
-Case 1.0 remains the literal-only compatibility format. Case 1.1 declares symbolic text resources;
-their IDs identify namespace, task-queue, and named Nexus endpoint relationships but contain no
+Exact Case 1.0 is the sole format. Resource-bearing Programs declare symbolic text resources; their
+IDs identify namespace, task-queue, and named Nexus endpoint relationships but contain no
 physical names or transport addresses. The Profile owns physical binding values. `Prepare` resolves
 them into immutable private prepared data and includes the complete binding fingerprint in Prepared
 Case identity while preserving the source Case bytes. `Run` checks the Driver's matching identity,
@@ -206,7 +206,7 @@ normalization or ignored-field registry.
 - A Contract is the sole authority for live and offline Verdict semantics.
 - Slots are private execution state; Observations are the declared evidence surface.
 - Preparation is static and immutable; one Prepared Case supports isolated concurrent Runs.
-- Literal Case 1.0 and symbolic Case 1.1 resource modes are explicit and cannot be mixed.
+- Resource-bearing Case 1.0 Programs use complete symbolic bindings; resource-free Programs may have an empty environment.
 - Run disposition, cleanup status, and Verdict remain independent.
 - Generated data and views cannot create behavior.
 - Promotion remains generic and review-only.

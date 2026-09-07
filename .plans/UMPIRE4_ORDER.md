@@ -13,8 +13,8 @@ Deliver after **fn-68, fn-71, and fn-72**.
 
 Own the shared symbolic resource-binding contract, its protocol/preparation changes, and static
 Driver validation. Prove that the same checked Nexus3 Case runs against two environment bindings
-without request rewriting, changed Case bytes, or changed Contract meaning. Preserve legacy
-literal-only Case 1.0 behavior while Case 1.1 resolves Profile-owned physical resources and carries
+without request rewriting, changed Case bytes, or changed Contract meaning. Exact Case 1.0 resolves
+Profile-owned physical resources and carries
 the binding snapshot in Prepared Case and Driver identity.
 
 ### 2. fn-78 — Typed temporal authoring and checked scoped monitoring

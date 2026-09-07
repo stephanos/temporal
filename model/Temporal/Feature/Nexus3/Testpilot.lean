@@ -280,7 +280,7 @@ def produceCompletionCase
       propertyBinding
     ]
   compile {
-    version := { major := 1, minor := 1 }
+    version := { major := 1 }
     caseId := "temporal.case.async-nexus-success"
     producerId := "temporal.nexus3.testpilot"
     producerVersion := "1"

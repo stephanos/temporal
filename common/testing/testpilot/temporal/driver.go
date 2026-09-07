@@ -23,7 +23,6 @@ import (
 var ErrInvalid = errors.New("invalid composite Temporal Driver input")
 
 type Endpoint = server.Endpoint
-type RoleBinding = workerhost.RoleBinding
 
 type Options struct {
 	Profile               testpilot.ProfileSpec
@@ -31,10 +30,7 @@ type Options struct {
 	SystemCallbackBaseURL string
 	HTTPClient            *http.Client
 	SDKClient             client.Client
-	Namespace             string
 	WorkerRoleID          string
-	TaskQueues            []RoleBinding
-	NexusEndpoints        []RoleBinding
 	WorkerStopTimeout     time.Duration
 }
 
@@ -53,9 +49,8 @@ func New(options Options) (*Driver, error) {
 		return nil, err
 	}
 	workers, err := workerhost.New(workerhost.Options{
-		Profile: options.Profile, Client: options.SDKClient, Namespace: options.Namespace,
-		WorkerRoleID: options.WorkerRoleID, TaskQueues: options.TaskQueues,
-		Endpoints: options.NexusEndpoints, WorkerStopTimeout: options.WorkerStopTimeout,
+		Profile: options.Profile, Client: options.SDKClient, WorkerRoleID: options.WorkerRoleID,
+		WorkerStopTimeout: options.WorkerStopTimeout,
 	})
 	if err != nil {
 		closeErr := controller.Close(context.Background())

@@ -45,8 +45,8 @@ Umpire-backed Producers lower checked semantics into generated values and pass t
 generated Case assembly. The Testpilot-only synthetic Producer assembles its generated Case
 directly.
 
-Literal-only Programs remain Case 1.0. Case 1.1 adds a nonempty closed graph of symbolic text
-resources. Producers declare stable namespace, task-queue, and named Nexus endpoint binding IDs;
+Exact Case 1.0 is the only admitted format. Resource-bearing Programs declare a complete closed graph
+of symbolic text resources, while resource-free Programs may have an empty environment. Producers declare stable namespace, task-queue, and named Nexus endpoint binding IDs;
 they do not embed the physical resource names. These IDs are resource references, not transport
 addresses. Rebinding an unchanged Case does not change its canonical bytes, Contract, Behavior
 Fingerprints, or opaque producer provenance.
@@ -156,9 +156,9 @@ Slots and Run Observations.
 role data without Driver I/O. Prepared/Driver identity includes a deterministic fingerprint over the
 complete binding snapshot. `Run` checks that identity, calls the Driver's static no-I/O `Validate`,
 creates the Monitor, and only then calls `Open`. The shared Temporal Driver uses prepared resources in
-symbolic Case 1.1 mode; its separate legacy mode accepts literal-only Case 1.0 resources. Transport
-targets, credentials, callback authority, SDK clients, and lifecycle configuration remain physical
-Driver inputs in both modes.
+exact Case 1.0 resources as the sole source of namespaces, task queues, and named Nexus endpoints.
+Transport targets, credentials, callback authority, SDK clients, and lifecycle configuration remain
+physical Driver inputs.
 
 ## Generated artifacts
 

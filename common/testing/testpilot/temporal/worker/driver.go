@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"reflect"
 	"slices"
-	"strings"
 	"sync/atomic"
 	"time"
 
@@ -36,11 +35,7 @@ type Driver struct {
 
 type hostOptions struct {
 	profile        testpilot.ProfileSpec
-	symbolic       bool
-	namespace      string
 	workerRoleID   string
-	taskQueues     map[string]string
-	endpoints      map[string]string
 	client         client.Client
 	workerOptions  worker.Options
 	sessionOptions func(context.Context, string) (SessionOptions, error)
@@ -54,26 +49,11 @@ func New(options Options) (*Driver, error) {
 	if nilValue(options.Client) || options.WorkerRoleID == "" || !validWorkerProfile(options.Profile) {
 		return nil, ErrInvalid
 	}
-	symbolic := len(options.Profile.EnvironmentBindings) != 0
 	if _, err := options.Profile.BindingFingerprint(); err != nil {
-		return nil, ErrInvalid
-	}
-	if symbolic && (options.Namespace != "" || len(options.TaskQueues) != 0 || len(options.Endpoints) != 0) {
-		return nil, ErrInvalid
-	}
-	if !symbolic && options.Namespace == "" {
 		return nil, ErrInvalid
 	}
 	limits := options.Profile.ProgramLimits
 	maximum, diagnostics := boundedInt(limits.GetMaxActivations()), min(boundedInt(limits.GetMaxRunEvents()), 64)
-	taskQueues, err := bindingMap(options.TaskQueues)
-	if err != nil || (!symbolic && len(taskQueues) == 0) {
-		return nil, ErrInvalid
-	}
-	endpoints, err := bindingMap(options.Endpoints)
-	if err != nil {
-		return nil, ErrInvalid
-	}
 	h := &Driver{
 		mu:             newContextMutex(),
 		sessions:       make(map[string]*Session),
@@ -81,8 +61,7 @@ func New(options Options) (*Driver, error) {
 		workflowRoutes: make(map[workflowRouteIndex][]*Session),
 		nexusRoutes:    make(map[nexusRouteIndex][]*Session),
 		options: hostOptions{
-			profile: options.Profile.Snapshot(), symbolic: symbolic, namespace: options.Namespace, workerRoleID: options.WorkerRoleID,
-			taskQueues: taskQueues, endpoints: endpoints, client: options.Client,
+			profile: options.Profile.Snapshot(), workerRoleID: options.WorkerRoleID, client: options.Client,
 			workerOptions:  worker.Options{WorkerStopTimeout: options.WorkerStopTimeout},
 			sessionOptions: options.SessionOptions, maximum: maximum, diagnostics: diagnostics,
 			requestBytes: limits.GetMaxRequestBytes(), now: time.Now,
@@ -149,8 +128,20 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 	if err := ctx.Err(); err != nil {
 		return err
 	}
+	if !hasWorkerEntrypoint(program.Entrypoints()) {
+		return nil
+	}
 	_, err := h.prepareDefinition(program)
 	return err
+}
+
+func hasWorkerEntrypoint(plans []testpilot.EntrypointPlan) bool {
+	for _, plan := range plans {
+		if plan.Context() == testpilotspb.ENTRYPOINT_KIND_WORKFLOW || plan.Context() == testpilotspb.ENTRYPOINT_KIND_ACTIVITY || plan.Context() == testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
+			return true
+		}
+	}
+	return false
 }
 
 func (h *Driver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
@@ -224,16 +215,10 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plan
 	if snapshot == nil || snapshot.GetLimits() == nil {
 		return programDefinition{}, ErrInvalid
 	}
-	if h.options.symbolic != (len(snapshot.GetEnvironment()) != 0) {
-		return programDefinition{}, ErrInvalid
-	}
-	var roles map[string]testpilot.PreparedRole
+	roles := preparedRolesByID(preparedRoles)
 	definition := programDefinition{snapshot: snapshot, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{})}
-	if h.options.symbolic {
-		roles = preparedRolesByID(preparedRoles)
-		if err := h.validateSymbolicRoles(roles); err != nil {
-			return programDefinition{}, err
-		}
+	if err := h.validateSymbolicRoles(roles); err != nil {
+		return programDefinition{}, err
 	}
 	queueNexus := make(map[string]map[nexusRegistration]struct{})
 	for _, plan := range plans {
@@ -285,23 +270,15 @@ func (h *Driver) boundEntry(plan testpilot.EntrypointPlan, roles map[string]test
 	if workerRole != h.options.workerRoleID {
 		return entryDefinition{}, false, ErrInvalid
 	}
-	if h.options.symbolic {
-		workerBinding, workerOK := roles[workerRole]
-		queueBinding, queueOK := roles[queueRole]
-		if !workerOK || !queueOK || workerBinding.Kind != testpilotspb.ROLE_KIND_WORKER || queueBinding.Kind != testpilotspb.ROLE_KIND_TASK_QUEUE ||
-			workerBinding.NamespaceBindingID == "" || queueBinding.NamespaceBindingID != workerBinding.NamespaceBindingID || workerBinding.Namespace == "" || queueBinding.Namespace != workerBinding.Namespace ||
-			queueBinding.ResourceBindingID == "" || queueBinding.Resource == "" {
-			return entryDefinition{}, false, ErrInvalid
-		}
-		entry.queue = queueBinding.Resource
-		entry.namespace = workerBinding.Namespace
-	} else {
-		entry.queue = h.options.taskQueues[queueRole]
-		entry.namespace = h.options.namespace
-		if entry.queue == "" {
-			return entryDefinition{}, false, ErrInvalid
-		}
+	workerBinding, workerOK := roles[workerRole]
+	queueBinding, queueOK := roles[queueRole]
+	if !workerOK || !queueOK || workerBinding.Kind != testpilotspb.ROLE_KIND_WORKER || queueBinding.Kind != testpilotspb.ROLE_KIND_TASK_QUEUE ||
+		workerBinding.NamespaceBindingID == "" || queueBinding.NamespaceBindingID != workerBinding.NamespaceBindingID || workerBinding.Namespace == "" || queueBinding.Namespace != workerBinding.Namespace ||
+		queueBinding.ResourceBindingID == "" || queueBinding.Resource == "" {
+		return entryDefinition{}, false, ErrInvalid
 	}
+	entry.queue = queueBinding.Resource
+	entry.namespace = workerBinding.Namespace
 	return entry, true, nil
 }
 
@@ -335,23 +312,18 @@ func (h *Driver) addInstructionBindings(definition *programDefinition, plan test
 	for _, instruction := range plan.Instructions() {
 		source := instruction.Source().GetInstruction()
 		if start := source.GetStartNexusOperation(); start != nil {
-			endpoint := h.options.endpoints[start.GetEndpointRoleId()]
-			if h.options.symbolic {
-				role, ok := roles[start.GetEndpointRoleId()]
-				if !ok || role.Kind != testpilotspb.ROLE_KIND_ENDPOINT || role.ResourceBindingID == "" || role.Resource == "" || h.profileRoleHasMethods(role.ID) {
-					return ErrInvalid
-				}
-				endpoint = role.Resource
+			role, ok := roles[start.GetEndpointRoleId()]
+			if !ok || role.Kind != testpilotspb.ROLE_KIND_ENDPOINT || role.ResourceBindingID == "" || role.Resource == "" || h.profileRoleHasMethods(role.ID) {
+				return ErrInvalid
 			}
+			endpoint := role.Resource
 			if endpoint == "" {
 				return ErrInvalid
 			}
 			definition.endpoints[start.GetEndpointRoleId()] = endpoint
 		}
-		if h.options.symbolic {
-			if err := h.validateRPCBindings(instruction, roles, program); err != nil {
-				return err
-			}
+		if err := h.validateRPCBindings(instruction, roles, program); err != nil {
+			return err
 		}
 		if response := source.GetRespondNexus(); response != nil && response.GetKind() == testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS {
 			definition.hasAsync = true
@@ -522,17 +494,6 @@ func nexusSetKeys(values map[nexusRegistration]struct{}) []nexusRegistration {
 		result = append(result, value)
 	}
 	return result
-}
-
-func bindingMap(bindings []RoleBinding) (map[string]string, error) {
-	result := make(map[string]string, len(bindings))
-	for _, binding := range bindings {
-		if strings.TrimSpace(binding.RoleID) != binding.RoleID || strings.TrimSpace(binding.Value) != binding.Value || binding.RoleID == "" || binding.Value == "" || result[binding.RoleID] != "" {
-			return nil, ErrInvalid
-		}
-		result[binding.RoleID] = binding.Value
-	}
-	return result, nil
 }
 
 func boundedInt(value int64) int {
