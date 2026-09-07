@@ -1,0 +1,130 @@
+import Testpilot.Authoring
+import Testpilot.ProtoJSON
+
+open temporal.server.api.testpilot.v1
+open Testpilot.Authoring
+
+namespace Testpilot.Tests.ProtoJSON
+
+private def assert (condition : Bool) (failure : String) : IO Unit := do
+  unless condition do throw (IO.userError failure)
+
+private def limits := Program.limits 1 4 3 2 9223372036854775807 16 8 4 4096 8192 10000 1000
+private def instructionLimits := Program.instructionLimits 1000 1 2 4096
+private def runPath := Path.make #[Path.field "run_id"]
+
+private def programExpr := ProgramExpr.all #[
+  ProgramExpr.present (ProgramExpr.path ProgramExpr.run runPath),
+  ProgramExpr.equals (ProgramExpr.literal (Value.bytes (ByteArray.mk #[0, 255])))
+    (ProgramExpr.literal (Value.bytes (ByteArray.mk #[0, 255]))),
+  ProgramExpr.compare .COMPARISON_OPERATOR_LESS_THAN
+    (ProgramExpr.literal (Value.signedInteger (-9223372036854775808)))
+    (ProgramExpr.literal (Value.unsignedInteger 18446744073709551615))
+]
+
+private def contractExpr := ContractExpr.any #[
+  ContractExpr.present (ContractExpr.observation "result"),
+  ContractExpr.equals (ContractExpr.runEvent .RUN_EVENT_FIELD_RUN_ID)
+    (ContractExpr.literal (Value.text "run")),
+  ContractExpr.equals (ContractExpr.capture "captured")
+    (ContractExpr.literal (Value.messageValue {
+      type_url := "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion",
+      value := ByteArray.mk #[8, 1, 16, 2]
+    })),
+  ContractExpr.literal (Value.floatingPoint 1.5),
+  ContractExpr.literal (Value.enumeration 1),
+  ContractExpr.literal (Value.boolean false)
+]
+
+private def program : temporal.server.api.testpilot.v1.Program := Program.make "program"
+  #[Program.role "endpoint" .ROLE_KIND_ENDPOINT]
+  #[Program.valueSlot "slot" (Types.singular (Types.scalar .SCALAR_KIND_TEXT))]
+  #[Program.observation "result" (Types.singular Types.any)]
+  #[Program.controller "controller" #[Program.node "finish"
+    (Program.finish programExpr) instructionLimits (guard := some programExpr)]]
+  (Program.cleanup "cleanup" #[])
+  limits
+
+private def contract : Contract := Monitor.contract "contract" #[
+  Monitor.rule "rule" .CONTRACT_RULE_KIND_BOUNDED_LIVENESS "open"
+    #[Monitor.state "open" .CONTRACT_STATE_STATUS_NONTERMINAL,
+      Monitor.state "done" .CONTRACT_STATE_STATUS_SATISFIED,
+      Monitor.state "late" .CONTRACT_STATE_STATUS_VIOLATED]
+    #[Monitor.transition "complete" "open" "done" #[.RUN_EVENT_KIND_RUN_CLOSED]
+      contractExpr .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
+      #[Monitor.captureAssignment "captured" "result"]]
+    (horizon := some (Monitor.horizon 9223372036854775807 "late"))
+    (captures := #[Monitor.capture "captured" (Monitor.messageCapture
+      "temporal.server.api.testpilot.v1.FormatVersion")])
+] (Monitor.limits 1 3 1 16 32 64 1 1024)
+
+def representativeCase : Case := Testpilot.Authoring.case 1 "case" program contract
+  (provenance "testpilot-tests" "1" (ByteArray.mk #[0, 255, 128]))
+
+private def unknownAnyCase : Case :=
+  let expression := ProgramExpr.literal (Value.messageValue {
+    type_url := "type.googleapis.com/example.Unknown"
+    value := ByteArray.mk #[8, 1]
+  })
+  let unknownProgram := Program.make "program" #[] #[] #[]
+    #[Program.controller "controller" #[Program.node "finish" (Program.finish expression)
+      instructionLimits]] (Program.cleanup "cleanup" #[]) limits
+  Testpilot.Authoring.case 1 "unknown-any" unknownProgram contract (provenance "test" "1")
+
+private def malformedAnyCase : Case :=
+  let expression := ProgramExpr.literal (Value.messageValue {
+    type_url := "type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion"
+    value := ByteArray.mk #[255]
+  })
+  let malformedProgram := Program.make "program" #[] #[] #[]
+    #[Program.controller "controller" #[Program.node "finish" (Program.finish expression)
+      instructionLimits]] (Program.cleanup "cleanup" #[]) limits
+  Testpilot.Authoring.case 1 "malformed-any" malformedProgram contract (provenance "test" "1")
+
+private def nestedExpression : Nat → ProgramExpression
+  | 0 => ProgramExpr.literal (Value.boolean true)
+  | depth + 1 => ProgramExpr.negation (nestedExpression depth)
+
+private def recursionFailureCase : Case :=
+  let deepProgram := Program.make "program" #[] #[] #[]
+    #[Program.controller "controller" #[Program.node "finish"
+      (Program.finish (nestedExpression 101)) instructionLimits]]
+    (Program.cleanup "cleanup" #[]) limits
+  Testpilot.Authoring.case 1 "recursion-failure" deepProgram contract (provenance "test" "1")
+
+private def render (value : Case) : IO String := do
+  match ← Testpilot.ProtoJSON.canonical value with
+  | .ok text => pure text
+  | .error error => throw (IO.userError (toString error))
+
+private def tests : IO Unit := do
+  let first ← render representativeCase
+  let second ← render representativeCase
+  assert (first == second) "equal Cases did not render deterministically"
+  assert (first.contains "\"run\":{}") "Program Run identity was dropped"
+  assert (first.contains "\"runEvent\":{\"field\":\"RUN_EVENT_FIELD_RUN_ID\"}")
+    "Contract Run Event identity was dropped"
+  assert (first.contains "\"maxAttempts\":\"9223372036854775807\"")
+    "int64 upper bound was not rendered as a ProtoJSON string"
+  assert (first.contains "\"elapsedMilliseconds\":\"9223372036854775807\"")
+    "monitor horizon was dropped"
+  assert (first.contains "AP+A") "opaque non-UTF-8 provenance bytes were not rendered"
+  assert (first.contains "AP8=") "expression bytes were not rendered"
+  assert (first.contains "\"floatingPoint\":1.5") "floating value was dropped"
+  assert (first.contains "\"enumValue\":{\"number\":1}") "enum value was dropped"
+  assert (first.contains "\"boolValue\":false") "present false oneof value was dropped"
+  assert (first.contains "\"@type\":\"type.googleapis.com/temporal.server.api.testpilot.v1.FormatVersion\"")
+    "resolved Any was dropped"
+  match ← Testpilot.ProtoJSON.canonical unknownAnyCase with
+  | .error (.protobuf (.unresolvedType _)) => pure ()
+  | _ => throw (IO.userError "unknown Any type did not return unresolvedType")
+  match ← Testpilot.ProtoJSON.canonical malformedAnyCase with
+  | .error _ => pure ()
+  | .ok _ => throw (IO.userError "malformed Any payload serialized successfully")
+  match ← Testpilot.ProtoJSON.canonical recursionFailureCase with
+  | .error (.protobuf (.recursionLimit _)) => pure ()
+  | _ => throw (IO.userError "serialization recursion limit did not propagate")
+
+#eval tests
+
+end Testpilot.Tests.ProtoJSON

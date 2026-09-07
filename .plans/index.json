@@ -276,6 +276,26 @@
       ],
       "supersededBy": null,
       "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_DSL_EVOLUTION_SPEC.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
+      "path": ".plans/UMPIRE_TYPED_ACTIONS_SPEC.md",
+      "lifecycle": "reference",
+      "authority": "descriptive",
+      "authorityParents": [
+        ".plans/UMPIRE4_SPEC.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
     }
   ],
   "flowSpecs": [
@@ -1069,6 +1089,16 @@
       "status": "done",
       "ready": false,
       "completionReview": "ship",
+      "specDependencies": []
+    },
+    {
+      "id": "fn-77-typed-operations-parameterized-actions",
+      "scope": "umpire-support",
+      "disposition": "retained",
+      "phase": "support",
+      "status": "open",
+      "ready": false,
+      "completionReview": "unknown",
       "specDependencies": []
     },
     {
