@@ -346,7 +346,8 @@ def produceCompletionCase
     (checkedProperty : CheckedProperty)
     (checkedBehavior : CheckedBehavior)
     (checkedQuery : CheckedQuery LawStatement)
-    (witness? : Option BehaviorTrace) : Except LoweringError Case := do
+    (witness? : Option BehaviorTrace) :
+    Except LoweringError temporal.server.api.testpilot.v1.Case := do
   let expected ← checkedCompletion
   unless sameTarget target expected.target do
     throw (loweringError target.id.value "target")
@@ -385,7 +386,7 @@ def produceCompletionCase
   }
 
 /-- The checked Nexus3 completion declaration lowered to the closed Case format. -/
-def completionCase : Except LoweringError Case := do
+def completionCase : Except LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← checkedCompletion
   produceCompletionCase checked.target checked.property checked.behavior checked.query
     (some checked.witness)

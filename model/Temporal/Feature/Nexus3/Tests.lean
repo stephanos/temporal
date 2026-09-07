@@ -8,16 +8,15 @@ namespace Temporal.Feature.Nexus3.Tests
 open Umpire
 open Umpire.Case
 open Temporal.Feature.Nexus3
+open temporal.server.api.testpilot.v1
 
 private def admitted := completion.toOption
 
 #guard match Temporal.Feature.Nexus3.Testpilot.completionCase with
   | .ok output =>
-      output.caseId == "temporal.case.async-nexus-success" &&
-      output.metadata.knownGaps ==
-        (Authoring.completionKnownGaps.toOption.getD KnownGapSet.empty).toCaseKnownGaps &&
-      (match output.contract.rules with
-        | [rule] => rule.kind == ContractRuleKind.safety && rule.horizon.isNone
+      output.case_id == "temporal.case.async-nexus-success" &&
+      (match output.contract.map (·.rules.toList) with
+        | some [rule] => rule.kind == .CONTRACT_RULE_KIND_SAFETY && rule.horizon.isNone
         | _ => false)
   | .error _ => false
 
@@ -27,7 +26,7 @@ private def produceWith
     (behavior? : Option CheckedBehavior := none)
     (query? : Option (CheckedQuery lifecycle.lawStatement) := none)
     (witness? : Option BehaviorTrace := admitted.map (·.witness)) :
-    Except Compiler.LoweringError Case := do
+    Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus3.query.completion"
     source := Authoring.source
@@ -56,7 +55,7 @@ private def changedWitness? : Option BehaviorTrace := admitted.map fun checked =
   { checked.witness with trace := {
       checked.witness.trace with steps := checked.witness.trace.steps.reverse } }
 
-private def rejected : Except Compiler.LoweringError Case → Bool
+private def rejected : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case → Bool
   | .error _ => true
   | .ok _ => false
 
@@ -66,24 +65,28 @@ private def rejected : Except Compiler.LoweringError Case → Bool
 #guard rejected (produceWith (witness? := none))
 #guard rejected (produceWith (witness? := changedWitness?))
 
-private def isEquality : ValueExpression → Bool
-  | .equals _ _ => true
+private def isEquality : ContractExpression → Bool
+  | { expression := some (.equals _), .. } => true
   | _ => false
+
+private def allTerms : Option ContractExpression → Option (Array ContractExpression)
+  | some { expression := some (.all expression), .. } => some expression.operands
+  | _ => none
 
 private def correlationShape : Bool :=
   match Temporal.Feature.Nexus3.Testpilot.completionCase with
   | .ok output =>
-      match output.contract.rules with
-      | [rule] =>
-          match rule.transitions with
+      match output.contract.map (·.rules.toList) with
+      | some [rule] =>
+          match rule.transitions.toList with
           | [scheduled, started, completed] =>
-              scheduled.captureAssignments.map (·.captureId) == ["scheduled-event"] &&
-              (match scheduled.predicate with | .all terms => terms.length == 3 | _ => false) &&
-              (match started.predicate with
-                | .all terms => terms.length == 4 && terms.countP isEquality == 1
+              scheduled.capture_assignments.map (·.capture_id) == #["scheduled-event"] &&
+              (allTerms scheduled.predicate).map (·.size) == some 3 &&
+              (match allTerms started.predicate with
+                | some terms => terms.size == 4 && terms.toList.countP isEquality == 1
                 | _ => false) &&
-              (match completed.predicate with
-                | .all terms => terms.length == 7 && terms.countP isEquality == 2
+              (match allTerms completed.predicate with
+                | some terms => terms.size == 7 && terms.toList.countP isEquality == 2
                 | _ => false)
           | _ => false
       | _ => false
@@ -93,28 +96,40 @@ private def correlationShape : Bool :=
 
 private def checkedBindings : Bool :=
   match completion, Temporal.Feature.Nexus3.Testpilot.completionCase with
-  | .ok checked, .ok output => output.metadata.definitions == [
-      {
-        definitionId := checked.target.id.value
-        behaviorFingerprint := checked.target.behaviorFingerprint.render
-        kind := .target
-      },
-      {
-        definitionId := checked.behavior.id.value
-        behaviorFingerprint := checked.behavior.behaviorFingerprint.render
-        kind := .«behavior»
-      },
-      {
-        definitionId := checked.query.id.value
-        behaviorFingerprint := checked.query.behaviorFingerprint.render
-        kind := .«query»
-      },
-      {
-        definitionId := checked.property.id.value
-        behaviorFingerprint := checked.property.behaviorFingerprint.render
-        kind := .«property»
+  | .ok checked, .ok output =>
+      let metadata : CaseMetadata := {
+        producerId := "temporal.nexus3.testpilot"
+        producerVersion := "1"
+        definitions := [
+          {
+            definitionId := checked.target.id.value
+            behaviorFingerprint := checked.target.behaviorFingerprint.render
+            kind := .target
+          },
+          {
+            definitionId := checked.behavior.id.value
+            behaviorFingerprint := checked.behavior.behaviorFingerprint.render
+            kind := .«behavior»
+          },
+          {
+            definitionId := checked.query.id.value
+            behaviorFingerprint := checked.query.behaviorFingerprint.render
+            kind := .«query»
+          },
+          {
+            definitionId := checked.property.id.value
+            behaviorFingerprint := checked.property.behaviorFingerprint.render
+            kind := .«property»
+          }
+        ]
+        sources := [checked.target.source, checked.behavior.source, checked.query.source,
+          checked.property.source]
+        knownGaps := checked.query.authoredKnownGaps.toCaseKnownGaps
       }
-    ]
+      output.provenance.map (fun provenance =>
+        provenance.producer_id == metadata.producerId &&
+        provenance.producer_version == metadata.producerVersion &&
+        provenance.producer_data == Umpire.Case.Provenance.producerData metadata) == some true
   | _, _ => false
 
 #guard checkedBindings
@@ -243,7 +258,8 @@ query renamedQuery on renamedLifecycle
   in renamedCompletion
   limits renamedTrace
 
-private def wrongTargetResult : Except Compiler.LoweringError Case := do
+private def wrongTargetResult :
+    Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus3.query.completion"
     source := Authoring.source

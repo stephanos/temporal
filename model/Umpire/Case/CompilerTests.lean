@@ -75,6 +75,28 @@ private def input : Input := {
   contractLimits
 }
 
+private def numericNode
+    (result : ValueExpression := .literal (.natural 0))
+    (bounds : InstructionBounds := {
+      timeoutMilliseconds := 1
+      maxAttempts := 1
+      maxEmittedEvents := 1
+    })
+    (reservations : List ActivationReservation := []) : InstructionNode := {
+  instructionId := "numeric"
+  dependencies := []
+  instruction := .finish { result }
+  outcome := { fields := [] }
+  bounds
+  activationReservations := reservations
+}
+
+private def withCleanupNode (source : Input) (node : InstructionNode) : Input := {
+  source with program := {
+    source.program with cleanup := { source.program.cleanup with nodes := [node] }
+  }
+}
+
 private def planningGaps : KnownGapSet :=
   (KnownGapSet.checkCanonical [
     { kind := .capabilityContract, code := DefinitionId.of "example.gap.capability" },
@@ -100,33 +122,119 @@ private def inputWithPlanningGaps : Input := {
   input with knownGaps := planningGaps.toCaseKnownGaps
 }
 
+private def expectedProducerData := String.intercalate "\n" [
+  "{",
+  "  \"definitions\": [",
+  "    {",
+  "      \"definitionId\": \"example.property\",",
+  "      \"behaviorFingerprint\": \"example-property/v1\",",
+  "      \"kind\": \"CASE_DEFINITION_KIND_PROPERTY\"",
+  "    }",
+  "  ],",
+  "  \"sources\": [",
+  "    {",
+  "      \"path\": \"Example/Case.lean\",",
+  "      \"line\": \"11\",",
+  "      \"column\": \"3\",",
+  "      \"provenance\": \"checked-model\"",
+  "    }",
+  "  ],",
+  "  \"knownGaps\": [",
+  "    {",
+  "      \"kind\": \"CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT\",",
+  "      \"code\": \"example.gap.capability\"",
+  "    },",
+  "    {",
+  "      \"kind\": \"CASE_KNOWN_GAP_KIND_INPUT\",",
+  "      \"code\": \"example.gap.input\",",
+  "      \"subject\": \"example.target\"",
+  "    },",
+  "    {",
+  "      \"kind\": \"CASE_KNOWN_GAP_KIND_INTERPRETATION\",",
+  "      \"code\": \"example.gap.interpretation\",",
+  "      \"detail\": \"Interpretation remains model-owned.\"",
+  "    },",
+  "    {",
+  "      \"kind\": \"CASE_KNOWN_GAP_KIND_CLAIM\",",
+  "      \"code\": \"example.gap.claim\",",
+  "      \"subject\": \"example.property\",",
+  "      \"detail\": \"Claim requires runtime evidence.\"",
+  "    }",
+  "  ]",
+  "}"
+] ++ "\n"
+
 /-! The single checked conversion pass retains every row field in the compiled Case. -/
 #guard match compile inputWithPlanningGaps with
-  | .ok output => output.metadata.knownGaps == [
-      { kind := .capabilityContract, code := "example.gap.capability" },
-      { kind := .input, code := "example.gap.input", subject := some "example.target" },
-      {
-        kind := .interpretation
-        code := "example.gap.interpretation"
-        detail := some "Interpretation remains model-owned."
-      },
-      {
-        kind := .claim
-        code := "example.gap.claim"
-        subject := some "example.property"
-        detail := some "Claim requires runtime evidence."
-      }
-    ]
+  | .ok output => output.provenance.map (·.producer_data) == some expectedProducerData.toUTF8
   | .error _ => false
 
 #guard match compile input with
   | .ok output =>
-      output.caseId == input.caseId &&
-      output.metadata.definitions == input.definitions &&
-      output.program == input.program &&
-      output.contract.rules == [rule] &&
-      output.contract.limits == input.contractLimits
+      output.case_id == input.caseId &&
+      output.version.map (fun version => (version.major, version.minor)) == some (1, 0) &&
+      output.program.map (·.program_id) == some input.program.programId &&
+      output.contract.map (fun contract => contract.rules.map (·.rule_id)) == some #[rule.ruleId] &&
+      (output.contract.bind (·.limits) |>.map (·.max_rules)) ==
+        some input.contractLimits.maxRules.toInt64
   | .error _ => false
+
+private def maxInt32 : Nat := 2147483647
+private def maxInt64 : Nat := 9223372036854775807
+
+private def maxInstructionBounds : InstructionBounds := {
+  timeoutMilliseconds := maxInt64
+  maxAttempts := 1
+  maxEmittedEvents := 1
+}
+
+private def boundaryInput : Input :=
+  let withNode := withCleanupNode input (numericNode
+    (.literal (.enumValue 2147483647)) maxInstructionBounds
+    [{ entrypointId := "worker", count := maxInt64 }])
+  { withNode with
+    version := { major := maxInt32, minor := maxInt32 }
+    program := { withNode.program with limits := {
+      withNode.program.limits with maxEntrypoints := maxInt64 } }
+    properties := [.monitor property { rule with
+      horizon := some { elapsedMilliseconds := maxInt64, violationStateId := "satisfied" } }]
+    contractLimits := { contractLimits with maxRules := maxInt64 }
+  }
+
+private def rejectsAs (construct : String)
+    (result : Except LoweringError temporal.server.api.testpilot.v1.Case) : Bool :=
+  match result with
+  | .error failure => failure.construct == construct
+  | .ok _ => false
+
+private def minEnumInput : Input :=
+  withCleanupNode input (numericNode (.literal (.enumValue (-2147483648))))
+
+/-! Every protobuf numeric boundary is checked before the public authoring call can narrow it. -/
+#guard [
+  (compile boundaryInput).isOk,
+  (compile minEnumInput).isOk,
+  rejectsAs "case.version-range" (compile { input with version := { major := maxInt32 + 1 } }),
+  rejectsAs "program.enum-range" (compile (withCleanupNode input
+    (numericNode (.literal (.enumValue 2147483648))))),
+  rejectsAs "program.enum-range" (compile (withCleanupNode input
+    (numericNode (.literal (.enumValue (-2147483649)))))),
+  rejectsAs "program.instruction-limits-range" (compile (withCleanupNode input
+    (numericNode (bounds := { maxInstructionBounds with timeoutMilliseconds := maxInt64 + 1 })))),
+  rejectsAs "program.activation-reservation-range" (compile (withCleanupNode input
+    (numericNode (reservations := [{ entrypointId := "worker", count := maxInt64 + 1 }])))),
+  rejectsAs "program.limits-range" (compile {
+    input with program := { input.program with limits := {
+      input.program.limits with maxEntrypoints := maxInt64 + 1 } }
+  }),
+  rejectsAs "property.horizon-range" (compile { input with properties := [
+    .monitor property { rule with
+      horizon := some { elapsedMilliseconds := maxInt64 + 1, violationStateId := "satisfied" } }
+  ] }),
+  rejectsAs "contract.limits-range" (compile {
+    input with contractLimits := { contractLimits with maxRules := maxInt64 + 1 }
+  })
+].all id
 
 private def unsupported := ContractLowering.unsupported
   property source "property.temporal-unbounded"

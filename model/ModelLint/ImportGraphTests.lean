@@ -126,6 +126,46 @@ private def testAllowedOrdinaryImports : IO Unit := do
   ]
   requireEqual "allowed ordinary imports" (check defaultPolicy modules) #[]
 
+private def testTestpilotIsolation : IO Unit := do
+  requireEqual "Testpilot protocol has a distinct class"
+    (defaultPolicy.classify? `Testpilot.Protocol)
+    (some .testpilot)
+  requireEqual "Testpilot tests take model-test precedence"
+    (defaultPolicy.classify? `Testpilot.Tests.Protocol)
+    (some .modelTests)
+  let allowed := #[
+    moduleRecord `Testpilot #[`Testpilot.Protocol],
+    moduleRecord `Testpilot.Protocol #[`Protobuf]
+  ]
+  requireEqual "Testpilot protocol imports" (check defaultPolicy allowed) #[]
+  for destination in #[`Umpire.Core, `Temporal.Feature.Root] do
+    requireViolation s!"Testpilot to {destination} direct"
+      #[moduleRecord `Testpilot.Protocol #[destination], moduleRecord destination]
+      .testpilotIndependence #[`Testpilot.Protocol, destination]
+    requireViolation s!"Testpilot to {destination} transitive"
+      #[
+        moduleRecord `Testpilot.Protocol #[`ModelLint.Bridge],
+        moduleRecord `ModelLint.Bridge #[destination],
+        moduleRecord destination
+      ]
+      .testpilotIndependence #[`Testpilot.Protocol, `ModelLint.Bridge, destination]
+  let sources := #[
+    sourceRecord `Testpilot.Protocol,
+    sourceRecord `Temporal.ImplementationLinkTests.UnclassifiedBridge,
+    sourceRecord `Umpire.Core
+  ]
+  let modules := #[
+    moduleRecord `Testpilot.Protocol #[`Temporal.ImplementationLinkTests.UnclassifiedBridge],
+    moduleRecord `Temporal.ImplementationLinkTests.UnclassifiedBridge #[`Umpire.Core],
+    moduleRecord `Umpire.Core
+  ]
+  requireEqual "unclassified Testpilot bridge"
+    (reconcile defaultPolicy sources modules)
+    #[.unclassifiedModule `Temporal.ImplementationLinkTests.UnclassifiedBridge]
+  requireViolation "unclassified Testpilot bridge preserves forbidden path" modules
+    .testpilotIndependence
+    #[`Testpilot.Protocol, `Temporal.ImplementationLinkTests.UnclassifiedBridge, `Umpire.Core]
+
 private def testOrdinaryNexusFacadeIsolation : IO Unit := do
   requireViolation "ordinary Nexus facade to Experimental direct"
     #[
@@ -399,6 +439,7 @@ private def runSyntheticSuite : IO UInt32 := do
   Tools.LeanImportGraphTests.run
   Tools.LeanSourceInventoryTests.run
   testAllowedOrdinaryImports
+  testTestpilotIsolation
   testOrdinaryNexusFacadeIsolation
   testTemporalSharedIsolation
   testTestSupportIsolation

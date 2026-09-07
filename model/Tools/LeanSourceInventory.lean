@@ -205,8 +205,10 @@ def scanSources
 /-- Inventory the canonical current Lake package root used by a tooling executable. -/
 def canonicalPackageSources (excludedDirectories : Array String := #[]) : IO (Array SourceRecord) := do
   let root ← Lean.realPathNormalized (← IO.currentDir)
-  unless (← (root / "lakefile.toml").pathExists) do
-    throw <| IO.userError s!"canonical package root has no lakefile.toml: {root}"
-  scanSources root excludedDirectories
+  let hasLeanConfig ← (root / "lakefile.lean").pathExists
+  let hasTomlConfig ← (root / "lakefile.toml").pathExists
+  unless hasLeanConfig || hasTomlConfig do
+    throw <| IO.userError s!"canonical package root has no Lake configuration: {root}"
+  return (← scanSources root excludedDirectories).filter fun source => source.module != `lakefile
 
 end Tools.LeanSourceInventory

@@ -30,7 +30,7 @@ private def getSystemInfoRule : ContractRule := {
 }
 
 /-- An orthogonal unary Case with an empty request and typed response projection. -/
-def getSystemInfoCase : Except LoweringError Case := compile {
+def getSystemInfoCase : Except LoweringError temporal.server.api.testpilot.v1.Case := compile {
   version := { major := 1 }
   caseId := "temporal.case.get-system-info"
   producerId := "temporal.case.compiler"

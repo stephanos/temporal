@@ -52,6 +52,45 @@ without adding dependencies solely because files overlap.
 The new architecture and canary specs need task breakdown and plan review before implementation.
 Their dependency order does not itself mark them ready in Flow.
 
+### DSL semantics and authoring — standalone spec
+
+[Typed temporal authoring and checked scoped monitoring](UMPIRE_DSL_EVOLUTION_SPEC.md) captures
+the five recommended changes from the [DSL experiment](UMPIRE_DSL_EXPERIMENT.md). This track is
+recorded outside Flow-Next and does not block fn-73 or the first fn-70 canary.
+
+| Stage | Deliver | Order |
+| --- | --- | --- |
+| D1 — Query validity | Separate satisfiability, trigger coverage, answer, completeness, and endpoint policy. | Can start now. |
+| D2 — Existing Behavior surface | Typed occurrence, ordering, adjacency, and bound forms; preserve exact regressions. | Alongside D1. |
+| D3 — Event/evidence boundary | Distinguish command submission from confirmed events; bounded correlated projection with exact support. | Alongside D1/D2; coordinate the semantic seam with fn-75. |
+| D4 — Shared scoped lowering | One obligation semantics, checked Property correspondence, exact Contract lowering, and required generic cancellation support. | After D3; production integration uses fn-71 and fn-72. |
+| D5 — Typed temporal authoring | Readable bounded temporal notation, complete Nexus cancellation Case, and online/offline/live qualification. | After D1/D2/D4. |
+
+Preserve the completed fn-68 success path during this work. Coordinate with fn-74/75/76 without
+absorbing their interface refactors. Keep the finite checker; full Veil adoption, general LTL, and
+general scenario algebra remain deferred. The experiment does not substitute for the production
+lowering and evidence correspondence required by this spec.
+
+### Typed operations and field-level Properties — fn-77
+
+[fn-77 — Typed operations, parameterized Actions, and field-level Properties](../.flow/specs/fn-77-typed-operations-parameterized-actions.md)
+adds direct generated API references, typed SDK-command/event declarations, modeled request/result
+values, and cross-field/cross-occurrence requirements. Product assertions remain in checked models;
+integration owns faithful execution, observation, and correlation.
+
+| Stage | Deliver | Order |
+| --- | --- | --- |
+| O1 — Operation/value contracts | Typed references, exact supported field values, and explicit fidelity limits. | Alongside DSL D1/D2; coordinate fn-75. |
+| O2 — Parameterized semantics | Action/outcome arguments, field expressions/captures, finite domains, and independent Properties. | After O1; supplies parameterized DSL authoring. |
+| O3 — Checked concrete lowering | Typed request construction, result projections, clause coverage, and field-expression correspondence. | After O2; uses fn-71/fn-72 and coordinates with DSL D4. |
+| O4 — Field-level qualification | Unary RPC and workflow-owned Nexus examples, field mutations, and real Driver evidence. | After O3; temporal Nexus qualification also uses DSL D3/D4. |
+
+Task breakdown and plan review remain pending. Keep this off the fn-73/first-canary critical path.
+DSL D1/D2 and label-only
+semantics can proceed independently; parameterized D3/D4/D5 variants consume O1/O2. O3 owns field
+lowering, D4 owns scoped temporal lowering, and same-step qualification does not wait for temporal
+support. Share value/capture contracts across the tracks rather than creating two representations.
+
 ## Downstream delivery
 
 Each spec needs a fresh Testpilot plan review before implementation. Prior reviews of the

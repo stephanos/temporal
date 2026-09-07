@@ -6,7 +6,9 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-71-standalone-lean-testpilot-protocol"
+  ],
   "id": "fn-60-deepen-authored-lean-canonical-json",
   "impl_review_rounds": {},
   "next_task": 1,
@@ -159,5 +161,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-04T15:27:53.594698Z"
+  "updated_at": "2026-09-07T03:07:10.018800Z"
 }

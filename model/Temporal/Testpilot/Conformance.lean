@@ -66,7 +66,7 @@ private def conformanceCase
     (caseId : String)
     (terminal : ContractTerminalState)
     (matchesEvent : Bool)
-    (cleanupFailure := false) : Except LoweringError Case :=
+    (cleanupFailure := false) : Except LoweringError temporal.server.api.testpilot.v1.Case :=
   let property := conformanceProperty caseId
   compile {
     version := { major := 1 }
@@ -86,24 +86,25 @@ private def conformanceCase
   }
 
 /-- Deterministic public-facade fixtures kept small enough for exact cross-language comparison. -/
-def conformanceSatisfiedCase : Except LoweringError Case :=
+def conformanceSatisfiedCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
   conformanceCase "temporal.case.conformance.satisfied" .satisfied true
 
-def conformanceViolatedCase : Except LoweringError Case :=
+def conformanceViolatedCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
   conformanceCase "temporal.case.conformance.violated" .violated true
 
-def conformanceInconclusiveCase : Except LoweringError Case :=
+def conformanceInconclusiveCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
   conformanceCase "temporal.case.conformance.inconclusive" .satisfied false
 
-def conformanceCleanupFailureCase : Except LoweringError Case :=
+def conformanceCleanupFailureCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
   conformanceCase "temporal.case.conformance.cleanup-failure" .violated true true
 
-def conformanceCrossRunIsolationCase : Except LoweringError Case :=
+def conformanceCrossRunIsolationCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
   conformanceCase "temporal.case.conformance.cross-run-isolation" .satisfied true
 
-def conformanceStaticRejectionCase : Except LoweringError Case :=
+def conformanceStaticRejectionCase : Except LoweringError temporal.server.api.testpilot.v1.Case :=
   (conformanceCase "temporal.case.conformance.static-rejection" .satisfied true).map fun output =>
-    let invalidRules := output.contract.rules.map fun rule => { rule with initialState := "missing" }
-    { output with contract := { output.contract with rules := invalidRules } }
+    let invalidContract := output.contract.map fun contract =>
+      { contract with rules := contract.rules.map fun rule => { rule with initial_state_id := "missing" } }
+    { output with contract := invalidContract }
 
 end Temporal.Testpilot

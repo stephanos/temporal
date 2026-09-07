@@ -68,9 +68,12 @@ horizon.
 
 - **`Umpire`.** Reusable Lean tools for authoring and checking models and producing plans. It
   contains no Temporal-specific behavior.
-- **`Testpilot`.** The canonical name for running behavior through Temporal and Workers. Its shared
-  Go protocol and runtime admit and execute Cases through a caller-owned Driver and evaluate their
-  Contracts. `Temporal.Testpilot` supplies the Lean Producers.
+- **`Testpilot`.** The canonical name for running behavior through Temporal and Workers. The
+  Testpilot protobuf schema is the wire authority; `Testpilot.Protocol` exposes its generated Lean
+  declarations, `Testpilot.Authoring` constructs them through a context-safe producer-neutral API,
+  and `Testpilot.ProtoJSON` owns the single library-backed serialization policy. The shared Go
+  runtime admits and executes Cases through a caller-owned Driver and evaluates their Contracts.
+  `Temporal.Testpilot` supplies the Lean Producers.
 - **`Temporal.Feature`.** Product behavior visible to users and SDKs, independent of the current
   implementation.
 - **`Temporal.System`.** Behavior of the current Temporal implementation, configuration, and

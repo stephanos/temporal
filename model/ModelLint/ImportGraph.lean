@@ -21,6 +21,7 @@ abbrev SourceRecord := Tools.LeanSourceInventory.SourceRecord
 /-- The policy class assigned to a first-party module. -/
 inductive ModuleClass where
   | shared
+  | testpilot
   | umpire
   | umpireVeil
   | temporalShared
@@ -56,6 +57,7 @@ structure Policy where
 /-- The import-boundary rules enforced by the checker. -/
 inductive Rule where
   | sharedIndependence
+  | testpilotIndependence
   | umpireIndependence
   | targetIsolation
   | temporalSharedIsolation
@@ -96,6 +98,7 @@ def defaultPolicy : Policy := {
   firstPartyRoots := #[
     `ModelLint,
     `Shared,
+    `Testpilot,
     `Temporal,
     `TemporalExperimentalTests,
     `TemporalModelTests,
@@ -108,6 +111,8 @@ def defaultPolicy : Policy := {
   classifiers := #[
     { modulePrefix := `ModelLint, moduleClass := .lintInfrastructure },
     { modulePrefix := `Shared, moduleClass := .shared },
+    { modulePrefix := `Testpilot.Tests, moduleClass := .modelTests },
+    { modulePrefix := `Testpilot, moduleClass := .testpilot },
     { modulePrefix := `Temporal.Shared, moduleClass := .temporalShared },
     { modulePrefix := `Temporal.Feature, moduleClass := .temporalFeature },
     { modulePrefix := `Temporal.System, moduleClass := .temporalSystem },
@@ -146,6 +151,7 @@ def defaultPolicy : Policy := {
 
 private def Rule.label : Rule → String
   | .sharedIndependence => "shared-independence"
+  | .testpilotIndependence => "testpilot-independence"
   | .umpireIndependence => "umpire-independence"
   | .targetIsolation => "target-isolation"
   | .temporalSharedIsolation => "temporal-shared-isolation"
@@ -241,6 +247,10 @@ private def forbiddenRule?
       (destinationClass == .umpire || destinationClass == .umpireVeil ||
         isTemporalClass destinationClass) then
     some .sharedIndependence
+  else if sourceClass == .testpilot &&
+      (destinationClass == .umpire || destinationClass == .umpireVeil ||
+        isTemporalClass destinationClass) then
+    some .testpilotIndependence
   else if (sourceClass == .umpire || sourceClass == .umpireVeil) &&
       isTemporalClass destinationClass then
     some .umpireIndependence
