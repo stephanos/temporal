@@ -1,4 +1,5 @@
 import Umpire.Case
+import Umpire.Case.Provenance
 import Umpire.Json
 
 /-!
@@ -396,50 +397,6 @@ private def contract (item : Contract) : Except String CanonicalJson := do
     ("limits", contractLimits item.limits)
   ])
 
-private def definitionKind : CaseDefinitionKind → String
-  | .setup => "CASE_DEFINITION_KIND_SETUP"
-  | .state => "CASE_DEFINITION_KIND_STATE"
-  | .action => "CASE_DEFINITION_KIND_ACTION"
-  | .outcome => "CASE_DEFINITION_KIND_OUTCOME"
-  | .observation => "CASE_DEFINITION_KIND_OBSERVATION"
-  | .relation => "CASE_DEFINITION_KIND_RELATION"
-  | .capability => "CASE_DEFINITION_KIND_CAPABILITY"
-  | .property => "CASE_DEFINITION_KIND_PROPERTY"
-  | .query => "CASE_DEFINITION_KIND_QUERY"
-  | .behavior => "CASE_DEFINITION_KIND_BEHAVIOR"
-  | .target => "CASE_DEFINITION_KIND_TARGET"
-  | .compiler => "CASE_DEFINITION_KIND_COMPILER"
-  | .provider => "CASE_DEFINITION_KIND_PROVIDER"
-  | .law => "CASE_DEFINITION_KIND_LAW"
-  | .connector => "CASE_DEFINITION_KIND_CONNECTOR"
-  | .kernel => "CASE_DEFINITION_KIND_KERNEL"
-  | .experimentSpace => "CASE_DEFINITION_KIND_EXPERIMENT_SPACE"
-  | .variationAxis => "CASE_DEFINITION_KIND_VARIATION_AXIS"
-  | .choice => "CASE_DEFINITION_KIND_CHOICE"
-  | .fault => "CASE_DEFINITION_KIND_FAULT"
-  | .coverageGoal => "CASE_DEFINITION_KIND_COVERAGE_GOAL"
-private def gapKind : CaseKnownGapKind → String
-  | .capabilityContract => "CASE_KNOWN_GAP_KIND_CAPABILITY_CONTRACT"
-  | .input => "CASE_KNOWN_GAP_KIND_INPUT"
-  | .interpretation => "CASE_KNOWN_GAP_KIND_INTERPRETATION"
-  | .claim => "CASE_KNOWN_GAP_KIND_CLAIM"
-private def sourceLocation (item : SourceLocation) : CanonicalJson := object [
-  ("path", string item.path), ("line", int64 item.line), ("column", int64 item.column),
-  ("provenance", string item.provenance)
-]
-private def producerData (item : CaseMetadata) : ByteArray := (object [
-  ("definitions", array (item.definitions.map fun definition => object [
-    ("definitionId", string definition.definitionId),
-    ("behaviorFingerprint", string definition.behaviorFingerprint),
-    ("kind", string (definitionKind definition.kind))
-  ])),
-  ("sources", array (item.sources.map sourceLocation)),
-  ("knownGaps", array (item.knownGaps.map fun gap => object ([
-    ("kind", string (gapKind gap.kind)), ("code", string gap.code)
-  ] ++ gap.subject.toList.map (fun subject => ("subject", string subject)) ++
-    gap.detail.toList.map (fun detail => ("detail", string detail)))))
-]).prettyBytes.toUTF8
-
 /-- Render one authored Case directly as deterministic ProtoJSON for the refined Testpilot schema. -/
 def canonical (item : Case) : Except String String := do
   pure (object [
@@ -448,7 +405,7 @@ def canonical (item : Case) : Except String String := do
     ("provenance", object [
       ("producerId", string item.metadata.producerId),
       ("producerVersion", string item.metadata.producerVersion),
-      ("producerData", bytes (producerData item.metadata))
+      ("producerData", bytes (Umpire.Case.Provenance.producerData item.metadata))
     ]),
     ("program", ← program item.program),
     ("contract", ← contract item.contract)

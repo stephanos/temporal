@@ -1,14 +1,15 @@
 import Temporal.Testpilot
-import Temporal.Testpilot.TestpilotProtoJSON
 import Temporal.Feature.Nexus3.Testpilot
+import Testpilot.ProtoJSON
 
 private def renderTestpilot
-    (compiled : Except Umpire.Case.Compiler.LoweringError Umpire.Case) : IO Unit :=
+    (compiled : Except Umpire.Case.Compiler.LoweringError
+      temporal.server.api.testpilot.v1.Case) : IO Unit :=
   match compiled with
-  | .ok output =>
-      match Temporal.Testpilot.TestpilotProtoJSON.canonical output with
+  | .ok output => do
+      match ← Testpilot.ProtoJSON.canonical output with
       | .ok encoded => IO.print encoded
-      | .error failure => throw (IO.userError failure)
+      | .error failure => throw (IO.userError (toString failure))
   | .error failure => throw (IO.userError (reprStr failure))
 
 def main (arguments : List String) : IO Unit :=
