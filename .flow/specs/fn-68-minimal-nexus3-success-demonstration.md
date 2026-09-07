@@ -8,16 +8,16 @@ The existing drafts remain the broader design reference. The executable demonstr
 
 ## Architecture & Data Models
 
-Use ordinary Lean vocabulary declarations plus a small Nexus3 command-syntax layer that expands the success-only `model`, `property`, `behavior`, `limits`, and `query` blocks into existing finite-target and Property/Behavior/Query owners. Keep the feature-facing file at most 250 physical lines including its relevant teaching comments; put parsing, elaboration, mechanical construction helpers, and integration in separate Nexus3 modules. The supported grammar is only the demonstrated success slice and must reject unsupported spellings during elaboration; it is not a general Umpire parser or a second semantic language. Capture declaration names from each block declaration and derive IDs rather than repeat them in a registry.
+Use ordinary Lean vocabulary declarations plus a small Nexus3 command-syntax layer that expands the success-only `model`, `property`, `behavior`, `limits`, and `query` blocks into existing finite-target and Property/Behavior/Query owners. Keep the feature-facing file at most 250 physical lines including its relevant teaching comments. `Nexus3.Syntax` owns only grammar and macro expansion; `Nexus3.Authoring` owns typed construction and admission; integration remains separate. The supported grammar is only the demonstrated success slice and must reject unsupported spellings during elaboration; it is not a general Umpire parser or a second semantic language. Capture declaration names from each block declaration and derive IDs rather than repeat them in a registry.
 
 The checked Target starts only at scheduled, with awaitStart and awaitSuccess leading to distinct acknowledged/completed outcomes and the corresponding states. Express successfulResult with the existing transition-contract vocabulary on awaitSuccess; the exact two-step Behavior ensures that occurrence is exercised and is the final step. Plan the witness before lowering it.
 
-The success-only Producer consumes the checked Query, its checked meaning, and selected witness. Reuse the existing async Nexus physical Program mechanics, but derive Case provenance and the acceptance monitor from those inputs. The existing async Case entry point delegates to this Producer. No independently authored copy of the same success requirement remains active.
+The success-only Producer consumes the checked Query, its checked meaning, and selected witness. Reuse the existing async Nexus physical Program mechanics, but derive Case provenance and the acceptance monitor from those inputs. `Temporal.Feature.Nexus3.Testpilot` owns that feature adapter. Reusable Case-building mechanics live under `Temporal/Testpilot/`; the top-level `Temporal.Testpilot` module remains a thin generic facade and does not own Nexus semantics. Existing renderer and test entry points call the feature Producer directly. No independently authored copy of the same success requirement remains active.
 
 ```mermaid
 flowchart LR
   N[Small Nexus3 model] --> Q[Checked Query and witness]
-  Q --> I[Nexus3 integration]
+  Q --> I[Nexus3 Testpilot adapter]
   I --> C[Existing Case compiler]
   C --> R[Testpilot Prepare and Run]
 ```
@@ -26,8 +26,8 @@ flowchart LR
 
 - Expose one Case-production result for completion, returning the existing typed lowering error on unsupported or inconsistent input; no partial Case.
 - Support only this exact witness form, two-action trace, and checked success Property. Inspect semantic fields, not only IDs or display names. Capture their checked fingerprints in Case metadata.
-- IDs use `temporal.nexus3.<kind>.<relative-declaration-name>` by default. Pin `temporal.nexus3.target.lifecycle`; lifecycle-owned role, state, Action, outcome, fact, and relation IDs use `<kind>.lifecycle.<member>`; Property clause IDs use `property.successfulResult.<clause>`; Behavior setup and occurrence IDs use `setup.successfulCompletion.operation` and `occurrence.successfulCompletion.<label>`. Pin the public Property, Behavior, and Query IDs listed in R2. Nested identities use named owners/labels, never source order. An explicit override replaces only that declaration's key; a rename otherwise changes identity. Reject malformed or duplicate effective IDs through existing admission boundaries.
-- Retain the existing async-nexus renderer selector, Testpilot Case wire format, Profile/Driver, and test fixture location. Do not add a demo CLI or runtime instruction.
+- IDs derive from declaration names plus named owners/members, never source order. Authors do not write a parallel definitions registry, compatibility override, or per-declaration version label for this demonstration. A rename changes identity and requires downstream fixture regeneration. Keep an explicit identity or version input only where a concrete existing consumer requires it, and document that dependency. Reject malformed, duplicate, wrong-kind, or conflicting derived references through existing admission boundaries.
+- Retain the existing async-nexus renderer selector, Testpilot Case wire format, Profile/Driver, and test fixture location. The renderer imports the Nexus3 adapter directly; do not retain a feature-specific Case constant or alias in the generic Testpilot facade. Do not add a demo CLI or runtime instruction.
 - Physical setup schedules the operation; waits recognize correlated history events. A fixture may cause asynchronous handler completion, but only recorded history establishes the modeled result.
 
 ## Edge Cases & Constraints
@@ -40,9 +40,9 @@ Fixture generation owns the existing two Temporal example fixtures separately fr
 
 ## Acceptance Criteria
 
-- **R1:** The compact executable authoring file builds and visibly retains the approachable `model lifecycle`, `property successfulResult`, `behavior successfulCompletion`, `limits shortTrace`, and `query completion` blocks from `Nexus.md`, narrowed only to scheduled → started → succeeded. Their expansion uses the existing language owners and planning finds exactly that trace through awaitStart/awaitSuccess. Parsing, elaboration, and mechanical construction stay outside the feature file. Errors: an unsupported block form, undeclared result, outgoing terminal row, impossible Behavior, or missing success step cannot publish a successful witness; no placeholder proofs or unchecked extraction fallback.
-- **R2:** Actual declaration names supply derived IDs automatically, with an optional per-declaration override and no hand-maintained registry or duplicated name strings. Test exact IDs for lifecycle and every success-slice role, state, Action, outcome, fact, relation, Property clause, Behavior setup/occurrence, plus `temporal.nexus3.property.successfulResult`, `temporal.nexus3.behavior.successfulCompletion`, and `temporal.nexus3.query.completion`. Test rename versus override behavior, reorder/comment stability, and same-ID semantic fingerprint changes. Errors: invalid overrides and a real derived-versus-overridden collision inside the command-authored surface reject at admission.
-- **R3:** The Producer lowers checked success semantics into the current Program/Contract format, with source IDs/fingerprints bound to its inputs. Changing/removing a success transition or changing its Property under the same IDs changes the output meaning or rejects; returning the existing constant Case is insufficient. Errors: wrong Target/trace, absent witness, altered unsupported Property/Action/form, or cancellation produces a typed error and no Case. Missing/foreign evidence cannot satisfy the generated monitor; model-step bounds are never converted into runtime timeouts.
+- **R1:** The compact executable authoring file builds and visibly retains the approachable `model lifecycle`, `property successfulResult`, `behavior successfulCompletion`, `limits shortTrace`, and `query completion` blocks from `Nexus.md`, narrowed only to scheduled → started → succeeded. Their expansion uses the existing language owners and planning finds exactly that trace through awaitStart/awaitSuccess. Grammar and expansion live only in `Nexus3.Syntax`; typed construction and admission live only in `Nexus3.Authoring`; both stay outside the feature file. Errors: an unsupported block form, undeclared result, outgoing terminal row, impossible Behavior, or missing success step cannot publish a successful witness; no placeholder proofs or unchecked extraction fallback.
+- **R2:** Declaration names and named owners/members derive all required IDs and metadata automatically, with no hand-maintained definitions registry, user-facing identity override, pinned ID expectation, or redundant per-declaration version string. Test reference consistency, rename-driven identity changes, reorder/comment stability, and semantic fingerprint changes where consumed. Errors: malformed, duplicate, wrong-kind, or conflicting derived declarations reject at admission.
+- **R3:** `Temporal.Feature.Nexus3.Testpilot` lowers checked success semantics into the current Program/Contract format, with source IDs/fingerprints bound to its inputs. Reusable generic Case-construction helpers live under `Temporal/Testpilot/`, while feature-specific Property, evidence correlation, Program, and monitor construction stay beside Nexus3. `Temporal/Testpilot.lean` contains no Nexus-specific definition or alias. Changing/removing a success transition or changing its Property under the same IDs changes the output meaning or rejects; returning the existing constant Case is insufficient. Errors: wrong Target/trace, absent witness, altered unsupported Property/Action/form, or cancellation produces a typed error and no Case. Missing/foreign evidence cannot satisfy the generated monitor; model-step bounds are never converted into runtime timeouts.
 - **R4:** The existing async-nexus fixture is generated deterministically from Nexus3 and the existing renderer delegates to the new Producer. Repeated generation yields identical bytes; the example fixture tree is compared/published transactionally and the six conformance classes are unchanged. Errors: renderer/decoder failure, stale bytes, or incomplete generated trees fail without publishing partial output; ordinary tests perform no generation.
 - **R5:** The existing live async Nexus test uses that fixture through Testpilot and the real local Temporal Driver. It returns completed disposition, satisfied Verdict, and successful cleanup, supported by the three correctly correlated history events. Missing or foreign terminal evidence fails a focused offline monitor test. Preserve the focused live test as a required pass, not an allowed inherited failure; update the existing demo documentation with exact support and commands. No error surface beyond the admission/evidence/runtime failures named above.
 
@@ -52,9 +52,9 @@ No cancellation implementation, retries, multi-operation composition, scoped-ste
 
 ## Decision Context
 
-- Three sequential tasks: executable authoring, checked lowering, then existing fixture/live-test integration. Avoid a framework project around a single demonstration.
+- Four sequential tasks: executable authoring, metadata/identity derivation, checked Testpilot lowering, then fixture/live-test integration. Stabilize derived provenance before generating fixtures. Avoid a framework project around a single demonstration.
 - Preserve the five-block Nexus3 spelling as the demonstrated public surface. Implement only its success forms and expand them into the existing checked owners; avoid a reusable grammar framework until another model requires it.
-- Keep integration co-located in Nexus3 as explicitly requested, with imports flowing Integration → Nexus only; do not relax import lint or make the pure model import runtime bindings.
+- Keep the Testpilot adapter co-located in Nexus3, with imports flowing Testpilot → Nexus only; do not relax import lint or make the pure model import runtime bindings. Generic Testpilot support must not import Nexus3.
 - Preserve the complete Markdown drafts while creating the narrower executable Lean modules alongside them.
 - fn-67 supplies design provenance; completed fn-62 and fn-64 supply authoring and runtime dependencies. Independent fn-66 cleanup is not a blocker.
 - Broad generated API drift verification and CI expansion remain outside this demonstration, consistent with the existing declined-scope decision.
@@ -77,8 +77,8 @@ Task 1 must produce the exact checked witness from the compact block-shaped auth
 
 | Req | Task(s) | Gap justification |
 | --- | --- | --- |
-| R1 | fn-68-minimal-nexus3-success-demonstration.1 | — |
-| R2 | fn-68-minimal-nexus3-success-demonstration.1 | — |
+| R1 | fn-68-minimal-nexus3-success-demonstration.1, fn-68-minimal-nexus3-success-demonstration.4 | — |
+| R2 | fn-68-minimal-nexus3-success-demonstration.4 | — |
 | R3 | fn-68-minimal-nexus3-success-demonstration.2 | — |
 | R4 | fn-68-minimal-nexus3-success-demonstration.3 | — |
 | R5 | fn-68-minimal-nexus3-success-demonstration.3 | — |

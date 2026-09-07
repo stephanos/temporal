@@ -1,4 +1,5 @@
 import Temporal.Testpilot
+import Temporal.Feature.Nexus3.Testpilot
 
 namespace Temporal.TestpilotTests
 
@@ -24,12 +25,18 @@ open Umpire.Case
       | _, _ => false
   | .error _ => false
 
-#guard match Temporal.Testpilot.asyncNexusCase with
+#guard match Temporal.Feature.Nexus3.Testpilot.completionCase with
   | .ok output =>
       output.program.entrypoints.map (·.context) == [.controller, .workflow, .nexusHandler] &&
       match output.contract.rules with
       | [rule] =>
+          rule.kind == .safety && rule.horizon.isNone &&
           rule.captures.map (·.captureId) == ["scheduled-event"] &&
+          rule.transitions.map (·.transitionId) == [
+            "capture-scheduled-event",
+            "match-started-reference",
+            "match-completed-event"
+          ] &&
           rule.transitions.map (·.support) == [
             ContractSupport.matchingEvent,
             ContractSupport.matchingEvent,

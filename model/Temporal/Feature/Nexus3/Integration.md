@@ -13,25 +13,29 @@ namespace is `temporal.nexus3`; for example, the progress Property gets the ID
 not strings. A future checker derives IDs after resolving those references; authors keep no registry.
 
 Nested declarations use their named owner to disambiguate them. Examples:
-* `State.scheduled` → `temporal.nexus3.state.State.scheduled`
-* transition `lifecycle.start` → `temporal.nexus3.transition.lifecycle.start`
+* state `lifecycle.scheduled` → `temporal.nexus3.state.lifecycle.scheduled`
+* relation `lifecycle.start` → `temporal.nexus3.relation.lifecycle.start`
 * clause `cancellationResolves.terminalResponse` →
-  `temporal.nexus3.clause.cancellationResolves.terminalResponse`
+  `temporal.nexus3.property.cancellationResolves.terminalResponse`
 * occurrence `cancellationRace.start` → `temporal.nexus3.occurrence.cancellationRace.start`
-* the unnamed setup uses its owner's fixed `setup` member, giving
-  `temporal.nexus3.setup.cancellationRace.setup`.
+* setup role `cancellationRace.operation` →
+  `temporal.nexus3.setup.cancellationRace.operation`.
 
 Here "stable" means unchanged across builds, comment edits, and declaration reordering. A rename
 changes the derived ID, including the IDs of declarations whose relative names contain that owner.
-For compatibility, an individual declaration may specify `id "previous.external.key"`; that exact
-key replaces only its own derived ID. Descendants needing compatibility require their own overrides.
-This is opt-in bookkeeping, not a prerequisite for ordinary authoring.
+The Nexus3 demonstration has no compatibility overrides or aliases; generated consumers regenerate
+after a rename.
 
-Admission must reject malformed IDs, collisions between derived and overridden IDs, ambiguous
-references, and wrong-kind references before planning or Case production. Derivation does not use
+Admission must reject malformed IDs, duplicate or conflicting declarations, ambiguous references,
+and wrong-kind references before planning or Case production. Derivation does not use
 source positions, declaration order, or enum numeric ordinals. Semantic fingerprints still come
 from checked meaning, including outcome alternatives, action roles, scope, and bounds. Identity
 never supplies missing transitions or makes a Property pass.
+
+Authors provide no identity or version input for these declarations. Generated
+`DefinitionMetadata` retains Umpire's format version `1` because Target admission and artifact
+provenance consume that core field; `Temporal.Shared.definitionMetadata` supplies it outside the
+Nexus3 syntax.
 
 ## Commands, waits, and observation correlation
 
@@ -113,7 +117,6 @@ namespace Temporal.Feature.Nexus3
 integration lifecycleCases on lifecycle
   identity namespace "temporal.nexus3"
     derive from kind and qualifiedName
-    allow explicitIdOverride
 
   actions for operation
     awaitStart      => wait history NexusOperationStarted

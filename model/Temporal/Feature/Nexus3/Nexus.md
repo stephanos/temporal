@@ -29,10 +29,10 @@ Properties do not repair or filter the model's transitions to make requirements 
 ## Lean syntax versus proposed syntax
 
 `namespace`, `inductive`, `where`, and the constructor bars `|` are ordinary Lean syntax.
-The `model`, `property`, `behavior`, `limits`, and `query` blocks are proposed authoring syntax.
-Their comments describe intended meaning; no parser, checker, or Case compiler for this spelling
-exists yet. In particular, `+` and `→` in a transition row are visual separators here, not Lean
-addition or a function type. `/-- ... -/` introduces documentation; `/- ... -/` is a block comment.
+The success-only forms of the `model`, `property`, `behavior`, `limits`, and `query` blocks compile
+in `Nexus.lean`; the broader forms below remain proposed. In particular, `+` and `→` in a
+transition row are visual separators, not Lean addition or a function type. `/-- ... -/` introduces
+documentation; `/- ... -/` is a block comment.
 
 IDs derive from the feature namespace, declaration kind, and name. `Integration.md` specifies
 the convention and proposed Case boundary. Model admission, the syntax below, and integration
@@ -87,10 +87,11 @@ inductive Fact where
   | terminal
 
 /-
-`on lifecycle` below refers to this model. Its derived ID is `temporal.nexus3.model.lifecycle`.
+`on lifecycle` below refers to this model. Its derived Target ID is
+`temporal.nexus3.target.lifecycle`.
 Likewise, `cancellationResolves` gets `temporal.nexus3.property.cancellationResolves`. IDs survive
-builds, comment edits, and declaration reordering. Renaming a declaration changes its ID; add
-an explicit `id` override to that declaration only when an existing artifact must keep its key.
+builds, comment edits, and declaration reordering. Renaming a declaration changes its ID and the
+IDs of its owned members; affected generated fixtures must be regenerated.
 
 The state and Action declarations supply the complete vocabulary, including terminal states
 with no outgoing rows. `initial` requires every scenario to begin at `scheduled`.

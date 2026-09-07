@@ -120,6 +120,59 @@ func TestRunFunctionalGenerationPreservesPublishedSetWhenPublicationFails(t *tes
 	}
 }
 
+func TestRunFunctionalGenerationRejectsIncompleteOrNondeterministicRenderingBeforePublication(t *testing.T) {
+	entries := functionalManifest()
+	encodedByArgument := make(map[string][]byte, len(entries))
+	for _, entry := range entries {
+		encoded, err := protojson.Marshal(&testpilotpb.Case{CaseId: entry.CaseID})
+		require.NoError(t, err)
+		encodedByArgument[entry.RendererArg] = encoded
+	}
+	for _, test := range []struct {
+		name    string
+		entries []functionalEntry
+		render  func(string, string) (rendererOutput, error)
+	}{
+		{
+			name: "incomplete manifest", entries: entries[:1],
+			render: func(string, string) (rendererOutput, error) { return rendererOutput{}, nil },
+		},
+		{
+			name: "renderer failure", entries: entries,
+			render: func(string, string) (rendererOutput, error) {
+				return rendererOutput{Stderr: []byte("failed")}, errors.New("exit status 1")
+			},
+		},
+		{
+			name: "non-deterministic bytes", entries: entries,
+			render: func() func(string, string) (rendererOutput, error) {
+				calls := make(map[string]int)
+				return func(_ string, argument string) (rendererOutput, error) {
+					calls[argument]++
+					encoded := slices.Clone(encodedByArgument[argument])
+					if calls[argument]%2 == 0 {
+						encoded = append(encoded, '\n')
+					}
+					return rendererOutput{Stdout: encoded}, nil
+				}
+			}(),
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			published := false
+			err := runFunctionalGeneration(generationConfig{RepositoryRoot: t.TempDir(), OutputRoot: t.TempDir()}, test.entries, generationDependencies{
+				Render: test.render,
+				Publish: func(artifactio.Set, string, map[string][]byte, func(string) error) error {
+					published = true
+					return nil
+				},
+			})
+			require.Error(t, err)
+			require.False(t, published)
+		})
+	}
+}
+
 func TestValidateFunctionalArtifactsRejectsStaleFile(t *testing.T) {
 	entries := functionalManifest()
 	artifacts := make(map[string][]byte, len(entries)+1)

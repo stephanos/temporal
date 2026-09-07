@@ -5,9 +5,9 @@
   },
   "caseId": "temporal.case.async-nexus-success",
   "provenance": {
-    "producerId": "temporal.case.compiler",
+    "producerId": "temporal.nexus3.testpilot",
     "producerVersion": "1",
-    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC53b3JrZmxvdy1zZXJ2aWNlIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtd29ya2Zsb3ctc2VydmljZS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1RBUkdFVCIKICAgIH0sCiAgICB7CiAgICAgICJkZWZpbml0aW9uSWQiOiAidGVtcG9yYWwubmV4dXMuc2RrIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtbmV4dXMtc2RrL3YxIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfUFJPVklERVIiCiAgICB9LAogICAgewogICAgICAiZGVmaW5pdGlvbklkIjogInRlbXBvcmFsLmNhc2UuYXN5bmMtbmV4dXMucHJvcGVydHkuY29ycmVsYXRlZC1jb21wbGV0aW9uIiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAidGVtcG9yYWwtY2FzZS1hc3luYy1uZXh1cy1wcm9wZXJ0eS92MSIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX1BST1BFUlRZIgogICAgfQogIF0sCiAgInNvdXJjZXMiOiBbCiAgICB7CiAgICAgICJwYXRoIjogIlRlbXBvcmFsL1Rlc3RwaWxvdC5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImNoZWNrZWQtbW9kZWwiCiAgICB9CiAgXSwKICAia25vd25HYXBzIjogW10KfQo="
+    "producerData": "ewogICJkZWZpbml0aW9ucyI6IFsKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1czMudGFyZ2V0LmxpZmVjeWNsZSIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1Njo0MTk3NmQzYzg0NzMwYWQxODQ1MDg3Mjc5OWI4ZmUwNDBkMDk4MTVlOTQzMmQxYjlkZTUyMGM3ZDAyYTlhZThkIiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfVEFSR0VUIgogICAgfSwKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1czMuYmVoYXZpb3Iuc3VjY2Vzc2Z1bENvbXBsZXRpb24iLAogICAgICAiYmVoYXZpb3JGaW5nZXJwcmludCI6ICJzaGEyNTY6YzQ4NGU4MDIyNWQ3YjE4ZjM2MmVhNjdhMjBmMGUzZDcxZWU3ZjNmMWVmNzZlODlmN2ZkNjYwM2QxY2Y2MDc0NyIsCiAgICAgICJraW5kIjogIkNBU0VfREVGSU5JVElPTl9LSU5EX0JFSEFWSU9SIgogICAgfSwKICAgIHsKICAgICAgImRlZmluaXRpb25JZCI6ICJ0ZW1wb3JhbC5uZXh1czMucXVlcnkuY29tcGxldGlvbiIsCiAgICAgICJiZWhhdmlvckZpbmdlcnByaW50IjogInNoYTI1Njo0OWYwY2I3OGJhNDg4YzJiOGFkOGMxYzQyODg2YjRjYmRmOWIxMjcxMDA1ZmNmYTAyMmFhYTRkZWI5YWEyN2Q5IiwKICAgICAgImtpbmQiOiAiQ0FTRV9ERUZJTklUSU9OX0tJTkRfUVVFUlkiCiAgICB9LAogICAgewogICAgICAiZGVmaW5pdGlvbklkIjogInRlbXBvcmFsLm5leHVzMy5wcm9wZXJ0eS5zdWNjZXNzZnVsUmVzdWx0IiwKICAgICAgImJlaGF2aW9yRmluZ2VycHJpbnQiOiAic2hhMjU2OjRlM2NhNGI3Yjk3Mjc0ZTg4Nzk4NTMyZDc3YzhlYWFmNDBlOTlkODI5M2Y4YTcyMTE1MDQwNmQyYTNmNDAzMGQiLAogICAgICAia2luZCI6ICJDQVNFX0RFRklOSVRJT05fS0lORF9QUk9QRVJUWSIKICAgIH0KICBdLAogICJzb3VyY2VzIjogWwogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzMy9OZXh1cy5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9LAogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzMy9OZXh1cy5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9LAogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzMy9OZXh1cy5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9LAogICAgewogICAgICAicGF0aCI6ICJUZW1wb3JhbC9GZWF0dXJlL05leHVzMy9OZXh1cy5sZWFuIiwKICAgICAgImxpbmUiOiAiMSIsCiAgICAgICJjb2x1bW4iOiAiMSIsCiAgICAgICJwcm92ZW5hbmNlIjogImxlYW4tbW9kZWwiCiAgICB9CiAgXSwKICAia25vd25HYXBzIjogWwogICAgewogICAgICAia2luZCI6ICJDQVNFX0tOT1dOX0dBUF9LSU5EX0NBUEFCSUxJVFlfQ09OVFJBQ1QiLAogICAgICAiY29kZSI6ICJ0ZW1wb3JhbC5uZXh1czMua25vd24tZ2FwLmNhbmNlbGxhdGlvbiIsCiAgICAgICJzdWJqZWN0IjogInRlbXBvcmFsLm5leHVzMy5wcm9wZXJ0eS5jYW5jZWxsYXRpb25SZXNvbHZlcyIsCiAgICAgICJkZXRhaWwiOiAiT3BlcmF0aW9uLXNjb3BlZCBOZXh1cyBjYW5jZWxsYXRpb24gaXMgdW5zdXBwb3J0ZWQgYnkgdGhlIHN1Y2Nlc3Mgc2xpY2UuIgogICAgfSwKICAgIHsKICAgICAgImtpbmQiOiAiQ0FTRV9LTk9XTl9HQVBfS0lORF9DQVBBQklMSVRZX0NPTlRSQUNUIiwKICAgICAgImNvZGUiOiAidGVtcG9yYWwubmV4dXMzLmtub3duLWdhcC5vcGVyYXRpb24tc2NvcGVkLXByb2dyZXNzIiwKICAgICAgInN1YmplY3QiOiAidGVtcG9yYWwubmV4dXMzLnByb3BlcnR5LmNhbmNlbGxhdGlvblJlc29sdmVzIiwKICAgICAgImRldGFpbCI6ICJPcGVyYXRpb24tc2NvcGVkIHByb2dyZXNzIGNvdW50aW5nIGlzIHVuc3VwcG9ydGVkIGJ5IHRoZSBzdWNjZXNzIHNsaWNlLiIKICAgIH0KICBdCn0K"
   },
   "program": {
     "programId": "temporal.case.async-nexus.program",
@@ -725,8 +725,8 @@
     "contractId": "temporal.case.async-nexus-success.contract",
     "rules": [
       {
-        "ruleId": "correlated-nexus-completion",
-        "kind": "CONTRACT_RULE_KIND_BOUNDED_LIVENESS",
+        "ruleId": "temporal.nexus3.property.successfulResult.correlated-history",
+        "kind": "CONTRACT_RULE_KIND_SAFETY",
         "initialStateId": "pending",
         "states": [
           {
@@ -744,10 +744,6 @@
           {
             "stateId": "satisfied",
             "status": "CONTRACT_STATE_STATUS_SATISFIED"
-          },
-          {
-            "stateId": "violated",
-            "status": "CONTRACT_STATE_STATUS_VIOLATED"
           }
         ],
         "transitions": [
@@ -1171,11 +1167,7 @@
               }
             }
           }
-        ],
-        "horizon": {
-          "elapsedMilliseconds": "30000",
-          "violationStateId": "violated"
-        }
+        ]
       }
     ],
     "limits": {

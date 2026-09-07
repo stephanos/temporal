@@ -1,0 +1,12 @@
+name = "umpire-dsl-experiment"
+defaultTargets = ["DslExperiment", "DslExperimentTests"]
+
+[[lean_lib]]
+name = "DslExperiment"
+
+[[lean_lib]]
+name = "DslExperimentTests"
+
+[[lean_exe]]
+name = "dsl-experiment"
+root = "Main"

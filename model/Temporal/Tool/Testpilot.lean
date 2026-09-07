@@ -1,5 +1,6 @@
 import Temporal.Testpilot
 import Temporal.Testpilot.TestpilotProtoJSON
+import Temporal.Feature.Nexus3.Testpilot
 
 private def renderTestpilot
     (compiled : Except Umpire.Case.Compiler.LoweringError Umpire.Case) : IO Unit :=
@@ -13,7 +14,7 @@ private def renderTestpilot
 def main (arguments : List String) : IO Unit :=
   match arguments with
   | ["get-system-info"] => renderTestpilot Temporal.Testpilot.getSystemInfoCase
-  | ["async-nexus"] => renderTestpilot Temporal.Testpilot.asyncNexusCase
+  | ["async-nexus"] => renderTestpilot Temporal.Feature.Nexus3.Testpilot.completionCase
   | ["conformance-satisfied"] => renderTestpilot Temporal.Testpilot.conformanceSatisfiedCase
   | ["conformance-violated"] => renderTestpilot Temporal.Testpilot.conformanceViolatedCase
   | ["conformance-inconclusive"] => renderTestpilot Temporal.Testpilot.conformanceInconclusiveCase

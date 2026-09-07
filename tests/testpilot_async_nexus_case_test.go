@@ -11,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
+	historypb "go.temporal.io/api/history/v1"
 	"go.temporal.io/api/nexus/v1"
 	"go.temporal.io/api/operatorservice/v1"
 	"go.temporal.io/sdk/client"
@@ -106,12 +107,13 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 	run, verdict, err := prepared.Run(env.Context(), driver)
 	require.NoError(t, err)
 	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 	require.True(t, proto.Equal(verdict, run.GetVerdict()))
 	require.Len(t, verdict.GetRules(), 1)
 	require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, verdict.GetRules()[0].GetStatus())
 	require.Len(t, verdict.GetRules()[0].GetSupportingEventSequences(), 3)
-	requireHistoryOnlyEvidence(t, run, verdict.GetSupportingEventSequences())
+	requireCorrelatedNexusHistoryEvidence(t, run, verdict.GetSupportingEventSequences())
 }
 
 func loadTestpilotCase(t testing.TB, name string) *testpilotpb.Case {
@@ -123,14 +125,32 @@ func loadTestpilotCase(t testing.TB, name string) *testpilotpb.Case {
 	return decoded
 }
 
-func requireHistoryOnlyEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64) {
+func requireCorrelatedNexusHistoryEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64) {
 	t.Helper()
+	events := make([]*historypb.HistoryEvent, 0, len(sequences))
 	for _, sequence := range sequences {
 		require.Positive(t, sequence)
 		require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
 		event := run.GetEvents()[sequence-1]
 		require.Equal(t, "controller", event.GetCoordinates().GetEntrypointId())
 		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
-		require.NotEmpty(t, event.GetObservations())
+		require.Len(t, event.GetObservations(), 1)
+		require.Equal(t, "history-event", event.GetObservations()[0].GetObservationId())
+		var historyEvent historypb.HistoryEvent
+		require.NoError(t, event.GetObservations()[0].GetValue().GetMessageValue().UnmarshalTo(&historyEvent))
+		events = append(events, &historyEvent)
 	}
+	require.Equal(t, []enumspb.EventType{
+		enumspb.EVENT_TYPE_NEXUS_OPERATION_SCHEDULED,
+		enumspb.EVENT_TYPE_NEXUS_OPERATION_STARTED,
+		enumspb.EVENT_TYPE_NEXUS_OPERATION_COMPLETED,
+	}, []enumspb.EventType{events[0].GetEventType(), events[1].GetEventType(), events[2].GetEventType()})
+	scheduledID := events[0].GetEventId()
+	requestID := events[0].GetNexusOperationScheduledEventAttributes().GetRequestId()
+	require.Positive(t, scheduledID)
+	require.NotEmpty(t, requestID)
+	require.Equal(t, scheduledID, events[1].GetNexusOperationStartedEventAttributes().GetScheduledEventId())
+	require.Equal(t, requestID, events[1].GetNexusOperationStartedEventAttributes().GetRequestId())
+	require.Equal(t, scheduledID, events[2].GetNexusOperationCompletedEventAttributes().GetScheduledEventId())
+	require.Equal(t, requestID, events[2].GetNexusOperationCompletedEventAttributes().GetRequestId())
 }

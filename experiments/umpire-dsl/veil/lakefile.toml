@@ -1,0 +1,16 @@
+name = "umpireDslVeilCore"
+defaultTargets = ["probe"]
+
+[[lean_lib]]
+name = "DslExperiment"
+srcDir = ".."
+roots = ["DslExperiment.Model"]
+
+[[lean_lib]]
+name = "Veil"
+srcDir = ".lake/packages/veil"
+roots = ["Veil.Core.Tools.ModelChecker.ExecutionOutcome", "Veil.Core.Tools.ModelChecker.TransitionSystem"]
+
+[[lean_exe]]
+name = "probe"
+root = "Main"
