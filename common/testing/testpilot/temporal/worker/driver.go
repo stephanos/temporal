@@ -427,6 +427,8 @@ func (h *Driver) validateRPCBindings(instruction testpilot.InstructionPlan, role
 		if !assignmentUsesBinding(invoke.GetRequestAssignments(), []string{"namespace"}, workerRole.NamespaceBindingID) {
 			return ErrInvalid
 		}
+	default:
+		return nil
 	}
 	return nil
 }

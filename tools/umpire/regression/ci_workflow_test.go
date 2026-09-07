@@ -391,13 +391,13 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 			want:     "common/testing/testpilot/driver.go: imports forbidden dependency go.temporal.io/server/tools/canary",
 		},
 		{
-			name:     "server imports worker",
+			name:     "server imports SDK worker",
 			relative: "common/testing/testpilot/temporal/server/driver.go",
 			source:   "package server\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal/worker\"\n",
 			want:     "common/testing/testpilot/temporal/server/driver.go: crosses adapter authority through go.temporal.io/server/common/testing/testpilot/temporal/worker",
 		},
 		{
-			name:     "worker imports server",
+			name:     "SDK worker imports server",
 			relative: "common/testing/testpilot/temporal/worker/driver.go",
 			source:   "package worker\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal/server\"\n",
 			want:     "common/testing/testpilot/temporal/worker/driver.go: crosses adapter authority through go.temporal.io/server/common/testing/testpilot/temporal/server",
@@ -409,7 +409,7 @@ func TestTestpilotDependencyBoundaryRejectsForbiddenEdges(t *testing.T) {
 			want:     "common/testing/testpilot/temporal/internal/delivery/ledger.go: crosses adapter authority through go.temporal.io/server/common/testing/testpilot/temporal/server",
 		},
 		{
-			name:     "delivery imports worker",
+			name:     "delivery imports SDK worker",
 			relative: "common/testing/testpilot/temporal/internal/delivery/ledger.go",
 			source:   "package delivery\nimport _ \"go.temporal.io/server/common/testing/testpilot/temporal/worker\"\n",
 			want:     "common/testing/testpilot/temporal/internal/delivery/ledger.go: crosses adapter authority through go.temporal.io/server/common/testing/testpilot/temporal/worker",

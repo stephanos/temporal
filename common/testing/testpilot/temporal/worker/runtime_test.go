@@ -184,6 +184,8 @@ func preparedSymbolicRuntimeFixture(t *testing.T, modifiers ...any) testpilot.Pr
 			case "queue":
 				role.NamespaceBindingId = "namespace"
 				role.ResourceBindingId = "task-queue"
+			default:
+				continue
 			}
 		}
 		program.Roles = append(program.Roles, &testpilotspb.RoleDefinition{RoleId: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, ResourceBindingId: "nexus-endpoint"})

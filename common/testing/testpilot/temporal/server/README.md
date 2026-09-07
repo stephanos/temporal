@@ -64,7 +64,7 @@ the registration callback subsequently returns an error.
 
 ## Completion authority handoff
 
-The composite Driver injects a callback into the worker Driver that calls the server Session's
+The composite Driver injects a callback into the SDK worker Driver that calls the server Session's
 `NewCompletionCapability(ctx, originalCoordinate, CompletionInfo)`. The callback translates worker
 callback URL, headers, operation token and start time into `CompletionInfo`; the worker need not
 import this package. Only trusted Driver glue can mint capabilities, after the worker has checked
