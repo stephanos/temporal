@@ -12,10 +12,10 @@ import (
 )
 
 var (
-	ErrInvalid              = errors.New("invalid Temporal worker Driver input")
-	ErrClosed               = errors.New("temporal worker session is closed")
-	ErrRegistrationConflict = errors.New("temporal worker registration is incompatible")
-	ErrCapacity             = errors.New("temporal worker Driver capacity exhausted")
+	ErrInvalid              = errors.New("invalid Temporal SDK worker Driver input")
+	ErrClosed               = errors.New("temporal SDK worker session is closed")
+	ErrRegistrationConflict = errors.New("temporal SDK worker registration is incompatible")
+	ErrCapacity             = errors.New("temporal SDK worker Driver capacity exhausted")
 	ErrUnsupportedOperation = errors.New("operation belongs to another Driver component")
 	ErrCancellationInFlight = errors.New("reservation cancellation is already in flight")
 )
