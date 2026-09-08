@@ -1,6 +1,6 @@
 import Umpire.Observation.Evaluation
 import Umpire.Query
-import Umpire.SemanticInventory.Types
+import Umpire.OutcomeClassification
 
 /-!
 Semantic Property verdicts over accepted Evidence and strict checked-Query aggregation. These

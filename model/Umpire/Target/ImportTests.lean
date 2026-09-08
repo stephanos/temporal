@@ -39,8 +39,10 @@ import Umpire.Target
 #check Umpire.composeTarget
 #check Umpire.elaborateTarget
 
-#guard_msgs (error, substring := true) in
+/-- error: Unknown constant `Umpire.CheckedTarget.mk` -/
+#guard_msgs (error) in
 #check Umpire.CheckedTarget.mk
 
-#guard_msgs (error, substring := true) in
+/-- error: Unknown constant `Umpire.AuthoredTarget.mk` -/
+#guard_msgs (error) in
 #check Umpire.AuthoredTarget.mk

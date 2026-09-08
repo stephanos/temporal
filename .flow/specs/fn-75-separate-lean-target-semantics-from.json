@@ -1,11 +1,92 @@
 {
   "branch_name": "fn-75-separate-lean-target-semantics-from",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-08T12:05:47.557873Z",
   "created_at": "2026-09-07T00:59:06.559245Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-75-separate-lean-target-semantics-from",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-08T10:23:03.863323Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "6fdb20b6fb3c1bba23195692603be9675bd2c30cb074985712feb55249878edb",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 173253,
+      "output_sha256": "aa5412d83353c81cb2703bdf26400a39bffb6ca2fdb0d5d1d4131ac932cd892e",
+      "reservation_id": "08c8f186463b485bbddf383d6a8aa923",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T10:23:03.856773Z",
+      "tool_calls": 8,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "cb430b51cb983f1562a463ca6e9ba8fb25c66913a457c4c92bf430a076259333",
+      "backend": "codex",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "pending",
+        "receipt": "pending",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": false,
+      "kind": "completion",
+      "outcome": "verdict",
+      "output_bytes": 7378,
+      "output_sha256": "8faac20b3e395098736748c366378d8d793893110d73fbd795bb4d393f29562e",
+      "reservation_id": "71a03bbf9763465ab3ff9f8d94d83299",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T12:05:37.557179Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-75-separate-lean-target-semantics-from.md",
   "status": "open",
   "title": "Separate Lean Target semantics from authoring machinery",
@@ -20,5 +101,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-07T01:00:15.669511Z"
+  "updated_at": "2026-09-08T12:05:47.558030Z"
 }

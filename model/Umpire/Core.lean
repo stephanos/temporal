@@ -1,14 +1,15 @@
 import Lean.Data.Json
 import Std
 import Umpire.Fingerprint
+import Shared.SemanticData
 
 namespace Umpire
 
 /-! The common, pure model substrate shared by the Umpire authoring languages. -/
 
-structure DefinitionId where
-  value : String
-  deriving BEq, DecidableEq, Hashable, Ord, Repr
+abbrev DefinitionId := Shared.SemanticData.Name
+abbrev DefinitionId.mk := Shared.SemanticData.Name.mk
+abbrev DefinitionId.value (id : DefinitionId) : String := Shared.SemanticData.Name.value id
 
 namespace DefinitionId
 
@@ -136,10 +137,10 @@ structure Limit where
   unit : LimitUnit
   deriving BEq, DecidableEq, Ord, Repr
 
-structure ModelValue where
-  definitionId : DefinitionId
-  value : String
-  deriving BEq, DecidableEq, Ord, Repr
+abbrev ModelValue := Shared.SemanticData.Atom
+abbrev ModelValue.mk := Shared.SemanticData.Atom.mk
+abbrev ModelValue.definitionId (value : ModelValue) : DefinitionId := Shared.SemanticData.Atom.definitionId value
+abbrev ModelValue.value (value : ModelValue) : String := Shared.SemanticData.Atom.value value
 
 /-- Construct a Model Value from an explicit Definition ID and value without validation or inference. -/
 def ModelValue.named (definitionId : DefinitionId) (value : String) : ModelValue := {
@@ -215,11 +216,17 @@ def ModelTrace.valueAt?
         let traceStep ← trace.steps[step - 1]?
         traceStep.observations[position - 1]?
 
-structure TransitionResult (State Outcome Observation : Type) where
-  modelOutcome : Outcome
-  resultingState : State
-  observations : List Observation
-  deriving BEq, DecidableEq, Repr
+abbrev TransitionResult := Shared.SemanticData.Result
+abbrev TransitionResult.mk := @Shared.SemanticData.Result.mk
+@[simp] abbrev TransitionResult.modelOutcome {State Outcome Observation : Type}
+    (result : TransitionResult State Outcome Observation) : Outcome :=
+  Shared.SemanticData.Result.modelOutcome result
+@[simp] abbrev TransitionResult.resultingState {State Outcome Observation : Type}
+    (result : TransitionResult State Outcome Observation) : State :=
+  Shared.SemanticData.Result.resultingState result
+@[simp] abbrev TransitionResult.observations {State Outcome Observation : Type}
+    (result : TransitionResult State Outcome Observation) : List Observation :=
+  Shared.SemanticData.Result.observations result
 
 /-- Build one Model Trace step from its selected Action and model-owned transition result. -/
 def ModelTraceStep.result
@@ -268,11 +275,9 @@ def TransitionResult.map
     (mapState : State → MappedState)
     (mapOutcome : Outcome → MappedOutcome)
     (mapObservation : Observation → MappedObservation) :
-    TransitionResult MappedState MappedOutcome MappedObservation := {
-  modelOutcome := mapOutcome result.modelOutcome
-  resultingState := mapState result.resultingState
-  observations := result.observations.map mapObservation
-}
+    TransitionResult MappedState MappedOutcome MappedObservation :=
+  match result with
+  | ⟨outcome, state, observations⟩ => ⟨mapOutcome outcome, mapState state, observations.map mapObservation⟩
 
 /-- Mapping a transition result maps its Model Outcome. -/
 @[simp] theorem TransitionResult.map_modelOutcome

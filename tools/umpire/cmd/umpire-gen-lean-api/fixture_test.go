@@ -12,19 +12,28 @@ import (
 var rewriteFixture = flag.Bool("rewrite", false, "rewrite generator golden files")
 
 func TestBasicFixture(t *testing.T) {
+	testFixture(t, "basic", "Fixture")
+}
+
+func TestEmptyServiceFixture(t *testing.T) {
+	testFixture(t, "empty-service", "EmptyFixture")
+}
+
+func testFixture(t *testing.T, name, root string) {
+	t.Helper()
 	outputRoot := t.TempDir()
 	arguments := []string{
-		"--descriptor", "testdata/basic/input.pb",
-		"--lean-root", "Fixture",
+		"--descriptor", filepath.Join("testdata", name, "input.pb"),
+		"--lean-root", root,
 		"--output-root", outputRoot,
 	}
 	require.NoError(t, Run(arguments))
 
 	actual := readTree(t, outputRoot)
-	for _, path := range []string{"Fixture/API.lean", "Fixture/API/Proto.lean", "Fixture/API/Types.lean"} {
+	for _, path := range []string{root + "/API.lean", root + "/API/Proto.lean", root + "/API/Types.lean"} {
 		require.Contains(t, string(actual[path]), "/-!")
 	}
-	expectedRoot := filepath.Join("testdata", "basic", "expected")
+	expectedRoot := filepath.Join("testdata", name, "expected")
 	if *rewriteFixture {
 		require.NoError(t, os.RemoveAll(expectedRoot))
 		for path, encoded := range actual {

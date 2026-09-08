@@ -1,5 +1,6 @@
 import Temporal.Feature.Nexus.Lifecycle
 import Temporal.Shared
+import Umpire.Property.Authoring
 import Umpire.Query.Authoring
 
 /-! Shared declaration mechanics behind the ordinary Nexus operation walkthroughs. -/

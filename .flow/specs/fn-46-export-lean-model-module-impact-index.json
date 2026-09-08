@@ -14,7 +14,7 @@
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
-  "plan_reviewed_at": "2026-08-30T16:24:32.576963Z",
+  "plan_reviewed_at": "2026-09-08T14:50:56.831278Z",
   "review_attempts": [
     {
       "artifact_sha256": "db54d7707e62093e28ac95156fc93237e859f5f40bbceb54661ca6577bfd0274",
@@ -184,10 +184,46 @@
       "task": null,
       "timestamp": "2026-08-30T16:24:32.573165Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2e6ef8ccce05a28f2b4107afce0bf40c3fc306fdb1bd40af53639404440adf2f",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 111767,
+      "output_sha256": "1edda9dbb419292984f1b80ba68f17e4bf932c9ee1f5e94a2f115c895d51318e",
+      "reservation_id": "f339eac961014df991bb4bfe21128f78",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T14:50:56.824540Z",
+      "tool_calls": 7,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "plan": 1,
+    "plan": 2,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
@@ -209,5 +245,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-08-30T16:24:32.577478Z"
+  "updated_at": "2026-09-08T14:50:56.834226Z"
 }

@@ -74,6 +74,19 @@ def transitionResultClauses
     (.selectedAction action) (.fact fact)
 ]
 
+/-- Readable bounded response clauses elaborate directly to the typed declaration. Admission,
+reference resolution, and canonicalization remain owned by `property%` and `checkProperty`. -/
+syntax (name := boundedResponseSyntax)
+  "bounded_response%" term:max "at" term:max &"whenever" term:max &"eventually" term:max
+  &"within" term:max &"on" term:max "scoped" term:max "by" term:max &"closing" term:max : term
+
+macro_rules
+  | `(bounded_response% $id at $source whenever $trigger eventually $response
+      within $bound on $clock scoped $scope by $key closing $endpoint) =>
+      `(({ id := $id, source := $source, trigger := $trigger, response := $response,
+           bound := $bound, clock := $clock, scope := $scope, key := $key,
+           endpoint := $endpoint } : PropertyScopedClause))
+
 structure PropertySpec where
   family : DefinitionFamily
   key : String
@@ -81,6 +94,7 @@ structure PropertySpec where
   version : Nat := 1
   requires : List DefinitionId
   clauses : List PropertyClause
+  scopedClauses : List PropertyScopedClause := []
   logicalTimeSource : Option DefinitionId := none
   documentation : String := ""
 
@@ -90,6 +104,7 @@ def PropertySpec.declaration (spec : PropertySpec) : PropertyDeclaration := {
   version := spec.version
   requires := spec.requires
   clauses := spec.clauses
+  scopedClauses := spec.scopedClauses
   logicalTimeSource := spec.logicalTimeSource
   documentation := spec.documentation
 }
@@ -210,7 +225,9 @@ private def selectPropertyAuthoringOccurrence
     Option CapturedPropertyAuthoringOccurrence :=
   let related := occurrences.filter fun occurrence =>
     error.relatedDefinitionIds.contains occurrence.definitionId
-  related.getLast? <|> occurrences.find? (fun occurrence => occurrence.role == .parent)
+  related.getLast? <|>
+    occurrences.find? (fun occurrence => occurrence.definitionId == error.definitionId) <|>
+    occurrences.find? (fun occurrence => occurrence.role == .parent)
 
 private def elaborateProperty
     (specSyntax contextSyntax : Lean.TSyntax `term)

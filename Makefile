@@ -1032,8 +1032,16 @@ $(UMPIRE_API_FIXTURE_DESCRIPTOR): $(addprefix $(UMPIRE_API_FIXTURE_INPUT)/,$(UMP
 		--descriptor_set_out=$@ \
 		$(UMPIRE_API_FIXTURE_PROTOS)
 
-umpire-gen-lean-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR)
-	@go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api -run '^TestBasicFixture$$' -rewrite
+tools/umpire/cmd/umpire-gen-lean-api/testdata/empty-service/input.pb: tools/umpire/cmd/umpire-gen-lean-api/testdata/empty-service/input.proto
+	@mise exec -- protoc --proto_path=$(dir $<) --include_imports --descriptor_set_out=$@ $(notdir $<)
+
+umpire-gen-lean-api-fixture: $(UMPIRE_API_FIXTURE_DESCRIPTOR) tools/umpire/cmd/umpire-gen-lean-api/testdata/empty-service/input.pb
+	@go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api -run '^Test(Basic|EmptyService)Fixture$$' -rewrite
+
+umpire-check-lean-api:
+	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api
+	@cd model && $(LEAN_LAKE) build Umpire.Operation.Tests Temporal.API
+	@cd model && $(LEAN_LAKE) env sh ../tools/umpire/cmd/umpire-gen-lean-api/check-fixtures.sh
 
 umpire-gen-regression-views:
 	@cd model && $(LEAN_LAKE) build $(UMPIRE_REGRESSION_INSPECTOR) >/dev/null
@@ -1057,13 +1065,13 @@ umpire-check-regression-views:
 			./tools/umpire/cmd/umpire-gen-regression-views ./tools/umpire/regression
 
 umpire-gen-case-runtime-conformance:
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) >/dev/null
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-scoped-fixtures >/dev/null
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root .
 	@$(UMPIRE_GEN_CASE_RUNTIME_CONFORMANCE_COMMAND) --repository-root . --output-root . --mode functional
 
 umpire-check-case-runtime-conformance:
 	@printf $(COLOR) "Check generated Umpire Testpilot conformance fixtures..."
-	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER)
+	@cd model && $(LEAN_LAKE) build $(UMPIRE_TESTPILOT_RENDERER) umpire-scoped-fixtures
 	@set -eu; temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		temporary=$$(mktemp -d "$$temporary_root/umpire-case-runtime-conformance.XXXXXX"); \
 		trap 'rm -rf "$$temporary"' EXIT HUP INT TERM; \
@@ -1161,7 +1169,7 @@ umpire-check-live-tests:
 		fi; \
 		printf 'Live Umpire failure identities match the inherited exact set.\n'
 
-umpire-check-regression: umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests
+umpire-check-regression: umpire-check-lean-api umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-check-case-runtime-conformance umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests
 	@temporary_root=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
 		TMPDIR="$$temporary_root" mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
 	@set -eu; \
@@ -1191,7 +1199,7 @@ umpire-check-regression: umpire-check-regression-views umpire-check-testpilot-pr
 			scan_status=$$?; \
 			test "$$scan_status" -eq 1; \
 		fi; \
-		if grep -nE "$$old_namespace|$$old_path|$$old_targets" Makefile model/lakefile.toml model/README.md; then \
+		if grep -nE "$$old_namespace|$$old_path|$$old_targets" Makefile model/lakefile.lean model/README.md; then \
 			echo "found obsolete Temporal interface in live build or model documentation" >&2; \
 			exit 1; \
 		else \
@@ -1379,7 +1387,7 @@ umpire3-clean:
 	@printf $(COLOR) "Remove resolved Umpire3 tool caches..."
 	@sh $(UMPIRE3_ROOT)/clean.sh
 
-.PHONY: umpire-build-model umpire-check-plan-index umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests umpire-check-regression
+.PHONY: umpire-check-lean-api umpire-build-model umpire-check-plan-index umpire-inspect umpire-list-nexus umpire-explain-nexus umpire-gen-lean-api umpire-gen-lean-api-fixture umpire-gen-lean-dynamic-config-catalog umpire-gen-regression-views umpire-check-regression-views umpire-check-testpilot-protocol umpire-check-testpilot-authoring umpire-gen-case-runtime-conformance umpire-check-case-runtime-conformance umpire-gen-semantic-inventory umpire-check-semantic-inventory umpire-check-retired-vocabulary umpire-check-live-tests umpire-check-regression
 
 .PHONY: umpire3-gen-manifest umpire3-check-manifest umpire3-gen-catalog umpire3-check-catalog umpire3-gen-identifiers umpire3-check-identifiers umpire3-gen-author-facade umpire3-check-author-facade umpire3-gen-schema umpire3-check-schema umpire3-gen-monitor umpire3-check-monitor umpire3-gen-observation umpire3-check-observation umpire3-gen-composition umpire3-check-composition umpire3-gen-parity umpire3-check-parity umpire3-gen-coverage umpire3-check-coverage umpire3-gen-finite-replay umpire3-check-finite-replay umpire3-gen-first-order umpire3-check-first-order umpire3-gen-attempt umpire3-check-attempt umpire3-gen-native-binding umpire3-check-native-binding umpire3-build-native umpire3-gen-native-results umpire3-check-native-results umpire3-record-native-benchmark umpire3-check-native-benchmark umpire3-gen-checker-coverage umpire3-check-checker-coverage umpire3-gen-family-dependencies umpire3-check-family-dependencies umpire3-gen-temporal umpire3-check-temporal umpire3-build-temporal-results umpire3-build-veil umpire3-export-veil-bindings umpire3-check-veil-bindings umpire3-record-veil-results umpire3-check-veil-results umpire3-gen-proof umpire3-check-proof umpire3-gen-experiment umpire3-check-experiment umpire3-gen-api umpire3-check-api umpire3-gen-migration umpire3-check-migration umpire3-record-mutation-audit umpire3-check-mutation-audit umpire3-record-semantic-mutation-audit umpire3-check-semantic-mutation-audit umpire3-record-resilience-audit umpire3-check-resilience-audit umpire3-gen-release umpire3-check-release umpire3-gen umpire3-check-generated umpire3-check umpire3-check-family umpire3-integration umpire3-explain umpire3-mutation-gate umpire3-resilience-gate umpire3-root umpire3-clean
 

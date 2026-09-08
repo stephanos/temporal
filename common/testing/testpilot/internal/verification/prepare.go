@@ -91,7 +91,7 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 	if err := ir.CheckSurface(source, ir.DefaultLimits()); err != nil {
 		return nil, err
 	}
-	if !validID(source.ContractId) || len(source.Rules) == 0 {
+	if !validID(source.ContractId) || len(source.Rules) == 0 && source.Scoped == nil {
 		return nil, invalid(ir.Malformed, "Contract identity and rules are required")
 	}
 	if err := checkLimits(ceiling, hardLimits()); err != nil {
@@ -129,6 +129,9 @@ func Prepare(source *testpilotspb.Contract, catalog *ir.Catalog, program executi
 			return nil, fmt.Errorf("rule %s: %w", rule.RuleId, bindErr)
 		}
 		p.rules = append(p.rules, m)
+	}
+	if err := a.bindScoped(seen); err != nil {
+		return nil, err
 	}
 	if err := a.boundWork(); err != nil {
 		return nil, err

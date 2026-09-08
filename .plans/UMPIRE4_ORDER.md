@@ -6,55 +6,33 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### 1. fn-78 — Typed temporal authoring and checked scoped monitoring
-
-[Spec](../.flow/specs/fn-78-typed-temporal-authoring-and-checked.md).
-Deliver after **fn-73** and before **fn-70**.
-
-Own shared scoped-obligation semantics, explicit command/event evidence projection, independently
-reported Query validity, typed bounded temporal notation, and the readable surface for existing
-Behavior constraints. Defer Nexus operation cancellation to fn-79; the generic monitoring and existing
-Nexus success paths do not depend on its adapter, capability, or qualification. Preserve the completed fn-68 success path and coordinate with fn-74/75/76
-and fn-77 without absorbing their separate interface and typed-operation work.
-
-### 2. Independent architecture tracks
-
-These specs do not block the first canary. Coordinate overlapping imports and interface changes
-without adding dependencies solely because files overlap.
-
-| Spec                                                                                                                   | Dependencies | Deliver                                                                                                                                                                     |
-| ---------------------------------------------------------------------------------------------------------------------- | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [fn-74 — Activation semantics and preparation diagnostics](../.flow/specs/fn-74-deepen-testpilot-worker-activation.md) | fn-72        | Private activation-state ownership and public preparation diagnostics, including later error classification; preserve SDK scheduling and the controller execution boundary. |
-| [fn-75 — Lean Target semantic seam](../.flow/specs/fn-75-separate-lean-target-semantics-from.md)                       | None         | Separate checked Target semantics from authoring/elaboration machinery while preserving checked construction, fingerprints, and proof trust.                                |
-| [fn-76 — Semantic inventory dependency direction](../.flow/specs/fn-76-make-lean-semantic-inventory-consume.md)        | None         | Make inventory consume semantic outcome and Known Gap contracts; preserve generated inventory and semantic results.                                                         |
-
-The open architecture tracks and fn-70 need task breakdown and plan review before implementation.
-Their dependency order does not itself mark them ready in Flow.
-
-### 3. Typed operations and field-level Properties — fn-77
+### 1. Typed operations and field-level Properties — fn-77
 
 [fn-77 — Typed operations, parameterized Actions, and field-level Properties](../.flow/specs/fn-77-typed-operations-parameterized-actions.md)
 adds direct generated API references, typed SDK-command/event declarations, modeled request/result
 values, and cross-field/cross-occurrence requirements. Product assertions remain in checked models;
 integration owns faithful execution, observation, and correlation.
 
+Eleven tasks are defined with a SHIP plan review. They consume the delivered semantic and scoped
+monitoring interfaces; Nexus operation cancellation remains deferred to fn-79.
+
 | Stage                          | Deliver                                                                                               | Order                                                       |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| O1 — Operation/value contracts | Typed references, exact supported field values, and explicit fidelity limits.                         | Alongside DSL D1/D2; coordinate fn-75.                      |
+| O1 — Operation/value contracts | Typed references, exact supported field values, and explicit fidelity limits.                         | Uses delivered fn-75 semantics.                            |
 | O2 — Parameterized semantics   | Action/outcome arguments, field expressions/captures, finite domains, and independent Properties.     | After O1; supplies parameterized DSL authoring.             |
-| O3 — Checked concrete lowering | Typed request construction, result projections, clause coverage, and field-expression correspondence. | After O2; uses fn-71/fn-72 and coordinates with DSL D4.     |
+| O3 — Checked concrete lowering | Typed request construction, result projections, clause coverage, and field-expression correspondence. | After O2; uses delivered fn-71/fn-72/fn-78 interfaces.     |
 | O4 — Field-level qualification | Unary RPC and workflow-owned Nexus examples, field mutations, and real Driver evidence.               | After O3; temporal Nexus qualification also uses DSL D3/D4. |
 
-Task breakdown and plan review remain pending. Keep this off the fn-73/first-canary critical path.
-DSL D1/D2 and label-only
-semantics can proceed independently; parameterized D3/D4/D5 variants consume O1/O2. O3 owns field
-lowering, D4 owns scoped temporal lowering, and same-step qualification does not wait for temporal
-support. Share value/capture contracts across the tracks rather than creating two representations.
+Keep this off the first-canary critical path. Field lowering composes with fn-78's delivered scoped
+temporal lowering. Share value/capture contracts across these owners rather than creating two
+representations. Tasks with overlapping source files run serially without artificial dependencies.
 
-### 4. fn-70 — Scheduled canary proof of concept
+### 2. fn-70 — Scheduled canary proof of concept
 
 [Spec](../.flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md).
 Deliver after **fn-78**; fn-68, fn-71, fn-72, and fn-73 are transitive prerequisites.
+Nine tasks cover all ten requirements, with a SHIP plan review. Implementation follows fn-77
+to serialize shared Producer edits; fn-77 is not a semantic prerequisite.
 
 Implement the second consumer under `tools/canary`: manual check selection, a fresh scheduled
 Workflow each minute, Activity-owned Testpilot execution, bounded results, and isolated repeated
@@ -71,8 +49,8 @@ These remain open in Flow and are outside the first-canary critical path.
 
 | Spec                                                                                              | Dependencies | Next action                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45        | Refresh the previously approved plan against current module owners, then deliver the on-demand dependency, facade, and focused-test index. Task breakdown already exists.                                                    |
-| [fn-67 — Nexus3 authoring draft](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md)    | None         | Reconcile its design-only requirements with the delivered fn-68 model and ongoing fn-78 authoring work; verify completion or retain uncovered draft requirements. This spec does not implement syntax or a runtime compiler. |
+| [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45        | Refreshed three-task plan is SHIP against current model owners. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
+| [fn-67 — Nexus3 authoring draft](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md)    | None         | Reviewed follow-up plan is SHIP: one documentation task reconciles optional draft compatibility overrides with the success demonstration and clarifies generic versus cancellation support. Preserve the historical draft iteration; no cancellation implementation is required. |
 
 ## Downstream delivery
 
@@ -92,6 +70,21 @@ server/worker authority split. New scenarios remain Case data; canary policy, cr
 leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Completed cutovers
+
+- [fn-76](../.flow/specs/fn-76-make-lean-semantic-inventory-consume.md): moved shared outcome and
+  Known Gap contracts to semantic owners and enforced inventory dependency direction. Preserved
+  generated inventory, canonical fixtures, and proof trust; all tasks and completion review are SHIP.
+  Model build/lint pass; exact inherited Go lint and live-test failures remain recorded in Flow.
+- [fn-75](../.flow/specs/fn-75-separate-lean-target-semantics-from.md): separated checked Target
+  semantics, pure projection, and authoring; enforced the transitive semantic import boundary.
+  Preserved canonical fixtures and proof trust; all three tasks and completion review are SHIP.
+- [fn-74](../.flow/specs/fn-74-deepen-testpilot-worker-activation.md): established private activation
+  state and work accounting for both SDK interpreters, plus public preparation diagnostics. Preserved
+  SDK scheduling, delivery authority, replay, and cleanup behavior; completion review is SHIP.
+- [fn-78](../.flow/specs/fn-78-typed-temporal-authoring-and-checked.md): delivered shared scoped
+  obligations, command/event evidence projection, independent Query validity, typed bounded temporal
+  notation, and readable existing Behavior constraints while preserving Nexus success. Completion
+  review is SHIP; Nexus operation cancellation remains deferred to fn-79.
 
 - [fn-73](../.flow/specs/fn-73-explicit-environment-binding-for.md): established exact Case 1.0
   symbolic resource bindings, immutable Profile-owned snapshots, static Driver validation, and the

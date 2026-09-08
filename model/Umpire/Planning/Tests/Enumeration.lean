@@ -74,4 +74,45 @@ exposing its cursor representation. Ordinary planning still stops at the first s
         (run.result.outcome.name, run.result.metadata.explored.traces)) ==
     ([1, 1, 1], "exhaustive", true, 4, some ("found", 2))
 
+section Replacement
+
+variable (original : QueryTarget LawStatement)
+  (sameBehavior : original.kernel.behaviorDescription? =
+    some { original.behaviorDescription with terminalConditions := [] })
+
+private def replacementWithoutPlanning : QueryTarget LawStatement :=
+  original.withEquivalentKernel original.kernel rfl
+    ⟨rfl, rfl, rfl, rfl, rfl⟩ rfl rfl sameBehavior
+
+private theorem replacement_without_planning_has_no_completeness :
+    (CheckedQueryTarget.ofTarget (replacementWithoutPlanning original sameBehavior)).completeness =
+      none := rfl
+
+/-- error: Type mismatch -/
+#guard_msgs (error, substring := true) in
+#check (original.withEquivalentKernel original.kernel rfl
+  ⟨rfl, rfl, rfl, rfl, rfl⟩ rfl rfl : QueryTarget LawStatement)
+private theorem replacement_without_planning_rejects_planner
+    (query : CheckedQuery LawStatement) :
+    let replacement := replacementWithoutPlanning original sameBehavior
+    let replacedQuery := { query with
+      target := replacement
+      completeness := (CheckedQueryTarget.ofTarget replacement).completeness }
+    (match IncrementalPlannerKernel.ofCheckedQuery replacement.id replacedQuery with
+    | .ok _ => none
+    | .error error => some error.kind) = some .missingFiniteCompleteness := by
+  have sameId : (original.id != original.id) = false := by
+    change (!(original.id.value == original.id.value)) = false
+    simp
+  simp [IncrementalPlannerKernel.ofCheckedQuery, replacementWithoutPlanning,
+    CheckedTarget.withEquivalentKernel, CheckedQueryTarget.ofTarget, sameId]
+
+variable (capability : FinitePlanningCapability original.kernel.authoritativeStep)
+/-- error: Fields missing: `actionComplete` -/
+#guard_msgs (error, substring := true) in
+#check ({ actions := capability.actions, actionSound := capability.actionSound } :
+  FinitePlanningCapability original.kernel.authoritativeStep)
+
+end Replacement
+
 end Umpire.PlanningTests

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T15:05:08.761763Z",
+  "depends_on": [
+    "fn-67-refine-simple-nexus3-authoring-draft.1"
+  ],
+  "id": "fn-67-refine-simple-nexus3-authoring-draft.2",
+  "priority": null,
+  "spec": "fn-67-refine-simple-nexus3-authoring-draft",
+  "spec_path": ".flow/tasks/fn-67-refine-simple-nexus3-authoring-draft.2.md",
+  "status": "todo",
+  "title": "Reconcile draft identity and delivered support boundaries",
+  "updated_at": "2026-09-08T15:05:08.761763Z"
+}

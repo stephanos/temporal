@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T10:21:49.889558Z",
+  "depends_on": [
+    "fn-75-separate-lean-target-semantics-from.1"
+  ],
+  "id": "fn-75-separate-lean-target-semantics-from.2",
+  "priority": 2,
+  "spec": "fn-75-separate-lean-target-semantics-from",
+  "spec_path": ".flow/tasks/fn-75-separate-lean-target-semantics-from.2.md",
+  "status": "todo",
+  "title": "Migrate semantic consumers and enforce complete import isolation",
+  "updated_at": "2026-09-08T11:10:45.208487Z"
+}

@@ -351,6 +351,14 @@ def checkPropertyEvaluationInput
     (property : CheckedProperty)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
     Except PropertyError (CheckedPropertyEvaluationInput property) := do
+  if let some clause := property.scopedClauses.head? then
+    throw {
+      kind := .invalidClause
+      definitionId := clause.declaration.id
+      sourcePath := clause.declaration.source.path
+      sourceLocation := some clause.declaration.source
+      offendingValue := "scoped clauses require admitted operation traces",
+      relatedDefinitionIds := [clause.declaration.id] }
   let view := property.traceView trace
   for clause in property.clauses do
     match clause with
@@ -509,6 +517,85 @@ private def checkedPositions
     (unit : LimitUnit)
     (view : PropertyTraceView) : Option (List Nat) :=
   collectPositions ((occurrences pattern view).map (positionOf unit))
+
+/-- Aligned semantic transition positions used by scoped correspondence proofs. -/
+def Property.Scoped.positions (start : Nat) : List Bool → List Nat
+  | [] => []
+  | hit :: rest => (if hit then [start] else []) ++ Property.Scoped.positions (start + 1) rest
+
+private theorem collectPositions_some (positions : List Nat) :
+    collectPositions (positions.map some) = some positions := by
+  induction positions with
+  | nil => rfl
+  | cons position rest ih => simp [collectPositions, ih]
+
+private theorem checkedPositions_semantic (pattern : PropertyPattern) (view : PropertyTraceView) :
+    checkedPositions pattern .semanticTransitions view =
+      some ((occurrences pattern view).map (·.transitionPosition)) := by
+  have position : positionOf .semanticTransitions = fun occurrence => some occurrence.transitionPosition := rfl
+  simpa [checkedPositions, List.map_map, Function.comp_def, position] using
+    collectPositions_some ((occurrences pattern view).map (·.transitionPosition))
+
+private theorem observation_positions_mem (pattern : PropertyPattern)
+    (start selected offset : Nat) (time : Option Nat) (values : List ModelValue) (position : Nat) :
+    position ∈ (observationOccurrences pattern start selected offset time values).map
+      (·.transitionPosition) ↔ position = start ∧ values.any pattern.evaluate = true := by
+  induction values generalizing offset with
+  | nil => simp [observationOccurrences]
+  | cons value rest ih =>
+      simp only [observationOccurrences]
+      split <;> simp_all
+
+private theorem step_positions_mem (pattern : PropertyPattern)
+    (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
+      pattern.field = .resultingState ∨ pattern.field = .observation)
+    (start offset position : Nat) (step : PropertyTraceStep) :
+    position ∈ (stepOccurrences pattern start offset step).map (·.transitionPosition) ↔
+      position = start ∧ patternHoldsInStep pattern step = true := by
+  rcases aligned with action | outcome | state | fact
+  · cases value : step.selectedAction with
+    | none => simp [stepOccurrences, action, optionalOccurrence, value, patternHoldsInStep, valuesInStep]
+    | some item => cases hit : pattern.evaluate item <;>
+        simp [stepOccurrences, action, optionalOccurrence, value, patternHoldsInStep, valuesInStep, hit]
+  · cases value : step.modelOutcome with
+    | none => simp [stepOccurrences, outcome, optionalOccurrence, value, patternHoldsInStep, valuesInStep]
+    | some item => cases hit : pattern.evaluate item <;>
+        simp [stepOccurrences, outcome, optionalOccurrence, value, patternHoldsInStep, valuesInStep, hit]
+  · cases value : step.resultingState with
+    | none => simp [stepOccurrences, state, optionalOccurrence, value, patternHoldsInStep, valuesInStep]
+    | some item => cases hit : pattern.evaluate item <;>
+        simp [stepOccurrences, state, optionalOccurrence, value, patternHoldsInStep, valuesInStep, hit]
+
+  · simpa [stepOccurrences, fact, patternHoldsInStep, valuesInStep] using
+      observation_positions_mem pattern start start offset step.logicalTime step.observations position
+
+private theorem scoped_step_positions_mem (pattern : PropertyPattern)
+    (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
+      pattern.field = .resultingState ∨ pattern.field = .observation)
+    (start offset position : Nat) (steps : List PropertyTraceStep) :
+    position ∈ (traceStepOccurrences pattern start offset steps).map (·.transitionPosition) ↔
+      position ∈ Property.Scoped.positions start (steps.map (patternHoldsInStep pattern)) := by
+  induction steps generalizing start offset with
+  | nil => rfl
+  | cons step rest ih =>
+      simp only [traceStepOccurrences, List.map_append, List.mem_append,
+        step_positions_mem pattern aligned, ih, List.map_cons, Property.Scoped.positions]
+      cases patternHoldsInStep pattern step <;> simp
+
+private theorem semantic_positions_mem (pattern : PropertyPattern)
+    (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
+      pattern.field = .resultingState ∨ pattern.field = .observation)
+    (view : PropertyTraceView) (position : Nat) :
+    position ∈ (occurrences pattern view).map (·.transitionPosition) ↔
+      position ∈ Property.Scoped.positions 1 (view.steps.map (patternHoldsInStep pattern)) := by
+  have notState : (pattern.field == .state) = false := by
+    rcases aligned with action | outcome | state | fact
+    · rw [action]; rfl
+    · rw [outcome]; rfl
+    · rw [state]; rfl
+    · rw [fact]; rfl
+  simp only [occurrences, notState, Bool.false_eq_true, ↓reduceIte, List.nil_append]
+  exact scoped_step_positions_mem pattern aligned 1 0 position view.steps
 
 private def valuesAtField
     (field : PropertyTraceField)
@@ -1202,6 +1289,53 @@ def evaluatePropertyClause
     (input : CheckedPropertyEvaluationInput property)
     (clause : { clause // clause ∈ property.clauses }) : Bool :=
   evaluateResolvedPropertyClause clause.1 input.view
+
+/-- Aligned trigger/response truth values from this capability-limited checked input. -/
+def CheckedPropertyEvaluationInput.scopedCoordinates
+    {property : CheckedProperty} (input : CheckedPropertyEvaluationInput property)
+    (trigger response : PropertyPattern) : List (Bool × Bool) :=
+  input.view.steps.map fun step =>
+    (patternHoldsInStep trigger step, patternHoldsInStep response step)
+
+/-- Compose already checked step views for a single semantic-transition clause. Target trace
+continuity is the scoped consumer's admission responsibility; Property access remains unchanged. -/
+def CheckedPropertyEvaluationInput.appendScoped
+    {property : CheckedProperty} (first second : CheckedPropertyEvaluationInput property)
+    (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
+    (_shape : property.clauses = [.eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩]) :
+    CheckedPropertyEvaluationInput property :=
+  ⟨{ first.view with steps := first.view.steps ++ second.view.steps }⟩
+
+/-- Aligned coordinate projection commutes with incremental checked-input composition. -/
+theorem CheckedPropertyEvaluationInput.scopedCoordinates_append
+    {property : CheckedProperty} (first second : CheckedPropertyEvaluationInput property)
+    (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
+    (shape : property.clauses = [.eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩]) :
+    (first.appendScoped second id trigger response bound shape).scopedCoordinates trigger response =
+      first.scopedCoordinates trigger response ++ second.scopedCoordinates trigger response := by
+  simp [appendScoped, scopedCoordinates, List.map_append]
+
+/-- Existing bounded Property evaluation exposes its position quantification for the supported
+aligned scoped fragment, without changing the existing evaluator or its closed-trace meaning. -/
+theorem evaluatePropertyClause_scoped_positions
+    (property : CheckedProperty) (input : CheckedPropertyEvaluationInput property)
+    (clause : { clause // clause ∈ property.clauses })
+    (id : DefinitionId) (trigger response : PropertyPattern) (bound : Nat)
+    (shape : clause.val = .eventuallyWithin id trigger response ⟨bound, .semanticTransitions⟩)
+    (triggerAligned : trigger.field = .selectedAction)
+    (responseAligned : response.field = .modelOutcome ∨ response.field = .resultingState ∨
+      response.field = .observation) :
+    evaluatePropertyClause property input clause =
+      (Property.Scoped.positions 1 ((input.scopedCoordinates trigger response).map Prod.fst)).all
+        (fun first => (Property.Scoped.positions 1 ((input.scopedCoordinates trigger response).map Prod.snd)).any
+          fun second => first ≤ second && second - first ≤ bound) := by
+  simp only [evaluatePropertyClause, shape, evaluateResolvedPropertyClause, evaluateEventuallyWithin]
+  rw [checkedPositions_semantic, checkedPositions_semantic]
+  apply Bool.eq_iff_iff.mpr
+  simp only [List.all_eq_true, List.any_eq_true]
+  simp only [semantic_positions_mem trigger (Or.inl triggerAligned),
+    semantic_positions_mem response (Or.inr responseAligned)]
+  simp [CheckedPropertyEvaluationInput.scopedCoordinates, List.map_map, Function.comp_def]
 
 /-- Structural agreement for every constructor in the portable property core. -/
 theorem evaluatePropertyClause_agrees

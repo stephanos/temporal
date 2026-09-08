@@ -20,10 +20,12 @@ import (
 // Catalog freezes the descriptor graph; it contains no channels or credentials.
 type Catalog struct{ catalog *ir.Catalog }
 
+// NewCatalog admits an immutable descriptor graph. Rejections expose
+// *PreparationError through errors.As.
 func NewCatalog(source *descriptorpb.FileDescriptorSet) (*Catalog, error) {
 	catalog, err := ir.NewCatalog(source)
 	if err != nil {
-		return nil, err
+		return nil, preparationError(err, "catalog")
 	}
 	return &Catalog{catalog: catalog}, nil
 }
@@ -126,32 +128,33 @@ func (p ProfileSpec) Snapshot() ProfileSpec {
 }
 
 // BindingFingerprint validates and identifies the complete environment binding snapshot.
+// Rejections are malformed Profile preparation errors, including binding ceiling failures.
 func (p ProfileSpec) BindingFingerprint() (string, error) {
 	if len(p.EnvironmentBindings) == 0 {
 		return "", nil
 	}
 	if p.ProgramLimits == nil {
-		return "", errors.New("Profile Program limits are required")
+		return "", preparationError(errors.New("Profile Program limits are required"), "profile.program_limits")
 	}
 	if len(p.EnvironmentBindings) > 10000 {
-		return "", errors.New("Profile environment binding collection ceiling exceeded")
+		return "", preparationError(errors.New("Profile environment binding collection ceiling exceeded"), "profile.environment_bindings")
 	}
 	bindings := slices.Clone(p.EnvironmentBindings)
 	slices.SortFunc(bindings, func(a, b EnvironmentBinding) int { return cmp.Compare(a.ID, b.ID) })
 	var total int64
 	for i, binding := range bindings {
 		if !validEnvironmentID(binding.ID) || !utf8.ValidString(binding.ID) {
-			return "", fmt.Errorf("Profile environment binding %d has an invalid identity", i)
+			return "", preparationError(fmt.Errorf("Profile environment binding %d has an invalid identity", i), "profile.environment_bindings")
 		}
 		if binding.Value == "" || !utf8.ValidString(binding.Value) {
-			return "", fmt.Errorf("Profile environment binding %q has an invalid value", binding.ID)
+			return "", preparationError(fmt.Errorf("Profile environment binding %q has an invalid value", binding.ID), "profile.environment_bindings")
 		}
 		if i > 0 && bindings[i-1].ID == binding.ID {
-			return "", fmt.Errorf("Profile environment binding %q is duplicated", binding.ID)
+			return "", preparationError(fmt.Errorf("Profile environment binding %q is duplicated", binding.ID), "profile.environment_bindings")
 		}
 		bytes := int64(len(binding.ID) + len(binding.Value))
 		if bytes > p.ProgramLimits.MaxRequestBytes-total {
-			return "", errors.New("Profile environment binding byte ceiling exceeded")
+			return "", preparationError(errors.New("Profile environment binding byte ceiling exceeded"), "profile.environment_bindings")
 		}
 		total += bytes
 	}
