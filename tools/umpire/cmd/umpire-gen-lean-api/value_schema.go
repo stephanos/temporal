@@ -32,8 +32,13 @@ func concreteMessageShape(message protoreflect.MessageDescriptor) string {
 			presence = ".required"
 		case !field.HasPresence():
 			presence = "(.implicit " + concreteDefault(field) + ")"
+		default:
 		}
-		items = append(items, fmt.Sprintf("⟨%d, %q, %s, %s, %s⟩", field.Number(), field.Name(), typ, cardinality, presence))
+		defaultValue := "none"
+		if field.HasDefault() {
+			defaultValue = "(some " + concreteDefault(field) + ")"
+		}
+		items = append(items, fmt.Sprintf("⟨%d, %q, %s, %s, %s, %s⟩", field.Number(), field.Name(), typ, cardinality, presence, defaultValue))
 	}
 	unsupported := "none"
 	if message.ExtensionRanges().Len() != 0 || message.Extensions().Len() != 0 {
@@ -82,7 +87,7 @@ func concreteDefault(field protoreflect.FieldDescriptor) string {
 	case protoreflect.BoolKind:
 		return fmt.Sprintf("(.boolean %t)", field.Default().Bool())
 	case protoreflect.StringKind:
-		return fmt.Sprintf("(.text %q)", field.Default().String())
+		return fmt.Sprintf("(.text %s)", leanString(field.Default().String()))
 	case protoreflect.BytesKind:
 		items := make([]string, 0, len(field.Default().Bytes()))
 		for _, b := range field.Default().Bytes() {
@@ -100,4 +105,32 @@ func concreteDefault(field protoreflect.FieldDescriptor) string {
 	default:
 		return fmt.Sprintf("(.integer .%s (%d))", field.Kind(), field.Default().Int())
 	}
+}
+
+func leanString(value string) string {
+	var rendered strings.Builder
+	rendered.Grow(len(value) + 2)
+	rendered.WriteByte('"')
+	for _, character := range value {
+		switch character {
+		case '"':
+			rendered.WriteString(`\"`)
+		case '\\':
+			rendered.WriteString(`\\`)
+		case '\n':
+			rendered.WriteString(`\n`)
+		case '\r':
+			rendered.WriteString(`\r`)
+		case '\t':
+			rendered.WriteString(`\t`)
+		default:
+			if character < 0x20 || character == 0x7f {
+				fmt.Fprintf(&rendered, `\u%04x`, character)
+			} else {
+				rendered.WriteRune(character)
+			}
+		}
+	}
+	rendered.WriteByte('"')
+	return rendered.String()
 }

@@ -72,9 +72,22 @@ def bindUnary (method : %s.Method Request Response)
     Except Umpire.Operation.Error (Umpire.Operation.CheckedRpc rpcOwner ⟨method, reference⟩) :=
   Umpire.Operation.checkRpc rpcOwner ⟨method, reference⟩ candidate
 
+/-- All typed structural fields in this method's complete selected payload schema. -/
+def fields (method : %s.Method Request Response) (side : Umpire.Value.Side)
+    (reference : MethodReference method := by constructor) :
+    List ((containing : String) × Umpire.Value.Field.Reference rpcOwner ⟨method, reference⟩ side containing) :=
+  Umpire.Value.Field.references rpcOwner ⟨method, reference⟩ side
+
+/-- Select a field by containing schema and number, retaining the generated method witness. -/
+def fieldReference (method : %s.Method Request Response) (side : Umpire.Value.Side)
+    (containing : String) (number : Nat) (source : Umpire.SourceLocation)
+    (reference : MethodReference method := by constructor) :
+    Except Umpire.Value.Field.Error (Umpire.Value.Field.Reference rpcOwner ⟨method, reference⟩ side containing) :=
+  Umpire.Value.Field.reference rpcOwner ⟨method, reference⟩ side containing number source
+
 end %s
 
-`, plan.supportNamespace, plan.supportNamespace, root)
+`, plan.supportNamespace, plan.supportNamespace, plan.supportNamespace, plan.supportNamespace, root)
 }
 
 func leanStrings(values []string) string {

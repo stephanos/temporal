@@ -3,7 +3,7 @@ syntax = "proto2";
 package fixture.protobuf.compat.v1;
 
 message LegacyOptions {
-  required string name = 1;
+  required string name = 1 [default = "\a\b\f\v\"\\\n\r\t\000\177é😀"];
   optional int32 count = 2 [default = 7];
   repeated int32 samples = 3 [packed = true];
 }

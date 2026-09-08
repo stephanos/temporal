@@ -101,7 +101,7 @@ func renderAPI(plan leanPlan) []byte {
 	var generated strings.Builder
 	module := cloneLeanModulePlan(plan.APIModule)
 	if plan.OperationSchemas != nil && len(plan.Services) > 0 {
-		module.Imports = append(module.Imports, "Umpire.Operation")
+		module.Imports = append(module.Imports, "Umpire.Operation", "Umpire.Value.Field")
 	}
 	writeModuleHeader(&generated, module, apiFacadeModuleDoc)
 	for _, service := range plan.Services {
