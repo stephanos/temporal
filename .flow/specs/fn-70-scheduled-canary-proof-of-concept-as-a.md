@@ -1,5 +1,7 @@
 # Scheduled canary proof of concept as a second model consumer
 
+Nexus operation cancellation is deferred to fn-79. This canary consumes the existing success Case and fn-78’s generic monitoring delivery; it does not wait for a cancellation adapter, capability, or demonstration. Activity/Workflow cancellation and bounded cleanup below remain operational requirements.
+
 ## Goal & Context
 <!-- scope: business -->
 

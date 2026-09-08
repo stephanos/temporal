@@ -1,4 +1,6 @@
 import Temporal.Feature.Nexus.Lifecycle
+import Temporal.Feature.Nexus3.Cancellation
+import Temporal.System.Nexus.Evidence
 import Temporal.System.Nexus.Core
 import Umpire.ImplementationLink
 import Umpire.Property
@@ -424,3 +426,101 @@ def evaluateFeatureProperty
       | .unsupported diagnostic => .implementationLinkFailure diagnostic
 
 end Temporal.System.Nexus.ImplementationLink
+
+
+namespace Temporal.System.Nexus.ImplementationLink.Cancellation
+
+open Umpire Observation.Projection
+
+/-- Cancellation admission preserves which owner rejected the declaration or source evidence. -/
+inductive Error where
+  | target (error : FiniteTargetAdmissionError)
+  | vocabulary (error : FiniteTableError)
+  | correlation (error : Evidence.Error)
+  | projection (error : Observation.Projection.Error)
+
+/-- Target-bound cancellation mapping. Only `check` constructs this checked declaration. -/
+structure Checked where
+  private mk ::
+  target : QueryTarget Temporal.Feature.Nexus2.Race.LawStatement
+  private plan : Observation.Projection.Checked target
+  private maxOperations : Nat
+
+private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
+    (limits : Limits) : Declaration ModelValue ModelValue ModelValue ModelValue := {
+  id := Evidence.field "cancellation-projection"
+  scopeFields := [Evidence.field "execution", Evidence.field "namespace",
+    Evidence.field "workflow", Evidence.field "run"]
+  operationField := Evidence.field "scheduled-operation-request"
+  sources := [Evidence.Source.sdk.id, Evidence.Source.history.id]
+  rules := [
+    { kind := Evidence.Kind.cancellationSubmitted.id,
+      meaning := .submission model.requestCancelAction },
+    { kind := Evidence.Kind.cancellationConfirmed.id,
+      meaning := .confirmed (some model.requestCancelAction) [(model.requestCancelAction, {
+        modelOutcome := model.cancellationRequestedOutcome,
+        resultingState := model.cancelRequestedState, observations := [model.cancelRequestedFact] })] },
+    { kind := Evidence.Kind.canceled.id,
+      meaning := .confirmed none [(model.resolveAction, { modelOutcome := model.canceledOutcome,
+        resultingState := model.canceledState,
+        observations := [model.lifecycleCanceledFact, model.terminalFact] })] },
+    { kind := Evidence.Kind.completed.id,
+      meaning := .confirmed none [(model.resolveAction, { modelOutcome := model.succeededOutcome,
+        resultingState := model.succeededState,
+        observations := [model.lifecycleSucceededFact, model.terminalFact] })] },
+    { kind := Evidence.Kind.unrelated.id, meaning := .irrelevant },
+    { kind := Evidence.Kind.workflowCancellation.id, meaning := .irrelevant },
+    { kind := Evidence.Kind.activationShutdown.id, meaning := .irrelevant }]
+  limits
+}
+
+/-- Check the evidence mapping against the reused Feature authority; no Query witness is an input. -/
+def check (limits : Limits) : Except Error Checked := do
+  let target ← Temporal.Feature.Nexus3.Cancellation.targetResult.mapError .target
+  let model ← Temporal.Feature.Nexus2.Race.modelVocabulary.mapError .vocabulary
+  let plan ← Observation.Projection.check target (declaration model limits)
+    model.startedSetup model.startedState |>.mapError .projection
+  pure ⟨target, plan, limits.keys⟩
+
+/-- Canonical mapping provenance includes Target terminal semantics and independent evidence limits. -/
+def Checked.behaviorFingerprint (checked : Checked) : BehaviorFingerprint :=
+  checked.plan.behaviorFingerprint
+
+/-- One immutable Run, containing its frozen correlation authority and generic projection state. -/
+structure Run (checked : Checked) where
+  private mk ::
+  private binding : Evidence.Binding
+  private projection : Observation.Projection.Run checked.plan
+
+/-- Allocate fresh state after validating the entire operation binding. -/
+def Checked.start (checked : Checked) (binding : Evidence.Binding) : Except Error (Run checked) := do
+  binding.validate checked.maxOperations |>.mapError .correlation
+  let projection ← checked.plan.start binding.scope.fields |>.mapError .projection
+  pure ⟨binding, projection⟩
+
+/-- Confirmed steps retain checked Feature authority and exact source/Run support. -/
+def Run.steps (run : Run checked) : List (Step checked.target) := run.projection.steps
+
+/-- Accepted closed evidence is immutable even when a later append fails. -/
+def Run.accepted (run : Run checked) : List Event := run.projection.accepted
+
+/-- Missing causal support stays distinct from a justified stutter. -/
+def Run.pending (run : Run checked) : List Identity := run.projection.pending
+
+/-- Admit correlation first, then atomically release every causally supported semantic step. -/
+def Run.admit (run : Run checked) (record : Evidence.Record) :
+    Except Error (Run checked × Progress (Step checked.target)) := do
+  let event ← record.toEvent run.binding |>.mapError .correlation
+  let (projection, progress) ← run.projection.admit event |>.mapError .projection
+  pure (⟨run.binding, projection⟩, progress)
+
+/-- Close only when every bound operation has reached either declared terminal resolution. -/
+def Run.close (run : Run checked) : Except Error (Run checked) := do
+  let projection ← run.projection.close |>.mapError .projection
+  let unresolved := run.binding.operations.filter fun operation =>
+    !checked.target.isTerminal (projection.state operation.key)
+  unless unresolved.isEmpty do
+    throw (.projection (.nonterminal (unresolved.map Evidence.Operation.key)))
+  pure ⟨run.binding, projection⟩
+
+end Temporal.System.Nexus.ImplementationLink.Cancellation

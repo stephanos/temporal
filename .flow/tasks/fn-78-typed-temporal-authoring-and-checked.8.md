@@ -4,6 +4,8 @@ satisfies: [R6, R7, R8, R9]
 # fn-78-typed-temporal-authoring-and-checked.8 Qualify authored Nexus cancellation through Testpilot
 
 ## Description
+**Scope transferred to deferred fn-79 by user decision. This task no longer authorizes cancellation implementation or blocks generic delivery. Generic syntax/qualification formerly in task 8 is retained in task 10. The original description below is archival.**
+
 Expose D5's readable bounded temporal syntax over the checked scoped clause and qualify a complete authored Nexus cancellation Case through the existing public Testpilot Prepare/Run facade. Keep Nexus syntax and lowering next to the feature adapter while reusable temporal constructors remain in `Umpire.Property`.
 
 **Size:** L
@@ -40,8 +42,7 @@ Expose D5's readable bounded temporal syntax over the checked scoped clause and 
 - [ ] `make umpire-build-model`, `make umpire-check-regression`, `make lint-model`, `make lint-code`, generated staleness checks, focused Go tests with `-tags test_dep`, and the scoped integration test with `test_dep integration` pass with evidence recorded.
 - [ ] Umpire and model architecture docs describe the final ownership and syntax; `model/Temporal/Feature/Nexus3/Integration.md` no longer claims cancellation lowering is unsupported.
 ## Done summary
-TBD
-
+Administrative scope transfer only: cancellation requirements deferred to fn-79 by explicit user decision. No cancellation implementation is claimed complete. Original requirements retained in fn-79; generic syntax/qualification from task 8 retained in fn-78.10. Existing unfinished source edits preserved and worker stopped. This task closes only the scope transfer so generic fn-78 and fn-70 can proceed.
 ## Evidence
 - Commits:
 - Tests:

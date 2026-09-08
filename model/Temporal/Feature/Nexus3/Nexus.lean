@@ -1,4 +1,5 @@
 import Temporal.Feature.Nexus3.Syntax
+import Temporal.Feature.Nexus3.Cancellation
 
 /-!
 # Compact Nexus success model
@@ -87,3 +88,4 @@ query completion on lifecycle
   limits shortTrace
 
 end Temporal.Feature.Nexus3
+
