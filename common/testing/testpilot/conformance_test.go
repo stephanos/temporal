@@ -249,7 +249,7 @@ func (s *facadeSession) InvokeRPC(_ context.Context, coordinate testpilot.Coordi
 		Response: response,
 	}}, nil
 }
-func (*facadeSession) CompleteNexusOperation(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, *testpilotspb.Value) (testpilot.EffectHandle, error) {
+func (*facadeSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, errors.New("facade conformance Cases do not complete Nexus operations")
 }
 func (*facadeSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {

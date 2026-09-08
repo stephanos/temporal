@@ -232,11 +232,14 @@ func (s *Session) respondNexus(ctx context.Context, activation delivery.Activati
 }
 
 func (s *Session) respondNexusAsync(ctx context.Context, activation delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
-	if input == nil || s.options.NewCompletionCapability == nil || nilValue(s.options.Bridge) {
+	if input == nil || s.options.NewCapability == nil || nilValue(s.options.Bridge) {
 		return 0, nil, "", ErrInvalid
 	}
-	info := CompletionInfo{URL: options.CallbackURL, Header: maps.Clone(options.CallbackHeader), OperationToken: activation.RequestID(), StartTime: s.host.options.now()}
-	capability, err := s.options.NewCompletionCapability(ctx, activation.Coordinate(), info)
+	invoke, err := s.host.options.completion.newEffect(completionInfo{URL: options.CallbackURL, Header: maps.Clone(options.CallbackHeader), OperationToken: activation.RequestID(), StartTime: s.host.options.now()})
+	if err != nil {
+		return 0, nil, "", err
+	}
+	capability, err := s.options.NewCapability(ctx, activation.Coordinate(), invoke)
 	if err != nil {
 		return 0, nil, "", err
 	}
@@ -335,8 +338,4 @@ func sdkFailureOutcome(err error) *testpilotspb.InstructionOutcome {
 		}
 	}
 	return outcome
-}
-
-func cloneCompletionInfo(info CompletionInfo) CompletionInfo {
-	return CompletionInfo{URL: info.URL, Header: maps.Clone(info.Header), OperationToken: info.OperationToken, StartTime: info.StartTime}
 }

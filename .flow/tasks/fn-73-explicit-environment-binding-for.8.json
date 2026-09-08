@@ -11,6 +11,6 @@
   "spec": "fn-73-explicit-environment-binding-for",
   "spec_path": ".flow/tasks/fn-73-explicit-environment-binding-for.8.md",
   "status": "todo",
-  "title": "Retire Case 1.0 and the legacy Driver resource mode",
-  "updated_at": "2026-09-07T15:03:37.982050Z"
+  "title": "Collapse symbolic bindings into Case 1.0 and retire the legacy Driver resource mode",
+  "updated_at": "2026-09-07T17:23:01.040175Z"
 }

@@ -52,7 +52,7 @@ func (s *recordingControllerSession) InvokeRPC(context.Context, testpilot.Coordi
 	s.invocations++
 	return recordingEffect{}, nil
 }
-func (*recordingControllerSession) CompleteNexusOperation(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, *testpilotspb.Value) (testpilot.EffectHandle, error) {
+func (*recordingControllerSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return recordingEffect{}, nil
 }
 func (s *recordingControllerSession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {

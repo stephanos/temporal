@@ -125,12 +125,12 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 	host, definition := runtimeTestDriver(t, prepared)
 	bridge := newTestBridge()
 	factoryCalls := 0
-	var captured CompletionInfo
+	var captured testpilot.CapabilityEffect
 	options := SessionOptions{
 		Bridge: bridge,
-		NewCompletionCapability: func(_ context.Context, _ testpilot.Coordinate, info CompletionInfo) (testpilot.OpaqueCapability, error) {
+		NewCapability: func(_ context.Context, _ testpilot.Coordinate, effect testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
 			factoryCalls++
-			captured = cloneCompletionInfo(info)
+			captured = effect
 			return &struct{ run string }{run: "run"}, nil
 		},
 	}
@@ -146,8 +146,7 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 	require.NoError(t, err)
 	require.Equal(t, "request-id", result.(*nexus.HandlerStartOperationResultAsync).OperationToken)
 	require.Equal(t, 1, factoryCalls)
-	require.Equal(t, "https://callback.invalid/private", captured.URL)
-	require.Equal(t, nexus.Header{"authorization": "secret"}, captured.Header)
+	require.NotNil(t, captured)
 	require.True(t, bridge.published)
 	require.Equal(t, "capability", bridge.slot)
 
@@ -157,7 +156,6 @@ func TestAsyncCompletionAuthorityIsOpaqueReplaySafeAndLateBounded(t *testing.T) 
 	_, err = session.executeNexus(t.Context(), replay, dispatchValue, nexus.StartOperationOptions{CallbackURL: "https://crossed.invalid", RequestID: "request-id"})
 	require.NoError(t, err)
 	require.Equal(t, 1, factoryCalls)
-	require.Equal(t, "https://callback.invalid/private", captured.URL)
 
 	_, err = carrier.ParentTerminal(t.Context())
 	require.NoError(t, err)
@@ -177,7 +175,7 @@ func TestAsyncCompletionCannotPublishAfterClose(t *testing.T) {
 	factoryProceed := make(chan struct{})
 	options := SessionOptions{
 		Bridge: bridge,
-		NewCompletionCapability: func(context.Context, testpilot.Coordinate, CompletionInfo) (testpilot.OpaqueCapability, error) {
+		NewCapability: func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
 			close(factoryStarted)
 			<-factoryProceed
 			return &struct{}{}, nil
@@ -211,7 +209,7 @@ func TestNexusPanicCompletesReplayWaiters(t *testing.T) {
 	host, definition := runtimeTestDriver(t, prepared)
 	options := SessionOptions{
 		Bridge: newTestBridge(),
-		NewCompletionCapability: func(context.Context, testpilot.Coordinate, CompletionInfo) (testpilot.OpaqueCapability, error) {
+		NewCapability: func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error) {
 			panic("fault")
 		},
 	}
@@ -223,11 +221,11 @@ func TestNexusPanicCompletesReplayWaiters(t *testing.T) {
 	nexusRoute, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"}, func() {})
 	require.NoError(t, err)
 
-	_, err = session.executeNexus(t.Context(), nexusRoute.activation, dispatchValue, nexus.StartOperationOptions{RequestID: "request-id"})
+	_, err = session.executeNexus(t.Context(), nexusRoute.activation, dispatchValue, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
 	require.EqualError(t, err, "nexus handler activation panicked")
 	replay, err := session.ledger.AdmitNexus(t.Context(), delivery.NexusDelivery{Header: dispatchHeader, RequestID: "request-id"})
 	require.NoError(t, err)
-	_, err = session.executeNexus(t.Context(), replay, dispatchValue, nexus.StartOperationOptions{RequestID: "request-id"})
+	_, err = session.executeNexus(t.Context(), replay, dispatchValue, nexus.StartOperationOptions{CallbackURL: "https://callback.invalid/private", RequestID: "request-id"})
 	require.EqualError(t, err, "nexus handler activation panicked")
 }
 
@@ -247,6 +245,8 @@ func TestStopRejectsDelayedAndUnreservedDelivery(t *testing.T) {
 
 func runtimeTestDriver(t *testing.T, prepared testpilot.PreparedProgram) (*Driver, programDefinition) {
 	t.Helper()
+	completion, err := newCompletionTransport(nil, "", prepared.Snapshot().GetLimits())
+	require.NoError(t, err)
 	host := &Driver{
 		mu: newContextMutex(), sessions: make(map[string]*Session),
 		options: hostOptions{
@@ -256,10 +256,10 @@ func runtimeTestDriver(t *testing.T, prepared testpilot.PreparedProgram) (*Drive
 				{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE},
 				{ID: "nexus-endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},
 			}},
-			workerRoleID: "worker", maximum: 16, diagnostics: 16, requestBytes: 64 << 10, now: time.Now,
+			workerRoleID: "worker", maximum: 16, diagnostics: 16, requestBytes: 64 << 10, now: time.Now, completion: completion,
 		},
 	}
-	definition, err := host.prepareDefinitionResources(prepared.Snapshot(), prepared.Entrypoints(), prepared.Roles())
+	definition, err := host.prepareDefinitionResources(prepared.Snapshot(), prepared.Entrypoints(), prepared.Roles(), true)
 	require.NoError(t, err)
 	return host, definition
 }

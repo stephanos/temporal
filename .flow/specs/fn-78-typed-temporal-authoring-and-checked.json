@@ -1,13 +1,199 @@
 {
   "branch_name": "fn-78-typed-temporal-authoring-and-checked",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-07T15:07:25.418172Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-73-explicit-environment-binding-for"
   ],
   "id": "fn-78-typed-temporal-authoring-and-checked",
+  "impl_review_rounds": {
+    "fn-78-typed-temporal-authoring-and-checked.1": 0
+  },
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-09-08T01:54:08.293699Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "711772ca23faebb9c6c1d3821cb2984a5a2654a78b8439852dd3693109b8d764",
+      "backend": "codex",
+      "base_sha": "a694d27f085d08999637a1364014e52a32a465ec",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a221a7a8b24f550fb6c93a12e8e71a66",
+            "classification": "introduced",
+            "findingId": "finding-a221a7a8b24f550fb6c93a12e8e71a66",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3b7f3e4bf450281a3659fee9d112038997a2cd7c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 393910,
+      "output_sha256": "b813bda481a89e22d68a09123ff3a9b44737929bbd92b80e74a94f019f10fdf4",
+      "reservation_id": "1f027c995e9a4d03b16f64400a752a48",
+      "round_consumed": true,
+      "scope": "impl:fn-78-typed-temporal-authoring-and-checked.1",
+      "superseded_by": null,
+      "task": "fn-78-typed-temporal-authoring-and-checked.1",
+      "timestamp": "2026-09-07T18:04:46.480261Z",
+      "tool_calls": 10,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2eb5cc7033949934fa7f5b0f71dab52af676a08e79096741b44aa374249dd3b9",
+      "backend": "codex",
+      "base_sha": "a694d27f085d08999637a1364014e52a32a465ec",
+      "counter_kind": "impl",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a221a7a8b24f550fb6c93a12e8e71a66",
+            "classification": "introduced",
+            "findingId": "finding-a221a7a8b24f550fb6c93a12e8e71a66",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d92ed11541f188b56297d186af2dcb72505e3516",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.6-sol",
+      "outcome": "verdict",
+      "output_bytes": 1120,
+      "output_sha256": "ba4bfe063e247ff6839e44e6b332b678aa510a2e964341f2b340ac65c083d22a",
+      "reservation_id": "f0540c20102247209019e3a1740a52af",
+      "round_consumed": true,
+      "scope": "impl:fn-78-typed-temporal-authoring-and-checked.1",
+      "superseded_by": null,
+      "task": "fn-78-typed-temporal-authoring-and-checked.1",
+      "timestamp": "2026-09-07T18:08:27.892045Z",
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "3d6cea9727c1004e0bdf3324fac2fc92bca9adc36be6a61c5741ef502b3edbb1",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-9eaf74bb05f01c6950b838280a954076",
+            "classification": "introduced",
+            "findingId": "finding-9eaf74bb05f01c6950b838280a954076",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-539be9efb3b74d977d774f3dbc4a1f32",
+            "classification": "introduced",
+            "findingId": "finding-539be9efb3b74d977d774f3dbc4a1f32",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-a6b197271af24afc2b4aadfe660de87f",
+            "classification": "introduced",
+            "findingId": "finding-a6b197271af24afc2b4aadfe660de87f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c216281cad934b69baa4db28ae6a4032",
+            "classification": "introduced",
+            "findingId": "finding-c216281cad934b69baa4db28ae6a4032",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-88341f736d9b77054f240800b7a01d95",
+            "classification": "introduced",
+            "findingId": "finding-88341f736d9b77054f240800b7a01d95",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "b03db676fe01203af056bd7e3cf105a35735082f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 232654,
+      "output_sha256": "b5b6e8d3c1f1995566b7b3e6a6b370c780371b0ba41dfcdfc3aae9253d99d4cd",
+      "reservation_id": "4531bab731bd4298aad5f2fa1e1c5749",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T01:54:08.284770Z",
+      "tool_calls": 9,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-78-typed-temporal-authoring-and-checked.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-78-typed-temporal-authoring-and-checked.1": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-78-typed-temporal-authoring-and-checked.md",
   "status": "open",
   "title": "Typed temporal authoring and checked scoped monitoring",
@@ -22,5 +208,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-07T15:07:42.302906Z"
+  "updated_at": "2026-09-08T01:54:08.297756Z"
 }

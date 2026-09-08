@@ -216,6 +216,81 @@ contracts. Its O3 owns field-value lowering while D4 owns scoped temporal loweri
 interfaces for the combined Nexus qualification instead of introducing duplicate expression or
 request representations here.
 
+## Implementation plan
+
+Deliver the remaining work as three independently startable checked foundations followed by two
+integration layers and final qualification:
+
+1. Extend Query and Planning with explicit endpoint, coverage, answer, and completeness dimensions.
+2. Add typed Behavior authoring forms that lower only to existing checked declarations.
+3. Define the generic command/event ownership and transactional evidence-projection kernel, then
+   adapt correlated Nexus history without moving feature meaning into Testpilot.
+4. Build one scoped-obligation semantic kernel and compile its supported fragment into a closed,
+   versioned Testpilot Contract capability evaluated identically by Lean and Go.
+5. Expose the bounded temporal surface and qualify the authored Nexus cancellation Case through the
+   reusable Temporal Driver.
+
+The Query, Behavior, and generic projection tasks may proceed independently. Nexus projection
+depends on the projection kernel; scoped semantics depend on that checked step/clock boundary; the
+portable lowering depends on both. Final authoring and qualification depend on Query, Behavior, and
+portable lowering. Parameterized field expressions remain owned by fn-77; this plan uses its
+interfaces only if they have landed and otherwise completes the required label-only semantics.
+
+```mermaid
+flowchart LR
+  Q[Query validity and endpoints] --> Z[Temporal authoring and Nexus qualification]
+  B[Behavior authoring] --> Z
+  P[Projection kernel] --> N[Nexus evidence adapter]
+  P --> O[Scoped obligation semantics]
+  N --> C[Portable Contract lowering]
+  O --> C
+  C --> Z
+```
+
+## Decision context
+
+- Reuse the existing checked Query, Behavior, Property, Target, Observation, and Testpilot owners;
+  do not create a parallel modeling or monitor language.
+- Keep Case 1.0 as the exact breaking baseline established by fn-73. Encode scoped monitoring as a
+  closed capability with its own explicit version and reject unsupported versions before Driver I/O.
+- Treat evidence projection as an atomic run-local deep module. A rejected append commits no newly
+  released step or support and cannot revise previously accepted evidence or a proved violation.
+- Process triggers before responses at one semantic coordinate so a same-coordinate response can
+  discharge the newly created bound-zero obligation. Runtime expiry remains a separate ordering rule.
+- Retain only declared and authorized evidence fields plus stable identities and causal support;
+  raw SDK history remains inside the Temporal worker adapter.
+- Broad generated Lean API drift verification and new CI coverage remain declined by
+  `.flow/memory/declined/generated-api-drift-verification.md`; use existing focused generator,
+  fixture, and staleness checks only.
+
+## Risks and mitigations
+
+- **Semantic divergence:** derive model, incremental, offline, and Go evaluation from one obligation
+  transition contract; use correspondence proofs and independently derived differential fixtures.
+- **Off-by-one deadlines:** pin bounds zero, one, and larger at trigger, inclusive deadline, and late
+  coordinates, including labeled self-loops and Testpilot's expiry-before-transition runtime order.
+- **Causal corruption or cross-run leakage:** require declared execution and operation identities,
+  transactional admission, bounded buffers/support, immutable accepted events, and fresh state per Run.
+- **Compatibility drift:** preserve unchanged canonical declarations, bytes, IDs, and fingerprints;
+  reject stale semantic capability versions rather than reinterpret them.
+- **Exponential search and retained evidence:** record semantic and work limits, exercise tenfold
+  candidate/evidence/obligation loads, and fail closed without converting exhaustion into absence.
+
+## Test notes
+
+Use focused Lean guards and compile-failure tests for each checked owner, axiom audits for changed
+load-bearing declarations, protocol and fixture compatibility tests, and Go tests with `-tags test_dep`.
+The final task runs `make umpire-build-model`, `make umpire-check-regression`, `make lint-model`, and
+`make lint-code`, plus the local integration test with both `test_dep` and `integration`. Tests and
+validation must not promote fixtures implicitly.
+
+## References
+
+- Lean 4.33 macro and elaborator reference: https://lean-lang.org/doc/reference/4.33.0/Notations-and-Macros/
+- Temporal Nexus lifecycle and cancellation semantics: https://github.com/temporalio/documentation/blob/main/docs/develop/go/nexus/feature-guide.mdx
+- Temporal history event reference: https://github.com/temporalio/documentation/blob/main/docs/references/events.mdx
+- Protobuf field presence and ProtoJSON evolution: https://protobuf.dev/programming-guides/field_presence/ and https://protobuf.dev/programming-guides/json/
+
 ## Acceptance criteria
 
 - **R1:** D1 distinguishes impossible, nonempty-unexercised, satisfied witness, verified, counterexample, unresolved prefix, and work exhaustion. Test exact work-budget boundaries and counterexample discovery before exhaustion. Record scope and policy; no vacuous or incomplete green result.
