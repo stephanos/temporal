@@ -1,4 +1,5 @@
 import Umpire.Target.Semantics
+import Umpire.Property.Fields
 
 /-! Implementation behind the `Umpire.Property` public facade. -/
 
@@ -134,6 +135,7 @@ inductive PropertyAtomConstraint where
   | present
   | equals (value : PropertyLiteral)
   | oneOf (values : List PropertyLiteral)
+  | fields (comparison : PropertyFieldComparison)
   deriving BEq, DecidableEq, Ord, Repr
 
 /-- One typed comparison against a named value in a same-step predicate environment. -/
@@ -142,6 +144,12 @@ structure PropertyAtom where
   reference : DefinitionId
   constraint : PropertyAtomConstraint := .present
   deriving BEq, DecidableEq, Ord, Repr
+
+/-- The versioned field extension leaves all legacy atom constructor forms intact. -/
+def PropertyAtom.fieldComparison (atom : PropertyAtom) : Option PropertyFieldComparison :=
+  match atom.constraint with
+  | .fields comparison => some comparison
+  | _ => none
 
 /-- Closed, serializable Boolean predicate data. Empty groups remain representable so checked
 admission can return a source-owned diagnostic; callbacks and cross-field operands are absent. -/
@@ -202,6 +210,7 @@ structure PropertyPredicateInput where
   resultingState : Option ModelValue := none
   modelOutcome : Option ModelValue := none
   facts : Option (List ModelValue) := none
+  fieldValues : List PropertyFieldValue := []
   deriving BEq, DecidableEq, Repr
 
 structure PropertyLimitProfile where

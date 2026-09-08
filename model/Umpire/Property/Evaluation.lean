@@ -116,6 +116,7 @@ private def PropertyAtomConstraint.denote
     (constraint : PropertyAtomConstraint)
     (payload : String) : Prop :=
   match constraint with
+  | .fields _ => False
   | .present => True
   | .equals literal => literal.denote payload
   | .oneOf literals => anyHolds literals fun literal => literal.denote payload
@@ -125,6 +126,7 @@ private def PropertyAtomConstraint.evaluate
     (constraint : PropertyAtomConstraint)
     (payload : String) : Bool :=
   match constraint with
+  | .fields _ => false
   | .present => true
   | .equals literal => literal.evaluate payload
   | .oneOf literals => literals.any fun literal => literal.evaluate payload
@@ -135,6 +137,7 @@ private theorem PropertyAtomConstraint.evaluate_agrees
     (payload : String) :
     constraint.evaluate payload = true ↔ constraint.denote payload := by
   cases constraint with
+  | fields _ => simp [PropertyAtomConstraint.evaluate, PropertyAtomConstraint.denote]
   | present => simp [PropertyAtomConstraint.evaluate, PropertyAtomConstraint.denote]
   | equals literal =>
       exact literal.evaluate_agrees payload
@@ -144,130 +147,239 @@ private theorem PropertyAtomConstraint.evaluate_agrees
 /-- Propositional interpretation of an atom over one same-step field projection. -/
 private def PropertyAtom.denote
     (atom : PropertyAtom)
-    (values : PropertyPredicateField → List ModelValue) : Prop :=
-  anyHolds (values atom.field) fun value =>
-    value.definitionId = atom.reference ∧ atom.constraint.denote value.value
+    (values : PropertyPredicateField → List ModelValue)
+    (fieldValues : List PropertyFieldValue := []) : Prop :=
+  match atom.fieldComparison with
+  | some comparison => match comparison.left.resolve fieldValues, comparison.right.resolve fieldValues with
+    | some left, some right => comparison.operator.denotes left right
+    | _, _ => False
+  | none => anyHolds (values atom.field) fun value =>
+      value.definitionId = atom.reference ∧ atom.constraint.denote value.value
 
 /-- Executable interpretation of an atom over one same-step field projection. -/
 private def PropertyAtom.evaluate
     (atom : PropertyAtom)
-    (values : PropertyPredicateField → List ModelValue) : Bool :=
-  (values atom.field).any fun value =>
-    decide (value.definitionId = atom.reference) && atom.constraint.evaluate value.value
+    (values : PropertyPredicateField → List ModelValue)
+    (fieldValues : List PropertyFieldValue := []) : Bool :=
+  match atom.fieldComparison with
+  | some comparison => match comparison.left.resolve fieldValues, comparison.right.resolve fieldValues with
+    | some left, some right => comparison.operator.matches left right
+    | _, _ => false
+  | none => (values atom.field).any fun value =>
+      decide (value.definitionId = atom.reference) && atom.constraint.evaluate value.value
 
 /-- Atomic field evaluation agrees with its denotation. -/
 private theorem PropertyAtom.evaluate_agrees
     (atom : PropertyAtom)
-    (values : PropertyPredicateField → List ModelValue) :
-    atom.evaluate values = true ↔ atom.denote values :=
-  anyHolds_agrees _ _ _ fun value => by
-    simp [PropertyAtomConstraint.evaluate_agrees]
+    (values : PropertyPredicateField → List ModelValue)
+    (fieldValues : List PropertyFieldValue := []) :
+    atom.evaluate values fieldValues = true ↔ atom.denote values fieldValues := by
+  unfold PropertyAtom.evaluate PropertyAtom.denote
+  cases atom.fieldComparison with
+  | none =>
+    exact anyHolds_agrees _ _ _ fun value => by
+      simp [PropertyAtomConstraint.evaluate_agrees]
+  | some comparison =>
+    cases left : comparison.left.resolve fieldValues <;>
+      cases right : comparison.right.resolve fieldValues <;>
+        simp [left, right, PropertyFieldOperator.matches_agrees]
 
 mutual
   /-- Propositional interpretation of the portable Boolean predicate kernel. -/
   private def PropertyPredicate.denote
       (predicate : PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) : Prop :=
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) : Prop :=
     match predicate with
-    | .atom value => value.denote values
-    | .all items => propertyPredicateAllDenote items values
-    | .any items => propertyPredicateAnyDenote items values
-    | .not item => ¬item.denote values
+    | .atom value => value.denote values fieldValues
+    | .all items => propertyPredicateAllDenote items values fieldValues
+    | .any items => propertyPredicateAnyDenote items values fieldValues
+    | .not item => ¬item.denote values fieldValues
 
   private def propertyPredicateAllDenote
       (items : List PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) : Prop :=
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) : Prop :=
     match items with
     | [] => True
-    | item :: rest => item.denote values ∧ propertyPredicateAllDenote rest values
+    | item :: rest => item.denote values fieldValues ∧ propertyPredicateAllDenote rest values fieldValues
 
   private def propertyPredicateAnyDenote
       (items : List PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) : Prop :=
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) : Prop :=
     match items with
     | [] => False
-    | item :: rest => item.denote values ∨ propertyPredicateAnyDenote rest values
+    | item :: rest => item.denote values fieldValues ∨ propertyPredicateAnyDenote rest values fieldValues
 end
 
 mutual
   /-- Executable interpretation of the portable Boolean predicate kernel. -/
   private def PropertyPredicate.evaluate
       (predicate : PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) : Bool :=
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) : Bool :=
     match predicate with
-    | .atom value => value.evaluate values
-    | .all items => propertyPredicateAllEvaluate items values
-    | .any items => propertyPredicateAnyEvaluate items values
-    | .not item => !(item.evaluate values)
+    | .atom value => value.evaluate values fieldValues
+    | .all items => propertyPredicateAllEvaluate items values fieldValues
+    | .any items => propertyPredicateAnyEvaluate items values fieldValues
+    | .not item => !(item.evaluate values fieldValues)
 
   private def propertyPredicateAllEvaluate
       (items : List PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) : Bool :=
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) : Bool :=
     match items with
     | [] => true
-    | item :: rest => item.evaluate values && propertyPredicateAllEvaluate rest values
+    | item :: rest => item.evaluate values fieldValues && propertyPredicateAllEvaluate rest values fieldValues
 
   private def propertyPredicateAnyEvaluate
       (items : List PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) : Bool :=
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) : Bool :=
     match items with
     | [] => false
-    | item :: rest => item.evaluate values || propertyPredicateAnyEvaluate rest values
+    | item :: rest => item.evaluate values fieldValues || propertyPredicateAnyEvaluate rest values fieldValues
 end
 
 mutual
   /-- Structural evaluator/denotation agreement for every Boolean predicate constructor. -/
   private theorem PropertyPredicate.evaluate_agrees
       (predicate : PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) :
-      predicate.evaluate values = true ↔ predicate.denote values := by
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) :
+      predicate.evaluate values fieldValues = true ↔ predicate.denote values fieldValues := by
     cases predicate with
-    | atom value => exact value.evaluate_agrees values
-    | all items => exact propertyPredicateAllEvaluate_agrees items values
-    | any items => exact propertyPredicateAnyEvaluate_agrees items values
+    | atom value => exact value.evaluate_agrees values fieldValues
+    | all items => exact propertyPredicateAllEvaluate_agrees items values fieldValues
+    | any items => exact propertyPredicateAnyEvaluate_agrees items values fieldValues
     | not item =>
         simpa [PropertyPredicate.evaluate, PropertyPredicate.denote] using
-          booleanNot_agrees (item.evaluate values) (item.denote values)
-            (PropertyPredicate.evaluate_agrees item values)
+          booleanNot_agrees (item.evaluate values fieldValues) (item.denote values fieldValues)
+            (PropertyPredicate.evaluate_agrees item values fieldValues)
 
   private theorem propertyPredicateAllEvaluate_agrees
       (items : List PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) :
-      propertyPredicateAllEvaluate items values = true ↔
-        propertyPredicateAllDenote items values := by
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) :
+      propertyPredicateAllEvaluate items values fieldValues = true ↔
+        propertyPredicateAllDenote items values fieldValues := by
     cases items with
     | nil => simp [propertyPredicateAllEvaluate, propertyPredicateAllDenote]
     | cons item rest =>
         simp [propertyPredicateAllEvaluate, propertyPredicateAllDenote,
-          PropertyPredicate.evaluate_agrees item values,
-          propertyPredicateAllEvaluate_agrees rest values]
+          PropertyPredicate.evaluate_agrees item values fieldValues,
+          propertyPredicateAllEvaluate_agrees rest values fieldValues]
 
   private theorem propertyPredicateAnyEvaluate_agrees
       (items : List PropertyPredicate)
-      (values : PropertyPredicateField → List ModelValue) :
-      propertyPredicateAnyEvaluate items values = true ↔
-        propertyPredicateAnyDenote items values := by
+      (values : PropertyPredicateField → List ModelValue)
+      (fieldValues : List PropertyFieldValue := []) :
+      propertyPredicateAnyEvaluate items values fieldValues = true ↔
+        propertyPredicateAnyDenote items values fieldValues := by
     cases items with
     | nil => simp [propertyPredicateAnyEvaluate, propertyPredicateAnyDenote]
     | cons item rest =>
         simp [propertyPredicateAnyEvaluate, propertyPredicateAnyDenote,
-          PropertyPredicate.evaluate_agrees item values,
-          propertyPredicateAnyEvaluate_agrees rest values]
+          PropertyPredicate.evaluate_agrees item values fieldValues,
+          propertyPredicateAnyEvaluate_agrees rest values fieldValues]
 end
+
+/-- A complete same-step input checked against every atom before Boolean evaluation begins. The
+predicate index prevents reuse of an input checked for another predicate in the same context. -/
+structure CheckedPropertyPredicateInput
+    {context : PropertyPredicateContext}
+    (predicate : CheckedPropertyPredicate context) where
+  private input : PropertyPredicateInput
+  deriving Repr
+
+/-- Same-step context fixed by input validation. -/
+def CheckedPropertyPredicateInput.contextKind
+    {context : PropertyPredicateContext}
+    {predicate : CheckedPropertyPredicate context}
+    (_input : CheckedPropertyPredicateInput predicate) : PropertyPredicateContext :=
+  context
+
+/-- Project the complete values of one field from a validated same-step input. -/
+def CheckedPropertyPredicateInput.valuesAt
+    {context : PropertyPredicateContext}
+    {predicate : CheckedPropertyPredicate context}
+    (input : CheckedPropertyPredicateInput predicate)
+    (field : PropertyPredicateField) : List ModelValue :=
+  match field with
+  | .priorState => input.input.priorState.toList
+  | .selectedAction => input.input.selectedAction.toList
+  | .resultingState => input.input.resultingState.toList
+  | .modelOutcome => input.input.modelOutcome.toList
+  | .expectationFact => input.input.facts.getD []
+
+private def inputFieldValues (input : PropertyPredicateInput) : PropertyPredicateField → List ModelValue
+  | .priorState => input.priorState.toList
+  | .selectedAction => input.selectedAction.toList
+  | .resultingState => input.resultingState.toList
+  | .modelOutcome => input.modelOutcome.toList
+  | .expectationFact => input.facts.getD []
+
+private def operandModelValues (input : PropertyPredicateInput) : PropertyFieldRoot → List ModelValue
+  | .request => input.selectedAction.toList
+  | .priorState => input.priorState.toList
+  | .resultingState => input.resultingState.toList
+  | .outcome => input.modelOutcome.toList
+  | .event => input.facts.getD []
+
+private def validateFieldOperands (predicate : CheckedPropertyPredicate context)
+    (input : PropertyPredicateInput) (expression : PropertyPredicate) : Except PropertyError Unit := do
+  match expression with
+  | .atom atom =>
+    for comparison in atom.fieldComparison do
+      for operand in [comparison.left, comparison.right] do
+        if let .field path source := operand then
+          let matching := input.fieldValues.filter (·.path == path)
+          let fail reason : Except PropertyError Unit := .error {
+            kind := .missingPredicateInput, definitionId := predicate.definitionId,
+            sourcePath := source.displayPath, sourceLocation := some source,
+            offendingValue := reason, relatedDefinitionIds := [path.reference] }
+          let [value] := matching | fail "missing or ambiguous field operand"
+          if !(operandModelValues input path.root).contains value.modelValue then
+            fail "field operand does not denote this immutable model payload"
+  | .all items =>
+    for item in items do
+      validateFieldOperands predicate input item
+      if !item.evaluate (inputFieldValues input) input.fieldValues then break
+  | .any items =>
+    for item in items do
+      validateFieldOperands predicate input item
+      if item.evaluate (inputFieldValues input) input.fieldValues then break
+  | .not item => validateFieldOperands predicate input item
+
+/-- Check legacy input completeness and every field operand consumed by this Boolean branch. -/
+def checkPropertyPredicateInput (predicate : CheckedPropertyPredicate contextKind)
+    (input : PropertyPredicateInput) : Except PropertyError (CheckedPropertyPredicateInput predicate) := do
+  validatePropertyPredicateInput predicate input
+  validateFieldOperands predicate input predicate.expression
+  pure { input }
+
+/-- Produce a complete checked predicate input from an explicit kernel-checked validation proof. -/
+def checkedPropertyPredicateInput
+    (predicate : CheckedPropertyPredicate contextKind)
+    (input : PropertyPredicateInput)
+    (valid : (checkPropertyPredicateInput predicate input).toOption.isSome = true) :
+    CheckedPropertyPredicateInput predicate :=
+  (checkPropertyPredicateInput predicate input).toOption.get valid
 
 /-- Denotational meaning of a validated predicate over one validated same-step input. -/
 def CheckedPropertyPredicate.denote
     {predicateContext : PropertyPredicateContext}
     (predicate : CheckedPropertyPredicate predicateContext)
     (input : CheckedPropertyPredicateInput predicate) : Prop :=
-  predicate.expression.denote input.valuesAt
+  predicate.expression.denote input.valuesAt input.input.fieldValues
 
 /-- Evaluate a predicate only after both its syntax and complete same-step input passed checking. -/
 def evaluatePropertyPredicate
     {predicateContext : PropertyPredicateContext}
     (predicate : CheckedPropertyPredicate predicateContext)
     (input : CheckedPropertyPredicateInput predicate) : Bool :=
-  predicate.expression.evaluate input.valuesAt
+  predicate.expression.evaluate input.valuesAt input.input.fieldValues
 
 /-- Generic kernel-checked agreement for every admitted Boolean Property predicate. -/
 theorem evaluatePropertyPredicate_agrees
@@ -275,7 +387,7 @@ theorem evaluatePropertyPredicate_agrees
     (predicate : CheckedPropertyPredicate predicateContext)
     (input : CheckedPropertyPredicateInput predicate) :
     evaluatePropertyPredicate predicate input = true ↔ predicate.denote input :=
-  predicate.expression.evaluate_agrees input.valuesAt
+  predicate.expression.evaluate_agrees input.valuesAt input.input.fieldValues
 
 /-- A trace view whose every guarded same-step input was validated for this exact Property. -/
 structure CheckedPropertyEvaluationInput (property : CheckedProperty) where
@@ -389,18 +501,18 @@ private def predicateValues
 private def evaluateCheckedPredicate
     (predicate : CheckedPropertyPredicate context)
     (input : PropertyPredicateInput) : Bool :=
-  predicate.expression.evaluate (predicateValues input)
+  predicate.expression.evaluate (predicateValues input) input.fieldValues
 
 private def checkedPredicateDenotes
     (predicate : CheckedPropertyPredicate context)
     (input : PropertyPredicateInput) : Prop :=
-  predicate.expression.denote (predicateValues input)
+  predicate.expression.denote (predicateValues input) input.fieldValues
 
 private theorem evaluateCheckedPredicate_agrees
     (predicate : CheckedPropertyPredicate context)
     (input : PropertyPredicateInput) :
     evaluateCheckedPredicate predicate input = true ↔ checkedPredicateDenotes predicate input :=
-  predicate.expression.evaluate_agrees (predicateValues input)
+  predicate.expression.evaluate_agrees (predicateValues input) input.fieldValues
 
 private theorem booleanImplication_agrees
     (left right : Bool)
