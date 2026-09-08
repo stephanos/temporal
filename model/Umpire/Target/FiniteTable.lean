@@ -66,6 +66,8 @@ structure FiniteTable (Setup State Action Outcome Fact : Type) where
   facts : FiniteCatalog Fact
   initial : List (FiniteSetupRow Setup State)
   transitions : List (FiniteTransitionRow State Action Outcome Fact)
+  /-- Conjunctive constituent declarations; an empty constituent set prevents terminal closure. -/
+  terminalConditions : List (List State) := []
   deriving BEq, DecidableEq, Repr
 
 /-- The catalog or row field responsible for a structural admission failure. -/
@@ -170,6 +172,9 @@ def validate [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
       ∀ fact ∈ result.observations, fact ∈ table.facts.values) (.outOfDomain .fact)
   let resultsNonempty ← requireProof
     (∀ row ∈ table.transitions, row.results ≠ []) (.emptyAlternatives .transition)
+  let _ ← requireProof
+    (∀ states ∈ table.terminalConditions, ∀ state ∈ states, state ∈ table.states.values)
+    (.outOfDomain .state)
   let executable ← requireProof
     (∀ action ∈ table.actions.values, ∃ row ∈ table.transitions, row.action = action) .actionWithoutRow
   pure ⟨table, setups.down, states.down, actions.down, outcomes.down, facts.down,

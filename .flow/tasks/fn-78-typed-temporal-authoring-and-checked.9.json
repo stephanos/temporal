@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T02:02:32.343832Z",
+  "depends_on": [
+    "fn-78-typed-temporal-authoring-and-checked.1"
+  ],
+  "id": "fn-78-typed-temporal-authoring-and-checked.9",
+  "priority": 4,
+  "spec": "fn-78-typed-temporal-authoring-and-checked",
+  "spec_path": ".flow/tasks/fn-78-typed-temporal-authoring-and-checked.9.md",
+  "status": "todo",
+  "title": "Add per-operation cancellation capability",
+  "updated_at": "2026-09-08T02:02:32.343832Z"
+}

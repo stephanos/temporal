@@ -327,6 +327,26 @@ def composition : TargetComposition TargetTests.TestLawStatement :=
 
 def admitted := FiniteTable.checkTarget extendedTable definition composition
 
+#guard (FiniteTable.checkTarget
+    { extendedTable with terminalConditions := [[.completed], [.running, .completed]] }
+    definition composition).toOption.map (fun target =>
+      (target.isTerminal .running, target.isTerminal .completed)) == some (false, true)
+
+private def terminalIdentity : FiniteModelIdentity Unit State Bool Outcome Fact := {
+  setupBindings := fun _ => []
+  stateId := fun _ => DefinitionId.of "test.state.finite"
+  actionId := fun _ => DefinitionId.of "test.action.finite"
+  outcomeId := fun _ => DefinitionId.of "test.outcome.finite"
+  factId := fun _ => DefinitionId.of "test.observation.finite"
+}
+
+#guard (FiniteTable.checkModelTarget
+    { extendedTable with terminalConditions := [[.completed], [.running, .completed]] }
+    terminalIdentity definition composition).toOption.map (fun target =>
+      (target.isTerminal (.named (DefinitionId.of "test.state.finite") "running"),
+        target.isTerminal (.named (DefinitionId.of "test.state.finite") "completed"))) ==
+    some (false, true)
+
 structure CheckedEnumeration where
   setups : List Unit
   states : List State

@@ -18,6 +18,8 @@ Bounded planning outcomes.
 | `limit-reached` | Planning reached its search Limit before completing the Query. |
 | `unsatisfiable` | The checked Behavior admits no Model Traces. |
 | `invalid` | Planning rejected the Query. |
+| `nonempty-unexercised` | Admissible traces leave requested triggers unexercised. |
+| `unresolved-prefix` | An admitted runtime prefix retains unresolved obligations. |
 
 ### `umpire.semantic-inventory.outcome-family.02-execution-phase`
 

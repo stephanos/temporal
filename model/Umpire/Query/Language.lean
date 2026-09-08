@@ -255,6 +255,28 @@ def QueryCheckContext.ofTarget
   target := .checked (.ofTarget target)
 }
 
+/-- Closure is a Query choice, never inferred from a search limit or a deadlock. -/
+inductive QueryEndpoint where
+  | deliberatelyClosed
+  | runtimePrefix
+  | terminalModel
+  deriving BEq, DecidableEq, Ord, Repr
+
+def QueryEndpoint.name : QueryEndpoint → String
+  | .deliberatelyClosed => "deliberately-closed"
+  | .runtimePrefix => "runtime-prefix"
+  | .terminalModel => "terminal-model"
+
+/-- Requested clause triggers must occur on a selected witness, or across the universal scope. -/
+inductive QueryExercisePolicy where
+  | allowVacuous
+  | requireAllTriggers
+  deriving BEq, DecidableEq, Ord, Repr
+
+def QueryExercisePolicy.name : QueryExercisePolicy → String
+  | .allowVacuous => "allow-vacuous"
+  | .requireAllTriggers => "require-all-triggers"
+
 structure QueryDeclaration where
   id : DefinitionId
   source : SourceLocation
@@ -264,6 +286,8 @@ structure QueryDeclaration where
   behavior : CheckedBehavior
   limits : QueryLimits
   policy : PlannerPolicy
+  endpoint : QueryEndpoint := .deliberatelyClosed
+  exercise : QueryExercisePolicy := .allowVacuous
   authoredKnownGaps : KnownGapSet := KnownGapSet.empty
   documentation : String := ""
   deriving BEq, DecidableEq, Repr
@@ -318,6 +342,8 @@ structure CheckedQuery (LawStatement : LawDefinition → Prop) where
   target : QueryTarget LawStatement
   limits : QueryLimits
   policy : PlannerPolicy
+  endpoint : QueryEndpoint := .deliberatelyClosed
+  exercise : QueryExercisePolicy := .allowVacuous
   authoredKnownGaps : KnownGapSet := KnownGapSet.empty
   targetComposition : List DefinitionId
   completeness : Option (FiniteCompletenessEvidence LawStatement target)
@@ -552,8 +578,13 @@ def checkQuery
       [target.id, target.kernel.metadata.id])
   let completeness := checkedTarget.completeness
   let composition := targetComposition target
-  let semantic := querySemanticJson declaration.id declaration.version declaration.form
+  let legacySemantic := querySemanticJson declaration.id declaration.version declaration.form
     declaration.behavior target composition declaration.limits declaration.policy completeness
+  let semantic := if declaration.endpoint == .deliberatelyClosed &&
+      declaration.exercise == .allowVacuous then legacySemantic else
+    (legacySemantic.dropEnd 1).toString ++ ",\"endpointPolicy/v1\":{\"endpoint\":" ++
+      quote declaration.endpoint.name ++ ",\"exercise\":" ++
+      quote declaration.exercise.name ++ "}}"
   pure {
     id := declaration.id
     source := declaration.source
@@ -565,6 +596,8 @@ def checkQuery
     target
     limits := declaration.limits
     policy := declaration.policy
+    endpoint := declaration.endpoint
+    exercise := declaration.exercise
     authoredKnownGaps := declaration.authoredKnownGaps
     targetComposition := composition
     completeness
