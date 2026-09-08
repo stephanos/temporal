@@ -4,6 +4,8 @@ satisfies: [R3, R7, R8, R9]
 # fn-78-typed-temporal-authoring-and-checked.5 Project correlated Nexus evidence into semantic steps
 
 ## Description
+**Scope transferred to deferred fn-79 by user decision. This task no longer authorizes cancellation implementation or blocks generic delivery. Generic syntax/qualification formerly in task 8 is retained in task 10. The original description below is archival.**
+
 Adapt the generic D3 projection kernel to correlated Temporal Nexus history. The adapter establishes cancellation confirmation and either terminal resolution from declared causal evidence while leaving SDK transport in `common/testing/testpilot/temporal/worker` and all generic Testpilot packages free of Nexus semantics.
 
 **Size:** M
@@ -36,8 +38,7 @@ Adapt the generic D3 projection kernel to correlated Temporal Nexus history. The
 - [ ] Focused System/Feature correspondence tests cover both resolutions, incomplete and adversarial evidence, concurrent Run isolation, and immutable prior violations.
 - [ ] `common/testing/testpilot/temporal/server` remains free of Nexus identifiers and dependencies; final ownership documentation is updated by the qualification task.
 ## Done summary
-TBD
-
+Administrative scope transfer only: cancellation requirements deferred to fn-79 by explicit user decision. No cancellation implementation is claimed complete. Original requirements retained in fn-79; generic syntax/qualification from task 8 retained in fn-78.10. Existing unfinished source edits preserved and worker stopped. This task closes only the scope transfer so generic fn-78 and fn-70 can proceed.
 ## Evidence
 - Commits:
 - Tests:
