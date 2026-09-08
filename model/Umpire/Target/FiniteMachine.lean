@@ -339,6 +339,7 @@ def authoredTarget [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     definitions := definition.definitions
     requiredCapabilities := definition.requiredCapabilities
     resolvedSetups := machine.setups
+    terminalConditions := validated.table.terminalConditions
     kernel := machine.kernelAvailability
   } composition machine.authoredPlanning
 
@@ -397,6 +398,8 @@ private def modelTable
     let setup ← modelSetup table identity row.setup
     let states ← row.states.mapM fun state => modelValue table.states identity.stateId .initial state
     pure { setup, states }
+  let terminalConditions ← table.terminalConditions.mapM fun states =>
+    states.mapM (modelValue table.states identity.stateId .state)
   let transitions ← table.transitions.mapM fun row => do
     let source ← modelValue table.states identity.stateId .source row.source
     let action ← modelValue table.actions identity.actionId .action row.action
@@ -414,6 +417,7 @@ private def modelTable
       { value := ModelValue.named (identity.factId entry.value) entry.key, key := entry.key }
     initial
     transitions
+    terminalConditions
   }
 
 /-- Validate the typed catalogs and rows before exposing stable-key value resolution. -/

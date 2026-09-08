@@ -26,6 +26,8 @@ structure CaseAnalysisScope where
   behaviorFingerprint : BehaviorFingerprint
   properties : List AnalyzedProperty
   limits : QueryLimits
+  endpoint : QueryEndpoint := .deliberatelyClosed
+  exercise : QueryExercisePolicy := .allowVacuous
   deriving BEq, DecidableEq, Repr
 
 inductive CaseAnalysisStatus where
@@ -187,6 +189,7 @@ structure CaseRequirement where
 structure CasePropertyEvaluation where
   trace : BehaviorTrace
   evaluation : PropertyEvaluation
+  endpointAnswer : PropertyEndpointAnswer := .satisfied
   deriving BEq, DecidableEq, Repr
 
 structure CaseAnalysisResult where
@@ -257,6 +260,7 @@ private structure AnalysisState where
   propertyEvaluations : List CasePropertyEvaluation := []
   jointObservations : List (BehaviorTrace × JointObligationObservation) := []
   admittedTraces : List BehaviorTrace := []
+  unresolvedPrefixes : Bool := false
 
 private def observeProperty
     (query : CheckedQuery LawStatement)
@@ -266,6 +270,7 @@ private def observeProperty
   let input ← checkPropertyEvaluationInput property trace.trace
     |>.mapError (queryEvaluationError query property)
   let evaluation := evaluateProperty property input
+  let endpoint := evaluatePropertyEndpoint property input (query.endpoint == .runtimePrefix)
   let observations := (analyzeCaseApplicability property input).map fun applicability =>
     { applicability with
       trace
@@ -273,10 +278,11 @@ private def observeProperty
     }
   pure {
     observations := state.observations ++ observations
-    propertyEvaluations := state.propertyEvaluations ++ [{ trace, evaluation }]
+    propertyEvaluations := state.propertyEvaluations ++ [{ trace, evaluation, endpointAnswer := endpoint.answer }]
     jointObservations := state.jointObservations ++
       (analyzeJointObligations property input).map fun observation => (trace, observation)
     admittedTraces := state.admittedTraces
+    unresolvedPrefixes := state.unresolvedPrefixes || endpoint.answer == .unresolved
   }
 
 private def observeCandidate
@@ -585,7 +591,8 @@ private def jointResult
       none
   let logicalConflicts := triggers.flatMap fun trigger =>
     logicalConflictsAt trigger.trigger trigger.expectations
-  let modelIncompatibilities := if traversed.metadata.completeness.established then
+  let modelIncompatibilities := if traversed.metadata.completeness.established &&
+      !traversed.state.unresolvedPrefixes then
       triggers.filterMap fun trigger =>
         if trigger.admittedContinuations.isEmpty || !trigger.satisfyingContinuations.isEmpty ||
             !(logicalConflictsAt trigger.trigger trigger.expectations).isEmpty then
@@ -603,7 +610,7 @@ private def jointResult
     | .limitReached | .stopped _ _ => .limitReached
     | .complete false => if query.behavior.isUnsatisfiable then .unsatisfiable else .deadEnd
     | .complete true =>
-        if !traversed.metadata.completeness.established then .limitReached
+        if !traversed.metadata.completeness.established || traversed.state.unresolvedPrefixes then .limitReached
         else if !logicalConflicts.isEmpty then .logicalConflict
         else if !modelIncompatibilities.isEmpty then .modelIncompatible
         else if !unsupported.isEmpty then .unsupported
@@ -631,6 +638,8 @@ def analyzeCases
         behaviorFingerprint := property.behaviorFingerprint
       }
       limits := query.limits
+      endpoint := query.endpoint
+      exercise := query.exercise
     }
     status := statusOf traversed
     findings := observations.flatMap findingsAt |>.mergeSort findingLe

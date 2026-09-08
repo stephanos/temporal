@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-78-typed-temporal-authoring-and-checked.1",
     "fn-78-typed-temporal-authoring-and-checked.5",
-    "fn-78-typed-temporal-authoring-and-checked.6"
+    "fn-78-typed-temporal-authoring-and-checked.6",
+    "fn-78-typed-temporal-authoring-and-checked.9"
   ],
   "id": "fn-78-typed-temporal-authoring-and-checked.7",
   "priority": 7,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-78-typed-temporal-authoring-and-checked.7.md",
   "status": "todo",
   "title": "Lower scoped obligations into the portable Contract",
-  "updated_at": "2026-09-08T01:50:47.721746Z"
+  "updated_at": "2026-09-08T02:02:33.050133Z"
 }

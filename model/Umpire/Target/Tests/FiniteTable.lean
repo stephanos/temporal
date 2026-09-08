@@ -106,7 +106,7 @@ example : table.states.values = [2, 0, 1] ∧
 example : error? { table with facts := [], transitions := [
     { row with results := [{ first with observations := [] }] },
     { otherRow with results := [{ alternate with observations := [] }] }] } = none ∧
-    error? ⟨[], [], [], [], [], [], []⟩ = none := by decide
+    error? ⟨[], [], [], [], [], [], [], []⟩ = none := by decide
 
 /-- Proof projections are usable without unfolding validation or constructing a semantic kernel. -/
 example (checked : ValidatedFiniteTable Nat Nat Nat Nat Nat)
@@ -117,6 +117,9 @@ example (checked : ValidatedFiniteTable Nat Nat Nat Nat Nat)
       result.resultingState ∈ checked.table.states.values :=
   ⟨checked.source_coverage transition member,
     checked.result_state_coverage transition member result emitted⟩
+
+example : error? { table with terminalConditions := [[1], [0, 1]] } = none ∧
+    error? { table with terminalConditions := [[9]] } = some (.outOfDomain .state) := by decide
 
 #print axioms Umpire.FiniteTable.validate
 #print axioms Umpire.FiniteCatalog.encode?

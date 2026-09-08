@@ -13,7 +13,7 @@ Expose D5's readable bounded temporal syntax over the checked scoped clause and 
 ### Approach
 - Add typed constructors and hygienic notation that resolve trigger, response, same-operation key, operation-transition clock, natural bound, and endpoint explicitly into the same checked clause.
 - Use elaboration for context-sensitive rejection and source-local diagnostics; do not add a general expression framework or make authors maintain serialization/proof plumbing.
-- Extend the existing Nexus3 Producer's checked Query/witness gate to cancellation, compile one deterministic admitted Case, and bind the generic capability delivered by task 1.
+- Extend the existing Nexus3 Producer's checked Query/witness gate to cancellation, compile one deterministic admitted Case, and bind task 9's per-operation cancellation capability through task 1's generic server seam.
 - Drive local Temporal integration through public `Prepare`/`Run`; recognize correlated cancellation and either permitted terminal result without forcing the chosen model outcome.
 - Update ownership/architecture docs and replace the Nexus3 integration draft's unsupported-cancellation statements.
 
@@ -28,7 +28,6 @@ Expose D5's readable bounded temporal syntax over the checked scoped clause and 
 ### Key context
 - Lean 4 elaborators should issue context/type/key/clock errors at the author syntax; macros should handle syntax-only expansion.
 - Parameterized field expressions remain fn-77-owned; consume delivered interfaces without duplicating them and keep this label-only qualification independently complete.
-
 ## Acceptance
 - [ ] Readable bounded temporal notation exposes or unambiguously resolves trigger, response, correlation key, semantic clock, natural bound, and endpoint policy and elaborates to the same canonical checked clause as typed constructors.
 - [ ] Compile-failure tests reject state/step/trace/evidence context misuse, raw evidence or command effects in Properties, wrong keys/clocks/scopes/references, ambiguous names, incompatible bounds, and unsupported formulas at the author expression.
@@ -40,8 +39,6 @@ Expose D5's readable bounded temporal syntax over the checked scoped clause and 
 - [ ] Existing success/rejection/cross-language/identity/lifecycle regressions remain green; unchanged fixtures retain exact bytes and IDs.
 - [ ] `make umpire-build-model`, `make umpire-check-regression`, `make lint-model`, `make lint-code`, generated staleness checks, focused Go tests with `-tags test_dep`, and the scoped integration test with `test_dep integration` pass with evidence recorded.
 - [ ] Umpire and model architecture docs describe the final ownership and syntax; `model/Temporal/Feature/Nexus3/Integration.md` no longer claims cancellation lowering is unsupported.
-
-
 ## Done summary
 TBD
 
