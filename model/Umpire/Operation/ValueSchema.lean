@@ -3,6 +3,8 @@ Descriptor-derived value shapes. Integer wire kinds remain distinct even when th
 ranges agree. Recursive messages refer to named nodes in the complete operation schema graph.
 Defaults are exact scalar data; floats retain their bit patterns as metadata but are not evaluable.
 -/
+set_option backward.match.sparseCases false
+
 namespace Umpire.Operation
 
 /-- The ten Protobuf integer kinds, without narrowing at authoring time. -/
@@ -60,6 +62,7 @@ structure ValueField where
   type : Singular
   cardinality : Cardinality
   presence : Presence
+  defaultValue : Option Scalar := none
   deriving BEq, DecidableEq, Repr
 
 /-- Complete local schema data, including closed-enum policy and special message forms. -/

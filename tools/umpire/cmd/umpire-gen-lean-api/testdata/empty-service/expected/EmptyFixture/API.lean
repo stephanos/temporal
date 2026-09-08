@@ -3,6 +3,7 @@
 import EmptyFixture.API.Proto
 import EmptyFixture.API.Types
 import Umpire.Operation
+import Umpire.Value.Field
 
 /-!
 Generated gRPC method descriptors projected from the source Protobuf API.
