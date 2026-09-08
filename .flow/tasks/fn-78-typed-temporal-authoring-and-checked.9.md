@@ -4,6 +4,8 @@ satisfies: [R7, R8, R9]
 # fn-78-typed-temporal-authoring-and-checked.9 Add per-operation cancellation capability
 
 ## Description
+**Scope transferred to deferred fn-79 by user decision. No cancellation implementation is authorized here. Original requirements below are archival.**
+
 Add the minimal generic per-operation cancellation instruction and capability required by D4/D5. Testpilot authorizes cancellation of one previously started operation; the Temporal worker owns the SDK cancellation handle and submits cancellation without treating submission as semantic confirmation or forcing the final result.
 
 **Size:** M
@@ -40,8 +42,7 @@ Add the minimal generic per-operation cancellation instruction and capability re
 
 
 ## Done summary
-TBD
-
+Administrative scope transfer only: cancellation requirements deferred to fn-79 by explicit user decision. No cancellation implementation is claimed complete. Original requirements retained in fn-79; generic syntax/qualification from task 8 retained in fn-78.10. Existing unfinished source edits preserved and worker stopped. This task closes only the scope transfer so generic fn-78 and fn-70 can proceed.
 ## Evidence
 - Commits:
 - Tests:

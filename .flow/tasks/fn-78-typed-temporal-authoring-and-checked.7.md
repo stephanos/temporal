@@ -4,6 +4,8 @@ satisfies: [R5, R6, R8, R9]
 # fn-78-typed-temporal-authoring-and-checked.7 Lower scoped obligations into the portable Contract
 
 ## Description
+Nexus operation cancellation is deferred to fn-79. Implement and qualify this generic task with non-cancellation, multi-operation fixtures; no cancellation adapter or capability is a prerequisite.
+
 Compile the supported scoped-obligation fragment into a closed, versioned Testpilot Contract capability and evaluate it through the generic Go runtime. The portable encoding must preserve the checked clock, key, endpoint, limits, projection identity, and clause provenance without embedding Lean callbacks or Temporal/Nexus branches.
 
 **Size:** L
@@ -11,6 +13,7 @@ Compile the supported scoped-obligation fragment into a closed, versioned Testpi
 **Touches:** [proto/internal/temporal/server/api/testpilot/v1/**, api/testpilot/v1/**, model/Testpilot/**, model/Umpire/Case/**, common/testing/testpilot/internal/verification/**, common/testing/testpilot/internal/execution/**, common/testing/testpilot/testdata/case-runtime-conformance/**, tests/testcore/testpilot/**, tools/umpire/cmd/umpire-gen-case-runtime-conformance/**, Makefile]
 
 ### Approach
+- Consume task 4 generic projection and task 6 semantics directly. Former dependencies on tasks 5 and 9 now refer only to scope-transfer records; no cancellation implementation is required.
 - Add one closed scoped-obligation Contract capability version inside exact Case 1.0; preserve existing Contract rules and unchanged artifacts byte-for-byte.
 - Reject unknown capability versions, enums, fields, unsupported clauses, overflow, and limit combinations during static Prepare before any Driver I/O.
 - Generate the portable monitor from the checked clause/projection declarations and implement Go evaluation against the same transition contract, including inclusive semantic deadlines despite expiry-before-transition processing.

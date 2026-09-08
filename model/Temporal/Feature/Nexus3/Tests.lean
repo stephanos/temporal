@@ -454,3 +454,22 @@ query unsupportedQuery on lifecycle
 #print axioms Temporal.Feature.Nexus3.completion
 
 end Temporal.Feature.Nexus3.Tests
+
+namespace Temporal.Feature.Nexus3.CancellationTests
+
+open Umpire
+
+#guard (do
+  let target ← Cancellation.targetResult.toOption
+  let original ← Nexus2.Race.targetResult.toOption
+  let vocabulary ← Nexus2.Race.modelVocabulary.toOption
+  pure (target.isTerminal vocabulary.canceledState &&
+    target.isTerminal vocabulary.succeededState &&
+    !target.isTerminal vocabulary.cancelRequestedState &&
+    target.id != original.id && target.behaviorFingerprint != original.behaviorFingerprint &&
+    target.kernel.steps vocabulary.startedState vocabulary.requestCancelAction ==
+      original.kernel.steps vocabulary.startedState vocabulary.requestCancelAction &&
+    target.kernel.steps vocabulary.cancelRequestedState vocabulary.resolveAction ==
+      original.kernel.steps vocabulary.cancelRequestedState vocabulary.resolveAction)) == some true
+
+end Temporal.Feature.Nexus3.CancellationTests

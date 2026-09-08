@@ -1,15 +1,13 @@
 # Typed temporal authoring and checked scoped monitoring
 
-> HTML render lens: local-only at `.flow/artifacts/fn-78-typed-temporal-authoring-and-checked/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
-
-Status: implementation specification; task breakdown, review, and implementation remain future work.
+Status: active generic infrastructure delivery. Nexus operation cancellation is deferred to [fn-79](fn-79-deferred-nexus-operation-cancellation.md) by explicit user decision. It is not a completion prerequisite, and autonomous approval does not resume it.
 [UMPIRE4_SPEC](../../.plans/UMPIRE4_SPEC.md) remains the normative authority. Delivery order is
 recorded in [UMPIRE4_ORDER](../../.plans/UMPIRE4_ORDER.md).
 
 ## Problem and outcome
 
-An author should be able to say: “whenever cancellation is confirmed for an operation, observe
-canceled or completed within one further transition of that operation.” The model evaluator and
+An author should be able to say: “whenever a modeled trigger occurs for an operation, observe
+its declared response within one further transition of that operation.” The model evaluator and
 the generated runtime Contract must interpret the same requirement, including correlation,
 inclusive deadlines, incomplete evidence, and terminal outcomes.
 
@@ -30,8 +28,8 @@ Re-anchor implementation on the current checkout. The fn-68 success Producer has
 [`Nexus3/Testpilot.lean`](../../model/Temporal/Feature/Nexus3/Testpilot.lean) checks the completion
 Query/witness before producing its Case. Preserve that working success path and its rejection
 tests. Older draft statements that no Nexus3 Producer exists are not the baseline for this spec.
-The generic Case compiler assembles supplied lowerings; scoped cancellation lowering still needs
-its own checked implementation. Existing bounded Property semantics and Behavior constraints
+The generic Case compiler assembles supplied lowerings; generic scoped lowering still needs
+its own checked implementation; cancellation-specific lowering is deferred to fn-79. Existing bounded Property semantics and Behavior constraints
 must be reused rather than counted as missing functionality.
 
 ## Scope and ownership
@@ -42,7 +40,7 @@ must be reused rather than counted as missing functionality.
 | `Umpire.Behavior` | Checked declarative trace constraints and their authoring surface. |
 | `Umpire.Query` and Planning | Endpoint policy, satisfiability, exercise coverage, answers, semantic scope, and search completeness. |
 | Checked Target semantics | Authoritative transitions/outcomes and explicit input versus observation ownership. |
-| `Temporal.Feature` | Product requirements and the Nexus cancellation example; no raw history or SDK dependencies. |
+| `Temporal.Feature` | Product requirements and non-cancellation qualification examples; no raw history or SDK dependencies. |
 | `Temporal.System` and Implementation Links | Correlated implementation evidence, semantic-step projection, and evidence/clock preservation. |
 | Temporal Producer | Checked lowering to one Program and Contract, supported capability bindings, and Umpire provenance. |
 | Testpilot and its Driver | Generic admitted execution/evaluation and authorized SDK effects; no Nexus-specific scheduler or evaluator branches. |
@@ -86,12 +84,9 @@ Target/Producer boundary. Selecting a model transition during exploration is not
 Driver to force its outcome. Observation work must not cause the transition it observes.
 Preserve SEM-07: the Target determines outcomes and resulting states; Behaviors never do.
 
-For Nexus, submitting the operation's SDK cancellation request authorizes only that effect.
-Only correlated cancellation-request confirmation establishes the corresponding model step.
-Canceled and completed remain alternative model-owned resolutions. Keep per-operation cancellation
-handles separate from workflow cancellation and activation shutdown. Add only the generic capability
-needed for this Case if the current Program/Driver contract cannot express it, with static admission
-and focused race tests; do not substitute another RPC or a success-only fixture.
+Nexus operation cancellation effects, correlated confirmation/resolution adapters, and live cancellation
+qualification belong to deferred fn-79. Generic command/event separation remains in scope; qualify
+it with non-cancellation evidence. Existing lifecycle cleanup behavior remains unchanged.
 
 Give evidence projection a deterministic, bounded, run-local `admit` interface. Its result retains
 partial evidence, stutters, emits supported semantic steps, or rejects with a typed diagnostic.
@@ -139,7 +134,7 @@ coordinates are preserved; equal Target states alone are insufficient.
 ### DSL-4 — Typed bounded temporal authoring
 
 Expose readable temporal notation inside `Umpire.Property` over the checked clause above. An
-illustrative spelling is “whenever cancellationRequested, eventually canceled or completed,
+illustrative spelling is “whenever triggered, eventually responded,
 for the same operation, within 1 operationTransition.” Final spelling must expose or unambiguously
 resolve the key, clock, and endpoint policy; it must not infer milliseconds or unbounded liveness.
 
@@ -202,9 +197,9 @@ cannot replace them or strengthen claims into exhaustive implementation correctn
 | --- | --- | --- |
 | D1 — Query validity | Checked endpoint/coverage policies, distinct outcomes, deterministic receipts, and focused finite tests. | Existing Query/Planning owners; no architecture-track prerequisite. |
 | D2 — Behavior surface | Typed existing constraints, exact-regression compatibility, source diagnostics, and canonicalization checks. | Existing Behavior owner; can proceed alongside D1. |
-| D3 — Event/evidence boundary | Checked ownership, scoped semantic-step projection, bounded atomic admission, and Nexus evidence mapping. | Can start alongside D1/D2; coordinate the Target seam with fn-75. |
-| D4 — Shared scoped lowering | Obligation semantics and proofs, exact portable lowering, required generic cancellation/Contract support, and online/offline parity. | D3; production integration consumes fn-71's standalone protocol and fn-72's shared Driver. |
-| D5 — Temporal surface and qualification | Final typed temporal forms, complete authored cancellation example, deterministic Cases, and live Driver demonstration. | D1/D2/D4. Constructor-level experiments can inform D3/D4 earlier. |
+| D3 — Event/evidence boundary | Checked ownership, scoped semantic-step projection, bounded atomic admission, using generic evidence fixtures; Nexus cancellation mapping is deferred. | Can start alongside D1/D2; coordinate the Target seam with fn-75. |
+| D4 — Shared scoped lowering | Obligation semantics and proofs, exact portable lowering, generic Contract support, and online/offline parity. | D3; production integration consumes fn-71's standalone protocol and fn-72's shared Driver. |
+| D5 — Temporal surface and qualification | Final typed temporal forms, non-cancellation authored example, deterministic Cases, and live Driver demonstration. | D1/D2/D4. Constructor-level experiments can inform D3/D4 earlier. |
 
 This work follows fn-73 and is a prerequisite for fn-70. Do not absorb environment binding,
 shared Driver extraction, activation refactoring, or semantic inventory work. Coordinate overlapping
@@ -215,41 +210,32 @@ Keep the completed fn-68 success demonstration available throughout the migratio
 API/SDK references, parameterized Action/outcome values, and field/capture expressions. D1/D2 and
 label-only semantics remain independent; parameterized D3/D4/D5 variants consume that spec's O1/O2
 contracts. Its O3 owns field-value lowering while D4 owns scoped temporal lowering. Reuse those
-interfaces for the combined Nexus qualification instead of introducing duplicate expression or
+interfaces for non-cancellation qualification instead of introducing duplicate expression or
 request representations here.
 
 ## Implementation plan
 
-Deliver the remaining work as checked foundations followed by two integration layers and final
-qualification:
+Deliver the generic foundations without introducing Nexus operation cancellation:
 
-1. Extend Query and Planning with explicit endpoint, coverage, answer, and completeness dimensions.
-2. Add typed Behavior authoring forms that lower only to existing checked declarations.
-3. Add the minimal generic per-operation cancellation capability, then define command/event
-   ownership and the transactional evidence-projection kernel and adapt correlated Nexus history
-   without moving feature meaning into Testpilot.
-4. Build one scoped-obligation semantic kernel and compile its supported fragment into a closed,
-   versioned Testpilot Contract capability evaluated identically by Lean and Go.
-5. Expose the bounded temporal surface and qualify the authored Nexus cancellation Case through the
-   reusable Temporal Driver.
+1. Preserve completed Query validity, Behavior authoring, and checked evidence projection (tasks 2–4).
+2. Implement shared scoped-obligation semantics and correspondence proofs (task 6).
+3. Lower those obligations into the portable Contract using the generic projector (task 7).
+4. Deliver reusable temporal syntax, diagnostics, documentation, and non-cancellation qualification (task 10).
 
-Query/Target endpoint semantics, Behavior authoring, and generic per-operation cancellation may
-proceed independently. The projection kernel consumes the explicit Target terminal/ownership seam;
-Nexus projection and scoped semantics then proceed in parallel. Portable lowering joins those paths
-and consumes cancellation. Final authoring and qualification depend on Query, Behavior, and portable
-lowering. Parameterized field expressions remain owned by fn-77; this plan uses its interfaces only
-if they have landed and otherwise completes the required label-only semantics.
+Former tasks 5, 8, and 9 transfer their cancellation scope to deferred fn-79; their administrative
+closure is not implementation evidence. Generic authoring and qualification from task 8 remain in
+task 10. Task 7 requires only completed generic foundations and task 6, not a cancellation adapter
+or capability. Preserve the existing Nexus success producer and use generic multi-operation fixtures
+for scoped semantics and cross-language proof. No live cancellation demonstration is required.
 
 ```mermaid
 flowchart LR
-  Q[Target terminals and Query validity] --> P[Projection kernel]
-  Q --> Z[Temporal authoring and Nexus qualification]
-  B[Behavior authoring] --> Z
-  P --> N[Nexus evidence adapter]
+  Q[Target terminals and Query validity] --> P[Generic projection]
   P --> O[Scoped obligation semantics]
-  K[Per-operation cancellation capability] --> C[Portable Contract lowering]
-  N --> C
-  O --> C
+  O --> C[Portable Contract lowering]
+  P --> C
+  Q --> Z[Generic syntax and non-cancellation qualification]
+  B[Behavior authoring] --> Z
   C --> Z
 ```
 
@@ -301,11 +287,11 @@ validation must not promote fixtures implicitly.
 
 - **R1:** D1 distinguishes impossible, nonempty-unexercised, satisfied witness, verified, counterexample, unresolved prefix, and work exhaustion. Test exact work-budget boundaries and counterexample discovery before exhaustion. Record scope and policy; no vacuous or incomplete green result.
 - **R2:** D2 forms lower to the existing checked declarations with equal fingerprints. Positive and negative tests distinguish ordering from adjacency, exactness from permitted interleaving, and model-impossible occurrences. Existing exact regression fixtures remain unchanged.
-- **R3:** Submission alone emits no cancellation-confirmed step. Both terminal resolutions remain admissible. Duplicate or irrelevant evidence stutters; missing parents remain pending; conflicting, wrong-operation, unsupported, cyclic, and invalid-step evidence reject without new emissions. Each emission retains its exact causal support.
+- **R3:** Generic command submissions alone emit no confirmed semantic step. Duplicate or irrelevant evidence stutters; missing parents remain pending; conflicting, wrong-scope, unsupported, cyclic, and invalid-step evidence rejects atomically with exact support. Nexus cancellation mapping is deferred to fn-79.
 - **R4:** Scoped obligations cover bounds zero, one, and larger; response at trigger, deadline, and too late; multiple independent triggers; one response discharging matching obligations; two interleaved operations; and counted self-loops. Invalid model traces reject before evaluation. Closed traces and runtime prefixes have their declared different outcomes.
 - **R5:** Checked semantic and compiler relationships connect existing Property meaning, scoped projection, obligation execution, and the actual portable Contract. Incremental and whole-stream evaluation agree, including chunk boundaries inside partial evidence. Inclusive semantic deadlines remain correct under runtime expiry ordering. Unsupported requested forms reject the whole Case.
 - **R6:** Compile-failure tests reject wrong contexts, keys, clocks, references, and unsupported temporal forms at the author expression. Typed and temporal forms have identical canonical meaning. A transition or property edit changes one semantic authority and generated consumers, without handwritten duplicate monitor behavior.
-- **R7:** A checked Nexus cancellation Query produces a deterministic admitted Case using the existing public Prepare/Run facade and authorized Driver. A local integration Run recognizes either permitted resolution without forcing a selected model outcome. Controlled negative and incomplete evidence fixtures distinguish violation from inconclusive and preserve proof after cleanup failure.
+- **R7:** A checked non-cancellation example produces a deterministic admitted Case through public Prepare/Run. Preserve the existing Nexus success path; generic controlled negative and incomplete evidence distinguish violation from inconclusive and preserve proof after cleanup failure. Cancellation effects and live cancellation qualification are deferred to fn-79.
 - **R8:** Repeated and concurrent Runs have isolated captures and projection state plus immutable results. Buffer, work, and capture exhaustion fail closed; a stopped or lost execution never supplies a semantic deadline or automatic retry. Existing success, rejection, cross-language, identity, and lifecycle regressions pass.
 - **R9:** Compatibility tests retain unchanged bytes, IDs, and fingerprints; reject stale or unsupported encodings; and verify any explicit migration. Trust audits, affected builds and lints, generated staleness checks, and scoped functional tests pass with their command evidence recorded.
 
@@ -332,6 +318,8 @@ uses immutable evidence. This work adds no implicit redispatch, credential handl
 policy, or production deployment.
 
 ## Deferred
+
+Nexus operation cancellation is retained in [fn-79](fn-79-deferred-nexus-operation-cancellation.md): correlated cancellation adapters, SDK cancellation capability, authored cancellation Case, live qualification, and parameterized cancellation example. Resume only after an explicit user request. Existing context cancellation and bounded cleanup remain required.
 
 Full Veil adoption or Veil-centered authoring, symbolic-first Target admission, general LTL,
 unbounded liveness/fairness, general scenario algebra, and wholesale fingerprint redesign require

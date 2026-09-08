@@ -1,6 +1,11 @@
 {
   "branch_name": "fn-70-scheduled-canary-proof-of-concept-as-a",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-07T00:51:01.098944Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-68-minimal-nexus3-success-demonstration",
     "fn-72-extract-the-reusable-temporal-testpilot",
@@ -8,9 +13,11 @@
     "fn-78-typed-temporal-authoring-and-checked"
   ],
   "id": "fn-70-scheduled-canary-proof-of-concept-as-a",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_reviewed_at": "2026-09-08T04:54:15.683743Z",
   "spec_path": ".flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md",
   "status": "open",
   "title": "Scheduled canary proof of concept as a second model consumer",
@@ -25,5 +32,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-07T15:10:01.235116Z"
+  "updated_at": "2026-09-08T04:54:15.683877Z"
 }

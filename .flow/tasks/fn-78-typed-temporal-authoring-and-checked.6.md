@@ -4,6 +4,8 @@ satisfies: [R4, R5, R6, R9]
 # fn-78-typed-temporal-authoring-and-checked.6 Implement shared scoped-obligation semantics and proofs
 
 ## Description
+Nexus operation cancellation is deferred to fn-79. Implement and qualify this generic task with non-cancellation, multi-operation fixtures; no cancellation adapter or capability is a prerequisite.
+
 Implement D4's single checked scoped-obligation semantic kernel and its correspondence to existing Property meaning. Model, incremental, and offline evaluation must share one passive `compile / consume / close` transition contract over admitted projected semantic steps.
 
 **Size:** L

@@ -13,7 +13,8 @@ Deliver after **fn-73** and before **fn-70**.
 
 Own shared scoped-obligation semantics, explicit command/event evidence projection, independently
 reported Query validity, typed bounded temporal notation, and the readable surface for existing
-Behavior constraints. Preserve the completed fn-68 success path and coordinate with fn-74/75/76
+Behavior constraints. Defer Nexus operation cancellation to fn-79; the generic monitoring and existing
+Nexus success paths do not depend on its adapter, capability, or qualification. Preserve the completed fn-68 success path and coordinate with fn-74/75/76
 and fn-77 without absorbing their separate interface and typed-operation work.
 
 ### 2. Independent architecture tracks
@@ -123,6 +124,13 @@ Whole-spec completion-review status is tracked in Flow and is not implied by pla
 list. Nexus2 remains a prototype with explicit adoption boundaries.
 
 ## Deferred and superseded
+
+**fn-79 — Nexus operation cancellation:** [spec](../.flow/specs/fn-79-deferred-nexus-operation-cancellation.md).
+Includes former fn-78.5/.8/.9 cancellation scope and fn-77’s cancellation qualification. Resume only
+on an explicit user request; autonomous delivery approval does not override this deferral. Generic
+fn-78 syntax/monitoring/qualification and fn-70 remain deliverable without it. Existing shutdown
+and bounded cleanup cancellation behavior stays in scope.
+
 
 These entries are outside the delivery queue and are not prerequisites for it.
 

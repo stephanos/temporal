@@ -3,7 +3,7 @@
 ## Goal & Context
 <!-- scope: business -->
 
-Status: implementation specification; task breakdown, review, and implementation remain future work.
+Status: implementation specification; task breakdown, review, and implementation remain future work. Nexus operation cancellation qualification is deferred to fn-79; typed operations and field-level Properties proceed without it.
 
 [UMPIRE4_SPEC](../../.plans/UMPIRE4_SPEC.md) remains normative. This complements
 [fn-78 typed temporal authoring and checked scoped monitoring](fn-78-typed-temporal-authoring-and-checked.md):
@@ -187,7 +187,7 @@ in the appropriate `Temporal.System` model. Integration defines how concrete dat
 modeled values. Every runtime product assertion must trace to a checked Property/clause; every
 additional projection/correlation condition must be identified as an Implementation Link obligation.
 
-For example, a declared requirement that a cancellation addresses a particular modeled operation
+For example, a declared requirement that a command addresses a particular modeled operation
 belongs in the model. Matching a history event's scheduled-event reference to the bound operation
 is part of establishing its concrete evidence. The latter cannot silently become a new requirement
 about fields the author never declared. Environment assignment of a namespace or task queue is a
@@ -254,10 +254,11 @@ Use two distinct examples rather than disguising an SDK command as an RPC:
    Choose actual product requirements from the model's use case rather than asserting a fictitious
    response field or API guarantee. Include a concrete byte-bearing or optional field fixture to
    test the fidelity boundary independently of the live call.
-2. The workflow-owned Nexus command/event path. Relate cancellation's selected operation identity
-   to its modeled scheduled-operation identity, retain typed confirmation/resolution fields, and
-   compose a cross-occurrence requirement with the existing scoped bounded-response Property.
-   Exercise two operations so mismatched identities cannot pass accidentally.
+2. The existing workflow-owned Nexus start/completion command/event path. Relate the selected
+   operation identity to its modeled scheduled-operation identity, retain typed completion fields,
+   and compose a cross-occurrence requirement with the scoped bounded-response Property. Exercise
+   two operations so mismatched identities cannot pass accidentally. Cancellation command,
+   confirmation, and resolution qualification are deferred to [fn-79](fn-79-deferred-nexus-operation-cancellation.md).
 
 
 - **R1:** An author references a generated RPC declaration directly in a checked parameterized Action, with no copied method string/schema in the ordinary model. Distinct SDK-command and event declarations work without pretending to be unary RPCs. Wrong method/request pairing and unsupported streaming reject. Errors: Wrong method/request pairing, forged identities, incompatible schemas, and unsupported streaming reject under ACT-1.
