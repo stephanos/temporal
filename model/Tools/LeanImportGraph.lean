@@ -1,4 +1,6 @@
 import Lean.Data.Name
+import Std.Data.HashMap
+import Std.Data.HashSet
 
 /-!
 Reusable deterministic dependency-graph checking.
@@ -28,31 +30,26 @@ structure Violation (Rule : Type) where
 private def nameLess (left right : Lean.Name) : Bool :=
   left.toString < right.toString
 
-private def moduleRecord? (modules : Array ModuleRecord) (name : Lean.Name) : Option ModuleRecord :=
-  modules.find? (·.name == name)
-
 private def uniqueSortedNames (names : Array Lean.Name) : Array Lean.Name :=
   (names.qsort nameLess).foldl (init := #[]) fun result name =>
     if result.back? == some name then result else result.push name
 
-private def ownedImports (modules : Array ModuleRecord) (record : ModuleRecord) : Array Lean.Name :=
-  uniqueSortedNames <| record.imports.filter fun imported => (moduleRecord? modules imported).isSome
-
 private def shortestPathsFrom
-    (modules : Array ModuleRecord) (source : Lean.Name) : Array (Lean.Name × Array Lean.Name) := Id.run do
+    (imports : Std.HashMap Lean.Name (Array Lean.Name))
+    (source : Lean.Name) : Array (Lean.Name × Array Lean.Name) := Id.run do
   let mut queue : Std.Queue (Array Lean.Name) :=
     (Std.Queue.empty : Std.Queue (Array Lean.Name)).enqueue #[source]
-  let mut visited : Array Lean.Name := #[source]
+  let mut visited : Std.HashSet Lean.Name := {source}
   let mut paths : Array (Lean.Name × Array Lean.Name) := #[]
   while let some (path, remaining) := queue.dequeue? do
     queue := remaining
     let current := path.back!
     if current != source then
       paths := paths.push (current, path)
-    if let some record := moduleRecord? modules current then
-      for imported in ownedImports modules record do
+    if let some directImports := imports[current]? then
+      for imported in directImports do
         unless visited.contains imported do
-          visited := visited.push imported
+          visited := visited.insert imported
           queue := queue.enqueue (path.push imported)
   return paths
 
@@ -69,11 +66,15 @@ completeness and module classification remain caller-owned concerns.
 -/
 def check
     (forbidden? : Lean.Name → Lean.Name → Option Rule)
-    (modules : Array ModuleRecord) : Array (Violation Rule) := Id.run do
+    (modules : Array ModuleRecord)
+    (isSource : Lean.Name → Bool := fun _ => true) : Array (Violation Rule) := Id.run do
   let mut violations := #[]
   let modules := modules.qsort fun left right => nameLess left.name right.name
+  let imports := modules.foldl (init := ({} : Std.HashMap Lean.Name (Array Lean.Name)))
+    fun imports record => imports.insert record.name (uniqueSortedNames record.imports)
   for sourceRecord in modules do
-    for (destination, path) in shortestPathsFrom modules sourceRecord.name do
+    unless isSource sourceRecord.name do continue
+    for (destination, path) in shortestPathsFrom imports sourceRecord.name do
       if let some rule := forbidden? sourceRecord.name destination then
         violations := violations.push {
           rule

@@ -340,6 +340,154 @@ func (this *Run) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ScopedBinding to the protobuf v3 wire format
+func (val *ScopedBinding) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedBinding from the protobuf v3 wire format
+func (val *ScopedBinding) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedBinding) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedBinding values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedBinding) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedBinding
+	switch t := that.(type) {
+	case *ScopedBinding:
+		that1 = t
+	case ScopedBinding:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedIdentity to the protobuf v3 wire format
+func (val *ScopedIdentity) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedIdentity from the protobuf v3 wire format
+func (val *ScopedIdentity) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedIdentity) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedIdentity values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedIdentity) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedIdentity
+	switch t := that.(type) {
+	case *ScopedIdentity:
+		that1 = t
+	case ScopedIdentity:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedEvidenceField to the protobuf v3 wire format
+func (val *ScopedEvidenceField) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedEvidenceField from the protobuf v3 wire format
+func (val *ScopedEvidenceField) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedEvidenceField) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedEvidenceField values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedEvidenceField) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedEvidenceField
+	switch t := that.(type) {
+	case *ScopedEvidenceField:
+		that1 = t
+	case ScopedEvidenceField:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedEvidence to the protobuf v3 wire format
+func (val *ScopedEvidence) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedEvidence from the protobuf v3 wire format
+func (val *ScopedEvidence) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedEvidence) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedEvidence values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedEvidence) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedEvidence
+	switch t := that.(type) {
+	case *ScopedEvidence:
+		that1 = t
+	case ScopedEvidence:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 var (
 	RunEventKind_shorthandValue = map[string]int32{
 		"Unspecified":          0,

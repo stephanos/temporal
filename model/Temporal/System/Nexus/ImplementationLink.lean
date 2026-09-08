@@ -461,11 +461,13 @@ private def declaration (model : Temporal.Feature.Nexus2.Race.ModelVocabulary)
         modelOutcome := model.cancellationRequestedOutcome,
         resultingState := model.cancelRequestedState, observations := [model.cancelRequestedFact] })] },
     { kind := Evidence.Kind.canceled.id,
-      meaning := .confirmed none [(model.resolveAction, { modelOutcome := model.canceledOutcome,
+      meaning := .confirmed none [(model.resolveAction, {
+        modelOutcome := model.canceledOutcome,
         resultingState := model.canceledState,
         observations := [model.lifecycleCanceledFact, model.terminalFact] })] },
     { kind := Evidence.Kind.completed.id,
-      meaning := .confirmed none [(model.resolveAction, { modelOutcome := model.succeededOutcome,
+      meaning := .confirmed none [(model.resolveAction, {
+        modelOutcome := model.succeededOutcome,
         resultingState := model.succeededState,
         observations := [model.lifecycleSucceededFact, model.terminalFact] })] },
     { kind := Evidence.Kind.unrelated.id, meaning := .irrelevant },
@@ -497,6 +499,8 @@ def Checked.start (checked : Checked) (binding : Evidence.Binding) : Except Erro
   binding.validate checked.maxOperations |>.mapError .correlation
   let projection ← checked.plan.start binding.scope.fields |>.mapError .projection
   pure ⟨binding, projection⟩
+
+variable {checked : Checked}
 
 /-- Confirmed steps retain checked Feature authority and exact source/Run support. -/
 def Run.steps (run : Run checked) : List (Step checked.target) := run.projection.steps

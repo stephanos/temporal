@@ -229,6 +229,26 @@ func TestNexusPanicCompletesReplayWaiters(t *testing.T) {
 	require.EqualError(t, err, "nexus handler activation panicked")
 }
 
+func TestNexusCanceledEvaluationPreventsResponse(t *testing.T) {
+	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	host, definition := runtimeTestDriver(t, prepared)
+	session, _, request := runtimeTestSession(t, host, definition, prepared, "run", "workflow")
+	workflowRoute, err := host.admitWorkflow(workflowDelivery(request, "temporal-run"))
+	require.NoError(t, err)
+	header, _, err := session.preparedNexusDispatch(workflowRoute.activation, "start", nil, &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}})
+	require.NoError(t, err)
+	routed, err := host.admitNexus(t.Context(), "task-queue", delivery.NexusDelivery{Header: header, RequestID: "request-id"}, func() {})
+	require.NoError(t, err)
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	kind, value, token, err := session.interpretNexus(ctx, routed.activation, nexus.StartOperationOptions{})
+	require.ErrorIs(t, err, context.Canceled)
+	require.Zero(t, kind)
+	require.Nil(t, value)
+	require.Empty(t, token)
+}
+
 func TestStopRejectsDelayedAndUnreservedDelivery(t *testing.T) {
 	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
 	host, definition := runtimeTestDriver(t, prepared)

@@ -10,6 +10,7 @@ import (
 	"go.temporal.io/api/workflowservice/v1"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
 )
@@ -450,13 +451,25 @@ func TestReservationCancelBeforeAdmissionRetiresWithoutTargetCall(t *testing.T) 
 }
 
 func TestActivationValuesOwnValidatedOutcome(t *testing.T) {
-	values := newActivationValues("workflow", 8)
+	prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS)
+	state, err := activation.New(prepared.Entrypoints()[1])
+	require.NoError(t, err)
+	input, enabled, err := state.Evaluate(t.Context(), 1)
+	require.NoError(t, err)
+	require.True(t, enabled)
+	require.Nil(t, input)
 	original := &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "result"}}
-	values.store("await", &testpilot.OutcomeSnapshot{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: original}, Fields: map[testpilotspb.InstructionOutcomeField]*testpilotspb.Value{testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE: original}})
+	require.NoError(t, state.Admit(t.Context(), 1, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: original}))
 	original.Value = &testpilotspb.Value_Text{Text: "mutated"}
-	reference := testpilot.ValueReference{Kind: testpilot.OutcomeReference, Entrypoint: "workflow", ID: "await", Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_VALUE)}
-	require.Equal(t, "result", values.lookup(reference).GetText())
-	require.Nil(t, values.lookup(testpilot.ValueReference{Kind: testpilot.SlotReference, ID: "private-capability"}))
+	result, enabled, err := state.Evaluate(t.Context(), 2)
+	require.NoError(t, err)
+	require.True(t, enabled)
+	require.Equal(t, "result", result.GetText())
+	i := workflowInterpreter{state: state}
+	result, finished, err := i.execute(2, prepared.Entrypoints()[1].Instructions()[2], result)
+	require.NoError(t, err)
+	require.True(t, finished)
+	require.Equal(t, "result", result.GetText())
 }
 
 func TestReservationBindingRejectsCrossedIdentity(t *testing.T) {

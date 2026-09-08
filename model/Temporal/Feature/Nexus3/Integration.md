@@ -4,6 +4,8 @@
 Proposed binding syntax. Read `Nexus.md` first. This file keeps identity conventions, execution
 choices, and evidence interpretation out of the feature-facing model. Both Markdown files remain
 design specimens; the checked success-only completion Producer lives in `Testpilot.lean`.
+Nexus operation cancellation in this draft is explicitly deferred to fn-79. No cancellation Target,
+evidence adapter, operation capability, or Case is delivered by the generic scoped qualification.
 
 ## Admission and identity
 
@@ -78,10 +80,12 @@ same operation. This requires operation-scoped counting before evaluation; merel
 response while continuing to count global steps is incorrect. Nexus2's global transition unit
 cannot be reused unchanged for this meaning.
 
-The current Case Contract horizon is measured in elapsed milliseconds. There is no implicit
-conversion from operation steps to milliseconds, instruction counts, or raw Run Event counts.
-Until a checked scoped-step monitor lowering exists, cancellationProgress must reject at Case
-production. A Known Gap must not turn that requested Property into a weaker timed Property.
+Ordinary timed Contract rules use elapsed milliseconds. The generic version-one scoped Contract
+capability now counts admitted operation transitions, with checked lowering through
+`Umpire.Case.Scoped.lower`; there is no implicit conversion to milliseconds, instruction counts,
+or raw Run Event counts. This is qualified by non-cancellation typed fixtures through public
+Prepare/Run. Cancellation progress still rejects at Case production because the cancellation
+Target, evidence adapter, and operation capability remain deferred to fn-79. A Known Gap must not turn that requested Property into a weaker timed Property.
 Separately configured execution timeouts close unresolved evaluation as inconclusive, not as
 proof that the model's one-step requirement was violated.
 
@@ -147,6 +151,6 @@ integration lifecycleCases on lifecycle
   unsupported
     cancellationSafety  => operationCancellationInstructionUnavailable
     completionCanWin    => operationCancellationInstructionUnavailable
-    cancellationProgress => operationCancellationInstructionUnavailable, operationStepMonitorNotLowered
+    cancellationProgress => operationCancellationInstructionUnavailable, cancellationEvidenceAdapterUnavailable
 
 end Temporal.Feature.Nexus3

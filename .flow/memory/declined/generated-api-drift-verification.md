@@ -6,6 +6,12 @@ The generator is intentionally generation-only for now. Its focused and golden t
 
 ## Prior requests
 
+- 2026-09-08 — Planned fn-70's scheduled local canary; retain focused Producer fixture/provenance checks without broad generated API drift verification or CI expansion.
+
+- 2026-09-08 — Planned typed operations and field-level Properties in fn-77; retain focused generator fixtures, schema-input invalidation, and compatibility checks without adding broad generated API drift verification or CI coverage.
+
+- 2026-09-08 — Planned the Target semantic import boundary; preserve existing applicable staleness checks without adding broad generated Lean API drift verification or CI coverage.
+
 - 2026-09-06 — Requested an absolutely minimal Nexus3-to-CaseRuntime demonstration plan; focused Case fixture generation remains in scope, while broad generated Lean API drift verification and CI expansion remain excluded.
 - 2026-08-30 — Approved a narrow repository-local drift check for the generated Umpire semantic outcome and Known Gap inventory; broad generated Lean API drift verification and GitHub Actions coverage remain declined.
 - 2026-08-24 — While simplifying the Lean API generator, explicitly excluded drift verification and all CI workflow work.

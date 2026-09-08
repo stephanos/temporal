@@ -33,6 +33,17 @@ structure KnownGap where
   detail : Option String := none
   deriving BEq, DecidableEq, Ord, Repr
 
+/-- Closed field mappings for exact Known Gap carry and lossy Observation admission. -/
+inductive KnownGapCarryMapping where
+  | exact
+  | observationAdmission
+  deriving BEq, DecidableEq, Ord, Repr
+
+def KnownGapCarryMapping.name : KnownGapCarryMapping → String
+  | .exact => "kind -> kind; code -> code; subject -> subject; detail -> detail"
+  | .observationAdmission =>
+      "code -> code; subject.toList -> relatedDefinitionIds; kind -> absent; detail -> absent"
+
 inductive KnownGapErrorKind where
   | invalidCode
   | invalidSubject

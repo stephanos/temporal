@@ -1,5 +1,5 @@
 import Umpire.Artifact.Planning
-import Umpire.SemanticInventory.Types
+import Umpire.OutcomeClassification
 
 /-! Implementation behind the `Umpire.Planning` public facade. -/
 

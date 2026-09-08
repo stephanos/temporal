@@ -18,6 +18,7 @@ Focused public imports are available by responsibility:
 | --- | --- |
 | `Umpire.Core` | Stable definitions, traces, capabilities, laws, and finite kernels. |
 | `Umpire.Target` | Finite-machine and expert Target authoring plus checked composition. |
+| `Umpire.Target.Semantics` | Checked Target/kernel access, pure admission, and relation-indexed finite planning. |
 | `Umpire.Property` | Property authoring, validation, and pure trace evaluation. |
 | `Umpire.Behavior` | Setup and trace-shape authoring and validation. |
 | `Umpire.Query` | Bounded questions over a checked Target, Properties, and Behavior. |
@@ -31,9 +32,45 @@ Focused public imports are available by responsibility:
 | `Umpire.Json` | Ordered JSON construction for codec owners. |
 | `Umpire.Case` | Umpire provenance and temporary aliases for generated Testpilot protocol types. |
 | `Umpire.Case.Compiler` | Generated Case assembly, source-bound producer diagnostics, and Umpire provenance. |
+| `Umpire.SemanticInventory` | Explicit opt-in catalogs consuming semantic-owner contracts for documentation. |
 
 Implementation modules remain behind these facades. Reusable Umpire modules cannot import the
 domain-specific Temporal modules; the complete import graph is enforced by `make lint-model`.
+
+## Target ownership and semantic imports
+
+Ordinary authors keep `import Umpire.Target` (or `import Umpire`). The Target facade includes
+finite-table/machine adapters and syntax-aware authoring. `Umpire.Target.Language` remains a
+compatibility facade for existing authoring imports. Authors of Properties, Behaviors, and Queries
+likewise keep their public `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query` facades.
+
+Library code that consumes checked semantics imports `Umpire.Target.Semantics`. Property and
+Behavior semantic implementations use that surface; Query uses their semantic modules, and
+Planning uses Query's semantic module. Their complete import closures exclude `Umpire.Target.Frontend`
+and `Lean.Elab.Term`, including paths through external modules. `make lint-model` enforces this
+boundary from compiled imports as well as the source inventory.
+
+| Target owner | Responsibility |
+| --- | --- |
+| `Data` | Target declarations, behavior descriptions, and inert occurrence/diagnostic data. |
+| `Projection` | Pure behavior-description construction, canonical encodings, and fingerprint inputs. |
+| `Semantics` | Private checked/authored construction, composition validation, typed diagnostic selection, and checked kernel/planning access. |
+| `Frontend` | Syntax occurrence capture and mapping the same admission diagnostic to a located elaboration error. |
+| `FiniteMachine` | Existing finite-table/machine validation and proof-carrying adapters. |
+
+`composeTarget` returns `Except DefinitionError CheckedTarget`; `checkTarget` returns
+`Except AuthoringDiagnostic CheckedTarget`; `checkedTarget` extracts using checker-success evidence,
+retaining its existing default proof. `elaborateTarget` invokes the same pure admission authority
+and reports its diagnostic in `TermElabM`. No unchecked constructor is exposed. Occurrence data
+selects diagnostic locations, including the fallback when no captured syntax matches, without
+entering semantic identity or fingerprint inputs.
+
+Expert consumers can use `CheckedTarget.kernel` directly. `CheckedTarget.withEquivalentKernel`
+requires matching metadata and domains, equal authoritative initial/step relations, and unchanged
+behavior description. Its optional planning evidence belongs to the replacement step relation;
+omitting it leaves planning unavailable even if the original Target had finite planning. A finite
+behavior description alone supplies no action-completeness proof. Enumeration order and duplicate
+results remain the enumerator's responsibility, independently of canonical behavior identity.
 
 ## Semantic model lifecycle
 
@@ -73,6 +110,31 @@ the field contexts admitted by the Property checker. Every applicable obligation
 Exceptions are trigger-time applicability conditions and do not select a winning case or retract a
 pending temporal obligation. Case analysis reports coverage, overlap, logical conflict, modeled
 incompatibility, exhaustive completion, and limit exhaustion as separate bounded results.
+
+`bounded_response%` is a readable spelling of `PropertyScopedClause`, admitted through the same
+`property%`/`checkProperty` boundary. Scoped clauses declare execution fields, an operation key,
+operation-transition clock, natural bound, and runtime-prefix or deliberately-closed endpoint.
+Projection admits causally supported, Target-authorized transitions before obligation execution;
+submissions and duplicate observations contribute no transition. Independent trigger windows count
+only their operation's transitions, including self-loops. Runtime incompleteness leaves unresolved
+windows inconclusive; a known violation remains proved.
+
+`Shared.SemanticData`, `Shared.ScopedProjection`, and `Shared.ScopedObligation` own inert table data,
+causal admission, and bounded countdown execution. Umpire's checked facades retain their semantic
+proofs. `Umpire.Case.Scoped.lower` binds the generated wire decode to the checked projection and
+Property, carrying exact clause/source provenance. `Testpilot.Scoped` interprets the closed table
+capability without importing Umpire callbacks. Go admission rejects unsupported/stale capabilities
+and incompatible resource ceilings before Driver execution; mutable evidence and windows belong to
+one Run. The scoped fixture corpus exercises both offline parity and real public-facade recording.
+Nexus operation cancellation remains deferred to fn-79; generic scoped support does not admit a
+cancellation Case or supply an operation cancellation capability.
+
+Query validity reports satisfiability, trigger exercise, answer, and search completeness separately.
+An impossible scenario, an unexercised nonempty scenario, an unresolved prefix, and exhausted search
+cannot become universal verification. Finite Target terminal declarations are conjunctive and never
+inferred from deadlock. `BehaviorSpec` adds typed allow/forbid, occurrence, ordering, and adjacency
+constraints through the existing canonical checker; ordering permits intervening allowed actions,
+while adjacency and exactness deliberately impose stronger constraints.
 
 All public declarations carry stable Definition IDs, source locations, and behavior fingerprints.
 Limits are stage-specific. Exhaustion and limit-reached outcomes remain distinct, and a planning
@@ -185,6 +247,26 @@ This environment identity does not alter Behavior Fingerprints, Contract meaning
 provenance.
 
 ## Artifact and generated-view boundaries
+
+Semantic owners import the neutral `Umpire.OutcomeClassification` vocabulary and
+`Umpire.KnownGap` carry contracts. `OutcomeClassification` contains only classifier descriptors,
+matchers, list operations and propositions, and projection-sentinel descriptors over Lean's `Init`
+foundation. Concrete classifiers and their exhaustive `ExactlyOne` proofs stay with Planning,
+Artifact runtime, Observation, Implementation Link, and Verdict. Implementation Link also owns its
+projection-only `not-evaluated` sentinel; it is not an outcome constructor.
+
+`KnownGapCarryMapping` belongs to `Umpire.KnownGap`. Observation owns the lossy admission mapping
+from code and optional subject to an Evidence Gap; kind and detail are absent. Result Artifact owns
+exact carry of kind, code, subject, and detail. The inventory consumes these owner declarations and
+owns only catalog descriptors, lineage, scope, source shapes, and catalog validation.
+
+Catalog consumers explicitly import `Umpire.SemanticInventory` or its focused modules; `import
+Umpire` does not aggregate the inventory. `Umpire.SemanticInventory.Types` retains relocated
+qualified names through ordinary imports for explicit inventory consumers. Production Umpire
+modules outside the inventory cannot reach it directly or transitively, including through facades,
+helpers, external modules, or test fixtures. `make lint-model` enforces this direction and the
+neutral module's foundation-only imports while allowing dedicated inventory consumers such as the
+Planning Known Gap catalog tests.
 
 Planning artifacts, the semantic inventory, and Generated Views remain deterministic projections
 owned by their existing modules and generators. They do not execute Cases or define Contract

@@ -1,7 +1,7 @@
 ---
 satisfies: [R7, R8, R9]
 ---
-# fn-78-typed-temporal-authoring-and-checked.9 Add per-operation cancellation capability
+# fn-78-typed-temporal-authoring-and-checked.9 Transfer operation cancellation capability to deferred fn-79
 
 ## Description
 **Scope transferred to deferred fn-79 by user decision. No cancellation implementation is authorized here. Original requirements below are archival.**

@@ -1,4 +1,5 @@
 import Umpire.Planning.Tests.Fixtures
+import Umpire.Target.FiniteMachine
 
 /-! Endpoint interpretation and exact candidate-budget boundaries. -/
 

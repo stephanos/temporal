@@ -1,13 +1,94 @@
 {
   "branch_name": "fn-74-deepen-testpilot-worker-activation",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-08T10:16:08.220251Z",
   "created_at": "2026-09-07T00:59:06.052959Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-72-extract-the-reusable-temporal-testpilot"
   ],
   "id": "fn-74-deepen-testpilot-worker-activation",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-08T09:25:40.375784Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "e1c12c9117a00c702d10a4d1f44be33fc26876516fbf99ffb7b308cad089b36c",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 107051,
+      "output_sha256": "f61eb163791510964b5a462ad072e54d1985780388a70d683bf483eb3b78eaa9",
+      "reservation_id": "a300a0109b2e48bbbbea96af2ae1d84a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T09:25:40.370509Z",
+      "tool_calls": 6,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "35a80579bcea81cb658f9c7b609a0489a2dac84261472c58644ce0e763ea0dff",
+      "backend": "codex",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "pending",
+        "receipt": "pending",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": false,
+      "kind": "completion",
+      "outcome": "verdict",
+      "output_bytes": 8492,
+      "output_sha256": "4157428580ce595003e85410d33604cac95bed065bb2336eb12cbf3b193cfb3f",
+      "reservation_id": "c1933038a34c4f34897907f5dcc49bb7",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T10:15:58.953996Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-74-deepen-testpilot-worker-activation.md",
   "status": "open",
   "title": "Deepen Testpilot worker activation semantics and preparation diagnostics",
@@ -22,5 +103,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-07T01:00:18.091796Z"
+  "updated_at": "2026-09-08T10:16:08.220397Z"
 }

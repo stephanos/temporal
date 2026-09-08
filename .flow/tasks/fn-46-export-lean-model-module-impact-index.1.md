@@ -7,28 +7,37 @@ satisfies: [R1, R5]
 Extract the current effectful package inventory/build/OLean/reconciliation pipeline for R1 without changing lint policy.
 
 **Size:** M
-**Files:** `model/ModelLint.lean`, `model/ModelLint/PackageModules.lean`, `model/ModelLint/PackageModulesTests.lean`, `model/ModelLint/ImportGraphTests.lean`
-**Touches:** [model/ModelLint.lean, model/ModelLint/PackageModules.lean, model/ModelLint/PackageModulesTests.lean, model/ModelLint/ImportGraphTests.lean]
+**Files:** `model/ModelLint.lean`, `model/ModelLint/PackageModules.lean`, `model/ModelLint/PackageModulesTests.lean`, `model/ModelLint/ImportGraphTests.lean`, `model/Tools/LeanImportGraph/Metadata.lean`, focused adjacent metadata tests, minimal `model/lakefile.lean` test wiring if needed.
+**Touches:** [model/ModelLint.lean, model/ModelLint/PackageModules.lean, model/ModelLint/PackageModulesTests.lean, model/ModelLint/ImportGraphTests.lean, model/Tools/LeanImportGraph/Metadata.lean, model/Tools/LeanImportGraph/MetadataTests.lean, model/lakefile.lean]
 
 ### Approach
-- Move source discovery, quiet Lake build, OLean lookup/read, region lifetime, capture, and reconciliation behind the parent spec's phase-explicit `ModelLint.PackageModules` interface.
+- Move source discovery, build, region lifetime, capture and reconciliation orchestration behind `ModelLint.PackageModules`; reuse the existing `Tools.LeanImportGraph.Metadata.load` traversal and extend its lookup/read seam for accumulated independent failures. Quiet/captured build behavior is new work, not already provided by the current loader.
 - Capture child stdout/stderr: let `modelLint` replay it to original channels, and let the exporter discard successful build chatter while retaining failure diagnostics.
-- Stop after discovery or build failure; collect/sort all independent source, per-module metadata, and reconciliation issues within phases before returning no result.
+- Stop after discovery failure, source issues or build failure. Continue independently known metadata nodes after lookup/read failures, sort qualified issues and return no partial result; inaccessible descendants cannot be claimed examined. On metadata success report reconciliation issues and architecture violations as current lint does.
 - Inject only focused process/metadata seams and keep loaded compacted regions alive until every consumer completes.
-- Preserve diagnostic categories, build exclusions, import-policy checks, and existing comments.
+- Preserve full external closure through validation, diagnostic categories, build exclusions, import-policy checks, existing comments and subsequent declaration-lint execution. Do not fold the exporter's stricter root-identity guard into existing lint discovery.
+- Capture child streams without deadlock. Wire PackageModulesTests and any metadata tests into the existing modelLintTests runner and actually execute them, rather than only compiling test modules.
 
 ### Investigation targets
 **Required** (read before coding):
-- `model/ModelLint.lean:15-82` — exact pipeline and diagnostics to extract.
-- `model/Tools/LeanSourceInventory.lean:88-117,198-210` — validation/reconciliation and canonical root.
-- `model/ModelLint/ImportGraph.lean:94-146,162-179` — default policy and diagnostics.
-- `model/ModelLint/ImportGraphTests.lean:401-430` — executable fixture pattern.
+- `model/ModelLint.lean:16` — build sequence; graph phases at 41 and subsequent declaration lint below.
+- `model/Tools/LeanImportGraph/Metadata.lean:17` — existing traversal, compacted regions and first-failure behavior.
+- `model/Tools/LeanSourceInventory.lean:89` — sorted validation; confined current-root inventory at 205.
+- `model/ModelLint/ImportGraph.lean` — current external-aware reconciliation and isolation policy.
+- `model/ModelLint/ImportGraphTests.lean:639` — real external metadata controls; executable runner at 664.
 
 ### Key context
 Lean 4.33.1 compiled environments/OLean metadata are the authority; do not parse source imports or OLean bytes directly.
 
+Capture exact original lint success/controlled-violation diagnostics and source/build/metadata phase ordering before edits. Preserve external bridge, stale-owned skip, uniqueness and missing-OLean regressions. Use injected phase counters and lifetime ownership assertions for independent failure and region-release tests. No no-op region-count check as the sole lifetime proof.
+
 ### Quick commands
 `cd model && mise exec -- lake -q build modelLintTests modelLint && mise exec -- lake exe modelLintTests`
+
+Run the existing controlled-violation fixture with its expected nonzero exit and exact channels, and the shared-loader success path, before and after extraction. Record explicit suite execution and terminal results.
+
+### Execution constraints
+Preserve unrelated dirty source and existing comments; no staging, commits or pushes. Re-anchor delivered fn-75/76/78 and final fn-77 source before implementation; serialize shared source edits without adding artificial semantic dependencies. Run Lean jobs serially. Capture original touched bytes and relevant trust/metadata baselines before editing. New tests must run through registered roots. No new dependencies, import-policy relaxation, generated API drift/CI expansion, or cancellation work. Required nonfixing Go lint may retain only the exact verified inherited set; new findings and killed/missing-exit gates are failures.
 ## Acceptance
 - [ ] `modelLint` and the future exporter consume the same package-loader result and output policy.
 - [ ] Existing lint policy, success line, controlled-violation diagnostic, and child stream channel assignment remain unchanged.

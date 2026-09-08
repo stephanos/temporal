@@ -1172,6 +1172,248 @@ type Run_EvaluationFailureSequence struct {
 
 func (*Run_EvaluationFailureSequence) isRun_EvaluationFailure() {}
 
+// ScopedEvidence is supplied only through the capability's declared typed Observation.
+// Source ordinals and parents carry semantic order; Run elapsed time never supplies a tick.
+type ScopedBinding struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FieldId       string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
+	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedBinding) Reset() {
+	*x = ScopedBinding{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedBinding) ProtoMessage() {}
+
+func (x *ScopedBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedBinding.ProtoReflect.Descriptor instead.
+func (*ScopedBinding) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ScopedBinding) GetFieldId() string {
+	if x != nil {
+		return x.FieldId
+	}
+	return ""
+}
+
+func (x *ScopedBinding) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type ScopedIdentity struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Scope         []*ScopedBinding       `protobuf:"bytes,1,rep,name=scope,proto3" json:"scope,omitempty"`
+	Source        string                 `protobuf:"bytes,2,opt,name=source,proto3" json:"source,omitempty"`
+	Ordinal       int64                  `protobuf:"varint,3,opt,name=ordinal,proto3" json:"ordinal,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedIdentity) Reset() {
+	*x = ScopedIdentity{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedIdentity) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedIdentity) ProtoMessage() {}
+
+func (x *ScopedIdentity) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedIdentity.ProtoReflect.Descriptor instead.
+func (*ScopedIdentity) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ScopedIdentity) GetScope() []*ScopedBinding {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+func (x *ScopedIdentity) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *ScopedIdentity) GetOrdinal() int64 {
+	if x != nil {
+		return x.Ordinal
+	}
+	return 0
+}
+
+type ScopedEvidenceField struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FieldId       string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
+	Value         *Value                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedEvidenceField) Reset() {
+	*x = ScopedEvidenceField{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedEvidenceField) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedEvidenceField) ProtoMessage() {}
+
+func (x *ScopedEvidenceField) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedEvidenceField.ProtoReflect.Descriptor instead.
+func (*ScopedEvidenceField) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ScopedEvidenceField) GetFieldId() string {
+	if x != nil {
+		return x.FieldId
+	}
+	return ""
+}
+
+func (x *ScopedEvidenceField) GetValue() *Value {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+type ScopedEvidence struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Identity      *ScopedIdentity        `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
+	Operation     string                 `protobuf:"bytes,2,opt,name=operation,proto3" json:"operation,omitempty"`
+	Kind          string                 `protobuf:"bytes,3,opt,name=kind,proto3" json:"kind,omitempty"`
+	Parents       []*ScopedIdentity      `protobuf:"bytes,4,rep,name=parents,proto3" json:"parents,omitempty"`
+	Fields        []*ScopedEvidenceField `protobuf:"bytes,6,rep,name=fields,proto3" json:"fields,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedEvidence) Reset() {
+	*x = ScopedEvidence{}
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedEvidence) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedEvidence) ProtoMessage() {}
+
+func (x *ScopedEvidence) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_run_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedEvidence.ProtoReflect.Descriptor instead.
+func (*ScopedEvidence) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ScopedEvidence) GetIdentity() *ScopedIdentity {
+	if x != nil {
+		return x.Identity
+	}
+	return nil
+}
+
+func (x *ScopedEvidence) GetOperation() string {
+	if x != nil {
+		return x.Operation
+	}
+	return ""
+}
+
+func (x *ScopedEvidence) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ScopedEvidence) GetParents() []*ScopedIdentity {
+	if x != nil {
+		return x.Parents
+	}
+	return nil
+}
+
+func (x *ScopedEvidence) GetFields() []*ScopedEvidenceField {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
 var File_temporal_server_api_testpilot_v1_run_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
@@ -1228,7 +1470,23 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\averdict\x18\a \x01(\v2).temporal.server.api.testpilot.v1.VerdictR\averdict\x12Q\n" +
 	"\vdiagnostics\x18\b \x03(\v2/.temporal.server.api.testpilot.v1.RunDiagnosticR\vdiagnostics\x12@\n" +
 	"\x1bevaluation_failure_sequence\x18\t \x01(\x03H\x00R\x19evaluationFailureSequenceB\x14\n" +
-	"\x12evaluation_failure*\x9d\x03\n" +
+	"\x12evaluation_failure\"@\n" +
+	"\rScopedBinding\x12\x19\n" +
+	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\x89\x01\n" +
+	"\x0eScopedIdentity\x12E\n" +
+	"\x05scope\x18\x01 \x03(\v2/.temporal.server.api.testpilot.v1.ScopedBindingR\x05scope\x12\x16\n" +
+	"\x06source\x18\x02 \x01(\tR\x06source\x12\x18\n" +
+	"\aordinal\x18\x03 \x01(\x03R\aordinal\"o\n" +
+	"\x13ScopedEvidenceField\x12\x19\n" +
+	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12=\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xab\x02\n" +
+	"\x0eScopedEvidence\x12L\n" +
+	"\bidentity\x18\x01 \x01(\v20.temporal.server.api.testpilot.v1.ScopedIdentityR\bidentity\x12\x1c\n" +
+	"\toperation\x18\x02 \x01(\tR\toperation\x12\x12\n" +
+	"\x04kind\x18\x03 \x01(\tR\x04kind\x12J\n" +
+	"\aparents\x18\x04 \x03(\v20.temporal.server.api.testpilot.v1.ScopedIdentityR\aparents\x12M\n" +
+	"\x06fields\x18\x06 \x03(\v25.temporal.server.api.testpilot.v1.ScopedEvidenceFieldR\x06fields*\x9d\x03\n" +
 	"\fRunEventKind\x12\x1e\n" +
 	"\x1aRUN_EVENT_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19RUN_EVENT_KIND_RUN_OPENED\x10\x01\x12$\n" +
@@ -1286,7 +1544,7 @@ func file_temporal_server_api_testpilot_v1_run_proto_rawDescGZIP() []byte {
 }
 
 var file_temporal_server_api_testpilot_v1_run_proto_enumTypes = make([]protoimpl.EnumInfo, 6)
-var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_temporal_server_api_testpilot_v1_run_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
 var file_temporal_server_api_testpilot_v1_run_proto_goTypes = []any{
 	(RunEventKind)(0),           // 0: temporal.server.api.testpilot.v1.RunEventKind
 	(RunStatus)(0),              // 1: temporal.server.api.testpilot.v1.RunStatus
@@ -1303,15 +1561,19 @@ var file_temporal_server_api_testpilot_v1_run_proto_goTypes = []any{
 	(*RuleVerdict)(nil),         // 12: temporal.server.api.testpilot.v1.RuleVerdict
 	(*Verdict)(nil),             // 13: temporal.server.api.testpilot.v1.Verdict
 	(*Run)(nil),                 // 14: temporal.server.api.testpilot.v1.Run
-	(*Value)(nil),               // 15: temporal.server.api.testpilot.v1.Value
-	(*InstructionOutcome)(nil),  // 16: temporal.server.api.testpilot.v1.InstructionOutcome
+	(*ScopedBinding)(nil),       // 15: temporal.server.api.testpilot.v1.ScopedBinding
+	(*ScopedIdentity)(nil),      // 16: temporal.server.api.testpilot.v1.ScopedIdentity
+	(*ScopedEvidenceField)(nil), // 17: temporal.server.api.testpilot.v1.ScopedEvidenceField
+	(*ScopedEvidence)(nil),      // 18: temporal.server.api.testpilot.v1.ScopedEvidence
+	(*Value)(nil),               // 19: temporal.server.api.testpilot.v1.Value
+	(*InstructionOutcome)(nil),  // 20: temporal.server.api.testpilot.v1.InstructionOutcome
 }
 var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
 	0,  // 0: temporal.server.api.testpilot.v1.RunEventFilter.kinds:type_name -> temporal.server.api.testpilot.v1.RunEventKind
-	15, // 1: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> temporal.server.api.testpilot.v1.Value
+	19, // 1: temporal.server.api.testpilot.v1.ObservationResult.value:type_name -> temporal.server.api.testpilot.v1.Value
 	0,  // 2: temporal.server.api.testpilot.v1.RunEvent.kind:type_name -> temporal.server.api.testpilot.v1.RunEventKind
 	7,  // 3: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
-	16, // 4: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
+	20, // 4: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
 	8,  // 5: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
 	2,  // 6: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
 	3,  // 7: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
@@ -1323,11 +1585,16 @@ var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
 	10, // 13: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
 	13, // 14: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
 	11, // 15: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	15, // 16: temporal.server.api.testpilot.v1.ScopedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.ScopedBinding
+	19, // 17: temporal.server.api.testpilot.v1.ScopedEvidenceField.value:type_name -> temporal.server.api.testpilot.v1.Value
+	16, // 18: temporal.server.api.testpilot.v1.ScopedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.ScopedIdentity
+	16, // 19: temporal.server.api.testpilot.v1.ScopedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.ScopedIdentity
+	17, // 20: temporal.server.api.testpilot.v1.ScopedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceField
+	21, // [21:21] is the sub-list for method output_type
+	21, // [21:21] is the sub-list for method input_type
+	21, // [21:21] is the sub-list for extension type_name
+	21, // [21:21] is the sub-list for extension extendee
+	0,  // [0:21] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_run_proto_init() }
@@ -1349,7 +1616,7 @@ func file_temporal_server_api_testpilot_v1_run_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_run_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_run_proto_rawDesc)),
 			NumEnums:      6,
-			NumMessages:   9,
+			NumMessages:   13,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

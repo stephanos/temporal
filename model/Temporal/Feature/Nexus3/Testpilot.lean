@@ -255,6 +255,11 @@ def produceCompletionCase
     (checkedQuery : CheckedQuery LawStatement)
     (witness? : Option BehaviorTrace) :
     Except LoweringError temporal.server.api.testpilot.v1.Case := do
+  if let some clause := checkedProperty.scopedClauses.head? then
+    throw {
+      sourceDefinitionId := clause.declaration.id.value
+      source := clause.declaration.source
+      construct := "property.scoped-eventually-within/v1" }
   let expected ← checkedCompletion
   unless sameTarget target expected.target do
     throw (loweringError target.id.value "target")

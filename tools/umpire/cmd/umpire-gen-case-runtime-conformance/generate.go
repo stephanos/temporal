@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -95,8 +96,9 @@ type rendererOutput struct {
 }
 
 type generationDependencies struct {
-	Render  func(modelRoot, argument string) (rendererOutput, error)
-	Publish func(artifactio.Set, string, map[string][]byte, func(string) error) error
+	RenderScoped func(modelRoot string) (rendererOutput, error)
+	Render       func(modelRoot, argument string) (rendererOutput, error)
+	Publish      func(artifactio.Set, string, map[string][]byte, func(string) error) error
 }
 
 func Run(arguments []string) error {
@@ -150,6 +152,9 @@ func (value *generationModeValue) Set(encoded string) error {
 func defaultGenerationDependencies() generationDependencies {
 	return generationDependencies{
 		Render: renderLeanCase,
+		RenderScoped: func(modelRoot string) (rendererOutput, error) {
+			return renderExecutable(modelRoot, "umpire-scoped-fixtures")
+		},
 		Publish: func(set artifactio.Set, root string, artifacts map[string][]byte, validate func(string) error) error {
 			return set.Publish(root, artifacts, validate)
 		},
@@ -170,18 +175,11 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 	modelRoot := filepath.Join(repositoryRoot, "model")
 	artifacts := make(map[string][]byte, len(entries)*2)
 	for _, entry := range entries {
-		output, renderErr := dependencies.Render(modelRoot, entry.RendererArg)
-		encoded, err := requireRendererArtifact(entry.Class, output, renderErr)
+		encoded, err := renderStable(entry.Class, func() (rendererOutput, error) {
+			return dependencies.Render(modelRoot, entry.RendererArg)
+		})
 		if err != nil {
 			return err
-		}
-		repeatedOutput, repeatedRenderErr := dependencies.Render(modelRoot, entry.RendererArg)
-		repeated, err := requireRendererArtifact(entry.Class, repeatedOutput, repeatedRenderErr)
-		if err != nil {
-			return err
-		}
-		if !bytes.Equal(encoded, repeated) {
-			return fmt.Errorf("render %q Testpilot Case fixture: non-deterministic bytes", entry.Class)
 		}
 		decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
 		if err != nil {
@@ -203,11 +201,18 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 	if err := validateArtifacts(entries, artifacts); err != nil {
 		return err
 	}
+	if err := renderScopedArtifacts(dependencies, modelRoot, artifacts); err != nil {
+		return err
+	}
 	outputRoot, err := filepath.Abs(configuration.OutputRoot)
 	if err != nil {
 		return fmt.Errorf("resolve fixture output root: %w", err)
 	}
-	paths := managedPaths(entries)
+	paths := make([]string, 0, len(artifacts))
+	for path := range artifacts {
+		paths = append(paths, path)
+	}
+	slices.Sort(paths)
 	set := artifactio.Set{Roots: []string{fixtureRoot}, Paths: slices.Clone(paths)}
 	validate := func(candidateRoot string) error {
 		candidate := make(map[string][]byte, len(paths))
@@ -218,12 +223,55 @@ func runGeneration(configuration generationConfig, entries []manifestEntry, depe
 			}
 			candidate[relative] = encoded
 		}
-		return validateArtifacts(entries, candidate)
+		return validateGeneratedArtifacts(entries, artifacts, candidate)
 	}
 	if err := dependencies.Publish(set, outputRoot, artifacts, validate); err != nil {
 		return fmt.Errorf("publish Testpilot conformance fixtures: %w", err)
 	}
 	return nil
+}
+
+func renderStable(class string, render func() (rendererOutput, error)) ([]byte, error) {
+	output, renderErr := render()
+	encoded, err := requireRendererArtifact(class, output, renderErr)
+	if err != nil {
+		return nil, err
+	}
+	output, renderErr = render()
+	repeated, err := requireRendererArtifact(class, output, renderErr)
+	if err != nil {
+		return nil, err
+	}
+	if !bytes.Equal(encoded, repeated) {
+		return nil, fmt.Errorf("render %q Testpilot Case fixture: non-deterministic bytes", class)
+	}
+	return encoded, nil
+}
+
+func renderScopedArtifacts(dependencies generationDependencies, modelRoot string, artifacts map[string][]byte) error {
+	if dependencies.RenderScoped == nil {
+		return nil
+	}
+	encoded, err := renderStable("scoped", func() (rendererOutput, error) { return dependencies.RenderScoped(modelRoot) })
+	if err != nil {
+		return err
+	}
+	if !json.Valid(encoded) {
+		return errors.New("invalid scoped fixtures")
+	}
+	artifacts[fixtureRoot+"/scoped.json"] = encoded
+	return nil
+}
+
+func validateGeneratedArtifacts(entries []manifestEntry, artifacts, candidate map[string][]byte) error {
+	if expected, ok := artifacts[fixtureRoot+"/scoped.json"]; ok {
+		encoded := candidate[fixtureRoot+"/scoped.json"]
+		if !json.Valid(encoded) || !bytes.Equal(encoded, expected) {
+			return errors.New("invalid staged scoped fixtures")
+		}
+		delete(candidate, fixtureRoot+"/scoped.json")
+	}
+	return validateArtifacts(entries, candidate)
 }
 
 func runFunctionalGeneration(configuration generationConfig, entries []functionalEntry, dependencies generationDependencies) error {
@@ -325,7 +373,11 @@ func functionalManifest() []functionalEntry {
 }
 
 func renderLeanCase(modelRoot, argument string) (rendererOutput, error) {
-	command := exec.Command(filepath.Join(modelRoot, ".lake", "build", "bin", rendererExecutable), argument)
+	return renderExecutable(modelRoot, rendererExecutable, argument)
+}
+
+func renderExecutable(modelRoot, executable string, arguments ...string) (rendererOutput, error) {
+	command := exec.Command(filepath.Join(modelRoot, ".lake", "build", "bin", executable), arguments...)
 	command.Dir = modelRoot
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer

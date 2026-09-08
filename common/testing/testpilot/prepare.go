@@ -20,27 +20,29 @@ type PreparedCase struct {
 	identity DriverIdentity
 }
 
+// Prepare snapshots and admits a Case without Driver I/O. Rejections expose
+// *PreparationError through errors.As.
 func Prepare(source *testpilotspb.Case, profile Profile) (*PreparedCase, error) {
 	if isNil(profile) {
-		return nil, errors.New("Profile is required")
+		return nil, preparationError(errors.New("Profile is required"), "profile")
 	}
 	spec := profile.Snapshot().Snapshot()
 	if spec.Catalog == nil || spec.Catalog.catalog == nil {
-		return nil, errors.New("Profile catalog is required")
+		return nil, preparationError(errors.New("Profile catalog is required"), "profile.catalog")
 	}
 	fingerprint, err := spec.BindingFingerprint()
 	if err != nil {
-		return nil, err
+		return nil, preparationError(err, "profile.environment_bindings")
 	}
 	policy := spec.policy()
 	policy.EnvironmentFingerprint = fingerprint
 	program, err := execution.Prepare(source, spec.Catalog.catalog, policy)
 	if err != nil {
-		return nil, err
+		return nil, preparationError(err, "program")
 	}
 	contract, err := verification.Prepare(source.Contract, spec.Catalog.catalog, program.View(), spec.ContractLimits)
 	if err != nil {
-		return nil, err
+		return nil, preparationError(err, "contract")
 	}
 	return &PreparedCase{source: proto.CloneOf(source), program: program, factory: contract, identity: DriverIdentity{Profile: policy.Identity, Catalog: policy.CatalogIdentity, Bindings: fingerprint}}, nil
 }
