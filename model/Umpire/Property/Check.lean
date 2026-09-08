@@ -84,6 +84,7 @@ structure PropertyCheckContext where
   providers : List PropertyCapability
   meanings : List (DefinitionId × MeaningProvision)
   limitProfiles : List PropertyLimitProfile := []
+  fieldBindings : List PropertyFieldBinding := []
   deriving BEq, DecidableEq, Repr
 
 /-- A Boolean predicate whose references, capabilities, field context, and typed literals passed
@@ -268,34 +269,6 @@ def CheckedPropertyPredicate.expression
     (predicate : CheckedPropertyPredicate context) : PropertyPredicate :=
   predicate.predicate
 
-/-- A complete same-step input checked against every atom before Boolean evaluation begins. The
-predicate index prevents reuse of an input checked for another predicate in the same context. -/
-structure CheckedPropertyPredicateInput
-    {context : PropertyPredicateContext}
-    (predicate : CheckedPropertyPredicate context) where
-  private input : PropertyPredicateInput
-  deriving Repr
-
-/-- Same-step context fixed by input validation. -/
-def CheckedPropertyPredicateInput.contextKind
-    {context : PropertyPredicateContext}
-    {predicate : CheckedPropertyPredicate context}
-    (_input : CheckedPropertyPredicateInput predicate) : PropertyPredicateContext :=
-  context
-
-/-- Project the complete values of one field from a validated same-step input. -/
-def CheckedPropertyPredicateInput.valuesAt
-    {context : PropertyPredicateContext}
-    {predicate : CheckedPropertyPredicate context}
-    (input : CheckedPropertyPredicateInput predicate)
-    (field : PropertyPredicateField) : List ModelValue :=
-  match field with
-  | .priorState => input.input.priorState.toList
-  | .selectedAction => input.input.selectedAction.toList
-  | .resultingState => input.input.resultingState.toList
-  | .modelOutcome => input.input.modelOutcome.toList
-  | .expectationFact => input.input.facts.getD []
-
 private def capabilityLe (left right : PropertyCapability) : Bool :=
   decide (left.id.value < right.id.value) ||
     (left.id == right.id && decide (left.canonicalBehavior ≤ right.canonicalBehavior))
@@ -359,7 +332,7 @@ private def withNestedSource
     (result : Except PropertyError α) : Except PropertyError α :=
   match result with
   | .ok value => .ok value
-  | .error error => .error { error with sourceLocation := some source }
+  | .error error => .error { error with sourceLocation := error.sourceLocation.orElse (fun _ => some source) }
 
 private def requireDefinitionId
     (owner : DefinitionId)
@@ -466,7 +439,7 @@ private def validateAtomConstraint
     (owner : PropertyDeclaration)
     (atom : PropertyAtom) : Except PropertyError Unit := do
   match atom.constraint with
-  | .present | .equals _ => pure ()
+  | .present | .equals _ | .fields _ => pure ()
   | .oneOf [] =>
       throw (propertyError .emptyBooleanGroup owner.id owner.source
         (atom.field.name ++ " one-of") [atom.reference])
@@ -476,30 +449,75 @@ private def validateAtomConstraint
           (atom.field.name ++ " one-of: expected " ++ first.type.name ++ " literals")
           [atom.reference])
 
+private def fieldPredicateField : PropertyFieldRoot → PropertyPredicateField
+  | .request => .selectedAction
+  | .priorState => .priorState
+  | .resultingState => .resultingState
+  | .outcome => .modelOutcome
+  | .event => .expectationFact
+
+private def validateFieldComparison (context : PropertyCheckContext) (owner : PropertyDeclaration)
+    (access : PropertyCapabilityView) (contextKind : PropertyPredicateContext)
+    (comparison : PropertyFieldComparison) (facts : List PropertyFieldPath) :
+    Except PropertyError Unit := do
+  let _ ← PropertyFieldComparison.check comparison.operator comparison.left comparison.right comparison.source
+    |>.mapError fun error => nestedPropertyError .typeMismatch owner.id error.source error.reason
+  for operand in [comparison.left, comparison.right] do
+    if let .field path source := operand then
+      let field := fieldPredicateField path.root
+      if contextKind == .guard && field != .priorState && field != .selectedAction then
+        throw (nestedPropertyError .invalidPredicateContext owner.id source field.name [path.reference])
+      validatePattern context { owner with source } access {
+        field := predicateTraceField field, reference := path.reference }
+        |>.mapError fun error => { error with sourceLocation := some source }
+      if !(context.fieldBindings.any fun binding =>
+          binding.reference == path.reference && binding.schema == path.schema) then
+        throw (nestedPropertyError .unsupportedPredicateInput owner.id source
+          "wrong operation owner or schema" [path.reference])
+      if path.root == .request && path.side != .request then
+        throw (nestedPropertyError .invalidPredicateContext owner.id source "request payload side mismatch")
+      path.validate facts source |>.mapError fun error =>
+        nestedPropertyError .invalidClause owner.id error.source error.reason [path.reference]
+
+private def establishedFields : PropertyPredicate → List PropertyFieldPath
+  | .atom atom => atom.fieldComparison.toList.flatMap (·.established)
+  | .all items => items.flatMap establishedFields
+  | .any _ | .not _ => []
+
 private def validatePropertyPredicate
     (context : PropertyCheckContext)
     (owner : PropertyDeclaration)
     (access : PropertyCapabilityView)
-    (contextKind : PropertyPredicateContext) :
-    PropertyPredicate → Except PropertyError Unit
+    (contextKind : PropertyPredicateContext)
+    (predicate : PropertyPredicate) (facts : List PropertyFieldPath := []) :
+    Except PropertyError Unit :=
+  match predicate with
   | .atom atom => do
-      if !contextKind.allows atom.field then
-        throw (propertyError .invalidPredicateContext owner.id owner.source
-          (contextKind.name ++ ": " ++ atom.field.name) [atom.reference])
-      validatePattern context owner access {
-        field := predicateTraceField atom.field
-        reference := atom.reference
-      }
-      validateAtomConstraint owner atom
+      if let some comparison := atom.fieldComparison then
+        validateFieldComparison context owner access contextKind comparison facts
+      else
+        if !contextKind.allows atom.field then
+          throw (propertyError .invalidPredicateContext owner.id owner.source
+            (contextKind.name ++ ": " ++ atom.field.name) [atom.reference])
+        validatePattern context owner access {
+          field := predicateTraceField atom.field
+          reference := atom.reference
+        }
+        validateAtomConstraint owner atom
   | .all [] =>
       throw (propertyError .emptyBooleanGroup owner.id owner.source "all")
   | .any [] =>
       throw (propertyError .emptyBooleanGroup owner.id owner.source "any")
-  | .all items | .any items =>
+  | .all items => do
+      let mut available := facts
       for item in items do
-        validatePropertyPredicate context owner access contextKind item
+        validatePropertyPredicate context owner access contextKind item available
+        available := available ++ establishedFields item
+  | .any items =>
+      for item in items do
+        validatePropertyPredicate context owner access contextKind item facts
   | .not item =>
-      validatePropertyPredicate context owner access contextKind item
+      validatePropertyPredicate context owner access contextKind item facts
 
 private def resolvePropertyPredicate
     (context : PropertyCheckContext)
@@ -535,7 +553,7 @@ def checkedPropertyPredicate
   (checkPropertyPredicate context owner contextKind predicate).toOption.get valid
 
 private def predicateAtoms : PropertyPredicate → List PropertyAtom
-  | .atom atom => [atom]
+  | .atom atom => if atom.fieldComparison.isSome then [] else [atom]
   | .all items | .any items => items.flatMap predicateAtoms
   | .not item => predicateAtoms item
 
@@ -561,7 +579,7 @@ private def constraintAcceptsPayload
   match constraint with
   | .present => true
   | .equals literal => literalAcceptsPayload literal payload
-  | .oneOf [] => false
+  | .fields _ | .oneOf [] => false
   | .oneOf (first :: _) => literalAcceptsPayload first payload
 
 private def validatePredicateInputValue
@@ -596,24 +614,16 @@ private def validatePredicateInputAtom
 
 /-- Validate all actual same-step slots used by a checked predicate before any `all`, `any`, or
 `not` result can short-circuit or invert an unknown value. -/
-def checkPropertyPredicateInput
+def validatePropertyPredicateInput
     (predicate : CheckedPropertyPredicate contextKind)
     (input : PropertyPredicateInput) :
-    Except PropertyError (CheckedPropertyPredicateInput predicate) := do
+    Except PropertyError Unit := do
   if input.context != contextKind then
     throw (nestedPropertyError .invalidPredicateContext predicate.ownerId predicate.source
       ("expected " ++ contextKind.name ++ ", found " ++ input.context.name))
   for atom in predicateAtoms predicate.predicate do
     validatePredicateInputAtom predicate input atom
-  pure { input }
-
-/-- Produce a complete checked predicate input from an explicit kernel-checked validation proof. -/
-def checkedPropertyPredicateInput
-    (predicate : CheckedPropertyPredicate contextKind)
-    (input : PropertyPredicateInput)
-    (valid : (checkPropertyPredicateInput predicate input).toOption.isSome = true) :
-    CheckedPropertyPredicateInput predicate :=
-  (checkPropertyPredicateInput predicate input).toOption.get valid
+  pure ()
 
 private def validateLogicalTime
     (context : PropertyCheckContext)
@@ -920,6 +930,7 @@ private def literalJson : PropertyLiteral → String
   | .boolean value => "{\"type\":\"boolean\",\"value\":" ++ toString value ++ "}"
 
 private def atomConstraintJson : PropertyAtomConstraint → String
+  | .fields comparison => "{\"kind\":\"field-comparison/v1\",\"data\":" ++ quote comparison.canonical ++ "}"
   | .present => "{\"kind\":\"present\"}"
   | .equals value => "{\"kind\":\"equals\",\"value\":" ++ literalJson value ++ "}"
   | .oneOf values => "{\"kind\":\"one-of\",\"values\":" ++
@@ -927,6 +938,9 @@ private def atomConstraintJson : PropertyAtomConstraint → String
 
 private def predicateJson : PropertyPredicate → String
   | .atom atom =>
+      if let some comparison := atom.fieldComparison then
+        "{\"kind\":\"field-comparison/v1\",\"data\":" ++ quote comparison.canonical ++ "}"
+      else
       "{\"kind\":\"atom\",\"field\":" ++ quote atom.field.name ++
         ",\"reference\":" ++ quote atom.reference.value ++
         ",\"constraint\":" ++ atomConstraintJson atom.constraint ++ "}"
