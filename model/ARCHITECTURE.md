@@ -21,9 +21,13 @@ owner boundaries below:
 Shared
   └── transition and trace replay
 
-Umpire.Core ──▶ Target ──▶ Property / Behavior / Query ──▶ Planning
-                    ├────▶ Observation / ImplementationLink
-                    └────▶ Space / Exploration / Promotion
+Umpire.Core ──▶ Target.Data ──▶ Target.Projection ──▶ Target.Semantics
+                                                         ├──▶ Property / Behavior semantics
+                                                         │       └──▶ Query semantics ──▶ Planning
+                                                         ├──▶ Target.Frontend ──▶ Target authoring facade
+                                                         └──▶ Target.FiniteMachine ──▶ Target authoring facade
+
+Checked Targets ──▶ Observation / ImplementationLink / Space / Exploration / Promotion
 
 Testpilot.Protocol ──▶ Testpilot.Authoring ──▶ Temporal.Testpilot
          │                       ▲                       ▲
@@ -40,6 +44,15 @@ Temporal.Testpilot ────────────────────�
 except for the exact checked Implementation Link leaf. `Temporal.Tool.*` owns developer commands and
 is not imported by the production aggregate. `make lint-model` checks these edges against the full
 source inventory and compiled module metadata.
+
+`Umpire.Target.Semantics` is the narrow checked-model import. It owns pure admission together with
+private checked construction; `Target.Projection` owns pure canonicalization, and `Target.Frontend`
+owns syntax capture and located elaboration. Property, Behavior, Query, and Planning semantic
+modules cannot transitively import the Target frontend or `Lean.Elab.Term`. The ordinary authoring
+facades remain `Umpire.Target`, `Umpire.Property`, `Umpire.Behavior`, and `Umpire.Query`; importing
+Planning alone does not provide their authoring conveniences. See the
+[Target ownership table](Umpire/ARCHITECTURE.md#target-ownership-and-semantic-imports) for the checked
+API and replacement-proof contracts.
 
 ## Generated structure
 
@@ -69,6 +82,20 @@ The retained semantic APIs keep these responsibilities separate:
 
 Planning artifacts and Generated Views remain useful model outputs. They are not inputs to Testpilot
 and do not establish that a runtime action occurred.
+
+Operation-scoped bounded response authoring lowers through the existing Property checker.
+`bounded_response%` and typed `PropertyScopedClause` values share canonical meaning and fingerprints;
+key, scope, operation-transition clock, bound, and endpoint remain explicit semantic choices.
+Checked projection, source Property, and portable Contract are connected by `Umpire.Case.Scoped`
+certificates. Shared table/projection/obligation modules contain no feature callback; generic
+Testpilot interprets the admitted versioned capability and maintains fresh state for each Run.
+
+The non-cancellation scoped corpus now includes RPC Programs that emit typed observations through
+the public Prepare/Run path. It qualifies correlation, inclusive deadlines, preserved violation
+proof, incomplete/lost execution, cleanup failure, and bounded tenfold loads. The existing Nexus3
+success Case remains the live Driver integration. Cancellation Targets, evidence adapters, operation
+capabilities, and authored Cases are deferred to fn-79, independently of Run-context cancellation
+and bounded cleanup.
 
 ## Testpilot protocol and Producers
 
@@ -161,6 +188,17 @@ the complete Profile binding fingerprint. `Run` compares that identity, invokes 
 request carriers, worker namespaces, task queues, and Nexus routes solely from those prepared
 bindings.
 
+Public static admission exposes `testpilot.PreparationError` with a stable category, bounded input
+path, and human-readable detail through `errors.As`. It covers Catalog, Profile, Program, and
+Contract rejection, including scoped Contracts; ProtoJSON decoding and runtime failures keep their
+own contracts. See the canonical [facade guidance](../common/testing/testpilot/README.md#preparation-diagnostics)
+and [public diagnostic type](../common/testing/testpilot/preparation_error.go).
+
+The worker's private activation state composes prepared expression evaluation, outcome validation,
+immutable local references, and cumulative work accounting. SDK commands, futures, replay, delivery,
+and cancellation remain adapter-owned. See the [Temporal Driver contract](../common/testing/testpilot/temporal/README.md)
+and [worker ownership](../common/testing/testpilot/temporal/worker/README.md).
+
 The Executor appends monotonic immutable Run Events. Each event has a unique source identity and
 causal references to prior sources. The Evaluator observes the appended copy synchronously and uses
 the same prepared Contract for offline evaluation. It checks horizon expiry before every
@@ -173,6 +211,19 @@ and Verdict remain independent; a proved violation is not erased by cleanup fail
 late completion and Driver diagnostics cannot mutate returned data.
 
 ## Artifact ownership and tests
+
+Semantic owners depend on `Umpire.OutcomeClassification` for neutral classifier and projection
+vocabulary and on `Umpire.KnownGap` for carry contracts. Concrete stage classifiers, exhaustive
+proofs, the Implementation Link projection sentinel, Observation's lossy admission mapping, and
+Result Artifact's exact carry mapping stay with their semantic owners. The inventory consumes those
+contracts and owns its catalogs; the Temporal inventory tool assembles, validates, and renders them.
+
+Inventory consumers explicitly import `Umpire.SemanticInventory` or a focused inventory module;
+the ordinary `Umpire` umbrella does not import it. `make lint-model` rejects direct and transitive
+production Umpire paths into the inventory, including facade, helper, external, and test-fixture
+bridges, and keeps `Umpire.OutcomeClassification` limited to Lean's `Init` foundation. Dedicated
+inventory tests, including Planning Known Gap catalog tests, remain valid consumers. See the
+[ownership guidance](Umpire/ARCHITECTURE.md#artifact-and-generated-view-boundaries).
 
 `model/SEMANTIC_INVENTORY.md` is generated by `temporal-model-semantic-inventory`. The retained
 planning Generated Views are generated by `umpire-gen-regression-views`. Case conformance fixtures

@@ -1,5 +1,7 @@
 # Export Lean model module impact index
 
+> HTML render lens: `.flow/artifacts/fn-46-export-lean-model-module-impact-index/spec.html` — regenerable; Markdown remains the record. <!-- flow-next:artifact-link -->
+
 ## Overview
 
 Add an on-demand deterministic JSON view of the Lean model's first-party module graph so agents can
@@ -18,7 +20,9 @@ End users and operators are unaffected. The only operational surface is a local 
 
 ## Architecture & Data Models
 
-Extract the effectful source/build/OLean-loading sequence into `ModelLint.PackageModules`. Keep a pure
+Extract the effectful source/build/reconciliation orchestration into `ModelLint.PackageModules`,
+reusing and extending the existing `Tools.LeanImportGraph.Metadata` traversal rather than creating
+a second OLean loader. Keep a pure
 `ModelLint.ModuleIndex.build` boundary that validates policy, constructs first-party direct and reverse
 adjacency once, and projects configured public facade and focused test roots. A thin executable buffers
 and prints canonical JSON only after all work succeeds.
@@ -38,22 +42,36 @@ The root JSON object has exactly `format` and `modules`. `format` is
 All nested arrays are de-duplicated and lexically ordered.
 
 `classification` exhaustively maps the existing constructors to these v1 strings:
-`shared`, `umpire`, `umpire-veil`, `temporal-shared`, `temporal-feature`, `temporal-system`,
+`shared`, `testpilot`, `umpire`, `umpire-veil`, `temporal-shared`, `temporal-feature`, `temporal-system`,
 `temporal-implementation-link-test`, `temporal-verify`, `temporal-tool`, `temporal`, `model-tests`,
-`opt-in-verify`, and `lint-infrastructure`.
+`opt-in-verify`, and `lint-infrastructure`. All 14 constructors are covered, including reserved
+classes that currently have no source rows; existing classification precedence is unchanged.
 
 Direct and reverse dependencies contain first-party modules only. V1 `publicFacades` are exactly
 `Shared`, `Temporal`, `Temporal.API`, `Temporal.DynamicConfig`, `Temporal.Feature`,
 `Temporal.Feature.Nexus`, `Temporal.System`, `Temporal.System.Configuration`,
-`Temporal.System.Execution`, `Umpire`, `Umpire.Artifact`, `Umpire.Behavior`, `Umpire.Core`,
-`Umpire.ExecutionHandoff`, `Umpire.ImplementationLink`, `Umpire.Observation`, `Umpire.Planning`,
-`Umpire.Property`, `Umpire.Query`, `Umpire.Space`, and `Umpire.Target`.
+`Temporal.Testpilot`, `Testpilot`, `Testpilot.Authoring`, `Testpilot.ProtoJSON`, `Testpilot.Protocol`,
+`Umpire`, `Umpire.Artifact`, `Umpire.Behavior`, `Umpire.Case`, `Umpire.Case.Compiler`, `Umpire.Core`,
+`Umpire.ExecutionHandoff`, `Umpire.Exploration`, `Umpire.ImplementationLink`, `Umpire.Json`,
+`Umpire.KnownGap`, `Umpire.Observation`, `Umpire.OutcomeClassification`, `Umpire.Planning`,
+`Umpire.Promotion`, `Umpire.Property`, `Umpire.Query`, `Umpire.SemanticInventory`, `Umpire.Space`,
+`Umpire.Target`, and `Umpire.Target.Semantics`.
 
 V1 `focusedTests` roots are exactly `ModelLint.ImportGraphTests`,
-`Temporal.Tool.GenerateTestsIOTestsMain`, `TemporalExperimentalTests`, `TemporalModelTests`,
-`TemporalVeilTests`, `TemporalVerify`, and `UmpireTests`. Reachability is reflexive: a configured root
+`Temporal.Tool.SemanticInventoryMainTests`, `Temporal.Tool.SemanticInventoryMakeTestsMain`,
+`Temporal.Tool.SemanticInventoryTests`, `TemporalExperimentalTests`, `TemporalModelTests`,
+`Testpilot.Tests`, `Testpilot.Tests.ProtoJSONMain`, `Umpire.Case.ScopedTests`,
+`Umpire.Observation.Tests`, `Umpire.OutcomeClassification.ImportTests`,
+`Umpire.Planning.SemanticsImportTests`, `Umpire.Property.Tests.Scoped`,
+`Umpire.Target.SemanticsImportTests`, and `UmpireTests`. Reachability is reflexive: a configured root
 appears in its own row and in every imported descendant row. These sets are explicit policy, never
-filename heuristics.
+filename heuristics. The 34 facade roots and 15 test roots are module names, not Lake target names;
+compilation impact does not itself prove an executable test suite ran.
+
+Full reachable external metadata remains available through reconciliation, import-policy validation
+and configured-root reachability. Only emitted rows and direct/reverse adjacency omit external
+modules. Direct edges are actual first-party imports, never shortcuts through external intermediaries;
+root impact still follows the complete validated graph. Configured roots must exist and classify.
 
 ## API Contracts
 
@@ -61,9 +79,22 @@ filename heuristics.
   lint and index. Discovery failure stops immediately; source validation reports all sorted issues;
   quiet Lake build failure stops metadata loading and reports its captured transcript; independent
   per-module OLean lookup/read failures are accumulated and sorted before returning no result; and
-  successful metadata is reconciled with all sorted inventory issues.
+  successful metadata reports all sorted inventory issues and architecture violations as current lint
+  does. Source issues stop the build; metadata failures continue independently known queued nodes,
+  but do not claim to inspect undiscoverable descendants of failed nodes. No failed phase returns
+  borrowed records or a partial loaded result. Compacted regions remain owned through consumers.
 - `ModelLint.ModuleIndex.build(policy, sources, modules)` is pure and returns either a complete index
   or deterministic issues.
+- Exporter-only root preflight loads the current directory's Lake root configuration and requires
+  package name `temporal-model`, canonical root-directory equality, and the root-owned `modelLint`,
+  `modelLintTests` and exporter declarations with their expected module roots. It rejects an unrelated
+  valid Lake package before inventory/build work. Use the pinned Lake root-loading adapter without
+  dependency resolution, toolchain updates or ambient CLI renaming; capture configuration diagnostics.
+  This identifies the project shape, not a security principal. Keep it outside shared lint loading
+  so current `modelLint` discovery behavior is unchanged; relocated valid checkouts remain supported.
+- Harmless permutations and equivalent valid platform path spellings normalize. Duplicate source,
+  metadata or edge identities, unsafe paths and malformed closed values reject; graph utilities must
+  not silently deduplicate invalid index inputs. Empty arrays remain present in the closed v1 JSON.
 - `cd model && mise exec -- lake -q exe temporal-model-module-index` emits exactly one compact JSON
   document plus LF on stdout, with empty stderr and status 0.
 - Inventory, build, OLean, policy, graph, or serialization failure returns non-zero, emits no stdout,
@@ -114,6 +145,11 @@ make lint-model
 - Both the outer `lake -q exe` and the loader's nested `lake -q build` are quiet on success. The loader
   captures child streams: `modelLint` may replay them to their original channels, while the exporter
   discards successful build chatter and reserves stdout for JSON.
+- Child streams are captured without pipe deadlock. Lint replays them to their original channels;
+  exporter failures retain both transcripts on stderr. Preserve existing lint diagnostic prefixes,
+  source/build ordering and exclusions, success text, and subsequent declaration-lint execution.
+- Cold/stale process tests use isolated scratch packages and actual outer Lake/Make entrypoints;
+  never delete a shared build cache or infer outer quietness from a mocked inner loader.
 
 ## Boundaries
 
@@ -121,6 +157,7 @@ make lint-model
 - No behavior fingerprints, Definition IDs, Artifact Checksums, provenance, or semantic catalog claim.
 - No external dependency graph, transitive path dump, source parser, or import-policy relaxation.
 - No new third-party library.
+- No new CI coverage, broad generated API drift verification, or Nexus cancellation work.
 
 ## Decision Context
 
@@ -129,6 +166,12 @@ filesystem and classification trust boundary. Keep the index builder pure so gra
 to test independently. Use one complete JSON export rather than a configurable query surface; agents
 can filter it downstream. Rejected a checked snapshot because it would create high-churn generated
 state with no semantic authority.
+
+The refresh consumes delivered Testpilot, semantic-only Target, scoped monitoring and neutral outcome
+owners. It retains every originally configured facade that still exists, including
+`Umpire.ExecutionHandoff`; only absent historical roots are removed. Reserved Veil classification
+cases remain even though their former executable roots are absent. Unfinished fn-77 owners are not
+silently added by filename discovery. Root policy changes require explicit reviewed choices.
 
 ## Acceptance Criteria
 
@@ -142,7 +185,7 @@ state with no semantic authority.
   v1 classification strings and enumerated facade/test policies above, reflexive root reachability,
   and correct direct/reverse dependencies.
   Errors: duplicate rows/edges, missing endpoints, cycles, unknown roots, unclassified modules, and
-  noncanonical inputs reject the whole result.
+  malformed/noncanonical values reject the whole result; equivalent input ordering normalizes.
 - **R3:** `temporal-model-module-index/v1` JSON is byte-identical across repeated and reordered
   equivalent inputs, has the exact closed field set and terminal LF, uses model-relative normalized
   paths, and is produced only after complete validation. Errors: unsupported/internal serialization
@@ -157,7 +200,9 @@ state with no semantic authority.
   external leaves, each classification string, reflexive and multi-root facade/test reachability,
   reordered input, cross-platform path normalization, multiple simultaneous metadata failures, cold
   and stale builds, wrong-root invocation, final-write failure, and a graph around 10x current size.
-  Existing model lint and aggregate lint remain green. Errors: no error surface beyond R1-R4.
+  Existing model lint must pass with terminal evidence. Mandatory nonfixing aggregate Go lint may
+  retain only its verified inherited failure multiset, with no new findings; a killed process or
+  missing result is never a passing gate. Errors: no error surface beyond R1-R4.
 
 ## Early proof point
 
@@ -181,7 +226,7 @@ building a second consumer.
 - `model/ModelLint/ImportGraph.lean` — existing classification and import-boundary policy.
 - `model/Tools/LeanImportGraph.lean` — deterministic pure graph traversal.
 - `model/Tools/LeanSourceInventory.lean` — canonical confined source inventory and reconciliation.
-- `model/lakefile.toml` — support library and executable registration.
+- `model/lakefile.lean` — support library and executable registration.
 - `model/README.md` and `model/ARCHITECTURE.md` — model tooling and import-policy documentation.
 - [Lean source files and modules](https://lean-lang.org/doc/reference/latest/Source-Files-and-Modules/)
 - [Lake reference](https://lean-lang.org/doc/reference/latest/Build-Tools-and-Distribution/Lake/)

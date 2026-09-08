@@ -1,4 +1,5 @@
-import Umpire.Query
+import Umpire.Query.Language
+import Umpire.Property.Evaluation
 
 /-! Result metadata shared by artifact construction and the Planning implementation. -/
 

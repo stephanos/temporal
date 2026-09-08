@@ -22,9 +22,34 @@ structure Checked (target : CheckedTarget Law Setup State Action Outcome Fact) w
   private mk ::
   private declaration : Declaration State Action Outcome Fact
   private initial : State
-  private transitionCount : Nat
+  private machine : Shared.ScopedProjection.Plan DefinitionId State Action
+    (TransitionResult State Outcome Fact)
+  private tableSound : ∀ row ∈ machine.transitions,
+    target.kernel.authoritativeStep row.1 row.2.1 row.2.2
+  private limitsMatch : machine.limits = declaration.limits
   canonicalBehavior : String
   behaviorFingerprint : BehaviorFingerprint
+
+/-- Execution fields admitted by the projector, available to checked semantic consumers. -/
+def Checked.scopeFields (plan : Checked target) : List DefinitionId := plan.declaration.scopeFields
+
+/-- Immutable operation-key field admitted by the projector. -/
+def Checked.operationField (plan : Checked target) : DefinitionId := plan.declaration.operationField
+
+/-- Target-admitted initial state shared with checked semantic consumers. -/
+def Checked.initialState (plan : Checked target) : State := plan.initial
+
+/-- Closed executable table and mappings derived from the complete checked finite domain. -/
+def Checked.executable (plan : Checked target) := plan.machine
+
+/-- Original checked field policies and limits for lossless portable lowering. -/
+def Checked.sourceDeclaration (plan : Checked target) := plan.declaration
+
+/-- Every encoded-table row retains the checked Target's transition authority. -/
+theorem Checked.table_authorized (plan : Checked target) (row)
+    (member : row ∈ plan.executable.transitions) :
+    target.kernel.authoritativeStep row.1 row.2.1 row.2.2 :=
+  plan.tableSound row member
 
 /-- A confirmed step carries kernel authority and exact direct/transitive source support. -/
 structure Step (target : CheckedTarget Law Setup State Action Outcome Fact) where
@@ -115,7 +140,7 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     meaningJson domain.encodeState domain.encodeAction domain.encodeOutcome domain.encodeObservation
       rule.meaning]
   let limits := declaration.limits
-  let canonical := array [quote "checked-projection/v1", quote declaration.id.value,
+  let canonical := array [quote "checked-projection/v2", quote declaration.id.value,
     quote target.behaviorFingerprint.render, quote (domain.encodeSetup setup),
     quote (domain.encodeState initial),
     array (declaration.scopeFields.map (quote ∘ DefinitionId.value)),
@@ -123,23 +148,26 @@ def check [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
     array (declaration.sources.map (quote ∘ DefinitionId.value)), array rules,
     array ([limits.events, limits.buffered, limits.keys, limits.support, limits.work,
       limits.eventSize].map toString)]
-  pure ⟨declaration, initial, target.behaviorDescription.transitions.length, canonical,
-    behaviorFingerprintOf canonical⟩
-
-private structure Payload (target : CheckedTarget Law Setup State Action Outcome Fact) where
-  scope : List (DefinitionId × String)
-  accepted : List Event := []
-  processed : List Identity := []
-  support : List (Identity × List Identity) := []
-  states : List (String × State) := []
-  steps : List (Step target) := []
-  work : Nat := 0
-  closed : Bool := false
+  let machine : Shared.ScopedProjection.Plan DefinitionId State Action
+      (TransitionResult State Outcome Fact) := {
+    initial
+    rules := declaration.rules.map fun rule => ⟨rule.kind, rule.fields.length, rule.meaning⟩
+    transitions := domain.states.flatMap fun prior => domain.actions.flatMap fun action =>
+      (target.kernel.steps prior action).map fun result => (prior, action, result)
+    limits := declaration.limits }
+  have sound : ∀ row ∈ machine.transitions,
+      target.kernel.authoritativeStep row.1 row.2.1 row.2.2 := by
+    intro row member
+    simp only [machine, List.mem_flatMap, List.mem_map] at member
+    obtain ⟨prior, _, action, _, result, member, rfl⟩ := member
+    exact target.kernel.stepSound prior action result member
+  pure ⟨declaration, initial, machine, sound,
+    rfl, canonical, behaviorFingerprintOf canonical⟩
 
 /-- Opaque immutable Run state; only successful admission can replace it. -/
 structure Run (plan : Checked target) where
   private mk ::
-  private payload : Payload target
+  private payload : Shared.ScopedProjection.Run plan.machine Field
 
 /-- Allocate independent buffers, counters, keys, and semantic state for one Run binding. -/
 def Checked.start (plan : Checked target) (scope : List (DefinitionId × String)) :
@@ -149,11 +177,22 @@ def Checked.start (plan : Checked target) (scope : List (DefinitionId × String)
     then throw .wrongScope
   pure ⟨{ scope }⟩
 
+/-- Static validation and the projector reserve against the identical admitted limits. -/
+theorem Checked.executable_limits (plan : Checked target) :
+    plan.executable.limits = plan.sourceDeclaration.limits := plan.limitsMatch
+
 /-- Immutable admitted evidence, including pending records, available only at the Observation boundary. -/
 def Run.accepted (run : Run plan) : List Event := run.payload.accepted
 
+private def checkedStep (scope : List (DefinitionId × String))
+    (step : Shared.ScopedProjection.Step plan.machine) : Step target :=
+  ⟨scope, plan.declaration.operationField, step.operation, step.priorState, step.action, step.result,
+    step.directSupport, step.support, step.directRunSequences, step.runSequences,
+    plan.tableSound _ step.member⟩
+
 /-- All previously committed confirmed steps; rejected appends cannot revise them. -/
-def Run.steps (run : Run plan) : List (Step target) := run.payload.steps
+def Run.steps (run : Run plan) : List (Step target) :=
+  run.payload.steps.map (checkedStep run.payload.scope)
 
 /-- The remaining causal/source-order buffer. -/
 def Run.pending (run : Run plan) : List Identity :=
@@ -179,198 +218,39 @@ private def eventSize (event : Event) : Nat :=
     event.runSequences.foldl (fun size sequence => size + (toString sequence).length) 0 +
     event.parents.foldl (fun size parent => size + identitySize parent) 0 +
     event.fields.foldl (fun size field => size + field.id.value.length +
-      (field.value.map (fun value => value.render.length)).getD 1) 0
+      (field.value.map Shared.SemanticData.Scalar.size).getD 1) 0
 
-private def validateEvent (plan : Checked target) (scope : List (DefinitionId × String))
-    (event : Event) : Except Error Unit := do
-  if eventSize event > plan.declaration.limits.eventSize then throw .eventSizeExhausted
-  if event.identity.scope != scope || event.parents.any (fun parent => parent.scope != scope) then
-    throw .wrongScope
-  if !plan.declaration.sources.contains event.identity.source ||
-      event.parents.any (fun parent => !plan.declaration.sources.contains parent.source) then
-    throw .unknownSource
-  if event.operation.isEmpty then throw .wrongScope
-  if event.runSequences.isEmpty || event.runSequences.contains 0 ||
-      event.runSequences.eraseDups != event.runSequences then throw .invalidEvidenceSupport
-  if event.identity.ordinal >= plan.declaration.limits.events ||
-      event.parents.any (fun parent => parent.ordinal >= plan.declaration.limits.events) then
-    throw .eventsExhausted
-  let some rule := plan.declaration.rules.find? (fun rule => rule.kind == event.kind)
-    | throw (.unsupportedEvidence event.kind)
-  if event.parents.eraseDups != event.parents then throw .invalidDeclaration
-  if (event.fields.map Field.id).eraseDups != event.fields.map Field.id then
-    throw .invalidDeclaration
-  for field in event.fields do
-    let some (declared, disposition) := rule.fields.find? (fun entry => entry.1.id == field.id)
-      | throw (.unauthorizedField field.id)
-    match disposition, field.value with
-    | .retain, some value =>
-        if value.valueType != declared.valueType then throw (.unauthorizedField field.id)
-    | .redact, none => pure ()
-    | _, _ => throw (.unauthorizedField field.id)
-  for (field, disposition) in rule.fields do
-    if disposition != .reject && !(event.fields.any fun value => value.id == field.id) then
-      throw (.unauthorizedField field.id)
+/-- Closed admitted field policies, with authoring-only hash dispositions remaining unsupported. -/
+def Checked.fieldPolicies (plan : Checked target) : List (DefinitionId × List (DefinitionId × Nat × Nat)) :=
+  plan.declaration.rules.map fun rule => (rule.kind, rule.fields.map fun (field, disposition) =>
+    (field.id, match field.valueType with | .text => 1 | .natural => 2 | .boolean => 3,
+      match disposition with | .retain => 1 | .redact => 2 | .reject => 3 | .hash _ => 0))
 
-private def sourceBefore (a b : Identity) : Bool :=
-  a.source == b.source && a.ordinal < b.ordinal
-
-private def orderingEdge (before : Identity) (after : Event) : Bool :=
-  after.parents.contains before || sourceBefore before after.identity
-
-private def orderingReaches (events : List Event) (before after : Identity) : Bool := Id.run do
-  if before == after then return true
-  let nodes := events.toArray
-  let mut visited := nodes.map fun event => event.identity == before
-  let mut frontier := [before]
-  for _ in [:nodes.size] do
-    let current :: rest := frontier | return false
-    frontier := rest
-    for index in [:nodes.size] do
-      if !(visited[index]?).getD false then
-        if let some candidate := nodes[index]? then
-          if orderingEdge current candidate then
-            if candidate.identity == after then return true
-            visited := visited.set! index true
-            frontier := frontier ++ [candidate.identity]
-  return false
-
-private def identityLe (a b : Identity) : Bool :=
-  decide (a.source.value < b.source.value) ||
-    (a.source == b.source && a.ordinal ≤ b.ordinal)
-
-private def ready (events : List Event) (processed : List Identity) (event : Event) : Bool :=
-  event.parents.all processed.contains &&
-    (event.identity.ordinal == 0 || events.any fun candidate =>
-      candidate.identity.source == event.identity.source &&
-      candidate.identity.ordinal + 1 == event.identity.ordinal &&
-      processed.contains candidate.identity)
-
-private def acyclic (events : List Event) : Bool := Id.run do
-  let mut removed : List Identity := []
-  for _ in [:events.length] do
-    for event in events do
-      if !removed.contains event.identity && events.all (fun predecessor =>
-          !orderingEdge predecessor.identity event || removed.contains predecessor.identity)
-        then removed := event.identity :: removed
-    if removed.length == events.length then return true
-  return removed.length == events.length
-
-private def validateGraph (events : List Event) : Except Error Unit := do
-  for event in events do
-    for parent in event.parents do
-      if let some predecessor := events.find? (fun candidate => candidate.identity == parent) then
-        if predecessor.operation != event.operation then
-          throw (.wrongOperation event.identity parent)
-  if !acyclic events then throw .causalCycle
-
-private def release [DecidableEq State] [DecidableEq Action] [DecidableEq Outcome]
-    [DecidableEq Fact] (plan : Checked target) (payload : Payload target) (event : Event) :
-    Except Error (Payload target) := do
-  let _ : BEq (TransitionResult State Outcome Fact) := ⟨fun a b => decide (a = b)⟩
-  let _ : LawfulBEq (TransitionResult State Outcome Fact) := {
-    eq_of_beq := of_decide_eq_true
-    rfl := of_decide_eq_self_eq_true _ }
-  let some rule := plan.declaration.rules.find? (fun rule => rule.kind == event.kind)
-    | throw (.unsupportedEvidence event.kind)
-  let ancestors := event.parents.flatMap fun parent =>
-    (payload.support.find? fun entry => entry.1 == parent).map Prod.snd |>.getD []
-  let support := (ancestors ++ [event.identity]).eraseDups
-  let direct := (event.identity :: event.parents).eraseDups
-  let sequences := fun identities =>
-    ((identities.flatMap fun identity =>
-      (payload.accepted.find? fun candidate => candidate.identity == identity).map Event.runSequences
-        |>.getD []).mergeSort).eraseDups
-  let mut payload := { payload with
-    processed := payload.processed ++ [event.identity]
-    support := payload.support ++ [(event.identity, support)] }
-  match rule.meaning with
-  | .irrelevant | .submission _ => pure ()
-  | .confirmed required outputs =>
-      if let some previous := payload.steps.reverse.find? (fun step => step.operation == event.operation)
-        then
-          if let some identity := previous.directSupport.head? then
-            if !orderingReaches payload.accepted identity event.identity then
-              throw (.incomparableOrder event.identity identity)
-      if required.any (fun action => !(event.parents.any fun parent =>
-          (payload.accepted.find? fun candidate => candidate.identity == parent).any fun candidate =>
-            (plan.declaration.rules.find? fun rule => rule.kind == candidate.kind).any fun parentRule =>
-              match parentRule.meaning with
-              | .submission submitted => decide (submitted = action)
-              | _ => false)) then throw (.missingSubmission event.identity)
-      for (action, result) in outputs do
-        let prior := (payload.states.find? fun entry => entry.1 == event.operation).map Prod.snd
-          |>.getD plan.initial
-        if h : result ∈ target.kernel.steps prior action then
-          let step : Step target := ⟨payload.scope, plan.declaration.operationField, event.operation, prior, action, result,
-            direct, support, sequences direct, sequences support,
-            target.kernel.stepSound prior action result h⟩
-          payload := { payload with
-            states := (payload.states.filter fun entry => entry.1 != event.operation) ++
-              [(event.operation, result.resultingState)]
-            steps := payload.steps ++ [step] }
-        else throw (.invalidTransition event.identity)
-  let retained := payload.support.foldl (fun n entry => n + entry.2.length) 0 +
-    payload.steps.foldl (fun n step => n + step.directSupport.length + step.support.length +
-      step.directRunSequences.length + step.runSequences.length) 0
-  if retained > plan.declaration.limits.support then throw .supportExhausted
-  return payload
-
-private def workReservation (plan : Checked target) (events : List Event) : Nat :=
-  let n := events.length + 1
-  let outputs := plan.declaration.rules.foldl (fun n rule => n + rule.fields.length +
-    (match rule.meaning with
-    | .confirmed _ steps => steps.length
-    | _ => 1)) 0
-  (events.foldl (fun size event => size + eventSize event) 0 + 1) *
-    n * n * n * (outputs + plan.transitionCount + 1)
-
-private def stage [DecidableEq State] [DecidableEq Action] [DecidableEq Outcome]
-    [DecidableEq Fact] (plan : Checked target) (payload : Payload target) (event : Event) :
-    Except Error (Payload target × Progress (Step target)) := do
-  if payload.closed then throw .closed
-  validateEvent plan payload.scope event
-  if let some previous := payload.accepted.find? (fun previous => previous.identity == event.identity)
-    then
-      if previous != event then throw (.identityConflict event.identity)
-      let reservation := workReservation plan payload.accepted
-      if payload.work + reservation > plan.declaration.limits.work then throw .workExhausted
-      return ({ payload with work := payload.work + reservation }, .stutter)
-  let events := payload.accepted ++ [event]
-  if events.length > plan.declaration.limits.events then throw .eventsExhausted
-  if (events.map Event.operation).eraseDups.length > plan.declaration.limits.keys then
-    throw .keysExhausted
-  let reservation := workReservation plan events
-  if payload.work + reservation > plan.declaration.limits.work then throw .workExhausted
-  validateGraph events
-  let mut staged := { payload with accepted := events, work := payload.work + reservation }
-  let ordered := events.mergeSort fun a b => identityLe a.identity b.identity
-  for _ in [:events.length] do
-    for candidate in ordered do
-      if !staged.processed.contains candidate.identity &&
-          ready events staged.processed candidate then
-        staged ← release plan staged candidate
-    if staged.processed.length == events.length then break
-  let pending := events.filterMap fun candidate =>
-    if staged.processed.contains candidate.identity then none else some candidate.identity
-  if pending.length > plan.declaration.limits.buffered then throw .bufferExhausted
-  let emissions := staged.steps.drop payload.steps.length
-  let progress := match emissions with
-    | first :: rest => .emitted first rest
-    | [] => if pending.contains event.identity then .pending pending else .stutter
-  return (staged, progress)
+/-- Validate through the same closed field-policy boundary as portable evidence. -/
+def Checked.validateEvent (plan : Checked target) (scope : List (DefinitionId × String))
+    (event : Event) : Except Error Unit :=
+  Shared.ScopedProjection.validateEvidence
+    (fun value => match value with | .text _ => 1 | .natural _ => 2 | .boolean _ => 3)
+    eventSize plan.declaration.limits plan.declaration.sources plan.fieldPolicies scope event
 
 /-- Atomically admit one event; rejection exposes neither staged state nor any newly released steps. -/
 def Run.admit [DecidableEq State] [DecidableEq Action] [DecidableEq Outcome] [DecidableEq Fact]
     (run : Run plan) (event : Event) : Except Error (Run plan × Progress (Step target)) := do
-  let (payload, progress) ← stage plan run.payload event
+  if run.isClosed then throw .closed
+  plan.validateEvent run.payload.scope event
+  let payload ← run.payload.admit DefinitionId.value (·.resultingState) eventSize event
+  let emissions := (payload.steps.drop run.payload.steps.length).map (checkedStep payload.scope)
+  let pending := payload.pending
+  let progress := match emissions with
+    | first :: rest => .emitted first rest
+    | [] => if pending.contains event.identity then .pending pending else .stutter
   return (⟨payload⟩, progress)
 
 /-- Close only a fully supported, nonempty projection whose operation states are Target-terminal. -/
 def Run.close (run : Run plan) : Except Error (Run plan) := do
   if run.isClosed then return run
   if !run.pending.isEmpty then throw (.incomplete run.pending)
-  let operations := (run.accepted.map Event.operation).eraseDups
+  let operations := (run.accepted.map (·.operation)).eraseDups
   let nonterminal := operations.filter fun operation => !target.isTerminal (run.state operation)
   if operations.isEmpty || !nonterminal.isEmpty then throw (.nonterminal nonterminal)
   let reservation := (run.accepted.foldl (fun size event => size + eventSize event) 0 + 1) *

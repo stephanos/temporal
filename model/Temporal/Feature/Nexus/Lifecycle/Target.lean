@@ -1,5 +1,6 @@
 import Temporal.Feature.Nexus.Lifecycle.Semantics
 import Umpire.Planning
+import Umpire.Target.FiniteMachine
 
 /-!
 # Checked Nexus lifecycle target

@@ -1,4 +1,4 @@
-import Umpire.Target
+import Umpire.Target.Semantics
 
 /-! Implementation behind the `Umpire.Property` public facade. -/
 
@@ -316,12 +316,37 @@ def PropertyClause.id : PropertyClause → DefinitionId
   | .guardedQuiescentWithin id _ _ _ _ _ _ => id
   | .sameStepCases group => group.id
 
+/-- Semantic clocks are distinct from runtime and search-work limits. -/
+inductive PropertyScopedClock where
+  | operationTransitions
+  deriving BEq, DecidableEq, Repr
+
+/-- Closing an incomplete prefix does not invent missing deadline evidence. -/
+inductive PropertyScopedEndpoint where
+  | deliberatelyClosed
+  | runtimePrefix
+  deriving BEq, DecidableEq, Repr
+
+/-- A bounded response captures one immutable operation key in declared execution scope. -/
+structure PropertyScopedClause where
+  id : DefinitionId
+  source : SourceLocation
+  trigger : PropertyPredicate
+  response : PropertyPredicate
+  scope : List DefinitionId
+  key : DefinitionId
+  clock : PropertyScopedClock
+  bound : Nat
+  endpoint : PropertyScopedEndpoint
+  deriving BEq, DecidableEq, Repr
+
 structure PropertyDeclaration where
   id : DefinitionId
   source : SourceLocation
   version : Nat := 1
   requires : List DefinitionId
   clauses : List PropertyClause
+  scopedClauses : List PropertyScopedClause := []
   logicalTimeSource : Option DefinitionId := none
   documentation : String := ""
   deriving BEq, DecidableEq, Repr

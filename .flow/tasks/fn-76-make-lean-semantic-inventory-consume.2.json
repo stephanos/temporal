@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T12:11:30.702801Z",
+  "depends_on": [
+    "fn-76-make-lean-semantic-inventory-consume.1"
+  ],
+  "id": "fn-76-make-lean-semantic-inventory-consume.2",
+  "priority": null,
+  "spec": "fn-76-make-lean-semantic-inventory-consume",
+  "spec_path": ".flow/tasks/fn-76-make-lean-semantic-inventory-consume.2.md",
+  "status": "todo",
+  "title": "Enforce inventory and neutral-classification dependency boundaries",
+  "updated_at": "2026-09-08T12:11:30.702801Z"
+}

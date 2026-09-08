@@ -48,6 +48,8 @@ structure LoweringError where
 /-- One checked property already lowered to a generated rule, or rejected with its source. -/
 inductive ContractLowering where
   | monitor (sourceDefinition : CaseDefinitionBinding) (rule : ContractRuleDefinition)
+  | scoped (sourceDefinition : CaseDefinitionBinding) (capability : ScopedContract)
+      (clauses : List CaseScopedClauseBinding)
   | unsupported
       (sourceDefinition : CaseDefinitionBinding)
       (source : SourceLocation)
@@ -67,7 +69,7 @@ structure Input where
   properties : List ContractLowering
   contractLimits : ContractLimits
 
-private def lowerProperty : ContractLowering → Except LoweringError ContractRuleDefinition
+private def lowerProperty : ContractLowering → Except LoweringError (Option ContractRuleDefinition)
   | .monitor sourceDefinition rule =>
       if sourceDefinition.kind != .property then
         .error {
@@ -76,22 +78,42 @@ private def lowerProperty : ContractLowering → Except LoweringError ContractRu
           construct := "property.definition-kind"
         }
       else
-        .ok rule
+        .ok (some rule)
+  | .scoped sourceDefinition _ _ =>
+      if sourceDefinition.kind != .property then
+        .error {
+          sourceDefinitionId := sourceDefinition.definitionId
+          source := { path := "" }
+          construct := "property.definition-kind" }
+      else .ok none
   | .unsupported sourceDefinition source construct =>
       .error { sourceDefinitionId := sourceDefinition.definitionId, source, construct }
 
 /-- Assemble generated values into a Case while preserving Umpire provenance and typed rejection. -/
 def compile (input : Input) : Except LoweringError temporal.server.api.testpilot.v1.Case := do
-  let rules ← input.properties.mapM lowerProperty
+  let lowered ← input.properties.mapM lowerProperty
+  let rules := lowered.filterMap id
+  let scopedProperties := input.properties.filterMap fun property => match property with
+    | .scoped binding capability clauses => some (binding, capability, clauses)
+    | _ => none
+  if scopedProperties.length > 1 then
+    throw {
+      sourceDefinitionId := input.contractId
+      source := { path := "" }
+      construct := "multiple scoped projections" }
+  let capability := scopedProperties.head?.map (·.2.1)
+  let scopedClauses := scopedProperties.flatMap (·.2.2)
   let metadata : CaseMetadata := {
     producerId := input.producerId
     producerVersion := input.producerVersion
     definitions := input.definitions
     sources := input.sources
     knownGaps := input.knownGaps
+    scopedClauses
   }
   pure (Testpilot.Authoring.case input.version.major input.caseId input.program
-    (Testpilot.Authoring.Monitor.contract input.contractId rules.toArray input.contractLimits)
+    { Testpilot.Authoring.Monitor.contract input.contractId rules.toArray input.contractLimits with
+      «scoped» := capability }
     (Provenance.make metadata) input.version.minor)
 
 end Umpire.Case.Compiler

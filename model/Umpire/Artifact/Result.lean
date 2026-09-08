@@ -1,5 +1,6 @@
 import Umpire.Artifact.Evidence
 import Umpire.ImplementationLink.Application
+import Umpire.KnownGap
 import Umpire.Observation.Verdict
 
 namespace Umpire

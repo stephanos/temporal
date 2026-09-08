@@ -1,6 +1,8 @@
 # Scheduled canary proof of concept as a second model consumer
 
-Nexus operation cancellation is deferred to fn-79. This canary consumes the existing success Case and fn-78’s generic monitoring delivery; it does not wait for a cancellation adapter, capability, or demonstration. Activity/Workflow cancellation and bounded cleanup below remain operational requirements.
+Status: task planning against delivered dependencies. Nexus operation cancellation is deferred to fn-79. This canary consumes the existing success Case and fn-78’s generic monitoring delivery; it does not wait for a cancellation adapter, capability, or demonstration. Activity/Workflow cancellation and bounded cleanup below remain operational requirements.
+
+> HTML render lens: `.flow/artifacts/fn-70-scheduled-canary-proof-of-concept-as-a/spec.html` — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
 ## Goal & Context
 <!-- scope: business -->
@@ -27,7 +29,7 @@ Nexus3 checked Query / Property / selected witness
                    manually configured Schedule
 ```
 
-- `Temporal.Feature.Nexus3.Testpilot` remains the owner of checked lowering, history correlation and Contract meaning. Complete fn-68 before relying on this Producer. Canary does not assemble an alternative success monitor.
+- `Temporal.Feature.Nexus3.Testpilot` remains the owner of checked lowering, history correlation and Contract meaning. The delivered fn-68 Producer is the compatibility baseline. Canary does not assemble an alternative success monitor.
 - `api/testpilot/v1` and `common/testing/testpilot` retain their existing protocol and execution authority. Runtime execution never invokes Lean or imports Umpire Go generation tools.
 - Consume the shared Temporal Driver delivered by `fn-72-extract-the-reusable-temporal-testpilot`, preserving its server/worker authority split and private delivery ledger. This spec owns canary integration only; Driver extraction and functional-test migration belong to that prerequisite. Do not introduce a second driver implementation or a dependency on `tests/`.
 - `tools/canary` owns its manually selected check catalog, schedule reconciliation, orchestration Workflow, Activity, environment configuration, and bounded result reporting. It contains no Nexus assertions, request rewriting, private Testpilot imports or alternate evaluator.
@@ -38,6 +40,36 @@ Consume the explicit environment-binding contract delivered by `fn-73-explicit-e
 
 Consume the checked Query, Property, obligation, and evidence-projection contracts delivered by `fn-78-typed-temporal-authoring-and-checked`. Canary schedules and reports the resulting Case; it does not define another temporal language, evaluator, or Nexus-specific assertion path.
 
+fn-68, fn-72, fn-73, and fn-78 have delivered these contracts. fn-78's administrative open status
+does not indicate missing generic semantics. Execution follows fn-77 in the delivery order and
+re-anchors its final Producer/Case interfaces before edits; this source coordination is not a new
+semantic dependency on parameterized field Properties.
+
+### Narrow prerequisite amendments
+
+Inspection identified three concrete gaps in the integration required below. This spec includes
+their smallest fixes in the existing owners, followed by canary integration:
+
+- Add `PreparedCase.ValidateDriver(ctx, driver) error` to the public Testpilot facade. Extract and
+  reuse the existing preflight identity/binding and `Driver.Validate` checks without creating a
+  Monitor, Session, Run, or effect. `Run` repeats current preflight validation; an earlier successful
+  check grants no lasting execution authority. Canary validates every selected prepared Case and
+  Driver before scheduling, without duplicating private execution rules.
+- Ensure the checked Nexus3 Producer supplies a finite target `workflow_execution_timeout` of
+  60 seconds. Current request construction omits a server lifetime. Make this amendment in the
+  Producer, regenerate and explicitly repin both consumers, and qualify lowering/provenance/trust.
+  Preserve the success Property and correlated Contract; canary never patches requests. If fn-77
+  already delivers the required backstop, reuse and qualify it instead of adding another timeout.
+- Make the CHASM scheduler honor its existing namespace-scoped
+  `scheduler.tweakables.CanceledTerminatedCountAsFailures` setting when applying `PauseOnFailure`.
+  Its pause predicate currently ignores that field. Preserve the default `false` behavior and
+  all other statuses. The dedicated local canary namespace requires CHASM scheduling with this
+  field explicitly `true`; live tests prove cancellation and termination pause future ticks.
+
+These amendments do not reopen unrelated completed work, add an operation-cancellation capability,
+or introduce another scheduler/recovery service. They belong to their existing facade, Producer,
+and scheduler owners, with focused tests before integration.
+
 ## API Contracts
 <!-- scope: technical -->
 
@@ -47,11 +79,79 @@ Provide the smallest operator interface that can list supported checks, apply an
 
 Use one Temporal Schedule per selected check with a 60-second interval and overlap policy Skip. Each tick starts a fresh Check Workflow; do not implement cadence as sleep-after-completion in a permanent workflow. A slow check causes skipped ticks rather than queued overlapping executions. Use a bounded catch-up window so recovery does not replay a backlog of missed minutes. The exact supported SDK setting and minimum catch-up behavior must be verified against the pinned SDK during implementation and documented.
 
+Set catch-up explicitly to 10 seconds and verify the effective Schedule policy with Describe.
+The pinned SDK comments and server defaults differ; no default is assumed. Public API documentation
+also specifies a 10-second minimum and a one-year default, so zero is unsuitable for this prototype.
+See [SchedulePolicies](https://pkg.go.dev/go.temporal.io/api/schedule/v1#SchedulePolicies).
+
 The Check Workflow invokes one bounded Activity that prepares/obtains the pinned Case and calls PreparedCase.Run through the shared Driver. It does not interpret the Program itself. Disable Workflow execution retries and set the check Activity's maximum attempts to one; normal Workflow Task replay remains supported. One scheduled tick identifies one measurement, not a retry-until-green loop. Do not claim exactly-once external effects merely from these retry settings.
 
 A completed measurement retains check identity, orchestration Workflow/run identity, Case digest and producer provenance, Profile/catalog identity, Testpilot Run identity, separate execution disposition, Verdict and cleanup status, plus a reference to the retained Run. Return only a bounded summary in Workflow history and keep full Run data in a configured bounded local artifact sink for the prototype. Define finite byte/count retention and observable publication failures; use atomic publication for files and preserve the owning module's path-safety conventions. No credentials or opaque completion capabilities enter reporting. A reporting failure cannot trigger another execution.
 
 Model violation and inconclusive results are measurements, not retryable Activity failures. Operational inability to obtain an authoritative result is recorded distinctly as uncertain/incomplete at the canary layer. Never synthesize a satisfied Verdict, successful cleanup or a closed Testpilot Run after process loss.
+
+### Selection, ownership, and reporting
+
+The supported catalog initially contains exactly `nexus3-success`. Operator configuration supplies
+an installation identity, pinned artifact digest, explicit environment bindings, and caller-owned
+connection/provisioning policy. A production catalog may define its own public ProfileSpec policy;
+it cannot import the functional test fixture helper or infer new product assertions from a Case.
+
+The command surface is `list`, `apply`, `worker`, `pause`, `resume`, and `status`. `apply` receives
+the complete explicit selection; empty selection pauses previously owned checks. Validate every
+selection and inspect every existing schedule conflict before mutation. Stage new schedules paused
+and enable only after the whole selection has validated and staging succeeds. Reapply preserves
+operator/failure pauses; only explicit `resume` can clear them. Revalidate ownership and expected
+configuration inside updates. Network failure can leave partial state: report exact acknowledged
+mutations and uncertainty, never claim reconciliation is a cross-schedule transaction.
+
+Schedule ownership combines stable installation/check IDs with a versioned configuration identity.
+Artifact or binding changes require explicit update input. Neither apply nor resume triggers an
+immediate run or backfill. Removing a selection preserves retained measurements and unrelated
+schedules. Pause scheduling before operator cancellation or shutdown and report an unacknowledged
+pause as uncertain. Server pause-on-failure remains necessary when no worker is available to act.
+
+Use the existing immutable artifact publication owner under `tools/common/artifactio`. Retain the
+actual Run and measurement metadata together under an immutable reference. Default limits are
+16 KiB for Workflow summaries, 8 MiB per measurement, 128 retained measurements, and 256 MiB total.
+Bound decoding and encoding; reserve count/byte capacity before dispatch and reject exhaustion
+without executing again or overwriting prior measurements. Coordinate capacity reservations across
+concurrent writers to the same owned sink, or reject a second sink owner explicitly; a Go mutex
+alone does not protect separate processes. No new distributed lease service is needed.
+
+Reserve a durable local measurement identity before invoking Run. Duplicate or unresolved claimed
+identities cannot dispatch again; a retained identical result can be read without re-execution.
+Crash leftovers remain accounted for until explicit reconciliation. Reclaiming storage does not
+authorize another attempt, and these local rules do not promise exactly-once external effects.
+
+Publication failure is an operational measurement/reporting failure and causes failed orchestration
+to pause scheduling. Preserve any authoritative Run already produced and distinguish publication
+ambiguity from absence. A late durable publication cannot change a timed-out Workflow's outcome,
+overwrite another measurement, or cause redispatch. Full Run data, credentials, and opaque effect
+capabilities never enter Workflow history; producer provenance there is bounded and digest-bound.
+
+### Time and resource budgets
+
+The current Case allows 30 seconds of execution and three distinct 5-second termination, cleanup,
+and Close phases. Budget 45 seconds before reporting, not merely execution plus one cleanup phase.
+Default Activity StartToClose is 60 seconds, ScheduleToClose 75 seconds, and Check Workflow execution
+and run timeouts 90 seconds. Publication has a 10-second bound. Heartbeat every 5 seconds with a
+20-second HeartbeatTimeout; wait for Activity cancellation so live-worker cleanup can finish.
+Recompute the budget from fn-77's delivered Case and reject incompatible larger limits rather than
+silently tightening execution semantics. Target server lifetime is independently bounded as above.
+
+Use worker concurrency one for the initial one-check catalog, bounded pollers, and no local dispatch
+queue. Drain within 60 seconds and close worker-owned clients/Driver resources with an explicit
+final bound. Status reports actual scheduled/started/completed timestamps and treats a result older
+than three minutes as stale; a fresh violated result remains violated. A stopped worker, unreachable
+cluster, missing result, stale result, and failed publication remain distinct from Verdict.
+
+The local deployment uses dedicated orchestration resources and explicitly configured CHASM
+creation, 100% creation rollout, routing, required sentinel setup, and the cancellation/termination
+pause setting. Use the existing server configuration and test-cluster mechanisms; do not change
+global defaults, migrate unrelated schedules, or deploy infrastructure as part of writing this plan.
+Verify canceled and terminated runs automatically pause and allow no subsequent tick before explicit
+resume. A manual status warning alone does not satisfy R8.
 
 ## Edge Cases & Constraints
 <!-- scope: technical -->
@@ -84,6 +184,11 @@ Model violation and inconclusive results are measurements, not retryable Activit
 
 No production deployment, customer traffic, release qualification, protected GitHub workflow, general lease/fencing/recovery platform, dashboard, alerting service, remote result store, or fn-29 receipt machinery. No arbitrary scenario upload, discovery, randomized exploration, cancellation-model expansion, fault injection, new runtime opcode, alternate evaluator, or universal Property compiler. No unrelated Lean authoring redesign, blanket codec migration, broad generator changes, new third-party libraries, or CI expansion. Shared Driver extraction and environment-binding implementation are owned by `fn-72-extract-the-reusable-temporal-testpilot` and `fn-73-explicit-environment-binding-for`, respectively; do not duplicate that work here. Driver activation-interface deepening and Lean semantic refactors remain independent work. This spec authorizes design/implementation scope; actual infrastructure deployment is not performed by creating the spec.
 
+The three prerequisite amendments above are included solely to satisfy existing R1/R4/R8. No
+other scheduler policy, public runtime interface, Producer scenario, or server configuration change
+is authorized by this plan. General artifact administration and production recovery remain outside
+scope; exhaustion is an explicit pause requiring operator storage management.
+
 ## Decision Context
 <!-- scope: both -->
 
@@ -95,13 +200,42 @@ No production deployment, customer traffic, release qualification, protected Git
 - The prototype intentionally differs from fn-29's manual-only production controller. Neither spec supersedes the other; do not inherit production gates or claim production readiness from this demonstration.
 - Model-to-Case continuity is owned by fn-68, shared Driver placement by `fn-72-extract-the-reusable-temporal-testpilot`, environment binding by `fn-73-explicit-environment-binding-for`, and scoped temporal semantics and evidence projection by `fn-78-typed-temporal-authoring-and-checked`. The standalone Lean protocol is a transitive prerequisite through binding. Activation-interface deepening and Lean Target/inventory refactors do not block this proof unless an evidenced integration requirement changes that decision.
 
+Honoring the existing CHASM pause setting is preferable to adding a worker-side recovery service:
+the server can observe terminal cancellation or termination even when the worker cannot run code.
+Operator-only warnings were rejected because they permit another tick after an uncertain run.
+The default remains unchanged; this prototype explicitly enables and qualifies the setting in its
+dedicated local namespace. Broad generated-API drift/CI work remains excluded under
+[the existing decision](../memory/declined/generated-api-drift-verification.md); focused Producer
+fixture and compatibility checks remain required.
+
+### Delivery units
+
+| Task | Deliverable | Dependencies |
+| --- | --- | --- |
+| 1 | Public Driver validation without execution and preflight reuse | — |
+| 2 | Producer-owned finite target lifetime and compatibility qualification | — |
+| 3 | Existing CHASM cancellation/termination pause setting honored and qualified | — |
+| 4 | Pinned catalog/Profile and whole-selection admission | 1, 2 |
+| 5 | Immutable bounded measurement storage and capacity admission | 4 |
+| 6 | Activity/shared Driver composition and early real two-Run/two-binding proof | 4, 5 |
+| 7 | Deterministic Check Workflow, replay, and uncertain-outcome handling | 6 |
+| 8 | Owned Schedule reconciliation and operator commands/status/shutdown | 3, 7 |
+| 9 | Real minute-cadence, cross-consumer/failure qualification, and operator runbook | 8 |
+
+These are cohesive implementation units; each includes its own negative tests. Source overlap and
+shared test/build resources may require serial execution despite independent dependency edges.
+Before cadence is added, the Activity entry point must execute two isolated measurements and the
+alternate binding through the shared Driver. Final qualification runs the existing functional
+consumer and at least two successive real 60-second schedule ticks with named run/pass/no-skip
+receipts; synthetic or unmatched test selections cannot stand in for that evidence.
+
 ## Early proof point
 
 Before adding schedules, prepare a Nexus3-produced Case through the non-test shared Driver and execute two isolated measurements using the canary Activity entry point. Compare with the functional consumer and demonstrate the alternate namespace/queue binding. If this requires canary-specific request interpretation or a copied Contract, report the unmet prerequisite acceptance criterion and resolve it in its owning spec before adding cadence.
 
 ## Verification
 
-Task planning must choose focused commands after the shared package path is settled. All Go tests use `-tags test_dep`; only live tests add `integration`. Run the existing Testpilot facade/driver tests, scheduler reconciliation and Workflow replay tests, negative failure/retention tests, and the real local two-tick demonstration. Run Lean checks and owner-managed fixture generation/drift checks if Producer inputs/artifacts change. Finish implementation with project-required `make lint-code` and applicable model gates. Report environment failures separately; do not weaken assertions or silently skip the live acceptance proof.
+The shared package path is established at `common/testing/testpilot/temporal`. All Go tests use `-tags test_dep`; only live tests add `integration`. Run the existing Testpilot facade/driver tests, scheduler reconciliation and Workflow replay tests, negative failure/retention tests, and the real local two-tick demonstration. Run Lean checks and owner-managed fixture generation/drift checks if Producer inputs/artifacts change. Finish implementation with project-required `make lint-code` and applicable model gates. Report environment failures separately; do not weaken assertions or silently skip the live acceptance proof.
 
 ## References
 
@@ -115,3 +249,18 @@ Task planning must choose focused commands after the shared package path is sett
 - `common/testing/testpilot/temporal/README.md`, `tests/testcore/testpilot/README.md`, and `common/testing/testpilot/README.md` — existing runtime and fixture boundaries.
 - `tests/testpilot_async_nexus_case_test.go` — existing live consumer to preserve.
 - Temporal Go schedule documentation: https://github.com/temporalio/documentation/blob/main/docs/develop/go/workflows/schedules.mdx. Verify details against the repository's pinned SDK during implementation.
+
+## Requirement coverage
+
+| Requirement | Tasks |
+| --- | --- |
+| R1 | fn-70-scheduled-canary-proof-of-concept-as-a.1, fn-70-scheduled-canary-proof-of-concept-as-a.4, fn-70-scheduled-canary-proof-of-concept-as-a.8 |
+| R2 | fn-70-scheduled-canary-proof-of-concept-as-a.2, fn-70-scheduled-canary-proof-of-concept-as-a.4, fn-70-scheduled-canary-proof-of-concept-as-a.6, fn-70-scheduled-canary-proof-of-concept-as-a.9 |
+| R3 | fn-70-scheduled-canary-proof-of-concept-as-a.1, fn-70-scheduled-canary-proof-of-concept-as-a.4, fn-70-scheduled-canary-proof-of-concept-as-a.6, fn-70-scheduled-canary-proof-of-concept-as-a.9 |
+| R4 | fn-70-scheduled-canary-proof-of-concept-as-a.1, fn-70-scheduled-canary-proof-of-concept-as-a.2, fn-70-scheduled-canary-proof-of-concept-as-a.4, fn-70-scheduled-canary-proof-of-concept-as-a.6, fn-70-scheduled-canary-proof-of-concept-as-a.9 |
+| R5 | fn-70-scheduled-canary-proof-of-concept-as-a.3, fn-70-scheduled-canary-proof-of-concept-as-a.8, fn-70-scheduled-canary-proof-of-concept-as-a.9 |
+| R6 | fn-70-scheduled-canary-proof-of-concept-as-a.7, fn-70-scheduled-canary-proof-of-concept-as-a.8, fn-70-scheduled-canary-proof-of-concept-as-a.9 |
+| R7 | fn-70-scheduled-canary-proof-of-concept-as-a.5, fn-70-scheduled-canary-proof-of-concept-as-a.6, fn-70-scheduled-canary-proof-of-concept-as-a.7, fn-70-scheduled-canary-proof-of-concept-as-a.9 |
+| R8 | fn-70-scheduled-canary-proof-of-concept-as-a.2, fn-70-scheduled-canary-proof-of-concept-as-a.3, fn-70-scheduled-canary-proof-of-concept-as-a.5, fn-70-scheduled-canary-proof-of-concept-as-a.6, fn-70-scheduled-canary-proof-of-concept-as-a.7, fn-70-scheduled-canary-proof-of-concept-as-a.8, fn-70-scheduled-canary-proof-of-concept-as-a.9 |
+| R9 | fn-70-scheduled-canary-proof-of-concept-as-a.9 |
+| R10 | fn-70-scheduled-canary-proof-of-concept-as-a.9 |

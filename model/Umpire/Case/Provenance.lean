@@ -51,7 +51,7 @@ private def sourceLocation (source : Umpire.SourceLocation) : CanonicalJson := .
 ]
 
 /-- Encode the exact deterministic Umpire payload carried opaquely by Testpilot provenance. -/
-def producerData (metadata : CaseMetadata) : ByteArray := (CanonicalJson.object [
+def producerData (metadata : CaseMetadata) : ByteArray := (CanonicalJson.object ([
   ("definitions", .array (metadata.definitions.map fun definition => .object [
     ("definitionId", .string definition.definitionId),
     ("behaviorFingerprint", .string definition.behaviorFingerprint),
@@ -63,7 +63,16 @@ def producerData (metadata : CaseMetadata) : ByteArray := (CanonicalJson.object 
     ("code", .string gap.code)
   ] ++ gap.subject.toList.map (fun subject => ("subject", .string subject)) ++
     gap.detail.toList.map (fun detail => ("detail", .string detail)))))
-]).prettyBytes.toUTF8
+ ] ++ if metadata.scopedClauses.isEmpty then [] else [
+  ("scopedClauses", .array (metadata.scopedClauses.map fun clause => .object [
+    ("clauseId", .string clause.clauseId),
+    ("propertyId", .string clause.propertyId),
+    ("propertyFingerprint", .string clause.propertyFingerprint),
+    ("projectionId", .string clause.projectionId),
+    ("projectionFingerprint", .string clause.projectionFingerprint),
+    ("source", sourceLocation clause.source)
+  ]))
+ ])).prettyBytes.toUTF8
 
 /-- Construct generated Testpilot provenance while leaving its payload entirely Umpire-owned. -/
 def make (metadata : CaseMetadata) : temporal.server.api.testpilot.v1.CaseProvenance :=

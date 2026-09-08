@@ -13,6 +13,6 @@
   "spec": "fn-78-typed-temporal-authoring-and-checked",
   "spec_path": ".flow/tasks/fn-78-typed-temporal-authoring-and-checked.8.md",
   "status": "todo",
-  "title": "Qualify authored Nexus cancellation through Testpilot",
-  "updated_at": "2026-09-08T04:53:51.712253Z"
+  "title": "Transfer cancellation qualification to deferred fn-79",
+  "updated_at": "2026-09-08T04:54:37.323072Z"
 }

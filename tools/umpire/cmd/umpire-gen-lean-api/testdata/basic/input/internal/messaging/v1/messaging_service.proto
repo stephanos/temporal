@@ -11,4 +11,5 @@ service MessagingService {
   rpc Chat(stream fixture.messaging.public.v1.Message) returns (stream fixture.messaging.public.v1.Reply) {
     option deprecated = true;
   }
+  rpc Alternate(fixture.messaging.public.v1.Message) returns (fixture.messaging.public.v1.Reply);
 }

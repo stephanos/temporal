@@ -101,6 +101,9 @@ lean_exe «temporal-model-semantic-inventory-make-tests» where
 @[default_target] lean_exe «temporal-testpilot» where
   root := `Temporal.Tool.Testpilot
 
+lean_exe «umpire-scoped-fixtures» where
+  root := `Umpire.Case.Tests.ScopedFixtureMain
+
 lean_exe modelLint where
   root := `ModelLint
   supportInterpreter := true

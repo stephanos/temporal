@@ -1,11 +1,65 @@
 {
   "branch_name": "fn-67-refine-simple-nexus3-authoring-draft",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-09-06T15:49:01.215293Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-67-refine-simple-nexus3-authoring-draft",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-08T15:06:11.657396Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "a2e5d993b65ca7cb7db856741fc87d29f7487a001e8f904b99c3b4597d554bf7",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 90632,
+      "output_sha256": "ba9907588f487a706198f5aa51820a1a36e9d494b0c5951bc4757aecb6f435c6",
+      "reservation_id": "7aa32ef3348a4f05a30f11ad8bdfae38",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T15:06:11.652452Z",
+      "tool_calls": 4,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md",
   "status": "open",
   "title": "Refine simple Nexus3 authoring draft",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-06T15:49:01.222027Z"
+  "updated_at": "2026-09-08T15:06:11.658830Z"
 }
