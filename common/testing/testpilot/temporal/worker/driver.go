@@ -43,6 +43,7 @@ type hostOptions struct {
 	diagnostics    int
 	requestBytes   int64
 	now            func() time.Time
+	completion     *completionTransport
 }
 
 func New(options Options) (*Driver, error) {
@@ -53,6 +54,10 @@ func New(options Options) (*Driver, error) {
 		return nil, ErrInvalid
 	}
 	limits := options.Profile.ProgramLimits
+	completion, err := newCompletionTransport(options.HTTPClient, options.SystemCallbackBaseURL, limits)
+	if err != nil {
+		return nil, err
+	}
 	maximum, diagnostics := boundedInt(limits.GetMaxActivations()), min(boundedInt(limits.GetMaxRunEvents()), 64)
 	h := &Driver{
 		mu:             newContextMutex(),
@@ -64,7 +69,7 @@ func New(options Options) (*Driver, error) {
 			profile: options.Profile.Snapshot(), workerRoleID: options.WorkerRoleID, client: options.Client,
 			workerOptions:  worker.Options{WorkerStopTimeout: options.WorkerStopTimeout},
 			sessionOptions: options.SessionOptions, maximum: maximum, diagnostics: diagnostics,
-			requestBytes: limits.GetMaxRequestBytes(), now: time.Now,
+			requestBytes: limits.GetMaxRequestBytes(), now: time.Now, completion: completion,
 		},
 	}
 	h.registry = newWorkerRegistry(maximum, h.newSDKWorker)
@@ -128,10 +133,12 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	if !hasWorkerEntrypoint(program.Entrypoints()) {
-		return nil
+	plans := program.Entrypoints()
+	requireWorker := hasWorkerEntrypoint(plans)
+	if cleanup, ok := program.Cleanup(); ok {
+		plans = append(plans, cleanup)
 	}
-	_, err := h.prepareDefinition(program)
+	_, err := h.prepareDefinitionResources(program.Snapshot(), plans, program.Roles(), requireWorker)
 	return err
 }
 
@@ -163,7 +170,7 @@ func (h *Driver) OpenSession(ctx context.Context, runID string, program testpilo
 	if err != nil {
 		return nil, err
 	}
-	if definition.hasAsync && options.NewCompletionCapability == nil {
+	if definition.hasAsync && options.NewCapability == nil {
 		return nil, ErrInvalid
 	}
 	if err := h.mu.lock(ctx); err != nil {
@@ -203,21 +210,32 @@ func (h *Driver) cleanupContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), timeout)
 }
 
+func (h *Driver) Close(ctx context.Context) error {
+	if h == nil || ctx == nil {
+		return ErrInvalid
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	h.options.completion.close()
+	return nil
+}
+
 func (h *Driver) prepareDefinition(program testpilot.PreparedProgram) (programDefinition, error) {
-	return h.prepareDefinitionResources(program.Snapshot(), program.Entrypoints(), program.Roles())
+	return h.prepareDefinitionResources(program.Snapshot(), program.Entrypoints(), program.Roles(), true)
 }
 
 func (h *Driver) prepareDefinitionPlans(snapshot *testpilotspb.Program, plans []testpilot.EntrypointPlan) (programDefinition, error) {
-	return h.prepareDefinitionResources(snapshot, plans, nil)
+	return h.prepareDefinitionResources(snapshot, plans, nil, true)
 }
 
-func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plans []testpilot.EntrypointPlan, preparedRoles []testpilot.PreparedRole) (programDefinition, error) {
+func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plans []testpilot.EntrypointPlan, preparedRoles []testpilot.PreparedRole, requireWorker bool) (programDefinition, error) {
 	if snapshot == nil || snapshot.GetLimits() == nil {
 		return programDefinition{}, ErrInvalid
 	}
 	roles := preparedRolesByID(preparedRoles)
 	definition := programDefinition{snapshot: snapshot, entries: make(map[string]entryDefinition), endpoints: make(map[string]string), queueWorkflows: make(map[string]map[string]struct{})}
-	if err := h.validateSymbolicRoles(roles); err != nil {
+	if err := h.validateSymbolicRoles(roles, requireWorker); err != nil {
 		return programDefinition{}, err
 	}
 	queueNexus := make(map[string]map[nexusRegistration]struct{})
@@ -239,7 +257,7 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plan
 	if err := definition.addRegistrations(queueNexus); err != nil {
 		return programDefinition{}, err
 	}
-	if len(definition.entries) == 0 || len(definition.registrations) == 0 {
+	if requireWorker && (len(definition.entries) == 0 || len(definition.registrations) == 0) {
 		return programDefinition{}, ErrInvalid
 	}
 	return definition, nil
@@ -332,10 +350,12 @@ func (h *Driver) addInstructionBindings(definition *programDefinition, plan test
 	return nil
 }
 
-func (h *Driver) validateSymbolicRoles(roles map[string]testpilot.PreparedRole) error {
-	workerRole, ok := roles[h.options.workerRoleID]
-	if !ok || workerRole.Kind != testpilotspb.ROLE_KIND_WORKER || workerRole.NamespaceBindingID == "" || workerRole.Namespace == "" || workerRole.ResourceBindingID != "" || workerRole.Resource != "" {
-		return ErrInvalid
+func (h *Driver) validateSymbolicRoles(roles map[string]testpilot.PreparedRole, requireWorker bool) error {
+	if requireWorker {
+		workerRole, ok := roles[h.options.workerRoleID]
+		if !ok || workerRole.Kind != testpilotspb.ROLE_KIND_WORKER || workerRole.NamespaceBindingID == "" || workerRole.Namespace == "" || workerRole.ResourceBindingID != "" || workerRole.Resource != "" {
+			return ErrInvalid
+		}
 	}
 	for _, role := range roles {
 		switch role.Kind {

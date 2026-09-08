@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T01:50:48.075132Z",
+  "depends_on": [
+    "fn-78-typed-temporal-authoring-and-checked.2",
+    "fn-78-typed-temporal-authoring-and-checked.3",
+    "fn-78-typed-temporal-authoring-and-checked.7"
+  ],
+  "id": "fn-78-typed-temporal-authoring-and-checked.8",
+  "priority": 8,
+  "spec": "fn-78-typed-temporal-authoring-and-checked",
+  "spec_path": ".flow/tasks/fn-78-typed-temporal-authoring-and-checked.8.md",
+  "status": "todo",
+  "title": "Qualify authored Nexus cancellation through Testpilot",
+  "updated_at": "2026-09-08T01:50:48.075132Z"
+}

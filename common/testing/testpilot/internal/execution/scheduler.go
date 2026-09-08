@@ -711,7 +711,7 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 				err = invalid(ir.Malformed, "bridge", "nil capability")
 			}
 			if err == nil {
-				effect, err = s.session.CompleteNexusOperation(ctx, c, capability, input)
+				effect, err = s.session.InvokeCapability(ctx, c, capability, input)
 			}
 		}
 	default:

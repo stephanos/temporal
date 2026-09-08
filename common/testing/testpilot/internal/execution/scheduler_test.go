@@ -421,8 +421,8 @@ func TestSchedulerMalformedAndLimitFailures(t *testing.T) {
 }
 
 func (h *schedulerHost) Bridge(context.Context) (SlotBridge, error) { return h.bridge, nil }
-func (h *schedulerHost) CompleteNexusOperation(ctx context.Context, c Coordinate, capability OpaqueCapability, input *testpilotspb.Value) (EffectHandle, error) {
-	return h.complete(ctx, c, capability, input)
+func (h *schedulerHost) InvokeCapability(ctx context.Context, c Coordinate, capability OpaqueCapability, input proto.Message) (EffectHandle, error) {
+	return h.complete(ctx, c, capability, input.(*testpilotspb.Value))
 }
 
 type schedulerBridge struct {

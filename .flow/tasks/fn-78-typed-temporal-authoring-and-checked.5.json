@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-08T01:50:47.001664Z",
+  "depends_on": [
+    "fn-78-typed-temporal-authoring-and-checked.4"
+  ],
+  "id": "fn-78-typed-temporal-authoring-and-checked.5",
+  "priority": 5,
+  "spec": "fn-78-typed-temporal-authoring-and-checked",
+  "spec_path": ".flow/tasks/fn-78-typed-temporal-authoring-and-checked.5.md",
+  "status": "todo",
+  "title": "Project correlated Nexus evidence into semantic steps",
+  "updated_at": "2026-09-08T01:50:47.001664Z"
+}

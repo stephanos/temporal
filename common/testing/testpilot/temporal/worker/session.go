@@ -119,7 +119,7 @@ func (*Session) InvokeRPC(context.Context, testpilot.Coordinate, string, protore
 	return nil, ErrUnsupportedOperation
 }
 
-func (*Session) CompleteNexusOperation(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, *testpilotspb.Value) (testpilot.EffectHandle, error) {
+func (*Session) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return nil, ErrUnsupportedOperation
 }
 

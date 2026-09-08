@@ -79,7 +79,7 @@ func preparedRuntimeFixtureWithProfile(t *testing.T, responseKind testpilotspb.N
 		Outcome: proto.CloneOf(status), Limits: runtimeBounds(),
 	}
 	program := &testpilotspb.Program{
-		ProgramId: "program",
+		ProgramId:   "program",
 		Environment: []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "task-queue"}, {BindingId: "nexus-endpoint"}},
 		Roles: []*testpilotspb.RoleDefinition{
 			{RoleId: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT},

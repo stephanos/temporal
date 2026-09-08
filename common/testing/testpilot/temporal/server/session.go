@@ -23,10 +23,11 @@ type Session struct {
 	started                       map[testpilot.Coordinate]struct{}
 	host                          *Driver
 	runID                         string
-	entries                       map[string]testpilotspb.EntrypointKind
+	entries                       map[string]struct{}
+	controllers                   map[string]struct{}
 	nodes                         map[nodeKey]*testpilotspb.InstructionDefinition
 	effects                       map[*effect]struct{}
-	capabilities                  map[*completionCapability]struct{}
+	capabilities                  map[*opaqueCapability]struct{}
 	slots                         map[string]*capabilitySlot
 	minted, attempts, diagnostics int64
 	closed                        bool
@@ -41,7 +42,10 @@ func (s *Session) Reserve(ctx context.Context, _ testpilot.ReservationRequest) (
 }
 
 func (s *Session) controllerNode(c testpilot.Coordinate) (*testpilotspb.InstructionDefinition, error) {
-	if c.RunID != s.runID || c.ActivationID == "" || len(c.ActivationID) > 256 || c.Attempt <= 0 || s.entries[c.EntrypointID] != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+	if c.RunID != s.runID || c.ActivationID == "" || len(c.ActivationID) > 256 || c.Attempt <= 0 {
+		return nil, errUnauthorized
+	}
+	if _, ok := s.controllers[c.EntrypointID]; !ok {
 		return nil, errUnauthorized
 	}
 	n := s.nodes[nodeKey{c.EntrypointID, c.InstructionID}]
@@ -222,7 +226,7 @@ func (s *Session) closeLocked() {
 		e.cancel()
 	}
 	for capability := range s.capabilities {
-		capability.info = CompletionInfo{}
+		capability.invoke = nil
 	}
 	clear(s.capabilities)
 	clear(s.slots)

@@ -4,11 +4,8 @@ package server
 import (
 	"context"
 	"errors"
-	"net/http"
-	"net/url"
 	"reflect"
 	"slices"
-	"time"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -27,11 +24,8 @@ type Endpoint struct {
 }
 
 type Options struct {
-	Profile               testpilot.ProfileSpec
-	Endpoints             map[string]Endpoint
-	SystemCallbackBaseURL string
-	// HTTPClient and its transport must honor request cancellation. Redirects are disabled.
-	HTTPClient *http.Client
+	Profile   testpilot.ProfileSpec
+	Endpoints map[string]Endpoint
 }
 
 type endpoint struct {
@@ -44,14 +38,12 @@ type endpoint struct {
 // Profile MaxActivations bounds live sessions; MaxAttempts bounds all unfinished effects,
 // including quarantine, across those sessions.
 type Driver struct {
-	profile               testpilot.ProfileSpec
-	endpoints             map[string]endpoint
-	httpClient            http.Client
-	systemCallbackBaseURL *url.URL
-	mu                    hostMutex
-	sessions              map[string]*Session
-	effects               int64
-	closed                bool
+	profile   testpilot.ProfileSpec
+	endpoints map[string]endpoint
+	mu        hostMutex
+	sessions  map[string]*Session
+	effects   int64
+	closed    bool
 }
 
 var (
@@ -67,30 +59,7 @@ func New(options Options) (*Driver, error) {
 	if !validProfile(p) {
 		return nil, errInvalid
 	}
-	callbackBaseURL, err := parseSystemCallbackBaseURL(options.SystemCallbackBaseURL)
-	if err != nil {
-		return nil, errInvalid
-	}
-	h := &Driver{mu: make(hostMutex, 1), profile: cloneProfile(p), endpoints: make(map[string]endpoint), sessions: make(map[string]*Session), systemCallbackBaseURL: callbackBaseURL}
-	if options.HTTPClient != nil {
-		h.httpClient = *options.HTTPClient
-	}
-	transport := h.httpClient.Transport
-	if transport == nil {
-		transport = http.DefaultTransport
-	}
-	if standard, ok := transport.(*http.Transport); ok && standard != nil {
-		owned := standard.Clone()
-		owned.MaxResponseHeaderBytes = l.MaxResponseBytes
-		owned.MaxConnsPerHost = int(l.MaxAttempts)
-		owned.MaxIdleConns = int(l.MaxAttempts)
-		owned.MaxIdleConnsPerHost = int(l.MaxAttempts)
-		h.httpClient.Transport = owned
-	} else if nilValue(transport) {
-		return nil, errInvalid
-	}
-	h.httpClient.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
-	h.httpClient.Timeout = time.Duration(l.MaxTotalDurationMilliseconds) * time.Millisecond
+	h := &Driver{mu: make(hostMutex, 1), profile: cloneProfile(p), endpoints: make(map[string]endpoint), sessions: make(map[string]*Session)}
 	for _, role := range p.Roles {
 		if role.Kind != testpilotspb.ROLE_KIND_ENDPOINT || len(role.Methods) == 0 {
 			continue
@@ -120,18 +89,6 @@ func New(options Options) (*Driver, error) {
 		h.endpoints[role.ID] = endpoint{connection: connection, metadata: config.Metadata.Copy(), methods: methods}
 	}
 	return h, nil
-}
-
-func parseSystemCallbackBaseURL(raw string) (*url.URL, error) {
-	if raw == "" {
-		return nil, nil
-	}
-	base, err := url.Parse(raw)
-	if err != nil || base.Host == "" || (base.Scheme != "http" && base.Scheme != "https") || base.User != nil || base.Fragment != "" || base.RawQuery != "" || base.ForceQuery || base.Opaque != "" || base.RawPath != "" || (base.Path != "" && base.Path != "/") {
-		return nil, errInvalid
-	}
-	base.Path = ""
-	return base, nil
 }
 
 func validProfile(p testpilot.ProfileSpec) bool {
@@ -221,15 +178,19 @@ func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.P
 	if int64(len(h.sessions)) >= h.profile.ProgramLimits.MaxActivations {
 		return nil, errCapacity
 	}
-	s := &Session{host: h, runID: runID, effects: make(map[*effect]struct{}), started: make(map[testpilot.Coordinate]struct{}), entries: make(map[string]testpilotspb.EntrypointKind), nodes: make(map[nodeKey]*testpilotspb.InstructionDefinition), slots: make(map[string]*capabilitySlot), capabilities: make(map[*completionCapability]struct{}), closedSignal: make(chan struct{})}
+	s := &Session{host: h, runID: runID, effects: make(map[*effect]struct{}), started: make(map[testpilot.Coordinate]struct{}), entries: make(map[string]struct{}), controllers: make(map[string]struct{}), nodes: make(map[nodeKey]*testpilotspb.InstructionDefinition), slots: make(map[string]*capabilitySlot), capabilities: make(map[*opaqueCapability]struct{}), closedSignal: make(chan struct{})}
 	for _, entry := range program.Entrypoints {
-		s.entries[entry.EntrypointId] = entrypointKind(entry)
+		s.entries[entry.EntrypointId] = struct{}{}
+		if entry.GetController() != nil {
+			s.controllers[entry.EntrypointId] = struct{}{}
+		}
 		for _, node := range entry.Instructions {
 			s.nodes[nodeKey{entry.EntrypointId, node.InstructionId}] = proto.CloneOf(node)
 		}
 	}
 	if cleanup := program.Cleanup; cleanup != nil {
-		s.entries[cleanup.EntrypointId] = testpilotspb.ENTRYPOINT_KIND_CONTROLLER
+		s.entries[cleanup.EntrypointId] = struct{}{}
+		s.controllers[cleanup.EntrypointId] = struct{}{}
 		for _, node := range cleanup.Instructions {
 			s.nodes[nodeKey{cleanup.EntrypointId, node.InstructionId}] = proto.CloneOf(node)
 		}
@@ -244,21 +205,6 @@ func (h *Driver) open(ctx context.Context, runID string, program *testpilotspb.P
 	}
 	h.sessions[runID] = s
 	return s, nil
-}
-
-func entrypointKind(entry *testpilotspb.EntrypointDefinition) testpilotspb.EntrypointKind {
-	switch entry.GetActivation().(type) {
-	case *testpilotspb.EntrypointDefinition_Controller:
-		return testpilotspb.ENTRYPOINT_KIND_CONTROLLER
-	case *testpilotspb.EntrypointDefinition_Workflow:
-		return testpilotspb.ENTRYPOINT_KIND_WORKFLOW
-	case *testpilotspb.EntrypointDefinition_Activity:
-		return testpilotspb.ENTRYPOINT_KIND_ACTIVITY
-	case *testpilotspb.EntrypointDefinition_NexusHandler:
-		return testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER
-	default:
-		return testpilotspb.ENTRYPOINT_KIND_UNSPECIFIED
-	}
 }
 
 func (h *Driver) Close(ctx context.Context) error {
@@ -277,7 +223,6 @@ func (h *Driver) Close(ctx context.Context) error {
 		session.closeLocked()
 	}
 	h.mu.Unlock()
-	h.httpClient.CloseIdleConnections()
 	return h.closeConnections()
 }
 

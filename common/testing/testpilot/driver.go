@@ -41,6 +41,13 @@ type EffectResult struct {
 	Response proto.Message
 }
 
+// CapabilityEffect is Driver-owned behavior carried by an opaque capability. Accepts validates
+// immutable prepared input without target I/O and honors its context.
+type CapabilityEffect interface {
+	Accepts(context.Context, *testpilotspb.Instruction, proto.Message) bool
+	Invoke(context.Context, proto.Message, int64) EffectResult
+}
+
 // EffectHandle remains Driver-owned after drain expiry. Wait, Cancel and Drain must obey their
 // context, and late completion releases Driver quarantine capacity without changing a closed Run.
 type EffectHandle interface {
@@ -159,6 +166,14 @@ func (p PreparedProgram) Entrypoints() []EntrypointPlan {
 	return result
 }
 
+func (p PreparedProgram) Cleanup() (EntrypointPlan, bool) {
+	if p.program == nil {
+		return EntrypointPlan{}, false
+	}
+	plan, ok := p.program.Cleanup()
+	return EntrypointPlan{plan: plan}, ok
+}
+
 func (p PreparedProgram) ReservationCarrier(entrypointID, instructionID string) (ReservationCarrierPlan, bool) {
 	plan, ok := p.program.ReservationCarrier(entrypointID, instructionID)
 	if !ok {
@@ -234,7 +249,7 @@ type Driver interface {
 type Session interface {
 	Reserve(context.Context, ReservationRequest) ([]ReservationHandle, error)
 	InvokeRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message) (EffectHandle, error)
-	CompleteNexusOperation(context.Context, Coordinate, OpaqueCapability, *testpilotspb.Value) (EffectHandle, error)
+	InvokeCapability(context.Context, Coordinate, OpaqueCapability, proto.Message) (EffectHandle, error)
 	Bridge(context.Context) (CapabilityBridge, error)
 	Quarantine(context.Context, EffectHandle) error
 	Close(context.Context) error
@@ -286,8 +301,8 @@ func (s sessionAdapter) InvokeRPC(ctx context.Context, coordinate execution.Coor
 	return adaptEffect(handle, err)
 }
 
-func (s sessionAdapter) CompleteNexusOperation(ctx context.Context, coordinate execution.Coordinate, capability execution.OpaqueCapability, value *testpilotspb.Value) (execution.EffectHandle, error) {
-	handle, err := s.session.CompleteNexusOperation(ctx, publicCoordinate(coordinate), capability, value)
+func (s sessionAdapter) InvokeCapability(ctx context.Context, coordinate execution.Coordinate, capability execution.OpaqueCapability, value proto.Message) (execution.EffectHandle, error) {
+	handle, err := s.session.InvokeCapability(ctx, publicCoordinate(coordinate), capability, value)
 	return adaptEffect(handle, err)
 }
 
