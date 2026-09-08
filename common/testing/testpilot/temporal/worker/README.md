@@ -17,7 +17,8 @@ then rejects workflow types outside that allowlist before reservation admission.
 
 Controller code reserves worker activations before dispatch and creates a `Carrier` from the
 prepared carrier plan. `Carrier` delegates route injection, start-response pinning, trigger
-terminal release, parent terminal release, and quarantine to the delivery ledger. Callback URL,
-headers, operation token, and start time cross the package boundary only through
-`CompletionCapabilityFactory`; the resulting capability remains opaque and is published through
-the Run's bridge.
+terminal release, parent terminal release, and quarantine to the delivery ledger. The worker
+validates callback URLs, resolves the SDK system callback against the trusted configured base, and
+builds the protocol completion effect. Only that generic effect crosses the package boundary through
+`CapabilityFactory`; its callback data remains opaque and the resulting capability is published
+through the Run's bridge.

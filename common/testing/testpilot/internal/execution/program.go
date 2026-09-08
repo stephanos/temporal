@@ -222,6 +222,13 @@ func (p *PreparedProgram) Entrypoints() []EntrypointPlan {
 	}
 	return result
 }
+func (p *PreparedProgram) Cleanup() (EntrypointPlan, bool) {
+	graph := p.cleanupGraph()
+	if graph == nil {
+		return EntrypointPlan{}, false
+	}
+	return EntrypointPlan{graph: graph, program: p}, true
+}
 func (p EntrypointPlan) ID() string                           { return p.graph.id }
 func (p EntrypointPlan) Context() testpilotspb.EntrypointKind { return p.graph.context }
 func (p EntrypointPlan) Activation() *testpilotspb.EntrypointDefinition {

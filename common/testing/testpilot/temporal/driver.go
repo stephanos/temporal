@@ -43,14 +43,14 @@ type Driver struct {
 
 func New(options Options) (*Driver, error) {
 	controller, err := server.New(server.Options{
-		Profile: options.Profile, Endpoints: options.ServerEndpoints, SystemCallbackBaseURL: options.SystemCallbackBaseURL, HTTPClient: options.HTTPClient,
+		Profile: options.Profile, Endpoints: options.ServerEndpoints,
 	})
 	if err != nil {
 		return nil, err
 	}
 	workers, err := workerhost.New(workerhost.Options{
 		Profile: options.Profile, Client: options.SDKClient, WorkerRoleID: options.WorkerRoleID,
-		WorkerStopTimeout: options.WorkerStopTimeout,
+		WorkerStopTimeout: options.WorkerStopTimeout, SystemCallbackBaseURL: options.SystemCallbackBaseURL, HTTPClient: options.HTTPClient,
 	})
 	if err != nil {
 		closeErr := controller.Close(context.Background())
@@ -99,12 +99,7 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 		return nil, errors.Join(err, controller.Close(context.Background()))
 	}
 	worker, err := h.worker.OpenSession(ctx, runID, program, workerhost.SessionOptions{
-		Bridge: bridge,
-		NewCompletionCapability: func(ctx context.Context, origin testpilot.Coordinate, info workerhost.CompletionInfo) (testpilot.OpaqueCapability, error) {
-			return controller.NewCompletionCapability(ctx, origin, server.CompletionInfo{
-				URL: info.URL, Header: info.Header, OperationToken: info.OperationToken, StartTime: info.StartTime,
-			})
-		},
+		Bridge: bridge, NewCapability: controller.NewCapability,
 		Diagnose:   controller.Diagnose,
 		Quarantine: quarantineWorkerHandle,
 	})
@@ -129,7 +124,7 @@ func (h *Driver) Close(ctx context.Context) error {
 	if h == nil || ctx == nil {
 		return ErrInvalid
 	}
-	return h.controller.Close(ctx)
+	return errors.Join(h.controller.Close(ctx), h.worker.Close(ctx))
 }
 
 type workerSession interface {
@@ -236,8 +231,8 @@ func workflowBinding(request proto.Message) (workerhost.WorkflowBinding, error) 
 	}, nil
 }
 
-func (s *compositeSession) CompleteNexusOperation(ctx context.Context, coordinate testpilot.Coordinate, capability testpilot.OpaqueCapability, value *testpilotspb.Value) (testpilot.EffectHandle, error) {
-	return s.controller.CompleteNexusOperation(ctx, coordinate, capability, value)
+func (s *compositeSession) InvokeCapability(ctx context.Context, coordinate testpilot.Coordinate, capability testpilot.OpaqueCapability, value proto.Message) (testpilot.EffectHandle, error) {
+	return s.controller.InvokeCapability(ctx, coordinate, capability, value)
 }
 func (s *compositeSession) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error) {
 	return s.controller.Bridge(ctx)

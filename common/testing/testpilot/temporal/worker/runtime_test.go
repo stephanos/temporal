@@ -96,6 +96,107 @@ func TestDriverSymbolicModeComparesRequestBindingIDsRatherThanResolvedText(t *te
 	}
 }
 
+func TestDriverValidatesControllerOnlyTemporalResourceBindings(t *testing.T) {
+	for name, configure := range map[string]struct {
+		program func(*testpilotspb.Program)
+		profile func(*testpilot.ProfileSpec)
+	}{
+		"StartWorkflow literal resources": {
+			program: func(program *testpilotspb.Program) {
+				invoke := program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc()
+				invoke.RequestAssignments = []*testpilotspb.RequestAssignment{
+					{Target: symbolicFieldPath("namespace"), Value: runtimeText("namespace")},
+					{Target: symbolicFieldPath("task_queue", "name"), Value: runtimeText("task-queue")},
+				}
+			},
+		},
+		"GetHistory missing namespace": {
+			program: func(program *testpilotspb.Program) {
+				invoke := program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc()
+				invoke.Method = getHistoryMethod
+				invoke.RequestAssignments = nil
+			},
+			profile: authorizeGetHistory,
+		},
+		"GetHistory crossed namespace": {
+			program: func(program *testpilotspb.Program) {
+				program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-namespace"})
+				invoke := program.Entrypoints[0].Instructions[0].GetInstruction().GetInvokeRpc()
+				invoke.Method = getHistoryMethod
+				invoke.RequestAssignments = []*testpilotspb.RequestAssignment{{Target: symbolicFieldPath("namespace"), Value: symbolicEnvironment("other-namespace")}}
+			},
+			profile: func(profile *testpilot.ProfileSpec) {
+				authorizeGetHistory(profile)
+				profile.EnvironmentBindings = append(profile.EnvironmentBindings, testpilot.EnvironmentBinding{ID: "other-namespace", Value: "namespace"})
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			modifiers := []any{func(program *testpilotspb.Program) {
+				program.Entrypoints[0].Instructions[0].ActivationReservations = nil
+				program.Entrypoints = program.Entrypoints[:1]
+				configure.program(program)
+			}}
+			if configure.profile != nil {
+				modifiers = append(modifiers, configure.profile)
+			}
+			prepared := preparedSymbolicRuntimeFixture(t, modifiers...)
+			host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+			acquisitions := 0
+			host.registry = newWorkerRegistry(8, func(string, queueRegistration) (managedWorker, error) {
+				acquisitions++
+				return &fakeManagedWorker{}, nil
+			})
+			require.ErrorIs(t, host.Validate(t.Context(), prepared), ErrInvalid)
+			require.Zero(t, acquisitions)
+			require.Empty(t, host.registry.groups)
+		})
+	}
+}
+
+func TestDriverRejectsInvalidCleanupResourceBindingBeforeOpen(t *testing.T) {
+	prepared := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
+		program.Cleanup.Instructions = []*testpilotspb.InstructionDefinition{{
+			InstructionId: "cleanup-history",
+			Instruction: &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InvokeRpc{InvokeRpc: &testpilotspb.InvokeRPC{
+				EndpointRoleId: "endpoint",
+				Method:         getHistoryMethod,
+				RequestAssignments: []*testpilotspb.RequestAssignment{{
+					Target: symbolicFieldPath("namespace"), Value: runtimeText("namespace"),
+				}},
+			}}},
+			Outcome: runtimeStatusSchema(),
+			Limits:  runtimeBounds(),
+		}}
+	}, authorizeGetHistory)
+	host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+	acquisitions := 0
+	host.registry = newWorkerRegistry(8, func(string, queueRegistration) (managedWorker, error) {
+		acquisitions++
+		return &fakeManagedWorker{}, nil
+	})
+	driver := &openCountingDriver{Driver: host}
+	err := driver.Validate(t.Context(), prepared)
+	require.ErrorIs(t, err, ErrInvalid)
+	require.Zero(t, driver.opens)
+	require.Zero(t, acquisitions)
+	require.Empty(t, host.registry.groups)
+}
+
+type openCountingDriver struct {
+	*Driver
+	opens int
+}
+
+func (d *openCountingDriver) Open(ctx context.Context, runID string, program testpilot.PreparedProgram) (testpilot.Session, error) {
+	d.opens++
+	return d.Driver.Open(ctx, runID, program)
+}
+
+func authorizeGetHistory(profile *testpilot.ProfileSpec) {
+	profile.Roles[0].Methods = append(profile.Roles[0].Methods, getHistoryMethod)
+}
+
 func TestDriverSymbolicModeRejectsUnsupportedEndpointResources(t *testing.T) {
 	for name, mutate := range map[string]func(*testpilotspb.Program){
 		"missing Nexus endpoint resource": func(program *testpilotspb.Program) {

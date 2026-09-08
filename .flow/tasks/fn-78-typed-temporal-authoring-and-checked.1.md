@@ -19,9 +19,8 @@ Update composite Temporal Driver wiring, ownership documentation, and boundary r
 
 
 ## Done summary
-TBD
-
+Removed Nexus knowledge from the generic Temporal server transport. Replaced the feature-named Session operation with generic `InvokeCapability` and a Driver-owned `CapabilityEffect` contract; the server now owns only opaque capability claims, bounded effect execution, and unary RPC transport. Moved callback URL validation, trusted system callback resolution, Nexus HTTP completion, payload encoding, and HTTP lifecycle into `temporal/worker`. Updated composite wiring and ownership documentation, deleted the Nexus-named server files and tests, and added a strict server-boundary regression. Implementation review found and verified a fix that runs capability contract checks outside the Driver-wide lock, passes context, and revalidates claim ownership before acceptance. Focused lint is clean; full `make lint-code` retains the known 1,279 unrelated repository findings.
 ## Evidence
 - Commits:
-- Tests:
+- Tests: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/temporal/server ./common/testing/testpilot/temporal/worker ./common/testing/testpilot/temporal ./common/testing/testpilot/internal/execution ./common/testing/testpilot, TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$', TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 .bin/golangci-lint-v2.13.1 run --build-tags 'disable_grpc_modules,,test_dep,' --timeout 10m --fix=false --config=.github/.golangci.yml ./common/testing/testpilot/..., rg -n -i 'nexus' common/testing/testpilot/temporal/server, make lint-code, git diff --check
 - PRs:

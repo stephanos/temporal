@@ -112,7 +112,7 @@ type Driver interface {
 type Session interface {
 	Reserve(context.Context, ReservationRequest) ([]ReservationHandle, error)
 	InvokeRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message) (EffectHandle, error)
-	CompleteNexusOperation(context.Context, Coordinate, OpaqueCapability, *testpilotspb.Value) (EffectHandle, error)
+	InvokeCapability(context.Context, Coordinate, OpaqueCapability, proto.Message) (EffectHandle, error)
 	Bridge(context.Context) (SlotBridge, error)
 	Quarantine(context.Context, EffectHandle) error
 	Close(context.Context) error
