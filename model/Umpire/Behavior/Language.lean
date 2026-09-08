@@ -1,5 +1,5 @@
 import Umpire.Shared.DefinitionGraph
-import Umpire.Target
+import Umpire.Target.Semantics
 
 /-! Implementation behind the `Umpire.Behavior` public facade. -/
 

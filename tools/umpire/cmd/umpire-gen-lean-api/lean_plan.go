@@ -81,15 +81,17 @@ type leanMessagePlan struct {
 }
 
 type leanMethodPlan struct {
-	Projection      methodProjection
-	Name            string
-	QualifiedName   leanName
-	InputType       leanType
-	OutputType      leanType
-	FullName        string
-	ClientStreaming bool
-	ServerStreaming bool
-	Deprecated      bool
+	InputSchemaName  string
+	OutputSchemaName string
+	Projection       methodProjection
+	Name             string
+	QualifiedName    leanName
+	InputType        leanType
+	OutputType       leanType
+	FullName         string
+	ClientStreaming  bool
+	ServerStreaming  bool
+	Deprecated       bool
 }
 
 type leanServicePlan struct {
@@ -111,6 +113,7 @@ type leanNamespacePlan struct {
 }
 
 type leanPlan struct {
+	OperationSchemas *operationSchemaProjection
 	ProtoModule      leanModulePlan
 	TypesModule      leanModulePlan
 	APIModule        leanModulePlan
@@ -172,6 +175,7 @@ func buildLeanPlan(projection projection, configuration generationConfig) (leanP
 	}
 	declarationPackages := buildLeanDeclarationPackages(projection)
 	plan := leanPlan{
+		OperationSchemas: projection.OperationSchemas,
 		ProtoModule:      cloneLeanModulePlan(protoModuleSpec(configuration.Layout)),
 		TypesModule:      cloneLeanModulePlan(typesModuleSpec(configuration.Layout)),
 		APIModule:        cloneLeanModulePlan(apiModuleSpec(configuration.Layout)),
@@ -706,15 +710,17 @@ func planService(
 			return leanServicePlan{}, fmt.Errorf("plan method %q output: %w", method.FullName, typeErr)
 		}
 		result.Methods = append(result.Methods, leanMethodPlan{
-			Projection:      method,
-			Name:            methodNames[method.FullName],
-			QualifiedName:   appendLeanName(name, methodNames[method.FullName]),
-			InputType:       inputType,
-			OutputType:      outputType,
-			FullName:        method.FullName,
-			ClientStreaming: method.ClientStreaming,
-			ServerStreaming: method.ServerStreaming,
-			Deprecated:      method.Deprecated,
+			Projection:       method,
+			InputSchemaName:  method.InputType,
+			OutputSchemaName: method.OutputType,
+			Name:             methodNames[method.FullName],
+			QualifiedName:    appendLeanName(name, methodNames[method.FullName]),
+			InputType:        inputType,
+			OutputType:       outputType,
+			FullName:         method.FullName,
+			ClientStreaming:  method.ClientStreaming,
+			ServerStreaming:  method.ServerStreaming,
+			Deprecated:       method.Deprecated,
 		})
 	}
 	return result, nil

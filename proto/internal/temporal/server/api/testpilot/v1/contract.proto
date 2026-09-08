@@ -74,4 +74,97 @@ message Contract {
   string contract_id = 1;
   repeated ContractRuleDefinition rules = 2;
   ContractLimits limits = 3;
+  ScopedContract scoped = 4;
+}
+
+// ScopedContract v1 projects causally ordered evidence before ticking operation-local windows.
+message ScopedContract {
+  int32 version = 1;
+  string projection_id = 2;
+  string projection_fingerprint = 3;
+  string evidence_observation_id = 4;
+  repeated string scope_fields = 5;
+  string operation_field = 6;
+  repeated string sources = 7;
+  ScopedValue initial_state = 8;
+  repeated ScopedTransition transitions = 9;
+  repeated ScopedProjectionRule projection_rules = 10;
+  repeated ScopedClause clauses = 11;
+  ScopedLimits limits = 12;
+}
+message ScopedValue { string definition_id = 1; string value = 2; }
+message ScopedTransition {
+  ScopedValue prior_state = 1;
+  ScopedValue action = 2;
+  ScopedValue resulting_state = 3;
+  ScopedValue outcome = 4;
+  repeated ScopedValue facts = 5;
+}
+enum ScopedEvidenceMeaning {
+  SCOPED_EVIDENCE_MEANING_UNSPECIFIED = 0;
+  SCOPED_EVIDENCE_MEANING_IRRELEVANT = 1;
+  SCOPED_EVIDENCE_MEANING_SUBMISSION = 2;
+  SCOPED_EVIDENCE_MEANING_CONFIRMED = 3;
+}
+enum ScopedFieldDisposition {
+  SCOPED_FIELD_DISPOSITION_UNSPECIFIED = 0;
+  SCOPED_FIELD_DISPOSITION_RETAIN = 1;
+  SCOPED_FIELD_DISPOSITION_REDACT = 2;
+  SCOPED_FIELD_DISPOSITION_REJECT = 3;
+}
+message ScopedFieldPolicy {
+  string field_id = 1;
+  ScalarType type = 2;
+  ScopedFieldDisposition disposition = 3;
+}
+message ScopedProjectionRule {
+  string kind = 1;
+  ScopedEvidenceMeaning meaning = 2;
+  ScopedValue submission = 3;
+  // Output rows omit prior_state; the complete transition table checks continuity at admission.
+  repeated ScopedTransition outputs = 4;
+  repeated ScopedFieldPolicy fields = 5;
+}
+enum ScopedClock {
+  SCOPED_CLOCK_UNSPECIFIED = 0;
+  SCOPED_CLOCK_OPERATION_TRANSITIONS = 1;
+}
+enum ScopedEndpoint {
+  SCOPED_ENDPOINT_UNSPECIFIED = 0;
+  SCOPED_ENDPOINT_RUNTIME_PREFIX = 1;
+  SCOPED_ENDPOINT_DELIBERATELY_CLOSED = 2;
+}
+enum ScopedPredicateField {
+  SCOPED_PREDICATE_FIELD_UNSPECIFIED = 0;
+  SCOPED_PREDICATE_FIELD_ACTION = 1;
+  SCOPED_PREDICATE_FIELD_OUTCOME = 2;
+  SCOPED_PREDICATE_FIELD_RESULTING_STATE = 3;
+  SCOPED_PREDICATE_FIELD_FACT = 4;
+}
+message ScopedPredicate {
+  ScopedPredicateField field = 1;
+  string definition_id = 2;
+  oneof constraint {
+    bool present = 3;
+    string equals_text = 4;
+  }
+}
+message ScopedClause {
+  string clause_id = 1;
+  ScopedClock clock = 7;
+  int64 bound = 8;
+  ScopedEndpoint endpoint = 9;
+  ScopedPredicate trigger = 10;
+  ScopedPredicate response = 11;
+}
+message ScopedLimits {
+  int64 max_events = 1;
+  int64 max_buffered = 2;
+  int64 max_keys = 3;
+  int64 max_support = 4;
+  int64 max_projection_work = 5;
+  int64 max_event_bytes = 6;
+  int64 max_semantic_transitions = 7;
+  int64 max_obligations = 8;
+  int64 max_obligation_work = 9;
 }

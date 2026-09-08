@@ -1,5 +1,7 @@
 # fn-74-deepen-testpilot-worker-activation Deepen Testpilot worker activation semantics and preparation diagnostics
 
+> HTML render lens: `.flow/artifacts/fn-74-deepen-testpilot-worker-activation/spec.html` — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -33,7 +35,7 @@ The private activation interface takes a prepared worker entrypoint at construct
 - Evaluate: context, instruction index → independent optional input value, enabled boolean, error. Resolve and charge the guard first. False yields `(nil, false, nil)` and does not evaluate the input or create outcome fields. An enabled instruction with no authored input returns `(nil, true, nil)`. A missing required read is an error, not a disabled instruction.
 - Admit: context, instruction index, primitive `InstructionOutcome` → error. Require an enabled evaluation of that instruction, validate once, and atomically retain private snapshots of its declared fields. Admission before evaluation, after a skipped guard, or repeated admission rejects without replacing any fields. No caller receives the private reference map, resolver, snapshot map or mutable work counter.
 
-One activation instance is used serially by its interpreter. Independent instances can run concurrently against the same prepared plan. The interface does not promise concurrent calls on one instance and must not introduce locks or Go channels into workflow interpretation. Evaluation may not reset an instruction's completed/skipped state or its budget. Failed evaluation/admission publishes no outcome; the adapter propagates the failure and abandons that interpretation rather than retrying or refreshing its allowance. Unknown indices and invalid contexts return errors rather than panic. Constructing a fresh state for a separate interpretation cannot expose another state's values, even when entrypoint and instruction IDs match.
+One activation instance is used serially by its interpreter. Independent instances can run concurrently against the same prepared plan. The interface does not promise concurrent calls on one instance and must not introduce locks or Go channels into workflow interpretation. Evaluation is single-use per instruction: repeated evaluation after enabled, skipped, admitted, or failed evaluation rejects without resetting state or budget. Failed evaluation/admission publishes no outcome; the adapter propagates the failure and abandons that interpretation rather than retrying or refreshing its allowance. Admission order checks mean that instruction's enabled evaluation must precede admission; the module does not select or enforce DAG traversal. Unknown indices and invalid contexts return errors rather than panic. Constructing a fresh state for a separate interpretation cannot expose another state's values, even when entrypoint and instruction IDs match.
 
 The public diagnostic shape is:
 
@@ -101,3 +103,28 @@ The review recommends initially private ownership. Inspection supports that choi
 A small private state owner removes concrete responsibilities from both worker paths without publishing a second facade over the same scheduler. Instruction metadata and traversal remain in the adapter because dispatch and SDK scheduling are its authority. Sharing the existing evaluator and validator preserves semantic parity and avoids a second implementation of guard or outcome rules. The public diagnostic is justified independently by existing public admission calls exposing an otherwise inaccessible structured error.
 
 The performance tradeoff is bounded snapshot ownership in exchange for mutation isolation; caching instruction plans avoids repeated whole-entrypoint copies. Per-activation state scales with admitted instructions and payload bounds, without shared mutable registries. The complexity tradeoff deliberately leaves the existing low-level public methods available rather than mixing interface removal into a correctness extraction. The security boundary is unchanged: pure values carry no SDK futures, credentials, clients or completion capabilities. A general adapter framework, public activation service, global budget manager and new recovery layer are rejected because none has an additional concrete consumer here.
+
+## Delivery and verification
+
+Task 1 builds and independently tests private activation semantics. Task 2 integrates both SDK interpreters and updates their ownership documentation; it depends on task 1. Task 3 exposes public preparation diagnostics with external-package tests and caller documentation and can proceed independently. The final completed implementation task verifies their combined public-facade and Driver behavior. Existing inherited lint failures are recorded separately from introduced failures, never called a clean gate.
+
+The last successful pure operation may consume exactly the remaining work allowance. Subsequent operations at zero allowance reject under the existing execution accounting, even if their expressions would otherwise cost zero. Profile binding-fingerprint errors receive malformed Profile attribution without parsing their messages. Existing Contract diagnostic paths, including scoped Contract admission, are preserved rather than expanded into a separate diagnostic-hardening project.
+
+This changes the responsibilities of Driver implementers and gives public callers stable rejection classification. It adds no operational configuration, deployment, recovery or end-user workflow. Nexus operation cancellation remains deferred to fn-79; existing SDK/context cancellation and cleanup regressions stay required. fn-72 is delivered, and no new forward or reverse spec dependency is introduced.
+
+## Early proof point
+
+Task fn-74-deepen-testpilot-worker-activation.1 proves the existing public prepared plans suffice for isolated activation semantics with exact work and snapshot ownership. If that proof fails, revisit the private composition boundary before integrating the SDK interpreters; do not publish another activation API by default.
+
+## Requirement coverage
+
+| Req | Ownership | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | Private pure activation interface | fn-74-deepen-testpilot-worker-activation.1 | — |
+| R2 | Both interpreter integrations | fn-74-deepen-testpilot-worker-activation.2 | — |
+| R3 | Evaluation and admission lifecycle | fn-74-deepen-testpilot-worker-activation.1 | — |
+| R4 | Exact cumulative work | fn-74-deepen-testpilot-worker-activation.1 | — |
+| R5 | Immutable ownership and isolation | fn-74-deepen-testpilot-worker-activation.1 | — |
+| R6 | SDK replay and lifecycle compatibility | fn-74-deepen-testpilot-worker-activation.2 | — |
+| R7 | Public preparation diagnostics | fn-74-deepen-testpilot-worker-activation.3 | — |
+| R8 | Public/wire compatibility and combined gates | fn-74-deepen-testpilot-worker-activation.2, fn-74-deepen-testpilot-worker-activation.3 | — |

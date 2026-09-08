@@ -11,6 +11,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 	"google.golang.org/protobuf/proto"
 )
@@ -26,32 +27,33 @@ type nexusResult struct {
 type workflowInterpreter struct {
 	session *Session
 	ctx     workflow.Context
-	values  *activationValues
+	state   *activation.State
 	futures map[string]workflow.NexusOperationFuture
 }
 
-func (s *Session) executeWorkflow(ctx workflow.Context, activation delivery.Activation) (*testpilotspb.Value, error) {
-	entry, exists := s.definition.entries[activation.Coordinate().EntrypointID]
+func (s *Session) executeWorkflow(ctx workflow.Context, delivered delivery.Activation) (*testpilotspb.Value, error) {
+	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
 	if !exists || entry.plan.Context() != testpilotspb.ENTRYPOINT_KIND_WORKFLOW {
 		return nil, ErrInvalid
 	}
-	interpreter := workflowInterpreter{session: s, ctx: ctx, values: newActivationValues(entry.plan.ID(), entry.plan.RuntimeWorkLimit()), futures: make(map[string]workflow.NexusOperationFuture)}
+	state, err := activation.New(entry.plan)
+	if err != nil {
+		return nil, err
+	}
+	interpreter := workflowInterpreter{session: s, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
+	instructions := entry.plan.Instructions()
 	for _, index := range entry.plan.Order() {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		instruction, err := instructionAt(entry.plan, index)
-		if err != nil {
-			return nil, err
-		}
-		input, enabled, err := evaluateInstruction(context.Background(), interpreter.values, instruction)
+		input, enabled, err := state.Evaluate(context.Background(), index)
 		if err != nil {
 			return nil, err
 		}
 		if !enabled {
 			continue
 		}
-		result, finished, err := interpreter.execute(instruction, input)
+		result, finished, err := interpreter.execute(index, instructions[index], input)
 		if err != nil || finished {
 			return result, err
 		}
@@ -59,15 +61,15 @@ func (s *Session) executeWorkflow(ctx workflow.Context, activation delivery.Acti
 	return nil, errors.New("workflow entrypoint completed without Finish")
 }
 
-func (i *workflowInterpreter) execute(instruction testpilot.InstructionPlan, input *testpilotspb.Value) (*testpilotspb.Value, bool, error) {
+func (i *workflowInterpreter) execute(index int, instruction testpilot.InstructionPlan, input *testpilotspb.Value) (*testpilotspb.Value, bool, error) {
 	switch instruction.Opcode() {
 	case testpilot.StartNexusOperation:
-		return nil, false, i.startNexus(instruction, input)
+		return nil, false, i.startNexus(index, instruction, input)
 	case testpilot.Await:
-		return nil, false, i.awaitNexus(instruction)
+		return nil, false, i.awaitNexus(index, instruction)
 	case testpilot.Finish:
 		outcome := terminalOutcome(instruction, input)
-		if err := validateAndStore(context.Background(), i.values, instruction, outcome); err != nil {
+		if err := i.state.Admit(context.Background(), index, outcome); err != nil {
 			return nil, false, err
 		}
 		return proto.CloneOf(input), true, nil
@@ -76,7 +78,7 @@ func (i *workflowInterpreter) execute(instruction testpilot.InstructionPlan, inp
 	}
 }
 
-func (i *workflowInterpreter) startNexus(instruction testpilot.InstructionPlan, input *testpilotspb.Value) error {
+func (i *workflowInterpreter) startNexus(index int, instruction testpilot.InstructionPlan, input *testpilotspb.Value) error {
 	source := instruction.Source()
 	start := source.GetInstruction().GetStartNexusOperation()
 	endpoint := i.session.definition.endpoints[start.GetEndpointRoleId()]
@@ -96,10 +98,10 @@ func (i *workflowInterpreter) startNexus(instruction testpilot.InstructionPlan, 
 	i.futures[source.GetInstructionId()] = future
 	var execution workflow.NexusOperationExecution
 	err := future.GetNexusOperationExecution().Get(i.ctx, &execution)
-	return validateAndStore(context.Background(), i.values, instruction, outcomeForError(err))
+	return i.state.Admit(context.Background(), index, outcomeForError(err))
 }
 
-func (i *workflowInterpreter) awaitNexus(instruction testpilot.InstructionPlan) error {
+func (i *workflowInterpreter) awaitNexus(index int, instruction testpilot.InstructionPlan) error {
 	await := instruction.Source().GetInstruction().GetAwaitOutcome()
 	future := i.futures[await.GetInstruction().GetInstructionId()]
 	if future == nil {
@@ -122,7 +124,7 @@ func (i *workflowInterpreter) awaitNexus(instruction testpilot.InstructionPlan) 
 	if err == nil {
 		outcome.Value = &result
 	}
-	return validateAndStore(context.Background(), i.values, instruction, outcome)
+	return i.state.Admit(context.Background(), index, outcome)
 }
 
 func terminalOutcome(instruction testpilot.InstructionPlan, input *testpilotspb.Value) *testpilotspb.InstructionOutcome {
@@ -143,8 +145,8 @@ func outcomeForError(err error) *testpilotspb.InstructionOutcome {
 	return &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}
 }
 
-func (s *Session) executeNexus(ctx context.Context, activation delivery.Activation, _ *testpilotspb.Value, options nexus.StartOperationOptions) (nexus.HandlerStartOperationResult[*testpilotspb.Value], error) {
-	key := activation.Reservation().ID
+func (s *Session) executeNexus(ctx context.Context, delivered delivery.Activation, _ *testpilotspb.Value, options nexus.StartOperationOptions) (nexus.HandlerStartOperationResult[*testpilotspb.Value], error) {
+	key := delivered.Reservation().ID
 	if err := s.mu.lock(ctx); err != nil {
 		return nil, err
 	}
@@ -175,43 +177,44 @@ func (s *Session) executeNexus(ctx context.Context, activation delivery.Activati
 				result.err = errors.New("nexus handler activation panicked")
 			}
 		}()
-		result.kind, result.value, result.token, result.err = s.interpretNexus(ctx, activation, options)
+		result.kind, result.value, result.token, result.err = s.interpretNexus(ctx, delivered, options)
 	}()
 	close(result.done)
 	return result.response()
 }
 
-func (s *Session) interpretNexus(ctx context.Context, activation delivery.Activation, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
-	entry, exists := s.definition.entries[activation.Coordinate().EntrypointID]
+func (s *Session) interpretNexus(ctx context.Context, delivered delivery.Activation, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
+	entry, exists := s.definition.entries[delivered.Coordinate().EntrypointID]
 	if !exists || entry.plan.Context() != testpilotspb.ENTRYPOINT_KIND_NEXUS_HANDLER {
 		return 0, nil, "", ErrInvalid
 	}
-	values := newActivationValues(entry.plan.ID(), entry.plan.RuntimeWorkLimit())
+	state, err := activation.New(entry.plan)
+	if err != nil {
+		return 0, nil, "", err
+	}
+	instructions := entry.plan.Instructions()
 	for _, index := range entry.plan.Order() {
-		instruction, err := instructionAt(entry.plan, index)
-		if err != nil {
-			return 0, nil, "", err
-		}
-		input, enabled, err := evaluateInstruction(ctx, values, instruction)
+		input, enabled, err := state.Evaluate(ctx, index)
 		if err != nil {
 			return 0, nil, "", err
 		}
 		if !enabled {
 			continue
 		}
+		instruction := instructions[index]
 		if instruction.Opcode() != testpilot.RespondNexus {
 			return 0, nil, "", ErrInvalid
 		}
 		response := instruction.Source().GetInstruction().GetRespondNexus()
-		if err := validateAndStore(ctx, values, instruction, terminalOutcome(instruction, input)); err != nil {
+		if err := state.Admit(ctx, index, terminalOutcome(instruction, input)); err != nil {
 			return 0, nil, "", err
 		}
-		return s.respondNexus(ctx, activation, response, input, options)
+		return s.respondNexus(ctx, delivered, response, input, options)
 	}
 	return 0, nil, "", errors.New("nexus handler entrypoint completed without RespondNexus")
 }
 
-func (s *Session) respondNexus(ctx context.Context, activation delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
+func (s *Session) respondNexus(ctx context.Context, delivered delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
 	switch response.GetKind() {
 	case testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS:
 		if input == nil {
@@ -219,7 +222,7 @@ func (s *Session) respondNexus(ctx context.Context, activation delivery.Activati
 		}
 		return response.GetKind(), proto.CloneOf(input), "", nil
 	case testpilotspb.NEXUS_RESPONSE_KIND_ASYNCHRONOUS:
-		return s.respondNexusAsync(ctx, activation, response, input, options)
+		return s.respondNexusAsync(ctx, delivered, response, input, options)
 	case testpilotspb.NEXUS_RESPONSE_KIND_ERROR:
 		detail := "Nexus handler returned an error"
 		if input != nil && input.GetText() != "" {
@@ -231,15 +234,15 @@ func (s *Session) respondNexus(ctx context.Context, activation delivery.Activati
 	}
 }
 
-func (s *Session) respondNexusAsync(ctx context.Context, activation delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
+func (s *Session) respondNexusAsync(ctx context.Context, delivered delivery.Activation, response *testpilotspb.RespondNexus, input *testpilotspb.Value, options nexus.StartOperationOptions) (testpilotspb.NexusResponseKind, *testpilotspb.Value, string, error) {
 	if input == nil || s.options.NewCapability == nil || nilValue(s.options.Bridge) {
 		return 0, nil, "", ErrInvalid
 	}
-	invoke, err := s.host.options.completion.newEffect(completionInfo{URL: options.CallbackURL, Header: maps.Clone(options.CallbackHeader), OperationToken: activation.RequestID(), StartTime: s.host.options.now()})
+	invoke, err := s.host.options.completion.newEffect(completionInfo{URL: options.CallbackURL, Header: maps.Clone(options.CallbackHeader), OperationToken: delivered.RequestID(), StartTime: s.host.options.now()})
 	if err != nil {
 		return 0, nil, "", err
 	}
-	capability, err := s.options.NewCapability(ctx, activation.Coordinate(), invoke)
+	capability, err := s.options.NewCapability(ctx, delivered.Coordinate(), invoke)
 	if err != nil {
 		return 0, nil, "", err
 	}
@@ -250,21 +253,13 @@ func (s *Session) respondNexusAsync(ctx context.Context, activation delivery.Act
 		s.lateDiagnostic(ctx, "completion_publication_late")
 		return 0, nil, "", err
 	}
-	if err := s.options.Bridge.Publish(ctx, activation.Coordinate(), response.GetCapabilitySlotId(), capability); err != nil {
+	if err := s.options.Bridge.Publish(ctx, delivered.Coordinate(), response.GetCapabilitySlotId(), capability); err != nil {
 		if errors.Is(s.publicationAllowed(ctx), ErrClosed) {
 			s.lateDiagnostic(ctx, "completion_publication_late")
 		}
 		return 0, nil, "", err
 	}
-	return response.GetKind(), nil, activation.RequestID(), nil
-}
-
-func instructionAt(entry testpilot.EntrypointPlan, index int) (testpilot.InstructionPlan, error) {
-	instructions := entry.Instructions()
-	if index < 0 || index >= len(instructions) {
-		return testpilot.InstructionPlan{}, ErrInvalid
-	}
-	return instructions[index], nil
+	return response.GetKind(), nil, delivered.RequestID(), nil
 }
 
 func (s *Session) publicationAllowed(ctx context.Context) error {
@@ -299,28 +294,6 @@ func (r *nexusResult) response() (nexus.HandlerStartOperationResult[*testpilotsp
 	default:
 		return nil, ErrInvalid
 	}
-}
-
-func evaluateInstruction(ctx context.Context, values *activationValues, instruction testpilot.InstructionPlan) (*testpilotspb.Value, bool, error) {
-	input, enabled, work, err := instruction.EvaluateInput(ctx, values.lookup, values.remaining)
-	values.remaining -= work
-	if values.remaining < 0 {
-		return nil, false, ErrCapacity
-	}
-	return input, enabled, err
-}
-
-func validateAndStore(ctx context.Context, values *activationValues, instruction testpilot.InstructionPlan, outcome *testpilotspb.InstructionOutcome) error {
-	snapshot, work, err := instruction.ValidateOutcome(ctx, outcome, values.remaining)
-	values.remaining -= work
-	if err != nil {
-		return err
-	}
-	if values.remaining < 0 {
-		return ErrCapacity
-	}
-	values.store(instruction.Source().GetInstructionId(), snapshot)
-	return nil
 }
 
 func sdkFailureOutcome(err error) *testpilotspb.InstructionOutcome {

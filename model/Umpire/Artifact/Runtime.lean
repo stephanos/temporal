@@ -1,5 +1,5 @@
 import Umpire.Artifact.Codecs
-import Umpire.SemanticInventory.Types
+import Umpire.OutcomeClassification
 
 namespace Umpire
 

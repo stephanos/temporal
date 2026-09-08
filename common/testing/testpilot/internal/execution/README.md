@@ -145,9 +145,14 @@ when a success guard passes but its required result is absent. These methods con
 locks, goroutines or SDK objects; activation scheduling, futures and cancellation remain adapter-owned.
 
 Each operation takes a positive work budget no greater than the prepared runtime ceiling and returns
-consumed work on success or failure. Adapters subtract consumed work from their activation allowance;
-the immutable plan does not keep a mutable budget. Validation charges traversal and ordering before
-serialization/copies. Runtime protobuf fields use field-number order and map keys use typed order;
+consumed work on success or failure. Callers must subtract consumed work from their activation allowance;
+the immutable plan does not keep a mutable budget. The Temporal worker composes these methods through
+its private `temporal/internal/activation` state: `Evaluate` resolves local references and consumes
+evaluation work, and `Admit` consumes validation work and atomically retains owned fields. Each actual
+interpretation gets fresh state; SDK traversal, futures, cancellation and delivery authority remain
+in the worker. This composition does not change the public methods or their work units.
+
+Validation charges traversal and ordering before serialization/copies. Runtime protobuf fields use field-number order and map keys use typed order;
 declared outcome fields use declaration order, making failure precedence and tight-budget exhaustion
 repeatable. Static binding retains its existing finite work accounting. The same validator serves
 controller staging; only raw RPC response validation/projection adds controller work afterward.

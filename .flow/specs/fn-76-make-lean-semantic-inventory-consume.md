@@ -1,5 +1,7 @@
 # Make Lean semantic inventory consume semantic contracts
 
+> Local HTML render lens: `.flow/artifacts/fn-76-make-lean-semantic-inventory-consume/spec.html` — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
@@ -87,4 +89,29 @@ The projection sentinel descriptor must participate in the extraction: Implement
 
 The existing import graph infrastructure already computes transitive reachability and deterministic paths, so extend its policy and tests rather than add a text-search gate or another import scanner. Test-only catalog consumers are legitimate and remain explicitly distinguished from production code.
 
-fn-76-make-lean-semantic-inventory-consume can ship independently of all other architecture tracks. Coordinate overlapping import-policy edits with fn-75-separate-lean-target-semantics-from during integration, without sequencing one feature behind the other. Keep this change observationally inert: dependency ownership improves while semantic outputs and documentation stay stable.
+fn-76-make-lean-semantic-inventory-consume can ship independently of all other architecture tracks. fn-68, fn-74, fn-75, and fn-78 are delivered compatibility baselines. Preserve fn-75's semantic import policy and complete external-metadata traversal without adding a dependency solely for overlapping files. Keep this change observationally inert: dependency ownership improves while semantic outputs and documentation stay stable. Nexus operation cancellation remains deferred to fn-79.
+
+## Delivery and verification
+
+Three cohesive tasks deliver this extraction: relocate existing contracts and migrate consumers; enforce the dependency direction; then qualify compatibility, trust, and documentation. The latter tasks consume the preceding changes and run sequentially in the shared checkout.
+
+Before the first source edit, capture the checked inventory bytes, applicable canonical fixtures, and full transitive axiom inventories of relocated declarations, generated auxiliaries, all ten owner ExactlyOne proofs, carry mappings/renderings, and sentinel declarations. Retain complete multiline raw output and an explicit qualified-name mapping; truncated JSON or a post-edit baseline cannot establish unchanged trust. Final qualification compares against those original artifacts.
+
+The neutral module must compile from the smallest existing list/Boolean foundation, without Core or any concrete semantic stage becoming an indirect dependency. Inventory compatibility imports remain available to explicit catalog consumers. Production facade, helper, external-wrapper, and test-fixture paths get no inventory exemption; dedicated test consumers remain allowed under the existing classification rules.
+
+Run renderer tests and both inventory IO test executables, not only their builds. The CLI regression intentionally changes a source mtime; keep verification serial and complete it before the final build/import checks. Check generated inventory without publishing or changing expected Markdown. Preserve existing failure-before-output and atomic publication tests.
+
+Final gates are the normal model build, complete model lint (including builtin lint), applicable inventory/regression checks, and non-fixing Go lint. The current inherited Go-lint baseline is 1,284 raw / 825 distinct path-and-message diagnostics; compare exact sets and report unreached phases. A killed process or missing result is not a passing gate. Preserve disk headroom and serial Lean execution, and recheck the same process handle before deciding it ended.
+
+## Requirement coverage
+
+| Requirement | Tasks |
+| --- | --- |
+| R1 | 1, 3 |
+| R2 | 1, 2 |
+| R3 | 1, 3 |
+| R4 | 1, 3 |
+| R5 | 3 |
+| R6 | 1, 3 |
+| R7 | 1, 2, 3 |
+

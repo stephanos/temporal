@@ -69,6 +69,16 @@ The retained semantic model uses separate `Target`, `Property`, `Behavior`, `Que
 Behaviors constrain trace shape; Queries ask bounded questions; Spaces and Exploration select
 finite candidates. These packages do not perform runtime I/O.
 
+For ordinary authoring, use `import Umpire` or the focused `Umpire.Target`, `Umpire.Property`,
+`Umpire.Behavior`, and `Umpire.Query` facades. These retain the finite-table/machine helpers and
+syntax-aware checkers. `Umpire.Target.Language` remains compatible with existing authoring imports.
+When implementing evaluation or planning over an already checked Target, use
+`Umpire.Target.Semantics`; it exposes the authoritative kernel and finite planning contracts without
+loading the Target elaborator. `Umpire.Planning` consumes checked Queries and does not supply the
+authoring conveniences of the other facades. The
+[ownership guide](Umpire/ARCHITECTURE.md#target-ownership-and-semantic-imports) explains how pure
+admission and serialization support both paths.
+
 `Umpire.Promotion` remains scenario-neutral. It replans an unchanged checked Query, validates the
 complete planning anchor and exact source bytes, and returns an opaque review-only source value.
 It has no Case execution authority and imports no Temporal scenario.
@@ -94,6 +104,31 @@ order and instance search choose none of them. Planning returns `Except KnownGap
 An optional checked `authoredKnownGaps` set is composed with phase gaps before search or artifact
 publication. Gaps describe limits and missing evidence; they cannot make a Property pass or imply
 that an omitted limitation was detected.
+
+Operation-scoped response Properties can use `bounded_response%` inside
+`PropertySpec.scopedClauses`. For example, with Target-owned `request` and `response` values:
+
+```lean
+bounded_response% (family.id "property" "response") at source
+  whenever (.selectedActionIs request) eventually (.modelOutcomeIs response)
+  within 1 on .operationTransitions
+  scoped [runField] by operationField closing .runtimePrefix
+```
+
+This is the same `PropertyScopedClause` as the typed record constructor. `property% spec against
+context tracking [...]` resolves references and reports admission failures at the author expression;
+`spec.check context` provides the ordinary `Except` path for parameterized inputs. Authors choose
+the trigger, response, scope, operation key, natural bound, and endpoint. The checked projection and
+`Umpire.Case.Scoped.lower` derive executable Contract data and correspondence evidence without a
+separately authored monitor. A response at the trigger or inclusive deadline satisfies that obligation;
+only admitted transitions of the same operation advance its clock. Incomplete execution never invents
+a deadline, and an already proved violation survives cleanup failure.
+
+The generated scoped corpus includes executable non-cancellation Cases qualified through public
+Go `Prepare`/`Run`, including repeated/concurrent Runs and bounded tenfold loads. Its synthetic
+source is a controlled qualification fixture, not a production Implementation Link. The existing
+Nexus3 success integration remains the live Temporal demonstration. Nexus operation cancellation
+Targets, adapters, capabilities, and Cases are explicitly deferred to fn-79.
 
 Lean syntax used by the walkthrough:
 
@@ -163,7 +198,16 @@ physical Driver inputs.
 ## Generated artifacts
 
 The checked semantic inventory is the generated navigation view
-[`SEMANTIC_INVENTORY.md`](SEMANTIC_INVENTORY.md). Its owner commands are:
+[`SEMANTIC_INVENTORY.md`](SEMANTIC_INVENTORY.md). Catalog consumers explicitly import
+`Umpire.SemanticInventory` or a focused inventory module; `import Umpire` does not include it.
+Semantic owners publish classifiers through neutral `Umpire.OutcomeClassification` contracts and
+carry mappings through `Umpire.KnownGap`. The inventory consumes their declarations without owning
+stage behavior. `make lint-model` enforces this dependency direction, including transitive paths,
+and the neutral module's minimal foundation. The
+[ownership guide](Umpire/ARCHITECTURE.md#artifact-and-generated-view-boundaries) describes the
+exhaustive classifiers, projection sentinel, and exact versus lossy carry contracts.
+
+Its owner commands are:
 
 ```sh
 make umpire-gen-semantic-inventory

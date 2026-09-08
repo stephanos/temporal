@@ -1,11 +1,13 @@
 # Separate Lean Target semantics from authoring machinery
 
+> HTML render lens: `.flow/artifacts/fn-75-separate-lean-target-semantics-from/spec.html` — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
 Semantic consumers need the checked Target and its kernel obligations, but currently inherit Target authoring machinery. `Umpire.Target.Language` combines `CheckedTarget`, finite planning evidence, composition validation, occurrence diagnostics, canonical projections, and `Lean.Elab.Term` integration. `Umpire.Property.Language` imports the entire `Umpire.Target` facade; Query and Planning inherit that dependency.
 
-Separate these responsibilities so model evaluation and planning can depend on an intentional semantic interface. Preserve Target, Property, Behavior, and Query as their existing semantic owners, and preserve the established finite-table and finite-machine authoring improvements. This is architecture-review item 6's Target seam, an independent track alongside the ongoing fn-68 Nexus3 demonstration.
+Separate these responsibilities so model evaluation and planning can depend on an intentional semantic interface. Preserve Target, Property, Behavior, and Query as their existing semantic owners, and preserve the established finite-table and finite-machine authoring improvements. This is architecture-review item 6's Target seam. The delivered fn-68 Nexus3 demonstration and fn-78 scoped semantics are compatibility baselines; fn-74's completed Go activation and diagnostic changes remain outside this refactor.
 
 ## Architecture & Data Models
 <!-- scope: technical -->
@@ -59,7 +61,7 @@ This refactor introduces no runtime service, state store, or concurrency mechani
 
 - No new modeling DSL, replacement semantic owner, or broad authoring redesign.
 - No requirement to hide legitimate expert `TransitionKernel` use behind forwarding wrappers.
-- No model-to-Case lowering or completion of fn-68 Nexus3 work; preserve and coordinate its in-progress finite-table APIs and consumers.
+- No model-to-Case lowering or additional fn-68 Nexus3 work; preserve its delivered finite-table APIs and consumers.
 - No SemanticInventory outcome/gap contract extraction; that is the separate inventory dependency-direction spec.
 - No standalone Testpilot protocol, environment binding, Go driver extraction, or activation interpreter changes; those are separate specs.
 - No blanket extraction of all Core JSON helpers, general-purpose finite proof library, or fingerprint migration.
@@ -71,4 +73,30 @@ The architecture review identifies a concrete dependency leak, not a need to rep
 
 The existing `withEquivalentKernel` contract demonstrates an intentional expert seam and remains useful. Only demonstrated representation coupling warrants a new lemma or accessor; speculative wrappers would make the interface larger without reducing proof burden.
 
-This spec has no hard dependency on the other five architecture specs or fn-68 completion. The inventory extraction may touch some of the same import sites, so reconcile concurrent import edits without absorbing its contracts. Coordinate against fn-68's current checked finite APIs and preserve source compatibility so the Nexus3 demonstration can continue independently.
+This spec has no hard dependency on the other architecture specs. The fn-76 inventory extraction may touch some of the same import sites; coordinate those edits without absorbing its contracts or introducing a dependency solely for overlap. fn-77 consumes the resulting seam without adding typed-operation scope here. fn-70 remains independently deliverable, and fn-79 Nexus operation cancellation remains deferred.
+
+## Implementation constraints and early proof
+
+Capture the current trust inventories and canonical fixture hashes before the first extraction edit. Audit moved load-bearing declarations and the existing `checkedTarget` default argument separately; preserve its established public call shape without importing elaborator machinery through the semantic surface. Keep private checked assembly and its pure admission authority together, or use only proof-carrying checked operations across owners. A raw constructor bridge is prohibited. Pure occurrence and diagnostic data may remain below the frontend where admission needs them; syntax objects and elaboration remain above it.
+
+The first task proves that the checked semantic surface can compile independently while the ordinary authoring facade still accepts existing callers. If private visibility or default-argument imports prevent that, revise the ownership split before migrating consumers; do not weaken R1 or public checked construction.
+
+Import enforcement must inspect actual reachable dependency metadata, including external wrappers that indirectly import `Lean.Elab.Term`. First-party source reconciliation remains distinct from external dependency traversal. Pin the semantic roots precisely, including Property/Behavior/Query semantic implementations and Planning's Artifact/Types path; authoring facades and dedicated authoring tests remain permitted consumers of elaboration. Tests cover direct and bridged forbidden imports, external wrappers, pure imports, allowed authoring, cycles, deterministic diagnostics, and missing owned metadata.
+
+Preserve existing comments with their owners, exact canonical fixtures, and source-span/fallback diagnostics. Keep unavailable planning unavailable; replacement tests cover both available and absent planning, enumeration order, and insufficient equivalence proofs. No performance improvement is claimed. Existing finite enumeration complexity and bounded planner memory remain the acceptance baseline.
+
+Relevant prior constraints: checked input authority (`.flow/memory/bug/integration/keep-raw-semantics-behind-checked-input-2026-09-05.md`), behavior-neutral extraction (`.flow/memory/bug/integration/behavior-neutral-refactors-must-not-2026-09-04.md`), and unchanged canonical defaults (`.flow/memory/bug/integration/default-empty-extensions-must-preserve-2026-09-05.md`). Broad generated API drift verification and CI expansion remain excluded per `.flow/memory/declined/generated-api-drift-verification.md`; existing applicable staleness checks remain required.
+
+## Requirement coverage
+
+| Requirement | Tasks | Verification |
+| --- | --- | --- |
+| R1 | .1, .2 | Positive semantic import plus actual transitive import graph and bridge regressions |
+| R2 | .2 | Property, Behavior, Query, Planning and Artifact dependency closure |
+| R3 | .1, .3 | Private constructor rejection and preserved checked authoring APIs |
+| R4 | .1, .3 | Pure projection owner, syntax separation and unchanged located diagnostics |
+| R5 | .1, .3 | Pre-edit fixture hashes and unchanged canonical/fingerprint tests |
+| R6 | .1, .3 | Finite adapters, available/unavailable planning and kernel replacement tests |
+| R7 | .1, .2, .3 | Pre/post trust inventories, focused checks and combined build/lint gates |
+
+Tasks execute sequentially: ownership extraction, semantic-consumer/import enforcement, then compatibility/trust qualification and documentation. Each task preserves a buildable ordinary authoring facade; the final task owns combined verification. Existing verified repository lint debt is reported against the captured baseline under the Lean guidelines, never represented as a clean lint pass.

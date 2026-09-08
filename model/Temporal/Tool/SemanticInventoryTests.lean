@@ -60,4 +60,19 @@ example :
             occurrences document ("| `" ++ row.id ++ "` | `" ++ row.owner ++ "` |") == 1)) = true := by
   native_decide
 
+example :
+    let malformedFamilies := [
+      currentInventory.outcomeFamilies ++ currentInventory.outcomeFamilies,
+      currentInventory.outcomeFamilies.map fun family =>
+        { family with constructors := family.constructors ++ family.constructors },
+      currentInventory.outcomeFamilies.map fun family => { family with owner := "" }
+    ]
+    let malformed := malformedFamilies.map (fun families =>
+      { currentInventory with outcomeFamilies := families }) ++ [
+      { currentInventory with projectionSentinels := [] },
+      { currentInventory with knownGaps := [] }
+    ]
+    malformed.map rendered = [none, none, none, none, none] := by
+  native_decide
+
 end Temporal.Tool.SemanticInventoryTests

@@ -82,20 +82,26 @@ type serviceProjection struct {
 }
 
 type projection struct {
-	Enums    []enumProjection
-	Messages []messageProjection
-	Services []serviceProjection
+	OperationSchemas *operationSchemaProjection
+	Enums            []enumProjection
+	Messages         []messageProjection
+	Services         []serviceProjection
 }
 
 func buildProjection(set *descriptorpb.FileDescriptorSet) (projection, error) {
-	_, messageDescriptors, enumDescriptors, serviceDescriptors, err := indexDescriptors(set)
+	files, messageDescriptors, enumDescriptors, serviceDescriptors, err := indexDescriptors(set)
+	if err != nil {
+		return projection{}, err
+	}
+	schemas, err := projectOperationSchemas(files, messageDescriptors, enumDescriptors)
 	if err != nil {
 		return projection{}, err
 	}
 	return projection{
-		Enums:    projectEnums(enumDescriptors),
-		Messages: projectMessages(messageDescriptors),
-		Services: projectServices(serviceDescriptors),
+		OperationSchemas: schemas,
+		Enums:            projectEnums(enumDescriptors),
+		Messages:         projectMessages(messageDescriptors),
+		Services:         projectServices(serviceDescriptors),
 	}, nil
 }
 

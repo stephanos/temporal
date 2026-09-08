@@ -1,11 +1,92 @@
 {
   "branch_name": "fn-76-make-lean-semantic-inventory-consume",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-09-08T13:37:08.846342Z",
   "created_at": "2026-09-07T00:59:07.091725Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-76-make-lean-semantic-inventory-consume",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-08T12:16:00.516923Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "8d9973547119142fa703668165800051cc877e8f1a9d3d305df2eeb645ae9ac0",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 133451,
+      "output_sha256": "2b4b8837e8f31b65c4d060eaf550fda47f5922e4820fb109aa14ca3edd3d3dd3",
+      "reservation_id": "982215705d08420591cc8120d39a4910",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T12:16:00.509730Z",
+      "tool_calls": 7,
+      "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2fc094afd2bae94b34fd57bb623404d6377fcbd6cb265436108e5036095b7281",
+      "backend": "codex",
+      "counter_kind": "plan",
+      "failure_class": null,
+      "finalized": {
+        "digest": "pending",
+        "receipt": "pending",
+        "status": "complete"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": false,
+      "kind": "completion",
+      "outcome": "verdict",
+      "output_bytes": 5901,
+      "output_sha256": "ef11e8ccaf8716e62ee0ed2c930e4e938e206b28f8484176bd3031315eef8ebf",
+      "reservation_id": "8af226c1bedb4113a4eb155ab0b245e4",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T13:36:59.732148Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0,
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-76-make-lean-semantic-inventory-consume.md",
   "status": "open",
   "title": "Make Lean semantic inventory consume semantic contracts",
@@ -20,5 +101,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-07T01:00:16.019394Z"
+  "updated_at": "2026-09-08T13:37:08.846479Z"
 }

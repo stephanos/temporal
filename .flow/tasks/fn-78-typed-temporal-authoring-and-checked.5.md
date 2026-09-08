@@ -1,7 +1,7 @@
 ---
 satisfies: [R3, R7, R8, R9]
 ---
-# fn-78-typed-temporal-authoring-and-checked.5 Project correlated Nexus evidence into semantic steps
+# fn-78-typed-temporal-authoring-and-checked.5 Transfer Nexus evidence adapter to deferred fn-79
 
 ## Description
 **Scope transferred to deferred fn-79 by user decision. This task no longer authorizes cancellation implementation or blocks generic delivery. Generic syntax/qualification formerly in task 8 is retained in task 10. The original description below is archival.**

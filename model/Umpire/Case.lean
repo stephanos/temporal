@@ -59,6 +59,16 @@ structure CaseKnownGap where
   detail : Option String := none
   deriving BEq, DecidableEq, Repr
 
+/-- Exact source binding for one compiled scoped clause. -/
+structure CaseScopedClauseBinding where
+  clauseId : String
+  propertyId : String
+  propertyFingerprint : String
+  projectionId : String
+  projectionFingerprint : String
+  source : SourceLocation
+  deriving BEq, Repr
+
 /-- Compiler and source provenance for one Case artifact. -/
 structure CaseMetadata where
   producerId : String
@@ -66,6 +76,7 @@ structure CaseMetadata where
   definitions : List CaseDefinitionBinding := []
   sources : List SourceLocation := []
   knownGaps : List CaseKnownGap := []
+  scopedClauses : List CaseScopedClauseBinding := []
   deriving BEq, Repr
 
 end Umpire.Case

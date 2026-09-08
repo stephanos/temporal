@@ -1,6 +1,7 @@
 import Batteries.Tactic.Lint
 import Lake.CLI.Main
 import ModelLint.ImportGraph
+import Tools.LeanImportGraph.Metadata
 import Tools.LeanSourceInventory
 
 /-! Whole-environment model linting beyond Lean's built-in declaration linters. -/
@@ -27,21 +28,6 @@ private def buildOwnedSources (sources : Array SourceRecord) : IO Unit := do
   if exitCode != 0 then
     throw <| IO.userError "Lake failed to make every owned model source current"
 
-private unsafe def loadModuleRecords
-    (sources : Array SourceRecord) : IO (Array ModuleRecord × Array CompactedRegion) := do
-  initSearchPath (← findSysroot)
-  let mut records := #[]
-  let mut regions := #[]
-  for source in sources do
-    let olean ← findOLean source.module
-    let (metadata, region) ← readModuleData olean
-    regions := regions.push region
-    records := records.push {
-      name := source.module
-      imports := metadata.imports.map (·.module)
-    }
-  pure (records, regions)
-
 private def captureStep (category : String) (action : IO α) : IO (Except String α) := do
   try
     pure <| .ok (← action)
@@ -65,7 +51,9 @@ private unsafe def lintImportGraph : IO Bool := do
       match ← captureStep "build" (buildOwnedSources sources) with
       | .error error => IO.eprintln error; pure false
       | .ok _ =>
-        match ← captureStep "metadata" (loadModuleRecords sources) with
+        match ← captureStep "metadata"
+            (Tools.LeanImportGraph.Metadata.load (sources.map (·.module))
+              defaultPolicy.isFirstParty) with
         | .error error => IO.eprintln error; pure false
         | .ok (modules, regions) =>
           let inventoryIssues := reconcile defaultPolicy sources modules

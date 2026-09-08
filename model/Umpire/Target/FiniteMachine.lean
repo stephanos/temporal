@@ -1,5 +1,5 @@
 import Umpire.Target.FiniteTable
-import Umpire.Target.Language
+import Umpire.Target.Semantics
 
 /-! Complete finite-machine authoring for ordinary Umpire Targets. -/
 

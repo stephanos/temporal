@@ -187,12 +187,24 @@ def ResolvedPropertyClause.id : ResolvedPropertyClause → DefinitionId
   | .guardedEventuallyWithin clause
   | .guardedQuiescentWithin clause => clause.id
 
+/-- The supported scoped fragment retains both typed predicates and their existing temporal
+patterns. Construction is confined to Property admission. -/
+structure ResolvedPropertyScopedClause where
+  private mk ::
+  declaration : PropertyScopedClause
+  trigger : CheckedPropertyPredicate .guard
+  response : CheckedPropertyPredicate .expectation
+  triggerPattern : PropertyPattern
+  responsePattern : PropertyPattern
+  deriving BEq, DecidableEq, Repr
+
 structure CheckedProperty where
   id : DefinitionId
   source : SourceLocation
   version : Nat
   requires : List DefinitionId
   clauses : List ResolvedPropertyClause
+  scopedClauses : List ResolvedPropertyScopedClause := []
   access : PropertyCapabilityView
   documentation : String
   canonicalMetadata : String
@@ -229,12 +241,12 @@ def CheckedProperty.guardedClauseIds (property : CheckedProperty) : List Definit
 
 /-- Whether an Observation consumer must reject a checked clause it cannot preserve. -/
 def CheckedProperty.hasUnsupportedObservationClauses (property : CheckedProperty) : Bool :=
-  property.hasSameStepCases || property.hasGuardedTemporalClauses
+  property.hasSameStepCases || property.hasGuardedTemporalClauses || !property.scopedClauses.isEmpty
 
 /-- Stable IDs retained when Observation rejects unsupported checked Property semantics. -/
 def CheckedProperty.unsupportedObservationClauseIds
     (property : CheckedProperty) : List DefinitionId :=
-  property.guardedClauseIds
+  property.guardedClauseIds ++ property.scopedClauses.map (·.declaration.id)
 
 /-- Property identity used for predicate validation diagnostics. -/
 def CheckedPropertyPredicate.definitionId
@@ -1004,6 +1016,18 @@ private def clauseJson : ResolvedPropertyClause → String
   | .guardedQuiescentWithin clause =>
       guardedTemporalJson "guarded-quiescent-within" "forbidden" clause
 
+private def scopedClauseJson (clause : ResolvedPropertyScopedClause) : String :=
+  let declaration := clause.declaration
+  "{\"id\":" ++ quote declaration.id.value ++
+    ",\"kind\":\"scoped-eventually-within/v1\",\"trigger\":" ++ patternJson clause.triggerPattern ++
+    ",\"response\":" ++ patternJson clause.responsePattern ++
+    ",\"scope\":" ++ array (declaration.scope.map (quote ∘ DefinitionId.value)) ++
+    ",\"key\":" ++ quote declaration.key.value ++
+    ",\"clock\":\"operation-transitions\",\"bound\":" ++ toString declaration.bound ++
+    ",\"endpoint\":" ++ quote (match declaration.endpoint with
+      | .deliberatelyClosed => "deliberately-closed"
+      | .runtimePrefix => "runtime-prefix") ++ "}"
+
 private def capabilityJson (capability : PropertyCapability) : String :=
   "{\"id\":" ++ quote capability.id.value ++
     ",\"version\":" ++ toString capability.version ++
@@ -1019,7 +1043,8 @@ private def propertySemanticJson
     (version : Nat)
     (requires : List DefinitionId)
     (clauses : List ResolvedPropertyClause)
-    (access : PropertyCapabilityView) : String :=
+    (access : PropertyCapabilityView)
+    (scopedClauses : List ResolvedPropertyScopedClause := []) : String :=
   "{\"id\":" ++ quote id.value ++
     ",\"version\":" ++ toString version ++
     ",\"requires\":" ++
@@ -1029,11 +1054,13 @@ private def propertySemanticJson
     ",\"meanings\":" ++ array (canonicalMeanings access.meanings |>.map meaningJson) ++
     ",\"logicalTimeSource\":" ++
       (access.logicalTimeSource.map (quote ∘ DefinitionId.value) |>.getD "null") ++
-    ",\"clauses\":" ++ array (clauses.mergeSort clauseLe |>.map clauseJson) ++ "}"
+    ",\"clauses\":" ++ array (clauses.mergeSort clauseLe |>.map clauseJson) ++
+    (if scopedClauses.isEmpty then "" else
+      ",\"scopedClauses\":" ++ array (scopedClauses.map scopedClauseJson)) ++ "}"
 
 def canonicalPropertyJson (property : CheckedProperty) : String :=
   "{\"semantic\":" ++ propertySemanticJson property.id property.version property.requires
-      property.clauses property.access ++
+      property.clauses property.access property.scopedClauses ++
     ",\"source\":" ++ sourceJson property.source ++
     ",\"documentation\":" ++ quote property.documentation ++ "}"
 
@@ -1046,6 +1073,41 @@ def canonicalPropertyErrorJson (error : PropertyError) : String :=
     ",\"relatedDefinitionIds\":" ++
       array (DefinitionId.canonicalSet error.relatedDefinitionIds |>.map
         (quote ∘ DefinitionId.value)) ++ "}"
+
+private def scopedPattern (clause : PropertyScopedClause)
+    (predicate : PropertyPredicate) (trigger : Bool) : Except PropertyError PropertyPattern := do
+  let failure := nestedPropertyError .invalidClause clause.id clause.source
+    "unsupported scoped predicate; use a single aligned step atom"
+  let .atom atom := predicate | throw failure
+  let field ← match trigger, atom.field with
+    | true, .selectedAction => pure PropertyTraceField.selectedAction
+    | false, .modelOutcome => pure .modelOutcome
+    | false, .resultingState => pure .resultingState
+    | false, .expectationFact => pure .observation
+    | _, _ => throw failure
+  let constraint ← match atom.constraint with
+    | .present => pure ValueConstraint.present
+    | .equals (.text value) => pure (.equals value)
+    | _ => throw failure
+  pure { field, reference := atom.reference, constraint }
+
+private def checkScopedClause (context : PropertyCheckContext)
+    (owner : PropertyDeclaration) (access : PropertyCapabilityView)
+    (clause : PropertyScopedClause) : Except PropertyError ResolvedPropertyScopedClause := do
+  requireDefinitionId clause.id clause.source clause.id
+  requireDefinitionId clause.id clause.source clause.key
+  for field in clause.scope do requireDefinitionId clause.id clause.source field
+  if clause.scope.isEmpty || clause.scope.eraseDups != clause.scope ||
+      clause.scope.contains clause.key || clause.bound > 18446744073709551615 then
+    throw (nestedPropertyError .invalidClause clause.id clause.source
+      "unsupported scoped key, scope, or numeric bound")
+  let owner := { owner with id := clause.id, source := clause.source }
+  let trigger ← resolvePropertyPredicate context owner access clause.source .guard clause.trigger
+  let response ← resolvePropertyPredicate context owner access clause.source .expectation clause.response
+  let triggerPattern ← scopedPattern clause clause.trigger true
+  let responsePattern ← scopedPattern clause clause.response false
+  pure ⟨{ clause with scope := DefinitionId.canonicalSet clause.scope },
+    trigger, response, triggerPattern, responsePattern⟩
 
 /-- Check an authored property, expand named limits, and freeze its capability view before planning. -/
 def checkProperty
@@ -1061,7 +1123,7 @@ def checkProperty
       ("supported versions are 1 and 2, found " ++ toString declaration.version)
       [declaration.id])
   requireUniqueIds declaration.id declaration.source
-    (declaration.clauses.map PropertyClause.id)
+    (declaration.clauses.map PropertyClause.id ++ declaration.scopedClauses.map (·.id))
   requireUniqueIds declaration.id declaration.source
     (context.limitProfiles.map PropertyLimitProfile.id)
   let hasVersionTwoForm := declaration.clauses.any fun clause => match clause with
@@ -1077,14 +1139,17 @@ def checkProperty
   let mut clauses := []
   for clause in declaration.clauses.mergeSort authoredClauseLe do
     clauses := clauses ++ [← checkClause context declaration access clause]
+  let scopedClauses ← (declaration.scopedClauses.mergeSort fun a b =>
+    decide (a.id.value ≤ b.id.value)).mapM (checkScopedClause context declaration access)
   let semantic := propertySemanticJson declaration.id declaration.version declaration.requires
-    clauses access
+    clauses access scopedClauses
   let checked : CheckedProperty := {
     id := declaration.id
     source := declaration.source
     version := declaration.version
     requires := DefinitionId.canonicalSet declaration.requires
     clauses := clauses.mergeSort clauseLe
+    scopedClauses
     access
     documentation := declaration.documentation
     canonicalMetadata := ""

@@ -1,5 +1,9 @@
 import Temporal.Shared
 import Umpire.Planning
+import Umpire.Target.FiniteMachine
+import Umpire.Property.Authoring
+import Umpire.Behavior.Authoring
+import Umpire.Query.Authoring
 
 /-!
 The fixed Nexus3 success-slice construction and admission layer. `Syntax` emits ordinary

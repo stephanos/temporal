@@ -3,6 +3,7 @@ package verification
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
@@ -14,6 +15,7 @@ import (
 // Evaluator owns one Run's state. Callbacks are synchronous and must not overlap.
 // PreparedContract can create independent Evaluators concurrently.
 type Evaluator struct {
+	scoped                                                   *scopedRun
 	result                                                   *testpilotspb.Verdict
 	satisfied                                                int
 	prepared                                                 *PreparedContract
@@ -64,10 +66,16 @@ func (p *PreparedContract) newEvaluator(ctx context.Context, view execution.Prog
 			return nil, invalid(ir.TypeMismatch, "Program observations differ")
 		}
 	}
-	e := &Evaluator{prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
+	e := &Evaluator{scoped: newScoped(p.source.Scoped), prepared: p, rules: make([]ruleState, len(p.rules)), result: &testpilotspb.Verdict{Rules: make([]*testpilotspb.RuleVerdict, len(p.rules))}}
 	for i, m := range p.rules {
 		e.rules[i] = ruleState{state: m.initial, captures: map[string]capturedValue{}}
 		e.result.Rules[i] = &testpilotspb.RuleVerdict{RuleId: m.source.RuleId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE}
+	}
+
+	if p.source.Scoped != nil {
+		for _, clause := range p.source.Scoped.Clauses {
+			e.result.Rules = append(e.result.Rules, &testpilotspb.RuleVerdict{RuleId: clause.ClauseId, Status: testpilotspb.RULE_VERDICT_STATUS_INCONCLUSIVE})
+		}
 	}
 	return e, nil
 }
@@ -118,9 +126,37 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 	if err != nil {
 		return e.fail(event.Sequence, err)
 	}
+
+	scoped := e.scoped
+	if scoped != nil {
+		if value := observations[e.prepared.source.Scoped.EvidenceObservationId]; value != nil {
+			evidence := &testpilotspb.ScopedEvidence{}
+			if err := value.GetMessageValue().UnmarshalTo(evidence); err != nil {
+				return e.fail(event.Sequence, err)
+			}
+			admitted := &admittedScopedEvidence{ScopedEvidence: evidence}
+			if previous := scoped.event(evidence.Identity); previous != nil {
+				admitted.supportingEventSequences = slices.Clone(previous.supportingEventSequences)
+			} else {
+				admitted.supportingEventSequences = []int64{event.Sequence}
+			}
+			var used int64
+			scoped, used, err = scoped.stage(ctx, e.prepared.source.Scoped, admitted, event.Sequence)
+			if err != nil {
+				return e.fail(event.Sequence, err)
+			}
+			if err := add(&work, used, e.prepared.source.Limits.MaxWorkPerEvent); err != nil {
+				return e.fail(event.Sequence, err)
+			}
+			if work > e.prepared.source.Limits.MaxTotalWork-e.totalWork {
+				return e.fail(event.Sequence, invalid(ir.LimitExceeded, "combined total evaluation work exceeded"))
+			}
+		}
+	}
 	if err := ctx.Err(); err != nil {
 		return e.fail(event.Sequence, err)
 	}
+	e.scoped = scoped
 	support := false
 	for _, change := range changes {
 		state := &e.rules[change.rule]
@@ -138,6 +174,10 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 	}
 	if support {
 		e.result.SupportingEventSequences = append(e.result.SupportingEventSequences, event.Sequence)
+	}
+
+	if e.scoped != nil {
+		e.recordScoped(event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED, false)
 	}
 	e.captureCount += count
 	e.captureBytes += bytes
@@ -377,7 +417,11 @@ func (e *Evaluator) recordTerminal(change ruleChange) {
 }
 func (e *Evaluator) verdict(disposition testpilotspb.RunStatus) *testpilotspb.Verdict {
 	e.result.Status = testpilotspb.VERDICT_STATUS_INCONCLUSIVE
-	if !e.incomplete && disposition == testpilotspb.RUN_STATUS_COMPLETED && e.satisfied == len(e.prepared.rules) {
+	scopedSatisfied := true
+	if e.scoped != nil {
+		scopedSatisfied = e.recordScoped(true, e.incomplete || disposition != testpilotspb.RUN_STATUS_COMPLETED)
+	}
+	if scopedSatisfied && !e.incomplete && disposition == testpilotspb.RUN_STATUS_COMPLETED && e.satisfied == len(e.prepared.rules) {
 		e.result.Status = testpilotspb.VERDICT_STATUS_SATISFIED
 	}
 	if e.violated {
@@ -440,4 +484,27 @@ func checkRunOrder(ctx context.Context, events []*testpilotspb.RunEvent) error {
 		elapsed = event.ElapsedMilliseconds
 	}
 	return nil
+}
+
+func (e *Evaluator) recordScoped(closed, incomplete bool) bool {
+	s := e.prepared.source.Scoped
+	all := true
+	for i := range s.Clauses {
+		result := e.result.Rules[len(e.prepared.rules)+i]
+		if result.Status != testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
+			result.Status = e.scoped.answer(s, i, closed, incomplete)
+		}
+		result.SupportingEventSequences = slices.Clone(e.scoped.ruleSupport[i])
+		e.result.SupportingEventSequences = unionSequences(e.result.SupportingEventSequences, result.SupportingEventSequences)
+		result.TerminalStateId = ""
+		if result.Status == testpilotspb.RULE_VERDICT_STATUS_VIOLATED {
+			e.violated = true
+			result.TerminalStateId = "scoped.violated"
+		}
+		if closed && result.Status == testpilotspb.RULE_VERDICT_STATUS_SATISFIED {
+			result.TerminalStateId = "scoped.satisfied"
+		}
+		all = all && result.Status == testpilotspb.RULE_VERDICT_STATUS_SATISFIED
+	}
+	return all
 }

@@ -24,7 +24,7 @@ import (
 	sdkworker "go.temporal.io/sdk/worker"
 	"go.temporal.io/sdk/workflow"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/testing/testpilot"
+	"go.temporal.io/server/common/testing/testpilot/temporal/internal/activation"
 	"go.temporal.io/server/common/testing/testpilot/temporal/internal/delivery"
 )
 
@@ -364,6 +364,9 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 			prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, func(program *testpilotspb.Program) {
 				program.Entrypoints[1].Instructions[0].Limits.TimeoutMilliseconds = tc.start.Milliseconds()
 				program.Entrypoints[1].Instructions[1].Limits.TimeoutMilliseconds = tc.await.Milliseconds()
+				finish := program.Entrypoints[1].Instructions[2]
+				finish.Guard = nil
+				finish.Instruction.GetFinish().Result.GetOutcome().Field = testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS
 			})
 			_, definition := runtimeTestDriver(t, prepared)
 			var suite testsuite.WorkflowTestSuite
@@ -373,32 +376,70 @@ func TestSDKAwaitUsesItsOwnTimeout(t *testing.T) {
 			require.NoError(t, environment.RegisterNexusAsyncOperationCompletion("service", "operation", "token", &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "done"}}, nil, tc.completion))
 			environment.ExecuteWorkflow(func(ctx workflow.Context) (int32, error) {
 				entry := definition.entries["workflow"].plan
-				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, values: newActivationValues(entry.ID(), entry.RuntimeWorkLimit()), futures: make(map[string]workflow.NexusOperationFuture)}
-				start, err := instructionAt(entry, 0)
+				state, err := activation.New(entry)
 				if err != nil {
 					return 0, err
 				}
-				if err := i.startNexus(start, &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "request"}}); err != nil {
+				i := workflowInterpreter{session: &Session{definition: definition}, ctx: ctx, state: state, futures: make(map[string]workflow.NexusOperationFuture)}
+				instructions := entry.Instructions()
+				input, enabled, err := state.Evaluate(context.Background(), 0)
+				if err != nil || !enabled {
+					return 0, fmt.Errorf("start evaluation: enabled=%t: %w", enabled, err)
+				}
+				if err := i.startNexus(0, instructions[0], input); err != nil {
 					return 0, err
 				}
-				await, err := instructionAt(entry, 1)
-				if err != nil {
-					return 0, err
+				_, enabled, err = state.Evaluate(context.Background(), 1)
+				if err != nil || !enabled {
+					return 0, fmt.Errorf("await evaluation: enabled=%t: %w", enabled, err)
 				}
 				before := workflow.Now(ctx)
-				if err := i.awaitNexus(await); err != nil {
+				if err := i.awaitNexus(1, instructions[1]); err != nil {
 					return 0, err
 				}
 				expected := min(tc.start, tc.await, tc.completion)
 				if elapsed := workflow.Now(ctx).Sub(before); elapsed != expected {
 					return 0, fmt.Errorf("await elapsed %s, want %s", elapsed, expected)
 				}
-				return i.values.lookup(testpilot.ValueReference{Kind: testpilot.OutcomeReference, Entrypoint: "workflow", ID: "await", Field: int32(testpilotspb.INSTRUCTION_OUTCOME_FIELD_STATUS)}).GetEnumValue().GetNumber(), nil
+				status, enabled, err := state.Evaluate(context.Background(), 2)
+				if err != nil || !enabled {
+					return 0, fmt.Errorf("status evaluation: enabled=%t: %w", enabled, err)
+				}
+				return status.GetEnumValue().GetNumber(), nil
 			})
 			require.NoError(t, environment.GetWorkflowError())
 			var status int32
 			require.NoError(t, environment.GetWorkflowResult(&status))
 			require.EqualValues(t, tc.status, status)
+		})
+	}
+}
+
+func TestWorkflowFinishRejectsInvalidAdmission(t *testing.T) {
+	for _, evaluated := range []bool{false, true} {
+		t.Run(fmt.Sprintf("evaluated=%t", evaluated), func(t *testing.T) {
+			prepared := preparedRuntimeFixture(t, testpilotspb.NEXUS_RESPONSE_KIND_SYNCHRONOUS, func(program *testpilotspb.Program) {
+				program.Entrypoints[1].Instructions[2].Outcome = runtimeValueOutcomeSchema()
+			})
+			entry := prepared.Entrypoints()[1]
+			state, err := activation.New(entry)
+			require.NoError(t, err)
+			input := &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "unvalidated"}}
+			if evaluated {
+				input = &testpilotspb.Value{Value: &testpilotspb.Value_BoolValue{BoolValue: true}}
+				_, enabled, err := state.Evaluate(t.Context(), 1)
+				require.NoError(t, err)
+				require.True(t, enabled)
+				require.NoError(t, state.Admit(t.Context(), 1, &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED, Value: &testpilotspb.Value{Value: &testpilotspb.Value_Text{Text: "result"}}}))
+				_, enabled, err = state.Evaluate(t.Context(), 2)
+				require.NoError(t, err)
+				require.True(t, enabled)
+			}
+			i := workflowInterpreter{state: state}
+			result, finished, err := i.execute(2, entry.Instructions()[2], input)
+			require.Error(t, err)
+			require.False(t, finished)
+			require.Nil(t, result)
 		})
 	}
 }

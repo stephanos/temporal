@@ -1,9 +1,11 @@
 # fn-77-typed-operations-parameterized-actions Typed operations, parameterized Actions, and field-level Properties
 
+> HTML render lens: `.flow/artifacts/fn-77-typed-operations-parameterized-actions/spec.html` — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Goal & Context
 <!-- scope: business -->
 
-Status: implementation specification; task breakdown, review, and implementation remain future work. Nexus operation cancellation qualification is deferred to fn-79; typed operations and field-level Properties proceed without it.
+Status: implementation specification under task breakdown and plan review. Nexus operation cancellation qualification is deferred to fn-79; typed operations and field-level Properties proceed without it.
 
 [UMPIRE4_SPEC](../../.plans/UMPIRE4_SPEC.md) remains normative. This complements
 [fn-78 typed temporal authoring and checked scoped monitoring](fn-78-typed-temporal-authoring-and-checked.md):
@@ -139,15 +141,16 @@ separate from search work and runtime resource ceilings.
 
 | Stage | Deliver | Order |
 | --- | --- | --- |
-| O1 — Operation and value contracts | Generated operation references, separate command/event kinds, exact supported value/field access, and explicit unsupported cases. | Can start alongside DSL D1/D2; coordinate fn-75's checked Target seam. |
-| O2 — Parameterized semantics | Action/outcome instances, field operands/captures, finite domains, canonical meaning, and independent Properties. | After O1; supplies the typed operands used by parameterized DSL D3/D4/D5 work. |
-| O3 — Checked concrete lowering | Request assignments, declared result/evidence projections, coverage maps, field-expression correspondence, and generic portable capability. | After O2; production integration uses fn-71/fn-72. Coordinate with DSL D4 without duplicating its temporal compiler. |
-| O4 — Field-level qualification | Both authored examples, mutations, identity/compatibility evidence, and real Driver qualification. | After O3; temporal Nexus qualification additionally uses DSL D3/D4. |
+| O1 — Operation and value contracts | Generated operation references, separate command/event kinds, exact supported value/field access, and explicit unsupported cases. | Uses the delivered fn-75 checked Target seam. |
+| O2 — Parameterized semantics | Action/outcome instances, field operands/captures, finite domains, canonical meaning, and independent Properties. | After O1; extends the delivered fn-78 scoped semantics with typed operands. |
+| O3 — Checked concrete lowering | Request assignments, declared result/evidence projections, coverage maps, field-expression correspondence, and generic portable capability. | After O2; consumes fn-71/fn-72 and fn-78's generic temporal compiler. |
+| O4 — Field-level qualification | Both authored examples, mutations, identity/compatibility evidence, and real Driver qualification. | After O3; composes field and scoped temporal correspondence. |
 
-Existing DSL D1/D2 and label-only semantic work need not wait for this spec. Parameterized variants
-use O1/O2; do not independently invent request/value/capture types in both tracks. O3 can qualify
-same-step field semantics before temporal D4 completes, so their ownership split creates no circular
-dependency. Coordinate the final temporal surface and Nexus demonstration across both specs.
+The generic fn-78 delivery is complete; its cancellation work was transferred to deferred fn-79.
+Reuse its projection, obligation, and portable Contract semantics. Parameterized variants add typed
+operands and captures without duplicating those owners. Delivered fn-68/71/72/73/74/75/78 are
+compatibility inputs, not new outstanding spec dependencies. Serialize overlapping source and Lean
+verification work with fn-76 without treating that scheduling constraint as a feature dependency.
 
 This is not a prerequisite for fn-73 or the first fn-70 canary. Reuse environment binding and Driver
 work from their owners; do not expand this spec into new transport, activation, or deployment policy.
@@ -292,5 +295,85 @@ renaming string paths or moving handwritten assertions into a new adapter does n
 
 Generated API declarations provide structural fidelity; independently authored model Properties define behavior. This lets developers describe field relationships directly while integration supplies checked construction, observation, and correspondence. Finite domains keep exploration claims precise without limiting schema access to summary values. Reuse the existing checked Property language and shared Driver instead of adding a second evaluator or handwritten API schemas.
 
-The operation/value stages can start independently. Concrete integration consumes fn-71/fn-72; temporal qualification consumes fn-78 D3/D4. These are stage dependencies, not prerequisites for starting this spec or fn-73. fn-78 is the canonical owner of typed temporal authoring and scoped monitoring and is ordered before the first canary.
+Concrete integration consumes the delivered fn-71/fn-72 interfaces; temporal qualification consumes
+fn-78's delivered generic monitoring. This spec does not resume fn-79 or block the fn-70 canary.
 
+### Resolved implementation choices
+
+Generated method references are checked against generator-owned structural declarations covering
+the full method identity, request/response descriptor closure, and streaming flags. Public phantom
+types and matching message names alone do not establish a valid binding. This needs no external
+trust store or new authorization framework.
+
+Use checked structural values alongside the existing descriptive Bytes/MessageRef representations.
+Shared schema/value contracts must preserve the Umpire-to-Temporal import boundary. Concrete recursive
+values consume explicit depth and work bounds; descriptor traversal tracks visited identities.
+Implicit-presence scalars read descriptor defaults; optional/message/oneof presence remains explicit.
+Canonical decoded maps have one entry per typed key in deterministic order. Raw duplicate map entries
+follow protobuf last-value semantics only at the codec boundary. Properties do not normalize values.
+Open enums retain unknown numeric values. Unsupported closed-enum cases reject explicitly. Integer
+ranges are checked before protobuf lowering; concrete bytes remain exact. Floating-point metadata
+remains discoverable, while unused floating-point operators may reject with a source diagnostic.
+No unsupported-form policy may waive a qualifying example's requested clause.
+
+Parameterized instances use the existing checked Target and finite adapters with a versioned exact
+value carrier. Any serialized bridge must have typed reversible encoding and field-denotation
+preservation; string equality does not replace typed evaluation. Existing Atom and literal encodings
+remain byte-identical when the extension is absent. Finite domains and runtime admission scopes are
+separate checked declarations with separate reported claims.
+
+Cross-occurrence captures select an exact named earlier occurrence identity or ordinal under an
+explicit key. Selection is deterministic and cannot silently mean the latest matching event.
+Captured values are immutable per key and trigger; ambiguity, future references, and wrong keys
+reject. Presence and oneof guards refine only the Boolean branches where their facts hold. Missing
+evidence remains unresolved or rejected, never equality of absent operands.
+
+Prove field-path and operand denotation, then request/result lowering and capture/scoped composition
+against the actual emitted portable Contract. Metadata checks, codec round trips, and shared-renderer
+goldens cannot substitute for these relationships or independently expected Lean/Go fixtures.
+
+Focused generator fixtures, complete schema-input invalidation, and compatibility checks remain
+required. Broad generated-API drift verification and CI expansion remain declined; see
+[the recorded decision](../memory/declined/generated-api-drift-verification.md).
+
+### Delivery units
+
+Eleven cohesive tasks separate contracts with distinct proof and execution boundaries. Foundational
+negative tests and proofs belong to each task; the final task combines evidence rather than postponing
+correctness work. Source overlap may require serial implementation despite independent graph edges.
+
+| Task | Deliverable | Dependencies |
+| --- | --- | --- |
+| 1 | Generated checked operation/schema bindings and original trust/fixture baseline | — |
+| 2 | Exact bounded structural values | 1 |
+| 3 | Typed field references and checked access with denotation proof | 2 |
+| 4 | Parameterized instances and separate finite/runtime domains | 1, 2 |
+| 5 | Same-step field Property semantics | 3, 4 |
+| 6 | Keyed occurrence captures composed with scoped obligations | 5 |
+| 7 | Portable typed field execution capability and independent codec/evaluator fixtures | 3, 5, 6 |
+| 8 | Checked whole-Case field/capture lowering and atomic coverage admission | 4, 5, 6, 7 |
+| 9 | Generated unary authored example and real Driver qualification | 8 |
+| 10 | Two-operation Nexus authored example and real Driver qualification | 8, 9 |
+| 11 | Combined compatibility, original trust comparison, bounded load evidence, and documentation | 9, 10 |
+
+Task 10 consumes the shared qualification setup established by task 9. Both examples must record
+named live passing results through public Prepare/Run; skipped tests or synthetic execution do not
+satisfy R7. The unary example should use generated StartWorkflowExecution and independently relate
+submitted nested fields to correlated started history/state. Confirm actual descriptors and model
+requirements before authoring it: a Start acknowledgement does not prove eventual success, and the
+response must not be assigned a fictitious workflow ID field.
+
+
+## Requirement coverage
+
+| Requirement | Tasks |
+| --- | --- |
+| R1 | fn-77-typed-operations-parameterized-actions.1, fn-77-typed-operations-parameterized-actions.4, fn-77-typed-operations-parameterized-actions.9, fn-77-typed-operations-parameterized-actions.10 |
+| R2 | fn-77-typed-operations-parameterized-actions.2, fn-77-typed-operations-parameterized-actions.3, fn-77-typed-operations-parameterized-actions.7, fn-77-typed-operations-parameterized-actions.9, fn-77-typed-operations-parameterized-actions.11 |
+| R3 | fn-77-typed-operations-parameterized-actions.3, fn-77-typed-operations-parameterized-actions.5, fn-77-typed-operations-parameterized-actions.6, fn-77-typed-operations-parameterized-actions.9, fn-77-typed-operations-parameterized-actions.10 |
+| R4 | fn-77-typed-operations-parameterized-actions.8, fn-77-typed-operations-parameterized-actions.9, fn-77-typed-operations-parameterized-actions.10 |
+| R5 | fn-77-typed-operations-parameterized-actions.4, fn-77-typed-operations-parameterized-actions.6, fn-77-typed-operations-parameterized-actions.9, fn-77-typed-operations-parameterized-actions.10, fn-77-typed-operations-parameterized-actions.11 |
+| R6 | fn-77-typed-operations-parameterized-actions.6, fn-77-typed-operations-parameterized-actions.7, fn-77-typed-operations-parameterized-actions.8, fn-77-typed-operations-parameterized-actions.9, fn-77-typed-operations-parameterized-actions.10 |
+| R7 | fn-77-typed-operations-parameterized-actions.9, fn-77-typed-operations-parameterized-actions.10 |
+| R8 | fn-77-typed-operations-parameterized-actions.1, fn-77-typed-operations-parameterized-actions.2, fn-77-typed-operations-parameterized-actions.4, fn-77-typed-operations-parameterized-actions.5, fn-77-typed-operations-parameterized-actions.7, fn-77-typed-operations-parameterized-actions.8, fn-77-typed-operations-parameterized-actions.9, fn-77-typed-operations-parameterized-actions.10, fn-77-typed-operations-parameterized-actions.11 |
+| R9 | fn-77-typed-operations-parameterized-actions.1, fn-77-typed-operations-parameterized-actions.2, fn-77-typed-operations-parameterized-actions.3, fn-77-typed-operations-parameterized-actions.4, fn-77-typed-operations-parameterized-actions.5, fn-77-typed-operations-parameterized-actions.6, fn-77-typed-operations-parameterized-actions.7, fn-77-typed-operations-parameterized-actions.8, fn-77-typed-operations-parameterized-actions.11 |

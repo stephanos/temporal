@@ -1,5 +1,6 @@
 import Umpire.Artifact.Runtime
 import Umpire.Planning.Engine
+import Umpire.SemanticInventory.Types
 
 /-! Planning and runtime constructor catalogs retain their owner-local vocabularies. -/
 
@@ -107,5 +108,15 @@ example : [KnownGapCarryMapping.exact, .observationAdmission].map KnownGapCarryM
       "code -> code; subject.toList -> relatedDefinitionIds; kind -> absent; detail -> absent"
     ] := by
   native_decide
+
+private def falseClassifier : OutcomeConstructorClassifier Bool :=
+  OutcomeConstructorClassifier.ofValue false { name := "false", description := "False outcome." }
+
+example :
+    OutcomeConstructorClassifiers.matchCount [falseClassifier] true = 0 ∧
+    OutcomeConstructorClassifiers.matchCount [falseClassifier, falseClassifier] false = 2 ∧
+    ¬ OutcomeConstructorClassifiers.HasUniqueNames [falseClassifier, falseClassifier] := by
+  unfold OutcomeConstructorClassifiers.HasUniqueNames
+  decide
 
 end Umpire.SemanticInventoryTests.PlanningRuntime

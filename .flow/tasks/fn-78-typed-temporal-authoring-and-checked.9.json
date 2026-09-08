@@ -11,6 +11,6 @@
   "spec": "fn-78-typed-temporal-authoring-and-checked",
   "spec_path": ".flow/tasks/fn-78-typed-temporal-authoring-and-checked.9.md",
   "status": "todo",
-  "title": "Add per-operation cancellation capability",
-  "updated_at": "2026-09-08T04:54:14.297609Z"
+  "title": "Transfer operation cancellation capability to deferred fn-79",
+  "updated_at": "2026-09-08T04:54:37.645800Z"
 }

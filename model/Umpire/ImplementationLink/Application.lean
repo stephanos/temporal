@@ -1,6 +1,6 @@
 import Umpire.ImplementationLink.Language
 import Umpire.Observation.Evaluation
-import Umpire.SemanticInventory.Types
+import Umpire.OutcomeClassification
 
 /-!
 Total application of one checked Implementation Link to an already Evidence-backed source Model

@@ -15,3 +15,30 @@ Monitor, and only then opens a per-Run `Session`. Validation failure produces no
 or effect. Scheduling, recording, expression admission, and Contract evaluation stay private to this
 package. The reusable Temporal Driver lives in `common/testing/testpilot/temporal`; functional
 fixtures and provisioning remain under `tests/`. Drivers cannot replace the prepared Contract evaluator.
+
+## Preparation diagnostics
+
+`NewCatalog`, `Prepare`, and `ProfileSpec.BindingFingerprint` return errors discoverable as
+`*testpilot.PreparationError` through `errors.As`, including after ordinary error wrapping:
+
+```go
+prepared, err := testpilot.Prepare(source, profile)
+if err != nil {
+    var diagnostic *testpilot.PreparationError
+    if errors.As(err, &diagnostic) {
+        log.Printf("preparation %s at %s: %s", diagnostic.Category, diagnostic.Path, diagnostic.Detail)
+    }
+    return err
+}
+```
+
+The six stable categories are `malformed`, `unknown`, `type_mismatch`, `unavailable`,
+`unsupported`, and `limit_exceeded`. `Path` retains the admission input vocabulary and its
+256-byte bound; `Detail` is human-readable, not a stable string API. Existing error messages,
+including Contract rule context, are retained. Missing or invalid Profile/Catalog preconditions
+are malformed; Profile binding validation, including binding ceilings, is also malformed without
+changing its rejection limits. Program and Contract limit violations retain their existing categories.
+
+These diagnostics cover static admission, including scoped Contracts. ProtoJSON decoding errors
+and runtime Run/Driver failures keep their own error contracts. No diagnostic wire format is added.
+See [the public error contract](preparation_error.go) and [Temporal Driver ownership](temporal/README.md).

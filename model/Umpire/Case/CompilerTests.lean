@@ -1,4 +1,5 @@
 import Umpire.Case.Compiler
+import Umpire.Case.ScopedTests
 
 namespace Umpire.Case.CompilerTests
 

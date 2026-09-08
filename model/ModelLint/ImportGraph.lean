@@ -52,6 +52,8 @@ structure Policy where
   verifyConsumers : Array Lean.Name
   testSupportNamespaces : Array Lean.Name
   testConsumerModules : Array Lean.Name
+  /-- Exact production entry points whose full closure must remain free of Target elaboration. -/
+  semanticRoots : Array Lean.Name
   deriving Repr, BEq
 
 /-- The import-boundary rules enforced by the checker. -/
@@ -60,6 +62,9 @@ inductive Rule where
   | testpilotIndependence
   | umpireIndependence
   | targetIsolation
+  | semanticTargetIsolation
+  | semanticInventoryIsolation
+  | outcomeClassificationIsolation
   | temporalSharedIsolation
   | featureIsolation
   | nexusExperimentalIsolation
@@ -146,6 +151,25 @@ def defaultPolicy : Policy := {
     `Temporal.Lint,
     `Temporal.Tool.GenerateTestsIOTestsMain,
     `Umpire.Lint
+  ],
+  semanticRoots := #[
+    `Umpire.Target.Semantics,
+    `Umpire.Property.Language,
+    `Umpire.Property.Check,
+    `Umpire.Property.Trace,
+    `Umpire.Property.Evaluation,
+    `Umpire.Property.Scoped,
+    `Umpire.Property.Scoped.Kernel,
+    `Umpire.Property.Scoped.Reference,
+    `Umpire.Behavior.Language,
+    `Umpire.Query.Language,
+    `Umpire.Planning,
+    `Umpire.Planning.Types,
+    `Umpire.Planning.Engine,
+    `Umpire.Planning.CaseAnalysis,
+    `Umpire.Artifact.Types,
+    `Umpire.Artifact.Codecs,
+    `Umpire.Artifact.Planning
   ]
 }
 
@@ -154,6 +178,9 @@ private def Rule.label : Rule → String
   | .testpilotIndependence => "testpilot-independence"
   | .umpireIndependence => "umpire-independence"
   | .targetIsolation => "target-isolation"
+  | .semanticTargetIsolation => "semantic-target-isolation"
+  | .semanticInventoryIsolation => "semantic-inventory-isolation"
+  | .outcomeClassificationIsolation => "outcome-classification-isolation"
   | .temporalSharedIsolation => "temporal-shared-isolation"
   | .featureIsolation => "feature-isolation"
   | .nexusExperimentalIsolation => "nexus-experimental-isolation"
@@ -238,7 +265,12 @@ private def forbiddenRule?
     (sourceClass : ModuleClass)
     (destination : Lean.Name)
     (destinationClass : ModuleClass) : Option Rule :=
-  if source == `Temporal.Feature.Nexus &&
+  if matchesPrefix `Umpire source &&
+      policy.isProductionModule source sourceClass &&
+      !matchesPrefix `Umpire.SemanticInventory source &&
+      matchesPrefix `Umpire.SemanticInventory destination then
+    some .semanticInventoryIsolation
+  else if source == `Temporal.Feature.Nexus &&
       matchesPrefix `Temporal.Feature.Nexus.Experimental destination then
     some .nexusExperimentalIsolation
   else if isTargetModule source && isTargetForbiddenDestination destination then
@@ -280,15 +312,25 @@ private def forbiddenRule?
 /--
 Return every forbidden transitive reachability result in deterministic order.
 
+For the owned-only inventory projection:
 The caller must first reconcile inventory and metadata. Imports outside the first-party policy are
 external leaves and are intentionally not traversed.
+
+Complete checking supplies reachable external metadata as well, so external wrappers participate
+in the same traversal. Missing records still expose their endpoint to the policy.
 -/
 def check (policy : Policy) (modules : Array ModuleRecord) : Array Violation :=
   Tools.LeanImportGraph.check (fun source destination =>
-    match policy.classify? source, policy.classify? destination with
-    | some sourceClass, some destinationClass =>
-        forbiddenRule? policy source sourceClass destination destinationClass
-    | _, _ => none) modules
+    if source == `Umpire.OutcomeClassification && !matchesPrefix `Init destination then
+      some .outcomeClassificationIsolation
+    else if policy.semanticRoots.contains source &&
+        (matchesPrefix `Umpire.Target.Frontend destination || destination == `Lean.Elab.Term) then
+      some .semanticTargetIsolation
+    else
+      match policy.classify? source, policy.classify? destination with
+      | some sourceClass, some destinationClass =>
+          forbiddenRule? policy source sourceClass destination destinationClass
+      | _, _ => none) modules policy.isFirstParty
 
 private def Policy.inventoryPolicy (policy : Policy) : InventoryPolicy := {
   isFirstParty := policy.isFirstParty
@@ -304,12 +346,19 @@ Reconcile a canonical owned-source inventory with loaded direct-import metadata.
 
 Every discrepancy is retained and sorted, so one lint run reports all independently actionable
 inventory failures instead of stopping at the first one.
+
+Reachable external records need no first-party class. Owned source classification and missing
+owned metadata checks still apply, including owned imports reached through external wrappers.
 -/
 def reconcile
     (policy : Policy)
     (sources : Array SourceRecord)
     (modules : Array ModuleRecord) : Array InventoryIssue :=
-  Tools.LeanSourceInventory.reconcile policy.inventoryPolicy sources modules
+  let inventoryPolicy := { policy.inventoryPolicy with
+    isClassified := fun name => (policy.classify? name).isSome ||
+      (!policy.isFirstParty name && !sources.any (·.module == name))
+  }
+  Tools.LeanSourceInventory.reconcile inventoryPolicy sources modules
 
 /-- Compose graph and declaration-linter success without allowing either result to mask the other. -/
 def exitCode (graphPassed declarationLintersPassed : Bool) : UInt32 :=

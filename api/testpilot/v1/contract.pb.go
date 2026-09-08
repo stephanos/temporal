@@ -210,6 +210,316 @@ func (ContractSupportKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{2}
 }
 
+type ScopedEvidenceMeaning int32
+
+const (
+	SCOPED_EVIDENCE_MEANING_UNSPECIFIED ScopedEvidenceMeaning = 0
+	SCOPED_EVIDENCE_MEANING_IRRELEVANT  ScopedEvidenceMeaning = 1
+	SCOPED_EVIDENCE_MEANING_SUBMISSION  ScopedEvidenceMeaning = 2
+	SCOPED_EVIDENCE_MEANING_CONFIRMED   ScopedEvidenceMeaning = 3
+)
+
+// Enum value maps for ScopedEvidenceMeaning.
+var (
+	ScopedEvidenceMeaning_name = map[int32]string{
+		0: "SCOPED_EVIDENCE_MEANING_UNSPECIFIED",
+		1: "SCOPED_EVIDENCE_MEANING_IRRELEVANT",
+		2: "SCOPED_EVIDENCE_MEANING_SUBMISSION",
+		3: "SCOPED_EVIDENCE_MEANING_CONFIRMED",
+	}
+	ScopedEvidenceMeaning_value = map[string]int32{
+		"SCOPED_EVIDENCE_MEANING_UNSPECIFIED": 0,
+		"SCOPED_EVIDENCE_MEANING_IRRELEVANT":  1,
+		"SCOPED_EVIDENCE_MEANING_SUBMISSION":  2,
+		"SCOPED_EVIDENCE_MEANING_CONFIRMED":   3,
+	}
+)
+
+func (x ScopedEvidenceMeaning) Enum() *ScopedEvidenceMeaning {
+	p := new(ScopedEvidenceMeaning)
+	*p = x
+	return p
+}
+
+func (x ScopedEvidenceMeaning) String() string {
+	switch x {
+	case SCOPED_EVIDENCE_MEANING_UNSPECIFIED:
+		return "Unspecified"
+	case SCOPED_EVIDENCE_MEANING_IRRELEVANT:
+		return "Irrelevant"
+	case SCOPED_EVIDENCE_MEANING_SUBMISSION:
+		return "Submission"
+	case SCOPED_EVIDENCE_MEANING_CONFIRMED:
+		return "Confirmed"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ScopedEvidenceMeaning) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[3].Descriptor()
+}
+
+func (ScopedEvidenceMeaning) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[3]
+}
+
+func (x ScopedEvidenceMeaning) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ScopedEvidenceMeaning.Descriptor instead.
+func (ScopedEvidenceMeaning) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{3}
+}
+
+type ScopedFieldDisposition int32
+
+const (
+	SCOPED_FIELD_DISPOSITION_UNSPECIFIED ScopedFieldDisposition = 0
+	SCOPED_FIELD_DISPOSITION_RETAIN      ScopedFieldDisposition = 1
+	SCOPED_FIELD_DISPOSITION_REDACT      ScopedFieldDisposition = 2
+	SCOPED_FIELD_DISPOSITION_REJECT      ScopedFieldDisposition = 3
+)
+
+// Enum value maps for ScopedFieldDisposition.
+var (
+	ScopedFieldDisposition_name = map[int32]string{
+		0: "SCOPED_FIELD_DISPOSITION_UNSPECIFIED",
+		1: "SCOPED_FIELD_DISPOSITION_RETAIN",
+		2: "SCOPED_FIELD_DISPOSITION_REDACT",
+		3: "SCOPED_FIELD_DISPOSITION_REJECT",
+	}
+	ScopedFieldDisposition_value = map[string]int32{
+		"SCOPED_FIELD_DISPOSITION_UNSPECIFIED": 0,
+		"SCOPED_FIELD_DISPOSITION_RETAIN":      1,
+		"SCOPED_FIELD_DISPOSITION_REDACT":      2,
+		"SCOPED_FIELD_DISPOSITION_REJECT":      3,
+	}
+)
+
+func (x ScopedFieldDisposition) Enum() *ScopedFieldDisposition {
+	p := new(ScopedFieldDisposition)
+	*p = x
+	return p
+}
+
+func (x ScopedFieldDisposition) String() string {
+	switch x {
+	case SCOPED_FIELD_DISPOSITION_UNSPECIFIED:
+		return "Unspecified"
+	case SCOPED_FIELD_DISPOSITION_RETAIN:
+		return "Retain"
+	case SCOPED_FIELD_DISPOSITION_REDACT:
+		return "Redact"
+	case SCOPED_FIELD_DISPOSITION_REJECT:
+		return "Reject"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ScopedFieldDisposition) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[4].Descriptor()
+}
+
+func (ScopedFieldDisposition) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[4]
+}
+
+func (x ScopedFieldDisposition) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ScopedFieldDisposition.Descriptor instead.
+func (ScopedFieldDisposition) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{4}
+}
+
+type ScopedClock int32
+
+const (
+	SCOPED_CLOCK_UNSPECIFIED           ScopedClock = 0
+	SCOPED_CLOCK_OPERATION_TRANSITIONS ScopedClock = 1
+)
+
+// Enum value maps for ScopedClock.
+var (
+	ScopedClock_name = map[int32]string{
+		0: "SCOPED_CLOCK_UNSPECIFIED",
+		1: "SCOPED_CLOCK_OPERATION_TRANSITIONS",
+	}
+	ScopedClock_value = map[string]int32{
+		"SCOPED_CLOCK_UNSPECIFIED":           0,
+		"SCOPED_CLOCK_OPERATION_TRANSITIONS": 1,
+	}
+)
+
+func (x ScopedClock) Enum() *ScopedClock {
+	p := new(ScopedClock)
+	*p = x
+	return p
+}
+
+func (x ScopedClock) String() string {
+	switch x {
+	case SCOPED_CLOCK_UNSPECIFIED:
+		return "Unspecified"
+	case SCOPED_CLOCK_OPERATION_TRANSITIONS:
+		return "OperationTransitions"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ScopedClock) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[5].Descriptor()
+}
+
+func (ScopedClock) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[5]
+}
+
+func (x ScopedClock) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ScopedClock.Descriptor instead.
+func (ScopedClock) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{5}
+}
+
+type ScopedEndpoint int32
+
+const (
+	SCOPED_ENDPOINT_UNSPECIFIED         ScopedEndpoint = 0
+	SCOPED_ENDPOINT_RUNTIME_PREFIX      ScopedEndpoint = 1
+	SCOPED_ENDPOINT_DELIBERATELY_CLOSED ScopedEndpoint = 2
+)
+
+// Enum value maps for ScopedEndpoint.
+var (
+	ScopedEndpoint_name = map[int32]string{
+		0: "SCOPED_ENDPOINT_UNSPECIFIED",
+		1: "SCOPED_ENDPOINT_RUNTIME_PREFIX",
+		2: "SCOPED_ENDPOINT_DELIBERATELY_CLOSED",
+	}
+	ScopedEndpoint_value = map[string]int32{
+		"SCOPED_ENDPOINT_UNSPECIFIED":         0,
+		"SCOPED_ENDPOINT_RUNTIME_PREFIX":      1,
+		"SCOPED_ENDPOINT_DELIBERATELY_CLOSED": 2,
+	}
+)
+
+func (x ScopedEndpoint) Enum() *ScopedEndpoint {
+	p := new(ScopedEndpoint)
+	*p = x
+	return p
+}
+
+func (x ScopedEndpoint) String() string {
+	switch x {
+	case SCOPED_ENDPOINT_UNSPECIFIED:
+		return "Unspecified"
+	case SCOPED_ENDPOINT_RUNTIME_PREFIX:
+		return "RuntimePrefix"
+	case SCOPED_ENDPOINT_DELIBERATELY_CLOSED:
+		return "DeliberatelyClosed"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ScopedEndpoint) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[6].Descriptor()
+}
+
+func (ScopedEndpoint) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[6]
+}
+
+func (x ScopedEndpoint) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ScopedEndpoint.Descriptor instead.
+func (ScopedEndpoint) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{6}
+}
+
+type ScopedPredicateField int32
+
+const (
+	SCOPED_PREDICATE_FIELD_UNSPECIFIED     ScopedPredicateField = 0
+	SCOPED_PREDICATE_FIELD_ACTION          ScopedPredicateField = 1
+	SCOPED_PREDICATE_FIELD_OUTCOME         ScopedPredicateField = 2
+	SCOPED_PREDICATE_FIELD_RESULTING_STATE ScopedPredicateField = 3
+	SCOPED_PREDICATE_FIELD_FACT            ScopedPredicateField = 4
+)
+
+// Enum value maps for ScopedPredicateField.
+var (
+	ScopedPredicateField_name = map[int32]string{
+		0: "SCOPED_PREDICATE_FIELD_UNSPECIFIED",
+		1: "SCOPED_PREDICATE_FIELD_ACTION",
+		2: "SCOPED_PREDICATE_FIELD_OUTCOME",
+		3: "SCOPED_PREDICATE_FIELD_RESULTING_STATE",
+		4: "SCOPED_PREDICATE_FIELD_FACT",
+	}
+	ScopedPredicateField_value = map[string]int32{
+		"SCOPED_PREDICATE_FIELD_UNSPECIFIED":     0,
+		"SCOPED_PREDICATE_FIELD_ACTION":          1,
+		"SCOPED_PREDICATE_FIELD_OUTCOME":         2,
+		"SCOPED_PREDICATE_FIELD_RESULTING_STATE": 3,
+		"SCOPED_PREDICATE_FIELD_FACT":            4,
+	}
+)
+
+func (x ScopedPredicateField) Enum() *ScopedPredicateField {
+	p := new(ScopedPredicateField)
+	*p = x
+	return p
+}
+
+func (x ScopedPredicateField) String() string {
+	switch x {
+	case SCOPED_PREDICATE_FIELD_UNSPECIFIED:
+		return "Unspecified"
+	case SCOPED_PREDICATE_FIELD_ACTION:
+		return "Action"
+	case SCOPED_PREDICATE_FIELD_OUTCOME:
+		return "Outcome"
+	case SCOPED_PREDICATE_FIELD_RESULTING_STATE:
+		return "ResultingState"
+	case SCOPED_PREDICATE_FIELD_FACT:
+		return "Fact"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (ScopedPredicateField) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[7].Descriptor()
+}
+
+func (ScopedPredicateField) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_contract_proto_enumTypes[7]
+}
+
+func (x ScopedPredicateField) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ScopedPredicateField.Descriptor instead.
+func (ScopedPredicateField) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{7}
+}
+
 type ContractStateDefinition struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	StateId       string                 `protobuf:"bytes,1,opt,name=state_id,json=stateId,proto3" json:"state_id,omitempty"`
@@ -808,6 +1118,7 @@ type Contract struct {
 	ContractId    string                    `protobuf:"bytes,1,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
 	Rules         []*ContractRuleDefinition `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
 	Limits        *ContractLimits           `protobuf:"bytes,3,opt,name=limits,proto3" json:"limits,omitempty"`
+	Scoped        *ScopedContract           `protobuf:"bytes,4,opt,name=scoped,proto3" json:"scoped,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -863,6 +1174,701 @@ func (x *Contract) GetLimits() *ContractLimits {
 	return nil
 }
 
+func (x *Contract) GetScoped() *ScopedContract {
+	if x != nil {
+		return x.Scoped
+	}
+	return nil
+}
+
+// ScopedContract v1 projects causally ordered evidence before ticking operation-local windows.
+type ScopedContract struct {
+	state                 protoimpl.MessageState  `protogen:"open.v1"`
+	Version               int32                   `protobuf:"varint,1,opt,name=version,proto3" json:"version,omitempty"`
+	ProjectionId          string                  `protobuf:"bytes,2,opt,name=projection_id,json=projectionId,proto3" json:"projection_id,omitempty"`
+	ProjectionFingerprint string                  `protobuf:"bytes,3,opt,name=projection_fingerprint,json=projectionFingerprint,proto3" json:"projection_fingerprint,omitempty"`
+	EvidenceObservationId string                  `protobuf:"bytes,4,opt,name=evidence_observation_id,json=evidenceObservationId,proto3" json:"evidence_observation_id,omitempty"`
+	ScopeFields           []string                `protobuf:"bytes,5,rep,name=scope_fields,json=scopeFields,proto3" json:"scope_fields,omitempty"`
+	OperationField        string                  `protobuf:"bytes,6,opt,name=operation_field,json=operationField,proto3" json:"operation_field,omitempty"`
+	Sources               []string                `protobuf:"bytes,7,rep,name=sources,proto3" json:"sources,omitempty"`
+	InitialState          *ScopedValue            `protobuf:"bytes,8,opt,name=initial_state,json=initialState,proto3" json:"initial_state,omitempty"`
+	Transitions           []*ScopedTransition     `protobuf:"bytes,9,rep,name=transitions,proto3" json:"transitions,omitempty"`
+	ProjectionRules       []*ScopedProjectionRule `protobuf:"bytes,10,rep,name=projection_rules,json=projectionRules,proto3" json:"projection_rules,omitempty"`
+	Clauses               []*ScopedClause         `protobuf:"bytes,11,rep,name=clauses,proto3" json:"clauses,omitempty"`
+	Limits                *ScopedLimits           `protobuf:"bytes,12,opt,name=limits,proto3" json:"limits,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
+}
+
+func (x *ScopedContract) Reset() {
+	*x = ScopedContract{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedContract) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedContract) ProtoMessage() {}
+
+func (x *ScopedContract) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedContract.ProtoReflect.Descriptor instead.
+func (*ScopedContract) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *ScopedContract) GetVersion() int32 {
+	if x != nil {
+		return x.Version
+	}
+	return 0
+}
+
+func (x *ScopedContract) GetProjectionId() string {
+	if x != nil {
+		return x.ProjectionId
+	}
+	return ""
+}
+
+func (x *ScopedContract) GetProjectionFingerprint() string {
+	if x != nil {
+		return x.ProjectionFingerprint
+	}
+	return ""
+}
+
+func (x *ScopedContract) GetEvidenceObservationId() string {
+	if x != nil {
+		return x.EvidenceObservationId
+	}
+	return ""
+}
+
+func (x *ScopedContract) GetScopeFields() []string {
+	if x != nil {
+		return x.ScopeFields
+	}
+	return nil
+}
+
+func (x *ScopedContract) GetOperationField() string {
+	if x != nil {
+		return x.OperationField
+	}
+	return ""
+}
+
+func (x *ScopedContract) GetSources() []string {
+	if x != nil {
+		return x.Sources
+	}
+	return nil
+}
+
+func (x *ScopedContract) GetInitialState() *ScopedValue {
+	if x != nil {
+		return x.InitialState
+	}
+	return nil
+}
+
+func (x *ScopedContract) GetTransitions() []*ScopedTransition {
+	if x != nil {
+		return x.Transitions
+	}
+	return nil
+}
+
+func (x *ScopedContract) GetProjectionRules() []*ScopedProjectionRule {
+	if x != nil {
+		return x.ProjectionRules
+	}
+	return nil
+}
+
+func (x *ScopedContract) GetClauses() []*ScopedClause {
+	if x != nil {
+		return x.Clauses
+	}
+	return nil
+}
+
+func (x *ScopedContract) GetLimits() *ScopedLimits {
+	if x != nil {
+		return x.Limits
+	}
+	return nil
+}
+
+type ScopedValue struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DefinitionId  string                 `protobuf:"bytes,1,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedValue) Reset() {
+	*x = ScopedValue{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedValue) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedValue) ProtoMessage() {}
+
+func (x *ScopedValue) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedValue.ProtoReflect.Descriptor instead.
+func (*ScopedValue) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *ScopedValue) GetDefinitionId() string {
+	if x != nil {
+		return x.DefinitionId
+	}
+	return ""
+}
+
+func (x *ScopedValue) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+type ScopedTransition struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	PriorState     *ScopedValue           `protobuf:"bytes,1,opt,name=prior_state,json=priorState,proto3" json:"prior_state,omitempty"`
+	Action         *ScopedValue           `protobuf:"bytes,2,opt,name=action,proto3" json:"action,omitempty"`
+	ResultingState *ScopedValue           `protobuf:"bytes,3,opt,name=resulting_state,json=resultingState,proto3" json:"resulting_state,omitempty"`
+	Outcome        *ScopedValue           `protobuf:"bytes,4,opt,name=outcome,proto3" json:"outcome,omitempty"`
+	Facts          []*ScopedValue         `protobuf:"bytes,5,rep,name=facts,proto3" json:"facts,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *ScopedTransition) Reset() {
+	*x = ScopedTransition{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedTransition) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedTransition) ProtoMessage() {}
+
+func (x *ScopedTransition) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedTransition.ProtoReflect.Descriptor instead.
+func (*ScopedTransition) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *ScopedTransition) GetPriorState() *ScopedValue {
+	if x != nil {
+		return x.PriorState
+	}
+	return nil
+}
+
+func (x *ScopedTransition) GetAction() *ScopedValue {
+	if x != nil {
+		return x.Action
+	}
+	return nil
+}
+
+func (x *ScopedTransition) GetResultingState() *ScopedValue {
+	if x != nil {
+		return x.ResultingState
+	}
+	return nil
+}
+
+func (x *ScopedTransition) GetOutcome() *ScopedValue {
+	if x != nil {
+		return x.Outcome
+	}
+	return nil
+}
+
+func (x *ScopedTransition) GetFacts() []*ScopedValue {
+	if x != nil {
+		return x.Facts
+	}
+	return nil
+}
+
+type ScopedFieldPolicy struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FieldId       string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
+	Type          *ScalarType            `protobuf:"bytes,2,opt,name=type,proto3" json:"type,omitempty"`
+	Disposition   ScopedFieldDisposition `protobuf:"varint,3,opt,name=disposition,proto3,enum=temporal.server.api.testpilot.v1.ScopedFieldDisposition" json:"disposition,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedFieldPolicy) Reset() {
+	*x = ScopedFieldPolicy{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedFieldPolicy) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedFieldPolicy) ProtoMessage() {}
+
+func (x *ScopedFieldPolicy) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedFieldPolicy.ProtoReflect.Descriptor instead.
+func (*ScopedFieldPolicy) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *ScopedFieldPolicy) GetFieldId() string {
+	if x != nil {
+		return x.FieldId
+	}
+	return ""
+}
+
+func (x *ScopedFieldPolicy) GetType() *ScalarType {
+	if x != nil {
+		return x.Type
+	}
+	return nil
+}
+
+func (x *ScopedFieldPolicy) GetDisposition() ScopedFieldDisposition {
+	if x != nil {
+		return x.Disposition
+	}
+	return SCOPED_FIELD_DISPOSITION_UNSPECIFIED
+}
+
+type ScopedProjectionRule struct {
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Kind       string                 `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Meaning    ScopedEvidenceMeaning  `protobuf:"varint,2,opt,name=meaning,proto3,enum=temporal.server.api.testpilot.v1.ScopedEvidenceMeaning" json:"meaning,omitempty"`
+	Submission *ScopedValue           `protobuf:"bytes,3,opt,name=submission,proto3" json:"submission,omitempty"`
+	// Output rows omit prior_state; the complete transition table checks continuity at admission.
+	Outputs       []*ScopedTransition  `protobuf:"bytes,4,rep,name=outputs,proto3" json:"outputs,omitempty"`
+	Fields        []*ScopedFieldPolicy `protobuf:"bytes,5,rep,name=fields,proto3" json:"fields,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedProjectionRule) Reset() {
+	*x = ScopedProjectionRule{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedProjectionRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedProjectionRule) ProtoMessage() {}
+
+func (x *ScopedProjectionRule) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedProjectionRule.ProtoReflect.Descriptor instead.
+func (*ScopedProjectionRule) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *ScopedProjectionRule) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ScopedProjectionRule) GetMeaning() ScopedEvidenceMeaning {
+	if x != nil {
+		return x.Meaning
+	}
+	return SCOPED_EVIDENCE_MEANING_UNSPECIFIED
+}
+
+func (x *ScopedProjectionRule) GetSubmission() *ScopedValue {
+	if x != nil {
+		return x.Submission
+	}
+	return nil
+}
+
+func (x *ScopedProjectionRule) GetOutputs() []*ScopedTransition {
+	if x != nil {
+		return x.Outputs
+	}
+	return nil
+}
+
+func (x *ScopedProjectionRule) GetFields() []*ScopedFieldPolicy {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+type ScopedPredicate struct {
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	Field        ScopedPredicateField   `protobuf:"varint,1,opt,name=field,proto3,enum=temporal.server.api.testpilot.v1.ScopedPredicateField" json:"field,omitempty"`
+	DefinitionId string                 `protobuf:"bytes,2,opt,name=definition_id,json=definitionId,proto3" json:"definition_id,omitempty"`
+	// Types that are valid to be assigned to Constraint:
+	//
+	//	*ScopedPredicate_Present
+	//	*ScopedPredicate_EqualsText
+	Constraint    isScopedPredicate_Constraint `protobuf_oneof:"constraint"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedPredicate) Reset() {
+	*x = ScopedPredicate{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedPredicate) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedPredicate) ProtoMessage() {}
+
+func (x *ScopedPredicate) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedPredicate.ProtoReflect.Descriptor instead.
+func (*ScopedPredicate) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *ScopedPredicate) GetField() ScopedPredicateField {
+	if x != nil {
+		return x.Field
+	}
+	return SCOPED_PREDICATE_FIELD_UNSPECIFIED
+}
+
+func (x *ScopedPredicate) GetDefinitionId() string {
+	if x != nil {
+		return x.DefinitionId
+	}
+	return ""
+}
+
+func (x *ScopedPredicate) GetConstraint() isScopedPredicate_Constraint {
+	if x != nil {
+		return x.Constraint
+	}
+	return nil
+}
+
+func (x *ScopedPredicate) GetPresent() bool {
+	if x != nil {
+		if x, ok := x.Constraint.(*ScopedPredicate_Present); ok {
+			return x.Present
+		}
+	}
+	return false
+}
+
+func (x *ScopedPredicate) GetEqualsText() string {
+	if x != nil {
+		if x, ok := x.Constraint.(*ScopedPredicate_EqualsText); ok {
+			return x.EqualsText
+		}
+	}
+	return ""
+}
+
+type isScopedPredicate_Constraint interface {
+	isScopedPredicate_Constraint()
+}
+
+type ScopedPredicate_Present struct {
+	Present bool `protobuf:"varint,3,opt,name=present,proto3,oneof"`
+}
+
+type ScopedPredicate_EqualsText struct {
+	EqualsText string `protobuf:"bytes,4,opt,name=equals_text,json=equalsText,proto3,oneof"`
+}
+
+func (*ScopedPredicate_Present) isScopedPredicate_Constraint() {}
+
+func (*ScopedPredicate_EqualsText) isScopedPredicate_Constraint() {}
+
+type ScopedClause struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ClauseId      string                 `protobuf:"bytes,1,opt,name=clause_id,json=clauseId,proto3" json:"clause_id,omitempty"`
+	Clock         ScopedClock            `protobuf:"varint,7,opt,name=clock,proto3,enum=temporal.server.api.testpilot.v1.ScopedClock" json:"clock,omitempty"`
+	Bound         int64                  `protobuf:"varint,8,opt,name=bound,proto3" json:"bound,omitempty"`
+	Endpoint      ScopedEndpoint         `protobuf:"varint,9,opt,name=endpoint,proto3,enum=temporal.server.api.testpilot.v1.ScopedEndpoint" json:"endpoint,omitempty"`
+	Trigger       *ScopedPredicate       `protobuf:"bytes,10,opt,name=trigger,proto3" json:"trigger,omitempty"`
+	Response      *ScopedPredicate       `protobuf:"bytes,11,opt,name=response,proto3" json:"response,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedClause) Reset() {
+	*x = ScopedClause{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedClause) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedClause) ProtoMessage() {}
+
+func (x *ScopedClause) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedClause.ProtoReflect.Descriptor instead.
+func (*ScopedClause) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *ScopedClause) GetClauseId() string {
+	if x != nil {
+		return x.ClauseId
+	}
+	return ""
+}
+
+func (x *ScopedClause) GetClock() ScopedClock {
+	if x != nil {
+		return x.Clock
+	}
+	return SCOPED_CLOCK_UNSPECIFIED
+}
+
+func (x *ScopedClause) GetBound() int64 {
+	if x != nil {
+		return x.Bound
+	}
+	return 0
+}
+
+func (x *ScopedClause) GetEndpoint() ScopedEndpoint {
+	if x != nil {
+		return x.Endpoint
+	}
+	return SCOPED_ENDPOINT_UNSPECIFIED
+}
+
+func (x *ScopedClause) GetTrigger() *ScopedPredicate {
+	if x != nil {
+		return x.Trigger
+	}
+	return nil
+}
+
+func (x *ScopedClause) GetResponse() *ScopedPredicate {
+	if x != nil {
+		return x.Response
+	}
+	return nil
+}
+
+type ScopedLimits struct {
+	state                  protoimpl.MessageState `protogen:"open.v1"`
+	MaxEvents              int64                  `protobuf:"varint,1,opt,name=max_events,json=maxEvents,proto3" json:"max_events,omitempty"`
+	MaxBuffered            int64                  `protobuf:"varint,2,opt,name=max_buffered,json=maxBuffered,proto3" json:"max_buffered,omitempty"`
+	MaxKeys                int64                  `protobuf:"varint,3,opt,name=max_keys,json=maxKeys,proto3" json:"max_keys,omitempty"`
+	MaxSupport             int64                  `protobuf:"varint,4,opt,name=max_support,json=maxSupport,proto3" json:"max_support,omitempty"`
+	MaxProjectionWork      int64                  `protobuf:"varint,5,opt,name=max_projection_work,json=maxProjectionWork,proto3" json:"max_projection_work,omitempty"`
+	MaxEventBytes          int64                  `protobuf:"varint,6,opt,name=max_event_bytes,json=maxEventBytes,proto3" json:"max_event_bytes,omitempty"`
+	MaxSemanticTransitions int64                  `protobuf:"varint,7,opt,name=max_semantic_transitions,json=maxSemanticTransitions,proto3" json:"max_semantic_transitions,omitempty"`
+	MaxObligations         int64                  `protobuf:"varint,8,opt,name=max_obligations,json=maxObligations,proto3" json:"max_obligations,omitempty"`
+	MaxObligationWork      int64                  `protobuf:"varint,9,opt,name=max_obligation_work,json=maxObligationWork,proto3" json:"max_obligation_work,omitempty"`
+	unknownFields          protoimpl.UnknownFields
+	sizeCache              protoimpl.SizeCache
+}
+
+func (x *ScopedLimits) Reset() {
+	*x = ScopedLimits{}
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedLimits) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedLimits) ProtoMessage() {}
+
+func (x *ScopedLimits) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedLimits.ProtoReflect.Descriptor instead.
+func (*ScopedLimits) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ScopedLimits) GetMaxEvents() int64 {
+	if x != nil {
+		return x.MaxEvents
+	}
+	return 0
+}
+
+func (x *ScopedLimits) GetMaxBuffered() int64 {
+	if x != nil {
+		return x.MaxBuffered
+	}
+	return 0
+}
+
+func (x *ScopedLimits) GetMaxKeys() int64 {
+	if x != nil {
+		return x.MaxKeys
+	}
+	return 0
+}
+
+func (x *ScopedLimits) GetMaxSupport() int64 {
+	if x != nil {
+		return x.MaxSupport
+	}
+	return 0
+}
+
+func (x *ScopedLimits) GetMaxProjectionWork() int64 {
+	if x != nil {
+		return x.MaxProjectionWork
+	}
+	return 0
+}
+
+func (x *ScopedLimits) GetMaxEventBytes() int64 {
+	if x != nil {
+		return x.MaxEventBytes
+	}
+	return 0
+}
+
+func (x *ScopedLimits) GetMaxSemanticTransitions() int64 {
+	if x != nil {
+		return x.MaxSemanticTransitions
+	}
+	return 0
+}
+
+func (x *ScopedLimits) GetMaxObligations() int64 {
+	if x != nil {
+		return x.MaxObligations
+	}
+	return 0
+}
+
+func (x *ScopedLimits) GetMaxObligationWork() int64 {
+	if x != nil {
+		return x.MaxObligationWork
+	}
+	return 0
+}
+
 var File_temporal_server_api_testpilot_v1_contract_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
@@ -912,12 +1918,77 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x12max_work_per_event\x18\x05 \x01(\x03R\x0fmaxWorkPerEvent\x12$\n" +
 	"\x0emax_total_work\x18\x06 \x01(\x03R\fmaxTotalWork\x12!\n" +
 	"\fmax_captures\x18\a \x01(\x03R\vmaxCaptures\x12*\n" +
-	"\x11max_capture_bytes\x18\b \x01(\x03R\x0fmaxCaptureBytes\"\xc5\x01\n" +
+	"\x11max_capture_bytes\x18\b \x01(\x03R\x0fmaxCaptureBytes\"\x8f\x02\n" +
 	"\bContract\x12\x1f\n" +
 	"\vcontract_id\x18\x01 \x01(\tR\n" +
 	"contractId\x12N\n" +
 	"\x05rules\x18\x02 \x03(\v28.temporal.server.api.testpilot.v1.ContractRuleDefinitionR\x05rules\x12H\n" +
-	"\x06limits\x18\x03 \x01(\v20.temporal.server.api.testpilot.v1.ContractLimitsR\x06limits*~\n" +
+	"\x06limits\x18\x03 \x01(\v20.temporal.server.api.testpilot.v1.ContractLimitsR\x06limits\x12H\n" +
+	"\x06scoped\x18\x04 \x01(\v20.temporal.server.api.testpilot.v1.ScopedContractR\x06scoped\"\xc3\x05\n" +
+	"\x0eScopedContract\x12\x18\n" +
+	"\aversion\x18\x01 \x01(\x05R\aversion\x12#\n" +
+	"\rprojection_id\x18\x02 \x01(\tR\fprojectionId\x125\n" +
+	"\x16projection_fingerprint\x18\x03 \x01(\tR\x15projectionFingerprint\x126\n" +
+	"\x17evidence_observation_id\x18\x04 \x01(\tR\x15evidenceObservationId\x12!\n" +
+	"\fscope_fields\x18\x05 \x03(\tR\vscopeFields\x12'\n" +
+	"\x0foperation_field\x18\x06 \x01(\tR\x0eoperationField\x12\x18\n" +
+	"\asources\x18\a \x03(\tR\asources\x12R\n" +
+	"\rinitial_state\x18\b \x01(\v2-.temporal.server.api.testpilot.v1.ScopedValueR\finitialState\x12T\n" +
+	"\vtransitions\x18\t \x03(\v22.temporal.server.api.testpilot.v1.ScopedTransitionR\vtransitions\x12a\n" +
+	"\x10projection_rules\x18\n" +
+	" \x03(\v26.temporal.server.api.testpilot.v1.ScopedProjectionRuleR\x0fprojectionRules\x12H\n" +
+	"\aclauses\x18\v \x03(\v2..temporal.server.api.testpilot.v1.ScopedClauseR\aclauses\x12F\n" +
+	"\x06limits\x18\f \x01(\v2..temporal.server.api.testpilot.v1.ScopedLimitsR\x06limits\"H\n" +
+	"\vScopedValue\x12#\n" +
+	"\rdefinition_id\x18\x01 \x01(\tR\fdefinitionId\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\"\x8f\x03\n" +
+	"\x10ScopedTransition\x12N\n" +
+	"\vprior_state\x18\x01 \x01(\v2-.temporal.server.api.testpilot.v1.ScopedValueR\n" +
+	"priorState\x12E\n" +
+	"\x06action\x18\x02 \x01(\v2-.temporal.server.api.testpilot.v1.ScopedValueR\x06action\x12V\n" +
+	"\x0fresulting_state\x18\x03 \x01(\v2-.temporal.server.api.testpilot.v1.ScopedValueR\x0eresultingState\x12G\n" +
+	"\aoutcome\x18\x04 \x01(\v2-.temporal.server.api.testpilot.v1.ScopedValueR\aoutcome\x12C\n" +
+	"\x05facts\x18\x05 \x03(\v2-.temporal.server.api.testpilot.v1.ScopedValueR\x05facts\"\xcc\x01\n" +
+	"\x11ScopedFieldPolicy\x12\x19\n" +
+	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12@\n" +
+	"\x04type\x18\x02 \x01(\v2,.temporal.server.api.testpilot.v1.ScalarTypeR\x04type\x12Z\n" +
+	"\vdisposition\x18\x03 \x01(\x0e28.temporal.server.api.testpilot.v1.ScopedFieldDispositionR\vdisposition\"\xe7\x02\n" +
+	"\x14ScopedProjectionRule\x12\x12\n" +
+	"\x04kind\x18\x01 \x01(\tR\x04kind\x12Q\n" +
+	"\ameaning\x18\x02 \x01(\x0e27.temporal.server.api.testpilot.v1.ScopedEvidenceMeaningR\ameaning\x12M\n" +
+	"\n" +
+	"submission\x18\x03 \x01(\v2-.temporal.server.api.testpilot.v1.ScopedValueR\n" +
+	"submission\x12L\n" +
+	"\aoutputs\x18\x04 \x03(\v22.temporal.server.api.testpilot.v1.ScopedTransitionR\aoutputs\x12K\n" +
+	"\x06fields\x18\x05 \x03(\v23.temporal.server.api.testpilot.v1.ScopedFieldPolicyR\x06fields\"\xd1\x01\n" +
+	"\x0fScopedPredicate\x12L\n" +
+	"\x05field\x18\x01 \x01(\x0e26.temporal.server.api.testpilot.v1.ScopedPredicateFieldR\x05field\x12#\n" +
+	"\rdefinition_id\x18\x02 \x01(\tR\fdefinitionId\x12\x1a\n" +
+	"\apresent\x18\x03 \x01(\bH\x00R\apresent\x12!\n" +
+	"\vequals_text\x18\x04 \x01(\tH\x00R\n" +
+	"equalsTextB\f\n" +
+	"\n" +
+	"constraint\"\xf0\x02\n" +
+	"\fScopedClause\x12\x1b\n" +
+	"\tclause_id\x18\x01 \x01(\tR\bclauseId\x12C\n" +
+	"\x05clock\x18\a \x01(\x0e2-.temporal.server.api.testpilot.v1.ScopedClockR\x05clock\x12\x14\n" +
+	"\x05bound\x18\b \x01(\x03R\x05bound\x12L\n" +
+	"\bendpoint\x18\t \x01(\x0e20.temporal.server.api.testpilot.v1.ScopedEndpointR\bendpoint\x12K\n" +
+	"\atrigger\x18\n" +
+	" \x01(\v21.temporal.server.api.testpilot.v1.ScopedPredicateR\atrigger\x12M\n" +
+	"\bresponse\x18\v \x01(\v21.temporal.server.api.testpilot.v1.ScopedPredicateR\bresponse\"\xf7\x02\n" +
+	"\fScopedLimits\x12\x1d\n" +
+	"\n" +
+	"max_events\x18\x01 \x01(\x03R\tmaxEvents\x12!\n" +
+	"\fmax_buffered\x18\x02 \x01(\x03R\vmaxBuffered\x12\x19\n" +
+	"\bmax_keys\x18\x03 \x01(\x03R\amaxKeys\x12\x1f\n" +
+	"\vmax_support\x18\x04 \x01(\x03R\n" +
+	"maxSupport\x12.\n" +
+	"\x13max_projection_work\x18\x05 \x01(\x03R\x11maxProjectionWork\x12&\n" +
+	"\x0fmax_event_bytes\x18\x06 \x01(\x03R\rmaxEventBytes\x128\n" +
+	"\x18max_semantic_transitions\x18\a \x01(\x03R\x16maxSemanticTransitions\x12'\n" +
+	"\x0fmax_obligations\x18\b \x01(\x03R\x0emaxObligations\x12.\n" +
+	"\x13max_obligation_work\x18\t \x01(\x03R\x11maxObligationWork*~\n" +
 	"\x10ContractRuleKind\x12\"\n" +
 	"\x1eCONTRACT_RULE_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19CONTRACT_RULE_KIND_SAFETY\x10\x01\x12'\n" +
@@ -930,7 +2001,30 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\x13ContractSupportKind\x12%\n" +
 	"!CONTRACT_SUPPORT_KIND_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aCONTRACT_SUPPORT_KIND_NONE\x10\x01\x12(\n" +
-	"$CONTRACT_SUPPORT_KIND_MATCHING_EVENT\x10\x02B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"$CONTRACT_SUPPORT_KIND_MATCHING_EVENT\x10\x02*\xb7\x01\n" +
+	"\x15ScopedEvidenceMeaning\x12'\n" +
+	"#SCOPED_EVIDENCE_MEANING_UNSPECIFIED\x10\x00\x12&\n" +
+	"\"SCOPED_EVIDENCE_MEANING_IRRELEVANT\x10\x01\x12&\n" +
+	"\"SCOPED_EVIDENCE_MEANING_SUBMISSION\x10\x02\x12%\n" +
+	"!SCOPED_EVIDENCE_MEANING_CONFIRMED\x10\x03*\xb1\x01\n" +
+	"\x16ScopedFieldDisposition\x12(\n" +
+	"$SCOPED_FIELD_DISPOSITION_UNSPECIFIED\x10\x00\x12#\n" +
+	"\x1fSCOPED_FIELD_DISPOSITION_RETAIN\x10\x01\x12#\n" +
+	"\x1fSCOPED_FIELD_DISPOSITION_REDACT\x10\x02\x12#\n" +
+	"\x1fSCOPED_FIELD_DISPOSITION_REJECT\x10\x03*S\n" +
+	"\vScopedClock\x12\x1c\n" +
+	"\x18SCOPED_CLOCK_UNSPECIFIED\x10\x00\x12&\n" +
+	"\"SCOPED_CLOCK_OPERATION_TRANSITIONS\x10\x01*~\n" +
+	"\x0eScopedEndpoint\x12\x1f\n" +
+	"\x1bSCOPED_ENDPOINT_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1eSCOPED_ENDPOINT_RUNTIME_PREFIX\x10\x01\x12'\n" +
+	"#SCOPED_ENDPOINT_DELIBERATELY_CLOSED\x10\x02*\xd2\x01\n" +
+	"\x14ScopedPredicateField\x12&\n" +
+	"\"SCOPED_PREDICATE_FIELD_UNSPECIFIED\x10\x00\x12!\n" +
+	"\x1dSCOPED_PREDICATE_FIELD_ACTION\x10\x01\x12\"\n" +
+	"\x1eSCOPED_PREDICATE_FIELD_OUTCOME\x10\x02\x12*\n" +
+	"&SCOPED_PREDICATE_FIELD_RESULTING_STATE\x10\x03\x12\x1f\n" +
+	"\x1bSCOPED_PREDICATE_FIELD_FACT\x10\x04B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_contract_proto_rawDescOnce sync.Once
@@ -944,50 +2038,85 @@ func file_temporal_server_api_testpilot_v1_contract_proto_rawDescGZIP() []byte {
 	return file_temporal_server_api_testpilot_v1_contract_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_temporal_server_api_testpilot_v1_contract_proto_enumTypes = make([]protoimpl.EnumInfo, 8)
+var file_temporal_server_api_testpilot_v1_contract_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_temporal_server_api_testpilot_v1_contract_proto_goTypes = []any{
 	(ContractRuleKind)(0),                // 0: temporal.server.api.testpilot.v1.ContractRuleKind
 	(ContractStateStatus)(0),             // 1: temporal.server.api.testpilot.v1.ContractStateStatus
 	(ContractSupportKind)(0),             // 2: temporal.server.api.testpilot.v1.ContractSupportKind
-	(*ContractStateDefinition)(nil),      // 3: temporal.server.api.testpilot.v1.ContractStateDefinition
-	(*ContractCaptureType)(nil),          // 4: temporal.server.api.testpilot.v1.ContractCaptureType
-	(*ContractCaptureDefinition)(nil),    // 5: temporal.server.api.testpilot.v1.ContractCaptureDefinition
-	(*ContractCaptureAssignment)(nil),    // 6: temporal.server.api.testpilot.v1.ContractCaptureAssignment
-	(*ContractTransitionDefinition)(nil), // 7: temporal.server.api.testpilot.v1.ContractTransitionDefinition
-	(*ContractHorizonDefinition)(nil),    // 8: temporal.server.api.testpilot.v1.ContractHorizonDefinition
-	(*ContractRuleDefinition)(nil),       // 9: temporal.server.api.testpilot.v1.ContractRuleDefinition
-	(*ContractLimits)(nil),               // 10: temporal.server.api.testpilot.v1.ContractLimits
-	(*Contract)(nil),                     // 11: temporal.server.api.testpilot.v1.Contract
-	(*ScalarType)(nil),                   // 12: temporal.server.api.testpilot.v1.ScalarType
-	(*NamedType)(nil),                    // 13: temporal.server.api.testpilot.v1.NamedType
-	(*ObservationRef)(nil),               // 14: temporal.server.api.testpilot.v1.ObservationRef
-	(*RunEventFilter)(nil),               // 15: temporal.server.api.testpilot.v1.RunEventFilter
-	(*ContractExpression)(nil),           // 16: temporal.server.api.testpilot.v1.ContractExpression
+	(ScopedEvidenceMeaning)(0),           // 3: temporal.server.api.testpilot.v1.ScopedEvidenceMeaning
+	(ScopedFieldDisposition)(0),          // 4: temporal.server.api.testpilot.v1.ScopedFieldDisposition
+	(ScopedClock)(0),                     // 5: temporal.server.api.testpilot.v1.ScopedClock
+	(ScopedEndpoint)(0),                  // 6: temporal.server.api.testpilot.v1.ScopedEndpoint
+	(ScopedPredicateField)(0),            // 7: temporal.server.api.testpilot.v1.ScopedPredicateField
+	(*ContractStateDefinition)(nil),      // 8: temporal.server.api.testpilot.v1.ContractStateDefinition
+	(*ContractCaptureType)(nil),          // 9: temporal.server.api.testpilot.v1.ContractCaptureType
+	(*ContractCaptureDefinition)(nil),    // 10: temporal.server.api.testpilot.v1.ContractCaptureDefinition
+	(*ContractCaptureAssignment)(nil),    // 11: temporal.server.api.testpilot.v1.ContractCaptureAssignment
+	(*ContractTransitionDefinition)(nil), // 12: temporal.server.api.testpilot.v1.ContractTransitionDefinition
+	(*ContractHorizonDefinition)(nil),    // 13: temporal.server.api.testpilot.v1.ContractHorizonDefinition
+	(*ContractRuleDefinition)(nil),       // 14: temporal.server.api.testpilot.v1.ContractRuleDefinition
+	(*ContractLimits)(nil),               // 15: temporal.server.api.testpilot.v1.ContractLimits
+	(*Contract)(nil),                     // 16: temporal.server.api.testpilot.v1.Contract
+	(*ScopedContract)(nil),               // 17: temporal.server.api.testpilot.v1.ScopedContract
+	(*ScopedValue)(nil),                  // 18: temporal.server.api.testpilot.v1.ScopedValue
+	(*ScopedTransition)(nil),             // 19: temporal.server.api.testpilot.v1.ScopedTransition
+	(*ScopedFieldPolicy)(nil),            // 20: temporal.server.api.testpilot.v1.ScopedFieldPolicy
+	(*ScopedProjectionRule)(nil),         // 21: temporal.server.api.testpilot.v1.ScopedProjectionRule
+	(*ScopedPredicate)(nil),              // 22: temporal.server.api.testpilot.v1.ScopedPredicate
+	(*ScopedClause)(nil),                 // 23: temporal.server.api.testpilot.v1.ScopedClause
+	(*ScopedLimits)(nil),                 // 24: temporal.server.api.testpilot.v1.ScopedLimits
+	(*ScalarType)(nil),                   // 25: temporal.server.api.testpilot.v1.ScalarType
+	(*NamedType)(nil),                    // 26: temporal.server.api.testpilot.v1.NamedType
+	(*ObservationRef)(nil),               // 27: temporal.server.api.testpilot.v1.ObservationRef
+	(*RunEventFilter)(nil),               // 28: temporal.server.api.testpilot.v1.RunEventFilter
+	(*ContractExpression)(nil),           // 29: temporal.server.api.testpilot.v1.ContractExpression
 }
 var file_temporal_server_api_testpilot_v1_contract_proto_depIdxs = []int32{
 	1,  // 0: temporal.server.api.testpilot.v1.ContractStateDefinition.status:type_name -> temporal.server.api.testpilot.v1.ContractStateStatus
-	12, // 1: temporal.server.api.testpilot.v1.ContractCaptureType.scalar:type_name -> temporal.server.api.testpilot.v1.ScalarType
-	13, // 2: temporal.server.api.testpilot.v1.ContractCaptureType.enumeration:type_name -> temporal.server.api.testpilot.v1.NamedType
-	13, // 3: temporal.server.api.testpilot.v1.ContractCaptureType.message:type_name -> temporal.server.api.testpilot.v1.NamedType
-	4,  // 4: temporal.server.api.testpilot.v1.ContractCaptureDefinition.type:type_name -> temporal.server.api.testpilot.v1.ContractCaptureType
-	14, // 5: temporal.server.api.testpilot.v1.ContractCaptureAssignment.observation:type_name -> temporal.server.api.testpilot.v1.ObservationRef
-	15, // 6: temporal.server.api.testpilot.v1.ContractTransitionDefinition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
-	16, // 7: temporal.server.api.testpilot.v1.ContractTransitionDefinition.predicate:type_name -> temporal.server.api.testpilot.v1.ContractExpression
+	25, // 1: temporal.server.api.testpilot.v1.ContractCaptureType.scalar:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	26, // 2: temporal.server.api.testpilot.v1.ContractCaptureType.enumeration:type_name -> temporal.server.api.testpilot.v1.NamedType
+	26, // 3: temporal.server.api.testpilot.v1.ContractCaptureType.message:type_name -> temporal.server.api.testpilot.v1.NamedType
+	9,  // 4: temporal.server.api.testpilot.v1.ContractCaptureDefinition.type:type_name -> temporal.server.api.testpilot.v1.ContractCaptureType
+	27, // 5: temporal.server.api.testpilot.v1.ContractCaptureAssignment.observation:type_name -> temporal.server.api.testpilot.v1.ObservationRef
+	28, // 6: temporal.server.api.testpilot.v1.ContractTransitionDefinition.event_filter:type_name -> temporal.server.api.testpilot.v1.RunEventFilter
+	29, // 7: temporal.server.api.testpilot.v1.ContractTransitionDefinition.predicate:type_name -> temporal.server.api.testpilot.v1.ContractExpression
 	2,  // 8: temporal.server.api.testpilot.v1.ContractTransitionDefinition.support_kind:type_name -> temporal.server.api.testpilot.v1.ContractSupportKind
-	6,  // 9: temporal.server.api.testpilot.v1.ContractTransitionDefinition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
+	11, // 9: temporal.server.api.testpilot.v1.ContractTransitionDefinition.capture_assignments:type_name -> temporal.server.api.testpilot.v1.ContractCaptureAssignment
 	0,  // 10: temporal.server.api.testpilot.v1.ContractRuleDefinition.kind:type_name -> temporal.server.api.testpilot.v1.ContractRuleKind
-	3,  // 11: temporal.server.api.testpilot.v1.ContractRuleDefinition.states:type_name -> temporal.server.api.testpilot.v1.ContractStateDefinition
-	7,  // 12: temporal.server.api.testpilot.v1.ContractRuleDefinition.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransitionDefinition
-	8,  // 13: temporal.server.api.testpilot.v1.ContractRuleDefinition.horizon:type_name -> temporal.server.api.testpilot.v1.ContractHorizonDefinition
-	5,  // 14: temporal.server.api.testpilot.v1.ContractRuleDefinition.captures:type_name -> temporal.server.api.testpilot.v1.ContractCaptureDefinition
-	9,  // 15: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRuleDefinition
-	10, // 16: temporal.server.api.testpilot.v1.Contract.limits:type_name -> temporal.server.api.testpilot.v1.ContractLimits
-	17, // [17:17] is the sub-list for method output_type
-	17, // [17:17] is the sub-list for method input_type
-	17, // [17:17] is the sub-list for extension type_name
-	17, // [17:17] is the sub-list for extension extendee
-	0,  // [0:17] is the sub-list for field type_name
+	8,  // 11: temporal.server.api.testpilot.v1.ContractRuleDefinition.states:type_name -> temporal.server.api.testpilot.v1.ContractStateDefinition
+	12, // 12: temporal.server.api.testpilot.v1.ContractRuleDefinition.transitions:type_name -> temporal.server.api.testpilot.v1.ContractTransitionDefinition
+	13, // 13: temporal.server.api.testpilot.v1.ContractRuleDefinition.horizon:type_name -> temporal.server.api.testpilot.v1.ContractHorizonDefinition
+	10, // 14: temporal.server.api.testpilot.v1.ContractRuleDefinition.captures:type_name -> temporal.server.api.testpilot.v1.ContractCaptureDefinition
+	14, // 15: temporal.server.api.testpilot.v1.Contract.rules:type_name -> temporal.server.api.testpilot.v1.ContractRuleDefinition
+	15, // 16: temporal.server.api.testpilot.v1.Contract.limits:type_name -> temporal.server.api.testpilot.v1.ContractLimits
+	17, // 17: temporal.server.api.testpilot.v1.Contract.scoped:type_name -> temporal.server.api.testpilot.v1.ScopedContract
+	18, // 18: temporal.server.api.testpilot.v1.ScopedContract.initial_state:type_name -> temporal.server.api.testpilot.v1.ScopedValue
+	19, // 19: temporal.server.api.testpilot.v1.ScopedContract.transitions:type_name -> temporal.server.api.testpilot.v1.ScopedTransition
+	21, // 20: temporal.server.api.testpilot.v1.ScopedContract.projection_rules:type_name -> temporal.server.api.testpilot.v1.ScopedProjectionRule
+	23, // 21: temporal.server.api.testpilot.v1.ScopedContract.clauses:type_name -> temporal.server.api.testpilot.v1.ScopedClause
+	24, // 22: temporal.server.api.testpilot.v1.ScopedContract.limits:type_name -> temporal.server.api.testpilot.v1.ScopedLimits
+	18, // 23: temporal.server.api.testpilot.v1.ScopedTransition.prior_state:type_name -> temporal.server.api.testpilot.v1.ScopedValue
+	18, // 24: temporal.server.api.testpilot.v1.ScopedTransition.action:type_name -> temporal.server.api.testpilot.v1.ScopedValue
+	18, // 25: temporal.server.api.testpilot.v1.ScopedTransition.resulting_state:type_name -> temporal.server.api.testpilot.v1.ScopedValue
+	18, // 26: temporal.server.api.testpilot.v1.ScopedTransition.outcome:type_name -> temporal.server.api.testpilot.v1.ScopedValue
+	18, // 27: temporal.server.api.testpilot.v1.ScopedTransition.facts:type_name -> temporal.server.api.testpilot.v1.ScopedValue
+	25, // 28: temporal.server.api.testpilot.v1.ScopedFieldPolicy.type:type_name -> temporal.server.api.testpilot.v1.ScalarType
+	4,  // 29: temporal.server.api.testpilot.v1.ScopedFieldPolicy.disposition:type_name -> temporal.server.api.testpilot.v1.ScopedFieldDisposition
+	3,  // 30: temporal.server.api.testpilot.v1.ScopedProjectionRule.meaning:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceMeaning
+	18, // 31: temporal.server.api.testpilot.v1.ScopedProjectionRule.submission:type_name -> temporal.server.api.testpilot.v1.ScopedValue
+	19, // 32: temporal.server.api.testpilot.v1.ScopedProjectionRule.outputs:type_name -> temporal.server.api.testpilot.v1.ScopedTransition
+	20, // 33: temporal.server.api.testpilot.v1.ScopedProjectionRule.fields:type_name -> temporal.server.api.testpilot.v1.ScopedFieldPolicy
+	7,  // 34: temporal.server.api.testpilot.v1.ScopedPredicate.field:type_name -> temporal.server.api.testpilot.v1.ScopedPredicateField
+	5,  // 35: temporal.server.api.testpilot.v1.ScopedClause.clock:type_name -> temporal.server.api.testpilot.v1.ScopedClock
+	6,  // 36: temporal.server.api.testpilot.v1.ScopedClause.endpoint:type_name -> temporal.server.api.testpilot.v1.ScopedEndpoint
+	22, // 37: temporal.server.api.testpilot.v1.ScopedClause.trigger:type_name -> temporal.server.api.testpilot.v1.ScopedPredicate
+	22, // 38: temporal.server.api.testpilot.v1.ScopedClause.response:type_name -> temporal.server.api.testpilot.v1.ScopedPredicate
+	39, // [39:39] is the sub-list for method output_type
+	39, // [39:39] is the sub-list for method input_type
+	39, // [39:39] is the sub-list for extension type_name
+	39, // [39:39] is the sub-list for extension extendee
+	0,  // [0:39] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_contract_proto_init() }
@@ -1003,13 +2132,17 @@ func file_temporal_server_api_testpilot_v1_contract_proto_init() {
 		(*ContractCaptureType_Enumeration)(nil),
 		(*ContractCaptureType_Message)(nil),
 	}
+	file_temporal_server_api_testpilot_v1_contract_proto_msgTypes[14].OneofWrappers = []any{
+		(*ScopedPredicate_Present)(nil),
+		(*ScopedPredicate_EqualsText)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_contract_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_contract_proto_rawDesc)),
-			NumEnums:      3,
-			NumMessages:   9,
+			NumEnums:      8,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

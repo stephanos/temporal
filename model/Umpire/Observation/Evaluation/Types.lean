@@ -1,5 +1,6 @@
 import Umpire.Observation.Compiler
-import Umpire.SemanticInventory.Types
+import Umpire.KnownGap
+import Umpire.OutcomeClassification
 
 /-!
 Inert Observation Evaluation contracts for raw Evidence, diagnostics, structural support,
@@ -8,11 +9,10 @@ Evidence Links, and the unchecked carrier used during accepted-trace admission.
 
 namespace Umpire
 
-inductive EvidenceValue where
-  | text (value : String)
-  | natural (value : Nat)
-  | boolean (value : Bool)
-  deriving BEq, DecidableEq, Inhabited, Repr
+abbrev EvidenceValue := Shared.SemanticData.Scalar
+abbrev EvidenceValue.text := Shared.SemanticData.Scalar.text
+abbrev EvidenceValue.natural := Shared.SemanticData.Scalar.natural
+abbrev EvidenceValue.boolean := Shared.SemanticData.Scalar.boolean
 
 def EvidenceValue.valueType : EvidenceValue → ObservationValueType
   | .text _ => .text

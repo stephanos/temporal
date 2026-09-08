@@ -340,6 +340,302 @@ func (this *Contract) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ScopedContract to the protobuf v3 wire format
+func (val *ScopedContract) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedContract from the protobuf v3 wire format
+func (val *ScopedContract) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedContract) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedContract values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedContract) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedContract
+	switch t := that.(type) {
+	case *ScopedContract:
+		that1 = t
+	case ScopedContract:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedValue to the protobuf v3 wire format
+func (val *ScopedValue) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedValue from the protobuf v3 wire format
+func (val *ScopedValue) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedValue) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedValue values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedValue) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedValue
+	switch t := that.(type) {
+	case *ScopedValue:
+		that1 = t
+	case ScopedValue:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedTransition to the protobuf v3 wire format
+func (val *ScopedTransition) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedTransition from the protobuf v3 wire format
+func (val *ScopedTransition) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedTransition) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedTransition values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedTransition) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedTransition
+	switch t := that.(type) {
+	case *ScopedTransition:
+		that1 = t
+	case ScopedTransition:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedFieldPolicy to the protobuf v3 wire format
+func (val *ScopedFieldPolicy) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedFieldPolicy from the protobuf v3 wire format
+func (val *ScopedFieldPolicy) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedFieldPolicy) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedFieldPolicy values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedFieldPolicy) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedFieldPolicy
+	switch t := that.(type) {
+	case *ScopedFieldPolicy:
+		that1 = t
+	case ScopedFieldPolicy:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedProjectionRule to the protobuf v3 wire format
+func (val *ScopedProjectionRule) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedProjectionRule from the protobuf v3 wire format
+func (val *ScopedProjectionRule) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedProjectionRule) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedProjectionRule values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedProjectionRule) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedProjectionRule
+	switch t := that.(type) {
+	case *ScopedProjectionRule:
+		that1 = t
+	case ScopedProjectionRule:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedPredicate to the protobuf v3 wire format
+func (val *ScopedPredicate) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedPredicate from the protobuf v3 wire format
+func (val *ScopedPredicate) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedPredicate) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedPredicate values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedPredicate) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedPredicate
+	switch t := that.(type) {
+	case *ScopedPredicate:
+		that1 = t
+	case ScopedPredicate:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedClause to the protobuf v3 wire format
+func (val *ScopedClause) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedClause from the protobuf v3 wire format
+func (val *ScopedClause) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedClause) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedClause values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedClause) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedClause
+	switch t := that.(type) {
+	case *ScopedClause:
+		that1 = t
+	case ScopedClause:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedLimits to the protobuf v3 wire format
+func (val *ScopedLimits) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedLimits from the protobuf v3 wire format
+func (val *ScopedLimits) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedLimits) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedLimits values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedLimits) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedLimits
+	switch t := that.(type) {
+	case *ScopedLimits:
+		that1 = t
+	case ScopedLimits:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 var (
 	ContractRuleKind_shorthandValue = map[string]int32{
 		"Unspecified":     0,
@@ -396,4 +692,102 @@ func ContractSupportKindFromString(s string) (ContractSupportKind, error) {
 		return ContractSupportKind(v), nil
 	}
 	return ContractSupportKind(0), fmt.Errorf("%s is not a valid ContractSupportKind", s)
+}
+
+var (
+	ScopedEvidenceMeaning_shorthandValue = map[string]int32{
+		"Unspecified": 0,
+		"Irrelevant":  1,
+		"Submission":  2,
+		"Confirmed":   3,
+	}
+)
+
+// ScopedEvidenceMeaningFromString parses a ScopedEvidenceMeaning value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ScopedEvidenceMeaning
+func ScopedEvidenceMeaningFromString(s string) (ScopedEvidenceMeaning, error) {
+	if v, ok := ScopedEvidenceMeaning_value[s]; ok {
+		return ScopedEvidenceMeaning(v), nil
+	} else if v, ok := ScopedEvidenceMeaning_shorthandValue[s]; ok {
+		return ScopedEvidenceMeaning(v), nil
+	}
+	return ScopedEvidenceMeaning(0), fmt.Errorf("%s is not a valid ScopedEvidenceMeaning", s)
+}
+
+var (
+	ScopedFieldDisposition_shorthandValue = map[string]int32{
+		"Unspecified": 0,
+		"Retain":      1,
+		"Redact":      2,
+		"Reject":      3,
+	}
+)
+
+// ScopedFieldDispositionFromString parses a ScopedFieldDisposition value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ScopedFieldDisposition
+func ScopedFieldDispositionFromString(s string) (ScopedFieldDisposition, error) {
+	if v, ok := ScopedFieldDisposition_value[s]; ok {
+		return ScopedFieldDisposition(v), nil
+	} else if v, ok := ScopedFieldDisposition_shorthandValue[s]; ok {
+		return ScopedFieldDisposition(v), nil
+	}
+	return ScopedFieldDisposition(0), fmt.Errorf("%s is not a valid ScopedFieldDisposition", s)
+}
+
+var (
+	ScopedClock_shorthandValue = map[string]int32{
+		"Unspecified":          0,
+		"OperationTransitions": 1,
+	}
+)
+
+// ScopedClockFromString parses a ScopedClock value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ScopedClock
+func ScopedClockFromString(s string) (ScopedClock, error) {
+	if v, ok := ScopedClock_value[s]; ok {
+		return ScopedClock(v), nil
+	} else if v, ok := ScopedClock_shorthandValue[s]; ok {
+		return ScopedClock(v), nil
+	}
+	return ScopedClock(0), fmt.Errorf("%s is not a valid ScopedClock", s)
+}
+
+var (
+	ScopedEndpoint_shorthandValue = map[string]int32{
+		"Unspecified":        0,
+		"RuntimePrefix":      1,
+		"DeliberatelyClosed": 2,
+	}
+)
+
+// ScopedEndpointFromString parses a ScopedEndpoint value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ScopedEndpoint
+func ScopedEndpointFromString(s string) (ScopedEndpoint, error) {
+	if v, ok := ScopedEndpoint_value[s]; ok {
+		return ScopedEndpoint(v), nil
+	} else if v, ok := ScopedEndpoint_shorthandValue[s]; ok {
+		return ScopedEndpoint(v), nil
+	}
+	return ScopedEndpoint(0), fmt.Errorf("%s is not a valid ScopedEndpoint", s)
+}
+
+var (
+	ScopedPredicateField_shorthandValue = map[string]int32{
+		"Unspecified":    0,
+		"Action":         1,
+		"Outcome":        2,
+		"ResultingState": 3,
+		"Fact":           4,
+	}
+)
+
+// ScopedPredicateFieldFromString parses a ScopedPredicateField value from  either the protojson
+// canonical SCREAMING_CASE enum or the traditional temporal PascalCase enum to ScopedPredicateField
+func ScopedPredicateFieldFromString(s string) (ScopedPredicateField, error) {
+	if v, ok := ScopedPredicateField_value[s]; ok {
+		return ScopedPredicateField(v), nil
+	} else if v, ok := ScopedPredicateField_shorthandValue[s]; ok {
+		return ScopedPredicateField(v), nil
+	}
+	return ScopedPredicateField(0), fmt.Errorf("%s is not a valid ScopedPredicateField", s)
 }

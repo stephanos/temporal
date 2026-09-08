@@ -42,6 +42,29 @@ private def produceWith
 private def changedProperty? : Option CheckedProperty := admitted.map fun checked =>
   { checked.property with clauses := checked.property.clauses.drop 1 }
 
+private def scopedProperty? : Option CheckedProperty := do
+  let checked ← admitted
+  (checkProperty (.ofTarget checked.target) (.portable {
+    id := checked.property.id
+    source := checked.property.source
+    requires := checked.property.requires
+    clauses := []
+    scopedClauses := [{
+      id := DefinitionId.of "test.scoped.unsupported-case"
+      source := checked.property.source
+      trigger := .selectedActionIs checked.vocabulary.awaitSuccessAction
+      response := .modelOutcomeIs checked.vocabulary.completedOutcome
+      scope := [DefinitionId.of "test.run"]
+      key := DefinitionId.of "test.operation"
+      clock := .operationTransitions
+      bound := 1
+      endpoint := .runtimePrefix }] })).toOption
+
+#guard match produceWith (property? := scopedProperty?) with
+  | .error error => error.sourceDefinitionId == "test.scoped.unsupported-case" &&
+      error.construct == "property.scoped-eventually-within/v1"
+  | .ok _ => false
+
 private def changedBehavior? : Option CheckedBehavior := admitted.map fun checked =>
   { checked.behavior with actionsExactly := some [checked.vocabulary.awaitSuccessAction.definitionId] }
 

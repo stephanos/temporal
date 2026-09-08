@@ -11,8 +11,64 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": "2026-09-08T04:54:15.354923Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-08T13:31:55.325535Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "ecb6c47ef6677446b5e831b9b2f74504a2263f91cbe90f58e314070a868c4da5",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d9896dfa4132a2a24c5a1556d44b0d9a",
+            "classification": "introduced",
+            "findingId": "finding-d9896dfa4132a2a24c5a1556d44b0d9a",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 255724,
+      "output_sha256": "f94ecc5f79f65797053df90f41a5fdb1717d8955e8a52ff3a0dc427d952942e8",
+      "reservation_id": "dc7a52888987420fb21ed4ecb5ca735f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T13:31:55.316615Z",
+      "tool_calls": 9,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-77-typed-operations-parameterized-actions.md",
   "status": "open",
   "title": "Typed operations, parameterized Actions, and field-level Properties",
@@ -27,5 +83,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-08T04:54:15.355066Z"
+  "updated_at": "2026-09-08T13:31:55.328754Z"
 }

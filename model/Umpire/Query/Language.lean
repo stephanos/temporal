@@ -1,5 +1,5 @@
-import Umpire.Property
-import Umpire.Behavior
+import Umpire.Property.Evaluation
+import Umpire.Behavior.Language
 import Umpire.KnownGap
 
 /-! Implementation behind the `Umpire.Query` public facade. -/

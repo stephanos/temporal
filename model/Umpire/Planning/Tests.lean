@@ -4,3 +4,4 @@ import Umpire.Planning.Tests.Enumeration
 import Umpire.Planning.Tests.KnownGaps
 import Umpire.Planning.Tests.Outcomes
 import Umpire.Planning.Tests.Endpoints
+import Umpire.Planning.SemanticsImportTests

@@ -1727,6 +1727,59 @@ def scalarKindFloat : ScalarKind := { number := 15 }
 def scalarKindDouble : ScalarKind := { number := 16 }
 end ScalarKind
 
+structure ScopedClock where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace ScopedClock
+def scopedClockUnspecified : ScopedClock := { number := 0 }
+def scopedClockOperationTransitions : ScopedClock := { number := 1 }
+end ScopedClock
+
+structure ScopedEndpoint where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace ScopedEndpoint
+def scopedEndpointUnspecified : ScopedEndpoint := { number := 0 }
+def scopedEndpointRuntimePrefix : ScopedEndpoint := { number := 1 }
+def scopedEndpointDeliberatelyClosed : ScopedEndpoint := { number := 2 }
+end ScopedEndpoint
+
+structure ScopedEvidenceMeaning where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace ScopedEvidenceMeaning
+def scopedEvidenceMeaningUnspecified : ScopedEvidenceMeaning := { number := 0 }
+def scopedEvidenceMeaningIrrelevant : ScopedEvidenceMeaning := { number := 1 }
+def scopedEvidenceMeaningSubmission : ScopedEvidenceMeaning := { number := 2 }
+def scopedEvidenceMeaningConfirmed : ScopedEvidenceMeaning := { number := 3 }
+end ScopedEvidenceMeaning
+
+structure ScopedFieldDisposition where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace ScopedFieldDisposition
+def scopedFieldDispositionUnspecified : ScopedFieldDisposition := { number := 0 }
+def scopedFieldDispositionRetain : ScopedFieldDisposition := { number := 1 }
+def scopedFieldDispositionRedact : ScopedFieldDisposition := { number := 2 }
+def scopedFieldDispositionReject : ScopedFieldDisposition := { number := 3 }
+end ScopedFieldDisposition
+
+structure ScopedPredicateField where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace ScopedPredicateField
+def scopedPredicateFieldUnspecified : ScopedPredicateField := { number := 0 }
+def scopedPredicateFieldAction : ScopedPredicateField := { number := 1 }
+def scopedPredicateFieldOutcome : ScopedPredicateField := { number := 2 }
+def scopedPredicateFieldResultingState : ScopedPredicateField := { number := 3 }
+def scopedPredicateFieldFact : ScopedPredicateField := { number := 4 }
+end ScopedPredicateField
+
 structure VerdictStatus where
   number : Int
   deriving DecidableEq, Repr
@@ -12686,15 +12739,95 @@ structure ContractRuleDefinition where
   captures : List ContractCaptureDefinition
   deriving Repr
 
+inductive ScopedPredicate.Constraint where
+  | notSet
+  | present (value : Bool)
+  | equalsText (value : String)
+  deriving Repr
+
+structure ScopedPredicate where
+  field : ScopedPredicateField
+  definitionId : String
+  constraint : ScopedPredicate.Constraint
+  deriving Repr
+
+structure ScopedClause where
+  clauseId : String
+  clock : ScopedClock
+  bound : Int
+  endpoint : ScopedEndpoint
+  trigger : Option ScopedPredicate
+  response : Option ScopedPredicate
+  deriving Repr
+
+structure ScopedLimits where
+  maxEvents : Int
+  maxBuffered : Int
+  maxKeys : Int
+  maxSupport : Int
+  maxProjectionWork : Int
+  maxEventBytes : Int
+  maxSemanticTransitions : Int
+  maxObligations : Int
+  maxObligationWork : Int
+  deriving Repr
+
+structure ScopedFieldPolicy where
+  fieldId : String
+  type : Option ScalarType
+  disposition : ScopedFieldDisposition
+  deriving Repr
+
+structure ScopedValue where
+  definitionId : String
+  value : String
+  deriving Repr
+
+structure ScopedTransition where
+  priorState : Option ScopedValue
+  action : Option ScopedValue
+  resultingState : Option ScopedValue
+  outcome : Option ScopedValue
+  facts : List ScopedValue
+  deriving Repr
+
+structure ScopedProjectionRule where
+  kind : String
+  meaning : ScopedEvidenceMeaning
+  submission : Option ScopedValue
+  outputs : List ScopedTransition
+  fields : List ScopedFieldPolicy
+  deriving Repr
+
+structure ScopedContract where
+  version : Int
+  projectionId : String
+  projectionFingerprint : String
+  evidenceObservationId : String
+  scopeFields : List String
+  operationField : String
+  sources : List String
+  initialState : Option ScopedValue
+  transitions : List ScopedTransition
+  projectionRules : List ScopedProjectionRule
+  clauses : List ScopedClause
+  limits : Option ScopedLimits
+  deriving Repr
+
 structure Contract where
   contractId : String
   rules : List ContractRuleDefinition
   limits : Option ContractLimits
+  scopedValue : Option ScopedContract
   deriving Repr
 
 structure FormatVersion where
   major : Int
   minor : Int
+  deriving Repr
+
+structure EnvironmentRef where
+  bindingId : String
   deriving Repr
 
 structure InstructionOutcomeRef where
@@ -12742,6 +12875,7 @@ inductive ProgramExpression.Expression where
   | negation (value : Temporal.API.Proto.MessageRef)
   | all (value : Temporal.API.Proto.MessageRef)
   | any (value : Temporal.API.Proto.MessageRef)
+  | environment (value : EnvironmentRef)
   deriving Repr
 
 structure ProgramExpression where
@@ -12925,6 +13059,10 @@ structure EntrypointDefinition where
   activation : EntrypointDefinition.Activation
   deriving Repr
 
+structure EnvironmentDefinition where
+  bindingId : String
+  deriving Repr
+
 structure ObservationDefinition where
   observationId : String
   type : Option ValueType
@@ -12948,6 +13086,8 @@ structure ProgramLimits where
 structure RoleDefinition where
   roleId : String
   kind : RoleKind
+  namespaceBindingId : String
+  resourceBindingId : String
   deriving Repr
 
 inductive SlotDefinition.Content where
@@ -12969,6 +13109,7 @@ structure Program where
   entrypoints : List EntrypointDefinition
   cleanup : Option CleanupDefinition
   limits : Option ProgramLimits
+  environment : List EnvironmentDefinition
   deriving Repr
 
 structure Case where
@@ -13058,6 +13199,30 @@ structure Run where
   verdict : Option Verdict
   diagnostics : List RunDiagnostic
   evaluationFailure : Run.EvaluationFailure
+  deriving Repr
+
+structure ScopedBinding where
+  fieldId : String
+  value : String
+  deriving Repr
+
+structure ScopedEvidenceField where
+  fieldId : String
+  value : Option Value
+  deriving Repr
+
+structure ScopedIdentity where
+  scope : List ScopedBinding
+  source : String
+  ordinal : Int
+  deriving Repr
+
+structure ScopedEvidence where
+  identity : Option ScopedIdentity
+  operation : String
+  kind : String
+  parents : List ScopedIdentity
+  fields : List ScopedEvidenceField
   deriving Repr
 
 end Temporal.Server.Api.Testpilot.V1

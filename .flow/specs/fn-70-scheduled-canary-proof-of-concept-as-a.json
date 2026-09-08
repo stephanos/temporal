@@ -16,8 +16,55 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": "2026-09-08T04:54:15.683743Z",
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-09-08T13:58:42.753121Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "af58b780afd4db613f082877c208f2add9fdb71bbd6e18e2eeb6f1338d604b6a",
+      "backend": "codex",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "medium",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "375abfe180dba72da6dd357e6abe33fa75a292a7",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6-astra",
+      "outcome": "verdict",
+      "output_bytes": 264621,
+      "output_sha256": "6465b6c62dfb735d0314ccd4325cd480cf49d1875ae639ebb82f28228932d55e",
+      "reservation_id": "ec37045e64484007ad0556559590ee0e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-08T13:58:42.744798Z",
+      "tool_calls": 10,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md",
   "status": "open",
   "title": "Scheduled canary proof of concept as a second model consumer",
@@ -32,5 +79,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-08T04:54:15.683877Z"
+  "updated_at": "2026-09-08T13:58:42.756277Z"
 }

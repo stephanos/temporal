@@ -99,7 +99,11 @@ func renderTypes(plan leanPlan) []byte {
 
 func renderAPI(plan leanPlan) []byte {
 	var generated strings.Builder
-	writeModuleHeader(&generated, plan.APIModule, apiFacadeModuleDoc)
+	module := cloneLeanModulePlan(plan.APIModule)
+	if plan.OperationSchemas != nil && len(plan.Services) > 0 {
+		module.Imports = append(module.Imports, "Umpire.Operation")
+	}
+	writeModuleHeader(&generated, module, apiFacadeModuleDoc)
 	for _, service := range plan.Services {
 		fmt.Fprintf(&generated, "namespace %s\n", service.Name.String())
 		for _, method := range service.Methods {
@@ -110,6 +114,7 @@ func renderAPI(plan leanPlan) []byte {
 		}
 		fmt.Fprintf(&generated, "end %s\n\n", service.Name.String())
 	}
+	renderOperationBindings(&generated, plan)
 	return []byte(strings.TrimRight(generated.String(), "\n") + "\n")
 }
 
