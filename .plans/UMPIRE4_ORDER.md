@@ -6,18 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### 1. fn-73 — Explicit environment binding
-
-[Spec](../.flow/specs/fn-73-explicit-environment-binding-for.md).
-Deliver after **fn-68, fn-71, and fn-72**.
-
-Own the shared symbolic resource-binding contract, its protocol/preparation changes, and static
-Driver validation. Prove that the same checked Nexus3 Case runs against two environment bindings
-without request rewriting, changed Case bytes, or changed Contract meaning. Exact Case 1.0 resolves
-Profile-owned physical resources and carries
-the binding snapshot in Prepared Case and Driver identity.
-
-### 2. fn-78 — Typed temporal authoring and checked scoped monitoring
+### 1. fn-78 — Typed temporal authoring and checked scoped monitoring
 
 [Spec](../.flow/specs/fn-78-typed-temporal-authoring-and-checked.md).
 Deliver after **fn-73** and before **fn-70**.
@@ -27,7 +16,7 @@ reported Query validity, typed bounded temporal notation, and the readable surfa
 Behavior constraints. Preserve the completed fn-68 success path and coordinate with fn-74/75/76
 and fn-77 without absorbing their separate interface and typed-operation work.
 
-### 3. fn-70 — Scheduled canary proof of concept
+### 2. fn-70 — Scheduled canary proof of concept
 
 [Spec](../.flow/specs/fn-70-scheduled-canary-proof-of-concept-as-a.md).
 Deliver after **fn-78**; fn-68, fn-71, fn-72, and fn-73 are transitive prerequisites.
@@ -52,7 +41,7 @@ without adding dependencies solely because files overlap.
 | [fn-75 — Lean Target semantic seam](../.flow/specs/fn-75-separate-lean-target-semantics-from.md) | None | Separate checked Target semantics from authoring/elaboration machinery while preserving checked construction, fingerprints, and proof trust. |
 | [fn-76 — Semantic inventory dependency direction](../.flow/specs/fn-76-make-lean-semantic-inventory-consume.md) | None | Make inventory consume semantic outcome and Known Gap contracts; preserve generated inventory and semantic results. |
 
-The open architecture, DSL, and canary specs need task breakdown and plan review before implementation.
+The open architecture tracks and fn-70 need task breakdown and plan review before implementation.
 Their dependency order does not itself mark them ready in Flow.
 
 ### Typed operations and field-level Properties — fn-77
@@ -94,6 +83,9 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Completed cutovers
 
+- [fn-73](../.flow/specs/fn-73-explicit-environment-binding-for.md): established exact Case 1.0
+  symbolic resource bindings, immutable Profile-owned snapshots, static Driver validation, and the
+  two-environment Nexus3 proof without request rewriting or Case-byte drift.
 - [fn-71](../.flow/specs/fn-71-standalone-lean-testpilot-protocol.md): established independent
   `Testpilot.*` types, context-safe expressions, one current codec, and producer-owned Umpire
   provenance.

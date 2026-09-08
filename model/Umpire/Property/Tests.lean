@@ -5,3 +5,4 @@ import Umpire.Property.Tests.GuardedCases
 import Umpire.Property.Tests.GuardedTemporal
 import Umpire.Property.Tests.LogicalTime
 import Umpire.Property.Tests.Validation
+import Umpire.Property.Tests.Endpoints

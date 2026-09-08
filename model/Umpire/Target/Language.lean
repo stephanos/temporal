@@ -16,6 +16,8 @@ structure TargetDeclaration
   providers : List (CapabilityProvider LawStatement)
   connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
+  /-- One eligible-state set per constituent; every set must match. Empty metadata never closes. -/
+  terminalConditions : List (List State) := []
   kernel : KernelAvailability Setup State Action Outcome Observation
 
 /-- Optional finite planning is tied propositionally to the exact authoritative target kernel. -/
@@ -65,6 +67,7 @@ structure TargetBehaviorDescription where
   observations : List String
   initialStates : List TargetInitialStateRow
   transitions : List TargetTransitionRow
+  terminalConditions : List (List String) := []
   deriving BEq, DecidableEq, Repr
 
 structure CheckedTarget
@@ -78,8 +81,11 @@ structure CheckedTarget
   providers : List (CapabilityProvider LawStatement)
   connectors : List (CapabilityConnector LawStatement)
   resolvedSetups : List Setup
+  /-- One eligible-state set per constituent; every set must match. Empty metadata never closes. -/
+  terminalConditions : List (List State) := []
   kernel : TransitionKernel Setup State Action Outcome Observation
   behaviorDescription : TargetBehaviorDescription
+  isTerminal : State → Bool := fun _ => false
   planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable
   canonicalMetadata : String
   behaviorFingerprint : BehaviorFingerprint
@@ -162,6 +168,8 @@ structure TargetDefinition
   definitions : List DefinitionMetadata
   requiredCapabilities : List DefinitionId
   resolvedSetups : List Setup
+  /-- One eligible-state set per constituent; every set must match. Empty metadata never closes. -/
+  terminalConditions : List (List State) := []
   kernel : KernelAvailability Setup State Action Outcome Observation
 
 private structure TargetCompositionPayload (LawStatement : LawDefinition → Prop) where
@@ -214,6 +222,7 @@ def make
     providers := composition.payload.providers
     connectors := composition.payload.connectors
     resolvedSetups := definition.resolvedSetups
+    terminalConditions := definition.terminalConditions
     kernel := definition.kernel
   }
   ⟨declaration, occurrences, planning⟩
@@ -434,7 +443,10 @@ private def targetBehaviorDescriptionJson (description : TargetBehaviorDescripti
     ",\"outcomes\":" ++ array (description.outcomes.map quote) ++
     ",\"observations\":" ++ array (description.observations.map quote) ++ "}" ++
     ",\"initialStates\":" ++ array (description.initialStates.map initialStateRowJson) ++
-    ",\"transitions\":" ++ array (description.transitions.map transitionRowJson) ++ "}"
+    ",\"transitions\":" ++ array (description.transitions.map transitionRowJson) ++
+    (if description.terminalConditions.isEmpty then "" else
+      ",\"terminalConditions/v1\":" ++
+        array (description.terminalConditions.map fun states => array (states.map quote))) ++ "}"
 
 def canonicalDefinitionErrorJson (error : DefinitionError) : String :=
   "{\"kind\":" ++ quote error.kind.name ++
@@ -778,7 +790,14 @@ private def composeTargetDetailed
       throw (validationError .incompleteBehaviorDomain target.id kernel.metadata.source
         (occurrencePath .kernel target.id) kernel.metadata.id encoding [kernel.metadata.id])
   | none => pure ()
-  let behavior := kernel.describeBehavior behaviorDomain
+  let terminalConditions := target.terminalConditions.map fun states =>
+    canonicalStrings (states.map behaviorDomain.encodeState)
+  for states in terminalConditions do
+    if !(states.all fun state => (kernel.describeBehavior behaviorDomain).states.contains state) then
+      throw (validationError .incompleteBehaviorDomain target.id kernel.metadata.source
+        (occurrencePath .kernel target.id) kernel.metadata.id "terminal-state" [kernel.metadata.id])
+  let behavior := { kernel.describeBehavior behaviorDomain with
+    terminalConditions := terminalConditions.mergeSort |>.eraseDups }
   let semantic := targetSemanticJson target.id definitions target.requiredCapabilities
     providers connectors kernel.metadata behavior
   pure {
@@ -789,6 +808,9 @@ private def composeTargetDetailed
     providers
     connectors
     resolvedSetups := target.resolvedSetups
+    terminalConditions := target.terminalConditions
+    isTerminal := fun state => !terminalConditions.isEmpty &&
+      terminalConditions.all (fun states => states.contains (behaviorDomain.encodeState state))
     kernel
     behaviorDescription := behavior
     canonicalMetadata := targetMetadataJson target kernel.metadata behavior
@@ -912,7 +934,7 @@ def CheckedTarget.withEquivalentKernel
       kernel.observationDomain = target.kernel.observationDomain)
     (_initial : kernel.authoritativeInitial = target.kernel.authoritativeInitial)
     (_step : kernel.authoritativeStep = target.kernel.authoritativeStep)
-    (_behavior : kernel.behaviorDescription? = some target.behaviorDescription)
+    (_behavior : kernel.behaviorDescription? = some { target.behaviorDescription with terminalConditions := [] })
     (planning : FinitePlanningAvailability kernel.authoritativeStep := .unavailable) :
     CheckedTarget LawStatement Setup State Action Outcome Observation := {
   target with
