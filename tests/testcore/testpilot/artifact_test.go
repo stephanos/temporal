@@ -558,7 +558,7 @@ func decodeArtifactRequest(source, target proto.Message) error {
 	return proto.Unmarshal(wire, target)
 }
 
-func (s *artifactSession) CompleteNexusOperation(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, *testpilotspb.Value) (testpilot.EffectHandle, error) {
+func (s *artifactSession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return &artifactEffect{result: succeededResult(nil)}, nil
 }
 

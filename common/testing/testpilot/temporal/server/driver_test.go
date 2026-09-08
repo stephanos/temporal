@@ -35,7 +35,7 @@ func fixture(t *testing.T, address string) (*Driver, *testpilotspb.Case, []proto
 	require.NoError(t, err)
 	limits := &testpilotspb.ProgramLimits{MaxEntrypoints: 8, MaxNodes: 32, MaxEdges: 64, MaxActivations: 64, MaxAttempts: 32, MaxRunEvents: 256, MaxExpressionDepth: 16, MaxPathFanout: 128, MaxRequestBytes: 4096, MaxResponseBytes: 4096, MaxTotalDurationMilliseconds: 30000, MaxCleanupDurationMilliseconds: 5000}
 	contractLimits := &testpilotspb.ContractLimits{MaxRules: 8, MaxStates: 16, MaxTransitions: 16, MaxExpressionDepth: 16, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000, MaxCaptures: 8, MaxCaptureBytes: 65536}
-	profile := testpilot.ProfileSpec{Identity: "test-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Capabilities: []testpilot.Capability{testpilot.InvokeRPC, testpilot.AwaitSlot, testpilot.CompleteNexusOperation}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/grpc.health.v1.Health/Check", "/example.Echo/Length"}}}}
+	profile := testpilot.ProfileSpec{Identity: "test-host", Catalog: catalog, ProgramLimits: limits, ContractLimits: contractLimits, Capabilities: []testpilot.Capability{testpilot.InvokeRPC, testpilot.AwaitSlot}, Roles: []testpilot.RolePolicy{{ID: "endpoint", Kind: testpilotspb.ROLE_KIND_ENDPOINT, Methods: []string{"/grpc.health.v1.Health/Check", "/example.Echo/Length"}}}}
 	host, err := New(Options{Profile: profile, Endpoints: map[string]Endpoint{"endpoint": {Target: address, Credentials: insecure.NewCredentials(), Metadata: metadata.Pairs("authorization", "host-secret")}}})
 	require.NoError(t, err)
 	t.Cleanup(func() { require.NoError(t, host.Close(context.Background())) })

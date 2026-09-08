@@ -2,8 +2,6 @@ package server
 
 import (
 	"context"
-	"net/http"
-	"net/http/httptest"
 	"sync"
 	"testing"
 	"time"
@@ -30,8 +28,8 @@ func TestCancellationDuringDriverSerialization(t *testing.T) {
 	for _, operation := range []string{"open", "mint", "bridge", "publish", "consume", "quarantine", "close-session", "close-host", "diagnose"} {
 		t.Run(operation, func(t *testing.T) {
 			h, source, _ := fixture(t, "127.0.0.1:1")
-			s, origin := nexusSession(t, h, source, "run")
-			capability, err := s.NewCompletionCapability(t.Context(), origin, CompletionInfo{URL: "http://localhost", OperationToken: "token"})
+			s, origin := capabilitySession(t, h, source, "run")
+			capability, err := s.NewCapability(t.Context(), origin, successfulCapabilityEffect())
 			require.NoError(t, err)
 			if operation == "consume" {
 				require.NoError(t, s.Publish(t.Context(), origin, "capability", capability))
@@ -43,7 +41,7 @@ func TestCancellationDuringDriverSerialization(t *testing.T) {
 					_, err := h.open(ctx, "new", source.Program)
 					return err
 				case "mint":
-					_, err := s.NewCompletionCapability(ctx, origin, CompletionInfo{URL: "http://localhost", OperationToken: "token"})
+					_, err := s.NewCapability(ctx, origin, successfulCapabilityEffect())
 					return err
 				case "bridge":
 					_, err := s.Bridge(ctx)
@@ -95,14 +93,12 @@ func TestCancellationDuringDriverSerialization(t *testing.T) {
 		})
 	}
 }
-func TestRejectedCompletionRestoresClaimForCleanup(t *testing.T) {
+func TestRejectedCapabilityInvocationRestoresClaimForCleanup(t *testing.T) {
 	for _, failure := range []string{"canceled", "capacity"} {
 		t.Run(failure, func(t *testing.T) {
-			target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }))
-			defer target.Close()
 			h, source, _ := fixture(t, "127.0.0.1:1")
-			s, origin := nexusSession(t, h, source, "run")
-			capability, err := s.NewCompletionCapability(t.Context(), origin, CompletionInfo{URL: target.URL, OperationToken: "token"})
+			s, origin := capabilitySession(t, h, source, "run")
+			capability, err := s.NewCapability(t.Context(), origin, successfulCapabilityEffect())
 			require.NoError(t, err)
 			require.NoError(t, s.Publish(t.Context(), origin, "capability", capability))
 			ctx, cancel := context.WithCancel(t.Context())
@@ -120,27 +116,27 @@ func TestRejectedCompletionRestoresClaimForCleanup(t *testing.T) {
 				blocker, err = other.start(t.Context(), coordinate("other", "check"), source.Program.Entrypoints[0].Instructions[0].Limits, func(context.Context) testpilot.EffectResult { <-release; return testpilot.EffectResult{} })
 				require.NoError(t, err)
 			}
-			denied, err := s.CompleteNexusOperation(ctx, coordinate("run", "complete"), original, completionValue())
+			denied, err := s.InvokeCapability(ctx, coordinate("run", "check"), original, capabilityValue())
 			require.Error(t, err)
 			require.Nil(t, denied)
 			cleanupCtx, cleanupCancel := context.WithCancel(t.Context())
 			defer cleanupCancel()
 			replacement, err := s.Consume(cleanupCtx, "capability")
 			require.NoError(t, err)
-			denied, err = s.CompleteNexusOperation(t.Context(), coordinate("run", "complete"), original, completionValue())
+			denied, err = s.InvokeCapability(t.Context(), coordinate("run", "check"), original, capabilityValue())
 			require.Error(t, err)
 			require.Nil(t, denied)
 			if blocker != nil {
 				close(release)
 				require.NoError(t, blocker.Drain(t.Context()))
 			}
-			accepted, err := s.CompleteNexusOperation(cleanupCtx, coordinate("run", "complete"), replacement, completionValue())
+			accepted, err := s.InvokeCapability(cleanupCtx, coordinate("run", "check"), replacement, capabilityValue())
 			require.NoError(t, err)
 			require.NoError(t, accepted.Drain(t.Context()))
 			cleanupCancel()
 			_, err = s.Consume(t.Context(), "capability")
 			require.Error(t, err)
-			denied, err = s.CompleteNexusOperation(t.Context(), coordinate("run", "complete"), replacement, completionValue())
+			denied, err = s.InvokeCapability(t.Context(), coordinate("run", "check"), replacement, capabilityValue())
 			require.Error(t, err)
 			require.Nil(t, denied)
 		})

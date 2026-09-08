@@ -3,9 +3,9 @@ package worker
 import (
 	"context"
 	"errors"
+	"net/http"
 	"time"
 
-	"github.com/nexus-rpc/sdk-go/nexus"
 	"go.temporal.io/sdk/client"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
@@ -23,30 +23,26 @@ var (
 const defaultCleanupTimeout = 5 * time.Second
 
 type Options struct {
-	Profile           testpilot.ProfileSpec
-	Client            client.Client
-	WorkerRoleID      string
-	WorkerStopTimeout time.Duration
-	SessionOptions    func(context.Context, string) (SessionOptions, error)
+	Profile               testpilot.ProfileSpec
+	Client                client.Client
+	WorkerRoleID          string
+	WorkerStopTimeout     time.Duration
+	SystemCallbackBaseURL string
+	// HTTPClient and its transport must honor request cancellation. Redirects are disabled.
+	HTTPClient     *http.Client
+	SessionOptions func(context.Context, string) (SessionOptions, error)
 }
 
-type CompletionInfo struct {
-	URL            string
-	Header         nexus.Header
-	OperationToken string
-	StartTime      time.Time
-}
-
-type CompletionCapabilityFactory func(context.Context, testpilot.Coordinate, CompletionInfo) (testpilot.OpaqueCapability, error)
+type CapabilityFactory func(context.Context, testpilot.Coordinate, testpilot.CapabilityEffect) (testpilot.OpaqueCapability, error)
 
 type DiagnosticSink func(context.Context, string, *testpilotspb.RunDiagnostic) error
 type QuarantineFunc func(context.Context, testpilot.EffectHandle, func()) error
 
 type SessionOptions struct {
-	Bridge                  testpilot.CapabilityBridge
-	NewCompletionCapability CompletionCapabilityFactory
-	Diagnose                DiagnosticSink
-	Quarantine              QuarantineFunc
+	Bridge        testpilot.CapabilityBridge
+	NewCapability CapabilityFactory
+	Diagnose      DiagnosticSink
+	Quarantine    QuarantineFunc
 }
 
 type WorkflowBinding struct {
