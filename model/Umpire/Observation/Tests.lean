@@ -7,3 +7,5 @@ import Umpire.Observation.Tests.Verdict
 import Umpire.Observation.Tests.Aggregation
 import Umpire.Observation.Tests.Mutations
 import Umpire.Observation.Tests.Check
+import Umpire.Observation.Tests.Projection
+import Umpire.Observation.Tests.ProjectionBoundary

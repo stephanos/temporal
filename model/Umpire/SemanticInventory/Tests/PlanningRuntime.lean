@@ -31,7 +31,9 @@ example : OutcomeConstructorClassifiers.names PlanningOutcome.constructorClassif
     "no-such-trace-within-complete-limits",
     "limit-reached",
     "unsatisfiable",
-    "invalid"
+    "invalid",
+    "nonempty-unexercised",
+    "unresolved-prefix"
   ] := by
   native_decide
 

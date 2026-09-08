@@ -498,6 +498,8 @@ inductive PlanningOutcome where
   | noSuchTraceWithinCompleteLimits
   | limitReached
   | unsatisfiable
+  | nonemptyUnexercised
+  | unresolvedPrefix
   | invalid (error : QueryError)
   deriving BEq, DecidableEq, Repr
 
@@ -507,6 +509,8 @@ def PlanningOutcome.name : PlanningOutcome → String
   | .noSuchTraceWithinCompleteLimits => "no-such-trace-within-complete-limits"
   | .limitReached => "limit-reached"
   | .unsatisfiable => "unsatisfiable"
+  | .nonemptyUnexercised => "nonempty-unexercised"
+  | .unresolvedPrefix => "unresolved-prefix"
   | .invalid _ => "invalid"
 
 private def planningOutcomeConstructorIndex : PlanningOutcome → Nat
@@ -516,6 +520,8 @@ private def planningOutcomeConstructorIndex : PlanningOutcome → Nat
   | .limitReached => 3
   | .unsatisfiable => 4
   | .invalid _ => 5
+  | .nonemptyUnexercised => 6
+  | .unresolvedPrefix => 7
 
 /-- Canonical documentation and exact constructor matchers for Planning outcomes. -/
 def PlanningOutcome.constructorClassifiers :
@@ -555,6 +561,14 @@ def PlanningOutcome.constructorClassifiers :
   {
     descriptor := { name := "invalid", description := "Planning rejected the Query." }
     accepts := fun outcome => planningOutcomeConstructorIndex outcome == 5
+  },
+  {
+    descriptor := { name := "nonempty-unexercised", description := "Admissible traces leave requested triggers unexercised." }
+    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 6
+  },
+  {
+    descriptor := { name := "unresolved-prefix", description := "An admitted runtime prefix retains unresolved obligations." }
+    accepts := fun outcome => planningOutcomeConstructorIndex outcome == 7
   }
 ]
 
@@ -567,6 +581,8 @@ theorem PlanningOutcome.constructorClassifiers_exactlyOne :
   | .limitReached => rfl
   | .unsatisfiable => rfl
   | .invalid _ => rfl
+  | .nonemptyUnexercised => rfl
+  | .unresolvedPrefix => rfl
 
 structure PlanningResult where
   private mk ::
@@ -582,6 +598,67 @@ def isVerified (result : PlanningResult) : Bool :=
   | _ => false
 
 end PlanningResult
+
+private def receiptValue (value : ModelValue) : Lean.Json :=
+  .mkObj [("definitionId", .str value.definitionId.value), ("value", .str value.value)]
+
+private def receiptTrace (trace : BehaviorTrace) : Lean.Json :=
+  .mkObj [
+    ("setup", .arr (trace.setup.map fun binding => .mkObj [
+      ("role", .str binding.role.value), ("value", receiptValue binding.value)]).toArray),
+    ("initialState", receiptValue trace.trace.initialState),
+    ("steps", .arr (trace.trace.steps.map fun step => .mkObj [
+      ("selectedAction", receiptValue step.selectedAction),
+      ("modelOutcome", receiptValue step.modelOutcome),
+      ("resultingState", receiptValue step.resultingState),
+      ("observations", .arr (step.observations.map receiptValue).toArray)]).toArray)]
+
+/-- Canonical endpoint receipt binds independent claims, all Query limits and policies, the
+assurance method, and exact model paths supporting realized trigger coverage. -/
+def canonicalPlanningReceiptJson (result : PlanningResult) : String :=
+  let validity := result.metadata.validity
+  let satisfiability := match validity.satisfiability with
+    | .unknown => "unknown" | .nonempty => "nonempty" | .impossible => "impossible"
+  let coverage := match validity.coverage with
+    | .unknown => "unknown" | .exercised => "exercised" | .unexercised => "unexercised"
+  let answer := match validity.answer with
+    | .unknown => "unknown" | .witness => "witness" | .verified => "verified"
+    | .counterexample => "counterexample" | .unresolvedPrefix => "unresolved-prefix"
+  let limits := result.metadata.completeness.limits
+  Lean.Json.compress <| .mkObj [
+    ("formatVersion", .str "umpire-planning-receipt/v1"),
+    ("query", .str validity.queryMetadata),
+    ("endpoint", .str validity.endpoint.name),
+    ("exercise", .str validity.exercise.name),
+    ("satisfiability", .str satisfiability),
+    ("coverage", .str coverage),
+    ("answer", .str answer),
+    ("outcome", .str result.outcome.name),
+    ("selectedTrace", match result.outcome with
+      | .found trace _ => receiptTrace trace
+      | _ => .null),
+    ("searchComplete", .bool validity.searchComplete),
+    ("searchTermination", .str validity.searchTermination),
+    ("requestedTriggers", .arr (validity.requestedTriggers.map fun (propertyId, clauseId) =>
+      .mkObj [("propertyId", .str propertyId.value), ("clauseId", .str clauseId.value)]).toArray),
+    ("assuranceMethod", .str validity.assuranceMethod),
+    ("limits", .arr #[.str (canonicalLimitJson limits.behavior.transitions),
+      .str (canonicalLimitJson limits.behavior.selectedActions),
+      .str (canonicalLimitJson limits.search)]),
+    ("explored", .mkObj [
+      ("setups", Lean.toJson result.metadata.explored.setups),
+      ("traces", Lean.toJson result.metadata.explored.traces),
+      ("transitions", Lean.toJson result.metadata.explored.transitions),
+      ("propertyEvaluations", Lean.toJson result.metadata.explored.propertyEvaluations)]),
+    ("triggers", .arr (validity.triggers.map fun evidence => .mkObj [
+      ("trace", receiptTrace evidence.trace),
+      ("propertyId", .str evidence.trigger.propertyId.value),
+      ("clauseId", .str evidence.trigger.clauseId.value),
+      ("transitionPosition", Lean.toJson evidence.trigger.transitionPosition),
+      ("field", .str evidence.trigger.occurrence.field.name),
+      ("coordinateUnit", .str evidence.trigger.occurrence.coordinateUnit.name),
+      ("coordinate", Lean.toJson evidence.trigger.occurrence.coordinate),
+      ("value", evidence.trigger.occurrence.value.map receiptValue |>.getD .null)]).toArray)]
 
 structure PlannerRun where
   result : PlanningResult
@@ -838,41 +915,59 @@ private def purePlannerBackend
   pull := fun _ => pullCandidate query kernel
 }
 
-private def evaluatesToSelection
+private structure PlanningObservations where
+  nonempty : Bool := false
+  unresolved : Bool := false
+  required : List (DefinitionId × DefinitionId) := []
+  triggers : List PlanningTriggerEvidence := []
+  counterexample : Option BehaviorTrace := none
+
+private def coverageMet
+    (query : CheckedQuery LawStatement) (state : PlanningObservations) : Bool :=
+  query.exercise == .allowVacuous || state.required.all fun (propertyId, clauseId) =>
+    state.triggers.any fun evidence =>
+      evidence.trigger.propertyId == propertyId && evidence.trigger.clauseId == clauseId
+
+private def observeCandidate
     (query : CheckedQuery LawStatement)
-    (candidate : BehaviorTrace) : Except QueryError (Option SelectionReason) := do
-  let evaluate (property : CheckedProperty) : Except QueryError PropertyEvaluation := do
-    match checkPropertyEvaluationInput property candidate.trace with
-    | .ok input => pure (evaluateProperty property input)
-    | .error error =>
-        throw {
-          kind := .propertyEvaluationFailure
-          definitionId := query.id
-          sourcePath := error.sourcePath
-          offendingValue := error.kind.name ++ ":" ++ error.offendingValue
-          relatedDefinitionIds := DefinitionId.canonicalSet
-            (property.id :: property.guardedClauseIds ++ error.relatedDefinitionIds)
-        }
+    (state : PlanningObservations)
+    (candidate : BehaviorTrace) : Except QueryError (BoundedTraversalStep PlanningObservations) := do
+  let mut answers := []
+  let mut current : PlanningObservations := { nonempty := true }
+  for property in query.form.properties.mergeSort (fun left right =>
+      decide (left.id.value ≤ right.id.value)) do
+    let input ← (checkPropertyEvaluationInput property candidate.trace).mapError fun error => {
+      kind := QueryErrorKind.propertyEvaluationFailure
+      definitionId := query.id
+      sourcePath := error.sourcePath
+      offendingValue := error.kind.name ++ ":" ++ error.offendingValue
+      relatedDefinitionIds := DefinitionId.canonicalSet
+        (property.id :: property.guardedClauseIds ++ error.relatedDefinitionIds)
+    }
+    let evaluation := evaluatePropertyEndpoint property input (query.endpoint == .runtimePrefix)
+    answers := answers ++ [evaluation.answer]
+    current := { current with
+      required := current.required ++ evaluation.requestedTriggers.map (property.id, ·)
+      triggers := current.triggers ++ evaluation.realizedTriggers.map ({ trace := candidate, trigger := · }) }
+  let violated := answers.contains .violated
+  let unresolved := answers.contains .unresolved
+  let next := { state with
+    nonempty := true
+    unresolved := state.unresolved || unresolved
+    required := (state.required ++ current.required).eraseDups
+    triggers := state.triggers ++ current.triggers
+    counterexample := if violated && state.counterexample.isNone then some candidate else state.counterexample }
   match query.form with
-  | .verify property =>
-      if (← evaluate property).satisfied then
-        pure none
-      else
-        pure (some .violatingCounterexample)
-  | .witness property =>
-      if (← evaluate property).satisfied then
-        pure (some .satisfyingWitness)
-      else
-        pure none
-  | .counterexample property =>
-      if (← evaluate property).satisfied then
-        pure none
-      else
-        pure (some .violatingCounterexample)
-  | .select properties =>
-      for property in properties do
-        let _ ← evaluate property
-      pure (some .behaviorSelection)
+  | .verify _ => pure (.continue next)
+  | .counterexample _ =>
+      if violated then pure (.stop next candidate .violatingCounterexample) else pure (.continue next)
+  | .witness _ =>
+      if !violated && !unresolved && coverageMet query current then
+        pure (.stop next candidate .satisfyingWitness)
+      else pure (.continue next)
+  | .select _ =>
+      if coverageMet query current then pure (.stop next candidate .behaviorSelection)
+      else pure (.continue next)
 
 private def noteCandidate
     (candidate : BehaviorTrace)
@@ -951,7 +1046,11 @@ private def traverseLoop
     (explored : ExploredCounts)
     (instrumentation : PlannerInstrumentation) : BoundedTraversalResult State :=
   match remaining with
-  | 0 => traversalResult query consumerState .limitReached explored instrumentation
+  | 0 =>
+      match backend.pull () cursor with
+      | .complete => traversalResult query consumerState (.complete behaviorAdmitted) explored
+          { instrumentation with backendPulls := instrumentation.backendPulls + 1 }
+      | .yield _ _ => traversalResult query consumerState .limitReached explored instrumentation
   | remaining + 1 =>
       match backend.pull () cursor with
       | .complete =>
@@ -960,7 +1059,8 @@ private def traverseLoop
       | .yield candidate next =>
           let explored := noteCandidate candidate explored
           let instrumentation := notePull candidate next instrumentation
-          if query.behavior.admits candidate then
+          if query.behavior.admits candidate &&
+              (query.endpoint != .terminalModel || query.target.isTerminal (currentState candidate)) then
             let explored := notePropertyEvaluations query explored
             match visit consumerState candidate with
             | .error error =>
@@ -993,12 +1093,43 @@ def plan
     (query : CheckedQuery LawStatement)
     (kernel : IncrementalPlannerKernel query.target) : Except KnownGapError PlannerRun := do
   let knownGaps ← composePlanningKnownGaps query
-  let traversed := traverseBoundedCandidates query kernel () fun _ candidate => do
-    match ← evaluatesToSelection query candidate with
-    | some reason => pure (.stop () candidate reason)
-    | none => pure (.continue ())
-  pure (finish query traversed.metadata.explored traversed.instrumentation traversed.termination
-    knownGaps)
+  let traversed := traverseBoundedCandidates query kernel {} (observeCandidate query)
+  let state := traversed.state
+  let searchComplete := match traversed.termination with
+    | .complete _ => query.policy.strategy == .exhaustive && query.completeness.isSome
+    | _ => false
+  let covered := coverageMet query state
+  let termination := match state.counterexample, query.form with
+    | some trace, .verify _ => .stopped trace .violatingCounterexample
+    | _, _ => traversed.termination
+  let run := finish query traversed.metadata.explored traversed.instrumentation termination knownGaps
+  let outcome := match run.result.outcome with
+    | .verified | .noSuchTraceWithinCompleteLimits =>
+        if state.unresolved then .unresolvedPrefix
+        else if !covered then .nonemptyUnexercised else run.result.outcome
+    | other => other
+  let answer := match outcome with
+    | .found _ .violatingCounterexample => PlanningAnswer.counterexample
+    | .found _ .satisfyingWitness => .witness
+    | .verified => .verified
+    | .unresolvedPrefix => .unresolvedPrefix
+    | _ => .unknown
+  let validity : PlanningValidity := {
+    satisfiability := if state.nonempty then .nonempty else
+      if searchComplete || query.behavior.isUnsatisfiable then .impossible else .unknown
+    coverage := if state.nonempty && (coverageMet { query with exercise := .requireAllTriggers } state) then .exercised else
+      if searchComplete then .unexercised else .unknown
+    answer
+    searchComplete
+    searchTermination := traversed.termination.name
+    requestedTriggers := state.required
+    endpoint := query.endpoint
+    exercise := query.exercise
+    queryMetadata := query.canonicalMetadata
+    triggers := state.triggers
+  }
+  let result := PlanningResult.mk outcome { traversed.metadata with validity }
+  pure { run with result }
 
 /--
 Plan through the unchanged target kernel, then project checked Artifact intent if one is selected.

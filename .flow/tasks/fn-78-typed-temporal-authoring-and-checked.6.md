@@ -7,8 +7,8 @@ satisfies: [R4, R5, R6, R9]
 Implement D4's single checked scoped-obligation semantic kernel and its correspondence to existing Property meaning. Model, incremental, and offline evaluation must share one passive `compile / consume / close` transition contract over admitted projected semantic steps.
 
 **Size:** L
-**Files:** `model/Umpire/Property/{Language,Authoring,Check,Evaluation,Trace,Tests/**}.lean`, focused scoped-obligation modules/tests under `model/Umpire/Property/`, `model/Umpire/Observation/{Verdict,Evaluation/**}.lean`, `model/Umpire/ARCHITECTURE.md`, `model/Umpire/Property/COMPATIBILITY.md` only if a semantic migration is required
-**Touches:** [model/Umpire/Property/**, model/Umpire/Observation/Verdict.lean, model/Umpire/Observation/Evaluation/**, model/Umpire/ARCHITECTURE.md, model/Umpire/Property/COMPATIBILITY.md]
+**Files:** `model/Umpire/Property/{Language,Authoring,Check,Evaluation,Trace,Tests/**}.lean`, focused scoped-obligation modules/tests under `model/Umpire/Property/`, `model/Umpire/Observation/{Verdict,Evaluation/**}.lean`, `model/Umpire/Property/COMPATIBILITY.md` only if a semantic migration is required
+**Touches:** [model/Umpire/Property/**, model/Umpire/Observation/Verdict.lean, model/Umpire/Observation/Evaluation/**, model/Umpire/Property/COMPATIBILITY.md]
 
 ### Approach
 - Add a checked clause with trigger/response predicates, immutable correlation key, semantic clock, natural bound, and endpoint policy.
@@ -28,7 +28,6 @@ Implement D4's single checked scoped-obligation semantic kernel and its correspo
 ### Key context
 - Closing a selected finite trace with a live obligation violates; closing an incomplete runtime prefix without deadline evidence remains inconclusive.
 - Never use runtime timeout or search-budget exhaustion as a semantic transition.
-
 ## Acceptance
 - [ ] One checked scoped clause records typed trigger/response, correlation key, semantic clock, bound, endpoint policy, source, and stable clause ID.
 - [ ] Independent obligations cover repeated triggers, one response discharging every matching in-bound obligation, two interleaved operations, and counted labeled self-loops without cross-scope ticks.
@@ -38,8 +37,6 @@ Implement D4's single checked scoped-obligation semantic kernel and its correspo
 - [ ] Checked proofs connect existing Property closed-trace meaning, scoped projection, obligation transitions, and prefix/close outcomes; bounded differential tests use an independent reference.
 - [ ] Unsupported predicates, keys, clocks, scopes, endpoint combinations, or numeric bounds reject the whole requested lowering with the responsible clause ID and no partial Case output.
 - [ ] Existing Property APIs/operators and default-empty canonical bytes/fingerprints remain unchanged; changed declarations pass transitive axiom audits.
-
-
 ## Done summary
 TBD
 

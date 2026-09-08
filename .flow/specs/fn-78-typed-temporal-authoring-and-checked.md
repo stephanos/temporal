@@ -1,5 +1,7 @@
 # Typed temporal authoring and checked scoped monitoring
 
+> HTML render lens: local-only at `.flow/artifacts/fn-78-typed-temporal-authoring-and-checked/spec.html` — regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 Status: implementation specification; task breakdown, review, and implementation remain future work.
 [UMPIRE4_SPEC](../../.plans/UMPIRE4_SPEC.md) remains the normative authority. Delivery order is
 recorded in [UMPIRE4_ORDER](../../.plans/UMPIRE4_ORDER.md).
@@ -218,31 +220,35 @@ request representations here.
 
 ## Implementation plan
 
-Deliver the remaining work as three independently startable checked foundations followed by two
-integration layers and final qualification:
+Deliver the remaining work as checked foundations followed by two integration layers and final
+qualification:
 
 1. Extend Query and Planning with explicit endpoint, coverage, answer, and completeness dimensions.
 2. Add typed Behavior authoring forms that lower only to existing checked declarations.
-3. Define the generic command/event ownership and transactional evidence-projection kernel, then
-   adapt correlated Nexus history without moving feature meaning into Testpilot.
+3. Add the minimal generic per-operation cancellation capability, then define command/event
+   ownership and the transactional evidence-projection kernel and adapt correlated Nexus history
+   without moving feature meaning into Testpilot.
 4. Build one scoped-obligation semantic kernel and compile its supported fragment into a closed,
    versioned Testpilot Contract capability evaluated identically by Lean and Go.
 5. Expose the bounded temporal surface and qualify the authored Nexus cancellation Case through the
    reusable Temporal Driver.
 
-The Query, Behavior, and generic projection tasks may proceed independently. Nexus projection
-depends on the projection kernel; scoped semantics depend on that checked step/clock boundary; the
-portable lowering depends on both. Final authoring and qualification depend on Query, Behavior, and
-portable lowering. Parameterized field expressions remain owned by fn-77; this plan uses its
-interfaces only if they have landed and otherwise completes the required label-only semantics.
+Query/Target endpoint semantics, Behavior authoring, and generic per-operation cancellation may
+proceed independently. The projection kernel consumes the explicit Target terminal/ownership seam;
+Nexus projection and scoped semantics then proceed in parallel. Portable lowering joins those paths
+and consumes cancellation. Final authoring and qualification depend on Query, Behavior, and portable
+lowering. Parameterized field expressions remain owned by fn-77; this plan uses its interfaces only
+if they have landed and otherwise completes the required label-only semantics.
 
 ```mermaid
 flowchart LR
-  Q[Query validity and endpoints] --> Z[Temporal authoring and Nexus qualification]
+  Q[Target terminals and Query validity] --> P[Projection kernel]
+  Q --> Z[Temporal authoring and Nexus qualification]
   B[Behavior authoring] --> Z
-  P[Projection kernel] --> N[Nexus evidence adapter]
+  P --> N[Nexus evidence adapter]
   P --> O[Scoped obligation semantics]
-  N --> C[Portable Contract lowering]
+  K[Per-operation cancellation capability] --> C[Portable Contract lowering]
+  N --> C
   O --> C
   C --> Z
 ```

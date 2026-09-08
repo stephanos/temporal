@@ -1676,6 +1676,156 @@ def evaluateProperty
     clauses
   }
 
+/-- Three-valued evaluation of a selected prefix; unresolved never supplies a counterexample. -/
+inductive PropertyEndpointAnswer where
+  | satisfied
+  | violated
+  | unresolved
+  deriving BEq, DecidableEq, Repr
+
+/-- Realized trigger identity is retained independently of whether its obligation succeeds. -/
+structure PropertyTriggerEvidence where
+  propertyId : DefinitionId
+  clauseId : DefinitionId
+  transitionPosition : Nat
+  occurrence : JointTriggerOccurrence
+  deriving BEq, DecidableEq, Repr
+
+/-- Checked endpoint observations used by Query without reinterpreting Property predicates. -/
+structure PropertyEndpointEvaluation where
+  answer : PropertyEndpointAnswer
+  requestedTriggers : List DefinitionId
+  realizedTriggers : List PropertyTriggerEvidence
+  deriving BEq, DecidableEq, Repr
+
+private def combineEndpointAnswers (answers : List PropertyEndpointAnswer) : PropertyEndpointAnswer :=
+  if answers.contains .violated then .violated
+  else if answers.contains .unresolved then .unresolved
+  else .satisfied
+
+private def endpointCoordinate (unit : LimitUnit) (view : PropertyTraceView) : Option Nat :=
+  match unit with
+  | .semanticTransitions | .selectedActions => some view.steps.length
+  | .observationPositions => some (view.steps.foldl (fun n step => n + step.observations.length) 0)
+  | .logicalTime => view.steps.getLast?.bind (·.logicalTime)
+  | _ => none
+
+private def temporalEndpointAnswer
+    (forbidden : Bool) (trigger : Nat) (responses : List Nat) (limit : Limit)
+    (view : PropertyTraceView) : PropertyEndpointAnswer :=
+  let found := responses.any fun response => trigger ≤ response && response - trigger ≤ limit.value
+  if found then
+    if forbidden then .violated else .satisfied
+  else
+    match endpointCoordinate limit.unit view with
+    | some current => if current ≥ trigger + limit.value then
+        if forbidden then .satisfied else .violated
+      else .unresolved
+    | none => .unresolved
+
+private def plainTemporalEndpointAnswer
+    (forbidden : Bool) (trigger response : PropertyPattern) (limit : Limit)
+    (view : PropertyTraceView) : PropertyEndpointAnswer :=
+  match checkedPositions trigger limit.unit view, checkedPositions response limit.unit view with
+  | some triggers, some responses => combineEndpointAnswers
+      (triggers.map fun coordinate => temporalEndpointAnswer forbidden coordinate responses limit view)
+  | _, _ => .unresolved
+
+private def guardedEndpointAnswer
+    (clause : ResolvedGuardedTemporalClause)
+    (view : PropertyTraceView) : PropertyEndpointAnswer :=
+  match checkedPositions clause.response clause.limit.unit view with
+  | none => .unresolved
+  | some responses =>
+      let rec visit (transitionPosition observationOffset : Nat)
+          (steps : List PropertyTraceStep) : List PropertyEndpointAnswer :=
+        match steps with
+        | [] => []
+        | step :: rest =>
+            let tail := visit (transitionPosition + 1)
+              (observationOffset + step.observations.length) rest
+            if guardedTemporalAppliesEvaluate clause (guardInput step) then
+              match triggerPositionsInStep clause transitionPosition observationOffset step with
+              | none => .unresolved :: tail
+              | some triggers => triggers.map (fun coordinate =>
+                  temporalEndpointAnswer clause.forbidden coordinate responses clause.limit view) ++ tail
+            else tail
+      combineEndpointAnswers (visit 1 0 view.steps)
+
+private def clauseEndpointAnswer
+    (clause : ResolvedPropertyClause)
+    (view : PropertyTraceView) : PropertyEndpointAnswer :=
+  match clause with
+  | .stateInvariant _ pattern =>
+      if !((valuesAtField .state view).any fun value => value.definitionId == pattern.reference) then
+        .unresolved
+      else if evaluateStateInvariant pattern view then .satisfied else .violated
+  | .eventuallyWithin _ trigger response limit =>
+      plainTemporalEndpointAnswer false trigger response limit view
+  | .quiescentWithin _ trigger response limit =>
+      plainTemporalEndpointAnswer true trigger response limit view
+  | .guardedEventuallyWithin clause | .guardedQuiescentWithin clause =>
+      guardedEndpointAnswer clause view
+  | .sameStepCases group =>
+      if !(view.steps.all (evaluateCaseGroupStep group)) then .violated else
+        combineEndpointAnswers (group.cases.flatMap fun item =>
+          item.temporalClauses.map fun clause => guardedEndpointAnswer clause view)
+  | .ordered .. | .identityRelation .. =>
+      if evaluateResolvedPropertyClause clause view then .satisfied else .unresolved
+  | _ => if evaluateResolvedPropertyClause clause view then .satisfied else .violated
+
+private def plainTriggerPattern : ResolvedPropertyClause → Option PropertyPattern
+  | .transitionContract _ trigger _ | .inputOutput _ trigger _ => some trigger
+  | .eventuallyWithin _ trigger _ _ | .quiescentWithin _ trigger _ _ => some trigger
+  | _ => none
+
+private def requestedClauseTriggers : ResolvedPropertyClause → List DefinitionId
+  | .sameStepCases group => group.cases.flatMap fun item =>
+      item.clauses.map (·.id) ++ item.temporalClauses.map (·.id)
+  | .guardedEventuallyWithin clause | .guardedQuiescentWithin clause => [clause.id]
+  | clause => if (plainTriggerPattern clause).isSome then [clause.id] else []
+
+/-- Interpret the exact admitted view as closed or still open, preserving ordinary closed truth
+and reporting conditional exercise separately from that truth. -/
+def evaluatePropertyEndpoint
+    (property : CheckedProperty)
+    (input : CheckedPropertyEvaluationInput property)
+    (runtimePrefix : Bool) : PropertyEndpointEvaluation :=
+  let joint := (analyzeJointObligations property input).map fun observation => ({
+    propertyId := property.id
+    clauseId := observation.clauseId
+    transitionPosition := observation.transitionPosition
+    occurrence := observation.triggerOccurrence
+  } : PropertyTriggerEvidence)
+  let plain := property.clauses.flatMap fun clause =>
+    match plainTriggerPattern clause with
+    | none => []
+    | some pattern => (occurrences pattern input.view).map fun occurrence => ({
+        propertyId := property.id
+        clauseId := clause.id
+        transitionPosition := occurrence.transitionPosition
+        occurrence := {
+          field := pattern.field
+          value := some occurrence.value
+          coordinateUnit := .semanticTransitions
+          coordinate := occurrence.transitionPosition
+        }
+      } : PropertyTriggerEvidence)
+  {
+    answer := if runtimePrefix then
+      combineEndpointAnswers (property.clauses.map fun clause =>
+        clauseEndpointAnswer clause input.view)
+      else if (evaluateProperty property input).satisfied then .satisfied else .violated
+    requestedTriggers := property.clauses.flatMap requestedClauseTriggers
+    realizedTriggers := joint ++ plain
+  }
+
+/-- Deliberately closed evaluation preserves the existing Boolean Property authority exactly. -/
+theorem evaluatePropertyEndpoint_closed
+    (property : CheckedProperty) (input : CheckedPropertyEvaluationInput property) :
+    (evaluatePropertyEndpoint property input false).answer =
+      (if (evaluateProperty property input).satisfied then .satisfied else .violated) := rfl
+
 /-- Validate the exact Property input and evaluate it without discarding a same-step diagnostic. -/
 def evaluatePropertyOnTrace
     (property : CheckedProperty)
