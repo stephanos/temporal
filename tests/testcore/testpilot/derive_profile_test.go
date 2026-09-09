@@ -1,26 +1,14 @@
-package testpilot_test
+package testpilot
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
 	temporaldriver "go.temporal.io/server/common/testing/testpilot/temporal"
-	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
 	"google.golang.org/protobuf/proto"
 )
-
-func loadCase(t testing.TB, name string) *testpilotspb.Case {
-	t.Helper()
-	encoded, err := os.ReadFile(filepath.Join("testdata", name+"-case.json"))
-	require.NoError(t, err)
-	decoded, err := testpilot.DecodeCaseProtoJSON(encoded)
-	require.NoError(t, err)
-	return decoded
-}
 
 func asyncNexusEnvironment() temporaldriver.Environment {
 	return temporaldriver.Environment{
@@ -32,14 +20,14 @@ func asyncNexusEnvironment() temporaldriver.Environment {
 // The hand-written Profile is the derivation oracle: if deriving the same Case does not reproduce
 // it field for field, the derivation is guessing rather than reading the Case.
 func TestDeriveProfileEqualsTheHandWrittenAsyncNexusProfile(t *testing.T) {
-	source := loadCase(t, "async-nexus")
+	source := loadLeanCase(t, "async-nexus")
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
 	environment := asyncNexusEnvironment()
 
 	derived, err := temporaldriver.DeriveProfile(source, catalog, environment)
 	require.NoError(t, err)
-	oracle := testpilotfixture.AsyncNexusProfile(catalog, source, testpilotfixture.AsyncNexusEnvironment{
+	oracle := AsyncNexusProfile(catalog, source, AsyncNexusEnvironment{
 		Namespace: environment.Namespace, TaskQueue: environment.TaskQueue, NexusEndpoint: environment.NexusEndpoint,
 	})
 	require.Equal(t, oracle.Identity, derived.Identity)
@@ -56,24 +44,24 @@ func TestDeriveProfileEqualsTheHandWrittenAsyncNexusProfile(t *testing.T) {
 func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	nexus := loadCase(t, "typed-nexus")
+	nexus := loadLeanCase(t, "typed-nexus")
 	derived, err := temporaldriver.DeriveProfile(nexus, catalog, temporaldriver.Environment{
 		Identity: "typed-nexus-profile", Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
 	})
 	require.NoError(t, err)
-	oracle := testpilotfixture.TypedNexusProfile(catalog, nexus, testpilotfixture.TypedNexusEnvironment{
+	oracle := TypedNexusProfile(catalog, nexus, TypedNexusEnvironment{
 		Namespace: "namespace", TaskQueue: "task-queue", NexusEndpoint: "nexus-endpoint",
 	})
 	require.Equal(t, oracle.Roles, derived.Roles)
 	require.Equal(t, oracle.Capabilities, derived.Capabilities)
 	require.Equal(t, oracle.EnvironmentBindings, derived.EnvironmentBindings)
 
-	unary := loadCase(t, "typed-unary")
+	unary := loadLeanCase(t, "typed-unary")
 	derivedUnary, err := temporaldriver.DeriveProfile(unary, catalog, temporaldriver.Environment{
 		Identity: "typed-unary-profile", Namespace: "namespace", TaskQueue: "task-queue",
 	})
 	require.NoError(t, err)
-	unaryOracle := testpilotfixture.TypedUnaryProfile(catalog, unary, testpilotfixture.TypedUnaryEnvironment{
+	unaryOracle := TypedUnaryProfile(catalog, unary, TypedUnaryEnvironment{
 		Namespace: "namespace", TaskQueue: "task-queue",
 	})
 	require.Equal(t, unaryOracle.Roles, derivedUnary.Roles)
@@ -84,7 +72,7 @@ func TestDeriveProfileEqualsTheHandWrittenTypedProfiles(t *testing.T) {
 func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 	catalog, err := temporaldriver.NewWorkflowServiceCatalog()
 	require.NoError(t, err)
-	source := loadCase(t, "async-nexus")
+	source := loadLeanCase(t, "async-nexus")
 	derived, err := temporaldriver.DeriveProfile(source, catalog, asyncNexusEnvironment())
 	require.NoError(t, err)
 
@@ -117,6 +105,17 @@ func TestDeriveProfileNeverWidensBeyondTheCase(t *testing.T) {
 			require.True(t, reserving[role.ID+carrier.Method])
 		}
 	}
+
+	// Carrier shapes are checked per reserving node, so a second node on the same carrier that
+	// reserves the same context must not raise the ceiling: it needs the same room, not twice it.
+	twoNodes := proto.CloneOf(source)
+	controller := twoNodes.Program.Entrypoints[0]
+	second := proto.CloneOf(controller.Instructions[0])
+	second.InstructionId = second.GetInstructionId() + "-again"
+	controller.Instructions = append(controller.Instructions, second)
+	derivedTwoNodes, err := temporaldriver.DeriveProfile(twoNodes, catalog, asyncNexusEnvironment())
+	require.NoError(t, err)
+	require.Equal(t, derived.Roles[0].ReservationCarriers, derivedTwoNodes.Roles[0].ReservationCarriers)
 
 	// A Case with no worker roles yields no worker policy, no carriers, and no bindings.
 	bare := proto.CloneOf(source)
@@ -153,7 +152,7 @@ func TestDeriveProfileRejectsWhatItCannotRead(t *testing.T) {
 		"unset activation": func(c *testpilotspb.Case) { c.Program.Entrypoints[0].Activation = nil },
 	} {
 		t.Run(name, func(t *testing.T) {
-			source := loadCase(t, "async-nexus")
+			source := loadLeanCase(t, "async-nexus")
 			mutate(source)
 			_, err := temporaldriver.DeriveProfile(source, catalog, asyncNexusEnvironment())
 			require.Error(t, err)
@@ -161,6 +160,6 @@ func TestDeriveProfileRejectsWhatItCannotRead(t *testing.T) {
 	}
 	_, err = temporaldriver.DeriveProfile(nil, catalog, asyncNexusEnvironment())
 	require.Error(t, err)
-	_, err = temporaldriver.DeriveProfile(loadCase(t, "async-nexus"), catalog, temporaldriver.Environment{})
+	_, err = temporaldriver.DeriveProfile(loadLeanCase(t, "async-nexus"), catalog, temporaldriver.Environment{})
 	require.Error(t, err)
 }
