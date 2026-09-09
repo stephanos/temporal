@@ -56,7 +56,9 @@ contributes four under `tests/testcore/testpilot`. There are no unclassified row
 | `tools/umpire/vocabulary` | retained test package | Its external test runs the real vocabulary command and protects the active terminology gate. |
 
 `tools/planindex` and `make umpire-check-plan-index` are adjacent tooling, outside the
-`tools/umpire/...` inventory, and explicitly retained outside fn-66 scope.
+`tools/umpire/...` inventory. fn-66 retained them deliberately, and fn-81 revalidated that
+retention: the validator is what keeps `.plans/index.json` honest, so it is the gate over this
+repository's own documentation reconciliation rather than a candidate for removal.
 
 ## Authorized deletion paths
 

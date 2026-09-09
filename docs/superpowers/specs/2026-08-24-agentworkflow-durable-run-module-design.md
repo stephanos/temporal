@@ -1,5 +1,7 @@
 # Agentworkflow Durable Run Module Design
 
+> Historical design: the implementation was removed by fn-81.
+
 ## Goal
 
 Deepen `internal/store` so Agentworkflow's durable Run interface owns persistence, integrity,

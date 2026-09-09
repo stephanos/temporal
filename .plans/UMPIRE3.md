@@ -1,6 +1,8 @@
 # Umpire3 architecture and roadmap
 
-Status: active architecture and remaining qualification roadmap.
+Status: historical. fn-81 removed `tools/umpire3`, its Lake project, its workflow, and its Make
+targets. Every path and command below names something that no longer exists; the document is kept
+for the reasoning that led to Umpire 4.
 
 Umpire3 is the independent implementation under `tools/umpire3`. This document defines its
 semantic, trust, and completion boundaries. It does not govern the Go Umpire2 runtime described in

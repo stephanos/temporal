@@ -37,7 +37,7 @@ Implements R1 (spec §R1). Replaces the hand-written Program-and-monitor Produce
 ## Acceptance
 - [ ] `Nexus3/Testpilot.lean` contains no monitor rule constructor and no equality comparison of checked values; `produce` is the renderer entry point in `Temporal/Tool/Testpilot.lean`
 - [ ] Regenerated `async-nexus-case.json` carries `contract.scoped`; `make umpire-check-case-runtime-conformance` passes on both trees
-- [ ] Live `TestTestpilotAsyncNexusCase` (integration tag) is satisfied in both environments with the scoped Verdict shape; `umpire-check-live-tests` expected-failure list unchanged
+- [ ] Live `TestTestpilotAsyncNexusCase` (integration tag) is satisfied in both environments with the scoped Verdict shape; `make umpire-check-live-tests` passes
 - [ ] `#guard`s: witness-absent rejects; unexpressible clause rejects naming it; Known Gap does not admit it; emptied coverage rejects at `compile`; changed Property produces different Contract bytes
 - [ ] Editing one `require` clause and regenerating changes no Lean file under `model/Temporal/Feature/Nexus3/` other than `Nexus.lean` (documented in the task receipt)
 - [ ] `#print axioms` on changed declarations matches the approved baseline; `make lint-model` passes

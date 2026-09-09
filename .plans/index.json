@@ -3,7 +3,7 @@
   "documents": [
     {
       "path": ".plans/AGENT_PLAN.md",
-      "lifecycle": "active",
+      "lifecycle": "historical",
       "authority": "scoped-contract",
       "authorityParents": [],
       "supersededBy": null,
@@ -89,13 +89,24 @@
     },
     {
       "path": ".plans/GOMAD_CMP.md",
-      "lifecycle": "reference",
+      "lifecycle": "historical",
       "authority": "descriptive",
       "authorityParents": [
         ".plans/GOMAD3_NEXT.md"
       ],
       "supersededBy": null,
-      "allowedMissingLinks": []
+      "allowedMissingLinks": [
+        {
+          "target": "tools/gomad1/transformer/transform.go",
+          "reason": "Gomad v1 source removed by fn-81; the comparison it documents is historical.",
+          "anchor": null
+        },
+        {
+          "target": "tools/gomad2/docs/design.md",
+          "reason": "Gomad v2 source removed by fn-81; the comparison it documents is historical.",
+          "anchor": null
+        }
+      ]
     },
     {
       "path": ".plans/GOMAD_MILESTONES.md",
@@ -151,7 +162,18 @@
         ".plans/UMPIRE4_SPEC.md"
       ],
       "supersededBy": null,
-      "allowedMissingLinks": []
+      "allowedMissingLinks": [
+        {
+          "target": "tools/umpire2/testdata/genmodels/manifest.json",
+          "reason": "Umpire v2 tree removed by fn-81; this record is historical.",
+          "anchor": null
+        },
+        {
+          "target": "tools/umpire2/testdata/genmodels/protocol-atomic/manifest.json",
+          "reason": "Umpire v2 tree removed by fn-81; this record is historical.",
+          "anchor": null
+        }
+      ]
     },
     {
       "path": ".plans/UMPIRE3.md",
@@ -282,16 +304,6 @@
       "authority": "architecture",
       "authorityParents": [
         ".plans/UMPIRE4_ORDER.md",
-        ".plans/UMPIRE4_SPEC.md"
-      ],
-      "supersededBy": null,
-      "allowedMissingLinks": []
-    },
-    {
-      "path": ".plans/UMPIRE_DSL_EVOLUTION_SPEC.md",
-      "lifecycle": "active",
-      "authority": "scoped-contract",
-      "authorityParents": [
         ".plans/UMPIRE4_SPEC.md"
       ],
       "supersededBy": null,

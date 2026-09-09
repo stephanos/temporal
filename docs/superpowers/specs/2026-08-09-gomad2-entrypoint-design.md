@@ -1,5 +1,8 @@
 # GoMaD v2 Entrypoint Design
 
+> Historical design: the implementation was removed by fn-81. Every `tools/gomad2` path below
+> names a tree that no longer exists.
+
 ## Goal
 
 Make the GoMaD v2 nested module own its executable entrypoint. Remove the
