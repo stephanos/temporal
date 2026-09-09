@@ -32,7 +32,10 @@ private def source : SourceLocation := { path := "Umpire/Case/Tests/FieldLowerin
 private def schema : Schema := ⟨"M", [{
   name := "M", protoSyntax := "proto3", descriptor := "m", fileContext := "", references := [],
   valueShape := some (.message [
-    ⟨1, "count", .integer .int32, .singular, .implicit (.integer .int32 0), none⟩]) }]⟩
+    ⟨1, "count", .integer .int32, .singular, .implicit (.integer .int32 0), none⟩,
+    ⟨2, "tags", .text, .map .text, .implicit (.text ""), none⟩,
+    ⟨3, "counts", .integer .int32, .repeated, .implicit (.integer .int32 0), none⟩,
+    ⟨4, "label", .text, .singular, .optional, none⟩]) }]⟩
 private def owner : RpcOwner where
   Witness _ _ := Unit
   schema _ := ⟨"example.Call", schema, schema, [], false, false⟩
@@ -112,17 +115,34 @@ private def context (target : TestTarget) : PropertyCheckContext :=
       (PropertyFieldBinding.ofWitness owner (Request := Unit) (Response := Unit) ()) }
 
 private def countField := id "test.count"
+private def tagField := id "test.tag"
+private def flagField := id "test.flag"
 private def acceptedPath : PropertyFieldPath :=
   { root := .outcome, reference := accepted,
     schema := owner.schema (Request := Unit) (Response := Unit) (), side := .response,
     steps := [.field "M" 1], type := .integer .int32 }
+/-- A keyed map entry reaches its reported value without supplying anything else, so it is both
+covered and rebuildable. -/
+private def tagPath : PropertyFieldPath :=
+  { acceptedPath with steps := [.field "M" 2, .key (.text "k"), .establish], type := .text }
+/-- A presence read and a repeated element describe values besides the reported one. -/
+private def presencePath : PropertyFieldPath :=
+  { acceptedPath with steps := [.field "M" 4, .present], type := .boolean }
+private def indexPath : PropertyFieldPath :=
+  { acceptedPath with steps := [.field "M" 3, .index 0] }
 /-- Request coordinates are constructed by the Program, never rebuilt from projected evidence. -/
 private def requestPath : PropertyFieldPath :=
   { acceptedPath with root := .request, reference := id "test.trigger", side := .request }
+private def requestTagPath : PropertyFieldPath :=
+  { tagPath with root := .request, reference := id "test.trigger", side := .request }
 private def captureName := id "test.capture.count"
 
 private def retainedCount : List (EvidenceFieldDeclaration × FieldDisposition) :=
   [(⟨countField, .natural⟩, .retain)]
+/-- A second evidence kind declares the map-entry and presence fields, so the request rules keep
+supplying exactly the one field every request event carries. -/
+private def retainedDetail : List (EvidenceFieldDeclaration × FieldDisposition) :=
+  [(⟨tagField, .text⟩, .retain), (⟨flagField, .boolean⟩, .retain)]
 
 private def declaration (fields : List (EvidenceFieldDeclaration × FieldDisposition) := retainedCount) :
     Observation.Projection.Declaration ModelValue ModelValue ModelValue ModelValue := {
@@ -133,7 +153,8 @@ private def declaration (fields : List (EvidenceFieldDeclaration × FieldDisposi
   rules := [
     { kind := id "test.request.one", fields, meaning := .confirmed none [(trigger, result (payload 1))] },
     { kind := id "test.request.two", fields, meaning := .confirmed none [(trigger, result (payload 2))] },
-    { kind := id "test.reply", meaning := .confirmed none [(replied, result responded)] }]
+    { kind := id "test.reply", meaning := .confirmed none [(replied, result responded)] },
+    { kind := id "test.detail", fields := retainedDetail, meaning := .irrelevant }]
   limits := {
     events := 64, buffered := 32, keys := 16, support := 256
     work := 1000000000, eventSize := 512 }
@@ -281,8 +302,12 @@ private def program (assigned : Int := 7) : Program :=
       #[Testpilot.Authoring.Program.node "start"
         (Testpilot.Authoring.Program.invokeRPC "source" "/example.Call/Do"
           #[Testpilot.Authoring.Program.requestAssignment
-            (Testpilot.Authoring.Path.make #[Testpilot.Authoring.Path.field "count"])
-            (Testpilot.Authoring.ProgramExpr.literal (requestValue assigned))])
+              (Testpilot.Authoring.Path.make #[Testpilot.Authoring.Path.field "count"])
+              (Testpilot.Authoring.ProgramExpr.literal (requestValue assigned)),
+            Testpilot.Authoring.Program.requestAssignment
+              (Testpilot.Authoring.Path.make
+                #[Testpilot.Authoring.Path.mapKey "tags" { value := some (.text "k") }])
+              (Testpilot.Authoring.ProgramExpr.literal { value := some (.text "v") })])
         (Testpilot.Authoring.Program.instructionLimits 1000 1 1 4096)]]
     (Testpilot.Authoring.Program.cleanup "cleanup" #[])
     (Testpilot.Authoring.Program.limits 4 16 16 16 16 32 8 8 4096 4096 10000 1000)
@@ -291,8 +316,13 @@ private def inputCoverage (assigned : Int := 7) : Coverage.InputMapping :=
   { path := requestPath, value := .integer .int32 assigned
     entrypointId := "controller", instructionId := "start" }
 
+/-- A keyed map entry is an exact request assignment target, so its coverage names the key too. -/
+private def tagInputCoverage : Coverage.InputMapping :=
+  { path := requestTagPath, value := .text "v"
+    entrypointId := "controller", instructionId := "start" }
+
 private def caseCoverage (assigned : Int := 7) : Coverage.Request :=
-  { inputs := [inputCoverage assigned], clauses := [id "test.scoped.fields"] }
+  { inputs := [inputCoverage assigned, tagInputCoverage], clauses := [id "test.scoped.fields"] }
 
 /-- Lower one requested Case, from the checked coverage through to the assembled artifact. -/
 private def compiledCase (temporal : PropertyScopedClause)
@@ -467,6 +497,34 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
 #guard coverageRejects [⟨{ acceptedPath with steps := [.field "M" 9] }, countField⟩]
   (reason := "unknown field 9")
 
+-- A keyed map entry is rebuilt exactly at its covered coordinates; a presence read and a repeated
+-- element are not, because the payload witnessing them would carry data no Observation reported.
+#guard (do
+  let target ← targetResult.toOption
+  let projected ← (plan target).toOption
+  let coverage ← (Observation.Projection.Coverage.check projected valueLimits
+    [mapping, ⟨tagPath, tagField⟩]).toOption
+  let values ← (coverage.evidence [⟨tagField, some (.text "v")⟩]).toOption
+  pure (values.map PropertyFieldEvidence.path == [tagPath])) == some true
+
+#guard coverageRejects [⟨presencePath, flagField⟩]
+  (reason := "a presence read reports data no declared Observation supplies")
+#guard coverageRejects [⟨indexPath, countField⟩]
+  (reason := "a repeated element reports data no declared Observation supplies")
+
+-- A request mapping is covered for portable lowering only. Replay skips it, so a lowering-only
+-- mapping cannot fail an evidence-driven Run that never reads it.
+#guard (do
+  let target ← targetResult.toOption
+  let projected ← (plan target).toOption
+  let coverage ← (Observation.Projection.Coverage.check projected valueLimits
+    [mapping, ⟨requestTagPath, tagField⟩]).toOption
+  let checked ← (property target (clause)).toOption
+  let compiled ← (Observation.Scoped.compile projected checked runLimits coverage).toOption
+  let initial ← (Observation.Scoped.start projected compiled () scope coverage).toOption
+  let run ← (initial.admitMany ([request 0 1, reply 1].map modelEvent)).toOption
+  pure (run.close.answers.map fun answer => code answer.2)) == some [2]
+
 -- A request operand is constructed by the Program, so no declared Observation rebuilds it.
 #guard (do
   let target ← targetResult.toOption
@@ -500,11 +558,20 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
     inputs := [{ inputCoverage with instructionId := "absent" }] }))
   "unknown instruction absent"
 #guard rejects (compiledCase (clause)
+  (requested := { caseCoverage with inputs := [{ tagInputCoverage with
+    path := { requestTagPath with steps := [.field "M" 2, .key (.text "other"), .establish] } }] }))
+  "covered input field has 0 request assignments"
+#guard rejects (compiledCase (clause)
   (requested := { caseCoverage with clauses := [id "test.absent"] }))
   "requested clause was not lowered exactly once"
 #guard rejects (compiledCase (clause)
   (requested := { caseCoverage with inputs := [{ inputCoverage with path := acceptedPath }] }))
   "input coverage names request coordinates; results and events are covered by Observations"
+#guard rejects (compiledCase (clause)
+  (requested := { caseCoverage with inputs := [{ inputCoverage with
+    path := { presencePath with root := .request, reference := id "test.trigger", side := .request }
+    value := .boolean true }] }))
+  "a presence read is not a request assignment target"
 
 /-! ### Trust -/
 
