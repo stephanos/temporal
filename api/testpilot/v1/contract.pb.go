@@ -926,10 +926,19 @@ func (x *ContractTransitionDefinition) GetCaptureAssignments() []*ContractCaptur
 	return nil
 }
 
+// ContractHorizonDefinition bounds one liveness rule. Exactly one bound is positive.
+// elapsed_milliseconds expires the rule at the first Run Event whose elapsed coordinate
+// reaches it; that coordinate is derived from the recording host's clock, so a bound
+// expressed in it is host-clock dependent.
+// rule_events expires the rule after that many Run Events were evaluated by the rule since
+// its last transition into a new state. The counter resets on each such transition, keeps
+// counting while execution is incomplete (expiry stays suppressed there), and stops once
+// the rule reaches a terminal state.
 type ContractHorizonDefinition struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	ElapsedMilliseconds int64                  `protobuf:"varint,1,opt,name=elapsed_milliseconds,json=elapsedMilliseconds,proto3" json:"elapsed_milliseconds,omitempty"`
 	ViolationStateId    string                 `protobuf:"bytes,2,opt,name=violation_state_id,json=violationStateId,proto3" json:"violation_state_id,omitempty"`
+	RuleEvents          int64                  `protobuf:"varint,3,opt,name=rule_events,json=ruleEvents,proto3" json:"rule_events,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -976,6 +985,13 @@ func (x *ContractHorizonDefinition) GetViolationStateId() string {
 		return x.ViolationStateId
 	}
 	return ""
+}
+
+func (x *ContractHorizonDefinition) GetRuleEvents() int64 {
+	if x != nil {
+		return x.RuleEvents
+	}
+	return 0
 }
 
 // ContractRuleDefinition is one finite deterministic safety or bounded-liveness monitor machine.
@@ -2428,10 +2444,12 @@ const file_temporal_server_api_testpilot_v1_contract_proto_rawDesc = "" +
 	"\fevent_filter\x18\x04 \x01(\v20.temporal.server.api.testpilot.v1.RunEventFilterR\veventFilter\x12R\n" +
 	"\tpredicate\x18\x05 \x01(\v24.temporal.server.api.testpilot.v1.ContractExpressionR\tpredicate\x12X\n" +
 	"\fsupport_kind\x18\x06 \x01(\x0e25.temporal.server.api.testpilot.v1.ContractSupportKindR\vsupportKind\x12l\n" +
-	"\x13capture_assignments\x18\a \x03(\v2;.temporal.server.api.testpilot.v1.ContractCaptureAssignmentR\x12captureAssignments\"|\n" +
+	"\x13capture_assignments\x18\a \x03(\v2;.temporal.server.api.testpilot.v1.ContractCaptureAssignmentR\x12captureAssignments\"\x9d\x01\n" +
 	"\x19ContractHorizonDefinition\x121\n" +
 	"\x14elapsed_milliseconds\x18\x01 \x01(\x03R\x13elapsedMilliseconds\x12,\n" +
-	"\x12violation_state_id\x18\x02 \x01(\tR\x10violationStateId\"\x88\x04\n" +
+	"\x12violation_state_id\x18\x02 \x01(\tR\x10violationStateId\x12\x1f\n" +
+	"\vrule_events\x18\x03 \x01(\x03R\n" +
+	"ruleEvents\"\x88\x04\n" +
 	"\x16ContractRuleDefinition\x12\x17\n" +
 	"\arule_id\x18\x01 \x01(\tR\x06ruleId\x12F\n" +
 	"\x04kind\x18\x02 \x01(\x0e22.temporal.server.api.testpilot.v1.ContractRuleKindR\x04kind\x12(\n" +

@@ -12585,6 +12585,7 @@ structure ContractCaptureDefinition where
 structure ContractHorizonDefinition where
   elapsedMilliseconds : Int
   violationStateId : String
+  ruleEvents : Int
   deriving Repr
 
 structure ContractStateDefinition where
