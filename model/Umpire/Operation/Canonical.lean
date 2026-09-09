@@ -9,7 +9,7 @@ Identity names the selected operation directly — its fully qualified method na
 signature roots, and its interaction shape — and reaches the descriptor closure those names select
 through `closure`, a 256-bit structural fold. Version 1 rendered that closure as exact tree bytes,
 which is O(schema bytes) in both the key and the time to build it: 27,718,530 characters at about
-five seconds for one real `Temporal.API` method.
+five seconds for one real generated WorkflowService method.
 
 What the fold guarantees, and what it does not. Every meaning-bearing component still reaches
 identity: node order, syntax, descriptor, file context, references, and value shapes with their

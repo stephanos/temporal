@@ -3,19 +3,14 @@
 package tests
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
-	"go.temporal.io/sdk/client"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
-	"go.temporal.io/server/common/namespace"
-	"go.temporal.io/server/common/testing/testpilot"
 	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -33,37 +28,14 @@ func TestTestpilotTypedUnaryCase(t *testing.T) {
 	environment := testpilotfixture.TypedUnaryEnvironment{
 		Namespace: "umpire-typed-unary", TaskQueue: "umpire-typed-unary-queue",
 	}
-	_, err = env.RegisterNamespace(namespace.Name(environment.Namespace), 1, enumspb.ARCHIVAL_STATE_DISABLED, "", "")
-	require.NoError(t, err)
-
-	profile := testpilotfixture.TypedUnaryProfile(catalog, caseSource, environment)
-	frozen := profile.Snapshot()
-	expectedProfile := frozen.Snapshot()
-	prepared, err := testpilot.Prepare(caseSource, frozen)
-	require.NoError(t, err)
-	caseClient, err := client.Dial(client.Options{HostPort: env.FrontendGRPCAddress(), Namespace: environment.Namespace})
-	require.NoError(t, err)
-	t.Cleanup(caseClient.Close)
-	driver, err := testpilotdriver.New(testpilotdriver.Options{
-		Profile: frozen,
-		ServerEndpoints: map[string]testpilotdriver.Endpoint{
-			"temporal.workflow-service": {Target: env.FrontendGRPCAddress(), Credentials: insecure.NewCredentials()},
-		},
-		SystemCallbackBaseURL: "http://" + env.HttpAPIAddress(),
-		SDKClient:             caseClient,
-		WorkerRoleID:          "temporal.worker",
-		WorkerStopTimeout:     testpilotCleanupTimeout,
-	})
-	require.NoError(t, err)
-	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), testpilotCleanupTimeout)
-		defer cancel()
-		require.NoError(t, driver.Close(ctx))
-	})
+	live := newTestpilotLiveCase(t, env, caseSource,
+		testpilotfixture.TypedUnaryProfile(catalog, caseSource, environment),
+		testpilotLiveResources{Namespace: environment.Namespace, TaskQueue: environment.TaskQueue},
+		testpilotCleanupTimeout)
 
 	runIDs := make(map[string]struct{}, 2)
 	for range 2 {
-		run, verdict, err := prepared.Run(env.Context(), driver)
+		run, verdict, err := live.prepared.Run(env.Context(), live.driver)
 		require.NoError(t, err)
 		require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
@@ -76,13 +48,13 @@ func TestTestpilotTypedUnaryCase(t *testing.T) {
 
 		require.NotContains(t, runIDs, run.GetRunId())
 		runIDs[run.GetRunId()] = struct{}{}
-		_, err = caseClient.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
+		_, err = live.client.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
 		require.NoError(t, err)
 	}
 
 	require.True(t, proto.Equal(caseSnapshot, caseSource))
-	require.True(t, proto.Equal(caseSnapshot, prepared.Snapshot()))
-	require.Equal(t, expectedProfile.EnvironmentBindings, driver.Snapshot().EnvironmentBindings)
+	require.True(t, proto.Equal(caseSnapshot, live.prepared.Snapshot()))
+	require.Equal(t, live.profile.EnvironmentBindings, live.driver.Snapshot().EnvironmentBindings)
 }
 
 // requireSubmittedWorkflowTypeEvidence reads the supporting Observation back out of the Run and
