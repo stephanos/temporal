@@ -22,7 +22,6 @@ const testpilotCleanupTimeout = 5 * time.Second
 
 type testpilotLiveBinding struct {
 	binding CaseBinding
-	profile testpilot.ProfileSpec
 	live    testpilotLiveCase
 }
 
@@ -45,7 +44,7 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 	bindings := make([]testpilotLiveBinding, len(environments))
 	for index, environment := range environments {
 		live := bindCase(t, env, caseSource, environment)
-		bindings[index] = testpilotLiveBinding{binding: environment, profile: live.profile, live: live}
+		bindings[index] = testpilotLiveBinding{binding: environment, live: live}
 	}
 
 	require.True(t, proto.Equal(caseSnapshot, caseSource))
@@ -92,7 +91,7 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 	}
 	require.True(t, proto.Equal(caseSnapshot, caseSource))
 	for _, binding := range bindings {
-		require.Equal(t, binding.profile.EnvironmentBindings, binding.live.driver.Snapshot().EnvironmentBindings)
+		require.Equal(t, binding.live.profile.EnvironmentBindings, binding.live.driver.Snapshot().EnvironmentBindings)
 		require.True(t, proto.Equal(caseSnapshot, binding.live.prepared.Snapshot()))
 	}
 }

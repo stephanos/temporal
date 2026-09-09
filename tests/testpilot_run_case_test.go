@@ -4,6 +4,7 @@ package tests
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
@@ -20,6 +21,9 @@ type CaseBinding struct {
 	TaskQueue      string
 	NexusEndpoint  string
 	CreateEndpoint bool
+	// CleanupTimeout bounds every resource this binding creates. Zero takes the shared default;
+	// a Case with more worker entrypoints to stop names a longer one.
+	CleanupTimeout time.Duration
 }
 
 // bindCase provisions the resources the binding names, derives the Profile the Case implies, and
@@ -39,7 +43,11 @@ func bindCase(t *testing.T, env *testcore.TestEnv, source *testpilotpb.Case, bin
 	if binding.CreateEndpoint {
 		resources.NexusEndpoint = binding.NexusEndpoint
 	}
-	return newTestpilotLiveCase(t, env, source, profile, resources, testpilotCleanupTimeout)
+	cleanupTimeout := binding.CleanupTimeout
+	if cleanupTimeout == 0 {
+		cleanupTimeout = testpilotCleanupTimeout
+	}
+	return newTestpilotLiveCase(t, env, source, profile, resources, cleanupTimeout)
 }
 
 // runCase is the happy path over bindCase: load the named fixture, create every resource it names,
