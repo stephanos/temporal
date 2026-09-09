@@ -149,6 +149,54 @@ message ScopedPredicate {
     string equals_text = 4;
   }
 }
+
+// ScopedCaptureDeclaration retains one declared evidence field of the operation's admitted steps.
+// Occurrences are numbered from zero in admission order and never rewritten, so a correlation
+// operand names an exact earlier occurrence rather than an implicit latest match. `lifetime` is how
+// many occurrences one operation retains.
+message ScopedCaptureDeclaration {
+  string capture_id = 1;
+  string field_id = 2;
+  int64 lifetime = 3;
+}
+message ScopedCaptureRef {
+  string capture_id = 1;
+  int64 ordinal = 2;
+}
+
+// ScopedOperand reads only declared evidence: an exact literal, one declared evidence field of the
+// step being admitted, or one retained earlier occurrence of a declared capture.
+message ScopedOperand {
+  oneof operand {
+    Value literal = 1;
+    string field_id = 2;
+    ScopedCaptureRef capture = 3;
+  }
+}
+enum ScopedComparisonOperator {
+  SCOPED_COMPARISON_OPERATOR_UNSPECIFIED = 0;
+  SCOPED_COMPARISON_OPERATOR_EQUAL = 1;
+  SCOPED_COMPARISON_OPERATOR_NOT_EQUAL = 2;
+}
+message ScopedComparison {
+  ScopedComparisonOperator operator = 1;
+  ScopedOperand left = 2;
+  ScopedOperand right = 3;
+}
+message ScopedCorrelationGroup { repeated ScopedCorrelation operands = 1; }
+
+// ScopedCorrelation decides whether a labeled transition is one of the operation's semantic steps.
+// It never supplies a trigger or a response: the bounded countdown stays exactly the one the
+// clause's trigger and response patterns describe. `all` and `any` are evaluated left to right and
+// stop at the first decisive operand, so an operand an earlier one made irrelevant is never read.
+message ScopedCorrelation {
+  oneof condition {
+    ScopedPredicate predicate = 1;
+    ScopedComparison comparison = 2;
+    ScopedCorrelationGroup all = 3;
+    ScopedCorrelationGroup any = 4;
+  }
+}
 message ScopedClause {
   string clause_id = 1;
   ScopedClock clock = 7;
@@ -156,6 +204,8 @@ message ScopedClause {
   ScopedEndpoint endpoint = 9;
   ScopedPredicate trigger = 10;
   ScopedPredicate response = 11;
+  repeated ScopedCaptureDeclaration captures = 12;
+  ScopedCorrelation correlation = 13;
 }
 message ScopedLimits {
   int64 max_events = 1;
@@ -167,4 +217,8 @@ message ScopedLimits {
   int64 max_semantic_transitions = 7;
   int64 max_obligations = 8;
   int64 max_obligation_work = 9;
+  // A capability declaring captures or a correlation must set both ceilings; one that declares
+  // neither leaves both unset and keeps its exact existing encoding.
+  int64 max_captures = 10;
+  int64 max_correlation_depth = 11;
 }
