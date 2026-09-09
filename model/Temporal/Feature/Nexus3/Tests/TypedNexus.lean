@@ -282,13 +282,25 @@ private def segmentsOf (path : Except String FieldPath) : Option (List (String �
 
 #guard typedNexusCase.isOk
 
--- The bounded-response window has no runtime counterpart in this Case, and the Case's provenance
--- records that Known Gap against the Property it belongs to.
+-- The bounded-response window runs online from lifted history evidence; what stays unrecorded is a
+-- completion's own operation identity, and the Case's provenance records that Known Gap against the
+-- Property it belongs to.
 #guard match typedNexusCase.toOption.bind (·.provenance) with
   | some provenance =>
       (String.fromUTF8? provenance.producer_data).any fun payload =>
-        (payload.splitOn "bounded-completion-is-model-only").length == 2 &&
+        (payload.splitOn "bounded-completion-is-model-only").length == 1 &&
+        (payload.splitOn "completion-identity-is-unrecorded").length == 2 &&
         (payload.splitOn linkPropertyId.value).length ≥ 2
+  | none => false
+
+-- The Contract carries the scoped capability the lifted evidence feeds, bound to the declared
+-- ScopedEvidence Observation the history projection writes.
+#guard match typedNexusCase.toOption.bind (·.contract) |>.bind (·.«scoped») with
+  | some capability =>
+      capability.evidence_observation_id == scopedObservationId &&
+      capability.projection_id == projectionId.value &&
+      capability.clauses.size == 1 &&
+      capability.clauses[0]!.clause_id == linkClauseId.value
   | none => false
 
 #guard match typedNexusCase with

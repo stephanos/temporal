@@ -55,8 +55,17 @@ func validID(id string) bool {
 	}
 	return true
 }
+
+// hardLimits is the Driver ceiling every Profile's Contract ceiling must fit under. MaxWorkPerEvent
+// is sized for a scoped capability rather than for expression evaluation alone: an evidence event
+// charges the scoped stage's conservative reservation into the same per-event bucket, and that
+// reservation is cubic in the accepted evidence count, so the expression-evaluation ceiling it used
+// to carry made every multi-operation scoped Case reject at its own first evidence event. The
+// capability still bounds itself through the max_projection_work and max_obligation_work it
+// declares, which admission bounds by the Contract's total, and every Case still declares its own
+// smaller per-event value.
 func hardLimits() *testpilotspb.ContractLimits {
-	return &testpilotspb.ContractLimits{MaxRules: 10000, MaxStates: 10000, MaxTransitions: 10000, MaxExpressionDepth: 64, MaxWorkPerEvent: 100000, MaxTotalWork: 1000000000000, MaxCaptures: 10000, MaxCaptureBytes: 16 << 20}
+	return &testpilotspb.ContractLimits{MaxRules: 10000, MaxStates: 10000, MaxTransitions: 10000, MaxExpressionDepth: 64, MaxWorkPerEvent: 100000000, MaxTotalWork: 1000000000000, MaxCaptures: 10000, MaxCaptureBytes: 16 << 20}
 }
 func checkLimits(limits, ceiling *testpilotspb.ContractLimits) error {
 	if limits == nil || ceiling == nil {

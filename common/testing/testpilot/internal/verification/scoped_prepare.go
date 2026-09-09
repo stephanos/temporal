@@ -7,26 +7,8 @@ import (
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
-	"google.golang.org/protobuf/reflect/protodesc"
-	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
-func sameDescriptor(a, b protoreflect.MessageDescriptor, seen map[protoreflect.FullName]bool) bool {
-	if a == nil || b == nil || a.FullName() != b.FullName() || !proto.Equal(protodesc.ToDescriptorProto(a), protodesc.ToDescriptorProto(b)) {
-		return false
-	}
-	if seen[a.FullName()] {
-		return true
-	}
-	seen[a.FullName()] = true
-	for i := 0; i < a.Fields().Len(); i++ {
-		x, y := a.Fields().Get(i), b.Fields().Get(i)
-		if x.Message() != nil && !sameDescriptor(x.Message(), y.Message(), seen) {
-			return false
-		}
-	}
-	return true
-}
 func scopedValue(v *testpilotspb.ScopedValue) bool { return v != nil && validID(v.DefinitionId) }
 func sameResult(a, b *testpilotspb.ScopedTransition) bool {
 	return proto.Equal(a.Action, b.Action) && proto.Equal(a.ResultingState, b.ResultingState) && proto.Equal(a.Outcome, b.Outcome) && slices.EqualFunc(a.Facts, b.Facts, func(x, y *testpilotspb.ScopedValue) bool { return proto.Equal(x, y) })
@@ -69,7 +51,7 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 		return invalid(ir.Malformed, "invalid scoped projection binding")
 	}
 	typ, ok := a.prepared.observations[s.EvidenceObservationId]
-	if !ok || typ.Cardinality() != ir.Singular || !sameDescriptor(typ.Message(), (&testpilotspb.ScopedEvidence{}).ProtoReflect().Descriptor(), map[protoreflect.FullName]bool{}) {
+	if !ok || typ.Cardinality() != ir.Singular || !ir.SameMessage(typ.Message(), (&testpilotspb.ScopedEvidence{}).ProtoReflect().Descriptor()) {
 		return invalid(ir.TypeMismatch, "scoped evidence requires exact declared ScopedEvidence Observation")
 	}
 	l := s.Limits

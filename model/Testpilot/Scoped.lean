@@ -494,10 +494,17 @@ theorem Run.admitMany_append {compiled : Compiled} (run : Run compiled) (first s
       (run.admitMany first >>= fun next => next.admitMany second) := by
   simp [admitMany, List.foldlM_append]
 
-/-- Inspect current answers; missing evidence forces unresolved but never repairs a violation. -/
+/-- Inspect current answers; missing evidence forces unresolved but never repairs a violation.
+
+A capability that admitted no evidence at all observed nothing. The model kernel reads an empty
+obligation list as vacuous satisfaction because a model trace is total: no trigger occurred. A
+runtime evidence stream is not total -- an empty one is indistinguishable from a projector that
+never fired -- so this interpreter reports unresolved rather than manufacturing a satisfied answer
+from silence. -/
 def Run.answers {compiled : Compiled} (run : Run compiled) (incomplete : Bool := false) : List Nat :=
-  (run.monitor.answers run.closed (incomplete || !run.projection.pending.isEmpty)).map fun answer =>
-    match answer with | .satisfied => 2 | .violated => 3 | .unresolved => 0
+  (run.monitor.answers run.closed
+      (incomplete || run.projection.accepted.isEmpty || !run.projection.pending.isEmpty)).map
+    fun answer => match answer with | .satisfied => 2 | .violated => 3 | .unresolved => 0
 
 /-- Close without inventing a semantic transition or a wall-clock horizon. -/
 def Run.close {compiled : Compiled} (run : Run compiled) : Run compiled := { run with closed := true }
