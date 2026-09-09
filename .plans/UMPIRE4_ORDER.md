@@ -75,57 +75,7 @@ Boundaries worth carrying forward: no canary Profile or production authorization
 those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, and no removal of
 `elapsed_milliseconds`.
 
-### 2. Delete the pre-Testpilot Go generations — fn-81
-
-[fn-81 — Delete the pre-Testpilot Go generations](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md),
-a mechanical deletion sweep from the same 2026-09-08 assessment. Nothing here changed modeled
-behavior. The repository carried every earlier generation as live, compiled, partly CI-wired code
-that no current Umpire, Testpilot, or Temporal model imported. Tasks .1 through .4 have landed and
-.5, this reconciliation, is the last; the spec stays open pending its completion review.
-
-What went, and what it was wired into:
-
-| Tree | Tracked lines | Was wired into |
-| ---- | ------------- | -------------- |
-| gomad, gomad1, gomad2 | 99,800 | the `gomad-prototype` Makefile block, two nested go.mod files, gomad1 compiled inside the root module, a root go.mod `replace`, and Gomad v3's parity manifest |
-| umpire1, umpire2, umpire3 | 238,100 | two workflows, ~70 Makefile targets, two Makefile variable blocks, a second Lake project under umpire3 |
-| `common/testing/umpire` and the testcore monitor | 26,800 | history workflow cache instrumentation, observer comments in six history files, the functional harness monitor and its gRPC fault-injector interceptor |
-| agentworkflow | 11,700 | Makefile, its own go.mod |
-| legacy tests under `tests`, `tests/probe`, `cmd/umpire-genmodels` | 8,400 | the live-test gate, which pinned nine expected failures by name, plus mise tasks and an install script |
-
-Realized: 1,440 tracked files and 386,907 lines deleted, 7,785 tracked files down to 6,345. Twelve
-third-party modules left `go.mod`, each with zero hits in the retained dependency closure.
-`make lint-code` fell from 1,284 findings to 128, since 1,156 of them lived in the deleted trees.
-
-**Gomad v3 is retained** — `tools/gomad3`, `tools/gomad3sim`, `tools/gomad3integration`,
-`tests/gomadfunctional`, and the `gomad3` workflow all stay, per
-[GOMAD_MILESTONES](GOMAD_MILESTONES.md) F0, because that tree is the only path to running an
-unchanged Temporal functional test under a deterministic runtime. Its one edit here was retiring
-the SIM-0 parity manifest, whose every source path pointed into the deleted `tools/gomad2`.
-
-Task .2, the declared early proof point, held. The white-box seam came out of the history service
-and the functional harness, and the retained live gate still passed against a cluster with four
-passing identities. No retained test read monitor facts. Two consumers the plan had not predicted
-surfaced and are recorded in the fn-81 section of
-[CLEANUP_INVENTORY](../tools/umpire/CLEANUP_INVENTORY.md): three retained functional tests in
-`tests/nexus_workflow_test.go` whose bodies the branch had replaced with umpire2 sparse-regression
-delegations, restored from `origin/main`; and `tools/common/formal`, a nested module whose only
-importer was `tools/gomad` and whose only test invocation sat inside the deleted `gomad-prototype`
-block, now carried by its own `common-formal-test` target.
-
-The live-test gate was redesigned rather than merely repinned. It selects on the `^TestTestpilot`
-prefix so new live tests join without enumeration, compares the whole failure identity set against
-an empty baseline, and adds a passing-identity floor — because an empty baseline alone cannot
-distinguish "everything passed" from "the selector matched nothing". The command is verbose because
-`--- PASS:` lines only print under `go test -v`.
-
-Boundaries held: no Lean deletions — Nexus v1, Nexus2, Umpire Artifact, Space, and Exploration stay,
-since live modules import them and fn-22, fn-33, fn-79, and fn-80 reserve them; they need a roadmap
-decision rather than a sweep. `tools/fairsim`, `cmd/tools/fairsim`, and fn-66's `tools/planindex`
-also stay, the last one revalidated because its validator is the gate over this repository's own
-documentation reconciliation.
-
-### 3. Unify the Umpire and Testpilot vocabulary — fn-82
+### 2. Unify the Umpire and Testpilot vocabulary — fn-82
 
 [fn-82 — Unify the Umpire and Testpilot vocabulary](../.flow/specs/fn-82-unify-the-umpire-and-testpilot.md),
 from the 2026-09-08 vocabulary investigation of `model/`, the Testpilot protocol, and the Go facade.
@@ -153,11 +103,12 @@ versioned, aliased, or deprecated, old names are retired, and a hardened retired
 rejects them. The spec rewrites `UMPIRE4_SPEC.md` under GOV-02, and its task .10 owns the roadmap
 reconciliation, so it will edit this document.
 
-**This spec starts only after fn-77, fn-80, fn-81, and fn-67 close.** The dependency is byte
+**Blockers: fn-80 and fn-67 remain; fn-77 and fn-81 have closed.** The dependency is byte
 conflict, not semantics: fn-80 tasks .4 to .8 edit `Umpire/Target`, `Umpire/Property`,
-`Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, fn-81 deletes the legacy Go trees and their
-Makefile blocks, and fn-67 has an open documentation task on the same Nexus3 files — so no area of
-this spec can land while those are open. It deliberately does not touch fn-77's five in-flight terms
+`Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, and fn-67 has an open documentation task on the
+same Nexus3 files — so no area of this spec can land while those two are open. fn-81's deletion of
+the legacy Go trees and their Makefile blocks is done, which removes that source of conflict and
+shrinks this spec's Go surface considerably. It deliberately does not touch fn-77's five in-flight terms
 (typed operation, parameterized Action, field-level Property, occurrence, capture); the
 `Umpire.Operation` and `Umpire.Value` renames wait for fn-77 .11 and are limited to `ValueShape` to
 `Shape` plus moving `Parameterized.lean`.
@@ -202,6 +153,27 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Completed cutovers
 
+- [fn-81](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md): deleted the
+  pre-Testpilot Go generations — **1,525 files, 386,985 deletions**, tracked files 7,785 -> 6,345,
+  packages 546 -> 422, and twelve third-party modules out of `go.mod` with zero hits in the retained
+  closure. No Lean was deleted. All five tasks and the completion review are SHIP. Go lint fell
+  **1,284 -> 128** (forbidigo 209->0, revive 732->106, errcheck 220->1); 1,156 findings had lived in
+  the deleted trees and none of the remaining 128 is in a file this spec touched. `lint-model` stayed
+  byte-identical at 169 and `go vet` at its 15 inherited diagnostics, both correctly unmoved.
+  Gomad v3 is retained per [GOMAD_MILESTONES](GOMAD_MILESTONES.md) F0 — it is the only path to
+  running an unchanged Temporal functional test under a deterministic runtime — and its one edit was
+  retiring the SIM-0 parity manifest, whose every source path pointed into the deleted `tools/gomad2`.
+  Task .1's evidence ledger before any deletion is what caught two consumers the plan had not
+  predicted: three upstream test bodies in `tests/nexus_workflow_test.go` that this branch had
+  replaced with umpire2 delegations (restored from `origin/main`), and `tools/common/formal`, whose
+  only test invocation sat inside the deleted `gomad-prototype` block and now has its own target.
+  The live-test gate was redesigned rather than repinned: it selects on the `^TestTestpilot` prefix so
+  new tests join without enumeration, and adds a passing-identity floor, because an empty baseline
+  alone cannot distinguish "everything passed" from "the selector matched nothing". R5 is partial for
+  a documented reason — `make lint-code` and `planindex` were red before any fn-81 edit and the
+  spec's own Boundaries forbid the branch-wide fix. Ten `docs/superpowers/specs` records could not
+  receive their historical banners: a global gitignore excludes them from the repo, so R7 cannot
+  reach them.
 - [fn-77](../.flow/specs/fn-77-typed-operations-parameterized-actions.md): delivered typed generated
   operation references, parameterized Actions over finite and runtime domains, and field-level
   Properties with keyed captures, portable capture evaluation, and checked Case coverage. Qualified
