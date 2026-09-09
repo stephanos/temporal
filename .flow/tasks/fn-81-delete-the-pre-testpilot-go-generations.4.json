@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T04:32:05.799271Z",
+  "depends_on": [
+    "fn-81-delete-the-pre-testpilot-go-generations.3"
+  ],
+  "id": "fn-81-delete-the-pre-testpilot-go-generations.4",
+  "priority": null,
+  "spec": "fn-81-delete-the-pre-testpilot-go-generations",
+  "spec_path": ".flow/tasks/fn-81-delete-the-pre-testpilot-go-generations.4.md",
+  "status": "todo",
+  "title": "Rewrite the Makefile, workflows, live-test gate, and dotfiles",
+  "updated_at": "2026-09-09T04:32:05.799271Z"
+}

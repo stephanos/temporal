@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T04:32:05.799199Z",
+  "depends_on": [
+    "fn-81-delete-the-pre-testpilot-go-generations.1"
+  ],
+  "id": "fn-81-delete-the-pre-testpilot-go-generations.2",
+  "priority": null,
+  "spec": "fn-81-delete-the-pre-testpilot-go-generations",
+  "spec_path": ".flow/tasks/fn-81-delete-the-pre-testpilot-go-generations.2.md",
+  "status": "todo",
+  "title": "Remove the legacy white-box seam from the history service and test harness",
+  "updated_at": "2026-09-09T04:32:05.799199Z"
+}
