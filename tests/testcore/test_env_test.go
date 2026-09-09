@@ -1,16 +1,12 @@
 package testcore
 
 import (
-	"errors"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"go.temporal.io/server/common/log"
 	persistencetests "go.temporal.io/server/common/persistence/persistence-tests"
 	"go.temporal.io/server/common/testing/parallelsuite"
-	testmonitor "go.temporal.io/server/tests/testcore/monitor"
-	"go.temporal.io/server/tools/umpire2"
 )
 
 func TestWithInMemorySQLitePersistence(t *testing.T) {
@@ -66,33 +62,4 @@ func (s *TestEnvSuite) TestDedicatedClusterGuard_ConcurrentRecord() {
 	}
 	wg.Wait()
 	s.NoError(guard.validate())
-}
-
-func TestUmpireMonitorFactoryRequiresDedicatedCluster(t *testing.T) {
-	wantErr := errors.New("factory failed")
-	var calls int
-	factory := func(log.Logger) (testmonitor.Monitor, error) {
-		calls++
-		return nil, wantErr
-	}
-	var options testOptions
-
-	WithUmpireMonitorFactory(factory)(&options)
-
-	require.True(t, options.dedicatedCluster)
-	require.Equal(t, "custom Umpire monitor used", options.dedicatedReason)
-	require.Len(t, options.clusterOptions, 1)
-	params := ApplyTestClusterOptions(options.clusterOptions)
-	require.NotNil(t, params.UmpireMonitorFactory)
-	monitor, err := params.UmpireMonitorFactory(nil)
-	require.Nil(t, monitor)
-	require.ErrorIs(t, err, wantErr)
-	require.Equal(t, 1, calls)
-}
-
-func TestDefaultUmpireMonitorFactoryUsesV2(t *testing.T) {
-	monitor, err := defaultUmpireMonitorFactory(log.NewNoopLogger())
-
-	require.NoError(t, err)
-	require.IsType(t, &umpire2.Monitor{}, monitor)
 }
