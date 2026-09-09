@@ -30,9 +30,34 @@ Blast radius measured in task .5's block, which you must read first:
 - [ ] `make lint-model` adds nothing to the 169-finding generated-API baseline; `Umpire.Lint` stays clean.
 
 ## Done summary
-TBD
+Generalized the Nexus3 success model from fixed arity to ordered member lists. `SuccessModelNames`'
+14 scalar name fields and `SuccessModel`'s 22 named value and Definition ID fields became parallel
+`states`/`actions`/`outcomes`/`facts`/`relations` lists with positional accessors; the four
+`identity` if-then-else chains became catalog-position lookups; `SuccessLawStatement` and
+`satisfiesTransitionRequirement` now range over any number of declared rows; and the terminal test
+reads a declared terminal list instead of one hard-coded state. `propertySpec`, `behaviorSpec`,
+`modelVocabulary`, the `model` macro expansion and `Tests.lean` were ported to positional access.
 
+Zero syntax change: `Nexus.lean` is untouched, and `make umpire-check-case-runtime-conformance`
+passes with no fixture bytes moved, proving the elaborated output is byte-identical. Every
+`native_decide` theorem still holds; the axiom inventory is unchanged (`successModel` [propext],
+`check` [propext, Classical.choice, Quot.sound]).
+
+Scope notes: `Syntax.lean` was edited (the macro expansion targets the changed owner) although the
+task's Files list named only Authoring/Tests/Testpilot. `Testpilot.lean` needed no change — task
+.15 already deleted `supportsSuccessProperty`, so that acceptance bullet was satisfied before this
+task started.
+
+Follow-ups for task .11 (raised by review, all P3, none blocking): the parallel name/value lists
+can silently truncate under `zip` for a member no transition references; the positional accessors
+are total over a sentinel rather than `Option`/`Fin`; and an empty transition list now discharges
+the canonical-table law vacuously. The constructor-derived elaborator is the natural place to close
+all three.
+
+stage: impl-review - ran | verdict SHIP (model: claude-fable-5-1 at high); 3 P3 findings, recorded
+above as follow-ups for .11 rather than expanded into this task's scope.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 11600cf64
+- Tests: cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make umpire-check-case-runtime-conformance (green, no fixture bytes moved), make lint-model (169 errors, all generated Temporal/API; Umpire.Lint and Shared clean; unchanged from baseline), CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., GATE_SKIPPED:live-integration:go test -tags 'test_dep integration' ./tests -run TestTestpilot needs a live cluster; the conformance gate proves the generated Case bytes are unmoved
 - PRs:
