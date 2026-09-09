@@ -70,11 +70,15 @@ private def coverageWitness (schema : Operation.RpcSchema) :
     (coverageOwner schema).Witness Unit Unit := ()
 
 /-- Why a structural step has no rebuild from a declared Observation. A presence read, a repeated
-element and a cardinality all describe values *besides* the one the Observation reports, so any
-payload supplying them would carry data no Observation supplied. -/
+element after the first and a cardinality all describe values *besides* the one the Observation
+reports, so any payload supplying them would carry data no Observation supplied. The first element
+is the exception: a one-element repeated field supplies exactly the reported value and no sibling,
+exactly as an established optional field supplies exactly the value that made it present. -/
 private def unreportable : Value.Field.Step → Option String
   | .present => some "a presence read reports data no declared Observation supplies"
-  | .index _ => some "a repeated element reports data no declared Observation supplies"
+  | .index index =>
+      if index == 0 then none
+      else some "a repeated element after the first reports data no declared Observation supplies"
   | .cardinality => some "a cardinality reports data no declared Observation supplies"
   | _ => none
 
@@ -89,6 +93,7 @@ private def coveragePayload : List Value.Field.Step → Value.Raw → Except Str
       pure (Value.map [(key, ← coveragePayload rest value)])
   | .establish :: rest, value => coveragePayload rest value
   | .select _ :: rest, value => coveragePayload rest value
+  | .index 0 :: rest, value => do pure (Value.repeated [← coveragePayload rest value])
   | step :: _, _ => .error ((unreportable step).getD ("unsupported coverage step " ++ reprStr step))
 
 /-- One selection under the covered path's own schema, with its descriptor indices erased so a
@@ -121,6 +126,9 @@ private def Selection.advance {schema : Operation.RpcSchema} {side : Value.Side}
           let cursor ← selection.cursor.refine selection.type (.map keyType) .available source
           pure ⟨_, _, _, ← cursor.lookup key source⟩
       | _ => .error ⟨source, reprStr key, "map lookup requires an available map field"⟩
+  | .index 0 => do
+      let cursor ← selection.cursor.refine selection.type .repeated .available source
+      pure ⟨_, _, _, ← cursor.index 0 source⟩
   | step => .error ⟨source, reprStr step,
       (unreportable step).getD ("unsupported coverage step " ++ reprStr step)⟩
 

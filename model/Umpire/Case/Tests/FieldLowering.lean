@@ -125,11 +125,14 @@ private def acceptedPath : PropertyFieldPath :=
 covered and rebuildable. -/
 private def tagPath : PropertyFieldPath :=
   { acceptedPath with steps := [.field "M" 2, .key (.text "k"), .establish], type := .text }
-/-- A presence read and a repeated element describe values besides the reported one. -/
+/-- A presence read and a repeated element after the first describe values besides the reported
+one; the first element is rebuilt as the one-element list that supplies exactly it. -/
 private def presencePath : PropertyFieldPath :=
   { acceptedPath with steps := [.field "M" 4, .present], type := .boolean }
-private def indexPath : PropertyFieldPath :=
+private def firstIndexPath : PropertyFieldPath :=
   { acceptedPath with steps := [.field "M" 3, .index 0] }
+private def indexPath : PropertyFieldPath :=
+  { acceptedPath with steps := [.field "M" 3, .index 1] }
 /-- Request coordinates are constructed by the Program, never rebuilt from projected evidence. -/
 private def requestPath : PropertyFieldPath :=
   { acceptedPath with root := .request, reference := id "test.trigger", side := .request }
@@ -510,7 +513,16 @@ private def coverageRejects (mappings : List Observation.Projection.FieldMapping
 #guard coverageRejects [⟨presencePath, flagField⟩]
   (reason := "a presence read reports data no declared Observation supplies")
 #guard coverageRejects [⟨indexPath, countField⟩]
-  (reason := "a repeated element reports data no declared Observation supplies")
+  (reason := "a repeated element after the first reports data no declared Observation supplies")
+
+-- The first repeated element is rebuilt at exactly its covered coordinates.
+#guard (do
+  let target ← targetResult.toOption
+  let projected ← (plan target).toOption
+  let coverage ← (Observation.Projection.Coverage.check projected valueLimits
+    [⟨firstIndexPath, countField⟩]).toOption
+  let values ← (coverage.evidence [⟨countField, some (.natural 1)⟩]).toOption
+  pure (values.map PropertyFieldEvidence.path == [firstIndexPath])) == some true
 
 -- A request mapping is covered for portable lowering only. Replay skips it, so a lowering-only
 -- mapping cannot fail an evidence-driven Run that never reads it.

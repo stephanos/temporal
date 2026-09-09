@@ -53,7 +53,10 @@ def scenarios : List Scenario := [
   ⟨"pending-cause", 1, [evidence 1 "reply" "a" [0]], 0, .deliberatelyClosed, false⟩,
   ⟨"causal-chunks", 1, [evidence 1 "reply" "a" [0], evidence 0 "request", evidence 1 "reply" "a" [0]], 2, .runtimePrefix, false⟩,
   ⟨"poll-stutter", 1, [evidence 0 "request", evidence 1 "poll", evidence 2 "reply"], 2, .runtimePrefix, false⟩,
-  ⟨"violation-incomplete", 0, [evidence 0 "request"], 3, .deliberatelyClosed, true⟩]
+  ⟨"violation-incomplete", 0, [evidence 0 "request"], 3, .deliberatelyClosed, true⟩,
+  -- Silence is not vacuous truth: a capability that admitted no evidence observed nothing, so it
+  -- reports unresolved rather than the empty-obligation satisfaction the total model trace has.
+  ⟨"unobserved", 1, [], 0, .runtimePrefix, false⟩]
 
 def compiledCase (scenario : Scenario) : Except String temporal.server.api.testpilot.v1.Case := do
   let target ← targetResult.mapError (fun _ => "target")

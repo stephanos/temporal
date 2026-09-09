@@ -248,7 +248,7 @@ func TestScopedCheckedLeanFixtures(t *testing.T) {
 		Incomplete bool              `json:"incomplete"`
 	}
 	require.NoError(t, json.Unmarshal(encoded, &fixtures))
-	require.Len(t, fixtures, 14)
+	require.Len(t, fixtures, 15)
 	for _, fixture := range fixtures {
 		t.Run(fixture.Name, func(t *testing.T) {
 			var artifact testpilotspb.Case

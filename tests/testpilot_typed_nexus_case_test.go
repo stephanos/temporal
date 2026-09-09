@@ -48,11 +48,17 @@ func TestTestpilotTypedNexusOperationsCase(t *testing.T) {
 		require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 		require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
 		require.True(t, proto.Equal(verdict, run.GetVerdict()))
-		require.Len(t, verdict.GetRules(), len(operations))
-		for index, rule := range verdict.GetRules() {
+		// One derived monitor rule per operation, then the scoped bounded-response clause the same
+		// history feeds through its lifted ScopedEvidence.
+		require.Len(t, verdict.GetRules(), len(operations)+1)
+		for index, operation := range operations {
+			rule := verdict.GetRules()[index]
 			require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, rule.GetStatus())
-			requireCorrelatedNexusOperationEvidence(t, run, rule.GetSupportingEventSequences(), operations[index], environment.NexusEndpoint)
+			requireCorrelatedNexusOperationEvidence(t, run, rule.GetSupportingEventSequences(), operation, environment.NexusEndpoint)
 		}
+		scoped := verdict.GetRules()[len(operations)]
+		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, scoped.GetStatus())
+		requireLiftedScopedEvidence(t, run, scoped.GetSupportingEventSequences(), operations)
 
 		require.NotContains(t, runIDs, run.GetRunId())
 		runIDs[run.GetRunId()] = struct{}{}
@@ -78,10 +84,8 @@ func requireCorrelatedNexusOperationEvidence(t testing.TB, run *testpilotpb.Run,
 		event := run.GetEvents()[sequence-1]
 		require.Equal(t, "controller", event.GetCoordinates().GetEntrypointId())
 		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
-		require.Len(t, event.GetObservations(), 1)
-		require.Equal(t, "history-event", event.GetObservations()[0].GetObservationId())
 		var historyEvent historypb.HistoryEvent
-		require.NoError(t, event.GetObservations()[0].GetValue().GetMessageValue().UnmarshalTo(&historyEvent))
+		require.NoError(t, observationValue(t, event, "history-event").GetMessageValue().UnmarshalTo(&historyEvent))
 		events = append(events, &historyEvent)
 	}
 
@@ -96,4 +100,51 @@ func requireCorrelatedNexusOperationEvidence(t testing.TB, run *testpilotpb.Run,
 	require.Positive(t, events[0].GetEventId())
 	require.Equal(t, events[0].GetEventId(), events[1].GetNexusOperationCompletedEventAttributes().GetScheduledEventId())
 	require.Equal(t, scheduled.GetRequestId(), events[1].GetNexusOperationCompletedEventAttributes().GetRequestId())
+}
+
+// requireLiftedScopedEvidence reads the scoped clause's supporting Observations back out of the Run
+// and checks they are the ScopedEvidence the history projection lifted: one scheduled and one
+// completed value per operation, keyed by the scheduled event both sides name, in one dense
+// zero-based source stream.
+func requireLiftedScopedEvidence(t testing.TB, run *testpilotpb.Run, sequences []int64, operations []string) {
+	t.Helper()
+	require.Len(t, sequences, 2*len(operations))
+	kinds := make([]string, 0, len(sequences))
+	keys := make(map[string][]string, len(operations))
+	for index, sequence := range sequences {
+		require.Positive(t, sequence)
+		require.LessOrEqual(t, sequence, int64(len(run.GetEvents())))
+		event := run.GetEvents()[sequence-1]
+		require.Equal(t, "history", event.GetCoordinates().GetInstructionId())
+		var evidence testpilotpb.ScopedEvidence
+		require.NoError(t, observationValue(t, event, "scoped-evidence").GetMessageValue().UnmarshalTo(&evidence))
+		require.EqualValues(t, index, evidence.GetIdentity().GetOrdinal())
+		require.NotEmpty(t, evidence.GetOperation())
+		kinds = append(kinds, evidence.GetKind())
+		keys[evidence.GetOperation()] = append(keys[evidence.GetOperation()], evidence.GetKind())
+	}
+	expected := make([]string, 0, len(sequences))
+	for _, operation := range operations {
+		expected = append(expected,
+			"temporal.nexus3.typed-nexus.evidence.scheduled-"+operation,
+			"temporal.nexus3.typed-nexus.evidence.completed")
+	}
+	require.Equal(t, expected, kinds)
+	// Both sides of one operation land under one key: the scheduled event a completion references.
+	require.Len(t, keys, len(operations))
+	for _, observed := range keys {
+		require.Len(t, observed, 2)
+	}
+}
+
+// observationValue reads exactly one declared Observation off a recorded Run Event.
+func observationValue(t testing.TB, event *testpilotpb.RunEvent, observationID string) *testpilotpb.Value {
+	t.Helper()
+	for _, observation := range event.GetObservations() {
+		if observation.GetObservationId() == observationID {
+			return observation.GetValue()
+		}
+	}
+	require.FailNowf(t, "missing declared Observation", "%s at sequence %d", observationID, event.GetSequence())
+	return nil
 }

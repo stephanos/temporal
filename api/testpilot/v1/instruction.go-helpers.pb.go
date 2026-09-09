@@ -44,6 +44,117 @@ func (this *RequestAssignment) Equal(that interface{}) bool {
 	return proto.Equal(this, that1)
 }
 
+// Marshal an object of type ScopedEvidenceBinding to the protobuf v3 wire format
+func (val *ScopedEvidenceBinding) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedEvidenceBinding from the protobuf v3 wire format
+func (val *ScopedEvidenceBinding) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedEvidenceBinding) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedEvidenceBinding values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedEvidenceBinding) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedEvidenceBinding
+	switch t := that.(type) {
+	case *ScopedEvidenceBinding:
+		that1 = t
+	case ScopedEvidenceBinding:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedEvidenceRule to the protobuf v3 wire format
+func (val *ScopedEvidenceRule) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedEvidenceRule from the protobuf v3 wire format
+func (val *ScopedEvidenceRule) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedEvidenceRule) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedEvidenceRule values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedEvidenceRule) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedEvidenceRule
+	switch t := that.(type) {
+	case *ScopedEvidenceRule:
+		that1 = t
+	case ScopedEvidenceRule:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
+// Marshal an object of type ScopedEvidenceProjection to the protobuf v3 wire format
+func (val *ScopedEvidenceProjection) Marshal() ([]byte, error) {
+	return proto.Marshal(val)
+}
+
+// Unmarshal an object of type ScopedEvidenceProjection from the protobuf v3 wire format
+func (val *ScopedEvidenceProjection) Unmarshal(buf []byte) error {
+	return proto.Unmarshal(buf, val)
+}
+
+// Size returns the size of the object, in bytes, once serialized
+func (val *ScopedEvidenceProjection) Size() int {
+	return proto.Size(val)
+}
+
+// Equal returns whether two ScopedEvidenceProjection values are equivalent by recursively
+// comparing the message's fields.
+// For more information see the documentation for
+// https://pkg.go.dev/google.golang.org/protobuf/proto#Equal
+func (this *ScopedEvidenceProjection) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	var that1 *ScopedEvidenceProjection
+	switch t := that.(type) {
+	case *ScopedEvidenceProjection:
+		that1 = t
+	case ScopedEvidenceProjection:
+		that1 = &t
+	default:
+		return false
+	}
+
+	return proto.Equal(this, that1)
+}
+
 // Marshal an object of type ProjectionTarget to the protobuf v3 wire format
 func (val *ProjectionTarget) Marshal() ([]byte, error) {
 	return proto.Marshal(val)

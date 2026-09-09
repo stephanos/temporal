@@ -2,6 +2,7 @@ package execution
 
 import (
 	"maps"
+	"slices"
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
@@ -265,7 +266,7 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 		default:
 			return invalid(ir.Unknown, nodePath(g, n), "unknown projection cardinality")
 		}
-		emits, err := a.bindProjectionSinks(g, index, n, source, path, typ, seen)
+		lifts, emits, err := a.bindProjectionSinks(g, index, n, source, path, typ, seen)
 		if err != nil {
 			return err
 		}
@@ -275,15 +276,16 @@ func (a *admission) bindProjections(g *graph, index int, n *node) error {
 			}
 			events += count
 		}
-		n.projections = append(n.projections, projection{path: path, cardinality: source.Kind, sinks: source.Targets})
+		n.projections = append(n.projections, projection{path: path, cardinality: source.Kind, sinks: source.Targets, lifts: lifts})
 	}
 	return nil
 }
-func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *testpilotspb.ResponseProjection, path *ir.Path, typ ir.Type, seen map[string]bool) (bool, error) {
+func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *testpilotspb.ResponseProjection, path *ir.Path, typ ir.Type, seen map[string]bool) ([]*evidenceLift, bool, error) {
 	emits := false
-	for _, sink := range source.Targets {
+	lifts := make([]*evidenceLift, len(source.Targets))
+	for i, sink := range source.Targets {
 		if sink == nil || isNil(sink.Target) {
-			return false, invalid(ir.Malformed, nodePath(g, n), "missing projection sink")
+			return nil, false, invalid(ir.Malformed, nodePath(g, n), "missing projection sink")
 		}
 		var target ir.Type
 		var exists bool
@@ -293,28 +295,155 @@ func (a *admission) bindProjectionSinks(g *graph, index int, n *node, source *te
 			key = "slot:" + destination.SlotId
 			target, exists = a.prepared.slots[destination.SlotId]
 			if source.Kind == testpilotspb.PROJECTION_KIND_EMIT_EACH {
-				return false, invalid(ir.Unsupported, nodePath(g, n), "EmitEach cannot repeatedly assign an immutable Slot")
+				return nil, false, invalid(ir.Unsupported, nodePath(g, n), "EmitEach cannot repeatedly assign an immutable Slot")
 			}
 			if err := a.addWriter(destination.SlotId, slotWriter{graph: g, node: index, optional: path.MayBeAbsent()}); err != nil {
-				return false, err
+				return nil, false, err
 			}
 		case *testpilotspb.ProjectionTarget_ObservationId:
 			key = "observation:" + destination.ObservationId
 			target, exists = a.observations[destination.ObservationId]
 			emits = true
+		case *testpilotspb.ProjectionTarget_ScopedEvidence:
+			lift, err := a.bindEvidenceLift(g, n, destination.ScopedEvidence, typ)
+			if err != nil {
+				return nil, false, err
+			}
+			lifts[i], emits = lift, true
+			key = "observation:" + lift.observationID
+			if seen[key] {
+				return nil, false, invalid(ir.Malformed, nodePath(g, n), "conflicting projection sinks")
+			}
+			seen[key] = true
+			continue
 		default:
-			return false, invalid(ir.Unsupported, nodePath(g, n), "unknown projection sink")
+			return nil, false, invalid(ir.Unsupported, nodePath(g, n), "unknown projection sink")
 		}
 		if !exists || target.Opaque() || !typ.Equal(target) {
-			return false, invalid(ir.TypeMismatch, nodePath(g, n), "projection type differs from declared sink")
+			return nil, false, invalid(ir.TypeMismatch, nodePath(g, n), "projection type differs from declared sink")
 		}
 		if seen[key] {
-			return false, invalid(ir.Malformed, nodePath(g, n), "conflicting projection sinks")
+			return nil, false, invalid(ir.Malformed, nodePath(g, n), "conflicting projection sinks")
 		}
 		seen[key] = true
 	}
 
-	return emits, nil
+	return lifts, emits, nil
+}
+
+// bindEvidenceLift type-checks one declared ScopedEvidence lift against the value being projected.
+// The sink Observation must be the exact ScopedEvidence message the scoped capability decodes, and
+// every bound path must read a scalar the portable evidence domain admits, so a lift that cannot
+// produce decodable evidence rejects at Prepare rather than at the first recorded event.
+func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.ScopedEvidenceProjection, typ ir.Type) (*evidenceLift, error) {
+	target, exists := a.observations[source.GetObservationId()]
+	if !exists || target.Cardinality() != ir.Singular || !ir.SameMessage(target.Message(), (&testpilotspb.ScopedEvidence{}).ProtoReflect().Descriptor()) {
+		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires an exact declared ScopedEvidence Observation")
+	}
+	if typ.Cardinality() != ir.Singular || typ.Message() == nil || typ.Opaque() || typ.Any() {
+		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence lift requires a singular message projection")
+	}
+	if len(source.GetRules()) == 0 {
+		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence lift requires at least one rule")
+	}
+	lift := &evidenceLift{observationID: source.GetObservationId(), element: typ}
+	for _, rule := range source.GetRules() {
+		bound, err := a.bindEvidenceRule(g, n, rule, typ)
+		if err != nil {
+			return nil, err
+		}
+		lift.rules = append(lift.rules, *bound)
+	}
+	return lift, nil
+}
+func (a *admission) bindEvidenceRule(g *graph, n *node, source *testpilotspb.ScopedEvidenceRule, typ ir.Type) (*evidenceRule, error) {
+	if !validID(source.GetSource()) || !validID(source.GetKind()) {
+		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence rule requires a source and a kind")
+	}
+	guard, err := a.prepared.catalog.BindPath(typ, source.GetGuard(), a.expressionLimits())
+	if err != nil {
+		return nil, err
+	}
+	if guard.Fanout() {
+		return nil, invalid(ir.Unsupported, nodePath(g, n), "evidence guard cannot fan out")
+	}
+	if source.GetGuardEqualsText() != "" && (guard.Type().Cardinality() != ir.Singular || guard.Type().Scalar() != testpilotspb.SCALAR_KIND_TEXT) {
+		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence guard equality requires a text guard")
+	}
+	operation, err := a.bindEvidencePath(g, n, typ, source.GetOperation(), evidenceKeyKinds...)
+	if err != nil {
+		return nil, err
+	}
+	bound := &evidenceRule{guard: guard, guardEquals: source.GetGuardEqualsText(), source: source.GetSource(), kind: source.GetKind(), operation: operation}
+	// A scope binding is a Run coordinate and carries plain text on the wire; an evidence field is
+	// a typed scalar the portable decoder reads as text, natural or boolean.
+	scope, err := a.bindEvidenceBindings(g, n, typ, source.GetScope(), testpilotspb.SCALAR_KIND_TEXT)
+	if err != nil {
+		return nil, err
+	}
+	fields, err := a.bindEvidenceBindings(g, n, typ, source.GetFields(), evidenceFieldKinds...)
+	if err != nil {
+		return nil, err
+	}
+	bound.scope, bound.fields = scope, fields
+	return bound, nil
+}
+
+// evidenceKeyKinds are the scalars an operation key may read: text, or an integer in its canonical
+// decimal spelling.
+var evidenceKeyKinds = append([]testpilotspb.ScalarKind{testpilotspb.SCALAR_KIND_TEXT}, evidenceIntegerKinds...)
+
+// evidenceFieldKinds are the scalars a lifted evidence field may read; the portable evidence domain
+// admits text, natural and boolean, and every integer kind narrows into a natural.
+var evidenceFieldKinds = append([]testpilotspb.ScalarKind{
+	testpilotspb.SCALAR_KIND_TEXT, testpilotspb.SCALAR_KIND_BOOLEAN,
+}, evidenceIntegerKinds...)
+
+// evidenceIntegerKinds narrow into the portable evidence domain's natural.
+var evidenceIntegerKinds = []testpilotspb.ScalarKind{
+	testpilotspb.SCALAR_KIND_NATURAL,
+	testpilotspb.SCALAR_KIND_INT32, testpilotspb.SCALAR_KIND_INT64, testpilotspb.SCALAR_KIND_UINT32,
+	testpilotspb.SCALAR_KIND_UINT64, testpilotspb.SCALAR_KIND_SINT32, testpilotspb.SCALAR_KIND_SINT64,
+	testpilotspb.SCALAR_KIND_FIXED32, testpilotspb.SCALAR_KIND_FIXED64, testpilotspb.SCALAR_KIND_SFIXED32,
+	testpilotspb.SCALAR_KIND_SFIXED64,
+}
+
+func (a *admission) bindEvidenceBindings(g *graph, n *node, typ ir.Type, sources []*testpilotspb.ScopedEvidenceBinding, kinds ...testpilotspb.ScalarKind) ([]evidenceBinding, error) {
+	bound := make([]evidenceBinding, 0, len(sources))
+	seen := map[string]bool{}
+	for _, source := range sources {
+		if source == nil || !validID(source.GetFieldId()) || seen[source.GetFieldId()] {
+			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires one unique declared field")
+		}
+		seen[source.GetFieldId()] = true
+		switch supply := source.GetValue().(type) {
+		case *testpilotspb.ScopedEvidenceBinding_Literal:
+			if supply.Literal == "" {
+				return nil, invalid(ir.Malformed, nodePath(g, n), "evidence literal binding requires a value")
+			}
+			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), literal: supply.Literal})
+		case *testpilotspb.ScopedEvidenceBinding_Path:
+			path, err := a.bindEvidencePath(g, n, typ, supply.Path, kinds...)
+			if err != nil {
+				return nil, err
+			}
+			bound = append(bound, evidenceBinding{fieldID: source.GetFieldId(), path: path})
+		default:
+			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence binding requires a path or a literal")
+		}
+	}
+	return bound, nil
+}
+func (a *admission) bindEvidencePath(g *graph, n *node, typ ir.Type, source *testpilotspb.FieldPath, kinds ...testpilotspb.ScalarKind) (*ir.Path, error) {
+	path, err := a.prepared.catalog.BindPath(typ, source, a.expressionLimits())
+	if err != nil {
+		return nil, err
+	}
+	read := path.Type()
+	if read.Cardinality() != ir.Singular || read.Message() != nil || read.Enum() != nil || !slices.Contains(kinds, read.Scalar()) {
+		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence binding reads an unsupported scalar")
+	}
+	return path, nil
 }
 func (a *admission) scope(g *graph, n *node) map[ir.Reference]ir.Binding {
 	scope := map[ir.Reference]ir.Binding{}

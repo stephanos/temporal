@@ -24,29 +24,39 @@ line cost of running a Case from Go (R5), the discarded recorder close error (R6
 the axiom baseline (R7).
 
 Originally nine tasks with a SHIP plan review; re-planned to fifteen after four escalations.
-**Done: .1** (`rule_events` Contract horizon, one helper owning the counter for the online and
-offline paths), **.2** (`InjectFault` wire, `RUN_EVENT_KIND_FAULT_INJECTED`, and `Run` returning the
-recorder close error), **.3** (worker stop/resume in the Driver, four review rounds — an unlocked
-registry map proved with a `-race` red check, a leaked worker on the resume/release race, and the
-blocking stop moved into the effect handle's `Wait`), **.7** (`DeriveProfile` plus `bindCase`/`runCase`,
-with the three hand-written fixture Profiles as oracles).
+**10 of 15 done.**
 
-**Blocked, each with an actionable handover:** .4 (R1, see below), .5 (R2 — SCOPE_EXCEEDED, split
-below), .8 (R4 Case — four of seven acceptance criteria need a live cluster), and .6/.9 stranded
-behind them.
+**R2 and R8 are fully covered.** Task .5 escalated SCOPE_EXCEEDED — R2 looked like deleting four
+identifier whitelists, but `Authoring.successModel` was arity-fixed at three states, two actions, two
+outcomes, two facts and two transitions, and that shape was load-bearing across ~30 reads in
+`Tests.lean`, several inside `native_decide` theorems. It was split into four steps that each land
+green, and all four shipped: **.10** turned the 14 + 22 named fields into parallel ordered lists with
+positional accessors and made the canonical-table law range over any number of rows, with zero syntax
+change so conformance proved byte-identity by itself; **.11** replaced the whitelists with a
+`Lean.Elab.Command` elaborator reading each inductive's constructors, generalizing the grammar to N
+initial/terminal states, N transitions, N facts per row and N occurrences; **.12** added five located
+diagnostics at the author's own coordinates, each pinned by `#guard_msgs`; **.13** added a genuinely
+second lifecycle (`RaceSyntaxTests.lean` — role `handler`, five states, four Actions, two terminals, a
+losing row with no Fact) which forced generalizing `property` to N `require` clauses and surfaced two
+more diagnostics the planner had previously rejected late. **.6** then landed the `query ... all ...`
+verify form through `QueryForm.verify`, making `CheckedModel.witness` optional and splitting
+`AdmissionError.noWitness` into `notSelected (outcome)` so an unsatisfiable Behavior and a violating
+counterexample are distinguishable.
 
-**R2 was split.** Task .5 was sized M but is a coordinated rewrite: the elaborators expand into
-`Authoring.successModel`, whose data model is arity-fixed at three states, two actions, two outcomes,
-two facts and two transitions, and that shape is load-bearing in `Tests.lean` (~30 reads, several
-inside `native_decide` theorems) and `Testpilot.lean`. It now runs as four tasks that can each land
-green: **.10** generalizes the data model to ordered lists with *no syntax change at all*, so
-conformance proves byte-identity on its own; **.11** replaces the four spelling whitelists with
-constructor-derived elaboration; **.12** adds the five located diagnostics with `#guard_msgs`;
-**.13** adds a genuinely second lifecycle plus the `Nexus.md` wording. Task .6 (R8) now follows .11
-directly.
+**R1's user-visible half is delivered.** Task **.15** deleted the clause-for-clause equality gate in
+the Nexus3 Producer: the correlated-history monitor is now derived from the Facts the selected witness
+records, through declared per-Fact history evidence projections. A model edit now produces different
+Case bytes instead of a lowering error, which was the Goal section's first defect. Output is
+byte-identical, so no fixtures moved and live behaviour is unchanged by construction.
 
-**fn-77 is complete, so the ordering constraint on this spec is gone.** R1 and R5 had serialized
-behind fn-77.10 to avoid a byte conflict on regenerated fixtures; that conflict no longer exists.
+Also done earlier: **.1** the `rule_events` Contract horizon, **.2** the `InjectFault` wire plus `Run`
+returning the recorder close error, **.3** worker stop/resume in the Driver, **.7** `DeriveProfile`
+with the hand-written fixture Profiles as oracles.
+
+**Five tasks remain, and every one is blocked on the same thing.** The completion review reads
+NEEDS_WORK, but it flagged no untracked work — each gap maps to an already-blocked task: R1's scoped
+route (.14 then .4), R4's fault Case and R3's Lean `rule_events` Case (.8), and R7's spec rules and
+documentation (.9, behind .8). Task .5 stays blocked as the superseded record of why R2 was split.
 
 **Task .4, the early proof point, is blocked — and the finding matters beyond this spec.** R1 wants
 the shipped async-nexus Case to carry `contract.scoped`, drop its hand-written correlated-history

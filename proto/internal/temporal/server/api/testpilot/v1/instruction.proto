@@ -11,10 +11,51 @@ enum ProjectionKind {
   PROJECTION_KIND_ONE = 1;
   PROJECTION_KIND_EMIT_EACH = 2;
 }
+// ScopedEvidenceBinding names one ScopedEvidence slot and what supplies it: a path read from the
+// projected value, or a literal the Case declares. A Run coordinate that the recorded fact does not
+// itself carry is declared, never invented from Driver state.
+message ScopedEvidenceBinding {
+  string field_id = 1;
+  oneof value {
+    FieldPath path = 2;
+    string literal = 3;
+  }
+}
+
+// ScopedEvidenceRule lifts one recorded fact into a ScopedEvidence value. `guard` selects the rule:
+// it fires only where that path resolves and, when `guard_equals_text` is set, only where it reads
+// exactly that text. So one rule per recorded kind selects itself and `kind` is the literal the
+// selected shape denotes. Every path is read from the projected value; no Run field, wall clock or
+// Driver state is reachable from here.
+message ScopedEvidenceRule {
+  FieldPath guard = 1;
+  repeated ScopedEvidenceBinding scope = 2;
+  string source = 3;
+  FieldPath operation = 5;
+  string kind = 6;
+  repeated ScopedEvidenceBinding fields = 7;
+  string guard_equals_text = 8;
+  reserved 4;
+}
+
+// ScopedEvidenceProjection is the Program-declared source of the ScopedEvidence a scoped capability
+// reads. Its rules are tried in declaration order and the first whose guard resolves supplies the
+// Observation; a projected value no rule claims emits nothing.
+//
+// A source ordinal is the position of the evidence in this source's own dense stream, so it is the
+// count of values this lift has already emitted from the same projected list rather than anything
+// read out of the value. The projector requires exactly that: independent sources have independent
+// zero-based ordinals, and only the emitter can count them.
+message ScopedEvidenceProjection {
+  string observation_id = 1;
+  repeated ScopedEvidenceRule rules = 2;
+}
+
 message ProjectionTarget {
   oneof target {
     string slot_id = 1;
     string observation_id = 2;
+    ScopedEvidenceProjection scoped_evidence = 3;
   }
 }
 message ResponseProjection {

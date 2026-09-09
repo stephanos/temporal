@@ -5,6 +5,7 @@ import (
 
 	testpilotspb "go.temporal.io/server/api/testpilot/v1"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/known/anypb"
 )
@@ -133,4 +134,46 @@ func (r *runtimeExpression) messageChildren(message protoreflect.Message, step P
 		}
 	}
 	return children, nil
+}
+
+// ReadValue reads one bound Path out of an already-projected message Value, with the same runtime
+// path semantics a Contract expression reads an Observation with. A nil result denotes absence.
+func ReadValue(ctx context.Context, value *testpilotspb.Value, typ Type, path *Path, limits Limits) (*testpilotspb.Value, int64, error) {
+	check := limits
+	check.Work = DefaultLimits().Work
+	if err := check.validate(); err != nil {
+		return nil, 0, err
+	}
+	if ctx == nil || value == nil || path == nil || typ.Message() == nil || limits.Work <= 0 {
+		return nil, 0, invalid(Malformed, "path", "context, message value, path and positive work required")
+	}
+	r := runtimeExpression{ctx: ctx, limit: limits.Work, copyWork: true}
+	result, err := r.project(path, value, typ)
+	if err != nil || result == nil {
+		return nil, r.work, err
+	}
+	return proto.CloneOf(result), r.work, nil
+}
+
+// SameMessage reports exact structural identity of two message descriptors, including every nested
+// message they reach. Two catalogs may name the same message differently, so a declared type is
+// admitted against a compiled-in one only through this check.
+func SameMessage(a, b protoreflect.MessageDescriptor) bool {
+	return sameMessage(a, b, map[protoreflect.FullName]bool{})
+}
+func sameMessage(a, b protoreflect.MessageDescriptor, seen map[protoreflect.FullName]bool) bool {
+	if a == nil || b == nil || a.FullName() != b.FullName() || !proto.Equal(protodesc.ToDescriptorProto(a), protodesc.ToDescriptorProto(b)) {
+		return false
+	}
+	if seen[a.FullName()] {
+		return true
+	}
+	seen[a.FullName()] = true
+	for i := 0; i < a.Fields().Len(); i++ {
+		x, y := a.Fields().Get(i), b.Fields().Get(i)
+		if x.Message() != nil && !sameMessage(x.Message(), y.Message(), seen) {
+			return false
+		}
+	}
+	return true
 }

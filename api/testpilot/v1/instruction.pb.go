@@ -261,12 +261,263 @@ func (x *RequestAssignment) GetValue() *ProgramExpression {
 	return nil
 }
 
+// ScopedEvidenceBinding names one ScopedEvidence slot and what supplies it: a path read from the
+// projected value, or a literal the Case declares. A Run coordinate that the recorded fact does not
+// itself carry is declared, never invented from Driver state.
+type ScopedEvidenceBinding struct {
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	FieldId string                 `protobuf:"bytes,1,opt,name=field_id,json=fieldId,proto3" json:"field_id,omitempty"`
+	// Types that are valid to be assigned to Value:
+	//
+	//	*ScopedEvidenceBinding_Path
+	//	*ScopedEvidenceBinding_Literal
+	Value         isScopedEvidenceBinding_Value `protobuf_oneof:"value"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedEvidenceBinding) Reset() {
+	*x = ScopedEvidenceBinding{}
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedEvidenceBinding) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedEvidenceBinding) ProtoMessage() {}
+
+func (x *ScopedEvidenceBinding) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedEvidenceBinding.ProtoReflect.Descriptor instead.
+func (*ScopedEvidenceBinding) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *ScopedEvidenceBinding) GetFieldId() string {
+	if x != nil {
+		return x.FieldId
+	}
+	return ""
+}
+
+func (x *ScopedEvidenceBinding) GetValue() isScopedEvidenceBinding_Value {
+	if x != nil {
+		return x.Value
+	}
+	return nil
+}
+
+func (x *ScopedEvidenceBinding) GetPath() *FieldPath {
+	if x != nil {
+		if x, ok := x.Value.(*ScopedEvidenceBinding_Path); ok {
+			return x.Path
+		}
+	}
+	return nil
+}
+
+func (x *ScopedEvidenceBinding) GetLiteral() string {
+	if x != nil {
+		if x, ok := x.Value.(*ScopedEvidenceBinding_Literal); ok {
+			return x.Literal
+		}
+	}
+	return ""
+}
+
+type isScopedEvidenceBinding_Value interface {
+	isScopedEvidenceBinding_Value()
+}
+
+type ScopedEvidenceBinding_Path struct {
+	Path *FieldPath `protobuf:"bytes,2,opt,name=path,proto3,oneof"`
+}
+
+type ScopedEvidenceBinding_Literal struct {
+	Literal string `protobuf:"bytes,3,opt,name=literal,proto3,oneof"`
+}
+
+func (*ScopedEvidenceBinding_Path) isScopedEvidenceBinding_Value() {}
+
+func (*ScopedEvidenceBinding_Literal) isScopedEvidenceBinding_Value() {}
+
+// ScopedEvidenceRule lifts one recorded fact into a ScopedEvidence value. `guard` selects the rule:
+// it fires only where that path resolves and, when `guard_equals_text` is set, only where it reads
+// exactly that text. So one rule per recorded kind selects itself and `kind` is the literal the
+// selected shape denotes. Every path is read from the projected value; no Run field, wall clock or
+// Driver state is reachable from here.
+type ScopedEvidenceRule struct {
+	state           protoimpl.MessageState   `protogen:"open.v1"`
+	Guard           *FieldPath               `protobuf:"bytes,1,opt,name=guard,proto3" json:"guard,omitempty"`
+	Scope           []*ScopedEvidenceBinding `protobuf:"bytes,2,rep,name=scope,proto3" json:"scope,omitempty"`
+	Source          string                   `protobuf:"bytes,3,opt,name=source,proto3" json:"source,omitempty"`
+	Operation       *FieldPath               `protobuf:"bytes,5,opt,name=operation,proto3" json:"operation,omitempty"`
+	Kind            string                   `protobuf:"bytes,6,opt,name=kind,proto3" json:"kind,omitempty"`
+	Fields          []*ScopedEvidenceBinding `protobuf:"bytes,7,rep,name=fields,proto3" json:"fields,omitempty"`
+	GuardEqualsText string                   `protobuf:"bytes,8,opt,name=guard_equals_text,json=guardEqualsText,proto3" json:"guard_equals_text,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *ScopedEvidenceRule) Reset() {
+	*x = ScopedEvidenceRule{}
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedEvidenceRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedEvidenceRule) ProtoMessage() {}
+
+func (x *ScopedEvidenceRule) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedEvidenceRule.ProtoReflect.Descriptor instead.
+func (*ScopedEvidenceRule) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *ScopedEvidenceRule) GetGuard() *FieldPath {
+	if x != nil {
+		return x.Guard
+	}
+	return nil
+}
+
+func (x *ScopedEvidenceRule) GetScope() []*ScopedEvidenceBinding {
+	if x != nil {
+		return x.Scope
+	}
+	return nil
+}
+
+func (x *ScopedEvidenceRule) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
+}
+
+func (x *ScopedEvidenceRule) GetOperation() *FieldPath {
+	if x != nil {
+		return x.Operation
+	}
+	return nil
+}
+
+func (x *ScopedEvidenceRule) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ScopedEvidenceRule) GetFields() []*ScopedEvidenceBinding {
+	if x != nil {
+		return x.Fields
+	}
+	return nil
+}
+
+func (x *ScopedEvidenceRule) GetGuardEqualsText() string {
+	if x != nil {
+		return x.GuardEqualsText
+	}
+	return ""
+}
+
+// ScopedEvidenceProjection is the Program-declared source of the ScopedEvidence a scoped capability
+// reads. Its rules are tried in declaration order and the first whose guard resolves supplies the
+// Observation; a projected value no rule claims emits nothing.
+//
+// A source ordinal is the position of the evidence in this source's own dense stream, so it is the
+// count of values this lift has already emitted from the same projected list rather than anything
+// read out of the value. The projector requires exactly that: independent sources have independent
+// zero-based ordinals, and only the emitter can count them.
+type ScopedEvidenceProjection struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ObservationId string                 `protobuf:"bytes,1,opt,name=observation_id,json=observationId,proto3" json:"observation_id,omitempty"`
+	Rules         []*ScopedEvidenceRule  `protobuf:"bytes,2,rep,name=rules,proto3" json:"rules,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ScopedEvidenceProjection) Reset() {
+	*x = ScopedEvidenceProjection{}
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ScopedEvidenceProjection) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ScopedEvidenceProjection) ProtoMessage() {}
+
+func (x *ScopedEvidenceProjection) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ScopedEvidenceProjection.ProtoReflect.Descriptor instead.
+func (*ScopedEvidenceProjection) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ScopedEvidenceProjection) GetObservationId() string {
+	if x != nil {
+		return x.ObservationId
+	}
+	return ""
+}
+
+func (x *ScopedEvidenceProjection) GetRules() []*ScopedEvidenceRule {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
 type ProjectionTarget struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Target:
 	//
 	//	*ProjectionTarget_SlotId
 	//	*ProjectionTarget_ObservationId
+	//	*ProjectionTarget_ScopedEvidence
 	Target        isProjectionTarget_Target `protobuf_oneof:"target"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -274,7 +525,7 @@ type ProjectionTarget struct {
 
 func (x *ProjectionTarget) Reset() {
 	*x = ProjectionTarget{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[1]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -286,7 +537,7 @@ func (x *ProjectionTarget) String() string {
 func (*ProjectionTarget) ProtoMessage() {}
 
 func (x *ProjectionTarget) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[1]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -299,7 +550,7 @@ func (x *ProjectionTarget) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectionTarget.ProtoReflect.Descriptor instead.
 func (*ProjectionTarget) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{1}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ProjectionTarget) GetTarget() isProjectionTarget_Target {
@@ -327,6 +578,15 @@ func (x *ProjectionTarget) GetObservationId() string {
 	return ""
 }
 
+func (x *ProjectionTarget) GetScopedEvidence() *ScopedEvidenceProjection {
+	if x != nil {
+		if x, ok := x.Target.(*ProjectionTarget_ScopedEvidence); ok {
+			return x.ScopedEvidence
+		}
+	}
+	return nil
+}
+
 type isProjectionTarget_Target interface {
 	isProjectionTarget_Target()
 }
@@ -339,9 +599,15 @@ type ProjectionTarget_ObservationId struct {
 	ObservationId string `protobuf:"bytes,2,opt,name=observation_id,json=observationId,proto3,oneof"`
 }
 
+type ProjectionTarget_ScopedEvidence struct {
+	ScopedEvidence *ScopedEvidenceProjection `protobuf:"bytes,3,opt,name=scoped_evidence,json=scopedEvidence,proto3,oneof"`
+}
+
 func (*ProjectionTarget_SlotId) isProjectionTarget_Target() {}
 
 func (*ProjectionTarget_ObservationId) isProjectionTarget_Target() {}
+
+func (*ProjectionTarget_ScopedEvidence) isProjectionTarget_Target() {}
 
 type ResponseProjection struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -354,7 +620,7 @@ type ResponseProjection struct {
 
 func (x *ResponseProjection) Reset() {
 	*x = ResponseProjection{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[2]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -366,7 +632,7 @@ func (x *ResponseProjection) String() string {
 func (*ResponseProjection) ProtoMessage() {}
 
 func (x *ResponseProjection) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[2]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -379,7 +645,7 @@ func (x *ResponseProjection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResponseProjection.ProtoReflect.Descriptor instead.
 func (*ResponseProjection) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{2}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ResponseProjection) GetSource() *FieldPath {
@@ -415,7 +681,7 @@ type InstructionLimits struct {
 
 func (x *InstructionLimits) Reset() {
 	*x = InstructionLimits{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[3]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -427,7 +693,7 @@ func (x *InstructionLimits) String() string {
 func (*InstructionLimits) ProtoMessage() {}
 
 func (x *InstructionLimits) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[3]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -440,7 +706,7 @@ func (x *InstructionLimits) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionLimits.ProtoReflect.Descriptor instead.
 func (*InstructionLimits) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{3}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *InstructionLimits) GetTimeoutMilliseconds() int64 {
@@ -483,7 +749,7 @@ type InvokeRPC struct {
 
 func (x *InvokeRPC) Reset() {
 	*x = InvokeRPC{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -495,7 +761,7 @@ func (x *InvokeRPC) String() string {
 func (*InvokeRPC) ProtoMessage() {}
 
 func (x *InvokeRPC) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[4]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -508,7 +774,7 @@ func (x *InvokeRPC) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InvokeRPC.ProtoReflect.Descriptor instead.
 func (*InvokeRPC) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{4}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *InvokeRPC) GetEndpointRoleId() string {
@@ -548,7 +814,7 @@ type AwaitSlot struct {
 
 func (x *AwaitSlot) Reset() {
 	*x = AwaitSlot{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -560,7 +826,7 @@ func (x *AwaitSlot) String() string {
 func (*AwaitSlot) ProtoMessage() {}
 
 func (x *AwaitSlot) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[5]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -573,7 +839,7 @@ func (x *AwaitSlot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AwaitSlot.ProtoReflect.Descriptor instead.
 func (*AwaitSlot) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{5}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *AwaitSlot) GetSlotId() string {
@@ -593,7 +859,7 @@ type CompleteNexusOperation struct {
 
 func (x *CompleteNexusOperation) Reset() {
 	*x = CompleteNexusOperation{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -605,7 +871,7 @@ func (x *CompleteNexusOperation) String() string {
 func (*CompleteNexusOperation) ProtoMessage() {}
 
 func (x *CompleteNexusOperation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[6]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -618,7 +884,7 @@ func (x *CompleteNexusOperation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CompleteNexusOperation.ProtoReflect.Descriptor instead.
 func (*CompleteNexusOperation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{6}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *CompleteNexusOperation) GetCapabilitySlotId() string {
@@ -647,7 +913,7 @@ type StartNexusOperation struct {
 
 func (x *StartNexusOperation) Reset() {
 	*x = StartNexusOperation{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -659,7 +925,7 @@ func (x *StartNexusOperation) String() string {
 func (*StartNexusOperation) ProtoMessage() {}
 
 func (x *StartNexusOperation) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[7]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -672,7 +938,7 @@ func (x *StartNexusOperation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartNexusOperation.ProtoReflect.Descriptor instead.
 func (*StartNexusOperation) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{7}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *StartNexusOperation) GetEndpointRoleId() string {
@@ -712,7 +978,7 @@ type AwaitInstruction struct {
 
 func (x *AwaitInstruction) Reset() {
 	*x = AwaitInstruction{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -724,7 +990,7 @@ func (x *AwaitInstruction) String() string {
 func (*AwaitInstruction) ProtoMessage() {}
 
 func (x *AwaitInstruction) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[8]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -737,7 +1003,7 @@ func (x *AwaitInstruction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use AwaitInstruction.ProtoReflect.Descriptor instead.
 func (*AwaitInstruction) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{8}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *AwaitInstruction) GetInstruction() *InstructionRef {
@@ -756,7 +1022,7 @@ type Finish struct {
 
 func (x *Finish) Reset() {
 	*x = Finish{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -768,7 +1034,7 @@ func (x *Finish) String() string {
 func (*Finish) ProtoMessage() {}
 
 func (x *Finish) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[9]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -781,7 +1047,7 @@ func (x *Finish) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Finish.ProtoReflect.Descriptor instead.
 func (*Finish) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{9}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *Finish) GetResult() *ProgramExpression {
@@ -802,7 +1068,7 @@ type RespondNexus struct {
 
 func (x *RespondNexus) Reset() {
 	*x = RespondNexus{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -814,7 +1080,7 @@ func (x *RespondNexus) String() string {
 func (*RespondNexus) ProtoMessage() {}
 
 func (x *RespondNexus) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[10]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -827,7 +1093,7 @@ func (x *RespondNexus) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RespondNexus.ProtoReflect.Descriptor instead.
 func (*RespondNexus) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{10}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *RespondNexus) GetKind() NexusResponseKind {
@@ -863,7 +1129,7 @@ type InjectFault struct {
 
 func (x *InjectFault) Reset() {
 	*x = InjectFault{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -875,7 +1141,7 @@ func (x *InjectFault) String() string {
 func (*InjectFault) ProtoMessage() {}
 
 func (x *InjectFault) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -888,7 +1154,7 @@ func (x *InjectFault) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InjectFault.ProtoReflect.Descriptor instead.
 func (*InjectFault) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *InjectFault) GetRoleId() string {
@@ -917,7 +1183,7 @@ type FaultInjected struct {
 
 func (x *FaultInjected) Reset() {
 	*x = FaultInjected{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -929,7 +1195,7 @@ func (x *FaultInjected) String() string {
 func (*FaultInjected) ProtoMessage() {}
 
 func (x *FaultInjected) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -942,7 +1208,7 @@ func (x *FaultInjected) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FaultInjected.ProtoReflect.Descriptor instead.
 func (*FaultInjected) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *FaultInjected) GetRoleId() string {
@@ -979,7 +1245,7 @@ type Instruction struct {
 
 func (x *Instruction) Reset() {
 	*x = Instruction{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -991,7 +1257,7 @@ func (x *Instruction) String() string {
 func (*Instruction) ProtoMessage() {}
 
 func (x *Instruction) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1004,7 +1270,7 @@ func (x *Instruction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Instruction.ProtoReflect.Descriptor instead.
 func (*Instruction) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *Instruction) GetInstruction() isInstruction_Instruction {
@@ -1148,7 +1414,7 @@ type ActivationReservationDefinition struct {
 
 func (x *ActivationReservationDefinition) Reset() {
 	*x = ActivationReservationDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1160,7 +1426,7 @@ func (x *ActivationReservationDefinition) String() string {
 func (*ActivationReservationDefinition) ProtoMessage() {}
 
 func (x *ActivationReservationDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1173,7 +1439,7 @@ func (x *ActivationReservationDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivationReservationDefinition.ProtoReflect.Descriptor instead.
 func (*ActivationReservationDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{14}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *ActivationReservationDefinition) GetEntrypointId() string {
@@ -1205,7 +1471,7 @@ type InstructionDefinition struct {
 
 func (x *InstructionDefinition) Reset() {
 	*x = InstructionDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1217,7 +1483,7 @@ func (x *InstructionDefinition) String() string {
 func (*InstructionDefinition) ProtoMessage() {}
 
 func (x *InstructionDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1230,7 +1496,7 @@ func (x *InstructionDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionDefinition.ProtoReflect.Descriptor instead.
 func (*InstructionDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{15}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *InstructionDefinition) GetInstructionId() string {
@@ -1289,10 +1555,27 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"2temporal/server/api/testpilot/v1/instruction.proto\x12 temporal.server.api.testpilot.v1\x1a1temporal/server/api/testpilot/v1/expression.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"\xa3\x01\n" +
 	"\x11RequestAssignment\x12C\n" +
 	"\x06target\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x06target\x12I\n" +
-	"\x05value\x18\x02 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x05value\"`\n" +
+	"\x05value\x18\x02 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x05value\"\x9a\x01\n" +
+	"\x15ScopedEvidenceBinding\x12\x19\n" +
+	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12A\n" +
+	"\x04path\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathH\x00R\x04path\x12\x1a\n" +
+	"\aliteral\x18\x03 \x01(\tH\x00R\aliteralB\a\n" +
+	"\x05value\"\xa0\x03\n" +
+	"\x12ScopedEvidenceRule\x12A\n" +
+	"\x05guard\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x05guard\x12M\n" +
+	"\x05scope\x18\x02 \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x05scope\x12\x16\n" +
+	"\x06source\x18\x03 \x01(\tR\x06source\x12I\n" +
+	"\toperation\x18\x05 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\toperation\x12\x12\n" +
+	"\x04kind\x18\x06 \x01(\tR\x04kind\x12O\n" +
+	"\x06fields\x18\a \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x06fields\x12*\n" +
+	"\x11guard_equals_text\x18\b \x01(\tR\x0fguardEqualsTextJ\x04\b\x04\x10\x05\"\x8d\x01\n" +
+	"\x18ScopedEvidenceProjection\x12%\n" +
+	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12J\n" +
+	"\x05rules\x18\x02 \x03(\v24.temporal.server.api.testpilot.v1.ScopedEvidenceRuleR\x05rules\"\xc7\x01\n" +
 	"\x10ProjectionTarget\x12\x19\n" +
 	"\aslot_id\x18\x01 \x01(\tH\x00R\x06slotId\x12'\n" +
-	"\x0eobservation_id\x18\x02 \x01(\tH\x00R\robservationIdB\b\n" +
+	"\x0eobservation_id\x18\x02 \x01(\tH\x00R\robservationId\x12e\n" +
+	"\x0fscoped_evidence\x18\x03 \x01(\v2:.temporal.server.api.testpilot.v1.ScopedEvidenceProjectionH\x00R\x0escopedEvidenceB\b\n" +
 	"\x06target\"\xed\x01\n" +
 	"\x12ResponseProjection\x12C\n" +
 	"\x06source\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x06source\x12D\n" +
@@ -1382,67 +1665,77 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP() []byt
 }
 
 var file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
-var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
+var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 19)
 var file_temporal_server_api_testpilot_v1_instruction_proto_goTypes = []any{
 	(ProjectionKind)(0),                     // 0: temporal.server.api.testpilot.v1.ProjectionKind
 	(NexusResponseKind)(0),                  // 1: temporal.server.api.testpilot.v1.NexusResponseKind
 	(FaultKind)(0),                          // 2: temporal.server.api.testpilot.v1.FaultKind
 	(*RequestAssignment)(nil),               // 3: temporal.server.api.testpilot.v1.RequestAssignment
-	(*ProjectionTarget)(nil),                // 4: temporal.server.api.testpilot.v1.ProjectionTarget
-	(*ResponseProjection)(nil),              // 5: temporal.server.api.testpilot.v1.ResponseProjection
-	(*InstructionLimits)(nil),               // 6: temporal.server.api.testpilot.v1.InstructionLimits
-	(*InvokeRPC)(nil),                       // 7: temporal.server.api.testpilot.v1.InvokeRPC
-	(*AwaitSlot)(nil),                       // 8: temporal.server.api.testpilot.v1.AwaitSlot
-	(*CompleteNexusOperation)(nil),          // 9: temporal.server.api.testpilot.v1.CompleteNexusOperation
-	(*StartNexusOperation)(nil),             // 10: temporal.server.api.testpilot.v1.StartNexusOperation
-	(*AwaitInstruction)(nil),                // 11: temporal.server.api.testpilot.v1.AwaitInstruction
-	(*Finish)(nil),                          // 12: temporal.server.api.testpilot.v1.Finish
-	(*RespondNexus)(nil),                    // 13: temporal.server.api.testpilot.v1.RespondNexus
-	(*InjectFault)(nil),                     // 14: temporal.server.api.testpilot.v1.InjectFault
-	(*FaultInjected)(nil),                   // 15: temporal.server.api.testpilot.v1.FaultInjected
-	(*Instruction)(nil),                     // 16: temporal.server.api.testpilot.v1.Instruction
-	(*ActivationReservationDefinition)(nil), // 17: temporal.server.api.testpilot.v1.ActivationReservationDefinition
-	(*InstructionDefinition)(nil),           // 18: temporal.server.api.testpilot.v1.InstructionDefinition
-	(*FieldPath)(nil),                       // 19: temporal.server.api.testpilot.v1.FieldPath
-	(*ProgramExpression)(nil),               // 20: temporal.server.api.testpilot.v1.ProgramExpression
-	(*InstructionRef)(nil),                  // 21: temporal.server.api.testpilot.v1.InstructionRef
-	(*InstructionOutcomeDefinition)(nil),    // 22: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
+	(*ScopedEvidenceBinding)(nil),           // 4: temporal.server.api.testpilot.v1.ScopedEvidenceBinding
+	(*ScopedEvidenceRule)(nil),              // 5: temporal.server.api.testpilot.v1.ScopedEvidenceRule
+	(*ScopedEvidenceProjection)(nil),        // 6: temporal.server.api.testpilot.v1.ScopedEvidenceProjection
+	(*ProjectionTarget)(nil),                // 7: temporal.server.api.testpilot.v1.ProjectionTarget
+	(*ResponseProjection)(nil),              // 8: temporal.server.api.testpilot.v1.ResponseProjection
+	(*InstructionLimits)(nil),               // 9: temporal.server.api.testpilot.v1.InstructionLimits
+	(*InvokeRPC)(nil),                       // 10: temporal.server.api.testpilot.v1.InvokeRPC
+	(*AwaitSlot)(nil),                       // 11: temporal.server.api.testpilot.v1.AwaitSlot
+	(*CompleteNexusOperation)(nil),          // 12: temporal.server.api.testpilot.v1.CompleteNexusOperation
+	(*StartNexusOperation)(nil),             // 13: temporal.server.api.testpilot.v1.StartNexusOperation
+	(*AwaitInstruction)(nil),                // 14: temporal.server.api.testpilot.v1.AwaitInstruction
+	(*Finish)(nil),                          // 15: temporal.server.api.testpilot.v1.Finish
+	(*RespondNexus)(nil),                    // 16: temporal.server.api.testpilot.v1.RespondNexus
+	(*InjectFault)(nil),                     // 17: temporal.server.api.testpilot.v1.InjectFault
+	(*FaultInjected)(nil),                   // 18: temporal.server.api.testpilot.v1.FaultInjected
+	(*Instruction)(nil),                     // 19: temporal.server.api.testpilot.v1.Instruction
+	(*ActivationReservationDefinition)(nil), // 20: temporal.server.api.testpilot.v1.ActivationReservationDefinition
+	(*InstructionDefinition)(nil),           // 21: temporal.server.api.testpilot.v1.InstructionDefinition
+	(*FieldPath)(nil),                       // 22: temporal.server.api.testpilot.v1.FieldPath
+	(*ProgramExpression)(nil),               // 23: temporal.server.api.testpilot.v1.ProgramExpression
+	(*InstructionRef)(nil),                  // 24: temporal.server.api.testpilot.v1.InstructionRef
+	(*InstructionOutcomeDefinition)(nil),    // 25: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
 }
 var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
-	19, // 0: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	20, // 1: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	19, // 2: temporal.server.api.testpilot.v1.ResponseProjection.source:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	0,  // 3: temporal.server.api.testpilot.v1.ResponseProjection.kind:type_name -> temporal.server.api.testpilot.v1.ProjectionKind
-	4,  // 4: temporal.server.api.testpilot.v1.ResponseProjection.targets:type_name -> temporal.server.api.testpilot.v1.ProjectionTarget
-	3,  // 5: temporal.server.api.testpilot.v1.InvokeRPC.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
-	5,  // 6: temporal.server.api.testpilot.v1.InvokeRPC.response_projections:type_name -> temporal.server.api.testpilot.v1.ResponseProjection
-	20, // 7: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	20, // 8: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	21, // 9: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionRef
-	20, // 10: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	1,  // 11: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
-	20, // 12: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	2,  // 13: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	2,  // 14: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
-	7,  // 15: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRPC
-	8,  // 16: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
-	9,  // 17: temporal.server.api.testpilot.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.testpilot.v1.CompleteNexusOperation
-	10, // 18: temporal.server.api.testpilot.v1.Instruction.start_nexus_operation:type_name -> temporal.server.api.testpilot.v1.StartNexusOperation
-	11, // 19: temporal.server.api.testpilot.v1.Instruction.await_outcome:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
-	12, // 20: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
-	13, // 21: temporal.server.api.testpilot.v1.Instruction.respond_nexus:type_name -> temporal.server.api.testpilot.v1.RespondNexus
-	14, // 22: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
-	21, // 23: temporal.server.api.testpilot.v1.InstructionDefinition.dependencies:type_name -> temporal.server.api.testpilot.v1.InstructionRef
-	20, // 24: temporal.server.api.testpilot.v1.InstructionDefinition.guard:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	16, // 25: temporal.server.api.testpilot.v1.InstructionDefinition.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
-	22, // 26: temporal.server.api.testpilot.v1.InstructionDefinition.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
-	6,  // 27: temporal.server.api.testpilot.v1.InstructionDefinition.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
-	17, // 28: temporal.server.api.testpilot.v1.InstructionDefinition.activation_reservations:type_name -> temporal.server.api.testpilot.v1.ActivationReservationDefinition
-	29, // [29:29] is the sub-list for method output_type
-	29, // [29:29] is the sub-list for method input_type
-	29, // [29:29] is the sub-list for extension type_name
-	29, // [29:29] is the sub-list for extension extendee
-	0,  // [0:29] is the sub-list for field type_name
+	22, // 0: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	23, // 1: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	22, // 2: temporal.server.api.testpilot.v1.ScopedEvidenceBinding.path:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	22, // 3: temporal.server.api.testpilot.v1.ScopedEvidenceRule.guard:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	4,  // 4: temporal.server.api.testpilot.v1.ScopedEvidenceRule.scope:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceBinding
+	22, // 5: temporal.server.api.testpilot.v1.ScopedEvidenceRule.operation:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	4,  // 6: temporal.server.api.testpilot.v1.ScopedEvidenceRule.fields:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceBinding
+	5,  // 7: temporal.server.api.testpilot.v1.ScopedEvidenceProjection.rules:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceRule
+	6,  // 8: temporal.server.api.testpilot.v1.ProjectionTarget.scoped_evidence:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceProjection
+	22, // 9: temporal.server.api.testpilot.v1.ResponseProjection.source:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	0,  // 10: temporal.server.api.testpilot.v1.ResponseProjection.kind:type_name -> temporal.server.api.testpilot.v1.ProjectionKind
+	7,  // 11: temporal.server.api.testpilot.v1.ResponseProjection.targets:type_name -> temporal.server.api.testpilot.v1.ProjectionTarget
+	3,  // 12: temporal.server.api.testpilot.v1.InvokeRPC.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
+	8,  // 13: temporal.server.api.testpilot.v1.InvokeRPC.response_projections:type_name -> temporal.server.api.testpilot.v1.ResponseProjection
+	23, // 14: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	23, // 15: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	24, // 16: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionRef
+	23, // 17: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	1,  // 18: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
+	23, // 19: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	2,  // 20: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	2,  // 21: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	10, // 22: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRPC
+	11, // 23: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
+	12, // 24: temporal.server.api.testpilot.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.testpilot.v1.CompleteNexusOperation
+	13, // 25: temporal.server.api.testpilot.v1.Instruction.start_nexus_operation:type_name -> temporal.server.api.testpilot.v1.StartNexusOperation
+	14, // 26: temporal.server.api.testpilot.v1.Instruction.await_outcome:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
+	15, // 27: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
+	16, // 28: temporal.server.api.testpilot.v1.Instruction.respond_nexus:type_name -> temporal.server.api.testpilot.v1.RespondNexus
+	17, // 29: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
+	24, // 30: temporal.server.api.testpilot.v1.InstructionDefinition.dependencies:type_name -> temporal.server.api.testpilot.v1.InstructionRef
+	23, // 31: temporal.server.api.testpilot.v1.InstructionDefinition.guard:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	19, // 32: temporal.server.api.testpilot.v1.InstructionDefinition.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
+	25, // 33: temporal.server.api.testpilot.v1.InstructionDefinition.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
+	9,  // 34: temporal.server.api.testpilot.v1.InstructionDefinition.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
+	20, // 35: temporal.server.api.testpilot.v1.InstructionDefinition.activation_reservations:type_name -> temporal.server.api.testpilot.v1.ActivationReservationDefinition
+	36, // [36:36] is the sub-list for method output_type
+	36, // [36:36] is the sub-list for method input_type
+	36, // [36:36] is the sub-list for extension type_name
+	36, // [36:36] is the sub-list for extension extendee
+	0,  // [0:36] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_instruction_proto_init() }
@@ -1453,10 +1746,15 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 	file_temporal_server_api_testpilot_v1_expression_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
 	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[1].OneofWrappers = []any{
+		(*ScopedEvidenceBinding_Path)(nil),
+		(*ScopedEvidenceBinding_Literal)(nil),
+	}
+	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[4].OneofWrappers = []any{
 		(*ProjectionTarget_SlotId)(nil),
 		(*ProjectionTarget_ObservationId)(nil),
+		(*ProjectionTarget_ScopedEvidence)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[16].OneofWrappers = []any{
 		(*Instruction_InvokeRpc)(nil),
 		(*Instruction_AwaitSlot)(nil),
 		(*Instruction_CompleteNexusOperation)(nil),
@@ -1472,7 +1770,7 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc)),
 			NumEnums:      3,
-			NumMessages:   16,
+			NumMessages:   19,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

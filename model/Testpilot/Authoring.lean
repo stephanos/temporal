@@ -255,6 +255,29 @@ def slotTarget (slotId : String) : ProjectionTarget :=
 def observationTarget (observationId : String) : ProjectionTarget :=
   { target := some (.observation_id observationId) }
 
+def scopedEvidenceBinding (fieldId : String) (path : FieldPath) : ScopedEvidenceBinding :=
+  { field_id := fieldId, value := some (.path path) }
+
+/-- A Run coordinate the recorded fact does not itself carry is declared by the Case. -/
+def scopedEvidenceLiteral (fieldId value : String) : ScopedEvidenceBinding :=
+  { field_id := fieldId, value := some (.literal value) }
+
+/-- One evidence-lift rule. `guard` is what selects it: the rule fires only where that path
+resolves and, where `guardEqualsText` is given, only where it reads exactly that text. `kind` is
+therefore the literal the selected shape denotes rather than a value read from it. -/
+def scopedEvidenceRule (guard : FieldPath) (source kind : String) (operation : FieldPath)
+    (scope : Array ScopedEvidenceBinding := #[])
+    (fields : Array ScopedEvidenceBinding := #[])
+    (guardEqualsText : String := "") : ScopedEvidenceRule :=
+  { guard := some guard, scope, source,
+    operation := some operation, kind, fields, guard_equals_text := guardEqualsText }
+
+/-- Lift a projected value into the declared `ScopedEvidence` Observation a scoped capability
+reads. Rules are tried in declaration order and a value no rule claims emits nothing. -/
+def scopedEvidenceTarget (observationId : String) (rules : Array ScopedEvidenceRule) :
+    ProjectionTarget :=
+  { target := some (.scoped_evidence { observation_id := observationId, rules }) }
+
 def responseProjection (source : FieldPath) (kind : ProjectionKind)
     (targets : Array ProjectionTarget) : ResponseProjection :=
   { source := some source, kind, targets }
