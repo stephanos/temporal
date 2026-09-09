@@ -16,21 +16,44 @@
   "impl_review_rounds": {},
   "next_task": 1,
   "plan_review_rounds": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
-  "review_hash_epoch": {},
-  "review_pending_rounds": {
-    "plan": 1
-  },
-  "review_reservations": {
-    "92095a533bc447998682bc509c00f219": {
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-09-09T05:42:34.439857Z",
+  "review_attempts": [
+    {
       "artifact_sha256": "e2c1abccfa7d9ffb2f658c8dfed8e9a9ea1cf842b1e119886cd090dd16da9d7a",
-      "counter_scope": "plan",
-      "epoch": 0,
-      "exclusive": false,
+      "backend": "claude",
+      "base_sha": "023cb7d861b6cc0e139564b2faaf10c106a7f37d",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
       "forced": false,
-      "review_type": "plan"
+      "hash_epoch": 0,
+      "head_sha": "ce8e898adac5a8b15225b89c42c6bc67d5016477",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 13369,
+      "output_sha256": "53fc15f67d550c92db3d6434635d4fc41ba5b22a271cf2fd453de4615de1cae3",
+      "reservation_id": "92095a533bc447998682bc509c00f219",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-09-09T05:42:34.436485Z",
+      "verdict": "NEEDS_WORK"
     }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
   },
   "spec_path": ".flow/specs/fn-82-unify-the-umpire-and-testpilot.md",
   "status": "open",
@@ -46,5 +69,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:34:04.961031Z"
+  "updated_at": "2026-09-09T05:42:34.440648Z"
 }

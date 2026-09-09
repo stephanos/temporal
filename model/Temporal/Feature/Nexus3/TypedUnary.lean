@@ -269,22 +269,27 @@ def startedOutcome (workflowType : String) : Except Field.Error ModelValue := do
 /-- The two exact workflow types the finite domain admits, in declaration order. -/
 def sampledWorkflowTypes : List String := [submittedWorkflowType, alternateWorkflowType]
 
-/-- The Action's own definition is contributed by the parameterized domain, which attaches the
-domain's canonical meaning to it, so this list must not declare it a second time. -/
-private def definitionKinds : List (DefinitionId × DefinitionKind) := [
-  (targetId, .target), (kernelId, .kernel), (providerId, .provider), (capabilityId, .capability),
+/-- The Target, its kernel, and the capability the Property requires. -/
+private def structuralKinds : List (DefinitionId × DefinitionKind) := [
+  (targetId, .target), (kernelId, .kernel), (providerId, .provider), (capabilityId, .capability)]
+
+/-- The modeled vocabulary a Property clause may name. The Action's own definition is contributed
+by the parameterized domain, which attaches the domain's canonical meaning to it, so it belongs to
+the provider's meanings but never to this list. -/
+private def vocabularyKinds : List (DefinitionId × DefinitionKind) := [
   (pendingStateId, .state), (startedStateId, .state),
   (startedOutcomeId, .outcome), (startedFactId, .observation)]
 
-private def definitions : List DefinitionMetadata := definitionKinds.map fun (id, kind) =>
-  Temporal.Shared.definitionMetadata id kind source id.value
+private def definitions : List DefinitionMetadata :=
+  (structuralKinds ++ vocabularyKinds).map fun (id, kind) =>
+    Temporal.Shared.definitionMetadata id kind source id.value
 
 private def provider : CapabilityProvider (fun _ => True) := {
   id := providerId
   source
   contract := { id := capabilityId, canonicalBehavior := "temporal-nexus3-typed-unary/v1"
                 requiredLaws := [] }
-  meanings := ((startActionId, DefinitionKind.action) :: definitionKinds.drop 4).map
+  meanings := ((startActionId, DefinitionKind.action) :: vocabularyKinds).map
     fun (id, kind) => { definitionId := id, kind, canonicalBehavior := id.value ++ "/meaning-v1" }
   lawWitnesses := []
 }
