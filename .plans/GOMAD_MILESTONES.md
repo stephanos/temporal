@@ -122,7 +122,10 @@ the pack, and delete gomad, gomad1, gomad2, and the parity manifest.
   `gomad3` workflow, and the root go.mod `require` and `replace` for `github.com/temporalio/gomad`
   only if `tools/gomad2` survives as the parity reference. If gomad2 goes, the parity manifest
   under `tools/gomad3/simulation/parity` loses its source paths and must be retired in the same
-  change.
+  change. **Resolved: fn-81 took the second branch** — gomad2 was deleted and the parity manifest
+  was retired in the same commit, along with its `script_policy.go` check, the
+  `tools/gomad3integration` parity assertions, and the README and glossary entries that described
+  it.
 - `tools/gomad`, `tools/gomad1` and, if the parity manifest is retired, `tools/gomad2` are
   deleted as fn-81 specifies. gomad1 has no `go.mod`, so its 54,590 lines compile into every
   root-module build today for zero callers.

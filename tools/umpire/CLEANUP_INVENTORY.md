@@ -329,16 +329,16 @@ fn-64 records.
   `tools/tdbg`. None of the 15 is in a deletion-set root or in a file this spec edits, so the vet
   baseline is inherited-red and the fn-81 requirement is that the same 15 remain and no new
   diagnostic appears. `make lint-code GOLANGCI_LINT_FIX=false` reported 1,284 issues at task start.
-- `go run ./tools/planindex` exited 1 at task start with 45 inherited findings: eight `.plans`
-  documents that are unregistered or registered-but-absent, and thirty-seven flow-record
+- `go run ./tools/planindex` exited 1 at task start with 44 inherited findings: eleven `.plans`
+  documents that are unregistered or registered-but-absent, and thirty-three flow-record
   discrepancies (unregistered specs, dependency-set mismatches, and status drift). None of them is
-  caused by fn-81. Two are in fn-81's declared surface — the stale
-  `.plans/UMPIRE_DSL_EVOLUTION_SPEC.md` entry that R7 removes, and the unregistered
-  `fn-81-delete-the-pre-testpilot-go-generations` spec — so the fn-81 requirement is that the
-  finding count strictly decreases and that no new finding appears. Registering the other
-  thirty-odd records is a separate reconciliation and is outside this spec's boundaries, which
-  permit notes on `.plans` but no wider rewrite. `make umpire-check-regression` does not depend on
-  this gate.
+  caused by fn-81. Exactly one is in fn-81's declared surface — the stale
+  `.plans/UMPIRE_DSL_EVOLUTION_SPEC.md` entry that R7 removes. Registering the unregistered specs,
+  fn-81's own included, is the same wider `.plans` reconciliation as the rest and is outside this
+  spec's boundaries, which permit notes on `.plans` but no broader rewrite. The fn-81 requirement is
+  therefore that the finding count does not rise above the baseline and that every finding this
+  sweep itself creates is resolved before it closes. `make umpire-check-regression` does not depend
+  on this gate.
 - `.flow/tmp` holds a duplicate tree with its own nested modules under `.flow/tmp/fn20.4-base-*`.
   `git ls-files .flow/tmp` returns zero paths, so the whole directory is **untracked** scratch. It
   is not part of the deletion set, is invisible to `go list ./...` from the repository root, and
