@@ -89,6 +89,17 @@ query cancellation on raceLifecycle
   in cancellationRace
   limits raceTrace
 
+/- The same second lifecycle also carries the verify form, which claims the requirement over every
+trace the Behavior admits instead of selecting one. -/
+query cancellationVerified on raceLifecycle
+  all cancellationSettles
+  in cancellationRace
+  limits raceTrace
+
+#guard (do
+  let checked ← cancellationVerified.toOption
+  pure (checked.witness.isNone && checked.query.claim == .verifiedWithinLimits)) == some true
+
 /- The second lifecycle's derived identities come from its own spellings, its witness runs the whole
 three-step trace against a two-clause Property, and the Behavior admits only the three Actions it
 names while the model declares four. Admission canonicalizes clause order, so the checked clauses
@@ -109,7 +120,8 @@ read in sorted-ID order rather than declaration order. -/
 
 #guard (do
   let checked ← cancellation.toOption
-  pure (checked.witness.trace.steps.map (·.resultingState.value) ==
+  let selected ← checked.witness
+  pure (selected.trace.steps.map (·.resultingState.value) ==
       ["running", "cancelRequested", "canceled"] &&
     checked.behavior.allowedActions ==
       [raceLifecycle.actionIdAt 1, raceLifecycle.actionIdAt 2, raceLifecycle.actionIdAt 3] &&
