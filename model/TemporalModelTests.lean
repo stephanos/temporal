@@ -4,6 +4,7 @@ import Temporal.Feature.Nexus.LifecycleTests
 import Temporal.Feature.Nexus.ObservationTests
 import Temporal.Feature.Nexus.OperationsTests
 import Temporal.Feature.Nexus2.Tests
+import Temporal.Feature.Nexus3.RaceSyntaxTests
 import Temporal.Feature.Nexus3.Tests
 import Temporal.Feature.Nexus3.Tests.TypedNexus
 import Temporal.Feature.Nexus3.Tests.TypedUnary
