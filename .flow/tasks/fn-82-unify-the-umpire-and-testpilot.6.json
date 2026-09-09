@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T05:33:46.567783Z",
+  "depends_on": [
+    "fn-82-unify-the-umpire-and-testpilot.5"
+  ],
+  "id": "fn-82-unify-the-umpire-and-testpilot.6",
+  "priority": null,
+  "spec": "fn-82-unify-the-umpire-and-testpilot",
+  "spec_path": ".flow/tasks/fn-82-unify-the-umpire-and-testpilot.6.md",
+  "status": "todo",
+  "title": "Evidence, Case.Projection, Variations, and Inventory",
+  "updated_at": "2026-09-09T05:33:46.567783Z"
+}

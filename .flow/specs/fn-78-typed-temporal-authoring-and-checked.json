@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-73-explicit-environment-binding-for"
+    "fn-73-explicit-environment-binding-for",
+    "fn-82-unify-the-umpire-and-testpilot"
   ],
   "id": "fn-78-typed-temporal-authoring-and-checked",
   "impl_review_rounds": {
@@ -637,5 +638,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-08T09:12:27.676407Z"
+  "updated_at": "2026-09-09T05:23:40.630055Z"
 }

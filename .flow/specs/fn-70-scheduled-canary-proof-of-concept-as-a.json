@@ -10,7 +10,8 @@
     "fn-68-minimal-nexus3-success-demonstration",
     "fn-72-extract-the-reusable-temporal-testpilot",
     "fn-73-explicit-environment-binding-for",
-    "fn-78-typed-temporal-authoring-and-checked"
+    "fn-78-typed-temporal-authoring-and-checked",
+    "fn-82-unify-the-umpire-and-testpilot"
   ],
   "id": "fn-70-scheduled-canary-proof-of-concept-as-a",
   "impl_review_rounds": {},
@@ -79,5 +80,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-08T13:58:42.756277Z"
+  "updated_at": "2026-09-09T05:23:39.525636Z"
 }
