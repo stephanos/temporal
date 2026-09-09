@@ -43,7 +43,7 @@ instance : DecidableEq (ActionInstance template limits) := fun a b =>
     isTrue (a.ext b h)
   else isFalse (fun equal => h (congrArg (fun a => a.arguments.value) equal))
 
-/-- Instance identity includes the complete selected schema and exact canonical value tree. -/
+/-- Instance identity includes the selected operation and the exact canonical value tree. -/
 def ActionInstance.canonical (action : ActionInstance template limits) : String :=
   Canonical.key (sequence [textData template.identity.value,
     Canonical.rpcSchema (owner.schema template.declaration.reference), action.arguments.value])
