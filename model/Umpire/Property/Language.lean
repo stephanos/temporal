@@ -335,7 +335,23 @@ inductive PropertyScopedEndpoint where
   | runtimePrefix
   deriving BEq, DecidableEq, Repr
 
-/-- A bounded response captures one immutable operation key in declared execution scope. -/
+/-- One named per-operation capture: the operation key it belongs to, the checked field coordinates
+whose exact value each occurrence retains, and how many occurrences that operation may retain.
+Occurrences are numbered from zero in admission order, so a correlation operand names an exact
+earlier occurrence rather than an implicit latest match. -/
+structure PropertyScopedCapture where
+  name : DefinitionId
+  key : DefinitionId
+  path : PropertyFieldPath
+  lifetime : Nat
+  deriving BEq, DecidableEq, Repr
+
+/-- A bounded response captures one immutable operation key in declared execution scope.
+`captures` names the operation-local values retained at each admitted step, and `correlation` is
+the precondition — typically relating this step's request fields to an earlier captured occurrence
+— that every labeled transition must satisfy to be one of the operation's semantic steps. The
+correlation never supplies a trigger or a response; the bounded countdown stays exactly the one
+its trigger and response patterns describe. -/
 structure PropertyScopedClause where
   id : DefinitionId
   source : SourceLocation
@@ -346,6 +362,8 @@ structure PropertyScopedClause where
   clock : PropertyScopedClock
   bound : Nat
   endpoint : PropertyScopedEndpoint
+  captures : List PropertyScopedCapture := []
+  correlation : Option PropertyPredicate := none
   deriving BEq, DecidableEq, Repr
 
 structure PropertyDeclaration where

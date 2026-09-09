@@ -21,9 +21,14 @@ inductive Error where
   | property (error : Property.Scoped.Error)
   deriving BEq, DecidableEq, Repr
 
-/-- The consumer's binding comes from the admitted projector, never a second authored scope. -/
+/-- The consumer's binding comes from the admitted projector, never a second authored scope.
+The evidence projector supplies no typed field values, so a clause that declares keyed captures is
+rejected here rather than admitted into a run whose captures could never bind. -/
 def compile (plan : Projection.Checked target) (property : CheckedProperty) (limits : Limits) :
-    Except Error (Compiled target) :=
+    Except Error (Compiled target) := do
+  if let some clause := property.scopedClauses.find? fun clause =>
+      !clause.declaration.captures.isEmpty || clause.correlation.isSome then
+    throw (.property (.unsupported clause.declaration.id "keyed field captures without evidence projection"))
   (Property.Scoped.compile target property plan.scopeFields plan.operationField limits).mapError
     Error.property
 
