@@ -200,6 +200,13 @@ private def stream (steps : List (Option (Property.Scoped.Transition × List Pro
   stepOf firstCase .poll (recorded := undeclaredOperation),
   stepOf firstCase .complete]).bind linkAnswers == some [2]
 
+-- The Link admits the two identities the model declares, not this operation's own: a correlation
+-- operand cannot name the scope key. An operation keyed for the first Nexus operation whose
+-- scheduled evidence recorded the second one therefore passes the Link, and the authored field
+-- requirement below is what separates them.
+#guard (stream [stepOf firstCase .schedule (recorded := secondOperation),
+  stepOf firstCase .complete]).bind linkAnswers == some [2]
+
 -- Captures are operation-local: the second operation's scheduled evidence never reaches the first
 -- operation's store, so an identity tampered with in one operation cannot rescue or break the other.
 #guard (stream [stepOf firstCase .schedule (recorded := undeclaredOperation),
@@ -274,6 +281,15 @@ private def segmentsOf (path : Except String FieldPath) : Option (List (String �
 /-! ### The Case -/
 
 #guard typedNexusCase.isOk
+
+-- The bounded-response window has no runtime counterpart in this Case, and the Case's provenance
+-- records that Known Gap against the Property it belongs to.
+#guard match typedNexusCase.toOption.bind (·.provenance) with
+  | some provenance =>
+      (String.fromUTF8? provenance.producer_data).any fun payload =>
+        (payload.splitOn "bounded-completion-is-model-only").length == 2 &&
+        (payload.splitOn linkPropertyId.value).length ≥ 2
+  | none => false
 
 #guard match typedNexusCase with
   | .ok output =>

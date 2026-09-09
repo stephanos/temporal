@@ -9,6 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-77-typed-operations-parameterized-actions",
   "impl_review_rounds": {
+    "fn-77-typed-operations-parameterized-actions.10": 0,
     "fn-77-typed-operations-parameterized-actions.12": 0,
     "fn-77-typed-operations-parameterized-actions.5": 0,
     "fn-77-typed-operations-parameterized-actions.6": 0,
@@ -769,9 +770,86 @@
       "task": "fn-77-typed-operations-parameterized-actions.9",
       "timestamp": "2026-09-09T05:40:46.025700Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "78fc23fc146c6da542a178f828e5f75f12e1ca31eeea268d14b71032e21b6b29",
+      "backend": "claude",
+      "base_sha": "2c77b700f98b98fb746ba615b6fbd96fc500163c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-14c3ef8235b260958c4fd8c60364653d",
+            "classification": "introduced",
+            "findingId": "finding-14c3ef8235b260958c4fd8c60364653d",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-2191d2817d575986e8248b8fd007dcff",
+            "classification": "introduced",
+            "findingId": "finding-2191d2817d575986e8248b8fd007dcff",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-09c6fcbaa73c7f9b20aa4ffd9a9fd8c2",
+            "classification": "introduced",
+            "findingId": "finding-09c6fcbaa73c7f9b20aa4ffd9a9fd8c2",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c9c2fe4e505720732b07fbbce68a5716",
+            "classification": "introduced",
+            "findingId": "finding-c9c2fe4e505720732b07fbbce68a5716",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-01ac6939b2c6acbbdb503f04206f25ba",
+            "classification": "introduced",
+            "findingId": "finding-01ac6939b2c6acbbdb503f04206f25ba",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "09feba23f697e5f4e4d5ce95d12fe5e4409cf26b",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 8441,
+      "output_sha256": "7a9d99b762cce1a08ba8445c00e80b08916b012b593fc51e3184d2c77811c4a7",
+      "reservation_id": "2fed47c724fb447b8a978bb775c3233c",
+      "round_consumed": true,
+      "scope": "impl:fn-77-typed-operations-parameterized-actions.10",
+      "superseded_by": null,
+      "task": "fn-77-typed-operations-parameterized-actions.10",
+      "timestamp": "2026-09-09T06:53:02.373292Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-77-typed-operations-parameterized-actions.10": 1,
     "impl:fn-77-typed-operations-parameterized-actions.12": 2,
     "impl:fn-77-typed-operations-parameterized-actions.5": 1,
     "impl:fn-77-typed-operations-parameterized-actions.6": 1,
@@ -784,6 +862,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-77-typed-operations-parameterized-actions.10": 0,
     "impl:fn-77-typed-operations-parameterized-actions.12": 0,
     "impl:fn-77-typed-operations-parameterized-actions.5": 0,
     "impl:fn-77-typed-operations-parameterized-actions.6": 0,
@@ -806,5 +885,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:40:46.030084Z"
+  "updated_at": "2026-09-09T06:53:02.378137Z"
 }
