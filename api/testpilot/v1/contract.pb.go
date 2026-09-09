@@ -931,9 +931,9 @@ func (x *ContractTransitionDefinition) GetCaptureAssignments() []*ContractCaptur
 // reaches it; that coordinate is derived from the recording host's clock, so a bound
 // expressed in it is host-clock dependent.
 // rule_events expires the rule after that many Run Events were evaluated by the rule since
-// its last transition into a new state. The counter resets on each such transition, keeps
-// counting while execution is incomplete (expiry stays suppressed there), and stops once
-// the rule reaches a terminal state.
+// its last transition into a new state. The counter resets on each such transition and stops
+// once the rule reaches a terminal state. It also freezes, with every other rule effect, once
+// execution becomes incomplete, so no expiry is ever concluded from a truncated Run.
 type ContractHorizonDefinition struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	ElapsedMilliseconds int64                  `protobuf:"varint,1,opt,name=elapsed_milliseconds,json=elapsedMilliseconds,proto3" json:"elapsed_milliseconds,omitempty"`

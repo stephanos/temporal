@@ -243,7 +243,7 @@ func (a *admission) bindStates(m *machine) error {
 			return invalid(ir.Malformed, "liveness requires exactly one positive horizon bound")
 		}
 		if !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
-			return invalid(ir.Malformed, "liveness requires positive horizon and violated target")
+			return invalid(ir.Malformed, "liveness requires a violated horizon target")
 		}
 	} else if rule.Horizon != nil {
 		return invalid(ir.Malformed, "safety rule cannot declare a liveness horizon")
