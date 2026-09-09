@@ -32,6 +32,7 @@ type capturedValue struct {
 }
 type ruleState struct {
 	state    int
+	events   int64
 	captures map[string]capturedValue
 	support  []int64
 }
@@ -160,6 +161,11 @@ func (e *Evaluator) Observe(ctx context.Context, event *testpilotspb.RunEvent) (
 	support := false
 	for _, change := range changes {
 		state := &e.rules[change.rule]
+		if change.state != state.state {
+			// The event-count horizon measures events since the rule's last transition into a
+			// new state, so entering one restarts the count.
+			state.events = 0
+		}
 		state.state = change.state
 		for id, value := range change.captures {
 			state.captures[id] = value
@@ -250,7 +256,7 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 		return nil, err
 	}
 	cost.work++
-	if m.source.Horizon != nil && event.ElapsedMilliseconds >= m.source.Horizon.ElapsedMilliseconds {
+	if horizonReached(&e.rules[i], m.source.Horizon, event) {
 		if incomplete {
 			return nil, nil
 		}
@@ -286,6 +292,23 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 	}
 	return nil, nil
 }
+// horizonReached advances the rule's event-count horizon for the one event the rule is
+// evaluating and reports whether the declared bound is now reached. It is the single owner of
+// the counter: the online Evaluator.Observe path and the offline PreparedContract.Evaluate path
+// both reach it through nextChange, so neither can tick on its own terms. A rule that already
+// sits in a terminal state never reaches here, which is where counting stops. The elapsed bound
+// keeps its host-clock comparison; admission guarantees exactly one bound is positive.
+func horizonReached(state *ruleState, horizon *testpilotspb.ContractHorizonDefinition, event *testpilotspb.RunEvent) bool {
+	if horizon == nil {
+		return false
+	}
+	if horizon.RuleEvents > 0 {
+		state.events++
+		return state.events >= horizon.RuleEvents
+	}
+	return event.ElapsedMilliseconds >= horizon.ElapsedMilliseconds
+}
+
 func (e *Evaluator) stageCaptures(state ruleState, tr *testpilotspb.ContractTransitionDefinition, event *testpilotspb.RunEvent, observations map[string]*testpilotspb.Value, cost *eventEvaluation) (map[string]capturedValue, error) {
 	captures := map[string]capturedValue{}
 	for _, assignment := range tr.CaptureAssignments {

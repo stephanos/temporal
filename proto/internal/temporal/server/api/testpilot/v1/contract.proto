@@ -46,7 +46,19 @@ message ContractTransitionDefinition {
   ContractSupportKind support_kind = 6;
   repeated ContractCaptureAssignment capture_assignments = 7;
 }
-message ContractHorizonDefinition { int64 elapsed_milliseconds = 1; string violation_state_id = 2; }
+// ContractHorizonDefinition bounds one liveness rule. Exactly one bound is positive.
+// elapsed_milliseconds expires the rule at the first Run Event whose elapsed coordinate
+// reaches it; that coordinate is derived from the recording host's clock, so a bound
+// expressed in it is host-clock dependent.
+// rule_events expires the rule after that many Run Events were evaluated by the rule since
+// its last transition into a new state. The counter resets on each such transition, keeps
+// counting while execution is incomplete (expiry stays suppressed there), and stops once
+// the rule reaches a terminal state.
+message ContractHorizonDefinition {
+  int64 elapsed_milliseconds = 1;
+  string violation_state_id = 2;
+  int64 rule_events = 3;
+}
 
 // ContractRuleDefinition is one finite deterministic safety or bounded-liveness monitor machine.
 message ContractRuleDefinition {

@@ -237,7 +237,12 @@ func (a *admission) bindStates(m *machine) error {
 	}
 	if rule.Kind == testpilotspb.CONTRACT_RULE_KIND_BOUNDED_LIVENESS {
 		target, exists := m.states[rule.Horizon.GetViolationStateId()]
-		if rule.Horizon.GetElapsedMilliseconds() <= 0 || !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
+		// Exactly one bound carries the horizon, so a rule never expires on two clocks at once.
+		elapsed, events := rule.Horizon.GetElapsedMilliseconds(), rule.Horizon.GetRuleEvents()
+		if elapsed < 0 || events < 0 || (elapsed > 0) == (events > 0) {
+			return invalid(ir.Malformed, "liveness requires exactly one positive horizon bound")
+		}
+		if !exists || rule.States[target].Status != testpilotspb.CONTRACT_STATE_STATUS_VIOLATED {
 			return invalid(ir.Malformed, "liveness requires positive horizon and violated target")
 		}
 	} else if rule.Horizon != nil {
