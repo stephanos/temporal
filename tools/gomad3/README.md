@@ -598,12 +598,13 @@ the Darwin assembly bridge, and denies raw socket options deterministically.
 
 ## Simulation contract
 
-`simulation/parity/manifest.json` is the canonical SIM-0 behavioral contract.
-It maps thirteen Gomad v2 behaviors to named v3 cases, exact source
-tests, intentional replacement decisions, delivery stages, limits, and
-backend/fidelity requirements. All thirteen cases are implemented through
-sixteen declared in-process and process prototypes, including process evidence
-for fresh arbitrary package globals and hard isolation.
+The SIM-0 behavioral contract was `simulation/parity/manifest.json`, which mapped
+thirteen Gomad v2 behaviors to named v3 cases by citing exact source tests under
+`tools/gomad2/`. It was removed by fn-81 together with the Gomad v2 tree it
+cited, so every one of its source paths would now dangle. The thirteen cases it
+tracked remain implemented through the sixteen in-process and process prototypes
+described below, including process evidence for fresh arbitrary package globals
+and hard isolation.
 
 The root `tools/gomad3sim` package defines the no-dependency application
 harness. Its v6 schemas provide bounded specs, stable node and incarnation
