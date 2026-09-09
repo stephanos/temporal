@@ -4,8 +4,10 @@
 Proposed binding syntax. Read `Nexus.md` first. This file keeps identity conventions, execution
 choices, and evidence interpretation out of the feature-facing model. Both Markdown files remain
 design specimens; the checked success-only completion Producer lives in `Testpilot.lean`.
-Nexus operation cancellation in this draft is explicitly deferred to fn-79. No cancellation Target,
-evidence adapter, operation capability, or Case is delivered by the generic scoped qualification.
+Nexus operation cancellation in this draft is explicitly deferred to fn-79. The generic scoped
+qualification delivers no scheduled-only cancellation Target, evidence adapter, operation
+capability, or Case; *Current support and reuse* below says why the historical already-started
+Target is not one either.
 
 ## Admission and identity
 
@@ -25,19 +27,34 @@ Nested declarations use their named owner to disambiguate them. Examples:
 
 Here "stable" means unchanged across builds, comment edits, and declaration reordering. A rename
 changes the derived ID, including the IDs of declarations whose relative names contain that owner.
-The Nexus3 demonstration has no compatibility overrides or aliases; generated consumers regenerate
-after a rename.
+The checked success demonstration — `Nexus.lean` and the Producer in `Testpilot.lean` — has no
+compatibility overrides or aliases at all: derivation is its only identity source, and generated
+consumers regenerate after a rename.
+
+The broader draft keeps one optional escape from that default, so a rename need not break an
+existing consumer: an individual declaration may carry an explicit compatibility ID instead of its
+derived one. It is described here, not offered — no override spelling, alias table, or registry is
+proposed, and the success syntax above accepts no such input. Its intended meaning is narrow:
+
+* Declaration-local. An override names exactly one declaration and does not cascade to the
+  declarations it owns. A renamed clause, occurrence, state, or relation derives normally from its
+  owner's current name unless it carries an override of its own.
+* Identity only. An override preserves the ID a consumer addresses. It does not freeze that
+  declaration's Behavior Fingerprint, its source-bound provenance, or any other checked meaning.
+* Ordinary admission. An override is an authored ID like any other, judged on the same grounds.
 
 Admission must reject malformed IDs, duplicate or conflicting declarations, ambiguous references,
-and wrong-kind references before planning or Case production. Derivation does not use
-source positions, declaration order, or enum numeric ordinals. Semantic fingerprints still come
-from checked meaning, including outcome alternatives, action roles, scope, and bounds. Identity
-never supplies missing transitions or makes a Property pass.
+and wrong-kind references before planning or Case production — overridden and derived IDs alike,
+so an override can neither introduce a colliding identity nor rescue a rejected one. Derivation
+does not use source positions, declaration order, or enum numeric ordinals. Semantic fingerprints
+still come from checked meaning, including outcome alternatives, action roles, scope, and bounds;
+changed meaning changes the fingerprint whether or not the ID was overridden. Identity never
+supplies missing transitions or makes a Property pass.
 
-Authors provide no identity or version input for these declarations. Generated
-`DefinitionMetadata` retains Umpire's format version `1` because Target admission and artifact
-provenance consume that core field; `Temporal.Shared.definitionMetadata` supplies it outside the
-Nexus3 syntax.
+Authors provide no identity or version input in the delivered success syntax; the override above is
+proposed for the broader draft only. Generated `DefinitionMetadata` retains Umpire's format
+version `1` because Target admission and artifact provenance consume that core field;
+`Temporal.Shared.definitionMetadata` supplies it outside the Nexus3 syntax.
 
 The produced Testpilot Case has a separate wire version. The checked completion selection emits one
 Case 1.0 Program whose symbolic namespace, task-queue, and Nexus endpoint IDs are stable resource
@@ -83,9 +100,11 @@ cannot be reused unchanged for this meaning.
 Ordinary timed Contract rules use elapsed milliseconds. The generic version-one scoped Contract
 capability now counts admitted operation transitions, with checked lowering through
 `Umpire.Case.Scoped.lower`; there is no implicit conversion to milliseconds, instruction counts,
-or raw Run Event counts. This is qualified by non-cancellation typed fixtures through public
-Prepare/Run. Cancellation progress still rejects at Case production because the cancellation
-Target, evidence adapter, and operation capability remain deferred to fn-79. A Known Gap must not turn that requested Property into a weaker timed Property.
+or raw Run Event counts. That generic capability is delivered, and non-cancellation typed fixtures
+qualify it through public Prepare/Run. Only its cancellation-specific use is still unsupported:
+cancellation progress rejects at Case production because the scheduled-only cancellation Target,
+its evidence adapter, and the operation capability remain deferred to fn-79. A Known Gap must not
+turn that requested Property into a weaker timed Property.
 Separately configured execution timeouts close unresolved evaluation as inconclusive, not as
 proof that the model's one-step requirement was violated.
 
@@ -109,6 +128,14 @@ and satisfied Contract meaning; only their Profile binding fingerprints and Driv
 Nexus2's finite admission and typed authoring helpers are candidates for reuse. Its baseline
 allows a started setup and immediate cancellation; its race starts already running. Neither
 Target can substitute for the scheduled-only, request-then-resolution model here unchanged.
+
+`Cancellation.lean` is one such reuse already taken: it derives a separate Target from
+`Nexus2.Race` and adds the explicit terminal closure that Race lacks. It is a historical
+already-started slice, not this draft's Target — it begins at a running operation rather than a
+scheduled one, and it carries Nexus2's own states, Actions, and identities. It is checked at model
+admission only: it has no evidence adapter, no operation-level cancellation capability, and no
+Case, so it qualifies no runtime behavior and satisfies none of the scheduled-only cancellation
+contract deferred to fn-79. Its presence is not cancellation support here.
 
 The selected cancellation mechanism is the workflow SDK cancellation function from the dedicated
 `workflow.WithCancel` context used to start this operation. `tests/nexus_workflow_test.go` uses
