@@ -169,9 +169,13 @@ func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
 // resource binding identifies the queue, so the instruction carries no queue of its own.
 func (a *admission) bindFault(g *graph, n *node) error {
 	fault := n.source.Instruction.GetInjectFault()
-	if fault == nil || fault.Kind < testpilotspb.FAULT_KIND_WORKER_STOP || fault.Kind > testpilotspb.FAULT_KIND_WORKER_RESUME ||
-		a.roles[fault.RoleId] != testpilotspb.ROLE_KIND_TASK_QUEUE {
-		return invalid(ir.Malformed, nodePath(g, n), "fault injection requires a declared task-queue role and a known fault kind")
+	if fault == nil || fault.Kind < testpilotspb.FAULT_KIND_WORKER_STOP || fault.Kind > testpilotspb.FAULT_KIND_WORKER_RESUME {
+		return invalid(ir.Malformed, nodePath(g, n), "fault injection requires a known fault kind")
+	}
+	// The role check does not go through a.role: a fault aimed at the wrong role kind is a
+	// malformed instruction, not an unknown role reference.
+	if a.roles[fault.RoleId] != testpilotspb.ROLE_KIND_TASK_QUEUE {
+		return invalid(ir.Malformed, nodePath(g, n), "fault injection requires a declared task-queue role")
 	}
 	return nil
 }

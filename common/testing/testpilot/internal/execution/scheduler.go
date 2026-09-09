@@ -781,7 +781,7 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 	// A realized fault is recorded as its own fact, so a Contract can reference the outage rather
 	// than infer it from the instruction that requested it. A requested-but-unrealized fault
 	// never reaches here, which is what keeps intent distinguishable from evidence.
-	if n := task.activation.values.graph.nodes[task.index]; n.opcode == InjectFault && kind == testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED {
+	if n := task.activation.values.graph.nodes[task.index]; n.opcode == InjectFault && batch.outcome.GetStatus() == testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED {
 		fault := n.source.Instruction.GetInjectFault()
 		facts = append(facts, &testpilotspb.RunEvent{
 			Kind:            testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED,
