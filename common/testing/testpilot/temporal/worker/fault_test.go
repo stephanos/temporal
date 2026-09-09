@@ -293,11 +293,12 @@ func TestFaultTransitionsTheNamedQueue(t *testing.T) {
 // fatal suppression and skip the resume-before-release step for the rest of the Run.
 func TestFaultResumeRecordsTheStartedWorkerEvenWhenTheDeadlinePasses(t *testing.T) {
 	starts := 0
+	slow := make(chan struct{})
 	registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
 		return &fakeManagedWorker{start: func() error {
 			starts++
 			if starts > 1 {
-				time.Sleep(30 * time.Millisecond)
+				<-slow
 			}
 			return nil
 		}}, nil
@@ -308,8 +309,9 @@ func TestFaultResumeRecordsTheStartedWorkerEvenWhenTheDeadlinePasses(t *testing.
 	group := registry.groups[groupKey("fault", "queue", true)]
 	stoppedWorker := group.worker
 
-	ctx, cancel := context.WithTimeout(t.Context(), 10*time.Millisecond)
+	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
 	defer cancel()
+	go func() { <-ctx.Done(); close(slow) }()
 	require.ErrorIs(t, lease.resumeWorker(ctx, "queue"), context.DeadlineExceeded)
 	require.False(t, group.stopped)
 	require.NotSame(t, stoppedWorker, group.worker)
@@ -468,6 +470,25 @@ func TestFaultValidationAgreesWithOpen(t *testing.T) {
 	})
 	require.ErrorIs(t, host.Validate(t.Context(), workerless), ErrInvalid)
 	_, err = host.prepareDefinition(workerless)
+	require.ErrorIs(t, err, ErrInvalid)
+
+	// A fault on a task-queue role no worker registers on has nothing to stop, so it is refused
+	// here rather than at dispatch, where a rejected instruction would abort the whole Run.
+	unregistered := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
+		program.Environment = append(program.Environment, &testpilotspb.EnvironmentDefinition{BindingId: "other-queue"})
+		program.Roles = append(program.Roles, &testpilotspb.RoleDefinition{RoleId: "idle-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "other-queue"})
+		program.Entrypoints[0].Instructions = append(program.Entrypoints[0].Instructions, &testpilotspb.InstructionDefinition{
+			InstructionId: "stop",
+			Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: "idle-queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}},
+			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
+		})
+	}, func(profile *testpilot.ProfileSpec) {
+		profile.Capabilities = append(profile.Capabilities, testpilot.InjectFault)
+		profile.Roles = append(profile.Roles, testpilot.RolePolicy{ID: "idle-queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
+		profile.EnvironmentBindings = append(profile.EnvironmentBindings, testpilot.EnvironmentBinding{ID: "other-queue", Value: "other-queue"})
+	})
+	require.ErrorIs(t, host.Validate(t.Context(), unregistered), ErrInvalid)
+	_, err = host.prepareDefinition(unregistered)
 	require.ErrorIs(t, err, ErrInvalid)
 }
 

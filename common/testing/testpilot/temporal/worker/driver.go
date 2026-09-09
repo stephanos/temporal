@@ -279,6 +279,14 @@ func (h *Driver) prepareDefinitionResources(snapshot *testpilotspb.Program, plan
 	if err := definition.addRegistrations(queueNexus); err != nil {
 		return programDefinition{}, err
 	}
+	// A fault can only reach a queue this Program registers a worker on. Admitting one that names
+	// any other task-queue role would defer the refusal to dispatch, where a rejected instruction
+	// aborts the Run instead of failing on its own.
+	for _, queue := range definition.faultQueues {
+		if !slices.ContainsFunc(definition.registrations, func(registration queueRegistration) bool { return registration.queue == queue }) {
+			return programDefinition{}, ErrInvalid
+		}
+	}
 	if requireWorker && (len(definition.entries) == 0 || len(definition.registrations) == 0) {
 		return programDefinition{}, ErrInvalid
 	}
