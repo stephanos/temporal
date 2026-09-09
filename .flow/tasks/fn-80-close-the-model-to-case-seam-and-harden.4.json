@@ -1,11 +1,13 @@
 {
   "created_at": "2026-09-09T03:22:55.326862Z",
-  "depends_on": [],
+  "depends_on": [
+    "fn-80-close-the-model-to-case-seam-and-harden.14"
+  ],
   "id": "fn-80-close-the-model-to-case-seam-and-harden.4",
   "priority": null,
   "spec": "fn-80-close-the-model-to-case-seam-and-harden",
   "spec_path": ".flow/tasks/fn-80-close-the-model-to-case-seam-and-harden.4.md",
   "status": "todo",
   "title": "Route the Nexus3 Producer through checked scoped lowering",
-  "updated_at": "2026-09-09T14:14:32.161687Z"
+  "updated_at": "2026-09-09T16:42:35.262848Z"
 }
