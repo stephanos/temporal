@@ -16,7 +16,7 @@ set once more on the finished tree.
 - Earlier tasks respelled tokens in these documents to keep the gate green; this task rewrites them so they read as one description of the tree: the import map in `model/ARCHITECTURE.md`, the facade table and the Model ownership table in `model/Umpire/ARCHITECTURE.md:20-75`, the authoring walkthrough and the command list in `model/README.md`, and the `Case production` and `Runtime handoff` sections. Keep every statement checkable against the code (memory: golden fields updated by vocabulary alone do not prove ownership statements match executable interfaces).
 - `.plans/UMPIRE4_ORDER.md`: add the fn-82 entry with its dependencies and the retired-name policy; respell the Nexus2/Nexus3 and `temporal-testpilot` mentions.
 - Audit `buildRetiredRules` against the spec's vocabulary table and every task's retired list; add any compound still missing.
-- Run the full set: `make lint-model`, `make umpire-check-regression`, `make lint-protos`, `go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...`, and `go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'`.
+- Run the full set: `make lint-model`, `make umpire-check-regression`, `make buf-breaking`, `make lint-protos`, `go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...`, and `go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'`.
 
 ### Investigation targets
 **Required** (read before coding):
@@ -30,14 +30,11 @@ set once more on the finished tree.
 ### Key context
 - No new CI workflow and no generated-API drift gate (declined-concept ledger).
 - Historical `.plans` documents other than `UMPIRE4_SPEC.md` and `UMPIRE4_ORDER.md` are not edited.
-
 ## Acceptance
 - [ ] The three model documents and the roadmap describe the tree under the new vocabulary with no retired compound and every named module or declaration present in the tree
 - [ ] `buildRetiredRules` contains every compound name the spec's vocabulary table retires
-- [ ] `make lint-model`, `make umpire-check-regression`, `make lint-protos`, the Go packages under `tools/umpire`, the Testpilot facade, and the fixture package, and the tagged live selector all pass on the finished tree
+- [ ] `make lint-model`, `make umpire-check-regression`, `make buf-breaking`, `make lint-protos`, the Go packages under `tools/umpire`, the Testpilot facade, and the fixture package, and the tagged live selector all pass on the finished tree
 - [ ] `.plans/UMPIRE4_ORDER.md` carries the fn-82 entry
-
-
 ## Done summary
 TBD
 

@@ -33,7 +33,7 @@ Fingerprint.
 
 Some vocabulary is dead weight: `Umpire.ExecutionHandoff` (no production consumer),
 `Umpire.Target.Language` (zero declarations), `Shared/Transition.lean` and `Shared/TraceReplay.lean`
-(no importer), the `Umpire.Case` alias family (test-only consumers, each file says "remove this
+(imported only by the `Shared` facade, which nothing imports), the `Umpire.Case` alias family (test-only consumers, each file says "remove this
 alias"), five `DefinitionKind` constructors that exist only to be rejected, a 142-structure duplicate
 Testpilot mirror inside `Temporal.API` with zero consumers, `TieBreakPolicy` and `PropertyScopedClock`
 with one constructor each, and `QueryQuantifier` plus `QueryClaim`, both derivable from `QueryForm`.
@@ -117,9 +117,11 @@ that reserve them are removed. New rules are drafted under new IDs for GOV-02 ap
 concept, the retired-vocabulary gate as the enforcement point, and the glossary resolution check.
 
 A Go test under `tools/umpire` reads the spec, extracts every backticked `Umpire.*`, `Testpilot.*`,
-`Temporal.*`, and `Shared.*` name, and asserts it resolves in the Lean source inventory that
-`Tools.LeanSourceInventory` already produces. A planned term is exempt only while its owning spec is
-open.
+`Temporal.*`, and `Shared.*` name, and asserts it resolves against an index built by scanning
+`model/**/*.lean`: module names from file paths, plus qualified declaration names from
+`namespace`, `structure`, `inductive`, `class`, `abbrev`, `def`, `theorem`, `macro`, and `syntax`
+heads. The mechanical check covers backticked dotted names; whether prose terms are defined once
+stays a review judgment. A planned term is exempt only while its owning spec is open.
 
 ### R2 model core
 
@@ -141,7 +143,7 @@ namespace already lives. `Umpire/Core.lean` renames `TransitionKernel` to `Machi
 field on five records to `behaviorVersion`, since it holds a version tag. `TargetDeclaration` merges
 into `ModelSpec` with `providers` and `connectors` defaulting to empty. Exactly two checking entry
 points remain per owner: `checkModel` returning `Except` and `model` requiring proof;
-`composeTarget` becomes private and the four `checkTarget` variants collapse.
+`composeTarget` becomes the private `composeModel` and the four `checkTarget` variants collapse.
 
 Deleted: `TargetBehaviorClosure`, `DefinitionKind.{experimentSpace,variationAxis,choice,fault,coverageGoal}`,
 `Shared/Transition.lean`, `Shared/TraceReplay.lean`, and `Umpire/OutcomeClassification/` as a
@@ -183,7 +185,9 @@ become `{before,after}`. `PropertyLimit`, `PropertyLimitProfile`, `PropertyScope
 `QueryForm` constructors become `verify`, `find`, `findViolation`, `pick`, with matching JSON
 spellings; `verify` keeps its name because `check` is the construction method on every authored
 record and the two would collide inside the `Query` namespace. `QueryQuantifier`, `QueryClaim`,
-and `TieBreakPolicy` are deleted. `QueryLimits` and `BehaviorPhaseLimits` flatten to one `Limits`
+and `TieBreakPolicy` are deleted. `QueryEndpoint` becomes `Query.Ending` with `partial`,
+`final`, `terminal`; it keeps a name distinct from the two-valued `TraceEnding` on correlated
+rules because it carries a third value. `QueryLimits` and `BehaviorPhaseLimits` flatten to one `Limits`
 record with `steps`, `actions`, `search`. `LimitUnit` becomes `steps`, `actions`, `logicalTime`,
 `search`, `plans`; `observationPositions` has three consumers and is deleted rather than renamed,
 so `facts` stays a step field and a model keyword only.
@@ -335,9 +339,12 @@ instead of silently dropping it from the scan, the two stale entries in `downstr
 (a deleted fn-28 id and a misspelled fn-33 id) are corrected, and the open specs that carry
 retired names (fn-46, fn-70, fn-74, fn-78, fn-79) join the list. Every later task adds the names
 it retires to the gate and respells every scanned code, doc, fixture, and open spec occurrence in
-the same commit, because the gate scans all of them in one pass. The proto breaking check gains
-an `ignore` entry for the internal testpilot package in `proto/internal/buf.yaml`, so
-`lint-protos` stays green through the R4 rename.
+the same commit, because the gate scans all of them in one pass. The gate's scan roots gain
+`model/Testpilot` and `model/Shared`, which hold `Testpilot/Scoped.lean` and the two
+`Shared/Scoped*.lean` modules and are unscanned today. The proto breaking check gains an
+`ignore` entry for the internal testpilot package in `proto/internal/buf.yaml`, so
+`make buf-breaking` (the target that runs `develop/buf-breaking.sh`; `lint-protos` only lints)
+stays green through the R4 rename.
 `model/ModelLint/ImportGraph.lean` and its tests are updated for every moved or renamed module,
 including `semanticRoots`, `isTargetForbiddenDestination` (now the Model prefix), the
 `semanticInventoryIsolation` rule (now `inventoryIsolation`), the Implementation Link exception,
@@ -434,9 +441,10 @@ with the keyword set in R6.
   `Umpire.Target` prefix, `Umpire.OutcomeClassification`, `Umpire.SemanticInventory`,
   `Temporal.ImplementationLinkTests.Nexus`, and the Verify modules; the Makefile `lint-model`
   target asserts one exact diagnostic string. Every module move edits both in the same task.
-- **Proto breaking lint.** `lint-protos` runs `develop/buf-breaking.sh`, which has no
+- **Proto breaking check.** `make buf-breaking` runs `develop/buf-breaking.sh`, which has no
   per-package switch; the exclusion lives in `proto/internal/buf.yaml` as a breaking `ignore`
   entry for the testpilot package, added by the gate task so the check stays green.
+  `lint-protos` runs `buf lint` only and is not evidence for breaking compatibility.
 - **Byte conflicts with open specs.** fn-80 tasks .1 to .9 and fn-77 tasks .9 to .11 edit the
   protos, the Go facade, `Umpire/Target`, `Umpire/Property`, `Umpire/Query`, `Umpire/Space`,
   `Umpire/Case`, the Nexus3 tree, the three model documents, the Makefile, and the retired gate;
@@ -463,6 +471,7 @@ make lint-model
 make umpire-check-regression
 make umpire-check-case-runtime-conformance
 make umpire-check-retired-vocabulary
+make buf-breaking
 CGO_ENABLED=0 go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/...
 go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'
 ```
@@ -470,9 +479,10 @@ go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'
 ## Acceptance Criteria
 <!-- scope: both -->
 
-- **R1:** `.plans/UMPIRE4_SPEC.md` defines each term in the vocabulary table once, every
-  backticked module or declaration name in it resolves against the Lean source inventory through a
-  Go test under `tools/umpire`, doc-only terms are removed or marked planned with an open owning
+- **R1:** `.plans/UMPIRE4_SPEC.md` defines each term in the vocabulary table once (a review
+  judgment), every backticked module or declaration name in it resolves against a Go-built index
+  of `model/**/*.lean` module and declaration heads through a test under `tools/umpire` (the
+  mechanical check), doc-only terms are removed or marked planned with an open owning
   spec, the retired rules sit in an appendix with their IDs intact, and the new vocabulary rules
   carry new IDs awaiting GOV-02 approval. Errors: a backticked name that does not resolve fails the
   test; a planned term whose owning spec is closed fails the test.
@@ -492,20 +502,22 @@ go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'
   `PlanResult`, `SearchView`, `Branch*`, and `Overlap*`; `Plan` and `Plan.Steps` replace
   `ExperimentSpec` and `DrivePlan` while the wire identifiers are byte-identical;
   `ExecutionHandoff`, `QueryQuantifier`, `QueryClaim`, `TieBreakPolicy`, `QueryAuthoringInput`,
-  and `PropertyScopedClock` no longer exist. Errors: `bounded_response%`, `behavior%`, `witness`,
-  `.runtimePrefix`, and `.deliberatelyClosed` are rejected by the retired gate; a Property with an
-  ambiguous branch group still reports the same `Overlap*` finding under its new name.
+  and `PropertyScopedClock` no longer exist; `Umpire.Provenance.DefinitionKind.behavior` is
+  `scenario`. Errors: `bounded_response%`, `behavior%`, `BehaviorDeclaration`, and
+  `QueryDeclaration` are rejected by the retired gate; a Property with an ambiguous branch group
+  still reports the same `Overlap*` finding under its new name.
 - **R4:** the proto package has no `Scoped*` name, `ContractDeadline` replaces the horizon message,
   `await_instruction` matches its message, `outcome.proto` is gone, `Testpilot.Protocol`
   re-elaborates from a clean Lake target, `Temporal.API` no longer mirrors the testpilot package
   through the new `--skip-package` flag, the `Umpire.Case` alias family and `Umpire.Case.ProtoJSON`
   are deleted, `Umpire.Provenance` holds the producer-owned types, `Testpilot.Authoring.Contract`
-  builds both rule kinds, Go exposes `Opcode` and `Opcodes`, `lint-protos` passes with the buf
-  ignore entry, and the sixteen regenerated Case fixtures (three example files and thirteen
+  builds both rule kinds, Go exposes `Opcode` and `Opcodes`, `make buf-breaking` passes with the
+  buf ignore entry, and the sixteen regenerated Case fixtures (three example files and thirteen
   conformance files) pass the conformance and live gates with unchanged Verdicts. Errors:
   `TestProtocolUsesCohesivePublicVocabulary` rejects every retired proto name including the
   twenty-four `Scoped*` names; a Case carrying a `scoped` field fails to decode; the retired gate
-  rejects `Capability` as a Go opcode type.
+  rejects `ScopedContract`, `runtimePrefix`, `deliberatelyClosed`, `SlotBridge`, and
+  `ProfileSpec.Capabilities`.
 - **R5:** `Umpire.Evidence` holds the offline evaluator, `Umpire.Case.Projection` holds the live
   seam with `Fact` as its type parameter, `UnmappedSource` replaces the mislabeled Known Gap,
   `Umpire.Variations` replaces `Umpire.Space`, `Umpire.Inventory` and `model/INVENTORY.md`
@@ -525,9 +537,10 @@ go test -tags 'test_dep integration' ./tests -run 'TestTestpilot|TestUmpire'
   `candidate_evaluations` are macro errors naming the replacement keyword; `temporal.nexus3`,
   `temporal.nexus2`, `Temporal.Feature.Nexus2`, and `Temporal.Feature.Nexus3` in any live source
   fail the retired gate.
-- **R7:** the gate fails closed on a missing scanned file and its `downstreamSpecs` list names
-  only existing open specs before any rename lands; `make lint-model`,
-  `make umpire-check-regression`, `make lint-protos`, the Go packages under the Testpilot facade
+- **R7:** the gate fails closed on a missing scanned file, scans `model/Testpilot` and
+  `model/Shared`, and its `downstreamSpecs` list names only existing open specs before any rename
+  lands; `make lint-model`, `make umpire-check-regression`, `make buf-breaking`, the Go packages
+  under the Testpilot facade
   and `tools/umpire`, and the tagged live selector pass after every task; the retired gate contains
   every compound name this spec retires; `ModelLint` has no Verify reservation and no
   `ImplementationLinkTests` exception; the three model documents and `UMPIRE4_ORDER.md` describe
@@ -634,6 +647,14 @@ Two open specs with every task done, fn-75 and fn-76, state contracts this spec 
 (`composeTarget` and `checkTarget` retained; `Umpire.SemanticInventory.Types`). Neither is in the
 gate's scan list, so nothing fails, but both should be closed by their owner rather than amended.
 fn-61 and fn-63 are historical records and untouched.
+
+`Branch` is one concept on purpose: `Umpire.Property.Branch` is the guarded alternative an author
+writes, and `Umpire.Search.Branches` analyzes exactly those branches, so `BranchReport` and
+`BranchFinding` describe Property branches rather than a second family.
+
+fn-74 and fn-78 are open in Flow while the roadmap lists them as completed cutovers. The gate task
+adds them to the scan list, so every later task respells them too; closing them first would
+shrink the sweep and is the owner's call.
 
 The declined-concept ledger entry on generated API drift verification applies: this spec adds a
 `--skip-package` flag and a goldens writer to existing generators and regenerates existing
