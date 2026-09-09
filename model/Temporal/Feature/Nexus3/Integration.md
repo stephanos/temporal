@@ -37,8 +37,8 @@ derived one. It is described here, not offered — no override spelling, alias t
 proposed, and the success syntax above accepts no such input. Its intended meaning is narrow:
 
 * Declaration-local. An override names exactly one declaration and does not cascade to the
-  declarations it owns. A renamed clause, occurrence, state, or relation derives normally from its
-  owner's current name unless it carries an override of its own.
+  declarations it owns. A clause, occurrence, state, or relation under a renamed owner keeps
+  deriving from that owner's current name unless it carries an override of its own.
 * Identity only. An override preserves the ID a consumer addresses. It does not freeze that
   declaration's Behavior Fingerprint, its source-bound provenance, or any other checked meaning.
 * Ordinary admission. An override is an authored ID like any other, judged on the same grounds.
