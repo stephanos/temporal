@@ -10,6 +10,7 @@
   "id": "fn-77-typed-operations-parameterized-actions",
   "impl_review_rounds": {
     "fn-77-typed-operations-parameterized-actions.10": 0,
+    "fn-77-typed-operations-parameterized-actions.11": 0,
     "fn-77-typed-operations-parameterized-actions.12": 0,
     "fn-77-typed-operations-parameterized-actions.5": 0,
     "fn-77-typed-operations-parameterized-actions.6": 0,
@@ -846,10 +847,40 @@
       "task": "fn-77-typed-operations-parameterized-actions.10",
       "timestamp": "2026-09-09T06:53:02.373292Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "66c372c0d7d43d396d03011a2ef83bbc7ef8cbcbdb5169273165a9fe590dab46",
+      "backend": "claude",
+      "base_sha": "9e7af61f612a897c50d8420c813954bfc514d39d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "261c0af12665c1a0f6aa9cc551abcb95a2eb3d4f",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 5744,
+      "output_sha256": "6fb2b1d8bd3e080d4cba5c83d26f0431a6694724bf9eeaf6cab7619de26dc9bc",
+      "reservation_id": "b45a816d394f431b908b5e0432420990",
+      "round_consumed": true,
+      "scope": "impl:fn-77-typed-operations-parameterized-actions.11",
+      "superseded_by": null,
+      "task": "fn-77-typed-operations-parameterized-actions.11",
+      "timestamp": "2026-09-09T08:20:30.410624Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-77-typed-operations-parameterized-actions.10": 1,
+    "impl:fn-77-typed-operations-parameterized-actions.11": 1,
     "impl:fn-77-typed-operations-parameterized-actions.12": 2,
     "impl:fn-77-typed-operations-parameterized-actions.5": 1,
     "impl:fn-77-typed-operations-parameterized-actions.6": 1,
@@ -863,6 +894,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-77-typed-operations-parameterized-actions.10": 0,
+    "impl:fn-77-typed-operations-parameterized-actions.11": 0,
     "impl:fn-77-typed-operations-parameterized-actions.12": 0,
     "impl:fn-77-typed-operations-parameterized-actions.5": 0,
     "impl:fn-77-typed-operations-parameterized-actions.6": 0,
@@ -885,5 +917,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T06:53:02.378137Z"
+  "updated_at": "2026-09-09T08:20:30.413467Z"
 }
