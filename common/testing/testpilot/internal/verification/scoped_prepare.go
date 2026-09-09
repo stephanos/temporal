@@ -139,7 +139,9 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 	if err := add(&a.states, int64(len(states)), limits.MaxStates); err != nil {
 		return err
 	}
-	kinds, retained := map[string]bool{}, map[string]bool{}
+	// A field two rules declare at different kinds has no single type a comparison could be checked
+	// against, so reading it rejects rather than comparing values of different kinds.
+	kinds, retained, ambiguous := map[string]bool{}, map[string]testpilotspb.ScalarKind{}, map[string]bool{}
 	for _, r := range s.ProjectionRules {
 		if !validID(r.Kind) || kinds[r.Kind] {
 			return invalid(ir.Malformed, "invalid or repeated scoped evidence kind")
@@ -180,13 +182,19 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 			// Only a field this projection actually retains carries a value a capture or a
 			// correlation operand can read.
 			if f.Disposition == testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN {
-				retained[f.FieldId] = true
+				if declared, seen := retained[f.FieldId]; seen && declared != f.GetType().GetKind() {
+					ambiguous[f.FieldId] = true
+				}
+				retained[f.FieldId] = f.GetType().GetKind()
 			}
 		}
 	}
 	if int64(len(seen)+len(s.Clauses)) > limits.MaxRules {
 		return invalid(ir.LimitExceeded, "combined rule count exceeds ceiling")
 	}
+	// Capture identities are one namespace across the capability: a retained occurrence is named by
+	// its capture id and ordinal alone, so two clauses declaring one id would alias the same stream.
+	declared := map[string]bool{}
 	for _, c := range s.Clauses {
 		if !validID(c.ClauseId) || seen[c.ClauseId] {
 			return invalid(ir.Malformed, "invalid clause provenance")
@@ -195,15 +203,17 @@ func (a *admission) bindScoped(seen map[string]bool) error {
 		if c.Clock != testpilotspb.SCOPED_CLOCK_OPERATION_TRANSITIONS || c.Bound < 0 || c.Endpoint < testpilotspb.SCOPED_ENDPOINT_RUNTIME_PREFIX || c.Endpoint > testpilotspb.SCOPED_ENDPOINT_DELIBERATELY_CLOSED || !validPredicate(c.Trigger, true) || !validPredicate(c.Response, false) {
 			return invalid(ir.Unknown, fmt.Sprintf("unsupported scoped clause %s", c.ClauseId))
 		}
-		captures := map[string]int64{}
+		captures := map[string]scopedCapture{}
 		for _, d := range c.Captures {
-			if !validID(d.CaptureId) || captures[d.CaptureId] != 0 || !validID(d.FieldId) || d.Lifetime <= 0 || !retained[d.FieldId] {
+			kind, ok := retained[d.FieldId]
+			if !validID(d.CaptureId) || declared[d.CaptureId] || !validID(d.FieldId) || d.Lifetime <= 0 || !ok || ambiguous[d.FieldId] {
 				return invalid(ir.Malformed, fmt.Sprintf("invalid capture declaration in scoped clause %s", c.ClauseId))
 			}
-			captures[d.CaptureId] = d.Lifetime
+			declared[d.CaptureId] = true
+			captures[d.CaptureId] = scopedCapture{lifetime: d.Lifetime, kind: kind}
 		}
 		if c.Correlation != nil {
-			if err := validCorrelation(c.Correlation, retained, captures, l.MaxCorrelationDepth); err != nil {
+			if err := validCorrelation(c.Correlation, retained, ambiguous, captures, l.MaxCorrelationDepth); err != nil {
 				return err
 			}
 		}
@@ -231,32 +241,58 @@ func validScopedLiteral(v *testpilotspb.Value) bool {
 	}
 }
 
-func validOperand(o *testpilotspb.ScopedOperand, retained map[string]bool, captures map[string]int64) error {
+// scopedCapture is one clause's declared capture: how many occurrences an operation retains and the
+// declared scalar kind every occurrence carries.
+type scopedCapture struct {
+	lifetime int64
+	kind     testpilotspb.ScalarKind
+}
+
+func scopedLiteralKind(v *testpilotspb.Value) testpilotspb.ScalarKind {
+	switch v.GetValue().(type) {
+	case *testpilotspb.Value_Text:
+		return testpilotspb.SCALAR_KIND_TEXT
+	case *testpilotspb.Value_Natural:
+		return testpilotspb.SCALAR_KIND_NATURAL
+	case *testpilotspb.Value_BoolValue:
+		return testpilotspb.SCALAR_KIND_BOOLEAN
+	default:
+		return testpilotspb.SCALAR_KIND_UNSPECIFIED
+	}
+}
+
+// validOperand reports the operand's declared scalar kind, so a comparison is checked against the
+// types the projection declares instead of comparing values of different kinds.
+func validOperand(o *testpilotspb.ScopedOperand, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]scopedCapture) (testpilotspb.ScalarKind, error) {
 	switch v := o.GetOperand().(type) {
 	case *testpilotspb.ScopedOperand_Literal:
 		if !validScopedLiteral(v.Literal) {
-			return invalid(ir.TypeMismatch, "unsupported correlation literal")
+			return 0, invalid(ir.TypeMismatch, "unsupported correlation literal")
 		}
-		return nil
+		return scopedLiteralKind(v.Literal), nil
 	case *testpilotspb.ScopedOperand_FieldId:
-		if !validID(v.FieldId) || !retained[v.FieldId] {
-			return invalid(ir.Malformed, "unretained correlation field operand")
+		kind, ok := retained[v.FieldId]
+		if !validID(v.FieldId) || !ok {
+			return 0, invalid(ir.Malformed, "unretained correlation field operand")
 		}
-		return nil
+		if ambiguous[v.FieldId] {
+			return 0, invalid(ir.TypeMismatch, "ambiguous retained field type")
+		}
+		return kind, nil
 	case *testpilotspb.ScopedOperand_Capture:
-		lifetime := captures[v.Capture.GetCaptureId()]
-		if lifetime == 0 || v.Capture.GetOrdinal() < 0 || v.Capture.GetOrdinal() >= lifetime {
-			return invalid(ir.Malformed, "unbound capture reference")
+		declaration, ok := captures[v.Capture.GetCaptureId()]
+		if !ok || v.Capture.GetOrdinal() < 0 || v.Capture.GetOrdinal() >= declaration.lifetime {
+			return 0, invalid(ir.Malformed, "unbound capture reference")
 		}
-		return nil
+		return declaration.kind, nil
 	default:
-		return invalid(ir.Unknown, "unsupported correlation operand")
+		return 0, invalid(ir.Unknown, "unsupported correlation operand")
 	}
 }
 
 // validCorrelation checks the whole condition under the declared depth ceiling. An exhausted depth
 // is an explicit rejection, never a silently truncated condition.
-func validCorrelation(c *testpilotspb.ScopedCorrelation, retained map[string]bool, captures map[string]int64, depth int64) error {
+func validCorrelation(c *testpilotspb.ScopedCorrelation, retained map[string]testpilotspb.ScalarKind, ambiguous map[string]bool, captures map[string]scopedCapture, depth int64) error {
 	if depth <= 0 {
 		return invalid(ir.LimitExceeded, "correlation depth exhausted")
 	}
@@ -270,10 +306,18 @@ func validCorrelation(c *testpilotspb.ScopedCorrelation, retained map[string]boo
 		if v.Comparison.GetOperator() < testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL || v.Comparison.GetOperator() > testpilotspb.SCOPED_COMPARISON_OPERATOR_NOT_EQUAL {
 			return invalid(ir.Unknown, "unsupported comparison operator")
 		}
-		if err := validOperand(v.Comparison.GetLeft(), retained, captures); err != nil {
+		left, err := validOperand(v.Comparison.GetLeft(), retained, ambiguous, captures)
+		if err != nil {
 			return err
 		}
-		return validOperand(v.Comparison.GetRight(), retained, captures)
+		right, err := validOperand(v.Comparison.GetRight(), retained, ambiguous, captures)
+		if err != nil {
+			return err
+		}
+		if left != right {
+			return invalid(ir.TypeMismatch, "incompatible correlation operand types")
+		}
+		return nil
 	case *testpilotspb.ScopedCorrelation_All, *testpilotspb.ScopedCorrelation_Any:
 		operands := c.GetAll().GetOperands()
 		if c.GetAny() != nil {
@@ -283,7 +327,7 @@ func validCorrelation(c *testpilotspb.ScopedCorrelation, retained map[string]boo
 			return invalid(ir.Malformed, "empty correlation group")
 		}
 		for _, operand := range operands {
-			if err := validCorrelation(operand, retained, captures, depth-1); err != nil {
+			if err := validCorrelation(operand, retained, ambiguous, captures, depth-1); err != nil {
 				return err
 			}
 		}

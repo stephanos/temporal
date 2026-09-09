@@ -54,6 +54,9 @@ how many occurrences one operation keeps. Occurrences are numbered from zero in 
 structure Capture where
   id : Name
   field : Name
+  /-- The declared scalar kind of the retained field, so a comparison reading this capture is
+  checked against the same type the projection declares. -/
+  kind : Nat
   lifetime : Nat
   deriving BEq, DecidableEq
 
@@ -115,6 +118,9 @@ private def predicate (value : ScopedPredicate) : Except String Predicate := do
     | _ => throw "unsupported predicate constraint"
   pure ⟨field, ⟨value.definition_id⟩, equalsText⟩
 
+private def scalarKind : Scalar → Nat
+  | .text _ => 1 | .natural _ => 2 | .boolean _ => 3
+
 private def wireScalar (wire : temporal.server.api.testpilot.v1.Value) : Except String Scalar := do
   if !wire.«Unknown.Fields».isEmpty then throw "unknown scalar field"
   match wire.value with
@@ -126,17 +132,29 @@ private def wireScalar (wire : temporal.server.api.testpilot.v1.Value) : Except 
   | some (.bool_value value) => pure (.boolean value)
   | _ => throw "unsupported evidence scalar"
 
-/-- One correlation operand, checked against the declarations that can supply it: a literal decodes
-to an exact admitted scalar, a field must be one this projection retains, and a capture reference
-must name a capture this clause declared at an ordinal its lifetime keeps. -/
-private def operand (retained : List Name) (captures : List Capture)
-    (wire : ScopedOperand) : Except String Operand := do
+/-- The one declared scalar kind of a retained evidence field. A field two projection rules declare
+at different kinds has no single type a comparison could be checked against, so reading it rejects
+rather than comparing values of different kinds. -/
+private def retainedKind (retained : List (Name × Nat)) (id : Name) : Except String Nat :=
+  match (retained.filter (·.1 == id)).map Prod.snd |>.eraseDups with
+  | [kind] => .ok kind
+  | [] => .error "unretained correlation field operand"
+  | _ => .error "ambiguous retained field type"
+
+/-- One correlation operand with its declared scalar kind, checked against the declarations that can
+supply it: a literal decodes to an exact admitted scalar, a field must be one this projection
+retains, and a capture reference must name a capture this clause declared at an ordinal its lifetime
+keeps. -/
+private def operand (retained : List (Name × Nat)) (captures : List Capture)
+    (wire : ScopedOperand) : Except String (Operand × Nat) := do
   if !wire.«Unknown.Fields».isEmpty then throw "unknown operand field"
   match wire.operand with
-  | some (.literal value) => pure (.literal (← wireScalar value))
+  | some (.literal value) =>
+      let value ← wireScalar value
+      pure (.literal value, scalarKind value)
   | some (.field_id id) =>
-      if !validId id || !retained.contains ⟨id⟩ then throw "unretained correlation field operand"
-      pure (.field ⟨id⟩)
+      if !validId id then throw "unretained correlation field operand"
+      pure (.field ⟨id⟩, ← retainedKind retained ⟨id⟩)
   | some (.capture reference) =>
       if !reference.«Unknown.Fields».isEmpty || !validId reference.capture_id then
         throw "invalid capture reference"
@@ -144,13 +162,13 @@ private def operand (retained : List Name) (captures : List Capture)
       let some declaration := captures.find? (·.id == ⟨reference.capture_id⟩)
         | throw "unbound capture reference"
       if ordinal ≥ declaration.lifetime then throw "capture ordinal beyond declared lifetime"
-      pure (.capture ⟨reference.capture_id⟩ ordinal)
+      pure (.capture ⟨reference.capture_id⟩ ordinal, declaration.kind)
   | _ => throw "unsupported correlation operand"
 
 mutual
 /-- Decode one correlation node under the declared depth ceiling. An exhausted depth is an explicit
 rejection, never a silently truncated condition. -/
-private def correlationOf (retained : List Name) (captures : List Capture) (depth : Nat)
+private def correlationOf (retained : List (Name × Nat)) (captures : List Capture) (depth : Nat)
     (wire : ScopedCorrelation) : Except String Correlation :=
   match depth with
   | 0 => throw "correlation depth exhausted"
@@ -164,8 +182,10 @@ private def correlationOf (retained : List Name) (captures : List Capture) (dept
           | .SCOPED_COMPARISON_OPERATOR_EQUAL => pure true
           | .SCOPED_COMPARISON_OPERATOR_NOT_EQUAL => pure false
           | _ => throw "unsupported comparison operator"
-        pure (.comparison equal (← operand retained captures (← required value.left))
-          (← operand retained captures (← required value.right)))
+        let (left, leftKind) ← operand retained captures (← required value.left)
+        let (right, rightKind) ← operand retained captures (← required value.right)
+        if leftKind != rightKind then throw "incompatible correlation operand types"
+        pure (.comparison equal left right)
     | some (.all group) => do
         if !group.«Unknown.Fields».isEmpty || group.operands.isEmpty then
           throw "empty correlation group"
@@ -177,7 +197,7 @@ private def correlationOf (retained : List Name) (captures : List Capture) (dept
     | _ => throw "unsupported correlation condition"
   termination_by (depth, 0)
 
-private def correlationsOf (retained : List Name) (captures : List Capture) (depth : Nat)
+private def correlationsOf (retained : List (Name × Nat)) (captures : List Capture) (depth : Nat)
     (wires : List ScopedCorrelation) : Except String Correlations :=
   match wires with
   | [] => pure .nil
@@ -261,10 +281,16 @@ def decode (wire : ScopedContract) : Except String Compiled := do
   -- Only a field this projection actually retains can supply a capture or a correlation operand;
   -- redacted and rejected fields carry no value to read.
   let retainedFields := (policies.flatMap fun rule =>
-    rule.2.filterMap fun field => if field.2.2 == 1 then some field.1 else none).eraseDups
+    rule.2.filterMap fun field =>
+      if field.2.2 == 1 then some (field.1, field.2.1) else none).eraseDups
   -- A capability that declares neither captures nor a correlation leaves both ceilings unset and
   -- keeps its exact existing encoding and meaning.
-  let capturesDeclared := wire.clauses.toList.any (!·.captures.isEmpty)
+  -- Capture identities are one namespace across the capability: a retained occurrence is named by
+  -- its capture id and ordinal alone, so two clauses declaring one id would alias the same stream.
+  let declaredCaptures := wire.clauses.toList.flatMap (·.captures.toList.map (·.capture_id))
+  if !declaredCaptures.isEmpty && !uniqueIds declaredCaptures then
+    throw "invalid capture identities"
+  let capturesDeclared := !declaredCaptures.isEmpty
   let correlationDeclared := wire.clauses.toList.any (·.correlation.isSome)
   let captureLimit ← if capturesDeclared then positive limits.max_captures
     else natural limits.max_captures
@@ -280,14 +306,13 @@ def decode (wire : ScopedContract) : Except String Compiled := do
     let trigger ← predicate (← required clause.trigger)
     let response ← predicate (← required clause.response)
     if trigger.field != 1 || response.field < 2 then throw "unsupported clause"
-    if !clause.captures.isEmpty && !uniqueIds (clause.captures.toList.map (·.capture_id)) then
-      throw "invalid capture identities"
     let captures ← clause.captures.toList.mapM fun declaration => do
       if !declaration.«Unknown.Fields».isEmpty || !validId declaration.capture_id ||
           !validId declaration.field_id then throw "invalid capture declaration"
-      if !retainedFields.contains ⟨declaration.field_id⟩ then
-        throw "capture names an unretained evidence field"
-      pure (Capture.mk ⟨declaration.capture_id⟩ ⟨declaration.field_id⟩
+      let kind ← (retainedKind retainedFields ⟨declaration.field_id⟩).mapError fun reason =>
+        if reason == "unretained correlation field operand" then
+          "capture names an unretained evidence field" else reason
+      pure (Capture.mk ⟨declaration.capture_id⟩ ⟨declaration.field_id⟩ kind
         (← positive declaration.lifetime))
     let correlation ← clause.correlation.mapM (correlationOf retainedFields captures depthLimit)
     pure (Clause.mk clause.clause_id (← natural clause.bound) deliberatelyClosed trigger response,
@@ -339,9 +364,6 @@ def eventSize (event : Event) : Nat :=
     event.parents.foldl (fun size parent => size + identitySize parent) 0 +
     event.fields.foldl (fun size field => size + field.id.value.length +
       (field.value.map Scalar.size).getD 1) 0
-
-private def scalarKind : Scalar → Nat
-  | .text _ => 1 | .natural _ => 2 | .boolean _ => 3
 
 /-- Validate scope, field authority and evidence support before transactional projection. -/
 def Compiled.validateEvent (compiled : Compiled) (scope : List (Name × String)) (event : Event) :

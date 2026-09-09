@@ -56,6 +56,8 @@ private def capture (lifetime : Nat := 2) (field := "requested") (id := "seen") 
 private def literal (text : String) : ScopedOperand :=
   { operand := some (.literal { value := some (.text text) }) }
 private def field (id : String) : ScopedOperand := { operand := some (.field_id id) }
+private def natural (text : String) : ScopedOperand :=
+  { operand := some (.literal { value := some (.natural text) }) }
 private def retained (ordinal : Nat) (id := "seen") : ScopedOperand :=
   { operand := some (.capture { capture_id := id, ordinal := number ordinal }) }
 
@@ -78,8 +80,9 @@ private def correlation (ordinal : Nat := 0) : ScopedCorrelation :=
 
 private def clause (bound : Nat) (captures : Array ScopedCaptureDeclaration := #[capture])
     (requirement : Option ScopedCorrelation := some (correlation))
-    (endpoint := ScopedEndpoint.SCOPED_ENDPOINT_RUNTIME_PREFIX) : ScopedClause := {
-  clause_id := "response", clock := .SCOPED_CLOCK_OPERATION_TRANSITIONS
+    (endpoint := ScopedEndpoint.SCOPED_ENDPOINT_RUNTIME_PREFIX) (clauseId := "response") :
+    ScopedClause := {
+  clause_id := clauseId, clock := .SCOPED_CLOCK_OPERATION_TRANSITIONS
   bound := number bound, endpoint
   trigger := some {
     field := .SCOPED_PREDICATE_FIELD_ACTION, definition_id := "action"
@@ -234,6 +237,36 @@ private def valued (wire : temporal.server.api.testpilot.v1.Value) : ScopedEvide
   some "invalid evidence"
 #guard rejection (contract #[clause 1])
   [{ evidence 0 "request" "1" with fields := #[] }] == some "invalid evidence"
+
+-- A retained occurrence is named by its capture id and ordinal alone, so capture identities are one
+-- namespace across the capability: two clauses declaring one id would alias the same stream.
+#guard decodeError (contract #[clause 1, clause 1 (clauseId := "second")]) ==
+  some "invalid capture identities"
+#guard decodes (contract #[clause 1,
+  clause 1 (captures := #[capture (id := "other")])
+    (requirement := some (comparison (field "replied") (retained 0 "other"))) (clauseId := "second")])
+-- A correlation operand may only name a capture its own clause declared.
+#guard decodeError (contract #[clause 1 (captures := #[capture (id := "other")]),
+  clause 1 (captures := #[]) (requirement := some (comparison (field "replied") (retained 0 "other")))
+    (clauseId := "second")]) == some "unbound capture reference"
+
+-- Comparison operands must share one declared scalar kind: a value of a different kind is rejected
+-- rather than compared and found unequal.
+#guard decodeError (contract #[clause 1 (requirement := some
+  (comparison (field "replied") (natural "1")))]) == some "incompatible correlation operand types"
+private def naturalReply : ScopedFieldPolicy :=
+  { policy "replied" with type := some { kind := .SCALAR_KIND_NATURAL } }
+#guard decodeError (contract #[clause 1 (requirement := some
+  (comparison (field "replied") (retained 0)))]
+  (rules := #[requestRule, rule "reply" reply responded #[naturalReply], silentRule])) ==
+  some "incompatible correlation operand types"
+
+-- A field two rules declare at different kinds has no single type to check against.
+#guard decodeError (contract #[clause 1]
+  (rules := #[requestRule,
+    rule "reply" reply responded #[{ policy "requested" with
+      type := some { kind := .SCALAR_KIND_NATURAL } }], silentRule])) ==
+  some "ambiguous retained field type"
 
 -- A capability that declares neither captures nor a correlation keeps its exact prior meaning, and
 -- leaves both new ceilings unset.

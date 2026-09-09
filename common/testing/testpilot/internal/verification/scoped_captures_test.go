@@ -308,6 +308,49 @@ func TestScopedCapturePrepareRejectsUnsupportedDeclarations(t *testing.T) {
 			},
 			reason: "unsupported correlation literal",
 		},
+		"repeated-capture-id-across-clauses": {
+			mutate: func(s *testpilotspb.ScopedContract) {
+				second := proto.CloneOf(s.Clauses[0])
+				second.ClauseId = "second"
+				s.Clauses = append(s.Clauses, second)
+			},
+			reason: "invalid capture declaration",
+		},
+		"capture-of-another-clause": {
+			mutate: func(s *testpilotspb.ScopedContract) {
+				second := proto.CloneOf(s.Clauses[0])
+				second.ClauseId = "second"
+				second.Captures = nil
+				s.Clauses = append(s.Clauses, second)
+			},
+			reason: "unbound capture reference",
+		},
+		"mismatched-operand-kinds": {
+			mutate: func(s *testpilotspb.ScopedContract) {
+				s.Clauses[0].Correlation = scopedComparison(testpilotspb.SCOPED_COMPARISON_OPERATOR_EQUAL, scopedFieldOperand(repliedField), &testpilotspb.ScopedOperand{Operand: &testpilotspb.ScopedOperand_Literal{Literal: &testpilotspb.Value{Value: &testpilotspb.Value_Natural{Natural: "1"}}}})
+			},
+			reason: "incompatible correlation operand types",
+		},
+		"mismatched-capture-kind": {
+			mutate: func(s *testpilotspb.ScopedContract) {
+				for _, rule := range s.ProjectionRules {
+					if rule.Kind == "reply" {
+						rule.Fields[0].Type = &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_NATURAL}
+					}
+				}
+			},
+			reason: "incompatible correlation operand types",
+		},
+		"ambiguous-retained-field-kind": {
+			mutate: func(s *testpilotspb.ScopedContract) {
+				for _, rule := range s.ProjectionRules {
+					if rule.Kind == "reply" {
+						rule.Fields = append(rule.Fields, &testpilotspb.ScopedFieldPolicy{FieldId: capturedField, Type: &testpilotspb.ScalarType{Kind: testpilotspb.SCALAR_KIND_NATURAL}, Disposition: testpilotspb.SCOPED_FIELD_DISPOSITION_RETAIN})
+					}
+				}
+			},
+			reason: "invalid capture declaration",
+		},
 		"depth-exhausted": {
 			mutate: func(s *testpilotspb.ScopedContract) { s.Limits.MaxCorrelationDepth = 1 },
 			reason: "correlation depth exhausted",
