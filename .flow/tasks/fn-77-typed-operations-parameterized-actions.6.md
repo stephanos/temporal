@@ -40,9 +40,29 @@ Create and wire the proposed test module Umpire.Property.Tests.Scoped.Fields int
 - [ ] Extended checked correspondence composes with existing scoped proofs; old scoped fixtures and trust remain unchanged.
 
 ## Done summary
-TBD
+Keyed field captures now compose with the existing scoped bounded-response obligations without
+touching the countdown. `PropertyFieldPath` gained an optional `PropertyFieldCaptureKey`, so a
+capture operand names an exact earlier occurrence and resolves through the same operand path
+task 5 built; `PropertyScopedClause` gained default-empty `captures` declarations and an optional
+guard-context `correlation`, both canonicalized only when declared so existing scoped Properties
+keep their exact metadata and behavior fingerprint. `Umpire.Property.Scoped.Captures` is the
+append-only operation-local store, and its `record_extends` theorem proves a recorded ordinal is
+never rewritten -- a latest-match implementation does not compile. `Run.consume` gained same-step
+evidence: it gates admission on the correlation over that evidence plus the operation's retained
+captures, retains this step's occurrences only after the whole append was admitted, and charges
+retained values against a new `Limits.captures` budget. Future, unbound, ambiguous, wrong-key,
+wrong-coordinate and foreign-operation access all reject; a rejected append publishes no state and
+cannot repair a proved violation. `Run.consumeEvidence`/`consumeEvidence_append` carry chunk
+correspondence, and the evidence adapter and portable Case lowering reject keyed captures rather
+than silently dropping a correlation they cannot carry yet.
 
+Follow-up for task 7: portable/offline capture evaluation is the reason
+`Umpire/Observation/Evaluation/Scoped.lean` and `Umpire/Case/Scoped.lean` currently reject
+capture-bearing clauses. A capture's retained coordinates are also validated with no established
+presence facts, so an optional or oneof-selected field cannot yet be captured.
+
+stage: impl-review - ran [round 1 NEEDS_WORK (copilot/gpt-5.4) .. round 2 SHIP (copilot/gpt-5.4)]
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d5c3328267a1937daabe7f4209c152a852c69a51, fc9f6a27f3c1d29d8976d6e5c0b4fbbf5983700c
+- Tests: cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Property.Tests.Scoped.Evidence Umpire.Case.CompilerTests, cd model && mise exec -- lake build Umpire.Property.Tests.Scoped.Fields, cd model && mise exec -- lake build Umpire.Property.ImportTests Umpire.Query.Tests, mise exec -- make umpire-build-model, make lint-model (inherited red: 1 pre-existing unusedArguments diagnostic on Umpire.instReprPropertyFieldProjection, identical count verified at base 28189ca5), make lint-code not run: no Go changed; tracked red fn-2-agentworkflow-configuration-and-cli.6
 - PRs:
