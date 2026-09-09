@@ -21,7 +21,7 @@ type (
 		tracer    trace.Tracer
 		namespace string
 
-		// Workflow execution info for OTEL events observed by the umpire test observer.
+		// Workflow execution info carried on the OTEL events emitted below.
 		namespaceID string
 		workflowID  string
 		runID       string
@@ -118,8 +118,7 @@ func (i *instrumentation) stateChange(updateID string, from, to state) {
 	)
 }
 
-// emitAbortEvents emits OTEL span events for each aborted update so the
-// umpire test observer can track the abort.
+// emitAbortEvents emits one OTEL span event per aborted update.
 func (i *instrumentation) emitAbortEvents(workflowID string, updateIDs []string, reason AbortReason) {
 	_, span := i.tracer.Start(context.Background(), "update.abort")
 	defer span.End()
@@ -136,8 +135,7 @@ func (i *instrumentation) emitAbortEvents(workflowID string, updateIDs []string,
 }
 
 // emitUpdateLifecycleEvent emits an OTEL span event for an update state
-// transition so the umpire test observer can drive its WorkflowUpdate FSM.
-// eventName is one of the telemetry.EventWorkflowUpdate* constants.
+// transition. eventName is one of the telemetry.EventWorkflowUpdate* constants.
 func (i *instrumentation) emitUpdateLifecycleEvent(eventName, updateID string, extra ...attribute.KeyValue) {
 	_, span := i.tracer.Start(context.Background(), "update.lifecycle")
 	defer span.End()
@@ -150,8 +148,8 @@ func (i *instrumentation) emitUpdateLifecycleEvent(eventName, updateID string, e
 	span.AddEvent(eventName, trace.WithAttributes(append(attrs, extra...)...))
 }
 
-// emitWorkflowTerminatedEvent emits an OTEL span event so the umpire test
-// observer can transition WorkflowTask entities to a terminal state.
+// emitWorkflowTerminatedEvent emits an OTEL span event recording that the
+// workflow's tasks reached a terminal state.
 func (i *instrumentation) emitWorkflowTerminatedEvent(workflowID, runID, taskQueue string) {
 	_, span := i.tracer.Start(context.Background(), "workflow.terminated")
 	defer span.End()

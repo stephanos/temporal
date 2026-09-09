@@ -40,7 +40,6 @@ import (
 	"go.temporal.io/server/common/testing/testlogger"
 	"go.temporal.io/server/common/testing/testvars"
 	"go.temporal.io/server/temporal"
-	testmonitor "go.temporal.io/server/tests/testcore/monitor"
 )
 
 // shardSalt is used to distribute functional tests across shards.
@@ -128,20 +127,6 @@ func WithSpanExporter(exporter sdktrace.SpanExporter) TestOption {
 		o.dedicatedCluster = true
 		o.clusterOptions = append(o.clusterOptions, withSpanExporter(exporter))
 		o.dedicatedReason = "span exporter configured"
-	}
-}
-
-// WithUmpireMonitorFactory selects the Monitor implementation for a dedicated test cluster.
-func WithUmpireMonitorFactory[T testmonitor.Monitor](factory func(log.Logger) (T, error)) TestOption {
-	if factory == nil {
-		panic("Umpire monitor factory is required")
-	}
-	return func(o *testOptions) {
-		o.dedicatedCluster = true
-		o.dedicatedReason = "custom Umpire monitor used"
-		o.clusterOptions = append(o.clusterOptions, withUmpireMonitorFactory(func(logger log.Logger) (testmonitor.Monitor, error) {
-			return factory(logger)
-		}))
 	}
 }
 
@@ -391,13 +376,6 @@ func NewEnv(t *testing.T, opts ...TestOption) *TestEnv {
 		sdkWorkerTQ:        RandomizeStr("tq-" + t.Name()),
 		dedicatedGuard:     dedicatedGuard,
 	}
-	// Validate and purge this env's namespace against the monitor when the test
-	// ends. Registered here (not in the testify TearDownTest hook, which does not
-	// run for NewEnv-based tests) so every test env is checked and its data is
-	// dropped from the shared cluster's monitor.
-	t.Cleanup(func() {
-		env.CheckAndPurgeMonitor(t, nsID.String())
-	})
 	t.Cleanup(func() {
 		defer func() { dedicatedGuard = nil }()
 		if err := dedicatedGuard.validate(); err != nil && !t.Failed() {
