@@ -172,16 +172,11 @@ private def schemaIdentity (s : RpcSchema) : Option String := do
 private def selectedSchema := owner.schema (Request := Unit) (Response := Unit) ()
 #guard (schemaIdentity selectedSchema).isSome
 #guard schemaIdentity selectedSchema != schemaIdentity { selectedSchema with fullName := "example.Other" }
--- Version 2 identity names the selected operation instead of re-encoding the descriptor closure
--- that selection carries, so a payload key no longer separates two catalogs that publish the same
--- method under different descriptors, shared inputs or value shapes. Nothing weaker is admitted:
--- `checkRpc` rejects any candidate that is not exactly its own owner's selection, and a domain's
--- samples share one template, so the constant identity cannot collide two distinct requests.
-#guard schemaIdentity selectedSchema == schemaIdentity { selectedSchema with
+#guard schemaIdentity selectedSchema != schemaIdentity { selectedSchema with
   response := { schema with nodes := schema.nodes.map fun n => { n with descriptor := "new-descriptor" } } }
-#guard schemaIdentity selectedSchema == schemaIdentity { selectedSchema with
+#guard schemaIdentity selectedSchema != schemaIdentity { selectedSchema with
   schemaInputs := schema.nodes }
-#guard schemaIdentity selectedSchema == schemaIdentity { selectedSchema with
+#guard schemaIdentity selectedSchema != schemaIdentity { selectedSchema with
   response := { schema with nodes := schema.nodes.map fun n => { n with
     valueShape := some (.message [⟨1, "payload", .bytes, .singular, .required, none⟩]) } } }
 
