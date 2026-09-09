@@ -42,6 +42,15 @@ private def schema : Schema := ⟨"M", [{
 private def owner : RpcOwner where
   Witness _ _ := Unit
   schema _ := ⟨"example.Call", schema, schema, [], false, false⟩
+/-- Model state and semantic events are bound to their own generated authority, so a same-step
+context mixes operands whose owners, schemas and payload shapes all differ from the Action's. -/
+private def stateSchema : Schema := ⟨"S", [{
+  name := "S", protoSyntax := "proto3", descriptor := "s", fileContext := "", references := [],
+  valueShape := some (.message [
+    ⟨1, "count", .integer .int32, .singular, .implicit (.integer .int32 0), none⟩]) }]⟩
+private def stateOwner : RpcOwner where
+  Witness _ _ := Unit
+  schema _ := ⟨"example.State", stateSchema, stateSchema, [], false, false⟩
 private def limits : Limits := ⟨8, 10000, 1024, 100⟩
 private def template := do
   let binding ← checkRpc owner (Request := Unit) (Response := Unit) ()
@@ -50,14 +59,18 @@ private def template := do
 private def rootPath (root : PropertyFieldRoot) (reference : DefinitionId) : PropertyFieldPath :=
   ⟨root, reference, owner.schema (Request := Unit) (Response := Unit) (), .request,
     [.field "M" 1], .integer .int32⟩
+private def stateRootPath (root : PropertyFieldRoot) (reference : DefinitionId) : PropertyFieldPath :=
+  ⟨root, reference, stateOwner.schema (Request := Unit) (Response := Unit) (), .request,
+    [.field "S" 1], .integer .int32⟩
 private def requestPath := rootPath .request PropertyTests.requestCancel
-private def priorPath := rootPath .priorState PropertyTests.pendingCount
+private def priorPath := stateRootPath .priorState PropertyTests.pendingCount
+private def eventPath := stateRootPath .event PropertyTests.cancelDelivered
 private def resultPath := rootPath .outcome PropertyTests.deliveredOutcome
 private def context : PropertyCheckContext := { PropertyTests.context with
   fieldBindings := [PropertyFieldBinding.ofWitness owner (Request := Unit) (Response := Unit) ()
-    PropertyTests.requestCancel, PropertyFieldBinding.ofWitness owner (Request := Unit) (Response := Unit) ()
+    PropertyTests.requestCancel, PropertyFieldBinding.ofWitness stateOwner (Request := Unit) (Response := Unit) ()
     PropertyTests.pendingCount, PropertyFieldBinding.ofWitness owner (Request := Unit) (Response := Unit) ()
-    PropertyTests.deliveredOutcome, PropertyFieldBinding.ofWitness owner (Request := Unit) (Response := Unit) ()
+    PropertyTests.deliveredOutcome, PropertyFieldBinding.ofWitness stateOwner (Request := Unit) (Response := Unit) ()
     PropertyTests.cancelDelivered] }
 private def relation (left right : PropertyFieldPath) : PropertyPredicate := .atom {
   field := .selectedAction, reference := PropertyTests.requestCancel,
@@ -87,17 +100,27 @@ private def checkedValue (path : PropertyFieldPath) (count : Int) : Except Field
   let cursor ← cursor.refine (.integer .int32) .singular .available source
   if request : path.root = .request then requestProjection value cursor
   else PropertyFieldProjection.ofCursor path.root path.reference cursor request source
+private def stateValue (path : PropertyFieldPath) (count : Int) :
+    Except Field.Error (PropertyFieldProjection stateOwner (Request := Unit) (Response := Unit) ()) := do
+  let value ← (Value.check stateOwner (Request := Unit) (Response := Unit) () .request limits
+    (message "S" [(1, literal (.integer .int32 count))])).mapError
+    fun e => Field.Error.mk source e.path e.reason
+  let ref ← Field.reference stateOwner () .request "S" 1 source
+  let cursor ← (Field.root value).field ref source
+  let cursor ← cursor.refine (.integer .int32) .singular .available source
+  if request : path.root = .request then throw ⟨source, "S", "state roots are never the request"⟩
+  else PropertyFieldProjection.ofCursor path.root path.reference cursor request source
 private def result (expression : PropertyPredicate) (kind : PropertyPredicateContext)
     (request prior response : Int) := do
   let a ← (checkedValue requestPath request).toOption
-  let b ← (checkedValue priorPath prior).toOption
+  let b ← (stateValue priorPath prior).toOption
   let c ← (checkedValue resultPath response).toOption
-  let predicate ← (CheckedFieldPredicate.check owner (Request := Unit) (Response := Unit) ()
-    context PropertyTests.portableProperty kind expression).toOption
+  let predicate ← (CheckedFieldPredicate.check context PropertyTests.portableProperty kind
+    expression).toOption
   let input ← (predicate.checkInput {
     context := kind
     selectedAction := some a.modelValue, priorState := some b.modelValue,
-    modelOutcome := some c.modelValue } [a, b, c]).toOption
+    modelOutcome := some c.modelValue } [a.evidence, b.evidence, c.evidence]).toOption
   pure (evaluatePropertyPredicate predicate.predicate input)
 #guard result (relation requestPath priorPath) .guard 1 1 9 == some true
 #guard result (relation requestPath priorPath) .guard 1 2 9 == some false
@@ -115,7 +138,7 @@ private def isPresent (number : Nat := 2) :=
   compare (.field (presencePath number) source) (.literal (.boolean true) source)
 private def bytesEqual := compare (.field bytesPath source) (.literal (.bytes [0, 255]) source)
 private def admission (expression : PropertyPredicate) :=
-  (CheckedFieldPredicate.check owner (Request := Unit) (Response := Unit) () context
+  (CheckedFieldPredicate.check context
     PropertyTests.portableProperty .guard expression).toOption.isSome
 #guard !admission bytesEqual
 #guard admission (.all [isPresent, bytesEqual])
@@ -137,6 +160,11 @@ private def selectedPath : PropertyFieldPath :=
 #guard !admission (compare (.field { requestPath with schema := { requestPath.schema with fullName := "other.Call" } } source)
   (.literal (.integer .int32 0) source))
 #guard !admission (compare (.field { requestPath with side := .response } source)
+  (.literal (.integer .int32 0) source))
+#guard admission (relation requestPath priorPath)
+#guard !admission (compare (.field { priorPath with schema := requestPath.schema } source)
+  (.literal (.integer .int32 0) source))
+#guard !admission (compare (.field { requestPath with schema := priorPath.schema } source)
   (.literal (.integer .int32 0) source))
 #guard !admission (compare (.field { requestPath with steps := [.field "Wrong" 1] } source)
   (.literal (.integer .int32 0) source))
@@ -167,11 +195,13 @@ private def payloadProjections (raw : Raw) (number : Nat) (valueType : Singular)
       let oneof ← (cursor.refine valueType .singular (.oneof group) source).toOption
       let ready ← (oneof.select group source).toOption
       (requestProjection value ready).toOption
-  pure (presence.modelValue, presence :: selected.toList)
+  let projections : List (PropertyFieldProjection owner (Request := Unit) (Response := Unit) ()) :=
+    presence :: selected.toList
+  pure (presence.modelValue, projections.map PropertyFieldProjection.evidence)
 private def payloadResult (raw : Raw) (expression : PropertyPredicate)
     (number : Nat := 2) (valueType : Singular := .bytes) (selection : Option String := none) := do
   let (modelValue, projections) ← payloadProjections raw number valueType selection
-  let predicate ← (CheckedFieldPredicate.check owner (Request := Unit) (Response := Unit) () context
+  let predicate ← (CheckedFieldPredicate.check context
     PropertyTests.portableProperty .guard expression).toOption
   let input ← (predicate.checkInput { context := .guard, selectedAction := some modelValue } projections).toOption
   pure (evaluatePropertyPredicate predicate.predicate input)
@@ -188,11 +218,10 @@ private def selectedRequirement := PropertyPredicate.all [isPresent 3,
 #guard payloadResult (message "M" [(4, literal (.text ""))]) selectedRequirement 3 .text (some "choice") == some false
 
 private def inputError (expression : PropertyPredicate) (raw : PropertyPredicateInput)
-    (projections : List (PropertyFieldProjection owner (Request := Unit) (Response := Unit) ())) :=
-  match CheckedFieldPredicate.check owner (Request := Unit) (Response := Unit) () context
-      PropertyTests.portableProperty .guard expression with
+    (evidence : List PropertyFieldEvidence) :=
+  match CheckedFieldPredicate.check context PropertyTests.portableProperty .guard expression with
   | .error error => some error
-  | .ok predicate => match predicate.checkInput raw projections with
+  | .ok predicate => match predicate.checkInput raw evidence with
     | .error error => some error
     | .ok _ => none
 private def countIsZero := compare (.field requestPath { source with line := 91, column := 8 })
@@ -204,22 +233,24 @@ private def countIsZero := compare (.field requestPath { source with line := 91,
 #guard (do
   let a ← (checkedValue requestPath 0).toOption
   let b ← (checkedValue requestPath 1).toOption
-  pure ((inputError countIsZero { context := .guard, selectedAction := some a.modelValue } [b]).isSome)) == some true
+  pure ((inputError countIsZero { context := .guard, selectedAction := some a.modelValue }
+    [b.evidence]).isSome)) == some true
 #guard (do
   let a ← (checkedValue requestPath 0).toOption
-  pure ((inputError countIsZero { context := .guard, selectedAction := some a.modelValue } [a, a]).isSome)) == some true
+  pure ((inputError countIsZero { context := .guard, selectedAction := some a.modelValue }
+    [a.evidence, a.evidence]).isSome)) == some true
 
-private def otherOwner : RpcOwner where
-  Witness _ _ := Bool
-  schema _ := owner.schema (Request := Unit) (Response := Unit) ()
-#guard_msgs (error, substring := true) in
-example (predicate : CheckedFieldPredicate owner (Request := Unit) (Response := Unit) () .guard)
-    (projection : PropertyFieldProjection otherOwner (Request := Unit) (Response := Unit) true) :=
-  predicate.checkInput { context := .guard } [projection]
+#guard (do
+  let a ← (checkedValue requestPath 0).toOption
+  let b ← (stateValue priorPath 0).toOption
+  pure ((inputError countIsZero { context := .guard, selectedAction := some a.modelValue }
+    [b.evidence]).isSome)) == some true
 #guard_msgs (error, substring := true) in
 #check PropertyFieldValue.ofCursor
 #guard_msgs (error, substring := true) in
 example (value : ModelValue) : PropertyFieldProjection owner (Request := Unit) (Response := Unit) () := ⟨value⟩
+#guard_msgs (error, substring := true) in
+example (value : ModelValue) : PropertyFieldEvidence := ⟨value⟩
 
 private def truePredicate := compare (.literal (.boolean true) source) (.literal (.boolean true) source)
 private def declaration : PropertyDeclaration := { PropertyTests.portableProperty with
@@ -232,28 +263,29 @@ private def declaration : PropertyDeclaration := { PropertyTests.portablePropert
         ⟨.of "test.property.fields.result", source, relation requestPath resultPath⟩] }] }] }
 private def wholeProperty (prior response : Int) := do
   let a ← (checkedValue requestPath 1).toOption
-  let b ← (checkedValue priorPath prior).toOption
+  let b ← (stateValue priorPath prior).toOption
   let c ← (checkedValue resultPath response).toOption
-  let checked ← (CheckedFieldProperty.check owner (Request := Unit) (Response := Unit) () context declaration).toOption
+  let checked ← (CheckedFieldProperty.check context declaration).toOption
   let trace : ModelTrace ModelValue ModelValue ModelValue ModelValue := {
     initialState := b.modelValue
     steps := [{
       selectedAction := a.modelValue, modelOutcome := c.modelValue,
       resultingState := b.modelValue, observations := [] }] }
-  let input ← (checked.checkInput trace [[a, b, c]]).toOption
+  let input ← (checked.checkInput trace [[a.evidence, b.evidence, c.evidence]]).toOption
   pure (evaluateProperty checked.property input).satisfied
 #guard wholeProperty 1 1 == some true
 #guard wholeProperty 2 1 == some false
 #guard wholeProperty 1 2 == some false
 #guard (do
   let a ← (checkedValue requestPath 0).toOption
-  let predicate ← (CheckedFieldPredicate.check owner (Request := Unit) (Response := Unit) () context
+  let predicate ← (CheckedFieldPredicate.check context
     PropertyTests.portableProperty .guard countIsZero).toOption
-  let input ← (predicate.checkInput { context := .guard, selectedAction := some a.modelValue } [a]).toOption
+  let input ← (predicate.checkInput { context := .guard, selectedAction := some a.modelValue }
+    [a.evidence]).toOption
   pure (input.operandValue (.field requestPath { source with line := 91, column := 8 }))) == some (some (.integer .int32 0))
 
 #guard (do
-  let predicate ← (CheckedFieldPredicate.check owner (Request := Unit) (Response := Unit) () context
+  let predicate ← (CheckedFieldPredicate.check context
     PropertyTests.portableProperty .guard truePredicate).toOption
   let input ← (predicate.checkInput { context := .guard } []).toOption
   pure (input.operandValue (.literal (.bytes [99]) source))) == some none
@@ -279,26 +311,21 @@ private def literalResult (operator : PropertyFieldOperator) (left right : Scala
 #guard literalResult .less (.enumeration "E" 1) (.enumeration "E" 2) == none
 private def resultingEvent (state event : Int) := do
   let statePath := { priorPath with root := .resultingState }
-  let eventPath := rootPath .event PropertyTests.cancelDelivered
-  let a ← (checkedValue statePath state).toOption
-  let b ← (checkedValue eventPath event).toOption
-  let checked ← (CheckedFieldPredicate.check owner (Request := Unit) (Response := Unit) () context
+  let a ← (stateValue statePath state).toOption
+  let b ← (stateValue eventPath event).toOption
+  let checked ← (CheckedFieldPredicate.check context
     PropertyTests.portableProperty .expectation (relation statePath eventPath)).toOption
   let input ← (checked.checkInput {
     context := .expectation
-    resultingState := some a.modelValue, facts := some [b.modelValue] } [a, b]).toOption
+    resultingState := some a.modelValue, facts := some [b.modelValue] }
+    [a.evidence, b.evidence]).toOption
   pure (evaluatePropertyPredicate checked.predicate input)
 #guard resultingEvent 1 1 == some true
 #guard resultingEvent 1 2 == some false
-#guard_msgs (error, substring := true) in
-example (predicate : CheckedFieldPredicate owner (Request := Unit) (Response := Unit) () .guard)
-    (projection : PropertyFieldProjection owner (Request := Bool) (Response := Unit) ()) :=
-  predicate.checkInput { context := .guard } [projection]
 
 #guard payloadResult (message "M" [(1, literal (.integer .int32 99)),
   (2, literal (.bytes [0, 255])), (4, literal (.text "unconstrained"))]) payloadRequirement == some true
-#guard (match CheckedFieldPredicate.check owner (Request := Unit) (Response := Unit) () context
-    PropertyTests.portableProperty .guard
+#guard (match CheckedFieldPredicate.check context PropertyTests.portableProperty .guard
     (compare (.field { requestPath with type := .integer .int64 } { source with line := 81, column := 6 })
       (.literal (.integer .int64 0) source)) with
   | .error e => e.sourceLocation == some { source with line := 81, column := 6 }

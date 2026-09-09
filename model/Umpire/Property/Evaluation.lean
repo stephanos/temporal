@@ -484,35 +484,38 @@ def PropertyFieldProjection.ofAction
 def PropertyFieldProjection.modelValue (projection : PropertyFieldProjection owner witness) : ModelValue :=
   projection.value.modelValue
 
-/-- An owned field predicate wraps the existing checked Property predicate without another evaluator. -/
-structure CheckedFieldPredicate (owner : RpcOwner) {Request Response : Type}
-    (witness : owner.Witness Request Response) (context : PropertyPredicateContext) where
+/-- One admitted projection with its generated index erased. The authority a projection was built
+from survives in its structural path, so a single same-step context may carry independently bound
+request, prior/resulting state, outcome and event operands whose owners and schemas differ. -/
+structure PropertyFieldEvidence where
+  private mk ::
+  private value : PropertyFieldValue
+  deriving Repr
+
+/-- Admit a checked projection into a heterogeneous same-step evidence list. -/
+def PropertyFieldProjection.evidence (projection : PropertyFieldProjection owner witness) :
+    PropertyFieldEvidence :=
+  ⟨projection.value⟩
+
+/-- A field predicate wraps the existing checked Property predicate without another evaluator. -/
+structure CheckedFieldPredicate (context : PropertyPredicateContext) where
   private mk ::
   predicate : CheckedPropertyPredicate context
 
-private def requireFieldOwner (owner : RpcOwner) {Request Response : Type}
-    (witness : owner.Witness Request Response) (declaration : PropertyDeclaration)
-    (context : PropertyCheckContext) : Except PropertyError Unit := do
-  if context.fieldBindings.any (fun binding => binding.schema != owner.schema witness) then
-    throw {
-      kind := .unsupportedPredicateInput, definitionId := declaration.id,
-      sourcePath := declaration.source.displayPath, sourceLocation := some declaration.source,
-      offendingValue := "field binding belongs to another owner/schema", relatedDefinitionIds := [] }
-
-/-- Check closed operands against the chosen generated authority and the ordinary Property checker. -/
-def CheckedFieldPredicate.check (owner : RpcOwner) {Request Response : Type}
-    (witness : owner.Witness Request Response) (context : PropertyCheckContext)
+/-- Check closed operands against the admitted field bindings and the ordinary Property checker.
+Each operand names its own binding, so no single generated authority is imposed on the context. -/
+def CheckedFieldPredicate.check (context : PropertyCheckContext)
     (declaration : PropertyDeclaration) (kind : PropertyPredicateContext)
-    (expression : PropertyPredicate) : Except PropertyError (CheckedFieldPredicate owner witness kind) := do
-  requireFieldOwner owner witness declaration context
+    (expression : PropertyPredicate) : Except PropertyError (CheckedFieldPredicate kind) := do
   pure ⟨← checkPropertyPredicate context declaration kind expression⟩
 
-/-- Only projections with the retained owner and witness may establish this checked predicate's input. -/
-def CheckedFieldPredicate.checkInput (checked : CheckedFieldPredicate owner witness kind)
-    (input : PropertyPredicateInput) (projections : List (PropertyFieldProjection owner witness)) :
+/-- Only evidence erased from a checked projection may establish this predicate's input; every
+operand still resolves to the single projection whose exact structural path it names. -/
+def CheckedFieldPredicate.checkInput (checked : CheckedFieldPredicate kind)
+    (input : PropertyPredicateInput) (evidence : List PropertyFieldEvidence) :
     Except PropertyError (CheckedPropertyPredicateInput checked.predicate) := do
   validatePropertyPredicateInput checked.predicate input
-  let fieldValues := projections.map (·.value)
+  let fieldValues := evidence.map (·.value)
   validateFieldOperands checked.predicate input fieldValues checked.predicate.expression
   pure { input, fieldValues }
 
@@ -667,25 +670,22 @@ def checkPropertyEvaluationInput
   validatePropertyEvaluationView property view
   pure { view }
 
-/-- A checked Property retains the chosen generated authority until all step projections are admitted. -/
-structure CheckedFieldProperty (owner : RpcOwner) {Request Response : Type}
-    (witness : owner.Witness Request Response) where
+/-- A checked Property whose clauses read same-step field evidence admitted one step at a time. -/
+structure CheckedFieldProperty where
   private mk ::
   property : CheckedProperty
 
-/-- Bind an ordinary closed Property declaration to its selected generated operation. -/
-def CheckedFieldProperty.check (owner : RpcOwner) {Request Response : Type}
-    (witness : owner.Witness Request Response) (context : PropertyCheckContext)
-    (declaration : PropertyDeclaration) : Except PropertyError (CheckedFieldProperty owner witness) := do
-  requireFieldOwner owner witness declaration context
+/-- Check an ordinary closed Property declaration whose clauses compare admitted field bindings. -/
+def CheckedFieldProperty.check (context : PropertyCheckContext)
+    (declaration : PropertyDeclaration) : Except PropertyError CheckedFieldProperty := do
   pure ⟨← checkProperty context (.portable declaration)⟩
 
-/-- Validate aligned checked projections without exposing raw model payloads to evaluation. -/
-def CheckedFieldProperty.checkInput (checked : CheckedFieldProperty owner witness)
+/-- Validate aligned checked evidence without exposing raw model payloads to evaluation. -/
+def CheckedFieldProperty.checkInput (checked : CheckedFieldProperty)
     (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
-    (projections : List (List (PropertyFieldProjection owner witness))) :
+    (evidence : List (List PropertyFieldEvidence)) :
     Except PropertyError (CheckedPropertyEvaluationInput checked.property) := do
-  if projections.length != trace.steps.length then
+  if evidence.length != trace.steps.length then
     throw {
       kind := .missingPredicateInput, definitionId := checked.property.id,
       sourcePath := checked.property.source.displayPath, sourceLocation := some checked.property.source,
@@ -694,7 +694,7 @@ def CheckedFieldProperty.checkInput (checked : CheckedFieldProperty owner witnes
   let view : PropertyEvaluationView := {
     initialState := raw.initialState
     steps := raw.steps.zipWith (fun step fields => {
-      toPropertyTraceStep := step, fieldValues := fields.map (·.value) }) projections }
+      toPropertyTraceStep := step, fieldValues := fields.map (·.value) }) evidence }
   validatePropertyEvaluationView checked.property view
   pure { view }
 
