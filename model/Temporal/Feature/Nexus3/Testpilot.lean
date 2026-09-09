@@ -204,7 +204,8 @@ private def correlatedStates : List FactEvidence → List ContractStateDefinitio
       Monitor.state evidence.correlatedStateId .CONTRACT_STATE_STATUS_NONTERMINAL ::
         correlatedStates rest
 
-/-- Build the correlated-history rule from the Facts the selected witness records, in trace order. -/
+/-- Build the correlated-history rule from the Facts the selected witness records, in trace
+order. -/
 private def correlatedRule (ruleId : String) (chain : List FactEvidence) :
     ContractRuleDefinition :=
   Monitor.rule ruleId .CONTRACT_RULE_KIND_SAFETY pendingStateId
