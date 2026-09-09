@@ -25,7 +25,7 @@ private def produceWith
     (property? : Option CheckedProperty := none)
     (behavior? : Option CheckedBehavior := none)
     (query? : Option (CheckedQuery lifecycle.lawStatement) := none)
-    (witness? : Option BehaviorTrace := admitted.map (·.witness)) :
+    (witness? : Option BehaviorTrace := admitted.bind (·.witness)) :
     Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← completion.mapError fun _ => {
     sourceDefinitionId := "temporal.nexus3.query.completion"
@@ -62,15 +62,16 @@ private def scopedProperty? : Option CheckedProperty := do
       error.construct == "property.scoped-eventually-within/v1"
   | .ok _ => false
 
-private def changedWitness? : Option BehaviorTrace := admitted.map fun checked =>
-  { checked.witness with trace := {
-      checked.witness.trace with steps := checked.witness.trace.steps.reverse } }
+private def changedWitness? : Option BehaviorTrace := admitted.bind fun checked =>
+  checked.witness.map fun selected =>
+    { selected with trace := { selected.trace with steps := selected.trace.steps.reverse } }
 
-private def undeclaredFactWitness? : Option BehaviorTrace := admitted.map fun checked =>
-  { checked.witness with trace := { checked.witness.trace with
-      steps := checked.witness.trace.steps.map fun step =>
-        { step with observations := [ModelValue.named
-            (DefinitionId.of "temporal.nexus3.fact.lifecycle.undeclared") "undeclared"] } } }
+private def undeclaredFactWitness? : Option BehaviorTrace := admitted.bind fun checked =>
+  checked.witness.map fun selected =>
+    { selected with trace := { selected.trace with
+        steps := selected.trace.steps.map fun step =>
+          { step with observations := [ModelValue.named
+              (DefinitionId.of "temporal.nexus3.fact.lifecycle.undeclared") "undeclared"] } } }
 
 private def rejected : Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case → Bool
   | .error _ => true
@@ -177,10 +178,11 @@ private def checkedBindings : Bool :=
 #guard checkedBindings
 
 /-- The named command-authored witness is exactly scheduled → started → succeeded. -/
-theorem checkedWitnessIsExact : admitted.map (fun checked =>
-    (checked.witness.setup,
-      checked.witness.trace.initialState,
-      checked.witness.trace.steps.map fun step =>
+theorem checkedWitnessIsExact : admitted.bind (fun checked =>
+    checked.witness.map fun selected =>
+    (selected.setup,
+      selected.trace.initialState,
+      selected.trace.steps.map fun step =>
         (step.selectedAction, step.modelOutcome, step.resultingState))) =
     admitted.map (fun checked =>
       ([⟨lifecycle.operationRoleId, (checked.vocabulary.stateAt 0)⟩],
@@ -197,7 +199,7 @@ private def runCheck
     (propertyAuthor : Authoring.ModelVocabulary → PropertySpec := successfulResult)
     (behaviorAuthor : Authoring.ModelVocabulary → ExactSequenceSpec := successfulCompletion) :=
   Authoring.check lifecycle "completion" shortTrace propertyAuthor behaviorAuthor
-    authoredTable authoredDefinition
+    (authoredTable := authoredTable) (authoredDefinition := authoredDefinition)
 
 private def invalidResultTable :=
   Authoring.withStates lifecycle.table <|
@@ -320,14 +322,14 @@ private def renamedTargetResult :
   let checked ← originalCheckedModel
   let renamed ← renamedCheckedModel
   Temporal.Feature.Nexus3.Testpilot.produceCompletionCase renamed.target checked.property
-    checked.behavior renamed.query (some checked.witness)
+    checked.behavior renamed.query checked.witness
 
 private def renamedBehaviorResult :
     Except Compiler.LoweringError temporal.server.api.testpilot.v1.Case := do
   let checked ← originalCheckedModel
   let renamed ← renamedCheckedModel
   Temporal.Feature.Nexus3.Testpilot.produceCompletionCase checked.target checked.property
-    renamed.behavior checked.query (some checked.witness)
+    renamed.behavior checked.query checked.witness
 
 /- A different checked Target and Query carry their own identities into the Case bytes; the
 Producer no longer compares them against one expected model. -/
@@ -447,9 +449,9 @@ private def startClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
       "successfulResult" (values.actionAt 0) (values.stateAt 1) (values.outcomeAt 0)
       (values.factAt 0)
 
-private def startedOnlyWitness? : Option BehaviorTrace := admitted.map fun checked =>
-  { checked.witness with trace := {
-      checked.witness.trace with steps := checked.witness.trace.steps.take 1 } }
+private def startedOnlyWitness? : Option BehaviorTrace := admitted.bind fun checked =>
+  checked.witness.map fun selected =>
+    { selected with trace := { selected.trace with steps := selected.trace.steps.take 1 } }
 
 /- A one-Fact witness derives a two-stage chain whose single correlated stage is the satisfied
 state, so the terminal status follows the chain rather than a fixed state name. -/
@@ -476,7 +478,7 @@ private def unexpressibleClauseRejection : Option Bool := do
   let checked ← admitted
   let changed ← checkedPropertyOf (changedMeaning checked.vocabulary)
   match Temporal.Feature.Nexus3.Testpilot.produceCompletionCase checked.target changed
-      checked.behavior checked.query (some checked.witness) with
+      checked.behavior checked.query checked.witness with
   | .error error => pure (error.construct == "property.clause-evidence" &&
       (changed.clauses.map (·.id.value)).contains error.sourceDefinitionId)
   | .ok _ => pure false
@@ -554,8 +556,9 @@ reach the derived Property and Behavior. -/
 
 #guard (do
   let checked ← probeQuery.toOption
+  let selected ← checked.witness
   pure (checked.behavior.allowedActions == probeLifecycle.actionIds &&
-    checked.witness.trace.steps.length == 2 &&
+    selected.trace.steps.length == 2 &&
     checked.property.clauses.length == 3)) == some true
 
 /- A misspelled Property or Behavior member resolves to a value no Target provides, so admission
@@ -611,14 +614,41 @@ model unknownStateLifecycle
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
 
-/--
-error: unsupported Nexus3 success Query spelling
--/
-#guard_msgs (error) in
-query unsupportedQuery on lifecycle
+/- The verify form elaborates through the same owner and claims the requirement over every trace
+the Behavior admits, so it selects no witness. -/
+query verifiedCompletion on lifecycle
   all successfulResult
   in successfulCompletion
   limits shortTrace
+
+#guard (do
+  let checked ← verifiedCompletion.toOption
+  pure (checked.witness.isNone && checked.query.quantifier == .universal &&
+    checked.query.claim == .verifiedWithinLimits)) == some true
+
+/- A Case realizes one selected trace, so the Producer rejects a verify-form model as
+witness-absent rather than lowering a Contract nothing selected. -/
+#guard match (do
+    let checked ← verifiedCompletion.mapError fun _ => Compiler.LoweringError.mk
+      "temporal.nexus3.query.verifiedCompletion" Authoring.source "checked-verified"
+    Temporal.Feature.Nexus3.Testpilot.produceCompletionCase checked.target checked.property
+      checked.behavior checked.query checked.witness) with
+  | .error error => error.construct == "witness.absent"
+  | .ok _ => false
+
+/- An unsatisfiable Behavior reports what planning actually delivered, so an impossible scenario is
+distinguishable from an exhausted limit (PLN-05). -/
+behavior impossibleCompletion on lifecycle operation starts scheduled
+  actions exactly [completion: awaitSuccess, start: awaitStart]
+
+query unsatisfiableCompletion on lifecycle
+  all successfulResult
+  in impossibleCompletion
+  limits shortTrace
+
+#guard match unsatisfiableCompletion with
+  | .error (.notSelected planned) => planned == .unsatisfiable
+  | _ => false
 
 /--
 error: Nexus3 initial states must be declared in sorted order, because the planner admits only a canonically ordered initial-state list; 'succeeded' precedes 'scheduled'

@@ -440,7 +440,16 @@ inductive AdmissionError where
   | invalidKnownGaps (error : KnownGapError)
   | invalidQuery (error : QueryError)
   | invalidPlanner (error : FinitePlannerAdmissionError)
-  | noWitness
+  /-- Planning ran but did not deliver what the Query form claimed; the outcome says what it did
+  deliver, so an unsatisfiable Behavior is distinguishable from an exhausted limit. -/
+  | notSelected (outcome : PlanningOutcome)
+
+/-- Which claim a Query makes: select one satisfying witness, or verify the requirement over every
+trace the Behavior admits within the declared limits. -/
+inductive QueryFormKind where
+  | selectWitness
+  | verifyClaim
+  deriving BEq, DecidableEq, Repr
 
 structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (model : SuccessModel Setup State Action Outcome Fact) where
@@ -451,7 +460,9 @@ structure CheckedModel [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq F
   query : CheckedQuery model.lawStatement
   kernel : IncrementalPlannerKernel query.target
   run : PlannerRun
-  witness : BehaviorTrace
+  /-- The selected trace, present only for a witness Query. A verify Query establishes its claim
+  over every admitted trace and selects none. -/
+  witness : Option BehaviorTrace
 
 def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     [DecidableEq Setup] [DecidableEq State] [DecidableEq Action]
@@ -461,6 +472,7 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     (limits : QueryLimitSpec)
     (propertyAuthor : ModelVocabulary → PropertySpec)
     (behaviorAuthor : ModelVocabulary → ExactSequenceSpec)
+    (form : QueryFormKind := .selectWitness)
     (authoredTable : FiniteTable Setup State Action Outcome Fact := model.table)
     (authoredDefinition : FiniteTargetDefinition := model.targetDefinition) :
     Except AdmissionError (CheckedModel model) := do
@@ -476,18 +488,24 @@ def check [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
     key := queryKey
     source
     target := model.targetId
-    form := .witness property
+    form := match form with
+      | .selectWitness => .witness property
+      | .verifyClaim => .verify property
     behavior
     limits
-    policy := .shortest
+    policy := match form with
+      | .selectWitness => .shortest
+      | .verifyClaim => .exhaustive
     authoredKnownGaps := gaps
   }
   let query ← querySpec.check target |>.mapError .invalidQuery
   let kernel ← IncrementalPlannerKernel.ofCheckedQuery target.id query |>.mapError .invalidPlanner
   let run ← plan query kernel |>.mapError .invalidKnownGaps
-  match run.result.outcome with
-  | .found witness .satisfyingWitness =>
-      pure { target, vocabulary, property, behavior, query, kernel, run, witness }
-  | _ => throw .noWitness
+  match form, run.result.outcome with
+  | .selectWitness, .found witness .satisfyingWitness =>
+      pure { target, vocabulary, property, behavior, query, kernel, run, witness := some witness }
+  | .verifyClaim, .verified =>
+      pure { target, vocabulary, property, behavior, query, kernel, run, witness := none }
+  | _, outcome => throw (.notSelected outcome)
 
 end Temporal.Feature.Nexus3.Authoring
