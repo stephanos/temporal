@@ -23,8 +23,27 @@ where today only labeled intent exists (R4), Profile derivation and a runner hel
 line cost of running a Case from Go (R5), the discarded recorder close error (R6), and gates plus
 the axiom baseline (R7).
 
-Nine tasks are defined with a SHIP plan review. Progress: .1 done (`rule_events` horizon and the
-hardened retired-vocabulary gate); .4 blocked, see below; the rest in flight or ready.
+Originally nine tasks with a SHIP plan review; re-planned to fifteen after four escalations.
+**Done: .1** (`rule_events` Contract horizon, one helper owning the counter for the online and
+offline paths), **.2** (`InjectFault` wire, `RUN_EVENT_KIND_FAULT_INJECTED`, and `Run` returning the
+recorder close error), **.3** (worker stop/resume in the Driver, four review rounds — an unlocked
+registry map proved with a `-race` red check, a leaked worker on the resume/release race, and the
+blocking stop moved into the effect handle's `Wait`), **.7** (`DeriveProfile` plus `bindCase`/`runCase`,
+with the three hand-written fixture Profiles as oracles).
+
+**Blocked, each with an actionable handover:** .4 (R1, see below), .5 (R2 — SCOPE_EXCEEDED, split
+below), .8 (R4 Case — four of seven acceptance criteria need a live cluster), and .6/.9 stranded
+behind them.
+
+**R2 was split.** Task .5 was sized M but is a coordinated rewrite: the elaborators expand into
+`Authoring.successModel`, whose data model is arity-fixed at three states, two actions, two outcomes,
+two facts and two transitions, and that shape is load-bearing in `Tests.lean` (~30 reads, several
+inside `native_decide` theorems) and `Testpilot.lean`. It now runs as four tasks that can each land
+green: **.10** generalizes the data model to ordered lists with *no syntax change at all*, so
+conformance proves byte-identity on its own; **.11** replaces the four spelling whitelists with
+constructor-derived elaboration; **.12** adds the five located diagnostics with `#guard_msgs`;
+**.13** adds a genuinely second lifecycle plus the `Nexus.md` wording. Task .6 (R8) now follows .11
+directly.
 
 **fn-77 is complete, so the ordering constraint on this spec is gone.** R1 and R5 had serialized
 behind fn-77.10 to avoid a byte conflict on regenerated fixtures; that conflict no longer exists.
@@ -42,10 +61,15 @@ The spec's stop-condition asked whether the scoped clause form can carry state, 
 predicates. It can: the three success clauses are expressible as `bounded_response%` clauses sharing
 an `awaitSuccess` trigger. The blocker is the evidence path, not the clause form, so R2 and R8 are
 unaffected and stay startable. This is the same gap fn-77 closed out as
-`bounded-completion-is-model-only`, now reached from the other side; it needs a
-`ScopedEvidence`-emitting projection. R1's own product defect — the clause-for-clause equality gate
-in `produceCompletionCase` that turns a model edit into a lowering error — is separable and worth
-closing without the evidence path.
+`bounded-completion-is-model-only`, now reached from the other side.
+
+Both halves of R1 are now tasks. **.14** adds the `ScopedEvidence`-emitting projection both specs
+need — a Program-declared source lifting recorded history into `ScopedEvidence` with `identity`,
+`operation`, `kind` and `fields` — and must also close the vacuous-satisfaction hole, since a clause
+receiving no evidence answering SATISFIED is the defect that makes the naive fix dangerous. Task .4
+now depends on it. **.15** carries R1's separable product defect, the clause-for-clause equality gate
+in `produceCompletionCase` that turns a model edit into a lowering error; it needs no evidence path
+and does not wait on .14.
 
 Boundaries worth carrying forward: no canary Profile or production authorization (fn-70, fn-29 own
 those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, and no removal of

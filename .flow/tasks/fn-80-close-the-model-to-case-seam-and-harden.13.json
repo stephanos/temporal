@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T16:42:27.541654Z",
+  "depends_on": [
+    "fn-80-close-the-model-to-case-seam-and-harden.12"
+  ],
+  "id": "fn-80-close-the-model-to-case-seam-and-harden.13",
+  "priority": null,
+  "spec": "fn-80-close-the-model-to-case-seam-and-harden",
+  "spec_path": ".flow/tasks/fn-80-close-the-model-to-case-seam-and-harden.13.md",
+  "status": "todo",
+  "title": "Add the second-lifecycle syntax test and Nexus3 wording",
+  "updated_at": "2026-09-09T16:42:45.752990Z"
+}
