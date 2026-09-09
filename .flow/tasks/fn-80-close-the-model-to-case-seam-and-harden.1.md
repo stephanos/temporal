@@ -42,9 +42,16 @@ Implements R3 (spec §R3 event-count horizon). Adds the `rule_events` bound to t
 - [ ] `CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/...` passes; `make umpire-check-testpilot-protocol` passes
 
 ## Done summary
-TBD
+Added the `rule_events` bound to `ContractHorizonDefinition` so a bounded-liveness rule can expire on evaluated Run Events instead of the recording host's clock, with admission requiring exactly one positive bound and one helper (`horizonReached`) owning the counter for both the online and the offline evaluator paths.
 
+Notes for downstream tasks:
+- The spec's "counting continues while execution is incomplete" is not implementable at the documented site: `Evaluator.Observe` returns before `changes` whenever execution is incomplete (the banked "Freeze Contract transitions when execution becomes incomplete" behaviour), so the whole rule freezes. Incompleteness is sticky, so a frozen counter and a ticking one are observationally identical. The proto comment and the test now state the freeze; task .9's horizon rule text should say the same.
+- `contract.proto` changing at all re-fingerprints every typed operation, because each `RpcSchema` carries the generator's whole descriptor input closure (fn-77 follow-up). `typed-nexus-case.json` and `typed-unary-case.json` were regenerated through `make umpire-gen-case-runtime-conformance`; only `behaviorFingerprint` bytes moved. The task's "no fixture regenerates" note was wrong about the functional tree.
+- Swept into the first commit: `.flow/tasks/fn-80-....4.json` — this run's `flowctl task reset` unblocking task .4, whose block reason ("unblock when fn-77.10 is done") was already satisfied.
+
+stage: impl-review - ran (claude backend, model claude-fable-5-1 at high) - SHIP with two P3 findings, both fixed in the follow-up commit
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0a6d6eeafa13e5f858b2ada6ac98738e0cf30b77, 6e8eaefa18f15da39a7719aa0466ca4b21d4bcc5
+- Tests: CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/..., CGO_ENABLED=0 go test -tags test_dep ./tests/testcore/testpilot/..., cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make umpire-check-testpilot-protocol, make umpire-check-testpilot-authoring, make umpire-check-case-runtime-conformance, make umpire-check-lean-api, make umpire-check-semantic-inventory, make umpire-check-retired-vocabulary, make lint-model (169 findings = recorded baseline, all in generated Temporal/API/{Types,Proto}.lean), GATE_SKIPPED:live-tests:disk - make umpire-check-live-tests needs a live cluster and whole-repo build; task .1 declares no live acceptance
 - PRs:
