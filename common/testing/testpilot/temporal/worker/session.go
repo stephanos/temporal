@@ -235,11 +235,9 @@ func (s *Session) Close(ctx context.Context) error {
 		}
 		s.stopComplete = true
 	}
-	// A release that could not resume a stopped worker is still a completed release: the session
-	// is removed either way and the failure is returned, so cleanup is reported failed rather than
-	// leaving the session registered behind an error.
 	// release always reaches the registry, so the hold is gone even when the resume it attempted
-	// first could not finish; the failure is returned and cleanup records it.
+	// first could not finish; the session is removed either way and the failure is returned, so
+	// cleanup is reported failed rather than leaving the session registered behind an error.
 	var releaseErr error
 	if !s.released && workers != nil {
 		releaseErr = workers.release(ctx)

@@ -134,12 +134,26 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 		return err
 	}
 	plans := program.Entrypoints()
-	requireWorker := hasWorkerEntrypoint(plans)
 	if cleanup, ok := program.Cleanup(); ok {
 		plans = append(plans, cleanup)
 	}
+	// A fault needs a worker to stop, so a Program that requests one is only realizable when it
+	// also brings a worker. Validate applies the same rule Open does rather than admitting a
+	// Program that could only fail at dispatch.
+	requireWorker := hasWorkerEntrypoint(plans) || plansDeclareFault(plans)
 	_, err := h.prepareDefinitionResources(program.Snapshot(), plans, program.Roles(), requireWorker)
 	return err
+}
+
+func plansDeclareFault(plans []testpilot.EntrypointPlan) bool {
+	for _, plan := range plans {
+		for _, instruction := range plan.Instructions() {
+			if instruction.Source().GetInstruction().GetInjectFault() != nil {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func hasWorkerEntrypoint(plans []testpilot.EntrypointPlan) bool {
@@ -221,8 +235,14 @@ func (h *Driver) Close(ctx context.Context) error {
 	return nil
 }
 
+// The cleanup graph runs in the controller context and may carry a fault of its own, so it is
+// bound here too; Validate and Open would otherwise disagree about which queues a fault names.
 func (h *Driver) prepareDefinition(program testpilot.PreparedProgram) (programDefinition, error) {
-	return h.prepareDefinitionResources(program.Snapshot(), program.Entrypoints(), program.Roles(), true)
+	plans := program.Entrypoints()
+	if cleanup, ok := program.Cleanup(); ok {
+		plans = append(plans, cleanup)
+	}
+	return h.prepareDefinitionResources(program.Snapshot(), plans, program.Roles(), true)
 }
 
 func (h *Driver) prepareDefinitionPlans(snapshot *testpilotspb.Program, plans []testpilot.EntrypointPlan) (programDefinition, error) {

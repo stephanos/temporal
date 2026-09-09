@@ -109,10 +109,15 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 	return newPreparedCompositeSession(controller, worker, program), nil
 }
 
-// A fault is realized by the worker Driver, so a Program that requests one needs a worker Session
-// even when every other worker use is absent.
+// A fault is realized by the worker Driver, so a Program that requests one is routed there even
+// when every other worker use is absent; the worker Driver decides whether such a Program is
+// realizable at all. The cleanup graph runs in the controller context and may carry a fault too.
 func hasFaultInstruction(program testpilot.PreparedProgram) bool {
-	for _, entrypoint := range program.Entrypoints() {
+	entrypoints := program.Entrypoints()
+	if cleanup, ok := program.Cleanup(); ok {
+		entrypoints = append(entrypoints, cleanup)
+	}
+	for _, entrypoint := range entrypoints {
 		for _, instruction := range entrypoint.Instructions() {
 			if instruction.Source().GetInstruction().GetInjectFault() != nil {
 				return true

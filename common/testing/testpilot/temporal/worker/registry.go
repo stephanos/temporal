@@ -397,6 +397,15 @@ func (l *workerLease) transition(ctx context.Context, queue string, stop bool) e
 		}
 		return errors.Join(err, lockErr)
 	}
+	// The Run may have been released while the worker was starting. Recording the fresh worker in
+	// a retired group would leave it polling the queue with nothing left to stop it.
+	if l.registry.groups[key] != group {
+		l.registry.mu.unlock()
+		if resumed != nil && err == nil {
+			resumed.Stop()
+		}
+		return errors.Join(err, ErrClosed)
+	}
 	if err != nil {
 		group.stopped = true
 		l.registry.mu.unlock()
