@@ -26,15 +26,47 @@ declare_syntax_cat nexus3Occurrence
 
 syntax ident ":" ident : nexus3Occurrence
 
+/-- The elaboration bound on declared transition rows. The tested scale is far smaller; this is a
+ceiling on how large a table the elaborator will build, not a modelling recommendation. -/
+def transitionBound : Nat := 256
+
 /-- The last component of a constructor name, which is the spelling an author writes. -/
 private def shortName : Name → Name
   | .str _ spelling => .str .anonymous spelling
   | name => name
 
-/-- The ordered constructors of a named enum-like inductive. -/
-private def domainConstructors (typeRef : Ident) : CommandElabM (List Name) := do
+private def spellings (constructors : List Name) : String :=
+  ", ".intercalate (constructors.map fun constructor => (shortName constructor).toString)
+
+/-! The diagnostic texts are built here so a test can pin each one against the elaborator's own
+message rather than against a copy of it. -/
+
+def unknownMemberMessage (domain spelling : String) (constructors : List Name) : String :=
+  s!"unknown Nexus3 {domain} '{spelling}'; declared: {spellings constructors}"
+
+def parameterizedConstructorMessage (domain spelling : String) : String :=
+  s!"Nexus3 {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
+
+def duplicateTransitionMessage (key priorKey source selected : String) : String :=
+  s!"duplicate Nexus3 transition '{key}': '{source} + {selected}' is already declared by " ++
+    s!"'{priorKey}'"
+
+def unreachableTerminalMessage (spelling : String) : String :=
+  s!"Nexus3 terminal state '{spelling}' is unreachable from every initial state"
+
+def transitionBoundMessage (declared : Nat) : String :=
+  s!"Nexus3 model declares {declared} transitions; the elaboration bound is {transitionBound}"
+
+/-- The ordered constructors of a named enum-like inductive. A constructor that takes arguments is
+not an enum-like member, so the domain is rejected at the type the model names. -/
+private def domainConstructors (domain : String) (typeRef : Ident) : CommandElabM (List Name) := do
   let name ← liftTermElabM (realizeGlobalConstNoOverloadWithInfo typeRef)
   let info ← getConstInfoInduct name
+  for constructor in info.ctors do
+    let declaration ← getConstInfoCtor constructor
+    if declaration.numFields != 0 then
+      throwErrorAt typeRef
+        (parameterizedConstructorMessage domain (shortName constructor).toString)
   pure info.ctors
 
 /-- Resolve one authored spelling against a declared domain, reporting an unknown one in place. -/
@@ -42,7 +74,16 @@ private def resolveMember (domain : String) (constructors : List Name) (member :
     CommandElabM Ident := do
   match constructors.find? fun constructor => shortName constructor == member.getId with
   | some constructor => pure (mkIdentFrom member constructor)
-  | none => throwErrorAt member s!"unknown Nexus3 {domain} '{member.getId}'"
+  | none => throwErrorAt member
+      (unknownMemberMessage domain member.getId.toString constructors)
+
+/-- The states reachable from `seen` over the declared `before → result` edges. -/
+private def reachableStates (edges : List (Name × Name)) : Nat → List Name → List Name
+  | 0, seen => seen
+  | fuel + 1, seen =>
+      let next := (edges.filterMap fun edge =>
+        if seen.contains edge.1 && !seen.contains edge.2 then some edge.2 else none).eraseDups
+      if next.isEmpty then seen else reachableStates edges fuel (seen ++ next)
 
 private def memberKeys (constructors : List Name) : Array Term :=
   constructors.toArray.map fun constructor => Lean.quote (shortName constructor).toString
@@ -55,16 +96,40 @@ elab "model" name:ident "role" role:ident
     "actions" actionType:ident "outcomes" outcomeType:ident "facts" factType:ident
     "initial" "[" initialRefs:ident,+ "]" "terminal" "[" terminalRefs:ident,+ "]" "transitions"
     rows:nexus3Transition+ : command => do
-  let stateCtors ← domainConstructors stateType
-  let actionCtors ← domainConstructors actionType
-  let outcomeCtors ← domainConstructors outcomeType
-  let factCtors ← domainConstructors factType
-  let setupConstructors ← domainConstructors (mkIdentFrom name `Setup)
+  let stateCtors ← domainConstructors "state" stateType
+  let actionCtors ← domainConstructors "action" actionType
+  let outcomeCtors ← domainConstructors "outcome" outcomeType
+  let factCtors ← domainConstructors "fact" factType
+  let setupConstructors ← domainConstructors "setup" (mkIdentFrom name `Setup)
   let setupConstructor ← match setupConstructors with
     | [only] => pure (mkIdent only)
     | _ => throwErrorAt name "a Nexus3 model needs exactly one Setup constructor"
   let initialStates ← initialRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
   let terminalStates ← terminalRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
+  if rows.size > transitionBound then
+    throwErrorAt rows[transitionBound]! (transitionBoundMessage rows.size)
+  let mut declared : List (Name × Name × String) := []
+  let mut edges : List (Name × Name) := []
+  for row in rows do
+    match row with
+    | `(nexus3Transition| $key:ident : $source:ident + $selected:ident →
+        { state := $resulting:ident , outcome := $_:ident , facts := [$_,*] }) => do
+        let sourceState ← resolveMember "state" stateCtors source
+        let selectedAction ← resolveMember "action" actionCtors selected
+        let resultingState ← resolveMember "state" stateCtors resulting
+        if let some prior := declared.find? fun entry =>
+            entry.1 == sourceState.getId && entry.2.1 == selectedAction.getId then
+          throwErrorAt key (duplicateTransitionMessage key.getId.toString prior.2.2
+            source.getId.toString selected.getId.toString)
+        declared := declared ++ [(sourceState.getId, selectedAction.getId, key.getId.toString)]
+        edges := edges ++ [(sourceState.getId, resultingState.getId)]
+    | _ => throwErrorAt row "unsupported Nexus3 transition"
+  let reached := reachableStates edges (edges.length + 1)
+    (initialStates.map fun entry => entry.getId)
+  for terminalRef in terminalRefs.getElems do
+    let terminalState ← resolveMember "state" stateCtors terminalRef
+    unless reached.contains terminalState.getId do
+      throwErrorAt terminalRef (unreachableTerminalMessage terminalRef.getId.toString)
   let transitionTerms ← rows.toList.mapM fun (row : TSyntax `nexus3Transition) => do
     match row with
     | `(nexus3Transition| $key:ident : $source:ident + $selected:ident →
