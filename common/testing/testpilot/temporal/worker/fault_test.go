@@ -398,3 +398,72 @@ func TestSessionCloseResumesAndAlwaysReleasesTheHold(t *testing.T) {
 		})
 	}
 }
+
+// A resume that is still starting when the Run is released must not record its fresh worker in a
+// group that no longer exists: nothing would ever stop it and it would keep polling the queue.
+func TestFaultResumeRacingReleaseStopsTheOrphanedWorker(t *testing.T) {
+	starting := make(chan struct{})
+	proceed := make(chan struct{})
+	orphan := &fakeManagedWorker{start: func() error {
+		close(starting)
+		<-proceed
+		return nil
+	}}
+	built := 0
+	registry := newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
+		built++
+		if built == 1 {
+			return &fakeManagedWorker{start: func() error { return nil }}, nil
+		}
+		return orphan, nil
+	})
+	lease, err := registry.acquire(t.Context(), "fault", faultRequirements(), true, nil)
+	require.NoError(t, err)
+	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
+
+	resumed := make(chan error, 1)
+	go func() { resumed <- lease.resumeWorker(context.Background(), "queue") }()
+	<-starting
+	require.NoError(t, registry.release(t.Context(), "fault", lease.requirements, true))
+	close(proceed)
+
+	require.ErrorIs(t, <-resumed, ErrClosed)
+	require.Equal(t, 1, orphan.stops)
+	require.Empty(t, registry.groups)
+}
+
+// Validate and Open must agree about what a fault needs. A Program whose only worker use is a
+// fault brings no worker to stop, so both refuse it; a fault declared in cleanup binds the same
+// queue at Open that Validate saw.
+func TestFaultValidationAgreesWithOpen(t *testing.T) {
+	host := symbolicRuntimeDriver(t, preparedSymbolicRuntimeFixture(t).Snapshot().GetLimits())
+
+	cleanupFault := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
+		program.Cleanup.Instructions = append(program.Cleanup.Instructions, &testpilotspb.InstructionDefinition{
+			InstructionId: "resume",
+			Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_RESUME}}},
+			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
+		})
+	}, func(profile *testpilot.ProfileSpec) {
+		profile.Capabilities = append(profile.Capabilities, testpilot.InjectFault)
+	})
+	require.NoError(t, host.Validate(t.Context(), cleanupFault))
+	definition, err := host.prepareDefinition(cleanupFault)
+	require.NoError(t, err)
+	require.True(t, definition.hasFault)
+	require.Equal(t, map[string]string{"queue": "task-queue"}, definition.faultQueues)
+
+	workerless := preparedSymbolicRuntimeFixture(t, func(program *testpilotspb.Program) {
+		program.Entrypoints = program.Entrypoints[:1]
+		program.Entrypoints[0].Instructions = []*testpilotspb.InstructionDefinition{{
+			InstructionId: "stop",
+			Instruction:   &testpilotspb.Instruction{Instruction: &testpilotspb.Instruction_InjectFault{InjectFault: &testpilotspb.InjectFault{RoleId: "queue", Kind: testpilotspb.FAULT_KIND_WORKER_STOP}}},
+			Outcome:       runtimeStatusSchema(), Limits: runtimeBounds(),
+		}}
+	}, func(profile *testpilot.ProfileSpec) {
+		profile.Capabilities = append(profile.Capabilities, testpilot.InjectFault)
+	})
+	require.ErrorIs(t, host.Validate(t.Context(), workerless), ErrInvalid)
+	_, err = host.prepareDefinition(workerless)
+	require.ErrorIs(t, err, ErrInvalid)
+}
