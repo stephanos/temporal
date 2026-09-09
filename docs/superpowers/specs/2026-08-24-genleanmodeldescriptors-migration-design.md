@@ -76,4 +76,4 @@ references, and run `make lint-code` for repository standards verification.
 Co-locating descriptor orchestration with its only consumer avoids a common package with no reuse.
 The genuinely generic atomic-write and prefix-validation helpers remain separate, preventing their
 duplication. The longer command name is intentionally specific to its Lean-model purpose and avoids
-confusion with the existing `umpire-genmodels` command.
+confusion with the `umpire-genmodels` command that existed at the time, which fn-81 removed.
