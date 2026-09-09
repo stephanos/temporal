@@ -43,9 +43,29 @@ Implements R1 (spec §Evidence rule). Extends `tools/umpire/CLEANUP_INVENTORY.md
 - [ ] Ledger states the nine pinned failure identities and their defining files as the set R4 retires
 
 ## Done summary
-TBD
+Extended `tools/umpire/CLEANUP_INVENTORY.md` with an fn-81 section in the fn-66 ledger format:
+thirteen deletion-set rows and eight retained-neighbour rows, each with repository-wide consumer
+evidence per search surface (Go imports in the root module and each nested module, Makefile,
+workflows, shell scripts, mise, Lake, proto, Lean, generated manifests, CODEOWNERS, ignore files,
+documentation) and a disposition naming the task that removes it. Captured the dependency-closure,
+package-set, tracked-file, disk, build, vet, lint, and plan-index baselines the later tasks compare
+against, including two inherited reds (`go vet` 15 diagnostics, `go run ./tools/planindex` 45
+findings) so a task-caused failure stays distinguishable from an inherited one.
 
+The review surfaced one substantive gap the research had missed: `tools/common/formal` is a nested
+Go module whose only importer anywhere is `tools/gomad`, and whose only test invocation is
+`Makefile:309` inside the `gomad-prototype` block the spec authorizes .4 to delete. The spec's
+Retention set keeps the module, so the ledger records it as a retained neighbour orphaned by this
+sweep and directs .4 to preserve line `:309` as its own named target rather than deleting the block
+wholesale. The `gomad-prototype` block is therefore itemized by line in the ledger: `:309` and
+`:313` serve retained trees, the other four serve deleted ones, and `model/lakefile.lean:59` already
+declares `Shared` as a default target so no Lean build coverage is lost.
+
+stage: impl-review - ran (backend claude, model claude-fable-5-1, effort high, 3 rounds: NEEDS_WORK,
+NEEDS_WORK, SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 3da1a64f00c1466278c92f8b3a1302cef542789d, eb3da17ea2e3bf3bc9630b287107c35936dc6073, 7da7dc2e56aad663bd74dc261e86064281f61f73, b0dd115b78370dc65948becdc799950d7b06b441
+- Tests: go build -tags 'test_dep integration' ./... (rc=0), go vet -tags test_dep ./... (rc=1, 15 inherited diagnostics, unchanged from baseline), go run ./tools/umpire/cmd/umpire-check-retired-vocabulary (rc=0), go run ./tools/planindex (rc=1, 45 inherited findings, unchanged from baseline), go list -deps -test -tags 'test_dep integration' ./... -> .flow/tmp/fn81/deps-before.txt (2889), go list ./... -> .flow/tmp/fn81/pkgs-before.txt (546)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
