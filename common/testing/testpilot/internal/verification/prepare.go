@@ -9,6 +9,7 @@ import (
 	"go.temporal.io/server/common/testing/testpilot/internal/execution"
 	"go.temporal.io/server/common/testing/testpilot/internal/ir"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 )
 
 type PreparedContract struct {
@@ -192,7 +193,16 @@ func (a *admission) bindScope() error {
 	for _, observation := range a.prepared.program.Observations() {
 		a.scope[ir.Reference{Kind: ir.ObservationReference, ID: observation.ID}] = ir.Binding{Type: observation.Type}
 	}
+	// RUN_ID sits between SOURCE_ID and the fault fields and stays Program-only, so the two
+	// admitted ranges are declared rather than walked as one interval.
+	fields := make([]testpilotspb.RunEventField, 0, 10)
 	for field := testpilotspb.RUN_EVENT_FIELD_SEQUENCE; field <= testpilotspb.RUN_EVENT_FIELD_SOURCE_ID; field++ {
+		fields = append(fields, field)
+	}
+	for field := testpilotspb.RUN_EVENT_FIELD_FAULT_ROLE_ID; field <= testpilotspb.RUN_EVENT_FIELD_FAULT_KIND; field++ {
+		fields = append(fields, field)
+	}
+	for _, field := range fields {
 		kind := testpilotspb.SCALAR_KIND_TEXT
 		if field == testpilotspb.RUN_EVENT_FIELD_SEQUENCE || field == testpilotspb.RUN_EVENT_FIELD_ELAPSED_MILLISECONDS || field == testpilotspb.RUN_EVENT_FIELD_ATTEMPT {
 			kind = testpilotspb.SCALAR_KIND_INT64
@@ -201,8 +211,8 @@ func (a *admission) bindScope() error {
 		if bindErr != nil {
 			return bindErr
 		}
-		if field == testpilotspb.RUN_EVENT_FIELD_KIND {
-			typ, bindErr = a.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: string(testpilotspb.RunEventKind(0).Descriptor().FullName())}}}}})
+		if enumeration, ok := eventFieldEnumerations[field]; ok {
+			typ, bindErr = a.catalog.BindType(&testpilotspb.ValueType{Shape: &testpilotspb.ValueType_Singular{Singular: &testpilotspb.SingularType{Type: &testpilotspb.SingularType_Enumeration{Enumeration: &testpilotspb.NamedType{ProtobufType: string(enumeration)}}}}})
 			if bindErr != nil {
 				return bindErr
 			}
@@ -210,6 +220,12 @@ func (a *admission) bindScope() error {
 		a.scope[ir.Reference{Kind: ir.EventReference, Field: int32(field)}] = ir.Binding{Type: typ, Available: true}
 	}
 	return nil
+}
+
+// The Run Event fields whose declared type is an enumeration rather than a scalar.
+var eventFieldEnumerations = map[testpilotspb.RunEventField]protoreflect.FullName{
+	testpilotspb.RUN_EVENT_FIELD_KIND:       testpilotspb.RunEventKind(0).Descriptor().FullName(),
+	testpilotspb.RUN_EVENT_FIELD_FAULT_KIND: testpilotspb.FaultKind(0).Descriptor().FullName(),
 }
 
 func (a *admission) bindStates(m *machine) error {
@@ -274,7 +290,7 @@ func (a *admission) bindTransitions(m *machine, scope map[ir.Reference]ir.Bindin
 			return invalid(ir.Malformed, "transition event kinds required")
 		}
 		for _, kind := range tr.EventFilter.Kinds {
-			if kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || kind > testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC || slices.Contains(m.outgoing[from][kind], i) {
+			if kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || kind > ir.MaxRunEventKind || slices.Contains(m.outgoing[from][kind], i) {
 				return invalid(ir.Unknown, "invalid or duplicate event kind")
 			}
 			m.outgoing[from][kind] = append(m.outgoing[from][kind], i)

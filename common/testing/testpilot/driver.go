@@ -250,6 +250,8 @@ type Session interface {
 	Reserve(context.Context, ReservationRequest) ([]ReservationHandle, error)
 	InvokeRPC(context.Context, Coordinate, string, protoreflect.MethodDescriptor, proto.Message) (EffectHandle, error)
 	InvokeCapability(context.Context, Coordinate, OpaqueCapability, proto.Message) (EffectHandle, error)
+	// InjectFault realizes one deliberate outage on the named ROLE_KIND_TASK_QUEUE role.
+	InjectFault(context.Context, Coordinate, string, testpilotspb.FaultKind) (EffectHandle, error)
 	Bridge(context.Context) (CapabilityBridge, error)
 	Quarantine(context.Context, EffectHandle) error
 	Close(context.Context) error
@@ -303,6 +305,11 @@ func (s sessionAdapter) InvokeRPC(ctx context.Context, coordinate execution.Coor
 
 func (s sessionAdapter) InvokeCapability(ctx context.Context, coordinate execution.Coordinate, capability execution.OpaqueCapability, value proto.Message) (execution.EffectHandle, error) {
 	handle, err := s.session.InvokeCapability(ctx, publicCoordinate(coordinate), capability, value)
+	return adaptEffect(handle, err)
+}
+
+func (s sessionAdapter) InjectFault(ctx context.Context, coordinate execution.Coordinate, roleID string, kind testpilotspb.FaultKind) (execution.EffectHandle, error) {
+	handle, err := s.session.InjectFault(ctx, publicCoordinate(coordinate), roleID, kind)
 	return adaptEffect(handle, err)
 }
 
