@@ -294,3 +294,136 @@ or missing header fails the final gate even if the total is smaller.
 - The post-.2 symbol and import closure found no retained consumer of the four internal codecs or
   clone helpers. Repository searches found no additional unused package, command, helper, fixture,
   or active reference in scope. There was no scope conflict requiring revision before .3.
+
+## fn-81 pre-Testpilot generation sweep
+
+This section extends the ledger for
+[fn-81](../../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md), which deletes the
+pre-Testpilot Go generations. It follows the same evidence rule as the fn-66 accounting above: a
+removal decision requires repository-wide consumer evidence, and the absence of a Go import alone is
+never sufficient. Every deletion-set root and every retained neighbour named by the spec appears
+below with the consumers found per search surface and a disposition. It does not revise the fn-66 or
+fn-64 records.
+
+### Frozen baseline and prerequisites
+
+- Spec-run base commit: `023cb7d861b6cc0e139564b2faaf10c106a7f37d`.
+- Task-start commit: `5b9cc0dc9df7b03d231dc685c1fa99bffdf9c3b3`.
+- Prior ledger contents at task start (`git hash-object tools/umpire/CLEANUP_INVENTORY.md`):
+  `3090af45f85dd33cdf4dc38386c0e4a5ac832e84`.
+- Dependency-closure baseline: `go list -deps -test -tags 'test_dep integration' ./... | sort -u >
+  .flow/tmp/fn81/deps-before.txt` — 2,889 packages. The `-test` form is the authoritative closure
+  for the tidy comparison, because `go mod tidy` also resolves test-only imports of main-module
+  packages.
+- Package-set baseline: `go list ./... | sort > .flow/tmp/fn81/pkgs-before.txt` — 546 packages.
+- Tracked-file baseline: `git ls-files | wc -l` — 7,785.
+- Disk baseline: `du -sh tools/umpire3 model/.lake` — `5.1M` and `2.8G`. `tools/umpire3/model/.lake`
+  no longer exists at task start; it is gitignored regenerable Lake output that was removed from the
+  working tree before this task, so the 677 MB the spec measured is already reclaimed and is not
+  counted again in the fn-81 receipt.
+- Gate baselines observed before any edit: `go build -tags 'test_dep integration' ./...` exited 0.
+  `go vet -tags test_dep ./...` exited 1 with 15 inherited diagnostics in
+  `common/persistence/sql/sqlplugin/tests`, `common/testing/stamp`, `service/frontend`, and
+  `tools/tdbg`. None of the 15 is in a deletion-set root or in a file this spec edits, so the vet
+  baseline is inherited-red and the fn-81 requirement is that the same 15 remain and no new
+  diagnostic appears. `make lint-code GOLANGCI_LINT_FIX=false` reported 1,284 issues at task start.
+- `go run ./tools/planindex` exited 1 at task start with 45 inherited findings: eight `.plans`
+  documents that are unregistered or registered-but-absent, and thirty-seven flow-record
+  discrepancies (unregistered specs, dependency-set mismatches, and status drift). None of them is
+  caused by fn-81. Two are in fn-81's declared surface — the stale
+  `.plans/UMPIRE_DSL_EVOLUTION_SPEC.md` entry that R7 removes, and the unregistered
+  `fn-81-delete-the-pre-testpilot-go-generations` spec — so the fn-81 requirement is that the
+  finding count strictly decreases and that no new finding appears. Registering the other
+  thirty-odd records is a separate reconciliation and is outside this spec's boundaries, which
+  permit notes on `.plans` but no wider rewrite. `make umpire-check-regression` does not depend on
+  this gate.
+- `.flow/tmp` holds a duplicate tree with its own nested modules under `.flow/tmp/fn20.4-base-*`.
+  `git ls-files .flow/tmp` returns zero paths, so the whole directory is **untracked** scratch. It
+  is not part of the deletion set, is invisible to `go list ./...` from the repository root, and
+  needs no classification beyond this row.
+
+### Deletion-set roots
+
+| Root | Decision | Consumers per search surface, and disposition |
+| --- | --- | --- |
+| `tools/gomad` (23 files, 1,847 lines; module `go.temporal.io/server/tools/gomad`) | delete in .3 | Go: no importer anywhere — `git grep '"go.temporal.io/server/tools/gomad"' -- '*.go'` outside the tree returns nothing, and its own module is never required by the root `go.mod`. Makefile: `gomad-prototype` block at `:303-317` (`gomad-test` runs `cd tools/gomad`, `gomad-formal` and `gomad-formal-veil` build its two Lake projects). Ignore files: `.gitignore:71-72` (`/tools/gomad/formal/.lake/`, `/tools/gomad/formal/veil/.lake/`). Lake: `tools/gomad/formal/lake-manifest.json`, `tools/gomad/formal/veil/lake-manifest.json` — self-contained, no retained workspace imports them. Workflows, CODEOWNERS, scripts, proto, Lean, mise: none. Disposition: delete with its Makefile block (.4) and ignore rows (.4). |
+| `tools/gomad1` (163 files, 55,725 lines; no `go.mod`, compiled inside the root module) | delete in .3 | Go: `git grep 'tools/gomad1' -- '*.go'` outside the tree returns nothing; `ctrl/dropin.go` `RunInSim` has zero callers. Ignore files: `.gitignore:5` (`tests/.gomad-run/`) exists only because `tools/gomad1/ctrl/dropin.go:22,32` defaults its output workspace to `<srcDir>/.gomad-run`; it is a gomad1 artifact path, not a gomad3 one. Makefile, workflows, CODEOWNERS, scripts, proto, Lean, mise: none. Disposition: delete; `.gitignore:5` goes with it in .4. Because it sits in the root module, its removal is the one gomad deletion the root build observes. |
+| `tools/gomad2` (193 files, 42,184 lines; module `github.com/temporalio/gomad`) | delete in .3 | Go: no source file in the repository imports `github.com/temporalio/gomad` — the only references are `go.mod:62` (`require github.com/temporalio/gomad v0.0.0`) and `go.mod:263` (`replace github.com/temporalio/gomad => ./tools/gomad2`). Generated manifest: `tools/gomad3/simulation/parity/manifest.go:315` requires every parity source path to carry the `tools/gomad2/` prefix, and `tools/gomad3integration/simulation_contract_test.go:17` reads `simulation/parity/manifest.json`; that manifest is the sole live consumer and is retired in the same commit. Prose: `tools/gomad3/README.md:601` names the manifest. Scripts: `tools/gomad2/test.sh` is self-contained. Proto: `tools/gomad2/internal/tests/testpb.proto:3` declares its own `go_package`, and no retained proto imports it. Docs: `docs/superpowers/specs/2026-08-09-gomad2-entrypoint-design.md:11,23`. Disposition: delete with the root `go.mod` require and replace, the parity manifest package, and the parity assertions; the design record gets a historical banner in .5. |
+| `tools/umpire1` (78 files, 14,740 lines) | delete in .2 | Go: `service/history/workflow/cache/cache.go:32` imports `tools/umpire1/model` for `model.Namespace(...).Workflow(...).Execution(...)` entity tags — the production seam — and `tests/testcore/monitor/monitor_test.go:5`. Docs: `docs/superpowers/specs/2026-08-12-umpire-follow-up-observability-design.md:16`. Makefile, workflows, CODEOWNERS, ignore files, scripts, proto, Lean, mise: none. Disposition: the seam removal in .2 precedes deletion; both importers are removed in the same task, the monitor package first (commit 1's `tests/lost_task_test.go` and commit 3's `tests/testcore/monitor`). |
+| `tools/umpire2` (309 files, 130,489 lines) | delete in .2 | Go: `tests/testcore/functional_test_base.go:51`, `tests/testcore/test_env_test.go:13`, `tests/testcore/monitor/monitor_test.go:6`, `tests/probe/probe.go:29`, `tests/umpire2_probe_test.go:23-24`, `tests/umpire2_regress_test.go:13-15`, `tests/umpire2_test.go:22`, `cmd/umpire-genmodels/main.go:18`. CODEOWNERS: `:99-102` (four rows over `tools/umpire2/internal/protocol` and `tools/umpire2/testdata/genmodels`). Ignore files: `.gitignore:16-18` (testdata un-ignore rules) and `:46-49` (verification tool output). Workflows: `umpire-model-verification.yml:8,40,106-107,122` — path trigger, `source tools/umpire2/testdata/genmodels/tools.env`, two test selectors, and the results artifact path. Docs: `docs/superpowers/specs/2026-08-12-umpire-follow-up-observability-design.md:22,34,154,258`. Disposition: delete in .2 after every Go importer is gone; the workflow, CODEOWNERS rows, and ignore rows go in .4; the design record gets a banner in .5. |
+| `tools/umpire3` (522 files, 92,858 lines, 5.1 MB tracked) | delete in .2 | Go: `tests/umpire3_mechanisms_test.go:38-43`, `tests/umpire3_participant_process_test.go:20`, `tests/umpire3_probe_test.go:22-31`, `tests/umpire3_regress_test.go:6-7`, `tests/umpire3_sdk_test.go:31-39`, `tests/umpire3_test.go:12-14` — all six are deletion-set legacy tests. Makefile: the `UMPIRE3_*` variable blocks at `:85-119` and `:147-178` and roughly seventy `umpire3-*` targets at `:612-999` and `:1282-1392`. Workflows: `.github/workflows/umpire3.yml` in full (its own path trigger, `working_directory: tools/umpire3/model`, `make umpire3-check`, `make umpire3-integration`). Ignore files: `.gitignore:27-30` (testdata un-ignore) and `:68-69` (its Lake build outputs). Lean: a second Lake project under `tools/umpire3/model` (193 tracked files, mathlib-dependent, its own `lean-toolchain`); no retained Lean workspace imports it — the primary `model/` workspace never references `Umpire3.*`. Test fixture: `tools/umpire/vocabulary/retired_vocabulary_test.go:91` writes a fixture at the literal path `tools/umpire3/history.go` inside a `t.TempDir()`, exercising the excluded-history rule. Disposition: delete in .2; the fixture path is repointed to a neutral name in the same task, and the Makefile blocks, workflow, and ignore rows go in .4. |
+| `tools/agentworkflow` (43 files, 11,695 lines; module `go.temporal.io/server/tools/agentworkflow`) | delete in .3 | Go: no importer outside the tree; `docs/superpowers/specs/2026-08-24-agentworkflow-configuration-cli-design.md:78` records the same finding independently. Makefile: `:290-301` (`agentworkflow-test`, `-race`, `-vet`, `-check` and their `.PHONY` line) and `:308`, where `gomad-test` also runs the agentworkflow suite. Docs: `docs/research/agentworkflow-oss-landscape.md:19,71` carry fifteen `../../tools/agentworkflow/...` links, plus three design records. Workflows, CODEOWNERS, ignore files, scripts, proto, Lean, mise: none. Disposition: delete; Makefile rows in .4; documentation banners and de-linking in .5. |
+| `cmd/umpire-genmodels` (3 files, 1,960 lines) | delete in .2 | Go: imports `common/testing/umpire/verify`, `.../verify/toolchain`, and `tools/umpire2` (`main.go:16-18`, `main_test.go:15-16`, `tool_environment.go:9`); nothing imports it. Makefile: `:84` (`UMPIRE_GENMODELS`) and `:594-610` (`umpire-genmodels`, `umpire-check-genmodels`, `umpire-verify-smoke`, `umpire-verify-nightly`, `.PHONY`). mise: `mise.toml:6-13` (`umpire:install-tools`, `umpire:verify-smoke`). Scripts: `develop/umpire/install-tools.sh:19` is its only other caller and has no other purpose. Workflows: `umpire-model-verification.yml:6,101,108,116`. Disposition: delete in .2 together with the mise tasks and the install script; Makefile and workflow rows in .4. |
+| `common/testing/umpire` (96 files, 26,721 lines) | delete in .2 | Go, under `service`: exactly one importer, `service/history/workflow/cache/cache.go:27` (`umpireotel "…/common/testing/umpire/oteladapter"`), verified with `git grep -l 'umpireotel\|common/testing/umpire' -- service`. Other Go: `tests/testcore/monitor/monitor.go:10`, `tests/probe/{probe,coverage,report}.go`, `tests/umpire2_probe_test.go:20`, `tests/umpire2_regress_test.go:9-10`, `tests/umpire2_test.go:20`, `cmd/umpire-genmodels`. CODEOWNERS: `:98` (`/common/testing/umpire/verify/`). Workflows: `umpire-model-verification.yml:7,105`. Docs: `docs/superpowers/specs/2026-08-12-umpire-follow-up-observability-design.md:36,118,257`. Disposition: delete in .2 in the same commit as the three umpire trees, because the seam and the trees form one import cycle across the root module. |
+| `service/history` observer comments (6 files) | comment-only edit in .2 | No import, no call: `respondworkflowtaskcompleted/workflow_task_completed_handler.go:847,1171-1174`, `startworkflow/api.go:270-273`, `updateworkflow/api.go:346-349`, `ndc/workflow_resetter.go:282-283`, `workflow/retry.go:324-325`, `workflow/update/util.go:24,122,139,153`. Each points the reader at the umpire test observer, and four of them cite `.plans/UMPIRE.md`, a file that does not exist in this repository. Disposition: rewrite or drop the comment lines only; the OTEL span events they describe are retained production behaviour and no code changes. |
+| `tests/testcore/monitor` (2 files, 46 lines) | delete in .2 | Go: `monitor.go` imports `common/testing/umpire`; `monitor_test.go` imports `tools/umpire1` and `tools/umpire2`. Its only consumers are `tests/testcore/functional_test_base.go` (factory, accessor, purge, interceptor) and `tests/testcore/test_env.go` (factory option). Disposition: delete with the monitor API in commit 3 of .2. |
+| `tests/umpire2_*.go`, `tests/umpire3_*.go` (9 files) and `tests/lost_task_test.go` (1 file, 5,760 lines together) | delete in .2 | These are the only readers of the deleted trees inside package `tests`. `tests/lost_task_test.go` is branch-only rather than upstream and is the sole retained reader of the monitor API (`AllowMonitorViolations` at `:45,132,200`; `GetMonitor().CheckNamespace` at `:102,155,239`). Disposition: delete in commit 1 of .2, because `go test ./tests` compiles the whole package and would otherwise fail on the removed monitor API. The lost-task property it asserted is recorded below as a future Testpilot regression candidate. |
+| `tests/probe` (3 files, 700 lines) | delete in .2 | Go: imports `common/testing/umpire` and `tools/umpire2`; imported only by `tests/umpire2_probe_test.go`. Disposition: delete in commit 1 of .2. |
+| `umpire-check-live-tests` pinned failure list (`Makefile:1150-1160`) | retire in .4 | Nine expected-failure identities, all defined by files this spec deletes. Disposition: R4 replaces the pinned list with an empty baseline plus a passing-identity floor. |
+
+Deletion-set totals: 1,435 tracked files and 378,965 tracked lines in the eleven roots above, plus
+10 test files and 5,760 lines in `tests`, for 1,445 files and 384,725 lines. Of that, 235,684 lines
+are Go; the remainder is Lean under `tools/umpire3/model`, testdata, and fixtures.
+
+### Retained neighbours
+
+| Neighbour | Decision | Reason and evidence |
+| --- | --- | --- |
+| `tools/fairsim`, `cmd/tools/fairsim` | retained — not a choice | Upstream Temporal code, not a pre-Testpilot generation of this project. `Makefile:561,573-575` and `.gitignore:55` stay untouched. Excluding it is upstream ownership, not a scope decision. |
+| `tools/planindex`, `.plans/index.json` | retained — fn-66 carve-out revalidated | fn-66 retained `tools/planindex` and `make umpire-check-plan-index` deliberately as adjacent tooling outside its inventory. fn-81's first draft proposed deleting it; that is reversed here. Its validator is the only thing that keeps `.plans/index.json` honest once the deleted-tree documents are relabelled historical in .5, so deleting it would remove the gate that checks this spec's own documentation reconciliation. |
+| `tools/gomad3`, `tools/gomad3sim`, `tools/gomad3integration`, `tests/gomadfunctional` | retained per `.plans/GOMAD_MILESTONES.md` F0 | The 2026-09-08 assessment found gomad3 is the only tree that can run an unchanged Temporal functional test under a deterministic runtime. Retained wiring: `gomad3.yml`, `Makefile:201,240,242,319-352,1396,1477`, `.gitattributes:3-4`, `.github/.yamlfmt:13`, `.gitignore:4` (`.gomad/` is the gomad3 artifact store, distinct from gomad1's `tests/.gomad-run/`), and `tools/gomad3/qualification/corpus/go.mod`. Their only fn-81 edit is the parity-manifest retirement: `tools/gomad3/simulation/parity` is deleted, its importer `internal/gomadtool/validation/script_policy.go:12,29-30` loses the check, `tools/gomad3integration/simulation_contract_test.go` loses the parity assertions, and `tools/gomad3/README.md:601` loses the manifest sentence. `tools/gomad3/.toolchain` (770 MB, generated GOROOTs) is untracked and out of scope. |
+| `tools/umpire`, `tools/common`, `common/testing/testpilot`, `tests/testcore/testpilot` | retained, untouched apart from reference edits | No deletion-set root imports them and they import no deletion-set root. `tools/umpire/regression/ci_workflow_test.go` is edited in .4 to pin the new gate, and `tools/umpire/vocabulary/retired_vocabulary_test.go:91` is repointed in .2. |
+| `.plans`, `docs`, `.turbo` | retained, notes only | Historical reasoning that led to Umpire 4. Records that link into deleted trees gain a historical banner in .5; nothing is deleted. |
+| Lean previous generations (Nexus v1, Nexus2, Umpire Artifact, Space, Exploration under `model/`) | out of scope | Imported by live modules or reserved by open specs fn-22, fn-33, fn-79, and fn-80. Their removal needs a roadmap decision, not this sweep. |
+| `.flow/tmp/fn20.4-base-*` duplicate tree | untracked scratch | `git ls-files .flow/tmp` returns zero paths. Not tracked, not built, not classified further. |
+
+### Retired live-test failure identities
+
+R4 retires the pinned expected-failure list at `Makefile:1150-1160`. All nine identities are
+defined by files this spec deletes, so an empty baseline is the correct successor rather than a
+weakened gate:
+
+| Pinned identity | Defining file |
+| --- | --- |
+| `TestUmpire2TestSuite` | `tests/umpire2_test.go` |
+| `TestUmpire2TestSuite/TestPlanAndDriveKitchenSinkNexusOperation` | `tests/umpire2_test.go` |
+| `TestUmpire2TestSuite/TestPlanAndDriveNexusOperationCHASM` | `tests/umpire2_test.go` |
+| `TestUmpire2TestSuite/TestProbeNexusDegraded` | `tests/umpire2_probe_test.go` |
+| `TestUmpire2TestSuite/TestProbeNexusExploration` | `tests/umpire2_probe_test.go` |
+| `TestUmpire2TestSuite/TestProbeNexusFlagged` | `tests/umpire2_probe_test.go` |
+| `TestUmpire2TestSuite/TestProbeNexusRandomized` | `tests/umpire2_probe_test.go` |
+| `TestUmpire2TestSuite/TestProbeNexusResilience` | `tests/umpire2_probe_test.go` |
+| `TestUmpire3ParticipantProcessCrashAndRestartResumesRealSDKProgram` | `tests/umpire3_participant_process_test.go` |
+
+Because an empty expected set cannot by itself distinguish "everything passed" from "the selector
+matched nothing", R4 pairs the empty baseline with a floor requiring at least one `--- PASS`
+identity in the verbose output.
+
+### Future Testpilot regression candidates
+
+`tests/lost_task_test.go` is deleted rather than ported, because every fact it reads comes from the
+monitor seam. Its three properties are recorded here so a future Testpilot Case can reclaim them
+from declared Observations rather than from a white-box adapter:
+
+- **Lost task.** A workflow task written to persistence and then removed by
+  `CompleteTasksLessThan` is never delivered to a poller, and the discrepancy between stored and
+  polled tasks is observable.
+- **Stuck workflow.** A workflow that is started but never receives a
+  `RespondWorkflowTaskCompleted` remains in the started state past a bounded horizon.
+- **Stuck workflow via the SDK.** A workflow blocked in `workflow.Await` on a condition that never
+  becomes true, whose worker is stopped before the first task completes, is detectable as stuck.
+
+### Authorized deletion paths
+
+Deletion is authorized only for the roots in the deletion-set table above, plus:
+
+- `tools/gomad3/simulation/parity` (the parity manifest package retired with `tools/gomad2`).
+- `.github/workflows/umpire3.yml` and `.github/workflows/umpire-model-verification.yml`.
+- `develop/umpire/install-tools.sh` and the two `mise.toml` tasks that call it.
+- The `go.mod` require and replace for `github.com/temporalio/gomad`, and the `go.sum` rows
+  `go mod tidy` drops as a consequence.
+- The Makefile variables, targets, and `.PHONY` names that serve only a deleted root, the
+  CODEOWNERS rows over deleted paths, and the `.gitignore` rows over deleted paths.
+
+No other path is authorized. No compatibility shim, archive branch, or replacement monitor is
+authorized: the functional harness loses the seam rather than gaining a no-op.
