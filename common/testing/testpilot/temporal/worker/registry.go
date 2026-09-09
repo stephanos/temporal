@@ -342,10 +342,8 @@ func (l *workerLease) group(queue string) (*workerGroup, error) {
 	return group, nil
 }
 
-// stopWorker realizes one deliberate outage on the queue the instruction named. The group is
-// marked stopped under the registry lock, before the SDK worker is asked to stop, so the fatal
-// path is already suppressed when the stop takes effect. The blocking Stop runs outside the lock
-// and is bounded by the caller's context.
+// stopWorker realizes one deliberate outage on the queue the instruction named, blocking until the
+// SDK worker has stopped or the caller's deadline passes.
 func (l *workerLease) stopWorker(ctx context.Context, queue string) error {
 	return l.transition(ctx, queue, true)
 }
@@ -357,28 +355,47 @@ func (l *workerLease) resumeWorker(ctx context.Context, queue string) error {
 }
 
 func (l *workerLease) transition(ctx context.Context, queue string, stop bool) error {
+	work, err := l.beginTransition(ctx, queue, stop)
+	if err != nil {
+		return err
+	}
+	return work(ctx)
+}
+
+// beginTransition flips the group's recorded state under the registry lock and returns the
+// blocking work that makes it true. Splitting the two puts fatal suppression in place, and
+// refuses an invariant violation, on the dispatch path; the blocking part then runs where the
+// scheduler's own deadline handling turns an expired instruction bound into a timed-out
+// instruction rather than a failed dispatch, and without holding the recorder across the outage.
+func (l *workerLease) beginTransition(ctx context.Context, queue string, stop bool) (func(context.Context) error, error) {
 	if ctx == nil {
-		return ErrInvalid
+		return nil, ErrInvalid
 	}
 	if err := l.registry.mu.lock(ctx); err != nil {
-		return err
+		return nil, err
 	}
 	group, err := l.group(queue)
 	if err != nil {
 		l.registry.mu.unlock()
-		return err
+		return nil, err
 	}
 	if group.stopped == stop {
 		l.registry.mu.unlock()
-		return ErrRegistrationConflict
+		return nil, ErrRegistrationConflict
 	}
 	group.stopped = stop
 	worker, registration, key := group.worker, group.registration, group.key
 	l.registry.mu.unlock()
 
 	if stop {
-		return stopBounded(ctx, worker)
+		return func(ctx context.Context) error { return stopBounded(ctx, worker) }, nil
 	}
+	return func(ctx context.Context) error {
+		return l.finishResume(ctx, group, key, queue, registration)
+	}, nil
+}
+
+func (l *workerLease) finishResume(ctx context.Context, group *workerGroup, key, queue string, registration queueRegistration) error {
 	resumed, err := l.registry.factory(key, queue, registration)
 	if err == nil && resumed == nil {
 		err = ErrInvalid

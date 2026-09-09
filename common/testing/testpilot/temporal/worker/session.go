@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sync"
 	"sync/atomic"
 
 	"github.com/nexus-rpc/sdk-go/nexus"
@@ -127,28 +128,63 @@ func (*Session) InvokeCapability(context.Context, testpilot.Coordinate, testpilo
 	return nil, ErrUnsupportedOperation
 }
 
-// faultEffect carries the settled outcome of one fault instruction. The transition is performed
-// before the handle is returned, so Wait reports what actually happened rather than a promise.
-type faultEffect struct{ result testpilot.EffectResult }
+// faultEffect settles one fault instruction. The state flip already happened on the dispatch
+// path; the blocking stop or resume runs here, where the scheduler's own deadline handling turns
+// an expired instruction bound into a timed-out instruction.
+type faultEffect struct {
+	work   func(context.Context) error
+	result testpilot.EffectResult
+	once   sync.Once
+	err    error
+}
 
-func (e faultEffect) Wait(ctx context.Context) (testpilot.EffectResult, error) {
+func (e *faultEffect) Wait(ctx context.Context) (testpilot.EffectResult, error) {
 	if ctx == nil {
 		return testpilot.EffectResult{}, ErrInvalid
 	}
-	if err := ctx.Err(); err != nil {
-		return testpilot.EffectResult{}, err
+	if e.work == nil {
+		if err := ctx.Err(); err != nil {
+			return testpilot.EffectResult{}, err
+		}
+		return e.result, nil
 	}
-	return e.result, nil
+	e.once.Do(func() { e.err = e.work(ctx) })
+	if e.err == nil {
+		return e.result, nil
+	}
+	// A deadline is the scheduler's to classify; every other failure is a fault the Driver could
+	// not realize, which the Run carries as a non-success outcome naming the reason.
+	if ctx.Err() != nil {
+		return testpilot.EffectResult{}, e.err
+	}
+	return testpilot.EffectResult{Outcome: unrealizedFault(e.err)}, nil
 }
-func (faultEffect) Cancel(context.Context) error { return nil }
-func (faultEffect) Drain(context.Context) error  { return nil }
+func (*faultEffect) Cancel(context.Context) error { return nil }
+func (*faultEffect) Drain(context.Context) error  { return nil }
+
+func unrealizedFault(cause error) *testpilotspb.InstructionOutcome {
+	return &testpilotspb.InstructionOutcome{
+		Status:       testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS,
+		ProtocolCode: "fault_not_realized",
+		Detail:       cause.Error(),
+	}
+}
 
 // InjectFault realizes one deliberate worker outage on the dedicated group this Run holds. A
-// transition the Driver cannot make is reported as a failed instruction outcome plus a Driver
-// invariant diagnostic: the Run records that the fault was requested and not realized, and the
-// Verdict is left to the Contract rather than being decided here.
+// transition the Driver refuses outright, or cannot complete, is reported as a failed instruction
+// outcome naming the reason plus a Driver invariant diagnostic: the Run records that the fault was
+// requested and not realized, and the Verdict is left to the Contract rather than decided here.
 func (s *Session) InjectFault(ctx context.Context, at testpilot.Coordinate, roleID string, kind testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
 	if s == nil || ctx == nil || at.RunID != s.runID || roleID == "" {
+		return nil, ErrInvalid
+	}
+	var stop bool
+	switch kind {
+	case testpilotspb.FAULT_KIND_WORKER_STOP:
+		stop = true
+	case testpilotspb.FAULT_KIND_WORKER_RESUME:
+		stop = false
+	default:
 		return nil, ErrInvalid
 	}
 	queue, declared := s.definition.faultQueues[roleID]
@@ -166,31 +202,30 @@ func (s *Session) InjectFault(ctx context.Context, at testpilot.Coordinate, role
 	if workers == nil {
 		return nil, ErrInvalid
 	}
-	var err error
-	switch kind {
-	case testpilotspb.FAULT_KIND_WORKER_STOP:
-		err = workers.stopWorker(ctx, queue)
-	case testpilotspb.FAULT_KIND_WORKER_RESUME:
-		err = workers.resumeWorker(ctx, queue)
-	default:
-		return nil, ErrInvalid
+	work, err := workers.beginTransition(ctx, queue, stop)
+	if err == nil {
+		return &faultEffect{work: work, result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
 	}
-	// A queue this lease does not hold is a rejected dispatch, not a recorded outage.
-	if errors.Is(err, ErrInvalid) || errors.Is(err, ErrUnsupportedOperation) {
+	// A queue this lease does not hold is a rejected dispatch, never a recorded outage.
+	if errors.Is(err, ErrInvalid) || errors.Is(err, ErrUnsupportedOperation) || ctx.Err() != nil {
 		return nil, err
 	}
-	if err == nil {
-		return faultEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
-	}
-	if diagnoseErr := s.Diagnose(ctx, s.runID, &testpilotspb.RunDiagnostic{
+	s.diagnoseFault(ctx, kind, queue, err)
+	return &faultEffect{result: testpilot.EffectResult{Outcome: unrealizedFault(err)}}, nil
+}
+
+// diagnoseFault notifies the Driver's own diagnostic sink. It is best effort and runs on a context
+// the instruction's deadline cannot cancel: the Run already carries the reason on the outcome, so
+// a sink that is unavailable must not turn an unrealized fault into a failed dispatch.
+func (s *Session) diagnoseFault(ctx context.Context, kind testpilotspb.FaultKind, queue string, cause error) {
+	notify, cancel := context.WithTimeout(context.WithoutCancel(ctx), defaultCleanupTimeout)
+	defer cancel()
+	_ = s.Diagnose(notify, s.runID, &testpilotspb.RunDiagnostic{
 		DiagnosticId: fmt.Sprintf("fault-%d", s.next.Add(1)),
 		Kind:         testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT,
 		Code:         "fault_not_realized",
-		Detail:       kind.String() + " on " + queue + ": " + err.Error(),
-	}); diagnoseErr != nil {
-		return nil, errors.Join(err, diagnoseErr)
-	}
-	return faultEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS}}}, nil
+		Detail:       kind.String() + " on " + queue + ": " + cause.Error(),
+	})
 }
 
 func (s *Session) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error) {
