@@ -12,6 +12,7 @@
     "fn-77-typed-operations-parameterized-actions.10": 0,
     "fn-77-typed-operations-parameterized-actions.11": 0,
     "fn-77-typed-operations-parameterized-actions.12": 0,
+    "fn-77-typed-operations-parameterized-actions.13": 0,
     "fn-77-typed-operations-parameterized-actions.5": 0,
     "fn-77-typed-operations-parameterized-actions.6": 0,
     "fn-77-typed-operations-parameterized-actions.7": 0,
@@ -905,12 +906,57 @@
       "task": null,
       "timestamp": "2026-09-09T08:41:27.049172Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6a82b7fc3354207ae20b4a37221e1054a35ec42d26f819a7099746870df504c0",
+      "backend": "claude",
+      "base_sha": "849c037390bfd9d68ea1ca13bef0b9251161ab29",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-5c6946c3b5be4f9489d304d3cf2c08e2",
+            "classification": "introduced",
+            "findingId": "finding-5c6946c3b5be4f9489d304d3cf2c08e2",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ec1b0d8714b7f60663b34b771489b154e8dd38ce",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 3181,
+      "output_sha256": "96290bc69bc4e9b6a03c746f401d41139950ac5f74e8c4f6de4fd5574643c4da",
+      "reservation_id": "8bc4381148b64a48825370eb7c6c496a",
+      "round_consumed": true,
+      "scope": "impl:fn-77-typed-operations-parameterized-actions.13",
+      "superseded_by": null,
+      "task": "fn-77-typed-operations-parameterized-actions.13",
+      "timestamp": "2026-09-09T08:54:43.707873Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-77-typed-operations-parameterized-actions.10": 1,
     "impl:fn-77-typed-operations-parameterized-actions.11": 1,
     "impl:fn-77-typed-operations-parameterized-actions.12": 2,
+    "impl:fn-77-typed-operations-parameterized-actions.13": 1,
     "impl:fn-77-typed-operations-parameterized-actions.5": 1,
     "impl:fn-77-typed-operations-parameterized-actions.6": 1,
     "impl:fn-77-typed-operations-parameterized-actions.7": 1,
@@ -926,6 +972,7 @@
     "impl:fn-77-typed-operations-parameterized-actions.10": 0,
     "impl:fn-77-typed-operations-parameterized-actions.11": 0,
     "impl:fn-77-typed-operations-parameterized-actions.12": 0,
+    "impl:fn-77-typed-operations-parameterized-actions.13": 0,
     "impl:fn-77-typed-operations-parameterized-actions.5": 0,
     "impl:fn-77-typed-operations-parameterized-actions.6": 0,
     "impl:fn-77-typed-operations-parameterized-actions.7": 0,
@@ -947,5 +994,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T08:41:27.052297Z"
+  "updated_at": "2026-09-09T08:54:43.712633Z"
 }
