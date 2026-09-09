@@ -9,7 +9,6 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
 	"google.golang.org/protobuf/proto"
 )
@@ -20,18 +19,22 @@ import (
 // declared Observation rather than restated by the test.
 func TestTestpilotTypedUnaryCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
-	caseSource := loadTestpilotCase(t, "typed-unary")
-	caseSnapshot := proto.CloneOf(caseSource)
-	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-	require.NoError(t, err)
+	caseSnapshot := proto.CloneOf(loadTestpilotCase(t, "typed-unary"))
 
-	environment := testpilotfixture.TypedUnaryEnvironment{
-		Namespace: "umpire-typed-unary", TaskQueue: "umpire-typed-unary-queue",
+	binding := CaseBinding{
+		Identity: "typed-unary-profile", Namespace: "umpire-typed-unary", TaskQueue: "umpire-typed-unary-queue",
 	}
-	live := newTestpilotLiveCase(t, env, caseSource,
-		testpilotfixture.TypedUnaryProfile(catalog, caseSource, environment),
-		testpilotLiveResources{Namespace: environment.Namespace, TaskQueue: environment.TaskQueue},
-		testpilotCleanupTimeout)
+	// The single-shot happy path: runCase loads the fixture, derives the Profile, provisions,
+	// prepares and runs once.
+	run, verdict := runCase(t, env, "typed-unary", binding)
+	require.Equal(t, testpilotpb.RUN_STATUS_COMPLETED, run.GetStatus())
+	require.Equal(t, testpilotpb.VERDICT_STATUS_SATISFIED, verdict.GetStatus())
+	requireSubmittedWorkflowTypeEvidence(t, run, verdict.GetSupportingEventSequences())
+
+	caseSource := loadTestpilotCase(t, "typed-unary")
+	live := bindCase(t, env, caseSource, CaseBinding{
+		Identity: "typed-unary-profile", Namespace: "umpire-typed-unary-repeat", TaskQueue: "umpire-typed-unary-queue-repeat",
+	})
 
 	runIDs := make(map[string]struct{}, 2)
 	for range 2 {

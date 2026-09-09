@@ -8,7 +8,10 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func instructionOpcode(instruction *testpilotspb.Instruction) Opcode {
+// InstructionOpcode is the single mapping from a declared instruction to the opcode a Profile must
+// authorize. Profile derivation reads it through the facade so a Case's instructions and the
+// capabilities that authorize them cannot drift apart.
+func InstructionOpcode(instruction *testpilotspb.Instruction) Opcode {
 	if instruction == nil || isNil(instruction.Instruction) {
 		return 0
 	}
@@ -59,7 +62,7 @@ func (a *admission) bindInstructions() error {
 	return nil
 }
 func (a *admission) bindInstruction(g *graph, i int, n *node) error {
-	n.opcode = instructionOpcode(n.source.Instruction)
+	n.opcode = InstructionOpcode(n.source.Instruction)
 	if n.opcode == 0 || opcodeContext(n.opcode) != g.context || !a.capabilities[n.opcode] {
 		return invalid(ir.Unsupported, nodePath(g, n), "unsupported instruction context or Driver capability")
 	}
@@ -110,7 +113,7 @@ func bindAwait(g *graph, n *node) error {
 	if !exists || reference.GetEntrypointId() != g.id || !n.ancestors[dependency] {
 		return invalid(ir.Unavailable, nodePath(g, n), "Await requires an earlier local instruction")
 	}
-	if instructionOpcode(g.nodes[dependency].source.Instruction) != StartNexusOperation {
+	if InstructionOpcode(g.nodes[dependency].source.Instruction) != StartNexusOperation {
 		return invalid(ir.TypeMismatch, nodePath(g, n), "Await requires StartNexusOperation")
 	}
 	return nil

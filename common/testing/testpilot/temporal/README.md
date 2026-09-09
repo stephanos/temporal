@@ -36,3 +36,14 @@ and `testpilot.Prepare` owns descriptor, bounds, identity, scope, and environmen
 The async Nexus fixture is one Case 1.0 byte sequence. Its live test prepares that sequence against
 two Profiles, runs both physical environments, and proves namespace isolation plus the same
 correlated satisfied Contract; the binding fingerprints and Driver identities differ.
+
+`DeriveProfile` reads one Case and returns the minimal `ProfileSpec` it implies: the roles it
+declares, the methods it invokes, the reservation carriers its own instructions use with the
+activation counts they reserve per entrypoint context, the capabilities its opcodes require, and
+the environment values its declared bindings resolve to through the roles that reference them. It
+never widens beyond what the Case references, and it rejects a method the catalog does not know, an
+undeclared role kind, an unset instruction, a reservation naming an undeclared entrypoint, or a
+declared binding no role claims. The Profile is an authorization snapshot, so the derived value is
+returned for the caller to review and tighten before `Prepare`; canary callers keep hand-authored
+Profiles, and the hand-written async-nexus Profile stays the derivation oracle. MOD-12's `Prepare`
+then `Run` sequence is unchanged: derivation only decides what the Profile says.
