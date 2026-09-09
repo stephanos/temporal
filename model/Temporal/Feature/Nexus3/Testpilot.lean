@@ -118,9 +118,9 @@ private def program : Program :=
       Program.environment taskQueueBinding,
       Program.environment nexusEndpointBinding])
 
-/-- One declared Nexus history projection that witnesses a modeled Fact. The Producer can lower a
-checked clause only over the Facts named here, so the declaration set is the Producer's evidence
-vocabulary rather than a spelling whitelist over the checked values. -/
+/-- One declared Nexus history projection that witnesses a modeled Fact, keyed by the Fact's
+modeled name. Only the Facts named here are lowerable, so renaming a Fact constructor rejects by
+name until this declaration set names the new spelling. -/
 private structure FactEvidence where
   factKey : String
   transitionId : String
@@ -137,6 +137,9 @@ private def pendingStateId := "pending"
 private def scheduledStateId := "scheduled-correlated"
 private def scheduledAttributes := "nexus_operation_scheduled_event_attributes"
 
+/-- `correlatedStateId` names the monitor state each stage enters; the last stage of a derived
+chain is the satisfied one, so the shipped success chain enters `satisfied` and the shipped Case
+bytes are unchanged by this derivation. -/
 private def factEvidence : List FactEvidence := [
   { factKey := "started"
     transitionId := "match-started-reference"
