@@ -43,15 +43,17 @@ fixture regeneration, not a syntax error.
 
 The grammar accepts one or more initial states and terminal states, up to 256 transition rows, any
 number of Facts per row, one or more `require` clauses, one or more Behavior occurrences, and any
-positive limits. A model also needs a one-constructor `Setup` inductive in scope by name; the
-grammar does not spell it. `RaceSyntaxTests.lean` declares a second lifecycle through the same five
-blocks: five states, four Actions, two terminal states, a losing row that records no Fact, a
-two-clause Property, and a different role name.
+limits — a zero limit is rejected when the Query is checked, not when the block elaborates. A model
+also needs a one-constructor `Setup` inductive in scope by name; the grammar does not spell it. The
+Action constructors must be declared in the order their spellings sort, because the planner admits
+only a canonically ordered Action catalog; the other domains carry no such requirement.
+`RaceSyntaxTests.lean` declares a second lifecycle through the same five blocks with a different
+role name, a losing row that records no Fact, two terminal states, and a two-clause Property.
 
-A constructor that takes arguments, an identifier naming no constructor, a duplicate
-`before + action` pair, a terminal state unreachable from every initial state, a table over the
-bound, and a missing or multi-constructor `Setup` are each reported at the offending source
-coordinates.
+A constructor that takes arguments, an identifier naming no constructor, an unsorted Action
+catalog, a duplicate `before + action` pair, a terminal state unreachable from every initial state,
+a table over the bound, and a missing or multi-constructor `Setup` are each reported at the
+offending source coordinates.
 
 What remains proposed below is the shape of the declarations, not the spelling of their members:
 `oneOf` alternatives in a transition row, a row with the `facts` field omitted rather than empty,
@@ -88,16 +90,18 @@ inductive State where
 /-- Actions distinguish a command from a wait for evidence. Waiting does not cause completion.
 Separating an Action from its result lets one Action admit multiple outcomes without allowing
 a test to choose which outcome the system produces. The command/wait classification is checked
-in `Integration.md`; it is not inferred from these names. -/
+in `Integration.md`; it is not inferred from these names. The constructors are in sorted order
+because the planner admits only a canonically ordered Action catalog; the order carries no
+precedence or priority. -/
 inductive Action where
+  /-- Wait for cancellation or successful completion; neither result is chosen by the wait. -/
+  | awaitResolution
   /-- Wait for asynchronous acknowledgment after scheduling the operation. -/
   | awaitStart
   /-- Wait for successful handler completion before cancellation in this model. -/
   | awaitSuccess
   /-- Asks for cancellation without promising which terminal result will follow. -/
   | requestCancel
-  /-- Wait for cancellation or successful completion; neither result is chosen by the wait. -/
-  | awaitResolution
 
 /-- An outcome says what happened on a step, independently of the state it leaves behind.
 Later extensions can distinguish, for example, accepted and rejected requests with the same
