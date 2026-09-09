@@ -14,7 +14,7 @@ with unchanged wire identifiers, and `Umpire.ExecutionHandoff` is deleted.
 **Touches:** [model/Umpire/Query*, model/Umpire/Planning*, model/Umpire/Search*, model/Umpire/Artifact/**, model/Umpire/Core.lean, model/Umpire/Promotion*, model/Umpire/ExecutionHandoff*, model/Umpire/Examples/**, model/Temporal/**, model/ModelLint/**, Makefile, tools/umpire/internal/artifactv2/**, tools/umpire/cmd/umpire-gen-regression-views/**, .flow/specs/*.md]
 
 ### Approach
-- Query: `QueryDeclaration`+`QuerySpec` to `Query`; delete `QueryAuthoringInput` and its second `query%` elaborator, `QueryQuantifier`, `QueryClaim`, `TieBreakPolicy`; `QueryForm` to `Query.Form` with `verify`/`find`/`findViolation`/`pick` and JSON spellings at `Query/Language.lean:487-490`; `QueryEndpoint` to `TraceEnding` with `.partial`/`.final`/`.terminal`; `QueryExercisePolicy` to `requireFiring : Bool`; `CheckedQueryTarget` to `ModelCompleteness`; `QueryLimits`+`BehaviorPhaseLimits` to one `Limits {steps, actions, search}`; `QueryLimitSpec` to `Limits`.
+- Query: `QueryDeclaration`+`QuerySpec` to `Query`; delete `QueryAuthoringInput` and its second `query%` elaborator, `QueryQuantifier`, `QueryClaim`, `TieBreakPolicy`; `QueryForm` to `Query.Form` with `verify`/`find`/`findViolation`/`pick` and JSON spellings at `Query/Language.lean:487-490`; `QueryEndpoint` to `Query.Ending` with `.partial`/`.final`/`.terminal` (distinct from the two-valued `TraceEnding` task .7 introduces on correlated rules); `QueryExercisePolicy` to `requireFiring : Bool`; `CheckedQueryTarget` to `ModelCompleteness`; `QueryLimits`+`BehaviorPhaseLimits` to one `Limits {steps, actions, search}`; `QueryLimitSpec` to `Limits`.
 - `LimitUnit` in `Core.lean:118-133`: `steps`, `actions`, `logicalTime`, `search`, `plans`; delete `observationPositions`. Wire strings (`"semantic-transitions"` etc.) appear in ten JSON fixtures under `model/Temporal/Feature/Nexus/Fixtures`, `model/Umpire/Examples/Fixtures`, `model/Umpire/Artifact/Tests/Fixtures` and in `tools/umpire/internal/artifactv2/artifact.go:725`; regenerate the Lean ones and update the Go reader.
 - Search: `Planning/Engine.lean` to `Search.lean`, `Planning/Types.lean` to `Search/Types.lean`, `Planning/CaseAnalysis.lean` to `Search/Branches.lean` with `analyzeBranches`, `Branch*`, `Overlap*` (was `Joint*`); `IncrementalPlannerKernel` to `SearchView`, `PlannerInstrumentation` to `SearchStats`, `PlannerRun` to `PlanResult`, `PlanningOutcome` constructors per spec (`noneFound`, `neverTriggered`, `stillPending`), `plan` to `search`.
 - Plan: `ExperimentSpec` to `Plan`, `DrivePlan` to `Plan.Steps`, `ArtifactIntent`/`ArtifactFaultIntent` to `PlanRequest`/`RequestedFault`; keep `umpire-experiment/v2` and `umpire-drive-plan/v2` byte-identical; rename Go types in `artifactv2` without touching JSON tags.
@@ -35,15 +35,12 @@ with unchanged wire identifiers, and `Umpire.ExecutionHandoff` is deleted.
 ### Key context
 - `verify` stays as the Query form because `check` is the construction method on `Query`.
 - Retire `QueryDeclaration`, `QuerySpec`, `QueryAuthoringInput`, `QueryLimitSpec`, `QueryQuantifier`, `QueryClaim`, `TieBreakPolicy`, `Umpire.Planning`, `PlannerRun`, `IncrementalPlannerKernel`, `ExperimentSpec`, `DrivePlan`, `ExecutionHandoff`, `find-witness`, `find-counterexample`, `select-behavior`, `semantic-transitions`, `selected-actions`, `candidate-evaluations`, `experiment-specs`.
-
 ## Acceptance
 - [ ] `Query` with `check`/`checked` and `Query.Form.{verify,find,findViolation,pick}` replaces the four old records and forms; `QueryQuantifier`, `QueryClaim`, `TieBreakPolicy`, `QueryAuthoringInput` are gone
 - [ ] `Limits` is one flat record and `LimitUnit` has exactly `steps`, `actions`, `logicalTime`, `search`, `plans`
 - [ ] `Umpire.Search` replaces `Umpire.Planning` with `PlanResult`, `SearchView`, `SearchStats`, `Branch*`, `Overlap*`, and `search`; `Umpire.ExecutionHandoff` no longer exists
 - [ ] `Plan` and `Plan.Steps` replace `ExperimentSpec` and `DrivePlan`; `umpire-experiment/v2` and `umpire-drive-plan/v2` bytes are unchanged in every fixture and `make umpire-check-regression-views` passes
 - [ ] `make lint-model`, the Makefile layout check, Go tests under `tools/umpire`, and the gate pass
-
-
 ## Done summary
 TBD
 
