@@ -101,8 +101,6 @@ def readPath (schema : Operation.Schema) (root : String) (steps : List Value.Fie
     throw ("coordinates never reach the declared Observation message " ++ root)
   if state.pending.isSome then
     throw "a oneof member is read without selecting its group"
-  if state.segments.isEmpty then
-    throw ("coordinates select no field of the declared Observation message " ++ root)
   pure (Testpilot.Authoring.Path.make state.segments.toArray)
 
 /-- The runtime read path for a modeled field operand, derived from its own declared coordinates. -/
