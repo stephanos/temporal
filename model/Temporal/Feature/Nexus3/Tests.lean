@@ -563,9 +563,8 @@ rejects the declaration instead of silently checking a different one. -/
 private def misspelledProperty (values : Authoring.ModelVocabulary) : PropertySpec :=
   Authoring.propertySpec lifecycle values {
     declaration := "successfulResult", roleName := "operation"
-    stateClause := "successState", outcomeClause := "successOutcome", factClause := "successFact"
-    actionSpelling := "awaitSuccess", stateSpelling := "suceeded"
-    outcomeSpelling := "completed", factSpelling := "succeeded" }
+    actionSpelling := "awaitSuccess"
+    requirements := [.stateClause "successState" "suceeded"] }
 
 private def misspelledRole (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
   Authoring.behaviorSpec lifecycle values {

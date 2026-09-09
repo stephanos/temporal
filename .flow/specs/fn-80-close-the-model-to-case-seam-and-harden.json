@@ -13,6 +13,7 @@
     "fn-80-close-the-model-to-case-seam-and-harden.10": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.11": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.12": 0,
+    "fn-80-close-the-model-to-case-seam-and-harden.13": 1,
     "fn-80-close-the-model-to-case-seam-and-harden.15": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.2": 0,
     "fn-80-close-the-model-to-case-seam-and-harden.3": 0,
@@ -831,6 +832,82 @@
       "task": "fn-80-close-the-model-to-case-seam-and-harden.12",
       "timestamp": "2026-09-09T21:35:55.624271Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "46f61bf182a54c748c02f1a8e558fca576fdf4630146f9b3d38fdcee77b8247e",
+      "backend": "claude",
+      "base_sha": "7b05f4f2aaf8d312b4c9aaf2c99008da21b1004e",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8028ca3d7b25e1622bbcf8719c06aac2",
+            "classification": "introduced",
+            "findingId": "finding-8028ca3d7b25e1622bbcf8719c06aac2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7fc83da0fd237478ce1ac6fe42b80a17",
+            "classification": "introduced",
+            "findingId": "finding-7fc83da0fd237478ce1ac6fe42b80a17",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ffa7cea573fa7c606c159f4b390d7a81",
+            "classification": "introduced",
+            "findingId": "finding-ffa7cea573fa7c606c159f4b390d7a81",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-cbe5c9edda38e231ad94cf6b0dbeaed7",
+            "classification": "introduced",
+            "findingId": "finding-cbe5c9edda38e231ad94cf6b0dbeaed7",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-381f4bc19f567bf75cc2b6b2debb8de5",
+            "classification": "introduced",
+            "findingId": "finding-381f4bc19f567bf75cc2b6b2debb8de5",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a14a3b6b669bdf049e1c8d7858634056b1073348",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 6939,
+      "output_sha256": "d44511246d8ca60f10df68f9a323ceb9e3f92b70e3e4cd42a4aea7fd20ac396a",
+      "reservation_id": "ece2f2508a5d4aa48dbee95c2bef1ebc",
+      "round_consumed": true,
+      "scope": "impl:fn-80-close-the-model-to-case-seam-and-harden.13",
+      "superseded_by": null,
+      "task": "fn-80-close-the-model-to-case-seam-and-harden.13",
+      "timestamp": "2026-09-09T21:46:30.009776Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -853,6 +930,7 @@
     "impl:fn-80-close-the-model-to-case-seam-and-harden.10": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.11": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.12": 0,
+    "impl:fn-80-close-the-model-to-case-seam-and-harden.13": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.15": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.2": 0,
     "impl:fn-80-close-the-model-to-case-seam-and-harden.3": 0,
@@ -873,5 +951,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T21:35:55.624819Z"
+  "updated_at": "2026-09-09T21:46:30.010894Z"
 }
