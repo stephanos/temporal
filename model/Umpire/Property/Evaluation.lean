@@ -387,7 +387,9 @@ private def validateFieldOperands (predicate : CheckedPropertyPredicate context)
             sourcePath := source.displayPath, sourceLocation := some source,
             offendingValue := reason, relatedDefinitionIds := [path.reference] }
           let [value] := matching | fail "missing or ambiguous field operand"
-          if !(operandModelValues input path.root).contains value.modelValue then
+          -- A capture operand denotes an earlier admitted step, so this step's payloads cannot
+          -- carry it; its authority is the retained projection the reading Run recorded.
+          if path.capture.isNone && !(operandModelValues input path.root).contains value.modelValue then
             fail "field operand does not denote this immutable model payload"
   | .all items =>
     for item in items do
@@ -399,12 +401,17 @@ private def validateFieldOperands (predicate : CheckedPropertyPredicate context)
       if item.evaluate (inputFieldValues input) fieldValues then break
   | .not item => validateFieldOperands predicate input fieldValues item
 
+private def checkPredicateInputValues (predicate : CheckedPropertyPredicate contextKind)
+    (input : PropertyPredicateInput) (values : List PropertyFieldValue) :
+    Except PropertyError (CheckedPropertyPredicateInput predicate) := do
+  validatePropertyPredicateInput predicate input
+  validateFieldOperands predicate input values predicate.expression
+  pure { input, fieldValues := values }
+
 /-- Check legacy input completeness and every field operand consumed by this Boolean branch. -/
 def checkPropertyPredicateInput (predicate : CheckedPropertyPredicate contextKind)
-    (input : PropertyPredicateInput) : Except PropertyError (CheckedPropertyPredicateInput predicate) := do
-  validatePropertyPredicateInput predicate input
-  validateFieldOperands predicate input [] predicate.expression
-  pure { input }
+    (input : PropertyPredicateInput) : Except PropertyError (CheckedPropertyPredicateInput predicate) :=
+  checkPredicateInputValues predicate input []
 
 /-- Produce a complete checked predicate input from an explicit kernel-checked validation proof. -/
 def checkedPropertyPredicateInput
@@ -497,6 +504,25 @@ def PropertyFieldProjection.evidence (projection : PropertyFieldProjection owner
     PropertyFieldEvidence :=
   ⟨projection.value⟩
 
+/-- The structural coordinates this admitted projection denotes. -/
+def PropertyFieldEvidence.path (evidence : PropertyFieldEvidence) : PropertyFieldPath :=
+  evidence.value.path
+
+/-- Re-key an already admitted projection as the retained value of one exact earlier occurrence.
+Only the capture coordinates naming it change: the structural steps, the decoded scalar and its
+denotation are the ones the original checked cursor established. Recording which occurrence a
+retained value is remains the reading Run's own bookkeeping, not a claim about any later payload. -/
+def PropertyFieldEvidence.capturedAs (evidence : PropertyFieldEvidence)
+    (key : PropertyFieldCaptureKey) : PropertyFieldEvidence :=
+  ⟨{ evidence.value with path := { evidence.value.path with capture := some key } }⟩
+
+/-- Check a same-step input together with the field evidence its operands read, admitting both
+this step's projections and the retained captures a scoped Run supplies. -/
+def checkPropertyPredicateInputWithEvidence (predicate : CheckedPropertyPredicate contextKind)
+    (input : PropertyPredicateInput) (evidence : List PropertyFieldEvidence) :
+    Except PropertyError (CheckedPropertyPredicateInput predicate) :=
+  checkPredicateInputValues predicate input (evidence.map (·.value))
+
 /-- A field predicate wraps the existing checked Property predicate without another evaluator. -/
 structure CheckedFieldPredicate (context : PropertyPredicateContext) where
   private mk ::
@@ -513,11 +539,8 @@ def CheckedFieldPredicate.check (context : PropertyCheckContext)
 operand still resolves to the single projection whose exact structural path it names. -/
 def CheckedFieldPredicate.checkInput (checked : CheckedFieldPredicate kind)
     (input : PropertyPredicateInput) (evidence : List PropertyFieldEvidence) :
-    Except PropertyError (CheckedPropertyPredicateInput checked.predicate) := do
-  validatePropertyPredicateInput checked.predicate input
-  let fieldValues := evidence.map (·.value)
-  validateFieldOperands checked.predicate input fieldValues checked.predicate.expression
-  pure { input, fieldValues }
+    Except PropertyError (CheckedPropertyPredicateInput checked.predicate) :=
+  checkPropertyPredicateInputWithEvidence checked.predicate input evidence
 
 /-- Denotational meaning of a validated predicate over one validated same-step input. -/
 def CheckedPropertyPredicate.denote
