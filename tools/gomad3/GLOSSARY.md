@@ -77,9 +77,12 @@ fresh-global claim.
 **Hard Isolation Fidelity** — A process-backend-only claim that an incarnation
 has process-level cleanup and fresh runtime state.
 
-**Parity Case** — One named v2-derived expected v3 behavior with exact source
-references, an explicit preserve-or-replace decision, delivery stage, and
-required backend/fidelity evidence.
+**Parity Case** (historical) — One named v2-derived expected v3 behavior with
+exact source references, an explicit preserve-or-replace decision, delivery
+stage, and required backend/fidelity evidence. Its only carrier was
+`simulation/parity/manifest.json`, removed by fn-81 with the Gomad v2 tree its
+source references pointed into; the thirteen behaviors it named are still
+covered by the declared prototypes.
 
 **Execution Record** — The canonical, versioned evidence describing one
 Execution, its identities, inputs, observations, and outcome.
