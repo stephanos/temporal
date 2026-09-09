@@ -504,11 +504,10 @@ theorem queryGapsDoNotChangeSuccessProperty : admitted.map (fun checked =>
     | _ => false) = some true := by
   native_decide
 
-/--
-error: unsupported Nexus3 success model spelling
--/
-#guard_msgs (error) in
-model unsupportedLifecycle
+/- The five blocks admit whatever the declaring inductives declare. This probe renames the role,
+adds a third transition, selects the start Action rather than the completion one, and states its
+own limits — every spelling a whitelist used to reject. -/
+model probeLifecycle
   role worker
   states State
   actions Action
@@ -519,36 +518,61 @@ model unsupportedLifecycle
   transitions
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
+    retry: started + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
     success: started + awaitSuccess →
       { state := succeeded, outcome := completed, facts := [succeeded] }
 
-/--
-error: unsupported Nexus3 success Property spelling
--/
-#guard_msgs (error) in
-property unsupportedAction on lifecycle
-  for operation
+property probeStart on probeLifecycle
+  for worker
   when action awaitStart
-  require successState: resultingState succeeded
-  require successOutcome: outcome completed
-  require successFact: fact succeeded
+  require startState: resultingState started
+  require startOutcome: outcome acknowledged
+  require startFact: fact started
 
-/--
-error: unsupported Nexus3 success Behavior spelling
--/
-#guard_msgs (error) in
-behavior unsupportedCompletion on lifecycle
-  operation starts scheduled
-  actions exactly [start: awaitStart, completion: awaitStart]
+behavior probeRun on probeLifecycle worker starts scheduled
+  actions exactly [first: awaitStart, second: awaitSuccess]
 
-/--
-error: unsupported Nexus3 success Limits spelling
--/
-#guard_msgs (error) in
-limits unsupportedLimits
-  transitions 1
+limits probeLimits
+  transitions 3
   selected_actions 2
-  candidate_evaluations 16
+  candidate_evaluations 32
+
+query probeQuery on probeLifecycle
+  witness probeStart
+  in probeRun
+  limits probeLimits
+
+/- The added transition reaches the derived model, and the renamed role and reselected members
+reach the derived Property and Behavior. -/
+#guard probeLifecycle.relationIds.map (·.value) ==
+  ["temporal.nexus3.relation.probeLifecycle.start",
+    "temporal.nexus3.relation.probeLifecycle.retry",
+    "temporal.nexus3.relation.probeLifecycle.success"]
+
+#guard probeLifecycle.operationRoleId.value == "temporal.nexus3.role.probeLifecycle.worker"
+
+#guard (do
+  let checked ← probeQuery.toOption
+  pure (checked.behavior.allowedActions == probeLifecycle.actionIds &&
+    checked.witness.trace.steps.length == 2 &&
+    checked.property.clauses.length == 3)) == some true
+
+/--
+error: unknown Nexus3 state 'missing'
+-/
+#guard_msgs (error) in
+model unknownStateLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  initial [missing]
+  terminal [succeeded]
+  transitions
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
 
 /--
 error: unsupported Nexus3 success Query spelling
