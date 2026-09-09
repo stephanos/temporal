@@ -64,6 +64,10 @@ func validID(id string) bool {
 // capability still bounds itself through the max_projection_work and max_obligation_work it
 // declares, which admission bounds by the Contract's total, and every Case still declares its own
 // smaller per-event value.
+//
+// CONSIDER(umpire): charge the reservation's per-event increment instead of recomputing the cube of
+// the whole accepted set on every event, then restore a per-event ceiling that means expression
+// evaluation again.
 func hardLimits() *testpilotspb.ContractLimits {
 	return &testpilotspb.ContractLimits{MaxRules: 10000, MaxStates: 10000, MaxTransitions: 10000, MaxExpressionDepth: 64, MaxWorkPerEvent: 100000000, MaxTotalWork: 1000000000000, MaxCaptures: 10000, MaxCaptureBytes: 16 << 20}
 }
