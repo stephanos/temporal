@@ -170,8 +170,9 @@ Honesty about scope is part of the artifact:
 
 ## Canonical sources
 
-* Layer 1 mirrors `../../../../../tools/umpire2/internal/model/nexus_operation.go`
-  (`NewNexusOperation`).
+* Layer 1 was originally derived from the Umpire v2 Nexus operation model
+  (`NewNexusOperation`), a tree fn-81 removed; that provenance is recorded here rather than as a
+  path, since no such file remains.
 * Layers 2–4 model `../../../spec.md`, whose runtime counterparts in this repo are
   `../../../../../chasm/lib/nexusoperation/cancellation.go` (the `auto_close` flag and the clamp),
   `../../../../../chasm/lib/workflow/nexus_methods.go` (the hook) and `../../../../../chasm/lib/workflow/nexus_events.go`

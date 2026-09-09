@@ -1,7 +1,7 @@
 # Agentworkflow Configuration and CLI Design
 
-> Implemented. The current user-facing contract is documented in the
-> [Agentworkflow README](../../../tools/agentworkflow/README.md).
+> Historical design: the implementation was removed by fn-81, along with the
+> `tools/agentworkflow/README.md` this note used to link to.
 
 ## Goal
 

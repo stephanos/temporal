@@ -26,7 +26,7 @@ Implements the acceptance Case for R4 and the checked-in `rule_events` horizon f
 
 **Optional** (reference as needed):
 - `model/Umpire/Artifact/Planning.lean:32-40,112-156` — fault intent validation
-- `Makefile:1067-1088,1148-1171` — fixture gates and the live expected-failure list
+- `Makefile` — the fixture gates and the `umpire-check-live-tests` target (fn-81 retired its pinned expected-failure list; the gate now selects `^TestTestpilot`, compares against an empty baseline, and requires at least one passing identity)
 
 ### Key context
 - The stop precedes `start-workflow` so no workflow task is in flight when the worker stops; the reservation ledger mints handles independently of SDK polling (verify; adjust ordering if not).
@@ -39,7 +39,7 @@ Implements the acceptance Case for R4 and the checked-in `rule_events` horizon f
 - [ ] Negative live case: resume timeout yields cleanup `failed` with the Verdict unchanged
 - [ ] `FaultIntentDeclaration.lower` `#guard` equals the fixture's stop instruction; `Umpire/Exploration/Coverage.lean` wording preserved
 - [ ] The classic rule declares a `rule_events` horizon and the offline `PreparedContract.Evaluate` over the recorded Run agrees with the live Verdict
-- [ ] `umpire-check-live-tests` expected-failure list unchanged
+- [ ] `make umpire-check-live-tests` passes
 
 ## Done summary
 Blocked:
@@ -53,7 +53,7 @@ Why it stopped here rather than landing the offline half: the acceptance is live
   - live Run completed, cleanup succeeded, Verdict satisfied, two ordered `FAULT_INJECTED` events
   - a concurrent plain async-nexus Run on the same queue unaffected
   - the negative resume-timeout case setting cleanup `failed`
-  - `umpire-check-live-tests` expected-failure list unchanged
+  - `make umpire-check-live-tests` passing
 all require `go test -tags 'test_dep integration' ./tests`, which needs a running test cluster.
 This session has ~5 GiB of disk, which the whole-server build plus a cluster does not fit. Landing
 only the fixture bytes would put a generated Case in the tree that nothing has ever executed —

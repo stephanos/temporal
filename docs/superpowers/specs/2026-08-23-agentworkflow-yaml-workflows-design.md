@@ -1,7 +1,8 @@
 # Agentworkflow YAML Workflows Design
 
 > Historical design: its configuration location was superseded by the
-> [Agentworkflow configuration and CLI design](2026-08-24-agentworkflow-configuration-cli-design.md).
+> [Agentworkflow configuration and CLI design](2026-08-24-agentworkflow-configuration-cli-design.md),
+> and the implementation itself was removed by fn-81.
 
 ## Goal
 

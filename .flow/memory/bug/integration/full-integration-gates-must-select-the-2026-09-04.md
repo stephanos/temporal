@@ -19,7 +19,9 @@ The Umpire Make and CI live-test gates selected only one relocated generated tes
 Treating one representative relocated test as the live integration command satisfied the destination/tag check but did not prove that every test in the migrated `tests/` surface remained covered.
 
 ## Solution
-`Makefile` now provides `umpire-check-live-tests`, runs the complete `^TestUmpire` prefix selector, and compares any red result against the exact inherited Umpire2/Umpire3 failure identity set. CI and the aggregate regression target invoke that target, while `tools/umpire/regression/ci_workflow_test.go` pins the selector, wiring, and baseline identities.
+`Makefile` now provides `umpire-check-live-tests`, runs a complete prefix selector rather than a representative test name, and compares any red result against the exact recorded failure identity set. CI and the aggregate regression target invoke that target, while `tools/umpire/regression/ci_workflow_test.go` pins the selector, wiring, and baseline.
+
+fn-81 later deleted the Umpire2 and Umpire3 trees and with them the nine inherited failure identities. The gate kept this entry's whole-set rule and moved to the `^TestTestpilot` prefix with an empty baseline. An empty baseline needs one more guard than a populated one, so the gate also requires at least one `--- PASS` identity: an empty expected set on its own cannot distinguish "everything passed" from "the selector matched nothing", and a selector that matches nothing exits zero.
 
 ## Prevention
-For migrated integration suites, guard the complete test-name prefix in both CI and aggregate Make dry runs. When a full suite inherits failures, compare the entire recorded failure identity set and fail on every addition or deletion rather than narrowing the selector to a green subset.
+For migrated integration suites, guard the complete test-name prefix in both CI and aggregate Make dry runs. When a full suite inherits failures, compare the entire recorded failure identity set and fail on every addition or deletion rather than narrowing the selector to a green subset. When the inherited set is empty, pair the comparison with a floor on passing identities, or the gate passes on a selector that matched nothing.
