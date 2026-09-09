@@ -1,5 +1,9 @@
 # Umpire Follow-up Observability and Regression Design
 
+> Historical design: the implementation was removed by fn-81. The `tools/umpire1`,
+> `tools/umpire2`, and `common/testing/umpire` paths below name trees that no longer exist, and
+> the white-box observer contract they describe was removed with them.
+
 ## Objective
 
 Complete the five follow-ups identified after the initial v2 parity cutover:

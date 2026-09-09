@@ -1,5 +1,9 @@
 # Shared Lean Library Migration Design
 
+> Historical design: two of the three consuming Lean projects it names, `tools/gomad/formal` and
+> `tools/umpire3/model`, were removed by fn-81 together with the `gomad-formal` Make target. The
+> shared library itself lives on as `model/Shared` in the primary workspace.
+
 ## Goal
 
 Move the neutral Lean transition and trace-replay primitives out of the Go-oriented

@@ -78,34 +78,52 @@ those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, 
 ### 2. Delete the pre-Testpilot Go generations — fn-81
 
 [fn-81 — Delete the pre-Testpilot Go generations](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md),
-a mechanical deletion sweep from the same 2026-09-08 assessment. Nothing here changes modeled
-behavior. The repository still carries every earlier generation as live, compiled, partly CI-wired
-code that no current Umpire, Testpilot, or Temporal model imports — about 345,000 Go lines against
-roughly 42,000 for live Umpire plus Testpilot:
+a mechanical deletion sweep from the same 2026-09-08 assessment. Nothing here changed modeled
+behavior. The repository carried every earlier generation as live, compiled, partly CI-wired code
+that no current Umpire, Testpilot, or Temporal model imported. **All five tasks are done**; the
+spec stays open pending its completion review.
 
-| Tree | Go lines | Still wired into |
-| ---- | -------- | ---------------- |
-| gomad through gomad3integration | 209,000 | a workflow, Makefile targets, four nested go.mod files, a root go.mod `replace` |
-| umpire1, umpire2, umpire3 | 92,700 | two workflows, ~70 Makefile targets, a second Lake project (677 MB on disk) |
-| `common/testing/umpire` and the testcore monitor | 26,400 | history workflow cache instrumentation, observer comments in six history files, the functional harness monitor and gRPC interceptor |
-| agentworkflow | 11,200 | Makefile, its own go.mod |
-| legacy tests under `tests` | 6,200 | the live-test gate, which pins nine expected failures by name |
+What went, and what it was wired into:
 
-Two costs are paid today: the gomad3 workflow triggers on any change to go.mod or the Makefile, so
-it runs on unrelated pull requests, and umpire3's Lake build alone holds 677 MB on a disk at 97
-percent.
+| Tree | Tracked lines | Was wired into |
+| ---- | ------------- | -------------- |
+| gomad, gomad1, gomad2 | 99,800 | the `gomad-prototype` Makefile block, two nested go.mod files, gomad1 compiled inside the root module, a root go.mod `replace`, and Gomad v3's parity manifest |
+| umpire1, umpire2, umpire3 | 238,100 | two workflows, ~70 Makefile targets, two Makefile variable blocks, a second Lake project under umpire3 |
+| `common/testing/umpire` and the testcore monitor | 26,800 | history workflow cache instrumentation, observer comments in six history files, the functional harness monitor and its gRPC fault-injector interceptor |
+| agentworkflow | 11,700 | Makefile, its own go.mod |
+| legacy tests under `tests`, `tests/probe`, `cmd/umpire-genmodels` | 8,400 | the live-test gate, which pinned nine expected failures by name, plus mise tasks and an install script |
 
-Five tasks are defined with a SHIP plan review, all ready. Task .2 is the declared early proof
-point — the white-box seam comes out of the history service and the functional harness and the
-retained live gate still passes; if a retained test turns out to depend on monitor facts,
-re-evaluate the seam disposition before deleting any tree. That seam is the one part of this sweep
-that is not confined to `tools`, and it produces no Verdict for any consumer, so R6 removes it and
-restores the history workflow cache to upstream shape.
+Realized: 1,440 tracked files and 386,907 lines deleted, 7,785 tracked files down to 6,345. Twelve
+third-party modules left `go.mod`, each with zero hits in the retained dependency closure.
+`make lint-code` fell from 1,284 findings to 128, since 1,156 of them lived in the deleted trees.
 
-Boundaries: no Lean deletions — Nexus v1, Nexus2, Umpire Artifact, Space, and Exploration stay,
+**Gomad v3 is retained** — `tools/gomad3`, `tools/gomad3sim`, `tools/gomad3integration`,
+`tests/gomadfunctional`, and the `gomad3` workflow all stay, per
+[GOMAD_MILESTONES](GOMAD_MILESTONES.md) F0, because that tree is the only path to running an
+unchanged Temporal functional test under a deterministic runtime. Its one edit here was retiring
+the SIM-0 parity manifest, whose every source path pointed into the deleted `tools/gomad2`.
+
+Task .2, the declared early proof point, held. The white-box seam came out of the history service
+and the functional harness, and the retained live gate still passed against a cluster with four
+passing identities. No retained test read monitor facts. Two consumers the plan had not predicted
+surfaced and are recorded in the fn-81 section of
+[CLEANUP_INVENTORY](../tools/umpire/CLEANUP_INVENTORY.md): three retained functional tests in
+`tests/nexus_workflow_test.go` whose bodies the branch had replaced with umpire2 sparse-regression
+delegations, restored from `origin/main`; and `tools/common/formal`, a nested module whose only
+importer was `tools/gomad` and whose only test invocation sat inside the deleted `gomad-prototype`
+block, now carried by its own `common-formal-test` target.
+
+The live-test gate was redesigned rather than merely repinned. It selects on the `^TestTestpilot`
+prefix so new live tests join without enumeration, compares the whole failure identity set against
+an empty baseline, and adds a passing-identity floor — because an empty baseline alone cannot
+distinguish "everything passed" from "the selector matched nothing". The command is verbose because
+`--- PASS:` lines only print under `go test -v`.
+
+Boundaries held: no Lean deletions — Nexus v1, Nexus2, Umpire Artifact, Space, and Exploration stay,
 since live modules import them and fn-22, fn-33, fn-79, and fn-80 reserve them; they need a roadmap
 decision rather than a sweep. `tools/fairsim`, `cmd/tools/fairsim`, and fn-66's `tools/planindex`
-also stay. Task .5 owns the roadmap reconciliation under R7, so it will edit this document.
+also stay, the last one revalidated because its validator is the gate over this repository's own
+documentation reconciliation.
 
 ### 3. Unify the Umpire and Testpilot vocabulary — fn-82
 

@@ -29,7 +29,7 @@ Expose the reviewed release boundary through root commands and one isolated, man
 - `Makefile` — repository-root target and help conventions
 - `.github/workflows/release.yml:1-25` — existing release capability that this workflow must not call
 - `.github/workflows/promote-server-image.yml:1-25` — existing promotion capability that must remain disconnected
-- `.github/workflows/umpire-model-verification.yml` — current Umpire workflow conventions
+- `.github/workflows/umpire.yml` — current Umpire workflow conventions (fn-81 deleted `umpire-model-verification.yml`)
 
 **Optional** (reference as needed):
 - `tools/common/github/artifacts.go:19-61` — fixed artifact retrieval as transport only

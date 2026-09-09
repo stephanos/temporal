@@ -1,5 +1,9 @@
 # Gomad v1, v2, and v3 comparison
 
+> Historical: fn-81 removed `tools/gomad`, `tools/gomad1`, and `tools/gomad2`. Gomad v3 is
+> retained per [GOMAD_MILESTONES](GOMAD_MILESTONES.md); the v1 and v2 halves of this comparison
+> describe trees that no longer exist.
+
 Gomad v3 is not a direct successor to v2; it is effectively a different
 product. V2 is the strongest distributed-systems simulator. V3 is a
 deterministic concurrency runner with a much larger replay, evidence,

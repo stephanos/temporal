@@ -1,5 +1,9 @@
 # Umpire
 
+> Historical: this describes the Umpire v2 generation. fn-81 removed `tools/umpire2` and
+> `common/testing/umpire`; the live successor is Testpilot under `common/testing/testpilot` and
+> `tests/testcore/testpilot`, specified by [UMPIRE4_SPEC](UMPIRE4_SPEC.md).
+
 Umpire is model-based acceptance testing for Temporal. It drives a running server, converts
 observations into a typed model, and evaluates that model against shared properties. Tests describe
 semantic behavior instead of duplicating setup, polling, and assertions.
