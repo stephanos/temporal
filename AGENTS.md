@@ -147,20 +147,25 @@ This project uses Flow-Next for ALL task tracking. `flowctl` comes from the flow
      produced. Prefer a different family than the writer: a same-family review
      is not an independent verdict. Advice, not enforcement. -->
 
-<!-- Reachable cross-family reviewers here come through a CLI bridge, not an
-     in-host subagent: Claude Code serves only Claude models to subagents, so a
-     host-backend review from this harness would be same-family and fails closed.
-     terra is served by the copilot bridge (`review.backend: copilot`); prefer
-     codex + gpt-5.6-sol again once its credits reset. -->
+<!-- Grading dominates over decorrelation inside one family, so this is the
+     strongest tier available rather than a different-but-weaker sibling. It is
+     read by in-host dispatches (quality-auditor, host backend). Note the
+     consequence: with an all-Claude block the `host` review backend is
+     same-family and fails closed by design, so cross-family impl-review
+     verdicts come from the CLI bridge instead (`review.backend: copilot`;
+     `codex` once its credits reset). -->
 
-reviewer: gpt-5.6-terra at high
+reviewer: opus at high
 
 <!-- implementer: <model> at <effort> - work handed to another harness (plan
      here, implement cheaper or faster there). Absent = the session model
      implements. -->
 
-<!-- Unset here: on Claude Code the worker implements in-session, so handing
-     implementation to another harness only adds a bridge hop. -->
+<!-- Pinned rather than left unset: the worker implements in-session on Claude
+     Code, and these are Lean proof tasks that degrade badly on a cheaper tier,
+     so the pin holds even if the session model is switched down. -->
+
+implementer: opus at high
 
 <!-- fast scout: <model> - mechanical inventory scanning, where
      the cheapest tier is the correct one. -->
