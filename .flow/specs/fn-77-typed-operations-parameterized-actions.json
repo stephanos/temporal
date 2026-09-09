@@ -9,6 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-77-typed-operations-parameterized-actions",
   "impl_review_rounds": {
+    "fn-77-typed-operations-parameterized-actions.12": 1,
     "fn-77-typed-operations-parameterized-actions.5": 0,
     "fn-77-typed-operations-parameterized-actions.6": 0,
     "fn-77-typed-operations-parameterized-actions.7": 0,
@@ -493,6 +494,50 @@
       "task": "fn-77-typed-operations-parameterized-actions.8",
       "timestamp": "2026-09-09T03:08:36.076110Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "057616b3b830463ea0d1143744ca77e37472db305eba57ef04b693954ca9f226",
+      "backend": "copilot",
+      "base_sha": "9172bf8775a074645243fbe48d76d70d079744dc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "copilot",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-570d3804235fa57d3dff706ab87f5fc0",
+            "classification": "introduced",
+            "findingId": "finding-570d3804235fa57d3dff706ab87f5fc0",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "1192690835515737ab0cb46379f0f57f184e3abe",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.4",
+      "outcome": "verdict",
+      "output_bytes": 2938,
+      "output_sha256": "9847073ede7431a5682f4f6fa1d1d71c44a9c84c294337a88eb3eb089186a797",
+      "reservation_id": "e11832ffbe944a82ac599eeeb2e51b22",
+      "round_consumed": true,
+      "scope": "impl:fn-77-typed-operations-parameterized-actions.12",
+      "superseded_by": null,
+      "task": "fn-77-typed-operations-parameterized-actions.12",
+      "timestamp": "2026-09-09T04:15:38.709663Z",
+      "verdict": "NEEDS_WORK"
     }
   ],
   "review_hash_epoch": {
@@ -506,6 +551,7 @@
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-77-typed-operations-parameterized-actions.12": 0,
     "impl:fn-77-typed-operations-parameterized-actions.5": 0,
     "impl:fn-77-typed-operations-parameterized-actions.6": 0,
     "impl:fn-77-typed-operations-parameterized-actions.7": 0,
@@ -526,5 +572,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T03:08:36.081364Z"
+  "updated_at": "2026-09-09T04:15:38.714884Z"
 }
