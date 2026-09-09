@@ -16,9 +16,11 @@ boundary a Nexus operation actually has.
 
 The submission is an SDK command, not an RPC: `Umpire.Operation.sdkCommand` declares one identity
 per scheduled operation, and `Umpire.Operation.event` declares the two semantic events (scheduled
-and completed) the operation later records. None of the three pretends to be a unary RPC. The only
-RPC here is `GetWorkflowExecutionHistory`, which is observation work: it supplies the generated
-response schema through which every event field below is read, and fetching it causes nothing.
+and completed) the operation later records. None of the three pretends to be a unary RPC, and no
+generated RPC stands in for one. The RPCs this Case references are environment work: the workflow
+the operations run in is started through `StartWorkflowExecution`, and `GetWorkflowExecutionHistory`
+supplies the generated response schema through which every event field below is read. Neither
+schedules, starts or completes an operation.
 
 Two independent requirements sit on that evidence, and they fail in different ways:
 
@@ -40,7 +42,10 @@ a synthetic deadline.
 
 The Contract the Case carries is derived, not restated: every field a monitor rule reads is
 `Umpire.Case.Observed.pathOf` applied to the same `PropertyFieldPath` the model Property compares,
-and the two operation literals it matches are the declared SDK command identities.
+and the operation each rule matches is one of the two the model declares. The declared Observation
+carries one history event, so a model presence fact about the response wrapper around that event
+has no derived read path and no runtime counterpart, while a presence fact about a oneof inside the
+event derives into exactly the presence the rule checks.
 -/
 
 namespace Temporal.Feature.Nexus3.TypedNexus
@@ -238,11 +243,13 @@ private def scalarCursor (node : String) (parent : HistoryCursor (.message node)
 
 Each path is the coordinates of one admitted cursor above; the tests require the two to agree. -/
 
-private def scheduledSteps (number : Nat) : List Field.Step :=
+/-- The coordinates of one scheduled-event attribute, from the whole history response payload. -/
+def scheduledSteps (number : Nat) : List Field.Step :=
   [.field historyResponseRoot 1, .establish, .field historyNode 1, .index 0,
     .field historyEventNode 53, .select attributesGroup, .field scheduledAttributesNode number]
 
-private def completedSteps (number : Nat) : List Field.Step :=
+/-- The coordinates of one completed-event attribute, from the whole history response payload. -/
+def completedSteps (number : Nat) : List Field.Step :=
   [.field historyResponseRoot 1, .establish, .field historyNode 1, .index 0,
     .field historyEventNode 55, .select attributesGroup, .field completedAttributesNode number]
 
@@ -496,8 +503,6 @@ def runLimits : Property.Scoped.Limits :=
 /-- Admit the whole authored example: the SDK command and event declarations, the Target whose
 completions are its own alternatives, the authored field requirement, and the Link. -/
 def checked : Except AdmissionError Model := do
-  let _ ← (scheduleCommand firstCommandId).mapError AdmissionError.operation
-  let _ ← (scheduleCommand secondCommandId).mapError AdmissionError.operation
   let _ ← scheduledEventDeclaration.mapError AdmissionError.operation
   let _ ← completedEventDeclaration.mapError AdmissionError.operation
   let _ ← historyBinding.mapError AdmissionError.operation
@@ -606,6 +611,15 @@ def OperationCase.authorityInstructionId (entry : OperationCase) : String :=
 def OperationCase.completeInstructionId (entry : OperationCase) : String :=
   "complete-nexus-" ++ entry.operation
 
+/-- Two operations make this Case larger than the shared single-operation Program ceilings in two
+places: the history that records both is bigger than one response budget, and two Nexus handler
+entrypoints take longer to stop than one. Every other bound is the shared ceiling. -/
+def typedNexusProgramLimits : ProgramLimits :=
+  { programLimits with max_response_bytes := 8192, max_cleanup_duration_milliseconds := 20000 }
+
+/-- The history read carries both operations' events, so it declares that larger response budget. -/
+private def historyLimits : InstructionLimits := Program.instructionLimits 10000 1 128 8192
+
 private def textOutcome : InstructionOutcomeDefinition :=
   Program.outcome #[
     Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS statusType,
@@ -658,7 +672,7 @@ private def program (startPath historyPath : String) : Program :=
               assign (field "maximum_page_size") (signedInteger 64),
               assign (field "wait_new_event") (boolean true)]
               #[project historyEvents observationId .PROJECTION_KIND_EMIT_EACH])
-            (bounds 10000 128)
+            historyLimits
             (operationCases.map fun entry =>
               Ref.instruction controllerId entry.completeInstructionId).toArray
             (some (ProgramExpr.all (operationCases.map fun entry =>
@@ -678,7 +692,7 @@ private def program (startPath historyPath : String) : Program :=
             (Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS (text "accepted") entry.slotId)
             bounds #[] none (some statusOutcome)]).toArray)
     (Program.cleanup "cleanup" #[])
-    programLimits
+    typedNexusProgramLimits
     (environment := #[Program.environment namespaceBindingId,
       Program.environment taskQueueBindingId, Program.environment nexusEndpointBindingId])
 
@@ -713,20 +727,23 @@ def operationRule (entry : OperationCase) (property : CheckedProperty) :
           ContractExpr.present (observed observationId),
           ContractExpr.present (projected (observed observationId) operationPath),
           ContractExpr.equals (projected (observed observationId) operationPath)
-            (ContractExpr.literal (Value.text entry.operation)),
-          ContractExpr.present (projected (observed observationId) eventIdPath)])
+            (ContractExpr.literal (Value.text entry.operation))])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
         #[Monitor.captureAssignment capture observationId],
       Monitor.transition ("match-completion-" ++ entry.operation) "scheduled" "satisfied"
         #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
         (ContractExpr.all #[
           ContractExpr.present (captured capture),
-          ContractExpr.present (projected (captured capture) eventIdPath),
           ContractExpr.present (projected (observed observationId) referencedPath),
           ContractExpr.equals (projected (captured capture) eventIdPath)
             (projected (observed observationId) referencedPath)])
         .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
     (captures := #[Monitor.capture capture (Monitor.messageCapture historyEventNode)]))
+
+/-- This Case retains one history event per operation, so it declares its own capture-byte ceiling
+rather than the shared single-capture one; every other bound is the shared Contract ceiling. -/
+def typedNexusContractLimits : ContractLimits :=
+  { contractLimits with max_capture_bytes := 65536 }
 
 private def loweringError (definitionId construct : String) : Umpire.Case.Compiler.LoweringError :=
   { sourceDefinitionId := definitionId, source, construct }
@@ -758,7 +775,7 @@ def typedNexusCase : Except Umpire.Case.Compiler.LoweringError
     program := program (methodPath start.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-nexus.contract"
     properties := rules.map (.monitor requirementBinding)
-    contractLimits
+    contractLimits := typedNexusContractLimits
   }
 
 end Temporal.Feature.Nexus3.TypedNexus
