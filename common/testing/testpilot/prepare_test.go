@@ -39,7 +39,7 @@ func TestCapabilitiesMatchExecutionOpcodes(t *testing.T) {
 			require.LessOrEqual(t, pair.capability, MaxCapability)
 		})
 	}
-	require.Equal(t, execution.Opcode(MaxCapability), execution.MaxOpcode)
+	require.Equal(t, execution.MaxOpcode, execution.Opcode(MaxCapability))
 }
 
 type nilProfileMap map[string]int

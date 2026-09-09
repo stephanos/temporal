@@ -91,7 +91,7 @@ func TestFaultStopSuppressesTheFatalPath(t *testing.T) {
 	require.NoError(t, lease.stopWorker(t.Context(), "queue"))
 	registry.fail(key, errors.New("worker stopped"))
 	require.Empty(t, failures)
-	require.Nil(t, registry.groups[key].failure)
+	require.NoError(t, registry.groups[key].failure)
 
 	require.NoError(t, lease.resumeWorker(t.Context(), "queue"))
 	registry.fail(key, errors.New("real failure"))

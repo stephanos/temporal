@@ -292,6 +292,7 @@ func (e *Evaluator) nextChange(ctx context.Context, i int, event *testpilotspb.R
 	}
 	return nil, nil
 }
+
 // horizonReached advances the rule's event-count horizon for the one event the rule is
 // evaluating and reports whether the declared bound is now reached. It is the single owner of
 // the counter: the online Evaluator.Observe path and the offline PreparedContract.Evaluate path
