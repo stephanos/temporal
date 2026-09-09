@@ -4,7 +4,7 @@
     {
       "path": ".plans/AGENT_PLAN.md",
       "lifecycle": "historical",
-      "authority": "scoped-contract",
+      "authority": "historical",
       "authorityParents": [],
       "supersededBy": null,
       "allowedMissingLinks": []
@@ -90,7 +90,7 @@
     {
       "path": ".plans/GOMAD_CMP.md",
       "lifecycle": "historical",
-      "authority": "descriptive",
+      "authority": "historical",
       "authorityParents": [
         ".plans/GOMAD3_NEXT.md"
       ],
@@ -156,8 +156,8 @@
     },
     {
       "path": ".plans/UMPIRE2.md",
-      "lifecycle": "reference",
-      "authority": "architecture",
+      "lifecycle": "historical",
+      "authority": "historical",
       "authorityParents": [
         ".plans/UMPIRE4_SPEC.md"
       ],

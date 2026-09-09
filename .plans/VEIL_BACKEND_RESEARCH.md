@@ -1,5 +1,8 @@
 # Veil as Umpire's semantic or checking backend
 
+> The Umpire3 sources this note cites were removed by fn-81. They are named below as provenance
+> rather than as links.
+
 ## Scope and source pin
 
 This note evaluates code reuse, not only surface syntax. It inspects
@@ -177,8 +180,9 @@ The retired Umpire3 integration is concrete evidence of this cost. Its generic
 and the Nexus cancellation target then supplied lengthy per-model symbolic/concrete equivalence
 proofs. Maintaining both Umpire and Veil representations can consume most reuse savings. This is a
 warning about the adapter burden, not a recommendation to restore the retired runtime.
-([Umpire3 Veil semantic relation](../tools/umpire3/model/Umpire3/Veil/Semantics.lean),
-[Nexus concrete semantics proof](../tools/umpire3/model/Temporal/Families/NexusCancellation/Targets/Veil/SoundConcreteSemantics.lean))
+(the Umpire3 Veil semantic relation `Umpire3/Veil/Semantics.lean` and the Nexus concrete
+semantics proof `Temporal/Families/NexusCancellation/Targets/Veil/SoundConcreteSemantics.lean`,
+both under the `tools/umpire3` tree fn-81 removed)
 
 ### 3. Veil source authority with Umpire runtime extensions
 
