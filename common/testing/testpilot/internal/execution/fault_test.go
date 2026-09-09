@@ -47,7 +47,7 @@ func TestInstructionOpcodesCoverTheInstructionTable(t *testing.T) {
 		t.Run(string(field.Name()), func(t *testing.T) {
 			instruction := &testpilotspb.Instruction{}
 			instruction.ProtoReflect().Mutable(field)
-			opcode := instructionOpcode(instruction)
+			opcode := InstructionOpcode(instruction)
 			// The oneof field number is the opcode: the two lists cannot be reordered apart.
 			require.Equal(t, Opcode(field.Number()), opcode)
 			require.False(t, seen[opcode])

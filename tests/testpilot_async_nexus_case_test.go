@@ -13,23 +13,17 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	"go.temporal.io/api/serviceerror"
-	"go.temporal.io/sdk/client"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
 	"go.temporal.io/server/common/testing/testpilot"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
-	"go.temporal.io/server/tests/testcore"
-	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
 	"google.golang.org/protobuf/proto"
 )
 
 const testpilotCleanupTimeout = 5 * time.Second
 
 type testpilotLiveBinding struct {
-	environment testpilotfixture.AsyncNexusEnvironment
-	profile     testpilot.ProfileSpec
-	prepared    *testpilot.PreparedCase
-	client      client.Client
-	driver      *testpilotdriver.Driver
+	binding CaseBinding
+	profile testpilot.ProfileSpec
+	live    testpilotLiveCase
 }
 
 type testpilotLiveRunResult struct {
@@ -43,33 +37,32 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	caseSource := loadTestpilotCase(t, "async-nexus")
 	caseSnapshot := proto.CloneOf(caseSource)
-	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-	require.NoError(t, err)
 
-	environments := []testpilotfixture.AsyncNexusEnvironment{
-		{Namespace: "umpire-async-nexus-a", TaskQueue: "umpire-async-nexus-queue-a", NexusEndpoint: "umpire-async-nexus-endpoint-a"},
-		{Namespace: "umpire-async-nexus-b", TaskQueue: "umpire-async-nexus-queue-b", NexusEndpoint: "umpire-async-nexus-endpoint-b"},
+	environments := []CaseBinding{
+		{Identity: "async-nexus-profile", Namespace: "umpire-async-nexus-a", TaskQueue: "umpire-async-nexus-queue-a", NexusEndpoint: "umpire-async-nexus-endpoint-a", CreateEndpoint: true},
+		{Identity: "async-nexus-profile", Namespace: "umpire-async-nexus-b", TaskQueue: "umpire-async-nexus-queue-b", NexusEndpoint: "umpire-async-nexus-endpoint-b", CreateEndpoint: true},
 	}
 	bindings := make([]testpilotLiveBinding, len(environments))
 	for index, environment := range environments {
-		bindings[index] = newTestpilotLiveBinding(t, env, catalog, caseSource, environment, true)
+		live := bindCase(t, env, caseSource, environment)
+		bindings[index] = testpilotLiveBinding{binding: environment, profile: live.profile, live: live}
 	}
 
 	require.True(t, proto.Equal(caseSnapshot, caseSource))
-	require.True(t, proto.Equal(bindings[0].prepared.Snapshot(), bindings[1].prepared.Snapshot()))
-	require.True(t, proto.Equal(bindings[0].prepared.Snapshot().GetContract(), bindings[1].prepared.Snapshot().GetContract()))
-	require.True(t, proto.Equal(bindings[0].prepared.Snapshot().GetProvenance(), bindings[1].prepared.Snapshot().GetProvenance()))
-	require.Equal(t, bindings[0].prepared.Snapshot().GetCaseId(), bindings[1].prepared.Snapshot().GetCaseId())
-	require.Equal(t, bindings[0].prepared.Snapshot().GetProgram().GetProgramId(), bindings[1].prepared.Snapshot().GetProgram().GetProgramId())
-	require.Equal(t, bindings[0].prepared.Snapshot().GetContract().GetContractId(), bindings[1].prepared.Snapshot().GetContract().GetContractId())
-	require.NotEqual(t, bindings[0].prepared.Identity().Bindings, bindings[1].prepared.Identity().Bindings)
+	require.True(t, proto.Equal(bindings[0].live.prepared.Snapshot(), bindings[1].live.prepared.Snapshot()))
+	require.True(t, proto.Equal(bindings[0].live.prepared.Snapshot().GetContract(), bindings[1].live.prepared.Snapshot().GetContract()))
+	require.True(t, proto.Equal(bindings[0].live.prepared.Snapshot().GetProvenance(), bindings[1].live.prepared.Snapshot().GetProvenance()))
+	require.Equal(t, bindings[0].live.prepared.Snapshot().GetCaseId(), bindings[1].live.prepared.Snapshot().GetCaseId())
+	require.Equal(t, bindings[0].live.prepared.Snapshot().GetProgram().GetProgramId(), bindings[1].live.prepared.Snapshot().GetProgram().GetProgramId())
+	require.Equal(t, bindings[0].live.prepared.Snapshot().GetContract().GetContractId(), bindings[1].live.prepared.Snapshot().GetContract().GetContractId())
+	require.NotEqual(t, bindings[0].live.prepared.Identity().Bindings, bindings[1].live.prepared.Identity().Bindings)
 
 	results := make(chan testpilotLiveRunResult, len(bindings)*2)
 	var runs sync.WaitGroup
 	for index, binding := range bindings {
 		for range 2 {
 			runs.Go(func() {
-				run, verdict, err := binding.prepared.Run(env.Context(), binding.driver)
+				run, verdict, err := binding.live.prepared.Run(env.Context(), binding.live.driver)
 				results <- testpilotLiveRunResult{environment: index, run: run, verdict: verdict, err: err}
 			})
 		}
@@ -87,83 +80,42 @@ func TestTestpilotAsyncNexusCase(t *testing.T) {
 		require.Len(t, result.verdict.GetRules(), 1)
 		require.Equal(t, testpilotpb.RULE_VERDICT_STATUS_SATISFIED, result.verdict.GetRules()[0].GetStatus())
 		require.Len(t, result.verdict.GetRules()[0].GetSupportingEventSequences(), 3)
-		requireCorrelatedNexusHistoryEvidence(t, result.run, result.verdict.GetSupportingEventSequences(), bindings[result.environment].environment.NexusEndpoint)
+		requireCorrelatedNexusHistoryEvidence(t, result.run, result.verdict.GetSupportingEventSequences(), bindings[result.environment].binding.NexusEndpoint)
 		require.NotContains(t, runIDs, result.run.GetRunId())
 		runIDs[result.run.GetRunId()] = struct{}{}
 
-		_, err := bindings[result.environment].client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
+		_, err := bindings[result.environment].live.client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
 		require.NoError(t, err)
-		_, err = bindings[1-result.environment].client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
+		_, err = bindings[1-result.environment].live.client.DescribeWorkflowExecution(env.Context(), result.run.GetRunId(), "")
 		var notFound *serviceerror.NotFound
 		require.ErrorAs(t, err, &notFound)
 	}
 	require.True(t, proto.Equal(caseSnapshot, caseSource))
 	for _, binding := range bindings {
-		require.Equal(t, binding.profile.EnvironmentBindings, binding.driver.Snapshot().EnvironmentBindings)
-		require.True(t, proto.Equal(caseSnapshot, binding.prepared.Snapshot()))
+		require.Equal(t, binding.profile.EnvironmentBindings, binding.live.driver.Snapshot().EnvironmentBindings)
+		require.True(t, proto.Equal(caseSnapshot, binding.live.prepared.Snapshot()))
 	}
 }
 
 func TestTestpilotAsyncNexusCaseMissingRemoteEndpoint(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	caseSource := loadTestpilotCase(t, "async-nexus")
-	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-	require.NoError(t, err)
-	binding := newTestpilotLiveBinding(t, env, catalog, caseSource, testpilotfixture.AsyncNexusEnvironment{
-		Namespace: "umpire-async-nexus-missing", TaskQueue: "umpire-async-nexus-queue-missing",
-		NexusEndpoint: "umpire-async-nexus-endpoint-missing",
-	}, false)
+	// The endpoint the Case binds is deliberately not created, so the Nexus operation never
+	// completes and the Run closes incomplete and inconclusive.
+	live := bindCase(t, env, caseSource, CaseBinding{
+		Identity: "async-nexus-profile", Namespace: "umpire-async-nexus-missing",
+		TaskQueue: "umpire-async-nexus-queue-missing", NexusEndpoint: "umpire-async-nexus-endpoint-missing",
+		CreateEndpoint: false,
+	})
 
-	run, verdict, err := binding.prepared.Run(env.Context(), binding.driver)
+	run, verdict, err := live.prepared.Run(env.Context(), live.driver)
 	require.NoError(t, err)
 	require.Equal(t, testpilotpb.RUN_STATUS_INCOMPLETE, run.GetStatus())
 	require.Equal(t, testpilotpb.CLEANUP_STATUS_SUCCEEDED, run.GetCleanup().GetStatus())
 	require.Equal(t, testpilotpb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 	requireRunHasOutcome(t, run, "await-completion-authority", testpilotpb.INSTRUCTION_OUTCOME_STATUS_TIMED_OUT)
-	_, err = binding.client.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
+	_, err = live.client.DescribeWorkflowExecution(env.Context(), run.GetRunId(), "")
 	require.NoError(t, err)
-}
-
-func newTestpilotLiveBinding(
-	t *testing.T,
-	env *testcore.TestEnv,
-	catalog *testpilot.Catalog,
-	caseSource *testpilotpb.Case,
-	environment testpilotfixture.AsyncNexusEnvironment,
-	createEndpoint bool,
-) testpilotLiveBinding {
-	t.Helper()
-	profile := testpilotfixture.AsyncNexusProfile(catalog, caseSource, environment)
-	frozenEnvironment := requireTestpilotProfileEnvironment(t, profile.Snapshot())
-	resources := testpilotLiveResources{
-		Namespace: frozenEnvironment.Namespace, TaskQueue: frozenEnvironment.TaskQueue,
-	}
-	if createEndpoint {
-		resources.NexusEndpoint = frozenEnvironment.NexusEndpoint
-	}
-	live := newTestpilotLiveCase(t, env, caseSource, profile, resources, testpilotCleanupTimeout)
-	return testpilotLiveBinding{
-		environment: frozenEnvironment, profile: live.profile, prepared: live.prepared,
-		client: live.client, driver: live.driver,
-	}
-}
-
-func requireTestpilotProfileEnvironment(t testing.TB, profile testpilot.ProfileSpec) testpilotfixture.AsyncNexusEnvironment {
-	t.Helper()
-	bindings := make(map[string]string, len(profile.EnvironmentBindings))
-	for _, binding := range profile.EnvironmentBindings {
-		require.NotContains(t, bindings, binding.ID)
-		bindings[binding.ID] = binding.Value
-	}
-	result := testpilotfixture.AsyncNexusEnvironment{
-		Namespace:     bindings[testpilotfixture.AsyncNexusWorkerNamespaceBindingID],
-		TaskQueue:     bindings[testpilotfixture.AsyncNexusTaskQueueBindingID],
-		NexusEndpoint: bindings[testpilotfixture.AsyncNexusEndpointBindingID],
-	}
-	require.NotEmpty(t, result.Namespace)
-	require.NotEmpty(t, result.TaskQueue)
-	require.NotEmpty(t, result.NexusEndpoint)
-	return result
 }
 
 func loadTestpilotCase(t testing.TB, name string) *testpilotpb.Case {
