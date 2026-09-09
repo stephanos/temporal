@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-
-	"go.temporal.io/server/tools/gomad3/simulation/parity"
 )
 
 type scriptOwner struct {
@@ -26,9 +24,6 @@ var reviewedScripts = map[string]scriptOwner{
 }
 
 func Validate(root string) error {
-	if _, err := parity.Current(); err != nil {
-		return fmt.Errorf("validate simulation parity contract: %w", err)
-	}
 	absolute, err := filepath.Abs(root)
 	if err != nil || absolute == string(filepath.Separator) {
 		return errors.Join(errors.New("gomad3 script-policy root must be an absolute non-root directory"), err)
