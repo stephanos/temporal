@@ -35,7 +35,7 @@
     "enabled": false
   },
   "review": {
-    "backend": "codex",
+    "backend": "copilot",
     "maxIterations": 8
   },
   "scouts": {
