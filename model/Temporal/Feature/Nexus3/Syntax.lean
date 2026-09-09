@@ -123,7 +123,7 @@ elab "model" name:ident "role" role:ident
         let resultingState ← resolveMember "state" stateCtors resulting
         let modelOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
         let observedFacts ← observed.getElems.toList.mapM (resolveMember "fact" factCtors)
-        let keyLiteral := Lean.quote key.getId.toString
+        let keyLiteral := Lean.quote key.getId.eraseMacroScopes.toString
         let rowTerm ← `(term|
           { key := $keyLiteral
             source := $sourceState
@@ -132,16 +132,17 @@ elab "model" name:ident "role" role:ident
               [$(observedFacts.toArray),*]] })
         pure ({ key, sourceState, selectedAction, resultingState, rowTerm : ResolvedRow })
     | _ => throwErrorAt row "unsupported Nexus3 transition"
-  let mut declared : List (Name × Name × String) := []
+  let mut declared : List ResolvedRow := []
   for resolved in resolvedRows do
-    if let some prior := declared.find? fun entry =>
-        entry.1 == resolved.sourceState.getId && entry.2.1 == resolved.selectedAction.getId then
+    if let some prior := declared.find? fun candidate =>
+        candidate.sourceState.getId == resolved.sourceState.getId &&
+          candidate.selectedAction.getId == resolved.selectedAction.getId then
       throwErrorAt resolved.key
-        (duplicateTransitionMessage resolved.key.getId.eraseMacroScopes.toString prior.2.2
-        (shortName resolved.sourceState.getId).toString
-        (shortName resolved.selectedAction.getId).toString)
-    declared := declared ++ [(resolved.sourceState.getId, resolved.selectedAction.getId,
-      resolved.key.getId.eraseMacroScopes.toString)]
+        (duplicateTransitionMessage resolved.key.getId.eraseMacroScopes.toString
+          prior.key.getId.eraseMacroScopes.toString
+          (shortName resolved.sourceState.getId).toString
+          (shortName resolved.selectedAction.getId).toString)
+    declared := declared ++ [resolved]
   let edges := resolvedRows.map fun resolved =>
     (resolved.sourceState.getId, resolved.resultingState.getId)
   let reached := reachableStates edges (edges.length + 1)
