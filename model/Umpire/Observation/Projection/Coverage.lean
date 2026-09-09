@@ -29,7 +29,13 @@ from a probe value, so coordinates no payload could ever supply reject before an
 A request-rooted operand denotes the very arguments of the selected Action, which no projected
 scalar reconstructs. Such coordinates are still coverable -- a history event does observe a
 submitted request field, and the portable lowering names it by its declared evidence field -- but
-they are not rebuildable, so an evidence-driven model replay rejects a clause that reads one.
+they are not rebuildable, so an evidence-driven model replay skips them and rejects a clause that
+reads one.
+
+The rebuildable step vocabulary is field selection, optional presence, oneof selection and keyed map
+lookup: each reaches the reported value without supplying anything else. A presence read, a repeated
+element and a cardinality are outside it and reject with that reason, because the payload witnessing
+them would have to carry sibling data no declared Observation reported.
 -/
 
 namespace Umpire.Observation.Projection
@@ -63,16 +69,27 @@ private def coverageOwner (schema : Operation.RpcSchema) : Operation.RpcOwner wh
 private def coverageWitness (schema : Operation.RpcSchema) :
     (coverageOwner schema).Witness Unit Unit := ()
 
-/-- The smallest value tree that supplies `value` at these coordinates. Presence steps construct
-nothing: an optional field is present because it was supplied, and a oneof member is selected
-because it is the one supplied. -/
+/-- Why a structural step has no rebuild from a declared Observation. A presence read, a repeated
+element and a cardinality all describe values *besides* the one the Observation reports, so any
+payload supplying them would carry data no Observation supplied. -/
+private def unreportable : Value.Field.Step → Option String
+  | .present => some "a presence read reports data no declared Observation supplies"
+  | .index _ => some "a repeated element reports data no declared Observation supplies"
+  | .cardinality => some "a cardinality reports data no declared Observation supplies"
+  | _ => none
+
+/-- The smallest value tree that supplies `value` at these coordinates, and nothing else. Presence
+steps construct nothing: an optional field is present because it was supplied, a oneof member is
+selected because it is the one supplied, and a map holds exactly the looked-up entry. -/
 private def coveragePayload : List Value.Field.Step → Value.Raw → Except String Value.Raw
   | [], value => .ok value
   | .field containing number :: rest, value => do
       pure (Value.message containing [(number, ← coveragePayload rest value)])
+  | .key key :: rest, value => do
+      pure (Value.map [(key, ← coveragePayload rest value)])
   | .establish :: rest, value => coveragePayload rest value
   | .select _ :: rest, value => coveragePayload rest value
-  | step :: _, _ => .error ("unsupported coverage step " ++ reprStr step)
+  | step :: _, _ => .error ((unreportable step).getD ("unsupported coverage step " ++ reprStr step))
 
 /-- One selection under the covered path's own schema, with its descriptor indices erased so a
 whole step list can be walked in one pass. -/
@@ -98,7 +115,14 @@ private def Selection.advance {schema : Operation.RpcSchema} {side : Value.Side}
   | .select group => do
       let cursor ← selection.cursor.refine selection.type selection.cardinality (.oneof group) source
       pure ⟨_, _, _, ← cursor.select group source⟩
-  | step => .error ⟨source, reprStr step, "unsupported coverage step"⟩
+  | .key key =>
+      match selection.cardinality with
+      | .map keyType => do
+          let cursor ← selection.cursor.refine selection.type (.map keyType) .available source
+          pure ⟨_, _, _, ← cursor.lookup key source⟩
+      | _ => .error ⟨source, reprStr key, "map lookup requires an available map field"⟩
+  | step => .error ⟨source, reprStr step,
+      (unreportable step).getD ("unsupported coverage step " ++ reprStr step)⟩
 
 private def Selection.walk {schema : Operation.RpcSchema} {side : Value.Side}
     {limits : Value.Limits} (selection : Selection schema side limits) (source : SourceLocation) :
@@ -221,7 +245,10 @@ def Coverage.evidence {plan : Checked target} (coverage : Coverage plan)
     (fields : List Field) : Except CoverageError (List PropertyFieldEvidence) := do
   let mut values : List PropertyFieldEvidence := []
   for entry in coverage.entries do
-    if let some field := fields.find? (·.id == entry.field) then
+    -- Request coordinates are covered for portable lowering only; skipping them here keeps a
+    -- lowering-only mapping from failing an unrelated evidence-driven replay.
+    if entry.rebuildable then
+      if let some field := fields.find? (·.id == entry.field) then
       if let some value := field.value then
         match coverageEvidence coverage.valueLimits entry.path value coverageSource with
         | .error reason => throw ⟨entry.field, reason⟩

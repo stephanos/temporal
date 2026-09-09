@@ -65,19 +65,34 @@ def scalarValue : Operation.Scalar → Except String temporal.server.api.testpil
       else .error "enum number is outside the int32 range"
   | .floating _ _ => .error "unsupported floating-point request construction"
 
+/-- One Program field-path segment: the constructed field's name and, for a keyed map entry, the
+exact key it is written under. -/
+abbrev Segment := String × Option temporal.server.api.testpilot.v1.Value
+
 /-- The Program field path a modeled operand's structural steps construct. Presence steps construct
 nothing: an optional field is present because the assignment supplied it, and a oneof member is
-selected because it is the one supplied. -/
-def targetPath (schema : Operation.Schema) : List Value.Field.Step → Except String (List String)
-  | [] => .ok []
-  | .field containing number :: rest => do
-      let some field := (Value.Field.schemaFields schema).find? fun item =>
-        item.1 == containing && item.2.number == number
-        | .error ("unknown containing schema or field " ++ containing)
-      pure (field.2.name :: (← targetPath schema rest))
-  | .establish :: rest => targetPath schema rest
-  | .select _ :: rest => targetPath schema rest
-  | step :: _ => .error ("unsupported input coverage step " ++ reprStr step)
+selected because it is the one supplied. A presence read, a repeated element and a cardinality are
+readings rather than construction targets, so each rejects with that reason. -/
+def targetPath (schema : Operation.Schema) (steps : List Value.Field.Step) :
+    Except String (List Segment) := do
+  let mut segments : List Segment := []
+  for step in steps do
+    match step with
+    | .field containing number =>
+        let some field := (Value.Field.schemaFields schema).find? fun item =>
+          item.1 == containing && item.2.number == number
+          | throw ("unknown containing schema or field " ++ containing)
+        segments := segments ++ [(field.2.name, none)]
+    | .establish | .select _ => pure ()
+    | .key key =>
+        let some last := segments.getLast?
+          | throw "a map key has no containing request field"
+        if last.2.isSome then throw "duplicate map key selector"
+        segments := segments.dropLast ++ [(last.1, some (← scalarValue key))]
+    | .present => throw "a presence read is not a request assignment target"
+    | .index _ => throw "a repeated element is not a request assignment target"
+    | .cardinality => throw "a cardinality is not a request assignment target"
+  pure segments
 
 /-- Exact equality of the two constructible value forms. A value form this coverage cannot
 construct is never equal to a covered field's value. -/
@@ -91,10 +106,22 @@ private def sameValue (left right : temporal.server.api.testpilot.v1.Value) : Bo
   | some (.enum_value first), some (.enum_value second) => first.number == second.number
   | _, _ => false
 
-private def assignmentSegments (path : FieldPath) : Except String (List String) :=
+private def assignmentSegments (path : FieldPath) : Except String (List Segment) :=
   path.segments.toList.mapM fun segment =>
-    if segment.selector.isSome then .error "unsupported request assignment selector"
-    else .ok segment.field
+    match segment.selector with
+    | none => .ok (segment.field, none)
+    | some (.map_key selector) =>
+        match selector.key with
+        | some key => .ok (segment.field, some key)
+        | none => .error "map key selector supplies no key"
+    | some _ => .error "unsupported request assignment selector"
+
+private def sameSegments (left right : List Segment) : Bool :=
+  left.length == right.length && (left.zip right).all fun (first, second) =>
+    first.1 == second.1 && match first.2, second.2 with
+      | none, none => true
+      | some a, some b => sameValue a b
+      | _, _ => false
 
 /-- Admit one requested input mapping against the Program that must construct it. -/
 private def checkInput (program : Program) (mapping : InputMapping) : Except String Unit := do
@@ -113,7 +140,7 @@ private def checkInput (program : Program) (mapping : InputMapping) : Except Str
   let mut matched := 0
   for assignment in call.request_assignments.toList do
     let some target := assignment.target | throw "request assignment has no target"
-    if (← assignmentSegments target) == expected then
+    if sameSegments (← assignmentSegments target) expected then
       matched := matched + 1
       let some expression := assignment.value | throw "request assignment supplies no value"
       let some (.literal supplied) := expression.expression
