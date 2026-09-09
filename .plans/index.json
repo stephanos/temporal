@@ -98,6 +98,16 @@
       "allowedMissingLinks": []
     },
     {
+      "path": ".plans/GOMAD_MILESTONES.md",
+      "lifecycle": "active",
+      "authority": "scoped-contract",
+      "authorityParents": [
+        ".plans/GOMAD3_NEXT.md"
+      ],
+      "supersededBy": null,
+      "allowedMissingLinks": []
+    },
+    {
       "path": ".plans/LEAN_GUIDELINES.md",
       "lifecycle": "active",
       "authority": "scoped-contract",

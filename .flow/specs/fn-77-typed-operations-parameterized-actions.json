@@ -9,7 +9,7 @@
   "depends_on_epics": [],
   "id": "fn-77-typed-operations-parameterized-actions",
   "impl_review_rounds": {
-    "fn-77-typed-operations-parameterized-actions.12": 3,
+    "fn-77-typed-operations-parameterized-actions.12": 0,
     "fn-77-typed-operations-parameterized-actions.5": 0,
     "fn-77-typed-operations-parameterized-actions.6": 0,
     "fn-77-typed-operations-parameterized-actions.7": 0,
@@ -650,9 +650,99 @@
       "task": "fn-77-typed-operations-parameterized-actions.12",
       "timestamp": "2026-09-09T04:41:14.904840Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "97ba4039603c73e43d3ba705f92a406c2f99f36b707999b2f1dffdf16f800fcf",
+      "backend": "copilot",
+      "base_sha": "9172bf8775a074645243fbe48d76d70d079744dc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": "nonzero_exit",
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "ce8e898adac5a8b15225b89c42c6bc67d5016477",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-5.4",
+      "outcome": "transport_failure",
+      "output_bytes": 0,
+      "output_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "reservation_id": "9d59b50173c640289daefc4a274912ee",
+      "round_consumed": false,
+      "scope": "impl:fn-77-typed-operations-parameterized-actions.12",
+      "superseded_by": null,
+      "task": "fn-77-typed-operations-parameterized-actions.12",
+      "timestamp": "2026-09-09T04:46:07.458257Z",
+      "verdict": null
+    },
+    {
+      "artifact_sha256": "97ba4039603c73e43d3ba705f92a406c2f99f36b707999b2f1dffdf16f800fcf",
+      "backend": "claude",
+      "base_sha": "9172bf8775a074645243fbe48d76d70d079744dc",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-15628763a828d034fc808fa38690e8ed",
+            "classification": "introduced",
+            "findingId": "finding-15628763a828d034fc808fa38690e8ed",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-c9074e486736f9c1eb2691707e01c5c9",
+            "classification": "introduced",
+            "findingId": "finding-c9074e486736f9c1eb2691707e01c5c9",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-681e47fe334fc1d2f11889b0f24c874e",
+            "classification": "introduced",
+            "findingId": "finding-681e47fe334fc1d2f11889b0f24c874e",
+            "firstSeenThisRound": true,
+            "severity": "P3",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "ce8e898adac5a8b15225b89c42c6bc67d5016477",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4683,
+      "output_sha256": "4bc1efaedcd2ce8365ec7571e468a12dd4a1104f0fd23063398f104679c682c6",
+      "reservation_id": "3eb04463dd554918b2bbc7909e433729",
+      "round_consumed": true,
+      "scope": "impl:fn-77-typed-operations-parameterized-actions.12",
+      "superseded_by": null,
+      "task": "fn-77-typed-operations-parameterized-actions.12",
+      "timestamp": "2026-09-09T04:52:10.147854Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-77-typed-operations-parameterized-actions.12": 2,
     "impl:fn-77-typed-operations-parameterized-actions.5": 1,
     "impl:fn-77-typed-operations-parameterized-actions.6": 1,
     "impl:fn-77-typed-operations-parameterized-actions.7": 1,
@@ -684,5 +774,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T04:41:14.909844Z"
+  "updated_at": "2026-09-09T04:52:10.148836Z"
 }

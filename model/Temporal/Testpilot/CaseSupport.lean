@@ -39,6 +39,36 @@ def project
     (cardinality : ProjectionKind := .PROJECTION_KIND_ONE) : ResponseProjection :=
   Program.responseProjection source cardinality #[Program.observationTarget observationId]
 
+def historyEventType : ValueType :=
+  Types.singular (Types.messageType "temporal.api.history.v1.HistoryEvent")
+
+def nested (names : List String) : FieldPath :=
+  Path.make (names.map Path.field).toArray
+
+def historyEvents : FieldPath :=
+  Path.make #[Path.field "history", Path.repeated "events"]
+
+def historyAttribute (selected name : String) : FieldPath :=
+  Path.make #[Path.oneofSelector "attributes" selected, Path.field name]
+
+def text (value : String) : ProgramExpression := ProgramExpr.literal (Value.text value)
+def signedInteger (value : Int) : ProgramExpression :=
+  ProgramExpr.literal (Value.signedInteger value)
+def observed (id : String) : ContractExpression := ContractExpr.observation id
+def captured (id : String) : ContractExpression := ContractExpr.capture id
+def runId : ProgramExpression := ProgramExpr.run
+def projected (value : ContractExpression) (path : FieldPath) : ContractExpression :=
+  ContractExpr.path value path
+
+def succeeded (entrypoint instruction : String) : ProgramExpression :=
+  let status := ProgramExpr.outcome (Ref.instruction entrypoint instruction)
+    .INSTRUCTION_OUTCOME_FIELD_STATUS
+  ProgramExpr.all #[ProgramExpr.present status,
+    ProgramExpr.equals status (ProgramExpr.literal (Value.enumeration 1))]
+
+def assign (target : FieldPath) (value : ProgramExpression) : RequestAssignment :=
+  Program.requestAssignment target value
+
 def programLimits : ProgramLimits :=
   Program.limits 4 16 24 8 16 256 12 32 32768 4096 30000 5000
 

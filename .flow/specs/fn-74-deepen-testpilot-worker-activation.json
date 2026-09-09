@@ -7,7 +7,8 @@
   "default_review": null,
   "default_sync": null,
   "depends_on_epics": [
-    "fn-72-extract-the-reusable-temporal-testpilot"
+    "fn-72-extract-the-reusable-temporal-testpilot",
+    "fn-82-unify-the-umpire-and-testpilot"
   ],
   "id": "fn-74-deepen-testpilot-worker-activation",
   "impl_review_rounds": {},
@@ -103,5 +104,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-08T10:16:08.220397Z"
+  "updated_at": "2026-09-09T05:23:40.062191Z"
 }

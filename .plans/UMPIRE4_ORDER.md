@@ -58,6 +58,38 @@ Boundaries worth carrying forward: no canary Profile or production authorization
 those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, and no removal of
 `elapsed_milliseconds`.
 
+### 3. Delete the pre-Testpilot Go generations — fn-81
+
+[fn-81 — Delete the pre-Testpilot Go generations](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md),
+a mechanical deletion sweep from the same 2026-09-08 assessment. Nothing here changes modeled
+behavior. The repository still carries every earlier generation as live, compiled, partly CI-wired
+code that no current Umpire, Testpilot, or Temporal model imports — about 345,000 Go lines against
+roughly 42,000 for live Umpire plus Testpilot:
+
+| Tree | Go lines | Still wired into |
+| ---- | -------- | ---------------- |
+| gomad through gomad3integration | 209,000 | a workflow, Makefile targets, four nested go.mod files, a root go.mod `replace` |
+| umpire1, umpire2, umpire3 | 92,700 | two workflows, ~70 Makefile targets, a second Lake project (677 MB on disk) |
+| `common/testing/umpire` and the testcore monitor | 26,400 | history workflow cache instrumentation, observer comments in six history files, the functional harness monitor and gRPC interceptor |
+| agentworkflow | 11,200 | Makefile, its own go.mod |
+| legacy tests under `tests` | 6,200 | the live-test gate, which pins nine expected failures by name |
+
+Two costs are paid today: the gomad3 workflow triggers on any change to go.mod or the Makefile, so
+it runs on unrelated pull requests, and umpire3's Lake build alone holds 677 MB on a disk at 97
+percent.
+
+Five tasks are defined with a SHIP plan review, all ready. Task .2 is the declared early proof
+point — the white-box seam comes out of the history service and the functional harness and the
+retained live gate still passes; if a retained test turns out to depend on monitor facts,
+re-evaluate the seam disposition before deleting any tree. That seam is the one part of this sweep
+that is not confined to `tools`, and it produces no Verdict for any consumer, so R6 removes it and
+restores the history workflow cache to upstream shape.
+
+Boundaries: no Lean deletions — Nexus v1, Nexus2, Umpire Artifact, Space, and Exploration stay,
+since live modules import them and fn-22, fn-33, fn-79, and fn-80 reserve them; they need a roadmap
+decision rather than a sweep. `tools/fairsim`, `cmd/tools/fairsim`, and fn-66's `tools/planindex`
+also stay. Task .5 owns the roadmap reconciliation under R7, so it will edit this document.
+
 ### Additional open specs
 
 These remain open in Flow and are outside the first-canary critical path.

@@ -74,7 +74,7 @@ func TestRunFunctionalGenerationPublishesOnlyCanonicalTestpilotCases(t *testing.
 	require.ErrorIs(t, err, os.ErrNotExist)
 	files, err := os.ReadDir(filepath.Join(configuration.OutputRoot, filepath.FromSlash(functionalFixtureRoot)))
 	require.NoError(t, err)
-	require.Len(t, files, 3)
+	require.Len(t, files, len(entries))
 	for _, entry := range entries {
 		encoded, err := os.ReadFile(filepath.Join(configuration.OutputRoot, filepath.FromSlash(functionalCasePath(entry))))
 		require.NoError(t, err)
@@ -183,7 +183,7 @@ func TestValidateFunctionalArtifactsRejectsStaleFile(t *testing.T) {
 	}
 	artifacts[filepath.ToSlash(filepath.Join(functionalFixtureRoot, "stale.json"))] = []byte("stale")
 
-	require.ErrorContains(t, validateFunctionalArtifacts(entries, artifacts), "has 4 files, want 3")
+	require.ErrorContains(t, validateFunctionalArtifacts(entries, artifacts), "has 5 files, want 4")
 }
 
 func TestRunGenerationRejectsIncompleteManifestAndRendererFailureBeforePublication(t *testing.T) {

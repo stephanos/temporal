@@ -10,7 +10,8 @@
     "fn-23-veil-toolchain-compatibility-and",
     "fn-24-lean-native-verification-receipts-and",
     "fn-34-enforce-lean-model-boundaries-with",
-    "fn-37-hard-cut-umpire-vocabulary-and-current"
+    "fn-37-hard-cut-umpire-vocabulary-and-current",
+    "fn-82-unify-the-umpire-and-testpilot"
   ],
   "id": "fn-25-optional-callerclosure-veil-binding-and",
   "impl_review_rounds": {},
@@ -313,5 +314,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T10:37:46.932274Z"
+  "updated_at": "2026-09-09T05:23:36.736388Z"
 }

@@ -1,7 +1,9 @@
 {
   "branch_name": "fn-79-deferred-nexus-operation-cancellation",
   "created_at": "2026-09-08T04:52:03.181217Z",
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-82-unify-the-umpire-and-testpilot"
+  ],
   "id": "fn-79-deferred-nexus-operation-cancellation",
   "next_task": 1,
   "plan_review_status": "unknown",
@@ -20,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-08T04:52:03.182914Z"
+  "updated_at": "2026-09-09T05:23:41.156209Z"
 }

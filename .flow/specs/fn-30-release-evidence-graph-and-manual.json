@@ -12,7 +12,8 @@
     "fn-27-hermetic-ci-execution-and-qualification",
     "fn-28-portable-evaluation-contract-and",
     "fn-29-bounded-production-canary-execution-and",
-    "fn-48-canonicalize-known-gaps-as-a-checked-set"
+    "fn-48-canonicalize-known-gaps-as-a-checked-set",
+    "fn-82-unify-the-umpire-and-testpilot"
   ],
   "id": "fn-30-release-evidence-graph-and-manual",
   "impl_review_rounds": {},
@@ -236,5 +237,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-01T17:03:14.386250Z"
+  "updated_at": "2026-09-09T05:23:38.427115Z"
 }

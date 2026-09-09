@@ -1,5 +1,6 @@
 import Temporal.Testpilot
 import Temporal.Feature.Nexus3.Testpilot
+import Temporal.Feature.Nexus3.TypedUnary
 import Testpilot.Examples.Synthetic
 import Testpilot.ProtoJSON
 
@@ -22,6 +23,7 @@ def main (arguments : List String) : IO Unit :=
   match arguments with
   | ["get-system-info"] => renderTestpilot Temporal.Testpilot.getSystemInfoCase
   | ["async-nexus"] => renderTestpilot Temporal.Feature.Nexus3.Testpilot.completionCase
+  | ["typed-unary"] => renderTestpilot Temporal.Feature.Nexus3.TypedUnary.typedUnaryCase
   | ["synthetic"] => renderSynthetic
   | ["conformance-satisfied"] => renderTestpilot Temporal.Testpilot.conformanceSatisfiedCase
   | ["conformance-violated"] => renderTestpilot Temporal.Testpilot.conformanceViolatedCase

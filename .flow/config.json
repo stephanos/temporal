@@ -37,7 +37,7 @@
     "enabled": false
   },
   "review": {
-    "backend": "copilot",
+    "backend": "claude",
     "maxIterations": 8
   },
   "scouts": {

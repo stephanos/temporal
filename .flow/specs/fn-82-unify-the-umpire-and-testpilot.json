@@ -1,0 +1,50 @@
+{
+  "branch_name": "fn-82-unify-the-umpire-and-testpilot",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-09-09T05:18:55.227908Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-77-typed-operations-parameterized-actions",
+    "fn-80-close-the-model-to-case-seam-and-harden",
+    "fn-81-delete-the-pre-testpilot-go-generations",
+    "fn-67-refine-simple-nexus3-authoring-draft"
+  ],
+  "id": "fn-82-unify-the-umpire-and-testpilot",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "92095a533bc447998682bc509c00f219": {
+      "artifact_sha256": "e2c1abccfa7d9ffb2f658c8dfed8e9a9ea1cf842b1e119886cd090dd16da9d7a",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
+  "spec_path": ".flow/specs/fn-82-unify-the-umpire-and-testpilot.md",
+  "status": "open",
+  "title": "Unify the Umpire and Testpilot vocabulary",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-09-09T05:34:04.961031Z"
+}

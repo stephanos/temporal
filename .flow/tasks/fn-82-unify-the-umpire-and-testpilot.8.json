@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-09-09T05:33:46.567858Z",
+  "depends_on": [
+    "fn-82-unify-the-umpire-and-testpilot.7"
+  ],
+  "id": "fn-82-unify-the-umpire-and-testpilot.8",
+  "priority": null,
+  "spec": "fn-82-unify-the-umpire-and-testpilot",
+  "spec_path": ".flow/tasks/fn-82-unify-the-umpire-and-testpilot.8.md",
+  "status": "todo",
+  "title": "Nexus tree, command keywords, and tool names",
+  "updated_at": "2026-09-09T05:33:46.567858Z"
+}

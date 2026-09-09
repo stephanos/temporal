@@ -29,40 +29,10 @@ private def startWorkflowMethod :=
 private def getHistoryMethod :=
   "/temporal.api.workflowservice.v1.WorkflowService/GetWorkflowExecutionHistory"
 
-private def historyEventType : ValueType :=
-  Types.singular (Types.messageType "temporal.api.history.v1.HistoryEvent")
-
 private def textOutcome : InstructionOutcomeDefinition :=
   Program.outcome #[
     Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_STATUS statusType,
     Program.outcomeField .INSTRUCTION_OUTCOME_FIELD_VALUE textType]
-
-private def nested (names : List String) : FieldPath :=
-  Path.make (names.map Path.field).toArray
-
-private def historyEvents : FieldPath :=
-  Path.make #[Path.field "history", Path.repeated "events"]
-
-private def historyAttribute (selected name : String) : FieldPath :=
-  Path.make #[Path.oneofSelector "attributes" selected, Path.field name]
-
-private def text (value : String) : ProgramExpression := ProgramExpr.literal (Value.text value)
-private def signedInteger (value : Int) : ProgramExpression :=
-  ProgramExpr.literal (Value.signedInteger value)
-private def observed (id : String) : ContractExpression := ContractExpr.observation id
-private def captured (id : String) : ContractExpression := ContractExpr.capture id
-private def runId : ProgramExpression := ProgramExpr.run
-private def projected (value : ContractExpression) (path : FieldPath) : ContractExpression :=
-  ContractExpr.path value path
-
-private def succeeded (entrypoint instruction : String) : ProgramExpression :=
-  let status := ProgramExpr.outcome (Ref.instruction entrypoint instruction)
-    .INSTRUCTION_OUTCOME_FIELD_STATUS
-  ProgramExpr.all #[ProgramExpr.present status,
-    ProgramExpr.equals status (ProgramExpr.literal (Value.enumeration 1))]
-
-private def assign (target : FieldPath) (value : ProgramExpression) : RequestAssignment :=
-  Program.requestAssignment target value
 
 private def rpc
     (id method : String)
