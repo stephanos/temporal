@@ -168,6 +168,7 @@ func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
 
 	return nil
 }
+
 // A fault names the task-queue role whose worker the Driver stops or resumes; the role's own
 // resource binding identifies the queue, so the instruction carries no queue of its own.
 func (a *admission) bindFault(g *graph, n *node) error {
