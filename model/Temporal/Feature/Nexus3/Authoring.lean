@@ -311,17 +311,18 @@ def namedFact (values : ModelVocabulary) (spelling : String) : ModelValue :=
 
 end ModelVocabulary
 
-/-- The clause labels and the member spellings each `require` clause selects. -/
+/-- One `require` clause: its label and the member spelling it selects. -/
+inductive PropertyRequirement where
+  | stateClause (label spelling : String)
+  | outcomeClause (label spelling : String)
+  | factClause (label spelling : String)
+
+/-- The declared role, the Action every clause is about, and the ordered `require` clauses. -/
 structure SuccessPropertyNames where
   declaration : String
   roleName : String
-  stateClause : String
-  outcomeClause : String
-  factClause : String
   actionSpelling : String
-  stateSpelling : String
-  outcomeSpelling : String
-  factSpelling : String
+  requirements : List PropertyRequirement
 
 /-- The setup state and the ordered occurrence labels with the Action each one selects. -/
 structure SuccessBehaviorNames where
@@ -351,17 +352,18 @@ def propertySpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]
   key := names.declaration
   source
   requires := [model.roleCapability names.roleName]
-  clauses := [
-    .transitionContract (ownedId "property" names.declaration names.stateClause)
-      (.selectedAction (values.namedAction names.actionSpelling))
-      (.resultingState (values.namedState names.stateSpelling)),
-    .transitionContract (ownedId "property" names.declaration names.outcomeClause)
-      (.selectedAction (values.namedAction names.actionSpelling))
-      (.modelOutcome (values.namedOutcome names.outcomeSpelling)),
-    .inputOutput (ownedId "property" names.declaration names.factClause)
-      (.selectedAction (values.namedAction names.actionSpelling))
-      (.fact (values.namedFact names.factSpelling))
-  ]
+  clauses := names.requirements.map fun requirement =>
+    let selected := PropertyPattern.selectedAction (values.namedAction names.actionSpelling)
+    match requirement with
+    | .stateClause label spelling =>
+        .transitionContract (ownedId "property" names.declaration label) selected
+          (.resultingState (values.namedState spelling))
+    | .outcomeClause label spelling =>
+        .transitionContract (ownedId "property" names.declaration label) selected
+          (.modelOutcome (values.namedOutcome spelling))
+    | .factClause label spelling =>
+        .inputOutput (ownedId "property" names.declaration label) selected
+          (.fact (values.namedFact spelling))
 }
 
 def behaviorSpec [BEq Setup] [BEq State] [BEq Action] [BEq Outcome] [BEq Fact]

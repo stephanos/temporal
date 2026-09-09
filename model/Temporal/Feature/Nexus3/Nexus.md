@@ -35,19 +35,28 @@ type. `/-- ... -/` introduces documentation; `/- ... -/` is a block comment.
 
 The compiling grammar is general over the declaring inductives. `states`, `actions`, `outcomes`,
 and `facts` name enum-like types, and their constructors — in constructor order — are the model's
-ordered domains, so renaming a member or adding a transition changes no file but the model's own.
-It accepts any number of initial states, terminal states, transition rows up to an elaboration
-bound of 256, Facts per row, and Behavior occurrences, and any positive limits.
-`RaceSyntaxTests.lean` declares a second lifecycle through the same five blocks with four states,
-three Actions, three transitions, a three-occurrence Behavior, and a different role name.
+ordered domains. No other file holds a list of admissible spellings, so renaming a member or adding
+a transition needs no syntax change. It does change the renamed member's derived ID, and a Fact a
+Case lowers must also be named in that Producer's evidence projection — `Testpilot.lean` binds the
+Facts it can witness in Nexus history by spelling — so a rename there is a Producer edit and a
+fixture regeneration, not a syntax error.
+
+The grammar accepts one or more initial states and terminal states, up to 256 transition rows, any
+number of Facts per row, one or more `require` clauses, one or more Behavior occurrences, and any
+positive limits. A model also needs a one-constructor `Setup` inductive in scope by name; the
+grammar does not spell it. `RaceSyntaxTests.lean` declares a second lifecycle through the same five
+blocks: five states, four Actions, two terminal states, a losing row that records no Fact, a
+two-clause Property, and a different role name.
 
 A constructor that takes arguments, an identifier naming no constructor, a duplicate
-`before + action` pair, a terminal state unreachable from every initial state, and a table over the
-bound are each reported at the offending source coordinates.
+`before + action` pair, a terminal state unreachable from every initial state, a table over the
+bound, and a missing or multi-constructor `Setup` are each reported at the offending source
+coordinates.
 
-What remains proposed below is the shape of the declarations, not the spelling of their members: a
-transition row with more than one result, the `eventually ... within` and `finalState` Property
-forms, the `all` Query form, and the per-declaration compatibility ID.
+What remains proposed below is the shape of the declarations, not the spelling of their members:
+`oneOf` alternatives in a transition row, a row with the `facts` field omitted rather than empty,
+a Property with no `when` clause, the `eventually ... within` and `finalState` Property forms, the
+`verify ... search exhaustive` Query form, and the per-declaration compatibility ID.
 
 IDs derive from the feature namespace, declaration kind, and name. `Integration.md` specifies
 the convention and Case boundary, including the optional per-declaration compatibility ID this

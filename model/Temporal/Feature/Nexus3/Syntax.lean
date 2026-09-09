@@ -21,6 +21,13 @@ syntax ident ":" ident "+" ident "→"
   "{" "state" ":=" ident "," "outcome" ":=" ident "," "facts" ":=" "[" ident,* "]" "}" :
   nexus3Transition
 
+/-- One `require` clause of a declared Property. -/
+declare_syntax_cat nexus3Require
+
+syntax "require" ident ":" "resultingState" ident : nexus3Require
+syntax "require" ident ":" "outcome" ident : nexus3Require
+syntax "require" ident ":" "fact" ident : nexus3Require
+
 /-- One labelled occurrence of a declared Action in a Behavior sequence. -/
 declare_syntax_cat nexus3Occurrence
 
@@ -79,7 +86,7 @@ private structure ResolvedRow where
   key : Ident
   sourceState : Ident
   selectedAction : Ident
-  resultingState : Ident
+  targetState : Ident
   rowTerm : Term
 
 /-- The states reachable from `seen` over the declared `before → result` edges. -/
@@ -120,7 +127,7 @@ elab "model" name:ident "role" role:ident
           facts := [$observed,*] }) => do
         let sourceState ← resolveMember "state" stateCtors source
         let selectedAction ← resolveMember "action" actionCtors selected
-        let resultingState ← resolveMember "state" stateCtors resulting
+        let targetState ← resolveMember "state" stateCtors resulting
         let modelOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
         let observedFacts ← observed.getElems.toList.mapM (resolveMember "fact" factCtors)
         let keyLiteral := Lean.quote key.getId.eraseMacroScopes.toString
@@ -128,9 +135,9 @@ elab "model" name:ident "role" role:ident
           { key := $keyLiteral
             source := $sourceState
             action := $selectedAction
-            results := [Authoring.transitionResult $modelOutcome $resultingState
+            results := [Authoring.transitionResult $modelOutcome $targetState
               [$(observedFacts.toArray),*]] })
-        pure ({ key, sourceState, selectedAction, resultingState, rowTerm : ResolvedRow })
+        pure ({ key, sourceState, selectedAction, targetState, rowTerm : ResolvedRow })
     | _ => throwErrorAt row "unsupported Nexus3 transition"
   let mut declared : List ResolvedRow := []
   for resolved in resolvedRows do
@@ -144,7 +151,7 @@ elab "model" name:ident "role" role:ident
           (shortName resolved.selectedAction.getId).toString)
     declared := declared ++ [resolved]
   let edges := resolvedRows.map fun resolved =>
-    (resolved.sourceState.getId, resolved.resultingState.getId)
+    (resolved.sourceState.getId, resolved.targetState.getId)
   let reached := reachableStates edges (edges.length + 1)
     (initialStates.map fun entry => entry.getId)
   for terminalState in terminalStates do
@@ -173,29 +180,28 @@ elab "model" name:ident "role" role:ident
 
 macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
     "when" "action" actionRef:ident
-    "require" stateClause:ident ":" "resultingState" stateRef:ident
-    "require" outcomeClause:ident ":" "outcome" outcomeRef:ident
-    "require" factClause:ident ":" "fact" factRef:ident : command => do
+    requirements:nexus3Require+ : command => do
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
-    let stateClauseKey := Lean.quote stateClause.getId.toString
-    let outcomeClauseKey := Lean.quote outcomeClause.getId.toString
-    let factClauseKey := Lean.quote factClause.getId.toString
     let actionKey := Lean.quote actionRef.getId.toString
-    let stateKey := Lean.quote stateRef.getId.toString
-    let outcomeKey := Lean.quote outcomeRef.getId.toString
-    let factKey := Lean.quote factRef.getId.toString
+    let clauses ← requirements.mapM fun requirement => do
+      match requirement with
+      | `(nexus3Require| require $label:ident : resultingState $member:ident) =>
+          `(term| Authoring.PropertyRequirement.stateClause
+              $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
+      | `(nexus3Require| require $label:ident : outcome $member:ident) =>
+          `(term| Authoring.PropertyRequirement.outcomeClause
+              $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
+      | `(nexus3Require| require $label:ident : fact $member:ident) =>
+          `(term| Authoring.PropertyRequirement.factClause
+              $(Lean.quote label.getId.toString) $(Lean.quote member.getId.toString))
+      | _ => Lean.Macro.throwErrorAt requirement "unsupported Nexus3 require clause"
     `(command| def $name (values : Authoring.ModelVocabulary) : PropertySpec :=
         Authoring.propertySpec ($modelRef) values {
           declaration := $ownerKey
           roleName := $roleKey
-          stateClause := $stateClauseKey
-          outcomeClause := $outcomeClauseKey
-          factClause := $factClauseKey
           actionSpelling := $actionKey
-          stateSpelling := $stateKey
-          outcomeSpelling := $outcomeKey
-          factSpelling := $factKey
+          requirements := [$clauses,*]
         })
 
 macro "behavior" name:ident "on" modelRef:ident roleRef:ident "starts" setupRef:ident
