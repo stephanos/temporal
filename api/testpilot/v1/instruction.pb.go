@@ -1560,7 +1560,7 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\bfield_id\x18\x01 \x01(\tR\afieldId\x12A\n" +
 	"\x04path\x18\x02 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathH\x00R\x04path\x12\x1a\n" +
 	"\aliteral\x18\x03 \x01(\tH\x00R\aliteralB\a\n" +
-	"\x05value\"\xa0\x03\n" +
+	"\x05value\"\x9a\x03\n" +
 	"\x12ScopedEvidenceRule\x12A\n" +
 	"\x05guard\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\x05guard\x12M\n" +
 	"\x05scope\x18\x02 \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x05scope\x12\x16\n" +
@@ -1568,7 +1568,7 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\toperation\x18\x05 \x01(\v2+.temporal.server.api.testpilot.v1.FieldPathR\toperation\x12\x12\n" +
 	"\x04kind\x18\x06 \x01(\tR\x04kind\x12O\n" +
 	"\x06fields\x18\a \x03(\v27.temporal.server.api.testpilot.v1.ScopedEvidenceBindingR\x06fields\x12*\n" +
-	"\x11guard_equals_text\x18\b \x01(\tR\x0fguardEqualsTextJ\x04\b\x04\x10\x05\"\x8d\x01\n" +
+	"\x11guard_equals_text\x18\b \x01(\tR\x0fguardEqualsText\"\x8d\x01\n" +
 	"\x18ScopedEvidenceProjection\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12J\n" +
 	"\x05rules\x18\x02 \x03(\v24.temporal.server.api.testpilot.v1.ScopedEvidenceRuleR\x05rules\"\xc7\x01\n" +

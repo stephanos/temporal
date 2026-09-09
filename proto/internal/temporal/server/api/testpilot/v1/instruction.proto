@@ -35,7 +35,6 @@ message ScopedEvidenceRule {
   string kind = 6;
   repeated ScopedEvidenceBinding fields = 7;
   string guard_equals_text = 8;
-  reserved 4;
 }
 
 // ScopedEvidenceProjection is the Program-declared source of the ScopedEvidence a scoped capability

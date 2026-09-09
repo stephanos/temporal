@@ -213,6 +213,15 @@ func TestEvidenceLiftRejectsUndeclarableRules(t *testing.T) {
 		"duplicate field": func(p *testpilotspb.ScopedEvidenceProjection) {
 			p.Rules[0].Fields = append(p.Rules[0].Fields, proto.CloneOf(p.Rules[0].Fields[0]))
 		},
+		"presence guard": func(p *testpilotspb.ScopedEvidenceProjection) {
+			p.Rules[0].Guard = nestedPath("scheduled")
+			p.Rules[0].Guard.Segments[0].Selector = &testpilotspb.FieldPathSegment_Presence{Presence: &testpilotspb.PresenceSelector{}}
+			p.Rules[0].GuardEqualsText = ""
+		},
+		"empty guard": func(p *testpilotspb.ScopedEvidenceProjection) {
+			p.Rules[0].Guard = &testpilotspb.FieldPath{}
+			p.Rules[0].GuardEqualsText = ""
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			artifact, catalog, policy := liftFixture(t)
@@ -253,4 +262,33 @@ func TestEvidenceLiftRejectsNegativeKey(t *testing.T) {
 	coordinate := Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "activation", InstructionID: "read", Attempt: 1}
 	_, _, err = values.stage(context.Background(), coordinate, liftResponse(t, prepared, setCompleted(-1)), values.workLimit())
 	require.Error(t, err)
+}
+
+// TestEvidenceLiftRejectsSharedSourcesAndWorkerEntrypoints pins the two shapes whose ordinals could
+// not stay dense per Run: a second instruction lifting under the same declared source, and a lift on
+// an entrypoint that activates more than once.
+func TestEvidenceLiftRejectsSharedSourcesAndWorkerEntrypoints(t *testing.T) {
+	t.Run("second instruction", func(t *testing.T) {
+		artifact, catalog, policy := liftFixture(t)
+		instructions := artifact.Program.Entrypoints[0].Instructions
+		second := proto.CloneOf(instructions[0])
+		second.InstructionId = "read-again"
+		second.Dependencies = []*testpilotspb.InstructionRef{{EntrypointId: "controller", InstructionId: "read"}}
+		second.Guard = succeeded("controller", "read")
+		artifact.Program.Entrypoints[0].Instructions = append(instructions, second)
+		_, err := Prepare(artifact, catalog, policy)
+		require.Error(t, err)
+	})
+	t.Run("worker entrypoint", func(t *testing.T) {
+		artifact, catalog, policy := liftFixture(t)
+		artifact.Program.Entrypoints[0].Activation = &testpilotspb.EntrypointDefinition_Workflow{Workflow: &testpilotspb.WorkflowActivation{WorkflowType: "flow", WorkerRoleId: "worker", TaskQueueRoleId: "queue"}}
+		artifact.Program.Roles = append(artifact.Program.Roles,
+			&testpilotspb.RoleDefinition{RoleId: "worker", Kind: testpilotspb.ROLE_KIND_WORKER, NamespaceBindingId: "namespace"},
+			&testpilotspb.RoleDefinition{RoleId: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE, NamespaceBindingId: "namespace", ResourceBindingId: "queue"})
+		artifact.Program.Environment = []*testpilotspb.EnvironmentDefinition{{BindingId: "namespace"}, {BindingId: "queue"}}
+		policy.Roles = append(policy.Roles, RolePolicy{ID: "worker", Kind: testpilotspb.ROLE_KIND_WORKER}, RolePolicy{ID: "queue", Kind: testpilotspb.ROLE_KIND_TASK_QUEUE})
+		policy.EnvironmentBindings = append(policy.EnvironmentBindings, EnvironmentBinding{ID: "namespace", Value: "namespace"}, EnvironmentBinding{ID: "queue", Value: "queue"})
+		_, err := Prepare(artifact, catalog, policy)
+		require.Error(t, err)
+	})
 }
