@@ -28,7 +28,7 @@ syntax ident ":" ident : nexus3Occurrence
 
 /-- The elaboration bound on declared transition rows. The tested scale is far smaller; this is a
 ceiling on how large a table the elaborator will build, not a modelling recommendation. -/
-def transitionBound : Nat := 256
+private def transitionBound : Nat := 256
 
 /-- The last component of a constructor name, which is the spelling an author writes. -/
 private def shortName : Name → Name
@@ -38,23 +38,20 @@ private def shortName : Name → Name
 private def spellings (constructors : List Name) : String :=
   ", ".intercalate (constructors.map fun constructor => (shortName constructor).toString)
 
-/-! The diagnostic texts are built here so a test can pin each one against the elaborator's own
-message rather than against a copy of it. -/
-
-def unknownMemberMessage (domain spelling : String) (constructors : List Name) : String :=
+private def unknownMemberMessage (domain spelling : String) (constructors : List Name) : String :=
   s!"unknown Nexus3 {domain} '{spelling}'; declared: {spellings constructors}"
 
-def parameterizedConstructorMessage (domain spelling : String) : String :=
+private def parameterizedConstructorMessage (domain spelling : String) : String :=
   s!"Nexus3 {domain} '{spelling}' takes arguments; a {domain} domain must be an enum-like inductive"
 
-def duplicateTransitionMessage (key priorKey source selected : String) : String :=
+private def duplicateTransitionMessage (key priorKey source selected : String) : String :=
   s!"duplicate Nexus3 transition '{key}': '{source} + {selected}' is already declared by " ++
     s!"'{priorKey}'"
 
-def unreachableTerminalMessage (spelling : String) : String :=
+private def unreachableTerminalMessage (spelling : String) : String :=
   s!"Nexus3 terminal state '{spelling}' is unreachable from every initial state"
 
-def transitionBoundMessage (declared : Nat) : String :=
+private def transitionBoundMessage (declared : Nat) : String :=
   s!"Nexus3 model declares {declared} transitions; the elaboration bound is {transitionBound}"
 
 /-- The ordered constructors of a named enum-like inductive. A constructor that takes arguments is
@@ -72,10 +69,18 @@ private def domainConstructors (domain : String) (typeRef : Ident) : CommandElab
 /-- Resolve one authored spelling against a declared domain, reporting an unknown one in place. -/
 private def resolveMember (domain : String) (constructors : List Name) (member : Ident) :
     CommandElabM Ident := do
-  match constructors.find? fun constructor => shortName constructor == member.getId with
+  let spelling := member.getId.eraseMacroScopes
+  match constructors.find? fun constructor => shortName constructor == spelling with
   | some constructor => pure (mkIdentFrom member constructor)
-  | none => throwErrorAt member
-      (unknownMemberMessage domain member.getId.toString constructors)
+  | none => throwErrorAt member (unknownMemberMessage domain spelling.toString constructors)
+
+/-- One transition row with every member resolved once, before the table is built from it. -/
+private structure ResolvedRow where
+  key : Ident
+  sourceState : Ident
+  selectedAction : Ident
+  resultingState : Ident
+  rowTerm : Term
 
 /-- The states reachable from `seen` over the declared `before → result` edges. -/
 private def reachableStates (edges : List (Name × Name)) : Nat → List Name → List Name
@@ -108,29 +113,7 @@ elab "model" name:ident "role" role:ident
   let terminalStates ← terminalRefs.getElems.toList.mapM (resolveMember "state" stateCtors)
   if rows.size > transitionBound then
     throwErrorAt rows[transitionBound]! (transitionBoundMessage rows.size)
-  let mut declared : List (Name × Name × String) := []
-  let mut edges : List (Name × Name) := []
-  for row in rows do
-    match row with
-    | `(nexus3Transition| $key:ident : $source:ident + $selected:ident →
-        { state := $resulting:ident , outcome := $_:ident , facts := [$_,*] }) => do
-        let sourceState ← resolveMember "state" stateCtors source
-        let selectedAction ← resolveMember "action" actionCtors selected
-        let resultingState ← resolveMember "state" stateCtors resulting
-        if let some prior := declared.find? fun entry =>
-            entry.1 == sourceState.getId && entry.2.1 == selectedAction.getId then
-          throwErrorAt key (duplicateTransitionMessage key.getId.toString prior.2.2
-            source.getId.toString selected.getId.toString)
-        declared := declared ++ [(sourceState.getId, selectedAction.getId, key.getId.toString)]
-        edges := edges ++ [(sourceState.getId, resultingState.getId)]
-    | _ => throwErrorAt row "unsupported Nexus3 transition"
-  let reached := reachableStates edges (edges.length + 1)
-    (initialStates.map fun entry => entry.getId)
-  for terminalRef in terminalRefs.getElems do
-    let terminalState ← resolveMember "state" stateCtors terminalRef
-    unless reached.contains terminalState.getId do
-      throwErrorAt terminalRef (unreachableTerminalMessage terminalRef.getId.toString)
-  let transitionTerms ← rows.toList.mapM fun (row : TSyntax `nexus3Transition) => do
+  let resolvedRows ← rows.toList.mapM fun (row : TSyntax `nexus3Transition) => do
     match row with
     | `(nexus3Transition| $key:ident : $source:ident + $selected:ident →
         { state := $resulting:ident , outcome := $outcomeRef:ident ,
@@ -141,13 +124,33 @@ elab "model" name:ident "role" role:ident
         let modelOutcome ← resolveMember "outcome" outcomeCtors outcomeRef
         let observedFacts ← observed.getElems.toList.mapM (resolveMember "fact" factCtors)
         let keyLiteral := Lean.quote key.getId.toString
-        `(term|
+        let rowTerm ← `(term|
           { key := $keyLiteral
             source := $sourceState
             action := $selectedAction
             results := [Authoring.transitionResult $modelOutcome $resultingState
               [$(observedFacts.toArray),*]] })
+        pure ({ key, sourceState, selectedAction, resultingState, rowTerm : ResolvedRow })
     | _ => throwErrorAt row "unsupported Nexus3 transition"
+  let mut declared : List (Name × Name × String) := []
+  for resolved in resolvedRows do
+    if let some prior := declared.find? fun entry =>
+        entry.1 == resolved.sourceState.getId && entry.2.1 == resolved.selectedAction.getId then
+      throwErrorAt resolved.key
+        (duplicateTransitionMessage resolved.key.getId.eraseMacroScopes.toString prior.2.2
+        (shortName resolved.sourceState.getId).toString
+        (shortName resolved.selectedAction.getId).toString)
+    declared := declared ++ [(resolved.sourceState.getId, resolved.selectedAction.getId,
+      resolved.key.getId.eraseMacroScopes.toString)]
+  let edges := resolvedRows.map fun resolved =>
+    (resolved.sourceState.getId, resolved.resultingState.getId)
+  let reached := reachableStates edges (edges.length + 1)
+    (initialStates.map fun entry => entry.getId)
+  for terminalState in terminalStates do
+    unless reached.contains terminalState.getId do
+      throwErrorAt terminalState
+        (unreachableTerminalMessage (shortName terminalState.getId).toString)
+  let transitionTerms := resolvedRows.map fun resolved => resolved.rowTerm
   let declarationKey := Lean.quote name.getId.toString
   let roleKey := Lean.quote role.getId.toString
   let setupKey := Lean.quote (shortName setupConstructor.getId).toString

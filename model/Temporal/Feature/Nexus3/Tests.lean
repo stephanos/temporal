@@ -676,12 +676,28 @@ model unreachableTerminalLifecycle
     start: scheduled + awaitStart →
       { state := started, outcome := acknowledged, facts := [started] }
 
-/- The over-bound class is pinned on the elaborator's own message builder rather than on a
-declaration. Reaching it needs 257 transition rows, which is roughly twenty kilobytes of
-near-identical test text; the elaborator calls exactly the builder guarded here. -/
-#guard transitionBound == 256
-#guard transitionBoundMessage 257 ==
-  "Nexus3 model declares 257 transitions; the elaboration bound is 256"
+/-- Declare a model with `count` identical transition rows, so the elaboration bound is reachable
+without writing the rows out. The bound is checked before duplicate rows are, so identical rows
+reach it. -/
+local macro "boundedTransitionModel" modelName:ident count:num : command => do
+  let rows ← (List.replicate count.getNat ()).toArray.mapM fun _ =>
+    `(nexus3Transition| step: scheduled + awaitStart →
+        { state := started, outcome := acknowledged, facts := [started] })
+  `(command| model $modelName
+      role operation
+      states State
+      actions Action
+      outcomes Outcome
+      facts Fact
+      initial [scheduled]
+      terminal [succeeded]
+      transitions $rows*)
+
+/--
+error: Nexus3 model declares 257 transitions; the elaboration bound is 256
+-/
+#guard_msgs (error) in
+boundedTransitionModel overBoundLifecycle 257
 
 #print axioms Temporal.Feature.Nexus3.Authoring.successModel
 #print axioms Temporal.Feature.Nexus3.Authoring.check
