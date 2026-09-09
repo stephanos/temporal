@@ -98,6 +98,7 @@ func TestEvaluatorEventCountHorizon(t *testing.T) {
 		want       testpilotspb.VerdictStatus
 		stop       int64
 		status     testpilotspb.RunStatus
+		wantEvents int64
 	}{
 		{
 			name: "expires after exactly the declared count", ruleEvents: 3,
@@ -123,6 +124,7 @@ func TestEvaluatorEventCountHorizon(t *testing.T) {
 			name: "incompleteness suppresses expiry", ruleEvents: 2,
 			events: []*testpilotspb.RunEvent{diagnostic(2, 10), diagnostic(3, 20)}, incomplete: 2,
 			want: testpilotspb.VERDICT_STATUS_INCONCLUSIVE, status: testpilotspb.RUN_STATUS_INCOMPLETE,
+			wantEvents: 1,
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -158,6 +160,9 @@ func TestEvaluatorEventCountHorizon(t *testing.T) {
 				}
 			}
 			require.Equal(t, tc.stop, firstStop)
+			// The counter is rule-local state the verdict cannot always expose: a terminal rule
+			// that kept ticking, or a frozen one that kept ticking, would still verdict the same.
+			require.Equal(t, tc.wantEvents, online.rules[0].events)
 			live, err := online.Close(context.Background(), run)
 			require.NoError(t, err)
 			require.Equal(t, tc.want, live.Status)
