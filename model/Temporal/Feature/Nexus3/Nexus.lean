@@ -6,9 +6,10 @@ import Temporal.Feature.Nexus3.Cancellation
 
 This executable slice models only `scheduled → started → succeeded`. `awaitStart` and
 `awaitSuccess` wait for recorded Temporal outcomes; they do not manufacture those outcomes.
-Cancellation remains an unsupported design sketch in `Nexus.md`. Operation-scoped progress is a
-delivered generic capability, but this slice declares no scoped Property and the Producer in
-`Testpilot.lean` rejects one.
+Cancellation remains an unsupported design sketch in `Nexus.md`; the imported `Cancellation` module
+is the historical already-started Target described in `Integration.md`, not this slice's.
+Operation-scoped progress is a delivered generic capability, but this slice declares no scoped
+Property and the Producer in `Testpilot.lean` rejects one.
 
 Read from top to bottom: vocabulary → allowed behavior → requirement → scenario → question.
 The five blocks are the intentionally small Nexus3 success authoring surface. Their elaborator
