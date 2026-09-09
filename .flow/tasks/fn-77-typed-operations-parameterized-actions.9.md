@@ -45,31 +45,72 @@ Create and wire the proposed test module Temporal.Feature.Nexus3.Tests.TypedUnar
 - [ ] New named real unary test and baseline Nexus3 live success/rejection tests produce explicit run/pass/no-skip receipts with immutable Case/Run identity.
 
 ## Done summary
-Blocked:
-DESIGN_CONFLICT escalated from an implementation attempt on 2026-09-09.
+The generated `StartWorkflowExecution` declaration now reaches a checked finite parameterized
+Action and a real admitted Case, and the submitted nested `workflow_type.name` is independently
+required to equal the workflow type the `WorkflowExecutionStarted` event records — read through the
+generated `GetWorkflowExecutionHistory` response schema, so the requirement relates two generated
+operations rather than asserting a fictitious Start response field.
 
-The identity encoding delivered by tasks .1/.4/.5 renders every model payload key as the exact
-encoded bytes of the complete generated `RpcSchema` — 27,718,530 characters for
-`StartWorkflowExecution` at ~6.6 s per call — so no qualification of a generated Temporal operation
-can be evaluated in feasible time. `ParameterDomain.check` with two real samples took 43 s, and
-`checkTarget` feeds a ~55 MB canonical to a pure-Lean SHA-256 running at ~4 s/MB.
+`model/Temporal/Feature/Nexus3/TypedUnary.lean` holds the whole authored example.
+`Temporal.API.bindUnary` admits the generated declaration against the generator's own selection;
+`ActionTemplate` carries that binding, and `ParameterDomain.check` admits exactly two request
+samples that differ only in the submitted workflow type, under a `.sampled` coverage claim and a
+separately declared `.schema` runtime scope whose semantic bounds are tighter than the checker's own
+resource ceilings. `ParameterDomain.checkTarget` builds the authoritative Target over those
+`ActionInstance`s, pairing each admitted request with the started evidence its own execution
+records, and the Property's field operands are `PropertyFieldProjection`s built by real cursor walks
+(nested message, optional presence, repeated index, oneof selection) over real admitted payloads —
+never coordinates declared beside the values. No method string or schema is copied anywhere: even
+the Program's gRPC transport path is derived from the admitted `RpcSchema.fullName`.
 
-Blocked on fn-77-typed-operations-parameterized-actions.12, which bounds the identity encoding.
-Resume once .12 is done. Nothing was committed by the blocked attempt; the tree was returned to
-its inherited state.
+`Umpire.Case.Coverage` binds the modeled `workflow_type.name` to the exact request assignment that
+constructs it, so a Case whose Program does not construct the covered field rejects before any
+Driver I/O. `Temporal.Feature.Nexus3.Tests.TypedUnary` (wired into `TemporalModelTests`) drives the
+distinctions the acceptance names: wrong-method / forged-closure / streaming binding rejections; the
+correlated pairing satisfying the clause while the crossed pairing violates it and missing evidence
+is rejected rather than satisfied; five coverage mutations each rejecting with their exact reason;
+and a byte/optional fidelity fixture independent of the live call — equal-length byte strings stay
+distinguished, a keyed map lookup reaches its exact bytes, an absent key is absent rather than an
+empty default, and presence follows the descriptor.
 
-Runtime design settled during the attempt and still usable on resume: a scoped capability cannot
-run on the real Driver (`bindScoped` demands an exact `ScopedEvidence` Observation and
-`NewWorkflowServiceCatalog` has no testpilot descriptors), so the live Case must use a `.monitor`
-rule like async-nexus, with `Umpire.Case.Coverage.Request.inputs` binding the modeled nested
-request field to the exact request assignment. A controller-only Program needs only
-`Capability.InvokeRPC` and one ENDPOINT role with the two WorkflowService methods; no worker is
-required because `WorkflowExecutionStarted` is written at start.
+`TestTestpilotTypedUnaryCase` runs the Case twice on the real shared Driver through the public
+`Prepare`/`Run` facade, reads the supporting Observation back out of the Run to confirm it is the
+started event the clause compared, and checks the Case bytes and the two Run identities are
+unchanged. The baseline Nexus3 live success and rejection tests are preserved and pass in the same
+receipt.
 
-Designs ruled out before escalating: Target over `ActionInstance` via `ParameterDomain.checkTarget`;
-Target over plain `ModelValue`s; one `.fixed` sample; dropping `schemaInputs` (still 5,914,132
-chars); `native_decide` in place of `#guard`.
+### Design correction to the resumed plan
+
+The resume notes said a controller-only Program needed only `Capability.InvokeRPC` and one ENDPOINT
+role because `WorkflowExecutionStarted` is written at start. That is true of the history, but the
+shared worker Driver refuses it: `validateRPCBindings` admits a `StartWorkflowExecution` only when
+the instruction reserves a workflow entrypoint and binds its namespace and task queue symbolically.
+Rather than branch the generic runtime for this model, the Program declares the same worker and
+task-queue roles the existing Nexus3 Case does, and a workflow entrypoint carrying the submitted
+workflow type that does nothing but finish.
+
+The performance wall task .12 removed is gone: `checked` — the generated binding, the finite domain,
+the Target and the checked Property over two real generated schemas — admits in well under a second,
+and `ParameterDomain.checkTarget` (ruled out during the blocked attempt only because
+`domain.canonical` was 83 MB) is now the natural design and is what this task uses.
+
+### Follow-up, not built here
+
+The review raised one non-blocking P3: the runtime rule has only `pending` and `satisfied`, so a
+started event recording a different workflow type leaves the rule inconclusive rather than violated,
+where the model Property distinguishes the two. Adding a `violated` state plus a tampered-fixture
+live assertion is a real R6 improvement and belongs to task .10 or .11, which own the combined
+online/offline agreement evidence; it is outside this task's acceptance.
+
+Concurrent local edits this run swept in that this task did not author: the parallel session's
+`fn-82` spec and its ten task files, `.plans/GOMAD_MILESTONES.md`, `.plans/UMPIRE4_ORDER.md`,
+`.plans/index.json`, `AGENTS.md`, `.flow/config.json`, `.flow/memory/declined/`, and various
+`.flow/specs/*.json` receipts were all included by the catch-all staging.
+
+stage: impl-review - ran [round 1 SHIP (claude/claude-fable-5-1, high)]; two P3 findings, the
+positional-definition-list one fixed in acb89464, the runtime violated-state one recorded above as a
+follow-up
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 37172d4369bcd6e15c016b6f424a3d2cb9802f43, acb89464066c917b4d61be3e2c9517fbad6158cb
+- Tests: baseline: green (cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests Umpire.Case.CompilerTests; go test -tags test_dep ./tests/testcore/testpilot ./common/testing/testpilot; live TestTestpilotAsyncNexusCase + TestTestpilotAsyncNexusCaseMissingRemoteEndpoint), cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests Umpire.Case.CompilerTests Temporal.Feature.Nexus3.Tests.TypedUnary, go test -count=1 -tags test_dep ./tests/testcore/testpilot ./common/testing/testpilot, go test -json -count=1 -tags 'test_dep integration' ./tests -run '^(TestTestpilotTypedUnaryCase|TestTestpilotAsyncNexusCase|TestTestpilotAsyncNexusCaseMissingRemoteEndpoint)$' (run+pass, no skip/fail for all three), go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance, mise exec -- make umpire-gen-case-runtime-conformance, mise exec -- make umpire-check-case-runtime-conformance, mise exec -- make umpire-check-testpilot-authoring umpire-check-retired-vocabulary, mise exec -- make umpire-build-model, mise exec -- make lint-model (169 Temporal.Lint + 2 Umpire.Lint findings, all in generated Temporal/API/{Types,Proto}.lean and the two recorded Umpire declarations == confirmed inherited baseline; zero findings in the new modules), go vet -tags 'test_dep integration' ./tests ./tests/testcore/testpilot ./tools/umpire/cmd/umpire-gen-case-runtime-conformance, GATE_SKIPPED:lint-code:disk - make lint-code runs go vet ./... over the whole repo; 4.8 GiB free is below what that build needs and the prior attempt on this task exhausted the disk. Substituted a bounded go vet over the three touched Go packages (green).
 - PRs:
