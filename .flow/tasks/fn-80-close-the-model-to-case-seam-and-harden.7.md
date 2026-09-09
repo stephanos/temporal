@@ -38,9 +38,17 @@ Implements R5 (spec §R5). Adds `temporal.DeriveProfile` in the composite Driver
 - [ ] READMEs for the composite Driver and the fixture package describe `DeriveProfile` and `RunCase` and state that MOD-12's `Prepare` then `Run` sequence is unchanged
 
 ## Done summary
-TBD
+`temporal.DeriveProfile` reads one Case and returns the minimal `ProfileSpec` it implies; the three hand-written fixture Profiles are the derivation oracles and are compared field for field. `bindCase` and `runCase` replace the hand-written Profile and the manual provision-prepare sequence in every live Testpilot test.
 
+Deviations and notes:
+- **Placement.** The task named `tests/testcore/testpilot/run_case.go` with exported `BindCase`/`RunCase`. They are instead unexported `bindCase`/`runCase` in `tests/testpilot_run_case_test.go`, because they need `newTestpilotLiveCase` and `testcore.TestEnv`, which live under `tests/`. Putting them in `tests/testcore/testpilot` would have made `go test -tags test_dep ./tests/testcore/testpilot/...` — a Quick command — compile the entire server. The derivation oracle test is where the task put it.
+- **Carrier ceilings.** `MaximumCount` is the largest single reserving node's count for a context, not the sum across nodes: `execution/carrier.go` checks the shape per node and `execution/prepare.go` sums shapes against `MaxActivations`, so summing would both over-authorize and risk tripping that ceiling. The spec's "number of reserving nodes per entrypoint context" wording is looser than the check it has to satisfy.
+- **`Environment` is a fixed three-resource shape.** A future Case with two endpoint roles both carrying resource bindings would map both to `NexusEndpoint`; no current Case does, and task .8's fault Case should keep that in mind if it adds a second endpoint role.
+- The live suite itself was not run: it needs a cluster this session has no disk room to stand up. `go vet -tags 'test_dep integration' ./tests/` compiles all four migrated tests.
+
+stage: impl-review - ran (claude backend, model claude-fable-5-1 at high) - NEEDS_WORK on a broken migrated typed-unary assertion and a carrier ceiling that summed across nodes; SHIP on round two, whose visibility P3 was also fixed
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 03a4b7acaad893b9ccb19a139c0647e48d5a6815, ca31554e902fec40e07ce8b7613d6251060ffbf7, 7a97db2aae225e1fa9ebc644f6ca26773883f59b
+- Tests: CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/..., CGO_ENABLED=0 go test -tags test_dep ./tests/testcore/testpilot/..., CGO_ENABLED=0 go vet -tags 'test_dep integration' ./tests/ (the live tests compile; the cluster suite itself was not run), go list -deps go.temporal.io/server/common/testing/testpilot/temporal excludes tests/testcore, GATE_SKIPPED:live-tests:disk - go test -tags 'test_dep integration' ./tests needs a live cluster this session has no room to stand up
 - PRs:
