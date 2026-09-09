@@ -3,10 +3,10 @@ import Temporal.Feature.Nexus3.Nexus
 /-!
 # A second lifecycle through the same five commands
 
-This module authors a lifecycle that shares no member spelling, no arity and no role name with the
-Nexus3 success slice: five states, four Actions, four Model Outcomes, three Facts, four transitions,
-two terminal states, a losing row that records no Fact, a two-clause Property, and a
-three-occurrence Behavior over a four-Action model. It exists to prove the command surface
+This module authors a lifecycle that shares no state, Action or Fact spelling, no arity and no role
+name with the Nexus3 success slice: five states, four Actions, four Model Outcomes, three Facts,
+four transitions, two terminal states, a losing row that records no Fact, a two-clause Property,
+and a three-occurrence Behavior over a four-Action model. It exists to prove the command surface
 elaborates whatever the declaring inductives declare rather than one widened spelling list.
 -/
 
