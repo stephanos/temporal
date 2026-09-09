@@ -113,18 +113,11 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 // when every other worker use is absent; the worker Driver decides whether such a Program is
 // realizable at all. The cleanup graph runs in the controller context and may carry a fault too.
 func hasFaultInstruction(program testpilot.PreparedProgram) bool {
-	entrypoints := program.Entrypoints()
+	plans := program.Entrypoints()
 	if cleanup, ok := program.Cleanup(); ok {
-		entrypoints = append(entrypoints, cleanup)
+		plans = append(plans, cleanup)
 	}
-	for _, entrypoint := range entrypoints {
-		for _, instruction := range entrypoint.Instructions() {
-			if instruction.Source().GetInstruction().GetInjectFault() != nil {
-				return true
-			}
-		}
-	}
-	return false
+	return workerhost.DeclaresFault(plans)
 }
 
 func hasWorkerEntrypoint(program testpilot.PreparedProgram) bool {

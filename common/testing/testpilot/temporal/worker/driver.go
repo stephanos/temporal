@@ -140,12 +140,14 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 	// A fault needs a worker to stop, so a Program that requests one is only realizable when it
 	// also brings a worker. Validate applies the same rule Open does rather than admitting a
 	// Program that could only fail at dispatch.
-	requireWorker := hasWorkerEntrypoint(plans) || plansDeclareFault(plans)
+	requireWorker := hasWorkerEntrypoint(plans) || DeclaresFault(plans)
 	_, err := h.prepareDefinitionResources(program.Snapshot(), plans, program.Roles(), requireWorker)
 	return err
 }
 
-func plansDeclareFault(plans []testpilot.EntrypointPlan) bool {
+// DeclaresFault reports whether any plan requests a deliberate outage. The composite Driver uses
+// it to decide that a Program needs a worker Session at all, so both Drivers read one predicate.
+func DeclaresFault(plans []testpilot.EntrypointPlan) bool {
 	for _, plan := range plans {
 		for _, instruction := range plan.Instructions() {
 			if instruction.Source().GetInstruction().GetInjectFault() != nil {

@@ -235,12 +235,15 @@ func TestSessionInjectFaultReportsUnrealizedTransitions(t *testing.T) {
 	session.workers = lease
 	at := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "stop", Attempt: 1}
 
-	// A resume with no prior stop is an invariant failure, not a rejected dispatch.
+	// A resume with no prior stop is an invariant failure, not a rejected dispatch. The Run
+	// carries the reason on the outcome; the Driver's own sink also hears about it.
 	handle, err := session.InjectFault(t.Context(), at, "queue", testpilotspb.FAULT_KIND_WORKER_RESUME)
 	require.NoError(t, err)
 	result, err := handle.Wait(t.Context())
 	require.NoError(t, err)
 	require.Equal(t, testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS, result.Outcome.GetStatus())
+	require.Equal(t, "fault_not_realized", result.Outcome.GetProtocolCode())
+	require.NotEmpty(t, result.Outcome.GetDetail())
 	require.Len(t, diagnostics, 1)
 	require.Equal(t, testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT, diagnostics[0].GetKind())
 	require.Equal(t, "fault_not_realized", diagnostics[0].GetCode())
@@ -466,4 +469,36 @@ func TestFaultValidationAgreesWithOpen(t *testing.T) {
 	require.ErrorIs(t, host.Validate(t.Context(), workerless), ErrInvalid)
 	_, err = host.prepareDefinition(workerless)
 	require.ErrorIs(t, err, ErrInvalid)
+}
+
+// The blocking part of a fault runs in Wait, not on the dispatch path: an SDK stop that outlives
+// the instruction bound has to reach the scheduler as a deadline, which it maps to a timed-out
+// instruction, rather than as a failed dispatch that would mark the whole Run incomplete.
+func TestSessionInjectFaultDefersBlockingWorkToWait(t *testing.T) {
+	prepared := preparedSymbolicRuntimeFixture(t)
+	host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
+	release := make(chan struct{})
+	t.Cleanup(func() { close(release) })
+	host.registry = newWorkerRegistry(4, func(string, string, queueRegistration) (managedWorker, error) {
+		return &blockingManagedWorker{release: release}, nil
+	})
+	definition, err := host.prepareDefinition(prepared)
+	require.NoError(t, err)
+	definition.faultQueues = map[string]string{"queue": "task-queue"}
+	definition.hasFault = true
+	session, err := newSession(host, "run", "session-run", definition, SessionOptions{Bridge: newTestBridge()})
+	require.NoError(t, err)
+	lease, err := host.registry.acquire(t.Context(), "run", definition.registrations, true, nil)
+	require.NoError(t, err)
+	session.workers = lease
+
+	at := testpilot.Coordinate{RunID: "run", EntrypointID: "controller", ActivationID: "controller-1", InstructionID: "stop", Attempt: 1}
+	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
+	defer cancel()
+	// The dispatch itself succeeds even though the stop will outlive the bound.
+	handle, err := session.InjectFault(ctx, at, "queue", testpilotspb.FAULT_KIND_WORKER_STOP)
+	require.NoError(t, err)
+	require.True(t, host.registry.groups[groupKey("run", "task-queue", true)].stopped)
+	_, err = handle.Wait(ctx)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
 }
