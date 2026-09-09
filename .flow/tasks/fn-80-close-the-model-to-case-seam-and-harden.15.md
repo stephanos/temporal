@@ -28,9 +28,25 @@ Coordinate with the ordered-list task above if both are in flight — both touch
 - [ ] `make lint-model` adds nothing to the 169 baseline.
 
 ## Done summary
-TBD
+Replaced the Nexus3 Producer's clause-for-clause equality gate with lowering driven by the checked
+model: `produceCompletionCase` now carries the checked Target, Property, Behavior, Query and
+witness into the Case instead of comparing each against one expected value, and the
+correlated-history monitor rule is derived from the Facts the selected witness records through
+per-Fact Nexus history evidence projections the Producer declares. `sameTarget`, `sameQuery`,
+`supportsSuccessProperty` and the hand-written `successRule` are gone.
 
+The derived rule reproduces the deleted hand-written rule byte-for-byte for the shipped model, so
+`make umpire-check-case-runtime-conformance` passes with no fixture regeneration and the live
+async-nexus Case behaviour is provably unchanged.
+
+Preserved rejections: a scoped clause, an absent witness, a Fact with no declared Nexus history
+evidence, and a clause no witness step carries all reject as `LoweringError` naming the subject.
+
+stage: impl-review - ran | verdict SHIP (model: claude-fable-5-1 at high); three P3 findings, two
+addressed in a follow-up commit (Property-axis and one-Fact-chain guards, docstring wording), the
+third accepted and documented in the code.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 331373dd2, faf868d27
+- Tests: cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make lint-model (169 errors, all generated Temporal/API; unchanged from baseline), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., GATE_SKIPPED:live-integration:go test -tags 'test_dep integration' ./tests -run TestTestpilot needs a live cluster; the generated Case bytes are unchanged (conformance gate diffs both trees), so live behaviour is unchanged by construction
 - PRs:
