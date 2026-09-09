@@ -346,12 +346,24 @@ func (a *admission) bindEvidenceLift(g *graph, n *node, source *testpilotspb.Sco
 	if len(source.GetRules()) == 0 {
 		return nil, invalid(ir.Malformed, nodePath(g, n), "evidence lift requires at least one rule")
 	}
+	// A source ordinal is dense per Run and only the emitting instruction counts it, so one source
+	// belongs to one instruction on an entrypoint that activates exactly once. A worker entrypoint
+	// activates per task and a second instruction would restart the count, and either would be
+	// rejected by the verifier's ordering rather than here.
+	if g.context != testpilotspb.ENTRYPOINT_KIND_CONTROLLER {
+		return nil, invalid(ir.Unsupported, nodePath(g, n), "evidence lift requires a controller entrypoint")
+	}
 	lift := &evidenceLift{observationID: source.GetObservationId(), element: typ}
+	owner := Coordinate{EntrypointID: g.id, InstructionID: n.source.InstructionId}
 	for _, rule := range source.GetRules() {
 		bound, err := a.bindEvidenceRule(g, n, rule, typ)
 		if err != nil {
 			return nil, err
 		}
+		if claimed, exists := a.evidenceSources[bound.source]; exists && claimed != owner {
+			return nil, invalid(ir.Malformed, nodePath(g, n), "evidence source is already lifted by another instruction")
+		}
+		a.evidenceSources[bound.source] = owner
 		lift.rules = append(lift.rules, *bound)
 	}
 	return lift, nil
@@ -364,8 +376,11 @@ func (a *admission) bindEvidenceRule(g *graph, n *node, source *testpilotspb.Sco
 	if err != nil {
 		return nil, err
 	}
-	if guard.Fanout() {
-		return nil, invalid(ir.Unsupported, nodePath(g, n), "evidence guard cannot fan out")
+	// A presence read answers false where the field is absent, so it resolves either way and could
+	// never select a rule.
+	steps := guard.Steps()
+	if guard.Fanout() || len(steps) == 0 || steps[len(steps)-1].Selector == ir.Presence {
+		return nil, invalid(ir.Unsupported, nodePath(g, n), "evidence guard must select a value that can be absent")
 	}
 	if source.GetGuardEqualsText() != "" && (guard.Type().Cardinality() != ir.Singular || guard.Type().Scalar() != testpilotspb.SCALAR_KIND_TEXT) {
 		return nil, invalid(ir.TypeMismatch, nodePath(g, n), "evidence guard equality requires a text guard")
