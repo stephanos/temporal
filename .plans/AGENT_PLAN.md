@@ -2,9 +2,10 @@
 
 **Plan date:** 2026-08-23
 
-**Status:** first production slice implemented; extended qualification remains
+**Status:** historical. fn-81 removed `tools/agentworkflow`, so the implementation baseline below
+no longer exists and nothing in this plan is buildable as written.
 
-**Implementation baseline:** `tools/agentworkflow`
+**Implementation baseline:** `tools/agentworkflow` (removed)
 
 ### Implemented on 2026-08-23
 

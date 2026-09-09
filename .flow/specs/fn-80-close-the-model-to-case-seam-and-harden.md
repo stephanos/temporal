@@ -244,8 +244,10 @@ def FaultIntentDeclaration.lower : FaultIntentDeclaration → Except LoweringErr
   Verdict is unaffected (QLF-05).
 - `DeriveProfile` never widens beyond what the Case references. A Case with no worker roles yields
   no worker policy and no reservation carriers.
-- Regenerated fixtures compare byte-for-byte under the conformance gate. The live-test
-  expected-failure list must not gain entries.
+- Regenerated fixtures compare byte-for-byte under the conformance gate. `make
+  umpire-check-live-tests` must still pass; fn-81 retired its pinned expected-failure list, so the
+  gate now requires an empty failure set across the `^TestTestpilot` selector rather than an
+  unchanged list.
 
 ## Quick commands
 

@@ -8,6 +8,8 @@ This proposal is superseded as an Umpire4 roadmap gate. Retain it as historical 
 
 The current roadmap instead deepens `Umpire.Target`, introduces checked `Umpire.Refinement`, completes the executable artifact boundary, and separates pure Exploration from the downstream campaign. All downstream dependencies on this pilot are removed. Flow cannot close a spec whose tasks were never completed, so this tombstone remains explicitly unready until the tracker supports superseded/canceled closure.
 
+fn-81 deleted `tools/agentworkflow`, so every Agentworkflow path this proposal names — the trials, the `agentworkflow export` boundary, and the Touches lists on its tasks — points at files that no longer exist. That closes the last route by which this tombstone could be revived as written: reviving it would need a new engine, not a re-read of this document.
+
 ## Overview
 
 Freeze and execute the pre-live Milestone A proof protocol before downstream runtime or qualification work. The pilot records eight source-backed historical Nexus defects, twelve semantic mutations across five closed families, current hand-authored coverage and cost baselines, and exactly three independent Agentworkflow authoring trials. A strict, recomputable receipt produces one of four outcomes: `LEAN_FIRST_GO`, `FACADE_FOLLOW_UP`, `NO_GO`, or `INCONCLUSIVE`.
