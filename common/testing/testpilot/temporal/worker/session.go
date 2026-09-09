@@ -135,7 +135,12 @@ type faultEffect struct {
 	work   func(context.Context) error
 	result testpilot.EffectResult
 	once   sync.Once
+	done   chan struct{}
 	err    error
+}
+
+func newFaultEffect(work func(context.Context) error, result testpilot.EffectResult) *faultEffect {
+	return &faultEffect{work: work, result: result, done: make(chan struct{})}
 }
 
 func (e *faultEffect) Wait(ctx context.Context) (testpilot.EffectResult, error) {
@@ -148,7 +153,10 @@ func (e *faultEffect) Wait(ctx context.Context) (testpilot.EffectResult, error) 
 		}
 		return e.result, nil
 	}
-	e.once.Do(func() { e.err = e.work(ctx) })
+	e.once.Do(func() {
+		e.err = e.work(ctx)
+		close(e.done)
+	})
 	if e.err == nil {
 		return e.result, nil
 	}
@@ -159,8 +167,35 @@ func (e *faultEffect) Wait(ctx context.Context) (testpilot.EffectResult, error) 
 	}
 	return testpilot.EffectResult{Outcome: unrealizedFault(e.err)}, nil
 }
-func (*faultEffect) Cancel(context.Context) error { return nil }
-func (*faultEffect) Drain(context.Context) error  { return nil }
+
+// Cancel does not interrupt a transition that is already under way: the group's recorded state
+// has already flipped, and release is what puts a stopped worker back.
+func (e *faultEffect) Cancel(ctx context.Context) error {
+	if ctx == nil {
+		return ErrInvalid
+	}
+	return ctx.Err()
+}
+
+// Drain waits for the transition to settle so the scheduler never treats an in-flight stop or
+// resume as finished.
+func (e *faultEffect) Drain(ctx context.Context) error {
+	if ctx == nil {
+		return ErrInvalid
+	}
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if e.work == nil {
+		return nil
+	}
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-e.done:
+		return nil
+	}
+}
 
 func unrealizedFault(cause error) *testpilotspb.InstructionOutcome {
 	return &testpilotspb.InstructionOutcome{
@@ -204,14 +239,14 @@ func (s *Session) InjectFault(ctx context.Context, at testpilot.Coordinate, role
 	}
 	work, err := workers.beginTransition(ctx, queue, stop)
 	if err == nil {
-		return &faultEffect{work: work, result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
+		return newFaultEffect(work, testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}), nil
 	}
 	// A queue this lease does not hold is a rejected dispatch, never a recorded outage.
 	if errors.Is(err, ErrInvalid) || errors.Is(err, ErrUnsupportedOperation) || ctx.Err() != nil {
 		return nil, err
 	}
 	s.diagnoseFault(ctx, kind, queue, err)
-	return &faultEffect{result: testpilot.EffectResult{Outcome: unrealizedFault(err)}}, nil
+	return newFaultEffect(nil, testpilot.EffectResult{Outcome: unrealizedFault(err)}), nil
 }
 
 // diagnoseFault notifies the Driver's own diagnostic sink. It is best effort and runs on a context

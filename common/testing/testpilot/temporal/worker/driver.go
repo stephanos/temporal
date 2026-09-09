@@ -133,16 +133,24 @@ func (h *Driver) Validate(ctx context.Context, program testpilot.PreparedProgram
 	if err := ctx.Err(); err != nil {
 		return err
 	}
-	plans := program.Entrypoints()
-	if cleanup, ok := program.Cleanup(); ok {
-		plans = append(plans, cleanup)
-	}
+	plans := ProgramPlans(program)
 	// A fault needs a worker to stop, so a Program that requests one is only realizable when it
 	// also brings a worker. Validate applies the same rule Open does rather than admitting a
 	// Program that could only fail at dispatch.
 	requireWorker := hasWorkerEntrypoint(plans) || DeclaresFault(plans)
 	_, err := h.prepareDefinitionResources(program.Snapshot(), plans, program.Roles(), requireWorker)
 	return err
+}
+
+// ProgramPlans is every plan the worker Driver binds. The cleanup graph runs in the controller
+// context and may carry instructions of its own, so Validate, Open and the composite Driver all
+// read the same list rather than each assembling it.
+func ProgramPlans(program testpilot.PreparedProgram) []testpilot.EntrypointPlan {
+	plans := program.Entrypoints()
+	if cleanup, ok := program.Cleanup(); ok {
+		plans = append(plans, cleanup)
+	}
+	return plans
 }
 
 // DeclaresFault reports whether any plan requests a deliberate outage. The composite Driver uses
@@ -237,14 +245,8 @@ func (h *Driver) Close(ctx context.Context) error {
 	return nil
 }
 
-// The cleanup graph runs in the controller context and may carry a fault of its own, so it is
-// bound here too; Validate and Open would otherwise disagree about which queues a fault names.
 func (h *Driver) prepareDefinition(program testpilot.PreparedProgram) (programDefinition, error) {
-	plans := program.Entrypoints()
-	if cleanup, ok := program.Cleanup(); ok {
-		plans = append(plans, cleanup)
-	}
-	return h.prepareDefinitionResources(program.Snapshot(), plans, program.Roles(), true)
+	return h.prepareDefinitionResources(program.Snapshot(), ProgramPlans(program), program.Roles(), true)
 }
 
 func (h *Driver) prepareDefinitionPlans(snapshot *testpilotspb.Program, plans []testpilot.EntrypointPlan) (programDefinition, error) {
