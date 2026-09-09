@@ -45,13 +45,14 @@ The grammar accepts one or more initial states and terminal states, up to 256 tr
 number of Facts per row, one or more `require` clauses, one or more Behavior occurrences, and any
 limits — a zero limit is rejected when the Query is checked, not when the block elaborates. A model
 also needs a one-constructor `Setup` inductive in scope by name; the grammar does not spell it. The
-Action constructors must be declared in the order their spellings sort, because the planner admits
-only a canonically ordered Action catalog; the other domains carry no such requirement.
+Action constructors and a multi-state `initial` list must be declared in the order their spellings
+sort, because the planner admits only a canonically ordered Action catalog and initial-state list;
+the state, Model Outcome and Fact domains carry no such requirement.
 `RaceSyntaxTests.lean` declares a second lifecycle through the same five blocks with a different
 role name, a losing row that records no Fact, two terminal states, and a two-clause Property.
 
 A constructor that takes arguments, an identifier naming no constructor, an unsorted Action
-catalog, a duplicate `before + action` pair, a terminal state unreachable from every initial state,
+catalog or `initial` list, a duplicate `before + action` pair, a terminal state unreachable from every initial state,
 a table over the bound, and a missing or multi-constructor `Setup` are each reported at the
 offending source coordinates.
 

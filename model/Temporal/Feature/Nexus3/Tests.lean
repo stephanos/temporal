@@ -620,6 +620,22 @@ query unsupportedQuery on lifecycle
   in successfulCompletion
   limits shortTrace
 
+/--
+error: Nexus3 initial states must be declared in sorted order, because the planner admits only a canonically ordered initial-state list; 'succeeded' precedes 'scheduled'
+-/
+#guard_msgs (error) in
+model unsortedInitialLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  initial [succeeded, scheduled]
+  terminal [succeeded]
+  transitions
+    start: scheduled + awaitStart →
+      { state := started, outcome := acknowledged, facts := [started] }
+
 inductive UnsortedAction where
   | resolve
   | cancel
