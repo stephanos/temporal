@@ -305,14 +305,28 @@ example (predicate : CheckedFieldPredicate owner (Request := Unit) (Response := 
   | _ => false)
 #guard (PropertyFieldComparison.check .equal (.literal (.integer .int32 1) source)
   (.literal (.integer .int64 1) { source with line := 82, column := 9 }) source).toOption.isNone
-example (operator : PropertyFieldOperator) (left right : PropertyFieldOperand) (at : SourceLocation) :
-    (field_compare% left with operator right at at) =
-      PropertyPredicate.compareFields operator left right at := rfl
+example (operator : PropertyFieldOperator) (left right : PropertyFieldOperand)
+    (location : SourceLocation) :
+    (field_compare% left with operator right at location) =
+      PropertyPredicate.compareFields operator left right location := rfl
 private def identityComparison : PropertyFieldComparison :=
   ⟨.equal, .field requestPath source, .field priorPath source, source⟩
 #guard identityComparison.canonical == { identityComparison with source := { source with line := 100 } }.canonical
 #guard identityComparison.canonical != { identityComparison with operator := .notEqual }.canonical
 #guard identityComparison.canonical != { identityComparison with
   right := .field { priorPath with steps := [.field "M" 2, .establish], type := .bytes } source }.canonical
+
+/-- info: 'Umpire.PropertyFieldOperator.matches_agrees' depends on axioms: [propext] -/
+#guard_msgs in
+#print axioms Umpire.PropertyFieldOperator.matches_agrees
+/-- info: 'Umpire.CheckedPropertyPredicateInput.operandValue_denotes' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms Umpire.CheckedPropertyPredicateInput.operandValue_denotes
+/-- info: 'Umpire.evaluatePropertyPredicate_agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms Umpire.evaluatePropertyPredicate_agrees
+/-- info: 'Umpire.evaluateProperty_agrees' depends on axioms: [propext, Classical.choice, Quot.sound] -/
+#guard_msgs in
+#print axioms Umpire.evaluateProperty_agrees
 
 end Umpire.PropertyFieldsTests
