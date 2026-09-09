@@ -5,8 +5,10 @@ import Umpire.Case.Compiler
 /-!
 # Nexus3 Testpilot producer
 
-This module validates the checked completion Query and witness before lowering the Nexus-specific
-Program, history correlation, and success monitor into generated values for Umpire Case assembly.
+This module carries the checked completion Query and its selected witness into generated values for
+Umpire Case assembly. The Nexus-specific Program is fixed realization; the history-correlation
+monitor is derived from the Facts the witness records, through the evidence projections this module
+declares. Checked values are never compared against an expected model.
 -/
 
 namespace Temporal.Feature.Nexus3.Testpilot
@@ -116,74 +118,126 @@ private def program : Program :=
       Program.environment taskQueueBinding,
       Program.environment nexusEndpointBinding])
 
-private def successRule (checkedProperty : CheckedProperty) : ContractRuleDefinition :=
-  Monitor.rule (checkedProperty.id.value ++ ".correlated-history")
-    .CONTRACT_RULE_KIND_SAFETY "pending"
-    #[
-      Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "scheduled-correlated" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "started-correlated" .CONTRACT_STATE_STATUS_NONTERMINAL,
-      Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED]
-    #[
-      Monitor.transition "capture-scheduled-event" "pending" "scheduled-correlated"
-        #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-        (ContractExpr.all #[
-          ContractExpr.present (observed "history-event"),
-          ContractExpr.present (projected (observed "history-event") (field "event_id")),
-          ContractExpr.present (projected (observed "history-event")
-            (historyAttribute "nexus_operation_scheduled_event_attributes" "request_id"))])
-        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
-        #[Monitor.captureAssignment "scheduled-event" "history-event"],
-      Monitor.transition "match-started-reference" "scheduled-correlated" "started-correlated"
-        #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-        (ContractExpr.all #[
-          ContractExpr.present (captured "scheduled-event"),
-          ContractExpr.present (projected (captured "scheduled-event") (field "event_id")),
-          ContractExpr.present (projected (observed "history-event")
-            (historyAttribute "nexus_operation_started_event_attributes" "scheduled_event_id")),
-          ContractExpr.equals
-            (projected (captured "scheduled-event") (field "event_id"))
-            (projected (observed "history-event")
-              (historyAttribute "nexus_operation_started_event_attributes" "scheduled_event_id"))])
-        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT,
-      Monitor.transition "match-completed-event" "started-correlated" "satisfied"
-        #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
-        (ContractExpr.all #[
-          ContractExpr.present (captured "scheduled-event"),
-          ContractExpr.present (projected (captured "scheduled-event") (field "event_id")),
-          ContractExpr.present (projected (captured "scheduled-event")
-            (historyAttribute "nexus_operation_scheduled_event_attributes" "request_id")),
-          ContractExpr.present (projected (observed "history-event")
-            (historyAttribute "nexus_operation_completed_event_attributes" "request_id")),
-          ContractExpr.present (projected (observed "history-event")
-            (historyAttribute "nexus_operation_completed_event_attributes" "scheduled_event_id")),
-          ContractExpr.equals
-            (projected (captured "scheduled-event")
-              (historyAttribute "nexus_operation_scheduled_event_attributes" "request_id"))
-            (projected (observed "history-event")
-              (historyAttribute "nexus_operation_completed_event_attributes" "request_id")),
-          ContractExpr.equals
-            (projected (captured "scheduled-event") (field "event_id"))
-            (projected (observed "history-event")
-              (historyAttribute "nexus_operation_completed_event_attributes"
-                "scheduled_event_id"))])
-        .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
-    (captures := #[Monitor.capture "scheduled-event"
+/-- One declared Nexus history projection that witnesses a modeled Fact. The Producer can lower a
+checked clause only over the Facts named here, so the declaration set is the Producer's evidence
+vocabulary rather than a spelling whitelist over the checked values. -/
+private structure FactEvidence where
+  factKey : String
+  transitionId : String
+  correlatedStateId : String
+  attributeGroup : String
+  /-- Correlation keys read as `(captured scheduled-event attribute, observed attribute)`. A `none`
+  captured attribute reads the captured event's own identifier. -/
+  correlations : List (Option String × String)
+
+private def historyObservation := "history-event"
+private def scheduledCapture := "scheduled-event"
+private def eventIdField := "event_id"
+private def pendingStateId := "pending"
+private def scheduledStateId := "scheduled-correlated"
+private def scheduledAttributes := "nexus_operation_scheduled_event_attributes"
+
+private def factEvidence : List FactEvidence := [
+  { factKey := "started"
+    transitionId := "match-started-reference"
+    correlatedStateId := "started-correlated"
+    attributeGroup := "nexus_operation_started_event_attributes"
+    correlations := [(none, "scheduled_event_id")] },
+  { factKey := "succeeded"
+    transitionId := "match-completed-event"
+    correlatedStateId := "satisfied"
+    attributeGroup := "nexus_operation_completed_event_attributes"
+    correlations := [(some "request_id", "request_id"), (none, "scheduled_event_id")] }
+]
+
+private def capturedSide (capturedKey : Option String) : ContractExpression :=
+  match capturedKey with
+  | none => projected (captured scheduledCapture) (field eventIdField)
+  | some name => projected (captured scheduledCapture) (historyAttribute scheduledAttributes name)
+
+private def observedSide (group name : String) : ContractExpression :=
+  projected (observed historyObservation) (historyAttribute group name)
+
+/-- Anchor the correlation on the scheduled event the Nexus operation recorded for this Run. -/
+private def anchorTransition : ContractTransitionDefinition :=
+  Monitor.transition "capture-scheduled-event" pendingStateId scheduledStateId
+    #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
+    (ContractExpr.all #[
+      ContractExpr.present (observed historyObservation),
+      ContractExpr.present (projected (observed historyObservation) (field eventIdField)),
+      ContractExpr.present (observedSide scheduledAttributes "request_id")])
+    .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
+    #[Monitor.captureAssignment scheduledCapture historyObservation]
+
+private def correlationTransition (source : String) (evidence : FactEvidence) :
+    ContractTransitionDefinition :=
+  let capturedPresence := evidence.correlations.filterMap fun correlation =>
+    correlation.1.map fun name => ContractExpr.present (capturedSide (some name))
+  let observedPresence := evidence.correlations.map fun correlation =>
+    ContractExpr.present (observedSide evidence.attributeGroup correlation.2)
+  let equalities := evidence.correlations.map fun correlation =>
+    ContractExpr.equals (capturedSide correlation.1)
+      (observedSide evidence.attributeGroup correlation.2)
+  Monitor.transition evidence.transitionId source evidence.correlatedStateId
+    #[.RUN_EVENT_KIND_INSTRUCTION_COMPLETED]
+    (ContractExpr.all ([
+        ContractExpr.present (captured scheduledCapture),
+        ContractExpr.present (capturedSide none)] ++
+      capturedPresence ++ observedPresence ++ equalities).toArray)
+    .CONTRACT_SUPPORT_KIND_MATCHING_EVENT
+
+private def correlationTransitions (source : String) :
+    List FactEvidence → List ContractTransitionDefinition
+  | [] => []
+  | evidence :: rest =>
+      correlationTransition source evidence ::
+        correlationTransitions evidence.correlatedStateId rest
+
+/-- The final correlated stage is the satisfied state; every earlier stage is still pending. -/
+private def correlatedStates : List FactEvidence → List ContractStateDefinition
+  | [] => []
+  | [evidence] => [Monitor.state evidence.correlatedStateId .CONTRACT_STATE_STATUS_SATISFIED]
+  | evidence :: rest =>
+      Monitor.state evidence.correlatedStateId .CONTRACT_STATE_STATUS_NONTERMINAL ::
+        correlatedStates rest
+
+/-- Build the correlated-history rule from the Facts the selected witness records, in trace order. -/
+private def correlatedRule (ruleId : String) (chain : List FactEvidence) :
+    ContractRuleDefinition :=
+  Monitor.rule ruleId .CONTRACT_RULE_KIND_SAFETY pendingStateId
+    (Monitor.state pendingStateId .CONTRACT_STATE_STATUS_NONTERMINAL ::
+      Monitor.state scheduledStateId .CONTRACT_STATE_STATUS_NONTERMINAL ::
+      correlatedStates chain).toArray
+    (anchorTransition :: correlationTransitions scheduledStateId chain).toArray
+    (captures := #[Monitor.capture scheduledCapture
       (Monitor.messageCapture "temporal.api.history.v1.HistoryEvent")])
 
-private def supportsSuccessProperty
-    (checkedProperty : CheckedProperty)
-    (values : Authoring.ModelVocabulary) : Bool :=
-  match checkedProperty.clauses with
-  | [.inputOutput _ selectedAction successFactPattern,
-      .transitionContract _ selectedAction' successOutcomePattern,
-      .transitionContract _ selectedAction'' successStatePattern] =>
-      selectedAction == PropertyPattern.selectedAction values.awaitSuccessAction &&
-      selectedAction' == PropertyPattern.selectedAction values.awaitSuccessAction &&
-      selectedAction'' == PropertyPattern.selectedAction values.awaitSuccessAction &&
-      successStatePattern == PropertyPattern.resultingState values.succeededState &&
-      successOutcomePattern == PropertyPattern.modelOutcome values.completedOutcome &&
-      successFactPattern == PropertyPattern.fact values.succeededFact
+private def matchesStep
+    (pattern : PropertyPattern)
+    (step : ModelTraceStep ModelValue ModelValue ModelValue ModelValue) : Bool :=
+  let matchesValue (value : ModelValue) : Bool :=
+    pattern.reference == value.definitionId &&
+      match pattern.constraint with
+      | .present => true
+      | .equals expected => expected == value.value
+      | _ => false
+  match pattern.field with
+  | .selectedAction => matchesValue step.selectedAction
+  | .modelOutcome => matchesValue step.modelOutcome
+  | .resultingState => matchesValue step.resultingState
+  | .observation => step.observations.any matchesValue
+  | _ => false
+
+/-- A clause is lowerable when the selected witness records a step that carries it, so the
+correlated rule built from that witness is evidence for the clause. -/
+private def clauseIsWitnessed
+    (steps : List (ModelTraceStep ModelValue ModelValue ModelValue ModelValue))
+    (clause : ResolvedPropertyClause) : Bool :=
+  match clause with
+  | .transitionContract _ trigger response
+  | .inputOutput _ trigger response =>
+      steps.any fun step => matchesStep trigger step && matchesStep response step
+  | .stateInvariant _ invariant => steps.any (matchesStep invariant)
   | _ => false
 
 private def loweringError (definitionId construct : String) : LoweringError := {
@@ -192,32 +246,13 @@ private def loweringError (definitionId construct : String) : LoweringError := {
   construct
 }
 
-private def sameTarget
-    (left : QueryTarget LawStatement)
-    (right : QueryTarget lifecycle.lawStatement) : Bool :=
-  left.id == right.id && left.source == right.source && left.definitions == right.definitions &&
-    left.requiredCapabilities == right.requiredCapabilities &&
-    left.behaviorDescription == right.behaviorDescription &&
-    left.canonicalMetadata == right.canonicalMetadata &&
-    left.behaviorFingerprint == right.behaviorFingerprint
-
-private def sameQuery
-    (left : CheckedQuery LawStatement)
-    (right : CheckedQuery lifecycle.lawStatement) : Bool :=
-  left.id == right.id && left.source == right.source && left.version == right.version &&
-    left.form == right.form && left.quantifier == right.quantifier && left.claim == right.claim &&
-    left.behavior == right.behavior && sameTarget left.target right.target &&
-    left.limits == right.limits && left.policy == right.policy &&
-    left.authoredKnownGaps == right.authoredKnownGaps &&
-    left.targetComposition == right.targetComposition && left.documentation == right.documentation &&
-    left.canonicalMetadata == right.canonicalMetadata &&
-    left.behaviorFingerprint == right.behaviorFingerprint
-
 private def checkedCompletion : Except LoweringError (Authoring.CheckedModel lifecycle) :=
   completion.mapError fun _ =>
     loweringError "temporal.nexus3.query.completion" "checked-completion"
 
-/-- Lower only the exact checked Nexus3 completion Query and its selected witness. -/
+/-- Lower a checked Nexus3 completion Query and its selected witness into a Case. The checked
+values are carried, never compared against an expected model: a different Target, Behavior, Query,
+or witness produces different Case bytes. Only a clause this Producer cannot witness rejects. -/
 def produceCompletionCase
     (target : QueryTarget LawStatement)
     (checkedProperty : CheckedProperty)
@@ -230,22 +265,18 @@ def produceCompletionCase
       sourceDefinitionId := clause.declaration.id.value
       source := clause.declaration.source
       construct := "property.scoped-eventually-within/v1" }
-  let expected ← checkedCompletion
-  unless sameTarget target expected.target do
-    throw (loweringError target.id.value "target")
-  unless checkedProperty == expected.property do
-    throw (loweringError checkedProperty.id.value "property")
-  unless supportsSuccessProperty checkedProperty expected.vocabulary do
-    throw (loweringError checkedProperty.id.value "property.success-evidence-mapping")
-  unless checkedBehavior == expected.behavior do
-    throw (loweringError checkedBehavior.id.value "behavior")
-  unless sameQuery checkedQuery expected.query do
-    throw (loweringError checkedQuery.id.value "query")
   let selectedWitness ← match witness? with
     | some selectedWitness => pure selectedWitness
     | none => throw (loweringError checkedQuery.id.value "witness.absent")
-  unless selectedWitness == expected.witness do
-    throw (loweringError checkedQuery.id.value "witness.mismatch")
+  let chain ← (selectedWitness.trace.steps.flatMap (·.observations)).mapM fun factValue =>
+    match factEvidence.find? (·.factKey == factValue.value) with
+    | some evidence => pure evidence
+    | none => throw (loweringError factValue.definitionId.value "witness.fact-evidence")
+  if chain.isEmpty then
+    throw (loweringError checkedQuery.id.value "witness.fact-evidence.absent")
+  for clause in checkedProperty.clauses do
+    unless clauseIsWitnessed selectedWitness.trace.steps clause do
+      throw (loweringError clause.id.value "property.clause-evidence")
   let propertyBinding := binding checkedProperty.id.value
     checkedProperty.behaviorFingerprint.render .«property»
   let definitions := [
@@ -264,7 +295,8 @@ def produceCompletionCase
     knownGaps := checkedQuery.authoredKnownGaps.toCaseKnownGaps
     program
     contractId := "temporal.case.async-nexus-success.contract"
-    properties := [.monitor propertyBinding (successRule checkedProperty)]
+    properties := [.monitor propertyBinding
+      (correlatedRule (checkedProperty.id.value ++ ".correlated-history") chain)]
     contractLimits
   }
 
