@@ -281,7 +281,7 @@ func expressionReference(source proto.Message) (Reference, error) {
 		}
 	case "run_event":
 		result = Reference{Kind: EventReference, Field: int32(message.Get(message.Descriptor().Fields().ByName("field")).Enum())}
-		if result.Field <= 0 || result.Field > int32(testpilotspb.RUN_EVENT_FIELD_RUN_ID) {
+		if result.Field <= 0 || result.Field > int32(testpilotspb.RUN_EVENT_FIELD_FAULT_KIND) {
 			return Reference{}, invalid(Malformed, "expression", "invalid Run Event reference")
 		}
 	case "run":

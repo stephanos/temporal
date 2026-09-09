@@ -129,6 +129,7 @@ func (h *Driver) Close(ctx context.Context) error {
 
 type workerSession interface {
 	Reserve(context.Context, testpilot.ReservationRequest) ([]testpilot.ReservationHandle, error)
+	InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error)
 	Quarantine(context.Context, testpilot.EffectHandle) error
 	Close(context.Context) error
 	Diagnose(context.Context, string, *testpilotspb.RunDiagnostic) error
@@ -233,6 +234,14 @@ func workflowBinding(request proto.Message) (workerhost.WorkflowBinding, error) 
 
 func (s *compositeSession) InvokeCapability(ctx context.Context, coordinate testpilot.Coordinate, capability testpilot.OpaqueCapability, value proto.Message) (testpilot.EffectHandle, error) {
 	return s.controller.InvokeCapability(ctx, coordinate, capability, value)
+}
+// A fault is a worker-lifecycle outage, so it is the worker Session's to realize; a Program with
+// no worker use has no worker Session and no queue to stop.
+func (s *compositeSession) InjectFault(ctx context.Context, coordinate testpilot.Coordinate, roleID string, kind testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	if s == nil || s.worker == nil {
+		return nil, ErrInvalid
+	}
+	return s.worker.InjectFault(ctx, coordinate, roleID, kind)
 }
 func (s *compositeSession) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error) {
 	return s.controller.Bridge(ctx)

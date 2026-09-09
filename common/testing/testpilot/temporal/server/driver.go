@@ -93,7 +93,7 @@ func New(options Options) (*Driver, error) {
 
 func validProfile(p testpilot.ProfileSpec) bool {
 	l := p.ProgramLimits
-	if p.Identity == "" || len(p.Identity) > 256 || len(p.Capabilities) > 7 || p.Catalog.Identity() == "" || l == nil || l.MaxActivations <= 0 || l.MaxActivations > 100000 || l.MaxAttempts <= 0 || l.MaxAttempts > 100000 || l.MaxNodes <= 0 || l.MaxNodes > 10000 || l.MaxRequestBytes <= 0 || l.MaxRequestBytes > 16<<20 || l.MaxResponseBytes <= 0 || l.MaxResponseBytes > 16<<20 || l.MaxTotalDurationMilliseconds <= 0 || l.MaxTotalDurationMilliseconds > 86400000 || l.MaxCleanupDurationMilliseconds <= 0 || l.MaxCleanupDurationMilliseconds > 86400000 || len(p.Roles) > 10000 {
+	if p.Identity == "" || len(p.Identity) > 256 || len(p.Capabilities) > int(testpilot.MaxCapability) || p.Catalog.Identity() == "" || l == nil || l.MaxActivations <= 0 || l.MaxActivations > 100000 || l.MaxAttempts <= 0 || l.MaxAttempts > 100000 || l.MaxNodes <= 0 || l.MaxNodes > 10000 || l.MaxRequestBytes <= 0 || l.MaxRequestBytes > 16<<20 || l.MaxResponseBytes <= 0 || l.MaxResponseBytes > 16<<20 || l.MaxTotalDurationMilliseconds <= 0 || l.MaxTotalDurationMilliseconds > 86400000 || l.MaxCleanupDurationMilliseconds <= 0 || l.MaxCleanupDurationMilliseconds > 86400000 || len(p.Roles) > 10000 {
 		return false
 	}
 	total := 0

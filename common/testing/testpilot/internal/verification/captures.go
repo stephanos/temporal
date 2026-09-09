@@ -93,7 +93,7 @@ func (a *admission) analyzeCaptures(m *machine) error {
 	queue := []configuration{{state: m.initial, assigned: make([]byte, len(m.captures))}}
 	seen := map[string]bool{strconv.Itoa(m.initial) + ":" + string(queue[0].assigned): true}
 	for next := 0; next < len(queue); next++ {
-		for kind := testpilotspb.RUN_EVENT_KIND_RUN_OPENED; kind <= testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC; kind++ {
+		for kind := testpilotspb.RUN_EVENT_KIND_RUN_OPENED; kind <= ir.MaxRunEventKind; kind++ {
 			successors, err := a.analyzeEvent(m, queue[next], kind)
 			if err != nil {
 				return err

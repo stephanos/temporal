@@ -27,13 +27,15 @@ func instructionOpcode(instruction *testpilotspb.Instruction) Opcode {
 		return Finish
 	case *testpilotspb.Instruction_RespondNexus:
 		return RespondNexus
+	case *testpilotspb.Instruction_InjectFault:
+		return InjectFault
 	default:
 		return 0
 	}
 }
 func opcodeContext(opcode Opcode) testpilotspb.EntrypointKind {
 	switch opcode {
-	case InvokeRPC, AwaitSlot, CompleteNexusOperation:
+	case InvokeRPC, AwaitSlot, CompleteNexusOperation, InjectFault:
 		return testpilotspb.ENTRYPOINT_KIND_CONTROLLER
 	case StartNexusOperation, Await, Finish:
 		return testpilotspb.ENTRYPOINT_KIND_WORKFLOW
@@ -95,6 +97,8 @@ func (a *admission) bindInstruction(g *graph, i int, n *node) error {
 		}
 	case RespondNexus:
 		return a.bindNexusResponse(g, i, n)
+	case InjectFault:
+		return a.bindFault(g, n)
 	default:
 		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
 	}
@@ -161,6 +165,17 @@ func (a *admission) bindNexusResponse(g *graph, i int, n *node) error {
 
 	return nil
 }
+// A fault names the task-queue role whose worker the Driver stops or resumes; the role's own
+// resource binding identifies the queue, so the instruction carries no queue of its own.
+func (a *admission) bindFault(g *graph, n *node) error {
+	fault := n.source.Instruction.GetInjectFault()
+	if fault == nil || fault.Kind < testpilotspb.FAULT_KIND_WORKER_STOP || fault.Kind > testpilotspb.FAULT_KIND_WORKER_RESUME ||
+		a.roles[fault.RoleId] != testpilotspb.ROLE_KIND_TASK_QUEUE {
+		return invalid(ir.Malformed, nodePath(g, n), "fault injection requires a declared task-queue role and a known fault kind")
+	}
+	return nil
+}
+
 func (a *admission) bindOutcomes(g *graph, n *node) error {
 	if n.source.Outcome == nil {
 		return invalid(ir.Malformed, nodePath(g, n), "outcome schema is required")
@@ -443,7 +458,8 @@ func (a *admission) bindNodeDataflow(g *graph, n *node, boolean ir.Type) error {
 		n.input, err = bind(n.source.Instruction.GetFinish().Result, nil)
 	case RespondNexus:
 		n.input, err = bind(n.source.Instruction.GetRespondNexus().Result, nil)
-	case Await:
+	case Await, InjectFault:
+		// A fault names its target role statically; it binds no Program expression.
 	default:
 		return invalid(ir.Unsupported, nodePath(g, n), "unknown opcode")
 	}

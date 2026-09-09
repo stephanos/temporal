@@ -693,6 +693,9 @@ func (s *scheduler) acceptEffect(ctx context.Context, task scheduledNode, reques
 	switch n.opcode {
 	case InvokeRPC:
 		effect, err = s.session.InvokeRPC(ctx, c, n.source.Instruction.GetInvokeRpc().EndpointRoleId, n.method, request)
+	case InjectFault:
+		fault := n.source.Instruction.GetInjectFault()
+		effect, err = s.session.InjectFault(ctx, c, fault.GetRoleId(), fault.GetKind())
 	case AwaitSlot, CompleteNexusOperation:
 		slot := n.source.Instruction.GetAwaitSlot().GetSlotId()
 		if n.opcode == CompleteNexusOperation {
@@ -775,6 +778,19 @@ func (s *scheduler) publishCompletion(ctx context.Context, completion schedulerC
 		kind = testpilotspb.RUN_EVENT_KIND_INSTRUCTION_TIMED_OUT
 	}
 	facts := []*testpilotspb.RunEvent{{Kind: kind, SourceId: source + ".completed", Coordinates: eventCoordinates(batch.coordinate), CausalSourceIds: []string{source + ".started"}, Outcome: batch.outcome}}
+	// A realized fault is recorded as its own fact, so a Contract can reference the outage rather
+	// than infer it from the instruction that requested it. A requested-but-unrealized fault
+	// never reaches here, which is what keeps intent distinguishable from evidence.
+	if n := task.activation.values.graph.nodes[task.index]; n.opcode == InjectFault && kind == testpilotspb.RUN_EVENT_KIND_INSTRUCTION_COMPLETED {
+		fault := n.source.Instruction.GetInjectFault()
+		facts = append(facts, &testpilotspb.RunEvent{
+			Kind:            testpilotspb.RUN_EVENT_KIND_FAULT_INJECTED,
+			SourceId:        source + ".fault",
+			Coordinates:     eventCoordinates(batch.coordinate),
+			CausalSourceIds: []string{source + ".completed"},
+			FaultInjected:   &testpilotspb.FaultInjected{RoleId: fault.GetRoleId(), Kind: fault.GetKind()},
+		})
+	}
 	for _, projection := range batch.facts {
 		coordinate := eventCoordinates(batch.coordinate)
 		coordinate.EmittedIndex = projection.index

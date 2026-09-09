@@ -294,6 +294,11 @@ def respondNexus (kind : NexusResponseKind) (result : ProgramExpression)
   { instruction := some (.respond_nexus {
       kind, result := some result, capability_slot_id := capabilitySlotId }) }
 
+/-- Request one deliberate outage. `roleId` names the task-queue role whose worker the Driver
+stops or resumes; the role's own resource binding identifies the queue. -/
+def injectFault (roleId : String) (kind : FaultKind) : Instruction :=
+  { instruction := some (.inject_fault { role_id := roleId, kind }) }
+
 def outcomeField (field : InstructionOutcomeField) (type : ValueType) : OutcomeFieldDefinition :=
   { field, type := some type }
 

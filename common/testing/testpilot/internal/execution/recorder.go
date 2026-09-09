@@ -110,7 +110,7 @@ func (r *recorder) stage(facts []*testpilotspb.RunEvent) ([]*testpilotspb.RunEve
 	staged := make([]*testpilotspb.RunEvent, 0, len(facts))
 	batch := make(map[string]*testpilotspb.RunEvent, len(facts))
 	for _, fact := range facts {
-		if fact == nil || !validID(fact.SourceId) || fact.Kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || fact.Kind > testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC || fact.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED {
+		if fact == nil || !validID(fact.SourceId) || fact.Kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || fact.Kind > ir.MaxRunEventKind || fact.Kind == testpilotspb.RUN_EVENT_KIND_RUN_CLOSED {
 			return nil, invalid(ir.Malformed, "recorder", "invalid producer event identity or kind")
 		}
 		if r.remainingWork < r.surface.Work {

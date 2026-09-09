@@ -57,6 +57,29 @@ message RespondNexus {
   string capability_slot_id = 3;
 }
 
+// FaultKind names the version-one deliberate outages a Driver can realize. Every value is a
+// worker-lifecycle transition on one activation queue; nothing here reaches the server.
+// (-- api-linter: core::0216::synonyms=disabled --)
+enum FaultKind {
+  FAULT_KIND_UNSPECIFIED = 0;
+  FAULT_KIND_WORKER_STOP = 1;
+  FAULT_KIND_WORKER_RESUME = 2;
+}
+
+// InjectFault asks the Driver for one deliberate outage. role_id must name a
+// ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.
+message InjectFault {
+  string role_id = 1;
+  FaultKind kind = 2;
+}
+
+// FaultInjected is the recorded fact that a Driver realized one requested outage. It lives beside
+// the instruction so the FaultKind accessor stays in the file that declares the enum.
+message FaultInjected {
+  string role_id = 1;
+  FaultKind kind = 2;
+}
+
 // Instruction is the complete version-one instruction table.
 message Instruction {
   oneof instruction {
@@ -67,6 +90,7 @@ message Instruction {
     AwaitInstruction await_outcome = 5;
     Finish finish = 6;
     RespondNexus respond_nexus = 7;
+    InjectFault inject_fault = 8;
   }
 }
 

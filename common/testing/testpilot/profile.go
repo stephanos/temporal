@@ -47,7 +47,13 @@ const (
 	Await
 	Finish
 	RespondNexus
+	InjectFault
 )
+
+// MaxCapability is the highest declared capability. A Profile authorizes each capability at most
+// once, so it is also the ceiling on an authorized capability list; Driver profile validation
+// reuses it rather than restating a literal a new instruction would silently invalidate.
+const MaxCapability = InjectFault
 
 type RolePolicy struct {
 	ID                  string

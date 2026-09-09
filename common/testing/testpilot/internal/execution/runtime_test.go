@@ -274,7 +274,8 @@ func TestRunWaitsForLateMonitorAndThenReportsDeadlineViolation(t *testing.T) {
 	}
 	close(monitor.release)
 	result := <-done
-	require.NoError(t, result.err)
+	// The recorder's close failed, so Run surfaces it beside the record it still produced.
+	require.ErrorIs(t, result.err, context.DeadlineExceeded)
 	require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, result.run.GetStatus())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, result.verdict.GetStatus())
 	require.Contains(t, diagnosticCodes(result.run), "close_failed")
@@ -298,7 +299,7 @@ func TestRunConformingMonitorCancellationIsInconclusive(t *testing.T) {
 	prepared, err := Prepare(c, catalog, policy)
 	require.NoError(t, err)
 	run, verdict, err := Run(t.Context(), prepared, &runtimeDriver{session: &runtimeSession{}}, &canceledMonitor{}, "run", c.CaseId)
-	require.NoError(t, err)
+	require.ErrorIs(t, err, context.DeadlineExceeded)
 	require.Equal(t, testpilotspb.RUN_STATUS_INCOMPLETE, run.GetStatus())
 	require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
 	require.Contains(t, diagnosticCodes(run), "close_failed")

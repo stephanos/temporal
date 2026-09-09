@@ -96,8 +96,15 @@ private def instructions : Array Instruction := #[
   Program.awaitOutcome instructionRef,
   Program.finish (ProgramExpr.literal (Value.text "result")),
   Program.respondNexus .NEXUS_RESPONSE_KIND_ASYNCHRONOUS
-    (ProgramExpr.literal (Value.text "token")) "capability"
+    (ProgramExpr.literal (Value.text "token")) "capability",
+  Program.injectFault "queue" .FAULT_KIND_WORKER_STOP
 ]
+
+private def injectFaultNamesRoleAndKind : Bool :=
+  match instructions[7]!.instruction with
+  | some (.inject_fault fault) =>
+    fault.role_id == "queue" && fault.kind == .FAULT_KIND_WORKER_STOP
+  | _ => false
 
 private def node := Program.node "start" instructions[0]!
   instructionLimits
@@ -165,13 +172,14 @@ private def run : temporal.server.api.testpilot.v1.Run := Run.make "run" "case" 
 #guard programExpressions.size == 12
 #guard environmentAssignmentUsesBinding
 #guard contractExpressions.size == 11
-#guard instructions.size == 7
+#guard instructions.size == 8
 #guard program.entrypoints.size == 4
 #guard program.environment.size == 3
 #guard program.roles[1]!.namespace_binding_id == "namespace"
 #guard program.roles[2]!.resource_binding_id == "task.queue"
 #guard contract.rules.size == 2
 #guard run.events.size == 1
+#guard injectFaultNamesRoleAndKind
 #guard eventsHorizon.rule_events == 3
 #guard eventsHorizon.elapsed_milliseconds == 0
 #guard eventsHorizon.violation_state_id == "late"

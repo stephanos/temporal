@@ -41,6 +41,7 @@ const (
 	RUN_EVENT_KIND_CLEANUP_COMPLETED     RunEventKind = 8
 	RUN_EVENT_KIND_RUN_CLOSED            RunEventKind = 9
 	RUN_EVENT_KIND_DIAGNOSTIC            RunEventKind = 10
+	RUN_EVENT_KIND_FAULT_INJECTED        RunEventKind = 11
 )
 
 // Enum value maps for RunEventKind.
@@ -57,6 +58,7 @@ var (
 		8:  "RUN_EVENT_KIND_CLEANUP_COMPLETED",
 		9:  "RUN_EVENT_KIND_RUN_CLOSED",
 		10: "RUN_EVENT_KIND_DIAGNOSTIC",
+		11: "RUN_EVENT_KIND_FAULT_INJECTED",
 	}
 	RunEventKind_value = map[string]int32{
 		"RUN_EVENT_KIND_UNSPECIFIED":           0,
@@ -70,6 +72,7 @@ var (
 		"RUN_EVENT_KIND_CLEANUP_COMPLETED":     8,
 		"RUN_EVENT_KIND_RUN_CLOSED":            9,
 		"RUN_EVENT_KIND_DIAGNOSTIC":            10,
+		"RUN_EVENT_KIND_FAULT_INJECTED":        11,
 	}
 )
 
@@ -107,6 +110,8 @@ func (x RunEventKind) String() string {
 		return "Diagnostic"
 
 		// (-- api-linter: core::0216::synonyms=disabled --)
+	case RUN_EVENT_KIND_FAULT_INJECTED:
+		return "FaultInjected"
 	default:
 		return strconv.Itoa(int(x))
 	}
@@ -663,8 +668,10 @@ type RunEvent struct {
 	// Set before evaluation of the first event establishing execution incompleteness.
 	// Incompleteness remains effective for every later event.
 	ExecutionIncomplete bool `protobuf:"varint,9,opt,name=execution_incomplete,json=executionIncomplete,proto3" json:"execution_incomplete,omitempty"`
-	unknownFields       protoimpl.UnknownFields
-	sizeCache           protoimpl.SizeCache
+	// Carried only by RUN_EVENT_KIND_FAULT_INJECTED events; it names the realized fault.
+	FaultInjected *FaultInjected `protobuf:"bytes,10,opt,name=fault_injected,json=faultInjected,proto3" json:"fault_injected,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *RunEvent) Reset() {
@@ -758,6 +765,13 @@ func (x *RunEvent) GetExecutionIncomplete() bool {
 		return x.ExecutionIncomplete
 	}
 	return false
+}
+
+func (x *RunEvent) GetFaultInjected() *FaultInjected {
+	if x != nil {
+		return x.FaultInjected
+	}
+	return nil
 }
 
 type CleanupOutcome struct {
@@ -1418,7 +1432,7 @@ var File_temporal_server_api_testpilot_v1_run_proto protoreflect.FileDescriptor
 
 const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\n" +
-	"*temporal/server/api/testpilot/v1/run.proto\x12 temporal.server.api.testpilot.v1\x1a.temporal/server/api/testpilot/v1/outcome.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"V\n" +
+	"*temporal/server/api/testpilot/v1/run.proto\x12 temporal.server.api.testpilot.v1\x1a2temporal/server/api/testpilot/v1/instruction.proto\x1a.temporal/server/api/testpilot/v1/outcome.proto\x1a,temporal/server/api/testpilot/v1/value.proto\"V\n" +
 	"\x0eRunEventFilter\x12D\n" +
 	"\x05kinds\x18\x01 \x03(\x0e2..temporal.server.api.testpilot.v1.RunEventKindR\x05kinds\"\xc5\x01\n" +
 	"\x13RunEventCoordinates\x12#\n" +
@@ -1429,7 +1443,7 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\remitted_index\x18\x05 \x01(\x03R\femittedIndex\"y\n" +
 	"\x11ObservationResult\x12%\n" +
 	"\x0eobservation_id\x18\x01 \x01(\tR\robservationId\x12=\n" +
-	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\x9b\x04\n" +
+	"\x05value\x18\x02 \x01(\v2'.temporal.server.api.testpilot.v1.ValueR\x05value\"\xf3\x04\n" +
 	"\bRunEvent\x12\x1a\n" +
 	"\bsequence\x18\x01 \x01(\x03R\bsequence\x121\n" +
 	"\x14elapsed_milliseconds\x18\x02 \x01(\x03R\x13elapsedMilliseconds\x12B\n" +
@@ -1439,7 +1453,9 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\x11causal_source_ids\x18\x06 \x03(\tR\x0fcausalSourceIds\x12N\n" +
 	"\aoutcome\x18\a \x01(\v24.temporal.server.api.testpilot.v1.InstructionOutcomeR\aoutcome\x12W\n" +
 	"\fobservations\x18\b \x03(\v23.temporal.server.api.testpilot.v1.ObservationResultR\fobservations\x121\n" +
-	"\x14execution_incomplete\x18\t \x01(\bR\x13executionIncomplete\"\x80\x01\n" +
+	"\x14execution_incomplete\x18\t \x01(\bR\x13executionIncomplete\x12V\n" +
+	"\x0efault_injected\x18\n" +
+	" \x01(\v2/.temporal.server.api.testpilot.v1.FaultInjectedR\rfaultInjected\"\x80\x01\n" +
 	"\x0eCleanupOutcome\x12G\n" +
 	"\x06status\x18\x01 \x01(\x0e2/.temporal.server.api.testpilot.v1.CleanupStatusR\x06status\x12%\n" +
 	"\x0ediagnostic_ids\x18\x02 \x03(\tR\rdiagnosticIds\"\xf2\x01\n" +
@@ -1486,7 +1502,7 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	"\toperation\x18\x02 \x01(\tR\toperation\x12\x12\n" +
 	"\x04kind\x18\x03 \x01(\tR\x04kind\x12J\n" +
 	"\aparents\x18\x04 \x03(\v20.temporal.server.api.testpilot.v1.ScopedIdentityR\aparents\x12M\n" +
-	"\x06fields\x18\x06 \x03(\v25.temporal.server.api.testpilot.v1.ScopedEvidenceFieldR\x06fields*\x9d\x03\n" +
+	"\x06fields\x18\x06 \x03(\v25.temporal.server.api.testpilot.v1.ScopedEvidenceFieldR\x06fields*\xc0\x03\n" +
 	"\fRunEventKind\x12\x1e\n" +
 	"\x1aRUN_EVENT_KIND_UNSPECIFIED\x10\x00\x12\x1d\n" +
 	"\x19RUN_EVENT_KIND_RUN_OPENED\x10\x01\x12$\n" +
@@ -1499,7 +1515,8 @@ const file_temporal_server_api_testpilot_v1_run_proto_rawDesc = "" +
 	" RUN_EVENT_KIND_CLEANUP_COMPLETED\x10\b\x12\x1d\n" +
 	"\x19RUN_EVENT_KIND_RUN_CLOSED\x10\t\x12\x1d\n" +
 	"\x19RUN_EVENT_KIND_DIAGNOSTIC\x10\n" +
-	"*\x7f\n" +
+	"\x12!\n" +
+	"\x1dRUN_EVENT_KIND_FAULT_INJECTED\x10\v*\x7f\n" +
 	"\tRunStatus\x12\x1a\n" +
 	"\x16RUN_STATUS_UNSPECIFIED\x10\x00\x12\x18\n" +
 	"\x14RUN_STATUS_COMPLETED\x10\x01\x12!\n" +
@@ -1567,6 +1584,7 @@ var file_temporal_server_api_testpilot_v1_run_proto_goTypes = []any{
 	(*ScopedEvidence)(nil),      // 18: temporal.server.api.testpilot.v1.ScopedEvidence
 	(*Value)(nil),               // 19: temporal.server.api.testpilot.v1.Value
 	(*InstructionOutcome)(nil),  // 20: temporal.server.api.testpilot.v1.InstructionOutcome
+	(*FaultInjected)(nil),       // 21: temporal.server.api.testpilot.v1.FaultInjected
 }
 var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
 	0,  // 0: temporal.server.api.testpilot.v1.RunEventFilter.kinds:type_name -> temporal.server.api.testpilot.v1.RunEventKind
@@ -1575,26 +1593,27 @@ var file_temporal_server_api_testpilot_v1_run_proto_depIdxs = []int32{
 	7,  // 3: temporal.server.api.testpilot.v1.RunEvent.coordinates:type_name -> temporal.server.api.testpilot.v1.RunEventCoordinates
 	20, // 4: temporal.server.api.testpilot.v1.RunEvent.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcome
 	8,  // 5: temporal.server.api.testpilot.v1.RunEvent.observations:type_name -> temporal.server.api.testpilot.v1.ObservationResult
-	2,  // 6: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
-	3,  // 7: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
-	4,  // 8: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
-	5,  // 9: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
-	12, // 10: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
-	9,  // 11: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
-	1,  // 12: temporal.server.api.testpilot.v1.Run.status:type_name -> temporal.server.api.testpilot.v1.RunStatus
-	10, // 13: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
-	13, // 14: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
-	11, // 15: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
-	15, // 16: temporal.server.api.testpilot.v1.ScopedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.ScopedBinding
-	19, // 17: temporal.server.api.testpilot.v1.ScopedEvidenceField.value:type_name -> temporal.server.api.testpilot.v1.Value
-	16, // 18: temporal.server.api.testpilot.v1.ScopedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.ScopedIdentity
-	16, // 19: temporal.server.api.testpilot.v1.ScopedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.ScopedIdentity
-	17, // 20: temporal.server.api.testpilot.v1.ScopedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceField
-	21, // [21:21] is the sub-list for method output_type
-	21, // [21:21] is the sub-list for method input_type
-	21, // [21:21] is the sub-list for extension type_name
-	21, // [21:21] is the sub-list for extension extendee
-	0,  // [0:21] is the sub-list for field type_name
+	21, // 6: temporal.server.api.testpilot.v1.RunEvent.fault_injected:type_name -> temporal.server.api.testpilot.v1.FaultInjected
+	2,  // 7: temporal.server.api.testpilot.v1.CleanupOutcome.status:type_name -> temporal.server.api.testpilot.v1.CleanupStatus
+	3,  // 8: temporal.server.api.testpilot.v1.RunDiagnostic.kind:type_name -> temporal.server.api.testpilot.v1.RunDiagnosticKind
+	4,  // 9: temporal.server.api.testpilot.v1.RuleVerdict.status:type_name -> temporal.server.api.testpilot.v1.RuleVerdictStatus
+	5,  // 10: temporal.server.api.testpilot.v1.Verdict.status:type_name -> temporal.server.api.testpilot.v1.VerdictStatus
+	12, // 11: temporal.server.api.testpilot.v1.Verdict.rules:type_name -> temporal.server.api.testpilot.v1.RuleVerdict
+	9,  // 12: temporal.server.api.testpilot.v1.Run.events:type_name -> temporal.server.api.testpilot.v1.RunEvent
+	1,  // 13: temporal.server.api.testpilot.v1.Run.status:type_name -> temporal.server.api.testpilot.v1.RunStatus
+	10, // 14: temporal.server.api.testpilot.v1.Run.cleanup:type_name -> temporal.server.api.testpilot.v1.CleanupOutcome
+	13, // 15: temporal.server.api.testpilot.v1.Run.verdict:type_name -> temporal.server.api.testpilot.v1.Verdict
+	11, // 16: temporal.server.api.testpilot.v1.Run.diagnostics:type_name -> temporal.server.api.testpilot.v1.RunDiagnostic
+	15, // 17: temporal.server.api.testpilot.v1.ScopedIdentity.scope:type_name -> temporal.server.api.testpilot.v1.ScopedBinding
+	19, // 18: temporal.server.api.testpilot.v1.ScopedEvidenceField.value:type_name -> temporal.server.api.testpilot.v1.Value
+	16, // 19: temporal.server.api.testpilot.v1.ScopedEvidence.identity:type_name -> temporal.server.api.testpilot.v1.ScopedIdentity
+	16, // 20: temporal.server.api.testpilot.v1.ScopedEvidence.parents:type_name -> temporal.server.api.testpilot.v1.ScopedIdentity
+	17, // 21: temporal.server.api.testpilot.v1.ScopedEvidence.fields:type_name -> temporal.server.api.testpilot.v1.ScopedEvidenceField
+	22, // [22:22] is the sub-list for method output_type
+	22, // [22:22] is the sub-list for method input_type
+	22, // [22:22] is the sub-list for extension type_name
+	22, // [22:22] is the sub-list for extension extendee
+	0,  // [0:22] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_run_proto_init() }
@@ -1602,6 +1621,7 @@ func file_temporal_server_api_testpilot_v1_run_proto_init() {
 	if File_temporal_server_api_testpilot_v1_run_proto != nil {
 		return
 	}
+	file_temporal_server_api_testpilot_v1_instruction_proto_init()
 	file_temporal_server_api_testpilot_v1_outcome_proto_init()
 	file_temporal_server_api_testpilot_v1_value_proto_init()
 	file_temporal_server_api_testpilot_v1_run_proto_msgTypes[5].OneofWrappers = []any{

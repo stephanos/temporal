@@ -16,6 +16,30 @@ import (
 	"google.golang.org/protobuf/types/descriptorpb"
 )
 
+// Capability, execution.Opcode and the instruction-to-opcode switch are three hand-maintained
+// lists. The switch is pinned to the Instruction oneof inside the execution package; this pins
+// the public capability vocabulary to the same numbering, so a capability can never authorize a
+// different instruction than the one it is named for.
+func TestCapabilitiesMatchExecutionOpcodes(t *testing.T) {
+	for capability, name := range map[Capability]string{
+		InvokeRPC:              "InvokeRPC",
+		AwaitSlot:              "AwaitSlot",
+		CompleteNexusOperation: "CompleteNexusOperation",
+		StartNexusOperation:    "StartNexusOperation",
+		Await:                  "Await",
+		Finish:                 "Finish",
+		RespondNexus:           "RespondNexus",
+		InjectFault:            "InjectFault",
+	} {
+		t.Run(name, func(t *testing.T) {
+			require.LessOrEqual(t, capability, MaxCapability)
+		})
+	}
+	require.Equal(t, execution.Opcode(MaxCapability), execution.MaxOpcode)
+	require.Equal(t, execution.Opcode(InvokeRPC), execution.InvokeRPC)
+	require.Equal(t, execution.Opcode(InjectFault), execution.InjectFault)
+}
+
 type nilProfileMap map[string]int
 
 func (nilProfileMap) Snapshot() ProfileSpec { panic("typed nil called") }

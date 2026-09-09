@@ -1571,6 +1571,16 @@ def entrypointKindActivity : EntrypointKind := { number := 3 }
 def entrypointKindNexusHandler : EntrypointKind := { number := 4 }
 end EntrypointKind
 
+structure FaultKind where
+  number : Int
+  deriving DecidableEq, Repr
+
+namespace FaultKind
+def faultKindUnspecified : FaultKind := { number := 0 }
+def faultKindWorkerStop : FaultKind := { number := 1 }
+def faultKindWorkerResume : FaultKind := { number := 2 }
+end FaultKind
+
 structure InstructionOutcomeField where
   number : Int
   deriving DecidableEq, Repr
@@ -1672,6 +1682,8 @@ def runEventFieldInstructionId : RunEventField := { number := 6 }
 def runEventFieldAttempt : RunEventField := { number := 7 }
 def runEventFieldSourceId : RunEventField := { number := 8 }
 def runEventFieldRunId : RunEventField := { number := 9 }
+def runEventFieldFaultRoleId : RunEventField := { number := 10 }
+def runEventFieldFaultKind : RunEventField := { number := 11 }
 end RunEventField
 
 structure RunEventKind where
@@ -1690,6 +1702,7 @@ def runEventKindCleanupStarted : RunEventKind := { number := 7 }
 def runEventKindCleanupCompleted : RunEventKind := { number := 8 }
 def runEventKindRunClosed : RunEventKind := { number := 9 }
 def runEventKindDiagnostic : RunEventKind := { number := 10 }
+def runEventKindFaultInjected : RunEventKind := { number := 11 }
 end RunEventKind
 
 structure RunStatus where
@@ -12963,6 +12976,11 @@ structure Finish where
   result : Option ProgramExpression
   deriving Repr
 
+structure InjectFault where
+  roleId : String
+  kind : FaultKind
+  deriving Repr
+
 structure RequestAssignment where
   target : Option FieldPath
   value : Option ProgramExpression
@@ -13013,6 +13031,7 @@ inductive Instruction.Instruction where
   | awaitOutcome (value : AwaitInstruction)
   | finish (value : Finish)
   | respondNexus (value : RespondNexus)
+  | injectFault (value : InjectFault)
   deriving Repr
 
 structure Instruction where
@@ -13235,6 +13254,8 @@ structure RunEvent where
   outcome : Option InstructionOutcome
   observations : List ObservationResult
   executionIncomplete : Bool
+  faultRoleId : String
+  faultKind : FaultKind
   deriving Repr
 
 structure Verdict where

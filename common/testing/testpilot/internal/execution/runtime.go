@@ -90,8 +90,9 @@ func Run(
 	run, verdict, recorderErr := scheduler.recorder.close(verdictCtx, disposition, cleanup)
 	cancelVerdict()
 	scheduler.finishClose()
-	_ = recorderErr
-	return run, verdict, nil
+	// The recorder's own close failure is the caller's to see: the Run and Verdict it produced are
+	// still the authoritative record, so they are returned beside the error rather than dropped.
+	return run, verdict, recorderErr
 }
 
 func freshContext(milliseconds int64) (context.Context, context.CancelFunc) {

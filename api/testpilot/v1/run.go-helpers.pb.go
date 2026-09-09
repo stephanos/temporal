@@ -501,6 +501,7 @@ var (
 		"CleanupCompleted":     8,
 		"RunClosed":            9,
 		"Diagnostic":           10,
+		"FaultInjected":        11,
 	}
 )
 

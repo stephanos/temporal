@@ -40,6 +40,8 @@ enum RunEventField {
   RUN_EVENT_FIELD_ATTEMPT = 7;
   RUN_EVENT_FIELD_SOURCE_ID = 8;
   RUN_EVENT_FIELD_RUN_ID = 9;
+  RUN_EVENT_FIELD_FAULT_ROLE_ID = 10;
+  RUN_EVENT_FIELD_FAULT_KIND = 11;
 }
 message RunEventFieldRef { RunEventField field = 1; }
 

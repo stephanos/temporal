@@ -41,6 +41,15 @@ func (s *Session) Reserve(ctx context.Context, _ testpilot.ReservationRequest) (
 	return nil, errUnauthorized
 }
 
+// Faults are worker-lifecycle outages; the server Driver owns no worker, so it refuses them the
+// way it refuses reservations rather than pretending to realize one.
+func (s *Session) InjectFault(ctx context.Context, _ testpilot.Coordinate, _ string, _ testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	if err := contextError(ctx); err != nil {
+		return nil, err
+	}
+	return nil, errUnauthorized
+}
+
 func (s *Session) controllerNode(c testpilot.Coordinate) (*testpilotspb.InstructionDefinition, error) {
 	if c.RunID != s.runID || c.ActivationID == "" || len(c.ActivationID) > 256 || c.Attempt <= 0 {
 		return nil, errUnauthorized

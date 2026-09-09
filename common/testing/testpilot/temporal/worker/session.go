@@ -123,6 +123,10 @@ func (*Session) InvokeCapability(context.Context, testpilot.Coordinate, testpilo
 	return nil, ErrUnsupportedOperation
 }
 
+func (*Session) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	return nil, ErrUnsupportedOperation
+}
+
 func (s *Session) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error) {
 	if s == nil || ctx == nil {
 		return nil, ErrInvalid

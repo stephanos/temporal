@@ -147,6 +147,68 @@ func (NexusResponseKind) EnumDescriptor() ([]byte, []int) {
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{1}
 }
 
+// FaultKind names the version-one deliberate outages a Driver can realize. Every value is a
+// worker-lifecycle transition on one activation queue; nothing here reaches the server.
+// (-- api-linter: core::0216::synonyms=disabled --)
+type FaultKind int32
+
+const (
+	FAULT_KIND_UNSPECIFIED   FaultKind = 0
+	FAULT_KIND_WORKER_STOP   FaultKind = 1
+	FAULT_KIND_WORKER_RESUME FaultKind = 2
+)
+
+// Enum value maps for FaultKind.
+var (
+	FaultKind_name = map[int32]string{
+		0: "FAULT_KIND_UNSPECIFIED",
+		1: "FAULT_KIND_WORKER_STOP",
+		2: "FAULT_KIND_WORKER_RESUME",
+	}
+	FaultKind_value = map[string]int32{
+		"FAULT_KIND_UNSPECIFIED":   0,
+		"FAULT_KIND_WORKER_STOP":   1,
+		"FAULT_KIND_WORKER_RESUME": 2,
+	}
+)
+
+func (x FaultKind) Enum() *FaultKind {
+	p := new(FaultKind)
+	*p = x
+	return p
+}
+
+func (x FaultKind) String() string {
+	switch x {
+	case FAULT_KIND_UNSPECIFIED:
+		return "Unspecified"
+	case FAULT_KIND_WORKER_STOP:
+		return "WorkerStop"
+	case FAULT_KIND_WORKER_RESUME:
+		return "WorkerResume"
+	default:
+		return strconv.Itoa(int(x))
+	}
+
+}
+
+func (FaultKind) Descriptor() protoreflect.EnumDescriptor {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[2].Descriptor()
+}
+
+func (FaultKind) Type() protoreflect.EnumType {
+	return &file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes[2]
+}
+
+func (x FaultKind) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use FaultKind.Descriptor instead.
+func (FaultKind) EnumDescriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{2}
+}
+
 type RequestAssignment struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Target        *FieldPath             `protobuf:"bytes,1,opt,name=target,proto3" json:"target,omitempty"`
@@ -789,6 +851,114 @@ func (x *RespondNexus) GetCapabilitySlotId() string {
 	return ""
 }
 
+// InjectFault asks the Driver for one deliberate outage. role_id must name a
+// ROLE_KIND_TASK_QUEUE role; that role's resource binding identifies the affected queue.
+type InjectFault struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleId        string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	Kind          FaultKind              `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.FaultKind" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *InjectFault) Reset() {
+	*x = InjectFault{}
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *InjectFault) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*InjectFault) ProtoMessage() {}
+
+func (x *InjectFault) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use InjectFault.ProtoReflect.Descriptor instead.
+func (*InjectFault) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *InjectFault) GetRoleId() string {
+	if x != nil {
+		return x.RoleId
+	}
+	return ""
+}
+
+func (x *InjectFault) GetKind() FaultKind {
+	if x != nil {
+		return x.Kind
+	}
+	return FAULT_KIND_UNSPECIFIED
+}
+
+// FaultInjected is the recorded fact that a Driver realized one requested outage. It lives beside
+// the instruction so the FaultKind accessor stays in the file that declares the enum.
+type FaultInjected struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RoleId        string                 `protobuf:"bytes,1,opt,name=role_id,json=roleId,proto3" json:"role_id,omitempty"`
+	Kind          FaultKind              `protobuf:"varint,2,opt,name=kind,proto3,enum=temporal.server.api.testpilot.v1.FaultKind" json:"kind,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FaultInjected) Reset() {
+	*x = FaultInjected{}
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FaultInjected) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FaultInjected) ProtoMessage() {}
+
+func (x *FaultInjected) ProtoReflect() protoreflect.Message {
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FaultInjected.ProtoReflect.Descriptor instead.
+func (*FaultInjected) Descriptor() ([]byte, []int) {
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *FaultInjected) GetRoleId() string {
+	if x != nil {
+		return x.RoleId
+	}
+	return ""
+}
+
+func (x *FaultInjected) GetKind() FaultKind {
+	if x != nil {
+		return x.Kind
+	}
+	return FAULT_KIND_UNSPECIFIED
+}
+
 // Instruction is the complete version-one instruction table.
 type Instruction struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -801,6 +971,7 @@ type Instruction struct {
 	//	*Instruction_AwaitOutcome
 	//	*Instruction_Finish
 	//	*Instruction_RespondNexus
+	//	*Instruction_InjectFault
 	Instruction   isInstruction_Instruction `protobuf_oneof:"instruction"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -808,7 +979,7 @@ type Instruction struct {
 
 func (x *Instruction) Reset() {
 	*x = Instruction{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -820,7 +991,7 @@ func (x *Instruction) String() string {
 func (*Instruction) ProtoMessage() {}
 
 func (x *Instruction) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -833,7 +1004,7 @@ func (x *Instruction) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Instruction.ProtoReflect.Descriptor instead.
 func (*Instruction) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{11}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *Instruction) GetInstruction() isInstruction_Instruction {
@@ -906,6 +1077,15 @@ func (x *Instruction) GetRespondNexus() *RespondNexus {
 	return nil
 }
 
+func (x *Instruction) GetInjectFault() *InjectFault {
+	if x != nil {
+		if x, ok := x.Instruction.(*Instruction_InjectFault); ok {
+			return x.InjectFault
+		}
+	}
+	return nil
+}
+
 type isInstruction_Instruction interface {
 	isInstruction_Instruction()
 }
@@ -938,6 +1118,10 @@ type Instruction_RespondNexus struct {
 	RespondNexus *RespondNexus `protobuf:"bytes,7,opt,name=respond_nexus,json=respondNexus,proto3,oneof"`
 }
 
+type Instruction_InjectFault struct {
+	InjectFault *InjectFault `protobuf:"bytes,8,opt,name=inject_fault,json=injectFault,proto3,oneof"`
+}
+
 func (*Instruction_InvokeRpc) isInstruction_Instruction() {}
 
 func (*Instruction_AwaitSlot) isInstruction_Instruction() {}
@@ -952,6 +1136,8 @@ func (*Instruction_Finish) isInstruction_Instruction() {}
 
 func (*Instruction_RespondNexus) isInstruction_Instruction() {}
 
+func (*Instruction_InjectFault) isInstruction_Instruction() {}
+
 type ActivationReservationDefinition struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	EntrypointId  string                 `protobuf:"bytes,1,opt,name=entrypoint_id,json=entrypointId,proto3" json:"entrypoint_id,omitempty"`
@@ -962,7 +1148,7 @@ type ActivationReservationDefinition struct {
 
 func (x *ActivationReservationDefinition) Reset() {
 	*x = ActivationReservationDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -974,7 +1160,7 @@ func (x *ActivationReservationDefinition) String() string {
 func (*ActivationReservationDefinition) ProtoMessage() {}
 
 func (x *ActivationReservationDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[12]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -987,7 +1173,7 @@ func (x *ActivationReservationDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ActivationReservationDefinition.ProtoReflect.Descriptor instead.
 func (*ActivationReservationDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{12}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *ActivationReservationDefinition) GetEntrypointId() string {
@@ -1019,7 +1205,7 @@ type InstructionDefinition struct {
 
 func (x *InstructionDefinition) Reset() {
 	*x = InstructionDefinition{}
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1031,7 +1217,7 @@ func (x *InstructionDefinition) String() string {
 func (*InstructionDefinition) ProtoMessage() {}
 
 func (x *InstructionDefinition) ProtoReflect() protoreflect.Message {
-	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13]
+	mi := &file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1044,7 +1230,7 @@ func (x *InstructionDefinition) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InstructionDefinition.ProtoReflect.Descriptor instead.
 func (*InstructionDefinition) Descriptor() ([]byte, []int) {
-	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{13}
+	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *InstructionDefinition) GetInstructionId() string {
@@ -1139,7 +1325,13 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\fRespondNexus\x12G\n" +
 	"\x04kind\x18\x01 \x01(\x0e23.temporal.server.api.testpilot.v1.NexusResponseKindR\x04kind\x12K\n" +
 	"\x06result\x18\x02 \x01(\v23.temporal.server.api.testpilot.v1.ProgramExpressionR\x06result\x12,\n" +
-	"\x12capability_slot_id\x18\x03 \x01(\tR\x10capabilitySlotId\"\x91\x05\n" +
+	"\x12capability_slot_id\x18\x03 \x01(\tR\x10capabilitySlotId\"g\n" +
+	"\vInjectFault\x12\x17\n" +
+	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
+	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"i\n" +
+	"\rFaultInjected\x12\x17\n" +
+	"\arole_id\x18\x01 \x01(\tR\x06roleId\x12?\n" +
+	"\x04kind\x18\x02 \x01(\x0e2+.temporal.server.api.testpilot.v1.FaultKindR\x04kind\"\xe5\x05\n" +
 	"\vInstruction\x12L\n" +
 	"\n" +
 	"invoke_rpc\x18\x01 \x01(\v2+.temporal.server.api.testpilot.v1.InvokeRPCH\x00R\tinvokeRpc\x12L\n" +
@@ -1149,7 +1341,8 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x15start_nexus_operation\x18\x04 \x01(\v25.temporal.server.api.testpilot.v1.StartNexusOperationH\x00R\x13startNexusOperation\x12Y\n" +
 	"\rawait_outcome\x18\x05 \x01(\v22.temporal.server.api.testpilot.v1.AwaitInstructionH\x00R\fawaitOutcome\x12B\n" +
 	"\x06finish\x18\x06 \x01(\v2(.temporal.server.api.testpilot.v1.FinishH\x00R\x06finish\x12U\n" +
-	"\rrespond_nexus\x18\a \x01(\v2..temporal.server.api.testpilot.v1.RespondNexusH\x00R\frespondNexusB\r\n" +
+	"\rrespond_nexus\x18\a \x01(\v2..temporal.server.api.testpilot.v1.RespondNexusH\x00R\frespondNexus\x12R\n" +
+	"\finject_fault\x18\b \x01(\v2-.temporal.server.api.testpilot.v1.InjectFaultH\x00R\vinjectFaultB\r\n" +
 	"\vinstruction\"\\\n" +
 	"\x1fActivationReservationDefinition\x12#\n" +
 	"\rentrypoint_id\x18\x01 \x01(\tR\fentrypointId\x12\x14\n" +
@@ -1170,7 +1363,11 @@ const file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc = "" +
 	"\x1fNEXUS_RESPONSE_KIND_UNSPECIFIED\x10\x00\x12#\n" +
 	"\x1fNEXUS_RESPONSE_KIND_SYNCHRONOUS\x10\x01\x12$\n" +
 	" NEXUS_RESPONSE_KIND_ASYNCHRONOUS\x10\x02\x12\x1d\n" +
-	"\x19NEXUS_RESPONSE_KIND_ERROR\x10\x03B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x19NEXUS_RESPONSE_KIND_ERROR\x10\x03*a\n" +
+	"\tFaultKind\x12\x1a\n" +
+	"\x16FAULT_KIND_UNSPECIFIED\x10\x00\x12\x1a\n" +
+	"\x16FAULT_KIND_WORKER_STOP\x10\x01\x12\x1c\n" +
+	"\x18FAULT_KIND_WORKER_RESUME\x10\x02B2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_instruction_proto_rawDescOnce sync.Once
@@ -1184,62 +1381,68 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_rawDescGZIP() []byt
 	return file_temporal_server_api_testpilot_v1_instruction_proto_rawDescData
 }
 
-var file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_temporal_server_api_testpilot_v1_instruction_proto_enumTypes = make([]protoimpl.EnumInfo, 3)
+var file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_temporal_server_api_testpilot_v1_instruction_proto_goTypes = []any{
 	(ProjectionKind)(0),                     // 0: temporal.server.api.testpilot.v1.ProjectionKind
 	(NexusResponseKind)(0),                  // 1: temporal.server.api.testpilot.v1.NexusResponseKind
-	(*RequestAssignment)(nil),               // 2: temporal.server.api.testpilot.v1.RequestAssignment
-	(*ProjectionTarget)(nil),                // 3: temporal.server.api.testpilot.v1.ProjectionTarget
-	(*ResponseProjection)(nil),              // 4: temporal.server.api.testpilot.v1.ResponseProjection
-	(*InstructionLimits)(nil),               // 5: temporal.server.api.testpilot.v1.InstructionLimits
-	(*InvokeRPC)(nil),                       // 6: temporal.server.api.testpilot.v1.InvokeRPC
-	(*AwaitSlot)(nil),                       // 7: temporal.server.api.testpilot.v1.AwaitSlot
-	(*CompleteNexusOperation)(nil),          // 8: temporal.server.api.testpilot.v1.CompleteNexusOperation
-	(*StartNexusOperation)(nil),             // 9: temporal.server.api.testpilot.v1.StartNexusOperation
-	(*AwaitInstruction)(nil),                // 10: temporal.server.api.testpilot.v1.AwaitInstruction
-	(*Finish)(nil),                          // 11: temporal.server.api.testpilot.v1.Finish
-	(*RespondNexus)(nil),                    // 12: temporal.server.api.testpilot.v1.RespondNexus
-	(*Instruction)(nil),                     // 13: temporal.server.api.testpilot.v1.Instruction
-	(*ActivationReservationDefinition)(nil), // 14: temporal.server.api.testpilot.v1.ActivationReservationDefinition
-	(*InstructionDefinition)(nil),           // 15: temporal.server.api.testpilot.v1.InstructionDefinition
-	(*FieldPath)(nil),                       // 16: temporal.server.api.testpilot.v1.FieldPath
-	(*ProgramExpression)(nil),               // 17: temporal.server.api.testpilot.v1.ProgramExpression
-	(*InstructionRef)(nil),                  // 18: temporal.server.api.testpilot.v1.InstructionRef
-	(*InstructionOutcomeDefinition)(nil),    // 19: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
+	(FaultKind)(0),                          // 2: temporal.server.api.testpilot.v1.FaultKind
+	(*RequestAssignment)(nil),               // 3: temporal.server.api.testpilot.v1.RequestAssignment
+	(*ProjectionTarget)(nil),                // 4: temporal.server.api.testpilot.v1.ProjectionTarget
+	(*ResponseProjection)(nil),              // 5: temporal.server.api.testpilot.v1.ResponseProjection
+	(*InstructionLimits)(nil),               // 6: temporal.server.api.testpilot.v1.InstructionLimits
+	(*InvokeRPC)(nil),                       // 7: temporal.server.api.testpilot.v1.InvokeRPC
+	(*AwaitSlot)(nil),                       // 8: temporal.server.api.testpilot.v1.AwaitSlot
+	(*CompleteNexusOperation)(nil),          // 9: temporal.server.api.testpilot.v1.CompleteNexusOperation
+	(*StartNexusOperation)(nil),             // 10: temporal.server.api.testpilot.v1.StartNexusOperation
+	(*AwaitInstruction)(nil),                // 11: temporal.server.api.testpilot.v1.AwaitInstruction
+	(*Finish)(nil),                          // 12: temporal.server.api.testpilot.v1.Finish
+	(*RespondNexus)(nil),                    // 13: temporal.server.api.testpilot.v1.RespondNexus
+	(*InjectFault)(nil),                     // 14: temporal.server.api.testpilot.v1.InjectFault
+	(*FaultInjected)(nil),                   // 15: temporal.server.api.testpilot.v1.FaultInjected
+	(*Instruction)(nil),                     // 16: temporal.server.api.testpilot.v1.Instruction
+	(*ActivationReservationDefinition)(nil), // 17: temporal.server.api.testpilot.v1.ActivationReservationDefinition
+	(*InstructionDefinition)(nil),           // 18: temporal.server.api.testpilot.v1.InstructionDefinition
+	(*FieldPath)(nil),                       // 19: temporal.server.api.testpilot.v1.FieldPath
+	(*ProgramExpression)(nil),               // 20: temporal.server.api.testpilot.v1.ProgramExpression
+	(*InstructionRef)(nil),                  // 21: temporal.server.api.testpilot.v1.InstructionRef
+	(*InstructionOutcomeDefinition)(nil),    // 22: temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
 }
 var file_temporal_server_api_testpilot_v1_instruction_proto_depIdxs = []int32{
-	16, // 0: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
-	17, // 1: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	16, // 2: temporal.server.api.testpilot.v1.ResponseProjection.source:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	19, // 0: temporal.server.api.testpilot.v1.RequestAssignment.target:type_name -> temporal.server.api.testpilot.v1.FieldPath
+	20, // 1: temporal.server.api.testpilot.v1.RequestAssignment.value:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	19, // 2: temporal.server.api.testpilot.v1.ResponseProjection.source:type_name -> temporal.server.api.testpilot.v1.FieldPath
 	0,  // 3: temporal.server.api.testpilot.v1.ResponseProjection.kind:type_name -> temporal.server.api.testpilot.v1.ProjectionKind
-	3,  // 4: temporal.server.api.testpilot.v1.ResponseProjection.targets:type_name -> temporal.server.api.testpilot.v1.ProjectionTarget
-	2,  // 5: temporal.server.api.testpilot.v1.InvokeRPC.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
-	4,  // 6: temporal.server.api.testpilot.v1.InvokeRPC.response_projections:type_name -> temporal.server.api.testpilot.v1.ResponseProjection
-	17, // 7: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	17, // 8: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	18, // 9: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionRef
-	17, // 10: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	4,  // 4: temporal.server.api.testpilot.v1.ResponseProjection.targets:type_name -> temporal.server.api.testpilot.v1.ProjectionTarget
+	3,  // 5: temporal.server.api.testpilot.v1.InvokeRPC.request_assignments:type_name -> temporal.server.api.testpilot.v1.RequestAssignment
+	5,  // 6: temporal.server.api.testpilot.v1.InvokeRPC.response_projections:type_name -> temporal.server.api.testpilot.v1.ResponseProjection
+	20, // 7: temporal.server.api.testpilot.v1.CompleteNexusOperation.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	20, // 8: temporal.server.api.testpilot.v1.StartNexusOperation.input:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	21, // 9: temporal.server.api.testpilot.v1.AwaitInstruction.instruction:type_name -> temporal.server.api.testpilot.v1.InstructionRef
+	20, // 10: temporal.server.api.testpilot.v1.Finish.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
 	1,  // 11: temporal.server.api.testpilot.v1.RespondNexus.kind:type_name -> temporal.server.api.testpilot.v1.NexusResponseKind
-	17, // 12: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	6,  // 13: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRPC
-	7,  // 14: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
-	8,  // 15: temporal.server.api.testpilot.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.testpilot.v1.CompleteNexusOperation
-	9,  // 16: temporal.server.api.testpilot.v1.Instruction.start_nexus_operation:type_name -> temporal.server.api.testpilot.v1.StartNexusOperation
-	10, // 17: temporal.server.api.testpilot.v1.Instruction.await_outcome:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
-	11, // 18: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
-	12, // 19: temporal.server.api.testpilot.v1.Instruction.respond_nexus:type_name -> temporal.server.api.testpilot.v1.RespondNexus
-	18, // 20: temporal.server.api.testpilot.v1.InstructionDefinition.dependencies:type_name -> temporal.server.api.testpilot.v1.InstructionRef
-	17, // 21: temporal.server.api.testpilot.v1.InstructionDefinition.guard:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
-	13, // 22: temporal.server.api.testpilot.v1.InstructionDefinition.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
-	19, // 23: temporal.server.api.testpilot.v1.InstructionDefinition.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
-	5,  // 24: temporal.server.api.testpilot.v1.InstructionDefinition.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
-	14, // 25: temporal.server.api.testpilot.v1.InstructionDefinition.activation_reservations:type_name -> temporal.server.api.testpilot.v1.ActivationReservationDefinition
-	26, // [26:26] is the sub-list for method output_type
-	26, // [26:26] is the sub-list for method input_type
-	26, // [26:26] is the sub-list for extension type_name
-	26, // [26:26] is the sub-list for extension extendee
-	0,  // [0:26] is the sub-list for field type_name
+	20, // 12: temporal.server.api.testpilot.v1.RespondNexus.result:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	2,  // 13: temporal.server.api.testpilot.v1.InjectFault.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	2,  // 14: temporal.server.api.testpilot.v1.FaultInjected.kind:type_name -> temporal.server.api.testpilot.v1.FaultKind
+	7,  // 15: temporal.server.api.testpilot.v1.Instruction.invoke_rpc:type_name -> temporal.server.api.testpilot.v1.InvokeRPC
+	8,  // 16: temporal.server.api.testpilot.v1.Instruction.await_slot:type_name -> temporal.server.api.testpilot.v1.AwaitSlot
+	9,  // 17: temporal.server.api.testpilot.v1.Instruction.complete_nexus_operation:type_name -> temporal.server.api.testpilot.v1.CompleteNexusOperation
+	10, // 18: temporal.server.api.testpilot.v1.Instruction.start_nexus_operation:type_name -> temporal.server.api.testpilot.v1.StartNexusOperation
+	11, // 19: temporal.server.api.testpilot.v1.Instruction.await_outcome:type_name -> temporal.server.api.testpilot.v1.AwaitInstruction
+	12, // 20: temporal.server.api.testpilot.v1.Instruction.finish:type_name -> temporal.server.api.testpilot.v1.Finish
+	13, // 21: temporal.server.api.testpilot.v1.Instruction.respond_nexus:type_name -> temporal.server.api.testpilot.v1.RespondNexus
+	14, // 22: temporal.server.api.testpilot.v1.Instruction.inject_fault:type_name -> temporal.server.api.testpilot.v1.InjectFault
+	21, // 23: temporal.server.api.testpilot.v1.InstructionDefinition.dependencies:type_name -> temporal.server.api.testpilot.v1.InstructionRef
+	20, // 24: temporal.server.api.testpilot.v1.InstructionDefinition.guard:type_name -> temporal.server.api.testpilot.v1.ProgramExpression
+	16, // 25: temporal.server.api.testpilot.v1.InstructionDefinition.instruction:type_name -> temporal.server.api.testpilot.v1.Instruction
+	22, // 26: temporal.server.api.testpilot.v1.InstructionDefinition.outcome:type_name -> temporal.server.api.testpilot.v1.InstructionOutcomeDefinition
+	6,  // 27: temporal.server.api.testpilot.v1.InstructionDefinition.limits:type_name -> temporal.server.api.testpilot.v1.InstructionLimits
+	17, // 28: temporal.server.api.testpilot.v1.InstructionDefinition.activation_reservations:type_name -> temporal.server.api.testpilot.v1.ActivationReservationDefinition
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_temporal_server_api_testpilot_v1_instruction_proto_init() }
@@ -1253,7 +1456,7 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 		(*ProjectionTarget_SlotId)(nil),
 		(*ProjectionTarget_ObservationId)(nil),
 	}
-	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[11].OneofWrappers = []any{
+	file_temporal_server_api_testpilot_v1_instruction_proto_msgTypes[13].OneofWrappers = []any{
 		(*Instruction_InvokeRpc)(nil),
 		(*Instruction_AwaitSlot)(nil),
 		(*Instruction_CompleteNexusOperation)(nil),
@@ -1261,14 +1464,15 @@ func file_temporal_server_api_testpilot_v1_instruction_proto_init() {
 		(*Instruction_AwaitOutcome)(nil),
 		(*Instruction_Finish)(nil),
 		(*Instruction_RespondNexus)(nil),
+		(*Instruction_InjectFault)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc), len(file_temporal_server_api_testpilot_v1_instruction_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   14,
+			NumEnums:      3,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

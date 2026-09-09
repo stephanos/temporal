@@ -202,7 +202,7 @@ func (e *Evaluator) checkEvent(event *testpilotspb.RunEvent) (map[string]*testpi
 	if e.sequence == 0 && (event.Kind != testpilotspb.RUN_EVENT_KIND_RUN_OPENED || event.ElapsedMilliseconds != 0) {
 		return nil, invalid(ir.Malformed, "Run must open at elapsed zero")
 	}
-	if event.Kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || event.Kind > testpilotspb.RUN_EVENT_KIND_DIAGNOSTIC || (e.sequence > 0 && event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_OPENED) {
+	if event.Kind < testpilotspb.RUN_EVENT_KIND_RUN_OPENED || event.Kind > ir.MaxRunEventKind || (e.sequence > 0 && event.Kind == testpilotspb.RUN_EVENT_KIND_RUN_OPENED) {
 		return nil, invalid(ir.Malformed, "invalid lifecycle event")
 	}
 	if err := ir.CheckSurface(event, ir.DefaultLimits()); err != nil {
@@ -350,6 +350,10 @@ func eventValue(event *testpilotspb.RunEvent, field testpilotspb.RunEventField) 
 		text = event.Coordinates.GetInstructionId()
 	case testpilotspb.RUN_EVENT_FIELD_SOURCE_ID:
 		text = event.SourceId
+	case testpilotspb.RUN_EVENT_FIELD_FAULT_ROLE_ID:
+		text = event.GetFaultInjected().GetRoleId()
+	case testpilotspb.RUN_EVENT_FIELD_FAULT_KIND:
+		return &testpilotspb.Value{Value: &testpilotspb.Value_EnumValue{EnumValue: &testpilotspb.EnumValue{Number: int32(event.GetFaultInjected().GetKind())}}}
 	default:
 		return nil
 	}

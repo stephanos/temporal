@@ -180,21 +180,25 @@ const (
 	RUN_EVENT_FIELD_ATTEMPT              RunEventField = 7
 	RUN_EVENT_FIELD_SOURCE_ID            RunEventField = 8
 	RUN_EVENT_FIELD_RUN_ID               RunEventField = 9
+	RUN_EVENT_FIELD_FAULT_ROLE_ID        RunEventField = 10
+	RUN_EVENT_FIELD_FAULT_KIND           RunEventField = 11
 )
 
 // Enum value maps for RunEventField.
 var (
 	RunEventField_name = map[int32]string{
-		0: "RUN_EVENT_FIELD_UNSPECIFIED",
-		1: "RUN_EVENT_FIELD_SEQUENCE",
-		2: "RUN_EVENT_FIELD_ELAPSED_MILLISECONDS",
-		3: "RUN_EVENT_FIELD_KIND",
-		4: "RUN_EVENT_FIELD_ENTRYPOINT_ID",
-		5: "RUN_EVENT_FIELD_ACTIVATION_ID",
-		6: "RUN_EVENT_FIELD_INSTRUCTION_ID",
-		7: "RUN_EVENT_FIELD_ATTEMPT",
-		8: "RUN_EVENT_FIELD_SOURCE_ID",
-		9: "RUN_EVENT_FIELD_RUN_ID",
+		0:  "RUN_EVENT_FIELD_UNSPECIFIED",
+		1:  "RUN_EVENT_FIELD_SEQUENCE",
+		2:  "RUN_EVENT_FIELD_ELAPSED_MILLISECONDS",
+		3:  "RUN_EVENT_FIELD_KIND",
+		4:  "RUN_EVENT_FIELD_ENTRYPOINT_ID",
+		5:  "RUN_EVENT_FIELD_ACTIVATION_ID",
+		6:  "RUN_EVENT_FIELD_INSTRUCTION_ID",
+		7:  "RUN_EVENT_FIELD_ATTEMPT",
+		8:  "RUN_EVENT_FIELD_SOURCE_ID",
+		9:  "RUN_EVENT_FIELD_RUN_ID",
+		10: "RUN_EVENT_FIELD_FAULT_ROLE_ID",
+		11: "RUN_EVENT_FIELD_FAULT_KIND",
 	}
 	RunEventField_value = map[string]int32{
 		"RUN_EVENT_FIELD_UNSPECIFIED":          0,
@@ -207,6 +211,8 @@ var (
 		"RUN_EVENT_FIELD_ATTEMPT":              7,
 		"RUN_EVENT_FIELD_SOURCE_ID":            8,
 		"RUN_EVENT_FIELD_RUN_ID":               9,
+		"RUN_EVENT_FIELD_FAULT_ROLE_ID":        10,
+		"RUN_EVENT_FIELD_FAULT_KIND":           11,
 	}
 )
 
@@ -241,6 +247,10 @@ func (x RunEventField) String() string {
 		// Deprecated: Use RunEventField.Descriptor instead.
 		RUN_EVENT_FIELD_RUN_ID:
 		return "RunId"
+	case RUN_EVENT_FIELD_FAULT_ROLE_ID:
+		return "FaultRoleId"
+	case RUN_EVENT_FIELD_FAULT_KIND:
+		return "FaultKind"
 	default:
 		return strconv.Itoa(int(x))
 	}
@@ -1978,7 +1988,7 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x1dCOMPARISON_OPERATOR_LESS_THAN\x10\x01\x12*\n" +
 	"&COMPARISON_OPERATOR_LESS_THAN_OR_EQUAL\x10\x02\x12$\n" +
 	" COMPARISON_OPERATOR_GREATER_THAN\x10\x03\x12-\n" +
-	")COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL\x10\x04*\xd4\x02\n" +
+	")COMPARISON_OPERATOR_GREATER_THAN_OR_EQUAL\x10\x04*\x97\x03\n" +
 	"\rRunEventField\x12\x1f\n" +
 	"\x1bRUN_EVENT_FIELD_UNSPECIFIED\x10\x00\x12\x1c\n" +
 	"\x18RUN_EVENT_FIELD_SEQUENCE\x10\x01\x12(\n" +
@@ -1989,7 +1999,10 @@ const file_temporal_server_api_testpilot_v1_expression_proto_rawDesc = "" +
 	"\x1eRUN_EVENT_FIELD_INSTRUCTION_ID\x10\x06\x12\x1b\n" +
 	"\x17RUN_EVENT_FIELD_ATTEMPT\x10\a\x12\x1d\n" +
 	"\x19RUN_EVENT_FIELD_SOURCE_ID\x10\b\x12\x1a\n" +
-	"\x16RUN_EVENT_FIELD_RUN_ID\x10\tB2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
+	"\x16RUN_EVENT_FIELD_RUN_ID\x10\t\x12!\n" +
+	"\x1dRUN_EVENT_FIELD_FAULT_ROLE_ID\x10\n" +
+	"\x12\x1e\n" +
+	"\x1aRUN_EVENT_FIELD_FAULT_KIND\x10\vB2Z0go.temporal.io/server/api/testpilot/v1;testpilotb\x06proto3"
 
 var (
 	file_temporal_server_api_testpilot_v1_expression_proto_rawDescOnce sync.Once

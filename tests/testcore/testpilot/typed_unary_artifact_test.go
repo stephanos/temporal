@@ -317,6 +317,9 @@ func (s *typedUnarySession) InvokeRPC(_ context.Context, coordinate testpilot.Co
 func (*typedUnarySession) InvokeCapability(context.Context, testpilot.Coordinate, testpilot.OpaqueCapability, proto.Message) (testpilot.EffectHandle, error) {
 	return &artifactEffect{result: succeededResult(nil)}, nil
 }
+func (*typedUnarySession) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	return nil, temporal.ErrInvalid
+}
 func (*typedUnarySession) Bridge(context.Context) (testpilot.CapabilityBridge, error) {
 	return nil, temporal.ErrInvalid
 }
