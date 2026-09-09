@@ -40,12 +40,18 @@ declared window of semantic transitions. A run that has only been scheduled is u
 completion that arrives after the window closes is violated -- neither answer is manufactured from
 a synthetic deadline.
 
-The Contract the Case carries is derived, not restated: every field a monitor rule reads is
-`Umpire.Case.Observed.pathOf` applied to the same `PropertyFieldPath` the model Property compares,
-and the operation each rule matches is one of the two the model declares. The declared Observation
-carries one history event, so a model presence fact about the response wrapper around that event
-has no derived read path and no runtime counterpart, while a presence fact about a oneof inside the
-event derives into exactly the presence the rule checks.
+The Contract the Case carries reads exactly the fields the authored requirement names: every field
+path in a monitor rule is `Umpire.Case.Observed.pathOf` applied to the same `PropertyFieldPath` the
+model Property compares, so editing a coordinate moves the runtime read with it. The rule structure
+around those paths -- its states, its capture, the presence checks over the derived value paths and
+the operation literal each rule matches -- is authored here. The declared Observation carries one
+history event, so a model coordinate that only walks the response wrapper around that event has no
+derived read path at all.
+
+The bounded-response clause has no runtime counterpart in this Case: the Driver evaluates a scoped
+capability only from declared `ScopedEvidence` Observations, which no instruction of this Program
+emits. The window is therefore model-only, and the Case declares that as a Known Gap rather than
+letting its provenance imply an online reading it does not have.
 -/
 
 namespace Temporal.Feature.Nexus3.TypedNexus
@@ -454,7 +460,12 @@ private def capturedOperationIs (operation : String) : PropertyPredicate :=
 
 /-- The Link. A step belongs to this operation only when the identity the operation retained at its
 own scheduling is one of the two identities the model declares. The scheduling disjunct decides the
-step that creates occurrence zero, which therefore never has to read it. -/
+step that creates occurrence zero, which therefore never has to read it.
+
+The admitted set is the two declared identities, not this operation's own: a correlation operand
+cannot name the scope key, so an operation keyed `complete` whose scheduled evidence recorded
+`confirm` still satisfies the Link and is caught by the authored field requirement instead. The
+runtime rules are per-identity and reject it outright; `Tests/TypedNexus.lean` pins both answers. -/
 def declaredOperationIdentity : PropertyPredicate :=
   .any (selects scheduleActionId :: operationCases.map fun entry => capturedOperationIs entry.operation)
 
@@ -745,6 +756,17 @@ rather than the shared single-capture one; every other bound is the shared Contr
 def typedNexusContractLimits : ContractLimits :=
   { contractLimits with max_capture_bytes := 65536 }
 
+/-- The bounded-response clause is checked, fingerprinted and evaluated in the model, but the
+Driver reads a scoped capability only from declared `ScopedEvidence` Observations and no
+instruction of this Program emits one. The Case says so rather than letting the recorded Property
+imply an online window. -/
+private def modelOnlyWindow (link : CheckedProperty) : Umpire.Case.CaseKnownGap :=
+  { kind := .interpretation
+    code := "temporal.nexus3.typed-nexus.bounded-completion-is-model-only"
+    subject := some link.id.value
+    detail := some ("the bounded-response window is evaluated in the model only; this Case emits " ++
+      "no ScopedEvidence Observation for a runtime scoped capability to read") }
+
 private def loweringError (definitionId construct : String) : Umpire.Case.Compiler.LoweringError :=
   { sourceDefinitionId := definitionId, source, construct }
 
@@ -771,7 +793,7 @@ def typedNexusCase : Except Umpire.Case.Compiler.LoweringError
       requirementBinding,
       binding model.link.id.value model.link.behaviorFingerprint.render .«property»]
     sources := [source]
-    knownGaps := []
+    knownGaps := [modelOnlyWindow model.link]
     program := program (methodPath start.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-nexus.contract"
     properties := rules.map (.monitor requirementBinding)
