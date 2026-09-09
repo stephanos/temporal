@@ -6,28 +6,7 @@ this document records delivery order. Architecture and terminology live in the
 
 ## Current work
 
-### 1. Typed operations and field-level Properties — fn-77
-
-[fn-77 — Typed operations, parameterized Actions, and field-level Properties](../.flow/specs/fn-77-typed-operations-parameterized-actions.md)
-adds direct generated API references, typed SDK-command/event declarations, modeled request/result
-values, and cross-field/cross-occurrence requirements. Product assertions remain in checked models;
-integration owns faithful execution, observation, and correlation.
-
-Eleven tasks are defined with a SHIP plan review. They consume the delivered semantic and scoped
-monitoring interfaces; Nexus operation cancellation remains deferred to fn-79.
-
-| Stage                          | Deliver                                                                                               | Order                                                       |
-| ------------------------------ | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| O1 — Operation/value contracts | Typed references, exact supported field values, and explicit fidelity limits.                         | Uses delivered fn-75 semantics.                            |
-| O2 — Parameterized semantics   | Action/outcome arguments, field expressions/captures, finite domains, and independent Properties.     | After O1; supplies parameterized DSL authoring.             |
-| O3 — Checked concrete lowering | Typed request construction, result projections, clause coverage, and field-expression correspondence. | After O2; uses delivered fn-71/fn-72/fn-78 interfaces.     |
-| O4 — Field-level qualification | Unary RPC and workflow-owned Nexus examples, field mutations, and real Driver evidence.               | After O3; temporal Nexus qualification also uses DSL D3/D4. |
-
-Keep this off the first-canary critical path. Field lowering composes with fn-78's delivered scoped
-temporal lowering. Share value/capture contracts across these owners rather than creating two
-representations. Tasks with overlapping source files run serially without artificial dependencies.
-
-### 2. Close the model-to-Case seam — fn-80
+### 1. Close the model-to-Case seam — fn-80
 
 [fn-80 — Close the model-to-Case seam and harden](../.flow/specs/fn-80-close-the-model-to-case-seam-and-harden.md),
 derived from the 2026-09-08 assessment against [UMPIRE4_VISION](UMPIRE4_VISION.md). The assessment
@@ -44,21 +23,35 @@ where today only labeled intent exists (R4), Profile derivation and a runner hel
 line cost of running a Case from Go (R5), the discarded recorder close error (R6), and gates plus
 the axiom baseline (R7).
 
-Nine tasks are defined with a SHIP plan review. Task .4 is the declared early proof point: if the
-shipped success Property cannot lower through the scoped path, re-evaluate before starting R2 and
-R8. Everything except .4 is ready now; .4 is blocked.
+Nine tasks are defined with a SHIP plan review. Progress: .1 done (`rule_events` horizon and the
+hardened retired-vocabulary gate); .4 blocked, see below; the rest in flight or ready.
 
-Sequencing within the spec is partly bound to fn-77. Task fn-77.8 already landed the whole-Case
-coverage modules R1 consumes. R1 and R5 serialize behind **fn-77.10**, which rewrites the Nexus3
-Producer, the async-nexus fixture bytes, and the live test — starting earlier means a byte conflict
-on regenerated fixtures. R3, R4, and R6 touch none of those files and are startable now; R2 and R8
-follow R1 so both edit the Nexus3 test module in one order.
+**fn-77 is complete, so the ordering constraint on this spec is gone.** R1 and R5 had serialized
+behind fn-77.10 to avoid a byte conflict on regenerated fixtures; that conflict no longer exists.
+
+**Task .4, the early proof point, is blocked — and the finding matters beyond this spec.** R1 wants
+the shipped async-nexus Case to carry `contract.scoped`, drop its hand-written correlated-history
+monitor rule, and still be satisfied live. Those three cannot hold together today: `bindScoped`
+refuses any Case whose `Contract.scoped` names an `evidence_observation_id` that is not a Program
+Observation typed exactly `ScopedEvidence`, no version-one `Instruction` can produce that value
+(`run.proto:125` states it is supplied only through the capability's declared typed Observation),
+and a scoped clause receiving zero evidence answers SATISFIED **vacuously** — so forcing it through
+would convert a real regression test into a hollow one.
+
+The spec's stop-condition asked whether the scoped clause form can carry state, outcome, and fact
+predicates. It can: the three success clauses are expressible as `bounded_response%` clauses sharing
+an `awaitSuccess` trigger. The blocker is the evidence path, not the clause form, so R2 and R8 are
+unaffected and stay startable. This is the same gap fn-77 closed out as
+`bounded-completion-is-model-only`, now reached from the other side; it needs a
+`ScopedEvidence`-emitting projection. R1's own product defect — the clause-for-clause equality gate
+in `produceCompletionCase` that turns a model edit into a lowering error — is separable and worth
+closing without the evidence path.
 
 Boundaries worth carrying forward: no canary Profile or production authorization (fn-70, fn-29 own
 those), no Nexus cancellation lowering (fn-79, deferred), no second fault kind, and no removal of
 `elapsed_milliseconds`.
 
-### 3. Delete the pre-Testpilot Go generations — fn-81
+### 2. Delete the pre-Testpilot Go generations — fn-81
 
 [fn-81 — Delete the pre-Testpilot Go generations](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md),
 a mechanical deletion sweep from the same 2026-09-08 assessment. Nothing here changes modeled
@@ -90,7 +83,7 @@ since live modules import them and fn-22, fn-33, fn-79, and fn-80 reserve them; 
 decision rather than a sweep. `tools/fairsim`, `cmd/tools/fairsim`, and fn-66's `tools/planindex`
 also stay. Task .5 owns the roadmap reconciliation under R7, so it will edit this document.
 
-### 4. Unify the Umpire and Testpilot vocabulary — fn-82
+### 3. Unify the Umpire and Testpilot vocabulary — fn-82
 
 [fn-82 — Unify the Umpire and Testpilot vocabulary](../.flow/specs/fn-82-unify-the-umpire-and-testpilot.md),
 from the 2026-09-08 vocabulary investigation of `model/`, the Testpilot protocol, and the Go facade.
@@ -167,6 +160,23 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Completed cutovers
 
+- [fn-77](../.flow/specs/fn-77-typed-operations-parameterized-actions.md): delivered typed generated
+  operation references, parameterized Actions over finite and runtime domains, and field-level
+  Properties with keyed captures, portable capture evaluation, and checked Case coverage. Qualified
+  on the real Driver by two examples — a generated unary operation and two Nexus SDK operations with
+  captured field relations. All thirteen tasks and the completion review are SHIP; nine of nine
+  R-IDs covered with none unaddressed. Two tasks were added mid-spec: `.12` bounded a
+  parameterized-operation identity that encoded the whole generated `RpcSchema` (27.7M characters
+  per payload key, making qualification infeasible) down to ~4.4K under a `parameterized-v2-`
+  migration, and `.13` derived the unary example's Contract read path from its Property so the two
+  examples share one R8 mechanism. Trust comparison against the task `.1` substrate shows no
+  unexplained inventory loss and no axiom beyond `propext`/`Classical.choice`/`Quot.sound`; 204 of
+  208 frozen fixtures are byte-identical. `go vet ./...` is clean at zero and Go lint added nothing
+  to the inherited 1,284; the two `lint-model` findings this spec introduced were fixed, leaving 169
+  in generated `Temporal/API` only. Known Gap `bounded-completion-is-model-only` remains: the scoped
+  bounded-response clause is proven portable in Lean and Go but does not run on the real Driver,
+  because no Program emits a `ScopedEvidence` Observation. Reviews from task `.9` onward ran on the
+  same-family `claude` backend after both cross-family bridges ran out of budget.
 - [fn-76](../.flow/specs/fn-76-make-lean-semantic-inventory-consume.md): moved shared outcome and
   Known Gap contracts to semantic owners and enforced inventory dependency direction. Preserved
   generated inventory, canonical fixtures, and proof trust; all tasks and completion review are SHIP.
