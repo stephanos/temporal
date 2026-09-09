@@ -51,9 +51,9 @@ message ContractTransitionDefinition {
 // reaches it; that coordinate is derived from the recording host's clock, so a bound
 // expressed in it is host-clock dependent.
 // rule_events expires the rule after that many Run Events were evaluated by the rule since
-// its last transition into a new state. The counter resets on each such transition, keeps
-// counting while execution is incomplete (expiry stays suppressed there), and stops once
-// the rule reaches a terminal state.
+// its last transition into a new state. The counter resets on each such transition and stops
+// once the rule reaches a terminal state. It also freezes, with every other rule effect, once
+// execution becomes incomplete, so no expiry is ever concluded from a truncated Run.
 message ContractHorizonDefinition {
   int64 elapsed_milliseconds = 1;
   string violation_state_id = 2;
