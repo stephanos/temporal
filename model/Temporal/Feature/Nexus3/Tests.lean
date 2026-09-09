@@ -434,6 +434,45 @@ private def identityFingerprintCheck : Option Bool := do
 theorem identityAndFingerprintStability : identityFingerprintCheck = some true := by
   native_decide
 
+/-- Dropping one checked `require` clause leaves a Property every witness step still carries, so it
+lowers to different Case bytes rather than rejecting. -/
+private def fewerClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
+  Authoring.withClauses (successfulResult values) (successfulResult values).clauses.tail
+
+#guard (do
+  let checked ← admitted
+  let fewer ← checkedPropertyOf (fewerClauses checked.vocabulary)
+  pure (differsFromCompletionCase (produceWith (property? := some fewer)))) == some true
+
+/-- A witness recording only the start step carries only clauses about that step. -/
+private def startClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
+  Authoring.withClauses (successfulResult values) <| transitionResultClauses Authoring.family
+      "successfulResult" values.awaitStartAction values.startedState values.acknowledgedOutcome
+      values.startedFact
+
+private def startedOnlyWitness? : Option BehaviorTrace := admitted.map fun checked =>
+  { checked.witness with trace := {
+      checked.witness.trace with steps := checked.witness.trace.steps.take 1 } }
+
+/- A one-Fact witness derives a two-stage chain whose single correlated stage is the satisfied
+state, so the terminal status follows the chain rather than a fixed state name. -/
+#guard (do
+  let checked ← admitted
+  let started ← checkedPropertyOf (startClauses checked.vocabulary)
+  match produceWith (property? := some started) (witness? := startedOnlyWitness?) with
+  | .ok output =>
+      match output.contract.map (·.rules.toList) with
+      | some [rule] =>
+          pure (rule.states.toList.map (·.state_id) ==
+              ["pending", "scheduled-correlated", "started-correlated"] &&
+            rule.states.toList.map (·.status) ==
+              [.CONTRACT_STATE_STATUS_NONTERMINAL, .CONTRACT_STATE_STATUS_NONTERMINAL,
+                .CONTRACT_STATE_STATUS_SATISFIED] &&
+            rule.transitions.toList.map (·.transition_id) ==
+              ["capture-scheduled-event", "match-started-reference"])
+      | _ => pure false
+  | .error _ => pure false) == some true
+
 /-- A clause no step of the selected witness carries rejects by clause name rather than lowering a
 rule that nothing establishes. -/
 private def unexpressibleClauseRejection : Option Bool := do
