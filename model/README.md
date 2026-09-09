@@ -130,6 +130,76 @@ source is a controlled qualification fixture, not a production Implementation Li
 Nexus3 success integration remains the live Temporal demonstration. Nexus operation cancellation
 Targets, adapters, capabilities, and Cases are explicitly deferred to fn-79.
 
+### Typed operation authoring
+
+An author who needs to name a concrete API operation and relate its fields references the generated
+declaration rather than a method string. `Temporal.API.bindUnary` admits a candidate schema only
+against the generator's own selection for that method, so a wrong-method pairing, a forged request
+or response closure, and an unsupported streaming shape each reject with their own diagnostic.
+`Umpire.Operation.ActionTemplate` carries the admitted binding, and `ParameterDomain.check` admits
+an explicit list of exact request values as parameterized Action instances. Selecting an Action
+never selects its outcome: the authoritative Target still owns which result each instance admits.
+
+Two claims are declared separately and reported separately.
+
+- The **finite domain** is exactly the authored list, under a `ParameterCoverage` of `.sampled`
+  (representative cases) or `.fixed` (one exact value). An `.abstracted` claim rejects, because no
+  transition and Property preservation evidence exists for it. Ten samples are still ten samples;
+  enlarging the list never turns a sample into an exhaustive claim.
+- The **runtime admission scope** is a separate `RuntimeScope`. `.samplesOnly` admits nothing the
+  finite domain did not list; `.schema bounds` admits any value inside its own declared depth, byte
+  and collection bounds. A value past those bounds is reported `outOfScope`, which is a different
+  answer from the checker exhausting its own resource ceiling — that one is owned by the value
+  layer. Neither answer enlarges the finite claim.
+
+Field operands read the exact schema-defined value, not a summary of it. Supported forms are nested
+message access, implicit- and explicit-presence reads, oneof selection, enum values, repeated index
+and cardinality, keyed map lookup, concrete bytes, and the integer kinds the descriptor declares.
+Two byte strings of equal length stay distinguished, an absent map key is absent rather than an
+empty default, and presence follows the descriptor rather than the author's expectation. Unsupported
+forms reject with the responsible field and reason rather than substituting an approximation:
+floating-point comparison rejects (`unsupported floating-point evaluation`) while its metadata stays
+discoverable, a recursive value past its declared depth is incomplete rather than an empty subtree,
+an integer outside its declared range rejects before protobuf lowering, and a closed enum value the
+descriptor does not name rejects while an open enum retains its unknown number.
+
+A Property relates those operands. Same-step clauses compare the selected Action's own immutable
+request against the modeled result and resulting state; cross-step clauses bind a named earlier
+occurrence under an explicit operation key and compare the captured value. Unmentioned fields are
+unconstrained: a partial conjunction is not an exhaustive field contract. Missing evidence never
+satisfies a comparison — it is rejected or left unresolved.
+
+Lowering is checked in both directions before any Driver I/O. `Umpire.Case.Coverage` binds each
+modeled input field to the exact request assignment that constructs it, so a Program that stopped
+constructing a covered field rejects the whole Case; `Umpire.Case.Observed.pathOf` derives the
+runtime read path of a modeled operand from the declared Observation's own message, so moving a
+coordinate in the Property moves the runtime read with it.
+
+Two authored examples carry this end to end:
+
+- [`Temporal/Feature/Nexus3/TypedUnary.lean`](Temporal/Feature/Nexus3/TypedUnary.lean) references the
+  generated `StartWorkflowExecution` and requires the submitted nested `workflow_type.name` to equal
+  the workflow type the `WorkflowExecutionStarted` event records, read through the generated
+  `GetWorkflowExecutionHistory` response schema. Its derived rule reports all three answers: an
+  agreeing recorded type is satisfied, a disagreeing one is violated, and an event that never
+  establishes the field leaves the rule pending.
+- [`Temporal/Feature/Nexus3/TypedNexus.lean`](Temporal/Feature/Nexus3/TypedNexus.lean) runs two
+  workflow-owned Nexus SDK operations in one Case, each retaining its own scheduled evidence under
+  its own operation key, and requires a completion to reference the scheduled event its own
+  operation was scheduled at.
+
+Environment binding stays outside the model. Namespaces, task queues and named Nexus endpoints are
+symbolic in the Program and supplied by the Profile; a semantic relationship that involves one is
+declared in the model and preserved under binding. Nexus operation cancellation commands,
+confirmation, and resolution are not modeled here and remain deferred to fn-79.
+
+Known Gaps disclose what a Case does not check; they never waive a requested clause. The
+two-operation Nexus Case records two: its bounded-response window is evaluated in the model only,
+because no instruction of that Program emits the `ScopedEvidence` Observation a runtime scoped
+capability would read; and a completion referencing another scheduled event leaves its rule pending
+rather than violated, because a completed history event carries no operation identity and
+separating the two would need a correlation condition the model never declared.
+
 Lean syntax used by the walkthrough:
 
 - `:=` defines a value; `{ base with field := value }` makes a record update.

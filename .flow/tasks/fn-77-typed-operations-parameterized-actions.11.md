@@ -41,6 +41,16 @@ Read the full parent spec. Preserve existing comments and unrelated dirty source
 `go test` in this checkout needs `CC=/usr/bin/cc`: mise's lean4 clang shadows the toolchain and cgo
 fails with `stddef.h not found`. Every Go gate on this branch needs it.
 
+### Follow-ups inherited from task .10's review
+Two P3s were left open by .10 and land here if its acceptance reaches them:
+- `TypedNexusProfile` and the live-binding setup duplicate their async-nexus counterparts and want
+  one shared builder.
+- The Link admits any *declared* identity, because a correlation operand cannot name the scope key.
+  A crossed-but-declared identity is separated by the field requirement and by the per-identity
+  runtime rules instead; both answers are pinned by `#guard`.
+
+Task .9's `violated`-state P3 below was offered to .10 and declined there, so it is this task's.
+
 ### Follow-up inherited from task .9
 The runtime rule carries only `pending` and `satisfied`, so a started event recording a different
 workflow type leaves the rule inconclusive where the model Property distinguishes violated from
