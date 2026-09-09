@@ -242,6 +242,7 @@ func workflowBinding(request proto.Message) (workerhost.WorkflowBinding, error) 
 func (s *compositeSession) InvokeCapability(ctx context.Context, coordinate testpilot.Coordinate, capability testpilot.OpaqueCapability, value proto.Message) (testpilot.EffectHandle, error) {
 	return s.controller.InvokeCapability(ctx, coordinate, capability, value)
 }
+
 // A fault is a worker-lifecycle outage, so it is the worker Session's to realize; a Program with
 // no worker use has no worker Session and no queue to stop.
 func (s *compositeSession) InjectFault(ctx context.Context, coordinate testpilot.Coordinate, roleID string, kind testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
