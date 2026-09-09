@@ -2,12 +2,3 @@
 go = "1.27.0"
 "github:leanprover/lean4" = "4.33.1"
 protoc = "29.5"
-
-[tasks."umpire:install-tools"]
-description = "Install the pinned Umpire formal-verification toolchain"
-run = "./develop/umpire/install-tools.sh"
-
-[tasks."umpire:verify-smoke"]
-description = "Install the Umpire toolchain and run smoke verification"
-depends = ["umpire:install-tools"]
-run = ". .bin/umpire-tools/env && make umpire-verify-smoke"
