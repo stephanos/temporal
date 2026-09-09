@@ -55,6 +55,25 @@ const (
 // reuses it rather than restating a literal a new instruction would silently invalidate.
 const MaxCapability = InjectFault
 
+// InstructionCapability is the capability one declared instruction requires, or zero when the
+// instruction is unset or outside the version-one table. Callers deriving a Profile from a Case
+// read it rather than restating the mapping.
+func InstructionCapability(instruction *testpilotspb.Instruction) Capability {
+	return Capability(execution.InstructionOpcode(instruction))
+}
+
+// CheckMethod reports whether this catalog admits one unary gRPC method by its full path.
+// Rejections expose *PreparationError through errors.As.
+func (c *Catalog) CheckMethod(name string) error {
+	if c == nil || c.catalog == nil {
+		return preparationError(errors.New("catalog is required"), "catalog")
+	}
+	if _, err := c.catalog.Method(name); err != nil {
+		return preparationError(err, "catalog")
+	}
+	return nil
+}
+
 type RolePolicy struct {
 	ID                  string
 	Kind                testpilotspb.RoleKind
