@@ -53,21 +53,25 @@ macro "model" name:ident "role" role:ident
         declaration := $key
         roleName := $roleKey
         setup := $setupKey
-        scheduledState := $scheduledKey
-        startedState := $startedKey
-        succeededState := $succeededKey
-        awaitStartAction := $awaitStartKey
-        awaitSuccessAction := $awaitSuccessKey
-        acknowledgedOutcome := $acknowledgedKey
-        completedOutcome := $completedKey
-        startedFact := $startedFactKey
-        succeededFact := $succeededFactKey
-        startRelation := $startRelationKey
-        successRelation := $successRelationKey
+        states := [$scheduledKey, $startedKey, $succeededKey]
+        actions := [$awaitStartKey, $awaitSuccessKey]
+        outcomes := [$acknowledgedKey, $completedKey]
+        facts := [$startedFactKey, $succeededFactKey]
       }
-        ($setupScheduled) ($stateScheduled) ($stateStarted) ($stateSucceeded)
-        ($actionAwaitStart) ($actionAwaitSuccess) ($outcomeAcknowledged) ($outcomeCompleted)
-        ($factStarted) ($factSucceeded) (by exact ⟨rfl, rfl, rfl⟩))
+        ($setupScheduled)
+        [($stateScheduled), ($stateStarted), ($stateSucceeded)]
+        [($actionAwaitStart), ($actionAwaitSuccess)]
+        [($outcomeAcknowledged), ($outcomeCompleted)]
+        [($factStarted), ($factSucceeded)]
+        [($stateScheduled)] [($stateSucceeded)]
+        [{ key := $startRelationKey, source := ($stateScheduled), action := ($actionAwaitStart),
+            results := [Authoring.successResult ($outcomeAcknowledged) ($stateStarted)
+              ($factStarted)] },
+          { key := $successRelationKey, source := ($stateStarted),
+            action := ($actionAwaitSuccess),
+            results := [Authoring.successResult ($outcomeCompleted) ($stateSucceeded)
+              ($factSucceeded)] }]
+        (by exact ⟨rfl, rfl, rfl⟩))
 
 macro "property" name:ident "on" modelRef:ident "for" roleRef:ident "when" "action" actionRef:ident
     "require" stateClause:ident ":" "resultingState" stateRef:ident

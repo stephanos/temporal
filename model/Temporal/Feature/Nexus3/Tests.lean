@@ -49,8 +49,8 @@ private def scopedProperty? : Option CheckedProperty := do
     scopedClauses := [{
       id := DefinitionId.of "test.scoped.unsupported-case"
       source := checked.property.source
-      trigger := .selectedActionIs checked.vocabulary.awaitSuccessAction
-      response := .modelOutcomeIs checked.vocabulary.completedOutcome
+      trigger := .selectedActionIs (checked.vocabulary.actionAt 1)
+      response := .modelOutcomeIs (checked.vocabulary.outcomeAt 1)
       scope := [DefinitionId.of "test.run"]
       key := DefinitionId.of "test.operation"
       clock := .operationTransitions
@@ -183,12 +183,12 @@ theorem checkedWitnessIsExact : admitted.map (fun checked =>
       checked.witness.trace.steps.map fun step =>
         (step.selectedAction, step.modelOutcome, step.resultingState))) =
     admitted.map (fun checked =>
-      ([⟨lifecycle.operationRoleId, checked.vocabulary.scheduledState⟩],
-        checked.vocabulary.scheduledState,
-        [(checked.vocabulary.awaitStartAction, checked.vocabulary.acknowledgedOutcome,
-            checked.vocabulary.startedState),
-          (checked.vocabulary.awaitSuccessAction, checked.vocabulary.completedOutcome,
-            checked.vocabulary.succeededState)])) := by
+      ([⟨lifecycle.operationRoleId, (checked.vocabulary.stateAt 0)⟩],
+        (checked.vocabulary.stateAt 0),
+        [((checked.vocabulary.actionAt 0), (checked.vocabulary.outcomeAt 0),
+            (checked.vocabulary.stateAt 1)),
+          ((checked.vocabulary.actionAt 1), (checked.vocabulary.outcomeAt 1),
+            (checked.vocabulary.stateAt 2))])) := by
   native_decide
 
 private def runCheck
@@ -206,30 +206,30 @@ private def invalidResultTable :=
 private def outgoingTerminalTable :=
   Authoring.withTransitions lifecycle.table <| lifecycle.table.transitions ++
     [Authoring.transitionRow "restart-after-success" State.succeeded Action.awaitStart
-      [lifecycle.startedResult]]
+      (lifecycle.resultsAt 0)]
 
 private def extraSuccessResultTable :=
   Authoring.withTransitions lifecycle.table <| lifecycle.table.transitions.map fun row =>
       if row.action == Action.awaitSuccess then
         Authoring.transitionRow row.key row.source row.action
-          [lifecycle.succeededResult, lifecycle.startedResult]
+          (lifecycle.resultsAt 1 ++ (lifecycle.resultsAt 0))
       else row
 
 private def shortenedSuccess (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
   Authoring.withOccurrences (successfulCompletion values)
     [Authoring.occurrence "successfulCompletion.completion"
-      values.awaitSuccessAction.definitionId]
+      (values.actionAt 1).definitionId]
 
 private def impossibleSuccess (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
   Authoring.withOccurrences (successfulCompletion values) [
-    Authoring.occurrence "successfulCompletion.completion" values.awaitSuccessAction.definitionId,
-    Authoring.occurrence "successfulCompletion.start" values.awaitStartAction.definitionId
+    Authoring.occurrence "successfulCompletion.completion" (values.actionAt 1).definitionId,
+    Authoring.occurrence "successfulCompletion.start" (values.actionAt 0).definitionId
   ]
 
 private def noWitnessProperty (values : Authoring.ModelVocabulary) : PropertySpec :=
   Authoring.withClauses (successfulResult values) <| transitionResultClauses Authoring.family
-      "successfulResult" values.awaitSuccessAction values.startedState values.completedOutcome
-      values.succeededFact
+      "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
+      (values.factAt 1)
 
 theorem undeclaredResultIsRejected :
     (runCheck (authoredTable := invalidResultTable)).toOption.isNone := by
@@ -240,9 +240,8 @@ theorem outgoingTerminalTransitionIsRejected :
   native_decide
 
 theorem changedSuccessRelationIsRejected :
-    Authoring.satisfiesSuccessRequirement extraSuccessResultTable.transitions
-      State.scheduled State.started Action.awaitStart Action.awaitSuccess
-      lifecycle.startedResult lifecycle.succeededResult = false ∧
+    Authoring.satisfiesTransitionRequirement extraSuccessResultTable.transitions
+      lifecycle.table.transitions = false ∧
       (runCheck (authoredTable := extraSuccessResultTable)).toOption.isNone := by
   native_decide
 
@@ -339,10 +338,8 @@ Producer no longer compares them against one expected model. -/
 
 private def modelMemberIds
     (candidate : Authoring.SuccessModel Setup State Action Outcome Fact) : List DefinitionId :=
-  [candidate.operationRoleId, candidate.scheduledStateId, candidate.startedStateId,
-    candidate.succeededStateId, candidate.awaitStartActionId, candidate.awaitSuccessActionId,
-    candidate.acknowledgedOutcomeId, candidate.completedOutcomeId, candidate.startedFactId,
-    candidate.succeededFactId, candidate.startRelationId, candidate.successRelationId]
+  candidate.operationRoleId :: (candidate.stateIds ++ candidate.actionIds ++
+    candidate.outcomeIds ++ candidate.factIds ++ candidate.relationIds)
 
 private def checkedPropertyOf (spec : PropertySpec) : Option CheckedProperty := do
   let checked ← admitted
@@ -360,7 +357,7 @@ private def reversedDefinitions : FiniteTargetDefinition :=
 
 private def malformedDefinition : FiniteTargetDefinition :=
   { lifecycle.targetDefinition with definitions := lifecycle.targetDefinition.definitions.map fun item =>
-      if item.id == lifecycle.scheduledStateId then
+      if item.id == (lifecycle.stateIdAt 0) then
         { item with id := DefinitionId.of "" }
       else item }
 
@@ -371,7 +368,7 @@ private def duplicateDefinition : FiniteTargetDefinition :=
 
 private def wrongKindDefinition : FiniteTargetDefinition :=
   { lifecycle.targetDefinition with definitions := lifecycle.targetDefinition.definitions.map fun item =>
-      if item.id == lifecycle.scheduledStateId then { item with kind := .action } else item }
+      if item.id == (lifecycle.stateIdAt 0) then { item with kind := .action } else item }
 
 private def conflictingDefinition : FiniteTargetDefinition :=
   { lifecycle.targetDefinition with definitions := lifecycle.targetDefinition.definitions ++
@@ -409,7 +406,7 @@ private def renamedIdentitiesAreCoherent : Option Bool := do
     renamed.query.id != original.query.id &&
     renamed.query.target.id == renamedLifecycle.targetId &&
     renamed.behavior.allowedActions ==
-      [renamedLifecycle.awaitStartActionId, renamedLifecycle.awaitSuccessActionId]
+      renamedLifecycle.actionIds
 
 theorem renameChangesDerivedIdentitiesCoherently : renamedIdentitiesAreCoherent = some true := by
   native_decide
@@ -419,8 +416,8 @@ private def reorderedAndDocumented (values : Authoring.ModelVocabulary) : Proper
 
 private def changedMeaning (values : Authoring.ModelVocabulary) : PropertySpec :=
   Authoring.withClauses (successfulResult values) <| transitionResultClauses Authoring.family
-      "successfulResult" values.awaitSuccessAction values.startedState values.completedOutcome
-      values.succeededFact
+      "successfulResult" (values.actionAt 1) (values.stateAt 1) (values.outcomeAt 1)
+      (values.factAt 1)
 
 private def identityFingerprintCheck : Option Bool := do
   let checked ← admitted
@@ -447,8 +444,8 @@ private def fewerClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
 /-- A witness recording only the start step carries only clauses about that step. -/
 private def startClauses (values : Authoring.ModelVocabulary) : PropertySpec :=
   Authoring.withClauses (successfulResult values) <| transitionResultClauses Authoring.family
-      "successfulResult" values.awaitStartAction values.startedState values.acknowledgedOutcome
-      values.startedFact
+      "successfulResult" (values.actionAt 0) (values.stateAt 1) (values.outcomeAt 0)
+      (values.factAt 0)
 
 private def startedOnlyWitness? : Option BehaviorTrace := admitted.map fun checked =>
   { checked.witness with trace := {
