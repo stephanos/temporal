@@ -48,9 +48,18 @@ Implements the wire and generic-runtime half of R4 plus R6. Adds the `InjectFaul
 - [ ] `Program.injectFault` exists with a `#guard`; `CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/...` passes
 
 ## Done summary
-TBD
+Added the `InjectFault` instruction, the `FaultKind` vocabulary, the `FAULT_INJECTED` Run Event kind with its `FaultInjected` payload and two `RunEventField` values, `Session.InjectFault` on both Session interfaces, controller-only admission gated on the capability and a declared task-queue role, and the R6 change that returns the recorder close error beside the Run and Verdict.
 
+Design notes for downstream tasks:
+- The Run Event carries the fault as a `FaultInjected` **message**, not two flat fields. A flat `FaultKind fault_kind` on `RunEvent` does not compile: the repo's `protogen` strips the enum-name prefix only inside the file that declares the enum, so a cross-file enum field's getter emits `FaultKind_FAULT_KIND_UNSPECIFIED`, which does not exist. Keeping the accessor in `instruction.proto` beside the enum is what makes it build.
+- The `FAULT_INJECTED` fact is gated on a succeeded outcome, so a Driver that reports the outage as not realized leaves intent, never evidence. Task .3 must therefore return a failed outcome, not a succeeded one, when a stop or resume does not happen.
+- Four hand-written event-kind ceilings collapsed into `ir.MaxRunEventKind`; three capability ceilings into `testpilot.MaxCapability` / `execution.MaxOpcode`.
+- Any `proto/internal/.../testpilot/v1/*.proto` edit re-fingerprints every typed operation (fn-77 follow-up), so `typed-nexus-case.json` and `typed-unary-case.json` were regenerated again; only `behaviorFingerprint` bytes moved and no `expected.json` changed.
+- R6's acceptance asks for a "new test"; the path is instead covered by the two existing tests that already drove a failing recorder close and now assert the returned error alongside the unchanged Run, Verdict and `close_failed` diagnostic.
+
+stage: impl-review - ran (claude backend, model claude-fable-5-1 at high) - NEEDS_WORK on round 1 (two P1s: stale Lean API artifacts, and a fault fact recorded for unrealized outages), SHIP on round 2; the round-2 P3s were also fixed
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 22809dc9f0f545aabcdd1c871e0c1c706b2f2892, 7b2a0d27730a6c4ef8e8eceef8a3963557e1b9db, f39f90f717185cf45db09b0ddbe4763a0f6aa8ad
+- Tests: CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/..., CGO_ENABLED=0 go test -tags test_dep ./tests/testcore/testpilot/..., cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make umpire-check-testpilot-protocol, make umpire-check-testpilot-authoring, make umpire-check-lean-api, make umpire-check-case-runtime-conformance, make umpire-check-semantic-inventory, make umpire-check-retired-vocabulary, make umpire-check-regression-views, make lint-model (169 findings = recorded baseline, all in generated Temporal/API/{Types,Proto}.lean), GATE_SKIPPED:live-tests:disk - make umpire-check-live-tests needs a live cluster; task .2 declares no live acceptance
 - PRs:
