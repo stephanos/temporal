@@ -15,7 +15,7 @@
   "id": "fn-82-unify-the-umpire-and-testpilot",
   "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_rounds": 1,
+  "plan_review_rounds": 2,
   "plan_review_status": "needs_work",
   "plan_reviewed_at": "2026-09-09T05:42:34.439857Z",
   "review_attempts": [
@@ -50,8 +50,19 @@
     }
   ],
   "review_hash_epoch": {},
-  "review_pending_rounds": {},
-  "review_reservations": {},
+  "review_pending_rounds": {
+    "plan": 1
+  },
+  "review_reservations": {
+    "9a7b885265934733af867789d980bd64": {
+      "artifact_sha256": "38e1fa4d2a5b9a3ba6353677c75179799f20850deaa50d4b5c0071db3a941d77",
+      "counter_scope": "plan",
+      "epoch": 0,
+      "exclusive": false,
+      "forced": false,
+      "review_type": "plan"
+    }
+  },
   "review_transport_failures": {
     "plan": 0
   },
@@ -69,5 +80,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T05:42:34.440648Z"
+  "updated_at": "2026-09-09T05:45:49.108222Z"
 }

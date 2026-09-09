@@ -69,14 +69,14 @@ The assessment that produced this document verified the following on the working
 - **Evidence over narration.** A milestone is done when its command produces the stated
   report on a clean checkout. A passing local run that depends on untracked state does not
   count.
-- **Platform.** Milestones 0 through 6 are qualified on `darwin/arm64` only. Linux is
-  milestone 7 and gates CI, never the determinism claim.
+- **Platform.** milestones F0 through F6 are qualified on `darwin/arm64` only. Linux is
+  milestone F7 and gates CI, never the determinism claim.
 - **Server source changes are allowed but bounded.** A change under `common`, `service`,
   `temporal`, or `tests/testcore` is acceptable when it isolates an optional provider behind a
   build tag or an injection seam and the default build is unchanged. A change that alters
   runtime behavior for production builds needs its own review outside this plan.
 
-## Milestone 0: decide retention
+## F0: decide retention
 
 **Outcome.** The repository either keeps Gomad v3 with a carve-out from fn-81 or drops the goal
 this document serves. Nothing below starts until this is settled, because fn-81 removes the
@@ -100,7 +100,7 @@ toolchain, the probe, and the pack in its first two commits.
 - `go build -tags 'test_dep integration' ./...` passes after the amended fn-81 lands.
 - `go run ./tools/planindex` passes with this document registered.
 
-## Milestone 1: restore the checkout
+## F1: restore the checkout
 
 **Outcome.** A developer on a clean `darwin/arm64` checkout can build the toolchain and run
 every Gomad v3 gate that exists today, and the two integration contract tests pass.
@@ -133,7 +133,7 @@ every Gomad v3 gate that exists today, and the two integration contract tests pa
 - The core qualification set reports `selected == 5`, `supported == 5`, `unsupported == 0`, and
   every workload `choice_replay_exact`.
 
-## Milestone 2: port the toolchain to go1.27.0
+## F2: port the toolchain to go1.27.0
 
 **Outcome.** The patched toolchain matches the root module's `toolchain` directive, so Temporal
 packages build under it again.
@@ -165,11 +165,11 @@ packages build under it again.
 - `tools/gomad3/.toolchain/bin/go version` reports `go1.27.0`.
 - `make -C tools/gomad3 validate-toolchain` passes.
 - The upgrade dossier reports every gate passed and the boundary diff approved or empty.
-- Milestone 1's acceptance criteria still hold on the new toolchain.
+- Milestone F1's acceptance criteria still hold on the new toolchain.
 - `make gomad3-qualification` reproduces the current Temporal corpus result of 5 supported and
   11 unsupported with the same blocker paths.
 
-## Milestone 3: qualify the existing functional probe
+## F3: qualify the existing functional probe
 
 **Outcome.** `TestFrontendSystemInfo` carries a checked determinism claim. This is the first
 functional test in the corpus and the first proof that the one-box cluster boots, serves an RPC,
@@ -184,7 +184,7 @@ and shuts down under virtual time repeatably.
   actually qualifies it. If that is `linked` or `guarded`, the manifest says so and the report's
   supported count is labelled experimental. COMPAT-6 is not complete until a real workload
   qualifies without policy widening; this probe is that workload.
-- Record transcript and choice-tape utilization for the run. These two numbers size milestone 5.
+- Record transcript and choice-tape utilization for the run. These two numbers size milestone F5.
 
 **Constraints.**
 
@@ -202,7 +202,7 @@ and shuts down under virtual time repeatably.
   dispatch.
 - The report records transcript bytes used and choice decisions recorded for the probe.
 
-## Milestone 4: close the capability closure for `./tests`
+## F4: close the capability closure for `./tests`
 
 **Outcome.** `gomad analyze --capability-mode=closure go-test ./tests` returns zero
 uncovered findings, so any test in the package can at least be prepared. This is the milestone
@@ -250,7 +250,7 @@ that turns "one probe" into "any test".
 - The eleven currently unsupported leaf cases in `temporal.json` flip to `qualified` or carry a
   blocker that is not a forbidden import.
 
-## Milestone 5: one workflow-executing functional test, deterministic
+## F5: one workflow-executing functional test, deterministic
 
 **Outcome.** A test that starts a workflow, completes a workflow task through the task poller,
 fires at least one timer, and reads history back qualifies with exact replay. This exercises
@@ -290,7 +290,7 @@ frontend, history, matching, SQLite writes, inter-service gRPC, and virtual time
 - Zero watchdog terminations and zero `GOMAD_CAPABILITY_DENIED` throws across all repetitions.
 - The suite is added to `temporal.json` as tier 3 and the CI assertion is updated.
 
-## Milestone 6: a package-level functional slice
+## F6: a package-level functional slice
 
 **Outcome.** A named slice of at least ten `./tests` suites runs through `qualify-set` and every
 suite is either qualified or classified with an exact blocker. This is where "any test"
@@ -325,7 +325,7 @@ becomes measurable instead of anecdotal.
   test bug and fixed upstream.
 - At least eight of the ten suites qualify.
 
-## Milestone 7: any functional test, and CI
+## F7: any functional test, and CI
 
 **Outcome.** The whole `./tests` package is enumerated in the qualification set, every test has
 a disposition, and the unsupported count is zero on `darwin/arm64`. A Linux bundle lets the
@@ -349,7 +349,7 @@ gate run in CI.
 - "Any test" means unsupported count zero, not expectations met. The set-level report must
   print `supported`, `unsupported`, `failed`, and `infrastructure_errors` separately, per
   COMPAT-2, and the gate reads `unsupported == 0`.
-- A test that stays unsupported after milestone 6's triage is either fixed upstream or
+- A test that stays unsupported after milestone F6's triage is either fixed upstream or
   excluded by name in the manifest with an owner and a date. Silent skips are refused.
 
 **Acceptance.**
@@ -373,7 +373,7 @@ gate run in CI.
 ## Open risks
 
 - **GC timing** is not controlled and shares the seeded runtime stream. Allocation-heavy suites
-  may diverge between repetitions for reasons no milestone above fixes. Milestone 5 measures
+  may diverge between repetitions for reasons no milestone above fixes. Milestone F5 measures
   it; a positive finding reopens the research item.
 - **Spin loops** anywhere in the cluster stall virtual time. The matching and history services
   contain pollers with backoff, which are fine, but a single `for {}` with a non-blocking
@@ -381,6 +381,6 @@ gate run in CI.
 - **Upstream Go releases** invalidate the patch and the boundary manifest each time. Milestone 2
   is the first port; every later Go bump repeats it.
 - **Compatibility packs pin exact module versions.** Every dependency bump in the root go.mod
-  that touches a packed module invalidates the pack and reopens milestone 4.
-- **Deletion pressure.** fn-81 is reviewed and ready. Until milestone 0 lands, every commit on
+  that touches a packed module invalidates the pack and reopens milestone F4.
+- **Deletion pressure.** fn-81 is reviewed and ready. Until milestone F0 lands, every commit on
   the branch can remove the code this plan depends on.
