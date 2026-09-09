@@ -42,8 +42,70 @@ Implements R2 (spec §R2). Replaces the spelling whitelists in the five-block sy
 - [ ] `lake build Temporal TemporalModelTests` and `make lint-model` pass; axiom inventory unchanged
 
 ## Done summary
-TBD
+Blocked:
+BLOCKED: SCOPE_EXCEEDED — R2 is a redesign of the Nexus3 authoring layer, not a macro edit.
 
+The task is sized **M** and its Approach reads as "delete four whitelists and elaborate over the
+parsed identifiers". The whitelists are the small half. The elaborators expand into
+`Authoring.successModel`, whose entire data model is arity-fixed at three states, two actions, two
+outcomes, two facts and two transitions, and that shape is load-bearing in three other modules.
+Generalizing it is a coordinated rewrite that cannot land half-done, and this session could not
+land it green.
+
+Exact blast radius, measured against the tree at this commit:
+
+1. `model/Temporal/Feature/Nexus3/Authoring.lean`
+   - `SuccessModelNames` (14 scalar name fields) becomes an ordered declaration: state, action,
+     outcome and fact key lists plus a transition-row list.
+   - `SuccessModel` carries 10 named value fields (`scheduledState`, `startedState`,
+     `awaitStartAction`, …) and 12 named `DefinitionId` fields (`scheduledStateId`,
+     `startRelationId`, …). All 22 become five parallel lists.
+   - `successTable`, `successModel`, `SuccessLawStatement`, `satisfiesSuccessRequirement`,
+     `hasExactTransition`, `modelVocabulary`, `propertySpec`, `behaviorSpec` and `check` are each
+     written against the fixed arity. `identity.stateId`/`actionId`/`outcomeId`/`factId` are
+     if-then-else chains over the three states / two actions and become catalog lookups with a
+     fallback.
+   - `ModelVocabulary`'s nine named fields become four ordered `ModelValue` lists.
+
+2. `model/Temporal/Feature/Nexus3/Tests.lean` (498 lines) reads the named fields in roughly 30
+   places, including inside `native_decide` theorems: `checkedWitnessIsExact` (:167-172),
+   `modelMemberIds` (:302-306), `malformedDefinition` / `wrongKindDefinition`
+   (:325-335, uses `lifecycle.scheduledStateId`), `renamedIdentitiesAreCoherent` (:376-377, uses
+   `awaitStartActionId`/`awaitSuccessActionId`), `outgoingTerminalTable` and
+   `extraSuccessResultTable` (:187-197, use `lifecycle.startedResult`/`succeededResult`),
+   `changedSuccessRelationIsRejected` (:222-227, calls `satisfiesSuccessRequirement` directly),
+   and eight `values.awaitSuccessAction`-style reads.
+
+3. `model/Temporal/Feature/Nexus3/Testpilot.lean:176-186` — `supportsSuccessProperty` compares the
+   checked Property clause-for-clause against `values.awaitSuccessAction`, `values.succeededState`,
+   `values.completedOutcome`, `values.succeededFact`. Task .4 was going to delete this function
+   outright; with .4 blocked it has to be ported to the general vocabulary instead, and its output
+   must stay byte-identical because the async-nexus fixture and six conformance trees diff on it.
+
+4. The elaborator itself is new ground: this repo has no `Lean.Elab.Command` elaborator that reads
+   an inductive's constructors (`getConstInfoInduct`), and the five `#guard_msgs` error classes
+   (constructor with arguments, unknown constructor, duplicate `before + action`, unreachable
+   terminal, transition count over 256) need their message text designed and pinned.
+
+5. `RaceSyntaxTests.lean` (new, second lifecycle) and `Nexus.md` are the small remainder.
+
+What is NOT blocked: nothing in R2 depends on the R1 lowering, and the finding recorded on task .4
+(the scoped clause form can carry state, outcome and fact predicates) does not constrain it. R2 is
+blocked purely on size.
+
+Suggested resolution — re-plan into a sequence that can each land green:
+  a. Generalize `Authoring.lean`'s data model to ordered lists and mechanically port `Tests.lean`
+     and `Testpilot.lean` to positional access, with the existing model's elaborated output and
+     every `native_decide` theorem unchanged. No syntax change at all in this step, so
+     `make umpire-check-case-runtime-conformance` proves byte-identity on its own.
+  b. Replace the four spelling whitelists with constructor-derived elaboration over that data
+     model, keeping the Nexus3 success declaration character-for-character as it is today.
+  c. Add the located diagnostics and their `#guard_msgs`.
+  d. Add `RaceSyntaxTests.lean` and the `Nexus.md` wording.
+
+Impact: task .6 (R8, the `query ... all ...` verify form) depends on this task and stays blocked;
+its own Approach is small and would follow step (b) directly. Task .9's R2/R8 documentation
+bullets are deferred with them.
 ## Evidence
 - Commits:
 - Tests:
