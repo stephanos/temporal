@@ -558,6 +558,44 @@ reach the derived Property and Behavior. -/
     checked.witness.trace.steps.length == 2 &&
     checked.property.clauses.length == 3)) == some true
 
+/- A misspelled Property or Behavior member resolves to a value no Target provides, so admission
+rejects the declaration instead of silently checking a different one. -/
+private def misspelledProperty (values : Authoring.ModelVocabulary) : PropertySpec :=
+  Authoring.propertySpec lifecycle values {
+    declaration := "successfulResult", roleName := "operation"
+    stateClause := "successState", outcomeClause := "successOutcome", factClause := "successFact"
+    actionSpelling := "awaitSuccess", stateSpelling := "suceeded"
+    outcomeSpelling := "completed", factSpelling := "succeeded" }
+
+private def misspelledRole (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
+  Authoring.behaviorSpec lifecycle values {
+    declaration := "successfulCompletion", roleName := "worker", setupState := "scheduled"
+    occurrences := [("start", "awaitStart"), ("completion", "awaitSuccess")] }
+
+#guard match runCheck (propertyAuthor := misspelledProperty) with
+  | .error (.invalidProperty _) => true
+  | _ => false
+
+#guard match runCheck (behaviorAuthor := misspelledRole) with
+  | .error (.invalidBehavior _) => true
+  | _ => false
+
+/--
+error: unknown Nexus3 action 'awaitFinish'
+-/
+#guard_msgs (error) in
+model unknownActionLifecycle
+  role operation
+  states State
+  actions Action
+  outcomes Outcome
+  facts Fact
+  initial [scheduled]
+  terminal [succeeded]
+  transitions
+    start: scheduled + awaitFinish →
+      { state := started, outcome := acknowledged, facts := [started] }
+
 /--
 error: unknown Nexus3 state 'missing'
 -/

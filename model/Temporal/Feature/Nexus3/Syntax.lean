@@ -21,6 +21,11 @@ syntax ident ":" ident "+" ident "→"
   "{" "state" ":=" ident "," "outcome" ":=" ident "," "facts" ":=" "[" ident,* "]" "}" :
   nexus3Transition
 
+/-- One labelled occurrence of a declared Action in a Behavior sequence. -/
+declare_syntax_cat nexus3Occurrence
+
+syntax ident ":" ident : nexus3Occurrence
+
 /-- The last component of a constructor name, which is the spelling an author writes. -/
 private def shortName : Name → Name
   | .str _ spelling => .str .anonymous spelling
@@ -80,7 +85,7 @@ elab "model" name:ident "role" role:ident
     | _ => throwErrorAt row "unsupported Nexus3 transition"
   let declarationKey := Lean.quote name.getId.toString
   let roleKey := Lean.quote role.getId.toString
-  let setupKey := Lean.quote (initialRefs.getElems[0]!).getId.toString
+  let setupKey := Lean.quote (shortName setupConstructor.getId).toString
   let names ← `(term|
     { declaration := $declarationKey
       roleName := $roleKey
@@ -97,12 +102,13 @@ elab "model" name:ident "role" role:ident
       ([$(transitionTerms.toArray),*])
       (by exact ⟨rfl, rfl, rfl⟩)))
 
-macro "property" name:ident "on" modelRef:ident "for" _roleRef:ident
+macro "property" name:ident "on" modelRef:ident "for" roleRef:ident
     "when" "action" actionRef:ident
     "require" stateClause:ident ":" "resultingState" stateRef:ident
     "require" outcomeClause:ident ":" "outcome" outcomeRef:ident
     "require" factClause:ident ":" "fact" factRef:ident : command => do
     let ownerKey := Lean.quote name.getId.toString
+    let roleKey := Lean.quote roleRef.getId.toString
     let stateClauseKey := Lean.quote stateClause.getId.toString
     let outcomeClauseKey := Lean.quote outcomeClause.getId.toString
     let factClauseKey := Lean.quote factClause.getId.toString
@@ -113,24 +119,26 @@ macro "property" name:ident "on" modelRef:ident "for" _roleRef:ident
     `(command| def $name (values : Authoring.ModelVocabulary) : PropertySpec :=
         Authoring.propertySpec ($modelRef) values {
           declaration := $ownerKey
+          roleName := $roleKey
           stateClause := $stateClauseKey
           outcomeClause := $outcomeClauseKey
           factClause := $factClauseKey
-          selectedAction := $actionKey
-          resultingState := $stateKey
-          modelOutcome := $outcomeKey
-          observedFact := $factKey
+          actionSpelling := $actionKey
+          stateSpelling := $stateKey
+          outcomeSpelling := $outcomeKey
+          factSpelling := $factKey
         })
 
 macro "behavior" name:ident "on" modelRef:ident roleRef:ident "starts" setupRef:ident
-    "actions" "exactly" "[" occurrences:(ident ":" ident),+ "]" : command => do
+    "actions" "exactly" "[" occurrences:nexus3Occurrence,+ "]" : command => do
     let ownerKey := Lean.quote name.getId.toString
     let roleKey := Lean.quote roleRef.getId.toString
     let setupKey := Lean.quote setupRef.getId.toString
     let entries ← occurrences.getElems.mapM fun occurrence => do
-      let label := Lean.quote occurrence.raw[0].getId.toString
-      let selected := Lean.quote occurrence.raw[2].getId.toString
-      `(term| ($label, $selected))
+      match occurrence with
+      | `(nexus3Occurrence| $label:ident : $selected:ident) =>
+          `(term| ($(Lean.quote label.getId.toString), $(Lean.quote selected.getId.toString)))
+      | _ => Lean.Macro.throwErrorAt occurrence "unsupported Nexus3 Behavior occurrence"
     `(command| def $name (values : Authoring.ModelVocabulary) : ExactSequenceSpec :=
         Authoring.behaviorSpec ($modelRef) values {
           declaration := $ownerKey
