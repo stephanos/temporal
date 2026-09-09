@@ -1,5 +1,6 @@
 import Testpilot.Authoring
 import Umpire.Case
+import Umpire.Case.Coverage
 import Umpire.Case.Provenance
 import Umpire.KnownGap
 
@@ -7,9 +8,9 @@ import Umpire.KnownGap
 Umpire producer assembly for generated Testpilot Cases.
 
 Producers lower their checked semantics into generated Program and Contract values before this
-boundary. The compiler validates source-bound property rows, preserves unsupported-lowering
-diagnostics, attaches exact Umpire provenance, and returns the generated Case without introducing a
-parallel protocol representation.
+boundary. The compiler validates source-bound property rows, admits the requested whole-Case field
+and clause coverage, preserves unsupported-lowering diagnostics, attaches exact Umpire provenance,
+and returns the generated Case without introducing a parallel protocol representation.
 -/
 
 namespace Umpire
@@ -68,6 +69,9 @@ structure Input where
   contractId : String
   properties : List ContractLowering
   contractLimits : ContractLimits
+  /-- The modeled input fields and requested clauses this Case must cover. A Case that requests
+  none keeps its exact existing meaning. -/
+  coverage : Coverage.Request := {}
 
 private def lowerProperty : ContractLowering → Except LoweringError (Option ContractRuleDefinition)
   | .monitor sourceDefinition rule =>
@@ -103,6 +107,10 @@ def compile (input : Input) : Except LoweringError temporal.server.api.testpilot
       construct := "multiple scoped projections" }
   let capability := scopedProperties.head?.map (·.2.1)
   let scopedClauses := scopedProperties.flatMap (·.2.2)
+  -- A requested mapping that this Case does not construct or lower rejects the whole Case here,
+  -- before any Program or Contract could reach a Driver.
+  (Coverage.check input.program scopedClauses input.coverage input.caseId).mapError fun failure =>
+    LoweringError.mk failure.subject { path := "" } failure.reason
   let metadata : CaseMetadata := {
     producerId := input.producerId
     producerVersion := input.producerVersion

@@ -201,6 +201,14 @@ end
 
 instance : DecidableEq PropertyPredicate := PropertyPredicate.decEq
 
+/-- Every field operand this predicate's atoms compare, in declaration order. Consumers that lower
+or cover field operands read exactly the operands the checked evaluator resolves. -/
+def PropertyPredicate.fieldOperands : PropertyPredicate → List PropertyFieldOperand
+  | .atom value =>
+      (value.fieldComparison.map fun comparison => [comparison.left, comparison.right]).getD []
+  | .all items | .any items => items.flatMap PropertyPredicate.fieldOperands
+  | .not item => PropertyPredicate.fieldOperands item
+
 /-- Raw values for one predicate coordinate. `none` means the producer cannot supply a complete
 field; `some []` records the known absence of an expectation fact. -/
 structure PropertyPredicateInput where

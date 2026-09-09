@@ -39,6 +39,7 @@ import Umpire.Exploration.Tests.Engine
 import Umpire.Exploration.Tests.Pinned
 import Umpire.Exploration.Tests.Session
 import Umpire.Case.CompilerTests
+import Umpire.Case.Tests.FieldLowering
 
 namespace UmpireTests
 
