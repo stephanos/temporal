@@ -129,49 +129,6 @@ def PropertyFieldComparison.canonical (comparison : PropertyFieldComparison) : S
 instance : Ord PropertyFieldComparison where
   compare a b := compare a.canonical b.canonical
 
-/-- A scalar obtained from a checked cursor, retaining its actual root and structural denotation.
-Only the closed scalar projection is readiness to the Property kernel. -/
-structure PropertyFieldValue where
-  private mk ::
-  path : PropertyFieldPath
-  modelValue : ModelValue
-  private scalar : Scalar
-  private origin : Raw
-  private denotation : ∃ raw bound, Field.Denotes origin path.steps (some raw) ∧
-    readLiteral bound raw = some scalar
-  deriving BEq, DecidableEq, Repr
-
-/-- Erasure preserves exact model payload identity at the checked cursor boundary. -/
-def PropertyFieldValue.ofCursor
-    (root : PropertyFieldRoot) (reference : DefinitionId)
-    (cursor : Field.Cursor owner witness side limits type .singular .available)
-    (source : SourceLocation) : Except Field.Error PropertyFieldValue := do
-  let scalar ← cursor.scalarValue source
-  let path : PropertyFieldPath := {
-    root, reference, schema := owner.schema witness, side, steps := cursor.path, type }
-  let modelValue := ModelValue.named reference (Canonical.key (sequence [
-    textData reference.value, Canonical.rpcSchema (owner.schema witness), cursor.origin.value]))
-  pure ⟨path, modelValue, scalar.value, cursor.origin.value,
-    ⟨scalar.raw, limits.bytes, scalar.denotes, scalar.parsed⟩⟩
-
-/-- Request projections require the very arguments of the selected owner-indexed Action. -/
-def PropertyFieldValue.ofAction
-    {owner : RpcOwner} {Request Response Failure : Type}
-    {template : ActionTemplate owner Request Response Failure} {limits : Limits}
-    (action : ActionInstance template limits)
-    (cursor : Field.Cursor owner template.declaration.reference .request limits type .singular .available)
-    (same : cursor.origin = action.arguments) (source : SourceLocation) :
-    Except Field.Error PropertyFieldValue := do
-  let _ := same
-  ofCursor .request template.identity cursor source
-
-/-- Resolve only an exact checked field projection; no absent sentinel is a scalar operand. -/
-def PropertyFieldOperand.resolve (operand : PropertyFieldOperand)
-    (values : List PropertyFieldValue) : Option Scalar :=
-  match operand with
-  | .literal value _ => some value
-  | .field path _ => (values.find? (·.path == path)).map (·.scalar)
-
 /-- Mathematical comparison of exact scalar values, used only after operand admission. -/
 def PropertyFieldOperator.matches (operator : PropertyFieldOperator) (left right : Scalar) : Bool :=
   match operator with
@@ -250,7 +207,7 @@ def PropertyFieldPath.validate (path : PropertyFieldPath) (facts : List Property
     match step with
     | .field containing number =>
       if type != .message containing || card != .singular || readiness != .available then
-        fail "field requires an readiness containing message"
+        fail "field requires an available containing message"
       let some (_, field) := (Field.schemaFields schema).find? (fun item =>
         item.1 == containing && item.2.number == number)
         | fail "unknown containing schema or field"
@@ -274,10 +231,10 @@ def PropertyFieldPath.validate (path : PropertyFieldPath) (facts : List Property
       card := .singular
       readiness := .available
     | .index _ =>
-      if card != .repeated || readiness != .available then fail "index requires an readiness repeated field"
+      if card != .repeated || readiness != .available then fail "index requires an available repeated field"
       card := .singular
     | .key key =>
-      let .map keyType := card | fail "lookup requires an readiness map"
+      let .map keyType := card | fail "lookup requires an available map"
       if readiness != .available || Field.scalarType key != keyType || !literalValid key then
         fail "map key type or range mismatch"
       card := .singular

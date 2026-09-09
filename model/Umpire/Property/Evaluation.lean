@@ -4,6 +4,51 @@ import Umpire.Property.Trace
 
 namespace Umpire
 
+open Operation Value Value.Encoding
+
+/-- A scalar obtained from a checked cursor, retaining its actual root and structural denotation.
+Only the closed scalar projection is available to the Property kernel. -/
+private structure PropertyFieldValue where
+  path : PropertyFieldPath
+  modelValue : ModelValue
+  scalar : Scalar
+  origin : Raw
+  denotation : ∃ raw bound, Field.Denotes origin path.steps (some raw) ∧
+    readLiteral bound raw = some scalar
+  deriving Repr
+
+/-- Erasure preserves exact model payload identity at the checked cursor boundary. -/
+private def PropertyFieldValue.ofCursor
+    (root : PropertyFieldRoot) (reference : DefinitionId)
+    (cursor : Field.Cursor owner witness side limits type .singular .available)
+    (source : SourceLocation) : Except Field.Error PropertyFieldValue := do
+  let scalar ← cursor.scalarValue source
+  let path : PropertyFieldPath := {
+    root, reference, schema := owner.schema witness, side, steps := cursor.path, type }
+  let modelValue := ModelValue.named reference (Canonical.key (sequence [
+    textData reference.value, Canonical.rpcSchema (owner.schema witness), cursor.origin.value]))
+  pure ⟨path, modelValue, scalar.value, cursor.origin.value,
+    ⟨scalar.raw, limits.bytes, scalar.denotes, scalar.parsed⟩⟩
+
+/-- Request projections require the very arguments of the selected owner-indexed Action. -/
+private def PropertyFieldValue.ofAction
+    {owner : RpcOwner} {Request Response Failure : Type}
+    {template : ActionTemplate owner Request Response Failure} {limits : Limits}
+    (action : ActionInstance template limits)
+    (cursor : Field.Cursor owner template.declaration.reference .request limits type .singular .available)
+    (same : cursor.origin.value = action.arguments.value) (source : SourceLocation) :
+    Except Field.Error PropertyFieldValue := do
+  let _ := same
+  ofCursor .request template.identity cursor source
+
+/-- Resolve only an exact checked field projection; no absent sentinel is a scalar operand. -/
+private def PropertyFieldOperand.resolve (operand : PropertyFieldOperand)
+    (values : List PropertyFieldValue) : Option Scalar :=
+  match operand with
+  | .literal value _ => some value
+  | .field path _ => (values.find? (fun value => decide (value.path = path))).map (·.scalar)
+
+
 def ValueConstraint.denote (constraint : ValueConstraint) (value : String) : Prop :=
   match constraint with
   | .present => True
@@ -291,6 +336,7 @@ structure CheckedPropertyPredicateInput
     {context : PropertyPredicateContext}
     (predicate : CheckedPropertyPredicate context) where
   private input : PropertyPredicateInput
+  private fieldValues : List PropertyFieldValue := []
   deriving Repr
 
 /-- Same-step context fixed by input validation. -/
@@ -328,13 +374,14 @@ private def operandModelValues (input : PropertyPredicateInput) : PropertyFieldR
   | .event => input.facts.getD []
 
 private def validateFieldOperands (predicate : CheckedPropertyPredicate context)
-    (input : PropertyPredicateInput) (expression : PropertyPredicate) : Except PropertyError Unit := do
+    (input : PropertyPredicateInput) (fieldValues : List PropertyFieldValue)
+    (expression : PropertyPredicate) : Except PropertyError Unit := do
   match expression with
   | .atom atom =>
     for comparison in atom.fieldComparison do
       for operand in [comparison.left, comparison.right] do
         if let .field path source := operand then
-          let matching := input.fieldValues.filter (·.path == path)
+          let matching := fieldValues.filter (·.path == path)
           let fail reason : Except PropertyError Unit := .error {
             kind := .missingPredicateInput, definitionId := predicate.definitionId,
             sourcePath := source.displayPath, sourceLocation := some source,
@@ -344,19 +391,19 @@ private def validateFieldOperands (predicate : CheckedPropertyPredicate context)
             fail "field operand does not denote this immutable model payload"
   | .all items =>
     for item in items do
-      validateFieldOperands predicate input item
-      if !item.evaluate (inputFieldValues input) input.fieldValues then break
+      validateFieldOperands predicate input fieldValues item
+      if !item.evaluate (inputFieldValues input) fieldValues then break
   | .any items =>
     for item in items do
-      validateFieldOperands predicate input item
-      if item.evaluate (inputFieldValues input) input.fieldValues then break
-  | .not item => validateFieldOperands predicate input item
+      validateFieldOperands predicate input fieldValues item
+      if item.evaluate (inputFieldValues input) fieldValues then break
+  | .not item => validateFieldOperands predicate input fieldValues item
 
 /-- Check legacy input completeness and every field operand consumed by this Boolean branch. -/
 def checkPropertyPredicateInput (predicate : CheckedPropertyPredicate contextKind)
     (input : PropertyPredicateInput) : Except PropertyError (CheckedPropertyPredicateInput predicate) := do
   validatePropertyPredicateInput predicate input
-  validateFieldOperands predicate input predicate.expression
+  validateFieldOperands predicate input [] predicate.expression
   pure { input }
 
 /-- Produce a complete checked predicate input from an explicit kernel-checked validation proof. -/
@@ -367,19 +414,121 @@ def checkedPropertyPredicateInput
     CheckedPropertyPredicateInput predicate :=
   (checkPropertyPredicateInput predicate input).toOption.get valid
 
+private def fieldOperands : PropertyPredicate → List PropertyFieldOperand
+  | .atom atom => atom.fieldComparison.toList.flatMap fun comparison => [comparison.left, comparison.right]
+  | .all items | .any items => items.flatMap fieldOperands
+  | .not item => fieldOperands item
+
+/-- Read an operand only through the complete input admitted for this exact Property predicate. -/
+def CheckedPropertyPredicateInput.operandValue (input : CheckedPropertyPredicateInput predicate)
+    (operand : PropertyFieldOperand) : Option Scalar :=
+  if (fieldOperands predicate.expression).contains operand then operand.resolve input.fieldValues else none
+
+/-- Field operand denotation is the actual checked cursor derivation over its immutable model root. -/
+def CheckedPropertyPredicateInput.denotesOperand (input : CheckedPropertyPredicateInput predicate)
+    (operand : PropertyFieldOperand) (scalar : Scalar) : Prop :=
+  match operand with
+  | .literal value _ => value = scalar
+  | .field path _ => ∃ value ∈ input.fieldValues, value.path = path ∧
+      ∃ raw bound, Field.Denotes value.origin path.steps (some raw) ∧ readLiteral bound raw = some scalar
+
+/-- Successful operand reads preserve concrete field selection and exact scalar decoding. -/
+theorem CheckedPropertyPredicateInput.operandValue_denotes (input : CheckedPropertyPredicateInput predicate)
+    (operand : PropertyFieldOperand) (scalar : Scalar)
+    (h : input.operandValue operand = some scalar) : input.denotesOperand operand scalar := by
+  have h : operand.resolve input.fieldValues = some scalar := by
+    unfold operandValue at h
+    split at h
+    · exact h
+    · contradiction
+  cases operand with
+  | literal value source => simpa [PropertyFieldOperand.resolve, denotesOperand] using h
+  | field path source =>
+    unfold PropertyFieldOperand.resolve at h
+    cases found : input.fieldValues.find? (fun value => decide (value.path = path)) with
+    | none => simp [found] at h
+    | some value =>
+      have selectedBool := List.find?_some found
+      have selected : value.path = path := by simpa using selectedBool
+      have same : value.scalar = scalar := by simpa [found] using h
+      obtain ⟨raw, bound, denotes, parsed⟩ := value.denotation
+      exact ⟨value, List.mem_of_find?_eq_some found, selected, raw, bound,
+        selected ▸ denotes, same ▸ parsed⟩
+
+/-- A field projection stays indexed by its generated owner and payload witness until input checking. -/
+structure PropertyFieldProjection (owner : RpcOwner) {Request Response : Type}
+    (witness : owner.Witness Request Response) where
+  private mk ::
+  private value : PropertyFieldValue
+  deriving Repr
+
+/-- Project a modeled state, result or event; requests must use the selected Action constructor. -/
+def PropertyFieldProjection.ofCursor (root : PropertyFieldRoot) (reference : DefinitionId)
+    (cursor : Field.Cursor owner witness side limits type .singular .available)
+    (notRequest : root ≠ .request) (source : SourceLocation) :
+    Except Field.Error (PropertyFieldProjection owner witness) := do
+  let _ := notRequest
+  pure ⟨← PropertyFieldValue.ofCursor root reference cursor source⟩
+
+/-- A request projection is tied to the exact immutable arguments of the selected Action. -/
+def PropertyFieldProjection.ofAction
+    {owner : RpcOwner} {Request Response Failure : Type}
+    {template : ActionTemplate owner Request Response Failure} {limits : Limits}
+    (action : ActionInstance template limits)
+    (cursor : Field.Cursor owner template.declaration.reference .request limits type .singular .available)
+    (same : cursor.origin.value = action.arguments.value) (source : SourceLocation) :
+    Except Field.Error (PropertyFieldProjection owner template.declaration.reference) := do
+  pure ⟨← PropertyFieldValue.ofAction action cursor same source⟩
+
+/-- The exact legacy carrier for this modeled payload; it exposes no raw field evidence. -/
+def PropertyFieldProjection.modelValue (projection : PropertyFieldProjection owner witness) : ModelValue :=
+  projection.value.modelValue
+
+/-- An owned field predicate wraps the existing checked Property predicate without another evaluator. -/
+structure CheckedFieldPredicate (owner : RpcOwner) {Request Response : Type}
+    (witness : owner.Witness Request Response) (context : PropertyPredicateContext) where
+  private mk ::
+  predicate : CheckedPropertyPredicate context
+
+private def requireFieldOwner (owner : RpcOwner) {Request Response : Type}
+    (witness : owner.Witness Request Response) (declaration : PropertyDeclaration)
+    (context : PropertyCheckContext) : Except PropertyError Unit := do
+  if context.fieldBindings.any (fun binding => binding.schema != owner.schema witness) then
+    throw {
+      kind := .unsupportedPredicateInput, definitionId := declaration.id,
+      sourcePath := declaration.source.displayPath, sourceLocation := some declaration.source,
+      offendingValue := "field binding belongs to another owner/schema", relatedDefinitionIds := [] }
+
+/-- Check closed operands against the chosen generated authority and the ordinary Property checker. -/
+def CheckedFieldPredicate.check (owner : RpcOwner) {Request Response : Type}
+    (witness : owner.Witness Request Response) (context : PropertyCheckContext)
+    (declaration : PropertyDeclaration) (kind : PropertyPredicateContext)
+    (expression : PropertyPredicate) : Except PropertyError (CheckedFieldPredicate owner witness kind) := do
+  requireFieldOwner owner witness declaration context
+  pure ⟨← checkPropertyPredicate context declaration kind expression⟩
+
+/-- Only projections with the retained owner and witness may establish this checked predicate's input. -/
+def CheckedFieldPredicate.checkInput (checked : CheckedFieldPredicate owner witness kind)
+    (input : PropertyPredicateInput) (projections : List (PropertyFieldProjection owner witness)) :
+    Except PropertyError (CheckedPropertyPredicateInput checked.predicate) := do
+  validatePropertyPredicateInput checked.predicate input
+  let fieldValues := projections.map (·.value)
+  validateFieldOperands checked.predicate input fieldValues checked.predicate.expression
+  pure { input, fieldValues }
+
 /-- Denotational meaning of a validated predicate over one validated same-step input. -/
 def CheckedPropertyPredicate.denote
     {predicateContext : PropertyPredicateContext}
     (predicate : CheckedPropertyPredicate predicateContext)
     (input : CheckedPropertyPredicateInput predicate) : Prop :=
-  predicate.expression.denote input.valuesAt input.input.fieldValues
+  predicate.expression.denote input.valuesAt input.fieldValues
 
 /-- Evaluate a predicate only after both its syntax and complete same-step input passed checking. -/
 def evaluatePropertyPredicate
     {predicateContext : PropertyPredicateContext}
     (predicate : CheckedPropertyPredicate predicateContext)
     (input : CheckedPropertyPredicateInput predicate) : Bool :=
-  predicate.expression.evaluate input.valuesAt input.input.fieldValues
+  predicate.expression.evaluate input.valuesAt input.fieldValues
 
 /-- Generic kernel-checked agreement for every admitted Boolean Property predicate. -/
 theorem evaluatePropertyPredicate_agrees
@@ -387,21 +536,42 @@ theorem evaluatePropertyPredicate_agrees
     (predicate : CheckedPropertyPredicate predicateContext)
     (input : CheckedPropertyPredicateInput predicate) :
     evaluatePropertyPredicate predicate input = true ↔ predicate.denote input :=
-  predicate.expression.evaluate_agrees input.valuesAt input.input.fieldValues
+  predicate.expression.evaluate_agrees input.valuesAt input.fieldValues
+
+private structure PropertyEvaluationPredicateInput extends PropertyPredicateInput where
+  fieldValues : List PropertyFieldValue := []
+
+private structure PropertyEvaluationStep extends PropertyTraceStep where
+  fieldValues : List PropertyFieldValue := []
+  deriving Repr
+
+private structure PropertyEvaluationView where
+  initialState : Option ModelValue
+  steps : List PropertyEvaluationStep
+  deriving Repr
+
+private def validateEvaluationPredicateInput (predicate : CheckedPropertyPredicate kind)
+    (input : PropertyEvaluationPredicateInput) : Except PropertyError Unit := do
+  validatePropertyPredicateInput predicate input.toPropertyPredicateInput
+  validateFieldOperands predicate input.toPropertyPredicateInput input.fieldValues predicate.expression
 
 /-- A trace view whose every guarded same-step input was validated for this exact Property. -/
 structure CheckedPropertyEvaluationInput (property : CheckedProperty) where
-  private view : PropertyTraceView
+  private view : PropertyEvaluationView
   deriving Repr
 
-private def guardInput (step : PropertyTraceStep) : PropertyPredicateInput := {
+private def guardInput (step : PropertyEvaluationStep) : PropertyEvaluationPredicateInput := {
   context := .guard
   priorState := step.priorState
   selectedAction := step.selectedAction
+  fieldValues := step.fieldValues
 }
 
-private def expectationInput (step : PropertyTraceStep) : PropertyPredicateInput := {
+private def expectationInput (step : PropertyEvaluationStep) : PropertyEvaluationPredicateInput := {
   context := .expectation
+  priorState := step.priorState
+  selectedAction := step.selectedAction
+  fieldValues := step.fieldValues
   resultingState := step.resultingState
   modelOutcome := step.modelOutcome
   facts := some step.observations
@@ -409,7 +579,7 @@ private def expectationInput (step : PropertyTraceStep) : PropertyPredicateInput
 
 private def valuesInStep
     (field : PropertyTraceField)
-    (step : PropertyTraceStep) : List ModelValue :=
+    (step : PropertyEvaluationStep) : List ModelValue :=
   match field with
   | .state | .resultingState => step.resultingState.toList
   | .priorState => step.priorState.toList
@@ -419,50 +589,49 @@ private def valuesInStep
 
 private def patternHoldsInStep
     (pattern : PropertyPattern)
-    (step : PropertyTraceStep) : Bool :=
+    (step : PropertyEvaluationStep) : Bool :=
   (valuesInStep pattern.field step).any pattern.evaluate
 
 private def validateResolvedExceptionInput
     (exception : Option ResolvedPropertyException)
-    (input : PropertyPredicateInput) : Except PropertyError Unit := do
+    (input : PropertyEvaluationPredicateInput) : Except PropertyError Unit := do
   match exception with
   | none => pure ()
   | some exception =>
-      let _ ← checkPropertyPredicateInput exception.condition input
+      let _ ← validateEvaluationPredicateInput exception.condition input
       pure ()
 
 private def validateCaseGroupStep
     (group : ResolvedPropertyCaseGroup)
-    (step : PropertyTraceStep) : Except PropertyError Unit := do
+    (step : PropertyEvaluationStep) : Except PropertyError Unit := do
   let guardValues := guardInput step
   let expectationValues := expectationInput step
-  let _ ← checkPropertyPredicateInput group.guard guardValues
+  let _ ← validateEvaluationPredicateInput group.guard guardValues
   validateResolvedExceptionInput group.exception guardValues
   for item in group.cases do
-    let _ ← checkPropertyPredicateInput item.guard guardValues
+    let _ ← validateEvaluationPredicateInput item.guard guardValues
     validateResolvedExceptionInput item.exception guardValues
     for clause in item.clauses do
-      let _ ← checkPropertyPredicateInput clause.expectation expectationValues
+      let _ ← validateEvaluationPredicateInput clause.expectation expectationValues
       pure ()
 
 private def validateGuardedTemporalStep
     (clause : ResolvedGuardedTemporalClause)
-    (step : PropertyTraceStep) : Except PropertyError Unit := do
+    (step : PropertyEvaluationStep) : Except PropertyError Unit := do
   if patternHoldsInStep clause.trigger step then
     let input := guardInput step
-    let _ ← checkPropertyPredicateInput clause.guard input
+    let _ ← validateEvaluationPredicateInput clause.guard input
     validateResolvedExceptionInput clause.exception input
     for guard in clause.caseGuard do
-      let _ ← checkPropertyPredicateInput guard input
+      let _ ← validateEvaluationPredicateInput guard input
       pure ()
     validateResolvedExceptionInput clause.caseException input
 
 /-- Validate every same-step slot before guarded Boolean reduction begins. Known absent facts are
 represented by `some []`; only unavailable fields produce an error. -/
-def checkPropertyEvaluationInput
+private def validatePropertyEvaluationView
     (property : CheckedProperty)
-    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
-    Except PropertyError (CheckedPropertyEvaluationInput property) := do
+    (view : PropertyEvaluationView) : Except PropertyError Unit := do
   if let some clause := property.scopedClauses.head? then
     throw {
       kind := .invalidClause
@@ -471,7 +640,6 @@ def checkPropertyEvaluationInput
       sourceLocation := some clause.declaration.source
       offendingValue := "scoped clauses require admitted operation traces",
       relatedDefinitionIds := [clause.declaration.id] }
-  let view := property.traceView trace
   for clause in property.clauses do
     match clause with
     | .sameStepCases group =>
@@ -486,10 +654,52 @@ def checkPropertyEvaluationInput
         for step in view.steps do
           validateGuardedTemporalStep guarded step
     | _ => pure ()
+  pure ()
+
+/-- Admit a legacy trace with no field evidence through the same complete input validator. -/
+def checkPropertyEvaluationInput
+    (property : CheckedProperty)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue) :
+    Except PropertyError (CheckedPropertyEvaluationInput property) := do
+  let raw := property.traceView trace
+  let view : PropertyEvaluationView := {
+    initialState := raw.initialState, steps := raw.steps.map fun step => { toPropertyTraceStep := step } }
+  validatePropertyEvaluationView property view
+  pure { view }
+
+/-- A checked Property retains the chosen generated authority until all step projections are admitted. -/
+structure CheckedFieldProperty (owner : RpcOwner) {Request Response : Type}
+    (witness : owner.Witness Request Response) where
+  private mk ::
+  property : CheckedProperty
+
+/-- Bind an ordinary closed Property declaration to its selected generated operation. -/
+def CheckedFieldProperty.check (owner : RpcOwner) {Request Response : Type}
+    (witness : owner.Witness Request Response) (context : PropertyCheckContext)
+    (declaration : PropertyDeclaration) : Except PropertyError (CheckedFieldProperty owner witness) := do
+  requireFieldOwner owner witness declaration context
+  pure ⟨← checkProperty context (.portable declaration)⟩
+
+/-- Validate aligned checked projections without exposing raw model payloads to evaluation. -/
+def CheckedFieldProperty.checkInput (checked : CheckedFieldProperty owner witness)
+    (trace : ModelTrace ModelValue ModelValue ModelValue ModelValue)
+    (projections : List (List (PropertyFieldProjection owner witness))) :
+    Except PropertyError (CheckedPropertyEvaluationInput checked.property) := do
+  if projections.length != trace.steps.length then
+    throw {
+      kind := .missingPredicateInput, definitionId := checked.property.id,
+      sourcePath := checked.property.source.displayPath, sourceLocation := some checked.property.source,
+      offendingValue := "field projection step count mismatch", relatedDefinitionIds := [] }
+  let raw := checked.property.traceView trace
+  let view : PropertyEvaluationView := {
+    initialState := raw.initialState
+    steps := raw.steps.zipWith (fun step fields => {
+      toPropertyTraceStep := step, fieldValues := fields.map (·.value) }) projections }
+  validatePropertyEvaluationView checked.property view
   pure { view }
 
 private def predicateValues
-    (input : PropertyPredicateInput)
+    (input : PropertyEvaluationPredicateInput)
     (field : PropertyPredicateField) : List ModelValue :=
   match field with
   | .priorState => input.priorState.toList
@@ -500,17 +710,17 @@ private def predicateValues
 
 private def evaluateCheckedPredicate
     (predicate : CheckedPropertyPredicate context)
-    (input : PropertyPredicateInput) : Bool :=
+    (input : PropertyEvaluationPredicateInput) : Bool :=
   predicate.expression.evaluate (predicateValues input) input.fieldValues
 
 private def checkedPredicateDenotes
     (predicate : CheckedPropertyPredicate context)
-    (input : PropertyPredicateInput) : Prop :=
+    (input : PropertyEvaluationPredicateInput) : Prop :=
   predicate.expression.denote (predicateValues input) input.fieldValues
 
 private theorem evaluateCheckedPredicate_agrees
     (predicate : CheckedPropertyPredicate context)
-    (input : PropertyPredicateInput) :
+    (input : PropertyEvaluationPredicateInput) :
     evaluateCheckedPredicate predicate input = true ↔ checkedPredicateDenotes predicate input :=
   predicate.expression.evaluate_agrees (predicateValues input) input.fieldValues
 
@@ -568,7 +778,7 @@ private def optionalOccurrence
 private def stepOccurrences
     (pattern : PropertyPattern)
     (transitionPosition observationOffset : Nat)
-    (step : PropertyTraceStep) : List PropertyOccurrence :=
+    (step : PropertyEvaluationStep) : List PropertyOccurrence :=
   match pattern.field with
   | .state | .resultingState =>
       optionalOccurrence pattern transitionPosition transitionPosition observationOffset
@@ -589,7 +799,7 @@ private def stepOccurrences
 private def traceStepOccurrences
     (pattern : PropertyPattern)
     (transitionPosition observationOffset : Nat) :
-    List PropertyTraceStep → List PropertyOccurrence
+    List PropertyEvaluationStep → List PropertyOccurrence
   | [] => []
   | step :: rest =>
       stepOccurrences pattern transitionPosition observationOffset step ++
@@ -598,7 +808,7 @@ private def traceStepOccurrences
 
 private def occurrences
     (pattern : PropertyPattern)
-    (view : PropertyTraceView) : List PropertyOccurrence :=
+    (view : PropertyEvaluationView) : List PropertyOccurrence :=
   let initial := if pattern.field == .state then
     optionalOccurrence pattern 0 0 0 none view.initialState
   else
@@ -627,7 +837,7 @@ requested coordinate is missing. In particular, logical-time evaluation must fai
 private def checkedPositions
     (pattern : PropertyPattern)
     (unit : LimitUnit)
-    (view : PropertyTraceView) : Option (List Nat) :=
+    (view : PropertyEvaluationView) : Option (List Nat) :=
   collectPositions ((occurrences pattern view).map (positionOf unit))
 
 /-- Aligned semantic transition positions used by scoped correspondence proofs. -/
@@ -641,7 +851,7 @@ private theorem collectPositions_some (positions : List Nat) :
   | nil => rfl
   | cons position rest ih => simp [collectPositions, ih]
 
-private theorem checkedPositions_semantic (pattern : PropertyPattern) (view : PropertyTraceView) :
+private theorem checkedPositions_semantic (pattern : PropertyPattern) (view : PropertyEvaluationView) :
     checkedPositions pattern .semanticTransitions view =
       some ((occurrences pattern view).map (·.transitionPosition)) := by
   have position : positionOf .semanticTransitions = fun occurrence => some occurrence.transitionPosition := rfl
@@ -661,7 +871,7 @@ private theorem observation_positions_mem (pattern : PropertyPattern)
 private theorem step_positions_mem (pattern : PropertyPattern)
     (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
-    (start offset position : Nat) (step : PropertyTraceStep) :
+    (start offset position : Nat) (step : PropertyEvaluationStep) :
     position ∈ (stepOccurrences pattern start offset step).map (·.transitionPosition) ↔
       position = start ∧ patternHoldsInStep pattern step = true := by
   rcases aligned with action | outcome | state | fact
@@ -684,7 +894,7 @@ private theorem step_positions_mem (pattern : PropertyPattern)
 private theorem scoped_step_positions_mem (pattern : PropertyPattern)
     (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
-    (start offset position : Nat) (steps : List PropertyTraceStep) :
+    (start offset position : Nat) (steps : List PropertyEvaluationStep) :
     position ∈ (traceStepOccurrences pattern start offset steps).map (·.transitionPosition) ↔
       position ∈ Property.Scoped.positions start (steps.map (patternHoldsInStep pattern)) := by
   induction steps generalizing start offset with
@@ -697,7 +907,7 @@ private theorem scoped_step_positions_mem (pattern : PropertyPattern)
 private theorem semantic_positions_mem (pattern : PropertyPattern)
     (aligned : pattern.field = .selectedAction ∨ pattern.field = .modelOutcome ∨
       pattern.field = .resultingState ∨ pattern.field = .observation)
-    (view : PropertyTraceView) (position : Nat) :
+    (view : PropertyEvaluationView) (position : Nat) :
     position ∈ (occurrences pattern view).map (·.transitionPosition) ↔
       position ∈ Property.Scoped.positions 1 (view.steps.map (patternHoldsInStep pattern)) := by
   have notState : (pattern.field == .state) = false := by
@@ -711,7 +921,7 @@ private theorem semantic_positions_mem (pattern : PropertyPattern)
 
 private def valuesAtField
     (field : PropertyTraceField)
-    (view : PropertyTraceView) : List ModelValue :=
+    (view : PropertyEvaluationView) : List ModelValue :=
   let initial := match field with
     | .state => view.initialState.toList
     | _ => []
@@ -726,30 +936,30 @@ private def valuesAtField
 
 private def patternDenotesInStep
     (pattern : PropertyPattern)
-    (step : PropertyTraceStep) : Prop :=
+    (step : PropertyEvaluationStep) : Prop :=
   anyHolds (valuesInStep pattern.field step) pattern.denote
 
 private theorem patternHoldsInStep_agrees
     (pattern : PropertyPattern)
-    (step : PropertyTraceStep) :
+    (step : PropertyEvaluationStep) :
     patternHoldsInStep pattern step = true ↔ patternDenotesInStep pattern step :=
   anyHolds_agrees _ _ _ pattern.evaluate_agrees
 
 private def evaluateStateInvariant
     (pattern : PropertyPattern)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   let matching := (valuesAtField .state view).filter fun value => value.definitionId == pattern.reference
   !matching.isEmpty && matching.all fun value => pattern.constraint.evaluate value.value
 
 private def stateInvariantDenotes
     (pattern : PropertyPattern)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   let matching := (valuesAtField .state view).filter fun value => value.definitionId == pattern.reference
   matching ≠ [] ∧ allHolds matching fun value => pattern.constraint.denote value.value
 
 private theorem evaluateStateInvariant_agrees
     (pattern : PropertyPattern)
-    (view : PropertyTraceView) :
+    (view : PropertyEvaluationView) :
     evaluateStateInvariant pattern view = true ↔ stateInvariantDenotes pattern view := by
   let matching := (valuesAtField .state view).filter fun value =>
     value.definitionId == pattern.reference
@@ -764,19 +974,19 @@ private theorem evaluateStateInvariant_agrees
 
 private def evaluateTransitionContract
     (precondition postcondition : PropertyPattern)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   view.steps.all fun step =>
     !patternHoldsInStep precondition step || patternHoldsInStep postcondition step
 
 private def transitionContractDenotes
     (precondition postcondition : PropertyPattern)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   allHolds view.steps fun step =>
     patternDenotesInStep precondition step → patternDenotesInStep postcondition step
 
 private theorem evaluateTransitionContract_agrees
     (precondition postcondition : PropertyPattern)
-    (view : PropertyTraceView) :
+    (view : PropertyEvaluationView) :
     evaluateTransitionContract precondition postcondition view = true ↔
       transitionContractDenotes precondition postcondition view :=
   allHolds_agrees _ _ _ fun step =>
@@ -786,24 +996,24 @@ private theorem evaluateTransitionContract_agrees
 
 private def evaluateIdentityRelation
     (relation : PropertyPattern)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   (valuesAtField relation.field view).any relation.evaluate
 
 private def identityRelationDenotes
     (relation : PropertyPattern)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   anyHolds (valuesAtField relation.field view) relation.denote
 
 private theorem evaluateIdentityRelation_agrees
     (relation : PropertyPattern)
-    (view : PropertyTraceView) :
+    (view : PropertyEvaluationView) :
     evaluateIdentityRelation relation view = true ↔ identityRelationDenotes relation view :=
   anyHolds_agrees _ _ _ relation.evaluate_agrees
 
 private def evaluateOrdered
     (before after : PropertyPattern)
     (unit : LimitUnit)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   match checkedPositions before unit view, checkedPositions after unit view with
   | some beforePositions, some afterPositions =>
       beforePositions.any fun first => afterPositions.any fun second => first < second
@@ -812,7 +1022,7 @@ private def evaluateOrdered
 private def orderedDenotes
     (before after : PropertyPattern)
     (unit : LimitUnit)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   match checkedPositions before unit view, checkedPositions after unit view with
   | some beforePositions, some afterPositions =>
       anyHolds beforePositions fun first => anyHolds afterPositions fun second => first < second
@@ -821,7 +1031,7 @@ private def orderedDenotes
 private theorem evaluateOrdered_agrees
     (before after : PropertyPattern)
     (unit : LimitUnit)
-    (view : PropertyTraceView) :
+    (view : PropertyEvaluationView) :
     evaluateOrdered before after unit view = true ↔ orderedDenotes before after unit view := by
   cases beforeResult : checkedPositions before unit view with
   | none => simp [evaluateOrdered, orderedDenotes, beforeResult]
@@ -844,7 +1054,7 @@ private theorem evaluateOrdered_agrees
 private def evaluateEventuallyWithin
     (trigger response : PropertyPattern)
     (limit : Limit)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   match checkedPositions trigger limit.unit view, checkedPositions response limit.unit view with
   | some triggerPositions, some responsePositions =>
       triggerPositions.all fun first =>
@@ -854,7 +1064,7 @@ private def evaluateEventuallyWithin
 private def eventuallyWithinDenotes
     (trigger response : PropertyPattern)
     (limit : Limit)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   match checkedPositions trigger limit.unit view, checkedPositions response limit.unit view with
   | some triggerPositions, some responsePositions =>
       allHolds triggerPositions fun first =>
@@ -865,7 +1075,7 @@ private def eventuallyWithinDenotes
 private theorem evaluateEventuallyWithin_agrees
     (trigger response : PropertyPattern)
     (limit : Limit)
-    (view : PropertyTraceView) :
+    (view : PropertyEvaluationView) :
     evaluateEventuallyWithin trigger response limit view = true ↔
       eventuallyWithinDenotes trigger response limit view := by
   cases triggerResult : checkedPositions trigger limit.unit view with
@@ -895,7 +1105,7 @@ private theorem evaluateEventuallyWithin_agrees
 private def evaluateQuiescentWithin
     (trigger forbidden : PropertyPattern)
     (limit : Limit)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   match checkedPositions trigger limit.unit view, checkedPositions forbidden limit.unit view with
   | some triggerPositions, some forbiddenPositions =>
       triggerPositions.all fun first =>
@@ -905,7 +1115,7 @@ private def evaluateQuiescentWithin
 private def quiescentWithinDenotes
     (trigger forbidden : PropertyPattern)
     (limit : Limit)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   match checkedPositions trigger limit.unit view, checkedPositions forbidden limit.unit view with
   | some triggerPositions, some forbiddenPositions =>
       allHolds triggerPositions fun first =>
@@ -916,7 +1126,7 @@ private def quiescentWithinDenotes
 private theorem evaluateQuiescentWithin_agrees
     (trigger forbidden : PropertyPattern)
     (limit : Limit)
-    (view : PropertyTraceView) :
+    (view : PropertyEvaluationView) :
     evaluateQuiescentWithin trigger forbidden limit view = true ↔
       quiescentWithinDenotes trigger forbidden limit view := by
   cases triggerResult : checkedPositions trigger limit.unit view with
@@ -951,21 +1161,21 @@ private theorem evaluateQuiescentWithin_agrees
 
 private def exceptionAllowsEvaluate
     (exception : Option ResolvedPropertyException)
-    (input : PropertyPredicateInput) : Bool :=
+    (input : PropertyEvaluationPredicateInput) : Bool :=
   match exception with
   | none => true
   | some exception => !(evaluateCheckedPredicate exception.condition input)
 
 private def exceptionAllowsDenote
     (exception : Option ResolvedPropertyException)
-    (input : PropertyPredicateInput) : Prop :=
+    (input : PropertyEvaluationPredicateInput) : Prop :=
   match exception with
   | none => True
   | some exception => ¬checkedPredicateDenotes exception.condition input
 
 private theorem exceptionAllows_agrees
     (exception : Option ResolvedPropertyException)
-    (input : PropertyPredicateInput) :
+    (input : PropertyEvaluationPredicateInput) :
     exceptionAllowsEvaluate exception input = true ↔ exceptionAllowsDenote exception input := by
   cases exception with
   | none => simp [exceptionAllowsEvaluate, exceptionAllowsDenote]
@@ -974,7 +1184,7 @@ private theorem exceptionAllows_agrees
 
 private def guardedTemporalAppliesEvaluate
     (clause : ResolvedGuardedTemporalClause)
-    (input : PropertyPredicateInput) : Bool :=
+    (input : PropertyEvaluationPredicateInput) : Bool :=
   evaluateCheckedPredicate clause.guard input &&
     exceptionAllowsEvaluate clause.exception input &&
     clause.caseGuard.all (fun guard => evaluateCheckedPredicate guard input) &&
@@ -982,7 +1192,7 @@ private def guardedTemporalAppliesEvaluate
 
 private def guardedTemporalAppliesDenote
     (clause : ResolvedGuardedTemporalClause)
-    (input : PropertyPredicateInput) : Prop :=
+    (input : PropertyEvaluationPredicateInput) : Prop :=
   checkedPredicateDenotes clause.guard input ∧
     exceptionAllowsDenote clause.exception input ∧
     (∀ guard ∈ clause.caseGuard, checkedPredicateDenotes guard input) ∧
@@ -990,7 +1200,7 @@ private def guardedTemporalAppliesDenote
 
 private theorem guardedTemporalApplies_agrees
     (clause : ResolvedGuardedTemporalClause)
-    (input : PropertyPredicateInput) :
+    (input : PropertyEvaluationPredicateInput) :
     guardedTemporalAppliesEvaluate clause input = true ↔
       guardedTemporalAppliesDenote clause input := by
   cases caseGuard : clause.caseGuard <;>
@@ -1000,7 +1210,7 @@ private theorem guardedTemporalApplies_agrees
 private def triggerPositionsInStep
     (clause : ResolvedGuardedTemporalClause)
     (transitionPosition observationOffset : Nat)
-    (step : PropertyTraceStep) : Option (List Nat) :=
+    (step : PropertyEvaluationStep) : Option (List Nat) :=
   collectPositions ((stepOccurrences clause.trigger transitionPosition observationOffset step).map
     (positionOf clause.limit.unit))
 
@@ -1044,7 +1254,7 @@ private def evaluateGuardedTemporalSteps
     (forbidden : Bool)
     (clause : ResolvedGuardedTemporalClause)
     (responsePositions : List Nat) :
-    Nat → Nat → List PropertyTraceStep → Bool
+    Nat → Nat → List PropertyEvaluationStep → Bool
   | _, _, [] => true
   | transitionPosition, observationOffset, step :: rest =>
       match triggerPositionsInStep clause transitionPosition observationOffset step with
@@ -1061,7 +1271,7 @@ private def guardedTemporalStepsDenote
     (forbidden : Bool)
     (clause : ResolvedGuardedTemporalClause)
     (responsePositions : List Nat) :
-    Nat → Nat → List PropertyTraceStep → Prop
+    Nat → Nat → List PropertyEvaluationStep → Prop
   | _, _, [] => True
   | transitionPosition, observationOffset, step :: rest =>
       match triggerPositionsInStep clause transitionPosition observationOffset step with
@@ -1078,7 +1288,7 @@ private theorem evaluateGuardedTemporalSteps_agrees
     (clause : ResolvedGuardedTemporalClause)
     (responsePositions : List Nat)
     (transitionPosition observationOffset : Nat)
-    (steps : List PropertyTraceStep) :
+    (steps : List PropertyEvaluationStep) :
     evaluateGuardedTemporalSteps forbidden clause responsePositions
         transitionPosition observationOffset steps = true ↔
       guardedTemporalStepsDenote forbidden clause responsePositions
@@ -1111,7 +1321,7 @@ private theorem evaluateGuardedTemporalSteps_agrees
 private def evaluateGuardedTemporal
     (forbidden : Bool)
     (clause : ResolvedGuardedTemporalClause)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   match checkedPositions clause.response clause.limit.unit view with
   | none => false
   | some responsePositions =>
@@ -1120,7 +1330,7 @@ private def evaluateGuardedTemporal
 private def guardedTemporalDenotes
     (forbidden : Bool)
     (clause : ResolvedGuardedTemporalClause)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   match checkedPositions clause.response clause.limit.unit view with
   | none => False
   | some responsePositions =>
@@ -1129,7 +1339,7 @@ private def guardedTemporalDenotes
 private theorem evaluateGuardedTemporal_agrees
     (forbidden : Bool)
     (clause : ResolvedGuardedTemporalClause)
-    (view : PropertyTraceView) :
+    (view : PropertyEvaluationView) :
     evaluateGuardedTemporal forbidden clause view = true ↔
       guardedTemporalDenotes forbidden clause view := by
   cases responseResult : checkedPositions clause.response clause.limit.unit view with
@@ -1140,17 +1350,17 @@ private theorem evaluateGuardedTemporal_agrees
 
 private def parentAppliesEvaluate
     (group : ResolvedPropertyCaseGroup)
-    (input : PropertyPredicateInput) : Bool :=
+    (input : PropertyEvaluationPredicateInput) : Bool :=
   evaluateCheckedPredicate group.guard input && exceptionAllowsEvaluate group.exception input
 
 private def parentAppliesDenote
     (group : ResolvedPropertyCaseGroup)
-    (input : PropertyPredicateInput) : Prop :=
+    (input : PropertyEvaluationPredicateInput) : Prop :=
   checkedPredicateDenotes group.guard input ∧ exceptionAllowsDenote group.exception input
 
 private theorem parentApplies_agrees
     (group : ResolvedPropertyCaseGroup)
-    (input : PropertyPredicateInput) :
+    (input : PropertyEvaluationPredicateInput) :
     parentAppliesEvaluate group input = true ↔ parentAppliesDenote group input := by
   simp [parentAppliesEvaluate, parentAppliesDenote,
     evaluateCheckedPredicate_agrees, exceptionAllows_agrees]
@@ -1158,14 +1368,14 @@ private theorem parentApplies_agrees
 private def caseAppliesEvaluate
     (parentApplies : Bool)
     (item : ResolvedPropertyCase)
-    (input : PropertyPredicateInput) : Bool :=
+    (input : PropertyEvaluationPredicateInput) : Bool :=
   parentApplies && evaluateCheckedPredicate item.guard input &&
     exceptionAllowsEvaluate item.exception input
 
 private def caseAppliesDenote
     (parentApplies : Prop)
     (item : ResolvedPropertyCase)
-    (input : PropertyPredicateInput) : Prop :=
+    (input : PropertyEvaluationPredicateInput) : Prop :=
   (parentApplies ∧ checkedPredicateDenotes item.guard input) ∧
     exceptionAllowsDenote item.exception input
 
@@ -1174,7 +1384,7 @@ private theorem caseApplies_agrees
     (parentDenote : Prop)
     (parentAgreement : parentEvaluate = true ↔ parentDenote)
     (item : ResolvedPropertyCase)
-    (input : PropertyPredicateInput) :
+    (input : PropertyEvaluationPredicateInput) :
     caseAppliesEvaluate parentEvaluate item input = true ↔
       caseAppliesDenote parentDenote item input := by
   simp [caseAppliesEvaluate, caseAppliesDenote, parentAgreement,
@@ -1182,7 +1392,7 @@ private theorem caseApplies_agrees
 
 private def exclusiveCasesEvaluate
     (parentApplies : Bool)
-    (input : PropertyPredicateInput) : List ResolvedPropertyCase → Bool
+    (input : PropertyEvaluationPredicateInput) : List ResolvedPropertyCase → Bool
   | [] => true
   | item :: rest =>
       (!caseAppliesEvaluate parentApplies item input ||
@@ -1191,7 +1401,7 @@ private def exclusiveCasesEvaluate
 
 private def exclusiveCasesDenote
     (parentApplies : Prop)
-    (input : PropertyPredicateInput) : List ResolvedPropertyCase → Prop
+    (input : PropertyEvaluationPredicateInput) : List ResolvedPropertyCase → Prop
   | [] => True
   | item :: rest =>
       (caseAppliesDenote parentApplies item input →
@@ -1202,7 +1412,7 @@ private theorem exclusiveCases_agrees
     (parentEvaluate : Bool)
     (parentDenote : Prop)
     (parentAgreement : parentEvaluate = true ↔ parentDenote)
-    (input : PropertyPredicateInput)
+    (input : PropertyEvaluationPredicateInput)
     (items : List ResolvedPropertyCase) :
     exclusiveCasesEvaluate parentEvaluate input items = true ↔
       exclusiveCasesDenote parentDenote input items := by
@@ -1228,14 +1438,14 @@ private theorem exclusiveCases_agrees
 
 private def caseClausesEvaluate
     (applies : Bool)
-    (input : PropertyPredicateInput)
+    (input : PropertyEvaluationPredicateInput)
     (item : ResolvedPropertyCase) : Bool :=
   item.clauses.all fun clause =>
     !applies || evaluateCheckedPredicate clause.expectation input
 
 private def caseClausesDenote
     (applies : Prop)
-    (input : PropertyPredicateInput)
+    (input : PropertyEvaluationPredicateInput)
     (item : ResolvedPropertyCase) : Prop :=
   allHolds item.clauses fun clause =>
     applies → checkedPredicateDenotes clause.expectation input
@@ -1244,7 +1454,7 @@ private theorem caseClauses_agrees
     (appliesEvaluate : Bool)
     (appliesDenote : Prop)
     (appliesAgreement : appliesEvaluate = true ↔ appliesDenote)
-    (input : PropertyPredicateInput)
+    (input : PropertyEvaluationPredicateInput)
     (item : ResolvedPropertyCase) :
     caseClausesEvaluate appliesEvaluate input item = true ↔
       caseClausesDenote appliesDenote input item :=
@@ -1254,7 +1464,7 @@ private theorem caseClauses_agrees
 
 private def evaluateCaseGroupStep
     (group : ResolvedPropertyCaseGroup)
-    (step : PropertyTraceStep) : Bool :=
+    (step : PropertyEvaluationStep) : Bool :=
   let guardValues := guardInput step
   let expectationValues := expectationInput step
   let parent := parentAppliesEvaluate group guardValues
@@ -1267,7 +1477,7 @@ private def evaluateCaseGroupStep
 
 private def caseGroupStepDenotes
     (group : ResolvedPropertyCaseGroup)
-    (step : PropertyTraceStep) : Prop :=
+    (step : PropertyEvaluationStep) : Prop :=
   let guardValues := guardInput step
   let expectationValues := expectationInput step
   let parent := parentAppliesDenote group guardValues
@@ -1279,7 +1489,7 @@ private def caseGroupStepDenotes
 
 private theorem evaluateCaseGroupStep_agrees
     (group : ResolvedPropertyCaseGroup)
-    (step : PropertyTraceStep) :
+    (step : PropertyEvaluationStep) :
     evaluateCaseGroupStep group step = true ↔ caseGroupStepDenotes group step := by
   let guardValues := guardInput step
   let expectationValues := expectationInput step
@@ -1315,7 +1525,7 @@ private theorem evaluateCaseGroupStep_agrees
 
 private def evaluateCaseGroup
     (group : ResolvedPropertyCaseGroup)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   view.steps.all (evaluateCaseGroupStep group) &&
     group.cases.all fun item =>
       item.temporalClauses.all fun clause =>
@@ -1323,7 +1533,7 @@ private def evaluateCaseGroup
 
 private def caseGroupDenotes
     (group : ResolvedPropertyCaseGroup)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   allHolds view.steps (caseGroupStepDenotes group) ∧
     allHolds group.cases fun item =>
       allHolds item.temporalClauses fun clause =>
@@ -1331,7 +1541,7 @@ private def caseGroupDenotes
 
 private theorem evaluateCaseGroup_agrees
     (group : ResolvedPropertyCaseGroup)
-    (view : PropertyTraceView) :
+    (view : PropertyEvaluationView) :
     evaluateCaseGroup group view = true ↔ caseGroupDenotes group view :=
 by
   have stepsAgreement :
@@ -1350,7 +1560,7 @@ by
 
 private def resolvedPropertyClauseDenotes
     (clause : ResolvedPropertyClause)
-    (view : PropertyTraceView) : Prop :=
+    (view : PropertyEvaluationView) : Prop :=
   match clause with
   | .stateInvariant _ state => stateInvariantDenotes state view
   | .transitionContract _ precondition postcondition =>
@@ -1370,7 +1580,7 @@ private def resolvedPropertyClauseDenotes
 
 private def evaluateResolvedPropertyClause
     (clause : ResolvedPropertyClause)
-    (view : PropertyTraceView) : Bool :=
+    (view : PropertyEvaluationView) : Bool :=
   match clause with
   | .stateInvariant _ state => evaluateStateInvariant state view
   | .transitionContract _ precondition postcondition =>
@@ -1603,7 +1813,7 @@ def ResolvedPropertyCase.clauseIdentities
 private def caseApplicabilityAt
     (group : ResolvedPropertyCaseGroup)
     (parentApplies : Bool)
-    (input : PropertyPredicateInput)
+    (input : PropertyEvaluationPredicateInput)
     (item : ResolvedPropertyCase) : CaseApplicability :=
   let guardMatched := evaluateCheckedPredicate item.guard input
   let exceptionAllows := exceptionAllowsEvaluate item.exception input
@@ -1622,7 +1832,7 @@ private def caseGroupApplicabilityAt
     (property : CheckedProperty)
     (group : ResolvedPropertyCaseGroup)
     (transitionPosition : Nat)
-    (step : PropertyTraceStep) : CaseGroupApplicability :=
+    (step : PropertyEvaluationStep) : CaseGroupApplicability :=
   let input := guardInput step
   let guardMatched := evaluateCheckedPredicate group.guard input
   let exceptionAllows := exceptionAllowsEvaluate group.exception input
@@ -1658,7 +1868,7 @@ private def sameStepJointObservationsAt
     (property : CheckedProperty)
     (group : ResolvedPropertyCaseGroup)
     (transitionPosition : Nat)
-    (step : PropertyTraceStep) : List JointObligationObservation :=
+    (step : PropertyEvaluationStep) : List JointObligationObservation :=
   let applicability := caseGroupApplicabilityAt property group transitionPosition step
   let expectationValues := expectationInput step
   group.cases.flatMap fun item =>
@@ -1691,13 +1901,13 @@ private def sameStepJointObservationsAt
 private def guardedTemporalJointObservations
     (property : CheckedProperty)
     (clause : ResolvedGuardedTemporalClause)
-    (view : PropertyTraceView) : List JointObligationObservation :=
+    (view : PropertyEvaluationView) : List JointObligationObservation :=
   match checkedPositions clause.response clause.limit.unit view with
   | none => []
   | some responsePositions =>
       let rec visit
           (transitionPosition observationOffset : Nat)
-          (steps : List PropertyTraceStep) : List JointObligationObservation :=
+          (steps : List PropertyEvaluationStep) : List JointObligationObservation :=
         match steps with
         | [] => []
         | step :: rest =>
@@ -1787,7 +1997,11 @@ private def clauseLimit : ResolvedPropertyClause → Option Limit
   | _ => none
 
 private def predicateReferences : PropertyPredicate → List DefinitionId
-  | .atom atom => [atom.reference]
+  | .atom atom => match atom.fieldComparison with
+    | none => [atom.reference]
+    | some comparison => [comparison.left, comparison.right].filterMap fun operand => match operand with
+      | .field path _ => some path.reference
+      | .literal _ _ => none
   | .all items | .any items => items.flatMap predicateReferences
   | .not item => predicateReferences item
 
@@ -1831,7 +2045,7 @@ private def guardedTemporalFailures
 
 private def caseGroupFailures
     (group : ResolvedPropertyCaseGroup)
-    (view : PropertyTraceView) : List PropertyClauseIdentity :=
+    (view : PropertyEvaluationView) : List PropertyClauseIdentity :=
   let stepFailures := view.steps.flatMap fun step =>
     let guardValues := guardInput step
     let expectationValues := expectationInput step
@@ -1874,7 +2088,7 @@ private def caseGroupFailures
 
 private def spanOf
     (clause : ResolvedPropertyClause)
-    (view : PropertyTraceView) : Option PropertyTraceSpan :=
+    (view : PropertyEvaluationView) : Option PropertyTraceSpan :=
   let found := (clausePatterns clause).flatMap fun pattern =>
     (occurrences pattern view).map PropertyOccurrence.transitionPosition
   match found with
@@ -1886,7 +2100,7 @@ private def spanOf
 
 private def resultOf
     (property : CheckedProperty)
-    (view : PropertyTraceView)
+    (view : PropertyEvaluationView)
     (clause : ResolvedPropertyClause) : PropertyClauseResult :=
   let satisfied := evaluateResolvedPropertyClause clause view
   {
@@ -1949,7 +2163,7 @@ private def combineEndpointAnswers (answers : List PropertyEndpointAnswer) : Pro
   else if answers.contains .unresolved then .unresolved
   else .satisfied
 
-private def endpointCoordinate (unit : LimitUnit) (view : PropertyTraceView) : Option Nat :=
+private def endpointCoordinate (unit : LimitUnit) (view : PropertyEvaluationView) : Option Nat :=
   match unit with
   | .semanticTransitions | .selectedActions => some view.steps.length
   | .observationPositions => some (view.steps.foldl (fun n step => n + step.observations.length) 0)
@@ -1958,7 +2172,7 @@ private def endpointCoordinate (unit : LimitUnit) (view : PropertyTraceView) : O
 
 private def temporalEndpointAnswer
     (forbidden : Bool) (trigger : Nat) (responses : List Nat) (limit : Limit)
-    (view : PropertyTraceView) : PropertyEndpointAnswer :=
+    (view : PropertyEvaluationView) : PropertyEndpointAnswer :=
   let found := responses.any fun response => trigger ≤ response && response - trigger ≤ limit.value
   if found then
     if forbidden then .violated else .satisfied
@@ -1971,7 +2185,7 @@ private def temporalEndpointAnswer
 
 private def plainTemporalEndpointAnswer
     (forbidden : Bool) (trigger response : PropertyPattern) (limit : Limit)
-    (view : PropertyTraceView) : PropertyEndpointAnswer :=
+    (view : PropertyEvaluationView) : PropertyEndpointAnswer :=
   match checkedPositions trigger limit.unit view, checkedPositions response limit.unit view with
   | some triggers, some responses => combineEndpointAnswers
       (triggers.map fun coordinate => temporalEndpointAnswer forbidden coordinate responses limit view)
@@ -1979,12 +2193,12 @@ private def plainTemporalEndpointAnswer
 
 private def guardedEndpointAnswer
     (clause : ResolvedGuardedTemporalClause)
-    (view : PropertyTraceView) : PropertyEndpointAnswer :=
+    (view : PropertyEvaluationView) : PropertyEndpointAnswer :=
   match checkedPositions clause.response clause.limit.unit view with
   | none => .unresolved
   | some responses =>
       let rec visit (transitionPosition observationOffset : Nat)
-          (steps : List PropertyTraceStep) : List PropertyEndpointAnswer :=
+          (steps : List PropertyEvaluationStep) : List PropertyEndpointAnswer :=
         match steps with
         | [] => []
         | step :: rest =>
@@ -2000,7 +2214,7 @@ private def guardedEndpointAnswer
 
 private def clauseEndpointAnswer
     (clause : ResolvedPropertyClause)
-    (view : PropertyTraceView) : PropertyEndpointAnswer :=
+    (view : PropertyEvaluationView) : PropertyEndpointAnswer :=
   match clause with
   | .stateInvariant _ pattern =>
       if !((valuesAtField .state view).any fun value => value.definitionId == pattern.reference) then

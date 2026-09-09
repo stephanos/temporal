@@ -210,7 +210,6 @@ structure PropertyPredicateInput where
   resultingState : Option ModelValue := none
   modelOutcome : Option ModelValue := none
   facts : Option (List ModelValue) := none
-  fieldValues : List PropertyFieldValue := []
   deriving BEq, DecidableEq, Repr
 
 structure PropertyLimitProfile where
