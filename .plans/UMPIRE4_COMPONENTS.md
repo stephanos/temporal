@@ -63,7 +63,9 @@ inherited failure identities, Lean model builds, generated views, and semantic i
 
 Everything below this heading is a historical snapshot of the architecture removed by fn-64. Its
 commands, package paths, artifacts, and runtime terminology are explicitly superseded by the Case
-Runtime map above.
+Runtime map above. Its present-tense references to `common/testing/umpire`, `tools/umpire2`, and
+`tools/umpire3` describe trees fn-81 deleted; read them as a record of what existed, not of what
+the repository contains.
 
 Inventory snapshot: reconciled 2026-09-02 against the then-current `model/` tree, its generators, and
 the then-existing Go Umpire implementations. The component boundaries were originally extracted from the
