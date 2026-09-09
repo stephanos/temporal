@@ -20,7 +20,11 @@ type programDefinition struct {
 	registrations  []queueRegistration
 	endpoints      map[string]string
 	queueWorkflows map[string]map[string]struct{}
-	hasAsync       bool
+	// faultQueues maps each task-queue role a fault instruction names to the queue that role
+	// resolves to, so realizing a fault never re-reads the Program.
+	faultQueues map[string]string
+	hasAsync    bool
+	hasFault    bool
 }
 
 type entryDefinition struct {
@@ -51,7 +55,7 @@ type Session struct {
 	diagnostics        int
 	closed             bool
 	failure            error
-	releaseWorkers     func(context.Context) error
+	workers            *workerLease
 	stopComplete       bool
 	released           bool
 	removed            bool
@@ -123,8 +127,72 @@ func (*Session) InvokeCapability(context.Context, testpilot.Coordinate, testpilo
 	return nil, ErrUnsupportedOperation
 }
 
-func (*Session) InjectFault(context.Context, testpilot.Coordinate, string, testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
-	return nil, ErrUnsupportedOperation
+// faultEffect carries the settled outcome of one fault instruction. The transition is performed
+// before the handle is returned, so Wait reports what actually happened rather than a promise.
+type faultEffect struct{ result testpilot.EffectResult }
+
+func (e faultEffect) Wait(ctx context.Context) (testpilot.EffectResult, error) {
+	if ctx == nil {
+		return testpilot.EffectResult{}, ErrInvalid
+	}
+	if err := ctx.Err(); err != nil {
+		return testpilot.EffectResult{}, err
+	}
+	return e.result, nil
+}
+func (faultEffect) Cancel(context.Context) error { return nil }
+func (faultEffect) Drain(context.Context) error  { return nil }
+
+// InjectFault realizes one deliberate worker outage on the dedicated group this Run holds. A
+// transition the Driver cannot make is reported as a failed instruction outcome plus a Driver
+// invariant diagnostic: the Run records that the fault was requested and not realized, and the
+// Verdict is left to the Contract rather than being decided here.
+func (s *Session) InjectFault(ctx context.Context, at testpilot.Coordinate, roleID string, kind testpilotspb.FaultKind) (testpilot.EffectHandle, error) {
+	if s == nil || ctx == nil || at.RunID != s.runID || roleID == "" {
+		return nil, ErrInvalid
+	}
+	queue, declared := s.definition.faultQueues[roleID]
+	if !declared {
+		return nil, ErrInvalid
+	}
+	if err := s.mu.lock(ctx); err != nil {
+		return nil, err
+	}
+	closed, failure, workers := s.closed, s.failure, s.workers
+	s.mu.unlock()
+	if closed || failure != nil {
+		return nil, errors.Join(ErrClosed, failure)
+	}
+	if workers == nil {
+		return nil, ErrInvalid
+	}
+	group, err := workers.group(queue)
+	if err != nil {
+		return nil, err
+	}
+	if group == nil {
+		return nil, ErrClosed
+	}
+	switch kind {
+	case testpilotspb.FAULT_KIND_WORKER_STOP:
+		err = workers.stopWorker(ctx)
+	case testpilotspb.FAULT_KIND_WORKER_RESUME:
+		err = workers.resumeWorker(ctx)
+	default:
+		return nil, ErrInvalid
+	}
+	if err == nil {
+		return faultEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_SUCCEEDED}}}, nil
+	}
+	if diagnoseErr := s.Diagnose(ctx, s.runID, &testpilotspb.RunDiagnostic{
+		DiagnosticId: fmt.Sprintf("fault-%d", s.next.Add(1)),
+		Kind:         testpilotspb.RUN_DIAGNOSTIC_KIND_INVARIANT,
+		Code:         "fault_not_realized",
+		Detail:       kind.String() + " on " + queue + ": " + err.Error(),
+	}); diagnoseErr != nil {
+		return nil, errors.Join(err, diagnoseErr)
+	}
+	return faultEffect{result: testpilot.EffectResult{Outcome: &testpilotspb.InstructionOutcome{Status: testpilotspb.INSTRUCTION_OUTCOME_STATUS_PROTOCOL_NON_SUCCESS}}}, nil
 }
 
 func (s *Session) Bridge(ctx context.Context) (testpilot.CapabilityBridge, error) {
@@ -161,7 +229,7 @@ func (s *Session) Close(ctx context.Context) error {
 		return err
 	}
 	s.closed = true
-	releaseWorkers := s.releaseWorkers
+	workers := s.workers
 	s.mu.unlock()
 	if !s.stopComplete {
 		if _, err := s.ledger.Stop(ctx); err != nil {
@@ -169,19 +237,21 @@ func (s *Session) Close(ctx context.Context) error {
 		}
 		s.stopComplete = true
 	}
-	if !s.released && releaseWorkers != nil {
-		if err := releaseWorkers(ctx); err != nil {
-			return err
-		}
+	// A release that could not resume a stopped worker is still a completed release: the session
+	// is removed either way and the failure is returned, so cleanup is reported failed rather than
+	// leaving the session registered behind an error.
+	var releaseErr error
+	if !s.released && workers != nil {
+		releaseErr = workers.release(ctx)
 		s.released = true
 	}
 	if !s.removed {
 		if err := s.host.removeSession(ctx, s, true); err != nil {
-			return err
+			return errors.Join(releaseErr, err)
 		}
 		s.removed = true
 	}
-	return nil
+	return releaseErr
 }
 
 func (s *Session) Diagnose(ctx context.Context, runID string, diagnostic *testpilotspb.RunDiagnostic) error {
