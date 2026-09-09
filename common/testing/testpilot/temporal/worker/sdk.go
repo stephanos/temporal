@@ -19,11 +19,11 @@ import (
 
 type sdkManagedWorker struct{ sdkworker.Worker }
 
-func (h *Driver) newSDKWorker(queue string, registration queueRegistration) (managedWorker, error) {
+func (h *Driver) newSDKWorker(key, queue string, registration queueRegistration) (managedWorker, error) {
 	options := h.options.workerOptions
 	options.Interceptors = append([]interceptor.WorkerInterceptor(nil), options.Interceptors...)
 	options.Interceptors = append(options.Interceptors, &sdkWorkerInterceptor{host: h, queue: queue, registration: registration})
-	options.OnFatalError = func(err error) { h.registry.fail(queue, err) }
+	options.OnFatalError = func(err error) { h.registry.fail(key, err) }
 	worker := sdkworker.New(h.options.client, queue, options)
 	worker.RegisterDynamicWorkflow(h.dynamicWorkflow, workflow.DynamicRegisterOptions{})
 	services := make(map[string]*nexus.Service)

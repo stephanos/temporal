@@ -12,7 +12,7 @@ type managedWorker interface {
 	Stop()
 }
 
-type workerFactory func(string, queueRegistration) (managedWorker, error)
+type workerFactory func(key, queue string, registration queueRegistration) (managedWorker, error)
 
 type queueRegistration struct {
 	queue     string
@@ -103,18 +103,33 @@ type workerRegistry struct {
 }
 
 type workerGroup struct {
+	key          string
 	registration queueRegistration
 	worker       managedWorker
 	runs         map[string]func(error)
 	failure      error
 	ready        chan struct{}
+	// stopped records a deliberate outage. It is set before the SDK worker is asked to stop and
+	// cleared only by a resume, so the fatal-failure path stays suppressed for the whole window
+	// rather than reporting the outage the Run asked for as a Run failure.
+	stopped bool
+}
+
+// groupKey names the pooled group of a task queue, or the Run's own group when the Run injects
+// faults. A dedicated group is what makes a deliberate stop unable to reach a peer Run that
+// happens to share the queue.
+func groupKey(runID, queue string, dedicated bool) string {
+	if dedicated {
+		return runID + "\x00" + queue
+	}
+	return queue
 }
 
 func newWorkerRegistry(maximum int, factory workerFactory) *workerRegistry {
 	return &workerRegistry{mu: newContextMutex(), maximum: maximum, factory: factory, groups: make(map[string]*workerGroup), runIDs: make(map[string]struct{})}
 }
 
-func (r *workerRegistry) acquire(ctx context.Context, runID string, requirements []queueRegistration, onFatal func(string, error)) (func(context.Context) error, error) {
+func (r *workerRegistry) acquire(ctx context.Context, runID string, requirements []queueRegistration, dedicated bool, onFatal func(string, error)) (*workerLease, error) {
 	if ctx == nil || r == nil || r.maximum <= 0 || r.factory == nil || runID == "" {
 		return nil, ErrInvalid
 	}
@@ -123,7 +138,7 @@ func (r *workerRegistry) acquire(ctx context.Context, runID string, requirements
 		return nil, err
 	}
 	for {
-		created, pending, err := r.reserve(ctx, runID, canonical)
+		created, pending, err := r.reserve(ctx, runID, canonical, dedicated)
 		if err != nil {
 			return nil, err
 		}
@@ -134,15 +149,15 @@ func (r *workerRegistry) acquire(ctx context.Context, runID string, requirements
 			continue
 		}
 		started, startErr := r.buildAndStart(ctx, created)
-		if err := r.finishAcquisition(ctx, runID, canonical, created, startErr, onFatal); err != nil {
+		if err := r.finishAcquisition(ctx, runID, canonical, created, startErr, onFatal, dedicated); err != nil {
 			stopWorkers(started)
 			return nil, err
 		}
-		return r.releaseFunc(runID, canonical), nil
+		return r.newLease(runID, canonical, dedicated), nil
 	}
 }
 
-func (r *workerRegistry) reserve(ctx context.Context, runID string, requirements []queueRegistration) ([]*workerGroup, []<-chan struct{}, error) {
+func (r *workerRegistry) reserve(ctx context.Context, runID string, requirements []queueRegistration, dedicated bool) ([]*workerGroup, []<-chan struct{}, error) {
 	if err := r.mu.lock(ctx); err != nil {
 		return nil, nil, err
 	}
@@ -150,7 +165,7 @@ func (r *workerRegistry) reserve(ctx context.Context, runID string, requirements
 	if _, exists := r.runIDs[runID]; exists {
 		return nil, nil, ErrRegistrationConflict
 	}
-	pending, missing, err := r.inspectRequirements(requirements)
+	pending, missing, err := r.inspectRequirements(runID, requirements, dedicated)
 	if err != nil || pending != nil {
 		return nil, pending, err
 	}
@@ -160,20 +175,21 @@ func (r *workerRegistry) reserve(ctx context.Context, runID string, requirements
 	r.runIDs[runID] = struct{}{}
 	created := make([]*workerGroup, 0, missing)
 	for _, requirement := range requirements {
-		if r.groups[requirement.queue] == nil {
-			group := &workerGroup{registration: requirement, runs: make(map[string]func(error)), ready: make(chan struct{})}
-			r.groups[requirement.queue] = group
+		key := groupKey(runID, requirement.queue, dedicated)
+		if r.groups[key] == nil {
+			group := &workerGroup{key: key, registration: requirement, runs: make(map[string]func(error)), ready: make(chan struct{})}
+			r.groups[key] = group
 			created = append(created, group)
 		}
 	}
 	return created, nil, nil
 }
 
-func (r *workerRegistry) inspectRequirements(requirements []queueRegistration) ([]<-chan struct{}, int, error) {
+func (r *workerRegistry) inspectRequirements(runID string, requirements []queueRegistration, dedicated bool) ([]<-chan struct{}, int, error) {
 	var pending []<-chan struct{}
 	missing := 0
 	for _, requirement := range requirements {
-		group := r.groups[requirement.queue]
+		group := r.groups[groupKey(runID, requirement.queue, dedicated)]
 		if group == nil {
 			missing++
 			continue
@@ -207,7 +223,7 @@ func (r *workerRegistry) buildAndStart(ctx context.Context, created []*workerGro
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		candidate, err := r.factory(group.registration.queue, group.registration)
+		candidate, err := r.factory(group.key, group.registration.queue, group.registration)
 		if err != nil {
 			return nil, err
 		}
@@ -233,17 +249,17 @@ func (r *workerRegistry) buildAndStart(ctx context.Context, created []*workerGro
 	return started, nil
 }
 
-func (r *workerRegistry) finishAcquisition(ctx context.Context, runID string, requirements []queueRegistration, created []*workerGroup, startErr error, onFatal func(string, error)) error {
+func (r *workerRegistry) finishAcquisition(ctx context.Context, runID string, requirements []queueRegistration, created []*workerGroup, startErr error, onFatal func(string, error), dedicated bool) error {
 	cleanupCtx, cleanupCancel := context.WithTimeout(context.Background(), defaultCleanupTimeout)
 	defer cleanupCancel()
 	if err := r.mu.lock(cleanupCtx); err != nil {
 		return errors.Join(startErr, err)
 	}
 	defer r.mu.unlock()
-	result := firstError(startErr, ctx.Err(), r.groupFailure(requirements))
+	result := firstError(startErr, ctx.Err(), r.groupFailure(runID, requirements, dedicated))
 	for _, group := range created {
 		if result != nil {
-			delete(r.groups, group.registration.queue)
+			delete(r.groups, group.key)
 		}
 		close(group.ready)
 		group.ready = nil
@@ -254,7 +270,7 @@ func (r *workerRegistry) finishAcquisition(ctx context.Context, runID string, re
 	}
 	for _, requirement := range requirements {
 		queue := requirement.queue
-		r.groups[queue].runs[runID] = func(err error) {
+		r.groups[groupKey(runID, queue, dedicated)].runs[runID] = func(err error) {
 			if onFatal != nil {
 				onFatal(queue, err)
 			}
@@ -263,9 +279,9 @@ func (r *workerRegistry) finishAcquisition(ctx context.Context, runID string, re
 	return nil
 }
 
-func (r *workerRegistry) groupFailure(requirements []queueRegistration) error {
+func (r *workerRegistry) groupFailure(runID string, requirements []queueRegistration, dedicated bool) error {
 	for _, requirement := range requirements {
-		group := r.groups[requirement.queue]
+		group := r.groups[groupKey(runID, requirement.queue, dedicated)]
 		if group == nil {
 			return ErrClosed
 		}
@@ -291,23 +307,149 @@ func stopWorkers(workers []managedWorker) {
 	}
 }
 
-func (r *workerRegistry) releaseFunc(runID string, requirements []queueRegistration) func(context.Context) error {
-	mu := newContextMutex()
-	released := false
-	return func(ctx context.Context) error {
-		if err := mu.lock(ctx); err != nil {
-			return err
+// workerLease is one Run's hold on its worker groups. It is also the only handle that can stop or
+// resume a group, and it refuses both unless the Run was granted a dedicated group.
+type workerLease struct {
+	registry     *workerRegistry
+	runID        string
+	requirements []queueRegistration
+	dedicated    bool
+	mu           contextMutex
+	released     bool
+}
+
+func (r *workerRegistry) newLease(runID string, requirements []queueRegistration, dedicated bool) *workerLease {
+	return &workerLease{registry: r, runID: runID, requirements: requirements, dedicated: dedicated, mu: newContextMutex()}
+}
+
+func (l *workerLease) group(queue string) (*workerGroup, error) {
+	if l == nil || !l.dedicated {
+		return nil, ErrUnsupportedOperation
+	}
+	if !slices.ContainsFunc(l.requirements, func(requirement queueRegistration) bool { return requirement.queue == queue }) {
+		return nil, ErrInvalid
+	}
+	group := l.registry.groups[groupKey(l.runID, queue, true)]
+	if group == nil {
+		return nil, ErrClosed
+	}
+	if group.failure != nil {
+		return nil, errors.Join(ErrClosed, group.failure)
+	}
+	return group, nil
+}
+
+// stopWorker realizes one deliberate outage. The group is marked stopped under the registry lock,
+// before the SDK worker is asked to stop, so the fatal path is already suppressed when the stop
+// takes effect. The blocking Stop runs outside the lock and is bounded by the caller's context.
+func (l *workerLease) stopWorker(ctx context.Context) error {
+	return l.transition(ctx, true)
+}
+
+// resumeWorker re-registers the group's worker with the same structural signature it had before
+// the outage; nothing about the registration changes across a stop and resume.
+func (l *workerLease) resumeWorker(ctx context.Context) error {
+	return l.transition(ctx, false)
+}
+
+func (l *workerLease) transition(ctx context.Context, stop bool) error {
+	if ctx == nil {
+		return ErrInvalid
+	}
+	if err := l.registry.mu.lock(ctx); err != nil {
+		return err
+	}
+	group, err := l.faultGroup()
+	if err != nil {
+		l.registry.mu.unlock()
+		return err
+	}
+	if group.stopped == stop {
+		l.registry.mu.unlock()
+		return ErrRegistrationConflict
+	}
+	group.stopped = stop
+	worker, registration, key, queue := group.worker, group.registration, group.key, group.registration.queue
+	l.registry.mu.unlock()
+
+	if stop {
+		return stopBounded(ctx, worker)
+	}
+	resumed, err := l.registry.factory(key, queue, registration)
+	if err == nil && resumed == nil {
+		err = ErrInvalid
+	}
+	if err == nil {
+		err = resumed.Start()
+	}
+	if err != nil {
+		if lockErr := l.registry.mu.lock(context.Background()); lockErr == nil {
+			group.stopped = true
+			l.registry.mu.unlock()
 		}
-		defer mu.unlock()
-		if released {
-			return nil
-		}
-		if err := r.release(ctx, runID, requirements); err != nil {
-			return err
-		}
-		released = true
+		return err
+	}
+	if err := l.registry.mu.lock(ctx); err != nil {
+		resumed.Stop()
+		return err
+	}
+	group.worker = resumed
+	l.registry.mu.unlock()
+	return nil
+}
+
+// faultGroup resolves the single dedicated group a fault applies to. A Run that declares a fault
+// declares exactly one task-queue role, so there is never a choice to make here.
+func (l *workerLease) faultGroup() (*workerGroup, error) {
+	if l == nil || !l.dedicated || len(l.requirements) != 1 {
+		return nil, ErrUnsupportedOperation
+	}
+	return l.group(l.requirements[0].queue)
+}
+
+// stopBounded honors the caller's deadline. The SDK's own Stop has no context, so an expired
+// deadline reports the timeout while the stop continues under the Driver's worker stop timeout.
+func stopBounded(ctx context.Context, worker managedWorker) error {
+	if worker == nil {
+		return ErrInvalid
+	}
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		worker.Stop()
+	}()
+	select {
+	case <-done:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+func (l *workerLease) release(ctx context.Context) error {
+	if l == nil {
+		return ErrInvalid
+	}
+	if err := l.mu.lock(ctx); err != nil {
+		return err
+	}
+	defer l.mu.unlock()
+	if l.released {
 		return nil
 	}
+	// A stopped worker is resumed before the group is released, so the next Run to acquire this
+	// queue never inherits an outage a previous Run asked for.
+	var resumeErr error
+	if l.dedicated {
+		if group, err := l.faultGroup(); err == nil && group.stopped {
+			resumeErr = l.resumeWorker(ctx)
+		}
+	}
+	if err := l.registry.release(ctx, l.runID, l.requirements, l.dedicated); err != nil {
+		return errors.Join(resumeErr, err)
+	}
+	l.released = true
+	return resumeErr
 }
 
 func canonicalRequirements(requirements []queueRegistration) ([]queueRegistration, error) {
@@ -334,7 +476,7 @@ func canonicalRequirements(requirements []queueRegistration) ([]queueRegistratio
 	return canonical, nil
 }
 
-func (r *workerRegistry) release(ctx context.Context, runID string, requirements []queueRegistration) error {
+func (r *workerRegistry) release(ctx context.Context, runID string, requirements []queueRegistration, dedicated bool) error {
 	if ctx == nil {
 		return ErrInvalid
 	}
@@ -344,19 +486,32 @@ func (r *workerRegistry) release(ctx context.Context, runID string, requirements
 	defer r.mu.unlock()
 	delete(r.runIDs, runID)
 	for _, requirement := range requirements {
-		if group := r.groups[requirement.queue]; group != nil {
+		key := groupKey(runID, requirement.queue, dedicated)
+		if group := r.groups[key]; group != nil {
 			delete(group.runs, runID)
+			// A dedicated group belongs to exactly this Run, so it goes away with the Run rather
+			// than staying behind as an unreachable entry against the group ceiling.
+			if dedicated && len(group.runs) == 0 {
+				delete(r.groups, key)
+				if group.worker != nil && !group.stopped {
+					worker := group.worker
+					group.worker = nil
+					defer worker.Stop()
+				}
+			}
 		}
 	}
 	return nil
 }
 
-func (r *workerRegistry) fail(queue string, failure error) {
+func (r *workerRegistry) fail(key string, failure error) {
 	if failure == nil || r.mu.lock(context.Background()) != nil {
 		return
 	}
-	group := r.groups[queue]
-	if group == nil || group.failure != nil {
+	group := r.groups[key]
+	// A deliberate outage is not a Run failure: while the group is stopped, the SDK's fatal path
+	// is the expected consequence of the stop the Run asked for.
+	if group == nil || group.failure != nil || group.stopped {
 		r.mu.unlock()
 		return
 	}

@@ -91,7 +91,7 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 	if err != nil {
 		return nil, err
 	}
-	if !hasWorkerEntrypoint(program) {
+	if !hasWorkerEntrypoint(program) && !hasFaultInstruction(program) {
 		return newPreparedCompositeSession(controller, nil, program), nil
 	}
 	bridge, err := controller.Bridge(ctx)
@@ -107,6 +107,19 @@ func (h *Driver) Open(ctx context.Context, runID string, program testpilot.Prepa
 		return nil, errors.Join(err, controller.Close(context.Background()))
 	}
 	return newPreparedCompositeSession(controller, worker, program), nil
+}
+
+// A fault is realized by the worker Driver, so a Program that requests one needs a worker Session
+// even when every other worker use is absent.
+func hasFaultInstruction(program testpilot.PreparedProgram) bool {
+	for _, entrypoint := range program.Entrypoints() {
+		for _, instruction := range entrypoint.Instructions() {
+			if instruction.Source().GetInstruction().GetInjectFault() != nil {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func hasWorkerEntrypoint(program testpilot.PreparedProgram) bool {

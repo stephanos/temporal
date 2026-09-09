@@ -34,7 +34,7 @@ func TestDriverSymbolicModeDerivesResourcesAndRejectsBindingIdentityMismatchBefo
 		profile.EnvironmentBindings = append(profile.EnvironmentBindings, testpilot.EnvironmentBinding{ID: "other-namespace", Value: "namespace"})
 	})
 	acquisitions := 0
-	host.registry = newWorkerRegistry(8, func(string, queueRegistration) (managedWorker, error) {
+	host.registry = newWorkerRegistry(8, func(string, string, queueRegistration) (managedWorker, error) {
 		acquisitions++
 		return &fakeManagedWorker{}, nil
 	})
@@ -144,7 +144,7 @@ func TestDriverValidatesControllerOnlyTemporalResourceBindings(t *testing.T) {
 			prepared := preparedSymbolicRuntimeFixture(t, modifiers...)
 			host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
 			acquisitions := 0
-			host.registry = newWorkerRegistry(8, func(string, queueRegistration) (managedWorker, error) {
+			host.registry = newWorkerRegistry(8, func(string, string, queueRegistration) (managedWorker, error) {
 				acquisitions++
 				return &fakeManagedWorker{}, nil
 			})
@@ -172,7 +172,7 @@ func TestDriverRejectsInvalidCleanupResourceBindingBeforeOpen(t *testing.T) {
 	}, authorizeGetHistory)
 	host := symbolicRuntimeDriver(t, prepared.Snapshot().GetLimits())
 	acquisitions := 0
-	host.registry = newWorkerRegistry(8, func(string, queueRegistration) (managedWorker, error) {
+	host.registry = newWorkerRegistry(8, func(string, string, queueRegistration) (managedWorker, error) {
 		acquisitions++
 		return &fakeManagedWorker{}, nil
 	})
@@ -304,43 +304,43 @@ func symbolicFieldPath(fields ...string) *testpilotspb.FieldPath {
 
 func TestRegistrationRejectsIncompatibleQueueBeforeStart(t *testing.T) {
 	starts := 0
-	registry := newWorkerRegistry(2, func(queue string, registration queueRegistration) (managedWorker, error) {
+	registry := newWorkerRegistry(2, func(_, queue string, registration queueRegistration) (managedWorker, error) {
 		return &fakeManagedWorker{start: func() error { starts++; return nil }}, nil
 	})
 
-	release, err := registry.acquire(t.Context(), "run-1", []queueRegistration{{queue: "queue", workflows: []string{"workflow"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}}}, nil)
+	release, err := registry.acquire(t.Context(), "run-1", []queueRegistration{{queue: "queue", workflows: []string{"workflow"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}}}, false, nil)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		require.NoError(t, release(ctx))
+		require.NoError(t, release.release(ctx))
 	})
-	_, err = registry.acquire(t.Context(), "run-2", []queueRegistration{{queue: "queue", workflows: []string{"other"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}}}, nil)
+	_, err = registry.acquire(t.Context(), "run-2", []queueRegistration{{queue: "queue", workflows: []string{"other"}, nexus: []nexusRegistration{{service: "service", operation: "operation"}}}}, false, nil)
 	require.ErrorIs(t, err, ErrRegistrationConflict)
 	require.Equal(t, 1, starts)
 }
 
 func TestRegistrationSharesExactSignatureAndBoundsRetainedStates(t *testing.T) {
 	starts := 0
-	registry := newWorkerRegistry(1, func(queue string, registration queueRegistration) (managedWorker, error) {
+	registry := newWorkerRegistry(1, func(_, queue string, registration queueRegistration) (managedWorker, error) {
 		return &fakeManagedWorker{start: func() error { starts++; return nil }}, nil
 	})
 	requirements := []queueRegistration{{queue: "queue", workflows: []string{"workflow"}}}
-	release1, err := registry.acquire(t.Context(), "run-1", requirements, nil)
+	release1, err := registry.acquire(t.Context(), "run-1", requirements, false, nil)
 	require.NoError(t, err)
-	release2, err := registry.acquire(t.Context(), "run-2", requirements, nil)
+	release2, err := registry.acquire(t.Context(), "run-2", requirements, false, nil)
 	require.NoError(t, err)
 	require.Equal(t, 1, starts)
-	require.NoError(t, release1(t.Context()))
-	require.NoError(t, release2(t.Context()))
-	_, err = registry.acquire(t.Context(), "run-3", []queueRegistration{{queue: "other", workflows: []string{"workflow"}}}, nil)
+	require.NoError(t, release1.release(t.Context()))
+	require.NoError(t, release2.release(t.Context()))
+	_, err = registry.acquire(t.Context(), "run-3", []queueRegistration{{queue: "other", workflows: []string{"workflow"}}}, false, nil)
 	require.ErrorIs(t, err, ErrCapacity)
 }
 
 func TestRegistrationWaitAndDuplicateAcquisitionAreContextBounded(t *testing.T) {
 	started := make(chan struct{})
 	proceed := make(chan struct{})
-	registry := newWorkerRegistry(1, func(string, queueRegistration) (managedWorker, error) {
+	registry := newWorkerRegistry(1, func(string, string, queueRegistration) (managedWorker, error) {
 		return &fakeManagedWorker{start: func() error {
 			close(started)
 			<-proceed
@@ -350,41 +350,41 @@ func TestRegistrationWaitAndDuplicateAcquisitionAreContextBounded(t *testing.T) 
 	requirements := []queueRegistration{{queue: "queue", workflows: []string{"workflow"}}}
 	acquired := make(chan error, 1)
 	go func() {
-		_, err := registry.acquire(context.Background(), "run-1", requirements, nil)
+		_, err := registry.acquire(context.Background(), "run-1", requirements, false, nil)
 		acquired <- err
 	}()
 	<-started
 	canceled, cancel := context.WithCancel(t.Context())
 	cancel()
-	_, err := registry.acquire(canceled, "run-2", requirements, nil)
+	_, err := registry.acquire(canceled, "run-2", requirements, false, nil)
 	require.ErrorIs(t, err, context.Canceled)
 	close(proceed)
 	require.NoError(t, <-acquired)
-	_, err = registry.acquire(t.Context(), "run-1", requirements, nil)
+	_, err = registry.acquire(t.Context(), "run-1", requirements, false, nil)
 	require.ErrorIs(t, err, ErrRegistrationConflict)
 }
 
 func TestRegistrationFailureStopsOnlyStartedWorkersAndNotifiesDependents(t *testing.T) {
 	first := &fakeManagedWorker{start: func() error { return nil }}
 	second := &fakeManagedWorker{start: func() error { return errors.New("start failed") }}
-	registry := newWorkerRegistry(2, func(queue string, _ queueRegistration) (managedWorker, error) {
+	registry := newWorkerRegistry(2, func(_, queue string, _ queueRegistration) (managedWorker, error) {
 		if queue == "a" {
 			return first, nil
 		}
 		return second, nil
 	})
-	_, err := registry.acquire(t.Context(), "run", []queueRegistration{{queue: "a", workflows: []string{"workflow"}}, {queue: "b", workflows: []string{"workflow"}}}, nil)
+	_, err := registry.acquire(t.Context(), "run", []queueRegistration{{queue: "a", workflows: []string{"workflow"}}, {queue: "b", workflows: []string{"workflow"}}}, false, nil)
 	require.EqualError(t, err, "start failed")
 	require.Equal(t, 1, first.stops)
 	require.Zero(t, second.stops)
 
-	registry = newWorkerRegistry(2, func(string, queueRegistration) (managedWorker, error) {
+	registry = newWorkerRegistry(2, func(string, string, queueRegistration) (managedWorker, error) {
 		return &fakeManagedWorker{start: func() error { return nil }}, nil
 	})
 	failures := make(chan string, 2)
-	_, err = registry.acquire(t.Context(), "run-a", []queueRegistration{{queue: "a", workflows: []string{"workflow"}}}, func(queue string, _ error) { failures <- queue })
+	_, err = registry.acquire(t.Context(), "run-a", []queueRegistration{{queue: "a", workflows: []string{"workflow"}}}, false, func(queue string, _ error) { failures <- queue })
 	require.NoError(t, err)
-	_, err = registry.acquire(t.Context(), "run-b", []queueRegistration{{queue: "b", workflows: []string{"workflow"}}}, func(queue string, _ error) { failures <- queue })
+	_, err = registry.acquire(t.Context(), "run-b", []queueRegistration{{queue: "b", workflows: []string{"workflow"}}}, false, func(queue string, _ error) { failures <- queue })
 	require.NoError(t, err)
 	registry.fail("a", errors.New("fatal"))
 	require.Equal(t, "a", <-failures)
@@ -393,30 +393,30 @@ func TestRegistrationFailureStopsOnlyStartedWorkersAndNotifiesDependents(t *test
 
 func TestRegistrationBuildsEveryWorkerBeforeStartingAny(t *testing.T) {
 	starts := 0
-	registry := newWorkerRegistry(2, func(queue string, _ queueRegistration) (managedWorker, error) {
+	registry := newWorkerRegistry(2, func(_, queue string, _ queueRegistration) (managedWorker, error) {
 		if queue == "b" {
 			return nil, errors.New("registration failed")
 		}
 		return &fakeManagedWorker{start: func() error { starts++; return nil }}, nil
 	})
-	_, err := registry.acquire(t.Context(), "run", []queueRegistration{{queue: "a", workflows: []string{"workflow"}}, {queue: "b", workflows: []string{"workflow"}}}, nil)
+	_, err := registry.acquire(t.Context(), "run", []queueRegistration{{queue: "a", workflows: []string{"workflow"}}, {queue: "b", workflows: []string{"workflow"}}}, false, nil)
 	require.EqualError(t, err, "registration failed")
 	require.Zero(t, starts)
 }
 
 func TestRegistrationUsesStructuralNexusSignatures(t *testing.T) {
 	starts := 0
-	registry := newWorkerRegistry(1, func(string, queueRegistration) (managedWorker, error) {
+	registry := newWorkerRegistry(1, func(string, string, queueRegistration) (managedWorker, error) {
 		return &fakeManagedWorker{start: func() error { starts++; return nil }}, nil
 	})
-	release, err := registry.acquire(t.Context(), "run-a", []queueRegistration{{queue: "queue", nexus: []nexusRegistration{{service: "a/b", operation: "c"}}}}, nil)
+	release, err := registry.acquire(t.Context(), "run-a", []queueRegistration{{queue: "queue", nexus: []nexusRegistration{{service: "a/b", operation: "c"}}}}, false, nil)
 	require.NoError(t, err)
 	t.Cleanup(func() {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 		defer cancel()
-		require.NoError(t, release(ctx))
+		require.NoError(t, release.release(ctx))
 	})
-	_, err = registry.acquire(t.Context(), "run-b", []queueRegistration{{queue: "queue", nexus: []nexusRegistration{{service: "a", operation: "b/c"}}}}, nil)
+	_, err = registry.acquire(t.Context(), "run-b", []queueRegistration{{queue: "queue", nexus: []nexusRegistration{{service: "a", operation: "b/c"}}}}, false, nil)
 	require.ErrorIs(t, err, ErrRegistrationConflict)
 	require.Equal(t, 1, starts)
 }
