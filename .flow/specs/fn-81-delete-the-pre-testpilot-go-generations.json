@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-81-delete-the-pre-testpilot-go-generations",
   "impl_review_rounds": {
-    "fn-81-delete-the-pre-testpilot-go-generations.1": 0
+    "fn-81-delete-the-pre-testpilot-go-generations.1": 0,
+    "fn-81-delete-the-pre-testpilot-go-generations.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -321,10 +322,46 @@
       "task": "fn-81-delete-the-pre-testpilot-go-generations.1",
       "timestamp": "2026-09-09T17:09:44.539293Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "96c2f16dadedbf263d62fca43ea4ab9b00f9834ed65e383abd44d7604e99313f",
+      "backend": "claude",
+      "base_sha": "1b99680cc8c70bc3cacde6103b9ef0b0e96eea8d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "claude",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "daf005772fefc6194c0df87c4e518d8de4881446",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "claude-fable-5-1",
+      "outcome": "verdict",
+      "output_bytes": 4178,
+      "output_sha256": "1e3f70a1781ae39a6b9e226c2a4c54c00852fa4d6cfa15b21a56d056cafac379",
+      "reservation_id": "74789afccd13472b89337e29c41b2a02",
+      "round_consumed": true,
+      "scope": "impl:fn-81-delete-the-pre-testpilot-go-generations.2",
+      "superseded_by": null,
+      "task": "fn-81-delete-the-pre-testpilot-go-generations.2",
+      "timestamp": "2026-09-09T17:24:58.312314Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-81-delete-the-pre-testpilot-go-generations.1": 1,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -345,6 +382,7 @@
   },
   "review_transport_failures": {
     "impl:fn-81-delete-the-pre-testpilot-go-generations.1": 0,
+    "impl:fn-81-delete-the-pre-testpilot-go-generations.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md",
@@ -361,5 +399,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-09-09T17:09:44.540242Z"
+  "updated_at": "2026-09-09T17:24:58.313061Z"
 }

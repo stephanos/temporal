@@ -45,9 +45,44 @@ Implements R6 plus the test, genmodels, and umpire-tree parts of R2 and R3 (spec
 - [ ] Ledger records the lost-task property as a future Testpilot candidate
 
 ## Done summary
-TBD
+Removed the legacy white-box seam and the three umpire trees in three commits, each green under
+`go build -tags 'test_dep integration' ./...`.
 
+Commit 1 deleted the nine `tests/umpire[23]_*.go` suites, `tests/lost_task_test.go`, and
+`tests/probe`. It also had to restore three retained functional tests: the branch had replaced the
+bodies of `TestNexusOperationStartsStandaloneActivityBidirectionalLinks`,
+`TestNexusCallbackAfterCallerComplete`, and `TestNexusOperationStartToCloseTimeout` in
+`tests/nexus_workflow_test.go` with delegations into the umpire2 sparse-regression engine, trading
+773 upstream lines for 110. Deleting umpire2 would have left them bodiless, so their `origin/main`
+bodies are restored verbatim with the one branch-added CHASM skip guard preserved. This is an
+unclassified live consumer found during implementation rather than during the .1 research, and it is
+recorded in the ledger under R1's error clause.
+
+Commit 2 deleted `cmd/umpire-genmodels`, `develop/umpire/install-tools.sh`, and the two mise tasks.
+
+Commit 3 removed the seam and the trees together. The history workflow cache lost the `umpireotel`
+and `tools/umpire1/model` imports, the `attribute` import that only served them, the `Instrument`
+span, the `RecordError` call, and the four `RecordFact` calls; it now differs from `origin/main` only
+by pre-existing branch drift. The six comment-only history files lost the comment lines naming the
+observer and citing `.plans/UMPIRE.md`, a file that does not exist; the OTEL span events they
+describe are retained production behaviour and no code changed. The functional harness lost every
+monitor API R6 enumerates, including the gRPC fault-injector interceptor every functional cluster
+installed. `common/testing/umpire`, `tests/testcore/monitor`, `tools/umpire1`, `tools/umpire2`, and
+`tools/umpire3` were deleted in that same commit because the seam and the trees form one import
+cycle.
+
+The early proof point holds. The retained live gate passes against a real cluster with four `--- PASS`
+identities and no failures, and the three restored nexus tests pass in both the HSM and CHASM
+variants. No retained test read monitor facts, so the seam disposition needed no re-evaluation.
+
+The task's acceptance grep over `service tests tools common cmd` returns hits only in
+`tools/umpire/CLEANUP_INVENTORY.md`, which R1 requires to name the deleted roots; those are the
+annotated historical notes the acceptance permits, and there are no others.
+
+stage: impl-review - ran (backend claude, model claude-fable-5-1, effort high, 1 round: SHIP)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 142414beaefdc75da931246ee9cd95834af64f3b, ac10dc1b5e2209dfd88e2dd281173d475e775399, daf005772fefc6194c0df87c4e518d8de4881446
+- Tests: go build -tags 'test_dep integration' ./... (rc=0, after each of the three commits), go vet -tags 'test_dep integration' ./tests/... ./service/history/... ./tools/umpire/... (rc=0), go vet -tags test_dep ./... (rc=1, still exactly the 15 inherited diagnostics), CGO_ENABLED=0 go test -count=1 -tags test_dep ./tests/testcore/... ./tools/umpire/vocabulary/... (rc=0, 3 packages ok), go test -v -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilot' (rc=0 against a live cluster: 4 PASS, 0 FAIL), go test -v -count=1 -tags 'test_dep integration' ./tests -run '^TestNexusWorkflowTestSuite(HSM|CHASM)$/(TestNexusOperationStartsStandaloneActivityBidirectionalLinks|TestNexusCallbackAfterCallerComplete|TestNexusOperationStartToCloseTimeout)$' (rc=0: 4 PASS, 2 SKIP on their intended CHASM guards), goimports -l over the twelve edited Go files (clean)
 - PRs:
+stage: plan-sync - skipped(config: planSync.enabled != true)
