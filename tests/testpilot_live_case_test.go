@@ -40,15 +40,16 @@ type testpilotLiveCase struct {
 // newTestpilotLiveCase performs the binding every live Case needs: register the namespace, create
 // the Nexus endpoint when one is named, freeze the Profile, prepare the unchanged Case bytes, and
 // open one Driver over the frozen Profile. Every resource it creates is released by a registered
-// cleanup. After the Driver exists it mutates the frozen bindings, so a Driver that read its
-// environment lazily rather than from its own snapshot fails in each caller's binding assertion.
+// cleanup, all under the one cleanupTimeout the caller chose. After the Driver exists it mutates
+// the frozen bindings, so a Driver that read its environment lazily rather than from its own
+// snapshot fails in each caller's binding assertion.
 func newTestpilotLiveCase(
 	t *testing.T,
 	env *testcore.TestEnv,
 	caseSource *testpilotpb.Case,
 	profile testpilot.ProfileSpec,
 	resources testpilotLiveResources,
-	workerStopTimeout time.Duration,
+	cleanupTimeout time.Duration,
 ) testpilotLiveCase {
 	t.Helper()
 	_, err := env.RegisterNamespace(namespace.Name(resources.Namespace), 1, enumspb.ARCHIVAL_STATE_DISABLED, "", "")
@@ -64,7 +65,7 @@ func newTestpilotLiveCase(
 		})
 		require.NoError(t, err)
 		t.Cleanup(func() {
-			ctx, cancel := context.WithTimeout(context.Background(), testpilotCleanupTimeout)
+			ctx, cancel := context.WithTimeout(context.Background(), cleanupTimeout)
 			defer cancel()
 			_, err := env.OperatorClient().DeleteNexusEndpoint(ctx, &operatorservice.DeleteNexusEndpointRequest{
 				Id: created.GetEndpoint().GetId(), Version: created.GetEndpoint().GetVersion(),
@@ -88,11 +89,11 @@ func newTestpilotLiveCase(
 		SystemCallbackBaseURL: "http://" + env.HttpAPIAddress(),
 		SDKClient:             caseClient,
 		WorkerRoleID:          "temporal.worker",
-		WorkerStopTimeout:     workerStopTimeout,
+		WorkerStopTimeout:     cleanupTimeout,
 	})
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), workerStopTimeout)
+		ctx, cancel := context.WithTimeout(context.Background(), cleanupTimeout)
 		defer cancel()
 		require.NoError(t, driver.Close(ctx))
 	})

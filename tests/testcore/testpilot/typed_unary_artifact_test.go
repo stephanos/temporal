@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -97,6 +98,7 @@ func TestTypedUnaryCaseMissingRecordedTypeStaysInconclusive(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, testpilotspb.RUN_STATUS_COMPLETED, run.GetStatus())
 			require.Equal(t, testpilotspb.VERDICT_STATUS_INCONCLUSIVE, verdict.GetStatus())
+			require.Len(t, verdict.GetRules(), 1)
 			require.Empty(t, verdict.GetRules()[0].GetTerminalStateId())
 			require.Empty(t, verdict.GetRules()[0].GetSupportingEventSequences())
 		})
@@ -109,9 +111,15 @@ func TestTypedUnaryCaseMissingRecordedTypeStaysInconclusive(t *testing.T) {
 // load turns an unread field into a satisfied clause.
 func TestTypedUnaryCaseBoundedHistoryLoad(t *testing.T) {
 	prepared, source := typedUnaryArtifactPrepared(t)
-	budget := source.GetProgram().GetLimits().GetMaxResponseBytes()
-	require.Positive(t, budget)
+	payloadBudget := source.GetProgram().GetLimits().GetMaxResponseBytes()
+	collectionBudget := source.GetProgram().GetLimits().GetMaxPathFanout()
+	require.Positive(t, payloadBudget)
+	require.Positive(t, collectionBudget)
 
+	// The two bounds are exercised one at a time. The collection cases carry empty filler names so
+	// their responses stay far inside the payload budget, and the payload case carries four events
+	// so it stays far inside the collection budget. The started event the clause reads counts
+	// against the collection budget alongside the filler.
 	for _, test := range []struct {
 		name     string
 		filler   int
@@ -121,16 +129,21 @@ func TestTypedUnaryCaseBoundedHistoryLoad(t *testing.T) {
 		terminal string
 	}{
 		{
-			name: "inside the budget", filler: 4, bytes: 64,
+			name: "inside both budgets", filler: 4, bytes: 64,
 			run: testpilotspb.RUN_STATUS_COMPLETED, verdict: testpilotspb.VERDICT_STATUS_SATISFIED,
 			terminal: "satisfied",
 		},
 		{
-			name: "past the collection budget", filler: 512, bytes: 64,
+			name: "at the collection budget", filler: int(collectionBudget) - 1, bytes: 0,
+			run: testpilotspb.RUN_STATUS_COMPLETED, verdict: testpilotspb.VERDICT_STATUS_SATISFIED,
+			terminal: "satisfied",
+		},
+		{
+			name: "one past the collection budget", filler: int(collectionBudget), bytes: 0,
 			run: testpilotspb.RUN_STATUS_INCOMPLETE, verdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
 		},
 		{
-			name: "past the payload budget", filler: 4, bytes: int(budget) * 2,
+			name: "past the payload budget", filler: 4, bytes: int(payloadBudget) * 2,
 			run: testpilotspb.RUN_STATUS_INCOMPLETE, verdict: testpilotspb.VERDICT_STATUS_INCONCLUSIVE,
 		},
 	} {
@@ -139,10 +152,19 @@ func TestTypedUnaryCaseBoundedHistoryLoad(t *testing.T) {
 				identity: prepared.Identity(), recordedType: TypedUnaryWorkflowType,
 				fillerEvents: test.filler, fillerBytes: test.bytes,
 			}
+			size, observations := int64(proto.Size(driver.historyResponse())), int64(test.filler)+1
+			if test.bytes == 0 || test.verdict == testpilotspb.VERDICT_STATUS_SATISFIED {
+				require.Less(t, size, payloadBudget, "a collection case stays inside the payload budget")
+			} else {
+				require.Greater(t, size, payloadBudget, "the payload case exceeds the payload budget")
+				require.LessOrEqual(t, observations, collectionBudget,
+					"the payload case stays inside the collection budget")
+			}
 			run, verdict, err := prepared.Run(t.Context(), driver)
 			require.NoError(t, err)
 			require.Equal(t, test.run, run.GetStatus())
 			require.Equal(t, test.verdict, verdict.GetStatus())
+			require.Len(t, verdict.GetRules(), 1)
 			require.Equal(t, test.terminal, verdict.GetRules()[0].GetTerminalStateId())
 		})
 	}
@@ -313,7 +335,7 @@ func (d *typedUnaryDriver) historyResponse() *workflowservice.GetWorkflowExecuti
 			EventId: int64(index + 1), EventType: enumspb.EVENT_TYPE_WORKFLOW_TASK_SCHEDULED,
 			Attributes: &historypb.HistoryEvent_WorkflowTaskScheduledEventAttributes{
 				WorkflowTaskScheduledEventAttributes: &historypb.WorkflowTaskScheduledEventAttributes{
-					TaskQueue: &taskqueuepb.TaskQueue{Name: string(make([]byte, d.fillerBytes))},
+					TaskQueue: &taskqueuepb.TaskQueue{Name: strings.Repeat("f", d.fillerBytes)},
 				},
 			},
 		})
