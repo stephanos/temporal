@@ -2,6 +2,7 @@ import Temporal.API
 import Temporal.Shared
 import Temporal.Testpilot.CaseSupport
 import Umpire.Case.Compiler
+import Umpire.Case.Observed
 import Umpire.Property
 import Umpire.Target.Parameterized
 
@@ -428,12 +429,10 @@ def startInstructionId := "start-workflow"
 def historyInstructionId := "history"
 def observationId := "history-event"
 
-/-- The concrete `workflow_type.name` coordinates the Program constructs, and the same coordinates
-the monitor rule reads back out of the started history event. -/
+/-- The concrete `workflow_type.name` coordinates the Program constructs. The coordinates the
+monitor rule reads back out of the started history event are derived from the Property itself,
+below. -/
 private def submittedTypeTarget : FieldPath := nested ["workflow_type", "name"]
-private def recordedTypePath : FieldPath :=
-  Path.make #[Path.oneofSelector "attributes" "workflow_execution_started_event_attributes",
-    Path.field "workflow_type", Path.field "name"]
 
 private def program (startPath historyPath : String) : Program :=
   Program.make "temporal.case.typed-unary.program"
@@ -469,13 +468,26 @@ private def program (startPath historyPath : String) : Program :=
     (environment := #[Program.environment namespaceBindingId,
       Program.environment taskQueueBindingId])
 
+/-! ### The derived Contract
+
+The field the runtime reads is `Umpire.Case.Observed.pathOf` applied to the same
+`PropertyFieldPath` the model Property compares, so a Property edit that moves the recorded
+coordinate moves the Contract's read with it. The rule structure around that path -- its states,
+its presence checks and the submitted-type literal it matches -- is authored here. -/
+
+/-- The runtime read path of one modeled operand, from the declared Observation's own message. -/
+def readPathOf (path : PropertyFieldPath) : Except String FieldPath :=
+  Umpire.Case.Observed.pathOf path historyEventNode
+
 /-- The runtime reading of the one checked clause: the workflow type the started event recorded is
 the one the Program submitted. The rule distinguishes the same three answers the model Property
 does. An event that establishes the recorded type and disagrees with it is a violation, not an
 absence; an event that never establishes the field leaves the rule pending, so a Run that produced
 no started event still closes inconclusive. -/
-private def startedRule (checkedProperty : CheckedProperty) : ContractRuleDefinition :=
-  Monitor.rule (checkedProperty.id.value ++ ".recorded-workflow-type")
+private def startedRule (checkedProperty : CheckedProperty) :
+    Except String ContractRuleDefinition := do
+  let recordedTypePath ← readPathOf startedTypePath
+  pure (Monitor.rule (checkedProperty.id.value ++ ".recorded-workflow-type")
     .CONTRACT_RULE_KIND_SAFETY "pending"
     #[Monitor.state "pending" .CONTRACT_STATE_STATUS_NONTERMINAL,
       Monitor.state "satisfied" .CONTRACT_STATE_STATUS_SATISFIED,
@@ -496,7 +508,7 @@ private def startedRule (checkedProperty : CheckedProperty) : ContractRuleDefini
         ContractExpr.negation (ContractExpr.equals
           (projected (observed observationId) recordedTypePath)
           (ContractExpr.literal (Value.text submittedWorkflowType)))])
-      .CONTRACT_SUPPORT_KIND_MATCHING_EVENT]
+      .CONTRACT_SUPPORT_KIND_MATCHING_EVENT])
 
 /-- The modeled input field this Case must construct, and the exact instruction that constructs it. -/
 def coverage : Umpire.Case.Coverage.Request := {
@@ -516,6 +528,8 @@ def typedUnaryCase : Except Umpire.Case.Compiler.LoweringError
   let checkedProperty := model.property.property
   let propertyBinding := binding checkedProperty.id.value
     checkedProperty.behaviorFingerprint.render .«property»
+  let rule ← (startedRule checkedProperty).mapError fun reason =>
+    loweringError clauseId.value reason
   Umpire.Case.Compiler.compile {
     version := { major := 1 }
     caseId := "temporal.case.typed-unary"
@@ -528,7 +542,7 @@ def typedUnaryCase : Except Umpire.Case.Compiler.LoweringError
     knownGaps := []
     program := program (methodPath model.template.declaration.schema) (methodPath history.schema)
     contractId := "temporal.case.typed-unary.contract"
-    properties := [.monitor propertyBinding (startedRule checkedProperty)]
+    properties := [.monitor propertyBinding rule]
     contractLimits
     coverage
   }

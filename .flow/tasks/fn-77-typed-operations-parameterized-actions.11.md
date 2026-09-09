@@ -58,10 +58,13 @@ inconclusive. Adding a `violated` state plus a tampered-fixture live assertion i
 improvement; task .9's review raised it as a non-blocking P3 and assigned it here or to .10.
 
 ### Known findings introduced by this spec
-`make lint-model` is red at 171 findings: 169 in the generated `Temporal/API/{Types,Proto}.lean`,
-which are pre-existing and not this spec's, plus the two below. An earlier version of this note said
-"exactly 2" and undercounted by omitting the generated-API findings; treat 171 as the baseline. Only
-the two below were introduced by this spec, so only they may not be recorded as inherited:
+RESOLVED during this task. The baseline is **169**, all in generated
+`Temporal/API/{Types,Proto}.lean`; `Umpire.Lint` itself is clean. Two earlier figures in this note
+were both wrong: "exactly 2" omitted the generated-API findings, and "171" then counted this spec's
+own two as if they were permanent. They were neither inherited nor permanent - both are fixed:
+`CheckedRpc` carries `set_option genInjectivity false` (its other two fields are proofs, so simp
+closed the generated lemma, and nothing consumed it) and `PropertyFieldProjection` lost a
+`deriving Repr` that had no consumer. Retained for history, the two findings were:
 - `unusedArguments` on `Umpire.instReprPropertyFieldProjection` (`model/Umpire/Property/Evaluation.lean:470`)
   — from task .5's `deriving Repr`; no consumer of that instance exists.
 - `simpNF` on `Umpire.Operation.CheckedRpc.mk.injEq` (`model/Umpire/Operation.lean:58`) — from task .1;
@@ -195,3 +198,5 @@ reviewer assumed, so the case now pins that ceiling exactly.
 - Commits: 261c0af12665c1a0f6aa9cc551abcb95a2eb3d4f, f8bcaf5deb4d51143236261410a8a690433c95ee
 - Tests: make umpire-build-model => exit 0; /tmp/fn77-11-final-build.log, make umpire-check-lean-api => exit 0; /tmp/fn77-11-checkapi.log, make umpire-check-regression => exit 0; /tmp/fn77-11-regression3.log (live failure identities match the inherited exact set), make lint-model => exit 2 at 169 inherited generated findings (Temporal.API.Types simpNF + Temporal.API.Proto unusedArguments); Umpire.Lint clean; /tmp/fn77-11-final-lintmodel2.log, make lint-code GOLANGCI_LINT_FIX=false => exit 2 at the inherited 1284 issues (errcheck 220, exhaustive 5, forbidigo 209, goimports 1, govet 5, revive 732, staticcheck 111, testifylint 1); /tmp/fn77-11-lintcode2.log, go vet -tags disable_grpc_modules,test_dep -vettool=.bin/errortype -style-check=false ./... => exit 0, zero findings; /tmp/fn77-11-govet2.log, go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api ./common/testing/testpilot/... ./tests/testcore/testpilot/... => exit 0; /tmp/fn77-11-q1c.log, go test -race -tags test_dep ./common/testing/testpilot/... => exit 0; /tmp/fn77-11-race2.log, go test -json -count=1 -tags 'test_dep integration' ./tests -run '^(TestTestpilotTypedUnaryCase|TestTestpilotTypedNexusOperationsCase|TestTestpilotAsyncNexusCase|TestTestpilotAsyncNexusCaseMissingRemoteEndpoint)$' => exit 0, all four run and pass, none skipped; /tmp/fn77-task11-live.jsonl, raw transitive axiom comparison against the task .1 original substrate => /tmp/fn77-task11-trust-comparison.json (5 captures, 0 unexplained missing, added axioms only propext/Classical.choice/Quot.sound), fixture and canonical byte preservation against task .1's frozen hashes => /tmp/fn77-task11-byte-preservation.json (204 of 208 preserved), deterministic regeneration control: make umpire-gen-lean-api twice => identical sha256 for model/Temporal/API.lean and model/Temporal/API/Types.lean, schema mutation control: mutated generator fixture => TestBasicFixture exit 1, restored => exit 0; /tmp/fn77-11-mutant1.log, staleness mutation control: mutated typed-unary-case.json => make umpire-check-case-runtime-conformance exit 2, restored => exit 0; /tmp/fn77-11-mutant2.log
 - PRs:
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
