@@ -103,12 +103,14 @@ versioned, aliased, or deprecated, old names are retired, and a hardened retired
 rejects them. The spec rewrites `UMPIRE4_SPEC.md` under GOV-02, and its task .10 owns the roadmap
 reconciliation, so it will edit this document.
 
-**Blockers: fn-80 and fn-67 remain; fn-77 and fn-81 have closed.** The dependency is byte
-conflict, not semantics: fn-80 tasks .4 to .8 edit `Umpire/Target`, `Umpire/Property`,
-`Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, and fn-67 has an open documentation task on the
-same Nexus3 files — so no area of this spec can land while those two are open. fn-81's deletion of
-the legacy Go trees and their Makefile blocks is done, which removes that source of conflict and
-shrinks this spec's Go surface considerably. It deliberately does not touch fn-77's five in-flight terms
+**Only fn-80 still blocks this spec; fn-77, fn-81, and fn-67 have all closed.** The dependency is
+byte conflict, not semantics: fn-80 tasks .4 to .8 edit `Umpire/Target`, `Umpire/Property`,
+`Umpire/Query`, `Umpire/Space`, and `Umpire/Case`, so no area of this spec can land while those are
+open. fn-81's deletion of the legacy Go trees and their Makefile blocks shrinks this spec's Go
+surface considerably. One seam fn-67 left deliberately for this spec to sweep: it added
+"Semantic fingerprints — the Behavior Fingerprint named above is the same value —" to reconcile a
+pre-existing loose term against the UMPIRE4_SPEC one; collapse that to a single term and delete the
+parenthetical. It deliberately does not touch fn-77's five in-flight terms
 (typed operation, parameterized Action, field-level Property, occurrence, capture); the
 `Umpire.Operation` and `Umpire.Value` renames wait for fn-77 .11 and are limited to `ValueShape` to
 `Shape` plus moving `Parameterized.lean`.
@@ -127,12 +129,11 @@ new command syntax beyond respelling what fn-80 R2 generalizes, and no Go change
 
 ### Additional open specs
 
-These remain open in Flow and are outside the first-canary critical path. fn-67 is not outside fn-82's path, however: fn-82 cannot start until it closes.
+These remain open in Flow and are outside the first-canary critical path.
 
 | Spec                                                                                              | Dependencies | Next action                                                                                                                                                                                                                  |
 | ------------------------------------------------------------------------------------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [fn-46 — Lean module impact index](../.flow/specs/fn-46-export-lean-model-module-impact-index.md) | fn-45        | Refreshed three-task plan is SHIP against current model owners. Deliver the shared loader, pure dependency/facade/test index, and opt-in export/check commands. |
-| [fn-67 — Nexus3 authoring draft](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md)    | None         | Reviewed follow-up plan is SHIP: one documentation task reconciles optional draft compatibility overrides with the success demonstration and clarifies generic versus cancellation support. Preserve the historical draft iteration; no cancellation implementation is required. **fn-82 blocks on this closing** — it edits the same Nexus3 files. |
 
 ## Downstream delivery
 
@@ -153,6 +154,19 @@ leases, recovery, and publication stay outside Testpilot and Umpire.
 
 ## Completed cutovers
 
+- [fn-67](../.flow/specs/fn-67-refine-simple-nexus3-authoring-draft.md): reconciled the broader
+  Nexus3 authoring draft with the delivered success slice. The optional per-declaration compatibility
+  ID is now documented beside the success slice's derivation-only identity — declaration-local,
+  identity-only, never freezing the Behavior Fingerprint — and the "no overrides" claims are scoped
+  to the delivered syntax. `cancellationResolves` now states that generic operation-scoped counting
+  is delivered and qualified, with only its cancellation-specific use rejecting at Case production,
+  replacing a stale "proposed extension" line. The historical draft iteration is preserved intact and
+  fn-79 was not resumed. Documentation only: `Nexus.lean` changed by module docstring alone, with
+  every executable declaration byte-identical. Three impl-review rounds and the completion review are
+  SHIP with zero gaps. Review round 1 caught a false claim that the historical `Cancellation.lean`
+  Target has no evidence adapter — `System/Nexus/ImplementationLink.lean:431-530` holds an offline
+  Lean evidence projection; the boundary is that nothing lowers it into a Testpilot evidence path,
+  operation capability, or Case.
 - [fn-81](../.flow/specs/fn-81-delete-the-pre-testpilot-go-generations.md): deleted the
   pre-Testpilot Go generations — **1,525 files, 386,985 deletions**, tracked files 7,785 -> 6,345,
   packages 546 -> 422, and twelve third-party modules out of `go.mod` with zero hits in the retained

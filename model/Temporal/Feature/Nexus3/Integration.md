@@ -119,7 +119,11 @@ rejection requirements.
 `Temporal.Testpilot.asyncNexusCase` is a useful example of setup, asynchronous handler response,
 completion capability, and history correlation. It has independently authored Program/Contract
 meaning; returning it under a Nexus3 Query ID would not establish Nexus3 lowering correctness.
-The Nexus3 Producer validates the checked mapping and lowers generated Program and Contract values.
+The Nexus3 Producer carries the checked values into generated Program and Contract values. It
+compares no checked value against an expected model: a different Target, Behavior, Query, or
+witness produces different Case bytes. The correlated-history rule is derived from the Facts the
+selected witness records, through the evidence projections the Producer declares, so a Fact with no
+declared Nexus history evidence and a clause no witness step carries both reject by name.
 `Umpire.Case.Compiler.compile` then validates the source-bound rule rows, preserves unsupported
 construct errors, attaches exact Umpire provenance, and performs final generated Case assembly.
 The generated fixture is prepared and run in the live integration test against two distinct
