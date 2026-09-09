@@ -47,9 +47,10 @@ Admission must reject malformed IDs, duplicate or conflicting declarations, ambi
 and wrong-kind references before planning or Case production — overridden and derived IDs alike,
 so an override can neither introduce a colliding identity nor rescue a rejected one. Derivation
 does not use source positions, declaration order, or enum numeric ordinals. Semantic fingerprints
-still come from checked meaning, including outcome alternatives, action roles, scope, and bounds;
-changed meaning changes the fingerprint whether or not the ID was overridden. Identity never
-supplies missing transitions or makes a Property pass.
+— the Behavior Fingerprint named above is the same value — still come from checked meaning,
+including outcome alternatives, action roles, scope, and bounds; changed meaning changes the
+fingerprint whether or not the ID was overridden. Identity never supplies missing transitions or
+makes a Property pass.
 
 Authors provide no identity or version input in the delivered success syntax; the override above is
 proposed for the broader draft only. Generated `DefinitionMetadata` retains Umpire's format
@@ -132,10 +133,13 @@ Target can substitute for the scheduled-only, request-then-resolution model here
 `Cancellation.lean` is one such reuse already taken: it derives a separate Target from
 `Nexus2.Race` and adds the explicit terminal closure that Race lacks. It is a historical
 already-started slice, not this draft's Target — it begins at a running operation rather than a
-scheduled one, and it carries Nexus2's own states, Actions, and identities. It is checked at model
-admission only: it has no evidence adapter, no operation-level cancellation capability, and no
-Case, so it qualifies no runtime behavior and satisfies none of the scheduled-only cancellation
-contract deferred to fn-79. Its presence is not cancellation support here.
+scheduled one, and it carries Nexus2's states and Actions under its own Nexus3 Target identity.
+`Temporal/System/Nexus/ImplementationLink.lean` adds an offline Lean evidence projection over it,
+distinguishing submission from confirmation and admitting either resolution. Nothing lowers that
+projection: it reaches no Testpilot evidence path, no operation-level cancellation capability, and
+no Case, and no test exercises it. It therefore qualifies no runtime behavior and satisfies none of
+the scheduled-only cancellation contract deferred to fn-79. Its presence is not cancellation
+support here.
 
 The selected cancellation mechanism is the workflow SDK cancellation function from the dedicated
 `workflow.WithCancel` context used to start this operation. `tests/nexus_workflow_test.go` uses
