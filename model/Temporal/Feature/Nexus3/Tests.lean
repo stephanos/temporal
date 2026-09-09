@@ -620,6 +620,27 @@ query unsupportedQuery on lifecycle
   in successfulCompletion
   limits shortTrace
 
+inductive UnsortedAction where
+  | resolve
+  | cancel
+  deriving BEq, DecidableEq, Repr
+
+/--
+error: Nexus3 action constructors must be declared in sorted order, because the planner admits only a canonically ordered Action catalog; 'resolve' precedes 'cancel'
+-/
+#guard_msgs (error) in
+model unsortedActionLifecycle
+  role operation
+  states State
+  actions UnsortedAction
+  outcomes Outcome
+  facts Fact
+  initial [scheduled]
+  terminal [succeeded]
+  transitions
+    start: scheduled + cancel →
+      { state := started, outcome := acknowledged, facts := [started] }
+
 inductive ParameterizedState where
   | queued
   | running (attempt : Nat)
