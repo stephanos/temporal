@@ -24,6 +24,20 @@ end PropertyPattern
 
 namespace PropertyPredicate
 
+/-- Author an independent field relationship in the existing closed Boolean language. -/
+def compareFields (operator : PropertyFieldOperator) (left right : PropertyFieldOperand)
+    (source : SourceLocation) : PropertyPredicate := .atom {
+  field := .selectedAction
+  reference := .of "umpire.property.fields"
+  constraint := .fields ⟨operator, left, right, source⟩ }
+
+/-- Surface spelling elaborates to exactly the ordinary typed field comparison constructor. -/
+syntax "field_compare%" term:max "with" term:max term:max "at" term:max : term
+
+macro_rules
+  | `(field_compare% $left with $operator $right at $source) =>
+    `(PropertyPredicate.compareFields $operator $left $right $source)
+
 def priorStateIs (value : ModelValue) : PropertyPredicate :=
   .atom {
     field := .priorState

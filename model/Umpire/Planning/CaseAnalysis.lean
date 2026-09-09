@@ -450,6 +450,7 @@ private def traceContinuesTrigger
     item.1 == trace && observationAt trigger item && expectationOf item.2 == expectation
 
 private def constraintValues : PropertyAtomConstraint → Option (List PropertyLiteral)
+  | .fields _ => none
   | .present => none
   | .equals value => some [value]
   | .oneOf values => some values
@@ -467,7 +468,7 @@ private def constraintIntersection
     | some left, some right => some (intersectValues left right)) none
 
 private def atomsOfPredicate : PropertyPredicate → Except JointUnsupportedFormulaClass (List PropertyAtom)
-  | .atom atom => pure [atom]
+  | .atom atom => if atom.fieldComparison.isSome then throw .propertyClause else pure [atom]
   | .all items => items.flatMapM atomsOfPredicate
   | .any _ => throw .disjunction
   | .not _ => throw .negation
@@ -514,7 +515,7 @@ private def logicalConflictsAt
 private def unsupportedPredicateClasses
     (predicate : PropertyPredicate) : List JointUnsupportedFormulaClass :=
   match predicate with
-  | .atom _ => []
+  | .atom atom => if atom.fieldComparison.isSome then [.propertyClause] else []
   | .all items => items.flatMap unsupportedPredicateClasses
   | .any items => .disjunction :: items.flatMap unsupportedPredicateClasses
   | .not item => .negation :: unsupportedPredicateClasses item
