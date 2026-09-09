@@ -10,7 +10,6 @@ import (
 	enumspb "go.temporal.io/api/enums/v1"
 	historypb "go.temporal.io/api/history/v1"
 	testpilotpb "go.temporal.io/server/api/testpilot/v1"
-	testpilotdriver "go.temporal.io/server/common/testing/testpilot/temporal"
 	testpilotfixture "go.temporal.io/server/tests/testcore/testpilot"
 	"google.golang.org/protobuf/proto"
 )
@@ -28,21 +27,17 @@ func TestTestpilotTypedNexusOperationsCase(t *testing.T) {
 	env := newTestpilotTestEnvironment(t)
 	caseSource := loadTestpilotCase(t, "typed-nexus")
 	caseSnapshot := proto.CloneOf(caseSource)
-	catalog, err := testpilotdriver.NewWorkflowServiceCatalog()
-	require.NoError(t, err)
 
-	environment := testpilotfixture.TypedNexusEnvironment{
+	environment := CaseBinding{
+		Identity:      "typed-nexus-profile",
 		Namespace:     "umpire-typed-nexus",
 		TaskQueue:     "umpire-typed-nexus-queue",
 		NexusEndpoint: "umpire-typed-nexus-endpoint",
+
+		CreateEndpoint: true,
+		CleanupTimeout: typedNexusCleanupTimeout,
 	}
-	live := newTestpilotLiveCase(t, env, caseSource,
-		testpilotfixture.TypedNexusProfile(catalog, caseSource, environment),
-		testpilotLiveResources{
-			Namespace: environment.Namespace, TaskQueue: environment.TaskQueue,
-			NexusEndpoint: environment.NexusEndpoint,
-		},
-		typedNexusCleanupTimeout)
+	live := bindCase(t, env, caseSource, environment)
 
 	operations := []string{testpilotfixture.TypedNexusFirstOperation, testpilotfixture.TypedNexusSecondOperation}
 	runIDs := make(map[string]struct{}, 2)
