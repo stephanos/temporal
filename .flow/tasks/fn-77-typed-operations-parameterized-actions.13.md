@@ -86,3 +86,5 @@ stage: impl-review - ran [claude:claude-fable-5-1:high, 1 round, SHIP on first p
 - Commits: ec1b0d8714b7f60663b34b771489b154e8dd38ce
 - Tests: cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests Umpire.Case.CompilerTests => exit 0, mise exec -- make umpire-build-model => exit 0, mise exec -- make umpire-check-case-runtime-conformance => exit 0 (fixture bytes unchanged; typed-unary-case.json did not move), make lint-model => exit 2 at the inherited 169 generated-API findings (167 simpNF #check in Temporal/API/Types.lean + 2 unusedArguments in Temporal/API/Proto.lean); Umpire.Lint clean; no Nexus3 finding, red-first check: mutating the pinned segment literal at Tests/TypedUnary.lean:350 fails exactly that #guard; mutating startedSteps' attribute field number fails it too
 - PRs:
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
