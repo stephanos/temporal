@@ -270,6 +270,16 @@ private def errorKind? (temporal : PropertyScopedClause)
 #guard errorKind? (clause 1 (requirement := some (correlation 0 (id "test.other"))))
   [request "a" 1] == some .unsupportedPredicateInput
 
+-- A capture operand must also name the exact coordinates its declaration retains and an ordinal
+-- that declaration keeps; neither could ever bind, so both reject before any evidence is admitted.
+private def strayCapture : PropertyPredicate :=
+  PropertyPredicate.compareFields .equal (.field replyPath source)
+    (.field { replyPath with capture := some ⟨captureName, 0⟩ } source) source
+#guard errorKind? (clause 1 (requirement := some strayCapture)) [request "a" 1] ==
+  some .unsupportedPredicateInput
+#guard errorKind? (clause 1 (captures := [capture (lifetime := 1)])
+  (requirement := some (correlation 1))) [request "a" 1] == some .unsupportedPredicateInput
+
 -- Two projections at one capture's exact declared coordinates leave the occurrence ambiguous.
 #guard error? (clause 1) [((request "a" 1).1, evidenceAt trigger 1 ++ evidenceAt trigger 1)] ==
   some (.capture (.ambiguous captureName))

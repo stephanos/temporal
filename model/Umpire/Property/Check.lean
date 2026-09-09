@@ -464,19 +464,28 @@ private def fieldPredicateField : PropertyFieldRoot → PropertyPredicateField
 private def validateFieldComparison (context : PropertyCheckContext) (owner : PropertyDeclaration)
     (access : PropertyCapabilityView) (contextKind : PropertyPredicateContext)
     (comparison : PropertyFieldComparison) (facts : List PropertyFieldPath)
-    (captures : List DefinitionId) : Except PropertyError Unit := do
+    (captures : List PropertyScopedCapture) : Except PropertyError Unit := do
   let _ ← PropertyFieldComparison.check comparison.operator comparison.left comparison.right comparison.source
     |>.mapError fun error => nestedPropertyError .typeMismatch owner.id error.source error.reason
   for operand in [comparison.left, comparison.right] do
     if let .field path source := operand then
       let field := fieldPredicateField path.root
-      -- A capture reads an earlier admitted occurrence, so its root is not this step's context;
-      -- it is admitted only where the reading clause declared that exact capture name.
+      -- A capture reads an earlier admitted occurrence, so its root is not this step's context.
+      -- The declaration already fixes which coordinates that occurrence retains, so the operand
+      -- must name a declared capture, its exact retained path, and an ordinal its lifetime keeps.
       match path.capture with
       | some key =>
-          if !captures.contains key.name then
+          let some declared := captures.find? (·.name == key.name)
+            | throw (nestedPropertyError .unsupportedPredicateInput owner.id source
+                ("unbound capture " ++ key.name.value) [key.name])
+          if declared.path != { path with capture := none } then
             throw (nestedPropertyError .unsupportedPredicateInput owner.id source
-              ("unbound capture " ++ key.name.value) [key.name])
+              ("capture " ++ key.name.value ++ ": wrong retained field coordinates")
+              [key.name, path.reference])
+          if key.ordinal ≥ declared.lifetime then
+            throw (nestedPropertyError .unsupportedPredicateInput owner.id source
+              ("capture " ++ key.name.value ++ ": occurrence beyond declared lifetime")
+              [key.name])
       | none =>
           if contextKind == .guard && field != .priorState && field != .selectedAction then
             throw (nestedPropertyError .invalidPredicateContext owner.id source field.name [path.reference])
@@ -503,7 +512,7 @@ private def validatePropertyPredicate
     (access : PropertyCapabilityView)
     (contextKind : PropertyPredicateContext)
     (predicate : PropertyPredicate) (facts : List PropertyFieldPath := [])
-    (captures : List DefinitionId := []) :
+    (captures : List PropertyScopedCapture := []) :
     Except PropertyError Unit :=
   match predicate with
   | .atom atom => do
@@ -540,7 +549,7 @@ private def resolvePropertyPredicate
     (source : SourceLocation)
     (contextKind : PropertyPredicateContext)
     (predicate : PropertyPredicate)
-    (captures : List DefinitionId := []) :
+    (captures : List PropertyScopedCapture := []) :
     Except PropertyError (CheckedPropertyPredicate contextKind) := do
   withNestedSource source <|
     validatePropertyPredicate context { owner with source } access contextKind predicate [] captures
@@ -1178,8 +1187,7 @@ private def checkScopedClause (context : PropertyCheckContext)
   let triggerPattern ← scopedPattern clause clause.trigger true
   let responsePattern ← scopedPattern clause clause.response false
   let correlation ← clause.correlation.mapM fun predicate =>
-    resolvePropertyPredicate context owner access clause.source .guard predicate
-      (clause.captures.map PropertyScopedCapture.name)
+    resolvePropertyPredicate context owner access clause.source .guard predicate clause.captures
   pure ⟨{ clause with scope := DefinitionId.canonicalSet clause.scope },
     trigger, response, triggerPattern, responsePattern, correlation⟩
 
